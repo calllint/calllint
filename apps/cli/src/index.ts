@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 import { readFileSync } from "node:fs"
 import { run } from "./run.js"
+import { computeOnlineEnrichment } from "./online.js"
 
 function readStdin(): string {
   try {
@@ -10,13 +11,31 @@ function readStdin(): string {
   }
 }
 
-const result = run(process.argv.slice(2), {
-  cwd: process.cwd(),
-  readStdin,
-  now: Date.now(),
-  generatedAt: new Date().toISOString(),
-})
+async function main(): Promise<void> {
+  const argv = process.argv.slice(2)
 
-if (result.stdout) process.stdout.write(result.stdout + "\n")
-if (result.stderr) process.stderr.write(result.stderr + "\n")
-process.exitCode = result.exitCode
+  let online
+  try {
+    online = await computeOnlineEnrichment(argv)
+  } catch (err) {
+    process.stderr.write(`--online failed: ${err instanceof Error ? err.message : String(err)}\n`)
+    process.exitCode = 3
+    return
+  }
+
+  if (online?.note) process.stderr.write(`online: ${online.note}\n`)
+
+  const result = run(argv, {
+    cwd: process.cwd(),
+    readStdin,
+    now: Date.now(),
+    generatedAt: new Date().toISOString(),
+    online,
+  })
+
+  if (result.stdout) process.stdout.write(result.stdout + "\n")
+  if (result.stderr) process.stderr.write(result.stderr + "\n")
+  process.exitCode = result.exitCode
+}
+
+void main()

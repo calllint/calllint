@@ -13,6 +13,7 @@ import type { Policy } from "@mcpguard/types"
 import { EXIT, flagBool, flagStr, type ParsedArgs } from "../args.js"
 import type { CommandResult } from "./scan.js"
 import { resolveConfigInput, isInputError } from "./resolveInput.js"
+import type { OnlineEnrichment } from "../run.js"
 
 export interface VerifyDeps {
   cwd: string
@@ -20,6 +21,7 @@ export interface VerifyDeps {
   generatedAt: string
   /** When false, skip writing the baseline file (used in tests). */
   writeBaselineFile?: boolean
+  online?: OnlineEnrichment
 }
 
 function loadPolicy(args: ParsedArgs): Policy | { error: string } {
@@ -39,7 +41,7 @@ export function baselineCommand(args: ParsedArgs, deps: VerifyDeps): CommandResu
   const policy = loadPolicy(args)
   if ("error" in policy) return { stdout: "", stderr: policy.error, exitCode: EXIT.ERROR }
 
-  const input = resolveConfigInput(args, deps)
+  const input = deps.online?.inputOverride ?? resolveConfigInput(args, deps)
   if (isInputError(input)) return { stdout: "", stderr: input.error, exitCode: input.exitCode }
 
   let summary
@@ -47,6 +49,7 @@ export function baselineCommand(args: ParsedArgs, deps: VerifyDeps): CommandResu
     summary = scanConfigText(input.text, input.configPath, {
       policy,
       generatedAt: deps.generatedAt,
+      extraFindings: deps.online?.extraFindings,
     })
   } catch (err) {
     if (err instanceof ConfigParseError) {
@@ -90,7 +93,7 @@ export function verifyCommand(args: ParsedArgs, deps: VerifyDeps): CommandResult
     }
   }
 
-  const input = resolveConfigInput(args, deps)
+  const input = deps.online?.inputOverride ?? resolveConfigInput(args, deps)
   if (isInputError(input)) return { stdout: "", stderr: input.error, exitCode: input.exitCode }
 
   let summary
@@ -98,6 +101,7 @@ export function verifyCommand(args: ParsedArgs, deps: VerifyDeps): CommandResult
     summary = scanConfigText(input.text, input.configPath, {
       policy,
       generatedAt: deps.generatedAt,
+      extraFindings: deps.online?.extraFindings,
     })
   } catch (err) {
     if (err instanceof ConfigParseError) {

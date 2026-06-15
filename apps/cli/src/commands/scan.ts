@@ -18,6 +18,7 @@ import type { Policy } from "@mcpguard/types"
 import { EXIT, flagBool, flagStr, type ParsedArgs } from "../args.js"
 import { exitCodeFor } from "../exitCode.js"
 import { resolveConfigInput, isInputError } from "./resolveInput.js"
+import type { OnlineEnrichment } from "../run.js"
 
 export interface CommandResult {
   stdout: string
@@ -32,6 +33,7 @@ export interface ScanDeps {
   generatedAt: string
   /** When false, skip writing the cache (used in tests). */
   writeCacheFile?: boolean
+  online?: OnlineEnrichment
 }
 
 export function scanCommand(args: ParsedArgs, deps: ScanDeps): CommandResult {
@@ -48,8 +50,8 @@ export function scanCommand(args: ParsedArgs, deps: ScanDeps): CommandResult {
     }
   }
 
-  // Resolve input source.
-  const input = resolveConfigInput(args, deps)
+  // Resolve input source — an --online override (e.g. github config) wins.
+  const input = deps.online?.inputOverride ?? resolveConfigInput(args, deps)
   if (isInputError(input)) {
     return { stdout: "", stderr: input.error, exitCode: input.exitCode }
   }
@@ -62,6 +64,7 @@ export function scanCommand(args: ParsedArgs, deps: ScanDeps): CommandResult {
       policy,
       now: deps.now,
       generatedAt: deps.generatedAt,
+      extraFindings: deps.online?.extraFindings,
     })
   } catch (err) {
     if (err instanceof ConfigParseError) {
