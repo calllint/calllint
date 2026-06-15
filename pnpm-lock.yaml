@@ -31,6 +31,34 @@ importers:
         specifier: workspace:*
         version: link:../fixtures
 
+  packages/core:
+    dependencies:
+      '@mcpguard/config-parser':
+        specifier: workspace:*
+        version: link:../config-parser
+      '@mcpguard/fingerprint':
+        specifier: workspace:*
+        version: link:../fingerprint
+      '@mcpguard/policy':
+        specifier: workspace:*
+        version: link:../policy
+      '@mcpguard/resolver':
+        specifier: workspace:*
+        version: link:../resolver
+      '@mcpguard/risk-engine':
+        specifier: workspace:*
+        version: link:../risk-engine
+      '@mcpguard/static-analyzer':
+        specifier: workspace:*
+        version: link:../static-analyzer
+      '@mcpguard/types':
+        specifier: workspace:*
+        version: link:../types
+    devDependencies:
+      '@mcpguard/fixtures':
+        specifier: workspace:*
+        version: link:../fixtures
+
   packages/fingerprint:
     dependencies:
       '@mcpguard/types':
