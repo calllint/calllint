@@ -7,6 +7,7 @@ import {
   detectUnpinnedPackage,
   detectUnknownRemote,
   detectSecretEnvKeys,
+  detectFinancialAction,
 } from "../src/index.js"
 import type { DetectorContext } from "../src/index.js"
 import { parseConfigFile } from "@mcpguard/config-parser"
@@ -88,6 +89,20 @@ describe("secret env keys detector", () => {
   })
   it("negative: no env does not trigger", () => {
     expect(detectSecretEnvKeys(ctxFor("safe-time.json"))).toHaveLength(0)
+  })
+})
+
+describe("financial action detector", () => {
+  it("positive: a payments package triggers MONEY at S5, non-blocking", () => {
+    const f = detectFinancialAction(ctxFor("review-financial.json"))
+    expect(f).toHaveLength(1)
+    expect(f[0]!.symbol).toBe("MONEY")
+    expect(f[0]!.riskClass).toBe("S5")
+    expect(f[0]!.blocker).toBe(false)
+    expect(f[0]!.mode).toBe("INFERRED")
+  })
+  it("negative: a non-financial package does not trigger", () => {
+    expect(detectFinancialAction(ctxFor("safe-time.json"))).toHaveLength(0)
   })
 })
 

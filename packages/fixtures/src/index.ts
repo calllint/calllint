@@ -37,5 +37,6 @@ export const GOLDEN_CASES: readonly GoldenCase[] = [
   { file: "review-unpinned-package.json", expect: "REVIEW", server: "weather" },
   { file: "block-dangerous-command.json", expect: "BLOCK", server: "shell-runner" },
   { file: "safe-filesystem-workspace.json", expect: "SAFE", server: "filesystem" },
+  { file: "review-financial.json", expect: "REVIEW", server: "payments" },
   { file: "malformed.json", expect: "parse-error" },
 ] as const
