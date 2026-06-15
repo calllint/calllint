@@ -31,7 +31,19 @@ importers:
         specifier: workspace:*
         version: link:../fixtures
 
+  packages/fingerprint:
+    dependencies:
+      '@mcpguard/types':
+        specifier: workspace:*
+        version: link:../types
+
   packages/fixtures:
+    dependencies:
+      '@mcpguard/types':
+        specifier: workspace:*
+        version: link:../types
+
+  packages/policy:
     dependencies:
       '@mcpguard/types':
         specifier: workspace:*
