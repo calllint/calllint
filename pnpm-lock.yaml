@@ -77,6 +77,19 @@ importers:
         specifier: workspace:*
         version: link:../types
 
+  packages/report-renderer:
+    dependencies:
+      '@mcpguard/types':
+        specifier: workspace:*
+        version: link:../types
+    devDependencies:
+      '@mcpguard/core':
+        specifier: workspace:*
+        version: link:../core
+      '@mcpguard/fixtures':
+        specifier: workspace:*
+        version: link:../fixtures
+
   packages/resolver:
     dependencies:
       '@mcpguard/types':
