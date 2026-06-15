@@ -95,14 +95,17 @@ export async function fetchNpmFacts(
 /**
  * Map npm facts into findings. Pure and deterministic. These are OBSERVED (we
  * read the real registry) with higher confidence than the name-based offline
- * heuristics.
+ * heuristics. Every finding is stamped `source: "online"` and carries the
+ * `fetchedAt` timestamp so reports can show — and reviewers can audit — that
+ * the finding depends on network metadata. Online findings are advisory: they
+ * may add risk but the verdict engine never lets them downgrade a verdict.
  */
-export function findingsFromNpmFacts(facts: NpmFacts): Finding[] {
+export function findingsFromNpmFacts(facts: NpmFacts, fetchedAt: string): Finding[] {
   const findings: Finding[] = []
-  const display = facts.resolvedVersion ? `${facts.name}@${facts.resolvedVersion}` : facts.name
+  const stamp = <T extends Finding>(f: T): T => ({ ...f, source: "online", fetchedAt })
 
   if (!facts.versionExists) {
-    findings.push({
+    findings.push(stamp({
       id: "supply.version-not-found",
       title: "Package version not found in registry",
       severity: "high",
@@ -116,12 +119,12 @@ export function findingsFromNpmFacts(facts: NpmFacts): Finding[] {
       impact:
         "The requested package version does not exist on the npm registry, so the configured server cannot be verified or may resolve to something unexpected.",
       fix: "Pin to a published, existing version of the package.",
-    })
+    }))
     return findings
   }
 
   if (facts.installScripts.length > 0) {
-    findings.push({
+    findings.push(stamp({
       id: "supply.install-scripts",
       title: "Package runs install scripts",
       severity: "high",
@@ -141,11 +144,11 @@ export function findingsFromNpmFacts(facts: NpmFacts): Finding[] {
       fix: "Review the install scripts, or install with --ignore-scripts and vendor the package.",
       falsePositiveNote:
         "Many legitimate packages use postinstall for native builds; review what the script does.",
-    })
+    }))
   }
 
   if (facts.deprecated) {
-    findings.push({
+    findings.push(stamp({
       id: "supply.deprecated",
       title: "Package version is deprecated",
       severity: "medium",
@@ -159,7 +162,7 @@ export function findingsFromNpmFacts(facts: NpmFacts): Finding[] {
       impact:
         "A deprecated package may be unmaintained and miss security fixes.",
       fix: "Migrate to the maintained successor or a supported version.",
-    })
+    }))
   }
 
   return findings
@@ -167,12 +170,14 @@ export function findingsFromNpmFacts(facts: NpmFacts): Finding[] {
 
 /**
  * One-shot helper: fetch facts and return findings for a package spec.
- * `display` is unused beyond convenience; callers key findings by server name.
+ * `fetchedAt` is the ISO timestamp stamped on every online finding (injected
+ * for determinism; the CLI passes its `generatedAt`).
  */
 export async function enrichNpmPackage(
   packageSpec: string,
   fetchJson: FetchJson,
+  fetchedAt: string,
 ): Promise<{ facts: NpmFacts; findings: Finding[] }> {
   const facts = await fetchNpmFacts(packageSpec, fetchJson)
-  return { facts, findings: findingsFromNpmFacts(facts) }
+  return { facts, findings: findingsFromNpmFacts(facts, fetchedAt) }
 }

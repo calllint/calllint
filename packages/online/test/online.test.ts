@@ -72,17 +72,20 @@ describe("fetchNpmFacts", () => {
 })
 
 describe("findingsFromNpmFacts", () => {
-  it("emits an EXEC finding for install scripts", () => {
+  it("emits an EXEC finding for install scripts, stamped online + fetchedAt", () => {
     const findings = findingsFromNpmFacts({
       name: "x",
       versionExists: true,
       installScripts: ["postinstall"],
       resolvedVersion: "1.0.0",
-    })
+    }, "2026-06-01T00:00:00.000Z")
     const f = findings.find((x) => x.id === "supply.install-scripts")!
     expect(f.symbol).toBe("EXEC")
     expect(f.mode).toBe("OBSERVED")
     expect(f.confidence).toBe("high")
+    // provenance: online findings must be auditable as network-derived
+    expect(f.source).toBe("online")
+    expect(f.fetchedAt).toBe("2026-06-01T00:00:00.000Z")
   })
 
   it("emits a SUPPLY finding for a deprecated version", () => {
@@ -92,7 +95,7 @@ describe("findingsFromNpmFacts", () => {
       installScripts: [],
       deprecated: "use y instead",
       resolvedVersion: "1.0.0",
-    })
+    }, "2026-06-01T00:00:00.000Z")
     expect(findings.some((f) => f.id === "supply.deprecated")).toBe(true)
   })
 
@@ -101,9 +104,21 @@ describe("findingsFromNpmFacts", () => {
       name: "x",
       versionExists: false,
       installScripts: [],
-    })
+    }, "2026-06-01T00:00:00.000Z")
     expect(findings).toHaveLength(1)
     expect(findings[0]!.id).toBe("supply.version-not-found")
+  })
+
+  it("stamps every online finding with source and fetchedAt", () => {
+    const findings = findingsFromNpmFacts({
+      name: "x",
+      versionExists: false,
+      installScripts: [],
+    }, "2026-06-01T00:00:00.000Z")
+    for (const f of findings) {
+      expect(f.source).toBe("online")
+      expect(f.fetchedAt).toBe("2026-06-01T00:00:00.000Z")
+    }
   })
 })
 

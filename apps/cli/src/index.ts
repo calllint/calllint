@@ -13,10 +13,13 @@ function readStdin(): string {
 
 async function main(): Promise<void> {
   const argv = process.argv.slice(2)
+  // One clock for the whole run: reports' generatedAt and online findings'
+  // fetchedAt share the same timestamp, so a report is internally consistent.
+  const generatedAt = new Date().toISOString()
 
   let online
   try {
-    online = await computeOnlineEnrichment(argv)
+    online = await computeOnlineEnrichment(argv, { fetchedAt: generatedAt })
   } catch (err) {
     process.stderr.write(`--online failed: ${err instanceof Error ? err.message : String(err)}\n`)
     process.exitCode = 3
@@ -29,7 +32,7 @@ async function main(): Promise<void> {
     cwd: process.cwd(),
     readStdin,
     now: Date.now(),
-    generatedAt: new Date().toISOString(),
+    generatedAt,
     online,
   })
 
