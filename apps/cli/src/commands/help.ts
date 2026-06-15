@@ -4,13 +4,18 @@ USAGE
   mcpguard <command> [options]
 
 COMMANDS
-  scan [path]        Scan an MCP config file (default: detect common locations)
-  baseline [path]    Record the approved risk surface as a baseline
-  verify [path]      Compare a fresh scan against the baseline (drift / rug-pull)
+  scan [target]      Scan an MCP config file, or npm:<pkg> / github:<owner/repo>
+  baseline [target]  Record the approved risk surface as a baseline
+  verify [target]    Compare a fresh scan against the baseline (drift / rug-pull)
   explain <server>   Explain the verdict for one server from the last scan
   policy init        Write a default mcpguard.policy.json
   policy explain     Show the effective policy
   help               Show this help
+
+TARGETS
+  <path>             A config file (default: detect common locations)
+  npm:<pkg>[@ver]    Synthesize a config for an npm package (offline)
+  github:<owner/repo>[@ref]   A GitHub repo (requires --online)
 
 SCAN OPTIONS
   --json             Emit the ScanReport JSON (stable, emoji-free)
@@ -31,6 +36,8 @@ EXAMPLES
   mcpguard scan .cursor/mcp.json
   cat .cursor/mcp.json | mcpguard scan --stdin --json
   mcpguard scan ./mcp.json --ci --no-emoji
+  mcpguard scan npm:mcp-weather@1.0.0
+  mcpguard scan github:owner/repo --online
   mcpguard baseline ./mcp.json
   mcpguard verify ./mcp.json --ci
   mcpguard explain filesystem

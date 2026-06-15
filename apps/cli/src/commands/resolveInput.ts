@@ -1,5 +1,6 @@
 import { existsSync, readFileSync } from "node:fs"
 import { join } from "node:path"
+import { parseTargetSpec, synthesizeNpmConfig } from "@mcpguard/core"
 import { EXIT, flagBool, type ParsedArgs } from "../args.js"
 
 /** Common locations to probe when no path is given. */
@@ -45,6 +46,26 @@ export function resolveConfigInput(
     return { text: deps.readStdin(), configPath: "<stdin>" }
   }
   const given = args.positionals[0]
+
+  // npm: / github: synthetic targets (offline). Network enrichment is opt-in
+  // via --online and handled by the caller before reaching here.
+  if (given) {
+    const spec = parseTargetSpec(given)
+    if (spec.kind === "npm") {
+      if (!spec.packageSpec) {
+        return { error: "Empty npm target. Use npm:<package>[@version].", exitCode: EXIT.USAGE }
+      }
+      return synthesizeNpmConfig(spec.packageSpec)
+    }
+    if (spec.kind === "github") {
+      return {
+        error:
+          "GitHub targets require network access. Re-run with --online to fetch repo MCP configs.",
+        exitCode: EXIT.USAGE,
+      }
+    }
+  }
+
   const resolved = given ?? findDefaultConfig(deps.cwd)
   if (!resolved) {
     return {

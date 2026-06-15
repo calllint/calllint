@@ -8,6 +8,13 @@ export { scanConfigFile, scanConfigText } from "./scanConfig.js"
 export { summarize } from "./summarize.js"
 export { buildBaseline, computeDrift } from "./drift.js"
 export {
+  type TargetSpec,
+  type TargetSpecKind,
+  parseTargetSpec,
+  serverNameForPackage,
+  synthesizeNpmConfig,
+} from "./targets.js"
+export {
   defaultCachePath,
   writeCache,
   readCache,
