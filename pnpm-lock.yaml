@@ -50,6 +50,25 @@ importers:
         specifier: workspace:*
         version: link:../fixtures
 
+  packages/risk-engine:
+    dependencies:
+      '@mcpguard/types':
+        specifier: workspace:*
+        version: link:../types
+    devDependencies:
+      '@mcpguard/config-parser':
+        specifier: workspace:*
+        version: link:../config-parser
+      '@mcpguard/fixtures':
+        specifier: workspace:*
+        version: link:../fixtures
+      '@mcpguard/resolver':
+        specifier: workspace:*
+        version: link:../resolver
+      '@mcpguard/static-analyzer':
+        specifier: workspace:*
+        version: link:../static-analyzer
+
   packages/static-analyzer:
     dependencies:
       '@mcpguard/resolver':
