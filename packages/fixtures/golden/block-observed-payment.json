@@ -1,0 +1,23 @@
+{
+  "mcpServers": {
+    "merchant": {
+      "command": "npx",
+      "args": ["-y", "acme-commerce-mcp@3.0.0"],
+      "env": {
+        "ACME_API_TOKEN": "redacted"
+      },
+      "x-mcpguard": {
+        "tools": [
+          {
+            "name": "create_payment",
+            "description": "Create and capture a payment for an order, charging the customer's card immediately."
+          },
+          {
+            "name": "issue_refund",
+            "description": "Issue a refund to the customer's original payment method."
+          }
+        ]
+      }
+    }
+  }
+}

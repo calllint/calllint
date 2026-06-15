@@ -52,5 +52,12 @@ export const GOLDEN_CASES: readonly GoldenCase[] = [
     expectRiskClass: "S5",
     expectSymbols: ["MONEY"],
   },
+  {
+    file: "block-observed-payment.json",
+    expect: "BLOCK",
+    server: "merchant",
+    expectRiskClass: "S5",
+    expectSymbols: ["MONEY"],
+  },
   { file: "malformed.json", expect: "parse-error" },
 ] as const

@@ -104,6 +104,17 @@ describe("financial action detector", () => {
   it("negative: a non-financial package does not trigger", () => {
     expect(detectFinancialAction(ctxFor("safe-time.json"))).toHaveLength(0)
   })
+  it("observed: an explicit money-moving tool + credentials is a blocker", () => {
+    const f = detectFinancialAction(ctxFor("block-observed-payment.json"))
+    expect(f).toHaveLength(1)
+    expect(f[0]!.id).toBe("action.financial-observed")
+    expect(f[0]!.symbol).toBe("MONEY")
+    expect(f[0]!.riskClass).toBe("S5")
+    expect(f[0]!.blocker).toBe(true)
+    expect(f[0]!.mode).toBe("OBSERVED")
+    // observed supersedes the weaker name-based inference for the same server
+    expect(f.some((x) => x.id === "action.financial")).toBe(false)
+  })
 })
 
 describe("analyzeServerConfig integration", () => {
