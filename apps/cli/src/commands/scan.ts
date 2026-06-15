@@ -10,6 +10,7 @@ import {
   renderTerminal,
   renderCompact,
   renderSarif,
+  renderHtml,
   NO_EMOJI_STYLE,
   DEFAULT_STYLE,
 } from "@mcpguard/report-renderer"
@@ -86,6 +87,7 @@ export function scanCommand(args: ParsedArgs, deps: ScanDeps): CommandResult {
   let stdout: string
   if (flagBool(args.flags, "json")) stdout = renderJson(summary)
   else if (flagBool(args.flags, "sarif")) stdout = renderSarif(summary)
+  else if (flagBool(args.flags, "html")) stdout = renderHtml(summary)
   else if (flagBool(args.flags, "compact")) stdout = renderCompact(summary, style)
   else stdout = renderTerminal(summary, style)
 
