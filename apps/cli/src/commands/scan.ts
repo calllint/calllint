@@ -9,6 +9,7 @@ import {
   renderJson,
   renderTerminal,
   renderCompact,
+  renderSarif,
   NO_EMOJI_STYLE,
   DEFAULT_STYLE,
 } from "@mcpguard/report-renderer"
@@ -84,6 +85,7 @@ export function scanCommand(args: ParsedArgs, deps: ScanDeps): CommandResult {
   const style = flagBool(args.flags, "no-emoji") ? NO_EMOJI_STYLE : DEFAULT_STYLE
   let stdout: string
   if (flagBool(args.flags, "json")) stdout = renderJson(summary)
+  else if (flagBool(args.flags, "sarif")) stdout = renderSarif(summary)
   else if (flagBool(args.flags, "compact")) stdout = renderCompact(summary, style)
   else stdout = renderTerminal(summary, style)
 

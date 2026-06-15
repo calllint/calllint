@@ -4,6 +4,7 @@ import {
   renderTerminal,
   renderCompact,
   renderExplain,
+  renderSarif,
   NO_EMOJI_STYLE,
 } from "../src/index.js"
 import { scanConfigFile } from "@mcpguard/core"
@@ -48,6 +49,32 @@ describe("compact renderer", () => {
     expect(lines.length).toBe(2) // one server + total
     expect(lines[0]).toContain("github")
     expect(lines[1]).toContain("TOTAL")
+  })
+})
+
+describe("sarif renderer", () => {
+  it("emits valid SARIF 2.1.0 with deduped rules and mapped levels", () => {
+    const s = scanConfigFile(goldenPath("block-filesystem.json"), OPTS)
+    const out = renderSarif(s)
+    expect(/\p{Extended_Pictographic}/u.test(out)).toBe(false)
+    const sarif = JSON.parse(out)
+    expect(sarif.version).toBe("2.1.0")
+    const run = sarif.runs[0]
+    expect(run.tool.driver.name).toBe("MCPGuard")
+    // a blocker finding (critical/high) maps to error level
+    const result = run.results.find((r: { ruleId: string }) => r.ruleId === "files.broad-path")
+    expect(result.level).toBe("error")
+    expect(result.partialFingerprints.configHash).toMatch(/^sha256:/)
+    expect(result.properties.verdict).toBe("BLOCK")
+    // rules deduped by id
+    const ids = run.tool.driver.rules.map((r: { id: string }) => r.id)
+    expect(new Set(ids).size).toBe(ids.length)
+  })
+
+  it("a safe config produces zero results", () => {
+    const s = scanConfigFile(goldenPath("safe-time.json"), OPTS)
+    const sarif = JSON.parse(renderSarif(s))
+    expect(sarif.runs[0].results).toHaveLength(0)
   })
 })
 
