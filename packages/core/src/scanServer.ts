@@ -25,11 +25,13 @@ export interface ScanServerInput {
  * Pure given its options (now/generatedAt injected). Never executes the server.
  */
 export function scanServer(input: ScanServerInput, opts?: ScanOptions): ScanReport {
-  const { policy, now, generatedAt } = resolveScanOptions(opts)
+  const { policy, now, generatedAt, extraFindings } = resolveScanOptions(opts)
   const { server } = input
 
   const binding = resolveRuntimeBinding(server)
-  const findings = analyzeServerConfig(server)
+  const staticFindings = analyzeServerConfig(server)
+  // Merge in any injected findings for this server (e.g. --online npm facts).
+  const findings = [...staticFindings, ...(extraFindings[server.name] ?? [])]
   const assessment = assessServer(findings, binding)
 
   const decision = applyPolicy(

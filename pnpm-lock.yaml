@@ -26,6 +26,9 @@ importers:
       '@mcpguard/core':
         specifier: workspace:*
         version: link:../../packages/core
+      '@mcpguard/online':
+        specifier: workspace:*
+        version: link:../../packages/online
       '@mcpguard/policy':
         specifier: workspace:*
         version: link:../../packages/policy
@@ -88,6 +91,12 @@ importers:
         version: link:../types
 
   packages/fixtures:
+    dependencies:
+      '@mcpguard/types':
+        specifier: workspace:*
+        version: link:../types
+
+  packages/online:
     dependencies:
       '@mcpguard/types':
         specifier: workspace:*

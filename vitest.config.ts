@@ -15,6 +15,7 @@ export default defineConfig({
       "@mcpguard/fingerprint": r("./packages/fingerprint/src/index.ts"),
       "@mcpguard/report-renderer": r("./packages/report-renderer/src/index.ts"),
       "@mcpguard/core": r("./packages/core/src/index.ts"),
+      "@mcpguard/online": r("./packages/online/src/index.ts"),
       "@mcpguard/fixtures": r("./packages/fixtures/src/index.ts"),
     },
   },
