@@ -44,7 +44,10 @@ export const GOLDEN_CASES: readonly GoldenCase[] = [
   { file: "block-prompt-poison.json", expect: "BLOCK", server: "helpful-notes" },
   { file: "review-unpinned-package.json", expect: "REVIEW", server: "weather" },
   { file: "block-dangerous-command.json", expect: "BLOCK", server: "shell-runner" },
+  { file: "block-powershell-command.json", expect: "BLOCK", server: "ps-runner" },
+  { file: "block-windows-user-profile.json", expect: "BLOCK", server: "filesystem" },
   { file: "safe-filesystem-workspace.json", expect: "SAFE", server: "filesystem" },
+  { file: "safe-windows-workspace.json", expect: "SAFE", server: "filesystem" },
   {
     file: "review-financial.json",
     expect: "REVIEW",

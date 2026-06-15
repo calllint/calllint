@@ -30,6 +30,15 @@ describe("broad filesystem detector", () => {
   it("negative: workspace-scoped path does not trigger", () => {
     expect(detectBroadFilesystemPath(ctxFor("safe-filesystem-workspace.json"))).toHaveLength(0)
   })
+  it("windows: a C:\\Users\\<name> path triggers a blocker", () => {
+    const f = detectBroadFilesystemPath(ctxFor("block-windows-user-profile.json"))
+    expect(f).toHaveLength(1)
+    expect(f[0]!.blocker).toBe(true)
+    expect(f[0]!.symbol).toBe("FILES")
+  })
+  it("windows negative: a ${workspaceFolder}\\src path does not trigger", () => {
+    expect(detectBroadFilesystemPath(ctxFor("safe-windows-workspace.json"))).toHaveLength(0)
+  })
 })
 
 describe("dangerous command detector", () => {
@@ -41,6 +50,12 @@ describe("dangerous command detector", () => {
   })
   it("negative: npx package does not trigger", () => {
     expect(detectDangerousCommand(ctxFor("safe-time.json"))).toHaveLength(0)
+  })
+  it("windows: powershell as the command triggers a blocker", () => {
+    const f = detectDangerousCommand(ctxFor("block-powershell-command.json"))
+    expect(f).toHaveLength(1)
+    expect(f[0]!.symbol).toBe("EXEC")
+    expect(f[0]!.blocker).toBe(true)
   })
 })
 
