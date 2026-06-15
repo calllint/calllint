@@ -3,6 +3,7 @@ import { helpCommand } from "./commands/help.js"
 import { scanCommand, type CommandResult } from "./commands/scan.js"
 import { explainCommand } from "./commands/explain.js"
 import { policyCommand } from "./commands/policy.js"
+import { baselineCommand, verifyCommand } from "./commands/verify.js"
 
 export interface RunDeps {
   cwd: string
@@ -29,6 +30,20 @@ export function run(argv: string[], deps: RunDeps): CommandResult {
         now: deps.now,
         generatedAt: deps.generatedAt,
         writeCacheFile: deps.writeCacheFile,
+      })
+    case "baseline":
+      return baselineCommand(args, {
+        cwd: deps.cwd,
+        readStdin: deps.readStdin,
+        generatedAt: deps.generatedAt,
+        writeBaselineFile: deps.writeCacheFile,
+      })
+    case "verify":
+      return verifyCommand(args, {
+        cwd: deps.cwd,
+        readStdin: deps.readStdin,
+        generatedAt: deps.generatedAt,
+        writeBaselineFile: deps.writeCacheFile,
       })
     case "explain":
       return explainCommand(args, { cwd: deps.cwd })

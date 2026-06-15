@@ -145,3 +145,42 @@ describe("unknown command", () => {
     expect(r.exitCode).toBe(2)
   })
 })
+
+describe("baseline + verify (drift)", () => {
+  const v1 = JSON.stringify({
+    mcpServers: { weather: { command: "npx", args: ["-y", "mcp-weather@1.0.0"] } },
+  })
+  const v2 = JSON.stringify({
+    mcpServers: { weather: { command: "npx", args: ["-y", "mcp-weather@2.0.0"] } },
+  })
+
+  it("baseline writes a file, verify reports no drift on identical config", () => {
+    const b = run(["baseline", "--stdin"], deps(v1))
+    expect(b.exitCode).toBe(EXIT.OK)
+    expect(existsSync(join(dir, ".mcpguard", "baseline.json"))).toBe(true)
+
+    const v = run(["verify", "--stdin", "--ci"], deps(v1))
+    expect(v.exitCode).toBe(EXIT.OK)
+    expect(v.stdout).toContain("no drift")
+  })
+
+  it("verify flags a pinned-version bump as a rug-pull and exits 40 under --ci", () => {
+    run(["baseline", "--stdin"], deps(v1))
+    const v = run(["verify", "--stdin", "--ci"], deps(v2))
+    expect(v.exitCode).toBe(EXIT.DRIFT)
+    expect(v.stdout).toContain("RUG-PULL")
+  })
+
+  it("verify without a baseline errors", () => {
+    const v = run(["verify", "--stdin"], deps(v1))
+    expect(v.exitCode).toBe(EXIT.ERROR)
+    expect(v.stderr).toContain("No baseline")
+  })
+
+  it("drift without --ci still exits 0 (advisory)", () => {
+    run(["baseline", "--stdin"], deps(v1))
+    const v = run(["verify", "--stdin"], deps(v2))
+    expect(v.exitCode).toBe(EXIT.OK)
+    expect(v.stdout).toContain("RUG-PULL")
+  })
+})

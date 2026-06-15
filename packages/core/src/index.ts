@@ -6,10 +6,14 @@ export {
 export { scanServer, type ScanServerInput } from "./scanServer.js"
 export { scanConfigFile, scanConfigText } from "./scanConfig.js"
 export { summarize } from "./summarize.js"
+export { buildBaseline, computeDrift } from "./drift.js"
 export {
   defaultCachePath,
   writeCache,
   readCache,
+  defaultBaselinePath,
+  writeBaseline,
+  readBaseline,
 } from "./cache.js"
 
 // Re-export the parse error so consumers can catch it from one place.

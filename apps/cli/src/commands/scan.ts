@@ -1,4 +1,3 @@
-import { existsSync, readFileSync } from "node:fs"
 import { join } from "node:path"
 import {
   scanConfigText,
@@ -16,21 +15,13 @@ import {
 import type { Policy } from "@mcpguard/types"
 import { EXIT, flagBool, flagStr, type ParsedArgs } from "../args.js"
 import { exitCodeFor } from "../exitCode.js"
+import { resolveConfigInput, isInputError } from "./resolveInput.js"
 
 export interface CommandResult {
   stdout: string
   stderr?: string
   exitCode: number
 }
-
-/** Common locations to probe when no path is given. */
-const DEFAULT_CONFIG_PATHS = [
-  ".cursor/mcp.json",
-  ".mcp.json",
-  "mcp.json",
-  ".claude/settings.json",
-  ".vscode/mcp.json",
-]
 
 export interface ScanDeps {
   cwd: string
@@ -41,16 +32,7 @@ export interface ScanDeps {
   writeCacheFile?: boolean
 }
 
-function findDefaultConfig(cwd: string): string | undefined {
-  for (const rel of DEFAULT_CONFIG_PATHS) {
-    const p = join(cwd, rel)
-    if (existsSync(p)) return p
-  }
-  return undefined
-}
-
 export function scanCommand(args: ParsedArgs, deps: ScanDeps): CommandResult {
-  const useStdin = flagBool(args.flags, "stdin")
   const policyPath = flagStr(args.flags, "policy")
 
   let policy: Policy
@@ -65,29 +47,11 @@ export function scanCommand(args: ParsedArgs, deps: ScanDeps): CommandResult {
   }
 
   // Resolve input source.
-  let text: string
-  let configPath: string
-  if (useStdin) {
-    text = deps.readStdin()
-    configPath = "<stdin>"
-  } else {
-    const given = args.positionals[0]
-    const resolved = given ?? findDefaultConfig(deps.cwd)
-    if (!resolved) {
-      return {
-        stdout: "",
-        stderr:
-          "No config given and none found. Pass a path or use --stdin.\nLooked in: " +
-          DEFAULT_CONFIG_PATHS.join(", "),
-        exitCode: EXIT.USAGE,
-      }
-    }
-    if (!existsSync(resolved)) {
-      return { stdout: "", stderr: `File not found: ${resolved}`, exitCode: EXIT.USAGE }
-    }
-    text = readFileSync(resolved, "utf8")
-    configPath = resolved
+  const input = resolveConfigInput(args, deps)
+  if (isInputError(input)) {
+    return { stdout: "", stderr: input.error, exitCode: input.exitCode }
   }
+  const { text, configPath } = input
 
   // Scan.
   let summary
