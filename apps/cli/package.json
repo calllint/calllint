@@ -1,0 +1,24 @@
+{
+  "name": "@mcpguard/cli",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "bin": {
+    "mcpguard": "./dist/index.js"
+  },
+  "scripts": {
+    "dev": "tsx src/index.ts",
+    "build": "node ./build.mjs",
+    "start": "node ./dist/index.js"
+  },
+  "dependencies": {
+    "@mcpguard/core": "workspace:*",
+    "@mcpguard/policy": "workspace:*",
+    "@mcpguard/report-renderer": "workspace:*",
+    "@mcpguard/types": "workspace:*"
+  },
+  "devDependencies": {
+    "@mcpguard/fixtures": "workspace:*",
+    "esbuild": "^0.21.5"
+  }
+}
