@@ -1,0 +1,20 @@
+{
+  "name": "@mcpguard/risk-engine",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "dependencies": {
+    "@mcpguard/types": "workspace:*"
+  },
+  "devDependencies": {
+    "@mcpguard/config-parser": "workspace:*",
+    "@mcpguard/resolver": "workspace:*",
+    "@mcpguard/static-analyzer": "workspace:*",
+    "@mcpguard/fixtures": "workspace:*"
+  }
+}
