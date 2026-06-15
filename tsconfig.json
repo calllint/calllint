@@ -1,0 +1,31 @@
+{
+  "extends": "./tsconfig.base.json",
+  "compilerOptions": {
+    "noEmit": true,
+    "composite": false,
+    "incremental": false,
+    "types": ["node"],
+    "baseUrl": ".",
+    "paths": {
+      "@mcpguard/types": ["packages/types/src/index.ts"],
+      "@mcpguard/types/*": ["packages/types/src/*"],
+      "@mcpguard/config-parser": ["packages/config-parser/src/index.ts"],
+      "@mcpguard/resolver": ["packages/resolver/src/index.ts"],
+      "@mcpguard/static-analyzer": ["packages/static-analyzer/src/index.ts"],
+      "@mcpguard/risk-engine": ["packages/risk-engine/src/index.ts"],
+      "@mcpguard/policy": ["packages/policy/src/index.ts"],
+      "@mcpguard/fingerprint": ["packages/fingerprint/src/index.ts"],
+      "@mcpguard/report-renderer": ["packages/report-renderer/src/index.ts"],
+      "@mcpguard/core": ["packages/core/src/index.ts"],
+      "@mcpguard/fixtures": ["packages/fixtures/src/index.ts"]
+    }
+  },
+  "include": [
+    "packages/*/src/**/*.ts",
+    "packages/*/test/**/*.ts",
+    "apps/*/src/**/*.ts",
+    "tests/**/*.ts",
+    "vitest.config.ts"
+  ],
+  "exclude": ["**/dist/**", "**/node_modules/**"]
+}
