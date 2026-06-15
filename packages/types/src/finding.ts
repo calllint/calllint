@@ -58,4 +58,13 @@ export interface Finding {
   impact: string
   fix: string
   falsePositiveNote?: string
+  /**
+   * Provenance of the finding. Defaults to offline (the pure analyzers). Online
+   * enrichment (--online) marks its findings "online" so reports can show, and
+   * reviewers can audit, which findings depend on network metadata. Online
+   * findings are advisory: they may add risk but never downgrade a verdict.
+   */
+  source?: "offline" | "online"
+  /** ISO timestamp the online metadata was fetched at (online findings only). */
+  fetchedAt?: string
 }

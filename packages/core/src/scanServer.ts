@@ -5,7 +5,7 @@ import type {
   ScanTarget,
   TargetKind,
 } from "@mcpguard/types"
-import { VERDICT_PUBLIC_LABEL } from "@mcpguard/types"
+import { VERDICT_PUBLIC_LABEL, VERDICT_SEVERITY } from "@mcpguard/types"
 import { resolveRuntimeBinding } from "@mcpguard/resolver"
 import { analyzeServerConfig } from "@mcpguard/static-analyzer"
 import { assessServer } from "@mcpguard/risk-engine"
@@ -30,9 +30,25 @@ export function scanServer(input: ScanServerInput, opts?: ScanOptions): ScanRepo
 
   const binding = resolveRuntimeBinding(server)
   const staticFindings = analyzeServerConfig(server)
+  const injected = extraFindings[server.name] ?? []
   // Merge in any injected findings for this server (e.g. --online npm facts).
-  const findings = [...staticFindings, ...(extraFindings[server.name] ?? [])]
+  const findings = [...staticFindings, ...injected]
   const assessment = assessServer(findings, binding)
+
+  // --- Online no-downgrade invariant (enforced, not just convention). ---
+  // Online enrichment is advisory: it may surface more risk, never less. We
+  // recompute the offline-only verdict and require the enriched verdict to be
+  // at least as severe. A regression here means an injected finding somehow
+  // lowered the verdict, which must never happen — fail loudly.
+  if (injected.length > 0) {
+    const offlineVerdict = assessServer(staticFindings, binding).verdict
+    if (VERDICT_SEVERITY[assessment.verdict] < VERDICT_SEVERITY[offlineVerdict]) {
+      throw new Error(
+        `Online enrichment downgraded verdict for "${server.name}" ` +
+          `(${offlineVerdict} -> ${assessment.verdict}); enrichment must never lower risk.`,
+      )
+    }
+  }
 
   const decision = applyPolicy(
     assessment.verdict,

@@ -32,6 +32,8 @@ export async function computeOnlineEnrichment(
   deps: {
     fetchJson?: FetchJson
     fetchText?: FetchText
+    /** ISO timestamp stamped on online findings; defaults injected by caller. */
+    fetchedAt?: string
   } = {},
 ): Promise<OnlineEnrichment | undefined> {
   const args = parseArgs(argv)
@@ -42,10 +44,11 @@ export async function computeOnlineEnrichment(
   const spec = parseTargetSpec(given)
   const fetchJson = deps.fetchJson ?? realFetchJson
   const fetchText = deps.fetchText ?? realFetchText
+  const fetchedAt = deps.fetchedAt ?? new Date().toISOString()
 
   if (spec.kind === "npm" && spec.packageSpec) {
     const serverName = serverNameForPackage(spec.packageSpec)
-    const { findings } = await enrichNpmPackage(spec.packageSpec, fetchJson)
+    const { findings } = await enrichNpmPackage(spec.packageSpec, fetchJson, fetchedAt)
     return { extraFindings: { [serverName]: findings } }
   }
 

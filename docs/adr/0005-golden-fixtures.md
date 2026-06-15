@@ -9,12 +9,15 @@ A fixed set of golden fixtures defines the project's verdict contract:
 | Fixture                      | Expected verdict |
 | ---------------------------- | ---------------- |
 | safe-time.json               | SAFE             |
+| safe-filesystem-workspace.json | SAFE           |
 | review-github.json           | REVIEW           |
-| block-filesystem.json        | BLOCK            |
-| unknown-remote.json          | UNKNOWN          |
-| block-prompt-poison.json     | BLOCK            |
 | review-unpinned-package.json | REVIEW           |
+| review-financial.json        | REVIEW (S5, MONEY, name-inferred) |
+| block-filesystem.json        | BLOCK            |
+| block-prompt-poison.json     | BLOCK            |
 | block-dangerous-command.json | BLOCK            |
+| block-observed-payment.json  | BLOCK (S5, MONEY, observed money-mover) |
+| unknown-remote.json          | UNKNOWN          |
 | malformed.json               | parse error      |
 
 ## Rules
