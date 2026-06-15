@@ -139,6 +139,28 @@ describe("policy", () => {
   })
 })
 
+describe("synthetic targets (npm / github)", () => {
+  it("scans an npm package offline", () => {
+    const r = run(["scan", "npm:mcp-weather@latest", "--no-emoji"], deps())
+    expect(r.exitCode).toBe(EXIT.OK)
+    expect(r.stdout).toContain("REVIEW")
+    expect(r.stdout).toContain("mcp-weather")
+  })
+
+  it("npm target works with --json and is parseable", () => {
+    const r = run(["scan", "npm:mcp-stripe-pay@1.0.0", "--json"], deps())
+    const parsed = JSON.parse(r.stdout)
+    expect(parsed.configPath).toBe("npm:mcp-stripe-pay@1.0.0")
+    expect(parsed.reports[0].symbols).toContain("MONEY")
+  })
+
+  it("github target offline tells the user to use --online", () => {
+    const r = run(["scan", "github:owner/repo"], deps())
+    expect(r.exitCode).toBe(EXIT.USAGE)
+    expect(r.stderr).toContain("--online")
+  })
+})
+
 describe("unknown command", () => {
   it("exits 2", () => {
     const r = run(["frobnicate"], deps())
