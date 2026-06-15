@@ -3,7 +3,7 @@ import { execFileSync } from "node:child_process"
 import { fileURLToPath } from "node:url"
 import { dirname, join } from "node:path"
 import { existsSync, readFileSync } from "node:fs"
-import { goldenPath } from "@mcpguard/fixtures"
+import { goldenPath, GOLDEN_CASES } from "@mcpguard/fixtures"
 
 const here = dirname(fileURLToPath(import.meta.url))
 const repoRoot = join(here, "..", "..", "..")
@@ -71,20 +71,24 @@ describe("built binary E2E", () => {
   })
 
   it("the full golden verdict contract holds through the binary", () => {
-    const cases: Array<[string, string]> = [
-      ["safe-time.json", "SAFE"],
-      ["review-github.json", "REVIEW"],
-      ["block-filesystem.json", "BLOCK"],
-      ["unknown-remote.json", "UNKNOWN"],
-      ["block-prompt-poison.json", "BLOCK"],
-      ["review-unpinned-package.json", "REVIEW"],
-      ["block-dangerous-command.json", "BLOCK"],
-      ["safe-filesystem-workspace.json", "SAFE"],
-    ]
-    for (const [file, expected] of cases) {
-      const input = readFileSync(goldenPath(file), "utf8")
+    // Drive the contract from the single source of truth (GOLDEN_CASES) so the
+    // E2E set can never silently drift out of sync with the fixture registry.
+    // review-financial (MONEY/S5) is included here by construction — adding any
+    // golden case automatically extends this binary-level contract.
+    for (const c of GOLDEN_CASES) {
+      if (c.expect === "parse-error") continue
+      const input = readFileSync(goldenPath(c.file), "utf8")
       const { stdout } = runBin(["scan", "--stdin", "--json"], input)
-      expect(JSON.parse(stdout).verdict, file).toBe(expected)
+      const parsed = JSON.parse(stdout)
+      expect(parsed.verdict, c.file).toBe(c.expect)
+
+      const report = parsed.reports[0]
+      if (c.expectRiskClass) {
+        expect(report.riskClass, `${c.file} riskClass`).toBe(c.expectRiskClass)
+      }
+      for (const sym of c.expectSymbols ?? []) {
+        expect(report.symbols, `${c.file} symbols`).toContain(sym)
+      }
     }
   })
 

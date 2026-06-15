@@ -1,7 +1,7 @@
 import { readFileSync } from "node:fs"
 import { fileURLToPath } from "node:url"
 import { dirname, join } from "node:path"
-import type { Verdict } from "@mcpguard/types"
+import type { RiskClass, RiskSymbol, Verdict } from "@mcpguard/types"
 
 const here = dirname(fileURLToPath(import.meta.url))
 /** packages/fixtures/golden */
@@ -26,6 +26,14 @@ export interface GoldenCase {
   expect: Verdict | "parse-error"
   /** The server name inside the config (for single-server fixtures). */
   server?: string
+  /**
+   * Expected risk class for the single server, when it is part of the contract.
+   * Pinned for high-stakes fixtures (e.g. MONEY/S5) so a class regression fails
+   * the build, not just a verdict regression.
+   */
+  expectRiskClass?: RiskClass
+  /** Risk symbols that MUST appear in the report (subset check, not exact). */
+  expectSymbols?: readonly RiskSymbol[]
 }
 
 export const GOLDEN_CASES: readonly GoldenCase[] = [
@@ -37,6 +45,12 @@ export const GOLDEN_CASES: readonly GoldenCase[] = [
   { file: "review-unpinned-package.json", expect: "REVIEW", server: "weather" },
   { file: "block-dangerous-command.json", expect: "BLOCK", server: "shell-runner" },
   { file: "safe-filesystem-workspace.json", expect: "SAFE", server: "filesystem" },
-  { file: "review-financial.json", expect: "REVIEW", server: "payments" },
+  {
+    file: "review-financial.json",
+    expect: "REVIEW",
+    server: "payments",
+    expectRiskClass: "S5",
+    expectSymbols: ["MONEY"],
+  },
   { file: "malformed.json", expect: "parse-error" },
 ] as const
