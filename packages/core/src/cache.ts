@@ -1,6 +1,6 @@
 import { writeFileSync, readFileSync, mkdirSync, existsSync } from "node:fs"
 import { dirname, join } from "node:path"
-import type { ConfigSummaryReport } from "@mcpguard/types"
+import type { Baseline, ConfigSummaryReport } from "@mcpguard/types"
 
 /** Default cache location for the most recent scan, used by `explain`. */
 export function defaultCachePath(cwd = process.cwd()): string {
@@ -16,6 +16,25 @@ export function readCache(path = defaultCachePath()): ConfigSummaryReport | unde
   if (!existsSync(path)) return undefined
   try {
     return JSON.parse(readFileSync(path, "utf8")) as ConfigSummaryReport
+  } catch {
+    return undefined
+  }
+}
+
+/** Default location for the approved baseline, used by `verify`. */
+export function defaultBaselinePath(cwd = process.cwd()): string {
+  return join(cwd, ".mcpguard", "baseline.json")
+}
+
+export function writeBaseline(baseline: Baseline, path = defaultBaselinePath()): void {
+  mkdirSync(dirname(path), { recursive: true })
+  writeFileSync(path, JSON.stringify(baseline, null, 2), "utf8")
+}
+
+export function readBaseline(path = defaultBaselinePath()): Baseline | undefined {
+  if (!existsSync(path)) return undefined
+  try {
+    return JSON.parse(readFileSync(path, "utf8")) as Baseline
   } catch {
     return undefined
   }

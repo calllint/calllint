@@ -4,6 +4,7 @@
  *   10 REVIEW (only when policy.ci.failOnReview)
  *   20 UNKNOWN
  *   30 BLOCK
+ *   40 DRIFT (verify: risk surface changed vs baseline)
  *   2  usage error
  *   3  parse error / runtime error
  */
@@ -14,6 +15,7 @@ export const EXIT = {
   REVIEW: 10,
   UNKNOWN: 20,
   BLOCK: 30,
+  DRIFT: 40,
 } as const
 
 export interface ParsedArgs {
