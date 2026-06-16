@@ -66,4 +66,4 @@ and limitations: https://github.com/saintl1022/calllint
 
 ## License
 
-MIT
+Apache-2.0 — see [LICENSE](LICENSE) and [NOTICE](NOTICE).
