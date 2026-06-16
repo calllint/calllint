@@ -40,7 +40,8 @@ describe("package smoke (shipped artifact)", () => {
   })
 
   it("declares a bin entry pointing at the built artifact", () => {
-    expect(cliPkg.bin?.mcpguard).toBe("./dist/index.js")
+    // npm canonicalizes to "dist/index.js" (no ./) on publish; accept either.
+    expect(cliPkg.bin?.mcpguard?.replace(/^\.\//, "")).toBe("dist/index.js")
     expect(cliPkg.type).toBe("module")
   })
 

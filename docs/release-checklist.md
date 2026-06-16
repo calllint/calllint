@@ -49,19 +49,26 @@ Run the built binary the way a user would:
 - [ ] `LIMITATIONS.md` still accurate.
 - [ ] Any schema/behaviour change recorded as an ADR under `docs/adr/`.
 
-## 6. Packaging note (current constraint)
+## 6. Packaging & distribution
 
-The CLI ships as a **self-contained esbuild bundle** (`apps/cli/dist/index.js`),
-which is what the smoke test validates. A true `npm pack` / `npx mcpguard` flow
-is **not yet wired**: the workspace packages use `workspace:*` deps and the root
-is `private`, so packing the published surface requires either inlining those
-deps into a single published package or publishing each workspace package.
+The CLI is published as a **single self-contained esbuild bundle** — see
+[ADR 0007](adr/0007-cli-distribution-strategy.md). The publishable package is
+`apps/cli` (`@mcpguard/cli`); the monorepo root stays private.
 
-- [ ] If publishing: resolve the `workspace:*` deps (changesets / a bundled
-      publish package) and verify a real `npm pack` tarball installs and runs
-      `mcpguard --help` in a clean directory.
-- [ ] If not publishing this release: ship the bundle and note it in the release
-      description.
+- [ ] `pnpm pack:smoke` passes: the real `npm pack` tarball contains exactly
+      `package.json`, `README.md`, `dist/index.js`; the published surface has an
+      empty runtime `dependencies` (no `workspace:*`); and an isolated global
+      install runs `mcpguard --help` / `scan` / `--json` / `--ci` (exit 30 on
+      BLOCK) from a clean prefix.
+- [ ] `npm publish --dry-run` (run in `apps/cli/`) succeeds and lists the 3-file
+      tarball. It validates name, version, bin, files, and the README/LICENSE.
+      No auth is required for a dry-run; a real publish requires `npm login`
+      against the **official** registry.
+
+> Registry note: a real `npm publish` must target `https://registry.npmjs.org/`.
+> If `npm config get registry` shows a mirror (e.g. `registry.npmmirror.com`),
+> publish with an explicit `--registry https://registry.npmjs.org/`. Mirrors are
+> read-only and will reject a publish.
 
 ## 7. Tag
 
