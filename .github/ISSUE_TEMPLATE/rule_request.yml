@@ -1,0 +1,44 @@
+name: Rule request
+description: Suggest a new CallLint detector / rule
+title: "[Rule]: "
+labels: ["rule-request"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        CallLint rules are deterministic and evidence-backed. A good rule maps a
+        concrete, observable config pattern to a clear risk — no subjective or
+        model-based judgment.
+  - type: textarea
+    id: risk
+    attributes:
+      label: Risk pattern
+      description: What risk should this rule detect, and why does it matter for an agent loading the tool?
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Triggering evidence
+      description: What exact config field, command, transport, or tool-metadata string should trigger it? Give a minimal example.
+      render: json
+    validations:
+      required: true
+  - type: dropdown
+    id: severity
+    attributes:
+      label: Proposed verdict
+      description: Roughly where should this land?
+      options:
+        - REVIEW (worth a look)
+        - BLOCK (should stop autonomous use)
+        - UNKNOWN (cannot be verified statically)
+    validations:
+      required: true
+  - type: textarea
+    id: false_positives
+    attributes:
+      label: False-positive considerations
+      description: When should this rule NOT trigger? What benign configs look similar?
+    validations:
+      required: false

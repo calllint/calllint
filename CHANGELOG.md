@@ -14,8 +14,6 @@ onward. While pre-1.0, minor versions may include breaking changes.
 
 - Project license changed from MIT to **Apache-2.0**; added `NOTICE` and
   `TRADEMARKS.md`. The npm tarball ships `LICENSE` and `NOTICE`.
-
-### Changed (prior)
 - **Brand transition: MCPGuard → CallLint (v0.3-R0).** The public product is now
   CallLint. This renamed, with no change to scanner semantics:
   - npm package `mcpguard` → `calllint` (unscoped, single bundled CLI)

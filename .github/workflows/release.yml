@@ -1,0 +1,59 @@
+# Publishes the bundled CallLint CLI (apps/cli, npm name `calllint`) when a
+# GitHub Release is published. Uses npm Trusted Publishing (OIDC) — no long-lived
+# NPM_TOKEN is stored. With trusted publishing from GitHub Actions, npm generates
+# build provenance automatically.
+#
+# PREREQUISITE (one-time, manual): on npmjs.com configure `calllint` as a trusted
+# publisher for this repo + workflow. Until that is done, this workflow will fail
+# at the publish step by design — it never falls back to a stored token.
+#
+# This workflow NEVER executes a scanned MCP server; it only builds and publishes.
+name: release
+
+on:
+  release:
+    types: [published]
+
+permissions:
+  contents: read
+  id-token: write # required for npm trusted publishing / provenance
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    environment: npm
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+          registry-url: https://registry.npmjs.org
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Full gate (typecheck, test, build, smoke)
+        run: |
+          pnpm typecheck
+          pnpm test
+          pnpm build
+          pnpm smoke
+          pnpm pack:smoke
+
+      - name: Verify release tag matches package version
+        working-directory: apps/cli
+        run: |
+          PKG_VERSION="v$(node -p "require('./package.json').version")"
+          TAG="${GITHUB_REF_NAME}"
+          if [ "$PKG_VERSION" != "$TAG" ]; then
+            echo "Release tag ($TAG) does not match apps/cli version ($PKG_VERSION)." >&2
+            exit 1
+          fi
+
+      - name: Publish to npm (trusted publishing + provenance)
+        working-directory: apps/cli
+        run: npm publish --access public
