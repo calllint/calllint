@@ -1,0 +1,56 @@
+# Deploy CallLint marketing site (apps/web/public) to GitHub Pages.
+name: pages
+
+on:
+  push:
+    branches: [main, master]
+    paths:
+      - "apps/web/**"
+      - "assets/brand/**"
+      - "assets/calllintlogo.png"
+      - "scripts/generate-brand-assets.mjs"
+      - ".github/workflows/pages.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Generate brand assets
+        run: pnpm brand:assets
+
+      - name: Sync web public assets
+        run: pnpm --filter @calllint/web build
+
+      - uses: actions/configure-pages@v5
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: apps/web/public
+
+      - id: deployment
+        uses: actions/deploy-pages@v4

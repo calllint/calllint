@@ -51,8 +51,8 @@ Naming was checked before deciding:
    - on-disk schema identifiers: `calllint.baseline.v0`, `calllint.drift.v0`,
      `calllint.policy.v0` (was `mcpguard.*`)
    - SARIF tool driver name: `CallLint`; `informationUri`
-     `https://github.com/saintl1022/calllint`
-   - GitHub repo: `saintl1022/calllint`
+     `https://github.com/calllint/calllint`
+   - GitHub repo: `calllint/calllint` (CallLint organization; canonical source)
 
 6. **No migration shim.** No public release ever wrote `.mcpguard/` paths or
    `mcpguard.*` schema strings, so there are no existing artifacts to migrate.

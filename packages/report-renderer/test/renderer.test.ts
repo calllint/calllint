@@ -86,6 +86,8 @@ describe("html renderer", () => {
     expect(out).toContain("<!doctype html>")
     expect(out).toContain("filesystem")
     expect(out).toContain("BLOCK")
+    expect(out).toContain('class="brand-mark"')
+    expect(out).toContain("data:image/png;base64,")
     // no remote resources
     expect(out).not.toMatch(/https?:\/\//)
     expect(out).not.toContain("<script")
