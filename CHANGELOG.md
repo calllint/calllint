@@ -11,6 +11,9 @@ onward. While pre-1.0, minor versions may include breaking changes.
 ## [Unreleased]
 
 ### Changed
+
+- Project license changed from MIT to **Apache-2.0**; added `NOTICE` and
+  `TRADEMARKS.md`. The npm tarball ships `LICENSE` and `NOTICE`.
 - **Brand transition: MCPGuard → CallLint (v0.3-R0).** The public product is now
   CallLint. This renamed, with no change to scanner semantics:
   - npm package `mcpguard` → `calllint` (unscoped, single bundled CLI)
@@ -43,7 +46,7 @@ onward. While pre-1.0, minor versions may include breaking changes.
   the installed binary.
 - `.github/workflows/ci.yml`: typecheck/test/build/smoke/pack:smoke with a
   least-privilege token; never publishes, never executes a scanned server.
-- MIT `LICENSE` (ships in the tarball) and `SECURITY.md`.
+- Apache-2.0 `LICENSE` and `NOTICE` (ship in the tarball) and `SECURITY.md`.
 
 ### Changed
 - `apps/cli` made publishable: dropped `private`, moved `workspace:*` to
