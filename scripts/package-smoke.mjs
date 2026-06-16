@@ -103,7 +103,11 @@ try {
 
   // 3. Published package.json surface.
   const pkg = JSON.parse(readFileSync(join(cliDir, "package.json"), "utf8"))
-  if (pkg.bin?.mcpguard !== "./dist/index.js") fail(`bin.mcpguard != ./dist/index.js (got ${pkg.bin?.mcpguard})`)
+  // npm canonicalizes the bin path to "dist/index.js" (no leading ./) on
+  // publish; accept either form so the assertion tracks the resolved target,
+  // not punctuation.
+  const binPath = (pkg.bin?.mcpguard ?? "").replace(/^\.\//, "")
+  if (binPath !== "dist/index.js") fail(`bin.mcpguard != dist/index.js (got ${pkg.bin?.mcpguard})`)
   if (pkg.type !== "module") fail(`type != module (got ${pkg.type})`)
   if (pkg.private) fail("package is still private:true — cannot publish")
   const runtimeDeps = Object.keys(pkg.dependencies ?? {})
