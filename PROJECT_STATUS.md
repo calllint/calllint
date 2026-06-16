@@ -54,7 +54,7 @@ explicit limitations.
 ## Verification status (last run)
 
 - typecheck: clean (tsc strict)
-- tests: 174 passed across 17 files (unit + E2E against built binary; package
+- tests: 174 passed across 18 files (unit + E2E against built binary; package
   smoke; network mocked — tests never touch the network)
 - build: apps/cli/dist/index.js (self-contained esbuild bundle, node shebang)
 - CLI smoke: scan/baseline/verify/sarif/html/npm targets confirmed
