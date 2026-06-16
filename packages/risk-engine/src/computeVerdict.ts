@@ -4,7 +4,7 @@ import type {
   RecommendedPolicy,
   RuntimeBinding,
   Verdict,
-} from "@mcpguard/types"
+} from "@calllint/types"
 
 /**
  * Deterministic verdict rules (priority order):

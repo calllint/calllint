@@ -1,4 +1,4 @@
-import type { DriftReport } from "@mcpguard/types"
+import type { DriftReport } from "@calllint/types"
 
 /** Machine-readable drift report. Stable, emoji-free contract. */
 export function renderDriftJson(report: DriftReport): string {
@@ -21,7 +21,7 @@ const STATUS_TAG: Record<string, string> = {
  */
 export function renderDrift(report: DriftReport): string {
   const lines: string[] = []
-  lines.push("MCPGuard verify (drift vs baseline)")
+  lines.push("CallLint verify (drift vs baseline)")
   lines.push(`config: ${report.configPath}`)
 
   const headline = report.rugPullDetected

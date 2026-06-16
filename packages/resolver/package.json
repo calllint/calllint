@@ -1,5 +1,5 @@
 {
-  "name": "@mcpguard/resolver",
+  "name": "@calllint/resolver",
   "version": "0.1.0",
   "private": true,
   "type": "module",
@@ -9,10 +9,10 @@
     ".": "./src/index.ts"
   },
   "dependencies": {
-    "@mcpguard/types": "workspace:*"
+    "@calllint/types": "workspace:*"
   },
   "devDependencies": {
-    "@mcpguard/config-parser": "workspace:*",
-    "@mcpguard/fixtures": "workspace:*"
+    "@calllint/config-parser": "workspace:*",
+    "@calllint/fixtures": "workspace:*"
   }
 }

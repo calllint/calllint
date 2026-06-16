@@ -1,7 +1,7 @@
-# Main CI for MCPGuard. Runs the full quality gate on every push and PR:
+# Main CI for CallLint. Runs the full quality gate on every push and PR:
 # typecheck, tests, build, and both smoke layers (built-artifact + real npm
 # pack/install). This workflow NEVER publishes to npm and NEVER executes a
-# scanned MCP server — MCPGuard only ever inspects configs statically.
+# scanned MCP server — CallLint only ever inspects configs statically.
 name: ci
 
 on:

@@ -1,9 +1,9 @@
-import type { Finding } from "@mcpguard/types"
+import type { Finding } from "@calllint/types"
 
 /**
  * Injectable JSON fetcher. The real implementation (Node fetch) is supplied by
  * the CLI; tests inject a fake. Keeping the network behind an interface is what
- * lets the rest of MCPGuard stay pure, deterministic, and offline.
+ * lets the rest of CallLint stay pure, deterministic, and offline.
  */
 export type FetchJson = (url: string) => Promise<unknown>
 

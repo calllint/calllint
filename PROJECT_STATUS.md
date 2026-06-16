@@ -1,16 +1,31 @@
-# MCPGuard Project Status
+# CallLint Project Status
 
-Current phase: v0.3-R1 Distribution Readiness (complete)
+Current phase: v0.3-R0 Brand Transition (complete)
+
+Product name: **CallLint** (CLI `calllint`, npm `calllint`, internal scope
+`@calllint/*`). `MCPGuard` was the internal codename — see
+[ADR 0008](docs/adr/0008-brand-transition-calllint.md). Historical planning docs
+(`000.md`, ADRs 0001/0003/0004) retain the codename intentionally.
 
 ## Current milestone
 
-v0.3-R1 Distribution Readiness — turn the hardened engine into an installable,
-runnable, publishable CLI without changing any scanner semantics. The
-`workspace:*` + `private` blocker that prevented a real `npm pack` / `npx
-mcpguard` flow is resolved: `apps/cli` is now a publishable single-bundle
-package with an empty runtime dependency list and a `files` allowlist, the real
-tarball is smoke-tested through an isolated global install, and `npm publish
---dry-run` passes. GitHub CI, SECURITY.md, and an MIT LICENSE are in place.
+v0.3-R0 Brand Transition — adopt the public product name **CallLint** across the
+npm package, CLI binary, internal scope, cache directory, on-disk schema
+identifiers, policy filename, report identity (SARIF/HTML/terminal), and
+current-product docs. Zero scanner-semantics change: no detector, verdict,
+golden expectation, or exit code altered; tests asserting brand/schema/input
+literals were updated to track the rename, not weakened. Narratively R0 precedes
+R1 (the distribution work below), which is already complete.
+
+## Previous milestone (v0.3-R1 distribution readiness — complete)
+
+Turn the hardened engine into an installable, runnable, publishable CLI without
+changing any scanner semantics. The `workspace:*` + `private` blocker that
+prevented a real `npm pack` / `npx calllint` flow is resolved: the published
+package is a publishable single-bundle with an empty runtime dependency list and
+a `files` allowlist, the real tarball is smoke-tested through an isolated global
+install, and `npm publish --dry-run` passes. GitHub CI, SECURITY.md, and an MIT
+LICENSE are in place.
 
 ## Previous milestone (v0.2.1 hardening)
 
@@ -22,17 +37,17 @@ docs carry a user-success path plus explicit limitations.
 ## Completed (v0.1 + v0.2 foundation)
 
 - Phase 0/1: workspace bootstrap (pnpm workspace, tsconfig, vitest, CLAUDE.md, docs)
-- Phase 3: @mcpguard/types — verdicts, findings, reports, drift, label maps
-- Phase 4: @mcpguard/fixtures — golden configs + loader (verdict contract)
-- Phase 5: @mcpguard/config-parser — normalize Cursor/Claude/VS Code configs
-- Phase 6: @mcpguard/resolver — runtime binding (npx/node/remote/shell)
-- Phase 7: @mcpguard/static-analyzer — detectors (incl. MONEY financial-action)
-- Phase 8: @mcpguard/risk-engine — deterministic verdict/class/repro + rule cards
-- Phase 9: @mcpguard/policy — policy-as-code, validated expiring overrides, CI gate
-- Phase 10: @mcpguard/fingerprint — stable drift hashes
-- Phase 11: @mcpguard/core — full scan pipeline, cache, baseline/drift, targets
-- Phase 6b: @mcpguard/report-renderer — terminal/compact/no-emoji/explain/json/sarif/html
-- Phase 12: @mcpguard/cli — scan/baseline/verify/explain/policy, exit codes, esbuild bundle
+- Phase 3: @calllint/types — verdicts, findings, reports, drift, label maps
+- Phase 4: @calllint/fixtures — golden configs + loader (verdict contract)
+- Phase 5: @calllint/config-parser — normalize Cursor/Claude/VS Code configs
+- Phase 6: @calllint/resolver — runtime binding (npx/node/remote/shell)
+- Phase 7: @calllint/static-analyzer — detectors (incl. MONEY financial-action)
+- Phase 8: @calllint/risk-engine — deterministic verdict/class/repro + rule cards
+- Phase 9: @calllint/policy — policy-as-code, validated expiring overrides, CI gate
+- Phase 10: @calllint/fingerprint — stable drift hashes
+- Phase 11: @calllint/core — full scan pipeline, cache, baseline/drift, targets
+- Phase 6b: @calllint/report-renderer — terminal/compact/no-emoji/explain/json/sarif/html
+- Phase 12: @calllint/cli — scan/baseline/verify/explain/policy, exit codes, esbuild bundle
 - Phase 13: tests/e2e — built-binary E2E
 - Phase 14: opt-in self-guard script + examples/sample-mcp.json + README
 - v0.2: drift detection, SARIF 2.1.0, HTML report, npm/github targets, opt-in --online
@@ -57,6 +72,19 @@ docs carry a user-success path plus explicit limitations.
 - H8: this status.
 - H9: LIMITATIONS.md (trust boundaries).
 - H10: docs/release-checklist.md.
+
+## Completed (v0.3-R0 brand transition)
+
+- R0-1: ADR 0008 — public name CallLint, MCPGuard as historical codename, narrow
+  positioning (lint agent tool-call risk before tools run), schemaVersion rename
+  with no migration shim, keep-historical policy for 000.md and prior ADRs.
+- R0-2: controlled rename — npm `calllint`, scope `@calllint/*`, bin `calllint`,
+  cache `.calllint/`, schema `calllint.*.v0`, policy `calllint.policy.json`,
+  input key `x-calllint`, SARIF/HTML/terminal identity, current-product docs;
+  asserting tests updated to track literals. Full gate green; grep audit clean.
+- R0-3: CHANGELOG.md added; README expanded to the full public section set
+  (what is / checks / does-not-check / install / quick start / example report /
+  rule list / security model / limitations / roadmap); this status.
 
 ## Completed (v0.3-R1 distribution readiness)
 
@@ -91,7 +119,7 @@ docs carry a user-success path plus explicit limitations.
 - CLI smoke: scan/baseline/verify/sarif/html/npm targets confirmed
 - pack:smoke: real npm tarball (4 files: package.json, README.md, LICENSE,
   dist/index.js), empty runtime deps, no `workspace:*`; isolated global install
-  runs `mcpguard --help` / `scan` / `--json` / `--ci` (exit 30 on BLOCK)
+  runs `calllint --help` / `scan` / `--json` / `--ci` (exit 30 on BLOCK)
 - npm publish --dry-run: passes (no auth required for dry-run)
 
 ## Exit codes (CI)
@@ -146,7 +174,7 @@ docs carry a user-success path plus explicit limitations.
   remote SSE, Windows, read-only utility, prompt-heavy), each with
   config/expected/note; a corpus contract test; false-positive notes. Goal:
   calibrate false positives, expose parser edges, seed a future Trust Index.
-- v0.3-R3 — `mcpguard diagnostics --json` (stable IDE protocol; no plugin yet).
+- v0.3-R3 — `calllint diagnostics --json` (stable IDE protocol; no plugin yet).
 - v0.3-R4 — Prompt Surface expansion (README/SKILL/tool/schema descriptions,
   hidden-instruction / exfiltration rules).
 - v0.3-R5 — GitHub Actions + SARIF real-world verification (Code Scanning).

@@ -1,11 +1,11 @@
-# MCPGuard scans the repo's MCP configuration on every push and PR, uploads the
+# CallLint scans the repo's MCP configuration on every push and PR, uploads the
 # results to GitHub Code Scanning as SARIF, and fails the build if the approved
 # risk surface drifts (a rug-pull / TOCTOU signal).
 #
-# MCPGuard never executes the servers it scans. This workflow runs the bundled
+# CallLint never executes the servers it scans. This workflow runs the bundled
 # CLI offline by default; add `--online` only if you intend to read public npm /
 # GitHub metadata (it still never executes fetched code).
-name: mcpguard
+name: calllint
 
 on:
   push:
@@ -35,20 +35,20 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Build the MCPGuard CLI
+      - name: Build the CallLint CLI
         run: pnpm build
 
       # Emit SARIF for the Security tab. `|| true` keeps this step from failing
       # the job on findings — the dedicated gate below decides pass/fail, so the
       # SARIF always uploads even when the verdict is BLOCK.
       - name: Scan MCP config -> SARIF
-        run: node apps/cli/dist/index.js scan .cursor/mcp.json --sarif > mcpguard.sarif || true
+        run: node apps/cli/dist/index.js scan .cursor/mcp.json --sarif > calllint.sarif || true
 
       - name: Upload SARIF to GitHub Code Scanning
         uses: github/codeql-action/upload-sarif@v3
         with:
-          sarif_file: mcpguard.sarif
-          category: mcpguard
+          sarif_file: calllint.sarif
+          category: calllint
 
       # The gate. Exits non-zero on BLOCK (30) / UNKNOWN (20), failing the build.
       - name: Gate on verdict
@@ -56,7 +56,7 @@ jobs:
 
       # Optional: fail if the risk surface drifted from the committed baseline.
       # Record one first with: node apps/cli/dist/index.js baseline .cursor/mcp.json
-      # and commit .mcpguard/baseline.json. Exits 40 on drift.
+      # and commit .calllint/baseline.json. Exits 40 on drift.
       - name: Verify against approved baseline
-        if: ${{ hashFiles('.mcpguard/baseline.json') != '' }}
+        if: ${{ hashFiles('.calllint/baseline.json') != '' }}
         run: node apps/cli/dist/index.js verify .cursor/mcp.json --ci --no-emoji

@@ -1,4 +1,4 @@
-# MCPGuard Product Principles
+# CallLint Product Principles
 
 1. **Verdict first, score second.** The first thing a developer sees is SAFE / REVIEW /
    BLOCK / UNKNOWN, not a 0–100 number.

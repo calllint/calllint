@@ -1,5 +1,5 @@
-import type { Finding, ScanReport } from "@mcpguard/types"
-import { RISK_CLASS_LABEL, RISK_SYMBOL_LABEL } from "@mcpguard/types"
+import type { Finding, ScanReport } from "@calllint/types"
+import { RISK_CLASS_LABEL, RISK_SYMBOL_LABEL } from "@calllint/types"
 import { DEFAULT_STYLE, verdictTag, type RenderStyle } from "./style.js"
 
 function renderFindingDetail(f: Finding, n: number): string[] {
@@ -27,7 +27,7 @@ function renderFindingDetail(f: Finding, n: number): string[] {
 
 /**
  * Deep explanation for a single server report: every finding with full evidence,
- * fingerprints, and the recommended policy. Used by `mcpguard explain`.
+ * fingerprints, and the recommended policy. Used by `calllint explain`.
  */
 export function renderExplain(
   r: ScanReport,

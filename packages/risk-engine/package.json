@@ -1,5 +1,5 @@
 {
-  "name": "@mcpguard/risk-engine",
+  "name": "@calllint/risk-engine",
   "version": "0.1.0",
   "private": true,
   "type": "module",
@@ -9,12 +9,12 @@
     ".": "./src/index.ts"
   },
   "dependencies": {
-    "@mcpguard/types": "workspace:*"
+    "@calllint/types": "workspace:*"
   },
   "devDependencies": {
-    "@mcpguard/config-parser": "workspace:*",
-    "@mcpguard/resolver": "workspace:*",
-    "@mcpguard/static-analyzer": "workspace:*",
-    "@mcpguard/fixtures": "workspace:*"
+    "@calllint/config-parser": "workspace:*",
+    "@calllint/resolver": "workspace:*",
+    "@calllint/static-analyzer": "workspace:*",
+    "@calllint/fixtures": "workspace:*"
   }
 }

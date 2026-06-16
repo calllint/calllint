@@ -1,4 +1,4 @@
-import type { Evidence, Finding } from "@mcpguard/types"
+import type { Evidence, Finding } from "@calllint/types"
 import type { DetectorContext } from "../context.js"
 
 /** Model-directed instruction patterns indicative of tool poisoning (T01/T02/T13/T14). */

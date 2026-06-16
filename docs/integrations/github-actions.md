@@ -1,14 +1,14 @@
 # GitHub Actions + SARIF integration
 
-MCPGuard fits a pull-request gate in three pieces:
+CallLint fits a pull-request gate in three pieces:
 
 1. **Upload SARIF** to the GitHub Security tab so findings are annotated inline.
 2. **Gate the build** on the verdict (non-zero exit on BLOCK / UNKNOWN).
 3. **Verify drift** against a committed baseline (rug-pull / TOCTOU).
 
 A ready-to-use workflow is at
-[`examples/github-actions/mcpguard-sarif.yml`](../../examples/github-actions/mcpguard-sarif.yml).
-Copy it to `.github/workflows/mcpguard.yml`.
+[`examples/github-actions/calllint-sarif.yml`](../../examples/github-actions/calllint-sarif.yml).
+Copy it to `.github/workflows/calllint.yml`.
 
 ## Permissions
 
@@ -25,10 +25,10 @@ permissions:
 ### 1. Emit SARIF
 
 ```bash
-node apps/cli/dist/index.js scan .cursor/mcp.json --sarif > mcpguard.sarif
+node apps/cli/dist/index.js scan .cursor/mcp.json --sarif > calllint.sarif
 ```
 
-SARIF is MCPGuard's GitHub Code Scanning format (SARIF 2.1.0). Pipe it to a file
+SARIF is CallLint's GitHub Code Scanning format (SARIF 2.1.0). Pipe it to a file
 and upload with `github/codeql-action/upload-sarif@v3`. Use `|| true` on the
 scan step so a BLOCK verdict does not abort the job *before* the SARIF uploads —
 let the dedicated gate step decide pass/fail.
@@ -56,8 +56,8 @@ With `--ci`, the exit code is the gate:
 Record an approved baseline once and commit it:
 
 ```bash
-node apps/cli/dist/index.js baseline .cursor/mcp.json   # writes .mcpguard/baseline.json
-git add .mcpguard/baseline.json && git commit -m "chore: approve mcp risk surface"
+node apps/cli/dist/index.js baseline .cursor/mcp.json   # writes .calllint/baseline.json
+git add .calllint/baseline.json && git commit -m "chore: approve mcp risk surface"
 ```
 
 Then have CI fail (exit 40) when the risk surface changes — a pinned-version
@@ -69,7 +69,7 @@ node apps/cli/dist/index.js verify .cursor/mcp.json --ci --no-emoji
 
 ## Notes
 
-- MCPGuard never executes the servers it scans. The workflow runs the bundled
+- CallLint never executes the servers it scans. The workflow runs the bundled
   CLI; it does not install or launch any MCP server.
 - The workflow is offline by default. Add `--online` only if you intend to read
   public npm / GitHub metadata — it still never executes fetched code, and

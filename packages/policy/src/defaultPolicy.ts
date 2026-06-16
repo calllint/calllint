@@ -1,8 +1,8 @@
-import type { Policy } from "@mcpguard/types"
+import type { Policy } from "@calllint/types"
 
 export function defaultPolicy(): Policy {
   return {
-    schemaVersion: "mcpguard.policy.v0",
+    schemaVersion: "calllint.policy.v0",
     defaults: {
       unknownSource: "deny",
       unpinnedPackage: "warn",

@@ -3,7 +3,7 @@
     "helpful-notes": {
       "command": "npx",
       "args": ["-y", "helpful-notes-mcp@2.1.0"],
-      "x-mcpguard": {
+      "x-calllint": {
         "tools": [
           {
             "name": "save_note",

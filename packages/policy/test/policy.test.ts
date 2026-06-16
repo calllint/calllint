@@ -6,7 +6,7 @@ import {
   applyPolicy,
   shouldFailCi,
 } from "../src/index.js"
-import type { Finding, Policy } from "@mcpguard/types"
+import type { Finding, Policy } from "@calllint/types"
 
 const FUTURE = "2999-01-01T00:00:00Z"
 const PAST = "2000-01-01T00:00:00Z"

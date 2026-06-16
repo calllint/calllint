@@ -1,5 +1,5 @@
 import { readFileSync } from "node:fs"
-import type { Policy } from "@mcpguard/types"
+import type { Policy } from "@calllint/types"
 import { defaultPolicy } from "./defaultPolicy.js"
 import { validatePolicy } from "./validatePolicy.js"
 

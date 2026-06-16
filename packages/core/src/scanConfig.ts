@@ -2,13 +2,13 @@ import type {
   ConfigSummaryReport,
   ScanReport,
   Verdict,
-} from "@mcpguard/types"
-import { VERDICT_PUBLIC_LABEL, mostSevereVerdict } from "@mcpguard/types"
+} from "@calllint/types"
+import { VERDICT_PUBLIC_LABEL, mostSevereVerdict } from "@calllint/types"
 import {
   parseConfigFile,
   parseConfigText,
   type ParsedConfig,
-} from "@mcpguard/config-parser"
+} from "@calllint/config-parser"
 import { scanServer } from "./scanServer.js"
 import { resolveScanOptions, type ScanOptions } from "./options.js"
 
@@ -23,7 +23,7 @@ function aggregate(
   const verdict = mostSevereVerdict(reports.map((r) => r.verdict))
 
   return {
-    schemaVersion: "mcpguard.report.v0",
+    schemaVersion: "calllint.report.v0",
     reportKind: "config-summary",
     configPath,
     verdict,

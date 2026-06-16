@@ -1,5 +1,5 @@
 {
-  "name": "@mcpguard/static-analyzer",
+  "name": "@calllint/static-analyzer",
   "version": "0.1.0",
   "private": true,
   "type": "module",
@@ -9,11 +9,11 @@
     ".": "./src/index.ts"
   },
   "dependencies": {
-    "@mcpguard/types": "workspace:*",
-    "@mcpguard/resolver": "workspace:*"
+    "@calllint/types": "workspace:*",
+    "@calllint/resolver": "workspace:*"
   },
   "devDependencies": {
-    "@mcpguard/config-parser": "workspace:*",
-    "@mcpguard/fixtures": "workspace:*"
+    "@calllint/config-parser": "workspace:*",
+    "@calllint/fixtures": "workspace:*"
   }
 }

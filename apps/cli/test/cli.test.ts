@@ -3,7 +3,7 @@ import { mkdtempSync, rmSync, writeFileSync, existsSync, readFileSync, mkdirSync
 import { tmpdir } from "node:os"
 import { join } from "node:path"
 import { run, EXIT } from "../src/run.js"
-import { goldenPath } from "@mcpguard/fixtures"
+import { goldenPath } from "@calllint/fixtures"
 
 const BASE = {
   now: Date.parse("2026-06-01T00:00:00Z"),
@@ -12,7 +12,7 @@ const BASE = {
 
 let dir: string
 beforeEach(() => {
-  dir = mkdtempSync(join(tmpdir(), "mcpguard-cli-"))
+  dir = mkdtempSync(join(tmpdir(), "calllint-cli-"))
 })
 afterEach(() => {
   rmSync(dir, { recursive: true, force: true })
@@ -125,11 +125,11 @@ describe("policy", () => {
   it("init writes a default policy and explain reads it", () => {
     const r = run(["policy", "init"], deps())
     expect(r.exitCode).toBe(0)
-    expect(existsSync(join(dir, "mcpguard.policy.json"))).toBe(true)
+    expect(existsSync(join(dir, "calllint.policy.json"))).toBe(true)
 
-    const explain = run(["policy", "explain", "--policy", join(dir, "mcpguard.policy.json")], deps())
+    const explain = run(["policy", "explain", "--policy", join(dir, "calllint.policy.json")], deps())
     expect(explain.exitCode).toBe(0)
-    expect(JSON.parse(explain.stdout).schemaVersion).toBe("mcpguard.policy.v0")
+    expect(JSON.parse(explain.stdout).schemaVersion).toBe("calllint.policy.v0")
   })
 
   it("init refuses to overwrite without --force", () => {
@@ -179,7 +179,7 @@ describe("baseline + verify (drift)", () => {
   it("baseline writes a file, verify reports no drift on identical config", () => {
     const b = run(["baseline", "--stdin"], deps(v1))
     expect(b.exitCode).toBe(EXIT.OK)
-    expect(existsSync(join(dir, ".mcpguard", "baseline.json"))).toBe(true)
+    expect(existsSync(join(dir, ".calllint", "baseline.json"))).toBe(true)
 
     const v = run(["verify", "--stdin", "--ci"], deps(v1))
     expect(v.exitCode).toBe(EXIT.OK)

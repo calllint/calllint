@@ -6,10 +6,10 @@ import {
   writeBaseline,
   readBaseline,
   ConfigParseError,
-} from "@mcpguard/core"
-import { loadPolicyOrDefault } from "@mcpguard/policy"
-import { renderDrift, renderDriftJson } from "@mcpguard/report-renderer"
-import type { Policy } from "@mcpguard/types"
+} from "@calllint/core"
+import { loadPolicyOrDefault } from "@calllint/policy"
+import { renderDrift, renderDriftJson } from "@calllint/report-renderer"
+import type { Policy } from "@calllint/types"
 import { EXIT, flagBool, flagStr, type ParsedArgs } from "../args.js"
 import type { CommandResult } from "./scan.js"
 import { resolveConfigInput, isInputError } from "./resolveInput.js"
@@ -33,10 +33,10 @@ function loadPolicy(args: ParsedArgs): Policy | { error: string } {
 }
 
 function baselinePathFor(args: ParsedArgs, cwd: string): string {
-  return flagStr(args.flags, "baseline") ?? join(cwd, ".mcpguard", "baseline.json")
+  return flagStr(args.flags, "baseline") ?? join(cwd, ".calllint", "baseline.json")
 }
 
-/** `mcpguard baseline` — scan and record the approved risk surface. */
+/** `calllint baseline` — scan and record the approved risk surface. */
 export function baselineCommand(args: ParsedArgs, deps: VerifyDeps): CommandResult {
   const policy = loadPolicy(args)
   if ("error" in policy) return { stdout: "", stderr: policy.error, exitCode: EXIT.ERROR }
@@ -78,7 +78,7 @@ export function baselineCommand(args: ParsedArgs, deps: VerifyDeps): CommandResu
   }
 }
 
-/** `mcpguard verify` — scan and compare against the recorded baseline. */
+/** `calllint verify` — scan and compare against the recorded baseline. */
 export function verifyCommand(args: ParsedArgs, deps: VerifyDeps): CommandResult {
   const policy = loadPolicy(args)
   if ("error" in policy) return { stdout: "", stderr: policy.error, exitCode: EXIT.ERROR }
@@ -88,7 +88,7 @@ export function verifyCommand(args: ParsedArgs, deps: VerifyDeps): CommandResult
   if (!baseline) {
     return {
       stdout: "",
-      stderr: `No baseline found at ${path}. Run \`mcpguard baseline\` first.`,
+      stderr: `No baseline found at ${path}. Run \`calllint baseline\` first.`,
       exitCode: EXIT.ERROR,
     }
   }

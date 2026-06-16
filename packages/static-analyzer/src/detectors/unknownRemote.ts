@@ -1,4 +1,4 @@
-import type { Finding } from "@mcpguard/types"
+import type { Finding } from "@calllint/types"
 import type { DetectorContext } from "../context.js"
 
 /** Hosts we treat as verified first-party sources. */

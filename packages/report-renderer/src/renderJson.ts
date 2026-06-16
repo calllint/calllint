@@ -1,4 +1,4 @@
-import type { ConfigSummaryReport } from "@mcpguard/types"
+import type { ConfigSummaryReport } from "@calllint/types"
 
 /**
  * JSON renderer. The JSON is the stable, emoji-free contract: it is exactly the

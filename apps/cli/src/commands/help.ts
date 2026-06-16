@@ -1,14 +1,14 @@
-export const HELP = `mcpguard — evidence-backed verdicts for agent tools
+export const HELP = `calllint — evidence-backed verdicts for agent tools
 
 USAGE
-  mcpguard <command> [options]
+  calllint <command> [options]
 
 COMMANDS
   scan [target]      Scan an MCP config file, or npm:<pkg> / github:<owner/repo>
   baseline [target]  Record the approved risk surface as a baseline
   verify [target]    Compare a fresh scan against the baseline (drift / rug-pull)
   explain <server>   Explain the verdict for one server from the last scan
-  policy init        Write a default mcpguard.policy.json
+  policy init        Write a default calllint.policy.json
   policy explain     Show the effective policy
   help               Show this help
 
@@ -28,19 +28,19 @@ SCAN OPTIONS
   --ci               Exit non-zero per policy (BLOCK=30, UNKNOWN=20, REVIEW=10 if enabled)
 
 VERIFY OPTIONS
-  --baseline <file>  Baseline path (default: .mcpguard/baseline.json)
+  --baseline <file>  Baseline path (default: .calllint/baseline.json)
   --ci               Exit 40 if the risk surface drifted from the baseline
   --json             Emit the drift report JSON
 
 EXAMPLES
-  mcpguard scan .cursor/mcp.json
-  cat .cursor/mcp.json | mcpguard scan --stdin --json
-  mcpguard scan ./mcp.json --ci --no-emoji
-  mcpguard scan npm:mcp-weather@1.0.0
-  mcpguard scan github:owner/repo --online
-  mcpguard baseline ./mcp.json
-  mcpguard verify ./mcp.json --ci
-  mcpguard explain filesystem
+  calllint scan .cursor/mcp.json
+  cat .cursor/mcp.json | calllint scan --stdin --json
+  calllint scan ./mcp.json --ci --no-emoji
+  calllint scan npm:mcp-weather@1.0.0
+  calllint scan github:owner/repo --online
+  calllint baseline ./mcp.json
+  calllint verify ./mcp.json --ci
+  calllint explain filesystem
 `
 
 export function helpCommand(): { stdout: string; exitCode: number } {

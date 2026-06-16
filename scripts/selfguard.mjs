@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 /**
- * MCPGuard self-guard — opt-in dogfooding script.
+ * CallLint self-guard — opt-in dogfooding script.
  *
- * Scans this repo's own MCP config with the built MCPGuard CLI and prints the
+ * Scans this repo's own MCP config with the built CallLint CLI and prints the
  * verdict. Intended to be run manually, in CI, or wired into a Claude Code
  * PreToolUse hook by the user (see README "Self-guard"). This script does NOT
  * install itself anywhere and does not modify agent behavior on its own.
@@ -41,13 +41,13 @@ function findConfig() {
 }
 
 if (!existsSync(cli)) {
-  process.stderr.write("[mcpguard] CLI not built. Run `pnpm build` first.\n")
+  process.stderr.write("[calllint] CLI not built. Run `pnpm build` first.\n")
   process.exit(ci ? 3 : 0)
 }
 
 const config = findConfig()
 if (!config) {
-  process.stderr.write("[mcpguard] No MCP config found in this repo. Nothing to scan.\n")
+  process.stderr.write("[calllint] No MCP config found in this repo. Nothing to scan.\n")
   process.exit(0)
 }
 
@@ -64,6 +64,6 @@ try {
     process.stdout.write(String(err.stdout ?? ""))
     process.exit(typeof err.status === "number" ? err.status : 1)
   }
-  process.stderr.write("[mcpguard] self-guard error: " + String(err) + "\n")
+  process.stderr.write("[calllint] self-guard error: " + String(err) + "\n")
   process.exit(ci ? 3 : 0)
 }

@@ -6,17 +6,17 @@ const r = (p: string) => fileURLToPath(new URL(p, import.meta.url))
 export default defineConfig({
   resolve: {
     alias: {
-      "@mcpguard/types": r("./packages/types/src/index.ts"),
-      "@mcpguard/config-parser": r("./packages/config-parser/src/index.ts"),
-      "@mcpguard/resolver": r("./packages/resolver/src/index.ts"),
-      "@mcpguard/static-analyzer": r("./packages/static-analyzer/src/index.ts"),
-      "@mcpguard/risk-engine": r("./packages/risk-engine/src/index.ts"),
-      "@mcpguard/policy": r("./packages/policy/src/index.ts"),
-      "@mcpguard/fingerprint": r("./packages/fingerprint/src/index.ts"),
-      "@mcpguard/report-renderer": r("./packages/report-renderer/src/index.ts"),
-      "@mcpguard/core": r("./packages/core/src/index.ts"),
-      "@mcpguard/online": r("./packages/online/src/index.ts"),
-      "@mcpguard/fixtures": r("./packages/fixtures/src/index.ts"),
+      "@calllint/types": r("./packages/types/src/index.ts"),
+      "@calllint/config-parser": r("./packages/config-parser/src/index.ts"),
+      "@calllint/resolver": r("./packages/resolver/src/index.ts"),
+      "@calllint/static-analyzer": r("./packages/static-analyzer/src/index.ts"),
+      "@calllint/risk-engine": r("./packages/risk-engine/src/index.ts"),
+      "@calllint/policy": r("./packages/policy/src/index.ts"),
+      "@calllint/fingerprint": r("./packages/fingerprint/src/index.ts"),
+      "@calllint/report-renderer": r("./packages/report-renderer/src/index.ts"),
+      "@calllint/core": r("./packages/core/src/index.ts"),
+      "@calllint/online": r("./packages/online/src/index.ts"),
+      "@calllint/fixtures": r("./packages/fixtures/src/index.ts"),
     },
   },
   test: {

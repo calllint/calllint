@@ -1,6 +1,6 @@
 import { existsSync, writeFileSync } from "node:fs"
 import { join } from "node:path"
-import { defaultPolicyJson, loadPolicyOrDefault } from "@mcpguard/policy"
+import { defaultPolicyJson, loadPolicyOrDefault } from "@calllint/policy"
 import { EXIT, flagBool, flagStr, type ParsedArgs } from "../args.js"
 import type { CommandResult } from "./scan.js"
 
@@ -13,7 +13,7 @@ export function policyCommand(args: ParsedArgs, deps: PolicyDeps): CommandResult
   const sub = args.positionals[0]
 
   if (sub === "init") {
-    const path = join(deps.cwd, "mcpguard.policy.json")
+    const path = join(deps.cwd, "calllint.policy.json")
     if (existsSync(path) && !flagBool(args.flags, "force")) {
       return {
         stdout: "",
@@ -40,7 +40,7 @@ export function policyCommand(args: ParsedArgs, deps: PolicyDeps): CommandResult
 
   return {
     stdout: "",
-    stderr: "Usage: mcpguard policy <init|explain>",
+    stderr: "Usage: calllint policy <init|explain>",
     exitCode: EXIT.USAGE,
   }
 }

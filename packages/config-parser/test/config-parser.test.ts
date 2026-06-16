@@ -4,7 +4,7 @@ import {
   parseConfigFile,
   ConfigParseError,
 } from "../src/index.js"
-import { goldenPath } from "@mcpguard/fixtures"
+import { goldenPath } from "@calllint/fixtures"
 
 describe("config parser", () => {
   it("parses cursor mcpServers config", () => {
@@ -26,7 +26,7 @@ describe("config parser", () => {
     expect(cfg.servers[0]!.transport).toBe("http")
   })
 
-  it("extracts provided tool metadata from x-mcpguard", () => {
+  it("extracts provided tool metadata from x-calllint", () => {
     const cfg = parseConfigFile(goldenPath("block-prompt-poison.json"))
     const tools = cfg.servers[0]!.providedTools
     expect(tools).toHaveLength(1)

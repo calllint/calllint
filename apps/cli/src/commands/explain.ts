@@ -1,6 +1,6 @@
 import { join } from "node:path"
-import { readCache } from "@mcpguard/core"
-import { renderExplain, NO_EMOJI_STYLE, DEFAULT_STYLE } from "@mcpguard/report-renderer"
+import { readCache } from "@calllint/core"
+import { renderExplain, NO_EMOJI_STYLE, DEFAULT_STYLE } from "@calllint/report-renderer"
 import { EXIT, flagBool, type ParsedArgs } from "../args.js"
 import type { CommandResult } from "./scan.js"
 
@@ -14,16 +14,16 @@ export function explainCommand(args: ParsedArgs, deps: ExplainDeps): CommandResu
   if (!serverName) {
     return {
       stdout: "",
-      stderr: "Usage: mcpguard explain <server>",
+      stderr: "Usage: calllint explain <server>",
       exitCode: EXIT.USAGE,
     }
   }
 
-  const summary = readCache(join(deps.cwd, ".mcpguard", "last-scan.json"))
+  const summary = readCache(join(deps.cwd, ".calllint", "last-scan.json"))
   if (!summary) {
     return {
       stdout: "",
-      stderr: "No cached scan found. Run `mcpguard scan` first.",
+      stderr: "No cached scan found. Run `calllint scan` first.",
       exitCode: EXIT.ERROR,
     }
   }

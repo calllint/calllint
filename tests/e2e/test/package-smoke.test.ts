@@ -3,7 +3,7 @@ import { execFileSync } from "node:child_process"
 import { fileURLToPath } from "node:url"
 import { dirname, join } from "node:path"
 import { existsSync, readFileSync } from "node:fs"
-import { goldenPath } from "@mcpguard/fixtures"
+import { goldenPath } from "@calllint/fixtures"
 
 const here = dirname(fileURLToPath(import.meta.url))
 const repoRoot = join(here, "..", "..", "..")
@@ -41,7 +41,7 @@ describe("package smoke (shipped artifact)", () => {
 
   it("declares a bin entry pointing at the built artifact", () => {
     // npm canonicalizes to "dist/index.js" (no ./) on publish; accept either.
-    expect(cliPkg.bin?.mcpguard?.replace(/^\.\//, "")).toBe("dist/index.js")
+    expect(cliPkg.bin?.calllint?.replace(/^\.\//, "")).toBe("dist/index.js")
     expect(cliPkg.type).toBe("module")
   })
 
@@ -50,19 +50,19 @@ describe("package smoke (shipped artifact)", () => {
     expect(firstLine).toBe("#!/usr/bin/env node")
   })
 
-  it("is a self-contained bundle (no unresolved @mcpguard/* runtime imports)", () => {
+  it("is a self-contained bundle (no unresolved @calllint/* runtime imports)", () => {
     const code = readFileSync(binary, "utf8")
     // workspace deps must be inlined by the bundler, not left as bare imports a
     // consumer's node_modules would have to resolve.
-    expect(code).not.toMatch(/from\s+["']@mcpguard\//)
-    expect(code).not.toMatch(/require\(["']@mcpguard\//)
+    expect(code).not.toMatch(/from\s+["']@calllint\//)
+    expect(code).not.toMatch(/require\(["']@calllint\//)
   })
 
   it("prints usage and exits 0 with --help", () => {
     const { stdout, code } = runBin(["--help"])
     expect(code).toBe(0)
     expect(stdout).toContain("USAGE")
-    expect(stdout).toContain("mcpguard")
+    expect(stdout).toContain("calllint")
   })
 
   it("runs a real scan through the bin entry", () => {

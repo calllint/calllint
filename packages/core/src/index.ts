@@ -24,4 +24,4 @@ export {
 } from "./cache.js"
 
 // Re-export the parse error so consumers can catch it from one place.
-export { ConfigParseError } from "@mcpguard/config-parser"
+export { ConfigParseError } from "@calllint/config-parser"
