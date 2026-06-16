@@ -126,7 +126,7 @@ export function renderSarif(summary: ConfigSummaryReport): string {
         tool: {
           driver: {
             name: "CallLint",
-            informationUri: "https://github.com/saintl1022/calllint",
+            informationUri: "https://calllint.com",
             rules: [...rules.values()],
           },
         },

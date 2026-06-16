@@ -62,7 +62,7 @@ will do, it says so and never silently upgrades to `SAFE`.
 
 CallLint is a heuristic, evidence-backed pre-flight check, **not a proof of
 safety**. `No blockers observed` ≠ guaranteed safe. Full docs, security model,
-and limitations: https://github.com/saintl1022/calllint
+and limitations: https://github.com/calllint/calllint
 
 ## License
 
