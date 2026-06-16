@@ -1,0 +1,14 @@
+{
+  "schemaVersion": "calllint.corpus.expected.v1",
+  "expectedVerdict": "UNKNOWN",
+  "expectedMaxRiskClass": "S1",
+  "allowExtraFindings": true,
+  "requiredFindingIds": [{ "id": "supply.unknown-remote", "minCount": 1 }],
+  "forbiddenFindingIds": ["exec.dangerous-command", "action.financial-observed"],
+  "requirements": {
+    "mustHaveEvidenceForEveryFinding": true,
+    "mustHaveFalsePositiveNoteForReviewOrBlock": false,
+    "mustHaveRemediationForReviewOrBlock": false
+  },
+  "dangerousFalseSafePolicy": { "thisCaseMustNeverBeSafe": true }
+}

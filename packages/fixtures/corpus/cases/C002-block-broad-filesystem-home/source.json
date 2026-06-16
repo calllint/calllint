@@ -1,0 +1,26 @@
+{
+  "schemaVersion": "calllint.corpus.case.v1",
+  "caseId": "C002-block-broad-filesystem-home",
+  "title": "Broad home-directory filesystem access is a hard blocker",
+  "curationStatus": "synthetic-contract-seed",
+  "riskTheme": ["filesystem"],
+  "origin": {
+    "kind": "synthetic",
+    "description": "Contract seed: a filesystem server granted access to /Users/example (a home root) instead of the workspace. Replace with a redacted real-world snapshot before R2 final acceptance.",
+    "retrievedAt": "2026-06-16T00:00:00.000Z",
+    "redactions": []
+  },
+  "input": { "path": "input/mcp.json", "format": "mcp-json" },
+  "humanExpectation": {
+    "verdict": "BLOCK",
+    "rationale": "Granting an agent-invocable tool access to an entire home directory exposes credentials, SSH keys, and unrelated private files; CallLint treats broad local filesystem access as a critical blocker, not a soft review.",
+    "knownLimitations": [
+      "A developer may intentionally grant broad access for a local-only experiment; the false-positive note records this."
+    ]
+  },
+  "executionPolicy": {
+    "executeTarget": false,
+    "allowNetwork": false,
+    "allowFilesystemMutation": false
+  }
+}
