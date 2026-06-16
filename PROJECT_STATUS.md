@@ -1,16 +1,23 @@
 # MCPGuard Project Status
 
-Current phase: HARDENED (v0.2.1)
+Current phase: v0.3-R1 Distribution Readiness (complete)
 
 ## Current milestone
 
-v0.2.1 Hardening — release credibility pass on top of the complete v0.2 engine.
-The detection engine, verdict semantics, and pipeline are unchanged in spirit;
-this milestone closes the gaps between "works" and "trustworthy to ship": the
-MONEY contract is enforced end-to-end, observed money-movers hard-block, online
-enrichment can never downgrade a verdict, Windows behaviour is pinned, the
-shipped artifact is smoke-tested, and the docs carry a user-success path plus
-explicit limitations.
+v0.3-R1 Distribution Readiness — turn the hardened engine into an installable,
+runnable, publishable CLI without changing any scanner semantics. The
+`workspace:*` + `private` blocker that prevented a real `npm pack` / `npx
+mcpguard` flow is resolved: `apps/cli` is now a publishable single-bundle
+package with an empty runtime dependency list and a `files` allowlist, the real
+tarball is smoke-tested through an isolated global install, and `npm publish
+--dry-run` passes. GitHub CI, SECURITY.md, and an MIT LICENSE are in place.
+
+## Previous milestone (v0.2.1 hardening)
+
+Release credibility pass on the complete v0.2 engine: MONEY contract enforced
+end-to-end, observed money-movers hard-block, online enrichment can never
+downgrade a verdict, Windows behaviour pinned, shipped artifact smoke-tested,
+docs carry a user-success path plus explicit limitations.
 
 ## Completed (v0.1 + v0.2 foundation)
 
@@ -51,6 +58,30 @@ explicit limitations.
 - H9: LIMITATIONS.md (trust boundaries).
 - H10: docs/release-checklist.md.
 
+## Completed (v0.3-R1 distribution readiness)
+
+- R1-0: corrected test file count (18 files) across docs.
+- R1-1: ADR 0007 — single bundled-CLI distribution strategy (why not
+  multi-package; minimal, auditable artifact; npm = distribution, GitHub =
+  source/CI/audit).
+- R1-2: publish package boundary — `apps/cli` made publishable (dropped
+  `private`, empty runtime `dependencies`, `workspace:*` moved to
+  `devDependencies`, `files: ["dist"]` allowlist, npm metadata, `prepack`
+  rebuild, npm-facing README).
+- R1-3: `scripts/package-smoke.mjs` + `pnpm pack:smoke` — packs the real
+  tarball and asserts the manifest, the bin/type/shebang, an empty runtime dep
+  list, and a self-contained bundle.
+- R1-4: isolated global-install smoke — installs the tarball into a throwaway
+  prefix and runs the installed binary (`--help`, `scan`, `--json`, `--ci`
+  exit 30 on BLOCK) from a clean cwd.
+- R1-5: `npm publish --dry-run` passes; bin canonicalized to `dist/index.js`;
+  release checklist updated (pack/dry-run steps + official-registry note).
+- R1-6: `.github/workflows/ci.yml` — typecheck/test/build/smoke/pack:smoke,
+  least-privilege token, never publishes, never executes a scanned server.
+- R1-7: MIT LICENSE (ships in the tarball) + SECURITY.md (enforced safety
+  boundaries, non-guarantees, minimal distribution surface, private reporting).
+- R1-8: this status.
+
 ## Verification status (last run)
 
 - typecheck: clean (tsc strict)
@@ -58,6 +89,10 @@ explicit limitations.
   smoke; network mocked — tests never touch the network)
 - build: apps/cli/dist/index.js (self-contained esbuild bundle, node shebang)
 - CLI smoke: scan/baseline/verify/sarif/html/npm targets confirmed
+- pack:smoke: real npm tarball (4 files: package.json, README.md, LICENSE,
+  dist/index.js), empty runtime deps, no `workspace:*`; isolated global install
+  runs `mcpguard --help` / `scan` / `--json` / `--ci` (exit 30 on BLOCK)
+- npm publish --dry-run: passes (no auth required for dry-run)
 
 ## Exit codes (CI)
 
@@ -94,21 +129,31 @@ explicit limitations.
 
 ## Open risks
 
-- Detectors are heuristic by nature (documented `falsePositiveNote` on each finding); see LIMITATIONS.md.
-- A true `npm pack` / publish of the workspace package is not yet wired — the
-  bundle is the shipped artifact and is smoke-tested, but publishing is a
-  documented manual release step (docs/release-checklist.md).
+- Detectors are heuristic by nature (documented `falsePositiveNote` on each
+  finding); see LIMITATIONS.md.
+- The package is verified through `npm pack` + isolated install + `npm publish
+  --dry-run`, but has **not been published** to a public registry yet. A real
+  publish requires `npm login` against the official registry
+  (`https://registry.npmjs.org/`); the local default may point at a mirror.
+- Validation is still primarily **fixture-proven**, not **corpus-proven** — the
+  next milestone (v0.3-R2) calibrates against real-world configs.
 
-## Next roadmap (v0.3 candidates)
+## Next roadmap (v0.3)
 
-- Publishable distribution: resolve workspace deps for a real `npm pack` /
-  `npx mcpguard` flow (or a single published bundle package).
-- Broaden observed-action coverage beyond payments (destructive external
-  mutations) with the same INFERRED/OBSERVED split.
-- Richer online sources (advisory databases) — still advisory, still no-downgrade.
-- Config auto-discovery across more hosts; multi-config workspace scan.
+- **v0.3-R2 — Real-world static corpus (next):** add
+  `packages/fixtures/corpus/` with ~30 real MCP samples (filesystem, GitHub,
+  browser, database, Slack/Notion/Google, Stripe/payment, Docker, uvx/python,
+  remote SSE, Windows, read-only utility, prompt-heavy), each with
+  config/expected/note; a corpus contract test; false-positive notes. Goal:
+  calibrate false positives, expose parser edges, seed a future Trust Index.
+- v0.3-R3 — `mcpguard diagnostics --json` (stable IDE protocol; no plugin yet).
+- v0.3-R4 — Prompt Surface expansion (README/SKILL/tool/schema descriptions,
+  hidden-instruction / exfiltration rules).
+- v0.3-R5 — GitHub Actions + SARIF real-world verification (Code Scanning).
+- (Then) public npm preview + public GitHub preview once corpus + diagnostics
+  land.
 
-## Non-goals (v0.2.x)
+## Non-goals (v0.3-R1)
 
 - No gateway, payments, marketplace, SaaS dashboard.
 - No host execution of unknown MCP servers, no real secret access, no destructive calls.
