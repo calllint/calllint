@@ -188,4 +188,5 @@ tools run.
 
 ## License
 
-MIT — see [LICENSE](LICENSE).
+Apache-2.0 — see [LICENSE](LICENSE) and [NOTICE](NOTICE). The CallLint name and
+logo are not licensed with the code; see [TRADEMARKS.md](TRADEMARKS.md).

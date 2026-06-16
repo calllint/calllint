@@ -24,8 +24,8 @@ changing any scanner semantics. The `workspace:*` + `private` blocker that
 prevented a real `npm pack` / `npx calllint` flow is resolved: the published
 package is a publishable single-bundle with an empty runtime dependency list and
 a `files` allowlist, the real tarball is smoke-tested through an isolated global
-install, and `npm publish --dry-run` passes. GitHub CI, SECURITY.md, and an MIT
-LICENSE are in place.
+install, and `npm publish --dry-run` passes. GitHub CI, SECURITY.md, and an
+Apache-2.0 LICENSE + NOTICE are in place.
 
 ## Previous milestone (v0.2.1 hardening)
 
@@ -106,7 +106,7 @@ docs carry a user-success path plus explicit limitations.
   release checklist updated (pack/dry-run steps + official-registry note).
 - R1-6: `.github/workflows/ci.yml` — typecheck/test/build/smoke/pack:smoke,
   least-privilege token, never publishes, never executes a scanned server.
-- R1-7: MIT LICENSE (ships in the tarball) + SECURITY.md (enforced safety
+- R1-7: Apache-2.0 LICENSE + NOTICE (ship in the tarball) + SECURITY.md (enforced safety
   boundaries, non-guarantees, minimal distribution surface, private reporting).
 - R1-8: this status.
 
