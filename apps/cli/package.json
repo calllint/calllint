@@ -1,25 +1,57 @@
 {
   "name": "@mcpguard/cli",
   "version": "0.1.0",
-  "private": true,
+  "description": "Evidence-backed security verdicts for MCP servers and agent tools. Scan an MCP config before your agent runs it — SAFE / REVIEW / BLOCK / UNKNOWN, with evidence. Never executes the server it judges.",
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "security",
+    "scanner",
+    "agent",
+    "ai",
+    "sarif",
+    "cli",
+    "static-analysis",
+    "supply-chain"
+  ],
+  "license": "MIT",
+  "author": "saintL",
+  "homepage": "https://github.com/saintl1022/mcpguard#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/saintl1022/mcpguard.git",
+    "directory": "apps/cli"
+  },
+  "bugs": {
+    "url": "https://github.com/saintl1022/mcpguard/issues"
+  },
   "type": "module",
   "bin": {
     "mcpguard": "./dist/index.js"
   },
+  "files": [
+    "dist"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
   "scripts": {
     "dev": "tsx src/index.ts",
     "build": "node ./build.mjs",
+    "prepack": "node ./build.mjs",
     "start": "node ./dist/index.js"
   },
-  "dependencies": {
+  "dependencies": {},
+  "devDependencies": {
     "@mcpguard/core": "workspace:*",
+    "@mcpguard/fixtures": "workspace:*",
     "@mcpguard/online": "workspace:*",
     "@mcpguard/policy": "workspace:*",
     "@mcpguard/report-renderer": "workspace:*",
-    "@mcpguard/types": "workspace:*"
-  },
-  "devDependencies": {
-    "@mcpguard/fixtures": "workspace:*",
+    "@mcpguard/types": "workspace:*",
     "esbuild": "^0.21.5"
   }
 }
