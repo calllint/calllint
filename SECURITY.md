@@ -64,9 +64,9 @@ a way to make it report `SAFE` for a config that should block, a path that
 causes it to execute scanned code, or a packaging/supply-chain weakness —
 please report it privately:
 
-- Open a [GitHub Security Advisory](https://github.com/saintl1022/mcpguard/security/advisories/new)
+- Open a [GitHub Security Advisory](https://github.com/calllint/calllint/security/advisories/new)
   (preferred), or
-- email the maintainer listed on the repository profile.
+- email security@calllint.com.
 
 Please do **not** open a public issue for an unfixed vulnerability. Include a
 minimal reproduction (a config and the observed vs. expected verdict is ideal),
