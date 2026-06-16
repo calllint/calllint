@@ -1,0 +1,69 @@
+# mcpguard
+
+**Before your agent runs a tool, know what it can read, write, execute, and send.**
+
+MCPGuard is a CLI-first scanner that gives **evidence-backed verdicts** for the
+MCP servers (agent tools) your AI coding agent is about to trust. It reads an MCP
+configuration, works out what each server will *actually run*, and returns a
+verdict — `SAFE`, `REVIEW`, `BLOCK`, or `UNKNOWN` — backed by concrete evidence,
+a risk class, and a recommended runtime policy. **It never executes the server it
+is judging.**
+
+## Quick start
+
+```bash
+# Scan a config (auto-detects .cursor/mcp.json, .mcp.json, .vscode/mcp.json, …)
+npx mcpguard scan .cursor/mcp.json
+
+# Stable, emoji-free JSON (the machine contract)
+npx mcpguard scan .cursor/mcp.json --json
+
+# CI gate: non-zero exit on a failing verdict
+npx mcpguard scan .cursor/mcp.json --ci
+```
+
+Requires Node ≥ 20.
+
+## What it detects
+
+| Symbol | Finding | Verdict impact |
+| --- | --- | --- |
+| `PROMPT` | Hidden model-directed instructions in tool metadata (tool poisoning) | BLOCK |
+| `EXEC` | Arbitrary command execution (shell / inline-eval / install scripts) | BLOCK |
+| `FILES` | Broad local filesystem access | BLOCK |
+| `MONEY` | Observed money-moving tool (create_payment, transfer, refund) + capability | BLOCK |
+| `MONEY` | Name-inferred financial domain (e.g. a "payments" package) | REVIEW |
+| `SECRETS` | Server configured with credentials | REVIEW |
+| `SUPPLY` | Unpinned package version (supply-chain drift) | REVIEW |
+| `ACTION` | May perform external side effects | REVIEW |
+| `NETWORK` | Unverifiable remote source | UNKNOWN |
+
+`UNKNOWN` is a first-class verdict: when MCPGuard cannot verify what a server
+will do, it says so and never silently upgrades to `SAFE`.
+
+## Exit codes (with `--ci`)
+
+| Code | Meaning |
+| --- | --- |
+| 0 | SAFE (or verdict not in policy `failOn`) |
+| 10 | REVIEW (only when `failOnReview` is enabled) |
+| 20 | UNKNOWN |
+| 30 | BLOCK |
+| 40 | DRIFT (`verify --ci`, risk surface changed vs baseline) |
+| 2 | usage error |
+| 3 | parse / runtime error |
+
+## More
+
+- SARIF 2.1.0 for GitHub Code Scanning: `mcpguard scan <config> --sarif`
+- Self-contained HTML report: `mcpguard scan <config> --html > report.html`
+- Drift / rug-pull detection: `mcpguard baseline <config>` then `mcpguard verify <config> --ci`
+- Policy-as-code: `mcpguard policy init`
+
+MCPGuard is a heuristic, evidence-backed pre-flight check, **not a proof of
+safety**. `No blockers observed` ≠ guaranteed safe. Full docs, security model,
+and limitations: https://github.com/saintl1022/mcpguard
+
+## License
+
+MIT

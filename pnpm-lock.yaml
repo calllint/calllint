@@ -22,10 +22,13 @@ importers:
         version: 2.1.9(@types/node@20.19.43)
 
   apps/cli:
-    dependencies:
+    devDependencies:
       '@mcpguard/core':
         specifier: workspace:*
         version: link:../../packages/core
+      '@mcpguard/fixtures':
+        specifier: workspace:*
+        version: link:../../packages/fixtures
       '@mcpguard/online':
         specifier: workspace:*
         version: link:../../packages/online
@@ -38,10 +41,6 @@ importers:
       '@mcpguard/types':
         specifier: workspace:*
         version: link:../../packages/types
-    devDependencies:
-      '@mcpguard/fixtures':
-        specifier: workspace:*
-        version: link:../../packages/fixtures
       esbuild:
         specifier: ^0.21.5
         version: 0.21.5
