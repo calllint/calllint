@@ -1,11 +1,11 @@
 import { parseArgs, flagBool } from "./args.js"
-import { parseTargetSpec, serverNameForPackage } from "@mcpguard/core"
+import { parseTargetSpec, serverNameForPackage } from "@calllint/core"
 import {
   enrichNpmPackage,
   fetchGithubConfig,
   type FetchJson,
   type FetchText,
-} from "@mcpguard/online"
+} from "@calllint/online"
 import type { OnlineEnrichment } from "./run.js"
 
 /** Real JSON fetcher over Node's global fetch. */

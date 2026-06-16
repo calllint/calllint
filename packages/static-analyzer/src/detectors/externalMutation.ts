@@ -1,4 +1,4 @@
-import type { Evidence, Finding } from "@mcpguard/types"
+import type { Evidence, Finding } from "@calllint/types"
 import type { DetectorContext } from "../context.js"
 
 /** Name fragments suggesting external side-effecting actions (T07). */

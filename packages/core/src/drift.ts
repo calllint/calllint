@@ -5,7 +5,7 @@ import type {
   DriftEntry,
   DriftReport,
   ScanReport,
-} from "@mcpguard/types"
+} from "@calllint/types"
 
 function entryFromReport(report: ScanReport): BaselineEntry {
   return {
@@ -26,7 +26,7 @@ export function buildBaseline(
   createdAt: string,
 ): Baseline {
   return {
-    schemaVersion: "mcpguard.baseline.v0",
+    schemaVersion: "calllint.baseline.v0",
     configPath: summary.configPath,
     entries: summary.reports.map(entryFromReport),
     createdAt,
@@ -141,7 +141,7 @@ export function computeDrift(
   const rugPullDetected = entries.some((e) => e.rugPull)
 
   return {
-    schemaVersion: "mcpguard.drift.v0",
+    schemaVersion: "calllint.drift.v0",
     configPath: summary.configPath,
     drifted,
     rugPullDetected,

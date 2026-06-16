@@ -1,5 +1,5 @@
 /**
- * Tool metadata a user may paste alongside a server config (under `x-mcpguard.tools`).
+ * Tool metadata a user may paste alongside a server config (under `x-calllint.tools`).
  * This is the model-visible surface we scan for poisoning — we never fetch it live.
  */
 export interface ProvidedToolMetadata {

@@ -1,4 +1,4 @@
-import type { ConfigSummaryReport } from "@mcpguard/types"
+import type { ConfigSummaryReport } from "@calllint/types"
 import { DEFAULT_STYLE, symbolList, verdictTag, type RenderStyle } from "./style.js"
 
 /**

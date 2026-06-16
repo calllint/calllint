@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest"
 import { scanConfigText } from "../src/index.js"
-import type { Finding } from "@mcpguard/types"
+import type { Finding } from "@calllint/types"
 
 const OPTS = { now: Date.parse("2026-06-01T00:00:00Z"), generatedAt: "2026-06-01T00:00:00.000Z" }
 

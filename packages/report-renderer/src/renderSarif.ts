@@ -3,7 +3,7 @@ import type {
   Finding,
   ScanReport,
   Severity,
-} from "@mcpguard/types"
+} from "@calllint/types"
 
 /** SARIF severity levels. */
 type SarifLevel = "error" | "warning" | "note"
@@ -55,7 +55,7 @@ function ruleFromFinding(f: Finding): SarifRule {
     properties: {
       symbol: f.symbol,
       riskClass: f.riskClass,
-      tags: ["mcpguard", f.symbol.toLowerCase(), f.riskClass.toLowerCase()],
+      tags: ["calllint", f.symbol.toLowerCase(), f.riskClass.toLowerCase()],
     },
   }
 }
@@ -125,8 +125,8 @@ export function renderSarif(summary: ConfigSummaryReport): string {
       {
         tool: {
           driver: {
-            name: "MCPGuard",
-            informationUri: "https://github.com/mcpguard/mcpguard",
+            name: "CallLint",
+            informationUri: "https://github.com/saintl1022/calllint",
             rules: [...rules.values()],
           },
         },

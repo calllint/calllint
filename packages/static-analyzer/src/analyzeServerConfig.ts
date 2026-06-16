@@ -1,5 +1,5 @@
-import type { Finding, NormalizedMcpServer } from "@mcpguard/types"
-import { resolveRuntimeBinding } from "@mcpguard/resolver"
+import type { Finding, NormalizedMcpServer } from "@calllint/types"
+import { resolveRuntimeBinding } from "@calllint/resolver"
 import type { DetectorContext } from "./context.js"
 import { detectUnpinnedPackage } from "./detectors/unpinnedPackage.js"
 import { detectBroadFilesystemPath } from "./detectors/broadFilesystemPath.js"

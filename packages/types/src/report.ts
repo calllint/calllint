@@ -33,11 +33,11 @@ export interface Diagnostic {
 export type ReportKind = "single-target" | "config-summary"
 
 /**
- * The single source of truth for all MCPGuard output.
+ * The single source of truth for all CallLint output.
  * CLI, JSON, IDE and Web reports all render from this.
  */
 export interface ScanReport {
-  schemaVersion: "mcpguard.report.v0"
+  schemaVersion: "calllint.report.v0"
   reportKind: ReportKind
   target: ScanTarget
   verdict: Verdict
@@ -69,7 +69,7 @@ export interface ScanReport {
  * The aggregate verdict is the most severe child verdict.
  */
 export interface ConfigSummaryReport {
-  schemaVersion: "mcpguard.report.v0"
+  schemaVersion: "calllint.report.v0"
   reportKind: "config-summary"
   configPath: string
   verdict: Verdict

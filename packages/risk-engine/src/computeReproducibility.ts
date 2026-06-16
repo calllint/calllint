@@ -2,7 +2,7 @@ import type {
   Finding,
   Reproducibility,
   RuntimeBinding,
-} from "@mcpguard/types"
+} from "@calllint/types"
 
 /**
  * Derive a reproducibility level. Unpinned packages and unverifiable remotes

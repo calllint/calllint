@@ -2,7 +2,7 @@
  * A scan target can be a config file path, an npm package, or a GitHub repo.
  * npm and github targets are "synthetic": we construct an equivalent MCP config
  * so the same offline pipeline applies. Network fetching (github contents, npm
- * registry metadata) lives in @mcpguard/online and is opt-in via --online.
+ * registry metadata) lives in @calllint/online and is opt-in via --online.
  */
 export type TargetSpecKind = "path" | "npm" | "github"
 

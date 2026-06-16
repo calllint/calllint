@@ -7,18 +7,18 @@
     "types": ["node"],
     "baseUrl": ".",
     "paths": {
-      "@mcpguard/types": ["packages/types/src/index.ts"],
-      "@mcpguard/types/*": ["packages/types/src/*"],
-      "@mcpguard/config-parser": ["packages/config-parser/src/index.ts"],
-      "@mcpguard/resolver": ["packages/resolver/src/index.ts"],
-      "@mcpguard/static-analyzer": ["packages/static-analyzer/src/index.ts"],
-      "@mcpguard/risk-engine": ["packages/risk-engine/src/index.ts"],
-      "@mcpguard/policy": ["packages/policy/src/index.ts"],
-      "@mcpguard/fingerprint": ["packages/fingerprint/src/index.ts"],
-      "@mcpguard/report-renderer": ["packages/report-renderer/src/index.ts"],
-      "@mcpguard/core": ["packages/core/src/index.ts"],
-      "@mcpguard/online": ["packages/online/src/index.ts"],
-      "@mcpguard/fixtures": ["packages/fixtures/src/index.ts"]
+      "@calllint/types": ["packages/types/src/index.ts"],
+      "@calllint/types/*": ["packages/types/src/*"],
+      "@calllint/config-parser": ["packages/config-parser/src/index.ts"],
+      "@calllint/resolver": ["packages/resolver/src/index.ts"],
+      "@calllint/static-analyzer": ["packages/static-analyzer/src/index.ts"],
+      "@calllint/risk-engine": ["packages/risk-engine/src/index.ts"],
+      "@calllint/policy": ["packages/policy/src/index.ts"],
+      "@calllint/fingerprint": ["packages/fingerprint/src/index.ts"],
+      "@calllint/report-renderer": ["packages/report-renderer/src/index.ts"],
+      "@calllint/core": ["packages/core/src/index.ts"],
+      "@calllint/online": ["packages/online/src/index.ts"],
+      "@calllint/fixtures": ["packages/fixtures/src/index.ts"]
     }
   },
   "include": [

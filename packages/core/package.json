@@ -1,5 +1,5 @@
 {
-  "name": "@mcpguard/core",
+  "name": "@calllint/core",
   "version": "0.1.0",
   "private": true,
   "type": "module",
@@ -9,15 +9,15 @@
     ".": "./src/index.ts"
   },
   "dependencies": {
-    "@mcpguard/types": "workspace:*",
-    "@mcpguard/config-parser": "workspace:*",
-    "@mcpguard/resolver": "workspace:*",
-    "@mcpguard/static-analyzer": "workspace:*",
-    "@mcpguard/risk-engine": "workspace:*",
-    "@mcpguard/policy": "workspace:*",
-    "@mcpguard/fingerprint": "workspace:*"
+    "@calllint/types": "workspace:*",
+    "@calllint/config-parser": "workspace:*",
+    "@calllint/resolver": "workspace:*",
+    "@calllint/static-analyzer": "workspace:*",
+    "@calllint/risk-engine": "workspace:*",
+    "@calllint/policy": "workspace:*",
+    "@calllint/fingerprint": "workspace:*"
   },
   "devDependencies": {
-    "@mcpguard/fixtures": "workspace:*"
+    "@calllint/fixtures": "workspace:*"
   }
 }

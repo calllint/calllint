@@ -23,22 +23,22 @@ importers:
 
   apps/cli:
     devDependencies:
-      '@mcpguard/core':
+      '@calllint/core':
         specifier: workspace:*
         version: link:../../packages/core
-      '@mcpguard/fixtures':
+      '@calllint/fixtures':
         specifier: workspace:*
         version: link:../../packages/fixtures
-      '@mcpguard/online':
+      '@calllint/online':
         specifier: workspace:*
         version: link:../../packages/online
-      '@mcpguard/policy':
+      '@calllint/policy':
         specifier: workspace:*
         version: link:../../packages/policy
-      '@mcpguard/report-renderer':
+      '@calllint/report-renderer':
         specifier: workspace:*
         version: link:../../packages/report-renderer
-      '@mcpguard/types':
+      '@calllint/types':
         specifier: workspace:*
         version: link:../../packages/types
       esbuild:
@@ -47,124 +47,124 @@ importers:
 
   packages/config-parser:
     dependencies:
-      '@mcpguard/types':
+      '@calllint/types':
         specifier: workspace:*
         version: link:../types
     devDependencies:
-      '@mcpguard/fixtures':
+      '@calllint/fixtures':
         specifier: workspace:*
         version: link:../fixtures
 
   packages/core:
     dependencies:
-      '@mcpguard/config-parser':
+      '@calllint/config-parser':
         specifier: workspace:*
         version: link:../config-parser
-      '@mcpguard/fingerprint':
+      '@calllint/fingerprint':
         specifier: workspace:*
         version: link:../fingerprint
-      '@mcpguard/policy':
+      '@calllint/policy':
         specifier: workspace:*
         version: link:../policy
-      '@mcpguard/resolver':
+      '@calllint/resolver':
         specifier: workspace:*
         version: link:../resolver
-      '@mcpguard/risk-engine':
+      '@calllint/risk-engine':
         specifier: workspace:*
         version: link:../risk-engine
-      '@mcpguard/static-analyzer':
+      '@calllint/static-analyzer':
         specifier: workspace:*
         version: link:../static-analyzer
-      '@mcpguard/types':
+      '@calllint/types':
         specifier: workspace:*
         version: link:../types
     devDependencies:
-      '@mcpguard/fixtures':
+      '@calllint/fixtures':
         specifier: workspace:*
         version: link:../fixtures
 
   packages/fingerprint:
     dependencies:
-      '@mcpguard/types':
+      '@calllint/types':
         specifier: workspace:*
         version: link:../types
 
   packages/fixtures:
     dependencies:
-      '@mcpguard/types':
+      '@calllint/types':
         specifier: workspace:*
         version: link:../types
 
   packages/online:
     dependencies:
-      '@mcpguard/types':
+      '@calllint/types':
         specifier: workspace:*
         version: link:../types
 
   packages/policy:
     dependencies:
-      '@mcpguard/types':
+      '@calllint/types':
         specifier: workspace:*
         version: link:../types
 
   packages/report-renderer:
     dependencies:
-      '@mcpguard/types':
+      '@calllint/types':
         specifier: workspace:*
         version: link:../types
     devDependencies:
-      '@mcpguard/core':
+      '@calllint/core':
         specifier: workspace:*
         version: link:../core
-      '@mcpguard/fixtures':
+      '@calllint/fixtures':
         specifier: workspace:*
         version: link:../fixtures
 
   packages/resolver:
     dependencies:
-      '@mcpguard/types':
+      '@calllint/types':
         specifier: workspace:*
         version: link:../types
     devDependencies:
-      '@mcpguard/config-parser':
+      '@calllint/config-parser':
         specifier: workspace:*
         version: link:../config-parser
-      '@mcpguard/fixtures':
+      '@calllint/fixtures':
         specifier: workspace:*
         version: link:../fixtures
 
   packages/risk-engine:
     dependencies:
-      '@mcpguard/types':
+      '@calllint/types':
         specifier: workspace:*
         version: link:../types
     devDependencies:
-      '@mcpguard/config-parser':
+      '@calllint/config-parser':
         specifier: workspace:*
         version: link:../config-parser
-      '@mcpguard/fixtures':
+      '@calllint/fixtures':
         specifier: workspace:*
         version: link:../fixtures
-      '@mcpguard/resolver':
+      '@calllint/resolver':
         specifier: workspace:*
         version: link:../resolver
-      '@mcpguard/static-analyzer':
+      '@calllint/static-analyzer':
         specifier: workspace:*
         version: link:../static-analyzer
 
   packages/static-analyzer:
     dependencies:
-      '@mcpguard/resolver':
+      '@calllint/resolver':
         specifier: workspace:*
         version: link:../resolver
-      '@mcpguard/types':
+      '@calllint/types':
         specifier: workspace:*
         version: link:../types
     devDependencies:
-      '@mcpguard/config-parser':
+      '@calllint/config-parser':
         specifier: workspace:*
         version: link:../config-parser
-      '@mcpguard/fixtures':
+      '@calllint/fixtures':
         specifier: workspace:*
         version: link:../fixtures
 

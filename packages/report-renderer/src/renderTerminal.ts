@@ -1,5 +1,5 @@
-import type { ConfigSummaryReport, Finding, ScanReport } from "@mcpguard/types"
-import { RISK_CLASS_LABEL } from "@mcpguard/types"
+import type { ConfigSummaryReport, Finding, ScanReport } from "@calllint/types"
+import { RISK_CLASS_LABEL } from "@calllint/types"
 import {
   DEFAULT_STYLE,
   symbolList,
@@ -57,7 +57,7 @@ export function renderTerminal(
   style: RenderStyle = DEFAULT_STYLE,
 ): string {
   const lines: string[] = []
-  lines.push("MCPGuard scan")
+  lines.push("CallLint scan")
   lines.push(`config: ${summary.configPath}`)
   lines.push(
     `result: ${verdictTag(summary.verdict, style)}   ` +

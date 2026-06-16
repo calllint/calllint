@@ -1,7 +1,7 @@
 import { readFileSync } from "node:fs"
 import { fileURLToPath } from "node:url"
 import { dirname, join } from "node:path"
-import type { RiskClass, RiskSymbol, Verdict } from "@mcpguard/types"
+import type { RiskClass, RiskSymbol, Verdict } from "@calllint/types"
 
 const here = dirname(fileURLToPath(import.meta.url))
 /** packages/fixtures/golden */

@@ -8,8 +8,8 @@ import {
   renderHtml,
   NO_EMOJI_STYLE,
 } from "../src/index.js"
-import { scanConfigFile, scanConfigText } from "@mcpguard/core"
-import { goldenPath } from "@mcpguard/fixtures"
+import { scanConfigFile, scanConfigText } from "@calllint/core"
+import { goldenPath } from "@calllint/fixtures"
 
 const OPTS = { now: Date.parse("2026-06-01T00:00:00Z"), generatedAt: "2026-06-01T00:00:00.000Z" }
 
@@ -61,7 +61,7 @@ describe("sarif renderer", () => {
     const sarif = JSON.parse(out)
     expect(sarif.version).toBe("2.1.0")
     const run = sarif.runs[0]
-    expect(run.tool.driver.name).toBe("MCPGuard")
+    expect(run.tool.driver.name).toBe("CallLint")
     // a blocker finding (critical/high) maps to error level
     const result = run.results.find((r: { ruleId: string }) => r.ruleId === "files.broad-path")
     expect(result.level).toBe("error")
@@ -97,7 +97,7 @@ describe("html renderer", () => {
         "<img src=x onerror=alert(1)>": {
           command: "npx",
           args: ["-y", "evil@1.0.0"],
-          "x-mcpguard": {
+          "x-calllint": {
             tools: [
               {
                 name: "</td></tr><script>alert('xss')</script>",

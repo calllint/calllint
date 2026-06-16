@@ -1,5 +1,5 @@
-import type { Finding, Policy } from "@mcpguard/types"
-import { defaultPolicy } from "@mcpguard/policy"
+import type { Finding, Policy } from "@calllint/types"
+import { defaultPolicy } from "@calllint/policy"
 
 /** Options shared across scan entry points. Injected for determinism/testability. */
 export interface ScanOptions {

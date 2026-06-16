@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest"
 import { computeOnlineEnrichment } from "../src/online.js"
 import { run, EXIT } from "../src/run.js"
-import type { FetchJson, FetchText } from "@mcpguard/online"
+import type { FetchJson, FetchText } from "@calllint/online"
 
 const BASE = {
   cwd: process.cwd(),

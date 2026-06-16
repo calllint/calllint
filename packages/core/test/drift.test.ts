@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest"
 import { scanConfigText, buildBaseline, computeDrift } from "../src/index.js"
-import { readGolden } from "@mcpguard/fixtures"
+import { readGolden } from "@calllint/fixtures"
 
 const OPTS = { now: 0, generatedAt: "2026-06-01T00:00:00.000Z" }
 const AT = "2026-06-01T00:00:00.000Z"
@@ -65,7 +65,7 @@ describe("drift detection", () => {
   it("baseline is deterministic and carries the schema version", () => {
     const text = readGolden("review-github.json")
     const base = buildBaseline(scan(text), AT)
-    expect(base.schemaVersion).toBe("mcpguard.baseline.v0")
+    expect(base.schemaVersion).toBe("calllint.baseline.v0")
     expect(base.entries[0]!.fingerprints.configHash).toMatch(/^sha256:/)
   })
 })

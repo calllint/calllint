@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest"
 import { hashJson, stableStringify, computeFingerprints } from "../src/index.js"
-import type { NormalizedMcpServer, RuntimeBinding } from "@mcpguard/types"
+import type { NormalizedMcpServer, RuntimeBinding } from "@calllint/types"
 
 describe("stable hashing", () => {
   it("is order-independent for object keys", () => {

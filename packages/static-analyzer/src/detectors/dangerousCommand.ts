@@ -1,6 +1,6 @@
-import type { Evidence, Finding } from "@mcpguard/types"
+import type { Evidence, Finding } from "@calllint/types"
 import type { DetectorContext } from "../context.js"
-import { SHELL_COMMANDS } from "@mcpguard/resolver"
+import { SHELL_COMMANDS } from "@calllint/resolver"
 
 /** Inline-exec flags that run an arbitrary string. */
 const INLINE_EXEC_FLAGS = new Set(["-c", "-e", "--eval", "--command"])

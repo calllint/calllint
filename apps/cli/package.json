@@ -1,7 +1,7 @@
 {
-  "name": "@mcpguard/cli",
+  "name": "calllint",
   "version": "0.1.0",
-  "description": "Evidence-backed security verdicts for MCP servers and agent tools. Scan an MCP config before your agent runs it — SAFE / REVIEW / BLOCK / UNKNOWN, with evidence. Never executes the server it judges.",
+  "description": "Evidence-backed security verdicts for MCP servers and agent tools. Lint agent tool-call risk before tools run — SAFE / REVIEW / BLOCK / UNKNOWN, with evidence. Never executes the server it judges.",
   "keywords": [
     "mcp",
     "model-context-protocol",
@@ -16,18 +16,18 @@
   ],
   "license": "MIT",
   "author": "saintL",
-  "homepage": "https://github.com/saintl1022/mcpguard#readme",
+  "homepage": "https://github.com/saintl1022/calllint#readme",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/saintl1022/mcpguard.git",
+    "url": "git+https://github.com/saintl1022/calllint.git",
     "directory": "apps/cli"
   },
   "bugs": {
-    "url": "https://github.com/saintl1022/mcpguard/issues"
+    "url": "https://github.com/saintl1022/calllint/issues"
   },
   "type": "module",
   "bin": {
-    "mcpguard": "dist/index.js"
+    "calllint": "dist/index.js"
   },
   "files": [
     "dist"
@@ -46,12 +46,12 @@
   },
   "dependencies": {},
   "devDependencies": {
-    "@mcpguard/core": "workspace:*",
-    "@mcpguard/fixtures": "workspace:*",
-    "@mcpguard/online": "workspace:*",
-    "@mcpguard/policy": "workspace:*",
-    "@mcpguard/report-renderer": "workspace:*",
-    "@mcpguard/types": "workspace:*",
+    "@calllint/core": "workspace:*",
+    "@calllint/fixtures": "workspace:*",
+    "@calllint/online": "workspace:*",
+    "@calllint/policy": "workspace:*",
+    "@calllint/report-renderer": "workspace:*",
+    "@calllint/types": "workspace:*",
     "esbuild": "^0.21.5"
   }
 }

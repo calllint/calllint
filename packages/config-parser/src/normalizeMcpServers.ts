@@ -1,4 +1,4 @@
-import type { NormalizedMcpServer, ProvidedToolMetadata } from "@mcpguard/types"
+import type { NormalizedMcpServer, ProvidedToolMetadata } from "@calllint/types"
 
 function isRecord(v: unknown): v is Record<string, unknown> {
   return typeof v === "object" && v !== null && !Array.isArray(v)
@@ -26,7 +26,7 @@ function transportFor(server: Record<string, unknown>): NormalizedMcpServer["tra
 }
 
 function extractProvidedTools(server: Record<string, unknown>): ProvidedToolMetadata[] {
-  const guard = server["x-mcpguard"]
+  const guard = server["x-calllint"]
   if (!isRecord(guard)) return []
   const tools = guard.tools
   if (!Array.isArray(tools)) return []
@@ -43,7 +43,7 @@ function extractProvidedTools(server: Record<string, unknown>): ProvidedToolMeta
 }
 
 function extractInstructions(server: Record<string, unknown>): string | undefined {
-  const guard = server["x-mcpguard"]
+  const guard = server["x-calllint"]
   if (isRecord(guard) && asString(guard.instructions)) {
     return asString(guard.instructions)
   }

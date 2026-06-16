@@ -1,4 +1,4 @@
-import type { Policy, PolicyOverride } from "@mcpguard/types"
+import type { Policy, PolicyOverride } from "@calllint/types"
 
 export interface PolicyValidationIssue {
   path: string
@@ -70,10 +70,10 @@ export function validatePolicy(value: unknown): Policy {
   if (!isRecord(value)) {
     throw new PolicyValidationError([{ path: "", message: "must be an object" }])
   }
-  if (value.schemaVersion !== "mcpguard.policy.v0") {
+  if (value.schemaVersion !== "calllint.policy.v0") {
     issues.push({
       path: "schemaVersion",
-      message: 'must be "mcpguard.policy.v0"',
+      message: 'must be "calllint.policy.v0"',
     })
   }
   if (!isRecord(value.defaults)) {

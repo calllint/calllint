@@ -3,7 +3,7 @@ import { execFileSync } from "node:child_process"
 import { fileURLToPath } from "node:url"
 import { dirname, join } from "node:path"
 import { existsSync, readFileSync } from "node:fs"
-import { goldenPath, GOLDEN_CASES } from "@mcpguard/fixtures"
+import { goldenPath, GOLDEN_CASES } from "@calllint/fixtures"
 
 const here = dirname(fileURLToPath(import.meta.url))
 const repoRoot = join(here, "..", "..", "..")

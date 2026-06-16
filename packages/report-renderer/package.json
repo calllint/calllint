@@ -1,5 +1,5 @@
 {
-  "name": "@mcpguard/report-renderer",
+  "name": "@calllint/report-renderer",
   "version": "0.1.0",
   "private": true,
   "type": "module",
@@ -9,10 +9,10 @@
     ".": "./src/index.ts"
   },
   "dependencies": {
-    "@mcpguard/types": "workspace:*"
+    "@calllint/types": "workspace:*"
   },
   "devDependencies": {
-    "@mcpguard/core": "workspace:*",
-    "@mcpguard/fixtures": "workspace:*"
+    "@calllint/core": "workspace:*",
+    "@calllint/fixtures": "workspace:*"
   }
 }
