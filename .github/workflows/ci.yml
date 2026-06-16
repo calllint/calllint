@@ -1,0 +1,47 @@
+# Main CI for MCPGuard. Runs the full quality gate on every push and PR:
+# typecheck, tests, build, and both smoke layers (built-artifact + real npm
+# pack/install). This workflow NEVER publishes to npm and NEVER executes a
+# scanned MCP server — MCPGuard only ever inspects configs statically.
+name: ci
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+
+# Least privilege: CI only needs to read the repo.
+permissions:
+  contents: read
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Typecheck
+        run: pnpm typecheck
+
+      - name: Test
+        run: pnpm test
+
+      - name: Build the CLI bundle
+        run: pnpm build
+
+      - name: Package smoke (shipped artifact)
+        run: pnpm smoke
+
+      - name: Pack + isolated install smoke
+        run: pnpm pack:smoke
