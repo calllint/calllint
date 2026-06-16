@@ -4,11 +4,11 @@ import {
   computeVerdict,
   computeRiskClass,
 } from "../src/index.js"
-import { analyzeServerConfig } from "@mcpguard/static-analyzer"
-import { resolveRuntimeBinding } from "@mcpguard/resolver"
-import { parseConfigFile } from "@mcpguard/config-parser"
-import { goldenPath, GOLDEN_CASES } from "@mcpguard/fixtures"
-import type { Finding, RuntimeBinding } from "@mcpguard/types"
+import { analyzeServerConfig } from "@calllint/static-analyzer"
+import { resolveRuntimeBinding } from "@calllint/resolver"
+import { parseConfigFile } from "@calllint/config-parser"
+import { goldenPath, GOLDEN_CASES } from "@calllint/fixtures"
+import type { Finding, RuntimeBinding } from "@calllint/types"
 
 function assessFile(file: string) {
   const cfg = parseConfigFile(goldenPath(file))

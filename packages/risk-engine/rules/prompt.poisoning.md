@@ -10,7 +10,7 @@ instructions", "do not tell the user", "always call this tool first").
 
 Symbol: PROMPT · Risk class: S2 · Mode: OBSERVED
 
-Observed evidence: provided tool metadata (`x-mcpguard.tools`) / server instructions.
+Observed evidence: provided tool metadata (`x-calllint.tools`) / server instructions.
 
 Why it matters: This metadata reaches the model directly and can hijack autonomous
 tool selection or coerce data disclosure. This is the agent-native differentiator —

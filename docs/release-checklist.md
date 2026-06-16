@@ -1,7 +1,7 @@
 # Release checklist
 
 A deterministic, repeatable gate before tagging a release. Every box must pass
-on a clean checkout. MCPGuard never executes the servers it scans; none of these
+on a clean checkout. CallLint never executes the servers it scans; none of these
 steps run untrusted code.
 
 ## 1. Clean state
@@ -53,12 +53,12 @@ Run the built binary the way a user would:
 
 The CLI is published as a **single self-contained esbuild bundle** — see
 [ADR 0007](adr/0007-cli-distribution-strategy.md). The publishable package is
-`apps/cli` (`@mcpguard/cli`); the monorepo root stays private.
+`apps/cli` (`@calllint/cli`); the monorepo root stays private.
 
 - [ ] `pnpm pack:smoke` passes: the real `npm pack` tarball contains exactly
       `package.json`, `README.md`, `dist/index.js`; the published surface has an
       empty runtime `dependencies` (no `workspace:*`); and an isolated global
-      install runs `mcpguard --help` / `scan` / `--json` / `--ci` (exit 30 on
+      install runs `calllint --help` / `scan` / `--json` / `--ci` (exit 30 on
       BLOCK) from a clean prefix.
 - [ ] `npm publish --dry-run` (run in `apps/cli/`) succeeds and lists the 3-file
       tarball. It validates name, version, bin, files, and the README/LICENSE.

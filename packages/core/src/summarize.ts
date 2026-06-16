@@ -1,6 +1,6 @@
-import type { RiskAssessment } from "@mcpguard/risk-engine"
-import type { Verdict } from "@mcpguard/types"
-import { RISK_CLASS_LABEL, RISK_SYMBOL_LABEL } from "@mcpguard/types"
+import type { RiskAssessment } from "@calllint/risk-engine"
+import type { Verdict } from "@calllint/types"
+import { RISK_CLASS_LABEL, RISK_SYMBOL_LABEL } from "@calllint/types"
 
 /** A one-line human summary for a server report. Deterministic, no LLM. */
 export function summarize(

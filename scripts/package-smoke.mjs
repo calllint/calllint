@@ -14,7 +14,7 @@
  *   3. package.json: name/bin/type/files/empty-runtime-deps are correct and no
  *      workspace:* specifier survives into the published surface.
  *   4. The unpacked dist/index.js starts with the Node shebang and is a
- *      self-contained bundle (no unresolved @mcpguard/* imports).
+ *      self-contained bundle (no unresolved @calllint/* imports).
  *
  * Usage: node scripts/package-smoke.mjs
  * Exits 0 on success, non-zero with a clear message on the first failure.
@@ -57,7 +57,7 @@ const FORBIDDEN_SUBSTRINGS = [
   "build.mjs",
   ".claude",
   "node_modules",
-  ".mcpguard",
+  ".calllint",
   "tsconfig",
 ]
 
@@ -69,7 +69,7 @@ function ok(msg) {
   console.log(`✓ ${msg}`)
 }
 
-const work = mkdtempSync(join(tmpdir(), "mcpguard-pack-"))
+const work = mkdtempSync(join(tmpdir(), "calllint-pack-"))
 try {
   // 1. Pack the real tarball into an isolated dir. --json gives us the manifest
   //    npm itself computed, so we assert against npm's own view of the surface.
@@ -106,8 +106,8 @@ try {
   // npm canonicalizes the bin path to "dist/index.js" (no leading ./) on
   // publish; accept either form so the assertion tracks the resolved target,
   // not punctuation.
-  const binPath = (pkg.bin?.mcpguard ?? "").replace(/^\.\//, "")
-  if (binPath !== "dist/index.js") fail(`bin.mcpguard != dist/index.js (got ${pkg.bin?.mcpguard})`)
+  const binPath = (pkg.bin?.calllint ?? "").replace(/^\.\//, "")
+  if (binPath !== "dist/index.js") fail(`bin.calllint != dist/index.js (got ${pkg.bin?.calllint})`)
   if (pkg.type !== "module") fail(`type != module (got ${pkg.type})`)
   if (pkg.private) fail("package is still private:true — cannot publish")
   const runtimeDeps = Object.keys(pkg.dependencies ?? {})
@@ -126,8 +126,8 @@ try {
   const code = readFileSync(shippedBin, "utf8")
   const firstLine = code.split("\n", 1)[0]
   if (firstLine !== "#!/usr/bin/env node") fail(`shebang missing/wrong: ${JSON.stringify(firstLine)}`)
-  if (/from\s+["']@mcpguard\//.test(code) || /require\(["']@mcpguard\//.test(code)) {
-    fail("bundle has unresolved @mcpguard/* imports — not self-contained")
+  if (/from\s+["']@calllint\//.test(code) || /require\(["']@calllint\//.test(code)) {
+    fail("bundle has unresolved @calllint/* imports — not self-contained")
   }
   ok("shipped dist/index.js has node shebang and is self-contained")
 
@@ -144,20 +144,21 @@ try {
     { cwd: work, stdio: "ignore" },
   )
 
-  // npm's global layout differs by platform.
+  // npm's global layout differs by platform. The published package is the
+  // unscoped `calllint`, so it installs under node_modules/calllint.
   const installedPkgJson = [
-    join(prefix, "node_modules", "@mcpguard", "cli", "package.json"),
-    join(prefix, "lib", "node_modules", "@mcpguard", "cli", "package.json"),
+    join(prefix, "node_modules", "calllint", "package.json"),
+    join(prefix, "lib", "node_modules", "calllint", "package.json"),
   ].find((p) => existsSync(p))
   if (!installedPkgJson) fail("installed package not found under the isolated prefix")
   ok("tarball installs into an isolated prefix")
 
   const binShim = [
-    join(prefix, "mcpguard"),
-    join(prefix, "mcpguard.cmd"),
-    join(prefix, "bin", "mcpguard"),
+    join(prefix, "calllint"),
+    join(prefix, "calllint.cmd"),
+    join(prefix, "bin", "calllint"),
   ].find((p) => existsSync(p))
-  if (!binShim) fail("mcpguard bin shim was not created on install")
+  if (!binShim) fail("calllint bin shim was not created on install")
   ok(`bin shim created (${binShim.replace(prefix, "<prefix>")})`)
 
   const installedBin = join(dirname(installedPkgJson), "dist", "index.js")
@@ -180,16 +181,16 @@ try {
   }
 
   const help = runInstalled(["--help"])
-  if (help.code !== 0 || !help.stdout.includes("USAGE") || !help.stdout.includes("mcpguard")) {
-    fail(`--help: expected exit 0 with USAGE/mcpguard, got code ${help.code}`)
+  if (help.code !== 0 || !help.stdout.includes("USAGE") || !help.stdout.includes("calllint")) {
+    fail(`--help: expected exit 0 with USAGE/calllint, got code ${help.code}`)
   }
-  ok("installed mcpguard --help → exit 0, prints usage")
+  ok("installed calllint --help → exit 0, prints usage")
 
   const scan = runInstalled(["scan", blockFixture, "--no-emoji"])
   if (scan.code !== 0 || !scan.stdout.includes("BLOCK")) {
     fail(`scan (no --ci): expected exit 0 reporting BLOCK, got code ${scan.code}`)
   }
-  ok("installed mcpguard scan <block> → exit 0, reports BLOCK")
+  ok("installed calllint scan <block> → exit 0, reports BLOCK")
 
   const json = runInstalled(["scan", blockFixture, "--json"])
   let parsed
@@ -199,11 +200,11 @@ try {
     fail("scan --json did not emit valid JSON")
   }
   if (parsed.verdict !== "BLOCK") fail(`scan --json: expected verdict BLOCK, got ${parsed.verdict}`)
-  ok("installed mcpguard scan --json → valid JSON, verdict BLOCK")
+  ok("installed calllint scan --json → valid JSON, verdict BLOCK")
 
   const ci = runInstalled(["scan", blockFixture, "--ci", "--no-emoji"])
   if (ci.code !== 30) fail(`scan --ci on BLOCK: expected exit 30, got ${ci.code}`)
-  ok("installed mcpguard scan --ci <block> → exit 30")
+  ok("installed calllint scan --ci <block> → exit 30")
 
   console.log("package-smoke: PASS")
 } finally {

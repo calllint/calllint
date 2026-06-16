@@ -1,6 +1,6 @@
-import type { ConfigSummaryReport, Verdict } from "@mcpguard/types"
-import type { Policy } from "@mcpguard/types"
-import { shouldFailCi } from "@mcpguard/policy"
+import type { ConfigSummaryReport, Verdict } from "@calllint/types"
+import type { Policy } from "@calllint/types"
+import { shouldFailCi } from "@calllint/policy"
 import { EXIT } from "./args.js"
 
 /**

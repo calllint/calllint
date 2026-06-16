@@ -4,7 +4,7 @@ CallLint is a heuristic, evidence-backed **pre-flight check** — not a proof of
 safety. Read this before relying on it for a security decision.
 
 See also [LIMITATIONS.md](../LIMITATIONS.md) for the full v0.1 trust-boundary
-document (legacy MCPGuard naming; content applies to CallLint).
+document (full trust-boundary detail).
 
 ## What a verdict does and does not mean
 

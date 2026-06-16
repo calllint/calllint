@@ -1,4 +1,4 @@
-import type { Evidence, Finding } from "@mcpguard/types"
+import type { Evidence, Finding } from "@calllint/types"
 import type { DetectorContext } from "../context.js"
 
 /** Broad path roots that grant access well beyond a workspace. */

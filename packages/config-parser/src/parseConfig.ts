@@ -1,6 +1,6 @@
 import { readFileSync } from "node:fs"
 import { basename } from "node:path"
-import type { NormalizedMcpServer, TargetKind } from "@mcpguard/types"
+import type { NormalizedMcpServer, TargetKind } from "@calllint/types"
 import { parseJsonText } from "./parseJsonFile.js"
 import { normalizeMcpServers } from "./normalizeMcpServers.js"
 

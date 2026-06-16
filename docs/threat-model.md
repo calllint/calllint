@@ -1,6 +1,6 @@
-# MCPGuard Threat Model (v0.1)
+# CallLint Threat Model (v0.1)
 
-MCPGuard does not ask "does this package have a vulnerability?" It asks:
+CallLint does not ask "does this package have a vulnerability?" It asks:
 
 > Should an AI agent be allowed to invoke this external capability?
 

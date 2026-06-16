@@ -10,9 +10,9 @@ import {
   detectFinancialAction,
 } from "../src/index.js"
 import type { DetectorContext } from "../src/index.js"
-import { parseConfigFile } from "@mcpguard/config-parser"
-import { resolveRuntimeBinding } from "@mcpguard/resolver"
-import { goldenPath } from "@mcpguard/fixtures"
+import { parseConfigFile } from "@calllint/config-parser"
+import { resolveRuntimeBinding } from "@calllint/resolver"
+import { goldenPath } from "@calllint/fixtures"
 
 function ctxFor(file: string): DetectorContext {
   const cfg = parseConfigFile(goldenPath(file))

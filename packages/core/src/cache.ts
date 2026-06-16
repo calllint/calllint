@@ -1,10 +1,10 @@
 import { writeFileSync, readFileSync, mkdirSync, existsSync } from "node:fs"
 import { dirname, join } from "node:path"
-import type { Baseline, ConfigSummaryReport } from "@mcpguard/types"
+import type { Baseline, ConfigSummaryReport } from "@calllint/types"
 
 /** Default cache location for the most recent scan, used by `explain`. */
 export function defaultCachePath(cwd = process.cwd()): string {
-  return join(cwd, ".mcpguard", "last-scan.json")
+  return join(cwd, ".calllint", "last-scan.json")
 }
 
 export function writeCache(report: ConfigSummaryReport, path = defaultCachePath()): void {
@@ -23,7 +23,7 @@ export function readCache(path = defaultCachePath()): ConfigSummaryReport | unde
 
 /** Default location for the approved baseline, used by `verify`. */
 export function defaultBaselinePath(cwd = process.cwd()): string {
-  return join(cwd, ".mcpguard", "baseline.json")
+  return join(cwd, ".calllint", "baseline.json")
 }
 
 export function writeBaseline(baseline: Baseline, path = defaultBaselinePath()): void {

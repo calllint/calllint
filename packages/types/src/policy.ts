@@ -42,7 +42,7 @@ export interface PolicyOverride {
 }
 
 export interface Policy {
-  schemaVersion: "mcpguard.policy.v0"
+  schemaVersion: "calllint.policy.v0"
   defaults: PolicyDefaults
   ci: PolicyCi
   allowedSources: string[]

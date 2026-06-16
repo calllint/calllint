@@ -4,7 +4,7 @@ import type {
   NormalizedMcpServer,
   RiskSymbol,
   RuntimeBinding,
-} from "@mcpguard/types"
+} from "@calllint/types"
 import { hashJson, sha256 } from "./hashJson.js"
 
 export interface FingerprintInput {

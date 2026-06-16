@@ -2,7 +2,7 @@ import type {
   NormalizedMcpServer,
   RuntimeBinding,
   RuntimeKind,
-} from "@mcpguard/types"
+} from "@calllint/types"
 import {
   isPackageRunner,
   isPinnedVersion,

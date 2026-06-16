@@ -7,7 +7,7 @@ import type {
   RiskSymbol,
   RuntimeBinding,
   Verdict,
-} from "@mcpguard/types"
+} from "@calllint/types"
 import { computeRiskClass } from "./computeRiskClass.js"
 import {
   computeConfidence,

@@ -1,4 +1,4 @@
-import type { NormalizedMcpServer, RuntimeBinding } from "@mcpguard/types"
+import type { NormalizedMcpServer, RuntimeBinding } from "@calllint/types"
 
 /** Everything a detector needs about one server. */
 export interface DetectorContext {

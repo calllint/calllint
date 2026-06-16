@@ -1,10 +1,10 @@
-import type { RiskSymbol, Verdict } from "@mcpguard/types"
+import type { RiskSymbol, Verdict } from "@calllint/types"
 import {
   RISK_SYMBOL_EMOJI,
   RISK_SYMBOL_LABEL,
   VERDICT_CLI_SYMBOL,
   VERDICT_TEXT_SYMBOL,
-} from "@mcpguard/types"
+} from "@calllint/types"
 
 export interface RenderStyle {
   /** When false, use plain-text symbols (for --no-emoji / CI). */

@@ -1,6 +1,6 @@
 import { existsSync, readFileSync } from "node:fs"
 import { join } from "node:path"
-import { parseTargetSpec, synthesizeNpmConfig } from "@mcpguard/core"
+import { parseTargetSpec, synthesizeNpmConfig } from "@calllint/core"
 import { EXIT, flagBool, type ParsedArgs } from "../args.js"
 
 /** Common locations to probe when no path is given. */

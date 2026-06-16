@@ -3,8 +3,8 @@ import {
   scanConfigText,
   writeCache,
   ConfigParseError,
-} from "@mcpguard/core"
-import { loadPolicyOrDefault } from "@mcpguard/policy"
+} from "@calllint/core"
+import { loadPolicyOrDefault } from "@calllint/policy"
 import {
   renderJson,
   renderTerminal,
@@ -13,8 +13,8 @@ import {
   renderHtml,
   NO_EMOJI_STYLE,
   DEFAULT_STYLE,
-} from "@mcpguard/report-renderer"
-import type { Policy } from "@mcpguard/types"
+} from "@calllint/report-renderer"
+import type { Policy } from "@calllint/types"
 import { EXIT, flagBool, flagStr, type ParsedArgs } from "../args.js"
 import { exitCodeFor } from "../exitCode.js"
 import { resolveConfigInput, isInputError } from "./resolveInput.js"
@@ -79,7 +79,7 @@ export function scanCommand(args: ParsedArgs, deps: ScanDeps): CommandResult {
 
   if (deps.writeCacheFile !== false) {
     try {
-      writeCache(summary, join(deps.cwd, ".mcpguard", "last-scan.json"))
+      writeCache(summary, join(deps.cwd, ".calllint", "last-scan.json"))
     } catch {
       // Cache is best-effort; never fail a scan because of it.
     }

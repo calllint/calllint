@@ -4,7 +4,7 @@ import { scanCommand, type CommandResult } from "./commands/scan.js"
 import { explainCommand } from "./commands/explain.js"
 import { policyCommand } from "./commands/policy.js"
 import { baselineCommand, verifyCommand } from "./commands/verify.js"
-import type { Finding } from "@mcpguard/types"
+import type { Finding } from "@calllint/types"
 
 /**
  * Pre-fetched --online enrichment, computed by the async entry point before
@@ -70,7 +70,7 @@ export function run(argv: string[], deps: RunDeps): CommandResult {
     default:
       return {
         stdout: "",
-        stderr: `Unknown command: ${cmd}\nRun \`mcpguard help\`.`,
+        stderr: `Unknown command: ${cmd}\nRun \`calllint help\`.`,
         exitCode: 2,
       }
   }

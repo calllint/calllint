@@ -1,4 +1,4 @@
-import type { Finding, Policy, Verdict } from "@mcpguard/types"
+import type { Finding, Policy, Verdict } from "@calllint/types"
 import { isOverrideActive } from "./validatePolicy.js"
 
 export interface PolicyDecision {

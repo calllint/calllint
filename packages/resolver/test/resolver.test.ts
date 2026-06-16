@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest"
 import { parseNpmSpec, isPinnedVersion, resolveRuntimeBinding } from "../src/index.js"
-import { parseConfigFile } from "@mcpguard/config-parser"
-import { goldenPath } from "@mcpguard/fixtures"
+import { parseConfigFile } from "@calllint/config-parser"
+import { goldenPath } from "@calllint/fixtures"
 
 describe("parseNpmSpec", () => {
   it("parses scoped package with version", () => {

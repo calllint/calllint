@@ -18,7 +18,7 @@ export interface BaselineEntry {
 }
 
 export interface Baseline {
-  schemaVersion: "mcpguard.baseline.v0"
+  schemaVersion: "calllint.baseline.v0"
   configPath: string
   entries: BaselineEntry[]
   /** Informational only; never part of the comparison. */
@@ -48,7 +48,7 @@ export interface DriftEntry {
 }
 
 export interface DriftReport {
-  schemaVersion: "mcpguard.drift.v0"
+  schemaVersion: "calllint.drift.v0"
   configPath: string
   /** True if any entry drifted (status !== "unchanged"). */
   drifted: boolean

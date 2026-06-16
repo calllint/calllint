@@ -1,8 +1,8 @@
-# mcpguard
+# calllint
 
 **Before your agent runs a tool, know what it can read, write, execute, and send.**
 
-MCPGuard is a CLI-first scanner that gives **evidence-backed verdicts** for the
+CallLint is a CLI-first scanner that gives **evidence-backed verdicts** for the
 MCP servers (agent tools) your AI coding agent is about to trust. It reads an MCP
 configuration, works out what each server will *actually run*, and returns a
 verdict — `SAFE`, `REVIEW`, `BLOCK`, or `UNKNOWN` — backed by concrete evidence,
@@ -13,13 +13,13 @@ is judging.**
 
 ```bash
 # Scan a config (auto-detects .cursor/mcp.json, .mcp.json, .vscode/mcp.json, …)
-npx mcpguard scan .cursor/mcp.json
+npx calllint scan .cursor/mcp.json
 
 # Stable, emoji-free JSON (the machine contract)
-npx mcpguard scan .cursor/mcp.json --json
+npx calllint scan .cursor/mcp.json --json
 
 # CI gate: non-zero exit on a failing verdict
-npx mcpguard scan .cursor/mcp.json --ci
+npx calllint scan .cursor/mcp.json --ci
 ```
 
 Requires Node ≥ 20.
@@ -38,7 +38,7 @@ Requires Node ≥ 20.
 | `ACTION` | May perform external side effects | REVIEW |
 | `NETWORK` | Unverifiable remote source | UNKNOWN |
 
-`UNKNOWN` is a first-class verdict: when MCPGuard cannot verify what a server
+`UNKNOWN` is a first-class verdict: when CallLint cannot verify what a server
 will do, it says so and never silently upgrades to `SAFE`.
 
 ## Exit codes (with `--ci`)
@@ -55,14 +55,14 @@ will do, it says so and never silently upgrades to `SAFE`.
 
 ## More
 
-- SARIF 2.1.0 for GitHub Code Scanning: `mcpguard scan <config> --sarif`
-- Self-contained HTML report: `mcpguard scan <config> --html > report.html`
-- Drift / rug-pull detection: `mcpguard baseline <config>` then `mcpguard verify <config> --ci`
-- Policy-as-code: `mcpguard policy init`
+- SARIF 2.1.0 for GitHub Code Scanning: `calllint scan <config> --sarif`
+- Self-contained HTML report: `calllint scan <config> --html > report.html`
+- Drift / rug-pull detection: `calllint baseline <config>` then `calllint verify <config> --ci`
+- Policy-as-code: `calllint policy init`
 
-MCPGuard is a heuristic, evidence-backed pre-flight check, **not a proof of
+CallLint is a heuristic, evidence-backed pre-flight check, **not a proof of
 safety**. `No blockers observed` ≠ guaranteed safe. Full docs, security model,
-and limitations: https://github.com/saintl1022/mcpguard
+and limitations: https://github.com/saintl1022/calllint
 
 ## License
 

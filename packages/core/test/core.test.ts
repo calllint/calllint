@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest"
 import { scanConfigFile, scanConfigText, ConfigParseError } from "../src/index.js"
-import { goldenPath, GOLDEN_CASES } from "@mcpguard/fixtures"
+import { goldenPath, GOLDEN_CASES } from "@calllint/fixtures"
 
 const OPTS = { now: Date.parse("2026-06-01T00:00:00Z"), generatedAt: "2026-06-01T00:00:00.000Z" }
 
@@ -24,7 +24,7 @@ describe("scan report shape", () => {
   it("includes fingerprints, public label, and deterministic timestamp", () => {
     const s = scanConfigFile(goldenPath("block-filesystem.json"), OPTS)
     const r = s.reports[0]!
-    expect(r.schemaVersion).toBe("mcpguard.report.v0")
+    expect(r.schemaVersion).toBe("calllint.report.v0")
     expect(r.publicVerdictLabel).toBe("Blocked by policy")
     expect(r.fingerprints.configHash).toMatch(/^sha256:/)
     expect(r.generatedAt).toBe("2026-06-01T00:00:00.000Z")
@@ -57,7 +57,7 @@ describe("scan report shape", () => {
 describe("policy integration", () => {
   it("downgrades a blocker with a valid override and labels it", () => {
     const policy = {
-      schemaVersion: "mcpguard.policy.v0" as const,
+      schemaVersion: "calllint.policy.v0" as const,
       defaults: {
         unknownSource: "deny" as const,
         unpinnedPackage: "warn" as const,

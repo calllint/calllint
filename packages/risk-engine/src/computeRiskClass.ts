@@ -1,5 +1,5 @@
-import type { Finding, RiskClass, RuntimeBinding } from "@mcpguard/types"
-import { highestRiskClass } from "@mcpguard/types"
+import type { Finding, RiskClass, RuntimeBinding } from "@calllint/types"
+import { highestRiskClass } from "@calllint/types"
 
 /**
  * Compute the risk class for a server from its findings and runtime binding.

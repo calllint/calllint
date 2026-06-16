@@ -1,6 +1,6 @@
-# MCPGuard Development Contract
+# CallLint Development Contract
 
-MCPGuard is a CLI-first, IDE-friendly, JSON-native security **verdict** engine for
+CallLint is a CLI-first, IDE-friendly, JSON-native security **verdict** engine for
 MCP servers and agent skills.
 
 > **Evidence-backed verdicts for agent tools.**
@@ -32,7 +32,7 @@ it. See `docs/threat-model.md`.
 
 ## Architecture (monorepo)
 
-- `apps/cli` — the command-line product (`mcpguard`)
+- `apps/cli` — the command-line product (`calllint`)
 - `packages/types` — shared schema; the single source of truth for all output
 - `packages/config-parser` — parse `.cursor/mcp.json`, `.claude/settings.json`, inline JSON
 - `packages/resolver` — resolve a server config into a RuntimeBinding (what actually runs)
@@ -44,7 +44,7 @@ it. See `docs/threat-model.md`.
 - `packages/report-renderer` — terminal / compact / no-emoji / explain / JSON renderers
 - `packages/fixtures` — golden configs + loader (the project's safety floor)
 
-All UI (CLI, JSON, IDE, Web) consumes the same `ScanReport` schema from `@mcpguard/types`.
+All UI (CLI, JSON, IDE, Web) consumes the same `ScanReport` schema from `@calllint/types`.
 
 ## Non-negotiable Safety Rules
 

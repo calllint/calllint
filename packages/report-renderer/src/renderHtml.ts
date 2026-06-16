@@ -3,13 +3,13 @@ import type {
   Finding,
   ScanReport,
   Verdict,
-} from "@mcpguard/types"
-import { RISK_CLASS_LABEL, RISK_SYMBOL_LABEL } from "@mcpguard/types"
+} from "@calllint/types"
+import { RISK_CLASS_LABEL, RISK_SYMBOL_LABEL } from "@calllint/types"
 
 /**
  * Escape text for safe interpolation into HTML. Every dynamic value — server
  * names, tool metadata, evidence snippets — flows through this. Tool metadata
- * is attacker-controlled (the whole point of MCPGuard), so a poisoned tool
+ * is attacker-controlled (the whole point of CallLint), so a poisoned tool
  * name like `<script>` must never reach the output un-escaped.
  */
 function esc(value: unknown): string {
@@ -123,12 +123,12 @@ export function renderHtml(summary: ConfigSummaryReport): string {
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>MCPGuard report — ${esc(summary.configPath)}</title>
+<title>CallLint report — ${esc(summary.configPath)}</title>
 <style>${STYLE}</style>
 </head>
 <body>
 <header>
-  <h1>MCPGuard report ${badge(summary.verdict)}</h1>
+  <h1>CallLint report ${badge(summary.verdict)}</h1>
   <div class="sub">${esc(summary.configPath)} · generated ${esc(summary.generatedAt)}</div>
 </header>
 <div class="counts">
@@ -138,7 +138,7 @@ export function renderHtml(summary: ConfigSummaryReport): string {
   <span>🛡 SAFE: <strong>${c.SAFE}</strong></span>
 </div>
 <main>${cards}</main>
-<footer>MCPGuard · evidence-backed verdicts for agent tools · static analysis, no server executed</footer>
+<footer>CallLint · evidence-backed verdicts for agent tools · static analysis, no server executed</footer>
 </body>
 </html>`
 }

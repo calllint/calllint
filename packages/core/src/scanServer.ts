@@ -4,13 +4,13 @@ import type {
   ScanReport,
   ScanTarget,
   TargetKind,
-} from "@mcpguard/types"
-import { VERDICT_PUBLIC_LABEL, VERDICT_SEVERITY } from "@mcpguard/types"
-import { resolveRuntimeBinding } from "@mcpguard/resolver"
-import { analyzeServerConfig } from "@mcpguard/static-analyzer"
-import { assessServer } from "@mcpguard/risk-engine"
-import { applyPolicy } from "@mcpguard/policy"
-import { computeFingerprints } from "@mcpguard/fingerprint"
+} from "@calllint/types"
+import { VERDICT_PUBLIC_LABEL, VERDICT_SEVERITY } from "@calllint/types"
+import { resolveRuntimeBinding } from "@calllint/resolver"
+import { analyzeServerConfig } from "@calllint/static-analyzer"
+import { assessServer } from "@calllint/risk-engine"
+import { applyPolicy } from "@calllint/policy"
+import { computeFingerprints } from "@calllint/fingerprint"
 import { resolveScanOptions, type ScanOptions } from "./options.js"
 import { summarize } from "./summarize.js"
 
@@ -80,7 +80,7 @@ export function scanServer(input: ScanServerInput, opts?: ScanOptions): ScanRepo
   }
 
   return {
-    schemaVersion: "mcpguard.report.v0",
+    schemaVersion: "calllint.report.v0",
     reportKind: "single-target",
     target,
     verdict,
