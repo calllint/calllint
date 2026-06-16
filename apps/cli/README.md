@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="logo-mark-128.png" width="96" alt="CallLint logo" />
+</p>
+
 # calllint
 
 **Before your agent runs a tool, know what it can read, write, execute, and send.**
