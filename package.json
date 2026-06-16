@@ -8,7 +8,9 @@
     "node": ">=20"
   },
   "scripts": {
-    "build": "pnpm -r build",
+    "brand:assets": "node scripts/generate-brand-assets.mjs",
+    "brand:avatars": "node scripts/set-brand-avatars.mjs",
+    "build": "pnpm brand:assets && pnpm -r build",
     "test": "vitest run",
     "test:watch": "vitest",
     "typecheck": "tsc -p tsconfig.json",
@@ -17,8 +19,9 @@
   },
   "devDependencies": {
     "@types/node": "^20.14.0",
-    "typescript": "^5.5.4",
+    "sharp": "^0.35.1",
     "tsx": "^4.16.0",
+    "typescript": "^5.5.4",
     "vitest": "^2.0.5"
   }
 }

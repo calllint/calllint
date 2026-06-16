@@ -1,0 +1,10 @@
+{
+  "name": "@calllint/web",
+  "version": "0.1.0",
+  "private": true,
+  "description": "CallLint marketing site (calllint.com)",
+  "scripts": {
+    "build": "node scripts/sync-assets.mjs",
+    "dev": "npx --yes serve public -p 4173"
+  }
+}

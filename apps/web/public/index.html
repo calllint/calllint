@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>CallLint — evidence-backed verdicts for agent tools</title>
+    <meta
+      name="description"
+      content="Lint MCP and agent tool-call risk before the tools run. Deterministic, offline, evidence-backed SAFE / REVIEW / BLOCK / UNKNOWN verdicts."
+    />
+    <link rel="icon" href="/favicon.png" type="image/png" />
+    <link rel="apple-touch-icon" href="/logo-mark-256.png" />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://calllint.com/" />
+    <meta property="og:title" content="CallLint — evidence-backed verdicts for agent tools" />
+    <meta
+      property="og:description"
+      content="Before your agent runs a tool, know what it can read, write, execute, and send."
+    />
+    <meta property="og:image" content="https://calllint.com/og-image.png" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:image" content="https://calllint.com/og-image.png" />
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <header class="site-header">
+      <a class="brand-lockup" href="/" aria-label="CallLint home">
+        <img class="brand-mark" src="/logo-mark-128.png" width="40" height="40" alt="" />
+        <span class="brand-name">CallLint</span>
+      </a>
+      <nav class="nav-links" aria-label="Primary">
+        <a href="https://github.com/calllint/calllint">GitHub</a>
+        <a href="https://www.npmjs.com/package/calllint">npm</a>
+        <a href="#install">Install</a>
+      </nav>
+    </header>
+
+    <main>
+      <section class="hero">
+        <div class="hero-inner">
+          <div class="hero-logo-wrap">
+            <img
+              class="hero-logo"
+              src="/logo.png"
+              width="256"
+              height="256"
+              alt="CallLint shield logo"
+            />
+          </div>
+          <div class="hero-copy">
+            <span class="tag">Agent tool security</span>
+            <h1>Lint tool-call risk before the tools run.</h1>
+            <p class="lede">
+              Before your agent runs a tool, know what it can read, write, execute, and send.
+              CallLint scans MCP configs statically and returns evidence-backed verdicts — never
+              executing the server it judges.
+            </p>
+            <div class="cta-row">
+              <a class="btn btn-primary" href="#install">Get started</a>
+              <a class="btn btn-ghost" href="https://github.com/calllint/calllint">View on GitHub</a>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="features" aria-label="Product highlights">
+        <article class="feature">
+          <h3>Verdict first</h3>
+          <p>SAFE, REVIEW, BLOCK, and UNKNOWN — with evidence for every finding. UNKNOWN never auto-upgrades to SAFE.</p>
+        </article>
+        <article class="feature">
+          <h3>Offline by default</h3>
+          <p>No network unless you opt in. Deterministic rules decide verdicts; no model in the decision path.</p>
+        </article>
+        <article class="feature">
+          <h3>CI-ready</h3>
+          <p>JSON, SARIF, compact terminal output, and self-contained HTML reports for pipelines and review.</p>
+        </article>
+      </section>
+
+      <section class="install" id="install">
+        <div class="install-card">
+          <h2>Install &amp; scan</h2>
+          <p>Point CallLint at your MCP config before your agent loads it.</p>
+          <pre><code>npx calllint scan .cursor/mcp.json
+npx calllint scan .cursor/mcp.json --ci --no-emoji
+npx calllint scan .cursor/mcp.json --html &gt; report.html</code></pre>
+        </div>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <div class="footer-brand">
+        <img src="/logo-mark-128.png" width="28" height="28" alt="" />
+        <span>CallLint · evidence-backed verdicts for agent tools</span>
+      </div>
+      <div>
+        <a href="https://github.com/calllint/calllint">Source</a>
+        ·
+        <a href="https://www.npmjs.com/package/calllint">npm</a>
+        ·
+        Apache-2.0 (name &amp; logo: see TRADEMARKS)
+      </div>
+    </footer>
+  </body>
+</html>

@@ -5,6 +5,7 @@ import type {
   Verdict,
 } from "@calllint/types"
 import { RISK_CLASS_LABEL, RISK_SYMBOL_LABEL } from "@calllint/types"
+import { LOGO_REPORT_BASE64 } from "./logoBase64.js"
 
 /**
  * Escape text for safe interpolation into HTML. Every dynamic value — server
@@ -83,12 +84,19 @@ function serverCard(r: ScanReport): string {
     </section>`
 }
 
+const LOGO_SRC = `data:image/png;base64,${LOGO_REPORT_BASE64}`
+
 const STYLE = `
-  :root { font-family: -apple-system, Segoe UI, Roboto, sans-serif; }
+  :root { font-family: -apple-system, Segoe UI, Roboto, sans-serif; --brand: #c41e3a; --brand-glow: rgba(196, 30, 58, 0.35); }
   body { margin: 0; background: #f6f8fa; color: #1f2328; }
   header { background: #24292f; color: #fff; padding: 24px 32px; }
+  .header-row { display: flex; align-items: center; gap: 14px; }
+  .brand-mark { width: 40px; height: 40px; flex: 0 0 auto; animation: mark-enter 0.6s cubic-bezier(0.22, 1, 0.36, 1) both, mark-glow 4s ease-in-out 0.6s infinite; }
   header h1 { margin: 0 0 4px; font-size: 20px; }
   header .sub { color: #b1b8c0; font-size: 13px; }
+  @keyframes mark-enter { from { opacity: 0; transform: scale(0.88); } to { opacity: 1; transform: scale(1); } }
+  @keyframes mark-glow { 0%, 100% { filter: drop-shadow(0 0 0 transparent); } 50% { filter: drop-shadow(0 0 8px var(--brand-glow)); } }
+  @media (prefers-reduced-motion: reduce) { .brand-mark { animation: none; } }
   .counts { padding: 16px 32px; background: #fff; border-bottom: 1px solid #d0d7de; }
   .counts span { margin-right: 16px; font-size: 14px; }
   main { padding: 24px 32px; max-width: 1100px; }
@@ -128,8 +136,13 @@ export function renderHtml(summary: ConfigSummaryReport): string {
 </head>
 <body>
 <header>
-  <h1>CallLint report ${badge(summary.verdict)}</h1>
-  <div class="sub">${esc(summary.configPath)} · generated ${esc(summary.generatedAt)}</div>
+  <div class="header-row">
+    <img class="brand-mark" src="${LOGO_SRC}" width="40" height="40" alt="CallLint">
+    <div>
+      <h1>CallLint report ${badge(summary.verdict)}</h1>
+      <div class="sub">${esc(summary.configPath)} · generated ${esc(summary.generatedAt)}</div>
+    </div>
+  </div>
 </header>
 <div class="counts">
   <span>⛔ BLOCK: <strong>${c.BLOCK}</strong></span>

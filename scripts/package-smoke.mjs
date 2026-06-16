@@ -49,7 +49,14 @@ function runNpm(args, opts) {
   return execFileSync("npm", args, opts)
 }
 
-const ALLOWED = new Set(["package.json", "README.md", "LICENSE", "NOTICE", "dist/index.js"])
+const ALLOWED = new Set([
+  "package.json",
+  "README.md",
+  "LICENSE",
+  "NOTICE",
+  "logo-mark-128.png",
+  "dist/index.js",
+])
 const FORBIDDEN_SUBSTRINGS = [
   "src/",
   "test/",
