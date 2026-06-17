@@ -3,7 +3,7 @@
  * CallLint self-guard — opt-in dogfooding script.
  *
  * Scans this repo's own MCP config with the built CallLint CLI and prints the
- * verdict. Intended to be run manually, in CI, or wired into a Claude Code
+ * verdict. Intended to be run manually, in CI, or wired into an agent
  * PreToolUse hook by the user (see README "Self-guard"). This script does NOT
  * install itself anywhere and does not modify agent behavior on its own.
  *
