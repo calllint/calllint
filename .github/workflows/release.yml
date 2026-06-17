@@ -48,16 +48,28 @@ jobs:
           pnpm smoke
           pnpm pack:smoke
 
-      - name: Verify release tag matches package version
+      - name: Verify tag matches version and derive dist-tag
+        id: meta
         working-directory: apps/cli
         run: |
-          PKG_VERSION="v$(node -p "require('./package.json').version")"
+          VERSION="$(node -p "require('./package.json').version")"
+          PKG_VERSION="v$VERSION"
           TAG="${GITHUB_REF_NAME}"
           if [ "$PKG_VERSION" != "$TAG" ]; then
             echo "Release tag ($TAG) does not match apps/cli version ($PKG_VERSION)." >&2
             exit 1
           fi
+          # Derive the dist-tag from the version: any prerelease (contains a
+          # hyphen, e.g. 0.3.0-preview.1) publishes to `preview`; a clean
+          # semver publishes to `latest`. This stops a prerelease from ever
+          # claiming the default tag through this workflow.
+          case "$VERSION" in
+            *-*) DIST_TAG=preview ;;
+            *)   DIST_TAG=latest ;;
+          esac
+          echo "dist_tag=$DIST_TAG" >> "$GITHUB_OUTPUT"
+          echo "Publishing $VERSION to dist-tag '$DIST_TAG'."
 
       - name: Publish to npm (trusted publishing + provenance)
         working-directory: apps/cli
-        run: npm publish --access public
+        run: npm publish --access public --provenance --tag "${{ steps.meta.outputs.dist_tag }}"
