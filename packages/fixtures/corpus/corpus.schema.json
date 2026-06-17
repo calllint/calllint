@@ -1,0 +1,133 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://calllint.com/schemas/corpus.case.v1.json",
+  "title": "CallLint Corpus Case (source.json)",
+  "description": "Provenance, human labelling, and execution policy for one auditable corpus case. The machine verdict contract lives separately in expected.calllint.json.",
+  "type": "object",
+  "required": [
+    "schemaVersion",
+    "caseId",
+    "title",
+    "curationStatus",
+    "riskTheme",
+    "origin",
+    "input",
+    "humanExpectation",
+    "executionPolicy"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "schemaVersion": {
+      "const": "calllint.corpus.case.v1"
+    },
+    "caseId": {
+      "type": "string",
+      "pattern": "^C[0-9]{3}-[a-z0-9-]+$"
+    },
+    "title": {
+      "type": "string",
+      "minLength": 8
+    },
+    "curationStatus": {
+      "type": "string",
+      "enum": [
+        "synthetic-contract-seed",
+        "redacted-real-snapshot",
+        "real-public-snapshot"
+      ]
+    },
+    "riskTheme": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "string",
+        "enum": [
+          "filesystem",
+          "shell",
+          "env",
+          "supply-chain",
+          "remote",
+          "network",
+          "side-effect",
+          "money",
+          "prompt-surface",
+          "unknown"
+        ]
+      }
+    },
+    "origin": {
+      "type": "object",
+      "required": ["kind", "description", "retrievedAt"],
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "type": "string",
+          "enum": [
+            "synthetic",
+            "public-repository",
+            "public-registry",
+            "user-submitted-redacted",
+            "internal-redacted"
+          ]
+        },
+        "description": { "type": "string", "minLength": 8 },
+        "url": { "type": "string" },
+        "commit": { "type": "string" },
+        "license": { "type": "string" },
+        "retrievedAt": { "type": "string", "format": "date-time" },
+        "redactions": {
+          "type": "array",
+          "items": { "type": "string" }
+        }
+      }
+    },
+    "input": {
+      "type": "object",
+      "required": ["path", "format"],
+      "additionalProperties": false,
+      "properties": {
+        "path": { "type": "string" },
+        "format": {
+          "type": "string",
+          "enum": [
+            "mcp-json",
+            "claude-desktop-json-fragment",
+            "package-json-fragment",
+            "tool-manifest-json"
+          ]
+        }
+      }
+    },
+    "humanExpectation": {
+      "type": "object",
+      "required": ["verdict", "rationale"],
+      "additionalProperties": false,
+      "properties": {
+        "verdict": {
+          "type": "string",
+          "enum": ["SAFE", "REVIEW", "BLOCK", "UNKNOWN"]
+        },
+        "rationale": { "type": "string", "minLength": 20 },
+        "knownLimitations": {
+          "type": "array",
+          "items": { "type": "string" }
+        }
+      }
+    },
+    "executionPolicy": {
+      "type": "object",
+      "description": "The corpus never executes the scanned server, never touches the network, and never mutates the filesystem. These constants are enforced by the runner.",
+      "required": [
+        "executeTarget",
+        "allowNetwork",
+        "allowFilesystemMutation"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "executeTarget": { "const": false },
+        "allowNetwork": { "const": false },
+        "allowFilesystemMutation": { "const": false }
+      }
+    }
+  }
+}

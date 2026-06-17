@@ -1,0 +1,14 @@
+{
+  "schemaVersion": "calllint.corpus.expected.v1",
+  "expectedVerdict": "REVIEW",
+  "expectedMaxRiskClass": "S5",
+  "allowExtraFindings": true,
+  "requiredFindingIds": [{ "id": "action.financial", "minCount": 1 }],
+  "forbiddenFindingIds": ["action.financial-observed", "exec.dangerous-command"],
+  "requirements": {
+    "mustHaveEvidenceForEveryFinding": true,
+    "mustHaveFalsePositiveNoteForReviewOrBlock": true,
+    "mustHaveRemediationForReviewOrBlock": true
+  },
+  "dangerousFalseSafePolicy": { "thisCaseMustNeverBeSafe": true }
+}

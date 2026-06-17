@@ -26,6 +26,7 @@ SCAN OPTIONS
   --policy <file>    Use a policy file (default: built-in defaults)
   --stdin            Read config JSON from stdin
   --ci               Exit non-zero per policy (BLOCK=30, UNKNOWN=20, REVIEW=10 if enabled)
+  --generated-at <iso>  Pin the report timestamp (ISO 8601) for deterministic output
 
 VERIFY OPTIONS
   --baseline <file>  Baseline path (default: .calllint/baseline.json)

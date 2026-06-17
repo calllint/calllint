@@ -1,0 +1,26 @@
+{
+  "schemaVersion": "calllint.corpus.case.v1",
+  "caseId": "C009-block-money-observed",
+  "title": "Observed money-moving tool plus credentials is a hard blocker",
+  "curationStatus": "synthetic-contract-seed",
+  "riskTheme": ["money"],
+  "origin": {
+    "kind": "synthetic",
+    "description": "Contract seed: a commerce server exposing tools that explicitly create payments and issue refunds, alongside an API credential. Replace with a redacted real-world snapshot before R2 final acceptance.",
+    "retrievedAt": "2026-06-16T00:00:00.000Z",
+    "redactions": ["env value replaced with 'redacted'"]
+  },
+  "input": { "path": "input/mcp.json", "format": "mcp-json" },
+  "humanExpectation": {
+    "verdict": "BLOCK",
+    "rationale": "A provided tool explicitly performs a money-moving action (create payment, issue refund) and the server holds a credential to do it for real. An autonomous agent invoking it could move money irreversibly, so it must be blocked.",
+    "knownLimitations": [
+      "If a tool only reads payment data rather than moving money, it should be reclassified; the detector fires on money-moving verbs in the model-visible metadata."
+    ]
+  },
+  "executionPolicy": {
+    "executeTarget": false,
+    "allowNetwork": false,
+    "allowFilesystemMutation": false
+  }
+}

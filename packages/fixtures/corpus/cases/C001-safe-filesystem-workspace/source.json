@@ -1,0 +1,26 @@
+{
+  "schemaVersion": "calllint.corpus.case.v1",
+  "caseId": "C001-safe-filesystem-workspace",
+  "title": "Workspace-scoped filesystem server is SAFE with zero findings",
+  "curationStatus": "synthetic-contract-seed",
+  "riskTheme": ["filesystem"],
+  "origin": {
+    "kind": "synthetic",
+    "description": "Contract seed mirroring the common, correctly-scoped @modelcontextprotocol/server-filesystem configuration pinned to ${workspaceFolder}. Replace with a redacted real-world snapshot before R2 final acceptance.",
+    "retrievedAt": "2026-06-16T00:00:00.000Z",
+    "redactions": []
+  },
+  "input": { "path": "input/mcp.json", "format": "mcp-json" },
+  "humanExpectation": {
+    "verdict": "SAFE",
+    "rationale": "A filesystem server pinned to the workspace folder and a pinned package version exposes no broad access, no credentials, and no unverifiable source, so it should not alarm the user.",
+    "knownLimitations": [
+      "Static analysis cannot prove the server will not request a broader path at runtime."
+    ]
+  },
+  "executionPolicy": {
+    "executeTarget": false,
+    "allowNetwork": false,
+    "allowFilesystemMutation": false
+  }
+}

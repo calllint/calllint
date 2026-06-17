@@ -1,0 +1,26 @@
+{
+  "schemaVersion": "calllint.corpus.case.v1",
+  "caseId": "C005-review-unpinned-package",
+  "title": "Unpinned npm package version requires review",
+  "curationStatus": "synthetic-contract-seed",
+  "riskTheme": ["supply-chain"],
+  "origin": {
+    "kind": "synthetic",
+    "description": "Contract seed: a server run via `npx -y some-mcp-server@latest` (no pinned version). Replace with a redacted real-world snapshot before R2 final acceptance.",
+    "retrievedAt": "2026-06-16T00:00:00.000Z",
+    "redactions": []
+  },
+  "input": { "path": "input/mcp.json", "format": "mcp-json" },
+  "humanExpectation": {
+    "verdict": "REVIEW",
+    "rationale": "An unpinned package resolves to whatever the registry serves at run time, so the audited code and the executed code can differ; this warrants review before autonomous use.",
+    "knownLimitations": [
+      "Offline static analysis reads the version spec only; it does not fetch the registry to compare the current published version."
+    ]
+  },
+  "executionPolicy": {
+    "executeTarget": false,
+    "allowNetwork": false,
+    "allowFilesystemMutation": false
+  }
+}
