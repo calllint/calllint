@@ -69,11 +69,19 @@ jobs:
 
       - name: Deploy to Cloudflare Pages
         id: deploy
-        uses: cloudflare/wrangler-action@v3
-        with:
-          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: pages deploy apps/web/public --project-name=${{ env.PAGES_PROJECT }} --branch=main
+        # Call wrangler via npx rather than cloudflare/wrangler-action: the
+        # action auto-installs wrangler with `pnpm add`, which a pnpm workspace
+        # rejects (ERR_PNPM_ADDING_TO_ROOT). npx installs into its own cache,
+        # untouched by the workspace. wrangler reads the two CLOUDFLARE_* envs.
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          set -o pipefail
+          npx --yes wrangler@3 pages deploy apps/web/public \
+            --project-name="$PAGES_PROJECT" --branch=main 2>&1 | tee deploy.log
+          url=$(grep -oE 'https://[a-z0-9]+\.[a-z0-9-]+\.pages\.dev' deploy.log | head -1)
+          echo "deployment-url=$url" >> "$GITHUB_OUTPUT"
 
       - name: Verify the deployment serves the repo's logo
         env:
