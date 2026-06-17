@@ -1,0 +1,69 @@
+# TEMPORARY one-shot workflow: the FIRST npm publish of `calllint`.
+#
+# Why this exists: npm Trusted Publishing (OIDC) can only be configured on a
+# package that already exists. This workflow performs that single bootstrap
+# publish using a short-lived granular token stored as the GitHub Actions secret
+# NPM_TOKEN. After it succeeds you MUST:
+#   1. revoke the npm token,
+#   2. delete the NPM_TOKEN repository secret,
+#   3. delete this file,
+#   4. configure the Trusted Publisher (Environment = npm) on npmjs.com.
+# From then on, release.yml publishes via OIDC with no stored token.
+#
+# Manual trigger only. Publishes to the `preview` dist-tag, never `latest`.
+# Refuses to run unless apps/cli version is a prerelease, so it cannot claim
+# the default tag by accident. NEVER executes a scanned MCP server.
+name: first-publish-preview (temporary)
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  publish-preview:
+    runs-on: ubuntu-latest
+    environment: npm
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: pnpm/action-setup@v6
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          cache: pnpm
+          registry-url: https://registry.npmjs.org
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Full gate (typecheck, test, build, corpus, smoke)
+        run: |
+          pnpm typecheck
+          pnpm test
+          pnpm build
+          pnpm corpus:test
+          pnpm smoke
+          pnpm pack:smoke
+
+      - name: Guard — version must be a prerelease (keeps it off the latest tag)
+        working-directory: apps/cli
+        run: |
+          VERSION="$(node -p "require('./package.json').version")"
+          echo "apps/cli version: $VERSION"
+          case "$VERSION" in
+            *-preview.*) echo "ok: prerelease version, will publish to --tag preview" ;;
+            *) echo "refusing: version '$VERSION' is not a -preview prerelease" >&2; exit 1 ;;
+          esac
+
+      - name: Pack dry-run (inspect surface, never publishes)
+        working-directory: apps/cli
+        run: npm pack --dry-run
+
+      - name: Publish preview to npm (token auth, one-time bootstrap)
+        working-directory: apps/cli
+        run: npm publish --access public --tag preview
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
