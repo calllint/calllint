@@ -3,7 +3,7 @@
  * Generate web/report-sized brand assets from assets/calllintlogo.png.
  * Requires: npx sharp (dev-only, not a runtime dependency).
  */
-import { mkdir, readFile, stat, writeFile } from "node:fs/promises"
+import { copyFile, mkdir, readFile, stat, writeFile } from "node:fs/promises"
 import { join, dirname } from "node:path"
 import { fileURLToPath } from "node:url"
 
@@ -45,6 +45,13 @@ export const LOGO_REPORT_BASE64 = ${JSON.stringify(b64)}
 `
   await writeFile(join(root, "packages/report-renderer/src/logoBase64.ts"), ts)
   console.log(`logo-report-base64\t${b64.length} chars`)
+
+  // Keep legacy root filename in sync (GitHub/npm manual uploads).
+  await copyFile(
+    join(outDir, "logo-mark-256.png"),
+    join(root, "assets/calllint-org-avatar.png"),
+  )
+  console.log("calllint-org-avatar.png\t(copied from logo-mark-256.png)")
 }
 
 main().catch((err) => {
