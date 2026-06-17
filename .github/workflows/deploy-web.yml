@@ -1,0 +1,95 @@
+# Deploys the CallLint marketing site (apps/web) to Cloudflare Pages.
+#
+# Runs on every push to main that touches the site or its brand assets, and can
+# be triggered manually (workflow_dispatch) — use the manual run to force a
+# redeploy or to publish a fix without a new commit.
+#
+# Auth is via repository/organization secrets, never stored in the repo:
+#   - CLOUDFLARE_API_TOKEN   : a scoped token with "Cloudflare Pages: Edit"
+#   - CLOUDFLARE_ACCOUNT_ID  : the account that owns the Pages project
+# The Pages project name is the PAGES_PROJECT env below.
+#
+# This replaces the old GitHub Pages flow; the site stays on Cloudflare Pages.
+name: deploy-web
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "apps/web/**"
+      - "assets/brand/**"
+      - ".github/workflows/deploy-web.yml"
+  workflow_dispatch:
+
+# Least privilege; deploy needs no repo write.
+permissions:
+  contents: read
+
+# Never run two site deploys at once; cancel an in-flight one if a newer push lands.
+concurrency:
+  group: deploy-web
+  cancel-in-progress: true
+
+env:
+  PAGES_PROJECT: calllint-www
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: pnpm/action-setup@v6
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - name: Preflight — required secrets present
+        env:
+          TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          ACCOUNT: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          missing=""
+          [ -z "$TOKEN" ]   && missing="$missing CLOUDFLARE_API_TOKEN"
+          [ -z "$ACCOUNT" ] && missing="$missing CLOUDFLARE_ACCOUNT_ID"
+          if [ -n "$missing" ]; then
+            echo "Missing required secret(s):$missing" >&2
+            echo "Add them under repo/org Settings → Secrets → Actions, then re-run." >&2
+            exit 1
+          fi
+          echo "secrets present."
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build the site (sync brand assets into public/)
+        run: pnpm --filter @calllint/web build
+
+      - name: Deploy to Cloudflare Pages
+        id: deploy
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: pages deploy apps/web/public --project-name=${{ env.PAGES_PROJECT }} --branch=main
+
+      - name: Verify the deployment serves the repo's logo
+        env:
+          DEPLOY_URL: ${{ steps.deploy.outputs.deployment-url }}
+        run: |
+          if [ -z "$DEPLOY_URL" ]; then
+            echo "No deployment URL returned; skipping verification." >&2
+            exit 0
+          fi
+          want=$(node -e "const c=require('crypto'),fs=require('fs');console.log(c.createHash('sha256').update(fs.readFileSync('apps/web/public/logo-mark-128.png')).digest('hex'))")
+          got=$(curl -fsS --retry 5 --retry-delay 3 --retry-all-errors "$DEPLOY_URL/logo-mark-128.png" | node -e "const c=require('crypto');const ch=c.createHash('sha256');process.stdin.on('data',d=>ch.update(d));process.stdin.on('end',()=>console.log(ch.digest('hex')))")
+          echo "deployment: $DEPLOY_URL"
+          echo "repo  logo sha256: $want"
+          echo "live  logo sha256: $got"
+          if [ "$want" != "$got" ]; then
+            echo "Deployed logo does not match the repo artifact." >&2
+            exit 1
+          fi
+          echo "verified: deployment serves the current logo."
