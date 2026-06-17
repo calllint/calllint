@@ -10,6 +10,13 @@ onward. While pre-1.0, minor versions may include breaking changes.
 
 ## [Unreleased]
 
+### Added
+- Tiny "breathing" brand mark on interactive runs — a small CallLint shield with
+  a gentle fade pulse, printed to **stderr only**. Strictly suppressed on
+  machine output (`--json`/`--sarif`/`--html`/`--compact`), when piped
+  (non-TTY), and under `NO_COLOR`, `CI`, `--no-color`, `--no-emoji`, or
+  `--stdin`. Purely cosmetic and time-boxed; never delays or fails a command.
+
 ### Changed
 
 - Project license changed from MIT to **Apache-2.0**; added `NOTICE` and
