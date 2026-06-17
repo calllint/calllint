@@ -71,6 +71,11 @@ that provably exercises one detector. This is sufficient for **R2.0 (structure +
 Each must fill in `origin` (url, commit, license, retrievedAt, redactions) in
 `source.json`. The synthetic seeds remain as the deterministic anchor set.
 
+The mechanics — how to add a case, redact responsibly, and check composition —
+are in [CORPUS_CURATION.md](./CORPUS_CURATION.md). The R2.1 thresholds (≥ 30
+cases, ≥ 20 real/redacted, UNKNOWN ≤ 15%) are enforced by
+`pnpm corpus:test:r2-final`, which is expected to fail until curation is done.
+
 ## Offline & no-execution, by construction
 
 CallLint performs static analysis only. The runner spawns the CLI without `--online`
