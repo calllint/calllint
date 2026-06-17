@@ -10,6 +10,10 @@ onward. While pre-1.0, minor versions may include breaking changes.
 
 ## [Unreleased]
 
+_No unreleased changes._
+
+## [0.3.0-preview.1] — Interactive polish
+
 ### Added
 - Tiny "breathing" brand mark on interactive runs — a small CallLint shield with
   a gentle fade pulse, printed to **stderr only**. Strictly suppressed on
@@ -17,8 +21,28 @@ onward. While pre-1.0, minor versions may include breaking changes.
   (non-TTY), and under `NO_COLOR`, `CI`, `--no-color`, `--no-emoji`, or
   `--stdin`. Purely cosmetic and time-boxed; never delays or fails a command.
 
-### Changed
+## [0.3.0-preview.0] — First public preview
 
+First public preview of CallLint on npm. Static configuration scanner only; does
+not execute MCP servers and does not prove runtime safety. Published to the
+`preview` dist-tag (a known dist-tag drift left `latest` on this version; see
+PROJECT_STATUS "Known issues").
+
+### Added
+- Public npm preview release (`calllint@0.3.0-preview.0`), installable via
+  `npx calllint scan .cursor/mcp.json`.
+- **R2.0 seed corpus gate** — `packages/fixtures/corpus/` with 10 calibrated
+  cases covering the current finding families, plus a `corpus:test` release gate
+  asserting verdict, max risk level, required/forbidden finding kinds, evidence,
+  false-positive notes, remediation, and a "dangerous never SAFE" policy.
+- Deterministic `--generated-at` support and offline-enforcing corpus run mode.
+- Trusted Publishing release workflow (OIDC + provenance; no long-lived
+  NPM_TOKEN), publishing the bundled CLI on GitHub Release.
+- calllint.com public website (Cloudflare Pages, auto-deployed from `main`).
+- GitHub issue templates for false-positive / false-negative / parser edge-case
+  reports.
+
+### Changed
 - Project license changed from MIT to **Apache-2.0**; added `NOTICE` and
   `TRADEMARKS.md`. The npm tarball ships `LICENSE` and `NOTICE`.
 - **Brand transition: MCPGuard → CallLint (v0.3-R0).** The public product is now
@@ -37,9 +61,7 @@ onward. While pre-1.0, minor versions may include breaking changes.
 - README expanded to the full public section set (what it is / checks / does not
   check / install / quick start / example report / rule list / security model /
   limitations / roadmap).
-
-### Added
-- `CHANGELOG.md` (this file).
+- `CHANGELOG.md` added.
 
 ## [0.3-R1] — Distribution readiness
 

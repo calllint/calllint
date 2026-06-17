@@ -411,3 +411,249 @@ pre {
     scroll-behavior: auto;
   }
 }
+
+/* ---- v2 sections ---- */
+.hero-note {
+  margin: 16px 0 0;
+  font-size: 0.82rem;
+  color: var(--muted);
+  letter-spacing: 0.01em;
+}
+
+.section {
+  max-width: 920px;
+  margin: 0 auto;
+  padding: clamp(48px, 7vw, 80px) clamp(20px, 4vw, 48px);
+}
+
+.section-narrow {
+  max-width: 760px;
+}
+
+.band {
+  background: var(--surface);
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+}
+
+.band-inner {
+  max-width: 920px;
+  margin: 0 auto;
+  padding: clamp(48px, 7vw, 80px) clamp(20px, 4vw, 48px);
+}
+
+.section-head {
+  margin-bottom: 28px;
+}
+
+.section-head h2,
+.band-inner > h2 {
+  margin: 0 0 10px;
+  font-size: clamp(1.4rem, 3vw, 1.9rem);
+  letter-spacing: -0.02em;
+}
+
+.section-head p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 1.02rem;
+  max-width: 60ch;
+}
+
+.band-lede {
+  margin: 0;
+  font-size: clamp(1.1rem, 2.2vw, 1.35rem);
+  line-height: 1.5;
+  max-width: 46ch;
+}
+
+.band-foot {
+  margin: 24px 0 0;
+  color: var(--muted);
+  font-size: 0.92rem;
+}
+
+.prose {
+  margin: 0;
+  font-size: 1.05rem;
+  line-height: 1.6;
+  color: var(--ink);
+}
+
+/* verdict cards */
+.verdict-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 14px;
+  margin-bottom: 28px;
+}
+
+.vcard {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-left-width: 4px;
+  border-radius: var(--radius);
+  padding: 16px 18px;
+}
+
+.vcard p {
+  margin: 10px 0 0;
+  font-size: 0.9rem;
+  color: var(--muted);
+}
+
+.vchip {
+  display: inline-block;
+  font-family: var(--mono);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  padding: 3px 8px;
+  border-radius: 6px;
+}
+
+.vcard-safe { border-left-color: #1f9d57; }
+.vcard-safe .vchip { background: rgba(31, 157, 87, 0.14); color: #157a42; }
+.vcard-review { border-left-color: #c98a00; }
+.vcard-review .vchip { background: rgba(201, 138, 0, 0.16); color: #99690a; }
+.vcard-block { border-left-color: var(--brand); }
+.vcard-block .vchip { background: var(--brand-soft); color: var(--brand); }
+.vcard-unknown { border-left-color: #6b7280; }
+.vcard-unknown .vchip { background: rgba(107, 114, 128, 0.16); color: #4b515b; }
+
+/* terminal report */
+.report-demo pre {
+  font-size: 0.82rem;
+  line-height: 1.5;
+}
+.t-block { color: #ff8a8a; font-weight: 700; }
+.t-com { color: #8a93a3; }
+
+/* detectors */
+.detector-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 14px;
+}
+
+.detector {
+  background: var(--bg);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 18px;
+}
+
+.dico {
+  font-size: 1.3rem;
+  line-height: 1;
+}
+
+.detector h3 {
+  margin: 10px 0 6px;
+  font-size: 0.98rem;
+}
+
+.detector p {
+  margin: 0;
+  font-size: 0.88rem;
+  color: var(--muted);
+}
+
+.detector code,
+.exit-codes code,
+.band-foot code,
+.install-note code,
+.prose code {
+  font-family: var(--mono);
+  font-size: 0.86em;
+  background: var(--brand-soft);
+  padding: 1px 5px;
+  border-radius: 5px;
+  color: var(--ink);
+}
+
+/* trust grid */
+.trust-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 16px;
+}
+
+.trust {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 20px;
+}
+
+.trust h3 {
+  margin: 0 0 8px;
+  font-size: 1rem;
+}
+
+.trust p {
+  margin: 0;
+  font-size: 0.92rem;
+  color: var(--muted);
+}
+
+/* CI band */
+.ci-inner {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: clamp(24px, 4vw, 48px);
+  align-items: center;
+}
+
+.exit-codes {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+  font-size: 0.9rem;
+  color: var(--muted);
+}
+
+.ci-code pre {
+  font-size: 0.82rem;
+}
+
+.install-note {
+  margin: 14px 0 0;
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
+/* limitations band — subtle warm tint, not alarmist */
+.band-limits {
+  background: linear-gradient(180deg, rgba(196, 30, 58, 0.03), var(--surface) 60%);
+}
+
+.limits-list {
+  margin: 0;
+  padding-left: 20px;
+  display: grid;
+  gap: 10px;
+  max-width: 70ch;
+}
+
+.limits-list li {
+  font-size: 0.98rem;
+  line-height: 1.5;
+}
+
+.footer-links a {
+  color: var(--muted);
+}
+.footer-links a:hover {
+  color: var(--ink);
+}
+
+/* responsive: stack CI two-up on narrow screens */
+@media (max-width: 720px) {
+  .ci-inner {
+    grid-template-columns: 1fr;
+  }
+}

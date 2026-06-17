@@ -38,6 +38,22 @@ const FIXED_NOW = "2026-06-16T00:00:00.000Z"
 /** S0..S5 ordering for "max risk class" comparison. */
 const RISK_RANK = { S0: 0, S1: 1, S2: 2, S3: 3, S4: 4, S5: 5 }
 
+/**
+ * R2.1 acceptance thresholds. The seed corpus (R2.0) is synthetic and small on
+ * purpose; --r2-final asserts the corpus has grown into a credible calibration
+ * set before a stable release. See docs/CORPUS_CURATION.md and
+ * docs/STABLE_RELEASE_GATE.md. These are deliberately strict — the gate is
+ * meant to FAIL until R2.1 curation is actually done.
+ */
+const R2_FINAL = {
+  minTotalCases: 30,
+  minRealOrRedacted: 20,
+  maxUnknownRatio: 0.15,
+}
+
+/** curationStatus values that count as "real-world" provenance for R2.1. */
+const REAL_OR_REDACTED = new Set(["redacted-real-snapshot", "real-public-snapshot"])
+
 class CorpusError extends Error {}
 
 function readJson(filePath) {
@@ -49,15 +65,21 @@ function readJson(filePath) {
 }
 
 function parseCliArgs(argv) {
-  const args = { verbose: false, caseId: null }
+  const args = { verbose: false, caseId: null, r2Final: false, summaryJson: null }
   for (let i = 2; i < argv.length; i += 1) {
     const arg = argv[i]
     if (arg === "--verbose") args.verbose = true
+    else if (arg === "--r2-final") args.r2Final = true
     else if (arg === "--case") {
       args.caseId = argv[i + 1]
       i += 1
     } else if (arg.startsWith("--case=")) {
       args.caseId = arg.slice("--case=".length)
+    } else if (arg === "--summary-json") {
+      args.summaryJson = argv[i + 1]
+      i += 1
+    } else if (arg.startsWith("--summary-json=")) {
+      args.summaryJson = arg.slice("--summary-json=".length)
     }
   }
   return args
@@ -222,6 +244,8 @@ function main() {
     const inputPath = path.join(caseDir, source.input.path)
     const report = runScan(entrypoint, inputPath)
     const cmp = compareCase(entry.caseId, expected, report)
+    cmp.curationStatus = source.curationStatus ?? "unknown"
+    cmp.originKind = source.origin?.kind ?? "unknown"
     results.push(cmp)
 
     if (cli.verbose || cmp.failures.length > 0) {
@@ -241,13 +265,45 @@ function main() {
   const dangerousFalseSafe = failures.filter((f) => f.failure.startsWith("DANGEROUS FALSE SAFE")).length
   const unknownRatio = results.length ? (distribution.UNKNOWN ?? 0) / results.length : 0
 
+  const curation = results.reduce((acc, r) => {
+    acc[r.curationStatus] = (acc[r.curationStatus] ?? 0) + 1
+    return acc
+  }, {})
+  const realOrRedacted = results.filter((r) => REAL_OR_REDACTED.has(r.curationStatus)).length
+
   console.log("\nCallLint Corpus Calibration Summary")
   console.log("-----------------------------------")
   console.log(`Total cases:          ${results.length}`)
   console.log(`Verdict distribution: ${JSON.stringify(distribution)}`)
+  console.log(`Curation mix:         ${JSON.stringify(curation)}`)
+  console.log(`Real/redacted cases:  ${realOrRedacted}`)
   console.log(`Contract failures:    ${failures.length}`)
   console.log(`Dangerous false SAFE: ${dangerousFalseSafe}`)
   console.log(`UNKNOWN ratio:        ${(unknownRatio * 100).toFixed(1)}%`)
+
+  if (cli.summaryJson) {
+    const summary = {
+      schemaVersion: "calllint.corpus.summary.v1",
+      generatedAt: FIXED_NOW,
+      totalCases: results.length,
+      verdictDistribution: distribution,
+      curationMix: curation,
+      realOrRedactedCases: realOrRedacted,
+      contractFailures: failures.length,
+      dangerousFalseSafe,
+      unknownRatio,
+      cases: results.map((r) => ({
+        caseId: r.caseId,
+        verdict: r.verdict,
+        maxRiskClass: r.maxClass,
+        findingIds: r.ids,
+        curationStatus: r.curationStatus,
+        originKind: r.originKind,
+      })),
+    }
+    fs.writeFileSync(cli.summaryJson, `${JSON.stringify(summary, null, 2)}\n`)
+    console.log(`\nWrote machine summary → ${cli.summaryJson}`)
+  }
 
   if (failures.length > 0) {
     console.log("\nFAILURES:")
@@ -255,6 +311,37 @@ function main() {
     process.exitCode = 1
     return
   }
+
+  if (cli.r2Final) {
+    const gateFailures = []
+    if (results.length < R2_FINAL.minTotalCases) {
+      gateFailures.push(`total cases ${results.length} < required ${R2_FINAL.minTotalCases}`)
+    }
+    if (realOrRedacted < R2_FINAL.minRealOrRedacted) {
+      gateFailures.push(
+        `real/redacted cases ${realOrRedacted} < required ${R2_FINAL.minRealOrRedacted} ` +
+          `(synthetic-contract-seed cases do not count)`,
+      )
+    }
+    if (unknownRatio > R2_FINAL.maxUnknownRatio) {
+      gateFailures.push(
+        `UNKNOWN ratio ${(unknownRatio * 100).toFixed(1)}% > max ${(R2_FINAL.maxUnknownRatio * 100).toFixed(0)}%`,
+      )
+    }
+    console.log("\nR2.1 acceptance gate (--r2-final)")
+    console.log("---------------------------------")
+    if (gateFailures.length > 0) {
+      for (const g of gateFailures) console.log(`  NOT MET: ${g}`)
+      console.log(
+        "\nR2.1 not yet satisfied — this is expected until curation is done.\n" +
+          "See docs/CORPUS_CURATION.md for how to add real/redacted cases.",
+      )
+      process.exitCode = 1
+      return
+    }
+    console.log("  All R2.1 thresholds met.")
+  }
+
   console.log("\nAll corpus contracts hold.")
 }
 

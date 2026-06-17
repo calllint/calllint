@@ -34,7 +34,9 @@ CLAUDE.md
 scripts/install-githooks.mjs
 scripts/strip-ai-commit-attribution.mjs
 
-# internal docs / planning notes — kept local, not published to the repo
-docs/
+# internal planning notes — kept local, not published to the repo.
+# (Public trust docs under docs/ — ADRs, threat model, corpus, release docs —
+# are tracked intentionally; only these planning drafts stay local.)
 000.md
 *next.md
+docs/v0.2.1 Hardening.md
