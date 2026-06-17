@@ -1,0 +1,15 @@
+{
+  "mcpServers": {
+    "sentry": {
+      "command": "npx",
+      "args": [
+        "@sentry/mcp-server"
+      ],
+      "env": {
+        "SENTRY_ACCESS_TOKEN": "your-token",
+        "SENTRY_HOST": "sentry.example.com",
+        "MCP_DISABLE_SKILLS": "seer"
+      }
+    }
+  }
+}

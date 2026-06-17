@@ -1,0 +1,35 @@
+{
+  "schemaVersion": "calllint.corpus.case.v1",
+  "caseId": "C028-review-cloudflare-mcp-remote",
+  "title": "Cloudflare servers via unpinned mcp-remote are REVIEW",
+  "curationStatus": "real-public-snapshot",
+  "riskTheme": [
+    "supply-chain",
+    "network"
+  ],
+  "origin": {
+    "kind": "public-repository",
+    "description": "Public documentation config from cloudflare/mcp-server-cloudflare (README.md (mcp-remote config)). Content verbatim; only normalized to a valid JSON root. Upstream placeholders preserved.",
+    "url": "https://github.com/cloudflare/mcp-server-cloudflare",
+    "commit": "cb0186135e2f2c00d91b9ad2fcab54d630eeb911",
+    "license": "Apache-2.0",
+    "retrievedAt": "2026-06-17T00:00:00.000Z",
+    "redactions": []
+  },
+  "input": {
+    "path": "input/mcp.json",
+    "format": "mcp-json"
+  },
+  "humanExpectation": {
+    "verdict": "REVIEW",
+    "rationale": "Each server runs an unpinned mcp-remote bridge via npx, which is the review-worthy surface; the remote URL is an argument to that local bridge, not a directly-bound remote endpoint.",
+    "knownLimitations": [
+      "Because the URL is an mcp-remote argument (not a url field), the engine treats this as a local unpinned npx package, not as a remote-source finding."
+    ]
+  },
+  "executionPolicy": {
+    "executeTarget": false,
+    "allowNetwork": false,
+    "allowFilesystemMutation": false
+  }
+}

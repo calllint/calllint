@@ -1,0 +1,36 @@
+{
+  "schemaVersion": "calllint.corpus.case.v1",
+  "caseId": "C021-block-filesystem-cmd-windows",
+  "title": "Windows cmd /c filesystem launcher with a broad path is BLOCK",
+  "curationStatus": "real-public-snapshot",
+  "riskTheme": [
+    "shell",
+    "filesystem",
+    "supply-chain"
+  ],
+  "origin": {
+    "kind": "public-repository",
+    "description": "Public documentation config from modelcontextprotocol/servers (src/filesystem/README.md (Windows cmd /c)). Content verbatim; only normalized to a valid JSON root. Upstream placeholders preserved.",
+    "url": "https://github.com/modelcontextprotocol/servers",
+    "commit": "7b1170d1da1e36bc9f553f51e76e64cbfd652b3e",
+    "license": "Apache-2.0 / MIT (transition); docs CC-BY-4.0",
+    "retrievedAt": "2026-06-17T00:00:00.000Z",
+    "redactions": []
+  },
+  "input": {
+    "path": "input/mcp.json",
+    "format": "mcp-json"
+  },
+  "humanExpectation": {
+    "verdict": "BLOCK",
+    "rationale": "Launching the server through cmd is a shell entrypoint (arbitrary execution), and the broad home-anchored Desktop path compounds it — two independent blocking surfaces.",
+    "knownLimitations": [
+      "The cmd shell could run anything; the static value shows only the documented npx invocation."
+    ]
+  },
+  "executionPolicy": {
+    "executeTarget": false,
+    "allowNetwork": false,
+    "allowFilesystemMutation": false
+  }
+}

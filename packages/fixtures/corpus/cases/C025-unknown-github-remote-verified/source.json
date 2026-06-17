@@ -1,0 +1,35 @@
+{
+  "schemaVersion": "calllint.corpus.case.v1",
+  "caseId": "C025-unknown-github-remote-verified",
+  "title": "Verified GitHub remote server is UNKNOWN (uninspectable by construction)",
+  "curationStatus": "real-public-snapshot",
+  "riskTheme": [
+    "remote",
+    "network"
+  ],
+  "origin": {
+    "kind": "public-repository",
+    "description": "Public documentation config from github/github-mcp-server (README.md (Remote MCP, VS Code)). Content verbatim; only normalized to a valid JSON root. Upstream placeholders preserved.",
+    "url": "https://github.com/github/github-mcp-server",
+    "commit": "6830c4d39426f6a7931f668eacd9eaf91b4822a8",
+    "license": "MIT",
+    "retrievedAt": "2026-06-17T00:00:00.000Z",
+    "redactions": []
+  },
+  "input": {
+    "path": "input/mcp.json",
+    "format": "mcp-json"
+  },
+  "humanExpectation": {
+    "verdict": "UNKNOWN",
+    "rationale": "Even a first-party, allowlisted remote endpoint cannot be inspected statically — the scanner can see where it points but not what tools it will expose — so the honest verdict is UNKNOWN, with no risk finding because the host is verified.",
+    "knownLimitations": [
+      "The host api.githubcopilot.com is allowlisted, so no supply.unknown-remote finding is emitted; the UNKNOWN comes from remote-by-construction, not from an untrusted host."
+    ]
+  },
+  "executionPolicy": {
+    "executeTarget": false,
+    "allowNetwork": false,
+    "allowFilesystemMutation": false
+  }
+}
