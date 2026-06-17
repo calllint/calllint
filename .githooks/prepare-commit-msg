@@ -1,4 +1,0 @@
-#!/bin/sh
-# Strip Claude/Cursor Co-Authored-By and Made-with trailers before the commit is finalized.
-ROOT="$(git rev-parse --show-toplevel)" || exit 0
-node "$ROOT/scripts/strip-ai-commit-attribution.mjs" "$1"
