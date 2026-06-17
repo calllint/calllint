@@ -6,7 +6,7 @@ to follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html) from 1.0.0
 onward. While pre-1.0, minor versions may include breaking changes.
 
 `MCPGuard` was the internal codename for this project; the public product is
-**CallLint** (see [ADR 0008](docs/adr/0008-brand-transition-calllint.md)).
+**CallLint** (see ADR 0008).
 
 ## [Unreleased]
 
@@ -46,7 +46,7 @@ onward. While pre-1.0, minor versions may include breaking changes.
 ### Added
 - Single bundled-CLI distribution: publishable package with an empty runtime
   dependency list, `files: ["dist"]` allowlist, `prepack` rebuild, and npm
-  metadata ([ADR 0007](docs/adr/0007-cli-distribution-strategy.md)).
+  metadata (ADR 0007).
 - `scripts/package-smoke.mjs` + `pnpm pack:smoke`: packs the real tarball and
   asserts the manifest, bin/type/shebang, an empty runtime dep list, and a
   self-contained bundle; then installs into an isolated global prefix and runs
@@ -66,7 +66,7 @@ onward. While pre-1.0, minor versions may include breaking changes.
 - `block-observed-payment` golden: observed money-mover + capability → BLOCK.
 - Online no-downgrade invariant: findings carry `source`/`fetchedAt`; enrichment
   is advisory and code-enforced never to lower a verdict
-  ([ADR 0006](docs/adr/0006-online-enrichment-advisory.md)).
+  (ADR 0006).
 - Windows path/shell regression coverage.
 - `LIMITATIONS.md` (trust boundaries) and `docs/release-checklist.md`.
 
