@@ -1,0 +1,50 @@
+name: Corpus candidate
+description: Offer a real or redacted config to add to the CallLint calibration corpus.
+title: "[Corpus]: "
+labels: ["calibration", "corpus"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Real and redacted configs make CallLint's calibration corpus credible.
+        **Provenance and redaction are mandatory** — see
+        [docs/CORPUS_CURATION.md](../blob/main/docs/CORPUS_CURATION.md). Never
+        submit secret values, private paths, internal hosts, or names. Redaction
+        must not change the verdict-relevant shape.
+  - type: textarea
+    id: config
+    attributes:
+      label: Config snapshot (redacted if needed)
+      render: json
+    validations:
+      required: true
+  - type: dropdown
+    id: curation
+    attributes:
+      label: Provenance
+      options:
+        - "real-public-snapshot (unmodified, from a public source)"
+        - "redacted-real-snapshot (real config, secrets/hosts neutralized)"
+    validations:
+      required: true
+  - type: input
+    id: origin
+    attributes:
+      label: Source URL / origin
+      description: Public repo or doc URL, and license if known. Required for real-public-snapshot.
+    validations:
+      required: true
+  - type: dropdown
+    id: expected-verdict
+    attributes:
+      label: Expected verdict
+      options: [SAFE, REVIEW, BLOCK, UNKNOWN]
+    validations:
+      required: true
+  - type: textarea
+    id: redactions
+    attributes:
+      label: Redactions applied
+      description: List each transform (e.g. "replaced API token value with PLACEHOLDER", "renamed internal host to example.com"). Write "none" for an unmodified public snapshot.
+    validations:
+      required: true

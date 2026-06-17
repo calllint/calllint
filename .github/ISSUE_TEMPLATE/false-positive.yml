@@ -1,0 +1,50 @@
+name: False positive
+description: CallLint flagged a config you believe should be a lower-risk verdict.
+title: "[FP]: "
+labels: ["calibration", "false-positive"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for helping calibrate CallLint. **Redact first:** remove secret
+        values, private filesystem paths, internal URLs, and customer or
+        employee names before pasting. Keep the *shape* that drives the verdict
+        (key names, command form, transport kind) — see
+        [docs/CORPUS_CURATION.md](../blob/main/docs/CORPUS_CURATION.md).
+        For security-sensitive reports, email security@calllint.com instead.
+  - type: textarea
+    id: config
+    attributes:
+      label: Redacted config
+      description: The MCP / agent-tool config CallLint scanned, with secrets removed.
+      render: json
+    validations:
+      required: true
+  - type: dropdown
+    id: current-verdict
+    attributes:
+      label: Current verdict (what CallLint returned)
+      options: [REVIEW, BLOCK, UNKNOWN]
+    validations:
+      required: true
+  - type: dropdown
+    id: expected-verdict
+    attributes:
+      label: Expected verdict (what you think it should be)
+      options: [SAFE, REVIEW, UNKNOWN]
+    validations:
+      required: true
+  - type: textarea
+    id: rationale
+    attributes:
+      label: Why do you believe this is lower risk?
+      description: What about this config makes the flagged surface intentional or safe?
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: CallLint version
+      placeholder: "0.3.0-preview.1"
+    validations:
+      required: true

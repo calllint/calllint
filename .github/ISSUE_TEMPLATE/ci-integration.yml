@@ -1,0 +1,46 @@
+name: CI integration
+description: Questions or problems running CallLint in CI / SARIF / Code Scanning.
+title: "[CI]: "
+labels: ["integration", "ci"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        For help wiring CallLint into GitHub Actions, SARIF upload, Code
+        Scanning, or a policy gate. See
+        [docs/integrations/github-actions.md](../blob/main/docs/integrations/github-actions.md)
+        and [examples/github-actions/](../blob/main/examples/github-actions/).
+        **Redact secrets and private repo/org names** from any logs you paste.
+  - type: dropdown
+    id: surface
+    attributes:
+      label: Integration surface
+      options:
+        - GitHub Actions workflow
+        - SARIF upload / Code Scanning
+        - Policy gate (fail on BLOCK)
+        - Exit codes
+        - Other
+    validations:
+      required: true
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: What you tried, and what went wrong or is unclear.
+    validations:
+      required: true
+  - type: textarea
+    id: workflow
+    attributes:
+      label: Relevant workflow / command (redacted)
+      render: yaml
+    validations:
+      required: false
+  - type: input
+    id: version
+    attributes:
+      label: CallLint version
+      placeholder: "0.3.0-preview.1"
+    validations:
+      required: false
