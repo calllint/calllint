@@ -3,6 +3,7 @@ import { readFileSync } from "node:fs"
 import { run } from "./run.js"
 import { computeOnlineEnrichment } from "./online.js"
 import { resolveClock } from "./clock.js"
+import { breathe } from "./breathe.js"
 
 function readStdin(): string {
   try {
@@ -37,6 +38,14 @@ async function main(): Promise<void> {
   }
 
   if (online?.note) process.stderr.write(`online: ${online.note}\n`)
+
+  // A tiny breathing brand mark on interactive runs (stderr only, never on
+  // machine output). Best-effort — must never delay or break the command.
+  try {
+    await breathe(argv)
+  } catch {
+    // ignore: branding is cosmetic
+  }
 
   const result = run(argv, {
     cwd: process.cwd(),
