@@ -1,0 +1,19 @@
+---
+description: Never add AI tool attribution to git commits or PRs
+alwaysApply: true
+---
+
+# Git commits and pull requests — no AI attribution
+
+This is an Apache-2.0 open-source project. Commit history must not advertise which
+AI or IDE tool assisted the work.
+
+When creating commits or PR descriptions:
+
+- Do **not** add `Co-Authored-By:` for Claude, Cursor, Copilot, or any AI agent.
+- Do **not** add `Made-with: Cursor` or similar trailers.
+- Do **not** pass `git commit --trailer` for tool attribution.
+- Use plain subject/body only; author is the human who requested the change.
+
+If attribution lines appear anyway, amend or rewrite the commit message to remove
+them before finishing the task.

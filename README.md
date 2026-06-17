@@ -156,8 +156,7 @@ the effective policy.
 CallLint is a security tool, so its own boundaries are explicit and auditable.
 
 - **No host execution.** It parses and reasons about configuration only; it never
-  runs the server it judges. See
-  [ADR 0003](docs/adr/0003-no-host-execution.md).
+  runs the server it judges. (See ADR 0003.)
 - **Treats all config as attacker-controlled.** Tool names, descriptions, and
   schemas are untrusted input; report rendering escapes them.
 - **Offline by default.** `--online` adds advisory registry lookups only and can

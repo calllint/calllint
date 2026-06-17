@@ -64,6 +64,10 @@ All UI (CLI, JSON, IDE, Web) consumes the same `ScanReport` schema from `@callli
 - Any breaking change to `ScanReport` or the policy schema requires an ADR.
 - Every new detection rule needs: implementation + a positive fixture + a negative
   fixture + a unit test.
+- **Git commits:** never add `Co-Authored-By` (Claude/Cursor/etc.) or `Made-with:
+  Cursor` trailers. Plain human-authored messages only. Project config:
+  `.claude/settings.json` (`attribution.commit` / `pr` empty) and
+  `pnpm hooks:install` for the attribution-stripping hook.
 
 ## Verdict Semantics
 
