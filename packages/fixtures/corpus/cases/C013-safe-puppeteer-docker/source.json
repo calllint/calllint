@@ -1,0 +1,34 @@
+{
+  "schemaVersion": "calllint.corpus.case.v1",
+  "caseId": "C013-safe-puppeteer-docker",
+  "title": "Puppeteer server via pinned docker image with an env flag is SAFE",
+  "curationStatus": "real-public-snapshot",
+  "riskTheme": [
+    "network"
+  ],
+  "origin": {
+    "kind": "public-repository",
+    "description": "Public documentation config from modelcontextprotocol/servers-archived (src/puppeteer/README.md). Unmodified snippet; placeholders such as <YOUR_TOKEN> are upstream's own.",
+    "url": "https://github.com/modelcontextprotocol/servers-archived",
+    "commit": "9be4674d1ddf8c469e6461a27a337eeb65f76c2e",
+    "license": "MIT",
+    "retrievedAt": "2026-06-17T00:00:00.000Z",
+    "redactions": []
+  },
+  "input": {
+    "path": "input/mcp.json",
+    "format": "mcp-json"
+  },
+  "humanExpectation": {
+    "verdict": "SAFE",
+    "rationale": "A browser-automation server in a pinned container with only a non-secret DOCKER_CONTAINER env flag exposes no credentials or host shell; it is a clean baseline.",
+    "knownLimitations": [
+      "Browser automation can still reach arbitrary URLs at runtime; static config cannot bound that."
+    ]
+  },
+  "executionPolicy": {
+    "executeTarget": false,
+    "allowNetwork": false,
+    "allowFilesystemMutation": false
+  }
+}
