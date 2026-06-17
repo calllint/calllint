@@ -19,8 +19,7 @@
     "corpus:test": "node scripts/run-corpus.mjs",
     "corpus:test:verbose": "node scripts/run-corpus.mjs --verbose",
     "corpus:test:case": "node scripts/run-corpus.mjs --case",
-    "ci:local": "pnpm typecheck && pnpm test && pnpm build && pnpm corpus:test",
-    "hooks:install": "node scripts/install-githooks.mjs"
+    "ci:local": "pnpm typecheck && pnpm test && pnpm build && pnpm corpus:test"
   },
   "devDependencies": {
     "@types/node": "^20.14.0",

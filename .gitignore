@@ -26,8 +26,13 @@ Thumbs.db
 .idea/
 *.swp
 
-# local claude settings (keep the example committed)
-.claude/settings.local.json
+# local agent / editor config (not published)
+.claude/
+.cursor/
+CLAUDE.md
+.githooks/
+scripts/install-githooks.mjs
+scripts/strip-ai-commit-attribution.mjs
 
 # internal docs / planning notes — kept local, not published to the repo
 docs/
