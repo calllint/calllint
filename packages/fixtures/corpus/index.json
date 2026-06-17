@@ -1,0 +1,67 @@
+{
+  "schemaVersion": "calllint.corpus.index.v1",
+  "generatedAt": "2026-06-16T00:00:00.000Z",
+  "description": "Auditable corpus for CallLint v0.3-R2 calibration. Cases are scanned, never executed. The runner pins --generated-at and runs fully offline.",
+  "cases": [
+    {
+      "caseId": "C001-safe-filesystem-workspace",
+      "path": "cases/C001-safe-filesystem-workspace",
+      "expectedVerdict": "SAFE",
+      "riskTheme": ["filesystem"]
+    },
+    {
+      "caseId": "C002-block-broad-filesystem-home",
+      "path": "cases/C002-block-broad-filesystem-home",
+      "expectedVerdict": "BLOCK",
+      "riskTheme": ["filesystem"]
+    },
+    {
+      "caseId": "C003-block-dangerous-shell-rm",
+      "path": "cases/C003-block-dangerous-shell-rm",
+      "expectedVerdict": "BLOCK",
+      "riskTheme": ["shell"]
+    },
+    {
+      "caseId": "C004-review-secret-env-keys",
+      "path": "cases/C004-review-secret-env-keys",
+      "expectedVerdict": "REVIEW",
+      "riskTheme": ["env"]
+    },
+    {
+      "caseId": "C005-review-unpinned-package",
+      "path": "cases/C005-review-unpinned-package",
+      "expectedVerdict": "REVIEW",
+      "riskTheme": ["supply-chain"]
+    },
+    {
+      "caseId": "C006-unknown-unverified-remote",
+      "path": "cases/C006-unknown-unverified-remote",
+      "expectedVerdict": "UNKNOWN",
+      "riskTheme": ["remote", "unknown"]
+    },
+    {
+      "caseId": "C007-review-external-mutation",
+      "path": "cases/C007-review-external-mutation",
+      "expectedVerdict": "REVIEW",
+      "riskTheme": ["side-effect"]
+    },
+    {
+      "caseId": "C008-review-money-inferred",
+      "path": "cases/C008-review-money-inferred",
+      "expectedVerdict": "REVIEW",
+      "riskTheme": ["money"]
+    },
+    {
+      "caseId": "C009-block-money-observed",
+      "path": "cases/C009-block-money-observed",
+      "expectedVerdict": "BLOCK",
+      "riskTheme": ["money"]
+    },
+    {
+      "caseId": "C010-block-prompt-poisoning",
+      "path": "cases/C010-block-prompt-poisoning",
+      "expectedVerdict": "BLOCK",
+      "riskTheme": ["prompt-surface"]
+    }
+  ]
+}

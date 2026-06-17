@@ -38,6 +38,12 @@ jobs:
       - name: Build the CLI bundle
         run: pnpm build
 
+      # Corpus release gate: scans the BUILT CLI against pinned verdict contracts.
+      # Fully offline and never executes a scanned server. Seed cases are
+      # deterministic; remove this step only if corpus calibration is in flux.
+      - name: Corpus calibration gate
+        run: pnpm corpus:test
+
       - name: Package smoke (shipped artifact)
         run: pnpm smoke
 

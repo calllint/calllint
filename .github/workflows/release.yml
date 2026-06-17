@@ -29,18 +29,22 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          # Node >= 22.14 ships npm >= 11.5.1, required for npm Trusted
+          # Publishing (OIDC). Node 20 ships npm 10.x and the publish step
+          # would fail. Pin to 24.x (active LTS) for headroom.
+          node-version: 24
           cache: pnpm
           registry-url: https://registry.npmjs.org
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Full gate (typecheck, test, build, smoke)
+      - name: Full gate (typecheck, test, build, corpus, smoke)
         run: |
           pnpm typecheck
           pnpm test
           pnpm build
+          pnpm corpus:test
           pnpm smoke
           pnpm pack:smoke
 

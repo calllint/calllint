@@ -1,0 +1,26 @@
+{
+  "schemaVersion": "calllint.corpus.case.v1",
+  "caseId": "C007-review-external-mutation",
+  "title": "External side-effecting integration requires review",
+  "curationStatus": "synthetic-contract-seed",
+  "riskTheme": ["side-effect"],
+  "origin": {
+    "kind": "synthetic",
+    "description": "Contract seed: a pinned package whose name (linear-tasks-mcp) signals an external issue-tracker integration that can mutate external state. Replace with a redacted real-world snapshot before R2 final acceptance.",
+    "retrievedAt": "2026-06-16T00:00:00.000Z",
+    "redactions": []
+  },
+  "input": { "path": "input/mcp.json", "format": "mcp-json" },
+  "humanExpectation": {
+    "verdict": "REVIEW",
+    "rationale": "A server that can act on an external system (create issues, move tasks) may take visible side effects on the user's behalf, which warrants review before autonomous use, but is not inherently irreversible like money movement.",
+    "knownLimitations": [
+      "This is a name-based inference (INFERRED finding). A read-only integration with the same name would not actually mutate anything; the false-positive note records this."
+    ]
+  },
+  "executionPolicy": {
+    "executeTarget": false,
+    "allowNetwork": false,
+    "allowFilesystemMutation": false
+  }
+}

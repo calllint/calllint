@@ -1,0 +1,26 @@
+{
+  "schemaVersion": "calllint.corpus.case.v1",
+  "caseId": "C008-review-money-inferred",
+  "title": "Name-inferred financial integration requires review at S5",
+  "curationStatus": "synthetic-contract-seed",
+  "riskTheme": ["money"],
+  "origin": {
+    "kind": "synthetic",
+    "description": "Contract seed: a pinned package whose name (mcp-stripe-payments) infers a payments domain but exposes no observed money-moving tool. Replace with a redacted real-world snapshot before R2 final acceptance.",
+    "retrievedAt": "2026-06-16T00:00:00.000Z",
+    "redactions": []
+  },
+  "input": { "path": "input/mcp.json", "format": "mcp-json" },
+  "humanExpectation": {
+    "verdict": "REVIEW",
+    "rationale": "A payments-domain name suggests the server could move money, which is high-stakes (S5) and must be reviewed, but a name alone is not proof of a money-moving capability, so it is REVIEW rather than BLOCK.",
+    "knownLimitations": [
+      "Name-based inference. A read-only payments-reporting integration would not move money; the false-positive note records this. An observed money-moving tool verb plus a capability surface escalates to BLOCK (see C009)."
+    ]
+  },
+  "executionPolicy": {
+    "executeTarget": false,
+    "allowNetwork": false,
+    "allowFilesystemMutation": false
+  }
+}

@@ -2,6 +2,7 @@
 import { readFileSync } from "node:fs"
 import { run } from "./run.js"
 import { computeOnlineEnrichment } from "./online.js"
+import { resolveClock } from "./clock.js"
 
 function readStdin(): string {
   try {
@@ -15,7 +16,16 @@ async function main(): Promise<void> {
   const argv = process.argv.slice(2)
   // One clock for the whole run: reports' generatedAt and online findings'
   // fetchedAt share the same timestamp, so a report is internally consistent.
-  const generatedAt = new Date().toISOString()
+  // `--generated-at <iso>` pins it for deterministic output (corpus / CI).
+  let clock
+  try {
+    clock = resolveClock(argv, () => new Date())
+  } catch (err) {
+    process.stderr.write(`${err instanceof Error ? err.message : String(err)}\n`)
+    process.exitCode = 2
+    return
+  }
+  const { generatedAt, now } = clock
 
   let online
   try {
@@ -31,7 +41,7 @@ async function main(): Promise<void> {
   const result = run(argv, {
     cwd: process.cwd(),
     readStdin,
-    now: Date.now(),
+    now,
     generatedAt,
     online,
   })
