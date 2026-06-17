@@ -68,8 +68,22 @@ jobs:
             *)   DIST_TAG=latest ;;
           esac
           echo "dist_tag=$DIST_TAG" >> "$GITHUB_OUTPUT"
-          echo "Publishing $VERSION to dist-tag '$DIST_TAG'."
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+
+          # Idempotency guard: npm registry versions are immutable, so a second
+          # publish of an already-present version hard-fails. If this exact
+          # version is already on the registry (e.g. re-publishing a Release for
+          # a version published before this workflow existed), skip the publish
+          # step instead of red-lining the run.
+          if npm view "calllint@$VERSION" version --registry=https://registry.npmjs.org/ >/dev/null 2>&1; then
+            echo "already_published=true" >> "$GITHUB_OUTPUT"
+            echo "calllint@$VERSION is already on npm; the publish step will be skipped."
+          else
+            echo "already_published=false" >> "$GITHUB_OUTPUT"
+            echo "Publishing $VERSION to dist-tag '$DIST_TAG'."
+          fi
 
       - name: Publish to npm (trusted publishing + provenance)
+        if: steps.meta.outputs.already_published != 'true'
         working-directory: apps/cli
         run: npm publish --access public --provenance --tag "${{ steps.meta.outputs.dist_tag }}"

@@ -3,16 +3,16 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>CallLint — evidence-backed verdicts for agent tools</title>
+    <title>CallLint — lint agent tool-call risk before the tools run</title>
     <meta
       name="description"
-      content="Lint MCP and agent tool-call risk before the tools run. Deterministic, offline, evidence-backed SAFE / REVIEW / BLOCK / UNKNOWN verdicts."
+      content="Lint MCP and agent tool-call risk before the tools run. Deterministic, offline, evidence-backed SAFE / REVIEW / BLOCK / UNKNOWN verdicts. Never executes the server it judges."
     />
     <link rel="icon" href="/favicon.png" type="image/png" />
     <link rel="apple-touch-icon" href="/logo-mark-256.png" />
     <meta property="og:type" content="website" />
     <meta property="og:url" content="https://calllint.com/" />
-    <meta property="og:title" content="CallLint — evidence-backed verdicts for agent tools" />
+    <meta property="og:title" content="CallLint — lint agent tool-call risk before the tools run" />
     <meta
       property="og:description"
       content="Before your agent runs a tool, know what it can read, write, execute, and send."
@@ -29,62 +29,194 @@
         <span class="brand-name">CallLint</span>
       </a>
       <nav class="nav-links" aria-label="Primary">
+        <a href="#how">How</a>
+        <a href="#checks">Checks</a>
+        <a href="#trust">Trust</a>
+        <a href="#limits">Limitations</a>
         <a href="https://github.com/calllint/calllint">GitHub</a>
         <a href="https://www.npmjs.com/package/calllint">npm</a>
-        <a href="#install">Install</a>
       </nav>
     </header>
 
     <main>
+      <!-- 1. Hero -->
       <section class="hero">
         <div class="hero-inner">
           <div class="hero-logo-wrap">
-            <img
-              class="hero-logo"
-              src="/logo.png"
-              width="256"
-              height="256"
-              alt="CallLint shield logo"
-            />
+            <img class="hero-logo" src="/logo.png" width="256" height="256" alt="CallLint shield logo" />
           </div>
           <div class="hero-copy">
-            <span class="tag">Agent tool security</span>
+            <span class="tag">Pre-flight risk linting for agent tools</span>
             <h1>Lint tool-call risk before the tools run.</h1>
             <p class="lede">
-              Before your agent runs a tool, know what it can read, write, execute, and send.
-              CallLint scans MCP configs statically and returns evidence-backed verdicts — never
-              executing the server it judges.
+              An agent's power is the union of its tools' permissions. CallLint reads your MCP
+              config statically and tells you what each tool can read, write, execute, and send —
+              with evidence — <strong>before</strong> your agent ever loads the server.
             </p>
             <div class="cta-row">
               <a class="btn btn-primary" href="#install">Get started</a>
               <a class="btn btn-ghost" href="https://github.com/calllint/calllint">View on GitHub</a>
             </div>
+            <p class="hero-note">
+              Deterministic · offline by default · never executes the server it judges
+            </p>
           </div>
         </div>
       </section>
 
-      <section class="features" aria-label="Product highlights">
-        <article class="feature">
-          <h3>Verdict first</h3>
-          <p>SAFE, REVIEW, BLOCK, and UNKNOWN — with evidence for every finding. UNKNOWN never auto-upgrades to SAFE.</p>
-        </article>
-        <article class="feature">
-          <h3>Offline by default</h3>
-          <p>No network unless you opt in. Deterministic rules decide verdicts; no model in the decision path.</p>
-        </article>
-        <article class="feature">
-          <h3>CI-ready</h3>
-          <p>JSON, SARIF, compact terminal output, and self-contained HTML reports for pipelines and review.</p>
-        </article>
+      <!-- 2. Problem -->
+      <section class="band" id="why">
+        <div class="band-inner">
+          <h2>One config line can hand your agent the keys</h2>
+          <p class="band-lede">
+            MCP servers are usually described only by attacker-controllable metadata. A single entry
+            can add filesystem write, shell execution, network egress, or model-directed instructions
+            to an autonomous agent. You approve it before you can see what it really grants.
+          </p>
+        </div>
       </section>
 
+      <!-- 3. Verdict + evidence preview -->
+      <section class="section" id="how">
+        <div class="section-head">
+          <h2>A verdict you can act on, with the evidence attached</h2>
+          <p>Every finding cites the exact config field it came from. UNKNOWN never auto-upgrades to SAFE.</p>
+        </div>
+        <div class="verdict-grid">
+          <article class="vcard vcard-safe"><span class="vchip">SAFE</span><p>Read-only, workspace-scoped, no risky surface.</p></article>
+          <article class="vcard vcard-review"><span class="vchip">REVIEW</span><p>Sensitive surface a human should weigh before approving.</p></article>
+          <article class="vcard vcard-block"><span class="vchip">BLOCK</span><p>Dangerous capability — broad FS, shell, prompt poisoning, observed money movement.</p></article>
+          <article class="vcard vcard-unknown"><span class="vchip">UNKNOWN</span><p>Can't be verified statically. Said plainly, never hidden as SAFE.</p></article>
+        </div>
+        <div class="report-demo" role="img" aria-label="Example CallLint terminal report showing a BLOCK verdict">
+<pre><code>CallLint scan
+config: ./mcp.json
+result: <span class="t-block">BLOCK</span>   (BLOCK 1 · UNKNOWN 0 · REVIEW 0 · SAFE 0)
+────────────────────────────────────────────────────────────
+
+<span class="t-block">BLOCK</span>  helpful-notes    PROMPT
+  S2 Sensitive read · reproducibility HIGH · confidence medium
+
+  • [BLOCKER] Suspicious model-directed instruction in tool metadata
+      evidence: tools.save_note.description = "do not tell the user"
+      impact:   Tool metadata reaches the model directly and can
+                hijack autonomous tool selection.
+      fix:      Remove model-directed instructions from tool
+                names, descriptions, and schemas.
+
+  autonomous use: deny · manual approval: required · sandbox: recommended</code></pre>
+        </div>
+      </section>
+
+      <!-- 4. Detectors -->
+      <section class="band" id="checks">
+        <div class="band-inner">
+          <div class="section-head">
+            <h2>Eight static detectors over every server entry</h2>
+            <p>Findings roll up into a risk class (S0 metadata-only → S5 financial/irreversible).</p>
+          </div>
+          <div class="detector-grid">
+            <article class="detector"><span class="dico">🔐</span><h3>Secrets</h3><p>Env keys whose names imply credentials — tokens, keys, passwords.</p></article>
+            <article class="detector"><span class="dico">📁</span><h3>Files</h3><p>Filesystem roots granting broad read/write (<code>/</code>, <code>~</code>, drive roots).</p></article>
+            <article class="detector"><span class="dico">🌐</span><h3>Network</h3><p>Remote/HTTP transports to unrecognized or unpinned hosts.</p></article>
+            <article class="detector"><span class="dico">🧠</span><h3>Prompt</h3><p>Model-directed instructions hidden in tool names, descriptions, schemas.</p></article>
+            <article class="detector"><span class="dico">⚙️</span><h3>Exec</h3><p>Shell-out / interpreter / package-runner commands (<code>bash -c</code>, <code>npx</code>).</p></article>
+            <article class="detector"><span class="dico">✉️</span><h3>Action</h3><p>Tools that send or mutate external state — email, messages, posts.</p></article>
+            <article class="detector"><span class="dico">💸</span><h3>Money</h3><p>Payment / transfer / irreversible financial actions.</p></article>
+            <article class="detector"><span class="dico">🧩</span><h3>Supply</h3><p>Unpinned package specs (<code>@latest</code>) — rug-pull surface.</p></article>
+          </div>
+          <p class="band-foot">
+            Plus drift detection: <code>baseline</code> / <code>verify</code> records an approved
+            surface and flags 🔁 rug-pulls when a server changes after you approve it.
+          </p>
+        </div>
+      </section>
+
+      <!-- 5. Trust model -->
+      <section class="section" id="trust">
+        <div class="section-head">
+          <h2>A security tool with explicit, auditable boundaries</h2>
+          <p>CallLint's own trust boundaries are stated, not implied.</p>
+        </div>
+        <div class="trust-grid">
+          <article class="trust"><h3>No host execution</h3><p>It parses and reasons about configuration only. It never runs, installs, or connects to the server it judges.</p></article>
+          <article class="trust"><h3>Config is attacker-controlled</h3><p>Tool names, descriptions, and schemas are treated as untrusted input; report rendering escapes them.</p></article>
+          <article class="trust"><h3>Offline by default</h3><p><code>--online</code> adds advisory registry lookups only — it can never make a verdict more permissive.</p></article>
+          <article class="trust"><h3>Deterministic</h3><p>No model, clock, or network in the decision path. The JSON report schema is stable (<code>calllint.report.v0</code>).</p></article>
+        </div>
+      </section>
+
+      <!-- 6. CI-ready -->
+      <section class="band" id="ci">
+        <div class="band-inner ci-inner">
+          <div class="ci-copy">
+            <div class="section-head">
+              <h2>Built for CI and code review</h2>
+              <p>JSON, SARIF (GitHub Code Scanning), compact terminal, and self-contained HTML reports. Documented exit codes gate your pipeline.</p>
+            </div>
+            <ul class="exit-codes">
+              <li><code>0</code> SAFE</li><li><code>10</code> REVIEW</li><li><code>20</code> UNKNOWN</li>
+              <li><code>30</code> BLOCK</li><li><code>40</code> DRIFT</li>
+            </ul>
+          </div>
+          <div class="ci-code">
+<pre><code><span class="t-com"># fail the job on a blocking verdict</span>
+calllint scan .cursor/mcp.json --ci --no-emoji
+
+<span class="t-com"># upload SARIF to GitHub Code Scanning</span>
+calllint scan .cursor/mcp.json --sarif &gt; calllint.sarif</code></pre>
+          </div>
+        </div>
+      </section>
+
+      <!-- 7. Install -->
       <section class="install" id="install">
         <div class="install-card">
           <h2>Install &amp; scan</h2>
-          <p>Point CallLint at your MCP config before your agent loads it.</p>
-          <pre><code>npx calllint scan .cursor/mcp.json
+          <p>Point CallLint at your MCP config before your agent loads it. Requires Node.js ≥ 20; the published package is a single self-contained bundle with zero runtime dependencies.</p>
+<pre><code>npx calllint scan .cursor/mcp.json
 npx calllint scan .cursor/mcp.json --ci --no-emoji
 npx calllint scan .cursor/mcp.json --html &gt; report.html</code></pre>
+          <p class="install-note">Currently a public preview — <code>npx calllint@preview</code> for the newest build.</p>
+        </div>
+      </section>
+
+      <!-- 8. Corpus / evidence (honest, seed-stage) -->
+      <section class="section section-narrow" id="corpus">
+        <div class="section-head">
+          <h2>Calibrated against a verdict corpus</h2>
+          <p>Verdicts are held to a contract, not vibes.</p>
+        </div>
+        <p class="prose">
+          A versioned corpus pins each case to an expected verdict, required evidence, and a
+          "dangerous input never resolves to SAFE" policy, enforced as a release gate. The current
+          seed corpus is deliberately small and synthetic — it proves the contract holds, not that
+          CallLint has seen every server in the wild. Expanding it with redacted and real-public
+          snapshots is active work. See
+          <a href="https://github.com/calllint/calllint/blob/main/docs/CORPUS.md">CORPUS.md</a>.
+        </p>
+      </section>
+
+      <!-- 9. Limitations (visible, not buried) -->
+      <section class="band band-limits" id="limits">
+        <div class="band-inner">
+          <div class="section-head">
+            <h2>What CallLint does not do</h2>
+            <p>This list matters more than the feature list. A clean run is necessary, not sufficient.</p>
+          </div>
+          <ul class="limits-list">
+            <li>It <strong>does not execute, install, or connect</strong> to servers, so it cannot observe real runtime behaviour.</li>
+            <li>It <strong>does not read secret values</strong> — it inspects config shape (key names), never your <code>.env</code>.</li>
+            <li>It <strong>does not analyze server source code</strong> — only configuration and the tool metadata you provide.</li>
+            <li>It <strong>does not certify</strong> third-party tools or replace human security review.</li>
+            <li>It is <strong>heuristic</strong>: expect both false positives and false negatives. Treat REVIEW/BLOCK as the start of a review.</li>
+          </ul>
+          <p class="band-foot">
+            Full trust boundaries:
+            <a href="https://github.com/calllint/calllint/blob/main/LIMITATIONS.md">LIMITATIONS.md</a>
+            · security model:
+            <a href="https://github.com/calllint/calllint/blob/main/SECURITY.md">SECURITY.md</a>.
+          </p>
         </div>
       </section>
     </main>
@@ -94,10 +226,12 @@ npx calllint scan .cursor/mcp.json --html &gt; report.html</code></pre>
         <img src="/logo-mark-128.png" width="28" height="28" alt="" />
         <span>CallLint · evidence-backed verdicts for agent tools</span>
       </div>
-      <div>
+      <div class="footer-links">
         <a href="https://github.com/calllint/calllint">Source</a>
         ·
         <a href="https://www.npmjs.com/package/calllint">npm</a>
+        ·
+        <a href="https://github.com/calllint/calllint/blob/main/SECURITY.md">Security</a>
         ·
         Apache-2.0 (name &amp; logo: see TRADEMARKS)
       </div>
