@@ -38,11 +38,11 @@ jobs:
       - name: Build the CallLint CLI
         run: pnpm build
 
-      # Emit SARIF for the Security tab. `|| true` keeps this step from failing
-      # the job on findings — the dedicated gate below decides pass/fail, so the
-      # SARIF always uploads even when the verdict is BLOCK.
+      # Emit SARIF for the Security tab. The --sarif step exits 0 on its own
+      # (only the --ci gate below sets a non-zero code), so the SARIF always
+      # uploads even when the verdict is BLOCK.
       - name: Scan MCP config -> SARIF
-        run: node apps/cli/dist/index.js scan .cursor/mcp.json --sarif > calllint.sarif || true
+        run: node apps/cli/dist/index.js scan .cursor/mcp.json --sarif > calllint.sarif
 
       - name: Upload SARIF to GitHub Code Scanning
         uses: github/codeql-action/upload-sarif@v3
