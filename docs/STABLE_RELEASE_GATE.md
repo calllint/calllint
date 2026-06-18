@@ -9,24 +9,25 @@ Do not promote to `latest` on feel. Every box must be checked.
 
 ## Evidence & calibration
 
-- [ ] R2.1 corpus ≥ 30 cases.
-- [ ] ≥ 20 cases are `redacted-real-snapshot` or `real-public-snapshot` (each
-      with origin metadata).
-- [ ] `corpus:test` (and `corpus:test:r2-final`) pass.
-- [ ] Dangerous false-SAFE = 0.
-- [ ] UNKNOWN ratio ≤ 15%.
-- [ ] Every REVIEW/BLOCK finding has evidence, a false-positive note, and
+- [x] R2.1 corpus ≥ 30 cases. *(30 cases)*
+- [x] ≥ 20 cases are `redacted-real-snapshot` or `real-public-snapshot` (each
+      with origin metadata). *(20: 19 real-public + 1 redacted)*
+- [x] `corpus:test` (and `corpus:test:r2-final`) pass.
+- [x] Dangerous false-SAFE = 0.
+- [x] UNKNOWN ratio ≤ 15%. *(10.0%)*
+- [x] Every REVIEW/BLOCK finding has evidence, a false-positive note, and
       remediation.
-- [ ] `docs/R2_CALIBRATION.md` regenerated and current.
+- [x] `docs/R2_CALIBRATION.md` regenerated and current. *(30/20)*
 
 ## Distribution & supply chain
 
-- [ ] All quality gates green (typecheck, test, build, smoke, pack:smoke,
-      corpus:test) — see release-checklist.md.
-- [ ] `npm publish --dry-run` passes against the official registry.
-- [ ] Trusted Publishing configured; no long-lived NPM_TOKEN anywhere.
-- [ ] Provenance / signatures verified for the latest preview
-      (`npm audit signatures`).
+- [x] All quality gates green (typecheck, test, build, smoke, pack:smoke,
+      corpus:test) — see release-checklist.md. *(189 tests; pack:smoke PASS)*
+- [x] `npm publish --dry-run` passes against the official registry.
+- [x] Trusted Publishing configured; no long-lived NPM_TOKEN anywhere.
+- [x] Provenance / signatures verified for the latest preview
+      (`npm audit signatures`). *(preview.1: 1 verified signature + 1 verified
+      attestation against registry.npmjs.org)*
 - [ ] dist-tag plan documented and ready: on stable publish, point `latest` at
       `0.3.0` and resolve the preview.0 drift (RELEASE_VERIFICATION.md §1).
 
@@ -37,15 +38,15 @@ Do not promote to `latest` on feel. Every box must be checked.
       Scanning and the run is green with a report-only gate.
 - [x] Exit-code contract verified end-to-end in CI (BLOCK exits 30 under the
       `--ci` gate; report mode uploads SARIF + HTML regardless).
-- [ ] At least a handful of external/real configs scanned with no dangerous
-      false-SAFE.
+- [x] At least a handful of external/real configs scanned with no dangerous
+      false-SAFE. *(20 real/redacted corpus snapshots, 0 dangerous false-SAFE)*
 
 ## Trust narrative
 
-- [ ] `PROJECT_STATUS.md`, `CHANGELOG.md`, and `docs/releases/` reflect reality.
-- [ ] `SECURITY.md` current.
-- [ ] Limitations visible in both `README.md` and the homepage (not hidden).
-- [ ] No unsupported safety claims ("proves safe", "prevents all", "secure")
+- [x] `PROJECT_STATUS.md`, `CHANGELOG.md`, and `docs/releases/` reflect reality.
+- [x] `SECURITY.md` current.
+- [x] Limitations visible in both `README.md` and the homepage (not hidden).
+- [x] No unsupported safety claims ("proves safe", "prevents all", "secure")
       anywhere in README, website, or release notes.
 
 ## Promotion sequence

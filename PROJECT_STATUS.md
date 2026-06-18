@@ -29,28 +29,33 @@ Product name: **CallLint** (CLI `calllint`, npm `calllint`, internal scope
 - v0.3-R1 distribution packaging — publishable single-bundle CLI, empty runtime
   dependency list, `files` allowlist, isolated-install smoke, `npm publish
   --dry-run`.
-- v0.3-R2.0 seed corpus gate — `packages/fixtures/corpus/` with 10 calibrated
-  cases and a `corpus:test` release gate.
+- v0.3-R2.1 corpus gate — `packages/fixtures/corpus/` with 30 calibrated cases
+  (20 real-public/redacted snapshots with per-case origin metadata) and a
+  `corpus:test` / `corpus:test:r2-final` release gate.
 - Trusted Publishing release workflow (OIDC, provenance; no long-lived
   NPM_TOKEN).
-- calllint.com public website deployed.
+- calllint.com public website (V3: agent-readable surface, corpus + release
+  integrity sections) deployed.
+- SARIF dogfood live: [`calllint-demo-risky-mcp`](https://github.com/calllint/calllint-demo-risky-mcp)
+  runs CallLint in GitHub Actions; alerts appear in Code Scanning.
 - npm public preview published (`0.3.0-preview.0`, then `0.3.0-preview.1`).
 
 ## Current limitations
 
 - Static analysis only — does not execute MCP servers.
 - Does not prove runtime safety; a clean run is necessary, not sufficient.
-- R2.0 corpus uses calibrated seed cases; R2.1 real/redacted corpus is pending.
+- R2.1 corpus meets its thresholds but does not yet represent the full MCP
+  ecosystem; expansion continues.
 - Pre-1.0 preview; verdicts are heuristic decision support, not a guarantee.
 
 ## Verification status (last run)
 
 - typecheck: clean (tsc strict)
-- tests: **187 passed across 20 files** (unit + E2E against the built binary;
+- tests: **189 passed across 20 files** (unit + E2E against the built binary;
   package smoke; network mocked — tests never touch the network)
 - build: `apps/cli/dist/index.js` (self-contained esbuild bundle, node shebang)
-- corpus:test: 10 cases, 0 contract failures, 0 dangerous false SAFE,
-  UNKNOWN ratio 10%
+- corpus:test: 30 cases (20 real/redacted), 0 contract failures, 0 dangerous
+  false SAFE, UNKNOWN ratio 10%; `corpus:test:r2-final` thresholds met
 - pack:smoke: real npm tarball, empty runtime deps, no `workspace:*`; isolated
   global install runs `calllint --help` / `scan` / `--json` / `--ci` (exit 30
   on BLOCK)
@@ -85,14 +90,11 @@ Product name: **CallLint** (CLI `calllint`, npm `calllint`, internal scope
 
 ## Next roadmap (v0.3)
 
-1. **R2.1 — real/redacted corpus expansion:** grow the corpus toward 30 cases,
-   with ≥20 real-public or redacted-real snapshots; measure false positives,
-   parser boundaries, and UNKNOWN rate.
-2. **SARIF dogfood:** a public `calllint-demo-risky-mcp` repo proving CallLint
-   SARIF appears in GitHub Code Scanning.
-3. **GitHub Release notes** for the preview line.
-4. **Website trust-narrative upgrade** (v2).
-5. **Stable `0.3.0` readiness** gated by `docs/STABLE_RELEASE_GATE.md`
+1. **R2.2 — corpus breadth:** continue adding real-public/redacted snapshots
+   beyond the R2.1 thresholds; keep measuring false positives, parser
+   boundaries, and UNKNOWN rate.
+2. **GitHub Release notes** for the preview line.
+3. **Stable `0.3.0` readiness** gated by `docs/STABLE_RELEASE_GATE.md`
    (rc.0 → latest); fix the dist-tag drift at that point.
 6. (Later) R3 `calllint diagnostics --json`, R4 Prompt Surface expansion.
 
