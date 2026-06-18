@@ -1,0 +1,35 @@
+{
+  "schemaVersion": "calllint.corpus.case.v1",
+  "caseId": "C020-block-filesystem-broad-home",
+  "title": "Filesystem server scoped to a home directory is BLOCK",
+  "curationStatus": "real-public-snapshot",
+  "riskTheme": [
+    "filesystem",
+    "supply-chain"
+  ],
+  "origin": {
+    "kind": "public-repository",
+    "description": "Public documentation config from modelcontextprotocol/servers (src/filesystem/README.md (NPX)). Unmodified snippet; placeholders such as <YOUR_TOKEN> are upstream's own.",
+    "url": "https://github.com/modelcontextprotocol/servers",
+    "commit": "7b1170d1da1e36bc9f553f51e76e64cbfd652b3e",
+    "license": "Apache-2.0 / MIT (transition); docs CC-BY-4.0",
+    "retrievedAt": "2026-06-17T00:00:00.000Z",
+    "redactions": []
+  },
+  "input": {
+    "path": "input/mcp.json",
+    "format": "mcp-json"
+  },
+  "humanExpectation": {
+    "verdict": "BLOCK",
+    "rationale": "Granting a filesystem server a broad home-anchored path (/Users/username/Desktop) lets an agent read and write far beyond a project, which is a blocking risk; the unpinned package compounds it.",
+    "knownLimitations": [
+      "The exact reachable tree depends on the running user's home directory at run time."
+    ]
+  },
+  "executionPolicy": {
+    "executeTarget": false,
+    "allowNetwork": false,
+    "allowFilesystemMutation": false
+  }
+}

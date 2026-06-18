@@ -1,0 +1,34 @@
+{
+  "schemaVersion": "calllint.corpus.case.v1",
+  "caseId": "C012-safe-postgres-docker-connstring",
+  "title": "Postgres server with a container-host connection string is SAFE",
+  "curationStatus": "real-public-snapshot",
+  "riskTheme": [
+    "network"
+  ],
+  "origin": {
+    "kind": "public-repository",
+    "description": "Public documentation config from modelcontextprotocol/servers-archived (src/postgres/README.md). Unmodified snippet; placeholders such as <YOUR_TOKEN> are upstream's own.",
+    "url": "https://github.com/modelcontextprotocol/servers-archived",
+    "commit": "9be4674d1ddf8c469e6461a27a337eeb65f76c2e",
+    "license": "MIT",
+    "retrievedAt": "2026-06-17T00:00:00.000Z",
+    "redactions": []
+  },
+  "input": {
+    "path": "input/mcp.json",
+    "format": "mcp-json"
+  },
+  "humanExpectation": {
+    "verdict": "SAFE",
+    "rationale": "A read-oriented postgres server pointed at a container-host database, with no inline credentials and no shell, presents no flagged surface to a reviewer.",
+    "knownLimitations": [
+      "A connection string with embedded credentials would be a different case; this one has none."
+    ]
+  },
+  "executionPolicy": {
+    "executeTarget": false,
+    "allowNetwork": false,
+    "allowFilesystemMutation": false
+  }
+}

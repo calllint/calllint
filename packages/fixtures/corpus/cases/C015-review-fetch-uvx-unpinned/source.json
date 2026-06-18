@@ -1,0 +1,35 @@
+{
+  "schemaVersion": "calllint.corpus.case.v1",
+  "caseId": "C015-review-fetch-uvx-unpinned",
+  "title": "Fetch server via unpinned uvx package is REVIEW",
+  "curationStatus": "real-public-snapshot",
+  "riskTheme": [
+    "supply-chain",
+    "network"
+  ],
+  "origin": {
+    "kind": "public-repository",
+    "description": "Public documentation config from modelcontextprotocol/servers (src/fetch/README.md). Unmodified snippet; placeholders such as <YOUR_TOKEN> are upstream's own.",
+    "url": "https://github.com/modelcontextprotocol/servers",
+    "commit": "7b1170d1da1e36bc9f553f51e76e64cbfd652b3e",
+    "license": "Apache-2.0 / MIT (transition); docs CC-BY-4.0",
+    "retrievedAt": "2026-06-17T00:00:00.000Z",
+    "redactions": []
+  },
+  "input": {
+    "path": "input/mcp.json",
+    "format": "mcp-json"
+  },
+  "humanExpectation": {
+    "verdict": "REVIEW",
+    "rationale": "A network-fetching server pulled from an unpinned uvx package warrants review of the supply chain before use; the fetch capability itself is the server's purpose, not an anomaly.",
+    "knownLimitations": [
+      "The server's outbound fetch targets are decided at run time and are not visible to a static scan."
+    ]
+  },
+  "executionPolicy": {
+    "executeTarget": false,
+    "allowNetwork": false,
+    "allowFilesystemMutation": false
+  }
+}

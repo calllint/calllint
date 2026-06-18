@@ -1,0 +1,36 @@
+{
+  "schemaVersion": "calllint.corpus.case.v1",
+  "caseId": "C019-review-slack-mutation-secrets",
+  "title": "Slack server combines secret env, unpinned npx, and external mutation",
+  "curationStatus": "real-public-snapshot",
+  "riskTheme": [
+    "env",
+    "supply-chain",
+    "side-effect"
+  ],
+  "origin": {
+    "kind": "public-repository",
+    "description": "Public documentation config from modelcontextprotocol/servers-archived (src/slack/README.md). Unmodified snippet; placeholders such as <YOUR_TOKEN> are upstream's own.",
+    "url": "https://github.com/modelcontextprotocol/servers-archived",
+    "commit": "9be4674d1ddf8c469e6461a27a337eeb65f76c2e",
+    "license": "MIT",
+    "retrievedAt": "2026-06-17T00:00:00.000Z",
+    "redactions": []
+  },
+  "input": {
+    "path": "input/mcp.json",
+    "format": "mcp-json"
+  },
+  "humanExpectation": {
+    "verdict": "REVIEW",
+    "rationale": "This config layers three review-worthy surfaces at once — a bot-token secret, an unpinned npx package, and a server whose purpose is to post to Slack (external mutation) — so it is the richest non-blocking case in the corpus.",
+    "knownLimitations": [
+      "Whether the bot can actually post is governed by Slack scopes the static scan cannot read."
+    ]
+  },
+  "executionPolicy": {
+    "executeTarget": false,
+    "allowNetwork": false,
+    "allowFilesystemMutation": false
+  }
+}

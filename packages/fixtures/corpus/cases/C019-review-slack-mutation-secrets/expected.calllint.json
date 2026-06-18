@@ -1,0 +1,20 @@
+{
+  "schemaVersion": "calllint.corpus.expected.v1",
+  "expectedVerdict": "REVIEW",
+  "expectedMaxRiskClass": "S3",
+  "allowExtraFindings": true,
+  "requiredFindingIds": [
+    "secrets.env-key",
+    "supply.unpinned-package",
+    "action.external-mutation"
+  ],
+  "forbiddenFindingIds": [],
+  "requirements": {
+    "mustHaveEvidenceForEveryFinding": true,
+    "mustHaveFalsePositiveNoteForReviewOrBlock": true,
+    "mustHaveRemediationForReviewOrBlock": true
+  },
+  "dangerousFalseSafePolicy": {
+    "thisCaseMustNeverBeSafe": false
+  }
+}

@@ -1,0 +1,35 @@
+{
+  "schemaVersion": "calllint.corpus.case.v1",
+  "caseId": "C016-review-memory-env-path",
+  "title": "Memory server via unpinned npx with a file-path env is REVIEW",
+  "curationStatus": "real-public-snapshot",
+  "riskTheme": [
+    "supply-chain",
+    "env"
+  ],
+  "origin": {
+    "kind": "public-repository",
+    "description": "Public documentation config from modelcontextprotocol/servers (src/memory/README.md (NPX + env)). Unmodified snippet; placeholders such as <YOUR_TOKEN> are upstream's own.",
+    "url": "https://github.com/modelcontextprotocol/servers",
+    "commit": "7b1170d1da1e36bc9f553f51e76e64cbfd652b3e",
+    "license": "Apache-2.0 / MIT (transition); docs CC-BY-4.0",
+    "retrievedAt": "2026-06-17T00:00:00.000Z",
+    "redactions": []
+  },
+  "input": {
+    "path": "input/mcp.json",
+    "format": "mcp-json"
+  },
+  "humanExpectation": {
+    "verdict": "REVIEW",
+    "rationale": "An unpinned npx package is the only review-worthy surface; the MEMORY_FILE_PATH env is a path, not a credential, so it must not be treated as a secret.",
+    "knownLimitations": [
+      "A custom memory file path could point outside the workspace at run time; the static value here does not."
+    ]
+  },
+  "executionPolicy": {
+    "executeTarget": false,
+    "allowNetwork": false,
+    "allowFilesystemMutation": false
+  }
+}

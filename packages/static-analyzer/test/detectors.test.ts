@@ -57,6 +57,15 @@ describe("dangerous command detector", () => {
     expect(f[0]!.symbol).toBe("EXEC")
     expect(f[0]!.blocker).toBe(true)
   })
+  it("positive: node -e (interpreter inline eval) triggers a blocker", () => {
+    const f = detectDangerousCommand(ctxFor("block-node-inline-eval.json"))
+    expect(f).toHaveLength(1)
+    expect(f[0]!.symbol).toBe("EXEC")
+    expect(f[0]!.blocker).toBe(true)
+  })
+  it("negative: docker run -e <VAR> (env flag, not inline eval) does not trigger", () => {
+    expect(detectDangerousCommand(ctxFor("safe-docker-env-flag.json"))).toHaveLength(0)
+  })
 })
 
 describe("prompt poisoning detector", () => {

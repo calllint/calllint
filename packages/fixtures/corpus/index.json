@@ -62,6 +62,126 @@
       "path": "cases/C010-block-prompt-poisoning",
       "expectedVerdict": "BLOCK",
       "riskTheme": ["prompt-surface"]
+    },
+    {
+      "caseId": "C011-safe-memory-docker-pinned",
+      "path": "cases/C011-safe-memory-docker-pinned",
+      "expectedVerdict": "SAFE",
+      "riskTheme": ["filesystem"]
+    },
+    {
+      "caseId": "C012-safe-postgres-docker-connstring",
+      "path": "cases/C012-safe-postgres-docker-connstring",
+      "expectedVerdict": "SAFE",
+      "riskTheme": ["network"]
+    },
+    {
+      "caseId": "C013-safe-puppeteer-docker",
+      "path": "cases/C013-safe-puppeteer-docker",
+      "expectedVerdict": "SAFE",
+      "riskTheme": ["network"]
+    },
+    {
+      "caseId": "C014-review-git-uvx-unpinned",
+      "path": "cases/C014-review-git-uvx-unpinned",
+      "expectedVerdict": "REVIEW",
+      "riskTheme": ["supply-chain"]
+    },
+    {
+      "caseId": "C015-review-fetch-uvx-unpinned",
+      "path": "cases/C015-review-fetch-uvx-unpinned",
+      "expectedVerdict": "REVIEW",
+      "riskTheme": ["supply-chain", "network"]
+    },
+    {
+      "caseId": "C016-review-memory-env-path",
+      "path": "cases/C016-review-memory-env-path",
+      "expectedVerdict": "REVIEW",
+      "riskTheme": ["supply-chain", "env"]
+    },
+    {
+      "caseId": "C017-review-github-token-env",
+      "path": "cases/C017-review-github-token-env",
+      "expectedVerdict": "REVIEW",
+      "riskTheme": ["env"]
+    },
+    {
+      "caseId": "C018-review-brave-apikey-env",
+      "path": "cases/C018-review-brave-apikey-env",
+      "expectedVerdict": "REVIEW",
+      "riskTheme": ["env"]
+    },
+    {
+      "caseId": "C019-review-slack-mutation-secrets",
+      "path": "cases/C019-review-slack-mutation-secrets",
+      "expectedVerdict": "REVIEW",
+      "riskTheme": ["env", "supply-chain", "side-effect"]
+    },
+    {
+      "caseId": "C020-block-filesystem-broad-home",
+      "path": "cases/C020-block-filesystem-broad-home",
+      "expectedVerdict": "BLOCK",
+      "riskTheme": ["filesystem", "supply-chain"]
+    },
+    {
+      "caseId": "C021-block-filesystem-cmd-windows",
+      "path": "cases/C021-block-filesystem-cmd-windows",
+      "expectedVerdict": "BLOCK",
+      "riskTheme": ["shell", "filesystem", "supply-chain"]
+    },
+    {
+      "caseId": "C022-block-memory-cmd-windows",
+      "path": "cases/C022-block-memory-cmd-windows",
+      "expectedVerdict": "BLOCK",
+      "riskTheme": ["shell"]
+    },
+    {
+      "caseId": "C023-safe-filesystem-docker-mount",
+      "path": "cases/C023-safe-filesystem-docker-mount",
+      "expectedVerdict": "SAFE",
+      "riskTheme": ["filesystem"]
+    },
+    {
+      "caseId": "C024-safe-sqlite-docker-volume",
+      "path": "cases/C024-safe-sqlite-docker-volume",
+      "expectedVerdict": "SAFE",
+      "riskTheme": ["filesystem"]
+    },
+    {
+      "caseId": "C025-unknown-github-remote-verified",
+      "path": "cases/C025-unknown-github-remote-verified",
+      "expectedVerdict": "UNKNOWN",
+      "riskTheme": ["remote", "network"]
+    },
+    {
+      "caseId": "C026-unknown-github-enterprise-remote",
+      "path": "cases/C026-unknown-github-enterprise-remote",
+      "expectedVerdict": "UNKNOWN",
+      "riskTheme": ["remote", "network"]
+    },
+    {
+      "caseId": "C027-review-sentry-npx-secrets",
+      "path": "cases/C027-review-sentry-npx-secrets",
+      "expectedVerdict": "REVIEW",
+      "riskTheme": ["env", "supply-chain"]
+    },
+    {
+      "caseId": "C028-review-cloudflare-mcp-remote",
+      "path": "cases/C028-review-cloudflare-mcp-remote",
+      "expectedVerdict": "REVIEW",
+      "riskTheme": ["supply-chain", "network"]
+    },
+    {
+      "caseId": "C029-review-github-local-docker-token",
+      "path": "cases/C029-review-github-local-docker-token",
+      "expectedVerdict": "REVIEW",
+      "riskTheme": ["env"]
+    },
+    {
+      "caseId": "C030-review-sentry-selfhosted-host",
+      "path": "cases/C030-review-sentry-selfhosted-host",
+      "expectedVerdict": "REVIEW",
+      "riskTheme": ["env", "supply-chain"]
     }
   ]
 }

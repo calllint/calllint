@@ -1,0 +1,35 @@
+{
+  "schemaVersion": "calllint.corpus.case.v1",
+  "caseId": "C027-review-sentry-npx-secrets",
+  "title": "Sentry server via unpinned npx with token and API-key envs is REVIEW",
+  "curationStatus": "real-public-snapshot",
+  "riskTheme": [
+    "env",
+    "supply-chain"
+  ],
+  "origin": {
+    "kind": "public-repository",
+    "description": "Public documentation config from getsentry/sentry-mcp (README.md (stdio / npx)). Content verbatim; only normalized to a valid JSON root. Upstream placeholders preserved.",
+    "url": "https://github.com/getsentry/sentry-mcp",
+    "commit": "ba44f5d614470d9ebde2f2b83f14a5ff435d4ac5",
+    "license": "FSL-1.1-Apache-2.0",
+    "retrievedAt": "2026-06-17T00:00:00.000Z",
+    "redactions": []
+  },
+  "input": {
+    "path": "input/mcp.json",
+    "format": "mcp-json"
+  },
+  "humanExpectation": {
+    "verdict": "REVIEW",
+    "rationale": "Two credential-shaped envs (a Sentry access token and an OpenAI API key) plus an unpinned npx package are all review-worthy, but none is independently blocking.",
+    "knownLimitations": [
+      "EMBEDDED_AGENT_PROVIDER is not credential-shaped and is correctly not flagged; the two key/token names are."
+    ]
+  },
+  "executionPolicy": {
+    "executeTarget": false,
+    "allowNetwork": false,
+    "allowFilesystemMutation": false
+  }
+}
