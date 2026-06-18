@@ -14,3 +14,22 @@ focused, evidence-backed, and aligned with the project's stated principles.
 ## Security reports
 
 Do not open public issues for security-sensitive reports. Email security@calllint.com instead.
+
+## Reporting calibration feedback (false positives / negatives)
+
+CallLint improves through real configs. We provide issue templates for false
+positives, false negatives, parser edge cases, corpus candidates, and CI
+integration. High-quality reports often become corpus cases.
+
+**Redaction is mandatory.** Before pasting any config:
+
+- Remove secret *values* (tokens, keys, passwords) — replace with a neutral
+  placeholder such as `REDACTED` or `${ENV_VAR}`.
+- Remove private filesystem paths, internal hostnames/URLs, and personal or
+  customer names.
+- **Keep the verdict-relevant shape**: key names, command form, and transport
+  kind drive the verdict, so preserve them. If redaction would change the
+  verdict, the config is not safe to submit — pick another.
+
+See [docs/CORPUS_CURATION.md](docs/CORPUS_CURATION.md) for the full honesty and
+provenance rules that govern how submitted configs enter the corpus.

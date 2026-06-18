@@ -1,0 +1,49 @@
+name: False negative
+description: CallLint missed a risky config (returned too low a verdict).
+title: "[FN]: "
+labels: ["calibration", "false-negative"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for helping calibrate CallLint. **Redact first:** remove secret
+        values, private paths, internal URLs, and personal names before pasting.
+        Keep the structure that should have triggered a finding. For
+        security-sensitive reports, email security@calllint.com instead of
+        opening a public issue.
+  - type: textarea
+    id: config
+    attributes:
+      label: Redacted config
+      description: The config CallLint scanned, with secrets removed.
+      render: json
+    validations:
+      required: true
+  - type: dropdown
+    id: current-verdict
+    attributes:
+      label: Current verdict (what CallLint returned)
+      options: [SAFE, REVIEW, UNKNOWN]
+    validations:
+      required: true
+  - type: dropdown
+    id: expected-verdict
+    attributes:
+      label: Expected verdict (what it should be)
+      options: [REVIEW, BLOCK, UNKNOWN]
+    validations:
+      required: true
+  - type: textarea
+    id: missed-risk
+    attributes:
+      label: What risk did CallLint miss?
+      description: Which surface (filesystem, shell, secret, network, prompt, money, supply-chain, mutation) was under-rated, and why is it risky for an autonomous agent?
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: CallLint version
+      placeholder: "0.3.0-preview.1"
+    validations:
+      required: true

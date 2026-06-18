@@ -1,0 +1,47 @@
+name: Parser edge case
+description: CallLint mis-parsed, crashed on, or mishandled a config format.
+title: "[Parser]: "
+labels: ["calibration", "parser"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Use this when the problem is *parsing or input handling* (a config shape
+        CallLint failed to read, errored on, or resolved incorrectly) rather than
+        the verdict itself. **Redact secrets and private paths first.**
+  - type: textarea
+    id: config
+    attributes:
+      label: Redacted config
+      description: The exact input (or a minimal reduction that still reproduces it).
+      render: json
+    validations:
+      required: true
+  - type: input
+    id: source-format
+    attributes:
+      label: Config source / format
+      placeholder: ".cursor/mcp.json, claude_desktop_config.json, inline JSON, ..."
+    validations:
+      required: true
+  - type: textarea
+    id: command
+    attributes:
+      label: Command and output
+      description: The exact `calllint` command you ran and what it printed (redact secrets).
+      render: shell
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: What should have happened?
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: CallLint version
+      placeholder: "0.3.0-preview.1"
+    validations:
+      required: true
