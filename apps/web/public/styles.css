@@ -713,6 +713,33 @@ pre {
   font-size: 0.92rem;
   line-height: 1.55;
 }
+.agent-card p {
+  margin: 0 0 12px;
+  color: var(--muted);
+  font-size: 0.92rem;
+  line-height: 1.55;
+}
+.agents-grid-3 {
+  grid-template-columns: 1fr 1fr 1fr;
+  max-width: 1040px;
+}
+.agent-card-example {
+  margin: 0;
+  padding: 12px 14px;
+  background: var(--code-bg, rgba(127, 127, 127, 0.08));
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  font-size: 0.82rem;
+  line-height: 1.5;
+  overflow-x: auto;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+.agent-card-links {
+  margin: 0;
+  font-size: 0.88rem;
+  line-height: 1.7;
+}
 .agents-resources {
   text-align: center;
   margin: 22px auto 0;
