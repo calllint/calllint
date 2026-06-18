@@ -1,7 +1,15 @@
 #!/usr/bin/env node
 /**
  * Generate web/report-sized brand assets from assets/calllintlogo.png.
- * Requires: npx sharp (dev-only, not a runtime dependency).
+ *
+ * The source PNG ships the shield on an opaque white card. We strip only the
+ * *exterior* white (the background reachable from the image border via a flood
+ * fill) and keep the white that lives *inside* the red shield, so the mark drops
+ * cleanly onto any page or terminal background. Downscaling from the 1254px
+ * master anti-aliases the cut edge for free (libvips resizes premultiplied, so
+ * no white fringe).
+ *
+ * Requires: sharp (dev-only, not a runtime dependency).
  */
 import { copyFile, mkdir, readFile, stat, writeFile } from "node:fs/promises"
 import { join, dirname } from "node:path"
@@ -22,15 +30,67 @@ const SIZES = [
   ["npm-org-avatar.png", 260],
 ]
 
+// Build a transparent-background RGBA master: flood-fill border-connected
+// near-white pixels to alpha 0, keep everything else (including shield-interior
+// white) opaque.
+async function buildTransparentMaster(sharp) {
+  const { data, info } = await sharp(src)
+    .ensureAlpha()
+    .raw()
+    .toBuffer({ resolveWithObject: true })
+  const { width: W, height: H, channels: ch } = info
+  const light = (p) => {
+    const i = p * ch
+    return data[i] >= 205 && data[i + 1] >= 205 && data[i + 2] >= 205
+  }
+  const bg = new Uint8Array(W * H)
+  const stack = []
+  for (let x = 0; x < W; x++) stack.push(x, x + (H - 1) * W)
+  for (let y = 0; y < H; y++) stack.push(y * W, W - 1 + y * W)
+  while (stack.length) {
+    const p = stack.pop()
+    if (p < 0 || p >= W * H || bg[p] || !light(p)) continue
+    bg[p] = 1
+    const x = p % W
+    stack.push(p - W, p + W)
+    if (x > 0) stack.push(p - 1)
+    if (x < W - 1) stack.push(p + 1)
+  }
+  for (let p = 0; p < W * H; p++) if (bg[p]) data[p * ch + 3] = 0
+
+  // The white→red boundary leaves a ~1px light "halo" ring that the strict
+  // flood threshold doesn't reach. Dilate the transparent region by one pixel
+  // into adjacent light transition pixels (the deep-red border has a very low
+  // min channel, so the dilation stops at it and never eats the shield).
+  const halo = []
+  for (let p = 0; p < W * H; p++) {
+    if (bg[p]) continue
+    const i = p * ch
+    if (Math.min(data[i], data[i + 1], data[i + 2]) < 100) continue
+    const x = p % W
+    const nb = bg[p - W] || bg[p + W] || (x > 0 && bg[p - 1]) || (x < W - 1 && bg[p + 1])
+    if (nb) halo.push(p)
+  }
+  for (const p of halo) data[p * ch + 3] = 0
+
+  return { buffer: Buffer.from(data), width: W, height: H, channels: ch }
+}
+
 async function main() {
   const sharp = (await import("sharp")).default
   await mkdir(outDir, { recursive: true })
 
+  const master = await buildTransparentMaster(sharp)
+  const makeBase = () =>
+    sharp(master.buffer, {
+      raw: { width: master.width, height: master.height, channels: master.channels },
+    })
+
   for (const [name, size] of SIZES) {
     const out = join(outDir, name)
-    await sharp(src)
+    await makeBase()
       .resize(size, size, { fit: "contain", background: { r: 0, g: 0, b: 0, alpha: 0 } })
-      .png({ compressionLevel: 9, palette: true })
+      .png({ compressionLevel: 9 })
       .toFile(out)
     const { size: bytes } = await stat(out)
     console.log(`${name}\t${bytes} bytes`)
