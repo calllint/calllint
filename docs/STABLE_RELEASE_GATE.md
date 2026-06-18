@@ -32,10 +32,11 @@ Do not promote to `latest` on feel. Every box must be checked.
 
 ## Real-world proof
 
-- [ ] SARIF dogfood: `calllint-demo-risky-mcp` repo runs CallLint in GitHub
-      Actions and alerts appear in Code Scanning.
-- [ ] Exit-code contract verified end-to-end in CI (BLOCK fails the job under a
-      policy gate; report mode uploads SARIF regardless).
+- [x] SARIF dogfood: [`calllint-demo-risky-mcp`](https://github.com/calllint/calllint-demo-risky-mcp)
+      runs CallLint in GitHub Actions; 4 alerts (one per finding) appear in Code
+      Scanning and the run is green with a report-only gate.
+- [x] Exit-code contract verified end-to-end in CI (BLOCK exits 30 under the
+      `--ci` gate; report mode uploads SARIF + HTML regardless).
 - [ ] At least a handful of external/real configs scanned with no dangerous
       false-SAFE.
 

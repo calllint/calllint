@@ -10,6 +10,10 @@ A ready-to-use workflow is at
 [`examples/github-actions/calllint-sarif.yml`](../../examples/github-actions/calllint-sarif.yml).
 Copy it to `.github/workflows/calllint.yml`.
 
+> **Live demo:** [`calllint/calllint-demo-risky-mcp`](https://github.com/calllint/calllint-demo-risky-mcp)
+> runs exactly this integration — a 4-server config scanned on every push, with
+> the findings visible in its **Security → Code scanning** tab.
+
 ## Permissions
 
 SARIF upload needs `security-events: write`:
@@ -29,9 +33,9 @@ node apps/cli/dist/index.js scan .cursor/mcp.json --sarif > calllint.sarif
 ```
 
 SARIF is CallLint's GitHub Code Scanning format (SARIF 2.1.0). Pipe it to a file
-and upload with `github/codeql-action/upload-sarif@v3`. Use `|| true` on the
-scan step so a BLOCK verdict does not abort the job *before* the SARIF uploads —
-let the dedicated gate step decide pass/fail.
+and upload with `github/codeql-action/upload-sarif@v3`. The `--sarif` step exits
+0 on its own (only `--ci` sets a non-zero gate code), so it does not abort the
+job before the upload — keep the pass/fail decision in the dedicated gate step.
 
 ### 2. Gate on the verdict
 
