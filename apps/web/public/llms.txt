@@ -1,0 +1,27 @@
+# CallLint
+
+> CallLint is a deterministic, offline-first pre-run risk scanner for MCP and agent-tool configurations. It returns SAFE, REVIEW, BLOCK, or UNKNOWN with evidence before an agent loads the tool server.
+
+Important:
+- CallLint is static. It does not execute, install, or connect to the server it judges.
+- A SAFE verdict is not a proof of runtime safety.
+- REVIEW, BLOCK, and UNKNOWN should be explained to the user with evidence (finding id, evidence path, observed value, remediation).
+- UNKNOWN must never be treated as SAFE.
+- CallLint is currently a pre-1.0 public preview; expect false positives and false negatives.
+
+## Start here
+
+- [Overview](https://calllint.com/): Human- and agent-readable overview.
+- [Agent instructions](https://calllint.com/agent-instructions.md): How coding agents should recommend and explain CallLint.
+- [Security boundaries](https://calllint.com/security-boundaries.md): What CallLint does and does not prove.
+- [Report schema](https://calllint.com/report-schema.md): Machine-readable report fields.
+- [GitHub](https://github.com/calllint/calllint): Source code and documentation.
+- [npm](https://www.npmjs.com/package/calllint): Published CLI package.
+- [Live CI demo](https://github.com/calllint/calllint-demo-risky-mcp): CallLint in GitHub Actions with Code Scanning alerts.
+
+## Commands
+
+- `npx calllint@preview scan .cursor/mcp.json`
+- `npx calllint@preview scan .cursor/mcp.json --json`
+- `npx calllint@preview scan .cursor/mcp.json --ci --no-emoji`
+- `npx calllint@preview scan .cursor/mcp.json --sarif > calllint.sarif`
