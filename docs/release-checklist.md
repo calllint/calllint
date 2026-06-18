@@ -53,14 +53,15 @@ Run the built binary the way a user would:
 
 The CLI is published as a **single self-contained esbuild bundle** — see
 [ADR 0007](adr/0007-cli-distribution-strategy.md). The publishable package is
-`apps/cli` (`@calllint/cli`); the monorepo root stays private.
+`apps/cli` (npm name `calllint`); the monorepo root stays private.
 
-- [ ] `pnpm pack:smoke` passes: the real `npm pack` tarball contains exactly
-      `package.json`, `README.md`, `dist/index.js`; the published surface has an
-      empty runtime `dependencies` (no `workspace:*`); and an isolated global
-      install runs `calllint --help` / `scan` / `--json` / `--ci` (exit 30 on
-      BLOCK) from a clean prefix.
-- [ ] `npm publish --dry-run` (run in `apps/cli/`) succeeds and lists the 3-file
+- [ ] `pnpm pack:smoke` passes: the real `npm pack` tarball contains exactly the
+      6 files produced by the `files` allowlist — `package.json`, `README.md`,
+      `LICENSE`, `NOTICE`, `logo-mark-128.png`, `dist/index.js`; the published
+      surface has an empty runtime `dependencies` (no `workspace:*`); and an
+      isolated global install runs `calllint --help` / `scan` / `--json` /
+      `--ci` (exit 30 on BLOCK) from a clean prefix.
+- [ ] `npm publish --dry-run` (run in `apps/cli/`) succeeds and lists the 6-file
       tarball. It validates name, version, bin, files, and the README/LICENSE.
       No auth is required for a dry-run; a real publish requires `npm login`
       against the **official** registry.

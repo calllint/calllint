@@ -10,6 +10,16 @@ onward. While pre-1.0, minor versions may include breaking changes.
 
 ## [Unreleased]
 
+## [0.3.0-rc.0] — Stable candidate
+
+First release candidate for the stable `0.3.0` line. **No scanner-semantics
+change** since preview.1: no detector, verdict, golden expectation, or exit code
+was altered. The rc validates the release path end-to-end before `0.3.0` claims
+the `latest` dist-tag — release workflow, the dedicated `next` dist-tag, build
+provenance, and the `npx` install path. Published to the **`next`** dist-tag
+(`npx calllint@next`); `latest` is left on `0.3.0-preview.0` until stable, when
+the drift is corrected.
+
 ### Added
 - **R2.1 corpus** — expanded the calibration corpus to 30 cases, 20 of them
   real-public or redacted-real snapshots with per-case origin metadata, plus a
@@ -29,6 +39,10 @@ onward. While pre-1.0, minor versions may include breaking changes.
   -e KEY=val`) as an interpreter inline-eval; precision fix with golden cases.
 
 ### Changed
+- Release workflow derives the dist-tag in three lanes so a tag can never claim
+  the wrong channel: `*-rc.*` → `next`, any other prerelease → `preview`, clean
+  semver → `latest`. Release candidates stay off `preview` so preview testers
+  are not auto-moved onto an rc.
 - `--sarif` exit-code note corrected: it exits 0 on its own (only `--ci` gates),
   so the example workflow drops the unnecessary `|| true`.
 

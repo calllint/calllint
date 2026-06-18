@@ -52,9 +52,28 @@ Do not promote to `latest` on feel. Every box must be checked.
 ## Promotion sequence
 
 ```text
-0.3.0-preview.1 (current)
-  → 0.3.0-rc.0   (preview dist-tag; invite external testers; collect FP/FN)
-  → 0.3.0        (latest dist-tag; fix dist-tag drift; GitHub Release)
+0.3.0-preview.1 (published; preview dist-tag)
+  → 0.3.0-rc.0   (next dist-tag; invite external testers; collect FP/FN)
+  → 0.3.0        (latest dist-tag; fix the preview.0 latest drift; GitHub Release)
 ```
+
+Release candidates publish to **`next`**, not `preview`, so testers tracking
+`@preview` are never auto-moved onto an rc. The dist-tag is derived from the
+version by the release workflow (`*-rc.*` → `next`, other prereleases →
+`preview`, clean semver → `latest`).
+
+### RC verification (after `v0.3.0-rc.0` is published to `next`)
+
+```bash
+npm view calllint version dist-tags --registry=https://registry.npmjs.org/
+# expect: next → 0.3.0-rc.0 · preview → 0.3.0-preview.1 · latest → 0.3.0-preview.0
+
+npx --yes calllint@next --help
+npx --yes calllint@next scan .cursor/mcp.json
+npx --yes npm@latest audit signatures --registry=https://registry.npmjs.org/
+```
+
+The RC feedback window and its blocking criteria are defined in
+[RC_FEEDBACK_PROTOCOL.md](./RC_FEEDBACK_PROTOCOL.md).
 
 Only when every box above is checked does `0.3.0` ship to `latest`.

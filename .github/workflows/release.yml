@@ -59,13 +59,18 @@ jobs:
             echo "Release tag ($TAG) does not match apps/cli version ($PKG_VERSION)." >&2
             exit 1
           fi
-          # Derive the dist-tag from the version: any prerelease (contains a
-          # hyphen, e.g. 0.3.0-preview.1) publishes to `preview`; a clean
-          # semver publishes to `latest`. This stops a prerelease from ever
-          # claiming the default tag through this workflow.
+          # Derive the dist-tag from the version so a tag can never claim the
+          # wrong channel:
+          #   *-rc.*  → next     (release candidates; kept off `preview` so
+          #                       preview testers are not auto-moved onto an rc)
+          #   *-*     → preview  (any other prerelease: preview/beta/alpha)
+          #   *       → latest   (clean semver → the stable default tag)
+          # This stops a prerelease from ever claiming the default `latest` tag
+          # through this workflow, and keeps rc separate from preview.
           case "$VERSION" in
-            *-*) DIST_TAG=preview ;;
-            *)   DIST_TAG=latest ;;
+            *-rc.*) DIST_TAG=next ;;
+            *-*)    DIST_TAG=preview ;;
+            *)      DIST_TAG=latest ;;
           esac
           echo "dist_tag=$DIST_TAG" >> "$GITHUB_OUTPUT"
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"

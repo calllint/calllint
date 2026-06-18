@@ -1,6 +1,7 @@
 # CallLint Project Status
 
-Current phase: **v0.3.0-preview.1 — public preview**
+Current phase: **v0.3.0-rc.0 — stable candidate** (preparing on `main`; not yet
+tagged or published)
 
 CallLint is a deterministic, offline-first CLI for pre-run risk linting of MCP
 and agent-tool configurations. It returns SAFE / REVIEW / BLOCK / UNKNOWN with
@@ -14,7 +15,8 @@ Product name: **CallLint** (CLI `calllint`, npm `calllint`, internal scope
 ## Public artifacts
 
 - Website: https://calllint.com (Cloudflare Pages, auto-deployed from `main`)
-- npm package: `calllint@0.3.0-preview.1` (published; preview dist-tag)
+- npm package: `calllint@0.3.0-preview.1` (published; preview dist-tag).
+  `0.3.0-rc.0` is prepared in-repo and ships to the `next` dist-tag when tagged.
 - GitHub repository: `calllint/calllint`
 - Install / run: `npx calllint scan .cursor/mcp.json`
 
@@ -90,13 +92,21 @@ Product name: **CallLint** (CLI `calllint`, npm `calllint`, internal scope
 
 ## Next roadmap (v0.3)
 
-1. **R2.2 — corpus breadth:** continue adding real-public/redacted snapshots
+1. **Tag & publish `0.3.0-rc.0`** to the `next` dist-tag (the release workflow
+   routes `*-rc.*` → `next`); run the RC feedback window
+   ([docs/RC_FEEDBACK_PROTOCOL.md](docs/RC_FEEDBACK_PROTOCOL.md)).
+2. **Stable `0.3.0`** to `latest`, gated by
+   [docs/STABLE_RELEASE_GATE.md](docs/STABLE_RELEASE_GATE.md); correct the
+   `latest` → preview.0 drift at that point and flip the website's default
+   install command to `npx calllint`.
+3. **R2.2 — corpus breadth:** continue adding real-public/redacted snapshots
    beyond the R2.1 thresholds; keep measuring false positives, parser
    boundaries, and UNKNOWN rate.
-2. **GitHub Release notes** for the preview line.
-3. **Stable `0.3.0` readiness** gated by `docs/STABLE_RELEASE_GATE.md`
-   (rc.0 → latest); fix the dist-tag drift at that point.
-6. (Later) R3 `calllint diagnostics --json`, R4 Prompt Surface expansion.
+4. (Later) R3 `calllint diagnostics --json`, R4 Prompt Surface expansion.
+
+See [docs/ROADMAP.md](docs/ROADMAP.md) for the full phase map and explicit
+non-goals. Telemetry is **not** in `0.3.0` (see
+[ADR 0009](docs/adr/0009-optional-telemetry.md)).
 
 ## Non-goals (current)
 
