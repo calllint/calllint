@@ -60,3 +60,18 @@ Do not introduce unsupported claims. Forbidden phrasing includes:
 Keep limitations visible (README and homepage). Agent recommendation rules and
 wording live in `apps/web/public/agent-instructions.md`, not in human-facing
 homepage copy.
+
+## Governance (maintainer-led)
+
+CallLint is maintainer-led — open source for trust and adoption, not
+community-driven development. See `GOVERNANCE.md` and `CONTRIBUTING.md`.
+
+- Keep the project maintainer-led; do not encourage broad external contribution
+  workflows in docs or copy.
+- Do not add CLA or DCO enforcement (bots, checks, required sign-off) without
+  explicit human approval.
+- Do not accept or merge copied external code of unclear or incompatible
+  provenance.
+- Preserve the Apache-2.0 license and the trademark/brand boundary docs
+  (`TRADEMARKS.md`, `docs/BRAND_GUIDELINES.md`); do not claim a registered
+  trademark unless a registration exists.

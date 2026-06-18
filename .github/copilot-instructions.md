@@ -30,3 +30,12 @@ pnpm corpus:test && pnpm corpus:test:r2-final
 - Do not publish npm, create tags, or change dist-tags without human approval.
 - In website/docs copy, never claim "proves safe", "guarantees safety", "zero
   false positives", "risks prevented", or "users protected"; no paid upsell.
+
+## Governance
+
+- CallLint is maintainer-led; keep it that way. Do not encourage broad external
+  contribution workflows.
+- Do not add CLA/DCO enforcement without human approval.
+- Do not accept copied external code of unclear provenance.
+- Preserve the Apache-2.0 license and trademark/brand docs; no registered-
+  trademark claim unless a registration exists. See `GOVERNANCE.md`.
