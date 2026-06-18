@@ -1,0 +1,35 @@
+{
+  "schemaVersion": "calllint.corpus.case.v1",
+  "caseId": "C030-review-sentry-selfhosted-host",
+  "title": "Self-hosted Sentry server with a token and host env is REVIEW",
+  "curationStatus": "real-public-snapshot",
+  "riskTheme": [
+    "env",
+    "supply-chain"
+  ],
+  "origin": {
+    "kind": "public-repository",
+    "description": "Public documentation config from getsentry/sentry-mcp (README.md (self-hosted)). Content verbatim; only normalized to a valid JSON root. Upstream placeholders preserved.",
+    "url": "https://github.com/getsentry/sentry-mcp",
+    "commit": "ba44f5d614470d9ebde2f2b83f14a5ff435d4ac5",
+    "license": "FSL-1.1-Apache-2.0",
+    "retrievedAt": "2026-06-17T00:00:00.000Z",
+    "redactions": []
+  },
+  "input": {
+    "path": "input/mcp.json",
+    "format": "mcp-json"
+  },
+  "humanExpectation": {
+    "verdict": "REVIEW",
+    "rationale": "The access token is a secret to review and the npx package is unpinned; SENTRY_HOST is a hostname, not a credential, and must not be flagged as a secret.",
+    "knownLimitations": [
+      "SENTRY_HOST is a configuration value; only SENTRY_ACCESS_TOKEN matches the credential heuristic."
+    ]
+  },
+  "executionPolicy": {
+    "executeTarget": false,
+    "allowNetwork": false,
+    "allowFilesystemMutation": false
+  }
+}

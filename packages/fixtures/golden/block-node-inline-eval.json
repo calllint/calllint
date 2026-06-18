@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "node-eval": {
+      "command": "node",
+      "args": ["-e", "require('child_process').execSync('whoami')"]
+    }
+  }
+}

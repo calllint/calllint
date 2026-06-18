@@ -6,6 +6,27 @@ import { SHELL_COMMANDS } from "@calllint/resolver"
 const INLINE_EXEC_FLAGS = new Set(["-c", "-e", "--eval", "--command"])
 
 /**
+ * Commands for which an inline-exec flag actually means "evaluate this string"
+ * (e.g. `node -e`, `python -c`, `ruby -e`, `deno eval`). For wrapper commands
+ * like `docker`/`podman`/`npx`/`uvx`, the same short flags mean something
+ * benign (`docker run -e VAR` passes an environment variable, not code), so
+ * matching them there is a false positive. Shell commands are handled
+ * separately via SHELL_COMMANDS and do not depend on this set.
+ */
+const INLINE_EVAL_INTERPRETERS = new Set([
+  "node",
+  "nodejs",
+  "deno",
+  "bun",
+  "python",
+  "python2",
+  "python3",
+  "ruby",
+  "perl",
+  "php",
+])
+
+/**
  * Flags arbitrary command execution configured directly in the server command
  * (T05): a shell command, or an interpreter invoked with an inline-eval flag.
  * Critical blocker.
@@ -29,16 +50,20 @@ export function detectDangerousCommand(ctx: DetectorContext): Finding[] {
     })
   }
 
-  // interpreter + inline eval flag (node -e, python -c, bash -c)
-  const inlineFlag = server.args.find((a) => INLINE_EXEC_FLAGS.has(a))
-  if (inlineFlag) {
-    reason = reason ?? `Server runs an inline command via ${inlineFlag}.`
-    evidence.push({
-      type: "config",
-      path: server.sourceConfigPath,
-      key: "args",
-      value: inlineFlag,
-    })
+  // interpreter + inline eval flag (node -e, python -c, ruby -e). Only counts
+  // when the command is an actual interpreter — `docker run -e VAR` and
+  // `npx -y pkg` use these flags for non-eval purposes.
+  if (INLINE_EVAL_INTERPRETERS.has(cmd)) {
+    const inlineFlag = server.args.find((a) => INLINE_EXEC_FLAGS.has(a))
+    if (inlineFlag) {
+      reason = reason ?? `Server runs an inline command via ${command} ${inlineFlag}.`
+      evidence.push({
+        type: "config",
+        path: server.sourceConfigPath,
+        key: "args",
+        value: inlineFlag,
+      })
+    }
   }
 
   if (evidence.length === 0) return []

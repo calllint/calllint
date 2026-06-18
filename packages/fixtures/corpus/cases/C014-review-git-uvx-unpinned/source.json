@@ -1,0 +1,34 @@
+{
+  "schemaVersion": "calllint.corpus.case.v1",
+  "caseId": "C014-review-git-uvx-unpinned",
+  "title": "Git server via unpinned uvx package is REVIEW",
+  "curationStatus": "real-public-snapshot",
+  "riskTheme": [
+    "supply-chain"
+  ],
+  "origin": {
+    "kind": "public-repository",
+    "description": "Public documentation config from modelcontextprotocol/servers (src/git/README.md). Unmodified snippet; placeholders such as <YOUR_TOKEN> are upstream's own.",
+    "url": "https://github.com/modelcontextprotocol/servers",
+    "commit": "7b1170d1da1e36bc9f553f51e76e64cbfd652b3e",
+    "license": "Apache-2.0 / MIT (transition); docs CC-BY-4.0",
+    "retrievedAt": "2026-06-17T00:00:00.000Z",
+    "redactions": []
+  },
+  "input": {
+    "path": "input/mcp.json",
+    "format": "mcp-json"
+  },
+  "humanExpectation": {
+    "verdict": "REVIEW",
+    "rationale": "An unpinned uvx package resolves to whatever version is latest at run time, so a reviewer should pin it before trusting the supply chain, but nothing here is dangerous on its own.",
+    "knownLimitations": [
+      "uvx resolves the package at run time; static analysis sees the spec, not the resolved artifact."
+    ]
+  },
+  "executionPolicy": {
+    "executeTarget": false,
+    "allowNetwork": false,
+    "allowFilesystemMutation": false
+  }
+}
