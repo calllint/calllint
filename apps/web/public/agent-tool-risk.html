@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Agent tool risk: know what a tool can do before it runs — CallLint</title>
+    <meta name="description" content="Agent tools are permissions, not plugins. A tool config can grant access to files, shells, remote services, secrets, model-directed instructions, or irreversible actions. CallLint reviews those surfaces before autonomous execution." />
+    <link rel="icon" href="/favicon.png" type="image/png" />
+    <meta property="og:type" content="article" />
+    <meta property="og:url" content="https://calllint.com/agent-tool-risk" />
+    <meta property="og:title" content="Agent tool risk — CallLint" />
+    <meta property="og:image" content="https://calllint.com/og-image.png" />
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <header class="site-header">
+      <a class="brand-lockup" href="/" aria-label="CallLint home">
+        <img class="brand-mark" src="/logo-mark-128.png" width="40" height="40" alt="" />
+        <span class="brand-name">CallLint</span>
+      </a>
+      <nav class="nav-links" aria-label="Primary">
+        <a href="/#how">How</a>
+        <a href="/agents">For agents</a>
+        <a href="/mcp-security">MCP security</a>
+        <a href="/agent-tool-risk">Agent tool risk</a>
+        <a href="https://github.com/calllint/calllint">GitHub</a>
+      </nav>
+    </header>
+    <main>
+      <section class="section section-narrow topic">
+        <p class="lede">Agent tool risk</p>
+        <h1>Know what a tool can do before it runs</h1>
+        <p class="prose">Agent tools are permissions, not plugins. A tool configuration can grant access to files, shells, remote services, secrets, model-directed instructions, or irreversible actions. The risk is decided at config time — before the agent ever calls the tool.</p>
+        <p class="prose">CallLint helps review those surfaces before autonomous execution. It is deterministic and offline by default, returns SAFE, REVIEW, BLOCK, or UNKNOWN, and backs every verdict with evidence.</p>
+
+        <h2>Why config-time review matters</h2>
+        <ul>
+          <li>A broad filesystem root exposes everything under it.</li>
+          <li>A shell command tool can run arbitrary commands.</li>
+          <li>An unpinned package or unknown remote is a supply-chain surface.</li>
+          <li>Tool names, descriptions, and schemas are attacker-controllable prompt surface.</li>
+        </ul>
+
+        <h2>Verdicts</h2>
+        <ul>
+          <li><strong>SAFE</strong> — no blockers under current evidence; not a runtime guarantee.</li>
+          <li><strong>REVIEW</strong> — human confirmation needed before autonomous use.</li>
+          <li><strong>BLOCK</strong> — do not enable until fixed or explicitly accepted.</li>
+          <li><strong>UNKNOWN</strong> — could not be verified statically; not SAFE.</li>
+        </ul>
+
+        <h2>In code review and CI</h2>
+        <p class="prose">Run CallLint when a pull request changes agent-tool configuration. It can fail a job on a blocking verdict and upload SARIF to GitHub Code Scanning so config risk surfaces in review.</p>
+        <pre><code>calllint scan .cursor/mcp.json --ci --no-emoji
+calllint scan .cursor/mcp.json --sarif &gt; calllint.sarif</code></pre>
+
+        <div class="callout">CallLint does not execute the tool, sandbox it, or prove it safe. It makes the permissions visible and evidence-backed before you decide.</div>
+
+        <p class="topic-nav">Related:
+          <a href="/mcp-security">MCP security</a> ·
+          <a href="/agents">Agent integration guide</a> ·
+          <a href="/report-schema.md">Report schema</a>
+        </p>
+      </section>
+    </main>
+    <footer class="site-footer">
+      <div class="footer-brand">
+        <img src="/logo-mark-128.png" width="28" height="28" alt="" />
+        <span>CallLint · evidence-backed verdicts for agent tools</span>
+      </div>
+      <div class="footer-links">
+        <a href="/">Home</a> · <a href="/agents">For agents</a> ·
+        <a href="https://github.com/calllint/calllint">Source</a> ·
+        <a href="/llms.txt">llms.txt</a>
+      </div>
+    </footer>
+  </body>
+</html>

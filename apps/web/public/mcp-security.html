@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>MCP security: review tool permissions before your agent runs them — CallLint</title>
+    <meta name="description" content="MCP servers can expose filesystem, shell, network, prompt, action, money, and supply-chain surface. CallLint is a static pre-run scanner that returns SAFE / REVIEW / BLOCK / UNKNOWN with evidence — without executing the server." />
+    <link rel="icon" href="/favicon.png" type="image/png" />
+    <meta property="og:type" content="article" />
+    <meta property="og:url" content="https://calllint.com/mcp-security" />
+    <meta property="og:title" content="MCP security — CallLint" />
+    <meta property="og:image" content="https://calllint.com/og-image.png" />
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <header class="site-header">
+      <a class="brand-lockup" href="/" aria-label="CallLint home">
+        <img class="brand-mark" src="/logo-mark-128.png" width="40" height="40" alt="" />
+        <span class="brand-name">CallLint</span>
+      </a>
+      <nav class="nav-links" aria-label="Primary">
+        <a href="/#how">How</a>
+        <a href="/agents">For agents</a>
+        <a href="/mcp-security">MCP security</a>
+        <a href="/agent-tool-risk">Agent tool risk</a>
+        <a href="https://github.com/calllint/calllint">GitHub</a>
+      </nav>
+    </header>
+    <main>
+      <section class="section section-narrow topic">
+        <p class="lede">MCP security</p>
+        <h1>Review tool permissions before your agent runs them</h1>
+        <p class="prose">An MCP server is a set of permissions, not just a plugin. A single config can grant filesystem paths, shell commands, network access, prompt-surface instructions, external actions, money movement, and supply-chain reach — all before you have read a line of the server's code.</p>
+        <p class="prose">CallLint is a static pre-run scanner for MCP and agent-tool configs. It reads the configuration only. It does not execute, install, or connect to the server. It returns SAFE, REVIEW, BLOCK, or UNKNOWN with evidence for each finding.</p>
+
+        <h2>Surfaces CallLint looks at</h2>
+        <ul>
+          <li>Filesystem roots and broad path access.</li>
+          <li>Shell / command execution.</li>
+          <li>Network and remote targets.</li>
+          <li>Secrets: environment keys and credential config a tool can reach (CallLint inspects config shape — key names — never secret values).</li>
+          <li>Prompt surface in tool names, descriptions, and schemas.</li>
+          <li>External actions and money movement.</li>
+          <li>Supply chain: unpinned packages, unknown remotes.</li>
+        </ul>
+
+        <h2>When to run it</h2>
+        <ul>
+          <li>Before installing an unfamiliar MCP server.</li>
+          <li>Before committing <code>.cursor/mcp.json</code>.</li>
+          <li>Before enabling a Claude Desktop MCP config.</li>
+          <li>In CI when a PR changes agent-tool configuration.</li>
+        </ul>
+        <pre><code>npx calllint@next scan .cursor/mcp.json</code></pre>
+
+        <h2>What it does not prove</h2>
+        <p class="prose">A SAFE verdict means no blockers were observed under current evidence — not that the server is safe at runtime. UNKNOWN means the surface could not be verified statically; it is not SAFE. CallLint does not sandbox, inspect server source, or replace code review.</p>
+
+        <div class="callout">A clean scan is necessary, not sufficient. Pair CallLint with least-privilege tokens, code review, and runtime controls.</div>
+
+        <p class="topic-nav">Related:
+          <a href="/agent-tool-risk">Agent tool risk</a> ·
+          <a href="/cursor-mcp-security">Cursor MCP security</a> ·
+          <a href="/claude-desktop-mcp-security">Claude Desktop MCP security</a> ·
+          <a href="/agents">Agent integration guide</a> ·
+          <a href="/security-boundaries.md">Security boundaries</a>
+        </p>
+      </section>
+    </main>
+    <footer class="site-footer">
+      <div class="footer-brand">
+        <img src="/logo-mark-128.png" width="28" height="28" alt="" />
+        <span>CallLint · evidence-backed verdicts for agent tools</span>
+      </div>
+      <div class="footer-links">
+        <a href="/">Home</a> · <a href="/agents">For agents</a> ·
+        <a href="https://github.com/calllint/calllint">Source</a> ·
+        <a href="/llms.txt">llms.txt</a>
+      </div>
+    </footer>
+  </body>
+</html>
