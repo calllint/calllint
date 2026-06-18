@@ -112,6 +112,10 @@ calllint explain filesystem
 Output formats: default terminal, `--compact`, `--json` (stable schema),
 `--sarif` (GitHub Code Scanning), `--html` (self-contained report).
 
+See CallLint running in CI on a deliberately risky config —
+[`calllint-demo-risky-mcp`](https://github.com/calllint/calllint-demo-risky-mcp)
+publishes one Code Scanning alert per finding on every push.
+
 ## Example report
 
 ```
