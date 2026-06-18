@@ -10,7 +10,27 @@ onward. While pre-1.0, minor versions may include breaking changes.
 
 ## [Unreleased]
 
-_No unreleased changes._
+### Added
+- **R2.1 corpus** — expanded the calibration corpus to 30 cases, 20 of them
+  real-public or redacted-real snapshots with per-case origin metadata, plus a
+  `corpus:test:r2-final` gate asserting the R2.1 thresholds (≥30 cases, ≥20
+  real/redacted, UNKNOWN ≤ 15%, dangerous false-SAFE = 0).
+- **SARIF dogfood** — [`calllint-demo-risky-mcp`](https://github.com/calllint/calllint-demo-risky-mcp)
+  runs CallLint in GitHub Actions; findings appear in Code Scanning. Linked from
+  the README and the GitHub Actions integration doc.
+- **Website V3** — agent-readable surface (`/llms.txt`, `/agent-instructions.md`,
+  `/report-schema.md`, `/security-boundaries.md`), a "For agents" section, and
+  corpus-status + release-integrity sections.
+- Calibration issue templates and a release-verification doc for the preview
+  feedback loop.
+
+### Fixed
+- `exec` detector no longer treats an inline `-e` value flag (e.g. `docker run
+  -e KEY=val`) as an interpreter inline-eval; precision fix with golden cases.
+
+### Changed
+- `--sarif` exit-code note corrected: it exits 0 on its own (only `--ci` gates),
+  so the example workflow drops the unnecessary `|| true`.
 
 ## [0.3.0-preview.1] — Interactive polish
 
