@@ -69,6 +69,23 @@ describe("engine invariants", () => {
     expect(computeVerdict([], binding)).toBe("UNKNOWN")
   })
 
+  it("unrecognized shape (no url, no command) is UNKNOWN, not SAFE (ADR 0010 / RC-BLK-01)", () => {
+    // The exact dangerous false-SAFE shape: the parser could not resolve a
+    // runtime, so there is no remoteUrl and runtimeExecutable is false. The old
+    // guard (`remoteUrl || runtimeExecutable`) skipped this and fell through to
+    // SAFE. SAFE must require sourceKnown.
+    const binding: RuntimeBinding = {
+      declaredArgs: [],
+      transport: "unknown",
+      runtimeKind: "unknown",
+      isVersionPinned: false,
+      sourceKnown: false,
+      installMayRunScripts: false,
+      runtimeExecutable: false,
+    }
+    expect(computeVerdict([], binding)).toBe("UNKNOWN")
+  })
+
   it("no findings + known pinned source → SAFE", () => {
     const binding: RuntimeBinding = {
       declaredArgs: [],

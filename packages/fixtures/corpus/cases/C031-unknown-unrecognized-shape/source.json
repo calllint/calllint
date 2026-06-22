@@ -1,0 +1,26 @@
+{
+  "schemaVersion": "calllint.corpus.case.v1",
+  "caseId": "C031-unknown-unrecognized-shape",
+  "title": "Unrecognized server shape (nested server.url) is UNKNOWN, never SAFE",
+  "curationStatus": "redacted-real-snapshot",
+  "riskTheme": ["remote", "unknown", "parser-edge"],
+  "origin": {
+    "kind": "public-repository",
+    "description": "Minimised from a real committed .cursor/mcp.json found in a public GitHub repo during the 0.3.0-rc.0 feedback window (RC-B04). The endpoint is nested one level deeper than the recognized shape — mcpServers.<name>.server.url instead of mcpServers.<name>.url — so the parser cannot resolve a runtime. The original host was masked to an example domain; no secrets were present.",
+    "retrievedAt": "2026-06-22T00:00:00.000Z",
+    "redactions": ["internal host → components.example.org"]
+  },
+  "input": { "path": "input/mcp.json", "format": "mcp-json" },
+  "humanExpectation": {
+    "verdict": "UNKNOWN",
+    "rationale": "CallLint could not resolve this server into a recognized runtime (no url or command at the recognized depth), so its source is unverifiable. The honest verdict is UNKNOWN. Returning SAFE here — as the engine did before ADR 0010 — is a dangerous false-SAFE: a config the tool understood the least would have received the safest verdict.",
+    "knownLimitations": [
+      "CallLint does not yet normalize aliased/nested url shapes into a recognized remote. Until it does, such shapes are UNKNOWN rather than a recognized remote with supply.unknown-remote. The safe-direction behaviour (UNKNOWN, never SAFE) is the contract."
+    ]
+  },
+  "executionPolicy": {
+    "executeTarget": false,
+    "allowNetwork": false,
+    "allowFilesystemMutation": false
+  }
+}
