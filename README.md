@@ -193,7 +193,16 @@ CallLint is the developer-CLI brand. A future hosted trust/registry layer may
 carry a separate brand; this CLI stays focused on linting tool-call risk before
 tools run.
 
+## Project
+
+CallLint is the official Apache-2.0 open-source project published at
+[calllint.com](https://calllint.com),
+[github.com/calllint/calllint](https://github.com/calllint/calllint), and npm
+package [`calllint`](https://www.npmjs.com/package/calllint). It is maintainer-led
+— see [GOVERNANCE.md](GOVERNANCE.md) and [CONTRIBUTING.md](CONTRIBUTING.md).
+
 ## License
 
 Apache-2.0 — see [LICENSE](LICENSE) and [NOTICE](NOTICE). The CallLint name and
-logo are not licensed with the code; see [TRADEMARKS.md](TRADEMARKS.md).
+logo are not licensed with the code; see [TRADEMARKS.md](TRADEMARKS.md) and
+[docs/BRAND_GUIDELINES.md](docs/BRAND_GUIDELINES.md).
