@@ -58,7 +58,7 @@
               Never executes the server it judges.
             </p>
             <div class="hero-install" aria-label="Install command">
-<pre><code>npx calllint@preview scan .cursor/mcp.json</code></pre>
+<pre><code>npx calllint scan .cursor/mcp.json</code></pre>
             </div>
             <div class="cta-row">
               <a class="btn btn-primary" href="#install">Get started</a>
@@ -164,7 +164,7 @@
               <span class="scenario-step">1</span>
               <h3>Before installing an MCP server</h3>
               <p>Scan an unfamiliar server's config and see the surface it grants before you add it.</p>
-<pre><code>npx calllint@preview scan .cursor/mcp.json</code></pre>
+<pre><code>npx calllint scan .cursor/mcp.json</code></pre>
             </article>
             <article class="scenario">
               <span class="scenario-step">2</span>
@@ -287,10 +287,10 @@ calllint scan .cursor/mcp.json --sarif &gt; calllint.sarif</code></pre>
         <div class="install-card">
           <h2>Install &amp; scan</h2>
           <p>Point CallLint at your MCP config before your agent loads it. Requires Node.js ≥ 20; the published package is a single self-contained bundle with zero runtime dependencies.</p>
-<pre><code>npx calllint@preview scan .cursor/mcp.json
-npx calllint@preview scan .cursor/mcp.json --ci --no-emoji
-npx calllint@preview scan .cursor/mcp.json --html &gt; report.html</code></pre>
-          <p class="install-note">CallLint is currently in public preview — use the <code>@preview</code> tag until <code>0.3.0</code> is promoted to <code>latest</code>.</p>
+<pre><code>npx calllint scan .cursor/mcp.json
+npx calllint scan .cursor/mcp.json --ci --no-emoji
+npx calllint scan .cursor/mcp.json --html &gt; report.html</code></pre>
+          <p class="install-note">Installs the latest stable <code>calllint</code> from npm (the <code>latest</code> tag). Requires Node.js ≥ 20.</p>
         </div>
       </section>
 
@@ -343,7 +343,7 @@ npx calllint@preview scan .cursor/mcp.json --html &gt; report.html</code></pre>
             <li><strong>GitHub: calllint/calllint</strong><span>source &amp; docs</span></li>
             <li><strong>Trusted Publishing (OIDC)</strong><span>no long-lived npm token</span></li>
             <li><strong>Build provenance</strong><span>SLSA attestation on the preview</span></li>
-            <li><strong>Preview tag</strong><span><code>npx calllint@preview</code></span></li>
+            <li><strong>Install</strong><span><code>npx calllint</code></span></li>
           </ul>
         </div>
       </section>
