@@ -185,7 +185,8 @@ Detail on the entries that matter:
 ### RC-BLK-01 — dangerous false-SAFE on unrecognized runtime shape — 2026-06-22 — **RESOLVED**
 
 - severity: was a **stable blocker** (dangerous false-SAFE; RC_FEEDBACK_PROTOCOL.md
-  "Blockers for stable"). **Resolved 2026-06-22** on branch `fix/rc-blk-01-unknown-runtime`.
+  "Blockers for stable"). **Resolved 2026-06-22**, merged to `main` via PR #36
+  (commit `101890b`) and **published in `0.3.0-rc.1`** to the `next` dist-tag.
 - discovered via: B04 (real non-author config), confirmed with synthetic minimisation
 - synthetic evidence (published `@next`):
   | input | verdict |
@@ -286,15 +287,14 @@ Detail on the entries that matter:
 - **Dangerous false-SAFE: 0** on the fixed build (was 1; B04 + 4 synthetic shapes
   now UNKNOWN; corpus 31 cases report 0).
 - Release integrity (install, --help, JSON, SARIF 2.1.0, CI exit codes, provenance): **all still pass**.
-- Open stable blockers: **0** (RC-BLK-01 closed). *Caveat: the fix currently lives
-  on branch `fix/rc-blk-01-unknown-runtime` and the published `@next` artifact still
-  has the bug — stable promotion requires merging, cutting `0.3.0-rc.1`, and
-  re-confirming on the published artifact.*
+- Open stable blockers: **0** (RC-BLK-01 closed). The fix is **merged to `main`
+  (PR #36, commit `101890b`) and published in `0.3.0-rc.1`** to the `next`
+  dist-tag; B04 + the 4 synthetic shapes + B01–B10 were **re-confirmed on the
+  published `npx calllint@next` = rc.1** (dangerous false-SAFE = 0).
 - R2.2 candidates: B10 (90-server multi-runtime stress, once fully sanitised);
   RC-OBS-02 / B06 (local-command calibration).
-- **Recommendation: a new RC is required before stable.** The dangerous false-SAFE
-  hard blocker is closed and regression-locked locally, but the artifact users
-  currently get (`@next` = `0.3.0-rc.0`) still contains the bug. Promote by:
-  merge the fix → publish `0.3.0-rc.1` to `next` → re-scan B04 + the synthetic
-  cases on the **published** `rc.1` artifact → confirm dangerous false-SAFE = 0 →
-  then run the stable gate. Do **not** ship `0.3.0` directly from `rc.0`.
+- **Recommendation: RC-BLK-01 is closed on the published artifact.** The dangerous
+  false-SAFE hard blocker is resolved, regression-locked, merged, and re-validated
+  on the published `0.3.0-rc.1` (`@next`). Stable `0.3.0 → latest` now depends only
+  on the remaining stable-gate items (dist-tag correction, final RC close-out), not
+  on this blocker.
