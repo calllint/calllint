@@ -53,11 +53,12 @@ Product name: **CallLint** (CLI `calllint`, npm `calllint`, internal scope
 ## Verification status (last run)
 
 - typecheck: clean (tsc strict)
-- tests: **189 passed across 20 files** (unit + E2E against the built binary;
-  package smoke; network mocked — tests never touch the network)
+- tests: **193 passed across 20 files** (unit + E2E against the built binary;
+  package smoke; network mocked — tests never touch the network). +4 since rc.0:
+  the RC-BLK-01 regression locks (see Known issues).
 - build: `apps/cli/dist/index.js` (self-contained esbuild bundle, node shebang)
-- corpus:test: 30 cases (20 real/redacted), 0 contract failures, 0 dangerous
-  false SAFE, UNKNOWN ratio 10%; `corpus:test:r2-final` thresholds met
+- corpus:test: **31 cases** (21 real/redacted), 0 contract failures, 0 dangerous
+  false SAFE, UNKNOWN ratio 12.9%; `corpus:test:r2-final` thresholds met
 - pack:smoke: real npm tarball, empty runtime deps, no `workspace:*`; isolated
   global install runs `calllint --help` / `scan` / `--json` / `--ci` (exit 30
   on BLOCK)
@@ -84,6 +85,14 @@ Product name: **CallLint** (CLI `calllint`, npm `calllint`, internal scope
 
 ## Known issues
 
+- **RC-BLK-01 (found in the rc.0 window, fixed on a branch):** scanning real
+  third-party configs surfaced a dangerous false-SAFE — an unrecognized server
+  shape (nested `server.url`, empty/wrong-schema config) resolved to SAFE instead
+  of UNKNOWN. Fixed and regression-locked on `fix/rc-blk-01-unknown-runtime`
+  ([ADR 0010](docs/adr/0010-unknown-runtime-fails-to-unknown.md); golden + corpus
+  C031). **The published `@next` (`0.3.0-rc.0`) still has the bug** — a
+  `0.3.0-rc.1` must be cut and re-validated on the published artifact before
+  stable. See [docs/RC_FEEDBACK_LOG.md](docs/RC_FEEDBACK_LOG.md).
 - **npm dist-tag drift:** `latest` currently points at `0.3.0-preview.0` (the
   first preview, published before the release workflow derived dist-tags from
   the version). `preview` correctly points at `0.3.0-preview.1`. A preview

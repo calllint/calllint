@@ -1,0 +1,13 @@
+{
+  "schemaVersion": "calllint.corpus.expected.v1",
+  "expectedVerdict": "UNKNOWN",
+  "allowExtraFindings": true,
+  "requiredFindingIds": [],
+  "forbiddenFindingIds": ["exec.dangerous-command", "action.financial-observed"],
+  "requirements": {
+    "mustHaveEvidenceForEveryFinding": true,
+    "mustHaveFalsePositiveNoteForReviewOrBlock": false,
+    "mustHaveRemediationForReviewOrBlock": false
+  },
+  "dangerousFalseSafePolicy": { "thisCaseMustNeverBeSafe": true }
+}
