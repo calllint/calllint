@@ -1,0 +1,127 @@
+{
+  "schemaVersion": "calllint.report.v0",
+  "reportKind": "config-summary",
+  "configPath": "examples/agent/unknown-mcp.json",
+  "verdict": "UNKNOWN",
+  "publicVerdictLabel": "Insufficient evidence",
+  "counts": {
+    "SAFE": 0,
+    "REVIEW": 0,
+    "BLOCK": 0,
+    "UNKNOWN": 1
+  },
+  "reports": [
+    {
+      "schemaVersion": "calllint.report.v0",
+      "reportKind": "single-target",
+      "target": {
+        "name": "custom-remote",
+        "kind": "cursor-mcp-config",
+        "source": "https://mcp.unknown-vendor-example.dev/sse",
+        "configPath": "examples/agent/unknown-mcp.json"
+      },
+      "verdict": "UNKNOWN",
+      "publicVerdictLabel": "Insufficient evidence",
+      "policyApplied": false,
+      "riskClass": "S1",
+      "symbols": [
+        "NETWORK"
+      ],
+      "confidence": "high",
+      "reproducibility": {
+        "level": "MEDIUM",
+        "reasons": [
+          "Remote endpoint could not be verified"
+        ]
+      },
+      "summary": "\"custom-remote\" could not be verified (insufficient evidence). Risk: Network (S1 Read-only utility).",
+      "observed": [
+        {
+          "id": "supply.unknown-remote",
+          "title": "Remote server source cannot be verified",
+          "severity": "high",
+          "blocker": false,
+          "symbol": "NETWORK",
+          "riskClass": "S1",
+          "mode": "OBSERVED",
+          "confidence": "high",
+          "detectionMethod": "runtime-binding",
+          "evidence": [
+            {
+              "type": "runtime-binding",
+              "path": "examples/agent/unknown-mcp.json",
+              "key": "url",
+              "value": "https://mcp.unknown-vendor-example.dev/sse"
+            }
+          ],
+          "impact": "The server runs on an unverified remote endpoint. Its tools, permissions, and behavior cannot be inspected statically and may change at any time.",
+          "fix": "Use a verified first-party endpoint, or run the server from a pinned, inspectable package.",
+          "falsePositiveNote": "A trusted internal endpoint may be fine; add it to the policy allowlist to verify it."
+        }
+      ],
+      "inferred": [],
+      "findings": [
+        {
+          "id": "supply.unknown-remote",
+          "title": "Remote server source cannot be verified",
+          "severity": "high",
+          "blocker": false,
+          "symbol": "NETWORK",
+          "riskClass": "S1",
+          "mode": "OBSERVED",
+          "confidence": "high",
+          "detectionMethod": "runtime-binding",
+          "evidence": [
+            {
+              "type": "runtime-binding",
+              "path": "examples/agent/unknown-mcp.json",
+              "key": "url",
+              "value": "https://mcp.unknown-vendor-example.dev/sse"
+            }
+          ],
+          "impact": "The server runs on an unverified remote endpoint. Its tools, permissions, and behavior cannot be inspected statically and may change at any time.",
+          "fix": "Use a verified first-party endpoint, or run the server from a pinned, inspectable package.",
+          "falsePositiveNote": "A trusted internal endpoint may be fine; add it to the policy allowlist to verify it."
+        }
+      ],
+      "topFindings": [
+        {
+          "id": "supply.unknown-remote",
+          "title": "Remote server source cannot be verified",
+          "severity": "high",
+          "blocker": false,
+          "symbol": "NETWORK",
+          "riskClass": "S1",
+          "mode": "OBSERVED",
+          "confidence": "high",
+          "detectionMethod": "runtime-binding",
+          "evidence": [
+            {
+              "type": "runtime-binding",
+              "path": "examples/agent/unknown-mcp.json",
+              "key": "url",
+              "value": "https://mcp.unknown-vendor-example.dev/sse"
+            }
+          ],
+          "impact": "The server runs on an unverified remote endpoint. Its tools, permissions, and behavior cannot be inspected statically and may change at any time.",
+          "fix": "Use a verified first-party endpoint, or run the server from a pinned, inspectable package.",
+          "falsePositiveNote": "A trusted internal endpoint may be fine; add it to the policy allowlist to verify it."
+        }
+      ],
+      "policy": {
+        "autonomousUse": "deny",
+        "manualApproval": "required",
+        "sandbox": "required"
+      },
+      "fingerprints": {
+        "configHash": "sha256:9106d72d365256d2933135003088cccb45af181ee59e494ceee7d540b1bce199",
+        "targetSpecHash": "sha256:116616e6ed1ef93d570e7d93e79f88609e8325e49c6c1f864c1fafef7c2c4e65",
+        "riskSurfaceHash": "sha256:47e9d20255a346b95323c2cb9e092621521638b987bbcd036e68e4aee12dcaf3"
+      },
+      "diagnostics": [],
+      "generatedAt": "2026-01-01T00:00:00.000Z"
+    }
+  ],
+  "diagnostics": [],
+  "generatedAt": "2026-01-01T00:00:00.000Z"
+}

@@ -45,3 +45,15 @@ reported in the `schemaVersion` field. The schema is stable within the v0 line.
   statically. It is not `SAFE`.
 - `--sarif` (SARIF 2.1.0 for GitHub Code Scanning) and `--html` carry the same
   findings in different formats.
+
+## Planned fields (not in `calllint.report.v0` today)
+
+These are roadmap items (R3 diagnostics / R4 report enrichment), **not** present
+in the current schema. Do not parse or quote them as if they exist:
+
+- `agentSummary` — a quotable, pre-composed summary block for coding agents.
+- `trustIndicators` — explicit `decisionPath`, `llmInVerdictPath`,
+  `targetExecution`, `networkRequired` flags.
+
+Until they ship in a versioned schema, derive trust context from the documented
+v0 fields above and from the security boundaries page.

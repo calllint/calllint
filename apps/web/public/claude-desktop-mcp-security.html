@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Claude Desktop MCP security: review claude_desktop_config.json — CallLint</title>
+    <meta name="description" content="Review claude_desktop_config.json with CallLint before running MCP servers in Claude Desktop. It reads the config only, never executes the server, and returns SAFE / REVIEW / BLOCK / UNKNOWN with evidence." />
+    <link rel="icon" href="/favicon.png" type="image/png" />
+    <meta property="og:type" content="article" />
+    <meta property="og:url" content="https://calllint.com/claude-desktop-mcp-security" />
+    <meta property="og:title" content="Claude Desktop MCP security — CallLint" />
+    <meta property="og:image" content="https://calllint.com/og-image.png" />
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <header class="site-header">
+      <a class="brand-lockup" href="/" aria-label="CallLint home">
+        <img class="brand-mark" src="/logo-mark-128.png" width="40" height="40" alt="" />
+        <span class="brand-name">CallLint</span>
+      </a>
+      <nav class="nav-links" aria-label="Primary">
+        <a href="/#how">How</a>
+        <a href="/agents">For agents</a>
+        <a href="/mcp-security">MCP security</a>
+        <a href="/agent-tool-risk">Agent tool risk</a>
+        <a href="https://github.com/calllint/calllint">GitHub</a>
+      </nav>
+    </header>
+    <main>
+      <section class="section section-narrow topic">
+        <p class="lede">Claude Desktop MCP security</p>
+        <h1>Review claude_desktop_config.json before running servers</h1>
+        <p class="prose">Claude Desktop declares its MCP servers in <code>claude_desktop_config.json</code> (the location varies by operating system — for example, an app support directory on macOS or an app data directory on Windows). CallLint reads that config before the servers run.</p>
+        <pre><code>npx calllint@next scan claude_desktop_config.json</code></pre>
+
+        <h2>What CallLint reviews</h2>
+        <ul>
+          <li>Filesystem roots and broad path access.</li>
+          <li>Shell / command execution and remote targets.</li>
+          <li>Prompt surface in tool metadata.</li>
+          <li>Money, action, and supply-chain surfaces.</li>
+        </ul>
+
+        <h2>Config review, not execution</h2>
+        <p class="prose">CallLint does not launch the servers Claude Desktop would run. It inspects config shape — commands, args, and key names — and never reads secret values.</p>
+
+        <h2>Verdicts</h2>
+        <p class="prose">SAFE means no blockers under current evidence; it is not a runtime guarantee. REVIEW and BLOCK include evidence and a fix. UNKNOWN is not SAFE — review it before enabling autonomous use.</p>
+
+        <div class="callout">CallLint is a pre-1.0 release candidate offering heuristic decision support, not a safety guarantee.</div>
+
+        <p class="topic-nav">Related:
+          <a href="/mcp-security">MCP security</a> ·
+          <a href="/cursor-mcp-security">Cursor MCP security</a> ·
+          <a href="/agents">Agent integration guide</a>
+        </p>
+      </section>
+    </main>
+    <footer class="site-footer">
+      <div class="footer-brand">
+        <img src="/logo-mark-128.png" width="28" height="28" alt="" />
+        <span>CallLint · evidence-backed verdicts for agent tools</span>
+      </div>
+      <div class="footer-links">
+        <a href="/">Home</a> · <a href="/agents">For agents</a> ·
+        <a href="https://github.com/calllint/calllint">Source</a> ·
+        <a href="/llms.txt">llms.txt</a>
+      </div>
+    </footer>
+  </body>
+</html>
