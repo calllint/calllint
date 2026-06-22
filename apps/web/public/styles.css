@@ -860,4 +860,79 @@ pre {
   border-top: 1px solid var(--line);
   font-size: 0.92rem;
   color: var(--muted);
+/* ---- V4: input→verdict demo + scenarios ---- */
+.demo-split {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  align-items: start;
+}
+.demo-col {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+}
+.demo-label {
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.demo-col pre {
+  font-size: 0.8rem;
+  line-height: 1.5;
+  height: 100%;
+}
+/* JSON syntax tokens (left column) */
+.t-key { color: #e7ecf3; }
+.t-str { color: #9ece6a; }
+
+.scenario-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+}
+.scenario {
+  position: relative;
+  background: var(--bg);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 22px 20px 18px;
+  display: flex;
+  flex-direction: column;
+}
+.scenario-step {
+  display: inline-grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 999px;
+  background: var(--brand-soft);
+  color: var(--brand);
+  font-size: 0.82rem;
+  font-weight: 700;
+  margin-bottom: 12px;
+}
+.scenario h3 {
+  margin: 0 0 8px;
+  font-size: 1rem;
+}
+.scenario p {
+  margin: 0 0 14px;
+  font-size: 0.9rem;
+  color: var(--muted);
+  flex: 1;
+}
+.scenario pre {
+  font-size: 0.78rem;
+  line-height: 1.5;
+}
+
+@media (max-width: 860px) {
+  .demo-split,
+  .scenario-grid {
+    grid-template-columns: 1fr;
+  }
 }
