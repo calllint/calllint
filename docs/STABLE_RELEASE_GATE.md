@@ -7,15 +7,17 @@ and post-publish verification in [RELEASE_VERIFICATION.md](./RELEASE_VERIFICATIO
 
 Do not promote to `latest` on feel. Every box must be checked.
 
-> **Status 2026-06-22: BLOCKED — fix on branch, awaiting a new RC.** The
-> `0.3.0-rc.0` feedback window found a dangerous false-SAFE (RC-BLK-01 in
-> [RC_FEEDBACK_LOG.md](./RC_FEEDBACK_LOG.md)): unrecognized server shapes resolved
-> to SAFE instead of UNKNOWN. It is now **resolved + regression-locked** on branch
-> `fix/rc-blk-01-unknown-runtime` ([ADR 0010](./adr/0010-unknown-runtime-fails-to-unknown.md),
-> Accepted; golden + corpus C031). **But the published `@next` artifact still has
-> the bug**, so stable is blocked until the fix is merged, a `0.3.0-rc.1` is
-> published, and B04 + the synthetic shapes are re-confirmed UNKNOWN on the
-> *published* `rc.1`. Do not ship `0.3.0` directly from `rc.0`.
+> **Status 2026-06-22: RC-BLK-01 closed; rc.1 published; stable still gated on the
+> dist-tag step.** The `0.3.0-rc.0` window found a dangerous false-SAFE (RC-BLK-01
+> in [RC_FEEDBACK_LOG.md](./RC_FEEDBACK_LOG.md)): unrecognized/empty server shapes
+> resolved to SAFE instead of UNKNOWN. It is **resolved + regression-locked**
+> ([ADR 0010](./adr/0010-unknown-runtime-fails-to-unknown.md), Accepted; golden +
+> corpus C031), **merged to `main` (PR #36), published as `0.3.0-rc.1` to the
+> `next` dist-tag, and re-confirmed on the published artifact** (B04 + 4 synthetic
+> shapes + B01–B10 all correct on `npx calllint@next` = rc.1; dangerous
+> false-SAFE = 0). The dangerous-false-SAFE blocker is **closed**. Remaining before
+> `latest`: the dist-tag plan box below (point `latest` at `0.3.0`, resolve the
+> preview.0 drift) and a final RC-window close-out.
 
 ## Evidence & calibration
 

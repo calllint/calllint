@@ -5,21 +5,24 @@ window. Process, redaction rules, classification, and the stable-blocking
 criteria live in [RC_FEEDBACK_PROTOCOL.md](./RC_FEEDBACK_PROTOCOL.md). This file
 is only the log.
 
-Install under test: `npx calllint@next` (currently `0.3.0-rc.0`).
+Install under test: `npx calllint@next` (now `0.3.0-rc.1`, published 2026-06-22).
 
 ## Window status
 
-- RC version: `0.3.0-rc.0` (published to the `next` dist-tag, signed provenance)
+- RC version: **`0.3.0-rc.1`** (published to the `next` dist-tag, signed
+  provenance via OIDC Trusted Publishing). Supersedes `0.3.0-rc.0`, which carried
+  the RC-BLK-01 bug.
 - Target coverage: 5–10 real / semi-real MCP configs · 3–5 CI / SARIF runs ·
   ≥ 1 non-author input
 - Coverage so far: **11** real-public non-author configs (RC-A02 + B01–B10) +
   30-golden artifact parity + SARIF/CI paths validated; **real-config coverage
   target met** (≥1 non-author input satisfied many times over).
-- Open stable blockers: **0** — RC-BLK-01 (dangerous false-SAFE) was found here and
-  is **resolved + regression-locked** on branch `fix/rc-blk-01-unknown-runtime`.
-  The published `@next` (`0.3.0-rc.0`) still contains the bug, so a new
-  `0.3.0-rc.1` must be cut and re-validated before stable.
-- Unresolved dangerous false-SAFE: **0** (on the fixed build; corpus reports 0).
+- Open stable blockers: **0** — RC-BLK-01 (dangerous false-SAFE) was found in the
+  rc.0 window and is **resolved, regression-locked, merged to `main`, and
+  re-validated on the published `0.3.0-rc.1` artifact** (B04 + 4 synthetic shapes
+  + B01–B10 all correct on `npx calllint@next` = rc.1; dangerous false-SAFE = 0).
+- Unresolved dangerous false-SAFE: **0** (on the published rc.1 artifact and in the
+  corpus).
 
 Promote to stable only when target coverage is met, every blocker is closed, and
 the [stable gate](./STABLE_RELEASE_GATE.md) is fully checked.
