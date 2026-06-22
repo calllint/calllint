@@ -54,8 +54,14 @@ tests and ADRs.
 - The published artifact is verified by `pnpm pack:smoke`: it asserts the
   tarball manifest, checks for no `workspace:*` leakage, and runs the binary
   from an isolated install.
-- CI runs with a least-privilege, read-only token and never publishes from a
-  workflow.
+- Releases use **npm Trusted Publishing through GitHub OIDC** — no long-lived
+  `NPM_TOKEN` is stored. The release workflow is permission-scoped
+  (`id-token: write` only), publishes solely from a tagged GitHub Release event,
+  and attaches build provenance (SLSA attestation). See
+  [ADR 0007](docs/adr/0007-cli-distribution-strategy.md) and
+  [`.github/workflows/release.yml`](.github/workflows/release.yml).
+- The continuous-integration workflow (push / PR) runs the full gate with a
+  read-only token and never publishes.
 
 ## Reporting a vulnerability
 
