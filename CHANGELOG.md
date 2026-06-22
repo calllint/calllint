@@ -10,6 +10,33 @@ onward. While pre-1.0, minor versions may include breaking changes.
 
 ## [Unreleased]
 
+## [0.3.0] — First stable release
+
+First stable release of CallLint, published to the `latest` dist-tag. **No
+scanner-semantics change since `0.3.0-rc.1`**: the engine, detectors, verdict
+rules, golden expectations, and exit codes are byte-identical — this release
+promotes the validated rc.1 to stable and corrects the dist-tag drift. "Stable"
+means the **CLI contract, verdict semantics, report schema v0, release chain, and
+CI integration are stable** — not that any scanned tool is proven safe (CallLint
+is a static, offline, heuristic pre-flight scanner; see `SECURITY.md` /
+`LIMITATIONS.md`).
+
+### Changed
+- Promoted to the `latest` dist-tag and corrected the known dist-tag drift:
+  `latest` now points at `0.3.0` (it had pointed at `0.3.0-preview.0`, published
+  before the release workflow derived dist-tags from the version). See
+  [RELEASE_VERIFICATION.md](docs/RELEASE_VERIFICATION.md) §1.
+- Documented install path moves from `npx calllint@preview` to `npx calllint`
+  (the `latest` tag now serves stable).
+
+### Included since the preview line (no behaviour change at promotion)
+- **RC-BLK-01 fix** (shipped in `0.3.0-rc.1`): unrecognized or empty MCP server
+  shapes resolve to `UNKNOWN`, never a dangerous false-`SAFE`
+  ([ADR 0010](docs/adr/0010-unknown-runtime-fails-to-unknown.md); golden +
+  corpus `C031`).
+- R2.1 corpus (31 cases, 21 real/redacted), SARIF dogfood, website V3, Trusted
+  Publishing with provenance.
+
 ## [0.3.0-rc.1] — Stable candidate (RC-BLK-01 fix)
 
 Second release candidate. Fixes a **dangerous false-SAFE** found during the
