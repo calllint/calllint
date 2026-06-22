@@ -7,13 +7,25 @@ and post-publish verification in [RELEASE_VERIFICATION.md](./RELEASE_VERIFICATIO
 
 Do not promote to `latest` on feel. Every box must be checked.
 
+> **Status 2026-06-22: BLOCKED — fix on branch, awaiting a new RC.** The
+> `0.3.0-rc.0` feedback window found a dangerous false-SAFE (RC-BLK-01 in
+> [RC_FEEDBACK_LOG.md](./RC_FEEDBACK_LOG.md)): unrecognized server shapes resolved
+> to SAFE instead of UNKNOWN. It is now **resolved + regression-locked** on branch
+> `fix/rc-blk-01-unknown-runtime` ([ADR 0010](./adr/0010-unknown-runtime-fails-to-unknown.md),
+> Accepted; golden + corpus C031). **But the published `@next` artifact still has
+> the bug**, so stable is blocked until the fix is merged, a `0.3.0-rc.1` is
+> published, and B04 + the synthetic shapes are re-confirmed UNKNOWN on the
+> *published* `rc.1`. Do not ship `0.3.0` directly from `rc.0`.
+
 ## Evidence & calibration
 
 - [x] R2.1 corpus ≥ 30 cases. *(30 cases)*
 - [x] ≥ 20 cases are `redacted-real-snapshot` or `real-public-snapshot` (each
       with origin metadata). *(20: 19 real-public + 1 redacted)*
 - [x] `corpus:test` (and `corpus:test:r2-final`) pass.
-- [x] Dangerous false-SAFE = 0.
+- [x] Dangerous false-SAFE = 0. *(0 on the fixed build — branch
+      `fix/rc-blk-01-unknown-runtime`; corpus 31 cases report 0. Re-confirm on the
+      published `0.3.0-rc.1` before checking this for stable.)*
 - [x] UNKNOWN ratio ≤ 15%. *(10.0%)*
 - [x] Every REVIEW/BLOCK finding has evidence, a false-positive note, and
       remediation.
@@ -39,7 +51,9 @@ Do not promote to `latest` on feel. Every box must be checked.
 - [x] Exit-code contract verified end-to-end in CI (BLOCK exits 30 under the
       `--ci` gate; report mode uploads SARIF + HTML regardless).
 - [x] At least a handful of external/real configs scanned with no dangerous
-      false-SAFE. *(20 real/redacted corpus snapshots, 0 dangerous false-SAFE)*
+      false-SAFE. *(20 real/redacted corpus snapshots + 11 RC non-author configs;
+      the one dangerous false-SAFE found — RC-BLK-01/B04 — is fixed and
+      regression-locked. Re-confirm on the published `0.3.0-rc.1`.)*
 
 ## Trust narrative
 
