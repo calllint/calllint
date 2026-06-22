@@ -58,9 +58,10 @@ the drift is corrected.
 ## [0.3.0-preview.0] — First public preview
 
 First public preview of CallLint on npm. Static configuration scanner only; does
-not execute MCP servers and does not prove runtime safety. Published to the
-`preview` dist-tag (a known dist-tag drift left `latest` on this version; see
-PROJECT_STATUS "Known issues").
+not execute MCP servers and does not prove runtime safety. Published before the
+release workflow derived dist-tags from the version, so it landed on the default
+`latest` tag — the dist-tag drift tracked in PROJECT_STATUS "Known issues",
+corrected at the first stable release.
 
 ### Added
 - Public npm preview release (`calllint@0.3.0-preview.0`), installable via

@@ -1,7 +1,7 @@
 # CallLint Project Status
 
-Current phase: **v0.3.0-rc.0 — stable candidate** (preparing on `main`; not yet
-tagged or published)
+Current phase: **v0.3.0-rc.0 — stable candidate** (tagged and published to the
+`next` dist-tag; RC feedback window open before stable `0.3.0`)
 
 CallLint is a deterministic, offline-first CLI for pre-run risk linting of MCP
 and agent-tool configurations. It returns SAFE / REVIEW / BLOCK / UNKNOWN with
@@ -15,10 +15,11 @@ Product name: **CallLint** (CLI `calllint`, npm `calllint`, internal scope
 ## Public artifacts
 
 - Website: https://calllint.com (Cloudflare Pages, auto-deployed from `main`)
-- npm package: `calllint@0.3.0-preview.1` (published; preview dist-tag).
-  `0.3.0-rc.0` is prepared in-repo and ships to the `next` dist-tag when tagged.
+- npm package: published to three dist-tags — `next: 0.3.0-rc.0` (current
+  release candidate), `preview: 0.3.0-preview.1`, `latest: 0.3.0-preview.0`
+  (drifted; corrected at stable — see Known issues).
 - GitHub repository: `calllint/calllint`
-- Install / run: `npx calllint scan .cursor/mcp.json`
+- Install / run (preview tag while pre-stable): `npx calllint@preview scan .cursor/mcp.json`
 
 ## Completed
 

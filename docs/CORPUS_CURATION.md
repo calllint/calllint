@@ -77,10 +77,11 @@ pnpm corpus:test:r2-final              # also enforce R2.1 size/mix thresholds
 pnpm corpus:test -- --summary-json corpus-summary.json   # machine summary
 ```
 
-`corpus:test:r2-final` is expected to FAIL today — the seed corpus is 10
-synthetic cases. It passes only once curation reaches the thresholds above. The
-machine summary feeds [R2_CALIBRATION.md](./R2_CALIBRATION.md) regeneration and
-CI artifacts.
+`corpus:test:r2-final` enforces the R2.1 size/mix thresholds on top of the
+contract gate. It passes today: the corpus has reached 30 cases with 20
+real/redacted snapshots. (It fails fast if curation ever regresses below the
+thresholds.) The machine summary feeds [R2_CALIBRATION.md](./R2_CALIBRATION.md)
+regeneration and CI artifacts.
 
 ## Sourcing real cases responsibly
 
