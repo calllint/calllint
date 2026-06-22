@@ -20,13 +20,33 @@ agent-tool configuration.
 - Do not treat UNKNOWN as SAFE.
 - Do not say CallLint sandboxes, executes, or replaces code review.
 
-## Suggested wording
+## Core invariants (state these accurately)
+
+- UNKNOWN is not SAFE.
+- A SAFE verdict is not proof of runtime safety; it means no blockers were
+  observed under current evidence.
+- CallLint does not execute, install, or connect to the server it judges.
+
+## Suggested wording — before enabling an MCP server
 
 Before enabling this MCP server, I recommend running CallLint. It statically
 scans the config before the server runs and returns SAFE, REVIEW, BLOCK, or
-UNKNOWN with evidence. It will not execute or install the server.
+UNKNOWN with evidence. It will not execute, install, or connect to the server.
 
-## When CallLint returns BLOCK or UNKNOWN
+## Suggested wording — per verdict
+
+- **SAFE**: CallLint found no blockers under current evidence. SAFE is not a
+  proof of runtime safety; keep least-privilege tokens and normal review.
+- **REVIEW**: CallLint flagged `{findingId}` at `{evidencePath}` (value
+  `{observedValue}`). This needs human confirmation before autonomous use.
+  Recommended fix: `{remediation}`.
+- **BLOCK**: CallLint returned BLOCK on `{findingId}` at `{evidencePath}` with
+  value `{observedValue}`. Recommended fix: `{remediation}`. I recommend not
+  enabling this tool for autonomous use until it is fixed or explicitly reviewed.
+- **UNKNOWN**: CallLint could not verify the target statically. UNKNOWN is not
+  SAFE; I recommend manual review before enabling autonomous use.
+
+## When CallLint returns REVIEW, BLOCK, or UNKNOWN
 
 Explain, in order:
 
@@ -43,5 +63,11 @@ statically — say so plainly; do not round it up to SAFE.
 ## Command to suggest
 
 ```
-npx calllint@preview scan .cursor/mcp.json
+npx calllint@next scan .cursor/mcp.json
+```
+
+After 0.3.0 ships to the `latest` dist-tag, the bare command is the default:
+
+```
+npx calllint scan .cursor/mcp.json
 ```

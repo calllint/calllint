@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Cursor MCP security: scan .cursor/mcp.json before enabling tools — CallLint</title>
+    <meta name="description" content="Scan .cursor/mcp.json with CallLint before enabling MCP tools in Cursor. It reads the config only — it does not run the server — and flags broad filesystem, shell, remote, prompt, money, action, and supply-chain surfaces." />
+    <link rel="icon" href="/favicon.png" type="image/png" />
+    <meta property="og:type" content="article" />
+    <meta property="og:url" content="https://calllint.com/cursor-mcp-security" />
+    <meta property="og:title" content="Cursor MCP security — CallLint" />
+    <meta property="og:image" content="https://calllint.com/og-image.png" />
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <header class="site-header">
+      <a class="brand-lockup" href="/" aria-label="CallLint home">
+        <img class="brand-mark" src="/logo-mark-128.png" width="40" height="40" alt="" />
+        <span class="brand-name">CallLint</span>
+      </a>
+      <nav class="nav-links" aria-label="Primary">
+        <a href="/#how">How</a>
+        <a href="/agents">For agents</a>
+        <a href="/mcp-security">MCP security</a>
+        <a href="/agent-tool-risk">Agent tool risk</a>
+        <a href="https://github.com/calllint/calllint">GitHub</a>
+      </nav>
+    </header>
+    <main>
+      <section class="section section-narrow topic">
+        <p class="lede">Cursor MCP security</p>
+        <h1>Scan .cursor/mcp.json before enabling tools</h1>
+        <p class="prose">When you add an MCP server to Cursor, its permissions are declared in <code>.cursor/mcp.json</code>. CallLint reads that file before the server runs and tells you what the tool can reach — without executing it.</p>
+        <pre><code>npx calllint@next scan .cursor/mcp.json</code></pre>
+
+        <h2>What CallLint checks</h2>
+        <ul>
+          <li>Broad filesystem roots passed to a server's args.</li>
+          <li>Shell / command execution.</li>
+          <li>Remote and network targets.</li>
+          <li>Prompt surface in tool names, descriptions, and schemas.</li>
+          <li>Money, action, and supply-chain surfaces.</li>
+        </ul>
+
+        <h2>It does not run the server</h2>
+        <p class="prose">CallLint only reads the config. It does not execute, install, or connect to the server, and it never reads secret values — it inspects config shape (key names), not your <code>.env</code>.</p>
+
+        <h2>Reading the verdict</h2>
+        <p class="prose">SAFE means no blockers under current evidence (not a runtime guarantee). REVIEW and BLOCK come with a finding id, evidence path, observed value, and remediation. UNKNOWN is not SAFE — review it manually.</p>
+
+        <div class="callout">A clean scan is necessary, not sufficient. Keep least-privilege tokens and code review in the loop.</div>
+
+        <p class="topic-nav">Related:
+          <a href="/mcp-security">MCP security</a> ·
+          <a href="/claude-desktop-mcp-security">Claude Desktop MCP security</a> ·
+          <a href="/agents">Agent integration guide</a>
+        </p>
+      </section>
+    </main>
+    <footer class="site-footer">
+      <div class="footer-brand">
+        <img src="/logo-mark-128.png" width="28" height="28" alt="" />
+        <span>CallLint · evidence-backed verdicts for agent tools</span>
+      </div>
+      <div class="footer-links">
+        <a href="/">Home</a> · <a href="/agents">For agents</a> ·
+        <a href="https://github.com/calllint/calllint">Source</a> ·
+        <a href="/llms.txt">llms.txt</a>
+      </div>
+    </footer>
+  </body>
+</html>
