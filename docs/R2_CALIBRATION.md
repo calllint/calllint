@@ -19,7 +19,7 @@ contract.
 | Real / redacted cases | 20 |
 | Contract failures | 0 |
 | Dangerous false-SAFE | 0 |
-| UNKNOWN ratio | 10.0% (target < 15%) |
+| UNKNOWN ratio | 10.0% (target ≤ 15%) |
 
 All contracts hold. No dangerous case reports SAFE. Real snapshots are drawn
 from five official upstreams — `modelcontextprotocol/servers`,

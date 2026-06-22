@@ -59,22 +59,27 @@ The corpus pins the most consequential distinction in the engine:
 
 C008 and C009 are a matched pair so this boundary can never silently collapse.
 
-## Curation status and R2 acceptance
+## Curation status and R2.1 acceptance
 
-Every current case is a `synthetic-contract-seed`: a hand-authored, realistic config
-that provably exercises one detector. This is sufficient for **R2.0 (structure + gate)**.
+**R2.1 is shipped.** The corpus currently contains:
 
-**R2.1 / R2 final acceptance** additionally requires real-world coverage:
-- redacted snapshots of real configurations (`redacted-real-snapshot`), and/or
-- snapshots of public configurations with license + commit provenance (`real-public-snapshot`).
+- 30 calibrated cases
+- 20 real-public or redacted-real snapshots, each with per-case `origin`
+  metadata (url, commit, license, retrievedAt, redactions)
+- dangerous false-SAFE = 0
+- UNKNOWN ratio = 10% (target ≤ 15%)
+- `pnpm corpus:test:r2-final` passing
 
-Each must fill in `origin` (url, commit, license, retrievedAt, redactions) in
-`source.json`. The synthetic seeds remain as the deterministic anchor set.
+The 10 `synthetic-contract-seed` cases remain as deterministic detector anchors;
+the 20 `real-public-snapshot` / `redacted-real-snapshot` cases provide broader
+ecosystem coverage. The corpus still does **not** represent the full MCP
+ecosystem — see [R2_CALIBRATION.md](./R2_CALIBRATION.md) for the per-case results
+and provenance, and R2.2 (PROJECT_STATUS.md) for continued expansion.
 
 The mechanics — how to add a case, redact responsibly, and check composition —
 are in [CORPUS_CURATION.md](./CORPUS_CURATION.md). The R2.1 thresholds (≥ 30
-cases, ≥ 20 real/redacted, UNKNOWN ≤ 15%) are enforced by
-`pnpm corpus:test:r2-final`, which is expected to fail until curation is done.
+cases, ≥ 20 real/redacted, UNKNOWN ≤ 15%, dangerous false-SAFE = 0) are enforced
+by `pnpm corpus:test:r2-final`.
 
 ## Offline & no-execution, by construction
 

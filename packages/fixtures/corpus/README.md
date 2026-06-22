@@ -48,9 +48,12 @@ Only **stable safety fields** are compared — never human-readable report text:
 
 ## Curation status
 
-Every seed case is `synthetic-contract-seed`. R2 final acceptance additionally
-requires redacted/real public snapshots (`redacted-real-snapshot`,
-`real-public-snapshot`) with origin metadata — see [docs/CORPUS.md](../../../docs/CORPUS.md).
+**R2.1 is shipped: 30 cases, 20 of them real.** The mix is 10
+`synthetic-contract-seed` (deterministic detector anchors) + 19
+`real-public-snapshot` + 1 `redacted-real-snapshot`, every real case carrying
+`origin` metadata (url, commit, license). The R2.1 thresholds (≥ 30 cases, ≥ 20
+real/redacted, UNKNOWN ≤ 15%, dangerous false-SAFE = 0) are enforced by
+`pnpm corpus:test:r2-final` — see [docs/CORPUS.md](../../../docs/CORPUS.md).
 
 ## Running
 
