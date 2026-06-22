@@ -22,8 +22,8 @@ It never executes, installs, or connects to the servers it judges.
 
 An agent's power is the union of its tools' permissions. A single MCP server can
 add filesystem write, shell execution, network egress, or model-directed
-instructions to an autonomous agent — usually described only by attacker-
-controllable metadata. CallLint inspects that surface statically and tells you,
+instructions to an autonomous agent — usually described only by untrusted,
+tool-provided metadata. CallLint inspects that surface statically and tells you,
 with evidence, what you would be granting **before** you grant it.
 
 - **Deterministic** — same input, same verdict. No model in the decision path.
@@ -77,13 +77,16 @@ it says so and never silently upgrades `UNKNOWN` to `SAFE`.
 ## Install
 
 ```bash
-npm install -g calllint
-# or run without installing:
-npx calllint scan ./mcp.json
+# run without installing (recommended while in preview):
+npx calllint@preview scan ./mcp.json
+
+# or install globally:
+npm install -g calllint@preview
 ```
 
 Requires Node.js ≥ 20. The published package is a single self-contained bundle
-with zero runtime dependencies.
+with zero runtime dependencies. CallLint is currently in public preview — use
+the `@preview` tag until `0.3.0` is promoted to the `latest` dist-tag.
 
 ## Quick start
 
@@ -189,9 +192,9 @@ start of a review, not a complete threat assessment. See
 - More detectors and tunable policy packs
 - Editor/CI integrations beyond SARIF
 
-CallLint is the developer-CLI brand. A future hosted trust/registry layer may
-carry a separate brand; this CLI stays focused on linting tool-call risk before
-tools run.
+CallLint stays focused on pre-run risk linting for agent-tool configurations.
+Hosted registries, gateways, and runtime enforcement are outside the current
+release scope.
 
 ## Project
 

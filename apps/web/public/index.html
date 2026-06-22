@@ -48,12 +48,13 @@
           </div>
           <div class="hero-copy">
             <span class="tag">Pre-flight risk linting for agent tools</span>
-            <h1>Know what an agent tool can do before your agent runs it.</h1>
+            <h1>Check MCP tools before your agent loads them.</h1>
             <p class="lede">
-              CallLint statically scans MCP and agent-tool configs, then returns SAFE, REVIEW,
-              BLOCK, or UNKNOWN <strong>with evidence</strong> — what each tool can read, write,
-              execute, and send. Offline by default. Deterministic. Never executes the server it
-              judges.
+              CallLint statically scans Cursor, Claude Desktop, and agent-tool configs
+              before they run, then returns SAFE, REVIEW, BLOCK, or UNKNOWN
+              <strong>with evidence</strong> — what each tool appears able to read, write,
+              execute, connect to, send, or spend. Offline by default. Deterministic.
+              Never executes the server it judges.
             </p>
             <div class="hero-install" aria-label="Install command">
 <pre><code>npx calllint@preview scan .cursor/mcp.json</code></pre>
@@ -75,11 +76,12 @@
       <!-- 2. Problem -->
       <section class="band" id="why">
         <div class="band-inner">
-          <h2>One config line can hand your agent the keys</h2>
+          <h2>One config entry can expand your agent's authority</h2>
           <p class="band-lede">
-            MCP servers are usually described only by attacker-controllable metadata. A single entry
-            can add filesystem write, shell execution, network egress, or model-directed instructions
-            to an autonomous agent. You approve it before you can see what it really grants.
+            MCP servers are usually described only by tool-provided metadata. A single entry
+            can add filesystem write, shell execution, network egress, or model-directed
+            instructions to an autonomous agent. You are often asked to approve it before the
+            risk surface is easy to inspect.
           </p>
         </div>
       </section>
@@ -91,7 +93,7 @@
           <p>Every finding cites the exact config field it came from. UNKNOWN never auto-upgrades to SAFE.</p>
         </div>
         <div class="verdict-grid">
-          <article class="vcard vcard-safe"><span class="vchip">SAFE</span><p>Read-only, workspace-scoped, no risky surface.</p></article>
+          <article class="vcard vcard-safe"><span class="vchip">SAFE</span><p>No blockers observed in the scanned config. Not a proof of runtime safety.</p></article>
           <article class="vcard vcard-review"><span class="vchip">REVIEW</span><p>Sensitive surface a human should weigh before approving.</p></article>
           <article class="vcard vcard-block"><span class="vchip">BLOCK</span><p>Dangerous capability — broad FS, shell, prompt poisoning, observed money movement.</p></article>
           <article class="vcard vcard-unknown"><span class="vchip">UNKNOWN</span><p>Can't be verified statically. Said plainly, never hidden as SAFE.</p></article>
@@ -220,17 +222,17 @@ calllint scan .cursor/mcp.json --sarif &gt; calllint.sarif</code></pre>
         <div class="install-card">
           <h2>Install &amp; scan</h2>
           <p>Point CallLint at your MCP config before your agent loads it. Requires Node.js ≥ 20; the published package is a single self-contained bundle with zero runtime dependencies.</p>
-<pre><code>npx calllint scan .cursor/mcp.json
-npx calllint scan .cursor/mcp.json --ci --no-emoji
-npx calllint scan .cursor/mcp.json --html &gt; report.html</code></pre>
-          <p class="install-note">Currently a public preview — <code>npx calllint@preview</code> for the newest build.</p>
+<pre><code>npx calllint@preview scan .cursor/mcp.json
+npx calllint@preview scan .cursor/mcp.json --ci --no-emoji
+npx calllint@preview scan .cursor/mcp.json --html &gt; report.html</code></pre>
+          <p class="install-note">CallLint is currently in public preview — use the <code>@preview</code> tag until <code>0.3.0</code> is promoted to <code>latest</code>.</p>
         </div>
       </section>
 
       <!-- 8. Corpus / evidence -->
       <section class="section section-narrow" id="corpus">
         <div class="section-head">
-          <h2>Calibrated by corpus, not vibes</h2>
+          <h2>Calibrated against a reproducible corpus</h2>
           <p>Verdicts are held to a contract enforced as a release gate.</p>
         </div>
         <div class="corpus-grid">
@@ -240,7 +242,7 @@ npx calllint scan .cursor/mcp.json --html &gt; report.html</code></pre>
               <li>30 calibrated cases</li>
               <li>20 real or redacted snapshots</li>
               <li>dangerous false-SAFE = 0</li>
-              <li>UNKNOWN ratio 10% (target &lt; 15%)</li>
+              <li>UNKNOWN ratio 10% (target ≤ 15%)</li>
               <li>release gate enabled</li>
             </ul>
           </article>
@@ -255,9 +257,10 @@ npx calllint scan .cursor/mcp.json --html &gt; report.html</code></pre>
           </article>
         </div>
         <p class="prose">
-          The current corpus proves the contract holds. It does not yet represent the full MCP
-          ecosystem. Each case pins an expected verdict, required evidence, and a "dangerous input
-          never resolves to SAFE" policy. See
+          The current corpus shows the verdict contract holds across the published
+          test set. It does not yet represent the full MCP ecosystem. Each case pins
+          an expected verdict, required evidence, and a "dangerous input never
+          resolves to SAFE" policy. See
           <a href="https://github.com/calllint/calllint/blob/main/docs/CORPUS.md">CORPUS.md</a>.
         </p>
       </section>
@@ -266,8 +269,8 @@ npx calllint scan .cursor/mcp.json --html &gt; report.html</code></pre>
       <section class="band" id="release">
         <div class="band-inner">
           <div class="section-head">
-            <h2>Published like a security tool should be</h2>
-            <p>The supply chain behind the package is part of the trust story.</p>
+            <h2>Published with verifiable provenance</h2>
+            <p>No long-lived npm token in CI. Releases use npm Trusted Publishing, GitHub OIDC, and build-provenance attestations.</p>
           </div>
           <ul class="release-grid">
             <li><strong>Apache-2.0</strong><span>open source</span></li>
