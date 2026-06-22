@@ -42,8 +42,9 @@ Do not promote to `latest` on feel. Every box must be checked.
 - [x] Provenance / signatures verified for the latest preview
       (`npm audit signatures`). *(preview.1: 1 verified signature + 1 verified
       attestation against registry.npmjs.org)*
-- [ ] dist-tag plan documented and ready: on stable publish, point `latest` at
+- [x] dist-tag plan documented and ready: on stable publish, point `latest` at
       `0.3.0` and resolve the preview.0 drift (RELEASE_VERIFICATION.md §1).
+      *(Executed as part of publish: `npm dist-tag add calllint@0.3.0 latest`.)*
 
 ## Real-world proof
 

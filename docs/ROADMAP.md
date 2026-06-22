@@ -14,8 +14,8 @@ dates.
 ```text
 v0.3.0-preview.1  (published, preview dist-tag)
   → 0.3.0-rc.0    (published to `next`; RC window found RC-BLK-01)
-  → 0.3.0-rc.1    (published to `next`; RC-BLK-01 fixed + re-validated)  ← we are here
-  → 0.3.0         (latest dist-tag; stable CLI contract)
+  → 0.3.0-rc.1    (published to `next`; RC-BLK-01 fixed + re-validated)
+  → 0.3.0         (prepared on `main`; promotes to `latest` at the gated publish)  ← we are here
 ```
 
 The engine, brand, npm preview, Trusted Publishing, website V3, the R2.1 corpus
