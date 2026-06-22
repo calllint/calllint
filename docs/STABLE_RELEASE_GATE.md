@@ -7,13 +7,27 @@ and post-publish verification in [RELEASE_VERIFICATION.md](./RELEASE_VERIFICATIO
 
 Do not promote to `latest` on feel. Every box must be checked.
 
+> **Status 2026-06-22: RC-BLK-01 closed; rc.1 published; stable still gated on the
+> dist-tag step.** The `0.3.0-rc.0` window found a dangerous false-SAFE (RC-BLK-01
+> in [RC_FEEDBACK_LOG.md](./RC_FEEDBACK_LOG.md)): unrecognized/empty server shapes
+> resolved to SAFE instead of UNKNOWN. It is **resolved + regression-locked**
+> ([ADR 0010](./adr/0010-unknown-runtime-fails-to-unknown.md), Accepted; golden +
+> corpus C031), **merged to `main` (PR #36), published as `0.3.0-rc.1` to the
+> `next` dist-tag, and re-confirmed on the published artifact** (B04 + 4 synthetic
+> shapes + B01–B10 all correct on `npx calllint@next` = rc.1; dangerous
+> false-SAFE = 0). The dangerous-false-SAFE blocker is **closed**. Remaining before
+> `latest`: the dist-tag plan box below (point `latest` at `0.3.0`, resolve the
+> preview.0 drift) and a final RC-window close-out.
+
 ## Evidence & calibration
 
 - [x] R2.1 corpus ≥ 30 cases. *(30 cases)*
 - [x] ≥ 20 cases are `redacted-real-snapshot` or `real-public-snapshot` (each
       with origin metadata). *(20: 19 real-public + 1 redacted)*
 - [x] `corpus:test` (and `corpus:test:r2-final`) pass.
-- [x] Dangerous false-SAFE = 0.
+- [x] Dangerous false-SAFE = 0. *(0 on the fixed build — branch
+      `fix/rc-blk-01-unknown-runtime`; corpus 31 cases report 0. Re-confirm on the
+      published `0.3.0-rc.1` before checking this for stable.)*
 - [x] UNKNOWN ratio ≤ 15%. *(10.0%)*
 - [x] Every REVIEW/BLOCK finding has evidence, a false-positive note, and
       remediation.
@@ -39,7 +53,9 @@ Do not promote to `latest` on feel. Every box must be checked.
 - [x] Exit-code contract verified end-to-end in CI (BLOCK exits 30 under the
       `--ci` gate; report mode uploads SARIF + HTML regardless).
 - [x] At least a handful of external/real configs scanned with no dangerous
-      false-SAFE. *(20 real/redacted corpus snapshots, 0 dangerous false-SAFE)*
+      false-SAFE. *(20 real/redacted corpus snapshots + 11 RC non-author configs;
+      the one dangerous false-SAFE found — RC-BLK-01/B04 — is fixed and
+      regression-locked. Re-confirm on the published `0.3.0-rc.1`.)*
 
 ## Trust narrative
 

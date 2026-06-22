@@ -9,12 +9,14 @@ import type {
 /**
  * Deterministic verdict rules (priority order):
  *   1. Any critical blocker finding        → BLOCK
- *   2. Unknown/unverifiable executable src  → UNKNOWN
+ *   2. Unknown/unverifiable source          → UNKNOWN
  *   3. Any high-severity finding            → REVIEW
  *   4. Any finding at all                   → REVIEW
  *   5. No findings, source known            → SAFE
  *
- * UNKNOWN never auto-upgrades to SAFE. The LLM is not consulted here.
+ * UNKNOWN never auto-upgrades to SAFE. SAFE is only reachable when the source is
+ * positively recognized (`sourceKnown`); the mere absence of findings on a shape
+ * we could not parse is UNKNOWN, not SAFE (ADR 0010). The LLM is not consulted here.
  */
 export function computeVerdict(
   findings: Finding[],
@@ -22,12 +24,12 @@ export function computeVerdict(
 ): Verdict {
   if (findings.some((f) => f.blocker)) return "BLOCK"
 
-  // An unverifiable source we cannot inspect is UNKNOWN, not SAFE.
-  // This is a remote endpoint we don't recognize, or a runtime with no
-  // identifiable source.
-  const unverifiable =
-    !binding.sourceKnown && (Boolean(binding.remoteUrl) || binding.runtimeExecutable)
-  if (unverifiable) return "UNKNOWN"
+  // A source we cannot positively recognize is UNKNOWN, not SAFE. This covers a
+  // remote endpoint we don't recognize, a runtime with no identifiable source,
+  // AND a server shape the parser could not resolve at all (no url, no command —
+  // e.g. a nested/aliased `server.url` or a typo'd key). Failing such a shape to
+  // SAFE is a dangerous false-SAFE (ADR 0010 / RC-BLK-01); fail it to UNKNOWN.
+  if (!binding.sourceKnown) return "UNKNOWN"
 
   if (findings.some((f) => f.severity === "high" || f.severity === "critical")) {
     return "REVIEW"

@@ -10,6 +10,41 @@ onward. While pre-1.0, minor versions may include breaking changes.
 
 ## [Unreleased]
 
+## [0.3.0-rc.1] — Stable candidate (RC-BLK-01 fix)
+
+Second release candidate. Fixes a **dangerous false-SAFE** found during the
+`0.3.0-rc.0` feedback window while scanning real third-party MCP configs from
+public repositories. Published to the **`next`** dist-tag (`npx calllint@next`);
+`latest` stays on `0.3.0-preview.0` until stable.
+
+### Fixed
+- **Unrecognized / empty server shapes are now UNKNOWN, not SAFE** (RC-BLK-01).
+  A server config whose runtime the parser could not recognize — a nested
+  `mcpServers.<name>.server.url`, a typo'd key hiding a remote URL, or an empty
+  server object — previously resolved to `SAFE` ("no blockers observed") with
+  `autonomousUse: allow`. The verdict engine now requires a positively recognized
+  source for `SAFE`: any unverifiable source resolves to `UNKNOWN`
+  (`packages/risk-engine/src/computeVerdict.ts`). Separately, a config that parses
+  but contains **zero servers** (empty `mcpServers`, or a wrong-schema file) now
+  aggregates to `UNKNOWN` rather than `SAFE` (`packages/core/src/scanConfig.ts`) —
+  "nothing was examined" must not read as "no blockers observed". See
+  [ADR 0010](docs/adr/0010-unknown-runtime-fails-to-unknown.md).
+
+### Added
+- Regression coverage for RC-BLK-01: golden fixture
+  `unknown-unrecognized-shape.json` (→ UNKNOWN), corpus case
+  `C031-unknown-unrecognized-shape` (`thisCaseMustNeverBeSafe`), and unit tests in
+  `@calllint/risk-engine` and `@calllint/core`. Corpus is now **31 cases**
+  (21 real/redacted), still 0 dangerous false-SAFE.
+
+### Notes
+- No detector, exit code, or pre-existing golden verdict changed. The only verdict
+  delta is unrecognized/empty shapes moving `SAFE → UNKNOWN` (safe direction).
+- The parser does not yet positively recognize a nested/aliased `server.url` as a
+  remote; it reaches `UNKNOWN` via the unknown-source path. A pre-existing,
+  non-blocking calibration item (an unrecognized local `command` resolving to
+  `SAFE`, RC-OBS-02) is recorded for R2.2 and deliberately not changed here.
+
 ## [0.3.0-rc.0] — Stable candidate
 
 First release candidate for the stable `0.3.0` line. **No scanner-semantics

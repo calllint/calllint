@@ -7,181 +7,264 @@
       "caseId": "C001-safe-filesystem-workspace",
       "path": "cases/C001-safe-filesystem-workspace",
       "expectedVerdict": "SAFE",
-      "riskTheme": ["filesystem"]
+      "riskTheme": [
+        "filesystem"
+      ]
     },
     {
       "caseId": "C002-block-broad-filesystem-home",
       "path": "cases/C002-block-broad-filesystem-home",
       "expectedVerdict": "BLOCK",
-      "riskTheme": ["filesystem"]
+      "riskTheme": [
+        "filesystem"
+      ]
     },
     {
       "caseId": "C003-block-dangerous-shell-rm",
       "path": "cases/C003-block-dangerous-shell-rm",
       "expectedVerdict": "BLOCK",
-      "riskTheme": ["shell"]
+      "riskTheme": [
+        "shell"
+      ]
     },
     {
       "caseId": "C004-review-secret-env-keys",
       "path": "cases/C004-review-secret-env-keys",
       "expectedVerdict": "REVIEW",
-      "riskTheme": ["env"]
+      "riskTheme": [
+        "env"
+      ]
     },
     {
       "caseId": "C005-review-unpinned-package",
       "path": "cases/C005-review-unpinned-package",
       "expectedVerdict": "REVIEW",
-      "riskTheme": ["supply-chain"]
+      "riskTheme": [
+        "supply-chain"
+      ]
     },
     {
       "caseId": "C006-unknown-unverified-remote",
       "path": "cases/C006-unknown-unverified-remote",
       "expectedVerdict": "UNKNOWN",
-      "riskTheme": ["remote", "unknown"]
+      "riskTheme": [
+        "remote",
+        "unknown"
+      ]
     },
     {
       "caseId": "C007-review-external-mutation",
       "path": "cases/C007-review-external-mutation",
       "expectedVerdict": "REVIEW",
-      "riskTheme": ["side-effect"]
+      "riskTheme": [
+        "side-effect"
+      ]
     },
     {
       "caseId": "C008-review-money-inferred",
       "path": "cases/C008-review-money-inferred",
       "expectedVerdict": "REVIEW",
-      "riskTheme": ["money"]
+      "riskTheme": [
+        "money"
+      ]
     },
     {
       "caseId": "C009-block-money-observed",
       "path": "cases/C009-block-money-observed",
       "expectedVerdict": "BLOCK",
-      "riskTheme": ["money"]
+      "riskTheme": [
+        "money"
+      ]
     },
     {
       "caseId": "C010-block-prompt-poisoning",
       "path": "cases/C010-block-prompt-poisoning",
       "expectedVerdict": "BLOCK",
-      "riskTheme": ["prompt-surface"]
+      "riskTheme": [
+        "prompt-surface"
+      ]
     },
     {
       "caseId": "C011-safe-memory-docker-pinned",
       "path": "cases/C011-safe-memory-docker-pinned",
       "expectedVerdict": "SAFE",
-      "riskTheme": ["filesystem"]
+      "riskTheme": [
+        "filesystem"
+      ]
     },
     {
       "caseId": "C012-safe-postgres-docker-connstring",
       "path": "cases/C012-safe-postgres-docker-connstring",
       "expectedVerdict": "SAFE",
-      "riskTheme": ["network"]
+      "riskTheme": [
+        "network"
+      ]
     },
     {
       "caseId": "C013-safe-puppeteer-docker",
       "path": "cases/C013-safe-puppeteer-docker",
       "expectedVerdict": "SAFE",
-      "riskTheme": ["network"]
+      "riskTheme": [
+        "network"
+      ]
     },
     {
       "caseId": "C014-review-git-uvx-unpinned",
       "path": "cases/C014-review-git-uvx-unpinned",
       "expectedVerdict": "REVIEW",
-      "riskTheme": ["supply-chain"]
+      "riskTheme": [
+        "supply-chain"
+      ]
     },
     {
       "caseId": "C015-review-fetch-uvx-unpinned",
       "path": "cases/C015-review-fetch-uvx-unpinned",
       "expectedVerdict": "REVIEW",
-      "riskTheme": ["supply-chain", "network"]
+      "riskTheme": [
+        "supply-chain",
+        "network"
+      ]
     },
     {
       "caseId": "C016-review-memory-env-path",
       "path": "cases/C016-review-memory-env-path",
       "expectedVerdict": "REVIEW",
-      "riskTheme": ["supply-chain", "env"]
+      "riskTheme": [
+        "supply-chain",
+        "env"
+      ]
     },
     {
       "caseId": "C017-review-github-token-env",
       "path": "cases/C017-review-github-token-env",
       "expectedVerdict": "REVIEW",
-      "riskTheme": ["env"]
+      "riskTheme": [
+        "env"
+      ]
     },
     {
       "caseId": "C018-review-brave-apikey-env",
       "path": "cases/C018-review-brave-apikey-env",
       "expectedVerdict": "REVIEW",
-      "riskTheme": ["env"]
+      "riskTheme": [
+        "env"
+      ]
     },
     {
       "caseId": "C019-review-slack-mutation-secrets",
       "path": "cases/C019-review-slack-mutation-secrets",
       "expectedVerdict": "REVIEW",
-      "riskTheme": ["env", "supply-chain", "side-effect"]
+      "riskTheme": [
+        "env",
+        "supply-chain",
+        "side-effect"
+      ]
     },
     {
       "caseId": "C020-block-filesystem-broad-home",
       "path": "cases/C020-block-filesystem-broad-home",
       "expectedVerdict": "BLOCK",
-      "riskTheme": ["filesystem", "supply-chain"]
+      "riskTheme": [
+        "filesystem",
+        "supply-chain"
+      ]
     },
     {
       "caseId": "C021-block-filesystem-cmd-windows",
       "path": "cases/C021-block-filesystem-cmd-windows",
       "expectedVerdict": "BLOCK",
-      "riskTheme": ["shell", "filesystem", "supply-chain"]
+      "riskTheme": [
+        "shell",
+        "filesystem",
+        "supply-chain"
+      ]
     },
     {
       "caseId": "C022-block-memory-cmd-windows",
       "path": "cases/C022-block-memory-cmd-windows",
       "expectedVerdict": "BLOCK",
-      "riskTheme": ["shell"]
+      "riskTheme": [
+        "shell"
+      ]
     },
     {
       "caseId": "C023-safe-filesystem-docker-mount",
       "path": "cases/C023-safe-filesystem-docker-mount",
       "expectedVerdict": "SAFE",
-      "riskTheme": ["filesystem"]
+      "riskTheme": [
+        "filesystem"
+      ]
     },
     {
       "caseId": "C024-safe-sqlite-docker-volume",
       "path": "cases/C024-safe-sqlite-docker-volume",
       "expectedVerdict": "SAFE",
-      "riskTheme": ["filesystem"]
+      "riskTheme": [
+        "filesystem"
+      ]
     },
     {
       "caseId": "C025-unknown-github-remote-verified",
       "path": "cases/C025-unknown-github-remote-verified",
       "expectedVerdict": "UNKNOWN",
-      "riskTheme": ["remote", "network"]
+      "riskTheme": [
+        "remote",
+        "network"
+      ]
     },
     {
       "caseId": "C026-unknown-github-enterprise-remote",
       "path": "cases/C026-unknown-github-enterprise-remote",
       "expectedVerdict": "UNKNOWN",
-      "riskTheme": ["remote", "network"]
+      "riskTheme": [
+        "remote",
+        "network"
+      ]
     },
     {
       "caseId": "C027-review-sentry-npx-secrets",
       "path": "cases/C027-review-sentry-npx-secrets",
       "expectedVerdict": "REVIEW",
-      "riskTheme": ["env", "supply-chain"]
+      "riskTheme": [
+        "env",
+        "supply-chain"
+      ]
     },
     {
       "caseId": "C028-review-cloudflare-mcp-remote",
       "path": "cases/C028-review-cloudflare-mcp-remote",
       "expectedVerdict": "REVIEW",
-      "riskTheme": ["supply-chain", "network"]
+      "riskTheme": [
+        "supply-chain",
+        "network"
+      ]
     },
     {
       "caseId": "C029-review-github-local-docker-token",
       "path": "cases/C029-review-github-local-docker-token",
       "expectedVerdict": "REVIEW",
-      "riskTheme": ["env"]
+      "riskTheme": [
+        "env"
+      ]
     },
     {
       "caseId": "C030-review-sentry-selfhosted-host",
       "path": "cases/C030-review-sentry-selfhosted-host",
       "expectedVerdict": "REVIEW",
-      "riskTheme": ["env", "supply-chain"]
+      "riskTheme": [
+        "env",
+        "supply-chain"
+      ]
+    },
+    {
+      "caseId": "C031-unknown-unrecognized-shape",
+      "path": "cases/C031-unknown-unrecognized-shape",
+      "expectedVerdict": "UNKNOWN",
+      "riskTheme": [
+        "remote",
+        "unknown",
+        "parser-edge"
+      ]
     }
   ]
 }

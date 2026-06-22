@@ -20,7 +20,12 @@ function aggregate(
   const counts: Record<Verdict, number> = { SAFE: 0, REVIEW: 0, BLOCK: 0, UNKNOWN: 0 }
   for (const r of reports) counts[r.verdict]++
 
-  const verdict = mostSevereVerdict(reports.map((r) => r.verdict))
+  // No servers examined → nothing was actually checked. Reporting SAFE here would
+  // reassure a user who scanned the wrong file, a wrong-schema config, or an empty
+  // one. "Insufficient evidence" is the honest verdict, not "no blockers observed"
+  // (ADR 0010: SAFE requires a positively recognized, examined source).
+  const verdict =
+    reports.length === 0 ? "UNKNOWN" : mostSevereVerdict(reports.map((r) => r.verdict))
 
   return {
     schemaVersion: "calllint.report.v0",
