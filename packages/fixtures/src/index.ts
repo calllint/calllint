@@ -41,6 +41,15 @@ export const GOLDEN_CASES: readonly GoldenCase[] = [
   { file: "review-github.json", expect: "REVIEW", server: "github" },
   { file: "block-filesystem.json", expect: "BLOCK", server: "filesystem" },
   { file: "unknown-remote.json", expect: "UNKNOWN", server: "custom-remote" },
+  {
+    // ADR 0010 / RC-BLK-01: a server shape the parser cannot resolve into a
+    // recognized runtime (here a nested `server.url`) has no url/command at the
+    // recognized depth, so `sourceKnown` is false. It must be UNKNOWN, never the
+    // dangerous false-SAFE that "no findings" would otherwise produce.
+    file: "unknown-unrecognized-shape.json",
+    expect: "UNKNOWN",
+    server: "custom-remote",
+  },
   { file: "block-prompt-poison.json", expect: "BLOCK", server: "helpful-notes" },
   { file: "review-unpinned-package.json", expect: "REVIEW", server: "weather" },
   { file: "block-dangerous-command.json", expect: "BLOCK", server: "shell-runner" },

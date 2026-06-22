@@ -52,6 +52,16 @@ describe("scan report shape", () => {
     expect(s.counts.SAFE).toBe(1)
     expect(s.counts.BLOCK).toBe(1)
   })
+
+  it("a config with no servers is UNKNOWN, not SAFE (ADR 0010)", () => {
+    // An empty server map or a wrong-schema file examines nothing; reporting SAFE
+    // would reassure a user who scanned the wrong file. Insufficient evidence.
+    for (const text of ['{"mcpServers":{}}', '{"foo":"bar"}']) {
+      const s = scanConfigText(text, "<inline>", OPTS)
+      expect(s.verdict).toBe("UNKNOWN")
+      expect(s.reports.length).toBe(0)
+    }
+  })
 })
 
 describe("policy integration", () => {
