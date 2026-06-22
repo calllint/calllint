@@ -1,7 +1,8 @@
 # CallLint Project Status
 
-Current phase: **v0.3.0-rc.0 — stable candidate** (preparing on `main`; not yet
-tagged or published)
+Current phase: **v0.3.0-rc.1 — stable candidate** (published to the `next`
+dist-tag; RC-BLK-01 fixed and re-validated on the published artifact; RC window
+in final close-out before stable `0.3.0`)
 
 CallLint is a deterministic, offline-first CLI for pre-run risk linting of MCP
 and agent-tool configurations. It returns SAFE / REVIEW / BLOCK / UNKNOWN with
@@ -15,10 +16,11 @@ Product name: **CallLint** (CLI `calllint`, npm `calllint`, internal scope
 ## Public artifacts
 
 - Website: https://calllint.com (Cloudflare Pages, auto-deployed from `main`)
-- npm package: `calllint@0.3.0-preview.1` (published; preview dist-tag).
-  `0.3.0-rc.0` is prepared in-repo and ships to the `next` dist-tag when tagged.
+- npm package: published to three dist-tags — `next: 0.3.0-rc.1` (current release
+  candidate, RC-BLK-01 fixed), `preview: 0.3.0-preview.1`, `latest:
+  0.3.0-preview.0` (drifted; corrected at stable — see Known issues).
 - GitHub repository: `calllint/calllint`
-- Install / run: `npx calllint scan .cursor/mcp.json`
+- Install / run (pre-stable, rc on `next`): `npx calllint@next scan .cursor/mcp.json`
 
 ## Completed
 
@@ -85,14 +87,15 @@ Product name: **CallLint** (CLI `calllint`, npm `calllint`, internal scope
 
 ## Known issues
 
-- **RC-BLK-01 (found in the rc.0 window, fixed on a branch):** scanning real
-  third-party configs surfaced a dangerous false-SAFE — an unrecognized server
-  shape (nested `server.url`, empty/wrong-schema config) resolved to SAFE instead
-  of UNKNOWN. Fixed and regression-locked on `fix/rc-blk-01-unknown-runtime`
+- **RC-BLK-01 (found in the rc.0 window, fixed and shipped in rc.1):** scanning
+  real third-party configs surfaced a dangerous false-SAFE — an unrecognized
+  server shape (nested `server.url`, empty/wrong-schema config) resolved to SAFE
+  instead of UNKNOWN. Fixed and regression-locked
   ([ADR 0010](docs/adr/0010-unknown-runtime-fails-to-unknown.md); golden + corpus
-  C031). **The published `@next` (`0.3.0-rc.0`) still has the bug** — a
-  `0.3.0-rc.1` must be cut and re-validated on the published artifact before
-  stable. See [docs/RC_FEEDBACK_LOG.md](docs/RC_FEEDBACK_LOG.md).
+  C031), merged to `main` (PR #36), published as **`0.3.0-rc.1`** to `next`, and
+  **re-validated on the published artifact** (B04 + 4 synthetic shapes + B01–B10
+  all correct on `npx calllint@next` = rc.1; dangerous false-SAFE = 0).
+  **Resolved.** See [docs/RC_FEEDBACK_LOG.md](docs/RC_FEEDBACK_LOG.md).
 - **npm dist-tag drift:** `latest` currently points at `0.3.0-preview.0` (the
   first preview, published before the release workflow derived dist-tags from
   the version). `preview` correctly points at `0.3.0-preview.1`. A preview
@@ -101,8 +104,8 @@ Product name: **CallLint** (CLI `calllint`, npm `calllint`, internal scope
 
 ## Next roadmap (v0.3)
 
-1. **Tag & publish `0.3.0-rc.0`** to the `next` dist-tag (the release workflow
-   routes `*-rc.*` → `next`); run the RC feedback window
+1. **Done — `0.3.0-rc.1` published** to the `next` dist-tag (RC-BLK-01 fixed and
+   re-validated on the published artifact). Close out the RC feedback window
    ([docs/RC_FEEDBACK_PROTOCOL.md](docs/RC_FEEDBACK_PROTOCOL.md)).
 2. **Stable `0.3.0`** to `latest`, gated by
    [docs/STABLE_RELEASE_GATE.md](docs/STABLE_RELEASE_GATE.md); correct the

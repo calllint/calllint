@@ -13,19 +13,25 @@ dates.
 
 ```text
 v0.3.0-preview.1  (published, preview dist-tag)
-  → 0.3.0-rc.0    (prepared in-repo; ships to `next` when tagged)   ← we are here
+  → 0.3.0-rc.0    (published to `next`; RC window found RC-BLK-01)
+  → 0.3.0-rc.1    (published to `next`; RC-BLK-01 fixed + re-validated)  ← we are here
   → 0.3.0         (latest dist-tag; stable CLI contract)
 ```
 
 The engine, brand, npm preview, Trusted Publishing, website V3, the R2.1 corpus
-gate, and the SARIF dogfood are done. What remains before stable is **release
-discipline and real-world confirmation**, not new capability.
+gate, and the SARIF dogfood are done. The RC window did its job: scanning real
+third-party configs surfaced a dangerous false-SAFE (RC-BLK-01), which is fixed,
+regression-locked, and shipped in `0.3.0-rc.1`. What remains before stable is
+**closing the RC window and the dist-tag/release discipline**, not new capability.
 
-## Phase: 0.3.0-rc.0 → stable
+## Phase: 0.3.0-rc.1 → stable
 
-1. **Tag & publish `0.3.0-rc.0`** to the `next` dist-tag (human gate: tag +
-   publish). The release workflow routes `*-rc.*` → `next`.
-2. **RC feedback window** — [RC_FEEDBACK_PROTOCOL.md](./RC_FEEDBACK_PROTOCOL.md).
+1. **Done — `0.3.0-rc.0` then `0.3.0-rc.1` published** to the `next` dist-tag
+   (human-gated tag + publish; release workflow routes `*-rc.*` → `next`).
+   `rc.1` carries the RC-BLK-01 fix, re-validated on the published artifact.
+2. **RC feedback window** — [RC_FEEDBACK_PROTOCOL.md](./RC_FEEDBACK_PROTOCOL.md);
+   coverage met (11 non-author configs), dangerous false-SAFE = 0 on rc.1. Final
+   close-out pending.
 3. **Ship `0.3.0` to `latest`** — gated by
    [STABLE_RELEASE_GATE.md](./STABLE_RELEASE_GATE.md).
 
