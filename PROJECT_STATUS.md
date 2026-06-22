@@ -1,8 +1,11 @@
 # CallLint Project Status
 
-Current phase: **v0.3.0-rc.1 — stable candidate** (published to the `next`
-dist-tag; RC-BLK-01 fixed and re-validated on the published artifact; RC window
-in final close-out before stable `0.3.0`)
+Current phase: **v0.3.0 — stable, prepared on `main`** (version bumped, CHANGELOG
+and gate complete; **not yet tagged/published**). The published artifact is still
+`0.3.0-rc.1` on the `next` dist-tag; promotion to `latest` is the remaining
+human-gated publish step (GitHub Release → OIDC publish → `npm dist-tag add
+calllint@0.3.0 latest`). No scanner-semantics change from rc.1 — engine is
+byte-identical.
 
 CallLint is a deterministic, offline-first CLI for pre-run risk linting of MCP
 and agent-tool configurations. It returns SAFE / REVIEW / BLOCK / UNKNOWN with
@@ -16,9 +19,10 @@ Product name: **CallLint** (CLI `calllint`, npm `calllint`, internal scope
 ## Public artifacts
 
 - Website: https://calllint.com (Cloudflare Pages, auto-deployed from `main`)
-- npm package: published to three dist-tags — `next: 0.3.0-rc.1` (current release
-  candidate, RC-BLK-01 fixed), `preview: 0.3.0-preview.1`, `latest:
-  0.3.0-preview.0` (drifted; corrected at stable — see Known issues).
+- npm package: published dist-tags — `next: 0.3.0-rc.1`, `preview:
+  0.3.0-preview.1`, `latest: 0.3.0-preview.0` (drift). **`0.3.0` stable is prepared
+  in-repo** (version bumped, CHANGELOG); on publish it claims `latest` and resolves
+  the drift (`npm dist-tag add calllint@0.3.0 latest`).
 - GitHub repository: `calllint/calllint`
 - Install / run (pre-stable, rc on `next`): `npx calllint@next scan .cursor/mcp.json`
 
