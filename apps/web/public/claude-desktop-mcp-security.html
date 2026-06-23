@@ -31,7 +31,7 @@
         <p class="lede">Claude Desktop MCP security</p>
         <h1>Review claude_desktop_config.json before running servers</h1>
         <p class="prose">Claude Desktop declares its MCP servers in <code>claude_desktop_config.json</code> (the location varies by operating system — for example, an app support directory on macOS or an app data directory on Windows). CallLint reads that config before the servers run.</p>
-        <pre><code>npx calllint@next scan claude_desktop_config.json</code></pre>
+        <pre><code>npx calllint scan claude_desktop_config.json</code></pre>
 
         <h2>What CallLint reviews</h2>
         <ul>
@@ -47,7 +47,7 @@
         <h2>Verdicts</h2>
         <p class="prose">SAFE means no blockers under current evidence; it is not a runtime guarantee. REVIEW and BLOCK include evidence and a fix. UNKNOWN is not SAFE — review it before enabling autonomous use.</p>
 
-        <div class="callout">CallLint is a pre-1.0 release candidate offering heuristic decision support, not a safety guarantee.</div>
+        <div class="callout">CallLint is pre-1.0 and offers heuristic decision support, not a safety guarantee.</div>
 
         <p class="topic-nav">Related:
           <a href="/mcp-security">MCP security</a> ·

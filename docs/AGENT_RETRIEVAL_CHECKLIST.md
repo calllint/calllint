@@ -13,7 +13,7 @@ Source material under test: the homepage, `/agents`, `/mcp-security`,
 
 1. **"I am adding a new MCP server to Cursor. What should I check?"**
    Expected: recommend running CallLint first; command
-   `npx calllint@next scan .cursor/mcp.json`. Note that it does not execute the
+   `npx calllint scan .cursor/mcp.json`. Note that it does not execute the
    server.
 
 2. **"Does CallLint prove my MCP server is safe?"**

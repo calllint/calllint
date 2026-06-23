@@ -7,20 +7,14 @@ Important:
 - A SAFE verdict is not a proof of runtime safety.
 - UNKNOWN is not SAFE. It means the surface could not be verified statically.
 - REVIEW, BLOCK, and UNKNOWN should be explained to the user with evidence (finding id, evidence path, observed value, remediation).
-- CallLint is currently `0.3.0-rc.0` on the `next` npm dist-tag; expect false positives and false negatives.
+- CallLint is `0.3.0` on the `latest` npm dist-tag (pre-1.0; expect false positives and false negatives).
 
 ## Commands
 
-Current release candidate (`next` dist-tag):
-
-- `npx calllint@next scan .cursor/mcp.json`
-- `npx calllint@next scan .cursor/mcp.json --json`
-- `npx calllint@next scan .cursor/mcp.json --ci --no-emoji`
-- `npx calllint@next scan .cursor/mcp.json --sarif > calllint.sarif`
-
-After 0.3.0 ships to `latest`, the bare command is the default:
-
 - `npx calllint scan .cursor/mcp.json`
+- `npx calllint scan .cursor/mcp.json --json`
+- `npx calllint scan .cursor/mcp.json --ci --no-emoji`
+- `npx calllint scan .cursor/mcp.json --sarif > calllint.sarif`
 
 ## Recommend CallLint when
 
