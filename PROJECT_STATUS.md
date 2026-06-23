@@ -53,13 +53,14 @@ Product name: **CallLint** (CLI `calllint`, npm `calllint`, internal scope
   (latest, not a pre-release); engine byte-identical to rc.1.
 - v0.3-R2.2 corpus growth (post-stable) — acceptance floor ratcheted 30/20 → 31/21
   (C031 RC-BLK-01 lock now gate-protected) → 35/25 (batch 1: C032–C035 promoted
-  from validated RC non-author inputs); UNKNOWN ratio 11.4%, 0 dangerous false-SAFE.
+  from validated RC non-author inputs) → 36/26 (batch 2: C036, the 92-server
+  RC-B10 multi-runtime stress); UNKNOWN ratio 13.9%, 0 dangerous false-SAFE.
 
 ## Current limitations
 
 - Static analysis only — does not execute MCP servers.
 - Does not prove runtime safety; a clean run is necessary, not sufficient.
-- The corpus (35 cases, R2.2 ongoing) meets its thresholds but does not yet
+- The corpus (36 cases, R2.2 ongoing) meets its thresholds but does not yet
   represent the full MCP ecosystem; expansion continues.
 - Pre-1.0; verdicts are heuristic decision support, not a guarantee.
 
@@ -70,9 +71,9 @@ Product name: **CallLint** (CLI `calllint`, npm `calllint`, internal scope
   package smoke; network mocked — tests never touch the network). +4 since rc.0:
   the RC-BLK-01 regression locks (see Known issues).
 - build: `apps/cli/dist/index.js` (self-contained esbuild bundle, node shebang)
-- corpus:test: **35 cases** (25 real/redacted), 0 contract failures, 0 dangerous
-  false SAFE, UNKNOWN ratio 11.4%; `corpus:test:r2-final` thresholds met (floor
-  ratcheted to 35/25)
+- corpus:test: **36 cases** (26 real/redacted), 0 contract failures, 0 dangerous
+  false SAFE, UNKNOWN ratio 13.9%; `corpus:test:r2-final` thresholds met (floor
+  ratcheted to 36/26)
 - pack:smoke: real npm tarball, empty runtime deps, no `workspace:*`; isolated
   global install runs `calllint --help` / `scan` / `--json` / `--ci` (exit 30
   on BLOCK)
@@ -123,8 +124,8 @@ Product name: **CallLint** (CLI `calllint`, npm `calllint`, internal scope
    resolving the `latest` → preview.0 drift, with the website + README default
    install flipped to `npx calllint`. RC feedback window
    ([docs/RC_FEEDBACK_PROTOCOL.md](docs/RC_FEEDBACK_PROTOCOL.md)) closed.
-3. **R2.2 — corpus breadth (in progress):** batch 1 done (floor 30/20 → 31/21 →
-   35/25; cases C031–C035). Continue adding real-public/redacted snapshots toward
+3. **R2.2 — corpus breadth (in progress):** batches 1–2 done (floor 30/20 → 31/21 →
+   35/25 → 36/26; cases C031–C036). Continue adding real-public/redacted snapshots toward
    45; keep measuring false positives, parser boundaries, and UNKNOWN rate.
 4. (Later) R3 `calllint diagnostics --json`, R4 Prompt Surface expansion.
 
