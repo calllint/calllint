@@ -55,7 +55,8 @@ chain, and CI integration are stable** — not that any tool is proven safe.
 ### R2.2 — continuous corpus
 Turn the corpus from a one-time gate into a growing regression system; every
 valid redacted real case from RC/field feedback becomes a case. Rough cadence
-35 → 45 → 60 cases (batch 1 reached 35: C031 lock + C032–C035), each batch
+35 → 45 → 60 cases (batch 1 reached 35: C031 lock + C032–C035; batch 2 reached 36:
+C036 92-server stress), each batch
 updating [R2_CALIBRATION.md](./R2_CALIBRATION.md), coverage, and the UNKNOWN
 trend. The acceptance floor only ratchets up (dangerous false-SAFE stays 0;
 UNKNOWN ≤ 15%).
