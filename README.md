@@ -77,16 +77,16 @@ it says so and never silently upgrades `UNKNOWN` to `SAFE`.
 ## Install
 
 ```bash
-# run without installing (recommended while in preview):
-npx calllint@preview scan ./mcp.json
+# run without installing (recommended):
+npx calllint scan ./mcp.json
 
 # or install globally:
-npm install -g calllint@preview
+npm install -g calllint
 ```
 
 Requires Node.js ≥ 20. The published package is a single self-contained bundle
-with zero runtime dependencies. CallLint is currently in public preview — use
-the `@preview` tag until `0.3.0` is promoted to the `latest` dist-tag.
+with zero runtime dependencies. `calllint` on the `latest` tag is the stable
+`0.3.x` line; `@next` carries release candidates and `@preview` older previews.
 
 ## Quick start
 
