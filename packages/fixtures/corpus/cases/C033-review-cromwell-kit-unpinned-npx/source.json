@@ -1,0 +1,31 @@
+{
+  "schemaVersion": "calllint.corpus.case.v1",
+  "caseId": "C033-review-cromwell-kit-unpinned-npx",
+  "title": "Three unpinned npx MCP servers (with a nested-key typo) is REVIEW",
+  "curationStatus": "redacted-real-snapshot",
+  "riskTheme": ["supply-chain"],
+  "origin": {
+    "kind": "public-repository",
+    "description": "Shape-preserving redaction of a real committed .mcp.json from the public repo grantcromwell/cromwell-kit (RC-B08, 0.3.0-rc.0 window). The repo carries no detectable license, so only the non-copyrightable config shape is retained: the verdict-relevant structure (three unpinned npx packages, an empty-env block, and a malformed nested 'svelte' key inside the context7 server) is preserved verbatim; the identifying macOS volume path was neutralized. Package specifiers keep their pin state (all unpinned), which is what drives the verdict.",
+    "url": "https://github.com/grantcromwell/cromwell-kit",
+    "commit": "32da36e",
+    "retrievedAt": "2026-06-22T00:00:00.000Z",
+    "redactions": [
+      "host path /Volumes/Elements/zcodebase/mf.claude -> /Volumes/Elements/workspace/project",
+      "license omitted: source repo has no detectable license; stored as a shape-preserving redacted snapshot, not redistributed verbatim"
+    ]
+  },
+  "input": { "path": "input/mcp.json", "format": "mcp-json" },
+  "humanExpectation": {
+    "verdict": "REVIEW",
+    "rationale": "Three MCP servers are launched via unpinned 'npx -y <pkg>' (server-filesystem, server-git, @context7/mcp-server), each an unpinned-package supply-chain surface a reviewer should pin. None is independently dangerous, so the verdict is REVIEW. The malformed nested 'svelte' key (an object placed as a sibling of args inside context7) is a real-world authoring typo that the parser tolerates without crashing.",
+    "knownLimitations": [
+      "The malformed nested 'svelte' server (a typo: nested under context7 instead of being its own top-level server) is not parsed as a separate server; CallLint reads the three well-formed servers and does not surface the fourth. This is a parser-tolerance observation, not a dangerous false-SAFE: nothing hidden there resolves to a less-safe verdict."
+    ]
+  },
+  "executionPolicy": {
+    "executeTarget": false,
+    "allowNetwork": false,
+    "allowFilesystemMutation": false
+  }
+}

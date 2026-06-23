@@ -1,0 +1,30 @@
+{
+  "schemaVersion": "calllint.corpus.case.v1",
+  "caseId": "C034-block-openclaw-filesystem-broad-home",
+  "title": "Unpinned filesystem server over broad home paths is BLOCK",
+  "curationStatus": "redacted-real-snapshot",
+  "riskTheme": ["filesystem", "supply-chain"],
+  "origin": {
+    "kind": "public-repository",
+    "description": "Shape-preserving redaction of a real committed .mcp.json from the public repo WinshipWheatley/openclaw-eyes (RC-B09, 0.3.0-rc.0 window). The repo carries no detectable license, so only the non-copyrightable config shape is retained: an unpinned 'npx -y @modelcontextprotocol/server-filesystem' granted two absolute /home/<org> paths. The paths use the project's own public org name and depth (which drives the broad-path verdict); they were left as-is per the RC log, with no personal identifiers present.",
+    "url": "https://github.com/WinshipWheatley/openclaw-eyes",
+    "commit": "7ca644d",
+    "retrievedAt": "2026-06-22T00:00:00.000Z",
+    "redactions": [
+      "license omitted: source repo has no detectable license; stored as a shape-preserving redacted snapshot, not redistributed verbatim"
+    ]
+  },
+  "input": { "path": "input/mcp.json", "format": "mcp-json" },
+  "humanExpectation": {
+    "verdict": "BLOCK",
+    "rationale": "A filesystem server is granted broad absolute home-directory roots (/home/openclaw/docs/*), which is a blocking broad-path surface, and the package is launched unpinned via 'npx -y'. Broad filesystem reach handed to an autonomous tool is the blocking condition; the unpinned package is an additional supply-chain finding.",
+    "knownLimitations": [
+      "The broad-path detector reads the server's own absolute path args; scoping these to a workspace-relative subpath and pinning the package would move the verdict toward REVIEW/SAFE."
+    ]
+  },
+  "executionPolicy": {
+    "executeTarget": false,
+    "allowNetwork": false,
+    "allowFilesystemMutation": false
+  }
+}
