@@ -1,0 +1,35 @@
+{
+  "schemaVersion": "calllint.corpus.case.v1",
+  "caseId": "C036-review-90-server-multi-runtime",
+  "title": "92-server multi-runtime config aggregates to UNKNOWN (one unverifiable remote dominates)",
+  "curationStatus": "redacted-real-snapshot",
+  "riskTheme": ["supply-chain", "remote", "env", "side-effect", "unknown"],
+  "origin": {
+    "kind": "public-repository",
+    "description": "Shape-preserving redaction of a real committed mcp.json from the public repo uengine-oss/process-gpt-completion (RC-B10, 0.3.0-rc.0 window): a single config declaring 92 MCP servers across npx/uvx/python/remote runtimes. The repo carries no clear redistribution license, so only the non-copyrightable config shape is retained. One server ('odoo ERP') had a real committed credential set; those values were replaced with neutral placeholders BEFORE the file was written to this repo (the live values were never stored here or in any log). All other servers are verbatim-shape (pin state, command kind, transport preserved).",
+    "url": "https://github.com/uengine-oss/process-gpt-completion",
+    "commit": "2c80ede",
+    "retrievedAt": "2026-06-22T00:00:00.000Z",
+    "redactions": [
+      "odoo ERP env: ODOO_URL https://<employer>.odoo.com -> https://erp.example.com",
+      "odoo ERP env: ODOO_DB <employer> -> example_db",
+      "odoo ERP env: ODOO_USERNAME <real person email> -> user@example.com",
+      "odoo ERP env: ODOO_PASSWORD <live 40-char credential> -> REDACTED_EXAMPLE_PASSWORD (real value never stored)",
+      "license omitted: source repo has no clear redistribution license; stored as a shape-preserving redacted snapshot"
+    ]
+  },
+  "input": { "path": "input/mcp.json", "format": "mcp-json" },
+  "humanExpectation": {
+    "verdict": "UNKNOWN",
+    "rationale": "Across 92 servers the engine resolves 90 to REVIEW (mostly unpinned npx/uvx packages, one external-mutation calendar tool, one credential-shaped env on the redacted odoo server) and 1 to SAFE, but one server ('gitmcp') is an unverifiable remote (https://gitmcp.io/<owner>/<repo>) that resolves to UNKNOWN. Per ADR 0006/0010 UNKNOWN never downgrades, so the honest config-level verdict is UNKNOWN: the reviewer cannot get a clean bill while one declared server's source is unverifiable. This is the corpus's multi-server / mixed-verdict stress shape.",
+    "knownLimitations": [
+      "The aggregate UNKNOWN is driven by a single unverifiable remote among 92 servers; the per-server breakdown (90 REVIEW / 1 UNKNOWN / 1 SAFE) is visible in the full report but the headline verdict is necessarily the most cautious.",
+      "This case raises the corpus UNKNOWN ratio to 13.9% (still <= 15%); it is the largest single UNKNOWN contributor and should be weighed when adding further UNKNOWN cases."
+    ]
+  },
+  "executionPolicy": {
+    "executeTarget": false,
+    "allowNetwork": false,
+    "allowFilesystemMutation": false
+  }
+}

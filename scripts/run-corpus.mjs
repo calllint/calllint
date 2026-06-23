@@ -47,8 +47,9 @@ const RISK_RANK = { S0: 0, S1: 1, S2: 2, S3: 3, S4: 4, S5: 5 }
  * These ratchet MONOTONICALLY UP as R2.2 adds real/redacted cases — they are a
  * floor that locks in coverage already achieved, never a ceiling, and never
  * loosened. R2.1 shipped at 30/20; the floor was raised to 31/21 once the C031
- * (RC-BLK-01) regression lock landed, then to 35/25 as the first R2.2 batch
- * (C032–C035, promoted from validated RC non-author inputs) landed. The gate now
+ * (RC-BLK-01) regression lock landed, to 35/25 as the first R2.2 batch
+ * (C032–C035, promoted from validated RC non-author inputs) landed, and to 36/26
+ * when C036 (the 92-server RC-B10 multi-runtime stress shape) landed. The gate now
  * FAILS if that coverage is ever removed.
  *
  * maxUnknownRatio is held at 0.15 and deliberately NOT tightened: UNKNOWN is the
@@ -56,8 +57,8 @@ const RISK_RANK = { S0: 0, S1: 1, S2: 2, S3: 3, S4: 4, S5: 5 }
  * tighter UNKNOWN cap would pressure the corpus toward false precision.
  */
 const R2_FINAL = {
-  minTotalCases: 35,
-  minRealOrRedacted: 25,
+  minTotalCases: 36,
+  minRealOrRedacted: 26,
   maxUnknownRatio: 0.15,
 }
 
