@@ -4,8 +4,8 @@ Generated from a real run of `pnpm corpus:test` against the built CLI
 (`apps/cli/dist/index.js`), with `--generated-at` pinned to
 `2026-06-16T00:00:00.000Z`.
 
-**R2.1 shipped (30 cases); R2.2 has ratcheted the corpus to 35.** The acceptance
-gate (`pnpm corpus:test:r2-final`) is green at the current floor — **35 cases, 25
+**R2.1 shipped (30 cases); R2.2 has ratcheted the corpus to 36.** The acceptance
+gate (`pnpm corpus:test:r2-final`) is green at the current floor — **36 cases, 26
 real or redacted public snapshots** with per-case provenance — and the floor
 (`minTotalCases`/`minRealOrRedacted` in `scripts/run-corpus.mjs`) only moves up as
 R2.2 adds cases. See [CORPUS_CURATION.md](./CORPUS_CURATION.md) for the curation
@@ -15,20 +15,20 @@ contract.
 
 | Metric | Value |
 |--------|-------|
-| Total cases | 35 |
-| Verdict distribution | SAFE 7 · REVIEW 16 · BLOCK 8 · UNKNOWN 4 |
-| Curation mix | synthetic-seed 10 · real-public 20 · redacted-real 5 |
-| Real / redacted cases | 25 |
+| Total cases | 36 |
+| Verdict distribution | SAFE 7 · REVIEW 16 · BLOCK 8 · UNKNOWN 5 |
+| Curation mix | synthetic-seed 10 · real-public 20 · redacted-real 6 |
+| Real / redacted cases | 26 |
 | Contract failures | 0 |
 | Dangerous false-SAFE | 0 |
-| UNKNOWN ratio | 11.4% (target ≤ 15%) |
+| UNKNOWN ratio | 13.9% (target ≤ 15%) |
 
 All contracts hold. No dangerous case reports SAFE. Real snapshots are drawn
 from five official upstreams — `modelcontextprotocol/servers`,
 `servers-archived`, `github/github-mcp-server`, `getsentry/sentry-mcp`, and
 `cloudflare/mcp-server-cloudflare` — at pinned commits, scanned and never
-executed. C031–C035 are real `.cursor`/`.mcp`/`claude_desktop` configs surfaced
-during the 0.3.0-rc.0 feedback window (RC-B04/B06/B07/B08/B09), redacted
+executed. C031–C036 are real `.cursor`/`.mcp`/`claude_desktop` configs surfaced
+during the 0.3.0-rc.0 feedback window (RC-B04/B06/B07/B08/B09/B10), redacted
 shape-preserving.
 
 ## Per-case results
@@ -70,10 +70,11 @@ shape-preserving.
 | C033-review-cromwell-kit-unpinned-npx | REVIEW | S1 | redacted-real | `supply.unpinned-package` ×3 |
 | C034-block-openclaw-filesystem-broad-home | BLOCK | S2 | redacted-real | `files.broad-path`, `supply.unpinned-package` |
 | C035-safe-game-assistant-local-node | SAFE | S1 | redacted-real | (none) |
+| C036-review-90-server-multi-runtime | UNKNOWN | S3 | redacted-real | `supply.unpinned-package` ×89, `action.external-mutation`, `supply.unknown-remote`, `secrets.env-key` |
 
 ## Real-snapshot provenance
 
-All 25 real/redacted cases cite a source. The 20 from official upstreams cite a
+All 26 real/redacted cases cite a source. The 20 from official upstreams cite a
 repo, a pinned commit, and a license:
 
 | Upstream | Commit | License | Cases |
@@ -84,9 +85,9 @@ repo, a pinned commit, and a license:
 | getsentry/sentry-mcp | `ba44f5d61447` | FSL-1.1-Apache-2.0 | C027, C030 |
 | cloudflare/mcp-server-cloudflare | `cb0186135e2f` | Apache-2.0 | C028 |
 
-The 5 from the 0.3.0-rc.0 third-party feedback harvest (RC-B0x) cite the source
+The 6 from the 0.3.0-rc.0 third-party feedback harvest (RC-B0x) cite the source
 repo and pinned commit. Only C032 has a redistributable license (MIT); the other
-four source repos carry **no detectable license**, so they are stored as
+five source repos carry **no detectable/clear license**, so they are stored as
 shape-preserving `redacted-real-snapshot`s — the non-copyrightable config shape is
 retained, not a verbatim redistribution:
 
@@ -96,9 +97,10 @@ retained, not a verbatim redistribution:
 | grantcromwell/cromwell-kit | `32da36e` | none | C033 | redacted-real |
 | WinshipWheatley/openclaw-eyes | `7ca644d` | none | C034 | redacted-real |
 | JacquesGariepy/game-assistant-mcp | `27df1b5` | none | C035 | redacted-real |
+| uengine-oss/process-gpt-completion | `2c80ede` | none | C036 | redacted-real |
 | public `.cursor/mcp.json` (RC-B04) | — | none | C031 | redacted-real |
 
-Five cases are `redacted-real-snapshot`:
+Six cases are `redacted-real-snapshot`:
 
 - **C026** (GitHub Enterprise remote): the README fragment's `...` ellipses were
   removed and the entry wrapped in a valid root; `type`, `url`, and the
@@ -114,6 +116,13 @@ Five cases are `redacted-real-snapshot`:
   the C033 nested-key typo are all preserved because they drive the verdict.
   License is omitted because the source grants no redistribution; the retained
   config *facts* are not copyrightable.
+- **C036** (RC-B10): a real 92-server config from an unlicensed public repo. One
+  server (`odoo ERP`) carried a **real committed credential set** (live employer
+  Odoo URL, DB name, a person's email, a 40-char password); those four values were
+  replaced with neutral placeholders **before** the file entered the repo — the
+  live values were never written to the corpus or any log, and a post-write leak
+  check ran clean. All 92 server shapes (pin state, runtime kind, transport) are
+  otherwise preserved.
 
 Every other real case is verbatim documentation, normalized only to a valid JSON
 root.
@@ -139,7 +148,7 @@ root.
   SAFE (a dangerous false-SAFE: the least-understood config got the safest
   verdict). The case pins `dangerousFalseSafePolicy.thisCaseMustNeverBeSafe: true`,
   so re-introducing the bug fails the gate. The R2.2 acceptance floor
-  (`scripts/run-corpus.mjs`) was ratcheted to 31/21 and then 35/25 so this lock —
+  (`scripts/run-corpus.mjs`) was ratcheted 31/21 → 35/25 → 36/26 so this lock —
   and the real/redacted siblings — cannot be dropped without failing
   `corpus:test:r2-final`.
 - **R2.2 batch 1 (C032–C035): RC inputs promoted to permanent cases.** Four
@@ -158,6 +167,18 @@ root.
   `thisCaseMustNeverBeSafe: false` and records the current contract. If a future
   detector pass flips it, the gate forces this report and the case to be updated
   deliberately.
+- **C036 / RC-B10 — 92-server multi-runtime stress (batch 2).** The largest single
+  config in the corpus: 92 servers mixing `npx`/`uvx`/`python`/`node`/`docker`
+  runtimes and one recognized remote. It exercises finding *multiplicity* —
+  `supply.unpinned-package` ×89 plus one each of `action.external-mutation`,
+  `supply.unknown-remote`, and `secrets.env-key` — and confirms the aggregate
+  verdict is **UNKNOWN** (a recognized remote among 92 is uninspectable), not SAFE,
+  on a config no human would audit by hand. maxRiskClass S3. The contract uses
+  `requiredFindingIds` with `minCount: 50` on the unpinned finding rather than
+  pinning the exact 89, so the lock survives benign upstream reshuffling while
+  still proving the multiplicity. Secret handling: the one real committed
+  credential set was placeholder-substituted before storage (see provenance
+  above); `thisCaseMustNeverBeSafe: true`.
 - **`npx mcp-remote <url>` reads as unpinned npx, not a remote.** C028
   (Cloudflare) pins this: the URL is an argument to a local bridge package, so
   the engine flags the unpinned bridge (REVIEW), not a remote source.
@@ -182,7 +203,7 @@ All nine finding ids the engine can emit are exercised by at least one case:
 pnpm build
 pnpm corpus:test                                         # contract gate
 pnpm corpus:test -- --summary-json corpus-summary.json   # machine summary
-pnpm corpus:test:r2-final                                # acceptance gate (green at 35/25)
+pnpm corpus:test:r2-final                                # acceptance gate (green at 36/26)
 ```
 
 The run is deterministic; this report reproduces exactly until the corpus or the
@@ -193,12 +214,13 @@ detectors change — at which point the gate forces it to be updated alongside.
 **R2.1 shipped** (30 cases, 20 real/redacted, one real precision fix from
 calibration). **R2.2 is active**: the corpus has ratcheted 30 → 31 (C031 RC-BLK-01
 lock) → 35 (batch 1: C032–C035, validated RC non-author inputs promoted to
-permanent cases), with the acceptance floor moving up to match each batch (now
-35/25). It continues toward 45 → 60 from real/redacted field feedback. Next:
+permanent cases) → 36 (batch 2: C036, the B10 92-server multi-runtime stress), with
+the acceptance floor moving up to match each batch (now 36/26). It continues toward
+45 → 60 from real/redacted field feedback. Next:
 
-- **R2.2 batch 2** — sanitise and promote the B10 90-server multi-runtime stress
-  config (deferred until fully redacted: it once carried a real committed secret);
-  continue harvesting real/redacted field configs toward 45.
+- **R2.2 batch 3+** — continue harvesting real/redacted field configs toward 45;
+  prioritise verdict shapes still thin in the corpus (observed money movement,
+  prompt poisoning in real configs).
 - **Detector-calibration ADRs (record, do not fix in R2.2)** — RC-OBS-02 (bare
   local executable → SAFE, baselined as C035) is recorded in
   [ADR 0011](./adr/0011-unrecognized-local-command-calibration.md); the C023
