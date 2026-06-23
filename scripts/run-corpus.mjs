@@ -39,15 +39,24 @@ const FIXED_NOW = "2026-06-16T00:00:00.000Z"
 const RISK_RANK = { S0: 0, S1: 1, S2: 2, S3: 3, S4: 4, S5: 5 }
 
 /**
- * R2.1 acceptance thresholds. The seed corpus (R2.0) is synthetic and small on
- * purpose; --r2-final asserts the corpus has grown into a credible calibration
- * set before a stable release. See docs/CORPUS_CURATION.md and
- * docs/STABLE_RELEASE_GATE.md. These are deliberately strict — the gate is
- * meant to FAIL until R2.1 curation is actually done.
+ * Corpus acceptance thresholds (R2 ratchet). The seed corpus (R2.0) is synthetic
+ * and small on purpose; --r2-final asserts the corpus has grown into a credible
+ * calibration set before a release. See docs/CORPUS_CURATION.md and
+ * docs/STABLE_RELEASE_GATE.md.
+ *
+ * These ratchet MONOTONICALLY UP as R2.2 adds real/redacted cases — they are a
+ * floor that locks in coverage already achieved, never a ceiling, and never
+ * loosened. R2.1 shipped at 30/20; this floor was raised to 31/21 once the
+ * C031 (RC-BLK-01) regression lock and its real-snapshot siblings landed, so the
+ * gate now FAILS if that coverage is ever removed.
+ *
+ * maxUnknownRatio is held at 0.15 and deliberately NOT tightened: UNKNOWN is the
+ * safe direction (an unverifiable source must never round down to SAFE), so a
+ * tighter UNKNOWN cap would pressure the corpus toward false precision.
  */
 const R2_FINAL = {
-  minTotalCases: 30,
-  minRealOrRedacted: 20,
+  minTotalCases: 31,
+  minRealOrRedacted: 21,
   maxUnknownRatio: 0.15,
 }
 
