@@ -1,0 +1,31 @@
+{
+  "schemaVersion": "calllint.corpus.case.v1",
+  "caseId": "C035-safe-game-assistant-local-node",
+  "title": "Bare local node server script resolves SAFE (documented under-call, RC-OBS-02)",
+  "curationStatus": "redacted-real-snapshot",
+  "riskTheme": ["shell"],
+  "origin": {
+    "kind": "public-repository",
+    "description": "Shape-preserving redaction of a real committed claude_desktop_config.json from the public repo JacquesGariepy/game-assistant-mcp (RC-B06, 0.3.0-rc.0 window). The repo carries no detectable license, so only the non-copyrightable config shape is retained: a single server launched via a recognized local 'node <path>/server.js' command with no env and no args beyond the script path. The identifying Windows username was neutralized.",
+    "url": "https://github.com/JacquesGariepy/game-assistant-mcp",
+    "commit": "27df1b5",
+    "retrievedAt": "2026-06-22T00:00:00.000Z",
+    "redactions": [
+      "install path C:/Users/<user>/Documents/POC/... -> C:/Users/example/Documents/POC/...",
+      "license omitted: source repo has no detectable license; stored as a shape-preserving redacted snapshot, not redistributed verbatim"
+    ]
+  },
+  "input": { "path": "input/mcp.json", "format": "claude-desktop-json-fragment" },
+  "humanExpectation": {
+    "verdict": "SAFE",
+    "rationale": "A bare local 'node <script>.js' command with a recognized runtime and no broad path, secret, remote, or supply-chain surface resolves to SAFE under current evidence: the source is observable (the command string is right there) and no blocking finding fires. This case pins that baseline so a future detector change is forced to update it deliberately.",
+    "knownLimitations": [
+      "RC-OBS-02: an unrecognized-but-observable local executable (a node script that runs arbitrary local code) is treated as SAFE because its source is visible, not unknown. Whether such a local entrypoint should instead be REVIEW ('runs arbitrary local code, source not independently verifiable') is an open detector-calibration question tracked for an ADR; it is NOT a dangerous false-SAFE by the resolver definition (the source is not hidden). thisCaseMustNeverBeSafe is therefore left false: this case records the current contract, it does not assert SAFE is the final answer."
+    ]
+  },
+  "executionPolicy": {
+    "executeTarget": false,
+    "allowNetwork": false,
+    "allowFilesystemMutation": false
+  }
+}

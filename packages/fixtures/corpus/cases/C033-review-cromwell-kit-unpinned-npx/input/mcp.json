@@ -1,0 +1,23 @@
+{
+    "mcpServers": {
+        "filesystem": {
+            "command": "npx",
+            "args": ["-y", "@modelcontextprotocol/server-filesystem", "/Volumes/Elements/workspace/project"],
+            "env": {}
+        },
+        "git": {
+            "command": "npx",
+            "args": ["-y", "@modelcontextprotocol/server-git", "--repository", "/Volumes/Elements/workspace/project"],
+            "env": {}
+        },
+        "context7": {
+            "command": "npx",
+            "args": ["-y", "@context7/mcp-server"],
+            "env": {},
+            "svelte": {
+                "command": "npx",
+                "args": ["-y", "@sveltejs/mcp"]
+            }
+        }
+    }
+}
