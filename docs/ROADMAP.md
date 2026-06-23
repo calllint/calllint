@@ -55,9 +55,10 @@ chain, and CI integration are stable** — not that any tool is proven safe.
 ### R2.2 — continuous corpus
 Turn the corpus from a one-time gate into a growing regression system; every
 valid redacted real case from RC/field feedback becomes a case. Rough cadence
-35 → 45 → 60 cases, each batch updating
-[R2_CALIBRATION.md](./R2_CALIBRATION.md), coverage, and the UNKNOWN trend.
-Thresholds only tighten (dangerous false-SAFE stays 0; UNKNOWN ≤ 15%).
+35 → 45 → 60 cases (batch 1 reached 35: C031 lock + C032–C035), each batch
+updating [R2_CALIBRATION.md](./R2_CALIBRATION.md), coverage, and the UNKNOWN
+trend. The acceptance floor only ratchets up (dangerous false-SAFE stays 0;
+UNKNOWN ≤ 15%).
 
 ### R3 — `calllint diagnostics --json`
 A stable, editor-friendly machine protocol (file/line/column, severity, finding
