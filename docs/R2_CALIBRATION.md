@@ -200,8 +200,11 @@ permanent cases), with the acceptance floor moving up to match each batch (now
   config (deferred until fully redacted: it once carried a real committed secret);
   continue harvesting real/redacted field configs toward 45.
 - **Detector-calibration ADRs (record, do not fix in R2.2)** — RC-OBS-02 (bare
-  local executable → SAFE, baselined as C035) and the C023 docker-`--mount`
-  false negative each need their own ADR before any verdict change, since both
-  would re-verdict legitimate existing configs.
+  local executable → SAFE, baselined as C035) is recorded in
+  [ADR 0011](./adr/0011-unrecognized-local-command-calibration.md); the C023
+  docker-`--mount` false negative is recorded in
+  [ADR 0012](./adr/0012-docker-mount-host-paths-not-inspected.md). Both are
+  Proposed/deferred: each would re-verdict legitimate existing configs, so any
+  verdict change needs fixtures and a corpus impact pass before landing.
 - **R3+** — diagnostics command, prompt-surface depth, the SARIF dogfood demo
   repo, and a detector pass for the recorded false negatives.

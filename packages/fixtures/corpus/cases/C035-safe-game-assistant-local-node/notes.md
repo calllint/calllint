@@ -31,6 +31,13 @@ should be REVIEW, this case forces that change to be made deliberately — the g
 will flag the verdict flip, the calibration doc updates, and the decision is
 recorded rather than slipping in silently.
 
+## Decision record
+The calibration question this case anchors (should an unrecognized-but-observable
+local executable be REVIEW instead of SAFE?) is recorded in
+[ADR 0011](../../../../../docs/adr/0011-unrecognized-local-command-calibration.md)
+(Proposed — deferred). If that ADR is accepted with direction (2), this case flips
+SAFE → REVIEW and is updated deliberately.
+
 ## Provenance / redaction
 Source: JacquesGariepy/game-assistant-mcp `claude_desktop_config.json` @ 27df1b5.
 No detectable license, so stored as a shape-preserving `redacted-real-snapshot`;
