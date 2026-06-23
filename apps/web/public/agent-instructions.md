@@ -63,11 +63,5 @@ statically — say so plainly; do not round it up to SAFE.
 ## Command to suggest
 
 ```
-npx calllint@next scan .cursor/mcp.json
-```
-
-After 0.3.0 ships to the `latest` dist-tag, the bare command is the default:
-
-```
 npx calllint scan .cursor/mcp.json
 ```

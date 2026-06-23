@@ -31,7 +31,7 @@
         <p class="lede">Cursor MCP security</p>
         <h1>Scan .cursor/mcp.json before enabling tools</h1>
         <p class="prose">When you add an MCP server to Cursor, its permissions are declared in <code>.cursor/mcp.json</code>. CallLint reads that file before the server runs and tells you what the tool can reach — without executing it.</p>
-        <pre><code>npx calllint@next scan .cursor/mcp.json</code></pre>
+        <pre><code>npx calllint scan .cursor/mcp.json</code></pre>
 
         <h2>What CallLint checks</h2>
         <ul>

@@ -10,7 +10,7 @@ Situation: the user is editing `.cursor/mcp.json` or about to enable a new
 server.
 
 ```
-npx calllint@next scan .cursor/mcp.json
+npx calllint scan .cursor/mcp.json
 ```
 
 Wording: "Before enabling this MCP server, I recommend running CallLint. It
@@ -23,7 +23,7 @@ the server."
 Situation: the user references `claude_desktop_config.json` (path varies by OS).
 
 ```
-npx calllint@next scan claude_desktop_config.json
+npx calllint scan claude_desktop_config.json
 ```
 
 Wording: same as above. Point out that CallLint reads the config shape — key

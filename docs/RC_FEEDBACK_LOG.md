@@ -9,6 +9,10 @@ Install under test: `npx calllint@next` (now `0.3.0-rc.1`, published 2026-06-22)
 
 ## Window status
 
+- **Window: CLOSED (2026-06-22).** Target coverage met, every blocker closed, the
+  [stable gate](./STABLE_RELEASE_GATE.md) fully checked, and **`0.3.0` promoted to
+  the `latest` dist-tag** (GitHub Release `v0.3.0`, not a pre-release). Stable is
+  byte-identical to `0.3.0-rc.1`.
 - RC version: **`0.3.0-rc.1`** (published to the `next` dist-tag, signed
   provenance via OIDC Trusted Publishing). Supersedes `0.3.0-rc.0`, which carried
   the RC-BLK-01 bug.
@@ -24,8 +28,9 @@ Install under test: `npx calllint@next` (now `0.3.0-rc.1`, published 2026-06-22)
 - Unresolved dangerous false-SAFE: **0** (on the published rc.1 artifact and in the
   corpus).
 
-Promote to stable only when target coverage is met, every blocker is closed, and
-the [stable gate](./STABLE_RELEASE_GATE.md) is fully checked.
+The promotion conditions — target coverage met, every blocker closed, and the
+[stable gate](./STABLE_RELEASE_GATE.md) fully checked — were all satisfied, and
+`0.3.0` shipped to `latest`.
 
 ## Release verification (pre-feedback baseline)
 
@@ -266,7 +271,7 @@ Detail on the entries that matter:
   out of scope for the RC-BLK-01 fix. Tracked here + with B06 as an R2.2 calibration
   candidate.
 
-## Interim summary (real non-author coverage met; **RC-BLK-01 resolved** on a fix branch)
+## Close-out summary (real non-author coverage met; **RC-BLK-01 resolved**, stable shipped)
 
 - Configs scanned via published `@next`: **41** (30 fixture-parity + 1 RC-A02
   public + 10 RC-B real non-author + synthetic minimisation cases). The 10 RC-B
@@ -293,8 +298,9 @@ Detail on the entries that matter:
   published `npx calllint@next` = rc.1** (dangerous false-SAFE = 0).
 - R2.2 candidates: B10 (90-server multi-runtime stress, once fully sanitised);
   RC-OBS-02 / B06 (local-command calibration).
-- **Recommendation: RC-BLK-01 is closed on the published artifact.** The dangerous
-  false-SAFE hard blocker is resolved, regression-locked, merged, and re-validated
-  on the published `0.3.0-rc.1` (`@next`). Stable `0.3.0 → latest` now depends only
-  on the remaining stable-gate items (dist-tag correction, final RC close-out), not
-  on this blocker.
+- **Outcome: RC-BLK-01 is closed and stable `0.3.0` has shipped.** The dangerous
+  false-SAFE hard blocker was resolved, regression-locked, merged, and re-validated
+  on the published `0.3.0-rc.1` (`@next`). With the stable gate fully checked,
+  `0.3.0` was promoted to the `latest` dist-tag (engine byte-identical to rc.1) and
+  GitHub Release `v0.3.0` published as latest (not a pre-release). This RC window is
+  closed.

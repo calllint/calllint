@@ -47,8 +47,8 @@
 
         <h2>Suggested wording</h2>
         <p class="prose">Before enabling this MCP server, I recommend running CallLint. It statically scans the config before the server runs and returns SAFE, REVIEW, BLOCK, or UNKNOWN with evidence. It will not execute, install, or connect to the server.</p>
-        <pre><code>npx calllint@next scan .cursor/mcp.json</code></pre>
-        <p class="prose">After 0.3.0 ships to the <code>latest</code> tag, the bare command is the default: <code>npx calllint scan .cursor/mcp.json</code>.</p>
+        <pre><code>npx calllint scan .cursor/mcp.json</code></pre>
+        <p class="prose">The bare command installs the latest stable <code>calllint</code> from npm (the <code>latest</code> tag).</p>
 
         <h2>How to explain each verdict</h2>
         <ul>
@@ -70,7 +70,7 @@
           <li>Do not say CallLint sandboxes, executes, or replaces code review.</li>
         </ul>
 
-        <div class="callout">CallLint is a pre-1.0 release candidate and offers heuristic decision support, not a safety guarantee.</div>
+        <div class="callout">CallLint is pre-1.0 and offers heuristic decision support, not a safety guarantee.</div>
 
         <p class="topic-nav">Machine-readable resources:
           <a href="/llms.txt">llms.txt</a> ·

@@ -1,11 +1,10 @@
 # CallLint Project Status
 
-Current phase: **v0.3.0 — stable, prepared on `main`** (version bumped, CHANGELOG
-and gate complete; **not yet tagged/published**). The published artifact is still
-`0.3.0-rc.1` on the `next` dist-tag; promotion to `latest` is the remaining
-human-gated publish step (GitHub Release → OIDC publish → `npm dist-tag add
-calllint@0.3.0 latest`). No scanner-semantics change from rc.1 — engine is
-byte-identical.
+Current phase: **v0.3.0 — stable, published** (npm `latest` → `0.3.0`; GitHub
+Release `v0.3.0` is the latest, non-pre-release). The promotion was a human-gated
+publish (GitHub Release → OIDC publish → `npm dist-tag add calllint@0.3.0
+latest`), which also resolved the earlier `latest` → `0.3.0-preview.0` drift. No
+scanner-semantics change from `0.3.0-rc.1` — the engine is byte-identical.
 
 CallLint is a deterministic, offline-first CLI for pre-run risk linting of MCP
 and agent-tool configurations. It returns SAFE / REVIEW / BLOCK / UNKNOWN with
@@ -19,12 +18,13 @@ Product name: **CallLint** (CLI `calllint`, npm `calllint`, internal scope
 ## Public artifacts
 
 - Website: https://calllint.com (Cloudflare Pages, auto-deployed from `main`)
-- npm package: published dist-tags — `next: 0.3.0-rc.1`, `preview:
-  0.3.0-preview.1`, `latest: 0.3.0-preview.0` (drift). **`0.3.0` stable is prepared
-  in-repo** (version bumped, CHANGELOG); on publish it claims `latest` and resolves
-  the drift (`npm dist-tag add calllint@0.3.0 latest`).
+- npm package: published dist-tags — `latest: 0.3.0`, `next: 0.3.0-rc.1`,
+  `preview: 0.3.0-preview.1`. The stable publish pointed `latest` at `0.3.0` and
+  resolved the earlier `0.3.0-preview.0` drift (`npm dist-tag add calllint@0.3.0
+  latest`).
 - GitHub repository: `calllint/calllint`
-- Install / run (pre-stable, rc on `next`): `npx calllint@next scan .cursor/mcp.json`
+- GitHub Release: `v0.3.0` (latest, not a pre-release)
+- Install / run: `npx calllint scan .cursor/mcp.json`
 
 ## Completed
 
@@ -47,6 +47,10 @@ Product name: **CallLint** (CLI `calllint`, npm `calllint`, internal scope
 - SARIF dogfood live: [`calllint-demo-risky-mcp`](https://github.com/calllint/calllint-demo-risky-mcp)
   runs CallLint in GitHub Actions; alerts appear in Code Scanning.
 - npm public preview published (`0.3.0-preview.0`, then `0.3.0-preview.1`).
+- RC feedback window: `0.3.0-rc.0` published to `next`, third-party config harvest
+  (B01–B10), RC-BLK-01 found and fixed, `0.3.0-rc.1` published and re-validated.
+- **Stable `0.3.0` published** — promoted to npm `latest`, GitHub Release `v0.3.0`
+  (latest, not a pre-release); engine byte-identical to rc.1.
 
 ## Current limitations
 
@@ -54,7 +58,7 @@ Product name: **CallLint** (CLI `calllint`, npm `calllint`, internal scope
 - Does not prove runtime safety; a clean run is necessary, not sufficient.
 - R2.1 corpus meets its thresholds but does not yet represent the full MCP
   ecosystem; expansion continues.
-- Pre-1.0 preview; verdicts are heuristic decision support, not a guarantee.
+- Pre-1.0; verdicts are heuristic decision support, not a guarantee.
 
 ## Verification status (last run)
 
@@ -100,21 +104,21 @@ Product name: **CallLint** (CLI `calllint`, npm `calllint`, internal scope
   **re-validated on the published artifact** (B04 + 4 synthetic shapes + B01–B10
   all correct on `npx calllint@next` = rc.1; dangerous false-SAFE = 0).
   **Resolved.** See [docs/RC_FEEDBACK_LOG.md](docs/RC_FEEDBACK_LOG.md).
-- **npm dist-tag drift:** `latest` currently points at `0.3.0-preview.0` (the
-  first preview, published before the release workflow derived dist-tags from
-  the version). `preview` correctly points at `0.3.0-preview.1`. A preview
-  should not occupy `latest`; this is tracked for correction at the first stable
-  (`0.3.0`) release. See [docs/RELEASE_VERIFICATION.md](docs/RELEASE_VERIFICATION.md).
+- **npm dist-tag drift (resolved at stable):** before the stable release, `latest`
+  pointed at `0.3.0-preview.0` (the first preview, published before the release
+  workflow derived dist-tags from the version). The `0.3.0` stable publish moved
+  `latest` to `0.3.0` (`npm dist-tag add calllint@0.3.0 latest`), so a preview no
+  longer occupies `latest`. See [docs/RELEASE_VERIFICATION.md](docs/RELEASE_VERIFICATION.md).
 
 ## Next roadmap (v0.3)
 
 1. **Done — `0.3.0-rc.1` published** to the `next` dist-tag (RC-BLK-01 fixed and
-   re-validated on the published artifact). Close out the RC feedback window
-   ([docs/RC_FEEDBACK_PROTOCOL.md](docs/RC_FEEDBACK_PROTOCOL.md)).
-2. **Stable `0.3.0`** to `latest`, gated by
-   [docs/STABLE_RELEASE_GATE.md](docs/STABLE_RELEASE_GATE.md); correct the
-   `latest` → preview.0 drift at that point and flip the website's default
-   install command to `npx calllint`.
+   re-validated on the published artifact).
+2. **Done — stable `0.3.0` published** to `latest` (gate
+   [docs/STABLE_RELEASE_GATE.md](docs/STABLE_RELEASE_GATE.md) fully checked),
+   resolving the `latest` → preview.0 drift, with the website + README default
+   install flipped to `npx calllint`. RC feedback window
+   ([docs/RC_FEEDBACK_PROTOCOL.md](docs/RC_FEEDBACK_PROTOCOL.md)) closed.
 3. **R2.2 — corpus breadth:** continue adding real-public/redacted snapshots
    beyond the R2.1 thresholds; keep measuring false positives, parser
    boundaries, and UNKNOWN rate.
