@@ -298,6 +298,18 @@
       "riskTheme": [
         "shell"
       ]
+    },
+    {
+      "caseId": "C036-review-90-server-multi-runtime",
+      "path": "cases/C036-review-90-server-multi-runtime",
+      "expectedVerdict": "UNKNOWN",
+      "riskTheme": [
+        "supply-chain",
+        "remote",
+        "env",
+        "side-effect",
+        "unknown"
+      ]
     }
   ]
 }
