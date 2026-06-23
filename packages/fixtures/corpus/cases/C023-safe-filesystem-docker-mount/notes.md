@@ -10,7 +10,7 @@
 
 **Known false positives:** None — no finding is emitted.
 
-**Known false negatives / limits:** A broad host path bound via docker --mount src= is not currently flagged (the path lives in a docker flag, not the server's path args).
+**Known false negatives / limits:** A broad host path bound via docker --mount src= is not currently flagged (the path lives in a docker flag, not the server's path args). The mechanism and a candidate fix are recorded in [ADR 0012](../../../../../docs/adr/0012-docker-mount-host-paths-not-inspected.md) (Proposed — deferred); if accepted, this case flips SAFE → BLOCK and is updated deliberately.
 
 **Redactions:**
 none — content is verbatim public documentation, normalized only to a valid JSON root.
