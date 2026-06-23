@@ -22,17 +22,17 @@ Do not promote to `latest` on feel. Every box must be checked.
 
 ## Evidence & calibration
 
-- [x] R2.1 corpus ≥ 30 cases. *(31 cases; R2.2 floor ratcheted to 31)*
+- [x] R2.1 corpus ≥ 30 cases. *(35 cases; R2.2 floor ratcheted to 35)*
 - [x] ≥ 20 cases are `redacted-real-snapshot` or `real-public-snapshot` (each
-      with origin metadata). *(21: 19 real-public + 2 redacted)*
+      with origin metadata). *(25: 20 real-public + 5 redacted)*
 - [x] `corpus:test` (and `corpus:test:r2-final`) pass.
 - [x] Dangerous false-SAFE = 0. *(0 on the published `0.3.0-rc.1` — B04 + 4
-      synthetic shapes + B01–B10 all correct; corpus 31 cases report 0. Stable
+      synthetic shapes + B01–B10 all correct; corpus 35 cases report 0. Stable
       `0.3.0` is byte-identical to rc.1.)*
-- [x] UNKNOWN ratio ≤ 15%. *(12.9%)*
+- [x] UNKNOWN ratio ≤ 15%. *(11.4%)*
 - [x] Every REVIEW/BLOCK finding has evidence, a false-positive note, and
       remediation.
-- [x] `docs/R2_CALIBRATION.md` regenerated and current. *(31/21)*
+- [x] `docs/R2_CALIBRATION.md` regenerated and current. *(35/25)*
 
 ## Distribution & supply chain
 

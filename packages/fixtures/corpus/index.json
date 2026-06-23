@@ -265,6 +265,39 @@
         "unknown",
         "parser-edge"
       ]
+    },
+    {
+      "caseId": "C032-review-weather-mcp-db-creds",
+      "path": "cases/C032-review-weather-mcp-db-creds",
+      "expectedVerdict": "REVIEW",
+      "riskTheme": [
+        "env"
+      ]
+    },
+    {
+      "caseId": "C033-review-cromwell-kit-unpinned-npx",
+      "path": "cases/C033-review-cromwell-kit-unpinned-npx",
+      "expectedVerdict": "REVIEW",
+      "riskTheme": [
+        "supply-chain"
+      ]
+    },
+    {
+      "caseId": "C034-block-openclaw-filesystem-broad-home",
+      "path": "cases/C034-block-openclaw-filesystem-broad-home",
+      "expectedVerdict": "BLOCK",
+      "riskTheme": [
+        "filesystem",
+        "supply-chain"
+      ]
+    },
+    {
+      "caseId": "C035-safe-game-assistant-local-node",
+      "path": "cases/C035-safe-game-assistant-local-node",
+      "expectedVerdict": "SAFE",
+      "riskTheme": [
+        "shell"
+      ]
     }
   ]
 }

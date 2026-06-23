@@ -1,0 +1,30 @@
+{
+  "schemaVersion": "calllint.corpus.case.v1",
+  "caseId": "C032-review-weather-mcp-db-creds",
+  "title": "Local weather MCP server with credential-shaped env keys is REVIEW",
+  "curationStatus": "real-public-snapshot",
+  "riskTheme": ["env"],
+  "origin": {
+    "kind": "public-repository",
+    "description": "Public example claude_desktop_config from glaucia86/weather-mcp-server (claude_desktop_config.json.text), harvested as RC-B07 during the 0.3.0-rc.0 feedback window. The env values are upstream's own placeholders (Portuguese 'sua-...-aqui' = 'your-...-here'); DATABASE_URL/REDIS_URL point at localhost. The user-specific install path was normalized to C:/Users/example.",
+    "url": "https://github.com/glaucia86/weather-mcp-server",
+    "commit": "c688791",
+    "license": "MIT",
+    "retrievedAt": "2026-06-22T00:00:00.000Z",
+    "redactions": ["install path C:/Users/<user>/... -> C:/Users/example/...", "WEATHER_API_KEY placeholder normalized to example-weather-api-key"]
+  },
+  "input": { "path": "input/mcp.json", "format": "claude-desktop-json-fragment" },
+  "humanExpectation": {
+    "verdict": "REVIEW",
+    "rationale": "A credential-shaped env key (WEATHER_API_KEY) is a real secret surface a reviewer must confirm is sourced safely, even though the committed value is a placeholder. The local node entrypoint and localhost DB/Redis URLs are not themselves blocking. The honest verdict is REVIEW, not BLOCK.",
+    "knownLimitations": [
+      "The secrets detector keys on the credential-shaped name (*_API_KEY), not on whether the value is a live secret or a placeholder.",
+      "DATABASE_URL embeds inline credentials (mcp_user:mcp_pass) but is a localhost dev string; it is not flagged as a credential env key by name shape."
+    ]
+  },
+  "executionPolicy": {
+    "executeTarget": false,
+    "allowNetwork": false,
+    "allowFilesystemMutation": false
+  }
+}
