@@ -310,6 +310,44 @@
         "side-effect",
         "unknown"
       ]
+    },
+    {
+      "caseId": "C037-review-stripe-payments-inferred",
+      "path": "cases/C037-review-stripe-payments-inferred",
+      "expectedVerdict": "REVIEW",
+      "riskTheme": [
+        "money",
+        "side-effect",
+        "env",
+        "supply-chain"
+      ]
+    },
+    {
+      "caseId": "C038-review-jira-mutation-secrets",
+      "path": "cases/C038-review-jira-mutation-secrets",
+      "expectedVerdict": "REVIEW",
+      "riskTheme": [
+        "side-effect",
+        "env",
+        "supply-chain"
+      ]
+    },
+    {
+      "caseId": "C039-review-google-ads-multi-secret",
+      "path": "cases/C039-review-google-ads-multi-secret",
+      "expectedVerdict": "REVIEW",
+      "riskTheme": [
+        "env",
+        "supply-chain"
+      ]
+    },
+    {
+      "caseId": "C040-safe-postgres-local-python",
+      "path": "cases/C040-safe-postgres-local-python",
+      "expectedVerdict": "SAFE",
+      "riskTheme": [
+        "env"
+      ]
     }
   ]
 }

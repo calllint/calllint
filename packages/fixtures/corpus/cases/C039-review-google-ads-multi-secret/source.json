@@ -1,0 +1,32 @@
+{
+  "schemaVersion": "calllint.corpus.case.v1",
+  "caseId": "C039-review-google-ads-multi-secret",
+  "title": "Local Google Ads MCP package with mixed credential / non-credential env keys (REVIEW)",
+  "curationStatus": "redacted-real-snapshot",
+  "riskTheme": ["env", "supply-chain"],
+  "origin": {
+    "kind": "public-repository",
+    "description": "Single-server config from the public MCP catalog repo khopilot/amazing-mcp-for-productivity (productivity/google_ads_mcp.json). A local 'npx -y google-ads-mcp-server' launcher with five GOOGLE_ADS_* env keys. The repo carries no detectable license, so only the non-copyrightable config shape is retained. All committed env values are already upstream's own placeholders ('your_google_ads_...'); no real secret was present.",
+    "url": "https://github.com/khopilot/amazing-mcp-for-productivity",
+    "commit": "b0c3ac150f70f225026a3da3c0a77f9253779a7a",
+    "retrievedAt": "2026-06-24T00:00:00.000Z",
+    "redactions": [
+      "license omitted: source repo has no detectable license; stored as a shape-preserving redacted snapshot, not redistributed verbatim",
+      "no secret redaction needed: all five GOOGLE_ADS_* env values were already upstream placeholders ('your_google_ads_*')"
+    ]
+  },
+  "input": { "path": "input/mcp.json", "format": "mcp-json-fragment" },
+  "humanExpectation": {
+    "verdict": "REVIEW",
+    "rationale": "A local launcher with credential-shaped env keys (GOOGLE_ADS_CLIENT_SECRET, GOOGLE_ADS_DEVELOPER_TOKEN, GOOGLE_ADS_REFRESH_TOKEN -> 'secrets.env-key') plus an unpinned package ('npx -y google-ads-mcp-server' -> 'supply.unpinned-package'). The honest verdict is REVIEW: the credential surface must be confirmed sourced safely, and the package pinned. The value of this case is the MIXED env shape — it pins that the secrets detector flags only the credential-shaped names and leaves the two non-credential ones (GOOGLE_ADS_CLIENT_ID, GOOGLE_ADS_CUSTOMER_ID) unflagged.",
+    "knownLimitations": [
+      "secrets.env-key keys on credential-shaped substrings (SECRET / TOKEN); it flags GOOGLE_ADS_CLIENT_SECRET, GOOGLE_ADS_DEVELOPER_TOKEN, GOOGLE_ADS_REFRESH_TOKEN but NOT GOOGLE_ADS_CLIENT_ID or GOOGLE_ADS_CUSTOMER_ID. A client id is an identifier, not a secret, so this is the intended true-negative; but note an OAuth client secret's risk depends on pairing with the id, which name-shape detection does not model.",
+      "No financial/mutation inference: 'google-ads-mcp-server' does not match the financial or external-mutation hint lists, so only the env + supply-chain surfaces drive the verdict."
+    ]
+  },
+  "executionPolicy": {
+    "executeTarget": false,
+    "allowNetwork": false,
+    "allowFilesystemMutation": false
+  }
+}
