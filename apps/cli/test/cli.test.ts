@@ -78,6 +78,75 @@ describe("scan via stdin", () => {
   })
 })
 
+describe("diagnostics", () => {
+  it("--json emits the diagnostics.v0 schema with populated key-path entries", () => {
+    const text = readFileSync(goldenPath("block-filesystem.json"), "utf8")
+    const r = run(["diagnostics", "--stdin", "--json"], deps(text))
+    expect(r.exitCode).toBe(EXIT.OK)
+    const parsed = JSON.parse(r.stdout)
+    expect(parsed.schemaVersion).toBe("calllint.diagnostics.v0")
+    expect(parsed.verdict).toBe("BLOCK")
+    expect(parsed.diagnostics.length).toBeGreaterThan(0)
+    const broad = parsed.diagnostics.find(
+      (d: { ruleId: string }) => d.ruleId === "files.broad-path",
+    )
+    expect(broad).toBeTruthy()
+    expect(broad.keyPath).toBeTruthy()
+    expect(broad.remediation).toBeTruthy()
+    expect(broad.verdictContribution).toBe("blocker")
+    // v0 is key-path-scoped: line/column are reserved but always null.
+    expect(broad.line).toBeNull()
+    expect(broad.column).toBeNull()
+  })
+
+  it("every entry has null line/column in v0", () => {
+    const text = readFileSync(goldenPath("block-filesystem.json"), "utf8")
+    const r = run(["diagnostics", "--stdin", "--json"], deps(text))
+    const parsed = JSON.parse(r.stdout)
+    for (const d of parsed.diagnostics) {
+      expect(d.line).toBeNull()
+      expect(d.column).toBeNull()
+    }
+  })
+
+  it("a SAFE config yields a valid envelope with no diagnostics", () => {
+    const text = readFileSync(goldenPath("safe-time.json"), "utf8")
+    const r = run(["diagnostics", "--stdin", "--json"], deps(text))
+    expect(r.exitCode).toBe(EXIT.OK)
+    const parsed = JSON.parse(r.stdout)
+    expect(parsed.schemaVersion).toBe("calllint.diagnostics.v0")
+    expect(parsed.verdict).toBe("SAFE")
+    expect(parsed.diagnostics).toEqual([])
+  })
+
+  it("emits emoji-free JSON", () => {
+    const text = readFileSync(goldenPath("block-filesystem.json"), "utf8")
+    const r = run(["diagnostics", "--stdin", "--json"], deps(text))
+    expect(/\p{Extended_Pictographic}/u.test(r.stdout)).toBe(false)
+  })
+
+  it("requires --json (usage error otherwise)", () => {
+    const text = readFileSync(goldenPath("block-filesystem.json"), "utf8")
+    const r = run(["diagnostics", "--stdin"], deps(text))
+    expect(r.exitCode).toBe(EXIT.USAGE)
+    expect(r.stderr).toContain("JSON only")
+  })
+
+  it("--ci maps the verdict to an exit code (BLOCK=30) without changing it", () => {
+    const text = readFileSync(goldenPath("block-filesystem.json"), "utf8")
+    const r = run(["diagnostics", "--stdin", "--json", "--ci"], deps(text))
+    expect(r.exitCode).toBe(EXIT.BLOCK)
+    expect(JSON.parse(r.stdout).verdict).toBe("BLOCK")
+  })
+
+  it("malformed JSON exits with parse error", () => {
+    const text = readFileSync(goldenPath("malformed.json"), "utf8")
+    const r = run(["diagnostics", "--stdin", "--json"], deps(text))
+    expect(r.exitCode).toBe(EXIT.ERROR)
+    expect(r.stderr).toContain("Parse error")
+  })
+})
+
 describe("scan file + default discovery", () => {
   it("scans an explicit path", () => {
     const p = join(dir, "mcp.json")
