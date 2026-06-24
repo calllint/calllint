@@ -1,0 +1,32 @@
+{
+  "schemaVersion": "calllint.corpus.case.v1",
+  "caseId": "C037-review-stripe-payments-inferred",
+  "title": "Local Stripe payments MCP package infers a financial action surface (REVIEW)",
+  "curationStatus": "redacted-real-snapshot",
+  "riskTheme": ["money", "side-effect", "env", "supply-chain"],
+  "origin": {
+    "kind": "public-repository",
+    "description": "Single-server config from the public MCP catalog repo khopilot/amazing-mcp-for-productivity (web_development/stripe_mcp.json). A local 'npx -y stripe-mcp-server' launcher with a STRIPE_API_KEY env. The repo carries no detectable license, so only the non-copyrightable config shape is retained. The committed STRIPE_API_KEY value is already upstream's own placeholder ('your_stripe_api_key'); no real secret was present.",
+    "url": "https://github.com/khopilot/amazing-mcp-for-productivity",
+    "commit": "b0c3ac150f70f225026a3da3c0a77f9253779a7a",
+    "retrievedAt": "2026-06-24T00:00:00.000Z",
+    "redactions": [
+      "license omitted: source repo has no detectable license; stored as a shape-preserving redacted snapshot, not redistributed verbatim",
+      "no secret redaction needed: STRIPE_API_KEY value was already the upstream placeholder 'your_stripe_api_key'"
+    ]
+  },
+  "input": { "path": "input/mcp.json", "format": "mcp-json-fragment" },
+  "humanExpectation": {
+    "verdict": "REVIEW",
+    "rationale": "The package name 'stripe-mcp-server' is a name-based hint of a payments/financial domain, so the engine emits the INFERRED 'action.financial' finding (low confidence, non-blocking, MONEY symbol) — the first real/redacted case for that finding, which was previously synthetic-only (C008). The same server also unpins its package ('npx -y stripe-mcp-server' -> 'supply.unpinned-package') and declares a credential-shaped env key (STRIPE_API_KEY -> 'secrets.env-key'), and the payments name also trips the broader 'action.external-mutation' inference. None of these is a blocker; an autonomous agent should not be cleared to move money on a name inference, but neither is there observed money movement (no provided-tool metadata in a static config), so the honest verdict is REVIEW, not BLOCK.",
+    "knownLimitations": [
+      "action.financial here is INFERRED from the package name only; a read-only Stripe reporting integration would not actually move money. The OBSERVED money-mover finding (action.financial-observed -> BLOCK) requires provided-tool metadata (e.g. a 'create_payment' verb), which a static command/args/env config does not carry — so it correctly does NOT fire here and is listed as forbidden.",
+      "secrets.env-key keys on the credential-shaped name (*_API_KEY), not on whether the committed value is a live secret or a placeholder."
+    ]
+  },
+  "executionPolicy": {
+    "executeTarget": false,
+    "allowNetwork": false,
+    "allowFilesystemMutation": false
+  }
+}
