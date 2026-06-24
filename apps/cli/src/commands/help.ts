@@ -5,6 +5,7 @@ USAGE
 
 COMMANDS
   scan [target]      Scan an MCP config file, or npm:<pkg> / github:<owner/repo>
+  diagnostics [target]  Emit editor/agent-host diagnostics JSON (calllint.diagnostics.v0)
   baseline [target]  Record the approved risk surface as a baseline
   verify [target]    Compare a fresh scan against the baseline (drift / rug-pull)
   explain <server>   Explain the verdict for one server from the last scan
@@ -37,6 +38,7 @@ EXAMPLES
   calllint scan .cursor/mcp.json
   cat .cursor/mcp.json | calllint scan --stdin --json
   calllint scan ./mcp.json --ci --no-emoji
+  calllint diagnostics ./mcp.json --json
   calllint scan npm:mcp-weather@1.0.0
   calllint scan github:owner/repo --online
   calllint baseline ./mcp.json

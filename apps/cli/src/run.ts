@@ -1,6 +1,7 @@
 import { parseArgs } from "./args.js"
 import { helpCommand } from "./commands/help.js"
 import { scanCommand, type CommandResult } from "./commands/scan.js"
+import { diagnosticsCommand } from "./commands/diagnostics.js"
 import { explainCommand } from "./commands/explain.js"
 import { policyCommand } from "./commands/policy.js"
 import { baselineCommand, verifyCommand } from "./commands/verify.js"
@@ -45,6 +46,14 @@ export function run(argv: string[], deps: RunDeps): CommandResult {
         now: deps.now,
         generatedAt: deps.generatedAt,
         writeCacheFile: deps.writeCacheFile,
+        online: deps.online,
+      })
+    case "diagnostics":
+      return diagnosticsCommand(args, {
+        cwd: deps.cwd,
+        readStdin: deps.readStdin,
+        now: deps.now,
+        generatedAt: deps.generatedAt,
         online: deps.online,
       })
     case "baseline":
