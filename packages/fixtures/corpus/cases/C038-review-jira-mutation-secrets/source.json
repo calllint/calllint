@@ -1,0 +1,32 @@
+{
+  "schemaVersion": "calllint.corpus.case.v1",
+  "caseId": "C038-review-jira-mutation-secrets",
+  "title": "Local Jira MCP package infers external mutation + credential env (REVIEW)",
+  "curationStatus": "redacted-real-snapshot",
+  "riskTheme": ["side-effect", "env", "supply-chain"],
+  "origin": {
+    "kind": "public-repository",
+    "description": "Single-server config from the public MCP catalog repo khopilot/amazing-mcp-for-productivity (productivity/jira_mcp.json). A local 'npx -y mcp-jira-server' launcher with JIRA_BASE_URL / JIRA_API_TOKEN / JIRA_EMAIL env keys. The repo carries no detectable license, so only the non-copyrightable config shape is retained. All committed env values are already upstream's own placeholders ('your_jira_...'); no real secret was present.",
+    "url": "https://github.com/khopilot/amazing-mcp-for-productivity",
+    "commit": "b0c3ac150f70f225026a3da3c0a77f9253779a7a",
+    "retrievedAt": "2026-06-24T00:00:00.000Z",
+    "redactions": [
+      "license omitted: source repo has no detectable license; stored as a shape-preserving redacted snapshot, not redistributed verbatim",
+      "no secret redaction needed: env values were already upstream placeholders ('your_jira_instance_url', 'your_jira_api_token', 'your_jira_email')"
+    ]
+  },
+  "input": { "path": "input/mcp.json", "format": "mcp-json-fragment" },
+  "humanExpectation": {
+    "verdict": "REVIEW",
+    "rationale": "A Jira integration is an external system an autonomous agent could act on (create/transition issues), so the package name 'mcp-jira-server' trips the INFERRED 'action.external-mutation' finding. The credential-shaped JIRA_API_TOKEN env adds 'secrets.env-key', and the unpinned 'npx -y mcp-jira-server' adds 'supply.unpinned-package'. None is a blocker; the honest verdict is REVIEW pending confirmation of which mutating tools are exposed and that the token is sourced safely. This is the second real/redacted case for action.external-mutation (alongside C019 Slack), broadening that thin shape with a different integration domain.",
+    "knownLimitations": [
+      "action.external-mutation is INFERRED from the package name; a read-only Jira reporting integration would not actually mutate anything.",
+      "secrets.env-key keys on the credential-shaped name (*_TOKEN), not on whether the committed value is a live secret or a placeholder. JIRA_BASE_URL and JIRA_EMAIL are not credential-shaped and are correctly not flagged."
+    ]
+  },
+  "executionPolicy": {
+    "executeTarget": false,
+    "allowNetwork": false,
+    "allowFilesystemMutation": false
+  }
+}

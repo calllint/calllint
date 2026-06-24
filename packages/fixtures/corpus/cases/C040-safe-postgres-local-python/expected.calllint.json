@@ -1,0 +1,26 @@
+{
+  "schemaVersion": "calllint.corpus.expected.v1",
+  "expectedVerdict": "SAFE",
+  "expectedMaxRiskClass": "S1",
+  "allowExtraFindings": false,
+  "requiredFindingIds": [],
+  "forbiddenFindingIds": [
+    "secrets.env-key",
+    "supply.unpinned-package",
+    "supply.unknown-remote",
+    "files.broad-path",
+    "exec.dangerous-command",
+    "action.external-mutation",
+    "action.financial",
+    "action.financial-observed",
+    "prompt.poisoning"
+  ],
+  "requirements": {
+    "mustHaveEvidenceForEveryFinding": true,
+    "mustHaveFalsePositiveNoteForReviewOrBlock": false,
+    "mustHaveRemediationForReviewOrBlock": false
+  },
+  "dangerousFalseSafePolicy": {
+    "thisCaseMustNeverBeSafe": false
+  }
+}
