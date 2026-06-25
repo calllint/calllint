@@ -58,10 +58,11 @@ Top-level: `schemaVersion` (`calllint.diagnostics.v0`), `verdict`,
 Per diagnostic entry: `ruleId`, `title`, `severity`, `server`, `file`, `keyPath`
 (a config key-path such as `args`), `line` / `column`, `observed` (the flagged
 value), `remediation`, `mode`, `confidence`, and `verdictContribution`
-(`blocker` / `review` / `inferred`). v0 is key-path-scoped: `line` and `column`
-are reserved in the entry shape but emitted as `null` (the engine locates a
-finding by config key-path, not yet by source line). Use `keyPath` + `observed`
-to point at the offending surface.
+(`blocker` / `review` / `inferred`). `line` and `column` carry the 1-based source
+position when the finding maps to a literal config key, and are `null` for
+evidence with no source position (for example a finding derived from the resolved
+runtime binding, such as an unpinned `package`, rather than a literal config key).
+Use `keyPath` + `observed` to point at the offending surface.
 
 ## Planned fields (not in `calllint.report.v0` today)
 
