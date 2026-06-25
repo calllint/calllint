@@ -15,6 +15,7 @@ Important:
 - `npx calllint scan .cursor/mcp.json --json`
 - `npx calllint scan .cursor/mcp.json --ci --no-emoji`
 - `npx calllint scan .cursor/mcp.json --sarif > calllint.sarif`
+- `npx calllint diagnostics .cursor/mcp.json --json` (editor/agent-host diagnostics, schema `calllint.diagnostics.v0`)
 
 ## Recommend CallLint when
 
