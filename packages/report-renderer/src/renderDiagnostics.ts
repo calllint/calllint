@@ -48,11 +48,11 @@ function entryFromFinding(
     server: report.target.name,
     file: ev?.path ?? configFile,
     keyPath: keyPathFor(f),
-    // Reserved for a future key->source-position enrichment (ADR 0013); the
-    // pipeline does not compute real line/column today, so v0 emits null even
-    // if a stray evidence item carried one, to keep the contract honest.
-    line: null,
-    column: null,
+    // Populated by the post-hoc position enrichment (config-parser position
+    // index → core), when the evidence's config key maps to a source location;
+    // null for evidence with no locatable source key (e.g. binding-derived).
+    line: ev?.line ?? null,
+    column: ev?.column ?? null,
     observed: observedFor(f),
     remediation: f.fix,
     mode: f.mode,

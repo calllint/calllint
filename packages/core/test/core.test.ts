@@ -64,6 +64,45 @@ describe("scan report shape", () => {
   })
 })
 
+describe("evidence source positions (post-hoc enrichment)", () => {
+  const text = [
+    "{",
+    '  "mcpServers": {',
+    '    "fs": {',
+    '      "command": "npx",',
+    '      "args": ["-y", "@modelcontextprotocol/server-filesystem", "/"]',
+    "    }",
+    "  }",
+    "}",
+  ].join("\n")
+
+  it("fills line/column for a config-key finding (broad path on args)", () => {
+    const s = scanConfigText(text, "<inline>", OPTS)
+    const broad = s.reports[0]!.findings.find((f) => f.id === "files.broad-path")!
+    const ev = broad.evidence.find((e) => e.key === "args")!
+    // "args" is on source line 5.
+    expect(ev.line).toBe(5)
+    expect(ev.column).toBeGreaterThan(0)
+  })
+
+  it("leaves binding-derived evidence (package) without a position", () => {
+    const s = scanConfigText(text, "<inline>", OPTS)
+    const unpinned = s.reports[0]!.findings.find(
+      (f) => f.id === "supply.unpinned-package",
+    )!
+    const ev = unpinned.evidence.find((e) => e.key === "package")!
+    // "package" comes from the resolved runtime binding, not a literal config
+    // key, so it has no source position — stays undefined (renders null).
+    expect(ev.line).toBeUndefined()
+    expect(ev.column).toBeUndefined()
+  })
+
+  it("never changes the verdict (enrichment is pure annotation)", () => {
+    const s = scanConfigText(text, "<inline>", OPTS)
+    expect(s.verdict).toBe("BLOCK")
+  })
+})
+
 describe("policy integration", () => {
   it("downgrades a blocker with a valid override and labels it", () => {
     const policy = {

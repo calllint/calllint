@@ -95,14 +95,23 @@ When this ADR is Accepted and scheduled:
 - Explicitly **out of scope**: any change to `ScanReport`, verdict semantics,
   detectors, or the corpus.
 
-## Deferred follow-up: real line/column
+## Deferred follow-up: real line/column — DONE (2026-06-25)
 
-Populating real `line`/`column` requires a key→source-position map computed in the
-config parse step (`packages/config-parser`), threaded into `Evidence`. This
-benefits SARIF too (`renderSarif.ts` would then emit real `region.startLine`). It
-is a separate, fixture-backed change with its own deterministic-position tests, and
-is **not** in diagnostics v0. The v0 schema reserves `line`/`column` so adding them
-later is additive, not breaking.
+Real `line`/`column` are now populated. A best-effort source-position scanner
+(`packages/config-parser/src/positionIndex.ts`, `buildPositionIndex`) builds a
+key-path→position index from the raw config text; `ParsedConfig` carries it, and a
+post-hoc pass in core (`packages/core/src/enrichPositions.ts`,
+`enrichEvidencePositions`) fills `evidence.line`/`column` AFTER the verdict is
+decided — the verdict path and all detectors are untouched. `renderDiagnostics`
+and `renderSarif` (`renderSarif.ts:69`) now emit the real positions for free.
+
+Honest remaining limit: positions populate only for evidence whose `key` maps to a
+literal config key (e.g. `args`, `command`, `env`). Binding-derived evidence such
+as `package` (from the resolved runtime, not a config field) has no source
+position and stays `null`. No new dependency was added: the scanner is a small
+inline tokenizer, so the engine bundle stays free of third-party code. The
+`calllint.diagnostics.v0` schema did **not** change shape — reserved fields are
+now filled — so there is no version bump.
 
 ## Reason
 
