@@ -46,10 +46,27 @@ reported in the `schemaVersion` field. The schema is stable within the v0 line.
 - `--sarif` (SARIF 2.1.0 for GitHub Code Scanning) and `--html` carry the same
   findings in different formats.
 
+## Diagnostics schema (`calllint.diagnostics.v0`)
+
+`calllint diagnostics --json` emits a separate, editor- and agent-host-friendly
+projection of a scan under schema version `calllint.diagnostics.v0`. It is derived
+purely from the same scan — it adds no analysis and changes no verdict.
+
+Top-level: `schemaVersion` (`calllint.diagnostics.v0`), `verdict`,
+`publicVerdictLabel`, `file`, `diagnostics[]`, `generatedAt`.
+
+Per diagnostic entry: `ruleId`, `title`, `severity`, `server`, `file`, `keyPath`
+(a config key-path such as `args`), `line` / `column`, `observed` (the flagged
+value), `remediation`, `mode`, `confidence`, and `verdictContribution`
+(`blocker` / `review` / `inferred`). v0 is key-path-scoped: `line` and `column`
+are reserved in the entry shape but emitted as `null` (the engine locates a
+finding by config key-path, not yet by source line). Use `keyPath` + `observed`
+to point at the offending surface.
+
 ## Planned fields (not in `calllint.report.v0` today)
 
-These are roadmap items (R3 diagnostics / R4 report enrichment), **not** present
-in the current schema. Do not parse or quote them as if they exist:
+These are roadmap items (R4 report enrichment), **not** present in the current
+schema. Do not parse or quote them as if they exist:
 
 - `agentSummary` — a quotable, pre-composed summary block for coding agents.
 - `trustIndicators` — explicit `decisionPath`, `llmInVerdictPath`,

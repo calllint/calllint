@@ -110,10 +110,15 @@ calllint verify ./mcp.json --ci
 
 # explain one server's verdict from the last scan
 calllint explain filesystem
+
+# structured diagnostics for editor / agent-host integration
+calllint diagnostics ./mcp.json --json
 ```
 
 Output formats: default terminal, `--compact`, `--json` (stable schema),
-`--sarif` (GitHub Code Scanning), `--html` (self-contained report).
+`--sarif` (GitHub Code Scanning), `--html` (self-contained report). The
+`diagnostics` command emits a separate editor/agent-host JSON
+(`calllint.diagnostics.v0`).
 
 See CallLint running in CI on a deliberately risky config —
 [`calllint-demo-risky-mcp`](https://github.com/calllint/calllint-demo-risky-mcp)

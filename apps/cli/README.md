@@ -60,6 +60,7 @@ will do, it says so and never silently upgrades to `SAFE`.
 ## More
 
 - SARIF 2.1.0 for GitHub Code Scanning: `calllint scan <config> --sarif`
+- Editor / agent-host diagnostics JSON (`calllint.diagnostics.v0`): `calllint diagnostics <config> --json`
 - Self-contained HTML report: `calllint scan <config> --html > report.html`
 - Drift / rug-pull detection: `calllint baseline <config>` then `calllint verify <config> --ci`
 - Policy-as-code: `calllint policy init`
