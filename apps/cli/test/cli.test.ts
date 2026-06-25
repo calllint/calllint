@@ -94,18 +94,26 @@ describe("diagnostics", () => {
     expect(broad.keyPath).toBeTruthy()
     expect(broad.remediation).toBeTruthy()
     expect(broad.verdictContribution).toBe("blocker")
-    // v0 is key-path-scoped: line/column are reserved but always null.
-    expect(broad.line).toBeNull()
-    expect(broad.column).toBeNull()
   })
 
-  it("every entry has null line/column in v0", () => {
+  it("populates real line/column for a config-key finding, null when unmappable", () => {
     const text = readFileSync(goldenPath("block-filesystem.json"), "utf8")
     const r = run(["diagnostics", "--stdin", "--json"], deps(text))
     const parsed = JSON.parse(r.stdout)
-    for (const d of parsed.diagnostics) {
-      expect(d.line).toBeNull()
-      expect(d.column).toBeNull()
+    // A config-key finding (broad path on args) gets a real source position.
+    const broad = parsed.diagnostics.find(
+      (d: { ruleId: string }) => d.ruleId === "files.broad-path",
+    )
+    expect(typeof broad.line).toBe("number")
+    expect(broad.line).toBeGreaterThan(0)
+    // A binding-derived finding (unpinned package) has no source key → null.
+    const unpinned = parsed.diagnostics.find(
+      (d: { ruleId: string; keyPath: string }) =>
+        d.ruleId === "supply.unpinned-package" && d.keyPath === "package",
+    )
+    if (unpinned) {
+      expect(unpinned.line).toBeNull()
+      expect(unpinned.column).toBeNull()
     }
   })
 

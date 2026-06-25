@@ -10,6 +10,7 @@ import {
   type ParsedConfig,
 } from "@calllint/config-parser"
 import { scanServer } from "./scanServer.js"
+import { enrichEvidencePositions } from "./enrichPositions.js"
 import { resolveScanOptions, type ScanOptions } from "./options.js"
 
 function aggregate(
@@ -45,6 +46,9 @@ function scanParsed(parsed: ParsedConfig, opts?: ScanOptions): ConfigSummaryRepo
   const reports = parsed.servers.map((server) =>
     scanServer({ server, targetKind: parsed.kind }, opts),
   )
+  // Best-effort: annotate evidence with source line/column AFTER verdicts are
+  // decided. Pure annotation — never changes a verdict (see enrichPositions).
+  enrichEvidencePositions(reports, parsed.positions)
   return aggregate(parsed.configPath, reports, generatedAt)
 }
 
