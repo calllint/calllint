@@ -9,6 +9,7 @@ const repoRoot = path.resolve(__dirname, "..")
 const factsPath = path.join(repoRoot, "docs", "project-facts.json")
 const facts = JSON.parse(fs.readFileSync(factsPath, "utf8")) as {
   corpus: { phase: string; calibratedCases: number; realOrRedactedSnapshots: number; unknownRatio: string }
+  stableVersion: string
   forbiddenPhrases: string[]
   requiredPhrases: string[]
 }
@@ -22,6 +23,7 @@ const publicFiles = [
   "apps/web/public/agent-tool-risk.html",
   "apps/web/public/agent-instructions.md",
   "apps/web/public/llms.txt",
+  "apps/web/public/llms-full.txt",
   "README.md",
 ]
 
@@ -103,5 +105,18 @@ describe("public copy guard", () => {
     const site = files.find((f) => f.rel === "apps/web/public/index.html")
     expect(site).toBeTruthy()
     expect(site!.text).toMatch(/dangerous false-SAFE\s*=\s*0/i)
+  })
+
+  it("agent-readable status files state the current stable version on latest", () => {
+    const sv = facts.stableVersion
+    expect(sv).toBeTruthy()
+    const statusFiles = files.filter(
+      (f) => f.rel === "apps/web/public/llms.txt" || f.rel === "apps/web/public/llms-full.txt",
+    )
+    expect(statusFiles.length).toBeGreaterThan(0)
+    const re = new RegExp(`(?:is|Version)\\s*\`?${sv.replace(/\./g, "\\.")}\`?\\s+on\\s+the\\s\`?latest\``, "i")
+    for (const f of statusFiles) {
+      expect(f.text, `${f.rel} must state stable ${sv} on latest`).toMatch(re)
+    }
   })
 })

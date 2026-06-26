@@ -20,6 +20,8 @@
  *   9. The homepage hero headline "Before your agent acts, check the blast
  *      radius" is present.
  *  10. The homepage corpus section states "dangerous false-SAFE = 0".
+ *  11. Agent-readable status files (llms.txt, llms-full.txt) state the
+ *      current stable version from docs/project-facts.json, not a stale one.
  *
  * Exit codes:
  *   0  all checks pass
@@ -43,6 +45,7 @@ const publicFiles = [
   "apps/web/public/agent-tool-risk.html",
   "apps/web/public/agent-instructions.md",
   "apps/web/public/llms.txt",
+  "apps/web/public/llms-full.txt",
   "README.md",
 ]
 
@@ -193,6 +196,24 @@ console.log("")
   if (!site) fail("apps/web/public/index.html not found; cannot verify dangerous false-SAFE line")
   else if (/dangerous false-SAFE\s*=\s*0/i.test(site.text)) ok("homepage states dangerous false-SAFE = 0")
   else fail('homepage missing "dangerous false-SAFE = 0" in corpus section')
+}
+
+// 11. Agent-readable status files state the current stable version.
+{
+  const sv = facts.stableVersion
+  if (!sv) fail("docs/project-facts.json missing stableVersion; cannot verify version drift")
+  else {
+    const statusFiles = files.filter((f) => f.rel === "apps/web/public/llms.txt" || f.rel === "apps/web/public/llms-full.txt")
+    if (statusFiles.length === 0) ok("no llms status files to check (skipped)")
+    else for (const f of statusFiles) {
+      // The current stable version must appear; any prior stable (0.x.y != sv)
+      // used as a *current status* claim is drift. We look for the bare version
+      // token in a status line ("is `X.Y.Z` on the `latest`", "Version `X.Y.Z`").
+      const currentStatusRe = new RegExp(String.raw`(?:is|Version)\s*\`?${sv.replace(/\./g, "\\.")}\`?\s+on\s+the\s+\`?latest\``, "i")
+      if (currentStatusRe.test(f.text)) ok(`${f.rel} states current stable ${sv} on latest`)
+      else fail(`${f.rel} does not state current stable ${sv} on latest (version drift)`)
+    }
+  }
 }
 
 console.log("")
