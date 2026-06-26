@@ -22,6 +22,11 @@
  *  10. The homepage corpus section states "dangerous false-SAFE = 0".
  *  11. Agent-readable status files (llms.txt, llms-full.txt) state the
  *      current stable version from docs/project-facts.json, not a stale one.
+ *  12. README must not pin a hardcoded version line (e.g. "stable 0.3.x
+ *      line") as the current stable release — use version-agnostic wording
+ *      so it does not drift on every release.
+ *  13. Homepage provenance copy must not imply the current release is a
+ *      preview ("SLSA attestation on the preview" is stale wording).
  *
  * Exit codes:
  *   0  all checks pass
@@ -214,6 +219,27 @@ console.log("")
       else fail(`${f.rel} does not state current stable ${sv} on latest (version drift)`)
     }
   }
+}
+
+// 12. README must not pin a hardcoded version line as the current stable release.
+{
+  const readme = files.find((f) => f.rel === "README.md")
+  if (!readme) ok("README.md not in guarded set (skipped)")
+  else {
+    // Matches "stable `0.3.x` line" / "stable 0.3.x line" / "the 0.3.x line"
+    // i.e. a specific minor segment declared as the stable line.
+    const hardcodedStableLine = /stable\s*`?\d+\.\d+\.x`?\s+line/i
+    if (hardcodedStableLine.test(readme.text)) fail('README pins a hardcoded version line as "stable" (use version-agnostic wording to avoid drift)')
+    else ok('README uses version-agnostic stable-line wording (no hardcoded `0.x.x line`)')
+  }
+}
+
+// 13. Homepage provenance copy must not imply the current release is a preview.
+{
+  const site = files.find((f) => f.rel === "apps/web/public/index.html")
+  if (!site) fail("apps/web/public/index.html not found; cannot verify provenance copy")
+  else if (/SLSA attestation\s+on\s+the\s+preview/i.test(site.text)) fail('homepage provenance says "SLSA attestation on the preview" — stale wording implying current release is a preview')
+  else ok('homepage provenance copy does not imply current release is a preview')
 }
 
 console.log("")
