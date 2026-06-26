@@ -15,6 +15,11 @@ const facts = JSON.parse(fs.readFileSync(factsPath, "utf8")) as {
 
 const publicFiles = [
   "apps/web/public/index.html",
+  "apps/web/public/agents.html",
+  "apps/web/public/mcp-security.html",
+  "apps/web/public/cursor-mcp-security.html",
+  "apps/web/public/claude-desktop-mcp-security.html",
+  "apps/web/public/agent-tool-risk.html",
   "apps/web/public/agent-instructions.md",
   "apps/web/public/llms.txt",
   "README.md",
@@ -68,5 +73,35 @@ describe("public copy guard", () => {
     const site = files.find((f) => f.rel === "apps/web/public/index.html")
     expect(site).toBeTruthy()
     expect(site!.text).toContain(`${facts.corpus.phase} · `)
+  })
+
+  it("no public file uses stale `npx calllint@preview|@next scan` commands", () => {
+    const offenders = files.filter((f) => /npx calllint@(preview|next) scan/i.test(f.text))
+    expect(offenders.map((f) => f.rel)).toEqual([])
+  })
+
+  it("contains no stale status phrases (public preview / After 0.3.0 ships / 0.3.0-rc.0)", () => {
+    const lc = allText.toLowerCase()
+    const stale = ["public preview", "after 0.3.0 ships", "0.3.0-rc.0"]
+    const found = stale.filter((p) => lc.includes(p.toLowerCase()))
+    expect(found).toEqual([])
+  })
+
+  it("contains no stale \"release candidate\" current-status claims", () => {
+    const patterns = [/pre-1\.0 release candidate/i, /\bis a release candidate\b/i, /\bcurrently.*release candidate\b/i]
+    const offenders = files.filter((f) => patterns.some((re) => re.test(f.text)))
+    expect(offenders.map((f) => f.rel)).toEqual([])
+  })
+
+  it("homepage hero headline is \"Before your agent acts, check the blast radius\"", () => {
+    const site = files.find((f) => f.rel === "apps/web/public/index.html")
+    expect(site).toBeTruthy()
+    expect(site!.text).toContain("Before your agent acts, check the blast radius")
+  })
+
+  it("homepage corpus section states dangerous false-SAFE = 0", () => {
+    const site = files.find((f) => f.rel === "apps/web/public/index.html")
+    expect(site).toBeTruthy()
+    expect(site!.text).toMatch(/dangerous false-SAFE\s*=\s*0/i)
   })
 })

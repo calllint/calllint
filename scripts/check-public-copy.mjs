@@ -14,6 +14,12 @@
  *   4. SAFE verdict copy appears near "No blockers observed".
  *   5. Corpus numbers in the website match docs/project-facts.json.
  *   6. The website corpus section reflects the current corpus phase.
+ *   7. No stale `npx calllint@preview|@next scan` commands in public copy.
+ *   8. No stale status phrases ("public preview", "release candidate",
+ *      "After 0.3.0 ships", "0.3.0-rc.0") in public current-status copy.
+ *   9. The homepage hero headline "Before your agent acts, check the blast
+ *      radius" is present.
+ *  10. The homepage corpus section states "dangerous false-SAFE = 0".
  *
  * Exit codes:
  *   0  all checks pass
@@ -30,12 +36,35 @@ const repoRoot = path.resolve(__dirname, "..")
 const factsPath = path.join(repoRoot, "docs", "project-facts.json")
 const publicFiles = [
   "apps/web/public/index.html",
+  "apps/web/public/agents.html",
+  "apps/web/public/mcp-security.html",
+  "apps/web/public/cursor-mcp-security.html",
+  "apps/web/public/claude-desktop-mcp-security.html",
+  "apps/web/public/agent-tool-risk.html",
   "apps/web/public/agent-instructions.md",
   "apps/web/public/llms.txt",
   "README.md",
 ]
 
 const primaryPathRegex = /npx calllint@preview scan/i
+/** Stale release-channel commands that must not appear in public quickstart copy. */
+const staleCommandRegex = /npx calllint@(preview|next) scan/i
+/** Stale status phrases that must not appear anywhere in public current-status copy.
+ *  Note: "release candidate" as a dist-tag description ("@next carries release
+ *  candidates") is legitimate; only its use as a current-status claim is stale. */
+const staleStatusPhrases = [
+  "public preview",
+  "After 0.3.0 ships",
+  "0.3.0-rc.0",
+]
+/** Stale current-status claim patterns (regex, case-insensitive). */
+const staleStatusPatterns = [
+  /pre-1\.0 release candidate/i,
+  /\bis a release candidate\b/i,
+  /\bcurrently.*release candidate\b/i,
+]
+/** The hero headline the homepage must carry. */
+const heroHeadline = "Before your agent acts, check the blast radius"
 
 let exitCode = 0
 const fail = (msg) => {
@@ -130,6 +159,40 @@ console.log("")
   if (!site) fail("apps/web/public/index.html not found; cannot verify corpus phase")
   else if (site.text.includes(`${facts.corpus.phase} · `)) ok(`corpus phase tag present: ${facts.corpus.phase}`)
   else fail(`corpus phase tag not found: expected "${facts.corpus.phase} · "`)
+}
+
+// 7. No stale @next/@preview quickstart commands anywhere in public copy.
+{
+  const offenders = files.filter((f) => staleCommandRegex.test(f.text))
+  if (offenders.length === 0) ok("no stale `npx calllint@preview|@next scan` commands")
+  else for (const f of offenders) fail(`stale release-channel command found in ${f.rel}`)
+}
+
+// 8. No stale status phrases anywhere in public copy.
+{
+  const lc = allText.toLowerCase()
+  const found = staleStatusPhrases.filter((p) => lc.includes(p.toLowerCase()))
+  if (found.length === 0) ok("no stale status phrases (public preview / After 0.3.0 ships / 0.3.0-rc.0)")
+  else for (const p of found) fail(`stale status phrase present: "${p}"`)
+  const patternHits = files.filter((f) => staleStatusPatterns.some((re) => re.test(f.text)))
+  if (patternHits.length === 0) ok("no stale \"release candidate\" current-status claims")
+  else for (const f of patternHits) fail(`stale "release candidate" status claim in ${f.rel}`)
+}
+
+// 9. Homepage hero headline present.
+{
+  const site = files.find((f) => f.rel === "apps/web/public/index.html")
+  if (!site) fail("apps/web/public/index.html not found; cannot verify hero headline")
+  else if (site.text.includes(heroHeadline)) ok(`hero headline present: "${heroHeadline}"`)
+  else fail(`hero headline missing: expected "${heroHeadline}"`)
+}
+
+// 10. Homepage corpus section must state "0 dangerous false-SAFE".
+{
+  const site = files.find((f) => f.rel === "apps/web/public/index.html")
+  if (!site) fail("apps/web/public/index.html not found; cannot verify dangerous false-SAFE line")
+  else if (/dangerous false-SAFE\s*=\s*0/i.test(site.text)) ok("homepage states dangerous false-SAFE = 0")
+  else fail('homepage missing "dangerous false-SAFE = 0" in corpus section')
 }
 
 console.log("")
