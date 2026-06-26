@@ -113,8 +113,9 @@ npm install -g calllint
 ```
 
 Requires Node.js ≥ 20. The published package is a single self-contained bundle
-with zero runtime dependencies. `calllint` on the `latest` tag is the stable
-`0.3.x` line; `@next` carries release candidates and `@preview` older previews.
+with zero runtime dependencies. `calllint` on the `latest` tag is the current
+stable pre-1.0 CLI release; `@next` carries release candidates and `@preview`
+older previews.
 
 ## Quick start
 

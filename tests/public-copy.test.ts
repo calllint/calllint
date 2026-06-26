@@ -119,4 +119,16 @@ describe("public copy guard", () => {
       expect(f.text, `${f.rel} must state stable ${sv} on latest`).toMatch(re)
     }
   })
+
+  it("README does not pin a hardcoded version line as the current stable release", () => {
+    const readme = files.find((f) => f.rel === "README.md")
+    expect(readme).toBeTruthy()
+    expect(readme!.text).not.toMatch(/stable\s*`?\d+\.\d+\.x`?\s+line/i)
+  })
+
+  it("homepage provenance copy does not imply the current release is a preview", () => {
+    const site = files.find((f) => f.rel === "apps/web/public/index.html")
+    expect(site).toBeTruthy()
+    expect(site!.text).not.toMatch(/SLSA attestation\s+on\s+the\s+preview/i)
+  })
 })
