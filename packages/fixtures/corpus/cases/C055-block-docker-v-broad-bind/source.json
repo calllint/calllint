@@ -1,0 +1,21 @@
+{
+  "schemaVersion": "calllint.corpus.case.v1",
+  "caseId": "C055-block-docker-v-broad-bind",
+  "title": "Docker -v broad host bind (-v /etc:/data:ro) → BLOCK (ADR 0012 -v branch)",
+  "curationStatus": "synthetic-contract-seed",
+  "riskTheme": ["filesystem"],
+  "origin": {
+    "kind": "synthetic",
+    "description": "Hand-written contract seed locking the docker -v branch of the ADR 0012 host-path extractor at the corpus gate. C023 locks the --mount form; this locks the colon-separated -v form. The host side /etc is a broad root; the :ro option and the container dst /data must be ignored. Chosen as a high-value lock because /etc:/data is NOT caught by the plain-arg loop (it is '/etc:' not '/etc/'), so only the docker -v extractor + dockerVolumeHostSide split can flag it.",
+    "retrievedAt": "2026-06-25T00:00:00.000Z"
+  },
+  "input": { "path": "input/mcp.json", "format": "mcp-json" },
+  "humanExpectation": {
+    "verdict": "BLOCK",
+    "rationale": "The docker -v argument '/etc:/data:ro' binds the host's /etc into the container. The ADR 0012 host-path extractor splits the host side (/etc) from the container dst (/data) and the :ro option, and /etc is a broad root → files.broad-path (critical blocker) → BLOCK. The plain-arg loop alone would MISS this ('/etc:/data:ro' neither equals nor startsWith '/etc/'), so this case proves the -v extractor is doing the work. thisCaseMustNeverBeSafe: true.",
+    "knownLimitations": [
+      "Synthetic: a minimal, unambiguous -v broad-bind shape. The evidence value is the extracted host path /etc, never the container dst /data."
+    ]
+  },
+  "executionPolicy": { "executeTarget": false, "allowNetwork": false, "allowFilesystemMutation": false }
+}

@@ -37,8 +37,8 @@ pnpm corpus:test:r2-final
 pnpm pack:smoke
 ```
 
-Known-good: typecheck clean · **189 tests pass across 20 files** · build →
-self-contained `apps/cli/dist/index.js` (~86 kb) · both corpus gates green ·
+Known-good: typecheck clean · **260 tests pass across 22 files** · build →
+self-contained `apps/cli/dist/index.js` · both corpus gates green ·
 pack:smoke PASS (6-file allowlist tarball, isolated install, exit 30 on BLOCK).
 
 ## 3. Corpus health
@@ -49,18 +49,18 @@ pnpm corpus:test -- --summary-json corpus-summary.json   # machine summary
 pnpm corpus:test:r2-final                                # R2.1 acceptance gate
 ```
 
-Known-good (R2.1, see [R2_CALIBRATION.md](./R2_CALIBRATION.md)):
+Known-good (R2.2 @ 60 cases, see [R2_CALIBRATION.md](./R2_CALIBRATION.md)):
 
 | Metric | Value | Threshold |
 |--------|-------|-----------|
-| Total cases | 30 | ≥ 30 |
-| Real / redacted | 20 | ≥ 20 |
+| Total cases | 60 | ≥ 60 |
+| Real / redacted | 38 | ≥ 38 |
 | Dangerous false-SAFE | 0 | = 0 (hard) |
 | UNKNOWN ratio | 10.0% | ≤ 15% |
 | Contract failures | 0 | = 0 |
 
 Trend to watch as R2.2 grows: dangerous false-SAFE must stay 0; UNKNOWN ≤ 15%;
-all nine finding ids stay exercised.
+all twelve finding ids stay exercised.
 
 ## 4. Integration health
 

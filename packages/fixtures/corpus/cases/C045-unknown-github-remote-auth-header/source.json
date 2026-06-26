@@ -1,0 +1,29 @@
+{
+  "schemaVersion": "calllint.corpus.case.v1",
+  "caseId": "C045-unknown-github-remote-auth-header",
+  "title": "GitHub remote MCP (http) with an Authorization Bearer header → UNKNOWN",
+  "curationStatus": "real-public-snapshot",
+  "riskTheme": ["remote", "network"],
+  "origin": {
+    "kind": "public-repository",
+    "description": "Public documentation config from github/github-mcp-server (README.md, remote http variant with an Authorization header). Verbatim except normalization to a valid JSON root; the bearer value is upstream's own VS Code input placeholder `${input:github_mcp_pat}`.",
+    "url": "https://github.com/github/github-mcp-server",
+    "commit": "6830c4d39426",
+    "license": "MIT",
+    "retrievedAt": "2026-06-25T00:00:00.000Z",
+    "redactions": []
+  },
+  "input": { "path": "input/mcp.json", "format": "mcp-json" },
+  "humanExpectation": {
+    "verdict": "UNKNOWN",
+    "rationale": "A recognized remote endpoint (https://api.githubcopilot.com/mcp/) is uninspectable by construction — CallLint never connects to it — so the verdict is UNKNOWN, never SAFE (ADR 0010). The host is allowlisted, so supply.unknown-remote does NOT fire and there are zero findings; UNKNOWN comes purely from the sourceKnown gate. This is the Authorization-header variant of the GitHub remote: contrast C025 (same host, no header → UNKNOWN, 0 findings) and C026 (GitHub Enterprise host, non-allowlisted → UNKNOWN WITH supply.unknown-remote). It pins that an inline Authorization: Bearer header on an allowlisted remote does not by itself add a finding or downgrade the UNKNOWN.",
+    "knownLimitations": [
+      "CallLint does not parse the Authorization header value as a secret (it is a header, not an env key, and the value is a placeholder); the header is recorded as part of the config shape only. The remote is uninspectable, so UNKNOWN is the honest verdict regardless of the header."
+    ]
+  },
+  "executionPolicy": {
+    "executeTarget": false,
+    "allowNetwork": false,
+    "allowFilesystemMutation": false
+  }
+}

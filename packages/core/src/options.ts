@@ -1,4 +1,4 @@
-import type { Finding, Policy } from "@calllint/types"
+import type { DocumentSurface, Finding, Policy } from "@calllint/types"
 import { defaultPolicy } from "@calllint/policy"
 
 /** Options shared across scan entry points. Injected for determinism/testability. */
@@ -14,6 +14,13 @@ export interface ScanOptions {
    * pure analyzers; the findings still flow through the same assessment.
    */
   extraFindings?: Record<string, Finding[]>
+  /**
+   * Local document surfaces (README / SKILL.md / AGENTS.md / package description)
+   * read by the CLI and scanned for prompt-surface risk (ADR 0015). The core never
+   * reads files; it scans the text it is handed, keeping analyzers offline. When
+   * non-empty and any finding results, a project-level report is appended.
+   */
+  surfaces?: DocumentSurface[]
 }
 
 export interface ResolvedScanOptions {
@@ -21,6 +28,7 @@ export interface ResolvedScanOptions {
   now: number
   generatedAt: string
   extraFindings: Record<string, Finding[]>
+  surfaces: DocumentSurface[]
 }
 
 export function resolveScanOptions(opts: ScanOptions | undefined): ResolvedScanOptions {
@@ -29,5 +37,6 @@ export function resolveScanOptions(opts: ScanOptions | undefined): ResolvedScanO
     now: opts?.now ?? 0,
     generatedAt: opts?.generatedAt ?? "1970-01-01T00:00:00.000Z",
     extraFindings: opts?.extraFindings ?? {},
+    surfaces: opts?.surfaces ?? [],
   }
 }

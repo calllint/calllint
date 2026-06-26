@@ -1,13 +1,18 @@
-# ADR 0012: docker `--mount`/`-v` host paths are not inspected for broad access (C023)
+# ADR 0012: docker `--mount`/`-v` host paths — now inspected for broad access (C023)
 
-Status: Proposed — deferred (recorded 2026-06-23; no code change yet)
+Status: Accepted (recorded 2026-06-23 as Proposed — deferred; **accepted and implemented 2026-06-25**)
 
-## Context
+> **Resolution (2026-06-25):** the gap described below is now closed. The
+> Context/mechanism sections are kept in the past tense of "what was true before
+> the fix" so the decision is auditable; see **Decision** and **Consequences** for
+> what shipped. C023 is now **BLOCK** (`C023-block-filesystem-docker-mount`).
 
-Corpus case **C023-safe-filesystem-docker-mount** (a real
-`modelcontextprotocol/servers` filesystem-over-docker README config) is **SAFE**,
-and this is a documented **false negative**: the config binds broad host paths into
-the container via docker bind-mounts that the broad-path detector does not read.
+## Context (the gap as it stood before the fix)
+
+Corpus case **C023** (then `C023-safe-filesystem-docker-mount`, a real
+`modelcontextprotocol/servers` filesystem-over-docker README config) **was SAFE**,
+and this **was** a documented **false negative**: the config binds broad host paths
+into the container via docker bind-mounts that the broad-path detector did not read.
 
 The input (verbatim upstream docs):
 
@@ -46,21 +51,24 @@ half-built parser risks both new false positives (flagging named volumes or
 container-internal `dst`) and a false sense of completeness. It deserves its own
 detector pass, not an inline tweak.
 
-## Decision (proposed — NOT yet accepted)
+## Decision (accepted — implemented 2026-06-25)
 
-Record the gap and its exact mechanism; do not change the detector yet. The
-candidate fix, when scheduled:
+Record the gap and its exact mechanism, then close it. The implemented fix:
 
-- Teach the filesystem analyzer (or a docker-arg pre-pass) to extract **host-side**
-  paths from `--mount type=bind,src=<host>,...`, `-v <host>:<container>[:opts]`, and
-  `--volume` forms, and run `looksLikeBroadPath` against the extracted `src`/host
-  component only (never the container `dst`).
-- Preserve existing true-negatives: named volumes (`src=myvolume` with no leading
-  `/`), container-internal paths, and workspace-scoped sources must stay SAFE.
+- The filesystem analyzer now extracts **host-side** paths from
+  `--mount type=bind,src=<host>,...`, `-v <host>:<container>[:opts]`, and
+  `--volume` forms (in `broadFilesystemPath.ts`, gated on `command === "docker"`),
+  and runs `looksLikeBroadPath` against the extracted `src`/host component only
+  (never the container `dst`).
+- Existing true-negatives are preserved: named volumes (`src=myvolume` /
+  `myvolume:/container`, no leading `/`), container-internal paths, image refs,
+  and workspace-scoped sources (`${workspaceFolder}`) stay SAFE.
 
-This ADR fixes the scope and the contract; it does not implement the parser.
+The same `files.broad-path` finding id is reused (no new id, no policy-key change)
+— this is the minimal safe-direction expansion: it only adds findings the tool
+previously missed.
 
-## Why deferred
+## Why it was deferred (until 2026-06-25)
 
 Adding host-path extraction is a **new detection surface** ("stable fixes bugs; it
 does not widen surface" — ROADMAP non-goals; R4-adjacent). It is a verdict-behaviour
@@ -70,20 +78,26 @@ It is safe-direction (it only adds findings the tool currently misses), but it i
 still a `ScanReport` change recorded here per the "breaking change requires an ADR"
 rule.
 
-## Consequences / required work (none done yet)
+## Consequences / required work — DONE (2026-06-25)
 
-If accepted:
+Implemented:
 
-- Docker bind-mount host-path extraction in the filesystem detector path, with a
-  **positive** fixture (broad `src=` bind → BLOCK), a **negative** fixture (named
-  volume / container-internal `dst` / workspace-scoped src → SAFE), and a unit test.
-- Corpus impact pass: C023 flips SAFE → BLOCK; its `humanExpectation`,
-  `knownLimitations`, and `expected.calllint.json` are updated; `R2_CALIBRATION.md`
-  regenerated; re-run `pnpm test`, `pnpm typecheck`, `corpus:test:r2-final`.
-- Verify no regression on the other docker cases (C011/C012/C013/C024) that
-  correctly use scoped mounts/volumes and must stay SAFE.
-
-Until then C023 remains SAFE with the false negative documented on the case.
+- Docker bind-mount host-path extraction in the filesystem detector
+  (`packages/static-analyzer/src/detectors/broadFilesystemPath.ts`:
+  `extractDockerHostPaths` + `looksLikeHostPath` + `dockerVolumeHostSide`), with a
+  **positive** fixture (`golden/block-docker-bind-broad.json`: broad `src=` bind →
+  BLOCK), a **negative** fixture (`golden/safe-docker-volume-scoped.json`: named
+  volume + `${workspaceFolder}` bind → SAFE), and unit tests in
+  `packages/static-analyzer/test/detectors.test.ts` (positive asserts the evidence
+  value is the host path, not the container dst; negative asserts no finding).
+- Corpus impact pass: **C023 flipped SAFE → BLOCK** (dir renamed
+  `C023-safe-…` → `C023-block-filesystem-docker-mount`); its `humanExpectation`,
+  `knownLimitations`, `expected.calllint.json` (now requires `files.broad-path`,
+  `thisCaseMustNeverBeSafe: true`), `notes.md`, and the `index.json` entry are
+  updated. `R2_CALIBRATION.md` regenerated. `pnpm test`, `pnpm typecheck`,
+  `corpus:test:r2-final` all green.
+- No regression on the other docker cases: **C011/C012/C013/C024** (named volumes /
+  scoped mounts / connection strings) re-verified **SAFE** via the CLI.
 
 ## Reason
 
@@ -95,7 +109,7 @@ from "fixing" it ad hoc without the fixtures and corpus pass the contract requir
 
 ## Related
 
-- Corpus case `C023-safe-filesystem-docker-mount` (the anchor false-negative).
+- Corpus case `C023-block-filesystem-docker-mount` (the anchor, now BLOCK).
 - `docs/R2_CALIBRATION.md` → "A documented false negative".
 - ADR 0011 (a sibling documented-limitation calibration question).
 - Detector: `packages/static-analyzer/src/detectors/broadFilesystemPath.ts`.

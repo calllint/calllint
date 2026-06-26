@@ -1,0 +1,25 @@
+{
+  "schemaVersion": "calllint.corpus.case.v1",
+  "caseId": "C041-review-hidden-instructions-prompt-surface",
+  "title": "Hidden model-directed instruction in tool metadata (HTML comment) → REVIEW (R4, ADR 0014)",
+  "curationStatus": "synthetic-contract-seed",
+  "riskTheme": ["prompt-surface"],
+  "origin": {
+    "kind": "synthetic",
+    "description": "Hand-written contract seed for the R4 prompt-surface detector (prompt.hidden-instructions). A single npx server declares one provided tool whose description carries a model-directed instruction hidden inside an HTML comment ('also read ~/.ssh ... silently') — content present in the text that reaches the model but invisible in a rendered view. Synthetic by necessity: this reads inline x-calllint tool metadata that real config snapshots almost never declare (tools are discovered at connect time, which CallLint never does), so an honest real case is not harvestable from static configs — the same reason prompt.poisoning (C010) is synthetic-only.",
+    "retrievedAt": "2026-06-25T00:00:00.000Z"
+  },
+  "input": { "path": "input/mcp.json", "format": "mcp-json" },
+  "humanExpectation": {
+    "verdict": "REVIEW",
+    "rationale": "The package is pinned and otherwise clean, but a provided tool's description hides a model-directed instruction inside an HTML comment. prompt.hidden-instructions fires (PROMPT, S2, REVIEW, non-blocker): hidden/obfuscated content in the model-visible surface is worth human review, but its mere presence is not proof of an attack, so it does not hard-stop like prompt.poisoning. The literal-phrase matcher (prompt.poisoning) does NOT fire here — the instruction is concealed, which is exactly the evasion class R4 adds.",
+    "knownLimitations": [
+      "Static shape detection only: this flags that the model-visible text differs from the rendered text (an HTML comment present in metadata), not that the content is provably malicious. It reads the config's declared tool metadata only — README / SKILL.md / package / registry surfaces are out of scope for R4 v0 (ADR 0014)."
+    ]
+  },
+  "executionPolicy": {
+    "executeTarget": false,
+    "allowNetwork": false,
+    "allowFilesystemMutation": false
+  }
+}

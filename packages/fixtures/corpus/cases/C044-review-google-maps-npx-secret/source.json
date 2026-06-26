@@ -1,0 +1,29 @@
+{
+  "schemaVersion": "calllint.corpus.case.v1",
+  "caseId": "C044-review-google-maps-npx-secret",
+  "title": "Google Maps MCP via npx with an API-key env → REVIEW (secret + unpinned)",
+  "curationStatus": "real-public-snapshot",
+  "riskTheme": ["env", "supply-chain"],
+  "origin": {
+    "kind": "public-repository",
+    "description": "Public documentation config from modelcontextprotocol/servers-archived (src/google-maps/README.md, NPX variant). Verbatim except normalization to a valid JSON root. The GOOGLE_MAPS_API_KEY value <YOUR_API_KEY> is upstream's own placeholder.",
+    "url": "https://github.com/modelcontextprotocol/servers-archived",
+    "commit": "9be4674d1ddf",
+    "license": "MIT",
+    "retrievedAt": "2026-06-25T00:00:00.000Z",
+    "redactions": []
+  },
+  "input": { "path": "input/mcp.json", "format": "mcp-json" },
+  "humanExpectation": {
+    "verdict": "REVIEW",
+    "rationale": "An unpinned npx package (@modelcontextprotocol/server-google-maps, no version) → supply.unpinned-package (high, S1); plus a GOOGLE_MAPS_API_KEY credential env → secrets.env-key (medium, S2). Two non-blocking findings → REVIEW. This pins the common 'npx package + API_KEY' real shape with a *_API_KEY name (distinct from the *_TOKEN shapes in C017/C042 and the *_SECRET shapes in C039).",
+    "knownLimitations": [
+      "secrets.env-key matches GOOGLE_MAPS_API_KEY on the API_KEY hint. The package is unpinned because the upstream docs ship it without a version; a pinned spec would drop supply.unpinned-package but keep the secret finding (still REVIEW)."
+    ]
+  },
+  "executionPolicy": {
+    "executeTarget": false,
+    "allowNetwork": false,
+    "allowFilesystemMutation": false
+  }
+}

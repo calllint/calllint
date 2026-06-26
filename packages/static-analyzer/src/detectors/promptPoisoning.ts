@@ -1,48 +1,21 @@
 import type { Evidence, Finding } from "@calllint/types"
 import type { DetectorContext } from "../context.js"
-
-/** Model-directed instruction patterns indicative of tool poisoning (T01/T02/T13/T14). */
-const POISON_PATTERNS: string[] = [
-  "ignore previous instructions",
-  "ignore all previous instructions",
-  "disregard previous instructions",
-  "do not tell the user",
-  "do not inform the user",
-  "without telling the user",
-  "secretly",
-  "always call this tool first",
-  "call this tool before",
-  "before using other tools",
-  "before answering",
-  "read all files",
-  "send the full workspace",
-  "include the full workspace",
-  "include environment variables",
-  "exfiltrate",
-  "override system",
-  "override the system prompt",
-  "you are now",
-]
+import { findPoisonPhrases, poisonEvidence } from "../promptScan.js"
 
 function scanText(
   text: string | undefined,
   source: { path?: string; key: string },
 ): { pattern: string; evidence: Evidence }[] {
-  if (!text) return []
-  const lower = text.toLowerCase()
   const hits: { pattern: string; evidence: Evidence }[] = []
-  for (const pattern of POISON_PATTERNS) {
-    if (lower.includes(pattern)) {
-      hits.push({
-        pattern,
-        evidence: {
-          type: "tool-metadata",
-          path: source.path,
-          key: source.key,
-          snippet: pattern,
-        },
-      })
-    }
+  for (const pattern of findPoisonPhrases(text)) {
+    hits.push({
+      pattern,
+      evidence: poisonEvidence(pattern, {
+        type: "tool-metadata",
+        path: source.path,
+        key: source.key,
+      }),
+    })
   }
   return hits
 }

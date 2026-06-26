@@ -1,0 +1,21 @@
+{
+  "schemaVersion": "calllint.corpus.case.v1",
+  "caseId": "C053-safe-clean-surface-docs",
+  "title": "Clean config with clean project docs under --surface-dir stays SAFE (no false positive)",
+  "curationStatus": "synthetic-contract-seed",
+  "riskTheme": ["prompt-surface"],
+  "origin": {
+    "kind": "synthetic",
+    "description": "Hand-written contract seed: a clean pinned npx server with a benign README under surface/ (ordinary documentation including accented UTF-8: café, naïve, Zürich). The negative companion to C046/C051/C052/C054 — proves the prompt-surface scan does NOT over-fire on normal docs at the corpus gate.",
+    "retrievedAt": "2026-06-25T00:00:00.000Z"
+  },
+  "input": { "path": "input/mcp.json", "format": "mcp-json", "surfaceDir": "surface" },
+  "humanExpectation": {
+    "verdict": "SAFE",
+    "rationale": "Config is SAFE (pinned npx). With --surface-dir, the benign README contains no model-directed phrases and no hidden/obfuscated content, so prompt.surface-instructions does NOT fire and no project-docs report is emitted. Aggregate stays SAFE. This is the false-positive guard for the document-surface scanner: ordinary docs (incl. legitimate non-Latin scripts) must not be flagged.",
+    "knownLimitations": [
+      "Confirms the document-surface scanner does not fire on benign prose or accented UTF-8; the same scanner that flags C046/C051/C052/C054 must stay quiet here."
+    ]
+  },
+  "executionPolicy": { "executeTarget": false, "allowNetwork": false, "allowFilesystemMutation": false }
+}

@@ -49,18 +49,30 @@ const RISK_RANK = { S0: 0, S1: 1, S2: 2, S3: 3, S4: 4, S5: 5 }
  * loosened. R2.1 shipped at 30/20; the floor was raised to 31/21 once the C031
  * (RC-BLK-01) regression lock landed, to 35/25 as the first R2.2 batch
  * (C032–C035, promoted from validated RC non-author inputs) landed, to 36/26
- * when C036 (the 92-server RC-B10 multi-runtime stress shape) landed, and to
+ * when C036 (the 92-server RC-B10 multi-runtime stress shape) landed, to
  * 40/30 with R2.2 batch 3 (C037–C040: the first real action.financial case plus
- * real external-mutation / multi-secret / local-python SAFE shapes). The gate now
- * FAILS if that coverage is ever removed.
+ * real external-mutation / multi-secret / local-python SAFE shapes), and to
+ * 45/34 with R2.2 batch 4 (C041 the R4 prompt-surface hidden-instructions seed;
+ * C042–C045 real shapes: gitlab docker-token, sqlite uv-local broad-path BLOCK,
+ * google-maps npx api-key, github remote auth-header), and to 60/38 with R2.2
+ * batches 5–6: C046 + C051–C054 R4 local-document prompt-surface seeds (README /
+ * SKILL.md / package.json / AGENTS.md via --surface-dir, ADR 0015) + C053 clean
+ * negative; C047–C050 real shapes (redis docker-url SAFE, sentry uvx arg-token,
+ * gdrive docker-volume SAFE anchoring ADR 0016, everart docker-secret); and
+ * C055–C060 docker mount/volume branch locks (-v / --volume / --mount=inline /
+ * source= alias / type=volume) for the ADR 0012 extractor. The new R4-surface and
+ * docker-edge cases are necessarily synthetic (real configs ship neither sibling
+ * docs nor isolated mount edge-shapes), so minRealOrRedacted holds at 38 — the real
+ * coverage achieved — rather than being inflated to a fixed fraction of the total.
+ * The gate now FAILS if that coverage is ever removed.
  *
  * maxUnknownRatio is held at 0.15 and deliberately NOT tightened: UNKNOWN is the
  * safe direction (an unverifiable source must never round down to SAFE), so a
  * tighter UNKNOWN cap would pressure the corpus toward false precision.
  */
 const R2_FINAL = {
-  minTotalCases: 40,
-  minRealOrRedacted: 30,
+  minTotalCases: 60,
+  minRealOrRedacted: 38,
   maxUnknownRatio: 0.15,
 }
 
@@ -129,10 +141,15 @@ function hasEvidence(finding) {
   return Array.isArray(finding.evidence) && finding.evidence.length > 0
 }
 
-function runScan(cliEntrypoint, inputPath) {
+function runScan(cliEntrypoint, inputPath, surfaceDir) {
+  const scanArgs = [cliEntrypoint, "scan", inputPath, "--json", "--no-emoji", "--generated-at", FIXED_NOW]
+  // Opt-in prompt-surface scan (ADR 0015): a case may ship a `surfaceDir` of
+  // local document surfaces (README/SKILL.md/AGENTS.md/package.json). Still
+  // fully offline — the CLI only reads the allowlisted files, never the network.
+  if (surfaceDir) scanArgs.push("--surface-dir", surfaceDir)
   const result = spawnSync(
     process.execPath,
-    [cliEntrypoint, "scan", inputPath, "--json", "--no-emoji", "--generated-at", FIXED_NOW],
+    scanArgs,
     {
       cwd: repoRoot,
       encoding: "utf8",
@@ -255,7 +272,12 @@ function main() {
     }
 
     const inputPath = path.join(caseDir, source.input.path)
-    const report = runScan(entrypoint, inputPath)
+    // Opt-in: a case may declare a `surfaceDir` (relative to the case dir) of
+    // local document surfaces to scan for prompt-surface risk (ADR 0015).
+    const surfaceDir = source.input.surfaceDir
+      ? path.join(caseDir, source.input.surfaceDir)
+      : undefined
+    const report = runScan(entrypoint, inputPath, surfaceDir)
     const cmp = compareCase(entry.caseId, expected, report)
     cmp.curationStatus = source.curationStatus ?? "unknown"
     cmp.originKind = source.origin?.kind ?? "unknown"

@@ -1,11 +1,12 @@
 # CallLint
 
-> CallLint is a deterministic, offline-first static pre-run risk scanner for MCP and agent-tool configurations. It returns SAFE, REVIEW, BLOCK, or UNKNOWN with evidence before an agent loads the tool server. It does not execute, install, or connect to the server it judges.
+> CallLint is a pre-flight risk linter for MCP and agent-tool configurations. Before your agent acts, check the blast radius — it shows what each tool can read, write, execute, connect to, send, or mutate, and returns SAFE, REVIEW, BLOCK, or UNKNOWN with evidence before an agent loads the tool server. It does not execute, install, or connect to the server it judges.
 
 Important:
 - CallLint is static. It reads configuration only; it does not execute, install, or connect to the server.
 - A SAFE verdict is not a proof of runtime safety.
-- UNKNOWN is not SAFE. It means the surface could not be verified statically.
+- UNKNOWN is never SAFE. It means the surface could not be verified statically.
+- CallLint is heuristic decision support, not a safety guarantee — expect false positives and false negatives.
 - REVIEW, BLOCK, and UNKNOWN should be explained to the user with evidence (finding id, evidence path, observed value, remediation).
 - CallLint is `0.3.0` on the `latest` npm dist-tag (pre-1.0; expect false positives and false negatives).
 

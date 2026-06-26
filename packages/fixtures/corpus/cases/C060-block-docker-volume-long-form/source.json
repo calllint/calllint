@@ -1,0 +1,19 @@
+{
+  "schemaVersion": "calllint.corpus.case.v1",
+  "caseId": "C060-block-docker-volume-long-form",
+  "title": "docker --volume /root:/data (long-form -v) → BLOCK (ADR 0012 --volume next-token)",
+  "curationStatus": "synthetic-contract-seed",
+  "riskTheme": ["filesystem"],
+  "origin": {
+    "kind": "synthetic",
+    "description": "Hand-written contract seed locking the ADR 0012 extractor's --volume long-form (next-token) branch. C055 uses -v; this uses the --volume alias with a broad host root /root. The 60th corpus case.",
+    "retrievedAt": "2026-06-25T00:00:00.000Z"
+  },
+  "input": { "path": "input/mcp.json", "format": "mcp-json" },
+  "humanExpectation": {
+    "verdict": "BLOCK",
+    "rationale": "The bind is given via the --volume long-form alias with a separate next token '/root:/data'. The extractor's `arg === '--volume'` branch reads the next token as the spec; dockerVolumeHostSide splits the host side /root (broad) from container /data → files.broad-path (blocker) → BLOCK. Locks the --volume long-form path (complement to C055's -v short-form). thisCaseMustNeverBeSafe: true.",
+    "knownLimitations": ["Evidence value is host /root, never container /data."]
+  },
+  "executionPolicy": { "executeTarget": false, "allowNetwork": false, "allowFilesystemMutation": false }
+}

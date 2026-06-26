@@ -1,6 +1,6 @@
 # ADR 0011: Treatment of an unrecognized local command (RC-OBS-02)
 
-Status: Proposed — deferred (recorded 2026-06-23; no code change yet)
+Status: Accepted — Direction 2 (recorded 2026-06-23 as Proposed — deferred; **accepted and implemented 2026-06-25**)
 
 ## Context
 
@@ -50,56 +50,61 @@ executable whose contents CallLint has not inspected" be surfaced as REVIEW with
 finding like `exec.unverified-local-source` ("runs arbitrary local code; the
 binary/script is not independently verifiable"), rather than SAFE?
 
-## Decision (proposed — NOT yet accepted)
+## Decision (Accepted 2026-06-25 — Direction 2)
 
-Record the question; do not change the verdict yet. Two candidate directions, to
-be decided in a follow-up:
+**Direction 2 is adopted.** A new detector emits `exec.unverified-local-source`
+(REVIEW, medium severity, EXEC, S2, non-blocker, OBSERVED) when the runtime is a
+local executable that is neither a recognized package (with a parsed package name)
+nor a docker image nor a remote. SAFE stays reachable only for recognized,
+inspectable sources. The two candidate directions originally recorded were:
 
 1. **Keep SAFE (status quo), document the limit.** A bare local command is
    observable and low-signal; treating every `node dist/server.js` as REVIEW would
    re-verdict a large number of entirely legitimate configs and erode the
    usefulness of SAFE. The limitation is recorded on C035 and here.
 2. **Introduce a REVIEW finding for unrecognized local executables.** A new
-   detector emits `exec.unverified-local-source` (REVIEW, S-class TBD) when the
+   detector emits `exec.unverified-local-source` (REVIEW) when the
    runtime is a local executable that is neither a recognized package nor a
    recognized interpreter-with-known-script. SAFE stays reachable only for
-   recognized, inspectable sources.
+   recognized, inspectable sources. ← **chosen**
 
-This ADR does not pick (1) or (2). It fixes the **scope**: whichever is chosen is
-a deliberate, fixture-backed change, not a silent drift.
+The deciding rationale: CallLint is a *pre-flight* check for agent tools. An agent
+about to autonomously run a local script CallLint never inspected should see a
+confirmation prompt (REVIEW), not a green SAFE — SAFE meaning "we identified the
+source and found no blockers", not "we saw a command string". The alert-fatigue
+risk is mitigated by a narrow firing condition (only bare local executables, never
+recognized packages/images/remotes/shells) and an explicit `falsePositiveNote`
+that frames the finding as "source not independently verifiable", not "malicious".
 
-## Why deferred
+### Firing condition (exact)
 
-Direction (2) is a verdict-behaviour change that would re-verdict many legitimate
-`node`/`python` local-script configs from SAFE to REVIEW — a broad blast radius
-that the contract (`Any breaking change to ScanReport ... requires an ADR`; "stable
-fixes bugs; it does not widen surface") says must be decided deliberately, with
-positive + negative fixtures and a corpus impact pass, never rushed. Stable `0.3.0`
-shipped with this behaviour; changing it is an R2.2/R3-era detector decision, not a
-bug fix.
+The detector fires iff: `binding.sourceKnown` AND `binding.runtimeExecutable` AND
+`binding.runtimeKind !== "docker"` AND `!binding.packageName`. This excludes
+recognized package runners (npx/uvx with a parsed package → `packageName` set),
+docker images, remotes (`runtimeExecutable` false), and shells (`sourceKnown`
+false — already UNKNOWN, the dangerous-command detector's surface).
 
-## Consequences / required work (none done yet)
+## Consequences / required work — DONE (2026-06-25)
 
-If direction (2) is later accepted:
+Implemented:
 
-- New detector + finding id `exec.unverified-local-source`, with a **positive** and
-  a **negative** fixture and a unit test (CLAUDE.md rule).
-- Corpus impact pass: C035 (and any other bare-local-command case) flips SAFE →
-  REVIEW; `R2_CALIBRATION.md` and the `thisCaseMustNeverBeSafe` posture for C035 are
-  revisited; the UNKNOWN/REVIEW ratios are re-measured against the ≤ 15% UNKNOWN
-  floor.
-- Re-run `pnpm test`, `pnpm typecheck`, `corpus:test:r2-final`.
-
-If direction (1) is confirmed: no code change; this ADR is marked Accepted as
-"documented limitation," and C035 remains the SAFE baseline.
-
-## Reason
-
-The honest position today is that this is a known, observable-source SAFE — not a
-hidden-source false-SAFE. That distinction is exactly what separates RC-OBS-02 from
-RC-BLK-01, and conflating them would either (a) overstate a real risk or (b)
-trivialise the genuine RC-BLK-01 class. Recording the question with its anchor case
-keeps the decision visible without shipping an under-considered verdict change.
+- New detector `packages/static-analyzer/src/detectors/unverifiedLocalSource.ts`
+  emitting finding id `exec.unverified-local-source`, registered in `DETECTORS` and
+  exported from the analyzer index. **Positive** fixture
+  `golden/review-unverified-local-source.json` (bare `node ./dist/server.js` →
+  REVIEW, EXEC) and **negative** fixture `golden/safe-time.json` (recognized pinned
+  `npx @scope/pkg@1.0.0` → SAFE, no finding), plus unit tests in
+  `packages/static-analyzer/test/detectors.test.ts` covering the positive and four
+  negatives (recognized package, docker image, remote, shell).
+- Corpus impact pass: **C035 and C040 flipped SAFE → REVIEW** (dirs renamed
+  `C035-review-game-assistant-local-node`, `C040-review-postgres-local-python`);
+  their four files + `index.json` updated. No other case changed verdict — C032
+  (already REVIEW via secrets) and C036 (already UNKNOWN) gained the finding under
+  `allowExtraFindings: true` without a verdict change. C040 keeps `secrets.env-key`
+  forbidden, so its connection-string true-negative is preserved. UNKNOWN ratio
+  unchanged at 12.5% (the flips are SAFE → REVIEW, not toward UNKNOWN), well under
+  the ≤ 15% floor.
+- `pnpm test`, `pnpm typecheck`, `corpus:test:r2-final` all green.
 
 ## Related
 

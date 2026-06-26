@@ -1,0 +1,29 @@
+{
+  "schemaVersion": "calllint.corpus.case.v1",
+  "caseId": "C043-block-sqlite-uv-local-broad-path",
+  "title": "SQLite MCP via local uv with a ~/ db-path → BLOCK (broad path + unverified local source)",
+  "curationStatus": "real-public-snapshot",
+  "riskTheme": ["filesystem", "shell"],
+  "origin": {
+    "kind": "public-repository",
+    "description": "Public documentation config from modelcontextprotocol/servers-archived (src/sqlite/README.md, uv variant). Verbatim except normalization to a valid JSON root. The launcher is a local `uv --directory <repo path> run mcp-server-sqlite --db-path ~/test.db`; the ~/test.db argument is upstream's own example path.",
+    "url": "https://github.com/modelcontextprotocol/servers-archived",
+    "commit": "9be4674d1ddf",
+    "license": "MIT",
+    "retrievedAt": "2026-06-25T00:00:00.000Z",
+    "redactions": []
+  },
+  "input": { "path": "input/mcp.json", "format": "mcp-json" },
+  "humanExpectation": {
+    "verdict": "BLOCK",
+    "rationale": "Two findings fire. (1) files.broad-path (critical blocker, S2): the --db-path argument `~/test.db` starts with the broad home root `~/`, granting access at the user's home directory → BLOCK. (2) exec.unverified-local-source (REVIEW-class, S2): `uv` is a local runtime (not a recognized package runner — only uvx is) running a local module CallLint never inspects (ADR 0011 Direction 2). The blocker dominates, so the verdict is BLOCK. This is the first real case to exercise the new exec.unverified-local-source finding alongside a blocker, and a real broad-path BLOCK that is NOT a docker bind mount (contrast C023) and NOT an npx filesystem server (contrast C020).",
+    "knownLimitations": [
+      "`uv run` here launches a packaged module from a local checkout; CallLint flags the source as unverified (it never reads the module) and the home-rooted db path as broad. A workspace-scoped db path would drop the blocker, leaving only the REVIEW-class local-source finding."
+    ]
+  },
+  "executionPolicy": {
+    "executeTarget": false,
+    "allowNetwork": false,
+    "allowFilesystemMutation": false
+  }
+}

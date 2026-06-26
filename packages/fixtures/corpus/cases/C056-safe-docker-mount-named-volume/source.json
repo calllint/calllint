@@ -1,0 +1,19 @@
+{
+  "schemaVersion": "calllint.corpus.case.v1",
+  "caseId": "C056-safe-docker-mount-named-volume",
+  "title": "docker --mount type=volume (named volume, not bind) resolves SAFE (ADR 0012 type-skip)",
+  "curationStatus": "synthetic-contract-seed",
+  "riskTheme": ["filesystem"],
+  "origin": {
+    "kind": "synthetic",
+    "description": "Hand-written contract seed locking the ADR 0012 extractor's `type !== \"bind\"` skip: a --mount with type=volume has no host path, so even though it carries src=appdata it must NOT be flagged. No existing case covers the type=volume branch.",
+    "retrievedAt": "2026-06-25T00:00:00.000Z"
+  },
+  "input": { "path": "input/mcp.json", "format": "mcp-json" },
+  "humanExpectation": {
+    "verdict": "SAFE",
+    "rationale": "A --mount of type=volume names a docker named volume (src=appdata), not a host path. The ADR 0012 host-path extractor only reads type=bind mounts (the type !== 'bind' branch continues), so files.broad-path does NOT fire. Pinned image, no env, no other surface → SAFE. Locks that the extractor does not over-flag volume mounts.",
+    "knownLimitations": ["Synthetic minimal shape; src=appdata is a named volume, not a path."]
+  },
+  "executionPolicy": { "executeTarget": false, "allowNetwork": false, "allowFilesystemMutation": false }
+}
