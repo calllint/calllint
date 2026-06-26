@@ -10,6 +10,78 @@ onward. While pre-1.0, minor versions may include breaking changes.
 
 ## [Unreleased]
 
+Post-stable detector and corpus work (R2.2 batch 4, R3-adjacent calibration ADRs,
+and R4 prompt-surface v0). These change verdict behaviour for specific config
+shapes in the **safe direction** (they add findings the engine previously missed)
+and are gated by ADRs, positive + negative fixtures, unit tests, and a corpus
+impact pass per the development contract.
+
+### Added
+- **R3 `calllint diagnostics --json`** — a stable, editor/agent-host-friendly
+  machine protocol under its own schema version `calllint.diagnostics.v0`,
+  derived purely from an existing `ScanReport` (no new analysis, no verdict
+  change, no network). Emits one diagnostic per finding with finding id,
+  severity, file + config key-path, observed value, remediation, and verdict
+  contribution — including real source line/column for config-mapped evidence.
+  This is the geology under any future IDE/agent-host integration, which is why
+  it precedes any plugin. See [ADR 0013](docs/adr/0013-diagnostics-json.md)
+  (Accepted, implemented).
+- **R4 local-document prompt surface** — opt-in `calllint scan --surface-dir <dir>`
+  reads a bounded, offline allowlist of project documents (`README.md`, `SKILL.md`,
+  `AGENTS.md`, and `package.json` `description`) and runs the prompt-surface scanners
+  over them, emitting a project-level `prompt.surface-instructions` (PROMPT, S2,
+  REVIEW, non-blocker) finding with a surface path and FP note. Default behaviour is
+  unchanged — with no flag, nothing beyond the config is read. Bounded (256 KiB/file,
+  named allowlist, no globbing/recursion/symlinks), offline, never executes. The
+  `prompt.poisoning` / `prompt.hidden-instructions` scanners were extracted to one
+  shared module so the config-metadata and document surfaces flag identically. See
+  [ADR 0015](docs/adr/0015-prompt-surface-local-documents.md).
+- **R4 prompt-surface v0** — new detector `prompt.hidden-instructions` (PROMPT, S2,
+  REVIEW, non-blocker) flags hidden/obfuscated content in the model-visible surface
+  (server instructions + provided tool name/description/schema text): zero-width and
+  invisible characters, Unicode bidirectional overrides (Trojan-Source class),
+  tag-character ASCII smuggling, and embedded HTML/XML comments. Complements the
+  existing `prompt.poisoning` literal-phrase blocker by catching its evasion. Static
+  shape detection only — never a prompt-injection claim.
+  See [ADR 0014](docs/adr/0014-prompt-surface-hidden-instructions.md).
+- **`exec.unverified-local-source`** (EXEC, S2, REVIEW, non-blocker) — flags a
+  runtime that executes a local script/binary CallLint never inspects (`node
+  ./server.js`, `uv run python -m …`, an unrecognized local binary) and that is
+  neither a recognized package, a docker image, nor a remote. SAFE is now reachable
+  only for recognized, inspectable sources. See
+  [ADR 0011](docs/adr/0011-unrecognized-local-command-calibration.md) (Accepted,
+  Direction 2).
+
+### Changed
+- **Docker bind-mount host paths are now inspected.** The broad-path detector
+  extracts the host side of `--mount type=bind,src=…`/`source=…`, `-v host:container`,
+  `--volume`, and inline `--mount=…` forms (drive-letter aware) and runs the
+  broad-path check on it (never the container `dst`, never a named volume). A config
+  that binds a broad host directory into a container now emits `files.broad-path` →
+  BLOCK. Same finding id; no schema change. See
+  [ADR 0012](docs/adr/0012-docker-mount-host-paths-not-inspected.md) (Accepted).
+- **Corpus re-verdicts (deliberate, ADR-gated):** `C023` docker bind-mount
+  SAFE → BLOCK (ADR 0012); `C035` bare-node and `C040` local-uv-python SAFE → REVIEW
+  (ADR 0011 Direction 2). Each case's contract, notes, and `index.json` updated;
+  `thisCaseMustNeverBeSafe` set where a blocker now applies.
+- **R2.2 corpus → 60 cases** (real/redacted floor 38). Batch 4 (C041–C045): R4
+  hidden-instructions seed + real gitlab/sqlite/google-maps/github-remote shapes.
+  Batches 5–6 (C046–C060): R4 local-document surface seeds (README/SKILL.md/
+  package.json/AGENTS.md via `--surface-dir`) + a clean-surface negative; four more
+  real shapes (redis docker-url SAFE, sentry uvx arg-token, gdrive docker-volume SAFE,
+  everart docker-secret); and docker mount/volume branch locks
+  (`-v`/`--volume`/`--mount=`/`source=` alias/`type=volume`). Acceptance floor
+  ratcheted 40/30 → 60/38; dangerous false-SAFE stays 0; UNKNOWN ratio 10.0% (≤ 15%).
+
+### Deferred (recorded, not yet implemented)
+- **ADR 0016** — docker `-e KEY[=value]` env keys are not extracted by the secret
+  detector (it reads the `env` block, not docker args), so a credential-named var
+  passed inline via `-e` with no `env` block is not flagged. A non-blocker
+  (REVIEW-class) under-call, the secrets-detector analogue of ADR 0012; anchored by
+  corpus case C049. See
+  [ADR 0016](docs/adr/0016-docker-env-args-not-extracted-for-secrets.md).
+
+
 ## [0.3.0] — First stable release
 
 First stable release of CallLint, published to the `latest` dist-tag. **No

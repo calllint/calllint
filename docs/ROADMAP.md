@@ -23,8 +23,16 @@ gate, and the SARIF dogfood are done. The RC window did its job: scanning real
 third-party configs surfaced a dangerous false-SAFE (RC-BLK-01), which was fixed,
 regression-locked, and shipped in `0.3.0-rc.1`. **Stable `0.3.0` is now published**
 — promoted to the `latest` dist-tag with the engine byte-identical to rc.1 (a
-promotion, not new capability). What comes next is **continuous corpus breadth
-(R2.2) and the post-stable phases**, not the stable mechanics.
+promotion, not new capability).
+
+Post-stable, the pre-platform work is now **complete**: R2.2 reached the 45-case
+target (floor 45/34), R3 `calllint diagnostics --json` shipped (ADR 0013), the two
+detector-calibration ADRs are accepted and implemented (ADR 0011
+`exec.unverified-local-source`; ADR 0012 docker bind-mount host paths), and R4
+prompt-surface **v0** shipped (ADR 0014 `prompt.hidden-instructions`). What remains
+before any platform work is the R4 new-surface plumbing (README/SKILL/registry) and
+continued corpus growth toward 60 — everything platform-shaped stays gated on real
+adoption signals below.
 
 ## Phase: 0.3.0-rc.1 → stable — done
 
@@ -54,27 +62,59 @@ chain, and CI integration are stable** — not that any tool is proven safe.
 
 ### R2.2 — continuous corpus
 Turn the corpus from a one-time gate into a growing regression system; every
-valid redacted real case from RC/field feedback becomes a case. Rough cadence
-35 → 45 → 60 cases (batch 1 reached 35: C031 lock + C032–C035; batch 2 reached 36:
-C036 92-server stress; batch 3 reached 40: C037–C040 real money/mutation/SAFE
-shapes), each batch
-updating [R2_CALIBRATION.md](./R2_CALIBRATION.md), coverage, and the UNKNOWN
-trend. The acceptance floor only ratchets up (dangerous false-SAFE stays 0;
-UNKNOWN ≤ 15%).
+valid redacted real case from RC/field feedback becomes a case. Cadence
+35 → 45 → **60 (reached)**: batch 1 (C031 lock + C032–C035), batch 2 (C036
+92-server stress), batch 3 (C037–C040 real money/mutation/SAFE), batch 4 (C041 R4
+seed + C042–C045 real gitlab/sqlite/google-maps/github-remote), batches 5–6
+(C046–C060: R4 local-document prompt-surface seeds, four more real shapes, and the
+docker mount/volume branch locks). Each batch updates
+[R2_CALIBRATION.md](./R2_CALIBRATION.md), coverage, and the UNKNOWN trend. The
+acceptance floor only ratchets up (now **60/38**; dangerous false-SAFE stays 0;
+UNKNOWN ≤ 15%, currently 10.0%). Next target 80, from real/redacted field feedback.
 
-### R3 — `calllint diagnostics --json`
+### R3 — `calllint diagnostics --json` — done
 A stable, editor-friendly machine protocol (file/line/column, severity, finding
 id, jsonPath, observed value, remediation, verdict contribution) under its own
 schema version — **without** changing scan verdict semantics or the report
-schema. This is the geology under any future IDE/agent-host integration, which
+schema. **Shipped** ([ADR 0013](./adr/0013-diagnostics-json.md);
+`calllint.diagnostics.v0`), including real source line/column for config-mapped
+evidence. This is the geology under any future IDE/agent-host integration, which
 is why it comes *before* any plugin.
 
-### R4 — Prompt Surface expansion
-Extend prompt-surface risk beyond tool metadata to README / SKILL.md / tool
-schema descriptions / server instructions / package description / registry
-metadata. Framed as **"flags prompt-surface risk"**, never "detects prompt
-injection" — it is static shape detection, not a runtime proof. Every finding
-carries a surface path and a false-positive note.
+### Detector-calibration ADRs — done
+Two documented-limitation calibration questions surfaced during R2.1/RC are now
+resolved with fixture-backed, corpus-locked changes:
+- [ADR 0012](./adr/0012-docker-mount-host-paths-not-inspected.md) (Accepted):
+  the broad-path detector now extracts docker bind-mount host paths
+  (`--mount type=bind,src=…`, `-v host:container`); C023 flipped SAFE → BLOCK.
+- [ADR 0011](./adr/0011-unrecognized-local-command-calibration.md) (Accepted,
+  Direction 2): new `exec.unverified-local-source` (REVIEW) for local executables
+  that are not a recognized package/image/remote; C035 + C040 flipped SAFE → REVIEW.
+
+### R4 — Prompt Surface expansion — v0 shipped
+Extend prompt-surface risk beyond literal phrase matching. **v0 shipped**
+([ADR 0014](./adr/0014-prompt-surface-hidden-instructions.md)): new detector
+`prompt.hidden-instructions` (REVIEW) flags hidden/obfuscated content — zero-width
+and invisible characters, Unicode bidi overrides, tag-character ASCII smuggling,
+embedded HTML comments — in the model-visible surface the engine has today (server
+instructions + provided tool metadata). Framed as **"flags prompt-surface risk"**,
+never "detects prompt injection" — it is static shape detection, not a runtime
+proof. Every finding carries a surface path and a false-positive note.
+
+**R4 local-document surface increment — shipped**
+([ADR 0015](./adr/0015-prompt-surface-local-documents.md)): an opt-in
+`calllint scan --surface-dir <dir>` reads a bounded, offline allowlist of project
+documents (`README.md`, `SKILL.md`, `AGENTS.md`, and `package.json` `description`)
+and runs the prompt-surface scanners over them, emitting a project-level
+`prompt.surface-instructions` (REVIEW) finding with a surface path and FP note.
+Default behaviour is unchanged — with no flag, nothing beyond the config is read.
+
+**Remaining R4 work:** extend to **registry metadata** (npm/PyPI description,
+keywords) and a server's remote README. These are **network** input and therefore an
+`--online` concern (advisory per ADR 0006), not the offline `--surface-dir` path —
+the next R4 increment. A docker `-e` env-key secrets gap found while harvesting is
+recorded as [ADR 0016](./adr/0016-docker-env-args-not-extracted-for-secrets.md)
+(Proposed/deferred), the secrets-detector analogue of ADR 0012.
 
 ## Explicit non-goals (now)
 

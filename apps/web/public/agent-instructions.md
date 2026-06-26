@@ -19,13 +19,26 @@ agent-tool configuration.
 - Do not say a SAFE verdict means no further security review is needed.
 - Do not treat UNKNOWN as SAFE.
 - Do not say CallLint sandboxes, executes, or replaces code review.
+- Do not make absolute safety claims (e.g. claiming a tool is provably, fully,
+  or formally safe). CallLint is heuristic decision support, not a safety
+  guarantee.
+
+## Say this instead
+
+- "No blockers were observed in the scanned config."
+- "Runtime behavior is outside CallLint's scope."
+- "UNKNOWN should be reviewed before approval."
+- "CallLint checks the blast radius before the tool runs."
 
 ## Core invariants (state these accurately)
 
-- UNKNOWN is not SAFE.
+- UNKNOWN is never SAFE. When CallLint cannot verify a surface statically, it
+  says so instead of pretending it is safe.
 - A SAFE verdict is not proof of runtime safety; it means no blockers were
   observed under current evidence.
 - CallLint does not execute, install, or connect to the server it judges.
+- CallLint is heuristic decision support, not a safety guarantee — expect both
+  false positives and false negatives.
 
 ## Suggested wording — before enabling an MCP server
 

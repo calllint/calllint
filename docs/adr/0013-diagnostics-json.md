@@ -1,6 +1,9 @@
 # ADR 0013: `calllint diagnostics --json` — an editor/agent-host output, key-path-scoped in v0
 
-Status: Proposed (recorded 2026-06-24; no code change yet)
+Status: Accepted (implemented 2026-06-24; `apps/cli/src/commands/diagnostics.ts` +
+`packages/report-renderer/src/renderDiagnostics.ts` + `packages/types/src/diagnostics.ts`
+`calllint.diagnostics.v0` shipped, including real source line/column for config-mapped
+evidence; 7 tests in `apps/cli/test/cli.test.ts`)
 
 ## Context
 
@@ -74,9 +77,9 @@ a per-entry `server` field (mirroring how SARIF flattens results).
 The command reuses the centralized exit-code map (`apps/cli/src/exitCode.ts`):
 plain mode exits 0; `--ci` maps verdict → code exactly as `scan` does.
 
-## Consequences / required work (none done yet — separate impl PR)
+## Consequences / required work (all done — see Status + Deferred follow-up)
 
-When this ADR is Accepted and scheduled:
+When this ADR was Accepted and scheduled, the required work was:
 
 - New `packages/types` type `DiagnosticsReport` (`calllint.diagnostics.v0`) +
   per-entry type. A type-only addition; `ScanReport` is untouched.

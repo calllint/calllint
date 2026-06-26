@@ -521,6 +521,58 @@ pre {
 .vcard-unknown { border-left-color: #6b7280; }
 .vcard-unknown .vchip { background: rgba(107, 114, 128, 0.16); color: #4b515b; }
 
+/* standalone verdict chips (used in the demo-proof table) */
+.vchip-safe { background: rgba(31, 157, 87, 0.14); color: #157a42; }
+.vchip-review { background: rgba(201, 138, 0, 0.16); color: #99690a; }
+.vchip-block { background: var(--brand-soft); color: var(--brand); }
+.vchip-unknown { background: rgba(107, 114, 128, 0.16); color: #4b515b; }
+
+/* demo proof block */
+.demo-proof-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 24px;
+  margin-top: 12px;
+}
+.demo-proof-col h3 {
+  margin: 0 0 10px;
+  font-size: 1rem;
+}
+.verdict-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.88rem;
+  display: block;
+  overflow-x: auto;
+}
+.verdict-table th,
+.verdict-table td {
+  text-align: left;
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--line);
+  vertical-align: middle;
+}
+.verdict-table th {
+  font-size: 0.8rem;
+  color: var(--muted);
+  font-weight: 600;
+}
+.verdict-table td:first-child {
+  font-family: var(--mono);
+  font-size: 0.82rem;
+}
+.verdict-table td:last-child {
+  color: var(--muted);
+}
+.demo-proof-note {
+  margin-top: 10px;
+  font-size: 0.82rem;
+  color: var(--muted);
+}
+.trust-pillar h3 {
+  margin-bottom: 8px;
+}
+
 /* terminal report */
 .report-demo pre {
   font-size: 0.82rem;
@@ -530,6 +582,48 @@ pre {
 .t-com { color: #8a93a3; }
 
 /* detectors */
+.ladder {
+  list-style: decimal inside;
+  margin: 0 0 18px;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 8px 24px;
+  counter-reset: ladder;
+}
+.ladder li {
+  list-style: none;
+  counter-increment: ladder;
+  position: relative;
+  padding-left: 2.2em;
+  font-size: 0.95rem;
+  line-height: 1.5;
+  color: var(--ink);
+}
+.ladder li::before {
+  content: counter(ladder) ".";
+  position: absolute;
+  left: 0;
+  color: var(--brand);
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+}
+.detector-detail {
+  margin-top: 8px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 12px 16px;
+  background: var(--bg);
+}
+.detector-detail > summary {
+  cursor: pointer;
+  font-size: 0.9rem;
+  color: var(--muted);
+  list-style: revert;
+}
+.detector-detail[open] > summary {
+  margin-bottom: 12px;
+}
 .detector-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
