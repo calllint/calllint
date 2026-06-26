@@ -1,0 +1,15 @@
+{
+  "mcpServers": {
+    "cache": {
+      "command": "docker",
+      "args": [
+        "run",
+        "-i",
+        "--rm",
+        "--mount",
+        "type=volume,src=appdata,dst=/data",
+        "mcp/cache"
+      ]
+    }
+  }
+}

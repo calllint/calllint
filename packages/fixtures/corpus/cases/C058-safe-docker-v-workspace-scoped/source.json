@@ -1,0 +1,19 @@
+{
+  "schemaVersion": "calllint.corpus.case.v1",
+  "caseId": "C058-safe-docker-v-workspace-scoped",
+  "title": "docker -v ${workspaceFolder}/data:/data resolves SAFE (ADR 0012 -v scoped negative)",
+  "curationStatus": "synthetic-contract-seed",
+  "riskTheme": ["filesystem"],
+  "origin": {
+    "kind": "synthetic",
+    "description": "Hand-written contract seed locking the -v branch's workspace-scoped negative: a -v bind whose host side is ${workspaceFolder}/data must stay SAFE (isWorkspaceScoped). C055/C060 lock broad -v binds; this locks the scoped negative so the -v extractor does not over-flag legitimate workspace mounts.",
+    "retrievedAt": "2026-06-25T00:00:00.000Z"
+  },
+  "input": { "path": "input/mcp.json", "format": "mcp-json" },
+  "humanExpectation": {
+    "verdict": "SAFE",
+    "rationale": "The -v host side is ${workspaceFolder}/data — workspace-scoped, which looksLikeBroadPath rejects via isWorkspaceScoped. dockerVolumeHostSide extracts the host side, but it is not broad, so files.broad-path does NOT fire. Pinned image, no env → SAFE. Locks that the -v extractor honors workspace-scoping (the negative companion to C055).",
+    "knownLimitations": ["Synthetic minimal shape; ${workspaceFolder} is the scoped marker."]
+  },
+  "executionPolicy": { "executeTarget": false, "allowNetwork": false, "allowFilesystemMutation": false }
+}

@@ -1,0 +1,17 @@
+{
+  "mcpServers": {
+    "memory": {
+      "command": "docker",
+      "args": [
+        "run",
+        "-i",
+        "--rm",
+        "-v",
+        "claude-memory:/app/dist",
+        "--mount",
+        "type=bind,src=${workspaceFolder}/data,dst=/data",
+        "mcp/memory"
+      ]
+    }
+  }
+}

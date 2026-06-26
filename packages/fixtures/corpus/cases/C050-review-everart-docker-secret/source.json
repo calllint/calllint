@@ -1,0 +1,29 @@
+{
+  "schemaVersion": "calllint.corpus.case.v1",
+  "caseId": "C050-review-everart-docker-secret",
+  "title": "EverArt MCP via docker with an API-key env block → REVIEW",
+  "curationStatus": "real-public-snapshot",
+  "riskTheme": ["env"],
+  "origin": {
+    "kind": "public-repository",
+    "description": "Public documentation config from modelcontextprotocol/servers-archived (src/everart/README.md, Docker variant). Verbatim except normalization to a valid JSON root. The EVERART_API_KEY value 'your_key_here' is upstream's own placeholder.",
+    "url": "https://github.com/modelcontextprotocol/servers-archived",
+    "commit": "9be4674d1ddf",
+    "license": "MIT",
+    "retrievedAt": "2026-06-25T00:00:00.000Z",
+    "redactions": []
+  },
+  "input": { "path": "input/mcp.json", "format": "mcp-json" },
+  "humanExpectation": {
+    "verdict": "REVIEW",
+    "rationale": "A pinned docker image (mcp/everart) with an EVERART_API_KEY credential in the env block → secrets.env-key fires (medium, S2) → REVIEW. The credential is declared in the env block (contrast C049, where the inline -e form hits the ADR 0016 gap), so the secret IS flagged here. No bind mount, no unpinned package (docker image), no dangerous command. This pins a clean docker + env-secret REVIEW shape with the credential correctly surfaced from the env block.",
+    "knownLimitations": [
+      "The env value is the upstream placeholder 'your_key_here'; CallLint reports the key NAME only (never the value)."
+    ]
+  },
+  "executionPolicy": {
+    "executeTarget": false,
+    "allowNetwork": false,
+    "allowFilesystemMutation": false
+  }
+}

@@ -1,0 +1,19 @@
+{
+  "schemaVersion": "calllint.corpus.case.v1",
+  "caseId": "C057-block-docker-mount-source-alias",
+  "title": "docker --mount type=bind,source=/var,target=/data → BLOCK (ADR 0012 source/target aliases)",
+  "curationStatus": "synthetic-contract-seed",
+  "riskTheme": ["filesystem"],
+  "origin": {
+    "kind": "synthetic",
+    "description": "Hand-written contract seed locking the ADR 0012 extractor's `source` alias (docker accepts both `src=` and `source=`, and `dst=`/`target=`/`destination=`). C023 uses src=/dst=; this uses source=/target= with a broad host root /var.",
+    "retrievedAt": "2026-06-25T00:00:00.000Z"
+  },
+  "input": { "path": "input/mcp.json", "format": "mcp-json" },
+  "humanExpectation": {
+    "verdict": "BLOCK",
+    "rationale": "The --mount uses the `source=` alias (not `src=`) for a broad host root /var, with `target=` (not `dst=`) for the container path. The ADR 0012 extractor reads `fields.get('source') ?? fields.get('src')`, so /var is extracted and matched as broad → files.broad-path (blocker) → BLOCK. The container target /data is never flagged. thisCaseMustNeverBeSafe: true.",
+    "knownLimitations": ["Evidence value is the host /var, never the container target /data."]
+  },
+  "executionPolicy": { "executeTarget": false, "allowNetwork": false, "allowFilesystemMutation": false }
+}

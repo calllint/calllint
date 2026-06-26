@@ -1,0 +1,16 @@
+{
+  "mcpServers": {
+    "filesystem": {
+      "command": "docker",
+      "args": [
+        "run",
+        "-i",
+        "--rm",
+        "--mount",
+        "type=bind,source=/var,target=/data",
+        "mcp/filesystem",
+        "/data"
+      ]
+    }
+  }
+}

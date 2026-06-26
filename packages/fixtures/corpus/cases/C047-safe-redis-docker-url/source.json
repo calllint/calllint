@@ -1,0 +1,29 @@
+{
+  "schemaVersion": "calllint.corpus.case.v1",
+  "caseId": "C047-safe-redis-docker-url",
+  "title": "Redis MCP via docker with a connection-URL positional arg resolves SAFE",
+  "curationStatus": "real-public-snapshot",
+  "riskTheme": ["env"],
+  "origin": {
+    "kind": "public-repository",
+    "description": "Public documentation config from modelcontextprotocol/servers-archived (src/redis/README.md, Docker variant). Verbatim except normalization to a valid JSON root. The redis:// URL is upstream's own default example (host.docker.internal).",
+    "url": "https://github.com/modelcontextprotocol/servers-archived",
+    "commit": "9be4674d1ddf",
+    "license": "MIT",
+    "retrievedAt": "2026-06-25T00:00:00.000Z",
+    "redactions": []
+  },
+  "input": { "path": "input/mcp.json", "format": "mcp-json" },
+  "humanExpectation": {
+    "verdict": "SAFE",
+    "rationale": "A pinned docker image (mcp/redis) given a redis:// connection URL as a positional arg. No env at all (so no secrets.env-key), no bind mount (so no files.broad-path), no unpinned package (docker image, not npx), no dangerous command. SAFE (S1). This pins that a connection-URL passed as a positional docker arg is not mistaken for a broad path or a remote MCP transport — it is data handed to the container, distinct from a server.url remote (contrast C025/C045).",
+    "knownLimitations": [
+      "A redis:// URL can embed credentials in its userinfo; CallLint reads config shape, not values, so an inline password in the URL value is not surfaced (same value-vs-shape limit as the connection-string cases C012/C040). Here the URL is the upstream default with no credentials."
+    ]
+  },
+  "executionPolicy": {
+    "executeTarget": false,
+    "allowNetwork": false,
+    "allowFilesystemMutation": false
+  }
+}
