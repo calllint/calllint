@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>CallLint — know what an agent tool can do before your agent runs it</title>
+    <title>CallLint — before your agent acts, check the blast radius</title>
     <meta
       name="description"
       content="CallLint statically scans MCP and agent-tool configs and returns SAFE / REVIEW / BLOCK / UNKNOWN with evidence. Offline by default, deterministic, never executes the server it judges."
@@ -12,10 +12,10 @@
     <link rel="apple-touch-icon" href="/logo-mark-256.png" />
     <meta property="og:type" content="website" />
     <meta property="og:url" content="https://calllint.com/" />
-    <meta property="og:title" content="CallLint — know what an agent tool can do before your agent runs it" />
+    <meta property="og:title" content="CallLint — before your agent acts, check the blast radius" />
     <meta
       property="og:description"
-      content="Before your agent runs a tool, know what it can read, write, execute, and send."
+      content="Pre-flight risk linting for MCP and agent tools — know the blast radius before your agent runs them."
     />
     <meta property="og:image" content="https://calllint.com/og-image.png" />
     <meta name="twitter:card" content="summary_large_image" />
@@ -49,13 +49,13 @@
           </div>
           <div class="hero-copy">
             <span class="tag">Pre-flight risk linting for agent tools</span>
-            <h1>Check MCP tools before your agent loads them.</h1>
+            <h1>Before your agent acts, check the blast radius.</h1>
             <p class="lede">
-              CallLint statically scans Cursor, Claude Desktop, and agent-tool configs
-              before they run, then returns SAFE, REVIEW, BLOCK, or UNKNOWN
-              <strong>with evidence</strong> — what each tool appears able to read, write,
-              execute, connect to, send, or spend. Offline by default. Deterministic.
-              Never executes the server it judges.
+              CallLint statically scans MCP and agent-tool configs before they run,
+              showing what each tool can read, write, execute, connect to, send, or
+              mutate — with evidence-backed <strong>SAFE / REVIEW / BLOCK / UNKNOWN</strong>
+              verdicts. Offline by default. Deterministic. Never executes the server
+              it judges. SAFE means no blockers observed, not a proof of runtime safety.
             </p>
             <div class="hero-install" aria-label="Install command">
 <pre><code>npx calllint scan .cursor/mcp.json</code></pre>
@@ -90,8 +90,8 @@
       <!-- 3. Input → verdict demo -->
       <section class="section" id="demo">
         <div class="section-head">
-          <h2>One config in, one verdict out — with evidence</h2>
-          <p>CallLint reads the config you are about to approve and shows what it grants. This is real output, not a mock-up.</p>
+          <h2>One config. Four hidden risks. Zero servers executed.</h2>
+          <p>CallLint reads the config you are about to approve and shows what it grants. This is real output from the current corpus fixtures, not a mock-up.</p>
         </div>
         <div class="demo-split">
           <div class="demo-col">
@@ -145,10 +145,10 @@
           <p>Every finding cites the exact config field it came from. UNKNOWN never auto-upgrades to SAFE.</p>
         </div>
         <div class="verdict-grid">
-          <article class="vcard vcard-safe"><span class="vchip">SAFE</span><p>No blockers observed in the scanned config. Not a proof of runtime safety.</p></article>
-          <article class="vcard vcard-review"><span class="vchip">REVIEW</span><p>Sensitive surface a human should weigh before approving.</p></article>
-          <article class="vcard vcard-block"><span class="vchip">BLOCK</span><p>Dangerous capability — broad FS, shell, prompt poisoning, observed money movement.</p></article>
-          <article class="vcard vcard-unknown"><span class="vchip">UNKNOWN</span><p>Can't be verified statically. Said plainly, never hidden as SAFE.</p></article>
+          <article class="vcard vcard-safe"><span class="vchip">SAFE · No blockers observed</span><p>No blocking risk observed in the scanned config. Not a proof of runtime safety.</p></article>
+          <article class="vcard vcard-review"><span class="vchip">REVIEW · Human judgment required</span><p>Sensitive surface a human should weigh before approving.</p></article>
+          <article class="vcard vcard-block"><span class="vchip">BLOCK · Dangerous surface</span><p>Broad filesystem access, shell execution, prompt poisoning, observed money movement, or policy-disallowed capabilities.</p></article>
+          <article class="vcard vcard-unknown"><span class="vchip">UNKNOWN · Cannot verify statically</span><p>Opaque or incomplete surface. Said plainly — UNKNOWN is a feature, not a fallback; it is never hidden as SAFE.</p></article>
         </div>
       </section>
 
@@ -183,23 +183,38 @@ calllint verify .cursor/mcp.json --ci</code></pre>
         </div>
       </section>
 
-      <!-- 4. Detectors -->
+      <!-- 4. Blast-radius ladder -->
       <section class="band" id="checks">
         <div class="band-inner">
           <div class="section-head">
-            <h2>Eight static detectors over every server entry</h2>
-            <p>Findings roll up into a risk class (S0 metadata-only → S5 financial/irreversible).</p>
+            <h2>Before your agent loads a tool, CallLint asks</h2>
+            <p>Ten static detectors, framed as the questions a reviewer would ask — not a tool list to memorize.</p>
           </div>
-          <div class="detector-grid">
-            <article class="detector"><span class="dico">🔐</span><h3>Secrets</h3><p>Env keys whose names imply credentials — tokens, keys, passwords.</p></article>
-            <article class="detector"><span class="dico">📁</span><h3>Files</h3><p>Filesystem roots granting broad read/write (<code>/</code>, <code>~</code>, drive roots).</p></article>
-            <article class="detector"><span class="dico">🌐</span><h3>Network</h3><p>Remote/HTTP transports to unrecognized or unpinned hosts.</p></article>
-            <article class="detector"><span class="dico">🧠</span><h3>Prompt</h3><p>Model-directed instructions hidden in tool names, descriptions, schemas.</p></article>
-            <article class="detector"><span class="dico">⚙️</span><h3>Exec</h3><p>Shell-out / interpreter / package-runner commands (<code>bash -c</code>, <code>npx</code>).</p></article>
-            <article class="detector"><span class="dico">✉️</span><h3>Action</h3><p>Tools that send or mutate external state — email, messages, posts.</p></article>
-            <article class="detector"><span class="dico">💸</span><h3>Money</h3><p>Payment / transfer / irreversible financial actions.</p></article>
-            <article class="detector"><span class="dico">🧩</span><h3>Supply</h3><p>Unpinned package specs (<code>@latest</code>) — rug-pull surface.</p></article>
-          </div>
+          <ol class="ladder">
+            <li>Where did this tool come from?</li>
+            <li>Is the package pinned, or can it drift after approval?</li>
+            <li>What files can it read?</li>
+            <li>What files can it write?</li>
+            <li>Can it execute shell, interpreters, or package runners?</li>
+            <li>Can it reach the network?</li>
+            <li>Can tool metadata influence the model?</li>
+            <li>Can it send messages or mutate external state?</li>
+            <li>Can it move money or trigger irreversible actions?</li>
+            <li>What cannot be verified statically?</li>
+          </ol>
+          <details class="detector-detail">
+            <summary>Underlying detectors</summary>
+            <div class="detector-grid">
+              <article class="detector"><span class="dico">🔐</span><h3>Secrets</h3><p>Env keys whose names imply credentials — tokens, keys, passwords.</p></article>
+              <article class="detector"><span class="dico">📁</span><h3>Files</h3><p>Filesystem roots granting broad read/write (<code>/</code>, <code>~</code>, drive roots, docker bind-mount host paths).</p></article>
+              <article class="detector"><span class="dico">🌐</span><h3>Network</h3><p>Remote/HTTP transports to unrecognized or unpinned hosts.</p></article>
+              <article class="detector"><span class="dico">🧠</span><h3>Prompt</h3><p>Model-directed or hidden/obfuscated instructions in tool metadata or project documents.</p></article>
+              <article class="detector"><span class="dico">⚙️</span><h3>Exec</h3><p>Shell-out / interpreter / package-runner commands, plus unverified local sources.</p></article>
+              <article class="detector"><span class="dico">✉️</span><h3>Action</h3><p>Tools that send or mutate external state — email, messages, posts.</p></article>
+              <article class="detector"><span class="dico">💸</span><h3>Money</h3><p>Payment / transfer / irreversible financial actions.</p></article>
+              <article class="detector"><span class="dico">🧩</span><h3>Supply</h3><p>Unpinned package specs (<code>@latest</code>) — rug-pull surface.</p></article>
+            </div>
+          </details>
           <p class="band-foot">
             Plus drift detection: <code>baseline</code> / <code>verify</code> records an approved
             surface and flags 🔁 rug-pulls when a server changes after you approve it.
@@ -210,14 +225,22 @@ calllint verify .cursor/mcp.json --ci</code></pre>
       <!-- 5. Trust model -->
       <section class="section" id="trust">
         <div class="section-head">
-          <h2>A security tool with explicit, auditable boundaries</h2>
-          <p>CallLint's own trust boundaries are stated, not implied.</p>
+          <h2>Three pillars of a tool you can safely run before approval</h2>
+          <p>CallLint's own trust boundaries are stated, not implied — and stay within LIMITATIONS.md.</p>
         </div>
         <div class="trust-grid">
-          <article class="trust"><h3>No host execution</h3><p>It parses and reasons about configuration only. It never runs, installs, or connects to the server it judges.</p></article>
-          <article class="trust"><h3>Config is attacker-controlled</h3><p>Tool names, descriptions, and schemas are treated as untrusted input; report rendering escapes them.</p></article>
-          <article class="trust"><h3>Offline by default</h3><p><code>--online</code> adds advisory registry lookups only — it can never make a verdict more permissive.</p></article>
-          <article class="trust"><h3>Deterministic</h3><p>No model, clock, or network in the decision path. The JSON report schema is stable (<code>calllint.report.v0</code>).</p></article>
+          <article class="trust trust-pillar">
+            <h3>Safe to run</h3>
+            <p>No host execution. No install scripts. No server connection. No secret values read — it inspects config shape, never your <code>.env</code>.</p>
+          </article>
+          <article class="trust trust-pillar">
+            <h3>Honest by design</h3>
+            <p>UNKNOWN is never SAFE. SAFE means no blockers observed. Online enrichment can add risk, never reduce a verdict. No LLM in the verdict path.</p>
+          </article>
+          <article class="trust trust-pillar">
+            <h3>Built for review</h3>
+            <p>Evidence-backed findings. Stable JSON schema (<code>calllint.report.v0</code>). SARIF, HTML, and terminal reports. Documented CI exit codes. Corpus release gate.</p>
+          </article>
         </div>
       </section>
 
@@ -245,6 +268,52 @@ calllint scan .cursor/mcp.json --ci --no-emoji
 
 <span class="t-com"># upload SARIF to GitHub Code Scanning</span>
 calllint scan .cursor/mcp.json --sarif &gt; calllint.sarif</code></pre>
+          </div>
+        </div>
+      </section>
+
+      <!-- 6a. Demo proof -->
+      <section class="section" id="demo-proof">
+        <div class="section-head">
+          <h2>See CallLint fail a risky PR</h2>
+          <p>The <a href="https://github.com/calllint/calllint-demo-risky-mcp">calllint-demo-risky-mcp</a> repo runs a deliberately risky MCP config through GitHub Actions. CallLint publishes one Code Scanning alert per finding — and no MCP server is ever executed.</p>
+        </div>
+        <div class="demo-proof-grid">
+          <div class="demo-proof-col">
+            <h3>Expected verdicts</h3>
+            <table class="verdict-table">
+              <thead><tr><th>Server</th><th>Verdict</th><th>Why</th></tr></thead>
+              <tbody>
+                <tr><td>safe-local-tool</td><td><span class="vchip vchip-safe">SAFE</span></td><td>No blockers observed</td></tr>
+                <tr><td>helpful-notes</td><td><span class="vchip vchip-block">BLOCK</span></td><td>Prompt injection in metadata + unpinned package</td></tr>
+                <tr><td>remote-opaque</td><td><span class="vchip vchip-unknown">UNKNOWN</span></td><td>Cannot verify opaque remote URL statically</td></tr>
+                <tr><td>email-sender</td><td><span class="vchip vchip-review">REVIEW</span></td><td>External mutation / message sending</td></tr>
+              </tbody>
+            </table>
+            <p class="demo-proof-note">This demo proves CallLint can classify representative surfaces and emit SARIF without running any MCP server. It does not prove runtime safety or full ecosystem coverage.</p>
+          </div>
+          <div class="demo-proof-col">
+            <h3>Copy this into GitHub Actions</h3>
+<pre><code>name: CallLint
+on:
+  pull_request:
+    paths:
+      - ".cursor/mcp.json"
+      - "claude_desktop_config.json"
+jobs:
+  calllint:
+    runs-on: ubuntu-latest
+    permissions:
+      security-events: write
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run CallLint
+        run: npx calllint scan .cursor/mcp.json --sarif &gt; calllint.sarif
+      - name: Upload SARIF
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: calllint.sarif</code></pre>
           </div>
         </div>
       </section>
@@ -297,24 +366,24 @@ npx calllint scan .cursor/mcp.json --html &gt; report.html</code></pre>
       <!-- 8. Corpus / evidence -->
       <section class="section section-narrow" id="corpus">
         <div class="section-head">
-          <h2>Calibrated against a reproducible corpus</h2>
-          <p>Verdicts are held to a contract enforced as a release gate.</p>
+          <h2>Calibrated by corpus, not vibes.</h2>
+          <p>Each corpus case pins an expected verdict and required evidence. A detector change that breaks the contract fails the release gate.</p>
         </div>
         <div class="corpus-grid">
           <article class="corpus-card corpus-shipped">
-            <span class="corpus-tag">R2.1 · shipped</span>
+            <span class="corpus-tag">R2.2 · in progress</span>
             <ul>
-              <li>30 calibrated cases</li>
-              <li>20 real or redacted snapshots</li>
+              <li>60 calibrated cases</li>
+              <li>38 real or redacted snapshots</li>
               <li>dangerous false-SAFE = 0</li>
-              <li>UNKNOWN ratio 10% (target ≤ 15%)</li>
+              <li>UNKNOWN ratio 10.0% (target ≤ 15%)</li>
               <li>release gate enabled</li>
             </ul>
           </article>
           <article class="corpus-card corpus-progress">
-            <span class="corpus-tag">R2.2 · next</span>
+            <span class="corpus-tag">Next</span>
             <ul>
-              <li>more real-public snapshots</li>
+              <li>grow toward 80 real-public snapshots</li>
               <li>broader parser-boundary cases</li>
               <li>keep UNKNOWN ≤ 15%</li>
               <li>keep dangerous false-SAFE = 0</li>
@@ -322,10 +391,11 @@ npx calllint scan .cursor/mcp.json --html &gt; report.html</code></pre>
           </article>
         </div>
         <p class="prose">
-          The current corpus shows the verdict contract holds across the published
-          test set. It does not yet represent the full MCP ecosystem. Each case pins
-          an expected verdict, required evidence, and a "dangerous input never
-          resolves to SAFE" policy. See
+          The corpus is a release gate for known dangerous regressions. It proves
+          the current verdict contract holds across the published test set; it
+          does not represent the full MCP ecosystem. Each case pins an expected
+          verdict, required evidence, and a "dangerous input never resolves to
+          SAFE" policy. See
           <a href="https://github.com/calllint/calllint/blob/main/docs/CORPUS.md">CORPUS.md</a>.
         </p>
       </section>
