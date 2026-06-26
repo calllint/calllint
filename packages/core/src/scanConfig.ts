@@ -10,6 +10,7 @@ import {
   type ParsedConfig,
 } from "@calllint/config-parser"
 import { scanServer } from "./scanServer.js"
+import { scanDocumentSurfaces } from "./scanSurfaces.js"
 import { enrichEvidencePositions } from "./enrichPositions.js"
 import { resolveScanOptions, type ScanOptions } from "./options.js"
 
@@ -42,13 +43,21 @@ function aggregate(
 }
 
 function scanParsed(parsed: ParsedConfig, opts?: ScanOptions): ConfigSummaryReport {
-  const { generatedAt } = resolveScanOptions(opts)
+  const { generatedAt, surfaces } = resolveScanOptions(opts)
   const reports = parsed.servers.map((server) =>
     scanServer({ server, targetKind: parsed.kind }, opts),
   )
   // Best-effort: annotate evidence with source line/column AFTER verdicts are
   // decided. Pure annotation — never changes a verdict (see enrichPositions).
   enrichEvidencePositions(reports, parsed.positions)
+
+  // Prompt-surface scan of local project documents (ADR 0015). Opt-in: only runs
+  // when the CLI supplied surfaces. Appended as a project-level report so it joins
+  // the most-severe aggregate naturally, with no schema change. An empty/clean
+  // surface adds no report (no spurious UNKNOWN).
+  const surfaceReport = scanDocumentSurfaces(surfaces, parsed.configPath, generatedAt)
+  if (surfaceReport) reports.push(surfaceReport)
+
   return aggregate(parsed.configPath, reports, generatedAt)
 }
 

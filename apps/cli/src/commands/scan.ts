@@ -1,4 +1,4 @@
-import { join } from "node:path"
+import { join, resolve } from "node:path"
 import {
   scanConfigText,
   writeCache,
@@ -18,6 +18,7 @@ import type { Policy } from "@calllint/types"
 import { EXIT, flagBool, flagStr, type ParsedArgs } from "../args.js"
 import { exitCodeFor } from "../exitCode.js"
 import { resolveConfigInput, isInputError } from "./resolveInput.js"
+import { readDocumentSurfaces } from "./surfaces.js"
 import type { OnlineEnrichment } from "../run.js"
 
 export interface CommandResult {
@@ -57,6 +58,14 @@ export function scanCommand(args: ParsedArgs, deps: ScanDeps): CommandResult {
   }
   const { text, configPath } = input
 
+  // Opt-in prompt-surface scan of local project documents (ADR 0015). Only reads
+  // files when --surface-dir is given; default behaviour reads nothing but the
+  // config. Bounded + offline (see readDocumentSurfaces).
+  const surfaceDir = flagStr(args.flags, "surface-dir")
+  const surfaces = surfaceDir
+    ? readDocumentSurfaces(resolve(deps.cwd, surfaceDir))
+    : undefined
+
   // Scan.
   let summary
   try {
@@ -65,6 +74,7 @@ export function scanCommand(args: ParsedArgs, deps: ScanDeps): CommandResult {
       now: deps.now,
       generatedAt: deps.generatedAt,
       extraFindings: deps.online?.extraFindings,
+      surfaces,
     })
   } catch (err) {
     if (err instanceof ConfigParseError) {
