@@ -10,6 +10,7 @@ export const TARGET_KINDS = [
   "npm",
   "github",
   "inline",
+  "project-docs",
 ] as const
 export type TargetKind = (typeof TARGET_KINDS)[number]
 

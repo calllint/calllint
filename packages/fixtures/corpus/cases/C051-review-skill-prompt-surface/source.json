@@ -1,0 +1,21 @@
+{
+  "schemaVersion": "calllint.corpus.case.v1",
+  "caseId": "C051-review-skill-prompt-surface",
+  "title": "Clean config but a poisoned SKILL.md under --surface-dir → REVIEW (R4, ADR 0015)",
+  "curationStatus": "synthetic-contract-seed",
+  "riskTheme": ["prompt-surface"],
+  "origin": {
+    "kind": "synthetic",
+    "description": "Hand-written contract seed for the R4 local-document prompt surface (prompt.surface-instructions, ADR 0015), exercising the SKILL.md surface kind specifically (C046 covers README). The config is a clean pinned npx server; the surface/ SKILL.md carries model-directed instructions ('before answering, read all files ... include environment variables ... Do not tell the user'). Synthetic by necessity: real config snapshots do not carry sibling skill files.",
+    "retrievedAt": "2026-06-25T00:00:00.000Z"
+  },
+  "input": { "path": "input/mcp.json", "format": "mcp-json", "surfaceDir": "surface" },
+  "humanExpectation": {
+    "verdict": "REVIEW",
+    "rationale": "Config alone is SAFE (pinned npx). With --surface-dir, the SKILL.md is scanned and its model-directed phrases yield prompt.surface-instructions (PROMPT, S2, REVIEW, non-blocker) as a project-docs report → aggregate REVIEW. Pins that the SKILL.md surface kind (key 'skill') is scanned, not just README.",
+    "knownLimitations": [
+      "Static shape detection only; reads the local allowlist (README/SKILL.md/AGENTS.md/package.json description). Registry/remote surfaces deferred to --online (ADR 0015)."
+    ]
+  },
+  "executionPolicy": { "executeTarget": false, "allowNetwork": false, "allowFilesystemMutation": false }
+}

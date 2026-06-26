@@ -20,7 +20,8 @@
     "corpus:test:verbose": "node scripts/run-corpus.mjs --verbose",
     "corpus:test:case": "node scripts/run-corpus.mjs --case",
     "corpus:test:r2-final": "node scripts/run-corpus.mjs --r2-final",
-    "ci:local": "pnpm typecheck && pnpm test && pnpm build && pnpm corpus:test"
+    "check:public-copy": "node scripts/check-public-copy.mjs",
+    "ci:local": "pnpm typecheck && pnpm test && pnpm build && pnpm corpus:test && pnpm check:public-copy"
   },
   "devDependencies": {
     "@types/node": "^20.14.0",

@@ -1,0 +1,32 @@
+{
+  "schemaVersion": "calllint.corpus.case.v1",
+  "caseId": "C040-review-postgres-local-python",
+  "title": "Local uv/python database MCP is REVIEW (unverified local source); connection-string env is still not a secret key",
+  "curationStatus": "redacted-real-snapshot",
+  "riskTheme": ["env", "shell"],
+  "origin": {
+    "kind": "public-repository",
+    "description": "Single-server config from the public MCP catalog repo khopilot/amazing-mcp-for-productivity (ai_engineering/postgresql_mcp.json). A local 'uv run python -m mcp_database_tool' launcher with a single DB_CONNECTION_STRING env. The repo carries no detectable license, so only the non-copyrightable config shape is retained. The committed value is already upstream's own placeholder ('your-connection-string'); no real secret was present.",
+    "url": "https://github.com/khopilot/amazing-mcp-for-productivity",
+    "commit": "b0c3ac150f70f225026a3da3c0a77f9253779a7a",
+    "retrievedAt": "2026-06-24T00:00:00.000Z",
+    "redactions": [
+      "license omitted: source repo has no detectable license; stored as a shape-preserving redacted snapshot, not redistributed verbatim",
+      "no secret redaction needed: DB_CONNECTION_STRING value was already the upstream placeholder 'your-connection-string'"
+    ]
+  },
+  "input": { "path": "input/mcp.json", "format": "mcp-json-fragment" },
+  "humanExpectation": {
+    "verdict": "REVIEW",
+    "rationale": "'uv run python -m mcp_database_tool' is a local runtime (uv is not a recognized package runner — only uvx is) running a local module CallLint never inspects. Per ADR 0011 Direction 2, exec.unverified-local-source fires (REVIEW): the source is observable but not independently verifiable. The case still pins its original true-negative: DB_CONNECTION_STRING is NOT credential-shaped, so 'secrets.env-key' must NOT fire — that finding stays forbidden. So the verdict is REVIEW driven solely by the unverified local source, not by a (correctly absent) secret.",
+    "knownLimitations": [
+      "secrets.env-key keys on credential-shaped substrings (TOKEN / SECRET / KEY / PASSWORD / CREDENTIAL / AUTH). DB_CONNECTION_STRING does not match, so it is correctly unflagged even though a real connection string can embed a password in its value. CallLint inspects config-key SHAPE, not values, by design.",
+      "The REVIEW here is exec.unverified-local-source ('we did not inspect this local module'), not a security assertion about the module. A developer running their own python module is normal; the finding's falsePositiveNote records this."
+    ]
+  },
+  "executionPolicy": {
+    "executeTarget": false,
+    "allowNetwork": false,
+    "allowFilesystemMutation": false
+  }
+}

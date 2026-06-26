@@ -1,0 +1,29 @@
+{
+  "schemaVersion": "calllint.corpus.case.v1",
+  "caseId": "C048-review-sentry-uvx-arg-token",
+  "title": "Sentry MCP via uvx with an --auth-token CLI arg → REVIEW (unpinned), token-as-arg is not a secret env",
+  "curationStatus": "real-public-snapshot",
+  "riskTheme": ["supply-chain"],
+  "origin": {
+    "kind": "public-repository",
+    "description": "Public documentation config from getsentry/sentry-mcp (README.md, uvx/stdio variant). Verbatim except normalization to a valid JSON root. The --auth-token value YOUR_SENTRY_TOKEN is upstream's own placeholder.",
+    "url": "https://github.com/getsentry/sentry-mcp",
+    "commit": "ba44f5d61447",
+    "license": "FSL-1.1-Apache-2.0",
+    "retrievedAt": "2026-06-25T00:00:00.000Z",
+    "redactions": []
+  },
+  "input": { "path": "input/mcp.json", "format": "mcp-json" },
+  "humanExpectation": {
+    "verdict": "REVIEW",
+    "rationale": "An unpinned uvx package (mcp-server-sentry, no version) → supply.unpinned-package (high, S1) → REVIEW. The credential is passed as a CLI argument (--auth-token YOUR_SENTRY_TOKEN), NOT as an env var, so secrets.env-key (which keys on env-key NAMES) correctly does NOT fire — a true-negative this case pins. exec.unverified-local-source also does not fire because uvx is a recognized package runner with a parsed package name.",
+    "knownLimitations": [
+      "secrets.env-key reads env-key names, not argv. A token passed as a CLI arg value (--auth-token <v>) is not surfaced as a secret here — CallLint flags env-shaped credential keys, not argument values. The token risk is real but lives in a surface CallLint deliberately does not parse for secrets."
+    ]
+  },
+  "executionPolicy": {
+    "executeTarget": false,
+    "allowNetwork": false,
+    "allowFilesystemMutation": false
+  }
+}

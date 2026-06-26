@@ -188,9 +188,9 @@
       ]
     },
     {
-      "caseId": "C023-safe-filesystem-docker-mount",
-      "path": "cases/C023-safe-filesystem-docker-mount",
-      "expectedVerdict": "SAFE",
+      "caseId": "C023-block-filesystem-docker-mount",
+      "path": "cases/C023-block-filesystem-docker-mount",
+      "expectedVerdict": "BLOCK",
       "riskTheme": [
         "filesystem"
       ]
@@ -292,9 +292,9 @@
       ]
     },
     {
-      "caseId": "C035-safe-game-assistant-local-node",
-      "path": "cases/C035-safe-game-assistant-local-node",
-      "expectedVerdict": "SAFE",
+      "caseId": "C035-review-game-assistant-local-node",
+      "path": "cases/C035-review-game-assistant-local-node",
+      "expectedVerdict": "REVIEW",
       "riskTheme": [
         "shell"
       ]
@@ -342,11 +342,177 @@
       ]
     },
     {
-      "caseId": "C040-safe-postgres-local-python",
-      "path": "cases/C040-safe-postgres-local-python",
+      "caseId": "C040-review-postgres-local-python",
+      "path": "cases/C040-review-postgres-local-python",
+      "expectedVerdict": "REVIEW",
+      "riskTheme": [
+        "env",
+        "shell"
+      ]
+    },
+    {
+      "caseId": "C041-review-hidden-instructions-prompt-surface",
+      "path": "cases/C041-review-hidden-instructions-prompt-surface",
+      "expectedVerdict": "REVIEW",
+      "riskTheme": [
+        "prompt-surface"
+      ]
+    },
+    {
+      "caseId": "C042-review-gitlab-docker-token",
+      "path": "cases/C042-review-gitlab-docker-token",
+      "expectedVerdict": "REVIEW",
+      "riskTheme": [
+        "env",
+        "side-effect"
+      ]
+    },
+    {
+      "caseId": "C043-block-sqlite-uv-local-broad-path",
+      "path": "cases/C043-block-sqlite-uv-local-broad-path",
+      "expectedVerdict": "BLOCK",
+      "riskTheme": [
+        "filesystem",
+        "shell"
+      ]
+    },
+    {
+      "caseId": "C044-review-google-maps-npx-secret",
+      "path": "cases/C044-review-google-maps-npx-secret",
+      "expectedVerdict": "REVIEW",
+      "riskTheme": [
+        "env",
+        "supply-chain"
+      ]
+    },
+    {
+      "caseId": "C045-unknown-github-remote-auth-header",
+      "path": "cases/C045-unknown-github-remote-auth-header",
+      "expectedVerdict": "UNKNOWN",
+      "riskTheme": [
+        "remote",
+        "network"
+      ]
+    },
+    {
+      "caseId": "C046-review-readme-prompt-surface",
+      "path": "cases/C046-review-readme-prompt-surface",
+      "expectedVerdict": "REVIEW",
+      "riskTheme": [
+        "prompt-surface"
+      ]
+    },
+    {
+      "caseId": "C047-safe-redis-docker-url",
+      "path": "cases/C047-safe-redis-docker-url",
       "expectedVerdict": "SAFE",
       "riskTheme": [
         "env"
+      ]
+    },
+    {
+      "caseId": "C048-review-sentry-uvx-arg-token",
+      "path": "cases/C048-review-sentry-uvx-arg-token",
+      "expectedVerdict": "REVIEW",
+      "riskTheme": [
+        "supply-chain"
+      ]
+    },
+    {
+      "caseId": "C049-safe-gdrive-docker-volume-creds",
+      "path": "cases/C049-safe-gdrive-docker-volume-creds",
+      "expectedVerdict": "SAFE",
+      "riskTheme": [
+        "env",
+        "filesystem"
+      ]
+    },
+    {
+      "caseId": "C050-review-everart-docker-secret",
+      "path": "cases/C050-review-everart-docker-secret",
+      "expectedVerdict": "REVIEW",
+      "riskTheme": [
+        "env"
+      ]
+    },
+    {
+      "caseId": "C051-review-skill-prompt-surface",
+      "path": "cases/C051-review-skill-prompt-surface",
+      "expectedVerdict": "REVIEW",
+      "riskTheme": [
+        "prompt-surface"
+      ]
+    },
+    {
+      "caseId": "C052-review-package-description-surface",
+      "path": "cases/C052-review-package-description-surface",
+      "expectedVerdict": "REVIEW",
+      "riskTheme": [
+        "prompt-surface"
+      ]
+    },
+    {
+      "caseId": "C053-safe-clean-surface-docs",
+      "path": "cases/C053-safe-clean-surface-docs",
+      "expectedVerdict": "SAFE",
+      "riskTheme": [
+        "prompt-surface"
+      ]
+    },
+    {
+      "caseId": "C054-review-agents-hidden-comment-surface",
+      "path": "cases/C054-review-agents-hidden-comment-surface",
+      "expectedVerdict": "REVIEW",
+      "riskTheme": [
+        "prompt-surface"
+      ]
+    },
+    {
+      "caseId": "C055-block-docker-v-broad-bind",
+      "path": "cases/C055-block-docker-v-broad-bind",
+      "expectedVerdict": "BLOCK",
+      "riskTheme": [
+        "filesystem"
+      ]
+    },
+    {
+      "caseId": "C056-safe-docker-mount-named-volume",
+      "path": "cases/C056-safe-docker-mount-named-volume",
+      "expectedVerdict": "SAFE",
+      "riskTheme": [
+        "filesystem"
+      ]
+    },
+    {
+      "caseId": "C057-block-docker-mount-source-alias",
+      "path": "cases/C057-block-docker-mount-source-alias",
+      "expectedVerdict": "BLOCK",
+      "riskTheme": [
+        "filesystem"
+      ]
+    },
+    {
+      "caseId": "C058-safe-docker-v-workspace-scoped",
+      "path": "cases/C058-safe-docker-v-workspace-scoped",
+      "expectedVerdict": "SAFE",
+      "riskTheme": [
+        "filesystem"
+      ]
+    },
+    {
+      "caseId": "C059-block-docker-mount-inline-form",
+      "path": "cases/C059-block-docker-mount-inline-form",
+      "expectedVerdict": "BLOCK",
+      "riskTheme": [
+        "filesystem"
+      ]
+    },
+    {
+      "caseId": "C060-block-docker-volume-long-form",
+      "path": "cases/C060-block-docker-volume-long-form",
+      "expectedVerdict": "BLOCK",
+      "riskTheme": [
+        "filesystem"
       ]
     }
   ]

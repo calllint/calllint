@@ -9,6 +9,8 @@ import { detectUnknownRemote } from "./detectors/unknownRemote.js"
 import { detectPromptPoisoning } from "./detectors/promptPoisoning.js"
 import { detectExternalMutation } from "./detectors/externalMutation.js"
 import { detectFinancialAction } from "./detectors/financialAction.js"
+import { detectUnverifiedLocalSource } from "./detectors/unverifiedLocalSource.js"
+import { detectHiddenInstructions } from "./detectors/hiddenInstructions.js"
 
 export type Detector = (ctx: DetectorContext) => Finding[]
 
@@ -22,6 +24,8 @@ export const DETECTORS: Detector[] = [
   detectUnknownRemote,
   detectExternalMutation,
   detectFinancialAction,
+  detectUnverifiedLocalSource,
+  detectHiddenInstructions,
 ]
 
 /** Run every detector against one server and return all findings. */

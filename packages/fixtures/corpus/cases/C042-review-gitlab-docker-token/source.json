@@ -1,0 +1,31 @@
+{
+  "schemaVersion": "calllint.corpus.case.v1",
+  "caseId": "C042-review-gitlab-docker-token",
+  "title": "GitLab MCP over docker with a personal-access-token env → REVIEW",
+  "curationStatus": "real-public-snapshot",
+  "riskTheme": ["env", "side-effect"],
+  "origin": {
+    "kind": "public-repository",
+    "description": "Public documentation config from modelcontextprotocol/servers-archived (src/gitlab/README.md, Docker variant). Content verbatim except that the upstream README annotates the GITLAB_API_URL env with a trailing `// Optional ...` JavaScript-style comment, which is not valid JSON; the comment was removed so the snapshot is a valid JSON document. Both env keys, the docker command, and the image are preserved exactly — the verdict-relevant shape is unchanged.",
+    "url": "https://github.com/modelcontextprotocol/servers-archived",
+    "commit": "9be4674d1ddf",
+    "license": "MIT",
+    "retrievedAt": "2026-06-25T00:00:00.000Z",
+    "redactions": [
+      "removed a non-JSON trailing comment (`// Optional, for self-hosted instances`) on the GITLAB_API_URL env line so the snapshot parses as JSON; no key/value/command shape changed"
+    ]
+  },
+  "input": { "path": "input/mcp.json", "format": "mcp-json" },
+  "humanExpectation": {
+    "verdict": "REVIEW",
+    "rationale": "A pinned docker image (mcp/gitlab) launched with a GITLAB_PERSONAL_ACCESS_TOKEN credential env → secrets.env-key fires (medium, S2) → REVIEW. It also pins a true-negative within the case: GITLAB_API_URL is a host/URL env name, not credential-shaped, so it must NOT add a second secrets.env-key evidence entry. No broad path (no bind mount), no unpinned package (docker image, not npx), no dangerous command.",
+    "knownLimitations": [
+      "secrets.env-key keys on credential-shaped substrings (TOKEN/SECRET/KEY/PASSWORD/CREDENTIAL/AUTH). GITLAB_PERSONAL_ACCESS_TOKEN matches (TOKEN); GITLAB_API_URL does not — correctly unflagged. CallLint reads env-key SHAPE, not values."
+    ]
+  },
+  "executionPolicy": {
+    "executeTarget": false,
+    "allowNetwork": false,
+    "allowFilesystemMutation": false
+  }
+}

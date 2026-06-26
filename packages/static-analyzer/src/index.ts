@@ -12,3 +12,11 @@ export { detectUnknownRemote } from "./detectors/unknownRemote.js"
 export { detectPromptPoisoning } from "./detectors/promptPoisoning.js"
 export { detectExternalMutation } from "./detectors/externalMutation.js"
 export { detectFinancialAction } from "./detectors/financialAction.js"
+export { detectUnverifiedLocalSource } from "./detectors/unverifiedLocalSource.js"
+export { detectHiddenInstructions } from "./detectors/hiddenInstructions.js"
+export { analyzeDocumentSurfaces } from "./documentSurface.js"
+export {
+  POISON_PATTERNS,
+  findPoisonPhrases,
+  findHiddenContent,
+} from "./promptScan.js"

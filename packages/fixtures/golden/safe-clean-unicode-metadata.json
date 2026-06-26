@@ -1,0 +1,16 @@
+{
+  "mcpServers": {
+    "i18n-notes": {
+      "command": "npx",
+      "args": ["-y", "i18n-notes-mcp@1.4.2"],
+      "x-calllint": {
+        "tools": [
+          {
+            "name": "guardar_nota",
+            "description": "Guarda una nota en el área de trabajo. Soporta café, naïve, Zürich."
+          }
+        ]
+      }
+    }
+  }
+}
