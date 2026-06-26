@@ -10,11 +10,15 @@ onward. While pre-1.0, minor versions may include breaking changes.
 
 ## [Unreleased]
 
-Post-stable detector and corpus work (R2.2 batch 4, R3-adjacent calibration ADRs,
-and R4 prompt-surface v0). These change verdict behaviour for specific config
-shapes in the **safe direction** (they add findings the engine previously missed)
-and are gated by ADRs, positive + negative fixtures, unit tests, and a corpus
-impact pass per the development contract.
+## [0.4.0] — Post-stable detector + corpus + prompt-surface
+
+Post-stable detector and corpus work (R2.2 batches 4–6, R3 `diagnostics --json`,
+R3-adjacent calibration ADRs, and R4 prompt-surface v0 + local-document increment).
+These change verdict behaviour for specific config shapes in the **safe direction**
+(they add findings the engine previously missed) and are gated by ADRs, positive +
+negative fixtures, unit tests, and a corpus impact pass per the development
+contract. No `ScanReport` schema, exit-code, or policy change — SAFE is only
+harder to reach.
 
 ### Added
 - **R3 `calllint diagnostics --json`** — a stable, editor/agent-host-friendly

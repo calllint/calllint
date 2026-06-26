@@ -1,19 +1,15 @@
 # CallLint Project Status
 
-Current phase: **v0.3.0 — stable, published** (npm `latest` → `0.3.0`; GitHub
-Release `v0.3.0` is the latest, non-pre-release). The promotion was a human-gated
-publish (GitHub Release → OIDC publish → `npm dist-tag add calllint@0.3.0
-latest`), which also resolved the earlier `latest` → `0.3.0-preview.0` drift. No
-scanner-semantics change from `0.3.0-rc.1` — the engine is byte-identical.
+Current phase: **v0.4.0 — stable, published** (npm `latest` → `0.4.0`; GitHub
+Release `v0.4.0` is the latest, non-pre-release). This is the first post-stable
+release: it adds detector calibration (ADR 0011/0012), R4 prompt-surface v0 +
+local-document increment (ADR 0014/0015), R3 `diagnostics --json` (ADR 0013),
+and grows the R2.2 corpus to 60 cases. All verdict changes are in the **safe
+direction** (new findings the engine previously missed); no `ScanReport` schema,
+exit-code, or policy change — SAFE is only harder to reach.
 
-Post-stable work (unreleased, on `main`): R2.2 corpus reached **60 cases** (floor
-60/38); R3 `diagnostics --json` shipped; the ADR 0011/0012 detector-calibration
-questions are resolved; R4 prompt-surface **v0** (`prompt.hidden-instructions`,
-ADR 0014) and the **local-document surface increment** (`prompt.surface-instructions`
-via `--surface-dir`, ADR 0015) shipped; and a docker `-e` secrets gap is recorded as
-ADR 0016 (deferred). These change verdict behaviour for specific shapes in the safe
-direction and are ADR-gated + fixture-backed + corpus-locked; they are staged for the
-next release (see CHANGELOG `[Unreleased]`).
+The prior stable `0.3.0` (GitHub Release `v0.3.0`, byte-identical to `0.3.0-rc.1`)
+remains the first stable release; `0.4.0` builds on it. See CHANGELOG `[0.4.0]`.
 
 CallLint is a deterministic, offline-first CLI for pre-run risk linting of MCP
 and agent-tool configurations. It returns SAFE / REVIEW / BLOCK / UNKNOWN with
@@ -27,12 +23,12 @@ Product name: **CallLint** (CLI `calllint`, npm `calllint`, internal scope
 ## Public artifacts
 
 - Website: https://calllint.com (Cloudflare Pages, auto-deployed from `main`)
-- npm package: published dist-tags — `latest: 0.3.0`, `next: 0.3.0-rc.1`,
-  `preview: 0.3.0-preview.1`. The stable publish pointed `latest` at `0.3.0` and
-  resolved the earlier `0.3.0-preview.0` drift (`npm dist-tag add calllint@0.3.0
-  latest`).
+- npm package: published dist-tags — `latest: 0.4.0`, `next: 0.3.0-rc.1`,
+  `preview: 0.3.0-preview.1`. (`0.3.0` was the first stable; `0.4.0` is the first
+  post-stable release, routed to `latest` by the release workflow's clean-semver
+  dist-tag rule.)
 - GitHub repository: `calllint/calllint`
-- GitHub Release: `v0.3.0` (latest, not a pre-release)
+- GitHub Release: `v0.4.0` (latest, not a pre-release)
 - Install / run: `npx calllint scan .cursor/mcp.json`
 
 ## Completed
