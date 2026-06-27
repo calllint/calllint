@@ -5,6 +5,7 @@ import {
   renderCompact,
   renderExplain,
   renderSarif,
+  renderMarkdown,
   renderHtml,
   NO_EMOJI_STYLE,
 } from "../src/index.js"
@@ -117,6 +118,54 @@ describe("html renderer", () => {
     expect(out).not.toContain("<img src=x onerror=alert(1)>")
     // it must appear escaped instead
     expect(out).toContain("&lt;script&gt;")
+  })
+})
+
+describe("markdown renderer", () => {
+  it("BLOCK config carries every PR-gate element, emoji-free", () => {
+    const s = scanConfigFile(goldenPath("block-filesystem.json"), OPTS)
+    const out = renderMarkdown(s)
+    expect(/\p{Extended_Pictographic}/u.test(out)).toBe(false)
+    // verdict + label header
+    expect(out).toContain("## CallLint: BLOCK")
+    // never-executes caveat near the top
+    expect(out).toContain("never executes")
+    // per-server table
+    expect(out).toContain("| Server | Verdict | Risk class | Findings |")
+    expect(out).toContain("filesystem")
+    expect(out).toContain("**TOTAL**")
+    // a blocker finding with why + fix
+    expect(out).toContain("BLOCKER:")
+    expect(out).toContain("Why it matters:")
+    expect(out).toContain("Recommended fix:")
+    // evidence path/snippet
+    expect(out).toContain("Evidence:")
+    // policy recommendation block
+    expect(out).toContain("Policy recommendation:")
+    expect(out).toContain("Autonomous use:")
+    // safety caveat — no overclaim
+    expect(out).toContain("UNKNOWN` is never `SAFE")
+    expect(out).toContain("not a safety guarantee")
+  })
+
+  it("SAFE config shows no findings and still carries the safety caveat", () => {
+    const s = scanConfigFile(goldenPath("safe-time.json"), OPTS)
+    const out = renderMarkdown(s)
+    expect(out).toContain("## CallLint: SAFE")
+    expect(out).toContain("_No findings._")
+    expect(out).toContain("not a safety guarantee")
+    expect(/\p{Extended_Pictographic}/u.test(out)).toBe(false)
+  })
+
+  it("escapes pipes in server names so table rows never break", () => {
+    const malicious = JSON.stringify({
+      mcpServers: {
+        "evil|name": { command: "npx", args: ["-y", "x@1.0.0"] },
+      },
+    })
+    const s = scanConfigText(malicious, "mcp.json", OPTS)
+    const out = renderMarkdown(s)
+    expect(out).toContain("evil\\|name")
   })
 })
 

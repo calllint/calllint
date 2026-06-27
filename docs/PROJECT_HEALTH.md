@@ -13,18 +13,19 @@ npm view calllint version dist-tags repository homepage --registry=https://regis
 npx --yes npm@latest audit signatures --registry=https://registry.npmjs.org/
 ```
 
-Known state (as of preparing `0.3.0-rc.0`):
+Known state (as of stable `0.4.0`, the current `latest`):
 
-- `latest` → `0.3.0-preview.0` — **known drift**, corrected at stable 0.3.0
-  ([RELEASE_VERIFICATION.md](./RELEASE_VERIFICATION.md) §1).
+- `latest` → `0.4.0` — first post-stable release (detectors + corpus 60 +
+  prompt-surface); engine changes are all in the safe direction.
+- `next` → `0.3.0-rc.1` (last rc; unchanged since the stable promotion).
 - `preview` → `0.3.0-preview.1`.
-- `next` → not yet set; will be `0.3.0-rc.0` after the rc tag is pushed.
 - `repository` = `git+https://github.com/calllint/calllint.git`; `homepage` =
   `https://calllint.com`.
-- Provenance: preview.1 verified (1 registry signature + 1 attestation).
+- Provenance: published via npm Trusted Publishing (OIDC + `--provenance`); no
+  stored `NPM_TOKEN`.
 
-After the rc publishes, expect: `next → 0.3.0-rc.0`, `preview → 0.3.0-preview.1`,
-`latest → 0.3.0-preview.0` (unchanged until stable).
+The release workflow routes by version: stable → `latest`, `*-rc.*` → `next`,
+`*-preview.*` → `preview`. The next stable will promote to `latest` the same way.
 
 ## 2. Quality health
 
@@ -37,7 +38,7 @@ pnpm corpus:test:r2-final
 pnpm pack:smoke
 ```
 
-Known-good: typecheck clean · **260 tests pass across 22 files** · build →
+Known-good: typecheck clean · **268 tests pass across 22 files** · build →
 self-contained `apps/cli/dist/index.js` · both corpus gates green ·
 pack:smoke PASS (6-file allowlist tarball, isolated install, exit 30 on BLOCK).
 

@@ -6,7 +6,7 @@
  *   - Writes ONLY to stderr. stdout is reserved for report data (JSON/SARIF/…).
  *   - Shows ONLY when stderr is an interactive TTY.
  *   - Suppressed by: NO_COLOR, CI, --no-color, --no-emoji, and any
- *     machine-output mode (--json/--sarif/--html/--compact) or --stdin.
+ *     machine-output mode (--json/--sarif/--markdown/--html/--compact) or --stdin.
  *   - Best-effort and time-boxed; never delays or fails the actual command.
  */
 import { parseArgs, flagBool } from "./args.js"
@@ -42,6 +42,7 @@ export function shouldBreathe(argv: string[], deps: BreatheDeps = {}): boolean {
   // Any machine-readable or non-interactive mode → stay silent.
   if (flagBool(flags, "json")) return false
   if (flagBool(flags, "sarif")) return false
+  if (flagBool(flags, "markdown")) return false
   if (flagBool(flags, "html")) return false
   if (flagBool(flags, "compact")) return false
   if (flagBool(flags, "no-color")) return false
