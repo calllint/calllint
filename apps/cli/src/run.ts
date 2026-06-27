@@ -27,6 +27,8 @@ export interface RunDeps {
   generatedAt: string
   writeCacheFile?: boolean
   online?: OnlineEnrichment
+  /** Returns newline-separated changed file paths for `scan --changed`. */
+  getChangedFilesDiff?: () => string
 }
 
 /** Dispatch a parsed argv to a command. Pure given deps — used directly in tests. */
@@ -47,6 +49,7 @@ export function run(argv: string[], deps: RunDeps): CommandResult {
         generatedAt: deps.generatedAt,
         writeCacheFile: deps.writeCacheFile,
         online: deps.online,
+        getChangedFilesDiff: deps.getChangedFilesDiff,
       })
     case "diagnostics":
       return diagnosticsCommand(args, {

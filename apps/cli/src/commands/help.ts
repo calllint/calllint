@@ -19,6 +19,7 @@ TARGETS
   github:<owner/repo>[@ref]   A GitHub repo (requires --online)
 
 SCAN OPTIONS
+  --changed          Scan only the agent-tool configs changed in the git diff
   --json             Emit the ScanReport JSON (stable, emoji-free)
   --compact          One line per server
   --no-emoji         Plain-text symbols (good for CI logs)
@@ -37,6 +38,7 @@ VERIFY OPTIONS
 
 EXAMPLES
   calllint scan .cursor/mcp.json
+  calllint scan --changed --markdown
   cat .cursor/mcp.json | calllint scan --stdin --json
   calllint scan ./mcp.json --ci --no-emoji
   calllint diagnostics ./mcp.json --json
