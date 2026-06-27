@@ -27,6 +27,10 @@
  *      so it does not drift on every release.
  *  13. Homepage provenance copy must not imply the current release is a
  *      preview ("SLSA attestation on the preview" is stale wording).
+ *  14. Internal status docs (ROADMAP, PROJECT_STATUS, PROJECT_HEALTH) must
+ *      carry the current stable version at their "current position" marker,
+ *      so they cannot silently fall a release behind project-facts.json.
+ *      Historical version mentions elsewhere in those files are fine.
  *
  * Exit codes:
  *   0  all checks pass
@@ -240,6 +244,46 @@ console.log("")
   if (!site) fail("apps/web/public/index.html not found; cannot verify provenance copy")
   else if (/SLSA attestation\s+on\s+the\s+preview/i.test(site.text)) fail('homepage provenance says "SLSA attestation on the preview" — stale wording implying current release is a preview')
   else ok('homepage provenance copy does not imply current release is a preview')
+}
+
+// 14. Internal status docs must carry the current stable version at their
+//     "current position" marker line. Each doc cites historical versions
+//     elsewhere (0.3.0, rc.1, …) which is legitimate; we only assert the
+//     marker line, identified by an anchor substring, names the current
+//     stable version. A missing/moved anchor fails — the marker cannot be
+//     silently lost. The version is matched with boundaries so it does not
+//     match inside a longer token (0.14.0, 10.4.0, 0.4.0-rc.1, 0.4.10).
+{
+  const sv = facts.stableVersion
+  if (!sv) {
+    fail("docs/project-facts.json missing stableVersion; cannot verify internal status docs")
+  } else {
+    const svEsc = sv.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
+    // Bare version not glued to another version segment or a pre-release tag.
+    const svBoundary = new RegExp(String.raw`(?<![\w.])${svEsc}(?![\w.\-])`)
+    // [docPath, human label, anchor substring that identifies the marker line]
+    const statusDocs = [
+      ["docs/ROADMAP.md", "ROADMAP", "← we are here"],
+      ["PROJECT_STATUS.md", "PROJECT_STATUS", "Current phase:"],
+      ["docs/PROJECT_HEALTH.md", "PROJECT_HEALTH", "Known state (as of"],
+    ]
+    for (const [rel, label, anchor] of statusDocs) {
+      const abs = path.join(repoRoot, rel)
+      if (!fs.existsSync(abs)) {
+        fail(`${label} not found at ${rel}; cannot verify version marker`)
+        continue
+      }
+      const text = fs.readFileSync(abs, "utf8")
+      const markerLine = text.split(/\r?\n/).find((ln) => ln.includes(anchor))
+      if (!markerLine) {
+        fail(`${label} marker "${anchor}" not found (anchor moved or removed — re-point it at the current release)`)
+      } else if (svBoundary.test(markerLine)) {
+        ok(`${label} marker states current stable ${sv}`)
+      } else {
+        fail(`${label} marker line does not state current stable ${sv} (version drift): "${markerLine.trim()}"`)
+      }
+    }
+  }
 }
 
 console.log("")

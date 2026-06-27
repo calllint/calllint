@@ -35,6 +35,14 @@ jobs:
       - name: Test
         run: pnpm test
 
+      # Public-copy + version-consistency guard. Static, no build needed:
+      # asserts website/README/agent docs and the internal status docs
+      # (ROADMAP/PROJECT_STATUS/PROJECT_HEALTH) stay in sync with
+      # docs/project-facts.json and never overclaim. Catches copy/version
+      # drift on every PR — not just in the local ci:local script.
+      - name: Public-copy + version guard
+        run: pnpm check:public-copy
+
       - name: Build the CLI bundle
         run: pnpm build
 
