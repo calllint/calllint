@@ -1,0 +1,82 @@
+# Self-test for the root composite Action (action.yml). Exercises the real
+# wiring — install the published CLI, capture the verdict, and prove the gate
+# both passes (SAFE / report-only) and fails (BLOCK under gate). SARIF upload is
+# disabled here so the self-test never writes test alerts to the Security tab;
+# SARIF shape is covered by renderer unit tests and the calllint-demo-risky-mcp
+# dogfood repo.
+name: action-selftest
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - action.yml
+      - examples/github-actions/**
+      - .github/workflows/action-selftest.yml
+  pull_request:
+    paths:
+      - action.yml
+      - examples/github-actions/**
+      - .github/workflows/action-selftest.yml
+
+permissions:
+  contents: read
+
+jobs:
+  safe-passes:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 20
+      - id: scan
+        uses: ./
+        with:
+          target: examples/github-actions/fixtures/safe.mcp.json
+          sarif: "false"
+          gate: "true"
+      - name: Assert SAFE verdict
+        shell: bash
+        run: |
+          test "${{ steps.scan.outputs.verdict }}" = "SAFE" \
+            || { echo "expected SAFE, got '${{ steps.scan.outputs.verdict }}'"; exit 1; }
+
+  block-report-only:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 20
+      - id: scan
+        uses: ./
+        with:
+          target: examples/github-actions/fixtures/block.mcp.json
+          sarif: "false"
+          gate: "false"
+      - name: Assert BLOCK verdict and that the job did not fail
+        shell: bash
+        run: |
+          test "${{ steps.scan.outputs.verdict }}" = "BLOCK" \
+            || { echo "expected BLOCK, got '${{ steps.scan.outputs.verdict }}'"; exit 1; }
+
+  block-gates:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 20
+      - id: scan
+        uses: ./
+        continue-on-error: true
+        with:
+          target: examples/github-actions/fixtures/block.mcp.json
+          sarif: "false"
+          gate: "true"
+      - name: Assert the gate failed the action under --ci
+        shell: bash
+        run: |
+          test "${{ steps.scan.outcome }}" = "failure" \
+            || { echo "expected the gate to fail on BLOCK, outcome='${{ steps.scan.outcome }}'"; exit 1; }
