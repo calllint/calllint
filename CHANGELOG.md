@@ -10,6 +10,19 @@ onward. While pre-1.0, minor versions may include breaking changes.
 
 ## [Unreleased]
 
+### Added
+- **`calllint scan --changed`** — scans only the agent-tool configs that appear
+  in the git diff (`git diff --name-only HEAD`), filtered to the known config
+  locations (`.cursor/mcp.json`, `.mcp.json`, `mcp.json`, `.claude/settings.json`,
+  `.vscode/mcp.json`). The git-diff PR-gate decision point: it cuts reviewer noise
+  by skipping unchanged configs and composes with every existing flag (`--ci`,
+  `--markdown`, `--json`, `--policy`, `--surface-dir`). No relevant change → a
+  no-op exit 0. One changed config behaves exactly like `scan <path>`. For
+  multiple, the process exit code is the worst child verdict; `--json` emits a
+  JSON array of unchanged `calllint.report.v0` summaries and other formats are
+  concatenated. No `ScanReport` schema change. The git diff source is best-effort
+  (a non-repo or missing git yields "nothing to scan", never a crash).
+
 ## [0.4.0] — Post-stable detector + corpus + prompt-surface
 
 Post-stable detector and corpus work (R2.2 batches 4–6, R3 `diagnostics --json`,

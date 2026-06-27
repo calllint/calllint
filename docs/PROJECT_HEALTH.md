@@ -38,7 +38,7 @@ pnpm corpus:test:r2-final
 pnpm pack:smoke
 ```
 
-Known-good: typecheck clean · **268 tests pass across 22 files** · build →
+Known-good: typecheck clean · **282 tests pass across 23 files** · build →
 self-contained `apps/cli/dist/index.js` · both corpus gates green ·
 pack:smoke PASS (6-file allowlist tarball, isolated install, exit 30 on BLOCK).
 

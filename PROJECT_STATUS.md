@@ -105,11 +105,12 @@ Product name: **CallLint** (CLI `calllint`, npm `calllint`, internal scope
 ## Verification status (last run)
 
 - typecheck: clean (tsc strict)
-- tests: **260 passed across 22 files** (unit + E2E against the built binary;
+- tests: **282 passed across 23 files** (unit + E2E against the built binary;
   package smoke; network mocked — tests never touch the network). Includes the
   ADR 0011/0012/0014/0015 detector + surface tests (docker bind-mount host paths
   incl. -v/--volume/--mount= branch coverage, unverified local source,
-  hidden-instructions, document-surface scan + --surface-dir CLI).
+  hidden-instructions, document-surface scan + --surface-dir CLI) and the
+  `scan --changed` git-diff path filter + aggregation tests.
 - build: `apps/cli/dist/index.js` (self-contained esbuild bundle, node shebang)
 - corpus:test: **60 cases** (38 real/redacted), 0 contract failures, 0 dangerous
   false SAFE, UNKNOWN ratio 10.0%; `corpus:test:r2-final` thresholds met (floor
