@@ -1,15 +1,18 @@
 # CallLint Project Status
 
-Current phase: **v0.4.0 — stable, published** (npm `latest` → `0.4.0`; GitHub
-Release `v0.4.0` is the latest, non-pre-release). This is the first post-stable
-release: it adds detector calibration (ADR 0011/0012), R4 prompt-surface v0 +
-local-document increment (ADR 0014/0015), R3 `diagnostics --json` (ADR 0013),
-and grows the R2.2 corpus to 60 cases. All verdict changes are in the **safe
-direction** (new findings the engine previously missed); no `ScanReport` schema,
-exit-code, or policy change — SAFE is only harder to reach.
+Current phase: **v0.5.0 — stable, published** (npm `latest` → `0.5.0`; GitHub
+Release `v0.5.0` is the latest, non-pre-release). This release closes the
+pull-request gate end-to-end without touching the engine: a `--markdown`
+renderer, a `scan --changed` git-diff entry point, and the thin
+`calllint/calllint@v1` GitHub Action. No `ScanReport` schema, exit-code,
+verdict, or detector change — SAFE is exactly as hard to reach as in `0.4.0`.
 
-The prior stable `0.3.0` (GitHub Release `v0.3.0`, byte-identical to `0.3.0-rc.1`)
-remains the first stable release; `0.4.0` builds on it. See CHANGELOG `[0.4.0]`.
+The prior stable `0.4.0` was the first post-stable release: detector calibration
+(ADR 0011/0012), R4 prompt-surface v0 + local-document increment (ADR 0014/0015),
+R3 `diagnostics --json` (ADR 0013), and the R2.2 corpus grown to 60 cases — all
+verdict changes in the **safe direction**. The first stable `0.3.0` (GitHub
+Release `v0.3.0`, byte-identical to `0.3.0-rc.1`) remains the baseline both build
+on. See CHANGELOG `[0.5.0]`.
 
 CallLint is a deterministic, offline-first CLI for pre-run risk linting of MCP
 and agent-tool configurations. It returns SAFE / REVIEW / BLOCK / UNKNOWN with
@@ -23,12 +26,12 @@ Product name: **CallLint** (CLI `calllint`, npm `calllint`, internal scope
 ## Public artifacts
 
 - Website: https://calllint.com (Cloudflare Pages, auto-deployed from `main`)
-- npm package: published dist-tags — `latest: 0.4.0`, `next: 0.3.0-rc.1`,
-  `preview: 0.3.0-preview.1`. (`0.3.0` was the first stable; `0.4.0` is the first
-  post-stable release, routed to `latest` by the release workflow's clean-semver
-  dist-tag rule.)
+- npm package: published dist-tags — `latest: 0.5.0`, `next: 0.3.0-rc.1`,
+  `preview: 0.3.0-preview.1`. (`0.3.0` was the first stable; `0.4.0` and `0.5.0`
+  are post-stable releases, routed to `latest` by the release workflow's
+  clean-semver dist-tag rule.)
 - GitHub repository: `calllint/calllint`
-- GitHub Release: `v0.4.0` (latest, not a pre-release)
+- GitHub Release: `v0.5.0` (latest, not a pre-release)
 - Install / run: `npx calllint scan .cursor/mcp.json`
 
 ## Completed
@@ -84,6 +87,14 @@ Product name: **CallLint** (CLI `calllint`, npm `calllint`, internal scope
   nothing beyond the config is read). Registry/remote doc surfaces remain the next
   R4 (online) increment. A docker `-e` env-key secrets gap found while harvesting is
   recorded as ADR 0016 (Proposed/deferred), anchored by C049.
+- **v0.5.0 PR-gate trifecta** — shipped, no engine change: `calllint scan
+  --markdown` (deterministic, emoji-free Markdown view of `calllint.report.v0`,
+  pipe-safe, for a PR Step Summary); `calllint scan --changed` (scans only the
+  agent-tool configs in `git diff --name-only HEAD`, filtered to the known config
+  locations, worst-verdict exit code, JSON array on `--json`); and the
+  `calllint/calllint@v1` GitHub Action (a thin composite over the published CLI:
+  install → scan → SARIF upload → Markdown Step Summary → gate on `--ci`; invents
+  no new gate semantics; self-tested by `action-selftest.yml`).
 
 ## Current limitations
 
@@ -156,7 +167,7 @@ Product name: **CallLint** (CLI `calllint`, npm `calllint`, internal scope
   `latest` to `0.3.0` (`npm dist-tag add calllint@0.3.0 latest`), so a preview no
   longer occupies `latest`. See [docs/RELEASE_VERIFICATION.md](docs/RELEASE_VERIFICATION.md).
 
-## Next roadmap (v0.3)
+## Next roadmap
 
 1. **Done — `0.3.0-rc.1` published** to the `next` dist-tag (RC-BLK-01 fixed and
    re-validated on the published artifact).
@@ -180,9 +191,20 @@ Product name: **CallLint** (CLI `calllint`, npm `calllint`, internal scope
    server's remote README — network input, an `--online` concern (advisory per
    ADR 0006). Then continued corpus growth toward 80. Platform-shaped work
    stays gated on real adoption signals.
-7. **ADR 0016 — recorded, deferred:** docker `-e` env-key secrets gap
+7. **v0.5.0 PR-gate trifecta — done, shipped to `latest`:** `scan --markdown`
+   (S1), `scan --changed` (S-CH), and the `calllint/calllint@v1` GitHub Action
+   (S2). No engine/schema/exit-code change — new surfaces over the same verdict.
+8. **ADR 0016 — recorded, deferred:** docker `-e` env-key secrets gap
    (Proposed/deferred; anchored by C049). The secrets-detector analogue of
    ADR 0012; a REVIEW-class under-call, not a dangerous false-SAFE.
+
+Forward (sequenced; see [docs/ROADMAP.md](docs/ROADMAP.md)):
+- **S5** — policy examples (`examples/policies/*`) + `docs/policy.md` +
+  `validatePolicy` reject-rule docs. Docs/examples only, no schema change, no ADR.
+- **S3** — corpus → 80 from real/redacted field feedback; floor ratchets up only.
+- **S4 / S6 (ADR-first)** — the policy-override exception layer (S4) and the
+  `--online` registry/README prompt-surface (S6) both touch frozen contracts and
+  require an ADR + sign-off before code.
 
 See [docs/ROADMAP.md](docs/ROADMAP.md) for the full phase map and explicit
 non-goals. Telemetry is **not** in `0.3.0` (see

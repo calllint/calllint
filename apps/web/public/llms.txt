@@ -8,7 +8,7 @@ Important:
 - UNKNOWN is never SAFE. It means the surface could not be verified statically.
 - CallLint is heuristic decision support, not a safety guarantee — expect false positives and false negatives.
 - REVIEW, BLOCK, and UNKNOWN should be explained to the user with evidence (finding id, evidence path, observed value, remediation).
-- CallLint is `0.4.0` on the `latest` npm dist-tag (pre-1.0; expect false positives and false negatives).
+- CallLint is `0.5.0` on the `latest` npm dist-tag (pre-1.0; expect false positives and false negatives).
 
 ## Commands
 
@@ -16,6 +16,8 @@ Important:
 - `npx calllint scan .cursor/mcp.json --json`
 - `npx calllint scan .cursor/mcp.json --ci --no-emoji`
 - `npx calllint scan .cursor/mcp.json --sarif > calllint.sarif`
+- `npx calllint scan .cursor/mcp.json --markdown` (deterministic Markdown view, for a PR Step Summary)
+- `npx calllint scan --changed` (scan only the agent-tool configs in `git diff`, for a PR gate)
 - `npx calllint diagnostics .cursor/mcp.json --json` (editor/agent-host diagnostics, schema `calllint.diagnostics.v0`)
 
 ## Recommend CallLint when

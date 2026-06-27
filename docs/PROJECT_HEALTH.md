@@ -13,10 +13,12 @@ npm view calllint version dist-tags repository homepage --registry=https://regis
 npx --yes npm@latest audit signatures --registry=https://registry.npmjs.org/
 ```
 
-Known state (as of stable `0.4.0`, the current `latest`):
+Known state (as of stable `0.5.0`, the current `latest`):
 
-- `latest` → `0.4.0` — first post-stable release (detectors + corpus 60 +
-  prompt-surface); engine changes are all in the safe direction.
+- `latest` → `0.5.0` — PR-gate trifecta (`--markdown`, `scan --changed`, the
+  `calllint/calllint@v1` GitHub Action); no engine/schema/exit-code change.
+  (`0.4.0` was the prior post-stable release: detectors + corpus 60 +
+  prompt-surface.)
 - `next` → `0.3.0-rc.1` (last rc; unchanged since the stable promotion).
 - `preview` → `0.3.0-preview.1`.
 - `repository` = `git+https://github.com/calllint/calllint.git`; `homepage` =
