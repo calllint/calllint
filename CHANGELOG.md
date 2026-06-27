@@ -11,6 +11,15 @@ onward. While pre-1.0, minor versions may include breaking changes.
 ## [Unreleased]
 
 ### Added
+- **CallLint GitHub Action** (`uses: calllint/calllint@v1`) — a thin composite
+  action wrapping the published CLI: installs `calllint`, scans the config,
+  captures the aggregate verdict as an output, uploads SARIF to Code Scanning,
+  writes a Markdown report to the PR Step Summary, and gates the build on the
+  verdict. It invents no new gate semantics — the pass/fail decision is the CLI's
+  own `--ci` exit code driven by the policy's `ci.failOn` set. Inputs: `target`,
+  `version`, `policy`, `online`, `surface-dir`, `sarif`, `step-summary`, `gate`.
+  Exercised by an in-repo self-test workflow (`action-selftest.yml`) over SAFE,
+  BLOCK report-only, and BLOCK-gates fixtures. Never executes the scanned server.
 - **`calllint scan --changed`** — scans only the agent-tool configs that appear
   in the git diff (`git diff --name-only HEAD`), filtered to the known config
   locations (`.cursor/mcp.json`, `.mcp.json`, `mcp.json`, `.claude/settings.json`,
