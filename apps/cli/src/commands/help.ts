@@ -23,6 +23,7 @@ SCAN OPTIONS
   --compact          One line per server
   --no-emoji         Plain-text symbols (good for CI logs)
   --sarif            Emit SARIF 2.1.0 (GitHub Code Scanning / CI)
+  --markdown         Emit Markdown for PR comments / GitHub Step Summary
   --html             Emit a self-contained HTML report
   --policy <file>    Use a policy file (default: built-in defaults)
   --stdin            Read config JSON from stdin
