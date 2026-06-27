@@ -145,7 +145,8 @@ calllint diagnostics ./mcp.json --json
 ```
 
 Output formats: default terminal, `--compact`, `--json` (stable schema),
-`--sarif` (GitHub Code Scanning), `--html` (self-contained report). The
+`--sarif` (GitHub Code Scanning), `--markdown` (PR comments / GitHub Step
+Summary), `--html` (self-contained report). The
 `diagnostics` command emits a separate editor/agent-host JSON
 (`calllint.diagnostics.v0`).
 

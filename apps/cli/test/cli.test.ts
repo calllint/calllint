@@ -70,6 +70,16 @@ describe("scan via stdin", () => {
     expect(/\p{Extended_Pictographic}/u.test(r.stdout)).toBe(false)
   })
 
+  it("--markdown dispatches to the markdown renderer (PR-gate output)", () => {
+    const text = readFileSync(goldenPath("block-filesystem.json"), "utf8")
+    const r = run(["scan", "--stdin", "--markdown"], deps(text))
+    expect(r.exitCode).toBe(EXIT.OK)
+    expect(r.stdout).toContain("## CallLint: BLOCK")
+    expect(r.stdout).toContain("Recommended fix:")
+    expect(r.stdout).toContain("Policy recommendation:")
+    expect(/\p{Extended_Pictographic}/u.test(r.stdout)).toBe(false)
+  })
+
   it("malformed JSON exits with parse error", () => {
     const text = readFileSync(goldenPath("malformed.json"), "utf8")
     const r = run(["scan", "--stdin"], deps(text))

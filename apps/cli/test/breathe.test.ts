@@ -34,7 +34,7 @@ describe("shouldBreathe", () => {
   })
 
   it("is silent for every machine-output / non-interactive mode", () => {
-    for (const flag of ["--json", "--sarif", "--html", "--compact", "--no-color", "--no-emoji", "--stdin"]) {
+    for (const flag of ["--json", "--sarif", "--markdown", "--html", "--compact", "--no-color", "--no-emoji", "--stdin"]) {
       expect(
         shouldBreathe(["scan", "mcp.json", flag], { stream: ttyStream(), env: {} }),
         `expected silence for ${flag}`,
