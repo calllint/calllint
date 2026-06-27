@@ -1,6 +1,56 @@
 # GitHub Actions + SARIF integration
 
-CallLint fits a pull-request gate in three pieces:
+The fastest way to gate a repo is the **CallLint Action** — a thin wrapper over
+the published CLI. It installs `calllint`, scans your config, uploads SARIF to
+the Security tab, writes a Markdown summary to the PR, and fails the build on the
+verdict. It never executes the scanned server.
+
+```yaml
+permissions:
+  contents: read
+  security-events: write   # for the SARIF upload
+
+jobs:
+  calllint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - uses: calllint/calllint@v1
+        with:
+          target: .cursor/mcp.json
+          # policy: calllint.policy.json   # optional; its ci.failOn drives the gate
+```
+
+The Action invents **no** new gate semantics: the pass/fail decision is the
+CLI's own `--ci` exit code driven by the policy's `ci.failOn` set. Choose
+BLOCK-only vs BLOCK+UNKNOWN by editing the policy, not an Action flag.
+
+| Input | Default | Notes |
+| --- | --- | --- |
+| `target` | `.cursor/mcp.json` | path, `npm:<pkg>`, or `github:<owner/repo>` (needs `online: true`) |
+| `version` | `latest` | CLI version / dist-tag to run |
+| `policy` | _(built-in)_ | path to a `calllint.policy.json`; its `ci.failOn` is the gate |
+| `online` | `false` | read public npm/GitHub metadata (never executes code, never lowers a verdict) |
+| `surface-dir` | _(none)_ | local-document prompt-surface scan (ADR 0015) |
+| `sarif` | `true` | emit + upload SARIF 2.1.0 |
+| `step-summary` | `true` | write a Markdown report to the PR Step Summary |
+| `gate` | `true` | `false` = report-only (SARIF + summary still produced) |
+
+Outputs: `verdict` (`SAFE`/`REVIEW`/`BLOCK`/`UNKNOWN`) and `sarif-file`.
+
+> **Live demo:** [`calllint/calllint-demo-risky-mcp`](https://github.com/calllint/calllint-demo-risky-mcp)
+> runs the equivalent integration — a 4-server config scanned on every push, with
+> the findings visible in its **Security → Code scanning** tab.
+
+---
+
+## Doing it by hand (the three pieces the Action wraps)
+
+If you'd rather not use the Action, CallLint fits a pull-request gate in three
+pieces:
 
 1. **Upload SARIF** to the GitHub Security tab so findings are annotated inline.
 2. **Gate the build** on the verdict (non-zero exit on BLOCK / UNKNOWN).
@@ -9,10 +59,6 @@ CallLint fits a pull-request gate in three pieces:
 A ready-to-use workflow is at
 [`examples/github-actions/calllint-sarif.yml`](../../examples/github-actions/calllint-sarif.yml).
 Copy it to `.github/workflows/calllint.yml`.
-
-> **Live demo:** [`calllint/calllint-demo-risky-mcp`](https://github.com/calllint/calllint-demo-risky-mcp)
-> runs exactly this integration — a 4-server config scanned on every push, with
-> the findings visible in its **Security → Code scanning** tab.
 
 ## Permissions
 

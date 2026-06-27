@@ -1,0 +1,137 @@
+# CallLint GitHub Action — a thin wrapper over the published `calllint` CLI.
+#
+# It does NOT invent new gate semantics: the pass/fail decision is the CLI's own
+# `--ci` exit code driven by the policy's `ci.failOn` set (BLOCK=30, UNKNOWN=20,
+# REVIEW=10 if enabled). The Action only wires the CLI into a PR gate: emit SARIF
+# for the Security tab, write a Markdown summary to the PR's Step Summary, and
+# gate the job on the verdict. It never executes the scanned server.
+name: CallLint
+description: >-
+  Pre-flight risk linting for MCP and agent-tool configs. Scans statically,
+  uploads SARIF, writes a PR summary, and gates the build on the verdict.
+  Never executes the server it judges.
+branding:
+  icon: shield
+  color: blue
+
+inputs:
+  target:
+    description: >-
+      Config to scan: a path (e.g. .cursor/mcp.json), npm:<pkg>[@ver], or
+      github:<owner/repo> (the last requires online: true).
+    required: false
+    default: .cursor/mcp.json
+  version:
+    description: calllint version or npm dist-tag to run (latest | next | preview | x.y.z).
+    required: false
+    default: latest
+  policy:
+    description: >-
+      Path to a calllint.policy.json. The policy's ci.failOn set decides what
+      fails the gate — this is how you choose BLOCK-only vs BLOCK+UNKNOWN.
+      Empty = the built-in defaults (failOn BLOCK + UNKNOWN).
+    required: false
+    default: ""
+  online:
+    description: >-
+      Read public npm/GitHub metadata. Never executes fetched code and can only
+      add risk, never lower a verdict (ADR 0006).
+    required: false
+    default: "false"
+  surface-dir:
+    description: Opt-in directory for the local-document prompt-surface scan (ADR 0015).
+    required: false
+    default: ""
+  sarif:
+    description: Emit SARIF 2.1.0 and upload it to GitHub Code Scanning.
+    required: false
+    default: "true"
+  sarif-category:
+    description: Code Scanning category for the uploaded SARIF.
+    required: false
+    default: calllint
+  step-summary:
+    description: Write a Markdown report to the GitHub Step Summary.
+    required: false
+    default: "true"
+  gate:
+    description: >-
+      Fail the job per policy (--ci). Set to "false" for a report-only run
+      (SARIF + summary still produced, job never fails on the verdict).
+    required: false
+    default: "true"
+
+outputs:
+  verdict:
+    description: Aggregate verdict — SAFE | REVIEW | BLOCK | UNKNOWN.
+    value: ${{ steps.scan.outputs.verdict }}
+  sarif-file:
+    description: Path to the generated SARIF file (when sarif is enabled).
+    value: ${{ steps.scan.outputs.sarif_file }}
+
+runs:
+  using: composite
+  steps:
+    - name: Install calllint
+      shell: bash
+      run: npm install -g "calllint@${{ inputs.version }}"
+
+    - name: Scan, emit SARIF + summary, capture verdict
+      id: scan
+      shell: bash
+      env:
+        CL_TARGET: ${{ inputs.target }}
+        CL_POLICY: ${{ inputs.policy }}
+        CL_ONLINE: ${{ inputs.online }}
+        CL_SURFACE_DIR: ${{ inputs.surface-dir }}
+        CL_SARIF: ${{ inputs.sarif }}
+        CL_STEP_SUMMARY: ${{ inputs.step-summary }}
+      run: |
+        set -euo pipefail
+
+        # Common flags, identical across every CLI invocation below.
+        args=("$CL_TARGET")
+        [ -n "$CL_POLICY" ] && args+=(--policy "$CL_POLICY")
+        [ "$CL_ONLINE" = "true" ] && args+=(--online)
+        [ -n "$CL_SURFACE_DIR" ] && args+=(--surface-dir "$CL_SURFACE_DIR")
+
+        # 1) JSON → capture the aggregate verdict (always exits 0 without --ci).
+        calllint scan "${args[@]}" --json > calllint-report.json
+        verdict="$(node -e "process.stdout.write((JSON.parse(require('fs').readFileSync('calllint-report.json','utf8')).verdict)||'UNKNOWN')")"
+        echo "verdict=$verdict" >> "$GITHUB_OUTPUT"
+        echo "CallLint verdict: $verdict"
+
+        # 2) SARIF for the Security tab (exits 0 on its own; gate is separate).
+        if [ "$CL_SARIF" = "true" ]; then
+          calllint scan "${args[@]}" --sarif > calllint.sarif
+          echo "sarif_file=calllint.sarif" >> "$GITHUB_OUTPUT"
+        fi
+
+        # 3) Markdown → PR Step Summary (degrades to plain text on CLIs that
+        #    predate --markdown; never aborts the run).
+        if [ "$CL_STEP_SUMMARY" = "true" ] && [ -n "${GITHUB_STEP_SUMMARY:-}" ]; then
+          calllint scan "${args[@]}" --markdown >> "$GITHUB_STEP_SUMMARY" || true
+        fi
+
+    - name: Upload SARIF to Code Scanning
+      if: ${{ inputs.sarif == 'true' }}
+      uses: github/codeql-action/upload-sarif@v3
+      with:
+        sarif_file: ${{ steps.scan.outputs.sarif_file }}
+        category: ${{ inputs.sarif-category }}
+
+    - name: Gate on verdict
+      if: ${{ inputs.gate == 'true' }}
+      shell: bash
+      env:
+        CL_TARGET: ${{ inputs.target }}
+        CL_POLICY: ${{ inputs.policy }}
+        CL_ONLINE: ${{ inputs.online }}
+        CL_SURFACE_DIR: ${{ inputs.surface-dir }}
+      run: |
+        set -euo pipefail
+        args=("$CL_TARGET")
+        [ -n "$CL_POLICY" ] && args+=(--policy "$CL_POLICY")
+        [ "$CL_ONLINE" = "true" ] && args+=(--online)
+        [ -n "$CL_SURFACE_DIR" ] && args+=(--surface-dir "$CL_SURFACE_DIR")
+        calllint scan "${args[@]}" --ci --no-emoji
