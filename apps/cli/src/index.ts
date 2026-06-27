@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 import { readFileSync } from "node:fs"
+import { execFileSync } from "node:child_process"
 import { run } from "./run.js"
 import { computeOnlineEnrichment } from "./online.js"
 import { resolveClock } from "./clock.js"
@@ -8,6 +9,24 @@ import { breathe } from "./breathe.js"
 function readStdin(): string {
   try {
     return readFileSync(0, "utf8")
+  } catch {
+    return ""
+  }
+}
+
+/**
+ * Changed files for `scan --changed`, via git.  Best-effort: a non-repo, a
+ * missing git, or any git error returns "" (the command then reports "nothing
+ * to scan" rather than crashing).  `--name-only HEAD` lists staged + unstaged
+ * changes against the last commit.
+ */
+function gitChangedFiles(cwd: string): string {
+  try {
+    return execFileSync("git", ["diff", "--name-only", "HEAD"], {
+      cwd,
+      encoding: "utf8",
+      stdio: ["ignore", "pipe", "ignore"],
+    })
   } catch {
     return ""
   }
@@ -53,6 +72,7 @@ async function main(): Promise<void> {
     now,
     generatedAt,
     online,
+    getChangedFilesDiff: () => gitChangedFiles(process.cwd()),
   })
 
   if (result.stdout) process.stdout.write(result.stdout + "\n")
