@@ -13,6 +13,7 @@ COMMANDS
   scan [target]      Full ScanReport for an MCP config / npm:<pkg> / github:<repo>
   diagnostics [target]  Emit editor/agent-host diagnostics JSON (calllint.diagnostics.v0)
   baseline [target]  Record the approved risk surface as a baseline
+  gen-rule --host <h>   Emit the CallLint agent-safety rule for a host (CLAUDE.md, etc.)
   policy init        Write a default calllint.policy.json
   policy explain     Show the effective policy
   help               Show this help

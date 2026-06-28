@@ -93,3 +93,17 @@ export {
   type HostHint,
   type HostDialect,
 } from "./extract/hostHints.js"
+
+// new4 Phase 3 — Agent distribution rules (declarative — ADR 0018 §10).
+export {
+  UNIVERSAL_AGENT_RULE,
+  RELEVANT_SURFACES,
+  AGENT_RULE_MAX_LINES,
+} from "./distribution/agentRule.js"
+export {
+  renderHostRule,
+  RULE_HOSTS,
+  RULE_TARGETS,
+  type RuleHost,
+  type RuleTarget,
+} from "./distribution/hostRules.js"

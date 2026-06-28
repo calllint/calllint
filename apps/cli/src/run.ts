@@ -3,6 +3,7 @@ import { helpCommand } from "./commands/help.js"
 import { scanCommand, type CommandResult } from "./commands/scan.js"
 import { checkCommand } from "./commands/check.js"
 import { scanAllCommand } from "./commands/scanAll.js"
+import { genRuleCommand } from "./commands/genRule.js"
 import { diagnosticsCommand } from "./commands/diagnostics.js"
 import { explainCommand } from "./commands/explain.js"
 import { policyCommand } from "./commands/policy.js"
@@ -92,6 +93,8 @@ export function run(argv: string[], deps: RunDeps): CommandResult {
       })
     case "explain":
       return explainCommand(args, { cwd: deps.cwd })
+    case "gen-rule":
+      return genRuleCommand(args, { cwd: deps.cwd })
     case "policy":
       return policyCommand(args, { cwd: deps.cwd })
     default:
