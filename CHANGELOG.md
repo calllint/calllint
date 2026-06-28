@@ -10,6 +10,17 @@ onward. While pre-1.0, minor versions may include breaking changes.
 
 ## [Unreleased]
 
+### Added
+- **Policy documentation + examples (S5)** — `docs/policy.md` describes the
+  `calllint.policy.v0` schema exactly as the engine treats it: `ci.failOn` /
+  `ci.failOnReview` drive the CI exit code, and a time-boxed, reasoned `override`
+  is the *only* verdict-changer (`BLOCK → REVIEW`, never `SAFE`). It is explicit
+  that `defaults` / `allowedSources` / `allowedPaths` are declared-and-validated
+  but not yet read by the verdict path. Three ready-to-copy policies ship under
+  `examples/policies/` (`ci-block-only`, `ci-strict`, `override-timeboxed`), each
+  locked by a test asserting it validates against `calllint.policy.v0`. Docs +
+  examples + test only — no schema, code, or behavior change.
+
 ## [0.5.0] — PR-gate trifecta: `--markdown`, `scan --changed`, GitHub Action
 
 The decision-point release: it closes the pull-request gate end-to-end without

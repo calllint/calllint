@@ -218,7 +218,9 @@ Each rule has a detector and a human-readable doc under
 
 Verdicts are governed by **policy as code** (`calllint.policy.json`); run
 `calllint policy init` to write the defaults and `calllint policy explain` to see
-the effective policy.
+the effective policy. See [docs/policy.md](docs/policy.md) for the schema,
+validation rules, and ready-to-copy examples in
+[examples/policies/](examples/policies/).
 
 ## Security model
 

@@ -1,4 +1,7 @@
 import { describe, it, expect } from "vitest"
+import { readFileSync, readdirSync } from "node:fs"
+import { fileURLToPath } from "node:url"
+import { dirname, join } from "node:path"
 import {
   defaultPolicy,
   validatePolicy,
@@ -11,6 +14,10 @@ import type { Finding, Policy } from "@calllint/types"
 const FUTURE = "2999-01-01T00:00:00Z"
 const PAST = "2000-01-01T00:00:00Z"
 const NOW = Date.parse("2026-06-01T00:00:00Z")
+
+// packages/policy/test → up three → repo root → examples/policies
+const examplesDir = join(dirname(fileURLToPath(import.meta.url)), "..", "..", "..", "examples", "policies")
+
 
 function blocker(symbol: Finding["symbol"]): Finding {
   return {
@@ -108,4 +115,19 @@ describe("applyPolicy", () => {
     expect(d.verdict).toBe("UNKNOWN")
     expect(d.changed).toBe(false)
   })
+})
+
+describe("shipped example policies (docs/policy.md, S5)", () => {
+  const files = readdirSync(examplesDir).filter((f) => f.endsWith(".json"))
+
+  it("there is at least one example policy", () => {
+    expect(files.length).toBeGreaterThan(0)
+  })
+
+  for (const file of files) {
+    it(`examples/policies/${file} is valid calllint.policy.v0`, () => {
+      const parsed = JSON.parse(readFileSync(join(examplesDir, file), "utf8"))
+      expect(() => validatePolicy(parsed)).not.toThrow()
+    })
+  }
 })
