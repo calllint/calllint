@@ -53,3 +53,43 @@ export {
   extractPackageSpec,
   type ParsedSnippet,
 } from "./surface/snippet.js"
+
+// new4 L1 — Global host extractors (Phase 2 — ADR 0018 §15.12).
+export {
+  extractGenericMcpJson,
+  extractGenericMcpJsonText,
+} from "./extract/mappings/genericMcpJson.js"
+export {
+  extractGenericMcpToml,
+  parseCodexToml,
+} from "./extract/mappings/genericMcpToml.js"
+export {
+  extractInstallSnippet,
+  type ExtractedSnippet,
+} from "./extract/mappings/installSnippet.js"
+export {
+  extractForHost,
+  type HostExtraction,
+} from "./extract/mappings/hostExtractor.js"
+export { extractVscode } from "./extract/mappings/vscode.js"
+export { extractCursor } from "./extract/mappings/cursor.js"
+export { extractClaude } from "./extract/mappings/claude.js"
+export { extractCodex } from "./extract/mappings/codex.js"
+export { extractGemini } from "./extract/mappings/gemini.js"
+export { extractWindsurf } from "./extract/mappings/windsurf.js"
+export { extractCline } from "./extract/mappings/cline.js"
+export {
+  extractOpenClaw,
+  isOpenClawSnippet,
+  type GatewayExtraction,
+} from "./extract/mappings/openclaw.js"
+export {
+  extractHermes,
+  parseHermesYaml,
+} from "./extract/mappings/hermes.js"
+export {
+  HOST_HINTS,
+  type HostId,
+  type HostHint,
+  type HostDialect,
+} from "./extract/hostHints.js"

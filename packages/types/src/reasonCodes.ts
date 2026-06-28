@@ -40,10 +40,9 @@ export interface ReasonCodeMeta {
 
 /**
  * The single source of truth mapping reason codes to the detectors that back
- * them (ADR 0020). 9 codes are pure relabelings of detectors that already ship
- * with positive+negative fixtures; TOOL_DESCRIPTOR_CHANGED maps onto the drift /
- * toolMetadataHash signal; 3 codes are pending their Phase-2 ADRs (0021/0022/0023)
- * and carry backedBy: [] so the gap is explicit and test-asserted.
+ * them (ADR 0020). All 12 codes are now wired: 11 to static/extractor-fed
+ * detectors, plus TOOL_DESCRIPTOR_CHANGED to the drift / toolMetadataHash signal.
+ * Codes #8/#10/#12 were wired in Phase 2 (ADR 0021/0022/0023).
  */
 export const REASON_CODE_META: Record<ReasonCode, ReasonCodeMeta> = {
   UNPINNED_PACKAGE: {
@@ -82,8 +81,8 @@ export const REASON_CODE_META: Record<ReasonCode, ReasonCodeMeta> = {
     label: "Money or payment capability",
   },
   MESSAGING_OR_EMAIL_SEND: {
-    backedBy: [],
-    status: "pending",
+    backedBy: ["action.messaging-send"],
+    status: "wired",
     label: "Messaging or email send",
   },
   PROMPT_METADATA_INSTRUCTION: {
@@ -92,8 +91,8 @@ export const REASON_CODE_META: Record<ReasonCode, ReasonCodeMeta> = {
     label: "Prompt-metadata instruction",
   },
   OAUTH_SCOPE_UNKNOWN_OR_EXPANDED: {
-    backedBy: [],
-    status: "pending",
+    backedBy: ["auth.oauth-scope"],
+    status: "wired",
     label: "OAuth scope unknown or expanded",
   },
   TOOL_DESCRIPTOR_CHANGED: {
@@ -104,8 +103,8 @@ export const REASON_CODE_META: Record<ReasonCode, ReasonCodeMeta> = {
     label: "Tool descriptor changed",
   },
   LONG_RUNNING_GATEWAY_RUNTIME: {
-    backedBy: [],
-    status: "pending",
+    backedBy: ["runtime.gateway"],
+    status: "wired",
     label: "Long-running gateway runtime",
   },
 }

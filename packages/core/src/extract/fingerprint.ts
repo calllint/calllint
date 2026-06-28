@@ -107,7 +107,11 @@ function deriveScope(origin: SurfaceOrigin | undefined, launch: FpLaunch): FpSco
 }
 
 /** RiskSymbol (on findings) → coarse effect vocabulary (ADR 0019 table). */
-function deriveEffects(findings: Finding[]): FpEffect[] {
+function deriveEffects(
+  findings: Finding[],
+  server: NormalizedMcpServer,
+  kind: CapabilityFingerprint["kind"],
+): FpEffect[] {
   const effects = new Set<FpEffect>()
   for (const f of findings) {
     switch (f.symbol) {
@@ -134,7 +138,22 @@ function deriveEffects(findings: Finding[]): FpEffect[] {
         break
     }
   }
+  // A gateway runtime is a standing capability regardless of findings (ADR 0023).
+  if (kind === "gateway_runtime") effects.add("gateway_runtime")
+  // OAuth metadata surfaced by an extractor (Hermes/OpenClaw/remote) → oauth_scope
+  // effect, so the fingerprint and the OAUTH reason code stay consistent (ADR 0022).
+  if (hasOauthMetadata(server)) effects.add("oauth_scope")
   return [...effects].sort()
+}
+
+/** True when an extractor placed OAuth metadata on the server's raw fields. */
+function hasOauthMetadata(server: NormalizedMcpServer): boolean {
+  const raw = server.raw
+  return (
+    typeof raw === "object" &&
+    raw !== null &&
+    "oauth" in (raw as Record<string, unknown>)
+  )
 }
 
 /** Identity: known only when the source is concretely named (ADR 0019). */
@@ -148,16 +167,17 @@ export function buildFingerprint(
 ): CapabilityFingerprint {
   const { server, binding, findings, origin, kind } = input
   const launch = deriveLaunch(binding)
+  const resolvedKind = kind ?? "mcp_server"
   return {
     schemaVersion: "calllint.fingerprint.v0",
-    kind: kind ?? "mcp_server",
+    kind: resolvedKind,
     source: deriveSource(binding),
     launch,
     transport: deriveTransport(binding),
     // Env KEY NAMES only — never values (secret redaction by construction).
     authority: [...new Set(server.envKeys)].sort().map((k) => `env:${k}`),
     scope: deriveScope(origin, launch),
-    effects: deriveEffects(findings),
+    effects: deriveEffects(findings, server, resolvedKind),
     identity: deriveIdentity(binding),
   }
 }

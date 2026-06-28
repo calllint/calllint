@@ -32,21 +32,18 @@ describe("reason-code vocabulary (ADR 0020)", () => {
     }
   })
 
-  it("splits into 9 wired + 3 pending, with the pending three named", () => {
+  it("all 12 codes are wired after Phase 2 (no pending)", () => {
     const wired = REASON_CODES.filter(
       (c) => REASON_CODE_META[c].status === "wired",
     )
     const pending = REASON_CODES.filter(
       (c) => REASON_CODE_META[c].status === "pending",
     )
-    // 8 detector relabels + TOOL_DESCRIPTOR_CHANGED (drift) = 9 wired.
-    // (exec.*, action.financial*, prompt.* each fold two finding ids into one code.)
-    expect(wired).toHaveLength(9)
-    expect(pending).toEqual([
-      "MESSAGING_OR_EMAIL_SEND",
-      "OAUTH_SCOPE_UNKNOWN_OR_EXPANDED",
-      "LONG_RUNNING_GATEWAY_RUNTIME",
-    ])
+    // Phase 2 (ADR 0021/0022/0023) wired the last three (MESSAGING / OAUTH /
+    // GATEWAY). All 12 are now backed: 11 by detectors, TOOL_DESCRIPTOR_CHANGED
+    // by the drift / toolMetadataHash signal.
+    expect(wired).toHaveLength(12)
+    expect(pending).toEqual([])
   })
 
   it("wired codes name a backing detector; pending codes do not", () => {
@@ -57,7 +54,7 @@ describe("reason-code vocabulary (ADR 0020)", () => {
     }
   })
 
-  it("reasonCodeForFinding maps the 10 detector finding ids correctly", () => {
+  it("reasonCodeForFinding maps all 13 detector finding ids correctly", () => {
     const cases: Array<[string, ReasonCode]> = [
       ["supply.unpinned-package", "UNPINNED_PACKAGE"],
       ["supply.unknown-remote", "UNKNOWN_REMOTE"],
@@ -70,6 +67,10 @@ describe("reason-code vocabulary (ADR 0020)", () => {
       ["action.financial-observed", "MONEY_OR_PAYMENT_CAPABILITY"],
       ["prompt.hidden-instructions", "PROMPT_METADATA_INSTRUCTION"],
       ["prompt.poisoning", "PROMPT_METADATA_INSTRUCTION"],
+      // Phase 2 (ADR 0021/0022/0023):
+      ["action.messaging-send", "MESSAGING_OR_EMAIL_SEND"],
+      ["auth.oauth-scope", "OAUTH_SCOPE_UNKNOWN_OR_EXPANDED"],
+      ["runtime.gateway", "LONG_RUNNING_GATEWAY_RUNTIME"],
     ]
     for (const [id, code] of cases) {
       expect(reasonCodeForFinding(id)).toBe(code)
