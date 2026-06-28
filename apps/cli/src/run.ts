@@ -1,6 +1,8 @@
 import { parseArgs } from "./args.js"
 import { helpCommand } from "./commands/help.js"
 import { scanCommand, type CommandResult } from "./commands/scan.js"
+import { checkCommand } from "./commands/check.js"
+import { scanAllCommand } from "./commands/scanAll.js"
 import { diagnosticsCommand } from "./commands/diagnostics.js"
 import { explainCommand } from "./commands/explain.js"
 import { policyCommand } from "./commands/policy.js"
@@ -41,6 +43,19 @@ export function run(argv: string[], deps: RunDeps): CommandResult {
   }
 
   switch (cmd) {
+    case "check":
+      return checkCommand(args, {
+        cwd: deps.cwd,
+        readStdin: deps.readStdin,
+        now: deps.now,
+        generatedAt: deps.generatedAt,
+      })
+    case "scan-all":
+      return scanAllCommand(args, {
+        cwd: deps.cwd,
+        now: deps.now,
+        generatedAt: deps.generatedAt,
+      })
     case "scan":
       return scanCommand(args, {
         cwd: deps.cwd,
