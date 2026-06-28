@@ -11,6 +11,14 @@ onward. While pre-1.0, minor versions may include breaking changes.
 ## [Unreleased]
 
 ### Added
+- **`owner` on policy overrides (S4, ADR 0017 option B)** — `PolicyOverride` gains
+  an optional `owner` string (an accountable identity: handle, team, or email).
+  It is recorded and echoed in the `policy.applied` diagnostic (`… owner: <owner>)
+  — <reason>`), never interpreted or verified. Optional and additive:
+  `validatePolicy` requires it to be a non-empty string only when present, so no
+  existing policy file breaks. Schema-additive change to `calllint.policy.v0`,
+  gated by [ADR 0017](docs/adr/0017-override-owner-accountability.md) (Accepted-B),
+  with positive + negative validation tests and a diagnostic-echo test.
 - **Policy documentation + examples (S5)** — `docs/policy.md` describes the
   `calllint.policy.v0` schema exactly as the engine treats it: `ci.failOn` /
   `ci.failOnReview` drive the CI exit code, and a time-boxed, reasoned `override`

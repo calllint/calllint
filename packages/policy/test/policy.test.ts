@@ -74,6 +74,27 @@ describe("policy validation", () => {
     }
     expect(() => validatePolicy(p)).not.toThrow()
   })
+  it("accepts a valid owner (ADR 0017-B)", () => {
+    const p = {
+      ...defaultPolicy(),
+      overrides: [{ target: "x", reason: "r", expiresAt: FUTURE, owner: "@security-team" }],
+    }
+    expect(() => validatePolicy(p)).not.toThrow()
+  })
+  it("accepts an override with no owner (owner is optional)", () => {
+    const p = {
+      ...defaultPolicy(),
+      overrides: [{ target: "x", reason: "r", expiresAt: FUTURE }],
+    }
+    expect(() => validatePolicy(p)).not.toThrow()
+  })
+  it("rejects an empty-string owner", () => {
+    const p = {
+      ...defaultPolicy(),
+      overrides: [{ target: "x", reason: "r", expiresAt: FUTURE, owner: "  " }],
+    }
+    expect(() => validatePolicy(p)).toThrow(PolicyValidationError)
+  })
 })
 
 describe("applyPolicy", () => {
@@ -114,6 +135,24 @@ describe("applyPolicy", () => {
     const d = applyPolicy("UNKNOWN", "fs", [], policyWithOverride(["FILES"]), NOW)
     expect(d.verdict).toBe("UNKNOWN")
     expect(d.changed).toBe(false)
+  })
+
+  it("echoes the owner in the policy.applied note when present (ADR 0017-B)", () => {
+    const p: Policy = {
+      ...defaultPolicy(),
+      overrides: [
+        { target: "fs", reason: "local only", expiresAt: FUTURE, allow: ["FILES"], owner: "@sec" },
+      ],
+    }
+    const d = applyPolicy("BLOCK", "fs", [blocker("FILES")], p, NOW)
+    expect(d.verdict).toBe("REVIEW")
+    expect(d.note).toContain("owner: @sec")
+  })
+
+  it("omits the owner clause when no owner is set", () => {
+    const d = applyPolicy("BLOCK", "fs", [blocker("FILES")], policyWithOverride(["FILES"]), NOW)
+    expect(d.note).toMatch(/Policy decision/)
+    expect(d.note).not.toContain("owner:")
   })
 })
 

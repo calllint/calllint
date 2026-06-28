@@ -41,6 +41,13 @@ function validateOverride(
       message: "is required (overrides without a reason are not allowed)",
     })
   }
+  // owner is optional (ADR 0017-B), but if present must be a non-empty string.
+  if (o.owner !== undefined && (typeof o.owner !== "string" || !o.owner.trim())) {
+    issues.push({
+      path: `${base}.owner`,
+      message: "must be a non-empty string when present",
+    })
+  }
   if (typeof o.expiresAt !== "string" || Number.isNaN(Date.parse(o.expiresAt))) {
     issues.push({
       path: `${base}.expiresAt`,

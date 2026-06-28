@@ -22,12 +22,14 @@
     {
       "target": "local-fs-tools",
       "reason": "Bound to ${workspaceFolder} only; reviewed in TICKET-1234. Re-evaluate at expiry.",
+      "owner": "@platform-team",
       "expiresAt": "2099-01-01T00:00:00Z",
       "allow": ["FILES"]
     },
     {
       "target": "build-runner",
       "reason": "Runs a pinned local build script in CI; risk accepted by @security-team for this quarter.",
+      "owner": "secops@example.com",
       "expiresAt": "2099-01-01T00:00:00Z",
       "allow": ["EXEC"],
       "require": ["manualApproval"],
