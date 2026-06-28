@@ -1,5 +1,10 @@
 import type { Confidence, Finding } from "./finding.js"
-import type { Fingerprints, Reproducibility } from "./fingerprint.js"
+import type {
+  Fingerprints,
+  Reproducibility,
+  CapabilityFingerprint,
+} from "./fingerprint.js"
+import type { CompactDecision } from "./decision.js"
 import type { RecommendedPolicy } from "./policy.js"
 import type { RiskClass, RiskSymbol } from "./symbols.js"
 import type { Verdict } from "./verdict.js"
@@ -63,6 +68,16 @@ export interface ScanReport {
   fingerprints: Fingerprints
   diagnostics: Diagnostic[]
   generatedAt: string
+  /**
+   * Optional new4 L1 projection (ADR 0018/0019). Additive — existing consumers
+   * ignore it. Populated when the scan derives a capability fingerprint.
+   */
+  fingerprint?: CapabilityFingerprint
+  /**
+   * Optional new4 L2 projection (ADR 0018/0020). The compact decision derived
+   * from this report. Additive — existing consumers ignore it.
+   */
+  decision?: CompactDecision
 }
 
 /**
