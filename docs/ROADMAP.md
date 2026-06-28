@@ -16,7 +16,8 @@ v0.3.0-preview.1  (published, preview dist-tag)
   → 0.3.0-rc.0    (published to `next`; RC window found RC-BLK-01)
   → 0.3.0-rc.1    (published to `next`; RC-BLK-01 fixed + re-validated)
   → 0.3.0         (published to `latest`; GitHub Release v0.3.0, not a pre-release)
-  → 0.4.0         (published to `latest`; first post-stable: detectors + corpus 60 + prompt-surface)  ← we are here
+  → 0.4.0         (published to `latest`; first post-stable: detectors + corpus 60 + prompt-surface)
+  → 0.5.0         (published to `latest`; PR-gate trifecta: --markdown + scan --changed + GitHub Action)  ← we are here
 ```
 
 The engine, brand, npm preview, Trusted Publishing, website V3, the R2.1 corpus
@@ -31,7 +32,12 @@ R2.2 reached the 60-case target (floor 60/38), R3 `calllint diagnostics --json`
 shipped (ADR 0013), the two detector-calibration ADRs are accepted and implemented
 (ADR 0011 `exec.unverified-local-source`; ADR 0012 docker bind-mount host paths), and
 R4 prompt-surface **v0** + the local-document increment shipped (ADR 0014
-`prompt.hidden-instructions`; ADR 0015 `--surface-dir`). What remains before any
+`prompt.hidden-instructions`; ADR 0015 `--surface-dir`).
+
+**`0.5.0`** (promoted to `latest`) then closed the pull-request gate end-to-end —
+the `--markdown` renderer (S1), the `scan --changed` git-diff entry point (S-CH),
+and the thin `calllint/calllint@v1` GitHub Action (S2) — without touching the
+engine (no schema, exit-code, verdict, or detector change). What remains before any
 platform work is the R4 network-surface plumbing (registry metadata + remote README,
 an `--online` concern) and continued corpus growth toward 80 — everything
 platform-shaped stays gated on real adoption signals below.

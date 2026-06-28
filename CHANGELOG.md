@@ -10,7 +10,21 @@ onward. While pre-1.0, minor versions may include breaking changes.
 
 ## [Unreleased]
 
+## [0.5.0] — PR-gate trifecta: `--markdown`, `scan --changed`, GitHub Action
+
+The decision-point release: it closes the pull-request gate end-to-end without
+touching the engine. A `--markdown` renderer, a `scan --changed` git-diff entry
+point, and a thin `calllint/calllint@v1` GitHub Action compose the existing CLI
+into a PR check. No `ScanReport` schema, exit-code, verdict, or detector change —
+SAFE is exactly as hard to reach as in `0.4.0`. These are new surfaces over the
+same engine, hence a MINOR bump with no ADR.
+
 ### Added
+- **`calllint scan --markdown`** — a deterministic, emoji-free Markdown renderer
+  for the `ScanReport` (verdict, per-server findings with evidence/impact/fix,
+  exit-code legend), derived from the same `calllint.report.v0` the other
+  renderers consume. Designed for a PR Step Summary; pipe-safe (table cells are
+  escaped). No schema change — it is a view, like `--sarif`/`--html`.
 - **CallLint GitHub Action** (`uses: calllint/calllint@v1`) — a thin composite
   action wrapping the published CLI: installs `calllint`, scans the config,
   captures the aggregate verdict as an output, uploads SARIF to Code Scanning,
