@@ -53,6 +53,22 @@ export {
   extractPackageSpec,
   type ParsedSnippet,
 } from "./surface/snippet.js"
+export {
+  findSurfaces,
+  decideRepoSurfaces,
+  readCapped,
+  SKIP_DIRS,
+  type WalkOpts,
+} from "./surface/walk.js"
+
+// new4 L4 — Approved state + capability-layer drift (ADR 0024).
+export {
+  defaultApprovedPath,
+  buildApproved,
+  writeApproved,
+  readApproved,
+} from "./state/approve.js"
+export { verifyApproved } from "./state/verifyApproved.js"
 
 // new4 L1 — Global host extractors (Phase 2 — ADR 0018 §15.12).
 export {

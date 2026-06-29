@@ -13,6 +13,7 @@ COMMANDS
   scan [target]      Full ScanReport for an MCP config / npm:<pkg> / github:<repo>
   diagnostics [target]  Emit editor/agent-host diagnostics JSON (calllint.diagnostics.v0)
   baseline [target]  Record the approved risk surface as a baseline
+  approve            Record the repo-wide capability surface as approved state (L4)
   gen-rule --host <h>   Emit the CallLint agent-safety rule for a host (CLAUDE.md, etc.)
   policy init        Write a default calllint.policy.json
   policy explain     Show the effective policy
@@ -44,7 +45,9 @@ SCAN OPTIONS
 
 VERIFY OPTIONS
   --baseline <file>  Baseline path (default: .calllint/baseline.json)
-  --ci               Exit 40 if the risk surface drifted from the baseline
+  --approved [file]  Diff the repo-wide capability surface against approved state
+                     (default: .calllint/approved.json) instead of the baseline
+  --ci               Exit 40 if the surface drifted (from baseline or approved state)
   --json             Emit the drift report JSON
 
 EXAMPLES
@@ -55,6 +58,7 @@ EXAMPLES
   calllint check ./mcp.json --json
   calllint scan .cursor/mcp.json --markdown
   calllint verify ./mcp.json --ci
+  calllint approve && calllint verify --approved --ci
   calllint explain filesystem
 `
 

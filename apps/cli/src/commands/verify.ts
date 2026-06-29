@@ -5,10 +5,19 @@ import {
   computeDrift,
   writeBaseline,
   readBaseline,
+  decideRepoSurfaces,
+  readApproved,
+  verifyApproved,
+  defaultApprovedPath,
   ConfigParseError,
 } from "@calllint/core"
 import { loadPolicyOrDefault } from "@calllint/policy"
-import { renderDrift, renderDriftJson } from "@calllint/report-renderer"
+import {
+  renderDrift,
+  renderDriftJson,
+  renderApprovedDrift,
+  renderApprovedDriftJson,
+} from "@calllint/report-renderer"
 import type { Policy } from "@calllint/types"
 import { EXIT, flagBool, flagStr, type ParsedArgs } from "../args.js"
 import type { CommandResult } from "./scan.js"
@@ -19,6 +28,8 @@ export interface VerifyDeps {
   cwd: string
   readStdin: () => string
   generatedAt: string
+  /** Injected clock for the surface walker (approved mode). */
+  now?: number
   /** When false, skip writing the baseline file (used in tests). */
   writeBaselineFile?: boolean
   online?: OnlineEnrichment
@@ -80,6 +91,11 @@ export function baselineCommand(args: ParsedArgs, deps: VerifyDeps): CommandResu
 
 /** `calllint verify` — scan and compare against the recorded baseline. */
 export function verifyCommand(args: ParsedArgs, deps: VerifyDeps): CommandResult {
+  // Capability-layer approved-state mode (ADR 0024). Opt-in via --approved.
+  if (flagBool(args.flags, "approved")) {
+    return verifyApprovedMode(args, deps)
+  }
+
   const policy = loadPolicy(args)
   if ("error" in policy) return { stdout: "", stderr: policy.error, exitCode: EXIT.ERROR }
 
@@ -117,6 +133,46 @@ export function verifyCommand(args: ParsedArgs, deps: VerifyDeps): CommandResult
     : renderDrift(drift)
 
   // Exit code only under --ci: drift fails the process.
+  const exitCode =
+    flagBool(args.flags, "ci") && drift.drifted ? EXIT.DRIFT : EXIT.OK
+  return { stdout, exitCode }
+}
+
+function approvedPathFor(args: ParsedArgs, cwd: string): string {
+  const flag = flagStr(args.flags, "approved")
+  // --approved may be a bare boolean (use default path) or carry a path.
+  return typeof flag === "string" && flag.length > 0
+    ? flag
+    : defaultApprovedPath(cwd)
+}
+
+/**
+ * `calllint verify --approved` — recompute the repo-wide capability surface and
+ * diff against `.calllint/approved.json` (ADR 0024). Offline, static; never
+ * executes a scanned server. Drift never collapses to SAFE.
+ */
+function verifyApprovedMode(args: ParsedArgs, deps: VerifyDeps): CommandResult {
+  const path = approvedPathFor(args, deps.cwd)
+  const approved = readApproved(path)
+  if (!approved) {
+    return {
+      stdout: "",
+      stderr: `No approved state found at ${path}. Run \`calllint approve\` first.`,
+      exitCode: EXIT.ERROR,
+    }
+  }
+
+  const current = decideRepoSurfaces(deps.cwd, {
+    now: deps.now ?? (Date.parse(deps.generatedAt) || 0),
+    generatedAt: deps.generatedAt,
+  })
+
+  const drift = verifyApproved(current, approved, deps.generatedAt)
+
+  const stdout = flagBool(args.flags, "json")
+    ? renderApprovedDriftJson(drift)
+    : renderApprovedDrift(drift)
+
   const exitCode =
     flagBool(args.flags, "ci") && drift.drifted ? EXIT.DRIFT : EXIT.OK
   return { stdout, exitCode }

@@ -8,6 +8,7 @@ import { diagnosticsCommand } from "./commands/diagnostics.js"
 import { explainCommand } from "./commands/explain.js"
 import { policyCommand } from "./commands/policy.js"
 import { baselineCommand, verifyCommand } from "./commands/verify.js"
+import { approveCommand } from "./commands/approve.js"
 import type { Finding } from "@calllint/types"
 
 /**
@@ -87,9 +88,17 @@ export function run(argv: string[], deps: RunDeps): CommandResult {
       return verifyCommand(args, {
         cwd: deps.cwd,
         readStdin: deps.readStdin,
+        now: deps.now,
         generatedAt: deps.generatedAt,
         writeBaselineFile: deps.writeCacheFile,
         online: deps.online,
+      })
+    case "approve":
+      return approveCommand(args, {
+        cwd: deps.cwd,
+        now: deps.now,
+        generatedAt: deps.generatedAt,
+        writeFile: deps.writeCacheFile,
       })
     case "explain":
       return explainCommand(args, { cwd: deps.cwd })

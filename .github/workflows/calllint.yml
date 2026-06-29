@@ -1,0 +1,64 @@
+# CallLint agent-tool surface gate (Phase 4 / L4 — ADR 0024).
+#
+# Path-filtered: runs only when a PR touches an MCP / agent-tool surface.
+# CallLint is static — it inspects configs and NEVER executes a scanned server.
+#
+# Two modes, auto-selected:
+#   1. Drift gate (recommended): if `.calllint/approved.json` is committed, the
+#      job runs `verify --approved --ci` and FAILS the PR (exit 40) when the
+#      approved capability surface changed (rug-pull / new tool / scope creep).
+#      Seed it once with `npx calllint approve` and commit the file.
+#   2. Report-only: with no approved state, the job prints `scan-all` for
+#      visibility and never fails the PR (a repo full of intentional fixtures —
+#      like this one — would otherwise always trip a raw verdict gate).
+name: calllint
+
+on:
+  pull_request:
+    paths:
+      - "**/mcp.json"
+      - "**/.mcp.json"
+      - "**/settings.json"
+      - "**/config.toml"
+      - ".cursor/**"
+      - ".vscode/**"
+      - "claude_desktop_config.json"
+      - "CLAUDE.md"
+      - "AGENTS.md"
+      - ".calllint/approved.json"
+
+# Least privilege: only read the repo.
+permissions:
+  contents: read
+
+jobs:
+  surface-gate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: pnpm/action-setup@v6
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build the CLI bundle
+        run: pnpm build
+
+      - name: CallLint surface gate
+        shell: bash
+        run: |
+          CLI="node apps/cli/dist/index.js"
+          if [ -f .calllint/approved.json ]; then
+            echo "Approved state found — running drift gate (verify --approved --ci)."
+            $CLI verify --approved --ci --no-emoji
+          else
+            echo "No .calllint/approved.json — report-only scan-all (not gating)."
+            echo "Seed a drift gate with: npx calllint approve && commit .calllint/approved.json"
+            $CLI scan-all --no-emoji || true
+          fi

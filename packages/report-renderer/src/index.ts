@@ -17,6 +17,7 @@ export {
 } from "./renderDecision.js"
 export { renderExplain } from "./renderExplain.js"
 export { renderDrift, renderDriftJson } from "./renderDrift.js"
+export { renderApprovedDrift, renderApprovedDriftJson } from "./renderApprovedDrift.js"
 export { renderSarif } from "./renderSarif.js"
 export { renderMarkdown } from "./renderMarkdown.js"
 export { renderDiagnostics } from "./renderDiagnostics.js"
