@@ -47,6 +47,13 @@ function validateOverride(
       message: "must be a valid ISO timestamp (overrides must expire)",
     })
   }
+  // owner is optional (ADR 0017-B), but if present must be a non-empty string.
+  if (o.owner !== undefined && (typeof o.owner !== "string" || !o.owner.trim())) {
+    issues.push({
+      path: `${base}.owner`,
+      message: "must be a non-empty string when present",
+    })
+  }
   const allow = Array.isArray(o.allow) ? (o.allow as unknown[]) : []
   const allowsDangerous = allow.some(
     (s) => typeof s === "string" && DANGEROUS_SYMBOLS.has(s),

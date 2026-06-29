@@ -10,6 +10,18 @@ onward. While pre-1.0, minor versions may include breaking changes.
 
 ## [Unreleased]
 
+### Added
+- **Policy guide (`policy.md`)** + ready-to-copy examples in `examples/policies/`
+  (`ci-block-only`, `ci-strict`, `override-timeboxed`), with a validation test
+  asserting every shipped example is valid `calllint.policy.v0` (S5). The guide
+  describes only verified behavior (CI exit codes and the `BLOCK → REVIEW`
+  override); declared-not-read fields are called out as such.
+- **`owner` on `PolicyOverride`** — an optional, validated-if-present accountable
+  identity (handle/team/email) for a security exception. Recorded and echoed in
+  the `policy.applied` diagnostic, never interpreted. Additive, non-breaking
+  (ADR 0017-B, `adrs/0017-override-owner-accountability.md`). Schema-additive
+  MINOR; the set of verdicts an override can produce is unchanged.
+
 ## [0.5.0] — PR-gate trifecta: `--markdown`, `scan --changed`, GitHub Action
 
 The decision-point release: it closes the pull-request gate end-to-end without

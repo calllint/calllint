@@ -47,7 +47,9 @@ export function applyPolicy(
   return {
     verdict: "REVIEW",
     changed: true,
-    note: `Policy decision: override for "${serverName}" (expires ${override.expiresAt}) — ${override.reason}`,
+    note: `Policy decision: override for "${serverName}" (expires ${override.expiresAt}${
+      override.owner ? `, owner: ${override.owner}` : ""
+    }) — ${override.reason}`,
   }
 }
 

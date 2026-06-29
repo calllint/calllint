@@ -1,0 +1,39 @@
+{
+  "schemaVersion": "calllint.policy.v0",
+  "defaults": {
+    "unknownSource": "deny",
+    "unpinnedPackage": "warn",
+    "broadFilesystemAccess": "deny",
+    "arbitraryCommandExecution": "deny",
+    "promptPoisoning": "deny",
+    "externalMutation": "warn",
+    "financialAction": "deny"
+  },
+  "ci": {
+    "failOn": ["BLOCK", "UNKNOWN"],
+    "failOnReview": false
+  },
+  "allowedSources": [
+    "npm:@modelcontextprotocol/*",
+    "github:modelcontextprotocol/*"
+  ],
+  "allowedPaths": ["${workspaceFolder}"],
+  "overrides": [
+    {
+      "target": "local-fs-tools",
+      "reason": "Bound to ${workspaceFolder} only; reviewed in TICKET-1234. Re-evaluate at expiry.",
+      "owner": "@platform-team",
+      "expiresAt": "2099-01-01T00:00:00Z",
+      "allow": ["FILES"]
+    },
+    {
+      "target": "build-runner",
+      "reason": "Runs a pinned local build script in CI; risk accepted by @security-team for this quarter.",
+      "owner": "secops@example.com",
+      "expiresAt": "2099-01-01T00:00:00Z",
+      "allow": ["EXEC"],
+      "require": ["manualApproval"],
+      "dangerousOverride": true
+    }
+  ]
+}
