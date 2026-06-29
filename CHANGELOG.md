@@ -10,6 +10,37 @@ onward. While pre-1.0, minor versions may include breaking changes.
 
 ## [Unreleased]
 
+## [0.6.0] — 2026-06-29 — Agent rules, approved-state drift gate (L4), and the `calllint-mcp` safety gate
+
+The distribution release. It carries the new4 Layer S–Phase 3 capability core
+(capability fingerprint + compact decision + surface extractors) onto the stable
+line and builds three layers on top of it, without weakening a single verdict
+(corpus floor unchanged: 0 dangerous false-SAFE, UNKNOWN 10.0%).
+
+### Added
+
+- **Agent distribution rules (Phase 3).** `calllint gen-rule --host <h>` emits a
+  token-frugal CallLint safety rule for Claude, Cursor, Copilot, Codex, Gemini,
+  Windsurf, Cline, and a generic `AGENTS.md` host, from a single source of truth.
+- **Approved state + drift gate (Phase 4, L4 — ADR 0024).** `calllint approve`
+  records the repo-wide capability surface as `.calllint/approved.json`
+  (`calllint.approved.v0`, keyed on the capability fingerprint — distinct from the
+  Evidence-layer baseline). `calllint verify --approved` diffs the current surface
+  against it; drift never collapses to SAFE. A path-filtered
+  `.github/workflows/calllint.yml` runs the gate (`verify --approved --ci`).
+- **`calllint-mcp` (Phase 5 — ADR 0025).** A new, separately published MCP server
+  exposing CallLint as a static preflight safety gate: tools `scan_mcp_config_path`,
+  `scan_mcp_config_json`, `verify_baseline`, `explain_finding`,
+  `generate_agent_rule`, `generate_ci_gate_snippet`. Thin wrapper — every tool
+  delegates to the engine; zero runtime dependencies; never executes a scanned
+  server. First published as `calllint-mcp@0.1.0`.
+
+### Notes
+
+- No `ScanReport` schema, exit-code, verdict, or detector change in this release —
+  SAFE is exactly as hard to reach as in 0.5.0. The additions are distribution and
+  workflow layers around the existing engine.
+
 ## [0.5.0] — 2026-06-29 — PR-gate trifecta + policy guide & override `owner`
 
 The decision-point release. Its core closes the pull-request gate end-to-end

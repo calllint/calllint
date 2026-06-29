@@ -2,7 +2,7 @@
   "$schema": "calllint.project-facts.v1",
   "description": "Single source of truth for CallLint public-facing facts. Website, README, agent-readable docs, and the public-copy guard all read from this file. Update here first, then run `pnpm check:public-copy`.",
   "package": "calllint",
-  "stableVersion": "0.5.0",
+  "stableVersion": "0.6.0",
   "releaseChannel": "stable",
   "defaultInstallCommand": "npx calllint scan .cursor/mcp.json",
   "nodeRequirement": ">=20",
