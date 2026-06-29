@@ -1,4 +1,7 @@
 import { describe, it, expect } from "vitest"
+import { readFileSync, readdirSync } from "node:fs"
+import { fileURLToPath } from "node:url"
+import { dirname, join } from "node:path"
 import {
   defaultPolicy,
   validatePolicy,
@@ -11,6 +14,9 @@ import type { Finding, Policy } from "@calllint/types"
 const FUTURE = "2999-01-01T00:00:00Z"
 const PAST = "2000-01-01T00:00:00Z"
 const NOW = Date.parse("2026-06-01T00:00:00Z")
+
+// packages/policy/test → up three → repo root → examples/policies
+const examplesDir = join(dirname(fileURLToPath(import.meta.url)), "..", "..", "..", "examples", "policies")
 
 function blocker(symbol: Finding["symbol"]): Finding {
   return {
@@ -67,6 +73,27 @@ describe("policy validation", () => {
     }
     expect(() => validatePolicy(p)).not.toThrow()
   })
+  it("accepts a valid owner (ADR 0017-B)", () => {
+    const p = {
+      ...defaultPolicy(),
+      overrides: [{ target: "x", reason: "r", expiresAt: FUTURE, owner: "@security-team" }],
+    }
+    expect(() => validatePolicy(p)).not.toThrow()
+  })
+  it("accepts an override with no owner (owner is optional)", () => {
+    const p = {
+      ...defaultPolicy(),
+      overrides: [{ target: "x", reason: "r", expiresAt: FUTURE }],
+    }
+    expect(() => validatePolicy(p)).not.toThrow()
+  })
+  it("rejects an empty-string owner", () => {
+    const p = {
+      ...defaultPolicy(),
+      overrides: [{ target: "x", reason: "r", expiresAt: FUTURE, owner: "  " }],
+    }
+    expect(() => validatePolicy(p)).toThrow(PolicyValidationError)
+  })
 })
 
 describe("applyPolicy", () => {
@@ -108,4 +135,37 @@ describe("applyPolicy", () => {
     expect(d.verdict).toBe("UNKNOWN")
     expect(d.changed).toBe(false)
   })
+
+  it("echoes the owner in the policy.applied note when present (ADR 0017-B)", () => {
+    const p: Policy = {
+      ...defaultPolicy(),
+      overrides: [
+        { target: "fs", reason: "local only", expiresAt: FUTURE, allow: ["FILES"], owner: "@sec" },
+      ],
+    }
+    const d = applyPolicy("BLOCK", "fs", [blocker("FILES")], p, NOW)
+    expect(d.verdict).toBe("REVIEW")
+    expect(d.note).toContain("owner: @sec")
+  })
+
+  it("omits the owner clause when no owner is set", () => {
+    const d = applyPolicy("BLOCK", "fs", [blocker("FILES")], policyWithOverride(["FILES"]), NOW)
+    expect(d.note).toMatch(/Policy decision/)
+    expect(d.note).not.toContain("owner:")
+  })
+})
+
+describe("shipped example policies (policy.md, S5)", () => {
+  const files = readdirSync(examplesDir).filter((f) => f.endsWith(".json"))
+
+  it("there is at least one example policy", () => {
+    expect(files.length).toBeGreaterThan(0)
+  })
+
+  for (const file of files) {
+    it(`examples/policies/${file} is valid calllint.policy.v0`, () => {
+      const parsed = JSON.parse(readFileSync(join(examplesDir, file), "utf8"))
+      expect(() => validatePolicy(parsed)).not.toThrow()
+    })
+  }
 })

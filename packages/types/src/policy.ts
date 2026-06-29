@@ -33,6 +33,12 @@ export interface PolicyOverride {
   expiresAt: string
   /** Human reason; required. Overrides without a reason are invalid. */
   reason: string
+  /**
+   * Accountable identity for this exception (handle, team, or email). Optional;
+   * when present it must be a non-empty string. CallLint records and echoes it,
+   * it does not interpret or verify it. See ADR 0017 (option B).
+   */
+  owner?: string
   /** Risk symbols this override tolerates. */
   allow?: RiskSymbol[]
   /** Extra requirements imposed by the override. */
