@@ -24,7 +24,7 @@ export function readGolden(file: string): string {
 
 /**
  * The verdict contract. Changing any expected value here requires an ADR
- * (see docs/adr/0005-golden-fixtures.md). "parse-error" means the config is
+ * (golden-fixtures policy). "parse-error" means the config is
  * not valid JSON and scanning must report a parse error.
  */
 export interface GoldenCase {

@@ -8,8 +8,7 @@ body:
       value: |
         For help wiring CallLint into GitHub Actions, SARIF upload, Code
         Scanning, or a policy gate. See
-        [docs/integrations/github-actions.md](../blob/main/docs/integrations/github-actions.md)
-        and [examples/github-actions/](../blob/main/examples/github-actions/).
+        [examples/github-actions/](../blob/main/examples/github-actions/).
         **Redact secrets and private repo/org names** from any logs you paste.
   - type: dropdown
     id: surface

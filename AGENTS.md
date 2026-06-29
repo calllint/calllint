@@ -17,7 +17,7 @@ with evidence before an agent loads the tool server.
 - No LLM in the verdict path. An LLM may summarize evidence; it must not decide
   a verdict.
 - Never execute, install, or connect to a scanned MCP server.
-- Never add default-on telemetry (see `docs/adr/0009-optional-telemetry.md`).
+- Never add default-on telemetry (telemetry stays opt-in by ADR).
 - Never weaken a detector, golden fixture, or corpus expectation to make a test
   pass. Fix the parser/fixture, or write an ADR if a rule is genuinely wrong.
 - UNKNOWN is not SAFE, and never auto-upgrades to SAFE.
@@ -46,7 +46,7 @@ pnpm corpus:test:r2-final
 - Do not publish to npm, create git tags, or change dist-tags without explicit
   human approval.
 - Release candidates publish to the `next` dist-tag; previews to `preview`;
-  clean semver to `latest`. See `docs/STABLE_RELEASE_GATE.md`.
+  clean semver to `latest`.
 
 ## When editing website or docs copy
 
@@ -72,6 +72,6 @@ community-driven development. See `GOVERNANCE.md` and `CONTRIBUTING.md`.
   explicit human approval.
 - Do not accept or merge copied external code of unclear or incompatible
   provenance.
-- Preserve the Apache-2.0 license and the trademark/brand boundary docs
-  (`TRADEMARKS.md`, `docs/BRAND_GUIDELINES.md`); do not claim a registered
+- Preserve the Apache-2.0 license and the trademark/brand boundary
+  (`TRADEMARKS.md`); do not claim a registered
   trademark unless a registration exists.

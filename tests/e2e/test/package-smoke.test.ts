@@ -30,8 +30,7 @@ function runBin(args: string[], input?: string): { stdout: string; code: number 
  * receive it — the bin entry resolves, the bundle is self-contained, and a real
  * scan works through it. This is the release-readiness gate. It runs the built
  * bundle (per ADR/the monorepo's esbuild strategy); a true `npm pack` of the
- * private workspace package is a separate, documented release step (see
- * docs/release-checklist.md).
+ * private workspace package is a separate, documented release step.
  */
 describe("package smoke (shipped artifact)", () => {
   beforeAll(() => {

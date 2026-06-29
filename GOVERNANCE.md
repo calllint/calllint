@@ -56,12 +56,10 @@ There is no CLA or DCO bot today, and none is required for the contributions we
 welcome (bug reports, docs corrections, calibration feedback). For non-trivial
 external code, corporate contributions, or changes to the core scanner, release,
 or security semantics, a maintainer may require a DCO `Signed-off-by` or a
-separate contributor agreement before merge. See
-[docs/CONTRIBUTION_BOUNDARY.md](docs/CONTRIBUTION_BOUNDARY.md).
+separate contributor agreement before merge.
 
 ## License and brand
 
 The code is licensed under Apache-2.0. The CallLint name and logo are not
-licensed by Apache-2.0 — see [TRADEMARKS.md](TRADEMARKS.md) and
-[docs/BRAND_GUIDELINES.md](docs/BRAND_GUIDELINES.md). This document is project
+licensed by Apache-2.0 — see [TRADEMARKS.md](TRADEMARKS.md). This document is project
 governance, not legal advice.

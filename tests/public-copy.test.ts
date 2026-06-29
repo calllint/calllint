@@ -6,7 +6,7 @@ import { fileURLToPath } from "node:url"
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const repoRoot = path.resolve(__dirname, "..")
 
-const factsPath = path.join(repoRoot, "docs", "project-facts.json")
+const factsPath = path.join(repoRoot, "project-facts.json")
 const facts = JSON.parse(fs.readFileSync(factsPath, "utf8")) as {
   corpus: { phase: string; calibratedCases: number; realOrRedactedSnapshots: number; unknownRatio: string }
   stableVersion: string

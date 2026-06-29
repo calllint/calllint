@@ -64,7 +64,7 @@ harder to reach.
   severity, file + config key-path, observed value, remediation, and verdict
   contribution — including real source line/column for config-mapped evidence.
   This is the geology under any future IDE/agent-host integration, which is why
-  it precedes any plugin. See [ADR 0013](docs/adr/0013-diagnostics-json.md)
+  it precedes any plugin. See ADR 0013
   (Accepted, implemented).
 - **R4 local-document prompt surface** — opt-in `calllint scan --surface-dir <dir>`
   reads a bounded, offline allowlist of project documents (`README.md`, `SKILL.md`,
@@ -75,7 +75,7 @@ harder to reach.
   named allowlist, no globbing/recursion/symlinks), offline, never executes. The
   `prompt.poisoning` / `prompt.hidden-instructions` scanners were extracted to one
   shared module so the config-metadata and document surfaces flag identically. See
-  [ADR 0015](docs/adr/0015-prompt-surface-local-documents.md).
+  ADR 0015.
 - **R4 prompt-surface v0** — new detector `prompt.hidden-instructions` (PROMPT, S2,
   REVIEW, non-blocker) flags hidden/obfuscated content in the model-visible surface
   (server instructions + provided tool name/description/schema text): zero-width and
@@ -83,13 +83,13 @@ harder to reach.
   tag-character ASCII smuggling, and embedded HTML/XML comments. Complements the
   existing `prompt.poisoning` literal-phrase blocker by catching its evasion. Static
   shape detection only — never a prompt-injection claim.
-  See [ADR 0014](docs/adr/0014-prompt-surface-hidden-instructions.md).
+  See ADR 0014.
 - **`exec.unverified-local-source`** (EXEC, S2, REVIEW, non-blocker) — flags a
   runtime that executes a local script/binary CallLint never inspects (`node
   ./server.js`, `uv run python -m …`, an unrecognized local binary) and that is
   neither a recognized package, a docker image, nor a remote. SAFE is now reachable
   only for recognized, inspectable sources. See
-  [ADR 0011](docs/adr/0011-unrecognized-local-command-calibration.md) (Accepted,
+  ADR 0011 (Accepted,
   Direction 2).
 
 ### Changed
@@ -99,7 +99,7 @@ harder to reach.
   broad-path check on it (never the container `dst`, never a named volume). A config
   that binds a broad host directory into a container now emits `files.broad-path` →
   BLOCK. Same finding id; no schema change. See
-  [ADR 0012](docs/adr/0012-docker-mount-host-paths-not-inspected.md) (Accepted).
+  ADR 0012 (Accepted).
 - **Corpus re-verdicts (deliberate, ADR-gated):** `C023` docker bind-mount
   SAFE → BLOCK (ADR 0012); `C035` bare-node and `C040` local-uv-python SAFE → REVIEW
   (ADR 0011 Direction 2). Each case's contract, notes, and `index.json` updated;
@@ -119,7 +119,7 @@ harder to reach.
   passed inline via `-e` with no `env` block is not flagged. A non-blocker
   (REVIEW-class) under-call, the secrets-detector analogue of ADR 0012; anchored by
   corpus case C049. See
-  [ADR 0016](docs/adr/0016-docker-env-args-not-extracted-for-secrets.md).
+  ADR 0016.
 
 
 ## [0.3.0] — First stable release
@@ -137,14 +137,14 @@ is a static, offline, heuristic pre-flight scanner; see `SECURITY.md` /
 - Promoted to the `latest` dist-tag and corrected the known dist-tag drift:
   `latest` now points at `0.3.0` (it had pointed at `0.3.0-preview.0`, published
   before the release workflow derived dist-tags from the version). See
-  [RELEASE_VERIFICATION.md](docs/RELEASE_VERIFICATION.md) §1.
+  RELEASE_VERIFICATION.md §1.
 - Documented install path moves from `npx calllint@preview` to `npx calllint`
   (the `latest` tag now serves stable).
 
 ### Included since the preview line (no behaviour change at promotion)
 - **RC-BLK-01 fix** (shipped in `0.3.0-rc.1`): unrecognized or empty MCP server
   shapes resolve to `UNKNOWN`, never a dangerous false-`SAFE`
-  ([ADR 0010](docs/adr/0010-unknown-runtime-fails-to-unknown.md); golden +
+  (ADR 0010; golden +
   corpus `C031`).
 - R2.1 corpus (31 cases, 21 real/redacted), SARIF dogfood, website V3, Trusted
   Publishing with provenance.
@@ -167,7 +167,7 @@ public repositories. Published to the **`next`** dist-tag (`npx calllint@next`);
   but contains **zero servers** (empty `mcpServers`, or a wrong-schema file) now
   aggregates to `UNKNOWN` rather than `SAFE` (`packages/core/src/scanConfig.ts`) —
   "nothing was examined" must not read as "no blockers observed". See
-  [ADR 0010](docs/adr/0010-unknown-runtime-fails-to-unknown.md).
+  ADR 0010.
 
 ### Added
 - Regression coverage for RC-BLK-01: golden fixture
@@ -299,7 +299,7 @@ corrected at the first stable release.
   is advisory and code-enforced never to lower a verdict
   (ADR 0006).
 - Windows path/shell regression coverage.
-- `LIMITATIONS.md` (trust boundaries) and `docs/release-checklist.md`.
+- `LIMITATIONS.md` (trust boundaries) and the release checklist.
 
 ### Changed
 - Split name-inferred financial risk (`action.financial`, INFERRED → REVIEW)
