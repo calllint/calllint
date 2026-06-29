@@ -16,6 +16,7 @@
     "typecheck": "tsc -p tsconfig.json",
     "smoke": "pnpm build && vitest run tests/e2e/test/package-smoke.test.ts",
     "pack:smoke": "node scripts/package-smoke.mjs",
+    "pack:smoke:mcp": "node scripts/mcp-pack-smoke.mjs",
     "corpus:test": "node scripts/run-corpus.mjs",
     "corpus:test:verbose": "node scripts/run-corpus.mjs --verbose",
     "corpus:test:case": "node scripts/run-corpus.mjs --case",
