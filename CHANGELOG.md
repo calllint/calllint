@@ -10,6 +10,17 @@ onward. While pre-1.0, minor versions may include breaking changes.
 
 ## [Unreleased]
 
+## [0.5.0] — 2026-06-29 — PR-gate trifecta + policy guide & override `owner`
+
+The decision-point release. Its core closes the pull-request gate end-to-end
+without touching the engine: a `--markdown` renderer, a `scan --changed` git-diff
+entry point, and a thin `calllint/calllint@v1` GitHub Action compose the existing
+CLI into a PR check. It also ships a policy authoring guide and one additive,
+ADR-backed policy-schema field (`owner` on `PolicyOverride`). No `ScanReport`
+schema, exit-code, verdict, or detector change — SAFE is exactly as hard to reach
+as in `0.4.0`; the only schema movement is the additive `calllint.policy.v0`
+`owner` field, which leaves the set of verdicts an override can produce unchanged.
+
 ### Added
 - **Policy guide (`policy.md`)** + ready-to-copy examples in `examples/policies/`
   (`ci-block-only`, `ci-strict`, `override-timeboxed`), with a validation test
@@ -21,17 +32,6 @@ onward. While pre-1.0, minor versions may include breaking changes.
   the `policy.applied` diagnostic, never interpreted. Additive, non-breaking
   (ADR 0017-B, `adrs/0017-override-owner-accountability.md`). Schema-additive
   MINOR; the set of verdicts an override can produce is unchanged.
-
-## [0.5.0] — PR-gate trifecta: `--markdown`, `scan --changed`, GitHub Action
-
-The decision-point release: it closes the pull-request gate end-to-end without
-touching the engine. A `--markdown` renderer, a `scan --changed` git-diff entry
-point, and a thin `calllint/calllint@v1` GitHub Action compose the existing CLI
-into a PR check. No `ScanReport` schema, exit-code, verdict, or detector change —
-SAFE is exactly as hard to reach as in `0.4.0`. These are new surfaces over the
-same engine, hence a MINOR bump with no ADR.
-
-### Added
 - **`calllint scan --markdown`** — a deterministic, emoji-free Markdown renderer
   for the `ScanReport` (verdict, per-server findings with evidence/impact/fix,
   exit-code legend), derived from the same `calllint.report.v0` the other
