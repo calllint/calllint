@@ -57,3 +57,6 @@ jobs:
 
       - name: Pack + isolated install smoke
         run: pnpm pack:smoke
+
+      - name: Pack + stdio smoke (calllint-mcp)
+        run: pnpm pack:smoke:mcp

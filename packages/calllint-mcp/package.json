@@ -1,0 +1,56 @@
+{
+  "name": "calllint-mcp",
+  "version": "0.5.0",
+  "description": "MCP server for CallLint — a static preflight safety gate for MCP servers and agent tools. Use before installing or approving other MCP servers. Never executes the server it judges.",
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "mcp-server",
+    "security",
+    "agent",
+    "ai",
+    "static-analysis",
+    "supply-chain"
+  ],
+  "license": "Apache-2.0",
+  "author": "saintL",
+  "homepage": "https://calllint.com",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/calllint/calllint.git",
+    "directory": "packages/calllint-mcp"
+  },
+  "bugs": {
+    "url": "https://github.com/calllint/calllint/issues"
+  },
+  "type": "module",
+  "bin": {
+    "calllint-mcp": "dist/index.js"
+  },
+  "files": [
+    "dist",
+    "server.json",
+    "LICENSE",
+    "NOTICE"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "dev": "tsx src/index.ts",
+    "build": "node ./build.mjs",
+    "prepack": "node ./build.mjs",
+    "start": "node ./dist/index.js"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "@calllint/core": "workspace:*",
+    "@calllint/policy": "workspace:*",
+    "@calllint/report-renderer": "workspace:*",
+    "@calllint/types": "workspace:*",
+    "esbuild": "^0.21.5"
+  }
+}

@@ -123,3 +123,10 @@ export {
   type RuleHost,
   type RuleTarget,
 } from "./distribution/hostRules.js"
+export {
+  renderCiGate,
+  CI_GATE_MODES,
+  CI_GATE_PATHS,
+  type CiGateMode,
+  type CiGateOptions,
+} from "./distribution/ciGate.js"

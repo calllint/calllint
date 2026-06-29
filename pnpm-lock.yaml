@@ -48,6 +48,26 @@ importers:
         specifier: ^0.21.5
         version: 0.21.5
 
+  apps/web: {}
+
+  packages/calllint-mcp:
+    devDependencies:
+      '@calllint/core':
+        specifier: workspace:*
+        version: link:../core
+      '@calllint/policy':
+        specifier: workspace:*
+        version: link:../policy
+      '@calllint/report-renderer':
+        specifier: workspace:*
+        version: link:../report-renderer
+      '@calllint/types':
+        specifier: workspace:*
+        version: link:../types
+      esbuild:
+        specifier: ^0.21.5
+        version: 0.21.5
+
   packages/config-parser:
     dependencies:
       '@calllint/types':
