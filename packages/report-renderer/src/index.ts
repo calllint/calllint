@@ -10,6 +10,11 @@ export {
 export { renderJson } from "./renderJson.js"
 export { renderTerminal } from "./renderTerminal.js"
 export { renderCompact } from "./renderCompact.js"
+export {
+  renderDecision,
+  renderDecisionTable,
+  reasonCodeLabel,
+} from "./renderDecision.js"
 export { renderExplain } from "./renderExplain.js"
 export { renderDrift, renderDriftJson } from "./renderDrift.js"
 export { renderSarif } from "./renderSarif.js"

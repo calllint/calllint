@@ -11,6 +11,9 @@ import { detectExternalMutation } from "./detectors/externalMutation.js"
 import { detectFinancialAction } from "./detectors/financialAction.js"
 import { detectUnverifiedLocalSource } from "./detectors/unverifiedLocalSource.js"
 import { detectHiddenInstructions } from "./detectors/hiddenInstructions.js"
+import { detectMessagingSend } from "./detectors/messagingSend.js"
+import { detectOauthScope } from "./detectors/oauthScope.js"
+import { detectGatewayRuntime } from "./detectors/gatewayRuntime.js"
 
 export type Detector = (ctx: DetectorContext) => Finding[]
 
@@ -26,6 +29,9 @@ export const DETECTORS: Detector[] = [
   detectFinancialAction,
   detectUnverifiedLocalSource,
   detectHiddenInstructions,
+  detectMessagingSend,
+  detectOauthScope,
+  detectGatewayRuntime,
 ]
 
 /** Run every detector against one server and return all findings. */

@@ -14,6 +14,9 @@ export { detectExternalMutation } from "./detectors/externalMutation.js"
 export { detectFinancialAction } from "./detectors/financialAction.js"
 export { detectUnverifiedLocalSource } from "./detectors/unverifiedLocalSource.js"
 export { detectHiddenInstructions } from "./detectors/hiddenInstructions.js"
+export { detectMessagingSend } from "./detectors/messagingSend.js"
+export { detectOauthScope } from "./detectors/oauthScope.js"
+export { detectGatewayRuntime } from "./detectors/gatewayRuntime.js"
 export { analyzeDocumentSurfaces } from "./documentSurface.js"
 export {
   POISON_PATTERNS,

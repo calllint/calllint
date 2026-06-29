@@ -4,14 +4,25 @@ USAGE
   calllint <command> [options]
 
 COMMANDS
-  scan [target]      Scan an MCP config file, or npm:<pkg> / github:<owner/repo>
+  check [target]     Compact safety decision for an MCP config or install snippet
+  scan-all           Scan every agent-tool surface in the repo (compact table)
+  explain <server>   Explain the verdict for one server from the last scan
+  verify [target]    Compare a fresh scan against the baseline (drift / rug-pull)
+
+  Advanced:
+  scan [target]      Full ScanReport for an MCP config / npm:<pkg> / github:<repo>
   diagnostics [target]  Emit editor/agent-host diagnostics JSON (calllint.diagnostics.v0)
   baseline [target]  Record the approved risk surface as a baseline
-  verify [target]    Compare a fresh scan against the baseline (drift / rug-pull)
-  explain <server>   Explain the verdict for one server from the last scan
+  gen-rule --host <h>   Emit the CallLint agent-safety rule for a host (CLAUDE.md, etc.)
   policy init        Write a default calllint.policy.json
   policy explain     Show the effective policy
   help               Show this help
+
+CHECK OPTIONS
+  --stdin            Read a config JSON or install snippet from stdin
+  --json             Emit the compact decision JSON (calllint.decision.v0, <1 KB)
+  --explain          Show the full evidence-backed report instead of the compact view
+  --no-emoji         Plain-text symbols (good for CI logs)
 
 TARGETS
   <path>             A config file (default: detect common locations)
@@ -37,14 +48,12 @@ VERIFY OPTIONS
   --json             Emit the drift report JSON
 
 EXAMPLES
-  calllint scan .cursor/mcp.json
-  calllint scan --changed --markdown
-  cat .cursor/mcp.json | calllint scan --stdin --json
-  calllint scan ./mcp.json --ci --no-emoji
-  calllint diagnostics ./mcp.json --json
-  calllint scan npm:mcp-weather@1.0.0
-  calllint scan github:owner/repo --online
-  calllint baseline ./mcp.json
+  calllint check .cursor/mcp.json
+  calllint check npm:mcp-weather@1.0.0
+  echo "npx -y demo-mcp@1.2.3" | calllint check --stdin
+  calllint scan-all --no-emoji
+  calllint check ./mcp.json --json
+  calllint scan .cursor/mcp.json --markdown
   calllint verify ./mcp.json --ci
   calllint explain filesystem
 `
