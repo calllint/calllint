@@ -53,7 +53,7 @@ Only **stable safety fields** are compared — never human-readable report text:
 `real-public-snapshot` + 1 `redacted-real-snapshot`, every real case carrying
 `origin` metadata (url, commit, license). The R2.1 thresholds (≥ 30 cases, ≥ 20
 real/redacted, UNKNOWN ≤ 15%, dangerous false-SAFE = 0) are enforced by
-`pnpm corpus:test:r2-final` — see [docs/CORPUS.md](../../../docs/CORPUS.md).
+`pnpm corpus:test:r2-final`.
 
 ## Running
 

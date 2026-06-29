@@ -5,8 +5,7 @@ Thank you for your interest in CallLint.
 CallLint is open source for transparency, auditability, and trust — so users can
 audit it, agents can reference it, and developers can adopt it. The project is
 **maintainer-led**: the roadmap and the official implementation are decided by
-the maintainers, not by community vote. See [GOVERNANCE.md](GOVERNANCE.md) and
-[docs/CONTRIBUTION_BOUNDARY.md](docs/CONTRIBUTION_BOUNDARY.md) for the why.
+the maintainers, not by community vote. See [GOVERNANCE.md](GOVERNANCE.md) for the why.
 
 ## What we welcome
 
@@ -66,5 +65,5 @@ integration. High-quality reports often become corpus cases.
   kind drive the verdict, so preserve them. If redaction would change the
   verdict, the config is not safe to submit — pick another.
 
-See [docs/CORPUS_CURATION.md](docs/CORPUS_CURATION.md) for the full honesty and
+See the corpus README (`packages/fixtures/corpus/README.md`) for the full honesty and
 provenance rules that govern how submitted configs enter the corpus.

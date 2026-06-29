@@ -30,7 +30,7 @@ A real scan confirms the mechanism, against the temptation to invent a tidy reas
 So the SAFE is the docker-`-e` extraction gap, **not** "the name isn't
 credential-shaped" (it is). This is a **non-blocker (REVIEW-class) under-call**, not
 a dangerous false-SAFE — recorded in
-[ADR 0016](../../../../../docs/adr/0016-docker-env-args-not-extracted-for-secrets.md)
+ADR 0016
 (Proposed/deferred), the secrets-detector analogue of the ADR 0012 host-path fix.
 `thisCaseMustNeverBeSafe` stays **false**: the source is observable and the missed
 signal is non-blocking. If ADR 0016 is accepted, this case flips SAFE → REVIEW and is

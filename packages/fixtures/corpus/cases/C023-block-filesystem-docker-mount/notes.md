@@ -2,7 +2,7 @@
 
 **Provenance:** `real-public-snapshot` from [modelcontextprotocol/servers](https://github.com/modelcontextprotocol/servers) @ `7b1170d1da1e` (src/filesystem/README.md (Docker)), license Apache-2.0 / MIT (transition); docs CC-BY-4.0. Retrieved 2026-06-17T00:00:00.000Z.
 
-**Why this case exists:** Real documented Docker variant whose `--mount type=bind,src=/Users/username/Desktop` grants the container the host's `~/Desktop`. It was the anchor for [ADR 0012](../../../../../docs/adr/0012-docker-mount-host-paths-not-inspected.md): a broad host grant hidden inside a compound docker arg that the broad-path detector originally read as a whole string and missed (SAFE, a documented false negative).
+**Why this case exists:** Real documented Docker variant whose `--mount type=bind,src=/Users/username/Desktop` grants the container the host's `~/Desktop`. It was the anchor for ADR 0012: a broad host grant hidden inside a compound docker arg that the broad-path detector originally read as a whole string and missed (SAFE, a documented false negative).
 
 **Why this verdict (BLOCK, max S2):** ADR 0012 is now Accepted and implemented. The broad-path detector extracts the host side of docker bind mounts (`--mount type=bind,src=` and `-v|--volume host:container`) and runs the same broad-path check on it. The host source `/Users/username/Desktop` matches the `/Users/<name>` broad root, so `files.broad-path` fires as a critical blocker → BLOCK. The container-internal destination (`/projects`, `/projects/Desktop`) is never checked, and a named volume would not be flagged.
 

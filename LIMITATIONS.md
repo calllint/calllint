@@ -27,7 +27,7 @@ safety. Read this before relying on it for a security decision.
 - **It does not fetch anything unless you pass `--online`**, and even then it
   only reads public registry/repo metadata — it never executes fetched code.
   Online findings are advisory and can only add risk, never lower a verdict
-  ([ADR 0006](docs/adr/0006-online-enrichment-advisory.md)).
+  (ADR 0006).
 - **It does not analyze server source code.** It reasons about the config, the
   resolved runtime binding, and the model-visible tool metadata you provide —
   not the implementation behind the tool.

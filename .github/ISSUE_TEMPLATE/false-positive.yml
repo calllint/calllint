@@ -9,8 +9,7 @@ body:
         Thanks for helping calibrate CallLint. **Redact first:** remove secret
         values, private filesystem paths, internal URLs, and customer or
         employee names before pasting. Keep the *shape* that drives the verdict
-        (key names, command form, transport kind) — see
-        [docs/CORPUS_CURATION.md](../blob/main/docs/CORPUS_CURATION.md).
+        (key names, command form, transport kind).
         For security-sensitive reports, email security@calllint.com instead.
   - type: textarea
     id: config

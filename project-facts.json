@@ -1,0 +1,60 @@
+{
+  "$schema": "calllint.project-facts.v1",
+  "description": "Single source of truth for CallLint public-facing facts. Website, README, agent-readable docs, and the public-copy guard all read from this file. Update here first, then run `pnpm check:public-copy`.",
+  "package": "calllint",
+  "stableVersion": "0.5.0",
+  "releaseChannel": "stable",
+  "defaultInstallCommand": "npx calllint scan .cursor/mcp.json",
+  "nodeRequirement": ">=20",
+  "headlines": {
+    "eyebrow": "Pre-flight risk linting for agent tools",
+    "headline": "Before your agent acts, check the blast radius.",
+    "subheadline": "CallLint statically scans MCP and agent-tool configs before they run, showing what each tool can read, write, execute, connect to, send, or mutate — with evidence-backed SAFE / REVIEW / BLOCK / UNKNOWN verdicts.",
+    "trustLine": "Offline by default. Deterministic. Never executes the server it judges. SAFE means no blockers observed, not guaranteed safe.",
+    "oneLiner": "Pre-flight risk linting for MCP and agent tools — know the blast radius before your agent runs them."
+  },
+  "corpus": {
+    "phase": "R2.2",
+    "status": "in progress",
+    "calibratedCases": 60,
+    "realOrRedactedSnapshots": 38,
+    "dangerousFalseSafe": 0,
+    "unknownRatio": "10.0%",
+    "unknownRatioTarget": "<=15%",
+    "releaseGate": true,
+    "fullEcosystemClaim": false
+  },
+  "claims": {
+    "offlineByDefault": true,
+    "deterministic": true,
+    "executesTargetServer": false,
+    "readsSecretValues": false,
+    "llmInVerdictPath": false,
+    "onlineEnrichmentCanDowngradeVerdict": false,
+    "unknownUpgradesToSafe": false
+  },
+  "verdictLabels": {
+    "SAFE": "No blockers observed",
+    "REVIEW": "Human judgment required",
+    "BLOCK": "Dangerous surface",
+    "UNKNOWN": "Cannot verify statically"
+  },
+  "forbiddenPhrases": [
+    "100% safe",
+    "guaranteed safe",
+    "certified safe",
+    "proves a server is safe",
+    "proves safety",
+    "complete MCP protection",
+    "secure all agent tools",
+    "AI-powered security scanner",
+    "complete MCP security solution"
+  ],
+  "requiredPhrases": [
+    "No blockers observed",
+    "Not a proof of runtime safety",
+    "Never executes the server it judges",
+    "UNKNOWN is never SAFE",
+    "Heuristic decision support"
+  ]
+}

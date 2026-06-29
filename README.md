@@ -191,8 +191,7 @@ resolves to SAFE" policy. The corpus is enforced as a release gate:
 
 The corpus is a regression and calibration gate, not a claim of full MCP
 ecosystem coverage. See
-[`docs/CORPUS.md`](docs/CORPUS.md) and
-[`docs/project-facts.json`](docs/project-facts.json) (the single source of
+[`project-facts.json`](project-facts.json) (the single source of
 truth for these numbers). Website and README copy is kept in sync by
 `pnpm check:public-copy`.
 
@@ -269,5 +268,4 @@ package [`calllint`](https://www.npmjs.com/package/calllint). It is maintainer-l
 ## License
 
 Apache-2.0 — see [LICENSE](LICENSE) and [NOTICE](NOTICE). The CallLint name and
-logo are not licensed with the code; see [TRADEMARKS.md](TRADEMARKS.md) and
-[docs/BRAND_GUIDELINES.md](docs/BRAND_GUIDELINES.md).
+logo are not licensed with the code; see [TRADEMARKS.md](TRADEMARKS.md).

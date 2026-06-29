@@ -21,8 +21,7 @@ understood the *least* must not receive the *safest* verdict. The corpus pins
 
 ## Provenance
 Minimised from a real committed `.cursor/mcp.json` in a public GitHub repo,
-observed during the 0.3.0-rc.0 feedback window (RC-B04 in
-`docs/RC_FEEDBACK_LOG.md`). The host was masked to an example domain; the original
+observed during the 0.3.0-rc.0 feedback window (RC-B04). The host was masked to an example domain; the original
 carried no secrets.
 
 ## Note on REVIEW/BLOCK contract requirements

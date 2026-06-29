@@ -7,8 +7,7 @@ body:
     attributes:
       value: |
         Real and redacted configs make CallLint's calibration corpus credible.
-        **Provenance and redaction are mandatory** — see
-        [docs/CORPUS_CURATION.md](../blob/main/docs/CORPUS_CURATION.md). Never
+        **Provenance and redaction are mandatory.** Never
         submit secret values, private paths, internal hosts, or names. Redaction
         must not change the verdict-relevant shape.
   - type: textarea

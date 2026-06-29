@@ -3,7 +3,7 @@
  * CallLint public-copy guard.
  *
  * Asserts that public-facing copy (website, README, agent-readable docs) stays
- * in sync with docs/project-facts.json and within the safety boundary set by
+ * in sync with project-facts.json and within the safety boundary set by
  * LIMITATIONS.md / AGENTS.md. Run via `pnpm check:public-copy`.
  *
  * Checks:
@@ -12,7 +12,7 @@
  *   2. No forbidden overclaim phrases appear anywhere in public copy.
  *   3. Each required safety phrase appears at least once across public copy.
  *   4. SAFE verdict copy appears near "No blockers observed".
- *   5. Corpus numbers in the website match docs/project-facts.json.
+ *   5. Corpus numbers in the website match project-facts.json.
  *   6. The website corpus section reflects the current corpus phase.
  *   7. No stale `npx calllint@preview|@next scan` commands in public copy.
  *   8. No stale status phrases ("public preview", "release candidate",
@@ -21,16 +21,12 @@
  *      radius" is present.
  *  10. The homepage corpus section states "dangerous false-SAFE = 0".
  *  11. Agent-readable status files (llms.txt, llms-full.txt) state the
- *      current stable version from docs/project-facts.json, not a stale one.
+ *      current stable version from project-facts.json, not a stale one.
  *  12. README must not pin a hardcoded version line (e.g. "stable 0.3.x
  *      line") as the current stable release — use version-agnostic wording
  *      so it does not drift on every release.
  *  13. Homepage provenance copy must not imply the current release is a
  *      preview ("SLSA attestation on the preview" is stale wording).
- *  14. Internal status docs (ROADMAP, PROJECT_STATUS, PROJECT_HEALTH) must
- *      carry the current stable version at their "current position" marker,
- *      so they cannot silently fall a release behind project-facts.json.
- *      Historical version mentions elsewhere in those files are fine.
  *
  * Exit codes:
  *   0  all checks pass
@@ -44,7 +40,7 @@ import { fileURLToPath } from "node:url"
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const repoRoot = path.resolve(__dirname, "..")
 
-const factsPath = path.join(repoRoot, "docs", "project-facts.json")
+const factsPath = path.join(repoRoot, "project-facts.json")
 const publicFiles = [
   "apps/web/public/index.html",
   "apps/web/public/agents.html",
@@ -210,7 +206,7 @@ console.log("")
 // 11. Agent-readable status files state the current stable version.
 {
   const sv = facts.stableVersion
-  if (!sv) fail("docs/project-facts.json missing stableVersion; cannot verify version drift")
+  if (!sv) fail("project-facts.json missing stableVersion; cannot verify version drift")
   else {
     const statusFiles = files.filter((f) => f.rel === "apps/web/public/llms.txt" || f.rel === "apps/web/public/llms-full.txt")
     if (statusFiles.length === 0) ok("no llms status files to check (skipped)")
@@ -244,46 +240,6 @@ console.log("")
   if (!site) fail("apps/web/public/index.html not found; cannot verify provenance copy")
   else if (/SLSA attestation\s+on\s+the\s+preview/i.test(site.text)) fail('homepage provenance says "SLSA attestation on the preview" — stale wording implying current release is a preview')
   else ok('homepage provenance copy does not imply current release is a preview')
-}
-
-// 14. Internal status docs must carry the current stable version at their
-//     "current position" marker line. Each doc cites historical versions
-//     elsewhere (0.3.0, rc.1, …) which is legitimate; we only assert the
-//     marker line, identified by an anchor substring, names the current
-//     stable version. A missing/moved anchor fails — the marker cannot be
-//     silently lost. The version is matched with boundaries so it does not
-//     match inside a longer token (0.14.0, 10.4.0, 0.4.0-rc.1, 0.4.10).
-{
-  const sv = facts.stableVersion
-  if (!sv) {
-    fail("docs/project-facts.json missing stableVersion; cannot verify internal status docs")
-  } else {
-    const svEsc = sv.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
-    // Bare version not glued to another version segment or a pre-release tag.
-    const svBoundary = new RegExp(String.raw`(?<![\w.])${svEsc}(?![\w.\-])`)
-    // [docPath, human label, anchor substring that identifies the marker line]
-    const statusDocs = [
-      ["docs/ROADMAP.md", "ROADMAP", "← we are here"],
-      ["PROJECT_STATUS.md", "PROJECT_STATUS", "Current phase:"],
-      ["docs/PROJECT_HEALTH.md", "PROJECT_HEALTH", "Known state (as of"],
-    ]
-    for (const [rel, label, anchor] of statusDocs) {
-      const abs = path.join(repoRoot, rel)
-      if (!fs.existsSync(abs)) {
-        fail(`${label} not found at ${rel}; cannot verify version marker`)
-        continue
-      }
-      const text = fs.readFileSync(abs, "utf8")
-      const markerLine = text.split(/\r?\n/).find((ln) => ln.includes(anchor))
-      if (!markerLine) {
-        fail(`${label} marker "${anchor}" not found (anchor moved or removed — re-point it at the current release)`)
-      } else if (svBoundary.test(markerLine)) {
-        ok(`${label} marker states current stable ${sv}`)
-      } else {
-        fail(`${label} marker line does not state current stable ${sv} (version drift): "${markerLine.trim()}"`)
-      }
-    }
-  }
 }
 
 console.log("")

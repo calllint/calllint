@@ -41,8 +41,7 @@ const RISK_RANK = { S0: 0, S1: 1, S2: 2, S3: 3, S4: 4, S5: 5 }
 /**
  * Corpus acceptance thresholds (R2 ratchet). The seed corpus (R2.0) is synthetic
  * and small on purpose; --r2-final asserts the corpus has grown into a credible
- * calibration set before a release. See docs/CORPUS_CURATION.md and
- * docs/STABLE_RELEASE_GATE.md.
+ * calibration set before a release.
  *
  * These ratchet MONOTONICALLY UP as R2.2 adds real/redacted cases — they are a
  * floor that locks in coverage already achieved, never a ceiling, and never
@@ -369,7 +368,7 @@ function main() {
       for (const g of gateFailures) console.log(`  NOT MET: ${g}`)
       console.log(
         "\nR2.1 not yet satisfied — this is expected until curation is done.\n" +
-          "See docs/CORPUS_CURATION.md for how to add real/redacted cases.",
+          "See the corpus README (packages/fixtures/corpus/README.md) for how to add real/redacted cases.",
       )
       process.exitCode = 1
       return

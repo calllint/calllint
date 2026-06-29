@@ -35,13 +35,14 @@ CLAUDE.md
 scripts/install-githooks.mjs
 scripts/strip-ai-commit-attribution.mjs
 
-# internal planning notes — kept local, not published to the repo.
-# (Public trust docs under docs/ — ADRs, threat model, corpus, release docs —
-# are tracked intentionally; only these planning drafts stay local.)
+# internal planning notes & docs — kept local, not published to the repo.
+# The entire docs/ tree (ADRs, roadmap, threat model, plans, drafts) is now
+# local-only; project-facts.json was relocated to the repo root as it is
+# machine-read public metadata (corpus numbers, stable version, copy guard).
 000.md
 *next.md
-docs/new*.md
-docs/v0.2.1 Hardening.md
+docs/
+PROJECT_STATUS.md
 
 # local Playwright/MCP verification artifacts (not published)
 .playwright-mcp/

@@ -35,7 +35,7 @@ deliberate, fixture-backed REVIEW rather than a silent SAFE.
 ## Decision record
 The calibration question this case anchored (should an unrecognized-but-observable
 local executable be REVIEW instead of SAFE?) is recorded in
-[ADR 0011](../../../../../docs/adr/0011-unrecognized-local-command-calibration.md),
+ADR 0011,
 **Accepted — Direction 2** (2026-06-25). This case flipped SAFE → REVIEW as part
 of that acceptance, with positive (`review-unverified-local-source.json`) and
 negative (`safe-time.json`, a recognized pinned package) golden fixtures.
