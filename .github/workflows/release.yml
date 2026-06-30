@@ -1,15 +1,16 @@
-# Publishes the bundled CallLint packages when a GitHub Release is published:
-#   - apps/cli            → npm `calllint`     (tag must equal v<apps/cli version>)
-#   - packages/calllint-mcp → npm `calllint-mcp` (its own independent version)
+# Publishes the bundled CallLint CLI when a GitHub Release is published:
+#   - apps/cli → npm `calllint` (tag must equal v<apps/cli version>)
 # Uses npm Trusted Publishing (OIDC) — no long-lived NPM_TOKEN is stored. With
 # trusted publishing from GitHub Actions, npm generates build provenance
 # automatically.
 #
-# PREREQUISITE (one-time, manual, PER PACKAGE): on npmjs.com configure BOTH
-# `calllint` AND `calllint-mcp` as trusted publishers for this repo + workflow.
-# Until that is done for a package, its publish step fails by design — it never
-# falls back to a stored token. `calllint-mcp` is new in 0.6.0 and needs this
-# setup before its first publish can succeed.
+# `calllint-mcp` is published SEPARATELY by publish-mcp.yml (its own `mcp-v*`
+# tag line + the MCP Registry), so it is intentionally NOT handled here — one
+# package per workflow keeps the trigger, versioning, and idempotency clean.
+#
+# PREREQUISITE (one-time, manual): on npmjs.com configure `calllint` as a
+# trusted publisher for this repo + workflow. Until that is done, the publish
+# step fails by design — it never falls back to a stored token.
 #
 # This workflow NEVER executes a scanned MCP server; it only builds and publishes.
 name: release
@@ -97,33 +98,3 @@ jobs:
         if: steps.meta.outputs.already_published != 'true'
         working-directory: apps/cli
         run: npm publish --access public --provenance --tag "${{ steps.meta.outputs.dist_tag }}"
-
-      - name: Derive calllint-mcp dist-tag and idempotency
-        id: mcpmeta
-        working-directory: packages/calllint-mcp
-        run: |
-          # calllint-mcp carries its OWN independent version (not the Release
-          # tag). The Release tag pins apps/cli; calllint-mcp is published at
-          # whatever version is committed here. Its dist-tag is derived the same
-          # way, and the same immutability guard skips an already-present version
-          # so a Release that only bumps calllint can re-run without red-lining.
-          VERSION="$(node -p "require('./package.json').version")"
-          case "$VERSION" in
-            *-rc.*) DIST_TAG=next ;;
-            *-*)    DIST_TAG=preview ;;
-            *)      DIST_TAG=latest ;;
-          esac
-          echo "dist_tag=$DIST_TAG" >> "$GITHUB_OUTPUT"
-          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
-          if npm view "calllint-mcp@$VERSION" version --registry=https://registry.npmjs.org/ >/dev/null 2>&1; then
-            echo "already_published=true" >> "$GITHUB_OUTPUT"
-            echo "calllint-mcp@$VERSION is already on npm; the publish step will be skipped."
-          else
-            echo "already_published=false" >> "$GITHUB_OUTPUT"
-            echo "Publishing calllint-mcp@$VERSION to dist-tag '$DIST_TAG'."
-          fi
-
-      - name: Publish calllint-mcp to npm (trusted publishing + provenance)
-        if: steps.mcpmeta.outputs.already_published != 'true'
-        working-directory: packages/calllint-mcp
-        run: npm publish --access public --provenance --tag "${{ steps.mcpmeta.outputs.dist_tag }}"
