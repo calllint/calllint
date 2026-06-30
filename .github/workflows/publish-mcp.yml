@@ -1,0 +1,99 @@
+# Publishes `calllint-mcp` to BOTH npm and the official MCP Registry, triggered
+# by a dedicated tag `mcp-v<version>` (independent of the CLI's `v<version>`
+# release line, which release.yml owns).
+#
+# Auth is OIDC end-to-end — NO stored tokens:
+#   - npm:          Trusted Publishing (id-token) → provenance attestation
+#   - MCP Registry: `mcp-publisher login github-oidc` (no secret needed; the
+#                   io.github.calllint namespace is proven by the workflow's
+#                   own GitHub OIDC identity)
+#
+# Ownership: the npm package carries `mcpName` in package.json; the registry
+# fetches it to confirm calllint-mcp is owned by io.github.calllint/calllint.
+#
+# This workflow NEVER executes a scanned MCP server; it only builds and publishes.
+name: publish-mcp
+
+on:
+  push:
+    tags: ["mcp-v*"]
+
+permissions:
+  contents: read
+  id-token: write # OIDC for BOTH npm trusted publishing and the MCP Registry
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    environment: npm
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: pnpm/action-setup@v6
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          cache: pnpm
+          registry-url: https://registry.npmjs.org
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Gate (typecheck, build, mcp pack smoke)
+        run: |
+          pnpm typecheck
+          pnpm build
+          pnpm pack:smoke:mcp
+
+      - name: Verify tag matches version and derive dist-tag
+        id: meta
+        working-directory: packages/calllint-mcp
+        run: |
+          VERSION="$(node -p "require('./package.json').version")"
+          PKG_TAG="mcp-v$VERSION"
+          TAG="${GITHUB_REF_NAME}"
+          if [ "$PKG_TAG" != "$TAG" ]; then
+            echo "Release tag ($TAG) does not match calllint-mcp version ($PKG_TAG)." >&2
+            exit 1
+          fi
+          # server.json must agree with package.json on the version, and its
+          # package entry must point at the same version — otherwise the
+          # registry would advertise a version that is not the one published.
+          SRV_VERSION="$(node -p "require('./server.json').version")"
+          SRV_PKG_VERSION="$(node -p "require('./server.json').packages[0].version")"
+          if [ "$SRV_VERSION" != "$VERSION" ] || [ "$SRV_PKG_VERSION" != "$VERSION" ]; then
+            echo "server.json version ($SRV_VERSION / pkg $SRV_PKG_VERSION) != package.json ($VERSION)." >&2
+            exit 1
+          fi
+          case "$VERSION" in
+            *-rc.*) DIST_TAG=next ;;
+            *-*)    DIST_TAG=preview ;;
+            *)      DIST_TAG=latest ;;
+          esac
+          echo "dist_tag=$DIST_TAG" >> "$GITHUB_OUTPUT"
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          # Idempotency: npm versions are immutable. Skip the npm publish if this
+          # exact version is already live (e.g. re-running for a registry-only fix).
+          if npm view "calllint-mcp@$VERSION" version --registry=https://registry.npmjs.org/ >/dev/null 2>&1; then
+            echo "npm_already=true" >> "$GITHUB_OUTPUT"
+            echo "calllint-mcp@$VERSION already on npm; npm publish will be skipped."
+          else
+            echo "npm_already=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Publish calllint-mcp to npm (trusted publishing + provenance)
+        if: steps.meta.outputs.npm_already != 'true'
+        working-directory: packages/calllint-mcp
+        run: npm publish --access public --provenance --tag "${{ steps.meta.outputs.dist_tag }}"
+
+      - name: Install mcp-publisher
+        run: |
+          curl -L "https://github.com/modelcontextprotocol/registry/releases/latest/download/mcp-publisher_$(uname -s | tr '[:upper:]' '[:lower:]')_$(uname -m | sed 's/x86_64/amd64/;s/aarch64/arm64/').tar.gz" | tar xz mcp-publisher
+
+      - name: Authenticate to the MCP Registry (GitHub OIDC, no stored secret)
+        run: ./mcp-publisher login github-oidc
+
+      - name: Publish calllint-mcp to the MCP Registry
+        working-directory: packages/calllint-mcp
+        run: $GITHUB_WORKSPACE/mcp-publisher publish

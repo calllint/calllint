@@ -10,6 +10,17 @@ onward. While pre-1.0, minor versions may include breaking changes.
 
 ## [Unreleased]
 
+### Changed
+
+- **`calllint-mcp@0.1.1` — MCP Registry readiness.** Adds `mcpName`
+  (`io.github.calllint/calllint`) to the package so the official MCP Registry can
+  verify npm package ownership, and aligns `server.json` to the live registry
+  schema (`2025-12-11`, camelCase fields). Published via OIDC + provenance by a
+  new dedicated `publish-mcp.yml` workflow (triggered by a `mcp-v*` tag), which
+  also submits the entry to the MCP Registry using GitHub OIDC (no stored token).
+  `calllint-mcp` is no longer published by `release.yml` — one package per
+  workflow. No tool, verdict, or engine change.
+
 ## [0.6.0] — 2026-06-29 — Agent rules, approved-state drift gate (L4), and the `calllint-mcp` safety gate
 
 The distribution release. It carries the new4 Layer S–Phase 3 capability core
