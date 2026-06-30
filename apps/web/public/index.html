@@ -156,8 +156,8 @@
       <section class="band" id="use">
         <div class="band-inner">
           <div class="section-head">
-            <h2>Three places to run it</h2>
-            <p>Before you trust a tool, before you merge a config change, and after approval when packages drift.</p>
+            <h2>Four places to run it</h2>
+            <p>Before you trust a tool, before you merge a config change, after approval when packages drift — or let your agent run the check itself.</p>
           </div>
           <div class="scenario-grid">
             <article class="scenario">
@@ -178,6 +178,12 @@
               <p>Record an approved baseline and flag rug-pulls when a package or config changes later.</p>
 <pre><code>calllint baseline .cursor/mcp.json
 calllint verify .cursor/mcp.json --ci</code></pre>
+            </article>
+            <article class="scenario">
+              <span class="scenario-step">4</span>
+              <h3>From inside your agent</h3>
+              <p>Add <code>calllint-mcp</code> so the agent runs the preflight itself before approving another MCP server.</p>
+<pre><code>npx -y calllint-mcp</code></pre>
             </article>
           </div>
         </div>
@@ -360,6 +366,7 @@ jobs:
 npx calllint scan .cursor/mcp.json --ci --no-emoji
 npx calllint scan .cursor/mcp.json --html &gt; report.html</code></pre>
           <p class="install-note">Installs the latest stable <code>calllint</code> from npm (the <code>latest</code> tag). Requires Node.js ≥ 20.</p>
+          <p class="install-note">Want the agent to run the check itself? Add the <a href="https://www.npmjs.com/package/calllint-mcp"><code>calllint-mcp</code></a> server (<code>npx -y calllint-mcp</code>) so it can scan, verify, and explain before approving another MCP server.</p>
         </div>
       </section>
 
