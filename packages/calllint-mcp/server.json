@@ -1,16 +1,16 @@
 {
   "$schema": "https://static.modelcontextprotocol.io/schemas/2025-07-09/server.schema.json",
   "name": "io.github.calllint/calllint",
-  "description": "Static preflight safety gate for MCP servers and agent tools. Use BEFORE installing or approving other MCP servers — evidence-backed SAFE / REVIEW / BLOCK / UNKNOWN verdicts. Never executes the server it judges.",
+  "description": "Static preflight safety gate for MCP servers — scan configs before you run them. Never executes.",
   "version": "0.1.0",
   "repository": {
     "url": "https://github.com/calllint/calllint",
     "source": "github"
   },
-  "websiteUrl": "https://calllint.com",
+  "website_url": "https://calllint.com",
   "packages": [
     {
-      "registryType": "npm",
+      "registry_type": "npm",
       "identifier": "calllint-mcp",
       "version": "0.1.0",
       "transport": { "type": "stdio" }
