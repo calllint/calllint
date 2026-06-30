@@ -154,6 +154,31 @@ See CallLint running in CI on a deliberately risky config —
 [`calllint-demo-risky-mcp`](https://github.com/calllint/calllint-demo-risky-mcp)
 publishes one Code Scanning alert per finding on every push.
 
+## Run CallLint as an MCP server (`calllint-mcp`)
+
+CallLint also ships as its own MCP server, so an agent can run the preflight
+check itself — *before* it installs or approves another MCP server. It is a thin
+wrapper over the same engine: every tool delegates to `calllint`, it carries zero
+runtime dependencies, and it never executes the server it judges.
+
+```jsonc
+{
+  "mcpServers": {
+    "calllint": {
+      "command": "npx",
+      "args": ["-y", "calllint-mcp"]
+    }
+  }
+}
+```
+
+Tools exposed: `scan_mcp_config_path`, `scan_mcp_config_json`, `verify_baseline`,
+`explain_finding`, `generate_agent_rule`, `generate_ci_gate_snippet`. The server
+speaks stdio JSON-RPC and returns the same evidence-backed
+SAFE / REVIEW / BLOCK / UNKNOWN verdicts as the CLI. See
+[`packages/calllint-mcp`](packages/calllint-mcp) for details. Published on npm as
+[`calllint-mcp`](https://www.npmjs.com/package/calllint-mcp).
+
 ## Example report
 
 ```
@@ -262,8 +287,10 @@ release scope.
 CallLint is the official Apache-2.0 open-source project published at
 [calllint.com](https://calllint.com),
 [github.com/calllint/calllint](https://github.com/calllint/calllint), and npm
-package [`calllint`](https://www.npmjs.com/package/calllint). It is maintainer-led
-— see [GOVERNANCE.md](GOVERNANCE.md) and [CONTRIBUTING.md](CONTRIBUTING.md).
+packages [`calllint`](https://www.npmjs.com/package/calllint) (CLI) and
+[`calllint-mcp`](https://www.npmjs.com/package/calllint-mcp) (MCP server). It is
+maintainer-led — see [GOVERNANCE.md](GOVERNANCE.md) and
+[CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## License
 
