@@ -10,6 +10,18 @@ onward. While pre-1.0, minor versions may include breaking changes.
 
 ## [Unreleased]
 
+### Added
+
+- **`calllint scan --badge` — Trust badge (Phase 6, ADR 0026).** Emits a
+  shields.io *endpoint* JSON badge (`{schemaVersion, label:"CallLint", message,
+  color}`) for the aggregate verdict. Like `--sarif`/`--markdown`, it is a new
+  projection of the existing `calllint.report.v0` verdict — no `ScanReport`
+  schema change, no verdict decision of its own. An MCP author commits
+  `calllint-badge.json`, points a shields.io endpoint badge at it, and refreshes
+  it in CI. Transparency over false comfort: only `SAFE` is green; `REVIEW`,
+  `UNKNOWN`, and `BLOCK` each carry a distinct non-green colour (a `no-green-only`
+  test locks this). Author guide: [`badge.md`](badge.md).
+
 ### Changed
 
 - **`calllint-mcp@0.1.1` — MCP Registry readiness.** Adds `mcpName`

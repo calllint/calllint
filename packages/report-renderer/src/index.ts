@@ -20,5 +20,12 @@ export { renderDrift, renderDriftJson } from "./renderDrift.js"
 export { renderApprovedDrift, renderApprovedDriftJson } from "./renderApprovedDrift.js"
 export { renderSarif } from "./renderSarif.js"
 export { renderMarkdown } from "./renderMarkdown.js"
+export {
+  renderBadge,
+  badgeEndpoint,
+  BADGE_COLOR,
+  GREEN_BADGE_COLORS,
+  type BadgeEndpoint,
+} from "./renderBadge.js"
 export { renderDiagnostics } from "./renderDiagnostics.js"
 export { renderHtml } from "./renderHtml.js"

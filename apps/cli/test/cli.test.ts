@@ -80,6 +80,17 @@ describe("scan via stdin", () => {
     expect(/\p{Extended_Pictographic}/u.test(r.stdout)).toBe(false)
   })
 
+  it("--badge emits a shields.io endpoint JSON (never green for BLOCK)", () => {
+    const text = readFileSync(goldenPath("block-filesystem.json"), "utf8")
+    const r = run(["scan", "--stdin", "--badge"], deps(text))
+    expect(r.exitCode).toBe(EXIT.OK)
+    const badge = JSON.parse(r.stdout)
+    expect(badge.schemaVersion).toBe(1)
+    expect(badge.label).toBe("CallLint")
+    expect(badge.message).toBe("BLOCK")
+    expect(badge.color).toBe("red")
+  })
+
   it("malformed JSON exits with parse error", () => {
     const text = readFileSync(goldenPath("malformed.json"), "utf8")
     const r = run(["scan", "--stdin"], deps(text))
