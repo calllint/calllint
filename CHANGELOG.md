@@ -10,6 +10,29 @@ onward. While pre-1.0, minor versions may include breaking changes.
 
 ## [Unreleased]
 
+### Added
+
+- **Registry-metadata prompt surface under `--online` (ADR 0027).** With
+  `--online`, the npm registry's own model-visible text — the resolved version's
+  published `description`, and the registry document's `readme` when it already
+  carries one — is routed through the *existing* prompt-surface detectors
+  (`prompt.poisoning` / `prompt.hidden-instructions`) via the same
+  `analyzeDocumentSurfaces` path a local `README`/`SKILL.md` uses (ADR 0015). A
+  package whose local config is clean but whose published `description` hides a
+  model-directed or obfuscated instruction now surfaces the existing
+  `prompt.surface-instructions` finding (PROMPT, S2, REVIEW, non-blocker),
+  stamped `source:"online"` + `fetchedAt`, with the surface origin recorded in
+  evidence (`registry:<name>#description` / `#readme`). No new detector, reason
+  code, or `ScanReport` schema change — only the evidence's surface origin and
+  online provenance stamp are new. Per ADR 0006 this online-derived text is
+  advisory: it may raise a verdict to REVIEW and never downgrades one or
+  manufactures SAFE. **Offline default is unchanged** — with no `--online`,
+  nothing here runs and the deterministic verdict is byte-identical. The offline
+  60/38 corpus gate (never passes `--online`) is the standing proof of that
+  invariance; the online surface is covered by replay fixtures (a real benign
+  `description` ⇒ no finding; a real base with a clearly-labelled synthetic poison
+  payload ⇒ REVIEW) with no live network in CI. See ADR 0027.
+
 ## [0.8.0] — 2026-07-01 — Receipt-first trust layer (new5 R3)
 
 ### Added
