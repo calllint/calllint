@@ -1,9 +1,10 @@
 # Self-test for the root composite Action (action.yml). Exercises the real
 # wiring — install the published CLI, capture the verdict, and prove the gate
-# both passes (SAFE / report-only) and fails (BLOCK under gate). SARIF upload is
-# disabled here so the self-test never writes test alerts to the Security tab;
-# SARIF shape is covered by renderer unit tests and the calllint-demo-risky-mcp
-# dogfood repo.
+# both passes (SAFE / report-only) and fails (BLOCK under gate), and that the
+# opt-in receipt input emits + uploads a valid calllint.receipt.v0 without
+# touching the verdict. SARIF upload is disabled here so the self-test never
+# writes test alerts to the Security tab; SARIF shape is covered by renderer
+# unit tests and the calllint-demo-risky-mcp dogfood repo.
 name: action-selftest
 
 on:
@@ -80,3 +81,49 @@ jobs:
         run: |
           test "${{ steps.scan.outcome }}" = "failure" \
             || { echo "expected the gate to fail on BLOCK, outcome='${{ steps.scan.outcome }}'"; exit 1; }
+
+  receipt-artifact:
+    # receipt: true must emit a valid calllint.receipt.v0 as additional evidence
+    # without disturbing the verdict — the receipt is a reporting layer, never a
+    # gate. Uses the safe fixture with the gate off so the job's own success
+    # reflects the receipt path, not the verdict.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 20
+      - id: scan
+        uses: ./
+        with:
+          target: examples/github-actions/fixtures/safe.mcp.json
+          sarif: "false"
+          gate: "false"
+          receipt: "true"
+      - name: Assert the receipt was produced and is structurally valid
+        shell: bash
+        run: |
+          set -euo pipefail
+          file="${{ steps.scan.outputs.receipt-file }}"
+          test -n "$file" \
+            || { echo "receipt-file output was empty"; exit 1; }
+          test -f "$file" \
+            || { echo "expected receipt file '$file' to exist"; exit 1; }
+          # Structural validation goes through the same published CLI the Action
+          # installed — exit 0 on a valid calllint.receipt.v0.
+          calllint receipt verify "$file"
+          # The receipt records the scan verdict but never changes it.
+          test "${{ steps.scan.outputs.verdict }}" = "SAFE" \
+            || { echo "expected SAFE, got '${{ steps.scan.outputs.verdict }}'"; exit 1; }
+      - name: Assert the uploaded artifact is present
+        uses: actions/download-artifact@v4
+        with:
+          name: calllint-receipt
+          path: downloaded-receipt
+      - name: Assert the downloaded receipt is valid too
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -f downloaded-receipt/calllint-receipt.json \
+            || { echo "uploaded receipt artifact was not found after download"; exit 1; }
+          calllint receipt verify downloaded-receipt/calllint-receipt.json
