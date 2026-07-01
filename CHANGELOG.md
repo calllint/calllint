@@ -10,6 +10,25 @@ onward. While pre-1.0, minor versions may include breaking changes.
 
 ## [Unreleased]
 
+### Added
+
+- **Local receipts — `scan --receipt` + `receipt verify` (new5 R3, ADR 0028).**
+  A receipt (`calllint.receipt.v0`) is a small local JSON file that records the
+  outcome of a scan: which CallLint version produced which verdict, over which
+  input, under which policy/ruleset context, with per-finding references
+  (`rule_id`, `severity`, `evidence_path` — never an evidence value). It is a
+  pure *reporting layer* over the existing `calllint.report.v0` scan report:
+  `verdict`, `risk_counts`, and `finding_refs` are read straight from that
+  report — a receipt never re-scans, re-judges, executes a target, contacts the
+  network, or reads a secret value (the `trust_boundaries` block is type-locked
+  to encode this). `scan --receipt [--receipt-out <file>]` writes the receipt
+  *after* the normal scan (unchanged output and exit code; absent flag ⇒
+  byte-identical behavior); `receipt verify <file>` structurally validates it
+  offline (exit 0 valid / 1 invalid). Hashes reuse `@calllint/fingerprint`. The
+  receipt is unsigned — the `signature` field is reserved for a future release
+  and never populated. A receipt is not a proof of runtime safety and never
+  certifies a tool. Author guide: [`RECEIPTS.md`](RECEIPTS.md). See ADR 0028.
+
 ## [0.7.0] — 2026-07-01 — Trust badge (Phase 6) + docker inline secret keys
 
 ### Added

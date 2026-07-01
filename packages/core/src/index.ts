@@ -130,3 +130,12 @@ export {
   type CiGateMode,
   type CiGateOptions,
 } from "./distribution/ciGate.js"
+
+// new5 R3 — Receipt-first Trust Layer (reporting layer only — ADR 0028).
+export {
+  createReceipt,
+  verifyReceipt,
+  type CallLintReceipt,
+  type CreateReceiptInput,
+  type VerifyReceiptResult,
+} from "./receipt/index.js"
