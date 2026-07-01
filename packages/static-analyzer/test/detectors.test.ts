@@ -182,6 +182,56 @@ describe("secret env keys detector", () => {
   it("negative: no env does not trigger", () => {
     expect(detectSecretEnvKeys(ctxFor("safe-time.json"))).toHaveLength(0)
   })
+  it("positive: docker -e CREDENTIAL/API_KEY inline key triggers (ADR 0016)", () => {
+    const f = detectSecretEnvKeys(
+      dockerCtx(["run", "-i", "--rm", "-e", "BRAVE_API_KEY=abc", "mcp/brave"]),
+    )
+    expect(f).toHaveLength(1)
+    expect(f[0]!.symbol).toBe("SECRETS")
+    // key only, never the value
+    expect(f[0]!.evidence[0]!.value).toBe("BRAVE_API_KEY")
+    expect(f[0]!.evidence[0]!.key).toBe("args")
+  })
+  it("negative: docker -e non-secret var (DOCKER_CONTAINER, *_PATH) does not trigger", () => {
+    // C013 shape (DOCKER_CONTAINER) — no secret hint.
+    expect(
+      detectSecretEnvKeys(dockerCtx(["run", "-e", "DOCKER_CONTAINER=true", "mcp/x"])),
+    ).toHaveLength(0)
+  })
+  it("positive: docker -e CREDENTIALS-named path key triggers (C049 shape, ADR 0016)", () => {
+    // C049: GDRIVE_CREDENTIALS_PATH matches the CREDENTIAL hint by shape. The
+    // detector keys on name shape, not value; the maintainer pre-authorized this
+    // SAFE→REVIEW flip in the C049 provenance note.
+    const f = detectSecretEnvKeys(
+      dockerCtx([
+        "run",
+        "-i",
+        "--rm",
+        "-e",
+        "GDRIVE_CREDENTIALS_PATH=/gdrive-server/credentials.json",
+        "mcp/gdrive",
+      ]),
+    )
+    expect(f).toHaveLength(1)
+    expect(f[0]!.evidence[0]!.value).toBe("GDRIVE_CREDENTIALS_PATH")
+  })
+  it("dedupe: key in both env block and -e is reported once", () => {
+    const server = {
+      name: "gh",
+      sourceConfigPath: "<test>",
+      transport: "stdio" as const,
+      command: "docker",
+      args: ["run", "-e", "GITHUB_TOKEN", "mcp/github"],
+      envKeys: ["GITHUB_TOKEN"],
+      env: { GITHUB_TOKEN: "x" },
+      instructions: undefined,
+      providedTools: [],
+      raw: {},
+    }
+    const f = detectSecretEnvKeys({ server, binding: resolveRuntimeBinding(server) })
+    expect(f).toHaveLength(1)
+    expect(f[0]!.evidence).toHaveLength(1)
+  })
 })
 
 describe("financial action detector", () => {

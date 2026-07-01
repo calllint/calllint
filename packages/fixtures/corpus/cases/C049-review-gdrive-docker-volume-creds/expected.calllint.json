@@ -1,14 +1,15 @@
 {
   "schemaVersion": "calllint.corpus.expected.v1",
-  "expectedVerdict": "SAFE",
-  "expectedMaxRiskClass": "S1",
-  "allowExtraFindings": false,
-  "requiredFindingIds": [],
+  "expectedVerdict": "REVIEW",
+  "expectedMaxRiskClass": "S2",
+  "allowExtraFindings": true,
+  "requiredFindingIds": [
+    "secrets.env-key"
+  ],
   "forbiddenFindingIds": [
     "files.broad-path",
     "exec.dangerous-command",
     "exec.unverified-local-source",
-    "secrets.env-key",
     "prompt.poisoning",
     "prompt.hidden-instructions",
     "prompt.surface-instructions",
@@ -20,8 +21,8 @@
   ],
   "requirements": {
     "mustHaveEvidenceForEveryFinding": true,
-    "mustHaveFalsePositiveNoteForReviewOrBlock": false,
-    "mustHaveRemediationForReviewOrBlock": false
+    "mustHaveFalsePositiveNoteForReviewOrBlock": true,
+    "mustHaveRemediationForReviewOrBlock": true
   },
   "dangerousFalseSafePolicy": {
     "thisCaseMustNeverBeSafe": false

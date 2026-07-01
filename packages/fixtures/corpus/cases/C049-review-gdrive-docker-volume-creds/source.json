@@ -1,0 +1,30 @@
+{
+  "schemaVersion": "calllint.corpus.case.v1",
+  "caseId": "C049-review-gdrive-docker-volume-creds",
+  "title": "Google Drive MCP via docker named volume + inline -e env resolves REVIEW (ADR 0016 accepted)",
+  "curationStatus": "real-public-snapshot",
+  "riskTheme": ["env", "filesystem"],
+  "origin": {
+    "kind": "public-repository",
+    "description": "Public documentation config from modelcontextprotocol/servers-archived (src/gdrive/README.md, Docker variant). Verbatim except normalization to a valid JSON root. There is no env block; the credentials-path variable is passed inline via docker -e.",
+    "url": "https://github.com/modelcontextprotocol/servers-archived",
+    "commit": "9be4674d1ddf",
+    "license": "MIT",
+    "retrievedAt": "2026-06-25T00:00:00.000Z",
+    "redactions": []
+  },
+  "input": { "path": "input/mcp.json", "format": "mcp-json" },
+  "humanExpectation": {
+    "verdict": "REVIEW",
+    "rationale": "A pinned docker image (mcp/gdrive) with a NAMED VOLUME bind (mcp-gdrive:/gdrive-server) and one inline docker -e env (GDRIVE_CREDENTIALS_PATH=…). Two independent behaviours: (1) CORRECT true-negative — files.broad-path does NOT fire because the ADR 0012 docker host-path extractor treats 'mcp-gdrive' (no leading slash) as a named volume, not a host path. This remains the primary locked value of the case. (2) ADR 0016 (ACCEPTED) — secrets.env-key now DOES fire: the secret detector extracts docker -e KEY[=value] keys, and GDRIVE_CREDENTIALS_PATH matches the 'CREDENTIAL' hint. Verified by a real scan: the same key in an env block yields the same REVIEW. This is a non-blocker (REVIEW-class) sensitive-read signal, previously an under-call; the deliberate SAFE -> REVIEW flip is the intended effect of ADR 0016 (the secrets-detector analogue of the ADR 0012 fix). thisCaseMustNeverBeSafe stays false: the source is observable and the signal is non-blocking.",
+    "knownLimitations": [
+      "ADR 0016 (accepted): the credential shape is matched on the KEY name only (never the value); GDRIVE_CREDENTIALS_PATH points at a path, so the flag is a sensitive-read signal to confirm, not a leaked value. CallLint reads env-key SHAPE, not values, by design.",
+      "The named-volume true-negative (no files.broad-path on 'mcp-gdrive:') is the correct, locked behaviour and remains a primary value of this case."
+    ]
+  },
+  "executionPolicy": {
+    "executeTarget": false,
+    "allowNetwork": false,
+    "allowFilesystemMutation": false
+  }
+}

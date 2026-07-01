@@ -24,6 +24,17 @@ onward. While pre-1.0, minor versions may include breaking changes.
 
 ### Changed
 
+- **Docker inline `-e` secret keys are now inspected (ADR 0016).** The secret
+  detector reads the `env` block *and*, for a `docker` runtime, the env-var keys
+  passed inline via `-e KEY[=value]` / `--env KEY[=value]` (never a value;
+  `--env-file` is ignored). A credential-shaped var passed inline with no `env`
+  block — e.g. `-e GDRIVE_CREDENTIALS_PATH=…` — now emits `secrets.env-key`
+  (SECRETS, S2, REVIEW, non-blocker), the secrets-detector analogue of ADR 0012's
+  docker bind-mount host-path extraction. Same finding id; no schema change. Only
+  verdict delta: corpus `C049` docker inline-cred SAFE → REVIEW (deliberate,
+  safe-direction, pre-recorded in the case provenance). Keys are matched by shape,
+  so a non-credential inline var (`-e DOCKER_CONTAINER=true`) stays unflagged. See
+  ADR 0016.
 - **`calllint-mcp@0.1.1` — MCP Registry readiness.** Adds `mcpName`
   (`io.github.calllint/calllint`) to the package so the official MCP Registry can
   verify npm package ownership, and aligns `server.json` to the live registry
@@ -185,7 +196,8 @@ harder to reach.
   passed inline via `-e` with no `env` block is not flagged. A non-blocker
   (REVIEW-class) under-call, the secrets-detector analogue of ADR 0012; anchored by
   corpus case C049. See
-  ADR 0016.
+  ADR 0016. **(Resolved: implemented in `[Unreleased]` — the extractor now inspects
+  docker `-e`/`--env` keys; C049 flips SAFE → REVIEW accordingly.)**
 
 
 ## [0.3.0] — First stable release
