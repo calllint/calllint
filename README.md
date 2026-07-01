@@ -48,11 +48,11 @@ with evidence, what you would be granting **before** you grant it.
 
 ## What it checks
 
-CallLint runs ten static detectors over each server entry:
+CallLint runs thirteen static detectors over each server entry:
 
 | Detector | Risk symbol | What it flags |
 |---|---|---|
-| `secretEnvKeys` | 🔐 Secrets | Env keys whose names imply credentials (tokens, keys, passwords) |
+| `secretEnvKeys` | 🔐 Secrets | Env keys whose names imply credentials (tokens, keys, passwords), incl. docker inline `-e KEY` |
 | `broadFilesystemPath` | 📁 Files | Filesystem roots that grant broad read/write (`/`, `~`, home, drive roots), incl. docker bind-mount host paths |
 | `unknownRemote` | 🌐 Network | Remote/HTTP transports to unrecognized or unpinned hosts |
 | `promptPoisoning` | 🧠 Prompt | Model-directed instructions hidden in tool names, descriptions, or schemas |
@@ -60,6 +60,9 @@ CallLint runs ten static detectors over each server entry:
 | `dangerousCommand` | ⚙️ Exec | Shell-out / interpreter / package-runner commands (`bash -c`, `npx`, …) |
 | `unverifiedLocalSource` | ⚙️ Exec | Local script/binary that is not a recognized package, pinned image, or remote |
 | `externalMutation` | ✉️ Action | Tools that send or mutate external state (email, messages, posts) |
+| `messagingSend` | ✉️ Action | Tools that send messages/email on your behalf (Slack, Twilio, SMTP, …) |
+| `oauthScope` | ✉️ Action | OAuth scopes that are undeclared, broad, or expansive (`admin`, `*`, `repo`, …) |
+| `gatewayRuntime` | ✉️ Action | Long-running gateway runtimes that proxy many downstream tools under one auth |
 | `financialAction` | 💸 Money | Payment / transfer / irreversible financial actions |
 | `unpinnedPackage` | 🧩 Supply | Unpinned package specs (`@latest`, no version) — rug-pull surface |
 
