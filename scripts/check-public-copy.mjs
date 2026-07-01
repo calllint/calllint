@@ -27,6 +27,8 @@
  *      so it does not drift on every release.
  *  13. Homepage provenance copy must not imply the current release is a
  *      preview ("SLSA attestation on the preview" is stale wording).
+ *  14. README corpus numbers (calibrated cases, real/redacted snapshots,
+ *      dangerous false-SAFE, UNKNOWN ratio) match project-facts.json.
  *
  * Exit codes:
  *   0  all checks pass
@@ -240,6 +242,27 @@ console.log("")
   if (!site) fail("apps/web/public/index.html not found; cannot verify provenance copy")
   else if (/SLSA attestation\s+on\s+the\s+preview/i.test(site.text)) fail('homepage provenance says "SLSA attestation on the preview" — stale wording implying current release is a preview')
   else ok('homepage provenance copy does not imply current release is a preview')
+}
+
+// 14. README corpus numbers match project-facts.json (mirror of #5 for README,
+//     which also hardcodes the calibrated/snapshot/UNKNOWN/false-SAFE figures).
+{
+  const readme = files.find((f) => f.rel === "README.md")
+  if (!readme) fail("README.md not found; cannot verify README corpus numbers")
+  else {
+    const c = facts.corpus
+    const ratioEsc = c.unknownRatio.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
+    const checks = [
+      [`calibratedCases = ${c.calibratedCases}`, new RegExp(`\\b${c.calibratedCases} calibrated cases\\b`)],
+      [`realOrRedactedSnapshots = ${c.realOrRedactedSnapshots}`, new RegExp(`\\b${c.realOrRedactedSnapshots} real or redacted snapshots\\b`)],
+      [`dangerousFalseSafe = ${c.dangerousFalseSafe}`, new RegExp(`\\b${c.dangerousFalseSafe} dangerous false-SAFE\\b`)],
+      [`unknownRatio = ${c.unknownRatio}`, new RegExp(`UNKNOWN ratio ${ratioEsc}`)],
+    ]
+    for (const [label, re] of checks) {
+      if (re.test(readme.text)) ok(`README corpus number matches: ${label}`)
+      else fail(`README corpus number mismatch: expected ${label}`)
+    }
+  }
 }
 
 console.log("")

@@ -2,7 +2,7 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "$id": "https://calllint.com/schemas/receipt.schema.json",
   "title": "CallLint Receipt",
-  "description": "A local, verifiable CallLint receipt (calllint.receipt.v0). A receipt is a reporting layer derived from an existing ScanReport: it proves that a specific CallLint version produced a specific verdict over a specific normalized input under a specific policy and ruleset context. It does NOT prove runtime safety, certify a tool, or replace human review. See docs/adr/0028-receipt-first-trust-layer.md and RECEIPTS.md.",
+  "description": "A local, verifiable CallLint receipt (calllint.receipt.v0). A receipt is a reporting layer derived from an existing ScanReport: it proves that a specific CallLint version produced a specific verdict over a specific normalized input under a specific policy and ruleset context. It does NOT prove runtime safety, certify a tool, or replace human review. See ADR 0028 and RECEIPTS.md.",
   "type": "object",
   "additionalProperties": false,
   "required": [
