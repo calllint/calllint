@@ -14,6 +14,7 @@ COMMANDS
   diagnostics [target]  Emit editor/agent-host diagnostics JSON (calllint.diagnostics.v0)
   baseline [target]  Record the approved risk surface as a baseline
   approve            Record the repo-wide capability surface as approved state (L4)
+  receipt verify <f>    Structurally validate a local calllint.receipt.v0 file
   gen-rule --host <h>   Emit the CallLint agent-safety rule for a host (CLAUDE.md, etc.)
   policy init        Write a default calllint.policy.json
   policy explain     Show the effective policy
@@ -39,6 +40,8 @@ SCAN OPTIONS
   --markdown         Emit Markdown for PR comments / GitHub Step Summary
   --html             Emit a self-contained HTML report
   --badge            Emit a shields.io endpoint badge JSON (SAFE/REVIEW/UNKNOWN/BLOCK)
+  --receipt          Also write a local calllint.receipt.v0 (offline reporting layer)
+  --receipt-out <f>  Receipt output path (default: calllint-receipt.json)
   --policy <file>    Use a policy file (default: built-in defaults)
   --stdin            Read config JSON from stdin
   --ci               Exit non-zero per policy (BLOCK=30, UNKNOWN=20, REVIEW=10 if enabled)
@@ -59,6 +62,7 @@ EXAMPLES
   calllint check ./mcp.json --json
   calllint scan .cursor/mcp.json --markdown
   calllint scan .cursor/mcp.json --badge > calllint-badge.json
+  calllint scan .cursor/mcp.json --receipt && calllint receipt verify calllint-receipt.json
   calllint verify ./mcp.json --ci
   calllint approve && calllint verify --approved --ci
   calllint explain filesystem

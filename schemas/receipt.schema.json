@@ -1,0 +1,160 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://calllint.com/schemas/receipt.schema.json",
+  "title": "CallLint Receipt",
+  "description": "A local, verifiable CallLint receipt (calllint.receipt.v0). A receipt is a reporting layer derived from an existing ScanReport: it proves that a specific CallLint version produced a specific verdict over a specific normalized input under a specific policy and ruleset context. It does NOT prove runtime safety, certify a tool, or replace human review. See docs/adr/0028-receipt-first-trust-layer.md and RECEIPTS.md.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "receipt_id",
+    "created_at",
+    "tool",
+    "subject",
+    "verdict",
+    "hashes",
+    "risk_counts",
+    "finding_refs",
+    "trust_boundaries"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "calllint.receipt.v0",
+      "description": "Receipt schema identity. Distinct from calllint.report.v0."
+    },
+    "receipt_id": {
+      "type": "string",
+      "pattern": "^clrec_[A-Za-z0-9_-]{16,}$",
+      "description": "Random id (>=128 bits, base64url). Never timestamp-only; not hashed."
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO-8601 UTC creation time. Non-deterministic by design; not hashed."
+    },
+    "tool": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "version"],
+      "properties": {
+        "name": { "const": "calllint" },
+        "version": {
+          "type": "string",
+          "description": "CallLint version, read at runtime from the CLI package. Never hardcoded."
+        }
+      }
+    },
+    "subject": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type"],
+      "properties": {
+        "type": { "enum": ["scan"] },
+        "target": {
+          "type": "string",
+          "description": "Config target label as it already appears in the report. Never an absolute local path."
+        }
+      }
+    },
+    "verdict": {
+      "enum": ["SAFE", "REVIEW", "BLOCK", "UNKNOWN"],
+      "description": "Copied verbatim from the ScanReport aggregate verdict. UNKNOWN is never SAFE."
+    },
+    "hashes": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["input_hash", "policy_hash", "report_hash", "ruleset_hash"],
+      "properties": {
+        "input_hash": { "$ref": "#/definitions/sha256" },
+        "policy_hash": { "$ref": "#/definitions/sha256" },
+        "report_hash": { "$ref": "#/definitions/sha256" },
+        "ruleset_hash": { "$ref": "#/definitions/sha256" }
+      }
+    },
+    "corpus": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "phase": { "type": "string" },
+        "release_gate": { "type": "boolean" }
+      },
+      "description": "Optional corpus context copied from the report; informational only."
+    },
+    "risk_counts": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["safe", "review", "block", "unknown"],
+      "properties": {
+        "safe": { "$ref": "#/definitions/count" },
+        "review": { "$ref": "#/definitions/count" },
+        "block": { "$ref": "#/definitions/count" },
+        "unknown": { "$ref": "#/definitions/count" }
+      }
+    },
+    "finding_refs": {
+      "type": "array",
+      "description": "Lightweight references to findings in the report. Evidence stays in the report; the receipt only points at it.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["rule_id", "severity"],
+        "properties": {
+          "rule_id": { "type": "string" },
+          "severity": { "type": "string" },
+          "evidence_path": { "type": "string" }
+        }
+      }
+    },
+    "trust_boundaries": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "executed_target",
+        "network_used",
+        "llm_in_verdict_path",
+        "secret_values_read"
+      ],
+      "description": "CallLint's own behavior for this scan. Literal invariants, never inferred from the scanned target.",
+      "properties": {
+        "executed_target": {
+          "const": false,
+          "description": "CallLint never executes the server it judges."
+        },
+        "network_used": {
+          "type": "boolean",
+          "description": "false by default; true only when the scan ran under --online advisory mode."
+        },
+        "llm_in_verdict_path": {
+          "const": false,
+          "description": "No LLM decides the verdict."
+        },
+        "secret_values_read": {
+          "const": false,
+          "description": "CallLint reads secret key shapes, never secret values."
+        }
+      }
+    },
+    "signature": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Reserved. Not generated in v0.8 (local, unsigned). Real signatures activate at R6 (cloud), ADR-first. verify validates SHAPE only.",
+      "required": ["algorithm", "key_id", "value"],
+      "properties": {
+        "algorithm": { "type": "string" },
+        "key_id": { "type": "string" },
+        "value": { "type": "string" }
+      }
+    }
+  },
+  "definitions": {
+    "sha256": {
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$",
+      "description": "Lowercase hex sha256 digest, prefixed 'sha256:'. Produced by @calllint/fingerprint."
+    },
+    "count": {
+      "type": "integer",
+      "minimum": 0
+    }
+  }
+}

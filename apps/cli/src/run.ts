@@ -9,6 +9,7 @@ import { explainCommand } from "./commands/explain.js"
 import { policyCommand } from "./commands/policy.js"
 import { baselineCommand, verifyCommand } from "./commands/verify.js"
 import { approveCommand } from "./commands/approve.js"
+import { receiptCommand } from "./commands/receipt.js"
 import type { Finding } from "@calllint/types"
 
 /**
@@ -33,6 +34,8 @@ export interface RunDeps {
   online?: OnlineEnrichment
   /** Returns newline-separated changed file paths for `scan --changed`. */
   getChangedFilesDiff?: () => string
+  /** The CLI's own version, read at runtime for receipts (new5 R3). */
+  toolVersion?: string
 }
 
 /** Dispatch a parsed argv to a command. Pure given deps — used directly in tests. */
@@ -67,6 +70,7 @@ export function run(argv: string[], deps: RunDeps): CommandResult {
         writeCacheFile: deps.writeCacheFile,
         online: deps.online,
         getChangedFilesDiff: deps.getChangedFilesDiff,
+        toolVersion: deps.toolVersion,
       })
     case "diagnostics":
       return diagnosticsCommand(args, {
@@ -102,6 +106,8 @@ export function run(argv: string[], deps: RunDeps): CommandResult {
       })
     case "explain":
       return explainCommand(args, { cwd: deps.cwd })
+    case "receipt":
+      return receiptCommand(args, { cwd: deps.cwd })
     case "gen-rule":
       return genRuleCommand(args, { cwd: deps.cwd })
     case "policy":

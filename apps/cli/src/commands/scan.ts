@@ -2,6 +2,7 @@ import { join, resolve } from "node:path"
 import {
   scanConfigText,
   writeCache,
+  createReceipt,
   ConfigParseError,
 } from "@calllint/core"
 import { loadPolicyOrDefault } from "@calllint/policy"
@@ -23,7 +24,7 @@ import { resolveConfigInput, isInputError } from "./resolveInput.js"
 import { changedConfigPaths } from "./changedConfigs.js"
 import { readDocumentSurfaces } from "./surfaces.js"
 import type { OnlineEnrichment } from "../run.js"
-import { readFileSync } from "node:fs"
+import { readFileSync, writeFileSync } from "node:fs"
 import type { ConfigSummaryReport } from "@calllint/types"
 
 export interface CommandResult {
@@ -45,6 +46,12 @@ export interface ScanDeps {
    * HEAD`).  Used only by `--changed`; injected so the command stays pure.
    */
   getChangedFilesDiff?: () => string
+  /**
+   * The running CLI version, injected at the entry boundary (see version.ts).
+   * Only used to stamp `tool.version` on a receipt (`--receipt`). Optional so
+   * existing tests that don't exercise receipts need not provide it.
+   */
+  toolVersion?: string
 }
 
 export function scanCommand(args: ParsedArgs, deps: ScanDeps): CommandResult {
@@ -88,6 +95,7 @@ function scanOneConfig(
   policy: Policy,
   args: ParsedArgs,
   deps: ScanDeps,
+  allowReceipt = true,
 ): CommandResult {
   // Opt-in prompt-surface scan of local project documents (ADR 0015). Only reads
   // files when --surface-dir is given; default behaviour reads nothing but the
@@ -128,9 +136,64 @@ function scanOneConfig(
 
   // Render.
   const stdout = renderSummary(summary, args)
+
+  // Receipt (new5 R3, ADR 0028). Opt-in via --receipt; written AFTER the report
+  // exists, from the report (never a re-scan). Absent flag ⇒ behaviour is
+  // byte-identical to before. A write failure fails the command (unlike the
+  // best-effort cache), because the user explicitly asked for a receipt.
+  // Skipped in the --changed loop (allowReceipt=false) to avoid N configs
+  // clobbering one receipt file.
+  if (allowReceipt && flagBool(args.flags, "receipt")) {
+    const err = writeReceiptFile(summary, text, configPath, policy, args, deps)
+    if (err) return { stdout: "", stderr: err, exitCode: EXIT.ERROR }
+  }
+
   // Exit code: only fail the process under --ci.
   const exitCode = flagBool(args.flags, "ci") ? exitCodeFor(summary, policy) : EXIT.OK
   return { stdout, exitCode }
+}
+
+/**
+ * Write a `calllint.receipt.v0` for a completed scan. Returns an error string on
+ * failure (so the caller fails the command), or undefined on success. Pure
+ * reporting layer: derives everything from `summary`, runs no risk logic, makes
+ * no network call, reads no secret values. `input_hash` is over the raw config
+ * text (the normalized parser form is not cleanly reachable here — documented in
+ * RECEIPTS.md); `ruleset_hash` is over the tool identity (detectors are
+ * pinned to the CLI version; there is no separate detector-version registry).
+ */
+function writeReceiptFile(
+  summary: ConfigSummaryReport,
+  text: string,
+  configPath: string,
+  policy: Policy,
+  args: ParsedArgs,
+  deps: ScanDeps,
+): string | undefined {
+  const toolVersion = deps.toolVersion ?? "0.0.0-dev"
+  const receipt = createReceipt(
+    {
+      toolVersion,
+      subject: { type: "scan", target: configPath },
+      inputForHash: text,
+      effectivePolicyForHash: policy ?? { policy: "default" },
+      scanReport: summary,
+      rulesetForHash: { tool: "calllint", version: toolVersion },
+      networkUsed: flagBool(args.flags, "online"),
+    },
+    deps.generatedAt,
+  )
+
+  const outPath = resolve(
+    deps.cwd,
+    flagStr(args.flags, "receipt-out") ?? "calllint-receipt.json",
+  )
+  try {
+    writeFileSync(outPath, JSON.stringify(receipt, null, 2) + "\n", "utf8")
+  } catch (e) {
+    return `Could not write receipt to ${outPath}: ${e instanceof Error ? e.message : String(e)}`
+  }
+  return undefined
 }
 
 /** Render one summary in the format selected by the flags. */

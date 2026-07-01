@@ -5,6 +5,7 @@ import { run } from "./run.js"
 import { computeOnlineEnrichment } from "./online.js"
 import { resolveClock } from "./clock.js"
 import { breathe } from "./breathe.js"
+import { resolveToolVersion } from "./version.js"
 
 function readStdin(): string {
   try {
@@ -72,6 +73,7 @@ async function main(): Promise<void> {
     now,
     generatedAt,
     online,
+    toolVersion: resolveToolVersion(),
     getChangedFilesDiff: () => gitChangedFiles(process.cwd()),
   })
 
