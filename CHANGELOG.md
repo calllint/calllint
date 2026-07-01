@@ -10,6 +10,8 @@ onward. While pre-1.0, minor versions may include breaking changes.
 
 ## [Unreleased]
 
+## [0.8.0] — 2026-07-01 — Receipt-first trust layer (new5 R3)
+
 ### Added
 
 - **Local receipts — `scan --receipt` + `receipt verify` (new5 R3, ADR 0028).**
@@ -28,6 +30,20 @@ onward. While pre-1.0, minor versions may include breaking changes.
   receipt is unsigned — the `signature` field is reserved for a future release
   and never populated. A receipt is not a proof of runtime safety and never
   certifies a tool. Author guide: [`RECEIPTS.md`](RECEIPTS.md). See ADR 0028.
+- **GitHub Action — optional `receipt` artifact (new5 R3).** The `calllint`
+  Action gains `receipt` (default `false`) and `receipt-file` inputs. When
+  `receipt: true` it runs `scan --receipt --receipt-out <file>` and uploads the
+  receipt as a build artifact. `receipt: false` leaves the Action's SARIF
+  upload, Markdown step summary, and `--ci` gate behavior unchanged — the
+  receipt is additional evidence, never a new gate.
+
+### Fixed
+
+- **Receipt schema cites ADR 0028 by number.** `schemas/receipt.schema.json`
+  previously referenced `docs/adr/0028-…md`, a path under the gitignored `docs/`
+  tree; it now cites "ADR 0028" like the rest of the tracked docs. The
+  public-copy guard also now verifies the README corpus numbers against
+  `project-facts.json` (previously only the homepage was checked).
 
 ## [0.7.0] — 2026-07-01 — Trust badge (Phase 6) + docker inline secret keys
 
