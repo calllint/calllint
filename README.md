@@ -244,6 +244,18 @@ Verdicts are governed by **policy as code** (`calllint.policy.json`); run
 `calllint policy init` to write the defaults and `calllint policy explain` to see
 the effective policy.
 
+## Badge
+
+`calllint scan <config> --badge` emits a [shields.io endpoint][endpoint] JSON
+object so an MCP author can show a truthful CallLint verdict in a README. It is
+built for transparency: the badge shows whatever the verdict is, and **only
+`SAFE` is green** — `REVIEW`, `UNKNOWN`, and `BLOCK` each carry a distinct
+non-green colour. It is a projection of the aggregate verdict (no schema change),
+and `SAFE` means no blockers observed, not a proof of runtime safety. See
+[badge.md](badge.md) for the wiring and the verdict→colour map.
+
+[endpoint]: https://shields.io/badges/endpoint-badge
+
 ## Security model
 
 CallLint is a security tool, so its own boundaries are explicit and auditable.

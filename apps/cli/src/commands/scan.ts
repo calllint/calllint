@@ -11,6 +11,7 @@ import {
   renderCompact,
   renderSarif,
   renderMarkdown,
+  renderBadge,
   renderHtml,
   NO_EMOJI_STYLE,
   DEFAULT_STYLE,
@@ -138,6 +139,7 @@ function renderSummary(summary: ConfigSummaryReport, args: ParsedArgs): string {
   if (flagBool(args.flags, "json")) return renderJson(summary)
   if (flagBool(args.flags, "sarif")) return renderSarif(summary)
   if (flagBool(args.flags, "markdown")) return renderMarkdown(summary)
+  if (flagBool(args.flags, "badge")) return renderBadge(summary)
   if (flagBool(args.flags, "html")) return renderHtml(summary)
   if (flagBool(args.flags, "compact")) return renderCompact(summary, style)
   return renderTerminal(summary, style)

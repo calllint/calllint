@@ -38,6 +38,7 @@ SCAN OPTIONS
   --sarif            Emit SARIF 2.1.0 (GitHub Code Scanning / CI)
   --markdown         Emit Markdown for PR comments / GitHub Step Summary
   --html             Emit a self-contained HTML report
+  --badge            Emit a shields.io endpoint badge JSON (SAFE/REVIEW/UNKNOWN/BLOCK)
   --policy <file>    Use a policy file (default: built-in defaults)
   --stdin            Read config JSON from stdin
   --ci               Exit non-zero per policy (BLOCK=30, UNKNOWN=20, REVIEW=10 if enabled)
@@ -57,6 +58,7 @@ EXAMPLES
   calllint scan-all --no-emoji
   calllint check ./mcp.json --json
   calllint scan .cursor/mcp.json --markdown
+  calllint scan .cursor/mcp.json --badge > calllint-badge.json
   calllint verify ./mcp.json --ci
   calllint approve && calllint verify --approved --ci
   calllint explain filesystem
