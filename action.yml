@@ -60,6 +60,17 @@ inputs:
       (SARIF + summary still produced, job never fails on the verdict).
     required: false
     default: "true"
+  receipt:
+    description: >-
+      Emit a local CallLint receipt (calllint.receipt.v0) and upload it as a
+      build artifact. Additional evidence only — never a new gate (the CLI --ci
+      exit code stays authoritative). Default off keeps behaviour unchanged.
+    required: false
+    default: "false"
+  receipt-file:
+    description: Path for the local CallLint receipt artifact.
+    required: false
+    default: "calllint-receipt.json"
 
 outputs:
   verdict:
@@ -68,6 +79,9 @@ outputs:
   sarif-file:
     description: Path to the generated SARIF file (when sarif is enabled).
     value: ${{ steps.scan.outputs.sarif_file }}
+  receipt-file:
+    description: Path to the generated receipt file (when receipt is enabled).
+    value: ${{ steps.scan.outputs.receipt_file }}
 
 runs:
   using: composite
@@ -86,6 +100,8 @@ runs:
         CL_SURFACE_DIR: ${{ inputs.surface-dir }}
         CL_SARIF: ${{ inputs.sarif }}
         CL_STEP_SUMMARY: ${{ inputs.step-summary }}
+        CL_RECEIPT: ${{ inputs.receipt }}
+        CL_RECEIPT_FILE: ${{ inputs.receipt-file }}
       run: |
         set -euo pipefail
 
@@ -113,12 +129,28 @@ runs:
           calllint scan "${args[@]}" --markdown >> "$GITHUB_STEP_SUMMARY" || true
         fi
 
+        # 4) Receipt (opt-in) → a local calllint.receipt.v0 for the artifact
+        #    upload below. Reporting layer only: derived from the same scan,
+        #    never a new gate, never alters SARIF/summary/--ci. Absent ⇒ no file.
+        if [ "$CL_RECEIPT" = "true" ]; then
+          calllint scan "${args[@]}" --receipt --receipt-out "$CL_RECEIPT_FILE"
+          echo "receipt_file=$CL_RECEIPT_FILE" >> "$GITHUB_OUTPUT"
+        fi
+
     - name: Upload SARIF to Code Scanning
       if: ${{ inputs.sarif == 'true' }}
       uses: github/codeql-action/upload-sarif@v3
       with:
         sarif_file: ${{ steps.scan.outputs.sarif_file }}
         category: ${{ inputs.sarif-category }}
+
+    - name: Upload receipt artifact
+      if: ${{ inputs.receipt == 'true' }}
+      uses: actions/upload-artifact@v4
+      with:
+        name: calllint-receipt
+        path: ${{ steps.scan.outputs.receipt_file }}
+        if-no-files-found: error
 
     - name: Gate on verdict
       if: ${{ inputs.gate == 'true' }}
