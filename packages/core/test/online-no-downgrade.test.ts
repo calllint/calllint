@@ -76,6 +76,34 @@ describe("online enrichment never downgrades a verdict", () => {
     expect(["REVIEW", "UNKNOWN", "BLOCK"]).toContain(s.verdict)
   })
 
+  it("registry-surface finding (ADR 0027) upgrades SAFE→REVIEW, offline baseline unchanged", () => {
+    // A prompt.surface-instructions finding is exactly what --online registry
+    // metadata scanning (ADR 0027) injects when the published description carries
+    // prompt-surface content. Offline (no injection) the verdict is unchanged;
+    // injected, it can only raise the verdict — never downgrade.
+    const surface: Finding[] = [
+      {
+        id: "prompt.surface-instructions",
+        title: "Model-directed or hidden content in a project document",
+        severity: "medium",
+        blocker: false,
+        symbol: "PROMPT",
+        riskClass: "S2",
+        mode: "OBSERVED",
+        confidence: "medium",
+        detectionMethod: "source-text",
+        evidence: [{ type: "source", path: "registry:x#description", key: "registry-description", snippet: "embedded HTML/XML comment" }],
+        impact: "registry description carries prompt-surface content",
+        fix: "remove it",
+        source: "online",
+        fetchedAt: "2026-06-01T00:00:00.000Z",
+      },
+    ]
+    expect(scanConfigText(SAFE_TEXT, "<inline>", OPTS).verdict).toBe("SAFE")
+    const enriched = scanConfigText(SAFE_TEXT, "<inline>", { ...OPTS, extraFindings: { time: surface } })
+    expect(enriched.verdict).toBe("REVIEW")
+  })
+
   it("guard throws if an injected finding could somehow lower the verdict", () => {
     // Sanity: the invariant is code-enforced. A normal additive finding can
     // never trigger it; this asserts the offline-vs-enriched comparison runs

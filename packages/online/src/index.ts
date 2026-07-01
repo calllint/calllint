@@ -2,6 +2,7 @@ export {
   type FetchJson,
   type NpmFacts,
   fetchNpmFacts,
+  surfacesFromNpmFacts,
   findingsFromNpmFacts,
   enrichNpmPackage,
 } from "./npm.js"

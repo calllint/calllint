@@ -1,4 +1,5 @@
-import type { Finding } from "@calllint/types"
+import type { DocumentSurface, Finding } from "@calllint/types"
+import { analyzeDocumentSurfaces } from "@calllint/static-analyzer"
 
 /**
  * Injectable JSON fetcher. The real implementation (Node fetch) is supplied by
@@ -20,6 +21,17 @@ export interface NpmFacts {
   latestVersion?: string
   /** The version we resolved against (the requested one, or latest). */
   resolvedVersion?: string
+  /**
+   * The resolved version's published `description` — model-visible text an agent's
+   * tool list often renders (ADR 0027). Present only when the registry doc carries
+   * it; scanned for prompt-surface risk, never for supply-chain facts.
+   */
+  description?: string
+  /**
+   * The registry document's `readme`, only if the already-fetched doc includes it
+   * (no separate raw-README fetch in v0 — ADR 0027 §1). Also model-visible surface.
+   */
+  readme?: string
 }
 
 function isRecord(v: unknown): v is Record<string, unknown> {
@@ -82,6 +94,13 @@ export async function fetchNpmFacts(
   const deprecated =
     typeof versionDoc.deprecated === "string" ? versionDoc.deprecated : undefined
 
+  // Model-visible published text (ADR 0027). Read from the SAME doc already
+  // fetched — no extra request. `description` lives on the version; `readme` is a
+  // top-level registry-doc field we only surface if it is already present.
+  const description =
+    typeof versionDoc.description === "string" ? versionDoc.description : undefined
+  const readme = typeof doc.readme === "string" ? doc.readme : undefined
+
   return {
     name,
     versionExists: true,
@@ -89,7 +108,36 @@ export async function fetchNpmFacts(
     deprecated,
     latestVersion,
     resolvedVersion,
+    description,
+    readme,
   }
+}
+
+/**
+ * Build the model-visible registry surfaces from npm facts (ADR 0027). Returns the
+ * published `description` and `readme` (when present) as `DocumentSurface` entries
+ * so they can be routed through the SAME prompt-surface detector as local docs.
+ * A synthetic path records provenance in evidence (`registry:<name>#description`).
+ */
+export function surfacesFromNpmFacts(facts: NpmFacts): DocumentSurface[] {
+  const surfaces: DocumentSurface[] = []
+  if (typeof facts.description === "string" && facts.description.length > 0) {
+    surfaces.push({
+      path: `registry:${facts.name}#description`,
+      kind: "registry-description",
+      text: facts.description,
+      truncated: false,
+    })
+  }
+  if (typeof facts.readme === "string" && facts.readme.length > 0) {
+    surfaces.push({
+      path: `registry:${facts.name}#readme`,
+      kind: "registry-readme",
+      text: facts.readme,
+      truncated: false,
+    })
+  }
+  return surfaces
 }
 
 /**
@@ -163,6 +211,15 @@ export function findingsFromNpmFacts(facts: NpmFacts, fetchedAt: string): Findin
         "A deprecated package may be unmaintained and miss security fixes.",
       fix: "Migrate to the maintained successor or a supported version.",
     }))
+  }
+
+  // Prompt-surface risk in the published model-visible text (ADR 0027). The
+  // registry `description`/`readme` are routed through the SAME detector used
+  // for local README/SKILL surfaces (ADR 0015) — one source of truth, no new
+  // rule. Findings are advisory (REVIEW at most, non-blocker) and stamped as
+  // network-derived; `scanServer` enforces they can never downgrade a verdict.
+  for (const f of analyzeDocumentSurfaces(surfacesFromNpmFacts(facts))) {
+    findings.push(stamp(f))
   }
 
   return findings

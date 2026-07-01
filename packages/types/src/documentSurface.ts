@@ -4,6 +4,11 @@ export const DOCUMENT_SURFACE_KINDS = [
   "skill",
   "agents",
   "package-description",
+  // Published registry surfaces, fetched only under --online (ADR 0027). The
+  // model-visible text an agent's tool list actually renders for a package-backed
+  // server, routed through the same prompt-surface detector as local docs.
+  "registry-description",
+  "registry-readme",
 ] as const
 export type DocumentSurfaceKind = (typeof DOCUMENT_SURFACE_KINDS)[number]
 
