@@ -120,6 +120,9 @@ importers:
 
   packages/online:
     dependencies:
+      '@calllint/static-analyzer':
+        specifier: workspace:*
+        version: link:../static-analyzer
       '@calllint/types':
         specifier: workspace:*
         version: link:../types
