@@ -48,12 +48,15 @@ Only **stable safety fields** are compared — never human-readable report text:
 
 ## Curation status
 
-**R2.1 is shipped: 30 cases, 20 of them real.** The mix is 10
-`synthetic-contract-seed` (deterministic detector anchors) + 19
-`real-public-snapshot` + 1 `redacted-real-snapshot`, every real case carrying
-`origin` metadata (url, commit, license). The R2.1 thresholds (≥ 30 cases, ≥ 20
-real/redacted, UNKNOWN ≤ 15%, dangerous false-SAFE = 0) are enforced by
-`pnpm corpus:test:r2-final`.
+**R2.2 is shipped: 60 cases, 38 of them real or redacted.** The mix is 22
+`synthetic-contract-seed` (deterministic detector anchors) + 28
+`real-public-snapshot` + 10 `redacted-real-snapshot`, every real case carrying
+`origin` metadata (url, commit, license). The R2.1 release gate (≥ 30 cases, ≥ 20
+real/redacted, UNKNOWN ≤ 15%, dangerous false-SAFE = 0) remains the enforced
+floor via `pnpm corpus:test:r2-final`; R2.2 raises the case count to 60 / 38 at
+UNKNOWN 10.0% without weakening any pinned verdict (the floor ratchets up, never
+down). Corpus expansion beyond 60 stays ongoing — new cases must be
+structurally distinct, never near-duplicates.
 
 ## Running
 
