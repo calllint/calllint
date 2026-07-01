@@ -10,6 +10,8 @@ onward. While pre-1.0, minor versions may include breaking changes.
 
 ## [Unreleased]
 
+## [0.7.0] — 2026-07-01 — Trust badge (Phase 6) + docker inline secret keys
+
 ### Added
 
 - **`calllint scan --badge` — Trust badge (Phase 6, ADR 0026).** Emits a
