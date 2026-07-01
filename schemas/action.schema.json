@@ -1,0 +1,78 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://calllint.com/schemas/action.schema.json",
+  "title": "CallLint Action Descriptor",
+  "description": "calllint.action.v0 — Normalized descriptor for a planned external action (email send, API mutation, payment, etc.) to be inspected by `calllint action inspect`. See ADR 0029.",
+  "type": "object",
+  "required": ["schema_version", "kind", "parameters"],
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "const": "calllint.action.v0",
+      "description": "Schema version identifier. Must be exactly 'calllint.action.v0'."
+    },
+    "kind": {
+      "type": "string",
+      "enum": [
+        "email.reply",
+        "email.forward",
+        "message.post",
+        "a2a.delegate",
+        "payment.authorize",
+        "account.register",
+        "github.write",
+        "npm.publish",
+        "cloud.modify"
+      ],
+      "description": "The action kind. Closed vocabulary for v0; each kind maps to a risk-symbol profile and detector set. See ADR 0029 §2."
+    },
+    "parameters": {
+      "type": "object",
+      "description": "Kind-specific parameters describing the action (recipient, amount, target, scope). Shape varies by kind. See ADR 0029 §1 for per-kind schemas (to be expanded in implementation phase).",
+      "additionalProperties": true
+    },
+    "metadata": {
+      "type": "object",
+      "description": "Observed context: header keys, attachment hashes, lengths, OAuth scopes, provenance. Never full payload content (no email body text, attachment bytes, payment memo). Optional but recommended.",
+      "properties": {
+        "header_keys": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Header keys (e.g. 'Authorization', 'X-API-Token') for secret-shape detection. Values omitted."
+        },
+        "attachment_hashes": {
+          "type": "array",
+          "items": { "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" },
+          "description": "SHA-256 hashes of attachments (email.forward / email.reply). Required when has_attachments=true."
+        },
+        "subject_length": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Character count of subject line (email kinds). For hidden-char detection."
+        },
+        "body_length": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Character count of body (email/message kinds). Never the literal content."
+        },
+        "oauth_scopes": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "OAuth scopes the action requires (e.g. 'https://www.googleapis.com/auth/gmail.send')."
+        }
+      },
+      "additionalProperties": true
+    },
+    "provenance": {
+      "type": "object",
+      "description": "Optional source attribution: agent session, workflow step, timestamp.",
+      "properties": {
+        "agent_session": { "type": "string" },
+        "workflow_step": { "type": "string" },
+        "timestamp": { "type": "string", "format": "date-time" }
+      },
+      "additionalProperties": true
+    }
+  },
+  "additionalProperties": false
+}
