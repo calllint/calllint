@@ -1,0 +1,19 @@
+{
+  "schema_version": "calllint.agent-inbox-event.v0",
+  "event_type": "email.received",
+  "timestamp": "2026-07-02T12:34:56Z",
+  "source": {
+    "provider": "resend"
+  },
+  "normalized_content": {
+    "from": "sender@example.com",
+    "to": ["recipient@example.com"],
+    "subject_length": 13,
+    "body_length": 48,
+    "has_attachments": false,
+    "header_keys": ["from", "to", "subject", "message-id", "date"]
+  },
+  "provenance": {
+    "received_at": "2026-07-02T12:34:56.789Z"
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "headers": {
+    "Return-Path": "<sender@example.com>",
+    "From": "sender@example.com",
+    "To": "agent@yourdomain.com",
+    "Subject": "Meeting request",
+    "Message-ID": "<unique-id@mail.example.com>",
+    "Date": "Wed, 02 Jul 2026 12:34:56 +0000",
+    "Authorization": "Bearer REDACTED"
+  },
+  "envelope_from": "sender@example.com",
+  "envelope_to": ["agent@yourdomain.com"],
+  "body_size_bytes": 512,
+  "attachment_count": 0
+}

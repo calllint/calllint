@@ -1,0 +1,19 @@
+{
+  "schema_version": "calllint.agent-inbox-event.v0",
+  "event_type": "email.received",
+  "timestamp": "2026-07-02T12:34:56Z",
+  "source": {
+    "provider": "smtp-imap"
+  },
+  "normalized_content": {
+    "from": "sender@example.com",
+    "to": ["agent@yourdomain.com"],
+    "subject_length": 15,
+    "body_length": 512,
+    "has_attachments": false,
+    "header_keys": ["Return-Path", "From", "To", "Subject", "Message-ID", "Date", "Authorization"]
+  },
+  "provenance": {
+    "smtp_message_id": "<unique-id@mail.example.com>"
+  }
+}

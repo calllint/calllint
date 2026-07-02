@@ -1,0 +1,14 @@
+{
+  "headers": {
+    "from": "customer@example.com",
+    "to": "support@yourdomain.com",
+    "subject": "Invoice attached"
+  },
+  "envelope": "{\"to\":[\"support@yourdomain.com\"],\"from\":\"customer@example.com\"}",
+  "from": "customer@example.com",
+  "to": "support@yourdomain.com",
+  "subject": "Invoice attached",
+  "text": "Please find the invoice attached.",
+  "attachments": "1",
+  "attachment-info": "{\"attachment1\":{\"filename\":\"invoice.pdf\",\"type\":\"application/pdf\"}}"
+}

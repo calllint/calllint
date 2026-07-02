@@ -1,0 +1,19 @@
+{
+  "schema_version": "calllint.agent-inbox-event.v0",
+  "event_type": "message.posted",
+  "timestamp": "2026-07-02T12:34:56Z",
+  "source": {
+    "provider": "discord",
+    "workspace_id": "111222333444555666"
+  },
+  "normalized_content": {
+    "from": "555666777888999000",
+    "to": ["998877665544332211"],
+    "body_length": 37,
+    "has_attachments": false,
+    "mentions": ["000999888777666555"]
+  },
+  "provenance": {
+    "discord_message_id": "112233445566778899"
+  }
+}

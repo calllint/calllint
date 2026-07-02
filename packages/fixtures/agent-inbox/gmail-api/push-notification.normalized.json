@@ -1,0 +1,22 @@
+{
+  "schema_version": "calllint.agent-inbox-event.v0",
+  "event_type": "email.received",
+  "timestamp": "2026-07-02T12:40:00Z",
+  "source": {
+    "provider": "gmail",
+    "account_id": "agent@gmail.com"
+  },
+  "normalized_content": {
+    "from": "sender@example.com",
+    "to": ["agent@gmail.com"],
+    "subject_length": 25,
+    "body_length": 300,
+    "has_attachments": true,
+    "attachment_count": 1,
+    "attachment_hashes": ["sha256:2222222222222222222222222222222222222222222222222222222222222222"],
+    "header_keys": ["From", "To", "Subject", "Authorization"]
+  },
+  "provenance": {
+    "gmail_history_id": "9876543210"
+  }
+}

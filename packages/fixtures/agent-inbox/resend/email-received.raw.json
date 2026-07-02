@@ -1,0 +1,19 @@
+{
+  "type": "email.received",
+  "created_at": "2026-07-02T12:34:56.789Z",
+  "data": {
+    "from": "sender@example.com",
+    "to": ["recipient@example.com"],
+    "subject": "Weekly Report",
+    "html": "<p>This is the email body with some content...</p>",
+    "text": "This is the email body with some content...",
+    "headers": {
+      "from": "sender@example.com",
+      "to": "recipient@example.com",
+      "subject": "Weekly Report",
+      "message-id": "<abc123@mail.example.com>",
+      "date": "Wed, 02 Jul 2026 12:34:56 +0000"
+    },
+    "attachments": []
+  }
+}
