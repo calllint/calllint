@@ -48,9 +48,9 @@ function normalizedFixtures(): string[] {
 describe("agent-inbox normalized fixtures (R5 design)", () => {
   const fixtures = normalizedFixtures()
 
-  it("finds all six seeded provider patterns", () => {
-    // resend, sendgrid, gmail-api, slack, discord, smtp-imap
-    expect(fixtures.length).toBeGreaterThanOrEqual(6)
+  it("finds all six seeded provider patterns, two examples each", () => {
+    // 6 providers × 2 fixtures = 12 normalized events.
+    expect(fixtures.length).toBeGreaterThanOrEqual(12)
   })
 
   it("every normalized fixture is valid JSON", () => {
@@ -114,5 +114,46 @@ describe("agent-inbox normalized fixtures (R5 design)", () => {
       // No secret-shaped substrings anywhere in the normalized doc
       expect(SECRET_SHAPED.test(text), `${f}: secret-shaped content`).toBe(false)
     }
+  })
+
+  it("the fixture corpus exercises every event_type in the schema vocabulary", () => {
+    // The schema enum has 5 event_types; the corpus must demonstrate each one
+    // at least once, so no branch of the adapter contract is left unproven.
+    const seen = new Set<string>()
+    for (const f of fixtures) {
+      seen.add(JSON.parse(readFileSync(f, "utf8")).event_type)
+    }
+    for (const t of VALID_EVENT_TYPES) {
+      expect(seen.has(t), `no fixture covers event_type=${t}`).toBe(true)
+    }
+  })
+
+  it("every action_candidate is a structurally valid calllint.action.v0 descriptor", () => {
+    // The inbox→action chain is the reason this schema exists. When a fixture
+    // carries an action_candidate, it must be a well-formed action descriptor
+    // (schema_version + kind + parameters) so it can flow into `action inspect`.
+    const KNOWN_ACTION_KINDS = new Set([
+      "email.reply",
+      "email.forward",
+      "message.post",
+      "a2a.delegate",
+      "payment.authorize",
+      "account.register",
+      "github.write",
+      "npm.publish",
+      "cloud.modify",
+    ])
+    let candidatesSeen = 0
+    for (const f of fixtures) {
+      const ev = JSON.parse(readFileSync(f, "utf8"))
+      const ac = ev.action_candidate
+      if (ac === undefined) continue
+      candidatesSeen++
+      expect(ac.schema_version, `${f}: action_candidate.schema_version`).toBe("calllint.action.v0")
+      expect(KNOWN_ACTION_KINDS.has(ac.kind), `${f}: action kind=${ac.kind}`).toBe(true)
+      expect(ac.parameters, `${f}: action_candidate.parameters`).toBeTypeOf("object")
+    }
+    // The second fixture of each provider carries a candidate → at least 6.
+    expect(candidatesSeen, "expected action_candidate coverage").toBeGreaterThanOrEqual(6)
   })
 })

@@ -1,0 +1,33 @@
+{
+  "schema_version": "calllint.agent-inbox-event.v0",
+  "event_type": "email.received",
+  "timestamp": "2026-07-02T18:00:00Z",
+  "source": {
+    "provider": "smtp-imap"
+  },
+  "normalized_content": {
+    "from": "billing@vendor.example",
+    "to": ["agent@yourdomain.com"],
+    "subject_length": 25,
+    "body_length": 680,
+    "has_attachments": false,
+    "header_keys": ["Return-Path", "From", "To", "Subject", "Message-ID", "Date"],
+    "thread_id": "<inv-2026-0712@vendor.example>"
+  },
+  "action_candidate": {
+    "schema_version": "calllint.action.v0",
+    "kind": "payment.authorize",
+    "parameters": {
+      "recipient": "billing@vendor.example",
+      "currency": "USD"
+    },
+    "metadata": {
+      "amount": 4800.00,
+      "payment_method": "ach",
+      "verified_recipient": false
+    }
+  },
+  "provenance": {
+    "smtp_message_id": "<inv-2026-0712@vendor.example>"
+  }
+}

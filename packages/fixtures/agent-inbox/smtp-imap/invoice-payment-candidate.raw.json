@@ -1,0 +1,14 @@
+{
+  "headers": {
+    "Return-Path": "<billing@vendor.example>",
+    "From": "billing@vendor.example",
+    "To": "agent@yourdomain.com",
+    "Subject": "Invoice #INV-2026-0712 due",
+    "Message-ID": "<inv-2026-0712@vendor.example>",
+    "Date": "Wed, 02 Jul 2026 18:00:00 +0000"
+  },
+  "envelope_from": "billing@vendor.example",
+  "envelope_to": ["agent@yourdomain.com"],
+  "body_size_bytes": 680,
+  "attachment_count": 0
+}
