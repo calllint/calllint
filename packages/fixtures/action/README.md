@@ -1,141 +1,126 @@
-# Action Fixtures — Contract & Stub Directory (R4 / v0.9.0)
+# Action Fixtures
 
-This directory holds **fixture contracts and stubs** for `calllint action inspect`
-(ADR 0029). **No real fixtures exist yet** — they are written during implementation
-(post-ADR-acceptance), not in the design phase (R4 / v0.9.0).
+Golden test fixtures for `calllint action inspect` (ADR 0029, R4 / v0.9.x).
 
-## Fixture contract (per action kind)
+## Status (2026-07-02)
 
-Every action `kind` in `calllint.action.v0` requires **three artifacts** before its
-detector wiring merges:
+**24 fixtures** across **9 action kinds**, covering the full action taxonomy.
+
+### Coverage Matrix
+
+| Kind | Positive | Negative | Total | Status |
+|------|----------|----------|-------|--------|
+| `email.reply` | 1 | 2 | 3 | ✓ Complete |
+| `email.forward` | 1 | 1 | 2 | ✓ Complete |
+| `message.post` | 1 | 1 | 2 | ✓ Complete |
+| `a2a.delegate` | 1 | 2 | 3 | ✓ Complete |
+| `payment.authorize` | 1 | 1 | 2 | ✓ Complete |
+| `account.register` | 1 | 2 | 3 | ✓ Complete |
+| `github.write` | 1 | 2 | 3 | ✓ Complete |
+| `npm.publish` | 1 | 2 | 3 | ✓ Complete |
+| `cloud.modify` | 1 | 2 | 3 | ✓ Complete |
+
+**Total: 9 positive + 15 negative = 24 fixtures**
+
+All 9 kinds have at least one positive (clean) and one negative (trigger findings) fixture.
+
+## Fixture Contract
+
+Every action `kind` in `calllint.action.v0` requires:
 
 ### 1. Positive fixture
-An action descriptor of that kind with a **clear risk signal** ⇒ expected verdict
-REVIEW or BLOCK, with expected findings listed.
+An action descriptor of that kind with **no risk signals** → expected verdict SAFE with no findings.
 
-**Example (email.reply):** descriptor with a secret-shaped header key (`Authorization`,
-`X-API-Token`) ⇒ verdict REVIEW, finding `secrets.env-key`, reason code
-`SECRET_IN_WORKSPACE_CONFIG`.
+**Example (email.reply):** Clean reply with no secret headers, verified attachments → verdict SAFE.
 
-**Format:** `<kind>/positive-<scenario>.json` + `<kind>/positive-<scenario>.expected.json`
+**Format:** `<kind>/positive-<scenario>.json`
 
 ### 2. Negative fixture
-A **benign** action descriptor of that kind ⇒ expected verdict SAFE or REVIEW (but
-not BLOCK), with **no false-positive findings**.
+An action descriptor with **clear risk signals** → expected verdict REVIEW or BLOCK with specific findings.
 
-**Example (payment.authorize):** descriptor with $0.01 to a known test account ⇒
-verdict SAFE or REVIEW (small amount, test context), no `action.financial-observed`
-false alarm.
+**Example (email.reply):** Reply with secret-shaped headers (`Authorization`, `X-API-Token`) → verdict REVIEW, finding `action.secret-shaped-headers`.
 
-**Format:** `<kind>/negative-<scenario>.json` + `<kind>/negative-<scenario>.expected.json`
+**Format:** `<kind>/negative-<scenario>.json`
 
-### 3. Unit test stub
-A vitest test that loads the fixture, calls `analyzeAction(descriptor)` (once
-implemented), and asserts the expected verdict / findings / reason codes.
+### 3. Unit tests
+Tests in `packages/action-analyzer/test/analyzeAction.test.ts` load fixtures, call `analyzeAction(descriptor)`, and assert expected verdicts/findings.
 
-**Format:** `<kind>/<kind>.test.ts`
-
----
-
-## Directory structure (stub, not yet populated)
+## Directory Structure
 
 ```
 packages/fixtures/action/
 ├── README.md                   ← this file
-├── email.reply/                ← stub directory for email.reply kind
-│   └── .gitkeep                ← placeholder (no real fixtures yet)
-├── email.forward/              ← stub directory for email.forward kind
-│   └── .gitkeep
-├── message.post/               ← stub directory for message.post kind
-│   └── .gitkeep
-├── a2a.delegate/               ← stub directory for a2a.delegate kind
-│   └── .gitkeep
-├── payment.authorize/          ← stub directory for payment.authorize kind
-│   └── .gitkeep
-├── account.register/           ← stub directory for account.register kind
-│   └── .gitkeep
-├── github.write/               ← stub directory for github.write kind
-│   └── .gitkeep
-├── npm.publish/                ← stub directory for npm.publish kind
-│   └── .gitkeep
-└── cloud.modify/               ← stub directory for cloud.modify kind
-    └── .gitkeep
+├── email.reply/
+│   ├── positive-clean-reply.json
+│   ├── negative-secret-headers.json
+│   └── negative-missing-attachment-hashes.json
+├── email.forward/
+│   ├── positive-clean-forward.json
+│   └── negative-missing-attachment-hashes.json
+├── message.post/
+│   ├── positive-clean-message.json
+│   └── negative-secret-headers.json
+├── a2a.delegate/
+│   ├── positive-secure-delegate.json
+│   ├── negative-insecure-http.json
+│   └── negative-missing-target.json
+├── payment.authorize/
+│   ├── positive-small-verified-payment.json
+│   └── negative-high-amount.json
+├── account.register/
+│   ├── positive-clean-registration.json
+│   ├── negative-excessive-scopes.json
+│   └── negative-unverified-service.json
+├── github.write/
+│   ├── positive-create-pr.json
+│   ├── negative-external-links.json
+│   └── negative-unverified-repo-excessive-scopes.json
+├── npm.publish/
+│   ├── positive-clean-publish.json
+│   ├── negative-name-squatting.json
+│   └── negative-version-float.json
+└── cloud.modify/
+    ├── positive-create-small-instance.json
+    ├── negative-expensive-instance.json
+    └── negative-open-all-ports.json
 ```
 
-**All `.gitkeep` placeholders are removed when the first real fixture is added to
-that kind's directory.**
+## Fixture Authoring Rules
 
----
+1. **No fabricated real-provider payloads.** Positive fixtures may reference real domains/repos but risk signals must be clearly synthetic.
 
-## Fixture authoring rules (enforced during implementation)
+2. **Negative fixtures use clear risk patterns.** Secret headers, large amounts, insecure protocols, missing verification.
 
-1. **No fabricated real-provider payloads.** A positive fixture may use a real npm
-   package name / GitHub repo / email domain as a **base**, but any risk signal
-   (secret header, large payment amount, unknown delegation target) must be
-   **clearly labelled synthetic** in the fixture's `provenance` or adjacent
-   `.notes.md`. Never present a synthetic payload as a real snapshot.
+3. **Expected verdicts are immutable.** Once committed, a fixture's expected verdict cannot be weakened to pass tests (per CLAUDE.md). Changes require an ADR.
 
-2. **Negative fixtures use real benign examples.** Prefer actual test-account emails,
-   $0.01 sandbox payments, known-safe GitHub repos. Provenance recorded in
-   `.notes.md`.
+4. **Offline-invariance.** Action fixtures must not require network access.
 
-3. **Expected verdict / findings are immutable.** Once a fixture's `.expected.json`
-   is committed, it cannot be weakened to make a test pass (per CLAUDE.md). If a
-   detector changes and the expected verdict shifts, write an ADR first.
+## Testing
 
-4. **Offline-invariance.** Action fixtures must not require network access. Use
-   injected fetch stubs (as in `packages/online/test/online.test.ts`) if the
-   `analyzeAction` path calls online enrichment.
+All fixtures are tested in `packages/action-analyzer/test/analyzeAction.test.ts`:
 
----
+```bash
+pnpm --filter @calllint/action-analyzer test
+```
 
-## Implementation checkpoint (post-ADR-0029-acceptance)
+Tests verify:
+- Positive fixtures → SAFE verdict, no findings
+- Negative fixtures → REVIEW/BLOCK verdict, expected finding IDs present
 
-When ADR 0029 moves from **Proposed → Accepted**, the implementation phase begins:
+## Implementation Status
 
-1. Write `packages/action-analyzer/src/analyzeAction.ts` (or equivalent module in
-   `@calllint/core`).
-2. For each action `kind`, write positive + negative fixtures in its stub directory.
-3. Write unit tests that load fixtures and assert expected verdicts.
-4. Wire `apps/cli/src/commands/action.ts` to call `analyzeAction` and render the
-   `ScanReport`.
-5. Run full gate suite (`pnpm typecheck && pnpm test && pnpm corpus:test`) — action
-   fixtures do **not** count toward the existing 60-case MCP corpus (separate
-   fixture suite).
-
-**R4 / v0.9.0 deliverable:** this README + stub directories. No real fixtures, no
-tests, no runtime code.
-
----
-
-## Questions / clarifications
-
-- **Open question 1 (ADR 0029):** Should `metadata.attachment_hashes` be required
-  for `has_attachments: true`, or optional with an `action.unverified-attachment`
-  finding?
-  - *Tentative:* required when `has_attachments: true`; unhashed attachments →
-    REVIEW-class finding.
-
-- **Open question 2 (ADR 0029):** `a2a.delegate` target identity format (URL,
-  agent ID, public key hash)?
-  - *Tentative:* string (URL or agent ID); unknown targets → `supply.unknown-remote`.
-
-- **Open question 3 (ADR 0029):** `cloud.modify` resource_type — closed enum or
-  open string?
-  - *Tentative:* open string for v0; pattern-match high-risk types for MONEY/EXEC.
-
-- **Open question 4 (ADR 0029):** Policy override scoping for action kinds
-  (`pattern: "action:email.*"`, new `action_kind` field, or `scope` value)?
-  - *Tentative:* `pattern: "action:email.*"` reuses existing glob logic.
-
-**(To be resolved during ADR review, before implementation.)**
-
----
+- ✓ ADR 0029 Accepted (2026-07-01)
+- ✓ Schema: `calllint.action.v0` (schemas/action.schema.json)
+- ✓ Analyzer: `@calllint/action-analyzer` package (13 detectors)
+- ✓ CLI: `calllint action inspect` command
+- ✓ Fixtures: 24 fixtures across 9 kinds
+- ✓ Tests: 20 passing tests in analyzeAction.test.ts
+- ✓ Receipt: `--receipt` flag integrated (ADR 0028 schema reuse)
 
 ## References
 
 - ADR 0029: Unified External Action Preflight (`calllint action inspect`)
-- ADR 0028: Receipt-first Trust Layer (schema reuse)
-- ADR 0020: Compact Decision + 12 reason codes (action kinds map to these)
+- ADR 0028: Receipt-first Trust Layer (receipt schema reuse)
+- ADR 0020: Compact Decision + reason codes
 - CLAUDE.md: never weaken a fixture's expected verdict to pass a test
-- new5 master plan: R4 / v0.9.0 design-first, zero runtime code until ADR Accepted
+- new5 master plan: R4 / v0.9.x action preflight

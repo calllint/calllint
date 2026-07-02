@@ -20,7 +20,7 @@ export interface CallLintReceipt {
   /** ISO-8601. Not hashed (non-deterministic by design). */
   created_at: string
   tool: { name: "calllint"; version: string }
-  subject: { type: "scan"; target?: string }
+  subject: { type: "scan" | "action"; target?: string }
   verdict: Verdict
   hashes: {
     input_hash: `sha256:${string}`
@@ -51,7 +51,7 @@ export interface CallLintReceipt {
 export interface CreateReceiptInput {
   /** Runtime CLI version — read from the CLI package, never hardcoded. */
   toolVersion: string
-  subject: { type: "scan"; target?: string }
+  subject: { type: "scan" | "action"; target?: string }
   /** Normalized scan input to hash (raw text is acceptable; never abs paths). */
   inputForHash: unknown
   /** Effective policy object, or `{ policy: "default" }` when none loaded. */

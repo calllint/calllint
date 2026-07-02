@@ -1,0 +1,20 @@
+{
+  "schema_version": "calllint.action.v0",
+  "kind": "email.forward",
+  "parameters": {
+    "to": ["colleague@example.com"],
+    "forward_from_message_id": "<original123@mail.example.com>",
+    "subject": "Fwd: Weekly report",
+    "has_attachments": true,
+    "attachment_count": 1
+  },
+  "metadata": {
+    "attachment_hashes": ["sha256:abcd1234567890abcdef1234567890abcdef1234567890abcdef1234567890ab"],
+    "subject_length": 19,
+    "body_length": 200
+  },
+  "provenance": {
+    "agent_session": "test_session_forward_001",
+    "timestamp": "2026-07-02T00:00:00Z"
+  }
+}

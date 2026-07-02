@@ -1,0 +1,17 @@
+{
+  "schema_version": "calllint.action.v0",
+  "kind": "payment.authorize",
+  "parameters": {
+    "recipient": "vendor@example.com",
+    "currency": "USD"
+  },
+  "metadata": {
+    "amount": 25.00,
+    "payment_method": "stripe",
+    "verified_recipient": true
+  },
+  "provenance": {
+    "agent_session": "test_session_pay_002",
+    "timestamp": "2026-07-02T00:00:00Z"
+  }
+}

@@ -1,0 +1,19 @@
+{
+  "schema_version": "calllint.action.v0",
+  "kind": "email.forward",
+  "parameters": {
+    "to": ["external@example.com"],
+    "forward_from_message_id": "<sensitive123@mail.example.com>",
+    "subject": "Fwd: Confidential data",
+    "has_attachments": true,
+    "attachment_count": 2
+  },
+  "metadata": {
+    "subject_length": 23,
+    "body_length": 300
+  },
+  "provenance": {
+    "agent_session": "test_session_forward_002",
+    "timestamp": "2026-07-02T00:00:00Z"
+  }
+}

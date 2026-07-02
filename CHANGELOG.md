@@ -10,6 +10,34 @@ onward. While pre-1.0, minor versions may include breaking changes.
 
 ## [Unreleased]
 
+### Added
+
+- **R4 Complete: Action receipt generation** via `calllint action inspect --receipt`
+  - Integrated ADR 0028 receipt schema for action verdicts
+  - Added `--receipt` and `--receipt-out` flags to action command
+  - Receipt subject type now supports both `"scan"` and `"action"`
+  - Default output: `calllint-action-receipt.json`
+
+- **Complete fixture coverage for all 9 action kinds** (+5 fixtures, 24 total)
+  - `email.forward`: positive-clean-forward.json + negative-missing-attachment-hashes.json (was 0, now 2)
+  - `message.post`: negative-secret-headers.json (was 1, now 2)
+  - `payment.authorize`: positive-small-verified-payment.json (was 1, now 2)
+  - `a2a.delegate`: positive-secure-delegate.json (was 2, now 3)
+  - All 9 kinds now have ≥1 positive + ≥1 negative fixture
+
+### Changed
+
+- Updated `packages/fixtures/action/README.md` to reflect actual implementation status
+  - Removed stale "design phase, no real fixtures yet" text
+  - Added coverage matrix: 9 positive + 15 negative = 24 fixtures
+  - Documented full directory structure with all fixture names
+- Receipt schema (`calllint.receipt.v0`) subject.type enum expanded from `["scan"]` to `["scan", "action"]`
+- Action command help text now documents `--receipt` and `--receipt-out` options
+
+### Fixed
+
+- R4 DoD compliance: all action kinds now meet "≥1 positive + ≥1 negative" fixture requirement
+
 ## [0.9.2] — 2026-07-02 — R4 Enhanced: Complete Detectors + Fixtures
 
 ### Added

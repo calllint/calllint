@@ -4,10 +4,11 @@
  * ADR 0029: Unified External Action Preflight.
  */
 
-import { readFileSync } from 'node:fs'
+import { readFileSync, writeFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 import { analyzeAction } from '@calllint/action-analyzer'
 import { loadPolicyOrDefault } from '@calllint/policy'
+import { createReceipt } from '@calllint/core'
 import { renderTerminal, renderJson } from '@calllint/report-renderer'
 import type { ActionDescriptor } from '@calllint/action-analyzer'
 import type { CommandResult } from './scan.js'
@@ -16,6 +17,8 @@ import type { Verdict } from '@calllint/types'
 
 interface ActionDeps {
   cwd: string
+  toolVersion?: string
+  generatedAt?: string
 }
 
 export function actionCommand(args: ParsedArgs, deps: ActionDeps): CommandResult {
@@ -76,24 +79,32 @@ function actionInspect(args: ParsedArgs, deps: ActionDeps): CommandResult {
     // Compute verdict based on findings and policy
     const verdict = computeActionVerdict(findings, policy)
 
+    // Build action report (compatible with receipt schema)
+    const actionReport = {
+      schema_version: 'calllint.action-report.v0',
+      verdict,
+      findings,
+      target: {
+        type: 'action',
+        kind: descriptor.kind,
+        schema_version: descriptor.schema_version,
+      },
+      policy_applied: 'default',
+      scan_timestamp: deps.generatedAt || new Date().toISOString(),
+      counts: {
+        SAFE: findings.filter(f => !f.blocker && f.severity !== 'high').length === 0 ? 1 : 0,
+        REVIEW: findings.some(f => f.severity === 'high') ? 1 : 0,
+        BLOCK: findings.some(f => f.blocker || f.severity === 'critical') ? 1 : 0,
+        UNKNOWN: 0,
+      },
+      reports: [{ findings }],
+    }
+
     // Render output
     let stdout = ''
 
     if (args.flags['json']) {
-      // JSON output
-      const report = {
-        schema_version: 'calllint.action-report.v0',
-        verdict,
-        findings,
-        target: {
-          type: 'action',
-          kind: descriptor.kind,
-          schema_version: descriptor.schema_version,
-        },
-        policy_applied: 'default',
-        scan_timestamp: new Date().toISOString(),
-      }
-      stdout = JSON.stringify(report, null, 2)
+      stdout = JSON.stringify(actionReport, null, 2)
     } else {
       // Terminal output (simplified)
       const header = `\n🔍 Action: ${descriptor.kind}\n`
@@ -110,6 +121,14 @@ function actionInspect(args: ParsedArgs, deps: ActionDeps): CommandResult {
       }
 
       stdout = header + body
+    }
+
+    // Receipt generation (opt-in via --receipt)
+    if (args.flags['receipt']) {
+      const receiptError = writeActionReceipt(descriptor, content, actionReport, policy, args, deps)
+      if (receiptError) {
+        return { stdout: '', stderr: receiptError, exitCode: 2 }
+      }
     }
 
     // Exit code: 0 = SAFE, 1 = REVIEW/BLOCK/UNKNOWN
@@ -152,11 +171,14 @@ COMMANDS
 OPTIONS
   --json            Output JSON report
   --policy <file>   Use custom policy file
+  --receipt         Generate a calllint.receipt.v0 file
+  --receipt-out <file>  Receipt output path (default: calllint-action-receipt.json)
   --no-emoji        Disable emoji in output
 
 EXAMPLE
   calllint action inspect payment.json
   calllint action inspect email-reply.json --json
+  calllint action inspect payment.json --receipt
 
 See: https://calllint.com/docs/action-inspect (ADR 0029)
 `
@@ -181,5 +203,44 @@ function computeActionVerdict(findings: any[], policy: any): Verdict {
   }
 
   return 'REVIEW' // Default to REVIEW if there are any findings
+}
+
+/**
+ * Write action receipt to disk (ADR 0028 receipt reuse for actions).
+ */
+function writeActionReceipt(
+  descriptor: ActionDescriptor,
+  rawContent: string,
+  actionReport: any,
+  policy: any,
+  args: ParsedArgs,
+  deps: ActionDeps,
+): string | undefined {
+  const toolVersion = deps.toolVersion ?? '0.0.0-dev'
+  const receipt = createReceipt(
+    {
+      toolVersion,
+      subject: { type: 'action', target: descriptor.kind },
+      inputForHash: rawContent,
+      effectivePolicyForHash: policy ?? { policy: 'default' },
+      scanReport: actionReport,
+      rulesetForHash: { tool: 'calllint', version: toolVersion },
+      networkUsed: false,
+    },
+    deps.generatedAt || new Date().toISOString(),
+  )
+
+  const outPath = resolve(
+    deps.cwd,
+    (args.flags['receipt-out'] as string) ?? 'calllint-action-receipt.json',
+  )
+
+  try {
+    writeFileSync(outPath, JSON.stringify(receipt, null, 2) + '\n', 'utf8')
+  } catch (e) {
+    return `Could not write action receipt to ${outPath}: ${e instanceof Error ? e.message : String(e)}`
+  }
+
+  return undefined
 }
 
