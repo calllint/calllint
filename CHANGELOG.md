@@ -10,6 +10,63 @@ onward. While pre-1.0, minor versions may include breaking changes.
 
 ## [Unreleased]
 
+## [0.10.0] — 2026-07-02 — R5 Design: Provider-Agnostic Agent Inbox Spec
+
+**Design-only release.** Establishes the schema, adapter contract, and fixture corpus
+for normalizing inbox events (email, Slack, Discord) into the unified
+`calllint.agent-inbox-event.v0` format. **Zero runtime code** — no CLI command, no
+SDK, no OAuth/webhook/mailbox/sending. Future adapter implementations validate
+against these fixtures.
+
+### Added
+
+- **Agent Inbox Schema** (`calllint.agent-inbox-event.v0`)
+  - `schemas/agent-inbox-event.schema.json` — normalized inbox event from any provider
+  - Required fields: `schema_version`, `event_type`, `timestamp`, `source`, `normalized_content`
+  - Five `event_type` values: `email.received`, `message.posted`, `mention.detected`,
+    `direct_message.received`, `thread.replied`
+  - Optional `action_candidate` field embeds a `calllint.action.v0` descriptor,
+    enabling inbox events to flow into the R4 action preflight engine
+
+- **Adapter Contract** (`docs/AGENT_INBOX_ADAPTER_CONTRACT.md`)
+  - Transformation rules: provider-specific event → normalized schema
+  - Required field extraction (timestamp, from, to, attachment hashes)
+  - Secret-stripping rules (header keys only, never values)
+  - Error handling (malformed events, missing fields)
+
+- **Usage Guide** (`docs/AGENT_INBOX_PREFLIGHT.md`)
+  - 3-stage chain: normalize → extract `action_candidate` → `calllint action inspect`
+  - Two worked examples: email reply with secret headers → REVIEW verdict;
+    invoice → payment candidate → financial action detected
+  - When to run preflight, out-of-scope list
+
+- **Fixture Corpus** (6 providers × 2 examples = 12 pairs)
+  - Resend, SendGrid, Gmail API, Slack, Discord, SMTP/IMAP
+  - Each provider: 1 clean baseline + 1 `action_candidate` chain
+  - All 5 `event_type` values exercised across corpus
+  - Six `action_candidate` chains proven through R4 analyzer:
+    - 2 surface findings (`secrets.env-key`, `action.financial-observed`)
+    - 4 are clean (SAFE)
+
+- **Test Suite** (`packages/fixtures/test/agent-inbox.test.ts`)
+  - 7 tests: schema invariants, no-secret-leak, raw/normalized pairing,
+    event_type coverage, `action_candidate` structural validity
+  - Asserts ≥12 normalized fixtures, all 5 event_types present, ≥6 candidates
+
+### Design Decision
+
+- **ADR 0030**: Provider-Agnostic Agent Inbox Spec (Proposed)
+  - Reuses `action_candidate` field to embed `calllint.action.v0` descriptors
+  - No new verdict logic, no new risk symbols — inbox events are carriers
+  - Adapter is a pure function (stateless, idempotent, language-agnostic)
+
+### References
+
+- PR #99: R5 schema + adapter contract + initial fixtures (7c649af)
+- PR #101: Expand fixtures to 2/provider + preflight guide (acfc6f7)
+- ADR 0030 (Proposed), ADR 0029 (action_candidate reuse), ADR 0028 (receipt schema)
+- new5 master plan: R5 / v0.10.0 scope
+
 ## [0.9.3] — 2026-07-02 — R4 Complete: Receipt Integration + Full Coverage
 
 ### Added
