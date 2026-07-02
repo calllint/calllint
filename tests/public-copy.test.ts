@@ -8,7 +8,7 @@ const repoRoot = path.resolve(__dirname, "..")
 
 const factsPath = path.join(repoRoot, "project-facts.json")
 const facts = JSON.parse(fs.readFileSync(factsPath, "utf8")) as {
-  corpus: { phase: string; calibratedCases: number; realOrRedactedSnapshots: number; unknownRatio: string }
+  corpus: { phase: string; status: string; calibratedCases: number; realOrRedactedSnapshots: number; unknownRatio: string }
   stableVersion: string
   forbiddenPhrases: string[]
   requiredPhrases: string[]
@@ -75,6 +75,24 @@ describe("public copy guard", () => {
     const site = files.find((f) => f.rel === "apps/web/public/index.html")
     expect(site).toBeTruthy()
     expect(site!.text).toContain(`${facts.corpus.phase} · `)
+  })
+
+  it("website corpus tag agrees with facts on shipped-vs-in-progress status", () => {
+    // The corpus tag drifted to "R2.2 · in progress" while facts said the phase
+    // was "shipped; expansion beyond 60 ongoing" — a status conflict, not just a
+    // number. Bind the tag's shipped/in-progress word to facts so they can't
+    // disagree again. facts.corpus.status begins with "shipped" today.
+    const site = files.find((f) => f.rel === "apps/web/public/index.html")
+    expect(site).toBeTruthy()
+    const shippedInFacts = /^shipped/i.test(facts.corpus.status)
+    if (shippedInFacts) {
+      expect(site!.text, "corpus tag must say 'shipped' when facts.corpus.status is shipped").toMatch(
+        new RegExp(`${facts.corpus.phase}\\s*·\\s*shipped`, "i"),
+      )
+      expect(site!.text, "corpus tag must not say 'in progress' when facts says shipped").not.toMatch(
+        new RegExp(`${facts.corpus.phase}\\s*·\\s*in[ -]?progress`, "i"),
+      )
+    }
   })
 
   it("no public file uses stale `npx calllint@preview|@next scan` commands", () => {
