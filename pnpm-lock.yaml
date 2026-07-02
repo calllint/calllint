@@ -26,6 +26,9 @@ importers:
 
   apps/cli:
     devDependencies:
+      '@calllint/action-analyzer':
+        specifier: workspace:*
+        version: link:../../packages/action-analyzer
       '@calllint/core':
         specifier: workspace:*
         version: link:../../packages/core
@@ -49,6 +52,12 @@ importers:
         version: 0.21.5
 
   apps/web: {}
+
+  packages/action-analyzer:
+    dependencies:
+      '@calllint/types':
+        specifier: workspace:*
+        version: link:../types
 
   packages/calllint-mcp:
     devDependencies:

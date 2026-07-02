@@ -1,0 +1,18 @@
+{
+  "name": "@calllint/action-analyzer",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Action descriptor analyzer for CallLint — inspects planned external actions (email, payment, API mutation) before execution",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "dependencies": {
+    "@calllint/types": "workspace:*"
+  },
+  "devDependencies": {}
+}
