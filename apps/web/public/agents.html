@@ -61,6 +61,14 @@
         <h2>Evidence fields to quote</h2>
         <p class="prose">Every finding carries a stable id, an evidence path into the config, the observed value, the impact, and a remediation. Quote those verbatim — do not invent a different cause.</p>
 
+        <h2>Other preflight surfaces</h2>
+        <p class="prose">The same engine and verdict semantics reach past config scanning to other points where an agent grants authority:</p>
+        <ul>
+          <li><strong>Action preflight</strong> — <code>calllint action inspect &lt;file&gt;</code> evaluates a planned external action (send, mutate, pay) before the agent runs it.</li>
+          <li><strong>Inbox preflight</strong> — <code>calllint inbox inspect &lt;normalized-event&gt;</code> evaluates a normalized agent inbox event by delegating to the action analyzer. It does not poll mailboxes, open attachments, follow links, or send anything.</li>
+          <li><strong>Receipts</strong> — <code>calllint scan … --receipt</code> writes a local, verifiable record derived from a scan; <code>calllint receipt verify</code> checks its structure and, when present, its ed25519 signature. A receipt is a reporting layer, never a second scanner; a signature proves provenance and integrity, not safety.</li>
+        </ul>
+
         <h2>What not to claim</h2>
         <ul>
           <li>Do not say CallLint proves a tool is safe.</li>
