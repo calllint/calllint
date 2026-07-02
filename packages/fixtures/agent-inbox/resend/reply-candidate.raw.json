@@ -1,0 +1,19 @@
+{
+  "type": "email.received",
+  "created_at": "2026-07-02T14:10:22.500Z",
+  "data": {
+    "from": "customer@example.com",
+    "to": ["agent@yourdomain.com"],
+    "subject": "Can you confirm my order?",
+    "html": "<p>Hi, could you confirm order #4521 shipped today?</p>",
+    "text": "Hi, could you confirm order #4521 shipped today?",
+    "headers": {
+      "from": "customer@example.com",
+      "to": "agent@yourdomain.com",
+      "subject": "Can you confirm my order?",
+      "message-id": "<order-4521@mail.example.com>",
+      "date": "Wed, 02 Jul 2026 14:10:22 +0000"
+    },
+    "attachments": []
+  }
+}

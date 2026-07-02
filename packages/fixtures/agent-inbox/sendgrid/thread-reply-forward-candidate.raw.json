@@ -1,0 +1,16 @@
+{
+  "headers": {
+    "from": "partner@vendor.example",
+    "to": "agent@yourdomain.com",
+    "subject": "Re: Q3 contract draft",
+    "in-reply-to": "<contract-q3@mail.yourdomain.com>",
+    "references": "<contract-q3@mail.yourdomain.com>"
+  },
+  "envelope": "{\"to\":[\"agent@yourdomain.com\"],\"from\":\"partner@vendor.example\"}",
+  "from": "partner@vendor.example",
+  "to": "agent@yourdomain.com",
+  "subject": "Re: Q3 contract draft",
+  "text": "Please forward the signed contract to legal@yourdomain.com.",
+  "attachments": "1",
+  "attachment-info": "{\"attachment1\":{\"filename\":\"contract-q3-signed.pdf\",\"type\":\"application/pdf\"}}"
+}

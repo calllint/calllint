@@ -1,0 +1,38 @@
+{
+  "schema_version": "calllint.agent-inbox-event.v0",
+  "event_type": "thread.replied",
+  "timestamp": "2026-07-02T15:20:00Z",
+  "source": {
+    "provider": "sendgrid"
+  },
+  "normalized_content": {
+    "from": "partner@vendor.example",
+    "to": ["agent@yourdomain.com"],
+    "subject_length": 21,
+    "body_length": 59,
+    "has_attachments": true,
+    "attachment_count": 1,
+    "attachment_hashes": ["sha256:3333333333333333333333333333333333333333333333333333333333333333"],
+    "header_keys": ["from", "to", "subject", "in-reply-to", "references"],
+    "thread_id": "<contract-q3@mail.yourdomain.com>"
+  },
+  "action_candidate": {
+    "schema_version": "calllint.action.v0",
+    "kind": "email.forward",
+    "parameters": {
+      "to": ["legal@yourdomain.com"],
+      "forward_from_message_id": "<contract-q3@mail.yourdomain.com>",
+      "subject": "Fwd: Q3 contract draft",
+      "has_attachments": true,
+      "attachment_count": 1
+    },
+    "metadata": {
+      "attachment_hashes": ["sha256:3333333333333333333333333333333333333333333333333333333333333333"],
+      "subject_length": 22,
+      "body_length": 80
+    }
+  },
+  "provenance": {
+    "received_at": "2026-07-02T15:20:00Z"
+  }
+}

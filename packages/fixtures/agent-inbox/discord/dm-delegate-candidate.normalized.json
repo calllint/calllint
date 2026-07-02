@@ -1,0 +1,30 @@
+{
+  "schema_version": "calllint.agent-inbox-event.v0",
+  "event_type": "direct_message.received",
+  "timestamp": "2026-07-02T17:45:12Z",
+  "source": {
+    "provider": "discord"
+  },
+  "normalized_content": {
+    "from": "665544332211009988",
+    "to": ["D998877665544332211"],
+    "body_length": 62,
+    "has_attachments": false,
+    "thread_id": "D998877665544332211"
+  },
+  "action_candidate": {
+    "schema_version": "calllint.action.v0",
+    "kind": "a2a.delegate",
+    "parameters": {
+      "task": "log_analysis",
+      "scope": "read-only"
+    },
+    "metadata": {
+      "delegate_target": "https://analytics-agent.internal.example/process",
+      "delegate_target_verified": true
+    }
+  },
+  "provenance": {
+    "discord_message_id": "223344556677889900"
+  }
+}
