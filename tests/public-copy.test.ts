@@ -8,7 +8,7 @@ const repoRoot = path.resolve(__dirname, "..")
 
 const factsPath = path.join(repoRoot, "project-facts.json")
 const facts = JSON.parse(fs.readFileSync(factsPath, "utf8")) as {
-  corpus: { phase: string; calibratedCases: number; realOrRedactedSnapshots: number; unknownRatio: string }
+  corpus: { phase: string; status: string; calibratedCases: number; realOrRedactedSnapshots: number; unknownRatio: string }
   stableVersion: string
   forbiddenPhrases: string[]
   requiredPhrases: string[]
