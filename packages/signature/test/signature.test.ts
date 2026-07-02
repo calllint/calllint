@@ -133,12 +133,16 @@ describe('@calllint/signature', () => {
       const signature = await signReceipt(unsignedReceipt, keypair)
       const signedReceipt = { ...unsignedReceipt, signature }
 
-      // Tamper with the signature
+      // Tamper with the signature: flip the first char to a DIFFERENT base64url
+      // char so the mutation is always real (a random 'X'-first signature would
+      // otherwise make replace(/^./, 'X') a no-op and flake the assertion).
+      const first = signature.value[0]
+      const flipped = first === 'A' ? 'B' : 'A'
       const tamperedReceipt = {
         ...signedReceipt,
         signature: {
           ...signature,
-          value: signature.value.replace(/^./, 'X'), // change first char
+          value: flipped + signature.value.slice(1),
         },
       }
 
