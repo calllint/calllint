@@ -49,10 +49,10 @@
       "additionalProperties": false,
       "required": ["type"],
       "properties": {
-        "type": { "enum": ["scan"] },
+        "type": { "enum": ["scan", "action"] },
         "target": {
           "type": "string",
-          "description": "Config target label as it already appears in the report. Never an absolute local path."
+          "description": "Config target label (scan) or action kind (action). Never an absolute local path."
         }
       }
     },

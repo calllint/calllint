@@ -1,0 +1,16 @@
+{
+  "schema_version": "calllint.action.v0",
+  "kind": "a2a.delegate",
+  "parameters": {
+    "task": "data_processing",
+    "scope": "read-only"
+  },
+  "metadata": {
+    "delegate_target": "https://agent.example.com/process",
+    "delegate_target_verified": true
+  },
+  "provenance": {
+    "agent_session": "test_session_a2a_003",
+    "timestamp": "2026-07-02T00:00:00Z"
+  }
+}
