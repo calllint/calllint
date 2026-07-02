@@ -126,6 +126,21 @@ describe("public copy guard", () => {
     expect(readme!.text).not.toMatch(/stable\s*`?\d+\.\d+\.x`?\s+line/i)
   })
 
+  it("README status line states the current stable version (not a drifted one)", () => {
+    // The README carries a free-text `Status: X.Y.Z stable CLI release` line that
+    // the version guard above does NOT cover — it drifted to 1.0.0 while npm was
+    // on 1.0.1 (the 1.0.1 release-prep PR bumped package.json/facts/llms but not
+    // this prose line). This guard binds it to project-facts.stableVersion so any
+    // future bump that forgets the README fails CI instead of shipping stale.
+    const readme = files.find((f) => f.rel === "README.md")
+    expect(readme).toBeTruthy()
+    const sv = facts.stableVersion
+    // Find any `Status: <semver> stable ... release` line and assert it is sv.
+    const m = readme!.text.match(/Status:\s*(\d+\.\d+\.\d+(?:-[\w.]+)?)\s+stable[^\n]*release/i)
+    expect(m, "README must have a `Status: <version> stable ... release` line").toBeTruthy()
+    expect(m![1], `README status line states ${m![1]}, but project-facts.stableVersion is ${sv}`).toBe(sv)
+  })
+
   it("homepage provenance copy does not imply the current release is a preview", () => {
     const site = files.find((f) => f.rel === "apps/web/public/index.html")
     expect(site).toBeTruthy()
