@@ -10,6 +10,8 @@ onward. While pre-1.0, minor versions may include breaking changes.
 
 ## [Unreleased]
 
+## [0.8.1] — 2026-07-02 — Online registry surface (邻接校准)
+
 ### Added
 
 - **Registry-metadata prompt surface under `--online` (ADR 0027).** With
