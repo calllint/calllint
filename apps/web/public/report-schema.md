@@ -66,8 +66,8 @@ Use `keyPath` + `observed` to point at the offending surface.
 
 ## Planned fields (not in `calllint.report.v0` today)
 
-These are roadmap items (R4 report enrichment), **not** present in the current
-schema. Do not parse or quote them as if they exist:
+These are roadmap items for a future report-enrichment schema, **not** present
+in the current schema. Do not parse or quote them as if they exist:
 
 - `agentSummary` — a quotable, pre-composed summary block for coding agents.
 - `trustIndicators` — explicit `decisionPath`, `llmInVerdictPath`,

@@ -11,10 +11,14 @@ COMMANDS
 
   Advanced:
   scan [target]      Full ScanReport for an MCP config / npm:<pkg> / github:<repo>
+  action inspect <f>    Preflight a planned external action (calllint.action.v0)
+  inbox inspect <f>     Preflight a normalized agent inbox event
   diagnostics [target]  Emit editor/agent-host diagnostics JSON (calllint.diagnostics.v0)
   baseline [target]  Record the approved risk surface as a baseline
   approve            Record the repo-wide capability surface as approved state (L4)
-  receipt verify <f>    Structurally validate a local calllint.receipt.v0 file
+  receipt verify <f>    Validate a calllint.receipt.v0 (structure + signature if present)
+  receipt sign <f>      Sign a receipt with a local key (--key; development/testing)
+  receipt keygen        Generate a local ed25519 keypair (--out; development/testing)
   gen-rule --host <h>   Emit the CallLint agent-safety rule for a host (CLAUDE.md, etc.)
   policy init        Write a default calllint.policy.json
   policy explain     Show the effective policy
@@ -63,6 +67,8 @@ EXAMPLES
   calllint scan .cursor/mcp.json --markdown
   calllint scan .cursor/mcp.json --badge > calllint-badge.json
   calllint scan .cursor/mcp.json --receipt && calllint receipt verify calllint-receipt.json
+  calllint action inspect payment.json
+  calllint inbox inspect gmail-reply.normalized.json
   calllint verify ./mcp.json --ci
   calllint approve && calllint verify --approved --ci
   calllint explain filesystem

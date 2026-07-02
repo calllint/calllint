@@ -157,6 +157,32 @@ See CallLint running in CI on a deliberately risky config —
 [`calllint-demo-risky-mcp`](https://github.com/calllint/calllint-demo-risky-mcp)
 publishes one Code Scanning alert per finding on every push.
 
+## Beyond config scanning
+
+The same engine and verdict semantics extend past MCP-config scanning to other
+points where an agent grants authority:
+
+```bash
+# Preflight a planned external action before the agent runs it
+calllint action inspect payment.json          # calllint.action.v0 descriptor
+calllint action inspect email-reply.json --json
+
+# Preflight a normalized agent inbox event (delegates to the action analyzer)
+calllint inbox inspect gmail-reply.normalized.json
+
+# Record a scan as a local, verifiable receipt, then validate it later
+calllint scan ./mcp.json --receipt            # writes calllint-receipt.json
+calllint receipt verify calllint-receipt.json
+```
+
+Receipts (`calllint.receipt.v0`) are a reporting layer derived from a scan —
+they prove which CallLint version produced which verdict over which input under
+which policy. They are not a second scanner and never re-judge a verdict. A
+receipt can carry an optional ed25519 signature; `receipt keygen` / `receipt
+sign` generate and sign one locally for development, and `receipt verify`
+checks the signature when present (offline, with `--public-key`). A signature
+proves provenance and integrity — never safety.
+
 ## Run CallLint as an MCP server (`calllint-mcp`)
 
 CallLint also ships as its own MCP server, so an agent can run the preflight
