@@ -10,6 +10,16 @@ onward. While pre-1.0, minor versions may include breaking changes.
 
 ## [Unreleased]
 
+### Added (R5 Runtime / v0.10.1)
+- `calllint inbox inspect <normalized-event.json>` command (ADR 0031)
+  - Reads normalized agent inbox events (`calllint.agent-inbox-event.v0`)
+  - Extracts optional `action_candidate` field
+  - Delegates to R4 action analyzer for verdict + findings
+  - Supports `--receipt` / `--receipt-out` flags (reuses ADR 0028 receipt schema)
+  - Tested against all 12 fixture pairs (6 providers × 2 examples)
+- Composition layer only: NO OAuth, NO provider SDKs, NO webhook server, NO mailbox polling
+- Closes the inbox → action preflight loop (R5 design → R5 runtime)
+
 ## [0.10.0] — 2026-07-02 — R5 Design: Provider-Agnostic Agent Inbox Spec
 
 **Design-only release.** Establishes the schema, adapter contract, and fixture corpus
