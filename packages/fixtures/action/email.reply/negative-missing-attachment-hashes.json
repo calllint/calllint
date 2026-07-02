@@ -1,0 +1,19 @@
+{
+  "schema_version": "calllint.action.v0",
+  "kind": "email.reply",
+  "parameters": {
+    "to": ["recipient@example.com"],
+    "reply_to_message_id": "<xyz789@mail.example.com>",
+    "subject": "Re: Attachment needed",
+    "has_attachments": true,
+    "attachment_count": 2
+  },
+  "metadata": {
+    "subject_length": 23,
+    "body_length": 200
+  },
+  "provenance": {
+    "agent_session": "test_session_002",
+    "timestamp": "2026-07-02T00:00:00Z"
+  }
+}

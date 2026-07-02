@@ -1,0 +1,16 @@
+{
+  "schema_version": "calllint.action.v0",
+  "kind": "message.post",
+  "parameters": {
+    "channel": "#general",
+    "text": "Task completed successfully"
+  },
+  "metadata": {
+    "header_keys": ["Content-Type"],
+    "body_length": 28
+  },
+  "provenance": {
+    "agent_session": "test_session_007",
+    "timestamp": "2026-07-02T00:00:00Z"
+  }
+}

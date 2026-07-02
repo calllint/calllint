@@ -1,0 +1,15 @@
+{
+  "schema_version": "calllint.action.v0",
+  "kind": "a2a.delegate",
+  "parameters": {
+    "task": "process_invoice",
+    "context": "invoice_data"
+  },
+  "metadata": {
+    "delegate_target": "http://insecure-agent.example.com/api"
+  },
+  "provenance": {
+    "agent_session": "test_session_005",
+    "timestamp": "2026-07-02T00:00:00Z"
+  }
+}

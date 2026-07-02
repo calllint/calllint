@@ -1,0 +1,18 @@
+{
+  "schema_version": "calllint.action.v0",
+  "kind": "payment.authorize",
+  "parameters": {
+    "recipient": "merchant-xyz",
+    "amount": 99.99,
+    "currency": "USD"
+  },
+  "metadata": {
+    "amount": 99.99,
+    "currency": "USD",
+    "recipient_account_hash": "sha256:abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890"
+  },
+  "provenance": {
+    "agent_session": "test_session_004",
+    "timestamp": "2026-07-02T00:00:00Z"
+  }
+}
