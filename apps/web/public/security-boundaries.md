@@ -27,7 +27,7 @@ Use CallLint before execution. Pair it with least-privilege tokens, code
 review, sandboxing, and runtime controls. Treat `REVIEW` and `BLOCK` as the
 start of a review, and never treat `UNKNOWN` as `SAFE`.
 
-CallLint is pre-1.0 and offers heuristic decision support, not
+CallLint offers heuristic decision support, not
 a safety guarantee.
 
 See also the full project docs:
