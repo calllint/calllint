@@ -44,6 +44,9 @@ importers:
       '@calllint/report-renderer':
         specifier: workspace:*
         version: link:../../packages/report-renderer
+      '@calllint/signature':
+        specifier: workspace:*
+        version: link:../../packages/signature
       '@calllint/types':
         specifier: workspace:*
         version: link:../../packages/types
