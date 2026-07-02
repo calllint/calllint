@@ -118,6 +118,18 @@ importers:
         specifier: workspace:*
         version: link:../fixtures
 
+  packages/credits:
+    devDependencies:
+      '@types/node':
+        specifier: ^20.12.7
+        version: 20.19.43
+      typescript:
+        specifier: ^5.4.5
+        version: 5.9.3
+      vitest:
+        specifier: ^1.5.0
+        version: 1.6.1(@types/node@20.19.43)
+
   packages/fingerprint:
     dependencies:
       '@calllint/types':
