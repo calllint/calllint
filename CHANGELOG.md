@@ -10,6 +10,8 @@ onward. While pre-1.0, minor versions may include breaking changes.
 
 ## [Unreleased]
 
+## [0.9.3] — 2026-07-02 — R4 Complete: Receipt Integration + Full Coverage
+
 ### Added
 
 - **R4 Complete: Action receipt generation** via `calllint action inspect --receipt`
