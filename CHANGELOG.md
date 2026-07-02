@@ -10,7 +10,7 @@ onward. While pre-1.0, minor versions may include breaking changes.
 
 ## [Unreleased]
 
-### Added (R5 Runtime / v0.10.1)
+## [0.10.1] — 2026-07-02 — R5 Runtime: Agent Inbox Inspect
 - `calllint inbox inspect <normalized-event.json>` command (ADR 0031)
   - Reads normalized agent inbox events (`calllint.agent-inbox-event.v0`)
   - Extracts optional `action_candidate` field
