@@ -10,6 +10,25 @@ onward. While pre-1.0, minor versions may include breaking changes.
 
 ## [Unreleased]
 
+## [1.0.1] — 2026-07-02 — Fix: synchronous receipt signing
+
+### Fixed
+
+- **`receipt keygen` / `sign` / signed `verify` no longer hang.** The R6 CLI
+  bridged async ed25519 calls to the synchronous command layer with a
+  busy-wait spin loop, which starved the event loop so the crypto Promise
+  could never resolve — these commands hit their 5s timeout 100% of the time
+  in 1.0.0. ed25519 over a fixed 32-byte hash is a pure CPU operation with no
+  I/O, so `@calllint/signature` is now fully synchronous (`@noble/ed25519`
+  sync API backed by Node's `crypto` sha512) and the CLI calls it directly.
+  No receipt schema change (ADR 0032); implementation-only fix.
+
+### Added
+
+- E2E coverage for the signing flow (`keygen → sign → verify`, tamper
+  detection, missing-key, double-sign) using a real child process, plus
+  synchronous-contract guards in the signature unit tests.
+
 ## [1.0.0] — 2026-07-02 — R6: Cloud Signed Receipt Infrastructure
 
 **First 1.0 release.** Activates the signature infrastructure for CallLint receipts,

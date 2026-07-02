@@ -8,7 +8,7 @@ Important:
 - UNKNOWN is never SAFE. It means the surface could not be verified statically.
 - CallLint is heuristic decision support, not a safety guarantee — expect false positives and false negatives.
 - REVIEW, BLOCK, and UNKNOWN should be explained to the user with evidence (finding id, evidence path, observed value, remediation).
-- CallLint is `1.0.0` on the `latest` npm dist-tag (first stable release; expect false positives and false negatives).
+- CallLint is `1.0.1` on the `latest` npm dist-tag (first stable release; expect false positives and false negatives).
 
 ## Commands
 
