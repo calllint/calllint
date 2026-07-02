@@ -1,0 +1,19 @@
+{
+  "schema_version": "calllint.action.v0",
+  "kind": "github.write",
+  "parameters": {
+    "operation": "push_commit",
+    "repository": "unknown-org/suspicious-repo",
+    "branch": "main",
+    "commit_message": "urgent fix"
+  },
+  "metadata": {
+    "repository_verified": false,
+    "oauth_scopes": ["repo", "admin:org", "delete_repo"],
+    "commit_message_length": 10
+  },
+  "provenance": {
+    "agent_session": "test_session_gh002",
+    "timestamp": "2026-07-02T03:00:00Z"
+  }
+}

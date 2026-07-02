@@ -1,0 +1,25 @@
+{
+  "schema_version": "calllint.action.v0",
+  "kind": "cloud.modify",
+  "parameters": {
+    "provider": "aws",
+    "operation": "modify_security_group",
+    "resource_type": "security_group",
+    "resource_id": "sg-12345"
+  },
+  "metadata": {
+    "rule_changes": [
+      {
+        "type": "ingress",
+        "protocol": "tcp",
+        "port_range": "0-65535",
+        "source": "0.0.0.0/0"
+      }
+    ],
+    "opens_all_ports": true
+  },
+  "provenance": {
+    "agent_session": "test_session_cloud002",
+    "timestamp": "2026-07-02T03:00:00Z"
+  }
+}

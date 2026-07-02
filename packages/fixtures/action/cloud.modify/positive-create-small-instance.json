@@ -1,0 +1,21 @@
+{
+  "schema_version": "calllint.action.v0",
+  "kind": "cloud.modify",
+  "parameters": {
+    "provider": "aws",
+    "operation": "create_instance",
+    "resource_type": "ec2",
+    "region": "us-east-1"
+  },
+  "metadata": {
+    "instance_type": "t2.micro",
+    "estimated_monthly_cost": 8.5,
+    "spot_instance": false,
+    "auto_termination": true,
+    "termination_hours": 24
+  },
+  "provenance": {
+    "agent_session": "test_session_cloud001",
+    "timestamp": "2026-07-02T03:00:00Z"
+  }
+}

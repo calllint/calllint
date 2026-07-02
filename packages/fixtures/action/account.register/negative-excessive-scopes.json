@@ -1,0 +1,19 @@
+{
+  "schema_version": "calllint.action.v0",
+  "kind": "account.register",
+  "parameters": {
+    "service": "trusted-api.com",
+    "email": "user@example.com",
+    "username": "normal_user"
+  },
+  "metadata": {
+    "service_verified": true,
+    "email_verified": true,
+    "oauth_scopes": ["profile", "email", "repo", "admin", "delete_account", "financial_data"],
+    "excessive_scopes": true
+  },
+  "provenance": {
+    "agent_session": "test_session_acct003",
+    "timestamp": "2026-07-02T03:00:00Z"
+  }
+}

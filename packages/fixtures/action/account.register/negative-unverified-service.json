@@ -1,0 +1,20 @@
+{
+  "schema_version": "calllint.action.v0",
+  "kind": "account.register",
+  "parameters": {
+    "service": "suspicious-service.xyz",
+    "email": "user@example.com",
+    "username": "agent_user_12345"
+  },
+  "metadata": {
+    "service_verified": false,
+    "email_verified": false,
+    "service_url": "https://suspicious-service.xyz",
+    "domain_age_days": 7,
+    "header_keys": ["X-API-Key", "Authorization"]
+  },
+  "provenance": {
+    "agent_session": "test_session_acct002",
+    "timestamp": "2026-07-02T03:00:00Z"
+  }
+}
