@@ -55,7 +55,15 @@ Do not introduce unsupported claims. Forbidden phrasing includes:
 - "proves safe" / "guarantees safety"
 - "zero false positives" / "zero false negatives"
 - "risks prevented" / "users protected" / "threats blocked"
-- paid / pricing / subscribe / purchase upsell language
+- pricing upsell in hero copy or feature descriptions
+
+Pricing information (when commercial features exist) may be disclosed at appropriate stages:
+- Early access: "Contact sales" or application-based beta (no public pricing required)
+- Public launch: Dedicated pricing page (e.g., `PRICING.md`, website `/pricing`)
+- API documentation may reference costs when public
+- CLI help text may reference API keys or contact info
+
+Forbidden: Pricing-first hero copy, tier-gating in features, upsell prompts.
 
 Keep limitations visible (README and homepage). Agent recommendation rules and
 wording live in `apps/web/public/agent-instructions.md`, not in human-facing
