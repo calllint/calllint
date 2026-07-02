@@ -10,6 +10,32 @@ onward. While pre-1.0, minor versions may include breaking changes.
 
 ## [Unreleased]
 
+## [0.9.1] — 2026-07-02 — R4 Runtime: Action Inspect Command
+
+### Added
+
+- **`calllint action inspect` — Unified External Action Preflight (R4 runtime, ADR 0029).**
+  Inspect planned external actions before execution. Takes a `calllint.action.v0` JSON
+  descriptor and returns SAFE / REVIEW / BLOCK / UNKNOWN with findings, applying the same
+  risk symbols (PROMPT / SUPPLY / FILES / NETWORK / EXEC / ACTION / MONEY / SECRETS) and
+  verdict engine as MCP scans. Supports 9 action kinds: `email.reply`, `email.forward`,
+  `message.post`, `a2a.delegate`, `payment.authorize`, `account.register`, `github.write`,
+  `npm.publish`, `cloud.modify`. Implemented detectors: `action.unverified-attachment`
+  (email attachments without SHA-256 hashes), `action.missing-delegate-target` (a2a
+  delegation without target), `action.insecure-delegate-target` (HTTP not HTTPS),
+  `action.financial-observed` (payment with monetary amount), `secrets.env-key`
+  (secret-shaped header keys). Terminal and JSON output modes. Policy support via
+  `--policy`. See ADR 0029.
+
+**Usage:**
+```bash
+calllint action inspect payment.json
+calllint action inspect email-reply.json --json
+calllint action help
+```
+
+**Package:** New `@calllint/action-analyzer` package implements the core analysis logic.
+
 ## [0.9.0] — 2026-07-02 — R4 Design Checkpoint (Unified External Action Preflight)
 
 ### Added (Design-only, no runtime implementation)
