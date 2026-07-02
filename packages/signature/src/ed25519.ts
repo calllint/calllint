@@ -3,10 +3,23 @@
  * @packageDocumentation
  */
 
+import { createHash } from 'node:crypto'
 import * as ed25519 from '@noble/ed25519'
 import { sha256, stableStringify } from '@calllint/fingerprint'
 import { base64urlEncode, base64urlDecode } from './base64url.js'
 import type { Ed25519Keypair, SignatureMetadata, VerificationResult } from './types.js'
+
+// ed25519 signing/verification is a pure CPU operation over a fixed 32-byte
+// hash — there is no I/O to await. @noble/ed25519 exposes a fully synchronous
+// API once a synchronous sha512 is supplied; we back it with Node's crypto.
+// Keeping these calls synchronous is deliberate: the CLI command layer is
+// synchronous (run() returns a CommandResult), so an async crypto API there
+// forced a busy-wait that deadlocked the event loop. See ADR 0032.
+ed25519.etc.sha512Sync = (...messages: Uint8Array[]): Uint8Array => {
+  const hash = createHash('sha512')
+  hash.update(ed25519.etc.concatBytes(...messages))
+  return new Uint8Array(hash.digest())
+}
 
 /**
  * Generate a new ed25519 keypair for testing/development
@@ -14,9 +27,9 @@ import type { Ed25519Keypair, SignatureMetadata, VerificationResult } from './ty
  * @param keyId - Key identifier (e.g., "calllint-dev-2026-h2")
  * @returns Ed25519 keypair
  */
-export async function generateKeypair(keyId: string): Promise<Ed25519Keypair> {
+export function generateKeypair(keyId: string): Ed25519Keypair {
   const privateKey = ed25519.utils.randomPrivateKey()
-  const publicKey = await ed25519.getPublicKeyAsync(privateKey)
+  const publicKey = ed25519.getPublicKey(privateKey)
 
   return {
     privateKey,
@@ -32,10 +45,10 @@ export async function generateKeypair(keyId: string): Promise<Ed25519Keypair> {
  * @param keypair - Ed25519 keypair
  * @returns Signature metadata to attach to receipt
  */
-export async function signReceipt(
+export function signReceipt(
   unsignedReceipt: Record<string, unknown>,
   keypair: Ed25519Keypair
-): Promise<SignatureMetadata> {
+): SignatureMetadata {
   // 1. Canonical JSON serialization (same as receipt hashing in ADR 0028)
   const canonical = stableStringify(unsignedReceipt)
 
@@ -47,7 +60,7 @@ export async function signReceipt(
   const hashBytes = Buffer.from(hashHex, 'hex') // 32 bytes
 
   // 4. Sign the hash with ed25519
-  const signatureBytes = await ed25519.signAsync(hashBytes, keypair.privateKey)
+  const signatureBytes = ed25519.sign(hashBytes, keypair.privateKey)
 
   // 5. Encode signature as base64url
   const signatureBase64url = base64urlEncode(signatureBytes)
@@ -67,10 +80,10 @@ export async function signReceipt(
  * @param publicKey - Ed25519 public key (32 bytes) or base64url string
  * @returns Verification result
  */
-export async function verifyReceipt(
+export function verifyReceipt(
   signedReceipt: Record<string, unknown>,
   publicKey: Uint8Array | string
-): Promise<VerificationResult> {
+): VerificationResult {
   try {
     // Extract signature metadata
     const sig = signedReceipt.signature as SignatureMetadata | undefined
@@ -107,7 +120,7 @@ export async function verifyReceipt(
     const hashBytes = Buffer.from(hashHex, 'hex')
 
     // Verify signature
-    const valid = await ed25519.verifyAsync(signatureBytes, hashBytes, publicKeyBytes)
+    const valid = ed25519.verify(signatureBytes, hashBytes, publicKeyBytes)
 
     return { valid, key_id: sig.key_id }
   } catch (error) {

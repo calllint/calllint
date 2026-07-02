@@ -23,6 +23,10 @@ export interface ReceiptDeps {
  * - verify <file>: Validate receipt structure and signature (if present)
  * - sign <receipt> --key <keyfile>: Sign a receipt locally (dev/test only)
  * - keygen --out <file>: Generate a test ed25519 keypair (dev/test only)
+ *
+ * All crypto here is synchronous (a pure CPU op over a fixed 32-byte hash), so
+ * this command — like every other CallLint command — is a synchronous function
+ * returning a CommandResult. See ADR 0032 and @calllint/signature.
  */
 export function receiptCommand(args: ParsedArgs, deps: ReceiptDeps): CommandResult {
   const sub = args.positionals[0]
@@ -111,64 +115,7 @@ function receiptVerify(args: ParsedArgs, deps: ReceiptDeps): CommandResult {
 
   // Step 2: Cryptographic validation (if signature present)
   if (receipt.signature) {
-    // Run async verification synchronously by blocking
-    let cryptoResult: Awaited<ReturnType<typeof verifyReceiptCrypto>> | null = null
-    let errorMsg: string | null = null
-
-    try {
-      // Block on the async call
-      const promise = verifySignature(receipt, args)
-      // Use a simple blocking pattern - wait for promise to resolve
-      let done = false
-      promise.then(
-        (r) => {
-          cryptoResult = r
-          done = true
-        },
-        (e) => {
-          errorMsg = e instanceof Error ? e.message : String(e)
-          done = true
-        }
-      )
-
-      // Busy wait (not ideal but keeps run() synchronous)
-      const start = Date.now()
-      while (!done && Date.now() - start < 5000) {
-        // spin
-      }
-
-      if (!done) {
-        return {
-          stdout: "",
-          stderr: "Signature verification timed out",
-          exitCode: EXIT.ERROR,
-        }
-      }
-
-      if (errorMsg) {
-        return {
-          stdout: "",
-          stderr: `Signature verification failed: ${errorMsg}`,
-          exitCode: EXIT.ERROR,
-        }
-      }
-
-      if (!cryptoResult) {
-        return {
-          stdout: "",
-          stderr: "Signature verification failed (no result)",
-          exitCode: EXIT.ERROR,
-        }
-      }
-
-      return formatVerifyResult(receipt, cryptoResult, args)
-    } catch (e) {
-      return {
-        stdout: "",
-        stderr: `Signature verification error: ${e instanceof Error ? e.message : String(e)}`,
-        exitCode: EXIT.ERROR,
-      }
-    }
+    return verifySignature(receipt, args, deps)
   }
 
   // No signature: valid unsigned receipt
@@ -200,52 +147,49 @@ function receiptVerify(args: ParsedArgs, deps: ReceiptDeps): CommandResult {
 }
 
 /**
- * Verify signature cryptographically
+ * Verify a signed receipt's ed25519 signature and format the result.
+ *
+ * The public key must be supplied locally via `--public-key <keyfile>` (a JSON
+ * file with a base64url `public_key`). Fetching keys from a `public_key_url`
+ * over the network is intentionally out of scope here — CallLint verification
+ * stays offline (ADR 0032 §5.3).
  */
-async function verifySignature(
-  receipt: CallLintReceipt,
-  args: ParsedArgs
-): Promise<{ valid: boolean; key_id?: string; error?: string }> {
+function verifySignature(receipt: CallLintReceipt, args: ParsedArgs, deps: ReceiptDeps): CommandResult {
   const sig = receipt.signature!
+  const publicKeyUrl = sig.public_key_url || "https://calllint.com/.well-known/receipt-keys.json"
 
-  // Fetch public key from signature.public_key_url or default
-  const publicKeyUrl =
-    sig.public_key_url || "https://calllint.com/.well-known/receipt-keys.json"
-
-  let publicKey: Uint8Array | string
-
-  // For local/dev receipts, try to read public key from --public-key flag
   const publicKeyFlag = args.flags["public-key"]
-  if (publicKeyFlag && typeof publicKeyFlag === "string") {
-    try {
-      const keyJson = JSON.parse(readFileSync(publicKeyFlag, "utf8"))
-      publicKey = keyJson.public_key as string
-    } catch (e) {
-      throw new Error(
-        `Could not read public key from ${publicKeyFlag}: ${e instanceof Error ? e.message : String(e)}`
-      )
+  if (!publicKeyFlag || typeof publicKeyFlag !== "string") {
+    return {
+      stdout: "",
+      stderr: [
+        "Receipt has a signature but no public key was provided.",
+        `  Signature key_id: ${sig.key_id}`,
+        `  Public key URL:   ${publicKeyUrl}`,
+        "",
+        "Verify offline by passing the public key:",
+        "  calllint receipt verify <receipt.json> --public-key <keyfile>",
+      ].join("\n"),
+      exitCode: EXIT.ERROR,
     }
-  } else {
-    // For cloud receipts, would fetch from public_key_url
-    // For now, return error asking for --public-key flag
-    throw new Error(
-      `Receipt has signature but public key not available.\n` +
-        `Signature key_id: ${sig.key_id}\n` +
-        `Public key URL: ${publicKeyUrl}\n\n` +
-        `To verify locally, provide public key with --public-key <keyfile>\n` +
-        `Example: calllint receipt verify receipt.json --public-key dev-key.json`
-    )
   }
 
-  return await verifyReceiptCrypto(receipt as any, publicKey)
-}
+  let publicKey: string
+  try {
+    const keyJson = JSON.parse(readFileSync(resolve(deps.cwd, publicKeyFlag), "utf8"))
+    publicKey = keyJson.public_key as string
+    if (typeof publicKey !== "string") {
+      throw new Error("key file has no string 'public_key' field")
+    }
+  } catch (e) {
+    return {
+      stdout: "",
+      stderr: `Could not read public key from ${publicKeyFlag}: ${e instanceof Error ? e.message : String(e)}`,
+      exitCode: EXIT.ERROR,
+    }
+  }
 
-function formatVerifyResult(
-  receipt: CallLintReceipt,
-  cryptoResult: { valid: boolean; key_id?: string; error?: string },
-  args: ParsedArgs
-): CommandResult {
-  const sig = receipt.signature!
+  const cryptoResult = verifyReceiptCrypto(receipt as unknown as Record<string, unknown>, publicKey)
 
   if (flagBool(args.flags, "json")) {
     return {
@@ -316,24 +260,13 @@ function receiptSign(args: ParsedArgs, deps: ReceiptDeps): CommandResult {
   }
 
   // Read receipt
-  let receiptRaw: string
+  let unsignedReceipt: Record<string, unknown>
   try {
-    receiptRaw = readFileSync(resolve(deps.cwd, receiptFile), "utf8")
+    unsignedReceipt = JSON.parse(readFileSync(resolve(deps.cwd, receiptFile), "utf8"))
   } catch (e) {
     return {
       stdout: "",
       stderr: `Could not read receipt ${receiptFile}: ${e instanceof Error ? e.message : String(e)}`,
-      exitCode: EXIT.ERROR,
-    }
-  }
-
-  let unsignedReceipt: any
-  try {
-    unsignedReceipt = JSON.parse(receiptRaw)
-  } catch (e) {
-    return {
-      stdout: "",
-      stderr: `Receipt is not valid JSON: ${e instanceof Error ? e.message : String(e)}`,
       exitCode: EXIT.ERROR,
     }
   }
@@ -347,10 +280,10 @@ function receiptSign(args: ParsedArgs, deps: ReceiptDeps): CommandResult {
   }
 
   // Read keypair
-  let keyJson: any
+  let keypair: ReturnType<typeof importKeypair>
   try {
-    const keyRaw = readFileSync(resolve(deps.cwd, keyFile), "utf8")
-    keyJson = JSON.parse(keyRaw)
+    const keyJson = JSON.parse(readFileSync(resolve(deps.cwd, keyFile), "utf8"))
+    keypair = importKeypair(keyJson)
   } catch (e) {
     return {
       stdout: "",
@@ -359,67 +292,10 @@ function receiptSign(args: ParsedArgs, deps: ReceiptDeps): CommandResult {
     }
   }
 
-  let keypair: ReturnType<typeof importKeypair>
   try {
-    keypair = importKeypair(keyJson)
-  } catch (e) {
-    return {
-      stdout: "",
-      stderr: `Invalid keypair format: ${e instanceof Error ? e.message : String(e)}`,
-      exitCode: EXIT.ERROR,
-    }
-  }
-
-  // Sign synchronously by blocking
-  let signature: any = null
-  let errorMsg: string | null = null
-
-  const promise = signReceiptCrypto(unsignedReceipt, keypair)
-  let done = false
-  promise.then(
-    (sig: any) => {
-      signature = sig
-      done = true
-    },
-    (e: any) => {
-      errorMsg = e instanceof Error ? e.message : String(e)
-      done = true
-    }
-  )
-
-  const start = Date.now()
-  while (!done && Date.now() - start < 5000) {
-    // busy wait
-  }
-
-  if (!done) {
-    return {
-      stdout: "",
-      stderr: "Signing timed out",
-      exitCode: EXIT.ERROR,
-    }
-  }
-
-  if (errorMsg) {
-    return {
-      stdout: "",
-      stderr: `Signing failed: ${errorMsg}`,
-      exitCode: EXIT.ERROR,
-    }
-  }
-
-  if (!signature) {
-    return {
-      stdout: "",
-      stderr: "Signing failed (no result)",
-      exitCode: EXIT.ERROR,
-    }
-  }
-
-  try {
+    const signature = signReceiptCrypto(unsignedReceipt, keypair)
     const signedReceipt = { ...unsignedReceipt, signature }
-    const outPath = resolve(deps.cwd, outFile)
-    writeFileSync(outPath, JSON.stringify(signedReceipt, null, 2) + "\n", "utf8")
+    writeFileSync(resolve(deps.cwd, outFile), JSON.stringify(signedReceipt, null, 2) + "\n", "utf8")
 
     const stdout = [
       "✓ Receipt signed successfully",
@@ -432,7 +308,7 @@ function receiptSign(args: ParsedArgs, deps: ReceiptDeps): CommandResult {
   } catch (e) {
     return {
       stdout: "",
-      stderr: `Failed to write signed receipt: ${e instanceof Error ? e.message : String(e)}`,
+      stderr: `Signing failed: ${e instanceof Error ? e.message : String(e)}`,
       exitCode: EXIT.ERROR,
     }
   }
@@ -461,56 +337,10 @@ function receiptKeygen(args: ParsedArgs, deps: ReceiptDeps): CommandResult {
 
   const keyId = ((args.flags["key-id"] as string | undefined) || "calllint-dev-2026-h2") as string
 
-  // Generate synchronously by blocking
-  let keypair: any = null
-  let errorMsg: string | null = null
-
-  const promise = generateKeypair(keyId)
-  let done = false
-  promise.then(
-    (kp: any) => {
-      keypair = kp
-      done = true
-    },
-    (e: any) => {
-      errorMsg = e instanceof Error ? e.message : String(e)
-      done = true
-    }
-  )
-
-  const start = Date.now()
-  while (!done && Date.now() - start < 5000) {
-    // busy wait
-  }
-
-  if (!done) {
-    return {
-      stdout: "",
-      stderr: "Keygen timed out",
-      exitCode: EXIT.ERROR,
-    }
-  }
-
-  if (errorMsg) {
-    return {
-      stdout: "",
-      stderr: `Keygen failed: ${errorMsg}`,
-      exitCode: EXIT.ERROR,
-    }
-  }
-
-  if (!keypair) {
-    return {
-      stdout: "",
-      stderr: "Keygen failed (no result)",
-      exitCode: EXIT.ERROR,
-    }
-  }
-
   try {
+    const keypair = generateKeypair(keyId)
     const exported = exportKeypair(keypair)
-    const outPath = resolve(deps.cwd, outFile)
-    writeFileSync(outPath, JSON.stringify(exported, null, 2) + "\n", "utf8")
+    writeFileSync(resolve(deps.cwd, outFile), JSON.stringify(exported, null, 2) + "\n", "utf8")
 
     const stdout = [
       "✓ Keypair generated successfully",
@@ -524,7 +354,7 @@ function receiptKeygen(args: ParsedArgs, deps: ReceiptDeps): CommandResult {
   } catch (e) {
     return {
       stdout: "",
-      stderr: `Failed to write keypair: ${e instanceof Error ? e.message : String(e)}`,
+      stderr: `Keygen failed: ${e instanceof Error ? e.message : String(e)}`,
       exitCode: EXIT.ERROR,
     }
   }

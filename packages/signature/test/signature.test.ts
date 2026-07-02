@@ -30,7 +30,7 @@ describe('@calllint/signature', () => {
 
   describe('keypair generation', () => {
     test('generates valid keypair', async () => {
-      const keypair = await generateKeypair('calllint-test-2026-h2')
+      const keypair = generateKeypair('calllint-test-2026-h2')
 
       expect(keypair.keyId).toBe('calllint-test-2026-h2')
       expect(keypair.privateKey).toHaveLength(32)
@@ -38,8 +38,8 @@ describe('@calllint/signature', () => {
     })
 
     test('generates different keypairs each time', async () => {
-      const kp1 = await generateKeypair('test-1')
-      const kp2 = await generateKeypair('test-2')
+      const kp1 = generateKeypair('test-1')
+      const kp2 = generateKeypair('test-2')
 
       expect(kp1.privateKey).not.toEqual(kp2.privateKey)
       expect(kp1.publicKey).not.toEqual(kp2.publicKey)
@@ -48,7 +48,7 @@ describe('@calllint/signature', () => {
 
   describe('keypair export/import', () => {
     test('exports and imports round-trip', async () => {
-      const original = await generateKeypair('calllint-dev-2026-h2')
+      const original = generateKeypair('calllint-dev-2026-h2')
       const exported = exportKeypair(original)
       const imported = importKeypair(exported)
 
@@ -58,7 +58,7 @@ describe('@calllint/signature', () => {
     })
 
     test('exported format matches schema', async () => {
-      const keypair = await generateKeypair('calllint-prod-2026-h2')
+      const keypair = generateKeypair('calllint-prod-2026-h2')
       const exported = exportKeypair(keypair)
 
       expect(exported).toHaveProperty('key_id', 'calllint-prod-2026-h2')
@@ -76,7 +76,7 @@ describe('@calllint/signature', () => {
 
   describe('receipt signing and verification', () => {
     test('sign and verify round-trip', async () => {
-      const keypair = await generateKeypair('calllint-test-2026-h2')
+      const keypair = generateKeypair('calllint-test-2026-h2')
       const unsignedReceipt = {
         schema_version: 'calllint.receipt.v0',
         receipt_id: 'clrec_test123',
@@ -89,10 +89,10 @@ describe('@calllint/signature', () => {
         },
       }
 
-      const signature = await signReceipt(unsignedReceipt, keypair)
+      const signature = signReceipt(unsignedReceipt, keypair)
       const signedReceipt = { ...unsignedReceipt, signature }
 
-      const result = await verifyReceipt(signedReceipt, keypair.publicKey)
+      const result = verifyReceipt(signedReceipt, keypair.publicKey)
 
       expect(result.valid).toBe(true)
       expect(result.key_id).toBe('calllint-test-2026-h2')
@@ -100,10 +100,10 @@ describe('@calllint/signature', () => {
     })
 
     test('signature matches expected format', async () => {
-      const keypair = await generateKeypair('calllint-prod-2026-h2')
+      const keypair = generateKeypair('calllint-prod-2026-h2')
       const unsignedReceipt = { test: 'data' }
 
-      const signature = await signReceipt(unsignedReceipt, keypair)
+      const signature = signReceipt(unsignedReceipt, keypair)
 
       expect(signature.algorithm).toBe('ed25519')
       expect(signature.key_id).toBe('calllint-prod-2026-h2')
@@ -112,25 +112,25 @@ describe('@calllint/signature', () => {
     })
 
     test('detects tampered receipt', async () => {
-      const keypair = await generateKeypair('calllint-test-2026-h2')
+      const keypair = generateKeypair('calllint-test-2026-h2')
       const unsignedReceipt = { verdict: 'SAFE', data: 'original' }
 
-      const signature = await signReceipt(unsignedReceipt, keypair)
+      const signature = signReceipt(unsignedReceipt, keypair)
       const signedReceipt = { ...unsignedReceipt, signature }
 
       // Tamper with the receipt
       const tamperedReceipt = { ...signedReceipt, verdict: 'BLOCK' }
 
-      const result = await verifyReceipt(tamperedReceipt, keypair.publicKey)
+      const result = verifyReceipt(tamperedReceipt, keypair.publicKey)
 
       expect(result.valid).toBe(false)
     })
 
     test('detects tampered signature value', async () => {
-      const keypair = await generateKeypair('calllint-test-2026-h2')
+      const keypair = generateKeypair('calllint-test-2026-h2')
       const unsignedReceipt = { verdict: 'SAFE' }
 
-      const signature = await signReceipt(unsignedReceipt, keypair)
+      const signature = signReceipt(unsignedReceipt, keypair)
       const signedReceipt = { ...unsignedReceipt, signature }
 
       // Tamper with the signature: flip the first char to a DIFFERENT base64url
@@ -146,20 +146,20 @@ describe('@calllint/signature', () => {
         },
       }
 
-      const result = await verifyReceipt(tamperedReceipt, keypair.publicKey)
+      const result = verifyReceipt(tamperedReceipt, keypair.publicKey)
 
       expect(result.valid).toBe(false)
     })
 
     test('rejects wrong public key', async () => {
-      const keypair1 = await generateKeypair('key-1')
-      const keypair2 = await generateKeypair('key-2')
+      const keypair1 = generateKeypair('key-1')
+      const keypair2 = generateKeypair('key-2')
       const unsignedReceipt = { data: 'test' }
 
-      const signature = await signReceipt(unsignedReceipt, keypair1)
+      const signature = signReceipt(unsignedReceipt, keypair1)
       const signedReceipt = { ...unsignedReceipt, signature }
 
-      const result = await verifyReceipt(signedReceipt, keypair2.publicKey)
+      const result = verifyReceipt(signedReceipt, keypair2.publicKey)
 
       expect(result.valid).toBe(false)
     })
@@ -167,21 +167,21 @@ describe('@calllint/signature', () => {
     test('rejects receipt without signature field', async () => {
       const unsignedReceipt = { verdict: 'SAFE' }
 
-      const result = await verifyReceipt(unsignedReceipt, new Uint8Array(32))
+      const result = verifyReceipt(unsignedReceipt, new Uint8Array(32))
 
       expect(result.valid).toBe(false)
       expect(result.error).toContain('No signature field')
     })
 
     test('accepts public key as base64url string', async () => {
-      const keypair = await generateKeypair('calllint-test-2026-h2')
+      const keypair = generateKeypair('calllint-test-2026-h2')
       const unsignedReceipt = { data: 'test' }
 
-      const signature = await signReceipt(unsignedReceipt, keypair)
+      const signature = signReceipt(unsignedReceipt, keypair)
       const signedReceipt = { ...unsignedReceipt, signature }
 
       const publicKeyBase64url = base64urlEncode(keypair.publicKey)
-      const result = await verifyReceipt(signedReceipt, publicKeyBase64url)
+      const result = verifyReceipt(signedReceipt, publicKeyBase64url)
 
       expect(result.valid).toBe(true)
     })
@@ -194,8 +194,8 @@ describe('@calllint/signature', () => {
 
       const receipt = { data: 'fixed' }
 
-      const sig1 = await signReceipt(receipt, keypair)
-      const sig2 = await signReceipt(receipt, keypair)
+      const sig1 = signReceipt(receipt, keypair)
+      const sig2 = signReceipt(receipt, keypair)
 
       // Signature value should be identical (signed_at will differ)
       expect(sig1.value).toBe(sig2.value)
@@ -204,19 +204,19 @@ describe('@calllint/signature', () => {
 
   describe('edge cases', () => {
     test('handles empty receipt object', async () => {
-      const keypair = await generateKeypair('test')
+      const keypair = generateKeypair('test')
       const emptyReceipt = {}
 
-      const signature = await signReceipt(emptyReceipt, keypair)
+      const signature = signReceipt(emptyReceipt, keypair)
       const signedReceipt = { signature }
 
-      const result = await verifyReceipt(signedReceipt, keypair.publicKey)
+      const result = verifyReceipt(signedReceipt, keypair.publicKey)
 
       expect(result.valid).toBe(true)
     })
 
     test('handles large receipt object', async () => {
-      const keypair = await generateKeypair('test')
+      const keypair = generateKeypair('test')
       const largeReceipt = {
         findings: Array.from({ length: 100 }, (_, i) => ({
           rule_id: `rule-${i}`,
@@ -225,26 +225,52 @@ describe('@calllint/signature', () => {
         })),
       }
 
-      const signature = await signReceipt(largeReceipt, keypair)
+      const signature = signReceipt(largeReceipt, keypair)
       const signedReceipt = { ...largeReceipt, signature }
 
-      const result = await verifyReceipt(signedReceipt, keypair.publicKey)
+      const result = verifyReceipt(signedReceipt, keypair.publicKey)
 
       expect(result.valid).toBe(true)
     })
 
     test('rejects invalid public key length', async () => {
-      const keypair = await generateKeypair('test')
+      const keypair = generateKeypair('test')
       const receipt = { data: 'test' }
-      const signature = await signReceipt(receipt, keypair)
+      const signature = signReceipt(receipt, keypair)
       const signedReceipt = { ...receipt, signature }
 
       const invalidPublicKey = new Uint8Array(16) // wrong length
 
-      const result = await verifyReceipt(signedReceipt, invalidPublicKey)
+      const result = verifyReceipt(signedReceipt, invalidPublicKey)
 
       expect(result.valid).toBe(false)
       expect(result.error).toContain('Invalid public key length')
+    })
+  })
+
+  describe('synchronous contract (guards against event-loop deadlock)', () => {
+    // These are sync CPU operations, not Promises. The CLI command layer is
+    // synchronous, so returning a Promise here would force a busy-wait that
+    // deadlocks the event loop (the bug this suite guards). See ADR 0032.
+    test('generateKeypair returns a value, not a Promise', () => {
+      const kp = generateKeypair('sync-check')
+      expect(kp).not.toBeInstanceOf(Promise)
+      expect(kp.publicKey).toHaveLength(32)
+    })
+
+    test('signReceipt returns a value, not a Promise', () => {
+      const kp = generateKeypair('sync-check')
+      const sig = signReceipt({ a: 1 }, kp)
+      expect(sig).not.toBeInstanceOf(Promise)
+      expect(sig.algorithm).toBe('ed25519')
+    })
+
+    test('verifyReceipt returns a value, not a Promise', () => {
+      const kp = generateKeypair('sync-check')
+      const sig = signReceipt({ a: 1 }, kp)
+      const result = verifyReceipt({ a: 1, signature: sig }, kp.publicKey)
+      expect(result).not.toBeInstanceOf(Promise)
+      expect(result.valid).toBe(true)
     })
   })
 })
