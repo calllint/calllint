@@ -10,6 +10,25 @@ onward. While pre-1.0, minor versions may include breaking changes.
 
 ## [Unreleased]
 
+## [0.9.0] — 2026-07-02 — R4 Design Checkpoint (Unified External Action Preflight)
+
+### Added (Design-only, no runtime implementation)
+
+- **`calllint.action.v0` schema — Unified External Action Preflight (ADR 0029).**
+  Design checkpoint for R4. Schema defines 9 action kinds (email.reply/forward,
+  message.post, a2a.delegate, payment.authorize, account.register, github.write,
+  npm.publish, cloud.modify) with kind-specific parameters and metadata. Reuses
+  existing risk symbols (PROMPT / SUPPLY / FILES / NETWORK / EXEC / ACTION /
+  MONEY / SECRETS) and verdict engine. This release contains the schema
+  (`schemas/action.schema.json`), fixture contract (`packages/fixtures/action/`
+  with 9 stub directories), and design ADR (local docs) — the `calllint action
+  inspect` command implementation is a future release. See ADR 0029.
+
+**Note:** This is a design checkpoint release. The `action inspect` command is
+not yet implemented. The schema and fixture structure are provided for review
+and integration planning. This version will not be published to npm — use
+v0.8.1 for the latest runtime features.
+
 ## [0.8.1] — 2026-07-02 — Online registry surface (邻接校准)
 
 ### Added
