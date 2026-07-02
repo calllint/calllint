@@ -10,6 +10,40 @@ onward. While pre-1.0, minor versions may include breaking changes.
 
 ## [Unreleased]
 
+## [0.9.2] — 2026-07-02 — R4 Enhanced: Complete Detectors + Fixtures
+
+### Added
+
+- **Complete fixture coverage for all 9 action kinds** (+12 fixtures, 19 total).
+  - `github.write`: 3 fixtures (positive create-pr, negative unverified-repo with excessive scopes, negative external-links)
+  - `npm.publish`: 3 fixtures (positive clean-publish, negative name-squatting, negative version-float)
+  - `cloud.modify`: 3 fixtures (positive small-instance, negative expensive-instance, negative open-all-ports)
+  - `account.register`: 3 fixtures (positive clean-registration, negative unverified-service, negative excessive-scopes)
+
+- **Enhanced detectors for all 9 action kinds** (+8 detectors, 13 total).
+  - `supply.name-squatting` — Detect npm package name typosquatting (similar to popular packages)
+  - `supply.version-float` — Detect unpinned npm versions (^/~ ranges instead of exact)
+  - `action.unverified-repository` — GitHub write to unverified repository
+  - `action.excessive-github-scopes` — Dangerous GitHub OAuth scopes (delete_repo, admin:org)
+  - `action.external-links` — External links in GitHub PR/issues
+  - `action.expensive-cloud-resource` — Cloud resource cost detection (>$1000/month)
+  - `action.insecure-security-group` — Cloud security group opens all ports (0.0.0.0/0)
+  - `action.unverified-service` — Account registration on unverified service
+  - `action.excessive-oauth-scopes` — Excessive OAuth scopes for account registration
+
+**Tests:** +9 new tests (529 total, was 520)
+
+**Coverage Matrix:**
+- email.reply: 3 fixtures, 3 detectors ✓
+- message.post: 1 fixture, 1 detector ✓
+- a2a.delegate: 2 fixtures, 2 detectors ✓
+- payment.authorize: 1 fixture, 1 detector ✓
+- account.register: 3 fixtures, 2 detectors ✓
+- github.write: 3 fixtures, 3 detectors ✓
+- npm.publish: 3 fixtures, 2 detectors ✓
+- cloud.modify: 3 fixtures, 2 detectors ✓
+- email.forward: 0 fixtures (shares detectors with email.reply)
+
 ## [0.9.1] — 2026-07-02 — R4 Runtime: Action Inspect Command
 
 ### Added
