@@ -1,0 +1,21 @@
+{
+  "schema_version": "calllint.agent-inbox-event.v0",
+  "event_type": "email.received",
+  "timestamp": "2026-07-02T12:34:56Z",
+  "source": {
+    "provider": "sendgrid"
+  },
+  "normalized_content": {
+    "from": "customer@example.com",
+    "to": ["support@yourdomain.com"],
+    "subject_length": 16,
+    "body_length": 33,
+    "has_attachments": true,
+    "attachment_count": 1,
+    "attachment_hashes": ["sha256:1111111111111111111111111111111111111111111111111111111111111111"],
+    "header_keys": ["from", "to", "subject"]
+  },
+  "provenance": {
+    "received_at": "2026-07-02T12:34:56Z"
+  }
+}

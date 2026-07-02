@@ -1,0 +1,19 @@
+{
+  "schema_version": "calllint.agent-inbox-event.v0",
+  "event_type": "mention.detected",
+  "timestamp": "2026-07-02T12:34:56Z",
+  "source": {
+    "provider": "slack",
+    "workspace_id": "T123456789"
+  },
+  "normalized_content": {
+    "from": "U123456789",
+    "to": ["C789012345"],
+    "body_length": 36,
+    "has_attachments": false,
+    "mentions": ["U987654321"]
+  },
+  "provenance": {
+    "slack_event_ts": "1719926096.123456"
+  }
+}

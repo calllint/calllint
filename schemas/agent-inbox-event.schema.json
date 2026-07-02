@@ -1,0 +1,132 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://calllint.com/schemas/agent-inbox-event.schema.json",
+  "title": "CallLint Agent Inbox Event",
+  "description": "calllint.agent-inbox-event.v0 — Normalized descriptor for an incoming agent inbox event (email received, message posted, mention detected, etc.) to be inspected by action preflight. See R5 design doc.",
+  "type": "object",
+  "required": ["schema_version", "event_type", "timestamp", "source", "normalized_content"],
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "const": "calllint.agent-inbox-event.v0",
+      "description": "Schema version identifier. Must be exactly 'calllint.agent-inbox-event.v0'."
+    },
+    "event_type": {
+      "type": "string",
+      "enum": [
+        "email.received",
+        "message.posted",
+        "mention.detected",
+        "direct_message.received",
+        "thread.replied"
+      ],
+      "description": "The inbox event type. Closed vocabulary for v0; extensible in future versions."
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Event timestamp in ISO-8601 UTC format."
+    },
+    "source": {
+      "type": "object",
+      "required": ["provider"],
+      "properties": {
+        "provider": {
+          "type": "string",
+          "description": "Provider name (e.g. 'resend', 'gmail', 'slack', 'discord'). Never contains credentials."
+        },
+        "account_id": {
+          "type": "string",
+          "description": "Optional account identifier (never a secret token). Used for multi-account scenarios."
+        },
+        "workspace_id": {
+          "type": "string",
+          "description": "Optional workspace/team identifier (Slack, Discord, etc.)."
+        }
+      },
+      "additionalProperties": true,
+      "description": "Provider identification. Never contains API keys, tokens, or credentials."
+    },
+    "normalized_content": {
+      "type": "object",
+      "required": ["from"],
+      "properties": {
+        "from": {
+          "type": "string",
+          "description": "Sender identifier (email address, user ID, username). Normalized across providers."
+        },
+        "to": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Recipient identifiers. For email, email addresses. For messaging, user IDs."
+        },
+        "subject": {
+          "type": "string",
+          "description": "Message subject (email) or channel name (messaging). Never the full content."
+        },
+        "subject_length": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Character count of subject line."
+        },
+        "body_length": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Character count of message body. Never the literal content."
+        },
+        "has_attachments": {
+          "type": "boolean",
+          "description": "Whether the message includes attachments."
+        },
+        "attachment_count": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Number of attachments."
+        },
+        "attachment_hashes": {
+          "type": "array",
+          "items": { "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" },
+          "description": "SHA-256 hashes of attachments. Required when has_attachments=true."
+        },
+        "header_keys": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Header keys (email) or metadata keys (messaging). Values omitted for secret detection."
+        },
+        "mentions": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "User IDs or handles mentioned in the message (messaging platforms)."
+        },
+        "thread_id": {
+          "type": "string",
+          "description": "Thread or conversation identifier (email Message-ID, Slack thread_ts, etc.)."
+        }
+      },
+      "additionalProperties": true,
+      "description": "Normalized content metadata. Never contains full message bodies, attachment bytes, or secrets."
+    },
+    "action_candidate": {
+      "type": "object",
+      "description": "Optional: If this inbox event implies a potential action (e.g. 'reply to email'), provide the corresponding calllint.action.v0 descriptor here for preflight analysis. This allows chaining inbox event → action inspection.",
+      "properties": {
+        "schema_version": { "const": "calllint.action.v0" },
+        "kind": { "type": "string" },
+        "parameters": { "type": "object" },
+        "metadata": { "type": "object" }
+      },
+      "required": ["schema_version", "kind", "parameters"]
+    },
+    "provenance": {
+      "type": "object",
+      "description": "Optional source attribution: webhook ID, API request ID, timestamp.",
+      "properties": {
+        "webhook_id": { "type": "string" },
+        "request_id": { "type": "string" },
+        "received_at": { "type": "string", "format": "date-time" }
+      },
+      "additionalProperties": true
+    }
+  },
+  "additionalProperties": false
+}

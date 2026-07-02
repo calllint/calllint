@@ -1,0 +1,23 @@
+{
+  "t": 0,
+  "op": "MESSAGE_CREATE",
+  "d": {
+    "id": "112233445566778899",
+    "channel_id": "998877665544332211",
+    "guild_id": "111222333444555666",
+    "author": {
+      "id": "555666777888999000",
+      "username": "user123",
+      "bot": false
+    },
+    "content": "Hey bot, can you help with this task?",
+    "timestamp": "2026-07-02T12:34:56.000000+00:00",
+    "mentions": [
+      {
+        "id": "000999888777666555",
+        "username": "helperbot"
+      }
+    ],
+    "attachments": []
+  }
+}
