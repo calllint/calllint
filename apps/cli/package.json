@@ -1,6 +1,6 @@
 {
   "name": "calllint",
-  "version": "0.10.1",
+  "version": "1.0.0",
   "description": "Evidence-backed security verdicts for MCP servers and agent tools. Lint agent tool-call risk before tools run — SAFE / REVIEW / BLOCK / UNKNOWN, with evidence. Never executes the server it judges.",
   "keywords": [
     "mcp",
@@ -55,6 +55,7 @@
     "@calllint/online": "workspace:*",
     "@calllint/policy": "workspace:*",
     "@calllint/report-renderer": "workspace:*",
+    "@calllint/signature": "workspace:*",
     "@calllint/types": "workspace:*",
     "esbuild": "^0.21.5"
   }

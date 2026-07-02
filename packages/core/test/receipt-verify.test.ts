@@ -97,7 +97,12 @@ describe("verifyReceipt — structural validation only", () => {
 
   it("shape-checks a reserved signature when present (never crypto-verifies)", () => {
     const good = clone(validReceipt())
-    good.signature = { algorithm: "ed25519", key_id: "future", value: "future" }
+    good.signature = {
+      algorithm: "ed25519",
+      key_id: "future",
+      value: "future",
+      signed_at: "2026-07-02T12:00:00Z",
+    }
     const okRes = verifyReceipt(good)
     expect(okRes.valid).toBe(true)
     expect(okRes.signed).toBe(true)

@@ -10,6 +10,59 @@ onward. While pre-1.0, minor versions may include breaking changes.
 
 ## [Unreleased]
 
+## [1.0.0] — 2026-07-02 — R6: Cloud Signed Receipt Infrastructure
+
+**First 1.0 release.** Activates the signature infrastructure for CallLint receipts,
+enabling cryptographically signed receipts that prove provenance and integrity.
+Local scan and local receipts remain 100% free. Cloud signing infrastructure is
+ready for future service deployment.
+
+### Added
+
+- **Receipt Signature Support (ADR 0032)**
+  - Signature field activated in `calllint.receipt.v0` schema
+  - `algorithm`, `key_id`, `value`, `signed_at`, `public_key_url` fields
+  - Ed25519 deterministic signatures (64 bytes, fast, industry-standard)
+  
+- **@calllint/signature Package**
+  - `generateKeypair()` — generate test ed25519 keypairs
+  - `signReceipt()` — sign receipt hash with ed25519
+  - `verifyReceipt()` — verify signature cryptographically
+  - `exportKeypair()` / `importKeypair()` — JSON serialization
+  - 18 tests covering round-trip, tampering detection, edge cases
+
+- **CLI Receipt Commands**
+  - `calllint receipt sign <receipt.json> --key <keyfile>` — local signing (dev/test only)
+  - `calllint receipt keygen --out <file>` — generate test keypair
+  - `calllint receipt verify <receipt.json>` — now includes crypto validation when signature present
+  - `--public-key <keyfile>` flag for offline verification
+
+- **@calllint/credits Package (Internal)**
+  - `calculateCredits()` — internal metering for signed receipts
+  - Formula: base + findings × per_finding × verdict_multiplier
+  - 13 tests covering all verdicts, batch calculation, determinism
+  - **No public pricing documentation** (infrastructure only)
+
+- **API Design Documentation**
+  - `CLOUD_VERIFICATION_API.md` — complete cloud service specification
+  - `POST /v1/receipts/sign` — sign receipt endpoint
+  - `GET /.well-known/receipt-keys.json` — public key distribution
+  - Security model, privacy guarantees, key rotation procedures
+  - **Design only** — service deployment out of v1.0.0 scope
+
+### Changed
+
+- Receipt signature field fully specified (was placeholder in v0.8.0)
+- `CallLintReceipt` type now includes `signed_at` and `public_key_url` in signature
+
+### Security
+
+- **What signatures prove:** Provenance (CallLint issued this) + Integrity (not modified)
+- **What signatures do NOT prove:** Safety, completeness, future/runtime behavior
+- **Privacy:** Receipt hash prevents cloud from indexing findings
+- **Offline verification:** Anyone can verify with public key from `.well-known/`
+- **Key rotation:** 6-month cadence (H1/H2), old keys kept for historical verification
+
 ## [0.10.1] — 2026-07-02 — R5 Runtime: Agent Inbox Inspect
 - `calllint inbox inspect <normalized-event.json>` command (ADR 0031)
   - Reads normalized agent inbox events (`calllint.agent-inbox-event.v0`)
