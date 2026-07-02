@@ -180,3 +180,163 @@ describe('KIND_RISK_PROFILES', () => {
     expect(profile).toContain('SECRETS')
   })
 })
+
+describe('npm.publish detectors', () => {
+  it('should detect name squatting', () => {
+    const descriptor: ActionDescriptor = {
+      schema_version: 'calllint.action.v0',
+      kind: 'npm.publish',
+      parameters: {
+        package_name: 'reactjs',
+        version: '1.0.0',
+      },
+      metadata: {
+        similar_to_popular: ['react'],
+      },
+    }
+
+    const findings = analyzeAction(descriptor)
+    expect(findings.some(f => f.id === 'supply.name-squatting')).toBe(true)
+  })
+
+  it('should detect version float', () => {
+    const descriptor: ActionDescriptor = {
+      schema_version: 'calllint.action.v0',
+      kind: 'npm.publish',
+      parameters: {
+        package_name: '@myorg/utils',
+        version: '^2.0.0',
+      },
+      metadata: {
+        version_pinned: false,
+        version_range: true,
+      },
+    }
+
+    const findings = analyzeAction(descriptor)
+    expect(findings.some(f => f.id === 'supply.version-float')).toBe(true)
+  })
+})
+
+describe('github.write detectors', () => {
+  it('should detect unverified repository', () => {
+    const descriptor: ActionDescriptor = {
+      schema_version: 'calllint.action.v0',
+      kind: 'github.write',
+      parameters: {
+        operation: 'push_commit',
+        repository: 'unknown-org/repo',
+      },
+      metadata: {
+        repository_verified: false,
+      },
+    }
+
+    const findings = analyzeAction(descriptor)
+    expect(findings.some(f => f.id === 'action.unverified-repository')).toBe(true)
+  })
+
+  it('should detect excessive GitHub scopes', () => {
+    const descriptor: ActionDescriptor = {
+      schema_version: 'calllint.action.v0',
+      kind: 'github.write',
+      parameters: {
+        operation: 'create_issue',
+      },
+      metadata: {
+        oauth_scopes: ['repo', 'admin:org', 'delete_repo'],
+      },
+    }
+
+    const findings = analyzeAction(descriptor)
+    expect(findings.some(f => f.id === 'action.excessive-github-scopes')).toBe(true)
+  })
+
+  it('should detect external links', () => {
+    const descriptor: ActionDescriptor = {
+      schema_version: 'calllint.action.v0',
+      kind: 'github.write',
+      parameters: {
+        operation: 'create_issue',
+      },
+      metadata: {
+        external_links: ['http://malicious-site.com/payload'],
+      },
+    }
+
+    const findings = analyzeAction(descriptor)
+    expect(findings.some(f => f.id === 'action.external-links')).toBe(true)
+  })
+})
+
+describe('cloud.modify detectors', () => {
+  it('should detect expensive cloud resources', () => {
+    const descriptor: ActionDescriptor = {
+      schema_version: 'calllint.action.v0',
+      kind: 'cloud.modify',
+      parameters: {
+        provider: 'aws',
+        operation: 'create_instance',
+      },
+      metadata: {
+        estimated_monthly_cost: 32768.64,
+      },
+    }
+
+    const findings = analyzeAction(descriptor)
+    expect(findings.some(f => f.id === 'action.expensive-cloud-resource')).toBe(true)
+  })
+
+  it('should detect insecure security groups', () => {
+    const descriptor: ActionDescriptor = {
+      schema_version: 'calllint.action.v0',
+      kind: 'cloud.modify',
+      parameters: {
+        provider: 'aws',
+        operation: 'modify_security_group',
+      },
+      metadata: {
+        opens_all_ports: true,
+      },
+    }
+
+    const findings = analyzeAction(descriptor)
+    expect(findings.some(f => f.id === 'action.insecure-security-group')).toBe(true)
+  })
+})
+
+describe('account.register detectors', () => {
+  it('should detect unverified service', () => {
+    const descriptor: ActionDescriptor = {
+      schema_version: 'calllint.action.v0',
+      kind: 'account.register',
+      parameters: {
+        service: 'suspicious-service.xyz',
+        email: 'user@example.com',
+      },
+      metadata: {
+        service_verified: false,
+      },
+    }
+
+    const findings = analyzeAction(descriptor)
+    expect(findings.some(f => f.id === 'action.unverified-service')).toBe(true)
+  })
+
+  it('should detect excessive OAuth scopes', () => {
+    const descriptor: ActionDescriptor = {
+      schema_version: 'calllint.action.v0',
+      kind: 'account.register',
+      parameters: {
+        service: 'trusted-api.com',
+        email: 'user@example.com',
+      },
+      metadata: {
+        oauth_scopes: ['profile', 'email', 'admin', 'delete_account'],
+      },
+    }
+
+    const findings = analyzeAction(descriptor)
+    expect(findings.some(f => f.id === 'action.excessive-oauth-scopes')).toBe(true)
+  })
+})

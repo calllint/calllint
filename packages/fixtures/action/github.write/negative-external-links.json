@@ -1,0 +1,22 @@
+{
+  "schema_version": "calllint.action.v0",
+  "kind": "github.write",
+  "parameters": {
+    "operation": "create_issue",
+    "repository": "public-org/public-repo",
+    "title": "Bug report",
+    "labels": ["bug"]
+  },
+  "metadata": {
+    "repository_verified": true,
+    "oauth_scopes": ["public_repo"],
+    "title_length": 10,
+    "body_length": 200,
+    "has_links": true,
+    "external_links": ["http://malicious-site.com/payload"]
+  },
+  "provenance": {
+    "agent_session": "test_session_gh003",
+    "timestamp": "2026-07-02T03:00:00Z"
+  }
+}

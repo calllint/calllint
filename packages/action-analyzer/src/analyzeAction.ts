@@ -234,7 +234,59 @@ function analyzePayment(descriptor: ActionDescriptor): Finding[] {
  */
 function analyzeRegistration(descriptor: ActionDescriptor): Finding[] {
   const findings: Finding[] = []
-  // Registration-specific checks would go here
+  const metadata = descriptor.metadata || {}
+
+  // Check for unverified service
+  const serviceVerified = metadata.service_verified
+  if (serviceVerified === false) {
+    findings.push({
+      id: 'action.unverified-service',
+      title: 'Unverified service registration',
+      severity: 'high',
+      blocker: false,
+      symbol: 'SUPPLY',
+      riskClass: 'S3',
+      mode: 'OBSERVED',
+      confidence: 'high',
+      detectionMethod: 'config-analysis',
+      evidence: [{
+        type: 'config',
+        path: 'metadata.service_verified',
+        value: 'false',
+      }],
+      impact: 'Account registration on unverified service',
+      fix: 'Verify the service domain and reputation before registering',
+    })
+  }
+
+  // Check for excessive OAuth scopes
+  const scopes = (metadata.oauth_scopes as string[]) || []
+  const dangerousScopes = ['admin', 'delete_account', 'financial_data', 'admin:org']
+  const foundDangerous = scopes.filter((s: string) =>
+    dangerousScopes.some(d => s.toLowerCase().includes(d.toLowerCase()))
+  )
+
+  if (foundDangerous.length > 0) {
+    findings.push({
+      id: 'action.excessive-oauth-scopes',
+      title: 'Excessive OAuth scopes requested',
+      severity: 'medium',
+      blocker: false,
+      symbol: 'SECRETS',
+      riskClass: 'S2',
+      mode: 'OBSERVED',
+      confidence: 'high',
+      detectionMethod: 'config-analysis',
+      evidence: [{
+        type: 'config',
+        path: 'metadata.oauth_scopes',
+        value: foundDangerous.join(', '),
+      }],
+      impact: `Registration requests sensitive scopes: ${foundDangerous.join(', ')}`,
+      fix: 'Request only the minimum necessary OAuth scopes',
+    })
+  }
+
   return findings
 }
 
@@ -243,7 +295,82 @@ function analyzeRegistration(descriptor: ActionDescriptor): Finding[] {
  */
 function analyzeGitHub(descriptor: ActionDescriptor): Finding[] {
   const findings: Finding[] = []
-  // GitHub-specific checks would go here
+  const metadata = descriptor.metadata || {}
+
+  // Check for unverified repository
+  const repoVerified = metadata.repository_verified
+  if (repoVerified === false) {
+    findings.push({
+      id: 'action.unverified-repository',
+      title: 'Unverified repository target',
+      severity: 'medium',
+      blocker: false,
+      symbol: 'SUPPLY',
+      riskClass: 'S3',
+      mode: 'OBSERVED',
+      confidence: 'high',
+      detectionMethod: 'config-analysis',
+      evidence: [{
+        type: 'config',
+        path: 'metadata.repository_verified',
+        value: 'false',
+      }],
+      impact: 'GitHub write operation to unverified repository',
+      fix: 'Verify repository ownership before writing',
+    })
+  }
+
+  // Check for excessive OAuth scopes
+  const scopes = (metadata.oauth_scopes as string[]) || []
+  const dangerousScopes = ['delete_repo', 'admin:org', 'admin:repo_hook']
+  const foundDangerous = scopes.filter((s: string) =>
+    dangerousScopes.some(d => s.toLowerCase().includes(d.toLowerCase()))
+  )
+
+  if (foundDangerous.length > 0) {
+    findings.push({
+      id: 'action.excessive-github-scopes',
+      title: 'Excessive GitHub OAuth scopes',
+      severity: 'medium',
+      blocker: false,
+      symbol: 'SECRETS',
+      riskClass: 'S3',
+      mode: 'OBSERVED',
+      confidence: 'high',
+      detectionMethod: 'config-analysis',
+      evidence: [{
+        type: 'config',
+        path: 'metadata.oauth_scopes',
+        value: foundDangerous.join(', '),
+      }],
+      impact: `GitHub operation requests dangerous scopes: ${foundDangerous.join(', ')}`,
+      fix: 'Request only necessary OAuth scopes for the operation',
+    })
+  }
+
+  // Check for external links in issue/PR
+  const externalLinks = (metadata.external_links as string[]) || []
+  if (externalLinks.length > 0) {
+    findings.push({
+      id: 'action.external-links',
+      title: 'External links in GitHub content',
+      severity: 'low',
+      blocker: false,
+      symbol: 'NETWORK',
+      riskClass: 'S2',
+      mode: 'OBSERVED',
+      confidence: 'medium',
+      detectionMethod: 'config-analysis',
+      evidence: [{
+        type: 'config',
+        path: 'metadata.external_links',
+        value: externalLinks.join(', '),
+      }],
+      impact: `Issue/PR contains external links: ${externalLinks.length} found`,
+      fix: 'Review external links for safety',
+    })
+  }
+
   return findings
 }
 
@@ -252,7 +379,56 @@ function analyzeGitHub(descriptor: ActionDescriptor): Finding[] {
  */
 function analyzeNpmPublish(descriptor: ActionDescriptor): Finding[] {
   const findings: Finding[] = []
-  // npm-specific checks would go here (name squatting, version float, etc.)
+  const metadata = descriptor.metadata || {}
+  const params = descriptor.parameters || {}
+
+  // Check for name squatting (similar to popular packages)
+  const similarTo = (metadata.similar_to_popular as string[]) || []
+  if (similarTo.length > 0) {
+    findings.push({
+      id: 'supply.name-squatting',
+      title: 'Potential name squatting',
+      severity: 'high',
+      blocker: false,
+      symbol: 'SUPPLY',
+      riskClass: 'S3',
+      mode: 'INFERRED',
+      confidence: 'medium',
+      detectionMethod: 'config-analysis',
+      evidence: [{
+        type: 'config',
+        path: 'metadata.similar_to_popular',
+        value: similarTo.join(', '),
+      }],
+      impact: `Package name similar to popular packages: ${similarTo.join(', ')}`,
+      fix: 'Verify this is not a typosquatting attempt',
+    })
+  }
+
+  // Check for version float (not pinned)
+  const versionPinned = metadata.version_pinned
+  const versionRange = metadata.version_range
+  if (versionPinned === false || versionRange === true) {
+    findings.push({
+      id: 'supply.version-float',
+      title: 'Version not pinned',
+      severity: 'medium',
+      blocker: false,
+      symbol: 'SUPPLY',
+      riskClass: 'S2',
+      mode: 'OBSERVED',
+      confidence: 'high',
+      detectionMethod: 'config-analysis',
+      evidence: [{
+        type: 'config',
+        path: 'parameters.version',
+        value: String(params.version || 'unknown'),
+      }],
+      impact: 'Publishing with floating version range instead of pinned version',
+      fix: 'Use pinned version (e.g., "1.2.3" not "^1.2.3")',
+    })
+  }
+
   return findings
 }
 
@@ -261,7 +437,54 @@ function analyzeNpmPublish(descriptor: ActionDescriptor): Finding[] {
  */
 function analyzeCloud(descriptor: ActionDescriptor): Finding[] {
   const findings: Finding[] = []
-  // Cloud-specific checks would go here
+  const metadata = descriptor.metadata || {}
+
+  // Check for expensive resource creation
+  const monthlyCost = metadata.estimated_monthly_cost
+  if (typeof monthlyCost === 'number' && monthlyCost > 1000) {
+    findings.push({
+      id: 'action.expensive-cloud-resource',
+      title: 'Expensive cloud resource',
+      severity: 'high',
+      blocker: false,
+      symbol: 'MONEY',
+      riskClass: 'S5',
+      mode: 'OBSERVED',
+      confidence: 'high',
+      detectionMethod: 'config-analysis',
+      evidence: [{
+        type: 'config',
+        path: 'metadata.estimated_monthly_cost',
+        value: String(monthlyCost),
+      }],
+      impact: `Cloud resource estimated at $${monthlyCost}/month`,
+      fix: 'Verify cost estimate and budget before creating',
+    })
+  }
+
+  // Check for dangerous security group rules (open all ports)
+  const opensAllPorts = metadata.opens_all_ports
+  if (opensAllPorts === true) {
+    findings.push({
+      id: 'action.insecure-security-group',
+      title: 'Insecure security group configuration',
+      severity: 'high',
+      blocker: false,
+      symbol: 'NETWORK',
+      riskClass: 'S4',
+      mode: 'OBSERVED',
+      confidence: 'high',
+      detectionMethod: 'config-analysis',
+      evidence: [{
+        type: 'config',
+        path: 'metadata.opens_all_ports',
+        value: 'true',
+      }],
+      impact: 'Security group opens all ports to the internet (0.0.0.0/0)',
+      fix: 'Restrict ports and source IPs to minimum necessary',
+    })
+  }
+
   return findings
 }
 

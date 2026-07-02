@@ -1,0 +1,21 @@
+{
+  "schema_version": "calllint.action.v0",
+  "kind": "npm.publish",
+  "parameters": {
+    "package_name": "@myorg/my-package",
+    "version": "1.2.3",
+    "tag": "latest",
+    "access": "public"
+  },
+  "metadata": {
+    "package_verified": true,
+    "version_pinned": true,
+    "registry": "https://registry.npmjs.org",
+    "has_provenance": true,
+    "package_size_bytes": 45000
+  },
+  "provenance": {
+    "agent_session": "test_session_npm001",
+    "timestamp": "2026-07-02T03:00:00Z"
+  }
+}

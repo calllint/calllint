@@ -1,0 +1,19 @@
+{
+  "schema_version": "calllint.action.v0",
+  "kind": "account.register",
+  "parameters": {
+    "service": "example.com",
+    "email": "user@example.com",
+    "username": "test_user"
+  },
+  "metadata": {
+    "service_verified": true,
+    "email_verified": false,
+    "oauth_scopes": ["profile", "email"],
+    "service_url": "https://example.com"
+  },
+  "provenance": {
+    "agent_session": "test_session_acct001",
+    "timestamp": "2026-07-02T03:00:00Z"
+  }
+}

@@ -1,0 +1,21 @@
+{
+  "schema_version": "calllint.action.v0",
+  "kind": "github.write",
+  "parameters": {
+    "operation": "create_pr",
+    "repository": "owner/repo",
+    "title": "feat: add new feature",
+    "base": "main",
+    "head": "feature-branch"
+  },
+  "metadata": {
+    "repository_verified": true,
+    "oauth_scopes": ["repo", "workflow"],
+    "title_length": 24,
+    "body_length": 150
+  },
+  "provenance": {
+    "agent_session": "test_session_gh001",
+    "timestamp": "2026-07-02T03:00:00Z"
+  }
+}
