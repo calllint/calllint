@@ -17,6 +17,11 @@ export { registry } from "./registry.js"
 // Base extractor class
 export { BaseAgentExtractor } from "./extractors/base.js"
 
+// P0 Agent extractors
+export { CursorExtractor } from "./extractors/cursor.js"
+export { ClaudeCodeExtractor } from "./extractors/claude-code.js"
+export { ClaudeDesktopExtractor } from "./extractors/claude-desktop.js"
+
 // Path utilities (exported for extractor implementations)
 export {
   resolvePath,
