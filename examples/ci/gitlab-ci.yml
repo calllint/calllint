@@ -1,0 +1,25 @@
+# CallLint Security Scan - GitLab CI Example
+# Place this in .gitlab-ci.yml or include it
+
+stages:
+  - security
+
+calllint_scan:
+  stage: security
+  image: node:20
+  before_script:
+    - npm install -g calllint@1.0.1
+  script:
+    - calllint scan .cursor/mcp.json --ci --receipt --sarif
+  artifacts:
+    reports:
+      sast: calllint.sarif  # Auto-displayed in Security Dashboard
+    paths:
+      - calllint-receipt.json
+      - calllint.sarif
+    expire_in: 90 days
+    when: always
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+    - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
+  allow_failure: false  # Fail pipeline on BLOCK verdict
