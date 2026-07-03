@@ -8,7 +8,7 @@ export abstract class BaseAgentExtractor implements AgentExtractor {
   abstract readonly agentType: AgentType
   abstract readonly priority: AgentPriority
 
-  abstract discover(cwd: string): Promise<import("../types.js").DiscoveredConfig[]>
+  abstract discover(cwd: string): import("../types.js").DiscoveredConfig[]
 
   /**
    * Resolve home directory (~) to absolute path.

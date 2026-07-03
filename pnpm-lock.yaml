@@ -32,6 +32,9 @@ importers:
       '@calllint/core':
         specifier: workspace:*
         version: link:../../packages/core
+      '@calllint/discovery':
+        specifier: workspace:*
+        version: link:../../packages/discovery
       '@calllint/fixtures':
         specifier: workspace:*
         version: link:../../packages/fixtures

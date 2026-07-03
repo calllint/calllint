@@ -11,7 +11,7 @@ class MockExtractor implements AgentExtractor {
     private configs: DiscoveredConfig[] = []
   ) {}
 
-  async discover(_cwd: string): Promise<DiscoveredConfig[]> {
+  discover(_cwd: string): DiscoveredConfig[] {
     return this.configs
   }
 }
@@ -23,7 +23,7 @@ class FailingExtractor implements AgentExtractor {
     public readonly priority: any
   ) {}
 
-  async discover(_cwd: string): Promise<DiscoveredConfig[]> {
+  discover(_cwd: string): DiscoveredConfig[] {
     throw new Error("Simulated extractor failure")
   }
 }
@@ -34,7 +34,7 @@ describe("discovery-engine", () => {
   })
 
   describe("discoverConfigs", () => {
-    it("discovers configs from all registered extractors", async () => {
+    it("discovers configs from all registered extractors", () => {
       const config1: DiscoveredConfig = {
         agentType: "cursor",
         configPath: "/project/.cursor/mcp.json",
@@ -57,7 +57,7 @@ describe("discovery-engine", () => {
       registry.register(e1)
       registry.register(e2)
 
-      const result = await discoverConfigs({ cwd: "/project" })
+      const result = discoverConfigs({ cwd: "/project" })
 
       expect(result.cwd).toBe("/project")
       expect(result.discovered).toHaveLength(2)
@@ -66,7 +66,7 @@ describe("discovery-engine", () => {
       expect(result.searchedPaths).toHaveLength(2)
     })
 
-    it("filters to specific agent types when requested", async () => {
+    it("filters to specific agent types when requested", () => {
       const config1: DiscoveredConfig = {
         agentType: "cursor",
         configPath: "/project/.cursor/mcp.json",
@@ -89,7 +89,7 @@ describe("discovery-engine", () => {
       registry.register(e1)
       registry.register(e2)
 
-      const result = await discoverConfigs({
+      const result = discoverConfigs({
         cwd: "/project",
         agentTypes: ["cursor"],
       })
@@ -98,7 +98,7 @@ describe("discovery-engine", () => {
       expect(result.discovered[0]).toEqual(config1)
     })
 
-    it("excludes non-existent configs by default", async () => {
+    it("excludes non-existent configs by default", () => {
       const existing: DiscoveredConfig = {
         agentType: "cursor",
         configPath: "/project/.cursor/mcp.json",
@@ -118,14 +118,14 @@ describe("discovery-engine", () => {
       const extractor = new MockExtractor("cursor", "P0", [existing, missing])
       registry.register(extractor)
 
-      const result = await discoverConfigs({ cwd: "/project" })
+      const result = discoverConfigs({ cwd: "/project" })
 
       expect(result.discovered).toHaveLength(1)
       expect(result.discovered[0]).toEqual(existing)
       expect(result.searchedPaths).toHaveLength(2) // Both paths searched
     })
 
-    it("includes non-existent configs when includeMissing=true", async () => {
+    it("includes non-existent configs when includeMissing=true", () => {
       const existing: DiscoveredConfig = {
         agentType: "cursor",
         configPath: "/project/.cursor/mcp.json",
@@ -145,7 +145,7 @@ describe("discovery-engine", () => {
       const extractor = new MockExtractor("cursor", "P0", [existing, missing])
       registry.register(extractor)
 
-      const result = await discoverConfigs({
+      const result = discoverConfigs({
         cwd: "/project",
         includeMissing: true,
       })
@@ -155,7 +155,7 @@ describe("discovery-engine", () => {
       expect(result.discovered).toContainEqual(missing)
     })
 
-    it("handles extractor failures gracefully", async () => {
+    it("handles extractor failures gracefully", () => {
       const goodConfig: DiscoveredConfig = {
         agentType: "cursor",
         configPath: "/project/.cursor/mcp.json",
@@ -171,20 +171,20 @@ describe("discovery-engine", () => {
       registry.register(badExtractor)
 
       // Should not throw, should return results from working extractor
-      const result = await discoverConfigs({ cwd: "/project" })
+      const result = discoverConfigs({ cwd: "/project" })
 
       expect(result.discovered).toHaveLength(1)
       expect(result.discovered[0]).toEqual(goodConfig)
     })
 
-    it("returns empty when no extractors registered", async () => {
-      const result = await discoverConfigs({ cwd: "/project" })
+    it("returns empty when no extractors registered", () => {
+      const result = discoverConfigs({ cwd: "/project" })
 
       expect(result.discovered).toHaveLength(0)
       expect(result.searchedPaths).toHaveLength(0)
     })
 
-    it("runs all extractors in parallel", async () => {
+    it("runs all extractors in parallel", () => {
       const config1: DiscoveredConfig = {
         agentType: "cursor",
         configPath: "/project/.cursor/mcp.json",
@@ -208,7 +208,7 @@ describe("discovery-engine", () => {
       registry.register(e2)
 
       const startTime = Date.now()
-      await discoverConfigs({ cwd: "/project" })
+      discoverConfigs({ cwd: "/project" })
       const duration = Date.now() - startTime
 
       // Should complete quickly if parallel (mock extractors are instant)
@@ -217,7 +217,7 @@ describe("discovery-engine", () => {
   })
 
   describe("discoverAgent", () => {
-    it("discovers configs for specific agent type", async () => {
+    it("discovers configs for specific agent type", () => {
       const config: DiscoveredConfig = {
         agentType: "cursor",
         configPath: "/project/.cursor/mcp.json",
@@ -229,23 +229,23 @@ describe("discovery-engine", () => {
       const extractor = new MockExtractor("cursor", "P0", [config])
       registry.register(extractor)
 
-      const result = await discoverAgent("cursor", "/project")
+      const result = discoverAgent("cursor", { cwd: "/project" })
 
       expect(result).toHaveLength(1)
       expect(result[0]).toEqual(config)
     })
 
-    it("throws for unknown agent type", async () => {
-      await expect(
-        discoverAgent("unknown" as any, "/project")
-      ).rejects.toThrow(/Unknown agent type/)
+    it("throws for unknown agent type", () => {
+      expect(() =>
+        discoverAgent("unknown" as any, { cwd: "/project" })
+      ).toThrow(/Unknown agent type/)
     })
 
-    it("returns empty array on extractor failure", async () => {
+    it("returns empty array on extractor failure", () => {
       const badExtractor = new FailingExtractor("cursor", "P0")
       registry.register(badExtractor)
 
-      const result = await discoverAgent("cursor", "/project")
+      const result = discoverAgent("cursor", { cwd: "/project" })
 
       expect(result).toHaveLength(0)
     })

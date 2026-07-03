@@ -95,5 +95,5 @@ export interface AgentExtractor {
    * @param cwd - Working directory to search from
    * @returns Array of discovered configs (may include non-existent)
    */
-  discover(cwd: string): Promise<DiscoveredConfig[]>
+  discover(cwd: string): DiscoveredConfig[]
 }
