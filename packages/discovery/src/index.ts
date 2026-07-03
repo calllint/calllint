@@ -1,3 +1,6 @@
+// Bootstrap: Auto-register P0 extractors (must come first)
+import "./bootstrap.js"
+
 // Core types
 export type {
   AgentType,
