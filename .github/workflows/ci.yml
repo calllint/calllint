@@ -35,6 +35,9 @@ jobs:
       - name: Test
         run: pnpm test
 
+      - name: Evidence audit
+        run: pnpm audit:evidence
+
       # Public-copy + version-consistency guard. Static, no build needed:
       # asserts website/README/agent docs and the internal status docs
       # (ROADMAP/PROJECT_STATUS/PROJECT_HEALTH) stay in sync with
