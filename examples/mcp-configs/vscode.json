@@ -1,0 +1,10 @@
+{
+  "$schema": "https://modelcontextprotocol.io/schemas/2025-12-11/client-config.schema.json",
+  "mcpServers": {
+    "calllint": {
+      "command": "npx",
+      "args": ["-y", "calllint-mcp"],
+      "env": {}
+    }
+  }
+}

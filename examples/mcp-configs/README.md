@@ -69,6 +69,47 @@ See: [`claude-code.json`](./claude-code.json)
 
 ---
 
+### VS Code (with MCP extension)
+
+**Config location:** `.vscode/mcp.json` in workspace root
+
+**Config:**
+```jsonc
+{
+  "mcpServers": {
+    "calllint": {
+      "command": "npx",
+      "args": ["-y", "calllint-mcp"],
+      "env": {}
+    }
+  }
+}
+```
+
+See: [`vscode.json`](./vscode.json)
+
+---
+
+### Windsurf
+
+**Config location:** `.windsurf/mcp.json` in workspace root
+
+**Config:**
+```jsonc
+{
+  "mcpServers": {
+    "calllint": {
+      "command": "npx",
+      "args": ["-y", "calllint-mcp"]
+    }
+  }
+}
+```
+
+See: [`windsurf.json`](./windsurf.json)
+
+---
+
 ## Usage
 
 After adding CallLint to your MCP config:
