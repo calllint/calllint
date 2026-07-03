@@ -12,6 +12,7 @@ import { approveCommand } from "./commands/approve.js"
 import { receiptCommand } from "./commands/receipt.js"
 import { actionCommand } from "./commands/action.js"
 import { inboxCommand } from "./commands/inbox.js"
+import { inventoryCommand } from "./commands/inventory.js"
 import type { Finding } from "@calllint/types"
 
 /**
@@ -114,6 +115,8 @@ export function run(argv: string[], deps: RunDeps): CommandResult {
       return actionCommand(args, { cwd: deps.cwd, toolVersion: deps.toolVersion, generatedAt: deps.generatedAt })
     case "inbox":
       return inboxCommand(args, { cwd: deps.cwd, toolVersion: deps.toolVersion, generatedAt: deps.generatedAt })
+    case "inventory":
+      return inventoryCommand(args, { cwd: deps.cwd })
     case "gen-rule":
       return genRuleCommand(args, { cwd: deps.cwd })
     case "policy":

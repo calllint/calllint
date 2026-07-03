@@ -5,12 +5,15 @@ USAGE
 
 COMMANDS
   check [target]     Compact safety decision for an MCP config or install snippet
+  inventory          List all discovered agent configs (auto-discovery, no scan)
   scan-all           Scan every agent-tool surface in the repo (compact table)
   explain <server>   Explain the verdict for one server from the last scan
   verify [target]    Compare a fresh scan against the baseline (drift / rug-pull)
 
   Advanced:
   scan [target]      Full ScanReport for an MCP config / npm:<pkg> / github:<repo>
+  scan --auto        Discover and scan all agent configs (auto-discovery)
+  scan --agent <type>  Discover and scan a specific agent (cursor, claude-code, claude-desktop)
   action inspect <f>    Preflight a planned external action (calllint.action.v0)
   inbox inspect <f>     Preflight a normalized agent inbox event
   diagnostics [target]  Emit editor/agent-host diagnostics JSON (calllint.diagnostics.v0)
@@ -36,6 +39,8 @@ TARGETS
   github:<owner/repo>[@ref]   A GitHub repo (requires --online)
 
 SCAN OPTIONS
+  --auto             Discover and scan all agent configs (P0: Cursor, Claude Code, Claude Desktop)
+  --agent <type>     Discover and scan a specific agent type
   --changed          Scan only the agent-tool configs changed in the git diff
   --json             Emit the ScanReport JSON (stable, emoji-free)
   --compact          One line per server
@@ -59,6 +64,9 @@ VERIFY OPTIONS
   --json             Emit the drift report JSON
 
 EXAMPLES
+  calllint inventory                    # List discovered agent configs
+  calllint scan --auto                  # Discover and scan all agents
+  calllint scan --agent cursor          # Scan only Cursor configs
   calllint check .cursor/mcp.json
   calllint check npm:mcp-weather@1.0.0
   echo "npx -y demo-mcp@1.2.3" | calllint check --stdin

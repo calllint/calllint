@@ -16,7 +16,7 @@ export class ClaudeDesktopExtractor extends BaseAgentExtractor {
   readonly agentType: AgentType = "claude-desktop"
   readonly priority: AgentPriority = "P0"
 
-  async discover(_cwd: string): Promise<DiscoveredConfig[]> {
+  discover(_cwd: string): DiscoveredConfig[] {
     const configs: DiscoveredConfig[] = []
 
     // Only user-level config (no project-level)
