@@ -15,22 +15,33 @@ const SARIF_SCHEMA_URL = "https://json.schemastore.org/sarif-2.1.0.json"
 
 describe("SARIF output validation", () => {
   const mockScanReport: ScanReport = {
+    schemaVersion: "calllint.report.v0",
+    reportKind: "single-target",
     target: {
       name: "test-server",
+      kind: "cursor-mcp-config",
       configPath: "test/mcp.json",
     },
     verdict: "REVIEW",
+    publicVerdictLabel: "Review required",
+    riskClass: "S1",
+    symbols: ["NETWORK"],
+    confidence: "high",
+    reproducibility: { level: "HIGH", reasons: [] },
+    summary: "Test server summary",
+    observed: [],
+    inferred: [],
     findings: [
       {
         id: "test.finding",
         title: "Test finding",
         severity: "medium",
         blocker: false,
-        symbol: "TEST",
+        symbol: "NETWORK",
         riskClass: "S1",
         mode: "OBSERVED",
         confidence: "high",
-        detectionMethod: "config",
+        detectionMethod: "config-analysis",
         evidence: [
           {
             type: "config",
@@ -45,36 +56,31 @@ describe("SARIF output validation", () => {
         falsePositiveNote: "This is a test note",
       },
     ],
+    topFindings: [],
+    policy: {
+      autonomousUse: "warn",
+      manualApproval: "recommended",
+      sandbox: "none",
+    },
     fingerprints: {
       configHash: "abc123",
-      targetHash: "def456",
-      packageHash: null,
+      targetSpecHash: "def456",
       riskSurfaceHash: "ghi789",
     },
-    summary: {
-      blocker: 0,
-      critical: 0,
-      high: 0,
-      medium: 1,
-      low: 0,
-      info: 0,
-    },
-    timestamp: "2024-01-01T00:00:00.000Z",
-    toolVersion: "1.0.0",
-    runtimeBinding: {
-      kind: "npm",
-      packageName: "test-package",
-      packageVersion: "1.0.0",
-      command: "node",
-      args: [],
-      env: {},
-      transport: "stdio",
-    },
+    diagnostics: [],
+    generatedAt: "2024-01-01T00:00:00.000Z",
   }
 
   const mockReport: ConfigSummaryReport = {
+    schemaVersion: "calllint.report.v0",
+    reportKind: "config-summary",
     configPath: "test/mcp.json",
+    verdict: "REVIEW",
+    publicVerdictLabel: "Review required",
+    counts: { SAFE: 0, REVIEW: 1, BLOCK: 0, UNKNOWN: 0 },
     reports: [mockScanReport],
+    diagnostics: [],
+    generatedAt: "2024-01-01T00:00:00.000Z",
   }
 
   it("produces valid SARIF 2.1.0 JSON structure", () => {
@@ -116,7 +122,7 @@ describe("SARIF output validation", () => {
     // Properties
     expect(result.properties).toBeDefined()
     expect(result.properties.verdict).toBe("REVIEW")
-    expect(result.properties.symbol).toBe("TEST")
+    expect(result.properties.symbol).toBe("NETWORK")
     expect(result.properties.riskClass).toBe("S1")
   })
 
@@ -140,22 +146,48 @@ describe("SARIF output validation", () => {
   })
 
   it("handles multiple findings correctly", () => {
+    const baseFinding = mockScanReport.findings[0]
+    if (!baseFinding) throw new Error("Base finding is required")
+
+    const finding2: ScanReport["findings"][0] = {
+      id: "test.finding2",
+      title: "Second finding",
+      severity: "critical",
+      blocker: true,
+      symbol: "EXEC",
+      riskClass: "S4",
+      mode: "OBSERVED",
+      confidence: "high",
+      detectionMethod: "config-analysis",
+      evidence: [
+        {
+          type: "config",
+          path: "test/mcp.json",
+          key: "test2",
+          value: "value2",
+        },
+      ],
+      impact: "Critical impact",
+      fix: "Fix it",
+    }
+
     const multiReport: ConfigSummaryReport = {
+      schemaVersion: "calllint.report.v0",
+      reportKind: "config-summary",
       configPath: "test/mcp.json",
+      verdict: "BLOCK",
+      publicVerdictLabel: "Dangerous surface",
+      counts: { SAFE: 0, REVIEW: 0, BLOCK: 1, UNKNOWN: 0 },
       reports: [
         {
           ...mockScanReport,
-          findings: [
-            mockScanReport.findings[0],
-            {
-              ...mockScanReport.findings[0],
-              id: "test.finding2",
-              title: "Second finding",
-              severity: "critical",
-            },
-          ],
+          findings: [baseFinding, finding2],
+          verdict: "BLOCK",
+          publicVerdictLabel: "Dangerous surface",
         },
       ],
+      diagnostics: [],
+      generatedAt: "2024-01-01T00:00:00.000Z",
     }
 
     const sarif = renderSarif(multiReport)
@@ -168,31 +200,49 @@ describe("SARIF output validation", () => {
     const criticalResult = parsed.runs[0].results.find(
       (r: any) => r.ruleId === "test.finding2",
     )
+    expect(criticalResult).toBeDefined()
     expect(criticalResult.level).toBe("error")
   })
 
   it("handles findings without line numbers", () => {
+    const findingNoLine: ScanReport["findings"][0] = {
+      id: "test.finding",
+      title: "Test finding",
+      severity: "medium",
+      blocker: false,
+      symbol: "NETWORK",
+      riskClass: "S1",
+      mode: "OBSERVED",
+      confidence: "high",
+      detectionMethod: "config-analysis",
+      evidence: [
+        {
+          type: "config",
+          path: "test/mcp.json",
+          key: "test",
+          value: "value",
+          // no line number
+        },
+      ],
+      impact: "This is a test finding impact",
+      fix: "This is a test fix",
+    }
+
     const noLineReport: ConfigSummaryReport = {
+      schemaVersion: "calllint.report.v0",
+      reportKind: "config-summary",
       configPath: "test/mcp.json",
+      verdict: "REVIEW",
+      publicVerdictLabel: "Review required",
+      counts: { SAFE: 0, REVIEW: 1, BLOCK: 0, UNKNOWN: 0 },
       reports: [
         {
           ...mockScanReport,
-          findings: [
-            {
-              ...mockScanReport.findings[0],
-              evidence: [
-                {
-                  type: "config",
-                  path: "test/mcp.json",
-                  key: "test",
-                  value: "value",
-                  // no line number
-                },
-              ],
-            },
-          ],
+          findings: [findingNoLine],
         },
       ],
+      diagnostics: [],
+      generatedAt: "2024-01-01T00:00:00.000Z",
     }
 
     const sarif = renderSarif(noLineReport)
@@ -222,7 +272,7 @@ describe("SARIF output validation", () => {
 
     // Fetch schema
     const response = await fetch(SARIF_SCHEMA_URL)
-    const schema = await response.json()
+    const schema = (await response.json()) as object
 
     const validate = ajv.compile(schema)
     const sarif = renderSarif(mockReport)
