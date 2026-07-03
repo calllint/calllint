@@ -1,0 +1,55 @@
+# CallLint Security Scan - GitHub Actions Example
+# Place this in .github/workflows/calllint.yml
+
+name: CallLint Security Scan
+
+on:
+  pull_request:
+    paths:
+      - '.cursor/mcp.json'
+      - '.claude/settings.json'
+      - '**/*.mcp.json'
+  push:
+    branches: [main]
+
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write  # For SARIF upload
+      pull-requests: write    # For PR comments
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install CallLint
+        run: npm install -g calllint@1.0.1
+
+      - name: Scan agent configuration
+        run: |
+          calllint scan .cursor/mcp.json \
+            --ci \
+            --receipt \
+            --sarif \
+            --markdown > scan-report.md
+
+      - name: Upload SARIF to GitHub Security
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: calllint.sarif
+
+      - name: Save receipt as artifact
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: calllint-receipt
+          path: calllint-receipt.json
+          retention-days: 90
