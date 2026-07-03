@@ -130,6 +130,12 @@ importers:
         specifier: ^1.5.0
         version: 1.6.1(@types/node@20.19.43)
 
+  packages/discovery:
+    dependencies:
+      '@calllint/types':
+        specifier: workspace:*
+        version: link:../types
+
   packages/fingerprint:
     dependencies:
       '@calllint/types':
