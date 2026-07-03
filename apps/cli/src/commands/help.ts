@@ -44,7 +44,7 @@ SCAN OPTIONS
   --markdown         Emit Markdown for PR comments / GitHub Step Summary
   --html             Emit a self-contained HTML report
   --badge            Emit a shields.io endpoint badge JSON (SAFE/REVIEW/UNKNOWN/BLOCK)
-  --receipt          Also write a local calllint.receipt.v0 (offline reporting layer)
+  --receipt          Generate a cryptographically-verifiable audit receipt (for CI/compliance)
   --receipt-out <f>  Receipt output path (default: calllint-receipt.json)
   --policy <file>    Use a policy file (default: built-in defaults)
   --stdin            Read config JSON from stdin
@@ -66,7 +66,8 @@ EXAMPLES
   calllint check ./mcp.json --json
   calllint scan .cursor/mcp.json --markdown
   calllint scan .cursor/mcp.json --badge > calllint-badge.json
-  calllint scan .cursor/mcp.json --receipt && calllint receipt verify calllint-receipt.json
+  calllint scan .cursor/mcp.json --receipt  # Generate audit receipt
+  calllint receipt verify calllint-receipt.json  # Verify receipt integrity
   calllint action inspect payment.json
   calllint inbox inspect gmail-reply.normalized.json
   calllint verify ./mcp.json --ci
