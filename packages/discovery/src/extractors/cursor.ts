@@ -14,7 +14,7 @@ export class CursorExtractor extends BaseAgentExtractor {
   readonly agentType: AgentType = "cursor"
   readonly priority: AgentPriority = "P0"
 
-  async discover(cwd: string): Promise<DiscoveredConfig[]> {
+  discover(cwd: string): DiscoveredConfig[] {
     const configs: DiscoveredConfig[] = []
 
     // 1. Project-level config (primary)

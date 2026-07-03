@@ -7,9 +7,9 @@ import { registry } from "./registry.js"
  * @param options - Discovery options
  * @returns Discovery result with all found configs
  */
-export async function discoverConfigs(
+export function discoverConfigs(
   options: DiscoveryOptions
-): Promise<DiscoveryResult> {
+): DiscoveryResult {
   const { cwd, agentTypes, includeMissing = false } = options
 
   // Get extractors to run
@@ -17,18 +17,16 @@ export async function discoverConfigs(
     ? registry.getByTypes(agentTypes)
     : registry.getAllSortedByPriority()
 
-  // Run all extractors in parallel
-  const results = await Promise.all(
-    extractors.map(async extractor => {
-      try {
-        return await extractor.discover(cwd)
-      } catch (error) {
-        // One extractor failure should not fail the entire discovery
-        console.error(`[discovery] Extractor ${extractor.agentType} failed:`, error)
-        return []
-      }
-    })
-  )
+  // Run all extractors (synchronous)
+  const results = extractors.map(extractor => {
+    try {
+      return extractor.discover(cwd)
+    } catch (error) {
+      // One extractor failure should not fail the entire discovery
+      console.error(`[discovery] Extractor ${extractor.agentType} failed:`, error)
+      return []
+    }
+  })
 
   // Flatten results
   const allDiscovered = results.flat()
@@ -52,20 +50,20 @@ export async function discoverConfigs(
  * Discover configs for a specific agent type.
  *
  * @param agentType - Agent type to discover
- * @param cwd - Working directory
+ * @param options - Discovery options
  * @returns Discovered configs for that agent
  */
-export async function discoverAgent(
+export function discoverAgent(
   agentType: AgentType,
-  cwd: string
-): Promise<DiscoveredConfig[]> {
+  options: DiscoveryOptions
+): DiscoveredConfig[] {
   const extractor = registry.get(agentType)
   if (!extractor) {
     throw new Error(`Unknown agent type: ${agentType}`)
   }
 
   try {
-    return await extractor.discover(cwd)
+    return extractor.discover(options.cwd)
   } catch (error) {
     console.error(`[discovery] Failed to discover ${agentType}:`, error)
     return []

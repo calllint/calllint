@@ -10,7 +10,7 @@ class MockExtractor implements AgentExtractor {
     private configs: DiscoveredConfig[] = []
   ) {}
 
-  async discover(_cwd: string): Promise<DiscoveredConfig[]> {
+  discover(_cwd: string): DiscoveredConfig[] {
     return this.configs
   }
 }

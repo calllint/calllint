@@ -17,7 +17,7 @@ export class ClaudeCodeExtractor extends BaseAgentExtractor {
   readonly agentType: AgentType = "claude-code"
   readonly priority: AgentPriority = "P0"
 
-  async discover(cwd: string): Promise<DiscoveredConfig[]> {
+  discover(cwd: string): DiscoveredConfig[] {
     const configs: DiscoveredConfig[] = []
 
     // 1. Project-level config (primary)

@@ -26,6 +26,7 @@ import { readDocumentSurfaces } from "./surfaces.js"
 import type { OnlineEnrichment } from "../run.js"
 import { readFileSync, writeFileSync } from "node:fs"
 import type { ConfigSummaryReport } from "@calllint/types"
+import { discoverConfigs, discoverAgent, type AgentType } from "@calllint/discovery"
 
 export interface CommandResult {
   stdout: string
@@ -60,6 +61,17 @@ export function scanCommand(args: ParsedArgs, deps: ScanDeps): CommandResult {
   // flag (--ci, --markdown, --json, --policy, --surface-dir).
   if (flagBool(args.flags, "changed")) {
     return scanChangedCommand(args, deps)
+  }
+
+  // `--auto` discovers and scans all agent configs (Stream 1 Stage 3)
+  if (flagBool(args.flags, "auto")) {
+    return scanAutoCommand(args, deps)
+  }
+
+  // `--agent <type>` discovers and scans a specific agent type (Stream 1 Stage 3)
+  const agentType = flagStr(args.flags, "agent")
+  if (agentType) {
+    return scanAgentCommand(agentType, args, deps)
   }
 
   const policyPath = flagStr(args.flags, "policy")
@@ -264,6 +276,153 @@ function scanChangedCommand(args: ParsedArgs, deps: ScanDeps): CommandResult {
   } else {
     stdout = results.map((r) => r.stdout).join("\n\n---\n\n")
   }
+
+  const stderr = results
+    .map((r) => r.stderr)
+    .filter(Boolean)
+    .join("\n")
+
+  return { stdout, exitCode, ...(stderr ? { stderr } : {}) }
+}
+
+/**
+ * `scan --auto` — discover all agent configs and scan them.
+ *
+ * Discovers configs from all registered agents (P0: Cursor, Claude Code, Claude Desktop).
+ * Scans each discovered config and aggregates results.
+ * Exit code is the worst (highest) child exit code.
+ */
+function scanAutoCommand(args: ParsedArgs, deps: ScanDeps): CommandResult {
+  const policyPath = flagStr(args.flags, "policy")
+  let policy: Policy
+  try {
+    policy = loadPolicyOrDefault(policyPath)
+  } catch (err) {
+    return {
+      stdout: "",
+      stderr: err instanceof Error ? err.message : String(err),
+      exitCode: EXIT.ERROR,
+    }
+  }
+
+  // Discover all agent configs (synchronous now)
+  const discovered = discoverConfigs({ cwd: deps.cwd })
+
+  if (discovered.discovered.length === 0) {
+    return {
+      stdout: "",
+      stderr: "No agent configs discovered. Try: calllint inventory\n",
+      exitCode: EXIT.ERROR,
+    }
+  }
+
+  // Scan each discovered config
+  const results: CommandResult[] = []
+  for (const config of discovered.discovered) {
+    let text: string
+    try {
+      text = readFileSync(config.configPath, "utf8")
+    } catch (err) {
+      results.push({
+        stdout: "",
+        stderr: `Could not read ${config.configPath}: ${err instanceof Error ? err.message : String(err)}`,
+        exitCode: EXIT.ERROR,
+      })
+      continue
+    }
+
+    const result = scanOneConfig(text, config.configPath, policy, args, deps, false)
+    results.push(result)
+  }
+
+  // Aggregate results
+  const isJson = flagBool(args.flags, "json")
+  const stdout = isJson
+    ? JSON.stringify(results.map((r) => JSON.parse(r.stdout)), null, 2) + "\n"
+    : results.map((r) => r.stdout).join("\n---\n\n")
+
+  const exitCode = flagBool(args.flags, "ci")
+    ? Math.max(...results.map((r) => r.exitCode))
+    : EXIT.OK
+
+  const stderr = results
+    .map((r) => r.stderr)
+    .filter(Boolean)
+    .join("\n")
+
+  return { stdout, exitCode, ...(stderr ? { stderr } : {}) }
+}
+
+/**
+ * `scan --agent <type>` — discover and scan a specific agent type.
+ *
+ * Discovers configs for the specified agent type only.
+ * Scans each discovered config and aggregates results (typically one).
+ * Exit code is the worst (highest) child exit code.
+ */
+function scanAgentCommand(
+  agentType: string,
+  args: ParsedArgs,
+  deps: ScanDeps,
+): CommandResult {
+  const policyPath = flagStr(args.flags, "policy")
+  let policy: Policy
+  try {
+    policy = loadPolicyOrDefault(policyPath)
+  } catch (err) {
+    return {
+      stdout: "",
+      stderr: err instanceof Error ? err.message : String(err),
+      exitCode: EXIT.ERROR,
+    }
+  }
+
+  // Discover configs for the specified agent type (synchronous now)
+  const discovered = discoverAgent(agentType as AgentType, { cwd: deps.cwd })
+
+  // Filter to only existing configs
+  const existing = discovered.filter(c => c.exists)
+
+  if (existing.length === 0) {
+    return {
+      stdout: "",
+      stderr: `No config found for agent '${agentType}'. Try: calllint inventory\n`,
+      exitCode: EXIT.ERROR,
+    }
+  }
+
+  // Scan each discovered config (typically one per agent type)
+  const results: CommandResult[] = []
+  for (const config of existing) {
+    let text: string
+    try {
+      text = readFileSync(config.configPath, "utf8")
+    } catch (err) {
+      results.push({
+        stdout: "",
+        stderr: `Could not read ${config.configPath}: ${err instanceof Error ? err.message : String(err)}`,
+        exitCode: EXIT.ERROR,
+      })
+      continue
+    }
+
+    const result = scanOneConfig(text, config.configPath, policy, args, deps, true)
+    results.push(result)
+  }
+
+  // Aggregate results (typically just one)
+  if (results.length === 1) {
+    return results[0]!
+  }
+
+  const isJson = flagBool(args.flags, "json")
+  const stdout = isJson
+    ? JSON.stringify(results.map((r) => JSON.parse(r.stdout)), null, 2) + "\n"
+    : results.map((r) => r.stdout).join("\n---\n\n")
+
+  const exitCode = flagBool(args.flags, "ci")
+    ? Math.max(...results.map((r) => r.exitCode))
+    : EXIT.OK
 
   const stderr = results
     .map((r) => r.stderr)
