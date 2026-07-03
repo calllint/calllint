@@ -1,0 +1,23 @@
+{
+  "schemaVersion": "calllint.policy.v0",
+  "defaults": {
+    "unknownSource": "deny",
+    "unpinnedPackage": "deny",
+    "broadFilesystemAccess": "deny",
+    "arbitraryCommandExecution": "deny",
+    "promptPoisoning": "deny",
+    "externalMutation": "deny",
+    "financialAction": "deny"
+  },
+  "ci": {
+    "failOn": ["REVIEW", "BLOCK", "UNKNOWN"],
+    "failOnReview": true
+  },
+  "allowedSources": [
+    "npm:@modelcontextprotocol/*"
+  ],
+  "allowedPaths": [
+    "${workspaceFolder}"
+  ],
+  "overrides": []
+}
