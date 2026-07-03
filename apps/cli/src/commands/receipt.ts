@@ -136,6 +136,45 @@ function receiptVerify(args: ParsedArgs, deps: ReceiptDeps): CommandResult {
     }
   }
 
+  // Verbose output
+  if (flagBool(args.flags, "verbose")) {
+    const stdout = [
+      "✓ CallLint receipt: valid",
+      "",
+      "Receipt Information:",
+      `  ID: ${receipt.receipt_id}`,
+      `  Schema: ${receipt.schema_version}`,
+      `  Created: ${receipt.created_at}`,
+      "",
+      "Tool:",
+      `  Name: ${receipt.tool.name}`,
+      `  Version: ${receipt.tool.version}`,
+      "",
+      "Subject:",
+      `  Type: ${receipt.subject.type}`,
+      `  Target: ${receipt.subject.target}`,
+      "",
+      `Verdict: ${receipt.verdict}`,
+      "",
+      "Hashes:",
+      `  Input:   ${receipt.hashes.input_hash}`,
+      `  Policy:  ${receipt.hashes.policy_hash}`,
+      `  Report:  ${receipt.hashes.report_hash}`,
+      `  Ruleset: ${receipt.hashes.ruleset_hash}`,
+      "",
+      "Risk Summary:",
+      `  BLOCK:   ${receipt.risk_counts.block ?? 0}`,
+      `  REVIEW:  ${receipt.risk_counts.review ?? 0}`,
+      `  UNKNOWN: ${receipt.risk_counts.unknown ?? 0}`,
+      `  SAFE:    ${receipt.risk_counts.safe ?? 0}`,
+      "",
+      `Network: ${receipt.trust_boundaries.network_used ? "Used" : "Not used"}`,
+      "",
+      "Signature: unsigned local receipt",
+    ].join("\n")
+    return { stdout, exitCode: EXIT.OK }
+  }
+
   const stdout = [
     "✓ CallLint receipt: valid",
     `  Receipt ID: ${receipt.receipt_id}`,
@@ -223,6 +262,49 @@ function verifySignature(receipt: CallLintReceipt, args: ParsedArgs, deps: Recei
       `  Error: ${cryptoResult.error || "signature verification failed"}`,
     ]
     return { stdout: "", stderr: lines.join("\n"), exitCode: 1 }
+  }
+
+  // Verbose output for valid signed receipt
+  if (flagBool(args.flags, "verbose")) {
+    const stdout = [
+      "✓ CallLint receipt: valid",
+      "",
+      "Receipt Information:",
+      `  ID: ${receipt.receipt_id}`,
+      `  Schema: ${receipt.schema_version}`,
+      `  Created: ${receipt.created_at}`,
+      "",
+      "Tool:",
+      `  Name: ${receipt.tool.name}`,
+      `  Version: ${receipt.tool.version}`,
+      "",
+      "Subject:",
+      `  Type: ${receipt.subject.type}`,
+      `  Target: ${receipt.subject.target}`,
+      "",
+      `Verdict: ${receipt.verdict}`,
+      "",
+      "Hashes:",
+      `  Input:   ${receipt.hashes.input_hash}`,
+      `  Policy:  ${receipt.hashes.policy_hash}`,
+      `  Report:  ${receipt.hashes.report_hash}`,
+      `  Ruleset: ${receipt.hashes.ruleset_hash}`,
+      "",
+      "Risk Summary:",
+      `  BLOCK:   ${receipt.risk_counts.block ?? 0}`,
+      `  REVIEW:  ${receipt.risk_counts.review ?? 0}`,
+      `  UNKNOWN: ${receipt.risk_counts.unknown ?? 0}`,
+      `  SAFE:    ${receipt.risk_counts.safe ?? 0}`,
+      "",
+      `Network: ${receipt.trust_boundaries.network_used ? "Used" : "Not used"}`,
+      "",
+      "Signature:",
+      `  Status: valid`,
+      `  Key ID: ${sig.key_id}`,
+      `  Algorithm: ${sig.algorithm}`,
+      `  Signed at: ${sig.signed_at}`,
+    ].join("\n")
+    return { stdout, exitCode: EXIT.OK }
   }
 
   const stdout = [
