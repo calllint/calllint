@@ -1,4 +1,4 @@
-// Bootstrap: Auto-register P0 extractors (must come first)
+// Bootstrap: Auto-register extractors (must come first)
 import "./bootstrap.js"
 
 // Core types
@@ -24,6 +24,10 @@ export { BaseAgentExtractor } from "./extractors/base.js"
 export { CursorExtractor } from "./extractors/cursor.js"
 export { ClaudeCodeExtractor } from "./extractors/claude-code.js"
 export { ClaudeDesktopExtractor } from "./extractors/claude-desktop.js"
+
+// P1 Agent extractors (Stage 4)
+export { VSCodeExtractor } from "./extractors/vscode.js"
+export { WindsurfExtractor } from "./extractors/windsurf.js"
 
 // Path utilities (exported for extractor implementations)
 export {

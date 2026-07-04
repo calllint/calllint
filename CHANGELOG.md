@@ -10,6 +10,22 @@ onward. While pre-1.0, minor versions may include breaking changes.
 
 ## [Unreleased]
 
+### Added
+
+- **Auto-Discovery (Stream 1)** — Zero-config scanning via `calllint scan --auto`
+  - New command: `calllint inventory` — list all discovered agent configs
+  - New flag: `calllint scan --auto` — discover and scan all agents automatically
+  - New flag: `calllint scan --agent <type>` — scan a specific agent type
+  - **Supported agents**: Cursor (P0), Claude Code (P0), Claude Desktop (P0), VS Code (P1), Windsurf (P1)
+  - Cross-platform path resolution (Windows, macOS, Linux)
+  - No manual path configuration required — agents are discovered automatically
+  - See ADR 0033 for architecture details
+
+### Changed
+
+- README Quick Start now shows `scan --auto` as the primary example
+- Help text updated to list all 5 supported agent types
+
 ## [1.0.1] — 2026-07-02 — Fix: synchronous receipt signing
 
 ### Fixed

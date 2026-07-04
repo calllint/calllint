@@ -115,9 +115,9 @@ Discovery is **read-only**:
 - ✅ **Stage 0**: ADR + package scaffold + types
 - ✅ **Stage 1**: Discovery engine + registry + path resolver
 - ✅ **Stage 2**: P0 extractors (Cursor, Claude Code, Claude Desktop)
-- ⬜ **Stage 3**: CLI integration (inventory, --auto, --agent)
-- ⬜ **Stage 4**: P1 extractors (VS Code, Windsurf)
-- ⬜ **Stage 5**: Documentation + E2E tests + product launch
+- ✅ **Stage 3**: CLI integration (`inventory`, `scan --auto`, `scan --agent`)
+- ✅ **Stage 4**: P1 extractors (VS Code, Windsurf)
+- ✅ **Stage 5**: Documentation + E2E tests + product launch
 
 ## Related
 

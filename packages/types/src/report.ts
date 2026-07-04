@@ -12,6 +12,8 @@ import type { Verdict } from "./verdict.js"
 export const TARGET_KINDS = [
   "cursor-mcp-config",
   "claude-settings",
+  "vscode-mcp-config",
+  "windsurf-mcp-config",
   "npm",
   "github",
   "inline",

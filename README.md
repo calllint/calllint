@@ -122,6 +122,22 @@ older previews.
 
 ## Quick start
 
+**Zero-config scanning** — discover and scan all your agent configs:
+
+```bash
+# Auto-discover and scan all agents (Cursor, Claude Code, Claude Desktop, VS Code, Windsurf)
+calllint scan --auto
+
+# List all discovered agent configs
+calllint inventory
+
+# Scan a specific agent type
+calllint scan --agent cursor
+calllint scan --agent vscode
+```
+
+**Manual path scanning** — scan a specific config file:
+
 ```bash
 # scan a config file (auto-detects common locations if no path given)
 calllint scan ./mcp.json
