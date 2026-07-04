@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach } from "vitest"
 import { registry } from "../registry.js"
-import { bootstrapP0Extractors } from "../bootstrap.js"
+import { bootstrapExtractors } from "../bootstrap.js"
 import type { AgentType } from "../types.js"
 
 describe("bootstrap", () => {
@@ -9,19 +9,19 @@ describe("bootstrap", () => {
     registry.clear()
   })
 
-  it("should auto-register P0 extractors", () => {
+  it("should auto-register P0 + P1 extractors", () => {
     // Bootstrap should have been called during module import
-    bootstrapP0Extractors()
+    bootstrapExtractors()
 
     const registered = registry.getAll()
-    expect(registered).toHaveLength(3)
+    expect(registered).toHaveLength(5)
 
     const types = registered.map(e => e.agentType).sort()
-    expect(types).toEqual(["claude-code", "claude-desktop", "cursor"])
+    expect(types).toEqual(["claude-code", "claude-desktop", "cursor", "vscode", "windsurf"])
   })
 
   it("should register all P0 extractors with correct priority", () => {
-    bootstrapP0Extractors()
+    bootstrapExtractors()
 
     const p0Extractors = registry.getByPriority("P0")
     expect(p0Extractors).toHaveLength(3)
@@ -31,17 +31,21 @@ describe("bootstrap", () => {
     }
   })
 
-  it("should allow manual registration after bootstrap", () => {
-    bootstrapP0Extractors()
-    expect(registry.getAll()).toHaveLength(3)
+  it("should register all P1 extractors with correct priority", () => {
+    bootstrapExtractors()
 
-    // Bootstrap doesn't prevent manual registration of other agents
-    // (This is a placeholder test; in reality we'd need a P1 extractor)
+    const p1Extractors = registry.getByPriority("P1")
+    expect(p1Extractors).toHaveLength(2)
+
+    for (const extractor of p1Extractors) {
+      expect(extractor.priority).toBe("P1")
+    }
   })
 
   it("should register extractors that can discover configs", () => {
-    bootstrapP0Extractors()
+    bootstrapExtractors()
 
+    // P0
     const cursor = registry.get("cursor")
     expect(cursor).toBeDefined()
     expect(cursor?.agentType).toBe("cursor")
@@ -53,13 +57,22 @@ describe("bootstrap", () => {
     const claudeDesktop = registry.get("claude-desktop")
     expect(claudeDesktop).toBeDefined()
     expect(claudeDesktop?.agentType).toBe("claude-desktop")
+
+    // P1
+    const vscode = registry.get("vscode")
+    expect(vscode).toBeDefined()
+    expect(vscode?.agentType).toBe("vscode")
+
+    const windsurf = registry.get("windsurf")
+    expect(windsurf).toBeDefined()
+    expect(windsurf?.agentType).toBe("windsurf")
   })
 
   it("should not throw when called multiple times", () => {
     // First call
-    expect(() => bootstrapP0Extractors()).not.toThrow()
+    expect(() => bootstrapExtractors()).not.toThrow()
 
     // Second call should throw because extractors are already registered
-    expect(() => bootstrapP0Extractors()).toThrow(/already registered/)
+    expect(() => bootstrapExtractors()).toThrow(/already registered/)
   })
 })
