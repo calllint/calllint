@@ -17,10 +17,11 @@ function runBin(args: string[], input?: string): { stdout: string; code: number 
       input: input ?? "",
       encoding: "utf8",
       cwd: repoRoot,
+      maxBuffer: 10 * 1024 * 1024, // 10MB buffer (prevent truncation)
     })
     return { stdout, code: 0 }
   } catch (err) {
-    const e = err as { status?: number; stdout?: string }
+    const e = err as { status?: number; stdout?: string; stderr?: string }
     return { stdout: e.stdout ?? "", code: e.status ?? 1 }
   }
 }
@@ -79,7 +80,19 @@ describe("built binary E2E", () => {
       if (c.expect === "parse-error") continue
       const input = readFileSync(goldenPath(c.file), "utf8")
       const { stdout } = runBin(["scan", "--stdin", "--json"], input)
-      const parsed = JSON.parse(stdout)
+
+      // Guard against truncated/empty output
+      if (!stdout || stdout.trim().length === 0) {
+        throw new Error(`Empty stdout for ${c.file}`)
+      }
+
+      let parsed: any
+      try {
+        parsed = JSON.parse(stdout)
+      } catch (parseErr) {
+        throw new Error(`JSON parse failed for ${c.file}: ${parseErr}\nStdout: ${stdout.slice(0, 500)}`)
+      }
+
       expect(parsed.verdict, c.file).toBe(c.expect)
 
       const report = parsed.reports[0]
