@@ -10,6 +10,10 @@ onward. While pre-1.0, minor versions may include breaking changes.
 
 ## [Unreleased]
 
+## [1.1.0] — 2026-07-04 — Stream 1: Auto-Discovery
+
+**Zero-config scanning.** CallLint now automatically discovers agent configurations across your system — no manual path configuration required.
+
 ### Added
 
 - **Auto-Discovery (Stream 1)** — Zero-config scanning via `calllint scan --auto`
@@ -20,6 +24,7 @@ onward. While pre-1.0, minor versions may include breaking changes.
   - Cross-platform path resolution (Windows, macOS, Linux)
   - No manual path configuration required — agents are discovered automatically
   - See ADR 0033 for architecture details
+- Example MCP configs for VS Code and Windsurf added to `examples/mcp-configs/`
 
 ### Changed
 

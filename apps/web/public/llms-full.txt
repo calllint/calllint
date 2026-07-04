@@ -8,10 +8,13 @@ This file inlines the guidance an agent needs in one fetch. Canonical sources:
 
 ## Status
 
-- Version `1.0.1` on the `latest` npm dist-tag (first stable release; expect FP/FN).
+- Version `1.1.0` on the `latest` npm dist-tag (stable release with auto-discovery; expect FP/FN).
 
 ## Commands
 
+- `npx calllint scan --auto` (auto-discover and scan all agent configs — zero configuration)
+- `npx calllint inventory` (list all discovered agent configs without scanning)
+- `npx calllint scan --agent cursor` (scan only Cursor configs; supports: cursor, claude-code, claude-desktop, vscode, windsurf)
 - `npx calllint scan .cursor/mcp.json`
 - `npx calllint scan .cursor/mcp.json --json`
 - `npx calllint scan .cursor/mcp.json --ci --no-emoji`
