@@ -17,7 +17,7 @@ It never executes, installs, or connects to the servers it judges.
 npx calllint scan .cursor/mcp.json
 ```
 
-> Status: 1.0.1 stable CLI release. Actively hardened. Verdicts are heuristic
+> Status: 1.1.0 stable CLI release. Actively hardened. Verdicts are heuristic
 > decision support, not a safety guarantee. Read [Limitations](#limitations)
 > before relying on a verdict for a security decision.
 
