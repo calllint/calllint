@@ -4,7 +4,7 @@
   "package": "calllint",
   "stableVersion": "1.1.0",
   "releaseChannel": "stable",
-  "defaultInstallCommand": "npx calllint scan .cursor/mcp.json",
+  "defaultInstallCommand": "npx calllint scan --auto",
   "nodeRequirement": ">=20",
   "headlines": {
     "eyebrow": "Pre-flight risk linting for agent tools",
