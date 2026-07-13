@@ -57,9 +57,18 @@
               verdicts. Offline by default. Deterministic. Never executes the server
               it judges. SAFE means no blockers observed, not a proof of runtime safety.
             </p>
+            <p class="lede lede-secondary">
+              A deterministic authority and policy gate for agent tools: it decides
+              whether the authority a tool would be granted is acceptable — and leaves
+              evidence you can verify later.
+            </p>
             <div class="hero-install" aria-label="Install command">
-<pre><code>npx calllint scan .cursor/mcp.json</code></pre>
+<pre><code>npx calllint scan --auto</code></pre>
             </div>
+            <p class="hero-install-note">
+              Zero-config: auto-discovers Cursor, Claude Code, Claude Desktop, VS Code,
+              and Windsurf. Or pass an explicit path: <code>npx calllint scan .cursor/mcp.json</code>.
+            </p>
             <div class="cta-row">
               <a class="btn btn-primary" href="#install">Get started</a>
               <a class="btn btn-ghost" href="https://github.com/calllint/calllint">View on GitHub</a>
@@ -362,10 +371,10 @@ jobs:
         <div class="install-card">
           <h2>Install &amp; scan</h2>
           <p>Point CallLint at your MCP config before your agent loads it. Requires Node.js ≥ 20; the published package is a single self-contained bundle with zero runtime dependencies.</p>
-<pre><code>npx calllint scan .cursor/mcp.json
+<pre><code>npx calllint scan --auto
 npx calllint scan .cursor/mcp.json --ci --no-emoji
 npx calllint scan .cursor/mcp.json --html &gt; report.html</code></pre>
-          <p class="install-note">Installs the latest stable <code>calllint</code> from npm (the <code>latest</code> tag). Requires Node.js ≥ 20.</p>
+          <p class="install-note">Zero-config <code>scan --auto</code> auto-discovers Cursor, Claude Code, Claude Desktop, VS Code, and Windsurf configs; pass an explicit path for CI gating or HTML reports. Installs the latest stable <code>calllint</code> from npm (the <code>latest</code> tag). Requires Node.js ≥ 20.</p>
           <p class="install-note">Want the agent to run the check itself? Add the <a href="https://www.npmjs.com/package/calllint-mcp"><code>calllint-mcp</code></a> server (<code>npx -y calllint-mcp</code>) so it can scan, verify, and explain before approving another MCP server.</p>
         </div>
       </section>

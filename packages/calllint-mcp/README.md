@@ -12,6 +12,11 @@ server it judges**.
 the [`calllint` CLI](https://www.npmjs.com/package/calllint). No analysis logic
 of its own, no network on the scan path, no server execution.
 
+The wrapper is versioned independently of the engine it embeds: `calllint-mcp`
+`0.2.0` bundles the CallLint `1.1.x` engine. The wrapper version tracks the MCP
+surface (tools, transport, registry metadata); the embedded engine version
+tracks verdict semantics.
+
 ## Install
 
 No install needed — run via `npx`:
