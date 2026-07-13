@@ -57,9 +57,15 @@ receipt is **not** a second scanner and never re-judges a scan.
   everywhere else in CallLint. `UNKNOWN` is never `SAFE`.
 - It does **not certify** a tool. CallLint issues a receipt; it does not "approve"
   or "guarantee" a server.
-- It is **unsigned.** A `calllint.receipt.v0` receipt is a local, unsigned
-  receipt. The `signature` field is reserved for a future cloud-signing release
-  and is never populated today. Its absence is normal, not an error.
+- It is **unsigned by default.** A plain `scan --receipt` writes a local,
+  unsigned `calllint.receipt.v0` receipt, and its missing `signature` field is
+  normal, not an error. A receipt *can* optionally carry a local **ed25519**
+  signature: `calllint receipt keygen --out <keyfile>` generates a development
+  keypair and `calllint receipt sign <receipt.json> --key <keyfile>` populates
+  the `signature` field locally. This local signing is **development/testing
+  only**; organization-signed, cloud-issued production receipts are a future
+  release, not shipped today. A signature proves **provenance and integrity —
+  never safety.**
 
 ## Verifying a receipt
 
@@ -67,14 +73,18 @@ receipt is **not** a second scanner and never re-judges a scan.
 calllint receipt verify calllint-receipt.json
 ```
 
-`receipt verify` checks the **structure** of a receipt: schema identity, hash
-formats (`sha256:<64 hex>`), integer risk counts, required fields, and the fixed
-trust-boundary invariants. It is offline and does no cryptography and no network
-access. It exits `0` for a structurally valid receipt and `1` for a malformed or
-invalid one. Add `--json` to get the machine-readable result.
+`receipt verify` first checks the **structure** of a receipt: schema identity,
+hash formats (`sha256:<64 hex>`), integer risk counts, required fields, and the
+fixed trust-boundary invariants. If the receipt carries a `signature` field, it
+then **cryptographically verifies the ed25519 signature** against a locally
+supplied public key (`--public-key <keyfile>`); key fetching over the network is
+intentionally out of scope, so verification stays offline. It exits `0` for a
+valid receipt (well-formed, and — when signed — correctly signed) and `1` for a
+malformed, invalid, or bad-signature receipt. Add `--json` to get the
+machine-readable result.
 
-Verification confirms a receipt is **well-formed**; it does not re-run the scan
-and cannot upgrade a verdict.
+Verification confirms a receipt is **well-formed** (and, when signed, authentic);
+it does not re-run the scan and cannot upgrade a verdict.
 
 ## The hashes
 
@@ -112,6 +122,6 @@ gate. See the GitHub Action's `receipt` input for uploading one automatically.
 ## Boundary summary
 
 A CallLint receipt is a **verifiable local receipt** and **heuristic decision
-support**: preflight recorded, policy checked, scan evidence captured. It is
-never a certification, never a safety guarantee, and never a second opinion that
-re-judges the scan.
+support**: preflight recorded, policy checked, scan evidence captured, and
+optionally locally signed. It is never a certification, never a safety guarantee,
+and never a second opinion that re-judges the scan.
