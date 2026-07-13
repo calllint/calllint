@@ -16,9 +16,11 @@
  *   6. The website corpus section reflects the current corpus phase.
  *   7. No stale `npx calllint@preview|@next scan` commands in public copy.
  *   8. No stale status phrases ("public preview", "release candidate",
- *      "After 0.3.0 ships", "0.3.0-rc.0") in public current-status copy.
+ *      "After 0.3.0 ships", "0.3.0-rc.0", "pre-1.0") in public current-status copy.
  *   9. The homepage hero headline "Before your agent acts, check the blast
  *      radius" is present.
+ *   9b. The homepage presents `scan --auto` (auto-discovery, v1.1.0) as a
+ *      primary command — not a manual-path-only quickstart.
  *  10. The homepage corpus section states "dangerous false-SAFE = 0".
  *  11. Agent-readable status files (llms.txt, llms-full.txt) state the
  *      current stable version from project-facts.json, not a stale one.
@@ -66,6 +68,7 @@ const staleStatusPhrases = [
   "public preview",
   "After 0.3.0 ships",
   "0.3.0-rc.0",
+  "pre-1.0",
 ]
 /** Stale current-status claim patterns (regex, case-insensitive). */
 const staleStatusPatterns = [
@@ -195,6 +198,16 @@ console.log("")
   if (!site) fail("apps/web/public/index.html not found; cannot verify hero headline")
   else if (site.text.includes(heroHeadline)) ok(`hero headline present: "${heroHeadline}"`)
   else fail(`hero headline missing: expected "${heroHeadline}"`)
+}
+
+// 9b. Homepage must present `scan --auto` as the primary/zero-config command
+//     (new7 A4: flagship auto-discovery must be visible on the homepage, not
+//     buried behind a manual-path-only quickstart).
+{
+  const site = files.find((f) => f.rel === "apps/web/public/index.html")
+  if (!site) fail("apps/web/public/index.html not found; cannot verify scan --auto presence")
+  else if (/scan --auto/.test(site.text)) ok("homepage presents `scan --auto` (auto-discovery visible)")
+  else fail("homepage does not mention `scan --auto` — auto-discovery (v1.1.0) must be visible on the homepage")
 }
 
 // 10. Homepage corpus section must state "0 dangerous false-SAFE".

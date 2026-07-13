@@ -1,7 +1,8 @@
-import { describe, it, expect } from "vitest"
-import { execSync } from "node:child_process"
-import { join } from "node:path"
-import { mkdirSync, writeFileSync, rmSync, existsSync } from "node:fs"
+import { describe, it, expect, beforeAll } from "vitest"
+import { execSync, execFileSync } from "node:child_process"
+import { dirname, join } from "node:path"
+import { fileURLToPath } from "node:url"
+import { existsSync, mkdirSync, writeFileSync, rmSync } from "node:fs"
 import { tmpdir } from "node:os"
 
 /**
@@ -13,13 +14,26 @@ import { tmpdir } from "node:os"
  * 3. calllint scan --agent <type> (targeted discovery + scan)
  */
 
-const CLI_PATH = join(process.cwd(), "apps", "cli", "dist", "index.js")
+const here = dirname(fileURLToPath(import.meta.url))
+const cliDir = join(here, "..", "..", "..", "apps", "cli")
+const CLI_PATH = join(cliDir, "dist", "index.js")
 
-function runCLI(args: string): { stdout: string; stderr: string; exitCode: number } {
+/**
+ * Run the CLI. `envOverride` lets a test pin the discovery home directory so the
+ * result never depends on the developer's real machine state (a real
+ * `~/.cursor/mcp.json` must not change what these tests observe). Discovery
+ * resolves home from HOME/USERPROFILE (+ APPDATA on Windows) — see
+ * packages/discovery/src/extractors/base.ts — so overriding those fully controls it.
+ */
+function runCLI(
+  args: string,
+  envOverride?: Record<string, string>
+): { stdout: string; stderr: string; exitCode: number } {
   try {
     const stdout = execSync(`node "${CLI_PATH}" ${args}`, {
       encoding: "utf8",
       stdio: "pipe",
+      env: envOverride ? { ...process.env, ...envOverride } : process.env,
     })
     return { stdout, stderr: "", exitCode: 0 }
   } catch (error: any) {
@@ -31,7 +45,28 @@ function runCLI(args: string): { stdout: string; stderr: string; exitCode: numbe
   }
 }
 
+/**
+ * Build an isolated, empty home directory so discovery finds NO real config.
+ * Returns the env override that points HOME/USERPROFILE/APPDATA at it.
+ */
+function emptyHomeEnv(label: string): { env: Record<string, string>; dir: string } {
+  const dir = join(tmpdir(), `calllint-e2e-${label}-${process.pid}`)
+  rmSync(dir, { recursive: true, force: true })
+  mkdirSync(join(dir, "appdata"), { recursive: true })
+  return {
+    dir,
+    env: { HOME: dir, USERPROFILE: dir, APPDATA: join(dir, "appdata") },
+  }
+}
+
 describe("auto-discovery E2E", () => {
+  beforeAll(() => {
+    // Ensure the built CLI artifact exists — in CI `pnpm test` runs before the
+    // build step, so dist/index.js may not exist yet (mirrors e2e.test.ts).
+    execFileSync(process.execPath, ["./build.mjs"], { cwd: cliDir, stdio: "ignore" })
+    expect(existsSync(CLI_PATH)).toBe(true)
+  })
+
   it("inventory command exits 0 even with no configs", () => {
     const result = runCLI("inventory")
 
@@ -73,43 +108,57 @@ describe("auto-discovery E2E", () => {
     expect(result.exitCode).toBeLessThanOrEqual(30)
   })
 
-  it("scan --agent cursor attempts discovery for cursor", () => {
-    const result = runCLI("scan --agent cursor")
+  // --- Environment-controlled --agent cases (no dependency on host machine) ---
+  // Each pins an isolated home so the outcome is deterministic regardless of
+  // whether the developer has a real ~/.cursor/mcp.json.
 
-    // Should either scan cursor config or report "no config found"
-    // Note: stderr may contain the message on some error paths
-    const combined = result.stdout + result.stderr
-    expect(
-      combined.includes("result:") ||
-      combined.includes("No config found") ||
-      combined.includes("config:")
-    ).toBe(true)
+  it("scan --agent cursor: empty home → clean 'No config found'", () => {
+    const { env, dir } = emptyHomeEnv("cursor-empty")
+    try {
+      const result = runCLI("scan --agent cursor", env)
+      expect(result.exitCode).not.toBe(0)
+      expect(result.stdout + result.stderr).toContain("No config found")
+    } finally {
+      rmSync(dir, { recursive: true, force: true })
+    }
   })
 
-  it("scan --agent vscode attempts discovery for vscode", () => {
-    const result = runCLI("scan --agent vscode")
-
-    // Should either scan vscode config or report "no config found"
-    // Note: stderr may contain the message on some error paths
-    const combined = result.stdout + result.stderr
-    expect(
-      combined.includes("result:") ||
-      combined.includes("No config found for agent") ||
-      combined.includes("No config found")
-    ).toBe(true)
+  it("scan --agent cursor: config present → scans it", () => {
+    const { env, dir } = emptyHomeEnv("cursor-present")
+    try {
+      // Plant a real Cursor config in the isolated home.
+      const cfg = join(dir, ".cursor")
+      mkdirSync(cfg, { recursive: true })
+      writeFileSync(
+        join(cfg, "mcp.json"),
+        JSON.stringify({ mcpServers: { demo: { command: "node", args: ["server.js"] } } })
+      )
+      const result = runCLI("scan --agent cursor", env)
+      const combined = result.stdout + result.stderr
+      expect(combined.includes("config:") || combined.includes("result:")).toBe(true)
+    } finally {
+      rmSync(dir, { recursive: true, force: true })
+    }
   })
 
-  it("scan --agent windsurf attempts discovery for windsurf", () => {
-    const result = runCLI("scan --agent windsurf")
+  it("scan --agent vscode: empty home → 'No config found for agent'", () => {
+    const { env, dir } = emptyHomeEnv("vscode-empty")
+    try {
+      const result = runCLI("scan --agent vscode", env)
+      expect(result.stdout + result.stderr).toContain("No config found")
+    } finally {
+      rmSync(dir, { recursive: true, force: true })
+    }
+  })
 
-    // Should either scan windsurf config or report "no config found"
-    // Note: stderr may contain the message on some error paths
-    const combined = result.stdout + result.stderr
-    expect(
-      combined.includes("result:") ||
-      combined.includes("No config found for agent") ||
-      combined.includes("No config found")
-    ).toBe(true)
+  it("scan --agent windsurf: empty home → 'No config found for agent'", () => {
+    const { env, dir } = emptyHomeEnv("windsurf-empty")
+    try {
+      const result = runCLI("scan --agent windsurf", env)
+      expect(result.stdout + result.stderr).toContain("No config found")
+    } finally {
+      rmSync(dir, { recursive: true, force: true })
+    }
   })
 
   it("scan --agent unknown-agent shows helpful error", () => {
