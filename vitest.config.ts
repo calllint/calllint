@@ -18,6 +18,7 @@ export default defineConfig({
       "@calllint/online": r("./packages/online/src/index.ts"),
       "@calllint/fixtures": r("./packages/fixtures/src/index.ts"),
       "@calllint/signature": r("./packages/signature/src/index.ts"),
+      "@calllint/evidence": r("./packages/evidence/src/index.ts"),
     },
   },
   test: {

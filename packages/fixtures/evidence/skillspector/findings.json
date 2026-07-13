@@ -1,0 +1,20 @@
+{
+  "scanner": "SkillSpector",
+  "commit": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+  "status": "complete",
+  "llm_used": true,
+  "categories": ["malicious-patterns", "taint"],
+  "findings": [
+    {
+      "rule_id": "SS-EXFIL-001",
+      "severity": "high",
+      "message": "possible credential exfiltration to external host",
+      "location": "skill/handler.py:42"
+    },
+    {
+      "rule_id": "SS-EVAL-002",
+      "severity": "critical",
+      "message": "eval() of externally-influenced input"
+    }
+  ]
+}

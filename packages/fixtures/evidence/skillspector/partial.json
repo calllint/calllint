@@ -1,0 +1,9 @@
+{
+  "scanner": "SkillSpector",
+  "commit": "cccccccccccccccccccccccccccccccccccccccc",
+  "status": "partial",
+  "categories": ["malicious-patterns"],
+  "findings": [
+    { "rule_id": "SS-NET-003", "severity": "low", "message": "outbound network call" }
+  ]
+}
