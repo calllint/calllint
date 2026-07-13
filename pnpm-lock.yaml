@@ -47,6 +47,9 @@ importers:
       '@calllint/report-renderer':
         specifier: workspace:*
         version: link:../../packages/report-renderer
+      '@calllint/resolver':
+        specifier: workspace:*
+        version: link:../../packages/resolver
       '@calllint/signature':
         specifier: workspace:*
         version: link:../../packages/signature
@@ -196,6 +199,9 @@ importers:
 
   packages/resolver:
     dependencies:
+      '@calllint/fingerprint':
+        specifier: workspace:*
+        version: link:../fingerprint
       '@calllint/types':
         specifier: workspace:*
         version: link:../types
