@@ -23,7 +23,8 @@ import {
   type FetchedEntry,
 } from "@calllint/resolver"
 import { prepare, prepareExitCode, parseTargetSpec } from "@calllint/core"
-import type { ArtifactSourceType, TrustPreparation } from "@calllint/types"
+import { importEvidence, type EvidenceFormat } from "@calllint/evidence"
+import type { ArtifactSourceType, GatewayEvidence, TrustPreparation } from "@calllint/types"
 import type { CommandResult } from "./scan.js"
 import { EXIT, flagBool, type ParsedArgs } from "../args.js"
 
@@ -193,13 +194,38 @@ function readDirEntries(absDir: string): FetchedEntry[] {
   return entries
 }
 
+/**
+ * Import an external evidence file at the edge (I/O here; import is pure and
+ * fail-closed). A missing file or an unparseable report never throws — a bad
+ * report becomes a `completeness:"failed"` envelope so it can only tighten the
+ * preparation, never read as a pass (ADR 0034).
+ */
+function loadEvidence(
+  file: string,
+  deps: TrustDeps,
+  format?: EvidenceFormat,
+  provider?: string,
+): GatewayEvidence | { error: string; exitCode: number } {
+  let rawText: string
+  try {
+    rawText = readFileSync(resolvePath(deps.cwd, file), "utf8")
+  } catch (err) {
+    const e = err as Error & { code?: string }
+    return {
+      error: e.code === "ENOENT" ? `Evidence file not found: ${file}` : e.message,
+      exitCode: EXIT.USAGE,
+    }
+  }
+  return importEvidence(rawText, { provider, format }) as GatewayEvidence
+}
+
 function trustPrepare(args: ParsedArgs, deps: TrustDeps): CommandResult {
   const target = args.positionals[1]
   if (!target) {
     return {
       stdout: "",
       stderr:
-        "Error: Missing target\nUsage: calllint trust prepare <git-url|dir|SKILL.md|mcp.json> [--json]",
+        "Error: Missing target\nUsage: calllint trust prepare <git-url|dir|SKILL.md|mcp.json> [--evidence <file>] [--json]",
       exitCode: EXIT.USAGE,
     }
   }
@@ -209,8 +235,43 @@ function trustPrepare(args: ParsedArgs, deps: TrustDeps): CommandResult {
     return { stdout: "", stderr: `Error: ${input.error}`, exitCode: input.exitCode }
   }
 
+  // --with-skillspector would run SkillSpector via a pinned-commit/container
+  // runner. Executing an external tool safely (pinned digest, sandbox, --no-llm
+  // default) is deferred; until then we NEVER silently run anything — we tell the
+  // user to import a report explicitly. This keeps the "never execute" posture.
+  if (flagBool(args.flags, "with-skillspector")) {
+    return {
+      stdout: "",
+      stderr:
+        "Error: --with-skillspector (pinned runner) is not wired yet.\n" +
+        "Run SkillSpector yourself, then attach its report:\n" +
+        "  calllint trust prepare " +
+        target +
+        " --evidence skillspector-report.json",
+      exitCode: EXIT.USAGE,
+    }
+  }
+
+  // Optional external evidence (--evidence <file>). Provenance-preserved, never
+  // re-scored. `--no-llm` is the default posture (we never invoke an LLM in the
+  // verdict path); the flag is accepted for forward-compat and is a no-op today.
+  const evidenceFile = typeof args.flags["evidence"] === "string" ? args.flags["evidence"] : undefined
+  const formatFlag = args.flags["format"]
+  const format: EvidenceFormat | undefined =
+    formatFlag === "sarif" ? "sarif" : formatFlag === "json" ? "json" : undefined
+  const providerFlag = typeof args.flags["provider"] === "string" ? args.flags["provider"] : undefined
+
+  let evidence: GatewayEvidence[] | undefined
+  if (evidenceFile) {
+    const imported = loadEvidence(evidenceFile, deps, format, providerFlag)
+    if ("error" in imported) {
+      return { stdout: "", stderr: `Error: ${imported.error}`, exitCode: imported.exitCode }
+    }
+    evidence = [imported]
+  }
+
   const artifact = resolveArtifactIdentity(input)
-  const preparation = prepare({ artifact, preparedAt: deps.generatedAt })
+  const preparation = prepare({ artifact, evidence, preparedAt: deps.generatedAt })
   const exitCode = prepareExitCode(preparation)
 
   if (flagBool(args.flags, "json")) {
@@ -287,7 +348,14 @@ function renderPreparation(p: TrustPreparation): string {
   out += `digest:       ${a.digest ?? "(none)"}\n`
   out += `resolution:   ${a.resolution}\n`
   out += `state:        ${STATE_BADGE[p.state] ?? p.state}\n`
-  out += `evidence:     ${p.evidence === null ? "(not collected — G2)" : `${p.evidence.length}`}\n`
+  if (p.evidence === null) {
+    out += `evidence:     (none attached — pass --evidence <file>)\n`
+  } else {
+    out += `evidence:     ${p.evidence.length} provider(s)\n`
+    for (const e of p.evidence) {
+      out += `  • ${e.provider} (${e.providerVersion}) — ${e.scanMode}, ${e.completeness}, ${e.findings.length} finding(s), not re-scored\n`
+    }
+  }
   out += `authority:    ${p.authority === null ? "(not normalized — G3)" : "present"}\n`
   out += `decision:     ${p.decision === null ? "(not decided — G4)" : "present"}\n`
   out += `plan:         ${p.plan === null ? "(not planned — G5)" : "present"}\n`
@@ -334,7 +402,7 @@ function trustHelp(): string {
 calllint trust — Automated Trust Gateway (prepare → approve → apply → verify)
 
 USAGE
-  calllint trust prepare <target> [--json]     Read-only: resolve + preview
+  calllint trust prepare <target> [--evidence <file>] [--json]
   calllint trust show <preparation.json>       Human summary of a preparation
   calllint trust explain <preparation.json>    Why this state / these notes
 
@@ -344,9 +412,21 @@ DESCRIPTION
   (calllint.artifact.v1) and produces a READ-ONLY preview. It touches no live
   config and NEVER executes the target — it only reads bytes to digest them.
 
+  Attach a third-party scanner report with --evidence <file>: it is imported
+  provenance-preserved and NEVER re-scored. Degraded or failed evidence can only
+  tighten the preparation (fail-closed) — a degraded external scan never reads
+  as a pass. An external SAFE never upgrades a CallLint verdict.
+
   Remote git/npm targets need network to pin an immutable ref; offline they
-  degrade explicitly (never a silent pass). Evidence, Authority, Decision, and
-  Install Plan slots are populated by later Phase-G steps.
+  degrade explicitly (never a silent pass). Authority, Decision, and Install
+  Plan slots are populated by later Phase-G steps.
+
+OPTIONS (prepare)
+  --evidence <file>     Attach a third-party scanner report (JSON or SARIF)
+  --format json|sarif   Force the evidence format (default: auto-detect)
+  --provider <name>     Force the evidence provider adapter (default: auto-detect)
+  --no-llm              Default posture: no LLM in the verdict path (accepted, no-op)
+  --json                Emit the raw calllint.trust-preparation.v0 document
 
 TARGETS
   ./path/to/dir            a local directory (tree-digested, read-only)

@@ -35,6 +35,9 @@ importers:
       '@calllint/discovery':
         specifier: workspace:*
         version: link:../../packages/discovery
+      '@calllint/evidence':
+        specifier: workspace:*
+        version: link:../../packages/evidence
       '@calllint/fixtures':
         specifier: workspace:*
         version: link:../../packages/fixtures
@@ -101,6 +104,9 @@ importers:
       '@calllint/config-parser':
         specifier: workspace:*
         version: link:../config-parser
+      '@calllint/evidence':
+        specifier: workspace:*
+        version: link:../evidence
       '@calllint/fingerprint':
         specifier: workspace:*
         version: link:../fingerprint
