@@ -1,0 +1,104 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://calllint.com/schemas/evidence-provider.schema.json",
+  "title": "CallLint Evidence Provider Envelope",
+  "description": "A normalized envelope (calllint.evidence-provider.v0) for a third-party scanner's report (e.g. SkillSpector, OSV, Semgrep). CallLint records the external evidence with provenance — provider, version, scan mode, coverage, completeness, raw-report digest — WITHOUT re-scoring or renaming the provider's own findings/verdict. An external SAFE never upgrades a CallLint verdict; a degraded/failed/malformed scan fails closed (never reads as a pass). Evidence is aggregated, never impersonated. See ADR 0034 and docs/new7-packet-a-evidence.md.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "provider",
+    "providerVersion",
+    "artifactDigest",
+    "scanMode",
+    "coverage",
+    "completeness",
+    "findings",
+    "rawReportDigest",
+    "degradedReasons"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "calllint.evidence-provider.v0",
+      "description": "Envelope schema identity. Distinct from calllint.report.v0 / calllint.receipt.v0."
+    },
+    "provider": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Short provider id, e.g. \"skillspector\", \"osv\", \"semgrep\"."
+    },
+    "providerVersion": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Pinned provider version. Prefer \"git:<40-hex-commit>\" for tools with no formal release (SkillSpector). \"unknown\" is allowed but MUST coincide with completeness != complete and a degradedReasons entry."
+    },
+    "artifactDigest": {
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$",
+      "description": "Digest of the artifact that was scanned (the skill/config/package), if known. sha256:<64hex>."
+    },
+    "scanMode": {
+      "enum": ["static", "llm", "deep"],
+      "description": "How the external scan ran. An LLM-assisted scan is decision-relevant downstream."
+    },
+    "coverage": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Provider-declared coverage categories (free-form provider strings)."
+    },
+    "completeness": {
+      "enum": ["complete", "partial", "degraded", "failed"],
+      "description": "How complete the external scan was. Anything other than \"complete\" MUST NOT read as a pass; \"failed\" is fail-closed."
+    },
+    "findings": {
+      "type": "array",
+      "description": "Provider-native findings, kept verbatim. CallLint never remaps providerSeverity into its own severity hierarchy, nor renames providerRuleId.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["providerRuleId", "providerSeverity"],
+        "properties": {
+          "providerRuleId": {
+            "type": "string",
+            "minLength": 1,
+            "description": "The provider's own rule/check id, e.g. \"SS-EXFIL-001\". Never rewritten into a CallLint rule id."
+          },
+          "providerSeverity": {
+            "type": "string",
+            "minLength": 1,
+            "description": "The provider's own severity string, verbatim (not mapped to CallLint's S0-S5 / verdicts)."
+          },
+          "message": {
+            "type": "string",
+            "description": "Optional human-readable finding message from the provider."
+          },
+          "locations": {
+            "type": "array",
+            "items": { "type": "string" },
+            "description": "Optional provider-reported locations, e.g. \"skill/handler.py:42\"."
+          }
+        }
+      }
+    },
+    "rawReportDigest": {
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$",
+      "description": "sha256 of the stable-stringified raw external report. Preserves provenance; the raw report is never paraphrased away."
+    },
+    "startedAt": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Optional ISO-8601 UTC start time of the external scan."
+    },
+    "finishedAt": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Optional ISO-8601 UTC finish time of the external scan."
+    },
+    "degradedReasons": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Why the scan is not fully complete/trustworthy (unpinned version, parse loss, tool error, offline). Non-empty REQUIRES completeness in {partial, degraded, failed}."
+    }
+  }
+}

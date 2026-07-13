@@ -1,5 +1,5 @@
 {
-  "name": "@calllint/fixtures",
+  "name": "@calllint/evidence",
   "version": "0.1.0",
   "private": true,
   "type": "module",
@@ -9,7 +9,7 @@
     ".": "./src/index.ts"
   },
   "dependencies": {
-    "@calllint/types": "workspace:*",
-    "@calllint/evidence": "workspace:*"
+    "@calllint/fingerprint": "workspace:*",
+    "@calllint/types": "workspace:*"
   }
 }

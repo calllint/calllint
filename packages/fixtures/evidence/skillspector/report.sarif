@@ -1,0 +1,30 @@
+{
+  "$schema": "https://json.schemastore.org/sarif-2.1.0.json",
+  "version": "2.1.0",
+  "runs": [
+    {
+      "tool": {
+        "driver": {
+          "name": "SkillSpector",
+          "semanticVersion": "2.0.0",
+          "informationUri": "https://github.com/NVIDIA/SkillSpector"
+        }
+      },
+      "results": [
+        {
+          "ruleId": "SS-EXFIL-001",
+          "level": "error",
+          "message": { "text": "possible credential exfiltration to external host" },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": { "uri": "skill/handler.py" },
+                "region": { "startLine": 42 }
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

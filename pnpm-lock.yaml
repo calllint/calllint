@@ -139,6 +139,15 @@ importers:
         specifier: workspace:*
         version: link:../types
 
+  packages/evidence:
+    dependencies:
+      '@calllint/fingerprint':
+        specifier: workspace:*
+        version: link:../fingerprint
+      '@calllint/types':
+        specifier: workspace:*
+        version: link:../types
+
   packages/fingerprint:
     dependencies:
       '@calllint/types':
@@ -147,6 +156,9 @@ importers:
 
   packages/fixtures:
     dependencies:
+      '@calllint/evidence':
+        specifier: workspace:*
+        version: link:../evidence
       '@calllint/types':
         specifier: workspace:*
         version: link:../types
