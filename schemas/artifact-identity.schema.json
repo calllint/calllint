@@ -1,0 +1,60 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://calllint.com/schemas/artifact-identity.schema.json",
+  "title": "CallLint Artifact Identity",
+  "description": "A digest-pinned identity (calllint.artifact.v1) for the thing a Trust Gateway run evaluates. Pins WHAT is being evaluated: source, the immutable resolved ref, and the digest of fetched bytes. A mutable requestedRef (branch/tag/latest/range) MUST be pinned to an immutable resolvedRef before the state machine may leave RESOLVED. This kills branch/version drift and is the anchor every downstream object (Evidence, Authority, Decision, Plan, Receipt) binds. See ADR 0035.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "sourceType",
+    "source",
+    "requestedRef",
+    "resolvedRef",
+    "digest",
+    "resolvedAt",
+    "resolution"
+  ],
+  "properties": {
+    "schema": {
+      "const": "calllint.artifact.v1",
+      "description": "Object schema identity."
+    },
+    "sourceType": {
+      "enum": ["git", "dir", "file", "npm", "mcp-config"],
+      "description": "How the target was located. git/npm are remote (need network to pin); dir/file/mcp-config are local (offline)."
+    },
+    "source": {
+      "type": "string",
+      "minLength": 1,
+      "description": "The user-supplied locator, verbatim (git URL, directory path, file path, npm spec)."
+    },
+    "requestedRef": {
+      "type": ["string", "null"],
+      "description": "What the user asked for (e.g. \"main\", \"^1.0.0\", or null for a local path). May be mutable."
+    },
+    "resolvedRef": {
+      "type": ["string", "null"],
+      "description": "The immutable ref: a git commit sha, an exact npm version, or a content marker for local paths. REQUIRED (non-null) before the artifact is considered FETCHED. null MUST coincide with resolution != \"resolved\" and a resolutionReasons entry."
+    },
+    "digest": {
+      "type": ["string", "null"],
+      "pattern": "^sha256:[0-9a-f]{64}$",
+      "description": "sha256 of the fetched bytes (a stable tree hash for git/dir, file bytes for file, the resolved manifest for mcp-config). null MUST coincide with resolution != \"resolved\"."
+    },
+    "resolvedAt": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO-8601 UTC timestamp, injected from the CLI edge (never Date.now() in pure core)."
+    },
+    "resolution": {
+      "enum": ["resolved", "partial", "unresolved"],
+      "description": "Whether the artifact was pinned to an immutable, digested identity. \"resolved\" = resolvedRef + digest present. \"partial\"/\"unresolved\" = could not fully pin (e.g. offline remote target); MUST NOT read as a verified target and blocks leaving RESOLVED."
+    },
+    "resolutionReasons": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Why the artifact is not fully resolved (offline, network error, ambiguous ref, missing file). Non-empty REQUIRES resolution in {partial, unresolved}."
+    }
+  }
+}

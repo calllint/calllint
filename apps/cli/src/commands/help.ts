@@ -17,6 +17,7 @@ COMMANDS
   action inspect <f>    Preflight a planned external action (calllint.action.v0)
   inbox inspect <f>     Preflight a normalized agent inbox event
   evidence import <f>   Import a third-party scanner report as evidence (no re-scoring)
+  trust prepare <target>  Read-only Trust Gateway preview: resolve to a digest-pinned identity
   diagnostics [target]  Emit editor/agent-host diagnostics JSON (calllint.diagnostics.v0)
   baseline [target]  Record the approved risk surface as a baseline
   approve            Record the repo-wide capability surface as approved state (L4)
