@@ -1,7 +1,8 @@
-import { describe, it, expect } from "vitest"
-import { execSync } from "node:child_process"
-import { join } from "node:path"
-import { mkdirSync, writeFileSync, rmSync } from "node:fs"
+import { describe, it, expect, beforeAll } from "vitest"
+import { execSync, execFileSync } from "node:child_process"
+import { dirname, join } from "node:path"
+import { fileURLToPath } from "node:url"
+import { existsSync, mkdirSync, writeFileSync, rmSync } from "node:fs"
 import { tmpdir } from "node:os"
 
 /**
@@ -13,7 +14,9 @@ import { tmpdir } from "node:os"
  * 3. calllint scan --agent <type> (targeted discovery + scan)
  */
 
-const CLI_PATH = join(process.cwd(), "apps", "cli", "dist", "index.js")
+const here = dirname(fileURLToPath(import.meta.url))
+const cliDir = join(here, "..", "..", "..", "apps", "cli")
+const CLI_PATH = join(cliDir, "dist", "index.js")
 
 /**
  * Run the CLI. `envOverride` lets a test pin the discovery home directory so the
@@ -57,6 +60,13 @@ function emptyHomeEnv(label: string): { env: Record<string, string>; dir: string
 }
 
 describe("auto-discovery E2E", () => {
+  beforeAll(() => {
+    // Ensure the built CLI artifact exists — in CI `pnpm test` runs before the
+    // build step, so dist/index.js may not exist yet (mirrors e2e.test.ts).
+    execFileSync(process.execPath, ["./build.mjs"], { cwd: cliDir, stdio: "ignore" })
+    expect(existsSync(CLI_PATH)).toBe(true)
+  })
+
   it("inventory command exits 0 even with no configs", () => {
     const result = runCLI("inventory")
 
