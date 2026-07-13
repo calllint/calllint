@@ -10,6 +10,23 @@
  */
 import type { ArtifactIdentity } from "./artifact.js"
 
+/**
+ * Minimal shape of an evidence envelope as the gateway sees it. The full type
+ * lives in @calllint/evidence (calllint.evidence-provider.v0); the gateway only
+ * needs its completeness + provenance to advance the read-only state machine and
+ * never re-scores it.
+ */
+export interface GatewayEvidence {
+  schema_version: "calllint.evidence-provider.v0"
+  provider: string
+  providerVersion: string
+  completeness: "complete" | "partial" | "degraded" | "failed"
+  scanMode: "static" | "llm" | "deep"
+  findings: unknown[]
+  degradedReasons: string[]
+  rawReportDigest: `sha256:${string}`
+}
+
 /** States of the read-only half. Apply-side states arrive with G6. */
 export type TrustPrepareState =
   | "DISCOVERED"
@@ -35,8 +52,8 @@ export interface TrustPreparation {
   schema: "calllint.trust-preparation.v0"
   /** Object 1 — always present (may be unresolved). */
   artifact: ArtifactIdentity
-  /** Object 2 — Evidence Envelope(s); filled by G2. */
-  evidence: unknown[] | null
+  /** Object 2 — Evidence Envelope(s), provenance-preserved; filled by G2. */
+  evidence: GatewayEvidence[] | null
   /** Object 3 — Authority Manifest; filled by G3. */
   authority: unknown | null
   /** Object 4 — Policy Decision; filled by G4. */

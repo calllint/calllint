@@ -139,6 +139,79 @@ describe("trust prepare — read-only artifact identity (G1)", () => {
   })
 })
 
+describe("trust prepare --evidence (G2, provenance-preserved, never re-scored)", () => {
+  const cleanReport = JSON.stringify({
+    scanner: "SkillSpector",
+    commit: "a".repeat(40),
+    status: "complete",
+    categories: ["taint"],
+    findings: [],
+  })
+  const partialReport = JSON.stringify({
+    scanner: "SkillSpector",
+    commit: "b".repeat(40),
+    status: "partial",
+    findings: [{ rule_id: "SS-X", severity: "low" }],
+  })
+
+  it("attaches complete evidence → PLAN_READY, exit 0, executes nothing", () => {
+    writeFileSync(join(dir, "SKILL.md"), "x")
+    writeFileSync(join(dir, "ss.json"), cleanReport)
+    const r = run(["trust", "prepare", "SKILL.md", "--evidence", "ss.json", "--json"], deps())
+    expect(r.exitCode).toBe(0)
+    const prep = JSON.parse(r.stdout)
+    expect(prep.state).toBe("PLAN_READY")
+    expect(prep.evidence).toHaveLength(1)
+    expect(prep.evidence[0].provider).toBe("skillspector")
+    expect(prep.evidence[0].completeness).toBe("complete")
+    noExec()
+  })
+
+  it("partial evidence → EVIDENCE_PARTIAL, exit 10", () => {
+    writeFileSync(join(dir, "SKILL.md"), "x")
+    writeFileSync(join(dir, "ss.json"), partialReport)
+    const r = run(["trust", "prepare", "SKILL.md", "--evidence", "ss.json", "--json"], deps())
+    expect(r.exitCode).toBe(10)
+    expect(JSON.parse(r.stdout).state).toBe("EVIDENCE_PARTIAL")
+    noExec()
+  })
+
+  it("malformed evidence → EVIDENCE_FAILED, exit 20 (fail-closed, never a pass)", () => {
+    writeFileSync(join(dir, "SKILL.md"), "x")
+    writeFileSync(join(dir, "broken.json"), "not json at all")
+    const r = run(["trust", "prepare", "SKILL.md", "--evidence", "broken.json", "--json"], deps())
+    expect(r.exitCode).toBe(20)
+    const prep = JSON.parse(r.stdout)
+    expect(prep.state).toBe("EVIDENCE_FAILED")
+    expect(prep.evidence[0].completeness).toBe("failed")
+    noExec()
+  })
+
+  it("missing evidence file → usage error (exit 2)", () => {
+    writeFileSync(join(dir, "SKILL.md"), "x")
+    const r = run(["trust", "prepare", "SKILL.md", "--evidence", "nope.json"], deps())
+    expect(r.exitCode).toBe(2)
+    expect(r.stderr).toContain("not found")
+    noExec()
+  })
+
+  it("--with-skillspector is not wired: refuses, never runs anything", () => {
+    writeFileSync(join(dir, "SKILL.md"), "x")
+    const r = run(["trust", "prepare", "SKILL.md", "--with-skillspector"], deps())
+    expect(r.exitCode).toBe(2)
+    expect(r.stderr).toContain("--evidence")
+    noExec()
+  })
+
+  it("--no-llm is accepted as a no-op (default posture)", () => {
+    writeFileSync(join(dir, "SKILL.md"), "x")
+    writeFileSync(join(dir, "ss.json"), cleanReport)
+    const r = run(["trust", "prepare", "SKILL.md", "--evidence", "ss.json", "--no-llm", "--json"], deps())
+    expect(r.exitCode).toBe(0)
+    noExec()
+  })
+})
+
 describe("trust show / explain", () => {
   it("round-trips a preparation JSON through show", () => {
     writeFileSync(join(dir, "SKILL.md"), "x")
