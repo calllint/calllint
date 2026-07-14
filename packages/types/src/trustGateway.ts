@@ -9,6 +9,8 @@
  * See ADR 0035 / 0036 and docs/new8-packet-g-trust-gateway.md.
  */
 import type { ArtifactIdentity } from "./artifact.js"
+import type { AuthorityManifest } from "./authority.js"
+import type { TrustDecision } from "./trustDecision.js"
 
 /**
  * Minimal shape of an evidence envelope as the gateway sees it. The full type
@@ -55,9 +57,9 @@ export interface TrustPreparation {
   /** Object 2 — Evidence Envelope(s), provenance-preserved; filled by G2. */
   evidence: GatewayEvidence[] | null
   /** Object 3 — Authority Manifest; filled by G3. */
-  authority: unknown | null
+  authority: AuthorityManifest | null
   /** Object 4 — Policy Decision; filled by G4. */
-  decision: unknown | null
+  decision: TrustDecision | null
   /** Object 5 — Install Plan; filled by G5. */
   plan: unknown | null
   /** Where the read-only state machine stopped. */

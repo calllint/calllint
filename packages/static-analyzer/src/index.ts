@@ -23,3 +23,8 @@ export {
   findPoisonPhrases,
   findHiddenContent,
 } from "./promptScan.js"
+export {
+  extractInstructionAuthority,
+  sortCapabilities,
+} from "./instructionAuthority.js"
+export { deriveConfigCapabilities } from "./configAuthority.js"

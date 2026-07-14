@@ -1,0 +1,178 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://calllint.com/schemas/authority-manifest.schema.json",
+  "title": "CallLint Authority Manifest",
+  "description": "A normalized capability inventory (calllint.authority.v0) for what authority an artifact would exercise if run: the closed set of capabilities (action x resource), each pinned to the evidence byte that granted it, with mutability/reversibility/approval so the deterministic policy (calllint.decision.v0) can decide over it. Object 3 of the six: subject.artifactDigest binds the Artifact Identity; a later Decision/Plan/Receipt binds this manifest's digest. Authority is NOT a verdict - the manifest never sets SAFE/REVIEW/BLOCK. Fully deterministic; digest = sha256 over this object minus its own digest field. See ADR 0035.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "subject",
+    "capabilities",
+    "limits",
+    "approval",
+    "unknowns",
+    "completeness",
+    "digest"
+  ],
+  "properties": {
+    "schema": {
+      "const": "calllint.authority.v0",
+      "description": "Object schema identity."
+    },
+    "subject": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["artifactDigest"],
+      "properties": {
+        "artifactDigest": {
+          "type": ["string", "null"],
+          "pattern": "^sha256:[0-9a-f]{64}$",
+          "description": "Binds the Artifact Identity (object 1). null only when built over an artifact that did not fully resolve."
+        }
+      }
+    },
+    "capabilities": {
+      "type": "array",
+      "description": "Deterministically ordered capability inventory (action x resource). May be empty.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "action",
+          "resource",
+          "scope",
+          "destination",
+          "mutability",
+          "reversibility",
+          "monetaryLimit",
+          "approvalRequirement",
+          "evidenceSource",
+          "confidence",
+          "completeness"
+        ],
+        "properties": {
+          "action": {
+            "enum": [
+              "read",
+              "write",
+              "execute",
+              "connect",
+              "send",
+              "mutate",
+              "spend",
+              "delegate",
+              "persist"
+            ],
+            "description": "What the capability DOES. Fixed vocabulary; extending it is ADR-gated."
+          },
+          "resource": {
+            "enum": [
+              "filesystem",
+              "secret",
+              "process",
+              "network",
+              "database",
+              "message",
+              "financial",
+              "identity",
+              "agent",
+              "configuration"
+            ],
+            "description": "What the capability acts ON. Fixed vocabulary; extending it is ADR-gated."
+          },
+          "scope": {
+            "type": ["string", "null"],
+            "description": "Where the authority applies (\"project\", a host, a path, a scope string). null when unbounded or unknown."
+          },
+          "destination": {
+            "type": ["string", "null"],
+            "description": "For send/connect: the outbound destination (host/URL). null otherwise."
+          },
+          "mutability": {
+            "enum": ["read-only", "mutating"],
+            "description": "Whether exercising the capability changes state."
+          },
+          "reversibility": {
+            "enum": ["reversible", "irreversible", "n/a"],
+            "description": "How recoverable a mutation is. \"n/a\" for read-only capabilities."
+          },
+          "monetaryLimit": {
+            "type": ["number", "null"],
+            "description": "For spend: the per-call/total ceiling if declared. null otherwise."
+          },
+          "approvalRequirement": {
+            "enum": ["none", "review", "block"],
+            "description": "Normalized sign-off the capability warrants. NOT itself the verdict; the policy reads it. \"block\" = must not run without explicit digest-bound approval (fail-closed)."
+          },
+          "evidenceSource": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Provenance of the capability: \"server.url\", \"server.args[2]\", \"SKILL.md:42\". Every capability is traceable to the byte that granted it (evidence is mandatory)."
+          },
+          "confidence": {
+            "enum": ["low", "medium", "high"],
+            "description": "How confident the normalization is."
+          },
+          "completeness": {
+            "enum": ["complete", "partial"],
+            "description": "Whether the capability was fully understood or only partially pinned."
+          },
+          "pattern": {
+            "enum": [
+              "privilege-escalation",
+              "auto-exec-bypass",
+              "sensitive-file-read",
+              "data-exfil",
+              "messaging-financial",
+              "hidden-override"
+            ],
+            "description": "Which of the six instruction-authority patterns produced this capability (instruction-derived capabilities only)."
+          }
+        }
+      }
+    },
+    "limits": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["spendPerCall", "spendTotal"],
+      "description": "T10 Safety-Budget limits, folded into authority.",
+      "properties": {
+        "spendPerCall": {
+          "type": ["number", "null"],
+          "description": "Max spend a single call may incur, if declared; null = undeclared."
+        },
+        "spendTotal": {
+          "type": ["number", "null"],
+          "description": "Max total spend across a session, if declared; null = undeclared."
+        }
+      }
+    },
+    "approval": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["required"],
+      "properties": {
+        "required": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Normalized approval labels required across all capabilities (sorted, deduped)."
+        }
+      }
+    },
+    "unknowns": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Sources we could not fully normalize, so the policy never over-trusts silence. Non-empty forces completeness = \"partial\"."
+    },
+    "completeness": {
+      "enum": ["complete", "partial"],
+      "description": "Derived: \"partial\" if any capability is partial or unknowns is non-empty."
+    },
+    "digest": {
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$",
+      "description": "sha256 over this object minus its own digest field (hashJson from @calllint/fingerprint)."
+    }
+  }
+}

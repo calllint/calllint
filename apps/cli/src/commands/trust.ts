@@ -6,9 +6,10 @@
  *   trust show <preparation.json>                    human summary of a preparation
  *   trust explain <preparation.json>                 why this state / these notes
  *
- * G1 scope: Artifact Identity + read-only prepare. It touches NO live config and
- * NEVER executes the target — only reads bytes to digest them. Evidence /
- * Authority / Decision / Plan slots are filled by G2–G5.
+ * Scope through G4: Artifact Identity + read-only prepare, evidence attach,
+ * authority normalization, and the deterministic policy decision. It touches NO
+ * live config and NEVER executes the target — only reads bytes to digest them.
+ * The Plan slot is filled by G5.
  *
  * The edge (this file) does all I/O and injects `resolvedAt`; the pure core
  * (@calllint/resolver resolveArtifactIdentity + @calllint/core prepare) is
@@ -22,11 +23,22 @@ import {
   type ArtifactInput,
   type FetchedEntry,
 } from "@calllint/resolver"
-import { prepare, prepareExitCode, parseTargetSpec } from "@calllint/core"
+import { prepare, prepareExitCode, parseTargetSpec, buildAuthorityManifest } from "@calllint/core"
+import { parseConfigText } from "@calllint/config-parser"
 import { importEvidence, type EvidenceFormat } from "@calllint/evidence"
-import type { ArtifactSourceType, GatewayEvidence, TrustPreparation } from "@calllint/types"
+import { decideOverAuthority, loadPolicyOrDefault } from "@calllint/policy"
+import type {
+  ArtifactSourceType,
+  AuthorityManifest,
+  DocumentSurface,
+  GatewayEvidence,
+  NormalizedMcpServer,
+  TrustDecision,
+  TrustPreparation,
+} from "@calllint/types"
 import type { CommandResult } from "./scan.js"
-import { EXIT, flagBool, type ParsedArgs } from "../args.js"
+import { readDocumentSurfaces } from "./surfaces.js"
+import { EXIT, flagBool, flagStr, type ParsedArgs } from "../args.js"
 
 interface TrustDeps {
   cwd: string
@@ -194,6 +206,72 @@ function readDirEntries(absDir: string): FetchedEntry[] {
   return entries
 }
 
+/** Instruction-file basenames that confer authority when an agent reads them. */
+const INSTRUCTION_SURFACES: { match: (rel: string) => boolean; kind: DocumentSurface["kind"] }[] = [
+  { match: (r) => r === "SKILL.md", kind: "skill" },
+  { match: (r) => r === "AGENTS.md" || r === "CLAUDE.md", kind: "agents" },
+  { match: (r) => r === "README.md", kind: "readme" },
+  { match: (r) => r.startsWith(".cursor/rules/") && r.endsWith(".md"), kind: "agents" },
+]
+
+function surfaceKindFor(rel: string): DocumentSurface["kind"] | null {
+  for (const s of INSTRUCTION_SURFACES) if (s.match(rel)) return s.kind
+  return null
+}
+
+/**
+ * Build the Authority Manifest (object 3) at the edge from material already read
+ * for the artifact — no new disk I/O, so the authority is read over the SAME bytes
+ * that were digested. Config-side authority comes from parsing an mcp-config;
+ * instruction-side authority comes from the allowlisted doc surfaces. Both feed the
+ * pure `buildAuthorityManifest`. Never executes anything.
+ */
+function buildAuthorityForTarget(
+  input: ArtifactInput,
+  artifactDigest: string | null,
+): AuthorityManifest {
+  const servers: NormalizedMcpServer[] = []
+  const surfaces: DocumentSurface[] = []
+
+  if (input.sourceType === "mcp-config" && typeof input.content === "string") {
+    try {
+      servers.push(...parseConfigText(input.content, input.source).servers)
+    } catch {
+      // A malformed config is not fatal to authority reading — it simply yields no
+      // config-side capabilities. The artifact digest / resolution already records
+      // the target; the manifest stays honest (empty here, not a false pass).
+    }
+  }
+
+  if (input.sourceType === "dir" && input.entries) {
+    // Reuse the exact bytes already fetched for the tree digest.
+    for (const e of input.entries) {
+      const kind = surfaceKindFor(e.path)
+      if (kind) {
+        surfaces.push({
+          path: e.path,
+          kind,
+          text: e.content,
+          truncated: e.content.length >= MAX_FILE_BYTES,
+        })
+      }
+    }
+  } else if (input.sourceType === "file" && typeof input.content === "string") {
+    const rel = basename(input.source)
+    const kind = surfaceKindFor(rel) ?? (rel.toLowerCase().endsWith(".md") ? "readme" : null)
+    if (kind) {
+      surfaces.push({
+        path: rel,
+        kind,
+        text: input.content,
+        truncated: input.content.length >= MAX_FILE_BYTES,
+      })
+    }
+  }
+
+  return buildAuthorityManifest({ artifactDigest, servers, surfaces })
+}
+
 /**
  * Import an external evidence file at the edge (I/O here; import is pure and
  * fail-closed). A missing file or an unparseable report never throws — a bad
@@ -271,7 +349,25 @@ function trustPrepare(args: ParsedArgs, deps: TrustDeps): CommandResult {
   }
 
   const artifact = resolveArtifactIdentity(input)
-  const preparation = prepare({ artifact, evidence, preparedAt: deps.generatedAt })
+  const authority = buildAuthorityForTarget(input, artifact.digest ?? null)
+
+  // G4 — deterministic policy decision over the manifest. Only meaningful once the
+  // artifact resolved; on an unresolved target we skip it (the artifact/evidence
+  // gate already fails-closed) so we never manufacture a verdict over nothing.
+  const policyPath = flagStr(args.flags, "policy")
+  const policy = loadPolicyOrDefault(policyPath ? resolvePath(deps.cwd, policyPath) : undefined)
+  const decision: TrustDecision | undefined =
+    artifact.resolution === "resolved"
+      ? decideOverAuthority({ authority, evidence, policy })
+      : undefined
+
+  const preparation = prepare({
+    artifact,
+    evidence,
+    authority,
+    decision,
+    preparedAt: deps.generatedAt,
+  })
   const exitCode = prepareExitCode(preparation)
 
   if (flagBool(args.flags, "json")) {
@@ -331,11 +427,21 @@ function trustExplain(args: ParsedArgs, deps: TrustDeps): CommandResult {
 
 const STATE_BADGE: Record<string, string> = {
   PLAN_READY: "◇ prepared (read-only)",
+  AUTHORITY_NORMALIZED: "◇ authority normalized (read-only)",
+  DECIDED: "◇ decided (read-only)",
   FETCH_REJECTED: "⚠ not a verified target",
   RESOLUTION_FAILED: "⛔ could not resolve",
   EVIDENCE_PARTIAL: "⚠ evidence partial",
   EVIDENCE_FAILED: "⛔ evidence failed",
-  POLICY_UNKNOWN: "◇ policy unknown",
+  POLICY_UNKNOWN: "◇ policy unknown (insufficient evidence)",
+}
+
+/** Developer-mode symbol for a decision verdict (mirrors VERDICT_CLI_SYMBOL). */
+const VERDICT_SYMBOL: Record<string, string> = {
+  SAFE: "🛡 SAFE",
+  REVIEW: "⚠ REVIEW",
+  BLOCK: "⛔ BLOCK",
+  UNKNOWN: "◇ UNKNOWN",
 }
 
 function renderPreparation(p: TrustPreparation): string {
@@ -356,8 +462,34 @@ function renderPreparation(p: TrustPreparation): string {
       out += `  • ${e.provider} (${e.providerVersion}) — ${e.scanMode}, ${e.completeness}, ${e.findings.length} finding(s), not re-scored\n`
     }
   }
-  out += `authority:    ${p.authority === null ? "(not normalized — G3)" : "present"}\n`
-  out += `decision:     ${p.decision === null ? "(not decided — G4)" : "present"}\n`
+  if (p.authority === null) {
+    out += `authority:    (not normalized — G3)\n`
+  } else {
+    const caps = p.authority.capabilities
+    out += `authority:    ${caps.length} capabilit${caps.length === 1 ? "y" : "ies"}`
+    out += p.authority.completeness === "partial" ? " (partial)\n" : "\n"
+    for (const c of caps) {
+      const dst = c.destination ? ` → ${c.destination}` : ""
+      const appr = c.approvalRequirement === "none" ? "" : ` [${c.approvalRequirement}]`
+      out += `  • ${c.action} ${c.resource}${dst}${appr}  (${c.evidenceSource})\n`
+    }
+    if (p.authority.approval.required.length > 0) {
+      out += `  approvals required: ${p.authority.approval.required.join(", ")}\n`
+    }
+  }
+  if (p.decision === null) {
+    out += `decision:     (not decided — G4)\n`
+  } else {
+    const d = p.decision
+    out += `decision:     ${VERDICT_SYMBOL[d.verdict] ?? d.verdict}`
+    out += d.completeness === "partial" ? " (over partial evidence)\n" : "\n"
+    for (const r of d.reasons) {
+      out += `  • ${r.code} → ${r.contributes}  (${r.evidenceSource})\n`
+    }
+    if (d.requiredApprovals.length > 0) {
+      out += `  approvals required: ${d.requiredApprovals.join(", ")}\n`
+    }
+  }
   out += `plan:         ${p.plan === null ? "(not planned — G5)" : "present"}\n`
   if (p.notes.length > 0) {
     out += `\nnotes:\n`
@@ -372,6 +504,29 @@ function renderExplanation(p: TrustPreparation): string {
   let out = `\nCallLint trust explain\n`
   out += `state: ${p.state}\n\n`
   switch (p.state) {
+    case "AUTHORITY_NORMALIZED": {
+      const caps = p.authority?.capabilities.length ?? 0
+      out += `The artifact resolved to an immutable, digested identity\n`
+      out += `(${p.artifact.resolvedRef}) and its authority was normalized into a\n`
+      out += `manifest of ${caps} capabilit${caps === 1 ? "y" : "ies"}, each pinned to the evidence byte\n`
+      out += `that granted it. This is an inventory, not a verdict — the deterministic\n`
+      out += `decision (G4) will bind this manifest's digest. UNKNOWN is never SAFE.\n`
+      break
+    }
+    case "DECIDED": {
+      const d = p.decision
+      out += `The artifact resolved and its authority was normalized, then the\n`
+      out += `deterministic policy decided ${d?.verdict ?? "?"} over the manifest —\n`
+      out += `binding the artifact, authority, and policy digests. The verdict comes\n`
+      out += `from normalized authority + policy, never from a scanner: external\n`
+      out += `evidence can add reasons or lower confidence, but never sets it alone.\n`
+      break
+    }
+    case "POLICY_UNKNOWN":
+      out += `The policy could not reach a confident verdict — authority or evidence\n`
+      out += `was incomplete, so the decision is UNKNOWN. Insufficient evidence is\n`
+      out += `fail-closed: UNKNOWN outranks REVIEW and never reads as a pass.\n`
+      break
     case "PLAN_READY":
       out += `The artifact resolved to an immutable, digested identity\n`
       out += `(${p.artifact.resolvedRef}). Downstream evidence, authority, and a\n`
@@ -425,6 +580,7 @@ OPTIONS (prepare)
   --evidence <file>     Attach a third-party scanner report (JSON or SARIF)
   --format json|sarif   Force the evidence format (default: auto-detect)
   --provider <name>     Force the evidence provider adapter (default: auto-detect)
+  --policy <file>       Use a policy file for the decision (default: built-in defaults)
   --no-llm              Default posture: no LLM in the verdict path (accepted, no-op)
   --json                Emit the raw calllint.trust-preparation.v0 document
 
@@ -436,9 +592,9 @@ TARGETS
   github:<owner/repo>[@ref] a git repo     (needs network to pin — offline: unresolved)
 
 EXIT CODES
-  0   prepared (artifact resolved, read-only preview ready)
-  10  partial (target not fully pinned / evidence partial)
-  20  unresolved / fail-closed (never a pass)
+  0   decision SAFE (or resolved read-only preview with no blocking authority)
+  10  decision REVIEW / target not fully pinned / evidence partial
+  20  decision BLOCK or UNKNOWN / unresolved / fail-closed (never a pass)
   2   usage error / target not found
   3   malformed preparation document
 

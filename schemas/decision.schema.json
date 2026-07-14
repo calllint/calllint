@@ -1,0 +1,104 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://calllint.com/schemas/decision.schema.json",
+  "title": "CallLint Policy Decision",
+  "description": "The deterministic verdict (calllint.decision.v0) computed over an Authority Manifest under a policy. Object 4 of the six. Binds the artifact, authority, and policy digests so a receipt can prove WHAT was decided over WHICH authority under WHICH policy. Core rule - Evidence != Decision: external evidence may add reasons or tighten completeness, but never sets the verdict alone, and a degraded/failed external scan never yields SAFE. Fully deterministic; digest = sha256 over this object minus its own digest field. See ADR 0035 / 0036.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "artifactDigest",
+    "authorityDigest",
+    "policyDigest",
+    "evidenceDigests",
+    "verdict",
+    "reasons",
+    "requiredApprovals",
+    "unknowns",
+    "completeness",
+    "digest"
+  ],
+  "properties": {
+    "schema": { "const": "calllint.decision.v0", "description": "Object schema identity." },
+    "artifactDigest": {
+      "type": ["string", "null"],
+      "pattern": "^sha256:[0-9a-f]{64}$",
+      "description": "Object-1 digest. null only when decided over an unpinned target."
+    },
+    "authorityDigest": {
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$",
+      "description": "Object-3 digest. Binds the exact capability inventory decided over."
+    },
+    "policyDigest": {
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$",
+      "description": "Digest of the policy applied (hashJson over the Policy object)."
+    },
+    "evidenceDigests": {
+      "type": "array",
+      "items": { "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" },
+      "description": "Digests of external evidence factored in (sorted, deduped). Provenance only - evidence never sets the verdict alone."
+    },
+    "verdict": {
+      "enum": ["SAFE", "REVIEW", "BLOCK", "UNKNOWN"],
+      "description": "The deterministic verdict. UNKNOWN (insufficient evidence) outranks REVIEW and never reads as a pass."
+    },
+    "reasons": {
+      "type": "array",
+      "description": "Sourced reasons, deterministically ordered.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["code", "evidenceSource", "contributes"],
+        "properties": {
+          "code": {
+            "enum": [
+              "UNPINNED_PACKAGE",
+              "UNKNOWN_REMOTE",
+              "SECRET_IN_WORKSPACE_CONFIG",
+              "BROAD_FILESYSTEM_ACCESS",
+              "SHELL_OR_DOCKER_EXECUTION",
+              "EXTERNAL_MUTATION_UNKNOWN",
+              "MONEY_OR_PAYMENT_CAPABILITY",
+              "MESSAGING_OR_EMAIL_SEND",
+              "PROMPT_METADATA_INSTRUCTION",
+              "OAUTH_SCOPE_UNKNOWN_OR_EXPANDED",
+              "TOOL_DESCRIPTOR_CHANGED",
+              "LONG_RUNNING_GATEWAY_RUNTIME"
+            ],
+            "description": "Frozen 12-code public reason vocabulary (ADR 0020)."
+          },
+          "evidenceSource": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Provenance for this reason (the capability's evidenceSource). Never empty."
+          },
+          "contributes": {
+            "enum": ["SAFE", "REVIEW", "BLOCK", "UNKNOWN"],
+            "description": "Verdict this reason contributes on its own, before aggregation."
+          }
+        }
+      }
+    },
+    "requiredApprovals": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Normalized approval labels this decision would require before apply (sorted, deduped)."
+    },
+    "unknowns": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Gaps that kept the decision from being fully grounded, so silence never reads as SAFE."
+    },
+    "completeness": {
+      "enum": ["complete", "partial"],
+      "description": "Whether the decision was made over complete authority + evidence, or partial."
+    },
+    "digest": {
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$",
+      "description": "sha256 over this object minus its own digest field (hashJson)."
+    }
+  }
+}
