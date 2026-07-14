@@ -11,6 +11,7 @@
 import type { ArtifactIdentity } from "./artifact.js"
 import type { AuthorityManifest } from "./authority.js"
 import type { TrustDecision } from "./trustDecision.js"
+import type { InstallPlan } from "./installPlan.js"
 
 /**
  * Minimal shape of an evidence envelope as the gateway sees it. The full type
@@ -29,7 +30,12 @@ export interface GatewayEvidence {
   rawReportDigest: `sha256:${string}`
 }
 
-/** States of the read-only half. Apply-side states arrive with G6. */
+/**
+ * Full gateway state machine (ADR 0036 §G.3). The read-only half runs
+ * DISCOVERED → PLAN_READY inside `trust prepare`; the apply half
+ * (AWAITING_APPROVAL → … → MONITORED) runs inside `trust apply` (G6). Every
+ * failure state is terminal and NONE falls through to APPLIED.
+ */
 export type TrustPrepareState =
   | "DISCOVERED"
   | "RESOLVED"
@@ -38,12 +44,22 @@ export type TrustPrepareState =
   | "AUTHORITY_NORMALIZED"
   | "DECIDED"
   | "PLAN_READY"
+  // apply half (G6) — reached only by `trust apply` over an approved plan
+  | "AWAITING_APPROVAL"
+  | "REVALIDATING"
+  | "APPLIED"
+  | "VERIFIED"
+  | "MONITORED"
   // failure states (each terminal; none implies success)
   | "RESOLUTION_FAILED"
   | "FETCH_REJECTED"
   | "EVIDENCE_PARTIAL"
   | "EVIDENCE_FAILED"
   | "POLICY_UNKNOWN"
+  | "PLAN_STALE"
+  | "APPLY_CONFLICT"
+  | "ROLLBACK_REQUIRED"
+  | "VERIFICATION_FAILED"
 
 /**
  * The result of a read-only `trust prepare`. `state` names where the state
@@ -60,8 +76,8 @@ export interface TrustPreparation {
   authority: AuthorityManifest | null
   /** Object 4 — Policy Decision; filled by G4. */
   decision: TrustDecision | null
-  /** Object 5 — Install Plan; filled by G5. */
-  plan: unknown | null
+  /** Object 5 — Install Plan; filled by G5 (host-gated; null when no host in play). */
+  plan: InstallPlan | null
   /** Where the read-only state machine stopped. */
   state: TrustPrepareState
   /** Human-readable notes about degradation / why a slot is empty. */

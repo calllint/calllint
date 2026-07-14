@@ -38,9 +38,15 @@ importers:
       '@calllint/evidence':
         specifier: workspace:*
         version: link:../../packages/evidence
+      '@calllint/fingerprint':
+        specifier: workspace:*
+        version: link:../../packages/fingerprint
       '@calllint/fixtures':
         specifier: workspace:*
         version: link:../../packages/fixtures
+      '@calllint/install-planner':
+        specifier: workspace:*
+        version: link:../../packages/install-planner
       '@calllint/online':
         specifier: workspace:*
         version: link:../../packages/online
@@ -168,6 +174,15 @@ importers:
       '@calllint/evidence':
         specifier: workspace:*
         version: link:../evidence
+      '@calllint/types':
+        specifier: workspace:*
+        version: link:../types
+
+  packages/install-planner:
+    dependencies:
+      '@calllint/fingerprint':
+        specifier: workspace:*
+        version: link:../fingerprint
       '@calllint/types':
         specifier: workspace:*
         version: link:../types
