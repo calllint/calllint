@@ -11,6 +11,7 @@
 import type { ArtifactIdentity } from "./artifact.js"
 import type { AuthorityManifest } from "./authority.js"
 import type { TrustDecision } from "./trustDecision.js"
+import type { InstallPlan } from "./installPlan.js"
 
 /**
  * Minimal shape of an evidence envelope as the gateway sees it. The full type
@@ -60,8 +61,8 @@ export interface TrustPreparation {
   authority: AuthorityManifest | null
   /** Object 4 — Policy Decision; filled by G4. */
   decision: TrustDecision | null
-  /** Object 5 — Install Plan; filled by G5. */
-  plan: unknown | null
+  /** Object 5 — Install Plan; filled by G5 (host-gated; null when no host in play). */
+  plan: InstallPlan | null
   /** Where the read-only state machine stopped. */
   state: TrustPrepareState
   /** Human-readable notes about degradation / why a slot is empty. */

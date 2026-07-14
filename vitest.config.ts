@@ -19,6 +19,7 @@ export default defineConfig({
       "@calllint/fixtures": r("./packages/fixtures/src/index.ts"),
       "@calllint/signature": r("./packages/signature/src/index.ts"),
       "@calllint/evidence": r("./packages/evidence/src/index.ts"),
+      "@calllint/install-planner": r("./packages/install-planner/src/index.ts"),
     },
   },
   test: {

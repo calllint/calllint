@@ -21,6 +21,7 @@ import type {
   ArtifactIdentity,
   AuthorityManifest,
   GatewayEvidence,
+  InstallPlan,
   TrustDecision,
   TrustPreparation,
   TrustPrepareState,
@@ -44,6 +45,15 @@ export interface PrepareInput {
    * present and the artifact + evidence gates passed.
    */
   decision?: TrustDecision
+  /**
+   * Install Plan (object 5), assembled at the edge by @calllint/install-planner
+   * once a host is named/detected. HOST-GATED: with no host in play there is no
+   * plan and the state stops at DECIDED (the decision is host-independent). A plan
+   * is emitted only for a non-blocking DECIDED verdict (SAFE/REVIEW); a BLOCK or
+   * UNKNOWN never yields a plan (nothing to hand off for apply). Generating the
+   * plan writes nothing on disk except (optionally) the plan file — apply is G6.
+   */
+  plan?: InstallPlan
   /** ISO-8601 UTC, injected from the CLI edge. */
   preparedAt: string
 }
@@ -174,13 +184,47 @@ export function prepare(input: PrepareInput): TrustPreparation {
     }
   }
 
+  // G5 — Install Plan. HOST-GATED: only present when the edge named/detected a
+  // host AND the decision is non-blocking. The canonical transition is
+  // DECIDED → PLAN_READY; a plan NEVER advances a failure state or a blocking
+  // verdict (a BLOCK/UNKNOWN never yields a plan, so apply has nothing to run).
+  // Generating the plan wrote nothing on disk except (optionally) the plan file.
+  const plan = input.plan ?? null
+  if (plan) {
+    if (state === "DECIDED") {
+      // A plan is the exact, reversible change — computed for ANY confident
+      // verdict (SAFE/REVIEW/BLOCK). It is inert data; PLAN_READY means only
+      // "a change was computed", NOT "safe to apply". The verdict is bound in
+      // the plan's decisionDigest and still drives the exit code, so a BLOCK
+      // plan never reads as a pass. Apply is a separate, approved step (G6),
+      // where a BLOCK requires an explicit digest-bound approval (ADR 0036).
+      state = "PLAN_READY"
+      notes.push(
+        `install plan computed for host "${plan.host}" (tier ${plan.tier}): ` +
+          `${plan.operations.length} operation(s), ${plan.rollback.length} rollback op(s); ` +
+          `verdict ${decision?.verdict ?? "?"} — NOT applied (apply is a separate approved step)`,
+      )
+      if (decision && decision.verdict !== "SAFE") {
+        notes.push(
+          `verdict ${decision.verdict} — applying this plan would require an explicit, digest-bound approval`,
+        )
+      }
+    } else {
+      // A plan handed in against a non-DECIDED terminal (POLICY_UNKNOWN or an
+      // earlier failure) is recorded for context but NEVER activates — you
+      // cannot responsibly present an install plan for what you don't
+      // understand. Fail-closed.
+      notes.push("install plan present but the gateway did not reach a confident decision — plan not activated")
+    }
+  }
+
   return {
     schema: TRUST_PREPARATION_SCHEMA,
     artifact,
     evidence: input.evidence ? [...evidence] : null,
     authority,
     decision,
-    plan: null,
+    plan,
     state,
     notes,
     preparedAt,
@@ -200,6 +244,14 @@ export function prepare(input: PrepareInput): TrustPreparation {
 export function prepareExitCode(prep: TrustPreparation): 0 | 10 | 20 {
   switch (prep.state) {
     case "PLAN_READY":
+      // A plan is computed for any confident verdict; the verdict still drives
+      // the code so a BLOCK plan never reads as a pass: SAFE → 0, REVIEW → 10,
+      // BLOCK → 20. (PLAN_READY with no decision — a bare resolved read — is 0.)
+      return prep.decision?.verdict === "REVIEW"
+        ? 10
+        : prep.decision?.verdict === "BLOCK" || prep.decision?.verdict === "UNKNOWN"
+          ? 20
+          : 0
     case "AUTHORITY_NORMALIZED":
       // No decision reached (or evidence-only preparation) — clean read.
       return 0

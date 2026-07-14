@@ -6,18 +6,21 @@
  *   trust show <preparation.json>                    human summary of a preparation
  *   trust explain <preparation.json>                 why this state / these notes
  *
- * Scope through G4: Artifact Identity + read-only prepare, evidence attach,
- * authority normalization, and the deterministic policy decision. It touches NO
- * live config and NEVER executes the target — only reads bytes to digest them.
- * The Plan slot is filled by G5.
+ * Scope through G5: Artifact Identity + read-only prepare, evidence attach,
+ * authority normalization, the deterministic policy decision, and — when a host
+ * is named with --host — a typed, reversible Install Plan (calllint.install-plan.v1).
+ * It touches NO live config and NEVER executes the target: it reads bytes to
+ * digest them and reads the host config READ-ONLY to compute the plan. Applying
+ * the plan (the only writer) is a separate, approved step in G6.
  *
  * The edge (this file) does all I/O and injects `resolvedAt`; the pure core
  * (@calllint/resolver resolveArtifactIdentity + @calllint/core prepare) is
  * deterministic, so `trust prepare` run twice on the same immutable artifact
  * yields byte-identical core output. See ADR 0035.
  */
-import { existsSync, readdirSync, readFileSync, statSync } from "node:fs"
-import { basename, join, resolve as resolvePath } from "node:path"
+import { existsSync, mkdirSync, readdirSync, readFileSync, statSync, writeFileSync } from "node:fs"
+import { basename, dirname, join, resolve as resolvePath } from "node:path"
+import { homedir } from "node:os"
 import {
   resolveArtifactIdentity,
   type ArtifactInput,
@@ -27,11 +30,20 @@ import { prepare, prepareExitCode, parseTargetSpec, buildAuthorityManifest } fro
 import { parseConfigText } from "@calllint/config-parser"
 import { importEvidence, type EvidenceFormat } from "@calllint/evidence"
 import { decideOverAuthority, loadPolicyOrDefault } from "@calllint/policy"
+import { hashJson } from "@calllint/fingerprint"
+import {
+  getHostAdapter,
+  claudeCodeServerEntry,
+  CLAUDE_CODE_HOST_ID,
+  type PlanContext,
+  type PlannedServer,
+} from "@calllint/install-planner"
 import type {
   ArtifactSourceType,
   AuthorityManifest,
   DocumentSurface,
   GatewayEvidence,
+  InstallPlan,
   NormalizedMcpServer,
   TrustDecision,
   TrustPreparation,
@@ -272,6 +284,112 @@ function buildAuthorityForTarget(
   return buildAuthorityManifest({ artifactDigest, servers, surfaces })
 }
 
+/** Default host config paths (edge knowledge; the adapter stays path-agnostic). */
+function defaultHostConfigPath(host: string): string | null {
+  if (host === CLAUDE_CODE_HOST_ID) return join(homedir(), ".claude.json")
+  return null
+}
+
+/**
+ * Parse the servers to install from the target (mcp-config only for G5) and
+ * reduce them to each host's known-schema entry. This is the ONLY place the
+ * install path touches the target config, and it reuses bytes already read for
+ * the artifact — the planner package itself never parses for analysis.
+ */
+function plannedServersFor(input: ArtifactInput, host: string): PlannedServer[] {
+  if (input.sourceType !== "mcp-config" || typeof input.content !== "string") return []
+  let servers: NormalizedMcpServer[]
+  try {
+    servers = parseConfigText(input.content, input.source).servers
+  } catch {
+    return []
+  }
+  // Only claude-code ships in G5; its entry shape is the known schema we write.
+  return servers.map((s) => ({
+    name: s.name,
+    entry: claudeCodeServerEntry({ command: s.command, args: s.args, url: s.url, envKeys: s.envKeys }),
+  }))
+}
+
+/**
+ * Build the Install Plan at the edge: read the current host config (I/O here),
+ * digest it, and hand a pure PlanContext to the adapter. Returns null when there
+ * is nothing installable (no servers) so the state simply stays DECIDED. Reading
+ * the host config is the only disk touch and it is READ-ONLY — apply is G6.
+ */
+function buildPlanForHost(
+  host: string,
+  input: ArtifactInput,
+  artifactDigest: string | null,
+  authority: AuthorityManifest,
+  decision: TrustDecision,
+  deps: TrustDeps,
+  configPathOverride?: string,
+): InstallPlan | { error: string; exitCode: number } | null {
+  const adapter = getHostAdapter(host)
+  if (!adapter) {
+    return { error: `Unknown host "${host}". Known hosts: ${CLAUDE_CODE_HOST_ID}`, exitCode: EXIT.USAGE }
+  }
+  const servers = plannedServersFor(input, host)
+  if (servers.length === 0) return null // nothing to install → no plan
+
+  const configPath = configPathOverride
+    ? resolvePath(deps.cwd, configPathOverride)
+    : defaultHostConfigPath(host)
+  if (!configPath) {
+    return { error: `No default config path known for host "${host}"; pass --host-config <path>`, exitCode: EXIT.USAGE }
+  }
+  let currentConfig: unknown | null = null
+  let configDigest: `sha256:${string}` | "absent" = "absent"
+  if (existsSync(configPath)) {
+    try {
+      const bytes = readFileSync(configPath, "utf8")
+      configDigest = hashJson(bytes) as `sha256:${string}`
+      currentConfig = JSON.parse(bytes)
+    } catch {
+      // Unreadable/unparseable host config: keep digest "absent"-style honest by
+      // failing closed — we do not guess its shape. Return an explicit error so
+      // the user fixes it rather than getting a plan against unknown bytes.
+      return { error: `Host config exists but is not readable/valid JSON: ${configPath}`, exitCode: EXIT.ERROR }
+    }
+  }
+
+  // Backup path template (receipt-id stitched in at apply, G6).
+  const backupPath = `${configPath}.calllint-backup`
+  const ctx: PlanContext = {
+    host,
+    tier: adapter.tier,
+    configPath,
+    configDigest,
+    currentConfig,
+    servers,
+    backupPath,
+    expiresAt: planExpiry(deps.generatedAt),
+  }
+  const plan = adapter.createPlan(ctx, { artifactDigest, authority, decision })
+  const check = adapter.validatePlan(plan)
+  if (!check.ok) {
+    return { error: `Generated plan failed validation: ${check.errors.join("; ")}`, exitCode: EXIT.ERROR }
+  }
+  return plan
+}
+
+/** Plan expiry: 1 hour after generation. Deterministic given --generated-at. */
+function planExpiry(generatedAt: string): string {
+  const t = Date.parse(generatedAt)
+  if (Number.isNaN(t)) return generatedAt
+  return new Date(t + 60 * 60 * 1000).toISOString()
+}
+
+/** Write the plan under .calllint/plans/<plan-id>.json (the only disk write; opt-in). */
+function writePlanFile(plan: InstallPlan, deps: TrustDeps): string {
+  const dir = join(deps.cwd, ".calllint", "plans")
+  mkdirSync(dir, { recursive: true })
+  const file = join(dir, `${plan.planId}.json`)
+  writeFileSync(file, JSON.stringify(plan, null, 2) + "\n", "utf8")
+  return file
+}
+
 /**
  * Import an external evidence file at the edge (I/O here; import is pure and
  * fail-closed). A missing file or an unparseable report never throws — a bad
@@ -361,19 +479,45 @@ function trustPrepare(args: ParsedArgs, deps: TrustDeps): CommandResult {
       ? decideOverAuthority({ authority, evidence, policy })
       : undefined
 
+  // G5 — Install Plan. HOST-GATED: only when the user names a host with --host.
+  // We plan only for a non-blocking decision (the reducer enforces this too); a
+  // BLOCK/UNKNOWN never yields a plan. Reading the host config is read-only.
+  let plan: InstallPlan | undefined
+  const hostFlag = flagStr(args.flags, "host")
+  // Build a plan for any confident verdict (SAFE/REVIEW/BLOCK). UNKNOWN never
+  // yields a plan (the reducer refuses to activate it) — you cannot present an
+  // install plan for what you don't understand. The verdict rides in the plan's
+  // decisionDigest and drives the exit code, so a BLOCK plan never reads as a pass.
+  if (hostFlag && decision && decision.verdict !== "UNKNOWN") {
+    const hostConfig = flagStr(args.flags, "host-config")
+    const built = buildPlanForHost(hostFlag, input, artifact.digest ?? null, authority, decision, deps, hostConfig)
+    if (built && "error" in built) {
+      return { stdout: "", stderr: `Error: ${built.error}`, exitCode: built.exitCode }
+    }
+    plan = built ?? undefined
+  }
+
   const preparation = prepare({
     artifact,
     evidence,
     authority,
     decision,
+    plan,
     preparedAt: deps.generatedAt,
   })
   const exitCode = prepareExitCode(preparation)
 
+  // --write-plan persists the plan (the ONLY disk write; never on by default).
+  let planNote = ""
+  if (preparation.plan && flagBool(args.flags, "write-plan")) {
+    const file = writePlanFile(preparation.plan, deps)
+    planNote = `\nplan written: ${file}\n`
+  }
+
   if (flagBool(args.flags, "json")) {
     return { stdout: JSON.stringify(preparation, null, 2), stderr: "", exitCode }
   }
-  return { stdout: renderPreparation(preparation), stderr: "", exitCode }
+  return { stdout: renderPreparation(preparation) + planNote, stderr: "", exitCode }
 }
 
 function loadPreparation(
@@ -490,7 +634,16 @@ function renderPreparation(p: TrustPreparation): string {
       out += `  approvals required: ${d.requiredApprovals.join(", ")}\n`
     }
   }
-  out += `plan:         ${p.plan === null ? "(not planned — G5)" : "present"}\n`
+  if (p.plan === null) {
+    out += `plan:         (none — pass --host <id> for an install plan)\n`
+  } else {
+    const pl = p.plan
+    out += `plan:         host "${pl.host}" (tier ${pl.tier}) — ${pl.operations.length} op(s), ${pl.rollback.length} rollback op(s)\n`
+    out += `  plan id:    ${pl.planId}\n`
+    out += `  plan digest:${pl.planDigest}\n`
+    out += `  expires:    ${pl.expiresAt}\n`
+    out += `  NOT applied — apply is a separate approved step (G6)\n`
+  }
   if (p.notes.length > 0) {
     out += `\nnotes:\n`
     for (const n of p.notes) out += `  • ${n}\n`
@@ -581,6 +734,11 @@ OPTIONS (prepare)
   --format json|sarif   Force the evidence format (default: auto-detect)
   --provider <name>     Force the evidence provider adapter (default: auto-detect)
   --policy <file>       Use a policy file for the decision (default: built-in defaults)
+  --host <id>           Build an install plan for a host (G5: claude-code). Reads
+                        the host config READ-ONLY; never applies. Plan is emitted
+                        only for a non-blocking decision (SAFE/REVIEW).
+  --host-config <path>  Override the host config path (default: ~/.claude.json)
+  --write-plan          Persist the plan to .calllint/plans/<plan-id>.json
   --no-llm              Default posture: no LLM in the verdict path (accepted, no-op)
   --json                Emit the raw calllint.trust-preparation.v0 document
 
