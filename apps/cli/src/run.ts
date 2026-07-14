@@ -122,7 +122,7 @@ export function run(argv: string[], deps: RunDeps): CommandResult {
     case "evidence":
       return evidenceCommand(args, { cwd: deps.cwd })
     case "trust":
-      return trustCommand(args, { cwd: deps.cwd, generatedAt: deps.generatedAt })
+      return trustCommand(args, { cwd: deps.cwd, generatedAt: deps.generatedAt, toolVersion: deps.toolVersion })
     case "gen-rule":
       return genRuleCommand(args, { cwd: deps.cwd })
     case "policy":

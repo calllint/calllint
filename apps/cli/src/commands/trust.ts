@@ -20,7 +20,7 @@
  */
 import { existsSync, mkdirSync, readdirSync, readFileSync, statSync, writeFileSync } from "node:fs"
 import { basename, dirname, join, resolve as resolvePath } from "node:path"
-import { homedir } from "node:os"
+import { homedir, userInfo } from "node:os"
 import {
   resolveArtifactIdentity,
   type ArtifactInput,
@@ -38,9 +38,13 @@ import {
   nodeFsPort,
   safeConfigPath,
   PathSafetyError,
+  buildDecisionReceipt,
+  signDecisionReceipt,
+  verifyDecisionReceipt,
   type PlanContext,
   type PlannedServer,
 } from "@calllint/install-planner"
+import { importKeypair } from "@calllint/signature"
 import type {
   ApplyResult,
   ArtifactSourceType,
@@ -60,6 +64,8 @@ interface TrustDeps {
   cwd: string
   /** ISO-8601 UTC for this run (deterministic via --generated-at). */
   generatedAt: string
+  /** Runtime CLI version — stamped into receipt.v1 (scanner-version drift basis). */
+  toolVersion?: string
 }
 
 export function trustCommand(args: ParsedArgs, deps: TrustDeps): CommandResult {
@@ -72,6 +78,7 @@ export function trustCommand(args: ParsedArgs, deps: TrustDeps): CommandResult {
   if (subcommand === "show") return trustShow(args, deps)
   if (subcommand === "explain") return trustExplain(args, deps)
   if (subcommand === "apply") return trustApply(args, deps)
+  if (subcommand === "verify") return trustVerify(args, deps)
 
   return {
     stdout: "",
@@ -647,10 +654,112 @@ function trustApply(args: ParsedArgs, deps: TrustDeps): CommandResult {
     now: deps.generatedAt,
   })
 
+  // Optional G7 decision receipt (calllint.receipt.v1). Emitted only when asked;
+  // apply's outcome/exit code is unchanged whether or not a receipt is written.
+  let receiptNote = ""
+  const receiptOut = flagStr(args.flags, "receipt")
+  if (receiptOut) {
+    const err = emitReceipt(result, plan, args, deps, receiptOut)
+    if (err) return err
+    receiptNote = `\nreceipt:      ${resolvePath(deps.cwd, receiptOut)}\n`
+  }
+
   if (flagBool(args.flags, "json")) {
     return { stdout: JSON.stringify(result, null, 2), stderr: "", exitCode: applyExitCode(result) }
   }
-  return { stdout: renderApplyResult(result), stderr: "", exitCode: applyExitCode(result) }
+  return { stdout: renderApplyResult(result) + receiptNote, stderr: "", exitCode: applyExitCode(result) }
+}
+
+/**
+ * Build (and optionally sign) a `calllint.receipt.v1` for an apply outcome and
+ * write it. Deterministic body: `approvedAt` defaults to this run's injected
+ * timestamp, `approver` to the OS user (overridable). Returns a CommandResult
+ * only on error; otherwise writes the file and returns null.
+ */
+function emitReceipt(
+  result: ApplyResult,
+  plan: InstallPlan,
+  args: ParsedArgs,
+  deps: TrustDeps,
+  outFile: string,
+): CommandResult | null {
+  const approver = flagStr(args.flags, "approver") ?? (userInfo().username || null)
+  let receipt = buildDecisionReceipt(result, plan, {
+    approvedAt: deps.generatedAt,
+    approver,
+    scannerVersion: deps.toolVersion ?? "0.0.0-dev",
+    policyVersion: null,
+  })
+
+  const keyFile = flagStr(args.flags, "key")
+  if (flagBool(args.flags, "sign") || keyFile) {
+    if (!keyFile) return usageErr("--sign requires --key <keyfile> (a local ed25519 keypair from `receipt keygen`)")
+    try {
+      const kp = importKeypair(JSON.parse(readFileSync(resolvePath(deps.cwd, keyFile), "utf8")))
+      receipt = signDecisionReceipt(receipt, kp)
+    } catch (err) {
+      return { stdout: "", stderr: `Cannot load signing key: ${(err as Error).message}`, exitCode: EXIT.ERROR }
+    }
+  }
+
+  try {
+    writeFileSync(resolvePath(deps.cwd, outFile), JSON.stringify(receipt, null, 2) + "\n")
+  } catch (err) {
+    return { stdout: "", stderr: `Cannot write receipt: ${(err as Error).message}`, exitCode: EXIT.ERROR }
+  }
+  return null
+}
+
+/**
+ * `trust verify <receipt.json> [--public-key <keyfile>]` — read-only.
+ *
+ * Validates a `calllint.receipt.v1` decision receipt: structure, the six-digest
+ * chain, the approval binding (approvedDigest == installPlanDigest), expiry, and
+ * — when a public key is given and the receipt is signed — the ed25519 signature.
+ * It NEVER re-judges, re-scans, executes the target, or touches the network.
+ * Exit 0 = valid, 1 = invalid/tampered.
+ */
+function trustVerify(args: ParsedArgs, deps: TrustDeps): CommandResult {
+  const file = args.positionals[1]
+  if (!file) return usageErr("Usage: calllint trust verify <receipt.json> [--public-key <keyfile>]")
+
+  let parsed: unknown
+  try {
+    parsed = JSON.parse(readFileSync(resolvePath(deps.cwd, file), "utf8"))
+  } catch (err) {
+    const e = err as Error & { code?: string }
+    return { stdout: "", stderr: e.code === "ENOENT" ? `Receipt file not found: ${file}` : `Receipt is not valid JSON: ${e.message}`, exitCode: EXIT.ERROR }
+  }
+
+  let publicKey: string | undefined
+  const pkFile = flagStr(args.flags, "public-key")
+  if (pkFile) {
+    try {
+      const j = JSON.parse(readFileSync(resolvePath(deps.cwd, pkFile), "utf8")) as Record<string, unknown>
+      publicKey = (j.public_key as string) ?? (j.publicKey as string)
+      if (typeof publicKey !== "string") throw new Error("no public_key field")
+    } catch (err) {
+      return { stdout: "", stderr: `Cannot load public key: ${(err as Error).message}`, exitCode: EXIT.ERROR }
+    }
+  }
+
+  const res = verifyDecisionReceipt(parsed, { now: deps.generatedAt, publicKey })
+
+  // Invalid/tampered → exit 1 (matches `receipt verify` v0). File/parse errors
+  // above use EXIT.ERROR (3); a structurally-invalid receipt is a distinct case.
+  if (flagBool(args.flags, "json")) {
+    return { stdout: JSON.stringify(res, null, 2), stderr: "", exitCode: res.valid ? EXIT.OK : 1 }
+  }
+  let out = `\nCallLint trust verify\n`
+  out += `receipt:   ${resolvePath(deps.cwd, file)}\n`
+  out += `structure: ${res.valid ? "✅ valid" : "⛔ invalid"}\n`
+  out += `signed:    ${res.signed ? (publicKey ? (res.tampered ? "⛔ signature INVALID" : "✅ signature verified") : "◇ present (no --public-key; not checked)") : "◇ unsigned"}\n`
+  out += `expiry:    ${res.expired ? "⚠ EXPIRED" : "✅ within validity window"}\n`
+  if (res.errors.length > 0) {
+    out += `\nerrors:\n`
+    for (const e of res.errors) out += `  • ${e}\n`
+  }
+  return { stdout: out, stderr: "", exitCode: res.valid ? EXIT.OK : 1 }
 }
 
 function usageErr(msg: string): CommandResult {
@@ -841,6 +950,7 @@ USAGE
   calllint trust show <preparation.json>       Human summary of a preparation
   calllint trust explain <preparation.json>    Why this state / these notes
   calllint trust apply --plan <p> --approve <plan-digest>   Apply an approved plan
+  calllint trust verify <receipt.json> [--public-key <k>]   Verify a decision receipt
 
 DESCRIPTION
   \`trust prepare\` resolves a target (a directory, SKILL.md, mcp.json, or a
@@ -878,7 +988,17 @@ OPTIONS (apply)
                         precondition digest (drift → APPLY_CONFLICT), writes
                         atomically with a backup, re-verifies, and rolls back on
                         failure. Re-applying the same plan is a no-op.
+  --receipt <file>      After apply, write a calllint.receipt.v1 decision receipt
+                        (durable proof of the six-digest chain + approval + result)
+  --sign --key <file>   Sign the receipt with a local ed25519 keypair (\`receipt keygen\`)
+  --approver <name>     Attribution for the receipt (default: OS user)
   --json                Emit the raw calllint.apply-result.v1 document
+
+OPTIONS (verify)
+  --public-key <file>   Public key JSON to check the receipt's ed25519 signature.
+                        Without it, a signature is shape-checked but not verified.
+                        verify is READ-ONLY: it never re-judges, re-scans, or writes.
+  --json                Emit the raw verification result
 
 TARGETS
   ./path/to/dir            a local directory (tree-digested, read-only)
