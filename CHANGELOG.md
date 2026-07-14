@@ -10,15 +10,39 @@ onward. While pre-1.0, minor versions may include breaking changes.
 
 ## [Unreleased]
 
+## [1.3.0] — 2026-07-14 — Trust Gateway Core
+
+**From scanning to acting — safely.** CallLint gains a read-only Trust Gateway:
+resolve an agent-tool target, judge it deterministically, and emit a reversible
+install plan. Applying that plan is the *only* thing that ever writes live
+config — it re-validates, writes atomically, verifies, and rolls back on
+failure — and every approval produces a signed, tamper-evident decision receipt.
+The gateway never executes, installs, or connects to the target it judges.
+
 ### Added
 
-- **Decision Receipt v1 + gateway drift taxonomy (Trust Gateway G7)** — durable
-  proof of gateway approvals and a way to detect when the approved state drifts.
+- **Trust Gateway (Phase G, ADR 0035–0039)** — a deterministic, fail-closed
+  pipeline over six sealed digests (artifact → evidence → authority →
+  decision/policy → install-plan → receipt). `UNKNOWN` never becomes `SAFE`;
+  external evidence can tighten a verdict but never set it alone.
+  - `calllint trust prepare <target> [--host <id>] [--evidence <f>] [--write-plan]`
+    — read-only: resolve a target (Git URL / dir / SKILL.md / MCP config, branch
+    pinned to an immutable commit), judge it, and optionally emit a reversible
+    JSON-Patch install plan (`calllint.install-plan.v1`). Never touches live config.
+  - `calllint trust show <plan>` / `trust explain <plan>` — inspect a plan.
+  - New schemas: `calllint.artifact.v1`, `calllint.authority.v0`,
+    `calllint.decision.v0`, `calllint.install-plan.v1`, `calllint.apply-result.v1`.
+  - New package `@calllint/install-planner` — plan assembly + the apply engine.
+- **Verified Apply Gateway** — `calllint trust apply --plan <file> --approve <plan-digest>`
+  is the only writer of live config. TOCTOU re-validation (drift → `PLAN_STALE`),
+  config locking, atomic temp→fsync→rename write, backup, idempotency
+  (`already_applied`), and automatic rollback on verification failure. Claude
+  Code ships at Tier A (the audited write surface).
+- **Decision Receipt v1 + gateway drift taxonomy (G7)** — durable proof of an
+  approval and a way to detect when the approved state later drifts.
   - New schema `calllint.receipt.v1` (the *decision receipt*): binds the full
-    six-digest chain (artifact → evidence → authority → decision/policy →
-    install-plan → receipt) plus the approval, apply result, and expiration.
-    Distinct from the scan receipt `calllint.receipt.v0`. See ADR 0039 and
-    `schemas/decision-receipt.schema.json`.
+    six-digest chain plus the approval, apply result, and expiration. Distinct
+    from the scan receipt `calllint.receipt.v0`. See ADR 0039.
   - `calllint trust apply --receipt <file>` writes a decision receipt after an
     apply; `--sign --key <keyfile>` signs it with a local ed25519 keypair
     (reusing `receipt keygen`); `--approver <name>` sets attribution.
