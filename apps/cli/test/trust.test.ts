@@ -422,7 +422,7 @@ describe("trust prepare — install plan (G5)", () => {
     expect(prep.state).toBe("PLAN_READY")
     expect(prep.plan.schema).toBe("calllint.install-plan.v1")
     expect(prep.plan.host).toBe("claude-code")
-    expect(prep.plan.tier).toBe("B")
+    expect(prep.plan.tier).toBe("A") // Claude Code promoted to Tier A in G6
     // Every operation is typed json-patch (ADR 0036) — never a shell string.
     for (const op of prep.plan.operations) expect(op.type).toBe("json-patch")
     expect(prep.plan.operations[0].preconditionDigest).toBe("absent")
@@ -481,5 +481,86 @@ describe("trust prepare — install plan (G5)", () => {
     // host config still on disk unchanged (read-only)
     expect(JSON.parse(readFileSyncSafe(join(dir, "claude.json"))).otherKey).toBe(1)
     noExec()
+  })
+})
+
+describe("trust apply — the only writer (G6)", () => {
+  function writeMcp() {
+    writeFileSync(
+      join(dir, "mcp.json"),
+      JSON.stringify({ mcpServers: { demo: { command: "node", args: ["server.js"] } } }),
+    )
+  }
+
+  /** prepare + --write-plan; return the plan file path + digest to approve. */
+  function preparePlan(): { planFile: string; digest: string } {
+    writeMcp()
+    const r = run(
+      ["trust", "prepare", "mcp.json", "--host", "claude-code", "--host-config", "claude.json", "--write-plan", "--json"],
+      deps(),
+    )
+    const prep = JSON.parse(r.stdout)
+    const planFile = join(dir, ".calllint", "plans", `${prep.plan.planId}.json`)
+    expect(existsSync(planFile)).toBe(true)
+    return { planFile, digest: prep.plan.planDigest }
+  }
+
+  it("applies an approved plan atomically, verifies, backs up, exit 0", () => {
+    const { planFile, digest } = preparePlan()
+    expect(existsSync(join(dir, "claude.json"))).toBe(false) // not written by prepare
+    const r = run(["trust", "apply", "--plan", planFile, "--approve", digest, "--json"], deps())
+    expect(r.exitCode).toBe(0)
+    const res = JSON.parse(r.stdout)
+    expect(res.schema).toBe("calllint.apply-result.v1")
+    expect(res.outcome).toBe("applied")
+    expect(res.state).toBe("VERIFIED")
+    // The config now exists with the demo server installed.
+    const cfg = JSON.parse(readFileSyncSafe(join(dir, "claude.json")))
+    expect(cfg.mcpServers.demo).toEqual({ command: "node", args: ["server.js"] })
+    noExec()
+  })
+
+  it("refuses an approval digest that does not match the plan (exit 20, no write)", () => {
+    const { planFile } = preparePlan()
+    const r = run(["trust", "apply", "--plan", planFile, "--approve", "sha256:" + "0".repeat(64), "--json"], deps())
+    expect(r.exitCode).toBe(20)
+    expect(JSON.parse(r.stdout).outcome).toBe("stale")
+    expect(existsSync(join(dir, "claude.json"))).toBe(false)
+    noExec()
+  })
+
+  it("re-applying the same plan is a no-op (exit 10, already_applied)", () => {
+    const { planFile, digest } = preparePlan()
+    expect(run(["trust", "apply", "--plan", planFile, "--approve", digest, "--json"], deps()).exitCode).toBe(0)
+    const again = run(["trust", "apply", "--plan", planFile, "--approve", digest, "--json"], deps())
+    expect(again.exitCode).toBe(10)
+    expect(JSON.parse(again.stdout).outcome).toBe("already_applied")
+    noExec()
+  })
+
+  it("rejects an applied-against config that drifted since planning (exit 20, conflict)", () => {
+    const { planFile, digest } = preparePlan()
+    // Someone edits the target between prepare and apply, in a way the plan does
+    // not already cover → genuine conflict, never an auto-merge.
+    writeFileSync(join(dir, "claude.json"), JSON.stringify({ mcpServers: { unrelated: { command: "x" } } }, null, 2) + "\n")
+    const r = run(["trust", "apply", "--plan", planFile, "--approve", digest, "--json"], deps())
+    expect(r.exitCode).toBe(20)
+    expect(JSON.parse(r.stdout).outcome).toBe("conflict")
+    // The user's edit is preserved — apply did not clobber it.
+    expect(JSON.parse(readFileSyncSafe(join(dir, "claude.json"))).mcpServers.unrelated).toBeDefined()
+    noExec()
+  })
+
+  it("requires --plan and --approve", () => {
+    const { planFile } = preparePlan()
+    expect(run(["trust", "apply", "--approve", "x"], deps()).exitCode).toBe(2)
+    expect(run(["trust", "apply", "--plan", planFile], deps()).exitCode).toBe(2)
+  })
+
+  it("rejects a plan file that is not an install-plan.v1", () => {
+    writeFileSync(join(dir, "bad.json"), JSON.stringify({ schema: "nope" }))
+    const r = run(["trust", "apply", "--plan", join(dir, "bad.json"), "--approve", "x"], deps())
+    expect(r.exitCode).toBe(3)
+    expect(r.stderr).toContain("install-plan.v1")
   })
 })

@@ -1,10 +1,12 @@
 /**
- * @calllint/install-planner — the Trust Gateway's plan layer (G5, ADR 0036/0037).
+ * @calllint/install-planner — the Trust Gateway's plan + apply layer
+ * (G5 plan-only, G6 apply; ADR 0036/0037).
  *
  * Standalone stable I/O contract (Plan in / ApplyResult out), CLI-independent,
  * and isolated from analysis so plan generation NEVER triggers detection logic.
- * G5 ships the plan-only half (pure assembly + Tier-B Claude Code adapter). The
- * only writer, `trust apply`, arrives in G6.
+ * G5 shipped the plan-only half (pure assembly + Tier-B Claude Code adapter).
+ * G6 adds the ONLY writer — the apply engine (revalidate → atomic write → verify
+ * → rollback) behind an injectable FS port, and promotes Claude Code to Tier A.
  */
 export type {
   HostAdapter,
@@ -16,6 +18,11 @@ export type {
 } from "./hostAdapter.js"
 export { buildInstallPlan, buildServerOps, verifyPlanDigest } from "./buildPlan.js"
 export { validatePlan } from "./validate.js"
+export { applyJsonPatch, JsonPatchError } from "./jsonPatch.js"
+export { applyPlan, type ApplyOptions } from "./applyEngine.js"
+export type { ConfigFs } from "./fsPort.js"
+export { nodeFsPort } from "./nodeFsPort.js"
+export { safeConfigPath, expandHome, PathSafetyError } from "./pathSafety.js"
 export {
   claudeCodeAdapter,
   claudeCodeServerEntry,

@@ -104,10 +104,13 @@ describe("claudeCodeServerEntry (known-schema, no secret carry)", () => {
 })
 
 describe("adapter registry", () => {
-  it("claude-code adapter is Tier B and validates its own plan", () => {
-    expect(claudeCodeAdapter.tier).toBe("B")
-    const plan = claudeCodeAdapter.createPlan(ctx(), upstream)
+  it("claude-code adapter is Tier A and stamps its own tier on the plan", () => {
+    expect(claudeCodeAdapter.tier).toBe("A")
+    // createPlan ignores ctx.tier and stamps the adapter's own tier.
+    const plan = claudeCodeAdapter.createPlan(ctx({ tier: "B" }), upstream)
+    expect(plan.tier).toBe("A")
     expect(claudeCodeAdapter.validatePlan(plan).ok).toBe(true)
     expect(plan.host).toBe("claude-code")
+    expect(typeof claudeCodeAdapter.applyPlan).toBe("function") // Tier A ⇒ can apply
   })
 })

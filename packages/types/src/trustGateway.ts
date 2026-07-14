@@ -30,7 +30,12 @@ export interface GatewayEvidence {
   rawReportDigest: `sha256:${string}`
 }
 
-/** States of the read-only half. Apply-side states arrive with G6. */
+/**
+ * Full gateway state machine (ADR 0036 §G.3). The read-only half runs
+ * DISCOVERED → PLAN_READY inside `trust prepare`; the apply half
+ * (AWAITING_APPROVAL → … → MONITORED) runs inside `trust apply` (G6). Every
+ * failure state is terminal and NONE falls through to APPLIED.
+ */
 export type TrustPrepareState =
   | "DISCOVERED"
   | "RESOLVED"
@@ -39,12 +44,22 @@ export type TrustPrepareState =
   | "AUTHORITY_NORMALIZED"
   | "DECIDED"
   | "PLAN_READY"
+  // apply half (G6) — reached only by `trust apply` over an approved plan
+  | "AWAITING_APPROVAL"
+  | "REVALIDATING"
+  | "APPLIED"
+  | "VERIFIED"
+  | "MONITORED"
   // failure states (each terminal; none implies success)
   | "RESOLUTION_FAILED"
   | "FETCH_REJECTED"
   | "EVIDENCE_PARTIAL"
   | "EVIDENCE_FAILED"
   | "POLICY_UNKNOWN"
+  | "PLAN_STALE"
+  | "APPLY_CONFLICT"
+  | "ROLLBACK_REQUIRED"
+  | "VERIFICATION_FAILED"
 
 /**
  * The result of a read-only `trust prepare`. `state` names where the state

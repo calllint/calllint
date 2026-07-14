@@ -49,9 +49,11 @@ export interface PrepareInput {
    * Install Plan (object 5), assembled at the edge by @calllint/install-planner
    * once a host is named/detected. HOST-GATED: with no host in play there is no
    * plan and the state stops at DECIDED (the decision is host-independent). A plan
-   * is emitted only for a non-blocking DECIDED verdict (SAFE/REVIEW); a BLOCK or
-   * UNKNOWN never yields a plan (nothing to hand off for apply). Generating the
-   * plan writes nothing on disk except (optionally) the plan file — apply is G6.
+   * is computed for any CONFIDENT verdict (SAFE/REVIEW/BLOCK) — it is inert data,
+   * and the verdict rides in its decisionDigest + the exit code so a BLOCK plan
+   * never reads as a pass. UNKNOWN yields no active plan (POLICY_UNKNOWN — you
+   * cannot present a plan for what you don't understand). Generating the plan
+   * writes nothing on disk except (optionally) the plan file — apply is G6.
    */
   plan?: InstallPlan
   /** ISO-8601 UTC, injected from the CLI edge. */
