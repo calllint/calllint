@@ -7,8 +7,7 @@
 # gate the job on the verdict. It never executes the scanned server.
 name: CallLint
 description: >-
-  Pre-flight risk linting for MCP and agent-tool configs. Scans statically,
-  uploads SARIF, writes a PR summary, and gates the build on the verdict.
+  Pre-flight risk linting for MCP & agent tools. Emits SARIF, gates CI.
   Never executes the server it judges.
 branding:
   icon: shield
