@@ -15,3 +15,8 @@ export {
   shouldFailCi,
   type PolicyDecision,
 } from "./applyPolicy.js"
+export {
+  decideOverAuthority,
+  verifyDecisionDigest,
+  type DecideInput,
+} from "./decideOverAuthority.js"

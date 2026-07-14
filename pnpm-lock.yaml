@@ -183,6 +183,9 @@ importers:
 
   packages/policy:
     dependencies:
+      '@calllint/fingerprint':
+        specifier: workspace:*
+        version: link:../fingerprint
       '@calllint/types':
         specifier: workspace:*
         version: link:../types
