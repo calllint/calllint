@@ -10,6 +10,28 @@ onward. While pre-1.0, minor versions may include breaking changes.
 
 ## [Unreleased]
 
+### Added
+
+- **Decision Receipt v1 + gateway drift taxonomy (Trust Gateway G7)** — durable
+  proof of gateway approvals and a way to detect when the approved state drifts.
+  - New schema `calllint.receipt.v1` (the *decision receipt*): binds the full
+    six-digest chain (artifact → evidence → authority → decision/policy →
+    install-plan → receipt) plus the approval, apply result, and expiration.
+    Distinct from the scan receipt `calllint.receipt.v0`. See ADR 0039 and
+    `schemas/decision-receipt.schema.json`.
+  - `calllint trust apply --receipt <file>` writes a decision receipt after an
+    apply; `--sign --key <keyfile>` signs it with a local ed25519 keypair
+    (reusing `receipt keygen`); `--approver <name>` sets attribution.
+  - `calllint trust verify <receipt> [--public-key <keyfile>]` validates a
+    receipt read-only: structure, the six digests, the approval binding, expiry,
+    and (with a key) the ed25519 signature. It never re-judges, re-scans, or
+    executes the target. Exit 0 = valid, 1 = invalid/tampered.
+  - Deterministic receipt builder: identical inputs produce byte-identical
+    receipts (timestamps and versions are injected, `receiptId` is derived).
+  - Gateway drift taxonomy: 9 signals labeled into 4 change classes (artifact,
+    authority, evidence, policy) plus `expired` / `signatureChainBroken`
+    integrity flags — all classification is pure.
+
 ## [1.1.0] — 2026-07-04 — Stream 1: Auto-Discovery
 
 **Zero-config scanning.** CallLint now automatically discovers agent configurations across your system — no manual path configuration required.

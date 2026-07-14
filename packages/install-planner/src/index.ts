@@ -26,6 +26,25 @@ export type { InstallPlan, InstallOperation, JsonPatchOp, ApplyResult, ApplyOutc
 export type { ConfigFs } from "./fsPort.js"
 export { nodeFsPort } from "./nodeFsPort.js"
 export { safeConfigPath, expandHome, PathSafetyError } from "./pathSafety.js"
+// G7 — decision receipt (calllint.receipt.v1) + gateway drift taxonomy (ADR 0039)
+export {
+  buildDecisionReceipt,
+  signDecisionReceipt,
+  receiptBodyDigest,
+  type ReceiptContext,
+} from "./decisionReceipt.js"
+export { verifyDecisionReceipt, type VerifyDecisionResult } from "./verifyDecisionReceipt.js"
+export { classifyReceiptDrift } from "./receiptDrift.js"
+export type {
+  DecisionReceipt,
+  ReceiptApproval,
+  ReceiptResult,
+  DriftClass,
+  DriftSignal,
+  DriftChange,
+  ReceiptDriftInput,
+  ReceiptDriftReport,
+} from "@calllint/types"
 export {
   claudeCodeAdapter,
   claudeCodeServerEntry,

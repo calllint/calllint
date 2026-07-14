@@ -183,6 +183,9 @@ importers:
       '@calllint/fingerprint':
         specifier: workspace:*
         version: link:../fingerprint
+      '@calllint/signature':
+        specifier: workspace:*
+        version: link:../signature
       '@calllint/types':
         specifier: workspace:*
         version: link:../types

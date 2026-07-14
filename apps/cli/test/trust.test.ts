@@ -564,3 +564,69 @@ describe("trust apply — the only writer (G6)", () => {
     expect(r.stderr).toContain("install-plan.v1")
   })
 })
+
+describe("trust apply --receipt + trust verify — decision receipt (G7)", () => {
+  function preparePlan(): { planFile: string; digest: string } {
+    writeFileSync(join(dir, "mcp.json"), JSON.stringify({ mcpServers: { demo: { command: "node", args: ["server.js"] } } }))
+    const r = run(
+      ["trust", "prepare", "mcp.json", "--host", "claude-code", "--host-config", "claude.json", "--write-plan", "--json"],
+      deps(),
+    )
+    const prep = JSON.parse(r.stdout)
+    return { planFile: join(dir, ".calllint", "plans", `${prep.plan.planId}.json`), digest: prep.plan.planDigest }
+  }
+
+  it("emits a calllint.receipt.v1 that binds the plan digest and verifies", () => {
+    const { planFile, digest } = preparePlan()
+    const receiptFile = join(dir, "receipt.json")
+    const a = run(["trust", "apply", "--plan", planFile, "--approve", digest, "--receipt", receiptFile], deps())
+    expect(a.exitCode).toBe(0)
+    expect(existsSync(receiptFile)).toBe(true)
+    const receipt = JSON.parse(readFileSyncSafe(receiptFile))
+    expect(receipt.schema).toBe("calllint.receipt.v1")
+    expect(receipt.installPlanDigest).toBe(digest)
+    expect(receipt.approval.approvedDigest).toBe(digest) // binding
+    expect(receipt.result).toBe("applied")
+    // verify accepts it (read-only) — exit 0.
+    const v = run(["trust", "verify", receiptFile, "--json"], deps())
+    expect(v.exitCode).toBe(0)
+    expect(JSON.parse(v.stdout).valid).toBe(true)
+    noExec()
+  })
+
+  it("verify rejects a tampered receipt (exit 1), and writes nothing", () => {
+    const { planFile, digest } = preparePlan()
+    const receiptFile = join(dir, "receipt.json")
+    run(["trust", "apply", "--plan", planFile, "--approve", digest, "--receipt", receiptFile], deps())
+    const receipt = JSON.parse(readFileSyncSafe(receiptFile))
+    receipt.approval.approvedDigest = "sha256:" + "0".repeat(64) // break the binding
+    writeFileSync(receiptFile, JSON.stringify(receipt))
+    const v = run(["trust", "verify", receiptFile, "--json"], deps())
+    expect(v.exitCode).toBe(1)
+    expect(JSON.parse(v.stdout).valid).toBe(false)
+    noExec()
+  })
+
+  it("signs a receipt and verifies the ed25519 signature with the public key", () => {
+    const { planFile, digest } = preparePlan()
+    const keyFile = join(dir, "key.json")
+    expect(run(["receipt", "keygen", "--out", keyFile], deps()).exitCode).toBe(0)
+    const receiptFile = join(dir, "receipt.json")
+    const a = run(["trust", "apply", "--plan", planFile, "--approve", digest, "--receipt", receiptFile, "--sign", "--key", keyFile], deps())
+    expect(a.exitCode).toBe(0)
+    expect(JSON.parse(readFileSyncSafe(receiptFile)).signature.algorithm).toBe("ed25519")
+    const v = run(["trust", "verify", receiptFile, "--public-key", keyFile, "--json"], deps())
+    expect(v.exitCode).toBe(0)
+    const res = JSON.parse(v.stdout)
+    expect(res.signed).toBe(true)
+    expect(res.tampered).toBe(false)
+    expect(res.valid).toBe(true)
+    noExec()
+  })
+
+  it("verify with a missing receipt file errors cleanly", () => {
+    const v = run(["trust", "verify", join(dir, "nope.json")], deps())
+    expect(v.exitCode).toBe(3)
+    expect(v.stderr).toContain("not found")
+  })
+})

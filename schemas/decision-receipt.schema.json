@@ -1,0 +1,104 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://calllint.dev/schemas/decision-receipt.schema.json",
+  "title": "CallLint Decision Receipt (calllint.receipt.v1)",
+  "description": "Durable proof of what was approved, under what evidence and policy, by whom, and when it expires. Binds the six-digest gateway chain. Produced by trust apply. A new sibling to the scan receipt calllint.receipt.v0; proves provenance, NOT safety. See ADR 0039.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "receiptId",
+    "artifactDigest",
+    "evidenceDigests",
+    "authorityDigest",
+    "policyDigest",
+    "decisionDigest",
+    "installPlanDigest",
+    "approval",
+    "result",
+    "host",
+    "configPath",
+    "configDigestBefore",
+    "configDigestAfter",
+    "policyVersion",
+    "scannerVersion",
+    "exceptionReason",
+    "expiration",
+    "supersedes",
+    "revocation",
+    "signature"
+  ],
+  "definitions": {
+    "sha256": { "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" },
+    "sha256OrNull": {
+      "oneOf": [{ "$ref": "#/definitions/sha256" }, { "type": "null" }]
+    }
+  },
+  "properties": {
+    "schema": { "const": "calllint.receipt.v1" },
+    "receiptId": { "type": "string", "pattern": "^clrec_[A-Za-z0-9_-]+$" },
+    "artifactDigest": { "$ref": "#/definitions/sha256OrNull" },
+    "evidenceDigests": {
+      "type": "array",
+      "items": { "$ref": "#/definitions/sha256" }
+    },
+    "authorityDigest": { "$ref": "#/definitions/sha256" },
+    "policyDigest": { "$ref": "#/definitions/sha256" },
+    "decisionDigest": { "$ref": "#/definitions/sha256" },
+    "installPlanDigest": { "$ref": "#/definitions/sha256" },
+    "approval": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type", "approvedAt", "approver", "approvedDigest"],
+      "properties": {
+        "type": { "const": "local-human" },
+        "approvedAt": { "type": "string", "format": "date-time" },
+        "approver": { "oneOf": [{ "type": "string" }, { "type": "null" }] },
+        "approvedDigest": { "$ref": "#/definitions/sha256" }
+      }
+    },
+    "result": { "enum": ["applied", "rolled-back", "prepared-only"] },
+    "host": { "type": "string", "minLength": 1 },
+    "configPath": { "type": "string", "minLength": 1 },
+    "configDigestBefore": {
+      "oneOf": [{ "$ref": "#/definitions/sha256" }, { "const": "absent" }]
+    },
+    "configDigestAfter": { "$ref": "#/definitions/sha256OrNull" },
+    "policyVersion": { "oneOf": [{ "type": "string" }, { "type": "null" }] },
+    "scannerVersion": { "type": "string", "minLength": 1 },
+    "exceptionReason": { "oneOf": [{ "type": "string" }, { "type": "null" }] },
+    "expiration": { "type": "string", "format": "date-time" },
+    "supersedes": { "oneOf": [{ "type": "string" }, { "type": "null" }] },
+    "revocation": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["revokedAt", "reason"],
+          "properties": {
+            "revokedAt": { "type": "string", "format": "date-time" },
+            "reason": { "type": "string" }
+          }
+        },
+        { "type": "null" }
+      ]
+    },
+    "signature": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["algorithm", "key_id", "value", "signed_at"],
+          "properties": {
+            "algorithm": { "const": "ed25519" },
+            "key_id": { "type": "string" },
+            "value": { "type": "string" },
+            "signed_at": { "type": "string", "format": "date-time" },
+            "public_key_url": { "type": "string" }
+          }
+        },
+        { "type": "null" }
+      ]
+    }
+  }
+}
