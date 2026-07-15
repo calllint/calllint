@@ -1,0 +1,72 @@
+{
+  "schema": "calllint.trust-preparation.v0",
+  "artifact": {
+    "schema": "calllint.artifact.v1",
+    "sourceType": "mcp-config",
+    "source": "D:\\my-web-app\\Shield\\packages\\fixtures\\bench\\cases\\B02-clean-content-admin-oauth\\input\\mcp.json",
+    "requestedRef": null,
+    "resolvedRef": "content:sha256:6ae0a2e2050d397d2ffab4c10a94d0464158a9aa70d3e16e24def07e53998641",
+    "digest": "sha256:6ae0a2e2050d397d2ffab4c10a94d0464158a9aa70d3e16e24def07e53998641",
+    "resolvedAt": "2026-06-16T00:00:00.000Z",
+    "resolution": "resolved"
+  },
+  "evidence": null,
+  "authority": {
+    "schema": "calllint.authority.v0",
+    "subject": {
+      "artifactDigest": "sha256:6ae0a2e2050d397d2ffab4c10a94d0464158a9aa70d3e16e24def07e53998641"
+    },
+    "capabilities": [
+      {
+        "action": "execute",
+        "resource": "process",
+        "scope": "npx",
+        "destination": null,
+        "mutability": "mutating",
+        "reversibility": "irreversible",
+        "monetaryLimit": null,
+        "approvalRequirement": "none",
+        "evidenceSource": "server.command",
+        "confidence": "high",
+        "completeness": "complete"
+      }
+    ],
+    "limits": {
+      "spendPerCall": null,
+      "spendTotal": null
+    },
+    "approval": {
+      "required": []
+    },
+    "unknowns": [],
+    "completeness": "complete",
+    "digest": "sha256:ca36dce82e73a4c4f359a4d58ac48348c27d99b113464fbb9fbd8f47d6c219fb"
+  },
+  "decision": {
+    "schema": "calllint.decision.v0",
+    "artifactDigest": "sha256:6ae0a2e2050d397d2ffab4c10a94d0464158a9aa70d3e16e24def07e53998641",
+    "authorityDigest": "sha256:ca36dce82e73a4c4f359a4d58ac48348c27d99b113464fbb9fbd8f47d6c219fb",
+    "policyDigest": "sha256:61298dfc6f74bf53f9a4201565d96062a7e5af3a4bf565f3e23b905917104e99",
+    "evidenceDigests": [],
+    "verdict": "BLOCK",
+    "reasons": [
+      {
+        "code": "SHELL_OR_DOCKER_EXECUTION",
+        "evidenceSource": "server.command",
+        "contributes": "BLOCK"
+      }
+    ],
+    "requiredApprovals": [],
+    "unknowns": [],
+    "completeness": "complete",
+    "digest": "sha256:4ff3c07dd9e3dc690062c709f366b5c5566034ee1ce58c1ab3536ccce0da8cf7"
+  },
+  "plan": null,
+  "state": "DECIDED",
+  "notes": [
+    "no external evidence attached (optional); decision will rely on CallLint's own analysis",
+    "authority normalized: 1 capability",
+    "policy decision: BLOCK (SHELL_OR_DOCKER_EXECUTION)"
+  ],
+  "preparedAt": "2026-06-16T00:00:00.000Z"
+}

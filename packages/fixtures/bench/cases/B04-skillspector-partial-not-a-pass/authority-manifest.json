@@ -1,0 +1,76 @@
+{
+  "schema": "calllint.trust-preparation.v0",
+  "artifact": {
+    "schema": "calllint.artifact.v1",
+    "sourceType": "mcp-config",
+    "source": "D:\\my-web-app\\Shield\\packages\\fixtures\\bench\\cases\\B04-skillspector-partial-not-a-pass\\input\\mcp.json",
+    "requestedRef": null,
+    "resolvedRef": "content:sha256:a7d9746c7ffb8d2dea8c2aa156c06b217998ad47de61923de87d3e900c363693",
+    "digest": "sha256:a7d9746c7ffb8d2dea8c2aa156c06b217998ad47de61923de87d3e900c363693",
+    "resolvedAt": "2026-06-16T00:00:00.000Z",
+    "resolution": "resolved"
+  },
+  "evidence": null,
+  "authority": {
+    "schema": "calllint.authority.v0",
+    "subject": {
+      "artifactDigest": "sha256:a7d9746c7ffb8d2dea8c2aa156c06b217998ad47de61923de87d3e900c363693"
+    },
+    "capabilities": [
+      {
+        "action": "connect",
+        "resource": "network",
+        "scope": "mcp.example-vendor.io",
+        "destination": "mcp.example-vendor.io",
+        "mutability": "mutating",
+        "reversibility": "irreversible",
+        "monetaryLimit": null,
+        "approvalRequirement": "review",
+        "evidenceSource": "server.url",
+        "confidence": "high",
+        "completeness": "complete"
+      }
+    ],
+    "limits": {
+      "spendPerCall": null,
+      "spendTotal": null
+    },
+    "approval": {
+      "required": [
+        "external-network-access"
+      ]
+    },
+    "unknowns": [],
+    "completeness": "complete",
+    "digest": "sha256:52b1b543bb478d5081f1f58f75cb0cb06c61b259c9f89fcab7f56e5ecccda8b0"
+  },
+  "decision": {
+    "schema": "calllint.decision.v0",
+    "artifactDigest": "sha256:a7d9746c7ffb8d2dea8c2aa156c06b217998ad47de61923de87d3e900c363693",
+    "authorityDigest": "sha256:52b1b543bb478d5081f1f58f75cb0cb06c61b259c9f89fcab7f56e5ecccda8b0",
+    "policyDigest": "sha256:61298dfc6f74bf53f9a4201565d96062a7e5af3a4bf565f3e23b905917104e99",
+    "evidenceDigests": [],
+    "verdict": "BLOCK",
+    "reasons": [
+      {
+        "code": "UNKNOWN_REMOTE",
+        "evidenceSource": "server.url",
+        "contributes": "BLOCK"
+      }
+    ],
+    "requiredApprovals": [
+      "external-network-access"
+    ],
+    "unknowns": [],
+    "completeness": "complete",
+    "digest": "sha256:7986aa74d7891531a3d4c22c8cbafe8b42327f3212b33a9247722ce119c5301b"
+  },
+  "plan": null,
+  "state": "DECIDED",
+  "notes": [
+    "no external evidence attached (optional); decision will rely on CallLint's own analysis",
+    "authority normalized: 1 capability, approvals required: external-network-access",
+    "policy decision: BLOCK (UNKNOWN_REMOTE)"
+  ],
+  "preparedAt": "2026-06-16T00:00:00.000Z"
+}

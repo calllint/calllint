@@ -1,0 +1,157 @@
+{
+  "schemaVersion": "calllint.report.v0",
+  "reportKind": "config-summary",
+  "configPath": "D:\\my-web-app\\Shield\\packages\\fixtures\\bench\\cases\\B04-skillspector-partial-not-a-pass\\input\\mcp.json",
+  "verdict": "UNKNOWN",
+  "publicVerdictLabel": "Insufficient evidence",
+  "counts": {
+    "SAFE": 0,
+    "REVIEW": 0,
+    "BLOCK": 0,
+    "UNKNOWN": 1
+  },
+  "reports": [
+    {
+      "schemaVersion": "calllint.report.v0",
+      "reportKind": "single-target",
+      "target": {
+        "name": "assistant",
+        "kind": "cursor-mcp-config",
+        "source": "https://mcp.example-vendor.io/api",
+        "configPath": "D:\\my-web-app\\Shield\\packages\\fixtures\\bench\\cases\\B04-skillspector-partial-not-a-pass\\input\\mcp.json"
+      },
+      "verdict": "UNKNOWN",
+      "publicVerdictLabel": "Insufficient evidence",
+      "policyApplied": false,
+      "riskClass": "S1",
+      "symbols": [
+        "NETWORK"
+      ],
+      "confidence": "high",
+      "reproducibility": {
+        "level": "MEDIUM",
+        "reasons": [
+          "Remote endpoint could not be verified"
+        ]
+      },
+      "summary": "\"assistant\" could not be verified (insufficient evidence). Risk: Network (S1 Read-only utility).",
+      "observed": [
+        {
+          "id": "supply.unknown-remote",
+          "title": "Remote server source cannot be verified",
+          "severity": "high",
+          "blocker": false,
+          "symbol": "NETWORK",
+          "riskClass": "S1",
+          "mode": "OBSERVED",
+          "confidence": "high",
+          "detectionMethod": "runtime-binding",
+          "evidence": [
+            {
+              "type": "runtime-binding",
+              "path": "D:\\my-web-app\\Shield\\packages\\fixtures\\bench\\cases\\B04-skillspector-partial-not-a-pass\\input\\mcp.json",
+              "key": "url",
+              "value": "https://mcp.example-vendor.io/api",
+              "line": 4,
+              "column": 7
+            }
+          ],
+          "impact": "The server runs on an unverified remote endpoint. Its tools, permissions, and behavior cannot be inspected statically and may change at any time.",
+          "fix": "Use a verified first-party endpoint, or run the server from a pinned, inspectable package.",
+          "falsePositiveNote": "A trusted internal endpoint may be fine; add it to the policy allowlist to verify it."
+        }
+      ],
+      "inferred": [],
+      "findings": [
+        {
+          "id": "supply.unknown-remote",
+          "title": "Remote server source cannot be verified",
+          "severity": "high",
+          "blocker": false,
+          "symbol": "NETWORK",
+          "riskClass": "S1",
+          "mode": "OBSERVED",
+          "confidence": "high",
+          "detectionMethod": "runtime-binding",
+          "evidence": [
+            {
+              "type": "runtime-binding",
+              "path": "D:\\my-web-app\\Shield\\packages\\fixtures\\bench\\cases\\B04-skillspector-partial-not-a-pass\\input\\mcp.json",
+              "key": "url",
+              "value": "https://mcp.example-vendor.io/api",
+              "line": 4,
+              "column": 7
+            }
+          ],
+          "impact": "The server runs on an unverified remote endpoint. Its tools, permissions, and behavior cannot be inspected statically and may change at any time.",
+          "fix": "Use a verified first-party endpoint, or run the server from a pinned, inspectable package.",
+          "falsePositiveNote": "A trusted internal endpoint may be fine; add it to the policy allowlist to verify it."
+        }
+      ],
+      "topFindings": [
+        {
+          "id": "supply.unknown-remote",
+          "title": "Remote server source cannot be verified",
+          "severity": "high",
+          "blocker": false,
+          "symbol": "NETWORK",
+          "riskClass": "S1",
+          "mode": "OBSERVED",
+          "confidence": "high",
+          "detectionMethod": "runtime-binding",
+          "evidence": [
+            {
+              "type": "runtime-binding",
+              "path": "D:\\my-web-app\\Shield\\packages\\fixtures\\bench\\cases\\B04-skillspector-partial-not-a-pass\\input\\mcp.json",
+              "key": "url",
+              "value": "https://mcp.example-vendor.io/api",
+              "line": 4,
+              "column": 7
+            }
+          ],
+          "impact": "The server runs on an unverified remote endpoint. Its tools, permissions, and behavior cannot be inspected statically and may change at any time.",
+          "fix": "Use a verified first-party endpoint, or run the server from a pinned, inspectable package.",
+          "falsePositiveNote": "A trusted internal endpoint may be fine; add it to the policy allowlist to verify it."
+        }
+      ],
+      "policy": {
+        "autonomousUse": "deny",
+        "manualApproval": "required",
+        "sandbox": "required"
+      },
+      "fingerprints": {
+        "configHash": "sha256:3f2003280361d7fd10cff8787c4c8af8347b2c2b616ce08794a57f560436bec0",
+        "targetSpecHash": "sha256:81b7ad4322b607ba564fe5c6b89d80abb27643d6baa390662167169aec6ba053",
+        "riskSurfaceHash": "sha256:47e9d20255a346b95323c2cb9e092621521638b987bbcd036e68e4aee12dcaf3"
+      },
+      "diagnostics": [],
+      "generatedAt": "2026-06-16T00:00:00.000Z"
+    }
+  ],
+  "diagnostics": [],
+  "generatedAt": "2026-06-16T00:00:00.000Z",
+  "evidence": [
+    {
+      "schema_version": "calllint.evidence-provider.v0",
+      "provider": "skillspector",
+      "providerVersion": "git:4444444444444444444444444444444444444444",
+      "artifactDigest": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
+      "scanMode": "static",
+      "coverage": [
+        "malicious-patterns"
+      ],
+      "completeness": "partial",
+      "findings": [
+        {
+          "providerRuleId": "SS-NET-003",
+          "providerSeverity": "low",
+          "message": "outbound network call to a non-allowlisted host"
+        }
+      ],
+      "rawReportDigest": "sha256:294afcb56a5e004fdd218a92b7241c9613b8d327137d9fac1ebb041d262e4c0b",
+      "degradedReasons": [
+        "SkillSpector reported status \"partial\""
+      ]
+    }
+  ]
+}

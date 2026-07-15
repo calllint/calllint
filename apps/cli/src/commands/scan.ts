@@ -14,10 +14,12 @@ import {
   renderMarkdown,
   renderBadge,
   renderHtml,
+  renderTrustPacket,
   NO_EMOJI_STYLE,
   DEFAULT_STYLE,
 } from "@calllint/report-renderer"
-import type { Policy } from "@calllint/types"
+import type { GatewayEvidence, Policy } from "@calllint/types"
+import { importEvidence, type EvidenceFormat } from "@calllint/evidence"
 import { EXIT, flagBool, flagStr, type ParsedArgs } from "../args.js"
 import { exitCodeFor } from "../exitCode.js"
 import { resolveConfigInput, isInputError } from "./resolveInput.js"
@@ -117,6 +119,21 @@ function scanOneConfig(
     ? readDocumentSurfaces(resolve(deps.cwd, surfaceDir))
     : undefined
 
+  // Opt-in external scanner evidence (`--evidence <file>`, ADR 0034). Read at the
+  // edge and imported here (pure, fail-closed); attached to the report as a
+  // supporting projection, NEVER fed into the verdict. Absent flag ⇒ output is
+  // byte-identical to today. A missing/unparseable report cannot pass silently:
+  // a not-found file is a usage error, a bad report imports as completeness:failed.
+  const evidenceFile = flagStr(args.flags, "evidence")
+  let evidence: GatewayEvidence[] | undefined
+  if (evidenceFile) {
+    const loaded = loadEvidence(evidenceFile, args, deps)
+    if ("error" in loaded) {
+      return { stdout: "", stderr: loaded.error, exitCode: loaded.exitCode }
+    }
+    evidence = [loaded]
+  }
+
   // Scan.
   let summary: ConfigSummaryReport
   try {
@@ -126,6 +143,7 @@ function scanOneConfig(
       generatedAt: deps.generatedAt,
       extraFindings: deps.online?.extraFindings,
       surfaces,
+      evidence,
     })
   } catch (err) {
     if (err instanceof ConfigParseError) {
@@ -147,7 +165,7 @@ function scanOneConfig(
   }
 
   // Render.
-  const stdout = renderSummary(summary, args)
+  const stdout = renderSummary(summary, args, deps.toolVersion)
 
   // Receipt (new5 R3, ADR 0028). Opt-in via --receipt; written AFTER the report
   // exists, from the report (never a re-scan). Absent flag ⇒ behaviour is
@@ -208,16 +226,58 @@ function writeReceiptFile(
   return undefined
 }
 
-/** Render one summary in the format selected by the flags. */
-function renderSummary(summary: ConfigSummaryReport, args: ParsedArgs): string {
+/**
+ * Import an external evidence file at the CLI edge (I/O here; `importEvidence`
+ * is pure and fail-closed). Mirrors the `trust prepare` helper: a missing file
+ * is a usage error, but an unparseable report never throws — it imports as a
+ * `completeness:"failed"` envelope so it can only be surfaced as "not a pass",
+ * never silently dropped (ADR 0034). Provider/format auto-detect; `--evidence-format`
+ * forces the format when auto-detection is ambiguous.
+ */
+function loadEvidence(
+  file: string,
+  args: ParsedArgs,
+  deps: ScanDeps,
+): GatewayEvidence | { error: string; exitCode: number } {
+  let rawText: string
+  try {
+    rawText = readFileSync(resolve(deps.cwd, file), "utf8")
+  } catch (err) {
+    const e = err as Error & { code?: string }
+    return {
+      error: e.code === "ENOENT" ? `Evidence file not found: ${file}` : e.message,
+      exitCode: EXIT.USAGE,
+    }
+  }
+  const fmt = flagStr(args.flags, "evidence-format")
+  const format: EvidenceFormat | undefined =
+    fmt === "sarif" ? "sarif" : fmt === "json" ? "json" : undefined
+  return importEvidence(rawText, { format }) as GatewayEvidence
+}
+
+/**
+ * Render one summary in the format selected by the flags. When external
+ * evidence is attached (`--evidence`), the human-readable paths append the joint
+ * Trust Packet (Content scan vs Authority scan, unmerged + why they differ). The
+ * machine formats (`--json`/`--sarif`) already carry the evidence in the report
+ * projection, so they are left unchanged.
+ */
+function renderSummary(
+  summary: ConfigSummaryReport,
+  args: ParsedArgs,
+  toolVersion?: string,
+): string {
   const style = flagBool(args.flags, "no-emoji") ? NO_EMOJI_STYLE : DEFAULT_STYLE
   if (flagBool(args.flags, "json")) return renderJson(summary)
   if (flagBool(args.flags, "sarif")) return renderSarif(summary)
   if (flagBool(args.flags, "markdown")) return renderMarkdown(summary)
   if (flagBool(args.flags, "badge")) return renderBadge(summary)
   if (flagBool(args.flags, "html")) return renderHtml(summary)
-  if (flagBool(args.flags, "compact")) return renderCompact(summary, style)
-  return renderTerminal(summary, style)
+  const base = flagBool(args.flags, "compact")
+    ? renderCompact(summary, style)
+    : renderTerminal(summary, style)
+  const packet = renderTrustPacket(summary, toolVersion ?? "0.0.0-dev", style)
+  return packet ? base + "\n" + packet : base
 }
 
 /**

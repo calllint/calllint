@@ -8,7 +8,7 @@ This file inlines the guidance an agent needs in one fetch. Canonical sources:
 
 ## Status
 
-- Version `1.3.0` on the `latest` npm dist-tag (stable release; adds the read-only Trust Gateway — prepare/apply/verify with signed decision receipts — on top of auto-discovery; expect FP/FN).
+- Version `1.4.0` on the `latest` npm dist-tag (stable release; adds evidence interoperability — `scan --evidence` attaches an external content-scanner report and shows it in a joint Trust Packet, never re-scored — on top of the Trust Gateway; expect FP/FN).
 
 ## Commands
 
@@ -24,6 +24,8 @@ This file inlines the guidance an agent needs in one fetch. Canonical sources:
 - `npx calllint diagnostics .cursor/mcp.json --json`
 - `npx calllint scan .cursor/mcp.json --receipt` (also write a local verifiable receipt)
 - `npx calllint receipt verify calllint-receipt.json` (validate structure + ed25519 signature when present)
+- `npx calllint evidence import skillspector-report.json` (normalize an external scanner report — JSON or SARIF — into a `calllint.evidence-provider.v0` envelope; findings kept verbatim, never re-scored)
+- `npx calllint scan .cursor/mcp.json --evidence skillspector-report.json` (attach that evidence and print a joint Trust Packet: content scan vs authority scan, shown unmerged; the evidence never changes CallLint's verdict — a degraded/partial scan is never a pass)
 - `npx calllint trust prepare <target> --host claude-code --write-plan` (read-only: judge a target and emit a reversible install plan; never touches live config)
 - `npx calllint trust apply --plan <plan.json> --approve <plan-digest>` (the only writer: re-validate, atomic apply, verify, rollback on failure; optional `--receipt`/`--sign`)
 - `npx calllint trust verify <receipt.json>` (validate a decision receipt, schema `calllint.receipt.v1`; read-only, never re-scans or executes)

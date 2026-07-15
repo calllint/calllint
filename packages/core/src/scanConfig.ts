@@ -1,5 +1,6 @@
 import type {
   ConfigSummaryReport,
+  GatewayEvidence,
   ScanReport,
   Verdict,
 } from "@calllint/types"
@@ -18,6 +19,7 @@ function aggregate(
   configPath: string,
   reports: ScanReport[],
   generatedAt: string,
+  evidence: GatewayEvidence[],
 ): ConfigSummaryReport {
   const counts: Record<Verdict, number> = { SAFE: 0, REVIEW: 0, BLOCK: 0, UNKNOWN: 0 }
   for (const r of reports) counts[r.verdict]++
@@ -39,11 +41,16 @@ function aggregate(
     reports,
     diagnostics: [],
     generatedAt,
+    // Additive projection (ADR 0034). Attached only when the CLI imported evidence
+    // via `scan --evidence`; omitted otherwise so default scan output is
+    // byte-identical (the offline corpus never attaches evidence). Never re-scored:
+    // the `verdict` above is unaffected by these findings.
+    ...(evidence.length > 0 ? { evidence } : {}),
   }
 }
 
 function scanParsed(parsed: ParsedConfig, opts?: ScanOptions): ConfigSummaryReport {
-  const { generatedAt, surfaces } = resolveScanOptions(opts)
+  const { generatedAt, surfaces, evidence } = resolveScanOptions(opts)
   const reports = parsed.servers.map((server) =>
     scanServer({ server, targetKind: parsed.kind }, opts),
   )
@@ -58,7 +65,7 @@ function scanParsed(parsed: ParsedConfig, opts?: ScanOptions): ConfigSummaryRepo
   const surfaceReport = scanDocumentSurfaces(surfaces, parsed.configPath, generatedAt)
   if (surfaceReport) reports.push(surfaceReport)
 
-  return aggregate(parsed.configPath, reports, generatedAt)
+  return aggregate(parsed.configPath, reports, generatedAt, evidence)
 }
 
 /** Scan a config file on disk. Throws ConfigParseError on malformed JSON. */

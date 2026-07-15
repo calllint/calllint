@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "calendar": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-time@1.0.0"],
+      "oauth": {
+        "scopes": ["admin", "full_access"]
+      }
+    }
+  }
+}

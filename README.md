@@ -17,7 +17,7 @@ It never executes, installs, or connects to the servers it judges.
 npx calllint scan .cursor/mcp.json
 ```
 
-> Status: 1.3.0 stable CLI release. Actively hardened. Verdicts are heuristic
+> Status: 1.4.0 stable CLI release. Actively hardened. Verdicts are heuristic
 > decision support, not a safety guarantee. Read [Limitations](#limitations)
 > before relying on a verdict for a security decision.
 
@@ -189,6 +189,9 @@ calllint inbox inspect gmail-reply.normalized.json
 # Record a scan as a local, verifiable receipt, then validate it later
 calllint scan ./mcp.json --receipt            # writes calllint-receipt.json
 calllint receipt verify calllint-receipt.json
+
+# Attach an external content-scanner report as evidence (joint Trust Packet)
+calllint scan ./mcp.json --evidence skillspector-report.json
 ```
 
 Receipts (`calllint.receipt.v0`) are a reporting layer derived from a scan —

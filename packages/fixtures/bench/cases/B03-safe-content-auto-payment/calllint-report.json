@@ -1,0 +1,144 @@
+{
+  "schemaVersion": "calllint.report.v0",
+  "reportKind": "config-summary",
+  "configPath": "D:\\my-web-app\\Shield\\packages\\fixtures\\bench\\cases\\B03-safe-content-auto-payment\\input\\mcp.json",
+  "verdict": "BLOCK",
+  "publicVerdictLabel": "Blocked by policy",
+  "counts": {
+    "SAFE": 0,
+    "REVIEW": 0,
+    "BLOCK": 1,
+    "UNKNOWN": 0
+  },
+  "reports": [
+    {
+      "schemaVersion": "calllint.report.v0",
+      "reportKind": "single-target",
+      "target": {
+        "name": "merchant",
+        "kind": "cursor-mcp-config",
+        "source": "acme-commerce-mcp",
+        "version": "3.0.0",
+        "configPath": "D:\\my-web-app\\Shield\\packages\\fixtures\\bench\\cases\\B03-safe-content-auto-payment\\input\\mcp.json"
+      },
+      "verdict": "BLOCK",
+      "publicVerdictLabel": "Blocked by policy",
+      "policyApplied": false,
+      "riskClass": "S5",
+      "symbols": [
+        "MONEY"
+      ],
+      "confidence": "high",
+      "reproducibility": {
+        "level": "HIGH",
+        "reasons": []
+      },
+      "summary": "\"merchant\" is blocked. Risk: Money (S5 Financial / irreversible).",
+      "observed": [
+        {
+          "id": "action.financial-observed",
+          "title": "Exposes an observed money-moving action",
+          "severity": "critical",
+          "blocker": true,
+          "symbol": "MONEY",
+          "riskClass": "S5",
+          "mode": "OBSERVED",
+          "confidence": "high",
+          "detectionMethod": "tool-metadata",
+          "evidence": [
+            {
+              "type": "tool-metadata",
+              "key": "tool",
+              "value": "create_payment"
+            }
+          ],
+          "impact": "A provided tool explicitly performs a financial action (e.g. create a payment, transfer funds, issue a refund) and the server carries credentials or network access. An autonomous agent invoking it could move money irreversibly.",
+          "fix": "Require explicit human approval for this tool, enforce a hard spending boundary, and never allow autonomous invocation.",
+          "falsePositiveNote": "If the tool only reads payment data (not moves money), reclassify it; this fires on money-moving verbs in the model-visible metadata."
+        }
+      ],
+      "inferred": [],
+      "findings": [
+        {
+          "id": "action.financial-observed",
+          "title": "Exposes an observed money-moving action",
+          "severity": "critical",
+          "blocker": true,
+          "symbol": "MONEY",
+          "riskClass": "S5",
+          "mode": "OBSERVED",
+          "confidence": "high",
+          "detectionMethod": "tool-metadata",
+          "evidence": [
+            {
+              "type": "tool-metadata",
+              "key": "tool",
+              "value": "create_payment"
+            }
+          ],
+          "impact": "A provided tool explicitly performs a financial action (e.g. create a payment, transfer funds, issue a refund) and the server carries credentials or network access. An autonomous agent invoking it could move money irreversibly.",
+          "fix": "Require explicit human approval for this tool, enforce a hard spending boundary, and never allow autonomous invocation.",
+          "falsePositiveNote": "If the tool only reads payment data (not moves money), reclassify it; this fires on money-moving verbs in the model-visible metadata."
+        }
+      ],
+      "topFindings": [
+        {
+          "id": "action.financial-observed",
+          "title": "Exposes an observed money-moving action",
+          "severity": "critical",
+          "blocker": true,
+          "symbol": "MONEY",
+          "riskClass": "S5",
+          "mode": "OBSERVED",
+          "confidence": "high",
+          "detectionMethod": "tool-metadata",
+          "evidence": [
+            {
+              "type": "tool-metadata",
+              "key": "tool",
+              "value": "create_payment"
+            }
+          ],
+          "impact": "A provided tool explicitly performs a financial action (e.g. create a payment, transfer funds, issue a refund) and the server carries credentials or network access. An autonomous agent invoking it could move money irreversibly.",
+          "fix": "Require explicit human approval for this tool, enforce a hard spending boundary, and never allow autonomous invocation.",
+          "falsePositiveNote": "If the tool only reads payment data (not moves money), reclassify it; this fires on money-moving verbs in the model-visible metadata."
+        }
+      ],
+      "policy": {
+        "autonomousUse": "deny",
+        "manualApproval": "required",
+        "sandbox": "required"
+      },
+      "fingerprints": {
+        "configHash": "sha256:a9810509ef2f913b838ba908a2e946bb2f099d6dde7d55f10a60a539d15b2ca5",
+        "targetSpecHash": "sha256:4cc65f713451a23691136682bbae19ace5968c36d6c4b305b3026c7f8866a924",
+        "riskSurfaceHash": "sha256:a1cdc273c55e362739d0ae272bc5da3616e6d4987d00899eb445a813388d9b43",
+        "packageSpecHash": "sha256:308b52f310f980fa7446474c8256c52a9736dae25b66909651e383a2d3a90b31",
+        "sourceHash": "sha256:b12eef6a894a73f98fbb95dfc3e49ae2bb96a75bf9fdd7521d939da2748ba290",
+        "toolMetadataHash": "sha256:a842094cfbe89010219fa9cad83d136f41c6f503e6d96506a405221ebd9e603e"
+      },
+      "diagnostics": [],
+      "generatedAt": "2026-06-16T00:00:00.000Z"
+    }
+  ],
+  "diagnostics": [],
+  "generatedAt": "2026-06-16T00:00:00.000Z",
+  "evidence": [
+    {
+      "schema_version": "calllint.evidence-provider.v0",
+      "provider": "skillspector",
+      "providerVersion": "git:3333333333333333333333333333333333333333",
+      "artifactDigest": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
+      "scanMode": "llm",
+      "coverage": [
+        "malicious-patterns",
+        "taint",
+        "osv"
+      ],
+      "completeness": "complete",
+      "findings": [],
+      "rawReportDigest": "sha256:198029091e00e69fce00f7e26a3bbc2dbd782cdddb793bc5567fe709e4387600",
+      "degradedReasons": []
+    }
+  ]
+}

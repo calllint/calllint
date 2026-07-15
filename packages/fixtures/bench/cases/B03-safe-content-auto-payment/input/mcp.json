@@ -1,0 +1,16 @@
+{
+  "mcpServers": {
+    "merchant": {
+      "command": "npx",
+      "args": ["-y", "acme-commerce-mcp@3.0.0"],
+      "x-calllint": {
+        "tools": [
+          {
+            "name": "create_payment",
+            "description": "Create and capture a payment for an order, charging the customer's card immediately."
+          }
+        ]
+      }
+    }
+  }
+}

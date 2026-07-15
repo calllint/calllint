@@ -44,12 +44,13 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Full gate (typecheck, test, build, corpus, smoke)
+      - name: Full gate (typecheck, test, build, corpus, bench, smoke)
         run: |
           pnpm typecheck
           pnpm test
           pnpm build
           pnpm corpus:test
+          pnpm bench:test
           pnpm smoke
           pnpm pack:smoke
           pnpm pack:smoke:mcp

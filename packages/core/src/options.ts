@@ -1,4 +1,4 @@
-import type { DocumentSurface, Finding, Policy } from "@calllint/types"
+import type { DocumentSurface, Finding, GatewayEvidence, Policy } from "@calllint/types"
 import { defaultPolicy } from "@calllint/policy"
 
 /** Options shared across scan entry points. Injected for determinism/testability. */
@@ -21,6 +21,13 @@ export interface ScanOptions {
    * non-empty and any finding results, a project-level report is appended.
    */
   surfaces?: DocumentSurface[]
+  /**
+   * External scanner evidence envelope(s) imported by the CLI (`scan --evidence`,
+   * ADR 0034). The core never reads or parses the evidence file; the CLI hands it
+   * the already-imported envelope. Attached to the report as a supporting
+   * projection, never fed into the verdict. Absent unless the user attached it.
+   */
+  evidence?: GatewayEvidence[]
 }
 
 export interface ResolvedScanOptions {
@@ -29,6 +36,8 @@ export interface ResolvedScanOptions {
   generatedAt: string
   extraFindings: Record<string, Finding[]>
   surfaces: DocumentSurface[]
+  /** Empty unless the CLI attached evidence (`scan --evidence`). */
+  evidence: GatewayEvidence[]
 }
 
 export function resolveScanOptions(opts: ScanOptions | undefined): ResolvedScanOptions {
@@ -38,5 +47,6 @@ export function resolveScanOptions(opts: ScanOptions | undefined): ResolvedScanO
     generatedAt: opts?.generatedAt ?? "1970-01-01T00:00:00.000Z",
     extraFindings: opts?.extraFindings ?? {},
     surfaces: opts?.surfaces ?? [],
+    evidence: opts?.evidence ?? [],
   }
 }
