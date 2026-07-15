@@ -24,6 +24,8 @@ Important:
 - `npx calllint diagnostics .cursor/mcp.json --json` (editor/agent-host diagnostics, schema `calllint.diagnostics.v0`)
 - `npx calllint scan .cursor/mcp.json --receipt` (also write a local verifiable receipt, schema `calllint.receipt.v0`)
 - `npx calllint receipt verify calllint-receipt.json` (validate a receipt's structure, and its ed25519 signature when present)
+- `npx calllint evidence import skillspector-report.json` (normalize an external scanner report into a `calllint.evidence-provider.v0` envelope; JSON or SARIF; never re-scored)
+- `npx calllint scan .cursor/mcp.json --evidence skillspector-report.json` (attach that evidence to a scan and print a joint Trust Packet — content scan vs authority scan, unmerged; the evidence never changes CallLint's verdict)
 - `npx calllint trust prepare <target> --host claude-code --write-plan` (read-only: resolve a target, judge it, and emit a reversible install plan — never touches live config)
 - `npx calllint trust apply --plan <plan.json> --approve <plan-digest>` (the only writer: re-validate, atomically apply the approved plan, verify, and roll back on failure)
 - `npx calllint trust verify <receipt.json>` (validate a decision receipt, schema `calllint.receipt.v1` — the durable proof of a gateway approval; read-only, never re-scans or executes)
