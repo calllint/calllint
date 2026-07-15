@@ -1,0 +1,16 @@
+{
+  "schemaVersion": "calllint.bench.expected.v1",
+  "caseId": "B01-clean-content-broad-home",
+  "content": {
+    "provider": "skillspector",
+    "completeness": "complete",
+    "findingsAtLeast": 0,
+    "findingsAtMost": 0
+  },
+  "authority": {
+    "verdict": "BLOCK",
+    "requiredFindingIds": ["files.broad-path"]
+  },
+  "complementarity": "SkillSpector finds nothing malicious in the code, but CallLint blocks the broad filesystem authority (reads the whole home directory). The tools disagree because they answer different questions.",
+  "mustNeverBeSafe": true
+}

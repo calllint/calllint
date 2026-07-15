@@ -8,6 +8,7 @@ import type { CompactDecision } from "./decision.js"
 import type { RecommendedPolicy } from "./policy.js"
 import type { RiskClass, RiskSymbol } from "./symbols.js"
 import type { Verdict } from "./verdict.js"
+import type { GatewayEvidence } from "./trustGateway.js"
 
 export const TARGET_KINDS = [
   "cursor-mcp-config",
@@ -96,4 +97,13 @@ export interface ConfigSummaryReport {
   reports: ScanReport[]
   diagnostics: Diagnostic[]
   generatedAt: string
+  /**
+   * Optional external scanner evidence attached via `scan --evidence <file>`
+   * (ADR 0034). Provenance-preserved and never re-scored: it is a supporting
+   * projection shown side-by-side in the joint Trust Packet, NOT a verdict input
+   * — the CallLint verdict above is computed exactly as without evidence. Absent
+   * (undefined) unless evidence was explicitly attached, so default scan output
+   * stays byte-identical. External SAFE never upgrades a CallLint verdict.
+   */
+  evidence?: GatewayEvidence[]
 }

@@ -1,0 +1,16 @@
+{
+  "schemaVersion": "calllint.bench.expected.v1",
+  "caseId": "B04-skillspector-partial-not-a-pass",
+  "content": {
+    "provider": "skillspector",
+    "completeness": "partial",
+    "findingsAtLeast": 1,
+    "findingsAtMost": 1
+  },
+  "authority": {
+    "verdict": "UNKNOWN",
+    "requiredFindingIds": ["supply.unknown-remote"]
+  },
+  "complementarity": "The SkillSpector scan only partially completed, so its low score is not a pass; CallLint independently returns UNKNOWN for the unverifiable remote. Neither tool clears the artifact — the incomplete content scan must never round up to safe.",
+  "mustNeverBeSafe": true
+}

@@ -85,3 +85,22 @@ received, before any parse, so provenance survives even a parse failure.
 Corpus floor unchanged. This is additive. G2 reuses this envelope verbatim inside `trust
 prepare` (wiring, not a rebuild). Any change to `calllint.evidence-provider.v0` requires a
 new ADR.
+
+## Implementation note (v1.4.0 — B4)
+
+The `scan --evidence <file>` attach path from the Context/Decision above shipped in
+**v1.4.0** (the code completion of this ADR — additive, verdict-path untouched, so no new
+ADR was required). Where the field landed:
+
+- Imported evidence attaches as an **optional projection** `evidence?: GatewayEvidence[]`
+  on `ConfigSummaryReport` (`packages/types/src/report.ts`), set only when `--evidence` is
+  passed. Absent otherwise, so `calllint.report.v0` output is byte-identical without the
+  flag and the offline corpus (60/38/0/10.0%) is unaffected. `GatewayEvidence` (the gateway
+  subset already in `@calllint/types`) is reused to avoid a `types → evidence` dependency.
+- The verdict path is untouched: the CLI imports at the edge (fail-closed) and hands the
+  envelope to pure core via a `ScanOptions.evidence` slot; `aggregate()` attaches it without
+  feeding risk logic. The joint Trust Packet (`renderTrustPacket`) shows the content scan
+  and authority scan **unmerged** on the human path; `--json`/`--sarif` carry the projection.
+- Locked by `apps/cli/test/scanEvidence.test.ts` (boundary invariants) and
+  `packages/fixtures/bench/` via `pnpm bench:test` (complementarity). User guide:
+  `EVIDENCE.md`.

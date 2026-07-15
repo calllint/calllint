@@ -1,0 +1,14 @@
+{
+  "scanner": "SkillSpector",
+  "commit": "4444444444444444444444444444444444444444",
+  "status": "partial",
+  "llm_used": false,
+  "categories": ["malicious-patterns"],
+  "findings": [
+    {
+      "rule_id": "SS-NET-003",
+      "severity": "low",
+      "message": "outbound network call to a non-allowlisted host"
+    }
+  ]
+}

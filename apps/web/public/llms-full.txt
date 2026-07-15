@@ -8,7 +8,7 @@ This file inlines the guidance an agent needs in one fetch. Canonical sources:
 
 ## Status
 
-- Version `1.3.0` on the `latest` npm dist-tag (stable release; adds the read-only Trust Gateway — prepare/apply/verify with signed decision receipts — on top of auto-discovery; expect FP/FN).
+- Version `1.4.0` on the `latest` npm dist-tag (stable release; adds evidence interoperability — `scan --evidence` attaches an external content-scanner report and shows it in a joint Trust Packet, never re-scored — on top of the Trust Gateway; expect FP/FN).
 
 ## Commands
 

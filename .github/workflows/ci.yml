@@ -55,6 +55,12 @@ jobs:
       - name: Corpus calibration gate
         run: pnpm corpus:test
 
+      # Agent-trust-bench: proves SkillSpector (content) and CallLint (authority)
+      # are complementary. Drives the BUILT CLI with `scan --evidence` over
+      # committed fixtures; fully offline, never runs SkillSpector or the server.
+      - name: Agent-trust-bench complementarity gate
+        run: pnpm bench:test
+
       - name: Package smoke (shipped artifact)
         run: pnpm smoke
 

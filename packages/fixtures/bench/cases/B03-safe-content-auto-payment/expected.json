@@ -1,0 +1,16 @@
+{
+  "schemaVersion": "calllint.bench.expected.v1",
+  "caseId": "B03-safe-content-auto-payment",
+  "content": {
+    "provider": "skillspector",
+    "completeness": "complete",
+    "findingsAtLeast": 0,
+    "findingsAtMost": 0
+  },
+  "authority": {
+    "verdict": "BLOCK",
+    "requiredFindingIds": ["action.financial-observed"]
+  },
+  "complementarity": "The content scan (even LLM-assisted) finds nothing malicious, but CallLint blocks the observed auto-payment capability — charging a card is a high-authority side effect regardless of code quality.",
+  "mustNeverBeSafe": true
+}

@@ -1,0 +1,151 @@
+{
+  "schemaVersion": "calllint.report.v0",
+  "reportKind": "config-summary",
+  "configPath": "D:\\my-web-app\\Shield\\packages\\fixtures\\bench\\cases\\B01-clean-content-broad-home\\input\\mcp.json",
+  "verdict": "BLOCK",
+  "publicVerdictLabel": "Blocked by policy",
+  "counts": {
+    "SAFE": 0,
+    "REVIEW": 0,
+    "BLOCK": 1,
+    "UNKNOWN": 0
+  },
+  "reports": [
+    {
+      "schemaVersion": "calllint.report.v0",
+      "reportKind": "single-target",
+      "target": {
+        "name": "filesystem",
+        "kind": "cursor-mcp-config",
+        "source": "@modelcontextprotocol/server-filesystem",
+        "version": "1.0.0",
+        "configPath": "D:\\my-web-app\\Shield\\packages\\fixtures\\bench\\cases\\B01-clean-content-broad-home\\input\\mcp.json"
+      },
+      "verdict": "BLOCK",
+      "publicVerdictLabel": "Blocked by policy",
+      "policyApplied": false,
+      "riskClass": "S2",
+      "symbols": [
+        "FILES"
+      ],
+      "confidence": "high",
+      "reproducibility": {
+        "level": "HIGH",
+        "reasons": []
+      },
+      "summary": "\"filesystem\" is blocked. Risk: Files (S2 Sensitive read).",
+      "observed": [
+        {
+          "id": "files.broad-path",
+          "title": "Broad local filesystem access",
+          "severity": "critical",
+          "blocker": true,
+          "symbol": "FILES",
+          "riskClass": "S2",
+          "mode": "OBSERVED",
+          "confidence": "high",
+          "detectionMethod": "arg-analysis",
+          "evidence": [
+            {
+              "type": "config",
+              "path": "D:\\my-web-app\\Shield\\packages\\fixtures\\bench\\cases\\B01-clean-content-broad-home\\input\\mcp.json",
+              "key": "args",
+              "value": "/Users/example",
+              "line": 5,
+              "column": 7
+            }
+          ],
+          "impact": "An agent-triggered tool could read private local files outside the project.",
+          "fix": "Restrict filesystem access to the current workspace, e.g. ${workspaceFolder}.",
+          "falsePositiveNote": "A developer may intentionally grant broad access for a local-only experiment."
+        }
+      ],
+      "inferred": [],
+      "findings": [
+        {
+          "id": "files.broad-path",
+          "title": "Broad local filesystem access",
+          "severity": "critical",
+          "blocker": true,
+          "symbol": "FILES",
+          "riskClass": "S2",
+          "mode": "OBSERVED",
+          "confidence": "high",
+          "detectionMethod": "arg-analysis",
+          "evidence": [
+            {
+              "type": "config",
+              "path": "D:\\my-web-app\\Shield\\packages\\fixtures\\bench\\cases\\B01-clean-content-broad-home\\input\\mcp.json",
+              "key": "args",
+              "value": "/Users/example",
+              "line": 5,
+              "column": 7
+            }
+          ],
+          "impact": "An agent-triggered tool could read private local files outside the project.",
+          "fix": "Restrict filesystem access to the current workspace, e.g. ${workspaceFolder}.",
+          "falsePositiveNote": "A developer may intentionally grant broad access for a local-only experiment."
+        }
+      ],
+      "topFindings": [
+        {
+          "id": "files.broad-path",
+          "title": "Broad local filesystem access",
+          "severity": "critical",
+          "blocker": true,
+          "symbol": "FILES",
+          "riskClass": "S2",
+          "mode": "OBSERVED",
+          "confidence": "high",
+          "detectionMethod": "arg-analysis",
+          "evidence": [
+            {
+              "type": "config",
+              "path": "D:\\my-web-app\\Shield\\packages\\fixtures\\bench\\cases\\B01-clean-content-broad-home\\input\\mcp.json",
+              "key": "args",
+              "value": "/Users/example",
+              "line": 5,
+              "column": 7
+            }
+          ],
+          "impact": "An agent-triggered tool could read private local files outside the project.",
+          "fix": "Restrict filesystem access to the current workspace, e.g. ${workspaceFolder}.",
+          "falsePositiveNote": "A developer may intentionally grant broad access for a local-only experiment."
+        }
+      ],
+      "policy": {
+        "autonomousUse": "deny",
+        "manualApproval": "required",
+        "sandbox": "required"
+      },
+      "fingerprints": {
+        "configHash": "sha256:dadd139a097298b696eab11842fd7830cc29544d9520915bb26c4a8ed68e0c61",
+        "targetSpecHash": "sha256:888ce56eaff9f9a8df23d86909938be3ce107ee8242d99b6959f28137408591b",
+        "riskSurfaceHash": "sha256:554fa36db778c8da19b9a2e5f668ada0873a0fb5a9fb6f46a9dc3a1f773181fe",
+        "packageSpecHash": "sha256:72f4113770bfac3235421acb5c571a2da8c10574979cb5ecd2e470b52dba2139"
+      },
+      "diagnostics": [],
+      "generatedAt": "2026-06-16T00:00:00.000Z"
+    }
+  ],
+  "diagnostics": [],
+  "generatedAt": "2026-06-16T00:00:00.000Z",
+  "evidence": [
+    {
+      "schema_version": "calllint.evidence-provider.v0",
+      "provider": "skillspector",
+      "providerVersion": "git:1111111111111111111111111111111111111111",
+      "artifactDigest": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
+      "scanMode": "static",
+      "coverage": [
+        "malicious-patterns",
+        "taint",
+        "osv"
+      ],
+      "completeness": "complete",
+      "findings": [],
+      "rawReportDigest": "sha256:48e6dbbdb882264aa6cebab958b8c61be12705e9876e32449db40d19f29cbf24",
+      "degradedReasons": []
+    }
+  ]
+}

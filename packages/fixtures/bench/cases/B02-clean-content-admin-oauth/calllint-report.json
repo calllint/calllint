@@ -1,0 +1,160 @@
+{
+  "schemaVersion": "calllint.report.v0",
+  "reportKind": "config-summary",
+  "configPath": "D:\\my-web-app\\Shield\\packages\\fixtures\\bench\\cases\\B02-clean-content-admin-oauth\\input\\mcp.json",
+  "verdict": "REVIEW",
+  "publicVerdictLabel": "Review required",
+  "counts": {
+    "SAFE": 0,
+    "REVIEW": 1,
+    "BLOCK": 0,
+    "UNKNOWN": 0
+  },
+  "reports": [
+    {
+      "schemaVersion": "calllint.report.v0",
+      "reportKind": "single-target",
+      "target": {
+        "name": "calendar",
+        "kind": "cursor-mcp-config",
+        "source": "@modelcontextprotocol/server-time",
+        "version": "1.0.0",
+        "configPath": "D:\\my-web-app\\Shield\\packages\\fixtures\\bench\\cases\\B02-clean-content-admin-oauth\\input\\mcp.json"
+      },
+      "verdict": "REVIEW",
+      "publicVerdictLabel": "Review required",
+      "policyApplied": false,
+      "riskClass": "S2",
+      "symbols": [
+        "ACTION"
+      ],
+      "confidence": "high",
+      "reproducibility": {
+        "level": "HIGH",
+        "reasons": []
+      },
+      "summary": "\"calendar\" needs review. Risk: Action (S2 Sensitive read).",
+      "observed": [
+        {
+          "id": "auth.oauth-scope",
+          "title": "OAuth scope is broad or expansive",
+          "severity": "high",
+          "blocker": false,
+          "symbol": "ACTION",
+          "riskClass": "S2",
+          "mode": "OBSERVED",
+          "confidence": "high",
+          "detectionMethod": "config-analysis",
+          "evidence": [
+            {
+              "type": "config",
+              "key": "oauth",
+              "value": "present",
+              "line": 6,
+              "column": 7
+            },
+            {
+              "type": "config",
+              "key": "scope",
+              "value": "admin"
+            }
+          ],
+          "impact": "The server requests a broad OAuth scope (`admin`), granting the agent wide access to the connected account.",
+          "fix": "Narrow the OAuth scopes to only what the exposed tools need."
+        }
+      ],
+      "inferred": [],
+      "findings": [
+        {
+          "id": "auth.oauth-scope",
+          "title": "OAuth scope is broad or expansive",
+          "severity": "high",
+          "blocker": false,
+          "symbol": "ACTION",
+          "riskClass": "S2",
+          "mode": "OBSERVED",
+          "confidence": "high",
+          "detectionMethod": "config-analysis",
+          "evidence": [
+            {
+              "type": "config",
+              "key": "oauth",
+              "value": "present",
+              "line": 6,
+              "column": 7
+            },
+            {
+              "type": "config",
+              "key": "scope",
+              "value": "admin"
+            }
+          ],
+          "impact": "The server requests a broad OAuth scope (`admin`), granting the agent wide access to the connected account.",
+          "fix": "Narrow the OAuth scopes to only what the exposed tools need."
+        }
+      ],
+      "topFindings": [
+        {
+          "id": "auth.oauth-scope",
+          "title": "OAuth scope is broad or expansive",
+          "severity": "high",
+          "blocker": false,
+          "symbol": "ACTION",
+          "riskClass": "S2",
+          "mode": "OBSERVED",
+          "confidence": "high",
+          "detectionMethod": "config-analysis",
+          "evidence": [
+            {
+              "type": "config",
+              "key": "oauth",
+              "value": "present",
+              "line": 6,
+              "column": 7
+            },
+            {
+              "type": "config",
+              "key": "scope",
+              "value": "admin"
+            }
+          ],
+          "impact": "The server requests a broad OAuth scope (`admin`), granting the agent wide access to the connected account.",
+          "fix": "Narrow the OAuth scopes to only what the exposed tools need."
+        }
+      ],
+      "policy": {
+        "autonomousUse": "warn",
+        "manualApproval": "recommended",
+        "sandbox": "recommended"
+      },
+      "fingerprints": {
+        "configHash": "sha256:f7f9db364fc5fa796af43dd9eb4150beef649b30e5709ca9c2d489e3f6c9c6eb",
+        "targetSpecHash": "sha256:68539b969f027a61a26825cf2755eb3bd26c68179d973c9d6eb3542b76ebd570",
+        "riskSurfaceHash": "sha256:1ca3efd5177f3ed378098ba919fb89ea54f092a09e9d7d29e2a7f0ab5ab91686",
+        "packageSpecHash": "sha256:e639bda7bf3bf5563cb54deee0a07284eee5cabb602ac03aed8637459173484f"
+      },
+      "diagnostics": [],
+      "generatedAt": "2026-06-16T00:00:00.000Z"
+    }
+  ],
+  "diagnostics": [],
+  "generatedAt": "2026-06-16T00:00:00.000Z",
+  "evidence": [
+    {
+      "schema_version": "calllint.evidence-provider.v0",
+      "provider": "skillspector",
+      "providerVersion": "git:2222222222222222222222222222222222222222",
+      "artifactDigest": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
+      "scanMode": "static",
+      "coverage": [
+        "malicious-patterns",
+        "taint",
+        "osv"
+      ],
+      "completeness": "complete",
+      "findings": [],
+      "rawReportDigest": "sha256:83b8346c4f6b601712855761c97afc25ad82632c660ce2fedf2b9bccca56b70a",
+      "degradedReasons": []
+    }
+  ]
+}

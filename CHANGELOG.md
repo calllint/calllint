@@ -10,6 +10,43 @@ onward. While pre-1.0, minor versions may include breaking changes.
 
 ## [Unreleased]
 
+## [1.4.0] — 2026-07-15 — Evidence Interoperability
+
+**Aggregate, don't impersonate.** CallLint can now attach another scanner's report
+to a scan and show it beside its own verdict in a joint Trust Packet — content risk
+(the external scanner) and authority risk (CallLint) side-by-side, unmerged, with one
+line explaining why they differ. External evidence is provenance-preserved and never
+re-scored: it can never move the CallLint verdict, and a degraded or partial content
+scan is never treated as a pass. This closes the v1.2.0 Evidence-Interoperability
+milestone (B3 + B4); the schema and `evidence import` adapter shipped in 1.3.0-era work
+(ADR 0034).
+
+### Added
+
+- **`calllint scan <target> --evidence <file>` (ADR 0034)** — attach an external
+  content-scanner report (e.g. SkillSpector JSON/SARIF) to a scan. The envelope is
+  imported via `@calllint/evidence` (fail-closed; a missing file is a usage error, an
+  unparseable report imports as `completeness: failed`) and attached to the report as an
+  optional projection (`evidence?` on `calllint.report.v0` — additive, no schema break).
+  `--evidence-format json|sarif` forces the format when auto-detection is ambiguous.
+  - **Joint Trust Packet** — the human-readable output gains a *Content scan* vs
+    *Authority scan* block plus a "why they differ" line. Machine formats
+    (`--json`/`--sarif`) carry the evidence in the report projection.
+  - The scan verdict path is byte-identical without `--evidence`; the offline corpus
+    (60 / 38 real-redacted / 0 dangerous-false-SAFE / UNKNOWN 10.0%) is unchanged.
+- **`agent-trust-bench`** (`packages/fixtures/bench/`) — a reproducible benchmark proving
+  SkillSpector (content) and CallLint (authority) are complementary. Four seed cases
+  (clean content + broad `$HOME`; clean content + admin OAuth; safe content + auto-payment;
+  a partial content scan that is never a pass). Run with `pnpm bench:test` (offline, drives
+  the built CLI over committed fixtures; SkillSpector is never executed). Wired into CI and
+  the release gate.
+- **`secure-agent-install` skill** (`skills/secure-agent-install/`) — an open, neutral,
+  installs-nothing-by-default workflow: run SkillSpector on the content, ask CallLint
+  whether the requested authority is acceptable (`trust prepare --evidence`), read the
+  joint Trust Packet, and install only after approval. Ships host manifests for Claude
+  Code / Cursor / Codex and a thin runner. No partnership or "verified" language.
+- **`EVIDENCE.md`** — the evidence-interoperability user guide.
+
 ## [1.3.0] — 2026-07-14 — Trust Gateway Core
 
 **From scanning to acting — safely.** CallLint gains a read-only Trust Gateway:

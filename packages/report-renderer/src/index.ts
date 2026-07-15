@@ -29,3 +29,4 @@ export {
 } from "./renderBadge.js"
 export { renderDiagnostics } from "./renderDiagnostics.js"
 export { renderHtml } from "./renderHtml.js"
+export { renderTrustPacket } from "./renderTrustPacket.js"

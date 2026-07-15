@@ -1,0 +1,16 @@
+{
+  "schemaVersion": "calllint.bench.expected.v1",
+  "caseId": "B02-clean-content-admin-oauth",
+  "content": {
+    "provider": "skillspector",
+    "completeness": "complete",
+    "findingsAtLeast": 0,
+    "findingsAtMost": 0
+  },
+  "authority": {
+    "verdict": "REVIEW",
+    "requiredFindingIds": ["auth.oauth-scope"]
+  },
+  "complementarity": "The content scan is clean, but CallLint flags the broad admin OAuth scope for human review — clean code can still request expansive authority.",
+  "mustNeverBeSafe": true
+}

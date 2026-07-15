@@ -1,0 +1,34 @@
+{
+  "schemaVersion": "calllint.bench.index.v1",
+  "description": "agent-trust-bench — reproducible complementarity cases proving SkillSpector (content) and CallLint (authority) answer different questions. Self-authored / opt-in fixtures only; no third-party project is named. SkillSpector reports are committed fixtures, never a live run. Offline; the scanned config is never executed.",
+  "cases": [
+    {
+      "caseId": "B01-clean-content-broad-home",
+      "path": "cases/B01-clean-content-broad-home",
+      "contentResult": "clean",
+      "authorityVerdict": "BLOCK",
+      "theme": "clean code that reads the whole home directory"
+    },
+    {
+      "caseId": "B02-clean-content-admin-oauth",
+      "path": "cases/B02-clean-content-admin-oauth",
+      "contentResult": "clean",
+      "authorityVerdict": "REVIEW",
+      "theme": "clean code requesting an admin OAuth scope"
+    },
+    {
+      "caseId": "B03-safe-content-auto-payment",
+      "path": "cases/B03-safe-content-auto-payment",
+      "contentResult": "clean",
+      "authorityVerdict": "BLOCK",
+      "theme": "safe content with an auto-payment capability"
+    },
+    {
+      "caseId": "B04-skillspector-partial-not-a-pass",
+      "path": "cases/B04-skillspector-partial-not-a-pass",
+      "contentResult": "partial",
+      "authorityVerdict": "UNKNOWN",
+      "theme": "an incomplete content scan is never a pass"
+    }
+  ]
+}

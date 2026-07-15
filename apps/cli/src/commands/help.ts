@@ -53,6 +53,10 @@ SCAN OPTIONS
   --badge            Emit a shields.io endpoint badge JSON (SAFE/REVIEW/UNKNOWN/BLOCK)
   --receipt          Generate a cryptographically-verifiable audit receipt (for CI/compliance)
   --receipt-out <f>  Receipt output path (default: calllint-receipt.json)
+  --evidence <file>  Attach an external scanner report (e.g. SkillSpector JSON/SARIF)
+                     as supporting evidence; shown side-by-side in a joint Trust
+                     Packet. Never re-scored, never changes the CallLint verdict.
+  --evidence-format <fmt>  Force evidence format (json|sarif); default auto-detect
   --policy <file>    Use a policy file (default: built-in defaults)
   --stdin            Read config JSON from stdin
   --ci               Exit non-zero per policy (BLOCK=30, UNKNOWN=20, REVIEW=10 if enabled)
@@ -77,6 +81,7 @@ EXAMPLES
   calllint scan .cursor/mcp.json --markdown
   calllint scan .cursor/mcp.json --badge > calllint-badge.json
   calllint scan .cursor/mcp.json --receipt  # Generate audit receipt
+  calllint scan .cursor/mcp.json --evidence skillspector-report.json  # Joint Trust Packet
   calllint receipt verify calllint-receipt.json  # Verify receipt integrity
   calllint action inspect payment.json
   calllint inbox inspect gmail-reply.normalized.json
