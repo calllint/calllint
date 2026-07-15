@@ -21,8 +21,12 @@ import {
 // ---------------------------------------------------------------------------
 
 describe("reason-code vocabulary (ADR 0020)", () => {
-  it("is exactly 12 codes, frozen for v0", () => {
-    expect(REASON_CODES).toHaveLength(12)
+  it("is 13 codes: the 12 frozen v0 codes (indices 0–11) + TOXIC_FLOW_COMPOSITION (ADR 0044)", () => {
+    expect(REASON_CODES).toHaveLength(13)
+    // The frozen order 0–11 is unchanged (append-only); #13 is last.
+    expect(REASON_CODES[12]).toBe("TOXIC_FLOW_COMPOSITION")
+    expect(REASON_CODES.indexOf("UNPINNED_PACKAGE")).toBe(0)
+    expect(REASON_CODES.indexOf("LONG_RUNNING_GATEWAY_RUNTIME")).toBe(11)
   })
 
   it("every code has metadata with a label", () => {
@@ -32,26 +36,35 @@ describe("reason-code vocabulary (ADR 0020)", () => {
     }
   })
 
-  it("all 12 codes are wired after Phase 2 (no pending)", () => {
+  it("all 13 codes are wired (no pending)", () => {
     const wired = REASON_CODES.filter(
       (c) => REASON_CODE_META[c].status === "wired",
     )
     const pending = REASON_CODES.filter(
       (c) => REASON_CODE_META[c].status === "pending",
     )
-    // Phase 2 (ADR 0021/0022/0023) wired the last three (MESSAGING / OAUTH /
-    // GATEWAY). All 12 are now backed: 11 by detectors, TOOL_DESCRIPTOR_CHANGED
-    // by the drift / toolMetadataHash signal.
-    expect(wired).toHaveLength(12)
+    // Phase 2 (ADR 0021/0022/0023) wired MESSAGING / OAUTH / GATEWAY. Phase F (ADR
+    // 0044) added TOXIC_FLOW_COMPOSITION. All 13 are backed: 11 by detectors,
+    // TOOL_DESCRIPTOR_CHANGED by the drift signal, TOXIC_FLOW_COMPOSITION by the flow object.
+    expect(wired).toHaveLength(13)
     expect(pending).toEqual([])
   })
 
-  it("wired codes name a backing detector; pending codes do not", () => {
+  it("wired codes name a backing id; pending codes do not", () => {
     for (const code of REASON_CODES) {
       const meta = REASON_CODE_META[code]
       if (meta.status === "wired") expect(meta.backedBy.length).toBeGreaterThan(0)
       else expect(meta.backedBy).toEqual([])
     }
+  })
+
+  it("TOXIC_FLOW_COMPOSITION is flow-backed, and no detector projects onto it", () => {
+    // It is wired (names a backing id) but that id is the flow object, not a detector.
+    expect(REASON_CODE_META.TOXIC_FLOW_COMPOSITION.status).toBe("wired")
+    expect(REASON_CODE_META.TOXIC_FLOW_COMPOSITION.backedBy).toEqual(["flow:toxic-composition"])
+    // reasonCodeForFinding maps the synthetic backing id, but a real detector finding
+    // id never resolves to it — the scan path can't fabricate a toxic-flow reason.
+    expect(reasonCodeForFinding("action.external-mutation")).not.toBe("TOXIC_FLOW_COMPOSITION")
   })
 
   it("reasonCodeForFinding maps all 13 detector finding ids correctly", () => {

@@ -1,7 +1,8 @@
 // ---------------------------------------------------------------------------
 // Reason-code vocabulary v0 (new4 L2 public API — ADR 0020)
 //
-// A stable, host-agnostic vocabulary of EXACTLY 12 codes, frozen for v0. These
+// A stable, host-agnostic vocabulary of 13 codes (12 frozen for v0 at indices 0–11;
+// #13 TOXIC_FLOW_COMPOSITION appended last by ADR 0044, order 0–11 unchanged). These
 // replace detector-internal finding ids (which split/merge as detectors evolve)
 // as the public language consumed by agents, CI gates, badges, and the website.
 //
@@ -23,6 +24,9 @@ export const REASON_CODES = [
   "OAUTH_SCOPE_UNKNOWN_OR_EXPANDED",
   "TOOL_DESCRIPTOR_CHANGED",
   "LONG_RUNNING_GATEWAY_RUNTIME",
+  // #13 — appended last (ADR 0044) so the frozen order 0–11 is unchanged. Backed by
+  // the flow object (calllint.flow.v0), not a static detector; see REASON_CODE_META.
+  "TOXIC_FLOW_COMPOSITION",
 ] as const
 
 export type ReasonCode = (typeof REASON_CODES)[number]
@@ -106,6 +110,16 @@ export const REASON_CODE_META: Record<ReasonCode, ReasonCodeMeta> = {
     backedBy: ["runtime.gateway"],
     status: "wired",
     label: "Long-running gateway runtime",
+  },
+  TOXIC_FLOW_COMPOSITION: {
+    // Backed by the flow object (calllint.flow.v0, built by the flow-analyzer package),
+    // NOT a static detector Finding. The synthetic backing id keeps every wired code
+    // naming its backing without inventing a new status value. No detector emits this id,
+    // so findingsToReasonCodes never fabricates the code — it is produced only by the
+    // explicit flow-fold step. See ADR 0044 / 0040.
+    backedBy: ["flow:toxic-composition"],
+    status: "wired",
+    label: "Cross-tool toxic-flow composition",
   },
 }
 
