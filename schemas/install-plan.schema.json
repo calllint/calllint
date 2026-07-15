@@ -1,6 +1,6 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "$id": "https://calllint.dev/schemas/install-plan.schema.json",
+  "$id": "https://calllint.com/schemas/install-plan.schema.json",
   "title": "CallLint Install Plan (calllint.install-plan.v1)",
   "description": "The exact, reversible change the Trust Gateway would make to a host config, bound to the full upstream digest chain. Pure typed data; generating it writes nothing except (optionally) the plan file. Apply is a separate step (G6). See ADR 0036/0037.",
   "type": "object",
