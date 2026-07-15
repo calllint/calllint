@@ -112,10 +112,10 @@ export const REASON_CODE_META: Record<ReasonCode, ReasonCodeMeta> = {
     label: "Long-running gateway runtime",
   },
   TOXIC_FLOW_COMPOSITION: {
-    // Backed by the flow object (calllint.flow.v0 / @calllint/flow-analyzer), NOT a
-    // static detector Finding. The synthetic backing id keeps every wired code naming
-    // its backing without inventing a new status value. No detector emits this id, so
-    // findingsToReasonCodes never fabricates the code — it is produced only by the
+    // Backed by the flow object (calllint.flow.v0, built by the flow-analyzer package),
+    // NOT a static detector Finding. The synthetic backing id keeps every wired code
+    // naming its backing without inventing a new status value. No detector emits this id,
+    // so findingsToReasonCodes never fabricates the code — it is produced only by the
     // explicit flow-fold step. See ADR 0044 / 0040.
     backedBy: ["flow:toxic-composition"],
     status: "wired",
