@@ -108,12 +108,13 @@ describe("buildFlows — fail-safe: unknown/trusted sources never seed a flow (I
   })
 })
 
-describe("buildFlows — baseline decisionHint is never ALLOW (dangerous-flow-never-SAFE, §4)", () => {
-  it("an untrusted/sensitive → egress composition is at least REVIEW, never ALLOW", () => {
+describe("buildFlows — dangerous composition never resolves to ALLOW (§4)", () => {
+  it("a sensitive secret → external network (pinned host) is BLOCK, never ALLOW", () => {
     const flows = buildFlows([manifest([secretSource, networkSink])])
     expect(flows).toHaveLength(1)
-    expect(flows[0]!.decisionHint).not.toBe("ALLOW")
-    expect(["REVIEW", "BLOCK"]).toContain(flows[0]!.decisionHint)
+    // networkSink has destination "evil.example.com" → CL-FLOW-001.
+    expect(flows[0]!.decisionHint).toBe("BLOCK")
+    expect(flows[0]!.risk.class).toBe("critical")
   })
 })
 
