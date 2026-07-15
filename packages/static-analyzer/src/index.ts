@@ -28,3 +28,4 @@ export {
   sortCapabilities,
 } from "./instructionAuthority.js"
 export { deriveConfigCapabilities } from "./configAuthority.js"
+export { classifyTrustSource, withTrustSource } from "./trustSource.js"

@@ -88,6 +88,34 @@ export const INSTRUCTION_PATTERNS = [
 export type InstructionPattern = (typeof INSTRUCTION_PATTERNS)[number]
 
 /**
+ * Closed trust classification of the DATA at the head of a capability — "did this
+ * authority come from the user, from local project files, from a signed component,
+ * or from untrusted public content / tool output / another agent?" (ADR 0041).
+ *
+ * Trust attaches to data *provenance*, not to a tool forever: a tool that reads a
+ * public issue this call is `untrusted.public_content` for that data regardless of
+ * the tool's own trust. Feeds Toxic-Flow analysis (ADR 0040) — it distinguishes
+ * `untrusted.public_content → send` (a blocker) from `trusted.user_explicit → send`
+ * (routine). Optional & additive: absent or `unknown` MUST read as *not trusted*
+ * (I-04) — it never silently enables ALLOW/SAFE. Extending it is ADR-gated.
+ */
+export const TRUST_SOURCES = [
+  "trusted.policy",
+  "trusted.user_explicit",
+  "trusted.local_project",
+  "trusted.signed_component",
+  "unverified.component",
+  "untrusted.public_content",
+  "untrusted.tool_output",
+  "untrusted.peer_agent",
+  "untrusted.memory",
+  "sensitive.secret",
+  "sensitive.private_data",
+  "unknown",
+] as const
+export type TrustSource = (typeof TRUST_SOURCES)[number]
+
+/**
  * One normalized capability. `evidenceSource` is mandatory — every capability is
  * traceable to the byte that granted it (Product Principle 3: evidence is
  * mandatory). `pattern` is set only for instruction-derived capabilities.
@@ -110,6 +138,13 @@ export interface AuthorityCapability {
   completeness: AuthorityCompleteness
   /** Which of the six instruction patterns produced this (instruction-derived only). */
   pattern?: InstructionPattern
+  /**
+   * Trust class of the data at the head of this capability (ADR 0041). Optional &
+   * additive: omitted or `unknown` reads as *not trusted* (I-04). Derived
+   * deterministically from `(action, resource, scope, evidenceSource, pattern)`;
+   * anything not establishable from the shipped signals is left `unknown` (fail-safe).
+   */
+  trustSource?: TrustSource
 }
 
 /** T10 Safety-Budget limits, folded into authority (replaces orphan billing infra). */

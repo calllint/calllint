@@ -1,5 +1,6 @@
 import type { AuthorityCapability, NormalizedMcpServer } from "@calllint/types"
 import { sortCapabilities } from "./instructionAuthority.js"
+import { withTrustSource } from "./trustSource.js"
 
 /**
  * Config Authority Normalization (G3) — the config side of the Authority Manifest.
@@ -106,5 +107,5 @@ export function deriveConfigCapabilities(server: NormalizedMcpServer): Authority
     })
   }
 
-  return sortCapabilities(caps)
+  return sortCapabilities(withTrustSource(caps))
 }
