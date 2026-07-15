@@ -1,0 +1,21 @@
+{
+  "name": "@calllint/flow-analyzer",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Static toxic-flow analyzer for CallLint — builds calllint.flow.v0 cross-tool composition paths over sealed Authority Manifests (no execution, deterministic)",
+  "type": "module",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "dependencies": {
+    "@calllint/types": "workspace:*",
+    "@calllint/fingerprint": "workspace:*"
+  },
+  "devDependencies": {}
+}
