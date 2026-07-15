@@ -5,6 +5,7 @@ import type {
   InstructionPattern,
 } from "@calllint/types"
 import { findHiddenContent } from "./promptScan.js"
+import { withTrustSource } from "./trustSource.js"
 
 /**
  * Instruction Authority Extraction (G3) — the read side of the Authority Manifest.
@@ -288,7 +289,7 @@ export function extractInstructionAuthority(
     }
   }
 
-  return sortCapabilities([...seen.values()])
+  return withTrustSource(sortCapabilities([...seen.values()]))
 }
 
 /** Total, deterministic ordering so manifests are byte-stable. */

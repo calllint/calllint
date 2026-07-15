@@ -128,6 +128,23 @@
               "hidden-override"
             ],
             "description": "Which of the six instruction-authority patterns produced this capability (instruction-derived capabilities only)."
+          },
+          "trustSource": {
+            "enum": [
+              "trusted.policy",
+              "trusted.user_explicit",
+              "trusted.local_project",
+              "trusted.signed_component",
+              "unverified.component",
+              "untrusted.public_content",
+              "untrusted.tool_output",
+              "untrusted.peer_agent",
+              "untrusted.memory",
+              "sensitive.secret",
+              "sensitive.private_data",
+              "unknown"
+            ],
+            "description": "Trust class of the data at the head of this capability (calllint.authority.v0, ADR 0041). Optional and additive: omitted or \"unknown\" MUST read as not trusted (never auto-SAFE). Derived deterministically from (action, resource, scope, evidenceSource, pattern); anything not establishable from shipped signals is left \"unknown\" (fail-safe). Feeds Toxic-Flow analysis (ADR 0040)."
           }
         }
       }
