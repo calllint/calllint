@@ -44,6 +44,9 @@ importers:
       '@calllint/fixtures':
         specifier: workspace:*
         version: link:../../packages/fixtures
+      '@calllint/flow-analyzer':
+        specifier: workspace:*
+        version: link:../../packages/flow-analyzer
       '@calllint/install-planner':
         specifier: workspace:*
         version: link:../../packages/install-planner

@@ -1,6 +1,7 @@
 import type {
   AuthorityCapability,
   AuthorityManifest,
+  DecisionReason,
   GatewayEvidence,
   Policy,
   PolicyAction,
@@ -40,6 +41,15 @@ export interface DecideInput {
   /** External evidence factored for completeness/provenance only (never re-scored). */
   evidence?: GatewayEvidence[]
   policy: Policy
+  /**
+   * Static toxic-flow reasons (ADR 0040 §1 / 0044), pre-folded at the edge by
+   * `foldFlowsIntoReasons` (@calllint/flow-analyzer). Each is a `TOXIC_FLOW_COMPOSITION`
+   * reason carrying a `contributes` verdict (BLOCK/REVIEW). They aggregate under the SAME
+   * `mostSevereVerdict` rule as capability reasons — a dangerous flow RAISES the verdict,
+   * never lowers it (I-04). Kept as an input (not a dependency) so `@calllint/policy` does
+   * not depend on the flow analyzer; the edge owns flow construction.
+   */
+  flowReasons?: DecisionReason[]
 }
 
 /** The frozen reason code a capability projects onto (ADR 0020's 12-code vocab). */
@@ -133,11 +143,17 @@ export function decideOverAuthority(input: DecideInput): TrustDecision {
   const evidence = input.evidence ?? []
 
   // 1. Per-capability contributions: base (from approval requirement) tightened by policy.
-  const reasons = authority.capabilities.map((c) => {
+  const capabilityReasons = authority.capabilities.map((c) => {
     const code = reasonCodeFor(c)
     const contributes = moreSevere(baseVerdict(c), policyFloor(code, policy))
     return { code, evidenceSource: c.evidenceSource, contributes }
   })
+
+  // Static toxic-flow reasons (ADR 0040 §1 / 0044), pre-folded at the edge. They join the
+  // capability reasons and aggregate under the SAME rule — a dangerous flow RAISES the
+  // verdict, never lowers it. An ALLOW flow was already dropped by foldFlowsIntoReasons.
+  const flowReasons = input.flowReasons ?? []
+  const reasons = [...capabilityReasons, ...flowReasons]
 
   // 2. Completeness gaps force UNKNOWN — silence is never SAFE.
   const unknowns: string[] = [...authority.unknowns]
