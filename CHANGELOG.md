@@ -10,6 +10,45 @@ onward. While pre-1.0, minor versions may include breaking changes.
 
 ## [Unreleased]
 
+### Added — Phase F: Static Toxic-Flow Analysis
+
+**The path is the blocker.** A per-tool scan sees each tool in isolation, but the real
+danger is a composition across tools: an untrusted/sensitive source reaching an external
+sink. Phase F expresses that path as a first-class, evidence-backed, digest-sealed object
+and folds it into the gateway verdict — pure-static, offline, deterministic, target never
+executed. It is layered onto the shipped Authority Manifest; it introduces no second
+verdict vocabulary and no new top-level command.
+
+- **`trustSource` on `calllint.authority.v0` (ADR 0041)** — an optional, additive 12-value
+  trust classification of the data at the head of a capability, derived deterministically
+  from the already-captured signals (`read × secret → sensitive.secret`; a config
+  `server.command` exec → `trusted.local_project`; anything not establishable → `unknown`).
+  Absent or `unknown` reads as *not trusted* (I-04); an `unknown`-classified capability is
+  byte-identical to a pre-F manifest.
+- **`calllint.flow.v0` + `@calllint/flow-analyzer` (ADR 0040)** — a new sibling object and a
+  pure analyzer that builds cross-capability toxic-flow paths (a trust-classified source,
+  ordered steps, a terminal sink) over sealed Authority Manifest(s). `steps`/`sink` use the
+  shipped closed 9-action × 10-resource authority vocabulary only. Each flow is digest-sealed.
+- **CL-FLOW rule catalog (ADR 0040)** — an ordered, first-match rule table: untrusted/
+  sensitive → external network (pinned) or financial spend = BLOCK; → unpinned network or
+  messaging = REVIEW; an established trusted source → egress = ALLOW; a fail-safe REVIEW
+  catch-all closes it so no dangerous composition can fall through to ALLOW. Each BLOCK/ALLOW
+  rule ships paired ± fixtures.
+- **`TOXIC_FLOW_COMPOSITION` reason code (#13, ADR 0044)** — a flow's `decisionHint` is
+  folded into `calllint.decision.v0` as a `reasons` entry, aggregated by the same
+  most-severe-verdict rule as every capability reason. A dangerous flow **raises** the
+  verdict, never lowers it; an ALLOW flow contributes nothing. The frozen order of the
+  original 12 codes (indices 0–11) is unchanged (append-only).
+- **`calllint trust prepare --flows`** — surfaces the `calllint.flow.v0` objects behind a
+  decision's `TOXIC_FLOW_COMPOSITION` reasons. With `--json`, emits `{ preparation, flows }`.
+  No new top-level command — a `prepare` output switch. A remote MCP server with a secret
+  env key now composes `sensitive.secret → connect × network` and resolves **BLOCK** end to
+  end.
+- **Release gate: a dangerous flow never resolves to SAFE (ADR 0040 §4)** — a new corpus
+  gate step drives the built CLI over toxic/benign compositions, plus a `tests/invariants`
+  property over ≥10 multi-tool snapshots. The 60-case offline corpus (38 real/redacted, 0
+  dangerous-false-SAFE, UNKNOWN 10.0%) and its verdict distribution are unchanged.
+
 ## [1.4.0] — 2026-07-15 — Evidence Interoperability
 
 **Aggregate, don't impersonate.** CallLint can now attach another scanner's report
