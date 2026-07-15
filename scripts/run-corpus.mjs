@@ -140,6 +140,69 @@ function hasEvidence(finding) {
   return Array.isArray(finding.evidence) && finding.evidence.length > 0
 }
 
+/**
+ * The ADR 0040 §4 flow gate: a dangerous static toxic-flow never resolves to SAFE.
+ *
+ * Runs the BUILT CLI's read-only `trust prepare --flows --json` over a small set of inline
+ * configs whose composition is a real toxic flow (an untrusted/sensitive source that can
+ * reach an external egress sink). For each, asserts the gateway verdict is NOT SAFE and a
+ * TOXIC_FLOW_COMPOSITION reason is present; and that a benign control (no egress) neither
+ * blocks on a flow nor produces the reason. Fully offline; the target is never executed.
+ * Returns a list of failure strings (empty = gate holds).
+ */
+function runFlowGate(cliEntrypoint) {
+  // Each config is written to a temp file and prepared. `dangerous:true` ⇒ verdict must
+  // not be SAFE and a TOXIC_FLOW_COMPOSITION reason must be present.
+  const cases = [
+    {
+      id: "FLOW-GATE-01 remote server + secret env (secret → external network)",
+      config: { mcpServers: { svc: { url: "https://api.example.com/mcp", env: { API_TOKEN: "x" } } } },
+      dangerous: true,
+    },
+    {
+      id: "FLOW-GATE-02 benign local server, no egress (no toxic flow)",
+      config: { mcpServers: { fs: { command: "node", args: ["server.js"] } } },
+      dangerous: false,
+    },
+  ]
+
+  const failures = []
+  for (const c of cases) {
+    const dir = fs.mkdtempSync(path.join(repoRoot, ".corpus-flow-"))
+    const file = path.join(dir, "mcp.json")
+    try {
+      fs.writeFileSync(file, JSON.stringify(c.config))
+      const result = spawnSync(
+        process.execPath,
+        [cliEntrypoint, "trust", "prepare", file, "--flows", "--json", "--generated-at", FIXED_NOW],
+        { cwd: repoRoot, encoding: "utf8", env: { ...process.env, NO_COLOR: "1" } },
+      )
+      if (result.error) throw new CorpusError(`flow gate: failed to spawn CLI: ${result.error.message}`)
+      if (!result.stdout || !result.stdout.trim()) {
+        throw new CorpusError(`flow gate ${c.id}: no stdout (exit=${result.status}, stderr=${result.stderr})`)
+      }
+      const payload = JSON.parse(result.stdout)
+      const prep = payload.preparation ?? payload
+      const verdict = prep.decision?.verdict
+      const reasons = prep.decision?.reasons ?? []
+      const hasFlowReason = reasons.some((r) => r.code === "TOXIC_FLOW_COMPOSITION")
+
+      if (c.dangerous) {
+        if (verdict === "SAFE") failures.push(`${c.id}: DANGEROUS FLOW resolved to SAFE`)
+        if (!hasFlowReason) failures.push(`${c.id}: expected a TOXIC_FLOW_COMPOSITION reason, none present`)
+      } else {
+        if (hasFlowReason) failures.push(`${c.id}: benign case unexpectedly produced a TOXIC_FLOW_COMPOSITION reason`)
+      }
+    } catch (err) {
+      if (err instanceof CorpusError) throw err
+      throw new CorpusError(`flow gate ${c.id}: ${err.message}`)
+    } finally {
+      fs.rmSync(dir, { recursive: true, force: true })
+    }
+  }
+  return failures
+}
+
 function runScan(cliEntrypoint, inputPath, surfaceDir) {
   const scanArgs = [cliEntrypoint, "scan", inputPath, "--json", "--no-emoji", "--generated-at", FIXED_NOW]
   // Opt-in prompt-surface scan (ADR 0015): a case may ship a `surfaceDir` of
@@ -374,6 +437,16 @@ function main() {
       return
     }
     console.log("  All R2.1 thresholds met.")
+  }
+
+  // ADR 0040 §4 flow gate: a dangerous static toxic-flow never resolves to SAFE.
+  const flowGateFailures = runFlowGate(entrypoint)
+  console.log(`\nFlow gate (ADR 0040 §4): dangerous flow never SAFE`)
+  console.log(`  toxic-flow gate failures: ${flowGateFailures.length}`)
+  if (flowGateFailures.length > 0) {
+    for (const f of flowGateFailures) console.log(`  FAIL: ${f}`)
+    process.exitCode = 1
+    return
   }
 
   console.log("\nAll corpus contracts hold.")

@@ -30,6 +30,7 @@ import { prepare, prepareExitCode, parseTargetSpec, buildAuthorityManifest } fro
 import { parseConfigText } from "@calllint/config-parser"
 import { importEvidence, type EvidenceFormat } from "@calllint/evidence"
 import { decideOverAuthority, loadPolicyOrDefault } from "@calllint/policy"
+import { buildFlows, foldFlowsIntoReasons } from "@calllint/flow-analyzer"
 import { hashJson } from "@calllint/fingerprint"
 import {
   getHostAdapter,
@@ -50,6 +51,7 @@ import type {
   ArtifactSourceType,
   AuthorityManifest,
   DocumentSurface,
+  Flow,
   GatewayEvidence,
   InstallPlan,
   NormalizedMcpServer,
@@ -486,9 +488,17 @@ function trustPrepare(args: ParsedArgs, deps: TrustDeps): CommandResult {
   // gate already fails-closed) so we never manufacture a verdict over nothing.
   const policyPath = flagStr(args.flags, "policy")
   const policy = loadPolicyOrDefault(policyPath ? resolvePath(deps.cwd, policyPath) : undefined)
+
+  // Static toxic-flow analysis (ADR 0040): enumerate cross-capability compositions over
+  // the sealed manifest, then fold the dangerous ones (BLOCK/REVIEW) into the decision as
+  // TOXIC_FLOW_COMPOSITION reasons. A dangerous flow RAISES the verdict (never lowers it,
+  // I-04); an ALLOW flow contributes nothing. Pure, offline, target never executed.
+  const flows = buildFlows([authority])
+  const flowReasons = foldFlowsIntoReasons(flows)
+
   const decision: TrustDecision | undefined =
     artifact.resolution === "resolved"
-      ? decideOverAuthority({ authority, evidence, policy })
+      ? decideOverAuthority({ authority, evidence, policy, flowReasons })
       : undefined
 
   // G5 — Install Plan. HOST-GATED: only when the user names a host with --host.
@@ -526,10 +536,16 @@ function trustPrepare(args: ParsedArgs, deps: TrustDeps): CommandResult {
     planNote = `\nplan written: ${file}\n`
   }
 
+  // --flows surfaces the raw calllint.flow.v0 objects behind the decision's
+  // TOXIC_FLOW_COMPOSITION reasons (no new top-level command — a prepare output switch).
+  const showFlows = flagBool(args.flags, "flows")
+
   if (flagBool(args.flags, "json")) {
-    return { stdout: JSON.stringify(preparation, null, 2), stderr: "", exitCode }
+    const payload = showFlows ? { preparation, flows } : preparation
+    return { stdout: JSON.stringify(payload, null, 2), stderr: "", exitCode }
   }
-  return { stdout: renderPreparation(preparation) + planNote, stderr: "", exitCode }
+  const flowNote = showFlows ? renderFlows(flows) : ""
+  return { stdout: renderPreparation(preparation) + flowNote + planNote, stderr: "", exitCode }
 }
 
 function loadPreparation(
@@ -855,6 +871,33 @@ function renderPreparation(p: TrustPreparation): string {
   return out
 }
 
+/** Developer-mode symbol for a flow decision hint. */
+const FLOW_HINT_SYMBOL: Record<string, string> = {
+  BLOCK: "⛔ BLOCK",
+  REVIEW: "⚠ REVIEW",
+  ALLOW: "🛡 ALLOW",
+}
+
+/**
+ * Render the static toxic-flow paths behind the decision (calllint.flow.v0). Read-only
+ * view: each flow's source trust class → sink, its hint, and the evidence grounding it.
+ */
+function renderFlows(flows: readonly Flow[]): string {
+  if (flows.length === 0) {
+    return `\ntoxic-flows:   (none — no cross-capability composition detected)\n`
+  }
+  let out = `\ntoxic-flows:   ${flows.length} path(s) [calllint.flow.v0]\n`
+  for (const f of flows) {
+    const dst = f.sink.destination ? ` → ${f.sink.destination}` : ""
+    out += `  ${FLOW_HINT_SYMBOL[f.decisionHint] ?? f.decisionHint}  ${f.flowId}  (${f.risk.class})\n`
+    out += `      source: ${f.source.trustSource}  →  sink: ${f.sink.action} ${f.sink.resource}${dst}\n`
+    out += `      evidence: ${f.evidence.join(", ")}\n`
+  }
+  out += `  A dangerous flow is folded into the decision as a TOXIC_FLOW_COMPOSITION reason;\n`
+  out += `  it can only raise the verdict, never lower it. An ALLOW flow contributes nothing.\n`
+  return out
+}
+
 function renderExplanation(p: TrustPreparation): string {
   let out = `\nCallLint trust explain\n`
   out += `state: ${p.state}\n\n`
@@ -977,6 +1020,9 @@ OPTIONS (prepare)
                         only for a non-blocking decision (SAFE/REVIEW).
   --host-config <path>  Override the host config path (default: ~/.claude.json)
   --write-plan          Persist the plan to .calllint/plans/<plan-id>.json
+  --flows               Show static toxic-flow paths (calllint.flow.v0) behind the
+                        decision's TOXIC_FLOW_COMPOSITION reasons. With --json, emits
+                        { preparation, flows }. A dangerous flow only raises the verdict.
   --no-llm              Default posture: no LLM in the verdict path (accepted, no-op)
   --json                Emit the raw calllint.trust-preparation.v0 document
 
