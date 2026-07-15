@@ -65,9 +65,10 @@
               "PROMPT_METADATA_INSTRUCTION",
               "OAUTH_SCOPE_UNKNOWN_OR_EXPANDED",
               "TOOL_DESCRIPTOR_CHANGED",
-              "LONG_RUNNING_GATEWAY_RUNTIME"
+              "LONG_RUNNING_GATEWAY_RUNTIME",
+              "TOXIC_FLOW_COMPOSITION"
             ],
-            "description": "Frozen 12-code public reason vocabulary (ADR 0020)."
+            "description": "Public reason vocabulary: 12 frozen v0 codes (indices 0-11, ADR 0020) + TOXIC_FLOW_COMPOSITION appended (ADR 0044)."
           },
           "evidenceSource": {
             "type": "string",
