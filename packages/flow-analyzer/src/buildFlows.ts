@@ -2,43 +2,48 @@ import type {
   AuthorityCapability,
   AuthorityManifest,
   Flow,
-  FlowDecisionHint,
   FlowRisk,
   FlowRiskClass,
   TrustSource,
 } from "@calllint/types"
 import { FLOW_SCHEMA_VERSION } from "@calllint/types"
 import { hashJson } from "@calllint/fingerprint"
+import { classifyFlow } from "./flowRules.js"
 
 /**
- * buildFlows (F2) — the static Toxic-Flow constructor for `calllint.flow.v0`.
+ * buildFlows (F2/F3) — the static Toxic-Flow constructor for `calllint.flow.v0`.
  *
  * Reads sealed Authority Manifest(s) and enumerates cross-capability *compositions*:
- * a trust-classified data SOURCE (a `sensitive.*` / `untrusted.*` head) that can reach
- * an egress SINK (`send`/`connect × network|message`, `spend × financial`). Each
- * (source, sink) pair — within OR across manifests (the composition is the point) —
- * becomes one `Flow`.
+ * a trust-classified data SOURCE (a `read` capability whose `trustSource` is established
+ * — untrusted/sensitive OR trusted) that can reach an egress SINK (`send`/`connect ×
+ * network|message`, `spend × financial`). Each (source, sink) pair — within OR across
+ * manifests (the composition is the point) — becomes one `Flow`.
  *
  * PURE & DETERMINISTIC: no clock, no I/O, no LLM; the target is never executed (I-06).
  * Same input manifests → byte-identical flows (each `digest` sealed via hashJson).
  *
- * F2 SCOPE — mechanism + fail-safe baseline, not the named rule catalog. Every
- * constructed flow gets the conservative baseline `decisionHint = REVIEW` / `risk =
- * medium`: an untrusted/sensitive source reaching an egress sink is NEVER ALLOW/SAFE
- * (I-04, and the ADR 0040 §4 dangerous-flow-never-SAFE gate). It does NOT yet claim
- * BLOCK: a BLOCK is a fixture-backed detection rule (CallLint contract: no rule without
- * a positive AND negative fixture), which is Phase F3 (CL-FLOW-001..004). The seam is
- * `classifyComposition` below — F3 slots the named rules in there.
+ * The `{ decisionHint, risk }` of each flow comes from the ordered CL-FLOW rule catalog
+ * (`flowRules.ts`, Phase F3): untrusted/sensitive → external egress is BLOCK/REVIEW; a
+ * positively-TRUSTED source reaching a sink is ALLOW; everything else falls to the REVIEW
+ * catch-all. No dangerous composition can resolve to ALLOW/SAFE (I-04, ADR 0040 §4).
+ *
+ * FAIL-SAFE SOURCE GATE: a source must be a `read` action with an ESTABLISHED trustSource.
+ * `unknown` / absent trustSource never seeds a flow (I-04) — a composition whose head we
+ * cannot classify is not asserted as either dangerous or benign.
  */
 
-/** Trust classes whose data is a toxic-flow HEAD (not trusted, and establishable). */
-const SOURCE_TRUST: ReadonlySet<TrustSource> = new Set<TrustSource>([
+/** Trust classes we can act on as a flow HEAD — untrusted/sensitive OR positively trusted. */
+const CLASSIFIED_SOURCE_TRUST: ReadonlySet<TrustSource> = new Set<TrustSource>([
   "sensitive.secret",
   "sensitive.private_data",
   "untrusted.public_content",
   "untrusted.tool_output",
   "untrusted.peer_agent",
   "untrusted.memory",
+  "trusted.policy",
+  "trusted.user_explicit",
+  "trusted.local_project",
+  "trusted.signed_component",
 ])
 
 /**
@@ -53,9 +58,15 @@ const EGRESS_SINKS: ReadonlySet<string> = new Set<string>([
   "spend:financial",
 ])
 
-/** Is this capability a toxic-flow source head? `unknown`/`trusted.*` never qualify (fail-safe). */
+/**
+ * Is this capability a toxic-flow source head? A source is a `read` action whose
+ * `trustSource` is ESTABLISHED (untrusted/sensitive or positively trusted). `unknown` /
+ * absent trustSource, and any non-`read` action (e.g. `execute × process`, whose
+ * `trusted.local_project` is *execution* trust, not a data read), never qualify —
+ * fail-safe: a head we cannot classify is neither asserted dangerous nor benign (I-04).
+ */
 function isSource(c: AuthorityCapability): boolean {
-  return c.trustSource !== undefined && SOURCE_TRUST.has(c.trustSource)
+  return c.action === "read" && c.trustSource !== undefined && CLASSIFIED_SOURCE_TRUST.has(c.trustSource)
 }
 
 /** Is this capability an egress sink (data leaves)? */
@@ -65,7 +76,9 @@ function isSink(c: AuthorityCapability): boolean {
 
 /** Coarse source family for the `flowId` shape. */
 function sourceFamily(ts: TrustSource): string {
-  return ts.startsWith("sensitive.") ? "sensitive" : "untrusted"
+  if (ts.startsWith("sensitive.")) return "sensitive"
+  if (ts.startsWith("trusted.")) return "trusted"
+  return "untrusted"
 }
 
 /** Deterministic severity for a risk class (0..100). */
@@ -75,22 +88,6 @@ const SEVERITY: Record<FlowRiskClass, number> = {
   medium: 50,
   high: 75,
   critical: 95,
-}
-
-/**
- * Classify one (source, sink) composition → `{ decisionHint, risk }`. THE F3 SEAM.
- *
- * F2 baseline: an established untrusted/sensitive source reaching an egress sink is a
- * real composition that must never read as safe, but F2 does not yet discriminate the
- * BLOCK-worthy shapes (those need paired ±fixtures — Phase F3). So the fail-safe floor
- * is REVIEW / medium. Deterministic, total, no I/O.
- */
-function classifyComposition(
-  _source: AuthorityCapability,
-  _sink: AuthorityCapability,
-): { decisionHint: FlowDecisionHint; risk: FlowRisk } {
-  const cls: FlowRiskClass = "medium"
-  return { decisionHint: "REVIEW", risk: { class: cls, severity: SEVERITY[cls] } }
 }
 
 /** One capability tagged with the digest of the manifest it came from. */
@@ -145,7 +142,11 @@ export function buildFlows(manifests: readonly AuthorityManifest[]): Flow[] {
       if (src.cap === snk.cap) continue
 
       const ts = src.cap.trustSource as TrustSource // isSource guarantees defined
-      const { decisionHint, risk } = classifyComposition(src.cap, snk.cap)
+      const outcome = classifyFlow(src.cap, snk.cap)
+      const risk: FlowRisk = {
+        class: outcome.riskClass,
+        severity: SEVERITY[outcome.riskClass],
+      }
 
       const sinkTag = `${snk.cap.action}-${snk.cap.resource}`
       const flowId = `flow:${sourceFamily(ts)}-to-${sinkTag}`
@@ -164,7 +165,7 @@ export function buildFlows(manifests: readonly AuthorityManifest[]): Flow[] {
           destination: snk.cap.destination,
         },
         risk,
-        decisionHint,
+        decisionHint: outcome.decisionHint,
         evidence,
         authorityDigests,
       })
