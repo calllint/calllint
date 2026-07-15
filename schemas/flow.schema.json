@@ -1,0 +1,182 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://calllint.com/schemas/flow.schema.json",
+  "title": "CallLint Static Toxic-Flow",
+  "description": "A static toxic-flow path (calllint.flow.v0) over sealed Authority Manifest(s): a trust-classified data source, ordered steps, and a terminal sink expressing a cross-tool composition (e.g. untrusted public content -> read a secret -> send to an external sink). It is NOT a second verdict - its decisionHint is folded into calllint.decision.v0 as reasons; the scan/gateway verdict stays SAFE/REVIEW/BLOCK/UNKNOWN. steps[]/sink use the shipped closed action (9) x resource (10) authority vocabulary ONLY. Fully deterministic; the target is never executed; digest = sha256 over this object minus its own digest field. See ADR 0040 / 0041.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "flowId",
+    "source",
+    "steps",
+    "sink",
+    "risk",
+    "decisionHint",
+    "evidence",
+    "authorityDigests",
+    "digest"
+  ],
+  "properties": {
+    "schema": {
+      "const": "calllint.flow.v0",
+      "description": "Object schema identity."
+    },
+    "flowId": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Stable, human-legible id for the path shape (e.g. \"flow:public-read-to-external-send\"). Not unique per instance; the same shape across artifacts shares the id and the digest seals the concrete instance."
+    },
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["trustSource", "evidence"],
+      "description": "The trust-classified data source at the head of the path.",
+      "properties": {
+        "trustSource": {
+          "enum": [
+            "trusted.policy",
+            "trusted.user_explicit",
+            "trusted.local_project",
+            "trusted.signed_component",
+            "unverified.component",
+            "untrusted.public_content",
+            "untrusted.tool_output",
+            "untrusted.peer_agent",
+            "untrusted.memory",
+            "sensitive.secret",
+            "sensitive.private_data",
+            "unknown"
+          ],
+          "description": "Trust class of the source data (ADR 0041). \"unknown\" never reads as trusted (I-04)."
+        },
+        "evidence": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1 },
+          "description": "Exact provenance bytes that grounded the source classification. Never empty."
+        }
+      }
+    },
+    "steps": {
+      "type": "array",
+      "description": "Ordered intermediate steps of the path (shipped authority vocabulary only). May be empty.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["action", "resource", "scope"],
+        "properties": {
+          "action": {
+            "enum": [
+              "read",
+              "write",
+              "execute",
+              "connect",
+              "send",
+              "mutate",
+              "spend",
+              "delegate",
+              "persist"
+            ],
+            "description": "Shipped closed action vocabulary (authority-manifest.schema.json)."
+          },
+          "resource": {
+            "enum": [
+              "filesystem",
+              "secret",
+              "process",
+              "network",
+              "database",
+              "message",
+              "financial",
+              "identity",
+              "agent",
+              "configuration"
+            ],
+            "description": "Shipped closed resource vocabulary (authority-manifest.schema.json)."
+          },
+          "scope": {
+            "type": ["string", "null"],
+            "description": "Where the authority applies (a path, host, scope string); null when unbounded/unknown."
+          }
+        }
+      }
+    },
+    "sink": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["action", "resource", "destination"],
+      "description": "The terminal sink where data would leave.",
+      "properties": {
+        "action": {
+          "enum": [
+            "read",
+            "write",
+            "execute",
+            "connect",
+            "send",
+            "mutate",
+            "spend",
+            "delegate",
+            "persist"
+          ],
+          "description": "Shipped closed action vocabulary."
+        },
+        "resource": {
+          "enum": [
+            "filesystem",
+            "secret",
+            "process",
+            "network",
+            "database",
+            "message",
+            "financial",
+            "identity",
+            "agent",
+            "configuration"
+          ],
+          "description": "Shipped closed resource vocabulary."
+        },
+        "destination": {
+          "type": ["string", "null"],
+          "description": "Outbound destination (host/URL) for send/connect sinks; null when unknown/unbounded."
+        }
+      }
+    },
+    "risk": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["class", "severity"],
+      "properties": {
+        "class": {
+          "enum": ["none", "low", "medium", "high", "critical"],
+          "description": "Coarse risk class of the composition."
+        },
+        "severity": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 100,
+          "description": "Normalized 0..100 severity; deterministic function of (class, hint)."
+        }
+      }
+    },
+    "decisionHint": {
+      "enum": ["ALLOW", "REVIEW", "BLOCK"],
+      "description": "A HINT folded into calllint.decision.v0 reasons - NOT a second verdict (ADR 0040 section 1)."
+    },
+    "evidence": {
+      "type": "array",
+      "items": { "type": "string", "minLength": 1 },
+      "description": "Exact bytes grounding the flow. Mandatory - a flow is never unsourced (I-07)."
+    },
+    "authorityDigests": {
+      "type": "array",
+      "items": { "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" },
+      "description": "Digests of the Authority Manifest(s) analyzed to produce this flow (sorted, deduped)."
+    },
+    "digest": {
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$",
+      "description": "sha256 over this object minus its own digest field (hashJson)."
+    }
+  }
+}

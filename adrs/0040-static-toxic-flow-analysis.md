@@ -73,6 +73,31 @@ Before adding `@calllint/flow-analyzer`, prove the responsibility cannot stay in
 concerns or creating a cycle. If it can, extend the existing package instead. (Phase F2
 resolves this against the shipped package graph before any package is created.)
 
+**F2 resolution — a new package is justified (verified against the shipped graph).**
+The shipped DAG is `static-analyzer → {types, resolver}`; `core/gateway` merges the two
+capability readings into one sealed `AuthorityManifest`; `policy → {types, fingerprint}`
+decides over *one* manifest → object 4. `buildFlows(manifests[])` operates on the *sealed
+manifests* (post-`core/gateway`) and reasons over a *cross-capability composition*, emitting
+`calllint.flow.v0` — a **sibling object, not a verdict**. Neither existing home fits:
+
+- **Not `@calllint/static-analyzer`.** It runs *before* a manifest exists — per detector,
+  per single tool, over `NormalizedMcpServer` / `DocumentSurface`. It has no concept of a
+  sealed manifest, let alone a *set* of them; a cross-manifest analyzer there would invert
+  its single-tool contract and require it to consume its own downstream output (`core`
+  builds the manifest *from* static-analyzer), which is a layering cycle.
+- **Not `@calllint/policy`.** `decideOverAuthority` is the verdict layer (object 4) over
+  *one* manifest. A flow is explicitly **not a second verdict** (§1) — folding flow
+  *construction* into the verdict package conflates "what paths exist across tools" (flow)
+  with "what verdict this authority earns under a policy" (decision), and would make the
+  frozen decision object depend on a new sibling object it only later *consumes* via
+  `reasons`. Flow must be buildable and testable without a policy present.
+
+So `@calllint/flow-analyzer` sits beside `policy` in the graph, depending only on
+`{types, fingerprint}` (same minimal footprint as `policy`): it reads sealed manifests,
+never runs the target, and stays out of both the single-tool and the verdict packages. No
+cycle: `core` will depend on `flow-analyzer` (as it already depends on `policy`), never the
+reverse.
+
 ## Consequences
 
 - **Positive**: expresses the real threat (composition) with mandatory evidence; deepens

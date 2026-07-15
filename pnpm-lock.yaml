@@ -178,6 +178,15 @@ importers:
         specifier: workspace:*
         version: link:../types
 
+  packages/flow-analyzer:
+    dependencies:
+      '@calllint/fingerprint':
+        specifier: workspace:*
+        version: link:../fingerprint
+      '@calllint/types':
+        specifier: workspace:*
+        version: link:../types
+
   packages/install-planner:
     dependencies:
       '@calllint/fingerprint':
