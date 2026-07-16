@@ -7,7 +7,7 @@ import { tmpdir } from "node:os"
 
 describe("WindsurfExtractor", () => {
   let testDir: string
-  let appDataDir: string
+  let homeDir: string
   const extractor = new WindsurfExtractor()
 
   beforeEach(() => {
@@ -15,13 +15,13 @@ describe("WindsurfExtractor", () => {
     testDir = join(tmpdir(), `calllint-test-windsurf-${Date.now()}`)
     mkdirSync(testDir, { recursive: true })
 
-    // Mock APPDATA directory structure
-    appDataDir = join(testDir, "AppData", "Roaming")
-    mkdirSync(join(appDataDir, "Windsurf"), { recursive: true })
+    // Windsurf config is home-relative: ~/.codeium/mcp_config.json
+    homeDir = join(testDir, "home")
+    mkdirSync(join(homeDir, ".codeium"), { recursive: true })
 
-    // Override getAppDataDir for testing
+    // Override resolveHome for testing
     // @ts-ignore - accessing protected method for testing
-    extractor.getAppDataDir = () => appDataDir
+    extractor.resolveHome = () => homeDir
   })
 
   afterEach(() => {
@@ -44,8 +44,8 @@ describe("WindsurfExtractor", () => {
 
     expect(configs).toHaveLength(1)
     expect(configs[0]!.agentType).toBe("windsurf")
-    expect(configs[0]!.configPath).toContain("Windsurf")
-    expect(configs[0]!.configPath).toContain("mcp.json")
+    expect(configs[0]!.configPath).toContain(".codeium")
+    expect(configs[0]!.configPath).toContain("mcp_config.json")
     expect(configs[0]!.kind).toBe("windsurf-mcp-config")
     expect(configs[0]!.priority).toBe("P1")
   })
@@ -58,7 +58,7 @@ describe("WindsurfExtractor", () => {
   })
 
   it("should mark config as existing when valid file is present", () => {
-    const configPath = join(appDataDir, "Windsurf", "mcp.json")
+    const configPath = join(homeDir, ".codeium", "mcp_config.json")
     const validConfig = {
       mcpServers: {
         "test-server": {
@@ -77,7 +77,7 @@ describe("WindsurfExtractor", () => {
   })
 
   it("should mark config as not existing when file has no mcpServers key", () => {
-    const configPath = join(appDataDir, "Windsurf", "mcp.json")
+    const configPath = join(homeDir, ".codeium", "mcp_config.json")
     const invalidConfig = {
       someOtherKey: "value",
     }
@@ -91,7 +91,7 @@ describe("WindsurfExtractor", () => {
   })
 
   it("should mark config as not existing when file is not valid JSON", () => {
-    const configPath = join(appDataDir, "Windsurf", "mcp.json")
+    const configPath = join(homeDir, ".codeium", "mcp_config.json")
     writeFileSync(configPath, "not valid json{")
 
     const configs = extractor.discover("/fake/cwd")
@@ -101,7 +101,7 @@ describe("WindsurfExtractor", () => {
   })
 
   it("should mark config as not existing when mcpServers is null", () => {
-    const configPath = join(appDataDir, "Windsurf", "mcp.json")
+    const configPath = join(homeDir, ".codeium", "mcp_config.json")
     const invalidConfig = {
       mcpServers: null,
     }
@@ -115,7 +115,7 @@ describe("WindsurfExtractor", () => {
   })
 
   it("should accept empty mcpServers object", () => {
-    const configPath = join(appDataDir, "Windsurf", "mcp.json")
+    const configPath = join(homeDir, ".codeium", "mcp_config.json")
     const validConfig = {
       mcpServers: {},
     }

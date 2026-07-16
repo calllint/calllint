@@ -39,6 +39,8 @@ import {
   CLAUDE_CODE_HOST_ID,
   cursorServerEntry,
   CURSOR_HOST_ID,
+  windsurfServerEntry,
+  WINDSURF_HOST_ID,
   nodeFsPort,
   safeConfigPath,
   PathSafetyError,
@@ -307,6 +309,9 @@ function defaultHostConfigPath(host: string, cwd: string): string | null {
   // Cursor is project-scoped: `.cursor/mcp.json` under the working directory.
   // (The global Cursor config is a later refinement; use --host-config for it.)
   if (host === CURSOR_HOST_ID) return join(cwd, ".cursor", "mcp.json")
+  // Windsurf (Codeium) is a single home-relative file on every OS —
+  // ~/.codeium/mcp_config.json (verified against the official Cascade MCP docs).
+  if (host === WINDSURF_HOST_ID) return join(homedir(), ".codeium", "mcp_config.json")
   return null
 }
 
@@ -324,10 +329,16 @@ function plannedServersFor(input: ArtifactInput, host: string): PlannedServer[] 
   } catch {
     return []
   }
-  // Reduce each server to the host's known-schema entry. Cursor and Claude Code
-  // share the `mcpServers` entry shape; the per-host entry fn keeps the write
-  // surface explicit (never a blind passthrough).
-  const entryFor = host === CURSOR_HOST_ID ? cursorServerEntry : claudeCodeServerEntry
+  // Reduce each server to the host's known-schema entry. All three hosts store a
+  // root-level `mcpServers` map, but the per-host entry fn keeps the write
+  // surface explicit (never a blind passthrough) — and Windsurf differs in one
+  // field (a remote server uses `serverUrl`, not `url`). Default to Claude Code.
+  const entryByHost: Record<string, typeof claudeCodeServerEntry> = {
+    [CLAUDE_CODE_HOST_ID]: claudeCodeServerEntry,
+    [CURSOR_HOST_ID]: cursorServerEntry,
+    [WINDSURF_HOST_ID]: windsurfServerEntry,
+  }
+  const entryFor = entryByHost[host] ?? claudeCodeServerEntry
   return servers.map((s) => ({
     name: s.name,
     entry: entryFor({ command: s.command, args: s.args, url: s.url, envKeys: s.envKeys }),
@@ -1080,7 +1091,8 @@ OPTIONS (prepare)
                         Reads the host config READ-ONLY; never applies here. Plan
                         is emitted only for a non-blocking decision.
   --host-config <path>  Override the host config path (default: per host —
-                        ~/.claude.json for claude-code, .cursor/mcp.json for cursor)
+                        ~/.claude.json for claude-code, .cursor/mcp.json for
+                        cursor, ~/.codeium/mcp_config.json for windsurf)
   --write-plan          Persist the plan to .calllint/plans/<plan-id>.json
   --flows               Show static toxic-flow paths (calllint.flow.v0) behind the
                         decision's TOXIC_FLOW_COMPOSITION reasons. With --json, emits

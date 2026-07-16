@@ -55,15 +55,22 @@ export {
   cursorServerEntry,
   CURSOR_HOST_ID,
 } from "./adapters/cursor.js"
+export {
+  windsurfAdapter,
+  windsurfServerEntry,
+  WINDSURF_HOST_ID,
+} from "./adapters/windsurf.js"
 
 import { claudeCodeAdapter } from "./adapters/claudeCode.js"
 import { cursorAdapter } from "./adapters/cursor.js"
+import { windsurfAdapter } from "./adapters/windsurf.js"
 import type { HostAdapter } from "./hostAdapter.js"
 
 /** Registry of known host adapters, keyed by id. */
 export const HOST_ADAPTERS: Record<string, HostAdapter> = {
   [claudeCodeAdapter.id]: claudeCodeAdapter,
   [cursorAdapter.id]: cursorAdapter,
+  [windsurfAdapter.id]: windsurfAdapter,
 }
 
 /** Look up an adapter by host id; null if unknown. */
