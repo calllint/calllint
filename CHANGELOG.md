@@ -10,6 +10,38 @@ onward. While pre-1.0, minor versions may include breaking changes.
 
 ## [Unreleased]
 
+## [1.5.0] — 2026-07-16 — Static Toxic-Flow Analysis & Continuous Guard
+
+**See the composition, then keep watching it.** This release ships two layers on
+top of the Trust Gateway: Phase F makes a cross-tool toxic *path* a first-class,
+evidence-backed object folded into the verdict; Phase H turns a one-off decision
+into a standing one with a Continuous Guard that re-decides the authority surface
+whenever it changes. Both are pure-static and offline — the target is never
+executed. No second verdict vocabulary and no new action/resource enum are
+introduced.
+
+### Added — Phase H: Install Guard & Growth
+
+- **`calllint guard` — Continuous Guard (authority-change watch, ADR 0045)** — runs
+  the gateway automatically at an authority-*change* moment and is **silent when
+  nothing changed** (the retention promise). It reuses the shipped approved-state
+  drift (`verify --approved`, ADR 0024) and the `SAFE/REVIEW/BLOCK/UNKNOWN`
+  vocabulary — no new drift engine, no new verdict. A changed surface maps onto the
+  stable exit codes (`REVIEW=10`, `UNKNOWN=20`, `BLOCK=30`); the guard's *own*
+  failure fails closed (non-zero, never a pass). This is distinct from the
+  necessity-gated per-call action guard (ADR 0042 / H3), which remains design-only.
+- **`calllint guard install --host git|github`** — writes a declarative shim that
+  only shells out to `calllint guard`: a git `pre-commit` hook, or the shipped
+  drift-gate GitHub Actions workflow. No risk logic is copied into a host artifact.
+- **`calllint guard status` / `disable` / `enable`** — one-key disable via
+  `CALLLINT_GUARD=0` or `.calllint/guard.json`; a disabled guard exits 0 with a
+  visible note (never a silent pass). The roadmap kill gate (noise → authority-delta
+  only) is satisfied by construction: delta-only is the default.
+- **One-use → persistent conversion prompt on `trust prepare`** — after a *usable*
+  (non-BLOCK/UNKNOWN) preparation, the human-readable output offers the exact
+  persistence commands (approve · guard install · CI gate · agent rule). It persists
+  nothing by default, emits no telemetry, and never appears on `--json`.
+
 ### Added — Phase F: Static Toxic-Flow Analysis
 
 **The path is the blocker.** A per-tool scan sees each tool in isolation, but the real
