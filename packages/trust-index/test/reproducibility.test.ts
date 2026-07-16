@@ -14,6 +14,7 @@ import {
   renderHtml,
   renderSidecar,
   ConfigParseError,
+  type BakeInput,
 } from "../src/index.js"
 
 const cohort = fixtureCohort()
@@ -83,6 +84,22 @@ describe("bakeTrustPage — reproducibility (ADR 0046 §4)", () => {
     const again = bakeTrustPage({ ...first!.input })
     const once = bakeTrustPage({ ...first!.input })
     expect(again.artifactDigest).toBe(once.artifactDigest)
+  })
+
+  it("is line-ending-independent (CRLF checkout ≡ LF checkout) — cross-OS gate", () => {
+    // The Windows CI leg checks fixtures out as CRLF; Linux/macOS as LF. The baked
+    // page MUST be identical either way, or the committed tree can never match on
+    // all three OSes. Canonicalization guarantees it: prove LF and CRLF inputs bake
+    // byte-identically.
+    const [first] = verdictCases
+    const lf: BakeInput = { ...first!.input, configText: first!.input.configText.replace(/\r\n/g, "\n") }
+    const crlf: BakeInput = { ...lf, configText: lf.configText.replace(/\n/g, "\r\n") }
+    const bakedLf = bakeTrustPage(lf)
+    const bakedCrlf = bakeTrustPage(crlf)
+    expect(bakedCrlf.artifactDigest).toBe(bakedLf.artifactDigest)
+    expect(bakedCrlf.pageDigest).toBe(bakedLf.pageDigest)
+    expect(renderSidecar(bakedCrlf)).toBe(renderSidecar(bakedLf))
+    expect(renderHtml(bakedCrlf)).toBe(renderHtml(bakedLf))
   })
 })
 

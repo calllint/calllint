@@ -9,6 +9,7 @@
 export {
   bakeTrustPage,
   fixtureArtifactIdentity,
+  canonicalizeConfigText,
   ConfigParseError,
   type BakeInput,
   type BakedTrustPage,

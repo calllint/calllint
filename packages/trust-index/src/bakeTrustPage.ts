@@ -71,14 +71,24 @@ export interface BakedTrustPage {
 }
 
 /**
+ * Canonicalize config text so the artifact digest is a property of content, not of
+ * how the file was checked out. Normalizes CRLF/CR to LF and strips a leading UTF-8
+ * BOM. Idempotent — applying it twice is the same as once.
+ */
+export function canonicalizeConfigText(text: string): string {
+  return text.replace(/^﻿/, "").replace(/\r\n?/g, "\n")
+}
+
+/**
  * Build a fully-pinned Artifact Identity for a local config we own (an `mcp-config`
  * source). Because the bytes are in hand, the artifact is `resolved`: `resolvedRef`
  * and `digest` are the content hash, so it passes the G1 gate in `prepare` and is
  * byte-reproducible. This mirrors how the CLI edge constructs identity, but for a
- * local fixture there is nothing to fetch.
+ * local fixture there is nothing to fetch. Canonicalizes the text first so the
+ * digest matches `bakeTrustPage` regardless of the caller's line endings.
  */
 export function fixtureArtifactIdentity(input: BakeInput): ArtifactIdentity {
-  const digest = sha256(input.configText) as `sha256:${string}`
+  const digest = sha256(canonicalizeConfigText(input.configText)) as `sha256:${string}`
   return {
     schema: "calllint.artifact.v1",
     sourceType: "mcp-config",
@@ -97,19 +107,27 @@ export function fixtureArtifactIdentity(input: BakeInput): ArtifactIdentity {
  * 0038 completeness) or a hard error. We surface it rather than swallowing it.
  */
 export function bakeTrustPage(input: BakeInput): BakedTrustPage {
+  // 0. Canonicalize line endings BEFORE anything reads the bytes. A config's
+  //    meaning is line-ending-independent, so the artifact digest must be too —
+  //    otherwise the same source checked out CRLF on Windows vs LF on Linux would
+  //    hash differently and the page would not be reproducible across platforms.
+  //    This is the single point where OS-dependent input becomes canonical.
+  const configText = canonicalizeConfigText(input.configText)
+  const canon: BakeInput = { ...input, configText }
+
   // 1. Scan (the only scan) — verdict + evidence, with a pinned generatedAt.
-  const scan = scanConfigText(input.configText, input.sourceLabel, {
-    generatedAt: input.observedAt,
+  const scan = scanConfigText(configText, canon.sourceLabel, {
+    generatedAt: canon.observedAt,
   })
 
   // 2. Parse for the authority inventory (servers only; no clock).
-  const parsed = parseConfigText(input.configText, input.sourceLabel)
+  const parsed = parseConfigText(configText, canon.sourceLabel)
 
   // 3. Artifact identity (fully pinned — local bytes in hand). The digest is the
   //    content hash and is always present for a resolved local fixture; hold it in
   //    a non-null local so downstream types stay `sha256:${string}`, not `| null`.
-  const artifactDigest = sha256(input.configText) as `sha256:${string}`
-  const artifact = fixtureArtifactIdentity(input)
+  const artifactDigest = sha256(configText) as `sha256:${string}`
+  const artifact = fixtureArtifactIdentity(canon)
 
   // 4. Authority manifest — digest-sealed capability inventory over the servers.
   const authority: AuthorityManifest = buildAuthorityManifest({
