@@ -12,6 +12,16 @@ onward. While pre-1.0, minor versions may include breaking changes.
 
 ### Added
 
+- **Cross-OS CI matrix + real-filesystem apply E2E (ADR 0037 §6)** — the single audited
+  config writer (`applyPlan` via the production node fs port) is now proven on a real
+  filesystem by `tests/e2e/test/apply-engine.e2e.test.ts`: **20 positive + 20
+  broken/conflict** cases asserting the on-disk effect (atomic write, backup bytes, O_EXCL
+  lock, and no partial write on any fail-closed branch), plus a **measured** corruption-rate
+  assertion (0% < 1% — the §6 kill gate computed from the run, not claimed). CI
+  (`.github/workflows/ci.yml`) now runs the whole suite on a
+  `[ubuntu-latest, macos-latest, windows-latest]` matrix — the literal Win/macOS/Linux E2E
+  the Tier-A gate requires. Because the writer is host-agnostic, this makes every Tier-A
+  host's apply path honestly gated (Claude Code retroactively covered).
 - **Cursor host adapter (Tier B, plan-only) — C5 host expansion** — `calllint trust
   prepare --host cursor` now resolves a target, decides over it, and emits a reversible
   `calllint.install-plan.v1` for Cursor's `.cursor/mcp.json` (project-scoped;

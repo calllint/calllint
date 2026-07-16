@@ -15,7 +15,19 @@ permissions:
 
 jobs:
   build-and-test:
-    runs-on: ubuntu-latest
+    # Cross-OS matrix (ADR 0037 §6): the real-filesystem apply E2E — the single
+    # audited config writer, exercised through the production node fs port — must
+    # pass on Windows, macOS, and Linux for a host to be Tier A. Running the whole
+    # suite on all three also catches path/line-ending assumptions early.
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    # Windows runners default to PowerShell; our run: steps are POSIX sh.
+    defaults:
+      run:
+        shell: bash
     steps:
       - uses: actions/checkout@v6
 
