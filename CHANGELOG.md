@@ -10,6 +10,17 @@ onward. While pre-1.0, minor versions may include breaking changes.
 
 ## [Unreleased]
 
+### Added
+
+- **Cursor host adapter (Tier B, plan-only) — C5 host expansion** — `calllint trust
+  prepare --host cursor` now resolves a target, decides over it, and emits a reversible
+  `calllint.install-plan.v1` for Cursor's `.cursor/mcp.json` (project-scoped;
+  `--host-config` overrides). Cursor ships at **Tier B**: the adapter declares no writer,
+  so both the type system and the `trust apply` runtime guard refuse to write live config —
+  you apply the emitted patch yourself. Promotion to Tier A (auto-apply) is gated on the
+  ADR 0037 §6 E2E + <1% corruption kill gate. This is host #2 toward Phase I's ≥3 Tier-A
+  threshold. Reuses the audited host-agnostic plan engine; adds no bespoke write logic.
+
 ## [1.5.0] — 2026-07-16 — Static Toxic-Flow Analysis & Continuous Guard
 
 **See the composition, then keep watching it.** This release ships two layers on

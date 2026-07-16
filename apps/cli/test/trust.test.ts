@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest"
-import { mkdtempSync, rmSync, writeFileSync, mkdirSync, existsSync, readFileSync } from "node:fs"
+import { mkdtempSync, rmSync, writeFileSync, mkdirSync, existsSync, readFileSync, readdirSync } from "node:fs"
 import { tmpdir } from "node:os"
 import { join } from "node:path"
 
@@ -670,6 +670,58 @@ describe("trust prepare — H2 conversion prompt (non-persisting, ADR 0045 §5)"
   it("an unresolved (UNKNOWN) target does not advertise persistence", () => {
     const r = run(["trust", "prepare", "npm:left-pad@1.3.0"], deps())
     expect(r.stdout).not.toContain("Next step")
+    noExec()
+  })
+})
+
+describe("trust prepare --host cursor (C5 — Tier B, plan-only)", () => {
+  const SAFE_CFG = JSON.stringify({
+    mcpServers: {
+      fs: { command: "npx", args: ["-y", "@modelcontextprotocol/server-filesystem@1.0.0", "/tmp"] },
+    },
+  })
+
+  it("emits a Tier-B plan bound to host cursor, writing nothing without --write-plan", () => {
+    writeFileSync(join(dir, "mcp.json"), SAFE_CFG)
+    const r = run(["trust", "prepare", "mcp.json", "--host", "cursor", "--json"], deps())
+    const prep = JSON.parse(r.stdout)
+    // A benign local server decides SAFE → a plan is produced for the named host.
+    expect(prep.plan).toBeTruthy()
+    expect(prep.plan.host).toBe("cursor")
+    expect(prep.plan.tier).toBe("B")
+    // Nothing persisted: --write-plan was not passed.
+    expect(existsSync(join(dir, ".calllint", "plans"))).toBe(false)
+    noExec()
+  })
+
+  it("--write-plan persists the plan under .calllint/plans and it validates", () => {
+    writeFileSync(join(dir, "mcp.json"), SAFE_CFG)
+    const r = run(["trust", "prepare", "mcp.json", "--host", "cursor", "--write-plan"], deps())
+    expect(r.stdout).toContain("plan written:")
+    const plansDir = join(dir, ".calllint", "plans")
+    expect(existsSync(plansDir)).toBe(true)
+    noExec()
+  })
+
+  it("trust apply REFUSES a Tier-B cursor plan (plan-only, never writes)", () => {
+    writeFileSync(join(dir, "mcp.json"), SAFE_CFG)
+    // Produce and persist a cursor plan.
+    run(["trust", "prepare", "mcp.json", "--host", "cursor", "--write-plan"], deps())
+    const plansDir = join(dir, ".calllint", "plans")
+    const planFile = join(plansDir, readdirSync(plansDir)[0]!)
+    const plan = JSON.parse(readFileSyncSafe(planFile))
+    const r = run(["trust", "apply", "--plan", planFile, "--approve", plan.planDigest], deps())
+    expect(r.exitCode).toBe(2) // EXIT.USAGE — a Tier-B host has no writer
+    expect(r.stderr).toMatch(/tier B|plan-only/i)
+    noExec()
+  })
+
+  it("an unknown host is a usage error listing the known hosts", () => {
+    writeFileSync(join(dir, "mcp.json"), SAFE_CFG)
+    const r = run(["trust", "prepare", "mcp.json", "--host", "jetbrains"], deps())
+    expect(r.exitCode).toBe(2)
+    expect(r.stderr).toContain("Unknown host")
+    expect(r.stderr).toContain("cursor")
     noExec()
   })
 })
