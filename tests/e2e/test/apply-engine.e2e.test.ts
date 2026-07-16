@@ -1,4 +1,4 @@
-import { describe, it, expect, afterEach } from "vitest"
+import { describe, it, expect, afterEach, beforeEach } from "vitest"
 import { mkdtempSync, rmSync, writeFileSync, readFileSync, existsSync, mkdirSync } from "node:fs"
 import { tmpdir } from "node:os"
 import { join } from "node:path"
@@ -73,6 +73,14 @@ function scene(seed?: string): Scene {
   }
 }
 
+/**
+ * The host the current suite is exercising. The apply engine is host-agnostic, so
+ * the 20+20 matrix runs identically for every Tier-A host — we parametrize the
+ * plan's `host` field to prove each adapter's delegation writes through the same
+ * audited engine. Set per `describe.each` iteration below.
+ */
+let HOST: "claude-code" | "cursor" = "claude-code"
+
 /** Build a Tier-A plan for `servers` against the scene's current config bytes. */
 function planFor(
   sc: Scene,
@@ -81,7 +89,7 @@ function planFor(
 ): InstallPlan {
   const bytes = existsSync(sc.configPath) ? readFileSync(sc.configPath, "utf8") : null
   const ctx: PlanContext = {
-    host: "claude-code",
+    host: HOST,
     tier: opts.tier ?? "A",
     configPath: sc.configPath,
     configDigest: bytes === null ? "absent" : digest(bytes),
@@ -122,7 +130,16 @@ function isCorrupt(sc: Scene): boolean {
 // A running tally: every positive case pushes true/false for "did it corrupt?"
 const corruptionLedger: boolean[] = []
 
-describe("apply engine — real-filesystem POSITIVE cases (ADR 0037 §6)", () => {
+// Parametrize the whole 20+20 matrix over every Tier-A host. The writer is
+// host-agnostic, so each host must satisfy the §6 gate identically; running both
+// proves the cursor adapter's applyPlan delegates to the same audited engine.
+const TIER_A_HOSTS = ["claude-code", "cursor"] as const
+
+describe.each(TIER_A_HOSTS)("apply engine [%s] — real-filesystem POSITIVE cases (ADR 0037 §6)", (host) => {
+  beforeEach(() => {
+    HOST = host // set before every case so the plan targets this host
+  })
+
   function positive(name: string, run: () => Scene) {
     it(name, () => {
       const sc = run()
@@ -289,7 +306,11 @@ describe("apply engine — real-filesystem POSITIVE cases (ADR 0037 §6)", () =>
   })
 })
 
-describe("apply engine — real-filesystem BROKEN / CONFLICT cases (ADR 0037 §6)", () => {
+describe.each(TIER_A_HOSTS)("apply engine [%s] — real-filesystem BROKEN / CONFLICT cases (ADR 0037 §6)", (host) => {
+  beforeEach(() => {
+    HOST = host // set before every case so the plan targets this host's tier
+  })
+
   /** Assert an outcome AND that the original bytes on disk are intact (no partial write). */
   function noPartialWrite(sc: Scene, originalBytes: string | null) {
     if (originalBytes === null) {
@@ -441,7 +462,8 @@ describe("apply engine — §6 corruption kill gate (measured, not claimed)", ()
   it("0 positive cases corrupted the config ⇒ rate 0% < 1%", () => {
     // The positive suite ran first (vitest runs describes in file order) and
     // recorded, per case, whether it left an unparseable config on disk.
-    expect(corruptionLedger.length).toBeGreaterThanOrEqual(20)
+    // 20 positive cases × 2 Tier-A hosts (claude-code, cursor) = 40 recorded.
+    expect(corruptionLedger.length).toBeGreaterThanOrEqual(40)
     const corrupt = corruptionLedger.filter(Boolean).length
     const rate = corrupt / corruptionLedger.length
     expect(rate).toBeLessThan(0.01)

@@ -674,21 +674,22 @@ describe("trust prepare — H2 conversion prompt (non-persisting, ADR 0045 §5)"
   })
 })
 
-describe("trust prepare --host cursor (C5 — Tier B, plan-only)", () => {
+describe("trust prepare/apply --host cursor (C5 — Tier A)", () => {
+  // A pinned local server that decides SAFE, so a plan is applyable (a BLOCK/UNKNOWN
+  // plan would be refused on the verdict, not the tier — which would not prove Tier A).
   const SAFE_CFG = JSON.stringify({
     mcpServers: {
-      fs: { command: "npx", args: ["-y", "@modelcontextprotocol/server-filesystem@1.0.0", "/tmp"] },
+      time: { command: "npx", args: ["-y", "@modelcontextprotocol/server-time@1.0.0"] },
     },
   })
 
-  it("emits a Tier-B plan bound to host cursor, writing nothing without --write-plan", () => {
+  it("emits a Tier-A plan bound to host cursor, writing nothing without --write-plan", () => {
     writeFileSync(join(dir, "mcp.json"), SAFE_CFG)
     const r = run(["trust", "prepare", "mcp.json", "--host", "cursor", "--json"], deps())
     const prep = JSON.parse(r.stdout)
-    // A benign local server decides SAFE → a plan is produced for the named host.
     expect(prep.plan).toBeTruthy()
     expect(prep.plan.host).toBe("cursor")
-    expect(prep.plan.tier).toBe("B")
+    expect(prep.plan.tier).toBe("A")
     // Nothing persisted: --write-plan was not passed.
     expect(existsSync(join(dir, ".calllint", "plans"))).toBe(false)
     noExec()
@@ -698,21 +699,27 @@ describe("trust prepare --host cursor (C5 — Tier B, plan-only)", () => {
     writeFileSync(join(dir, "mcp.json"), SAFE_CFG)
     const r = run(["trust", "prepare", "mcp.json", "--host", "cursor", "--write-plan"], deps())
     expect(r.stdout).toContain("plan written:")
-    const plansDir = join(dir, ".calllint", "plans")
-    expect(existsSync(plansDir)).toBe(true)
+    expect(existsSync(join(dir, ".calllint", "plans"))).toBe(true)
     noExec()
   })
 
-  it("trust apply REFUSES a Tier-B cursor plan (plan-only, never writes)", () => {
+  it("trust apply APPLIES an approved Tier-A cursor plan atomically into .cursor/mcp.json", () => {
+    // Target a real project-scoped .cursor/mcp.json (absent → the apply creates it).
+    const cursorCfg = join(dir, ".cursor", "mcp.json")
     writeFileSync(join(dir, "mcp.json"), SAFE_CFG)
-    // Produce and persist a cursor plan.
-    run(["trust", "prepare", "mcp.json", "--host", "cursor", "--write-plan"], deps())
+    run([
+      "trust", "prepare", "mcp.json",
+      "--host", "cursor", "--host-config", cursorCfg,
+      "--write-plan",
+    ], deps())
     const plansDir = join(dir, ".calllint", "plans")
     const planFile = join(plansDir, readdirSync(plansDir)[0]!)
     const plan = JSON.parse(readFileSyncSafe(planFile))
     const r = run(["trust", "apply", "--plan", planFile, "--approve", plan.planDigest], deps())
-    expect(r.exitCode).toBe(2) // EXIT.USAGE — a Tier-B host has no writer
-    expect(r.stderr).toMatch(/tier B|plan-only/i)
+    expect(r.exitCode).toBe(0)
+    // The config was written atomically and the server is present.
+    expect(existsSync(cursorCfg)).toBe(true)
+    expect(JSON.parse(readFileSyncSafe(cursorCfg)).mcpServers.time).toBeTruthy()
     noExec()
   })
 

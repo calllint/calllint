@@ -22,14 +22,16 @@ onward. While pre-1.0, minor versions may include breaking changes.
   `[ubuntu-latest, macos-latest, windows-latest]` matrix — the literal Win/macOS/Linux E2E
   the Tier-A gate requires. Because the writer is host-agnostic, this makes every Tier-A
   host's apply path honestly gated (Claude Code retroactively covered).
-- **Cursor host adapter (Tier B, plan-only) — C5 host expansion** — `calllint trust
-  prepare --host cursor` now resolves a target, decides over it, and emits a reversible
-  `calllint.install-plan.v1` for Cursor's `.cursor/mcp.json` (project-scoped;
-  `--host-config` overrides). Cursor ships at **Tier B**: the adapter declares no writer,
-  so both the type system and the `trust apply` runtime guard refuse to write live config —
-  you apply the emitted patch yourself. Promotion to Tier A (auto-apply) is gated on the
-  ADR 0037 §6 E2E + <1% corruption kill gate. This is host #2 toward Phase I's ≥3 Tier-A
-  threshold. Reuses the audited host-agnostic plan engine; adds no bespoke write logic.
+- **Cursor host adapter — Tier A (C5 host expansion, host #2 of Phase I's ≥3)** — `calllint
+  trust prepare --host cursor` resolves a target, decides over it, and emits a reversible
+  `calllint.install-plan.v1` for Cursor's `.cursor/mcp.json` (project-scoped; `--host-config`
+  overrides); `calllint trust apply` then writes the approved change atomically with backup +
+  rollback. The adapter delegates apply to the same audited host-agnostic engine as Claude
+  Code (no bespoke write logic). Tier A is earned by the real cross-OS apply E2E parametrized
+  over `[claude-code, cursor]` (20 positive + 20 broken/conflict each, ubuntu/macOS/windows,
+  measured 0% corruption — ADR 0037 §6). Tier-A hosts: **2** (Claude Code + Cursor); one more
+  unblocks Phase I. (It shipped first at Tier B / plan-only within this same unreleased cycle,
+  then was promoted once the §6 gate was met.)
 
 ## [1.5.0] — 2026-07-16 — Static Toxic-Flow Analysis & Continuous Guard
 
