@@ -21,6 +21,10 @@ COMMANDS
   diagnostics [target]  Emit editor/agent-host diagnostics JSON (calllint.diagnostics.v0)
   baseline [target]  Record the approved risk surface as a baseline
   approve            Record the repo-wide capability surface as approved state (L4)
+  guard              Continuous Guard: re-decide on authority change; silent when unchanged
+  guard install --host <h>  Install a guard hook (git pre-commit, github workflow)
+  guard status       Show baseline / disable / installed-hook state
+  guard disable      Turn Continuous Guard off (.calllint/guard.json)
   receipt verify <f>    Validate a calllint.receipt.v0 (structure + signature if present)
   receipt sign <f>      Sign a receipt with a local key (--key; development/testing)
   receipt keygen        Generate a local ed25519 keypair (--out; development/testing)
@@ -69,6 +73,13 @@ VERIFY OPTIONS
   --ci               Exit 40 if the surface drifted (from baseline or approved state)
   --json             Emit the drift report JSON
 
+GUARD OPTIONS
+  --host <h>         guard install target: git (pre-commit) | github (workflow)
+  --approved [file]  Approved baseline to diff against (default: .calllint/approved.json)
+  --json             Emit the guard assessment / status JSON
+  (exit) silent/note=0, REVIEW=10, UNKNOWN=20, BLOCK=30; guard self-failure is non-zero
+  (env)  CALLLINT_GUARD=0 disables the guard
+
 EXAMPLES
   calllint inventory                    # List discovered agent configs
   calllint scan --auto                  # Discover and scan all agents
@@ -87,6 +98,8 @@ EXAMPLES
   calllint inbox inspect gmail-reply.normalized.json
   calllint verify ./mcp.json --ci
   calllint approve && calllint verify --approved --ci
+  calllint approve && calllint guard install --host git   # re-decide on every commit
+  calllint guard --json                 # authority-change assessment (silent when unchanged)
   calllint explain filesystem
 `
 

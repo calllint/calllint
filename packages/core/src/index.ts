@@ -70,6 +70,15 @@ export {
 } from "./state/approve.js"
 export { verifyApproved } from "./state/verifyApproved.js"
 
+// H1 — Continuous Guard engine (authority-change watch — ADR 0045).
+export {
+  assessGuardDrift,
+  guardFailClosed,
+  GUARD_ACTIONS,
+  type GuardAction,
+  type GuardAssessment,
+} from "./state/continuousGuard.js"
+
 // new4 L1 — Global host extractors (Phase 2 — ADR 0018 §15.12).
 export {
   extractGenericMcpJson,
