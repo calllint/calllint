@@ -1,0 +1,283 @@
+{
+  "schema": "calllint.trust-page.v0",
+  "canonicalName": "calllint-fixtures/review-financial",
+  "artifactDigest": "sha256:ac53be3acbaa3d1f6b3aab194297576e3fee0229a9f78954c1f300e219989875",
+  "pageDigest": "sha256:21dd2bcd7ed3fef464990cde7f4452a0f589046947fde8d0ff1d6251f52abc9c",
+  "verdict": "REVIEW",
+  "verdictLabel": "Review required",
+  "observedAt": "1970-01-01T00:00:00.000Z",
+  "completeness": "complete",
+  "correctionUrl": "https://github.com/calllint/calllint/issues/new?labels=trust-page-correction",
+  "preparation": {
+    "schema": "calllint.trust-preparation.v0",
+    "artifact": {
+      "schema": "calllint.artifact.v1",
+      "sourceType": "mcp-config",
+      "source": "review-financial.json",
+      "requestedRef": null,
+      "resolvedRef": "sha256:ac53be3acbaa3d1f6b3aab194297576e3fee0229a9f78954c1f300e219989875",
+      "digest": "sha256:ac53be3acbaa3d1f6b3aab194297576e3fee0229a9f78954c1f300e219989875",
+      "resolvedAt": "1970-01-01T00:00:00.000Z",
+      "resolution": "resolved"
+    },
+    "evidence": null,
+    "authority": {
+      "schema": "calllint.authority.v0",
+      "subject": {
+        "artifactDigest": "sha256:ac53be3acbaa3d1f6b3aab194297576e3fee0229a9f78954c1f300e219989875"
+      },
+      "capabilities": [
+        {
+          "action": "execute",
+          "resource": "process",
+          "scope": "npx",
+          "destination": null,
+          "mutability": "mutating",
+          "reversibility": "irreversible",
+          "monetaryLimit": null,
+          "approvalRequirement": "none",
+          "evidenceSource": "server.command",
+          "confidence": "high",
+          "completeness": "complete",
+          "trustSource": "trusted.local_project"
+        }
+      ],
+      "limits": {
+        "spendPerCall": null,
+        "spendTotal": null
+      },
+      "approval": {
+        "required": []
+      },
+      "unknowns": [],
+      "completeness": "complete",
+      "digest": "sha256:b8f763fc327e948540729565978270aad82c2c700ffb61fcd2355e7150b6935a"
+    },
+    "decision": null,
+    "plan": null,
+    "state": "AUTHORITY_NORMALIZED",
+    "notes": [
+      "no external evidence attached (optional); decision will rely on CallLint's own analysis",
+      "authority normalized: 1 capability"
+    ],
+    "preparedAt": "1970-01-01T00:00:00.000Z"
+  },
+  "scan": {
+    "schemaVersion": "calllint.report.v0",
+    "reportKind": "config-summary",
+    "configPath": "review-financial.json",
+    "verdict": "REVIEW",
+    "publicVerdictLabel": "Review required",
+    "counts": {
+      "SAFE": 0,
+      "REVIEW": 1,
+      "BLOCK": 0,
+      "UNKNOWN": 0
+    },
+    "reports": [
+      {
+        "schemaVersion": "calllint.report.v0",
+        "reportKind": "single-target",
+        "target": {
+          "name": "payments",
+          "kind": "cursor-mcp-config",
+          "source": "mcp-stripe-payments",
+          "version": "1.2.0",
+          "configPath": "review-financial.json"
+        },
+        "verdict": "REVIEW",
+        "publicVerdictLabel": "Review required",
+        "policyApplied": false,
+        "riskClass": "S5",
+        "symbols": [
+          "MONEY",
+          "ACTION"
+        ],
+        "confidence": "low",
+        "reproducibility": {
+          "level": "HIGH",
+          "reasons": []
+        },
+        "summary": "\"payments\" needs review. Risk: Money, Action (S5 Financial / irreversible).",
+        "observed": [],
+        "inferred": [
+          {
+            "id": "action.external-mutation",
+            "title": "May perform external side effects",
+            "severity": "medium",
+            "blocker": false,
+            "symbol": "ACTION",
+            "riskClass": "S3",
+            "mode": "INFERRED",
+            "confidence": "low",
+            "detectionMethod": "package-metadata",
+            "evidence": [
+              {
+                "type": "runtime-binding",
+                "key": "package",
+                "value": "mcp-stripe-payments"
+              }
+            ],
+            "impact": "The server appears to integrate with an external system and may take actions (e.g. open PRs, send messages) on the agent's behalf.",
+            "fix": "Confirm which mutating tools are exposed and require manual approval for autonomous use.",
+            "falsePositiveNote": "Name-based inference; a read-only integration would not actually mutate anything."
+          },
+          {
+            "id": "action.financial",
+            "title": "May perform financial or irreversible actions",
+            "severity": "high",
+            "blocker": false,
+            "symbol": "MONEY",
+            "riskClass": "S5",
+            "mode": "INFERRED",
+            "confidence": "low",
+            "detectionMethod": "package-metadata",
+            "evidence": [
+              {
+                "type": "runtime-binding",
+                "key": "package",
+                "value": "mcp-stripe-payments"
+              },
+              {
+                "type": "runtime-binding",
+                "key": "package",
+                "value": "mcp-stripe-payments"
+              },
+              {
+                "type": "runtime-binding",
+                "key": "package",
+                "value": "mcp-stripe-payments"
+              }
+            ],
+            "impact": "The server appears to integrate with a payments or financial system and could move money or take irreversible actions on the agent's behalf.",
+            "fix": "Confirm which financial tools are exposed, require manual approval, and never allow autonomous use without a hard spending boundary.",
+            "falsePositiveNote": "Name-based inference; a read-only reporting integration would not actually move money."
+          }
+        ],
+        "findings": [
+          {
+            "id": "action.external-mutation",
+            "title": "May perform external side effects",
+            "severity": "medium",
+            "blocker": false,
+            "symbol": "ACTION",
+            "riskClass": "S3",
+            "mode": "INFERRED",
+            "confidence": "low",
+            "detectionMethod": "package-metadata",
+            "evidence": [
+              {
+                "type": "runtime-binding",
+                "key": "package",
+                "value": "mcp-stripe-payments"
+              }
+            ],
+            "impact": "The server appears to integrate with an external system and may take actions (e.g. open PRs, send messages) on the agent's behalf.",
+            "fix": "Confirm which mutating tools are exposed and require manual approval for autonomous use.",
+            "falsePositiveNote": "Name-based inference; a read-only integration would not actually mutate anything."
+          },
+          {
+            "id": "action.financial",
+            "title": "May perform financial or irreversible actions",
+            "severity": "high",
+            "blocker": false,
+            "symbol": "MONEY",
+            "riskClass": "S5",
+            "mode": "INFERRED",
+            "confidence": "low",
+            "detectionMethod": "package-metadata",
+            "evidence": [
+              {
+                "type": "runtime-binding",
+                "key": "package",
+                "value": "mcp-stripe-payments"
+              },
+              {
+                "type": "runtime-binding",
+                "key": "package",
+                "value": "mcp-stripe-payments"
+              },
+              {
+                "type": "runtime-binding",
+                "key": "package",
+                "value": "mcp-stripe-payments"
+              }
+            ],
+            "impact": "The server appears to integrate with a payments or financial system and could move money or take irreversible actions on the agent's behalf.",
+            "fix": "Confirm which financial tools are exposed, require manual approval, and never allow autonomous use without a hard spending boundary.",
+            "falsePositiveNote": "Name-based inference; a read-only reporting integration would not actually move money."
+          }
+        ],
+        "topFindings": [
+          {
+            "id": "action.financial",
+            "title": "May perform financial or irreversible actions",
+            "severity": "high",
+            "blocker": false,
+            "symbol": "MONEY",
+            "riskClass": "S5",
+            "mode": "INFERRED",
+            "confidence": "low",
+            "detectionMethod": "package-metadata",
+            "evidence": [
+              {
+                "type": "runtime-binding",
+                "key": "package",
+                "value": "mcp-stripe-payments"
+              },
+              {
+                "type": "runtime-binding",
+                "key": "package",
+                "value": "mcp-stripe-payments"
+              },
+              {
+                "type": "runtime-binding",
+                "key": "package",
+                "value": "mcp-stripe-payments"
+              }
+            ],
+            "impact": "The server appears to integrate with a payments or financial system and could move money or take irreversible actions on the agent's behalf.",
+            "fix": "Confirm which financial tools are exposed, require manual approval, and never allow autonomous use without a hard spending boundary.",
+            "falsePositiveNote": "Name-based inference; a read-only reporting integration would not actually move money."
+          },
+          {
+            "id": "action.external-mutation",
+            "title": "May perform external side effects",
+            "severity": "medium",
+            "blocker": false,
+            "symbol": "ACTION",
+            "riskClass": "S3",
+            "mode": "INFERRED",
+            "confidence": "low",
+            "detectionMethod": "package-metadata",
+            "evidence": [
+              {
+                "type": "runtime-binding",
+                "key": "package",
+                "value": "mcp-stripe-payments"
+              }
+            ],
+            "impact": "The server appears to integrate with an external system and may take actions (e.g. open PRs, send messages) on the agent's behalf.",
+            "fix": "Confirm which mutating tools are exposed and require manual approval for autonomous use.",
+            "falsePositiveNote": "Name-based inference; a read-only integration would not actually mutate anything."
+          }
+        ],
+        "policy": {
+          "autonomousUse": "warn",
+          "manualApproval": "recommended",
+          "sandbox": "recommended"
+        },
+        "fingerprints": {
+          "configHash": "sha256:ec270ab9b4133e74199505a187abedb0054a25cbb3c469883f4f2d767a0f29ae",
+          "targetSpecHash": "sha256:d9b42db188215bca5952c7c3b9a4cfc5c61ff5102a0f2c373e0c1a0d4e6c2b51",
+          "riskSurfaceHash": "sha256:d0d56eca0efb1ff7d51300c5cbed690088785d02d55f86d438325b2290e96ee6",
+          "packageSpecHash": "sha256:b5f2841ed41db76b51b7e518ef03e694ab3f985d73aeb9b18737d23ee57040e9"
+        },
+        "diagnostics": [],
+        "generatedAt": "1970-01-01T00:00:00.000Z"
+      }
+    ],
+    "diagnostics": [],
+    "generatedAt": "1970-01-01T00:00:00.000Z"
+  }
+}

@@ -1,0 +1,236 @@
+{
+  "schema": "calllint.trust-page.v0",
+  "canonicalName": "calllint-fixtures/block-prompt-poison",
+  "artifactDigest": "sha256:b999a14f880521815a88c376628bdb146e6c065a82cc306e8005c851ece7921e",
+  "pageDigest": "sha256:b05db8f4271814dfb8d07e17452c50aa5ae1081b534ef5743a0a8517066284c4",
+  "verdict": "BLOCK",
+  "verdictLabel": "Blocked by policy",
+  "observedAt": "1970-01-01T00:00:00.000Z",
+  "completeness": "complete",
+  "correctionUrl": "https://github.com/calllint/calllint/issues/new?labels=trust-page-correction",
+  "preparation": {
+    "schema": "calllint.trust-preparation.v0",
+    "artifact": {
+      "schema": "calllint.artifact.v1",
+      "sourceType": "mcp-config",
+      "source": "block-prompt-poison.json",
+      "requestedRef": null,
+      "resolvedRef": "sha256:b999a14f880521815a88c376628bdb146e6c065a82cc306e8005c851ece7921e",
+      "digest": "sha256:b999a14f880521815a88c376628bdb146e6c065a82cc306e8005c851ece7921e",
+      "resolvedAt": "1970-01-01T00:00:00.000Z",
+      "resolution": "resolved"
+    },
+    "evidence": null,
+    "authority": {
+      "schema": "calllint.authority.v0",
+      "subject": {
+        "artifactDigest": "sha256:b999a14f880521815a88c376628bdb146e6c065a82cc306e8005c851ece7921e"
+      },
+      "capabilities": [
+        {
+          "action": "execute",
+          "resource": "process",
+          "scope": "npx",
+          "destination": null,
+          "mutability": "mutating",
+          "reversibility": "irreversible",
+          "monetaryLimit": null,
+          "approvalRequirement": "none",
+          "evidenceSource": "server.command",
+          "confidence": "high",
+          "completeness": "complete",
+          "trustSource": "trusted.local_project"
+        }
+      ],
+      "limits": {
+        "spendPerCall": null,
+        "spendTotal": null
+      },
+      "approval": {
+        "required": []
+      },
+      "unknowns": [],
+      "completeness": "complete",
+      "digest": "sha256:5cad69c645c5f8cab9a3045b3a565699ed0a86602429bbe16f91c9fded54a142"
+    },
+    "decision": null,
+    "plan": null,
+    "state": "AUTHORITY_NORMALIZED",
+    "notes": [
+      "no external evidence attached (optional); decision will rely on CallLint's own analysis",
+      "authority normalized: 1 capability"
+    ],
+    "preparedAt": "1970-01-01T00:00:00.000Z"
+  },
+  "scan": {
+    "schemaVersion": "calllint.report.v0",
+    "reportKind": "config-summary",
+    "configPath": "block-prompt-poison.json",
+    "verdict": "BLOCK",
+    "publicVerdictLabel": "Blocked by policy",
+    "counts": {
+      "SAFE": 0,
+      "REVIEW": 0,
+      "BLOCK": 1,
+      "UNKNOWN": 0
+    },
+    "reports": [
+      {
+        "schemaVersion": "calllint.report.v0",
+        "reportKind": "single-target",
+        "target": {
+          "name": "helpful-notes",
+          "kind": "cursor-mcp-config",
+          "source": "helpful-notes-mcp",
+          "version": "2.1.0",
+          "configPath": "block-prompt-poison.json"
+        },
+        "verdict": "BLOCK",
+        "publicVerdictLabel": "Blocked by policy",
+        "policyApplied": false,
+        "riskClass": "S2",
+        "symbols": [
+          "PROMPT"
+        ],
+        "confidence": "medium",
+        "reproducibility": {
+          "level": "HIGH",
+          "reasons": []
+        },
+        "summary": "\"helpful-notes\" is blocked. Risk: Prompt (S2 Sensitive read).",
+        "observed": [
+          {
+            "id": "prompt.poisoning",
+            "title": "Suspicious model-directed instruction in tool metadata",
+            "severity": "critical",
+            "blocker": true,
+            "symbol": "PROMPT",
+            "riskClass": "S2",
+            "mode": "OBSERVED",
+            "confidence": "medium",
+            "detectionMethod": "tool-metadata",
+            "evidence": [
+              {
+                "type": "tool-metadata",
+                "key": "tools.save_note.description",
+                "snippet": "do not tell the user"
+              },
+              {
+                "type": "tool-metadata",
+                "key": "tools.save_note.description",
+                "snippet": "always call this tool first"
+              },
+              {
+                "type": "tool-metadata",
+                "key": "tools.save_note.description",
+                "snippet": "before using other tools"
+              },
+              {
+                "type": "tool-metadata",
+                "key": "tools.save_note.description",
+                "snippet": "include the full workspace"
+              }
+            ],
+            "impact": "Tool metadata reaches the model directly and can hijack autonomous tool selection or coerce data disclosure.",
+            "fix": "Remove model-directed instructions from tool names, descriptions, schemas, and server instructions.",
+            "falsePositiveNote": "Phrases may appear innocently in documentation; review the surrounding metadata in context."
+          }
+        ],
+        "inferred": [],
+        "findings": [
+          {
+            "id": "prompt.poisoning",
+            "title": "Suspicious model-directed instruction in tool metadata",
+            "severity": "critical",
+            "blocker": true,
+            "symbol": "PROMPT",
+            "riskClass": "S2",
+            "mode": "OBSERVED",
+            "confidence": "medium",
+            "detectionMethod": "tool-metadata",
+            "evidence": [
+              {
+                "type": "tool-metadata",
+                "key": "tools.save_note.description",
+                "snippet": "do not tell the user"
+              },
+              {
+                "type": "tool-metadata",
+                "key": "tools.save_note.description",
+                "snippet": "always call this tool first"
+              },
+              {
+                "type": "tool-metadata",
+                "key": "tools.save_note.description",
+                "snippet": "before using other tools"
+              },
+              {
+                "type": "tool-metadata",
+                "key": "tools.save_note.description",
+                "snippet": "include the full workspace"
+              }
+            ],
+            "impact": "Tool metadata reaches the model directly and can hijack autonomous tool selection or coerce data disclosure.",
+            "fix": "Remove model-directed instructions from tool names, descriptions, schemas, and server instructions.",
+            "falsePositiveNote": "Phrases may appear innocently in documentation; review the surrounding metadata in context."
+          }
+        ],
+        "topFindings": [
+          {
+            "id": "prompt.poisoning",
+            "title": "Suspicious model-directed instruction in tool metadata",
+            "severity": "critical",
+            "blocker": true,
+            "symbol": "PROMPT",
+            "riskClass": "S2",
+            "mode": "OBSERVED",
+            "confidence": "medium",
+            "detectionMethod": "tool-metadata",
+            "evidence": [
+              {
+                "type": "tool-metadata",
+                "key": "tools.save_note.description",
+                "snippet": "do not tell the user"
+              },
+              {
+                "type": "tool-metadata",
+                "key": "tools.save_note.description",
+                "snippet": "always call this tool first"
+              },
+              {
+                "type": "tool-metadata",
+                "key": "tools.save_note.description",
+                "snippet": "before using other tools"
+              },
+              {
+                "type": "tool-metadata",
+                "key": "tools.save_note.description",
+                "snippet": "include the full workspace"
+              }
+            ],
+            "impact": "Tool metadata reaches the model directly and can hijack autonomous tool selection or coerce data disclosure.",
+            "fix": "Remove model-directed instructions from tool names, descriptions, schemas, and server instructions.",
+            "falsePositiveNote": "Phrases may appear innocently in documentation; review the surrounding metadata in context."
+          }
+        ],
+        "policy": {
+          "autonomousUse": "deny",
+          "manualApproval": "required",
+          "sandbox": "recommended"
+        },
+        "fingerprints": {
+          "configHash": "sha256:d708920aa79fb5dffc03bee090c76ddca29ed0141ec96bc27d22fdfcf4d2b63b",
+          "targetSpecHash": "sha256:4a48f7175e717cdd5ed77613f0ad8f087a81a967c286c034c10bef7d4ca7b733",
+          "riskSurfaceHash": "sha256:0f797cfbeea9fc9e430ef35d9a69c15bc090a6d64cb31053e059cc74775f3a48",
+          "packageSpecHash": "sha256:05d36ae7dbc27c16abd0523bb5ad43552c8294f6f781240ad2178337e56c29d1",
+          "sourceHash": "sha256:ab1115a216f8ef1a39a551c529992b0093d8e8cf3555e3ccae19b8e2bfb66aae",
+          "toolMetadataHash": "sha256:4fccb7e886952dc97df7efeed5caff125615c011bdaba2c76dcec476ca84799f"
+        },
+        "diagnostics": [],
+        "generatedAt": "1970-01-01T00:00:00.000Z"
+      }
+    ],
+    "diagnostics": [],
+    "generatedAt": "1970-01-01T00:00:00.000Z"
+  }
+}

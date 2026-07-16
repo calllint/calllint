@@ -25,6 +25,7 @@
     "bench:test": "node scripts/run-bench.mjs",
     "bench:test:verbose": "node scripts/run-bench.mjs --verbose",
     "check:public-copy": "node scripts/check-public-copy.mjs",
+    "bake:trust-index": "pnpm --filter @calllint/trust-index bake",
     "ci:local": "pnpm typecheck && pnpm test && pnpm build && pnpm corpus:test && pnpm bench:test && pnpm check:public-copy && pnpm audit:evidence"
   },
   "devDependencies": {

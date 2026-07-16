@@ -1,0 +1,194 @@
+{
+  "schema": "calllint.trust-page.v0",
+  "canonicalName": "calllint-fixtures/review-hidden-instructions",
+  "artifactDigest": "sha256:6cddab4f5ad9b47f58e821f667e041a91622ece242394749278040365687bab9",
+  "pageDigest": "sha256:5cf94224cf756dc15625d492c7050ff25ca12ec7aade27c6a9cb0adc2d795afe",
+  "verdict": "REVIEW",
+  "verdictLabel": "Review required",
+  "observedAt": "1970-01-01T00:00:00.000Z",
+  "completeness": "complete",
+  "correctionUrl": "https://github.com/calllint/calllint/issues/new?labels=trust-page-correction",
+  "preparation": {
+    "schema": "calllint.trust-preparation.v0",
+    "artifact": {
+      "schema": "calllint.artifact.v1",
+      "sourceType": "mcp-config",
+      "source": "review-hidden-instructions.json",
+      "requestedRef": null,
+      "resolvedRef": "sha256:6cddab4f5ad9b47f58e821f667e041a91622ece242394749278040365687bab9",
+      "digest": "sha256:6cddab4f5ad9b47f58e821f667e041a91622ece242394749278040365687bab9",
+      "resolvedAt": "1970-01-01T00:00:00.000Z",
+      "resolution": "resolved"
+    },
+    "evidence": null,
+    "authority": {
+      "schema": "calllint.authority.v0",
+      "subject": {
+        "artifactDigest": "sha256:6cddab4f5ad9b47f58e821f667e041a91622ece242394749278040365687bab9"
+      },
+      "capabilities": [
+        {
+          "action": "execute",
+          "resource": "process",
+          "scope": "npx",
+          "destination": null,
+          "mutability": "mutating",
+          "reversibility": "irreversible",
+          "monetaryLimit": null,
+          "approvalRequirement": "none",
+          "evidenceSource": "server.command",
+          "confidence": "high",
+          "completeness": "complete",
+          "trustSource": "trusted.local_project"
+        }
+      ],
+      "limits": {
+        "spendPerCall": null,
+        "spendTotal": null
+      },
+      "approval": {
+        "required": []
+      },
+      "unknowns": [],
+      "completeness": "complete",
+      "digest": "sha256:681fc5063dcc72fbe22f735202ac14664f2effc610dfb6439417ea2489d06f03"
+    },
+    "decision": null,
+    "plan": null,
+    "state": "AUTHORITY_NORMALIZED",
+    "notes": [
+      "no external evidence attached (optional); decision will rely on CallLint's own analysis",
+      "authority normalized: 1 capability"
+    ],
+    "preparedAt": "1970-01-01T00:00:00.000Z"
+  },
+  "scan": {
+    "schemaVersion": "calllint.report.v0",
+    "reportKind": "config-summary",
+    "configPath": "review-hidden-instructions.json",
+    "verdict": "REVIEW",
+    "publicVerdictLabel": "Review required",
+    "counts": {
+      "SAFE": 0,
+      "REVIEW": 1,
+      "BLOCK": 0,
+      "UNKNOWN": 0
+    },
+    "reports": [
+      {
+        "schemaVersion": "calllint.report.v0",
+        "reportKind": "single-target",
+        "target": {
+          "name": "notes",
+          "kind": "cursor-mcp-config",
+          "source": "notes-mcp",
+          "version": "3.0.0",
+          "configPath": "review-hidden-instructions.json"
+        },
+        "verdict": "REVIEW",
+        "publicVerdictLabel": "Review required",
+        "policyApplied": false,
+        "riskClass": "S2",
+        "symbols": [
+          "PROMPT"
+        ],
+        "confidence": "medium",
+        "reproducibility": {
+          "level": "HIGH",
+          "reasons": []
+        },
+        "summary": "\"notes\" needs review. Risk: Prompt (S2 Sensitive read).",
+        "observed": [
+          {
+            "id": "prompt.hidden-instructions",
+            "title": "Hidden or obfuscated content in model-visible metadata",
+            "severity": "medium",
+            "blocker": false,
+            "symbol": "PROMPT",
+            "riskClass": "S2",
+            "mode": "OBSERVED",
+            "confidence": "medium",
+            "detectionMethod": "tool-metadata",
+            "evidence": [
+              {
+                "type": "tool-metadata",
+                "path": "review-hidden-instructions.json",
+                "key": "tools.save_note.description",
+                "snippet": "embedded HTML/XML comment"
+              }
+            ],
+            "impact": "Invisible or obfuscated characters in tool metadata reach the model but not a human reader, so a model-directed instruction can hide from review while still steering autonomous tool use.",
+            "fix": "Remove zero-width/bidirectional/tag characters and HTML comments from tool names, descriptions, schemas, and server instructions; keep model-visible text identical to what a human reviewer sees.",
+            "falsePositiveNote": "Some hidden characters are benign (e.g. a BOM, or a bidi control in a legitimate right-to-left language sample, or an HTML comment in documentation). This flags that the model-visible text differs from the rendered text; review the surface in context."
+          }
+        ],
+        "inferred": [],
+        "findings": [
+          {
+            "id": "prompt.hidden-instructions",
+            "title": "Hidden or obfuscated content in model-visible metadata",
+            "severity": "medium",
+            "blocker": false,
+            "symbol": "PROMPT",
+            "riskClass": "S2",
+            "mode": "OBSERVED",
+            "confidence": "medium",
+            "detectionMethod": "tool-metadata",
+            "evidence": [
+              {
+                "type": "tool-metadata",
+                "path": "review-hidden-instructions.json",
+                "key": "tools.save_note.description",
+                "snippet": "embedded HTML/XML comment"
+              }
+            ],
+            "impact": "Invisible or obfuscated characters in tool metadata reach the model but not a human reader, so a model-directed instruction can hide from review while still steering autonomous tool use.",
+            "fix": "Remove zero-width/bidirectional/tag characters and HTML comments from tool names, descriptions, schemas, and server instructions; keep model-visible text identical to what a human reviewer sees.",
+            "falsePositiveNote": "Some hidden characters are benign (e.g. a BOM, or a bidi control in a legitimate right-to-left language sample, or an HTML comment in documentation). This flags that the model-visible text differs from the rendered text; review the surface in context."
+          }
+        ],
+        "topFindings": [
+          {
+            "id": "prompt.hidden-instructions",
+            "title": "Hidden or obfuscated content in model-visible metadata",
+            "severity": "medium",
+            "blocker": false,
+            "symbol": "PROMPT",
+            "riskClass": "S2",
+            "mode": "OBSERVED",
+            "confidence": "medium",
+            "detectionMethod": "tool-metadata",
+            "evidence": [
+              {
+                "type": "tool-metadata",
+                "path": "review-hidden-instructions.json",
+                "key": "tools.save_note.description",
+                "snippet": "embedded HTML/XML comment"
+              }
+            ],
+            "impact": "Invisible or obfuscated characters in tool metadata reach the model but not a human reader, so a model-directed instruction can hide from review while still steering autonomous tool use.",
+            "fix": "Remove zero-width/bidirectional/tag characters and HTML comments from tool names, descriptions, schemas, and server instructions; keep model-visible text identical to what a human reviewer sees.",
+            "falsePositiveNote": "Some hidden characters are benign (e.g. a BOM, or a bidi control in a legitimate right-to-left language sample, or an HTML comment in documentation). This flags that the model-visible text differs from the rendered text; review the surface in context."
+          }
+        ],
+        "policy": {
+          "autonomousUse": "warn",
+          "manualApproval": "recommended",
+          "sandbox": "recommended"
+        },
+        "fingerprints": {
+          "configHash": "sha256:242e0ac73bb043bfda0894c8b4bdf02c379cd65834347cf6a4956beb040553b8",
+          "targetSpecHash": "sha256:55e96a16b2a0652e8751ae7aa9d106d78ad166af9dd31be90ade853c938cf33e",
+          "riskSurfaceHash": "sha256:5d7c5ef83157ef038f0d20a2a8027378b79d17ab2c85fe1c24fe757b520625bf",
+          "packageSpecHash": "sha256:4bd3cd193e8c1201db62470a3d83a0c81062066543c8af6fcebc8f8b6e57460e",
+          "sourceHash": "sha256:7cb828b1134a771fe9ba378ecf75230a84a425209a6a5074c2122d2e5cfaa72a",
+          "toolMetadataHash": "sha256:5f840154ad31c48b3c94effa19213af068c379e22341b01d543da3f7d0561171"
+        },
+        "diagnostics": [],
+        "generatedAt": "1970-01-01T00:00:00.000Z"
+      }
+    ],
+    "diagnostics": [],
+    "generatedAt": "1970-01-01T00:00:00.000Z"
+  }
+}

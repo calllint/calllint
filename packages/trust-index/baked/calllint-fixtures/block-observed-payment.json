@@ -1,0 +1,316 @@
+{
+  "schema": "calllint.trust-page.v0",
+  "canonicalName": "calllint-fixtures/block-observed-payment",
+  "artifactDigest": "sha256:578dd3d4f69fdd0a9deeef6d27451ee160627ab7c05e300b1a6f8a438bb3cf11",
+  "pageDigest": "sha256:58dc9a9c42f7e2917f96f2502ef9675b48f2ca717b4110b722a1d0203238fcde",
+  "verdict": "BLOCK",
+  "verdictLabel": "Blocked by policy",
+  "observedAt": "1970-01-01T00:00:00.000Z",
+  "completeness": "complete",
+  "correctionUrl": "https://github.com/calllint/calllint/issues/new?labels=trust-page-correction",
+  "preparation": {
+    "schema": "calllint.trust-preparation.v0",
+    "artifact": {
+      "schema": "calllint.artifact.v1",
+      "sourceType": "mcp-config",
+      "source": "block-observed-payment.json",
+      "requestedRef": null,
+      "resolvedRef": "sha256:578dd3d4f69fdd0a9deeef6d27451ee160627ab7c05e300b1a6f8a438bb3cf11",
+      "digest": "sha256:578dd3d4f69fdd0a9deeef6d27451ee160627ab7c05e300b1a6f8a438bb3cf11",
+      "resolvedAt": "1970-01-01T00:00:00.000Z",
+      "resolution": "resolved"
+    },
+    "evidence": null,
+    "authority": {
+      "schema": "calllint.authority.v0",
+      "subject": {
+        "artifactDigest": "sha256:578dd3d4f69fdd0a9deeef6d27451ee160627ab7c05e300b1a6f8a438bb3cf11"
+      },
+      "capabilities": [
+        {
+          "action": "execute",
+          "resource": "process",
+          "scope": "npx",
+          "destination": null,
+          "mutability": "mutating",
+          "reversibility": "irreversible",
+          "monetaryLimit": null,
+          "approvalRequirement": "none",
+          "evidenceSource": "server.command",
+          "confidence": "high",
+          "completeness": "complete",
+          "trustSource": "trusted.local_project"
+        },
+        {
+          "action": "read",
+          "resource": "secret",
+          "scope": "ACME_API_TOKEN",
+          "destination": null,
+          "mutability": "read-only",
+          "reversibility": "n/a",
+          "monetaryLimit": null,
+          "approvalRequirement": "review",
+          "evidenceSource": "server.env.ACME_API_TOKEN",
+          "confidence": "medium",
+          "completeness": "complete",
+          "trustSource": "sensitive.secret"
+        }
+      ],
+      "limits": {
+        "spendPerCall": null,
+        "spendTotal": null
+      },
+      "approval": {
+        "required": [
+          "secret-read"
+        ]
+      },
+      "unknowns": [],
+      "completeness": "complete",
+      "digest": "sha256:9bd7d13dca92f416098df154c660db8430676e81136a1f375bb97dca65db4012"
+    },
+    "decision": null,
+    "plan": null,
+    "state": "AUTHORITY_NORMALIZED",
+    "notes": [
+      "no external evidence attached (optional); decision will rely on CallLint's own analysis",
+      "authority normalized: 2 capabilities, approvals required: secret-read"
+    ],
+    "preparedAt": "1970-01-01T00:00:00.000Z"
+  },
+  "scan": {
+    "schemaVersion": "calllint.report.v0",
+    "reportKind": "config-summary",
+    "configPath": "block-observed-payment.json",
+    "verdict": "BLOCK",
+    "publicVerdictLabel": "Blocked by policy",
+    "counts": {
+      "SAFE": 0,
+      "REVIEW": 0,
+      "BLOCK": 1,
+      "UNKNOWN": 0
+    },
+    "reports": [
+      {
+        "schemaVersion": "calllint.report.v0",
+        "reportKind": "single-target",
+        "target": {
+          "name": "merchant",
+          "kind": "cursor-mcp-config",
+          "source": "acme-commerce-mcp",
+          "version": "3.0.0",
+          "configPath": "block-observed-payment.json"
+        },
+        "verdict": "BLOCK",
+        "publicVerdictLabel": "Blocked by policy",
+        "policyApplied": false,
+        "riskClass": "S5",
+        "symbols": [
+          "MONEY",
+          "SECRETS"
+        ],
+        "confidence": "medium",
+        "reproducibility": {
+          "level": "HIGH",
+          "reasons": []
+        },
+        "summary": "\"merchant\" is blocked. Risk: Money, Secrets (S5 Financial / irreversible).",
+        "observed": [
+          {
+            "id": "secrets.env-key",
+            "title": "Server is configured with credentials",
+            "severity": "medium",
+            "blocker": false,
+            "symbol": "SECRETS",
+            "riskClass": "S2",
+            "mode": "OBSERVED",
+            "confidence": "medium",
+            "detectionMethod": "env-analysis",
+            "evidence": [
+              {
+                "type": "config",
+                "path": "block-observed-payment.json",
+                "key": "env",
+                "value": "ACME_API_TOKEN",
+                "line": 6,
+                "column": 7
+              }
+            ],
+            "impact": "The server receives credentials. If the agent invokes it autonomously, those credentials act on the agent's behalf.",
+            "fix": "Confirm the credential scope is minimal and that autonomous use is intended; prefer least-privilege tokens.",
+            "falsePositiveNote": "Most API-backed servers legitimately require a token; this flags the data-sensitivity surface, not a vulnerability."
+          },
+          {
+            "id": "action.financial-observed",
+            "title": "Exposes an observed money-moving action",
+            "severity": "critical",
+            "blocker": true,
+            "symbol": "MONEY",
+            "riskClass": "S5",
+            "mode": "OBSERVED",
+            "confidence": "high",
+            "detectionMethod": "tool-metadata",
+            "evidence": [
+              {
+                "type": "tool-metadata",
+                "key": "tool",
+                "value": "create_payment"
+              },
+              {
+                "type": "tool-metadata",
+                "key": "tool",
+                "value": "issue_refund"
+              },
+              {
+                "type": "config",
+                "key": "env",
+                "value": "credential present",
+                "line": 6,
+                "column": 7
+              }
+            ],
+            "impact": "A provided tool explicitly performs a financial action (e.g. create a payment, transfer funds, issue a refund) and the server carries credentials or network access. An autonomous agent invoking it could move money irreversibly.",
+            "fix": "Require explicit human approval for this tool, enforce a hard spending boundary, and never allow autonomous invocation.",
+            "falsePositiveNote": "If the tool only reads payment data (not moves money), reclassify it; this fires on money-moving verbs in the model-visible metadata."
+          }
+        ],
+        "inferred": [],
+        "findings": [
+          {
+            "id": "secrets.env-key",
+            "title": "Server is configured with credentials",
+            "severity": "medium",
+            "blocker": false,
+            "symbol": "SECRETS",
+            "riskClass": "S2",
+            "mode": "OBSERVED",
+            "confidence": "medium",
+            "detectionMethod": "env-analysis",
+            "evidence": [
+              {
+                "type": "config",
+                "path": "block-observed-payment.json",
+                "key": "env",
+                "value": "ACME_API_TOKEN",
+                "line": 6,
+                "column": 7
+              }
+            ],
+            "impact": "The server receives credentials. If the agent invokes it autonomously, those credentials act on the agent's behalf.",
+            "fix": "Confirm the credential scope is minimal and that autonomous use is intended; prefer least-privilege tokens.",
+            "falsePositiveNote": "Most API-backed servers legitimately require a token; this flags the data-sensitivity surface, not a vulnerability."
+          },
+          {
+            "id": "action.financial-observed",
+            "title": "Exposes an observed money-moving action",
+            "severity": "critical",
+            "blocker": true,
+            "symbol": "MONEY",
+            "riskClass": "S5",
+            "mode": "OBSERVED",
+            "confidence": "high",
+            "detectionMethod": "tool-metadata",
+            "evidence": [
+              {
+                "type": "tool-metadata",
+                "key": "tool",
+                "value": "create_payment"
+              },
+              {
+                "type": "tool-metadata",
+                "key": "tool",
+                "value": "issue_refund"
+              },
+              {
+                "type": "config",
+                "key": "env",
+                "value": "credential present",
+                "line": 6,
+                "column": 7
+              }
+            ],
+            "impact": "A provided tool explicitly performs a financial action (e.g. create a payment, transfer funds, issue a refund) and the server carries credentials or network access. An autonomous agent invoking it could move money irreversibly.",
+            "fix": "Require explicit human approval for this tool, enforce a hard spending boundary, and never allow autonomous invocation.",
+            "falsePositiveNote": "If the tool only reads payment data (not moves money), reclassify it; this fires on money-moving verbs in the model-visible metadata."
+          }
+        ],
+        "topFindings": [
+          {
+            "id": "action.financial-observed",
+            "title": "Exposes an observed money-moving action",
+            "severity": "critical",
+            "blocker": true,
+            "symbol": "MONEY",
+            "riskClass": "S5",
+            "mode": "OBSERVED",
+            "confidence": "high",
+            "detectionMethod": "tool-metadata",
+            "evidence": [
+              {
+                "type": "tool-metadata",
+                "key": "tool",
+                "value": "create_payment"
+              },
+              {
+                "type": "tool-metadata",
+                "key": "tool",
+                "value": "issue_refund"
+              },
+              {
+                "type": "config",
+                "key": "env",
+                "value": "credential present",
+                "line": 6,
+                "column": 7
+              }
+            ],
+            "impact": "A provided tool explicitly performs a financial action (e.g. create a payment, transfer funds, issue a refund) and the server carries credentials or network access. An autonomous agent invoking it could move money irreversibly.",
+            "fix": "Require explicit human approval for this tool, enforce a hard spending boundary, and never allow autonomous invocation.",
+            "falsePositiveNote": "If the tool only reads payment data (not moves money), reclassify it; this fires on money-moving verbs in the model-visible metadata."
+          },
+          {
+            "id": "secrets.env-key",
+            "title": "Server is configured with credentials",
+            "severity": "medium",
+            "blocker": false,
+            "symbol": "SECRETS",
+            "riskClass": "S2",
+            "mode": "OBSERVED",
+            "confidence": "medium",
+            "detectionMethod": "env-analysis",
+            "evidence": [
+              {
+                "type": "config",
+                "path": "block-observed-payment.json",
+                "key": "env",
+                "value": "ACME_API_TOKEN",
+                "line": 6,
+                "column": 7
+              }
+            ],
+            "impact": "The server receives credentials. If the agent invokes it autonomously, those credentials act on the agent's behalf.",
+            "fix": "Confirm the credential scope is minimal and that autonomous use is intended; prefer least-privilege tokens.",
+            "falsePositiveNote": "Most API-backed servers legitimately require a token; this flags the data-sensitivity surface, not a vulnerability."
+          }
+        ],
+        "policy": {
+          "autonomousUse": "deny",
+          "manualApproval": "required",
+          "sandbox": "required"
+        },
+        "fingerprints": {
+          "configHash": "sha256:9bb3198e0b02acb912862a2be6658d6dd117dfc3b47d74e483dde0fe45c3b384",
+          "targetSpecHash": "sha256:1ea117d6d8c3f29d5a277e7d5eb3bf8fe5dc324ff75d2a616908b68221d014eb",
+          "riskSurfaceHash": "sha256:fee42d7faa1ecc0dfca2fef052ef6f230a3ea0588f0b576109ba134e097b3964",
+          "packageSpecHash": "sha256:308b52f310f980fa7446474c8256c52a9736dae25b66909651e383a2d3a90b31",
+          "sourceHash": "sha256:156417eb185cdf9d7b1d2d681b037aa2cac123a4cb4d56ce48d5b8f2dc600d8a",
+          "toolMetadataHash": "sha256:1a095f5df0aae73699355c15ed9f077c43738eb8deae37cfda6b89f522790dd7"
+        },
+        "diagnostics": [],
+        "generatedAt": "1970-01-01T00:00:00.000Z"
+      }
+    ],
+    "diagnostics": [],
+    "generatedAt": "1970-01-01T00:00:00.000Z"
+  }
+}

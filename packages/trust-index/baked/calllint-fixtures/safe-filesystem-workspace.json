@@ -1,0 +1,121 @@
+{
+  "schema": "calllint.trust-page.v0",
+  "canonicalName": "calllint-fixtures/safe-filesystem-workspace",
+  "artifactDigest": "sha256:e348a92f54aa515bf94c1a272b1caf2567445ce76742ca38a1b1acb17c04753f",
+  "pageDigest": "sha256:ffa85c39f2855bd9e95a778e83badebc32212edd49706f12978af20f6ae68b7c",
+  "verdict": "SAFE",
+  "verdictLabel": "No blockers observed",
+  "observedAt": "1970-01-01T00:00:00.000Z",
+  "completeness": "complete",
+  "correctionUrl": "https://github.com/calllint/calllint/issues/new?labels=trust-page-correction",
+  "preparation": {
+    "schema": "calllint.trust-preparation.v0",
+    "artifact": {
+      "schema": "calllint.artifact.v1",
+      "sourceType": "mcp-config",
+      "source": "safe-filesystem-workspace.json",
+      "requestedRef": null,
+      "resolvedRef": "sha256:e348a92f54aa515bf94c1a272b1caf2567445ce76742ca38a1b1acb17c04753f",
+      "digest": "sha256:e348a92f54aa515bf94c1a272b1caf2567445ce76742ca38a1b1acb17c04753f",
+      "resolvedAt": "1970-01-01T00:00:00.000Z",
+      "resolution": "resolved"
+    },
+    "evidence": null,
+    "authority": {
+      "schema": "calllint.authority.v0",
+      "subject": {
+        "artifactDigest": "sha256:e348a92f54aa515bf94c1a272b1caf2567445ce76742ca38a1b1acb17c04753f"
+      },
+      "capabilities": [
+        {
+          "action": "execute",
+          "resource": "process",
+          "scope": "npx",
+          "destination": null,
+          "mutability": "mutating",
+          "reversibility": "irreversible",
+          "monetaryLimit": null,
+          "approvalRequirement": "none",
+          "evidenceSource": "server.command",
+          "confidence": "high",
+          "completeness": "complete",
+          "trustSource": "trusted.local_project"
+        }
+      ],
+      "limits": {
+        "spendPerCall": null,
+        "spendTotal": null
+      },
+      "approval": {
+        "required": []
+      },
+      "unknowns": [],
+      "completeness": "complete",
+      "digest": "sha256:03ce28c6e089f457f3404b535454bf017a3c305258e0766e2183c2f71e71c660"
+    },
+    "decision": null,
+    "plan": null,
+    "state": "AUTHORITY_NORMALIZED",
+    "notes": [
+      "no external evidence attached (optional); decision will rely on CallLint's own analysis",
+      "authority normalized: 1 capability"
+    ],
+    "preparedAt": "1970-01-01T00:00:00.000Z"
+  },
+  "scan": {
+    "schemaVersion": "calllint.report.v0",
+    "reportKind": "config-summary",
+    "configPath": "safe-filesystem-workspace.json",
+    "verdict": "SAFE",
+    "publicVerdictLabel": "No blockers observed",
+    "counts": {
+      "SAFE": 1,
+      "REVIEW": 0,
+      "BLOCK": 0,
+      "UNKNOWN": 0
+    },
+    "reports": [
+      {
+        "schemaVersion": "calllint.report.v0",
+        "reportKind": "single-target",
+        "target": {
+          "name": "filesystem",
+          "kind": "cursor-mcp-config",
+          "source": "@modelcontextprotocol/server-filesystem",
+          "version": "1.0.0",
+          "configPath": "safe-filesystem-workspace.json"
+        },
+        "verdict": "SAFE",
+        "publicVerdictLabel": "No blockers observed",
+        "policyApplied": false,
+        "riskClass": "S1",
+        "symbols": [],
+        "confidence": "high",
+        "reproducibility": {
+          "level": "HIGH",
+          "reasons": []
+        },
+        "summary": "\"filesystem\" has no blockers observed (S1 Read-only utility).",
+        "observed": [],
+        "inferred": [],
+        "findings": [],
+        "topFindings": [],
+        "policy": {
+          "autonomousUse": "allow",
+          "manualApproval": "none",
+          "sandbox": "none"
+        },
+        "fingerprints": {
+          "configHash": "sha256:ab288737d55099fe8f094cea0b524bb78f9a6396e5fb06760b6b1332cefaa716",
+          "targetSpecHash": "sha256:d9564fb6c2d22ff32b1dbea924d6b0c618f2fb8445dd839c90db14dce84ac05e",
+          "riskSurfaceHash": "sha256:69aae84c996fe93d537b08d906cb339866bd43f10876be403a0f4793915bef33",
+          "packageSpecHash": "sha256:72f4113770bfac3235421acb5c571a2da8c10574979cb5ecd2e470b52dba2139"
+        },
+        "diagnostics": [],
+        "generatedAt": "1970-01-01T00:00:00.000Z"
+      }
+    ],
+    "diagnostics": [],
+    "generatedAt": "1970-01-01T00:00:00.000Z"
+  }
+}

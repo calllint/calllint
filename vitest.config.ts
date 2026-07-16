@@ -21,6 +21,7 @@ export default defineConfig({
       "@calllint/evidence": r("./packages/evidence/src/index.ts"),
       "@calllint/install-planner": r("./packages/install-planner/src/index.ts"),
       "@calllint/flow-analyzer": r("./packages/flow-analyzer/src/index.ts"),
+      "@calllint/trust-index": r("./packages/trust-index/src/index.ts"),
     },
   },
   test: {

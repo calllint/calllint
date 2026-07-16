@@ -1,0 +1,25 @@
+{
+  "name": "@calllint/trust-index",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Phase I ingestion — bakes reproducible, digest-addressed Trust Pages from a fixtures cohort by orchestrating the shipped scan + authority + prepare engines (offline, deterministic, the only scanner; ADR 0046)",
+  "type": "module",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "bake": "tsx src/bake.ts"
+  },
+  "dependencies": {
+    "@calllint/config-parser": "workspace:*",
+    "@calllint/core": "workspace:*",
+    "@calllint/fingerprint": "workspace:*",
+    "@calllint/fixtures": "workspace:*",
+    "@calllint/types": "workspace:*"
+  },
+  "devDependencies": {}
+}

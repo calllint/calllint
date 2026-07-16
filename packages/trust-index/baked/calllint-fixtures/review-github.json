@@ -1,0 +1,279 @@
+{
+  "schema": "calllint.trust-page.v0",
+  "canonicalName": "calllint-fixtures/review-github",
+  "artifactDigest": "sha256:01094e72e14991f802b544388eee6284674fc5558e1f3289b294899e2354147b",
+  "pageDigest": "sha256:32a5209caaeb19f9c60da04ec4978e46f525ba40def0f272d227d9d6def81907",
+  "verdict": "REVIEW",
+  "verdictLabel": "Review required",
+  "observedAt": "1970-01-01T00:00:00.000Z",
+  "completeness": "complete",
+  "correctionUrl": "https://github.com/calllint/calllint/issues/new?labels=trust-page-correction",
+  "preparation": {
+    "schema": "calllint.trust-preparation.v0",
+    "artifact": {
+      "schema": "calllint.artifact.v1",
+      "sourceType": "mcp-config",
+      "source": "review-github.json",
+      "requestedRef": null,
+      "resolvedRef": "sha256:01094e72e14991f802b544388eee6284674fc5558e1f3289b294899e2354147b",
+      "digest": "sha256:01094e72e14991f802b544388eee6284674fc5558e1f3289b294899e2354147b",
+      "resolvedAt": "1970-01-01T00:00:00.000Z",
+      "resolution": "resolved"
+    },
+    "evidence": null,
+    "authority": {
+      "schema": "calllint.authority.v0",
+      "subject": {
+        "artifactDigest": "sha256:01094e72e14991f802b544388eee6284674fc5558e1f3289b294899e2354147b"
+      },
+      "capabilities": [
+        {
+          "action": "execute",
+          "resource": "process",
+          "scope": "npx",
+          "destination": null,
+          "mutability": "mutating",
+          "reversibility": "irreversible",
+          "monetaryLimit": null,
+          "approvalRequirement": "none",
+          "evidenceSource": "server.command",
+          "confidence": "high",
+          "completeness": "complete",
+          "trustSource": "trusted.local_project"
+        },
+        {
+          "action": "read",
+          "resource": "secret",
+          "scope": "GITHUB_TOKEN",
+          "destination": null,
+          "mutability": "read-only",
+          "reversibility": "n/a",
+          "monetaryLimit": null,
+          "approvalRequirement": "review",
+          "evidenceSource": "server.env.GITHUB_TOKEN",
+          "confidence": "medium",
+          "completeness": "complete",
+          "trustSource": "sensitive.secret"
+        }
+      ],
+      "limits": {
+        "spendPerCall": null,
+        "spendTotal": null
+      },
+      "approval": {
+        "required": [
+          "secret-read"
+        ]
+      },
+      "unknowns": [],
+      "completeness": "complete",
+      "digest": "sha256:e1f435eb539eafd0e7a1961b9d3e5469f0089c3ddf0931b7db978117514aa863"
+    },
+    "decision": null,
+    "plan": null,
+    "state": "AUTHORITY_NORMALIZED",
+    "notes": [
+      "no external evidence attached (optional); decision will rely on CallLint's own analysis",
+      "authority normalized: 2 capabilities, approvals required: secret-read"
+    ],
+    "preparedAt": "1970-01-01T00:00:00.000Z"
+  },
+  "scan": {
+    "schemaVersion": "calllint.report.v0",
+    "reportKind": "config-summary",
+    "configPath": "review-github.json",
+    "verdict": "REVIEW",
+    "publicVerdictLabel": "Review required",
+    "counts": {
+      "SAFE": 0,
+      "REVIEW": 1,
+      "BLOCK": 0,
+      "UNKNOWN": 0
+    },
+    "reports": [
+      {
+        "schemaVersion": "calllint.report.v0",
+        "reportKind": "single-target",
+        "target": {
+          "name": "github",
+          "kind": "cursor-mcp-config",
+          "source": "@modelcontextprotocol/server-github",
+          "version": "1.4.0",
+          "configPath": "review-github.json"
+        },
+        "verdict": "REVIEW",
+        "publicVerdictLabel": "Review required",
+        "policyApplied": false,
+        "riskClass": "S3",
+        "symbols": [
+          "SECRETS",
+          "ACTION"
+        ],
+        "confidence": "low",
+        "reproducibility": {
+          "level": "HIGH",
+          "reasons": []
+        },
+        "summary": "\"github\" needs review. Risk: Secrets, Action (S3 External mutation).",
+        "observed": [
+          {
+            "id": "secrets.env-key",
+            "title": "Server is configured with credentials",
+            "severity": "medium",
+            "blocker": false,
+            "symbol": "SECRETS",
+            "riskClass": "S2",
+            "mode": "OBSERVED",
+            "confidence": "medium",
+            "detectionMethod": "env-analysis",
+            "evidence": [
+              {
+                "type": "config",
+                "path": "review-github.json",
+                "key": "env",
+                "value": "GITHUB_TOKEN",
+                "line": 6,
+                "column": 7
+              }
+            ],
+            "impact": "The server receives credentials. If the agent invokes it autonomously, those credentials act on the agent's behalf.",
+            "fix": "Confirm the credential scope is minimal and that autonomous use is intended; prefer least-privilege tokens.",
+            "falsePositiveNote": "Most API-backed servers legitimately require a token; this flags the data-sensitivity surface, not a vulnerability."
+          }
+        ],
+        "inferred": [
+          {
+            "id": "action.external-mutation",
+            "title": "May perform external side effects",
+            "severity": "medium",
+            "blocker": false,
+            "symbol": "ACTION",
+            "riskClass": "S3",
+            "mode": "INFERRED",
+            "confidence": "low",
+            "detectionMethod": "package-metadata",
+            "evidence": [
+              {
+                "type": "runtime-binding",
+                "key": "package",
+                "value": "@modelcontextprotocol/server-github"
+              }
+            ],
+            "impact": "The server appears to integrate with an external system and may take actions (e.g. open PRs, send messages) on the agent's behalf.",
+            "fix": "Confirm which mutating tools are exposed and require manual approval for autonomous use.",
+            "falsePositiveNote": "Name-based inference; a read-only integration would not actually mutate anything."
+          }
+        ],
+        "findings": [
+          {
+            "id": "secrets.env-key",
+            "title": "Server is configured with credentials",
+            "severity": "medium",
+            "blocker": false,
+            "symbol": "SECRETS",
+            "riskClass": "S2",
+            "mode": "OBSERVED",
+            "confidence": "medium",
+            "detectionMethod": "env-analysis",
+            "evidence": [
+              {
+                "type": "config",
+                "path": "review-github.json",
+                "key": "env",
+                "value": "GITHUB_TOKEN",
+                "line": 6,
+                "column": 7
+              }
+            ],
+            "impact": "The server receives credentials. If the agent invokes it autonomously, those credentials act on the agent's behalf.",
+            "fix": "Confirm the credential scope is minimal and that autonomous use is intended; prefer least-privilege tokens.",
+            "falsePositiveNote": "Most API-backed servers legitimately require a token; this flags the data-sensitivity surface, not a vulnerability."
+          },
+          {
+            "id": "action.external-mutation",
+            "title": "May perform external side effects",
+            "severity": "medium",
+            "blocker": false,
+            "symbol": "ACTION",
+            "riskClass": "S3",
+            "mode": "INFERRED",
+            "confidence": "low",
+            "detectionMethod": "package-metadata",
+            "evidence": [
+              {
+                "type": "runtime-binding",
+                "key": "package",
+                "value": "@modelcontextprotocol/server-github"
+              }
+            ],
+            "impact": "The server appears to integrate with an external system and may take actions (e.g. open PRs, send messages) on the agent's behalf.",
+            "fix": "Confirm which mutating tools are exposed and require manual approval for autonomous use.",
+            "falsePositiveNote": "Name-based inference; a read-only integration would not actually mutate anything."
+          }
+        ],
+        "topFindings": [
+          {
+            "id": "secrets.env-key",
+            "title": "Server is configured with credentials",
+            "severity": "medium",
+            "blocker": false,
+            "symbol": "SECRETS",
+            "riskClass": "S2",
+            "mode": "OBSERVED",
+            "confidence": "medium",
+            "detectionMethod": "env-analysis",
+            "evidence": [
+              {
+                "type": "config",
+                "path": "review-github.json",
+                "key": "env",
+                "value": "GITHUB_TOKEN",
+                "line": 6,
+                "column": 7
+              }
+            ],
+            "impact": "The server receives credentials. If the agent invokes it autonomously, those credentials act on the agent's behalf.",
+            "fix": "Confirm the credential scope is minimal and that autonomous use is intended; prefer least-privilege tokens.",
+            "falsePositiveNote": "Most API-backed servers legitimately require a token; this flags the data-sensitivity surface, not a vulnerability."
+          },
+          {
+            "id": "action.external-mutation",
+            "title": "May perform external side effects",
+            "severity": "medium",
+            "blocker": false,
+            "symbol": "ACTION",
+            "riskClass": "S3",
+            "mode": "INFERRED",
+            "confidence": "low",
+            "detectionMethod": "package-metadata",
+            "evidence": [
+              {
+                "type": "runtime-binding",
+                "key": "package",
+                "value": "@modelcontextprotocol/server-github"
+              }
+            ],
+            "impact": "The server appears to integrate with an external system and may take actions (e.g. open PRs, send messages) on the agent's behalf.",
+            "fix": "Confirm which mutating tools are exposed and require manual approval for autonomous use.",
+            "falsePositiveNote": "Name-based inference; a read-only integration would not actually mutate anything."
+          }
+        ],
+        "policy": {
+          "autonomousUse": "warn",
+          "manualApproval": "recommended",
+          "sandbox": "recommended"
+        },
+        "fingerprints": {
+          "configHash": "sha256:3b5497c0dcc7f3dd2d17e8feabdd91c8221e604305b0cf0a6231f2640924bc64",
+          "targetSpecHash": "sha256:51d2cebc08483c2cfa838cef66ba3e6dca672c00fe742ff027f8c2991e34af93",
+          "riskSurfaceHash": "sha256:15873133562be22fe13d99e86da4fa14c7958b5b19f004fdd44266f3da958b1e",
+          "packageSpecHash": "sha256:cb7af947200b6df6f1c9e82e01a155d7fd5c0bb6b9899e231bcb5da46fb1a137"
+        },
+        "diagnostics": [],
+        "generatedAt": "1970-01-01T00:00:00.000Z"
+      }
+    ],
+    "diagnostics": [],
+    "generatedAt": "1970-01-01T00:00:00.000Z"
+  }
+}

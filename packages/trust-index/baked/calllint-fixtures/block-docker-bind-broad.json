@@ -1,0 +1,195 @@
+{
+  "schema": "calllint.trust-page.v0",
+  "canonicalName": "calllint-fixtures/block-docker-bind-broad",
+  "artifactDigest": "sha256:cbc3ffe8012988c3dbe4287bb0fc69af9a87b77e00fcd149d4668867f170e1ce",
+  "pageDigest": "sha256:add9c5e76999964090b85d80aa90b0ad6524efda9df04167d49ce75ba34e69a3",
+  "verdict": "BLOCK",
+  "verdictLabel": "Blocked by policy",
+  "observedAt": "1970-01-01T00:00:00.000Z",
+  "completeness": "complete",
+  "correctionUrl": "https://github.com/calllint/calllint/issues/new?labels=trust-page-correction",
+  "preparation": {
+    "schema": "calllint.trust-preparation.v0",
+    "artifact": {
+      "schema": "calllint.artifact.v1",
+      "sourceType": "mcp-config",
+      "source": "block-docker-bind-broad.json",
+      "requestedRef": null,
+      "resolvedRef": "sha256:cbc3ffe8012988c3dbe4287bb0fc69af9a87b77e00fcd149d4668867f170e1ce",
+      "digest": "sha256:cbc3ffe8012988c3dbe4287bb0fc69af9a87b77e00fcd149d4668867f170e1ce",
+      "resolvedAt": "1970-01-01T00:00:00.000Z",
+      "resolution": "resolved"
+    },
+    "evidence": null,
+    "authority": {
+      "schema": "calllint.authority.v0",
+      "subject": {
+        "artifactDigest": "sha256:cbc3ffe8012988c3dbe4287bb0fc69af9a87b77e00fcd149d4668867f170e1ce"
+      },
+      "capabilities": [
+        {
+          "action": "execute",
+          "resource": "process",
+          "scope": "docker",
+          "destination": null,
+          "mutability": "mutating",
+          "reversibility": "irreversible",
+          "monetaryLimit": null,
+          "approvalRequirement": "none",
+          "evidenceSource": "server.command",
+          "confidence": "high",
+          "completeness": "complete",
+          "trustSource": "trusted.local_project"
+        }
+      ],
+      "limits": {
+        "spendPerCall": null,
+        "spendTotal": null
+      },
+      "approval": {
+        "required": []
+      },
+      "unknowns": [],
+      "completeness": "complete",
+      "digest": "sha256:b7096dbbfc44f51d8fd2e6799a1d043be973cd6582ed8ca4145aebd4fcf59794"
+    },
+    "decision": null,
+    "plan": null,
+    "state": "AUTHORITY_NORMALIZED",
+    "notes": [
+      "no external evidence attached (optional); decision will rely on CallLint's own analysis",
+      "authority normalized: 1 capability"
+    ],
+    "preparedAt": "1970-01-01T00:00:00.000Z"
+  },
+  "scan": {
+    "schemaVersion": "calllint.report.v0",
+    "reportKind": "config-summary",
+    "configPath": "block-docker-bind-broad.json",
+    "verdict": "BLOCK",
+    "publicVerdictLabel": "Blocked by policy",
+    "counts": {
+      "SAFE": 0,
+      "REVIEW": 0,
+      "BLOCK": 1,
+      "UNKNOWN": 0
+    },
+    "reports": [
+      {
+        "schemaVersion": "calllint.report.v0",
+        "reportKind": "single-target",
+        "target": {
+          "name": "filesystem",
+          "kind": "cursor-mcp-config",
+          "configPath": "block-docker-bind-broad.json"
+        },
+        "verdict": "BLOCK",
+        "publicVerdictLabel": "Blocked by policy",
+        "policyApplied": false,
+        "riskClass": "S2",
+        "symbols": [
+          "FILES"
+        ],
+        "confidence": "high",
+        "reproducibility": {
+          "level": "HIGH",
+          "reasons": []
+        },
+        "summary": "\"filesystem\" is blocked. Risk: Files (S2 Sensitive read).",
+        "observed": [
+          {
+            "id": "files.broad-path",
+            "title": "Broad local filesystem access",
+            "severity": "critical",
+            "blocker": true,
+            "symbol": "FILES",
+            "riskClass": "S2",
+            "mode": "OBSERVED",
+            "confidence": "high",
+            "detectionMethod": "arg-analysis",
+            "evidence": [
+              {
+                "type": "config",
+                "path": "block-docker-bind-broad.json",
+                "key": "args",
+                "value": "/Users/username/Desktop",
+                "line": 5,
+                "column": 7
+              }
+            ],
+            "impact": "An agent-triggered tool could read private local files outside the project.",
+            "fix": "Restrict filesystem access to the current workspace, e.g. ${workspaceFolder}.",
+            "falsePositiveNote": "A developer may intentionally grant broad access for a local-only experiment."
+          }
+        ],
+        "inferred": [],
+        "findings": [
+          {
+            "id": "files.broad-path",
+            "title": "Broad local filesystem access",
+            "severity": "critical",
+            "blocker": true,
+            "symbol": "FILES",
+            "riskClass": "S2",
+            "mode": "OBSERVED",
+            "confidence": "high",
+            "detectionMethod": "arg-analysis",
+            "evidence": [
+              {
+                "type": "config",
+                "path": "block-docker-bind-broad.json",
+                "key": "args",
+                "value": "/Users/username/Desktop",
+                "line": 5,
+                "column": 7
+              }
+            ],
+            "impact": "An agent-triggered tool could read private local files outside the project.",
+            "fix": "Restrict filesystem access to the current workspace, e.g. ${workspaceFolder}.",
+            "falsePositiveNote": "A developer may intentionally grant broad access for a local-only experiment."
+          }
+        ],
+        "topFindings": [
+          {
+            "id": "files.broad-path",
+            "title": "Broad local filesystem access",
+            "severity": "critical",
+            "blocker": true,
+            "symbol": "FILES",
+            "riskClass": "S2",
+            "mode": "OBSERVED",
+            "confidence": "high",
+            "detectionMethod": "arg-analysis",
+            "evidence": [
+              {
+                "type": "config",
+                "path": "block-docker-bind-broad.json",
+                "key": "args",
+                "value": "/Users/username/Desktop",
+                "line": 5,
+                "column": 7
+              }
+            ],
+            "impact": "An agent-triggered tool could read private local files outside the project.",
+            "fix": "Restrict filesystem access to the current workspace, e.g. ${workspaceFolder}.",
+            "falsePositiveNote": "A developer may intentionally grant broad access for a local-only experiment."
+          }
+        ],
+        "policy": {
+          "autonomousUse": "deny",
+          "manualApproval": "required",
+          "sandbox": "required"
+        },
+        "fingerprints": {
+          "configHash": "sha256:8fa4e6e0f604e9b4b5d91e352f600c5569309effd3d7d29112980d597a4192bb",
+          "targetSpecHash": "sha256:1b22fc174a07fae0ef3abbacb3606fa0ef965bdbb6ac1ab8d36d711441366269",
+          "riskSurfaceHash": "sha256:554fa36db778c8da19b9a2e5f668ada0873a0fb5a9fb6f46a9dc3a1f773181fe"
+        },
+        "diagnostics": [],
+        "generatedAt": "1970-01-01T00:00:00.000Z"
+      }
+    ],
+    "diagnostics": [],
+    "generatedAt": "1970-01-01T00:00:00.000Z"
+  }
+}

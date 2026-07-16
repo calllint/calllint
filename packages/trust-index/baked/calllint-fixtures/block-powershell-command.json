@@ -1,0 +1,197 @@
+{
+  "schema": "calllint.trust-page.v0",
+  "canonicalName": "calllint-fixtures/block-powershell-command",
+  "artifactDigest": "sha256:69e91974e4279c75c021cc666c9a04b62d9aa33a30fe91945794fa83ee4935b4",
+  "pageDigest": "sha256:e402a59d9cc9547c7e630966d3b1ce3273990ba10214121fb57eb650f7424ca5",
+  "verdict": "BLOCK",
+  "verdictLabel": "Blocked by policy",
+  "observedAt": "1970-01-01T00:00:00.000Z",
+  "completeness": "complete",
+  "correctionUrl": "https://github.com/calllint/calllint/issues/new?labels=trust-page-correction",
+  "preparation": {
+    "schema": "calllint.trust-preparation.v0",
+    "artifact": {
+      "schema": "calllint.artifact.v1",
+      "sourceType": "mcp-config",
+      "source": "block-powershell-command.json",
+      "requestedRef": null,
+      "resolvedRef": "sha256:69e91974e4279c75c021cc666c9a04b62d9aa33a30fe91945794fa83ee4935b4",
+      "digest": "sha256:69e91974e4279c75c021cc666c9a04b62d9aa33a30fe91945794fa83ee4935b4",
+      "resolvedAt": "1970-01-01T00:00:00.000Z",
+      "resolution": "resolved"
+    },
+    "evidence": null,
+    "authority": {
+      "schema": "calllint.authority.v0",
+      "subject": {
+        "artifactDigest": "sha256:69e91974e4279c75c021cc666c9a04b62d9aa33a30fe91945794fa83ee4935b4"
+      },
+      "capabilities": [
+        {
+          "action": "execute",
+          "resource": "process",
+          "scope": "powershell",
+          "destination": null,
+          "mutability": "mutating",
+          "reversibility": "irreversible",
+          "monetaryLimit": null,
+          "approvalRequirement": "none",
+          "evidenceSource": "server.command",
+          "confidence": "high",
+          "completeness": "complete",
+          "trustSource": "trusted.local_project"
+        }
+      ],
+      "limits": {
+        "spendPerCall": null,
+        "spendTotal": null
+      },
+      "approval": {
+        "required": []
+      },
+      "unknowns": [],
+      "completeness": "complete",
+      "digest": "sha256:64032d60f7b79f5ca36e93264bac49eae5a5fe929814eb27970eeffbd69f2419"
+    },
+    "decision": null,
+    "plan": null,
+    "state": "AUTHORITY_NORMALIZED",
+    "notes": [
+      "no external evidence attached (optional); decision will rely on CallLint's own analysis",
+      "authority normalized: 1 capability"
+    ],
+    "preparedAt": "1970-01-01T00:00:00.000Z"
+  },
+  "scan": {
+    "schemaVersion": "calllint.report.v0",
+    "reportKind": "config-summary",
+    "configPath": "block-powershell-command.json",
+    "verdict": "BLOCK",
+    "publicVerdictLabel": "Blocked by policy",
+    "counts": {
+      "SAFE": 0,
+      "REVIEW": 0,
+      "BLOCK": 1,
+      "UNKNOWN": 0
+    },
+    "reports": [
+      {
+        "schemaVersion": "calllint.report.v0",
+        "reportKind": "single-target",
+        "target": {
+          "name": "ps-runner",
+          "kind": "cursor-mcp-config",
+          "configPath": "block-powershell-command.json"
+        },
+        "verdict": "BLOCK",
+        "publicVerdictLabel": "Blocked by policy",
+        "policyApplied": false,
+        "riskClass": "S4",
+        "symbols": [
+          "EXEC"
+        ],
+        "confidence": "high",
+        "reproducibility": {
+          "level": "MEDIUM",
+          "reasons": [
+            "Runtime source could not be identified"
+          ]
+        },
+        "summary": "\"ps-runner\" is blocked. Risk: Exec (S4 Execution / automation).",
+        "observed": [
+          {
+            "id": "exec.dangerous-command",
+            "title": "Arbitrary command execution",
+            "severity": "critical",
+            "blocker": true,
+            "symbol": "EXEC",
+            "riskClass": "S4",
+            "mode": "OBSERVED",
+            "confidence": "high",
+            "detectionMethod": "config-analysis",
+            "evidence": [
+              {
+                "type": "config",
+                "path": "block-powershell-command.json",
+                "key": "command",
+                "value": "powershell",
+                "line": 4,
+                "column": 7
+              }
+            ],
+            "impact": "Server command is a shell (powershell). An agent invoking this server can run arbitrary commands on the host.",
+            "fix": "Run a specific, audited entrypoint instead of a shell or inline-eval command.",
+            "falsePositiveNote": "Some wrappers legitimately shell out; confirm the command is fixed and not agent-controllable."
+          }
+        ],
+        "inferred": [],
+        "findings": [
+          {
+            "id": "exec.dangerous-command",
+            "title": "Arbitrary command execution",
+            "severity": "critical",
+            "blocker": true,
+            "symbol": "EXEC",
+            "riskClass": "S4",
+            "mode": "OBSERVED",
+            "confidence": "high",
+            "detectionMethod": "config-analysis",
+            "evidence": [
+              {
+                "type": "config",
+                "path": "block-powershell-command.json",
+                "key": "command",
+                "value": "powershell",
+                "line": 4,
+                "column": 7
+              }
+            ],
+            "impact": "Server command is a shell (powershell). An agent invoking this server can run arbitrary commands on the host.",
+            "fix": "Run a specific, audited entrypoint instead of a shell or inline-eval command.",
+            "falsePositiveNote": "Some wrappers legitimately shell out; confirm the command is fixed and not agent-controllable."
+          }
+        ],
+        "topFindings": [
+          {
+            "id": "exec.dangerous-command",
+            "title": "Arbitrary command execution",
+            "severity": "critical",
+            "blocker": true,
+            "symbol": "EXEC",
+            "riskClass": "S4",
+            "mode": "OBSERVED",
+            "confidence": "high",
+            "detectionMethod": "config-analysis",
+            "evidence": [
+              {
+                "type": "config",
+                "path": "block-powershell-command.json",
+                "key": "command",
+                "value": "powershell",
+                "line": 4,
+                "column": 7
+              }
+            ],
+            "impact": "Server command is a shell (powershell). An agent invoking this server can run arbitrary commands on the host.",
+            "fix": "Run a specific, audited entrypoint instead of a shell or inline-eval command.",
+            "falsePositiveNote": "Some wrappers legitimately shell out; confirm the command is fixed and not agent-controllable."
+          }
+        ],
+        "policy": {
+          "autonomousUse": "deny",
+          "manualApproval": "required",
+          "sandbox": "required"
+        },
+        "fingerprints": {
+          "configHash": "sha256:2c140e522a2e86481fe063704d30de3460fbd630f4a00f937a70f8e1db9d0824",
+          "targetSpecHash": "sha256:a274951b845df426928f73095ca9fba373fecbcd3871401ec0001524a17f4dc6",
+          "riskSurfaceHash": "sha256:69ae824415f688e2293a4e5b2a9834592fa6d9e5637f67bad0e6e56b6cab6100"
+        },
+        "diagnostics": [],
+        "generatedAt": "1970-01-01T00:00:00.000Z"
+      }
+    ],
+    "diagnostics": [],
+    "generatedAt": "1970-01-01T00:00:00.000Z"
+  }
+}

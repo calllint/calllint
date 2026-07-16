@@ -1,0 +1,191 @@
+{
+  "schema": "calllint.trust-page.v0",
+  "canonicalName": "calllint-fixtures/review-unpinned-package",
+  "artifactDigest": "sha256:79ca7ed9ca119414aa16405dab6a31782f8023b2b5f2ea2c284f0f0a815ccf06",
+  "pageDigest": "sha256:4cf91227cc771b84562483d4242b8147d66051f752f3d579b76363a798565526",
+  "verdict": "REVIEW",
+  "verdictLabel": "Review required",
+  "observedAt": "1970-01-01T00:00:00.000Z",
+  "completeness": "complete",
+  "correctionUrl": "https://github.com/calllint/calllint/issues/new?labels=trust-page-correction",
+  "preparation": {
+    "schema": "calllint.trust-preparation.v0",
+    "artifact": {
+      "schema": "calllint.artifact.v1",
+      "sourceType": "mcp-config",
+      "source": "review-unpinned-package.json",
+      "requestedRef": null,
+      "resolvedRef": "sha256:79ca7ed9ca119414aa16405dab6a31782f8023b2b5f2ea2c284f0f0a815ccf06",
+      "digest": "sha256:79ca7ed9ca119414aa16405dab6a31782f8023b2b5f2ea2c284f0f0a815ccf06",
+      "resolvedAt": "1970-01-01T00:00:00.000Z",
+      "resolution": "resolved"
+    },
+    "evidence": null,
+    "authority": {
+      "schema": "calllint.authority.v0",
+      "subject": {
+        "artifactDigest": "sha256:79ca7ed9ca119414aa16405dab6a31782f8023b2b5f2ea2c284f0f0a815ccf06"
+      },
+      "capabilities": [
+        {
+          "action": "execute",
+          "resource": "process",
+          "scope": "npx",
+          "destination": null,
+          "mutability": "mutating",
+          "reversibility": "irreversible",
+          "monetaryLimit": null,
+          "approvalRequirement": "none",
+          "evidenceSource": "server.command",
+          "confidence": "high",
+          "completeness": "complete",
+          "trustSource": "trusted.local_project"
+        }
+      ],
+      "limits": {
+        "spendPerCall": null,
+        "spendTotal": null
+      },
+      "approval": {
+        "required": []
+      },
+      "unknowns": [],
+      "completeness": "complete",
+      "digest": "sha256:8fd389425b491419ddbc3c332ef7825c079422096ae6b4a6b60613d6487f14f4"
+    },
+    "decision": null,
+    "plan": null,
+    "state": "AUTHORITY_NORMALIZED",
+    "notes": [
+      "no external evidence attached (optional); decision will rely on CallLint's own analysis",
+      "authority normalized: 1 capability"
+    ],
+    "preparedAt": "1970-01-01T00:00:00.000Z"
+  },
+  "scan": {
+    "schemaVersion": "calllint.report.v0",
+    "reportKind": "config-summary",
+    "configPath": "review-unpinned-package.json",
+    "verdict": "REVIEW",
+    "publicVerdictLabel": "Review required",
+    "counts": {
+      "SAFE": 0,
+      "REVIEW": 1,
+      "BLOCK": 0,
+      "UNKNOWN": 0
+    },
+    "reports": [
+      {
+        "schemaVersion": "calllint.report.v0",
+        "reportKind": "single-target",
+        "target": {
+          "name": "weather",
+          "kind": "cursor-mcp-config",
+          "source": "weather-mcp",
+          "version": "latest",
+          "configPath": "review-unpinned-package.json"
+        },
+        "verdict": "REVIEW",
+        "publicVerdictLabel": "Review required",
+        "policyApplied": false,
+        "riskClass": "S1",
+        "symbols": [
+          "SUPPLY"
+        ],
+        "confidence": "high",
+        "reproducibility": {
+          "level": "MEDIUM",
+          "reasons": [
+            "Package version is not pinned"
+          ]
+        },
+        "summary": "\"weather\" needs review. Risk: Supply Chain (S1 Read-only utility).",
+        "observed": [
+          {
+            "id": "supply.unpinned-package",
+            "title": "Package version is not pinned",
+            "severity": "high",
+            "blocker": false,
+            "symbol": "SUPPLY",
+            "riskClass": "S1",
+            "mode": "OBSERVED",
+            "confidence": "high",
+            "detectionMethod": "runtime-binding",
+            "evidence": [
+              {
+                "type": "runtime-binding",
+                "key": "package",
+                "value": "weather-mcp@latest"
+              }
+            ],
+            "impact": "The installed code can change between scans and runs, so this verdict may not match what actually executes.",
+            "fix": "Pin the package to an exact version, e.g. weather-mcp@1.0.0.",
+            "falsePositiveNote": "Intentional during local development, but should be pinned before autonomous or CI use."
+          }
+        ],
+        "inferred": [],
+        "findings": [
+          {
+            "id": "supply.unpinned-package",
+            "title": "Package version is not pinned",
+            "severity": "high",
+            "blocker": false,
+            "symbol": "SUPPLY",
+            "riskClass": "S1",
+            "mode": "OBSERVED",
+            "confidence": "high",
+            "detectionMethod": "runtime-binding",
+            "evidence": [
+              {
+                "type": "runtime-binding",
+                "key": "package",
+                "value": "weather-mcp@latest"
+              }
+            ],
+            "impact": "The installed code can change between scans and runs, so this verdict may not match what actually executes.",
+            "fix": "Pin the package to an exact version, e.g. weather-mcp@1.0.0.",
+            "falsePositiveNote": "Intentional during local development, but should be pinned before autonomous or CI use."
+          }
+        ],
+        "topFindings": [
+          {
+            "id": "supply.unpinned-package",
+            "title": "Package version is not pinned",
+            "severity": "high",
+            "blocker": false,
+            "symbol": "SUPPLY",
+            "riskClass": "S1",
+            "mode": "OBSERVED",
+            "confidence": "high",
+            "detectionMethod": "runtime-binding",
+            "evidence": [
+              {
+                "type": "runtime-binding",
+                "key": "package",
+                "value": "weather-mcp@latest"
+              }
+            ],
+            "impact": "The installed code can change between scans and runs, so this verdict may not match what actually executes.",
+            "fix": "Pin the package to an exact version, e.g. weather-mcp@1.0.0.",
+            "falsePositiveNote": "Intentional during local development, but should be pinned before autonomous or CI use."
+          }
+        ],
+        "policy": {
+          "autonomousUse": "warn",
+          "manualApproval": "recommended",
+          "sandbox": "recommended"
+        },
+        "fingerprints": {
+          "configHash": "sha256:8202bb85b9be91e674b49c6009adb198a05f4e05925494f71f55e4d183064dd3",
+          "targetSpecHash": "sha256:647570a08524e4cf1d949e06d9faa2bb121df0c0d09a1104f3836f4a354439a6",
+          "riskSurfaceHash": "sha256:ad5045ac1c0db6b0fe3b75e283d1ec083583a2601b824356c215e9cc29998743",
+          "packageSpecHash": "sha256:8c305fb8904a326dbf516ff3774767610a9439ce2988a528cefb7ce14104e85e"
+        },
+        "diagnostics": [],
+        "generatedAt": "1970-01-01T00:00:00.000Z"
+      }
+    ],
+    "diagnostics": [],
+    "generatedAt": "1970-01-01T00:00:00.000Z"
+  }
+}

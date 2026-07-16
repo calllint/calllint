@@ -1,0 +1,197 @@
+{
+  "schema": "calllint.trust-page.v0",
+  "canonicalName": "calllint-fixtures/block-dangerous-command",
+  "artifactDigest": "sha256:21e04db6ce368b289eb8c5fed22a02f22fb525465a152eff778a48c5007f4c61",
+  "pageDigest": "sha256:ef0166a663c10c03decc9ca419cc98ce2fa6e5263c3055973db759ea42252548",
+  "verdict": "BLOCK",
+  "verdictLabel": "Blocked by policy",
+  "observedAt": "1970-01-01T00:00:00.000Z",
+  "completeness": "complete",
+  "correctionUrl": "https://github.com/calllint/calllint/issues/new?labels=trust-page-correction",
+  "preparation": {
+    "schema": "calllint.trust-preparation.v0",
+    "artifact": {
+      "schema": "calllint.artifact.v1",
+      "sourceType": "mcp-config",
+      "source": "block-dangerous-command.json",
+      "requestedRef": null,
+      "resolvedRef": "sha256:21e04db6ce368b289eb8c5fed22a02f22fb525465a152eff778a48c5007f4c61",
+      "digest": "sha256:21e04db6ce368b289eb8c5fed22a02f22fb525465a152eff778a48c5007f4c61",
+      "resolvedAt": "1970-01-01T00:00:00.000Z",
+      "resolution": "resolved"
+    },
+    "evidence": null,
+    "authority": {
+      "schema": "calllint.authority.v0",
+      "subject": {
+        "artifactDigest": "sha256:21e04db6ce368b289eb8c5fed22a02f22fb525465a152eff778a48c5007f4c61"
+      },
+      "capabilities": [
+        {
+          "action": "execute",
+          "resource": "process",
+          "scope": "bash",
+          "destination": null,
+          "mutability": "mutating",
+          "reversibility": "irreversible",
+          "monetaryLimit": null,
+          "approvalRequirement": "none",
+          "evidenceSource": "server.command",
+          "confidence": "high",
+          "completeness": "complete",
+          "trustSource": "trusted.local_project"
+        }
+      ],
+      "limits": {
+        "spendPerCall": null,
+        "spendTotal": null
+      },
+      "approval": {
+        "required": []
+      },
+      "unknowns": [],
+      "completeness": "complete",
+      "digest": "sha256:6fac1592c15280ae5479fe0bfd2a12ec9b3747de7dc1067dda68b9cdc73d3466"
+    },
+    "decision": null,
+    "plan": null,
+    "state": "AUTHORITY_NORMALIZED",
+    "notes": [
+      "no external evidence attached (optional); decision will rely on CallLint's own analysis",
+      "authority normalized: 1 capability"
+    ],
+    "preparedAt": "1970-01-01T00:00:00.000Z"
+  },
+  "scan": {
+    "schemaVersion": "calllint.report.v0",
+    "reportKind": "config-summary",
+    "configPath": "block-dangerous-command.json",
+    "verdict": "BLOCK",
+    "publicVerdictLabel": "Blocked by policy",
+    "counts": {
+      "SAFE": 0,
+      "REVIEW": 0,
+      "BLOCK": 1,
+      "UNKNOWN": 0
+    },
+    "reports": [
+      {
+        "schemaVersion": "calllint.report.v0",
+        "reportKind": "single-target",
+        "target": {
+          "name": "shell-runner",
+          "kind": "cursor-mcp-config",
+          "configPath": "block-dangerous-command.json"
+        },
+        "verdict": "BLOCK",
+        "publicVerdictLabel": "Blocked by policy",
+        "policyApplied": false,
+        "riskClass": "S4",
+        "symbols": [
+          "EXEC"
+        ],
+        "confidence": "high",
+        "reproducibility": {
+          "level": "MEDIUM",
+          "reasons": [
+            "Runtime source could not be identified"
+          ]
+        },
+        "summary": "\"shell-runner\" is blocked. Risk: Exec (S4 Execution / automation).",
+        "observed": [
+          {
+            "id": "exec.dangerous-command",
+            "title": "Arbitrary command execution",
+            "severity": "critical",
+            "blocker": true,
+            "symbol": "EXEC",
+            "riskClass": "S4",
+            "mode": "OBSERVED",
+            "confidence": "high",
+            "detectionMethod": "config-analysis",
+            "evidence": [
+              {
+                "type": "config",
+                "path": "block-dangerous-command.json",
+                "key": "command",
+                "value": "bash",
+                "line": 4,
+                "column": 7
+              }
+            ],
+            "impact": "Server command is a shell (bash). An agent invoking this server can run arbitrary commands on the host.",
+            "fix": "Run a specific, audited entrypoint instead of a shell or inline-eval command.",
+            "falsePositiveNote": "Some wrappers legitimately shell out; confirm the command is fixed and not agent-controllable."
+          }
+        ],
+        "inferred": [],
+        "findings": [
+          {
+            "id": "exec.dangerous-command",
+            "title": "Arbitrary command execution",
+            "severity": "critical",
+            "blocker": true,
+            "symbol": "EXEC",
+            "riskClass": "S4",
+            "mode": "OBSERVED",
+            "confidence": "high",
+            "detectionMethod": "config-analysis",
+            "evidence": [
+              {
+                "type": "config",
+                "path": "block-dangerous-command.json",
+                "key": "command",
+                "value": "bash",
+                "line": 4,
+                "column": 7
+              }
+            ],
+            "impact": "Server command is a shell (bash). An agent invoking this server can run arbitrary commands on the host.",
+            "fix": "Run a specific, audited entrypoint instead of a shell or inline-eval command.",
+            "falsePositiveNote": "Some wrappers legitimately shell out; confirm the command is fixed and not agent-controllable."
+          }
+        ],
+        "topFindings": [
+          {
+            "id": "exec.dangerous-command",
+            "title": "Arbitrary command execution",
+            "severity": "critical",
+            "blocker": true,
+            "symbol": "EXEC",
+            "riskClass": "S4",
+            "mode": "OBSERVED",
+            "confidence": "high",
+            "detectionMethod": "config-analysis",
+            "evidence": [
+              {
+                "type": "config",
+                "path": "block-dangerous-command.json",
+                "key": "command",
+                "value": "bash",
+                "line": 4,
+                "column": 7
+              }
+            ],
+            "impact": "Server command is a shell (bash). An agent invoking this server can run arbitrary commands on the host.",
+            "fix": "Run a specific, audited entrypoint instead of a shell or inline-eval command.",
+            "falsePositiveNote": "Some wrappers legitimately shell out; confirm the command is fixed and not agent-controllable."
+          }
+        ],
+        "policy": {
+          "autonomousUse": "deny",
+          "manualApproval": "required",
+          "sandbox": "required"
+        },
+        "fingerprints": {
+          "configHash": "sha256:35eb0276e4c5b6ab2ba5d043a55206a54c0c9c5f64312095f5076c80869d74d0",
+          "targetSpecHash": "sha256:2a7f19368865d08d92ceeb5976baa83038e4e27aeb774d9346d0f1e58c6f6891",
+          "riskSurfaceHash": "sha256:69ae824415f688e2293a4e5b2a9834592fa6d9e5637f67bad0e6e56b6cab6100"
+        },
+        "diagnostics": [],
+        "generatedAt": "1970-01-01T00:00:00.000Z"
+      }
+    ],
+    "diagnostics": [],
+    "generatedAt": "1970-01-01T00:00:00.000Z"
+  }
+}
