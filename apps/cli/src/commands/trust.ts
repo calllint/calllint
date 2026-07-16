@@ -545,7 +545,13 @@ function trustPrepare(args: ParsedArgs, deps: TrustDeps): CommandResult {
     return { stdout: JSON.stringify(payload, null, 2), stderr: "", exitCode }
   }
   const flowNote = showFlows ? renderFlows(flows) : ""
-  return { stdout: renderPreparation(preparation) + flowNote + planNote, stderr: "", exitCode }
+  // H2 — non-persisting conversion prompt on the human-readable path only.
+  const conversion = renderConversionPrompt(preparation)
+  return {
+    stdout: renderPreparation(preparation) + flowNote + planNote + conversion,
+    stderr: "",
+    exitCode,
+  }
 }
 
 function loadPreparation(
@@ -869,6 +875,30 @@ function renderPreparation(p: TrustPreparation): string {
   out += `\nThis is the READ-ONLY half of the Trust Gateway. It touched no live config\n`
   out += `and never executed the target. An unresolved target is never a pass.\n`
   return out
+}
+
+/**
+ * H2 — one-use → persistent conversion (roadmap H1/H2; ADR 0045 §5). After a
+ * *usable* preparation, offer the concrete persistence actions — but persist
+ * NOTHING by default. This is suggestion-only text: it lists the exact commands
+ * a user can run to convert a one-off prepare into a standing workflow (baseline,
+ * Continuous Guard, CI gate, agent rule). It emits no telemetry (that is a
+ * separate M-metrics ADR) and writes no files.
+ *
+ * Gated on a non-blocking outcome: only when a decision was reached and its
+ * verdict is not BLOCK/UNKNOWN. A blocked or unverifiable prepare must not read
+ * as "great, now make it permanent."
+ */
+function renderConversionPrompt(p: TrustPreparation): string {
+  const d = p.decision
+  if (!d || d.verdict === "BLOCK" || d.verdict === "UNKNOWN") return ""
+  return (
+    `\nNext step (nothing is persisted unless you run one of these):\n` +
+    `  • Record this surface as approved:   calllint approve\n` +
+    `  • Re-decide on every authority change: calllint guard install --host git\n` +
+    `  • Gate pull requests in CI:           calllint guard install --host github\n` +
+    `  • Teach your agent the safety rule:   calllint gen-rule --host claude --write\n`
+  )
 }
 
 /** Developer-mode symbol for a flow decision hint. */
