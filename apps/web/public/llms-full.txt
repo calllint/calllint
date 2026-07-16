@@ -8,7 +8,7 @@ This file inlines the guidance an agent needs in one fetch. Canonical sources:
 
 ## Status
 
-- Version `1.4.0` on the `latest` npm dist-tag (stable release; adds evidence interoperability — `scan --evidence` attaches an external content-scanner report and shows it in a joint Trust Packet, never re-scored — on top of the Trust Gateway; expect FP/FN).
+- Version `1.5.0` on the `latest` npm dist-tag (stable release; adds static toxic-flow analysis — cross-tool untrusted/sensitive-source → external-sink paths folded into the verdict, a dangerous flow never resolves to SAFE — and Continuous Guard, `calllint guard`, which re-decides the authority surface on a config change and stays silent when nothing changed; on top of the Trust Gateway; expect FP/FN).
 
 ## Commands
 
