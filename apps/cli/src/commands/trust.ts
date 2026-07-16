@@ -34,6 +34,7 @@ import { buildFlows, foldFlowsIntoReasons } from "@calllint/flow-analyzer"
 import { hashJson } from "@calllint/fingerprint"
 import {
   getHostAdapter,
+  HOST_ADAPTERS,
   claudeCodeServerEntry,
   CLAUDE_CODE_HOST_ID,
   cursorServerEntry,
@@ -350,7 +351,7 @@ function buildPlanForHost(
 ): InstallPlan | { error: string; exitCode: number } | null {
   const adapter = getHostAdapter(host)
   if (!adapter) {
-    return { error: `Unknown host "${host}". Known hosts: ${CLAUDE_CODE_HOST_ID}, ${CURSOR_HOST_ID}`, exitCode: EXIT.USAGE }
+    return { error: `Unknown host "${host}". Known hosts: ${knownHostList()}`, exitCode: EXIT.USAGE }
   }
   const servers = plannedServersFor(input, host)
   if (servers.length === 0) return null // nothing to install → no plan
@@ -654,7 +655,7 @@ function trustApply(args: ParsedArgs, deps: TrustDeps): CommandResult {
   }
 
   const adapter = getHostAdapter(plan.host)
-  if (!adapter) return usageErr(`Unknown host "${plan.host}". Known hosts: ${CLAUDE_CODE_HOST_ID}, ${CURSOR_HOST_ID}`)
+  if (!adapter) return usageErr(`Unknown host "${plan.host}". Known hosts: ${knownHostList()}`)
   if (!adapter.applyPlan) {
     // A Tier-B/C host declares no writer — the user applies the emitted patch.
     return usageErr(`Host "${plan.host}" is tier ${adapter.tier} — plan-only; copy the patch or use a Tier-A host to apply.`)
@@ -1022,6 +1023,28 @@ function renderApplyResult(r: ApplyResult): string {
   return out
 }
 
+/**
+ * Describe the known hosts for the `--host` help, derived from the adapter
+ * registry so the tier text can never drift from the code (a Tier-A adapter
+ * ships `applyPlan`; Tier B/C do not). Previously this was hardcoded and went
+ * stale when Cursor was promoted A → the text still said "Tier B, plan-only".
+ */
+function hostHelpDescriptions(): string {
+  return Object.values(HOST_ADAPTERS)
+    .map((a) => {
+      const capability = a.applyPlan
+        ? `Tier ${a.tier}, applies`
+        : `Tier ${a.tier}, plan-only — you apply the emitted patch`
+      return `${a.id} (${capability})`
+    })
+    .join("; ")
+}
+
+/** Comma-joined list of known host ids for "Known hosts: …" usage errors. */
+function knownHostList(): string {
+  return Object.keys(HOST_ADAPTERS).join(", ")
+}
+
 function trustHelp(): string {
   return `
 calllint trust — Automated Trust Gateway (prepare → approve → apply → verify)
@@ -1053,10 +1076,9 @@ OPTIONS (prepare)
   --format json|sarif   Force the evidence format (default: auto-detect)
   --provider <name>     Force the evidence provider adapter (default: auto-detect)
   --policy <file>       Use a policy file for the decision (default: built-in defaults)
-  --host <id>           Build an install plan for a host: claude-code (Tier A,
-                        applies) or cursor (Tier B, plan-only — you apply the
-                        emitted patch). Reads the host config READ-ONLY; never
-                        applies. Plan is emitted only for a non-blocking decision.
+  --host <id>           Build an install plan for a host — ${hostHelpDescriptions()}.
+                        Reads the host config READ-ONLY; never applies here. Plan
+                        is emitted only for a non-blocking decision.
   --host-config <path>  Override the host config path (default: per host —
                         ~/.claude.json for claude-code, .cursor/mcp.json for cursor)
   --write-plan          Persist the plan to .calllint/plans/<plan-id>.json
