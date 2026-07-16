@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>CallLint Team — centralize policy, approvals, receipts, and drift evidence</title>
+    <meta name="description" content="Local scanning stays free. CallLint Team (in design-partner beta) centralizes org policy, approvals, decision receipts, and drift evidence across repos. Apply to be a design partner — price-range test at $99/org/month." />
+    <link rel="icon" href="/favicon.png" type="image/png" />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://calllint.com/team" />
+    <meta property="og:title" content="CallLint Team — design-partner beta" />
+    <meta property="og:description" content="Keep local scanning free. Centralize policy, approvals, receipts, and drift evidence." />
+    <meta property="og:image" content="https://calllint.com/og-image.png" />
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <header class="site-header">
+      <a class="brand-lockup" href="/" aria-label="CallLint home">
+        <img class="brand-mark" src="/logo-mark-128.png" width="40" height="40" alt="" />
+        <span class="brand-name">CallLint</span>
+      </a>
+      <nav class="nav-links" aria-label="Primary">
+        <a href="/#how">How</a>
+        <a href="/agents">For agents</a>
+        <a href="/mcp-security">MCP security</a>
+        <a href="/team">Team</a>
+        <a href="https://github.com/calllint/calllint">GitHub</a>
+      </nav>
+    </header>
+    <main>
+      <section class="section section-narrow topic">
+        <p class="lede">CallLint Team · design-partner beta</p>
+        <h1>Keep local scanning free. Centralize the rest.</h1>
+        <p class="prose">
+          The CallLint CLI is free and stays free — scanning, verdicts, the Trust
+          Gateway, and Continuous Guard all run locally and offline. What teams
+          ask for next is not a bigger scanner: it's a shared place for
+          <strong>policy, approvals, receipts, and drift evidence</strong> across
+          repos and people. That is what CallLint Team is.
+        </p>
+        <p class="prose">
+          We are opening a small design-partner beta to build it with a handful
+          of teams. It is not on sale yet — this page is where you tell us it
+          should exist.
+        </p>
+
+        <div class="cta-row">
+          <a
+            class="btn btn-primary"
+            href="https://github.com/calllint/calllint/issues/new?labels=design-partner&template=design-partner.yml"
+            >Apply to be a design partner</a
+          >
+          <a class="btn btn-ghost" href="#boundary">What stays free</a>
+        </div>
+
+        <h2 id="boundary">Free vs. Team — an explicit boundary</h2>
+        <p class="prose">
+          We will not move anything you have today behind a paywall. The line is
+          simple: <strong>local, single-developer work is free forever</strong>;
+          Team adds the <strong>shared, cross-repo, multi-person</strong> layer
+          that only makes sense for an organization.
+        </p>
+        <div class="scenario-grid">
+          <div class="scenario">
+            <h3>Free — local CLI, forever</h3>
+            <ul>
+              <li>Scan MCP servers and agent tools — SAFE / REVIEW / BLOCK / UNKNOWN with evidence.</li>
+              <li>Trust Gateway: prepare → approve → apply → verify, with reversible install plans.</li>
+              <li>Continuous Guard on authority change; local decision receipts (sign/verify).</li>
+              <li>CI gate and the GitHub Action, run from your own repo.</li>
+            </ul>
+          </div>
+          <div class="scenario">
+            <h3>Team — the shared layer</h3>
+            <ul>
+              <li>One org policy, versioned, that every repo's scan and CI pulls.</li>
+              <li>Shared approvals and a private baseline — one place to say "this is allowed here."</li>
+              <li>Durable decision receipts and drift evidence across repos, kept as an audit trail.</li>
+              <li>Cross-repo inventory of what your agents can reach, and who approved it.</li>
+            </ul>
+          </div>
+        </div>
+        <div class="callout">
+          Team never changes a verdict. The engine stays deterministic and local;
+          the shared layer stores policy, approvals, and evidence — it does not
+          decide security for you.
+        </div>
+
+        <h2>Price-range test</h2>
+        <p class="prose">
+          We are testing a single, flat plan — no usage billing, no per-seat
+          creep:
+        </p>
+        <div class="callout">
+          <strong>CallLint Team Design Partner — $99 / org / month.</strong>
+          Design partners help us set final pricing and get founder terms. Nothing
+          is charged during the beta; this is a willingness signal, not a checkout.
+        </div>
+
+        <h2>What being a design partner means</h2>
+        <ul>
+          <li>A short intake, then a 30-minute interview about how your team handles agent-tool and MCP risk today.</li>
+          <li>Early access to the shared layer as we build it, and direct influence on what ships first.</li>
+          <li>No obligation to buy. If the willingness is not there, we would rather learn that now.</li>
+        </ul>
+
+        <div class="cta-row">
+          <a
+            class="btn btn-primary"
+            href="https://github.com/calllint/calllint/issues/new?labels=design-partner&template=design-partner.yml"
+            >Apply to be a design partner</a
+          >
+          <a class="btn btn-ghost" href="/">Back to CallLint</a>
+        </div>
+
+        <p class="topic-nav">Related:
+          <a href="/">Home</a> ·
+          <a href="/agents">For agents</a> ·
+          <a href="/mcp-security">MCP security</a> ·
+          <a href="/agent-tool-risk">Agent tool risk</a>
+        </p>
+      </section>
+    </main>
+    <footer class="site-footer">
+      <div class="footer-brand">
+        <img src="/logo-mark-128.png" width="28" height="28" alt="" />
+        <span>CallLint · evidence-backed verdicts for agent tools</span>
+      </div>
+      <div class="footer-links">
+        <a href="/">Home</a> · <a href="/agents">For agents</a> ·
+        <a href="/team">Team</a> ·
+        <a href="https://github.com/calllint/calllint">Source</a> ·
+        <a href="/llms.txt">llms.txt</a>
+      </div>
+    </footer>
+  </body>
+</html>

@@ -1,0 +1,72 @@
+name: Design partner (CallLint Team beta)
+description: Apply to be a CallLint Team design partner — shared policy, approvals, receipts, and drift evidence.
+title: "[Design partner]: "
+labels: ["design-partner"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for your interest in the **CallLint Team** design-partner beta.
+        The local CLI stays free — Team adds the shared, cross-repo layer
+        (policy, approvals, receipts, drift evidence). We are testing a single
+        flat plan at **$99 / org / month**; nothing is charged during the beta.
+
+        This intake is also our interview outline — answer what you can. **Do not
+        paste secrets, tokens, or private repo/org names.**
+  - type: input
+    id: org
+    attributes:
+      label: Team / org (optional)
+      description: A name or just "prefer not to say" is fine.
+    validations:
+      required: false
+  - type: dropdown
+    id: team-size
+    attributes:
+      label: How many people would use a shared policy?
+      options:
+        - "1–5"
+        - "6–20"
+        - "21–100"
+        - "100+"
+    validations:
+      required: true
+  - type: textarea
+    id: today
+    attributes:
+      label: How do you handle agent-tool / MCP risk today?
+      description: What do you scan, who approves an install, and where (if anywhere) does that decision get recorded?
+    validations:
+      required: true
+  - type: dropdown
+    id: needs
+    attributes:
+      label: Which shared capability would matter most first?
+      description: Pick the one that would change your workflow the most.
+      options:
+        - Shared org policy every repo pulls
+        - Shared approvals / private baseline
+        - Durable decision receipts + audit trail
+        - Drift evidence across repos
+        - Cross-repo inventory of agent reach
+    validations:
+      required: true
+  - type: dropdown
+    id: willingness
+    attributes:
+      label: Is $99 / org / month in a reasonable range for this?
+      description: A price-range signal — not a commitment to buy.
+      options:
+        - "Yes, reasonable"
+        - "Maybe — depends on the capabilities"
+        - "Too high"
+        - "Too low"
+    validations:
+      required: true
+  - type: textarea
+    id: anything
+    attributes:
+      label: Anything else?
+      description: Constraints, must-haves, or a note on how to reach you.
+    validations:
+      required: false
