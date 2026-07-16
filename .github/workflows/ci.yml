@@ -14,8 +14,24 @@ permissions:
   contents: read
 
 jobs:
-  build-and-test:
-    runs-on: ubuntu-latest
+  # The per-OS matrix. Its check names are "test (ubuntu-latest)" etc. — a matrix
+  # cannot BE the single required status check, so branch protection requires the
+  # `build-and-test` aggregator below (which fans in on all three legs). Keeping the
+  # required check name stable means no ruleset change was needed to matrix CI.
+  test:
+    # Cross-OS matrix (ADR 0037 §6): the real-filesystem apply E2E — the single
+    # audited config writer, exercised through the production node fs port — must
+    # pass on Windows, macOS, and Linux for a host to be Tier A. Running the whole
+    # suite on all three also catches path/line-ending assumptions early.
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    # Windows runners default to PowerShell; our run: steps are POSIX sh.
+    defaults:
+      run:
+        shell: bash
     steps:
       - uses: actions/checkout@v6
 
@@ -69,3 +85,21 @@ jobs:
 
       - name: Pack + stdio smoke (calllint-mcp)
         run: pnpm pack:smoke:mcp
+
+  # Aggregator: the single required status check on `main`. It passes only when
+  # every leg of the `test` matrix passed, so branch protection stays a stable,
+  # single context name (`build-and-test`) while CI fans out across three OSes.
+  # `if: always()` + explicit result check means a skipped/failed leg fails this
+  # gate too (a matrix leg that is cancelled must not read as a pass).
+  build-and-test:
+    needs: [test]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Require all matrix legs to have succeeded
+        run: |
+          if [ "${{ needs.test.result }}" != "success" ]; then
+            echo "matrix 'test' result was '${{ needs.test.result }}' — failing the gate."
+            exit 1
+          fi
+          echo "All cross-OS matrix legs passed."
