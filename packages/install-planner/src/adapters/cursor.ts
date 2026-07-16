@@ -1,27 +1,27 @@
 /**
- * Cursor host adapter — Tier B (detect + analyze + plan only; NO apply).
+ * Cursor host adapter — Tier A (detect + analyze + plan + apply + rollback).
  *
  * Cursor stores MCP servers under `mcpServers` in `.cursor/mcp.json` (project)
  * or the global Cursor config — the same shape Claude Code uses. This adapter
- * shapes the typed JSON-Patch that adds the resolved servers there. It ships at
- * **Tier B**: it declares NO `applyPlan`, so the type system (ADR 0037 §6)
- * forbids it from ever writing live config — `trust prepare --host cursor`
- * emits a reversible plan the user applies manually, and `trust apply` refuses a
- * Tier-B plan. Promotion to Tier A (adding `applyPlan`, which just delegates to
- * the audited host-agnostic engine) requires the ADR 0037 §6 gate: 20 positive +
- * 20 broken apply fixtures, Win/macOS/Linux E2E, and a measured <1% corruption
- * rate. Until then Cursor stays Tier B — the honest, safe intermediate state.
+ * shapes the typed JSON-Patch that adds the resolved servers there, and applies
+ * it by delegating to the audited host-agnostic engine (revalidate → atomic
+ * write → verify → rollback). It shipped first at Tier B (plan-only) and was
+ * promoted to **Tier A** once the ADR 0037 §6 gate was met by the real cross-OS
+ * apply E2E (20 positive + 20 broken/conflict on ubuntu/macOS/windows, measured
+ * <1% corruption — `tests/e2e/test/apply-engine.e2e.test.ts`). The adapter adds
+ * NO bespoke write logic; the single dangerous surface stays in one audited place.
  *
  * Plan-building performs NO I/O and NEVER executes anything — the edge reads the
  * current config bytes/digest and passes them in via PlanContext.
  */
-import type { InstallPlan } from "@calllint/types"
-import type { HostAdapter, PlanContext, PlanUpstream, ValidationResult } from "../hostAdapter.js"
+import type { InstallPlan, ApplyResult } from "@calllint/types"
+import type { HostAdapter, PlanContext, PlanUpstream, ValidationResult, ApplyContext } from "../hostAdapter.js"
 import { buildInstallPlan } from "../buildPlan.js"
 import { validatePlan } from "../validate.js"
+import { applyPlan as engineApply } from "../applyEngine.js"
 
 export const CURSOR_HOST_ID = "cursor" as const
-const CURSOR_TIER = "B" as const
+const CURSOR_TIER = "A" as const
 
 export const cursorAdapter: HostAdapter = {
   id: CURSOR_HOST_ID,
@@ -37,8 +37,23 @@ export const cursorAdapter: HostAdapter = {
     return validatePlan(plan)
   },
 
-  // No applyPlan: Tier B is plan-only. The user applies the emitted patch, or a
-  // future Tier-A promotion adds `applyPlan` delegating to the audited engine.
+  applyPlan(plan: InstallPlan, ctx: ApplyContext): ApplyResult {
+    // Delegate to the audited, host-agnostic engine — Cursor's `.cursor/mcp.json`
+    // is a plain JSON object with an `mcpServers` map (same shape as Claude Code),
+    // so the engine's generic verify (re-parse + semantic match) is sufficient.
+    // The adapter adds NO bespoke write logic; the single dangerous surface stays
+    // in one audited place (ADR 0037). Promoted to Tier A on the strength of the
+    // real cross-OS apply E2E (tests/e2e/test/apply-engine.e2e.test.ts, ADR 0037 §6).
+    return engineApply({
+      plan,
+      approvalDigest: ctx.approvalDigest,
+      configPath: ctx.configPath,
+      backupPath: ctx.backupPath,
+      lockPath: ctx.lockPath,
+      fs: ctx.fs,
+      now: ctx.now,
+    })
+  },
 }
 
 /**

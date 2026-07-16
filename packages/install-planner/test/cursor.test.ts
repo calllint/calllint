@@ -26,7 +26,7 @@ const upstream: PlanUpstream = { artifactDigest: A, authority, decision }
 function ctx(over: Partial<PlanContext> = {}): PlanContext {
   return {
     host: CURSOR_HOST_ID,
-    tier: "B",
+    tier: "A",
     configPath: ".cursor/mcp.json",
     configDigest: CFG_D,
     currentConfig: { mcpServers: {} },
@@ -38,18 +38,18 @@ function ctx(over: Partial<PlanContext> = {}): PlanContext {
 }
 
 describe("cursorAdapter — Tier B plan-only (C5)", () => {
-  it("is registered as a Tier-B host that declares NO writer", () => {
+  it("is registered as a Tier-A host that ships a writer (promoted from B)", () => {
     expect(cursorAdapter.id).toBe("cursor")
-    expect(cursorAdapter.tier).toBe("B")
-    // The single most important property: a Tier-B adapter can never write.
-    expect(cursorAdapter.applyPlan).toBeUndefined()
+    expect(cursorAdapter.tier).toBe("A")
+    // Promoted to Tier A: it now declares applyPlan (delegates to the audited engine).
+    expect(typeof cursorAdapter.applyPlan).toBe("function")
   })
 
   it("createPlan assembles a sealed, digest-verifiable plan bound to the upstream chain", () => {
     const plan = cursorAdapter.createPlan(ctx(), upstream)
     expect(plan.schema).toBe("calllint.install-plan.v1")
     expect(plan.host).toBe("cursor")
-    expect(plan.tier).toBe("B")
+    expect(plan.tier).toBe("A")
     expect(plan.artifactDigest).toBe(A)
     expect(plan.authorityDigest).toBe(AUTH_D)
     expect(plan.decisionDigest).toBe(DEC_D)
