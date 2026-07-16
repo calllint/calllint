@@ -15,6 +15,7 @@ import { inboxCommand } from "./commands/inbox.js"
 import { inventoryCommand } from "./commands/inventory.js"
 import { evidenceCommand } from "./commands/evidence.js"
 import { trustCommand } from "./commands/trust.js"
+import { guardCommand } from "./commands/guard.js"
 import type { Finding } from "@calllint/types"
 
 /**
@@ -123,6 +124,13 @@ export function run(argv: string[], deps: RunDeps): CommandResult {
       return evidenceCommand(args, { cwd: deps.cwd })
     case "trust":
       return trustCommand(args, { cwd: deps.cwd, generatedAt: deps.generatedAt, toolVersion: deps.toolVersion })
+    case "guard":
+      return guardCommand(args, {
+        cwd: deps.cwd,
+        now: deps.now,
+        generatedAt: deps.generatedAt,
+        writeFile: deps.writeCacheFile,
+      })
     case "gen-rule":
       return genRuleCommand(args, { cwd: deps.cwd })
     case "policy":
