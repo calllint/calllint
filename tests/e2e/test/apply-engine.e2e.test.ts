@@ -79,7 +79,7 @@ function scene(seed?: string): Scene {
  * plan's `host` field to prove each adapter's delegation writes through the same
  * audited engine. Set per `describe.each` iteration below.
  */
-let HOST: "claude-code" | "cursor" = "claude-code"
+let HOST: "claude-code" | "cursor" | "windsurf" = "claude-code"
 
 /** Build a Tier-A plan for `servers` against the scene's current config bytes. */
 function planFor(
@@ -131,9 +131,9 @@ function isCorrupt(sc: Scene): boolean {
 const corruptionLedger: boolean[] = []
 
 // Parametrize the whole 20+20 matrix over every Tier-A host. The writer is
-// host-agnostic, so each host must satisfy the §6 gate identically; running both
-// proves the cursor adapter's applyPlan delegates to the same audited engine.
-const TIER_A_HOSTS = ["claude-code", "cursor"] as const
+// host-agnostic, so each host must satisfy the §6 gate identically; running all
+// of them proves each adapter's applyPlan delegates to the same audited engine.
+const TIER_A_HOSTS = ["claude-code", "cursor", "windsurf"] as const
 
 describe.each(TIER_A_HOSTS)("apply engine [%s] — real-filesystem POSITIVE cases (ADR 0037 §6)", (host) => {
   beforeEach(() => {
@@ -462,8 +462,8 @@ describe("apply engine — §6 corruption kill gate (measured, not claimed)", ()
   it("0 positive cases corrupted the config ⇒ rate 0% < 1%", () => {
     // The positive suite ran first (vitest runs describes in file order) and
     // recorded, per case, whether it left an unparseable config on disk.
-    // 20 positive cases × 2 Tier-A hosts (claude-code, cursor) = 40 recorded.
-    expect(corruptionLedger.length).toBeGreaterThanOrEqual(40)
+    // 20 positive cases × 3 Tier-A hosts (claude-code, cursor, windsurf) = 60 recorded.
+    expect(corruptionLedger.length).toBeGreaterThanOrEqual(60)
     const corrupt = corruptionLedger.filter(Boolean).length
     const rate = corrupt / corruptionLedger.length
     expect(rate).toBeLessThan(0.01)

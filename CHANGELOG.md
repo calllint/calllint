@@ -10,13 +10,14 @@ onward. While pre-1.0, minor versions may include breaking changes.
 
 ## [Unreleased]
 
-## [1.5.1] — 2026-07-16 — Cross-OS Apply E2E & Cursor Tier-A
+## [1.5.1] — 2026-07-16 — Cross-OS Apply E2E & Tier-A Host Expansion
 
-**Prove the writer, then add a second host.** This patch cuts what had
-accumulated on `main` after 1.5.0: the single audited config writer is now
-proven on a real filesystem across Windows/macOS/Linux, and Cursor becomes the
-second Tier-A install host on the strength of that gate. No new command, schema,
-or verdict vocabulary — the apply engine and plan format are unchanged.
+**Prove the writer, then add hosts.** This patch cuts what had accumulated on
+`main` after 1.5.0: the single audited config writer is now proven on a real
+filesystem across Windows/macOS/Linux, and both Cursor and Windsurf join Claude
+Code as Tier-A install hosts on the strength of that gate — reaching the **3
+Tier-A hosts** that unblock Phase I. No new command, schema, or verdict
+vocabulary — the apply engine and plan format are unchanged.
 
 ### Added
 
@@ -36,10 +37,20 @@ or verdict vocabulary — the apply engine and plan format are unchanged.
   overrides); `calllint trust apply` then writes the approved change atomically with backup +
   rollback. The adapter delegates apply to the same audited host-agnostic engine as Claude
   Code (no bespoke write logic). Tier A is earned by the real cross-OS apply E2E parametrized
-  over `[claude-code, cursor]` (20 positive + 20 broken/conflict each, ubuntu/macOS/windows,
-  measured 0% corruption — ADR 0037 §6). Tier-A hosts: **2** (Claude Code + Cursor); one more
-  unblocks Phase I. (It shipped first at Tier B / plan-only within this same unreleased cycle,
-  then was promoted once the §6 gate was met.)
+  over the Tier-A hosts (20 positive + 20 broken/conflict each, ubuntu/macOS/windows,
+  measured 0% corruption — ADR 0037 §6). (It shipped first at Tier B / plan-only within an
+  earlier cycle, then was promoted once the §6 gate was met.)
+- **Windsurf host adapter — Tier A (C5 host expansion, host #3 of Phase I's ≥3)** — `calllint
+  trust prepare --host windsurf` resolves a target, decides over it, and emits a reversible
+  `calllint.install-plan.v1` for Windsurf's `~/.codeium/mcp_config.json` (a single home-relative
+  file on every OS, verified against the official Cascade MCP docs; `--host-config` overrides);
+  `calllint trust apply` then writes the approved change atomically with backup + rollback,
+  delegating to the same audited host-agnostic engine (no bespoke write logic). The one
+  Windsurf-specific detail: a remote server is written under `serverUrl` (the Cascade field),
+  not `url`. Tier A is earned by the same real cross-OS apply E2E, now parametrized over
+  `[claude-code, cursor, windsurf]` (20 positive + 20 broken/conflict each). This also corrects
+  the Windsurf discovery path, which previously guessed `%APPDATA%\Windsurf\mcp.json`.
+  **Tier-A hosts: 3** (Claude Code + Cursor + Windsurf) — the Phase I gate (≥3) is now met.
 
 ### Fixed
 

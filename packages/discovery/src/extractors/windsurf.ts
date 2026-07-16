@@ -7,13 +7,15 @@ import { join } from "node:path"
 /**
  * Windsurf agent extractor.
  *
- * Config paths (inferred from Codeium/Windsurf product structure):
- * - User (Windows): %APPDATA%\Windsurf\mcp.json
- * - User (macOS): ~/Library/Application Support/Windsurf/mcp.json
- * - User (Linux): ~/.config/Windsurf/mcp.json
+ * Config path (verified against the official Windsurf/Codeium Cascade MCP docs,
+ * docs.windsurf.com/plugins/cascade/mcp): a single home-relative file on every
+ * OS —
+ * - `~/.codeium/mcp_config.json`  (Windows: `%USERPROFILE%\.codeium\mcp_config.json`)
  *
- * Note: Windsurf is a Codeium product. Config schema assumed to match
- * standard MCP format (root-level mcpServers key) until evidence suggests otherwise.
+ * Schema: root-level `mcpServers` (same map shape as Cursor / Claude Code). A
+ * stdio server uses `command` / `args` / `env`; a remote server uses `serverUrl`
+ * (or `url`). Earlier revisions of this file GUESSED `%APPDATA%\Windsurf\mcp.json`
+ * — that was wrong; the real product stores config under `~/.codeium`.
  */
 export class WindsurfExtractor extends BaseAgentExtractor {
   readonly agentType: AgentType = "windsurf"
@@ -22,20 +24,19 @@ export class WindsurfExtractor extends BaseAgentExtractor {
   discover(cwd: string): DiscoveredConfig[] {
     const configs: DiscoveredConfig[] = []
 
-    // User-level config (platform-specific)
+    // User-level config (home-relative on every OS).
     try {
       const userPath = this.getUserConfigPath()
       configs.push(this.createConfig(userPath))
     } catch {
-      // Platform-specific path resolution failed, skip
+      // Home-directory resolution failed, skip
     }
 
     return configs
   }
 
   private getUserConfigPath(): string {
-    const appDataDir = this.getAppDataDir()
-    return join(appDataDir, "Windsurf", "mcp.json")
+    return join(this.resolveHome(), ".codeium", "mcp_config.json")
   }
 
   private createConfig(configPath: string): DiscoveredConfig {
@@ -65,8 +66,8 @@ export class WindsurfExtractor extends BaseAgentExtractor {
       const content = readFileSync(path, "utf8")
       const json = JSON.parse(content)
 
-      // Windsurf configs assumed to have mcpServers at root
-      // mcpServers must exist and not be null
+      // Windsurf configs have mcpServers at root (verified — same shape as
+      // Cursor / Claude Code). mcpServers must exist and not be null.
       return (
         typeof json === "object" &&
         json !== null &&
