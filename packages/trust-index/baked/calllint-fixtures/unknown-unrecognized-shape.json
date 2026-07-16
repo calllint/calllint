@@ -1,0 +1,103 @@
+{
+  "schema": "calllint.trust-page.v0",
+  "canonicalName": "calllint-fixtures/unknown-unrecognized-shape",
+  "artifactDigest": "sha256:1f94b03fad0165713094e233104b57e21bba31c3edfb56728e44eb6dd0f2ca42",
+  "pageDigest": "sha256:d728959b5a5620380f50b5d5dfc03f4a308e69b8a55e9bd4ac36d9502d26d3d1",
+  "verdict": "UNKNOWN",
+  "verdictLabel": "Insufficient evidence",
+  "observedAt": "1970-01-01T00:00:00.000Z",
+  "completeness": "complete",
+  "correctionUrl": "https://github.com/calllint/calllint/issues/new?labels=trust-page-correction",
+  "preparation": {
+    "schema": "calllint.trust-preparation.v0",
+    "artifact": {
+      "schema": "calllint.artifact.v1",
+      "sourceType": "mcp-config",
+      "source": "unknown-unrecognized-shape.json",
+      "requestedRef": null,
+      "resolvedRef": "sha256:1f94b03fad0165713094e233104b57e21bba31c3edfb56728e44eb6dd0f2ca42",
+      "digest": "sha256:1f94b03fad0165713094e233104b57e21bba31c3edfb56728e44eb6dd0f2ca42",
+      "resolvedAt": "1970-01-01T00:00:00.000Z",
+      "resolution": "resolved"
+    },
+    "evidence": null,
+    "authority": {
+      "schema": "calllint.authority.v0",
+      "subject": {
+        "artifactDigest": "sha256:1f94b03fad0165713094e233104b57e21bba31c3edfb56728e44eb6dd0f2ca42"
+      },
+      "capabilities": [],
+      "limits": {
+        "spendPerCall": null,
+        "spendTotal": null
+      },
+      "approval": {
+        "required": []
+      },
+      "unknowns": [],
+      "completeness": "complete",
+      "digest": "sha256:8ff653a88417476d85942d2af739b57d262d632b4675bdb7a1e4540824cec1ec"
+    },
+    "decision": null,
+    "plan": null,
+    "state": "AUTHORITY_NORMALIZED",
+    "notes": [
+      "no external evidence attached (optional); decision will rely on CallLint's own analysis",
+      "authority normalized: no elevated capabilities detected"
+    ],
+    "preparedAt": "1970-01-01T00:00:00.000Z"
+  },
+  "scan": {
+    "schemaVersion": "calllint.report.v0",
+    "reportKind": "config-summary",
+    "configPath": "unknown-unrecognized-shape.json",
+    "verdict": "UNKNOWN",
+    "publicVerdictLabel": "Insufficient evidence",
+    "counts": {
+      "SAFE": 0,
+      "REVIEW": 0,
+      "BLOCK": 0,
+      "UNKNOWN": 1
+    },
+    "reports": [
+      {
+        "schemaVersion": "calllint.report.v0",
+        "reportKind": "single-target",
+        "target": {
+          "name": "custom-remote",
+          "kind": "cursor-mcp-config",
+          "configPath": "unknown-unrecognized-shape.json"
+        },
+        "verdict": "UNKNOWN",
+        "publicVerdictLabel": "Insufficient evidence",
+        "policyApplied": false,
+        "riskClass": "S0",
+        "symbols": [],
+        "confidence": "high",
+        "reproducibility": {
+          "level": "HIGH",
+          "reasons": []
+        },
+        "summary": "\"custom-remote\" could not be verified (insufficient evidence). Risk: no risk surface observed (S0 Metadata only).",
+        "observed": [],
+        "inferred": [],
+        "findings": [],
+        "topFindings": [],
+        "policy": {
+          "autonomousUse": "deny",
+          "manualApproval": "required",
+          "sandbox": "required"
+        },
+        "fingerprints": {
+          "configHash": "sha256:29fcc91767e0813868f243d6e3e2845a3fee6c302f3db174f2d10859bc3128d4",
+          "targetSpecHash": "sha256:3d612da747625ff9d7414801b300fd577aadc63f88540ab80f0cd8fdd2f4b10f",
+          "riskSurfaceHash": "sha256:69aae84c996fe93d537b08d906cb339866bd43f10876be403a0f4793915bef33"
+        },
+        "diagnostics": [],
+        "generatedAt": "1970-01-01T00:00:00.000Z"
+      }
+    ],
+    "diagnostics": [],
+    "generatedAt": "1970-01-01T00:00:00.000Z"
+  }
+}

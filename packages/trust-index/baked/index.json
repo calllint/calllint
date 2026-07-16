@@ -1,0 +1,169 @@
+{
+  "schema": "calllint.trust-index.v0",
+  "cohort": "fixtures",
+  "baked": 19,
+  "incomplete": 1,
+  "entries": [
+    {
+      "canonicalName": "calllint-fixtures/block-dangerous-command",
+      "status": "baked",
+      "artifactDigest": "sha256:21e04db6ce368b289eb8c5fed22a02f22fb525465a152eff778a48c5007f4c61",
+      "pageDigest": "sha256:ef0166a663c10c03decc9ca419cc98ce2fa6e5263c3055973db759ea42252548",
+      "verdict": "BLOCK",
+      "observedAt": "1970-01-01T00:00:00.000Z"
+    },
+    {
+      "canonicalName": "calllint-fixtures/block-docker-bind-broad",
+      "status": "baked",
+      "artifactDigest": "sha256:cbc3ffe8012988c3dbe4287bb0fc69af9a87b77e00fcd149d4668867f170e1ce",
+      "pageDigest": "sha256:add9c5e76999964090b85d80aa90b0ad6524efda9df04167d49ce75ba34e69a3",
+      "verdict": "BLOCK",
+      "observedAt": "1970-01-01T00:00:00.000Z"
+    },
+    {
+      "canonicalName": "calllint-fixtures/block-filesystem",
+      "status": "baked",
+      "artifactDigest": "sha256:5b96a3b96cae8824d66b71bf4f49af702b2ae25a4a82d27d59c08125310c09ee",
+      "pageDigest": "sha256:42e9cd174c76de48302d9461b23ad95e98a0d07b6259afe445a67135608e8680",
+      "verdict": "BLOCK",
+      "observedAt": "1970-01-01T00:00:00.000Z"
+    },
+    {
+      "canonicalName": "calllint-fixtures/block-observed-payment",
+      "status": "baked",
+      "artifactDigest": "sha256:578dd3d4f69fdd0a9deeef6d27451ee160627ab7c05e300b1a6f8a438bb3cf11",
+      "pageDigest": "sha256:58dc9a9c42f7e2917f96f2502ef9675b48f2ca717b4110b722a1d0203238fcde",
+      "verdict": "BLOCK",
+      "observedAt": "1970-01-01T00:00:00.000Z"
+    },
+    {
+      "canonicalName": "calllint-fixtures/block-powershell-command",
+      "status": "baked",
+      "artifactDigest": "sha256:69e91974e4279c75c021cc666c9a04b62d9aa33a30fe91945794fa83ee4935b4",
+      "pageDigest": "sha256:e402a59d9cc9547c7e630966d3b1ce3273990ba10214121fb57eb650f7424ca5",
+      "verdict": "BLOCK",
+      "observedAt": "1970-01-01T00:00:00.000Z"
+    },
+    {
+      "canonicalName": "calllint-fixtures/block-prompt-poison",
+      "status": "baked",
+      "artifactDigest": "sha256:b999a14f880521815a88c376628bdb146e6c065a82cc306e8005c851ece7921e",
+      "pageDigest": "sha256:b05db8f4271814dfb8d07e17452c50aa5ae1081b534ef5743a0a8517066284c4",
+      "verdict": "BLOCK",
+      "observedAt": "1970-01-01T00:00:00.000Z"
+    },
+    {
+      "canonicalName": "calllint-fixtures/block-windows-user-profile",
+      "status": "baked",
+      "artifactDigest": "sha256:8cb0eed5798ba0768ddd21ddb3add0b290c875da6447540a5020ed1b1603965f",
+      "pageDigest": "sha256:97b837a5609ed9507d9750a20fae8c169bb373385cb7457b469dad0554e3feed",
+      "verdict": "BLOCK",
+      "observedAt": "1970-01-01T00:00:00.000Z"
+    },
+    {
+      "canonicalName": "calllint-fixtures/malformed",
+      "status": "incomplete",
+      "artifactDigest": null,
+      "pageDigest": null,
+      "verdict": null,
+      "observedAt": "1970-01-01T00:00:00.000Z",
+      "reason": "config did not parse — recorded as incomplete, no page baked"
+    },
+    {
+      "canonicalName": "calllint-fixtures/review-financial",
+      "status": "baked",
+      "artifactDigest": "sha256:ac53be3acbaa3d1f6b3aab194297576e3fee0229a9f78954c1f300e219989875",
+      "pageDigest": "sha256:21dd2bcd7ed3fef464990cde7f4452a0f589046947fde8d0ff1d6251f52abc9c",
+      "verdict": "REVIEW",
+      "observedAt": "1970-01-01T00:00:00.000Z"
+    },
+    {
+      "canonicalName": "calllint-fixtures/review-github",
+      "status": "baked",
+      "artifactDigest": "sha256:01094e72e14991f802b544388eee6284674fc5558e1f3289b294899e2354147b",
+      "pageDigest": "sha256:32a5209caaeb19f9c60da04ec4978e46f525ba40def0f272d227d9d6def81907",
+      "verdict": "REVIEW",
+      "observedAt": "1970-01-01T00:00:00.000Z"
+    },
+    {
+      "canonicalName": "calllint-fixtures/review-hidden-instructions",
+      "status": "baked",
+      "artifactDigest": "sha256:6cddab4f5ad9b47f58e821f667e041a91622ece242394749278040365687bab9",
+      "pageDigest": "sha256:5cf94224cf756dc15625d492c7050ff25ca12ec7aade27c6a9cb0adc2d795afe",
+      "verdict": "REVIEW",
+      "observedAt": "1970-01-01T00:00:00.000Z"
+    },
+    {
+      "canonicalName": "calllint-fixtures/review-unpinned-package",
+      "status": "baked",
+      "artifactDigest": "sha256:79ca7ed9ca119414aa16405dab6a31782f8023b2b5f2ea2c284f0f0a815ccf06",
+      "pageDigest": "sha256:4cf91227cc771b84562483d4242b8147d66051f752f3d579b76363a798565526",
+      "verdict": "REVIEW",
+      "observedAt": "1970-01-01T00:00:00.000Z"
+    },
+    {
+      "canonicalName": "calllint-fixtures/review-unverified-local-source",
+      "status": "baked",
+      "artifactDigest": "sha256:88f2052ebbeb0ac0da1b12bab2db35608035d986a9e0f28a1b767aa4b6f5c181",
+      "pageDigest": "sha256:1b8d9854d6d96a5c2aeea580e062f7d4e52ada03b3747a9b941febeac4d38533",
+      "verdict": "REVIEW",
+      "observedAt": "1970-01-01T00:00:00.000Z"
+    },
+    {
+      "canonicalName": "calllint-fixtures/safe-clean-unicode-metadata",
+      "status": "baked",
+      "artifactDigest": "sha256:f89eadfdb56d1cc5affa300b8f240da53d7224ebf59110a08831fceed2a94e8e",
+      "pageDigest": "sha256:8c67f8b8ece3dfde792e40b4f29a0b8d9a34e71d4b842fa1ddc0da18d0c33ee9",
+      "verdict": "SAFE",
+      "observedAt": "1970-01-01T00:00:00.000Z"
+    },
+    {
+      "canonicalName": "calllint-fixtures/safe-docker-volume-scoped",
+      "status": "baked",
+      "artifactDigest": "sha256:663b1967cf0fbc03aa1fd71a85c355cda48c4a4c48f316da0d38616788e5fd86",
+      "pageDigest": "sha256:5558fbd1def73e499d7989fac8d54f5699e9fa6c8a0c5d37f310e95942bf3e2f",
+      "verdict": "SAFE",
+      "observedAt": "1970-01-01T00:00:00.000Z"
+    },
+    {
+      "canonicalName": "calllint-fixtures/safe-filesystem-workspace",
+      "status": "baked",
+      "artifactDigest": "sha256:e348a92f54aa515bf94c1a272b1caf2567445ce76742ca38a1b1acb17c04753f",
+      "pageDigest": "sha256:ffa85c39f2855bd9e95a778e83badebc32212edd49706f12978af20f6ae68b7c",
+      "verdict": "SAFE",
+      "observedAt": "1970-01-01T00:00:00.000Z"
+    },
+    {
+      "canonicalName": "calllint-fixtures/safe-time",
+      "status": "baked",
+      "artifactDigest": "sha256:7d149238137d733259f89628fd197ca305ee3759f70a586cc7ad14eb7503962f",
+      "pageDigest": "sha256:3b8a4874d37075751d021a4f6b7eeb273b3fc1c1bf7708d1ad7a7d26db600601",
+      "verdict": "SAFE",
+      "observedAt": "1970-01-01T00:00:00.000Z"
+    },
+    {
+      "canonicalName": "calllint-fixtures/safe-windows-workspace",
+      "status": "baked",
+      "artifactDigest": "sha256:86c53e93c8f18c9b97cc42fbfe1bb9d1f59f84ce27e976e68e8e54631ca83c8d",
+      "pageDigest": "sha256:c669b75074e4705be780246379b2f8b7613b587b45049be7fdbcd8ac559a5749",
+      "verdict": "SAFE",
+      "observedAt": "1970-01-01T00:00:00.000Z"
+    },
+    {
+      "canonicalName": "calllint-fixtures/unknown-remote",
+      "status": "baked",
+      "artifactDigest": "sha256:fc5a61dd40cfb47c0e4cbebcd1bbcf6144aac662e87ac3eab8588cf1921e22f5",
+      "pageDigest": "sha256:80797cd97fb8bafd4c891cbed7e81133b67ee923e10fc2d871e8d6f325b8a7ee",
+      "verdict": "UNKNOWN",
+      "observedAt": "1970-01-01T00:00:00.000Z"
+    },
+    {
+      "canonicalName": "calllint-fixtures/unknown-unrecognized-shape",
+      "status": "baked",
+      "artifactDigest": "sha256:1f94b03fad0165713094e233104b57e21bba31c3edfb56728e44eb6dd0f2ca42",
+      "pageDigest": "sha256:d728959b5a5620380f50b5d5dfc03f4a308e69b8a55e9bd4ac36d9502d26d3d1",
+      "verdict": "UNKNOWN",
+      "observedAt": "1970-01-01T00:00:00.000Z"
+    }
+  ]
+}

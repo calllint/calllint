@@ -1,0 +1,198 @@
+{
+  "schema": "calllint.trust-page.v0",
+  "canonicalName": "calllint-fixtures/block-windows-user-profile",
+  "artifactDigest": "sha256:8cb0eed5798ba0768ddd21ddb3add0b290c875da6447540a5020ed1b1603965f",
+  "pageDigest": "sha256:97b837a5609ed9507d9750a20fae8c169bb373385cb7457b469dad0554e3feed",
+  "verdict": "BLOCK",
+  "verdictLabel": "Blocked by policy",
+  "observedAt": "1970-01-01T00:00:00.000Z",
+  "completeness": "complete",
+  "correctionUrl": "https://github.com/calllint/calllint/issues/new?labels=trust-page-correction",
+  "preparation": {
+    "schema": "calllint.trust-preparation.v0",
+    "artifact": {
+      "schema": "calllint.artifact.v1",
+      "sourceType": "mcp-config",
+      "source": "block-windows-user-profile.json",
+      "requestedRef": null,
+      "resolvedRef": "sha256:8cb0eed5798ba0768ddd21ddb3add0b290c875da6447540a5020ed1b1603965f",
+      "digest": "sha256:8cb0eed5798ba0768ddd21ddb3add0b290c875da6447540a5020ed1b1603965f",
+      "resolvedAt": "1970-01-01T00:00:00.000Z",
+      "resolution": "resolved"
+    },
+    "evidence": null,
+    "authority": {
+      "schema": "calllint.authority.v0",
+      "subject": {
+        "artifactDigest": "sha256:8cb0eed5798ba0768ddd21ddb3add0b290c875da6447540a5020ed1b1603965f"
+      },
+      "capabilities": [
+        {
+          "action": "execute",
+          "resource": "process",
+          "scope": "npx",
+          "destination": null,
+          "mutability": "mutating",
+          "reversibility": "irreversible",
+          "monetaryLimit": null,
+          "approvalRequirement": "none",
+          "evidenceSource": "server.command",
+          "confidence": "high",
+          "completeness": "complete",
+          "trustSource": "trusted.local_project"
+        }
+      ],
+      "limits": {
+        "spendPerCall": null,
+        "spendTotal": null
+      },
+      "approval": {
+        "required": []
+      },
+      "unknowns": [],
+      "completeness": "complete",
+      "digest": "sha256:c846dd032f6c36bd783d9f0229d0fcee71a642d20b419a00d7fbdef438c3136e"
+    },
+    "decision": null,
+    "plan": null,
+    "state": "AUTHORITY_NORMALIZED",
+    "notes": [
+      "no external evidence attached (optional); decision will rely on CallLint's own analysis",
+      "authority normalized: 1 capability"
+    ],
+    "preparedAt": "1970-01-01T00:00:00.000Z"
+  },
+  "scan": {
+    "schemaVersion": "calllint.report.v0",
+    "reportKind": "config-summary",
+    "configPath": "block-windows-user-profile.json",
+    "verdict": "BLOCK",
+    "publicVerdictLabel": "Blocked by policy",
+    "counts": {
+      "SAFE": 0,
+      "REVIEW": 0,
+      "BLOCK": 1,
+      "UNKNOWN": 0
+    },
+    "reports": [
+      {
+        "schemaVersion": "calllint.report.v0",
+        "reportKind": "single-target",
+        "target": {
+          "name": "filesystem",
+          "kind": "cursor-mcp-config",
+          "source": "@modelcontextprotocol/server-filesystem",
+          "version": "1.0.0",
+          "configPath": "block-windows-user-profile.json"
+        },
+        "verdict": "BLOCK",
+        "publicVerdictLabel": "Blocked by policy",
+        "policyApplied": false,
+        "riskClass": "S2",
+        "symbols": [
+          "FILES"
+        ],
+        "confidence": "high",
+        "reproducibility": {
+          "level": "HIGH",
+          "reasons": []
+        },
+        "summary": "\"filesystem\" is blocked. Risk: Files (S2 Sensitive read).",
+        "observed": [
+          {
+            "id": "files.broad-path",
+            "title": "Broad local filesystem access",
+            "severity": "critical",
+            "blocker": true,
+            "symbol": "FILES",
+            "riskClass": "S2",
+            "mode": "OBSERVED",
+            "confidence": "high",
+            "detectionMethod": "arg-analysis",
+            "evidence": [
+              {
+                "type": "config",
+                "path": "block-windows-user-profile.json",
+                "key": "args",
+                "value": "C:\\Users\\admin",
+                "line": 5,
+                "column": 7
+              }
+            ],
+            "impact": "An agent-triggered tool could read private local files outside the project.",
+            "fix": "Restrict filesystem access to the current workspace, e.g. ${workspaceFolder}.",
+            "falsePositiveNote": "A developer may intentionally grant broad access for a local-only experiment."
+          }
+        ],
+        "inferred": [],
+        "findings": [
+          {
+            "id": "files.broad-path",
+            "title": "Broad local filesystem access",
+            "severity": "critical",
+            "blocker": true,
+            "symbol": "FILES",
+            "riskClass": "S2",
+            "mode": "OBSERVED",
+            "confidence": "high",
+            "detectionMethod": "arg-analysis",
+            "evidence": [
+              {
+                "type": "config",
+                "path": "block-windows-user-profile.json",
+                "key": "args",
+                "value": "C:\\Users\\admin",
+                "line": 5,
+                "column": 7
+              }
+            ],
+            "impact": "An agent-triggered tool could read private local files outside the project.",
+            "fix": "Restrict filesystem access to the current workspace, e.g. ${workspaceFolder}.",
+            "falsePositiveNote": "A developer may intentionally grant broad access for a local-only experiment."
+          }
+        ],
+        "topFindings": [
+          {
+            "id": "files.broad-path",
+            "title": "Broad local filesystem access",
+            "severity": "critical",
+            "blocker": true,
+            "symbol": "FILES",
+            "riskClass": "S2",
+            "mode": "OBSERVED",
+            "confidence": "high",
+            "detectionMethod": "arg-analysis",
+            "evidence": [
+              {
+                "type": "config",
+                "path": "block-windows-user-profile.json",
+                "key": "args",
+                "value": "C:\\Users\\admin",
+                "line": 5,
+                "column": 7
+              }
+            ],
+            "impact": "An agent-triggered tool could read private local files outside the project.",
+            "fix": "Restrict filesystem access to the current workspace, e.g. ${workspaceFolder}.",
+            "falsePositiveNote": "A developer may intentionally grant broad access for a local-only experiment."
+          }
+        ],
+        "policy": {
+          "autonomousUse": "deny",
+          "manualApproval": "required",
+          "sandbox": "required"
+        },
+        "fingerprints": {
+          "configHash": "sha256:34b255cb3fdcc837db2c5b3a5fc78a698260571a8937c19f5f0db6dda9ad7f3d",
+          "targetSpecHash": "sha256:b4b16601f923b33e6629b819c0b7fd32c2e17937e2927d3f774643a2a1a237ba",
+          "riskSurfaceHash": "sha256:554fa36db778c8da19b9a2e5f668ada0873a0fb5a9fb6f46a9dc3a1f773181fe",
+          "packageSpecHash": "sha256:72f4113770bfac3235421acb5c571a2da8c10574979cb5ecd2e470b52dba2139"
+        },
+        "diagnostics": [],
+        "generatedAt": "1970-01-01T00:00:00.000Z"
+      }
+    ],
+    "diagnostics": [],
+    "generatedAt": "1970-01-01T00:00:00.000Z"
+  }
+}

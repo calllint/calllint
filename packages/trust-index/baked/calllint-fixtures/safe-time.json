@@ -1,0 +1,121 @@
+{
+  "schema": "calllint.trust-page.v0",
+  "canonicalName": "calllint-fixtures/safe-time",
+  "artifactDigest": "sha256:7d149238137d733259f89628fd197ca305ee3759f70a586cc7ad14eb7503962f",
+  "pageDigest": "sha256:3b8a4874d37075751d021a4f6b7eeb273b3fc1c1bf7708d1ad7a7d26db600601",
+  "verdict": "SAFE",
+  "verdictLabel": "No blockers observed",
+  "observedAt": "1970-01-01T00:00:00.000Z",
+  "completeness": "complete",
+  "correctionUrl": "https://github.com/calllint/calllint/issues/new?labels=trust-page-correction",
+  "preparation": {
+    "schema": "calllint.trust-preparation.v0",
+    "artifact": {
+      "schema": "calllint.artifact.v1",
+      "sourceType": "mcp-config",
+      "source": "safe-time.json",
+      "requestedRef": null,
+      "resolvedRef": "sha256:7d149238137d733259f89628fd197ca305ee3759f70a586cc7ad14eb7503962f",
+      "digest": "sha256:7d149238137d733259f89628fd197ca305ee3759f70a586cc7ad14eb7503962f",
+      "resolvedAt": "1970-01-01T00:00:00.000Z",
+      "resolution": "resolved"
+    },
+    "evidence": null,
+    "authority": {
+      "schema": "calllint.authority.v0",
+      "subject": {
+        "artifactDigest": "sha256:7d149238137d733259f89628fd197ca305ee3759f70a586cc7ad14eb7503962f"
+      },
+      "capabilities": [
+        {
+          "action": "execute",
+          "resource": "process",
+          "scope": "npx",
+          "destination": null,
+          "mutability": "mutating",
+          "reversibility": "irreversible",
+          "monetaryLimit": null,
+          "approvalRequirement": "none",
+          "evidenceSource": "server.command",
+          "confidence": "high",
+          "completeness": "complete",
+          "trustSource": "trusted.local_project"
+        }
+      ],
+      "limits": {
+        "spendPerCall": null,
+        "spendTotal": null
+      },
+      "approval": {
+        "required": []
+      },
+      "unknowns": [],
+      "completeness": "complete",
+      "digest": "sha256:cec370aaeb47c4283b1ab76156cc9793fecd37ea5c63e287b4f30303cabdfa6d"
+    },
+    "decision": null,
+    "plan": null,
+    "state": "AUTHORITY_NORMALIZED",
+    "notes": [
+      "no external evidence attached (optional); decision will rely on CallLint's own analysis",
+      "authority normalized: 1 capability"
+    ],
+    "preparedAt": "1970-01-01T00:00:00.000Z"
+  },
+  "scan": {
+    "schemaVersion": "calllint.report.v0",
+    "reportKind": "config-summary",
+    "configPath": "safe-time.json",
+    "verdict": "SAFE",
+    "publicVerdictLabel": "No blockers observed",
+    "counts": {
+      "SAFE": 1,
+      "REVIEW": 0,
+      "BLOCK": 0,
+      "UNKNOWN": 0
+    },
+    "reports": [
+      {
+        "schemaVersion": "calllint.report.v0",
+        "reportKind": "single-target",
+        "target": {
+          "name": "time",
+          "kind": "cursor-mcp-config",
+          "source": "@modelcontextprotocol/server-time",
+          "version": "1.0.0",
+          "configPath": "safe-time.json"
+        },
+        "verdict": "SAFE",
+        "publicVerdictLabel": "No blockers observed",
+        "policyApplied": false,
+        "riskClass": "S1",
+        "symbols": [],
+        "confidence": "high",
+        "reproducibility": {
+          "level": "HIGH",
+          "reasons": []
+        },
+        "summary": "\"time\" has no blockers observed (S1 Read-only utility).",
+        "observed": [],
+        "inferred": [],
+        "findings": [],
+        "topFindings": [],
+        "policy": {
+          "autonomousUse": "allow",
+          "manualApproval": "none",
+          "sandbox": "none"
+        },
+        "fingerprints": {
+          "configHash": "sha256:9377756b805f4df94c30d8b1a99bc9c31df02dd930b84cfc0b1865e2ab7bea0a",
+          "targetSpecHash": "sha256:68539b969f027a61a26825cf2755eb3bd26c68179d973c9d6eb3542b76ebd570",
+          "riskSurfaceHash": "sha256:69aae84c996fe93d537b08d906cb339866bd43f10876be403a0f4793915bef33",
+          "packageSpecHash": "sha256:e639bda7bf3bf5563cb54deee0a07284eee5cabb602ac03aed8637459173484f"
+        },
+        "diagnostics": [],
+        "generatedAt": "1970-01-01T00:00:00.000Z"
+      }
+    ],
+    "diagnostics": [],
+    "generatedAt": "1970-01-01T00:00:00.000Z"
+  }
+}

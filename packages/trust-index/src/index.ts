@@ -1,0 +1,35 @@
+/**
+ * @calllint/trust-index — Phase I ingestion plane (I1a, fixtures cohort).
+ *
+ * Bakes reproducible, digest-addressed Trust Pages by orchestrating the shipped
+ * scan + authority + prepare engines. This is the ONLY scanner in Phase I; it runs
+ * offline/batch and never serves a request (ADR 0046 §1/§3). No new verdict logic,
+ * no new scan — orchestration only.
+ */
+export {
+  bakeTrustPage,
+  fixtureArtifactIdentity,
+  canonicalizeConfigText,
+  ConfigParseError,
+  type BakeInput,
+  type BakedTrustPage,
+} from "./bakeTrustPage.js"
+export {
+  fixtureCohort,
+  fixtureCanonicalName,
+  FIXTURE_OBSERVED_AT,
+  type CohortEntry,
+} from "./cohort.js"
+export {
+  renderHtml,
+  renderSidecar,
+  observedStatement,
+  pagePath,
+  CORRECTION_URL,
+} from "./renderPage.js"
+export {
+  emitFixtureCohort,
+  SERVE_PREFIX,
+  type EmittedFile,
+  type EmittedCohort,
+} from "./emitCohort.js"

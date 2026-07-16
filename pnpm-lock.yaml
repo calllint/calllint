@@ -309,6 +309,24 @@ importers:
         specifier: workspace:*
         version: link:../fixtures
 
+  packages/trust-index:
+    dependencies:
+      '@calllint/config-parser':
+        specifier: workspace:*
+        version: link:../config-parser
+      '@calllint/core':
+        specifier: workspace:*
+        version: link:../core
+      '@calllint/fingerprint':
+        specifier: workspace:*
+        version: link:../fingerprint
+      '@calllint/fixtures':
+        specifier: workspace:*
+        version: link:../fixtures
+      '@calllint/types':
+        specifier: workspace:*
+        version: link:../types
+
   packages/types: {}
 
 packages:

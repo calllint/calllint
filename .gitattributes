@@ -1,0 +1,6 @@
+# Baked Trust Page artifacts (Phase I ingestion, ADR 0046) are reproducible,
+# byte-exact outputs of `pnpm bake:trust-index`. They must never be line-ending-
+# normalized on checkout, or the committed bytes would differ from a fresh emit on
+# Windows (CRLF) vs. Linux/macOS (LF) and the reproducibility gate would fail. Pin
+# them to LF on every platform so the working tree always matches the emit.
+packages/trust-index/baked/** text eol=lf

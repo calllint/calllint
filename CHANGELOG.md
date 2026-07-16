@@ -10,6 +10,22 @@ onward. While pre-1.0, minor versions may include breaking changes.
 
 ## [Unreleased]
 
+### Added
+
+- **Phase I / I1a — `@calllint/trust-index` (fixtures-only ingestion)** — the
+  offline ingestion plane that bakes reproducible, digest-addressed Trust Pages by
+  orchestrating the shipped scan + authority + `prepare` engines (no new verdict
+  logic, no new scan). The first cohort is the ADR-locked `GOLDEN_CASES` fixture set
+  under the reserved `calllint-fixtures/` namespace; each resource bakes to a JSON
+  sidecar + an HTML page under `packages/trust-index/baked/`, plus a
+  `calllint.trust-index.v0` index. Pages state a verdict **"observed at digest D at
+  time T"** and never "certified/verified safe" (ADR 0038 §2). Malformed configs are
+  recorded as `incomplete`, never silently dropped (ADR 0038 completeness).
+  Reproducibility is enforced two ways: the whole reuse chain is clock/RNG-free so a
+  re-bake is byte-identical, and a committed-tree test fails if the baked artifacts
+  drift from a fresh emit (ADR 0046 §4). Serving is a later milestone — this
+  milestone is the *only scanner* and touches no request path (ADR 0046 §1/§3).
+
 ## [1.5.1] — 2026-07-16 — Cross-OS Apply E2E & Tier-A Host Expansion
 
 **Prove the writer, then add hosts.** This patch cuts what had accumulated on

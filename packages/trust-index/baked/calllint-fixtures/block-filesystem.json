@@ -1,0 +1,263 @@
+{
+  "schema": "calllint.trust-page.v0",
+  "canonicalName": "calllint-fixtures/block-filesystem",
+  "artifactDigest": "sha256:5b96a3b96cae8824d66b71bf4f49af702b2ae25a4a82d27d59c08125310c09ee",
+  "pageDigest": "sha256:42e9cd174c76de48302d9461b23ad95e98a0d07b6259afe445a67135608e8680",
+  "verdict": "BLOCK",
+  "verdictLabel": "Blocked by policy",
+  "observedAt": "1970-01-01T00:00:00.000Z",
+  "completeness": "complete",
+  "correctionUrl": "https://github.com/calllint/calllint/issues/new?labels=trust-page-correction",
+  "preparation": {
+    "schema": "calllint.trust-preparation.v0",
+    "artifact": {
+      "schema": "calllint.artifact.v1",
+      "sourceType": "mcp-config",
+      "source": "block-filesystem.json",
+      "requestedRef": null,
+      "resolvedRef": "sha256:5b96a3b96cae8824d66b71bf4f49af702b2ae25a4a82d27d59c08125310c09ee",
+      "digest": "sha256:5b96a3b96cae8824d66b71bf4f49af702b2ae25a4a82d27d59c08125310c09ee",
+      "resolvedAt": "1970-01-01T00:00:00.000Z",
+      "resolution": "resolved"
+    },
+    "evidence": null,
+    "authority": {
+      "schema": "calllint.authority.v0",
+      "subject": {
+        "artifactDigest": "sha256:5b96a3b96cae8824d66b71bf4f49af702b2ae25a4a82d27d59c08125310c09ee"
+      },
+      "capabilities": [
+        {
+          "action": "execute",
+          "resource": "process",
+          "scope": "npx",
+          "destination": null,
+          "mutability": "mutating",
+          "reversibility": "irreversible",
+          "monetaryLimit": null,
+          "approvalRequirement": "none",
+          "evidenceSource": "server.command",
+          "confidence": "high",
+          "completeness": "complete",
+          "trustSource": "trusted.local_project"
+        }
+      ],
+      "limits": {
+        "spendPerCall": null,
+        "spendTotal": null
+      },
+      "approval": {
+        "required": []
+      },
+      "unknowns": [],
+      "completeness": "complete",
+      "digest": "sha256:8686add9ad012a49248deff42a0d3f3b4cf971452f582355603fe12058b88aa5"
+    },
+    "decision": null,
+    "plan": null,
+    "state": "AUTHORITY_NORMALIZED",
+    "notes": [
+      "no external evidence attached (optional); decision will rely on CallLint's own analysis",
+      "authority normalized: 1 capability"
+    ],
+    "preparedAt": "1970-01-01T00:00:00.000Z"
+  },
+  "scan": {
+    "schemaVersion": "calllint.report.v0",
+    "reportKind": "config-summary",
+    "configPath": "block-filesystem.json",
+    "verdict": "BLOCK",
+    "publicVerdictLabel": "Blocked by policy",
+    "counts": {
+      "SAFE": 0,
+      "REVIEW": 0,
+      "BLOCK": 1,
+      "UNKNOWN": 0
+    },
+    "reports": [
+      {
+        "schemaVersion": "calllint.report.v0",
+        "reportKind": "single-target",
+        "target": {
+          "name": "filesystem",
+          "kind": "cursor-mcp-config",
+          "source": "@modelcontextprotocol/server-filesystem",
+          "configPath": "block-filesystem.json"
+        },
+        "verdict": "BLOCK",
+        "publicVerdictLabel": "Blocked by policy",
+        "policyApplied": false,
+        "riskClass": "S2",
+        "symbols": [
+          "FILES",
+          "SUPPLY"
+        ],
+        "confidence": "high",
+        "reproducibility": {
+          "level": "MEDIUM",
+          "reasons": [
+            "Package version is not pinned"
+          ]
+        },
+        "summary": "\"filesystem\" is blocked. Risk: Files, Supply Chain (S2 Sensitive read).",
+        "observed": [
+          {
+            "id": "files.broad-path",
+            "title": "Broad local filesystem access",
+            "severity": "critical",
+            "blocker": true,
+            "symbol": "FILES",
+            "riskClass": "S2",
+            "mode": "OBSERVED",
+            "confidence": "high",
+            "detectionMethod": "arg-analysis",
+            "evidence": [
+              {
+                "type": "config",
+                "path": "block-filesystem.json",
+                "key": "args",
+                "value": "/Users/lucas",
+                "line": 5,
+                "column": 7
+              }
+            ],
+            "impact": "An agent-triggered tool could read private local files outside the project.",
+            "fix": "Restrict filesystem access to the current workspace, e.g. ${workspaceFolder}.",
+            "falsePositiveNote": "A developer may intentionally grant broad access for a local-only experiment."
+          },
+          {
+            "id": "supply.unpinned-package",
+            "title": "Package version is not pinned",
+            "severity": "high",
+            "blocker": false,
+            "symbol": "SUPPLY",
+            "riskClass": "S1",
+            "mode": "OBSERVED",
+            "confidence": "high",
+            "detectionMethod": "runtime-binding",
+            "evidence": [
+              {
+                "type": "runtime-binding",
+                "key": "package",
+                "value": "@modelcontextprotocol/server-filesystem"
+              }
+            ],
+            "impact": "The installed code can change between scans and runs, so this verdict may not match what actually executes.",
+            "fix": "Pin the package to an exact version, e.g. @modelcontextprotocol/server-filesystem@1.0.0.",
+            "falsePositiveNote": "Intentional during local development, but should be pinned before autonomous or CI use."
+          }
+        ],
+        "inferred": [],
+        "findings": [
+          {
+            "id": "files.broad-path",
+            "title": "Broad local filesystem access",
+            "severity": "critical",
+            "blocker": true,
+            "symbol": "FILES",
+            "riskClass": "S2",
+            "mode": "OBSERVED",
+            "confidence": "high",
+            "detectionMethod": "arg-analysis",
+            "evidence": [
+              {
+                "type": "config",
+                "path": "block-filesystem.json",
+                "key": "args",
+                "value": "/Users/lucas",
+                "line": 5,
+                "column": 7
+              }
+            ],
+            "impact": "An agent-triggered tool could read private local files outside the project.",
+            "fix": "Restrict filesystem access to the current workspace, e.g. ${workspaceFolder}.",
+            "falsePositiveNote": "A developer may intentionally grant broad access for a local-only experiment."
+          },
+          {
+            "id": "supply.unpinned-package",
+            "title": "Package version is not pinned",
+            "severity": "high",
+            "blocker": false,
+            "symbol": "SUPPLY",
+            "riskClass": "S1",
+            "mode": "OBSERVED",
+            "confidence": "high",
+            "detectionMethod": "runtime-binding",
+            "evidence": [
+              {
+                "type": "runtime-binding",
+                "key": "package",
+                "value": "@modelcontextprotocol/server-filesystem"
+              }
+            ],
+            "impact": "The installed code can change between scans and runs, so this verdict may not match what actually executes.",
+            "fix": "Pin the package to an exact version, e.g. @modelcontextprotocol/server-filesystem@1.0.0.",
+            "falsePositiveNote": "Intentional during local development, but should be pinned before autonomous or CI use."
+          }
+        ],
+        "topFindings": [
+          {
+            "id": "files.broad-path",
+            "title": "Broad local filesystem access",
+            "severity": "critical",
+            "blocker": true,
+            "symbol": "FILES",
+            "riskClass": "S2",
+            "mode": "OBSERVED",
+            "confidence": "high",
+            "detectionMethod": "arg-analysis",
+            "evidence": [
+              {
+                "type": "config",
+                "path": "block-filesystem.json",
+                "key": "args",
+                "value": "/Users/lucas",
+                "line": 5,
+                "column": 7
+              }
+            ],
+            "impact": "An agent-triggered tool could read private local files outside the project.",
+            "fix": "Restrict filesystem access to the current workspace, e.g. ${workspaceFolder}.",
+            "falsePositiveNote": "A developer may intentionally grant broad access for a local-only experiment."
+          },
+          {
+            "id": "supply.unpinned-package",
+            "title": "Package version is not pinned",
+            "severity": "high",
+            "blocker": false,
+            "symbol": "SUPPLY",
+            "riskClass": "S1",
+            "mode": "OBSERVED",
+            "confidence": "high",
+            "detectionMethod": "runtime-binding",
+            "evidence": [
+              {
+                "type": "runtime-binding",
+                "key": "package",
+                "value": "@modelcontextprotocol/server-filesystem"
+              }
+            ],
+            "impact": "The installed code can change between scans and runs, so this verdict may not match what actually executes.",
+            "fix": "Pin the package to an exact version, e.g. @modelcontextprotocol/server-filesystem@1.0.0.",
+            "falsePositiveNote": "Intentional during local development, but should be pinned before autonomous or CI use."
+          }
+        ],
+        "policy": {
+          "autonomousUse": "deny",
+          "manualApproval": "required",
+          "sandbox": "required"
+        },
+        "fingerprints": {
+          "configHash": "sha256:02bcc2222f13e7f91fdea0a24c2ebb19820161e8ad16475dd1fe35fa8e37a1ca",
+          "targetSpecHash": "sha256:dd9af6e81ea5a3dd5d7206a7522dfd6d59c6bda9aa063404ff8959235f6cf007",
+          "riskSurfaceHash": "sha256:3515b2e8bbe65c9d80f163a920ebf46b929df468db38211dd299341f4a69546d",
+          "packageSpecHash": "sha256:aeb1f9bc160cb169590cf89e5125779432448792f430553e51bdc7eda6bee163"
+        },
+        "diagnostics": [],
+        "generatedAt": "1970-01-01T00:00:00.000Z"
+      }
+    ],
+    "diagnostics": [],
+    "generatedAt": "1970-01-01T00:00:00.000Z"
+  }
+}
