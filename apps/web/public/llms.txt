@@ -8,7 +8,7 @@ Important:
 - UNKNOWN is never SAFE. It means the surface could not be verified statically.
 - CallLint is heuristic decision support, not a safety guarantee — expect false positives and false negatives.
 - REVIEW, BLOCK, and UNKNOWN should be explained to the user with evidence (finding id, evidence path, observed value, remediation).
-- CallLint is `1.5.0` on the `latest` npm dist-tag (stable release; adds static toxic-flow analysis — cross-tool untrusted/sensitive-source → external-sink paths folded into the verdict, a dangerous flow never resolves to SAFE — and Continuous Guard, `calllint guard`, which re-decides the authority surface on a config change and stays silent when nothing changed; on top of the Trust Gateway; expect false positives and false negatives).
+- CallLint is `1.5.1` on the `latest` npm dist-tag (stable release; adds Cursor as a second Tier-A install host — `trust apply` writes `.cursor/mcp.json` atomically with backup + rollback — proven by a real cross-OS apply E2E, on top of static toxic-flow analysis and Continuous Guard from 1.5.x; expect false positives and false negatives).
 
 ## Commands
 
