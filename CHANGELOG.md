@@ -10,6 +10,14 @@ onward. While pre-1.0, minor versions may include breaking changes.
 
 ## [Unreleased]
 
+## [1.5.1] — 2026-07-16 — Cross-OS Apply E2E & Cursor Tier-A
+
+**Prove the writer, then add a second host.** This patch cuts what had
+accumulated on `main` after 1.5.0: the single audited config writer is now
+proven on a real filesystem across Windows/macOS/Linux, and Cursor becomes the
+second Tier-A install host on the strength of that gate. No new command, schema,
+or verdict vocabulary — the apply engine and plan format are unchanged.
+
 ### Added
 
 - **Cross-OS CI matrix + real-filesystem apply E2E (ADR 0037 §6)** — the single audited
@@ -32,6 +40,15 @@ onward. While pre-1.0, minor versions may include breaking changes.
   measured 0% corruption — ADR 0037 §6). Tier-A hosts: **2** (Claude Code + Cursor); one more
   unblocks Phase I. (It shipped first at Tier B / plan-only within this same unreleased cycle,
   then was promoted once the §6 gate was met.)
+
+### Fixed
+
+- **`trust prepare --host` help + "Known hosts" errors now derive from the adapter
+  registry** — the help text hardcoded "cursor (Tier B, plan-only)" and stayed stale
+  after Cursor was promoted to Tier A; it now renders each host's tier/capability from
+  `HOST_ADAPTERS` (a Tier-A adapter ships `applyPlan` → "applies"), and a new
+  `host-help-parity` test binds the rendered help back to the registry so it cannot drift
+  again. Copy-only; no behavior change to planning or apply.
 
 ## [1.5.0] — 2026-07-16 — Static Toxic-Flow Analysis & Continuous Guard
 
