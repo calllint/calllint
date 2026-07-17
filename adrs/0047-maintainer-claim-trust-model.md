@@ -4,6 +4,7 @@
 **Date**: 2026-07-16
 **Phase**: I (Public Trust Index & Partner, → v1.6.0) — Milestone I0 (freezes the claim *trust model* before I2c code)
 **Supersedes**: none
+**Refined by**: [0048 I2c Claim Mechanism — GitHub App + Actions](./0048-i2c-claim-mechanism-github-app.md) (picks the concrete method for §2)
 **Related**: [0038 Public Trust Index Boundaries](./0038-public-trust-index-boundaries.md), [0046 Phase I Architecture](./0046-phase-i-architecture.md), [0039 Decision Receipt v1 & Drift Taxonomy](./0039-decision-receipt-v1-and-drift-taxonomy.md), [0035 Automated Trust Gateway & Authority Manifest](./0035-automated-trust-gateway-authority-manifest.md)
 **Drives**: `docs/phase-i-design.md` §3.3, `new8-execution-roadmap.md` I2
 
