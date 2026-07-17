@@ -14,14 +14,21 @@ import { describe, it, expect } from "vitest"
 import { readFileSync, existsSync } from "node:fs"
 import { dirname, join, resolve } from "node:path"
 import { fileURLToPath } from "node:url"
-import { emitFixtureCohort } from "../src/index.js"
+import { emitAllCohorts, parseSnapshot, type RegistrySnapshot } from "../src/index.js"
 
 const here = dirname(fileURLToPath(import.meta.url))
 // Served + committed output root: repo-root/apps/web/public/trust.
 const BAKED = resolve(here, "..", "..", "..", "apps", "web", "public", "trust")
+// Committed Official MCP Registry snapshot (ingestion input, ADR 0038 §1). If it is
+// present we bake it too, exactly as the bin does — so this gate covers the registry
+// cohort's byte-reproducibility from the same committed snapshot CI re-bakes from.
+const SNAPSHOT = resolve(here, "..", "snapshots", "official-mcp-registry.json")
 
 describe("committed served tree matches a fresh emit (reproducibility gate)", () => {
-  const { files } = emitFixtureCohort()
+  const snapshot: RegistrySnapshot | null = existsSync(SNAPSHOT)
+    ? parseSnapshot(readFileSync(SNAPSHOT, "utf8"))
+    : null
+  const { files } = emitAllCohorts(snapshot)
 
   it("has a non-trivial number of committed files", () => {
     expect(files.length).toBeGreaterThanOrEqual(20)

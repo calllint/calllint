@@ -12,7 +12,8 @@
   "scripts": {
     "test": "vitest run",
     "test:watch": "vitest",
-    "bake": "tsx src/bake.ts"
+    "bake": "tsx src/bake.ts",
+    "ingest": "tsx src/refreshSnapshot.ts"
   },
   "dependencies": {
     "@calllint/config-parser": "workspace:*",

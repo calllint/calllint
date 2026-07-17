@@ -11,8 +11,10 @@
  * Parse-error fixtures are recorded in the index as `incomplete` (never silently
  * dropped — ADR 0038 completeness) and produce no page.
  */
-import { bakeTrustPage, ConfigParseError, type BakedTrustPage } from "./bakeTrustPage.js"
+import { bakeTrustPage, ConfigParseError, type BakeInput, type BakedTrustPage } from "./bakeTrustPage.js"
 import { fixtureCohort } from "./cohort.js"
+import { registryCohort } from "./registryCohort.js"
+import type { RegistrySnapshot } from "./snapshot.js"
 import { renderHtml, renderSidecar } from "./renderPage.js"
 
 /** One file to write: a repo-relative path and its exact byte content. */
@@ -53,20 +55,46 @@ function pageBase(page: BakedTrustPage): string {
   return page.canonicalName
 }
 
+/** One cohort item to bake: a bakeable input, or a pre-known incomplete marker. */
+interface CohortItem {
+  canonicalName: string
+  input: BakeInput | null
+  incompleteReason?: string
+}
+
 /**
- * Bake the whole fixtures cohort into the exact set of files to commit. Pure: given
- * the same fixtures + engine, it returns byte-identical output every time — which is
- * what makes the committed tree a reproducibility gate.
+ * Bake a list of cohort items into `files` + `index`, in place. Shared by every
+ * cohort so fixtures and registry entries are emitted identically. A null input is
+ * an already-known incomplete (nothing to scan); a `ConfigParseError` during bake is
+ * a malformed config — both are recorded `incomplete`, never silently dropped (ADR
+ * 0038 §5). Returns the baked/incomplete counts to accumulate.
  */
-export function emitFixtureCohort(): EmittedCohort {
-  const files: EmittedFile[] = []
-  const index: IndexEntry[] = []
+function bakeItems(items: CohortItem[], files: EmittedFile[], index: IndexEntry[]): {
+  baked: number
+  incomplete: number
+} {
   let baked = 0
   let incomplete = 0
+  const markIncomplete = (name: string, observedAt: string, reason: string) => {
+    index.push({
+      canonicalName: name,
+      status: "incomplete",
+      artifactDigest: null,
+      pageDigest: null,
+      verdict: null,
+      observedAt,
+      reason,
+    })
+    incomplete++
+  }
 
-  for (const entry of fixtureCohort()) {
+  for (const item of items) {
+    if (item.input === null) {
+      markIncomplete(item.canonicalName, "", item.incompleteReason ?? "no bakeable input")
+      continue
+    }
     try {
-      const page = bakeTrustPage(entry.input)
+      const page = bakeTrustPage(item.input)
       const base = pageBase(page)
       files.push({ path: `${base}.json`, content: renderSidecar(page) })
       files.push({ path: `${base}.html`, content: renderHtml(page) })
@@ -81,30 +109,48 @@ export function emitFixtureCohort(): EmittedCohort {
       baked++
     } catch (err) {
       if (err instanceof ConfigParseError) {
-        // Completeness (ADR 0038): a malformed entry is recorded as incomplete,
-        // never silently dropped and never baked into a page that reads as SAFE.
-        index.push({
-          canonicalName: entry.input.canonicalName,
-          status: "incomplete",
-          artifactDigest: null,
-          pageDigest: null,
-          verdict: null,
-          observedAt: entry.input.observedAt,
-          reason: "config did not parse — recorded as incomplete, no page baked",
-        })
-        incomplete++
+        markIncomplete(
+          item.canonicalName,
+          item.input.observedAt,
+          "config did not parse — recorded as incomplete, no page baked",
+        )
       } else {
         throw err
       }
     }
   }
+  return { baked, incomplete }
+}
 
-  // Deterministic index: entries already come from the sorted cohort, but sort
-  // again by canonicalName so the index is stable regardless of cohort ordering.
+/**
+ * Bake every cohort into the exact set of files to commit. Pure: given the same
+ * cohorts + engine, it returns byte-identical output every time — which is what
+ * makes the committed tree a reproducibility gate. The fixtures cohort is always
+ * baked; the Official MCP Registry cohort is baked when a committed snapshot is
+ * supplied (null ⇒ fixtures only, e.g. before any snapshot exists).
+ */
+export function emitAllCohorts(snapshot: RegistrySnapshot | null = null): EmittedCohort {
+  const files: EmittedFile[] = []
+  const index: IndexEntry[] = []
+
+  const fixtures = bakeItems(
+    fixtureCohort().map((e) => ({ canonicalName: e.input.canonicalName, input: e.input })),
+    files,
+    index,
+  )
+  const registry = snapshot
+    ? bakeItems(registryCohort(snapshot), files, index)
+    : { baked: 0, incomplete: 0 }
+
+  const baked = fixtures.baked + registry.baked
+  const incomplete = fixtures.incomplete + registry.incomplete
+
+  // Deterministic index: sort by canonicalName so it is stable regardless of the
+  // order the cohorts were baked in.
   index.sort((a, b) => (a.canonicalName < b.canonicalName ? -1 : a.canonicalName > b.canonicalName ? 1 : 0))
   const indexDoc = {
     schema: "calllint.trust-index.v0",
-    cohort: "fixtures",
+    cohorts: snapshot ? ["fixtures", "mcp-registry"] : ["fixtures"],
     baked,
     incomplete,
     entries: index,

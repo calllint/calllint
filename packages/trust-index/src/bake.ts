@@ -15,12 +15,26 @@
  * Usage:  tsx packages/trust-index/src/bake.ts [outDir]
  *   default outDir = apps/web/public/trust
  */
-import { mkdirSync, writeFileSync, rmSync } from "node:fs"
+import { mkdirSync, writeFileSync, rmSync, readFileSync, existsSync } from "node:fs"
 import { dirname, join, resolve } from "node:path"
 import { fileURLToPath } from "node:url"
-import { emitFixtureCohort } from "./emitCohort.js"
+import { emitAllCohorts } from "./emitCohort.js"
+import { parseSnapshot, type RegistrySnapshot } from "./snapshot.js"
 
 const here = dirname(fileURLToPath(import.meta.url))
+
+/**
+ * The committed Official MCP Registry snapshot (ADR 0038 §1 retained raw input).
+ * Lives under the package (an ingestion INPUT, not a served artifact). The scheduled
+ * workflow refreshes it; the bake reads it. Absent ⇒ fixtures-only bake.
+ */
+export const SNAPSHOT_PATH = resolve(here, "..", "snapshots", "official-mcp-registry.json")
+
+/** Load + validate the committed snapshot if present; null when there is none. */
+export function loadSnapshotIfPresent(path = SNAPSHOT_PATH): RegistrySnapshot | null {
+  if (!existsSync(path)) return null
+  return parseSnapshot(readFileSync(path, "utf8"))
+}
 /**
  * Committed output root: apps/web/public/trust (repo-root/apps/web/public/trust).
  * From packages/trust-index/src that is four levels up. This is the directory
@@ -30,7 +44,8 @@ export const DEFAULT_OUT = resolve(here, "..", "..", "..", "apps", "web", "publi
 
 function main(): void {
   const outDir = process.argv[2] ? resolve(process.argv[2]) : DEFAULT_OUT
-  const { files, baked, incomplete } = emitFixtureCohort()
+  const snapshot = loadSnapshotIfPresent()
+  const { files, baked, incomplete } = emitAllCohorts(snapshot)
 
   // Clean the output dir first so a removed cohort entry does not leave a stale
   // page behind (idempotent tree = reproducible tree).

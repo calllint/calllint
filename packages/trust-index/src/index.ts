@@ -28,9 +28,23 @@ export {
   CORRECTION_URL,
 } from "./renderPage.js"
 export {
-  emitFixtureCohort,
+  emitAllCohorts,
   SERVE_PREFIX,
   type EmittedFile,
   type EmittedCohort,
 } from "./emitCohort.js"
 export { TRUST_PAGE_FORBIDDEN_PHRASES } from "./language.js"
+export {
+  registryCohort,
+  type RegistryEntryPlan,
+} from "./registryCohort.js"
+export {
+  parseSnapshot,
+  synthesizeConfigText,
+  registryCanonicalName,
+  REGISTRY_NAMESPACE,
+  type RegistrySnapshot,
+  type SnapshotEntry,
+  type SnapshotPackage,
+  type SnapshotRemote,
+} from "./snapshot.js"

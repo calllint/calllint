@@ -1,0 +1,75 @@
+# Scheduled Trust Index ingestion (Phase I / I1b — ADR 0038 §3, ADR 0046 §3).
+#
+# This is the SOLE scanner of the public Trust Index and is STRUCTURALLY decoupled
+# from serving: it fetches the Official MCP Registry, writes a retained snapshot
+# (ADR 0038 §1), re-bakes all cohorts into apps/web/public/trust, and opens a PR.
+# It NEVER deploys — deploy-web.yml runs only on merge to main. So Actions scans,
+# a human reviews the diff, and only then does Cloudflare Pages serve it. The two
+# cannot share a deployable (design §4 decision 3).
+#
+# Network happens ONLY here (never at serve time, never in CI): CI on the resulting
+# PR re-bakes from the committed snapshot PURELY and diffs, so the fetched result is
+# frozen into a reviewable, reproducible artifact before it can reach the public.
+name: trust-ingest
+
+on:
+  schedule:
+    # Weekly, Monday 06:17 UTC. Off the hour to avoid the cron stampede; weekly
+    # because the cohort is small and each run needs human review before it ships.
+    - cron: "17 6 * * 1"
+  workflow_dispatch:
+
+# Least privilege: write a branch + open a PR. No broader scope; no deploy secrets.
+permissions:
+  contents: write
+  pull-requests: write
+
+# Never run two ingests at once; let an in-flight one finish (don't cancel a bake).
+concurrency:
+  group: trust-ingest
+  cancel-in-progress: false
+
+jobs:
+  ingest:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: pnpm/action-setup@v6
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Ingest — fetch registry, retain snapshot, re-bake all cohorts
+        run: pnpm ingest:trust-index
+
+      - name: Guard the regenerated pages (no overclaim / PII; completeness)
+        run: pnpm check:public-copy
+
+      - name: Open a PR with the refreshed snapshot + pages
+        # peter-evans/create-pull-request: widely used, actively maintained. It
+        # commits the working-tree changes to a branch and opens/updates one PR.
+        # No-ops cleanly when the bake produced no diff (registry unchanged).
+        uses: peter-evans/create-pull-request@v7
+        with:
+          branch: trust-ingest/registry-refresh
+          title: "chore(trust): refresh Official MCP Registry snapshot + Trust Pages"
+          commit-message: "chore(trust): scheduled registry ingestion (snapshot + bake)"
+          body: |
+            Automated Trust Index ingestion (I1b, ADR 0038 §3).
+
+            - Refreshed the retained Official MCP Registry snapshot
+              (`packages/trust-index/snapshots/official-mcp-registry.json`).
+            - Re-baked all cohorts into `apps/web/public/trust/`.
+
+            CI re-bakes from the committed snapshot and diffs (reproducibility gate),
+            and the public-copy guard enforces the ADR 0038 language/PII/completeness
+            boundaries. Review the page diff, then merge — **merging deploys** via
+            `deploy-web.yml`. This workflow never deploys on its own.
+          labels: trust-ingest, automated
+          delete-branch: true

@@ -1,0 +1,285 @@
+{
+  "schema": "calllint.trust-snapshot.v0",
+  "source": "official-mcp-registry",
+  "endpoint": "https://registry.modelcontextprotocol.io/v0/servers",
+  "fetchedAt": "2026-07-17T00:00:00.000Z",
+  "count": 18,
+  "entries": [
+    {
+      "name": "ac.inference.sh/mcp",
+      "description": "Run 150+ AI apps — image, video, audio, LLMs, 3D and more. Browse, execute, stream results.",
+      "version": "1.0.1",
+      "repositoryUrl": null,
+      "packages": [],
+      "remotes": [
+        {
+          "type": "streamable-http",
+          "url": "https://sh.inference.ac"
+        },
+        {
+          "type": "streamable-http",
+          "url": "https://api.inference.sh/mcp"
+        }
+      ],
+      "status": "active",
+      "publishedAt": "2026-04-13T17:33:26.613537Z"
+    },
+    {
+      "name": "ac.tandem/docs-mcp",
+      "description": "Remote MCP server for Tandem docs, install guides, SDKs, workflows, and agent setup help.",
+      "version": "0.3.2",
+      "repositoryUrl": "https://github.com/frumu-ai/tandem",
+      "packages": [],
+      "remotes": [
+        {
+          "type": "streamable-http",
+          "url": "https://tandem.ac/mcp"
+        }
+      ],
+      "status": "active",
+      "publishedAt": "2026-04-22T21:06:34.500049Z"
+    },
+    {
+      "name": "ag.hood/name-service",
+      "description": "Resolve .hood names on Robinhood Chain — forward/reverse, text records, availability & pricing.",
+      "version": "0.1.0",
+      "repositoryUrl": null,
+      "packages": [],
+      "remotes": [
+        {
+          "type": "streamable-http",
+          "url": "https://www.hood.ag/api/mcp"
+        }
+      ],
+      "status": "active",
+      "publishedAt": "2026-07-10T04:58:06.628668Z"
+    },
+    {
+      "name": "agency.lona/trading",
+      "description": "AI-powered trading strategy development: backtesting, market data, and portfolio analysis",
+      "version": "2.0.0",
+      "repositoryUrl": "https://github.com/mindsightventures/lona",
+      "packages": [],
+      "remotes": [
+        {
+          "type": "streamable-http",
+          "url": "https://mcp.lona.agency/mcp"
+        }
+      ],
+      "status": "active",
+      "publishedAt": "2026-02-24T00:07:27.525636Z"
+    },
+    {
+      "name": "ai.1325/mcp",
+      "description": "Verified directory of 44,000+ Black-owned U.S. businesses. Search, maps, loyalty rewards.",
+      "version": "0.1.0",
+      "repositoryUrl": "https://github.com/1325ai/1325ai",
+      "packages": [],
+      "remotes": [
+        {
+          "type": "streamable-http",
+          "url": "https://agoclnqfyinwjxdmjnns.supabase.co/functions/v1/mcp"
+        }
+      ],
+      "status": "active",
+      "publishedAt": "2026-07-10T05:01:17.106808Z"
+    },
+    {
+      "name": "ai.aarna/atars-mcp",
+      "description": "Crypto market signals, technical indicators, and sentiment analysis for AI agents.",
+      "version": "0.1.0",
+      "repositoryUrl": null,
+      "packages": [],
+      "remotes": [
+        {
+          "type": "streamable-http",
+          "url": "https://mcp.aarna.ai/mcp"
+        }
+      ],
+      "status": "active",
+      "publishedAt": "2026-03-10T11:09:59.15927Z"
+    },
+    {
+      "name": "ai.abmeter/abmeter",
+      "description": "Feature flagging and A/B testing platform with AI-first experimentation workflows.",
+      "version": "0.1.0",
+      "repositoryUrl": "https://github.com/abmeter/abmeter",
+      "packages": [],
+      "remotes": [
+        {
+          "type": "streamable-http",
+          "url": "https://mcp.abmeter.ai"
+        }
+      ],
+      "status": "active",
+      "publishedAt": "2026-04-19T18:11:04.905549Z"
+    },
+    {
+      "name": "ai.adadvisor/mcp-server",
+      "description": "Query Meta Ads performance data — accounts, campaigns, ad sets, ads, metrics & settings.",
+      "version": "1.0.1",
+      "repositoryUrl": null,
+      "packages": [],
+      "remotes": [
+        {
+          "type": "streamable-http",
+          "url": "https://api.adadvisor.ai/mcp"
+        }
+      ],
+      "status": "active",
+      "publishedAt": "2026-02-28T13:09:52.236521Z"
+    },
+    {
+      "name": "ai.adeu/adeu",
+      "description": "Automated DOCX Redlining Engine",
+      "version": "1.7.1",
+      "repositoryUrl": "https://github.com/dealfluence/adeu",
+      "packages": [
+        {
+          "registryType": "npm",
+          "identifier": "@adeu/mcp-server",
+          "version": "1.7.1",
+          "transport": null
+        }
+      ],
+      "remotes": [],
+      "status": "active",
+      "publishedAt": "2026-05-16T13:54:48.18266Z"
+    },
+    {
+      "name": "ai.adramp/google-ads",
+      "description": "Google Ads MCP server — manage campaigns, keywords, and metrics.",
+      "version": "1.0.3",
+      "repositoryUrl": null,
+      "packages": [],
+      "remotes": [
+        {
+          "type": "streamable-http",
+          "url": "https://mcp.adramp.ai"
+        }
+      ],
+      "status": "active",
+      "publishedAt": "2026-03-20T11:16:36.853329Z"
+    },
+    {
+      "name": "ai.adside/adside",
+      "description": "AI agents that manage paid ads on Meta, LinkedIn, and Google Ads from any MCP client.",
+      "version": "1.0.0",
+      "repositoryUrl": null,
+      "packages": [],
+      "remotes": [
+        {
+          "type": "streamable-http",
+          "url": "https://api.adside.ai/mcp"
+        }
+      ],
+      "status": "active",
+      "publishedAt": "2026-07-16T19:48:48.148514Z"
+    },
+    {
+      "name": "ai.adweave/meta-ads-mcp",
+      "description": "Meta Ads MCP server with 47 tools for campaigns, creatives, audiences, and insights.",
+      "version": "1.0.0",
+      "repositoryUrl": null,
+      "packages": [],
+      "remotes": [
+        {
+          "type": "streamable-http",
+          "url": "https://mcp.adweave.ai/meta-ads-mcp"
+        }
+      ],
+      "status": "active",
+      "publishedAt": "2026-04-10T16:46:57.731179Z"
+    },
+    {
+      "name": "ai.agentberg/agentberg",
+      "description": "Agent-to-agent trading intelligence exchange. Publish findings, vote on quality, earn reputation.",
+      "version": "0.2.0",
+      "repositoryUrl": "https://github.com/Agentberg/agentberg",
+      "packages": [],
+      "remotes": [
+        {
+          "type": "streamable-http",
+          "url": "https://agentberg.ai/mcp"
+        }
+      ],
+      "status": "active",
+      "publishedAt": "2026-06-18T01:49:38.050173Z"
+    },
+    {
+      "name": "ai.agentdm/agentdm",
+      "description": "Agent communication platform for agent to agent messaging via MCP. Messages, channels, skills.",
+      "version": "2.0.0",
+      "repositoryUrl": "https://github.com/agentdmai/agentdm",
+      "packages": [],
+      "remotes": [
+        {
+          "type": "streamable-http",
+          "url": "https://api.agentdm.ai/mcp/v1/grid"
+        }
+      ],
+      "status": "active",
+      "publishedAt": "2026-05-10T02:12:16.907792Z"
+    },
+    {
+      "name": "ai.agentic-news/mcp",
+      "description": "AI-powered news intelligence — 21 tools for personalized monitoring, briefings, and semantic search",
+      "version": "1.0.0",
+      "repositoryUrl": "https://github.com/u00dxk2/agentic-news",
+      "packages": [],
+      "remotes": [
+        {
+          "type": "streamable-http",
+          "url": "https://api.agentic-news.ai/mcp"
+        }
+      ],
+      "status": "active",
+      "publishedAt": "2026-04-06T18:34:53.583541Z"
+    },
+    {
+      "name": "ai.agenticshelf/graffeo",
+      "description": "Live MCP catalog for Graffeo Coffee Roasting - Simply the World's Finest Coffee since 1935.",
+      "version": "1.0.2",
+      "repositoryUrl": null,
+      "packages": [],
+      "remotes": [
+        {
+          "type": "streamable-http",
+          "url": "https://api.agenticshelf.ai/m/graffeo/mcp"
+        }
+      ],
+      "status": "active",
+      "publishedAt": "2026-05-14T20:40:06.442182Z"
+    },
+    {
+      "name": "ai.agenticshelf/mcp",
+      "description": "Hosted MCP for e-commerce: live product catalog, stock, and pricing for AI agents.",
+      "version": "1.0.0",
+      "repositoryUrl": "https://github.com/vboykoCTO/agentic-shelf",
+      "packages": [],
+      "remotes": [
+        {
+          "type": "streamable-http",
+          "url": "https://api.agenticshelf.ai/mcp"
+        }
+      ],
+      "status": "active",
+      "publishedAt": "2026-05-06T16:24:16.952518Z"
+    },
+    {
+      "name": "ai.agenticshelf/puroair",
+      "description": "Breathe with Confidence. Live MCP catalog for PuroAir HEPA air purifiers - stock, pricing, details.",
+      "version": "1.0.1",
+      "repositoryUrl": null,
+      "packages": [],
+      "remotes": [
+        {
+          "type": "streamable-http",
+          "url": "https://api.agenticshelf.ai/m/puroair/mcp"
+        }
+      ],
+      "status": "active",
+      "publishedAt": "2026-07-02T16:47:32.556297Z"
+    }
+  ]
+}

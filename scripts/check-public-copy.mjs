@@ -37,6 +37,10 @@
  *  16. Every generated Trust HTML page carries the required boundary framing:
  *      the "not a certification … guarantee of safety" disclaimer and a
  *      correction link (ADR 0038 §5).
+ *  17. No PII (email-like token) on any served Trust Page — the registry is
+ *      untrusted external input (ADR 0038 §5 "PII-free").
+ *  18. Completeness: every retained registry snapshot entry is accounted for in
+ *      the served index (baked or incomplete) — no silent drops (ADR 0038 §5).
  *
  * Exit codes:
  *   0  all checks pass
@@ -333,6 +337,32 @@ console.log("")
       if (!hasCorrection) { fail(`Trust Page ${f.rel} missing a correction link`); framed = false }
     }
     if (framed && htmlPages.length > 0) ok(`all ${htmlPages.length} Trust HTML page(s) carry the required boundary framing`)
+
+    // 17. No PII on the public surface (ADR 0038 §5 "PII-free"). The registry is
+    //   external, untrusted input; a stray contact address must never reach a served
+    //   page. Flag any email-like token (also catches URL userinfo `user@host`).
+    const EMAIL = /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/
+    let piiClean = true
+    for (const f of trustFiles) {
+      const m = f.text.match(EMAIL)
+      if (m) { fail(`Trust Page PII (email-like) in ${f.rel}: "${m[0]}"`); piiClean = false }
+    }
+    if (piiClean) ok(`no PII (email-like) across ${trustFiles.length} Trust Page file(s)`)
+
+    // 18. Completeness — no silent drops (ADR 0038 §5). Every entry in a retained
+    //   snapshot must appear in the served index (baked OR incomplete). We assert the
+    //   count invariant: #index entries in a source's namespace == snapshot.count.
+    const snapPath = path.join(repoRoot, "packages/trust-index/snapshots/official-mcp-registry.json")
+    const indexPath = path.join(trustRoot, "index.json")
+    if (fs.existsSync(snapPath) && fs.existsSync(indexPath)) {
+      const snap = JSON.parse(fs.readFileSync(snapPath, "utf8"))
+      const index = JSON.parse(fs.readFileSync(indexPath, "utf8"))
+      const inNs = (index.entries || []).filter((e) => (e.canonicalName || "").startsWith("mcp-registry/")).length
+      if (inNs === snap.count) ok(`completeness: all ${snap.count} registry snapshot entries accounted for in the index`)
+      else fail(`completeness: snapshot has ${snap.count} entries but index lists ${inNs} under mcp-registry/ (silent drop)`)
+    } else {
+      ok("no registry snapshot present yet (skipped 18)")
+    }
   }
 }
 
