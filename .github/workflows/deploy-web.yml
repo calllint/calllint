@@ -76,9 +76,13 @@ jobs:
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        # Run from apps/web so wrangler discovers the Pages Functions dir
+        # (apps/web/functions/, the I2a Partner API adapter) adjacent to public/.
+        # Deploying the same public/ bytes as before; functions/ is additive.
+        working-directory: apps/web
         run: |
           set -o pipefail
-          npx --yes wrangler@3 pages deploy apps/web/public \
+          npx --yes wrangler@3 pages deploy public \
             --project-name="$PAGES_PROJECT" --branch=main 2>&1 | tee deploy.log
           url=$(grep -oE 'https://[a-z0-9]+\.[a-z0-9-]+\.pages\.dev' deploy.log | head -1)
           echo "deployment-url=$url" >> "$GITHUB_OUTPUT"
