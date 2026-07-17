@@ -211,6 +211,12 @@ importers:
         specifier: workspace:*
         version: link:../types
 
+  packages/partner-api:
+    dependencies:
+      '@calllint/types':
+        specifier: workspace:*
+        version: link:../types
+
   packages/policy:
     dependencies:
       '@calllint/fingerprint':
