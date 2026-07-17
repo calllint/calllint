@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Create the CallLint Trust GitHub App</title>
+    <meta name="robots" content="noindex" />
+  </head>
+  <body>
+    <main style="max-width:40rem;margin:2rem auto;font:15px/1.6 system-ui,sans-serif">
+      <h1>Create the CallLint Trust GitHub App</h1>
+      <p>
+        This posts the least-privilege manifest
+        (<code>github-app/app-manifest.json</code>) to GitHub. GitHub creates the App
+        and returns its private key + webhook secret <strong>once</strong> — paste
+        those into the ingestion repo's Actions secrets (see
+        <code>github-app/SETUP.md</code>).
+      </p>
+      <p>
+        Leave the org blank to create it under your personal account, or enter an
+        organization login to create it there (you must be an org owner).
+      </p>
+      <form id="f" method="post">
+        <label>
+          Organization login (optional):
+          <input id="org" type="text" placeholder="my-org" autocomplete="off" />
+        </label>
+        <p><button type="submit">Create App on GitHub →</button></p>
+      </form>
+      <input type="hidden" />
+      <p style="color:#555">
+        The manifest requests only <strong>Repository metadata: read-only</strong> and
+        subscribes to <code>installation</code> + <code>installation_repositories</code>.
+        No code, contents, write, or PII scopes.
+      </p>
+    </main>
+    <script type="module">
+      // The manifest is inlined at build/commit time from app-manifest.json. Keeping
+      // it as a literal here means this helper is a single static file with no fetch.
+      const MANIFEST = {
+        name: "CallLint Trust",
+        url: "https://calllint.com/trust/",
+        hook_attributes: { url: "https://calllint.com/api/github/webhook", active: false },
+        redirect_url: "https://calllint.com/trust/app-created.html",
+        public: true,
+        default_permissions: { metadata: "read" },
+        default_events: ["installation", "installation_repositories"],
+      }
+      const form = document.getElementById("f")
+      form.addEventListener("submit", (e) => {
+        e.preventDefault()
+        const org = document.getElementById("org").value.trim()
+        form.action = org
+          ? `https://github.com/organizations/${encodeURIComponent(org)}/settings/apps/new`
+          : "https://github.com/settings/apps/new"
+        const input = document.createElement("input")
+        input.type = "hidden"
+        input.name = "manifest"
+        input.value = JSON.stringify(MANIFEST)
+        form.appendChild(input)
+        form.submit()
+      })
+    </script>
+  </body>
+</html>
