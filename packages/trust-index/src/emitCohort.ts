@@ -16,6 +16,7 @@ import { fixtureCohort } from "./cohort.js"
 import { registryCohort } from "./registryCohort.js"
 import type { RegistrySnapshot } from "./snapshot.js"
 import { renderHtml, renderSidecar } from "./renderPage.js"
+import { verifiedPublisherFor, EMPTY_CLAIM_STORE, type ClaimStore } from "./claim.js"
 
 /** One file to write: a repo-relative path and its exact byte content. */
 export interface EmittedFile {
@@ -69,7 +70,12 @@ interface CohortItem {
  * a malformed config — both are recorded `incomplete`, never silently dropped (ADR
  * 0038 §5). Returns the baked/incomplete counts to accumulate.
  */
-function bakeItems(items: CohortItem[], files: EmittedFile[], index: IndexEntry[]): {
+function bakeItems(
+  items: CohortItem[],
+  files: EmittedFile[],
+  index: IndexEntry[],
+  claims: ClaimStore,
+): {
   baked: number
   incomplete: number
 } {
@@ -96,7 +102,10 @@ function bakeItems(items: CohortItem[], files: EmittedFile[], index: IndexEntry[
     try {
       const page = bakeTrustPage(item.input)
       const base = pageBase(page)
-      files.push({ path: `${base}.json`, content: renderSidecar(page) })
+      // Namespace-level claim overlay (fails closed; undefined ⇒ dropped by
+      // JSON.stringify ⇒ byte-identical unclaimed page). NOT part of pageDigest.
+      const publisher = verifiedPublisherFor(claims, page.canonicalName)
+      files.push({ path: `${base}.json`, content: renderSidecar(page, publisher) })
       files.push({ path: `${base}.html`, content: renderHtml(page) })
       index.push({
         canonicalName: page.canonicalName,
@@ -128,8 +137,16 @@ function bakeItems(items: CohortItem[], files: EmittedFile[], index: IndexEntry[
  * makes the committed tree a reproducibility gate. The fixtures cohort is always
  * baked; the Official MCP Registry cohort is baked when a committed snapshot is
  * supplied (null ⇒ fixtures only, e.g. before any snapshot exists).
+ *
+ * `claims` is the committed maintainer-claim store (ADR 0048 §2). It defaults to the
+ * EMPTY store, so a caller that passes nothing (or the committed empty store) bakes
+ * byte-identical pages — the flag only ever appears once a real, verified record is
+ * committed. The claim overlay never affects the index or a page digest.
  */
-export function emitAllCohorts(snapshot: RegistrySnapshot | null = null): EmittedCohort {
+export function emitAllCohorts(
+  snapshot: RegistrySnapshot | null = null,
+  claims: ClaimStore = EMPTY_CLAIM_STORE,
+): EmittedCohort {
   const files: EmittedFile[] = []
   const index: IndexEntry[] = []
 
@@ -137,9 +154,10 @@ export function emitAllCohorts(snapshot: RegistrySnapshot | null = null): Emitte
     fixtureCohort().map((e) => ({ canonicalName: e.input.canonicalName, input: e.input })),
     files,
     index,
+    claims,
   )
   const registry = snapshot
-    ? bakeItems(registryCohort(snapshot), files, index)
+    ? bakeItems(registryCohort(snapshot), files, index, claims)
     : { baked: 0, incomplete: 0 }
 
   const baked = fixtures.baked + registry.baked
