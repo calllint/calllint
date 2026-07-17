@@ -106,7 +106,7 @@ function bakeItems(
       // JSON.stringify ⇒ byte-identical unclaimed page). NOT part of pageDigest.
       const publisher = verifiedPublisherFor(claims, page.canonicalName)
       files.push({ path: `${base}.json`, content: renderSidecar(page, publisher) })
-      files.push({ path: `${base}.html`, content: renderHtml(page) })
+      files.push({ path: `${base}.html`, content: renderHtml(page, publisher) })
       index.push({
         canonicalName: page.canonicalName,
         status: "baked",

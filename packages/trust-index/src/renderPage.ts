@@ -84,10 +84,26 @@ export function observedStatement(verdict: Verdict, page: BakedTrustPage): strin
  * boundary-safe language; the completeness and "observed at digest" framing make it
  * clear this is a point-in-time observation, never a safety guarantee.
  */
-export function renderHtml(page: BakedTrustPage): string {
+export function renderHtml(page: BakedTrustPage, verifiedPublisher?: VerifiedPublisher): string {
   const completeness = page.preparation.authority?.completeness ?? "partial"
   const caps = page.preparation.authority?.capabilities ?? []
   const notes = page.preparation.notes ?? []
+
+  // Verified Publisher block (ADR 0048 §6): namespace control, NEVER safety. Rendered
+  // only when a claim is present; omitted otherwise so an unclaimed page is
+  // byte-identical to a pre-I2c bake. Copy is bounded by the extended forbidden set.
+  const publisherBlock = verifiedPublisher
+    ? `
+      <h2>Verified Publisher</h2>
+      <p>Claimed by <code>${esc(verifiedPublisher.owner)}</code>, which controls the
+         <code>github.com/${esc(verifiedPublisher.owner)}</code> namespace. This
+         verifies namespace control only — it is not a safety claim, an endorsement,
+         or a certification, and it does not change the observed verdict.</p>
+      <p>Control verified at
+         <time datetime="${esc(verifiedPublisher.verifiedAt)}">${esc(verifiedPublisher.verifiedAt)}</time>,
+         against artifact digest <code>${esc(verifiedPublisher.observedArtifactDigest)}</code>.</p>
+`
+    : ""
 
   const capItems =
     caps.length === 0
@@ -120,7 +136,7 @@ export function renderHtml(page: BakedTrustPage): string {
       <p>This is an observation at a specific artifact digest and time under the
          stated completeness. It is not a certification, an endorsement, or a
          guarantee of safety.</p>
-
+${publisherBlock}
       <h2>Observed capabilities</h2>
       <ul>
         ${capItems}
