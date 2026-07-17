@@ -3,4 +3,6 @@
 # normalized on checkout, or the committed bytes would differ from a fresh emit on
 # Windows (CRLF) vs. Linux/macOS (LF) and the reproducibility gate would fail. Pin
 # them to LF on every platform so the working tree always matches the emit.
-packages/trust-index/baked/** text eol=lf
+# These are committed under apps/web/public/trust so deploy-web.yml serves them
+# same-origin at calllint.com/trust/… (ADR 0046 §4).
+apps/web/public/trust/** text eol=lf

@@ -1,7 +1,9 @@
 /**
  * The committed-tree reproducibility gate (ADR 0046 §4).
  *
- * The baked pages under `packages/trust-index/baked/` are committed artifacts. This
+ * The baked pages under `apps/web/public/trust/` are committed artifacts — and,
+ * because that directory is what `deploy-web.yml` ships, they are also the *served*
+ * pages (ADR 0046 §2 the committed tree is the store; §4 same-origin serving). This
  * test re-runs the PURE emit and asserts every committed file is byte-identical to a
  * fresh bake. If someone changes the engine, a fixture, or the renderer without
  * re-running `pnpm --filter @calllint/trust-index bake`, this fails — the same
@@ -15,9 +17,10 @@ import { fileURLToPath } from "node:url"
 import { emitFixtureCohort } from "../src/index.js"
 
 const here = dirname(fileURLToPath(import.meta.url))
-const BAKED = resolve(here, "..", "baked")
+// Served + committed output root: repo-root/apps/web/public/trust.
+const BAKED = resolve(here, "..", "..", "..", "apps", "web", "public", "trust")
 
-describe("committed baked tree matches a fresh emit (reproducibility gate)", () => {
+describe("committed served tree matches a fresh emit (reproducibility gate)", () => {
   const { files } = emitFixtureCohort()
 
   it("has a non-trivial number of committed files", () => {

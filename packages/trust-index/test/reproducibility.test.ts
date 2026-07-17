@@ -14,6 +14,7 @@ import {
   renderHtml,
   renderSidecar,
   ConfigParseError,
+  TRUST_PAGE_FORBIDDEN_PHRASES,
   type BakeInput,
 } from "../src/index.js"
 
@@ -21,18 +22,11 @@ const cohort = fixtureCohort()
 const parseErrorCases = cohort.filter((e) => e.case.expect === "parse-error")
 const verdictCases = cohort.filter((e) => e.case.expect !== "parse-error")
 
-// Forbidden by ADR 0038 §2 — a Trust Page never *asserts* a safety guarantee or a
-// third-party endorsement. These are the affirmative overclaims; matched
-// case-insensitively over the rendered output. (A disclaimer that *denies* a
-// guarantee — "not a guarantee of safety" — is correct copy and is checked for
-// separately below, so we do not blanket-ban the word "guarantee".)
-const FORBIDDEN = [
-  "certified safe",
-  "verified safe",
-  "calllint approved",
-  "calllint-approved",
-  "guaranteed safe",
-]
+// The language boundary (ADR 0038 §2) is owned by src/language.ts — a single
+// source of truth shared with the CI guard. A disclaimer that *denies* a guarantee
+// ("not a guarantee of safety") is correct copy and is asserted present below, so
+// the word "guarantee" is not blanket-banned; only affirmative overclaims are.
+const FORBIDDEN = TRUST_PAGE_FORBIDDEN_PHRASES
 
 describe("fixtureCohort", () => {
   it("is non-empty and deterministically ordered by file name", () => {

@@ -33,3 +33,4 @@ export {
   type EmittedFile,
   type EmittedCohort,
 } from "./emitCohort.js"
+export { TRUST_PAGE_FORBIDDEN_PHRASES } from "./language.js"
