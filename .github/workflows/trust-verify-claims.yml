@@ -1,0 +1,83 @@
+# Scheduled maintainer-claim verification (Phase I / I2c-4 — ADR 0048 §2/§4).
+#
+# The ONLY writer of the committed claim store. Structurally decoupled from serving,
+# exactly like trust-ingest: it mints an ephemeral GitHub App token, asks GitHub which
+# accounts installed the App and which repos they cover, reconciles the claim store,
+# re-bakes the pages so the verifiedPublisher flag lands, guards the copy, and opens a
+# PR. It NEVER deploys — deploy-web.yml runs only on merge to main. So a human reviews
+# every claim change (and its page diff) before it can reach the public.
+#
+# Reconciliation is pure and unit-tested; this job only supplies the live installation
+# view + the clock. Revocation self-heals: an uninstalled App drops from the listing,
+# so the next run flips its record to `revoked` and the re-bake removes the flag.
+name: trust-verify-claims
+
+on:
+  schedule:
+    # Daily 04:23 UTC. Off the hour to dodge the cron stampede; daily so a fresh claim
+    # (or a revocation) is reflected within a day without a human kicking the job.
+    - cron: "23 4 * * *"
+  workflow_dispatch:
+
+# Least privilege: write a branch + open a PR. No deploy secrets, no broader scope.
+permissions:
+  contents: write
+  pull-requests: write
+
+# Never run two verifications at once; let an in-flight one finish.
+concurrency:
+  group: trust-verify-claims
+  cancel-in-progress: false
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: pnpm/action-setup@v6
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Verify maintainer claims — reconcile the committed claim store
+        env:
+          # metadata:read GitHub App. Private key + id live only in Actions secrets;
+          # the serving plane never sees them (ADR 0046 §1, 0048 §3).
+          CALLLINT_APP_ID: ${{ vars.CALLLINT_APP_ID }}
+          CALLLINT_APP_PRIVATE_KEY: ${{ secrets.CALLLINT_APP_PRIVATE_KEY }}
+        run: pnpm verify-claims:trust-index
+
+      - name: Re-bake so the verifiedPublisher flag lands on claimed pages
+        run: pnpm bake:trust-index
+
+      - name: Guard the regenerated pages (no overclaim / PII; completeness)
+        run: pnpm check:public-copy
+
+      - name: Open a PR with the reconciled claims + pages
+        uses: peter-evans/create-pull-request@v7
+        with:
+          branch: trust-verify/claim-refresh
+          title: "chore(trust): reconcile maintainer claims + re-bake Trust Pages"
+          commit-message: "chore(trust): scheduled claim verification (reconcile + bake)"
+          body: |
+            Automated maintainer-claim verification (I2c-4, ADR 0048 §4).
+
+            - Reconciled the committed claim store
+              (`packages/trust-index/claims/claim-store.json`) against the live GitHub
+              App installation view.
+            - Re-baked all cohorts so `verifiedPublisher` lands on (or is dropped from)
+              the affected pages.
+
+            A claim asserts **namespace control, never safety** (ADR 0047 §1) and never
+            changes a verdict. Reconciliation is pure + unit-tested; CI re-bakes from
+            the committed store and diffs (reproducibility gate), and the public-copy
+            guard enforces the language/PII boundaries. Review the diff, then merge —
+            **merging deploys** via `deploy-web.yml`. This workflow never deploys.
+          labels: trust-verify, automated
+          delete-branch: true
