@@ -1,0 +1,14 @@
+{
+  "name": "CallLint Trust",
+  "url": "https://calllint.com/trust/",
+  "hook_attributes": {
+    "url": "https://calllint.com/api/github/webhook",
+    "active": false
+  },
+  "redirect_url": "https://calllint.com/trust/app-created.html",
+  "public": true,
+  "default_permissions": {
+    "metadata": "read"
+  },
+  "default_events": ["installation", "installation_repositories"]
+}
