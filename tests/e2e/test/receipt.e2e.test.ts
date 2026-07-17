@@ -30,7 +30,7 @@ describe("receipt E2E (scan --receipt → receipt verify)", () => {
   let workDir: string
 
   beforeAll(() => {
-    execFileSync(process.execPath, ["./build.mjs"], { cwd: cliDir, stdio: "ignore" })
+    // Built once by the vitest globalSetup (tests/e2e/globalSetup.ts).
     expect(existsSync(binary)).toBe(true)
     workDir = mkdtempSync(join(tmpdir(), "calllint-receipt-"))
   })

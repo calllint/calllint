@@ -29,5 +29,9 @@ export default defineConfig({
     globals: false,
     include: ["packages/**/*.test.ts", "apps/**/*.test.ts", "tests/**/*.test.ts"],
     environment: "node",
+    // Build the CLI artifact once before any worker spawns. E2E files execute
+    // apps/cli/dist/index.js; building per-file in beforeAll raced under
+    // file-parallelism and produced a flaky empty-stdout read.
+    globalSetup: ["./tests/e2e/globalSetup.ts"],
   },
 })

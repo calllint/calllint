@@ -28,8 +28,8 @@ function runBin(args: string[], input?: string): { stdout: string; code: number 
 
 describe("built binary E2E", () => {
   beforeAll(() => {
-    // Ensure the shipped artifact exists and is fresh.
-    execFileSync(process.execPath, ["./build.mjs"], { cwd: cliDir, stdio: "ignore" })
+    // The shipped artifact is built once by the vitest globalSetup
+    // (tests/e2e/globalSetup.ts); this guards that it is present.
     expect(existsSync(binary)).toBe(true)
   })
 
