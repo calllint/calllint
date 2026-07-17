@@ -1,7 +1,10 @@
 {
   "schema": "calllint.trust-index.v0",
-  "cohort": "fixtures",
-  "baked": 19,
+  "cohorts": [
+    "fixtures",
+    "mcp-registry"
+  ],
+  "baked": 37,
   "incomplete": 1,
   "entries": [
     {
@@ -164,6 +167,150 @@
       "pageDigest": "sha256:d728959b5a5620380f50b5d5dfc03f4a308e69b8a55e9bd4ac36d9502d26d3d1",
       "verdict": "UNKNOWN",
       "observedAt": "1970-01-01T00:00:00.000Z"
+    },
+    {
+      "canonicalName": "mcp-registry/ac.inference.sh-mcp",
+      "status": "baked",
+      "artifactDigest": "sha256:0b91dc1f54023ed17fd4f38be57ebbbc1024bde797d160be2278c3b78aedc6d2",
+      "pageDigest": "sha256:edfddf4780324326a0255408fcdf79710bf6d8903cf8fb3ae809116b61c27786",
+      "verdict": "UNKNOWN",
+      "observedAt": "2026-07-17T00:00:00.000Z"
+    },
+    {
+      "canonicalName": "mcp-registry/ac.tandem-docs-mcp",
+      "status": "baked",
+      "artifactDigest": "sha256:ea5ff9be0d627a192408db08451d54dd04c54dda4ab0adca359f5a3b50e16ab1",
+      "pageDigest": "sha256:c4a3190823205d1eee1262c96d7c686c8fd359e483411e16b233ae0d841a288a",
+      "verdict": "UNKNOWN",
+      "observedAt": "2026-07-17T00:00:00.000Z"
+    },
+    {
+      "canonicalName": "mcp-registry/ag.hood-name-service",
+      "status": "baked",
+      "artifactDigest": "sha256:903432ed74561447d10761874fafa64277863152dee2df6a8ab2cf456fd49a62",
+      "pageDigest": "sha256:fb9f189f173155a61c98702ca6f6e66ff3c7ddd0a75fb8da2fc726d23b38fed8",
+      "verdict": "UNKNOWN",
+      "observedAt": "2026-07-17T00:00:00.000Z"
+    },
+    {
+      "canonicalName": "mcp-registry/agency.lona-trading",
+      "status": "baked",
+      "artifactDigest": "sha256:3ce01b0f8872a4aafa71b05210b2be91c3369714c5566bab9e57d1851ea58f0a",
+      "pageDigest": "sha256:76f59f543770a67a999cec61351eec7f226e72572fa08c2f337780c7990fc66d",
+      "verdict": "UNKNOWN",
+      "observedAt": "2026-07-17T00:00:00.000Z"
+    },
+    {
+      "canonicalName": "mcp-registry/ai.1325-mcp",
+      "status": "baked",
+      "artifactDigest": "sha256:bdbac793efd6905e417d643ab1d4e5e9c8a879e05f5e271d137422c169973592",
+      "pageDigest": "sha256:c03316466e336215e917464256ee3e0e1621167843f0e3864990fd076b943675",
+      "verdict": "UNKNOWN",
+      "observedAt": "2026-07-17T00:00:00.000Z"
+    },
+    {
+      "canonicalName": "mcp-registry/ai.aarna-atars-mcp",
+      "status": "baked",
+      "artifactDigest": "sha256:da6927a2f653489b9d12fe80b1d71d7c9abfc8cd505cd5fd226a67361efad4c6",
+      "pageDigest": "sha256:69f99d9927c8b686224713ce0a7fe649fe487c6cc84ececafa820f871fa10945",
+      "verdict": "UNKNOWN",
+      "observedAt": "2026-07-17T00:00:00.000Z"
+    },
+    {
+      "canonicalName": "mcp-registry/ai.abmeter-abmeter",
+      "status": "baked",
+      "artifactDigest": "sha256:c3670bfc209140bc70cf9e1a03be811c8b0e968fab3737e45e0034fb10dfc2b0",
+      "pageDigest": "sha256:1af82947812e0e310618557efae668fef9aea30e7d1e57bb77ddb1dd9167cc70",
+      "verdict": "UNKNOWN",
+      "observedAt": "2026-07-17T00:00:00.000Z"
+    },
+    {
+      "canonicalName": "mcp-registry/ai.adadvisor-mcp-server",
+      "status": "baked",
+      "artifactDigest": "sha256:2c230c28640a0dcf1b8cc1a66ab330296a2768ae055449b9494b28506f44c239",
+      "pageDigest": "sha256:a768c3d08ea91a406e18447e4d1a683eb59410f9057afece7ff2cec387dbcb45",
+      "verdict": "UNKNOWN",
+      "observedAt": "2026-07-17T00:00:00.000Z"
+    },
+    {
+      "canonicalName": "mcp-registry/ai.adeu-adeu",
+      "status": "baked",
+      "artifactDigest": "sha256:f6f792740d19b83991bc32bd9f4878868d8f4ad0ae767d66e910af8d8afad2e9",
+      "pageDigest": "sha256:fd068ee8f7da41fe5efb553cda7a34df35349437b87222364896d584a1420f6d",
+      "verdict": "SAFE",
+      "observedAt": "2026-07-17T00:00:00.000Z"
+    },
+    {
+      "canonicalName": "mcp-registry/ai.adramp-google-ads",
+      "status": "baked",
+      "artifactDigest": "sha256:e654a8dcd35ee9c48addce35e458ca33f64f255ec817dd77f281158bbd13efed",
+      "pageDigest": "sha256:889e4f9531c1aff62a50dd2cf659a7ab12f4f03660d382905c63318a95ddf5e7",
+      "verdict": "UNKNOWN",
+      "observedAt": "2026-07-17T00:00:00.000Z"
+    },
+    {
+      "canonicalName": "mcp-registry/ai.adside-adside",
+      "status": "baked",
+      "artifactDigest": "sha256:add7e15c2b429d3fa989e766fe421eb06f9a9095d03851a4cc0a8f8db18260c0",
+      "pageDigest": "sha256:579df7d58384d6c6baa4c9899bbbd9df985c7786b19545483c0c40b1334aa437",
+      "verdict": "UNKNOWN",
+      "observedAt": "2026-07-17T00:00:00.000Z"
+    },
+    {
+      "canonicalName": "mcp-registry/ai.adweave-meta-ads-mcp",
+      "status": "baked",
+      "artifactDigest": "sha256:d9948f3b8f8def4ba2cb46af80c4a04b6464ad710358bed1a43a5bad17b79a99",
+      "pageDigest": "sha256:e08fe8ecdec64d1c5fd8136284972d0d203d0b3dfc277e75004837202ec0694d",
+      "verdict": "UNKNOWN",
+      "observedAt": "2026-07-17T00:00:00.000Z"
+    },
+    {
+      "canonicalName": "mcp-registry/ai.agentberg-agentberg",
+      "status": "baked",
+      "artifactDigest": "sha256:53381adee155197fa43a8639ff40cc88053388b29bea38d5f4ae6333693210f3",
+      "pageDigest": "sha256:9ae194ddc96071bc053003ff180464c810d6a2b31fea86d2602640aa940ab250",
+      "verdict": "UNKNOWN",
+      "observedAt": "2026-07-17T00:00:00.000Z"
+    },
+    {
+      "canonicalName": "mcp-registry/ai.agentdm-agentdm",
+      "status": "baked",
+      "artifactDigest": "sha256:adfed57c616360d34b99675a040070807d141bf949a86d74d02af5d671d491b7",
+      "pageDigest": "sha256:e21051604b59786d0cacb8c232908dce9fbc6a6b476b53e7f1be968109a4a554",
+      "verdict": "UNKNOWN",
+      "observedAt": "2026-07-17T00:00:00.000Z"
+    },
+    {
+      "canonicalName": "mcp-registry/ai.agentic-news-mcp",
+      "status": "baked",
+      "artifactDigest": "sha256:6913ebe5d60fec1f4b63796b25508ba4b16021b86f343858aaafc48a13cb45f4",
+      "pageDigest": "sha256:4a2b050f1687f5d9375729f68b2566d45d183c2cfc0a3862145010386e508577",
+      "verdict": "UNKNOWN",
+      "observedAt": "2026-07-17T00:00:00.000Z"
+    },
+    {
+      "canonicalName": "mcp-registry/ai.agenticshelf-graffeo",
+      "status": "baked",
+      "artifactDigest": "sha256:6fb4d2a789a52a8debd01384956a71e6688fa25b0ba495fd32633ea028ff434e",
+      "pageDigest": "sha256:5d2f2d4728284629092d5aa38836e897b97723c6dd4199bd980f144eec929d97",
+      "verdict": "UNKNOWN",
+      "observedAt": "2026-07-17T00:00:00.000Z"
+    },
+    {
+      "canonicalName": "mcp-registry/ai.agenticshelf-mcp",
+      "status": "baked",
+      "artifactDigest": "sha256:ea6152f9304e7dde10305c7af11f3d292458c8550739d6b3fdc5b1b780a3cffd",
+      "pageDigest": "sha256:066afab99099b14b595ae1693438410b55535b25dc5e29d117170df373ffdf63",
+      "verdict": "UNKNOWN",
+      "observedAt": "2026-07-17T00:00:00.000Z"
+    },
+    {
+      "canonicalName": "mcp-registry/ai.agenticshelf-puroair",
+      "status": "baked",
+      "artifactDigest": "sha256:e14fc20ef3f4c970843bb714836ceb7700f1a90ce2f70100a34dbf5384036201",
+      "pageDigest": "sha256:25ef72b888d7142f5eefef4d3fd45bcf76d4cb710d592ce85ac97c44ff958f3b",
+      "verdict": "UNKNOWN",
+      "observedAt": "2026-07-17T00:00:00.000Z"
     }
   ]
 }
