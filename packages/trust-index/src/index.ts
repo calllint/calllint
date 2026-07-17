@@ -35,6 +35,15 @@ export {
 } from "./emitCohort.js"
 export { TRUST_PAGE_FORBIDDEN_PHRASES } from "./language.js"
 export {
+  parseClaimStore,
+  verifiedPublisherFor,
+  EMPTY_CLAIM_STORE,
+  type ClaimRecord,
+  type ClaimStore,
+  type ClaimStatus,
+  type VerifiedPublisher,
+} from "./claim.js"
+export {
   registryCohort,
   type RegistryEntryPlan,
 } from "./registryCohort.js"
