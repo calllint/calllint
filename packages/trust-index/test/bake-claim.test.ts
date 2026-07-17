@@ -56,21 +56,29 @@ describe("bake claim overlay (fixtures cohort, no snapshot)", () => {
     })
   })
 
-  it("the overlay does not change the page digest, the HTML, or the index", () => {
+  it("the overlay never changes the page digest or the index (observation is immutable)", () => {
     const plain = emitAllCohorts(null)
     const claimed = emitAllCohorts(null, claimStore(TARGET))
     // pageDigest is inside the sidecar JSON — must match (overlay ≠ observation).
     const plainDigest = JSON.parse(sidecarOf(plain.files, TARGET)).pageDigest
     const claimedDigest = JSON.parse(sidecarOf(claimed.files, TARGET)).pageDigest
     expect(claimedDigest).toBe(plainDigest)
-    // HTML byte-identical (badge rendering is I2c-3, not here).
-    const html = (fs: { path: string; content: string }[]) =>
-      fs.find((f) => f.path === `${TARGET}.html`)!.content
-    expect(html(claimed.files)).toBe(html(plain.files))
     // index.json byte-identical (claim never appears in the index).
     const idx = (fs: { path: string; content: string }[]) =>
       fs.find((f) => f.path === "index.json")!.content
     expect(idx(claimed.files)).toBe(idx(plain.files))
+  })
+
+  it("a claim adds the Verified Publisher block to that page's HTML only (control, not safety)", () => {
+    const claimed = emitAllCohorts(null, claimStore(TARGET))
+    const html = (name: string) => claimed.files.find((f) => f.path === `${name}.html`)!.content
+    const target = html(TARGET)
+    expect(target).toContain("Verified Publisher")
+    expect(target).toContain("github.com/octo-org")
+    expect(target).toContain("it is not a safety claim")
+    // A DIFFERENT baked fixture stays unclaimed (no block leaks across pages).
+    const other = claimed.files.find((f) => f.path.endsWith(".html") && !f.path.startsWith(TARGET))!
+    expect(other.content).not.toContain("Verified Publisher")
   })
 
   it("a record for an absent namespace surfaces nothing (fails closed)", () => {

@@ -1,4 +1,4 @@
-import type { AssetReader, ApiEnvelope } from "./types.js"
+import type { AssetReader, ApiEnvelope, EnvelopePublisher } from "./types.js"
 import { API_SCHEMA } from "./types.js"
 
 const DIGEST_RE = /^sha256:[0-9a-f]{64}$/
@@ -55,19 +55,42 @@ export function toEnvelope(
   sidecar: Record<string, unknown>,
   data: unknown,
 ): ApiEnvelope {
-  const s = sidecar as Record<string, string>
+  const s = sidecar as Record<string, unknown>
+  const name = typeof s.canonicalName === "string" ? s.canonicalName : ""
   return {
     schema: API_SCHEMA,
     kind,
-    canonicalName: s.canonicalName ?? "",
-    artifactDigest: s.artifactDigest ?? "",
-    pageDigest: s.pageDigest ?? "",
+    canonicalName: name,
+    artifactDigest: typeof s.artifactDigest === "string" ? s.artifactDigest : "",
+    pageDigest: typeof s.pageDigest === "string" ? s.pageDigest : "",
     verdict: (s.verdict as ApiEnvelope["verdict"]) ?? "UNKNOWN",
-    verdictLabel: s.verdictLabel ?? "Insufficient evidence",
-    observedAt: s.observedAt ?? "",
-    completeness: s.completeness ?? "unknown",
-    trustPageUrl: `/trust/${s.canonicalName ?? ""}.html`,
-    correctionUrl: s.correctionUrl ?? "",
+    verdictLabel: typeof s.verdictLabel === "string" ? s.verdictLabel : "Insufficient evidence",
+    observedAt: typeof s.observedAt === "string" ? s.observedAt : "",
+    completeness: typeof s.completeness === "string" ? s.completeness : "unknown",
+    // Surface the claim overlay verbatim IFF the baked sidecar carried one. Spread so
+    // an absent claim omits the key entirely (existing envelopes are unchanged).
+    ...toPublisher(s.verifiedPublisher),
+    trustPageUrl: `/trust/${name}.html`,
+    correctionUrl: typeof s.correctionUrl === "string" ? s.correctionUrl : "",
     data,
+  }
+}
+
+/**
+ * Normalize a baked `verifiedPublisher` into `{ verifiedPublisher }` (or `{}`).
+ * Defensive: only surfaces an overlay with a non-empty string `owner`, so a
+ * malformed baked field can never produce a half-populated claim on the API.
+ */
+function toPublisher(raw: unknown): { verifiedPublisher?: EnvelopePublisher } {
+  if (!raw || typeof raw !== "object") return {}
+  const p = raw as Record<string, unknown>
+  if (typeof p.owner !== "string" || p.owner.length === 0) return {}
+  return {
+    verifiedPublisher: {
+      owner: p.owner,
+      verifiedAt: typeof p.verifiedAt === "string" ? p.verifiedAt : "",
+      observedArtifactDigest:
+        typeof p.observedArtifactDigest === "string" ? p.observedArtifactDigest : "",
+    },
   }
 }

@@ -15,7 +15,14 @@
  * These are the AFFIRMATIVE overclaims, matched case-insensitively. A disclaimer
  * that *denies* a guarantee ("not a certification … or a guarantee of safety") is
  * correct, required copy — so the word "guarantee" is not blanket-banned; only the
- * affirmative two-word claims are.
+ * affirmative two-word claims are. Note "certified" is banned but is NOT a substring
+ * of "certification" (certifi-ED vs certifi-CATION), so the required disclaimer that
+ * DENIES a certification is unaffected.
+ *
+ * The claim-surface additions (ADR 0048 §6): a maintainer claim asserts NAMESPACE
+ * CONTROL, never safety. "certified" and "trusted publisher" would blur control into
+ * a safety endorsement, so they are forbidden on any page (including a claimed one);
+ * the allowed copy is "Verified Publisher — controls github.com/{org}".
  */
 export const TRUST_PAGE_FORBIDDEN_PHRASES = [
   "certified safe",
@@ -23,4 +30,6 @@ export const TRUST_PAGE_FORBIDDEN_PHRASES = [
   "calllint approved",
   "calllint-approved",
   "guaranteed safe",
+  "certified",
+  "trusted publisher",
 ] as const

@@ -126,3 +126,32 @@ describe("rendered pages — language boundary (ADR 0038 §2)", () => {
     })
   }
 })
+
+describe("claimed page render — Verified Publisher boundary (ADR 0048 §6)", () => {
+  const publisher = {
+    owner: "octo-org",
+    verifiedAt: "2026-07-17T00:00:00.000Z",
+    observedArtifactDigest: "sha256:deadbeef" as const,
+  }
+  const anyCase = verdictCases[0]!
+
+  it("a claimed page states control (never safety) and stays boundary-safe", () => {
+    const page = bakeTrustPage(anyCase.input)
+    const claimed = renderHtml(page, publisher)
+    // Shows the claim, framed as control, distinct from a verdict.
+    expect(claimed).toContain("Verified Publisher")
+    expect(claimed).toContain("controls the")
+    expect(claimed).toContain("github.com/octo-org")
+    expect(claimed).toContain("it is not a safety claim")
+    // Still carries the base disclaimer, and no forbidden phrase leaks in.
+    expect(claimed).toContain("not a certification")
+    const lc = claimed.toLowerCase()
+    for (const phrase of FORBIDDEN) expect(lc, phrase).not.toContain(phrase)
+  })
+
+  it("an unclaimed render is byte-identical with or without an undefined publisher", () => {
+    const page = bakeTrustPage(anyCase.input)
+    expect(renderHtml(page, undefined)).toBe(renderHtml(page))
+    expect(renderSidecar(page, undefined)).toBe(renderSidecar(page))
+  })
+})

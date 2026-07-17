@@ -32,6 +32,17 @@ export interface ApiResponse {
   body: string
 }
 
+/**
+ * A baked maintainer-claim overlay as it appears on a sidecar (ADR 0048 §2/§6).
+ * NAMESPACE CONTROL, never safety. Structurally mirrored here (partner-api reads no
+ * scanner package, so it cannot import the trust-index type) and surfaced verbatim.
+ */
+export interface EnvelopePublisher {
+  owner: string
+  verifiedAt: string
+  observedArtifactDigest: string
+}
+
 /** The public envelope wrapping a pre-baked Trust Page sidecar. */
 export interface ApiEnvelope {
   schema: typeof API_SCHEMA
@@ -43,6 +54,12 @@ export interface ApiEnvelope {
   verdictLabel: string
   observedAt: string
   completeness: string
+  /**
+   * Optional maintainer-claim overlay (ADR 0048). Present iff the baked page carried
+   * a `verifiedPublisher` (a verified namespace claim). Omitted otherwise — never a
+   * safety signal, and its absence NEVER implies unsafe (just unclaimed).
+   */
+  verifiedPublisher?: EnvelopePublisher
   trustPageUrl: string
   correctionUrl: string
   /** The pre-baked sidecar payload (or its authority slice). Already PII-free. */

@@ -73,6 +73,46 @@ describe("viewToHtml", () => {
   it("escapes interpolated values", () => {
     expect(embed.esc('<img src=x onerror="1">')).not.toContain("<img")
   })
+  it("renders NO publisher chip when there is no claim (byte-identical to the badge)", () => {
+    const v = embed.envelopeToView(
+      { schema: embed.EMBED_SCHEMA, verdict: "SAFE", verdictLabel: "No blockers observed", trustPageUrl: "/trust/" },
+      "https://calllint.com",
+    )
+    expect(v.publisher).toBeNull()
+    expect(embed.viewToHtml(v)).toBe(embed.publisherChipHtml(null) + embed.viewToHtml(v)) // chip is ""
+    expect(embed.viewToHtml(v).startsWith("<a")).toBe(true)
+  })
+})
+
+describe("Verified Publisher chip (ADR 0048 §6)", () => {
+  const claimed = {
+    schema: embed.EMBED_SCHEMA,
+    verdict: "REVIEW",
+    verdictLabel: "Review required",
+    trustPageUrl: "/trust/x.html",
+    verifiedPublisher: { owner: "octo-org", verifiedAt: "2026-07-17T00:00:00.000Z", observedArtifactDigest: "sha256:ab" },
+  }
+  it("surfaces the publisher only when the envelope carries one (fails closed)", () => {
+    expect(embed.envelopeToView(claimed, "https://calllint.com").publisher).toEqual({ owner: "octo-org" })
+    expect(embed.envelopeToView({ ...claimed, verifiedPublisher: { owner: "" } }, "https://calllint.com").publisher).toBeNull()
+    expect(embed.envelopeToView({ ...claimed, verifiedPublisher: undefined }, "https://calllint.com").publisher).toBeNull()
+  })
+  it("renders a neutral chip stating control, never a safety claim", () => {
+    const html = embed.viewToHtml(embed.envelopeToView(claimed, "https://calllint.com"))
+    expect(html).toContain("Verified Publisher")
+    expect(html).toContain("controls github.com/octo-org")
+    expect(html).toContain(embed.PUBLISHER_NOTE)
+    // The chip tone is NOT green (control ≠ safety).
+    expect(embed.GREEN_TONES).not.toContain(embed.PUBLISHER_TONE.fg)
+  })
+  it("escapes the owner (no injection via a crafted claim)", () => {
+    const html = embed.publisherChipHtml({ owner: '"><img src=x>' })
+    expect(html).not.toContain("<img")
+  })
+  it("carries no forbidden claim-surface phrase", () => {
+    const html = embed.viewToHtml(embed.envelopeToView(claimed, "https://calllint.com")).toLowerCase()
+    for (const p of facts.trustPageForbiddenPhrases) expect(html, p).not.toContain(p.toLowerCase())
+  })
 })
 
 describe("served-file invariants", () => {

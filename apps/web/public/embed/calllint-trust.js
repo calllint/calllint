@@ -38,6 +38,15 @@ export const GREEN_TONES = ["#0a7a45", "green", "#0f0", "#00ff00", "brightgreen"
 /** Boundary micro-copy carried by every rendered badge (ADR 0038 §5). */
 export const BOUNDARY_NOTE = "Not a certification or guarantee of safety."
 
+/**
+ * Neutral tone for the Verified Publisher chip (ADR 0048 §6). Deliberately NOT green:
+ * a claim proves NAMESPACE CONTROL, never safety, so it must not read as a safe
+ * verdict. Blue/grey, visually distinct from the verdict badge's tones.
+ */
+export const PUBLISHER_TONE = { fg: "#31507a", bg: "#eaf0f8" }
+/** Boundary micro-copy for the claim chip: control, explicitly not safety. */
+export const PUBLISHER_NOTE = "Verified namespace control, not a safety claim."
+
 const DIGEST_RE = /^sha256:[0-9a-f]{64}$/
 
 /** HTML-escape a string for safe text/attribute interpolation. */
@@ -82,6 +91,10 @@ export function envelopeToView(env, origin) {
   const page = env && env.trustPageUrl ? env.trustPageUrl : "/trust/"
   const pageUrl = /^https?:/.test(page) ? page : base + page
   const observed = env && env.observedAt ? String(env.observedAt).slice(0, 10) : ""
+  // Claim overlay (ADR 0048): surface ONLY a well-formed publisher with an owner.
+  // Absent ⇒ null ⇒ no chip. Never inferred, never defaulted (fails closed).
+  const vp = env && env.verifiedPublisher
+  const publisher = vp && typeof vp.owner === "string" && vp.owner ? { owner: vp.owner } : null
   return {
     name: (env && env.canonicalName) || "",
     verdict,
@@ -90,13 +103,36 @@ export function envelopeToView(env, origin) {
     observed,
     digest: (env && env.artifactDigest) || "",
     pageUrl,
+    publisher,
   }
+}
+
+/**
+ * The Verified Publisher chip (ADR 0048 §6). A SEPARATE element from the verdict
+ * badge, in neutral tone (never green), stating control over the namespace — not
+ * safety. Allowed copy only: "Verified Publisher · controls github.com/{owner}".
+ * Returns "" when there is no verified claim (fails closed → nothing rendered).
+ */
+export function publisherChipHtml(publisher) {
+  if (!publisher || !publisher.owner) return ""
+  const t = PUBLISHER_TONE
+  return (
+    `<span class="calllint-trust-publisher" title="${esc(PUBLISHER_NOTE)}"` +
+    ` data-owner="${esc(publisher.owner)}"` +
+    ` style="display:inline-flex;align-items:center;gap:.35em;` +
+    `font:600 12px/1.4 system-ui,sans-serif;` +
+    `padding:.3em .6em;border-radius:.4em;color:${t.fg};` +
+    `background:${t.bg};border:1px solid ${t.fg}33">` +
+    `<span style="font-weight:700">Verified Publisher</span>` +
+    `<span style="opacity:.8;font-weight:400">· controls github.com/${esc(publisher.owner)}</span>` +
+    `</span>`
+  )
 }
 
 /** Render a view model to a self-contained HTML string (inline-styled). */
 export function viewToHtml(v) {
   const short = v.digest ? v.digest.slice(0, 14) + "…" : ""
-  return (
+  const badge =
     `<a class="calllint-trust-badge" href="${esc(v.pageUrl)}"` +
     ` title="${esc(BOUNDARY_NOTE)}" data-verdict="${esc(v.verdict)}"` +
     ` rel="noopener" target="_blank"` +
@@ -109,7 +145,12 @@ export function viewToHtml(v) {
     (v.observed ? `<span style="opacity:.7;font-weight:400">@ ${esc(v.observed)}</span>` : "") +
     (short ? `<span style="opacity:.55;font-weight:400">${esc(short)}</span>` : "") +
     `</a>`
-  )
+  const chip = publisherChipHtml(v.publisher)
+  // Wrap in a flex row only when a chip is present, so the unclaimed case is
+  // byte-identical to the pre-I2c single-anchor render.
+  return chip
+    ? `<span style="display:inline-flex;align-items:center;gap:.5em">${badge}${chip}</span>`
+    : badge
 }
 
 // --- Custom element (browser only) -----------------------------------------
