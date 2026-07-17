@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>CallLint &lt;calllint-trust&gt; — reference embed</title>
+<meta name="robots" content="noindex" />
+<style>
+  body { font: 15px/1.6 system-ui, sans-serif; max-width: 46rem; margin: 3rem auto; padding: 0 1rem; color: #1a1a1a; }
+  h1 { font-size: 1.4rem; } code { background: #f2f2f2; padding: .1em .35em; border-radius: .25em; }
+  .row { margin: 1.2rem 0; padding: 1rem; border: 1px solid #e5e5e5; border-radius: .5rem; }
+  .note { color: #666; font-size: .85rem; }
+</style>
+</head>
+<body>
+<h1>Reference partner embed</h1>
+<p>A directory or partner shows CallLint's <em>observed-at-digest</em> verdict with
+one tag — <strong>without running CallLint</strong>. The widget reads the public,
+read-only Partner API (<code>calllint.partner-api.v0</code>). It is heuristic
+decision support, <strong>not a certification or guarantee of safety</strong>;
+UNKNOWN is never SAFE.</p>
+
+<p class="note">The inner <code>&lt;a&gt;</code> is the no-JavaScript fallback: if
+scripts are blocked, the plain link to the Trust Page is shown unchanged.</p>
+
+<div class="row">
+  <p>By resource (<code>{ns}/{name}</code>):</p>
+  <calllint-trust resource="mcp-registry/ai.1325-mcp">
+    <a href="https://calllint.com/trust/mcp-registry/ai.1325-mcp.html">CallLint Trust Page</a>
+  </calllint-trust>
+</div>
+
+<div class="row">
+  <p>By artifact digest (<code>sha256:…</code>):</p>
+  <calllint-trust digest="sha256:bdbac793efd6905e417d643ab1d4e5e9c8a879e05f5e271d137422c169973592">
+    <a href="https://calllint.com/trust/mcp-registry/ai.1325-mcp.html">CallLint Trust Page</a>
+  </calllint-trust>
+</div>
+
+<h2 style="font-size:1rem">Copy-paste snippet</h2>
+<pre style="background:#f7f7f7;padding:1rem;border-radius:.5rem;overflow:auto"><code>&lt;script type="module" src="https://calllint.com/embed/calllint-trust.js"&gt;&lt;/script&gt;
+&lt;calllint-trust resource="mcp-registry/ai.1325-mcp"&gt;
+  &lt;a href="https://calllint.com/trust/mcp-registry/ai.1325-mcp.html"&gt;CallLint Trust Page&lt;/a&gt;
+&lt;/calllint-trust&gt;</code></pre>
+
+<script type="module" src="/embed/calllint-trust.js"></script>
+</body>
+</html>
