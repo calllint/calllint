@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeAll } from "vitest"
-import { execSync, execFileSync } from "node:child_process"
+import { execSync } from "node:child_process"
 import { dirname, join } from "node:path"
 import { fileURLToPath } from "node:url"
 import { existsSync, mkdirSync, writeFileSync, rmSync } from "node:fs"
@@ -61,9 +61,8 @@ function emptyHomeEnv(label: string): { env: Record<string, string>; dir: string
 
 describe("auto-discovery E2E", () => {
   beforeAll(() => {
-    // Ensure the built CLI artifact exists — in CI `pnpm test` runs before the
-    // build step, so dist/index.js may not exist yet (mirrors e2e.test.ts).
-    execFileSync(process.execPath, ["./build.mjs"], { cwd: cliDir, stdio: "ignore" })
+    // The CLI artifact is built once by the vitest globalSetup
+    // (tests/e2e/globalSetup.ts); this guards that it is present.
     expect(existsSync(CLI_PATH)).toBe(true)
   })
 

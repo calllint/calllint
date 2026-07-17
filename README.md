@@ -17,7 +17,7 @@ It never executes, installs, or connects to the servers it judges.
 npx calllint scan .cursor/mcp.json
 ```
 
-> Status: 1.5.1 stable CLI release. Actively hardened. Verdicts are heuristic
+> Status: 1.6.0 stable CLI release. Actively hardened. Verdicts are heuristic
 > decision support, not a safety guarantee. Read [Limitations](#limitations)
 > before relying on a verdict for a security decision.
 
@@ -201,6 +201,36 @@ receipt can carry an optional ed25519 signature; `receipt keygen` / `receipt
 sign` generate and sign one locally for development, and `receipt verify`
 checks the signature when present (offline, with `--public-key`). A signature
 proves provenance and integrity — never safety.
+
+## Trust Gateway — prepare, approve, apply, verify
+
+Scanning tells you the blast radius; the Trust Gateway acts on it, safely. It
+resolves an agent-tool target to an immutable, digest-pinned identity, judges it
+deterministically, and emits a **reversible install plan**. Applying that plan is
+the only thing that ever writes live config: it re-validates every digest, writes
+atomically, verifies the result, and rolls back on failure. The gateway never
+executes, installs, or connects to the target it judges.
+
+```bash
+# read-only: resolve + judge a target and emit a reversible plan (touches no live config)
+calllint trust prepare github:owner/repo --host claude-code --write-plan
+calllint trust show    .calllint/plans/<plan-id>.json
+calllint trust explain .calllint/plans/<plan-id>.json
+
+# the only writer of live config — applies an approved plan, atomically and reversibly
+calllint trust apply --plan .calllint/plans/<plan-id>.json --approve <plan-digest> --receipt
+
+# validate a decision receipt later (read-only; never re-judges or executes)
+calllint trust verify calllint-decision-receipt.json --public-key key.pub
+```
+
+The gateway is a deterministic, fail-closed pipeline over six sealed digests
+(artifact → evidence → authority → decision/policy → install-plan → receipt). An
+approval binds all six at once; if any digest changes between prepare and apply,
+the approval is void and nothing is written. `UNKNOWN` never becomes `SAFE`, and
+external evidence can tighten a verdict but never set it alone. Three Tier-A hosts
+ship the audited apply surface — Claude Code, Cursor, and Windsurf. See the
+[CHANGELOG](CHANGELOG.md) (Trust Gateway Core) and ADRs 0035–0039.
 
 ## Run CallLint as an MCP server (`calllint-mcp`)
 

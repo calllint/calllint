@@ -10,6 +10,21 @@ onward. While pre-1.0, minor versions may include breaking changes.
 
 ## [Unreleased]
 
+## [1.6.0] — 2026-07-17 — Public Trust Index & Partner Surface
+
+**Publish the verdict, safely.** This minor release ships Phase I: the offline
+ingestion plane that bakes reproducible, digest-addressed Trust Pages; those pages
+served same-origin at `calllint.com/trust/…`; the first *external* source (the
+Official MCP Registry, ingested by a scheduled workflow that opens a PR and never
+auto-deploys); a read-only Partner API over the baked pages under `/v1/public/*`;
+and a self-contained `<calllint-trust>` web-component embed. The serving plane
+carries **no scanner in the deployable by construction** — every dynamic surface
+reads only committed static bytes, and the boundary is locked by dep-graph and
+src-import tests. Trust Pages state a verdict *"observed at digest D at time T"* and
+never "certified/verified safe." No new CLI command, scan behaviour, schema, or
+verdict vocabulary — the engine is unchanged. Maintainer claim / Verified Publisher
+(I2c) is designed (ADR 0047, Accepted) but not yet implemented.
+
 ### Added
 
 - **Phase I / I1a — `@calllint/trust-index` (fixtures-only ingestion)** — the
@@ -25,6 +40,52 @@ onward. While pre-1.0, minor versions may include breaking changes.
   re-bake is byte-identical, and a committed-tree test fails if the baked artifacts
   drift from a fresh emit (ADR 0046 §4). Serving is a later milestone — this
   milestone is the *only scanner* and touches no request path (ADR 0046 §1/§3).
+- **Phase I / I1b-1 — serve baked Trust Pages same-origin (ADR 0046 §4, ADR 0038 §2)** —
+  the bake output root moves from `packages/trust-index/baked` to
+  `apps/web/public/trust`, the directory the web deploy ships to Cloudflare Pages. The
+  committed pages **are** the served pages at `calllint.com/trust/…` — one store, no
+  second copy, no scan at serve time. A new `language.ts` becomes the single source of
+  truth for the Trust-page forbidden phrases (the affirmative overclaims
+  certified/verified/approved/guaranteed safe); `project-facts.json` mirrors it as data
+  for the `.mjs` public-copy guard, and a test binds the mirror to the constant so they
+  cannot drift. `check:public-copy` gains serving-side checks over the committed bytes.
+- **Phase I / I1b-2 — Official MCP Registry ingestion (ADR 0038)** — the first *external*
+  Trust Index source. A PII-free, retained Registry snapshot plus a scheduled Actions
+  workflow (`trust-ingest.yml`, weekly) that fetches, re-bakes, and **opens a PR** —
+  merging is what deploys, so a human reviews before the public sees it (structural
+  decoupling, ADR 0038 §3). The network edge (`fetchRegistry.ts`) is workflow-only, keeps
+  only active+latest entries, caps at 25 (ADR 0038 §6 — not a crawl), and strips
+  contact/keywords. Unmappable or duplicate entries are recorded as `incomplete`, never
+  silently dropped. Registry and fixtures bake through one shared baker; the index lists
+  both cohorts. Seed snapshot: 18 active → 17 UNKNOWN / 1 SAFE / 0 BLOCK (honest
+  UNKNOWN for unresolvable remotes/packages). Two new public-copy checks: no email/PII,
+  and completeness (no silent drops).
+- **Phase I / I2a — read-only Partner API (`@calllint/partner-api`, ADR 0046 §4-§5,
+  ADR 0038 §3-§4)** — the first *dynamic* surface of the serving plane: a pure request
+  router over the pre-baked, digest-addressed Trust Pages, deployed as a Cloudflare Pages
+  Function at the same origin under `/v1/public/*`. Routes (all GET, read-only):
+  `/artifacts/{digest}` (resource by immutable digest), `/resources/{ns}/{name}`
+  (resource by canonical name), and `/resources/{ns}/{name}/authority` (the authority
+  slice only). Responses use a versioned envelope (`calllint.partner-api.v0`), a strong
+  ETag from the page digest with 304 on `If-None-Match`, a CDN cache posture, first-party
+  CORS, and uniform JSON errors that leak nothing. The safety invariant is structural,
+  not disciplinary: the router's only capability is an `AssetReader` over committed static
+  files — it cannot resolve, fetch, or scan, so no scanner is in the deployable by
+  construction (locked by a dep-graph test and a src-import test).
+- **Phase I / I2b — `<calllint-trust>` web component + reference embed (design §3.2)** —
+  a single self-contained browser ESM file (`/embed/calllint-trust.js`, no build step, no
+  dependencies, node-import-safe via `typeof` guards) that consumes the Partner API by
+  `resource` or `digest`. It renders green only for SAFE, always shows the boundary note,
+  and degrades to a no-JS fallback; it imports no scanner. Tests assert the shipped bytes
+  (zero drift). Ships with an `example.html` reference embed.
+- **Comm-1 — Team Beta landing page + design-partner intake** — the commercialization
+  Comm-1 surface, buildable now with no backend. `apps/web/public/team.html` states the
+  prescribed free-vs-paid boundary (local CLI stays free forever; Team centralizes shared
+  org policy, approvals, receipts, drift evidence, cross-repo inventory) with a $99/org/mo
+  willingness-signal price range (not a checkout), and states plainly that Team never
+  changes a verdict (the engine stays deterministic and local). A `design-partner.yml`
+  issue template doubles as the interview outline; the CTA links to it (triaged in GitHub
+  Issues, no backend). Comm-2..4 (Stripe/tiers/credits) stay gate-locked.
 
 ## [1.5.1] — 2026-07-16 — Cross-OS Apply E2E & Tier-A Host Expansion
 

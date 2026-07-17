@@ -34,7 +34,7 @@ function runBin(args: string[], input?: string): { stdout: string; code: number 
  */
 describe("package smoke (shipped artifact)", () => {
   beforeAll(() => {
-    execFileSync(process.execPath, ["./build.mjs"], { cwd: cliDir, stdio: "ignore" })
+    // Built once by the vitest globalSetup (tests/e2e/globalSetup.ts).
     expect(existsSync(binary)).toBe(true)
   })
 

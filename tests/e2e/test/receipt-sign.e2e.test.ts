@@ -61,7 +61,7 @@ describe("receipt signing E2E (keygen → sign → verify)", () => {
   }
 
   beforeAll(() => {
-    execFileSync(process.execPath, ["./build.mjs"], { cwd: cliDir, stdio: "ignore" })
+    // Built once by the vitest globalSetup (tests/e2e/globalSetup.ts).
     expect(existsSync(binary)).toBe(true)
     workDir = mkdtempSync(join(tmpdir(), "calllint-receipt-sign-"))
     writeFileSync(receiptFile(), JSON.stringify(UNSIGNED_RECEIPT, null, 2))

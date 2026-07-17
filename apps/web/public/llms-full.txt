@@ -8,7 +8,7 @@ This file inlines the guidance an agent needs in one fetch. Canonical sources:
 
 ## Status
 
-- Version `1.5.1` on the `latest` npm dist-tag (stable release; adds Cursor as a second Tier-A install host — `trust apply` writes `.cursor/mcp.json` atomically with backup + rollback — proven by a real cross-OS apply E2E (20 positive + 20 broken/conflict on ubuntu/macOS/windows, measured 0% corruption); on top of static toxic-flow analysis and Continuous Guard from 1.5.x; expect FP/FN).
+- Version `1.6.0` on the `latest` npm dist-tag (stable release; ships the Public Trust Index and read-only Partner surface — baked, digest-addressed Trust Pages served same-origin at `/trust/…`, a read-only Partner API under `/v1/public/*` (versioned envelope, ETag/304, first-party CORS, no scanner in the deployable), and a self-contained `<calllint-trust>` web-component embed; the first external source is the Official MCP Registry ingested by a scheduled workflow that opens a PR, never auto-deploys. On top of three Tier-A install hosts, static toxic-flow analysis, and Continuous Guard from 1.5.x; expect FP/FN).
 
 ## Commands
 
