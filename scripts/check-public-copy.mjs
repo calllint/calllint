@@ -31,6 +31,12 @@
  *      preview ("SLSA attestation on the preview" is stale wording).
  *  14. README corpus numbers (calibrated cases, real/redacted snapshots,
  *      dangerous false-SAFE, UNKNOWN ratio) match project-facts.json.
+ *  15. Generated Trust Pages (apps/web/public/trust/**) carry no forbidden
+ *      overclaim — the ADR 0038 §2 language boundary (facts.trustPageForbiddenPhrases),
+ *      enforced over the committed/served bytes, not just the renderer unit test.
+ *  16. Every generated Trust HTML page carries the required boundary framing:
+ *      the "not a certification … guarantee of safety" disclaimer and a
+ *      correction link (ADR 0038 §5).
  *
  * Exit codes:
  *   0  all checks pass
@@ -275,6 +281,58 @@ console.log("")
       if (re.test(readme.text)) ok(`README corpus number matches: ${label}`)
       else fail(`README corpus number mismatch: expected ${label}`)
     }
+  }
+}
+
+// 15/16. Generated Trust Pages language boundary (ADR 0038 §2/§5).
+//   These are the committed + served bytes (apps/web/public/trust/**), not the
+//   renderer's in-memory output — this guard is the serving-side backstop for the
+//   package's reproducibility test. facts.trustPageForbiddenPhrases mirrors
+//   TRUST_PAGE_FORBIDDEN_PHRASES in @calllint/trust-index; a repo test binds them.
+{
+  const trustRoot = path.join(repoRoot, "apps/web/public/trust")
+  const walk = (dir) => {
+    if (!fs.existsSync(dir)) return []
+    return fs.readdirSync(dir, { withFileTypes: true }).flatMap((e) => {
+      const abs = path.join(dir, e.name)
+      if (e.isDirectory()) return walk(abs)
+      return /\.(html|json)$/.test(e.name) ? [abs] : []
+    })
+  }
+  const trustFiles = walk(trustRoot).map((p) => ({
+    rel: path.relative(repoRoot, p).split(path.sep).join("/"),
+    text: fs.readFileSync(p, "utf8"),
+  }))
+  const forbidden = facts.trustPageForbiddenPhrases
+
+  if (!Array.isArray(forbidden)) {
+    fail("project-facts.json missing trustPageForbiddenPhrases; cannot guard Trust Pages")
+  } else if (trustFiles.length === 0) {
+    ok("no generated Trust Pages present yet (skipped 15/16)")
+  } else {
+    // 15. No forbidden overclaim in any served page.
+    let clean = true
+    for (const f of trustFiles) {
+      const lc = f.text.toLowerCase()
+      for (const p of forbidden) {
+        if (lc.includes(p.toLowerCase())) {
+          fail(`Trust Page overclaim in ${f.rel}: "${p}"`)
+          clean = false
+        }
+      }
+    }
+    if (clean) ok(`no forbidden overclaim across ${trustFiles.length} Trust Page file(s)`)
+
+    // 16. Every HTML page carries the required disclaimer + correction link.
+    const htmlPages = trustFiles.filter((f) => f.rel.endsWith(".html"))
+    let framed = true
+    for (const f of htmlPages) {
+      const hasDisclaimer = /not a certification/i.test(f.text) && /guarantee of safety/i.test(f.text)
+      const hasCorrection = /Report a correction/i.test(f.text)
+      if (!hasDisclaimer) { fail(`Trust Page ${f.rel} missing the "not a certification … guarantee of safety" disclaimer`); framed = false }
+      if (!hasCorrection) { fail(`Trust Page ${f.rel} missing a correction link`); framed = false }
+    }
+    if (framed && htmlPages.length > 0) ok(`all ${htmlPages.length} Trust HTML page(s) carry the required boundary framing`)
   }
 }
 

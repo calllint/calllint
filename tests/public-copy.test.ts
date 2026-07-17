@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest"
 import fs from "node:fs"
 import path from "node:path"
 import { fileURLToPath } from "node:url"
+import { TRUST_PAGE_FORBIDDEN_PHRASES } from "@calllint/trust-index"
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const repoRoot = path.resolve(__dirname, "..")
@@ -12,6 +13,7 @@ const facts = JSON.parse(fs.readFileSync(factsPath, "utf8")) as {
   stableVersion: string
   forbiddenPhrases: string[]
   requiredPhrases: string[]
+  trustPageForbiddenPhrases: string[]
 }
 
 const publicFiles = [
@@ -163,5 +165,15 @@ describe("public copy guard", () => {
     const site = files.find((f) => f.rel === "apps/web/public/index.html")
     expect(site).toBeTruthy()
     expect(site!.text).not.toMatch(/SLSA attestation\s+on\s+the\s+preview/i)
+  })
+
+  // ADR 0038 §2: the .mjs guard reads facts.trustPageForbiddenPhrases (it cannot
+  // import TS); @calllint/trust-index owns TRUST_PAGE_FORBIDDEN_PHRASES and enforces
+  // it over the renderer. Bind the two so the mirror can never silently drift.
+  it("facts.trustPageForbiddenPhrases mirrors the package language boundary exactly", () => {
+    expect(facts.trustPageForbiddenPhrases).toBeTruthy()
+    expect([...facts.trustPageForbiddenPhrases].sort()).toEqual(
+      [...TRUST_PAGE_FORBIDDEN_PHRASES].sort(),
+    )
   })
 })
