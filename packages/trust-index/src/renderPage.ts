@@ -18,6 +18,7 @@
 import type { Verdict } from "@calllint/types"
 import { VERDICT_PUBLIC_LABEL } from "@calllint/types"
 import type { BakedTrustPage } from "./bakeTrustPage.js"
+import type { VerifiedPublisher } from "./claim.js"
 
 /** Where a viewer disputes or corrects a page (ADR 0038 §5 correction link). */
 export const CORRECTION_URL =
@@ -42,8 +43,17 @@ export function pagePath(page: BakedTrustPage): string {
  * The JSON sidecar — the canonical machine-readable artifact. Key order is fixed
  * (object literal order is preserved by JSON.stringify) and indentation is pinned,
  * so the bytes are stable. This is what the I2 read-only API will serve verbatim.
+ *
+ * `verifiedPublisher` is an OPTIONAL overlay (ADR 0048 §2): it states namespace
+ * control (never safety) and is NOT part of `pageDigest` (the digest addresses the
+ * immutable observation; a claim is a revocable overlay). When absent it is
+ * `undefined`, which `JSON.stringify` drops — so an unclaimed page is byte-identical
+ * to one baked before I2c, and the committed-tree reproducibility gate holds.
  */
-export function renderSidecar(page: BakedTrustPage): string {
+export function renderSidecar(
+  page: BakedTrustPage,
+  verifiedPublisher?: VerifiedPublisher,
+): string {
   const sidecar = {
     schema: "calllint.trust-page.v0",
     canonicalName: page.canonicalName,
@@ -53,6 +63,7 @@ export function renderSidecar(page: BakedTrustPage): string {
     verdictLabel: VERDICT_PUBLIC_LABEL[page.verdict],
     observedAt: page.observedAt,
     completeness: page.preparation.authority?.completeness ?? "partial",
+    verifiedPublisher,
     correctionUrl: CORRECTION_URL,
     preparation: page.preparation,
     scan: page.scan,

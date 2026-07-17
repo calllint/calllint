@@ -20,6 +20,7 @@ import { dirname, join, resolve } from "node:path"
 import { fileURLToPath } from "node:url"
 import { emitAllCohorts } from "./emitCohort.js"
 import { parseSnapshot, type RegistrySnapshot } from "./snapshot.js"
+import { parseClaimStore, EMPTY_CLAIM_STORE, type ClaimStore } from "./claim.js"
 
 const here = dirname(fileURLToPath(import.meta.url))
 
@@ -35,6 +36,19 @@ export function loadSnapshotIfPresent(path = SNAPSHOT_PATH): RegistrySnapshot | 
   if (!existsSync(path)) return null
   return parseSnapshot(readFileSync(path, "utf8"))
 }
+
+/**
+ * The committed maintainer-claim store (ADR 0048 §2 Git store). Lives under the
+ * package (an ingestion INPUT, not a served artifact). The Actions verify job (I2c-4)
+ * commits records here; the bake reads them. Absent ⇒ the empty store ⇒ no flags.
+ */
+export const CLAIM_STORE_PATH = resolve(here, "..", "claims", "claim-store.json")
+
+/** Load + validate the committed claim store if present; empty when there is none. */
+export function loadClaimStoreIfPresent(path = CLAIM_STORE_PATH): ClaimStore {
+  if (!existsSync(path)) return EMPTY_CLAIM_STORE
+  return parseClaimStore(readFileSync(path, "utf8"))
+}
 /**
  * Committed output root: apps/web/public/trust (repo-root/apps/web/public/trust).
  * From packages/trust-index/src that is four levels up. This is the directory
@@ -45,7 +59,8 @@ export const DEFAULT_OUT = resolve(here, "..", "..", "..", "apps", "web", "publi
 function main(): void {
   const outDir = process.argv[2] ? resolve(process.argv[2]) : DEFAULT_OUT
   const snapshot = loadSnapshotIfPresent()
-  const { files, baked, incomplete } = emitAllCohorts(snapshot)
+  const claims = loadClaimStoreIfPresent()
+  const { files, baked, incomplete } = emitAllCohorts(snapshot, claims)
 
   // Clean the output dir first so a removed cohort entry does not leave a stale
   // page behind (idempotent tree = reproducible tree).
