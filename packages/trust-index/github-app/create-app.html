@@ -14,7 +14,10 @@
         (<code>github-app/app-manifest.json</code>) to GitHub. GitHub creates the App
         and returns its private key + webhook secret <strong>once</strong> — paste
         those into the ingestion repo's Actions secrets (see
-        <code>github-app/SETUP.md</code>).
+        <code>github-app/SETUP.md</code>). Installation lifecycle events
+        (<code>installation</code> / <code>installation_repositories</code>) are
+        delivered automatically to every App and need no subscription — Phase I
+        reconciles by polling installations regardless.
       </p>
       <p>
         Leave the org blank to create it under your personal account, or enter an
@@ -30,8 +33,8 @@
       <input type="hidden" />
       <p style="color:#555">
         The manifest requests only <strong>Repository metadata: read-only</strong> and
-        subscribes to <code>installation</code> + <code>installation_repositories</code>.
-        No code, contents, write, or PII scopes.
+        declares <strong>no</strong> event subscriptions. No code, contents, write, or
+        PII scopes.
       </p>
     </main>
     <script type="module">
@@ -44,7 +47,6 @@
         redirect_url: "https://calllint.com/trust/app-created.html",
         public: true,
         default_permissions: { metadata: "read" },
-        default_events: ["installation", "installation_repositories"],
       }
       const form = document.getElementById("f")
       form.addEventListener("submit", (e) => {

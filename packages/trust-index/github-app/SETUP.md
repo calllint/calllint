@@ -15,7 +15,10 @@ page until the verify job (I2c-4) writes the first real record.
 - **Repository metadata: read-only** — the *only* permission. Enough to list which
   repos an installation covers and map them to canonical names. **No** code, contents,
   issues, PRs, Actions, secrets, or org-membership access.
-- Subscribes to `installation` and `installation_repositories` events only.
+- Declares **no** event subscriptions. `installation` / `installation_repositories`
+  are lifecycle events GitHub delivers to every App automatically (they are not
+  subscribable and are rejected in a manifest's `default_events` when no gating
+  permission backs them). Phase I reconciles by **polling installations** anyway.
 - `hook_attributes.active: false` — Phase I has **no** live webhook listener; the
   batch verify job reconciles by **polling installations** (ADR 0048 §4), so a missed
   delivery self-heals. The URL is a Phase II placeholder.

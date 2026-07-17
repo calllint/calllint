@@ -22,8 +22,12 @@ describe("GitHub App manifest — least privilege (ADR 0048 §3)", () => {
     expect(manifest.default_permissions).toEqual({ metadata: "read" })
   })
 
-  it("subscribes to only the two installation events", () => {
-    expect([...manifest.default_events].sort()).toEqual(["installation", "installation_repositories"])
+  it("declares NO default_events — installation lifecycle events are auto-delivered", () => {
+    // `installation` / `installation_repositories` are lifecycle events GitHub pushes
+    // to every App; they are NOT subscribable and are rejected in default_events when
+    // no gating permission backs them. Phase I polls installations anyway (§4), so the
+    // manifest declares no event subscriptions at all.
+    expect(manifest.default_events).toBeUndefined()
   })
 
   it("carries no write/code/contents/PII-bearing permission", () => {
