@@ -48,6 +48,15 @@ export {
   type RegistryEntryPlan,
 } from "./registryCohort.js"
 export {
+  reconcileClaims,
+  parseGitHubRepo,
+  registryRepoIndex,
+  repoKey,
+  type CoveredRepo,
+  type InstallationView,
+  type ReconcileInput,
+} from "./reconcileClaims.js"
+export {
   parseSnapshot,
   synthesizeConfigText,
   registryCanonicalName,

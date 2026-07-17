@@ -13,7 +13,8 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "bake": "tsx src/bake.ts",
-    "ingest": "tsx src/refreshSnapshot.ts"
+    "ingest": "tsx src/refreshSnapshot.ts",
+    "verify-claims": "tsx src/verifyClaims.ts"
   },
   "dependencies": {
     "@calllint/config-parser": "workspace:*",

@@ -27,6 +27,7 @@
     "check:public-copy": "node scripts/check-public-copy.mjs",
     "bake:trust-index": "pnpm --filter @calllint/trust-index bake",
     "ingest:trust-index": "pnpm --filter @calllint/trust-index ingest",
+    "verify-claims:trust-index": "pnpm --filter @calllint/trust-index verify-claims",
     "ci:local": "pnpm typecheck && pnpm test && pnpm build && pnpm corpus:test && pnpm bench:test && pnpm check:public-copy && pnpm audit:evidence"
   },
   "devDependencies": {
