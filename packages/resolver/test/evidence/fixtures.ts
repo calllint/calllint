@@ -142,3 +142,37 @@ export function wellKnownFiles(publisher = "acme"): Record<string, string | unde
     "https://acme.com/.well-known/mcp-publisher.json": JSON.stringify({ publisher }),
   }
 }
+
+/** A static tool manifest with two tools; first fully-annotated, second sparse. */
+export function toolManifest(): Record<string, unknown> {
+  return {
+    "https://example.com/tools.json": {
+      tools: [
+        {
+          name: "read_file",
+          inputSchema: { type: "object", properties: { path: { type: "string" } } },
+          annotations: {
+            readOnlyHint: true,
+            destructiveHint: false,
+            idempotentHint: true,
+            openWorldHint: false,
+          },
+        },
+        {
+          name: "delete_all",
+          annotations: { destructiveHint: true }, // incomplete hints, no schema
+        },
+      ],
+    },
+  }
+}
+
+/** A remote-endpoint well-known descriptor with owner + auth model. */
+export function remoteDescriptor(): Record<string, string | undefined> {
+  return {
+    "https://api.acme.com/.well-known/mcp.json": JSON.stringify({
+      owner: "acme",
+      authModel: "oauth2",
+    }),
+  }
+}

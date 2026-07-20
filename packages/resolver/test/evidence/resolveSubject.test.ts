@@ -48,10 +48,11 @@ describe("resolveSubject dispatch", () => {
 describe("resolveSubject — unsupported + determinism", () => {
   it("no matching resolver → UNSUPPORTED_SUBJECT_TYPE, not clean", async () => {
     const { fetch } = fakeFetchJson({})
-    // `tool` has no resolver until PR-08 — a genuinely unhandled subject type.
+    // P1_RESOLVERS now covers all six subject types, so dispatch finds no handler
+    // only when the resolver set itself is empty — the real UNSUPPORTED path.
     const bundle = await resolveSubject(
       { schema: "calllint.evidence-subject.v0", subjectType: "tool", id: "some-tool" },
-      P1_RESOLVERS,
+      [],
       CTX(fetch),
     )
     expect(bundle.gaps.map((g) => g.code)).toContain("UNSUPPORTED_SUBJECT_TYPE")
