@@ -36,6 +36,47 @@
       "supportsAutomatedSubmission": false,
       "supportsAutomatedReadback": false,
       "manualActionRequired": true
+    },
+    {
+      "id": "github-marketplace",
+      "listingUrl": "https://github.com/marketplace/actions/calllint",
+      "readbackUrl": "",
+      "ownershipMethod": "manual",
+      "expectedRepository": "github.com/calllint/calllint",
+      "supportsAutomatedSubmission": false,
+      "supportsAutomatedReadback": false,
+      "manualActionRequired": true
+    },
+    {
+      "id": "forge",
+      "listingUrl": "https://forgeregistry.com/registry/calllint-mcp",
+      "readbackUrl": "",
+      "ownershipMethod": "manual",
+      "expectedPackage": "calllint-mcp",
+      "supportsAutomatedSubmission": false,
+      "supportsAutomatedReadback": false,
+      "manualActionRequired": true
+    },
+    {
+      "id": "pulsemcp",
+      "listingUrl": "https://www.pulsemcp.com/servers/calllint",
+      "readbackUrl": "",
+      "ownershipMethod": "manual",
+      "expectedPackage": "calllint-mcp",
+      "supportsAutomatedSubmission": false,
+      "supportsAutomatedReadback": false,
+      "manualActionRequired": true
+    },
+    {
+      "id": "mcpservers-org",
+      "listingUrl": "https://mcpservers.org/servers/calllint/calllint",
+      "readbackUrl": "",
+      "ownershipMethod": "manual",
+      "expectedPackage": "calllint",
+      "expectedInstallCommand": "npx calllint scan",
+      "supportsAutomatedSubmission": false,
+      "supportsAutomatedReadback": false,
+      "manualActionRequired": true
     }
   ]
 }

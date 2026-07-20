@@ -50,4 +50,35 @@ describe("registry-manifest schema", () => {
       if (p.supportsAutomatedReadback) expect(p.readbackUrl && p.readbackUrl.length > 0).toBe(true)
     }
   })
+
+  // --- new11 §3.2 coverage contract (Wave 4) ------------------------------
+  // §3.2 (docs/new11.md:1145) requires the manifest to cover AT LEAST npm,
+  // GitHub Marketplace, official MCP Registry, Forge, PulseMCP, mcpservers.org.
+
+  it("covers every platform new11 §3.2 requires", () => {
+    const ids = new Set()
+    for (const p of manifest.platforms) ids.add(p.id)
+    // npm and the official MCP Registry are present under these ids; the four
+    // directory listings were added in Wave 4.
+    for (const required of [
+      "npm",
+      "mcp-registry",
+      "github-marketplace",
+      "forge",
+      "pulsemcp",
+      "mcpservers-org",
+    ]) {
+      expect(ids.has(required)).toBe(true)
+    }
+  })
+
+  it("a manual platform is never silently marked automatable (no false-clean surface)", () => {
+    for (const p of manifest.platforms) {
+      if (p.manualActionRequired === true) {
+        expect(p.supportsAutomatedReadback).toBe(false)
+        // A manual listing has no anonymous read-back endpoint, so it carries none.
+        expect(p.readbackUrl ?? "").toBe("")
+      }
+    }
+  })
 })
