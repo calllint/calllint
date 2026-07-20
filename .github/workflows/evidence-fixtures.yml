@@ -1,0 +1,44 @@
+# P1-G — evidence-resolution benchmark gate (new11 §P1-acceptance / §4.7 / §10.3).
+#
+# Runs the fixed 100-object golden corpus through the REAL P1 resolvers with
+# RECORDED fetch maps — no live network, so CI never depends on npm/GitHub/registry
+# uptime and never executes a scanned server. The gate fails closed unless every
+# §P1 threshold holds:
+#   - 100 objects across npm / github / registry / domain / remote / tool
+#   - artifact identity ≥90%, repository mapping ≥80%, evidence completeness ≥70%
+#   - every UNKNOWN carries a reason code + an explainUnknown cause
+#   - false-SAFE = 0; conflicting evidence never reads clean
+#   - deterministic replay (same inputs → identical bundle)
+#   - every resolver output validates against evidence-bundle.schema.json
+#   - no secret / email / local-path leaks in any publishable (clean) bundle
+#
+# This is a focused, fast gate; the same test also runs inside the full `ci` suite.
+name: evidence-fixtures
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  evidence-fixtures:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v6
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: P1-G benchmark gate (100-object recorded corpus)
+        run: pnpm bench:fixtures
