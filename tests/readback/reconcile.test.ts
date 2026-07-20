@@ -62,6 +62,41 @@ describe("reconcilePlatform", () => {
     expect(r.status).toBe(READBACK_STATUS.MANUAL_REVIEW)
     expect(isActionable(r.status)).toBe(false)
   })
+
+  // --- Wave 4: the ownershipMethod:"manual" directory path (±fixture) --------
+  // The four directory listings (github-marketplace/forge/pulsemcp/mcpservers-org)
+  // have no anonymous read-back endpoint; they are ownershipMethod "manual".
+
+  it("a manual-ownership directory → MANUAL_REVIEW, not actionable (positive)", () => {
+    const forge = {
+      id: "forge",
+      ownershipMethod: "manual",
+      supportsAutomatedReadback: false,
+      manualActionRequired: true,
+    }
+    const r = reconcilePlatform({ expected, platform: forge, observed: {} })
+    expect(r.status).toBe(READBACK_STATUS.MANUAL_REVIEW)
+    expect(isActionable(r.status)).toBe(false)
+  })
+
+  it("a manual directory NEVER becomes MATCH even if a stray observed slips in (guard)", () => {
+    const pulse = {
+      id: "pulsemcp",
+      ownershipMethod: "manual",
+      supportsAutomatedReadback: false,
+      manualActionRequired: true,
+    }
+    // Even handed an observed object that would MATCH an npm/github reconciler,
+    // the manual branch short-circuits first — no false-clean for a listing we
+    // can only verify by hand.
+    const r = reconcilePlatform({
+      expected,
+      platform: pulse,
+      observed: { versionExists: true, latestVersion: "1.7.1", tagName: "v1.7.1" },
+    })
+    expect(r.status).toBe(READBACK_STATUS.MANUAL_REVIEW)
+    expect(r.status).not.toBe(READBACK_STATUS.MATCH)
+  })
 })
 
 describe("reconcileAll + issue body", () => {
