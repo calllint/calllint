@@ -8,7 +8,7 @@ Important:
 - UNKNOWN is never SAFE. It means the surface could not be verified statically.
 - CallLint is heuristic decision support, not a safety guarantee — expect false positives and false negatives.
 - REVIEW, BLOCK, and UNKNOWN should be explained to the user with evidence (finding id, evidence path, observed value, remediation).
-- CallLint is `1.6.0` on the `latest` npm dist-tag (stable release; ships the Public Trust Index and read-only Partner surface — baked, digest-addressed Trust Pages served same-origin, a read-only Partner API under `/v1/public/*`, and a `<calllint-trust>` embed — on top of three Tier-A install hosts, static toxic-flow analysis, and Continuous Guard from 1.5.x; expect false positives and false negatives).
+- CallLint is `1.7.0` on the `latest` npm dist-tag (stable release; adds Verified Publisher — a maintainer can claim a Trust Page via a least-privilege GitHub App, an additive overlay that never changes a verdict — and the Evidence Resolution spine: a Subject/Bundle/Gap model with 16 gap reason codes and six read-only resolvers (npm, GitHub, MCP Registry, domain, tool metadata, remote endpoint) held to a 100-object benchmark gate with false_safe=0; on top of the Public Trust Index and read-only Partner surface, three Tier-A install hosts, static toxic-flow analysis, and Continuous Guard from 1.5.x/1.6.x; expect false positives and false negatives).
 
 ## Commands
 
