@@ -64,6 +64,9 @@ will do, it says so and never silently upgrades to `SAFE`.
 - Self-contained HTML report: `calllint scan <config> --html > report.html`
 - Drift / rug-pull detection: `calllint baseline <config>` then `calllint verify <config> --ci`
 - Policy-as-code: `calllint policy init`
+- Continuous Guard: `calllint guard` re-decides the approved authority surface (silent when unchanged); `calllint guard install --host <git|git-pre-push|github|claude-code|copilot|gemini|vscode>` adds a session-start / commit / CI hook that only shells out to `calllint guard` — never a per-call blocker
+- Install the preflight into your hosts: `calllint integrate` prints a reversible install plan (writes nothing); `--apply --approve <digest>` is the only writer and reuses the audited atomic-write-and-rollback engine
+- Claude Code plugin: a `PreToolUse` hook that *recommends* scanning before an agent-tool config edit — advisory, non-blocking, always exits 0, runs no scan itself
 
 CallLint is a heuristic, evidence-backed pre-flight check, **not a proof of
 safety**. `No blockers observed` ≠ guaranteed safe. Full docs, security model,

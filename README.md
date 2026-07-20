@@ -232,6 +232,63 @@ external evidence can tighten a verdict but never set it alone. Three Tier-A hos
 ship the audited apply surface — Claude Code, Cursor, and Windsurf. See the
 [CHANGELOG](CHANGELOG.md) (Trust Gateway Core) and ADRs 0035–0039.
 
+## Continuous Guard — catch a rug-pull after approval
+
+A tool you approved once can change later. `calllint guard` records the approved
+authority surface and re-decides it — **silent when nothing changed**, and loud the
+moment a previously-approved server's risk surface shifts (a rug-pull, 🔁). It adds
+no new verdict engine: it reuses the same deterministic drift check as
+`baseline` / `verify` and the same stable exit codes.
+
+```bash
+# re-assess the current authority surface vs the approved baseline (silent when unchanged)
+calllint guard
+
+# install a guard hook into a host — a declarative shim that only shells out to `calllint guard`
+calllint guard install --host git       # git pre-commit hook
+calllint guard install --host github    # GitHub Actions drift-gate workflow
+calllint guard status                   # baseline / disable / installed-hook state
+calllint guard disable                  # writes .calllint/guard.json { enabled: false }
+```
+
+Guard installs on seven hosts: `git` (pre-commit), `git-pre-push`, `github`
+(Actions), `claude-code`, `copilot`, `gemini`, and `vscode`. Every hook binds
+**only** to a commit / push / CI / session-start event — never a per-call gate — so
+a guard hook can never silently block a tool call (ADR 0045, ADR 0052). Hosts with a
+dedicated file (git, GitHub, Copilot) are written whole; hosts whose hook lives
+inside a shared user-owned config (Claude Code, Gemini, VS Code) get a fragment
+printed for you to merge — `guard install` never clobbers a shared file.
+
+## Install the preflight into your agent — `integrate` and the Claude plugin
+
+`calllint integrate` installs CallLint's own MCP server (`calllint-mcp`) into the
+agent hosts you already use, so the agent can run the preflight itself before it
+approves another server. It is **plan-only by default**: it detects installed hosts,
+builds a reversible install plan, prints it with a digest, and writes nothing.
+Applying is a separate, explicit, approved step that reuses the Trust Gateway's exact
+audited writer (re-validate → atomic write → verify → roll back on failure).
+
+```bash
+calllint integrate                       # detect hosts + print an install plan (writes nothing)
+calllint integrate --write-plan          # persist each plan to .calllint/plans/<id>.json
+calllint integrate --apply --plan <p.json> --approve <plan-digest>   # the only writer
+```
+
+It is idempotent (a host that already has the `calllint` server yields no change) and
+project-scoped (it acts on configs under the repo you run it in, not your global
+machine state).
+
+For Claude Code, CallLint also ships as a **plugin** with a `PreToolUse` hook. When
+Claude is about to write or edit an agent-tool config, the hook surfaces a one-line
+recommendation to scan first. It is **advisory and non-blocking**: it always exits 0,
+never vetoes a tool call, runs no scan itself, and neither the hook nor an LLM ever
+enters the verdict path (ADR 0051). Installing it does not install a runtime blocker.
+
+```
+/plugin marketplace add calllint/calllint
+/plugin install calllint@calllint
+```
+
 ## Run CallLint as an MCP server (`calllint-mcp`)
 
 CallLint also ships as its own MCP server, so an agent can run the preflight
