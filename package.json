@@ -24,6 +24,7 @@
     "corpus:test:r2-final": "node scripts/run-corpus.mjs --r2-final",
     "bench:test": "node scripts/run-bench.mjs",
     "bench:test:verbose": "node scripts/run-bench.mjs --verbose",
+    "bench:fixtures": "vitest run packages/resolver/test/evidence/benchmark.test.ts",
     "check:public-copy": "node scripts/check-public-copy.mjs",
     "facts:check": "node scripts/derive-facts.mjs",
     "facts:write": "node scripts/derive-facts.mjs --write",
