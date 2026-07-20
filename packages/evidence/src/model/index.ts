@@ -39,3 +39,14 @@ export {
   bundleState,
   isCleanlyResolved,
 } from "./bundle.js"
+export {
+  evaluatePublishEligibility,
+  completenessReport,
+  explainUnknown,
+  type EligibilityCriterion,
+  type EligibilityReport,
+  type ReportedGap,
+  type CompletenessReport,
+  type UnknownCause,
+  type UnknownExplanation,
+} from "./eligibility.js"
