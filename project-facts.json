@@ -24,6 +24,11 @@
     "releaseGate": true,
     "fullEcosystemClaim": false
   },
+  "capabilities": {
+    "description": "Machine-derived from code by scripts/derive-facts.mjs — do not hand-edit; run `pnpm facts:check` (verify) or `pnpm facts:write` (regenerate). Guarded in CI by public-facts-consistency.yml.",
+    "detectorCount": 13,
+    "tierAHosts": ["claude-code", "cursor", "windsurf"]
+  },
   "claims": {
     "offlineByDefault": true,
     "deterministic": true,
