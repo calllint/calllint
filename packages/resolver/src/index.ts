@@ -11,3 +11,15 @@ export {
   type ArtifactInput,
   type FetchedEntry,
 } from "./resolveArtifactIdentity.js"
+// Evidence resolvers (new11 P1 §4.2–4.4): subject -> EvidenceBundle.
+export {
+  type EvidenceResolver,
+  type ResolverContext,
+  type FetchJson,
+  type FetchText,
+  npmResolver,
+  githubResolver,
+  resolveSubject,
+  memoize,
+  P1_RESOLVERS,
+} from "./evidence/index.js"

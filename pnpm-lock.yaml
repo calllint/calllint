@@ -251,6 +251,9 @@ importers:
 
   packages/resolver:
     dependencies:
+      '@calllint/evidence':
+        specifier: workspace:*
+        version: link:../evidence
       '@calllint/fingerprint':
         specifier: workspace:*
         version: link:../fingerprint
