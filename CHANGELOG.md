@@ -10,6 +10,95 @@ onward. While pre-1.0, minor versions may include breaking changes.
 
 ## [Unreleased]
 
+## [1.7.0] — 2026-07-20 — Verified Publisher & the Evidence Resolution spine
+
+**Resolve the evidence, then publish the verdict.** This minor release ships two
+things that were designed but unshipped at 1.6.0. First, **I2c — Verified Publisher**:
+a maintainer can now *claim* a Trust Page through a least-privilege GitHub App and a
+pure, fail-closed Actions reconcile job — a claim adds an *additive* `verifiedPublisher`
+overlay and **never** modifies a verdict, severity, or receipt (ADR 0047 + ADR 0048).
+Second, the **new11 Evidence Resolution system** (the "spine"): a central evidence model
+(Subject / Bundle / Gap with 16 machine-readable gap reason codes) and six read-only
+resolvers (npm, GitHub, MCP Registry, domain ownership, tool metadata, remote endpoint)
+that turn "we couldn't tell" into a specific, maintainer-actionable reason — enforced by
+a 100-object benchmark gate that holds `false_safe = 0`. Around the spine: code-derived
+public facts that cannot drift from the engine, a release read-back workflow, and a
+privacy-minimizing telemetry *contract* (schema + structural sanitizer + 4-tier defaults;
+no emission wired into the offline CLI). **No change to scan behaviour, the `ScanReport`
+schema, or the verdict vocabulary** — the deterministic engine is unchanged. Resolvers
+**never execute, probe, or vuln-scan** a target (INV1, automated). Trust Pages still say
+*"observed at digest D at time T"*, never "certified/verified safe."
+
+### Added — Verified Publisher (I2c; ADR 0047 §2, ADR 0048)
+
+- **Pure maintainer-claim core** (#162) — claim verification + store parsing that fails
+  closed on any malformed or unverifiable input; no network in the pure core.
+- **Claim store threaded through bake** (#163) — an *additive* `verifiedPublisher`
+  overlay on baked Trust Pages; the underlying verdict/evidence bytes are untouched.
+- **Serving surface** (#164) — Partner API + `<calllint-trust>` embed + baked HTML expose
+  the claim overlay, guarded by the public-copy word lint (no "trusted publisher"/
+  "certified" affirmatives leak onto a page).
+- **GitHub App + one-click setup** (#165, #166) — least-privilege App manifest (created,
+  ID 4322539); human-gated install; no unsupported lifecycle events.
+- **Claim-verify Actions job** (#167) — a pure reconcile job (RS256 App-JWT) that closes
+  the loop daily; zero-diff and no-op until the App is installed on a matching org/repo.
+
+### Added — new11 P0: Public Trust Foundation (ADR 0049)
+
+- **Priority-execution boundary — ADR 0049** (#168) — records the evidence-first P0–P5
+  ordering, the "extend, don't fork" reuse map, and the canonical `integrate` name; plus
+  `docs/internal/{current-system-map,evidence-gap-audit}.md`. The gap audit **measured**
+  the live Trust Index UNKNOWN split (registry 17 UNKNOWN / 1 SAFE / 0 BLOCK of 18) and
+  confirmed the root cause of all 18 external UNKNOWNs is "remote endpoint could not be
+  verified" — which set the resolver priority (R6/R4 lead, not npm).
+- **Code-derived public facts** (#169) — `project-facts.json` `capabilities.{detectorCount,
+  tierAHosts}` are now machine-derived by `scripts/derive-facts.mjs` (`facts:check` /
+  `facts:write`) and guarded by `public-facts-consistency.yml`, so a published claim
+  cannot drift from the code (INV9). No second facts file.
+- **Release read-back** (#170) — `registry-manifest.json` + a pure reconcile core
+  (fetch-fail ⇒ `UNREACHABLE`, never a false-clean) + a weekly `release-readback.yml`
+  that opens a single deduped issue on drift; least-privilege `issues:write`.
+- **Telemetry contract** (#171) — `@calllint/telemetry-contract` (events / tiers /
+  structural allowlist sanitizer / resettable non-fingerprint anon-id) +
+  `telemetry-event.schema.json` (`additionalProperties:false`) + `docs/privacy/telemetry.md`
+  + a `security-boundary.yml` guard. **4-tier defaults**: server-observed + attributed
+  install always-on; CI on-with-notice; local interactive CLI opt-in / default-off. This
+  is a *contract only* — no emission is wired into the CLI, and it is verdict-decoupled.
+
+### Added — new11 P1: Evidence Resolution system, the spine (ADR 0049 §2, §4)
+
+- **Evidence model** (#172) — `@calllint/evidence` gains Subject / Bundle / Gap types and
+  a central enum of **16 gap reason codes** (each `{category, severity, userMessage,
+  maintainerAction, retryable}`), extending ADR 0034. Schema-compat tested.
+- **npm + GitHub resolvers** (#173) — read-only `evidence/{npm,github}Resolver.ts` plus
+  the resolver dispatch/memoize seam; fixtures + a no-exec boundary.
+- **MCP Registry + domain-ownership resolvers** (#174) — `evidence/{registry,domain}Resolver.ts`
+  with conflict handling and the evidence priority ladder (artifact-bound > registry >
+  publisher-signed > repo > inferred; low never overrides high). No WHOIS PII.
+- **Tool-metadata + remote-endpoint resolvers** (#175) — `evidence/{tool,remote}Resolver.ts`
+  (identity/TLS only; no business calls, probing, or vuln-scan) + the **INV1 no-exec /
+  no-probe** automated suite.
+- **Trust Index publish eligibility + completeness report** (#176) — extends
+  `@calllint/trust-index` with the 6-condition expansion eligibility check, a completeness
+  report, and a human-readable UNKNOWN explanation. (Bake→resolver wiring is a follow-up.)
+- **100-object benchmark gate** (#177) — `packages/resolver/test/evidence/{corpus,benchmark}.ts`
+  + `evidence-fixtures.yml` (`pnpm bench:fixtures`). Enforces ≥90% artifact identity,
+  ≥80% repo mapping, ≥70% completeness, every UNKNOWN carries a reason, deterministic
+  replay, no secrets/PII/local paths, and **`false_safe = 0`**. Green on 3-OS CI.
+
+### Changed
+
+- Living trackers and the requirements-traceability matrix are reconciled to `main`
+  (Sprint 0 + P0 + P1 closed); the documentation index and `new8-execution-status.md`
+  now record `calllint@1.6.0` as npm `latest` and I2c as shipped (prior snapshots said
+  1.5.1 / "I2c NOT implemented").
+
+### Notes
+
+- The Evidence Resolution spine exists as libraries + a benchmark gate; **wiring it into
+  `trust-index` bake** (so the live 17/18 UNKNOWN Trust Pages actually resolve) is the
+  next step and is not in this release.
+
 ## [1.6.0] — 2026-07-17 — Public Trust Index & Partner Surface
 
 **Publish the verdict, safely.** This minor release ships Phase I: the offline
