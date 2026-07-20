@@ -2,7 +2,7 @@
   "schema": "calllint.trust-snapshot.v0",
   "source": "official-mcp-registry",
   "endpoint": "https://registry.modelcontextprotocol.io/v0/servers",
-  "fetchedAt": "2026-07-17T00:00:00.000Z",
+  "fetchedAt": "2026-07-20T09:32:35.554Z",
   "count": 18,
   "entries": [
     {
@@ -192,6 +192,23 @@
       "publishedAt": "2026-04-10T16:46:57.731179Z"
     },
     {
+      "name": "ai.aetherwealth/mcp",
+      "description": "Aether Wealth MCP for AI assistants: trades, alerts, market data, macro calendar & indicators.",
+      "version": "0.2.0",
+      "repositoryUrl": null,
+      "packages": [
+        {
+          "registryType": "npm",
+          "identifier": "@aetherwealth/mcp",
+          "version": "0.2.0",
+          "transport": null
+        }
+      ],
+      "remotes": [],
+      "status": "active",
+      "publishedAt": "2026-07-17T08:51:15.143192Z"
+    },
+    {
       "name": "ai.agentberg/agentberg",
       "description": "Agent-to-agent trading intelligence exchange. Publish findings, vote on quality, earn reputation.",
       "version": "0.2.0",
@@ -265,21 +282,6 @@
       ],
       "status": "active",
       "publishedAt": "2026-05-06T16:24:16.952518Z"
-    },
-    {
-      "name": "ai.agenticshelf/puroair",
-      "description": "Breathe with Confidence. Live MCP catalog for PuroAir HEPA air purifiers - stock, pricing, details.",
-      "version": "1.0.1",
-      "repositoryUrl": null,
-      "packages": [],
-      "remotes": [
-        {
-          "type": "streamable-http",
-          "url": "https://api.agenticshelf.ai/m/puroair/mcp"
-        }
-      ],
-      "status": "active",
-      "publishedAt": "2026-07-02T16:47:32.556297Z"
     }
   ]
 }

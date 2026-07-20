@@ -2,10 +2,10 @@
   "schema": "calllint.trust-page.v0",
   "canonicalName": "mcp-registry/ai.abmeter-abmeter",
   "artifactDigest": "sha256:c3670bfc209140bc70cf9e1a03be811c8b0e968fab3737e45e0034fb10dfc2b0",
-  "pageDigest": "sha256:1813d90c4294569fc991f26aa3de653b566d2a0c2c67f7d6afdf8f519805569d",
+  "pageDigest": "sha256:ef7aff776be28ad45ae9dbe35e47a07f27a8ca32e2001f9f1a634f18bc8547ce",
   "verdict": "REVIEW",
   "verdictLabel": "Review required",
-  "observedAt": "2026-07-17T00:00:00.000Z",
+  "observedAt": "2026-07-20T09:32:35.554Z",
   "completeness": "complete",
   "correctionUrl": "https://github.com/calllint/calllint/issues/new?labels=trust-page-correction",
   "preparation": {
@@ -17,7 +17,7 @@
       "requestedRef": null,
       "resolvedRef": "sha256:c3670bfc209140bc70cf9e1a03be811c8b0e968fab3737e45e0034fb10dfc2b0",
       "digest": "sha256:c3670bfc209140bc70cf9e1a03be811c8b0e968fab3737e45e0034fb10dfc2b0",
-      "resolvedAt": "2026-07-17T00:00:00.000Z",
+      "resolvedAt": "2026-07-20T09:32:35.554Z",
       "resolution": "resolved"
     },
     "evidence": null,
@@ -61,7 +61,7 @@
       "no external evidence attached (optional); decision will rely on CallLint's own analysis",
       "authority normalized: 1 capability, approvals required: external-network-access"
     ],
-    "preparedAt": "2026-07-17T00:00:00.000Z"
+    "preparedAt": "2026-07-20T09:32:35.554Z"
   },
   "scan": {
     "schemaVersion": "calllint.report.v0",
@@ -197,10 +197,10 @@
             "message": "Remote endpoint identity verified; tool surface not analyzed (evidence: https://mcp.abmeter.ai)"
           }
         ],
-        "generatedAt": "2026-07-17T00:00:00.000Z"
+        "generatedAt": "2026-07-20T09:32:35.554Z"
       }
     ],
     "diagnostics": [],
-    "generatedAt": "2026-07-17T00:00:00.000Z"
+    "generatedAt": "2026-07-20T09:32:35.554Z"
   }
 }

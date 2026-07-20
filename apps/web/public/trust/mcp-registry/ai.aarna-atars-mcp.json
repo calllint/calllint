@@ -2,10 +2,10 @@
   "schema": "calllint.trust-page.v0",
   "canonicalName": "mcp-registry/ai.aarna-atars-mcp",
   "artifactDigest": "sha256:da6927a2f653489b9d12fe80b1d71d7c9abfc8cd505cd5fd226a67361efad4c6",
-  "pageDigest": "sha256:c7cc8afe6747795a25f0de07d287fa35870ee823a125afed14dc68de005aa55b",
+  "pageDigest": "sha256:5b93706f0c0124ec51071fbce31745796aea9a4ab547a13db5e9cb3ade2a8ef0",
   "verdict": "REVIEW",
   "verdictLabel": "Review required",
-  "observedAt": "2026-07-17T00:00:00.000Z",
+  "observedAt": "2026-07-20T09:32:35.554Z",
   "completeness": "complete",
   "correctionUrl": "https://github.com/calllint/calllint/issues/new?labels=trust-page-correction",
   "preparation": {
@@ -17,7 +17,7 @@
       "requestedRef": null,
       "resolvedRef": "sha256:da6927a2f653489b9d12fe80b1d71d7c9abfc8cd505cd5fd226a67361efad4c6",
       "digest": "sha256:da6927a2f653489b9d12fe80b1d71d7c9abfc8cd505cd5fd226a67361efad4c6",
-      "resolvedAt": "2026-07-17T00:00:00.000Z",
+      "resolvedAt": "2026-07-20T09:32:35.554Z",
       "resolution": "resolved"
     },
     "evidence": null,
@@ -61,7 +61,7 @@
       "no external evidence attached (optional); decision will rely on CallLint's own analysis",
       "authority normalized: 1 capability, approvals required: external-network-access"
     ],
-    "preparedAt": "2026-07-17T00:00:00.000Z"
+    "preparedAt": "2026-07-20T09:32:35.554Z"
   },
   "scan": {
     "schemaVersion": "calllint.report.v0",
@@ -197,10 +197,10 @@
             "message": "Remote endpoint identity verified; tool surface not analyzed (evidence: https://mcp.aarna.ai/mcp)"
           }
         ],
-        "generatedAt": "2026-07-17T00:00:00.000Z"
+        "generatedAt": "2026-07-20T09:32:35.554Z"
       }
     ],
     "diagnostics": [],
-    "generatedAt": "2026-07-17T00:00:00.000Z"
+    "generatedAt": "2026-07-20T09:32:35.554Z"
   }
 }

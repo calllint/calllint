@@ -1,7 +1,7 @@
 {
   "schema": "calllint.evidence-snapshot.v0",
-  "resolvedAt": "2026-07-20T00:00:00.000Z",
-  "count": 18,
+  "resolvedAt": "2026-07-20T09:33:08.764Z",
+  "count": 17,
   "bundles": [
     {
       "schema": "calllint.evidence-bundle.v0",
@@ -267,49 +267,6 @@
         "schema": "calllint.evidence-subject.v0",
         "subjectType": "remote-endpoint",
         "id": "https://api.agenticshelf.ai/m/graffeo/mcp"
-      },
-      "state": "PARTIAL",
-      "items": [
-        {
-          "field": "endpoint.host",
-          "value": "api.agenticshelf.ai",
-          "tier": "repository",
-          "source": "R6:remote"
-        },
-        {
-          "field": "endpoint.tls",
-          "value": "https",
-          "tier": "repository",
-          "source": "R6:remote"
-        },
-        {
-          "field": "endpoint.url",
-          "value": "https://api.agenticshelf.ai",
-          "tier": "repository",
-          "source": "R6:remote"
-        }
-      ],
-      "gaps": [
-        {
-          "schema": "calllint.evidence-gap.v0",
-          "code": "REMOTE_OWNER_UNVERIFIED",
-          "detail": "api.agenticshelf.ai serves no .well-known/mcp.json descriptor",
-          "missingFields": [
-            "endpoint.authModel",
-            "endpoint.owner"
-          ],
-          "triedResolvers": [
-            "R6:remote"
-          ]
-        }
-      ]
-    },
-    {
-      "schema": "calllint.evidence-bundle.v0",
-      "subject": {
-        "schema": "calllint.evidence-subject.v0",
-        "subjectType": "remote-endpoint",
-        "id": "https://api.agenticshelf.ai/m/puroair/mcp"
       },
       "state": "PARTIAL",
       "items": [

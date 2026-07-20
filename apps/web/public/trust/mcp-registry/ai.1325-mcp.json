@@ -2,10 +2,10 @@
   "schema": "calllint.trust-page.v0",
   "canonicalName": "mcp-registry/ai.1325-mcp",
   "artifactDigest": "sha256:bdbac793efd6905e417d643ab1d4e5e9c8a879e05f5e271d137422c169973592",
-  "pageDigest": "sha256:808f8d348518db19221aa11874ffa760f28b1681dab1b9cd7b7a318afe6fa135",
+  "pageDigest": "sha256:38ff82d4b6ff837b0efe6e0534abe3ea2c57a6bb743b67b1aedef96e3c47e2f2",
   "verdict": "REVIEW",
   "verdictLabel": "Review required",
-  "observedAt": "2026-07-17T00:00:00.000Z",
+  "observedAt": "2026-07-20T09:32:35.554Z",
   "completeness": "complete",
   "correctionUrl": "https://github.com/calllint/calllint/issues/new?labels=trust-page-correction",
   "preparation": {
@@ -17,7 +17,7 @@
       "requestedRef": null,
       "resolvedRef": "sha256:bdbac793efd6905e417d643ab1d4e5e9c8a879e05f5e271d137422c169973592",
       "digest": "sha256:bdbac793efd6905e417d643ab1d4e5e9c8a879e05f5e271d137422c169973592",
-      "resolvedAt": "2026-07-17T00:00:00.000Z",
+      "resolvedAt": "2026-07-20T09:32:35.554Z",
       "resolution": "resolved"
     },
     "evidence": null,
@@ -61,7 +61,7 @@
       "no external evidence attached (optional); decision will rely on CallLint's own analysis",
       "authority normalized: 1 capability, approvals required: external-network-access"
     ],
-    "preparedAt": "2026-07-17T00:00:00.000Z"
+    "preparedAt": "2026-07-20T09:32:35.554Z"
   },
   "scan": {
     "schemaVersion": "calllint.report.v0",
@@ -197,10 +197,10 @@
             "message": "Remote endpoint identity verified; tool surface not analyzed (evidence: https://agoclnqfyinwjxdmjnns.supabase.co/functions/v1/mcp)"
           }
         ],
-        "generatedAt": "2026-07-17T00:00:00.000Z"
+        "generatedAt": "2026-07-20T09:32:35.554Z"
       }
     ],
     "diagnostics": [],
-    "generatedAt": "2026-07-17T00:00:00.000Z"
+    "generatedAt": "2026-07-20T09:32:35.554Z"
   }
 }

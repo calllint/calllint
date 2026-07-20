@@ -2,10 +2,10 @@
   "schema": "calllint.trust-page.v0",
   "canonicalName": "mcp-registry/ai.agentic-news-mcp",
   "artifactDigest": "sha256:6913ebe5d60fec1f4b63796b25508ba4b16021b86f343858aaafc48a13cb45f4",
-  "pageDigest": "sha256:dc665b10d2b077237b9bc95196a2df2f6bb8af5b0846f6e8534cff51ee64f169",
+  "pageDigest": "sha256:b31c2cc39a0275b05cadd3d8bf353fd72da147eced01c9d1f1b0cc7a5b0de5ee",
   "verdict": "REVIEW",
   "verdictLabel": "Review required",
-  "observedAt": "2026-07-17T00:00:00.000Z",
+  "observedAt": "2026-07-20T09:32:35.554Z",
   "completeness": "complete",
   "correctionUrl": "https://github.com/calllint/calllint/issues/new?labels=trust-page-correction",
   "preparation": {
@@ -17,7 +17,7 @@
       "requestedRef": null,
       "resolvedRef": "sha256:6913ebe5d60fec1f4b63796b25508ba4b16021b86f343858aaafc48a13cb45f4",
       "digest": "sha256:6913ebe5d60fec1f4b63796b25508ba4b16021b86f343858aaafc48a13cb45f4",
-      "resolvedAt": "2026-07-17T00:00:00.000Z",
+      "resolvedAt": "2026-07-20T09:32:35.554Z",
       "resolution": "resolved"
     },
     "evidence": null,
@@ -61,7 +61,7 @@
       "no external evidence attached (optional); decision will rely on CallLint's own analysis",
       "authority normalized: 1 capability, approvals required: external-network-access"
     ],
-    "preparedAt": "2026-07-17T00:00:00.000Z"
+    "preparedAt": "2026-07-20T09:32:35.554Z"
   },
   "scan": {
     "schemaVersion": "calllint.report.v0",
@@ -197,10 +197,10 @@
             "message": "Remote endpoint identity verified; tool surface not analyzed (evidence: https://api.agentic-news.ai/mcp)"
           }
         ],
-        "generatedAt": "2026-07-17T00:00:00.000Z"
+        "generatedAt": "2026-07-20T09:32:35.554Z"
       }
     ],
     "diagnostics": [],
-    "generatedAt": "2026-07-17T00:00:00.000Z"
+    "generatedAt": "2026-07-20T09:32:35.554Z"
   }
 }

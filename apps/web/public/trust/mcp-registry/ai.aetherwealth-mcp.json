@@ -1,8 +1,8 @@
 {
   "schema": "calllint.trust-page.v0",
-  "canonicalName": "mcp-registry/ai.adeu-adeu",
-  "artifactDigest": "sha256:f6f792740d19b83991bc32bd9f4878868d8f4ad0ae767d66e910af8d8afad2e9",
-  "pageDigest": "sha256:8bfb2ce4d350dcf5b62b0f752743d6203bac8f6698b4458eff9da088fa7a6791",
+  "canonicalName": "mcp-registry/ai.aetherwealth-mcp",
+  "artifactDigest": "sha256:3a044720c3bf08668d17dfb63be5921521ae7093b80a06261bfb44329e5f2d06",
+  "pageDigest": "sha256:2a9834b385d0f509a2240c2d3e2b393124ecacd5b0d2565ee9235677f2b1c1bf",
   "verdict": "SAFE",
   "verdictLabel": "No blockers observed",
   "observedAt": "2026-07-20T09:32:35.554Z",
@@ -13,10 +13,10 @@
     "artifact": {
       "schema": "calllint.artifact.v1",
       "sourceType": "mcp-config",
-      "source": "official-mcp-registry:ai.adeu/adeu",
+      "source": "official-mcp-registry:ai.aetherwealth/mcp",
       "requestedRef": null,
-      "resolvedRef": "sha256:f6f792740d19b83991bc32bd9f4878868d8f4ad0ae767d66e910af8d8afad2e9",
-      "digest": "sha256:f6f792740d19b83991bc32bd9f4878868d8f4ad0ae767d66e910af8d8afad2e9",
+      "resolvedRef": "sha256:3a044720c3bf08668d17dfb63be5921521ae7093b80a06261bfb44329e5f2d06",
+      "digest": "sha256:3a044720c3bf08668d17dfb63be5921521ae7093b80a06261bfb44329e5f2d06",
       "resolvedAt": "2026-07-20T09:32:35.554Z",
       "resolution": "resolved"
     },
@@ -24,7 +24,7 @@
     "authority": {
       "schema": "calllint.authority.v0",
       "subject": {
-        "artifactDigest": "sha256:f6f792740d19b83991bc32bd9f4878868d8f4ad0ae767d66e910af8d8afad2e9"
+        "artifactDigest": "sha256:3a044720c3bf08668d17dfb63be5921521ae7093b80a06261bfb44329e5f2d06"
       },
       "capabilities": [
         {
@@ -51,7 +51,7 @@
       },
       "unknowns": [],
       "completeness": "complete",
-      "digest": "sha256:e3bcb5d8392de5f97d7c48118ea1d9d130b09edb18712a3e824998a763ca27d7"
+      "digest": "sha256:811c13d490c4fec98c6128643d791673afc41ad92c762fca5c254c34515b8f71"
     },
     "decision": null,
     "plan": null,
@@ -65,7 +65,7 @@
   "scan": {
     "schemaVersion": "calllint.report.v0",
     "reportKind": "config-summary",
-    "configPath": "official-mcp-registry:ai.adeu/adeu",
+    "configPath": "official-mcp-registry:ai.aetherwealth/mcp",
     "verdict": "SAFE",
     "publicVerdictLabel": "No blockers observed",
     "counts": {
@@ -81,9 +81,9 @@
         "target": {
           "name": "package",
           "kind": "cursor-mcp-config",
-          "source": "@adeu/mcp-server",
-          "version": "1.7.1",
-          "configPath": "official-mcp-registry:ai.adeu/adeu"
+          "source": "@aetherwealth/mcp",
+          "version": "0.2.0",
+          "configPath": "official-mcp-registry:ai.aetherwealth/mcp"
         },
         "verdict": "SAFE",
         "publicVerdictLabel": "No blockers observed",
@@ -106,10 +106,10 @@
           "sandbox": "none"
         },
         "fingerprints": {
-          "configHash": "sha256:fec330365d66e88961c1fca541226140d5333e51d9db697cdc256b285af1e875",
-          "targetSpecHash": "sha256:55fb208223addebc50eab9a8f5e5d91e24391103ff2d7346a71f9ce3c70e718c",
+          "configHash": "sha256:40f888df9437d2229b7e27183f25d71c86a9399fbc6ff3f155648d4fccdddaf8",
+          "targetSpecHash": "sha256:7a447d2d4fd87b91f3fd353dd90e79adeaff97f73c0ddb2a6921694bebe8235d",
           "riskSurfaceHash": "sha256:69aae84c996fe93d537b08d906cb339866bd43f10876be403a0f4793915bef33",
-          "packageSpecHash": "sha256:b42f6a9e9024c30a535b03a6754ef98fd9970dd455ff45021b0535db24b40d0e"
+          "packageSpecHash": "sha256:14d1b7ffc023ee0aaa94cfd04a82d66151e2bcee3fa7c824f46f9b37ee68c77e"
         },
         "diagnostics": [],
         "generatedAt": "2026-07-20T09:32:35.554Z"
