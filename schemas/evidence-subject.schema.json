@@ -1,0 +1,26 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://calllint.com/schemas/evidence-subject.schema.json",
+  "title": "CallLint Evidence Subject",
+  "description": "What identity evidence is gathered about (calllint.evidence-subject.v0). The stable, resolver-agnostic locator for a thing the Trust Index describes. See new11 P1 §4.1.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "subjectType", "id"],
+  "properties": {
+    "schema": { "const": "calllint.evidence-subject.v0" },
+    "subjectType": {
+      "enum": ["npm-package", "github-repo", "mcp-registry-entry", "domain", "remote-endpoint", "tool"],
+      "description": "The kind of subject. An unsupported type MUST yield an UNSUPPORTED_SUBJECT_TYPE gap, never a silent pass."
+    },
+    "id": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Stable locator, verbatim (e.g. \"npm:foo@1.2.3\", \"github.com/o/r\")."
+    },
+    "artifactDigest": {
+      "type": ["string", "null"],
+      "pattern": "^sha256:[0-9a-f]{64}$",
+      "description": "Digest binding once the artifact identity is pinned; null until resolved."
+    }
+  }
+}
