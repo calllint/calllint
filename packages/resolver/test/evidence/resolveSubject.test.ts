@@ -48,8 +48,9 @@ describe("resolveSubject dispatch", () => {
 describe("resolveSubject — unsupported + determinism", () => {
   it("no matching resolver → UNSUPPORTED_SUBJECT_TYPE, not clean", async () => {
     const { fetch } = fakeFetchJson({})
+    // `tool` has no resolver until PR-08 — a genuinely unhandled subject type.
     const bundle = await resolveSubject(
-      { schema: "calllint.evidence-subject.v0", subjectType: "domain", id: "example.com" },
+      { schema: "calllint.evidence-subject.v0", subjectType: "tool", id: "some-tool" },
       P1_RESOLVERS,
       CTX(fetch),
     )

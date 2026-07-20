@@ -4,7 +4,7 @@
  *   npm-valid-provenance · npm-no-provenance · missing-version · repository-mismatch.
  * These are hand-built minimal docs; the full 100-object golden corpus is P1-G.
  */
-import type { FetchJson } from "../../src/evidence/resolverInterface.js"
+import type { FetchJson, FetchText } from "../../src/evidence/resolverInterface.js"
 
 /** Build a fetchJson that returns `docs[url]`, else throws (network-absent). */
 export function fakeFetchJson(docs: Record<string, unknown>): {
@@ -99,4 +99,46 @@ export function githubRepo(): Record<string, unknown> {
 /** GitHub "Not Found" body (404-style). */
 export function githubNotFound(): Record<string, unknown> {
   return { "https://api.github.com/repos/acme/missing": { message: "Not Found" } }
+}
+
+/** A fetchText that returns `files[url]`, undefined if absent (404), throws only if flagged. */
+export function fakeFetchText(files: Record<string, string | undefined>): {
+  fetch: FetchText
+  calls: string[]
+} {
+  const calls: string[] = []
+  const fetch: FetchText = async (url: string) => {
+    calls.push(url)
+    return url in files ? files[url] : undefined
+  }
+  return { fetch, calls }
+}
+
+const REG = "https://registry.modelcontextprotocol.io/v0/servers"
+const OFFICIAL = "io.modelcontextprotocol.registry/official"
+
+/** A registry body with one active+latest server carrying a repository. */
+export function registryBody(repoUrl = "https://github.com/acme/good-pkg"): Record<string, unknown> {
+  return {
+    [REG]: {
+      servers: [
+        {
+          server: {
+            name: "io.acme/good-server",
+            description: "a server",
+            version: "1.2.3",
+            repository: { url: repoUrl },
+          },
+          _meta: { [OFFICIAL]: { status: "active", isLatest: true, publishedAt: "2026-01-01" } },
+        },
+      ],
+    },
+  }
+}
+
+/** A well-known publisher file for a verified domain. */
+export function wellKnownFiles(publisher = "acme"): Record<string, string | undefined> {
+  return {
+    "https://acme.com/.well-known/mcp-publisher.json": JSON.stringify({ publisher }),
+  }
 }
