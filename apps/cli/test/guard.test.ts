@@ -158,3 +158,99 @@ describe("guard install (ADR 0045 §4 — declarative shims)", () => {
     expect(res.exitCode).toBe(EXIT.USAGE)
   })
 })
+
+// --- Wave 3: guard host breadth (ADR 0052) ---------------------------------
+
+describe("guard install — dedicated-file hosts write whole (ADR 0052 §3)", () => {
+  it("lists all seven hosts and marks shared ones (fragment)", () => {
+    const res = run(["guard", "install"], deps())
+    for (const h of ["git", "git-pre-push", "github", "claude-code", "copilot", "gemini", "vscode"]) {
+      expect(res.stdout).toContain(h)
+    }
+    expect(res.stdout).toContain("(fragment)")
+  })
+
+  it("--host git-pre-push writes a pre-push hook that shells out to `calllint guard`", () => {
+    mkdirSync(join(dir, ".git", "hooks"), { recursive: true })
+    const res = run(["guard", "install", "--host", "git-pre-push"], deps())
+    expect(res.exitCode).toBe(EXIT.OK)
+    const hook = readFileSync(join(dir, ".git", "hooks", "pre-push"), "utf8")
+    expect(hook).toContain("calllint guard")
+    expect(hook).not.toContain("verdict") // declarative shim only
+  })
+
+  it("--host copilot writes a dedicated sessionStart hook (non-gating, not preToolUse)", () => {
+    const res = run(["guard", "install", "--host", "copilot"], deps())
+    expect(res.exitCode).toBe(EXIT.OK)
+    const cfg = JSON.parse(readFileSync(join(dir, ".github", "hooks", "calllint.json"), "utf8"))
+    expect(cfg.version).toBe(1)
+    expect(cfg.hooks.sessionStart).toBeDefined()
+    // ADR 0052 §1: guard binds ONLY to a session-start event, never a gating one.
+    expect(cfg.hooks.preToolUse).toBeUndefined()
+    expect(cfg.hooks.sessionStart[0].command).toContain("calllint guard")
+  })
+})
+
+describe("guard install — shared-config hosts print a fragment, never clobber (ADR 0052 §3)", () => {
+  for (const host of ["claude-code", "gemini", "vscode"] as const) {
+    it(`--host ${host} prints a fragment and writes nothing by default`, () => {
+      const res = run(["guard", "install", "--host", host], deps())
+      expect(res.exitCode).toBe(EXIT.OK)
+      expect(res.stdout).toMatch(/merge this|fragment/i)
+      expect(res.stdout).toContain("calllint guard")
+      // Nothing was written to disk on the default path.
+      expect(existsSync(join(dir, ".claude", "settings.json"))).toBe(false)
+      expect(existsSync(join(dir, ".gemini", "settings.json"))).toBe(false)
+      expect(existsSync(join(dir, ".vscode", "tasks.json"))).toBe(false)
+    })
+  }
+
+  it("claude-code fragment is a non-gating SessionStart hook, not PreToolUse", () => {
+    const res = run(["guard", "install", "--host", "claude-code"], deps())
+    // The printed fragment is valid JSON with a SessionStart (non-gating) hook.
+    const jsonStart = res.stdout.indexOf("{")
+    const cfg = JSON.parse(res.stdout.slice(jsonStart))
+    expect(cfg.hooks.SessionStart).toBeDefined()
+    expect(cfg.hooks.PreToolUse).toBeUndefined()
+  })
+
+  it("--out to an EXISTING shared file refuses (no clobber), exit USAGE", () => {
+    mkdirSync(join(dir, ".vscode"), { recursive: true })
+    const userTasks = join(dir, ".vscode", "tasks.json")
+    writeFileSync(userTasks, JSON.stringify({ version: "2.0.0", tasks: [{ label: "user-build" }] }))
+    const res = run(["guard", "install", "--host", "vscode", "--out", ".vscode/tasks.json"], deps())
+    expect(res.exitCode).toBe(EXIT.USAGE)
+    expect(res.stderr).toMatch(/refus/i)
+    // The user's file is untouched.
+    expect(JSON.parse(readFileSync(userTasks, "utf8")).tasks[0].label).toBe("user-build")
+  })
+
+  it("--out to a NEW path materializes the whole file (no clobber risk)", () => {
+    const res = run(["guard", "install", "--host", "gemini", "--out", "fresh/settings.json"], deps())
+    expect(res.exitCode).toBe(EXIT.OK)
+    const cfg = JSON.parse(readFileSync(join(dir, "fresh", "settings.json"), "utf8"))
+    expect(cfg.hooks.SessionStart[0].hooks[0].command).toContain("calllint guard")
+  })
+})
+
+describe("guard status — detects new hosts honestly (ADR 0052 §3)", () => {
+  it("reports every host key; a bare user settings.json is NOT our hook", () => {
+    run(["approve"], deps())
+    // A user's own .claude/settings.json without our marker must read not-installed.
+    mkdirSync(join(dir, ".claude"), { recursive: true })
+    writeFileSync(join(dir, ".claude", "settings.json"), JSON.stringify({ theme: "dark" }))
+    const parsed = JSON.parse(run(["guard", "status", "--json"], deps()).stdout)
+    expect(parsed.installedHooks["git:pre-push"]).toBe(false)
+    expect(parsed.installedHooks["copilot:sessionStart"]).toBe(false)
+    expect(parsed.installedHooks["claude-code:sessionStart"]).toBe(false) // bare file ≠ our hook
+    expect(parsed.installedHooks["vscode:folderOpen"]).toBe(false)
+  })
+
+  it("a shared file carrying our marker reads installed", () => {
+    run(["approve"], deps())
+    mkdirSync(join(dir, ".gemini"), { recursive: true })
+    writeFileSync(join(dir, ".gemini", "settings.json"), JSON.stringify({ hooks: { SessionStart: [{ hooks: [{ type: "command", command: "npx -y calllint guard --no-emoji" }] }] } }))
+    const parsed = JSON.parse(run(["guard", "status", "--json"], deps()).stdout)
+    expect(parsed.installedHooks["gemini:sessionStart"]).toBe(true)
+  })
+})
