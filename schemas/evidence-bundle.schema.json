@@ -1,0 +1,47 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://calllint.com/schemas/evidence-bundle.schema.json",
+  "title": "CallLint Evidence Bundle",
+  "description": "Aggregated identity evidence for one subject across all resolvers (calllint.evidence-bundle.v0). Only state=COMPLETE with zero blocking gaps is cleanly resolved. See new11 P1 §4.5.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "subject", "state", "items", "gaps"],
+  "properties": {
+    "schema": { "const": "calllint.evidence-bundle.v0" },
+    "subject": { "$ref": "https://calllint.com/schemas/evidence-subject.schema.json" },
+    "state": {
+      "enum": [
+        "DISCOVERED",
+        "QUEUED",
+        "RESOLVING",
+        "COMPLETE",
+        "PARTIAL",
+        "UNRESOLVABLE",
+        "RETRYABLE_FAILURE",
+        "PUBLISHED"
+      ],
+      "description": "Resolution state machine position; PARTIAL/UNRESOLVABLE/failure never read as clean."
+    },
+    "items": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["field", "value", "tier", "source"],
+        "properties": {
+          "field": { "type": "string", "minLength": 1 },
+          "value": { "type": "string" },
+          "tier": {
+            "enum": ["inferred", "repository", "publisher-signed", "registry", "artifact-bound"],
+            "description": "Source tier; higher tiers shadow lower ones for the same field."
+          },
+          "source": { "type": "string", "minLength": 1 }
+        }
+      }
+    },
+    "gaps": {
+      "type": "array",
+      "items": { "$ref": "https://calllint.com/schemas/evidence-gap.schema.json" }
+    }
+  }
+}

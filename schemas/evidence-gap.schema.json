@@ -1,0 +1,48 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://calllint.com/schemas/evidence-gap.schema.json",
+  "title": "CallLint Evidence Gap",
+  "description": "One unresolved identity/evidence gap (calllint.evidence-gap.v0). The evidence-layer analog of UNKNOWN: it never reads as clean and always carries an actionable, non-secret reason. See new11 P1 §4.4.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "code", "detail", "missingFields", "triedResolvers"],
+  "properties": {
+    "schema": { "const": "calllint.evidence-gap.v0" },
+    "code": {
+      "enum": [
+        "ARTIFACT_VERSION_UNRESOLVED",
+        "ARTIFACT_DIGEST_UNAVAILABLE",
+        "PACKAGE_NOT_FOUND",
+        "REPOSITORY_UNRESOLVED",
+        "REPOSITORY_MISMATCH",
+        "REGISTRY_ENTRY_MISSING",
+        "PUBLISHER_UNVERIFIED",
+        "PROVENANCE_UNAVAILABLE",
+        "TOOL_METADATA_UNAVAILABLE",
+        "AUTHORITY_SCOPE_INCOMPLETE",
+        "REMOTE_OWNER_UNVERIFIED",
+        "NETWORK_UNAVAILABLE",
+        "RATE_LIMITED",
+        "UNSUPPORTED_SUBJECT_TYPE",
+        "MALFORMED_METADATA",
+        "CONFLICTING_EVIDENCE"
+      ],
+      "description": "One of the 16 frozen evidence-gap codes."
+    },
+    "detail": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Specific, non-secret detail for THIS occurrence (safe to show a user)."
+    },
+    "missingFields": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Dotted field names still missing."
+    },
+    "triedResolvers": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Resolver ids attempted before giving up."
+    }
+  }
+}
