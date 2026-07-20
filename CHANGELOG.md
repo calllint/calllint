@@ -10,6 +10,8 @@ onward. While pre-1.0, minor versions may include breaking changes.
 
 ## [Unreleased]
 
+## [1.7.1] — 2026-07-20 — Evidence-refined Trust Page verdicts (new11 R3)
+
 ### Added
 
 - **Evidence-refined Trust Page verdicts (new11 R3, ADR 0050).** The Evidence
