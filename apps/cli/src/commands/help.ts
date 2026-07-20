@@ -23,7 +23,7 @@ COMMANDS
   baseline [target]  Record the approved risk surface as a baseline
   approve            Record the repo-wide capability surface as approved state (L4)
   guard              Continuous Guard: re-decide on authority change; silent when unchanged
-  guard install --host <h>  Install a guard hook (git pre-commit, github workflow)
+  guard install --host <h>  Install a guard hook (git, git-pre-push, github, claude-code, copilot, gemini, vscode)
   guard status       Show baseline / disable / installed-hook state
   guard disable      Turn Continuous Guard off (.calllint/guard.json)
   receipt verify <f>    Validate a calllint.receipt.v0 (structure + signature if present)
@@ -75,7 +75,8 @@ VERIFY OPTIONS
   --json             Emit the drift report JSON
 
 GUARD OPTIONS
-  --host <h>         guard install target: git (pre-commit) | github (workflow)
+  --host <h>         guard install target: git | git-pre-push | github | claude-code | copilot | gemini | vscode
+                     (session-start hooks, non-blocking; shared-config hosts print a fragment to merge)
   --approved [file]  Approved baseline to diff against (default: .calllint/approved.json)
   --json             Emit the guard assessment / status JSON
   (exit) silent/note=0, REVIEW=10, UNKNOWN=20, BLOCK=30; guard self-failure is non-zero
