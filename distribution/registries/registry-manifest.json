@@ -1,0 +1,41 @@
+{
+  "schema": "calllint.registry-manifest.v0",
+  "expected": {
+    "package": "calllint",
+    "repository": "github.com/calllint/calllint",
+    "domain": "calllint.com"
+  },
+  "platforms": [
+    {
+      "id": "npm",
+      "listingUrl": "https://www.npmjs.com/package/calllint",
+      "readbackUrl": "https://registry.npmjs.org/calllint",
+      "ownershipMethod": "npm",
+      "expectedPackage": "calllint",
+      "expectedInstallCommand": "npx calllint scan",
+      "supportsAutomatedSubmission": true,
+      "supportsAutomatedReadback": true,
+      "manualActionRequired": false
+    },
+    {
+      "id": "github-release",
+      "listingUrl": "https://github.com/calllint/calllint/releases",
+      "readbackUrl": "https://api.github.com/repos/calllint/calllint/releases/latest",
+      "ownershipMethod": "github",
+      "expectedRepository": "github.com/calllint/calllint",
+      "supportsAutomatedSubmission": true,
+      "supportsAutomatedReadback": true,
+      "manualActionRequired": false
+    },
+    {
+      "id": "mcp-registry",
+      "listingUrl": "https://registry.modelcontextprotocol.io",
+      "readbackUrl": "",
+      "ownershipMethod": "github",
+      "expectedPackage": "calllint",
+      "supportsAutomatedSubmission": false,
+      "supportsAutomatedReadback": false,
+      "manualActionRequired": true
+    }
+  ]
+}

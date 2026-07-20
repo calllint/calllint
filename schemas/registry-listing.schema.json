@@ -1,0 +1,59 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://calllint.com/schemas/registry-listing.schema.json",
+  "title": "CallLint distribution registry manifest",
+  "description": "Declares, per external distribution platform, the identity CallLint expects a public listing to advertise, plus which read-back operations are automatable. Consumed by scripts/release-readback.mjs (new11 §3.2/§3.3, ADR 0049).",
+  "type": "object",
+  "required": ["schema", "expected", "platforms"],
+  "additionalProperties": false,
+  "properties": {
+    "schema": { "const": "calllint.registry-manifest.v0" },
+    "expected": {
+      "type": "object",
+      "description": "The canonical identity, derived from project-facts.json at run time; committed values are a documented default.",
+      "required": ["package", "repository", "domain"],
+      "additionalProperties": false,
+      "properties": {
+        "package": { "type": "string", "minLength": 1 },
+        "repository": { "type": "string", "minLength": 1 },
+        "domain": { "type": "string", "minLength": 1 }
+      }
+    },
+    "platforms": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/definitions/platform" }
+    }
+  },
+  "definitions": {
+    "platform": {
+      "type": "object",
+      "required": [
+        "id",
+        "ownershipMethod",
+        "supportsAutomatedReadback",
+        "manualActionRequired"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "id": { "type": "string", "pattern": "^[a-z0-9][a-z0-9-]*$" },
+        "listingUrl": { "type": "string" },
+        "readbackUrl": {
+          "type": "string",
+          "description": "Machine-readable endpoint to query for observed identity (e.g. npm registry JSON). Empty when read-back is manual."
+        },
+        "ownershipMethod": {
+          "enum": ["github", "npm", "dns", "well-known", "signed-artifact", "manual"]
+        },
+        "expectedPackage": { "type": "string" },
+        "expectedVersion": { "type": "string" },
+        "expectedRepository": { "type": "string" },
+        "expectedDomain": { "type": "string" },
+        "expectedInstallCommand": { "type": "string" },
+        "supportsAutomatedSubmission": { "type": "boolean" },
+        "supportsAutomatedReadback": { "type": "boolean" },
+        "manualActionRequired": { "type": "boolean" }
+      }
+    }
+  }
+}

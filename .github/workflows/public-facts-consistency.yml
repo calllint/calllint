@@ -30,10 +30,14 @@ jobs:
     steps:
       - uses: actions/checkout@v6
       - uses: pnpm/action-setup@v6
+      # No `cache: pnpm` here: this job runs NO `pnpm install` (both checks are
+      # pure node scripts using only node: builtins), so there is no pnpm store to
+      # cache. Configuring the cache makes setup-node's post-step fail with a Path
+      # Validation Error whenever the lockfile hash misses — which is exactly what
+      # a lockfile change triggers. Keep the job install-free and cache-free.
       - uses: actions/setup-node@v6
         with:
           node-version: 20
-          cache: pnpm
 
       - name: Derive capability facts from code and verify no drift
         run: pnpm facts:check
