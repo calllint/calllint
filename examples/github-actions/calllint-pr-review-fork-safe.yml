@@ -1,0 +1,68 @@
+# CallLint fork-safe PR review (new11 P2 §5.5).
+#
+# A read-only, fork-safe pull-request reviewer: it scans a changed agent-tool
+# config, writes a deterministic Markdown summary to the PR Step Summary, emits
+# SARIF for the Security tab, and gates the PR on the verdict. It is safe to run
+# on pull requests from forks.
+#
+# WHY IT IS FORK-SAFE
+#   - Trigger is `pull_request` (NOT `pull_request_target`). On `pull_request`,
+#     GitHub does not expose repository secrets to a workflow triggered by a fork
+#     PR, and the checked-out code is the PR head. A malicious fork PR therefore
+#     cannot exfiltrate your secrets through this workflow.
+#   - `permissions: contents: read` is least privilege; `security-events: write`
+#     is added ONLY because the SARIF upload needs it. Drop it if you do not
+#     upload to Code Scanning — then the job needs no write scope at all.
+#   - CallLint is static: it inspects config bytes and NEVER executes, installs,
+#     or connects to a scanned server (INV1). No untrusted fork code is run, and
+#     the repository is never uploaded to a third party.
+#
+# Path-filter the trigger (below) so the job only runs when a PR actually
+# touches an agent-tool surface — the changed-files scoping new11 §5.5 asks for.
+#
+# Copy this to `.github/workflows/calllint-pr.yml` in your repository, and set
+# `target:` to the config you want gated.
+name: calllint-pr-review
+
+on:
+  pull_request:
+    paths:
+      - "**/mcp.json"
+      - "**/.mcp.json"
+      - "**/settings.json"
+      - ".cursor/**"
+      - ".vscode/**"
+      - "claude_desktop_config.json"
+      - "**/SKILL.md"
+
+permissions:
+  contents: read
+  security-events: write # only for the SARIF upload; drop if you set sarif: "false"
+
+jobs:
+  review:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout PR head
+        uses: actions/checkout@v4
+
+      - name: CallLint preflight review
+        id: calllint
+        uses: calllint/calllint@v1
+        with:
+          # The agent-tool config to gate. The path filter above already scopes
+          # the job to PRs that touch a config, so this runs only when relevant.
+          target: .cursor/mcp.json
+          # Deterministic Markdown to the PR Step Summary (on by default).
+          step-summary: "true"
+          # SARIF to the Security tab (needs security-events: write above).
+          sarif: "true"
+          # Offline by default: never reads external metadata, never executes code.
+          online: "false"
+          # Fail the PR per policy (BLOCK / UNKNOWN by default). Set "false" for
+          # report-only — the summary + SARIF still post, the job never fails.
+          gate: "true"
+
+      - name: Show verdict
+        if: always()
+        run: echo "CallLint verdict: ${{ steps.calllint.outputs.verdict }}"
