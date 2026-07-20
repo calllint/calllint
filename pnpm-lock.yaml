@@ -32,6 +32,9 @@ importers:
       '@calllint/action-analyzer':
         specifier: workspace:*
         version: link:../../packages/action-analyzer
+      '@calllint/agent-triggers':
+        specifier: workspace:*
+        version: link:../../packages/agent-triggers
       '@calllint/core':
         specifier: workspace:*
         version: link:../../packages/core
