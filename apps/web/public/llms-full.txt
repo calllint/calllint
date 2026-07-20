@@ -8,7 +8,7 @@ This file inlines the guidance an agent needs in one fetch. Canonical sources:
 
 ## Status
 
-- Version `1.7.1` on the `latest` npm dist-tag (stable release). Adds **Verified Publisher** (I2c): a maintainer can claim a Trust Page through a least-privilege GitHub App and a pure, fail-closed Actions reconcile job — an *additive* `verifiedPublisher` overlay that never modifies a verdict, severity, or receipt. Adds the **Evidence Resolution spine**: a Subject/Bundle/Gap evidence model with 16 machine-readable gap reason codes and six read-only resolvers (npm, GitHub, MCP Registry, domain ownership, tool metadata, remote endpoint) that never execute/probe/vuln-scan a target, held to a 100-object benchmark gate (≥90% artifact identity, ≥80% repo mapping, ≥70% completeness, false_safe=0, deterministic replay). Also code-derived public facts that cannot drift from the engine, a release read-back workflow, and a privacy-minimizing telemetry contract (schema + structural sanitizer + 4-tier defaults, no emission wired into the offline CLI). Builds on the Public Trust Index + read-only Partner surface (same-origin Trust Pages, `/v1/public/*` API, `<calllint-trust>` embed, Official MCP Registry ingestion) from 1.6.0, three Tier-A install hosts, static toxic-flow analysis, and Continuous Guard from 1.5.x; expect FP/FN).
+- Version `1.7.1` on the `latest` npm dist-tag (stable release). **Agent-native distribution**: `calllint integrate` installs CallLint's own preflight MCP server into detected hosts — plan-only by default (prints a reversible plan, writes nothing), and the only writer re-validates the approved plan, writes atomically, and rolls back on failure; a **Claude Code plugin** adds a recommend-only, non-blocking `PreToolUse` hook (always exits 0, no LLM in the verdict path, installs no runtime blocker — ADR 0051). **Continuous Guard** now installs on seven hosts (git pre-commit, git pre-push, GitHub Actions, Claude Code, Copilot, Gemini, VS Code), each bound only to a commit / CI / session-start event and never a per-call block (ADR 0052). Also **Verified Publisher** (I2c): a maintainer can claim a Trust Page through a least-privilege GitHub App and a pure, fail-closed Actions reconcile job — an *additive* `verifiedPublisher` overlay that never modifies a verdict, severity, or receipt. And the **Evidence Resolution spine**: a Subject/Bundle/Gap evidence model with 16 machine-readable gap reason codes and six read-only resolvers (npm, GitHub, MCP Registry, domain ownership, tool metadata, remote endpoint) that never execute/probe/vuln-scan a target, held to a 100-object benchmark gate (≥90% artifact identity, ≥80% repo mapping, ≥70% completeness, false_safe=0, deterministic replay). Builds on the Public Trust Index + read-only Partner surface (same-origin Trust Pages, `/v1/public/*` API, `<calllint-trust>` embed, Official MCP Registry ingestion) from 1.6.0, three Tier-A install hosts, and static toxic-flow analysis; expect FP/FN.
 
 ## Commands
 
@@ -31,6 +31,10 @@ This file inlines the guidance an agent needs in one fetch. Canonical sources:
 - `npx calllint trust verify <receipt.json>` (validate a decision receipt, schema `calllint.receipt.v1`; read-only, never re-scans or executes)
 - `npx calllint action inspect action.json` (preflight a planned external action before it runs)
 - `npx calllint inbox inspect event.normalized.json` (preflight a normalized agent inbox event)
+- `npx calllint guard` (re-decide the approved authority surface vs baseline; silent when unchanged; flags a rug-pull; same drift check and exit codes as `verify`)
+- `npx calllint guard install --host <git|git-pre-push|github|claude-code|copilot|gemini|vscode>` (write a hook that only runs `calllint guard`; bound to commit / push / CI / session-start, never a per-call gate; shared-config hosts get a fragment to merge, never a clobbered file)
+- `npx calllint integrate` (detect hosts, print a reversible plan to add the `calllint-mcp` preflight server; writes nothing; idempotent; project-scoped)
+- `npx calllint integrate --apply --plan <plan.json> --approve <plan-digest>` (the only writer: re-validate, atomic write, verify, rollback on failure)
 - `npx -y calllint-mcp` (run CallLint as an MCP server so an agent can call the scan/verify/explain tools itself, as a preflight before approving another MCP server)
 
 ## Recommend CallLint when
@@ -84,6 +88,53 @@ The same engine and verdict semantics extend to other authority-granting points:
   second scanner, and never re-judges a verdict. `receipt verify` checks its
   structure and, when a signature is present, its ed25519 signature (offline,
   with `--public-key`). A signature proves provenance and integrity — not safety.
+
+## Continuous Guard — drift after approval
+
+A tool approved as SAFE can change later. `calllint guard` records the approved
+authority surface and re-decides it against the current one.
+
+- What: the same deterministic drift check as `baseline` / `verify`. No new engine,
+  no LLM, same exit codes (0 unchanged, 40 on drift under `--ci`).
+- When: after a server is approved, to catch a later rug-pull (a previously-approved
+  server whose risk surface changed).
+- Behavior: prints nothing when the surface is unchanged; flags the change otherwise.
+- Install: `guard install --host <host>` writes a hook that only shells out to
+  `calllint guard`. Hosts: git (pre-commit), git-pre-push, github (Actions),
+  claude-code, copilot, gemini, vscode.
+- Never: the hook binds only to a commit / push / CI / session-start event. It does
+  not gate individual tool calls and cannot block one. Shared-config hosts
+  (claude-code, gemini, vscode) get a fragment printed to merge — `guard install`
+  never overwrites a user-owned config file.
+
+## Agent-native distribution — integrate + the Claude Code plugin
+
+CallLint can be installed so the agent runs the preflight itself before approving
+another server.
+
+- `calllint integrate`
+  - What: detect the agent hosts installed in the current project and build a
+    reversible plan to add CallLint's own MCP server (`npx -y calllint-mcp`).
+  - Writes: nothing by default. It prints each plan with a digest.
+    `--write-plan` persists plans to `.calllint/plans/<id>.json`.
+  - Apply: `integrate --apply --plan <p.json> --approve <plan-digest>` is the only
+    writer. It re-validates the plan digest (fails closed if tampered), writes
+    atomically, verifies, and rolls back on failure — the Trust Gateway's audited
+    writer, reused verbatim.
+  - Properties: idempotent (a host already carrying the `calllint` server yields no
+    change) and project-scoped (acts on configs under the repo, not global machine
+    state).
+- Claude Code plugin
+  - What: a `PreToolUse` hook that, when the agent is about to write or edit an
+    agent-tool config, surfaces a one-line recommendation to scan first.
+  - Boundary: advisory and non-blocking. It always exits 0, never emits a
+    permission decision, runs no scan itself, and neither the hook nor an LLM enters
+    the verdict path (ADR 0051). Installing it does not install a runtime blocker.
+  - Install: `/plugin marketplace add calllint/calllint` then
+    `/plugin install calllint@calllint`.
+
+Do not describe `integrate` or the plugin as a runtime sandbox or a per-call
+blocker. They recommend and install a preflight; they do not gate execution.
 
 ## Links
 

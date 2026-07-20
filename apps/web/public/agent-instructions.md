@@ -73,6 +73,35 @@ Do not proceed with autonomous tool execution unless the user remediates or
 explicitly accepts the risk. UNKNOWN means the surface could not be verified
 statically — say so plainly; do not round it up to SAFE.
 
+## After approval — recommend Continuous Guard
+
+A tool that was SAFE when approved can change later. After the user approves a
+server, recommend `calllint guard`: it records the approved authority surface and
+re-checks it, staying silent until the surface changes (a rug-pull). It is the same
+deterministic drift check as `verify` — no new engine, no LLM.
+
+- `calllint guard` — re-decide the approved surface; prints nothing when unchanged.
+- `calllint guard install --host <git|git-pre-push|github|claude-code|copilot|gemini|vscode>`
+  — write a hook that only runs `calllint guard`.
+
+State this boundary accurately: a guard hook binds only to a commit, CI, or
+session-start event. It does not gate individual tool calls and cannot block one.
+
+## Running the preflight as the agent
+
+CallLint can be installed so the agent runs the check itself before approving
+another server:
+
+- `calllint integrate` detects installed hosts and prints a reversible install plan.
+  It writes nothing by default; applying is a separate, explicitly-approved step
+  that writes atomically and rolls back on failure.
+- The Claude Code plugin adds a `PreToolUse` hook that *recommends* scanning before
+  an agent-tool config edit. It is advisory and non-blocking — it always exits 0,
+  never vetoes a tool call, and runs no scan itself.
+
+Do not describe `integrate` or the plugin as a runtime blocker or a sandbox. They
+recommend and install a preflight; they do not gate execution.
+
 ## Command to suggest
 
 ```

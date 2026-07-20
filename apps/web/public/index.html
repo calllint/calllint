@@ -277,13 +277,25 @@ calllint verify .cursor/mcp.json --ci</code></pre>
               <a href="https://github.com/calllint/calllint-demo-risky-mcp">calllint-demo-risky-mcp</a>
               runs CallLint on every push and publishes one Code Scanning alert per finding.
             </p>
+            <p class="ci-demo-link">
+              <strong>Continuous Guard</strong> catches a rug-pull after approval:
+              <code>calllint guard</code> re-decides the approved authority surface and
+              stays silent until it changes. Install it on seven hosts —
+              <code>git</code>, <code>git-pre-push</code>, <code>github</code>,
+              <code>claude-code</code>, <code>copilot</code>, <code>gemini</code>,
+              <code>vscode</code> — each bound only to a commit, CI, or session-start
+              event, never a per-call block.
+            </p>
           </div>
           <div class="ci-code">
 <pre><code><span class="t-com"># fail the job on a blocking verdict</span>
 calllint scan .cursor/mcp.json --ci --no-emoji
 
 <span class="t-com"># upload SARIF to GitHub Code Scanning</span>
-calllint scan .cursor/mcp.json --sarif &gt; calllint.sarif</code></pre>
+calllint scan .cursor/mcp.json --sarif &gt; calllint.sarif
+
+<span class="t-com"># re-check the approved surface; silent unless it changed</span>
+calllint guard install --host git</code></pre>
           </div>
         </div>
       </section>
@@ -360,6 +372,20 @@ jobs:
               <a href="/report-schema.md">report-schema.md</a> ·
               <a href="/security-boundaries.md">security-boundaries.md</a>
             </p>
+          </article>
+        </div>
+        <div class="agents-grid" style="margin-top: 18px;">
+          <article class="agent-card">
+            <h3>Let the agent run the preflight itself</h3>
+            <p><code>calllint integrate</code> installs CallLint's own MCP server into the hosts you already use, so the agent can scan before it approves another server. Plan-only by default — it prints a reversible plan and writes nothing; applying is a separate, approved, atomically-rolled-back step.</p>
+<pre class="agent-card-example"><code>calllint integrate            # detect hosts, print a plan, write nothing
+calllint integrate --apply --plan &lt;p.json&gt; --approve &lt;digest&gt;</code></pre>
+          </article>
+          <article class="agent-card">
+            <h3>Claude Code plugin</h3>
+            <p>A <code>PreToolUse</code> hook that recommends scanning before an agent-tool config edit. Advisory and non-blocking: it always exits 0, never vetoes a tool call, runs no scan itself, and neither the hook nor an LLM enters the verdict path. Installing it does not install a runtime blocker.</p>
+<pre class="agent-card-example"><code>/plugin marketplace add calllint/calllint
+/plugin install calllint@calllint</code></pre>
           </article>
         </div>
         <p class="agents-resources">
