@@ -1,0 +1,42 @@
+# Public-facts consistency (new11 PR-02 / ADR 0049 §8).
+#
+# project-facts.json is the single machine-readable source for public claims.
+# This workflow asserts two things stay true on every push/PR:
+#   1. capability facts (detectorCount, tierAHosts) match what the code actually
+#      exports/registers — `pnpm facts:check` derives them from source and fails
+#      closed on drift (so a 14th detector or new Tier-A host can't ship with a
+#      stale public number);
+#   2. the existing public-copy guard still passes — version/corpus/boundary copy
+#      across README + website + agent docs stays in sync and inside the language
+#      boundary.
+#
+# It NEVER publishes and NEVER executes a scanned server; it only reads the repo.
+name: public-facts-consistency
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  facts:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v6
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - name: Derive capability facts from code and verify no drift
+        run: pnpm facts:check
+
+      - name: Public-copy guard (version/corpus/boundary copy in sync)
+        run: pnpm check:public-copy

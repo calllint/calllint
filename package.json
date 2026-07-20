@@ -25,6 +25,8 @@
     "bench:test": "node scripts/run-bench.mjs",
     "bench:test:verbose": "node scripts/run-bench.mjs --verbose",
     "check:public-copy": "node scripts/check-public-copy.mjs",
+    "facts:check": "node scripts/derive-facts.mjs",
+    "facts:write": "node scripts/derive-facts.mjs --write",
     "bake:trust-index": "pnpm --filter @calllint/trust-index bake",
     "ingest:trust-index": "pnpm --filter @calllint/trust-index ingest",
     "verify-claims:trust-index": "pnpm --filter @calllint/trust-index verify-claims",
