@@ -83,6 +83,12 @@ importers:
         specifier: workspace:*
         version: link:../types
 
+  packages/agent-triggers:
+    dependencies:
+      '@calllint/types':
+        specifier: workspace:*
+        version: link:../types
+
   packages/calllint-mcp:
     devDependencies:
       '@calllint/core':
