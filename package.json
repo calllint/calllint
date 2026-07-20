@@ -27,6 +27,7 @@
     "check:public-copy": "node scripts/check-public-copy.mjs",
     "facts:check": "node scripts/derive-facts.mjs",
     "facts:write": "node scripts/derive-facts.mjs --write",
+    "check:telemetry-boundary": "node scripts/check-telemetry-boundary.mjs",
     "bake:trust-index": "pnpm --filter @calllint/trust-index bake",
     "ingest:trust-index": "pnpm --filter @calllint/trust-index ingest",
     "verify-claims:trust-index": "pnpm --filter @calllint/trust-index verify-claims",

@@ -1,0 +1,42 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://calllint.com/schemas/telemetry-event.schema.json",
+  "title": "CallLint telemetry event",
+  "description": "The closed, aggregate-only shape of a single telemetry event (calllint.telemetry-event.v1, new11 §3.5 / ADR 0049 §2.6). additionalProperties:false makes the forbidden-field denylist (rawConfig/command/environmentValue/secret/fileContents/privateRepository/userPrompt/findingEvidenceText) structurally impossible to carry. Telemetry is decoupled from the verdict path (§1.5).",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["eventVersion", "eventName", "timestamp", "source"],
+  "properties": {
+    "eventVersion": { "const": "1.0.0" },
+    "eventName": {
+      "enum": [
+        "install_completed",
+        "preflight_completed",
+        "decision_safe",
+        "decision_review",
+        "decision_block",
+        "decision_unknown",
+        "approval_created",
+        "apply_completed",
+        "verify_completed",
+        "rollback_completed",
+        "guard_drift_detected",
+        "trust_page_viewed",
+        "trust_page_to_install",
+        "partner_api_called",
+        "badge_rendered"
+      ]
+    },
+    "timestamp": { "type": "string" },
+    "source": { "enum": ["cli", "ci", "server", "install"] },
+    "hostFamily": { "type": "string" },
+    "result": { "enum": ["SAFE", "REVIEW", "BLOCK", "UNKNOWN"] },
+    "durationBucket": { "enum": ["<100ms", "100-500ms", "500-2000ms", ">2000ms"] },
+    "inputKind": { "type": "string" },
+    "anonymousInstallationId": {
+      "type": "string",
+      "pattern": "^cli-anon-[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+    },
+    "productVersion": { "type": "string" }
+  }
+}

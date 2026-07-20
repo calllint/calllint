@@ -318,6 +318,12 @@ importers:
         specifier: workspace:*
         version: link:../fixtures
 
+  packages/telemetry-contract:
+    devDependencies:
+      ajv:
+        specifier: ^8.12.0
+        version: 8.20.0
+
   packages/trust-index:
     dependencies:
       '@calllint/config-parser':
