@@ -2,9 +2,9 @@
   "schema": "calllint.trust-page.v0",
   "canonicalName": "mcp-registry/ac.inference.sh-mcp",
   "artifactDigest": "sha256:0b91dc1f54023ed17fd4f38be57ebbbc1024bde797d160be2278c3b78aedc6d2",
-  "pageDigest": "sha256:edfddf4780324326a0255408fcdf79710bf6d8903cf8fb3ae809116b61c27786",
-  "verdict": "UNKNOWN",
-  "verdictLabel": "Insufficient evidence",
+  "pageDigest": "sha256:d71f54dc1a2c2f57e80790db2a3760734304db190088209edf1d09cce2810efc",
+  "verdict": "REVIEW",
+  "verdictLabel": "Review required",
   "observedAt": "2026-07-17T00:00:00.000Z",
   "completeness": "complete",
   "correctionUrl": "https://github.com/calllint/calllint/issues/new?labels=trust-page-correction",
@@ -80,13 +80,13 @@
     "schemaVersion": "calllint.report.v0",
     "reportKind": "config-summary",
     "configPath": "official-mcp-registry:ac.inference.sh/mcp",
-    "verdict": "UNKNOWN",
-    "publicVerdictLabel": "Insufficient evidence",
+    "verdict": "REVIEW",
+    "publicVerdictLabel": "Review required",
     "counts": {
       "SAFE": 0,
-      "REVIEW": 0,
+      "REVIEW": 2,
       "BLOCK": 0,
-      "UNKNOWN": 2
+      "UNKNOWN": 0
     },
     "reports": [
       {
@@ -98,8 +98,8 @@
           "source": "https://sh.inference.ac",
           "configPath": "official-mcp-registry:ac.inference.sh/mcp"
         },
-        "verdict": "UNKNOWN",
-        "publicVerdictLabel": "Insufficient evidence",
+        "verdict": "REVIEW",
+        "publicVerdictLabel": "Review required",
         "policyApplied": false,
         "riskClass": "S1",
         "symbols": [
@@ -107,9 +107,10 @@
         ],
         "confidence": "high",
         "reproducibility": {
-          "level": "MEDIUM",
+          "level": "LOW",
           "reasons": [
-            "Remote endpoint could not be verified"
+            "Remote endpoint domain ownership not verified",
+            "Remote endpoint identity verified; tool surface not analyzed"
           ]
         },
         "summary": "\"remote-1\" could not be verified (insufficient evidence). Risk: Network (S1 Read-only utility).",
@@ -202,7 +203,13 @@
           "targetSpecHash": "sha256:871f2ced3f874feabba45d97e0e4aaf2954d17759ac11dae036de91bd811e6b3",
           "riskSurfaceHash": "sha256:47e9d20255a346b95323c2cb9e092621521638b987bbcd036e68e4aee12dcaf3"
         },
-        "diagnostics": [],
+        "diagnostics": [
+          {
+            "level": "info",
+            "code": "evidence.remote-identity-verified",
+            "message": "Remote endpoint identity verified; tool surface not analyzed (evidence: https://sh.inference.ac)"
+          }
+        ],
         "generatedAt": "2026-07-17T00:00:00.000Z"
       },
       {
@@ -214,8 +221,8 @@
           "source": "https://api.inference.sh/mcp",
           "configPath": "official-mcp-registry:ac.inference.sh/mcp"
         },
-        "verdict": "UNKNOWN",
-        "publicVerdictLabel": "Insufficient evidence",
+        "verdict": "REVIEW",
+        "publicVerdictLabel": "Review required",
         "policyApplied": false,
         "riskClass": "S1",
         "symbols": [
@@ -223,9 +230,10 @@
         ],
         "confidence": "high",
         "reproducibility": {
-          "level": "MEDIUM",
+          "level": "LOW",
           "reasons": [
-            "Remote endpoint could not be verified"
+            "Remote endpoint domain ownership not verified",
+            "Remote endpoint identity verified; tool surface not analyzed"
           ]
         },
         "summary": "\"remote-2\" could not be verified (insufficient evidence). Risk: Network (S1 Read-only utility).",
@@ -318,7 +326,13 @@
           "targetSpecHash": "sha256:d9a06437fa7dc8acc23f9fc2ba61241dd38719e6924d9a59b314e9cc0aad6583",
           "riskSurfaceHash": "sha256:47e9d20255a346b95323c2cb9e092621521638b987bbcd036e68e4aee12dcaf3"
         },
-        "diagnostics": [],
+        "diagnostics": [
+          {
+            "level": "info",
+            "code": "evidence.remote-identity-verified",
+            "message": "Remote endpoint identity verified; tool surface not analyzed (evidence: https://api.inference.sh/mcp)"
+          }
+        ],
         "generatedAt": "2026-07-17T00:00:00.000Z"
       }
     ],

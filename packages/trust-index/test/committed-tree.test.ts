@@ -14,7 +14,15 @@ import { describe, it, expect } from "vitest"
 import { readFileSync, existsSync } from "node:fs"
 import { dirname, join, resolve } from "node:path"
 import { fileURLToPath } from "node:url"
-import { emitAllCohorts, parseSnapshot, parseClaimStore, EMPTY_CLAIM_STORE, type RegistrySnapshot } from "../src/index.js"
+import {
+  emitAllCohorts,
+  parseSnapshot,
+  parseClaimStore,
+  parseEvidenceSnapshot,
+  EMPTY_CLAIM_STORE,
+  type RegistrySnapshot,
+  type EvidenceSnapshot,
+} from "../src/index.js"
 
 const here = dirname(fileURLToPath(import.meta.url))
 // Served + committed output root: repo-root/apps/web/public/trust.
@@ -26,13 +34,19 @@ const SNAPSHOT = resolve(here, "..", "snapshots", "official-mcp-registry.json")
 // Committed maintainer-claim store (ingestion input, ADR 0048 §2). Read exactly as
 // the bin does so the gate covers any committed claim flag's byte-reproducibility.
 const CLAIMS = resolve(here, "..", "claims", "claim-store.json")
+// Committed evidence snapshot (ingestion input, ADR 0050). Read exactly as the bin
+// does so the gate covers evidence-refined verdicts' byte-reproducibility too.
+const EVIDENCE = resolve(here, "..", "snapshots", "evidence-snapshot.json")
 
 describe("committed served tree matches a fresh emit (reproducibility gate)", () => {
   const snapshot: RegistrySnapshot | null = existsSync(SNAPSHOT)
     ? parseSnapshot(readFileSync(SNAPSHOT, "utf8"))
     : null
   const claims = existsSync(CLAIMS) ? parseClaimStore(readFileSync(CLAIMS, "utf8")) : EMPTY_CLAIM_STORE
-  const { files } = emitAllCohorts(snapshot, claims)
+  const evidence: EvidenceSnapshot | null = existsSync(EVIDENCE)
+    ? parseEvidenceSnapshot(readFileSync(EVIDENCE, "utf8"))
+    : null
+  const { files } = emitAllCohorts(snapshot, claims, evidence)
 
   it("has a non-trivial number of committed files", () => {
     expect(files.length).toBeGreaterThanOrEqual(20)

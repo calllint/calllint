@@ -14,13 +14,16 @@
     "test:watch": "vitest",
     "bake": "tsx src/bake.ts",
     "ingest": "tsx src/refreshSnapshot.ts",
+    "resolve-evidence": "tsx src/resolveEvidence.ts",
     "verify-claims": "tsx src/verifyClaims.ts"
   },
   "dependencies": {
     "@calllint/config-parser": "workspace:*",
     "@calllint/core": "workspace:*",
+    "@calllint/evidence": "workspace:*",
     "@calllint/fingerprint": "workspace:*",
     "@calllint/fixtures": "workspace:*",
+    "@calllint/resolver": "workspace:*",
     "@calllint/types": "workspace:*"
   },
   "devDependencies": {}

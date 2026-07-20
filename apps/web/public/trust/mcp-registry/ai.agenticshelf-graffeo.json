@@ -2,9 +2,9 @@
   "schema": "calllint.trust-page.v0",
   "canonicalName": "mcp-registry/ai.agenticshelf-graffeo",
   "artifactDigest": "sha256:6fb4d2a789a52a8debd01384956a71e6688fa25b0ba495fd32633ea028ff434e",
-  "pageDigest": "sha256:5d2f2d4728284629092d5aa38836e897b97723c6dd4199bd980f144eec929d97",
-  "verdict": "UNKNOWN",
-  "verdictLabel": "Insufficient evidence",
+  "pageDigest": "sha256:cac2c5b2c59583bc1ae3c2d8ad39fb6ab7708c5b0b19d6a9bbc33ef81386098a",
+  "verdict": "REVIEW",
+  "verdictLabel": "Review required",
   "observedAt": "2026-07-17T00:00:00.000Z",
   "completeness": "complete",
   "correctionUrl": "https://github.com/calllint/calllint/issues/new?labels=trust-page-correction",
@@ -67,13 +67,13 @@
     "schemaVersion": "calllint.report.v0",
     "reportKind": "config-summary",
     "configPath": "official-mcp-registry:ai.agenticshelf/graffeo",
-    "verdict": "UNKNOWN",
-    "publicVerdictLabel": "Insufficient evidence",
+    "verdict": "REVIEW",
+    "publicVerdictLabel": "Review required",
     "counts": {
       "SAFE": 0,
-      "REVIEW": 0,
+      "REVIEW": 1,
       "BLOCK": 0,
-      "UNKNOWN": 1
+      "UNKNOWN": 0
     },
     "reports": [
       {
@@ -85,8 +85,8 @@
           "source": "https://api.agenticshelf.ai/m/graffeo/mcp",
           "configPath": "official-mcp-registry:ai.agenticshelf/graffeo"
         },
-        "verdict": "UNKNOWN",
-        "publicVerdictLabel": "Insufficient evidence",
+        "verdict": "REVIEW",
+        "publicVerdictLabel": "Review required",
         "policyApplied": false,
         "riskClass": "S1",
         "symbols": [
@@ -94,9 +94,10 @@
         ],
         "confidence": "high",
         "reproducibility": {
-          "level": "MEDIUM",
+          "level": "LOW",
           "reasons": [
-            "Remote endpoint could not be verified"
+            "Remote endpoint domain ownership not verified",
+            "Remote endpoint identity verified; tool surface not analyzed"
           ]
         },
         "summary": "\"remote\" could not be verified (insufficient evidence). Risk: Network (S1 Read-only utility).",
@@ -189,7 +190,13 @@
           "targetSpecHash": "sha256:0d91feb04b4d10590249a684d7407dc907abaa396df95f0dbdb162933a613db8",
           "riskSurfaceHash": "sha256:47e9d20255a346b95323c2cb9e092621521638b987bbcd036e68e4aee12dcaf3"
         },
-        "diagnostics": [],
+        "diagnostics": [
+          {
+            "level": "info",
+            "code": "evidence.remote-identity-verified",
+            "message": "Remote endpoint identity verified; tool surface not analyzed (evidence: https://api.agenticshelf.ai/m/graffeo/mcp)"
+          }
+        ],
         "generatedAt": "2026-07-17T00:00:00.000Z"
       }
     ],

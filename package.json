@@ -31,6 +31,7 @@
     "check:telemetry-boundary": "node scripts/check-telemetry-boundary.mjs",
     "bake:trust-index": "pnpm --filter @calllint/trust-index bake",
     "ingest:trust-index": "pnpm --filter @calllint/trust-index ingest",
+    "resolve-evidence:trust-index": "pnpm --filter @calllint/trust-index resolve-evidence",
     "verify-claims:trust-index": "pnpm --filter @calllint/trust-index verify-claims",
     "ci:local": "pnpm typecheck && pnpm test && pnpm build && pnpm corpus:test && pnpm bench:test && pnpm check:public-copy && pnpm audit:evidence"
   },

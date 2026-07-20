@@ -2,9 +2,9 @@
   "schema": "calllint.trust-page.v0",
   "canonicalName": "mcp-registry/ai.agenticshelf-puroair",
   "artifactDigest": "sha256:e14fc20ef3f4c970843bb714836ceb7700f1a90ce2f70100a34dbf5384036201",
-  "pageDigest": "sha256:25ef72b888d7142f5eefef4d3fd45bcf76d4cb710d592ce85ac97c44ff958f3b",
-  "verdict": "UNKNOWN",
-  "verdictLabel": "Insufficient evidence",
+  "pageDigest": "sha256:51127d33c857a66489c65270ed9fee0c132e54dc04d091ca8a398d10625aa9cb",
+  "verdict": "REVIEW",
+  "verdictLabel": "Review required",
   "observedAt": "2026-07-17T00:00:00.000Z",
   "completeness": "complete",
   "correctionUrl": "https://github.com/calllint/calllint/issues/new?labels=trust-page-correction",
@@ -67,13 +67,13 @@
     "schemaVersion": "calllint.report.v0",
     "reportKind": "config-summary",
     "configPath": "official-mcp-registry:ai.agenticshelf/puroair",
-    "verdict": "UNKNOWN",
-    "publicVerdictLabel": "Insufficient evidence",
+    "verdict": "REVIEW",
+    "publicVerdictLabel": "Review required",
     "counts": {
       "SAFE": 0,
-      "REVIEW": 0,
+      "REVIEW": 1,
       "BLOCK": 0,
-      "UNKNOWN": 1
+      "UNKNOWN": 0
     },
     "reports": [
       {
@@ -85,8 +85,8 @@
           "source": "https://api.agenticshelf.ai/m/puroair/mcp",
           "configPath": "official-mcp-registry:ai.agenticshelf/puroair"
         },
-        "verdict": "UNKNOWN",
-        "publicVerdictLabel": "Insufficient evidence",
+        "verdict": "REVIEW",
+        "publicVerdictLabel": "Review required",
         "policyApplied": false,
         "riskClass": "S1",
         "symbols": [
@@ -94,9 +94,10 @@
         ],
         "confidence": "high",
         "reproducibility": {
-          "level": "MEDIUM",
+          "level": "LOW",
           "reasons": [
-            "Remote endpoint could not be verified"
+            "Remote endpoint domain ownership not verified",
+            "Remote endpoint identity verified; tool surface not analyzed"
           ]
         },
         "summary": "\"remote\" could not be verified (insufficient evidence). Risk: Network (S1 Read-only utility).",
@@ -189,7 +190,13 @@
           "targetSpecHash": "sha256:b41cd641345caa8543577c86e22963ff7ec2f09ea41c6235a80d0c604749a3dd",
           "riskSurfaceHash": "sha256:47e9d20255a346b95323c2cb9e092621521638b987bbcd036e68e4aee12dcaf3"
         },
-        "diagnostics": [],
+        "diagnostics": [
+          {
+            "level": "info",
+            "code": "evidence.remote-identity-verified",
+            "message": "Remote endpoint identity verified; tool surface not analyzed (evidence: https://api.agenticshelf.ai/m/puroair/mcp)"
+          }
+        ],
         "generatedAt": "2026-07-17T00:00:00.000Z"
       }
     ],

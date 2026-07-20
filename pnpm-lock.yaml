@@ -339,12 +339,18 @@ importers:
       '@calllint/core':
         specifier: workspace:*
         version: link:../core
+      '@calllint/evidence':
+        specifier: workspace:*
+        version: link:../evidence
       '@calllint/fingerprint':
         specifier: workspace:*
         version: link:../fingerprint
       '@calllint/fixtures':
         specifier: workspace:*
         version: link:../fixtures
+      '@calllint/resolver':
+        specifier: workspace:*
+        version: link:../resolver
       '@calllint/types':
         specifier: workspace:*
         version: link:../types

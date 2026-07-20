@@ -2,9 +2,9 @@
   "schema": "calllint.trust-page.v0",
   "canonicalName": "mcp-registry/ai.adweave-meta-ads-mcp",
   "artifactDigest": "sha256:d9948f3b8f8def4ba2cb46af80c4a04b6464ad710358bed1a43a5bad17b79a99",
-  "pageDigest": "sha256:e08fe8ecdec64d1c5fd8136284972d0d203d0b3dfc277e75004837202ec0694d",
-  "verdict": "UNKNOWN",
-  "verdictLabel": "Insufficient evidence",
+  "pageDigest": "sha256:ebcce954084ad599b149464918c3656da1d87afc309dc9b2f9c6a7e245a7a08a",
+  "verdict": "REVIEW",
+  "verdictLabel": "Review required",
   "observedAt": "2026-07-17T00:00:00.000Z",
   "completeness": "complete",
   "correctionUrl": "https://github.com/calllint/calllint/issues/new?labels=trust-page-correction",
@@ -67,13 +67,13 @@
     "schemaVersion": "calllint.report.v0",
     "reportKind": "config-summary",
     "configPath": "official-mcp-registry:ai.adweave/meta-ads-mcp",
-    "verdict": "UNKNOWN",
-    "publicVerdictLabel": "Insufficient evidence",
+    "verdict": "REVIEW",
+    "publicVerdictLabel": "Review required",
     "counts": {
       "SAFE": 0,
-      "REVIEW": 0,
+      "REVIEW": 1,
       "BLOCK": 0,
-      "UNKNOWN": 1
+      "UNKNOWN": 0
     },
     "reports": [
       {
@@ -85,8 +85,8 @@
           "source": "https://mcp.adweave.ai/meta-ads-mcp",
           "configPath": "official-mcp-registry:ai.adweave/meta-ads-mcp"
         },
-        "verdict": "UNKNOWN",
-        "publicVerdictLabel": "Insufficient evidence",
+        "verdict": "REVIEW",
+        "publicVerdictLabel": "Review required",
         "policyApplied": false,
         "riskClass": "S1",
         "symbols": [
@@ -94,9 +94,10 @@
         ],
         "confidence": "high",
         "reproducibility": {
-          "level": "MEDIUM",
+          "level": "LOW",
           "reasons": [
-            "Remote endpoint could not be verified"
+            "Remote endpoint domain ownership not verified",
+            "Remote endpoint identity verified; tool surface not analyzed"
           ]
         },
         "summary": "\"remote\" could not be verified (insufficient evidence). Risk: Network (S1 Read-only utility).",
@@ -189,7 +190,13 @@
           "targetSpecHash": "sha256:18e1009b1d6aac65800e5260b4a63e04b60262744edf62b8f379172a29daf674",
           "riskSurfaceHash": "sha256:47e9d20255a346b95323c2cb9e092621521638b987bbcd036e68e4aee12dcaf3"
         },
-        "diagnostics": [],
+        "diagnostics": [
+          {
+            "level": "info",
+            "code": "evidence.remote-identity-verified",
+            "message": "Remote endpoint identity verified; tool surface not analyzed (evidence: https://mcp.adweave.ai/meta-ads-mcp)"
+          }
+        ],
         "generatedAt": "2026-07-17T00:00:00.000Z"
       }
     ],

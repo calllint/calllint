@@ -15,6 +15,8 @@ import { bakeTrustPage, ConfigParseError, type BakeInput, type BakedTrustPage } 
 import { fixtureCohort } from "./cohort.js"
 import { registryCohort } from "./registryCohort.js"
 import type { RegistrySnapshot } from "./snapshot.js"
+import { evidenceMap, type EvidenceSnapshot } from "./evidenceSnapshot.js"
+import type { EvidenceBundle } from "@calllint/evidence"
 import { renderHtml, renderSidecar } from "./renderPage.js"
 import { verifiedPublisherFor, EMPTY_CLAIM_STORE, type ClaimStore } from "./claim.js"
 
@@ -75,6 +77,7 @@ function bakeItems(
   files: EmittedFile[],
   index: IndexEntry[],
   claims: ClaimStore,
+  evidence: ReadonlyMap<string, EvidenceBundle>,
 ): {
   baked: number
   incomplete: number
@@ -100,7 +103,7 @@ function bakeItems(
       continue
     }
     try {
-      const page = bakeTrustPage(item.input)
+      const page = bakeTrustPage({ ...item.input, evidence })
       const base = pageBase(page)
       // Namespace-level claim overlay (fails closed; undefined ⇒ dropped by
       // JSON.stringify ⇒ byte-identical unclaimed page). NOT part of pageDigest.
@@ -146,18 +149,24 @@ function bakeItems(
 export function emitAllCohorts(
   snapshot: RegistrySnapshot | null = null,
   claims: ClaimStore = EMPTY_CLAIM_STORE,
+  evidence: EvidenceSnapshot | null = null,
 ): EmittedCohort {
   const files: EmittedFile[] = []
   const index: IndexEntry[] = []
 
+  // Fixtures never carry remote evidence (they are local goldens) — pass the empty
+  // map so the fixtures cohort is byte-identical regardless of any evidence snapshot.
   const fixtures = bakeItems(
     fixtureCohort().map((e) => ({ canonicalName: e.input.canonicalName, input: e.input })),
     files,
     index,
     claims,
+    new Map(),
   )
+  // The registry cohort is the only one refined by evidence (ADR 0050).
+  const evidenceBundles = evidenceMap(evidence)
   const registry = snapshot
-    ? bakeItems(registryCohort(snapshot), files, index, claims)
+    ? bakeItems(registryCohort(snapshot), files, index, claims, evidenceBundles)
     : { baked: 0, incomplete: 0 }
 
   const baked = fixtures.baked + registry.baked
