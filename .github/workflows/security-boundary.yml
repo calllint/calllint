@@ -1,0 +1,33 @@
+# Security boundary — telemetry forbidden-field guard (new11 §3.5, ADR 0049 §2.6).
+#
+# The telemetry contract forbids eight fields from ever appearing on an emitted
+# event (rawConfig/command/environmentValue/secret/fileContents/privateRepository/
+# userPrompt/findingEvidenceText). The primary guarantee is structural (the
+# sanitizer builds output from an allowlist; the schema is additionalProperties:
+# false). This workflow is defense-in-depth: it scans the telemetry package source
+# so nobody can hand-add a forbidden field as an event key. Install-free, pure node.
+name: security-boundary
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  telemetry-boundary:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 20
+      # No `cache: pnpm`: this job runs no install (pure-node guard); caching would
+      # fail the post-step on a lockfile miss. See public-facts-consistency.yml.
+      - name: Telemetry forbidden-field boundary
+        run: node scripts/check-telemetry-boundary.mjs
