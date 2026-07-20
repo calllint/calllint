@@ -1,0 +1,65 @@
+# Release read-back (new11 §3.2/§3.3, ADR 0049).
+#
+# Verifies that public distribution listings advertise the identity CallLint
+# declares (project-facts.json → registry-manifest.json). It FETCHES observed
+# identity from npm + GitHub, runs the pure reconcile core, and — only when there
+# is actionable drift — opens or UPDATES a single deduplicated tracking issue. It
+# never edits listings, never publishes, never deploys. Network egress is limited
+# to the manifest's readbackUrl hosts.
+name: release-readback
+
+on:
+  schedule:
+    # Weekly, Tuesday 06:23 UTC. Off the hour; weekly matches release cadence.
+    - cron: "23 6 * * 2"
+  workflow_dispatch:
+
+# Least privilege: only the ability to open/update an issue.
+permissions:
+  contents: read
+  issues: write
+
+concurrency:
+  group: release-readback
+  cancel-in-progress: false
+
+jobs:
+  readback:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 20
+
+      - name: Read back distribution listings
+        id: readback
+        run: |
+          set +e
+          node scripts/release-readback.mjs --out "$RUNNER_TEMP/readback-issue.md"
+          echo "code=$?" >> "$GITHUB_OUTPUT"
+          set -e
+
+      - name: Open or update the single tracking issue
+        if: steps.readback.outputs.code == '3'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          MARKER="calllint:release-readback"
+          BODY_FILE="$RUNNER_TEMP/readback-issue.md"
+          # Find an existing OPEN issue carrying our marker (dedup — exactly one).
+          EXISTING=$(gh issue list --state open --search "$MARKER in:body" --json number --jq '.[0].number' || true)
+          if [ -n "$EXISTING" ]; then
+            gh issue edit "$EXISTING" --body-file "$BODY_FILE"
+            echo "Updated existing read-back issue #$EXISTING"
+          else
+            gh issue create --title "Release read-back: distribution drift detected" --body-file "$BODY_FILE"
+            echo "Opened new read-back issue"
+          fi
+
+      - name: Report clean
+        if: steps.readback.outputs.code == '0'
+        run: echo "Read-back clean — all automatable listings match."
