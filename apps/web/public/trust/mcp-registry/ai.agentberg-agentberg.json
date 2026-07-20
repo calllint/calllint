@@ -2,9 +2,9 @@
   "schema": "calllint.trust-page.v0",
   "canonicalName": "mcp-registry/ai.agentberg-agentberg",
   "artifactDigest": "sha256:53381adee155197fa43a8639ff40cc88053388b29bea38d5f4ae6333693210f3",
-  "pageDigest": "sha256:9ae194ddc96071bc053003ff180464c810d6a2b31fea86d2602640aa940ab250",
-  "verdict": "UNKNOWN",
-  "verdictLabel": "Insufficient evidence",
+  "pageDigest": "sha256:5a970fd1b210abdafdf1eed8227cef84bcb1598da0ebdd97880bd0ee6aab31f9",
+  "verdict": "REVIEW",
+  "verdictLabel": "Review required",
   "observedAt": "2026-07-17T00:00:00.000Z",
   "completeness": "complete",
   "correctionUrl": "https://github.com/calllint/calllint/issues/new?labels=trust-page-correction",
@@ -67,13 +67,13 @@
     "schemaVersion": "calllint.report.v0",
     "reportKind": "config-summary",
     "configPath": "official-mcp-registry:ai.agentberg/agentberg",
-    "verdict": "UNKNOWN",
-    "publicVerdictLabel": "Insufficient evidence",
+    "verdict": "REVIEW",
+    "publicVerdictLabel": "Review required",
     "counts": {
       "SAFE": 0,
-      "REVIEW": 0,
+      "REVIEW": 1,
       "BLOCK": 0,
-      "UNKNOWN": 1
+      "UNKNOWN": 0
     },
     "reports": [
       {
@@ -85,8 +85,8 @@
           "source": "https://agentberg.ai/mcp",
           "configPath": "official-mcp-registry:ai.agentberg/agentberg"
         },
-        "verdict": "UNKNOWN",
-        "publicVerdictLabel": "Insufficient evidence",
+        "verdict": "REVIEW",
+        "publicVerdictLabel": "Review required",
         "policyApplied": false,
         "riskClass": "S1",
         "symbols": [
@@ -94,9 +94,10 @@
         ],
         "confidence": "high",
         "reproducibility": {
-          "level": "MEDIUM",
+          "level": "LOW",
           "reasons": [
-            "Remote endpoint could not be verified"
+            "Remote endpoint domain ownership not verified",
+            "Remote endpoint identity verified; tool surface not analyzed"
           ]
         },
         "summary": "\"remote\" could not be verified (insufficient evidence). Risk: Network (S1 Read-only utility).",
@@ -189,7 +190,13 @@
           "targetSpecHash": "sha256:e2d619d33daada4531334e63f72bd0eee1dceb6cf5482ef359032ada879ef4f1",
           "riskSurfaceHash": "sha256:47e9d20255a346b95323c2cb9e092621521638b987bbcd036e68e4aee12dcaf3"
         },
-        "diagnostics": [],
+        "diagnostics": [
+          {
+            "level": "info",
+            "code": "evidence.remote-identity-verified",
+            "message": "Remote endpoint identity verified; tool surface not analyzed (evidence: https://agentberg.ai/mcp)"
+          }
+        ],
         "generatedAt": "2026-07-17T00:00:00.000Z"
       }
     ],

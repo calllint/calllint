@@ -18,9 +18,11 @@
 import { mkdirSync, writeFileSync, rmSync, readFileSync, existsSync } from "node:fs"
 import { dirname, join, resolve } from "node:path"
 import { fileURLToPath } from "node:url"
+// no-op marker: main() is guarded below so importing this module never bakes to disk.
 import { emitAllCohorts } from "./emitCohort.js"
 import { parseSnapshot, type RegistrySnapshot } from "./snapshot.js"
 import { parseClaimStore, EMPTY_CLAIM_STORE, type ClaimStore } from "./claim.js"
+import { parseEvidenceSnapshot, type EvidenceSnapshot } from "./evidenceSnapshot.js"
 
 const here = dirname(fileURLToPath(import.meta.url))
 
@@ -49,6 +51,20 @@ export function loadClaimStoreIfPresent(path = CLAIM_STORE_PATH): ClaimStore {
   if (!existsSync(path)) return EMPTY_CLAIM_STORE
   return parseClaimStore(readFileSync(path, "utf8"))
 }
+
+/**
+ * The committed evidence snapshot (ADR 0050 §4 retained resolution result). Lives
+ * under the package (an ingestion INPUT). The scheduled workflow's resolve step
+ * writes it; the bake reads it PURELY to refine remote verdicts. Absent ⇒ no
+ * refinement ⇒ byte-identical unrefined pages (so this is inert until it exists).
+ */
+export const EVIDENCE_SNAPSHOT_PATH = resolve(here, "..", "snapshots", "evidence-snapshot.json")
+
+/** Load + validate the committed evidence snapshot if present; null when there is none. */
+export function loadEvidenceSnapshotIfPresent(path = EVIDENCE_SNAPSHOT_PATH): EvidenceSnapshot | null {
+  if (!existsSync(path)) return null
+  return parseEvidenceSnapshot(readFileSync(path, "utf8"))
+}
 /**
  * Committed output root: apps/web/public/trust (repo-root/apps/web/public/trust).
  * From packages/trust-index/src that is four levels up. This is the directory
@@ -60,7 +76,8 @@ function main(): void {
   const outDir = process.argv[2] ? resolve(process.argv[2]) : DEFAULT_OUT
   const snapshot = loadSnapshotIfPresent()
   const claims = loadClaimStoreIfPresent()
-  const { files, baked, incomplete } = emitAllCohorts(snapshot, claims)
+  const evidence = loadEvidenceSnapshotIfPresent()
+  const { files, baked, incomplete } = emitAllCohorts(snapshot, claims, evidence)
 
   // Clean the output dir first so a removed cohort entry does not leave a stale
   // page behind (idempotent tree = reproducible tree).
@@ -78,4 +95,11 @@ function main(): void {
   )
 }
 
-main()
+// Run ONLY when executed as a script (tsx src/bake.ts), never on import — other
+// modules import bake.ts for its path constants + loaders, and importing must have
+// no side effect (previously main() ran on every import, baking to disk).
+const invokedAsScript =
+  typeof process !== "undefined" &&
+  process.argv[1] !== undefined &&
+  fileURLToPath(import.meta.url) === resolve(process.argv[1])
+if (invokedAsScript) main()

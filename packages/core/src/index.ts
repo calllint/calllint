@@ -5,6 +5,12 @@ export {
 } from "./options.js"
 export { scanServer, type ScanServerInput } from "./scanServer.js"
 export { scanConfigFile, scanConfigText } from "./scanConfig.js"
+export {
+  refineSummaryWithEvidence,
+  REMOTE_UNVERIFIED_REASON,
+  REMOTE_SURFACE_UNANALYZED_REASON,
+  REMOTE_OWNER_UNVERIFIED_REASON,
+} from "./refineWithEvidence.js"
 export { summarize } from "./summarize.js"
 export { buildBaseline, computeDrift } from "./drift.js"
 export {

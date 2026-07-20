@@ -10,6 +10,21 @@ onward. While pre-1.0, minor versions may include breaking changes.
 
 ## [Unreleased]
 
+### Added
+
+- **Evidence-refined Trust Page verdicts (new11 R3, ADR 0050).** The Evidence
+  Resolution spine is now wired into the bake: resolved remote-endpoint evidence
+  closes the *identity* gap that left registry pages UNKNOWN, and the **unchanged**
+  deterministic rules re-derive the verdict. A verified-but-unanalyzed remote moves
+  **UNKNOWN → REVIEW**, never SAFE (verifying *who* an endpoint is does not analyze
+  *what* its tools do — INV1 still holds, nothing is executed). An automated
+  invariant asserts no evidence bundle can ever drive a page to SAFE. Network stays
+  workflow-only: a new `resolve-evidence` step freezes a committed, PII-free
+  evidence snapshot that the bake reads **purely** (byte-identical when absent), so
+  the reproducibility gate is unaffected. On the live registry cohort this moved
+  **17 of 18 pages from UNKNOWN to REVIEW** (the remaining SAFE page is a
+  package-based npm entry, untouched); `false_safe = 0` holds.
+
 ## [1.7.0] — 2026-07-20 — Verified Publisher & the Evidence Resolution spine
 
 **Resolve the evidence, then publish the verdict.** This minor release ships two

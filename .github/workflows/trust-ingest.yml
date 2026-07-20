@@ -48,6 +48,18 @@ jobs:
       - name: Ingest — fetch registry, retain snapshot, re-bake all cohorts
         run: pnpm ingest:trust-index
 
+      - name: Resolve evidence — identity-only resolution of remote endpoints (ADR 0050)
+        # The SECOND (and last) network step. Reads the retained registry snapshot,
+        # runs the read-only P1 resolvers over each remote endpoint (INV1: no exec,
+        # no probe), and freezes the results into a retained evidence snapshot
+        # (packages/trust-index/snapshots/evidence-snapshot.json).
+        run: pnpm resolve-evidence:trust-index
+
+      - name: Re-bake with evidence — refine remote UNKNOWN verdicts (ADR 0050)
+        # Pure re-bake: reads BOTH committed snapshots and refines remote UNKNOWN
+        # pages to REVIEW where identity resolved cleanly. No network, no clock.
+        run: pnpm bake:trust-index
+
       - name: Guard the regenerated pages (no overclaim / PII; completeness)
         run: pnpm check:public-copy
 
@@ -65,9 +77,12 @@ jobs:
 
             - Refreshed the retained Official MCP Registry snapshot
               (`packages/trust-index/snapshots/official-mcp-registry.json`).
-            - Re-baked all cohorts into `apps/web/public/trust/`.
+            - Resolved remote-endpoint identity into the retained evidence snapshot
+              (`packages/trust-index/snapshots/evidence-snapshot.json`, ADR 0050).
+            - Re-baked all cohorts into `apps/web/public/trust/`, refining remote
+              UNKNOWN → REVIEW where identity resolved cleanly (never SAFE).
 
-            CI re-bakes from the committed snapshot and diffs (reproducibility gate),
+            CI re-bakes from the committed snapshots and diffs (reproducibility gate),
             and the public-copy guard enforces the ADR 0038 language/PII/completeness
             boundaries. Review the page diff, then merge — **merging deploys** via
             `deploy-web.yml`. This workflow never deploys on its own.

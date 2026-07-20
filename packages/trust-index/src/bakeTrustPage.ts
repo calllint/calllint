@@ -28,7 +28,8 @@ import type {
   Verdict,
 } from "@calllint/types"
 import { parseConfigText, ConfigParseError } from "@calllint/config-parser"
-import { scanConfigText, buildAuthorityManifest, prepare } from "@calllint/core"
+import { scanConfigText, buildAuthorityManifest, prepare, refineSummaryWithEvidence } from "@calllint/core"
+import type { EvidenceBundle } from "@calllint/evidence"
 import { hashJson, sha256 } from "@calllint/fingerprint"
 
 /** A single resource to bake: raw config bytes + a stable canonical name. */
@@ -51,6 +52,14 @@ export interface BakeInput {
    * reproducible. The caller supplies a fixed value for the fixtures cohort.
    */
   observedAt: string
+  /**
+   * Resolved evidence bundles for this resource's remote subjects, keyed by the
+   * endpoint URL (= `report.target.source`). Frozen into a committed evidence
+   * snapshot by the ingest workflow and read PURELY here (ADR 0050 §4) — this
+   * function never resolves anything itself. Absent/empty ⇒ the page is
+   * byte-identical to an unrefined bake, so fixtures are never affected.
+   */
+  evidence?: ReadonlyMap<string, EvidenceBundle>
 }
 
 /** The baked page: the page content object + its addressing digests + a flat header. */
@@ -116,9 +125,14 @@ export function bakeTrustPage(input: BakeInput): BakedTrustPage {
   const canon: BakeInput = { ...input, configText }
 
   // 1. Scan (the only scan) — verdict + evidence, with a pinned generatedAt.
-  const scan = scanConfigText(configText, canon.sourceLabel, {
+  const rawScan = scanConfigText(configText, canon.sourceLabel, {
     generatedAt: canon.observedAt,
   })
+  // 1a. Evidence refinement (ADR 0050) — PURE, reads the committed bundles only.
+  //     Closes the "unverified remote source" gap and re-derives under the
+  //     unchanged rules (UNKNOWN→REVIEW, never SAFE, never a confident verdict).
+  //     No bundles ⇒ identity, so the fixtures cohort bakes byte-identically.
+  const scan = refineSummaryWithEvidence(rawScan, input.evidence ?? new Map())
 
   // 2. Parse for the authority inventory (servers only; no clock).
   const parsed = parseConfigText(configText, canon.sourceLabel)

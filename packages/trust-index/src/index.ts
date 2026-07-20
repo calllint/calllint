@@ -66,3 +66,10 @@ export {
   type SnapshotPackage,
   type SnapshotRemote,
 } from "./snapshot.js"
+export {
+  parseEvidenceSnapshot,
+  serializeEvidenceSnapshot,
+  evidenceMap,
+  type EvidenceSnapshot,
+} from "./evidenceSnapshot.js"
+export { remoteSubjects } from "./resolveEvidence.js"
