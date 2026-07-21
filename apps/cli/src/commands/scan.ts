@@ -26,6 +26,7 @@ import { resolveConfigInput, isInputError } from "./resolveInput.js"
 import { changedConfigPaths } from "./changedConfigs.js"
 import { readDocumentSurfaces } from "./surfaces.js"
 import type { OnlineEnrichment } from "../run.js"
+import type { TelemetrySignal } from "../telemetry.js"
 import { readFileSync, writeFileSync } from "node:fs"
 import type { ConfigSummaryReport } from "@calllint/types"
 import { discoverConfigs, discoverAgent, type AgentType } from "@calllint/discovery"
@@ -34,6 +35,14 @@ export interface CommandResult {
   stdout: string
   stderr?: string
   exitCode: number
+  /**
+   * Optional telemetry outcome a command attaches to its own result (new11 §3.5).
+   * Additive + optional: absent ⇒ nothing is emitted. Drives the single central
+   * emit in `run()`; carries only telemetry-safe, allowlisted dimensions (never a
+   * config/path/command/evidence value). The exit code is NOT a proxy for this — a
+   * plain `scan` exits 0 regardless of verdict — so the command sets it explicitly.
+   */
+  telemetry?: TelemetrySignal
 }
 
 export interface ScanDeps {
@@ -180,7 +189,9 @@ function scanOneConfig(
 
   // Exit code: only fail the process under --ci.
   const exitCode = flagBool(args.flags, "ci") ? exitCodeFor(summary, policy) : EXIT.OK
-  return { stdout, exitCode }
+  // Telemetry (dark by default): report the aggregate verdict only. The signal is
+  // the accurate source (the exit code above is 0 for a non-CI scan regardless).
+  return { stdout, exitCode, telemetry: { verdict: summary.verdict } }
 }
 
 /**

@@ -6,6 +6,7 @@ import { computeOnlineEnrichment } from "./online.js"
 import { resolveClock } from "./clock.js"
 import { breathe } from "./breathe.js"
 import { resolveToolVersion } from "./version.js"
+import { buildCliEmitter } from "./telemetry.js"
 
 function readStdin(): string {
   try {
@@ -67,6 +68,12 @@ async function main(): Promise<void> {
     // ignore: branding is cosmetic
   }
 
+  // Telemetry emitter (new11 §3.5 / M1) — wired but DARK: local `cli` tier, no
+  // consent, default noopSink. `shouldEmit` returns false, so nothing is emitted
+  // and CLI output is byte-identical. This is the only place with process env; the
+  // universal CALLLINT_TELEMETRY kill-switch is honored via the injected env.
+  const emitter = buildCliEmitter(process.env)
+
   const result = run(argv, {
     cwd: process.cwd(),
     readStdin,
@@ -75,6 +82,7 @@ async function main(): Promise<void> {
     online,
     toolVersion: resolveToolVersion(),
     getChangedFilesDiff: () => gitChangedFiles(process.cwd()),
+    emitter,
   })
 
   if (result.stdout) process.stdout.write(result.stdout + "\n")

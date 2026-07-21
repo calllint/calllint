@@ -17,6 +17,8 @@ import { evidenceCommand } from "./commands/evidence.js"
 import { trustCommand } from "./commands/trust.js"
 import { guardCommand } from "./commands/guard.js"
 import { integrateCommand } from "./commands/integrate.js"
+import { emitCommandSignal } from "./telemetry.js"
+import type { Emitter } from "@calllint/telemetry-emit"
 import type { Finding } from "@calllint/types"
 
 /**
@@ -43,10 +45,31 @@ export interface RunDeps {
   getChangedFilesDiff?: () => string
   /** The CLI's own version, read at runtime for receipts (new5 R3). */
   toolVersion?: string
+  /**
+   * Optional telemetry emitter (new11 §3.5 / M1). When present, the central emit
+   * site below reports each command's `telemetry` signal through it. Built gated-off
+   * (local `cli` tier, no consent, noopSink) in `index.ts`, so it is a no-op in
+   * production; tests inject a memory sink to assert the mapping. Absent ⇒ no emit.
+   */
+  emitter?: Emitter
 }
 
-/** Dispatch a parsed argv to a command. Pure given deps — used directly in tests. */
+/**
+ * Dispatch a parsed argv to a command. Pure given deps — used directly in tests.
+ *
+ * Telemetry (new11 §3.5 / M1): after the command computes its result, its optional
+ * `telemetry` signal is emitted through `deps.emitter` at ONE central site. With the
+ * production emitter (gated-off, noopSink) this is a no-op and the returned result —
+ * stdout/stderr/exitCode — is byte-identical. The `telemetry` field is stripped from
+ * nothing and read by nobody else; it never reaches the process output.
+ */
 export function run(argv: string[], deps: RunDeps): CommandResult {
+  const result = dispatch(argv, deps)
+  emitCommandSignal(deps.emitter, result.telemetry, deps.toolVersion)
+  return result
+}
+
+function dispatch(argv: string[], deps: RunDeps): CommandResult {
   const args = parseArgs(argv)
   const cmd = args.command
 
