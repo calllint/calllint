@@ -71,6 +71,12 @@ importers:
       '@calllint/signature':
         specifier: workspace:*
         version: link:../../packages/signature
+      '@calllint/telemetry-contract':
+        specifier: workspace:*
+        version: link:../../packages/telemetry-contract
+      '@calllint/telemetry-emit':
+        specifier: workspace:*
+        version: link:../../packages/telemetry-emit
       '@calllint/types':
         specifier: workspace:*
         version: link:../../packages/types
