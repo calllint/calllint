@@ -1,0 +1,44 @@
+# agent-integration-smoke — the agent host-integration chain, end to end
+# (new11 §9 / P2-G mechanical bullets).
+#
+# Wraps the existing green tests that exercise the full integrate lifecycle:
+#   detect → prepare → diff → approve → apply → verify → rollback → idempotence
+#     - apps/cli/test/integrate.test.ts            (detect/plan/diff/approve/apply/idempotence, no-exec)
+#     - tests/e2e/test/apply-engine.e2e.test.ts    (real-fs atomic apply + rollback, ADR 0037 §6)
+#     - tests/e2e/test/auto-discovery.e2e.test.ts  (host detection)
+#     - tests/invariants/preflight-hook-non-blocking.invariants.test.ts (PreToolUse hook exits 0, never blocks)
+#
+# Scope note — these are the CI-observable, MECHANICAL P2-G bullets. The remaining
+# P2-G bullets ("≥1 attributable install", "a real preflight→approval→apply→verify
+# funnel") are runtime/adoption facts that CI cannot assert; they are tracked as
+# operational acceptance, not here. This gate never executes a scanned server (the
+# integrate tests mock every child_process entry point).
+name: agent-integration-smoke
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  agent-integration-smoke:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v6
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Agent integration smoke (detect→prepare→apply→verify→rollback→idempotence)
+        run: pnpm agent:smoke

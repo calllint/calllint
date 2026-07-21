@@ -25,6 +25,8 @@
     "bench:test": "node scripts/run-bench.mjs",
     "bench:test:verbose": "node scripts/run-bench.mjs --verbose",
     "bench:fixtures": "vitest run packages/resolver/test/evidence/benchmark.test.ts",
+    "schema:compat": "vitest run tests/schema/schema-compatibility.test.ts packages/evidence/test/model-schema.test.ts packages/telemetry-contract/test/schema.test.ts packages/report-renderer/test/sarif-schema.test.ts tests/readback/manifestSchema.test.ts",
+    "agent:smoke": "vitest run apps/cli/test/integrate.test.ts tests/e2e/test/apply-engine.e2e.test.ts tests/e2e/test/auto-discovery.e2e.test.ts tests/invariants/preflight-hook-non-blocking.invariants.test.ts",
     "check:public-copy": "node scripts/check-public-copy.mjs",
     "facts:check": "node scripts/derive-facts.mjs",
     "facts:write": "node scripts/derive-facts.mjs --write",

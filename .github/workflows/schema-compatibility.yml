@@ -1,0 +1,39 @@
+# schema-compatibility — every committed schema accepts real output + rejects malformed
+# (new11 §14: "Every new schema must have compatibility and malformed-input tests.").
+#
+# Runs the schema-compat suite: the consolidated gate over the ~10 previously-untested
+# schemas (action / agent-inbox-event / artifact-identity / authority-manifest / decision /
+# decision-receipt / evidence-provider / flow / install-plan / receipt), plus the schemas
+# that already had dedicated tests (evidence-model, telemetry-event, sarif, registry).
+# Every instance under test is a committed fixture or the output of the production builder,
+# so a schema can never drift from the code that emits it. Pure/offline — no scanned server
+# is ever executed. The same tests also run inside the full `ci` suite; this is a focused gate.
+name: schema-compatibility
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  schema-compatibility:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v6
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Schema compatibility + malformed-input gate
+        run: pnpm schema:compat
