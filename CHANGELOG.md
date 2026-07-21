@@ -10,6 +10,20 @@ onward. While pre-1.0, minor versions may include breaking changes.
 
 ## [Unreleased]
 
+### Added
+- **Two more Tier-A install hosts** — Claude Desktop and VS Code now ship audited apply
+  adapters (five Tier-A hosts total: Claude Code, Cursor, Windsurf, Claude Desktop, VS Code).
+  Both delegate to the same single audited write engine (atomic write → verify → rollback);
+  `calllint integrate` picks them up automatically.
+- **Single-sourced install commands** — CallLint's own install/invocation commands now live
+  in one authoritative `install` block in `project-facts.json`, and `check:public-copy`
+  fails on any drift between that source and the served site/status copy.
+
+### Changed
+- Claim lifecycle is now a formal state machine (9 states + 7 re-verify triggers), projected
+  fail-closed onto the served publisher flag (only an ACTIVE claim serves it).
+- Telemetry gains an opt-in emission layer (local sinks only; no network sink ships).
+
 ## [1.7.1] — 2026-07-20 — Evidence-refined verdicts, agent-native distribution & 7-host Guard
 
 Beyond the R3 evidence refinement, this patch also ships the **new11 P2
