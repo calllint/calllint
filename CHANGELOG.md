@@ -10,19 +10,56 @@ onward. While pre-1.0, minor versions may include breaking changes.
 
 ## [Unreleased]
 
+## [1.7.2] — 2026-07-21 — Distribution breadth, telemetry wiring & release hygiene
+
+A hardening + plumbing patch. It cuts what accumulated on `main` after 1.7.1 — two more
+Tier-A install hosts, single-sourced install commands, a formal claim-lifecycle state
+machine, and signed maintainer context — and adds three internal advances: the telemetry
+emit layer is now **wired into the CLI but dark by default** (byte-identical output, no
+network sink), three previously-missing **CI gate workflows** are stood up, and the Trust
+Index gains a **publish-eligibility gate for future scale-out** with no change to the
+served pages. **No change to scan behaviour, the `ScanReport` schema, or the verdict
+vocabulary** — the deterministic engine is unchanged, and telemetry stays fully decoupled
+from the verdict path.
+
 ### Added
-- **Two more Tier-A install hosts** — Claude Desktop and VS Code now ship audited apply
-  adapters (five Tier-A hosts total: Claude Code, Cursor, Windsurf, Claude Desktop, VS Code).
-  Both delegate to the same single audited write engine (atomic write → verify → rollback);
-  `calllint integrate` picks them up automatically.
-- **Single-sourced install commands** — CallLint's own install/invocation commands now live
-  in one authoritative `install` block in `project-facts.json`, and `check:public-copy`
-  fails on any drift between that source and the served site/status copy.
+
+- **Two more Tier-A install hosts (new11 A2, PR #194).** Claude Desktop and VS Code now
+  ship audited apply adapters (five Tier-A hosts total: Claude Code, Cursor, Windsurf,
+  Claude Desktop, VS Code). Both delegate to the same single audited write engine (atomic
+  write → verify → rollback); `calllint integrate` picks them up automatically.
+- **Single-sourced install commands (new11 A5, PR #195).** CallLint's own
+  install/invocation commands now live in one authoritative `install` block in
+  `project-facts.json`, and `check:public-copy` fails on any drift between that source and
+  the served site/status copy.
+- **Signed maintainer context + drift notification (new11 C-4/C-5, PR #191, ADR 0047).**
+- **Telemetry emit layer wired into the CLI, dark by default (new11 §3.5, M1, PR #197).**
+  The `@calllint/telemetry-emit` layer is now threaded into the CLI dispatch through one
+  central emit site, but the local `cli` tier stays **default-off** (no consent) with the
+  default `noopSink` — so CLI output is byte-for-byte identical and **no network sink
+  ships**. An additive `TelemetrySignal` a command attaches to its own result drives an
+  accurate `decision_*` event (the exit code is not a proxy for the verdict). Turning the
+  local tier on requires an explicit first-run consent decision, deliberately not made here.
+- **Three CI gate workflows (new11 §9/§14, PR #196).** `schema-compatibility` (a
+  consolidated compat + malformed-input gate over the ~10 previously-untested committed
+  schemas, every instance a committed fixture or production-builder output),
+  `agent-integration-smoke` (wraps the detect→prepare→apply→verify→rollback→idempotence
+  tests), and `distribution-smoke` (wraps the npm-pack + MCP stdio smokes). No product code.
+- **Trust Index publish-eligibility gate for scale-out (new11 I1, PR #198).**
+  `emitAllCohorts` gains an optional expansion cohort: each candidate must clear the §4.7
+  publish-eligibility check (eligible ⇒ baked, ineligible ⇒ recorded `incomplete` with the
+  failing criteria) before it becomes a public Trust Page. The ADR-locked seed (fixtures +
+  the committed registry seed) is grandfathered, and an empty expansion list emits
+  byte-identically — the reproducibility gate is unaffected (still 37 pages). The ingestion
+  cap (ADR 0038 §6) is now parameterized via `TRUST_INGEST_MAX_ENTRIES`, fail-safe.
 
 ### Changed
-- Claim lifecycle is now a formal state machine (9 states + 7 re-verify triggers), projected
-  fail-closed onto the served publisher flag (only an ACTIVE claim serves it).
-- Telemetry gains an opt-in emission layer (local sinks only; no network sink ships).
+
+- Claim lifecycle is now a formal state machine (9 states + 7 re-verify triggers, new11 C-3,
+  PR #193), projected fail-closed onto the served publisher flag (only an ACTIVE claim
+  serves it).
+- The Claude Desktop + VS Code apply adapters and single-sourced install block land the
+  five-Tier-A-host distribution surface (new11 A2/A5, PRs #194/#195).
 
 ## [1.7.1] — 2026-07-20 — Evidence-refined verdicts, agent-native distribution & 7-host Guard
 
