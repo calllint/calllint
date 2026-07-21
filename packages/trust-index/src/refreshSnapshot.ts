@@ -16,16 +16,32 @@
  */
 import { mkdirSync, writeFileSync, rmSync } from "node:fs"
 import { dirname, join } from "node:path"
-import { fetchRegistrySnapshot } from "./fetchRegistry.js"
+import { fetchRegistrySnapshot, DEFAULT_MAX_ENTRIES } from "./fetchRegistry.js"
 import { parseSnapshot } from "./snapshot.js"
 import { emitAllCohorts } from "./emitCohort.js"
 import { SNAPSHOT_PATH, DEFAULT_OUT } from "./bake.js"
 
+/**
+ * Resolve the ingestion cap (ADR 0038 §6). Defaults to DEFAULT_MAX_ENTRIES; an
+ * operator raises it for a scale-out run via TRUST_INGEST_MAX_ENTRIES (workflow_dispatch
+ * input). Fails SAFE: a missing, non-numeric, zero, or negative value falls back to the
+ * default rather than fetching an unbounded / empty cohort. This is the ONLY knob for
+ * 37 → 100+; it takes effect on the next real ingest run and touches no committed bytes.
+ */
+export function resolveMaxEntries(env: Record<string, string | undefined>): number {
+  const raw = env.TRUST_INGEST_MAX_ENTRIES
+  if (raw == null || raw.trim() === "") return DEFAULT_MAX_ENTRIES
+  const n = Number(raw)
+  if (!Number.isInteger(n) || n <= 0) return DEFAULT_MAX_ENTRIES
+  return n
+}
+
 async function main(): Promise<void> {
   const now = process.env.TRUST_INGEST_NOW || new Date().toISOString()
+  const maxEntries = resolveMaxEntries(process.env)
 
   // 1. Fetch + normalize (the only network step).
-  const snapshot = await fetchRegistrySnapshot({ now })
+  const snapshot = await fetchRegistrySnapshot({ now, maxEntries })
 
   // 2. Retain the raw snapshot. Re-parse the serialized bytes so what we bake from
   //    is exactly what we commit (no in-memory drift from the on-disk artifact).
