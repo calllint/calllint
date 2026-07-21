@@ -26,7 +26,9 @@
       "@calllint/flow-analyzer": ["packages/flow-analyzer/src/index.ts"],
       "@calllint/trust-index": ["packages/trust-index/src/index.ts"],
       "@calllint/partner-api": ["packages/partner-api/src/index.ts"],
-      "@calllint/agent-triggers": ["packages/agent-triggers/src/index.ts"]
+      "@calllint/agent-triggers": ["packages/agent-triggers/src/index.ts"],
+      "@calllint/telemetry-contract": ["packages/telemetry-contract/src/index.ts"],
+      "@calllint/telemetry-emit": ["packages/telemetry-emit/src/index.ts"]
     }
   },
   "include": [
