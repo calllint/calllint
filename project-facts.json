@@ -5,6 +5,13 @@
   "stableVersion": "1.7.1",
   "releaseChannel": "stable",
   "defaultInstallCommand": "npx calllint scan --auto",
+  "install": {
+    "description": "Single source for CallLint's own install/invocation commands. Public copy (site, llms.txt, README) is checked against these by check:public-copy. `scan` mirrors defaultInstallCommand (a test binds them equal).",
+    "scan": "npx calllint scan --auto",
+    "scanCi": "npx calllint scan .cursor/mcp.json --ci --no-emoji",
+    "mcpServer": "npx -y calllint-mcp",
+    "integrate": "npx calllint integrate"
+  },
   "nodeRequirement": ">=20",
   "headlines": {
     "eyebrow": "Pre-flight risk linting for agent tools",

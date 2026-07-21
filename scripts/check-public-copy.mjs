@@ -246,6 +246,43 @@ console.log("")
   }
 }
 
+// 11c. Install commands are single-sourced from project-facts.json `install`.
+//      Each advertised command must appear VERBATIM in the surface(s) that carry it,
+//      so the site/llms copy can never drift from the one authoritative source
+//      (new11 §1.1). `scan`/`scanCi`/`mcpServer` are advertised on the homepage AND
+//      the agent-readable status files; `integrate` is surfaced only in the status
+//      files today, so it is checked there (never invented on a surface that lacks it).
+{
+  const install = facts.install
+  if (!install) fail("project-facts.json missing `install` block; cannot verify install-command single source")
+  else {
+    const homepage = files.find((f) => f.rel === "apps/web/public/index.html")
+    const statusFiles = files.filter(
+      (f) => f.rel === "apps/web/public/llms.txt" || f.rel === "apps/web/public/llms-full.txt",
+    )
+    // command → the surfaces that must carry it verbatim.
+    const surfacesFor = (key) => {
+      const onHomepage = key === "scan" || key === "scanCi" || key === "mcpServer"
+      return [...(onHomepage && homepage ? [homepage] : []), ...statusFiles]
+    }
+    // `install.scan` is the canonical form of the legacy `defaultInstallCommand`.
+    if (install.scan !== facts.defaultInstallCommand) {
+      fail(`install.scan (${install.scan}) must equal defaultInstallCommand (${facts.defaultInstallCommand})`)
+    } else ok("install.scan is the single source for defaultInstallCommand")
+    for (const [key, cmd] of Object.entries(install)) {
+      if (key === "description") continue
+      const targets = surfacesFor(key)
+      if (targets.length === 0) {
+        fail(`install.${key}: no served surface available to verify "${cmd}"`)
+        continue
+      }
+      const missing = targets.filter((f) => !f.text.includes(cmd))
+      if (missing.length === 0) ok(`install.${key} present verbatim in served copy: "${cmd}"`)
+      else for (const f of missing) fail(`install.${key} "${cmd}" missing from ${f.rel} (install-command drift)`)
+    }
+  }
+}
+
 // 12. README must not pin a hardcoded version line as the current stable release.
 {
   const readme = files.find((f) => f.rel === "README.md")
