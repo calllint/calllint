@@ -16,9 +16,29 @@ import { fixtureCohort } from "./cohort.js"
 import { registryCohort } from "./registryCohort.js"
 import type { RegistrySnapshot } from "./snapshot.js"
 import { evidenceMap, type EvidenceSnapshot } from "./evidenceSnapshot.js"
-import type { EvidenceBundle } from "@calllint/evidence"
+import {
+  evaluatePublishEligibility,
+  explainUnknown,
+  type EvidenceBundle,
+} from "@calllint/evidence"
 import { renderHtml, renderSidecar } from "./renderPage.js"
 import { verifiedPublisherFor, EMPTY_CLAIM_STORE, type ClaimStore } from "./claim.js"
+
+/**
+ * A candidate resource proposed for the PUBLIC Trust Index beyond the ADR-locked seed
+ * cohorts (fixtures + the committed registry seed). Scale-out (37 → 100+) flows through
+ * here: each candidate must clear the §4.7 publish-eligibility gate before it is baked.
+ * An ineligible candidate is recorded `incomplete` with its failing criteria — never
+ * silently dropped (ADR 0038 §5), and never published unidentifiable (§4.7).
+ */
+export interface ExpansionCandidate {
+  /** The bakeable input (canonical name, config text, source label, observed-at). */
+  input: BakeInput
+  /** The resolved evidence bundle the §4.7 gate is evaluated over. */
+  bundle: EvidenceBundle
+  /** Whether a deterministic verdict is bound to this bundle (the caller asserts it). */
+  verdictBound: boolean
+}
 
 /** One file to write: a repo-relative path and its exact byte content. */
 export interface EmittedFile {
@@ -146,10 +166,36 @@ function bakeItems(
  * byte-identical pages — the flag only ever appears once a real, verified record is
  * committed. The claim overlay never affects the index or a page digest.
  */
+/**
+ * Turn expansion candidates into cohort items, applying the §4.7 publish-eligibility
+ * gate. Eligible ⇒ a bakeable item (its evidence bundle is attached so R3 refinement
+ * applies). Ineligible ⇒ a pre-marked incomplete whose reason names the failing
+ * criteria plus the human-readable UNKNOWN cause, so a maintainer sees exactly why the
+ * page was withheld. Pure; no I/O.
+ */
+function expansionItems(candidates: readonly ExpansionCandidate[]): CohortItem[] {
+  return candidates.map((c): CohortItem => {
+    const report = evaluatePublishEligibility(c.bundle, { verdictBound: c.verdictBound })
+    if (report.eligible) {
+      return {
+        canonicalName: c.input.canonicalName,
+        input: { ...c.input, evidence: new Map([[c.bundle.subject.id, c.bundle]]) },
+      }
+    }
+    const cause = explainUnknown(c.bundle)
+    return {
+      canonicalName: c.input.canonicalName,
+      input: null,
+      incompleteReason: `not publish-eligible (§4.7): unmet ${report.blockers.join(", ")} — ${cause.summary}`,
+    }
+  })
+}
+
 export function emitAllCohorts(
   snapshot: RegistrySnapshot | null = null,
   claims: ClaimStore = EMPTY_CLAIM_STORE,
   evidence: EvidenceSnapshot | null = null,
+  expansion: readonly ExpansionCandidate[] = [],
 ): EmittedCohort {
   const files: EmittedFile[] = []
   const index: IndexEntry[] = []
@@ -169,15 +215,30 @@ export function emitAllCohorts(
     ? bakeItems(registryCohort(snapshot), files, index, claims, evidenceBundles)
     : { baked: 0, incomplete: 0 }
 
-  const baked = fixtures.baked + registry.baked
-  const incomplete = fixtures.incomplete + registry.incomplete
+  // Expansion cohort (scale-out): each candidate must clear the §4.7 gate. Empty by
+  // default, so with no candidates the emitted set is byte-identical to the seed —
+  // preserving the reproducibility gate (ADR 0046 §4). Each candidate carries its own
+  // evidence bundle, so refinement is per-item (not the shared registry map).
+  const expanded = expansion.length
+    ? bakeItems(expansionItems(expansion), files, index, claims, new Map())
+    : { baked: 0, incomplete: 0 }
+
+  const baked = fixtures.baked + registry.baked + expanded.baked
+  const incomplete = fixtures.incomplete + registry.incomplete + expanded.incomplete
 
   // Deterministic index: sort by canonicalName so it is stable regardless of the
   // order the cohorts were baked in.
   index.sort((a, b) => (a.canonicalName < b.canonicalName ? -1 : a.canonicalName > b.canonicalName ? 1 : 0))
+  // Cohort labels. The seed order is preserved exactly (so a no-expansion emit is
+  // byte-identical); "expansion" is appended only when candidates were supplied.
+  const cohorts = [
+    "fixtures",
+    ...(snapshot ? ["mcp-registry"] : []),
+    ...(expansion.length ? ["expansion"] : []),
+  ]
   const indexDoc = {
     schema: "calllint.trust-index.v0",
-    cohorts: snapshot ? ["fixtures", "mcp-registry"] : ["fixtures"],
+    cohorts,
     baked,
     incomplete,
     entries: index,
