@@ -10,7 +10,14 @@ onward. While pre-1.0, minor versions may include breaking changes.
 
 ## [Unreleased]
 
-## [1.7.1] — 2026-07-20 — Evidence-refined Trust Page verdicts (new11 R3)
+## [1.7.1] — 2026-07-20 — Evidence-refined verdicts, agent-native distribution & 7-host Guard
+
+Beyond the R3 evidence refinement, this patch also ships the **new11 P2
+agent-native distribution** layer (agent trigger taxonomy, the `calllint
+integrate` command, and a Claude plugin with a recommend-only PreToolUse hook)
+and **Wave 3–4** (Guard host breadth 2→7 and full registry-manifest coverage).
+None of these change the verdict vocabulary, the `ScanReport` schema, or the
+deterministic engine; the hook is advisory-only and never blocks a tool call.
 
 ### Added
 
@@ -26,6 +33,41 @@ onward. While pre-1.0, minor versions may include breaking changes.
   the reproducibility gate is unaffected. On the live registry cohort this moved
   **17 of 18 pages from UNKNOWN to REVIEW** (the remaining SAFE page is a
   package-based npm entry, untouched); `false_safe = 0` holds.
+
+- **Agent trigger taxonomy + recommend policy + platform overlays (new11 P2,
+  PR-10, ADR 0051).** New `@calllint/agent-triggers` package: a deterministic
+  classifier that recognizes config-surface touch points (MCP server lists,
+  skill manifests) and maps them to a *recommend* action, with per-platform
+  overlays. No LLM, no verdict — it only decides *whether to suggest* running
+  `calllint`.
+- **`calllint integrate` command (new11 P2, PR-11, ADR 0049/0051).** Detect →
+  plan → approve → atomic apply → verify → rollback for wiring CallLint into a
+  host, reusing the audited `install-planner` writer and `discovery` host
+  detection (no second writer). `integrate` is the canonical name; `init` is a
+  retained alias.
+- **Claude plugin + recommend-only PreToolUse hook (new11 P2, PR-12, ADR
+  0051).** `plugins/calllint/` — a self-contained Claude Code plugin (plugin
+  manifest + `secure-agent-install` skill compiled from the canonical skill +
+  a pinned `calllint-mcp` dependency) and a `preflight` PreToolUse hook. The
+  hook is **advisory / non-blocking by contract**: it always exits 0, never
+  emits `permissionDecision`, and stays silent on any parse error — it surfaces
+  a recommendation, never alters the agent's control flow. Includes fork-safe
+  PR review (no secrets exposed to fork PRs).
+- **Guard host breadth 2 → 7 (new11 Wave 3, ADR 0052, refines ADR 0045).**
+  `calllint guard` now installs authority-change watchers across seven hosts —
+  `git`, `git-pre-push`, `github`, `claude-code`, `copilot`, `gemini`,
+  `vscode` — with session-start renderers. ADR 0052 freezes the hook
+  event/write-safety contract for the expanded host set.
+- **Registry manifest completed to §3.2 coverage + auto-update matrix (new11
+  Wave 4, PR #187).** `distribution/registries/registry-manifest.json` now
+  covers the full platform set with per-platform ownership method, read-back
+  URL, and automated-submission/read-back flags, feeding the release read-back
+  workflow.
+
+### Fixed
+
+- **Web: agent-card code examples legibility (#188).** Dark ink on the light
+  code block so the examples are readable.
 
 ## [1.7.0] — 2026-07-20 — Verified Publisher & the Evidence Resolution spine
 
