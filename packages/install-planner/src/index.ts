@@ -60,10 +60,22 @@ export {
   windsurfServerEntry,
   WINDSURF_HOST_ID,
 } from "./adapters/windsurf.js"
+export {
+  claudeDesktopAdapter,
+  claudeDesktopServerEntry,
+  CLAUDE_DESKTOP_HOST_ID,
+} from "./adapters/claudeDesktop.js"
+export {
+  vscodeAdapter,
+  vscodeServerEntry,
+  VSCODE_HOST_ID,
+} from "./adapters/vscode.js"
 
 import { claudeCodeAdapter } from "./adapters/claudeCode.js"
 import { cursorAdapter } from "./adapters/cursor.js"
 import { windsurfAdapter } from "./adapters/windsurf.js"
+import { claudeDesktopAdapter } from "./adapters/claudeDesktop.js"
+import { vscodeAdapter } from "./adapters/vscode.js"
 import type { HostAdapter } from "./hostAdapter.js"
 
 /** Registry of known host adapters, keyed by id. */
@@ -71,6 +83,8 @@ export const HOST_ADAPTERS: Record<string, HostAdapter> = {
   [claudeCodeAdapter.id]: claudeCodeAdapter,
   [cursorAdapter.id]: cursorAdapter,
   [windsurfAdapter.id]: windsurfAdapter,
+  [claudeDesktopAdapter.id]: claudeDesktopAdapter,
+  [vscodeAdapter.id]: vscodeAdapter,
 }
 
 /** Look up an adapter by host id; null if unknown. */

@@ -228,8 +228,9 @@ The gateway is a deterministic, fail-closed pipeline over six sealed digests
 (artifact → evidence → authority → decision/policy → install-plan → receipt). An
 approval binds all six at once; if any digest changes between prepare and apply,
 the approval is void and nothing is written. `UNKNOWN` never becomes `SAFE`, and
-external evidence can tighten a verdict but never set it alone. Three Tier-A hosts
-ship the audited apply surface — Claude Code, Cursor, and Windsurf. See the
+external evidence can tighten a verdict but never set it alone. Five Tier-A hosts
+ship the audited apply surface — Claude Code, Cursor, Windsurf, Claude Desktop, and
+VS Code. See the
 [CHANGELOG](CHANGELOG.md) (Trust Gateway Core) and ADRs 0035–0039.
 
 ## Continuous Guard — catch a rug-pull after approval
