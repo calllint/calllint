@@ -86,3 +86,15 @@ export {
   type SignedMaintainerContext,
   type MaintainerDriftNotification,
 } from "./maintainerContext.js"
+export {
+  CLAIM_LIFECYCLE_STATES,
+  CLAIM_REVERIFY_TRIGGERS,
+  transition,
+  applyReverifyTrigger,
+  projectToStoreStatus,
+  isServingState,
+  type ClaimLifecycleState,
+  type ClaimReverifyTrigger,
+  type ClaimEvent,
+  type TransitionResult,
+} from "./claimStateMachine.js"
