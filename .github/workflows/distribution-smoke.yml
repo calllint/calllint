@@ -1,0 +1,55 @@
+# distribution-smoke — the published artifacts install and run (new11 §9).
+#
+# Wraps the existing distribution smoke scripts:
+#   - scripts/package-smoke.mjs (pnpm pack:smoke) — real `npm pack` of `calllint`,
+#     tarball-manifest allowlist, shebang + self-contained bundle, then an isolated
+#     GLOBAL install and a real run of the installed binary.
+#   - scripts/mcp-pack-smoke.mjs (pnpm pack:smoke:mcp) — same for `calllint-mcp` (stdio).
+#   - tests/e2e/test/package-smoke.test.ts — the package-smoke assertions in vitest.
+# Covers the §9 bullets: npm install, MCP server start, npm-pack/registry metadata.
+# Never executes a scanned server — it only inspects what `npm pack` would ship and
+# runs CallLint's OWN binary.
+#
+# FOLLOW-UP (not yet covered here — do not read this workflow as covering them):
+#   - npx invocation against the packed tarball (distinct from the global-install run).
+#   - GitHub Action smoke — partially exercised by action-selftest.yml today.
+#   - Executing the docs install snippets — currently only lint-checked for drift by
+#     scripts/check-public-copy.mjs, not executed.
+# These three §9 bullets need new glue and are tracked as a distribution follow-up.
+name: distribution-smoke
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  distribution-smoke:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v6
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      # The CLI tarball self-builds via its prepack hook, but the MCP smoke asserts
+      # a pre-built dist — build once up front so both smokes run against real output.
+      - name: Build
+        run: pnpm build
+
+      - name: CLI package smoke (pack → manifest → global install → run)
+        run: pnpm pack:smoke
+
+      - name: MCP package smoke (pack → stdio)
+        run: pnpm pack:smoke:mcp
