@@ -73,3 +73,16 @@ export {
   type EvidenceSnapshot,
 } from "./evidenceSnapshot.js"
 export { remoteSubjects } from "./resolveEvidence.js"
+export {
+  MAINTAINER_CONTEXT_KINDS,
+  assertNoVerdictAuthority,
+  validateMaintainerContext,
+  signMaintainerContext,
+  verifyMaintainerContext,
+  isContextCurrentForDigest,
+  buildDriftNotification,
+  type MaintainerContextKind,
+  type MaintainerContextClaim,
+  type SignedMaintainerContext,
+  type MaintainerDriftNotification,
+} from "./maintainerContext.js"
