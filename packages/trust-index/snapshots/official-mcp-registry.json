@@ -3,7 +3,7 @@
   "source": "official-mcp-registry",
   "endpoint": "https://registry.modelcontextprotocol.io/v0/servers",
   "fetchedAt": "2026-07-17T00:00:00.000Z",
-  "count": 18,
+  "count": 19,
   "entries": [
     {
       "name": "ac.inference.sh/mcp",
@@ -280,6 +280,23 @@
       ],
       "status": "active",
       "publishedAt": "2026-07-02T16:47:32.556297Z"
+    },
+    {
+      "name": "io.github.calllint/calllint",
+      "description": "Static preflight safety gate for MCP servers — scan configs before you run them. Never executes.",
+      "version": "0.2.0",
+      "repositoryUrl": "https://github.com/calllint/calllint",
+      "packages": [
+        {
+          "registryType": "npm",
+          "identifier": "calllint-mcp",
+          "version": "0.2.0",
+          "transport": null
+        }
+      ],
+      "remotes": [],
+      "status": "active",
+      "publishedAt": null
     }
   ]
 }

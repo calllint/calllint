@@ -1,0 +1,121 @@
+{
+  "schema": "calllint.trust-page.v0",
+  "canonicalName": "mcp-registry/io.github.calllint-calllint",
+  "artifactDigest": "sha256:23327771ad88957d59c5e72011d84504c7a737a297560277f358d12b8bd3a98b",
+  "pageDigest": "sha256:20091cded7699f05bf0238bb57d20f8452da1755dcbf909a3bd4627d32b84e8d",
+  "verdict": "SAFE",
+  "verdictLabel": "No blockers observed",
+  "observedAt": "2026-07-17T00:00:00.000Z",
+  "completeness": "complete",
+  "correctionUrl": "https://github.com/calllint/calllint/issues/new?labels=trust-page-correction",
+  "preparation": {
+    "schema": "calllint.trust-preparation.v0",
+    "artifact": {
+      "schema": "calllint.artifact.v1",
+      "sourceType": "mcp-config",
+      "source": "official-mcp-registry:io.github.calllint/calllint",
+      "requestedRef": null,
+      "resolvedRef": "sha256:23327771ad88957d59c5e72011d84504c7a737a297560277f358d12b8bd3a98b",
+      "digest": "sha256:23327771ad88957d59c5e72011d84504c7a737a297560277f358d12b8bd3a98b",
+      "resolvedAt": "2026-07-17T00:00:00.000Z",
+      "resolution": "resolved"
+    },
+    "evidence": null,
+    "authority": {
+      "schema": "calllint.authority.v0",
+      "subject": {
+        "artifactDigest": "sha256:23327771ad88957d59c5e72011d84504c7a737a297560277f358d12b8bd3a98b"
+      },
+      "capabilities": [
+        {
+          "action": "execute",
+          "resource": "process",
+          "scope": "npx",
+          "destination": null,
+          "mutability": "mutating",
+          "reversibility": "irreversible",
+          "monetaryLimit": null,
+          "approvalRequirement": "none",
+          "evidenceSource": "server.command",
+          "confidence": "high",
+          "completeness": "complete",
+          "trustSource": "trusted.local_project"
+        }
+      ],
+      "limits": {
+        "spendPerCall": null,
+        "spendTotal": null
+      },
+      "approval": {
+        "required": []
+      },
+      "unknowns": [],
+      "completeness": "complete",
+      "digest": "sha256:a376bad8798f474516e34db037b97bdd45970fdd94c4822b516c5ecd2c8aaa7c"
+    },
+    "decision": null,
+    "plan": null,
+    "state": "AUTHORITY_NORMALIZED",
+    "notes": [
+      "no external evidence attached (optional); decision will rely on CallLint's own analysis",
+      "authority normalized: 1 capability"
+    ],
+    "preparedAt": "2026-07-17T00:00:00.000Z"
+  },
+  "scan": {
+    "schemaVersion": "calllint.report.v0",
+    "reportKind": "config-summary",
+    "configPath": "official-mcp-registry:io.github.calllint/calllint",
+    "verdict": "SAFE",
+    "publicVerdictLabel": "No blockers observed",
+    "counts": {
+      "SAFE": 1,
+      "REVIEW": 0,
+      "BLOCK": 0,
+      "UNKNOWN": 0
+    },
+    "reports": [
+      {
+        "schemaVersion": "calllint.report.v0",
+        "reportKind": "single-target",
+        "target": {
+          "name": "package",
+          "kind": "cursor-mcp-config",
+          "source": "calllint-mcp",
+          "version": "0.2.0",
+          "configPath": "official-mcp-registry:io.github.calllint/calllint"
+        },
+        "verdict": "SAFE",
+        "publicVerdictLabel": "No blockers observed",
+        "policyApplied": false,
+        "riskClass": "S1",
+        "symbols": [],
+        "confidence": "high",
+        "reproducibility": {
+          "level": "HIGH",
+          "reasons": []
+        },
+        "summary": "\"package\" has no blockers observed (S1 Read-only utility).",
+        "observed": [],
+        "inferred": [],
+        "findings": [],
+        "topFindings": [],
+        "policy": {
+          "autonomousUse": "allow",
+          "manualApproval": "none",
+          "sandbox": "none"
+        },
+        "fingerprints": {
+          "configHash": "sha256:66d2dc9be335dc4ae3d87f157b644081183239a55e53f352443732e4c243cfb2",
+          "targetSpecHash": "sha256:c181b5650a4d1db9d4d71c810ab072da046a9a2974219d583bc01d6383d9e47d",
+          "riskSurfaceHash": "sha256:69aae84c996fe93d537b08d906cb339866bd43f10876be403a0f4793915bef33",
+          "packageSpecHash": "sha256:cd7082a446b1bcd45bb08929cc51faaaf1160a15b742247804787bd6ae44a510"
+        },
+        "diagnostics": [],
+        "generatedAt": "2026-07-17T00:00:00.000Z"
+      }
+    ],
+    "diagnostics": [],
+    "generatedAt": "2026-07-17T00:00:00.000Z"
+  }
+}

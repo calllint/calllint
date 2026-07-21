@@ -4,7 +4,7 @@
     "fixtures",
     "mcp-registry"
   ],
-  "baked": 37,
+  "baked": 38,
   "incomplete": 1,
   "entries": [
     {
@@ -310,6 +310,14 @@
       "artifactDigest": "sha256:e14fc20ef3f4c970843bb714836ceb7700f1a90ce2f70100a34dbf5384036201",
       "pageDigest": "sha256:51127d33c857a66489c65270ed9fee0c132e54dc04d091ca8a398d10625aa9cb",
       "verdict": "REVIEW",
+      "observedAt": "2026-07-17T00:00:00.000Z"
+    },
+    {
+      "canonicalName": "mcp-registry/io.github.calllint-calllint",
+      "status": "baked",
+      "artifactDigest": "sha256:23327771ad88957d59c5e72011d84504c7a737a297560277f358d12b8bd3a98b",
+      "pageDigest": "sha256:20091cded7699f05bf0238bb57d20f8452da1755dcbf909a3bd4627d32b84e8d",
+      "verdict": "SAFE",
       "observedAt": "2026-07-17T00:00:00.000Z"
     }
   ]
