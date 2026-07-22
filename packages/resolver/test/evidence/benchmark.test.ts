@@ -26,6 +26,7 @@ import {
 import { P1_RESOLVERS } from "../../src/evidence/index.js"
 import type { ResolverContext } from "../../src/evidence/resolverInterface.js"
 import { buildCorpus, type CorpusObject } from "./corpus.js"
+import { runCoverageAudit } from "./coverageAudit.js"
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..", "..", "..", "..")
 const read = (p: string) => JSON.parse(fs.readFileSync(path.join(repoRoot, "schemas", p), "utf8"))
@@ -52,6 +53,9 @@ async function resolveObj(obj: CorpusObject): Promise<EvidenceBundle> {
   const { resolveSubject } = await import("../../src/evidence/resolveSubject.js")
   return resolveSubject(obj.subject, P1_RESOLVERS, ctxFor(obj))
 }
+
+/** Per-subject-type identity anchors (module-scoped: used by the gate + the audit binding). */
+const ANCHORS = ["identity.name", "repo.url", "domain.owner", "endpoint.url", "tool.count"]
 
 /** Structural leak guard for a value that would enter the public Index (§4.7). */
 const LEAK = new RegExp(
@@ -107,9 +111,9 @@ describe("P1-G benchmark gate", () => {
 
     // Rates over the resolvable, non-conflict, non-malicious sample.
     const sample = rows.filter((r) => r.o.resolvable && !r.o.conflict && !r.o.malicious)
-    // An object's identity anchor depends on its type: package/registry → identity.name,
-    // repo → repo.url, domain → domain.owner, remote → endpoint.url, tool → tool.count.
-    const ANCHORS = ["identity.name", "repo.url", "domain.owner", "endpoint.url", "tool.count"]
+    // An object's identity anchor depends on its type (ANCHORS, module-scoped above):
+    // package/registry → identity.name, repo → repo.url, domain → domain.owner,
+    // remote → endpoint.url, tool → tool.count.
     const idOk = sample.filter((r) => r.b.items.some((i) => ANCHORS.includes(i.field)))
     const repoRows = sample.filter((r) => r.o.repoExpected)
     const repoOk = repoRows.filter((r) => r.b.items.some((i) => i.field === "repo.url"))
@@ -134,5 +138,32 @@ describe("P1-G benchmark gate", () => {
     for (const o of corpus) {
       await expect(resolveObj(o)).resolves.toBeTruthy()
     }
+  })
+
+  // Gate A / PR-D1: the coverage-audit REPORT is a projection over this SAME corpus
+  // and SAME resolvers. Bind them so the report can never drift from the gate: the
+  // audit's aggregate rates must equal the gate's own inline-computed rates, and the
+  // audit must independently agree the thresholds pass. (ADR 0053: report, not a
+  // second harness.)
+  it("coverage-audit report agrees with the gate (no divergence)", async () => {
+    const bundles = await Promise.all(corpus.map(resolveObj))
+    const rows = corpus.map((o, i) => ({ o, b: bundles[i]! }))
+    const sample = rows.filter((r) => r.o.resolvable && !r.o.conflict && !r.o.malicious)
+    const idOk = sample.filter((r) => r.b.items.some((i) => ANCHORS.includes(i.field)))
+    const repoRows = sample.filter((r) => r.o.repoExpected)
+    const repoOk = repoRows.filter((r) => r.b.items.some((i) => i.field === "repo.url"))
+    const complete = sample.filter((r) => isCleanlyResolved(r.b))
+
+    const audit = await runCoverageAudit()
+    expect(audit.objectCount).toBe(100)
+    expect(audit.rates.sampleSize).toBe(sample.length)
+    expect(audit.rates.identityRate).toBe(idOk.length / sample.length)
+    expect(audit.rates.repoRate).toBe(repoOk.length / repoRows.length)
+    expect(audit.rates.completenessRate).toBe(complete.length / sample.length)
+    expect(audit.rates.falseSafeCount).toBe(0)
+    expect(audit.pass).toBe(true)
+    expect(audit.deterministic).toBe(true)
+    // Honest gap: four registry/transport classes are stated as not-yet-covered.
+    expect(audit.uncoveredClasses).toEqual(["pypi-package", "oci-image", "mcpb-bundle", "direct-stdio"])
   })
 })

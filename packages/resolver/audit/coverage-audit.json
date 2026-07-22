@@ -1,0 +1,244 @@
+{
+  "schema": "calllint.coverage-audit.v1",
+  "objectCount": 100,
+  "rates": {
+    "sampleSize": 70,
+    "identityRate": 1,
+    "repoRate": 1,
+    "repoDenominator": 49,
+    "completenessRate": 0.7714285714285715,
+    "falseSafeCount": 0
+  },
+  "thresholds": {
+    "identity": 0.9,
+    "repo": 0.8,
+    "completeness": 0.7,
+    "falseSafe": 0
+  },
+  "pass": true,
+  "bySubjectType": [
+    {
+      "key": "domain",
+      "total": 10,
+      "clean": 6,
+      "resolvable": 6,
+      "malicious": 0,
+      "conflict": 0
+    },
+    {
+      "key": "github-repo",
+      "total": 14,
+      "clean": 10,
+      "resolvable": 10,
+      "malicious": 0,
+      "conflict": 0
+    },
+    {
+      "key": "mcp-registry-entry",
+      "total": 15,
+      "clean": 9,
+      "resolvable": 15,
+      "malicious": 0,
+      "conflict": 6
+    },
+    {
+      "key": "npm-package",
+      "total": 45,
+      "clean": 18,
+      "resolvable": 34,
+      "malicious": 9,
+      "conflict": 0
+    },
+    {
+      "key": "remote-endpoint",
+      "total": 6,
+      "clean": 5,
+      "resolvable": 5,
+      "malicious": 1,
+      "conflict": 0
+    },
+    {
+      "key": "tool",
+      "total": 10,
+      "clean": 6,
+      "resolvable": 10,
+      "malicious": 0,
+      "conflict": 0
+    }
+  ],
+  "byCategory": [
+    {
+      "key": "conflicting-registry",
+      "total": 2,
+      "clean": 0,
+      "resolvable": 2,
+      "malicious": 0,
+      "conflict": 2
+    },
+    {
+      "key": "github-verified",
+      "total": 10,
+      "clean": 10,
+      "resolvable": 10,
+      "malicious": 0,
+      "conflict": 0
+    },
+    {
+      "key": "malicious-metadata",
+      "total": 10,
+      "clean": 0,
+      "resolvable": 4,
+      "malicious": 10,
+      "conflict": 0
+    },
+    {
+      "key": "missing-version",
+      "total": 6,
+      "clean": 0,
+      "resolvable": 0,
+      "malicious": 0,
+      "conflict": 0
+    },
+    {
+      "key": "npm-no-provenance",
+      "total": 12,
+      "clean": 0,
+      "resolvable": 12,
+      "malicious": 0,
+      "conflict": 0
+    },
+    {
+      "key": "npm-valid-provenance",
+      "total": 18,
+      "clean": 18,
+      "resolvable": 18,
+      "malicious": 0,
+      "conflict": 0
+    },
+    {
+      "key": "publisher-changed",
+      "total": 1,
+      "clean": 0,
+      "resolvable": 1,
+      "malicious": 0,
+      "conflict": 1
+    },
+    {
+      "key": "registry-valid",
+      "total": 9,
+      "clean": 9,
+      "resolvable": 9,
+      "malicious": 0,
+      "conflict": 0
+    },
+    {
+      "key": "remote-domain-unverified",
+      "total": 4,
+      "clean": 0,
+      "resolvable": 0,
+      "malicious": 0,
+      "conflict": 0
+    },
+    {
+      "key": "remote-domain-verified",
+      "total": 11,
+      "clean": 11,
+      "resolvable": 11,
+      "malicious": 0,
+      "conflict": 0
+    },
+    {
+      "key": "repository-mismatch",
+      "total": 7,
+      "clean": 0,
+      "resolvable": 3,
+      "malicious": 0,
+      "conflict": 3
+    },
+    {
+      "key": "tool-metadata-complete",
+      "total": 6,
+      "clean": 6,
+      "resolvable": 6,
+      "malicious": 0,
+      "conflict": 0
+    },
+    {
+      "key": "tool-metadata-missing",
+      "total": 4,
+      "clean": 0,
+      "resolvable": 4,
+      "malicious": 0,
+      "conflict": 0
+    }
+  ],
+  "coverageMatrix": [
+    {
+      "klass": "npm-package",
+      "covered": true,
+      "objectCount": 45,
+      "note": "npmResolver: registry doc → identity/version/provenance/repo."
+    },
+    {
+      "klass": "github-repo",
+      "covered": true,
+      "objectCount": 14,
+      "note": "githubResolver: repo metadata → repo.url anchor."
+    },
+    {
+      "klass": "mcp-registry-entry",
+      "covered": true,
+      "objectCount": 15,
+      "note": "registryResolver: Official Registry entry → identity + repo."
+    },
+    {
+      "klass": "domain",
+      "covered": true,
+      "objectCount": 10,
+      "note": "domainResolver: .well-known/mcp-publisher.json → owner."
+    },
+    {
+      "klass": "remote-endpoint",
+      "covered": true,
+      "objectCount": 6,
+      "note": "remoteResolver: .well-known/mcp.json → endpoint owner/auth."
+    },
+    {
+      "klass": "tool",
+      "covered": true,
+      "objectCount": 10,
+      "note": "toolResolver: static tool manifest → declared surface (no exec)."
+    },
+    {
+      "klass": "pypi-package",
+      "covered": false,
+      "objectCount": 0,
+      "note": "NOT YET COVERED — no PyPI resolver; such subjects resolve UNKNOWN (honest), never SAFE."
+    },
+    {
+      "klass": "oci-image",
+      "covered": false,
+      "objectCount": 0,
+      "note": "NOT YET COVERED — no OCI/registry-digest resolver; UNKNOWN until built."
+    },
+    {
+      "klass": "mcpb-bundle",
+      "covered": false,
+      "objectCount": 0,
+      "note": "NOT YET COVERED — no MCPB bundle resolver; UNKNOWN until built."
+    },
+    {
+      "klass": "direct-stdio",
+      "covered": false,
+      "objectCount": 0,
+      "note": "NOT YET COVERED as a distinct identity — stdio launch is scanned via config authority, not identity-resolved here."
+    }
+  ],
+  "uncoveredClasses": [
+    "pypi-package",
+    "oci-image",
+    "mcpb-bundle",
+    "direct-stdio"
+  ],
+  "deterministic": true
+}
