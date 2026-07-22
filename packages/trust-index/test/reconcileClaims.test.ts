@@ -119,4 +119,12 @@ describe("reconcileClaims — lifecycle", () => {
     const store = reconcileClaims({ previous: EMPTY_CLAIM_STORE, installations: [], repoIndex, bakedDigests, now: NOW })
     expect(store).toEqual(EMPTY_CLAIM_STORE satisfies ClaimStore)
   })
+
+  it("writes a SINGLE-prefixed scopeDigest (never double `sha256:sha256:`)", () => {
+    // `sha256()` already prefixes; reconcile must not re-prefix (regression guard for
+    // the latent double-prefix bug — a claim's opaque audit value must stay canonical).
+    const store = reconcileClaims({ previous: EMPTY_CLAIM_STORE, installations: [install()], repoIndex, bakedDigests, now: NOW })
+    expect(store.records[0]!.scopeDigest).toMatch(/^sha256:[0-9a-f]{64}$/)
+    expect(store.records[0]!.scopeDigest).not.toContain("sha256:sha256:")
+  })
 })
