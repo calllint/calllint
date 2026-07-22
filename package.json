@@ -15,6 +15,8 @@
     "test:watch": "vitest",
     "typecheck": "tsc -p tsconfig.json",
     "audit:evidence": "tsx scripts/audit-evidence.ts",
+    "audit:coverage": "tsx scripts/coverage-audit.ts",
+    "audit:coverage:write": "tsx scripts/coverage-audit.ts --write",
     "smoke": "pnpm build && vitest run tests/e2e/test/package-smoke.test.ts",
     "pack:smoke": "node scripts/package-smoke.mjs",
     "pack:smoke:mcp": "node scripts/mcp-pack-smoke.mjs",
@@ -35,7 +37,7 @@
     "ingest:trust-index": "pnpm --filter @calllint/trust-index ingest",
     "resolve-evidence:trust-index": "pnpm --filter @calllint/trust-index resolve-evidence",
     "verify-claims:trust-index": "pnpm --filter @calllint/trust-index verify-claims",
-    "ci:local": "pnpm typecheck && pnpm test && pnpm build && pnpm corpus:test && pnpm bench:test && pnpm check:public-copy && pnpm audit:evidence"
+    "ci:local": "pnpm typecheck && pnpm test && pnpm build && pnpm corpus:test && pnpm bench:test && pnpm check:public-copy && pnpm audit:evidence && pnpm audit:coverage"
   },
   "devDependencies": {
     "@types/node": "^20.14.0",
