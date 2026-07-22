@@ -44,6 +44,17 @@ export {
   type FourDimensionStatus,
 } from "./evidenceLevel.js"
 export {
+  runCalibrationAudit,
+  CALIBRATION_THRESHOLDS,
+  EMPTY_REVIEW_STORE,
+  type CalibrationReport,
+  type CalibrationFinding,
+  type NegativeArtifact,
+  type ReviewStore,
+  type ReviewerSignoff,
+  type FindingSeverity,
+} from "./calibration.js"
+export {
   parseClaimStore,
   verifiedPublisherFor,
   EMPTY_CLAIM_STORE,

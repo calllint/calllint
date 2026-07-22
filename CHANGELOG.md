@@ -10,7 +10,57 @@ onward. While pre-1.0, minor versions may include breaking changes.
 
 ## [Unreleased]
 
-## [1.7.2] — 2026-07-21 — Distribution breadth, telemetry wiring & release hygiene
+## [1.7.3] — 2026-07-22 — Distribution dogfood, ADR 0053 boundary & Trust Index Gate A/B
+
+A distribution-productionization patch. It cuts what accumulated on `main` after 1.7.2:
+CallLint ingests **its own** MCP server and runs the first real claim reconcile
+(dogfood), the embedded-distribution / autonomous-index boundary is frozen in **ADR
+0053**, unclaimed Trust Pages gain a maintainer claim funnel, and the public Trust Index
+gains its **Gate A** evidence-quality surfaces (a 100-object coverage & precision audit
+and the E0–E6 evidence-level + four-dimension status block) plus the **Gate B**
+human-calibration gate. **No change to scan behaviour, the `ScanReport` schema, or the
+verdict vocabulary** — every new surface is a read-only projection over already-decided
+data; verdicts and authority are carried verbatim (ADR 0053 §2/§5), and no page bytes
+change from the Gate-A/Gate-B audit tooling (offline artifacts, ADR 0053 §6).
+
+### Added
+
+- **Self-ingest dogfood + first scheduled claim reconcile (PR #200, #201).** CallLint's
+  own MCP server is ingested into the Trust Index as a self-claim
+  (`io.github.calllint-calllint`) and the scheduled claim-verification job runs its first
+  real reconcile against the GitHub App installed on the `calllint` org.
+- **ADR 0053 — embedded-distribution & autonomous-index boundary (PR #203).** Freezes the
+  invariants that gate the distribution build: index stays non-LLM / human-gated / never
+  executes a target; the Evidence Manifest is a projection onto ADR 0034, never a new
+  receipt; a namespace claim states control and never alters a verdict; publication has
+  exactly three channels (`AUTO_PUBLISH` / `REVIEW_HOLD` / `SECURITY_HOLD`); the four
+  status dimensions never collapse into one number; scale-out is feasibility-gated.
+- **Unclaimed-page claim funnel (DX-1, PR #204).** Unclaimed Trust Pages render a
+  boundary-safe "Are you the maintainer?" CTA into the public App install funnel; claimed
+  pages stay byte-identical and no verdict moves.
+- **Gate A / D1 — 100-object coverage & precision audit (PR #205).** An offline audit
+  artifact (`packages/resolver/audit/coverage-audit.{json,md}`) projecting the shipped
+  100-object evidence benchmark: identity/repo/completeness rates, zero dangerous
+  false-SAFE, and an honest coverage matrix that states PyPI/OCI/MCPB/direct-stdio as
+  not-yet-covered (UNKNOWN, never SAFE). CI guards it against drift.
+- **Gate A / D2 — evidence level (E0–E6) + four-dimension status block (PR #206).** A
+  display-only projection on Trust Pages (`evidenceLevel.ts`): the four independent
+  dimensions (verdict / evidence completeness / authority / reproducibility) are rendered
+  separately and never averaged into a rating (ADR 0053 §5); a config-only page tops out
+  at E2, stated honestly.
+- **Gate B / D3 — human-calibration gate (`@calllint/trust-index` `calibration.ts` +
+  `scripts/calibration-audit.ts`).** A projection over the negative-verdict baked pages
+  (BLOCK + high-severity REVIEW) that records dual human sign-offs and asserts the
+  `REVIEW_HOLD` exit thresholds (dangerous false-SAFE = 0, blocker precision ≥ 90%,
+  byte-identical repeat). It is **closed by construction** — the gate cannot pass until a
+  human records two distinct sign-offs; the tooling builds the gate, never the review
+  (ADR 0053 §4). Offline audit artifact under `packages/trust-index/calibration/`; wired
+  into `ci:local` as `audit:calibration`.
+
+### Fixed
+
+- **Single-prefix `scopeDigest` in claim reconciliation (PR #202).** Corrects a
+  double-prefixed scope digest in the claim reconcile path so claim matching is stable.
 
 A hardening + plumbing patch. It cuts what accumulated on `main` after 1.7.1 — two more
 Tier-A install hosts, single-sourced install commands, a formal claim-lifecycle state
