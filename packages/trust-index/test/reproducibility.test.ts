@@ -15,6 +15,7 @@ import {
   renderSidecar,
   ConfigParseError,
   TRUST_PAGE_FORBIDDEN_PHRASES,
+  CLAIM_APP_URL,
   type BakeInput,
 } from "../src/index.js"
 
@@ -153,5 +154,47 @@ describe("claimed page render — Verified Publisher boundary (ADR 0048 §6)", (
     const page = bakeTrustPage(anyCase.input)
     expect(renderHtml(page, undefined)).toBe(renderHtml(page))
     expect(renderSidecar(page, undefined)).toBe(renderSidecar(page))
+  })
+})
+
+describe("unclaimed page — claim funnel (DX-1, ADR 0047 §1 / 0048 §6)", () => {
+  const anyCase = verdictCases[0]!
+  const publisher = {
+    owner: "octo-org",
+    verifiedAt: "2026-07-17T00:00:00.000Z",
+    observedArtifactDigest: "sha256:deadbeef" as const,
+  }
+
+  it("POSITIVE: an unclaimed page invites a claim via the public App funnel, framed as control", () => {
+    const page = bakeTrustPage(anyCase.input)
+    const html = renderHtml(page)
+    expect(html).toContain(CLAIM_APP_URL)
+    expect(html).toContain("claim this page")
+    expect(html).toContain("Are you the maintainer?")
+    // Control, never safety — and it must not leak the claimed-only heading.
+    expect(html).toContain("not a safety claim")
+    expect(html).toContain("does not change the observed verdict")
+    expect(html).not.toContain("Verified Publisher")
+  })
+
+  it("NEGATIVE: a claimed page shows Verified Publisher and NOT the claim funnel", () => {
+    const page = bakeTrustPage(anyCase.input)
+    const html = renderHtml(page, publisher)
+    expect(html).toContain("Verified Publisher")
+    expect(html).not.toContain(CLAIM_APP_URL)
+    expect(html).not.toContain("Are you the maintainer?")
+  })
+
+  it("the claim CTA uses no forbidden overclaim language", () => {
+    const page = bakeTrustPage(anyCase.input)
+    const lc = renderHtml(page).toLowerCase()
+    for (const phrase of FORBIDDEN) expect(lc, phrase).not.toContain(phrase)
+  })
+
+  it("the CTA is HTML-only — the unclaimed sidecar carries no funnel or claim key", () => {
+    const page = bakeTrustPage(anyCase.input)
+    const sidecar = renderSidecar(page)
+    expect(sidecar).not.toContain(CLAIM_APP_URL)
+    expect(sidecar).not.toContain("verifiedPublisher")
   })
 })

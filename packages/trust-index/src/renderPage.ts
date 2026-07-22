@@ -24,6 +24,15 @@ import type { VerifiedPublisher } from "./claim.js"
 export const CORRECTION_URL =
   "https://github.com/calllint/calllint/issues/new?labels=trust-page-correction"
 
+/**
+ * The public GitHub App install funnel a maintainer uses to claim a namespace
+ * (ADR 0048 §1 — the App install IS the control grant). Shown only on UNCLAIMED
+ * pages, as an invitation to prove namespace control; a claimed page shows the
+ * resulting Verified Publisher block instead. This is a control funnel, never a
+ * safety funnel — the copy below never implies claiming makes a page safe.
+ */
+export const CLAIM_APP_URL = "https://github.com/apps/calllint-trust"
+
 /** Escape the five HTML-significant characters. Deterministic; no DOM. */
 function esc(s: string): string {
   return s
@@ -89,9 +98,13 @@ export function renderHtml(page: BakedTrustPage, verifiedPublisher?: VerifiedPub
   const caps = page.preparation.authority?.capabilities ?? []
   const notes = page.preparation.notes ?? []
 
-  // Verified Publisher block (ADR 0048 §6): namespace control, NEVER safety. Rendered
-  // only when a claim is present; omitted otherwise so an unclaimed page is
-  // byte-identical to a pre-I2c bake. Copy is bounded by the extended forbidden set.
+  // Publisher block (ADR 0048 §6): namespace control, NEVER safety. A CLAIMED page
+  // shows the Verified Publisher overlay; an UNCLAIMED page shows a "claim this page"
+  // invitation into the public App install funnel (DX-1). The two branches are
+  // mutually exclusive, so a claimed page never shows the CTA and vice-versa. Neither
+  // branch touches the sidecar or the page digest (a claim is a revocable overlay);
+  // the CTA carries no per-viewer or dynamic data, so the bake stays deterministic.
+  // Copy in both branches is bounded by the extended forbidden set (language.ts).
   const publisherBlock = verifiedPublisher
     ? `
       <h2>Verified Publisher</h2>
@@ -103,7 +116,15 @@ export function renderHtml(page: BakedTrustPage, verifiedPublisher?: VerifiedPub
          <time datetime="${esc(verifiedPublisher.verifiedAt)}">${esc(verifiedPublisher.verifiedAt)}</time>,
          against artifact digest <code>${esc(verifiedPublisher.observedArtifactDigest)}</code>.</p>
 `
-    : ""
+    : `
+      <h2>Are you the maintainer?</h2>
+      <p>No one has claimed the <code>${esc(page.canonicalName)}</code> namespace yet.
+         If you control it, you can
+         <a href="${esc(CLAIM_APP_URL)}">claim this page</a> by installing the CallLint
+         Trust GitHub App on the account that owns it. Claiming records who controls the
+         namespace — it is not a safety claim, an endorsement, or a certification, and it
+         does not change the observed verdict.</p>
+`
 
   const capItems =
     caps.length === 0
