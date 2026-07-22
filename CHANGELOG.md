@@ -62,6 +62,8 @@ change from the Gate-A/Gate-B audit tooling (offline artifacts, ADR 0053 §6).
 - **Single-prefix `scopeDigest` in claim reconciliation (PR #202).** Corrects a
   double-prefixed scope digest in the claim reconcile path so claim matching is stable.
 
+## [1.7.2] — 2026-07-21 — Distribution breadth, telemetry wiring & release hygiene
+
 A hardening + plumbing patch. It cuts what accumulated on `main` after 1.7.1 — two more
 Tier-A install hosts, single-sourced install commands, a formal claim-lifecycle state
 machine, and signed maintainer context — and adds three internal advances: the telemetry
