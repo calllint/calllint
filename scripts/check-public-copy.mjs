@@ -41,6 +41,9 @@
  *      untrusted external input (ADR 0038 §5 "PII-free").
  *  18. Completeness: every retained registry snapshot entry is accounted for in
  *      the served index (baked or incomplete) — no silent drops (ADR 0038 §5).
+ *  19. Claim-funnel state: every served Trust HTML page is either claimed (shows
+ *      "Verified Publisher", no funnel) or unclaimed (shows the "claim this page"
+ *      App install funnel + the control-not-safety framing) — DX-1, ADR 0047/0048.
  *
  * Exit codes:
  *   0  all checks pass
@@ -88,6 +91,10 @@ const staleStatusPatterns = [
 ]
 /** The hero headline the homepage must carry. */
 const heroHeadline = "Before your agent acts, check the blast radius"
+/** The public GitHub App claim funnel (mirrors CLAIM_APP_URL in @calllint/trust-index).
+ *  An UNCLAIMED Trust Page must invite a claim via this URL; a CLAIMED page must not
+ *  show the funnel (it shows the Verified Publisher overlay instead) — check 19. */
+const claimAppUrl = "https://github.com/apps/calllint-trust"
 
 let exitCode = 0
 const fail = (msg) => {
@@ -400,6 +407,31 @@ console.log("")
     } else {
       ok("no registry snapshot present yet (skipped 18)")
     }
+
+    // 19. Claim funnel boundary (DX-1, ADR 0047 §1 / 0048 §6). Every served Trust
+    //   HTML page is EITHER claimed (shows "Verified Publisher") OR unclaimed (shows
+    //   the "claim this page" invitation into the public App install funnel). The two
+    //   are mutually exclusive: an unclaimed page MUST carry the claim funnel URL and
+    //   the control-not-safety framing; a claimed page MUST NOT carry the funnel.
+    let claimClean = true
+    for (const f of htmlPages) {
+      const claimed = /Verified Publisher/.test(f.text)
+      const hasFunnel = f.text.includes(claimAppUrl)
+      if (claimed && hasFunnel) {
+        fail(`Trust Page ${f.rel} is claimed yet still shows the claim funnel (should show Verified Publisher only)`)
+        claimClean = false
+      }
+      if (!claimed && !hasFunnel) {
+        fail(`Trust Page ${f.rel} is unclaimed but is missing the claim funnel (${claimAppUrl})`)
+        claimClean = false
+      }
+      // An unclaimed page's CTA must frame claiming as control, never safety.
+      if (!claimed && hasFunnel && !/not a safety claim/i.test(f.text)) {
+        fail(`Trust Page ${f.rel} claim CTA is missing the "not a safety claim" framing`)
+        claimClean = false
+      }
+    }
+    if (claimClean && htmlPages.length > 0) ok(`all ${htmlPages.length} Trust HTML page(s) carry the correct claim-funnel state`)
   }
 }
 

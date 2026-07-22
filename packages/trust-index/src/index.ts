@@ -26,6 +26,7 @@ export {
   observedStatement,
   pagePath,
   CORRECTION_URL,
+  CLAIM_APP_URL,
 } from "./renderPage.js"
 export {
   emitAllCohorts,
