@@ -198,3 +198,47 @@ describe("unclaimed page — claim funnel (DX-1, ADR 0047 §1 / 0048 §6)", () =
     expect(sidecar).not.toContain("verifiedPublisher")
   })
 })
+
+// Gate A / PR-D2 (ADR 0053 §5): a SAFE label is NEVER bare. Every rendered page that
+// shows the public SAFE label ("No blockers observed") must scope it with the
+// four-dimension status block — an evidence level (E0–E6) AND a completeness
+// statement. This binds the renderer to `check-public-copy.mjs` check #20.
+describe("no bare SAFE — the label is always scoped", () => {
+  const SAFE_LABEL = "No blockers observed"
+  const safeCases = verdictCases.filter((e) => e.case.expect === "SAFE")
+
+  // The exact predicate check #20 applies to served bytes, kept in lock-step here.
+  const isScoped = (html: string) =>
+    /Evidence level:/i.test(html) && /\bE[0-6]\b/.test(html) && /Evidence completeness:/i.test(html)
+
+  it("has at least one SAFE fixture to scope", () => {
+    expect(safeCases.length).toBeGreaterThan(0)
+  })
+
+  it("POSITIVE: every SAFE page carries the evidence level + completeness scope block", () => {
+    for (const entry of safeCases) {
+      const html = renderHtml(bakeTrustPage(entry.input))
+      expect(html, entry.case.file).toContain(SAFE_LABEL)
+      expect(isScoped(html), `${entry.case.file} must scope SAFE`).toBe(true)
+      // The block also states the four dimensions are not combined into one score.
+      expect(html).toContain("not combined into a")
+    }
+  })
+
+  it("NEGATIVE: the guard predicate rejects a bare SAFE (label with the block stripped)", () => {
+    const html = renderHtml(bakeTrustPage(safeCases[0]!.input))
+    // Remove the scope block to simulate a bare-SAFE regression → must be detected.
+    const bare = html
+      .replace(/Evidence level:/gi, "")
+      .replace(/Evidence completeness:/gi, "")
+    expect(bare).toContain(SAFE_LABEL)
+    expect(isScoped(bare)).toBe(false)
+  })
+
+  it("the evidence level appears in the sidecar too (machine-readable, uncombined)", () => {
+    const sidecar = renderSidecar(bakeTrustPage(safeCases[0]!.input))
+    const parsed = JSON.parse(sidecar)
+    expect(parsed.status.evidenceLevel).toMatch(/^E[0-6]$/)
+    expect(parsed.status).not.toHaveProperty("score")
+  })
+})

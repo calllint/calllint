@@ -36,6 +36,14 @@ export {
 } from "./emitCohort.js"
 export { TRUST_PAGE_FORBIDDEN_PHRASES } from "./language.js"
 export {
+  evidenceLevel,
+  fourDimensionStatus,
+  EVIDENCE_LEVEL_META,
+  type EvidenceLevel,
+  type EvidenceLevelMeta,
+  type FourDimensionStatus,
+} from "./evidenceLevel.js"
+export {
   parseClaimStore,
   verifiedPublisherFor,
   EMPTY_CLAIM_STORE,

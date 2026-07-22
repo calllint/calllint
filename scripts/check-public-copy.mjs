@@ -432,6 +432,27 @@ console.log("")
       }
     }
     if (claimClean && htmlPages.length > 0) ok(`all ${htmlPages.length} Trust HTML page(s) carry the correct claim-funnel state`)
+
+    // 20. No bare SAFE (Gate A / PR-D2, ADR 0053 §5). A page that shows the public
+    //   SAFE label ("No blockers observed") must never present it alone — it MUST be
+    //   scoped by the four-dimension status block: the evidence level (E0–E6) AND a
+    //   completeness statement. "SAFE" is always an observation at a stated evidence
+    //   level, never an unqualified pass. This is the serving-side backstop for the
+    //   renderer; the reproducibility test binds the two.
+    const SAFE_LABEL = "No blockers observed"
+    let scopedClean = true
+    for (const f of htmlPages) {
+      if (!f.text.includes(SAFE_LABEL)) continue
+      const hasEvidenceLevel = /Evidence level:/i.test(f.text) && /\bE[0-6]\b/.test(f.text)
+      const hasCompleteness = /Evidence completeness:/i.test(f.text)
+      if (!hasEvidenceLevel || !hasCompleteness) {
+        fail(`Trust Page ${f.rel} shows SAFE ("${SAFE_LABEL}") without the scope block (evidence level + completeness) — bare SAFE is forbidden`)
+        scopedClean = false
+      }
+    }
+    const safePages = htmlPages.filter((f) => f.text.includes(SAFE_LABEL)).length
+    if (scopedClean && safePages > 0) ok(`all ${safePages} SAFE Trust Page(s) scope the label with an evidence level + completeness (no bare SAFE)`)
+    else if (safePages === 0) ok("no SAFE Trust Pages present to scope (skipped 20)")
   }
 }
 

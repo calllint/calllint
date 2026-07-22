@@ -19,6 +19,7 @@ import type { Verdict } from "@calllint/types"
 import { VERDICT_PUBLIC_LABEL } from "@calllint/types"
 import type { BakedTrustPage } from "./bakeTrustPage.js"
 import type { VerifiedPublisher } from "./claim.js"
+import { evidenceLevel, EVIDENCE_LEVEL_META } from "./evidenceLevel.js"
 
 /** Where a viewer disputes or corrects a page (ADR 0038 §5 correction link). */
 export const CORRECTION_URL =
@@ -72,6 +73,17 @@ export function renderSidecar(
     verdictLabel: VERDICT_PUBLIC_LABEL[page.verdict],
     observedAt: page.observedAt,
     completeness: page.preparation.authority?.completeness ?? "partial",
+    // Four independent status dimensions + evidence level (ADR 0053 §5). Emitted as
+    // separate fields — machines MUST NOT combine them into one score. `authorityClaimed`
+    // reflects the (revocable) publisher overlay, so it is set here from the argument.
+    status: {
+      verdict: page.verdict,
+      completeness: page.preparation.authority?.completeness ?? "partial",
+      authorityClaimed: verifiedPublisher !== undefined,
+      reproducibility: { pageDigest: page.pageDigest, observedAt: page.observedAt },
+      evidenceLevel: evidenceLevel(page).level,
+      evidenceRationale: evidenceLevel(page).rationale,
+    },
     verifiedPublisher,
     correctionUrl: CORRECTION_URL,
     preparation: page.preparation,
@@ -139,6 +151,25 @@ export function renderHtml(page: BakedTrustPage, verifiedPublisher?: VerifiedPub
 
   const noteItems = notes.map((n) => `<li>${esc(n)}</li>`).join("\n        ")
 
+  // Four INDEPENDENT status dimensions + the evidence level (ADR 0053 §5). These are
+  // presented as separate rows and deliberately NEVER multiplied/averaged into a
+  // single "trust score" — a page states four distinct things, not one number. The
+  // evidence level says WHAT was observed (E0–E6); it is not a grade.
+  const ev = evidenceLevel(page)
+  const evMeta = EVIDENCE_LEVEL_META[ev.level]
+  const statusBlock = `
+      <h2>Status (four independent dimensions)</h2>
+      <p>These four dimensions are reported separately and are not combined into a
+         single score — each answers a different question.</p>
+      <ul>
+        <li><strong>Verdict:</strong> ${esc(VERDICT_PUBLIC_LABEL[page.verdict])}</li>
+        <li><strong>Evidence completeness:</strong> ${esc(completeness)}</li>
+        <li><strong>Authority (namespace control):</strong> ${verifiedPublisher ? "claimed" : "unclaimed"} — control only, never safety</li>
+        <li><strong>Reproducibility:</strong> page digest <code>${esc(page.pageDigest)}</code> observed at <time datetime="${esc(page.observedAt)}">${esc(page.observedAt)}</time></li>
+      </ul>
+      <p><strong>Evidence level:</strong> <code>${esc(ev.level)}</code> — ${esc(evMeta.label)}
+         (${esc(evMeta.supports)}). ${esc(ev.rationale)}</p>`
+
   return `<!doctype html>
 <html lang="en">
   <head>
@@ -157,6 +188,7 @@ export function renderHtml(page: BakedTrustPage, verifiedPublisher?: VerifiedPub
       <p>This is an observation at a specific artifact digest and time under the
          stated completeness. It is not a certification, an endorsement, or a
          guarantee of safety.</p>
+${statusBlock}
 ${publisherBlock}
       <h2>Observed capabilities</h2>
       <ul>
