@@ -12,6 +12,31 @@ onward. While pre-1.0, minor versions may include breaking changes.
 
 ### Added
 
+- **Trust Page discovery — sitemap + structured data (SEO, no verdict movement).** Trust
+  Pages are search-indexable (`robots: index,follow`) but nothing helped a crawler — or a
+  maintainer — find them. The bake now emits a deterministic `trust/sitemap.xml` listing
+  each real published resource's **clean, non-redirecting URL** (`/trust/{name}` — the
+  `.html` artifact 308-redirects to that form at the edge, so a sitemap must list the final
+  URL). The synthetic `calllint-fixtures/*` reproducibility goldens are deliberately excluded
+  from the sitemap (a maintainer never claims a fixture, and a search engine should not
+  surface one as "the CallLint page for X") — they remain baked and counted in `index.json`
+  for completeness; only discovery omits them. Each Trust Page's `<head>` also gains a
+  `<link rel="canonical">` plus a boundary-safe JSON-LD block.
+  The JSON-LD is a `schema.org/TechArticle` (a dated technical document) — deliberately
+  **not** a `Review`, `Rating`, `Product`, or `Certification`, because modeling a verdict as
+  a rating would encode the "CallLint graded/approved this" overclaim the language boundary
+  forbids (ADR 0038 §2, ADR 0053 §3). It publishes **what** was observed and **when**, never
+  a score, and carries the standing "not a certification … guarantee of safety" disclaimer so
+  even a machine-extracted summary keeps the boundary. Emitted by `emitAllCohorts` as site
+  chrome (the sitemap adds **no** `index.json` entry; the JSON-LD/canonical touch only the
+  `.html` bytes), so every `.json` sidecar, `.manifest.json`, and `index.json` — and every
+  `pageDigest` and verdict — is **byte-identical** (proved by `git status` after the bake:
+  1 new file, 38 modified `.html`, 0 modified `.json`). The committed-tree reproducibility
+  gate auto-covers the new sitemap with no test edit; `check:public-copy` passes 15–20 over
+  the new bytes unchanged. (A `robots.txt` `Sitemap:` reference is intentionally **not**
+  included: the live `robots.txt` is Cloudflare edge-managed with a content-signals + AI-
+  crawler policy and has no repo source, so wiring the sitemap reference is deferred to a
+  deliberate decision rather than risk regressing that managed policy.)
 - **Claim funnel — post-install landing page (`/trust/app-created.html`).** Closes the
   one offline gap in the maintainer-claim funnel: the CallLint Trust GitHub App's
   `redirect_url` already points at `https://calllint.com/trust/app-created.html`, but the

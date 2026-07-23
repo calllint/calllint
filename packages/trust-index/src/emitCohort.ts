@@ -21,7 +21,7 @@ import {
   explainUnknown,
   type EvidenceBundle,
 } from "@calllint/evidence"
-import { renderHtml, renderSidecar } from "./renderPage.js"
+import { renderHtml, renderSidecar, renderSitemap } from "./renderPage.js"
 import { renderAppCreatedPage } from "./renderAppCreated.js"
 import { buildEvidenceManifest } from "./evidenceManifest.js"
 import { verifiedPublisherForNamespace, EMPTY_CLAIM_STORE, type ClaimStore } from "./claim.js"
@@ -259,6 +259,23 @@ export function emitAllCohorts(
     entries: index,
   }
   files.push({ path: `index.json`, content: JSON.stringify(indexDoc, null, 2) + "\n" })
+
+  // A sitemap over the baked pages (discovery — Q5). Site chrome under `/trust/`, NOT
+  // a resource. It lists only REAL, discoverable resources: pages that were actually
+  // baked (status "baked") AND are not in the reserved `calllint-fixtures/` namespace.
+  // Fixtures are synthetic reproducibility goldens (ADR 0046 §1) — never a resource a
+  // maintainer would claim or that a search engine should surface as "the CallLint page
+  // for X" — so advertising them for crawling would be noise. Incomplete entries (no
+  // page to crawl) and the `noindex` landing page are likewise never listed. Note this
+  // filter is discovery-only: `index.json` above STILL records every baked fixture
+  // (completeness is the index's job; discovery is the sitemap's). `lastmod` is each
+  // page's pinned observedAt, so it is deterministic and the committed-tree gate covers
+  // it with no test edit. It carries no verdict, digest, or claim — emitting it never
+  // affects a page digest or the index.
+  const bakedPages = index
+    .filter((e) => e.status === "baked" && !e.canonicalName.startsWith("calllint-fixtures/"))
+    .map((e) => ({ canonicalName: e.canonicalName, observedAt: e.observedAt }))
+  files.push({ path: `sitemap.xml`, content: renderSitemap(bakedPages) })
 
   // The post-install claim-funnel landing page (ADR 0047/0048). Site chrome under
   // `/trust/`, NOT a resource: emitted unconditionally, deterministic, and deliberately
