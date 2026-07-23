@@ -75,14 +75,19 @@ export {
 export {
   parseClaimStore,
   verifiedPublisherFor,
+  verifiedPublisherForNamespace,
+  registryNamespaceOf,
+  namespaceCovers,
   EMPTY_CLAIM_STORE,
   type ClaimRecord,
   type ClaimStore,
   type ClaimStatus,
   type VerifiedPublisher,
+  type PageClaimCoords,
 } from "./claim.js"
 export {
   registryCohort,
+  registryNameFromSourceLabel,
   type RegistryEntryPlan,
 } from "./registryCohort.js"
 export {

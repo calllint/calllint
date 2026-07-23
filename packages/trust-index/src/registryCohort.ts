@@ -23,6 +23,22 @@ export interface RegistryEntryPlan {
   incompleteReason?: string
 }
 
+/** The `sourceLabel` prefix that marks a registry-derived bake input. Single source. */
+const SOURCE_LABEL_PREFIX = "official-mcp-registry:"
+
+/**
+ * Recover the ORIGINAL reverse-DNS registry name (e.g. `io.github.calllint/calllint`)
+ * from a `BakeInput.sourceLabel`, or `undefined` for any non-registry input (fixtures,
+ * expansion). The inverse of the `sourceLabel` construction below; the namespace-claim
+ * matcher (ADR 0047 §3, D6) keys off this original name — NEVER the lossy `canonicalName`
+ * slug, which flattens the reverse-DNS `/` boundary into `-`.
+ */
+export function registryNameFromSourceLabel(sourceLabel: string): string | undefined {
+  return sourceLabel.startsWith(SOURCE_LABEL_PREFIX)
+    ? sourceLabel.slice(SOURCE_LABEL_PREFIX.length)
+    : undefined
+}
+
 /**
  * Build the deterministic registry cohort from a committed snapshot. Sorted by
  * canonical name so ingestion order (and the emitted index) is stable across runs
@@ -56,7 +72,7 @@ export function registryCohort(snapshot: RegistrySnapshot): RegistryEntryPlan[] 
       input: {
         canonicalName,
         configText,
-        sourceLabel: `official-mcp-registry:${entry.name}`,
+        sourceLabel: `${SOURCE_LABEL_PREFIX}${entry.name}`,
         observedAt: snapshot.fetchedAt,
       },
     }
