@@ -76,8 +76,13 @@ describe("bake claim overlay (fixtures cohort, no snapshot)", () => {
     expect(target).toContain("Verified Publisher")
     expect(target).toContain("github.com/octo-org")
     expect(target).toContain("it is not a safety claim")
-    // A DIFFERENT baked fixture stays unclaimed (no block leaks across pages).
-    const other = claimed.files.find((f) => f.path.endsWith(".html") && !f.path.startsWith(TARGET))!
+    // A DIFFERENT baked resource page stays unclaimed (no block leaks across pages).
+    // Scoped to namespaced resource pages (path contains "/"); the site-chrome
+    // `app-created.html` is the post-install landing page and shows the Verified
+    // Publisher framing by design (ADR 0048 §6), so it is deliberately excluded here.
+    const other = claimed.files.find(
+      (f) => f.path.endsWith(".html") && f.path.includes("/") && !f.path.startsWith(TARGET),
+    )!
     expect(other.content).not.toContain("Verified Publisher")
   })
 

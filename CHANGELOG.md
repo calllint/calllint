@@ -12,6 +12,21 @@ onward. While pre-1.0, minor versions may include breaking changes.
 
 ### Added
 
+- **Claim funnel — post-install landing page (`/trust/app-created.html`).** Closes the
+  one offline gap in the maintainer-claim funnel: the CallLint Trust GitHub App's
+  `redirect_url` already points at `https://calllint.com/trust/app-created.html`, but the
+  page did not exist, so a maintainer who installed the App landed on a 404. The page now
+  renders through the bake (`renderAppCreatedPage` in `@calllint/trust-index`, emitted by
+  `emitAllCohorts` as site chrome — **not** an index resource), so it survives the
+  destructive re-bake and is pinned byte-for-byte by the committed-tree reproducibility
+  gate. It reuses the marketing-site chrome (`/styles.css`) rather than the bare
+  Trust-Page shell, explains the async delay honestly (the Verified Publisher note appears
+  on the next scheduled refresh, not instantly), and offers the embeddable Trust badge.
+  Boundary-safe by construction: it records **namespace control, never safety**, states no
+  verdict, carries no page digest, and passes `check:public-copy` (checks 15–20) with **no
+  guard change** — it takes check 19's claimed-page branch (shows "Verified Publisher",
+  never re-solicits an install). The 38 existing served pages and `index.json` are
+  byte-identical (a claim/funnel page never moves a verdict, ADR 0047/0048 §2, ADR 0053 §3).
 - **Gate B PASSED — human-calibration sign-offs (PR #211).** The nine negative-verdict
   Trust Pages (7 BLOCK + 2 high-severity REVIEW) are each dual-reviewed by two distinct
   humans; the committed calibration projection now reports **9/9 dual-reviewed, blocker

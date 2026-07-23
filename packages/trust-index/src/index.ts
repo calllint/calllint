@@ -28,6 +28,7 @@ export {
   CORRECTION_URL,
   CLAIM_APP_URL,
 } from "./renderPage.js"
+export { renderAppCreatedPage } from "./renderAppCreated.js"
 export {
   emitAllCohorts,
   SERVE_PREFIX,

@@ -22,6 +22,7 @@ import {
   type EvidenceBundle,
 } from "@calllint/evidence"
 import { renderHtml, renderSidecar } from "./renderPage.js"
+import { renderAppCreatedPage } from "./renderAppCreated.js"
 import { buildEvidenceManifest } from "./evidenceManifest.js"
 import { verifiedPublisherForNamespace, EMPTY_CLAIM_STORE, type ClaimStore } from "./claim.js"
 
@@ -258,6 +259,13 @@ export function emitAllCohorts(
     entries: index,
   }
   files.push({ path: `index.json`, content: JSON.stringify(indexDoc, null, 2) + "\n" })
+
+  // The post-install claim-funnel landing page (ADR 0047/0048). Site chrome under
+  // `/trust/`, NOT a resource: emitted unconditionally, deterministic, and deliberately
+  // absent from `index`, so `index.json` and the completeness count stay byte-identical.
+  // It is the target of the GitHub App's `redirect_url`; without it the claim funnel
+  // dead-ends on a 404.
+  files.push({ path: `app-created.html`, content: renderAppCreatedPage() })
 
   // Sort files by path so the emitted set is order-stable.
   files.sort((a, b) => (a.path < b.path ? -1 : a.path > b.path ? 1 : 0))
