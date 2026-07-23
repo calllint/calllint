@@ -49,6 +49,21 @@ export async function loadSidecar(read: AssetReader, canonicalName: string): Pro
   }
 }
 
+/**
+ * Load the Evidence Manifest sibling (`{name}.manifest.json`) for a canonicalName;
+ * null if absent/malformed. The manifest is a committed, digest-addressed projection
+ * of the page (PR-D4) — read verbatim like the sidecar, never resolved or re-scored.
+ */
+export async function loadManifest(read: AssetReader, canonicalName: string): Promise<Record<string, unknown> | null> {
+  const text = await read(`trust/${canonicalName}.manifest.json`)
+  if (text == null) return null
+  try {
+    return JSON.parse(text) as Record<string, unknown>
+  } catch {
+    return null
+  }
+}
+
 /** Wrap a pre-baked sidecar into the versioned public envelope. */
 export function toEnvelope(
   kind: ApiEnvelope["kind"],

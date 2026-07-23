@@ -65,6 +65,38 @@ describe("partner-api router — contract over real baked artifacts", () => {
     // data is either the authority object (schema calllint.authority.v0) or null.
     if (body.data) expect(body.data.schema).toBe("calllint.authority.v0")
   })
+
+  it("GET /resources/{ns}/{name}/manifest returns the Evidence Manifest projection (PR-D4)", async () => {
+    const e = await firstEntry((x) => x.status === "baked")
+    const res = await handleApiRequest({ method: "GET", path: `/v1/public/resources/${e.canonicalName}/manifest` }, read)
+    expect(res.status).toBe(200)
+    const body = JSON.parse(res.body)
+    expect(body.kind).toBe("manifest")
+    // The wrapped data is the committed manifest, carrying the verdict VERBATIM.
+    expect(body.data.schema).toBe("calllint.evidence-manifest.v1")
+    expect(body.data.verdict).toBe(e.verdict)
+    expect(body.data.subject.artifactDigest).toBe(e.artifactDigest)
+    // The committed body is unsigned (signed as a separate, non-deterministic step).
+    expect(body.data.signature).toBeNull()
+    // Same read-only cache/CORS/ETag posture as the other routes.
+    expect(res.headers.etag).toBe(`"${e.pageDigest}"`)
+    expect(res.headers["access-control-allow-origin"]).toBe("*")
+  })
+
+  it("manifest route honors conditional GET (If-None-Match → 304)", async () => {
+    const e = await firstEntry((x) => x.status === "baked")
+    const res = await handleApiRequest(
+      { method: "GET", path: `/v1/public/resources/${e.canonicalName}/manifest`, headers: { "if-none-match": `"${e.pageDigest}"` } },
+      read,
+    )
+    expect(res.status).toBe(304)
+    expect(res.body).toBe("")
+  })
+
+  it("404s a manifest for an unknown resource", async () => {
+    const res = await handleApiRequest({ method: "GET", path: "/v1/public/resources/mcp-registry/does.not-exist/manifest" }, read)
+    expect(res.status).toBe(404)
+  })
 })
 
 describe("partner-api router — errors + guards", () => {

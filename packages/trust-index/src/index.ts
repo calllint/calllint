@@ -44,6 +44,13 @@ export {
   type FourDimensionStatus,
 } from "./evidenceLevel.js"
 export {
+  buildEvidenceManifest,
+  evidenceManifestBodyDigest,
+  signEvidenceManifest,
+  verifyEvidenceManifest,
+  type EvidenceManifestContext,
+} from "./evidenceManifest.js"
+export {
   runCalibrationAudit,
   CALIBRATION_THRESHOLDS,
   EMPTY_REVIEW_STORE,

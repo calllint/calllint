@@ -1,0 +1,177 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://calllint.com/schemas/evidence-manifest.schema.json",
+  "title": "CallLint Evidence Manifest",
+  "description": "A read-only PROJECTION (calllint.evidence-manifest.v1) of an already-decided Trust Page onto the ADR 0034 evidence discipline — the Decision Receipt's public, tool-portable sibling (same facts, projected). It carries the verdict + authority + completeness + digests VERBATIM and introduces NO new score, verdict vocabulary, or authority model (ADR 0053 §2). The signature attests WHO emitted the projection, never that the artifact is safe; the committed body ships `signature: null` and is signed as a separate, non-deterministic step. See ADR 0053 §2/§5 and docs/new12-integration.md §2.2.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "subject",
+    "verdict",
+    "verdictLabel",
+    "completeness",
+    "evidenceLevel",
+    "evidenceRationale",
+    "status",
+    "authority",
+    "policyDigest",
+    "reproducibility",
+    "engine",
+    "correctionUrl",
+    "generatedAt",
+    "signature"
+  ],
+  "properties": {
+    "schema": {
+      "const": "calllint.evidence-manifest.v1",
+      "description": "Manifest schema identity. Distinct from calllint.trust-page.v0 / calllint.evidence-provider.v0."
+    },
+    "subject": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["canonicalName", "artifactDigest"],
+      "properties": {
+        "canonicalName": { "type": "string", "minLength": 1 },
+        "artifactDigest": { "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" }
+      }
+    },
+    "verdict": {
+      "enum": ["SAFE", "REVIEW", "BLOCK", "UNKNOWN"],
+      "description": "The engine verdict, carried VERBATIM from the baked page — never recomputed by the projection."
+    },
+    "verdictLabel": {
+      "type": "string",
+      "minLength": 1,
+      "description": "The boundary-safe public label for the verdict (VERDICT_PUBLIC_LABEL). Never 'certified/verified safe'."
+    },
+    "completeness": {
+      "enum": ["complete", "partial"],
+      "description": "Evidence completeness of the underlying authority — how much was actually observed."
+    },
+    "evidenceLevel": {
+      "enum": ["E0", "E1", "E2", "E3", "E4", "E5", "E6"],
+      "description": "The evidence level reached (E0–E6), projected from the shipped preparation pipeline. Never combined with other dimensions into a score."
+    },
+    "evidenceRationale": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Honest one-line rationale for why this evidence level and not higher."
+    },
+    "status": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "The four INDEPENDENT status dimensions (ADR 0053 §5), never multiplied or averaged into one rating.",
+      "required": ["verdict", "completeness", "authorityClaimed", "reproducibility", "evidenceLevel"],
+      "properties": {
+        "verdict": { "enum": ["SAFE", "REVIEW", "BLOCK", "UNKNOWN"] },
+        "completeness": { "enum": ["complete", "partial"] },
+        "authorityClaimed": {
+          "type": "boolean",
+          "description": "Namespace control present/absent (control only, NEVER safety)."
+        },
+        "reproducibility": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["pageDigest", "observedAt"],
+          "properties": {
+            "pageDigest": { "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" },
+            "observedAt": { "type": "string", "minLength": 1 }
+          }
+        },
+        "evidenceLevel": { "enum": ["E0", "E1", "E2", "E3", "E4", "E5", "E6"] }
+      }
+    },
+    "authority": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "A faithful projection of the calllint.authority.v0 capability inventory — the shipped (action × resource) vocabulary, VERBATIM. Not a new capability taxonomy.",
+      "required": ["digest", "completeness", "capabilityCount", "approvalRequired", "capabilities"],
+      "properties": {
+        "digest": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$",
+          "description": "The authority manifest's own digest — a consumer can fetch /authority and verify against it."
+        },
+        "completeness": { "enum": ["complete", "partial"] },
+        "capabilityCount": { "type": "integer", "minimum": 0 },
+        "approvalRequired": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Normalized approval labels required across all capabilities (sorted, deduped) — verbatim from authority.approval.required."
+        },
+        "capabilities": {
+          "type": "array",
+          "description": "The decision-relevant slice of each shipped capability. Shipped vocabulary only; never renamed.",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["action", "resource", "mutability", "reversibility", "approvalRequirement"],
+            "properties": {
+              "action": {
+                "enum": ["read", "write", "execute", "connect", "send", "mutate", "spend", "delegate", "persist"]
+              },
+              "resource": {
+                "enum": ["filesystem", "secret", "process", "network", "database", "message", "financial", "identity", "agent", "configuration"]
+              },
+              "mutability": { "enum": ["read-only", "mutating"] },
+              "reversibility": { "enum": ["reversible", "irreversible", "n/a"] },
+              "approvalRequirement": { "enum": ["none", "review", "block"] }
+            }
+          }
+        }
+      }
+    },
+    "policyDigest": {
+      "type": ["string", "null"],
+      "pattern": "^sha256:[0-9a-f]{64}$",
+      "description": "The policy digest from the bound decision, if any. Honest null for a static config-only page that carries no decision."
+    },
+    "reproducibility": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["pageDigest", "observedAt"],
+      "properties": {
+        "pageDigest": { "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" },
+        "observedAt": { "type": "string", "minLength": 1 }
+      }
+    },
+    "engine": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "The projecting engine. `version` is deliberately omitted from the committed body: a mutable release version would break byte-reproducibility, and it belongs with the (non-deterministic) signature at emit time.",
+      "required": ["name"],
+      "properties": {
+        "name": { "const": "calllint" }
+      }
+    },
+    "correctionUrl": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Where a viewer disputes or corrects the projection (ADR 0038 §5)."
+    },
+    "generatedAt": {
+      "type": "string",
+      "minLength": 1,
+      "description": "ISO-8601 UTC. Equals the page's pinned observedAt so the committed manifest is byte-reproducible."
+    },
+    "signature": {
+      "description": "ed25519 signature attesting WHO emitted the projection (never safety). Null in the byte-reproducible committed body; attached as a separate, non-deterministic step (reuses @calllint/signature).",
+      "oneOf": [
+        { "type": "null" },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["algorithm", "key_id", "value", "signed_at"],
+          "properties": {
+            "algorithm": { "const": "ed25519" },
+            "key_id": { "type": "string", "minLength": 1 },
+            "value": { "type": "string", "minLength": 1 },
+            "signed_at": { "type": "string", "minLength": 1 },
+            "public_key_url": { "type": "string" }
+          }
+        }
+      ]
+    }
+  }
+}

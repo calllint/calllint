@@ -1,0 +1,40 @@
+{
+  "schema": "calllint.evidence-manifest.v1",
+  "subject": {
+    "canonicalName": "calllint-fixtures/unknown-unrecognized-shape",
+    "artifactDigest": "sha256:1f94b03fad0165713094e233104b57e21bba31c3edfb56728e44eb6dd0f2ca42"
+  },
+  "verdict": "UNKNOWN",
+  "verdictLabel": "Insufficient evidence",
+  "completeness": "complete",
+  "evidenceLevel": "E2",
+  "evidenceRationale": "install config observed → static blast radius normalized into an authority inventory. Higher levels (E3 tool schema, E4 maintainer receipt, E5 sandbox) are not carried by a static page.",
+  "status": {
+    "verdict": "UNKNOWN",
+    "completeness": "complete",
+    "authorityClaimed": false,
+    "reproducibility": {
+      "pageDigest": "sha256:d728959b5a5620380f50b5d5dfc03f4a308e69b8a55e9bd4ac36d9502d26d3d1",
+      "observedAt": "1970-01-01T00:00:00.000Z"
+    },
+    "evidenceLevel": "E2"
+  },
+  "authority": {
+    "digest": "sha256:8ff653a88417476d85942d2af739b57d262d632b4675bdb7a1e4540824cec1ec",
+    "completeness": "complete",
+    "capabilityCount": 0,
+    "approvalRequired": [],
+    "capabilities": []
+  },
+  "policyDigest": null,
+  "reproducibility": {
+    "pageDigest": "sha256:d728959b5a5620380f50b5d5dfc03f4a308e69b8a55e9bd4ac36d9502d26d3d1",
+    "observedAt": "1970-01-01T00:00:00.000Z"
+  },
+  "engine": {
+    "name": "calllint"
+  },
+  "correctionUrl": "https://github.com/calllint/calllint/issues/new?labels=trust-page-correction",
+  "generatedAt": "1970-01-01T00:00:00.000Z",
+  "signature": null
+}

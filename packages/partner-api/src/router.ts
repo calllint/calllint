@@ -1,7 +1,7 @@
 import type { ApiRequest, ApiResponse, AssetReader } from "./types.js"
 import { API_BASE } from "./types.js"
 import { ok, err, preflight } from "./http.js"
-import { isDigest, loadIndex, findByName, findByDigest, loadSidecar, toEnvelope } from "./lookup.js"
+import { isDigest, loadIndex, findByName, findByDigest, loadSidecar, loadManifest, toEnvelope } from "./lookup.js"
 
 /**
  * The read-only Partner API router (ADR 0038 §3-§4, ADR 0046 §4-§5).
@@ -10,6 +10,7 @@ import { isDigest, loadIndex, findByName, findByDigest, loadSidecar, toEnvelope 
  *   - /artifacts/{digest}                    → resource by immutable digest
  *   - /resources/{ns}/{name}                 → resource by canonical name
  *   - /resources/{ns}/{name}/authority       → just the authority slice
+ *   - /resources/{ns}/{name}/manifest        → the Evidence Manifest projection (PR-D4)
  *
  * It reads ONLY pre-baked, committed artifacts through `read`. It never
  * resolves, fetches, or scans — no scanner is in this deployable by
@@ -41,17 +42,28 @@ export async function handleApiRequest(req: ApiRequest, read: AssetReader): Prom
     return ok(toEnvelope("artifact", sidecar, sidecar), String(entry.pageDigest ?? ""), ifNoneMatch)
   }
 
-  // /resources/{ns}/{name}[/authority]
-  if (parts[0] === "resources" && (parts.length === 3 || (parts.length === 4 && parts[3] === "authority"))) {
+  // /resources/{ns}/{name}[/authority|/manifest]
+  const SUBROUTES = new Set(["authority", "manifest"])
+  if (
+    parts[0] === "resources" &&
+    (parts.length === 3 || (parts.length === 4 && SUBROUTES.has(parts[3]!)))
+  ) {
     const name = `${parts[1]}/${parts[2]}`
     const entry = findByName(idx, name)
     if (!entry) return err(404, "not_found", "No baked page for that resource.")
     const sidecar = await loadSidecar(read, name)
     if (!sidecar) return err(404, "not_found", "Resource page is not available.")
-    if (parts.length === 4) {
+    if (parts[3] === "authority") {
       const prep = sidecar.preparation as Record<string, unknown> | undefined
       const authority = prep?.authority ?? null
       return ok(toEnvelope("authority", sidecar, authority), String(entry.pageDigest ?? ""), ifNoneMatch)
+    }
+    if (parts[3] === "manifest") {
+      // The committed Evidence Manifest projection (PR-D4), served verbatim. Absent
+      // only if the tree predates D4 — a 404 (never a fabricated manifest).
+      const manifest = await loadManifest(read, name)
+      if (!manifest) return err(404, "not_found", "Evidence manifest is not available.")
+      return ok(toEnvelope("manifest", sidecar, manifest), String(entry.pageDigest ?? ""), ifNoneMatch)
     }
     return ok(toEnvelope("resource", sidecar, sidecar), String(entry.pageDigest ?? ""), ifNoneMatch)
   }

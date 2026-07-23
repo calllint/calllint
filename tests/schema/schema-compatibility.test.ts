@@ -238,6 +238,14 @@ const CASES: Case[] = [
     ),
     malformed: { schema_version: "calllint.evidence-provider.v0", completeness: "totally" },
   },
+  {
+    // The Evidence Manifest (calllint.evidence-manifest.v1, PR-D4) is a committed,
+    // digest-addressed projection — validate a REAL served manifest, so the schema
+    // can never drift from the emitter (same discipline as the other cases).
+    schema: "evidence-manifest",
+    valid: readJson("apps/web/public/trust/calllint-fixtures/block-observed-payment.manifest.json"),
+    malformed: { schema: "calllint.evidence-manifest.v1", verdict: "MAYBE" },
+  },
 ]
 
 describe("schema compatibility — every committed schema accepts real output + rejects malformed", () => {
@@ -277,6 +285,7 @@ describe("schema compatibility — every committed schema accepts real output + 
       "authority-manifest",
       "decision",
       "decision-receipt",
+      "evidence-manifest",
       "evidence-provider",
       "flow",
       "install-plan",

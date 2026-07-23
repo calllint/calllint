@@ -22,6 +22,7 @@ import {
   type EvidenceBundle,
 } from "@calllint/evidence"
 import { renderHtml, renderSidecar } from "./renderPage.js"
+import { buildEvidenceManifest } from "./evidenceManifest.js"
 import { verifiedPublisherFor, EMPTY_CLAIM_STORE, type ClaimStore } from "./claim.js"
 
 /**
@@ -130,6 +131,12 @@ function bakeItems(
       const publisher = verifiedPublisherFor(claims, page.canonicalName)
       files.push({ path: `${base}.json`, content: renderSidecar(page, publisher) })
       files.push({ path: `${base}.html`, content: renderHtml(page, publisher) })
+      // The Evidence Manifest sibling (PR-D4): a portable, signed-capable projection of
+      // this page onto the ADR 0034 discipline. Committed body carries `signature: null`
+      // (deterministic ⇒ reproducibility gate holds). `authorityClaimed` mirrors the same
+      // (revocable) claim overlay as the sidecar, so it never touches the page digest.
+      const manifest = buildEvidenceManifest(page, { authorityClaimed: publisher !== undefined })
+      files.push({ path: `${base}.manifest.json`, content: JSON.stringify(manifest, null, 2) + "\n" })
       index.push({
         canonicalName: page.canonicalName,
         status: "baked",

@@ -10,6 +10,32 @@ onward. While pre-1.0, minor versions may include breaking changes.
 
 ## [Unreleased]
 
+### Added
+
+- **Gate B PASSED — human-calibration sign-offs (PR #211).** The nine negative-verdict
+  Trust Pages (7 BLOCK + 2 high-severity REVIEW) are each dual-reviewed by two distinct
+  humans; the committed calibration projection now reports **9/9 dual-reviewed, blocker
+  precision 100%, 0 dangerous false-SAFE**, so `pnpm audit:calibration --gate` exits 0.
+  This is the ADR 0053 §4 `REVIEW_HOLD` exit condition, and it unblocks Gate C. The
+  sign-offs are human data recorded in `review-store.json`; the tooling only projects and
+  enforces them — it never signs a review or moves a verdict.
+- **Gate C / D4 — Evidence Manifest (`calllint.evidence-manifest.v1`).** A read-only,
+  tool-portable projection of a decided Trust Page onto the ADR 0034 evidence discipline —
+  "the Decision Receipt's public sibling: same facts, projected." It carries the verdict,
+  authority capabilities (shipped `action × resource` vocabulary), completeness, evidence
+  level (E0–E6), and digests **verbatim**, and introduces **no** new score, verdict
+  vocabulary, or authority model (ADR 0053 §2/§5). Shipped as: a JSON Schema
+  (`schemas/evidence-manifest.schema.json`); the portable `EvidenceManifest` type in
+  `@calllint/evidence`; `buildEvidenceManifest` + `signEvidenceManifest` /
+  `verifyEvidenceManifest` in `@calllint/trust-index` (ed25519 signing reuses
+  `@calllint/signature`, no new scheme); a committed `{name}.manifest.json` sibling for
+  every baked page; and a read-only serve route
+  `GET /v1/public/resources/{ns}/{name}/manifest`. The committed manifest body carries
+  `signature: null` and is byte-reproducible, so the committed-tree gate holds and the
+  additive change touches no existing page bytes. The signature attests **who emitted the
+  projection**, never that the artifact is safe; a live CI signing key / OIDC is a
+  deliberate follow-on (sign/verify are shipped and tested but not yet CI-wired).
+
 ## [1.7.3] — 2026-07-22 — Distribution dogfood, ADR 0053 boundary & Trust Index Gate A/B
 
 A distribution-productionization patch. It cuts what accumulated on `main` after 1.7.2:
