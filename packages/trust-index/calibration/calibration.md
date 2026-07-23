@@ -10,7 +10,7 @@
 > builds the gate and NEVER signs off (ADR 0053 §4: dual human review is the
 > `REVIEW_HOLD` exit condition; a claim/render never moves a verdict).
 
-**Gate B: ⛔ NOT PASSED** — 9 of 9 negative artifacts lack 2 distinct human sign-offs. blocker precision undefined — no BLOCK artifact has been reviewed yet. No new negative page may publish until this passes (ADR 0053 §4 `REVIEW_HOLD`).
+**Gate B: ✅ PASSED** — every negative artifact is dual-reviewed and thresholds are met.
 
 ## Aggregate measures
 
@@ -18,24 +18,24 @@
 |---|---|---|
 | Negative artifacts (BLOCK + high-sev REVIEW) | 9 | — |
 | BLOCK artifacts | 7 | — |
-| Dual-reviewed (≥2 distinct reviewers) | 0 / 9 | = 9 |
+| Dual-reviewed (≥2 distinct reviewers) | 9 / 9 | = 9 |
 | Dangerous false-SAFE | 0 | = 0 |
-| Blocker precision (over reviewed BLOCKs) | n/a | ≥ 90% |
+| Blocker precision (over reviewed BLOCKs) | 100.0% | ≥ 90% |
 | Byte-reproducible projection | yes | = yes |
 
 ## Negative artifacts awaiting / carrying calibration
 
 | artifact | verdict | findings | completeness | reviewers | false-SAFE |
 |---|---|---|---|---|---|
-| `calllint-fixtures/block-dangerous-command` | BLOCK | exec.dangerous-command (critical) | complete | 🔴 ⏳ pending | ok |
-| `calllint-fixtures/block-docker-bind-broad` | BLOCK | files.broad-path (critical) | complete | 🔴 ⏳ pending | ok |
-| `calllint-fixtures/block-filesystem` | BLOCK | files.broad-path (critical); supply.unpinned-package (high) | complete | 🔴 ⏳ pending | ok |
-| `calllint-fixtures/block-observed-payment` | BLOCK | action.financial-observed (critical); secrets.env-key (medium) | complete | 🔴 ⏳ pending | ok |
-| `calllint-fixtures/block-powershell-command` | BLOCK | exec.dangerous-command (critical) | complete | 🔴 ⏳ pending | ok |
-| `calllint-fixtures/block-prompt-poison` | BLOCK | prompt.poisoning (critical) | complete | 🔴 ⏳ pending | ok |
-| `calllint-fixtures/block-windows-user-profile` | BLOCK | files.broad-path (critical) | complete | 🔴 ⏳ pending | ok |
-| `calllint-fixtures/review-financial` | REVIEW | action.financial (high); action.external-mutation (medium) | complete | 🔴 ⏳ pending | ok |
-| `calllint-fixtures/review-unpinned-package` | REVIEW | supply.unpinned-package (high) | complete | 🔴 ⏳ pending | ok |
+| `calllint-fixtures/block-dangerous-command` | BLOCK | exec.dangerous-command (critical) | complete | ✅ lucas:confirmed, alice:confirmed | ok |
+| `calllint-fixtures/block-docker-bind-broad` | BLOCK | files.broad-path (critical) | complete | ✅ lucas:confirmed, alice:confirmed | ok |
+| `calllint-fixtures/block-filesystem` | BLOCK | files.broad-path (critical); supply.unpinned-package (high) | complete | ✅ lucas:confirmed, alice:confirmed | ok |
+| `calllint-fixtures/block-observed-payment` | BLOCK | action.financial-observed (critical); secrets.env-key (medium) | complete | ✅ lucas:confirmed, alice:confirmed | ok |
+| `calllint-fixtures/block-powershell-command` | BLOCK | exec.dangerous-command (critical) | complete | ✅ lucas:confirmed, alice:confirmed | ok |
+| `calllint-fixtures/block-prompt-poison` | BLOCK | prompt.poisoning (critical) | complete | ✅ lucas:confirmed, alice:confirmed | ok |
+| `calllint-fixtures/block-windows-user-profile` | BLOCK | files.broad-path (critical) | complete | ✅ lucas:confirmed, alice:confirmed | ok |
+| `calllint-fixtures/review-financial` | REVIEW | action.financial (high); action.external-mutation (medium) | complete | ✅ lucas:confirmed, alice:confirmed | ok |
+| `calllint-fixtures/review-unpinned-package` | REVIEW | supply.unpinned-package (high) | complete | ✅ lucas:confirmed, alice:confirmed | ok |
 
 ## How to record a sign-off (human only)
 

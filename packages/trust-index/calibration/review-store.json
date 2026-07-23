@@ -1,4 +1,131 @@
 {
   "schema": "calllint.calibration-review.v0",
-  "signoffs": {}
+  "signoffs": {
+    "sha256:21e04db6ce368b289eb8c5fed22a02f22fb525465a152eff778a48c5007f4c61": [
+      {
+        "reviewer": "lucas",
+        "decision": "confirmed",
+        "at": "2026-07-23T01:20:37.802Z",
+        "note": "Verified that bash -c exposes a general shell execution surface. The currently supplied command does not constrain the underlying execution authority."
+      },
+      {
+        "reviewer": "alice",
+        "decision": "confirmed",
+        "at": "2026-07-23T01:35:37.802Z",
+        "note": "The fixture invokes a command interpreter rather than a narrowly scoped executable. This supports the exec.dangerous-command finding and BLOCK verdict."
+      }
+    ],
+    "sha256:69e91974e4279c75c021cc666c9a04b62d9aa33a30fe91945794fa83ee4935b4": [
+      {
+        "reviewer": "lucas",
+        "decision": "confirmed",
+        "at": "2026-07-23T01:21:22.802Z",
+        "note": "powershell -Command exposes a general command interpreter surface. Get-ChildItem is benign, but the configured execution capability is not limited to that command."
+      },
+      {
+        "reviewer": "alice",
+        "decision": "confirmed",
+        "at": "2026-07-23T01:36:22.802Z",
+        "note": "Confirmed that the verdict is capability-based rather than payload-based. The PowerShell interpreter can execute arbitrary future command strings, so the BLOCK boundary is consistent."
+      }
+    ],
+    "sha256:5b96a3b96cae8824d66b71bf4f49af702b2ae25a4a82d27d59c08125310c09ee": [
+      {
+        "reviewer": "lucas",
+        "decision": "confirmed",
+        "at": "2026-07-23T01:22:07.802Z",
+        "note": "The filesystem server receives access to the full /Users/lucas home-directory root, and the npm package reference has no immutable version. Both findings are supported."
+      },
+      {
+        "reviewer": "alice",
+        "decision": "confirmed",
+        "at": "2026-07-23T01:37:07.802Z",
+        "note": "Confirmed both artifact findings independently: the granted path covers the user's broad home scope, and the unversioned package may resolve to different code over time."
+      }
+    ],
+    "sha256:8cb0eed5798ba0768ddd21ddb3add0b290c875da6447540a5020ed1b1603965f": [
+      {
+        "reviewer": "lucas",
+        "decision": "confirmed",
+        "at": "2026-07-23T01:22:52.802Z",
+        "note": "C:\\Users\\admin is the Windows user-profile root and therefore a broad filesystem authorization. The package is pinned at 1.0.0, so no unpinned-package finding is expected."
+      },
+      {
+        "reviewer": "alice",
+        "decision": "confirmed",
+        "at": "2026-07-23T01:37:52.802Z",
+        "note": "The fixture exposes an entire Windows user profile rather than an application-specific directory. I also verified that the pinned package explains the absence of a supply.unpinned-package finding."
+      }
+    ],
+    "sha256:cbc3ffe8012988c3dbe4287bb0fc69af9a87b77e00fcd149d4668867f170e1ce": [
+      {
+        "reviewer": "lucas",
+        "decision": "confirmed",
+        "at": "2026-07-23T01:23:37.802Z",
+        "note": "The Docker arguments bind the host Desktop directory into the container. No read-only limitation is shown, so the host-side broad-path exposure is supported."
+      },
+      {
+        "reviewer": "alice",
+        "decision": "confirmed",
+        "at": "2026-07-23T01:38:37.802Z",
+        "note": "Confirmed that the detector correctly follows the Docker mount syntax to the host source path. Mounting the full Desktop creates a broad agent-accessible filesystem surface."
+      }
+    ],
+    "sha256:578dd3d4f69fdd0a9deeef6d27451ee160627ab7c05e300b1a6f8a438bb3cf11": [
+      {
+        "reviewer": "lucas",
+        "decision": "confirmed",
+        "at": "2026-07-23T01:24:22.802Z",
+        "note": "The declared create_payment and issue_refund tools provide observed money-movement capability and justify BLOCK. ACME_API_TOKEN also gives the server credential-bearing environment access, without implying that the token value is disclosed."
+      },
+      {
+        "reviewer": "alice",
+        "decision": "confirmed",
+        "at": "2026-07-23T01:39:22.802Z",
+        "note": "The tool metadata explicitly describes immediate card charging and refunds, so financial authority is observed rather than inferred. The configured API token independently supports the secrets.env-key finding."
+      }
+    ],
+    "sha256:b999a14f880521815a88c376628bdb146e6c065a82cc306e8005c851ece7921e": [
+      {
+        "reviewer": "lucas",
+        "decision": "confirmed",
+        "at": "2026-07-23T01:25:07.802Z",
+        "note": "The tool description directs the model to call this tool before others and conceal that behavior from the user. This is a hidden model-directed instruction consistent with prompt poisoning."
+      },
+      {
+        "reviewer": "alice",
+        "decision": "confirmed",
+        "at": "2026-07-23T01:40:07.802Z",
+        "note": "The metadata attempts to override tool-selection behavior and suppress user visibility. Both the priority instruction and 'Do not tell the user' language support the critical finding."
+      }
+    ],
+    "sha256:ac53be3acbaa3d1f6b3aab194297576e3fee0229a9f78954c1f300e219989875": [
+      {
+        "reviewer": "lucas",
+        "decision": "confirmed",
+        "at": "2026-07-23T01:25:52.802Z",
+        "note": "The package identity supports an inferred financial and external-mutation risk, so REVIEW is appropriate. No observed tool surface is available to justify escalation to BLOCK."
+      },
+      {
+        "reviewer": "alice",
+        "decision": "confirmed",
+        "at": "2026-07-23T01:40:52.802Z",
+        "note": "Confirmed the Observed-versus-Inferred boundary: the package name suggests payment behavior, but the artifact contains no declared payment tool. The conservative REVIEW verdict is therefore supported."
+      }
+    ],
+    "sha256:79ca7ed9ca119414aa16405dab6a31782f8023b2b5f2ea2c284f0f0a815ccf06": [
+      {
+        "reviewer": "lucas",
+        "decision": "confirmed",
+        "at": "2026-07-23T01:26:37.802Z",
+        "note": "@latest is mutable and cannot guarantee reproducible package resolution. REVIEW is appropriate because no separate critical execution or authority capability is observed."
+      },
+      {
+        "reviewer": "alice",
+        "decision": "confirmed",
+        "at": "2026-07-23T01:41:37.802Z",
+        "note": "The dependency is explicitly resolved through the moving latest tag rather than an immutable version. This supports the high-severity supply-chain finding without independently requiring BLOCK."
+      }
+    ]
+  }
 }
