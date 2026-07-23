@@ -20,6 +20,7 @@ import { VERDICT_PUBLIC_LABEL } from "@calllint/types"
 import type { BakedTrustPage } from "./bakeTrustPage.js"
 import type { VerifiedPublisher } from "./claim.js"
 import { evidenceLevel, EVIDENCE_LEVEL_META } from "./evidenceLevel.js"
+import { reproductionCommand, scanHistory } from "./pageProjections.js"
 
 /** Where a viewer disputes or corrects a page (ADR 0038 §5 correction link). */
 export const CORRECTION_URL =
@@ -86,6 +87,11 @@ export function renderSidecar(
     },
     verifiedPublisher,
     correctionUrl: CORRECTION_URL,
+    // Gate-C quality fields (PR-D5): HOW to replay the verdict, and WHEN it was
+    // observed. Both are pure projections over this page (no new score, no verdict
+    // movement); fixed position keeps the bytes stable for the reproducibility gate.
+    reproduction: reproductionCommand(page),
+    scanHistory: scanHistory(page),
     preparation: page.preparation,
     scan: page.scan,
   }
@@ -151,6 +157,30 @@ export function renderHtml(page: BakedTrustPage, verifiedPublisher?: VerifiedPub
 
   const noteItems = notes.map((n) => `<li>${esc(n)}</li>`).join("\n        ")
 
+  // Gate-C quality sections (PR-D5). "How to reproduce" gives the exact command to
+  // replay the verdict at the pinned digest; "Scan history" lists the observation(s)
+  // of this artifact. Both are boundary-safe: the reproduction note frames a re-run as
+  // reproducing an OBSERVED VERDICT, never as proving safety.
+  const repro = reproductionCommand(page)
+  const reproBlock = `
+      <h2>How to reproduce</h2>
+      <p>${esc(repro.note)}</p>
+      <pre><code>${esc(repro.command)}</code></pre>
+      <p>Reproduces the verdict observed at artifact digest
+         <code>${esc(repro.artifactDigest)}</code>.</p>`
+  const historyItems = scanHistory(page)
+    .map(
+      (h) =>
+        `<li>Observed at <time datetime="${esc(h.observedAt)}">${esc(h.observedAt)}</time> — ` +
+        `page digest <code>${esc(h.pageDigest)}</code></li>`,
+    )
+    .join("\n        ")
+  const historyBlock = `
+      <h2>Scan history</h2>
+      <ul>
+        ${historyItems}
+      </ul>`
+
   // Four INDEPENDENT status dimensions + the evidence level (ADR 0053 §5). These are
   // presented as separate rows and deliberately NEVER multiplied/averaged into a
   // single "trust score" — a page states four distinct things, not one number. The
@@ -199,6 +229,8 @@ ${publisherBlock}
       <ul>
         ${noteItems || "<li>None.</li>"}
       </ul>
+${reproBlock}
+${historyBlock}
 
       <h2>Provenance</h2>
       <ul>

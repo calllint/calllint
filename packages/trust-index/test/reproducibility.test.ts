@@ -46,6 +46,37 @@ describe("fixtureCohort", () => {
   })
 })
 
+// PR-D5 (Gate C): every page carries the reproduction command + scan history quality
+// fields, in the sidecar (machine-readable) and the HTML (human-readable), and both
+// stay boundary-safe + byte-reproducible.
+describe("Gate-C quality fields — reproduction command + scan history", () => {
+  for (const entry of verdictCases) {
+    it(`${entry.case.file} carries both quality fields, boundary-safe + reproducibly`, () => {
+      const page = bakeTrustPage(entry.input)
+      const sidecar = JSON.parse(renderSidecar(page))
+      // Reproduction: the exact scan command + the pinned digest it reproduces.
+      expect(sidecar.reproduction.command).toBe(
+        `npx calllint scan ${page.preparation.artifact.source}`,
+      )
+      expect(sidecar.reproduction.artifactDigest).toBe(page.artifactDigest)
+      // Scan history: an honest single-entry list of this artifact's observation.
+      expect(Array.isArray(sidecar.scanHistory)).toBe(true)
+      expect(sidecar.scanHistory).toHaveLength(1)
+      expect(sidecar.scanHistory[0].observedAt).toBe(page.observedAt)
+      // The HTML surfaces both as sections.
+      const html = renderHtml(page)
+      expect(html).toContain("How to reproduce")
+      expect(html).toContain("Scan history")
+      expect(html).toContain("npx calllint scan")
+      // Boundary: neither field leaks a forbidden phrase, and it re-bakes identically.
+      const lc = (renderHtml(page) + renderSidecar(page)).toLowerCase()
+      for (const phrase of FORBIDDEN) expect(lc, phrase).not.toContain(phrase)
+      expect(renderSidecar(bakeTrustPage(entry.input))).toBe(renderSidecar(page))
+      expect(renderHtml(bakeTrustPage(entry.input))).toBe(renderHtml(page))
+    })
+  }
+})
+
 describe("bakeTrustPage — verdict fidelity (never re-scored)", () => {
   for (const entry of verdictCases) {
     it(`bakes ${entry.case.file} with the fixture's expected verdict ${entry.case.expect}`, () => {

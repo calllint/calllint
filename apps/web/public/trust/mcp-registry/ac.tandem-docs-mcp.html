@@ -48,6 +48,17 @@
         <li>authority normalized: 1 capability, approvals required: external-network-access</li>
       </ul>
 
+      <h2>How to reproduce</h2>
+      <p>Re-running this scan reproduces the verdict observed at the pinned artifact digest. It is a point-in-time observation, not a guarantee of future behavior.</p>
+      <pre><code>npx calllint scan official-mcp-registry:ac.tandem/docs-mcp</code></pre>
+      <p>Reproduces the verdict observed at artifact digest
+         <code>sha256:ea5ff9be0d627a192408db08451d54dd04c54dda4ab0adca359f5a3b50e16ab1</code>.</p>
+
+      <h2>Scan history</h2>
+      <ul>
+        <li>Observed at <time datetime="2026-07-17T00:00:00.000Z">2026-07-17T00:00:00.000Z</time> — page digest <code>sha256:01e140aee111fdbe62526a3de718c7d9bdb856c8d042c63f55e974e8ca3ca9e4</code></li>
+      </ul>
+
       <h2>Provenance</h2>
       <ul>
         <li>Source: <code>official-mcp-registry:ac.tandem/docs-mcp</code>

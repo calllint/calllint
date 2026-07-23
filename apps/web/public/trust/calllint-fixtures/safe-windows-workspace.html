@@ -48,6 +48,17 @@
         <li>authority normalized: 1 capability</li>
       </ul>
 
+      <h2>How to reproduce</h2>
+      <p>Re-running this scan reproduces the verdict observed at the pinned artifact digest. It is a point-in-time observation, not a guarantee of future behavior.</p>
+      <pre><code>npx calllint scan safe-windows-workspace.json</code></pre>
+      <p>Reproduces the verdict observed at artifact digest
+         <code>sha256:86c53e93c8f18c9b97cc42fbfe1bb9d1f59f84ce27e976e68e8e54631ca83c8d</code>.</p>
+
+      <h2>Scan history</h2>
+      <ul>
+        <li>Observed at <time datetime="1970-01-01T00:00:00.000Z">1970-01-01T00:00:00.000Z</time> — page digest <code>sha256:c669b75074e4705be780246379b2f8b7613b587b45049be7fdbcd8ac559a5749</code></li>
+      </ul>
+
       <h2>Provenance</h2>
       <ul>
         <li>Source: <code>safe-windows-workspace.json</code>

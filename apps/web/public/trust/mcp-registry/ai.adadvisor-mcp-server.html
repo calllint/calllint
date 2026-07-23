@@ -48,6 +48,17 @@
         <li>authority normalized: 1 capability, approvals required: external-network-access</li>
       </ul>
 
+      <h2>How to reproduce</h2>
+      <p>Re-running this scan reproduces the verdict observed at the pinned artifact digest. It is a point-in-time observation, not a guarantee of future behavior.</p>
+      <pre><code>npx calllint scan official-mcp-registry:ai.adadvisor/mcp-server</code></pre>
+      <p>Reproduces the verdict observed at artifact digest
+         <code>sha256:2c230c28640a0dcf1b8cc1a66ab330296a2768ae055449b9494b28506f44c239</code>.</p>
+
+      <h2>Scan history</h2>
+      <ul>
+        <li>Observed at <time datetime="2026-07-17T00:00:00.000Z">2026-07-17T00:00:00.000Z</time> — page digest <code>sha256:7ef60c0009e27c5a262f0b3c106a5d120104a2634eb949554c494d6a5b6c5f8c</code></li>
+      </ul>
+
       <h2>Provenance</h2>
       <ul>
         <li>Source: <code>official-mcp-registry:ai.adadvisor/mcp-server</code>
