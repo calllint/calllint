@@ -46,7 +46,7 @@ export interface EnvelopePublisher {
 /** The public envelope wrapping a pre-baked Trust Page sidecar. */
 export interface ApiEnvelope {
   schema: typeof API_SCHEMA
-  kind: "resource" | "artifact" | "authority"
+  kind: "resource" | "artifact" | "authority" | "manifest"
   canonicalName: string
   artifactDigest: string
   pageDigest: string

@@ -1,0 +1,48 @@
+{
+  "schema": "calllint.evidence-manifest.v1",
+  "subject": {
+    "canonicalName": "calllint-fixtures/block-powershell-command",
+    "artifactDigest": "sha256:69e91974e4279c75c021cc666c9a04b62d9aa33a30fe91945794fa83ee4935b4"
+  },
+  "verdict": "BLOCK",
+  "verdictLabel": "Blocked by policy",
+  "completeness": "complete",
+  "evidenceLevel": "E2",
+  "evidenceRationale": "install config observed → static blast radius normalized into an authority inventory. Higher levels (E3 tool schema, E4 maintainer receipt, E5 sandbox) are not carried by a static page.",
+  "status": {
+    "verdict": "BLOCK",
+    "completeness": "complete",
+    "authorityClaimed": false,
+    "reproducibility": {
+      "pageDigest": "sha256:e402a59d9cc9547c7e630966d3b1ce3273990ba10214121fb57eb650f7424ca5",
+      "observedAt": "1970-01-01T00:00:00.000Z"
+    },
+    "evidenceLevel": "E2"
+  },
+  "authority": {
+    "digest": "sha256:64032d60f7b79f5ca36e93264bac49eae5a5fe929814eb27970eeffbd69f2419",
+    "completeness": "complete",
+    "capabilityCount": 1,
+    "approvalRequired": [],
+    "capabilities": [
+      {
+        "action": "execute",
+        "resource": "process",
+        "mutability": "mutating",
+        "reversibility": "irreversible",
+        "approvalRequirement": "none"
+      }
+    ]
+  },
+  "policyDigest": null,
+  "reproducibility": {
+    "pageDigest": "sha256:e402a59d9cc9547c7e630966d3b1ce3273990ba10214121fb57eb650f7424ca5",
+    "observedAt": "1970-01-01T00:00:00.000Z"
+  },
+  "engine": {
+    "name": "calllint"
+  },
+  "correctionUrl": "https://github.com/calllint/calllint/issues/new?labels=trust-page-correction",
+  "generatedAt": "1970-01-01T00:00:00.000Z",
+  "signature": null
+}

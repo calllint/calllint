@@ -1,0 +1,57 @@
+{
+  "schema": "calllint.evidence-manifest.v1",
+  "subject": {
+    "canonicalName": "calllint-fixtures/block-observed-payment",
+    "artifactDigest": "sha256:578dd3d4f69fdd0a9deeef6d27451ee160627ab7c05e300b1a6f8a438bb3cf11"
+  },
+  "verdict": "BLOCK",
+  "verdictLabel": "Blocked by policy",
+  "completeness": "complete",
+  "evidenceLevel": "E2",
+  "evidenceRationale": "install config observed → static blast radius normalized into an authority inventory. Higher levels (E3 tool schema, E4 maintainer receipt, E5 sandbox) are not carried by a static page.",
+  "status": {
+    "verdict": "BLOCK",
+    "completeness": "complete",
+    "authorityClaimed": false,
+    "reproducibility": {
+      "pageDigest": "sha256:58dc9a9c42f7e2917f96f2502ef9675b48f2ca717b4110b722a1d0203238fcde",
+      "observedAt": "1970-01-01T00:00:00.000Z"
+    },
+    "evidenceLevel": "E2"
+  },
+  "authority": {
+    "digest": "sha256:9bd7d13dca92f416098df154c660db8430676e81136a1f375bb97dca65db4012",
+    "completeness": "complete",
+    "capabilityCount": 2,
+    "approvalRequired": [
+      "secret-read"
+    ],
+    "capabilities": [
+      {
+        "action": "execute",
+        "resource": "process",
+        "mutability": "mutating",
+        "reversibility": "irreversible",
+        "approvalRequirement": "none"
+      },
+      {
+        "action": "read",
+        "resource": "secret",
+        "mutability": "read-only",
+        "reversibility": "n/a",
+        "approvalRequirement": "review"
+      }
+    ]
+  },
+  "policyDigest": null,
+  "reproducibility": {
+    "pageDigest": "sha256:58dc9a9c42f7e2917f96f2502ef9675b48f2ca717b4110b722a1d0203238fcde",
+    "observedAt": "1970-01-01T00:00:00.000Z"
+  },
+  "engine": {
+    "name": "calllint"
+  },
+  "correctionUrl": "https://github.com/calllint/calllint/issues/new?labels=trust-page-correction",
+  "generatedAt": "1970-01-01T00:00:00.000Z",
+  "signature": null
+}

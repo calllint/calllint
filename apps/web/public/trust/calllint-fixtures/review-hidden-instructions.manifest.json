@@ -1,0 +1,48 @@
+{
+  "schema": "calllint.evidence-manifest.v1",
+  "subject": {
+    "canonicalName": "calllint-fixtures/review-hidden-instructions",
+    "artifactDigest": "sha256:6cddab4f5ad9b47f58e821f667e041a91622ece242394749278040365687bab9"
+  },
+  "verdict": "REVIEW",
+  "verdictLabel": "Review required",
+  "completeness": "complete",
+  "evidenceLevel": "E2",
+  "evidenceRationale": "install config observed → static blast radius normalized into an authority inventory. Higher levels (E3 tool schema, E4 maintainer receipt, E5 sandbox) are not carried by a static page.",
+  "status": {
+    "verdict": "REVIEW",
+    "completeness": "complete",
+    "authorityClaimed": false,
+    "reproducibility": {
+      "pageDigest": "sha256:5cf94224cf756dc15625d492c7050ff25ca12ec7aade27c6a9cb0adc2d795afe",
+      "observedAt": "1970-01-01T00:00:00.000Z"
+    },
+    "evidenceLevel": "E2"
+  },
+  "authority": {
+    "digest": "sha256:681fc5063dcc72fbe22f735202ac14664f2effc610dfb6439417ea2489d06f03",
+    "completeness": "complete",
+    "capabilityCount": 1,
+    "approvalRequired": [],
+    "capabilities": [
+      {
+        "action": "execute",
+        "resource": "process",
+        "mutability": "mutating",
+        "reversibility": "irreversible",
+        "approvalRequirement": "none"
+      }
+    ]
+  },
+  "policyDigest": null,
+  "reproducibility": {
+    "pageDigest": "sha256:5cf94224cf756dc15625d492c7050ff25ca12ec7aade27c6a9cb0adc2d795afe",
+    "observedAt": "1970-01-01T00:00:00.000Z"
+  },
+  "engine": {
+    "name": "calllint"
+  },
+  "correctionUrl": "https://github.com/calllint/calllint/issues/new?labels=trust-page-correction",
+  "generatedAt": "1970-01-01T00:00:00.000Z",
+  "signature": null
+}

@@ -1,0 +1,48 @@
+{
+  "schema": "calllint.evidence-manifest.v1",
+  "subject": {
+    "canonicalName": "calllint-fixtures/safe-filesystem-workspace",
+    "artifactDigest": "sha256:e348a92f54aa515bf94c1a272b1caf2567445ce76742ca38a1b1acb17c04753f"
+  },
+  "verdict": "SAFE",
+  "verdictLabel": "No blockers observed",
+  "completeness": "complete",
+  "evidenceLevel": "E2",
+  "evidenceRationale": "install config observed → static blast radius normalized into an authority inventory. Higher levels (E3 tool schema, E4 maintainer receipt, E5 sandbox) are not carried by a static page.",
+  "status": {
+    "verdict": "SAFE",
+    "completeness": "complete",
+    "authorityClaimed": false,
+    "reproducibility": {
+      "pageDigest": "sha256:ffa85c39f2855bd9e95a778e83badebc32212edd49706f12978af20f6ae68b7c",
+      "observedAt": "1970-01-01T00:00:00.000Z"
+    },
+    "evidenceLevel": "E2"
+  },
+  "authority": {
+    "digest": "sha256:03ce28c6e089f457f3404b535454bf017a3c305258e0766e2183c2f71e71c660",
+    "completeness": "complete",
+    "capabilityCount": 1,
+    "approvalRequired": [],
+    "capabilities": [
+      {
+        "action": "execute",
+        "resource": "process",
+        "mutability": "mutating",
+        "reversibility": "irreversible",
+        "approvalRequirement": "none"
+      }
+    ]
+  },
+  "policyDigest": null,
+  "reproducibility": {
+    "pageDigest": "sha256:ffa85c39f2855bd9e95a778e83badebc32212edd49706f12978af20f6ae68b7c",
+    "observedAt": "1970-01-01T00:00:00.000Z"
+  },
+  "engine": {
+    "name": "calllint"
+  },
+  "correctionUrl": "https://github.com/calllint/calllint/issues/new?labels=trust-page-correction",
+  "generatedAt": "1970-01-01T00:00:00.000Z",
+  "signature": null
+}
