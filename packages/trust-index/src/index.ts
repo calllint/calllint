@@ -23,10 +23,14 @@ export {
 export {
   renderHtml,
   renderSidecar,
+  renderSitemap,
+  structuredData,
   observedStatement,
   pagePath,
+  pageUrl,
   CORRECTION_URL,
   CLAIM_APP_URL,
+  SITE_ORIGIN,
 } from "./renderPage.js"
 export { renderAppCreatedPage } from "./renderAppCreated.js"
 export {
