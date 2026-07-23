@@ -52,6 +52,25 @@ onward. While pre-1.0, minor versions may include breaking changes.
   re-bake is additive only (no existing verdict or digest changed; manifests and index
   untouched). Growing the registry snapshot beyond its committed entries remains a
   network- and human-gated follow-on (a `REVIEW_HOLD` content decision), out of scope here.
+- **Gate D / D6 (offline core) — publisher-namespace claim inheritance.** A single
+  publisher claim on a reverse-DNS namespace (e.g. `io.github.acme`) now confers the
+  `verifiedPublisher` overlay to **every** current and future child resource under that
+  namespace (ADR 0047 §3, ADR 0053 §3), instead of one claim per page. The coverage test
+  is **exact reverse-DNS segment equality** on the resource's **original** registry name,
+  never a string prefix on the flattened page slug — so `io.github.acme` does **not**
+  confer to a different account `io.github.acme-evil/*` (a prefix match would have been a
+  privilege escalation). Shipped as pure, deterministic additions to `@calllint/trust-index`:
+  an additive optional `registryNamespace` field on the claim record (absent ⇒ today's
+  exact-resource claim, verbatim), the `registryNamespaceOf` / `namespaceCovers` boundary
+  matcher, and a `verifiedPublisherForNamespace` resolver that **fails closed** (no cover,
+  ambiguous owners, or a revoked record ⇒ unclaimed) and preserves the existing exact-claim
+  behavior. A namespace child surfaces its **own** observed artifact digest (drift-transparent,
+  no cross-child leak). A claim still **never alters a verdict** and the overlay stays
+  outside the page digest, so the committed tree bakes byte-identically (zero-diff; the
+  reproducibility gate holds with no test change). Live domain verification via DNS-TXT /
+  `.well-known/calllint-claim`, the verification workflow, OIDC-in-CI, and the "Verify
+  publisher ownership" CTA remain a network- and human-gated follow-on (they need a real
+  external publisher to publish a record), out of scope here.
 
 ## [1.7.3] — 2026-07-22 — Distribution dogfood, ADR 0053 boundary & Trust Index Gate A/B
 

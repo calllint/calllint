@@ -13,7 +13,7 @@
  */
 import { bakeTrustPage, ConfigParseError, type BakeInput, type BakedTrustPage } from "./bakeTrustPage.js"
 import { fixtureCohort } from "./cohort.js"
-import { registryCohort } from "./registryCohort.js"
+import { registryCohort, registryNameFromSourceLabel } from "./registryCohort.js"
 import type { RegistrySnapshot } from "./snapshot.js"
 import { evidenceMap, type EvidenceSnapshot } from "./evidenceSnapshot.js"
 import {
@@ -23,7 +23,7 @@ import {
 } from "@calllint/evidence"
 import { renderHtml, renderSidecar } from "./renderPage.js"
 import { buildEvidenceManifest } from "./evidenceManifest.js"
-import { verifiedPublisherFor, EMPTY_CLAIM_STORE, type ClaimStore } from "./claim.js"
+import { verifiedPublisherForNamespace, EMPTY_CLAIM_STORE, type ClaimStore } from "./claim.js"
 
 /**
  * A candidate resource proposed for the PUBLIC Trust Index beyond the ADR-locked seed
@@ -126,9 +126,16 @@ function bakeItems(
     try {
       const page = bakeTrustPage({ ...item.input, evidence })
       const base = pageBase(page)
-      // Namespace-level claim overlay (fails closed; undefined ⇒ dropped by
-      // JSON.stringify ⇒ byte-identical unclaimed page). NOT part of pageDigest.
-      const publisher = verifiedPublisherFor(claims, page.canonicalName)
+      // Publisher claim overlay — honors exact-resource AND namespace-inheritance claims
+      // (D6). Keyed off the ORIGINAL reverse-DNS registry name (from sourceLabel), never
+      // the lossy canonicalName slug; fixtures/expansion have no registry name → no
+      // inheritance. Fails closed; undefined ⇒ dropped by JSON.stringify ⇒ byte-identical
+      // unclaimed page. NOT part of pageDigest (a claim never alters a verdict, ADR 0053 §3).
+      const publisher = verifiedPublisherForNamespace(claims, {
+        canonicalName: page.canonicalName,
+        registryName: registryNameFromSourceLabel(item.input.sourceLabel),
+        artifactDigest: page.artifactDigest,
+      })
       files.push({ path: `${base}.json`, content: renderSidecar(page, publisher) })
       files.push({ path: `${base}.html`, content: renderHtml(page, publisher) })
       // The Evidence Manifest sibling (PR-D4): a portable, signed-capable projection of
