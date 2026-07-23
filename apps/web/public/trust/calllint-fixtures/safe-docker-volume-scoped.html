@@ -48,6 +48,17 @@
         <li>authority normalized: 1 capability</li>
       </ul>
 
+      <h2>How to reproduce</h2>
+      <p>Re-running this scan reproduces the verdict observed at the pinned artifact digest. It is a point-in-time observation, not a guarantee of future behavior.</p>
+      <pre><code>npx calllint scan safe-docker-volume-scoped.json</code></pre>
+      <p>Reproduces the verdict observed at artifact digest
+         <code>sha256:663b1967cf0fbc03aa1fd71a85c355cda48c4a4c48f316da0d38616788e5fd86</code>.</p>
+
+      <h2>Scan history</h2>
+      <ul>
+        <li>Observed at <time datetime="1970-01-01T00:00:00.000Z">1970-01-01T00:00:00.000Z</time> — page digest <code>sha256:5558fbd1def73e499d7989fac8d54f5699e9fa6c8a0c5d37f310e95942bf3e2f</code></li>
+      </ul>
+
       <h2>Provenance</h2>
       <ul>
         <li>Source: <code>safe-docker-volume-scoped.json</code>

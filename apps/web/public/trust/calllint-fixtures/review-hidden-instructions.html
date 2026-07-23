@@ -48,6 +48,17 @@
         <li>authority normalized: 1 capability</li>
       </ul>
 
+      <h2>How to reproduce</h2>
+      <p>Re-running this scan reproduces the verdict observed at the pinned artifact digest. It is a point-in-time observation, not a guarantee of future behavior.</p>
+      <pre><code>npx calllint scan review-hidden-instructions.json</code></pre>
+      <p>Reproduces the verdict observed at artifact digest
+         <code>sha256:6cddab4f5ad9b47f58e821f667e041a91622ece242394749278040365687bab9</code>.</p>
+
+      <h2>Scan history</h2>
+      <ul>
+        <li>Observed at <time datetime="1970-01-01T00:00:00.000Z">1970-01-01T00:00:00.000Z</time> — page digest <code>sha256:5cf94224cf756dc15625d492c7050ff25ca12ec7aade27c6a9cb0adc2d795afe</code></li>
+      </ul>
+
       <h2>Provenance</h2>
       <ul>
         <li>Source: <code>review-hidden-instructions.json</code>

@@ -19,6 +19,18 @@
     "evidenceRationale": "install config observed → static blast radius normalized into an authority inventory. Higher levels (E3 tool schema, E4 maintainer receipt, E5 sandbox) are not carried by a static page."
   },
   "correctionUrl": "https://github.com/calllint/calllint/issues/new?labels=trust-page-correction",
+  "reproduction": {
+    "command": "npx calllint scan official-mcp-registry:ai.abmeter/abmeter",
+    "artifactDigest": "sha256:c3670bfc209140bc70cf9e1a03be811c8b0e968fab3737e45e0034fb10dfc2b0",
+    "note": "Re-running this scan reproduces the verdict observed at the pinned artifact digest. It is a point-in-time observation, not a guarantee of future behavior."
+  },
+  "scanHistory": [
+    {
+      "observedAt": "2026-07-17T00:00:00.000Z",
+      "pageDigest": "sha256:1813d90c4294569fc991f26aa3de653b566d2a0c2c67f7d6afdf8f519805569d",
+      "artifactDigest": "sha256:c3670bfc209140bc70cf9e1a03be811c8b0e968fab3737e45e0034fb10dfc2b0"
+    }
+  ],
   "preparation": {
     "schema": "calllint.trust-preparation.v0",
     "artifact": {

@@ -35,6 +35,23 @@ onward. While pre-1.0, minor versions may include breaking changes.
   additive change touches no existing page bytes. The signature attests **who emitted the
   projection**, never that the artifact is safe; a live CI signing key / OIDC is a
   deliberate follow-on (sign/verify are shipped and tested but not yet CI-wired).
+- **Gate C / D5 — page quality bar + publish-channel gate.** Completes the two missing
+  Gate-C per-page fields as pure, deterministic projections rendered into every Trust Page
+  sidecar and HTML: a **reproduction command** (`npx calllint scan <source>`, version-
+  agnostic, pinned to the observed artifact digest) and a **scan history** (an honest
+  single-entry list of the artifact's observation — never a fabricated prior scan). Adds
+  the ADR 0053 §4 / §2.6 **publish-channel classifier** (`AUTO_PUBLISH` / `REVIEW_HOLD` /
+  `SECURITY_HOLD`) as a pure function over the shipped `verdict` + finding
+  `severity`/`blocker` — it introduces no new score and **never moves a verdict**; it only
+  routes a page to a channel and fails closed (an unrecognized high-severity REVIEW → held
+  for human review). A CI gate test enforces the load-bearing invariant: every served page
+  is `AUTO_PUBLISH`, **or** it is a negative that has passed Gate B (dual human sign-off) —
+  and the non-`AUTO_PUBLISH` set is exactly the nine committed-signed digests, while the
+  whole real Official-MCP-Registry cohort is `AUTO_PUBLISH` (its `supply.unknown-remote`
+  REVIEW asserts CallLint's own non-verification, not a claim about the publisher). The
+  re-bake is additive only (no existing verdict or digest changed; manifests and index
+  untouched). Growing the registry snapshot beyond its committed entries remains a
+  network- and human-gated follow-on (a `REVIEW_HOLD` content decision), out of scope here.
 
 ## [1.7.3] — 2026-07-22 — Distribution dogfood, ADR 0053 boundary & Trust Index Gate A/B
 

@@ -44,6 +44,17 @@ export {
   type FourDimensionStatus,
 } from "./evidenceLevel.js"
 export {
+  publishChannel,
+  AUTO_PUBLISH_EVIDENCE_LIMITATION,
+  type PublishChannel,
+} from "./publishChannel.js"
+export {
+  reproductionCommand,
+  scanHistory,
+  type Reproduction,
+  type ScanHistoryEntry,
+} from "./pageProjections.js"
+export {
   buildEvidenceManifest,
   evidenceManifestBodyDigest,
   signEvidenceManifest,
