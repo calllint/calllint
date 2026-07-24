@@ -1,0 +1,29 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://calllint.com/schemas/calllint.trust-event.v1.schema.json",
+  "title": "CallLint Trust Event",
+  "description": "A first-party, privacy-preserving web-funnel event (calllint.trust-event.v1) that counts Trust-page → install-intent conversion with NO third-party vendor and NO LLM (new13 Phase 2.5-B; ADR 0055 §2/§5). This is the CLOSED, storable shape emitted by sanitizeTrustEvent (@calllint/trust-event-contract) — PII-free and cookie-free by construction: there is no free-text field that could carry a URL, prompt, or secret, and the only coarse dimension (pageBucket) is a server-side sha256 hash, never a raw path. The wire identity is the `schema` const tag, not the filename or $id (ADR 0043/0055 §5). It introduces no new score, verdict, or authority model and can never move a verdict or a page digest (ADR 0053 §3).",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "event", "ts"],
+  "properties": {
+    "schema": {
+      "const": "calllint.trust-event.v1",
+      "description": "Wire identity. Distinct from calllint.telemetry-event / calllint.trust-lookup-index.v1."
+    },
+    "event": {
+      "enum": ["trust_page_viewed", "trust_page_to_install", "app_created_viewed", "claim_cta_clicked"],
+      "description": "The closed funnel-event vocabulary. trust_page_viewed / trust_page_to_install are reused verbatim from the CLI telemetry vocabulary so the two never diverge; app_created_viewed / claim_cta_clicked are web-surface-specific."
+    },
+    "ts": {
+      "type": "string",
+      "minLength": 1,
+      "description": "ISO-8601 UTC observation instant, stamped server-side by the emitter (never client-set)."
+    },
+    "pageBucket": {
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$",
+      "description": "The one permitted coarse dimension, hashed SERVER-SIDE (ADR 0055 §2). A sha256 over a coarse page identifier — never a raw path, query, or referrer. Optional: absent when the emitter carried no dimension."
+    }
+  }
+}
