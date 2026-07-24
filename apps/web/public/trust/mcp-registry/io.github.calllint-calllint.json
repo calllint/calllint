@@ -10,18 +10,13 @@
   "status": {
     "verdict": "SAFE",
     "completeness": "complete",
-    "authorityClaimed": true,
+    "authorityClaimed": false,
     "reproducibility": {
       "pageDigest": "sha256:20091cded7699f05bf0238bb57d20f8452da1755dcbf909a3bd4627d32b84e8d",
       "observedAt": "2026-07-17T00:00:00.000Z"
     },
     "evidenceLevel": "E2",
     "evidenceRationale": "install config observed → static blast radius normalized into an authority inventory. Higher levels (E3 tool schema, E4 maintainer receipt, E5 sandbox) are not carried by a static page."
-  },
-  "verifiedPublisher": {
-    "owner": "calllint",
-    "verifiedAt": "2026-07-22T02:24:28.289Z",
-    "observedArtifactDigest": "sha256:23327771ad88957d59c5e72011d84504c7a737a297560277f358d12b8bd3a98b"
   },
   "correctionUrl": "https://github.com/calllint/calllint/issues/new?labels=trust-page-correction",
   "reproduction": {
