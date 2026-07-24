@@ -12,7 +12,8 @@
  * owner `octo-org`) across TWO states (active vs. empty). This test raises the bar on
  * three axes shipped code did not yet cover:
  *   1. PRODUCTION coordinates — CallLint's real record `mcp-registry/io.github.calllint-calllint`
- *      (installationId 147742681), asserted byte-equal to the COMMITTED SERVED page.
+ *      (installationId 148693982, the reactivate-leg grant; 147742681 is the revoked audit
+ *      record), asserted byte-equal to the COMMITTED SERVED page.
  *   2. the FULL three-leg lifecycle, driven through the SHIPPED `reconcileClaims` core
  *      (activate → revoke → reactivate), not a single toggle.
  *   3. an OBSERVABLE overlay (present → absent → present) so the digest-immutability is
@@ -42,13 +43,15 @@ import {
   SELF_CLAIM,
 } from "../src/selfClaimDogfood.js"
 
-/** The three injected observation instants (ISO-8601 UTC). The ACTIVATE instant is the
- *  committed record's own `verifiedAt`, so the activate leg reproduces CallLint's real
- *  served overlay exactly; REVOKE/REACTIVATE are later so the re-stamp is visible. */
+/** The three injected observation instants (ISO-8601 UTC) — the REAL production instants
+ *  recorded in `artifacts/phase-2.5-self-claim/ledger.json`, now that the live lifecycle has
+ *  completed 3/3. The REACTIVATE instant is the committed served record's own `verifiedAt`,
+ *  so the reactivate leg reproduces CallLint's CURRENT real served overlay exactly; ACTIVATE
+ *  and REVOKE are the earlier real instants (REVOKE = the revoked audit record's `verifiedAt`). */
 const TIMESTAMPS = {
   activate: "2026-07-22T02:24:28.289Z",
-  revoke: "2026-07-23T00:00:00.000Z",
-  reactivate: "2026-07-24T00:00:00.000Z",
+  revoke: "2026-07-24T08:45:34.399Z",
+  reactivate: "2026-07-24T09:44:55.534Z",
 } as const
 
 /** The subset of an `index.json` entry this proof reads. */
@@ -149,13 +152,15 @@ describe("Phase 2.5-A — self-claim production dogfood (activate → revoke →
     expect(r.overlay).toBeUndefined()
     expect((re.overlay as { owner?: string } | undefined)?.owner).toBe(SELF_CLAIM.account)
 
-    // Strongest production tie: the ACTIVATE overlay byte-equals the committed served
-    // page's own overlay (owner + verifiedAt + observedArtifactDigest). The served
-    // overlay carries no scopeDigest, so this holds regardless of the real installation
-    // scope — it depends only on the claimed coordinates, which are CallLint's real ones.
+    // Strongest production tie: the REACTIVATE overlay byte-equals the committed served
+    // page's own overlay (owner + verifiedAt + observedArtifactDigest). The committed page
+    // is now the REACTIVATED page (the live lifecycle completed 3/3), so the current served
+    // overlay carries the reactivate-leg `verifiedAt`. The served overlay carries no
+    // scopeDigest, so this holds regardless of the real installation scope — it depends only
+    // on the claimed coordinates, which are CallLint's real ones.
     const committed = JSON.parse(
       readFileSync(join(DEFAULT_OUT, `${SELF_CLAIM.canonicalName}.json`), "utf8"),
     ) as { verifiedPublisher?: unknown }
-    expect(a.overlay).toEqual(committed.verifiedPublisher)
+    expect(re.overlay).toEqual(committed.verifiedPublisher)
   })
 })

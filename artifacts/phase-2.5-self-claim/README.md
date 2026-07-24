@@ -13,26 +13,31 @@ byte changes here.
 
 ---
 
-## The honest state today: **1 / 3**
+## The honest state today: **3 / 3 — closed** (2026-07-24)
+
+All three legs were exercised on the **live** `calllint` account and the reconciled store
++ re-baked pages are committed. The load-bearing invariant held throughout: verdict
+**SAFE** and pageDigest **`sha256:20091cded7699f05bf0238bb57d20f8452da1755dcbf909a3bd4627d32b84e8d`**
+are byte-identical across all three legs (a claim never moved the verdict).
 
 | Leg | State | Proven by |
 |---|---|---|
-| **activate** | ✅ **done** (committed) | `packages/trust-index/claims/claim-store.json` holds exactly one `active` record for `mcp-registry/io.github.calllint-calllint`; the served page `apps/web/public/trust/mcp-registry/io.github.calllint-calllint.json` carries the matching `verifiedPublisher` overlay. |
-| **revoke** | ⏳ **pending a human action** | Needs the App **uninstalled** on `calllint`, then the verify job to commit the flip to `revoked`. |
-| **reactivate** | ⏳ **pending a human action** | Needs the App **re-installed**, then the verify job to commit a fresh `active` record. |
+| **activate** | ✅ **done** (committed) | The claim was minted (`installationId 147742681`, `verifiedAt 2026-07-22T02:24:28.289Z`) and the served page carried the matching `verifiedPublisher` overlay. Now the `revoked` audit record in `packages/trust-index/claims/claim-store.json`. |
+| **revoke** | ✅ **done** (committed) | The App was **uninstalled** on `calllint`; the verify job observed no installation and flipped the record to `revoked` (`verifiedAt 2026-07-24T08:45:34.399Z`, PR #220). The served overlay dropped — the verdict did **not** move. |
+| **reactivate** | ✅ **done** (committed) | The App was **re-installed** (a new grant, `installationId 148693982`); the verify job minted a fresh `active` record (`verifiedAt 2026-07-24T09:44:55.534Z`, PR #221) and kept the revoked one as an audit trail. The served overlay returned — the verdict still did **not** move. |
 
 The offline proof that the verdict + page digest are **byte-identical across all three
-legs** is already machine-checked, today, without waiting for the human action:
-`packages/trust-index/test/self-claim-dogfood.test.ts`. Run the readiness audit any time
-to see the committed N/3 state:
+legs** is machine-checked by `packages/trust-index/test/self-claim-dogfood.test.ts`. Run
+the readiness audit any time to see the committed N/3 state:
 
 ```bash
 pnpm audit:self-claim      # tsx scripts/audit-self-claim-readiness.ts
 ```
 
-It exits **0** while the lifecycle is legitimately partial (1/3 is the true state, not a
-failure) and exits **1** only on a genuine integrity fault (coordinate drift, an
-ambiguous >1-active self-claim, or a served overlay that disagrees with the store).
+It exits **0** on any legitimate committed state (whether partial or the current 3/3) and
+exits **1** only on a genuine integrity fault (coordinate drift, an ambiguous >1-active
+self-claim, or a served overlay that disagrees with the store). It currently reports
+**3/3, no integrity faults**.
 
 ---
 
@@ -142,5 +147,7 @@ overlay, never the verdict.
 An append-only, PII-free record of the three legs **as they actually happen** on the live
 account. It stores only public coordinates + the observed verdict/digest per leg — never a
 token, never anything that could move a verdict. Until a leg is performed, its entry stays
-`null`. See the committed `ledger.json` in this directory for the current state (activate
-recorded; revoke/reactivate `null` pending the human action).
+`null`. See the committed `ledger.json` in this directory for the current state — **all
+three legs are now recorded** (activate `2026-07-22T02:24:28.289Z`, revoke
+`2026-07-24T08:45:34.399Z`, reactivate `2026-07-24T09:44:55.534Z`), closing the dogfood
+3/3.
