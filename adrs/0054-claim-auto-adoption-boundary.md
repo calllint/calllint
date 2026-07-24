@@ -1,7 +1,9 @@
 # ADR 0054 — Claim Auto-Adoption: dropping the human merge safely
 
-- Status: Proposed
-- Date: 2026-07-23
+- Status: Accepted (2026-07-24) — **Option B**, and guardrail 1 verified already met.
+  The policy is adopted; live enablement is a bounded, no-op-until-first-install
+  follow-on (see "Decision record" below).
+- Date: 2026-07-23 (proposed), 2026-07-24 (accepted)
 - Refines: 0047 (maintainer-claim trust model — a claim states control, never safety),
   0048 (I2c claim mechanism — GitHub App install IS the control grant),
   0053 (distribution-index boundary — §1 human-gated publication, §4 publish channels)
@@ -153,6 +155,53 @@ never an opaque direct push.
 Option C is rejected explicitly: with `deploy-web.yml` lacking `needs: build-and-test`, a
 direct push to `main` would deploy claim bytes with **no** gate and **no** reviewable
 object — the opposite of the trust posture.
+
+## Decision record (2026-07-24)
+
+**Accepted: Option B.** The recommended option is adopted. Recording the four guardrails as
+satisfiable-and-satisfied — not merely proposing them — is the point of this update.
+
+**Guardrail 1 is already met (verified 2026-07-24).** Branch protection on `main`
+(ruleset "Protect main", id `17728504`) already lists **`build-and-test`** as a required
+status check with `strict: true`. `build-and-test` is the aggregator that fans in the whole
+`test` matrix, and that matrix runs **both** load-bearing gates on every PR:
+
+- the reproducibility gate — `committed-tree` runs inside the vitest suite (`- name: Test`,
+  [ci.yml](../.github/workflows/ci.yml)), so a claim-refresh that fails to re-bake
+  byte-identically fails `test` → fails `build-and-test` → **cannot merge**;
+- `check:public-copy` — a dedicated required step (`- name: Public-copy + version guard`,
+  `pnpm check:public-copy`), so a forbidden phrase, PII leak, or broken claim-funnel state
+  (checks 15–20) fails the gate too.
+
+So the human's diff-read is *already* machine-enforced for exactly the invariants
+guardrail 1 names. No branch-protection change is needed to satisfy the non-negotiable
+prerequisite; it was satisfied incidentally by the existing CI posture. **This ADR does not
+itself touch branch protection** (that surface is human/infra-owned and out of an offline
+PR's scope) — it records that the prerequisite already holds.
+
+**Guardrails 2–4** are properties the auto-merge *wiring* must carry when it is built; they
+are not code today. Guardrail 2 (overlay-only diff assertion) is a small, cheap check to add
+to the claim-verify workflow when auto-merge is wired. Guardrails 3 (snapshot ingestion stays
+human-gated) and 4 (PR object + `claim-store.json` ledger preserved) are already true of the
+current `trust-verify-claims.yml` / `trust-ingest.yml` split.
+
+**What "Accepted" does and does not change:**
+
+- **Does:** settles the policy question the user delegated ("use the free + most-automated
+  path"). Auto-adoption of the *claim overlay* is the sanctioned direction, and it is free
+  (a workflow `gh pr merge --auto` + a diff-scope assertion) and requires **no** relaxation
+  of any gate — guardrail 1 already stands.
+- **Does not:** flip on live auto-merge in this PR. Enabling it means editing
+  `trust-verify-claims.yml` (add guardrail-2 diff-scope assertion + `--auto` merge) — a
+  bounded follow-on that is a **no-op until the first real install** exists (the claim store
+  is empty today, so the claim-refresh PR is already a byte-identical no-op — see
+  [[claim-funnel-app-created-done]] / I2c: 0 installs, PR no-op). There is nothing to
+  auto-merge until a maintainer installs the App, so there is no urgency and no risk in
+  landing the *policy* now and the *wiring* when the first claim appears.
+
+**Reversibility unchanged:** if wired and a wrong attribution ever ships, disabling
+`--auto` (or removing `build-and-test` bypass, which does not exist) restores the human gate
+with no code rewrite (Consequences §"Reversible").
 
 ## Invariants preserved
 

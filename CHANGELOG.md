@@ -12,6 +12,21 @@ onward. While pre-1.0, minor versions may include breaking changes.
 
 ### Added
 
+- **Sitemap discovery wiring — `robots.txt` `Sitemap:` line.** Adds an origin
+  `apps/web/public/robots.txt` whose only directive is
+  `Sitemap: https://calllint.com/trust/sitemap.xml`, so the Trust Index sitemap is
+  auto-discovered by crawlers with no ongoing manual step. This is deliberately additive:
+  `calllint.com` is fronted by Cloudflare, which **prepends** its managed AI-crawler +
+  content-signals policy to `robots.txt` at the edge and serves the origin file after it
+  (verified live — the managed block appears first, then this file). The origin already
+  returned HTTP 200 for `/robots.txt` (the SPA catch-all), so adding a real file keeps
+  Cloudflare in the same append branch: the managed AI-crawler `Disallow` policy is
+  preserved and this file contributes only the `Sitemap:` reference. It declares **no**
+  `User-agent`/`Allow`/`Disallow`, so it can never silently widen crawler permission on its
+  own. (Supersedes the "`robots.txt` reference intentionally not included" note on the
+  discovery entry below — the Cloudflare append behavior is now verified, so the reference
+  is safe to ship.)
+
 - **Trust Page discovery — sitemap + structured data (SEO, no verdict movement).** Trust
   Pages are search-indexable (`robots: index,follow`) but nothing helped a crawler — or a
   maintainer — find them. The bake now emits a deterministic `trust/sitemap.xml` listing
@@ -33,10 +48,9 @@ onward. While pre-1.0, minor versions may include breaking changes.
   `pageDigest` and verdict — is **byte-identical** (proved by `git status` after the bake:
   1 new file, 38 modified `.html`, 0 modified `.json`). The committed-tree reproducibility
   gate auto-covers the new sitemap with no test edit; `check:public-copy` passes 15–20 over
-  the new bytes unchanged. (A `robots.txt` `Sitemap:` reference is intentionally **not**
-  included: the live `robots.txt` is Cloudflare edge-managed with a content-signals + AI-
-  crawler policy and has no repo source, so wiring the sitemap reference is deferred to a
-  deliberate decision rather than risk regressing that managed policy.)
+  the new bytes unchanged. (The `robots.txt` `Sitemap:` reference that makes this sitemap
+  auto-discoverable is now shipped — see the `robots.txt` entry above; the Cloudflare
+  edge-managed append behavior was verified before wiring it.)
 - **Claim funnel — post-install landing page (`/trust/app-created.html`).** Closes the
   one offline gap in the maintainer-claim funnel: the CallLint Trust GitHub App's
   `redirect_url` already points at `https://calllint.com/trust/app-created.html`, but the
@@ -111,6 +125,23 @@ onward. While pre-1.0, minor versions may include breaking changes.
   `.well-known/calllint-claim`, the verification workflow, OIDC-in-CI, and the "Verify
   publisher ownership" CTA remain a network- and human-gated follow-on (they need a real
   external publisher to publish a record), out of scope here.
+
+### Changed
+
+- **ADR 0054 (claim auto-adoption boundary) — Proposed → Accepted (Option B).** Settles the
+  delegated question "do we need the human merge on the claim-refresh PR, or can the system
+  auto-adopt?" toward the free, most-automated path: auto-adoption of the **claim overlay**
+  is the sanctioned direction. The ADR's non-negotiable prerequisite (guardrail 1 — the
+  reproducibility + copy guards must be **required** status checks on `main`) is verified
+  **already met**: branch protection lists `build-and-test` as a required check, and that
+  aggregator fans in both `committed-tree` (byte-diff, via the vitest suite) and
+  `check:public-copy` — so a claim-refresh that fails to re-bake byte-identically or leaks a
+  forbidden phrase/PII already **cannot merge**. This change is **documentation only**: it
+  records the decision and does **not** flip on live auto-merge or touch branch protection.
+  Wiring auto-merge (a diff-scope assertion + `gh pr merge --auto` in
+  `trust-verify-claims.yml`) is a bounded follow-on that is a **no-op until the first App
+  install** exists (the claim store is empty today). A claim still **never alters a verdict**
+  and every change stays a reviewable, revertible PR object (ADR 0053 §3).
 
 ## [1.7.3] — 2026-07-22 — Distribution dogfood, ADR 0053 boundary & Trust Index Gate A/B
 

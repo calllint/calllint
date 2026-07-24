@@ -1,0 +1,21 @@
+# CallLint origin robots.txt
+#
+# calllint.com is fronted by Cloudflare, which PREPENDS a managed AI-crawler +
+# content-signals policy — the "# BEGIN/END Cloudflare Managed content" block —
+# to this file at the edge. This origin file is served AFTER that managed block
+# (verified live: the managed block appears first, then this file's contents).
+#
+# Keep this file strictly ADDITIVE: declare only what the managed block does not.
+# Today that is one thing — the Trust Index sitemap. Do NOT re-declare the
+# AI-crawler `Disallow` rules or content signals here; Cloudflare maintains that
+# list, and a hand-copied duplicate would drift out of date. Deliberately no
+# `User-agent` group and no `Allow`/`Disallow`: this file grants and restricts
+# nothing on its own, so even if Cloudflare's managed policy were ever served
+# without it, no crawler permission is silently widened here.
+#
+# The sitemap lists only real, claimable Trust Index resources (mcp-registry/*);
+# the synthetic calllint-fixtures/* reproducibility goldens are excluded at the
+# bake's emit layer. The listed URLs are the clean, non-redirecting /trust/{name}
+# form (the .html artifact 308-redirects to it at the edge).
+
+Sitemap: https://calllint.com/trust/sitemap.xml
