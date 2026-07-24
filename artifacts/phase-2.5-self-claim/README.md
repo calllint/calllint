@@ -115,7 +115,7 @@ overlay, never the verdict.
    is a kill-gate breach (a claim moved a verdict), not a pass.
 
 ### Leg 3 — REACTIVATE (re-install)
-7. Go back to **https://github.com/apps/calllint** (or the org's GitHub Apps page) →
+7. Go back to **https://github.com/apps/calllint-trust** (or the org's GitHub Apps page) →
    **Install** / **Configure** → install it on the `calllint` account, granting access to
    the **`calllint/calllint`** repository (the same repo the registry entry points at).
 8. **Record the new `installationId`.** A re-install almost always mints a **new**

@@ -44,8 +44,13 @@ import { EMPTY_CLAIM_STORE, type ClaimStore } from "./claim.js"
 export const SELF_CLAIM = {
   /** The CallLint GitHub App's numeric id (ADR 0048 §1). Runbook-only; not a reconciler input. */
   appId: 4322539,
-  /** The durable, revocable installation grant on the `calllint` account (claim-store.json). */
-  installationId: 147742681,
+  /**
+   * The durable, revocable installation grant on the `calllint` account (claim-store.json).
+   * Re-installing the App mints a NEW id: 147742681 (activate leg, now revoked audit record)
+   * → 148693982 (reactivate leg, current active grant, 2026-07-24). This mirrors the newest
+   * `active` store record; `audit-self-claim-readiness.ts` reports a drift fault if they diverge.
+   */
+  installationId: 148693982,
   /** The public GitHub account that controls the namespace. */
   account: "calllint",
   /** The repository whose ownership proves control (github.com/calllint/calllint). */
