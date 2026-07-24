@@ -20,6 +20,7 @@
     "audit:calibration": "tsx scripts/calibration-audit.ts",
     "audit:calibration:write": "tsx scripts/calibration-audit.ts --write",
     "audit:calibration:gate": "tsx scripts/calibration-audit.ts --gate",
+    "audit:self-claim": "tsx scripts/audit-self-claim-readiness.ts",
     "smoke": "pnpm build && vitest run tests/e2e/test/package-smoke.test.ts",
     "pack:smoke": "node scripts/package-smoke.mjs",
     "pack:smoke:mcp": "node scripts/mcp-pack-smoke.mjs",

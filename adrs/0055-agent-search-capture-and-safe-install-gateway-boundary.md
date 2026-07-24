@@ -1,11 +1,13 @@
 # ADR 0055 — Agent-Search Capture & Safe-Install Gateway: capturing the install action without crossing a line
 
-- Status: Proposed (2026-07-24). Boundary-only decision artifact; changes **no**
+- Status: Accepted (2026-07-24). Boundary-only decision artifact; changes **no**
   behavior. It freezes the invariants the Phase-2.5 (funnel/lookup) and Phase-2.6
-  (Sentinel/Search/Hook) surfaces must honor before any of them is built. The PR that
-  carries this file is itself the Sprint-0 review checkpoint; acceptance is a later,
-  explicit human step, not a consequence of merging.
-- Date: 2026-07-24 (proposed)
+  (Sentinel/Search/Hook) surfaces must honor before any of them is built. Proposed in
+  PR #218 (the Sprint-0 review checkpoint); that human review is the Sprint-0 signoff,
+  and this flip to Accepted records it. Acceptance authorizes the Phase-2.5-A build to
+  begin under these boundaries; it does **not** by itself move any verdict or wire any
+  surface.
+- Date: 2026-07-24 (proposed in #218); Accepted 2026-07-24 (post-review)
 - Refines: 0047 (maintainer-claim trust model — a claim states control, never safety),
   0053 (distribution-index boundary — §3 claim↛verdict, §4 publish channels),
   0051 (preflight-hook boundary — a hook recommends, never blocks or grants authority),
@@ -209,23 +211,27 @@ agent-install interception is exercised end-to-end. No front-running.
 
 ## Decision record (2026-07-24)
 
-**Proposed.** This ADR is offered as the Sprint-0 boundary. Per the approved plan, the PR
-carrying it is the review checkpoint: the boundary is what the user reviews, and that review
-*is* the Sprint-0 signoff. **Acceptance (flipping Status → Accepted) and any Phase-2.5 build
-are explicit later steps** — merging this file does not authorize either. This mirrors how
+**Proposed then Accepted (same day).** This ADR was offered as the Sprint-0 boundary in
+PR #218; per the approved plan, that PR *was* the review checkpoint — the boundary is what
+the human reviewed, and that review is the Sprint-0 signoff. Following the review the Status
+is flipped **Proposed → Accepted**. Acceptance authorizes the **Phase-2.5-A build** to begin
+under these seven boundaries (the sequential A→E order, A the spine); it does **not** by
+itself flip any downstream gate, move any verdict, or wire any surface. This mirrors how
 0051/0052/0053/0054 each landed a boundary as a standalone artifact before the behavior it
 governs.
 
-**What "Proposed" does and does not do:**
+**What acceptance does and does not do:**
 
 - **Does**: freeze the seven boundaries so the Phase-2.5/2.6 surfaces have an unambiguous
   floor; correct the record that the disclaimer *line* is a genuine add (not a duplicate of
-  the renderAppCreated prose); and pin the "Verified Publisher" rename as a two-surface
-  security-guard change, not a copy edit.
-- **Does not**: build or wire any surface; touch branch protection, the GitHub App manifest,
-  or any shipped byte; enable the funnel live sink; or start Phase 2.5. The claim store still
-  holds exactly one active record (CallLint's own), so nothing downstream is unblocked by this
-  ADR alone.
+  the renderAppCreated prose); pin the "Verified Publisher" rename as a two-surface
+  security-guard change, not a copy edit; and authorize Phase-2.5-A to start under these
+  boundaries.
+- **Does not**: build or wire any surface by itself; touch branch protection, the GitHub App
+  manifest, or any shipped byte; enable the funnel live sink; unblock Phase 2.6 (still gated
+  on the Phase-2.5 signoff, PR-N5); or move a verdict. The claim store still holds exactly one
+  active record (CallLint's own), so nothing downstream is served differently by this ADR
+  alone.
 
 ## Invariants preserved
 
