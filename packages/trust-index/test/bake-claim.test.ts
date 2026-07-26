@@ -76,6 +76,9 @@ describe("bake claim overlay (fixtures cohort, no snapshot)", () => {
     expect(target).toContain("Verified Publisher")
     expect(target).toContain("github.com/octo-org")
     expect(target).toContain("it is not a safety claim")
+    // Phase 2.5-D / ADR 0055 §1(a): a claimed page MUST carry the fixed verdict
+    // disclaimer verbatim and contiguous (the guard requires the exact string).
+    expect(target).toContain("Identity verification does not change the CallLint verdict.")
     // A DIFFERENT baked resource page stays unclaimed (no block leaks across pages).
     // Scoped to namespaced resource pages (path contains "/"); the site-chrome
     // `app-created.html` is the post-install landing page and shows the Verified
@@ -84,6 +87,9 @@ describe("bake claim overlay (fixtures cohort, no snapshot)", () => {
       (f) => f.path.endsWith(".html") && f.path.includes("/") && !f.path.startsWith(TARGET),
     )!
     expect(other.content).not.toContain("Verified Publisher")
+    // The fixed disclaimer is scoped to the claimed overlay — an unclaimed page
+    // never carries it (proves the guard's Verified-Publisher selector is meaningful).
+    expect(other.content).not.toContain("Identity verification does not change the CallLint verdict.")
   })
 
   it("a record for an absent namespace surfaces nothing (fails closed)", () => {
