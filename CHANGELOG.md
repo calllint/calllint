@@ -125,9 +125,66 @@ onward. While pre-1.0, minor versions may include breaking changes.
   `.well-known/calllint-claim`, the verification workflow, OIDC-in-CI, and the "Verify
   publisher ownership" CTA remain a network- and human-gated follow-on (they need a real
   external publisher to publish a record), out of scope here.
+- **Phase 2.5-B — first-party funnel events (`calllint.trust-event.v1`), ships dark.** Adds a
+  privacy-minimal, first-party analytics contract so the claim funnel can *eventually* be
+  measured, wired to nothing yet. Shipped as: a draft-07 schema
+  (`schemas/calllint.trust-event.v1.schema.json`, `additionalProperties:false`) with a closed
+  event enum (`trust_page_viewed` / `trust_page_to_install` / `app_created_viewed` /
+  `claim_cta_clicked`) and no free-text field that could carry a URL, prompt, or secret; the
+  `@calllint/trust-event-contract` package whose `sanitizeTrustEvent` **fails closed** (it
+  allowlist-rebuilds a fresh object and drops on any forbidden field, oversized input, wrong
+  wire tag, off-vocabulary event, or malformed `pageBucket`); a Cloudflare Pages function
+  (`apps/web/functions/v1/events/trust.ts`) that hashes the page path server-side (SHA-256, no
+  raw path stored) and returns `204`; and an import-free client shim
+  (`apps/web/public/embed/trust-events.js`). **Ships dark by construction** (ADR 0055 §2): the
+  shim is referenced by **no** page and `apps/web/public/_routes.json` is **not** extended (its
+  `include` stays `["/v1/public/*"]`), so `/v1/events/trust` resolves to no Function in
+  production — there is no live sink. First-party only, cookie-free, no `localStorage`, no LLM.
+  Touches no verdict, page digest, sidecar, or index; going live is a separate ADR-gated step.
+- **Phase 2.5-C — deterministic `/trust` lookup surface (`calllint.trust-lookup-index.v1`).**
+  A public, human- and machine-usable way to find a baked Trust Page by name. The bake emits
+  `trust/lookup-index.json` (a **pure sorted projection** of the same baked entries that
+  produce `index.json` — fixed key order, pinned indentation, byte-identical on re-bake, so the
+  ADR 0046 §4 reproducibility gate holds) and `trust/lookup.html` (a search UI). Matching is
+  **pure client-side string comparison** — exact → prefix → substring, alphabetical within each
+  tier — with **no** ranking model, embedding, fuzzy distance, per-keystroke network, cookie, or
+  `localStorage` (ADR 0055 §5); it uses `textContent`/`href`, never `innerHTML`, so resource
+  names stay inert data. It publishes only what each page already states (name, verdict + the
+  boundary-safe public label, artifact digest, observed-at) and is a distinct surface from the
+  internal registry listing and the existing API-side `partner-api/src/lookup.ts`. A lookup
+  entry can never exist without a matching index entry (the anti-drift invariant its test pins).
+- **Phase 2.5-D — fixed verdict-disclaimer line on claimed surfaces (ADR 0055 §1a).** Adds the
+  verbatim sentence *"Identity verification does not change the CallLint verdict."* to every
+  surface that names a Verified Publisher — the claimed Trust Page, the post-install
+  activation page, and the `/trust` lookup callout (via the three renderers in
+  `@calllint/trust-index`). **`check:public-copy` check 19 is strengthened, never weakened**: a
+  pure addition now *requires* that verbatim line on any page the `Verified Publisher` selector
+  marks claimed, else CI fails; the load-bearing `Verified Publisher` guard token is untouched
+  and the rename stays deferred (ADR 0055 §1b, which forbids editing the token in isolation to
+  make copy pass). The matching proof is in `bake-claim.test.ts` (line present on a claimed
+  page, absent on an unclaimed one). All 37 unclaimed pages re-bake byte-identical.
+- **Phase 2.5-E — Phase 2.5 signoff (PR-N5).** The evidence-backed acceptance record
+  (`artifacts/phase-2.5-signoff/`) that ADR 0055 §7 names as the gate for Phase 2.6: an A→E
+  evidence table (each sub-phase → anchor commit → the test/gate that verifies it), an
+  invariants-that-held section, an honest landing-state section, and the ordered Aug-1 landing
+  runbook (`LANDING.md`). Docs/artifacts only — it merges no branch, enables no sink, renames
+  no token, adds no App scope, and starts no phase. Phase 2.5-A (the self-claim dogfood spine,
+  #219/#220/#221) is already on `main` at 3/3, verdict + `pageDigest` byte-identical across
+  activate→revoke→reactivate.
 
 ### Changed
 
+- **ADR 0055 (agent search capture & safe-install gateway boundary) — Proposed → Accepted.**
+  The new13 Sprint-0 boundary ADR (PR #218 Proposed → #219 Accepted). It freezes the invariants
+  that gate the next arc: the hard-block ordering `Sprint 0 → Phase 2.5 A→B→C→D→E → Phase 2.6
+  Sentinel→Search→Hook → Phase 3+` (§7, no front-running); the additive verdict-disclaimer line
+  and copy-guard-only-strengthens rule (§1a) with the "Verified Publisher" rename deferred
+  (§1b); the deterministic, no-LLM `/trust` lookup and trust-event schemas (§5); and the
+  Phase-2.6 boundaries — Sentinel ≤ 2500 bytes as a pure delegator, deterministic lexical Search
+  over committed data, and an install Hook that routes through the shipped install-planner and
+  **never grants authority or writes host config silently**. Forbids prompt injection, fake
+  metrics, mass SEO doorways, and unauthorized/silent config modification. This entry records
+  the acceptance; the Phase 2.5 A–E work above implements its non-deferred surfaces.
 - **ADR 0054 (claim auto-adoption boundary) — Proposed → Accepted (Option B).** Settles the
   delegated question "do we need the human merge on the claim-refresh PR, or can the system
   auto-adopt?" toward the free, most-automated path: auto-adoption of the **claim overlay**
