@@ -21,8 +21,9 @@ import {
   explainUnknown,
   type EvidenceBundle,
 } from "@calllint/evidence"
-import { renderHtml, renderSidecar, renderSitemap } from "./renderPage.js"
+import { renderHtml, renderSidecar, renderSitemap, LOOKUP_PAGE_PATH } from "./renderPage.js"
 import { renderAppCreatedPage } from "./renderAppCreated.js"
+import { renderLookupIndex, renderLookupPage, type LookupSourceEntry } from "./renderLookup.js"
 import { buildEvidenceManifest } from "./evidenceManifest.js"
 import { verifiedPublisherForNamespace, EMPTY_CLAIM_STORE, type ClaimStore } from "./claim.js"
 
@@ -272,10 +273,33 @@ export function emitAllCohorts(
   // page's pinned observedAt, so it is deterministic and the committed-tree gate covers
   // it with no test edit. It carries no verdict, digest, or claim — emitting it never
   // affects a page digest or the index.
-  const bakedPages = index
-    .filter((e) => e.status === "baked" && !e.canonicalName.startsWith("calllint-fixtures/"))
-    .map((e) => ({ canonicalName: e.canonicalName, observedAt: e.observedAt }))
-  files.push({ path: `sitemap.xml`, content: renderSitemap(bakedPages) })
+  // The exact set of REAL, discoverable baked resources (the same filter the sitemap and
+  // the lookup index share, so the two surfaces can never disagree about what is public).
+  const bakedReal = index.filter(
+    (e) => e.status === "baked" && !e.canonicalName.startsWith("calllint-fixtures/"),
+  )
+  const bakedPages = bakedReal.map((e) => ({ canonicalName: e.canonicalName, observedAt: e.observedAt }))
+  // The sitemap lists every real resource page PLUS the standing lookup utility page
+  // (ADR 0055 §5) as one deterministic chrome <loc>. `LOOKUP_PAGE_PATH` is the single
+  // source of truth shared with the lookup page's own canonical link.
+  files.push({ path: `sitemap.xml`, content: renderSitemap(bakedPages, [LOOKUP_PAGE_PATH]) })
+
+  // The client-facing lookup surface (ADR 0055 §5): a deterministic index + a human search
+  // page so a maintainer/operator can FIND a Trust Page by name. Both are site chrome under
+  // `/trust/`, NOT resources — deterministic, deliberately ABSENT from `index`, so
+  // `index.json` and the completeness count stay byte-identical. `lookup-index.json` is a
+  // pure projection of the SAME `bakedReal` set (real baked resources only), so it cannot
+  // drift from `index.json`; it carries no score and no free-text (no LLM, no fuzzy). A
+  // baked entry always has a non-null verdict + artifactDigest (only `incomplete` entries
+  // are null, and those are filtered out above).
+  const lookupEntries: LookupSourceEntry[] = bakedReal.map((e) => ({
+    canonicalName: e.canonicalName,
+    verdict: e.verdict as LookupSourceEntry["verdict"],
+    artifactDigest: e.artifactDigest as string,
+    observedAt: e.observedAt,
+  }))
+  files.push({ path: `lookup-index.json`, content: renderLookupIndex(lookupEntries) })
+  files.push({ path: `lookup.html`, content: renderLookupPage() })
 
   // The post-install claim-funnel landing page (ADR 0047/0048). Site chrome under
   // `/trust/`, NOT a resource: emitted unconditionally, deterministic, and deliberately

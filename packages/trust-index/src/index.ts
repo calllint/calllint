@@ -31,8 +31,14 @@ export {
   CORRECTION_URL,
   CLAIM_APP_URL,
   SITE_ORIGIN,
+  LOOKUP_PAGE_PATH,
 } from "./renderPage.js"
 export { renderAppCreatedPage } from "./renderAppCreated.js"
+export {
+  renderLookupIndex,
+  renderLookupPage,
+  type LookupSourceEntry,
+} from "./renderLookup.js"
 export {
   emitAllCohorts,
   SERVE_PREFIX,

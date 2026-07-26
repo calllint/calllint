@@ -173,18 +173,19 @@ describe("renderSitemap — deterministic, clean URLs, final-URL-only", () => {
 })
 
 describe("emitAllCohorts — sitemap is chrome; discovery never moves the reproducibility surface", () => {
-  it("emits exactly one sitemap.xml, listing only REAL baked resources (never fixtures, incomplete, or the landing page)", () => {
+  it("emits exactly one sitemap.xml, listing REAL baked resources + the standing lookup page (never fixtures, incomplete, or the landing page)", () => {
     const { files } = emitAllCohorts(registrySnapshot)
     const sitemaps = files.filter((f) => f.path === "sitemap.xml")
     expect(sitemaps).toHaveLength(1)
     const xml = sitemaps[0]!.content
     // The sitemap advertises real, claimable resources only — the synthetic
     // `calllint-fixtures/*` reproducibility goldens are deliberately NOT listed, even
-    // though they ARE baked (and still appear in index.json for completeness).
+    // though they ARE baked (and still appear in index.json for completeness) — PLUS the
+    // one standing `/trust/lookup` utility page (ADR 0055 §5), which is site chrome.
     const bakedRealHtml = files.filter(
       (f) => f.path.endsWith(".html") && f.path.includes("/") && !f.path.startsWith("calllint-fixtures/"),
     ).length
-    expect((xml.match(/<loc>/g) ?? []).length).toBe(bakedRealHtml)
+    expect((xml.match(/<loc>/g) ?? []).length).toBe(bakedRealHtml + 1)
     expect(bakedRealHtml).toBeGreaterThan(0) // the registry cohort produced real pages
     // No fixture URL, no landing page, ever appears in the sitemap.
     expect(xml).not.toContain("calllint-fixtures/")
@@ -192,6 +193,8 @@ describe("emitAllCohorts — sitemap is chrome; discovery never moves the reprod
     // The real registry resources ARE listed (clean URL form).
     expect(xml).toContain(`<loc>${SITE_ORIGIN}/trust/mcp-registry/io.a-thing</loc>`)
     expect(xml).toContain(`<loc>${SITE_ORIGIN}/trust/mcp-registry/io.b-thing</loc>`)
+    // The standing lookup page is listed once, as a clean URL (loc-only chrome).
+    expect(xml).toContain(`<loc>${SITE_ORIGIN}/trust/lookup</loc>`)
   })
 
   it("still bakes fixture pages + records them in index.json (the filter is discovery-only)", () => {
@@ -204,12 +207,49 @@ describe("emitAllCohorts — sitemap is chrome; discovery never moves the reprod
     expect(names).toContain("calllint-fixtures/safe-time")
   })
 
-  it("adds NO entry to index.json (sitemap is not a resource)", () => {
+  it("adds NO entry to index.json (sitemap + lookup surfaces are chrome, not resources)", () => {
     const { files } = emitAllCohorts()
     const index = JSON.parse(files.find((f) => f.path === "index.json")!.content)
     const names = (index.entries as { canonicalName: string }[]).map((e) => e.canonicalName)
     expect(names).not.toContain("sitemap")
     expect(names).not.toContain("sitemap.xml")
+    // The lookup surfaces (ADR 0055 §5) are chrome too — never resources in the index.
+    expect(names).not.toContain("lookup")
+    expect(names).not.toContain("lookup.html")
+    expect(names).not.toContain("lookup-index")
+    expect(names).not.toContain("lookup-index.json")
+  })
+
+  it("emits the lookup surfaces as chrome: lookup-index.json + lookup.html, deterministic, boundary-safe, no claim funnel", () => {
+    const { files } = emitAllCohorts(registrySnapshot)
+    const html = files.find((f) => f.path === "lookup.html")!.content
+    const json = files.find((f) => f.path === "lookup-index.json")!.content
+    // Boundary framing required on every /trust/**.html by check-public-copy 16.
+    expect(html).toContain("not a certification")
+    expect(html).toContain("guarantee of safety")
+    expect(html).toContain("Report a correction")
+    // Reads as claimed-style chrome (check 19): mentions Verified Publisher, no funnel URL.
+    expect(html).toContain("Verified Publisher")
+    expect(html).not.toContain("https://github.com/apps/calllint-trust")
+    // Deterministic-only client matcher — no fuzzy / embedding / ranking-model vocabulary.
+    // The "no LLM, no fuzzy" invariant (ADR 0055 §5) is about the MATCHING logic, so this
+    // scans the inline matcher script specifically — not unrelated site chrome such as the
+    // standard `/llms.txt` footer link every marketing page (incl. app-created.html) carries.
+    const scriptMatch = html.match(/<script>([\s\S]*?)<\/script>/)
+    expect(scriptMatch, "lookup.html must inline a matcher <script>").toBeTruthy()
+    const script = (scriptMatch![1] ?? "").toLowerCase()
+    for (const banned of ["fuzzy", "levenshtein", "embedding", "cosine", "vector", "llm", "gpt", "openai", "innerhtml"]) {
+      expect(script, `lookup.html matcher must not contain "${banned}"`).not.toContain(banned)
+    }
+    // No cookie / storage / PII surface.
+    expect(html).not.toContain("localStorage")
+    expect(html).not.toContain("document.cookie")
+    // No hardcoded SAFE label in the static bytes (labels are rendered client-side from
+    // the index) — so check 20's bare-SAFE scope requirement does not apply to this page.
+    expect(html).not.toContain("No blockers observed")
+    // The index carries no free-text/score fields (closed projection).
+    expect(json).not.toContain("description")
+    expect(json).not.toContain("score")
   })
 
   it("adding the sitemap + head changes leaves every .json sidecar/manifest/index byte-identical to their own re-emit", () => {
@@ -220,15 +260,16 @@ describe("emitAllCohorts — sitemap is chrome; discovery never moves the reprod
     expect(b.files).toEqual(a.files)
   })
 
-  it("a fixtures-only bake emits a valid but empty-bodied sitemap (fixtures excluded)", () => {
-    // With no registry snapshot the only baked pages are fixtures — which are all
-    // excluded from the sitemap. The sitemap is still emitted and is a valid urlset,
-    // just with zero <loc> entries (nothing real to advertise yet).
+  it("a fixtures-only bake emits a sitemap with only the standing lookup page (fixtures excluded)", () => {
+    // With no registry snapshot the only baked resource pages are fixtures — all excluded
+    // from the sitemap. The standing `/trust/lookup` utility page (ADR 0055 §5) is ALWAYS
+    // listed, so the urlset has exactly one <loc> (the lookup page), never a fixture.
     const { files } = emitAllCohorts(null)
     const xml = files.find((f) => f.path === "sitemap.xml")!.content
     expect(xml).toContain("<urlset")
     expect(xml).toContain("</urlset>")
-    expect((xml.match(/<loc>/g) ?? []).length).toBe(0)
+    expect((xml.match(/<loc>/g) ?? []).length).toBe(1)
+    expect(xml).toContain(`<loc>${SITE_ORIGIN}/trust/lookup</loc>`)
     expect(xml).not.toContain("calllint-fixtures/")
     expect(xml).not.toContain("malformed")
   })
