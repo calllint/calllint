@@ -1,37 +1,31 @@
 {
   "schema": "calllint.agent-adoption-contract.v1",
   "contract": {
-    "contractDigest": "sha256:7cbc8c93ac203c8554d7f2861cb7d99b0996f908c17295c25c86eaa7c5e897dc",
-    "generatedAt": "2026-07-17T00:00:00.000Z",
+    "contractDigest": "sha256:97044031e51d0e24881f118ac787b3bb19c37c805c9c4a61c1707ff2ed856aea",
+    "generatedAt": "2026-07-27T10:07:03.242Z",
     "expiresAt": null,
     "generatorVersion": "0.1.0",
-    "snapshotDigest": "sha256:0d35502e5cf3aff33c72a15bcf5e56c6c75bb3c0ec283593095a78b8c0824830"
+    "snapshotDigest": "sha256:1a56a9277903cf8ed7b12b1ed4d38e8816bd704139cd67487fd2cd69ddf59d98"
   },
   "subject": {
-    "canonicalName": "mcp-registry/ai.agenticshelf-mcp",
-    "canonicalSlug": "mcp-registry/ai.agenticshelf-mcp",
-    "packageType": null,
-    "packageName": null,
-    "version": "1.0.0",
-    "artifactDigest": "sha256:ea6152f9304e7dde10305c7af11f3d292458c8550739d6b3fdc5b1b780a3cffd",
-    "sourceLocator": "https://api.agenticshelf.ai/mcp"
+    "canonicalName": "mcp-registry/ai.aetherwealth-mcp",
+    "canonicalSlug": "mcp-registry/ai.aetherwealth-mcp",
+    "packageType": "npm",
+    "packageName": "@aetherwealth/mcp",
+    "version": "0.2.2",
+    "artifactDigest": "sha256:dfa451456d1b900ac9510f65ccea4b8bf6ce52b700123da49be3782a61c8db1c",
+    "sourceLocator": "npm:@aetherwealth/mcp@0.2.2"
   },
   "publicObservation": {
-    "verdict": "REVIEW",
-    "publicLabel": "Review required",
-    "reasonCodes": [
-      "UNKNOWN_REMOTE"
-    ],
+    "verdict": "SAFE",
+    "publicLabel": "No blockers observed",
+    "reasonCodes": [],
     "evidenceLevel": "E2",
-    "evidenceDigest": "sha256:8f74750bcfbbb711c361f75ccf51ccd3d99b67231c821bdb1a2dcb610a5631f9",
+    "evidenceDigest": "sha256:26c66525b628713c8c7ee0e4bdfd7eea4dbf59efd4fb45c24a7a388edac78315",
     "completeness": "complete"
   },
   "authorityDelta": {
-    "adds": [
-      {
-        "authority": "network_egress"
-      }
-    ],
+    "adds": [],
     "notObserved": [
       "financial_action",
       "secret_access",
@@ -40,26 +34,27 @@
       "external_mutation",
       "messaging_send",
       "oauth_scope",
-      "gateway_runtime"
+      "gateway_runtime",
+      "network_egress"
     ]
   },
   "trustedSources": {
-    "registrySnapshotDigest": "sha256:0d35502e5cf3aff33c72a15bcf5e56c6c75bb3c0ec283593095a78b8c0824830",
-    "evidenceDigest": "sha256:8f74750bcfbbb711c361f75ccf51ccd3d99b67231c821bdb1a2dcb610a5631f9",
+    "registrySnapshotDigest": "sha256:1a56a9277903cf8ed7b12b1ed4d38e8816bd704139cd67487fd2cd69ddf59d98",
+    "evidenceDigest": "sha256:26c66525b628713c8c7ee0e4bdfd7eea4dbf59efd4fb45c24a7a388edac78315",
     "engineVersion": "0.1.0"
   },
   "untrustedPublisherContent": {
-    "description": "Hosted MCP for e-commerce: live product catalog, stock, and pricing for AI agents.",
+    "description": "Aether Wealth MCP for AI assistants: trades, alerts, market data, macro calendar & indicators.",
     "usedForSafetyDecision": false
   },
   "recommendedNextAction": {
     "kind": "PREPARE_LOCALLY",
     "tool": "calllint_prepare_safe_install",
     "arguments": {
-      "canonicalName": "mcp-registry/ai.agenticshelf-mcp",
-      "expectedVersion": "1.0.0",
-      "expectedArtifactDigest": "sha256:ea6152f9304e7dde10305c7af11f3d292458c8550739d6b3fdc5b1b780a3cffd",
-      "expectedContractDigest": "sha256:7cbc8c93ac203c8554d7f2861cb7d99b0996f908c17295c25c86eaa7c5e897dc",
+      "canonicalName": "mcp-registry/ai.aetherwealth-mcp",
+      "expectedVersion": "0.2.2",
+      "expectedArtifactDigest": "sha256:dfa451456d1b900ac9510f65ccea4b8bf6ce52b700123da49be3782a61c8db1c",
+      "expectedContractDigest": "sha256:97044031e51d0e24881f118ac787b3bb19c37c805c9c4a61c1707ff2ed856aea",
       "host": null
     }
   },

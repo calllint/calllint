@@ -1,34 +1,34 @@
 {
   "schema": "calllint.trust-page.v0",
-  "canonicalName": "mcp-registry/ai.agenticshelf-puroair",
-  "artifactDigest": "sha256:e14fc20ef3f4c970843bb714836ceb7700f1a90ce2f70100a34dbf5384036201",
-  "pageDigest": "sha256:51127d33c857a66489c65270ed9fee0c132e54dc04d091ca8a398d10625aa9cb",
+  "canonicalName": "mcp-registry/ai.agenticfabricationnetwork-ufp",
+  "artifactDigest": "sha256:68aa642d2cd1eefc7ea8794cca6f808cf15ffa908a3cfea8b6bcd9f6bbb7ec67",
+  "pageDigest": "sha256:832374edce535e8ddd5b5d3c1f532eac8643f5c6b6a57dda2f0be9ed8595592d",
   "verdict": "REVIEW",
   "verdictLabel": "Review required",
-  "observedAt": "2026-07-17T00:00:00.000Z",
+  "observedAt": "2026-07-27T10:07:03.242Z",
   "completeness": "complete",
   "status": {
     "verdict": "REVIEW",
     "completeness": "complete",
     "authorityClaimed": false,
     "reproducibility": {
-      "pageDigest": "sha256:51127d33c857a66489c65270ed9fee0c132e54dc04d091ca8a398d10625aa9cb",
-      "observedAt": "2026-07-17T00:00:00.000Z"
+      "pageDigest": "sha256:832374edce535e8ddd5b5d3c1f532eac8643f5c6b6a57dda2f0be9ed8595592d",
+      "observedAt": "2026-07-27T10:07:03.242Z"
     },
     "evidenceLevel": "E2",
     "evidenceRationale": "install config observed → static blast radius normalized into an authority inventory. Higher levels (E3 tool schema, E4 maintainer receipt, E5 sandbox) are not carried by a static page."
   },
   "correctionUrl": "https://github.com/calllint/calllint/issues/new?labels=trust-page-correction",
   "reproduction": {
-    "command": "npx calllint scan official-mcp-registry:ai.agenticshelf/puroair",
-    "artifactDigest": "sha256:e14fc20ef3f4c970843bb714836ceb7700f1a90ce2f70100a34dbf5384036201",
+    "command": "npx calllint scan official-mcp-registry:ai.agenticfabricationnetwork/ufp",
+    "artifactDigest": "sha256:68aa642d2cd1eefc7ea8794cca6f808cf15ffa908a3cfea8b6bcd9f6bbb7ec67",
     "note": "Re-running this scan reproduces the verdict observed at the pinned artifact digest. It is a point-in-time observation, not a guarantee of future behavior."
   },
   "scanHistory": [
     {
-      "observedAt": "2026-07-17T00:00:00.000Z",
-      "pageDigest": "sha256:51127d33c857a66489c65270ed9fee0c132e54dc04d091ca8a398d10625aa9cb",
-      "artifactDigest": "sha256:e14fc20ef3f4c970843bb714836ceb7700f1a90ce2f70100a34dbf5384036201"
+      "observedAt": "2026-07-27T10:07:03.242Z",
+      "pageDigest": "sha256:832374edce535e8ddd5b5d3c1f532eac8643f5c6b6a57dda2f0be9ed8595592d",
+      "artifactDigest": "sha256:68aa642d2cd1eefc7ea8794cca6f808cf15ffa908a3cfea8b6bcd9f6bbb7ec67"
     }
   ],
   "preparation": {
@@ -36,25 +36,25 @@
     "artifact": {
       "schema": "calllint.artifact.v1",
       "sourceType": "mcp-config",
-      "source": "official-mcp-registry:ai.agenticshelf/puroair",
+      "source": "official-mcp-registry:ai.agenticfabricationnetwork/ufp",
       "requestedRef": null,
-      "resolvedRef": "sha256:e14fc20ef3f4c970843bb714836ceb7700f1a90ce2f70100a34dbf5384036201",
-      "digest": "sha256:e14fc20ef3f4c970843bb714836ceb7700f1a90ce2f70100a34dbf5384036201",
-      "resolvedAt": "2026-07-17T00:00:00.000Z",
+      "resolvedRef": "sha256:68aa642d2cd1eefc7ea8794cca6f808cf15ffa908a3cfea8b6bcd9f6bbb7ec67",
+      "digest": "sha256:68aa642d2cd1eefc7ea8794cca6f808cf15ffa908a3cfea8b6bcd9f6bbb7ec67",
+      "resolvedAt": "2026-07-27T10:07:03.242Z",
       "resolution": "resolved"
     },
     "evidence": null,
     "authority": {
       "schema": "calllint.authority.v0",
       "subject": {
-        "artifactDigest": "sha256:e14fc20ef3f4c970843bb714836ceb7700f1a90ce2f70100a34dbf5384036201"
+        "artifactDigest": "sha256:68aa642d2cd1eefc7ea8794cca6f808cf15ffa908a3cfea8b6bcd9f6bbb7ec67"
       },
       "capabilities": [
         {
           "action": "connect",
           "resource": "network",
-          "scope": "api.agenticshelf.ai",
-          "destination": "api.agenticshelf.ai",
+          "scope": "agenticfabricationnetwork.ai",
+          "destination": "agenticfabricationnetwork.ai",
           "mutability": "mutating",
           "reversibility": "irreversible",
           "monetaryLimit": null,
@@ -75,7 +75,7 @@
       },
       "unknowns": [],
       "completeness": "complete",
-      "digest": "sha256:76f1f8a909267102349666a5c564f58f8afcfa8c016163c6f57eb3448d752fdc"
+      "digest": "sha256:ab7c41c1f18e9b39415f1489c9ae45c586a8114d7b6c8e41915c776c992e3633"
     },
     "decision": null,
     "plan": null,
@@ -84,12 +84,12 @@
       "no external evidence attached (optional); decision will rely on CallLint's own analysis",
       "authority normalized: 1 capability, approvals required: external-network-access"
     ],
-    "preparedAt": "2026-07-17T00:00:00.000Z"
+    "preparedAt": "2026-07-27T10:07:03.242Z"
   },
   "scan": {
     "schemaVersion": "calllint.report.v0",
     "reportKind": "config-summary",
-    "configPath": "official-mcp-registry:ai.agenticshelf/puroair",
+    "configPath": "official-mcp-registry:ai.agenticfabricationnetwork/ufp",
     "verdict": "REVIEW",
     "publicVerdictLabel": "Review required",
     "counts": {
@@ -105,8 +105,8 @@
         "target": {
           "name": "remote",
           "kind": "cursor-mcp-config",
-          "source": "https://api.agenticshelf.ai/m/puroair/mcp",
-          "configPath": "official-mcp-registry:ai.agenticshelf/puroair"
+          "source": "https://agenticfabricationnetwork.ai/mcp",
+          "configPath": "official-mcp-registry:ai.agenticfabricationnetwork/ufp"
         },
         "verdict": "REVIEW",
         "publicVerdictLabel": "Review required",
@@ -138,9 +138,9 @@
             "evidence": [
               {
                 "type": "runtime-binding",
-                "path": "official-mcp-registry:ai.agenticshelf/puroair",
+                "path": "official-mcp-registry:ai.agenticfabricationnetwork/ufp",
                 "key": "url",
-                "value": "https://api.agenticshelf.ai/m/puroair/mcp",
+                "value": "https://agenticfabricationnetwork.ai/mcp",
                 "line": 5,
                 "column": 7
               }
@@ -165,9 +165,9 @@
             "evidence": [
               {
                 "type": "runtime-binding",
-                "path": "official-mcp-registry:ai.agenticshelf/puroair",
+                "path": "official-mcp-registry:ai.agenticfabricationnetwork/ufp",
                 "key": "url",
-                "value": "https://api.agenticshelf.ai/m/puroair/mcp",
+                "value": "https://agenticfabricationnetwork.ai/mcp",
                 "line": 5,
                 "column": 7
               }
@@ -191,9 +191,9 @@
             "evidence": [
               {
                 "type": "runtime-binding",
-                "path": "official-mcp-registry:ai.agenticshelf/puroair",
+                "path": "official-mcp-registry:ai.agenticfabricationnetwork/ufp",
                 "key": "url",
-                "value": "https://api.agenticshelf.ai/m/puroair/mcp",
+                "value": "https://agenticfabricationnetwork.ai/mcp",
                 "line": 5,
                 "column": 7
               }
@@ -209,21 +209,21 @@
           "sandbox": "required"
         },
         "fingerprints": {
-          "configHash": "sha256:015b3683b5e57a6ac8825d8e1810f17b4ad98119996f600b4674c268867b167e",
-          "targetSpecHash": "sha256:b41cd641345caa8543577c86e22963ff7ec2f09ea41c6235a80d0c604749a3dd",
+          "configHash": "sha256:f182cbd83c132004f9dfa37ac64d078484050687f1e17e95cfe1edf843763bb4",
+          "targetSpecHash": "sha256:6a22285d155c3617a387952d6682ab32aa589f7896242237536c6b5efde77d78",
           "riskSurfaceHash": "sha256:47e9d20255a346b95323c2cb9e092621521638b987bbcd036e68e4aee12dcaf3"
         },
         "diagnostics": [
           {
             "level": "info",
             "code": "evidence.remote-identity-verified",
-            "message": "Remote endpoint identity verified; tool surface not analyzed (evidence: https://api.agenticshelf.ai/m/puroair/mcp)"
+            "message": "Remote endpoint identity verified; tool surface not analyzed (evidence: https://agenticfabricationnetwork.ai/mcp)"
           }
         ],
-        "generatedAt": "2026-07-17T00:00:00.000Z"
+        "generatedAt": "2026-07-27T10:07:03.242Z"
       }
     ],
     "diagnostics": [],
-    "generatedAt": "2026-07-17T00:00:00.000Z"
+    "generatedAt": "2026-07-27T10:07:03.242Z"
   }
 }

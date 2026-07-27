@@ -1,31 +1,37 @@
 {
   "schema": "calllint.agent-adoption-contract.v1",
   "contract": {
-    "contractDigest": "sha256:7e5a4e603fc19b7cb8cc8f74a6887d66c54b2d847185e5a7a6e5a1e78f217a1f",
-    "generatedAt": "2026-07-17T00:00:00.000Z",
+    "contractDigest": "sha256:1db51735e0ef388c4780c61ffc141517993b0df026ee49c410128567f3450931",
+    "generatedAt": "2026-07-27T10:07:03.242Z",
     "expiresAt": null,
     "generatorVersion": "0.1.0",
-    "snapshotDigest": "sha256:0d35502e5cf3aff33c72a15bcf5e56c6c75bb3c0ec283593095a78b8c0824830"
+    "snapshotDigest": "sha256:1a56a9277903cf8ed7b12b1ed4d38e8816bd704139cd67487fd2cd69ddf59d98"
   },
   "subject": {
-    "canonicalName": "mcp-registry/io.github.calllint-calllint",
-    "canonicalSlug": "mcp-registry/io.github.calllint-calllint",
-    "packageType": "npm",
-    "packageName": "calllint-mcp",
-    "version": "0.2.0",
-    "artifactDigest": "sha256:23327771ad88957d59c5e72011d84504c7a737a297560277f358d12b8bd3a98b",
-    "sourceLocator": "npm:calllint-mcp@0.2.0"
+    "canonicalName": "mcp-registry/ai.agenticfabricationnetwork-ufp",
+    "canonicalSlug": "mcp-registry/ai.agenticfabricationnetwork-ufp",
+    "packageType": null,
+    "packageName": null,
+    "version": "0.1.0",
+    "artifactDigest": "sha256:68aa642d2cd1eefc7ea8794cca6f808cf15ffa908a3cfea8b6bcd9f6bbb7ec67",
+    "sourceLocator": "https://agenticfabricationnetwork.ai/mcp"
   },
   "publicObservation": {
-    "verdict": "SAFE",
-    "publicLabel": "No blockers observed",
-    "reasonCodes": [],
+    "verdict": "REVIEW",
+    "publicLabel": "Review required",
+    "reasonCodes": [
+      "UNKNOWN_REMOTE"
+    ],
     "evidenceLevel": "E2",
-    "evidenceDigest": "sha256:8f74750bcfbbb711c361f75ccf51ccd3d99b67231c821bdb1a2dcb610a5631f9",
+    "evidenceDigest": "sha256:26c66525b628713c8c7ee0e4bdfd7eea4dbf59efd4fb45c24a7a388edac78315",
     "completeness": "complete"
   },
   "authorityDelta": {
-    "adds": [],
+    "adds": [
+      {
+        "authority": "network_egress"
+      }
+    ],
     "notObserved": [
       "financial_action",
       "secret_access",
@@ -34,27 +40,26 @@
       "external_mutation",
       "messaging_send",
       "oauth_scope",
-      "gateway_runtime",
-      "network_egress"
+      "gateway_runtime"
     ]
   },
   "trustedSources": {
-    "registrySnapshotDigest": "sha256:0d35502e5cf3aff33c72a15bcf5e56c6c75bb3c0ec283593095a78b8c0824830",
-    "evidenceDigest": "sha256:8f74750bcfbbb711c361f75ccf51ccd3d99b67231c821bdb1a2dcb610a5631f9",
+    "registrySnapshotDigest": "sha256:1a56a9277903cf8ed7b12b1ed4d38e8816bd704139cd67487fd2cd69ddf59d98",
+    "evidenceDigest": "sha256:26c66525b628713c8c7ee0e4bdfd7eea4dbf59efd4fb45c24a7a388edac78315",
     "engineVersion": "0.1.0"
   },
   "untrustedPublisherContent": {
-    "description": "Static preflight safety gate for MCP servers — scan configs before you run them. Never executes.",
+    "description": "Turn designs into shipped parts: quote 3D printing, CNC, and decals, then check out.",
     "usedForSafetyDecision": false
   },
   "recommendedNextAction": {
     "kind": "PREPARE_LOCALLY",
     "tool": "calllint_prepare_safe_install",
     "arguments": {
-      "canonicalName": "mcp-registry/io.github.calllint-calllint",
-      "expectedVersion": "0.2.0",
-      "expectedArtifactDigest": "sha256:23327771ad88957d59c5e72011d84504c7a737a297560277f358d12b8bd3a98b",
-      "expectedContractDigest": "sha256:7e5a4e603fc19b7cb8cc8f74a6887d66c54b2d847185e5a7a6e5a1e78f217a1f",
+      "canonicalName": "mcp-registry/ai.agenticfabricationnetwork-ufp",
+      "expectedVersion": "0.1.0",
+      "expectedArtifactDigest": "sha256:68aa642d2cd1eefc7ea8794cca6f808cf15ffa908a3cfea8b6bcd9f6bbb7ec67",
+      "expectedContractDigest": "sha256:1db51735e0ef388c4780c61ffc141517993b0df026ee49c410128567f3450931",
       "host": null
     }
   },

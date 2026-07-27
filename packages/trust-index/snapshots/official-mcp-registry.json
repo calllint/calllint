@@ -2,13 +2,13 @@
   "schema": "calllint.trust-snapshot.v0",
   "source": "official-mcp-registry",
   "endpoint": "https://registry.modelcontextprotocol.io/v0/servers",
-  "fetchedAt": "2026-07-17T00:00:00.000Z",
-  "count": 19,
+  "fetchedAt": "2026-07-27T10:07:03.242Z",
+  "count": 18,
   "entries": [
     {
       "name": "ac.inference.sh/mcp",
-      "description": "Run 150+ AI apps — image, video, audio, LLMs, 3D and more. Browse, execute, stream results.",
-      "version": "1.0.1",
+      "description": "run any ai model. compose agents, stack knowledge, connect tools. one api, pay per run.",
+      "version": "2.0.0",
       "repositoryUrl": null,
       "packages": [],
       "remotes": [
@@ -22,7 +22,7 @@
         }
       ],
       "status": "active",
-      "publishedAt": "2026-04-13T17:33:26.613537Z"
+      "publishedAt": "2026-07-20T18:02:33.295284Z"
     },
     {
       "name": "ac.tandem/docs-mcp",
@@ -53,6 +53,23 @@
       ],
       "status": "active",
       "publishedAt": "2026-07-10T04:58:06.628668Z"
+    },
+    {
+      "name": "agency.kesey/pretrip",
+      "description": "Screen regulated-health marketing copy against source-cited rulesets, all 50 states.",
+      "version": "1.0.1",
+      "repositoryUrl": null,
+      "packages": [
+        {
+          "registryType": "npm",
+          "identifier": "pretrip-mcp",
+          "version": "1.0.1",
+          "transport": null
+        }
+      ],
+      "remotes": [],
+      "status": "active",
+      "publishedAt": "2026-07-26T18:03:21.463557Z"
     },
     {
       "name": "agency.lona/trading",
@@ -192,6 +209,23 @@
       "publishedAt": "2026-04-10T16:46:57.731179Z"
     },
     {
+      "name": "ai.aetherwealth/mcp",
+      "description": "Aether Wealth MCP for AI assistants: trades, alerts, market data, macro calendar & indicators.",
+      "version": "0.2.2",
+      "repositoryUrl": null,
+      "packages": [
+        {
+          "registryType": "npm",
+          "identifier": "@aetherwealth/mcp",
+          "version": "0.2.2",
+          "transport": null
+        }
+      ],
+      "remotes": [],
+      "status": "active",
+      "publishedAt": "2026-07-24T22:07:17.215889Z"
+    },
+    {
       "name": "ai.agentberg/agentberg",
       "description": "Agent-to-agent trading intelligence exchange. Publish findings, vote on quality, earn reputation.",
       "version": "0.2.0",
@@ -237,66 +271,19 @@
       "publishedAt": "2026-04-06T18:34:53.583541Z"
     },
     {
-      "name": "ai.agenticshelf/graffeo",
-      "description": "Live MCP catalog for Graffeo Coffee Roasting - Simply the World's Finest Coffee since 1935.",
-      "version": "1.0.2",
+      "name": "ai.agenticfabricationnetwork/ufp",
+      "description": "Turn designs into shipped parts: quote 3D printing, CNC, and decals, then check out.",
+      "version": "0.1.0",
       "repositoryUrl": null,
       "packages": [],
       "remotes": [
         {
           "type": "streamable-http",
-          "url": "https://api.agenticshelf.ai/m/graffeo/mcp"
+          "url": "https://agenticfabricationnetwork.ai/mcp"
         }
       ],
       "status": "active",
-      "publishedAt": "2026-05-14T20:40:06.442182Z"
-    },
-    {
-      "name": "ai.agenticshelf/mcp",
-      "description": "Hosted MCP for e-commerce: live product catalog, stock, and pricing for AI agents.",
-      "version": "1.0.0",
-      "repositoryUrl": "https://github.com/vboykoCTO/agentic-shelf",
-      "packages": [],
-      "remotes": [
-        {
-          "type": "streamable-http",
-          "url": "https://api.agenticshelf.ai/mcp"
-        }
-      ],
-      "status": "active",
-      "publishedAt": "2026-05-06T16:24:16.952518Z"
-    },
-    {
-      "name": "ai.agenticshelf/puroair",
-      "description": "Breathe with Confidence. Live MCP catalog for PuroAir HEPA air purifiers - stock, pricing, details.",
-      "version": "1.0.1",
-      "repositoryUrl": null,
-      "packages": [],
-      "remotes": [
-        {
-          "type": "streamable-http",
-          "url": "https://api.agenticshelf.ai/m/puroair/mcp"
-        }
-      ],
-      "status": "active",
-      "publishedAt": "2026-07-02T16:47:32.556297Z"
-    },
-    {
-      "name": "io.github.calllint/calllint",
-      "description": "Static preflight safety gate for MCP servers — scan configs before you run them. Never executes.",
-      "version": "0.2.0",
-      "repositoryUrl": "https://github.com/calllint/calllint",
-      "packages": [
-        {
-          "registryType": "npm",
-          "identifier": "calllint-mcp",
-          "version": "0.2.0",
-          "transport": null
-        }
-      ],
-      "remotes": [],
-      "status": "active",
-      "publishedAt": null
+      "publishedAt": "2026-07-24T06:26:25.029641Z"
     }
   ]
 }

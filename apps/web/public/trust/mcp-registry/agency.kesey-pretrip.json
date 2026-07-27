@@ -1,39 +1,34 @@
 {
   "schema": "calllint.trust-page.v0",
-  "canonicalName": "mcp-registry/io.github.calllint-calllint",
-  "artifactDigest": "sha256:23327771ad88957d59c5e72011d84504c7a737a297560277f358d12b8bd3a98b",
-  "pageDigest": "sha256:20091cded7699f05bf0238bb57d20f8452da1755dcbf909a3bd4627d32b84e8d",
+  "canonicalName": "mcp-registry/agency.kesey-pretrip",
+  "artifactDigest": "sha256:48180f8f9eab49664310736b3b4841a78fd013f5ec1e11230cad6ceaa95f8217",
+  "pageDigest": "sha256:08af454d89c488afe446c515501c632056622712b743c3c07d3ae205b8ec5314",
   "verdict": "SAFE",
   "verdictLabel": "No blockers observed",
-  "observedAt": "2026-07-17T00:00:00.000Z",
+  "observedAt": "2026-07-27T10:07:03.242Z",
   "completeness": "complete",
   "status": {
     "verdict": "SAFE",
     "completeness": "complete",
-    "authorityClaimed": true,
+    "authorityClaimed": false,
     "reproducibility": {
-      "pageDigest": "sha256:20091cded7699f05bf0238bb57d20f8452da1755dcbf909a3bd4627d32b84e8d",
-      "observedAt": "2026-07-17T00:00:00.000Z"
+      "pageDigest": "sha256:08af454d89c488afe446c515501c632056622712b743c3c07d3ae205b8ec5314",
+      "observedAt": "2026-07-27T10:07:03.242Z"
     },
     "evidenceLevel": "E2",
     "evidenceRationale": "install config observed → static blast radius normalized into an authority inventory. Higher levels (E3 tool schema, E4 maintainer receipt, E5 sandbox) are not carried by a static page."
   },
-  "verifiedPublisher": {
-    "owner": "calllint",
-    "verifiedAt": "2026-07-24T09:44:55.534Z",
-    "observedArtifactDigest": "sha256:23327771ad88957d59c5e72011d84504c7a737a297560277f358d12b8bd3a98b"
-  },
   "correctionUrl": "https://github.com/calllint/calllint/issues/new?labels=trust-page-correction",
   "reproduction": {
-    "command": "npx calllint scan official-mcp-registry:io.github.calllint/calllint",
-    "artifactDigest": "sha256:23327771ad88957d59c5e72011d84504c7a737a297560277f358d12b8bd3a98b",
+    "command": "npx calllint scan official-mcp-registry:agency.kesey/pretrip",
+    "artifactDigest": "sha256:48180f8f9eab49664310736b3b4841a78fd013f5ec1e11230cad6ceaa95f8217",
     "note": "Re-running this scan reproduces the verdict observed at the pinned artifact digest. It is a point-in-time observation, not a guarantee of future behavior."
   },
   "scanHistory": [
     {
-      "observedAt": "2026-07-17T00:00:00.000Z",
-      "pageDigest": "sha256:20091cded7699f05bf0238bb57d20f8452da1755dcbf909a3bd4627d32b84e8d",
-      "artifactDigest": "sha256:23327771ad88957d59c5e72011d84504c7a737a297560277f358d12b8bd3a98b"
+      "observedAt": "2026-07-27T10:07:03.242Z",
+      "pageDigest": "sha256:08af454d89c488afe446c515501c632056622712b743c3c07d3ae205b8ec5314",
+      "artifactDigest": "sha256:48180f8f9eab49664310736b3b4841a78fd013f5ec1e11230cad6ceaa95f8217"
     }
   ],
   "preparation": {
@@ -41,18 +36,18 @@
     "artifact": {
       "schema": "calllint.artifact.v1",
       "sourceType": "mcp-config",
-      "source": "official-mcp-registry:io.github.calllint/calllint",
+      "source": "official-mcp-registry:agency.kesey/pretrip",
       "requestedRef": null,
-      "resolvedRef": "sha256:23327771ad88957d59c5e72011d84504c7a737a297560277f358d12b8bd3a98b",
-      "digest": "sha256:23327771ad88957d59c5e72011d84504c7a737a297560277f358d12b8bd3a98b",
-      "resolvedAt": "2026-07-17T00:00:00.000Z",
+      "resolvedRef": "sha256:48180f8f9eab49664310736b3b4841a78fd013f5ec1e11230cad6ceaa95f8217",
+      "digest": "sha256:48180f8f9eab49664310736b3b4841a78fd013f5ec1e11230cad6ceaa95f8217",
+      "resolvedAt": "2026-07-27T10:07:03.242Z",
       "resolution": "resolved"
     },
     "evidence": null,
     "authority": {
       "schema": "calllint.authority.v0",
       "subject": {
-        "artifactDigest": "sha256:23327771ad88957d59c5e72011d84504c7a737a297560277f358d12b8bd3a98b"
+        "artifactDigest": "sha256:48180f8f9eab49664310736b3b4841a78fd013f5ec1e11230cad6ceaa95f8217"
       },
       "capabilities": [
         {
@@ -79,7 +74,7 @@
       },
       "unknowns": [],
       "completeness": "complete",
-      "digest": "sha256:a376bad8798f474516e34db037b97bdd45970fdd94c4822b516c5ecd2c8aaa7c"
+      "digest": "sha256:96095e9189b0437a53b1bbb4f2a6423cdf0311b3ed1e87a9b9f704385001516b"
     },
     "decision": null,
     "plan": null,
@@ -88,12 +83,12 @@
       "no external evidence attached (optional); decision will rely on CallLint's own analysis",
       "authority normalized: 1 capability"
     ],
-    "preparedAt": "2026-07-17T00:00:00.000Z"
+    "preparedAt": "2026-07-27T10:07:03.242Z"
   },
   "scan": {
     "schemaVersion": "calllint.report.v0",
     "reportKind": "config-summary",
-    "configPath": "official-mcp-registry:io.github.calllint/calllint",
+    "configPath": "official-mcp-registry:agency.kesey/pretrip",
     "verdict": "SAFE",
     "publicVerdictLabel": "No blockers observed",
     "counts": {
@@ -109,9 +104,9 @@
         "target": {
           "name": "package",
           "kind": "cursor-mcp-config",
-          "source": "calllint-mcp",
-          "version": "0.2.0",
-          "configPath": "official-mcp-registry:io.github.calllint/calllint"
+          "source": "pretrip-mcp",
+          "version": "1.0.1",
+          "configPath": "official-mcp-registry:agency.kesey/pretrip"
         },
         "verdict": "SAFE",
         "publicVerdictLabel": "No blockers observed",
@@ -134,16 +129,16 @@
           "sandbox": "none"
         },
         "fingerprints": {
-          "configHash": "sha256:66d2dc9be335dc4ae3d87f157b644081183239a55e53f352443732e4c243cfb2",
-          "targetSpecHash": "sha256:c181b5650a4d1db9d4d71c810ab072da046a9a2974219d583bc01d6383d9e47d",
+          "configHash": "sha256:4efd7d7caa773f423f321cc4194a0c5eea4288cb5e81108220b3137ac6c77f23",
+          "targetSpecHash": "sha256:949d3706829e84ae7d51e132de03f7fee1e4e75675e61ffcb0d2984785242aea",
           "riskSurfaceHash": "sha256:69aae84c996fe93d537b08d906cb339866bd43f10876be403a0f4793915bef33",
-          "packageSpecHash": "sha256:cd7082a446b1bcd45bb08929cc51faaaf1160a15b742247804787bd6ae44a510"
+          "packageSpecHash": "sha256:92662e47c4a459bae27c4e52c7442572ed36424e349f6a5bd1fd926b10e369f2"
         },
         "diagnostics": [],
-        "generatedAt": "2026-07-17T00:00:00.000Z"
+        "generatedAt": "2026-07-27T10:07:03.242Z"
       }
     ],
     "diagnostics": [],
-    "generatedAt": "2026-07-17T00:00:00.000Z"
+    "generatedAt": "2026-07-27T10:07:03.242Z"
   }
 }
