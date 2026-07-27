@@ -63,6 +63,26 @@ onward. While pre-1.0, minor versions may include breaking changes.
   copy byte-identical to the baked file, and the existing no-exec invariant gains a Safe Search
   case; `check:public-copy` (check 21) governs the new description like every other public string.
 
+- **Phase 2.6 Install Hook — capture the install action, re-adjudicate via the shipped route
+  (ADR 0055 §4).** Extends the shipped ADR 0051 preflight hook
+  (`plugins/calllint/hooks/preflight-core.mjs`) so that when an agent edits an agent-tool
+  config surface, its non-blocking recommendation now also **captures the install action** and
+  names the exact **human-in-the-loop Trust-Gateway route** that re-adjudicates it verbatim:
+  `calllint trust prepare <name> --host <id>` (read-only — builds a reviewable plan, executes
+  nothing), review, then `calllint trust apply --plan <f> --approve <plan-digest>` (the **only**
+  step that writes host config, and only on the human's approval of that exact plan digest;
+  optionally `--receipt` emits a `calllint.receipt.v1` decision receipt). This holds the ADR
+  0051/0052 floor exactly: the hook **captures, it never decides or writes** — it never reaches
+  `applyPlan`, constructs no `ApplyOptions`/fs port, always exits 0, and emits no
+  `permissionDecision` (the route is guidance in `additionalContext`, not a gating field). A
+  model may skip CallLint, but the install **action** is always routed back through the
+  human-approved gateway. The recommendation vocabulary is mirrored from
+  `@calllint/agent-triggers` (the dependency-free plugin cannot import it at runtime) and pinned
+  identical by the invariant test — one vocabulary, no drift — with the capture treated as
+  `gather-evidence` (UNKNOWN-equivalent, never SAFE). The `preflight-hook-non-blocking`
+  invariant gains cases proving exit 0, no `permissionDecision`, no file written, and the
+  verbatim route; no schema, no verdict movement, no served-page byte change.
+
 - **Trust Page discovery — sitemap + structured data (SEO, no verdict movement).** Trust
   Pages are search-indexable (`robots: index,follow`) but nothing helped a crawler — or a
   maintainer — find them. The bake now emits a deterministic `trust/sitemap.xml` listing
