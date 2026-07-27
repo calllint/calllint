@@ -44,6 +44,11 @@
  *  19. Claim-funnel state: every served Trust HTML page is either claimed (shows
  *      "Verified Publisher", no funnel) or unclaimed (shows the "claim this page"
  *      App install funnel + the control-not-safety framing) — DX-1, ADR 0047/0048.
+ *  21. MCP tool descriptions (calllint-mcp) are governed like every other public
+ *      string (ADR 0055 §3): the always-loaded Sentinel and every shipped tool
+ *      description carry no forbidden overclaim and are never an injected instruction
+ *      to the host agent (no "you must…"/"ignore…"/"always call … before…" imperative
+ *      — a §七 forbidden method).
  *
  * Exit codes:
  *   0  all checks pass
@@ -463,6 +468,56 @@ console.log("")
     const safePages = htmlPages.filter((f) => f.text.includes(SAFE_LABEL)).length
     if (scopedClean && safePages > 0) ok(`all ${safePages} SAFE Trust Page(s) scope the label with an evidence level + completeness (no bare SAFE)`)
     else if (safePages === 0) ok("no SAFE Trust Pages present to scope (skipped 20)")
+  }
+}
+
+// 21. MCP tool descriptions are governed public copy (ADR 0055 §3). The Sentinel
+//   (`calllint_guard_external_tools`) and every shipped calllint-mcp tool description
+//   is a public string the host agent reads, so it must (a) carry no forbidden
+//   overclaim (same corpus as check 2) and (b) never be an injected instruction —
+//   copy that redirects/coerces/impersonates the agent's turn ("you must…", "ignore…",
+//   "always call … before…") is a §七 forbidden method. We scan the committed source
+//   text of tools.ts (this guard runs under plain `node`, so it reads bytes, never
+//   imports the TS module) — the same discipline as every other check here.
+{
+  const toolsPath = path.join(repoRoot, "packages/calllint-mcp/src/tools.ts")
+  if (!fs.existsSync(toolsPath)) {
+    ok("calllint-mcp tools.ts not present (skipped 21)")
+  } else {
+    const src = fs.readFileSync(toolsPath, "utf8")
+    // Pull every `description:` string literal from the TOOLS registry. Descriptions
+    // are authored as a `description:` key followed by a single- or double-quoted
+    // string (possibly wrapped across lines by the formatter); capture the literal.
+    const descriptions = []
+    const re = /\bdescription:\s*("(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*')/g
+    let m
+    while ((m = re.exec(src)) !== null) {
+      // Unquote + unescape enough to scan the human text.
+      const raw = m[1].slice(1, -1).replace(/\\"/g, '"').replace(/\\'/g, "'").replace(/\\n/g, " ")
+      descriptions.push(raw)
+    }
+    if (descriptions.length === 0) {
+      fail("check 21: no tool descriptions found in tools.ts (regex drift?)")
+    } else {
+      const joined = descriptions.join("\n").toLowerCase()
+      // (a) No forbidden overclaim (reuse the project-facts corpus).
+      const overclaim = facts.forbiddenPhrases.filter((p) => joined.includes(p.toLowerCase()))
+      if (overclaim.length === 0) ok(`no forbidden overclaim across ${descriptions.length} MCP tool description(s)`)
+      else for (const p of overclaim) fail(`MCP tool description overclaim: "${p}"`)
+      // (b) Never an injected instruction to the host agent (§七 forbidden method).
+      const injectionPhrases = [
+        "you must",
+        "ignore previous",
+        "ignore the",
+        "always call",
+        "you should always",
+        "do not proceed until",
+        "disregard",
+      ]
+      const injected = injectionPhrases.filter((p) => joined.includes(p))
+      if (injected.length === 0) ok("no MCP tool description is an injected instruction (honest presence only)")
+      else for (const p of injected) fail(`MCP tool description carries an injection imperative: "${p}"`)
+    }
   }
 }
 

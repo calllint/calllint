@@ -12,7 +12,21 @@ onward. While pre-1.0, minor versions may include breaking changes.
 
 ### Added
 
-- **Sitemap discovery wiring — `robots.txt` `Sitemap:` line.** Adds an origin
+- **Phase 2.6 Sentinel — `calllint_guard_external_tools` (ADR 0055 §3).** Adds an
+  always-loaded, honest-presence MCP tool to the shipped `calllint-mcp` server (now 7 pure
+  delegators, still one server, ADR 0025). It **states what CallLint does** — a static,
+  deterministic preflight gate that returns an evidence-backed SAFE/REVIEW/BLOCK/UNKNOWN
+  verdict, never executes the target, never decides with an LLM, and where UNKNOWN is never
+  SAFE — and reports that CallLint is available; it holds no logic, changes no verdict, and
+  performs no action of its own (the handler echoes the shipped boundary-safe
+  `VERDICT_PUBLIC_LABEL` and the shipped tool names). It is **never an injected instruction**
+  to the host agent: copy that redirects/coerces/impersonates the agent's turn ("you must…",
+  "ignore…", "always call … before…") is a §七 forbidden method and is prohibited. Two guards
+  pin this: the description + output stay **≤2500 bytes** (a ceiling assertion, ADR 0055 §3),
+  and `check:public-copy` gains **check 21** — it scans the committed `tools.ts` description
+  literals for forbidden overclaim (the project-facts corpus) and any injection imperative,
+  so every MCP tool description is now governed like every other public string. Additive: no
+  schema, no verdict movement, no served-page byte change; the trust tree is untouched. Adds an origin
   `apps/web/public/robots.txt` whose only directive is
   `Sitemap: https://calllint.com/trust/sitemap.xml`, so the Trust Index sitemap is
   auto-discovered by crawlers with no ongoing manual step. This is deliberately additive:

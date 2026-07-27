@@ -18,10 +18,10 @@ describe("handleRequest", () => {
     expect(String(r.instructions)).toMatch(/before installing or approving/i)
   })
 
-  it("tools/list returns the six tools with schemas", () => {
+  it("tools/list returns all shipped tools with schemas", () => {
     const res = handleRequest({ jsonrpc: "2.0", id: 2, method: "tools/list" }, INFO, OPTS)
     const tools = (res as { result: { tools: { name: string; inputSchema: unknown }[] } }).result.tools
-    expect(tools).toHaveLength(6)
+    expect(tools).toHaveLength(7)
     for (const t of tools) expect(t.inputSchema).toBeDefined()
   })
 
