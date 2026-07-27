@@ -156,7 +156,12 @@ export {
 } from "./receipt/index.js"
 
 // new8 Phase G — Automated Trust Gateway (read-only preparation; ADR 0035).
-export { prepare, prepareExitCode, type PrepareInput } from "./gateway/prepare.js"
+export {
+  prepare,
+  prepareExitCode,
+  type PrepareInput,
+  type InstallExpectations,
+} from "./gateway/prepare.js"
 export {
   buildAuthorityManifest,
   verifyAuthorityDigest,

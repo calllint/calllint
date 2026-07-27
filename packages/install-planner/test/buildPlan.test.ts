@@ -1,7 +1,13 @@
 import { describe, it, expect } from "vitest"
-import { buildInstallPlan, buildServerOps, verifyPlanDigest, validatePlan } from "../src/index.js"
+import {
+  buildInstallPlan,
+  buildServerOps,
+  verifyPlanDigest,
+  validatePlan,
+  withAdoptionContract,
+} from "../src/index.js"
 import { claudeCodeAdapter, claudeCodeServerEntry } from "../src/index.js"
-import type { PlanContext, PlanUpstream } from "../src/index.js"
+import type { PlanContext, PlanUpstream, PlanAdoptionContract } from "../src/index.js"
 import type { AuthorityManifest, TrustDecision } from "@calllint/types"
 
 /**
@@ -67,6 +73,61 @@ describe("buildInstallPlan (G5)", () => {
     const plan = buildInstallPlan(ctx(), upstream)
     const tampered = { ...plan, operations: [] }
     expect(verifyPlanDigest(tampered)).toBe(false)
+  })
+})
+
+describe("withAdoptionContract (Phase 2.4 — additive provenance, re-sealed)", () => {
+  const CONTRACT = ("sha256:" + "1".repeat(64)) as `sha256:${string}`
+  const provenance: PlanAdoptionContract = {
+    contractDigest: CONTRACT,
+    canonicalName: "acme/time-mcp",
+    expectedVersion: "1.3.0",
+    expectedArtifactDigest: A,
+  }
+
+  it("records the contract and re-seals a digest that still verifies", () => {
+    const plan = buildInstallPlan(ctx(), upstream)
+    const withContract = withAdoptionContract(plan, provenance)
+    expect(withContract.adoptionContract).toEqual(provenance)
+    // The digest was recomputed and still seals the whole (now-larger) plan.
+    expect(verifyPlanDigest(withContract)).toBe(true)
+    expect(validatePlan(withContract).ok).toBe(true)
+  })
+
+  it("adding provenance changes the plan digest (plan change ⇒ digest change)", () => {
+    const plan = buildInstallPlan(ctx(), upstream)
+    const withContract = withAdoptionContract(plan, provenance)
+    expect(withContract.planDigest).not.toBe(plan.planDigest)
+  })
+
+  it("provenance is additive — operations, verdict digests, and tier are untouched", () => {
+    const plan = buildInstallPlan(ctx(), upstream)
+    const withContract = withAdoptionContract(plan, provenance)
+    expect(withContract.operations).toEqual(plan.operations)
+    expect(withContract.rollback).toEqual(plan.rollback)
+    expect(withContract.decisionDigest).toBe(plan.decisionDigest)
+    expect(withContract.artifactDigest).toBe(plan.artifactDigest)
+    expect(withContract.tier).toBe(plan.tier)
+  })
+
+  it("is deterministic and independent of key-insertion order (stable digest)", () => {
+    const plan = buildInstallPlan(ctx(), upstream)
+    const a = withAdoptionContract(plan, provenance)
+    const b = withAdoptionContract(plan, {
+      // same fields, different literal order — hashJson canonicalizes
+      expectedArtifactDigest: A,
+      expectedVersion: "1.3.0",
+      canonicalName: "acme/time-mcp",
+      contractDigest: CONTRACT,
+    })
+    expect(a.planDigest).toBe(b.planDigest)
+  })
+
+  it("re-sealing is idempotent on the digest for identical provenance", () => {
+    const plan = buildInstallPlan(ctx(), upstream)
+    const once = withAdoptionContract(plan, provenance)
+    const twice = withAdoptionContract(once, provenance)
+    expect(twice.planDigest).toBe(once.planDigest)
   })
 })
 

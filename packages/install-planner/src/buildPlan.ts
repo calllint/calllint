@@ -6,7 +6,12 @@
  * the typed JSON-Patch that installs already-normalized servers.
  */
 import { hashJson } from "@calllint/fingerprint"
-import type { InstallPlan, InstallOperation, JsonPatchOp } from "@calllint/types"
+import type {
+  InstallPlan,
+  InstallOperation,
+  JsonPatchOp,
+  PlanAdoptionContract,
+} from "@calllint/types"
 import type { PlanContext, PlanUpstream } from "./hostAdapter.js"
 
 /** Escape a JSON-Pointer path segment (RFC-6901): ~ → ~0, / → ~1. */
@@ -111,4 +116,20 @@ export function buildInstallPlan(ctx: PlanContext, upstream: PlanUpstream): Inst
 export function verifyPlanDigest(plan: InstallPlan): boolean {
   const { planDigest, ...rest } = plan
   return planDigest === hashJson(rest)
+}
+
+/**
+ * Attach Agent Adoption Contract provenance to a plan and RE-SEAL its digest
+ * (Phase 2.4). Additive: the operations, upstream digests, and verdict are
+ * untouched — only the provenance is recorded and the planDigest recomputed so it
+ * still seals the whole plan (an approval then binds the contract too). Pure: no
+ * I/O, deterministic. Passing a plan through with no provenance is a no-op.
+ */
+export function withAdoptionContract(
+  plan: InstallPlan,
+  provenance: PlanAdoptionContract,
+): InstallPlan {
+  const { planDigest: _prior, ...rest } = plan
+  const resealed: Omit<InstallPlan, "planDigest"> = { ...rest, adoptionContract: provenance }
+  return { ...resealed, planDigest: hashJson(resealed) as `sha256:${string}` }
 }
