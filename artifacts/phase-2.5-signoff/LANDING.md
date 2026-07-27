@@ -1,5 +1,12 @@
 # Phase 2.5 — Landing checklist (Aug-1 window)
 
+> **Post-land update (2026-07-27): this runbook is complete.** It was executed ahead of the
+> Aug-1 window — the repo is public, so GitHub Actions runners are free and no quota hold
+> applied. B→C→D→E landed on `main` in the order below via PRs #222–#225 (tip `d4c7acc`),
+> and `pnpm audit:self-claim` re-run on `main` confirmed 3/3. **Phase 2.6 (Sentinel →
+> Search → Hook) subsequently shipped** via PRs #226–#228 (tip `95587aa`). The checklist
+> below is retained as the historical runbook.
+
 The Phase 2.5 stack is built and `ci:local`-green locally. Remote landing is deferred to
 the Aug-1 quota-refresh window. This is the exact, ordered runbook. **Do not** front-run
 the order — ADR 0055 §7 fixes A→B→C→D→E, and the merge order below preserves it.

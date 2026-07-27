@@ -1,5 +1,15 @@
 # Phase 2.5 — Signoff (PR-N5): the maintainer-claim funnel closes on our own namespace
 
+> **Post-land update (2026-07-27).** The landing this doc describes below as "deferred to
+> the Aug-1 window" has since happened, ahead of schedule: the repo is public, so GitHub
+> Actions runners are free and no quota hold applied. Phase 2.5 **B→C→D→E landed on `main`**
+> in order via PRs #222–#225 (tip `d4c7acc`), and **Phase 2.6 (Sentinel → Search → Hook)
+> then shipped on top** via PRs #226–#228 (tip `95587aa`). The `pnpm audit:self-claim`
+> kill-gate held throughout (3/3, verdict SAFE, pageDigest `sha256:20091cd…`
+> byte-identical). The evidence table below is preserved verbatim **as authored** — a
+> signoff records a point in time and "never reports a merge that has not happened"; the
+> authoritative land record is the git history, the closed PRs #219–#228, and `CHANGELOG.md`.
+
 **What this directory is.** The evidence-backed acceptance record for **new13 Phase 2.5**
 (the maintainer-claim funnel + `/trust` lookup), and the gate ADR 0055 §7 names: *"Phase
 2.6 does **not** start until the Phase-2.5 signoff doc (PR-N5) is green."* This is that
