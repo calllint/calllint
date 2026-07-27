@@ -19,3 +19,9 @@ packages/trust-index/snapshots/** text eol=lf
 # false-fail the check). Pin them to LF (ADR 0053 §6; same discipline as the bake).
 packages/resolver/audit/** text eol=lf
 packages/trust-index/calibration/** text eol=lf
+
+# The Safe Search bundled committed index (ADR 0055 §4) is a byte-copy of the baked
+# apps/web/public/trust/lookup-index.json, imported as a module and pinned byte-identical
+# by committed-lookup-drift.test.ts. The baked original is eol=lf (above), so this copy
+# must be too — otherwise a CRLF Windows checkout diverges and the anti-drift test false-fails.
+packages/calllint-mcp/src/data/** text eol=lf
