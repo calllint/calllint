@@ -22,6 +22,17 @@ export interface CommittedLookupEntry {
   verdictLabel: string
   artifactDigest: string
   observedAt: string
+  /**
+   * Safe-install linkage (Phase 2.4 / ADR 0056), carried through VERBATIM from the baked
+   * index — the search tool never derives or recomputes these. Non-null only when the
+   * resource has a baked acquisition page: `installUrl` is the human Install page,
+   * `contractUrl` the machine Agent-Adoption-Contract sidecar, `installability` the shipped
+   * human/route enum (a projection of the verdict, never a new score). Null when the
+   * resource has a Trust Page but no install page.
+   */
+  installUrl: string | null
+  contractUrl: string | null
+  installability: string | null
 }
 
 /**

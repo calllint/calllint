@@ -24,7 +24,26 @@ import { safeInstallProjection } from "./safeInstallProjection.js"
 import type { AdoptionSubjectInput } from "./agentAdoptionContract.js"
 import { renderSafeInstall, renderSafeInstallContract } from "./renderSafeInstall.js"
 import { renderDiscoveryManifest, type DiscoveryResourceEntry } from "./renderDiscoveryManifest.js"
+import type { Installability } from "./safeInstallProjection.js"
 import type { EmittedFile } from "./emitCohort.js"
+
+/**
+ * One emitted acquisition resource — the canonical name/slug plus its human/route
+ * installability. Returned alongside the files so `emitAllCohorts` can link the SAME
+ * set from the sitemap and enrich the matching lookup entries, without recomputing
+ * membership or the route (INV-2.4-01: one membership decision drives every surface).
+ */
+export interface EmittedInstallResource {
+  readonly canonicalName: string
+  readonly canonicalSlug: string
+  readonly installability: Installability
+}
+
+/** The result of the Safe-install emit: files to write + the per-resource route set. */
+export interface EmittedSafeInstall {
+  readonly files: EmittedFile[]
+  readonly resources: EmittedInstallResource[]
+}
 
 /** The `sha256:0…` sentinel for an absent evidence snapshot (a stable, honest null). */
 const NULL_DIGEST = "sha256:" + "0".repeat(64)
@@ -65,9 +84,10 @@ export function emitSafeInstall(
   snapshot: RegistrySnapshot | null,
   evidence: EvidenceSnapshot | null,
   engineVersion: string,
-): EmittedFile[] {
+): EmittedSafeInstall {
   const files: EmittedFile[] = []
   const discovery: DiscoveryResourceEntry[] = []
+  const resources: EmittedInstallResource[] = []
 
   const snapshotDigest = snapshot ? hashJson(snapshot) : NULL_DIGEST
   const registrySnapshotDigest = snapshotDigest
@@ -106,6 +126,11 @@ export function emitSafeInstall(
       files.push({ path: `install/${slug}/index.html`, content: renderSafeInstall(projection) })
       files.push({ path: `install/${slug}/index.json`, content: renderSafeInstallContract(projection) })
       discovery.push({ canonicalName: projection.canonicalName, canonicalSlug: slug })
+      resources.push({
+        canonicalName: projection.canonicalName,
+        canonicalSlug: slug,
+        installability: projection.installability,
+      })
     } catch (err) {
       if (err instanceof ConfigParseError) continue // malformed ⇒ no page (parity with emitCohort)
       throw err
@@ -114,5 +139,8 @@ export function emitSafeInstall(
 
   files.push({ path: ".well-known/calllint.json", content: renderDiscoveryManifest(discovery) })
   files.sort((a, b) => (a.path < b.path ? -1 : a.path > b.path ? 1 : 0))
-  return files
+  // `resources` stays in discovery order (registry-cohort order); the caller sorts where
+  // a stable projection is needed (the lookup index sorts by canonicalName, the sitemap
+  // by slug), so no sort here keeps this a faithful "what was emitted, in emit order" list.
+  return { files, resources }
 }

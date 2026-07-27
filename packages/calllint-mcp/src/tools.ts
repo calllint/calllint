@@ -268,7 +268,7 @@ export const TOOLS: ToolDef[] = [
     // reaches the network, and never reads the served tree at runtime.
     name: "calllint_search_agent_tools",
     description:
-      "Search already-published CallLint Trust Pages for MCP servers and agent tools by name, and get each match's existing verdict. Deterministic name match only (exact, then prefix, then substring; alphabetical within a tier) over a committed index — no LLM, no fuzzy or semantic ranking, and no new score. Each result carries the page's shipped verdict verbatim — SAFE (no blockers observed), REVIEW (human judgment required), BLOCK (a dangerous surface), or UNKNOWN (could not verify statically; UNKNOWN is never SAFE) — plus its boundary-safe label, artifact digest, observed-at time, and Trust Page URL. A match reports an existing observation at a specific digest and time; it is not a certification, an endorsement, or a guarantee of safety, and this tool never executes a server and changes no verdict. A resource with no CallLint Trust Page simply does not appear; absence is not a verdict. To scan a config that has no page yet, use scan_mcp_config_json.",
+      "Search already-published CallLint Trust Pages for MCP servers and agent tools by name, and get each match's existing verdict. Deterministic name match only (exact, then prefix, then substring; alphabetical within a tier) over a committed index — no LLM, no fuzzy or semantic ranking, and no new score. Each result carries the page's shipped verdict verbatim — SAFE (no blockers observed), REVIEW (human judgment required), BLOCK (a dangerous surface), or UNKNOWN (could not verify statically; UNKNOWN is never SAFE) — plus its boundary-safe label, artifact digest, observed-at time, and Trust Page URL. When the resource also has a CallLint acquisition page, the result includes installUrl (the human Install page), contractUrl (the machine Agent Adoption Contract), and installability (the route: PREPARE_AVAILABLE, REVIEW_REQUIRED, BLOCKED, LOCAL_PREFLIGHT_REQUIRED, or UNSUPPORTED); these link existing pages and authorize nothing — installing always re-decides locally. A match reports an existing observation at a specific digest and time; it is not a certification, an endorsement, or a guarantee of safety, and this tool never executes a server and changes no verdict. A resource with no CallLint Trust Page simply does not appear; absence is not a verdict. To scan a config that has no page yet, use scan_mcp_config_json.",
     inputSchema: {
       type: "object",
       properties: {
@@ -305,8 +305,14 @@ export const TOOLS: ToolDef[] = [
           artifactDigest: e.artifactDigest,
           observedAt: e.observedAt,
           url: e.url,
+          // Safe-install linkage (ADR 0056), carried through verbatim. Non-null only when a
+          // baked acquisition page exists; these route to the human Install page + machine
+          // Agent Adoption Contract, and never authorize a write — prepare re-decides locally.
+          installUrl: e.installUrl,
+          contractUrl: e.contractUrl,
+          installability: e.installability,
         })),
-        note: "Each result is an existing CallLint observation at a specific artifact digest and time — not a certification or a guarantee of safety. A resource with no Trust Page does not appear; absence is not a verdict.",
+        note: "Each result is an existing CallLint observation at a specific artifact digest and time — not a certification or a guarantee of safety. installUrl/contractUrl (when present) link the human Install page and the machine Agent Adoption Contract; they authorize nothing — a local prepare always re-decides. A resource with no Trust Page does not appear; absence is not a verdict.",
       })
     }),
   },

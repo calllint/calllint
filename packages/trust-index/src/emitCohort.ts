@@ -26,6 +26,7 @@ import { renderAppCreatedPage } from "./renderAppCreated.js"
 import { renderLookupIndex, renderLookupPage, type LookupSourceEntry } from "./renderLookup.js"
 import { buildEvidenceManifest } from "./evidenceManifest.js"
 import { verifiedPublisherForNamespace, EMPTY_CLAIM_STORE, type ClaimStore } from "./claim.js"
+import { emitSafeInstall } from "./emitSafeInstall.js"
 
 /**
  * A candidate resource proposed for the PUBLIC Trust Index beyond the ADR-locked seed
@@ -51,7 +52,16 @@ export interface EmittedFile {
 
 /** The result of baking the whole cohort: files to write + an index sidecar. */
 export interface EmittedCohort {
+  /** Files under the served TRUST root (`apps/web/public/trust/`). */
   files: EmittedFile[]
+  /**
+   * Files under the served SITE root (`apps/web/public/`), NOT under `/trust/`: the
+   * Safe-install acquisition pages `install/{slug}/**` and the discovery manifest
+   * `.well-known/calllint.json` (Phase 2.4 / ADR 0056). Kept as a distinct list because
+   * they are rooted differently and are covered by their own reproducibility gate; the
+   * bin writes them relative to `apps/web/public/`.
+   */
+  installFiles: EmittedFile[]
   /** Count of pages baked and entries marked incomplete (for the index + logging). */
   baked: number
   incomplete: number
@@ -212,6 +222,12 @@ export function emitAllCohorts(
   claims: ClaimStore = EMPTY_CLAIM_STORE,
   evidence: EvidenceSnapshot | null = null,
   expansion: readonly ExpansionCandidate[] = [],
+  // The engine version stamped into the Safe-install contract bytes (INV-2.4-10). A
+  // deterministic bake input, passed by the bin from the trust-index package.json. It
+  // flows ONLY into `installFiles` (the contract JSON) — the trust tree (pages, index,
+  // sitemap, lookup) is version-independent, so a caller that omits it still bakes a
+  // byte-identical trust tree; only the install contract's `engineVersion` differs.
+  engineVersion = "0.0.0",
 ): EmittedCohort {
   const files: EmittedFile[] = []
   const index: IndexEntry[] = []
@@ -279,10 +295,30 @@ export function emitAllCohorts(
     (e) => e.status === "baked" && !e.canonicalName.startsWith("calllint-fixtures/"),
   )
   const bakedPages = bakedReal.map((e) => ({ canonicalName: e.canonicalName, observedAt: e.observedAt }))
-  // The sitemap lists every real resource page PLUS the standing lookup utility page
-  // (ADR 0055 §5) as one deterministic chrome <loc>. `LOOKUP_PAGE_PATH` is the single
-  // source of truth shared with the lookup page's own canonical link.
-  files.push({ path: `sitemap.xml`, content: renderSitemap(bakedPages, [LOOKUP_PAGE_PATH]) })
+
+  // Safe-install acquisition surface (Phase 2.4 / ADR 0056). Emitted from the SAME
+  // committed inputs, so the exact membership set that produced the served Trust tree
+  // drives the served /install/** pages, the discovery manifest, the sitemap install
+  // links, and the lookup enrichment below — one decision, every surface (INV-2.4-01).
+  // Files under this list are rooted at the SITE root (`/install/**`, `/.well-known/…`),
+  // NOT under `/trust/`, so the bin writes them one level up from the trust tree. This
+  // re-bakes the registry pages purely (deterministic) to project them; it never moves a
+  // verdict or a page digest — the contract seals a digest OVER already-public facts.
+  const safeInstall = emitSafeInstall(snapshot, evidence, engineVersion)
+  const installFiles = safeInstall.files
+  // canonicalName → its emitted acquisition route (slug + installability). Only resources
+  // that actually got an install page appear here, so a lookup/sitemap link can never
+  // point at a page that 404s (the acquisition set may be a SUBSET of bakedReal — e.g.
+  // an expansion-cohort page has a Trust Page but no install page).
+  const routeByName = new Map(safeInstall.resources.map((r) => [r.canonicalName, r]))
+  // Sitemap install links: the HUMAN `/install/{slug}/` page for each emitted resource,
+  // sorted inside renderSitemap. The machine contract sidecar is deliberately excluded.
+  const installSlugs = safeInstall.resources.map((r) => r.canonicalSlug)
+
+  // The sitemap lists every real resource page, the Safe-install pages, PLUS the standing
+  // lookup utility page (ADR 0055 §5) as one deterministic chrome <loc>. `LOOKUP_PAGE_PATH`
+  // is the single source of truth shared with the lookup page's own canonical link.
+  files.push({ path: `sitemap.xml`, content: renderSitemap(bakedPages, [LOOKUP_PAGE_PATH], installSlugs) })
 
   // The client-facing lookup surface (ADR 0055 §5): a deterministic index + a human search
   // page so a maintainer/operator can FIND a Trust Page by name. Both are site chrome under
@@ -292,12 +328,22 @@ export function emitAllCohorts(
   // drift from `index.json`; it carries no score and no free-text (no LLM, no fuzzy). A
   // baked entry always has a non-null verdict + artifactDigest (only `incomplete` entries
   // are null, and those are filtered out above).
-  const lookupEntries: LookupSourceEntry[] = bakedReal.map((e) => ({
-    canonicalName: e.canonicalName,
-    verdict: e.verdict as LookupSourceEntry["verdict"],
-    artifactDigest: e.artifactDigest as string,
-    observedAt: e.observedAt,
-  }))
+  // Each lookup entry is enriched with its Safe-install linkage IFF the resource has an
+  // emitted install page (ADR 0056). The URLs are derived from the SAME canonical slug the
+  // acquisition emit used (via `routeByName`), so the lookup surface can never advertise an
+  // install URL that 404s; a resource with no install page carries the three fields as null.
+  const lookupEntries: LookupSourceEntry[] = bakedReal.map((e) => {
+    const route = routeByName.get(e.canonicalName)
+    return {
+      canonicalName: e.canonicalName,
+      verdict: e.verdict as LookupSourceEntry["verdict"],
+      artifactDigest: e.artifactDigest as string,
+      observedAt: e.observedAt,
+      installUrl: route ? `/install/${route.canonicalSlug}/` : null,
+      contractUrl: route ? `/install/${route.canonicalSlug}/index.json` : null,
+      installability: route ? route.installability : null,
+    }
+  })
   files.push({ path: `lookup-index.json`, content: renderLookupIndex(lookupEntries) })
   files.push({ path: `lookup.html`, content: renderLookupPage() })
 
@@ -308,7 +354,9 @@ export function emitAllCohorts(
   // dead-ends on a 404.
   files.push({ path: `app-created.html`, content: renderAppCreatedPage() })
 
-  // Sort files by path so the emitted set is order-stable.
+  // Sort both file sets by path so each emitted set is order-stable (installFiles is
+  // already sorted inside emitSafeInstall; re-sorting is cheap and keeps the contract local).
   files.sort((a, b) => (a.path < b.path ? -1 : a.path > b.path ? 1 : 0))
-  return { files, baked, incomplete }
+  installFiles.sort((a, b) => (a.path < b.path ? -1 : a.path > b.path ? 1 : 0))
+  return { files, installFiles, baked, incomplete }
 }

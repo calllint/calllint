@@ -14,12 +14,12 @@
  * Usage:  tsx packages/trust-index/src/refreshSnapshot.ts
  *   env:  TRUST_INGEST_NOW (ISO-8601, optional) pins fetchedAt for a reproducible run
  */
-import { mkdirSync, writeFileSync, rmSync } from "node:fs"
-import { dirname, join } from "node:path"
+import { mkdirSync, writeFileSync } from "node:fs"
+import { dirname, resolve } from "node:path"
 import { fetchRegistrySnapshot, DEFAULT_MAX_ENTRIES } from "./fetchRegistry.js"
 import { parseSnapshot } from "./snapshot.js"
 import { emitAllCohorts } from "./emitCohort.js"
-import { SNAPSHOT_PATH, DEFAULT_OUT } from "./bake.js"
+import { SNAPSHOT_PATH, DEFAULT_OUT, engineVersion, writeServedTree } from "./bake.js"
 
 /**
  * Resolve the ingestion cap (ADR 0038 §6). Defaults to DEFAULT_MAX_ENTRIES; an
@@ -50,19 +50,24 @@ async function main(): Promise<void> {
   writeFileSync(SNAPSHOT_PATH, snapshotText, "utf8")
   const committed = parseSnapshot(snapshotText)
 
-  // 3. Re-bake all cohorts into the served tree (clean first → no stale pages).
-  const { files, baked, incomplete } = emitAllCohorts(committed)
-  rmSync(DEFAULT_OUT, { recursive: true, force: true })
-  for (const f of files) {
-    const abs = join(DEFAULT_OUT, f.path)
-    mkdirSync(dirname(abs), { recursive: true })
-    writeFileSync(abs, f.content, "utf8")
-  }
+  // 3. Re-bake all cohorts into the served tree (clean first → no stale pages). Uses the
+  //    SAME engine version + shared writer as bake.ts, so a scheduled ingest and a CI
+  //    re-bake emit byte-identical trust AND Safe-install (/install/**, .well-known) trees
+  //    — the reproducibility gate holds across both bins (ADR 0056; INV-2.4-10).
+  const { files, installFiles, baked, incomplete } = emitAllCohorts(
+    committed,
+    undefined,
+    undefined,
+    [],
+    engineVersion(),
+  )
+  writeServedTree(DEFAULT_OUT, resolve(DEFAULT_OUT, ".."), files, installFiles)
 
   // eslint-disable-next-line no-console
   console.log(
     `snapshot: ${committed.count} entry(ies) @ ${committed.fetchedAt}; ` +
-      `baked ${baked} page(s), ${incomplete} incomplete, ${files.length} file(s)`,
+      `baked ${baked} page(s), ${incomplete} incomplete, ` +
+      `${files.length} trust file(s) + ${installFiles.length} install file(s)`,
   )
 }
 

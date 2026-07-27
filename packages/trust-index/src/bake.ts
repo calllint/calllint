@@ -72,26 +72,71 @@ export function loadEvidenceSnapshotIfPresent(path = EVIDENCE_SNAPSHOT_PATH): Ev
  */
 export const DEFAULT_OUT = resolve(here, "..", "..", "..", "apps", "web", "public", "trust")
 
-function main(): void {
-  const outDir = process.argv[2] ? resolve(process.argv[2]) : DEFAULT_OUT
-  const snapshot = loadSnapshotIfPresent()
-  const claims = loadClaimStoreIfPresent()
-  const evidence = loadEvidenceSnapshotIfPresent()
-  const { files, baked, incomplete } = emitAllCohorts(snapshot, claims, evidence)
+/**
+ * The committed engine version — a deterministic bake input (INV-2.4-10: same snapshot +
+ * engine + … ⇒ byte-identical Safe-install contracts). Read from the trust-index
+ * package.json so every bin and the reproducibility gate share ONE source and can never
+ * disagree about the version stamped into each contract. Only the install contract bytes
+ * depend on it; the trust tree is version-independent.
+ */
+export function engineVersion(pkgPath = resolve(here, "..", "package.json")): string {
+  return JSON.parse(readFileSync(pkgPath, "utf8")).version as string
+}
 
-  // Clean the output dir first so a removed cohort entry does not leave a stale
-  // page behind (idempotent tree = reproducible tree).
+/**
+ * Write the emitted trees to disk (the ONLY filesystem side effect of a bake). `files`
+ * are the TRUST tree (→ `outDir`, e.g. apps/web/public/trust); `installFiles` are the
+ * Safe-install acquisition surface rooted at the SITE root (→ `publicRoot`, one level up:
+ * `install/**` + `.well-known/calllint.json`, ADR 0056). Each CallLint-owned subtree is
+ * cleaned before writing so a removed resource leaves no stale page (idempotent tree =
+ * reproducible tree). `.well-known/` is NOT wholesale-cleaned — a foreign `security.txt`
+ * lives there — but `calllint.json` is always re-emitted, so it can never go stale.
+ */
+export function writeServedTree(
+  outDir: string,
+  publicRoot: string,
+  files: readonly { path: string; content: string }[],
+  installFiles: readonly { path: string; content: string }[],
+): void {
   rmSync(outDir, { recursive: true, force: true })
-
   for (const f of files) {
     const abs = join(outDir, f.path)
     mkdirSync(dirname(abs), { recursive: true })
     writeFileSync(abs, f.content, "utf8")
   }
+  // CallLint owns the entire /install tree — clean it so a de-listed resource's page is
+  // removed. The discovery manifest overwrites in place (no dir clean → security.txt safe).
+  rmSync(join(publicRoot, "install"), { recursive: true, force: true })
+  for (const f of installFiles) {
+    const abs = join(publicRoot, f.path)
+    mkdirSync(dirname(abs), { recursive: true })
+    writeFileSync(abs, f.content, "utf8")
+  }
+}
+
+function main(): void {
+  const outDir = process.argv[2] ? resolve(process.argv[2]) : DEFAULT_OUT
+  // The site root is the trust tree's parent (apps/web/public): where /install/** and
+  // /.well-known/calllint.json are served from. Derived from outDir so a custom outDir
+  // keeps the same relationship.
+  const publicRoot = resolve(outDir, "..")
+  const snapshot = loadSnapshotIfPresent()
+  const claims = loadClaimStoreIfPresent()
+  const evidence = loadEvidenceSnapshotIfPresent()
+  const { files, installFiles, baked, incomplete } = emitAllCohorts(
+    snapshot,
+    claims,
+    evidence,
+    [],
+    engineVersion(),
+  )
+
+  writeServedTree(outDir, publicRoot, files, installFiles)
 
   // eslint-disable-next-line no-console
   console.log(
-    `baked ${baked} page(s), ${incomplete} incomplete, ${files.length} file(s) → ${outDir}`,
+    `baked ${baked} page(s), ${incomplete} incomplete, ${files.length} trust file(s) + ` +
+      `${installFiles.length} install file(s) → ${outDir} (+ ${publicRoot})`,
   )
 }
 
