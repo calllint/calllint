@@ -1,0 +1,123 @@
+{
+  "schema": "calllint.discovery.v1",
+  "installUrlTemplate": "/install/{canonicalSlug}/",
+  "contractUrlTemplate": "/install/{canonicalSlug}/index.json",
+  "contractMediaType": "application/vnd.calllint.agent-adoption+json;version=1",
+  "mcpResourceTemplate": "calllint://adoption/{slug}[/{version}]",
+  "resources": [
+    {
+      "canonicalName": "mcp-registry/ac.inference.sh-mcp",
+      "canonicalSlug": "mcp-registry/ac.inference.sh-mcp",
+      "installUrl": "/install/mcp-registry/ac.inference.sh-mcp/",
+      "contractUrl": "/install/mcp-registry/ac.inference.sh-mcp/index.json"
+    },
+    {
+      "canonicalName": "mcp-registry/ac.tandem-docs-mcp",
+      "canonicalSlug": "mcp-registry/ac.tandem-docs-mcp",
+      "installUrl": "/install/mcp-registry/ac.tandem-docs-mcp/",
+      "contractUrl": "/install/mcp-registry/ac.tandem-docs-mcp/index.json"
+    },
+    {
+      "canonicalName": "mcp-registry/ag.hood-name-service",
+      "canonicalSlug": "mcp-registry/ag.hood-name-service",
+      "installUrl": "/install/mcp-registry/ag.hood-name-service/",
+      "contractUrl": "/install/mcp-registry/ag.hood-name-service/index.json"
+    },
+    {
+      "canonicalName": "mcp-registry/agency.lona-trading",
+      "canonicalSlug": "mcp-registry/agency.lona-trading",
+      "installUrl": "/install/mcp-registry/agency.lona-trading/",
+      "contractUrl": "/install/mcp-registry/agency.lona-trading/index.json"
+    },
+    {
+      "canonicalName": "mcp-registry/ai.1325-mcp",
+      "canonicalSlug": "mcp-registry/ai.1325-mcp",
+      "installUrl": "/install/mcp-registry/ai.1325-mcp/",
+      "contractUrl": "/install/mcp-registry/ai.1325-mcp/index.json"
+    },
+    {
+      "canonicalName": "mcp-registry/ai.aarna-atars-mcp",
+      "canonicalSlug": "mcp-registry/ai.aarna-atars-mcp",
+      "installUrl": "/install/mcp-registry/ai.aarna-atars-mcp/",
+      "contractUrl": "/install/mcp-registry/ai.aarna-atars-mcp/index.json"
+    },
+    {
+      "canonicalName": "mcp-registry/ai.abmeter-abmeter",
+      "canonicalSlug": "mcp-registry/ai.abmeter-abmeter",
+      "installUrl": "/install/mcp-registry/ai.abmeter-abmeter/",
+      "contractUrl": "/install/mcp-registry/ai.abmeter-abmeter/index.json"
+    },
+    {
+      "canonicalName": "mcp-registry/ai.adadvisor-mcp-server",
+      "canonicalSlug": "mcp-registry/ai.adadvisor-mcp-server",
+      "installUrl": "/install/mcp-registry/ai.adadvisor-mcp-server/",
+      "contractUrl": "/install/mcp-registry/ai.adadvisor-mcp-server/index.json"
+    },
+    {
+      "canonicalName": "mcp-registry/ai.adeu-adeu",
+      "canonicalSlug": "mcp-registry/ai.adeu-adeu",
+      "installUrl": "/install/mcp-registry/ai.adeu-adeu/",
+      "contractUrl": "/install/mcp-registry/ai.adeu-adeu/index.json"
+    },
+    {
+      "canonicalName": "mcp-registry/ai.adramp-google-ads",
+      "canonicalSlug": "mcp-registry/ai.adramp-google-ads",
+      "installUrl": "/install/mcp-registry/ai.adramp-google-ads/",
+      "contractUrl": "/install/mcp-registry/ai.adramp-google-ads/index.json"
+    },
+    {
+      "canonicalName": "mcp-registry/ai.adside-adside",
+      "canonicalSlug": "mcp-registry/ai.adside-adside",
+      "installUrl": "/install/mcp-registry/ai.adside-adside/",
+      "contractUrl": "/install/mcp-registry/ai.adside-adside/index.json"
+    },
+    {
+      "canonicalName": "mcp-registry/ai.adweave-meta-ads-mcp",
+      "canonicalSlug": "mcp-registry/ai.adweave-meta-ads-mcp",
+      "installUrl": "/install/mcp-registry/ai.adweave-meta-ads-mcp/",
+      "contractUrl": "/install/mcp-registry/ai.adweave-meta-ads-mcp/index.json"
+    },
+    {
+      "canonicalName": "mcp-registry/ai.agentberg-agentberg",
+      "canonicalSlug": "mcp-registry/ai.agentberg-agentberg",
+      "installUrl": "/install/mcp-registry/ai.agentberg-agentberg/",
+      "contractUrl": "/install/mcp-registry/ai.agentberg-agentberg/index.json"
+    },
+    {
+      "canonicalName": "mcp-registry/ai.agentdm-agentdm",
+      "canonicalSlug": "mcp-registry/ai.agentdm-agentdm",
+      "installUrl": "/install/mcp-registry/ai.agentdm-agentdm/",
+      "contractUrl": "/install/mcp-registry/ai.agentdm-agentdm/index.json"
+    },
+    {
+      "canonicalName": "mcp-registry/ai.agentic-news-mcp",
+      "canonicalSlug": "mcp-registry/ai.agentic-news-mcp",
+      "installUrl": "/install/mcp-registry/ai.agentic-news-mcp/",
+      "contractUrl": "/install/mcp-registry/ai.agentic-news-mcp/index.json"
+    },
+    {
+      "canonicalName": "mcp-registry/ai.agenticshelf-graffeo",
+      "canonicalSlug": "mcp-registry/ai.agenticshelf-graffeo",
+      "installUrl": "/install/mcp-registry/ai.agenticshelf-graffeo/",
+      "contractUrl": "/install/mcp-registry/ai.agenticshelf-graffeo/index.json"
+    },
+    {
+      "canonicalName": "mcp-registry/ai.agenticshelf-mcp",
+      "canonicalSlug": "mcp-registry/ai.agenticshelf-mcp",
+      "installUrl": "/install/mcp-registry/ai.agenticshelf-mcp/",
+      "contractUrl": "/install/mcp-registry/ai.agenticshelf-mcp/index.json"
+    },
+    {
+      "canonicalName": "mcp-registry/ai.agenticshelf-puroair",
+      "canonicalSlug": "mcp-registry/ai.agenticshelf-puroair",
+      "installUrl": "/install/mcp-registry/ai.agenticshelf-puroair/",
+      "contractUrl": "/install/mcp-registry/ai.agenticshelf-puroair/index.json"
+    },
+    {
+      "canonicalName": "mcp-registry/io.github.calllint-calllint",
+      "canonicalSlug": "mcp-registry/io.github.calllint-calllint",
+      "installUrl": "/install/mcp-registry/io.github.calllint-calllint/",
+      "contractUrl": "/install/mcp-registry/io.github.calllint-calllint/index.json"
+    }
+  ]
+}

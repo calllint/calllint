@@ -33,3 +33,39 @@ export const TRUST_PAGE_FORBIDDEN_PHRASES = [
   "certified",
   "trusted publisher",
 ] as const
+
+/**
+ * The Safe-install acquisition-surface forbidden set (Phase 2.4; ADR 0056 §2.5 /
+ * new14-integration §2.5). The Install page/contract is an ACQUISITION surface — one
+ * sentence from becoming a second verdict ("Safe to install", "CallLint approved") or a
+ * dark-pattern install trap (INV-2.4-07). This extends, never replaces, the Trust-Page
+ * set: an Install surface must pass BOTH lists.
+ *
+ * Two failure modes are banned here:
+ *   • overclaim — copy that reads as a verdict/endorsement CallLint never earned
+ *     ("safe to install", "no risk", "one-click install with no review", "automatically
+ *     protected forever");
+ *   • coercion / manipulative fear copy — the dark-pattern language INV-2.4-07 forbids
+ *     ("continue dangerously", "hackers may steal", "protect forever"). Loss-framing is
+ *     limited to true, neutral facts, so these affirmative manipulations are forbidden.
+ *
+ * Matched case-insensitively, exactly like the Trust-Page set. "Safe-install" as an
+ * internal route/feature-family name is NOT here — only the visible overclaim/coercion
+ * phrases are (integration §2.5). The visible decision language stays the four shipped
+ * verdict labels plus the two honest states (No supported install plan · Run local
+ * pre-flight).
+ */
+export const SAFE_INSTALL_FORBIDDEN_PHRASES = [
+  "safe to install",
+  "certified safe",
+  "verified safe",
+  "calllint approved",
+  "calllint-approved",
+  "guaranteed secure",
+  "automatically protected forever",
+  "protected forever",
+  "no risk",
+  "one-click install with no review",
+  "continue dangerously",
+  "hackers may steal",
+] as const

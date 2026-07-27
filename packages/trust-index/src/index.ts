@@ -45,7 +45,7 @@ export {
   type EmittedFile,
   type EmittedCohort,
 } from "./emitCohort.js"
-export { TRUST_PAGE_FORBIDDEN_PHRASES } from "./language.js"
+export { TRUST_PAGE_FORBIDDEN_PHRASES, SAFE_INSTALL_FORBIDDEN_PHRASES } from "./language.js"
 export {
   evidenceLevel,
   fourDimensionStatus,
@@ -179,3 +179,15 @@ export {
   type Installability,
   type HumanDispositionProjection,
 } from "./safeInstallProjection.js"
+// Phase 2.4 Batch 2 — Human Install renderer + discovery manifest + shadow emit (ADR 0056).
+export { renderSafeInstall, renderSafeInstallContract } from "./renderSafeInstall.js"
+export {
+  renderDiscoveryManifest,
+  DISCOVERY_SCHEMA,
+  INSTALL_URL_TEMPLATE,
+  CONTRACT_URL_TEMPLATE,
+  CONTRACT_MEDIA_TYPE,
+  MCP_RESOURCE_TEMPLATE,
+  type DiscoveryResourceEntry,
+} from "./renderDiscoveryManifest.js"
+export { emitSafeInstall } from "./emitSafeInstall.js"

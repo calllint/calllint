@@ -1,0 +1,30 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://calllint.com/schemas/calllint.discovery.v1.schema.json",
+  "title": "CallLint Safe-install discovery manifest",
+  "description": "The Safe-install acquisition discovery manifest (calllint.discovery.v1, ADR 0056). Served static at /.well-known/calllint.json, it advertises the zero-install acquisition surface: the human Install page URL template, the machine Agent Adoption Contract URL template + its media type, the MCP Resource template, and the closed list of available resources. It is a pure projection of already-public baked facts — no score, no free text, no verdict beyond the shipped labels carried on each page. additionalProperties:false at every level makes it structurally impossible to smuggle a second verdict or a public auto-install flag (ADR 0056 open-decision 2 omits autoInstallEligible).",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "installUrlTemplate", "contractUrlTemplate", "contractMediaType", "mcpResourceTemplate", "resources"],
+  "properties": {
+    "schema": { "const": "calllint.discovery.v1" },
+    "installUrlTemplate": { "const": "/install/{canonicalSlug}/" },
+    "contractUrlTemplate": { "const": "/install/{canonicalSlug}/index.json" },
+    "contractMediaType": { "const": "application/vnd.calllint.agent-adoption+json;version=1" },
+    "mcpResourceTemplate": { "const": "calllint://adoption/{slug}[/{version}]" },
+    "resources": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["canonicalName", "canonicalSlug", "installUrl", "contractUrl"],
+        "properties": {
+          "canonicalName": { "type": "string", "minLength": 1 },
+          "canonicalSlug": { "type": "string", "minLength": 1 },
+          "installUrl": { "type": "string", "pattern": "^/install/.+/$" },
+          "contractUrl": { "type": "string", "pattern": "^/install/.+/index\\.json$" }
+        }
+      }
+    }
+  }
+}
