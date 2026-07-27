@@ -1,0 +1,197 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://calllint.com/schemas/calllint.agent-adoption-contract.v1.schema.json",
+  "title": "CallLint Agent Adoption Contract",
+  "description": "The machine-readable adoption contract (calllint.agent-adoption-contract.v1) an Agent consumes to decide how to add an MCP tool with only locally approved authority (new14 Phase 2.4; ADR 0056 §7). A deterministic PROJECTION of shipped facts (verdict, reason codes, authority manifest, evidence level) — it introduces no new score and can never move a verdict or a page digest (INV-2.4-01/10). Public observation is NOT local authorization: the local Trust Gateway always re-decides and may be stricter (INV-2.4-02). Untrusted publisher content is confined to `untrustedPublisherContent` and is structurally forbidden inside publicObservation/authorityDelta/recommendedNextAction/agentGuidance (INV-2.4-05). An actionable next action requires an EXACT target (canonical+version+artifact+contract digest); otherwise it degrades to LOCAL_PREFLIGHT_REQUIRED (INV-2.4-06).",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "contract",
+    "subject",
+    "publicObservation",
+    "authorityDelta",
+    "trustedSources",
+    "untrustedPublisherContent",
+    "recommendedNextAction",
+    "agentGuidance"
+  ],
+  "properties": {
+    "schema": {
+      "const": "calllint.agent-adoption-contract.v1",
+      "description": "Wire identity (ADR 0043/0055 §5). The tag, not the filename, is the contract."
+    },
+    "contract": { "$ref": "#/$defs/contractIdentity" },
+    "subject": { "$ref": "#/$defs/subject" },
+    "publicObservation": { "$ref": "#/$defs/publicObservation" },
+    "authorityDelta": { "$ref": "#/$defs/authorityDelta" },
+    "trustedSources": { "$ref": "#/$defs/trustedSources" },
+    "untrustedPublisherContent": { "$ref": "#/$defs/untrustedPublisherContent" },
+    "recommendedNextAction": { "$ref": "#/$defs/recommendedNextAction" },
+    "agentGuidance": { "$ref": "#/$defs/agentGuidance" }
+  },
+  "$defs": {
+    "sha256": {
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$"
+    },
+    "authority": {
+      "description": "Closed lowercase CONSEQUENCE vocabulary, deterministically projected from the shipped reason-code set (ADR 0056; §4.1 do-not-fork). Never renamed to denied/absent/impossible.",
+      "enum": [
+        "financial_action",
+        "secret_access",
+        "shell_execution",
+        "broad_filesystem_access",
+        "external_mutation",
+        "messaging_send",
+        "oauth_scope",
+        "gateway_runtime",
+        "network_egress"
+      ]
+    },
+    "contractIdentity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["contractDigest", "generatedAt", "expiresAt", "generatorVersion", "snapshotDigest"],
+      "properties": {
+        "contractDigest": { "$ref": "#/$defs/sha256", "description": "sha256 over this contract with self-referential digest fields excluded (authority-manifest rule)." },
+        "generatedAt": { "type": "string", "minLength": 1, "description": "Source-derived / retained snapshot instant — NEVER wall-clock (INV-2.4-10)." },
+        "expiresAt": { "type": "null", "description": "null in v1 unless deterministic expiry derives from source metadata." },
+        "generatorVersion": { "type": "string", "minLength": 1 },
+        "snapshotDigest": { "$ref": "#/$defs/sha256" }
+      }
+    },
+    "subject": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["canonicalName", "canonicalSlug", "packageType", "packageName", "version", "artifactDigest", "sourceLocator"],
+      "properties": {
+        "canonicalName": { "type": "string", "minLength": 1 },
+        "canonicalSlug": { "type": "string", "minLength": 1 },
+        "packageType": { "type": ["string", "null"] },
+        "packageName": { "type": ["string", "null"] },
+        "version": { "type": ["string", "null"], "description": "Exact version; null forces LOCAL_PREFLIGHT_REQUIRED (INV-2.4-06)." },
+        "artifactDigest": { "$ref": "#/$defs/sha256" },
+        "sourceLocator": { "type": ["string", "null"] }
+      }
+    },
+    "publicObservation": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Trusted, engine-derived observation. NO publisher content may appear here (INV-2.4-05).",
+      "required": ["verdict", "publicLabel", "reasonCodes", "evidenceLevel", "evidenceDigest", "completeness"],
+      "properties": {
+        "verdict": { "enum": ["SAFE", "REVIEW", "BLOCK", "UNKNOWN"] },
+        "publicLabel": { "type": "string", "minLength": 1 },
+        "reasonCodes": { "type": "array", "items": { "type": "string" } },
+        "evidenceLevel": { "enum": ["E0", "E1", "E2", "E3", "E4", "E5", "E6"] },
+        "evidenceDigest": { "$ref": "#/$defs/sha256" },
+        "completeness": { "enum": ["complete", "partial"] }
+      }
+    },
+    "authorityDelta": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Machine authority facts. NO publisher content (INV-2.4-05).",
+      "required": ["adds", "notObserved"],
+      "properties": {
+        "adds": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["authority"],
+            "properties": {
+              "authority": { "$ref": "#/$defs/authority" },
+              "scope": { "type": "array", "items": { "type": "string" } }
+            }
+          }
+        },
+        "notObserved": { "type": "array", "items": { "$ref": "#/$defs/authority" } }
+      }
+    },
+    "trustedSources": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["registrySnapshotDigest", "evidenceDigest", "engineVersion"],
+      "properties": {
+        "registrySnapshotDigest": { "$ref": "#/$defs/sha256" },
+        "evidenceDigest": { "$ref": "#/$defs/sha256" },
+        "engineVersion": { "type": "string", "minLength": 1 }
+      }
+    },
+    "untrustedPublisherContent": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "The ONLY place publisher text may appear. Quarantined; usedForSafetyDecision is always false.",
+      "required": ["description", "usedForSafetyDecision"],
+      "properties": {
+        "description": { "type": ["string", "null"] },
+        "usedForSafetyDecision": { "const": false }
+      }
+    },
+    "recommendedNextAction": {
+      "description": "Exactly ONE next action (plan §7.7). NO publisher content (INV-2.4-05).",
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["kind", "tool", "arguments"],
+          "properties": {
+            "kind": { "const": "PREPARE_LOCALLY" },
+            "tool": { "const": "calllint_prepare_safe_install" },
+            "arguments": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["canonicalName", "expectedVersion", "expectedArtifactDigest", "expectedContractDigest", "host"],
+              "properties": {
+                "canonicalName": { "type": "string", "minLength": 1 },
+                "expectedVersion": { "type": "string", "minLength": 1 },
+                "expectedArtifactDigest": { "$ref": "#/$defs/sha256" },
+                "expectedContractDigest": { "$ref": "#/$defs/sha256" },
+                "host": { "type": "null" }
+              }
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["kind", "tool"],
+          "properties": {
+            "kind": { "const": "INSPECT_BLOCKERS" },
+            "tool": { "const": "explain_finding" }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["kind", "tool"],
+          "properties": {
+            "kind": { "const": "LOCAL_PREFLIGHT_REQUIRED" },
+            "tool": { "const": "calllint_prepare_safe_install" }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["kind"],
+          "properties": { "kind": { "const": "EXPLAIN_ONLY" } }
+        }
+      ]
+    },
+    "agentGuidance": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Procedural guidance ONLY (plan §7.8): goal/steps/mustAsk/mustStop/prohibited. Never coercive, never free-form instruction. NO publisher content (INV-2.4-05).",
+      "required": ["goal", "steps", "mustAskBefore", "mustStopWhen", "prohibitedShortcuts"],
+      "properties": {
+        "goal": { "type": "string", "minLength": 1 },
+        "steps": { "type": "array", "items": { "type": "string" }, "minItems": 1 },
+        "mustAskBefore": { "type": "array", "items": { "type": "string" } },
+        "mustStopWhen": { "type": "array", "items": { "type": "string" } },
+        "prohibitedShortcuts": { "type": "array", "items": { "type": "string" } }
+      }
+    }
+  }
+}

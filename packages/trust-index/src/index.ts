@@ -152,3 +152,30 @@ export {
   type ClaimEvent,
   type TransitionResult,
 } from "./claimStateMachine.js"
+// Phase 2.4 Batch 1 — Safe-install acquisition projection (ADR 0056; plan §6–§8).
+export {
+  ADOPTION_AUTHORITIES,
+  selectDecisionAuthorities,
+  type AdoptionAuthority,
+  type DecisionAuthorityFact,
+  type DecisionAuthoritySelection,
+} from "./selectDecisionAuthorities.js"
+export {
+  AGENT_ADOPTION_CONTRACT_VERSION,
+  AGENT_GUIDANCE,
+  PLACEHOLDER_DIGEST,
+  buildAgentAdoptionContract,
+  sealAgentAdoptionContract,
+  type AgentAdoptionContractV1,
+  type AgentAdoptionContractInput,
+  type AdoptionSubjectInput,
+  type RecommendedNextAction,
+  type PrepareArguments,
+} from "./agentAdoptionContract.js"
+export {
+  safeInstallProjection,
+  type SafeInstallProjection,
+  type SafeInstallProjectionInput,
+  type Installability,
+  type HumanDispositionProjection,
+} from "./safeInstallProjection.js"
