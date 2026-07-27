@@ -26,9 +26,10 @@ function call(name: string, args: Record<string, unknown>) {
 }
 
 describe("tool registry", () => {
-  it("registers exactly the six Phase-5 tools", () => {
+  it("registers exactly the shipped tools (6 Phase-5 + the Sentinel)", () => {
     expect(TOOLS.map((t) => t.name).sort()).toEqual(
       [
+        "calllint_guard_external_tools",
         "explain_finding",
         "generate_agent_rule",
         "generate_ci_gate_snippet",
@@ -44,6 +45,40 @@ describe("tool registry", () => {
       expect(t.description.length).toBeGreaterThan(10)
       expect(t.inputSchema.type).toBe("object")
     }
+  })
+})
+
+describe("Sentinel: calllint_guard_external_tools (ADR 0055 §3)", () => {
+  const sentinel = TOOLS_BY_NAME.get("calllint_guard_external_tools")!
+
+  it("is registered", () => {
+    expect(sentinel).toBeDefined()
+  })
+
+  it("description + output together stay ≤2500 bytes (ceiling, ADR 0055 §3)", () => {
+    const out = sentinel.handler({}, OPTS).content[0]!.text
+    const bytes = Buffer.byteLength(sentinel.description + out, "utf8")
+    expect(bytes).toBeLessThan(2500)
+  })
+
+  it("is honest presence, never an injected instruction (no imperative to the host agent)", () => {
+    const out = sentinel.handler({}, OPTS).content[0]!.text
+    const corpus = (sentinel.description + " " + out).toLowerCase()
+    // §七 forbidden: copy that coerces/redirects/impersonates the agent's own turn.
+    for (const phrase of ["you must", "ignore previous", "ignore the", "always call", "you should always", "do not proceed until"]) {
+      expect(corpus).not.toContain(phrase)
+    }
+  })
+
+  it("is a pure delegator: presence only, holds no logic, changes no verdict", () => {
+    const res = sentinel.handler({}, OPTS)
+    expect(res.isError).toBeFalsy()
+    const doc = JSON.parse(res.content[0]!.text)
+    expect(doc.present).toBe(true)
+    expect(doc.unknownIsNeverSafe).toBe(true)
+    // Echoes the SHIPPED boundary-safe labels verbatim (single source of truth).
+    expect(doc.verdictLabels.SAFE).toBe("No blockers observed")
+    expect(doc.verdictLabels.UNKNOWN).toBe("Insufficient evidence")
   })
 })
 

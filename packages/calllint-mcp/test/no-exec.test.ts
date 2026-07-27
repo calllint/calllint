@@ -63,4 +63,13 @@ describe("invariant: MCP tools never execute a scanned server (ADR 0003)", () =>
     expect(spawnMock).not.toHaveBeenCalled()
     expect(execSyncMock).not.toHaveBeenCalled()
   })
+
+  it("calllint_guard_external_tools (Sentinel) spawns nothing", () => {
+    call("calllint_guard_external_tools", {})
+    expect(spawnMock).not.toHaveBeenCalled()
+    expect(execMock).not.toHaveBeenCalled()
+    expect(execSyncMock).not.toHaveBeenCalled()
+    expect(execFileMock).not.toHaveBeenCalled()
+    expect(execFileSyncMock).not.toHaveBeenCalled()
+  })
 })

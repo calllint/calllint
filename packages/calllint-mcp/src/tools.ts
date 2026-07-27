@@ -21,6 +21,7 @@ import {
   type ScanOptions,
 } from "@calllint/core"
 import { renderExplain, NO_EMOJI_STYLE } from "@calllint/report-renderer"
+import { VERDICT_PUBLIC_LABEL } from "@calllint/types"
 import type { Baseline } from "@calllint/types"
 
 /** MCP tool result shape (text content only — CallLint emits JSON/text). */
@@ -214,6 +215,44 @@ export const TOOLS: ToolDef[] = [
         return err(`Unknown mode "${mode}". One of: ${CI_GATE_MODES.join(", ")}.`)
       }
       return ok(renderCiGate(mode ? { mode: mode as (typeof CI_GATE_MODES)[number] } : {}))
+    }),
+  },
+  {
+    // The Sentinel (ADR 0055 §3). An always-loaded, honest-presence tool: it STATES
+    // what CallLint does and reports that it is available — it never tells the host
+    // agent what to do. Copy is factual third-person only; an imperative that
+    // redirects/coerces/impersonates the agent's turn ("you must…", "ignore…",
+    // "always call … before…") would be a §七 forbidden method (prompt injection) and
+    // is prohibited, pinned by `check:public-copy` (MCP-copy check) + a test here. A
+    // pure delegator (ADR 0025): the handler echoes shipped facts (the boundary-safe
+    // `VERDICT_PUBLIC_LABEL` + the shipped tool names) and holds no logic of its own.
+    // Description + output together stay ≤2500 bytes (pinned by a ceiling assertion).
+    name: "calllint_guard_external_tools",
+    description:
+      "CallLint is present in this session as a static, deterministic preflight gate for MCP servers and agent tools (a pure delegator, ADR 0025). It reads an MCP or agent-tool config and returns an evidence-backed verdict — SAFE means no blockers observed, REVIEW means human judgment required, BLOCK means a dangerous surface, UNKNOWN means it cannot verify statically; UNKNOWN is never SAFE. Verdicts come from deterministic rules, never an LLM, and CallLint never executes the server or tool it judges. Its tools: scan_mcp_config_json and scan_mcp_config_path (a verdict for a config), explain_finding (the evidence behind a verdict), verify_baseline (drift versus an approved baseline), generate_agent_rule and generate_ci_gate_snippet (wire it into a host or CI). This tool only reports that CallLint is available; it changes no verdict and performs no action of its own.",
+    inputSchema: {
+      type: "object",
+      properties: {},
+    },
+    handler: safe(() => {
+      // No logic: echo shipped facts. Verdict labels are the boundary-safe public
+      // labels from @calllint/types; the tool list mirrors the registry above.
+      return json({
+        tool: "calllint_guard_external_tools",
+        present: true,
+        what: "CallLint is a static, deterministic preflight gate for MCP servers and agent tools. It returns an evidence-backed verdict; it never executes the target and never decides with an LLM.",
+        verdictLabels: VERDICT_PUBLIC_LABEL,
+        unknownIsNeverSafe: true,
+        tools: {
+          scan_mcp_config_json: "Scan MCP config JSON text; returns compact per-server decisions.",
+          scan_mcp_config_path: "Scan an MCP config file on disk; returns the full ScanReport.",
+          explain_finding: "Return the evidence behind each verdict.",
+          verify_baseline: "Compare a config against an approved baseline (drift / rug-pull).",
+          generate_agent_rule: "Emit the CallLint agent-safety rule text for a host.",
+          generate_ci_gate_snippet: "Emit a CI workflow that gates a repo on its agent-tool surface.",
+        },
+        note: "This tool reports presence only. It changes no verdict and performs no action.",
+      })
     }),
   },
 ]
