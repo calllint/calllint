@@ -15,6 +15,8 @@ import { inboxCommand } from "./commands/inbox.js"
 import { inventoryCommand } from "./commands/inventory.js"
 import { evidenceCommand } from "./commands/evidence.js"
 import { trustCommand } from "./commands/trust.js"
+import { safeInstallCommand } from "./commands/safeInstall.js"
+import type { ResolvedContract } from "./commands/safeInstall/contractFetch.js"
 import { guardCommand } from "./commands/guard.js"
 import { integrateCommand } from "./commands/integrate.js"
 import { emitCommandSignal } from "./telemetry.js"
@@ -52,6 +54,12 @@ export interface RunDeps {
    * production; tests inject a memory sink to assert the mapping. Absent ⇒ no emit.
    */
   emitter?: Emitter
+  /**
+   * The adoption contract for `safe-install`, already acquired + wire-shape-checked
+   * at the async CLI edge (computeContractFetch, mirroring `online`). Absent for
+   * every other command, so their paths stay network-free and byte-identical.
+   */
+  contract?: ResolvedContract
 }
 
 /**
@@ -148,6 +156,14 @@ function dispatch(argv: string[], deps: RunDeps): CommandResult {
       return evidenceCommand(args, { cwd: deps.cwd })
     case "trust":
       return trustCommand(args, { cwd: deps.cwd, generatedAt: deps.generatedAt, toolVersion: deps.toolVersion })
+    case "safe-install":
+      return safeInstallCommand(args, {
+        cwd: deps.cwd,
+        generatedAt: deps.generatedAt,
+        toolVersion: deps.toolVersion,
+        readStdin: deps.readStdin,
+        contract: deps.contract,
+      })
     case "integrate":
       return integrateCommand(args, { cwd: deps.cwd, generatedAt: deps.generatedAt, toolVersion: deps.toolVersion })
     case "guard":
