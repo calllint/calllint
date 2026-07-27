@@ -25,3 +25,10 @@ packages/trust-index/calibration/** text eol=lf
 # by committed-lookup-drift.test.ts. The baked original is eol=lf (above), so this copy
 # must be too — otherwise a CRLF Windows checkout diverges and the anti-drift test false-fails.
 packages/calllint-mcp/src/data/** text eol=lf
+
+# The Phase 2.4 Safe-install shadow tree (ADR 0056; PR 2.4-2) is a reproducible,
+# byte-exact projection of one baked evidence object, emitted by `pnpm bake:install`
+# and pinned byte-identical by safe-install/shadow-tree.test.ts. Same discipline as the
+# bake above: pin to LF on every platform, or a CRLF Windows checkout would diverge from
+# the LF emit and the reproducibility gate would false-fail on Windows only.
+artifacts/phase-2.4/shadow-install-pages/** text eol=lf
