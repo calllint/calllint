@@ -35,6 +35,13 @@ export const CORRECTION_URL =
 export const SITE_ORIGIN = "https://calllint.com"
 
 /**
+ * The clean URL segment of the standing lookup utility page (ADR 0055 §5). Served at
+ * `${SITE_ORIGIN}/trust/lookup` (the `.html` 308-redirects to this extensionless form).
+ * Single source of truth shared by the sitemap `<loc>` and the page's own canonical link.
+ */
+export const LOOKUP_PAGE_PATH = "lookup"
+
+/**
  * The clean (extensionless) public URL a page is served at. The `.html` artifact
  * 308-redirects to this form at the edge, so this is the canonical, non-redirecting
  * address — the only form that belongs in `<link rel="canonical">` and in the
@@ -179,20 +186,29 @@ export function renderSidecar(
  *  • Takes the exact `{name, observedAt}` pairs the caller baked, sorted, so the
  *    emitted bytes are order-stable regardless of cohort bake order.
  *  • The `app-created` landing page is `noindex` and is intentionally omitted.
+ *  • `standingPages` are always-listed utility pages (e.g. the `/trust/lookup` search
+ *    page, ADR 0055 §5) — site chrome with no single observation time, so each is listed
+ *    with a `<loc>` ONLY (`<lastmod>` is optional per the sitemap spec). They are sorted
+ *    and appended after the resource pages; no clock is read, so a re-bake is byte-stable.
  */
-export function renderSitemap(pages: readonly { canonicalName: string; observedAt: string }[]): string {
+export function renderSitemap(
+  pages: readonly { canonicalName: string; observedAt: string }[],
+  standingPages: readonly string[] = [],
+): string {
   const sorted = [...pages].sort((a, b) =>
     a.canonicalName < b.canonicalName ? -1 : a.canonicalName > b.canonicalName ? 1 : 0,
   )
-  const urls = sorted
-    .map(
-      (p) =>
-        `  <url>\n` +
-        `    <loc>${esc(`${SITE_ORIGIN}/trust/${p.canonicalName}`)}</loc>\n` +
-        `    <lastmod>${esc(p.observedAt)}</lastmod>\n` +
-        `  </url>`,
-    )
-    .join("\n")
+  const pageUrls = sorted.map(
+    (p) =>
+      `  <url>\n` +
+      `    <loc>${esc(`${SITE_ORIGIN}/trust/${p.canonicalName}`)}</loc>\n` +
+      `    <lastmod>${esc(p.observedAt)}</lastmod>\n` +
+      `  </url>`,
+  )
+  const standingUrls = [...standingPages]
+    .sort((a, b) => (a < b ? -1 : a > b ? 1 : 0))
+    .map((seg) => `  <url>\n    <loc>${esc(`${SITE_ORIGIN}/trust/${seg}`)}</loc>\n  </url>`)
+  const urls = [...pageUrls, ...standingUrls].join("\n")
   return (
     `<?xml version="1.0" encoding="UTF-8"?>\n` +
     `<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n` +
