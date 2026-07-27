@@ -3,6 +3,7 @@ import { mkdtempSync, writeFileSync, rmSync } from "node:fs"
 import { tmpdir } from "node:os"
 import { join } from "node:path"
 import { TOOLS, TOOLS_BY_NAME } from "../src/tools.js"
+import { VERDICT_PUBLIC_LABEL } from "@calllint/types"
 import type { ScanOptions } from "@calllint/core"
 
 const OPTS: ScanOptions = {
@@ -26,10 +27,11 @@ function call(name: string, args: Record<string, unknown>) {
 }
 
 describe("tool registry", () => {
-  it("registers exactly the shipped tools (6 Phase-5 + the Sentinel)", () => {
+  it("registers exactly the shipped tools (6 Phase-5 + the Sentinel + Safe Search)", () => {
     expect(TOOLS.map((t) => t.name).sort()).toEqual(
       [
         "calllint_guard_external_tools",
+        "calllint_search_agent_tools",
         "explain_finding",
         "generate_agent_rule",
         "generate_ci_gate_snippet",
@@ -79,6 +81,66 @@ describe("Sentinel: calllint_guard_external_tools (ADR 0055 §3)", () => {
     // Echoes the SHIPPED boundary-safe labels verbatim (single source of truth).
     expect(doc.verdictLabels.SAFE).toBe("No blockers observed")
     expect(doc.verdictLabels.UNKNOWN).toBe("Insufficient evidence")
+  })
+})
+
+describe("Safe Search: calllint_search_agent_tools (ADR 0055 §4)", () => {
+  const search = TOOLS_BY_NAME.get("calllint_search_agent_tools")!
+  const run = (args: Record<string, unknown>) => JSON.parse(search.handler(args, OPTS).content[0]!.text)
+
+  it("is registered and never errors on a plain query", () => {
+    expect(search).toBeDefined()
+    expect(search.handler({ query: "mcp-registry" }, OPTS).isError).toBeFalsy()
+  })
+
+  it("blank query returns every committed page, sorted by name", () => {
+    const doc = run({ query: "" })
+    expect(doc.matchCount).toBeGreaterThan(0)
+    expect(doc.results.length).toBe(doc.matchCount)
+    const names = doc.results.map((r: { canonicalName: string }) => r.canonicalName)
+    expect([...names].sort()).toEqual(names) // already alphabetical
+  })
+
+  it("is deterministic: same query → identical results", () => {
+    expect(run({ query: "ai.a" })).toEqual(run({ query: "ai.a" }))
+  })
+
+  it("matches by exact → prefix → substring and is case-insensitive", () => {
+    const lower = run({ query: "mcp-registry" })
+    const upper = run({ query: "MCP-REGISTRY" })
+    // The match itself is case-insensitive: same matches, same order, same counts.
+    // (The doc echoes the raw query verbatim, so the `query` field legitimately differs.)
+    expect(upper.results).toEqual(lower.results)
+    expect(upper.matchCount).toBe(lower.matchCount)
+    // Every result actually contains the needle (substring match, no fuzzy).
+    for (const r of lower.results) {
+      expect(r.canonicalName.toLowerCase()).toContain("mcp-registry")
+    }
+  })
+
+  it("surfaces the shipped verdict + boundary-safe label VERBATIM (computes none)", () => {
+    const doc = run({ query: "" })
+    for (const r of doc.results) {
+      // Verdict is one of the four shipped values, label is the shipped public label.
+      expect(["SAFE", "REVIEW", "BLOCK", "UNKNOWN"]).toContain(r.verdict)
+      expect(r.verdictLabel).toBe(VERDICT_PUBLIC_LABEL[r.verdict as keyof typeof VERDICT_PUBLIC_LABEL])
+      expect(r.url).toBe(`/trust/${r.canonicalName}`)
+      expect(r.artifactDigest).toMatch(/^sha256:[0-9a-f]{64}$/)
+    }
+  })
+
+  it("an unmatched query returns nothing (absence is not a verdict)", () => {
+    const doc = run({ query: "definitely-no-such-resource-xyz" })
+    expect(doc.matchCount).toBe(0)
+    expect(doc.results).toEqual([])
+  })
+
+  it("honors an integer limit without reordering", () => {
+    const all = run({ query: "" })
+    const capped = run({ query: "", limit: 3 })
+    expect(capped.returned).toBe(3)
+    expect(capped.matchCount).toBe(all.matchCount) // total still reported honestly
+    expect(capped.results).toEqual(all.results.slice(0, 3))
   })
 })
 

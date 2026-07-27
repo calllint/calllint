@@ -41,6 +41,28 @@ onward. While pre-1.0, minor versions may include breaking changes.
   discovery entry below — the Cloudflare append behavior is now verified, so the reference
   is safe to ship.)
 
+- **Phase 2.6 Safe Search — `calllint_search_agent_tools` (ADR 0055 §4).** Adds a second
+  Phase 2.6 tool to the shipped `calllint-mcp` server (now 8 pure delegators, still one
+  server, ADR 0025): it finds already-published CallLint Trust Pages **by name** and surfaces
+  each match's **shipped verdict and boundary-safe label verbatim** (plus artifact digest,
+  observed-at, and Trust Page URL). Matching is **deterministic lexical only** — exact, then
+  prefix, then substring, alphabetical within a tier — using the **one shared `matchLexical`
+  ranker** now extracted from the lookup page's inline script into `@calllint/trust-index`
+  (`matchLexical.ts`) and re-embedded there byte-for-byte, so the page and the tool rank
+  through a single source (no second ranker; Product Principle 4/5). There is **no LLM, no
+  embedding, no fuzzy/semantic distance, and no new score**, and the tool **computes and
+  moves no verdict** (ADR 0053 §3): it is a pure projection of a **committed** index snapshot
+  bundled into the server as a module (`src/data/lookup-index.json`, a byte-copy of the baked
+  `apps/web/public/trust/lookup-index.json`, inlined by esbuild — so the server stays
+  self-contained with empty runtime dependencies and never reads the served tree, reaches the
+  network, or executes a server at runtime). A resource with **no** Trust Page simply does not
+  appear; absence is not a verdict, and a match is an existing observation at a specific digest
+  and time, not a certification, endorsement, or guarantee of safety. Additive: no schema, no
+  verdict movement, no served-page byte change (the re-embedded ranker is byte-identical, so
+  `lookup.html` and `lookup-index.json` are unchanged). An anti-drift test pins the bundled
+  copy byte-identical to the baked file, and the existing no-exec invariant gains a Safe Search
+  case; `check:public-copy` (check 21) governs the new description like every other public string.
+
 - **Trust Page discovery — sitemap + structured data (SEO, no verdict movement).** Trust
   Pages are search-indexable (`robots: index,follow`) but nothing helped a crawler — or a
   maintainer — find them. The bake now emits a deterministic `trust/sitemap.xml` listing

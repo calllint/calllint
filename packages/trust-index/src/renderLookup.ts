@@ -35,6 +35,7 @@
 import type { Verdict } from "@calllint/types"
 import { VERDICT_PUBLIC_LABEL } from "@calllint/types"
 import { CORRECTION_URL } from "./renderPage.js"
+import { LEXICAL_MATCH_BROWSER_JS } from "./matchLexical.js"
 
 /**
  * One source row for the lookup index — the minimal projection of a baked page the
@@ -88,24 +89,7 @@ const LOOKUP_SCRIPT = `(function () {
   var status = document.getElementById('status');
   var entries = [];
 
-  function byName(a, b) {
-    return a.canonicalName < b.canonicalName ? -1 : a.canonicalName > b.canonicalName ? 1 : 0;
-  }
-
-  // Deterministic string match: exact, then prefix, then substring; alphabetical in a tier.
-  // Plain substring comparison only — no ranking model and no network call per keystroke.
-  function match(query) {
-    var needle = query.trim().toLowerCase();
-    if (!needle) return entries.slice().sort(byName);
-    var tiered = [];
-    for (var i = 0; i < entries.length; i++) {
-      var name = String(entries[i].canonicalName).toLowerCase();
-      var tier = name === needle ? 0 : name.indexOf(needle) === 0 ? 1 : name.indexOf(needle) !== -1 ? 2 : -1;
-      if (tier !== -1) tiered.push({ tier: tier, entry: entries[i] });
-    }
-    tiered.sort(function (a, b) { return a.tier - b.tier || byName(a.entry, b.entry); });
-    return tiered.map(function (t) { return t.entry; });
-  }
+${LEXICAL_MATCH_BROWSER_JS}
 
   function render(rows) {
     list.textContent = '';

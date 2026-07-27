@@ -23,6 +23,8 @@ import {
 import { renderExplain, NO_EMOJI_STYLE } from "@calllint/report-renderer"
 import { VERDICT_PUBLIC_LABEL } from "@calllint/types"
 import type { Baseline } from "@calllint/types"
+import { matchLexical } from "@calllint/trust-index/matchLexical"
+import { COMMITTED_LOOKUP_ENTRIES } from "./committedLookup.js"
 
 /** MCP tool result shape (text content only — CallLint emits JSON/text). */
 export interface ToolResult {
@@ -252,6 +254,59 @@ export const TOOLS: ToolDef[] = [
           generate_ci_gate_snippet: "Emit a CI workflow that gates a repo on its agent-tool surface.",
         },
         note: "This tool reports presence only. It changes no verdict and performs no action.",
+      })
+    }),
+  },
+  {
+    // Safe Search (ADR 0055 §4). A pure delegator (ADR 0025) over a COMMITTED projection of
+    // the published Trust index: it finds already-baked Trust Pages by name and surfaces each
+    // page's SHIPPED verdict + boundary-safe label VERBATIM. It is deterministic lexical only —
+    // exact, then prefix, then substring; alphabetical within a tier — the ONE shared
+    // `matchLexical` ranker the lookup page also uses (no second ranker; Product Principle 4/5).
+    // NO LLM, NO embedding, NO fuzzy distance, NO new score, and it NEVER computes or moves a
+    // verdict (ADR 0053 §3). It reads bundled committed data — it never executes a server, never
+    // reaches the network, and never reads the served tree at runtime.
+    name: "calllint_search_agent_tools",
+    description:
+      "Search already-published CallLint Trust Pages for MCP servers and agent tools by name, and get each match's existing verdict. Deterministic name match only (exact, then prefix, then substring; alphabetical within a tier) over a committed index — no LLM, no fuzzy or semantic ranking, and no new score. Each result carries the page's shipped verdict verbatim — SAFE (no blockers observed), REVIEW (human judgment required), BLOCK (a dangerous surface), or UNKNOWN (could not verify statically; UNKNOWN is never SAFE) — plus its boundary-safe label, artifact digest, observed-at time, and Trust Page URL. A match reports an existing observation at a specific digest and time; it is not a certification, an endorsement, or a guarantee of safety, and this tool never executes a server and changes no verdict. A resource with no CallLint Trust Page simply does not appear; absence is not a verdict. To scan a config that has no page yet, use scan_mcp_config_json.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        query: {
+          type: "string",
+          description:
+            "Resource name (or fragment) to match, e.g. mcp-registry/io.github.example. Blank returns every indexed page, sorted by name.",
+        },
+        limit: {
+          type: "number",
+          description: "Optional cap on the number of matches returned (default: all matches).",
+        },
+      },
+    },
+    handler: safe((args) => {
+      const query = str(args, "query") ?? ""
+      const rawLimit = args["limit"]
+      const matches = matchLexical(COMMITTED_LOOKUP_ENTRIES, query)
+      const limited =
+        typeof rawLimit === "number" && Number.isInteger(rawLimit) && rawLimit >= 0
+          ? matches.slice(0, rawLimit)
+          : matches
+      // Pure projection: carry each committed entry through verbatim — no field is
+      // recomputed, no verdict is decided, nothing is scored or ranked beyond the name match.
+      return json({
+        tool: "calllint_search_agent_tools",
+        query,
+        matchCount: matches.length,
+        returned: limited.length,
+        results: limited.map((e) => ({
+          canonicalName: e.canonicalName,
+          verdict: e.verdict,
+          verdictLabel: e.verdictLabel,
+          artifactDigest: e.artifactDigest,
+          observedAt: e.observedAt,
+          url: e.url,
+        })),
+        note: "Each result is an existing CallLint observation at a specific artifact digest and time — not a certification or a guarantee of safety. A resource with no Trust Page does not appear; absence is not a verdict.",
       })
     }),
   },
