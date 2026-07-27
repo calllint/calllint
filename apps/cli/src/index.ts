@@ -3,6 +3,7 @@ import { readFileSync } from "node:fs"
 import { execFileSync } from "node:child_process"
 import { run } from "./run.js"
 import { computeOnlineEnrichment } from "./online.js"
+import { computeContractFetch, type ContractFetch } from "./commands/safeInstall/contractFetch.js"
 import { resolveClock } from "./clock.js"
 import { breathe } from "./breathe.js"
 import { resolveToolVersion } from "./version.js"
@@ -15,6 +16,15 @@ function readStdin(): string {
     return ""
   }
 }
+
+/**
+ * Real contract fetcher over Node's global fetch. The guarded reader
+ * (fetchGuardedContract) owns every safety decision — origin allowlist, https,
+ * redirect/size/timeout caps, no credentials — and passes the init through; this
+ * adapter only bridges Node's fetch to the tiny ContractResponse shape.
+ */
+const realContractFetch: ContractFetch = (url, init) =>
+  fetch(url, init as RequestInit)
 
 /**
  * Changed files for `scan --changed`, via git.  Best-effort: a non-repo, a
@@ -60,6 +70,23 @@ async function main(): Promise<void> {
 
   if (online?.note) process.stderr.write(`online: ${online.note}\n`)
 
+  // Safe-install contract acquisition at the async edge (mirrors --online): resolve
+  // the guarded fetch/read here so the synchronous command stays pure + testable.
+  // Returns undefined for every non-safe-install command, so all other paths are
+  // unchanged and network-free.
+  let contract
+  try {
+    contract = await computeContractFetch(argv, {
+      cwd: process.cwd(),
+      readStdin,
+      fetchImpl: realContractFetch,
+    })
+  } catch (err) {
+    process.stderr.write(`contract fetch failed: ${err instanceof Error ? err.message : String(err)}\n`)
+    process.exitCode = 3
+    return
+  }
+
   // A tiny breathing brand mark on interactive runs (stderr only, never on
   // machine output). Best-effort — must never delay or break the command.
   try {
@@ -83,6 +110,7 @@ async function main(): Promise<void> {
     toolVersion: resolveToolVersion(),
     getChangedFilesDiff: () => gitChangedFiles(process.cwd()),
     emitter,
+    contract,
   })
 
   if (result.stdout) process.stdout.write(result.stdout + "\n")

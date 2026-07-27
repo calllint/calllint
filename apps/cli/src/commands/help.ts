@@ -18,6 +18,7 @@ COMMANDS
   inbox inspect <f>     Preflight a normalized agent inbox event
   evidence import <f>   Import a third-party scanner report as evidence (no re-scoring)
   trust prepare <target>  Read-only Trust Gateway preview: resolve to a digest-pinned identity
+  safe-install --contract <url|file>  Adopt a tool from its Agent Adoption Contract (local, exact-target; delegates to the writer)
   integrate          Install the CallLint preflight server into detected hosts (plan-only; --apply writes)
   diagnostics [target]  Emit editor/agent-host diagnostics JSON (calllint.diagnostics.v0)
   baseline [target]  Record the approved risk surface as a baseline
@@ -82,6 +83,21 @@ GUARD OPTIONS
   (exit) silent/note=0, REVIEW=10, UNKNOWN=20, BLOCK=30; guard self-failure is non-zero
   (env)  CALLLINT_GUARD=0 disables the guard
 
+SAFE-INSTALL OPTIONS
+  --contract <url|file>  Agent Adoption Contract to adopt (https://calllint.com only, or a local file)
+  --stdin            Read the contract JSON from stdin instead
+  --host <id>        Target host (claude-code | cursor | windsurf)
+  --host-config <p>  Override the host config path (default: the host's own)
+  --apply            Attempt to apply the prepared plan (default: prepare only)
+  --approve <digest> The exact plan digest you reviewed (required to apply in --json / --non-interactive)
+  --expect-version <v>            Assert the contract's exact version (offline identity gate)
+  --expect-artifact-digest <sha>  Assert the contract's artifact digest (offline identity gate)
+  --expect-contract-digest <sha>  Assert the contract digest (offline gate + recorded provenance)
+  --json             Emit only the calllint.safe-install-result.v1 envelope
+  --non-interactive  Agent mode: never prompt; apply only with --apply --approve
+  (safe-install DELEGATES to the Trust Gateway: it re-decides locally, never executes
+   the target, and never writes host config directly — every write goes through apply.)
+
 EXAMPLES
   calllint inventory                    # List discovered agent configs
   calllint scan --auto                  # Discover and scan all agents
@@ -103,6 +119,8 @@ EXAMPLES
   calllint approve && calllint guard install --host git   # re-decide on every commit
   calllint guard --json                 # authority-change assessment (silent when unchanged)
   calllint explain filesystem
+  calllint safe-install --contract ./contract.json --host cursor          # prepare only
+  calllint safe-install --contract ./contract.json --host cursor --apply --approve sha256:...
 `
 
 export function helpCommand(): { stdout: string; exitCode: number } {
