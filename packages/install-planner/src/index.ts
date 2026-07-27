@@ -16,13 +16,13 @@ export type {
   PlannedServer,
   ValidationResult,
 } from "./hostAdapter.js"
-export { buildInstallPlan, buildServerOps, verifyPlanDigest } from "./buildPlan.js"
+export { buildInstallPlan, buildServerOps, verifyPlanDigest, withAdoptionContract } from "./buildPlan.js"
 export { validatePlan } from "./validate.js"
 export { applyJsonPatch, JsonPatchError } from "./jsonPatch.js"
 export { applyPlan, type ApplyOptions } from "./applyEngine.js"
 // Re-export the gateway data types this package operates over, so consumers can
 // import them from the gateway package rather than reaching into @calllint/types.
-export type { InstallPlan, InstallOperation, JsonPatchOp, ApplyResult, ApplyOutcome } from "@calllint/types"
+export type { InstallPlan, InstallOperation, JsonPatchOp, PlanAdoptionContract, ApplyResult, ApplyOutcome } from "@calllint/types"
 export type { ConfigFs } from "./fsPort.js"
 export { nodeFsPort } from "./nodeFsPort.js"
 export { safeConfigPath, expandHome, PathSafetyError } from "./pathSafety.js"

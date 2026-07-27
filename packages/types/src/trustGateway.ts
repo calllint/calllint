@@ -56,6 +56,12 @@ export type TrustPrepareState =
   | "EVIDENCE_PARTIAL"
   | "EVIDENCE_FAILED"
   | "POLICY_UNKNOWN"
+  // exact-target mismatch (INV-2.4-06): the resolved artifact DID pin, and the
+  // policy DID decide, but the pinned bytes / version / contract do not match the
+  // caller's stated expectation. Distinct from FETCH_REJECTED ("could not pin") —
+  // here we pinned successfully, just to the WRONG target. Terminal; withholds the
+  // plan so a substituted or stale artifact can never be applied.
+  | "TARGET_MISMATCH"
   | "PLAN_STALE"
   | "APPLY_CONFLICT"
   | "ROLLBACK_REQUIRED"

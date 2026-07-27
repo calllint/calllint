@@ -28,6 +28,36 @@ import type {
 } from "@calllint/types"
 import { TRUST_PREPARATION_SCHEMA } from "@calllint/types"
 
+/**
+ * Exact-target expectations (INV-2.4-06). A caller that obtained a Safe-Install
+ * page / Agent Adoption Contract can STATE the exact target it intends to prepare;
+ * the gateway then confirms the pinned bytes are that target and WITHHOLDS the plan
+ * on any mismatch (fail-closed → TARGET_MISMATCH). These only STOP a plan; they
+ * NEVER improve a verdict (INV-2.4-02: public observation ≠ local authorization).
+ * Mitigates T3 (stale artifact) and T4 ("latest" substitution).
+ */
+export interface InstallExpectations {
+  /**
+   * Expected sha256 of the fetched bytes — the cryptographic gate. Universal:
+   * the digest covers the exact bytes for every source type, and the version is
+   * encoded in those bytes, so a matching digest is the binding proof of target.
+   */
+  artifactDigest?: `sha256:${string}`
+  /**
+   * Expected version. Independently verifiable ONLY for versioned remotes (npm),
+   * where the resolved ref IS the exact pinned version — this catches a "latest"
+   * that resolved to the wrong version (T4). For other source types it is noted
+   * but not enforced (the artifact digest remains the binding gate).
+   */
+  version?: string
+  /**
+   * Expected Agent Adoption Contract digest. NOT locally recomputable (it is
+   * sealed over the published contract object, absent at prepare time), so it is
+   * recorded as plan provenance only — never a gate. See @calllint/trust-index.
+   */
+  contractDigest?: `sha256:${string}`
+}
+
 export interface PrepareInput {
   artifact: ArtifactIdentity
   /** Attached external evidence (already imported at the edge; never re-scored). */
@@ -56,6 +86,14 @@ export interface PrepareInput {
    * writes nothing on disk except (optionally) the plan file — apply is G6.
    */
   plan?: InstallPlan
+  /**
+   * Exact-target expectations (INV-2.4-06). When present, the gateway confirms the
+   * pinned artifact matches the caller's stated target and, on any mismatch, moves
+   * to the terminal TARGET_MISMATCH and withholds the plan — a substituted or stale
+   * artifact is never applyable. Absent ⇒ no exact-target gate (backward-compatible;
+   * an ordinary prepare is byte-identical to before).
+   */
+  expect?: InstallExpectations
   /** ISO-8601 UTC, injected from the CLI edge. */
   preparedAt: string
 }
@@ -186,6 +224,47 @@ export function prepare(input: PrepareInput): TrustPreparation {
     }
   }
 
+  // Exact-target gate (INV-2.4-06). If the caller stated the exact target it
+  // intends, confirm the pinned bytes ARE that target. A mismatch is fail-closed:
+  // it can only STOP a would-succeed terminal (never improve a verdict, INV-2.4-02).
+  // The artifact digest is the binding cryptographic gate; the npm version is an
+  // independently-verifiable cross-check; the contract digest is provenance only.
+  const expect = input.expect ?? null
+  if (expect) {
+    const mismatches: string[] = []
+    if (expect.artifactDigest && artifact.digest && expect.artifactDigest !== artifact.digest) {
+      mismatches.push(
+        `artifact digest ${artifact.digest} does not match expected ${expect.artifactDigest} (T3 stale / substituted bytes)`,
+      )
+    }
+    if (expect.version) {
+      if (artifact.sourceType === "npm" && artifact.resolvedRef) {
+        if (artifact.resolvedRef !== expect.version) {
+          mismatches.push(
+            `resolved version ${artifact.resolvedRef} does not match expected ${expect.version} (T4 "latest" substitution)`,
+          )
+        }
+      } else {
+        notes.push(
+          `expected version ${expect.version} not independently verifiable for a ${artifact.sourceType} target — artifact digest is the binding gate`,
+        )
+      }
+    }
+    if (expect.contractDigest) {
+      notes.push(
+        `expected adoption-contract digest ${expect.contractDigest} recorded as provenance (not locally recomputable — never gates)`,
+      )
+    }
+    if (mismatches.length > 0) {
+      // Only STOP a would-succeed terminal. An earlier, more-specific failure
+      // (evidence/resolution/unknown) stays fail-closed with its own label.
+      if (state === "PLAN_READY" || state === "AUTHORITY_NORMALIZED" || state === "DECIDED") {
+        state = "TARGET_MISMATCH"
+      }
+      for (const m of mismatches) notes.push(`target mismatch: ${m}`)
+    }
+  }
+
   // G5 — Install Plan. HOST-GATED: only present when the edge named/detected a
   // host AND the decision is non-blocking. The canonical transition is
   // DECIDED → PLAN_READY; a plan NEVER advances a failure state or a blocking
@@ -267,6 +346,9 @@ export function prepareExitCode(prep: TrustPreparation): 0 | 10 | 20 {
     case "FETCH_REJECTED":
     case "EVIDENCE_PARTIAL":
       return 10
+    case "TARGET_MISMATCH":
+      // Pinned successfully but to the WRONG target (INV-2.4-06) — fail-closed.
+      return 20
     // RESOLUTION_FAILED · EVIDENCE_FAILED · POLICY_UNKNOWN → fail-closed
     default:
       return 20

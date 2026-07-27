@@ -26,7 +26,13 @@ import {
   type ArtifactInput,
   type FetchedEntry,
 } from "@calllint/resolver"
-import { prepare, prepareExitCode, parseTargetSpec, buildAuthorityManifest } from "@calllint/core"
+import {
+  prepare,
+  prepareExitCode,
+  parseTargetSpec,
+  buildAuthorityManifest,
+  type InstallExpectations,
+} from "@calllint/core"
 import { parseConfigText } from "@calllint/config-parser"
 import { importEvidence, type EvidenceFormat } from "@calllint/evidence"
 import { decideOverAuthority, loadPolicyOrDefault } from "@calllint/policy"
@@ -47,8 +53,10 @@ import {
   buildDecisionReceipt,
   signDecisionReceipt,
   verifyDecisionReceipt,
+  withAdoptionContract,
   type PlanContext,
   type PlannedServer,
+  type PlanAdoptionContract,
 } from "@calllint/install-planner"
 import { importKeypair } from "@calllint/signature"
 import type {
@@ -449,6 +457,41 @@ function loadEvidence(
   return importEvidence(rawText, { provider, format }) as GatewayEvidence
 }
 
+const SHA256_RE = /^sha256:[0-9a-f]{64}$/
+
+/**
+ * Parse the exact-target expectation flags (INV-2.4-06):
+ *   --expect-artifact-digest <sha256:…>   binding cryptographic gate
+ *   --expect-version <string>             npm cross-check (T4 substitution)
+ *   --expect-contract-digest <sha256:…>   adoption-contract provenance
+ * A malformed digest fails-closed as a usage error (a typo must never silently
+ * never-match). Returns `null` when no expectation flags were given.
+ */
+function parseExpectations(
+  args: ParsedArgs,
+): { value: InstallExpectations | null } | { error: string } {
+  const artifactDigest = flagStr(args.flags, "expect-artifact-digest")
+  const version = flagStr(args.flags, "expect-version")
+  const contractDigest = flagStr(args.flags, "expect-contract-digest")
+  if (!artifactDigest && !version && !contractDigest) return { value: null }
+
+  const expect: InstallExpectations = {}
+  if (artifactDigest) {
+    if (!SHA256_RE.test(artifactDigest)) {
+      return { error: `--expect-artifact-digest must be a sha256:<64 hex> digest, got "${artifactDigest}"` }
+    }
+    expect.artifactDigest = artifactDigest as `sha256:${string}`
+  }
+  if (version) expect.version = version
+  if (contractDigest) {
+    if (!SHA256_RE.test(contractDigest)) {
+      return { error: `--expect-contract-digest must be a sha256:<64 hex> digest, got "${contractDigest}"` }
+    }
+    expect.contractDigest = contractDigest as `sha256:${string}`
+  }
+  return { value: expect }
+}
+
 function trustPrepare(args: ParsedArgs, deps: TrustDeps): CommandResult {
   const target = args.positionals[1]
   if (!target) {
@@ -539,12 +582,35 @@ function trustPrepare(args: ParsedArgs, deps: TrustDeps): CommandResult {
     plan = built ?? undefined
   }
 
+  // Exact-target expectations (INV-2.4-06). A caller that obtained a Safe-Install
+  // page / Agent Adoption Contract can STATE the exact target it intends; the
+  // gateway confirms the pinned bytes are that target and withholds the plan on
+  // any mismatch (→ TARGET_MISMATCH). These only STOP a plan, never improve a
+  // verdict. Digest flags are format-validated here so a typo fails-closed as a
+  // usage error rather than silently never-matching.
+  const expectResult = parseExpectations(args)
+  if ("error" in expectResult) {
+    return { stdout: "", stderr: `Error: ${expectResult.error}`, exitCode: EXIT.USAGE }
+  }
+  const expect = expectResult.value
+
+  // When the caller named the adoption contract this install fulfills, record it
+  // as plan provenance (re-sealing the planDigest). Provenance only — it never
+  // changes operations or the verdict. Absent ⇒ the plan is byte-identical to before.
+  if (plan && expect?.contractDigest) {
+    const provenance: PlanAdoptionContract = { contractDigest: expect.contractDigest }
+    if (expect.version) provenance.expectedVersion = expect.version
+    if (expect.artifactDigest) provenance.expectedArtifactDigest = expect.artifactDigest
+    plan = withAdoptionContract(plan, provenance)
+  }
+
   const preparation = prepare({
     artifact,
     evidence,
     authority,
     decision,
     plan,
+    expect: expect ?? undefined,
     preparedAt: deps.generatedAt,
   })
   const exitCode = prepareExitCode(preparation)
@@ -817,6 +883,7 @@ const STATE_BADGE: Record<string, string> = {
   EVIDENCE_PARTIAL: "⚠ evidence partial",
   EVIDENCE_FAILED: "⛔ evidence failed",
   POLICY_UNKNOWN: "◇ policy unknown (insufficient evidence)",
+  TARGET_MISMATCH: "⛔ target mismatch (not the expected artifact)",
   VERIFIED: "✅ applied + verified",
   APPLY_CONFLICT: "⛔ config conflict",
   PLAN_STALE: "⛔ plan stale",
@@ -975,6 +1042,13 @@ function renderExplanation(p: TrustPreparation): string {
       out += `was incomplete, so the decision is UNKNOWN. Insufficient evidence is\n`
       out += `fail-closed: UNKNOWN outranks REVIEW and never reads as a pass.\n`
       break
+    case "TARGET_MISMATCH":
+      out += `The artifact pinned successfully and the policy decided, but the pinned\n`
+      out += `bytes are NOT the target you stated (--expect-*). Public observation is\n`
+      out += `not local authorization: an expectation can only STOP a plan, never\n`
+      out += `improve a verdict. The plan is withheld so a substituted or stale\n`
+      out += `artifact can never be applied. See the notes for the exact mismatch.\n`
+      break
     case "PLAN_READY":
       out += `The artifact resolved to an immutable, digested identity\n`
       out += `(${p.artifact.resolvedRef}). Downstream evidence, authority, and a\n`
@@ -1094,6 +1168,16 @@ OPTIONS (prepare)
                         ~/.claude.json for claude-code, .cursor/mcp.json for
                         cursor, ~/.codeium/mcp_config.json for windsurf)
   --write-plan          Persist the plan to .calllint/plans/<plan-id>.json
+  --expect-artifact-digest <sha256:…>
+                        Confirm the pinned bytes match this exact digest — the
+                        binding cross-check (T3 stale / substituted bytes). Any
+                        mismatch withholds the plan (TARGET_MISMATCH, exit 20).
+  --expect-version <v>  Confirm the resolved version (npm: cross-checks the pinned
+                        version — catches a "latest" that resolved wrong, T4). For
+                        other targets it is noted; the artifact digest is the gate.
+  --expect-contract-digest <sha256:…>
+                        Record the Agent Adoption Contract this install fulfills as
+                        plan provenance (re-seals the plan digest). Provenance only.
   --flows               Show static toxic-flow paths (calllint.flow.v0) behind the
                         decision's TOXIC_FLOW_COMPOSITION reasons. With --json, emits
                         { preparation, flows }. A dangerous flow only raises the verdict.
@@ -1130,7 +1214,7 @@ TARGETS
 EXIT CODES
   0   decision SAFE (or resolved read-only preview with no blocking authority)
   10  decision REVIEW / target not fully pinned / evidence partial
-  20  decision BLOCK or UNKNOWN / unresolved / fail-closed (never a pass)
+  20  decision BLOCK or UNKNOWN / unresolved / target mismatch / fail-closed (never a pass)
   2   usage error / target not found
   3   malformed preparation document
 

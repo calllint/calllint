@@ -43,6 +43,25 @@ export interface InstallOperation {
   patch: JsonPatchOp[]
 }
 
+/**
+ * Provenance of the Agent Adoption Contract this plan fulfills (Phase 2.4).
+ * OPTIONAL and additive: a plan built without it is byte-identical to a v1 plan.
+ * It records the exact target the caller intended (from a Safe-Install page /
+ * Agent Adoption Contract) so the plan carries proof of WHICH contract it
+ * satisfies. It is provenance only — it never changes the operations, the verdict,
+ * or the upstream digests, and the contract digest is not locally recomputable.
+ */
+export interface PlanAdoptionContract {
+  /** sha256 of the sealed Agent Adoption Contract (recorded, not recomputed). */
+  contractDigest: `sha256:${string}`
+  /** Canonical identity the contract named, if the caller stated one. */
+  canonicalName?: string
+  /** Version the caller expected (T4 cross-check lives in the gateway, not here). */
+  expectedVersion?: string
+  /** Artifact digest the caller expected — should equal `artifactDigest` above. */
+  expectedArtifactDigest?: `sha256:${string}`
+}
+
 export interface InstallPlan {
   schema: "calllint.install-plan.v1"
   /** Deterministic short id derived from the upstream chain + operations. */
@@ -68,6 +87,12 @@ export interface InstallPlan {
   idempotencyKey: `sha256:${string}`
   /** ISO-8601 UTC; applying after this instant is rejected as stale. */
   expiresAt: string
+  /**
+   * Provenance of the Agent Adoption Contract this plan fulfills (Phase 2.4).
+   * OPTIONAL: absent on an ordinary plan (byte-identical to a v1 plan). Sealed
+   * into `planDigest` when present — an approval then binds the contract too.
+   */
+  adoptionContract?: PlanAdoptionContract
 }
 
 export const INSTALL_PLAN_SCHEMA_VERSION = "calllint.install-plan.v1" as const

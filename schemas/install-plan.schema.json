@@ -42,9 +42,21 @@
       "properties": { "path": { "type": "string" } }
     },
     "idempotencyKey": { "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" },
-    "expiresAt": { "type": "string", "format": "date-time" }
+    "expiresAt": { "type": "string", "format": "date-time" },
+    "adoptionContract": { "$ref": "#/definitions/adoptionContract" }
   },
   "definitions": {
+    "adoptionContract": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["contractDigest"],
+      "properties": {
+        "contractDigest": { "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" },
+        "canonicalName": { "type": "string", "minLength": 1 },
+        "expectedVersion": { "type": "string", "minLength": 1 },
+        "expectedArtifactDigest": { "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" }
+      }
+    },
     "operation": {
       "type": "object",
       "additionalProperties": false,

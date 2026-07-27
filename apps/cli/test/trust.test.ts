@@ -732,3 +732,67 @@ describe("trust prepare/apply --host cursor (C5 — Tier A)", () => {
     noExec()
   })
 })
+
+describe("trust prepare --expect-* — exact-target gate (INV-2.4-06)", () => {
+  it("a matching --expect-artifact-digest is a no-op (still SAFE, exit 0)", () => {
+    writeFileSync(join(dir, "SKILL.md"), "# skill\ndo a thing\n")
+    // First resolve to learn the real digest, then assert it back.
+    const first = JSON.parse(run(["trust", "prepare", "SKILL.md", "--json"], deps()).stdout)
+    const digest: string = first.artifact.digest
+    const r = run(["trust", "prepare", "SKILL.md", "--expect-artifact-digest", digest, "--json"], deps())
+    expect(r.exitCode).toBe(0)
+    expect(JSON.parse(r.stdout).state).toBe("DECIDED")
+    noExec()
+  })
+
+  it("a mismatched --expect-artifact-digest → TARGET_MISMATCH, exit 20, no plan", () => {
+    writeFileSync(join(dir, "SKILL.md"), "# skill\ndo a thing\n")
+    const wrong = "sha256:" + "0".repeat(64)
+    const r = run(["trust", "prepare", "SKILL.md", "--expect-artifact-digest", wrong, "--json"], deps())
+    expect(r.exitCode).toBe(20)
+    const prep = JSON.parse(r.stdout)
+    expect(prep.state).toBe("TARGET_MISMATCH")
+    expect(prep.plan).toBeNull()
+    expect(prep.notes.some((n: string) => /target mismatch/.test(n))).toBe(true)
+    noExec()
+  })
+
+  it("a malformed --expect-artifact-digest fails-closed as a usage error (exit 2)", () => {
+    writeFileSync(join(dir, "SKILL.md"), "# skill\n")
+    const r = run(["trust", "prepare", "SKILL.md", "--expect-artifact-digest", "not-a-digest"], deps())
+    expect(r.exitCode).toBe(2)
+    expect(r.stderr).toContain("must be a sha256")
+    noExec()
+  })
+
+  it("--expect-contract-digest records adoption-contract provenance on the plan", () => {
+    // A pinned local server → SAFE, so a Tier-A cursor plan is produced.
+    const cfg = JSON.stringify({
+      mcpServers: { time: { command: "npx", args: ["-y", "@modelcontextprotocol/server-time@1.0.0"] } },
+    })
+    writeFileSync(join(dir, "mcp.json"), cfg)
+    const contract = "sha256:" + "1".repeat(64)
+    const r = run(
+      ["trust", "prepare", "mcp.json", "--host", "cursor", "--expect-contract-digest", contract, "--json"],
+      deps(),
+    )
+    const prep = JSON.parse(r.stdout)
+    expect(prep.plan).toBeTruthy()
+    expect(prep.plan.adoptionContract.contractDigest).toBe(contract)
+    // The recorded provenance is sealed into the plan digest (re-verifiable).
+    expect(prep.plan.planDigest).toMatch(/^sha256:[0-9a-f]{64}$/)
+    noExec()
+  })
+
+  it("explain surfaces the TARGET_MISMATCH rationale", () => {
+    writeFileSync(join(dir, "SKILL.md"), "# skill\n")
+    const wrong = "sha256:" + "0".repeat(64)
+    run(["trust", "prepare", "SKILL.md", "--expect-artifact-digest", wrong, "--json"], deps())
+    const prep = run(["trust", "prepare", "SKILL.md", "--expect-artifact-digest", wrong, "--json"], deps()).stdout
+    writeFileSync(join(dir, "prep.json"), prep)
+    const r = run(["trust", "explain", "prep.json"], deps())
+    expect(r.stdout).toContain("TARGET_MISMATCH")
+    expect(r.stdout).toContain("not local authorization")
+    noExec()
+  })
+})
