@@ -1,0 +1,115 @@
+{
+  "$comment": "Phase 2.4 reality binding (PR 2.4-0). Every path new14ref names, resolved to a REAL file/function on main HEAD 89a90ed (calllint@1.7.3, tree clean, 2026-07-27). Verified by direct code inspection, not memory. Reality wins over any prose in new14ref/. See current-state-audit.md for the narrative and stop-condition verdicts.",
+  "baseline": {
+    "npmLatest": "1.7.3",
+    "stableVersion": "1.7.3",
+    "mainHead": "89a90ed",
+    "lastPr": 229,
+    "tag": "v1.7.3",
+    "treeClean": true,
+    "verifiedDate": "2026-07-27",
+    "mcpToolCount": 8
+  },
+  "adr": {
+    "canonical": "adrs/0056-safe-install-acquisition-projection.md",
+    "placeholderRejected": "adrs/0059-safe-install-acquisition-projection.md",
+    "highestOnDisk": "adrs/0055-agent-search-capture-and-safe-install-gateway-boundary.md",
+    "legacyFrozenTree": "docs/adr/ (<=0042; never write there)"
+  },
+  "auditTargets": {
+    "oneBakedEvidenceType": {
+      "path": "packages/trust-index/src/bakeTrustPage.ts",
+      "symbol": "bakeTrustPage -> BakedTrustPage",
+      "exists": true,
+      "action": "reuse; project SafeInstall from same object"
+    },
+    "oneTrustGatewayPrepareService": {
+      "path": "packages/core/src/gateway/prepare.ts",
+      "exists": true,
+      "action": "extend with --expect-*-digest assertions (Batch 4); re-decides locally"
+    },
+    "oneApplyWriter": {
+      "path": "packages/install-planner/src/applyEngine.ts",
+      "writePort": "packages/install-planner/src/fsPort.ts (ConfigFs) + nodeFsPort.ts",
+      "exists": true,
+      "action": "DELEGATE; the ONLY live-config writer (INV-2.4-03)"
+    },
+    "currentCliRouter": {
+      "path": "apps/cli/src/commands/",
+      "exists": true,
+      "action": "add thin safe-install orchestrator (Batch 5)"
+    },
+    "currentMcpToolRegistry": {
+      "path": "packages/calllint-mcp/src/tools.ts",
+      "adrCite": "line 2 (ADR 0025 pure delegators)",
+      "toolCount": 8,
+      "exists": true,
+      "action": "add 5 thin adoption tools (Batch 6-7-8); count 8->13"
+    },
+    "currentHostMatrix": {
+      "path": "packages/install-planner/src/adapters/",
+      "adapters": ["claudeCode.ts", "claudeDesktop.ts", "cursor.ts", "vscode.ts", "windsurf.ts"],
+      "exists": true,
+      "action": "reuse; no generic template fallback; unsupported host = honest EXPLAIN_ONLY"
+    },
+    "currentPublicCopyGuard": {
+      "path": "scripts/check-public-copy.mjs",
+      "npmScript": "check:public-copy",
+      "exists": true,
+      "action": "EXTEND forbidden/required phrase sets (integration 2.5)"
+    },
+    "currentWebEventEndpoint": {
+      "schema": "schemas/calllint.trust-event.v1.schema.json",
+      "clientSeam": "apps/web/public/embed/trust-events.js",
+      "exists": true,
+      "action": "reuse calllint.trust-event.v1 seam; no second events endpoint"
+    },
+    "currentVersionSource": {
+      "path": "project-facts.json",
+      "field": "stableVersion",
+      "value": "1.7.3",
+      "exists": true
+    }
+  },
+  "reuseMap": {
+    "$comment": "new14ref execution plan Section 2 reuse map, each bound to a verified real path.",
+    "registryFetch": { "path": "packages/trust-index/src/fetchRegistry.ts", "exists": true, "kind": "EXTEND-via-gates" },
+    "registryProjection": { "path": "packages/trust-index/src/registryCohort.ts", "exists": true, "kind": "REUSE" },
+    "evidenceResolution": { "path": "packages/trust-index/src/resolveEvidence.ts", "exists": true, "kind": "REUSE" },
+    "pageProjections": { "path": "packages/trust-index/src/pageProjections.ts", "exists": true, "kind": "EXTEND" },
+    "trustRendering": { "path": "packages/trust-index/src/renderPage.ts", "exists": true, "kind": "EXTEND" },
+    "cohortEmission": { "path": "packages/trust-index/src/emitCohort.ts", "exists": true, "kind": "EXTEND", "htmlJsonEmit": "lines 141-142 (both from one BakedTrustPage)", "sitemapEmit": "line 285 (renderSitemap)" },
+    "bakeEntry": { "path": "packages/trust-index/src/bake.ts", "exists": true, "kind": "EXTEND", "outputRoot": "apps/web/public/trust" },
+    "publicLanguage": { "path": "packages/trust-index/src/language.ts", "exists": true, "kind": "EXTEND" },
+    "lookupRenderer": { "path": "packages/trust-index/src/renderLookup.ts", "exists": true, "kind": "EXTEND" },
+    "committedLookup": { "path": "packages/calllint-mcp/src/committedLookup.ts", "exists": true, "kind": "REUSE", "note": "in calllint-mcp/src NOT trust-index/src" },
+    "installPlanSchema": { "path": "schemas/install-plan.schema.json", "exists": true, "kind": "REUSE (optional backward-compat provenance only)" },
+    "receiptSchema": { "path": "schemas/receipt.schema.json", "exists": true, "kind": "REUSE" },
+    "integrate": { "path": "apps/cli/src/commands/integrate.ts", "exists": true, "kind": "DELEGATE" },
+    "guard": { "path": "apps/cli/src/commands/guard.ts", "exists": true, "kind": "DELEGATE" },
+    "pluginHooks": { "path": "plugins/calllint/hooks/", "exists": true, "kind": "PRESERVE-advisory" },
+    "webDeploy": { "path": "apps/web/public/", "workflow": ".github/workflows/deploy-web.yml", "exists": true, "kind": "EXTEND with /install/** tree; one static serving plane" }
+  },
+  "genuinelyNewFiles": {
+    "$comment": "Named net-new thin files with a fixed owner package. Absent today (confirmed), created in later batches.",
+    "schemas/calllint.agent-adoption-contract.v1.schema.json": { "batch": 1, "exists": false },
+    "schemas/calllint.safe-install-result.v1.schema.json": { "batch": 1, "exists": false },
+    "packages/trust-index/src/selectDecisionAuthorities.ts": { "batch": 1, "exists": false },
+    "packages/trust-index/src/agentAdoptionContract.ts": { "batch": 1, "exists": false },
+    "packages/trust-index/src/safeInstallProjection.ts": { "batch": 1, "exists": false },
+    "packages/trust-index/src/renderSafeInstall.ts": { "batch": 2, "exists": false },
+    "packages/trust-index/src/renderDiscoveryManifest.ts": { "batch": 2, "exists": false },
+    "apps/cli/src/commands/safe-install.ts": { "batch": 5, "exists": false },
+    "apps/web/public/install/": { "batch": 2, "exists": false },
+    "apps/web/public/.well-known/calllint.json": { "batch": 2, "exists": false }
+  },
+  "stopConditions": {
+    "$comment": "new14ref execution plan 2.1. Phase 2.4 STOPS if any holds true. All verified FALSE 2026-07-27 -> Phase 2.4 is unblocked.",
+    "moreThanOneTrustGatewayWriter": { "holds": false, "evidence": "only nodeFsPort.ts imports node:fs in install-planner; applyEngine writes through injected ConfigFs port" },
+    "applyDoesNotDelegateToOneAuditedService": { "holds": false, "evidence": "applyEngine.ts is the sole writer (revalidate->backup->atomic-write->re-read+verify->rollback)" },
+    "pageJsonAndHtmlNotFromOneBakedObject": { "holds": false, "evidence": "emitCohort.ts:141-142 push .json + .html from the same BakedTrustPage" },
+    "cliAndMcpSeparateVerdictSemantics": { "holds": false, "evidence": "all MCP tools delegate to @calllint/core (tools.ts:2-22); no scoring in MCP layer" },
+    "hostAdaptersLackStableExactTarget": { "holds": false, "evidence": "5 adapters present with exact-target representation; no generic fallback" },
+    "outputTreeCannotHostInstallWithoutSecondDeployPath": { "holds": false, "evidence": "apps/web/public is one Cloudflare static tree served by one deploy-web.yml; /install/** is one more subtree" }
+  }
+}
