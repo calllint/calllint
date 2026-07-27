@@ -207,6 +207,7 @@ export function renderLookupPage(): string {
           separately rather than a single score. A page a maintainer has claimed also carries
           a <strong>Verified Publisher</strong> note — that records who controls the
           namespace, never that the tool is safe, and it does not change the observed verdict.
+          Identity verification does not change the CallLint verdict.
           Something look wrong on a page? <a href="${CORRECTION_URL}">Report a correction</a>.
         </div>
 

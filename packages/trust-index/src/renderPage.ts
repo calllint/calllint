@@ -249,6 +249,7 @@ export function renderHtml(page: BakedTrustPage, verifiedPublisher?: VerifiedPub
          <code>github.com/${esc(verifiedPublisher.owner)}</code> namespace. This
          verifies namespace control only — it is not a safety claim, an endorsement,
          or a certification, and it does not change the observed verdict.</p>
+      <p>Identity verification does not change the CallLint verdict.</p>
       <p>Control verified at
          <time datetime="${esc(verifiedPublisher.verifiedAt)}">${esc(verifiedPublisher.verifiedAt)}</time>,
          against artifact digest <code>${esc(verifiedPublisher.observedArtifactDigest)}</code>.</p>

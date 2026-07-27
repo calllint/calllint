@@ -414,6 +414,10 @@ console.log("")
     //   are mutually exclusive: an unclaimed page MUST carry the claim funnel URL and
     //   the control-not-safety framing; a claimed page MUST NOT carry the funnel.
     let claimClean = true
+    // The fixed verdict-disclaimer line every claimed surface MUST carry
+    // verbatim (Phase 2.5-D / ADR 0055 §1(a)). Additive strengthening of this
+    // guard: it can only require one more honest sentence, never weaken a rule.
+    const VERDICT_DISCLAIMER = "Identity verification does not change the CallLint verdict."
     for (const f of htmlPages) {
       const claimed = /Verified Publisher/.test(f.text)
       const hasFunnel = f.text.includes(claimAppUrl)
@@ -428,6 +432,12 @@ console.log("")
       // An unclaimed page's CTA must frame claiming as control, never safety.
       if (!claimed && hasFunnel && !/not a safety claim/i.test(f.text)) {
         fail(`Trust Page ${f.rel} claim CTA is missing the "not a safety claim" framing`)
+        claimClean = false
+      }
+      // A page that names a Verified Publisher MUST carry the fixed verdict
+      // disclaimer verbatim (ADR 0055 §1(a)).
+      if (claimed && !f.text.includes(VERDICT_DISCLAIMER)) {
+        fail(`Trust Page ${f.rel} names a Verified Publisher but is missing the fixed line: "${VERDICT_DISCLAIMER}"`)
         claimClean = false
       }
     }
