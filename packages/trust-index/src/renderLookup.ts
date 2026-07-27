@@ -48,6 +48,18 @@ export interface LookupSourceEntry {
   verdict: Verdict
   artifactDigest: string
   observedAt: string
+  /**
+   * Safe-install linkage (Phase 2.4 / ADR 0056). Present (non-null) ONLY when this
+   * resource also has a baked acquisition page — the SAME membership set `emitSafeInstall`
+   * emitted, so a lookup entry can never advertise an install URL that 404s. A resource
+   * with a Trust Page but no install page (e.g. a future expansion-cohort entry) carries
+   * all three as `null`. These are deterministic projections of already-public facts (a
+   * URL derived from the canonical slug + the shipped verdict→route enum) — no score, no
+   * free text, and they move no verdict or page digest (ADR 0053 §3).
+   */
+  installUrl?: string | null
+  contractUrl?: string | null
+  installability?: string | null
 }
 
 /**
@@ -70,6 +82,12 @@ export function renderLookupIndex(entries: readonly LookupSourceEntry[]): string
       verdictLabel: VERDICT_PUBLIC_LABEL[e.verdict],
       artifactDigest: e.artifactDigest,
       observedAt: e.observedAt,
+      // Safe-install linkage (ADR 0056): fixed key positions, `null` when this resource
+      // has no baked install page, so the projection stays byte-stable and its key set is
+      // constant for the anti-drift gate.
+      installUrl: e.installUrl ?? null,
+      contractUrl: e.contractUrl ?? null,
+      installability: e.installability ?? null,
     })),
   }
   return JSON.stringify(doc, null, 2) + "\n"

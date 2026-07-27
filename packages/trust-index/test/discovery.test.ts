@@ -173,26 +173,36 @@ describe("renderSitemap — deterministic, clean URLs, final-URL-only", () => {
 })
 
 describe("emitAllCohorts — sitemap is chrome; discovery never moves the reproducibility surface", () => {
-  it("emits exactly one sitemap.xml, listing REAL baked resources + the standing lookup page (never fixtures, incomplete, or the landing page)", () => {
-    const { files } = emitAllCohorts(registrySnapshot)
+  it("emits exactly one sitemap.xml, listing REAL baked resources + Safe-install pages + the standing lookup page (never fixtures, incomplete, or the landing page)", () => {
+    const { files, installFiles } = emitAllCohorts(registrySnapshot)
     const sitemaps = files.filter((f) => f.path === "sitemap.xml")
     expect(sitemaps).toHaveLength(1)
     const xml = sitemaps[0]!.content
     // The sitemap advertises real, claimable resources only — the synthetic
     // `calllint-fixtures/*` reproducibility goldens are deliberately NOT listed, even
     // though they ARE baked (and still appear in index.json for completeness) — PLUS the
-    // one standing `/trust/lookup` utility page (ADR 0055 §5), which is site chrome.
+    // Safe-install acquisition pages (`/install/{slug}/`, one per emitted install page,
+    // human page only — ADR 0056) PLUS the one standing `/trust/lookup` utility page
+    // (ADR 0055 §5), which is site chrome.
     const bakedRealHtml = files.filter(
       (f) => f.path.endsWith(".html") && f.path.includes("/") && !f.path.startsWith("calllint-fixtures/"),
     ).length
-    expect((xml.match(/<loc>/g) ?? []).length).toBe(bakedRealHtml + 1)
+    // One install <loc> per emitted install page (index.html), NOT the contract sidecar.
+    const installHtml = installFiles.filter((f) => f.path.endsWith("/index.html")).length
+    expect((xml.match(/<loc>/g) ?? []).length).toBe(bakedRealHtml + installHtml + 1)
     expect(bakedRealHtml).toBeGreaterThan(0) // the registry cohort produced real pages
+    expect(installHtml).toBeGreaterThan(0) // ...and each produced an install page
     // No fixture URL, no landing page, ever appears in the sitemap.
     expect(xml).not.toContain("calllint-fixtures/")
     expect(xml).not.toContain("app-created")
     // The real registry resources ARE listed (clean URL form).
     expect(xml).toContain(`<loc>${SITE_ORIGIN}/trust/mcp-registry/io.a-thing</loc>`)
     expect(xml).toContain(`<loc>${SITE_ORIGIN}/trust/mcp-registry/io.b-thing</loc>`)
+    // Their Safe-install pages are listed too — the human page with a trailing slash, and
+    // NEVER the machine contract sidecar (`/install/{slug}/index.json` is not a page).
+    expect(xml).toContain(`<loc>${SITE_ORIGIN}/install/mcp-registry/io.a-thing/</loc>`)
+    expect(xml).toContain(`<loc>${SITE_ORIGIN}/install/mcp-registry/io.b-thing/</loc>`)
+    expect(xml).not.toContain("/install/mcp-registry/io.a-thing/index.json")
     // The standing lookup page is listed once, as a clean URL (loc-only chrome).
     expect(xml).toContain(`<loc>${SITE_ORIGIN}/trust/lookup</loc>`)
   })

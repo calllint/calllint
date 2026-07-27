@@ -2,7 +2,7 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "$id": "https://calllint.com/schemas/calllint.trust-lookup-index.v1.schema.json",
   "title": "CallLint Trust lookup index",
-  "description": "The closed, client-facing lookup index (calllint.trust-lookup-index.v1, ADR 0055 §5). A deterministic projection of the baked Trust Index so a human can find the CallLint Trust Page for a real resource — no LLM, no fuzzy matching. Distinct from the API-side partner-api/src/lookup.ts. additionalProperties:false at both levels makes it structurally impossible to carry a score or any free-text/PII field; each entry is a lean projection of an already-public, immutable observation, so publishing it never changes a verdict, a page digest, the sidecar, or the index (ADR 0053 §3).",
+  "description": "The closed, client-facing lookup index (calllint.trust-lookup-index.v1, ADR 0055 §5). A deterministic projection of the baked Trust Index so a human can find the CallLint Trust Page for a real resource — no LLM, no fuzzy matching. Distinct from the API-side partner-api/src/lookup.ts. additionalProperties:false at both levels makes it structurally impossible to carry a score or any free-text/PII field; each entry is a lean projection of an already-public, immutable observation, so publishing it never changes a verdict, a page digest, the sidecar, or the index (ADR 0053 §3). Phase 2.4 (ADR 0056) adds the Safe-install linkage installUrl/contractUrl/installability: present (non-null) only when the resource also has a baked acquisition page, derived from the same canonical slug so a link can never 404; a resource with no install page carries all three as null. These are deterministic projections of already-public facts (a URL + the shipped verdict→route enum), never a score.",
   "type": "object",
   "additionalProperties": false,
   "required": ["schema", "entries"],
@@ -13,14 +13,17 @@
       "items": {
         "type": "object",
         "additionalProperties": false,
-        "required": ["canonicalName", "url", "verdict", "verdictLabel", "artifactDigest", "observedAt"],
+        "required": ["canonicalName", "url", "verdict", "verdictLabel", "artifactDigest", "observedAt", "installUrl", "contractUrl", "installability"],
         "properties": {
           "canonicalName": { "type": "string", "minLength": 1 },
           "url": { "type": "string", "pattern": "^/trust/.+$" },
           "verdict": { "enum": ["SAFE", "REVIEW", "BLOCK", "UNKNOWN"] },
           "verdictLabel": { "type": "string", "minLength": 1 },
           "artifactDigest": { "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" },
-          "observedAt": { "type": "string", "format": "date-time" }
+          "observedAt": { "type": "string", "format": "date-time" },
+          "installUrl": { "type": ["string", "null"], "pattern": "^/install/.+/$" },
+          "contractUrl": { "type": ["string", "null"], "pattern": "^/install/.+/index\\.json$" },
+          "installability": { "enum": ["PREPARE_AVAILABLE", "REVIEW_REQUIRED", "BLOCKED", "LOCAL_PREFLIGHT_REQUIRED", "UNSUPPORTED", null] }
         }
       }
     }

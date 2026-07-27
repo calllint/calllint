@@ -471,6 +471,66 @@ console.log("")
   }
 }
 
+// 15b/16b/17b. Safe-install acquisition surface language boundary (Phase 2.4 / ADR 0056).
+//   The served /install/**.html pages + the /.well-known/calllint.json discovery manifest
+//   are public bytes with the SAME boundary as a Trust Page — a verdict-derived install
+//   route is exactly where an overclaim ("certified safe", "calllint approved") or stray
+//   PII would do the most damage. We scan them under the identical guards so the boundary
+//   can never be bypassed by shipping copy through the install plane instead of the trust
+//   plane. Framing (16b) is required on the HTML pages only (the manifest is pure JSON with
+//   no prose). These checks are ADDITIVE — they can only demand more honesty, never less.
+{
+  const installRoot = path.join(repoRoot, "apps/web/public/install")
+  const walkI = (dir) => {
+    if (!fs.existsSync(dir)) return []
+    return fs.readdirSync(dir, { withFileTypes: true }).flatMap((e) => {
+      const abs = path.join(dir, e.name)
+      if (e.isDirectory()) return walkI(abs)
+      return /\.(html|json)$/.test(e.name) ? [abs] : []
+    })
+  }
+  const wellKnown = path.join(repoRoot, "apps/web/public/.well-known/calllint.json")
+  const installFiles = [...walkI(installRoot), ...(fs.existsSync(wellKnown) ? [wellKnown] : [])].map(
+    (p) => ({ rel: path.relative(repoRoot, p).split(path.sep).join("/"), text: fs.readFileSync(p, "utf8") }),
+  )
+  const forbidden = facts.trustPageForbiddenPhrases
+  const EMAIL = /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/
+  if (installFiles.length === 0) {
+    ok("no Safe-install acquisition pages present yet (skipped 15b/16b/17b)")
+  } else if (!Array.isArray(forbidden)) {
+    fail("project-facts.json missing trustPageForbiddenPhrases; cannot guard Safe-install pages")
+  } else {
+    // 15b. No forbidden overclaim on any served install page or the discovery manifest.
+    let clean = true
+    for (const f of installFiles) {
+      const lc = f.text.toLowerCase()
+      for (const p of forbidden) {
+        if (lc.includes(p.toLowerCase())) { fail(`Safe-install overclaim in ${f.rel}: "${p}"`); clean = false }
+      }
+    }
+    if (clean) ok(`no forbidden overclaim across ${installFiles.length} Safe-install file(s)`)
+
+    // 16b. Every install HTML page carries the same boundary framing as a Trust Page.
+    const installHtml = installFiles.filter((f) => f.rel.endsWith(".html"))
+    let framed = true
+    for (const f of installHtml) {
+      const hasDisclaimer = /not a certification/i.test(f.text) && /guarantee of safety/i.test(f.text)
+      const hasCorrection = /Report a correction/i.test(f.text)
+      if (!hasDisclaimer) { fail(`Safe-install page ${f.rel} missing the "not a certification … guarantee of safety" disclaimer`); framed = false }
+      if (!hasCorrection) { fail(`Safe-install page ${f.rel} missing a correction link`); framed = false }
+    }
+    if (framed && installHtml.length > 0) ok(`all ${installHtml.length} Safe-install HTML page(s) carry the required boundary framing`)
+
+    // 17b. No PII (email-like) on any served install page or the discovery manifest.
+    let piiClean = true
+    for (const f of installFiles) {
+      const m = f.text.match(EMAIL)
+      if (m) { fail(`Safe-install PII (email-like) in ${f.rel}: "${m[0]}"`); piiClean = false }
+    }
+    if (piiClean) ok(`no PII (email-like) across ${installFiles.length} Safe-install file(s)`)
+  }
+}
+
 // 21. MCP tool descriptions are governed public copy (ADR 0055 §3). The Sentinel
 //   (`calllint_guard_external_tools`) and every shipped calllint-mcp tool description
 //   is a public string the host agent reads, so it must (a) carry no forbidden

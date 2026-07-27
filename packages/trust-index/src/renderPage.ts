@@ -190,10 +190,14 @@ export function renderSidecar(
  *    page, ADR 0055 §5) — site chrome with no single observation time, so each is listed
  *    with a `<loc>` ONLY (`<lastmod>` is optional per the sitemap spec). They are sorted
  *    and appended after the resource pages; no clock is read, so a re-bake is byte-stable.
+ *  • `installSlugs` are the Safe-install acquisition pages (`/install/{slug}/`, ADR 0056),
+ *    the HUMAN page only — the machine Contract sidecar (`/install/{slug}/index.json`) is
+ *    deliberately NOT listed. Sorted and appended between the resource and standing pages.
  */
 export function renderSitemap(
   pages: readonly { canonicalName: string; observedAt: string }[],
   standingPages: readonly string[] = [],
+  installSlugs: readonly string[] = [],
 ): string {
   const sorted = [...pages].sort((a, b) =>
     a.canonicalName < b.canonicalName ? -1 : a.canonicalName > b.canonicalName ? 1 : 0,
@@ -205,10 +209,18 @@ export function renderSitemap(
       `    <lastmod>${esc(p.observedAt)}</lastmod>\n` +
       `  </url>`,
   )
+  // Safe-install acquisition pages (Phase 2.4 / ADR 0056). The HUMAN Install page
+  // `/install/{slug}/` ONLY — never the machine Contract sidecar `/install/{slug}/index.json`
+  // (a JSON contract is not a crawlable page). Listed with a `<loc>` only: the install page
+  // carries no single observation time (`<lastmod>` is optional per the sitemap spec), so a
+  // re-bake stays byte-stable. Sorted so the emitted bytes are order-stable.
+  const installUrls = [...installSlugs]
+    .sort((a, b) => (a < b ? -1 : a > b ? 1 : 0))
+    .map((slug) => `  <url>\n    <loc>${esc(`${SITE_ORIGIN}/install/${slug}/`)}</loc>\n  </url>`)
   const standingUrls = [...standingPages]
     .sort((a, b) => (a < b ? -1 : a > b ? 1 : 0))
     .map((seg) => `  <url>\n    <loc>${esc(`${SITE_ORIGIN}/trust/${seg}`)}</loc>\n  </url>`)
-  const urls = [...pageUrls, ...standingUrls].join("\n")
+  const urls = [...pageUrls, ...installUrls, ...standingUrls].join("\n")
   return (
     `<?xml version="1.0" encoding="UTF-8"?>\n` +
     `<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n` +

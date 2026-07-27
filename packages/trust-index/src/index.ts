@@ -179,7 +179,7 @@ export {
   type Installability,
   type HumanDispositionProjection,
 } from "./safeInstallProjection.js"
-// Phase 2.4 Batch 2 — Human Install renderer + discovery manifest + shadow emit (ADR 0056).
+// Phase 2.4 — Human Install renderer + discovery manifest + Safe-install emit (ADR 0056).
 export { renderSafeInstall, renderSafeInstallContract } from "./renderSafeInstall.js"
 export {
   renderDiscoveryManifest,
@@ -190,4 +190,8 @@ export {
   MCP_RESOURCE_TEMPLATE,
   type DiscoveryResourceEntry,
 } from "./renderDiscoveryManifest.js"
-export { emitSafeInstall } from "./emitSafeInstall.js"
+export {
+  emitSafeInstall,
+  type EmittedSafeInstall,
+  type EmittedInstallResource,
+} from "./emitSafeInstall.js"

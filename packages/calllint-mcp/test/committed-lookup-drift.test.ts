@@ -35,12 +35,40 @@ describe("committed lookup projection — anti-drift vs the baked served index",
   })
 
   it("carries only the shipped, boundary-safe projection — no score, no free-text", () => {
+    const INSTALLABILITY = new Set([
+      "PREPARE_AVAILABLE",
+      "REVIEW_REQUIRED",
+      "BLOCKED",
+      "LOCAL_PREFLIGHT_REQUIRED",
+      "UNSUPPORTED",
+    ])
     for (const e of COMMITTED_LOOKUP_ENTRIES) {
+      // The lean, fixed key set (ADR 0055 §5 + the ADR 0056 Safe-install linkage). No score,
+      // no free-text: the three install fields are a URL + a closed route enum, or null.
       expect(Object.keys(e).sort()).toEqual(
-        ["artifactDigest", "canonicalName", "observedAt", "url", "verdict", "verdictLabel"].sort(),
+        [
+          "artifactDigest",
+          "canonicalName",
+          "contractUrl",
+          "installUrl",
+          "installability",
+          "observedAt",
+          "url",
+          "verdict",
+          "verdictLabel",
+        ].sort(),
       )
       expect(e.url).toBe(`/trust/${e.canonicalName}`)
       expect(e.artifactDigest).toMatch(/^sha256:[0-9a-f]{64}$/)
+      // Install linkage is either a matching non-drifting URL pair + a valid route, or all null.
+      if (e.installUrl === null) {
+        expect(e.contractUrl).toBeNull()
+        expect(e.installability).toBeNull()
+      } else {
+        expect(e.installUrl).toMatch(/^\/install\/.+\/$/)
+        expect(e.contractUrl).toBe(`${e.installUrl}index.json`)
+        expect(INSTALLABILITY.has(e.installability as string)).toBe(true)
+      }
     }
   })
 })
