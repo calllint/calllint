@@ -1,37 +1,31 @@
 {
   "schema": "calllint.agent-adoption-contract.v1",
   "contract": {
-    "contractDigest": "sha256:dc1dd66d3917712ae3dc20b7a681b98fb7a8c109c5c07df9a3866e10c3b5eae3",
-    "generatedAt": "2026-07-17T00:00:00.000Z",
+    "contractDigest": "sha256:aafdfb68631d6d0cf33047052824c387e417adb682d86c8102dc55efad6d39d4",
+    "generatedAt": "2026-07-27T10:07:03.242Z",
     "expiresAt": null,
     "generatorVersion": "0.1.0",
-    "snapshotDigest": "sha256:0d35502e5cf3aff33c72a15bcf5e56c6c75bb3c0ec283593095a78b8c0824830"
+    "snapshotDigest": "sha256:1a56a9277903cf8ed7b12b1ed4d38e8816bd704139cd67487fd2cd69ddf59d98"
   },
   "subject": {
-    "canonicalName": "mcp-registry/ai.agenticshelf-graffeo",
-    "canonicalSlug": "mcp-registry/ai.agenticshelf-graffeo",
-    "packageType": null,
-    "packageName": null,
-    "version": "1.0.2",
-    "artifactDigest": "sha256:6fb4d2a789a52a8debd01384956a71e6688fa25b0ba495fd32633ea028ff434e",
-    "sourceLocator": "https://api.agenticshelf.ai/m/graffeo/mcp"
+    "canonicalName": "mcp-registry/agency.kesey-pretrip",
+    "canonicalSlug": "mcp-registry/agency.kesey-pretrip",
+    "packageType": "npm",
+    "packageName": "pretrip-mcp",
+    "version": "1.0.1",
+    "artifactDigest": "sha256:48180f8f9eab49664310736b3b4841a78fd013f5ec1e11230cad6ceaa95f8217",
+    "sourceLocator": "npm:pretrip-mcp@1.0.1"
   },
   "publicObservation": {
-    "verdict": "REVIEW",
-    "publicLabel": "Review required",
-    "reasonCodes": [
-      "UNKNOWN_REMOTE"
-    ],
+    "verdict": "SAFE",
+    "publicLabel": "No blockers observed",
+    "reasonCodes": [],
     "evidenceLevel": "E2",
-    "evidenceDigest": "sha256:8f74750bcfbbb711c361f75ccf51ccd3d99b67231c821bdb1a2dcb610a5631f9",
+    "evidenceDigest": "sha256:26c66525b628713c8c7ee0e4bdfd7eea4dbf59efd4fb45c24a7a388edac78315",
     "completeness": "complete"
   },
   "authorityDelta": {
-    "adds": [
-      {
-        "authority": "network_egress"
-      }
-    ],
+    "adds": [],
     "notObserved": [
       "financial_action",
       "secret_access",
@@ -40,26 +34,27 @@
       "external_mutation",
       "messaging_send",
       "oauth_scope",
-      "gateway_runtime"
+      "gateway_runtime",
+      "network_egress"
     ]
   },
   "trustedSources": {
-    "registrySnapshotDigest": "sha256:0d35502e5cf3aff33c72a15bcf5e56c6c75bb3c0ec283593095a78b8c0824830",
-    "evidenceDigest": "sha256:8f74750bcfbbb711c361f75ccf51ccd3d99b67231c821bdb1a2dcb610a5631f9",
+    "registrySnapshotDigest": "sha256:1a56a9277903cf8ed7b12b1ed4d38e8816bd704139cd67487fd2cd69ddf59d98",
+    "evidenceDigest": "sha256:26c66525b628713c8c7ee0e4bdfd7eea4dbf59efd4fb45c24a7a388edac78315",
     "engineVersion": "0.1.0"
   },
   "untrustedPublisherContent": {
-    "description": "Live MCP catalog for Graffeo Coffee Roasting - Simply the World's Finest Coffee since 1935.",
+    "description": "Screen regulated-health marketing copy against source-cited rulesets, all 50 states.",
     "usedForSafetyDecision": false
   },
   "recommendedNextAction": {
     "kind": "PREPARE_LOCALLY",
     "tool": "calllint_prepare_safe_install",
     "arguments": {
-      "canonicalName": "mcp-registry/ai.agenticshelf-graffeo",
-      "expectedVersion": "1.0.2",
-      "expectedArtifactDigest": "sha256:6fb4d2a789a52a8debd01384956a71e6688fa25b0ba495fd32633ea028ff434e",
-      "expectedContractDigest": "sha256:dc1dd66d3917712ae3dc20b7a681b98fb7a8c109c5c07df9a3866e10c3b5eae3",
+      "canonicalName": "mcp-registry/agency.kesey-pretrip",
+      "expectedVersion": "1.0.1",
+      "expectedArtifactDigest": "sha256:48180f8f9eab49664310736b3b4841a78fd013f5ec1e11230cad6ceaa95f8217",
+      "expectedContractDigest": "sha256:aafdfb68631d6d0cf33047052824c387e417adb682d86c8102dc55efad6d39d4",
       "host": null
     }
   },

@@ -1,8 +1,8 @@
 {
   "schema": "calllint.evidence-manifest.v1",
   "subject": {
-    "canonicalName": "mcp-registry/ai.agenticshelf-mcp",
-    "artifactDigest": "sha256:ea6152f9304e7dde10305c7af11f3d292458c8550739d6b3fdc5b1b780a3cffd"
+    "canonicalName": "mcp-registry/ai.agenticfabricationnetwork-ufp",
+    "artifactDigest": "sha256:68aa642d2cd1eefc7ea8794cca6f808cf15ffa908a3cfea8b6bcd9f6bbb7ec67"
   },
   "verdict": "REVIEW",
   "verdictLabel": "Review required",
@@ -14,13 +14,13 @@
     "completeness": "complete",
     "authorityClaimed": false,
     "reproducibility": {
-      "pageDigest": "sha256:86ed9527bdc6341f13704630515a035a43ca56fa008f79ac10f817d27b7a5138",
-      "observedAt": "2026-07-17T00:00:00.000Z"
+      "pageDigest": "sha256:832374edce535e8ddd5b5d3c1f532eac8643f5c6b6a57dda2f0be9ed8595592d",
+      "observedAt": "2026-07-27T10:07:03.242Z"
     },
     "evidenceLevel": "E2"
   },
   "authority": {
-    "digest": "sha256:8328f147141282b7c4b3146a00c6fa9ca807bb18b73362e2ec8dd3da5b140ad0",
+    "digest": "sha256:ab7c41c1f18e9b39415f1489c9ae45c586a8114d7b6c8e41915c776c992e3633",
     "completeness": "complete",
     "capabilityCount": 1,
     "approvalRequired": [
@@ -38,13 +38,13 @@
   },
   "policyDigest": null,
   "reproducibility": {
-    "pageDigest": "sha256:86ed9527bdc6341f13704630515a035a43ca56fa008f79ac10f817d27b7a5138",
-    "observedAt": "2026-07-17T00:00:00.000Z"
+    "pageDigest": "sha256:832374edce535e8ddd5b5d3c1f532eac8643f5c6b6a57dda2f0be9ed8595592d",
+    "observedAt": "2026-07-27T10:07:03.242Z"
   },
   "engine": {
     "name": "calllint"
   },
   "correctionUrl": "https://github.com/calllint/calllint/issues/new?labels=trust-page-correction",
-  "generatedAt": "2026-07-17T00:00:00.000Z",
+  "generatedAt": "2026-07-27T10:07:03.242Z",
   "signature": null
 }

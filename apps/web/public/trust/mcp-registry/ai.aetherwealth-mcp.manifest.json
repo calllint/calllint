@@ -1,50 +1,48 @@
 {
   "schema": "calllint.evidence-manifest.v1",
   "subject": {
-    "canonicalName": "mcp-registry/ai.agenticshelf-graffeo",
-    "artifactDigest": "sha256:6fb4d2a789a52a8debd01384956a71e6688fa25b0ba495fd32633ea028ff434e"
+    "canonicalName": "mcp-registry/ai.aetherwealth-mcp",
+    "artifactDigest": "sha256:dfa451456d1b900ac9510f65ccea4b8bf6ce52b700123da49be3782a61c8db1c"
   },
-  "verdict": "REVIEW",
-  "verdictLabel": "Review required",
+  "verdict": "SAFE",
+  "verdictLabel": "No blockers observed",
   "completeness": "complete",
   "evidenceLevel": "E2",
   "evidenceRationale": "install config observed → static blast radius normalized into an authority inventory. Higher levels (E3 tool schema, E4 maintainer receipt, E5 sandbox) are not carried by a static page.",
   "status": {
-    "verdict": "REVIEW",
+    "verdict": "SAFE",
     "completeness": "complete",
     "authorityClaimed": false,
     "reproducibility": {
-      "pageDigest": "sha256:cac2c5b2c59583bc1ae3c2d8ad39fb6ab7708c5b0b19d6a9bbc33ef81386098a",
-      "observedAt": "2026-07-17T00:00:00.000Z"
+      "pageDigest": "sha256:d0e6fb41491847e0301ea0f7a7cb6842ebd0638730ada182545f2638b760647f",
+      "observedAt": "2026-07-27T10:07:03.242Z"
     },
     "evidenceLevel": "E2"
   },
   "authority": {
-    "digest": "sha256:df2a7c0a6526cb64c547c6ded2296e070fd8088ebcfb8d83b86d3b7aef7e0246",
+    "digest": "sha256:cffd2f3e65db5f74486f39dd9c71897993485a87eef3e59f1823cf24a6c57427",
     "completeness": "complete",
     "capabilityCount": 1,
-    "approvalRequired": [
-      "external-network-access"
-    ],
+    "approvalRequired": [],
     "capabilities": [
       {
-        "action": "connect",
-        "resource": "network",
+        "action": "execute",
+        "resource": "process",
         "mutability": "mutating",
         "reversibility": "irreversible",
-        "approvalRequirement": "review"
+        "approvalRequirement": "none"
       }
     ]
   },
   "policyDigest": null,
   "reproducibility": {
-    "pageDigest": "sha256:cac2c5b2c59583bc1ae3c2d8ad39fb6ab7708c5b0b19d6a9bbc33ef81386098a",
-    "observedAt": "2026-07-17T00:00:00.000Z"
+    "pageDigest": "sha256:d0e6fb41491847e0301ea0f7a7cb6842ebd0638730ada182545f2638b760647f",
+    "observedAt": "2026-07-27T10:07:03.242Z"
   },
   "engine": {
     "name": "calllint"
   },
   "correctionUrl": "https://github.com/calllint/calllint/issues/new?labels=trust-page-correction",
-  "generatedAt": "2026-07-17T00:00:00.000Z",
+  "generatedAt": "2026-07-27T10:07:03.242Z",
   "signature": null
 }
