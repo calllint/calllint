@@ -72,4 +72,13 @@ describe("invariant: MCP tools never execute a scanned server (ADR 0003)", () =>
     expect(execFileMock).not.toHaveBeenCalled()
     expect(execFileSyncMock).not.toHaveBeenCalled()
   })
+
+  it("calllint_search_agent_tools (Safe Search) spawns nothing", () => {
+    call("calllint_search_agent_tools", { query: "mcp-registry" })
+    expect(spawnMock).not.toHaveBeenCalled()
+    expect(execMock).not.toHaveBeenCalled()
+    expect(execSyncMock).not.toHaveBeenCalled()
+    expect(execFileMock).not.toHaveBeenCalled()
+    expect(execFileSyncMock).not.toHaveBeenCalled()
+  })
 })

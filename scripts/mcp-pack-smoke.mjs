@@ -80,7 +80,7 @@ try {
   if (/@calllint\//.test(dist)) fail("unresolved @calllint/* import in bundle (not self-contained)")
   ok("dist/index.js has shebang and is self-contained")
 
-  // 5. Drive the server over stdio: initialize, tools/list (=7), tools/call BLOCK.
+  // 5. Drive the server over stdio: initialize, tools/list (=8), tools/call BLOCK.
   const requests = [
     { jsonrpc: "2.0", id: 1, method: "initialize", params: {} },
     { jsonrpc: "2.0", id: 2, method: "tools/list" },
@@ -105,11 +105,11 @@ try {
   const init = lines.find((l) => l.id === 1)
   if (init?.result?.protocolVersion == null) fail("initialize did not return a protocolVersion")
   const list = lines.find((l) => l.id === 2)
-  if (list?.result?.tools?.length !== 7) fail(`tools/list expected 7 tools, got ${list?.result?.tools?.length}`)
+  if (list?.result?.tools?.length !== 8) fail(`tools/list expected 8 tools, got ${list?.result?.tools?.length}`)
   const callRes = lines.find((l) => l.id === 3)
   const decision = JSON.parse(callRes.result.content[0].text)
   if (decision[0].verdict !== "BLOCK") fail(`scan_mcp_config_json expected BLOCK, got ${decision[0].verdict}`)
-  ok("stdio server: initialize + tools/list(7) + tools/call → BLOCK")
+  ok("stdio server: initialize + tools/list(8) + tools/call → BLOCK")
 
   console.log("mcp-pack-smoke: PASS")
 } finally {

@@ -109,6 +109,9 @@ importers:
       '@calllint/report-renderer':
         specifier: workspace:*
         version: link:../report-renderer
+      '@calllint/trust-index':
+        specifier: workspace:*
+        version: link:../trust-index
       '@calllint/types':
         specifier: workspace:*
         version: link:../types
