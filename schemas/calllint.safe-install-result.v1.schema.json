@@ -1,0 +1,72 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://calllint.com/schemas/calllint.safe-install-result.v1.schema.json",
+  "title": "CallLint Safe-Install Result",
+  "description": "The machine-readable result envelope (calllint.safe-install-result.v1) emitted by the `calllint safe-install` orchestrator and the MCP adoption tools (new14 Phase 2.4; ADR 0056 §9). Reports the OUTCOME of a local, exact-target adoption attempt — it delegates every live write to the shipped Trust Gateway apply service (the one writer; INV-2.4-03) and carries no verdict of its own (INV-2.4-01). `outcome` is a closed vocabulary; `receiptDigest`/`planDigest` bind the result to the shipped install-plan + decision-receipt objects (never a parallel 'safe-install plan' type; §4.1). One-time mode leaves zero persistent CallLint files (INV-2.4-07); persistentComponents is empty unless a separate, explicit continuous-protection authorization was granted.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "outcome", "canonicalName", "mode"],
+  "properties": {
+    "schema": {
+      "const": "calllint.safe-install-result.v1",
+      "description": "Wire identity. The tag, not the filename, is the contract (ADR 0043/0055 §5)."
+    },
+    "outcome": {
+      "enum": [
+        "PREPARED",
+        "APPLIED_AND_VERIFIED",
+        "BLOCKED",
+        "LOCAL_PREFLIGHT_REQUIRED",
+        "UNSUPPORTED",
+        "ABORTED_ON_MISMATCH",
+        "DECLINED"
+      ],
+      "description": "Closed outcome vocabulary. ABORTED_ON_MISMATCH = an exact-target digest/version assertion failed → no writable plan was produced (INV-2.4-06). DECLINED = the operator did not approve at the single approval gate."
+    },
+    "canonicalName": {
+      "type": "string",
+      "minLength": 1,
+      "description": "The canonical tool identity this result concerns."
+    },
+    "mode": {
+      "enum": ["ONE_TIME_PROTECTED_SETUP", "CONTINUOUS_PROTECTION"],
+      "description": "The adoption mode. Default is ONE_TIME_PROTECTED_SETUP, which MUST NOT install any persistent CallLint component (INV-2.4-07)."
+    },
+    "host": {
+      "type": ["string", "null"],
+      "description": "The resolved host id when an apply was attempted; null for prepare-only / unsupported."
+    },
+    "version": {
+      "type": ["string", "null"],
+      "description": "The exact version acted on. null only when the outcome is LOCAL_PREFLIGHT_REQUIRED / UNSUPPORTED."
+    },
+    "artifactDigest": {
+      "type": ["string", "null"],
+      "pattern": "^sha256:[0-9a-f]{64}$"
+    },
+    "contractDigest": {
+      "type": ["string", "null"],
+      "pattern": "^sha256:[0-9a-f]{64}$"
+    },
+    "planDigest": {
+      "type": ["string", "null"],
+      "pattern": "^sha256:[0-9a-f]{64}$",
+      "description": "Digest of the shipped calllint.install-plan.v1 that was applied (null unless APPLIED_AND_VERIFIED)."
+    },
+    "receiptDigest": {
+      "type": ["string", "null"],
+      "pattern": "^sha256:[0-9a-f]{64}$",
+      "description": "Digest of the shipped decision-receipt emitted by the apply service (null unless a write occurred)."
+    },
+    "persistentComponents": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Persistent CallLint components installed. MUST be empty in ONE_TIME_PROTECTED_SETUP mode (audited; INV-2.4-07). Each entry is enumerated with its documented uninstall command in the human transcript."
+    },
+    "notes": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Human-readable, non-decision notes (e.g. why a slot is empty). Never carries publisher content."
+    }
+  }
+}
