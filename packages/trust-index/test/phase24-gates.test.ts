@@ -6,12 +6,16 @@ import {
   evaluateLocalBinding,
   evaluateOneTimeSetup,
   evaluateConversion,
+  evaluateNoRegression,
   TARGET_MISMATCH_OUTCOME,
   type IdentitySurfaces,
   type MismatchRun,
   type WriteSite,
   type RollbackRun,
   type ConversionObservation,
+  type GateRecord,
+  type WiredCheck,
+  type ServedGuard,
 } from "../src/phase24Gates.js"
 
 // These tests exist for one reason: a gate that cannot fail proves nothing. Each
@@ -238,5 +242,146 @@ describe("Gate 2.4-F · continuous-protection conversion", () => {
 
   it("FAILS when a guard host is missing from the cohort", () => {
     expect(evaluateConversion([conversion()], 7).status).toBe("FAILED")
+  })
+})
+
+// --- Gate 2.4-H · no regression ----------------------------------------------
+
+// Named, not indexed: `noUncheckedIndexedAccess` is on, and naming the two rows
+// also makes each mutation below say which gate it is falsifying.
+const GATE_A: GateRecord = {
+  gate: "2.4-A",
+  artifact: "artifacts/phase-2.4/gate-A-consistency.json",
+  status: "PASSED",
+  machineDecidable: true,
+}
+const GATE_B_HUMAN: GateRecord = {
+  gate: "2.4-B",
+  artifact: "artifacts/phase-2.4/human-five-second-test.json",
+  status: "PENDING_HUMAN_PANEL",
+  machineDecidable: false,
+}
+const GATES: readonly GateRecord[] = [GATE_A, GATE_B_HUMAN]
+
+function check(over: Partial<WiredCheck> = {}): WiredCheck {
+  return {
+    id: "eval:phase-2.4",
+    script: "tsx scripts/phase-2.4-eval.ts",
+    inLocalChain: true,
+    workflowBinding: "ci.yml#test",
+    remoteOnly: false,
+    role: "check",
+    ...over,
+  }
+}
+
+const GUARD: ServedGuard = {
+  subtree: "apps/web/public/install/**",
+  guardTest: "packages/trust-index/test/safe-install/committed-install-tree.test.ts",
+  eolPinned: true,
+}
+
+const COUNT_PRODUCER = { source: "tools.ts", count: 13 }
+const COUNT_ASSERTION = { source: "mcp-pack-smoke.mjs", count: 13 }
+const COUNTS = [COUNT_PRODUCER, COUNT_ASSERTION]
+
+describe("Gate 2.4-H — no regression", () => {
+  it("PASSES when every gate row, check binding and served guard is in place", () => {
+    const r = evaluateNoRegression(GATES, [check()], [GUARD], COUNTS, 2)
+    expect(r.status).toBe("PASSED")
+    expect(r.blockers).toEqual([])
+  })
+
+  it("a PENDING_HUMAN_PANEL gate does NOT regress the gate — unfinished human work is not a regression", () => {
+    expect(evaluateNoRegression(GATES, [check()], [GUARD], COUNTS, 2).status).toBe("PASSED")
+  })
+
+  it("but a human gate is never counted as passed — it stays declared as human-blocked", () => {
+    const r = evaluateNoRegression(GATES, [check()], [GUARD], COUNTS, 2)
+    const declared = r.measures.find((m) => m.id === "human-gates-declared")!
+    expect(declared.observed).toContain("human panel required")
+    // The machine roll-up must not silently absorb it into the passing set.
+    expect(r.measures.find((m) => m.id === "machine-gates-passed")!.observed).not.toContain("2.4-B")
+  })
+
+  it("FAILS when a gate artifact was deleted — removing evidence must not make the gate greener", () => {
+    const missing: GateRecord[] = [GATE_A, { ...GATE_B_HUMAN, artifact: null, status: "MISSING" }]
+    const r = evaluateNoRegression(missing, [check()], [GUARD], COUNTS, 2)
+    expect(r.status).toBe("FAILED")
+    expect(r.blockers.join(" ")).toContain("MISSING: 2.4-B")
+  })
+
+  it("FAILS when a gate row is dropped from the roll-up entirely", () => {
+    const r = evaluateNoRegression([GATE_A], [check()], [GUARD], COUNTS, 2)
+    expect(r.status).toBe("FAILED")
+    expect(r.blockers.join(" ")).toContain("1/2 gate rows")
+  })
+
+  it("FAILS when a machine-decidable gate went red", () => {
+    const red: GateRecord[] = [{ ...GATE_A, status: "FAILED" }, GATE_B_HUMAN]
+    const r = evaluateNoRegression(red, [check()], [GUARD], COUNTS, 2)
+    expect(r.status).toBe("FAILED")
+    expect(r.blockers.join(" ")).toContain("2.4-A=FAILED")
+  })
+
+  it("FAILS when the MCP tool count drifts between producer and assertion", () => {
+    const drifted = [{ ...COUNT_PRODUCER, count: 14 }, COUNT_ASSERTION]
+    const r = evaluateNoRegression(GATES, [check()], [GUARD], drifted, 2)
+    expect(r.status).toBe("FAILED")
+    expect(r.blockers.join(" ")).toContain("tools.ts=14 vs mcp-pack-smoke.mjs=13")
+  })
+
+  it("FAILS when only one source states the tool count — agreement needs two", () => {
+    const r = evaluateNoRegression(GATES, [check()], [GUARD], [COUNT_PRODUCER], 2)
+    expect(r.status).toBe("FAILED")
+  })
+
+  it("FAILS when a check script was deleted from package.json", () => {
+    const r = evaluateNoRegression(GATES, [check({ script: null })], [GUARD], COUNTS, 2)
+    expect(r.status).toBe("FAILED")
+    expect(r.blockers.join(" ")).toContain("a gate mechanism was removed")
+  })
+
+  it("FAILS when a check runs only in ci:local — a local-only check blocks no merge", () => {
+    const r = evaluateNoRegression(GATES, [check({ workflowBinding: null })], [GUARD], COUNTS, 2)
+    expect(r.status).toBe("FAILED")
+    expect(r.blockers.join(" ")).toContain("nothing blocks a merge on it")
+  })
+
+  it("FAILS when a locally-provable check is absent from ci:local", () => {
+    const r = evaluateNoRegression(GATES, [check({ inLocalChain: false })], [GUARD], COUNTS, 2)
+    expect(r.status).toBe("FAILED")
+    expect(r.blockers.join(" ")).toContain("cannot reproduce this gate before pushing")
+  })
+
+  it("a remote-only check is NOT required to be in ci:local, but IS required to be bound", () => {
+    const ok = evaluateNoRegression(GATES, [check({ id: "pack:smoke:mcp", inLocalChain: false, remoteOnly: true })], [GUARD], COUNTS, 2)
+    expect(ok.status).toBe("PASSED")
+    expect(ok.measures.find((m) => m.id === "wired/pack:smoke:mcp")!.observed).toContain("REMOTE-ONLY")
+
+    const unbound = evaluateNoRegression(GATES, [check({ id: "pack:smoke:mcp", inLocalChain: false, remoteOnly: true, workflowBinding: null })], [GUARD], COUNTS, 2)
+    expect(unbound.status).toBe("FAILED")
+  })
+
+  it("the ci:local chain itself is graded on existing, not on being inside itself", () => {
+    const chain = check({ id: "ci:local", role: "local-chain", workflowBinding: null })
+    expect(evaluateNoRegression(GATES, [chain], [GUARD], COUNTS, 2).status).toBe("PASSED")
+    expect(evaluateNoRegression(GATES, [{ ...chain, script: null }], [GUARD], COUNTS, 2).status).toBe("FAILED")
+  })
+
+  it("FAILS when a served subtree has no reproducibility guard test", () => {
+    const r = evaluateNoRegression(GATES, [check()], [{ ...GUARD, guardTest: null }], COUNTS, 2)
+    expect(r.status).toBe("FAILED")
+    expect(r.blockers.join(" ")).toContain("no reproducibility guard test")
+  })
+
+  it("FAILS when a served subtree is not eol=lf pinned — the windows-only CRLF trap", () => {
+    const r = evaluateNoRegression(GATES, [check()], [{ ...GUARD, eolPinned: false }], COUNTS, 2)
+    expect(r.status).toBe("FAILED")
+    expect(r.blockers.join(" ")).toContain("windows-latest only")
+  })
+
+  it("FAILS when the observation step hands over nothing to grade", () => {
+    expect(evaluateNoRegression([], [], [], [], 0).status).toBe("FAILED")
   })
 })

@@ -1,7 +1,7 @@
 #!/usr/bin/env tsx
 /**
- * Phase 2.4 Batch 9 — Gates 2.4-A / 2.4-D / 2.4-E / 2.4-F evidence (new14 §E
- * "release boundary"; traceability gate rows A, D, E, F).
+ * Phase 2.4 Batch 9 — Gates 2.4-A / 2.4-D / 2.4-E / 2.4-F / 2.4-H evidence
+ * (new14 §E "release boundary"; traceability gate rows A, D, E, F, H).
  *
  * The OBSERVER half of the pair. Every judgement lives in the pure evaluators in
  * `@calllint/trust-index` (`phase24Gates.ts`); this file only observes reality and
@@ -19,6 +19,12 @@
  *   2.4-F  build the shipped continuous-protection offer for every guard host and
  *          prove the rendered text discloses every component, path, uninstall
  *          command, the disable command, and `[Not now]`.
+ *   2.4-H  grade the GATE SYSTEM: every gate row has a committed artifact, every
+ *          machine-decidable gate is PASSED, the MCP tool count agrees between
+ *          producer and assertion, every regression check is wired to something
+ *          that runs it (remote-only ones bound to a real workflow job, never
+ *          claimed as locally proven), and every served subtree has both a
+ *          reproducibility guard and an `eol=lf` pin.
  *
  * SAFETY: every run redirects --host-config into a temp sandbox. The claude-code
  * config is HOME-scoped, so an unsandboxed run would rewrite the developer's own
@@ -27,7 +33,7 @@
  * Modes (same contract as the other Phase-2.4 evidence scripts):
  *   (default) --check : committed artifacts must be byte-identical to a fresh run.
  *   --write           : (re)generate them.
- *   --gate            : ENFORCEMENT. Exit 2 unless all four gates are PASSED.
+ *   --gate            : ENFORCEMENT. Exit 2 unless all five gates are PASSED.
  * Exit codes: 0 ok · 1 drift · 2 gate not passed / unexpected error.
  */
 import fs from "node:fs"
@@ -41,12 +47,16 @@ import {
   evaluateLocalBinding,
   evaluateOneTimeSetup,
   evaluateConversion,
+  evaluateNoRegression,
   type IdentitySurfaces,
   type SurfaceFacts,
   type MismatchRun,
   type WriteSite,
   type RollbackRun,
   type ConversionObservation,
+  type GateRecord,
+  type WiredCheck,
+  type ServedGuard,
   type GateResult,
   EVAL_ENGINE_VERSION,
 } from "@calllint/trust-index"
@@ -68,6 +78,8 @@ const sha256 = (b: string): string => "sha256:" + createHash("sha256").update(b,
 const readText = (p: string): string => fs.readFileSync(p, "utf8")
 const readJson = (p: string): Record<string, unknown> => JSON.parse(readText(p)) as Record<string, unknown>
 const rel = (p: string): string => path.relative(repoRoot, p).split(path.sep).join("/")
+/** Escape a script/job name for use inside a RegExp — `:` and `.` are literal here. */
+const escapeRe = (s: string): string => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
 
 // --- Gate 2.4-A · observe the served surface --------------------------------
 
@@ -516,7 +528,142 @@ function rollbackExercise(box: string, id: string, pre: string | null): Rollback
   }
 }
 
-// --- render the four artifacts ----------------------------------------------
+// --- Gate 2.4-H · observe the gate system itself -----------------------------
+
+/**
+ * Every Phase-2.4 gate and the committed artifact that carries its status. The
+ * gate id → file map is written out longhand rather than globbed: a glob would
+ * report whatever is on disk, so deleting `gate-D-binding.json` would make Gate
+ * 2.4-H greener. Naming all eight makes a missing artifact a failure.
+ *
+ * `machineDecidable: false` marks the one gate no code can close — 2.4-B needs a
+ * ≥10-person panel (ADR 0053 §4).
+ */
+const GATE_ARTIFACTS: readonly { gate: string; file: string; machineDecidable: boolean }[] = [
+  { gate: "2.4-A", file: "gate-A-consistency.json", machineDecidable: true },
+  { gate: "2.4-B", file: "human-five-second-test.json", machineDecidable: false },
+  { gate: "2.4-C", file: "agent-contract-eval.json", machineDecidable: true },
+  { gate: "2.4-D", file: "gate-D-binding.json", machineDecidable: true },
+  { gate: "2.4-E", file: "gate-E-onetime.json", machineDecidable: true },
+  { gate: "2.4-F", file: "gate-F-conversion.json", machineDecidable: true },
+  { gate: "2.4-G", file: "e2e-dogfood.json", machineDecidable: true },
+]
+
+/**
+ * 2.4-H is deliberately NOT in the table above. It grades the other seven plus
+ * the wiring, so reading its own committed status back would grade the previous
+ * run instead of this one — and hardcoding it PASSED would let a FAILED artifact
+ * carry a row claiming it passed. Its real status is folded into the boundary
+ * roll-up after the evaluation, where it is known.
+ */
+const GATE_2_4_H = { gate: "2.4-H", artifact: "artifacts/phase-2.4/gate-H-no-regression.json" } as const
+
+/** Read one gate row off disk. A malformed or absent artifact is MISSING, not a throw. */
+function observeGateRow(spec: { gate: string; file: string; machineDecidable: boolean }): GateRecord {
+  const p = path.join(outDir, spec.file)
+  if (!fs.existsSync(p)) {
+    return { gate: spec.gate, artifact: null, status: "MISSING", machineDecidable: spec.machineDecidable }
+  }
+  const status = (readJson(p).status as GateRecord["status"] | undefined) ?? "MISSING"
+  return { gate: spec.gate, artifact: rel(p), status, machineDecidable: spec.machineDecidable }
+}
+
+/**
+ * The regression checks that must stay wired, and where each is allowed to live.
+ *
+ * `remoteOnly` is the honest column. `pack:smoke:mcp` and the cross-OS matrix
+ * cannot be proven by any local run — the CRLF-checkout failure mode only exists
+ * on windows-latest — so the gate asserts they are BOUND to a real workflow job
+ * and records that a local pass says nothing about them.
+ */
+type CheckSpec = { id: string; script: string; remoteOnly: boolean; role: "local-chain" | "check"; workflow: string; job: string }
+
+const REGRESSION_CHECKS: readonly CheckSpec[] = [
+  { id: "ci:local", script: "ci:local", remoteOnly: false, role: "local-chain", workflow: "ci.yml", job: "test" },
+  { id: "typecheck", script: "typecheck", remoteOnly: false, role: "check", workflow: "ci.yml", job: "test" },
+  { id: "test", script: "test", remoteOnly: false, role: "check", workflow: "ci.yml", job: "test" },
+  { id: "check:public-copy", script: "check:public-copy", remoteOnly: false, role: "check", workflow: "ci.yml", job: "test" },
+  { id: "audit:evidence", script: "audit:evidence", remoteOnly: false, role: "check", workflow: "ci.yml", job: "test" },
+  { id: "audit:calibration", script: "audit:calibration", remoteOnly: false, role: "check", workflow: "ci.yml", job: "test" },
+  { id: "audit:coverage", script: "audit:coverage", remoteOnly: false, role: "check", workflow: "ci.yml", job: "test" },
+  { id: "eval:phase-2.4", script: "eval:phase-2.4", remoteOnly: false, role: "check", workflow: "ci.yml", job: "test" },
+  { id: "eval:phase-2.4:dogfood", script: "eval:phase-2.4:dogfood", remoteOnly: false, role: "check", workflow: "ci.yml", job: "test" },
+  { id: "eval:phase-2.4:gates", script: "eval:phase-2.4:gates", remoteOnly: false, role: "check", workflow: "ci.yml", job: "test" },
+  { id: "eval:phase-2.4:panel:validate", script: "eval:phase-2.4:panel:validate", remoteOnly: false, role: "check", workflow: "ci.yml", job: "test" },
+  // Remote-only: the CRLF-checkout and isolated-install failure modes exist only
+  // on a fresh runner, so a local pass proves nothing about them.
+  { id: "pack:smoke:mcp", script: "pack:smoke:mcp", remoteOnly: true, role: "check", workflow: "ci.yml", job: "test" },
+  { id: "pack:smoke", script: "pack:smoke", remoteOnly: true, role: "check", workflow: "ci.yml", job: "test" },
+]
+
+/** The served subtrees whose bytes are a published contract, and their two guards. */
+const SERVED_SUBTREES: readonly { subtree: string; pin: string; guardTest: string }[] = [
+  { subtree: "apps/web/public/trust/**", pin: "apps/web/public/trust/** text eol=lf", guardTest: "packages/trust-index/test/committed-tree.test.ts" },
+  { subtree: "apps/web/public/install/**", pin: "apps/web/public/install/** text eol=lf", guardTest: "packages/trust-index/test/safe-install/committed-install-tree.test.ts" },
+  { subtree: "apps/web/public/.well-known/calllint.json", pin: "apps/web/public/.well-known/calllint.json text eol=lf", guardTest: "packages/trust-index/test/safe-install/committed-install-tree.test.ts" },
+  { subtree: "packages/calllint-mcp/src/data/**", pin: "packages/calllint-mcp/src/data/** text eol=lf", guardTest: "packages/calllint-mcp/test/committed-contracts-drift.test.ts" },
+  { subtree: "artifacts/phase-2.4/**", pin: "artifacts/phase-2.4/** text eol=lf", guardTest: "scripts/phase-2.4-gates.ts" },
+]
+
+/** Count the MCP tools in each place that states a count. Drift here is the gate. */
+function observeToolCounts(): { source: string; count: number }[] {
+  const toolsSrc = readText(path.join(repoRoot, "packages", "calllint-mcp", "src", "tools.ts"))
+  const smokeSrc = readText(path.join(repoRoot, "scripts", "mcp-pack-smoke.mjs"))
+  // The tool table's entries are `name: "..."` at a fixed indent inside the array;
+  // counting the declared names is what tools/list will return.
+  const declared = [...toolsSrc.matchAll(/^ {4}name: "([a-z_]+)",$/gm)].length
+  const asserted = smokeSrc.match(/tools\?\.length !== (\d+)/)
+  return [
+    { source: "packages/calllint-mcp/src/tools.ts (declared)", count: declared },
+    { source: "scripts/mcp-pack-smoke.mjs (asserted)", count: asserted ? Number(asserted[1]) : -1 },
+  ]
+}
+
+function observeGateH(): {
+  gates: GateRecord[]
+  checks: WiredCheck[]
+  served: ServedGuard[]
+  toolCounts: { source: string; count: number }[]
+} {
+  const pkgScripts = (readJson(path.join(repoRoot, "package.json")).scripts ?? {}) as Record<string, string>
+  const localChain = pkgScripts["ci:local"] ?? ""
+  const gitattributes = readText(path.join(repoRoot, ".gitattributes"))
+
+  const checks: WiredCheck[] = REGRESSION_CHECKS.map((c) => {
+    const wf = path.join(repoRoot, ".github", "workflows", c.workflow)
+    const wfSrc = fs.existsSync(wf) ? readText(wf) : ""
+    // Anchored on purpose: a bare `includes("pnpm eval:phase-2.4")` also matches
+    // `pnpm eval:phase-2.4:dogfood`, so a deleted step would still read as bound.
+    // The script name must end the run: line, and the job must exist by name.
+    const bound =
+      new RegExp(`run: pnpm ${escapeRe(c.script)}\\s*$`, "m").test(wfSrc) &&
+      new RegExp(`^  ${escapeRe(c.job)}:$`, "m").test(wfSrc)
+    return {
+      id: c.id,
+      script: pkgScripts[c.script] ?? null,
+      // `ci:local` is the chain itself; every other check must appear inside it.
+      // Same anchoring problem inside the chain: `ci:local` is ` && `-joined, so a
+      // member must be followed by ` &&` or the end of the string, never by `:`.
+      inLocalChain:
+        c.role === "local-chain"
+          ? true
+          : new RegExp(`pnpm ${escapeRe(c.script)}(\\s|$)`).test(localChain),
+      workflowBinding: bound ? `${c.workflow}#${c.job}` : null,
+      remoteOnly: c.remoteOnly,
+      role: c.role,
+    }
+  })
+
+  const served: ServedGuard[] = SERVED_SUBTREES.map((s) => ({
+    subtree: s.subtree,
+    guardTest: fs.existsSync(path.join(repoRoot, s.guardTest)) ? s.guardTest : null,
+    eolPinned: gitattributes.includes(s.pin),
+  }))
+
+  return { gates: GATE_ARTIFACTS.map(observeGateRow), checks, served, toolCounts: observeToolCounts() }
+}
+
+// --- render the artifacts ----------------------------------------------------
 
 /** One artifact per gate. Each is a byte-stable projection of its measures. */
 interface Artifact {
@@ -540,11 +687,44 @@ function artifact(gate: string, file: string, why: string, result: GateResult, b
   return { file, json: JSON.stringify(doc, null, 2) + "\n", gate, result }
 }
 
+/**
+ * The release-boundary roll-up. Separate from Gate 2.4-H's own status on purpose:
+ * "nothing regressed" and "the boundary is closed" are different claims, and
+ * collapsing them is how a machine-run gate would silently authorize a release
+ * that still owes a human panel. Gate 2.4-H can be PASSED while `closed` is
+ * false — that is the correct state today.
+ */
+function boundaryRollUp(gates: readonly GateRecord[], selfStatus: GateRecord["status"]): Record<string, unknown> {
+  // 2.4-H's own status is known only after its evaluation, so it joins here.
+  const all: GateRecord[] = [
+    ...gates,
+    { gate: GATE_2_4_H.gate, artifact: GATE_2_4_H.artifact, status: selfStatus, machineDecidable: true },
+  ]
+  const open = all.filter((g) => g.status !== "PASSED")
+  return {
+    gatesEvaluated: all.length,
+    closed: open.length === 0,
+    openGates: open.map((g) => ({
+      gate: g.gate,
+      status: g.status,
+      blockedBy: g.machineDecidable ? "code" : "human panel (≥10 responses; ADR 0053 §4) — no run of this repo can close it",
+    })),
+    // Named so a reader does not have to infer it from `closed: false`.
+    consequence:
+      open.length === 0
+        ? "Gates 2.4-A…H all PASSED — the new14 release boundary is closed; Batch 10 cohort expansion is unblocked by this boundary (still gated on new15 Workstream R landing)."
+        : `Batch 10 cohort expansion stays BLOCKED: ${open.map((g) => g.gate).join(", ")} not PASSED. Workstream R (Phase 2.3) is gated on this same boundary; Workstream P (Phase 2.4 presentation half) is NOT — it depends only on the shipped renderers (new15-integration §5).`,
+  }
+}
+
 function buildAll(): Artifact[] {
   const a = observeGateA()
   const d = observeGateD()
   const e = { steps: liftOneTimeSteps(), rollbacks: observeGateE() }
   const f = observeGateF()
+  const h = observeGateH()
+  // Evaluated before the artifact is assembled: the roll-up needs 2.4-H's own status.
+  const hResult = evaluateNoRegression(h.gates, h.checks, h.served, h.toolCounts, GATE_ARTIFACTS.length)
 
   return [
     artifact(
@@ -574,6 +754,19 @@ function buildAll(): Artifact[] {
       "Gate 2.4-F evidence. The shipped continuous-protection offer is built for every guard host in ASK_AFTER_SUCCESS — the state where a one-time setup just succeeded and CallLint asks for something persistent. Both the offer OBJECT and the RENDERED TEXT are measured together: an object that discloses a component the renderer then omits would satisfy either half alone while still deceiving the person deciding. Disclosure is strict — every component's label, its artifact path and its uninstall command must appear verbatim in what the human sees, alongside the disable command and a visible [Not now]. Regenerate with `pnpm eval:phase-2.4:gates:write`.",
       evaluateConversion(f, GUARD_HOST_IDS.length),
       { hostsEvaluated: f.length, observations: f },
+    ),
+    artifact(
+      "2.4-H",
+      "gate-H-no-regression.json",
+      "Gate 2.4-H evidence — the only gate whose subject is the gate SYSTEM, not the product. It asks what the other seven cannot ask about themselves: is every mechanism that would CATCH a regression still present and still wired to something that runs it? Four things are measured. (1) All eight gate rows have a committed artifact and a recorded status, read from a longhand id→file map rather than a glob, so DELETING an artifact fails the gate instead of improving it. (2) Every machine-decidable gate is PASSED; 2.4-B is recorded as human-decided and excluded from the floor, because unfinished human work is not a regression — but it is never counted as passed either. (3) The MCP tool count agrees between the tool table that produces it and the pack smoke that asserts it — the Phase-2.6 N8 local-green/remote-red failure mode. (4) Every regression check resolves to a real package.json script AND to a place that runs it; the two checks a local run cannot prove (pack:smoke:mcp, the cross-OS CRLF checkout) are marked REMOTE-ONLY and asserted to be bound to a real workflow job instead of being claimed as passed. Finally, every served subtree is asserted to have BOTH a reproducibility guard test and a `.gitattributes eol=lf` pin. The `releaseBoundary` block is deliberately separate from this gate's status: 'nothing regressed' and 'the boundary is closed' are different claims, and collapsing them is how a machine run would authorize a release that still owes a human panel. Regenerate with `pnpm eval:phase-2.4:gates:write`.",
+      hResult,
+      {
+        releaseBoundary: boundaryRollUp(h.gates, hResult.status),
+        gates: h.gates,
+        mcpToolCounts: h.toolCounts,
+        regressionChecks: h.checks,
+        servedGuards: h.served,
+      },
     ),
   ]
 }

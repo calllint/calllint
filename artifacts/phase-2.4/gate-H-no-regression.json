@@ -1,0 +1,319 @@
+{
+  "schema": "calllint.phase-2.4-gate-h.v0",
+  "$comment": "Gate 2.4-H evidence — the only gate whose subject is the gate SYSTEM, not the product. It asks what the other seven cannot ask about themselves: is every mechanism that would CATCH a regression still present and still wired to something that runs it? Four things are measured. (1) All eight gate rows have a committed artifact and a recorded status, read from a longhand id→file map rather than a glob, so DELETING an artifact fails the gate instead of improving it. (2) Every machine-decidable gate is PASSED; 2.4-B is recorded as human-decided and excluded from the floor, because unfinished human work is not a regression — but it is never counted as passed either. (3) The MCP tool count agrees between the tool table that produces it and the pack smoke that asserts it — the Phase-2.6 N8 local-green/remote-red failure mode. (4) Every regression check resolves to a real package.json script AND to a place that runs it; the two checks a local run cannot prove (pack:smoke:mcp, the cross-OS CRLF checkout) are marked REMOTE-ONLY and asserted to be bound to a real workflow job instead of being claimed as passed. Finally, every served subtree is asserted to have BOTH a reproducibility guard test and a `.gitattributes eol=lf` pin. The `releaseBoundary` block is deliberately separate from this gate's status: 'nothing regressed' and 'the boundary is closed' are different claims, and collapsing them is how a machine run would authorize a release that still owes a human panel. Regenerate with `pnpm eval:phase-2.4:gates:write`.",
+  "gate": "2.4-H",
+  "status": "PASSED",
+  "engine": "1.7.3",
+  "releaseBoundary": {
+    "gatesEvaluated": 8,
+    "closed": false,
+    "openGates": [
+      {
+        "gate": "2.4-B",
+        "status": "PENDING_HUMAN_PANEL",
+        "blockedBy": "human panel (≥10 responses; ADR 0053 §4) — no run of this repo can close it"
+      }
+    ],
+    "consequence": "Batch 10 cohort expansion stays BLOCKED: 2.4-B not PASSED. Workstream R (Phase 2.3) is gated on this same boundary; Workstream P (Phase 2.4 presentation half) is NOT — it depends only on the shipped renderers (new15-integration §5)."
+  },
+  "gates": [
+    {
+      "gate": "2.4-A",
+      "artifact": "artifacts/phase-2.4/gate-A-consistency.json",
+      "status": "PASSED",
+      "machineDecidable": true
+    },
+    {
+      "gate": "2.4-B",
+      "artifact": "artifacts/phase-2.4/human-five-second-test.json",
+      "status": "PENDING_HUMAN_PANEL",
+      "machineDecidable": false
+    },
+    {
+      "gate": "2.4-C",
+      "artifact": "artifacts/phase-2.4/agent-contract-eval.json",
+      "status": "PASSED",
+      "machineDecidable": true
+    },
+    {
+      "gate": "2.4-D",
+      "artifact": "artifacts/phase-2.4/gate-D-binding.json",
+      "status": "PASSED",
+      "machineDecidable": true
+    },
+    {
+      "gate": "2.4-E",
+      "artifact": "artifacts/phase-2.4/gate-E-onetime.json",
+      "status": "PASSED",
+      "machineDecidable": true
+    },
+    {
+      "gate": "2.4-F",
+      "artifact": "artifacts/phase-2.4/gate-F-conversion.json",
+      "status": "PASSED",
+      "machineDecidable": true
+    },
+    {
+      "gate": "2.4-G",
+      "artifact": "artifacts/phase-2.4/e2e-dogfood.json",
+      "status": "PASSED",
+      "machineDecidable": true
+    }
+  ],
+  "mcpToolCounts": [
+    {
+      "source": "packages/calllint-mcp/src/tools.ts (declared)",
+      "count": 13
+    },
+    {
+      "source": "scripts/mcp-pack-smoke.mjs (asserted)",
+      "count": 13
+    }
+  ],
+  "regressionChecks": [
+    {
+      "id": "ci:local",
+      "script": "pnpm typecheck && pnpm test && pnpm build && pnpm corpus:test && pnpm bench:test && pnpm check:public-copy && pnpm audit:evidence && pnpm audit:coverage && pnpm audit:calibration && pnpm eval:phase-2.4 && pnpm eval:phase-2.4:dogfood && pnpm eval:phase-2.4:gates && pnpm eval:phase-2.4:panel:validate && pnpm audit:presentation && pnpm audit:presentation:gate",
+      "inLocalChain": true,
+      "workflowBinding": null,
+      "remoteOnly": false,
+      "role": "local-chain"
+    },
+    {
+      "id": "typecheck",
+      "script": "tsc -p tsconfig.json",
+      "inLocalChain": true,
+      "workflowBinding": "ci.yml#test",
+      "remoteOnly": false,
+      "role": "check"
+    },
+    {
+      "id": "test",
+      "script": "vitest run",
+      "inLocalChain": true,
+      "workflowBinding": "ci.yml#test",
+      "remoteOnly": false,
+      "role": "check"
+    },
+    {
+      "id": "check:public-copy",
+      "script": "node scripts/check-public-copy.mjs",
+      "inLocalChain": true,
+      "workflowBinding": "ci.yml#test",
+      "remoteOnly": false,
+      "role": "check"
+    },
+    {
+      "id": "audit:evidence",
+      "script": "tsx scripts/audit-evidence.ts",
+      "inLocalChain": true,
+      "workflowBinding": "ci.yml#test",
+      "remoteOnly": false,
+      "role": "check"
+    },
+    {
+      "id": "audit:calibration",
+      "script": "tsx scripts/calibration-audit.ts",
+      "inLocalChain": true,
+      "workflowBinding": "ci.yml#test",
+      "remoteOnly": false,
+      "role": "check"
+    },
+    {
+      "id": "audit:coverage",
+      "script": "tsx scripts/coverage-audit.ts",
+      "inLocalChain": true,
+      "workflowBinding": "ci.yml#test",
+      "remoteOnly": false,
+      "role": "check"
+    },
+    {
+      "id": "eval:phase-2.4",
+      "script": "tsx scripts/phase-2.4-eval.ts",
+      "inLocalChain": true,
+      "workflowBinding": "ci.yml#test",
+      "remoteOnly": false,
+      "role": "check"
+    },
+    {
+      "id": "eval:phase-2.4:dogfood",
+      "script": "tsx scripts/phase-2.4-dogfood.ts",
+      "inLocalChain": true,
+      "workflowBinding": "ci.yml#test",
+      "remoteOnly": false,
+      "role": "check"
+    },
+    {
+      "id": "eval:phase-2.4:gates",
+      "script": "tsx scripts/phase-2.4-gates.ts",
+      "inLocalChain": true,
+      "workflowBinding": "ci.yml#test",
+      "remoteOnly": false,
+      "role": "check"
+    },
+    {
+      "id": "eval:phase-2.4:panel:validate",
+      "script": "tsx scripts/phase-2.4-panel.ts --validate",
+      "inLocalChain": true,
+      "workflowBinding": "ci.yml#test",
+      "remoteOnly": false,
+      "role": "check"
+    },
+    {
+      "id": "pack:smoke:mcp",
+      "script": "node scripts/mcp-pack-smoke.mjs",
+      "inLocalChain": false,
+      "workflowBinding": "ci.yml#test",
+      "remoteOnly": true,
+      "role": "check"
+    },
+    {
+      "id": "pack:smoke",
+      "script": "node scripts/package-smoke.mjs",
+      "inLocalChain": false,
+      "workflowBinding": "ci.yml#test",
+      "remoteOnly": true,
+      "role": "check"
+    }
+  ],
+  "servedGuards": [
+    {
+      "subtree": "apps/web/public/trust/**",
+      "guardTest": "packages/trust-index/test/committed-tree.test.ts",
+      "eolPinned": true
+    },
+    {
+      "subtree": "apps/web/public/install/**",
+      "guardTest": "packages/trust-index/test/safe-install/committed-install-tree.test.ts",
+      "eolPinned": true
+    },
+    {
+      "subtree": "apps/web/public/.well-known/calllint.json",
+      "guardTest": "packages/trust-index/test/safe-install/committed-install-tree.test.ts",
+      "eolPinned": true
+    },
+    {
+      "subtree": "packages/calllint-mcp/src/data/**",
+      "guardTest": "packages/calllint-mcp/test/committed-contracts-drift.test.ts",
+      "eolPinned": true
+    },
+    {
+      "subtree": "artifacts/phase-2.4/**",
+      "guardTest": "scripts/phase-2.4-gates.ts",
+      "eolPinned": true
+    }
+  ],
+  "measures": [
+    {
+      "id": "gate-rows-present",
+      "pass": true,
+      "observed": "7/7 gate rows; all have a committed artifact"
+    },
+    {
+      "id": "machine-gates-passed",
+      "pass": true,
+      "observed": "6 machine-decidable gates PASSED (2.4-A, 2.4-C, 2.4-D, 2.4-E, 2.4-F, 2.4-G)"
+    },
+    {
+      "id": "human-gates-declared",
+      "pass": true,
+      "observed": "2.4-B=PENDING_HUMAN_PANEL (human panel required, not machine-closable)"
+    },
+    {
+      "id": "mcp-tool-count-agrees",
+      "pass": true,
+      "observed": "13 tools, agreed across 2 sources (packages/calllint-mcp/src/tools.ts (declared), scripts/mcp-pack-smoke.mjs (asserted))"
+    },
+    {
+      "id": "wired/ci:local",
+      "pass": true,
+      "observed": "ci:local"
+    },
+    {
+      "id": "wired/typecheck",
+      "pass": true,
+      "observed": "ci:local + ci.yml#test"
+    },
+    {
+      "id": "wired/test",
+      "pass": true,
+      "observed": "ci:local + ci.yml#test"
+    },
+    {
+      "id": "wired/check:public-copy",
+      "pass": true,
+      "observed": "ci:local + ci.yml#test"
+    },
+    {
+      "id": "wired/audit:evidence",
+      "pass": true,
+      "observed": "ci:local + ci.yml#test"
+    },
+    {
+      "id": "wired/audit:calibration",
+      "pass": true,
+      "observed": "ci:local + ci.yml#test"
+    },
+    {
+      "id": "wired/audit:coverage",
+      "pass": true,
+      "observed": "ci:local + ci.yml#test"
+    },
+    {
+      "id": "wired/eval:phase-2.4",
+      "pass": true,
+      "observed": "ci:local + ci.yml#test"
+    },
+    {
+      "id": "wired/eval:phase-2.4:dogfood",
+      "pass": true,
+      "observed": "ci:local + ci.yml#test"
+    },
+    {
+      "id": "wired/eval:phase-2.4:gates",
+      "pass": true,
+      "observed": "ci:local + ci.yml#test"
+    },
+    {
+      "id": "wired/eval:phase-2.4:panel:validate",
+      "pass": true,
+      "observed": "ci:local + ci.yml#test"
+    },
+    {
+      "id": "wired/pack:smoke:mcp",
+      "pass": true,
+      "observed": "ci.yml#test + REMOTE-ONLY (not provable by a local run)"
+    },
+    {
+      "id": "wired/pack:smoke",
+      "pass": true,
+      "observed": "ci.yml#test + REMOTE-ONLY (not provable by a local run)"
+    },
+    {
+      "id": "served/apps/web/public/trust/**",
+      "pass": true,
+      "observed": "packages/trust-index/test/committed-tree.test.ts + eol=lf pinned"
+    },
+    {
+      "id": "served/apps/web/public/install/**",
+      "pass": true,
+      "observed": "packages/trust-index/test/safe-install/committed-install-tree.test.ts + eol=lf pinned"
+    },
+    {
+      "id": "served/apps/web/public/.well-known/calllint.json",
+      "pass": true,
+      "observed": "packages/trust-index/test/safe-install/committed-install-tree.test.ts + eol=lf pinned"
+    },
+    {
+      "id": "served/packages/calllint-mcp/src/data/**",
+      "pass": true,
+      "observed": "packages/calllint-mcp/test/committed-contracts-drift.test.ts + eol=lf pinned"
+    },
+    {
+      "id": "served/artifacts/phase-2.4/**",
+      "pass": true,
+      "observed": "scripts/phase-2.4-gates.ts + eol=lf pinned"
+    }
+  ],
+  "blockers": []
+}

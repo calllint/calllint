@@ -243,6 +243,7 @@ export {
   evaluateLocalBinding,
   evaluateOneTimeSetup,
   evaluateConversion,
+  evaluateNoRegression,
   TARGET_MISMATCH_OUTCOME,
   type GateMeasure,
   type GateResult,
@@ -252,4 +253,7 @@ export {
   type WriteSite,
   type RollbackRun,
   type ConversionObservation,
+  type GateRecord,
+  type WiredCheck,
+  type ServedGuard,
 } from "./phase24Gates.js"

@@ -363,3 +363,172 @@ export function evaluateConversion(
   }
   return decideGate(measures, expectedHosts + 1)
 }
+
+// --- Gate 2.4-H · no regression ----------------------------------------------
+
+/**
+ * One gate row as it stands COMMITTED under `artifacts/phase-2.4/`.
+ *
+ * `machineDecidable` is the honest half. Seven of the eight Phase-2.4 gates are
+ * decided by code; 2.4-B's five-second test needs ≥10 real humans (ADR 0053 §4),
+ * so no run of this file can turn it green. Marking it here keeps Gate 2.4-H from
+ * either lying about it or being permanently red because of it.
+ */
+export interface GateRecord {
+  readonly gate: string
+  /** Repo-relative artifact the status was read from — the audit trail. */
+  readonly artifact: string | null
+  readonly status: GateStatus | "MISSING"
+  readonly machineDecidable: boolean
+}
+
+/**
+ * One regression check, and — the point of the measure — the place that actually
+ * RUNS it. A check present in `package.json` but absent from both `ci:local` and
+ * every workflow is a check nobody runs: exactly the silent-removal failure this
+ * gate exists to catch (the Phase-2.6 N8 lesson, where `ci:local`'s gates did not
+ * include `pack:smoke:mcp` and a local-green/remote-red split shipped).
+ */
+export interface WiredCheck {
+  readonly id: string
+  /** The `package.json` script body, or null when the script does not exist. */
+  readonly script: string | null
+  readonly inLocalChain: boolean
+  /** `workflow.yml#job` that runs it, or null when no workflow does. */
+  readonly workflowBinding: string | null
+  /** true when only remote CI can prove it (e.g. the cross-OS CRLF checkout). */
+  readonly remoteOnly: boolean
+  /**
+   * `local-chain` = the aggregate `ci:local` script itself. It cannot be "inside
+   * ci:local", and it is not a remote step, so it is graded on existing only.
+   * `check` = a real check, which must be reachable from remote CI.
+   */
+  readonly role: "local-chain" | "check"
+}
+
+/**
+ * One served subtree and the two things that keep its bytes honest: a
+ * reproducibility test that re-emits and diffs it, and a `.gitattributes eol=lf`
+ * pin. The pin is not cosmetic — windows-latest CI checks out CRLF, so an
+ * unpinned generated subtree fails the reproducibility gate remotely while
+ * `ci:local` stays green (the recurring new14 Batch-3 lesson).
+ */
+export interface ServedGuard {
+  /** The served path, repo-relative — e.g. `apps/web/public/install/**`. */
+  readonly subtree: string
+  /** Test file that re-emits and byte-compares it, or null. */
+  readonly guardTest: string | null
+  readonly eolPinned: boolean
+}
+
+/**
+ * Gate 2.4-H — no regression. The gate of last resort, and the only one whose
+ * subject is the gate SYSTEM rather than the product.
+ *
+ * It answers a question the other seven cannot ask about themselves: is every
+ * mechanism that would CATCH a regression still present and still wired to
+ * something that runs it? A gate whose script was deleted, a tool count that
+ * drifted between source and its assertion, a newly served subtree with no
+ * reproducibility guard — each of those makes the other gates' green
+ * meaningless, and none of them would fail any other gate.
+ *
+ * What this gate deliberately does NOT do: claim the release boundary is closed.
+ * 2.4-B needs a human panel, so `machineDecidable: false` gates are recorded and
+ * excluded from the pass floor. A PENDING_HUMAN_PANEL row is not a regression —
+ * it is unfinished human work — so it must not hold this gate red, and equally
+ * must never be counted as passed. The caller derives boundary closure from the
+ * roll-up; this gate only certifies that nothing that was green went red.
+ */
+export function evaluateNoRegression(
+  gates: readonly GateRecord[],
+  checks: readonly WiredCheck[],
+  served: readonly ServedGuard[],
+  toolCounts: readonly { readonly source: string; readonly count: number }[],
+  expectedGates: number,
+): GateResult {
+  const machine = gates.filter((g) => g.machineDecidable)
+  const regressed = machine.filter((g) => g.status !== "PASSED")
+  const undecided = gates.filter((g) => !g.machineDecidable)
+  const counts = [...new Set(toolCounts.map((t) => t.count))]
+
+  const measures: GateMeasure[] = [
+    {
+      id: "gate-rows-present",
+      pass: gates.length === expectedGates && gates.every((g) => g.status !== "MISSING"),
+      observed:
+        `${gates.length}/${expectedGates} gate rows` +
+        (gates.some((g) => g.status === "MISSING")
+          ? `; MISSING: ${gates.filter((g) => g.status === "MISSING").map((g) => g.gate).join(", ")}`
+          : `; all have a committed artifact`),
+    },
+    {
+      id: "machine-gates-passed",
+      pass: regressed.length === 0,
+      observed:
+        regressed.length === 0
+          ? `${machine.length} machine-decidable gates PASSED (${machine.map((g) => g.gate).join(", ")})`
+          : regressed.map((g) => `${g.gate}=${g.status}`).join(", "),
+    },
+    {
+      id: "human-gates-declared",
+      // Not a pass/fail of the human work — a pass/fail of DISCLOSING it. An
+      // undeclared human gate is how a boundary silently reads as closed.
+      pass: undecided.every((g) => g.status === "PENDING_HUMAN_PANEL" || g.status === "PASSED"),
+      observed:
+        undecided.length === 0
+          ? "no human-decided gates"
+          : undecided.map((g) => `${g.gate}=${g.status} (human panel required, not machine-closable)`).join(", "),
+    },
+    {
+      id: "mcp-tool-count-agrees",
+      pass: counts.length === 1 && toolCounts.length >= 2,
+      observed:
+        counts.length === 1
+          ? `${counts[0]} tools, agreed across ${toolCounts.length} sources (${toolCounts.map((t) => t.source).join(", ")})`
+          : toolCounts.map((t) => `${t.source}=${t.count}`).join(" vs "),
+    },
+  ]
+
+  for (const c of checks) {
+    const faults: string[] = []
+    if (c.script === null) faults.push("no such package.json script — a gate mechanism was removed")
+    if (c.role === "check") {
+      // Remote binding is mandatory for every check. A check that runs only in
+      // `ci:local` is a check that never blocks a merge — it gates the developer
+      // who remembers to run it, which is not a gate. Gate 2.4-H found exactly
+      // this for six checks (calibration, coverage, the four Phase-2.4 evals);
+      // requiring the binding is what stops it recurring.
+      if (c.workflowBinding === null) {
+        faults.push("bound to no workflow job — only `ci:local` runs it, so nothing blocks a merge on it")
+      }
+      // Local membership is required too, EXCEPT for the checks a local run
+      // cannot prove — demanding it there would invite a false local green.
+      if (!c.remoteOnly && !c.inLocalChain) {
+        faults.push("absent from the `ci:local` chain — a developer cannot reproduce this gate before pushing")
+      }
+    }
+    measures.push({
+      id: `wired/${c.id}`,
+      pass: faults.length === 0,
+      observed:
+        faults.length === 0
+          ? [c.inLocalChain ? "ci:local" : null, c.workflowBinding, c.remoteOnly ? "REMOTE-ONLY (not provable by a local run)" : null]
+              .filter(Boolean)
+              .join(" + ")
+          : faults.join("; "),
+    })
+  }
+
+  for (const s of served) {
+    const faults: string[] = []
+    if (s.guardTest === null) faults.push("no reproducibility guard test — this subtree could change without any test noticing")
+    if (!s.eolPinned) faults.push("no `eol=lf` pin in .gitattributes — a CRLF checkout would fail the reproducibility gate on windows-latest only")
+    measures.push({
+      id: `served/${s.subtree}`,
+      pass: faults.length === 0,
+      observed: faults.length === 0 ? `${s.guardTest} + eol=lf pinned` : faults.join("; "),
+    })
+  }
+
+  return decideGate(measures, 4 + checks.length + served.length)
+}
