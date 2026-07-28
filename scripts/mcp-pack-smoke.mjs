@@ -80,7 +80,7 @@ try {
   if (/@calllint\//.test(dist)) fail("unresolved @calllint/* import in bundle (not self-contained)")
   ok("dist/index.js has shebang and is self-contained")
 
-  // 5. Drive the server over stdio: initialize, tools/list (=12), tools/call BLOCK,
+  // 5. Drive the server over stdio: initialize, tools/list (=13), tools/call BLOCK,
   //    resources/list (>0) + resources/read (verbatim contract).
   const requests = [
     { jsonrpc: "2.0", id: 1, method: "initialize", params: {} },
@@ -109,7 +109,7 @@ try {
   if (init?.result?.protocolVersion == null) fail("initialize did not return a protocolVersion")
   if (init?.result?.capabilities?.resources == null) fail("initialize did not advertise the resources capability")
   const list = lines.find((l) => l.id === 2)
-  if (list?.result?.tools?.length !== 12) fail(`tools/list expected 12 tools, got ${list?.result?.tools?.length}`)
+  if (list?.result?.tools?.length !== 13) fail(`tools/list expected 13 tools, got ${list?.result?.tools?.length}`)
   const callRes = lines.find((l) => l.id === 3)
   const decision = JSON.parse(callRes.result.content[0].text)
   if (decision[0].verdict !== "BLOCK") fail(`scan_mcp_config_json expected BLOCK, got ${decision[0].verdict}`)

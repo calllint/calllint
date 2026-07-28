@@ -8,7 +8,7 @@
  * core owns — the anti-drift test pins the bundle to the baked sidecars separately.
  */
 import { describe, it, expect, afterEach } from "vitest"
-import { existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs"
+import { existsSync, mkdtempSync, readFileSync, readdirSync, rmSync, writeFileSync } from "node:fs"
 import { tmpdir } from "node:os"
 import { join } from "node:path"
 import { TOOLS_BY_NAME } from "../src/tools.js"
@@ -504,5 +504,91 @@ describe("calllint_verify_tool_install", () => {
   it("requires a supported host", () => {
     const { isError } = call("calllint_verify_tool_install", { canonicalName: NPM_SLUG, host: "emacs" })
     expect(isError).toBe(true)
+  })
+})
+
+// ---------------------------------------------------------------------------
+// Batch 8 — calllint_enable_continuous_guard (ADR 0056 §7 / INV-2.4-07).
+// The tool is a DISCLOSURE, not a writer. Every assertion below exists to keep it
+// that way: no enable, no write, full component enumeration with removal commands,
+// and a decline that is always available.
+// ---------------------------------------------------------------------------
+const GUARD_TOOL_NAME = "calllint_enable_continuous_guard"
+
+describe("calllint_enable_continuous_guard — disclosure only", () => {
+  it("never reports itself as having enabled or installed anything", () => {
+    const { text } = call(GUARD_TOOL_NAME, {}) as { text: Record<string, unknown> }
+    expect(text.outcome).toBe("DISCLOSED")
+    expect(text.enabled).toBe(false)
+    expect(text.installedComponents).toEqual([])
+    expect(text.requiresSeparateAuthorization).toBe(true)
+    expect(text.mode).toBe("CONTINUOUS_PROTECTION")
+  })
+
+  it("discloses every supported host by default, each with a removal command", () => {
+    const { text } = call(GUARD_TOOL_NAME, {}) as { text: Record<string, unknown> }
+    const comps = text.disclosedComponents as Array<Record<string, string>>
+    expect(comps.length).toBeGreaterThanOrEqual(7)
+    for (const c of comps) {
+      expect(c.uninstallCommand!.length).toBeGreaterThan(0)
+      expect(c.artifactPath!.length).toBeGreaterThan(0)
+      expect(c.installCommand).toContain("calllint guard install --host")
+    }
+    expect(text.uninstallCommands as string[]).toHaveLength(comps.length)
+    expect(text.disableCommand).toBe("calllint guard disable")
+  })
+
+  it("scopes the disclosure to the requested hosts", () => {
+    const { text } = call(GUARD_TOOL_NAME, { hosts: ["git"] }) as { text: Record<string, unknown> }
+    const comps = text.disclosedComponents as Array<Record<string, string>>
+    expect(comps).toHaveLength(1)
+    expect(comps[0]!.id).toBe("calllint-guard:git")
+    expect(text.enableCommands).toEqual(["calllint guard install --host git"])
+  })
+
+  it("rejects an unknown guard host instead of guessing a hook location", () => {
+    const { isError, text } = call(GUARD_TOOL_NAME, { hosts: ["emacs"] })
+    expect(isError).toBe(true)
+    expect(String(text)).toContain("emacs")
+  })
+
+  it("always surfaces the decline affordance", () => {
+    const { text } = call(GUARD_TOOL_NAME, { hosts: ["github"] }) as { text: Record<string, unknown> }
+    expect(text.declineOption).toBe("Not now")
+    expect(text.humanOffer as string).toContain("[Not now]")
+  })
+
+  it("treats a matching approvalDigest as review, NOT as authorization to install", () => {
+    const first = call(GUARD_TOOL_NAME, { hosts: ["git"] }).text as Record<string, unknown>
+    const digest = first.disclosureDigest as string
+    expect(digest).toMatch(/^sha256:[0-9a-f]{64}$/)
+    const { text } = call(GUARD_TOOL_NAME, { hosts: ["git"], approvalDigest: digest }) as {
+      text: Record<string, unknown>
+    }
+    expect(text.approvalDigestMatches).toBe(true)
+    // The whole point: a matching digest still installs nothing.
+    expect(text.enabled).toBe(false)
+    expect(text.installedComponents).toEqual([])
+    expect(text.outcome).toBe("DISCLOSED")
+  })
+
+  it("aborts on a stale disclosure digest", () => {
+    const { text } = call(GUARD_TOOL_NAME, {
+      hosts: ["git"],
+      approvalDigest: `sha256:${"0".repeat(64)}`,
+    }) as { text: Record<string, unknown> }
+    expect(text.outcome).toBe("ABORTED_ON_MISMATCH")
+    expect(text.approvalDigestMatches).toBe(false)
+    expect((text.notes as string[]).join(" ")).toContain("not the one on offer")
+  })
+
+  it("writes nothing to disk under any argument shape", () => {
+    const dir = mkdtempSync(join(tmpdir(), "calllint-guard-nowrite-"))
+    scratches.push(dir)
+    const before = readdirSync(dir)
+    for (const args of [{}, { hosts: ["git"] }, { hosts: ["claude-code"], approvalDigest: "sha256:x" }]) {
+      call(GUARD_TOOL_NAME, args)
+    }
+    expect(readdirSync(dir)).toEqual(before)
   })
 })

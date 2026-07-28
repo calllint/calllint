@@ -24,7 +24,7 @@ describe("handleRequest", () => {
   it("tools/list returns all shipped tools with schemas", () => {
     const res = handleRequest({ jsonrpc: "2.0", id: 2, method: "tools/list" }, INFO, OPTS)
     const tools = (res as { result: { tools: { name: string; inputSchema: unknown }[] } }).result.tools
-    expect(tools).toHaveLength(12)
+    expect(tools).toHaveLength(13)
     for (const t of tools) expect(t.inputSchema).toBeDefined()
   })
 
