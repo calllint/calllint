@@ -103,6 +103,9 @@ importers:
       '@calllint/core':
         specifier: workspace:*
         version: link:../core
+      '@calllint/install-planner':
+        specifier: workspace:*
+        version: link:../install-planner
       '@calllint/policy':
         specifier: workspace:*
         version: link:../policy

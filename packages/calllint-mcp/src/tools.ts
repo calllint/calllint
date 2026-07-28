@@ -24,11 +24,24 @@ import {
 import { adoptionBasisPolicy } from "@calllint/policy"
 import { renderExplain, NO_EMOJI_STYLE } from "@calllint/report-renderer"
 import { VERDICT_PUBLIC_LABEL } from "@calllint/types"
-import type { Baseline, TrustPreparation } from "@calllint/types"
+import type { ApplyResult, Baseline, InstallPlan, TrustPreparation } from "@calllint/types"
 import { matchLexical } from "@calllint/trust-index/matchLexical"
+import {
+  applyPlan,
+  buildDecisionReceipt,
+  nodeFsPort,
+  receiptBodyDigest,
+  verifyDecisionReceipt,
+  CLAUDE_CODE_HOST_ID,
+  CURSOR_HOST_ID,
+  WINDSURF_HOST_ID,
+} from "@calllint/install-planner"
 import { existsSync, readFileSync } from "node:fs"
+import { homedir, tmpdir } from "node:os"
+import { join } from "node:path"
 import { COMMITTED_LOOKUP_ENTRIES } from "./committedLookup.js"
 import { findCommittedContract, type AdoptionContract } from "./committedContracts.js"
+import { VERSION } from "./version.js"
 
 /** MCP tool result shape (text content only — CallLint emits JSON/text). */
 export interface ToolResult {
@@ -112,8 +125,48 @@ function publicFloor(kind: string): { outcome: string; note: string } | null {
 }
 
 const SHA256_RE = /^sha256:[0-9a-f]{64}$/
-const PLAN_HOSTS = new Set(["claude-code", "cursor", "windsurf"])
+/** The Tier-A hosts an adoption plan can target, from the shipped adapter ids (never
+ *  a second host list). Typed as Set<string> so an arbitrary caller-supplied string
+ *  can be membership-tested against it. */
+const PLAN_HOSTS: ReadonlySet<string> = new Set<string>([CLAUDE_CODE_HOST_ID, CURSOR_HOST_ID, WINDSURF_HOST_ID])
 const SAFE_INSTALL_RESULT_SCHEMA = "calllint.safe-install-result.v1"
+const VERIFY_RESULT_SCHEMA = "calllint.verify-tool-install-result.v1"
+
+/**
+ * The host's own MCP-config location, for the two hosts whose config is at a
+ * cwd-independent home-relative path. Cursor's config is PROJECT-scoped, so it has
+ * no server-side default — an explicit `hostConfigPath` is required there rather
+ * than a guessed location (INV-2.4-08: unsupported means unsupported).
+ */
+function defaultHostConfigPath(host: string): string | null {
+  if (host === CLAUDE_CODE_HOST_ID) return join(homedir(), ".claude.json")
+  if (host === WINDSURF_HOST_ID) return join(homedir(), ".codeium", "mcp_config.json")
+  return null
+}
+
+/** Read host-config bytes at the edge (read-only). null ⇒ the file is absent. */
+function readHostConfig(path: string): string | null {
+  return existsSync(path) ? readFileSync(path, "utf8") : null
+}
+
+/**
+ * Project a delegated apply outcome onto the safe-install outcome enum — the SAME
+ * fail-closed projection the CLI's `mapAppliedToOutcome` uses (mirrored because
+ * `apps/cli` result.ts is not an importable package). APPLIED_AND_VERIFIED requires
+ * BOTH a durable apply AND a structurally-valid receipt; every other apply outcome
+ * (stale / conflict / rolled_back / rollback_failed) degrades to a re-preflight.
+ */
+function outcomeForApply(result: ApplyResult, receiptValid: boolean): string {
+  const durable = result.outcome === "applied" || result.outcome === "already_applied"
+  return durable && receiptValid ? "APPLIED_AND_VERIFIED" : "LOCAL_PREFLIGHT_REQUIRED"
+}
+
+/** A deterministic, filesystem-safe suffix for this apply's backup + lock files,
+ *  taken straight from the sealed plan digest (already a sha256 — no rehash). Same
+ *  plan ⇒ same suffix, so a retried apply reuses one lock instead of racing. */
+function planSuffix(plan: InstallPlan): string {
+  return plan.planDigest.slice("sha256:".length, "sha256:".length + 16)
+}
 
 /** Assert the caller's stated exact target against the contract's own fields (offline;
  *  a substituted contract can only STOP). Returns the mismatch reasons (empty ⇒ match). */
@@ -141,10 +194,20 @@ function serverKeyForSlug(slug: string): string {
   return base.replace(/^-+|-+$/g, "") || "tool"
 }
 
-/** Emit the safe-install result envelope (schema-aligned with the CLI's v1 shape). */
+/** The nothing-was-written closing note. Both the prepare tool and every apply
+ *  REFUSAL path end here: in both cases no byte moved, so the honest statement is
+ *  identical and cannot drift between the two surfaces. */
+const NO_WRITE_NOTE =
+  "Nothing was executed and no config was written. A PREPARED plan authorizes nothing; applying it is a separate step that requires naming its exact plan digest."
+
+/** Emit the safe-install result envelope (schema-aligned with the CLI's v1 shape).
+ *  Used for prepare results and for every apply path that refuses BEFORE the write
+ *  (a successful apply emits its own richer envelope with the receipt attached). */
 function emitResult(fields: {
   outcome: string
   canonicalName: string
+  /** Emitting tool name; defaults to the prepare tool. */
+  tool?: string
   host?: string | null
   version: string | null
   artifactDigest: string | null
@@ -153,14 +216,15 @@ function emitResult(fields: {
   notes: string[]
 }): ToolResult {
   return json({
-    tool: "calllint_prepare_safe_install",
     schema: SAFE_INSTALL_RESULT_SCHEMA,
     mode: "ONE_TIME_PROTECTED_SETUP",
     host: fields.host ?? null,
     ...fields,
+    tool: fields.tool ?? "calllint_prepare_safe_install",
     // Stable schema: planDigest is always present, null when no writable plan exists.
     planDigest: fields.planDigest ?? null,
-    note: "Local static prepare only — nothing was executed and no config was written. A PREPARED plan authorizes nothing; applying it is a separate, explicitly human-approved step.",
+    persistentComponents: [],
+    note: NO_WRITE_NOTE,
   })
 }
 
@@ -253,13 +317,20 @@ function runPrepare(
     return err(`unsupported host "${host}" — expected one of: ${[...PLAN_HOSTS].join(", ")}`)
   }
 
-  // Read the named host config once (read-only; the ONLY disk touch). Absent path ⇒ plan
+  // Read the named host config once (read-only; the ONLY disk touch). Absent file ⇒ plan
   // against a fresh/empty config. Contract digest rides as recorded PROVENANCE, never a gate.
+  //
+  // The target path is resolved the SAME way apply resolves it (explicit hostConfigPath,
+  // else the host's own default; null for project-scoped cursor). This matters: the path
+  // is part of the sealed plan, so if prepare planned against a placeholder while apply
+  // resolved a real path, the digests could never match and the approval gate would abort
+  // every honest hand-off. Planning against an unresolvable path stays symbolic — that
+  // plan is inert by construction, and apply refuses it with UNSUPPORTED rather than
+  // guessing a location.
   let hostPlan
   if (host) {
-    const hostConfigPath = str(args, "hostConfigPath")
-    const hostConfigText =
-      hostConfigPath && existsSync(hostConfigPath) ? readFileSync(hostConfigPath, "utf8") : null
+    const hostConfigPath = str(args, "hostConfigPath") ?? defaultHostConfigPath(host)
+    const hostConfigText = hostConfigPath ? readHostConfig(hostConfigPath) : null
     const generatedAt = opts.generatedAt ?? new Date(opts.now ?? 0).toISOString()
     const ms = Date.parse(generatedAt)
     hostPlan = {
@@ -291,6 +362,419 @@ function runPrepare(
     notes.push(`local verdict ${prep.decision?.verdict ?? "?"} — preparable; name a host to compute the applyable plan`)
   }
   return emitResult({ ...base, host: host ?? null, outcome, planDigest, notes })
+}
+
+/** The identity/route/subject gates every actionable safe-install shares, run in the
+ *  SAME fail-closed order as prepare. Returns a terminal ToolResult to short-circuit
+ *  on, or the resolved contract + carried identity when the target is actionable. */
+type GateOutcome =
+  | { stop: ToolResult }
+  | {
+      contract: AdoptionContract
+      base: { canonicalName: string; version: string | null; artifactDigest: string | null; contractDigest: string | null }
+    }
+
+function gateActionableTarget(
+  args: Record<string, unknown>,
+  slug: string,
+  tool: string,
+  host: string | null,
+): GateOutcome {
+  const expectVersion = str(args, "expectedVersion")
+  const expectArtifact = str(args, "expectedArtifactDigest")
+  const expectContract = str(args, "expectedContractDigest")
+  for (const [name, v] of [
+    ["expectedArtifactDigest", expectArtifact],
+    ["expectedContractDigest", expectContract],
+  ] as const) {
+    if (v !== undefined && !SHA256_RE.test(v)) return { stop: err(`${name} must be a sha256:<64-hex> digest`) }
+  }
+
+  const contract = findCommittedContract(slug)
+  if (!contract) {
+    return {
+      stop: emitResult({
+        tool,
+        outcome: "UNSUPPORTED",
+        canonicalName: slug,
+        host,
+        version: null,
+        artifactDigest: null,
+        contractDigest: null,
+        notes: [
+          `No committed CallLint adoption contract for "${slug}". Absence is not a verdict — nothing was written.`,
+        ],
+      }),
+    }
+  }
+  const subj = contract.subject
+  const base = {
+    canonicalName: subj.canonicalName,
+    version: subj.version,
+    artifactDigest: subj.artifactDigest ?? null,
+    contractDigest: contract.contract.contractDigest ?? null,
+  }
+
+  // 1) Exact-target identity gate (offline; a substituted contract can only STOP).
+  const mismatches = targetMismatches(contract, {
+    version: expectVersion,
+    artifact: expectArtifact,
+    contract: expectContract,
+  })
+  if (mismatches.length > 0) {
+    return {
+      stop: emitResult({
+        ...base,
+        tool,
+        host,
+        outcome: "ABORTED_ON_MISMATCH",
+        notes: ["exact-target identity assertion failed — nothing was written", ...mismatches],
+      }),
+    }
+  }
+
+  // 2) Public-verdict floor (fail-closed) — a public BLOCK/UNKNOWN/unsupported route
+  // short-circuits BEFORE any local re-decode, so it is never laundered into a write.
+  const floor = publicFloor(contract.recommendedNextAction.kind)
+  if (floor) return { stop: emitResult({ ...base, tool, host, outcome: floor.outcome, notes: [floor.note] }) }
+
+  // 3) npm gate — only a pinned npm subject is auto-preparable.
+  if (subj.packageType !== "npm" || !subj.packageName || !subj.version) {
+    return {
+      stop: emitResult({
+        ...base,
+        tool,
+        host,
+        outcome: "LOCAL_PREFLIGHT_REQUIRED",
+        notes: [
+          `only a pinned npm subject is auto-preparable in this version (got ${subj.packageType ?? "no"} type)`,
+          "run local pre-flight (`calllint trust prepare`) for this target",
+        ],
+      }),
+    }
+  }
+  return { contract, base }
+}
+
+const APPLY_TOOL = "calllint_apply_prepared_install"
+
+/**
+ * Apply an already-prepared, explicitly-approved install plan (ADR 0056 §12.3).
+ * Two mandatory gates before any byte is written:
+ *   - a supported host MUST be named (no guessed install location), and
+ *   - `approvalDigest` MUST equal the FRESHLY recomputed plan digest — the caller
+ *     proves it reviewed this exact plan. Any drift in the host config or contract
+ *     since prepare changes the digest and aborts (INV-2.4-06).
+ * The write itself is DELEGATED to the shipped apply engine (the ONE writer,
+ * INV-2.4-03) — this handler holds zero direct `node:fs` writes, never executes the
+ * installed target (INV-2.4-09), and installs zero persistent CallLint components
+ * (one-time mode, INV-2.4-07).
+ */
+function applyPreparedInstallHandler(args: Record<string, unknown>, opts: ScanOptions): ToolResult {
+  const slug = str(args, "canonicalName")
+  if (!slug) return err("canonicalName is required")
+
+  // Host permission is MANDATORY for apply — there is no "decide only" mode here.
+  const host = str(args, "host")
+  if (!host) return err(`host is required to apply — expected one of: ${[...PLAN_HOSTS].join(", ")}`)
+  if (!PLAN_HOSTS.has(host)) {
+    return err(`unsupported host "${host}" — expected one of: ${[...PLAN_HOSTS].join(", ")}`)
+  }
+
+  // The exact plan digest the caller reviewed. Never optional, never inferred.
+  const approvalDigest = str(args, "approvalDigest")
+  if (!approvalDigest) {
+    return err("approvalDigest is required — pass the exact planDigest calllint_prepare_safe_install returned")
+  }
+  if (!SHA256_RE.test(approvalDigest)) return err("approvalDigest must be a sha256:<64-hex> digest")
+
+  const configPath = str(args, "hostConfigPath") ?? defaultHostConfigPath(host)
+  if (!configPath) {
+    return emitResult({
+      tool: APPLY_TOOL,
+      outcome: "UNSUPPORTED",
+      canonicalName: slug,
+      host,
+      version: null,
+      artifactDigest: null,
+      contractDigest: null,
+      notes: [
+        `host "${host}" keeps its MCP config in the project, so it has no server-side default — pass hostConfigPath explicitly (no location is ever guessed)`,
+      ],
+    })
+  }
+
+  const gate = gateActionableTarget(args, slug, APPLY_TOOL, host)
+  if ("stop" in gate) return gate.stop
+  return runApply(opts, gate.contract, gate.base, host, configPath, approvalDigest)
+}
+
+function runApply(
+  opts: ScanOptions,
+  contract: AdoptionContract,
+  base: { canonicalName: string; version: string | null; artifactDigest: string | null; contractDigest: string | null },
+  host: string,
+  configPath: string,
+  approvalDigest: string,
+): ToolResult {
+  const subj = contract.subject
+  const generatedAt = opts.generatedAt ?? new Date(opts.now ?? 0).toISOString()
+  const ms = Date.parse(generatedAt)
+
+  // Re-run the SAME shared, writer-free prepare the prepare tool runs. Deterministic
+  // over identical inputs, so an unchanged target reproduces the digest the caller
+  // approved; ANY drift (host config, contract, policy) changes it and aborts below.
+  const key = serverKeyForSlug(subj.canonicalSlug)
+  const synth = { mcpServers: { [key]: { command: "npx", args: ["-y", `${subj.packageName}@${subj.version}`] } } }
+  const prep = prepareSafeInstall({
+    configText: JSON.stringify(synth, null, 2) + "\n",
+    configPath: `npm:${subj.packageName}@${subj.version}`,
+    policy: adoptionBasisPolicy(),
+    hostPlan: {
+      host,
+      configPath,
+      hostConfigText: readHostConfig(configPath),
+      expiresAt: Number.isNaN(ms) ? generatedAt : new Date(ms + 60 * 60 * 1000).toISOString(),
+    },
+    expect: base.contractDigest ? { contractDigest: base.contractDigest as `sha256:${string}` } : undefined,
+    preparedAt: generatedAt,
+  })
+
+  const localOutcome = outcomeForPreparation(prep)
+  const plan = prep.plan
+  // No applyable plan (local re-decide was BLOCK/UNKNOWN, or produced nothing). This
+  // is where a LOCAL decision STRICTER than the public one is honored (INV-2.4-02).
+  if (!plan || localOutcome !== "PREPARED") {
+    return emitResult({
+      ...base,
+      tool: APPLY_TOOL,
+      host,
+      outcome: localOutcome,
+      notes: [
+        `local Trust Gateway state ${prep.state}${prep.decision ? ` (verdict ${prep.decision.verdict})` : ""} — nothing was written`,
+        ...(prep.decision?.verdict === "UNKNOWN"
+          ? ["local decision is UNKNOWN — insufficient evidence; never treated as safe"]
+          : []),
+      ],
+    })
+  }
+
+  // The approval gate (§10.7): the caller must name the digest of the plan it read.
+  const planDigest = plan.planDigest as string
+  if (planDigest !== approvalDigest) {
+    return emitResult({
+      ...base,
+      tool: APPLY_TOOL,
+      host,
+      outcome: "ABORTED_ON_MISMATCH",
+      planDigest,
+      notes: [
+        "approvalDigest does not match the freshly recomputed plan — nothing was written",
+        `recomputed plan ${planDigest.slice(0, 23)}…, approved ${approvalDigest.slice(0, 23)}…`,
+        "the host config or the pinned target changed since you prepared — re-run calllint_prepare_safe_install and review the new plan",
+      ],
+    })
+  }
+
+  // DELEGATE the write to the shipped apply engine — the ONE writer (INV-2.4-03). It
+  // revalidates the sealed plan, takes an exclusive lock, backs up, writes atomically,
+  // verifies, and rolls back on failure. CallLint working files stay OUTSIDE the user's
+  // tree (the lock lives in tmp), so one-time mode leaves zero persistent files.
+  const suffix = planSuffix(plan)
+  let applied: ApplyResult
+  try {
+    applied = applyPlan({
+      plan,
+      approvalDigest,
+      configPath,
+      backupPath: `${configPath}.calllint-backup-${suffix}`,
+      lockPath: join(tmpdir(), "calllint-mcp-locks", `${suffix}.lock`),
+      fs: nodeFsPort(),
+      now: generatedAt,
+    })
+  } catch (e) {
+    return emitResult({
+      ...base,
+      tool: APPLY_TOOL,
+      host,
+      outcome: "LOCAL_PREFLIGHT_REQUIRED",
+      planDigest,
+      notes: [`delegated apply failed: ${e instanceof Error ? e.message : String(e)}`],
+    })
+  }
+
+  // The decision receipt (calllint.receipt.v1) is built + verified in memory and
+  // returned inline — MCP is stateless between calls, so the caller keeps the record
+  // and can re-verify it later with calllint_verify_tool_install.
+  const receipt = buildDecisionReceipt(applied, plan, {
+    approvedAt: generatedAt,
+    approver: null,
+    scannerVersion: VERSION,
+    policyVersion: null,
+  })
+  const verified = verifyDecisionReceipt(receipt, { now: generatedAt })
+  const outcome = outcomeForApply(applied, verified.valid)
+  const notes = [...applied.notes]
+  if (outcome !== "APPLIED_AND_VERIFIED") {
+    notes.unshift(
+      `apply did not durably verify (outcome ${applied.outcome}, receipt ${verified.valid ? "ok" : "unverified"}) — re-run local pre-flight`,
+    )
+  }
+
+  return json({
+    tool: APPLY_TOOL,
+    schema: SAFE_INSTALL_RESULT_SCHEMA,
+    mode: "ONE_TIME_PROTECTED_SETUP",
+    outcome,
+    ...base,
+    host,
+    planDigest,
+    receiptDigest: verified.valid ? receiptBodyDigest(receipt) : null,
+    receipt,
+    configPath: applied.configPath,
+    configDigestBefore: applied.configDigestBefore,
+    configDigestAfter: applied.configDigestAfter,
+    backupPath: applied.backupPath,
+    rolledBack: applied.rolledBack,
+    // One-time protected setup installs NO CallLint MCP / plugin / hook / Guard
+    // (INV-2.4-07). Persistent protection needs its own explicit approval.
+    persistentComponents: [],
+    notes,
+    note: "Written by the shipped CallLint Trust Gateway apply engine (backup → atomic write → verify → rollback on failure). One-time protected setup: zero persistent CallLint components were installed, and the installed target was never started, connected to, or tested. Keep `receipt` to re-verify this apply later.",
+  })
+}
+
+const VERIFY_TOOL = "calllint_verify_tool_install"
+
+/**
+ * Read-only verification of an applied install (ADR 0056 §12.3). Confirms the exact
+ * pinned launch the contract names is what actually sits in the host config, and
+ * (optionally) that a decision receipt from the apply is structurally sound with its
+ * approval binding intact. It re-decides NOTHING: no scanner, no policy, no verdict —
+ * it observes and compares, so it can only report drift, never bless it.
+ */
+function verifyToolInstallHandler(args: Record<string, unknown>, opts: ScanOptions): ToolResult {
+  const slug = str(args, "canonicalName")
+  if (!slug) return err("canonicalName is required")
+  const host = str(args, "host")
+  if (!host) return err(`host is required — expected one of: ${[...PLAN_HOSTS].join(", ")}`)
+  if (!PLAN_HOSTS.has(host)) {
+    return err(`unsupported host "${host}" — expected one of: ${[...PLAN_HOSTS].join(", ")}`)
+  }
+  const configPath = str(args, "hostConfigPath") ?? defaultHostConfigPath(host)
+  if (!configPath) {
+    return err(
+      `host "${host}" keeps its MCP config in the project — pass hostConfigPath explicitly (no location is ever guessed)`,
+    )
+  }
+
+  const contract = findCommittedContract(slug)
+  const subj = contract?.subject
+  const serverKey = serverKeyForSlug(subj?.canonicalSlug ?? slug)
+  // The exact pinned launch the committed contract pins, for an npm subject. null ⇒
+  // we can confirm PRESENCE but cannot assert the exact command (honest, not a guess).
+  const expectedArg =
+    subj?.packageType === "npm" && subj.packageName && subj.version ? `${subj.packageName}@${subj.version}` : null
+
+  let configText: string | null
+  try {
+    configText = readHostConfig(configPath)
+  } catch (e) {
+    return err(`cannot read host config at ${configPath}: ${e instanceof Error ? e.message : String(e)}`)
+  }
+
+  const notes: string[] = []
+  let entry: Record<string, unknown> | null = null
+  let parsed = false
+  if (configText === null) {
+    notes.push(`host config is absent at ${configPath} — nothing is installed there`)
+  } else {
+    try {
+      const cfg = JSON.parse(configText) as Record<string, unknown>
+      parsed = true
+      const servers = cfg.mcpServers
+      const bag = servers && typeof servers === "object" ? (servers as Record<string, unknown>) : {}
+      const found = bag[serverKey]
+      if (found && typeof found === "object") entry = found as Record<string, unknown>
+      if (!entry) notes.push(`server "${serverKey}" is not present in ${configPath} — this target is not installed there`)
+    } catch {
+      notes.push(`host config at ${configPath} is not valid JSON — cannot verify its contents`)
+    }
+  }
+
+  // Exact-pin comparison: the recorded args must still carry the pinned package@version.
+  let pinnedExact: boolean | null = null
+  if (entry) {
+    notes.push(`server "${serverKey}" is present in ${configPath}`)
+    if (expectedArg === null) {
+      notes.push("the committed contract pins no npm package@version, so the exact command was not asserted")
+    } else {
+      const argv = Array.isArray(entry.args) ? entry.args.filter((a): a is string => typeof a === "string") : []
+      pinnedExact = argv.includes(expectedArg)
+      notes.push(
+        pinnedExact
+          ? `installed launch still pins the exact target ${expectedArg}`
+          : `installed launch does NOT pin ${expectedArg} — the entry drifted from the contract's exact target`,
+      )
+    }
+  }
+
+  // Optional receipt check — structural + approval binding only (no re-decision).
+  const receiptJson = str(args, "receipt")
+  let receiptValid: boolean | null = null
+  let receiptDigest: string | null = null
+  let receiptExpired: boolean | null = null
+  let receiptPlanDigest: string | null = null
+  if (receiptJson !== undefined) {
+    const generatedAt = opts.generatedAt ?? new Date(opts.now ?? 0).toISOString()
+    try {
+      const receipt = JSON.parse(receiptJson) as Record<string, unknown>
+      const v = verifyDecisionReceipt(receipt, { now: generatedAt })
+      receiptValid = v.valid
+      receiptExpired = v.expired
+      if (typeof receipt.installPlanDigest === "string") receiptPlanDigest = receipt.installPlanDigest
+      if (v.valid) {
+        receiptDigest = receiptBodyDigest(receipt as never)
+        notes.push(
+          `receipt verified — approval binding intact${v.expired ? " (expired: a true record of a past approval, not a current authorization)" : ""}`,
+        )
+      } else {
+        notes.push(`receipt did NOT verify: ${v.errors.join("; ")}`)
+      }
+      if (v.tampered) notes.push("receipt signature failed verification — treat the record as untrusted")
+    } catch {
+      receiptValid = false
+      notes.push("receipt is not valid JSON — cannot verify it")
+    }
+  }
+
+  // Fail-closed summary: "installed" requires a parsed config, the exact server entry,
+  // and (when assertable) the exact pin. A supplied receipt must also verify.
+  const installed = parsed && entry !== null && pinnedExact !== false
+  const verifiedOk = installed && receiptValid !== false
+  return json({
+    tool: VERIFY_TOOL,
+    schema: VERIFY_RESULT_SCHEMA,
+    canonicalName: subj?.canonicalName ?? slug,
+    contractFound: contract !== null,
+    host,
+    configPath,
+    configPresent: configText !== null,
+    configParsed: parsed,
+    serverKey,
+    serverPresent: entry !== null,
+    expectedPinnedTarget: expectedArg,
+    pinnedExact,
+    receiptChecked: receiptJson !== undefined,
+    receiptValid,
+    receiptExpired,
+    receiptDigest,
+    receiptPlanDigest,
+    installed,
+    verified: verifiedOk,
+    notes,
+    note: "Read-only observation of the host config and the supplied receipt. It compares what is installed against the committed contract's exact pinned target; it runs no scanner, applies no policy, decides no verdict, writes nothing, and never starts or connects to the installed server. A passing check means this exact entry is present now — not that the target is safe.",
+  })
 }
 
 export const TOOLS: ToolDef[] = [
@@ -612,6 +1096,68 @@ export const TOOLS: ToolDef[] = [
       required: ["canonicalName"],
     },
     handler: safe((args, opts) => prepareSafeInstallHandler(args, opts)),
+  },
+  {
+    // Safe-install APPLY (ADR 0056 §12.3). The one MCP tool that writes — and it does
+    // not write itself: it DELEGATES to the shipped apply engine (the ONE writer,
+    // INV-2.4-03), holding zero direct node:fs writes. Two mandatory gates first: a
+    // named supported host, and an `approvalDigest` equal to the FRESHLY recomputed
+    // plan digest. The public floor + local re-decode both run again before any byte
+    // moves, so a public BLOCK/UNKNOWN can never be laundered into a write. Never
+    // starts/connects to the installed target (INV-2.4-09).
+    name: "calllint_apply_prepared_install",
+    description:
+      "Apply an install plan you already prepared and explicitly approved, writing the pinned MCP server into a host's config. This is a WRITE — it is the only CallLint tool that changes a file, and it refuses unless you name a supported host AND pass approvalDigest equal to the exact planDigest calllint_prepare_safe_install returned. Before writing it re-runs the full local gateway from scratch and recomputes the plan: if the host config or the pinned target changed since you prepared, the digest differs and the apply aborts with nothing written. A public BLOCK/UNKNOWN/unsupported route, a local BLOCK/UNKNOWN decision, or an exact-target mismatch all refuse before the write. The write itself is delegated to CallLint's shipped apply engine, which backs up the current config, writes atomically under a lock, re-reads to verify, and rolls back on any failure — so a failed apply leaves the original config in place. Outcomes: APPLIED_AND_VERIFIED (written and verified, with a decision receipt returned inline for later verification), ABORTED_ON_MISMATCH, BLOCKED, LOCAL_PREFLIGHT_REQUIRED, or UNSUPPORTED. This is a one-time protected setup: it installs no CallLint components, leaves no persistent CallLint files, and never starts, connects to, authenticates to, or tests the server it installed.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        canonicalName: { type: "string", description: "The resource's canonical name / slug (the same one you prepared)." },
+        host: { type: "string", description: "Target host to write: claude-code, cursor, or windsurf. Required — an apply never guesses a host." },
+        approvalDigest: {
+          type: "string",
+          description:
+            "The exact sha256:<64-hex> planDigest calllint_prepare_safe_install returned and you reviewed. Required; a mismatch against the freshly recomputed plan aborts with nothing written.",
+        },
+        hostConfigPath: {
+          type: "string",
+          description:
+            "Path to the host's MCP config to write. Optional for claude-code and windsurf (their own config path is used); REQUIRED for cursor, whose config is project-scoped.",
+        },
+        expectedVersion: { type: "string", description: "Optional exact version to assert; a mismatch aborts with nothing written." },
+        expectedArtifactDigest: { type: "string", description: "Optional sha256:<64-hex> artifact digest to assert against the contract; a mismatch aborts." },
+        expectedContractDigest: { type: "string", description: "Optional sha256:<64-hex> contract digest to assert + record as plan provenance; a mismatch aborts." },
+      },
+      required: ["canonicalName", "host", "approvalDigest"],
+    },
+    handler: safe((args, opts) => applyPreparedInstallHandler(args, opts)),
+  },
+  {
+    // Safe-install VERIFY (ADR 0056 §12.3). Read-only observation: does the host config
+    // still carry the contract's EXACT pinned launch, and does a supplied decision
+    // receipt still verify (structure + approval binding)? It re-decides nothing — no
+    // scanner, no policy, no verdict — so it can report drift but never bless it.
+    name: "calllint_verify_tool_install",
+    description:
+      "Verify that an MCP server install is actually in place and unchanged, by reading the host's config and comparing it against the published contract's exact pinned target. Read-only: it writes nothing, runs no scan, applies no policy, decides no verdict, and never starts or connects to the installed server. It reports whether the config exists and parses, whether the expected server entry is present, and whether that entry still pins the exact package@version the contract names (drift is reported, never accepted). Optionally pass the decision receipt from calllint_apply_prepared_install to also confirm its structure and approval binding are intact (an expired receipt is reported as a true record of a past approval, not a current authorization). A passing check means this exact entry is present right now — it is not a safety verdict.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        canonicalName: { type: "string", description: "The resource's canonical name / slug to verify." },
+        host: { type: "string", description: "Host whose config to read: claude-code, cursor, or windsurf." },
+        hostConfigPath: {
+          type: "string",
+          description:
+            "Path to the host's MCP config to read. Optional for claude-code and windsurf; REQUIRED for cursor, whose config is project-scoped.",
+        },
+        receipt: {
+          type: "string",
+          description:
+            "Optional decision-receipt JSON text (the `receipt` calllint_apply_prepared_install returned) to structurally verify alongside the config.",
+        },
+      },
+      required: ["canonicalName", "host"],
+    },
+    handler: safe((args, opts) => verifyToolInstallHandler(args, opts)),
   },
 ]
 
