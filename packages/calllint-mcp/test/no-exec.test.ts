@@ -81,4 +81,23 @@ describe("invariant: MCP tools never execute a scanned server (ADR 0003)", () =>
     expect(execFileMock).not.toHaveBeenCalled()
     expect(execFileSyncMock).not.toHaveBeenCalled()
   })
+
+  it("calllint_get_adoption_contract spawns nothing", () => {
+    call("calllint_get_adoption_contract", { canonicalName: "mcp-registry/ai.adeu-adeu" })
+    expect(spawnMock).not.toHaveBeenCalled()
+    expect(execMock).not.toHaveBeenCalled()
+    expect(execSyncMock).not.toHaveBeenCalled()
+    expect(execFileMock).not.toHaveBeenCalled()
+    expect(execFileSyncMock).not.toHaveBeenCalled()
+  })
+
+  it("calllint_prepare_safe_install synthesizes a launch spec but NEVER executes it", () => {
+    // The exact npm subject the tool can auto-prepare — the one most at risk of being run.
+    call("calllint_prepare_safe_install", { canonicalName: "mcp-registry/ai.adeu-adeu", host: "claude-code" })
+    expect(spawnMock).not.toHaveBeenCalled()
+    expect(execMock).not.toHaveBeenCalled()
+    expect(execSyncMock).not.toHaveBeenCalled()
+    expect(execFileMock).not.toHaveBeenCalled()
+    expect(execFileSyncMock).not.toHaveBeenCalled()
+  })
 })

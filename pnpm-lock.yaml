@@ -140,6 +140,12 @@ importers:
       '@calllint/fingerprint':
         specifier: workspace:*
         version: link:../fingerprint
+      '@calllint/flow-analyzer':
+        specifier: workspace:*
+        version: link:../flow-analyzer
+      '@calllint/install-planner':
+        specifier: workspace:*
+        version: link:../install-planner
       '@calllint/policy':
         specifier: workspace:*
         version: link:../policy

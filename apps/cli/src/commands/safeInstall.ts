@@ -25,7 +25,7 @@
  * Unsupported host / non-exact subject → an honest UNSUPPORTED / LOCAL_PREFLIGHT_REQUIRED,
  * never a guessed command.
  */
-import { existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs"
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs"
 import { homedir, tmpdir } from "node:os"
 import { join, resolve as resolvePath } from "node:path"
 import {
@@ -35,6 +35,8 @@ import {
   receiptBodyDigest,
   verifyDecisionReceipt,
 } from "@calllint/install-planner"
+import { prepareSafeInstall } from "@calllint/core"
+import { adoptionBasisPolicyJson, loadPolicyOrDefault } from "@calllint/policy"
 import type { ApplyResult, TrustPreparation } from "@calllint/types"
 import type { CommandResult } from "./scan.js"
 import { trustCommand } from "./trust.js"
@@ -211,24 +213,12 @@ function serverKey(view: ContractView): string {
 function resolveDelegatedPolicy(args: ParsedArgs, scratch: string, userCwd: string): string {
   const caller = flagStr(args.flags, "policy")
   if (caller) return resolvePath(userCwd, caller)
-  const adoption = {
-    schemaVersion: "calllint.policy.v0",
-    defaults: {
-      unknownSource: "deny",
-      unpinnedPackage: "warn",
-      broadFilesystemAccess: "deny",
-      arbitraryCommandExecution: "warn",
-      promptPoisoning: "deny",
-      externalMutation: "warn",
-      financialAction: "deny",
-    },
-    ci: { failOn: ["BLOCK", "UNKNOWN"], failOnReview: false },
-    allowedSources: [],
-    allowedPaths: ["${workspaceFolder}"],
-    overrides: [],
-  }
+  // The adoption-basis policy is the ONE shared source of truth (@calllint/policy),
+  // used identically by the MCP `calllint_prepare_safe_install` tool — see its doc for
+  // why relaxing arbitraryCommandExecution to `warn` cannot launder a dangerous command
+  // past the §10.7 approval gate or loosen the gateway's fail-closed floor.
   const path = join(scratch, "adoption-policy.json")
-  writeFileSync(path, JSON.stringify(adoption, null, 2) + "\n", "utf8")
+  writeFileSync(path, adoptionBasisPolicyJson(), "utf8")
   return path
 }
 
@@ -394,34 +384,48 @@ function runActionable(
   scratch: string,
   modes: { json: boolean; nonInteractive: boolean },
 ): CommandResult {
-  // Synthesize the exact local launch spec from the pinned npm subject.
+  // Synthesize the exact local launch spec from the pinned npm subject. The
+  // gateway sees these exact bytes (byte-identical to the prior delegated path).
   const key = serverKey(view)
   const synth = { mcpServers: { [key]: { command: "npx", args: ["-y", `${view.packageName}@${view.version}`] } } }
-  writeFileSync(join(scratch, "mcp.json"), JSON.stringify(synth, null, 2) + "\n", "utf8")
+  const configText = JSON.stringify(synth, null, 2) + "\n"
 
-  // The delegated re-decode runs under the adoption-basis policy (or a caller's
+  // The local re-decode runs under the adoption-basis policy (or a caller's
   // stricter --policy) — see resolveDelegatedPolicy for why this cannot launder a
   // dangerous command past the §10.7 approval gate or loosen the gateway floor.
-  const policyPath = resolveDelegatedPolicy(args, scratch, deps.cwd)
+  const policy = loadPolicyOrDefault(resolveDelegatedPolicy(args, scratch, deps.cwd))
 
-  // Delegate the deterministic decision + plan to the shipped `trust prepare`.
-  // The contract digest is threaded as recorded plan PROVENANCE only (Batch 4) —
-  // never as a gate. --write-plan persists the plan under scratch (ephemeral).
-  const prepFlags: Record<string, string | boolean> = {
-    host,
-    "host-config": hostConfig,
-    policy: policyPath,
-    "write-plan": true,
-    json: true,
-  }
-  if (view.contractDigest) prepFlags["expect-contract-digest"] = view.contractDigest
-
-  const prepared = delegateTrust(["prepare", "mcp.json"], prepFlags, scratch, deps)
+  // Read the target host config once (the ONLY disk read; read-only) and hand its
+  // bytes to the shared, writer-free prepare (ADR 0056 §10.4) — the SAME sequence
+  // `trust prepare` runs, so the two surfaces cannot disagree. Never executes the
+  // target; the contract digest is threaded as recorded plan PROVENANCE only.
+  const hostConfigText = existsSync(hostConfig) ? readFileSync(hostConfig, "utf8") : null
+  const expiresMs = Date.parse(deps.generatedAt)
   let prep: TrustPreparation
   try {
-    prep = JSON.parse(prepared.stdout) as TrustPreparation
-  } catch {
-    return { stdout: "", stderr: `Error: delegated trust prepare failed: ${prepared.stderr || prepared.stdout}`, exitCode: EXIT.ERROR }
+    prep = prepareSafeInstall({
+      configText,
+      configPath: "mcp.json",
+      policy,
+      hostPlan: {
+        host,
+        configPath: hostConfig,
+        hostConfigText,
+        expiresAt: Number.isNaN(expiresMs) ? deps.generatedAt : new Date(expiresMs + 60 * 60 * 1000).toISOString(),
+      },
+      expect: view.contractDigest ? { contractDigest: view.contractDigest as `sha256:${string}` } : undefined,
+      preparedAt: deps.generatedAt,
+    })
+  } catch (e) {
+    return { stdout: "", stderr: `Error: local prepare failed: ${e instanceof Error ? e.message : String(e)}`, exitCode: EXIT.ERROR }
+  }
+
+  // Persist the plan under scratch (ephemeral) so the shipped apply engine can read
+  // it back — byte-identical to `trust prepare --write-plan`.
+  if (prep.plan) {
+    const plansDir = join(scratch, ".calllint", "plans")
+    mkdirSync(plansDir, { recursive: true })
+    writeFileSync(join(plansDir, `${prep.plan.planId}.json`), JSON.stringify(prep.plan, null, 2) + "\n", "utf8")
   }
 
   const base = {

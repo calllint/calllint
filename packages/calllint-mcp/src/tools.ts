@@ -18,13 +18,17 @@ import {
   RULE_HOSTS,
   CI_GATE_MODES,
   ConfigParseError,
+  prepareSafeInstall,
   type ScanOptions,
 } from "@calllint/core"
+import { adoptionBasisPolicy } from "@calllint/policy"
 import { renderExplain, NO_EMOJI_STYLE } from "@calllint/report-renderer"
 import { VERDICT_PUBLIC_LABEL } from "@calllint/types"
-import type { Baseline } from "@calllint/types"
+import type { Baseline, TrustPreparation } from "@calllint/types"
 import { matchLexical } from "@calllint/trust-index/matchLexical"
+import { existsSync, readFileSync } from "node:fs"
 import { COMMITTED_LOOKUP_ENTRIES } from "./committedLookup.js"
+import { findCommittedContract, type AdoptionContract } from "./committedContracts.js"
 
 /** MCP tool result shape (text content only — CallLint emits JSON/text). */
 export interface ToolResult {
@@ -66,6 +70,227 @@ function safe(
       return err(e instanceof Error ? e.message : String(e))
     }
   }
+}
+
+/**
+ * Map the read-only TrustPreparation to the safe-install outcome enum — the SAME
+ * projection the CLI orchestrator uses (mirrored here because `apps/cli` result.ts
+ * is not an importable package; ADR 0056 §10.4 forbids reimplementing the gateway
+ * glue, which lives in the shared core prepareSafeInstall — this is only the terminal
+ * label). Fail-closed: anything not confidently prepared → LOCAL_PREFLIGHT_REQUIRED.
+ */
+function outcomeForPreparation(prep: TrustPreparation): string {
+  const verdict = prep.decision?.verdict
+  switch (prep.state) {
+    case "TARGET_MISMATCH":
+      return "ABORTED_ON_MISMATCH"
+    case "PLAN_READY":
+    case "DECIDED":
+      if (verdict === "BLOCK") return "BLOCKED"
+      if (verdict === "UNKNOWN") return "LOCAL_PREFLIGHT_REQUIRED"
+      return "PREPARED"
+    default:
+      return "LOCAL_PREFLIGHT_REQUIRED"
+  }
+}
+
+/** The honest public-route floor from the committed contract's recommendedNextAction.
+ *  Returns a terminal outcome when the route is not locally preparable, else null. */
+function publicFloor(kind: string): { outcome: string; note: string } | null {
+  switch (kind) {
+    case "EXPLAIN_ONLY":
+      return { outcome: "UNSUPPORTED", note: "no supported install plan for this target — view manual setup" }
+    case "INSPECT_BLOCKERS":
+      return { outcome: "BLOCKED", note: "public verdict blocked by policy; inspect blockers before any install" }
+    case "LOCAL_PREFLIGHT_REQUIRED":
+      return { outcome: "LOCAL_PREFLIGHT_REQUIRED", note: "insufficient evidence / no exact target; run local pre-flight" }
+    case "PREPARE_LOCALLY":
+      return null
+    default:
+      return { outcome: "LOCAL_PREFLIGHT_REQUIRED", note: `unrecognized contract action "${kind}" — run local pre-flight` }
+  }
+}
+
+const SHA256_RE = /^sha256:[0-9a-f]{64}$/
+const PLAN_HOSTS = new Set(["claude-code", "cursor", "windsurf"])
+const SAFE_INSTALL_RESULT_SCHEMA = "calllint.safe-install-result.v1"
+
+/** Assert the caller's stated exact target against the contract's own fields (offline;
+ *  a substituted contract can only STOP). Returns the mismatch reasons (empty ⇒ match). */
+function targetMismatches(
+  contract: AdoptionContract,
+  expect: { version?: string; artifact?: string; contract?: string },
+): string[] {
+  const m: string[] = []
+  const subj = contract.subject
+  if (expect.artifact && subj.artifactDigest && expect.artifact !== subj.artifactDigest) {
+    m.push(`expected artifact digest ${expect.artifact} does not match the contract's ${subj.artifactDigest}`)
+  }
+  if (expect.contract && contract.contract.contractDigest && expect.contract !== contract.contract.contractDigest) {
+    m.push(`expected contract digest ${expect.contract} does not match the contract's ${contract.contract.contractDigest}`)
+  }
+  if (expect.version && subj.version && expect.version !== subj.version) {
+    m.push(`expected version ${expect.version} does not match the contract's ${subj.version}`)
+  }
+  return m
+}
+
+/** A stable server key from the canonical slug — the SAME derivation the CLI uses. */
+function serverKeyForSlug(slug: string): string {
+  const base = slug.replace(/[^a-z0-9]+/gi, "-").toLowerCase()
+  return base.replace(/^-+|-+$/g, "") || "tool"
+}
+
+/** Emit the safe-install result envelope (schema-aligned with the CLI's v1 shape). */
+function emitResult(fields: {
+  outcome: string
+  canonicalName: string
+  host?: string | null
+  version: string | null
+  artifactDigest: string | null
+  contractDigest: string | null
+  planDigest?: string | null
+  notes: string[]
+}): ToolResult {
+  return json({
+    tool: "calllint_prepare_safe_install",
+    schema: SAFE_INSTALL_RESULT_SCHEMA,
+    mode: "ONE_TIME_PROTECTED_SETUP",
+    host: fields.host ?? null,
+    ...fields,
+    // Stable schema: planDigest is always present, null when no writable plan exists.
+    planDigest: fields.planDigest ?? null,
+    note: "Local static prepare only — nothing was executed and no config was written. A PREPARED plan authorizes nothing; applying it is a separate, explicitly human-approved step.",
+  })
+}
+
+function prepareSafeInstallHandler(args: Record<string, unknown>, opts: ScanOptions): ToolResult {
+  const slug = str(args, "canonicalName")
+  if (!slug) return err("canonicalName is required")
+  const expectVersion = str(args, "expectedVersion")
+  const expectArtifact = str(args, "expectedArtifactDigest")
+  const expectContract = str(args, "expectedContractDigest")
+  for (const [name, v] of [
+    ["expectedArtifactDigest", expectArtifact],
+    ["expectedContractDigest", expectContract],
+  ] as const) {
+    if (v !== undefined && !SHA256_RE.test(v)) return err(`${name} must be a sha256:<64-hex> digest`)
+  }
+
+  // Look up by canonical slug ONLY — an expectedVersion is an exact-target ASSERTION
+  // (a mismatch must STOP with ABORTED_ON_MISMATCH, not read as "not found").
+  const contract = findCommittedContract(slug)
+  if (!contract) {
+    return emitResult({
+      outcome: "UNSUPPORTED",
+      canonicalName: slug,
+      version: null,
+      artifactDigest: null,
+      contractDigest: null,
+      notes: [
+        `No committed CallLint adoption contract for "${slug}". Absence is not a verdict — cannot prepare a target with no published contract.`,
+      ],
+    })
+  }
+  const subj = contract.subject
+  const base = {
+    canonicalName: subj.canonicalName,
+    version: subj.version,
+    artifactDigest: subj.artifactDigest ?? null,
+    contractDigest: contract.contract.contractDigest ?? null,
+  }
+
+  // 1) Exact-target identity gate (offline; a substituted contract can only STOP).
+  const mismatches = targetMismatches(contract, {
+    version: expectVersion,
+    artifact: expectArtifact,
+    contract: expectContract,
+  })
+  if (mismatches.length > 0) {
+    return emitResult({
+      ...base,
+      outcome: "ABORTED_ON_MISMATCH",
+      notes: ["exact-target identity assertion failed — no writable plan was produced", ...mismatches],
+    })
+  }
+
+  // 2) Public-verdict floor (fail-closed). A non-actionable public route short-circuits
+  // BEFORE any local re-decode, so a public BLOCK/UNKNOWN/unsupported is never laundered.
+  const floor = publicFloor(contract.recommendedNextAction.kind)
+  if (floor) return emitResult({ ...base, outcome: floor.outcome, notes: [floor.note] })
+
+  // 3) npm gate — only a pinned npm subject is auto-preparable (mirrors the CLI Batch 5).
+  if (subj.packageType !== "npm" || !subj.packageName || !subj.version) {
+    return emitResult({
+      ...base,
+      outcome: "LOCAL_PREFLIGHT_REQUIRED",
+      notes: [
+        `only a pinned npm subject is auto-preparable in this version (got ${subj.packageType ?? "no"} type)`,
+        "run local pre-flight (`calllint trust prepare`) for this target",
+      ],
+    })
+  }
+
+  // 4) Actionable — synthesize the exact pinned launch and delegate to the shared,
+  // writer-free core sequence (the SAME one the CLI runs). Host-gated: a plan is built
+  // only when a supported host is named; otherwise the local decision is returned alone.
+  return runPrepare(args, opts, contract, base)
+}
+
+function runPrepare(
+  args: Record<string, unknown>,
+  opts: ScanOptions,
+  contract: AdoptionContract,
+  base: { canonicalName: string; version: string | null; artifactDigest: string | null; contractDigest: string | null },
+): ToolResult {
+  const subj = contract.subject
+  const key = serverKeyForSlug(subj.canonicalSlug)
+  const synth = { mcpServers: { [key]: { command: "npx", args: ["-y", `${subj.packageName}@${subj.version}`] } } }
+  const configText = JSON.stringify(synth, null, 2) + "\n"
+
+  const host = str(args, "host")
+  if (host !== undefined && !PLAN_HOSTS.has(host)) {
+    return err(`unsupported host "${host}" — expected one of: ${[...PLAN_HOSTS].join(", ")}`)
+  }
+
+  // Read the named host config once (read-only; the ONLY disk touch). Absent path ⇒ plan
+  // against a fresh/empty config. Contract digest rides as recorded PROVENANCE, never a gate.
+  let hostPlan
+  if (host) {
+    const hostConfigPath = str(args, "hostConfigPath")
+    const hostConfigText =
+      hostConfigPath && existsSync(hostConfigPath) ? readFileSync(hostConfigPath, "utf8") : null
+    const generatedAt = opts.generatedAt ?? new Date(opts.now ?? 0).toISOString()
+    const ms = Date.parse(generatedAt)
+    hostPlan = {
+      host,
+      configPath: hostConfigPath ?? `<${host}-config>`,
+      hostConfigText,
+      expiresAt: Number.isNaN(ms) ? generatedAt : new Date(ms + 60 * 60 * 1000).toISOString(),
+    }
+  }
+
+  const prep = prepareSafeInstall({
+    configText,
+    configPath: `npm:${subj.packageName}@${subj.version}`,
+    policy: adoptionBasisPolicy(),
+    hostPlan,
+    expect: base.contractDigest ? { contractDigest: base.contractDigest as `sha256:${string}` } : undefined,
+    preparedAt: opts.generatedAt ?? new Date(opts.now ?? 0).toISOString(),
+  })
+
+  const outcome = outcomeForPreparation(prep)
+  const planDigest = (prep.plan?.planDigest as string | undefined) ?? null
+  const notes: string[] = []
+  if (!host) {
+    notes.push("no host named — returning the local decision only; pass host to compute an install plan")
+  }
+  if (outcome === "PREPARED" && planDigest) {
+    notes.push(`plan ${planDigest.slice(0, 23)}… computed for host "${host}" — NOT applied (apply is a separate human-approved step)`)
+  } else if (outcome === "PREPARED" && !planDigest) {
+    notes.push(`local verdict ${prep.decision?.verdict ?? "?"} — preparable; name a host to compute the applyable plan`)
+  }
+  return emitResult({ ...base, host: host ?? null, outcome, planDigest, notes })
 }
 
 export const TOOLS: ToolDef[] = [
@@ -315,6 +540,78 @@ export const TOOLS: ToolDef[] = [
         note: "Each result is an existing CallLint observation at a specific artifact digest and time — not a certification or a guarantee of safety. installUrl/contractUrl (when present) link the human Install page and the machine Agent Adoption Contract; they authorize nothing — a local prepare always re-decides. A resource with no Trust Page does not appear; absence is not a verdict.",
       })
     }),
+  },
+  {
+    // Serve a committed Agent-Adoption-Contract verbatim from the bundle (ADR 0056 §7/§8).
+    // Never fetches, never executes, never decides — it hands back the exact baked sidecar
+    // an agent needs to STATE its exact target before a local prepare. A slug with no baked
+    // contract simply is not served (absence is not a verdict).
+    name: "calllint_get_adoption_contract",
+    description:
+      "Fetch the committed CallLint Agent Adoption Contract for a published MCP server / agent tool, by its canonical name (the same canonicalName/slug calllint_search_agent_tools returns). Returns the exact machine contract CallLint already published: the pinned subject (package, version, artifact digest), the public observation (verdict + boundary-safe label), the authority delta, and the recommendedNextAction telling you how to proceed (usually calllint_prepare_safe_install with the exact version/artifact/contract digests to assert). The contract is served verbatim from a committed bundle — no network, no execution, no new verdict. Optionally pass version to require an exact pinned version (a mismatch returns not-found rather than a different version). A resource with no committed contract is not served; absence is not a verdict. Use this to obtain the exact target to assert, then calllint_prepare_safe_install to re-decide locally before any install.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        canonicalName: {
+          type: "string",
+          description: "The resource's canonical name / slug, e.g. mcp-registry/io.github.example (as returned by calllint_search_agent_tools).",
+        },
+        version: {
+          type: "string",
+          description: "Optional exact version to require; a mismatch returns not-found (never a different version).",
+        },
+      },
+      required: ["canonicalName"],
+    },
+    handler: safe((args) => {
+      const slug = str(args, "canonicalName")
+      if (!slug) return err("canonicalName is required")
+      const version = str(args, "version")
+      const contract = findCommittedContract(slug, version)
+      if (!contract) {
+        return json({
+          tool: "calllint_get_adoption_contract",
+          canonicalName: slug,
+          found: false,
+          note: version
+            ? `No committed CallLint adoption contract for "${slug}" at version ${version}. Absence is not a verdict — the resource may have no acquisition page, or a different pinned version.`
+            : `No committed CallLint adoption contract for "${slug}". Absence is not a verdict — the resource may have a Trust Page but no acquisition page yet.`,
+        })
+      }
+      // Serve the baked contract verbatim (never re-serialize a subset — the digest is over
+      // the exact baked bytes). The tool authorizes nothing; installing re-decides locally.
+      return json({
+        tool: "calllint_get_adoption_contract",
+        canonicalName: contract.subject.canonicalName,
+        found: true,
+        contract,
+        note: "This is an existing published contract at a specific artifact digest — not a certification or a guarantee of safety. It authorizes no install; run calllint_prepare_safe_install to re-decide locally before any write.",
+      })
+    }),
+  },
+  {
+    // Local, read-only safe-install PREPARE (ADR 0056 §10). Delegates the whole gateway
+    // sequence to the shared core prepareSafeInstall — the SAME writer-free function the
+    // CLI `safe-install` runs — so the two surfaces cannot disagree. Never executes the
+    // target, never writes a config: it returns the local verdict + (host-gated) inert
+    // plan an agent must review before any apply. A public BLOCK/UNKNOWN/unsupported route
+    // short-circuits BEFORE the local re-decode (INV-2.4-02, "UNKNOWN is not SAFE").
+    name: "calllint_prepare_safe_install",
+    description:
+      "Locally and statically PREPARE a safe install of a published MCP server, re-deciding its trust verdict on THIS machine before anything is written. Give the canonical name (and ideally the exact version/artifact/contract digests from calllint_get_adoption_contract to assert you got the target you meant). This never executes the server and never writes any config — it synthesizes the exact pinned launch, re-runs the full CallLint gateway locally (resolve → authority manifest → toxic-flow fold → policy decision), and, when you name a host, computes the inert install plan you would later apply. The local decision can only be STRICTER than the public one: a public BLOCK/UNKNOWN/unsupported target is refused before the local re-decode, an exact-target mismatch aborts with no plan, and only a pinned npm subject is auto-preparable in this version (anything else returns LOCAL_PREFLIGHT_REQUIRED — run `calllint trust prepare`). Outcomes: PREPARED (a plan is ready for a separate, explicitly-approved apply — never auto-applied), BLOCKED, LOCAL_PREFLIGHT_REQUIRED, ABORTED_ON_MISMATCH, or UNSUPPORTED. The returned plan authorizes nothing on its own; applying it is a separate human-gated step.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        canonicalName: { type: "string", description: "The resource's canonical name / slug (as returned by calllint_search_agent_tools / calllint_get_adoption_contract)." },
+        host: { type: "string", description: "Target host for the install plan: claude-code, cursor, or windsurf. Omit to get the local decision only (no plan)." },
+        hostConfigPath: { type: "string", description: "Optional path to the host's MCP config to plan against (read-only). Omit to plan against an absent (fresh) config." },
+        expectedVersion: { type: "string", description: "Optional exact version to assert; a mismatch aborts with no plan." },
+        expectedArtifactDigest: { type: "string", description: "Optional sha256:<64-hex> artifact digest to assert against the contract; a mismatch aborts." },
+        expectedContractDigest: { type: "string", description: "Optional sha256:<64-hex> contract digest to assert + record as plan provenance; a mismatch aborts." },
+      },
+      required: ["canonicalName"],
+    },
+    handler: safe((args, opts) => prepareSafeInstallHandler(args, opts)),
   },
 ]
 

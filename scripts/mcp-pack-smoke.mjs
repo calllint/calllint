@@ -80,7 +80,8 @@ try {
   if (/@calllint\//.test(dist)) fail("unresolved @calllint/* import in bundle (not self-contained)")
   ok("dist/index.js has shebang and is self-contained")
 
-  // 5. Drive the server over stdio: initialize, tools/list (=8), tools/call BLOCK.
+  // 5. Drive the server over stdio: initialize, tools/list (=10), tools/call BLOCK,
+  //    resources/list (>0) + resources/read (verbatim contract).
   const requests = [
     { jsonrpc: "2.0", id: 1, method: "initialize", params: {} },
     { jsonrpc: "2.0", id: 2, method: "tools/list" },
@@ -97,6 +98,8 @@ try {
         },
       },
     },
+    { jsonrpc: "2.0", id: 4, method: "resources/list" },
+    { jsonrpc: "2.0", id: 5, method: "resources/templates/list" },
   ]
   const input = requests.map((r) => JSON.stringify(r)).join("\n") + "\n"
   const res = spawnSync(process.execPath, [distPath], { input, encoding: "utf8", timeout: 30000 })
@@ -104,12 +107,37 @@ try {
   const lines = res.stdout.trim().split("\n").filter(Boolean).map((l) => JSON.parse(l))
   const init = lines.find((l) => l.id === 1)
   if (init?.result?.protocolVersion == null) fail("initialize did not return a protocolVersion")
+  if (init?.result?.capabilities?.resources == null) fail("initialize did not advertise the resources capability")
   const list = lines.find((l) => l.id === 2)
-  if (list?.result?.tools?.length !== 8) fail(`tools/list expected 8 tools, got ${list?.result?.tools?.length}`)
+  if (list?.result?.tools?.length !== 10) fail(`tools/list expected 10 tools, got ${list?.result?.tools?.length}`)
   const callRes = lines.find((l) => l.id === 3)
   const decision = JSON.parse(callRes.result.content[0].text)
   if (decision[0].verdict !== "BLOCK") fail(`scan_mcp_config_json expected BLOCK, got ${decision[0].verdict}`)
-  ok("stdio server: initialize + tools/list(8) + tools/call → BLOCK")
+
+  // resources/list must expose ≥1 committed adoption contract; templates must advertise the scheme.
+  const resList = lines.find((l) => l.id === 4)
+  const resources = resList?.result?.resources
+  if (!Array.isArray(resources) || resources.length === 0) fail("resources/list returned no resources")
+  if (!resources.every((r) => typeof r.uri === "string" && r.uri.startsWith("calllint://adoption/"))) {
+    fail("resources/list returned a non-adoption URI")
+  }
+  const tmplList = lines.find((l) => l.id === 5)
+  const templates = tmplList?.result?.resourceTemplates
+  if (!Array.isArray(templates) || templates.length === 0) fail("resources/templates/list returned no templates")
+
+  // resources/read the first advertised contract → must return verbatim JSON text.
+  const readReq = { jsonrpc: "2.0", id: 6, method: "resources/read", params: { uri: resources[0].uri } }
+  const res2 = spawnSync(process.execPath, [distPath], {
+    input: [requests[0], readReq].map((r) => JSON.stringify(r)).join("\n") + "\n",
+    encoding: "utf8",
+    timeout: 30000,
+  })
+  const read = res2.stdout.trim().split("\n").filter(Boolean).map((l) => JSON.parse(l)).find((l) => l.id === 6)
+  const contents = read?.result?.contents
+  if (!Array.isArray(contents) || contents.length === 0) fail("resources/read returned no contents")
+  const contract = JSON.parse(contents[0].text)
+  if (typeof contract?.contract?.contractDigest !== "string") fail("resources/read did not return a valid adoption contract")
+  ok(`stdio server: initialize + tools/list(10) + tools/call → BLOCK + resources(${resources.length}) + read verbatim`)
 
   console.log("mcp-pack-smoke: PASS")
 } finally {

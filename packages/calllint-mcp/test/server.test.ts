@@ -16,13 +16,46 @@ describe("handleRequest", () => {
     expect(r.protocolVersion).toBe("2024-11-05")
     expect((r.serverInfo as { name: string }).name).toBe("calllint")
     expect(String(r.instructions)).toMatch(/before installing or approving/i)
+    // Advertises both the tools and the resources capability (ADR 0056 §8).
+    expect((r.capabilities as Record<string, unknown>).tools).toBeDefined()
+    expect((r.capabilities as Record<string, unknown>).resources).toBeDefined()
   })
 
   it("tools/list returns all shipped tools with schemas", () => {
     const res = handleRequest({ jsonrpc: "2.0", id: 2, method: "tools/list" }, INFO, OPTS)
     const tools = (res as { result: { tools: { name: string; inputSchema: unknown }[] } }).result.tools
-    expect(tools).toHaveLength(8)
+    expect(tools).toHaveLength(10)
     for (const t of tools) expect(t.inputSchema).toBeDefined()
+  })
+
+  it("resources/list returns committed adoption contracts under the scheme", () => {
+    const res = handleRequest({ jsonrpc: "2.0", id: 7, method: "resources/list" }, INFO, OPTS)
+    const resources = (res as { result: { resources: { uri: string }[] } }).result.resources
+    expect(resources.length).toBeGreaterThan(0)
+    expect(resources.every((r) => r.uri.startsWith("calllint://adoption/"))).toBe(true)
+  })
+
+  it("resources/templates/list advertises the slug template", () => {
+    const res = handleRequest({ jsonrpc: "2.0", id: 8, method: "resources/templates/list" }, INFO, OPTS)
+    const tmpls = (res as { result: { resourceTemplates: { uriTemplate: string }[] } }).result.resourceTemplates
+    expect(tmpls.length).toBeGreaterThan(0)
+  })
+
+  it("resources/read returns a verbatim contract for a known URI", () => {
+    const list = handleRequest({ jsonrpc: "2.0", id: 9, method: "resources/list" }, INFO, OPTS)
+    const uri = (list as { result: { resources: { uri: string }[] } }).result.resources[0]!.uri
+    const res = handleRequest({ jsonrpc: "2.0", id: 10, method: "resources/read", params: { uri } }, INFO, OPTS)
+    const contents = (res as { result: { contents: { text: string }[] } }).result.contents
+    expect(JSON.parse(contents[0]!.text).contract.contractDigest).toMatch(/^sha256:/)
+  })
+
+  it("resources/read returns INVALID_PARAMS for an unknown URI", () => {
+    const res = handleRequest(
+      { jsonrpc: "2.0", id: 11, method: "resources/read", params: { uri: "calllint://adoption/nope/x" } },
+      INFO,
+      OPTS,
+    )
+    expect((res as { error: { code: number } }).error.code).toBe(-32602)
   })
 
   it("tools/call dispatches to the named tool", () => {
