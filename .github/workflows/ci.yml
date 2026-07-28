@@ -77,6 +77,17 @@ jobs:
       - name: Agent-trust-bench complementarity gate
         run: pnpm bench:test
 
+      # Workstream P (ADR 0058 §1/§5). Two runs, deliberately: --check catches
+      # artifact drift, --gate ENFORCES the boundary. The gate is what stops a later
+      # Workstream P batch from moving an L3 string (a value that reaches
+      # contractDigest) into an editable config file — the one mistake that would
+      # silently invalidate every sealed install plan.
+      - name: Workstream P presentation-plane audit (drift)
+        run: pnpm audit:presentation
+
+      - name: Workstream P presentation-plane audit (INV-P1/P2 gate)
+        run: pnpm audit:presentation:gate
+
       - name: Package smoke (shipped artifact)
         run: pnpm smoke
 

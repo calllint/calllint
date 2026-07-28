@@ -155,6 +155,8 @@ export {
 // Phase 2.4 Batch 1 — Safe-install acquisition projection (ADR 0056; plan §6–§8).
 export {
   ADOPTION_AUTHORITIES,
+  OBSERVED_CONSEQUENCE,
+  ABSENCE_CONSEQUENCE,
   selectDecisionAuthorities,
   type AdoptionAuthority,
   type DecisionAuthorityFact,
@@ -173,12 +175,27 @@ export {
   type PrepareArguments,
 } from "./agentAdoptionContract.js"
 export {
+  PRIMARY_CTA,
   safeInstallProjection,
   type SafeInstallProjection,
   type SafeInstallProjectionInput,
   type Installability,
   type HumanDispositionProjection,
 } from "./safeInstallProjection.js"
+// Workstream P Batch 0 — presentation-plane reality audit (ADR 0058 §1/§5).
+export {
+  COPY_SITES,
+  PROBE_SENTINEL,
+  gradePresentationAudit,
+  probeCopySite,
+  runPresentationAudit,
+  toProbeSubject,
+  type CopyPlane,
+  type CopyProbeResult,
+  type CopySiteDeclaration,
+  type PresentationAuditResult,
+  type ProbeSubject,
+} from "./presentationAudit.js"
 // Phase 2.4 — Human Install renderer + discovery manifest + Safe-install emit (ADR 0056).
 export { renderSafeInstall, renderSafeInstallContract } from "./renderSafeInstall.js"
 export {
@@ -202,6 +219,7 @@ export {
   evaluateAgentContract,
   CANONICAL_FIXTURES,
   canonicalProjection,
+  canonicalProjectionInput,
   EVAL_ENGINE_VERSION,
   PUBLISHER_INJECTION_BLURBS,
   FIVE_SECOND_QUESTIONS,

@@ -30,6 +30,9 @@
     "eval:phase-2.4:gates": "tsx scripts/phase-2.4-gates.ts",
     "eval:phase-2.4:gates:write": "tsx scripts/phase-2.4-gates.ts --write",
     "eval:phase-2.4:gates:gate": "tsx scripts/phase-2.4-gates.ts --gate",
+    "audit:presentation": "tsx scripts/presentation-plane-audit.ts",
+    "audit:presentation:write": "tsx scripts/presentation-plane-audit.ts --write",
+    "audit:presentation:gate": "tsx scripts/presentation-plane-audit.ts --gate",
     "eval:phase-2.4:panel": "tsx scripts/phase-2.4-panel.ts",
     "eval:phase-2.4:panel:validate": "tsx scripts/phase-2.4-panel.ts --validate",
     "eval:phase-2.4:panel:record": "tsx scripts/phase-2.4-panel.ts --record",
@@ -53,7 +56,7 @@
     "ingest:trust-index": "pnpm --filter @calllint/trust-index ingest",
     "resolve-evidence:trust-index": "pnpm --filter @calllint/trust-index resolve-evidence",
     "verify-claims:trust-index": "pnpm --filter @calllint/trust-index verify-claims",
-    "ci:local": "pnpm typecheck && pnpm test && pnpm build && pnpm corpus:test && pnpm bench:test && pnpm check:public-copy && pnpm audit:evidence && pnpm audit:coverage && pnpm audit:calibration && pnpm eval:phase-2.4 && pnpm eval:phase-2.4:dogfood && pnpm eval:phase-2.4:gates && pnpm eval:phase-2.4:panel:validate"
+    "ci:local": "pnpm typecheck && pnpm test && pnpm build && pnpm corpus:test && pnpm bench:test && pnpm check:public-copy && pnpm audit:evidence && pnpm audit:coverage && pnpm audit:calibration && pnpm eval:phase-2.4 && pnpm eval:phase-2.4:dogfood && pnpm eval:phase-2.4:gates && pnpm eval:phase-2.4:panel:validate && pnpm audit:presentation && pnpm audit:presentation:gate"
   },
   "devDependencies": {
     "@types/node": "^20.14.0",

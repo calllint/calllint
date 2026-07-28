@@ -34,8 +34,15 @@ export type Installability =
   | "LOCAL_PREFLIGHT_REQUIRED"
   | "UNSUPPORTED"
 
-/** The human primary-CTA copy per state (plan §6.4/§6.7). Deterministic, closed. */
-const PRIMARY_CTA: Record<Installability, string> = {
+/**
+ * The human primary-CTA copy per state (plan §6.4/§6.7). Deterministic, closed.
+ *
+ * Exported for the Workstream P presentation audit (ADR 0058 §1). Note what is and
+ * is not config here: the ROUTE (`installability`, derived from the verdict) is
+ * code and stays code; only its WORDING is L1 cognitive copy, lifted by PR P-2 into
+ * `apps/web/content/safe-install/locales/en-US/decision-copy.v1.json`.
+ */
+export const PRIMARY_CTA: Record<Installability, string> = {
   PREPARE_AVAILABLE: "Add with CallLint",
   REVIEW_REQUIRED: "Review and add",
   BLOCKED: "Inspect blockers",

@@ -22,7 +22,11 @@
 // builds the gate and never signs it off.
 // ---------------------------------------------------------------------------
 
-import { safeInstallProjection, type SafeInstallProjection } from "./safeInstallProjection.js"
+import {
+  safeInstallProjection,
+  type SafeInstallProjection,
+  type SafeInstallProjectionInput,
+} from "./safeInstallProjection.js"
 import { bakeTrustPage } from "./bakeTrustPage.js"
 import { fixtureCohort } from "./cohort.js"
 import { stableStringify } from "@calllint/fingerprint"
@@ -457,13 +461,27 @@ export function canonicalProjection(
   fixture: CanonicalFixture,
   publisherDescription: string | null = null,
 ): SafeInstallProjection {
+  return safeInstallProjection(canonicalProjectionInput(fixture, publisherDescription))
+}
+
+/**
+ * The projection INPUT for a canonical fixture — the same value
+ * `canonicalProjection` projects, exposed because the Workstream P presentation
+ * audit must re-project the SAME input under mutated copy to measure whether a
+ * copy edit can reach a decision digest. Handing out the input (not a second
+ * fixture path) is what keeps the probe measuring the shipped projection.
+ */
+export function canonicalProjectionInput(
+  fixture: CanonicalFixture,
+  publisherDescription: string | null = null,
+): SafeInstallProjectionInput {
   const entry = fixtureCohort().find((e) => e.case.file === fixture.fixtureFile)
   if (entry === undefined) {
     throw new Error(`phase24Eval: canonical fixture file not in the cohort: ${fixture.fixtureFile}`)
   }
   const page = bakeTrustPage(entry.input)
   const slug = page.canonicalName.replace(/[^a-z0-9]+/gi, "-").toLowerCase()
-  return safeInstallProjection({
+  return {
     page,
     subject: {
       canonicalName: page.canonicalName,
@@ -479,5 +497,5 @@ export function canonicalProjection(
     evidenceDigest: EVAL_EVIDENCE_DIGEST,
     engineVersion: EVAL_ENGINE_VERSION,
     unsupported: fixture.unsupported,
-  })
+  }
 }
