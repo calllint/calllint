@@ -27,13 +27,15 @@ function call(name: string, args: Record<string, unknown>) {
 }
 
 describe("tool registry", () => {
-  it("registers exactly the shipped tools (6 Phase-5 + Sentinel + Safe Search + 2 Adoption)", () => {
+  it("registers exactly the shipped tools (6 Phase-5 + Sentinel + Safe Search + 4 Adoption)", () => {
     expect(TOOLS.map((t) => t.name).sort()).toEqual(
       [
+        "calllint_apply_prepared_install",
         "calllint_get_adoption_contract",
         "calllint_guard_external_tools",
         "calllint_prepare_safe_install",
         "calllint_search_agent_tools",
+        "calllint_verify_tool_install",
         "explain_finding",
         "generate_agent_rule",
         "generate_ci_gate_snippet",
