@@ -8,6 +8,7 @@
 
 import type { ScanOptions } from "@calllint/core"
 import { TOOLS, TOOLS_BY_NAME } from "./tools.js"
+import { RESOURCES, RESOURCE_TEMPLATES, readResource } from "./resources.js"
 
 const PROTOCOL_VERSION = "2024-11-05"
 
@@ -58,7 +59,7 @@ export function handleRequest(
     case "initialize":
       return result(id, {
         protocolVersion: PROTOCOL_VERSION,
-        capabilities: { tools: {} },
+        capabilities: { tools: {}, resources: {} },
         serverInfo: info,
         instructions:
           "Use BEFORE installing or approving other MCP servers. CallLint is a " +
@@ -91,6 +92,20 @@ export function handleRequest(
       const args = (params.arguments as Record<string, unknown>) ?? {}
       const toolResult = tool.handler(args, scanOpts)
       return result(id, toolResult)
+    }
+
+    case "resources/list":
+      return result(id, { resources: RESOURCES })
+
+    case "resources/templates/list":
+      return result(id, { resourceTemplates: RESOURCE_TEMPLATES })
+
+    case "resources/read": {
+      if (isNotification) return null
+      const uri = typeof req.params?.uri === "string" ? req.params.uri : ""
+      const contents = readResource(uri)
+      if (!contents) return error(id, ERR.INVALID_PARAMS, `Unknown resource: ${uri || "(none)"}`)
+      return result(id, { contents })
     }
 
     default:

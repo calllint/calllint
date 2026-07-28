@@ -1,4 +1,5 @@
 export { defaultPolicy, defaultPolicyJson } from "./defaultPolicy.js"
+export { adoptionBasisPolicy, adoptionBasisPolicyJson } from "./adoptionPolicy.js"
 export {
   validatePolicy,
   isOverrideActive,

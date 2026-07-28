@@ -167,3 +167,12 @@ export {
   verifyAuthorityDigest,
   type BuildAuthorityInput,
 } from "./gateway/authority.js"
+
+// Phase 2.4 — shared safe-install prepare orchestration (ADR 0056 §10.4). The one
+// writer-free sequence the CLI `safe-install` and the MCP `prepare_safe_install`
+// tool both delegate to, so there is no second copy of the gateway glue.
+export {
+  prepareSafeInstall,
+  type PrepareSafeInstallInput,
+  type SafeInstallHostPlan,
+} from "./gateway/prepareSafeInstall.js"
