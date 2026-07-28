@@ -218,3 +218,20 @@ export {
   type GateStatus,
   type Reproject,
 } from "./phase24Eval.js"
+export {
+  decideGate,
+  measureIdentityConsistency,
+  evaluateOneSourceConsistency,
+  evaluateLocalBinding,
+  evaluateOneTimeSetup,
+  evaluateConversion,
+  TARGET_MISMATCH_OUTCOME,
+  type GateMeasure,
+  type GateResult,
+  type SurfaceFacts,
+  type IdentitySurfaces,
+  type MismatchRun,
+  type WriteSite,
+  type RollbackRun,
+  type ConversionObservation,
+} from "./phase24Gates.js"

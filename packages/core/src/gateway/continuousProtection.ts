@@ -220,12 +220,19 @@ export function renderContinuousProtectionOffer(offer: ContinuousProtectionOffer
     "  This installs persistent components (a separate decision from the install above):",
   ]
   for (const c of offer.components) {
-    lines.push(`    ${c.id}`)
+    // The human-readable label leads; the stable id follows in parentheses. Showing
+    // only the id would make the person consenting decode `calllint-guard:vscode`
+    // to work out what they are agreeing to.
+    lines.push(`    ${c.label} (${c.id})`)
     lines.push(`      creates:   ${c.artifactPath}${c.posture === "shared" ? " (merged into your own config)" : ""}`)
     lines.push(`      remove:    ${c.uninstallCommand}`)
     lines.push(`      enable:    ${c.installCommand}`)
   }
   lines.push("")
+  // Both exits must be visible BEFORE the decision: `disable` stops the behaviour
+  // without touching files, `remove` (above, per component) takes the files back
+  // out. Disclosing only removal makes turning it off look harder than it is.
+  lines.push(`  disable later: ${offer.disableCommand}`)
   lines.push(`  disclosure: ${offer.disclosureDigest}`)
   lines.push(
     offer.recommendation === "AUTO_ENABLE_BY_POLICY"

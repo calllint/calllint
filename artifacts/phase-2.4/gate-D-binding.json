@@ -1,0 +1,106 @@
+{
+  "schema": "calllint.phase-2.4-gate-d.v0",
+  "$comment": "Gate 2.4-D evidence. Two independent claims. (1) BEHAVIOURAL: the real built binary is driven against a REAL served contract with each of the three target dimensions falsified in turn (artifact digest, contract digest, version); each run must end TARGET_MISMATCH with a non-zero exit, hand back NO plan digest, leave NO host config on disk, and name the falsified dimension so the operator can act. The decisive measure is the filesystem, not the tool's own report. (2) STRUCTURAL: every filesystem write site in the shipped safe-install surface is enumerated and classified by destination; a behavioural test can only prove the paths it exercises, while this proves there is no other path to exercise (INV-2.4-03, one writer). Regenerate with `pnpm eval:phase-2.4:gates:write`.",
+  "gate": "2.4-D",
+  "status": "PASSED",
+  "engine": "1.7.3",
+  "subject": "mcp-registry/ai.adeu-adeu",
+  "mismatchRuns": [
+    {
+      "id": "artifact-digest",
+      "outcome": "ABORTED_ON_MISMATCH",
+      "exitCode": 20,
+      "planDigest": null,
+      "hostConfigWritten": false,
+      "explains": true
+    },
+    {
+      "id": "contract-digest",
+      "outcome": "ABORTED_ON_MISMATCH",
+      "exitCode": 20,
+      "planDigest": null,
+      "hostConfigWritten": false,
+      "explains": true
+    },
+    {
+      "id": "version",
+      "outcome": "ABORTED_ON_MISMATCH",
+      "exitCode": 20,
+      "planDigest": null,
+      "hostConfigWritten": false,
+      "explains": true
+    }
+  ],
+  "writeSites": [
+    {
+      "file": "apps/cli/src/commands/safeInstall.ts",
+      "line": 280,
+      "destination": "writeFileSync(path → path→join(scratch, \"adoption-policy.json\"))",
+      "allowed": true,
+      "why": "writeFileSync → command-owned scratch dir (removed on exit)"
+    },
+    {
+      "file": "apps/cli/src/commands/safeInstall.ts",
+      "line": 414,
+      "destination": "rmSync(scratch → scratch→mkdtempSync(join(tmpdir(), \"calllint-safe-install-\")))",
+      "allowed": true,
+      "why": "rmSync → command-owned scratch dir (removed on exit)"
+    },
+    {
+      "file": "apps/cli/src/commands/safeInstall.ts",
+      "line": 502,
+      "destination": "mkdirSync(plansDir → plansDir→join(scratch→mkdtempSync(join(tmpdir(), \"calllint-safe-install-\")), \".calllint\", \"plans\"))",
+      "allowed": true,
+      "why": "mkdirSync → command-owned scratch dir (removed on exit)"
+    },
+    {
+      "file": "apps/cli/src/commands/safeInstall.ts",
+      "line": 503,
+      "destination": "writeFileSync(join(plansDir, `${prep.plan.planId}.json`) → join(plansDir→join(scratch→mkdtempSync(join(tmpdir(), \"calllint-safe-install-\")), \".calllint\", \"plans\"), `${prep.plan.planId}.json`))",
+      "allowed": true,
+      "why": "writeFileSync → command-owned scratch dir (removed on exit)"
+    },
+    {
+      "file": "apps/cli/src/commands/safeInstall.ts",
+      "line": 570,
+      "destination": "mkdirSync(join(abs, \"..\") → join(abs→resolvePath(planOut→flagStr(args.flags, \"plan-out\")), \"..\"))",
+      "allowed": true,
+      "why": "mkdirSync → path the operator named on the command line"
+    },
+    {
+      "file": "apps/cli/src/commands/safeInstall.ts",
+      "line": 571,
+      "destination": "writeFileSync(abs → abs→resolvePath(planOut→flagStr(args.flags, \"plan-out\")))",
+      "allowed": true,
+      "why": "writeFileSync → path the operator named on the command line"
+    }
+  ],
+  "measures": [
+    {
+      "id": "mismatch-matrix-size",
+      "pass": true,
+      "observed": "3 mismatch runs (expected 3)"
+    },
+    {
+      "id": "mismatch/artifact-digest",
+      "pass": true,
+      "observed": "ABORTED_ON_MISMATCH exit 20, no plan, nothing written"
+    },
+    {
+      "id": "mismatch/contract-digest",
+      "pass": true,
+      "observed": "ABORTED_ON_MISMATCH exit 20, no plan, nothing written"
+    },
+    {
+      "id": "mismatch/version",
+      "pass": true,
+      "observed": "ABORTED_ON_MISMATCH exit 20, no plan, nothing written"
+    },
+    {
+      "id": "safe-install-direct-host-config-writers",
+      "pass": true,
+      "observed": "6 write sites audited, all scoped away from the host config (writeFileSync → command-owned scratch dir (removed on exit); rmSync → command-owned scratch dir (removed on exit); mkdirSync → command-owned scratch dir (removed on exit); writeFileSync → command-owned scratch dir (removed on exit); mkdirSync → path the operator named on the command line; writeFileSync → path the operator named on the command line)"
+    }
+  ],
+  "blockers": []
+}
