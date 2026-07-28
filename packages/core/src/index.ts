@@ -176,3 +176,21 @@ export {
   type PrepareSafeInstallInput,
   type SafeInstallHostPlan,
 } from "./gateway/prepareSafeInstall.js"
+
+// Phase 2.4 Batch 8 — continuous-protection conversion (INV-2.4-07). Pure disclosure:
+// the one component list + uninstall story + renderer shared by the CLI post-success
+// offer and the MCP `enable_continuous_guard` tool. Enables nothing, writes nothing.
+export {
+  CONTINUOUS_PROTECTION_OFFER_SCHEMA,
+  GUARD_HOST_IDS,
+  continuousProtectionOffer,
+  disclosureDigest,
+  isGuardHostId,
+  persistentComponentFor,
+  renderContinuousProtectionOffer,
+  type ContinuousProtectionInput,
+  type ContinuousProtectionOffer,
+  type ContinuousProtectionRecommendation,
+  type GuardHostId,
+  type PersistentComponent,
+} from "./gateway/continuousProtection.js"
