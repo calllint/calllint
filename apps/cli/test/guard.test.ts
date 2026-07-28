@@ -254,3 +254,44 @@ describe("guard status — detects new hosts honestly (ADR 0052 §3)", () => {
     expect(parsed.installedHooks["gemini:sessionStart"]).toBe(true)
   })
 })
+
+// ---------------------------------------------------------------------------
+// Phase 2.4 Batch 8 — `calllint protect` is a pure ALIAS for `guard install`.
+// These tests exist to prove there is no second implementation: the alias must
+// produce byte-identical output for every host, so a future divergence in the
+// host matrix, the write posture, or the clobber refusal fails here.
+// ---------------------------------------------------------------------------
+describe("protect — alias for `guard install` (Phase 2.4 B8)", () => {
+  it("with no --host, lists exactly what `guard install` lists", () => {
+    expect(run(["protect"], deps()).stdout).toBe(run(["guard", "install"], deps()).stdout)
+  })
+
+  for (const host of ["git", "git-pre-push", "github", "copilot", "claude-code", "gemini", "vscode"] as const) {
+    it(`--host ${host} behaves identically to \`guard install --host ${host}\``, () => {
+      const viaAlias = run(["protect", "--host", host], deps({ writeCacheFile: false }))
+      const viaGuard = run(["guard", "install", "--host", host], deps({ writeCacheFile: false }))
+      expect(viaAlias).toEqual(viaGuard)
+    })
+  }
+
+  it("--host git actually installs the hook (the alias is not plan-only)", () => {
+    mkdirSync(join(dir, ".git", "hooks"), { recursive: true })
+    expect(run(["protect", "--host", "git"], deps()).exitCode).toBe(EXIT.OK)
+    expect(readFileSync(join(dir, ".git", "hooks", "pre-commit"), "utf8")).toContain("calllint guard")
+  })
+
+  it("rejects an unknown host instead of guessing one (INV-2.4-08)", () => {
+    const res = run(["protect", "--host", "not-a-host"], deps())
+    expect(res.exitCode).toBe(EXIT.USAGE)
+    expect(res.stderr).toContain("Unknown guard host")
+  })
+
+  it("shared-posture hosts still refuse to clobber through the alias", () => {
+    mkdirSync(join(dir, ".claude"), { recursive: true })
+    writeFileSync(join(dir, ".claude", "settings.json"), "{}")
+    const res = run(["protect", "--host", "claude-code", "--out", ".claude/settings.json"], deps())
+    expect(res.exitCode).toBe(EXIT.USAGE)
+    expect(res.stderr).toMatch(/Refusing to overwrite/)
+    expect(readFileSync(join(dir, ".claude", "settings.json"), "utf8")).toBe("{}")
+  })
+})

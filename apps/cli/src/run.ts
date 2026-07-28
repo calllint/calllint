@@ -173,6 +173,20 @@ function dispatch(argv: string[], deps: RunDeps): CommandResult {
         generatedAt: deps.generatedAt,
         writeFile: deps.writeCacheFile,
       })
+    // Phase 2.4 Batch 8 — `calllint protect` is a pure ALIAS for `guard install`
+    // (the discoverable name the continuous-protection offer can point at). It is
+    // an argv rewrite, not a second implementation: one writer, one host matrix,
+    // one posture rule (INV-2.4-03). `protect --host x` == `guard install --host x`.
+    case "protect":
+      return guardCommand(
+        { ...args, positionals: ["install", ...args.positionals] },
+        {
+          cwd: deps.cwd,
+          now: deps.now,
+          generatedAt: deps.generatedAt,
+          writeFile: deps.writeCacheFile,
+        },
+      )
     case "gen-rule":
       return genRuleCommand(args, { cwd: deps.cwd })
     case "policy":

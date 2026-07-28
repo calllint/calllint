@@ -94,6 +94,59 @@ function usageErr(message: string): CommandResult {
   return { stdout: "", stderr: `Error: ${message}`, exitCode: EXIT.USAGE }
 }
 
+/** How long a computed plan stays applicable. Enforced by the shipped apply engine. */
+const PLAN_VALIDITY_MS = 60 * 60 * 1000
+
+/** The minimum a replayed plan must carry to serve as a time anchor. */
+interface ReplayPlan {
+  readonly planDigest: string
+  readonly expiresAt: string
+  readonly raw: Record<string, unknown>
+}
+
+/**
+ * The digests the Trust Gateway itself uses to bind a decision to a plan. They are
+ * invariant across a benign re-run (a plan recomputed after a successful apply
+ * differs in `preconditionDigest`/`planId`/patch shape but binds the SAME decision)
+ * and change whenever the contract, authority, or policy moves.
+ *
+ * Used ONLY to explain an abort, never to authorize a write.
+ */
+const DECISION_BINDING = ["adoptionContract", "decisionDigest", "authorityDigest", "policyDigest", "artifactDigest", "host", "tier"] as const
+
+function sameDecisionBinding(a: Record<string, unknown>, b: Record<string, unknown>): boolean {
+  return DECISION_BINDING.every((k) => JSON.stringify(a[k]) === JSON.stringify(b[k]))
+}
+
+/**
+ * Read the plan handed back via `--plan <file>` (written earlier by `--plan-out`).
+ *
+ * This is a REPLAY of a plan the caller already reviewed, not a shortcut: the only
+ * thing taken from it is the non-security time anchor (`expiresAt`). Every safety
+ * fact — public floor, exact-target identity, npm-only shape, local re-decide,
+ * policy — is recomputed from live inputs, and the recomputed digest must still
+ * match both this plan and `--approve`. A file that is missing, unparsable, or
+ * lacks the two fields is a usage error, never a silent fresh-anchor fallback
+ * (which would resurrect the unreproducible-digest bug it exists to fix).
+ */
+function resolveReplayPlan(args: ParsedArgs): { plan: ReplayPlan | null } | { error: string } {
+  const path = flagStr(args.flags, "plan")
+  if (!path) return { plan: null }
+  const abs = resolvePath(path)
+  if (!existsSync(abs)) return { error: `--plan file not found: ${abs}` }
+  let parsed: unknown
+  try {
+    parsed = JSON.parse(readFileSync(abs, "utf8"))
+  } catch (e) {
+    return { error: `--plan file is not valid JSON: ${e instanceof Error ? e.message : String(e)}` }
+  }
+  const p = parsed as { planDigest?: unknown; expiresAt?: unknown }
+  if (typeof p.planDigest !== "string" || typeof p.expiresAt !== "string") {
+    return { error: `--plan file is not a calllint.install-plan.v1 (missing planDigest/expiresAt): ${abs}` }
+  }
+  return { plan: { planDigest: p.planDigest, expiresAt: p.expiresAt, raw: parsed as Record<string, unknown> } }
+}
+
 /** Extract the fields we act on from a wire-checked contract. Fail-closed: a
  *  structurally-odd contract that passed the shape gate but lacks a usable subject
  *  identity yields null, and the caller degrades to a preflight rather than guess. */
@@ -252,7 +305,9 @@ export function safeInstallCommand(args: ParsedArgs, deps: SafeInstallDeps): Com
   const resolved = deps.contract
   if (!resolved) {
     return usageErr(
-      "Missing contract\nUsage: calllint safe-install --contract <https://calllint.com/... | file> [--host <id>] [--apply --approve <plan-digest>]",
+      "Missing contract\nUsage: calllint safe-install --contract <https://calllint.com/... | file> [--host <id>]\n" +
+        "         [--plan-out <file>]                        write the computed plan for review\n" +
+        "         [--plan <file> --apply --approve <digest>]  replay the reviewed plan and apply",
     )
   }
   if (resolved.error) return { stdout: "", stderr: `Error: ${resolved.error.message}`, exitCode: resolved.error.exitCode }
@@ -406,7 +461,21 @@ function runActionable(
   // `trust prepare` runs, so the two surfaces cannot disagree. Never executes the
   // target; the contract digest is threaded as recorded plan PROVENANCE only.
   const hostConfigText = existsSync(hostConfig) ? readFileSync(hostConfig, "utf8") : null
+
+  // The plan's validity window. `expiresAt` is SEALED into planDigest (buildPlan),
+  // so deriving it from this process's clock would make the digest unreproducible
+  // and the printed `--apply --approve <digest>` handshake could never succeed — a
+  // second invocation would always recompute a different digest. When the caller
+  // replays a plan they already saw (`--plan`), we therefore INHERIT that plan's
+  // anchor. Nothing security-relevant is inherited: the full local re-decide below
+  // runs again from live inputs, and the shipped apply engine still enforces this
+  // window against real `now`, so replaying an old plan is refused as stale.
+  const replay = resolveReplayPlan(args)
+  if ("error" in replay) return { stdout: "", stderr: `Error: ${replay.error}`, exitCode: EXIT.USAGE }
   const expiresMs = Date.parse(deps.generatedAt)
+  const freshExpiry = Number.isNaN(expiresMs)
+    ? deps.generatedAt
+    : new Date(expiresMs + PLAN_VALIDITY_MS).toISOString()
   let prep: TrustPreparation
   try {
     prep = prepareSafeInstall({
@@ -417,7 +486,7 @@ function runActionable(
         host,
         configPath: hostConfig,
         hostConfigText,
-        expiresAt: Number.isNaN(expiresMs) ? deps.generatedAt : new Date(expiresMs + 60 * 60 * 1000).toISOString(),
+        expiresAt: replay.plan?.expiresAt ?? freshExpiry,
       },
       expect: view.contractDigest ? { contractDigest: view.contractDigest as `sha256:${string}` } : undefined,
       preparedAt: deps.generatedAt,
@@ -455,20 +524,68 @@ function runActionable(
   }
 
   const planDigest = plan.planDigest as Sha256
-  // Prepare-only unless an apply was explicitly requested.
-  if (!flagBool(args.flags, "apply")) {
+
+  // A replayed plan must reproduce EXACTLY. The anchor is inherited, so any
+  // remaining difference means an input moved since the caller reviewed it. Abort
+  // and write nothing: the approval names a plan that is no longer the current one,
+  // and we never substitute a digest the operator did not name (INV-2.4-06).
+  if (replay.plan && replay.plan.planDigest !== planDigest) {
+    // The decision binding tells the caller WHICH kind of change happened, so the
+    // abort is actionable instead of alarming. It never softens the abort itself.
+    const sameDecision = sameDecisionBinding(replay.plan.raw, plan as unknown as Record<string, unknown>)
     return finish(
       emitSafeInstallResult({
-        outcome: "PREPARED",
+        outcome: "ABORTED_ON_MISMATCH",
         ...base,
         planDigest,
         notes: [
-          `plan ${planDigest.slice(0, 23)}… computed for host "${host}" — NOT applied`,
-          `to apply, re-run with:  --apply --approve ${planDigest}`,
+          "the replayed plan is no longer the current plan — nothing was written",
+          `replayed ${replay.plan.planDigest.slice(0, 23)}…, recomputed ${planDigest.slice(0, 23)}…`,
+          sameDecision
+            ? "the decision is unchanged, so the host config moved — it may already be installed as reviewed; re-run prepare to get the current plan"
+            : "a decision-relevant input changed (contract, authority, or policy) — re-run prepare and REVIEW the new plan before approving",
         ],
       }),
       modes.json,
     )
+  }
+
+  // Prepare-only unless an apply was explicitly requested.
+  if (!flagBool(args.flags, "apply")) {
+    const planOut = flagStr(args.flags, "plan-out")
+    const notes = [`plan ${planDigest.slice(0, 23)}… computed for host "${host}" — NOT applied`]
+    if (planOut) {
+      // Hand the reviewed plan back to the caller so the apply step can REPLAY it.
+      // Caller-requested output: not a CallLint-owned persistent component, so
+      // one-time mode still reports `persistentComponents: []` (INV-2.4-07).
+      //
+      // `--plan <file>` on apply matches the shipped `trust`/`integrate` convention
+      // exactly. This WRITE side deliberately does not: those use a boolean
+      // `--write-plan` that persists into the workspace at
+      // `.calllint/plans/<plan-id>.json`, which safe-install must never do — one-time
+      // mode leaves ZERO workspace files. So the destination is caller-chosen and
+      // explicit, and nothing is written unless it is asked for by name.
+      const abs = resolvePath(planOut)
+      try {
+        mkdirSync(join(abs, ".."), { recursive: true })
+        writeFileSync(abs, JSON.stringify(plan, null, 2) + "\n", "utf8")
+      } catch (e) {
+        return { stdout: "", stderr: `Error: could not write --plan-out ${abs}: ${e instanceof Error ? e.message : String(e)}`, exitCode: EXIT.ERROR }
+      }
+      notes.push(
+        `plan written to ${abs}`,
+        `to apply, re-run with:  --plan ${abs} --apply --approve ${planDigest}`,
+      )
+    } else {
+      // `expiresAt` is sealed into planDigest, so a bare re-run recomputes a
+      // DIFFERENT digest and the approval could never match. Point at the two
+      // routes that actually work instead of printing an instruction that cannot.
+      notes.push(
+        "to apply non-interactively, re-run prepare with  --plan-out <file>  then:  --plan <file> --apply --approve <digest>",
+        "to apply interactively, re-run with  --apply  and confirm at the prompt",
+      )
+    }
+    return finish(emitSafeInstallResult({ outcome: "PREPARED", ...base, planDigest, notes }), modes.json)
   }
 
   // 5) Single explicit approval gate. Machine mode requires the exact plan digest
@@ -548,6 +665,18 @@ function resolveApproval(
     // Machines must name the exact digest they reviewed — never auto-apply (§10.7).
     if (!approve) {
       return { error: "in non-interactive/--json mode, --apply requires --approve <exact-plan-digest>" }
+    }
+    // A digest from an earlier invocation cannot match a freshly anchored plan
+    // (`expiresAt` is sealed into planDigest), so a bare `--approve` would fail with
+    // a confusing digest mismatch. Name the actual cause and the working route.
+    if (!flagStr(args.flags, "plan")) {
+      return {
+        error:
+          "non-interactive --apply also requires --plan <file> (the plan you reviewed)\n" +
+          "  step 1:  calllint safe-install --contract <c> --host <h> --json --plan-out plan.json\n" +
+          "  step 2:  calllint safe-install --contract <c> --host <h> --json --plan plan.json --apply --approve <digest>\n" +
+          "  (a plan digest seals the plan's validity window, so it is only reproducible when the reviewed plan is replayed)",
+      }
     }
     // Pass the caller's value through verbatim; the apply engine binds approval to
     // the plan digest and fails closed on any mismatch (we do not pre-judge it here).
@@ -659,15 +788,24 @@ OPTIONS
   --apply                 Attempt to apply the prepared plan (default: prepare only)
   --approve <plan-digest> The exact plan digest you reviewed (required to apply
                           in --json / --non-interactive mode)
+  --plan-out <file>       Write the computed plan for review (agent flow, step 1)
+  --plan <file>           Replay the plan you reviewed, then apply it (required with
+                          --apply in --json / --non-interactive mode). A plan digest
+                          seals the plan's validity window, so it only reproduces
+                          when the reviewed plan is replayed; drift aborts.
   --expect-version <v>            Assert the contract's exact version (offline gate)
   --expect-artifact-digest <sha>  Assert the contract's artifact digest (offline gate)
   --expect-contract-digest <sha>  Assert the contract digest (offline gate + provenance)
   --json                  Emit only the calllint.safe-install-result.v1 envelope
-  --non-interactive       Agent mode: never prompt; apply only with --apply --approve
+  --non-interactive       Agent mode: never prompt; apply only with
+                          --plan <file> --apply --approve <digest>
 
 EXAMPLES
   calllint safe-install --contract https://calllint.com/install/acme/tool/index.json --host cursor
-  calllint safe-install --contract ./contract.json --host cursor --apply --approve sha256:...
+  calllint safe-install --contract ./contract.json --host cursor --apply   # interactive approval
+  # agent flow — review the plan, then replay exactly what you reviewed:
+  calllint safe-install --contract ./c.json --host cursor --json --plan-out plan.json
+  calllint safe-install --contract ./c.json --host cursor --json --plan plan.json --apply --approve sha256:...
   cat contract.json | calllint safe-install --stdin --host claude-code --json
 `
 }
