@@ -35,7 +35,13 @@ import {
   receiptBodyDigest,
   verifyDecisionReceipt,
 } from "@calllint/install-planner"
-import { prepareSafeInstall } from "@calllint/core"
+import {
+  continuousProtectionOffer,
+  isGuardHostId,
+  prepareSafeInstall,
+  renderContinuousProtectionOffer,
+  type GuardHostId,
+} from "@calllint/core"
 import { adoptionBasisPolicyJson, loadPolicyOrDefault } from "@calllint/policy"
 import type { ApplyResult, TrustPreparation } from "@calllint/types"
 import type { CommandResult } from "./scan.js"
@@ -525,6 +531,8 @@ function runActionable(
       notes,
     }),
     modes.json,
+    // Batch 8: offer the conversion only once the one-time install durably verified.
+    outcome === "APPLIED_AND_VERIFIED" ? postSuccessOffer(host, deps.cwd) : undefined,
   )
 }
 
@@ -565,10 +573,56 @@ function preparationNotes(prep: TrustPreparation): string[] {
 }
 
 /** Render the envelope (machine `--json` prints ONLY the envelope) + exit code. */
-function finish(result: SafeInstallResultV1, json: boolean): CommandResult {
+function finish(result: SafeInstallResultV1, json: boolean, offer?: string): CommandResult {
   const exitCode = outcomeExitCode(result.outcome)
+  // `--json` prints ONLY the envelope (agent contract). The conversion offer is human
+  // presentation, not a new machine field — an agent gets it from the dedicated MCP
+  // tool, so the shipped result schema stays unchanged.
   if (json) return { stdout: JSON.stringify(result, null, 2), stderr: "", exitCode }
-  return { stdout: renderResult(result), stderr: "", exitCode }
+  const body = renderResult(result)
+  return { stdout: offer ? `${body}\n${offer}` : body, stderr: "", exitCode }
+}
+
+/**
+ * Batch 8 — the post-success continuous-protection offer (INV-2.4-07). Shown ONLY after
+ * a durably verified one-time install, because the conversion argument is "value first,
+ * commitment second". It is pure presentation: nothing is pre-selected, `[Not now]` is
+ * always printed, and it installs nothing. Returns undefined when there is no honest
+ * Guard host to disclose for the install host — never a guessed one (INV-2.4-08).
+ */
+function postSuccessOffer(host: string | null, cwd: string): string | undefined {
+  const guardHost = guardHostFor(host)
+  if (!guardHost) return undefined
+  const offer = continuousProtectionOffer({
+    hosts: [guardHost],
+    alreadyInstalled: guardArtifactPresent(guardHost, cwd),
+  })
+  return renderContinuousProtectionOffer(offer)
+}
+
+/**
+ * Map the install host onto a Guard host. `claude-code` is the only Tier-A install host
+ * that is also a shipped Guard host; `cursor`/`windsurf` have no Guard hook, so the repo
+ * -level `git` pre-commit hook is disclosed instead (it guards the same authority surface
+ * regardless of which editor changed it). Anything else → no offer.
+ */
+function guardHostFor(host: string | null): GuardHostId | undefined {
+  if (host === null) return undefined
+  if (isGuardHostId(host)) return host
+  if (host === CURSOR_HOST_ID || host === WINDSURF_HOST_ID) return "git"
+  return undefined
+}
+
+/** Honest "already protected" check: the artifact exists AND names `calllint guard`. */
+function guardArtifactPresent(guardHost: GuardHostId, cwd: string): boolean {
+  const offer = continuousProtectionOffer({ hosts: [guardHost] })
+  const path = join(cwd, offer.components[0]!.artifactPath)
+  if (!existsSync(path)) return false
+  try {
+    return readFileSync(path, "utf8").includes("calllint guard")
+  } catch {
+    return false
+  }
 }
 
 /** A compact human transcript of the outcome (never marketing prose). */

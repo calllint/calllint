@@ -20,7 +20,7 @@
  *     LOCAL_PREFLIGHT_REQUIRED, never a guessed command.
  */
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest"
-import { mkdtempSync, rmSync, writeFileSync, existsSync, readFileSync } from "node:fs"
+import { mkdirSync, mkdtempSync, rmSync, writeFileSync, existsSync, readFileSync } from "node:fs"
 import { tmpdir } from "node:os"
 import { join } from "node:path"
 
@@ -538,4 +538,106 @@ describe("safe-install — outcome projection is total + fail-closed (unit)", ()
     expect(outcomeExitCode("LOCAL_PREFLIGHT_REQUIRED")).toBe(20)
     expect(outcomeExitCode("UNSUPPORTED")).toBe(20)
   })
+})
+
+// ---------------------------------------------------------------------------
+// Batch 8 — the post-success continuous-protection offer (INV-2.4-07).
+// "Value first, commitment second": the offer appears only after a durably
+// verified one-time install, discloses every persistent component with its
+// removal command, always shows [Not now], and installs nothing itself.
+// ---------------------------------------------------------------------------
+describe("safe-install — continuous-protection conversion (INV-2.4-07)", () => {
+  async function applyInteractive(): Promise<{ stdout: string; exitCode: number }> {
+    const hostConfig = join(dir, ".cursor", "mcp.json")
+    const prepared = await runSafeInstall(["--host", "cursor", "--host-config", hostConfig, "--json"], makeContract())
+    const planDigest: string = JSON.parse(prepared.stdout).planDigest
+    const r = await runSafeInstall(
+      ["--host", "cursor", "--host-config", hostConfig, "--apply", "--approve", planDigest],
+      makeContract(),
+    )
+    return { stdout: r.stdout, exitCode: r.exitCode }
+  }
+
+  it("offers the conversion after a verified install, with both choices visible", async () => {
+    const r = await applyInteractive()
+    expect(r.stdout).toContain("APPLIED_AND_VERIFIED")
+    expect(r.stdout).toContain("Protect future agent-tool changes")
+    expect(r.stdout).toContain("[Enable continuous protection]")
+    expect(r.stdout).toContain("[Not now]")
+    noExec()
+  })
+
+  it("enumerates each persistent component with its removal command BEFORE the enable command", async () => {
+    const r = await applyInteractive()
+    expect(r.stdout).toContain("calllint-guard:git")
+    expect(r.stdout).toContain("rm .git/hooks/pre-commit")
+    expect(r.stdout).toContain("calllint guard install --host git")
+    expect(r.stdout.indexOf("remove:")).toBeLessThan(r.stdout.indexOf("enable:"))
+    expect(r.stdout).toContain("disclosure: sha256:")
+    noExec()
+  })
+
+  it("the offer itself installs nothing — zero persistent CallLint files appear", async () => {
+    await applyInteractive()
+    expect(existsSync(join(dir, ".calllint"))).toBe(false)
+    expect(existsSync(join(dir, ".git", "hooks", "pre-commit"))).toBe(false)
+    expect(existsSync(join(dir, ".github"))).toBe(false)
+    noExec()
+  })
+})
+
+describe("safe-install — the offer is never shown where it would be dishonest", () => {
+  it("--json emits ONLY the envelope; the offer never leaks into machine output", async () => {
+    const hostConfig = join(dir, ".cursor", "mcp.json")
+    const prepared = await runSafeInstall(["--host", "cursor", "--host-config", hostConfig, "--json"], makeContract())
+    const planDigest: string = JSON.parse(prepared.stdout).planDigest
+    const applied = await runSafeInstall(
+      ["--host", "cursor", "--host-config", hostConfig, "--apply", "--approve", planDigest, "--json"],
+      makeContract(),
+    )
+    const res = JSON.parse(applied.stdout) // still parses cleanly
+    expect(res.outcome).toBe("APPLIED_AND_VERIFIED")
+    expect(applied.stdout).not.toContain("[Not now]")
+    // The envelope is unchanged: one-time mode still reports zero components.
+    expect(res.persistentComponents).toEqual([])
+    expect(res.mode).toBe("ONE_TIME_PROTECTED_SETUP")
+  })
+
+  it("no offer on a prepare-only run — there is no success to convert yet", async () => {
+    const r = await runSafeInstall(["--host", "cursor"], makeContract())
+    expect(r.stdout).toContain("PREPARED")
+    expect(r.stdout).not.toContain("[Not now]")
+    noExec()
+  })
+
+  it("no offer when the operator declined the install", async () => {
+    const hostConfig = join(dir, ".cursor", "mcp.json")
+    const r = await runSafeInstall(["--host", "cursor", "--host-config", hostConfig, "--apply"], makeContract(), {
+      readStdin: () => "no\n",
+    })
+    expect(r.stdout).toContain("DECLINED")
+    expect(r.stdout).not.toContain("[Not now]")
+    noExec()
+  })
+
+  it("does not re-offer when guard is already installed for the host", async () => {
+    // Seed a git pre-commit hook that carries our marker.
+    mkdirSync(join(dir, ".git", "hooks"), { recursive: true })
+    writeFileSync(join(dir, ".git", "hooks", "pre-commit"), "#!/bin/sh\nnpx -y calllint guard --no-emoji\n")
+    const r = await applyOnce()
+    expect(r.stdout).toContain("APPLIED_AND_VERIFIED")
+    expect(r.stdout).toContain("already enabled")
+    expect(r.stdout).not.toContain("[Enable continuous protection]")
+    noExec()
+  })
+
+  async function applyOnce(): Promise<{ stdout: string }> {
+    const hostConfig = join(dir, ".cursor", "mcp.json")
+    const prepared = await runSafeInstall(["--host", "cursor", "--host-config", hostConfig, "--json"], makeContract())
+    const planDigest: string = JSON.parse(prepared.stdout).planDigest
+    return runSafeInstall(
+      ["--host", "cursor", "--host-config", hostConfig, "--apply", "--approve", planDigest],
+      makeContract(),
+    )
+  }
 })

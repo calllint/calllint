@@ -40,6 +40,12 @@ import { existsSync, readFileSync } from "node:fs"
 import { homedir, tmpdir } from "node:os"
 import { join } from "node:path"
 import { COMMITTED_LOOKUP_ENTRIES } from "./committedLookup.js"
+import {
+  GUARD_HOST_IDS,
+  continuousProtectionOffer,
+  isGuardHostId,
+  renderContinuousProtectionOffer,
+} from "@calllint/core"
 import { findCommittedContract, type AdoptionContract } from "./committedContracts.js"
 import { VERSION } from "./version.js"
 
@@ -777,6 +783,82 @@ function verifyToolInstallHandler(args: Record<string, unknown>, opts: ScanOptio
   })
 }
 
+const GUARD_TOOL = "calllint_enable_continuous_guard"
+const GUARD_RESULT_SCHEMA = "calllint.continuous-protection-result.v1"
+
+/**
+ * Continuous-protection conversion (ADR 0056 §7 / INV-2.4-07; new14 Batch 8).
+ *
+ * Deliberately NOT a writer. A one-time protected setup never authorizes a persistent
+ * component, so this tool's whole job is the *second explicit disclosure*: enumerate
+ * every persistent component with the artifact it creates, the command that installs it
+ * and the command that removes it, digest that set, and hand back the exact command the
+ * OPERATOR runs to opt in. It installs nothing even when handed a matching
+ * approvalDigest — an agent naming a digest is not a human granting permission, and
+ * introducing a guard-artifact writer here would create a second writer (INV-2.4-03).
+ *
+ * Every fact comes from the shared `@calllint/core` disclosure, so the CLI post-success
+ * offer and this tool can never drift into two different component stories.
+ */
+function enableContinuousGuardHandler(args: Record<string, unknown>): ToolResult {
+  const requested = args.hosts
+  const rawHosts: string[] = Array.isArray(requested)
+    ? requested.filter((h): h is string => typeof h === "string")
+    : typeof requested === "string"
+      ? [requested]
+      : []
+  // An empty request discloses the full shipped Guard matrix — a complete disclosure is
+  // always honest; a guessed host never is (INV-2.4-08).
+  const hosts = rawHosts.length > 0 ? rawHosts : [...GUARD_HOST_IDS]
+  const unknown = hosts.filter((h) => !isGuardHostId(h))
+  if (unknown.length > 0) {
+    return err(
+      `unsupported guard host(s) ${unknown.join(", ")} — expected one of: ${GUARD_HOST_IDS.join(", ")}. No hook location is ever guessed.`,
+    )
+  }
+
+  const offer = continuousProtectionOffer({ hosts: hosts.filter(isGuardHostId) })
+  const approvalDigest = str(args, "approvalDigest")
+  const disclosureMatches = approvalDigest === undefined ? null : approvalDigest === offer.disclosureDigest
+
+  const notes: string[] = []
+  if (disclosureMatches === false) {
+    notes.push(
+      `approvalDigest does not match the current disclosure (${offer.disclosureDigest}) — the component set you reviewed is not the one on offer`,
+    )
+  }
+  notes.push(
+    "this tool installed nothing: enabling persistent protection is a separate operator action, run from a terminal",
+  )
+  notes.push(`decline at any time — ${offer.declineOption} leaves the one-time install untouched`)
+
+  return json({
+    tool: GUARD_TOOL,
+    schema: GUARD_RESULT_SCHEMA,
+    // Outcome vocabulary is the honest state, not a fake success. DISCLOSED = here is
+    // exactly what enabling would install; ABORTED_ON_MISMATCH = a stale disclosure.
+    outcome: disclosureMatches === false ? "ABORTED_ON_MISMATCH" : "DISCLOSED",
+    mode: "CONTINUOUS_PROTECTION",
+    recommendation: offer.recommendation,
+    reason: offer.reason,
+    requiresSeparateAuthorization: true,
+    enabled: false,
+    installedComponents: [],
+    disclosedComponents: offer.components,
+    capabilities: offer.capabilities,
+    disclosureDigest: offer.disclosureDigest,
+    approvalDigestMatches: disclosureMatches,
+    enableCommands: offer.components.map((c) => c.installCommand),
+    uninstallCommands: offer.components.map((c) => c.uninstallCommand),
+    disableCommand: offer.disableCommand,
+    declineOption: offer.declineOption,
+    humanOffer: renderContinuousProtectionOffer(offer),
+    scannerVersion: VERSION,
+    notes,
+    note: "Disclosure only. CallLint's continuous protection re-decides your approved agent-tool authority surface on session start; it is a persistent installation and therefore a separate decision from any one-time install. This tool writes nothing and enables nothing — it lists every component, where it lands, and how to remove it, so a person can decide and run the enable command themselves. Continuous protection never executes, starts, or connects to a scanned server.",
+  })
+}
+
 export const TOOLS: ToolDef[] = [
   {
     name: "scan_mcp_config_path",
@@ -1158,6 +1240,33 @@ export const TOOLS: ToolDef[] = [
       required: ["canonicalName", "host"],
     },
     handler: safe((args, opts) => verifyToolInstallHandler(args, opts)),
+  },
+  {
+    // Continuous-protection conversion (ADR 0056 §7 / INV-2.4-07). Disclosure only —
+    // it enumerates every persistent component with its uninstall command and returns
+    // the operator's enable command. It installs nothing, so an agent can present the
+    // choice honestly but cannot make it.
+    name: "calllint_enable_continuous_guard",
+    description:
+      "List exactly what CallLint's continuous protection would install, so a person can decide whether to enable it. Continuous protection is persistent: unlike a one-time install it adds CallLint components to the project (a session-start hook, a git hook, or a CI workflow, depending on host) that re-decide the approved agent-tool authority surface, detect drift, and re-check upgrades. Because it is persistent it is always a separate decision, never bundled into an install: this tool writes nothing, enables nothing, and installs nothing even if you pass approvalDigest. It returns every component with the file it creates, the command that enables it, and the command that removes it, plus a disclosureDigest over that set and a disableCommand. Report the components and both choices — enable, or not now — and let the person run the enable command themselves in a terminal. Declining changes nothing about an install already completed.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        hosts: {
+          type: "array",
+          items: { type: "string" },
+          description:
+            "Optional guard hosts to disclose (git, git-pre-push, github, copilot, claude-code, gemini, vscode). Omit to disclose every supported host; an unrecognized host is rejected rather than guessed.",
+        },
+        approvalDigest: {
+          type: "string",
+          description:
+            "Optional sha256:<64-hex> disclosureDigest a person already reviewed. Used only to detect that the component set changed since they saw it; it does not authorize an install, and a matching digest still installs nothing.",
+        },
+      },
+      required: [],
+    },
+    handler: safe((args) => enableContinuousGuardHandler(args)),
   },
 ]
 

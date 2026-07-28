@@ -119,4 +119,16 @@ describe("invariant: MCP tools never execute a scanned server (ADR 0003)", () =>
     expect(execFileMock).not.toHaveBeenCalled()
     expect(execFileSyncMock).not.toHaveBeenCalled()
   })
+
+  it("calllint_enable_continuous_guard discloses guard commands but NEVER runs one", () => {
+    // It hands back `calllint guard install --host …` as TEXT for a person to run.
+    // Returning a command string must never shade into executing it.
+    call("calllint_enable_continuous_guard", {})
+    call("calllint_enable_continuous_guard", { hosts: ["git", "claude-code"] })
+    expect(spawnMock).not.toHaveBeenCalled()
+    expect(execMock).not.toHaveBeenCalled()
+    expect(execSyncMock).not.toHaveBeenCalled()
+    expect(execFileMock).not.toHaveBeenCalled()
+    expect(execFileSyncMock).not.toHaveBeenCalled()
+  })
 })
