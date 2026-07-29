@@ -1,0 +1,60 @@
+{
+  "schema": "calllint.phase-2.4-gate-e.v0",
+  "$comment": "Gate 2.4-E evidence. The one-time footprint is LIFTED from the committed Gate 2.4-G dogfood record rather than re-measured, so the two gates cannot disagree about the same flow. The rollback half is a REAL exercise: a plan produced by the SHIPPED prepare path against a REAL served contract, applied by the SHIPPED engine through the SHIPPED node fs port on a REAL temp file, with a fault injected at exactly one point — the post-write verify read returns corrupted bytes, which is the one thing a healthy disk will never do for us. The backup, the atomic temp→rename write and the rollback rename are all real, and the measure is the file's actual digest afterwards, not the engine's report. Both pre-images are covered: an existing config must come back byte-identical, and a config CallLint created must come back absent. Regenerate with `pnpm eval:phase-2.4:gates:write`.",
+  "gate": "2.4-E",
+  "status": "PASSED",
+  "engine": "1.7.3",
+  "oneTimeStepsLifted": 13,
+  "oneTimeSource": "artifacts/phase-2.4/e2e-dogfood.json",
+  "rollbacks": [
+    {
+      "id": "restores-pre-existing-config-byte-identically",
+      "digestBefore": "sha256:7acf92279fa45ca84627c1a7f3a65a8fab47fdf65330cfe4ef90a8e30e1d212d",
+      "digestAfter": "sha256:7acf92279fa45ca84627c1a7f3a65a8fab47fdf65330cfe4ef90a8e30e1d212d",
+      "outcome": "rolled_back",
+      "rolledBack": true,
+      "workspaceFiles": []
+    },
+    {
+      "id": "restores-absence-when-it-created-the-file",
+      "digestBefore": "absent",
+      "digestAfter": "absent",
+      "outcome": "rolled_back",
+      "rolledBack": true,
+      "workspaceFiles": []
+    }
+  ],
+  "measures": [
+    {
+      "id": "one-time-steps-observed",
+      "pass": true,
+      "observed": "13 steps lifted from the Gate 2.4-G dogfood record"
+    },
+    {
+      "id": "persistent-calllint-components-in-one-time-mode",
+      "pass": true,
+      "observed": "0 across every step"
+    },
+    {
+      "id": "workspace-files-created-in-one-time-mode",
+      "pass": true,
+      "observed": "0 across every step"
+    },
+    {
+      "id": "rollback-matrix-size",
+      "pass": true,
+      "observed": "2 rollback runs (expected 2)"
+    },
+    {
+      "id": "rollback/restores-pre-existing-config-byte-identically",
+      "pass": true,
+      "observed": "rolled_back — pre-image restored byte-identically"
+    },
+    {
+      "id": "rollback/restores-absence-when-it-created-the-file",
+      "pass": true,
+      "observed": "rolled_back — pre-image restored byte-identically"
+    }
+  ],
+  "blockers": []
+}

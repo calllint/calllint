@@ -77,6 +77,59 @@ jobs:
       - name: Agent-trust-bench complementarity gate
         run: pnpm bench:test
 
+      # Calibration + coverage drift. Both compare a committed report against a
+      # fresh run; neither enforces a gate here (`--gate` does that at publish
+      # time). Present so a stale report cannot reach `main` — they were
+      # `ci:local`-only until Gate 2.4-H flagged the local-green/remote-blind gap.
+      - name: Calibration audit (drift)
+        run: pnpm audit:calibration
+
+      - name: Coverage audit (drift)
+        run: pnpm audit:coverage
+
+      # Phase 2.4 evaluation gates (Batch 9). All four are drift-checks: the
+      # committed artifact under artifacts/phase-2.4/ must be byte-identical to a
+      # fresh run. Gates 2.4-D/E/G drive the BUILT binary, so these must follow
+      # the build step above. Every run sandboxes --host-config into a temp dir
+      # and none executes a scanned target (INV-2.4-09). Running them across the
+      # three-OS matrix is also what proves the artifacts are OS-portable — a
+      # claim `ci:local` on one machine cannot make.
+      - name: Phase 2.4 cognitive + agent-contract evals (drift)
+        run: pnpm eval:phase-2.4
+
+      - name: Phase 2.4 five-fixture E2E dogfood (drift)
+        run: pnpm eval:phase-2.4:dogfood
+
+      - name: Phase 2.4 gates A/D/E/F/H (drift)
+        run: pnpm eval:phase-2.4:gates
+
+      # Structural validation of the human-panel store only. It never asserts a
+      # response count: Gate 2.4-B needs ≥10 real humans and no CI run can
+      # supply them, so an empty store is valid and stays PENDING_HUMAN_PANEL.
+      - name: Phase 2.4 human-panel store validation
+        run: pnpm eval:phase-2.4:panel:validate
+
+      # Workstream P (ADR 0058 §1/§5). Two runs, deliberately: --check catches
+      # artifact drift, --gate ENFORCES the boundary. The gate is what stops a later
+      # Workstream P batch from moving an L3 string (a value that reaches
+      # contractDigest) into an editable config file — the one mistake that would
+      # silently invalidate every sealed install plan.
+      - name: Workstream P presentation-plane audit (drift)
+        run: pnpm audit:presentation
+
+      - name: Workstream P presentation-plane audit (INV-P1/P2 gate)
+        run: pnpm audit:presentation:gate
+
+      # The P-1 digest seams. The gate's teeth: zero prose leaves may survive into
+      # the semantic preimage, so a contract field carrying a sentence fails here
+      # until somebody classifies it — and no packages/*/src file may IMPORT the
+      # config plane, enforced before apps/web/content/** exists to be imported.
+      - name: Workstream P presentation lock (drift)
+        run: pnpm audit:presentation:lock
+
+      - name: Workstream P presentation lock (digest-seam gate)
+        run: pnpm audit:presentation:lock:gate
+
       - name: Package smoke (shipped artifact)
         run: pnpm smoke
 

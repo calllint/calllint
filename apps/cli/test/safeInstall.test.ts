@@ -167,7 +167,7 @@ function makeContract(
 /** Inject a contract exactly as the async edge would, via a local file + computeContractFetch. */
 async function contractDeps(
   contract: Record<string, unknown>,
-  extra: { readStdin?: () => string } = {},
+  extra: { readStdin?: () => string; generatedAt?: string } = {},
 ): Promise<{ cwd: string; readStdin: () => string; now: number; generatedAt: string; contract?: ResolvedContract }> {
   const file = join(dir, "contract.json")
   writeFileSync(file, JSON.stringify(contract))
@@ -178,14 +178,20 @@ async function contractDeps(
       throw new Error("no network for a local file")
     },
   })
-  return { cwd: dir, readStdin: extra.readStdin ?? (() => ""), ...BASE, contract: resolved }
+  // `generatedAt` is overridable so a test can ADVANCE the clock between the
+  // prepare and apply invocations — the real two-process condition. Pinning one
+  // clock for both is what hid the unreproducible-digest defect (Gate 2.4-G).
+  const clock = extra.generatedAt
+    ? { generatedAt: extra.generatedAt, now: Date.parse(extra.generatedAt) }
+    : BASE
+  return { cwd: dir, readStdin: extra.readStdin ?? (() => ""), ...clock, contract: resolved }
 }
 
 /** Run safe-install with a resolved contract already in deps. */
 async function runSafeInstall(
   argv: string[],
   contract: Record<string, unknown>,
-  extra: { readStdin?: () => string } = {},
+  extra: { readStdin?: () => string; generatedAt?: string } = {},
 ) {
   const deps = await contractDeps(contract, extra)
   return run(["safe-install", ...argv], deps)
@@ -428,15 +434,23 @@ describe("safe-install — actionable prepare/apply (delegates to the Trust Gate
 
   it("--apply + matching --approve → APPLIED_AND_VERIFIED; the WRITE is delegated to the apply engine", async () => {
     const hostConfig = join(dir, ".cursor", "mcp.json")
-    // 1) Prepare-only to learn the deterministic plan digest.
-    const prepared = await runSafeInstall(["--host", "cursor", "--host-config", hostConfig, "--json"], makeContract())
+    const planFile = join(dir, "plan.json")
+    // 1) Prepare-only, writing out the plan the caller reviews. `--plan-out` is what
+    // makes the digest reproducible on the apply step: the plan's validity window is
+    // sealed into planDigest, so the reviewed plan must be REPLAYED, not recomputed
+    // from a fresh clock (which is why a bare re-run could never match).
+    const prepared = await runSafeInstall(
+      ["--host", "cursor", "--host-config", hostConfig, "--plan-out", planFile, "--json"],
+      makeContract(),
+    )
     const planDigest: string = JSON.parse(prepared.stdout).planDigest
     expect(planDigest).toMatch(/^sha256:[0-9a-f]{64}$/)
     expect(existsSync(hostConfig)).toBe(false) // prepare wrote nothing
+    expect(existsSync(planFile)).toBe(true)
 
-    // 2) Apply with the exact approved digest.
+    // 2) Replay the reviewed plan and approve its exact digest.
     const applied = await runSafeInstall(
-      ["--host", "cursor", "--host-config", hostConfig, "--apply", "--approve", planDigest, "--json"],
+      ["--host", "cursor", "--host-config", hostConfig, "--plan", planFile, "--apply", "--approve", planDigest, "--json"],
       makeContract(),
     )
     expect(applied.exitCode).toBe(0)
@@ -456,14 +470,22 @@ describe("safe-install — actionable prepare/apply (delegates to the Trust Gate
 
   it("one-time mode leaves ZERO persistent CallLint components (INV-2.4-07)", async () => {
     const hostConfig = join(dir, ".cursor", "mcp.json")
-    const prepared = await runSafeInstall(["--host", "cursor", "--host-config", hostConfig, "--json"], makeContract())
+    const planFile = join(dir, "plan.json")
+    const prepared = await runSafeInstall(
+      ["--host", "cursor", "--host-config", hostConfig, "--plan-out", planFile, "--json"],
+      makeContract(),
+    )
     const planDigest: string = JSON.parse(prepared.stdout).planDigest
     const applied = await runSafeInstall(
-      ["--host", "cursor", "--host-config", hostConfig, "--apply", "--approve", planDigest, "--json"],
+      ["--host", "cursor", "--host-config", hostConfig, "--plan", planFile, "--apply", "--approve", planDigest, "--json"],
       makeContract(),
     )
     const res = JSON.parse(applied.stdout)
     expect(res.mode).toBe("ONE_TIME_PROTECTED_SETUP")
+    expect(res.persistentComponents).toEqual([])
+    // The caller-requested plan file is NOT a persistent CallLint component: it is
+    // an output the caller asked for, holds no CallLint-owned key in any host
+    // config, and installs nothing.
     expect(res.persistentComponents).toEqual([])
     // The only durable write is the host config — NO CallLint plugin/guard/hook dir
     // appears in the user's tree (working files lived in an ephemeral scratch dir).
@@ -495,8 +517,13 @@ describe("safe-install — single approval gate (§10.7 never auto-applies)", ()
 
   it("--apply + a WRONG --approve digest is refused by the apply engine → not verified, nothing durable", async () => {
     const hostConfig = join(dir, ".cursor", "mcp.json")
+    const planFile = join(dir, "plan.json")
+    await runSafeInstall(
+      ["--host", "cursor", "--host-config", hostConfig, "--plan-out", planFile, "--json"],
+      makeContract(),
+    )
     const r = await runSafeInstall(
-      ["--host", "cursor", "--host-config", hostConfig, "--apply", "--approve", SHA("0"), "--json"],
+      ["--host", "cursor", "--host-config", hostConfig, "--plan", planFile, "--apply", "--approve", SHA("0"), "--json"],
       makeContract(),
     )
     // The apply engine fails closed on a non-matching approval; the orchestrator
@@ -504,6 +531,178 @@ describe("safe-install — single approval gate (§10.7 never auto-applies)", ()
     const res = JSON.parse(r.stdout)
     expect(res.outcome).toBe("LOCAL_PREFLIGHT_REQUIRED")
     expect(res.receiptDigest).toBeNull()
+    expect(existsSync(hostConfig)).toBe(false)
+    noExec()
+  })
+
+  it("the agent handshake survives a MOVING clock — the replayed plan digest still applies", async () => {
+    // The defect Gate 2.4-G caught: two invocations are two processes with two
+    // clocks. `expiresAt` is sealed into planDigest, so recomputing on the apply
+    // step yielded a different digest and the approval could never match. Replaying
+    // the reviewed plan inherits its anchor, so the digest reproduces.
+    const hostConfig = join(dir, ".cursor", "mcp.json")
+    const planFile = join(dir, "plan.json")
+    const prepared = await runSafeInstall(
+      ["--host", "cursor", "--host-config", hostConfig, "--plan-out", planFile, "--json"],
+      makeContract(),
+      { generatedAt: "2026-07-13T00:00:00.000Z" },
+    )
+    const planDigest: string = JSON.parse(prepared.stdout).planDigest
+    // 11 minutes later, in a different process.
+    const applied = await runSafeInstall(
+      ["--host", "cursor", "--host-config", hostConfig, "--plan", planFile, "--apply", "--approve", planDigest, "--json"],
+      makeContract(),
+      { generatedAt: "2026-07-13T00:11:00.000Z" },
+    )
+    const res = JSON.parse(applied.stdout)
+    expect(res.outcome).toBe("APPLIED_AND_VERIFIED")
+    expect(res.planDigest).toBe(planDigest)
+    expect(res.receiptDigest).toMatch(/^sha256:[0-9a-f]{64}$/)
+    expect(existsSync(hostConfig)).toBe(true)
+    noExec()
+  })
+
+  it("a plan replayed AFTER its validity window is refused as stale — nothing durable", async () => {
+    // Inheriting the anchor does not disable expiry: the shipped apply engine still
+    // enforces the window against real `now`, so an old plan cannot be replayed
+    // indefinitely.
+    const hostConfig = join(dir, ".cursor", "mcp.json")
+    const planFile = join(dir, "plan.json")
+    const prepared = await runSafeInstall(
+      ["--host", "cursor", "--host-config", hostConfig, "--plan-out", planFile, "--json"],
+      makeContract(),
+      { generatedAt: "2026-07-13T00:00:00.000Z" },
+    )
+    const planDigest: string = JSON.parse(prepared.stdout).planDigest
+    // Well past the one-hour window.
+    const applied = await runSafeInstall(
+      ["--host", "cursor", "--host-config", hostConfig, "--plan", planFile, "--apply", "--approve", planDigest, "--json"],
+      makeContract(),
+      { generatedAt: "2026-07-14T00:00:00.000Z" },
+    )
+    const res = JSON.parse(applied.stdout)
+    expect(res.outcome).not.toBe("APPLIED_AND_VERIFIED")
+    expect(res.receiptDigest).toBeNull()
+    expect(existsSync(hostConfig)).toBe(false)
+    noExec()
+  })
+
+  it("a TAMPERED replayed plan aborts on mismatch — drift is never applied", async () => {
+    const hostConfig = join(dir, ".cursor", "mcp.json")
+    const planFile = join(dir, "plan.json")
+    const prepared = await runSafeInstall(
+      ["--host", "cursor", "--host-config", hostConfig, "--plan-out", planFile, "--json"],
+      makeContract(),
+    )
+    const planDigest: string = JSON.parse(prepared.stdout).planDigest
+    // Re-seal the plan under a DIFFERENT window: the digest no longer reproduces.
+    const plan = JSON.parse(readFileSync(planFile, "utf8"))
+    plan.expiresAt = "2026-07-13T05:00:00.000Z"
+    writeFileSync(planFile, JSON.stringify(plan))
+    const applied = await runSafeInstall(
+      ["--host", "cursor", "--host-config", hostConfig, "--plan", planFile, "--apply", "--approve", planDigest, "--json"],
+      makeContract(),
+    )
+    const res = JSON.parse(applied.stdout)
+    expect(res.outcome).toBe("ABORTED_ON_MISMATCH")
+    expect(res.receiptDigest).toBeNull()
+    expect(existsSync(hostConfig)).toBe(false)
+    noExec()
+  })
+
+  it("--plan-out writes ONLY where asked — no .calllint/ workspace footprint (INV-2.4-07)", async () => {
+    // The shipped `trust`/`integrate` convention is a boolean --write-plan that
+    // persists into the workspace. safe-install must not: one-time mode leaves ZERO
+    // workspace files, so the destination is caller-chosen and explicit.
+    const planFile = join(dir, "out", "plan.json")
+    const r = await runSafeInstall(
+      ["--host", "cursor", "--host-config", join(dir, ".cursor", "mcp.json"), "--plan-out", planFile, "--json"],
+      makeContract(),
+    )
+    expect(JSON.parse(r.stdout).outcome).toBe("PREPARED")
+    expect(existsSync(planFile)).toBe(true)
+    expect(existsSync(join(dir, ".calllint"))).toBe(false)
+    expect(JSON.parse(r.stdout).persistentComponents).toEqual([])
+    noExec()
+  })
+
+  it("replaying an already-applied plan aborts and says the DECISION is unchanged", async () => {
+    // A benign retry: the config moved because our own apply succeeded. Still an
+    // abort (we never substitute a digest the operator did not name), but the note
+    // must point at the host config rather than implying the tool changed.
+    const hostConfig = join(dir, ".cursor", "mcp.json")
+    const planFile = join(dir, "plan.json")
+    const prepared = await runSafeInstall(
+      ["--host", "cursor", "--host-config", hostConfig, "--plan-out", planFile, "--json"],
+      makeContract(),
+    )
+    const planDigest: string = JSON.parse(prepared.stdout).planDigest
+    const argv = ["--host", "cursor", "--host-config", hostConfig, "--plan", planFile, "--apply", "--approve", planDigest, "--json"]
+    expect(JSON.parse((await runSafeInstall(argv, makeContract())).stdout).outcome).toBe("APPLIED_AND_VERIFIED")
+
+    const retry = JSON.parse((await runSafeInstall(argv, makeContract())).stdout)
+    expect(retry.outcome).toBe("ABORTED_ON_MISMATCH")
+    expect(retry.notes.join(" ")).toContain("decision is unchanged")
+    expect(retry.notes.join(" ")).toContain("already be installed")
+    expect(retry.receiptDigest).toBeNull()
+    noExec()
+  })
+
+  it("a CONTRACT swapped between review and apply aborts as decision drift — nothing written", async () => {
+    const hostConfig = join(dir, ".cursor", "mcp.json")
+    const planFile = join(dir, "plan.json")
+    const prepared = await runSafeInstall(
+      ["--host", "cursor", "--host-config", hostConfig, "--plan-out", planFile, "--json"],
+      makeContract(),
+    )
+    const planDigest: string = JSON.parse(prepared.stdout).planDigest
+    // Same host, same flags — but the served contract now describes a different tool.
+    const swapped = makeContract({ subject: { canonicalName: "other-tool", packageName: "@acme/other", version: "9.9.9", registry: "npm" } })
+    const r = await runSafeInstall(
+      ["--host", "cursor", "--host-config", hostConfig, "--plan", planFile, "--apply", "--approve", planDigest, "--json"],
+      swapped,
+    )
+    const res = JSON.parse(r.stdout)
+    expect(res.outcome).toBe("ABORTED_ON_MISMATCH")
+    expect(res.notes.join(" ")).toContain("decision-relevant input changed")
+    expect(res.receiptDigest).toBeNull()
+    expect(existsSync(hostConfig)).toBe(false)
+    noExec()
+  })
+
+  it("a malformed --plan file is an honest usage error, never a fresh-anchor fallback", async () => {
+    const hostConfig = join(dir, ".cursor", "mcp.json")
+    const planFile = join(dir, "plan.json")
+    writeFileSync(planFile, "{ not a plan }")
+    const r = await runSafeInstall(
+      ["--host", "cursor", "--host-config", hostConfig, "--plan", planFile, "--apply", "--approve", SHA("0"), "--json"],
+      makeContract(),
+    )
+    expect(r.exitCode).toBe(2)
+    expect(r.stderr).toContain("--plan")
+    expect(existsSync(hostConfig)).toBe(false)
+
+    const missing = await runSafeInstall(
+      ["--host", "cursor", "--host-config", hostConfig, "--plan", join(dir, "nope.json"), "--apply", "--approve", SHA("0"), "--json"],
+      makeContract(),
+    )
+    expect(missing.exitCode).toBe(2)
+    expect(missing.stderr).toContain("not found")
+    noExec()
+  })
+
+  it("non-interactive --apply WITHOUT --plan is refused, naming the cause and the working route", async () => {
+    // Regression guard for the defect Gate 2.4-G caught: `--approve <digest>` alone
+    // can never match, because the digest seals the plan's validity window. Refuse
+    // with an honest usage error rather than a confusing digest mismatch.
+    const hostConfig = join(dir, ".cursor", "mcp.json")
+    const r = await runSafeInstall(
+      ["--host", "cursor", "--host-config", hostConfig, "--apply", "--approve", SHA("0"), "--json"],
+      makeContract(),
+    )
+    expect(r.exitCode).toBe(2)
+    expect(r.stderr).toContain("--plan <file>")
+    expect(r.stderr).toContain("--plan-out")
     expect(existsSync(hostConfig)).toBe(false)
     noExec()
   })
@@ -589,10 +788,14 @@ describe("safe-install — continuous-protection conversion (INV-2.4-07)", () =>
 describe("safe-install — the offer is never shown where it would be dishonest", () => {
   it("--json emits ONLY the envelope; the offer never leaks into machine output", async () => {
     const hostConfig = join(dir, ".cursor", "mcp.json")
-    const prepared = await runSafeInstall(["--host", "cursor", "--host-config", hostConfig, "--json"], makeContract())
+    const planFile = join(dir, "plan.json")
+    const prepared = await runSafeInstall(
+      ["--host", "cursor", "--host-config", hostConfig, "--plan-out", planFile, "--json"],
+      makeContract(),
+    )
     const planDigest: string = JSON.parse(prepared.stdout).planDigest
     const applied = await runSafeInstall(
-      ["--host", "cursor", "--host-config", hostConfig, "--apply", "--approve", planDigest, "--json"],
+      ["--host", "cursor", "--host-config", hostConfig, "--plan", planFile, "--apply", "--approve", planDigest, "--json"],
       makeContract(),
     )
     const res = JSON.parse(applied.stdout) // still parses cleanly

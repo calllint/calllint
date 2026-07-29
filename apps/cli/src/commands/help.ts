@@ -25,6 +25,7 @@ COMMANDS
   approve            Record the repo-wide capability surface as approved state (L4)
   guard              Continuous Guard: re-decide on authority change; silent when unchanged
   guard install --host <h>  Install a guard hook (git, git-pre-push, github, claude-code, copilot, gemini, vscode)
+  protect --host <h> Alias for guard install --host <h> (continuous protection)
   guard status       Show baseline / disable / installed-hook state
   guard disable      Turn Continuous Guard off (.calllint/guard.json)
   receipt verify <f>    Validate a calllint.receipt.v0 (structure + signature if present)
@@ -90,6 +91,10 @@ SAFE-INSTALL OPTIONS
   --host-config <p>  Override the host config path (default: the host's own)
   --apply            Attempt to apply the prepared plan (default: prepare only)
   --approve <digest> The exact plan digest you reviewed (required to apply in --json / --non-interactive)
+  --plan-out <file>  Write the computed plan for review (prepare step of the agent flow)
+  --plan <file>      Replay the plan you reviewed, then apply it (required with --apply in agent mode).
+                     A plan digest seals the plan's validity window, so it is only
+                     reproducible when the reviewed plan is replayed; drift aborts.
   --expect-version <v>            Assert the contract's exact version (offline identity gate)
   --expect-artifact-digest <sha>  Assert the contract's artifact digest (offline identity gate)
   --expect-contract-digest <sha>  Assert the contract digest (offline gate + recorded provenance)
@@ -120,7 +125,9 @@ EXAMPLES
   calllint guard --json                 # authority-change assessment (silent when unchanged)
   calllint explain filesystem
   calllint safe-install --contract ./contract.json --host cursor          # prepare only
-  calllint safe-install --contract ./contract.json --host cursor --apply --approve sha256:...
+  calllint safe-install --contract ./contract.json --host cursor --apply   # interactive approval
+  calllint safe-install --contract ./c.json --host cursor --json --plan-out plan.json        # agent step 1
+  calllint safe-install --contract ./c.json --host cursor --json --plan plan.json --apply --approve sha256:...  # step 2
 `
 
 export function helpCommand(): { stdout: string; exitCode: number } {

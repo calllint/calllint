@@ -1,0 +1,5 @@
+{
+  "schema": "calllint.five-second-panel.v0",
+  "$comment": "Gate 2.4-B human five-second-test panel. This file is DATA a human records and commits; CallLint's code never writes a response into it (same boundary as packages/trust-index/calibration/review-store.json under ADR 0053 §4 — the agent builds the gate, a human signs it off). Protocol: show one rendered /install/{slug}/ page for five seconds, hide it, then ask the participant to name (a) what would be installed, (b) the most important thing it would be able to do, (c) what to do next. The person running the session records whether each answer was correct. Gate 2.4-B needs >= 10 responses and >= 90% correct on every question; until then the gate is PENDING_HUMAN_PANEL, which is the honest state, not a pass. Response shape: { participant, canonicalSlug, at, correct: { target, consequence, action } }.",
+  "responses": []
+}

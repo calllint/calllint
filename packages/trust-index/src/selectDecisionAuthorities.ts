@@ -64,8 +64,16 @@ const AUTHORITY_RANK: Record<AdoptionAuthority, number> = Object.fromEntries(
   ADOPTION_AUTHORITIES.map((a, i) => [a, i]),
 ) as Record<AdoptionAuthority, number>
 
-/** User-consequence sentence for an OBSERVED authority (plan §6.5; never marketing). */
-const OBSERVED_CONSEQUENCE: Record<AdoptionAuthority, string> = {
+/**
+ * User-consequence sentence for an OBSERVED authority (plan §6.5; never marketing).
+ *
+ * Exported for the Workstream P presentation audit (ADR 0058 §1), which must probe
+ * these exact strings to MEASURE that they cannot reach `contractDigest`. The audit
+ * reading the real constant — rather than a copy — is what keeps the measurement
+ * bound to the shipped bytes. This is L2 security-explanation copy: PR P-2 lifts it
+ * into `apps/web/content/safe-install/locales/en-US/authority-copy.v1.json`.
+ */
+export const OBSERVED_CONSEQUENCE: Record<AdoptionAuthority, string> = {
   financial_action: "Can initiate payments or financial actions.",
   secret_access: "Requires access to configured secrets.",
   shell_execution: "Can run shell commands with access to configured paths.",
@@ -78,8 +86,11 @@ const OBSERVED_CONSEQUENCE: Record<AdoptionAuthority, string> = {
   no_high_authority_observed: "No high-authority capability was observed.",
 }
 
-/** Neutral ABSENCE sentence — an observation, never "impossible" (§6.6; §4.1). */
-const ABSENCE_CONSEQUENCE: Record<AdoptionAuthority, string> = {
+/**
+ * Neutral ABSENCE sentence — an observation, never "impossible" (§6.6; §4.1).
+ * Exported for the same audit reason as `OBSERVED_CONSEQUENCE`; also L2.
+ */
+export const ABSENCE_CONSEQUENCE: Record<AdoptionAuthority, string> = {
   financial_action: "No financial or payment capability was observed.",
   secret_access: "No secret access was observed.",
   shell_execution: "No shell or command execution was observed.",

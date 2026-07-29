@@ -13,6 +13,7 @@ import { tmpdir } from "node:os"
 import { join } from "node:path"
 import { TOOLS_BY_NAME } from "../src/tools.js"
 import { COMMITTED_CONTRACTS } from "../src/committedContracts.js"
+import { resetPlanAnchors } from "../src/planAnchors.js"
 import type { ScanOptions } from "@calllint/core"
 
 const OPTS: ScanOptions = {
@@ -21,9 +22,22 @@ const OPTS: ScanOptions = {
 }
 
 function call(name: string, args: Record<string, unknown>): { text: unknown; isError?: boolean } {
+  return callAt(name, args, OPTS)
+}
+
+/**
+ * Drive a tool at a chosen instant on the PLAN clock (`planNowMs`), which is the
+ * clock a plan's validity window is measured on — separate from the pinned
+ * `generatedAt` report clock. Lets a test place prepare and apply hours apart.
+ */
+function callAt(
+  name: string,
+  args: Record<string, unknown>,
+  opts: ScanOptions & { planNowMs?: number },
+): { text: unknown; isError?: boolean } {
   const tool = TOOLS_BY_NAME.get(name)
   if (!tool) throw new Error(`no tool ${name}`)
-  const r = tool.handler(args, OPTS)
+  const r = tool.handler(args, opts)
   // Error results carry a plain-text message; success results carry JSON.
   const raw = r.content[0]!.text
   return { text: r.isError ? raw : JSON.parse(raw), isError: r.isError }
@@ -45,6 +59,8 @@ function scratchConfig(initial?: string): string {
 }
 afterEach(() => {
   for (const d of scratches.splice(0)) rmSync(d, { recursive: true, force: true })
+  // The plan-anchor store is per-process; clear it so cases cannot leak into each other.
+  resetPlanAnchors()
 })
 
 /** Prepare against a given host config, returning the plan digest to approve. */
@@ -115,10 +131,30 @@ describe("calllint_prepare_safe_install", () => {
     expect(text.notes.some((n) => /no host named/.test(n))).toBe(true)
   })
 
-  it("is deterministic — same inputs, same planDigest (no clock/network drift)", () => {
-    const a = call("calllint_prepare_safe_install", { canonicalName: NPM_SLUG, host: "cursor" }).text as PrepResult
-    const b = call("calllint_prepare_safe_install", { canonicalName: NPM_SLUG, host: "cursor" }).text as PrepResult
+  it("is deterministic at a given instant — same inputs, same planDigest (no network drift)", () => {
+    const opts = { ...OPTS, planNowMs: Date.parse("2026-06-01T00:00:00Z") }
+    const a = callAt("calllint_prepare_safe_install", { canonicalName: NPM_SLUG, host: "cursor" }, opts)
+      .text as PrepResult
+    const b = callAt("calllint_prepare_safe_install", { canonicalName: NPM_SLUG, host: "cursor" }, opts)
+      .text as PrepResult
     expect(a.planDigest).toBe(b.planDigest)
+  })
+
+  it("re-preparing LATER yields a different digest — the validity window is part of the plan", () => {
+    // Not incidental drift: `expiresAt` is sealed into `planDigest`, so a plan
+    // prepared later is a different plan. This is why apply INHERITS the window the
+    // approved plan was sealed with instead of re-anchoring to a fresh one — and why
+    // pinning the window to server start (so it never moved) made the engine's
+    // staleness guard unreachable.
+    const T = Date.parse("2026-06-01T00:00:00Z")
+    const a = callAt("calllint_prepare_safe_install", { canonicalName: NPM_SLUG, host: "cursor" }, { ...OPTS, planNowMs: T })
+      .text as PrepResult
+    const b = callAt(
+      "calllint_prepare_safe_install",
+      { canonicalName: NPM_SLUG, host: "cursor" },
+      { ...OPTS, planNowMs: T + 60_000 },
+    ).text as PrepResult
+    expect(a.planDigest).not.toBe(b.planDigest)
   })
 
   it("routes a remote (non-npm) subject to LOCAL_PREFLIGHT_REQUIRED — never a guessed command", () => {
@@ -190,6 +226,86 @@ type ApplyResultView = PrepResult & {
 }
 
 const BAD_DIGEST = "sha256:" + "0".repeat(64)
+
+describe("plan validity window (the staleness guard must be able to FIRE)", () => {
+  // Regression guard for a real fail-OPEN defect: `expiresAt` was `serverStart + 1h`
+  // and apply passed `now = serverStart`, so `now > expiresAt` was unreachable and a
+  // plan stayed applyable for the entire life of the server, however long that ran.
+  const T = Date.parse("2026-06-01T00:00:00Z")
+  const at = (ms: number): ScanOptions & { planNowMs?: number } => ({ ...OPTS, planNowMs: ms })
+
+  function prepareAt(cfg: string, ms: number): string {
+    const { text } = callAt(
+      "calllint_prepare_safe_install",
+      { canonicalName: NPM_SLUG, host: "cursor", hostConfigPath: cfg },
+      at(ms),
+    ) as { text: PrepResult }
+    return text.planDigest!
+  }
+
+  it("REFUSES a plan applied after its window closed — nothing is written", () => {
+    const cfg = scratchConfig()
+    const digest = prepareAt(cfg, T)
+    // Two hours later in the same session: the 1h window has closed.
+    const { text } = callAt(
+      "calllint_apply_prepared_install",
+      { canonicalName: NPM_SLUG, host: "cursor", hostConfigPath: cfg, approvalDigest: digest },
+      at(T + 2 * 60 * 60 * 1000),
+    ) as { text: ApplyResultView }
+
+    expect(text.outcome).toBe("LOCAL_PREFLIGHT_REQUIRED")
+    expect(text.notes.some((n) => /plan expired at/.test(n))).toBe(true)
+    // A receipt still records the REFUSAL (existing envelope convention); what must
+    // not happen is a durable write.
+    expect(existsSync(cfg)).toBe(false)
+  })
+
+  it("still applies inside the window, however long the SESSION has been running", () => {
+    // The window is anchored to prepare, not to server start, so a session that has
+    // been up for days still prepares and applies a plan normally.
+    const cfg = scratchConfig()
+    const late = T + 72 * 60 * 60 * 1000
+    const digest = prepareAt(cfg, late)
+    const { text } = callAt(
+      "calllint_apply_prepared_install",
+      { canonicalName: NPM_SLUG, host: "cursor", hostConfigPath: cfg, approvalDigest: digest },
+      at(late + 60 * 1000),
+    ) as { text: ApplyResultView }
+
+    expect(text.outcome).toBe("APPLIED_AND_VERIFIED")
+    expect(text.planDigest).toBe(digest)
+    expect(existsSync(cfg)).toBe(true)
+  })
+
+  it("evicting an anchor under the store bound fails CLOSED, never open", () => {
+    // The store is bounded so a long session cannot grow it without limit. When an
+    // old anchor is evicted, apply cannot reproduce that digest and must abort —
+    // it must never fall back to a fresh window and write something unreviewed.
+    const cfg = scratchConfig()
+    const digest = prepareAt(cfg, T)
+    for (let i = 0; i < 70; i++) prepareAt(scratchConfig(), T + i * 1000)
+
+    const { text } = callAt(
+      "calllint_apply_prepared_install",
+      { canonicalName: NPM_SLUG, host: "cursor", hostConfigPath: cfg, approvalDigest: digest },
+      at(T + 60_000),
+    ) as { text: ApplyResultView }
+    expect(text.outcome).toBe("ABORTED_ON_MISMATCH")
+    expect(existsSync(cfg)).toBe(false)
+  })
+
+  it("approving a digest this session never prepared aborts — no anchor to inherit", () => {
+    const cfg = scratchConfig()
+    const { text } = callAt(
+      "calllint_apply_prepared_install",
+      { canonicalName: NPM_SLUG, host: "cursor", hostConfigPath: cfg, approvalDigest: BAD_DIGEST },
+      at(T),
+    ) as { text: ApplyResultView }
+    expect(text.outcome).toBe("ABORTED_ON_MISMATCH")
+    expect(text.receiptDigest ?? null).toBeNull()
+    expect(existsSync(cfg)).toBe(false)
+  })
+})
 
 describe("calllint_apply_prepared_install", () => {
   it("APPLIES a prepared plan to an absent config and returns a verified receipt", () => {

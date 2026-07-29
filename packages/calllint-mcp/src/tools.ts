@@ -22,6 +22,7 @@ import {
   type ScanOptions,
 } from "@calllint/core"
 import { adoptionBasisPolicy } from "@calllint/policy"
+import { rememberPlanAnchor, recallPlanAnchor } from "./planAnchors.js"
 import { renderExplain, NO_EMOJI_STYLE } from "@calllint/report-renderer"
 import { VERDICT_PUBLIC_LABEL } from "@calllint/types"
 import type { ApplyResult, Baseline, InstallPlan, TrustPreparation } from "@calllint/types"
@@ -337,13 +338,14 @@ function runPrepare(
   if (host) {
     const hostConfigPath = str(args, "hostConfigPath") ?? defaultHostConfigPath(host)
     const hostConfigText = hostConfigPath ? readHostConfig(hostConfigPath) : null
-    const generatedAt = opts.generatedAt ?? new Date(opts.now ?? 0).toISOString()
-    const ms = Date.parse(generatedAt)
     hostPlan = {
       host,
       configPath: hostConfigPath ?? `<${host}-config>`,
       hostConfigText,
-      expiresAt: Number.isNaN(ms) ? generatedAt : new Date(ms + 60 * 60 * 1000).toISOString(),
+      // Anchored to the REAL clock, not the server's pinned report clock: this
+      // window is what the engine's staleness guard is checked against on apply.
+      // Pinning it to server start made that guard inert (see planAnchors.ts).
+      expiresAt: planWindowFrom(planNow(opts)),
     }
   }
 
@@ -358,6 +360,10 @@ function runPrepare(
 
   const outcome = outcomeForPreparation(prep)
   const planDigest = (prep.plan?.planDigest as string | undefined) ?? null
+  // Remember the window this digest was sealed with so the separate apply call can
+  // reproduce the digest without re-anchoring to a fresh (and therefore different)
+  // window. The anchor decides nothing — apply still recomputes every safety fact.
+  if (planDigest && hostPlan?.expiresAt) rememberPlanAnchor(planDigest, hostPlan.expiresAt)
   const notes: string[] = []
   if (!host) {
     notes.push("no host named — returning the local decision only; pass host to compute an install plan")
@@ -462,6 +468,30 @@ function gateActionableTarget(
   return { contract, base }
 }
 
+/** How long a prepared plan stays applyable. */
+const PLAN_TTL_MS = 60 * 60 * 1000
+
+/**
+ * The clock a plan's validity WINDOW is measured on — deliberately separate from
+ * `opts.generatedAt`, which the server pins once at startup so scan reports stay
+ * reproducible per call. A window measured on that pinned clock can never elapse
+ * (see planAnchors.ts), so this reads real time.
+ *
+ * `opts.planNowMs` exists only so tests can place a session at a chosen instant;
+ * production never sets it and falls through to `Date.now()`.
+ */
+function planNow(opts: ScanOptions & { planNowMs?: number }): number {
+  return opts.planNowMs ?? Date.now()
+}
+
+function planNowIso(opts: ScanOptions & { planNowMs?: number }): string {
+  return new Date(planNow(opts)).toISOString()
+}
+
+function planWindowFrom(nowMs: number): string {
+  return new Date(nowMs + PLAN_TTL_MS).toISOString()
+}
+
 const APPLY_TOOL = "calllint_apply_prepared_install"
 
 /**
@@ -525,7 +555,13 @@ function runApply(
 ): ToolResult {
   const subj = contract.subject
   const generatedAt = opts.generatedAt ?? new Date(opts.now ?? 0).toISOString()
-  const ms = Date.parse(generatedAt)
+  // Inherit the window the approved plan was sealed with (prepare remembered it) so
+  // the digest below can reproduce. Falling back to a fresh window is deliberate and
+  // harmless: the digest then cannot match and the approval gate aborts — the honest
+  // outcome when this session never prepared the plan being approved.
+  const inherited = recallPlanAnchor(approvalDigest)
+  const nowIso = planNowIso(opts)
+  const expiresAt = inherited ?? planWindowFrom(planNow(opts))
 
   // Re-run the SAME shared, writer-free prepare the prepare tool runs. Deterministic
   // over identical inputs, so an unchanged target reproduces the digest the caller
@@ -540,7 +576,7 @@ function runApply(
       host,
       configPath,
       hostConfigText: readHostConfig(configPath),
-      expiresAt: Number.isNaN(ms) ? generatedAt : new Date(ms + 60 * 60 * 1000).toISOString(),
+      expiresAt,
     },
     expect: base.contractDigest ? { contractDigest: base.contractDigest as `sha256:${string}` } : undefined,
     preparedAt: generatedAt,
@@ -596,7 +632,10 @@ function runApply(
       backupPath: `${configPath}.calllint-backup-${suffix}`,
       lockPath: join(tmpdir(), "calllint-mcp-locks", `${suffix}.lock`),
       fs: nodeFsPort(),
-      now: generatedAt,
+      // The REAL clock, not the server's pinned report clock. Passing the pinned
+      // clock made `now > expiresAt` unreachable, so the engine's staleness guard
+      // could never fire no matter how long the session had been running.
+      now: nowIso,
     })
   } catch (e) {
     return emitResult({

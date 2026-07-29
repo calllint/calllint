@@ -1,0 +1,272 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://calllint.com/schemas/calllint.presentation-content.v1.schema.json",
+  "title": "CallLint Safe-install Presentation Content",
+  "description": "The structured presentation-content document (calllint.presentation-content.v1) that makes Safe-install wording, above-the-fold ordering, and visual tokens CONFIGURABLE without letting configuration reach the decision plane (new15 Workstream P; ADR 0058). Every section here is L0/L1/L2 by ADR 0058 §1's mechanical test: its values cannot reach `contractDigest`. L3 behavioral semantics — the four verdict labels, the reason-code set, `installability`, `recommendedNextAction` and its `kind`, and AGENT_GUIDANCE's protocol steps/mustAsk/mustStop/prohibitedShortcuts — are STRUCTURALLY absent: this schema is closed at every level (`additionalProperties: false`) and no property name anywhere is drawn from the reserved L3 vocabulary, so there is no shape a document can take that carries one. Configuration SELECTS among orderings and vocabularies the code already implements; it never invents (§3). PR P-1 ships this schema, its validator, and the digest seams; PR P-2 populates `apps/web/content/**` against it and must reproduce the served tree byte for byte (§4).",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "locale"],
+  "properties": {
+    "schema": {
+      "const": "calllint.presentation-content.v1",
+      "description": "Wire identity (ADR 0043/0055 §5). The tag, not the filename, is the contract."
+    },
+    "locale": {
+      "$ref": "#/$defs/locale",
+      "description": "BCP-47 tag this document supplies copy for. One document per locale; the emit edge selects."
+    },
+    "decisionCopy": {
+      "$ref": "#/$defs/decisionCopy",
+      "description": "L1 cognitive copy. Destination: apps/web/content/safe-install/decision-copy/<locale>.json"
+    },
+    "authorityCopy": {
+      "$ref": "#/$defs/authorityCopy",
+      "description": "L2 security-explanation copy; security-owner review. Destination: apps/web/content/safe-install/authority-copy/<locale>.json"
+    },
+    "sectionTitles": {
+      "$ref": "#/$defs/sectionTitles",
+      "description": "L1 copy for the renderer's FIXED section keys. A key is a shipped section; config cannot add one."
+    },
+    "guardConversion": {
+      "$ref": "#/$defs/guardConversion",
+      "description": "L1 continuous-protection offer copy. Never an authorization: the offer's effect is code (ADR 0058 §6)."
+    },
+    "agentRelayCopy": {
+      "$ref": "#/$defs/agentRelayCopy",
+      "description": "L1 relay wording an agent may echo to a human (new15 §20.2). NEVER AgentProtocolPolicy (§20.1) — protocol steps and triggers stay code (ADR 0058 §6)."
+    },
+    "layout": {
+      "$ref": "#/$defs/layout",
+      "description": "L1 selection among orderings the renderer already supports (ADR 0058 §3)."
+    },
+    "tokens": {
+      "$ref": "#/$defs/tokens",
+      "description": "L0 visual tokens. Referencing a stylesheet from the page is PR P-4b only — the single Workstream P PR permitted to change served bytes (ADR 0058 §4)."
+    },
+    "overrides": {
+      "$ref": "#/$defs/overrides",
+      "description": "The five permitted per-resource structured overrides (ADR 0058 §3). Per-resource HTML/CSS/JS/agent-instructions are forbidden."
+    }
+  },
+  "$defs": {
+    "locale": {
+      "type": "string",
+      "pattern": "^[a-z]{2}(-[A-Z]{2})?$"
+    },
+    "copyText": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 400,
+      "description": "One human-facing string. Bounded so a config edit cannot smuggle a document into a page."
+    },
+    "installability": {
+      "description": "The five shipped human/route states. Keys only — the ROUTE is derived from the verdict in code and is not configurable.",
+      "enum": [
+        "PREPARE_AVAILABLE",
+        "REVIEW_REQUIRED",
+        "BLOCKED",
+        "LOCAL_PREFLIGHT_REQUIRED",
+        "UNSUPPORTED"
+      ]
+    },
+    "authority": {
+      "description": "The ten shipped adoption authorities (ADOPTION_AUTHORITIES). Config supplies WORDING per shipped token; it may not add, rename, or coin one (ADR 0058 §3).",
+      "enum": [
+        "financial_action",
+        "secret_access",
+        "shell_execution",
+        "broad_filesystem_access",
+        "external_mutation",
+        "messaging_send",
+        "oauth_scope",
+        "gateway_runtime",
+        "network_egress",
+        "no_high_authority_observed"
+      ]
+    },
+    "displayGroup": {
+      "description": "The six shipped above-the-fold display groups (new14 §7). A closed set: config may reorder, never add or delete (ADR 0058 §3).",
+      "enum": [
+        "identity",
+        "disposition",
+        "consequence",
+        "authority_facts",
+        "primary_action",
+        "secondary_links"
+      ]
+    },
+    "decisionCopy": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Per-state cognitive copy. The four verdict keys and five installability keys are the shipped vocabularies; a document supplies wording for them and cannot introduce a state.",
+      "properties": {
+        "states": {
+          "type": "object",
+          "additionalProperties": false,
+          "minProperties": 1,
+          "description": "Keyed by the shipped installability states.",
+          "properties": {
+            "PREPARE_AVAILABLE": { "$ref": "#/$defs/stateCopy" },
+            "REVIEW_REQUIRED": { "$ref": "#/$defs/stateCopy" },
+            "BLOCKED": { "$ref": "#/$defs/stateCopy" },
+            "LOCAL_PREFLIGHT_REQUIRED": { "$ref": "#/$defs/stateCopy" },
+            "UNSUPPORTED": { "$ref": "#/$defs/stateCopy" }
+          }
+        }
+      }
+    },
+    "stateCopy": {
+      "type": "object",
+      "additionalProperties": false,
+      "minProperties": 1,
+      "description": "Wording for one shipped state. `headline` is the page's L1 headline slot — it is NOT the sealed contract's publicObservation.publicLabel, which is L3 and stays code (ADR 0058 §6). The validator additionally forbids a headline or primaryAction that impersonates a DIFFERENT state's shipped default, so config can reword but never make one disposition read as another.",
+      "properties": {
+        "headline": { "$ref": "#/$defs/copyText" },
+        "primaryAction": { "$ref": "#/$defs/copyText" },
+        "supportingText": { "$ref": "#/$defs/copyText" },
+        "secondaryLinkLabel": { "$ref": "#/$defs/copyText" }
+      }
+    },
+    "authorityCopy": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "L2 wording per shipped authority token, split by whether the capability was OBSERVED or was a meaningful, evidence-supported ABSENCE. Absence wording must stay an observation and is never rendered as denied/absent/impossible (ADR 0058 §3); the validator enforces that phrase set. Named `*Phrases` deliberately: `observed` alone is a RESERVED L3 key (it is DecisionAuthorityFact.observed, the boolean that records what evidence showed), and these are phrase maps keyed BY that disposition, not the fact itself.",
+      "properties": {
+        "observedPhrases": { "$ref": "#/$defs/authorityPhraseMap" },
+        "absencePhrases": { "$ref": "#/$defs/authorityPhraseMap" }
+      }
+    },
+    "authorityPhraseMap": {
+      "type": "object",
+      "additionalProperties": false,
+      "minProperties": 1,
+      "properties": {
+        "financial_action": { "$ref": "#/$defs/copyText" },
+        "secret_access": { "$ref": "#/$defs/copyText" },
+        "shell_execution": { "$ref": "#/$defs/copyText" },
+        "broad_filesystem_access": { "$ref": "#/$defs/copyText" },
+        "external_mutation": { "$ref": "#/$defs/copyText" },
+        "messaging_send": { "$ref": "#/$defs/copyText" },
+        "oauth_scope": { "$ref": "#/$defs/copyText" },
+        "gateway_runtime": { "$ref": "#/$defs/copyText" },
+        "network_egress": { "$ref": "#/$defs/copyText" },
+        "no_high_authority_observed": { "$ref": "#/$defs/copyText" }
+      }
+    },
+    "sectionTitles": {
+      "type": "object",
+      "additionalProperties": false,
+      "minProperties": 1,
+      "description": "Titles for the renderer's fixed sections. `publisherBlock` is the quarantine label (INV-2.4-05): its wording is configurable, its POSITION is not — no config may relocate publisher text into a decision group (ADR 0058 §6).",
+      "properties": {
+        "authorityFacts": { "$ref": "#/$defs/copyText" },
+        "provenance": { "$ref": "#/$defs/copyText" },
+        "publisherBlock": { "$ref": "#/$defs/copyText" },
+        "boundary": { "$ref": "#/$defs/copyText" }
+      }
+    },
+    "guardConversion": {
+      "type": "object",
+      "additionalProperties": false,
+      "minProperties": 1,
+      "properties": {
+        "offerHeadline": { "$ref": "#/$defs/copyText" },
+        "offerBody": { "$ref": "#/$defs/copyText" },
+        "declineLabel": { "$ref": "#/$defs/copyText" },
+        "acceptLabel": { "$ref": "#/$defs/copyText" }
+      }
+    },
+    "agentRelayCopy": {
+      "type": "object",
+      "additionalProperties": false,
+      "minProperties": 1,
+      "description": "The six new15 §20.2 relay slots. Relay copy may never add or remove a protocol trigger (ADR 0058 §6); it is wording an agent echoes, not policy an agent obeys.",
+      "properties": {
+        "headline": { "$ref": "#/$defs/copyText" },
+        "reason": { "$ref": "#/$defs/copyText" },
+        "adds": { "$ref": "#/$defs/copyText" },
+        "notObserved": { "$ref": "#/$defs/copyText" },
+        "approvalQuestion": { "$ref": "#/$defs/copyText" },
+        "guardOffer": { "$ref": "#/$defs/copyText" }
+      }
+    },
+    "layout": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["groupOrder"],
+      "properties": {
+        "groupOrder": {
+          "type": "array",
+          "description": "A PERMUTATION of the six shipped groups: exactly six entries, all distinct. Enforcing the full set is what makes this a selection rather than an invention — a document cannot drop `consequence` to hide it, nor add a seventh group the renderer has no slot for (ADR 0058 §3).",
+          "minItems": 6,
+          "maxItems": 6,
+          "uniqueItems": true,
+          "items": { "$ref": "#/$defs/displayGroup" }
+        },
+        "maxAuthorityFacts": {
+          "type": "integer",
+          "description": "Upper bound on rendered authority facts. Capped at the shipped 3 — config may show fewer, never more (new14 §7).",
+          "minimum": 1,
+          "maximum": 3
+        },
+        "maxSecondaryLinks": {
+          "type": "integer",
+          "description": "Upper bound on secondary links. Capped at the shipped 2.",
+          "minimum": 0,
+          "maximum": 2
+        }
+      }
+    },
+    "tokens": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["tokensVersion"],
+      "properties": {
+        "tokensVersion": {
+          "type": "string",
+          "pattern": "^[a-z0-9]+(?:[.-][a-z0-9]+)*$",
+          "description": "Machine token identifying the deployed apps/web/styles/** set. Deliberately not prose."
+        },
+        "stylesheetHref": {
+          "type": "string",
+          "pattern": "^/styles/[a-z0-9./-]+\\.css$",
+          "description": "Site-absolute path only — no scheme, no host, so a config edit can never point a page at a third-party origin. A page only REFERENCES this from PR P-4b onward (ADR 0058 §4)."
+        }
+      }
+    },
+    "overrides": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["resources"],
+      "properties": {
+        "resources": {
+          "type": "object",
+          "description": "Keyed by canonical slug. Every value is limited to the five permitted fields; none may affect a decision field (ADR 0058 §3).",
+          "additionalProperties": { "$ref": "#/$defs/resourceOverride" },
+          "propertyNames": { "pattern": "^[a-z0-9][a-z0-9._-]*$" }
+        }
+      }
+    },
+    "resourceOverride": {
+      "type": "object",
+      "additionalProperties": false,
+      "minProperties": 1,
+      "description": "The exhaustive permitted per-resource override set (ADR 0058 §3). Per-resource HTML, CSS, JavaScript, and agent instructions are forbidden and have no representation here.",
+      "properties": {
+        "displayName": { "$ref": "#/$defs/copyText" },
+        "scopeAlias": { "$ref": "#/$defs/copyText" },
+        "originalSetupUrl": {
+          "type": "string",
+          "pattern": "^https://[a-z0-9.-]+(?::[0-9]+)?(?:/[^\\s]*)?$",
+          "description": "A known publisher setup page. https only; never rendered as a command and never followed by the engine."
+        },
+        "expiresAt": {
+          "type": "string",
+          "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z$",
+          "description": "When this override lapses. An expired override is inert, never an error — presentation must fail open to CODE defaults, never to a blank page."
+        },
+        "reason": { "$ref": "#/$defs/copyText" }
+      }
+    }
+  }
+}

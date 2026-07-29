@@ -94,6 +94,24 @@ describe("human offer rendering", () => {
     expect(text).toContain("nothing is")
   })
 
+  it("shows the human-readable label, not just the machine id", () => {
+    // Found by Gate 2.4-F: the offer object carried `label` but the renderer only
+    // printed `id`, leaving the person consenting to decode `calllint-guard:vscode`.
+    const offer = continuousProtectionOffer({ hosts: [...GUARD_HOST_IDS] })
+    const text = renderContinuousProtectionOffer(offer)
+    for (const c of offer.components) expect(text).toContain(c.label)
+  })
+
+  it("discloses BOTH exits before the decision: disable and remove", () => {
+    // Also found by Gate 2.4-F: only `remove` was shown, so turning Guard off
+    // looked like it required taking files back out.
+    const offer = continuousProtectionOffer({ hosts: ["vscode"] })
+    const text = renderContinuousProtectionOffer(offer)
+    expect(text).toContain(offer.disableCommand)
+    expect(text.indexOf(offer.disableCommand)).toBeLessThan(text.indexOf("[Enable continuous protection]"))
+    for (const c of offer.components) expect(text).toContain(c.uninstallCommand)
+  })
+
   it("states plainly that the offer itself installs nothing", () => {
     const text = renderContinuousProtectionOffer(continuousProtectionOffer({ hosts: [...GUARD_HOST_IDS] }))
     expect(text).toContain("Nothing persistent was installed by the step above")

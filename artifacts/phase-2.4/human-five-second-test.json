@@ -1,0 +1,298 @@
+{
+  "schema": "calllint.phase-2.4-human-capsule-eval.v0",
+  "$comment": "Gate 2.4-B evidence. Two independent inputs. (1) structuralPrecondition is machine-measured by evaluateHumanCapsule() over the SHIPPED renderer and must be 100% — one CTA, <=3 authority facts, all three five-second answers present exactly once above the fold, no decision JS. (2) humanPanel is read from five-second-panel-store.json, which only a human writes; code never simulates a human study, so an unrecorded panel yields PENDING_HUMAN_PANEL rather than a pass. Regenerate with `pnpm eval:phase-2.4:write`; enforce with `pnpm eval:phase-2.4:gate`.",
+  "gate": "2.4-B",
+  "status": "PENDING_HUMAN_PANEL",
+  "engineVersion": "1.7.3",
+  "thresholds": {
+    "singlePrimaryCta": 1,
+    "maxAuthorityFacts": 3,
+    "recognitionPerQuestion": 0.9,
+    "minPanelResponses": 10
+  },
+  "structuralPrecondition": {
+    "pass": true,
+    "pagesEvaluated": 5,
+    "pages": [
+      {
+        "canonicalSlug": "calllint-fixtures-safe-time",
+        "installability": "PREPARE_AVAILABLE",
+        "checks": [
+          {
+            "id": "exactly-one-primary-cta",
+            "pass": true,
+            "observed": "install-cta count = 1"
+          },
+          {
+            "id": "at-most-three-authority-facts",
+            "pass": true,
+            "observed": "authority facts = 1"
+          },
+          {
+            "id": "answer-target-present",
+            "pass": true,
+            "observed": "h1 = \"@fixture/calllint-fixtures-safe-time\""
+          },
+          {
+            "id": "answer-consequence-present",
+            "pass": true,
+            "observed": "consequence = \"No high-authority capability was observed.\""
+          },
+          {
+            "id": "answer-action-present",
+            "pass": true,
+            "observed": "cta = \"Add with CallLint\""
+          },
+          {
+            "id": "six-groups-in-dom-order-above-fold",
+            "pass": true,
+            "observed": "identity/disposition/consequence/authority/secondary/provenance = 520/729/1053/1197/1456/1786"
+          },
+          {
+            "id": "publisher-text-outside-decision-groups",
+            "pass": true,
+            "observed": "publisher index = -1, secondary index = 1456"
+          },
+          {
+            "id": "no-decision-javascript",
+            "pass": true,
+            "observed": "script tags = 0"
+          }
+        ],
+        "pass": true,
+        "answers": {
+          "target": "@fixture/calllint-fixtures-safe-time",
+          "consequence": "No high-authority capability was observed.",
+          "action": "Add with CallLint"
+        }
+      },
+      {
+        "canonicalSlug": "calllint-fixtures-review-github",
+        "installability": "REVIEW_REQUIRED",
+        "checks": [
+          {
+            "id": "exactly-one-primary-cta",
+            "pass": true,
+            "observed": "install-cta count = 1"
+          },
+          {
+            "id": "at-most-three-authority-facts",
+            "pass": true,
+            "observed": "authority facts = 3"
+          },
+          {
+            "id": "answer-target-present",
+            "pass": true,
+            "observed": "h1 = \"@fixture/calllint-fixtures-review-github\""
+          },
+          {
+            "id": "answer-consequence-present",
+            "pass": true,
+            "observed": "consequence = \"Requires access to configured secrets.\""
+          },
+          {
+            "id": "answer-action-present",
+            "pass": true,
+            "observed": "cta = \"Review and add\""
+          },
+          {
+            "id": "six-groups-in-dom-order-above-fold",
+            "pass": true,
+            "observed": "identity/disposition/consequence/authority/secondary/provenance = 528/745/1066/1206/1682/2016"
+          },
+          {
+            "id": "publisher-text-outside-decision-groups",
+            "pass": true,
+            "observed": "publisher index = -1, secondary index = 1682"
+          },
+          {
+            "id": "no-decision-javascript",
+            "pass": true,
+            "observed": "script tags = 0"
+          }
+        ],
+        "pass": true,
+        "answers": {
+          "target": "@fixture/calllint-fixtures-review-github",
+          "consequence": "Requires access to configured secrets.",
+          "action": "Review and add"
+        }
+      },
+      {
+        "canonicalSlug": "calllint-fixtures-block-prompt-poison",
+        "installability": "BLOCKED",
+        "checks": [
+          {
+            "id": "exactly-one-primary-cta",
+            "pass": true,
+            "observed": "install-cta count = 1"
+          },
+          {
+            "id": "at-most-three-authority-facts",
+            "pass": true,
+            "observed": "authority facts = 1"
+          },
+          {
+            "id": "answer-target-present",
+            "pass": true,
+            "observed": "h1 = \"@fixture/calllint-fixtures-block-prompt-poison\""
+          },
+          {
+            "id": "answer-consequence-present",
+            "pass": true,
+            "observed": "consequence = \"No high-authority capability was observed.\""
+          },
+          {
+            "id": "answer-action-present",
+            "pass": true,
+            "observed": "cta = \"Inspect blockers\""
+          },
+          {
+            "id": "six-groups-in-dom-order-above-fold",
+            "pass": true,
+            "observed": "identity/disposition/consequence/authority/secondary/provenance = 540/769/1087/1231/1490/1830"
+          },
+          {
+            "id": "publisher-text-outside-decision-groups",
+            "pass": true,
+            "observed": "publisher index = -1, secondary index = 1490"
+          },
+          {
+            "id": "no-decision-javascript",
+            "pass": true,
+            "observed": "script tags = 0"
+          }
+        ],
+        "pass": true,
+        "answers": {
+          "target": "@fixture/calllint-fixtures-block-prompt-poison",
+          "consequence": "No high-authority capability was observed.",
+          "action": "Inspect blockers"
+        }
+      },
+      {
+        "canonicalSlug": "calllint-fixtures-unknown-remote",
+        "installability": "LOCAL_PREFLIGHT_REQUIRED",
+        "checks": [
+          {
+            "id": "exactly-one-primary-cta",
+            "pass": true,
+            "observed": "install-cta count = 1"
+          },
+          {
+            "id": "at-most-three-authority-facts",
+            "pass": true,
+            "observed": "authority facts = 2"
+          },
+          {
+            "id": "answer-target-present",
+            "pass": true,
+            "observed": "h1 = \"@fixture/calllint-fixtures-unknown-remote\""
+          },
+          {
+            "id": "answer-consequence-present",
+            "pass": true,
+            "observed": "consequence = \"Connects to an unverified remote endpoint.\""
+          },
+          {
+            "id": "answer-action-present",
+            "pass": true,
+            "observed": "cta = \"Run local pre-flight\""
+          },
+          {
+            "id": "six-groups-in-dom-order-above-fold",
+            "pass": true,
+            "observed": "identity/disposition/consequence/authority/secondary/provenance = 530/749/1094/1238/1608/1943"
+          },
+          {
+            "id": "publisher-text-outside-decision-groups",
+            "pass": true,
+            "observed": "publisher index = -1, secondary index = 1608"
+          },
+          {
+            "id": "no-decision-javascript",
+            "pass": true,
+            "observed": "script tags = 0"
+          }
+        ],
+        "pass": true,
+        "answers": {
+          "target": "@fixture/calllint-fixtures-unknown-remote",
+          "consequence": "Connects to an unverified remote endpoint.",
+          "action": "Run local pre-flight"
+        }
+      },
+      {
+        "canonicalSlug": "calllint-fixtures-unknown-unrecognized-shape",
+        "installability": "UNSUPPORTED",
+        "checks": [
+          {
+            "id": "exactly-one-primary-cta",
+            "pass": true,
+            "observed": "install-cta count = 1"
+          },
+          {
+            "id": "at-most-three-authority-facts",
+            "pass": true,
+            "observed": "authority facts = 1"
+          },
+          {
+            "id": "answer-target-present",
+            "pass": true,
+            "observed": "h1 = \"@fixture/calllint-fixtures-unknown-unrecognized-shape\""
+          },
+          {
+            "id": "answer-consequence-present",
+            "pass": true,
+            "observed": "consequence = \"No high-authority capability was observed.\""
+          },
+          {
+            "id": "answer-action-present",
+            "pass": true,
+            "observed": "cta = \"View manual setup\""
+          },
+          {
+            "id": "six-groups-in-dom-order-above-fold",
+            "pass": true,
+            "observed": "identity/disposition/consequence/authority/secondary/provenance = 554/778/1104/1248/1507/1854"
+          },
+          {
+            "id": "publisher-text-outside-decision-groups",
+            "pass": true,
+            "observed": "publisher index = -1, secondary index = 1507"
+          },
+          {
+            "id": "no-decision-javascript",
+            "pass": true,
+            "observed": "script tags = 0"
+          }
+        ],
+        "pass": true,
+        "answers": {
+          "target": "@fixture/calllint-fixtures-unknown-unrecognized-shape",
+          "consequence": "No high-authority capability was observed.",
+          "action": "View manual setup"
+        }
+      }
+    ]
+  },
+  "humanPanel": {
+    "status": "NOT_RUN",
+    "storePath": "artifacts/phase-2.4/five-second-panel-store.json",
+    "questions": [
+      "target",
+      "consequence",
+      "action"
+    ],
+    "participants": 0,
+    "responses": 0,
+    "recognition": {
+      "target": null,
+      "consequence": null,
+      "action": null
+    }
+  },
+  "blockers": [
+    "human panel not recorded: 0/10 responses in artifacts/phase-2.4/five-second-panel-store.json"
+  ]
+}

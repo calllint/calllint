@@ -1,0 +1,346 @@
+{
+  "schema": "calllint.presentation-lock.v0",
+  "$comment": "Workstream P PR P-1 digest seams (ADR 0058 §5; new15 §7). RECORDS presentationDigest + semanticContractDigest; it does NOT re-point what install plans bind — plans still bind contractDigest, and moving that binding is a P-7 decision requiring an ADR amendment (doing it here would smuggle a behavior change into a batch declared as having none). `semanticContractDigest` is defined by DELETION from the sealed contract, so a new contract field is bound by default and omission is the reviewable exception. The gate is noProseLeaves: machine tokens carry no whitespace, prose always does, so an empty result proves no copy is bound — for any input, not just those measured. Regenerate with `pnpm audit:presentation:lock:write`; enforce with `pnpm audit:presentation:lock:gate`.",
+  "workstream": "P",
+  "pr": "P-1",
+  "status": "PASSED",
+  "contentPlane": {
+    "root": "apps/web/content/safe-install",
+    "document": "apps/web/content/safe-install/presentation.v1.json",
+    "state": "absent",
+    "$comment": "absent at P-1: apps/web/content/** is greenfield, so the recorded digest is that of the canonical EMPTY document (schema+locale only), which resolves every slot to the shipped code default. This is the restorable predecessor INV-P3 needs, not a placeholder.",
+    "schemaTag": "calllint.presentation-content.v1",
+    "locale": "en-US",
+    "levelBySection": {
+      "decisionCopy": "L1",
+      "authorityCopy": "L2",
+      "sectionTitles": "L1",
+      "guardConversion": "L1",
+      "agentRelayCopy": "L1",
+      "layout": "L1",
+      "tokens": "L0",
+      "overrides": "L1"
+    },
+    "validationErrors": [],
+    "presentationDigest": "sha256:b9bbb27a74ad8557c049cbb6c2f884a4807b79f87f03a838ba138494a17baec7",
+    "l0Digest": "sha256:44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+    "l1Digest": "sha256:44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+    "l2Digest": "sha256:44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+    "sections": []
+  },
+  "semanticContract": {
+    "$comment": "Read from the COMMITTED served sidecars (apps/web/public/install/**), so these are the bytes users actually receive — not a re-derivation that could agree with itself while disagreeing with production.",
+    "omissions": [
+      {
+        "path": "contract.contractDigest",
+        "reason": "self-referential",
+        "rationale": "The digest cannot be part of its own preimage; sealAgentAdoptionContract already excludes it."
+      },
+      {
+        "path": "recommendedNextAction.arguments.expectedContractDigest",
+        "reason": "self-referential",
+        "rationale": "Same digest echoed into the action arguments; excluded by the shipped seal for the same reason."
+      },
+      {
+        "path": "untrustedPublisherContent.description",
+        "reason": "untrusted",
+        "rationale": "Publisher-controlled marketing text, already excluded from contractDigest so a publisher cannot invalidate every agent's expected digest. It travels for display only."
+      },
+      {
+        "path": "publicObservation.publicLabel",
+        "reason": "recomputable",
+        "rationale": "VERDICT_PUBLIC_LABEL[verdict] — measured identical on all 19 served sidecars, 0 mismatches. The verdict token stays bound, so the label adds no semantics and only adds copy fragility."
+      },
+      {
+        "path": "agentGuidance.goal",
+        "reason": "constant",
+        "rationale": "One distinct value across all 19 served sidecars. A constant carries no per-subject information; the protocol steps/mustAsk/mustStop/prohibitedShortcuts that DO carry semantics all remain bound."
+      }
+    ],
+    "resourcesMeasured": 19,
+    "distinctContractDigests": 19,
+    "distinctSemanticContractDigests": 19,
+    "noProseLeaves": true,
+    "bindingUnchanged": true,
+    "resources": [
+      {
+        "canonicalSlug": "mcp-registry/ac.inference.sh-mcp",
+        "contractDigest": "sha256:90f1373a490e065d8427addc661276c523328e8f6b569e3cb3f8cdbbe9bec433",
+        "semanticContractDigest": "sha256:ec94273a5fc85dd003b9e83f86ed64b69bf160bc190540832e959f2226d31dc8",
+        "omissionsApplied": [
+          "contract.contractDigest",
+          "recommendedNextAction.arguments.expectedContractDigest",
+          "untrustedPublisherContent.description",
+          "publicObservation.publicLabel",
+          "agentGuidance.goal"
+        ],
+        "omissionsNotPresent": [],
+        "proseLeaves": []
+      },
+      {
+        "canonicalSlug": "mcp-registry/ac.tandem-docs-mcp",
+        "contractDigest": "sha256:f200af61d04e762810ba874e8bbe6dcb2e1a958e083114b697f79b8950bceba3",
+        "semanticContractDigest": "sha256:496ff50b9587e0b5b745319a06d31da2dc096857736593add358a411edd304e7",
+        "omissionsApplied": [
+          "contract.contractDigest",
+          "recommendedNextAction.arguments.expectedContractDigest",
+          "untrustedPublisherContent.description",
+          "publicObservation.publicLabel",
+          "agentGuidance.goal"
+        ],
+        "omissionsNotPresent": [],
+        "proseLeaves": []
+      },
+      {
+        "canonicalSlug": "mcp-registry/ag.hood-name-service",
+        "contractDigest": "sha256:de52b7b178bb158f6aef12ff4b422b5ff9488586daf80a7dd99b874950c3b04e",
+        "semanticContractDigest": "sha256:80f2e7fa3d9f17dc7c6b262495b2f47fc98f3065cb272d720e974fec2b30d6a3",
+        "omissionsApplied": [
+          "contract.contractDigest",
+          "recommendedNextAction.arguments.expectedContractDigest",
+          "untrustedPublisherContent.description",
+          "publicObservation.publicLabel",
+          "agentGuidance.goal"
+        ],
+        "omissionsNotPresent": [],
+        "proseLeaves": []
+      },
+      {
+        "canonicalSlug": "mcp-registry/agency.lona-trading",
+        "contractDigest": "sha256:b7d57c50604f6c5c9a4882f96e7c51709385c24c7fece0d5eb946049fd1d29f6",
+        "semanticContractDigest": "sha256:7ff069f5f1e3d733548e105dd2a60f1c3bb29f7a3bd5fb386fee2398bc0d8e4c",
+        "omissionsApplied": [
+          "contract.contractDigest",
+          "recommendedNextAction.arguments.expectedContractDigest",
+          "untrustedPublisherContent.description",
+          "publicObservation.publicLabel",
+          "agentGuidance.goal"
+        ],
+        "omissionsNotPresent": [],
+        "proseLeaves": []
+      },
+      {
+        "canonicalSlug": "mcp-registry/ai.1325-mcp",
+        "contractDigest": "sha256:11984e1f2004955a5770402b1c6d94c980d4694cf5b5a6153605948e67b3f521",
+        "semanticContractDigest": "sha256:f67602f10107b6f729c36f685020639a77d805b20d738e0302eb4e608663747c",
+        "omissionsApplied": [
+          "contract.contractDigest",
+          "recommendedNextAction.arguments.expectedContractDigest",
+          "untrustedPublisherContent.description",
+          "publicObservation.publicLabel",
+          "agentGuidance.goal"
+        ],
+        "omissionsNotPresent": [],
+        "proseLeaves": []
+      },
+      {
+        "canonicalSlug": "mcp-registry/ai.aarna-atars-mcp",
+        "contractDigest": "sha256:5d1c62682a17d6684e89e8f500981e8af97a2f99679a0795a13b55b32b4bac98",
+        "semanticContractDigest": "sha256:e3b17c73f3fde6ef87c0adcd5c565ea073dbe5f561b4d2101e68a29471433cda",
+        "omissionsApplied": [
+          "contract.contractDigest",
+          "recommendedNextAction.arguments.expectedContractDigest",
+          "untrustedPublisherContent.description",
+          "publicObservation.publicLabel",
+          "agentGuidance.goal"
+        ],
+        "omissionsNotPresent": [],
+        "proseLeaves": []
+      },
+      {
+        "canonicalSlug": "mcp-registry/ai.abmeter-abmeter",
+        "contractDigest": "sha256:c4a4f6e4235c1939c3b53168cf21200b5d45835fb49cd64881449147ce5bac7c",
+        "semanticContractDigest": "sha256:8fc0d88956aef0e674ade6fb04f965aaaadcd97aba8474c4b0c30cee0be67806",
+        "omissionsApplied": [
+          "contract.contractDigest",
+          "recommendedNextAction.arguments.expectedContractDigest",
+          "untrustedPublisherContent.description",
+          "publicObservation.publicLabel",
+          "agentGuidance.goal"
+        ],
+        "omissionsNotPresent": [],
+        "proseLeaves": []
+      },
+      {
+        "canonicalSlug": "mcp-registry/ai.adadvisor-mcp-server",
+        "contractDigest": "sha256:73a501ed1df62d5d9a3b9bc2c0d8907d3ef35cb3dbefe25199a74f2f15ef814a",
+        "semanticContractDigest": "sha256:2db87883f2bc4f53f8c260178ac42da5ba525ab5788d14277ab9dc3e2442529f",
+        "omissionsApplied": [
+          "contract.contractDigest",
+          "recommendedNextAction.arguments.expectedContractDigest",
+          "untrustedPublisherContent.description",
+          "publicObservation.publicLabel",
+          "agentGuidance.goal"
+        ],
+        "omissionsNotPresent": [],
+        "proseLeaves": []
+      },
+      {
+        "canonicalSlug": "mcp-registry/ai.adeu-adeu",
+        "contractDigest": "sha256:199d6cc51bfdd9d3da062db47b703b6c776d8f6bad8f3da007c4858a2642fadb",
+        "semanticContractDigest": "sha256:0787d517ecbd777c1061ea61ab45602328682114dbccf9b0f70a7b921a2663a0",
+        "omissionsApplied": [
+          "contract.contractDigest",
+          "recommendedNextAction.arguments.expectedContractDigest",
+          "untrustedPublisherContent.description",
+          "publicObservation.publicLabel",
+          "agentGuidance.goal"
+        ],
+        "omissionsNotPresent": [],
+        "proseLeaves": []
+      },
+      {
+        "canonicalSlug": "mcp-registry/ai.adramp-google-ads",
+        "contractDigest": "sha256:b9dbd9d1c49a93ac059429c83cba49ca2cdfa0c3aeb1fa6fb1bf2d8a973cc1f4",
+        "semanticContractDigest": "sha256:3f705911e371ed720cb83221b3921c5c8861a25d898bb368b8824a623c7160d6",
+        "omissionsApplied": [
+          "contract.contractDigest",
+          "recommendedNextAction.arguments.expectedContractDigest",
+          "untrustedPublisherContent.description",
+          "publicObservation.publicLabel",
+          "agentGuidance.goal"
+        ],
+        "omissionsNotPresent": [],
+        "proseLeaves": []
+      },
+      {
+        "canonicalSlug": "mcp-registry/ai.adside-adside",
+        "contractDigest": "sha256:7348302040de1540f77c85b692c3dedbd4d09a158c8eb80b984cd37cf89f3d98",
+        "semanticContractDigest": "sha256:3cc3832cb8b2a5b3c8de0aedc964543861dea1faf5daa9a41558941a131cf42f",
+        "omissionsApplied": [
+          "contract.contractDigest",
+          "recommendedNextAction.arguments.expectedContractDigest",
+          "untrustedPublisherContent.description",
+          "publicObservation.publicLabel",
+          "agentGuidance.goal"
+        ],
+        "omissionsNotPresent": [],
+        "proseLeaves": []
+      },
+      {
+        "canonicalSlug": "mcp-registry/ai.adweave-meta-ads-mcp",
+        "contractDigest": "sha256:aea1f0df276ad90becc432a08be54b2a1b923eec35df218c25e90dd8b0f40718",
+        "semanticContractDigest": "sha256:dbf15234be3745fd793bf07587a5b7255edad77ca007281a9e285dc7157ad949",
+        "omissionsApplied": [
+          "contract.contractDigest",
+          "recommendedNextAction.arguments.expectedContractDigest",
+          "untrustedPublisherContent.description",
+          "publicObservation.publicLabel",
+          "agentGuidance.goal"
+        ],
+        "omissionsNotPresent": [],
+        "proseLeaves": []
+      },
+      {
+        "canonicalSlug": "mcp-registry/ai.agentberg-agentberg",
+        "contractDigest": "sha256:fb8a20e076e654f0b8ad85df009eb4c788931ecfa0384a203a3985522470a231",
+        "semanticContractDigest": "sha256:b5a2a04178adb7741acaf958fb0410611bc75a35ff5bca6bd460e606c2fa356a",
+        "omissionsApplied": [
+          "contract.contractDigest",
+          "recommendedNextAction.arguments.expectedContractDigest",
+          "untrustedPublisherContent.description",
+          "publicObservation.publicLabel",
+          "agentGuidance.goal"
+        ],
+        "omissionsNotPresent": [],
+        "proseLeaves": []
+      },
+      {
+        "canonicalSlug": "mcp-registry/ai.agentdm-agentdm",
+        "contractDigest": "sha256:88ffd80cb7a3e4021aaff6856c219895b6707936d29d48ba2ec775f139005470",
+        "semanticContractDigest": "sha256:f56edb305c91669fc556fc8229db52eab3d94ba10a3fc3242a575b6ccf13d2fa",
+        "omissionsApplied": [
+          "contract.contractDigest",
+          "recommendedNextAction.arguments.expectedContractDigest",
+          "untrustedPublisherContent.description",
+          "publicObservation.publicLabel",
+          "agentGuidance.goal"
+        ],
+        "omissionsNotPresent": [],
+        "proseLeaves": []
+      },
+      {
+        "canonicalSlug": "mcp-registry/ai.agentic-news-mcp",
+        "contractDigest": "sha256:1bd0f9f995394e7f6298c9d80aa6c9ca1fb476a1f81c4abe8e178410a7ac9888",
+        "semanticContractDigest": "sha256:b94aefad21b521fb9979741d7afcfd2f914ffc569bd5e08c532a6ba035a42d16",
+        "omissionsApplied": [
+          "contract.contractDigest",
+          "recommendedNextAction.arguments.expectedContractDigest",
+          "untrustedPublisherContent.description",
+          "publicObservation.publicLabel",
+          "agentGuidance.goal"
+        ],
+        "omissionsNotPresent": [],
+        "proseLeaves": []
+      },
+      {
+        "canonicalSlug": "mcp-registry/ai.agenticshelf-graffeo",
+        "contractDigest": "sha256:dc1dd66d3917712ae3dc20b7a681b98fb7a8c109c5c07df9a3866e10c3b5eae3",
+        "semanticContractDigest": "sha256:3b78eef6cfe09b4ac6f819983ffecc2203564b6536080bae275aaec824c2b921",
+        "omissionsApplied": [
+          "contract.contractDigest",
+          "recommendedNextAction.arguments.expectedContractDigest",
+          "untrustedPublisherContent.description",
+          "publicObservation.publicLabel",
+          "agentGuidance.goal"
+        ],
+        "omissionsNotPresent": [],
+        "proseLeaves": []
+      },
+      {
+        "canonicalSlug": "mcp-registry/ai.agenticshelf-mcp",
+        "contractDigest": "sha256:7cbc8c93ac203c8554d7f2861cb7d99b0996f908c17295c25c86eaa7c5e897dc",
+        "semanticContractDigest": "sha256:48ecf7923cb5cbf0a49a446030dc27c0fb7909efdcfb8fbc25f6b85f039b5768",
+        "omissionsApplied": [
+          "contract.contractDigest",
+          "recommendedNextAction.arguments.expectedContractDigest",
+          "untrustedPublisherContent.description",
+          "publicObservation.publicLabel",
+          "agentGuidance.goal"
+        ],
+        "omissionsNotPresent": [],
+        "proseLeaves": []
+      },
+      {
+        "canonicalSlug": "mcp-registry/ai.agenticshelf-puroair",
+        "contractDigest": "sha256:6db3877c4426809697beeb9a505d3ec75bf5fd12677e6fcd5f5c1dd3970db7a2",
+        "semanticContractDigest": "sha256:62ed8848f74f2ec55dc3005dc1647ba8ecd3758e4446fa95d22e8c53141bc117",
+        "omissionsApplied": [
+          "contract.contractDigest",
+          "recommendedNextAction.arguments.expectedContractDigest",
+          "untrustedPublisherContent.description",
+          "publicObservation.publicLabel",
+          "agentGuidance.goal"
+        ],
+        "omissionsNotPresent": [],
+        "proseLeaves": []
+      },
+      {
+        "canonicalSlug": "mcp-registry/io.github.calllint-calllint",
+        "contractDigest": "sha256:7e5a4e603fc19b7cb8cc8f74a6887d66c54b2d847185e5a7a6e5a1e78f217a1f",
+        "semanticContractDigest": "sha256:b2c88e262796e1ee82768e529918d724f1a11e7adfd416f9c56351d1d1dbba54",
+        "omissionsApplied": [
+          "contract.contractDigest",
+          "recommendedNextAction.arguments.expectedContractDigest",
+          "untrustedPublisherContent.description",
+          "publicObservation.publicLabel",
+          "agentGuidance.goal"
+        ],
+        "omissionsNotPresent": [],
+        "proseLeaves": []
+      }
+    ]
+  },
+  "importBoundary": {
+    "$comment": "ADR 0058 §2: nothing under packages/*/src/** may import the config plane, so configuration can only be reached by whoever was handed it. Enforced from P-1, before the directories exist.",
+    "rootsScanned": [
+      "packages"
+    ],
+    "forbiddenSpecifiers": [
+      "apps/web/content",
+      "apps/web/styles"
+    ],
+    "violations": []
+  },
+  "failures": []
+}

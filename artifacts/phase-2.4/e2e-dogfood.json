@@ -1,0 +1,537 @@
+{
+  "schema": "calllint.phase-2.4-e2e-dogfood.v0",
+  "$comment": "Gate 2.4-G evidence. The five canonical fixtures driven through the WHOLE shipped chain (baked page → projection → served contract → safe-install prepare → approval gate → delegated write → receipt) against the real built binary as a subprocess. Nothing mocked. Digest VALUES are omitted on purpose: planDigest seals the plan's wall-clock-derived expiresAt, so values differ per run; the gate asserts each digest's presence and shape, which keeps this file byte-stable. Every run redirects --host-config into a temp sandbox and fingerprints the operator's real host configs before/after, because the claude-code config is HOME-scoped and an unsandboxed run would rewrite the developer's own ~/.claude.json. Regenerate with `pnpm eval:phase-2.4:dogfood:write`.",
+  "gate": "2.4-G",
+  "status": "PASSED",
+  "binary": "apps/cli/dist/index.js",
+  "fixturesEvaluated": 5,
+  "chain": [
+    "baked page",
+    "projection",
+    "served contract",
+    "prepare",
+    "approval gate",
+    "delegated write",
+    "receipt"
+  ],
+  "fixtures": [
+    {
+      "id": "safe-npm-package",
+      "scenario": "SAFE npm package",
+      "fixtureFile": "safe-time.json",
+      "verdict": "SAFE",
+      "installability": "PREPARE_AVAILABLE",
+      "nextActionKind": "PREPARE_LOCALLY",
+      "actionable": true,
+      "steps": [
+        {
+          "step": "prepare",
+          "exitCode": 0,
+          "outcome": "PREPARED",
+          "planDigest": "sha256",
+          "receiptDigest": "null",
+          "persistentComponents": [],
+          "workspaceFiles": [],
+          "hostConfigWritten": false,
+          "notes": [
+            "plan sha256:<redacted> computed for host \"claude-code\" — NOT applied",
+            "to apply non-interactively, re-run prepare with  --plan-out <file>  then:  --plan <file> --apply --approve <digest>",
+            "to apply interactively, re-run with  --apply  and confirm at the prompt"
+          ]
+        },
+        {
+          "step": "prepare-with-plan-out",
+          "exitCode": 0,
+          "outcome": "PREPARED",
+          "planDigest": "sha256",
+          "receiptDigest": "null",
+          "persistentComponents": [],
+          "workspaceFiles": [],
+          "hostConfigWritten": false,
+          "notes": [
+            "plan sha256:<redacted> computed for host \"claude-code\" — NOT applied",
+            "plan written to <sandbox>",
+            "to apply, re-run with:  --plan <sandbox> --apply --approve sha256:<redacted>"
+          ]
+        },
+        {
+          "step": "apply-non-interactive",
+          "exitCode": 0,
+          "outcome": "APPLIED_AND_VERIFIED",
+          "planDigest": "sha256",
+          "receiptDigest": "sha256",
+          "persistentComponents": [],
+          "workspaceFiles": [],
+          "hostConfigWritten": true,
+          "notes": [
+            "config written atomically (temp → fsync → rename)",
+            "post-apply verify OK — resulting config re-parses and matches the plan"
+          ]
+        },
+        {
+          "step": "apply-without-replay-rejected",
+          "exitCode": 2,
+          "outcome": null,
+          "planDigest": "null",
+          "receiptDigest": "null",
+          "persistentComponents": [],
+          "workspaceFiles": [],
+          "hostConfigWritten": false,
+          "notes": []
+        },
+        {
+          "step": "apply-interactive",
+          "exitCode": 0,
+          "outcome": "APPLIED_AND_VERIFIED",
+          "planDigest": "sha256",
+          "receiptDigest": "sha256",
+          "persistentComponents": [],
+          "workspaceFiles": [],
+          "hostConfigWritten": true,
+          "notes": [
+            "config written atomically (temp → fsync → rename)",
+            "post-apply verify OK — resulting config re-parses and matches the plan"
+          ]
+        }
+      ],
+      "assertions": [
+        {
+          "id": "verdict-matches-canonical-binding",
+          "pass": true,
+          "observed": "SAFE (expected SAFE)"
+        },
+        {
+          "id": "installability-matches-canonical-binding",
+          "pass": true,
+          "observed": "PREPARE_AVAILABLE (expected PREPARE_AVAILABLE)"
+        },
+        {
+          "id": "prepare-writes-no-host-config",
+          "pass": true,
+          "observed": "hostConfigWritten = false"
+        },
+        {
+          "id": "prepare-leaves-zero-workspace-files",
+          "pass": true,
+          "observed": "workspace = []"
+        },
+        {
+          "id": "no-persistent-components-in-one-time-mode",
+          "pass": true,
+          "observed": "prepare:0 prepare-with-plan-out:0 apply-non-interactive:0 apply-without-replay-rejected:0 apply-interactive:0"
+        },
+        {
+          "id": "zero-workspace-files-through-whole-chain",
+          "pass": true,
+          "observed": "prepare:0 prepare-with-plan-out:0 apply-non-interactive:0 apply-without-replay-rejected:0 apply-interactive:0"
+        },
+        {
+          "id": "prepare-yields-an-approvable-plan-digest",
+          "pass": true,
+          "observed": "planDigest = sha256"
+        },
+        {
+          "id": "prepare-emits-no-receipt",
+          "pass": true,
+          "observed": "receiptDigest = null"
+        },
+        {
+          "id": "plan-out-does-not-write-host-config",
+          "pass": true,
+          "observed": "outcome = PREPARED, hostConfigWritten = false"
+        },
+        {
+          "id": "printed-two-invocation-approval-applies",
+          "pass": true,
+          "observed": "outcome = APPLIED_AND_VERIFIED; notes = [\"config written atomically (temp → fsync → rename)\",\"post-apply verify OK — resulting config re-parses and matches the plan\"]"
+        },
+        {
+          "id": "non-interactive-apply-emits-a-verified-receipt",
+          "pass": true,
+          "observed": "receiptDigest = sha256"
+        },
+        {
+          "id": "bare-approve-without-replayed-plan-is-refused",
+          "pass": true,
+          "observed": "exit = 2, hostConfigWritten = false"
+        },
+        {
+          "id": "interactive-approval-applies-and-verifies",
+          "pass": true,
+          "observed": "outcome = APPLIED_AND_VERIFIED"
+        },
+        {
+          "id": "apply-emits-a-verified-receipt",
+          "pass": true,
+          "observed": "receiptDigest = sha256"
+        },
+        {
+          "id": "apply-writes-the-host-config",
+          "pass": true,
+          "observed": "hostConfigWritten = true"
+        }
+      ],
+      "pass": true
+    },
+    {
+      "id": "review-external-mutation-mcp",
+      "scenario": "REVIEW external-mutation MCP",
+      "fixtureFile": "review-github.json",
+      "verdict": "REVIEW",
+      "installability": "REVIEW_REQUIRED",
+      "nextActionKind": "PREPARE_LOCALLY",
+      "actionable": true,
+      "steps": [
+        {
+          "step": "prepare",
+          "exitCode": 0,
+          "outcome": "PREPARED",
+          "planDigest": "sha256",
+          "receiptDigest": "null",
+          "persistentComponents": [],
+          "workspaceFiles": [],
+          "hostConfigWritten": false,
+          "notes": [
+            "plan sha256:<redacted> computed for host \"claude-code\" — NOT applied",
+            "to apply non-interactively, re-run prepare with  --plan-out <file>  then:  --plan <file> --apply --approve <digest>",
+            "to apply interactively, re-run with  --apply  and confirm at the prompt"
+          ]
+        },
+        {
+          "step": "prepare-with-plan-out",
+          "exitCode": 0,
+          "outcome": "PREPARED",
+          "planDigest": "sha256",
+          "receiptDigest": "null",
+          "persistentComponents": [],
+          "workspaceFiles": [],
+          "hostConfigWritten": false,
+          "notes": [
+            "plan sha256:<redacted> computed for host \"claude-code\" — NOT applied",
+            "plan written to <sandbox>",
+            "to apply, re-run with:  --plan <sandbox> --apply --approve sha256:<redacted>"
+          ]
+        },
+        {
+          "step": "apply-non-interactive",
+          "exitCode": 0,
+          "outcome": "APPLIED_AND_VERIFIED",
+          "planDigest": "sha256",
+          "receiptDigest": "sha256",
+          "persistentComponents": [],
+          "workspaceFiles": [],
+          "hostConfigWritten": true,
+          "notes": [
+            "config written atomically (temp → fsync → rename)",
+            "post-apply verify OK — resulting config re-parses and matches the plan"
+          ]
+        },
+        {
+          "step": "apply-without-replay-rejected",
+          "exitCode": 2,
+          "outcome": null,
+          "planDigest": "null",
+          "receiptDigest": "null",
+          "persistentComponents": [],
+          "workspaceFiles": [],
+          "hostConfigWritten": false,
+          "notes": []
+        },
+        {
+          "step": "apply-interactive",
+          "exitCode": 0,
+          "outcome": "APPLIED_AND_VERIFIED",
+          "planDigest": "sha256",
+          "receiptDigest": "sha256",
+          "persistentComponents": [],
+          "workspaceFiles": [],
+          "hostConfigWritten": true,
+          "notes": [
+            "config written atomically (temp → fsync → rename)",
+            "post-apply verify OK — resulting config re-parses and matches the plan"
+          ]
+        }
+      ],
+      "assertions": [
+        {
+          "id": "verdict-matches-canonical-binding",
+          "pass": true,
+          "observed": "REVIEW (expected REVIEW)"
+        },
+        {
+          "id": "installability-matches-canonical-binding",
+          "pass": true,
+          "observed": "REVIEW_REQUIRED (expected REVIEW_REQUIRED)"
+        },
+        {
+          "id": "prepare-writes-no-host-config",
+          "pass": true,
+          "observed": "hostConfigWritten = false"
+        },
+        {
+          "id": "prepare-leaves-zero-workspace-files",
+          "pass": true,
+          "observed": "workspace = []"
+        },
+        {
+          "id": "no-persistent-components-in-one-time-mode",
+          "pass": true,
+          "observed": "prepare:0 prepare-with-plan-out:0 apply-non-interactive:0 apply-without-replay-rejected:0 apply-interactive:0"
+        },
+        {
+          "id": "zero-workspace-files-through-whole-chain",
+          "pass": true,
+          "observed": "prepare:0 prepare-with-plan-out:0 apply-non-interactive:0 apply-without-replay-rejected:0 apply-interactive:0"
+        },
+        {
+          "id": "prepare-yields-an-approvable-plan-digest",
+          "pass": true,
+          "observed": "planDigest = sha256"
+        },
+        {
+          "id": "prepare-emits-no-receipt",
+          "pass": true,
+          "observed": "receiptDigest = null"
+        },
+        {
+          "id": "plan-out-does-not-write-host-config",
+          "pass": true,
+          "observed": "outcome = PREPARED, hostConfigWritten = false"
+        },
+        {
+          "id": "printed-two-invocation-approval-applies",
+          "pass": true,
+          "observed": "outcome = APPLIED_AND_VERIFIED; notes = [\"config written atomically (temp → fsync → rename)\",\"post-apply verify OK — resulting config re-parses and matches the plan\"]"
+        },
+        {
+          "id": "non-interactive-apply-emits-a-verified-receipt",
+          "pass": true,
+          "observed": "receiptDigest = sha256"
+        },
+        {
+          "id": "bare-approve-without-replayed-plan-is-refused",
+          "pass": true,
+          "observed": "exit = 2, hostConfigWritten = false"
+        },
+        {
+          "id": "interactive-approval-applies-and-verifies",
+          "pass": true,
+          "observed": "outcome = APPLIED_AND_VERIFIED"
+        },
+        {
+          "id": "apply-emits-a-verified-receipt",
+          "pass": true,
+          "observed": "receiptDigest = sha256"
+        },
+        {
+          "id": "apply-writes-the-host-config",
+          "pass": true,
+          "observed": "hostConfigWritten = true"
+        }
+      ],
+      "pass": true
+    },
+    {
+      "id": "block-prompt-poisoned-mcp",
+      "scenario": "BLOCK prompt-poisoned MCP",
+      "fixtureFile": "block-prompt-poison.json",
+      "verdict": "BLOCK",
+      "installability": "BLOCKED",
+      "nextActionKind": "INSPECT_BLOCKERS",
+      "actionable": false,
+      "steps": [
+        {
+          "step": "prepare",
+          "exitCode": 30,
+          "outcome": "BLOCKED",
+          "planDigest": "null",
+          "receiptDigest": "null",
+          "persistentComponents": [],
+          "workspaceFiles": [],
+          "hostConfigWritten": false,
+          "notes": [
+            "public verdict BLOCK — blocked by policy; inspect blockers before any install"
+          ]
+        }
+      ],
+      "assertions": [
+        {
+          "id": "verdict-matches-canonical-binding",
+          "pass": true,
+          "observed": "BLOCK (expected BLOCK)"
+        },
+        {
+          "id": "installability-matches-canonical-binding",
+          "pass": true,
+          "observed": "BLOCKED (expected BLOCKED)"
+        },
+        {
+          "id": "prepare-writes-no-host-config",
+          "pass": true,
+          "observed": "hostConfigWritten = false"
+        },
+        {
+          "id": "prepare-leaves-zero-workspace-files",
+          "pass": true,
+          "observed": "workspace = []"
+        },
+        {
+          "id": "no-persistent-components-in-one-time-mode",
+          "pass": true,
+          "observed": "prepare:0"
+        },
+        {
+          "id": "zero-workspace-files-through-whole-chain",
+          "pass": true,
+          "observed": "prepare:0"
+        },
+        {
+          "id": "non-actionable-route-yields-no-plan",
+          "pass": true,
+          "observed": "planDigest = null"
+        },
+        {
+          "id": "non-actionable-route-never-applies",
+          "pass": true,
+          "observed": "prepare:false"
+        }
+      ],
+      "pass": true
+    },
+    {
+      "id": "unknown-remote-mcp",
+      "scenario": "UNKNOWN remote MCP",
+      "fixtureFile": "unknown-remote.json",
+      "verdict": "UNKNOWN",
+      "installability": "LOCAL_PREFLIGHT_REQUIRED",
+      "nextActionKind": "LOCAL_PREFLIGHT_REQUIRED",
+      "actionable": false,
+      "steps": [
+        {
+          "step": "prepare",
+          "exitCode": 20,
+          "outcome": "LOCAL_PREFLIGHT_REQUIRED",
+          "planDigest": "null",
+          "receiptDigest": "null",
+          "persistentComponents": [],
+          "workspaceFiles": [],
+          "hostConfigWritten": false,
+          "notes": [
+            "public verdict UNKNOWN — insufficient evidence / no exact target; run local pre-flight"
+          ]
+        }
+      ],
+      "assertions": [
+        {
+          "id": "verdict-matches-canonical-binding",
+          "pass": true,
+          "observed": "UNKNOWN (expected UNKNOWN)"
+        },
+        {
+          "id": "installability-matches-canonical-binding",
+          "pass": true,
+          "observed": "LOCAL_PREFLIGHT_REQUIRED (expected LOCAL_PREFLIGHT_REQUIRED)"
+        },
+        {
+          "id": "prepare-writes-no-host-config",
+          "pass": true,
+          "observed": "hostConfigWritten = false"
+        },
+        {
+          "id": "prepare-leaves-zero-workspace-files",
+          "pass": true,
+          "observed": "workspace = []"
+        },
+        {
+          "id": "no-persistent-components-in-one-time-mode",
+          "pass": true,
+          "observed": "prepare:0"
+        },
+        {
+          "id": "zero-workspace-files-through-whole-chain",
+          "pass": true,
+          "observed": "prepare:0"
+        },
+        {
+          "id": "non-actionable-route-yields-no-plan",
+          "pass": true,
+          "observed": "planDigest = null"
+        },
+        {
+          "id": "non-actionable-route-never-applies",
+          "pass": true,
+          "observed": "prepare:false"
+        }
+      ],
+      "pass": true
+    },
+    {
+      "id": "unsupported-incomplete-entry",
+      "scenario": "unsupported / incomplete entry",
+      "fixtureFile": "unknown-unrecognized-shape.json",
+      "verdict": "UNKNOWN",
+      "installability": "UNSUPPORTED",
+      "nextActionKind": "EXPLAIN_ONLY",
+      "actionable": false,
+      "steps": [
+        {
+          "step": "prepare",
+          "exitCode": 20,
+          "outcome": "UNSUPPORTED",
+          "planDigest": "null",
+          "receiptDigest": "null",
+          "persistentComponents": [],
+          "workspaceFiles": [],
+          "hostConfigWritten": false,
+          "notes": [
+            "no supported install plan for this target — view manual setup"
+          ]
+        }
+      ],
+      "assertions": [
+        {
+          "id": "verdict-matches-canonical-binding",
+          "pass": true,
+          "observed": "UNKNOWN (expected UNKNOWN)"
+        },
+        {
+          "id": "installability-matches-canonical-binding",
+          "pass": true,
+          "observed": "UNSUPPORTED (expected UNSUPPORTED)"
+        },
+        {
+          "id": "prepare-writes-no-host-config",
+          "pass": true,
+          "observed": "hostConfigWritten = false"
+        },
+        {
+          "id": "prepare-leaves-zero-workspace-files",
+          "pass": true,
+          "observed": "workspace = []"
+        },
+        {
+          "id": "no-persistent-components-in-one-time-mode",
+          "pass": true,
+          "observed": "prepare:0"
+        },
+        {
+          "id": "zero-workspace-files-through-whole-chain",
+          "pass": true,
+          "observed": "prepare:0"
+        },
+        {
+          "id": "non-actionable-route-yields-no-plan",
+          "pass": true,
+          "observed": "planDigest = null"
+        },
+        {
+          "id": "non-actionable-route-never-applies",
+          "pass": true,
+          "observed": "prepare:false"
+        }
+      ],
+      "pass": true
+    }
+  ],
+  "failures": []
+}
