@@ -120,6 +120,16 @@ jobs:
       - name: Workstream P presentation-plane audit (INV-P1/P2 gate)
         run: pnpm audit:presentation:gate
 
+      # The P-1 digest seams. The gate's teeth: zero prose leaves may survive into
+      # the semantic preimage, so a contract field carrying a sentence fails here
+      # until somebody classifies it — and no packages/*/src file may IMPORT the
+      # config plane, enforced before apps/web/content/** exists to be imported.
+      - name: Workstream P presentation lock (drift)
+        run: pnpm audit:presentation:lock
+
+      - name: Workstream P presentation lock (digest-seam gate)
+        run: pnpm audit:presentation:lock:gate
+
       - name: Package smoke (shipped artifact)
         run: pnpm smoke
 

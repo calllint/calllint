@@ -73,7 +73,7 @@
   "regressionChecks": [
     {
       "id": "ci:local",
-      "script": "pnpm typecheck && pnpm test && pnpm build && pnpm corpus:test && pnpm bench:test && pnpm check:public-copy && pnpm audit:evidence && pnpm audit:coverage && pnpm audit:calibration && pnpm eval:phase-2.4 && pnpm eval:phase-2.4:dogfood && pnpm eval:phase-2.4:gates && pnpm eval:phase-2.4:panel:validate && pnpm audit:presentation && pnpm audit:presentation:gate",
+      "script": "pnpm typecheck && pnpm test && pnpm build && pnpm corpus:test && pnpm bench:test && pnpm check:public-copy && pnpm audit:evidence && pnpm audit:coverage && pnpm audit:calibration && pnpm eval:phase-2.4 && pnpm eval:phase-2.4:dogfood && pnpm eval:phase-2.4:gates && pnpm eval:phase-2.4:panel:validate && pnpm audit:presentation && pnpm audit:presentation:gate && pnpm audit:presentation:lock && pnpm audit:presentation:lock:gate",
       "inLocalChain": true,
       "workflowBinding": null,
       "remoteOnly": false,
@@ -154,6 +154,38 @@
     {
       "id": "eval:phase-2.4:panel:validate",
       "script": "tsx scripts/phase-2.4-panel.ts --validate",
+      "inLocalChain": true,
+      "workflowBinding": "ci.yml#test",
+      "remoteOnly": false,
+      "role": "check"
+    },
+    {
+      "id": "audit:presentation",
+      "script": "tsx scripts/presentation-plane-audit.ts",
+      "inLocalChain": true,
+      "workflowBinding": "ci.yml#test",
+      "remoteOnly": false,
+      "role": "check"
+    },
+    {
+      "id": "audit:presentation:lock",
+      "script": "tsx scripts/presentation-lock.ts",
+      "inLocalChain": true,
+      "workflowBinding": "ci.yml#test",
+      "remoteOnly": false,
+      "role": "check"
+    },
+    {
+      "id": "audit:presentation:gate",
+      "script": "tsx scripts/presentation-plane-audit.ts --gate",
+      "inLocalChain": true,
+      "workflowBinding": "ci.yml#test",
+      "remoteOnly": false,
+      "role": "check"
+    },
+    {
+      "id": "audit:presentation:lock:gate",
+      "script": "tsx scripts/presentation-lock.ts --gate",
       "inLocalChain": true,
       "workflowBinding": "ci.yml#test",
       "remoteOnly": false,
@@ -276,6 +308,26 @@
     },
     {
       "id": "wired/eval:phase-2.4:panel:validate",
+      "pass": true,
+      "observed": "ci:local + ci.yml#test"
+    },
+    {
+      "id": "wired/audit:presentation",
+      "pass": true,
+      "observed": "ci:local + ci.yml#test"
+    },
+    {
+      "id": "wired/audit:presentation:lock",
+      "pass": true,
+      "observed": "ci:local + ci.yml#test"
+    },
+    {
+      "id": "wired/audit:presentation:gate",
+      "pass": true,
+      "observed": "ci:local + ci.yml#test"
+    },
+    {
+      "id": "wired/audit:presentation:lock:gate",
       "pass": true,
       "observed": "ci:local + ci.yml#test"
     },

@@ -257,3 +257,37 @@ export {
   type WiredCheck,
   type ServedGuard,
 } from "./phase24Gates.js"
+
+// Workstream P Batch 1 — the presentation control plane's schema + digest seams
+// (new15 §6.2 PR P-1; ADR 0058). Pure: the config document is a PARAMETER, never
+// an import (ADR 0058 §2), so nothing here reads apps/web/content/**.
+export {
+  PRESENTATION_CONTENT_VERSION,
+  LEVEL_BY_SECTION,
+  PRESENTATION_STATES,
+  DISPLAY_GROUPS,
+  RESERVED_KEYS,
+  FORBIDDEN_ABSENCE_TERMS,
+  EMPTY_PRESENTATION_CONTENT,
+  validatePresentationContent,
+  isValidPresentationContent,
+  type PresentationLevel,
+  type PresentationSection,
+  type DisplayGroup,
+  type StateCopy,
+  type PresentationContentV1,
+  type PresentationContentError,
+  type PresentationValidationContext,
+} from "./safe-install/presentationContent.js"
+export {
+  presentationDigest,
+  emptyPresentationDigest,
+  semanticPreimage,
+  semanticContractDigest,
+  proseLeaves,
+  SEMANTIC_PREIMAGE_OMISSIONS,
+  type PresentationDigestSet,
+  type SemanticOmission,
+  type SemanticPreimageResult,
+  type SemanticContractDigestResult,
+} from "./safe-install/presentationDigest.js"

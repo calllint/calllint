@@ -590,6 +590,18 @@ const REGRESSION_CHECKS: readonly CheckSpec[] = [
   { id: "eval:phase-2.4:dogfood", script: "eval:phase-2.4:dogfood", remoteOnly: false, role: "check", workflow: "ci.yml", job: "test" },
   { id: "eval:phase-2.4:gates", script: "eval:phase-2.4:gates", remoteOnly: false, role: "check", workflow: "ci.yml", job: "test" },
   { id: "eval:phase-2.4:panel:validate", script: "eval:phase-2.4:panel:validate", remoteOnly: false, role: "check", workflow: "ci.yml", job: "test" },
+  // Workstream P (ADR 0058). The plane audit measures which copy reaches the
+  // decision plane; the lock records the P-1 digest seams and holds the no-prose +
+  // import-boundary lines. Both are in the gate table so a deleted step is drift.
+  { id: "audit:presentation", script: "audit:presentation", remoteOnly: false, role: "check", workflow: "ci.yml", job: "test" },
+  { id: "audit:presentation:lock", script: "audit:presentation:lock", remoteOnly: false, role: "check", workflow: "ci.yml", job: "test" },
+  // The ENFORCEMENT halves, tracked too. A drift-check row proves the artifact is
+  // current; only a gate row proves the boundary is still enforced, and deleting a
+  // `:gate` step is exactly how a boundary dies quietly. (Other mechanisms'
+  // `:gate` variants are not yet tracked here — a pre-existing gap, not one this
+  // batch widens.)
+  { id: "audit:presentation:gate", script: "audit:presentation:gate", remoteOnly: false, role: "check", workflow: "ci.yml", job: "test" },
+  { id: "audit:presentation:lock:gate", script: "audit:presentation:lock:gate", remoteOnly: false, role: "check", workflow: "ci.yml", job: "test" },
   // Remote-only: the CRLF-checkout and isolated-install failure modes exist only
   // on a fresh runner, so a local pass proves nothing about them.
   { id: "pack:smoke:mcp", script: "pack:smoke:mcp", remoteOnly: true, role: "check", workflow: "ci.yml", job: "test" },
