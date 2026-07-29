@@ -17,10 +17,12 @@ import {
   FIVE_SECOND_MIN_PANEL,
   PUBLISHER_INJECTION_BLURBS,
   canonicalProjection,
+  DOGFOOD_SANDBOX_MARKER,
   decideGateB,
   evaluateAgentContract,
   evaluateHumanCapsule,
   measureFiveSecondPanel,
+  redactRunVaryingNote,
   renderSafeInstall,
   type FiveSecondPanelStore,
   type FiveSecondResponse,
@@ -269,5 +271,77 @@ describe("committed Phase 2.4 evidence", () => {
         expect(s.persistentComponents, f.id).toEqual([])
       }
     }
+  })
+})
+
+/**
+ * The OS-portability of the dogfood artifact.
+ *
+ * This block exists because of a real failure: the redactor used to enumerate temp
+ * directory prefixes (a Windows drive letter and `/tmp/`) and therefore missed
+ * macOS's `/var/folders/…`. The raw sandbox path leaked into the notes, so
+ * `e2e-dogfood.json` was byte-stable on Windows and Linux and PERMANENTLY STALE on
+ * macOS. `ci:local` on one machine cannot see that; only the 3-OS matrix could, and
+ * it did — as a red CI leg rather than a test.
+ *
+ * These cases feed the redactor the literal path shapes of every OS in the matrix,
+ * so a machine that has only one of them still proves the claim for all three. That
+ * is the whole reason the function was moved out of `scripts/`.
+ */
+describe("redactRunVaryingNote — cross-OS artifact stability", () => {
+  // Real `os.tmpdir()` shapes. macOS is listed twice on purpose: `mkdtempSync`
+  // returns the `/var/folders` form while some tools resolve the `/private` realpath,
+  // and both must redact to the same token.
+  const SANDBOXES: readonly { os: string; dir: string }[] = [
+    { os: "windows", dir: `C:\\Users\\runner\\AppData\\Local\\Temp\\${DOGFOOD_SANDBOX_MARKER}A1b2C3` },
+    { os: "linux", dir: `/tmp/${DOGFOOD_SANDBOX_MARKER}A1b2C3` },
+    { os: "macos", dir: `/var/folders/q5/8n_0z1rs4tq2b/T/${DOGFOOD_SANDBOX_MARKER}A1b2C3` },
+    { os: "macos-realpath", dir: `/private/var/folders/q5/8n_0z1rs4tq2b/T/${DOGFOOD_SANDBOX_MARKER}A1b2C3` },
+  ]
+
+  it("redacts the sandbox path to one identical token on every OS", () => {
+    const rendered = SANDBOXES.map(({ dir }) => redactRunVaryingNote(`plan written to ${dir}/plan.json`))
+    // One distinct output — the artifact is byte-identical wherever it is generated.
+    expect(new Set(rendered).size).toBe(1)
+    expect(rendered[0]).toBe("plan written to <sandbox>")
+  })
+
+  it("leaves no OS temp-directory fragment behind", () => {
+    for (const { os: name, dir } of SANDBOXES) {
+      const out = redactRunVaryingNote(`--plan ${dir}/plan.json --apply`)
+      // The failure mode was a PARTIAL redaction, so assert on the fragments a
+      // partial pass would leave rather than only on the happy-path string.
+      for (const leak of ["Temp", "tmp", "var", "folders", "private", "Users", "C:", DOGFOOD_SANDBOX_MARKER]) {
+        expect(out, `${name} leaked ${leak}`).not.toContain(leak)
+      }
+    }
+  })
+
+  it("fails if the marker and the redactor ever disagree", () => {
+    // The redaction is only sound because every sandbox path contains the marker by
+    // construction. If someone changes the mkdtemp prefix without changing the
+    // marker, this is the test that notices.
+    const notMine = "/var/folders/q5/8n_0z1rs4tq2b/T/some-other-tool-A1b2C3/plan.json"
+    expect(redactRunVaryingNote(notMine)).toBe(notMine)
+    expect(DOGFOOD_SANDBOX_MARKER).toBe("calllint-dogfood-")
+  })
+
+  it("still redacts digests and receipt ids, in full and truncated form", () => {
+    expect(redactRunVaryingNote(`plan sha256:${"a".repeat(64)} computed`)).toBe("plan sha256:<redacted> computed")
+    // The CLI prints a truncated digest with an ellipsis; both forms must collapse.
+    expect(redactRunVaryingNote("plan sha256:1234abcd… computed")).toBe("plan sha256:<redacted> computed")
+    expect(redactRunVaryingNote("receipt clrec_9f8e7d6c recorded")).toBe("receipt clrec_<redacted> recorded")
+  })
+
+  it("preserves the note's meaning, which is what the gate reads", () => {
+    const out = redactRunVaryingNote(
+      `to apply, re-run with:  --plan /var/folders/q5/T/${DOGFOOD_SANDBOX_MARKER}xY/plan.json --apply --approve sha256:1234abcd…`,
+    )
+    // The whole path token collapses, trailing filename included — that is what makes
+    // the substitution OS-agnostic (a per-OS separator would otherwise survive). The
+    // flags and the shape of the instruction, which is all the gate reads, remain.
+    expect(out).toBe("to apply, re-run with:  --plan <sandbox> --apply --approve sha256:<redacted>")
+    expect(out).toContain("--apply")
+    expect(out).toContain("--approve")
   })
 })

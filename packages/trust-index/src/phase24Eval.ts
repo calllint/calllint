@@ -465,6 +465,42 @@ export function canonicalProjection(
 }
 
 /**
+ * The prefix the Gate 2.4-G dogfood passes to `mkdtempSync`. Exported so the
+ * redactor below and the harness that creates the directory cannot disagree about
+ * it — the redaction is only sound because the marker is in every sandbox path by
+ * construction.
+ */
+export const DOGFOOD_SANDBOX_MARKER = "calllint-dogfood-"
+
+/**
+ * Redact the run-varying parts of a CLI note so a committed gate artifact is
+ * byte-stable ACROSS OPERATING SYSTEMS: digest values (including the tool's
+ * truncated `sha256:1234abcd…` form), generated receipt ids, and the per-run
+ * sandbox path. The note's MEANING — which is all a gate reads — survives.
+ *
+ * The sandbox rule anchors on {@link DOGFOOD_SANDBOX_MARKER} and consumes the whole
+ * whitespace/quote-delimited token containing it. It deliberately does NOT
+ * enumerate where a temp dir lives, because that set is unbounded and OS-specific:
+ * `C:\Users\…\Temp\`, `/tmp/`, and on macOS `/var/folders/…` plus its
+ * `/private/var/folders/…` realpath. Enumerating it is precisely the bug this
+ * function was extracted to fix — an earlier drive-letter + `/tmp/` pair left the
+ * raw macOS sandbox path in the notes, so `e2e-dogfood.json` was byte-stable on
+ * Windows and Linux and PERMANENTLY STALE on macOS. The 3-OS matrix caught it;
+ * no local run could. Anchoring on the marker is correct on every platform,
+ * including ones not in CI.
+ *
+ * This lives here rather than in `scripts/` so it is unit-testable against path
+ * shapes the test machine does not have (repo rule: pure measurement in
+ * `packages/trust-index/src/**`, I/O in `scripts/**`).
+ */
+export function redactRunVaryingNote(note: string): string {
+  return note
+    .replace(/sha256:[0-9a-f]{8,64}…?/g, "sha256:<redacted>")
+    .replace(/clrec_[0-9a-f]+/g, "clrec_<redacted>")
+    .replace(new RegExp(`[^\\s"]*${DOGFOOD_SANDBOX_MARKER}[^\\s"]*`, "g"), "<sandbox>")
+}
+
+/**
  * The projection INPUT for a canonical fixture — the same value
  * `canonicalProjection` projects, exposed because the Workstream P presentation
  * audit must re-project the SAME input under mutated copy to measure whether a

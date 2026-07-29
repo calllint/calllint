@@ -32,6 +32,8 @@ import { fileURLToPath } from "node:url"
 import {
   CANONICAL_FIXTURES,
   canonicalProjection,
+  redactRunVaryingNote,
+  DOGFOOD_SANDBOX_MARKER,
   renderSafeInstall,
   renderSafeInstallContract,
   type CanonicalFixture,
@@ -98,18 +100,13 @@ function digestShape(v: unknown): string {
 }
 
 /**
- * Redact the run-varying parts of a note so the committed artifact is byte-stable:
- * digest values (and the tool's truncated `sha256:1234abcd…` prefixes), generated
- * receipt ids, and the per-run sandbox path. The note's MEANING — which is what the
- * gate reads — survives intact.
+ * Redaction lives in `@calllint/trust-index` (`redactRunVaryingNote`), not here, so
+ * it can be unit-tested against path shapes this machine does not have. That is not
+ * academic: the previous local copy enumerated OS temp-dir prefixes and missed
+ * macOS's `/var/folders/…`, which made the committed artifact permanently stale on
+ * macOS while passing on Windows and Linux.
  */
-function normalizeNote(s: string): string {
-  return s
-    .replace(/sha256:[0-9a-f]{8,64}…?/g, "sha256:<redacted>")
-    .replace(/clrec_[0-9a-f]+/g, "clrec_<redacted>")
-    .replace(/[A-Za-z]:[\\/][^\s"]*calllint-dogfood-[^\s"]*/g, "<sandbox>")
-    .replace(/[\\/]tmp[\\/][^\s"]*calllint-dogfood-[^\s"]*/g, "<sandbox>")
-}
+const normalizeNote = redactRunVaryingNote
 
 interface StepRecord {
   readonly step: string
@@ -187,7 +184,9 @@ function record(step: string, r: Run, ws: string, hostCfg: string): StepRecord {
  */
 function runFixture(f: CanonicalFixture): FixtureRecord {
   const p = canonicalProjection(f)
-  const sandbox = fs.mkdtempSync(path.join(os.tmpdir(), "calllint-dogfood-"))
+  // The marker is shared with the redactor rather than spelled twice: it is the ONE
+  // thing that makes `<sandbox>` substitution sound on every OS.
+  const sandbox = fs.mkdtempSync(path.join(os.tmpdir(), DOGFOOD_SANDBOX_MARKER))
   try {
     const ws = path.join(sandbox, "workspace")
     // Each apply ROUTE gets its own host config, so the agent route and the

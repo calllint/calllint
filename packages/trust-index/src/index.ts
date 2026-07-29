@@ -220,6 +220,8 @@ export {
   CANONICAL_FIXTURES,
   canonicalProjection,
   canonicalProjectionInput,
+  redactRunVaryingNote,
+  DOGFOOD_SANDBOX_MARKER,
   EVAL_ENGINE_VERSION,
   PUBLISHER_INJECTION_BLURBS,
   FIVE_SECOND_QUESTIONS,
