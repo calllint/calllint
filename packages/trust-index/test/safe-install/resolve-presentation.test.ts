@@ -29,6 +29,7 @@ import { fileURLToPath } from "node:url"
 import {
   ABSENCE_CONSEQUENCE,
   CANONICAL_FIXTURES,
+  DEFAULT_LAYOUT,
   DEFAULT_PRESENTATION,
   EMPTY_CLAIM_STORE,
   OBSERVED_CONSEQUENCE,
@@ -195,8 +196,15 @@ const MUTATED: ResolvedPresentation = {
   sectionTitles: Object.fromEntries(
     Object.keys(SECTION_TITLES).map((k) => [k, `TITLE_SENTINEL_${k}`]),
   ) as ResolvedPresentation["sectionTitles"],
+  // The layout is deliberately the SHIPPED one here: this fixture exists to mutate
+  // COPY and prove copy reaches no digest and no route. Layout gets its own isolation
+  // probe in `layout-manifest.test.ts` (PR P-3), because a reordered page and a
+  // reworded page fail in different ways and a combined mutation could not tell which
+  // one moved a digest.
+  layout: DEFAULT_LAYOUT,
   overriddenSlots: [],
   unwiredSlots: [],
+  rejectedSlots: [],
 }
 
 describe("INV-P1 — configured copy cannot reach any sealed digest", () => {

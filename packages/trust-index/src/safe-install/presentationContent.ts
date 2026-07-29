@@ -59,6 +59,15 @@ export const LEVEL_BY_SECTION = Object.freeze({
 
 export type PresentationSection = keyof typeof LEVEL_BY_SECTION
 
+// Rules 3e/3g (PR P-3) read the structural model: which orderings the renderer can
+// actually emit, and the shipped caps configuration may only narrow.
+import {
+  DISPLAY_GROUPS,
+  SHIPPED_LAYOUT_CAPS,
+  checkLayoutSupport,
+  type DisplayGroup,
+} from "./layoutStructure.js"
+
 /** The five shipped human/route states (mirrors `Installability`). */
 export const PRESENTATION_STATES = [
   "PREPARE_AVAILABLE",
@@ -68,17 +77,17 @@ export const PRESENTATION_STATES = [
   "UNSUPPORTED",
 ] as const
 
-/** The six shipped above-the-fold display groups (new14 §7). */
-export const DISPLAY_GROUPS = [
-  "identity",
-  "disposition",
-  "consequence",
-  "authority_facts",
-  "primary_action",
-  "secondary_links",
-] as const
-
-export type DisplayGroup = (typeof DISPLAY_GROUPS)[number]
+/**
+ * The six shipped above-the-fold display groups (new14 §7).
+ *
+ * RE-EXPORTED, not defined here (PR P-3). The group vocabulary and the renderer's
+ * section structure are one fact — which groups exist is inseparable from which
+ * sections carry them — so `layoutStructure.ts` owns both and this module re-exports
+ * the vocabulary. That keeps a single definition (no drift, no reconciling test) and
+ * keeps the dependency acyclic: the validator reads the structural model, never the
+ * reverse. Every existing import of `DISPLAY_GROUPS` from this module keeps working.
+ */
+export { DISPLAY_GROUPS, type DisplayGroup }
 
 /**
  * L3 property names that may never appear in a presentation document at any
@@ -196,9 +205,12 @@ export interface PresentationContentError {
     | "unknown-key"
     | "empty-value"
     | "layout-groups"
+    | "layout-unsupported"
+    | "layout-cap"
     | "label-impersonation"
     | "cta-impersonation"
     | "absence-vocabulary"
+    | "absence-asserts-capability"
     | "forbidden-phrase"
   readonly message: string
 }
@@ -217,6 +229,14 @@ export interface PresentationValidationContext {
   readonly stateCtas: Readonly<Record<string, string>>
   /** Forbidden overclaim phrases, passed in from project-facts.json at the I/O edge. */
   readonly forbiddenPhrases: readonly string[]
+  /**
+   * authority → shipped OBSERVED phrase (PR P-3, Rule 3f). Optional so every pre-P-3
+   * caller keeps compiling and every existing rule behaves identically; supplied, it
+   * lets the validator catch an absence slot that reproduces the observed assertion for
+   * the same authority. Passed in as the real constant for the same reason as the two
+   * maps above: a local copy would drift from the bytes it governs.
+   */
+  readonly observedPhrases?: Readonly<Record<string, string>>
 }
 
 /** The verdict whose shipped label maps 1:1 onto each installability state. */
@@ -327,6 +347,7 @@ export function validatePresentationContent(
   // Rule 3a — the layout manifest must be a PERMUTATION of the six shipped groups.
   const layout = d.layout
   if (layout !== null && typeof layout === "object" && !Array.isArray(layout)) {
+    const before3a = errors.length
     const order = (layout as Record<string, unknown>).groupOrder
     if (!Array.isArray(order)) {
       add("/layout/groupOrder", "layout-groups", "groupOrder is required and must be an array")
@@ -347,6 +368,46 @@ export function validatePresentationContent(
           "layout-groups",
           `missing shipped group(s): ${missing.join(", ")} — config may reorder, never delete (ADR 0058 §3)`,
         )
+      }
+
+      // Rule 3g (PR P-3) — STRUCTURAL SUPPORT. A permutation of the right six groups
+      // can still be one the renderer cannot emit: `disposition` and `primary_action`
+      // are carried by a single <section>, so an order that splits them describes a
+      // page that does not exist. Rejecting it here is what keeps the manifest from
+      // becoming a key that validates and then does nothing — the exact drift ADR 0058
+      // §3 forbids. Checked only once the permutation rules above are satisfied, so a
+      // malformed order reports its real cause instead of two overlapping ones.
+      if (errors.length === before3a) {
+        const support = checkLayoutSupport(order)
+        if (!support.supported && support.message !== null) {
+          add("/layout/groupOrder", "layout-unsupported", support.message)
+        }
+      }
+    }
+
+    // Rule 3e (PR P-3) — CAP BOUNDS. The JSON Schema bounds these, but the schema is
+    // not the only door: the lock script validates standalone before any Ajv instance
+    // exists, and a schema can be widened in a PR that never touches this file. The
+    // caps are evidence-adjacent — the ≤3 authority selection is derived from evidence
+    // and sealed into `authorityDelta` — so configuration must be provably unable to
+    // raise them. It may show fewer facts; it may never manufacture a slot.
+    const caps = [
+      ["maxAuthorityFacts", SHIPPED_LAYOUT_CAPS.maxAuthorityFacts, 1],
+      ["maxSecondaryLinks", SHIPPED_LAYOUT_CAPS.maxSecondaryLinks, 0],
+    ] as const
+    for (const [key, shipped, min] of caps) {
+      const raw = (layout as Record<string, unknown>)[key]
+      if (raw === undefined) continue
+      if (typeof raw !== "number" || !Number.isInteger(raw)) {
+        add(`/layout/${key}`, "layout-cap", `${key} must be an integer`)
+      } else if (raw > shipped) {
+        add(
+          `/layout/${key}`,
+          "layout-cap",
+          `${key} is ${raw}, above the shipped cap of ${shipped} — configuration may show fewer, never more (ADR 0058 §3)`,
+        )
+      } else if (raw < min) {
+        add(`/layout/${key}`, "layout-cap", `${key} is ${raw}, below the minimum of ${min}`)
       }
     }
   }
@@ -399,6 +460,44 @@ export function validatePresentationContent(
             `absence wording uses "${term}" — "not observed" is an observation about evidence, never a claim that the capability is ${term} (ADR 0058 §3)`,
           )
         }
+      }
+    }
+  }
+
+  // Rule 3f (PR P-3) — ABSENCE COPY MAY NOT ASSERT THE CAPABILITY. Rule 3c stops the
+  // over-strong direction ("denied", "impossible"); this stops the inverted one, which
+  // is strictly worse and which no shipped gate caught before P-3:
+  //
+  //   absencePhrases.shell_execution: "Can run shell commands with access to paths."
+  //
+  // That is schema-valid, contains no denial term, carries no forbidden overclaim, and
+  // renders on a page where the evidence showed the capability was NOT observed. It is a
+  // false statement about the artifact, produced entirely from configuration — exactly
+  // the class INV-P4 exists to prevent. The rule is deliberately narrow and mechanical:
+  // an absence phrase must not open with the shipped OBSERVED assertion voice, and it
+  // must not reproduce the shipped observed phrase for its own authority.
+  const absenceAssert = (d.authorityCopy as { absencePhrases?: Record<string, unknown> } | undefined)?.absencePhrases
+  if (absenceAssert !== null && typeof absenceAssert === "object" && absenceAssert !== undefined) {
+    for (const [authority, text] of Object.entries(absenceAssert)) {
+      if (typeof text !== "string") continue
+      const trimmed = text.trim()
+      // The shipped observed voice is an unqualified capability assertion: "Can …",
+      // "Requires …", "Runs …", "Connects …", "Requests …". An absence sentence that
+      // opens this way claims the capability on a page asserting it was not observed.
+      if (/^(can|could|will|does|requires?|runs?|connects?|requests?|sends?|initiates?)\b/i.test(trimmed)) {
+        add(
+          `/authorityCopy/absencePhrases/${authority}`,
+          "absence-asserts-capability",
+          `absence wording opens with the OBSERVED assertion voice ("${trimmed.split(/\s+/)[0]}") — this slot renders when evidence did NOT observe ${authority}, so it must describe the observation, not assert the capability (INV-P4)`,
+        )
+      }
+      const shipped = ctx.observedPhrases?.[authority]
+      if (typeof shipped === "string" && sameCopy(trimmed, shipped)) {
+        add(
+          `/authorityCopy/absencePhrases/${authority}`,
+          "absence-asserts-capability",
+          `absence wording reproduces the shipped OBSERVED phrase for ${authority} ("${shipped}") — the two slots make opposite claims and may never carry the same sentence`,
+        )
       }
     }
   }

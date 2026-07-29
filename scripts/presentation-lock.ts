@@ -45,19 +45,30 @@ import path from "node:path"
 import { fileURLToPath } from "node:url"
 import { VERDICT_PUBLIC_LABEL } from "@calllint/types"
 import {
+  ABOVE_FOLD_SECTION_IDS,
+  DEFAULT_GROUP_ORDER,
   DEFAULT_PRESENTATION,
+  DISPLAY_GROUPS,
   EMPTY_PRESENTATION_CONTENT,
+  FUSED_GROUP_RUNS,
   LEVEL_BY_SECTION,
   PRESENTATION_CONTENT_VERSION,
   PRIMARY_CTA,
+  SECTION_GROUPS,
   SEMANTIC_PREIMAGE_OMISSIONS,
+  SHIPPED_LAYOUT_CAPS,
   UNWIRED_SECTION_TITLES,
+  emitSafeInstall,
   emptyPresentationDigest,
+  isStructurallySupported,
+  parseEvidenceSnapshot,
+  parseSnapshot,
   presentationDigest,
   resolvePresentation,
   semanticContractDigest,
   validatePresentationContent,
   type PresentationContentV1,
+  type ResolvedPresentation,
 } from "../packages/trust-index/src/index.js"
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..")
@@ -71,6 +82,65 @@ const CONTENT_DOC = `${CONTENT_ROOT}/presentation.v1.json`
 /** Source trees that may never import the config plane (ADR 0058 §2). */
 const IMPORT_BOUNDARY_ROOTS = ["packages"] as const
 const FORBIDDEN_IMPORTS = ["apps/web/content", "apps/web/styles"] as const
+
+/**
+ * Every permutation of a list. Used to COUNT how many of the 6! group orderings the
+ * renderer can actually emit, rather than trusting the arithmetic in a comment. 720 is
+ * small enough to enumerate exhaustively, so the recorded number is a measurement over
+ * the whole space — and it moves on its own if the section model ever changes.
+ */
+function permutations<T>(items: readonly T[]): T[][] {
+  if (items.length <= 1) return [[...items]]
+  const out: T[][] = []
+  for (let i = 0; i < items.length; i += 1) {
+    const rest = [...items.slice(0, i), ...items.slice(i + 1)]
+    for (const p of permutations(rest)) out.push([items[i] as T, ...p])
+  }
+  return out
+}
+
+/**
+ * Emit the install tree twice — once with the shipped layout, once with a supported
+ * reordering — and require the HTML to actually differ. Returns a failure string, or null.
+ *
+ * This is the only check in the lock that measures BYTES rather than a resolved value, and
+ * the reason is empirical: the resolver-level version of it passed while the emit edge had
+ * `presentation.layout` deleted. Byte inequality is the weakest claim that cannot be
+ * satisfied by a renderer which ignores the layout it was handed.
+ *
+ * It reads the committed snapshots — the same inputs `bake.ts` uses — so it exercises the
+ * real projection chain, not a synthetic fixture. A missing snapshot means there is nothing
+ * to emit, which is reported rather than silently skipped: a probe that quietly measures
+ * nothing is worse than no probe.
+ */
+function probeEmittedLayout(reordered: ResolvedPresentation): string | null {
+  const snapPath = path.join(repoRoot, "packages", "trust-index", "snapshots", "official-mcp-registry.json")
+  const evPath = path.join(repoRoot, "packages", "trust-index", "snapshots", "evidence-snapshot.json")
+  if (!fs.existsSync(snapPath)) return `layout wiring probe found no committed registry snapshot at ${snapPath}`
+  const snapshot = parseSnapshot(fs.readFileSync(snapPath, "utf8"))
+  const evidence = fs.existsSync(evPath) ? parseEvidenceSnapshot(fs.readFileSync(evPath, "utf8")) : null
+  // The engine version is a contract-bytes input only; any fixed string works here because
+  // both emits use the SAME one — the comparison is layout-vs-layout, nothing else.
+  const htmlOf = (p: ResolvedPresentation): Map<string, string> => {
+    const out = new Map<string, string>()
+    for (const f of emitSafeInstall(snapshot, evidence, "0.0.0-probe", p).files) {
+      if (f.path.endsWith("/index.html")) out.set(f.path, f.content)
+    }
+    return out
+  }
+  const shipped = htmlOf(DEFAULT_PRESENTATION)
+  const moved = htmlOf(reordered)
+  if (shipped.size === 0) return "layout wiring probe emitted no install pages — it would measure nothing"
+  const unchanged = [...shipped.keys()].filter((k) => shipped.get(k) === moved.get(k))
+  if (unchanged.length > 0) {
+    return (
+      `layout.groupOrder is declared configurable but a supported reordering left ${unchanged.length}/${shipped.size} ` +
+      `emitted page(s) byte-identical (e.g. ${unchanged[0]}) — the resolved layout never reaches the renderer ` +
+      `(ADR 0058 §3: a key that validates and then does nothing)`
+    )
+  }
+  return null
+}
 
 /** Every committed served contract sidecar, in stable path order. */
 function servedContracts(): { slug: string; contract: unknown }[] {
@@ -162,11 +232,19 @@ function build(): { json: string; pass: boolean; failures: readonly string[] } {
   //     is a failure rather than a note. `boundary` is schema-valid and deliberately
   //     unwired (see renderSafeInstall's SECTION_TITLES), which is why the document must
   //     not carry it yet.
+  //
+  // PR P-3 adds a THIRD question and a fourth slice. The layout slice is compared the same
+  // way as the copy slices — a document whose `groupOrder` resolved to a different SECTION
+  // sequence would move served bytes, so it must fail here, not in production. And because
+  // an unsupported order fails OPEN (INV-P3 renders the shipped page), a rejection would
+  // otherwise be invisible: `rejectedSlots` is therefore a failure too, which is what keeps
+  // "the document I committed is not the document being served" from being a quiet state.
   const resolved = resolvePresentation(doc)
   const resolvesToDefaults =
     JSON.stringify(resolved.primaryCta) === JSON.stringify(DEFAULT_PRESENTATION.primaryCta) &&
     JSON.stringify(resolved.authority) === JSON.stringify(DEFAULT_PRESENTATION.authority) &&
-    JSON.stringify(resolved.sectionTitles) === JSON.stringify(DEFAULT_PRESENTATION.sectionTitles)
+    JSON.stringify(resolved.sectionTitles) === JSON.stringify(DEFAULT_PRESENTATION.sectionTitles) &&
+    JSON.stringify(resolved.layout) === JSON.stringify(DEFAULT_PRESENTATION.layout)
   if (docPresent && validationErrors.length === 0 && !resolvesToDefaults) {
     failures.push(
       `${CONTENT_DOC}: resolves to copy that differs from the shipped code defaults — ` +
@@ -177,6 +255,16 @@ function build(): { json: string; pass: boolean; failures: readonly string[] } {
     failures.push(
       `${CONTENT_DOC}: configures ${slot}, which no renderer consumes yet — ` +
         `a config key that validates and then does nothing (unwired: ${UNWIRED_SECTION_TITLES.join(", ")})`,
+    )
+  }
+  // A rejected slot means the resolver silently substituted the shipped value. That is the
+  // right RUNTIME behavior (INV-P3) and the wrong COMMITTED state: the served page would
+  // not be the page the document describes.
+  for (const slot of resolved.rejectedSlots) {
+    failures.push(
+      `${CONTENT_DOC}: ${slot} — the resolver fell back to the shipped value, so the committed ` +
+        `document does not describe the served page (ADR 0058 §5 INV-P3 fails open by design; ` +
+        `a COMMITTED document must not need it)`,
     )
   }
   // An empty override set with a PRESENT document would mean the resolver ignored every
@@ -222,6 +310,52 @@ function build(): { json: string; pass: boolean; failures: readonly string[] } {
     )
   }
 
+  // 3b — the structural-support space (PR P-3), enumerated rather than argued. If this
+  // ever came out as the full 720, the predicate would have stopped constraining anything;
+  // if it came out as 0, it would reject the shipped page. Both bounds are asserted, so a
+  // future refactor cannot quietly neutralize the rule that keeps config from claiming a
+  // layout the renderer has no markup for.
+  const allOrderings = permutations(DISPLAY_GROUPS)
+  const permutationCount = allOrderings.length
+  const supportedCount = allOrderings.filter((o) => isStructurallySupported(o)).length
+  if (supportedCount === 0 || supportedCount === permutationCount) {
+    failures.push(
+      `layout support predicate is degenerate: ${supportedCount}/${permutationCount} orderings supported — ` +
+        `it either rejects the shipped page or constrains nothing (ADR 0058 §3)`,
+    )
+  }
+  if (!isStructurallySupported(DEFAULT_GROUP_ORDER)) {
+    failures.push(
+      `the SHIPPED group order is not structurally supported — the model disagrees with the renderer it describes`,
+    )
+  }
+  // The layout slot is WIRED — proven by EMITTED BYTES, not by inspection.
+  //
+  // Why this needs its own probe: the layout block restates the shipped order, so unlike
+  // the copy slots it contributes NO entry to `overriddenSlots` (restating a default is
+  // not an edit). The inert-document check therefore cannot see it, and neither can
+  // `resolvesToDefaults`.
+  //
+  // Why it must go through `emitSafeInstall` and not `resolvePresentation`: an earlier
+  // version of this check drove the RESOLVER and asserted `sectionOrder` moved. That
+  // passed — measurably, as a negative control — with the `presentation.layout` argument
+  // DELETED at the emit edge, because the resolver's answer was never handed to the
+  // renderer. A resolver that computes the right order and an emitter that ignores it is
+  // exactly the "validates and then does nothing" failure ADR 0058 §3 forbids, so the
+  // probe now emits the real install tree twice and requires the HTML to differ. The
+  // reordering used is emittable (the fused disposition+primary_action run stays intact),
+  // so a rejection here means the wiring broke, not that the order was illegal.
+  const probeOrder = ["identity", "consequence", "disposition", "primary_action", "authority_facts", "secondary_links"]
+  const probeResolved = resolvePresentation({ ...EMPTY_PRESENTATION_CONTENT, layout: { groupOrder: probeOrder } })
+  if (probeResolved.rejectedSlots.length > 0 || !probeResolved.overriddenSlots.includes("layout.groupOrder")) {
+    failures.push(
+      `layout.groupOrder did not resolve as an override (rejected: ${probeResolved.rejectedSlots.join(", ") || "none"}) ` +
+        `— the probe cannot test the wiring it exists to test`,
+    )
+  }
+  const layoutWiring = probeEmittedLayout(probeResolved)
+  if (layoutWiring !== null) failures.push(layoutWiring)
+
   // 4 — the import boundary (ADR 0058 §2).
   const violations = importBoundaryViolations()
   for (const v of violations) {
@@ -233,7 +367,7 @@ function build(): { json: string; pass: boolean; failures: readonly string[] } {
     $comment:
       "Workstream P digest seams (ADR 0058 §5; new15 §7), re-baselined by PR P-2 now that the content plane exists. RECORDS presentationDigest + semanticContractDigest; it does NOT re-point what install plans bind — plans still bind contractDigest, and moving that binding is a P-7 decision requiring an ADR amendment (doing it here would smuggle a behavior change into a batch declared as having none). `semanticContractDigest` is defined by DELETION from the sealed contract, so a new contract field is bound by default and omission is the reviewable exception. The gate is noProseLeaves: machine tokens carry no whitespace, prose always does, so an empty result proves no copy is bound — for any input, not just those measured. Regenerate with `pnpm audit:presentation:lock:write`; enforce with `pnpm audit:presentation:lock:gate`.",
     workstream: "P",
-    pr: "P-2",
+    pr: "P-3",
     status: failures.length === 0 ? "PASSED" : "FAILED",
     contentPlane: {
       root: CONTENT_ROOT,
@@ -248,8 +382,22 @@ function build(): { json: string; pass: boolean; failures: readonly string[] } {
       overriddenSlots: resolved.overriddenSlots,
       unwiredSlots: resolved.unwiredSlots,
       unwiredSectionTitles: UNWIRED_SECTION_TITLES,
+      rejectedSlots: resolved.rejectedSlots,
       validationErrors,
       ...digests,
+    },
+    layoutStructure: {
+      $comment:
+        "PR P-3. The section model the renderer actually emits, recorded so the supported-ordering claim is auditable rather than asserted. supportedOrderings is DERIVED by running checkLayoutSupport over every permutation of the six groups — not hand-counted — which is why the number is a measurement: the served markup FUSES disposition + primary_action inside one <section>, so only orderings keeping that run adjacent and in order can be emitted. NOTE displayGroupsIsEmittable=false: new14 §7's documentation numbering puts the primary action fifth, but the DOM emits it third; the vocabulary array is therefore a SET, not a layout, and three P-1 fixtures had used it as one. If a later PR (P-4b) splits the fused section, ABOVE_FOLD_SECTION_IDS changes and these numbers move on their own.",
+      aboveFoldSectionIds: ABOVE_FOLD_SECTION_IDS,
+      sectionGroups: SECTION_GROUPS,
+      fusedGroupRuns: FUSED_GROUP_RUNS,
+      emittedGroupOrder: DEFAULT_GROUP_ORDER,
+      displayGroupVocabulary: DISPLAY_GROUPS,
+      displayGroupsIsEmittable: isStructurallySupported([...DISPLAY_GROUPS]),
+      totalOrderings: permutationCount,
+      supportedOrderings: supportedCount,
+      shippedCaps: SHIPPED_LAYOUT_CAPS,
     },
     semanticContract: {
       $comment:

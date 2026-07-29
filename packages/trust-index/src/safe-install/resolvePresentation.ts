@@ -48,6 +48,17 @@ import {
   type AuthorityCopy,
 } from "../selectDecisionAuthorities.js"
 import { PRESENTATION_STATES, type PresentationContentV1 } from "./presentationContent.js"
+import {
+  ABOVE_FOLD_SECTION_IDS,
+  DEFAULT_LAYOUT,
+  SHIPPED_LAYOUT_CAPS,
+  checkLayoutSupport,
+  clampCap,
+  type AboveFoldSectionId,
+  type ResolvedLayout,
+} from "./layoutStructure.js"
+
+export { DEFAULT_LAYOUT, type ResolvedLayout }
 
 /**
  * The `sectionTitles` slots the RENDERER actually consumes today.
@@ -78,10 +89,19 @@ export interface ResolvedPresentation {
   readonly authority: AuthorityCopy
   /** L1 — the renderer's fixed section titles. */
   readonly sectionTitles: SectionTitles
+  /** L1 — section order + render caps (PR P-3). */
+  readonly layout: ResolvedLayout
   /** Which slots came from configuration, in stable order. A measurement, for the lock. */
   readonly overriddenSlots: readonly string[]
   /** Configured slots that no renderer consumes yet. Non-empty ⇒ the lock gate fails. */
   readonly unwiredSlots: readonly string[]
+  /**
+   * Configured slots REJECTED at resolve time, with a cause (PR P-3). A rejection is
+   * already a silent fail-open by design (INV-P3), which is exactly why it must be
+   * visible: the lock records these, so "the document I committed is not the document
+   * being served" cannot be a quiet condition. Empty for every valid document.
+   */
+  readonly rejectedSlots: readonly string[]
 }
 
 /** The shipped defaults, resolved from no document at all. */
@@ -89,8 +109,10 @@ export const DEFAULT_PRESENTATION: ResolvedPresentation = Object.freeze({
   primaryCta: PRIMARY_CTA,
   authority: DEFAULT_AUTHORITY_COPY,
   sectionTitles: SECTION_TITLES,
+  layout: DEFAULT_LAYOUT,
   overriddenSlots: Object.freeze([]),
   unwiredSlots: Object.freeze([]),
+  rejectedSlots: Object.freeze([]),
 })
 
 /**
@@ -213,13 +235,103 @@ export function resolvePresentation(doc: unknown): ResolvedPresentation {
           (k) => `sectionTitles.${k}`,
         )
 
+  // L1 — the LAYOUT MANIFEST (PR P-3). Three separate decisions, deliberately not
+  // collapsed into one "is this layout ok" branch, because they fail for different
+  // reasons and a reviewer needs to know which:
+  //
+  //   • groupOrder is checked for STRUCTURAL SUPPORT, not just permutation-ness. An
+  //     unsupported order falls back to the shipped section sequence and is RECORDED as
+  //     rejected — never emitted as an approximation, because a half-honoured layout is
+  //     worse than the shipped one: it looks intentional.
+  //   • each cap is clamped into [min, shipped]. Clamping rather than rejecting is right
+  //     here because the failure is bounded and monotone in the safe direction — a cap
+  //     can only ever hide facts, never manufacture them — but an OUT-OF-RANGE cap is
+  //     still recorded, so "I asked for 5 and got 3" is visible rather than silent.
+  //   • absent layout ⇒ the shipped default, contributing no overrides.
+  const rejected: string[] = []
+  const layoutRaw = objectOrUndefined(d.layout as Record<string, unknown> | undefined)
+  // PRESENT-BUT-MALFORMED is not the same as ABSENT, and collapsing them would defeat the
+  // point of `rejectedSlots`: `layout: "left-to-right"` would fall back to the shipped page
+  // in silence, so a committed document that describes nothing servable would read as a
+  // document that asked for nothing. Absent stays silent (that is the shipped default, not
+  // a fallback); a non-object is recorded.
+  if (d.layout !== undefined && layoutRaw === undefined) {
+    rejected.push("layout: not an object")
+  }
+  let layout: ResolvedLayout = DEFAULT_LAYOUT
+  if (layoutRaw !== undefined) {
+    let sectionOrder: readonly AboveFoldSectionId[] = ABOVE_FOLD_SECTION_IDS
+    const order = layoutRaw.groupOrder
+    if (order !== undefined) {
+      if (!Array.isArray(order)) {
+        rejected.push("layout.groupOrder: not an array")
+      } else {
+        const support = checkLayoutSupport(order)
+        if (support.supported && support.sectionOrder !== null) {
+          sectionOrder = support.sectionOrder
+          // Only a REORDERING is an override; restating the shipped order is not an edit.
+          if (sectionOrder.join(",") !== ABOVE_FOLD_SECTION_IDS.join(",")) {
+            overridden.push("layout.groupOrder")
+          }
+        } else {
+          rejected.push(`layout.groupOrder: ${support.reason ?? "unsupported"}`)
+        }
+      }
+    }
+    const facts = capOrReject(
+      layoutRaw.maxAuthorityFacts,
+      SHIPPED_LAYOUT_CAPS.maxAuthorityFacts,
+      1,
+      "layout.maxAuthorityFacts",
+      overridden,
+      rejected,
+    )
+    const links = capOrReject(
+      layoutRaw.maxSecondaryLinks,
+      SHIPPED_LAYOUT_CAPS.maxSecondaryLinks,
+      0,
+      "layout.maxSecondaryLinks",
+      overridden,
+      rejected,
+    )
+    layout = { sectionOrder, maxAuthorityFacts: facts, maxSecondaryLinks: links }
+  }
+
   return {
     primaryCta,
     authority: { observed, absence },
     sectionTitles,
+    layout,
     overriddenSlots: overridden.sort(),
     unwiredSlots,
+    rejectedSlots: rejected.sort(),
   }
+}
+
+/**
+ * Clamp one configured cap, recording whether it was an honoured narrowing or an
+ * out-of-range value that got clamped. Restating the shipped value is neither.
+ */
+function capOrReject(
+  raw: unknown,
+  shipped: number,
+  min: number,
+  slot: string,
+  overridden: string[],
+  rejected: string[],
+): number {
+  if (raw === undefined) return shipped
+  const clamped = clampCap(raw, shipped, min)
+  if (typeof raw !== "number" || !Number.isInteger(raw)) {
+    rejected.push(`${slot}: not an integer`)
+    return clamped
+  }
+  if (raw > shipped || raw < min) {
+    rejected.push(`${slot}: ${raw} out of range [${min}, ${shipped}] — clamped to ${clamped}`)
+    return clamped
+  }
+  if (clamped !== shipped) overridden.push(slot)
+  return clamped
 }
 
 /** Narrow to a plain object, or undefined — arrays and null are not copy records. */

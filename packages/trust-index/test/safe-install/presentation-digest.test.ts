@@ -17,7 +17,7 @@ import { describe, it, expect } from "vitest"
 import { hashJson } from "@calllint/fingerprint"
 import {
   CANONICAL_FIXTURES,
-  DISPLAY_GROUPS,
+  DEFAULT_GROUP_ORDER,
   EMPTY_PRESENTATION_CONTENT,
   PRESENTATION_CONTENT_VERSION,
   SEMANTIC_PREIMAGE_OMISSIONS,
@@ -95,7 +95,7 @@ describe("presentationDigest", () => {
       schema: PRESENTATION_CONTENT_VERSION,
       locale: "en-US",
       tokens: { tokensVersion: "v1" },
-      layout: { groupOrder: [...DISPLAY_GROUPS] },
+      layout: { groupOrder: [...DEFAULT_GROUP_ORDER] },
     }
     expect(presentationDigest(doc).sections).toEqual(["layout", "tokens"])
   })
