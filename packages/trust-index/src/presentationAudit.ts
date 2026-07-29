@@ -136,7 +136,9 @@ export function probeCopySite(
   // Only values that actually reach the page can be judged: a constant whose
   // branch never renders for these fixtures would otherwise look "isolated" for
   // the trivial reason that it is absent everywhere.
-  const rendered = values.filter((v) => subjects.some((s) => s.html.includes(escapeForHtml(v))))
+  const rendered = values.filter((v) =>
+    renderedForms(v).some((form) => subjects.some((s) => s.html.includes(form))),
+  )
   const inContract = values.filter((v) => subjects.some((s) => s.contractJson.includes(v)))
 
   let contractDigestMoved = inContract.length > 0
@@ -202,14 +204,21 @@ function routeKey(p: SafeInstallProjection): string {
   ].join("|")
 }
 
-/** Mirror the renderer's escaping so containment is checked against emitted bytes. */
-function escapeForHtml(s: string): string {
-  return s
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#39;")
+/**
+ * Every form the renderer can emit a copy value in, so containment is checked against
+ * the bytes that actually ship.
+ *
+ * There are two, and the difference is load-bearing for this probe: the renderer uses an
+ * attribute-grade escape for values that may land in an attribute, and a text-grade one
+ * (`&`/`<`/`>` only) for element text. A probe that mirrored only the attribute form
+ * would under-count — the publisher-block title contains an apostrophe, which the
+ * attribute escape turns into `&#39;` and the text escape leaves alone — and would then
+ * report a real copy site as "never rendered". Checking both is what keeps `htmlMoved`
+ * a measurement rather than an artifact of which escape the probe happened to guess.
+ */
+function renderedForms(s: string): string[] {
+  const text = s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
+  return [text, text.replace(/"/g, "&quot;").replace(/'/g, "&#39;")]
 }
 
 /** The audit's verdict over every probed site. */
@@ -260,7 +269,7 @@ export const COPY_SITES: readonly CopySiteDeclaration[] = [
     source: "packages/trust-index/src/selectDecisionAuthorities.ts",
     declaredLevel: "L2",
     declaredPlane: "presentation",
-    configurableTo: "apps/web/content/safe-install/locales/en-US/authority-copy.v1.json",
+    configurableTo: "apps/web/content/safe-install/presentation.v1.json#/authorityCopy/observedPhrases",
     rationale:
       "Security-explanation wording per shipped reason code. The contract carries the authority TOKEN in authorityDelta.adds, never this sentence.",
   },
@@ -269,7 +278,7 @@ export const COPY_SITES: readonly CopySiteDeclaration[] = [
     source: "packages/trust-index/src/selectDecisionAuthorities.ts",
     declaredLevel: "L2",
     declaredPlane: "presentation",
-    configurableTo: "apps/web/content/safe-install/locales/en-US/authority-copy.v1.json",
+    configurableTo: "apps/web/content/safe-install/presentation.v1.json#/authorityCopy/absencePhrases",
     rationale:
       "Neutral absence wording. Must stay an observation and is never rendered as denied/absent/impossible (ADR 0058 §3).",
   },
@@ -278,9 +287,20 @@ export const COPY_SITES: readonly CopySiteDeclaration[] = [
     source: "packages/trust-index/src/safeInstallProjection.ts",
     declaredLevel: "L1",
     declaredPlane: "presentation",
-    configurableTo: "apps/web/content/safe-install/locales/en-US/decision-copy.v1.json",
+    configurableTo: "apps/web/content/safe-install/presentation.v1.json#/decisionCopy/states",
     rationale:
       "Cognitive copy for the single primary action. The ROUTE (installability) is code; only its wording is config.",
+  },
+  {
+    // Added by PR P-2, the batch that LIFTED it. A copy site the audit does not probe is
+    // a copy site with no boundary, so the table grows with each lift — never after it.
+    constant: "SECTION_TITLES",
+    source: "packages/trust-index/src/renderSafeInstall.ts",
+    declaredLevel: "L1",
+    declaredPlane: "presentation",
+    configurableTo: "apps/web/content/safe-install/presentation.v1.json#/sectionTitles",
+    rationale:
+      "Renderer section headings. Wording is cognitive copy; the POSITION and the key set stay code, so no document can move publisher text into a decision group (INV-2.4-05).",
   },
   {
     constant: "VERDICT_PUBLIC_LABEL",
@@ -317,6 +337,7 @@ export function runPresentationAudit(
     readonly observedConsequence: readonly string[]
     readonly absenceConsequence: readonly string[]
     readonly primaryCta: readonly string[]
+    readonly sectionTitles: readonly string[]
     readonly verdictLabel: readonly string[]
     readonly guidanceSteps: readonly string[]
   },
@@ -385,10 +406,26 @@ export function runPresentationAudit(
     }
   }
 
+  // SECTION_TITLES is passed to the RENDERER, never to the projection or the builder —
+  // so the mutation is applied at the real shipped seam (`renderSafeInstall`'s second
+  // argument, the one the emit edge now supplies) and the sealed contract is reused
+  // untouched. If a future refactor routed titles through the contract, `inContract`
+  // would catch it even though this mutation cannot.
+  const mutateSectionTitles = (s: ProbeSubject) => ({
+    contractDigest: s.contractDigest,
+    html: renderSafeInstall(s.projection, {
+      authorityFacts: PROBE_SENTINEL,
+      provenance: PROBE_SENTINEL,
+      publisherBlock: PROBE_SENTINEL,
+    }),
+    routeKey: routeKey(s.projection),
+  })
+
   return gradePresentationAudit([
     probeCopySite(decl("OBSERVED_CONSEQUENCE"), values.observedConsequence, subjects, mutateConsequences),
     probeCopySite(decl("ABSENCE_CONSEQUENCE"), values.absenceConsequence, subjects, mutateConsequences),
     probeCopySite(decl("PRIMARY_CTA"), values.primaryCta, subjects, mutateCta),
+    probeCopySite(decl("SECTION_TITLES"), values.sectionTitles, subjects, mutateSectionTitles),
     probeCopySite(decl("VERDICT_PUBLIC_LABEL"), values.verdictLabel, subjects),
     probeCopySite(decl("AGENT_GUIDANCE.steps"), values.guidanceSteps, subjects),
   ])

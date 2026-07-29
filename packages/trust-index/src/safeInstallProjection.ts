@@ -18,6 +18,7 @@ import { VERDICT_PUBLIC_LABEL } from "@calllint/types"
 import { hashJson } from "@calllint/fingerprint"
 import {
   selectDecisionAuthorities,
+  type AuthorityCopy,
   type DecisionAuthorityFact,
 } from "./selectDecisionAuthorities.js"
 import {
@@ -40,7 +41,8 @@ export type Installability =
  * Exported for the Workstream P presentation audit (ADR 0058 §1). Note what is and
  * is not config here: the ROUTE (`installability`, derived from the verdict) is
  * code and stays code; only its WORDING is L1 cognitive copy, lifted by PR P-2 into
- * `apps/web/content/safe-install/locales/en-US/decision-copy.v1.json`.
+ * the merged presentation document's `decisionCopy.states[*].primaryAction`. It stays
+ * here as the DEFAULT the resolver fails open to, per slot (ADR 0058 §5 INV-P3).
  */
 export const PRIMARY_CTA: Record<Installability, string> = {
   PREPARE_AVAILABLE: "Add with CallLint",
@@ -65,6 +67,23 @@ export interface SafeInstallProjectionInput {
   readonly engineVersion: string
   /** true when no supported host install plan exists for this target (§8.4). */
   readonly unsupported?: boolean
+  /**
+   * Resolved presentation copy (PR P-2), passed in from the emit edge — never
+   * imported (ADR 0058 §2). Omitted ⇒ the shipped code defaults, byte-identically.
+   *
+   * Note where this sits relative to the seal: the copy reaches
+   * `buildAgentAdoptionContract` ONLY through its `selection` argument, whose
+   * consequence sentences the sealer's preimage does not read. That is the structural
+   * reason INV-P1 holds and is what the P-0 mutation probe measures rather than
+   * assumes.
+   */
+  readonly presentation?: ProjectionPresentation
+}
+
+/** The presentation slice this projection consumes: L1 CTA wording + L2 authority copy. */
+export interface ProjectionPresentation {
+  readonly primaryCta: Record<Installability, string>
+  readonly authority: AuthorityCopy
 }
 
 export interface SafeInstallProjection {
@@ -106,7 +125,8 @@ function toInstallability(verdict: Verdict, unsupported: boolean): Installabilit
 export function safeInstallProjection(input: SafeInstallProjectionInput): SafeInstallProjection {
   const page = input.page
   const unsupported = input.unsupported === true
-  const selection = selectDecisionAuthorities(page)
+  const primaryCta = input.presentation?.primaryCta ?? PRIMARY_CTA
+  const selection = selectDecisionAuthorities(page, input.presentation?.authority)
   const installability = toInstallability(page.verdict, unsupported)
 
   const contract = sealAgentAdoptionContract(
@@ -135,8 +155,11 @@ export function safeInstallProjection(input: SafeInstallProjectionInput): SafeIn
     authorityDecisionFacts: selection.facts,
     consequenceSummary: selection.consequenceSummary,
     humanDisposition: {
+      // The headline is deliberately NOT config-resolved: VERDICT_PUBLIC_LABEL reaches
+      // the sealed contract's publicObservation.publicLabel, which makes it L3 by the
+      // ADR 0058 §1 reachability test (and is the P-0 audit's negative control).
       headline: VERDICT_PUBLIC_LABEL[page.verdict],
-      primaryCta: PRIMARY_CTA[installability],
+      primaryCta: primaryCta[installability],
     },
     agentContract: contract,
     installability,

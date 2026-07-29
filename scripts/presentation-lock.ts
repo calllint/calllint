@@ -6,11 +6,16 @@
  * verdict; it records the two digest seams P-1 introduces and measures the
  * properties that justify them:
  *
- *   1. CONTENT PLANE — the presentation document's digest set. At P-1 there is no
- *      apps/web/content/** at all, so the lock records the canonical EMPTY
- *      document's digest with contentPlane:"absent". That is deliberate: PR P-7's
- *      rollback needs a real predecessor to restore (INV-P3), and a null would be
- *      a special case every consumer has to branch on.
+ *   1. CONTENT PLANE — the presentation document's digest set. P-1 had no
+ *      apps/web/content/** at all and recorded the canonical EMPTY document's digest
+ *      with contentPlane:"absent" (a real predecessor for PR P-7's rollback to
+ *      restore — INV-P3 — rather than a null every consumer must branch on). P-2
+ *      creates the document, so the lock now validates it and digests the real bytes.
+ *   1b. RESOLVER IDENTITY — the committed document resolves to copy DEEP-EQUAL to the
+ *      shipped code defaults, so committing the catalog provably cannot move a served
+ *      byte (ADR 0058 §4). This is measured on the SAME resolver the bake calls, so it
+ *      is not a claim about an equivalent path. Changing published wording must fail
+ *      here first; that failure is the reviewable seam, not an obstacle to route around.
  *   2. SEMANTIC CONTRACT DIGEST — computed for all 19 committed served sidecars,
  *      alongside each one's sealed `contractDigest`. Read from apps/web/public/
  *      install/**, not re-derived, so this measures the bytes users actually get.
@@ -40,13 +45,16 @@ import path from "node:path"
 import { fileURLToPath } from "node:url"
 import { VERDICT_PUBLIC_LABEL } from "@calllint/types"
 import {
+  DEFAULT_PRESENTATION,
   EMPTY_PRESENTATION_CONTENT,
   LEVEL_BY_SECTION,
   PRESENTATION_CONTENT_VERSION,
   PRIMARY_CTA,
   SEMANTIC_PREIMAGE_OMISSIONS,
+  UNWIRED_SECTION_TITLES,
   emptyPresentationDigest,
   presentationDigest,
+  resolvePresentation,
   semanticContractDigest,
   validatePresentationContent,
   type PresentationContentV1,
@@ -55,9 +63,9 @@ import {
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..")
 const outPath = path.join(repoRoot, "artifacts", "phase-2.4", "presentation-lock.json")
 
-/** Where PR P-2 will put the content plane. Absent at P-1 — asserted, not assumed. */
+/** The content plane. Absent at P-1; created by PR P-2 — measured, not assumed. */
 const CONTENT_ROOT = "apps/web/content/safe-install"
-/** The merged-document filename P-2 writes; the lock reads it once it exists. */
+/** The merged document P-2 writes; the lock validates and digests it. */
 const CONTENT_DOC = `${CONTENT_ROOT}/presentation.v1.json`
 
 /** Source trees that may never import the config plane (ADR 0058 §2). */
@@ -140,6 +148,46 @@ function build(): { json: string; pass: boolean; failures: readonly string[] } {
   }
   const digests = docPresent && validationErrors.length === 0 ? presentationDigest(doc) : emptyPresentationDigest()
 
+  // 1b — resolver identity + wiring, measured on the resolver the BAKE calls.
+  //
+  // Two questions, both of which have to be answered by measurement or the batch's
+  // central claim ("committing the catalog moves no served byte") is only an assertion:
+  //
+  //   • does the committed document resolve to the shipped defaults, slot for slot?
+  //     Deep equality over the three copy slices answers it directly. A transcription
+  //     slip, a smart-quote, a trailing space — each shows up here as a FAILURE before
+  //     it can show up in production as a changed page.
+  //   • does every configured slot actually reach a renderer? A key that validates and
+  //     then does nothing is the precise drift a lock exists to catch, so `unwiredSlots`
+  //     is a failure rather than a note. `boundary` is schema-valid and deliberately
+  //     unwired (see renderSafeInstall's SECTION_TITLES), which is why the document must
+  //     not carry it yet.
+  const resolved = resolvePresentation(doc)
+  const resolvesToDefaults =
+    JSON.stringify(resolved.primaryCta) === JSON.stringify(DEFAULT_PRESENTATION.primaryCta) &&
+    JSON.stringify(resolved.authority) === JSON.stringify(DEFAULT_PRESENTATION.authority) &&
+    JSON.stringify(resolved.sectionTitles) === JSON.stringify(DEFAULT_PRESENTATION.sectionTitles)
+  if (docPresent && validationErrors.length === 0 && !resolvesToDefaults) {
+    failures.push(
+      `${CONTENT_DOC}: resolves to copy that differs from the shipped code defaults — ` +
+        `committing the catalog would change served bytes, which ADR 0058 §4 reserves for PR P-4b`,
+    )
+  }
+  for (const slot of resolved.unwiredSlots) {
+    failures.push(
+      `${CONTENT_DOC}: configures ${slot}, which no renderer consumes yet — ` +
+        `a config key that validates and then does nothing (unwired: ${UNWIRED_SECTION_TITLES.join(", ")})`,
+    )
+  }
+  // An empty override set with a PRESENT document would mean the resolver ignored every
+  // slot — which would make the identity check above pass for the wrong reason.
+  if (docPresent && validationErrors.length === 0 && resolved.overriddenSlots.length === 0) {
+    failures.push(
+      `${CONTENT_DOC}: present but supplies no recognized copy slot — the document is inert, ` +
+        `so the byte-identity measurement above would hold vacuously`,
+    )
+  }
+
   // 2/3 — the semantic digest for every served sidecar, plus the no-prose gate.
   const served = servedContracts()
   const resources = served.map(({ slug, contract }) => {
@@ -183,19 +231,23 @@ function build(): { json: string; pass: boolean; failures: readonly string[] } {
   const report = {
     schema: "calllint.presentation-lock.v0",
     $comment:
-      "Workstream P PR P-1 digest seams (ADR 0058 §5; new15 §7). RECORDS presentationDigest + semanticContractDigest; it does NOT re-point what install plans bind — plans still bind contractDigest, and moving that binding is a P-7 decision requiring an ADR amendment (doing it here would smuggle a behavior change into a batch declared as having none). `semanticContractDigest` is defined by DELETION from the sealed contract, so a new contract field is bound by default and omission is the reviewable exception. The gate is noProseLeaves: machine tokens carry no whitespace, prose always does, so an empty result proves no copy is bound — for any input, not just those measured. Regenerate with `pnpm audit:presentation:lock:write`; enforce with `pnpm audit:presentation:lock:gate`.",
+      "Workstream P digest seams (ADR 0058 §5; new15 §7), re-baselined by PR P-2 now that the content plane exists. RECORDS presentationDigest + semanticContractDigest; it does NOT re-point what install plans bind — plans still bind contractDigest, and moving that binding is a P-7 decision requiring an ADR amendment (doing it here would smuggle a behavior change into a batch declared as having none). `semanticContractDigest` is defined by DELETION from the sealed contract, so a new contract field is bound by default and omission is the reviewable exception. The gate is noProseLeaves: machine tokens carry no whitespace, prose always does, so an empty result proves no copy is bound — for any input, not just those measured. Regenerate with `pnpm audit:presentation:lock:write`; enforce with `pnpm audit:presentation:lock:gate`.",
     workstream: "P",
-    pr: "P-1",
+    pr: "P-2",
     status: failures.length === 0 ? "PASSED" : "FAILED",
     contentPlane: {
       root: CONTENT_ROOT,
       document: CONTENT_DOC,
       state: docPresent ? "present" : "absent",
       $comment:
-        "absent at P-1: apps/web/content/** is greenfield, so the recorded digest is that of the canonical EMPTY document (schema+locale only), which resolves every slot to the shipped code default. This is the restorable predecessor INV-P3 needs, not a placeholder.",
+        "PRESENT since PR P-2, which lifted the Install-surface L1/L2 copy into this one merged document (O-4: newest surface first). The recorded digests are over the real committed bytes; P-1's baseline recorded the canonical EMPTY document instead, because the plane did not exist yet. resolvesToDefaults is the load-bearing measurement: the committed document resolves DEEP-EQUAL to the shipped code defaults through the same resolver the bake calls, which is why creating this file changes no served byte (ADR 0058 §4 — a visual change is PR P-4b's own PR). overriddenSlots is recorded so the identity claim cannot hold vacuously via an inert document, and unwiredSlots must stay empty so a key can never validate and then do nothing.",
       schemaTag: PRESENTATION_CONTENT_VERSION,
       locale: doc.locale,
       levelBySection: LEVEL_BY_SECTION,
+      resolvesToDefaults,
+      overriddenSlots: resolved.overriddenSlots,
+      unwiredSlots: resolved.unwiredSlots,
+      unwiredSectionTitles: UNWIRED_SECTION_TITLES,
       validationErrors,
       ...digests,
     },

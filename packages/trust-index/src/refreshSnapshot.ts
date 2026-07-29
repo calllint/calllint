@@ -19,7 +19,13 @@ import { dirname, resolve } from "node:path"
 import { fetchRegistrySnapshot, DEFAULT_MAX_ENTRIES } from "./fetchRegistry.js"
 import { parseSnapshot } from "./snapshot.js"
 import { emitAllCohorts } from "./emitCohort.js"
-import { SNAPSHOT_PATH, DEFAULT_OUT, engineVersion, writeServedTree } from "./bake.js"
+import {
+  SNAPSHOT_PATH,
+  DEFAULT_OUT,
+  engineVersion,
+  writeServedTree,
+  loadPresentationIfPresent,
+} from "./bake.js"
 
 /**
  * Resolve the ingestion cap (ADR 0038 §6). Defaults to DEFAULT_MAX_ENTRIES; an
@@ -51,15 +57,18 @@ async function main(): Promise<void> {
   const committed = parseSnapshot(snapshotText)
 
   // 3. Re-bake all cohorts into the served tree (clean first → no stale pages). Uses the
-  //    SAME engine version + shared writer as bake.ts, so a scheduled ingest and a CI
-  //    re-bake emit byte-identical trust AND Safe-install (/install/**, .well-known) trees
-  //    — the reproducibility gate holds across both bins (ADR 0056; INV-2.4-10).
+  //    SAME engine version, presentation loader, and shared writer as bake.ts, so a
+  //    scheduled ingest and a CI re-bake emit byte-identical trust AND Safe-install
+  //    (/install/**, .well-known) trees — the reproducibility gate holds across both bins
+  //    (ADR 0056; INV-2.4-10). The presentation document is read HERE, at the edge, and
+  //    passed inward (ADR 0058 §2); both bins must read it or they would disagree.
   const { files, installFiles, baked, incomplete } = emitAllCohorts(
     committed,
     undefined,
     undefined,
     [],
     engineVersion(),
+    loadPresentationIfPresent(),
   )
   writeServedTree(DEFAULT_OUT, resolve(DEFAULT_OUT, ".."), files, installFiles)
 

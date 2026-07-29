@@ -1,17 +1,25 @@
 {
   "schema": "calllint.presentation-plane-audit.v0",
-  "$comment": "Workstream P PR P-0 reality audit (ADR 0058 §1/§5). reachability[] is MEASURED by mutation/containment probe over the shipped projection, not declared: a row whose declaredPlane disagrees with its measuredPlane fails. The VERDICT_PUBLIC_LABEL and AGENT_GUIDANCE.steps rows are negative controls — they MUST measure as decision-plane, otherwise the probe cannot detect reachability and every other row is meaningless. Regenerate with `pnpm audit:presentation:write`; enforce with `pnpm audit:presentation:gate`.",
+  "$comment": "Workstream P presentation-plane reality audit (ADR 0058 §1/§5), re-baselined by PR P-2. reachability[] is MEASURED by mutation/containment probe over the shipped projection, not declared: a row whose declaredPlane disagrees with its measuredPlane fails. The VERDICT_PUBLIC_LABEL and AGENT_GUIDANCE.steps rows are negative controls — they MUST measure as decision-plane, otherwise the probe cannot detect reachability and every other row is meaningless. planeStages replaces P-0's blanket greenfield assertion: creating apps/web/content is P-2's WORK, so the expectation is now per-plane and bidirectional (content must be present, styles must still be absent until P-4) — strictly stronger, since deleting the content plane now fails too. Regenerate with `pnpm audit:presentation:write`; enforce with `pnpm audit:presentation:gate`.",
   "workstream": "P",
-  "pr": "P-0",
+  "pr": "P-2",
   "status": "PASSED",
-  "greenfield": [
+  "planeStages": [
     {
       "dir": "apps/web/content",
-      "exists": false
+      "exists": true,
+      "expected": "present",
+      "expectedSince": "P-2",
+      "why": "the copy catalog lifted by PR P-2",
+      "ok": true
     },
     {
       "dir": "apps/web/styles",
-      "exists": false
+      "exists": false,
+      "expected": "absent",
+      "expectedSince": "P-4",
+      "why": "design tokens are not lifted until PR P-4",
+      "ok": true
     }
   ],
   "servedStylesheets": {
@@ -22,11 +30,11 @@
   "inventory": [
     {
       "source": "packages/trust-index/src/renderSafeInstall.ts",
-      "copyLiterals": 5,
+      "copyLiterals": 6,
       "samples": [
-        " data-primary-action=",
         "Authority facts",
-        "Publisher description"
+        "Publisher description",
+        "Publisher-provided description — not used for CallLint's safety decision."
       ]
     },
     {
@@ -49,9 +57,8 @@
     },
     {
       "source": "packages/trust-index/src/agentAdoptionContract.ts",
-      "copyLiterals": 3,
+      "copyLiterals": 2,
       "samples": [
-        ") return { kind: ",
         "Add the requested Agent Tool with only locally approved authority.",
         "sha256 over this object minus digest"
       ]
@@ -67,18 +74,18 @@
     },
     {
       "source": "packages/core/src/gateway/continuousProtection.ts",
-      "copyLiterals": 21,
+      "copyLiterals": 14,
       "samples": [
-        "  CallLint can:",
-        "  Nothing persistent was installed by the step above, and nothing is",
-        "  This installs persistent components (a separate decision from the install above):"
+        "Claude Code SessionStart hook",
+        "Continuous protection: already enabled for this host.",
+        "Copilot CLI sessionStart hook"
       ]
     }
   ],
-  "inventoryTotal": 72,
+  "inventoryTotal": 65,
   "reachability": {
-    "sitesProbed": 5,
-    "presentationSites": 3,
+    "sitesProbed": 6,
+    "presentationSites": 4,
     "decisionSites": 2,
     "pass": true,
     "probes": [
@@ -87,7 +94,7 @@
         "source": "packages/trust-index/src/selectDecisionAuthorities.ts",
         "declaredLevel": "L2",
         "declaredPlane": "presentation",
-        "configurableTo": "apps/web/content/safe-install/locales/en-US/authority-copy.v1.json",
+        "configurableTo": "apps/web/content/safe-install/presentation.v1.json#/authorityCopy/observedPhrases",
         "rationale": "Security-explanation wording per shipped reason code. The contract carries the authority TOKEN in authorityDelta.adds, never this sentence.",
         "mutation": "containment over 10 value(s) + re-projection with copy replaced by PROBE_MUTATED_COPY_SENTINEL",
         "contractDigestMoved": false,
@@ -103,7 +110,7 @@
         "source": "packages/trust-index/src/selectDecisionAuthorities.ts",
         "declaredLevel": "L2",
         "declaredPlane": "presentation",
-        "configurableTo": "apps/web/content/safe-install/locales/en-US/authority-copy.v1.json",
+        "configurableTo": "apps/web/content/safe-install/presentation.v1.json#/authorityCopy/absencePhrases",
         "rationale": "Neutral absence wording. Must stay an observation and is never rendered as denied/absent/impossible (ADR 0058 §3).",
         "mutation": "containment over 10 value(s) + re-projection with copy replaced by PROBE_MUTATED_COPY_SENTINEL",
         "contractDigestMoved": false,
@@ -119,9 +126,25 @@
         "source": "packages/trust-index/src/safeInstallProjection.ts",
         "declaredLevel": "L1",
         "declaredPlane": "presentation",
-        "configurableTo": "apps/web/content/safe-install/locales/en-US/decision-copy.v1.json",
+        "configurableTo": "apps/web/content/safe-install/presentation.v1.json#/decisionCopy/states",
         "rationale": "Cognitive copy for the single primary action. The ROUTE (installability) is code; only its wording is config.",
         "mutation": "containment over 5 value(s) + re-projection with copy replaced by PROBE_MUTATED_COPY_SENTINEL",
+        "contractDigestMoved": false,
+        "htmlMoved": true,
+        "decisionRouteMoved": false,
+        "measuredPlane": "presentation",
+        "pass": true,
+        "failures": [],
+        "method": "containment+mutation"
+      },
+      {
+        "constant": "SECTION_TITLES",
+        "source": "packages/trust-index/src/renderSafeInstall.ts",
+        "declaredLevel": "L1",
+        "declaredPlane": "presentation",
+        "configurableTo": "apps/web/content/safe-install/presentation.v1.json#/sectionTitles",
+        "rationale": "Renderer section headings. Wording is cognitive copy; the POSITION and the key set stay code, so no document can move publisher text into a decision group (INV-2.4-05).",
+        "mutation": "containment over 3 value(s) + re-projection with copy replaced by PROBE_MUTATED_COPY_SENTINEL",
         "contractDigestMoved": false,
         "htmlMoved": true,
         "decisionRouteMoved": false,

@@ -1,0 +1,54 @@
+{
+  "schema": "calllint.presentation-content.v1",
+  "locale": "en-US",
+  "decisionCopy": {
+    "states": {
+      "PREPARE_AVAILABLE": {
+        "primaryAction": "Add with CallLint"
+      },
+      "REVIEW_REQUIRED": {
+        "primaryAction": "Review and add"
+      },
+      "BLOCKED": {
+        "primaryAction": "Inspect blockers"
+      },
+      "LOCAL_PREFLIGHT_REQUIRED": {
+        "primaryAction": "Run local pre-flight"
+      },
+      "UNSUPPORTED": {
+        "primaryAction": "View manual setup"
+      }
+    }
+  },
+  "authorityCopy": {
+    "observedPhrases": {
+      "financial_action": "Can initiate payments or financial actions.",
+      "secret_access": "Requires access to configured secrets.",
+      "shell_execution": "Can run shell commands with access to configured paths.",
+      "broad_filesystem_access": "Can read and write across a broad filesystem scope.",
+      "external_mutation": "Can create and update external records.",
+      "messaging_send": "Can send messages on your behalf.",
+      "oauth_scope": "Requests OAuth scopes that may be broad or unverified.",
+      "gateway_runtime": "Runs as a long-lived gateway process.",
+      "network_egress": "Connects to an unverified remote endpoint.",
+      "no_high_authority_observed": "No high-authority capability was observed."
+    },
+    "absencePhrases": {
+      "financial_action": "No financial or payment capability was observed.",
+      "secret_access": "No secret access was observed.",
+      "shell_execution": "No shell or command execution was observed.",
+      "broad_filesystem_access": "No broad filesystem access was observed.",
+      "external_mutation": "No external mutation was observed.",
+      "messaging_send": "No message-sending capability was observed.",
+      "oauth_scope": "No OAuth scope request was observed.",
+      "gateway_runtime": "No long-lived gateway runtime was observed.",
+      "network_egress": "No unverified network egress was observed.",
+      "no_high_authority_observed": "No high-authority capability was observed."
+    }
+  },
+  "sectionTitles": {
+    "authorityFacts": "What it can do",
+    "provenance": "Provenance",
+    "publisherBlock": "Publisher-provided description — not used for CallLint's safety decision."
+  }
+}

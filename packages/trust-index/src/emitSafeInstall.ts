@@ -26,6 +26,7 @@ import { renderSafeInstall, renderSafeInstallContract } from "./renderSafeInstal
 import { renderDiscoveryManifest, type DiscoveryResourceEntry } from "./renderDiscoveryManifest.js"
 import type { Installability } from "./safeInstallProjection.js"
 import type { EmittedFile } from "./emitCohort.js"
+import { DEFAULT_PRESENTATION, type ResolvedPresentation } from "./safe-install/resolvePresentation.js"
 
 /**
  * One emitted acquisition resource — the canonical name/slug plus its human/route
@@ -79,11 +80,18 @@ function subjectForEntry(canonicalName: string, entry: SnapshotEntry): AdoptionS
  * snapshot ⇒ no acquisition surface (empty manifest, no pages) — the surface only
  * exists once real resources are baked. Digests are hashes over the committed inputs
  * (pure), so they are stable per committed tree and re-derive identically in CI.
+ *
+ * `presentation` is the RESOLVED copy (PR P-2), a PARAMETER handed down from the emit
+ * edge that read the document — never an import (ADR 0058 §2). It defaults to the
+ * shipped code copy, so every pre-P-2 caller (including the reproducibility gate) emits
+ * byte-identical bytes; and because the committed catalog is verbatim-equal to those
+ * defaults, passing it is byte-identical too (asserted, not assumed — ADR 0058 §4).
  */
 export function emitSafeInstall(
   snapshot: RegistrySnapshot | null,
   evidence: EvidenceSnapshot | null,
   engineVersion: string,
+  presentation: ResolvedPresentation = DEFAULT_PRESENTATION,
 ): EmittedSafeInstall {
   const files: EmittedFile[] = []
   const discovery: DiscoveryResourceEntry[] = []
@@ -121,9 +129,15 @@ export function emitSafeInstall(
         registrySnapshotDigest,
         evidenceDigest,
         engineVersion,
+        // Narrow what travels inward: the projection gets CTA + authority wording and
+        // never sees the renderer's titles (ADR 0058 §2 blast-radius bound).
+        presentation: { primaryCta: presentation.primaryCta, authority: presentation.authority },
       })
       const slug = projection.canonicalSlug
-      files.push({ path: `install/${slug}/index.html`, content: renderSafeInstall(projection) })
+      files.push({
+        path: `install/${slug}/index.html`,
+        content: renderSafeInstall(projection, presentation.sectionTitles),
+      })
       files.push({ path: `install/${slug}/index.json`, content: renderSafeInstallContract(projection) })
       discovery.push({ canonicalName: projection.canonicalName, canonicalSlug: slug })
       resources.push({

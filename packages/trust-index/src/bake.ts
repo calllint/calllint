@@ -23,6 +23,11 @@ import { emitAllCohorts } from "./emitCohort.js"
 import { parseSnapshot, type RegistrySnapshot } from "./snapshot.js"
 import { parseClaimStore, EMPTY_CLAIM_STORE, type ClaimStore } from "./claim.js"
 import { parseEvidenceSnapshot, type EvidenceSnapshot } from "./evidenceSnapshot.js"
+import {
+  resolvePresentation,
+  DEFAULT_PRESENTATION,
+  type ResolvedPresentation,
+} from "./safe-install/resolvePresentation.js"
 
 const here = dirname(fileURLToPath(import.meta.url))
 
@@ -65,6 +70,49 @@ export function loadEvidenceSnapshotIfPresent(path = EVIDENCE_SNAPSHOT_PATH): Ev
   if (!existsSync(path)) return null
   return parseEvidenceSnapshot(readFileSync(path, "utf8"))
 }
+/**
+ * The presentation content document (Workstream P PR P-2; ADR 0058 §2).
+ *
+ * Built from path SEGMENTS on purpose. The lock's import-boundary check greps every
+ * `packages/**` source for an import-shaped line naming the config plane, and §2's rule
+ * is that configuration is a PARAMETER, never an import — so the plane is named here as
+ * data, in the ONE place already licensed to touch the filesystem, and the resolved copy
+ * travels inward as an argument. Nothing under `packages/*` can reach it on its own.
+ *
+ * Path: repo-root/apps/web/content/safe-install/presentation.v1.json (four levels up
+ * from packages/trust-index/src, same as DEFAULT_OUT below).
+ */
+export const PRESENTATION_DOC_PATH = resolve(
+  here,
+  "..",
+  "..",
+  "..",
+  "apps",
+  "web",
+  "content",
+  "safe-install",
+  "presentation.v1.json",
+)
+
+/**
+ * Load + resolve the presentation document if present. FAILS OPEN, per ADR 0058 §5
+ * INV-P3: an absent file, unreadable bytes, or unparseable JSON all resolve to the
+ * shipped code defaults, so the bake still emits a complete page rather than a blank
+ * button. A malformed document is a LOUD failure elsewhere — `validatePresentationContent`
+ * runs in `audit:presentation:lock:gate` and fails CI with a precise message — so the
+ * silence here is the last-resort floor, not the only check.
+ */
+export function loadPresentationIfPresent(path = PRESENTATION_DOC_PATH): ResolvedPresentation {
+  if (!existsSync(path)) return DEFAULT_PRESENTATION
+  let parsed: unknown
+  try {
+    parsed = JSON.parse(readFileSync(path, "utf8"))
+  } catch {
+    return DEFAULT_PRESENTATION
+  }
+  return resolvePresentation(parsed)
+}
+
 /**
  * Committed output root: apps/web/public/trust (repo-root/apps/web/public/trust).
  * From packages/trust-index/src that is four levels up. This is the directory
@@ -123,12 +171,14 @@ function main(): void {
   const snapshot = loadSnapshotIfPresent()
   const claims = loadClaimStoreIfPresent()
   const evidence = loadEvidenceSnapshotIfPresent()
+  const presentation = loadPresentationIfPresent()
   const { files, installFiles, baked, incomplete } = emitAllCohorts(
     snapshot,
     claims,
     evidence,
     [],
     engineVersion(),
+    presentation,
   )
 
   writeServedTree(outDir, publicRoot, files, installFiles)

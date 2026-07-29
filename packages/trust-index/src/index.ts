@@ -157,8 +157,10 @@ export {
   ADOPTION_AUTHORITIES,
   OBSERVED_CONSEQUENCE,
   ABSENCE_CONSEQUENCE,
+  DEFAULT_AUTHORITY_COPY,
   selectDecisionAuthorities,
   type AdoptionAuthority,
+  type AuthorityCopy,
   type DecisionAuthorityFact,
   type DecisionAuthoritySelection,
 } from "./selectDecisionAuthorities.js"
@@ -179,6 +181,7 @@ export {
   safeInstallProjection,
   type SafeInstallProjection,
   type SafeInstallProjectionInput,
+  type ProjectionPresentation,
   type Installability,
   type HumanDispositionProjection,
 } from "./safeInstallProjection.js"
@@ -197,7 +200,12 @@ export {
   type ProbeSubject,
 } from "./presentationAudit.js"
 // Phase 2.4 — Human Install renderer + discovery manifest + Safe-install emit (ADR 0056).
-export { renderSafeInstall, renderSafeInstallContract } from "./renderSafeInstall.js"
+export {
+  renderSafeInstall,
+  renderSafeInstallContract,
+  SECTION_TITLES,
+  type SectionTitles,
+} from "./renderSafeInstall.js"
 export {
   renderDiscoveryManifest,
   DISCOVERY_SCHEMA,
@@ -293,3 +301,13 @@ export {
   type SemanticPreimageResult,
   type SemanticContractDigestResult,
 } from "./safe-install/presentationDigest.js"
+// Workstream P Batch 2 — the resolver P-1 deferred (new15 §6.2 PR P-2; ADR 0058
+// §2/§5). Fails open per slot to the shipped code defaults, so an absent, partial,
+// or rejected document still renders a complete page.
+export {
+  resolvePresentation,
+  DEFAULT_PRESENTATION,
+  WIRED_SECTION_TITLES,
+  UNWIRED_SECTION_TITLES,
+  type ResolvedPresentation,
+} from "./safe-install/resolvePresentation.js"
