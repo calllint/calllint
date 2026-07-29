@@ -1,8 +1,8 @@
 {
   "schema": "calllint.presentation-plane-audit.v0",
-  "$comment": "Workstream P presentation-plane reality audit (ADR 0058 §1/§5), re-baselined by PR P-2. reachability[] is MEASURED by mutation/containment probe over the shipped projection, not declared: a row whose declaredPlane disagrees with its measuredPlane fails. The VERDICT_PUBLIC_LABEL and AGENT_GUIDANCE.steps rows are negative controls — they MUST measure as decision-plane, otherwise the probe cannot detect reachability and every other row is meaningless. planeStages replaces P-0's blanket greenfield assertion: creating apps/web/content is P-2's WORK, so the expectation is now per-plane and bidirectional (content must be present, styles must still be absent until P-4) — strictly stronger, since deleting the content plane now fails too. Regenerate with `pnpm audit:presentation:write`; enforce with `pnpm audit:presentation:gate`.",
+  "$comment": "Workstream P presentation-plane reality audit (ADR 0058 §1/§5), re-baselined by PR P-4. reachability[] is MEASURED by mutation/containment probe over the shipped projection, not declared: a row whose declaredPlane disagrees with its measuredPlane fails. The VERDICT_PUBLIC_LABEL and AGENT_GUIDANCE.steps rows are negative controls — they MUST measure as decision-plane, otherwise the probe cannot detect reachability and every other row is meaningless. planeStages replaces P-0's blanket greenfield assertion: creating each plane is a specific PR's WORK, so the expectation is per-plane and bidirectional (content present since P-2, styles present since P-4) — strictly stronger, since deleting either plane now fails too. servedStylesheets was widened by P-4 from an install-only COUNT to the exact SET over every served trust+install page: the old walk could not see the two Trust pages that were already styled before this workstream, so it reported 0 while two served pages carried CSS. Regenerate with `pnpm audit:presentation:write`; enforce with `pnpm audit:presentation:gate`.",
   "workstream": "P",
-  "pr": "P-2",
+  "pr": "P-4",
   "status": "PASSED",
   "planeStages": [
     {
@@ -15,17 +15,25 @@
     },
     {
       "dir": "apps/web/styles",
-      "exists": false,
-      "expected": "absent",
+      "exists": true,
+      "expected": "present",
       "expectedSince": "P-4",
-      "why": "design tokens are not lifted until PR P-4",
+      "why": "the design token plane lifted by PR P-4",
       "ok": true
     }
   ],
   "servedStylesheets": {
-    "pagesScanned": 19,
-    "pagesWithStylesheet": 0,
-    "$comment": "pagesWithStylesheet must be 0 until PR P-4b, the only Workstream P PR permitted to change served bytes (ADR 0058 §4)."
+    "pagesScanned": 59,
+    "pagesWithStylesheet": [
+      "apps/web/public/trust/app-created.html",
+      "apps/web/public/trust/lookup.html"
+    ],
+    "installPagesWithStylesheet": 0,
+    "preExistingStyledPages": [
+      "apps/web/public/trust/app-created.html",
+      "apps/web/public/trust/lookup.html"
+    ],
+    "$comment": "pagesWithStylesheet must equal preExistingStyledPages EXACTLY, and installPagesWithStylesheet must be 0, until PR P-4b — the only Workstream P PR permitted to change served bytes (ADR 0058 §4). The two listed Trust pages predate this workstream (caede1b, #188) and reference the marketing /styles.css. PR P-4 adds apps/web/styles/tokens.css, which is NOT served: it sits outside apps/web/public/, and the deploy step publishes public/ only — so this measure is what proves the token plane stayed off the pages."
   },
   "inventory": [
     {

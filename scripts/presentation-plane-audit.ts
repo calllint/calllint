@@ -60,15 +60,40 @@ const COPY_SOURCES = [
  *
  *   • `apps/web/content` must now be PRESENT. Deleting it would fail, so the gate now
  *     also protects the plane it used to forbid.
- *   • `apps/web/styles` must still be ABSENT. Creating it early fails, exactly as before.
+ *   • `apps/web/styles` must now be PRESENT too, as of PR P-4 (same flip, same reason:
+ *     P-4 is the batch that creates the token plane, so "absent" would make the batch
+ *     doing the work the batch failing the gate).
  *
  * Each entry names the PR that changes its expectation, so the next flip is a one-line
  * edit with its justification already written down rather than a rediscovered argument.
+ *
+ * Note what the styles flip does NOT relax: `apps/web/styles/` is not served, so the
+ * served-bytes floor below is what keeps PR P-4's CSS off the pages. The two measures
+ * are independent on purpose — presence of the plane and reference from a page are
+ * different facts, and P-4 changes exactly one of them.
  */
 const TARGET_DIRS = [
   { dir: "apps/web/content", expect: "present", since: "P-2", why: "the copy catalog lifted by PR P-2" },
-  { dir: "apps/web/styles", expect: "absent", since: "P-4", why: "design tokens are not lifted until PR P-4" },
+  { dir: "apps/web/styles", expect: "present", since: "P-4", why: "the design token plane lifted by PR P-4" },
 ] as const
+
+/**
+ * The served pages that ALREADY carried a stylesheet before Workstream P began — the
+ * two Trust-surface pages emitted by `renderLookup.ts` and `renderAppCreated.ts`, both
+ * of which reference the marketing `/styles.css` and predate this workstream entirely
+ * (`caede1b`, PR #188).
+ *
+ * They are named here rather than tolerated by a count, because a count cannot tell the
+ * difference between "the two pages that were always styled" and "two pages that became
+ * styled". PR P-4 widened this measure from an install-only walk to every served
+ * trust+install page precisely because the install-only version could not see these two
+ * at all: it would have reported 0 while two served pages carried CSS, and a third one
+ * appearing would have gone unnoticed.
+ */
+const PRE_EXISTING_STYLED_PAGES: readonly string[] = [
+  "apps/web/public/trust/app-created.html",
+  "apps/web/public/trust/lookup.html",
+]
 
 /**
  * Count human-facing sentence literals in a source file. The heuristic is
@@ -104,24 +129,53 @@ function countCopyLiterals(source: string): { count: number; samples: string[] }
   return { count: all.length, samples: all.slice(0, 3) }
 }
 
-/** Does any served install page reference a stylesheet? (the P-4b precondition) */
-function servedStylesheetRefs(): { pagesScanned: number; pagesWithStylesheet: number } {
-  const root = path.join(repoRoot, "apps", "web", "public", "install")
-  if (!fs.existsSync(root)) return { pagesScanned: 0, pagesWithStylesheet: 0 }
+/**
+ * WHICH served pages reference a stylesheet? (the P-4b precondition, ADR 0058 §4)
+ *
+ * Widened by PR P-4 from a count over `apps/web/public/install` to the exact SET over
+ * every served trust+install page. Two reasons, both measured rather than assumed:
+ *
+ *   1. The install-only walk had a blind spot it could not report. Two served TRUST
+ *      pages already carry `/styles.css`, and the old walk never looked at them — so
+ *      "pagesWithStylesheet: 0" was true of the directory it scanned and false of the
+ *      served tree. A stylesheet added to a third trust page would not have moved it.
+ *   2. A count answers "how many", which is the wrong question. The floor is about
+ *      IDENTITY: exactly these two pages, the ones that were already styled before the
+ *      workstream started. Recording the paths makes a substitution visible — one page
+ *      losing CSS while another gains it leaves any count unchanged.
+ *
+ * Returns `index.html` files (the install/trust page shape) plus any top-level `*.html`
+ * under those roots, so a hand-authored page like `trust/lookup.html` is in scope.
+ */
+function servedStylesheetRefs(): {
+  pagesScanned: number
+  pagesWithStylesheet: readonly string[]
+  installPagesWithStylesheet: number
+} {
   const pages: string[] = []
   const walk = (dir: string): void => {
+    if (!fs.existsSync(dir)) return
     for (const e of fs.readdirSync(dir, { withFileTypes: true }).sort((a, b) => a.name.localeCompare(b.name))) {
       const p = path.join(dir, e.name)
       if (e.isDirectory()) walk(p)
-      else if (e.name === "index.html") pages.push(p)
+      else if (e.name.endsWith(".html")) pages.push(p)
     }
   }
-  walk(root)
-  const withCss = pages.filter((p) => {
-    const html = fs.readFileSync(p, "utf8")
-    return /rel="stylesheet"/.test(html) || /<style[\s>]/.test(html)
-  })
-  return { pagesScanned: pages.length, pagesWithStylesheet: withCss.length }
+  for (const root of ["install", "trust"]) walk(path.join(repoRoot, "apps", "web", "public", root))
+
+  const withCss = pages
+    .filter((p) => {
+      const html = fs.readFileSync(p, "utf8")
+      return /rel="stylesheet"/.test(html) || /<style[\s>]/.test(html)
+    })
+    .map((p) => path.relative(repoRoot, p).split(path.sep).join("/"))
+    .sort()
+
+  return {
+    pagesScanned: pages.length,
+    pagesWithStylesheet: withCss,
+    installPagesWithStylesheet: withCss.filter((p) => p.startsWith("apps/web/public/install/")).length,
+  }
 }
 
 /** Build the artifact. No clock, no RNG — byte-stable across runs. */
@@ -164,27 +218,42 @@ function build(): { json: string; pass: boolean; failures: readonly string[] } {
           : `${p.dir} exists — expected absent until ${p.expectedSince} (${p.why})`,
       ),
     // The served-bytes floor (ADR 0058 §4): only PR P-4b may put CSS on a served page.
-    // Measured here rather than merely recorded, so lifting copy can never quietly
-    // become a visual change.
-    ...(css.pagesWithStylesheet > 0
+    // Measured here rather than merely recorded, so lifting copy or tokens can never
+    // quietly become a visual change.
+    //
+    // Two failures, not one, because they are different defects. A NEW styled page is a
+    // served-byte change; an install page carrying CSS is specifically the P-4b boundary
+    // being crossed early. Reporting them separately means the message names the actual
+    // problem instead of a count that moved.
+    ...(css.installPagesWithStylesheet > 0
       ? [
-          `${css.pagesWithStylesheet} served install page(s) reference a stylesheet — only PR P-4b may change served bytes (ADR 0058 §4)`,
+          `${css.installPagesWithStylesheet} served install page(s) reference a stylesheet — only PR P-4b may put CSS on an install page (ADR 0058 §4)`,
         ]
       : []),
+    ...css.pagesWithStylesheet
+      .filter((p) => !PRE_EXISTING_STYLED_PAGES.includes(p))
+      .map(
+        (p) =>
+          `${p} references a stylesheet but is not one of the ${PRE_EXISTING_STYLED_PAGES.length} pages already styled before Workstream P — only PR P-4b may change served bytes (ADR 0058 §4)`,
+      ),
+    ...PRE_EXISTING_STYLED_PAGES.filter((p) => !css.pagesWithStylesheet.includes(p)).map(
+      (p) => `${p} no longer references a stylesheet — served bytes moved without PR P-4b (ADR 0058 §4)`,
+    ),
   ]
 
   const report = {
     schema: "calllint.presentation-plane-audit.v0",
     $comment:
-      "Workstream P presentation-plane reality audit (ADR 0058 §1/§5), re-baselined by PR P-2. reachability[] is MEASURED by mutation/containment probe over the shipped projection, not declared: a row whose declaredPlane disagrees with its measuredPlane fails. The VERDICT_PUBLIC_LABEL and AGENT_GUIDANCE.steps rows are negative controls — they MUST measure as decision-plane, otherwise the probe cannot detect reachability and every other row is meaningless. planeStages replaces P-0's blanket greenfield assertion: creating apps/web/content is P-2's WORK, so the expectation is now per-plane and bidirectional (content must be present, styles must still be absent until P-4) — strictly stronger, since deleting the content plane now fails too. Regenerate with `pnpm audit:presentation:write`; enforce with `pnpm audit:presentation:gate`.",
+      "Workstream P presentation-plane reality audit (ADR 0058 §1/§5), re-baselined by PR P-4. reachability[] is MEASURED by mutation/containment probe over the shipped projection, not declared: a row whose declaredPlane disagrees with its measuredPlane fails. The VERDICT_PUBLIC_LABEL and AGENT_GUIDANCE.steps rows are negative controls — they MUST measure as decision-plane, otherwise the probe cannot detect reachability and every other row is meaningless. planeStages replaces P-0's blanket greenfield assertion: creating each plane is a specific PR's WORK, so the expectation is per-plane and bidirectional (content present since P-2, styles present since P-4) — strictly stronger, since deleting either plane now fails too. servedStylesheets was widened by P-4 from an install-only COUNT to the exact SET over every served trust+install page: the old walk could not see the two Trust pages that were already styled before this workstream, so it reported 0 while two served pages carried CSS. Regenerate with `pnpm audit:presentation:write`; enforce with `pnpm audit:presentation:gate`.",
     workstream: "P",
-    pr: "P-2",
+    pr: "P-4",
     status: failures.length === 0 ? "PASSED" : "FAILED",
     planeStages,
     servedStylesheets: {
       ...css,
+      preExistingStyledPages: PRE_EXISTING_STYLED_PAGES,
       $comment:
-        "pagesWithStylesheet must be 0 until PR P-4b, the only Workstream P PR permitted to change served bytes (ADR 0058 §4).",
+        "pagesWithStylesheet must equal preExistingStyledPages EXACTLY, and installPagesWithStylesheet must be 0, until PR P-4b — the only Workstream P PR permitted to change served bytes (ADR 0058 §4). The two listed Trust pages predate this workstream (caede1b, #188) and reference the marketing /styles.css. PR P-4 adds apps/web/styles/tokens.css, which is NOT served: it sits outside apps/web/public/, and the deploy step publishes public/ only — so this measure is what proves the token plane stayed off the pages.",
     },
     inventory,
     inventoryTotal: inventory.reduce((n, i) => n + i.copyLiterals, 0),

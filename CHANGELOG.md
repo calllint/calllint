@@ -12,6 +12,33 @@ onward. While pre-1.0, minor versions may include breaking changes.
 
 ### Added
 
+- **Workstream P PR P-4 — the L0 design-token plane (ADR 0058 §1/§4).** Populates the one
+  configuration level that was declared but empty: **L0**, defined as "not reachable into any
+  digest, and appears only in CSS." Adds `apps/web/styles/tokens.css` — the 11 shipped `:root`
+  tokens mirrored byte-for-byte from the served `apps/web/public/styles.css`, plus real rules
+  for the nine `install-*` classes the Safe-install renderer actually emits, written only in
+  terms of those mirrored `var(--…)` tokens — and records `tokens.tokensVersion` /
+  `tokens.stylesheetHref` in the committed presentation catalog. **Assets-only: no served byte
+  moves.** The plane is unpublishable by construction, not merely unreferenced — it sits outside
+  `apps/web/public/`, which is the only directory the site deploy publishes — and the renderer
+  is untouched, so `stylesheetHref` is *recorded, not emitted* (referencing it is P-4b's job,
+  the only Workstream-P PR permitted to change a served byte). Three new measurements make the
+  level verifiable rather than asserted: `presentation-lock.json` gains a `tokenPlane` block
+  whose every value is **derived from the files** — `l0DigestWasEmpty` (the before/after: the
+  L0 digest moved off the digest of `{}`, while L1/L2 held), a per-token **drift pin** against
+  the served sheet, selector coverage computed from `install-*` classes parsed out of the 19
+  committed served pages, and a hygiene scan that refuses `@import`, `url(`, `!important`, any
+  `http`, and — because a stylesheet cannot decide a verdict but can hide one — any
+  `display:none` / `visibility:hidden` / `content:` inside an `install-*` rule. The plane audit
+  flips `apps/web/styles` from `absent` to `present` and widens its served-stylesheet check
+  from an install-only count to an exact **set** over all 59 served trust + install pages,
+  pinned to the two pre-existing styled trust pages — strictly stronger, and it closes the
+  blind spot that a stylesheet quietly added to a third trust page would have passed. No
+  schema change, no new MCP tool, no new scanner or writer, and no verdict movement: 24 new
+  tests pin INV-P2 behavior isolation (under any `tokens` block, every digest, the verdict, the
+  installability and the rendered HTML stay byte-identical, measured against a never-mutated
+  control twin).
+
 - **Phase 2.6 Sentinel — `calllint_guard_external_tools` (ADR 0055 §3).** Adds an
   always-loaded, honest-presence MCP tool to the shipped `calllint-mcp` server (now 7 pure
   delegators, still one server, ADR 0025). It **states what CallLint does** — a static,

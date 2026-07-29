@@ -1,0 +1,149 @@
+/* ---------------------------------------------------------------------------
+ * Workstream P PR P-4 — the L0 (design token) configuration plane.
+ * new15 §4.2 · ADR 0058 §1 (levels are MEASURED digest reachability) / §2
+ * (configuration is a parameter, never an import) / §4 (byte-identity default).
+ *
+ * L0 is the level that is "not reachable into any digest, and appears only in
+ * CSS." Before this file, the L0 plane was provably empty: `l0Digest` equalled
+ * sha256(`{}`). Populating it is this batch's entire subject.
+ *
+ * THIS FILE IS NOT SERVED. `apps/web/styles/` sits OUTSIDE `apps/web/public/`,
+ * and the deploy step publishes `public` only — so no byte here can reach a
+ * visitor. That is structural, not a promise: ADR 0058 §4 reserves every
+ * served-byte change for PR P-4b, which is the PR that adds the <link> to the
+ * install page. Until then the install pages reference no stylesheet at all,
+ * and the plane audit fails if any of them starts to.
+ *
+ * NOTHING HERE CAN DECIDE ANYTHING. There is no CSS construct that can reach a
+ * verdict, an authority fact, a digest, or a contract; the strongest thing a
+ * stylesheet can do is hide a section, so the rules below never set `display:
+ * none`, `visibility`, `content`, or a zero size on a decision group. A
+ * configuration plane that can make the disposition invisible would be a
+ * safety regression dressed as a theme.
+ *
+ * TWO PARTS:
+ *   1. `:root` — the 11 shipped token names, at values BYTE-IDENTICAL to
+ *      `apps/web/public/styles.css`. §4 forbids editing that served file, so
+ *      the duplication is unavoidable this batch; a test pins every shared
+ *      name so the duplication is MEASURED rather than latent. If the
+ *      marketing palette moves, the trust-index suite fails until this file
+ *      follows — which is the point: P-4b must not inherit a stale palette.
+ *   2. Install-surface rules, written ONLY in terms of those tokens. No new
+ *      colour literals, no `@import`, no `url()`, no `!important`, no remote
+ *      font. The selector set is not invented: it is exactly the nine classes
+ *      `renderSafeInstall` emits, and a test parses the rendered HTML to prove
+ *      the coverage rather than trusting this comment.
+ * ------------------------------------------------------------------------- */
+
+/* --- Part 1: the token mirror (drift-pinned against public/styles.css) ---- */
+
+:root {
+  --bg: #f7f8fa;
+  --surface: #ffffff;
+  --ink: #1a1d21;
+  --muted: #5c6570;
+  --line: #e3e6ea;
+  --brand: #c41e3a;
+  --brand-soft: rgba(196, 30, 58, 0.12);
+  --brand-glow: rgba(196, 30, 58, 0.35);
+  --radius: 14px;
+  --font: "Segoe UI", system-ui, -apple-system, sans-serif;
+  --mono: ui-monospace, "Cascadia Code", "SF Mono", Consolas, monospace;
+}
+
+/* --- Part 2: the install surface ----------------------------------------- */
+
+/* Identity — the subject being adopted, first in the shipped order. */
+.install-identity {
+  padding: 0 0 12px;
+  border-bottom: 1px solid var(--line);
+}
+
+/* Disposition — the fused verdict headline + primary action. The shipped
+ * markup carries both display groups in this one section, which is why the
+ * layout manifest refuses any order that separates them. */
+.install-disposition {
+  margin: 20px 0;
+  padding: 18px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+}
+
+/* The verdict headline. Emphasis comes from weight and size, never from a
+ * colour that could imply a verdict this page did not reach. */
+.install-headline {
+  margin: 0;
+  font-size: 1.15rem;
+  color: var(--ink);
+}
+
+/* The primary action — a documentation anchor, never a command. */
+.install-cta {
+  display: inline-block;
+  margin-top: 12px;
+  padding: 10px 18px;
+  color: var(--surface);
+  background: var(--brand);
+  border-radius: var(--radius);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.install-cta:hover {
+  box-shadow: 0 0 0 4px var(--brand-glow);
+}
+
+/* One-sentence consequence. */
+.install-consequence {
+  margin: 16px 0;
+  color: var(--ink);
+}
+
+/* The ≤3 authority facts. Each row is an observation about evidence; the
+ * styling stays neutral so nothing reads as a denial or a guarantee. */
+.install-authority {
+  margin: 20px 0;
+  padding: 16px;
+  background: var(--brand-soft);
+  border-radius: var(--radius);
+}
+
+.install-authority code {
+  font-family: var(--mono);
+  font-size: 0.9em;
+}
+
+/* Secondary links — the full Trust Page, then the correction route. */
+.install-secondary {
+  margin: 20px 0;
+  color: var(--muted);
+  font-size: 0.95rem;
+}
+
+/* Quarantined publisher text (INV-2.4-05). Deliberately de-emphasised and
+ * visually separated from every decision group: it carries no decision
+ * meaning, and the styling must not lend it any. */
+.install-publisher {
+  margin: 28px 0 0;
+  padding: 14px 16px;
+  color: var(--muted);
+  background: var(--bg);
+  border-left: 3px solid var(--line);
+  font-size: 0.95rem;
+}
+
+/* Provenance — both binding digests and the boundary framing. */
+.install-provenance {
+  margin: 24px 0 0;
+  padding-top: 16px;
+  border-top: 1px solid var(--line);
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.install-provenance code {
+  font-family: var(--mono);
+  font-size: 0.85em;
+  overflow-wrap: anywhere;
+}
