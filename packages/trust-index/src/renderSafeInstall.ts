@@ -19,6 +19,11 @@
 
 import type { SafeInstallProjection, Installability } from "./safeInstallProjection.js"
 import { CORRECTION_URL, SITE_ORIGIN } from "./renderPage.js"
+import {
+  DEFAULT_LAYOUT,
+  type AboveFoldSectionId,
+  type ResolvedLayout,
+} from "./safe-install/layoutStructure.js"
 
 /**
  * The renderer's FIXED section titles (PR P-2 lifts the wording; the POSITION and
@@ -94,8 +99,20 @@ function trustPageUrl(p: SafeInstallProjection): string {
 }
 
 /** Group 4 — the ≤3 authority facts, each an observation (never "impossible"). */
-function authorityFactsBlock(p: SafeInstallProjection, titles: SectionTitles): string {
+function authorityFactsBlock(
+  p: SafeInstallProjection,
+  titles: SectionTitles,
+  maxFacts: number,
+): string {
+  // The cap is applied HERE, at render time, and nowhere else. `authorityDecisionFacts`
+  // has already been selected from evidence and sealed into the contract's
+  // `authorityDelta`, so a configured cap can only reduce what is DISPLAYED — it cannot
+  // reach the selection, the ≤3 evidence cap, the `completeness === "complete"`
+  // precondition, or any digest (ADR 0058 §1 reachability; INV-P1). That containment is
+  // structural: the seal happened upstream in `safeInstallProjection`, before this file
+  // is ever called with a layout.
   const items = p.authorityDecisionFacts
+    .slice(0, Math.max(1, maxFacts))
     .map(
       (f) =>
         `        <li data-observed="${f.observed}"><code>${esc(f.authority)}</code>` +
@@ -108,6 +125,29 @@ function authorityFactsBlock(p: SafeInstallProjection, titles: SectionTitles): s
 ${items}
       </ul>
     </section>`
+}
+
+/**
+ * Group 6 — the two secondary links, capped at render time.
+ *
+ * The links are ordered by how much they serve the reader's decision: the full Trust
+ * Page first (the evidence behind this page), then the correction route. A cap of 1
+ * therefore drops the correction link, and a cap of 0 emits the section with an empty
+ * paragraph rather than deleting the section — configuration narrows what is shown; it
+ * does not delete a structural element (ADR 0058 §3).
+ *
+ * The shipped cap of 2 reproduces the committed bytes exactly, including the `·`
+ * separator and the two-space continuation indent.
+ */
+function secondaryLinksBlock(p: SafeInstallProjection, maxLinks: number): string {
+  const links = [
+    `<a href="${esc(trustPageUrl(p))}">View the full Trust Page</a>`,
+    `<a href="${esc(CORRECTION_URL)}">Report a correction</a>`,
+  ].slice(0, Math.max(0, maxLinks))
+  const body = links.length === 0 ? "" : `\n          ${links.join(" ·\n          ")}\n        `
+  return `      <section class="install-secondary" aria-label="More">
+        <p>${body}</p>
+      </section>`
 }
 
 /**
@@ -134,10 +174,39 @@ function publisherBlock(p: SafeInstallProjection, titles: SectionTitles): string
 export function renderSafeInstall(
   p: SafeInstallProjection,
   titles: SectionTitles = SECTION_TITLES,
+  layout: ResolvedLayout = DEFAULT_LAYOUT,
 ): string {
   const c = p.agentContract
   const version = p.subject.version
   const identityVersion = version ? ` <code>${esc(version)}</code>` : ""
+
+  // One emitter per above-the-fold section, keyed by the section id the structural model
+  // declares. Each emitter owns its own leading indentation, so assembling them in the
+  // shipped order reproduces the previously-committed bytes EXACTLY — that byte identity
+  // is the whole point of restructuring here rather than in PR P-4b, and it is asserted
+  // by the reproducibility gate, not assumed.
+  //
+  // `install-disposition` emits TWO display groups (the verdict headline and the primary
+  // CTA) because the shipped markup fuses them. That is why the structural model refuses
+  // any order separating them: there is no third emitter to produce.
+  const sections: Record<AboveFoldSectionId, () => string> = {
+    "install-identity": () => `      <section class="install-identity" aria-label="Identity">
+        <h1>${esc(p.displayName)}${identityVersion}</h1>
+        <p><code>${esc(p.canonicalName)}</code></p>
+      </section>`,
+    "install-disposition": () => `      <section class="install-disposition" aria-label="Disposition">
+        <p class="install-headline"><strong>${esc(p.humanDisposition.headline)}</strong></p>
+        <p><a class="install-cta" data-primary-action="${p.installability}"
+              href="${esc(CTA_DOC_HREF[p.installability])}">${esc(p.humanDisposition.primaryCta)}</a></p>
+      </section>`,
+    "install-consequence": () => `      <section class="install-consequence" aria-label="Consequence">
+        <p>${esc(p.consequenceSummary)}</p>
+      </section>`,
+    "install-authority": () => authorityFactsBlock(p, titles, layout.maxAuthorityFacts),
+    "install-secondary": () => secondaryLinksBlock(p, layout.maxSecondaryLinks),
+  }
+  const aboveFold = layout.sectionOrder.map((id) => sections[id]()).join("\n")
+
   return `<!doctype html>
 <html lang="en">
   <head>
@@ -150,25 +219,7 @@ export function renderSafeInstall(
   </head>
   <body>
     <main>
-      <section class="install-identity" aria-label="Identity">
-        <h1>${esc(p.displayName)}${identityVersion}</h1>
-        <p><code>${esc(p.canonicalName)}</code></p>
-      </section>
-      <section class="install-disposition" aria-label="Disposition">
-        <p class="install-headline"><strong>${esc(p.humanDisposition.headline)}</strong></p>
-        <p><a class="install-cta" data-primary-action="${p.installability}"
-              href="${esc(CTA_DOC_HREF[p.installability])}">${esc(p.humanDisposition.primaryCta)}</a></p>
-      </section>
-      <section class="install-consequence" aria-label="Consequence">
-        <p>${esc(p.consequenceSummary)}</p>
-      </section>
-${authorityFactsBlock(p, titles)}
-      <section class="install-secondary" aria-label="More">
-        <p>
-          <a href="${esc(trustPageUrl(p))}">View the full Trust Page</a> ·
-          <a href="${esc(CORRECTION_URL)}">Report a correction</a>
-        </p>
-      </section>
+${aboveFold}
 ${publisherBlock(p, titles)}
       <section class="install-provenance" aria-label="Provenance">
         <h2>${escText(titles.provenance)}</h2>

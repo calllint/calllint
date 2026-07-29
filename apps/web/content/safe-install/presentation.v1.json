@@ -50,5 +50,17 @@
     "authorityFacts": "What it can do",
     "provenance": "Provenance",
     "publisherBlock": "Publisher-provided description — not used for CallLint's safety decision."
+  },
+  "layout": {
+    "groupOrder": [
+      "identity",
+      "disposition",
+      "primary_action",
+      "consequence",
+      "authority_facts",
+      "secondary_links"
+    ],
+    "maxAuthorityFacts": 3,
+    "maxSecondaryLinks": 2
   }
 }

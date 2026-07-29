@@ -14,6 +14,7 @@ import path from "node:path"
 import Ajv from "ajv"
 import { VERDICT_PUBLIC_LABEL } from "@calllint/types"
 import {
+  DEFAULT_GROUP_ORDER,
   DISPLAY_GROUPS,
   EMPTY_PRESENTATION_CONTENT,
   LEVEL_BY_SECTION,
@@ -85,7 +86,11 @@ const FULL_DOC = {
     headline: "This tool needs your approval.",
     approvalQuestion: "Add this tool with the authority listed above?",
   },
-  layout: { groupOrder: [...DISPLAY_GROUPS], maxAuthorityFacts: 3, maxSecondaryLinks: 2 },
+  // `DEFAULT_GROUP_ORDER`, not `[...DISPLAY_GROUPS]`: the vocabulary array is new14 §7's
+  // documentation numbering (CTA fifth), while the renderer emits the CTA third, fused
+  // into `install-disposition`. PR P-3's structural rule rejects the §7 numbering as
+  // `fused-run-split` — correctly, since no served page has ever had that shape.
+  layout: { groupOrder: [...DEFAULT_GROUP_ORDER], maxAuthorityFacts: 3, maxSecondaryLinks: 2 },
   tokens: { tokensVersion: "safe-install-1", stylesheetHref: "/styles/safe-install/tokens.css" },
   overrides: {
     resources: {
@@ -232,11 +237,43 @@ describe("presentation-content validator — falsifications", () => {
     expect(validateSchema(doc)).toBe(false) // uniqueItems
   })
 
-  it("accepts a REORDERING of all six groups — config selects among shipped orderings", () => {
-    const reordered = ["identity", "disposition", "consequence", "primary_action", "authority_facts", "secondary_links"]
+  it("accepts a REORDERING the renderer can emit — config selects among shipped orderings", () => {
+    // Moving the whole `install-consequence` section above the fused disposition section
+    // is a real reordering (the sequence is not the shipped one) AND emittable: the fused
+    // `disposition`+`primary_action` run stays adjacent and in order, so there is a
+    // section permutation that produces it.
+    const reordered = ["identity", "consequence", "disposition", "primary_action", "authority_facts", "secondary_links"]
     const doc = { ...EMPTY_PRESENTATION_CONTENT, layout: { groupOrder: reordered } }
     expect(validatePresentationContent(doc, ctx)).toEqual([])
     expect(validateSchema(doc)).toBe(true)
+    // Anti-vacuity: this must be a DIFFERENT order from the shipped one, or "accepts a
+    // reordering" is really just "accepts the default".
+    expect(reordered).not.toEqual([...DEFAULT_GROUP_ORDER])
+  })
+
+  it("rejects an ordering that SPLITS the fused disposition + primary_action section", () => {
+    // Schema-perfect: six distinct groups from the enum, so `minItems`/`uniqueItems`/
+    // `items` all pass. Only the structural rule can catch it, and it must — the renderer
+    // emits both groups from ONE <section>, so there is no markup that separates them. A
+    // validator that accepted this would let a document claim a layout the renderer
+    // silently ignores: a config key that validates and then does nothing (ADR 0058 §3).
+    const split = ["identity", "disposition", "consequence", "primary_action", "authority_facts", "secondary_links"]
+    const doc = { ...EMPTY_PRESENTATION_CONTENT, layout: { groupOrder: split } }
+    expect(validateSchema(doc)).toBe(true) // shape alone cannot catch this
+    expect(rulesFor(doc)).toContain("layout-unsupported")
+  })
+
+  it("rejects new14 §7's own documentation numbering — the DOM never had that shape", () => {
+    // The trap this rule exists for, and the one it actually caught in-PR: §7 numbers the
+    // primary action fifth, so `[...DISPLAY_GROUPS]` reads like the shipped order. It is
+    // not one; the served CTA is third, fused into `install-disposition`. Pinning it here
+    // keeps the vocabulary/order distinction from being rediscovered by a failing build.
+    const doc = { ...EMPTY_PRESENTATION_CONTENT, layout: { groupOrder: [...DISPLAY_GROUPS] } }
+    expect(validateSchema(doc)).toBe(true)
+    expect(rulesFor(doc)).toContain("layout-unsupported")
+    // The emitted order, by contrast, is accepted — the two arrays are genuinely different.
+    expect(rulesFor({ ...EMPTY_PRESENTATION_CONTENT, layout: { groupOrder: [...DEFAULT_GROUP_ORDER] } })).toEqual([])
+    expect([...DISPLAY_GROUPS]).not.toEqual([...DEFAULT_GROUP_ORDER])
   })
 
   it("rejects a REVIEW page whose headline impersonates the SAFE label", () => {

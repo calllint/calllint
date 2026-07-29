@@ -2,7 +2,7 @@
   "schema": "calllint.presentation-lock.v0",
   "$comment": "Workstream P digest seams (ADR 0058 §5; new15 §7), re-baselined by PR P-2 now that the content plane exists. RECORDS presentationDigest + semanticContractDigest; it does NOT re-point what install plans bind — plans still bind contractDigest, and moving that binding is a P-7 decision requiring an ADR amendment (doing it here would smuggle a behavior change into a batch declared as having none). `semanticContractDigest` is defined by DELETION from the sealed contract, so a new contract field is bound by default and omission is the reviewable exception. The gate is noProseLeaves: machine tokens carry no whitespace, prose always does, so an empty result proves no copy is bound — for any input, not just those measured. Regenerate with `pnpm audit:presentation:lock:write`; enforce with `pnpm audit:presentation:lock:gate`.",
   "workstream": "P",
-  "pr": "P-2",
+  "pr": "P-3",
   "status": "PASSED",
   "contentPlane": {
     "root": "apps/web/content/safe-install",
@@ -56,16 +56,75 @@
     "unwiredSectionTitles": [
       "boundary"
     ],
+    "rejectedSlots": [],
     "validationErrors": [],
-    "presentationDigest": "sha256:bdaa6bb37f271989cace765f362ff713f086d172d0637a4d99c0f1aadcc436c7",
+    "presentationDigest": "sha256:1bf3f0e84e5e85216f79bd9f10e2ffcd7eb2145348d5cbc32528c97219f4e4e4",
     "l0Digest": "sha256:44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
-    "l1Digest": "sha256:d7b4fee81b161d74f49d3773df13dc1d2ae67f0669ef50f35c7f84dfef21bee3",
+    "l1Digest": "sha256:ccdd4d4ad8152a39721269c36ad23e2069555a59dd5d13c8bab597616d7a0597",
     "l2Digest": "sha256:e060be6edee1ea584c9b44f71338d9c2a24d9e84726912341ae363124ecad82b",
     "sections": [
       "decisionCopy",
       "authorityCopy",
-      "sectionTitles"
+      "sectionTitles",
+      "layout"
     ]
+  },
+  "layoutStructure": {
+    "$comment": "PR P-3. The section model the renderer actually emits, recorded so the supported-ordering claim is auditable rather than asserted. supportedOrderings is DERIVED by running checkLayoutSupport over every permutation of the six groups — not hand-counted — which is why the number is a measurement: the served markup FUSES disposition + primary_action inside one <section>, so only orderings keeping that run adjacent and in order can be emitted. NOTE displayGroupsIsEmittable=false: new14 §7's documentation numbering puts the primary action fifth, but the DOM emits it third; the vocabulary array is therefore a SET, not a layout, and three P-1 fixtures had used it as one. If a later PR (P-4b) splits the fused section, ABOVE_FOLD_SECTION_IDS changes and these numbers move on their own.",
+    "aboveFoldSectionIds": [
+      "install-identity",
+      "install-disposition",
+      "install-consequence",
+      "install-authority",
+      "install-secondary"
+    ],
+    "sectionGroups": {
+      "install-identity": [
+        "identity"
+      ],
+      "install-disposition": [
+        "disposition",
+        "primary_action"
+      ],
+      "install-consequence": [
+        "consequence"
+      ],
+      "install-authority": [
+        "authority_facts"
+      ],
+      "install-secondary": [
+        "secondary_links"
+      ]
+    },
+    "fusedGroupRuns": [
+      [
+        "disposition",
+        "primary_action"
+      ]
+    ],
+    "emittedGroupOrder": [
+      "identity",
+      "disposition",
+      "primary_action",
+      "consequence",
+      "authority_facts",
+      "secondary_links"
+    ],
+    "displayGroupVocabulary": [
+      "identity",
+      "disposition",
+      "consequence",
+      "authority_facts",
+      "primary_action",
+      "secondary_links"
+    ],
+    "displayGroupsIsEmittable": false,
+    "totalOrderings": 720,
+    "supportedOrderings": 120,
+    "shippedCaps": {
+      "maxAuthorityFacts": 3,
+      "maxSecondaryLinks": 2
+    }
   },
   "semanticContract": {
     "$comment": "Read from the COMMITTED served sidecars (apps/web/public/install/**), so these are the bytes users actually receive — not a re-derivation that could agree with itself while disagreeing with production.",

@@ -311,3 +311,22 @@ export {
   UNWIRED_SECTION_TITLES,
   type ResolvedPresentation,
 } from "./safe-install/resolvePresentation.js"
+// Workstream P Batch 3 — the LAYOUT STRUCTURE model (new15 §6.2 PR P-3; ADR 0058
+// §3). The section/group model the renderer actually emits, and the predicate that
+// decides which group orderings it can express. Exported so the lock script and the
+// tests measure the same model the renderer uses, rather than describing it twice.
+export {
+  ABOVE_FOLD_SECTION_IDS,
+  SECTION_GROUPS,
+  DEFAULT_GROUP_ORDER,
+  FUSED_GROUP_RUNS,
+  SHIPPED_LAYOUT_CAPS,
+  DEFAULT_LAYOUT,
+  checkLayoutSupport,
+  isStructurallySupported,
+  sectionOrderFor,
+  clampCap,
+  type AboveFoldSectionId,
+  type LayoutSupportResult,
+  type ResolvedLayout,
+} from "./safe-install/layoutStructure.js"
