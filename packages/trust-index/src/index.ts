@@ -330,3 +330,20 @@ export {
   type LayoutSupportResult,
   type ResolvedLayout,
 } from "./safe-install/layoutStructure.js"
+// Workstream P Batch 4 — the L0 TOKEN PLANE measurement (new15 §4.2 PR P-4; ADR
+// 0058 §1/§4). Pure parsing + comparison, no filesystem: the lock script and the
+// tests read the files and hand the bytes here, so both measure the token plane
+// through one implementation instead of describing it twice.
+export {
+  parseRootTokens,
+  parseClassSelectors,
+  parseStyledClasses,
+  countCssRules,
+  forbiddenCssConstructs,
+  suppressionViolations,
+  tokenDrift,
+  emittedInstallClasses,
+  FORBIDDEN_CSS_CONSTRUCTS,
+  SUPPRESSION_PROPERTIES,
+  type CssToken,
+} from "./safe-install/tokenPlane.js"

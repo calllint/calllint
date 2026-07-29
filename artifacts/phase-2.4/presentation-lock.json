@@ -1,8 +1,8 @@
 {
   "schema": "calllint.presentation-lock.v0",
-  "$comment": "Workstream P digest seams (ADR 0058 §5; new15 §7), re-baselined by PR P-2 now that the content plane exists. RECORDS presentationDigest + semanticContractDigest; it does NOT re-point what install plans bind — plans still bind contractDigest, and moving that binding is a P-7 decision requiring an ADR amendment (doing it here would smuggle a behavior change into a batch declared as having none). `semanticContractDigest` is defined by DELETION from the sealed contract, so a new contract field is bound by default and omission is the reviewable exception. The gate is noProseLeaves: machine tokens carry no whitespace, prose always does, so an empty result proves no copy is bound — for any input, not just those measured. Regenerate with `pnpm audit:presentation:lock:write`; enforce with `pnpm audit:presentation:lock:gate`.",
+  "$comment": "Workstream P digest seams (ADR 0058 §5; new15 §7), re-baselined by PR P-4, which populates the L0 token plane (see tokenPlane). RECORDS presentationDigest + semanticContractDigest; it does NOT re-point what install plans bind — plans still bind contractDigest, and moving that binding is a P-7 decision requiring an ADR amendment (doing it here would smuggle a behavior change into a batch declared as having none). `semanticContractDigest` is defined by DELETION from the sealed contract, so a new contract field is bound by default and omission is the reviewable exception. The gate is noProseLeaves: machine tokens carry no whitespace, prose always does, so an empty result proves no copy is bound — for any input, not just those measured. Regenerate with `pnpm audit:presentation:lock:write`; enforce with `pnpm audit:presentation:lock:gate`.",
   "workstream": "P",
-  "pr": "P-3",
+  "pr": "P-4",
   "status": "PASSED",
   "contentPlane": {
     "root": "apps/web/content/safe-install",
@@ -58,15 +58,16 @@
     ],
     "rejectedSlots": [],
     "validationErrors": [],
-    "presentationDigest": "sha256:1bf3f0e84e5e85216f79bd9f10e2ffcd7eb2145348d5cbc32528c97219f4e4e4",
-    "l0Digest": "sha256:44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+    "presentationDigest": "sha256:05f5b22271c112ad04410714f5063b0a4124e639bdf4f0b5306f57932e1ade53",
+    "l0Digest": "sha256:b784a4ad444f281d1d230b9eb52c60b07d7875ca9e35db585dc77d70f0e794bb",
     "l1Digest": "sha256:ccdd4d4ad8152a39721269c36ad23e2069555a59dd5d13c8bab597616d7a0597",
     "l2Digest": "sha256:e060be6edee1ea584c9b44f71338d9c2a24d9e84726912341ae363124ecad82b",
     "sections": [
       "decisionCopy",
       "authorityCopy",
       "sectionTitles",
-      "layout"
+      "layout",
+      "tokens"
     ]
   },
   "layoutStructure": {
@@ -125,6 +126,100 @@
       "maxAuthorityFacts": 3,
       "maxSecondaryLinks": 2
     }
+  },
+  "tokenPlane": {
+    "$comment": "PR P-4 — the L0 level, POPULATED. l0DigestWasEmpty is the before/after measurement that makes this batch verifiable: l0Digest held sha256({}) from P-1 through P-3, so a declared-but-empty level was indistinguishable from one that does not work. sharedTokenNames/tokensDrifted are the DRIFT PIN: ADR 0058 §4 forbids editing the served apps/web/public/styles.css, so the palette must be duplicated into the plane, and a per-name byte comparison is what keeps that duplication measured rather than latent — a marketing-CSS tweak now fails here until the plane follows, which is the coupling PR P-4b needs so it cannot inherit a stale palette. selectorsCovered/selectorsUncovered are computed against install-* classes parsed from the COMMITTED served HTML, so coverage tracks the renderer instead of a hardcoded list. forbiddenConstructs and suppressionViolations must both stay empty: a stylesheet cannot compute a verdict, but it can hide one, and an invisible disposition is a safety regression wearing a theme. NOTE the plane is NOT served — apps/web/styles/ sits outside apps/web/public/ and deploy-web.yml publishes public/ only, so P-4 is unpublishable by construction, not merely unreferenced; stylesheetHref is RECORDED here and emitted by P-4b.",
+    "plane": "apps/web/styles/tokens.css",
+    "planePresent": true,
+    "servedMirrorSource": "apps/web/public/styles.css",
+    "served": false,
+    "tokensBlockPresent": true,
+    "tokensVersion": "p4-1",
+    "stylesheetHref": "/styles/tokens.css",
+    "emptyObjectDigest": "sha256:44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+    "l0DigestWasEmpty": false,
+    "tokenNames": [
+      "--bg",
+      "--brand",
+      "--brand-glow",
+      "--brand-soft",
+      "--font",
+      "--ink",
+      "--line",
+      "--mono",
+      "--muted",
+      "--radius",
+      "--surface"
+    ],
+    "rootBlockCount": 1,
+    "duplicateTokenNames": [],
+    "servedTokenNames": [
+      "--bg",
+      "--brand",
+      "--brand-glow",
+      "--brand-soft",
+      "--font",
+      "--ink",
+      "--line",
+      "--mono",
+      "--muted",
+      "--radius",
+      "--surface"
+    ],
+    "sharedTokenNames": [
+      "--bg",
+      "--brand",
+      "--brand-glow",
+      "--brand-soft",
+      "--font",
+      "--ink",
+      "--line",
+      "--mono",
+      "--muted",
+      "--radius",
+      "--surface"
+    ],
+    "sharedTokensDrifted": [],
+    "servedTokensNotMirrored": [],
+    "cssRuleCount": 13,
+    "installPagesMeasured": 19,
+    "emittedInstallClasses": [
+      "install-authority",
+      "install-consequence",
+      "install-cta",
+      "install-disposition",
+      "install-headline",
+      "install-identity",
+      "install-provenance",
+      "install-publisher",
+      "install-secondary"
+    ],
+    "selectorsStyled": [
+      "install-authority",
+      "install-consequence",
+      "install-cta",
+      "install-disposition",
+      "install-headline",
+      "install-identity",
+      "install-provenance",
+      "install-publisher",
+      "install-secondary"
+    ],
+    "selectorsCovered": [
+      "install-authority",
+      "install-consequence",
+      "install-cta",
+      "install-disposition",
+      "install-headline",
+      "install-identity",
+      "install-provenance",
+      "install-publisher",
+      "install-secondary"
+    ],
+    "selectorsUncovered": [],
+    "selectorsDeclaredButNeverEmitted": [],
+    "forbiddenConstructs": [],
+    "suppressionViolations": []
   },
   "semanticContract": {
     "$comment": "Read from the COMMITTED served sidecars (apps/web/public/install/**), so these are the bytes users actually receive — not a re-derivation that could agree with itself while disagreeing with production.",

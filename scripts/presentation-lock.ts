@@ -23,6 +23,10 @@
  *      leaves may survive into the semantic preimage. Add a prose field to the
  *      contract and this fails until somebody classifies it, which is what keeps
  *      the omission set from rotting quietly.
+ *   3c. TOKEN PLANE — the L0 level, populated by PR P-4. Whether `l0Digest` moved off
+ *      the digest of `{}`, whether the mirrored palette still matches the served sheet
+ *      per token name, whether the plane covers the `install-*` classes the renderer
+ *      really emits, and whether it contains anything a token plane may never contain.
  *   4. IMPORT BOUNDARY — no packages/*\/src/** file imports apps/web/content|styles
  *      (ADR 0058 §2). Added BEFORE those directories exist, because the cheapest
  *      time to forbid something is before anyone has written the line.
@@ -58,14 +62,23 @@ import {
   SEMANTIC_PREIMAGE_OMISSIONS,
   SHIPPED_LAYOUT_CAPS,
   UNWIRED_SECTION_TITLES,
+  FORBIDDEN_CSS_CONSTRUCTS,
+  countCssRules,
   emitSafeInstall,
+  emittedInstallClasses,
   emptyPresentationDigest,
+  forbiddenCssConstructs,
   isStructurallySupported,
+  parseClassSelectors,
   parseEvidenceSnapshot,
+  parseStyledClasses,
+  parseRootTokens,
   parseSnapshot,
   presentationDigest,
   resolvePresentation,
   semanticContractDigest,
+  suppressionViolations,
+  tokenDrift,
   validatePresentationContent,
   type PresentationContentV1,
   type ResolvedPresentation,
@@ -78,6 +91,21 @@ const outPath = path.join(repoRoot, "artifacts", "phase-2.4", "presentation-lock
 const CONTENT_ROOT = "apps/web/content/safe-install"
 /** The merged document P-2 writes; the lock validates and digests it. */
 const CONTENT_DOC = `${CONTENT_ROOT}/presentation.v1.json`
+
+/** The L0 token plane created by PR P-4. NOT served — outside apps/web/public/. */
+const TOKEN_PLANE_CSS = "apps/web/styles/tokens.css"
+/** The served marketing sheet whose `:root` block P-4 mirrors (never edits). */
+const SERVED_MARKETING_CSS = "apps/web/public/styles.css"
+/**
+ * sha256 of the canonical empty JSON object — the value `l0Digest` held from P-1
+ * until this batch, when the L0 plane carried nothing.
+ *
+ * Recorded as a NAMED constant so the "the plane is now populated" claim is a
+ * comparison against a known prior state rather than an eyeballed hex string. If
+ * a future PR empties the plane, `l0DigestWasEmpty` flips back to true and the
+ * lock says so instead of silently recording a different digest.
+ */
+const EMPTY_OBJECT_DIGEST = "sha256:44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a"
 
 /** Source trees that may never import the config plane (ADR 0058 §2). */
 const IMPORT_BOUNDARY_ROOTS = ["packages"] as const
@@ -154,6 +182,32 @@ function servedContracts(): { slug: string; contract: unknown }[] {
       else if (e.name === "index.json") {
         const slug = path.relative(root, path.dirname(p)).split(path.sep).join("/")
         out.push({ slug, contract: JSON.parse(fs.readFileSync(p, "utf8")) })
+      }
+    }
+  }
+  walk(root)
+  return out
+}
+
+/**
+ * Every committed served install PAGE, in stable path order.
+ *
+ * Separate from `servedContracts()` on purpose: that reads the JSON sidecar, this
+ * reads the HTML. The token plane's coverage claim is about markup, so it has to be
+ * measured against the bytes a browser receives rather than against a class list
+ * this repo could restate incorrectly in two places.
+ */
+function servedInstallPages(): { slug: string; html: string }[] {
+  const root = path.join(repoRoot, "apps", "web", "public", "install")
+  if (!fs.existsSync(root)) return []
+  const out: { slug: string; html: string }[] = []
+  const walk = (dir: string): void => {
+    for (const e of fs.readdirSync(dir, { withFileTypes: true }).sort((a, b) => a.name.localeCompare(b.name))) {
+      const p = path.join(dir, e.name)
+      if (e.isDirectory()) walk(p)
+      else if (e.name === "index.html") {
+        const slug = path.relative(root, path.dirname(p)).split(path.sep).join("/")
+        out.push({ slug, html: fs.readFileSync(p, "utf8") })
       }
     }
   }
@@ -356,6 +410,149 @@ function build(): { json: string; pass: boolean; failures: readonly string[] } {
   const layoutWiring = probeEmittedLayout(probeResolved)
   if (layoutWiring !== null) failures.push(layoutWiring)
 
+  // 3c — the L0 TOKEN PLANE (PR P-4). Every value below is DERIVED from the two CSS
+  // files, so a later PR that changes either one moves this block on its own instead
+  // of leaving a stale number that reads as agreement.
+  //
+  // Four questions, each of which fails rather than merely records:
+  //
+  //   • Is the plane actually populated? `l0Digest` was sha256({}) from P-1 through
+  //     P-3, so "the level exists" was indistinguishable from "the level does not
+  //     work". Comparing against the named prior digest is what makes populating it
+  //     a measurement.
+  //   • Does the mirrored palette match the served one? ADR 0058 §4 forbids editing
+  //     the served sheet, so duplication is forced; a per-name comparison is what
+  //     keeps it measured rather than latent. `sharedNames` must be non-empty, or a
+  //     file that mirrored nothing would satisfy "no drift" vacuously.
+  //   • Does the plane cover the surface it claims to style? The `install-*` classes
+  //     are read from REAL emitted HTML, not a hardcoded list, so the coverage check
+  //     tracks the renderer.
+  //   • Can the plane do anything it must not? Forbidden constructs (@import, url(,
+  //     !important, http) and suppression properties inside install rules. A
+  //     stylesheet cannot decide a verdict, but it can hide one, and a hidden
+  //     disposition is a safety regression wearing a theme.
+  const tokensBlock = (doc as { tokens?: { tokensVersion?: string; stylesheetHref?: string } }).tokens
+  const tokenCssPath = path.join(repoRoot, TOKEN_PLANE_CSS)
+  const tokenPlanePresent = fs.existsSync(tokenCssPath)
+  const tokenCss = tokenPlanePresent ? fs.readFileSync(tokenCssPath, "utf8") : ""
+  const servedCssPath = path.join(repoRoot, SERVED_MARKETING_CSS)
+  const servedCss = fs.existsSync(servedCssPath) ? fs.readFileSync(servedCssPath, "utf8") : ""
+
+  const planeTokens = parseRootTokens(tokenCss)
+  const servedTokens = parseRootTokens(servedCss)
+  const drift = tokenDrift(planeTokens.tokens, servedTokens.tokens)
+  // TWO selector measures, deliberately. `planeStyled` is the classes that directly
+  // receive declarations — the coverage scope, because a descendant-only mention like
+  // `.install-authority code` styles the `code`, not the class, and counting it would let
+  // the rule that really styles the class be deleted with the coverage number unmoved.
+  // `planeVocabulary` is every class mentioned anywhere, which is the right scope for the
+  // opposite question: does the plane declare a class the renderer never emits.
+  const planeStyled = parseStyledClasses(tokenCss)
+  const planeVocabulary = parseClassSelectors(tokenCss)
+  const forbiddenConstructs = forbiddenCssConstructs(tokenCss)
+  const suppressions = suppressionViolations(tokenCss)
+  const l0DigestWasEmpty = digests.l0Digest === EMPTY_OBJECT_DIGEST
+
+  // The install classes the renderer really emits, taken from the committed served
+  // pages — the same bytes users receive, so the coverage claim is about production
+  // markup rather than a re-derivation that could agree with itself.
+  const emittedClasses = new Set<string>()
+  for (const { html } of servedInstallPages()) {
+    for (const cls of emittedInstallClasses(html)) emittedClasses.add(cls)
+  }
+  const uncoveredClasses = [...emittedClasses].filter((c) => !planeStyled.includes(c)).sort()
+  const deadClasses = planeVocabulary.filter((c) => c.startsWith("install-") && !emittedClasses.has(c)).sort()
+
+  if (!tokenPlanePresent) {
+    failures.push(
+      `${TOKEN_PLANE_CSS} is missing — PR P-4 populates the L0 plane, and the plane audit expects it present`,
+    )
+  }
+  if (tokensBlock === undefined) {
+    failures.push(
+      `${CONTENT_DOC}: no \`tokens\` block — PR P-4 populates the L0 plane, so l0Digest would stay sha256({}) and ` +
+        `the level would remain indistinguishable from one that does not work`,
+    )
+  }
+  if (tokenPlanePresent && tokensBlock !== undefined && l0DigestWasEmpty) {
+    failures.push(
+      `l0Digest is still ${EMPTY_OBJECT_DIGEST} (the digest of {}) while a tokens block is committed — ` +
+        `the L0 section is not reaching presentationDigest`,
+    )
+  }
+  // The declared href must name the file that exists. P-4 records it without emitting
+  // it, so nothing checks the path at runtime this batch — which is exactly why it has
+  // to be checked here: a stale href would surface for the first time in P-4b, as a 404
+  // on a served page.
+  if (tokensBlock?.stylesheetHref !== undefined) {
+    const declared = tokensBlock.stylesheetHref.replace(/^\//, "")
+    const declaredExists = fs.existsSync(path.join(repoRoot, "apps", "web", declared))
+    if (!declaredExists) {
+      failures.push(
+        `${CONTENT_DOC}: tokens.stylesheetHref "${tokensBlock.stylesheetHref}" resolves to apps/web/${declared}, ` +
+          `which does not exist — PR P-4b would emit a link to a missing sheet`,
+      )
+    }
+  }
+  if (tokenPlanePresent && drift.sharedNames.length === 0) {
+    failures.push(
+      `${TOKEN_PLANE_CSS} shares no token name with ${SERVED_MARKETING_CSS} — the drift pin would hold vacuously`,
+    )
+  }
+  // The pin compares SHARED names only, so a name dropped from the mirror leaves
+  // `sharedTokensDrifted` empty — "no drift" would read as "the palette agrees" while the
+  // plane silently covered less of it. Require the mirror to be TOTAL over the served
+  // palette, so shrinking it is a failure rather than a quieter pass.
+  for (const name of servedTokens.tokens.map((t) => t.name)) {
+    if (!planeTokens.tokens.some((t) => t.name === name)) {
+      failures.push(
+        `${name} is declared in ${SERVED_MARKETING_CSS} but missing from ${TOKEN_PLANE_CSS} — the mirror covers ` +
+          `only part of the served palette, and a shared-names-only comparison cannot see the gap`,
+      )
+    }
+  }
+  for (const d of drift.drifted) {
+    failures.push(
+      `${d.name} is "${d.plane}" in ${TOKEN_PLANE_CSS} but "${d.served}" in ${SERVED_MARKETING_CSS} — ` +
+        `the palette has split in two, and PR P-4b would ship the stale half (ADR 0058 §4 forbids editing the served sheet, ` +
+        `so the mirror must be updated here)`,
+    )
+  }
+  if (planeTokens.rootBlockCount > 1) {
+    failures.push(
+      `${TOKEN_PLANE_CSS} declares ${planeTokens.rootBlockCount} :root blocks — token values would resolve by ` +
+        `last-wins and could not be read off the file`,
+    )
+  }
+  for (const dup of planeTokens.duplicateNames) {
+    failures.push(`${TOKEN_PLANE_CSS} declares ${dup} more than once in :root`)
+  }
+  if (tokenPlanePresent && emittedClasses.size === 0) {
+    failures.push("no install-* classes found in the served pages — the token coverage check would measure nothing")
+  }
+  for (const cls of uncoveredClasses) {
+    failures.push(
+      `.${cls} is emitted by the install renderer but has no rule in ${TOKEN_PLANE_CSS} — ` +
+        `the token plane does not cover the surface it claims to style`,
+    )
+  }
+  for (const cls of deadClasses) {
+    failures.push(
+      `.${cls} has a rule in ${TOKEN_PLANE_CSS} but is emitted by no served install page — ` +
+        `dead configuration, and it makes the coverage count above read better than the surface it describes`,
+    )
+  }
+  for (const c of forbiddenConstructs) {
+    const why = FORBIDDEN_CSS_CONSTRUCTS.find((f) => f.pattern === c)?.why ?? ""
+    failures.push(`${TOKEN_PLANE_CSS} contains "${c}" — ${why}`)
+  }
+  for (const s of suppressions) {
+    failures.push(
+      `${TOKEN_PLANE_CSS} suppresses a decision group: ${s} — configuration may style the install surface, ` +
+        `never hide it (an invisible disposition is a safety regression, not a theme)`,
+    )
+  }
+
   // 4 — the import boundary (ADR 0058 §2).
   const violations = importBoundaryViolations()
   for (const v of violations) {
@@ -365,9 +562,9 @@ function build(): { json: string; pass: boolean; failures: readonly string[] } {
   const report = {
     schema: "calllint.presentation-lock.v0",
     $comment:
-      "Workstream P digest seams (ADR 0058 §5; new15 §7), re-baselined by PR P-2 now that the content plane exists. RECORDS presentationDigest + semanticContractDigest; it does NOT re-point what install plans bind — plans still bind contractDigest, and moving that binding is a P-7 decision requiring an ADR amendment (doing it here would smuggle a behavior change into a batch declared as having none). `semanticContractDigest` is defined by DELETION from the sealed contract, so a new contract field is bound by default and omission is the reviewable exception. The gate is noProseLeaves: machine tokens carry no whitespace, prose always does, so an empty result proves no copy is bound — for any input, not just those measured. Regenerate with `pnpm audit:presentation:lock:write`; enforce with `pnpm audit:presentation:lock:gate`.",
+      "Workstream P digest seams (ADR 0058 §5; new15 §7), re-baselined by PR P-4, which populates the L0 token plane (see tokenPlane). RECORDS presentationDigest + semanticContractDigest; it does NOT re-point what install plans bind — plans still bind contractDigest, and moving that binding is a P-7 decision requiring an ADR amendment (doing it here would smuggle a behavior change into a batch declared as having none). `semanticContractDigest` is defined by DELETION from the sealed contract, so a new contract field is bound by default and omission is the reviewable exception. The gate is noProseLeaves: machine tokens carry no whitespace, prose always does, so an empty result proves no copy is bound — for any input, not just those measured. Regenerate with `pnpm audit:presentation:lock:write`; enforce with `pnpm audit:presentation:lock:gate`.",
     workstream: "P",
-    pr: "P-3",
+    pr: "P-4",
     status: failures.length === 0 ? "PASSED" : "FAILED",
     contentPlane: {
       root: CONTENT_ROOT,
@@ -398,6 +595,37 @@ function build(): { json: string; pass: boolean; failures: readonly string[] } {
       totalOrderings: permutationCount,
       supportedOrderings: supportedCount,
       shippedCaps: SHIPPED_LAYOUT_CAPS,
+    },
+    tokenPlane: {
+      $comment:
+        "PR P-4 — the L0 level, POPULATED. l0DigestWasEmpty is the before/after measurement that makes this batch verifiable: l0Digest held sha256({}) from P-1 through P-3, so a declared-but-empty level was indistinguishable from one that does not work. sharedTokenNames/tokensDrifted are the DRIFT PIN: ADR 0058 §4 forbids editing the served apps/web/public/styles.css, so the palette must be duplicated into the plane, and a per-name byte comparison is what keeps that duplication measured rather than latent — a marketing-CSS tweak now fails here until the plane follows, which is the coupling PR P-4b needs so it cannot inherit a stale palette. selectorsCovered/selectorsUncovered are computed against install-* classes parsed from the COMMITTED served HTML, so coverage tracks the renderer instead of a hardcoded list. forbiddenConstructs and suppressionViolations must both stay empty: a stylesheet cannot compute a verdict, but it can hide one, and an invisible disposition is a safety regression wearing a theme. NOTE the plane is NOT served — apps/web/styles/ sits outside apps/web/public/ and deploy-web.yml publishes public/ only, so P-4 is unpublishable by construction, not merely unreferenced; stylesheetHref is RECORDED here and emitted by P-4b.",
+      plane: TOKEN_PLANE_CSS,
+      planePresent: tokenPlanePresent,
+      servedMirrorSource: SERVED_MARKETING_CSS,
+      served: false,
+      tokensBlockPresent: tokensBlock !== undefined,
+      tokensVersion: tokensBlock?.tokensVersion ?? null,
+      stylesheetHref: tokensBlock?.stylesheetHref ?? null,
+      emptyObjectDigest: EMPTY_OBJECT_DIGEST,
+      l0DigestWasEmpty,
+      tokenNames: planeTokens.tokens.map((t) => t.name),
+      rootBlockCount: planeTokens.rootBlockCount,
+      duplicateTokenNames: planeTokens.duplicateNames,
+      servedTokenNames: servedTokens.tokens.map((t) => t.name),
+      sharedTokenNames: drift.sharedNames,
+      sharedTokensDrifted: drift.drifted,
+      servedTokensNotMirrored: servedTokens.tokens
+        .map((t) => t.name)
+        .filter((n) => !planeTokens.tokens.some((t) => t.name === n)),
+      cssRuleCount: countCssRules(tokenCss),
+      installPagesMeasured: servedInstallPages().length,
+      emittedInstallClasses: [...emittedClasses].sort(),
+      selectorsStyled: planeStyled,
+      selectorsCovered: [...emittedClasses].filter((c) => planeStyled.includes(c)).sort(),
+      selectorsUncovered: uncoveredClasses,
+      selectorsDeclaredButNeverEmitted: deadClasses,
+      forbiddenConstructs,
+      suppressionViolations: suppressions,
     },
     semanticContract: {
       $comment:
