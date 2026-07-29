@@ -20,6 +20,31 @@
 import type { SafeInstallProjection, Installability } from "./safeInstallProjection.js"
 import { CORRECTION_URL, SITE_ORIGIN } from "./renderPage.js"
 
+/**
+ * The renderer's FIXED section titles (PR P-2 lifts the wording; the POSITION and
+ * the key set stay code — ADR 0058 §3, INV-2.4-05).
+ *
+ * `publisherBlock` is the quarantine label. Its wording is configurable so a locale
+ * can say it naturally, but no configuration can move publisher text out of this
+ * block or into a decision group: the block is emitted from exactly one place below,
+ * after every decision group, and nothing in the document can address its position.
+ *
+ * The schema's fourth slot, `boundary`, is deliberately NOT resolved here. Its emitted
+ * form spans three source-folded lines, so lifting it would require either storing the
+ * renderer's HTML indentation inside the content document (configuration owning layout,
+ * which §3 forbids) or re-folding the text and changing served bytes (which §4 reserves
+ * for PR P-4b). Deferring one slot is cheaper than either. The deferral is DECLARED in
+ * `resolvePresentation.ts` and gated, so a config key can never validate and then do
+ * nothing unnoticed.
+ */
+export const SECTION_TITLES = {
+  authorityFacts: "What it can do",
+  provenance: "Provenance",
+  publisherBlock: "Publisher-provided description — not used for CallLint's safety decision.",
+} as const
+
+export type SectionTitles = Record<keyof typeof SECTION_TITLES, string>
+
 /** Escape the five HTML-significant characters. Deterministic; no DOM. */
 function esc(s: string): string {
   return s
@@ -28,6 +53,26 @@ function esc(s: string): string {
     .replace(/>/g, "&gt;")
     .replace(/"/g, "&quot;")
     .replace(/'/g, "&#39;")
+}
+
+/**
+ * Escape for ELEMENT TEXT CONTENT: `&`, `<`, `>` — the three characters that can end
+ * a text node or start a reference. Quotes are only significant inside an attribute
+ * value, so a text node does not need them escaped.
+ *
+ * Why this exists alongside `esc` rather than reusing it: the section titles below sit
+ * in text position and one of them contains an apostrophe ("CallLint's"). `esc` is the
+ * attribute-grade escape and would render that as `&#39;`, changing bytes the shipped
+ * tree already serves — and ADR 0058 §4 reserves any served-byte change for PR P-4b.
+ * So this is the correct escape for the position, chosen because it is also the one
+ * that leaves the shipped bytes alone; it is never used for an attribute value.
+ *
+ * Escaping is defense in depth, not the only defense: `resolvePresentation` refuses a
+ * configured title containing markup, so a bad value falls back to the shipped default
+ * instead of shipping a page full of entities.
+ */
+function escText(s: string): string {
+  return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
 }
 
 /**
@@ -49,7 +94,7 @@ function trustPageUrl(p: SafeInstallProjection): string {
 }
 
 /** Group 4 — the ≤3 authority facts, each an observation (never "impossible"). */
-function authorityFactsBlock(p: SafeInstallProjection): string {
+function authorityFactsBlock(p: SafeInstallProjection, titles: SectionTitles): string {
   const items = p.authorityDecisionFacts
     .map(
       (f) =>
@@ -58,7 +103,7 @@ function authorityFactsBlock(p: SafeInstallProjection): string {
     )
     .join("\n")
   return `      <section class="install-authority" aria-label="Authority facts">
-      <h2>What it can do</h2>
+      <h2>${escText(titles.authorityFacts)}</h2>
       <ul>
 ${items}
       </ul>
@@ -70,11 +115,11 @@ ${items}
  * the fixed label, escaped. Absent when the publisher supplied no description, so
  * a page with no publisher text is byte-stable. It carries NO decision meaning.
  */
-function publisherBlock(p: SafeInstallProjection): string {
+function publisherBlock(p: SafeInstallProjection, titles: SectionTitles): string {
   const desc = p.subject.publisherDescription
   if (desc === null || desc === undefined || desc === "") return ""
   return `      <section class="install-publisher" aria-label="Publisher description">
-      <h2>Publisher-provided description — not used for CallLint's safety decision.</h2>
+      <h2>${escText(titles.publisherBlock)}</h2>
       <p>${esc(desc)}</p>
     </section>`
 }
@@ -86,7 +131,10 @@ function publisherBlock(p: SafeInstallProjection): string {
  * HTML↔JSON digest-consistency test can verify one fact object), and the boundary
  * framing follow below the fold. No <script>, no inline `on*` handler.
  */
-export function renderSafeInstall(p: SafeInstallProjection): string {
+export function renderSafeInstall(
+  p: SafeInstallProjection,
+  titles: SectionTitles = SECTION_TITLES,
+): string {
   const c = p.agentContract
   const version = p.subject.version
   const identityVersion = version ? ` <code>${esc(version)}</code>` : ""
@@ -114,16 +162,16 @@ export function renderSafeInstall(p: SafeInstallProjection): string {
       <section class="install-consequence" aria-label="Consequence">
         <p>${esc(p.consequenceSummary)}</p>
       </section>
-${authorityFactsBlock(p)}
+${authorityFactsBlock(p, titles)}
       <section class="install-secondary" aria-label="More">
         <p>
           <a href="${esc(trustPageUrl(p))}">View the full Trust Page</a> ·
           <a href="${esc(CORRECTION_URL)}">Report a correction</a>
         </p>
       </section>
-${publisherBlock(p)}
+${publisherBlock(p, titles)}
       <section class="install-provenance" aria-label="Provenance">
-        <h2>Provenance</h2>
+        <h2>${escText(titles.provenance)}</h2>
         <ul>
           <li>Verdict: <strong>${esc(p.publicObservation.publicLabel)}</strong></li>
           <li>Artifact digest: <code>${esc(c.subject.artifactDigest)}</code></li>

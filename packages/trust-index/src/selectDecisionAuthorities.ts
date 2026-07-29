@@ -70,8 +70,13 @@ const AUTHORITY_RANK: Record<AdoptionAuthority, number> = Object.fromEntries(
  * Exported for the Workstream P presentation audit (ADR 0058 §1), which must probe
  * these exact strings to MEASURE that they cannot reach `contractDigest`. The audit
  * reading the real constant — rather than a copy — is what keeps the measurement
- * bound to the shipped bytes. This is L2 security-explanation copy: PR P-2 lifts it
- * into `apps/web/content/safe-install/locales/en-US/authority-copy.v1.json`.
+ * bound to the shipped bytes. This is L2 security-explanation copy, lifted by PR P-2
+ * into the merged presentation document's `authorityCopy.observedPhrases`.
+ *
+ * It stays in code as the DEFAULT, not as dead weight: presentation resolves per slot
+ * and fails open here, so a missing, partial, or rejected document still renders a
+ * complete page (ADR 0058 §5 INV-P3). Configuration supplies wording for a shipped
+ * token; it can never add, rename, or coin one.
  */
 export const OBSERVED_CONSEQUENCE: Record<AdoptionAuthority, string> = {
   financial_action: "Can initiate payments or financial actions.",
@@ -88,7 +93,9 @@ export const OBSERVED_CONSEQUENCE: Record<AdoptionAuthority, string> = {
 
 /**
  * Neutral ABSENCE sentence — an observation, never "impossible" (§6.6; §4.1).
- * Exported for the same audit reason as `OBSERVED_CONSEQUENCE`; also L2.
+ * Exported for the same audit reason as `OBSERVED_CONSEQUENCE`; also L2, and lifted
+ * by PR P-2 into `authorityCopy.absencePhrases`. The validator additionally forbids
+ * denial vocabulary here, so a config edit cannot turn "not observed" into "cannot".
  */
 export const ABSENCE_CONSEQUENCE: Record<AdoptionAuthority, string> = {
   financial_action: "No financial or payment capability was observed.",
@@ -130,13 +137,42 @@ function pageReasonCodes(page: BakedTrustPage): ReasonCode[] {
 }
 
 /**
+ * The L2 wording slice this selector consumes (PR P-2). A PARAMETER, never an
+ * import (ADR 0058 §2): the emit edge reads the document and hands this inward, so
+ * nothing under `packages/*` can reach the config plane on its own.
+ *
+ * Both maps are TOTAL over the shipped authorities because the resolver merges per
+ * slot over the code defaults — so this type cannot express a hole, and the selector
+ * needs no per-lookup fallback that could silently render an empty sentence.
+ */
+export interface AuthorityCopy {
+  readonly observed: Record<AdoptionAuthority, string>
+  readonly absence: Record<AdoptionAuthority, string>
+}
+
+/** The shipped defaults as an `AuthorityCopy` — what an absent document resolves to. */
+export const DEFAULT_AUTHORITY_COPY: AuthorityCopy = {
+  observed: OBSERVED_CONSEQUENCE,
+  absence: ABSENCE_CONSEQUENCE,
+}
+
+/**
  * Select the at-most-three authority facts that matter for this decision.
  *
  * Rules (plan §6.6): highest observed consequence first; at most ONE meaningful
  * absence, and only when the evidence is complete enough to assert it; never
  * more than three facts; absences are observations, never "impossible".
+ *
+ * `copy` is optional L2 wording (PR P-2). Omitting it — which every pre-P-2 caller
+ * does — is byte-identical to passing `DEFAULT_AUTHORITY_COPY`. What it can change is
+ * only the SENTENCE: the selection itself (which authorities, observed vs absence,
+ * their order, the ≤3 cap, the completeness precondition) is derived from evidence and
+ * is unreachable from configuration.
  */
-export function selectDecisionAuthorities(page: BakedTrustPage): DecisionAuthoritySelection {
+export function selectDecisionAuthorities(
+  page: BakedTrustPage,
+  copy: AuthorityCopy = DEFAULT_AUTHORITY_COPY,
+): DecisionAuthoritySelection {
   const codes = pageReasonCodes(page)
   const observed = ADOPTION_AUTHORITIES.filter(
     (a): a is AdoptionAuthority =>
@@ -150,7 +186,7 @@ export function selectDecisionAuthorities(page: BakedTrustPage): DecisionAuthori
 
   const facts: DecisionAuthorityFact[] = observed
     .slice(0, 3)
-    .map((authority) => ({ authority, observed: true, consequence: OBSERVED_CONSEQUENCE[authority] }))
+    .map((authority) => ({ authority, observed: true, consequence: copy.observed[authority] }))
 
   // Fill remaining slots (up to 3 total) with ONE meaningful, evidence-supported absence.
   if (facts.length < 3 && complete) {
@@ -158,7 +194,7 @@ export function selectDecisionAuthorities(page: BakedTrustPage): DecisionAuthori
       (a) => a !== "no_high_authority_observed" && !observed.includes(a),
     )
     if (absence) {
-      facts.push({ authority: absence, observed: false, consequence: ABSENCE_CONSEQUENCE[absence] })
+      facts.push({ authority: absence, observed: false, consequence: copy.absence[absence] })
     }
   }
 
@@ -167,15 +203,15 @@ export function selectDecisionAuthorities(page: BakedTrustPage): DecisionAuthori
     facts.push({
       authority: "no_high_authority_observed",
       observed: false,
-      consequence: OBSERVED_CONSEQUENCE.no_high_authority_observed,
+      consequence: copy.observed.no_high_authority_observed,
     })
   }
 
   const top = observed[0]
   const summary =
     top !== undefined
-      ? OBSERVED_CONSEQUENCE[top]
-      : OBSERVED_CONSEQUENCE.no_high_authority_observed
+      ? copy.observed[top]
+      : copy.observed.no_high_authority_observed
 
   return { facts, consequenceSummary: summary, observedAuthorities: observed }
 }

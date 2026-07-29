@@ -4,13 +4,15 @@
  * ADR 0058 §1/§5).
  *
  * A THIN observer. It measures three things and computes no policy:
- *   1. GREENFIELD — are `apps/web/content/**` and `apps/web/styles/**` really absent,
- *      and do the served pages really carry no stylesheet? (new15 §"reality check")
+ *   1. PLANE STAGES — is each targeted directory at the stage its PR expects, and do the
+ *      served pages still carry no stylesheet? P-0 asserted both planes greenfield; P-2
+ *      creates the content plane, so the expectation is now per-plane and bidirectional
+ *      (see `TARGET_DIRS`) — a stronger rule, not a relaxed one.
  *   2. INVENTORY — every hardcoded copy site on the Safe-install surface, counted
- *      from source, so the lift in PR P-2 has a denominator instead of a vibe.
+ *      from source, so each lift has a denominator instead of a vibe.
  *   3. REACHABILITY — the mutation probe from `presentationAudit.ts`: which copy
  *      values can reach `contractDigest`. This is what makes an ADR 0058 level a
- *      MEASUREMENT rather than an opinion, and it is the gate that will keep
+ *      MEASUREMENT rather than an opinion, and it is the gate that keeps
  *      PR P-2..P-7 from quietly moving an L3 string into a config file.
  *
  * Modes (same contract as `pnpm eval:phase-2.4`):
@@ -30,6 +32,7 @@ import {
   CANONICAL_FIXTURES,
   OBSERVED_CONSEQUENCE,
   PRIMARY_CTA,
+  SECTION_TITLES,
   canonicalProjectionInput,
   runPresentationAudit,
 } from "../packages/trust-index/src/index.js"
@@ -47,15 +50,41 @@ const COPY_SOURCES = [
   "packages/core/src/gateway/continuousProtection.ts",
 ] as const
 
-/** Directories new15 §18.2 targets, asserted greenfield at P-0. */
-const TARGET_DIRS = ["apps/web/content", "apps/web/styles"] as const
+/**
+ * The two directories new15 §18.2 targets, each with the stage it is EXPECTED to be at.
+ *
+ * P-0 asserted both absent. That assertion was correct then and is false now: P-2 creates
+ * the content plane, so a blanket greenfield rule would make the batch that does the work
+ * the batch that fails the gate. The fix is not to relax the rule — it is to make it
+ * per-plane and bidirectional, which is strictly stronger than what P-0 had:
+ *
+ *   • `apps/web/content` must now be PRESENT. Deleting it would fail, so the gate now
+ *     also protects the plane it used to forbid.
+ *   • `apps/web/styles` must still be ABSENT. Creating it early fails, exactly as before.
+ *
+ * Each entry names the PR that changes its expectation, so the next flip is a one-line
+ * edit with its justification already written down rather than a rediscovered argument.
+ */
+const TARGET_DIRS = [
+  { dir: "apps/web/content", expect: "present", since: "P-2", why: "the copy catalog lifted by PR P-2" },
+  { dir: "apps/web/styles", expect: "absent", since: "P-4", why: "design tokens are not lifted until PR P-4" },
+] as const
 
 /**
  * Count human-facing sentence literals in a source file. The heuristic is
  * deliberately narrow and stated rather than clever: a double-quoted literal of at
- * least 12 characters that contains a space and a lowercase letter. That catches
- * prose ("Requires access to configured secrets.") and skips identifiers, reason
- * codes, paths, and enum members — which is exactly the split PR P-2 must lift.
+ * least 12 characters that contains a space and a lowercase letter, and that STARTS
+ * with a letter. That catches prose ("Requires access to configured secrets.") and
+ * skips identifiers, reason codes, paths, and enum members — which is exactly the
+ * split PR P-2 must lift.
+ *
+ * The leading-letter clause earns its place: P-2 added an `escText` helper whose body
+ * is a chain of `.replace(/</g, "&lt;")` calls, and the source fragments BETWEEN those
+ * arguments (`").replace(/</g, "`) satisfied every other clause. Sorted, they landed
+ * ahead of the real prose and pushed it out of the three recorded samples — a committed
+ * report that had stopped illustrating what it counts. Prose does not begin with
+ * punctuation, so requiring a leading letter is a statement about the target, not a
+ * patch aimed at one file.
  *
  * This is an INVENTORY, not a boundary: the boundary is the reachability probe. A
  * count that is slightly off changes a number in a report; it cannot let an L3
@@ -67,6 +96,7 @@ function countCopyLiterals(source: string): { count: number; samples: string[] }
     const v = m[1]
     if (!/ /.test(v)) continue
     if (!/[a-z]/.test(v)) continue
+    if (!/^[A-Za-z]/.test(v)) continue // prose starts with a letter, not punctuation
     if (/^(?:https?:|\.{0,2}\/|[a-z-]+\/)/.test(v)) continue // urls & paths
     found.add(v)
   }
@@ -101,14 +131,22 @@ function build(): { json: string; pass: boolean; failures: readonly string[] } {
     observedConsequence: Object.values(OBSERVED_CONSEQUENCE),
     absenceConsequence: Object.values(ABSENCE_CONSEQUENCE),
     primaryCta: Object.values(PRIMARY_CTA),
+    sectionTitles: Object.values(SECTION_TITLES),
     verdictLabel: Object.values(VERDICT_PUBLIC_LABEL),
     guidanceSteps: [...AGENT_GUIDANCE.steps],
   })
 
-  const greenfield = TARGET_DIRS.map((d) => ({
-    dir: d,
-    exists: fs.existsSync(path.join(repoRoot, d)),
-  }))
+  const planeStages = TARGET_DIRS.map((d) => {
+    const exists = fs.existsSync(path.join(repoRoot, d.dir))
+    return {
+      dir: d.dir,
+      exists,
+      expected: d.expect,
+      expectedSince: d.since,
+      why: d.why,
+      ok: exists === (d.expect === "present"),
+    }
+  })
   const inventory = COPY_SOURCES.map((rel) => {
     const abs = path.join(repoRoot, rel)
     const c = countCopyLiterals(fs.readFileSync(abs, "utf8"))
@@ -118,17 +156,31 @@ function build(): { json: string; pass: boolean; failures: readonly string[] } {
 
   const failures = [
     ...audit.failures,
-    ...greenfield.filter((g) => g.exists).map((g) => `${g.dir} already exists — P-0 expects greenfield`),
+    ...planeStages
+      .filter((p) => !p.ok)
+      .map((p) =>
+        p.expected === "present"
+          ? `${p.dir} is missing — expected present since ${p.expectedSince} (${p.why})`
+          : `${p.dir} exists — expected absent until ${p.expectedSince} (${p.why})`,
+      ),
+    // The served-bytes floor (ADR 0058 §4): only PR P-4b may put CSS on a served page.
+    // Measured here rather than merely recorded, so lifting copy can never quietly
+    // become a visual change.
+    ...(css.pagesWithStylesheet > 0
+      ? [
+          `${css.pagesWithStylesheet} served install page(s) reference a stylesheet — only PR P-4b may change served bytes (ADR 0058 §4)`,
+        ]
+      : []),
   ]
 
   const report = {
     schema: "calllint.presentation-plane-audit.v0",
     $comment:
-      "Workstream P PR P-0 reality audit (ADR 0058 §1/§5). reachability[] is MEASURED by mutation/containment probe over the shipped projection, not declared: a row whose declaredPlane disagrees with its measuredPlane fails. The VERDICT_PUBLIC_LABEL and AGENT_GUIDANCE.steps rows are negative controls — they MUST measure as decision-plane, otherwise the probe cannot detect reachability and every other row is meaningless. Regenerate with `pnpm audit:presentation:write`; enforce with `pnpm audit:presentation:gate`.",
+      "Workstream P presentation-plane reality audit (ADR 0058 §1/§5), re-baselined by PR P-2. reachability[] is MEASURED by mutation/containment probe over the shipped projection, not declared: a row whose declaredPlane disagrees with its measuredPlane fails. The VERDICT_PUBLIC_LABEL and AGENT_GUIDANCE.steps rows are negative controls — they MUST measure as decision-plane, otherwise the probe cannot detect reachability and every other row is meaningless. planeStages replaces P-0's blanket greenfield assertion: creating apps/web/content is P-2's WORK, so the expectation is now per-plane and bidirectional (content must be present, styles must still be absent until P-4) — strictly stronger, since deleting the content plane now fails too. Regenerate with `pnpm audit:presentation:write`; enforce with `pnpm audit:presentation:gate`.",
     workstream: "P",
-    pr: "P-0",
+    pr: "P-2",
     status: failures.length === 0 ? "PASSED" : "FAILED",
-    greenfield,
+    planeStages,
     servedStylesheets: {
       ...css,
       $comment:

@@ -19,6 +19,7 @@ import {
   COPY_SITES,
   OBSERVED_CONSEQUENCE,
   PRIMARY_CTA,
+  SECTION_TITLES,
   canonicalProjectionInput,
   gradePresentationAudit,
   probeCopySite,
@@ -35,6 +36,7 @@ const audit = () =>
     observedConsequence: Object.values(OBSERVED_CONSEQUENCE),
     absenceConsequence: Object.values(ABSENCE_CONSEQUENCE),
     primaryCta: Object.values(PRIMARY_CTA),
+    sectionTitles: Object.values(SECTION_TITLES),
     verdictLabel: Object.values(VERDICT_PUBLIC_LABEL),
     guidanceSteps: [...AGENT_GUIDANCE.steps],
   })

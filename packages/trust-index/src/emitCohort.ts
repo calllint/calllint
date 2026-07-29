@@ -27,6 +27,7 @@ import { renderLookupIndex, renderLookupPage, type LookupSourceEntry } from "./r
 import { buildEvidenceManifest } from "./evidenceManifest.js"
 import { verifiedPublisherForNamespace, EMPTY_CLAIM_STORE, type ClaimStore } from "./claim.js"
 import { emitSafeInstall } from "./emitSafeInstall.js"
+import { DEFAULT_PRESENTATION, type ResolvedPresentation } from "./safe-install/resolvePresentation.js"
 
 /**
  * A candidate resource proposed for the PUBLIC Trust Index beyond the ADR-locked seed
@@ -228,6 +229,11 @@ export function emitAllCohorts(
   // sitemap, lookup) is version-independent, so a caller that omits it still bakes a
   // byte-identical trust tree; only the install contract's `engineVersion` differs.
   engineVersion = "0.0.0",
+  // The RESOLVED presentation copy (PR P-2), read at the bin's edge and handed inward as
+  // a parameter (ADR 0058 §2). It flows ONLY into `installFiles`; the trust tree does not
+  // consume presentation copy yet, so omitting it — as every pre-P-2 caller does — bakes
+  // a byte-identical tree.
+  presentation: ResolvedPresentation = DEFAULT_PRESENTATION,
 ): EmittedCohort {
   const files: EmittedFile[] = []
   const index: IndexEntry[] = []
@@ -304,7 +310,7 @@ export function emitAllCohorts(
   // NOT under `/trust/`, so the bin writes them one level up from the trust tree. This
   // re-bakes the registry pages purely (deterministic) to project them; it never moves a
   // verdict or a page digest — the contract seals a digest OVER already-public facts.
-  const safeInstall = emitSafeInstall(snapshot, evidence, engineVersion)
+  const safeInstall = emitSafeInstall(snapshot, evidence, engineVersion, presentation)
   const installFiles = safeInstall.files
   // canonicalName → its emitted acquisition route (slug + installability). Only resources
   // that actually got an install page appear here, so a lookup/sitemap link can never

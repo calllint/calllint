@@ -44,6 +44,11 @@
  *  19. Claim-funnel state: every served Trust HTML page is either claimed (shows
  *      "Verified Publisher", no funnel) or unclaimed (shows the "claim this page"
  *      App install funnel + the control-not-safety framing) — DX-1, ADR 0047/0048.
+ *  22. The presentation content plane (apps/web/content/**) is governed copy too
+ *      (ADR 0058 §5 INV-P4): lifting wording out of TypeScript must not lift it out
+ *      of the vocabulary gate. Every string leaf is scanned against the stricter
+ *      corpus, must be plain text, and absence wording may never become denial
+ *      wording (ADR 0058 §3).
  *  21. MCP tool descriptions (calllint-mcp) are governed like every other public
  *      string (ADR 0055 §3): the always-loaded Sentinel and every shipped tool
  *      description carry no forbidden overclaim and are never an injected instruction
@@ -528,6 +533,101 @@ console.log("")
       if (m) { fail(`Safe-install PII (email-like) in ${f.rel}: "${m[0]}"`); piiClean = false }
     }
     if (piiClean) ok(`no PII (email-like) across ${installFiles.length} Safe-install file(s)`)
+  }
+}
+
+// 22. The presentation CONTENT PLANE is governed public copy (ADR 0058 §5 INV-P4).
+//   Workstream P moves human wording out of TypeScript and into apps/web/content/**, so
+//   without this check the vocabulary gate would have a hole exactly the size of the
+//   refactor: every phrase the guard forbids in a served page would become editable in a
+//   file the guard never reads. Configuration is where copy is EASIEST to change and
+//   hardest to review, so it gets the STRICTER corpus — trust-page forbidden phrases
+//   (the served-bytes boundary) plus the general overclaim list — applied to string
+//   leaves only, recursively, wherever they sit in the document.
+//
+//   Two additional rules, each guarding a failure this plane specifically enables:
+//     (a) NO MARKUP. Renderers escape text, so a tag could not inject — it would emit
+//         visible entities. Refusing `<`/`>` here keeps that from ever being tested in
+//         production, and matches the resolver's structural floor.
+//     (b) NO DENIAL WORDING in absence copy (ADR 0058 §3). "We did not observe X" and
+//         "X is denied" are different claims; only the first is true. The plane must not
+//         be the place someone quietly upgrades an observation into a verdict.
+{
+  const contentRoot = path.join(repoRoot, "apps/web/content")
+  const walkC = (dir) => {
+    if (!fs.existsSync(dir)) return []
+    return fs.readdirSync(dir, { withFileTypes: true }).flatMap((e) => {
+      const abs = path.join(dir, e.name)
+      if (e.isDirectory()) return walkC(abs)
+      return /\.json$/.test(e.name) ? [abs] : []
+    })
+  }
+  const contentFiles = walkC(contentRoot)
+  if (contentFiles.length === 0) {
+    ok("no presentation content plane present yet (skipped 22)")
+  } else {
+    // Every string leaf, with its JSON pointer — so a violation names the slot to fix,
+    // not just the file. Keys are skipped: they are the schema's vocabulary, not copy.
+    const leaves = (value, at) => {
+      if (typeof value === "string") return [{ at, value }]
+      if (Array.isArray(value)) return value.flatMap((v, i) => leaves(v, `${at}/${i}`))
+      if (value !== null && typeof value === "object") {
+        return Object.entries(value).flatMap(([k, v]) => leaves(v, `${at}/${k}`))
+      }
+      return []
+    }
+    // `schema`/`locale` are machine tokens, not copy; scanning them would only produce
+    // noise (and they are digest-bound identifiers, checked by the schema validator).
+    const MACHINE_POINTERS = new Set(["/schema", "/locale"])
+    // Denial vocabulary forbidden in ABSENCE copy (ADR 0058 §3 — absence is an
+    // observation, never a verdict). Scoped to the absence slots by pointer.
+    const DENIAL_WORDS = [/\bdenied\b/i, /\bimpossible\b/i, /\bcannot\b/i, /\bblocked\b/i, /\bforbidden\b/i]
+    const forbidden = [
+      ...(Array.isArray(facts.trustPageForbiddenPhrases) ? facts.trustPageForbiddenPhrases : []),
+      ...(Array.isArray(facts.forbiddenPhrases) ? facts.forbiddenPhrases : []),
+    ]
+    if (forbidden.length === 0) {
+      fail("project-facts.json missing forbidden-phrase corpora; cannot guard the content plane")
+    }
+    let contentClean = true
+    let leafCount = 0
+    for (const abs of contentFiles) {
+      const rel = path.relative(repoRoot, abs).split(path.sep).join("/")
+      let parsed
+      try {
+        parsed = JSON.parse(fs.readFileSync(abs, "utf8"))
+      } catch (err) {
+        fail(`content plane ${rel} is not parseable JSON: ${err.message}`)
+        contentClean = false
+        continue
+      }
+      for (const { at, value } of leaves(parsed, "")) {
+        if (MACHINE_POINTERS.has(at)) continue
+        leafCount += 1
+        const lc = value.toLowerCase()
+        for (const p of forbidden) {
+          if (lc.includes(p.toLowerCase())) {
+            fail(`content-plane overclaim in ${rel}${at}: "${p}"`)
+            contentClean = false
+          }
+        }
+        if (/[<>]/.test(value)) {
+          fail(`content-plane markup in ${rel}${at}: copy must be plain text (renderers escape it)`)
+          contentClean = false
+        }
+        if (at.includes("absencePhrases")) {
+          for (const re of DENIAL_WORDS) {
+            if (re.test(value)) {
+              fail(`content-plane denial wording in ${rel}${at}: absence is an observation, not a verdict (ADR 0058 §3) — matched ${re}`)
+              contentClean = false
+            }
+          }
+        }
+      }
+    }
+    if (contentClean) {
+      ok(`no forbidden copy across ${leafCount} content-plane string leaf/leaves in ${contentFiles.length} file(s)`)
+    }
   }
 }
 
