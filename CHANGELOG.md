@@ -12,6 +12,54 @@ onward. While pre-1.0, minor versions may include breaking changes.
 
 ### Added
 
+- **Workstream R PR R-1 — the `calllint://` adoption deep link (ADR 0057).** A registered URI
+  scheme turns a page link into a local CallLint invocation, so cold-start adoption no longer
+  requires the visitor to transcribe a command. What it deliberately does **not** do is the
+  whole design: a link may never produce a write. `calllint://adopt/...` builds an argv that is
+  asserted against a `FORBIDDEN_ARGS` set — `--approve` is unreachable from any link path, and
+  `calllint://safe-install/...` is rejected outright — so the deep link can only ever open a
+  preview that a human then approves on a real TTY. **Silent apply stays permanently rejected**
+  (§1); `open` prints the command rather than running it (§5); and the §6 amendment makes the
+  approval prompt reachable through a locally-decided `--apply` that requires both a TTY and a
+  preview port, never a link. The link also cannot choose the contract origin, so a crafted URL
+  cannot re-point CallLint at bytes this repo does not serve. Registration is per-user and never
+  elevated; macOS reports unsupported **with a reason** instead of half-registering. Because
+  `applyPlan` is JSON-patch-only, OS handler registration needed its own bounded writer — a
+  second live writer, which is why it carries an ADR rather than an inline exception.
+
+- **Workstream R PR R-2 — install-capsule first impression + a copy-only assist (ADR 0059).**
+  The Human Install capsule was compressing to a two-line template: the authority-fact cap of 3
+  hid an inventory the engine had already computed, and the honest cold-start path ("copy a
+  pinned `npx … --apply`, paste, type `yes`") sat visually below a CTA that only scrolled. This
+  raises the shipped cap to **5** (configuration may still only narrow it, never raise it),
+  surfaces the contract's sealed `reasonCodes` under the inventory as a read-only projection —
+  it cannot invent a code the contract does not carry — and makes a command card the primary
+  visual path, with `calllint://` a louder but still secondary alternative. Exactly one
+  `data-primary-action` control remains, and it still names its target.
+  §4 replaces Gate 2.4-B's literal "no `<script>` substring" rule with a **whitelist**: exactly
+  `src="/scripts/install-copy.js"`, empty body, `defer`, zero inline `on*` handlers — anything
+  else still fails. The script may read a `data-copy-from` target and write the clipboard; it
+  may not fetch, navigate, eval, or read the contract, and the test asserts those absences over
+  the served bytes rather than trusting the ADR. ADR 0056 §7's *intent* ("JS never decides")
+  holds; only the crude substring proxy for it is gone. Like `tokens.css`, the script is
+  authored outside `public/` and synced in by `sync-assets.mjs`, and the guard **byte-compares
+  the two copies** — a reference is not a file, and every HTML-side measure reads as satisfied
+  while a missing served copy 404s on all 19 pages. Both sides carry a `.gitattributes eol=lf`
+  pin, and `apps/web/public/scripts/**` is registered in `SERVED_SUBTREES`, because a pin no
+  gate reads is itself unguarded. Registering it surfaced that P-4b's own
+  `apps/web/public/styles/**` pin had been unregistered since #244; that row is added here too.
+
+- **Gate 2.4-B CLOSED — the human five-second panel, recorded (new14 §gates; ADR 0053 §4).**
+  Ten `--record` sessions over ten **distinct** install pages, each response byte-bound to the
+  page it was shown via `shownDigest`, 0 stale, 100% recognition on all three questions
+  (target / consequence / action) against a ≥90% floor. The recorder refuses non-TTY stdin, so
+  neither CI nor an agent can manufacture this data; `--validate` never writes. With 2.4-B
+  PASSED, `releaseBoundary.closed` flips to **true** for the first time — Gate 2.4-H's status
+  and the boundary stay separate fields on purpose, and this is the state where that separation
+  stops mattering. Note the freshness binding is load-bearing in both directions: the panel
+  test now branches on measured freshness, so a future page change demotes the gate to
+  `PENDING_HUMAN_PANEL` rather than inheriting recognition the new page never earned.
+
 - **Workstream P PR P-4b — serving the L0 plane (ADR 0058 §1/§4).** P-4 built the token plane
   and proved it unpublishable; this batch **serves** it. `sync-assets.mjs` copies
   `apps/web/styles/tokens.css` to `apps/web/public/styles/tokens.css`, the renderer emits a

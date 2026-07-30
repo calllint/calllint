@@ -164,11 +164,30 @@ function makeContract(
   }
 }
 
+/**
+ * The interactive-apply ports (ADR 0057 §6), defaulting to a human at a terminal.
+ *
+ * `stdinIsTty` and `promptOut` are REQUIRED for interactive `--apply`: without a TTY the
+ * command refuses (a pipe cannot be asked), and without a preview port it refuses (a
+ * keystroke would authorize bytes the human never saw). The default here is the posture
+ * the real CLI has when a person runs it; the tests that pin each refusal override it.
+ */
+type ApprovalPorts = { stdinIsTty?: boolean; promptOut?: (text: string) => void }
+type Extra = { readStdin?: () => string; generatedAt?: string } & ApprovalPorts
+
 /** Inject a contract exactly as the async edge would, via a local file + computeContractFetch. */
 async function contractDeps(
   contract: Record<string, unknown>,
-  extra: { readStdin?: () => string; generatedAt?: string } = {},
-): Promise<{ cwd: string; readStdin: () => string; now: number; generatedAt: string; contract?: ResolvedContract }> {
+  extra: Extra = {},
+): Promise<{
+  cwd: string
+  readStdin: () => string
+  now: number
+  generatedAt: string
+  contract?: ResolvedContract
+  stdinIsTty: boolean
+  promptOut?: (text: string) => void
+}> {
   const file = join(dir, "contract.json")
   writeFileSync(file, JSON.stringify(contract))
   const resolved = await computeContractFetch(["safe-install", "--contract", file], {
@@ -184,15 +203,18 @@ async function contractDeps(
   const clock = extra.generatedAt
     ? { generatedAt: extra.generatedAt, now: Date.parse(extra.generatedAt) }
     : BASE
-  return { cwd: dir, readStdin: extra.readStdin ?? (() => ""), ...clock, contract: resolved }
+  return {
+    cwd: dir,
+    readStdin: extra.readStdin ?? (() => ""),
+    ...clock,
+    contract: resolved,
+    stdinIsTty: extra.stdinIsTty ?? true,
+    promptOut: "promptOut" in extra ? extra.promptOut : () => {},
+  }
 }
 
 /** Run safe-install with a resolved contract already in deps. */
-async function runSafeInstall(
-  argv: string[],
-  contract: Record<string, unknown>,
-  extra: { readStdin?: () => string; generatedAt?: string } = {},
-) {
+async function runSafeInstall(argv: string[], contract: Record<string, unknown>, extra: Extra = {}) {
   const deps = await contractDeps(contract, extra)
   return run(["safe-install", ...argv], deps)
 }
@@ -843,4 +865,67 @@ describe("safe-install — the offer is never shown where it would be dishonest"
       makeContract(),
     )
   }
+})
+
+/**
+ * The blind-signature defect and its fix (ADR 0057 §6).
+ *
+ * Before this, interactive `--apply` called `readFileSync(0)` having printed NOTHING: the
+ * one code path that asked a human to authorize a config write showed them no config
+ * write. A typed `yes` was a signature on unseen bytes. These pin the three properties
+ * that make the keystroke mean something.
+ */
+describe("safe-install — interactive --apply shows the plan before it blocks", () => {
+  it("prints every write target and patch op from the plan, plus the digest being approved", async () => {
+    const shown: string[] = []
+    const hostConfig = join(dir, ".cursor", "mcp.json")
+    const r = await runSafeInstall(["--host", "cursor", "--host-config", hostConfig, "--apply"], makeContract(), {
+      readStdin: () => "no\n",
+      promptOut: (t) => void shown.push(t),
+    })
+    const preview = shown.join("")
+    // The preview is rendered FROM plan.operations, so it cannot describe a write the
+    // sealed plan does not contain — and cannot omit one it does.
+    expect(preview).toContain(hostConfig)
+    expect(preview).toMatch(/plan\s+sha256:[0-9a-f]{64}/)
+    expect(preview).toContain("Nothing has been written yet")
+    expect(preview).toContain("approve>")
+    // It is shown BEFORE the blocking read, so declining is an informed decline.
+    expect(r.stdout).toContain("DECLINED")
+    expect(existsSync(hostConfig)).toBe(false)
+    noExec()
+  })
+
+  it("refuses interactive --apply without a TTY, naming the two-step script route", async () => {
+    // `yes | calllint … --apply` is a non-interactive auto-apply in interactive clothing.
+    const hostConfig = join(dir, ".cursor", "mcp.json")
+    const r = await runSafeInstall(["--host", "cursor", "--host-config", hostConfig, "--apply"], makeContract(), {
+      readStdin: () => "yes\n",
+      stdinIsTty: false,
+    })
+    expect(r.exitCode).toBe(2)
+    expect(r.stderr).toContain("not a TTY")
+    expect(r.stderr).toContain("--approve")
+    expect(existsSync(hostConfig)).toBe(false)
+    noExec()
+  })
+
+  it("refuses interactive --apply with no way to show the plan", async () => {
+    const hostConfig = join(dir, ".cursor", "mcp.json")
+    const r = await runSafeInstall(["--host", "cursor", "--host-config", hostConfig, "--apply"], makeContract(), {
+      readStdin: () => "yes\n",
+      promptOut: undefined,
+    })
+    expect(r.exitCode).toBe(2)
+    expect(r.stderr).toContain("no way to show the plan")
+    expect(existsSync(hostConfig)).toBe(false)
+    noExec()
+  })
+
+  it("prints no preview when nothing is being applied — a prepare asks for no decision", async () => {
+    const shown: string[] = []
+    await runSafeInstall(["--host", "cursor", "--json"], makeContract(), { promptOut: (t) => void shown.push(t) })
+    expect(shown).toEqual([])
+    noExec()
+  })
 })

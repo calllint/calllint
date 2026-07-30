@@ -23,6 +23,7 @@
  *
  * Exit codes: 0 ok · 1 drift (--check) · 2 gate not passed (--gate) / unexpected error.
  */
+import crypto from "node:crypto"
 import fs from "node:fs"
 import path from "node:path"
 import { fileURLToPath } from "node:url"
@@ -38,6 +39,7 @@ import {
   evaluateAgentContract,
   evaluateHumanCapsule,
   measureFiveSecondPanel,
+  partitionPanelFreshness,
   renderSafeInstall,
   type AgentContractEval,
   type FiveSecondPanelStore,
@@ -66,13 +68,39 @@ function readPanelStore(): FiveSecondPanelStore {
   return JSON.parse(fs.readFileSync(panelStorePath, "utf8")) as FiveSecondPanelStore
 }
 
+/** sha256 of every served install page, keyed by canonicalSlug. */
+function servedPageDigests(): Map<string, string> {
+  const root = path.join(repoRoot, "apps", "web", "public", "install")
+  const out = new Map<string, string>()
+  if (!fs.existsSync(root)) return out
+  for (const cohort of fs.readdirSync(root)) {
+    const dir = path.join(root, cohort)
+    if (!fs.statSync(dir).isDirectory()) continue
+    for (const name of fs.readdirSync(dir)) {
+      const page = path.join(dir, name, "index.html")
+      if (fs.existsSync(page)) {
+        out.set(
+          `${cohort}/${name}`,
+          `sha256:${crypto.createHash("sha256").update(fs.readFileSync(page)).digest("hex")}`,
+        )
+      }
+    }
+  }
+  return out
+}
+
 /** Build the Gate 2.4-B artifact. No clock, no RNG — byte-stable across runs. */
 function buildHumanReport(): { json: string; status: GateStatus; structures: HumanCapsuleStructure[] } {
   const structures = CANONICAL_FIXTURES.map((f) => {
     const p = canonicalProjection(f)
     return evaluateHumanCapsule(p, renderSafeInstall(p))
   })
-  const panel = measureFiveSecondPanel(readPanelStore())
+  const store = readPanelStore()
+  // Recognition is evidence about ONE artifact. A response whose page has since
+  // changed is not weaker evidence about the new page — it is none. Excluding it
+  // makes the gate fall back to PENDING_HUMAN_PANEL, which fails closed.
+  const { fresh, stale } = partitionPanelFreshness(store, servedPageDigests())
+  const panel = measureFiveSecondPanel({ ...store, responses: fresh })
   const status = decideGateB(structures, panel)
   const blockers: string[] = []
   for (const s of structures) {
@@ -85,10 +113,16 @@ function buildHumanReport(): { json: string; status: GateStatus; structures: Hum
       `human panel not recorded: ${panel.responses}/${FIVE_SECOND_MIN_PANEL} responses in artifacts/phase-2.4/five-second-panel-store.json`,
     )
   }
+  for (const s of stale) {
+    blockers.push(
+      `stale panel response: ${s.participant} @ ${s.canonicalSlug} measured ${s.shownDigest} but the served page is now ` +
+        `${s.currentDigest ?? "REMOVED"} — re-run that session`,
+    )
+  }
   const report = {
     schema: "calllint.phase-2.4-human-capsule-eval.v0",
     $comment:
-      "Gate 2.4-B evidence. Two independent inputs. (1) structuralPrecondition is machine-measured by evaluateHumanCapsule() over the SHIPPED renderer and must be 100% — one CTA, <=3 authority facts, all three five-second answers present exactly once above the fold, no decision JS. (2) humanPanel is read from five-second-panel-store.json, which only a human writes; code never simulates a human study, so an unrecorded panel yields PENDING_HUMAN_PANEL rather than a pass. Regenerate with `pnpm eval:phase-2.4:write`; enforce with `pnpm eval:phase-2.4:gate`.",
+      "Gate 2.4-B evidence. Two independent inputs. (1) structuralPrecondition is machine-measured by evaluateHumanCapsule() over the SHIPPED renderer and must be 100% — one CTA, <=3 authority facts, all three five-second answers present exactly once above the fold, no decision JS. (2) humanPanel is read from five-second-panel-store.json, which only a human writes; code never simulates a human study, so an unrecorded panel yields PENDING_HUMAN_PANEL rather than a pass. Each response carries the sha256 of the page the participant was actually shown; responses whose page has since changed are reported under humanPanel.stale and EXCLUDED from the rates, so a page edit demotes the gate to PENDING_HUMAN_PANEL instead of inheriting recognition it never earned. Regenerate with `pnpm eval:phase-2.4:write`; enforce with `pnpm eval:phase-2.4:gate`.",
     gate: "2.4-B",
     status,
     engineVersion: EVAL_ENGINE_VERSION,
@@ -108,6 +142,9 @@ function buildHumanReport(): { json: string; status: GateStatus; structures: Hum
       storePath: "artifacts/phase-2.4/five-second-panel-store.json",
       questions: FIVE_SECOND_QUESTIONS,
       ...panel,
+      /** Responses excluded because the page they measured has since changed. */
+      staleResponses: stale.length,
+      stale,
     },
     blockers,
   }

@@ -20,6 +20,7 @@ COMMANDS
   trust prepare <target>  Read-only Trust Gateway preview: resolve to a digest-pinned identity
   safe-install --contract <url|file>  Adopt a tool from its Agent Adoption Contract (local, exact-target; delegates to the writer)
   integrate          Install the CallLint preflight server into detected hosts (plan-only; --apply writes)
+  url-handler        Register the OS handler for calllint:// links (plan-only; --apply writes)
   diagnostics [target]  Emit editor/agent-host diagnostics JSON (calllint.diagnostics.v0)
   baseline [target]  Record the approved risk surface as a baseline
   approve            Record the repo-wide capability surface as approved state (L4)

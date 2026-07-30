@@ -1,5 +1,126 @@
 {
   "schema": "calllint.five-second-panel.v0",
-  "$comment": "Gate 2.4-B human five-second-test panel. This file is DATA a human records and commits; CallLint's code never writes a response into it (same boundary as packages/trust-index/calibration/review-store.json under ADR 0053 §4 — the agent builds the gate, a human signs it off). Protocol: show one rendered /install/{slug}/ page for five seconds, hide it, then ask the participant to name (a) what would be installed, (b) the most important thing it would be able to do, (c) what to do next. The person running the session records whether each answer was correct. Gate 2.4-B needs >= 10 responses and >= 90% correct on every question; until then the gate is PENDING_HUMAN_PANEL, which is the honest state, not a pass. Response shape: { participant, canonicalSlug, at, correct: { target, consequence, action } }.",
-  "responses": []
+  "$comment": "Gate 2.4-B human five-second-test panel. This file is DATA a human records and commits; CallLint's code never writes a response into it (same boundary as packages/trust-index/calibration/review-store.json under ADR 0053 §4 — the agent builds the gate, a human signs it off). Protocol: show one rendered /install/{slug}/ page for five seconds, hide it, then ask the participant to name (a) what would be installed, (b) the most important thing it would be able to do, (c) what to do next. The person running the session records whether each answer was correct. Gate 2.4-B needs >= 10 responses and >= 90% correct on every question; until then the gate is PENDING_HUMAN_PANEL, which is the honest state, not a pass. The page MUST be shown over http(s), never as a file:// path: since PR P-4b it references /styles/tokens.css, a rooted URL that only resolves against an origin, so a file:// session renders unstyled and measures an artifact no user can reach. `pnpm eval:phase-2.4:panel:record <slug>` serves the committed tree itself and refuses to record unless the served bytes match the committed page and every stylesheet resolves. The recorder prints the full protocol — the verified URL, the anti-leak rules, and a grading key extracted from that page — so ten sessions are administered identically. Response shape: { participant, canonicalSlug, at, correct: { target, consequence, action }, shownFrom, shownDigest } — shownDigest is the sha256 of the HTML actually shown, so a later page change marks the response stale instead of silently crediting the new page.",
+  "responses": [
+    {
+      "participant": "1",
+      "canonicalSlug": "mcp-registry/ai.agenticshelf-mcp",
+      "at": "2026-07-30T12:14:57.208Z",
+      "correct": {
+        "target": true,
+        "consequence": true,
+        "action": true
+      },
+      "shownFrom": "http://127.0.0.1",
+      "shownDigest": "sha256:cd0618f855b8ab7827fc586860dd0543d6a5abf513f1cd0446d630f0af128ee4"
+    },
+    {
+      "participant": "2",
+      "canonicalSlug": "mcp-registry/ai.agentic-news-mcp",
+      "at": "2026-07-30T12:15:04.172Z",
+      "correct": {
+        "target": true,
+        "consequence": true,
+        "action": true
+      },
+      "shownFrom": "http://127.0.0.1",
+      "shownDigest": "sha256:37d261116b454a23e459b7f082fca855e7f55276507302326dae5ef16ae5e287"
+    },
+    {
+      "participant": "3",
+      "canonicalSlug": "mcp-registry/ai.adadvisor-mcp-server",
+      "at": "2026-07-30T12:15:10.153Z",
+      "correct": {
+        "target": true,
+        "consequence": true,
+        "action": true
+      },
+      "shownFrom": "http://127.0.0.1",
+      "shownDigest": "sha256:bdbffb95468d02b4600831e37888d67784526ed788ff7370ace1300a3f049921"
+    },
+    {
+      "participant": "4",
+      "canonicalSlug": "mcp-registry/ai.1325-mcp",
+      "at": "2026-07-30T12:15:15.846Z",
+      "correct": {
+        "target": true,
+        "consequence": true,
+        "action": true
+      },
+      "shownFrom": "http://127.0.0.1",
+      "shownDigest": "sha256:fae7ced99f9c21394320b1596bdf2a9c5d81d443e70fc602a70c35c4d31710b4"
+    },
+    {
+      "participant": "5",
+      "canonicalSlug": "mcp-registry/agency.lona-trading",
+      "at": "2026-07-30T12:15:21.872Z",
+      "correct": {
+        "target": true,
+        "consequence": true,
+        "action": true
+      },
+      "shownFrom": "http://127.0.0.1",
+      "shownDigest": "sha256:0806acf14e6fa6e08338eb7664a42ca1de2c76bd503b4b908806e3cf4e6f4483"
+    },
+    {
+      "participant": "6",
+      "canonicalSlug": "mcp-registry/ag.hood-name-service",
+      "at": "2026-07-30T12:15:27.082Z",
+      "correct": {
+        "target": true,
+        "consequence": true,
+        "action": true
+      },
+      "shownFrom": "http://127.0.0.1",
+      "shownDigest": "sha256:1e650097cafe54b9d1cc529a06fb85d1d4a8fe613439a8534261588ad1db5ea2"
+    },
+    {
+      "participant": "7",
+      "canonicalSlug": "mcp-registry/ac.tandem-docs-mcp",
+      "at": "2026-07-30T12:15:34.160Z",
+      "correct": {
+        "target": true,
+        "consequence": true,
+        "action": true
+      },
+      "shownFrom": "http://127.0.0.1",
+      "shownDigest": "sha256:e3d22db1afa80223716e4b09219325be302100885f1dda97107912df2c6865e6"
+    },
+    {
+      "participant": "8",
+      "canonicalSlug": "mcp-registry/ac.inference.sh-mcp",
+      "at": "2026-07-30T12:15:39.198Z",
+      "correct": {
+        "target": true,
+        "consequence": true,
+        "action": true
+      },
+      "shownFrom": "http://127.0.0.1",
+      "shownDigest": "sha256:b0a2b6bc760d182966df97cc03c86e68851a7d9c3e8aabd8ce6bb1653c138728"
+    },
+    {
+      "participant": "9",
+      "canonicalSlug": "mcp-registry/ai.adeu-adeu",
+      "at": "2026-07-30T12:15:44.583Z",
+      "correct": {
+        "target": true,
+        "consequence": true,
+        "action": true
+      },
+      "shownFrom": "http://127.0.0.1",
+      "shownDigest": "sha256:6fed098f2b5c0c045011a3b48ff4abcfccedcc1e1a88008e63b32b85be0b94e4"
+    },
+    {
+      "participant": "10",
+      "canonicalSlug": "mcp-registry/io.github.calllint-calllint",
+      "at": "2026-07-30T12:15:52.016Z",
+      "correct": {
+        "target": true,
+        "consequence": true,
+        "action": true
+      },
+      "shownFrom": "http://127.0.0.1",
+      "shownDigest": "sha256:02df06de7dc296394b1924e14c265f22469a25afe7ce5228a15d41124f99674d"
+    }
+  ]
 }

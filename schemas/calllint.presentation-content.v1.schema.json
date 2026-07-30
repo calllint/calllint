@@ -160,6 +160,12 @@
       "description": "Titles for the renderer's fixed sections. `publisherBlock` is the quarantine label (INV-2.4-05): its wording is configurable, its POSITION is not — no config may relocate publisher text into a decision group (ADR 0058 §6).",
       "properties": {
         "authorityFacts": { "$ref": "#/$defs/copyText" },
+        "agentReads": { "$ref": "#/$defs/copyText" },
+        "valueLine": { "$ref": "#/$defs/copyText" },
+        "protectionBadge": { "$ref": "#/$defs/copyText" },
+        "consequenceHeading": { "$ref": "#/$defs/copyText" },
+        "consequenceLead": { "$ref": "#/$defs/copyText" },
+        "reasonCodesHeading": { "$ref": "#/$defs/copyText" },
         "provenance": { "$ref": "#/$defs/copyText" },
         "publisherBlock": { "$ref": "#/$defs/copyText" },
         "boundary": { "$ref": "#/$defs/copyText" }
@@ -205,9 +211,9 @@
         },
         "maxAuthorityFacts": {
           "type": "integer",
-          "description": "Upper bound on rendered authority facts. Capped at the shipped 3 — config may show fewer, never more (new14 §7).",
+          "description": "Upper bound on rendered authority facts. Capped at the shipped 5 — config may show fewer, never more (ADR 0059).",
           "minimum": 1,
-          "maximum": 3
+          "maximum": 5
         },
         "maxSecondaryLinks": {
           "type": "integer",

@@ -436,6 +436,19 @@ export function runPresentationAudit(
     contractDigest: s.contractDigest,
     html: renderSafeInstall(s.projection, {
       authorityFacts: PROBE_SENTINEL,
+      // Wired by R-2 (the visible `mustAskBefore` block), so it is measured like the rest.
+      agentReads: PROBE_SENTINEL,
+      // Also R-2: the value line above the button. Mutated here so the audit proves this
+      // sentence cannot reach the contract digest or the route either — it is the most
+      // claim-like copy on the page, so leaving it unprobed would be the wrong omission.
+      valueLine: PROBE_SENTINEL,
+      // The protection badge (R-2). Probed for the same reason the value line is: it makes
+      // the strongest brand claim on the page, so the audit must show that claim cannot
+      // reach the contract digest or move the route.
+      protectionBadge: PROBE_SENTINEL,
+      consequenceHeading: PROBE_SENTINEL,
+      consequenceLead: PROBE_SENTINEL,
+      reasonCodesHeading: PROBE_SENTINEL,
       provenance: PROBE_SENTINEL,
       publisherBlock: PROBE_SENTINEL,
       // Wired by P-4b, so it is now part of this probe's mutation rather than a

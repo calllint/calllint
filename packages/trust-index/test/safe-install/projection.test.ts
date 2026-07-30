@@ -131,10 +131,10 @@ describe("safeInstallProjection — publisher text never touches a decision fiel
 
 describe("safeInstallProjection — all verdict maps (plan §6.4/§8.3/§F)", () => {
   const EXPECT: Record<string, { installability: string; headline: string; cta: string; action: string }> = {
-    SAFE: { installability: "PREPARE_AVAILABLE", headline: "No blockers observed", cta: "Add with CallLint", action: "PREPARE_LOCALLY" },
-    REVIEW: { installability: "REVIEW_REQUIRED", headline: "Review required", cta: "Review and add", action: "PREPARE_LOCALLY" },
-    BLOCK: { installability: "BLOCKED", headline: "Blocked by policy", cta: "Inspect blockers", action: "INSPECT_BLOCKERS" },
-    UNKNOWN: { installability: "LOCAL_PREFLIGHT_REQUIRED", headline: "Insufficient evidence", cta: "Run local pre-flight", action: "LOCAL_PREFLIGHT_REQUIRED" },
+    SAFE: { installability: "PREPARE_AVAILABLE", headline: "No blockers observed", cta: "Open in CallLint", action: "PREPARE_LOCALLY" },
+    REVIEW: { installability: "REVIEW_REQUIRED", headline: "Review required", cta: "Review in CallLint", action: "PREPARE_LOCALLY" },
+    BLOCK: { installability: "BLOCKED", headline: "Blocked by policy", cta: "See why it is blocked", action: "INSPECT_BLOCKERS" },
+    UNKNOWN: { installability: "LOCAL_PREFLIGHT_REQUIRED", headline: "Insufficient evidence", cta: "Check it on your machine", action: "LOCAL_PREFLIGHT_REQUIRED" },
   }
 
   it("maps every fixture verdict to its human disposition + machine action (exact identity present)", () => {
@@ -168,11 +168,11 @@ describe("safeInstallProjection — all verdict maps (plan §6.4/§8.3/§F)", ()
   })
 })
 
-describe("selectDecisionAuthorities — top-three selector (plan §6.6)", () => {
-  it("never shows more than three facts, and observed facts come first", () => {
+describe("selectDecisionAuthorities — top-five selector (ADR 0059)", () => {
+  it("never shows more than five facts, and observed facts come first", () => {
     for (const page of pages) {
       const sel = selectDecisionAuthorities(page)
-      expect(sel.facts.length).toBeLessThanOrEqual(3)
+      expect(sel.facts.length).toBeLessThanOrEqual(5)
       const firstAbsence = sel.facts.findIndex((f) => !f.observed)
       const lastObserved = sel.facts.map((f) => f.observed).lastIndexOf(true)
       if (firstAbsence !== -1 && lastObserved !== -1) expect(firstAbsence).toBeGreaterThan(lastObserved)
@@ -205,7 +205,7 @@ describe("safeInstallProjection — unsupported / incomplete routes (plan §8.4)
     for (const page of pages) {
       const p = safeInstallProjection(inputFor(page, { unsupported: true }))
       expect(p.installability).toBe("UNSUPPORTED")
-      expect(p.humanDisposition.primaryCta).toBe("View manual setup")
+      expect(p.humanDisposition.primaryCta).toBe("See manual setup")
       expect(p.agentContract.recommendedNextAction.kind).toBe("EXPLAIN_ONLY")
     }
   })

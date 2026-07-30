@@ -87,7 +87,7 @@ export const OBSERVED_CONSEQUENCE: Record<AdoptionAuthority, string> = {
   messaging_send: "Can send messages on your behalf.",
   oauth_scope: "Requests OAuth scopes that may be broad or unverified.",
   gateway_runtime: "Runs as a long-lived gateway process.",
-  network_egress: "Connects to an unverified remote endpoint.",
+  network_egress: "Your agent could send data to an unverified remote endpoint — CallLint could not inspect what that endpoint does.",
   no_high_authority_observed: "No high-authority capability was observed.",
 }
 
@@ -110,7 +110,7 @@ export const ABSENCE_CONSEQUENCE: Record<AdoptionAuthority, string> = {
   no_high_authority_observed: "No high-authority capability was observed.",
 }
 
-/** One authority fact for the human capsule (≤3 shown) + the machine delta. */
+/** One authority fact for the human capsule (≤5 shown; ADR 0059) + the machine delta. */
 export interface DecisionAuthorityFact {
   readonly authority: AdoptionAuthority
   /** true = observed in evidence; false = a meaningful, evidence-supported absence. */
@@ -119,7 +119,10 @@ export interface DecisionAuthorityFact {
   readonly consequence: string
 }
 
-/** The selector output: ≤3 facts (observed-first) + a one-sentence summary. */
+/** Shipped selection/display ceiling for human-capsule authority rows (ADR 0059). */
+export const MAX_DECISION_AUTHORITY_FACTS = 5
+
+/** The selector output: ≤5 facts (observed-first) + a one-sentence summary. */
 export interface DecisionAuthoritySelection {
   readonly facts: readonly DecisionAuthorityFact[]
   readonly consequenceSummary: string
@@ -157,16 +160,16 @@ export const DEFAULT_AUTHORITY_COPY: AuthorityCopy = {
 }
 
 /**
- * Select the at-most-three authority facts that matter for this decision.
+ * Select the at-most-five authority facts that matter for this decision (ADR 0059).
  *
- * Rules (plan §6.6): highest observed consequence first; at most ONE meaningful
- * absence, and only when the evidence is complete enough to assert it; never
- * more than three facts; absences are observations, never "impossible".
+ * Rules: highest observed consequence first; then evidence-supported absences in
+ * priority order when the inventory is complete; never more than
+ * `MAX_DECISION_AUTHORITY_FACTS`; absences are observations, never "impossible".
  *
  * `copy` is optional L2 wording (PR P-2). Omitting it — which every pre-P-2 caller
  * does — is byte-identical to passing `DEFAULT_AUTHORITY_COPY`. What it can change is
  * only the SENTENCE: the selection itself (which authorities, observed vs absence,
- * their order, the ≤3 cap, the completeness precondition) is derived from evidence and
+ * their order, the cap, the completeness precondition) is derived from evidence and
  * is unreachable from configuration.
  */
 export function selectDecisionAuthorities(
@@ -185,15 +188,15 @@ export function selectDecisionAuthorities(
   const complete = (page.preparation.authority?.completeness ?? "partial") === "complete"
 
   const facts: DecisionAuthorityFact[] = observed
-    .slice(0, 3)
+    .slice(0, MAX_DECISION_AUTHORITY_FACTS)
     .map((authority) => ({ authority, observed: true, consequence: copy.observed[authority] }))
 
-  // Fill remaining slots (up to 3 total) with ONE meaningful, evidence-supported absence.
-  if (facts.length < 3 && complete) {
-    const absence = ADOPTION_AUTHORITIES.find(
-      (a) => a !== "no_high_authority_observed" && !observed.includes(a),
-    )
-    if (absence) {
+  // Fill remaining slots with meaningful, evidence-supported absences (priority order).
+  if (complete) {
+    for (const absence of ADOPTION_AUTHORITIES) {
+      if (facts.length >= MAX_DECISION_AUTHORITY_FACTS) break
+      if (absence === "no_high_authority_observed") continue
+      if (observed.includes(absence)) continue
       facts.push({ authority: absence, observed: false, consequence: copy.absence[absence] })
     }
   }

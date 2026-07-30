@@ -6,15 +6,9 @@
   "engine": "1.7.3",
   "releaseBoundary": {
     "gatesEvaluated": 8,
-    "closed": false,
-    "openGates": [
-      {
-        "gate": "2.4-B",
-        "status": "PENDING_HUMAN_PANEL",
-        "blockedBy": "human panel (≥10 responses; ADR 0053 §4) — no run of this repo can close it"
-      }
-    ],
-    "consequence": "Batch 10 cohort expansion stays BLOCKED: 2.4-B not PASSED. Workstream R (Phase 2.3) is gated on this same boundary; Workstream P (Phase 2.4 presentation half) is NOT — it depends only on the shipped renderers (new15-integration §5)."
+    "closed": true,
+    "openGates": [],
+    "consequence": "Gates 2.4-A…H all PASSED — the new14 release boundary is closed; Batch 10 cohort expansion is unblocked by this boundary (still gated on new15 Workstream R landing)."
   },
   "gates": [
     {
@@ -26,7 +20,7 @@
     {
       "gate": "2.4-B",
       "artifact": "artifacts/phase-2.4/human-five-second-test.json",
-      "status": "PENDING_HUMAN_PANEL",
+      "status": "PASSED",
       "machineDecidable": false
     },
     {
@@ -233,6 +227,16 @@
       "subtree": "artifacts/phase-2.4/**",
       "guardTest": "scripts/phase-2.4-gates.ts",
       "eolPinned": true
+    },
+    {
+      "subtree": "apps/web/public/scripts/**",
+      "guardTest": "packages/trust-index/test/safe-install/token-plane.test.ts",
+      "eolPinned": true
+    },
+    {
+      "subtree": "apps/web/public/styles/**",
+      "guardTest": "packages/trust-index/test/safe-install/token-plane.test.ts",
+      "eolPinned": true
     }
   ],
   "measures": [
@@ -249,7 +253,7 @@
     {
       "id": "human-gates-declared",
       "pass": true,
-      "observed": "2.4-B=PENDING_HUMAN_PANEL (human panel required, not machine-closable)"
+      "observed": "2.4-B=PASSED (human panel required, not machine-closable)"
     },
     {
       "id": "mcp-tool-count-agrees",
@@ -365,6 +369,16 @@
       "id": "served/artifacts/phase-2.4/**",
       "pass": true,
       "observed": "scripts/phase-2.4-gates.ts + eol=lf pinned"
+    },
+    {
+      "id": "served/apps/web/public/scripts/**",
+      "pass": true,
+      "observed": "packages/trust-index/test/safe-install/token-plane.test.ts + eol=lf pinned"
+    },
+    {
+      "id": "served/apps/web/public/styles/**",
+      "pass": true,
+      "observed": "packages/trust-index/test/safe-install/token-plane.test.ts + eol=lf pinned"
     }
   ],
   "blockers": []

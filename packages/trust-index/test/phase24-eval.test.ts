@@ -8,6 +8,7 @@
  * with no human panel recorded, Gate 2.4-B is PENDING_HUMAN_PANEL — never PASSED.
  */
 import { describe, it, expect } from "vitest"
+import crypto from "node:crypto"
 import fs from "node:fs"
 import path from "node:path"
 import { fileURLToPath } from "node:url"
@@ -22,6 +23,11 @@ import {
   evaluateAgentContract,
   evaluateHumanCapsule,
   measureFiveSecondPanel,
+  partitionPanelFreshness,
+  stylesheetHrefs,
+  auditShownArtifact,
+  extractCapsuleAnswers,
+  FIVE_SECOND_QUESTIONS,
   redactRunVaryingNote,
   renderSafeInstall,
   type FiveSecondPanelStore,
@@ -30,6 +36,26 @@ import {
 } from "../src/index.js"
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..", "..", "..")
+
+function servedInstallPageDigests(): Map<string, string> {
+  const root = path.join(repoRoot, "apps", "web", "public", "install")
+  const out = new Map<string, string>()
+  if (!fs.existsSync(root)) return out
+  for (const cohort of fs.readdirSync(root)) {
+    const dir = path.join(root, cohort)
+    if (!fs.statSync(dir).isDirectory()) continue
+    for (const name of fs.readdirSync(dir)) {
+      const page = path.join(dir, name, "index.html")
+      if (fs.existsSync(page)) {
+        out.set(
+          `${cohort}/${name}`,
+          `sha256:${crypto.createHash("sha256").update(fs.readFileSync(page)).digest("hex")}`,
+        )
+      }
+    }
+  }
+  return out
+}
 const ajv = new Ajv({ allErrors: true, strict: false })
 const validate = ajv.compile(
   JSON.parse(fs.readFileSync(path.join(repoRoot, "schemas/calllint.agent-adoption-contract.v1.schema.json"), "utf8")),
@@ -67,7 +93,12 @@ describe("Gate 2.4-B — structural precondition", () => {
       expect(r.pass, JSON.stringify(r.checks.filter((c) => !c.pass))).toBe(true)
       expect(r.answers.target).not.toBeNull()
       expect(r.answers.consequence).toBe(p.consequenceSummary)
-      expect(r.answers.action).toBe(p.humanDisposition.primaryCta)
+      // The CTA now reads "<verb phrase> <display name>" (R-2), so this asserts
+      // composition rather than equality — and asserts BOTH halves, because a CTA that
+      // kept the phrase and dropped the subject is exactly the generic-chrome regression
+      // this change set out to fix.
+      expect(r.answers.action).toContain(p.humanDisposition.primaryCta)
+      expect(r.answers.action).toContain(p.displayName)
     }
   })
 
@@ -80,19 +111,26 @@ describe("Gate 2.4-B — structural precondition", () => {
     expect(r.checks.find((c) => c.id === "exactly-one-primary-cta")?.pass).toBe(false)
   })
 
-  it("FAILS when a fourth authority fact is introduced (negative control)", () => {
+  it("FAILS when more than five authority facts are introduced (negative control)", () => {
     const { p } = projections[1] as { p: ReturnType<typeof canonicalProjection> }
     const html = renderSafeInstall(p)
-    const broken = html.replace("</ul>", '<li data-observed="true">extra</li><li data-observed="true">more</li></ul>')
+    const extras = Array.from({ length: 6 }, (_, i) => `<li data-observed="true">extra${i}</li>`).join("")
+    const broken = html.replace("</ul>", `${extras}</ul>`)
     const r = evaluateHumanCapsule(p, broken)
-    expect(r.checks.find((c) => c.id === "at-most-three-authority-facts")?.pass).toBe(false)
+    expect(r.checks.find((c) => c.id === "at-most-five-authority-facts")?.pass).toBe(false)
   })
 
-  it("FAILS when decision JavaScript appears (negative control)", () => {
+  it("FAILS when non-whitelist decision JavaScript appears (negative control)", () => {
     const { p } = projections[0] as { p: ReturnType<typeof canonicalProjection> }
     const broken = renderSafeInstall(p).replace("</body>", "<script>decide()</script></body>")
     const r = evaluateHumanCapsule(p, broken)
-    expect(r.checks.find((c) => c.id === "no-decision-javascript")?.pass).toBe(false)
+    expect(r.checks.find((c) => c.id === "copy-only-javascript-whitelist")?.pass).toBe(false)
+  })
+
+  it("PASSES the JS whitelist when only the copy-assist script is present", () => {
+    const { p } = projections[0] as { p: ReturnType<typeof canonicalProjection> }
+    const r = evaluateHumanCapsule(p, renderSafeInstall(p))
+    expect(r.checks.find((c) => c.id === "copy-only-javascript-whitelist")?.pass).toBe(true)
   })
 
   it("FAILS when the consequence sentence is altered (negative control)", () => {
@@ -114,6 +152,8 @@ describe("Gate 2.4-B — the human panel is DATA, never simulated", () => {
       canonicalSlug: "calllint-fixtures-safe-time",
       at: "2026-07-28T00:00:00.000Z",
       correct: { target: true, consequence: correct, action: true },
+      shownFrom: "http://127.0.0.1",
+      shownDigest: `sha256:${"a".repeat(64)}`,
     })),
   })
 
@@ -124,13 +164,25 @@ describe("Gate 2.4-B — the human panel is DATA, never simulated", () => {
     expect(decideGateB(structures, empty)) .toBe("PENDING_HUMAN_PANEL")
   })
 
-  it("the committed panel store is empty, so the shipped gate status is pending", () => {
+  it("the committed panel store, when recorded and fresh, has ≥10 responses and passes Gate 2.4-B", () => {
     const store = JSON.parse(
       fs.readFileSync(path.join(repoRoot, "artifacts/phase-2.4/five-second-panel-store.json"), "utf8"),
     ) as FiveSecondPanelStore
     expect(store.schema).toBe("calllint.five-second-panel.v0")
-    expect(store.responses).toEqual([])
-    expect(decideGateB(structures, measureFiveSecondPanel(store))).toBe("PENDING_HUMAN_PANEL")
+    const { fresh, stale } = partitionPanelFreshness(store, servedInstallPageDigests())
+    // Honest empty or fully-stale store is PENDING — pages were rebuilt and humans must re-record.
+    if (fresh.length < FIVE_SECOND_MIN_PANEL) {
+      expect(decideGateB(structures, measureFiveSecondPanel({ ...store, responses: fresh }))).toBe(
+        "PENDING_HUMAN_PANEL",
+      )
+      return
+    }
+    expect(stale).toEqual([])
+    const panel = measureFiveSecondPanel({ ...store, responses: fresh })
+    expect(panel.recognition.target).toBe(1)
+    expect(panel.recognition.consequence).toBe(1)
+    expect(panel.recognition.action).toBe(1)
+    expect(decideGateB(structures, panel)).toBe("PASSED")
   })
 
   it("an UNDERSIZED panel stays pending even at 100% recognition", () => {
@@ -159,6 +211,121 @@ describe("Gate 2.4-B — the human panel is DATA, never simulated", () => {
   it("a broken capsule FAILS the gate even with a perfect panel", () => {
     const broken = [...structures, { ...(structures[0] as HumanCapsuleStructure), pass: false }]
     expect(decideGateB(broken, measureFiveSecondPanel(panel(FIVE_SECOND_MIN_PANEL)))).toBe("FAILED")
+  })
+
+  // --- freshness: recognition is evidence about ONE artifact ------------------
+
+  const DIGEST_A = `sha256:${"a".repeat(64)}`
+  const DIGEST_B = `sha256:${"b".repeat(64)}`
+  const servedAs = (d: string) => new Map([["calllint-fixtures-safe-time", d]])
+
+  it("responses are FRESH while the served page still digests to what was shown", () => {
+    const f = partitionPanelFreshness(panel(FIVE_SECOND_MIN_PANEL), servedAs(DIGEST_A))
+    expect(f.fresh).toHaveLength(FIVE_SECOND_MIN_PANEL)
+    expect(f.stale).toEqual([])
+    expect(decideGateB(structures, measureFiveSecondPanel({ ...panel(0), responses: f.fresh }))).toBe("PASSED")
+  })
+
+  it("a page EDIT makes every response measuring it stale, demoting a PASS to pending", () => {
+    const store = panel(FIVE_SECOND_MIN_PANEL)
+    // The page moved: it now digests to B, but the panel saw A.
+    const f = partitionPanelFreshness(store, servedAs(DIGEST_B))
+    expect(f.fresh).toEqual([])
+    expect(f.stale).toHaveLength(FIVE_SECOND_MIN_PANEL)
+    expect(f.stale[0]).toMatchObject({ shownDigest: DIGEST_A, currentDigest: DIGEST_B })
+    // Fails CLOSED: the new page inherits nothing.
+    expect(decideGateB(structures, measureFiveSecondPanel({ ...store, responses: f.fresh }))).toBe(
+      "PENDING_HUMAN_PANEL",
+    )
+  })
+
+  it("a REMOVED page is stale with a null current digest, not a silent pass", () => {
+    const f = partitionPanelFreshness(panel(2), new Map())
+    expect(f.fresh).toEqual([])
+    expect(f.stale.map((s) => s.currentDigest)).toEqual([null, null])
+  })
+
+  // --- the artifact a session is allowed to measure (PR P-4b) ----------------
+
+  const PAGE = '<html><head><link rel="stylesheet" href="/styles/tokens.css" /></head><body>x</body></html>'
+  const withCss = (body: string | null) => new Map([["/styles/tokens.css", body]])
+
+  it("accepts the served page when it matches committed and its stylesheet resolves", () => {
+    const a = auditShownArtifact({ servedHtml: PAGE, committedHtml: PAGE, stylesheetBodies: withCss(":root{}") })
+    expect(a.ok).toBe(true)
+    expect(a.problems).toEqual([])
+    expect(a.stylesheets).toEqual(["/styles/tokens.css"])
+  })
+
+  it("REFUSES when the stylesheet does not resolve — the file:// failure this guards", () => {
+    const a = auditShownArtifact({ servedHtml: PAGE, committedHtml: PAGE, stylesheetBodies: withCss(null) })
+    expect(a.ok).toBe(false)
+    expect(a.problems.some((p) => p.includes("render unstyled"))).toBe(true)
+  })
+
+  it("REFUSES an empty stylesheet — resolving is not the same as styling", () => {
+    const a = auditShownArtifact({ servedHtml: PAGE, committedHtml: PAGE, stylesheetBodies: withCss("  \n") })
+    expect(a.ok).toBe(false)
+    expect(a.problems.some((p) => p.includes("is empty"))).toBe(true)
+  })
+
+  it("REFUSES a page with no stylesheet at all — a post-P-4b regression", () => {
+    const bare = "<html><head></head><body>x</body></html>"
+    const a = auditShownArtifact({ servedHtml: bare, committedHtml: bare, stylesheetBodies: new Map() })
+    expect(a.ok).toBe(false)
+    expect(a.problems.some((p) => p.includes("references no stylesheet"))).toBe(true)
+  })
+
+  it("REFUSES when the served bytes drift from the committed page", () => {
+    const a = auditShownArtifact({
+      servedHtml: PAGE,
+      committedHtml: PAGE.replace("x", "y"),
+      stylesheetBodies: withCss(":root{}"),
+    })
+    expect(a.ok).toBe(false)
+    expect(a.problems.some((p) => p.includes("differ from the committed page"))).toBe(true)
+  })
+
+  const shippedPage = (): string =>
+    fs.readFileSync(path.join(repoRoot, "apps/web/public/install/mcp-registry/ai.adeu-adeu/index.html"), "utf8")
+
+  it("finds every stylesheet the SHIPPED page references", () => {
+    expect(stylesheetHrefs(shippedPage())).toEqual(["/styles/tokens.css"])
+  })
+
+  it("derives the operator's grading key from the SHIPPED page — all three present", () => {
+    const a = extractCapsuleAnswers(shippedPage())
+    for (const q of FIVE_SECOND_QUESTIONS) {
+      expect(a[q], `${q} must be extractable or the operator cannot grade`).toBeTruthy()
+    }
+    // It must agree with the structural evaluator, or the gate and the operator
+    // would be grading against different text.
+    const { p } = projections[0] as { p: ReturnType<typeof canonicalProjection> }
+    const rendered = renderSafeInstall(p)
+    expect(extractCapsuleAnswers(rendered)).toEqual(evaluateHumanCapsule(p, rendered).answers)
+  })
+
+  it("reports an absent answer as null rather than inventing one", () => {
+    expect(extractCapsuleAnswers("<html><body></body></html>")).toEqual({
+      target: null,
+      consequence: null,
+      action: null,
+    })
+  })
+
+  it("partitions per response — one stale session does not discard the rest", () => {
+    const store = panel(FIVE_SECOND_MIN_PANEL)
+    const withOneStale: FiveSecondPanelStore = {
+      ...store,
+      responses: store.responses.map((r, i) => (i === 0 ? { ...r, shownDigest: DIGEST_B } : r)),
+    }
+    const f = partitionPanelFreshness(withOneStale, servedAs(DIGEST_A))
+    expect(f.fresh).toHaveLength(FIVE_SECOND_MIN_PANEL - 1)
+    expect(f.stale).toHaveLength(1)
+    // 9 fresh responses is below the floor, so the gate pends rather than passing.
+    expect(decideGateB(structures, measureFiveSecondPanel({ ...store, responses: f.fresh }))).toBe(
+      "PENDING_HUMAN_PANEL",
+    )
   })
 })
 
@@ -237,13 +404,22 @@ describe("committed Phase 2.4 evidence", () => {
   const read = (f: string): Record<string, unknown> =>
     JSON.parse(fs.readFileSync(path.join(repoRoot, "artifacts/phase-2.4", f), "utf8")) as Record<string, unknown>
 
-  it("records Gate 2.4-B as pending with a 100% structural precondition", () => {
+  it("records Gate 2.4-B with a 100% structural precondition; human panel PASSED or PENDING", () => {
     const a = read("human-five-second-test.json")
     expect(a.gate).toBe("2.4-B")
-    expect(a.status).toBe("PENDING_HUMAN_PANEL")
+    expect(["PASSED", "PENDING_HUMAN_PANEL"]).toContain(a.status)
     expect((a.structuralPrecondition as { pass: boolean }).pass).toBe(true)
     expect((a.structuralPrecondition as { pagesEvaluated: number }).pagesEvaluated).toBe(5)
-    expect((a.humanPanel as { status: string }).status).toBe("NOT_RUN")
+    const hp = a.humanPanel as { status: string; responses: number; recognition: Record<string, number> }
+    if (a.status === "PASSED") {
+      expect(hp.status).toBe("RECORDED")
+      expect(hp.responses).toBeGreaterThanOrEqual(FIVE_SECOND_MIN_PANEL)
+      for (const q of FIVE_SECOND_QUESTIONS) expect(hp.recognition[q]).toBeGreaterThanOrEqual(0.9)
+      expect((a.blockers as string[]) ?? []).toEqual([])
+    } else {
+      expect(["UNRECORDED", "NOT_RUN"]).toContain(hp.status)
+      expect(hp.responses).toBe(0)
+    }
   })
 
   it("records Gate 2.4-C as passed with every rate at 1 and every count at 0", () => {

@@ -75,6 +75,12 @@ export { DEFAULT_LAYOUT, type ResolvedLayout, DEFAULT_TOKENS, type ResolvedToken
  */
 export const WIRED_SECTION_TITLES: readonly (keyof SectionTitles)[] = [
   "authorityFacts",
+  "agentReads",
+  "valueLine",
+  "protectionBadge",
+  "consequenceHeading",
+  "consequenceLead",
+  "reasonCodesHeading",
   "provenance",
   "publisherBlock",
   "boundary",

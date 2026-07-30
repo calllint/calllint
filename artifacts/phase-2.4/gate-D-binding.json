@@ -34,42 +34,42 @@
   "writeSites": [
     {
       "file": "apps/cli/src/commands/safeInstall.ts",
-      "line": 280,
+      "line": 300,
       "destination": "writeFileSync(path → path→join(scratch, \"adoption-policy.json\"))",
       "allowed": true,
       "why": "writeFileSync → command-owned scratch dir (removed on exit)"
     },
     {
       "file": "apps/cli/src/commands/safeInstall.ts",
-      "line": 414,
+      "line": 434,
       "destination": "rmSync(scratch → scratch→mkdtempSync(join(tmpdir(), \"calllint-safe-install-\")))",
       "allowed": true,
       "why": "rmSync → command-owned scratch dir (removed on exit)"
     },
     {
       "file": "apps/cli/src/commands/safeInstall.ts",
-      "line": 502,
+      "line": 522,
       "destination": "mkdirSync(plansDir → plansDir→join(scratch→mkdtempSync(join(tmpdir(), \"calllint-safe-install-\")), \".calllint\", \"plans\"))",
       "allowed": true,
       "why": "mkdirSync → command-owned scratch dir (removed on exit)"
     },
     {
       "file": "apps/cli/src/commands/safeInstall.ts",
-      "line": 503,
+      "line": 523,
       "destination": "writeFileSync(join(plansDir, `${prep.plan.planId}.json`) → join(plansDir→join(scratch→mkdtempSync(join(tmpdir(), \"calllint-safe-install-\")), \".calllint\", \"plans\"), `${prep.plan.planId}.json`))",
       "allowed": true,
       "why": "writeFileSync → command-owned scratch dir (removed on exit)"
     },
     {
       "file": "apps/cli/src/commands/safeInstall.ts",
-      "line": 570,
+      "line": 590,
       "destination": "mkdirSync(join(abs, \"..\") → join(abs→resolvePath(planOut→flagStr(args.flags, \"plan-out\")), \"..\"))",
       "allowed": true,
       "why": "mkdirSync → path the operator named on the command line"
     },
     {
       "file": "apps/cli/src/commands/safeInstall.ts",
-      "line": 571,
+      "line": 591,
       "destination": "writeFileSync(abs → abs→resolvePath(planOut→flagStr(args.flags, \"plan-out\")))",
       "allowed": true,
       "why": "writeFileSync → path the operator named on the command line"
