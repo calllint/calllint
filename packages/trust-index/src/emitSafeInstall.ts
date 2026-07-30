@@ -136,11 +136,18 @@ export function emitSafeInstall(
       const slug = projection.canonicalSlug
       files.push({
         path: `install/${slug}/index.html`,
-        // The renderer gets titles + layout and nothing else — no CTA wording, no
-        // authority phrases: those were consumed upstream and sealed. `layout` carries a
-        // SECTION sequence already checked against what the renderer can emit (PR P-3),
-        // so an unsupported order cannot reach here even in principle.
-        content: renderSafeInstall(projection, presentation.sectionTitles, presentation.layout),
+        // The renderer gets titles + layout + tokens and nothing else — no CTA wording,
+        // no authority phrases: those were consumed upstream and sealed. `layout` carries
+        // a SECTION sequence already checked against what the renderer can emit (PR P-3),
+        // so an unsupported order cannot reach here even in principle. `tokens` (PR P-4b)
+        // carries the stylesheet href, already narrowed to a rooted same-origin .css path
+        // by the resolver — this edge is where the L0 plane finally becomes served bytes.
+        content: renderSafeInstall(
+          projection,
+          presentation.sectionTitles,
+          presentation.layout,
+          presentation.tokens,
+        ),
       })
       files.push({ path: `install/${slug}/index.json`, content: renderSafeInstallContract(projection) })
       discovery.push({ canonicalName: projection.canonicalName, canonicalSlug: slug })

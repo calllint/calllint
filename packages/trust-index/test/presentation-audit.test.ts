@@ -17,6 +17,7 @@ import {
   AGENT_GUIDANCE,
   CANONICAL_FIXTURES,
   COPY_SITES,
+  DEFAULT_TOKENS,
   OBSERVED_CONSEQUENCE,
   PRIMARY_CTA,
   SECTION_TITLES,
@@ -37,6 +38,7 @@ const audit = () =>
     absenceConsequence: Object.values(ABSENCE_CONSEQUENCE),
     primaryCta: Object.values(PRIMARY_CTA),
     sectionTitles: Object.values(SECTION_TITLES),
+    stylesheetHref: [DEFAULT_TOKENS.stylesheetHref],
     verdictLabel: Object.values(VERDICT_PUBLIC_LABEL),
     guidanceSteps: [...AGENT_GUIDANCE.steps],
   })

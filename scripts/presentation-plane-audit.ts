@@ -5,9 +5,11 @@
  *
  * A THIN observer. It measures three things and computes no policy:
  *   1. PLANE STAGES — is each targeted directory at the stage its PR expects, and do the
- *      served pages still carry no stylesheet? P-0 asserted both planes greenfield; P-2
- *      creates the content plane, so the expectation is now per-plane and bidirectional
- *      (see `TARGET_DIRS`) — a stronger rule, not a relaxed one.
+ *      served pages carry the stylesheet their stage requires? P-0 asserted both planes
+ *      greenfield; P-2 creates the content plane, so the expectation is per-plane and
+ *      bidirectional (see `TARGET_DIRS`). PR P-4b INVERTS the install half: through P-4
+ *      no install page could carry CSS, and now every one must carry exactly the plane's
+ *      own href. Inverting is stronger than relaxing — a missing stylesheet now fails.
  *   2. INVENTORY — every hardcoded copy site on the Safe-install surface, counted
  *      from source, so each lift has a denominator instead of a vibe.
  *   3. REACHABILITY — the mutation probe from `presentationAudit.ts`: which copy
@@ -30,6 +32,7 @@ import {
   ABSENCE_CONSEQUENCE,
   AGENT_GUIDANCE,
   CANONICAL_FIXTURES,
+  DEFAULT_TOKENS,
   OBSERVED_CONSEQUENCE,
   PRIMARY_CTA,
   SECTION_TITLES,
@@ -89,11 +92,28 @@ const TARGET_DIRS = [
  * trust+install page precisely because the install-only version could not see these two
  * at all: it would have reported 0 while two served pages carried CSS, and a third one
  * appearing would have gone unnoticed.
+ *
+ * PR P-4b adds the install pages to the styled set. It does NOT add them here: this list
+ * stays a statement about what was styled BEFORE the workstream, so it remains the
+ * baseline the install expectation is measured against rather than becoming a growing
+ * allow-list that absorbs whatever it finds.
  */
 const PRE_EXISTING_STYLED_PAGES: readonly string[] = [
   "apps/web/public/trust/app-created.html",
   "apps/web/public/trust/lookup.html",
 ]
+
+/**
+ * The href every served install page must carry (PR P-4b) — the L0 plane's own copy
+ * under `public/`, same-origin and committed.
+ *
+ * Pinned as a literal here, and separately pinned to `DEFAULT_TOKENS.stylesheetHref` by
+ * a test, for the reason a shared import would defeat: if this script read the value the
+ * renderer emits, then re-pointing the renderer at a third-party sheet would move both
+ * sides together and the audit would agree with whatever it was handed. An INDEPENDENT
+ * literal is what makes this an assertion about the href rather than a tautology.
+ */
+const REQUIRED_INSTALL_STYLESHEET = "/styles/tokens.css"
 
 /**
  * Count human-facing sentence literals in a source file. The heuristic is
@@ -151,6 +171,9 @@ function servedStylesheetRefs(): {
   pagesScanned: number
   pagesWithStylesheet: readonly string[]
   installPagesWithStylesheet: number
+  installPagesTotal: number
+  installPagesMissingRequiredHref: readonly string[]
+  installPagesWithForeignStylesheet: readonly string[]
 } {
   const pages: string[] = []
   const walk = (dir: string): void => {
@@ -171,10 +194,32 @@ function servedStylesheetRefs(): {
     .map((p) => path.relative(repoRoot, p).split(path.sep).join("/"))
     .sort()
 
+  // PR P-4b — the install expectation INVERTED, so it needs the per-page href, not just
+  // "has some stylesheet". Two distinct defects live here and they get separate lists:
+  // a page MISSING the required sheet (styling silently absent on a served page), and a
+  // page referencing a DIFFERENT sheet (the exfiltration-shaped failure, where the plane
+  // is wired but pointed somewhere this repo does not commit).
+  const installPages = pages
+    .map((p) => ({ rel: path.relative(repoRoot, p).split(path.sep).join("/"), html: fs.readFileSync(p, "utf8") }))
+    .filter((p) => p.rel.startsWith("apps/web/public/install/"))
+  const hrefsOf = (html: string): string[] =>
+    [...html.matchAll(/<link\b[^>]*rel="stylesheet"[^>]*>/g)].map(
+      (m) => /href="([^"]*)"/.exec(m[0])?.[1] ?? "",
+    )
+
   return {
     pagesScanned: pages.length,
     pagesWithStylesheet: withCss,
     installPagesWithStylesheet: withCss.filter((p) => p.startsWith("apps/web/public/install/")).length,
+    installPagesTotal: installPages.length,
+    installPagesMissingRequiredHref: installPages
+      .filter((p) => !hrefsOf(p.html).includes(REQUIRED_INSTALL_STYLESHEET))
+      .map((p) => p.rel)
+      .sort(),
+    installPagesWithForeignStylesheet: installPages
+      .filter((p) => hrefsOf(p.html).some((h) => h !== REQUIRED_INSTALL_STYLESHEET))
+      .map((p) => p.rel)
+      .sort(),
   }
 }
 
@@ -186,6 +231,9 @@ function build(): { json: string; pass: boolean; failures: readonly string[] } {
     absenceConsequence: Object.values(ABSENCE_CONSEQUENCE),
     primaryCta: Object.values(PRIMARY_CTA),
     sectionTitles: Object.values(SECTION_TITLES),
+    // The href the renderer really emits, so containment is checked against the shipped
+    // value rather than a restatement of it.
+    stylesheetHref: [DEFAULT_TOKENS.stylesheetHref],
     verdictLabel: Object.values(VERDICT_PUBLIC_LABEL),
     guidanceSteps: [...AGENT_GUIDANCE.steps],
   })
@@ -217,43 +265,55 @@ function build(): { json: string; pass: boolean; failures: readonly string[] } {
           ? `${p.dir} is missing — expected present since ${p.expectedSince} (${p.why})`
           : `${p.dir} exists — expected absent until ${p.expectedSince} (${p.why})`,
       ),
-    // The served-bytes floor (ADR 0058 §4): only PR P-4b may put CSS on a served page.
-    // Measured here rather than merely recorded, so lifting copy or tokens can never
-    // quietly become a visual change.
+    // The served-bytes floor (ADR 0058 §4). PR P-4b is the ONE Workstream P PR licensed
+    // to change served bytes, and this is that change — so the install expectation
+    // INVERTS here rather than being deleted. Before: zero install pages may carry CSS.
+    // Now: every install page must carry EXACTLY the plane's own href.
     //
-    // Two failures, not one, because they are different defects. A NEW styled page is a
-    // served-byte change; an install page carrying CSS is specifically the P-4b boundary
-    // being crossed early. Reporting them separately means the message names the actual
-    // problem instead of a count that moved.
-    ...(css.installPagesWithStylesheet > 0
-      ? [
-          `${css.installPagesWithStylesheet} served install page(s) reference a stylesheet — only PR P-4b may put CSS on an install page (ADR 0058 §4)`,
-        ]
+    // Inverting is strictly stronger than relaxing. A deleted check would let a page
+    // silently lose its stylesheet again; this one fails on absence, and separately on a
+    // FOREIGN href — the difference between "styling missing" and "styling sourced from
+    // somewhere this repo does not commit", which is the failure that would end the
+    // offline-verifiable-provenance claim.
+    ...(css.installPagesTotal === 0
+      ? ["no served install pages found — the P-4b stylesheet expectation would hold vacuously"]
       : []),
+    ...css.installPagesMissingRequiredHref.map(
+      (p) =>
+        `${p} does not reference ${REQUIRED_INSTALL_STYLESHEET} — PR P-4b links the L0 plane from every install page, and a page without it renders unstyled (ADR 0058 §4)`,
+    ),
+    ...css.installPagesWithForeignStylesheet.map(
+      (p) =>
+        `${p} references a stylesheet other than ${REQUIRED_INSTALL_STYLESHEET} — a served trust surface may only load bytes this repo commits`,
+    ),
+    // The TRUST half of the floor is unchanged: P-4b touches the install surface only, so
+    // a newly styled or newly unstyled trust page is still a served-byte change nobody
+    // licensed. Scoped to non-install pages now that install pages are expected to differ.
     ...css.pagesWithStylesheet
-      .filter((p) => !PRE_EXISTING_STYLED_PAGES.includes(p))
+      .filter((p) => !p.startsWith("apps/web/public/install/") && !PRE_EXISTING_STYLED_PAGES.includes(p))
       .map(
         (p) =>
-          `${p} references a stylesheet but is not one of the ${PRE_EXISTING_STYLED_PAGES.length} pages already styled before Workstream P — only PR P-4b may change served bytes (ADR 0058 §4)`,
+          `${p} references a stylesheet but is not one of the ${PRE_EXISTING_STYLED_PAGES.length} pages already styled before Workstream P — PR P-4b changes the INSTALL surface only (ADR 0058 §4)`,
       ),
     ...PRE_EXISTING_STYLED_PAGES.filter((p) => !css.pagesWithStylesheet.includes(p)).map(
-      (p) => `${p} no longer references a stylesheet — served bytes moved without PR P-4b (ADR 0058 §4)`,
+      (p) => `${p} no longer references a stylesheet — served bytes moved outside PR P-4b's scope (ADR 0058 §4)`,
     ),
   ]
 
   const report = {
     schema: "calllint.presentation-plane-audit.v0",
     $comment:
-      "Workstream P presentation-plane reality audit (ADR 0058 §1/§5), re-baselined by PR P-4. reachability[] is MEASURED by mutation/containment probe over the shipped projection, not declared: a row whose declaredPlane disagrees with its measuredPlane fails. The VERDICT_PUBLIC_LABEL and AGENT_GUIDANCE.steps rows are negative controls — they MUST measure as decision-plane, otherwise the probe cannot detect reachability and every other row is meaningless. planeStages replaces P-0's blanket greenfield assertion: creating each plane is a specific PR's WORK, so the expectation is per-plane and bidirectional (content present since P-2, styles present since P-4) — strictly stronger, since deleting either plane now fails too. servedStylesheets was widened by P-4 from an install-only COUNT to the exact SET over every served trust+install page: the old walk could not see the two Trust pages that were already styled before this workstream, so it reported 0 while two served pages carried CSS. Regenerate with `pnpm audit:presentation:write`; enforce with `pnpm audit:presentation:gate`.",
+      "Workstream P presentation-plane reality audit (ADR 0058 §1/§5), re-baselined by PR P-4b — the ONE Workstream P PR licensed to change served bytes. reachability[] is MEASURED by mutation/containment probe over the shipped projection, not declared: a row whose declaredPlane disagrees with its measuredPlane fails. The VERDICT_PUBLIC_LABEL and AGENT_GUIDANCE.steps rows are negative controls — they MUST measure as decision-plane, otherwise the probe cannot detect reachability and every other row is meaningless. STYLESHEET_HREF is P-4b's new row and the only presentation site that reaches an ATTRIBUTE rather than a text node. planeStages replaces P-0's blanket greenfield assertion: creating each plane is a specific PR's WORK, so the expectation is per-plane and bidirectional. servedStylesheets INVERTED at P-4b: P-4's rule was that zero install pages carry CSS; the rule is now that EVERY install page carries exactly /styles/tokens.css, and separately that none carries a foreign href. Inverting is stronger than deleting — absence now fails, so a page cannot silently lose its stylesheet. Regenerate with `pnpm audit:presentation:write`; enforce with `pnpm audit:presentation:gate`.",
     workstream: "P",
-    pr: "P-4",
+    pr: "P-4b",
     status: failures.length === 0 ? "PASSED" : "FAILED",
     planeStages,
     servedStylesheets: {
       ...css,
       preExistingStyledPages: PRE_EXISTING_STYLED_PAGES,
+      requiredInstallStylesheet: REQUIRED_INSTALL_STYLESHEET,
       $comment:
-        "pagesWithStylesheet must equal preExistingStyledPages EXACTLY, and installPagesWithStylesheet must be 0, until PR P-4b — the only Workstream P PR permitted to change served bytes (ADR 0058 §4). The two listed Trust pages predate this workstream (caede1b, #188) and reference the marketing /styles.css. PR P-4 adds apps/web/styles/tokens.css, which is NOT served: it sits outside apps/web/public/, and the deploy step publishes public/ only — so this measure is what proves the token plane stayed off the pages.",
+        "PR P-4b INVERTED the install half of this measure. Through P-4 the rule was `installPagesWithStylesheet === 0`: the L0 plane existed at apps/web/styles/tokens.css, outside the deployed directory, so it was unpublishable by construction. P-4b is the single PR ADR 0058 §4 licenses to change served bytes, so now every install page must reference requiredInstallStylesheet and installPagesMissingRequiredHref must be empty — absence is a failure, which a deleted check could not express. installPagesWithForeignStylesheet must also be empty: that is the exfiltration-shaped defect (plane wired, pointed at bytes this repo does not commit), and it is a different failure from styling being absent. The two listed Trust pages predate this workstream (caede1b, #188) and reference the marketing /styles.css; P-4b does not touch them, so the trust half of the floor is unchanged and still bidirectional.",
     },
     inventory,
     inventoryTotal: inventory.reduce((n, i) => n + i.copyLiterals, 0),

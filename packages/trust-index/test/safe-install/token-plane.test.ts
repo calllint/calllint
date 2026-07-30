@@ -1,12 +1,31 @@
 // ---------------------------------------------------------------------------
-// Workstream P Batch 4 — L0 token plane tests (new15 §4.2 PR P-4; ADR 0058 §1/§4).
+// Workstream P Batch 4b — L0 token plane tests (new15 §4.2 PR P-4b; ADR 0058 §1/§4).
+//
+// P-4 built the plane and proved it unpublishable. P-4b SERVES it, so three assertions in
+// this file INVERT rather than being deleted — the distinction matters, because a deleted
+// check cannot fail when a page silently loses its stylesheet:
+//
+//   • "no served page references a stylesheet" → "every install page references EXACTLY
+//     the plane's own href, and nothing else" (the second half is the exfiltration-shaped
+//     failure: plane wired, pointed at bytes this repo does not commit).
+//   • "the rendered HTML is byte-identical under any tokens block" → "ONLY the href moves"
+//     — substituting the sentinel back and requiring byte equality is what makes "only"
+//     measurable, where a weaker "the pages differ" would pass if tokens also reordered
+//     sections or dropped a decision group.
+//   • "tokens is a NON-SLOT" → "tokens is a resolved slot, overridden when it differs and
+//     never unwired".
+//
+// Two measures are new here because P-4b is the first batch where they could fail: the
+// element BASELINE (`body`/`main` were invisible to every class-scoped parser, and missing
+// they would have shipped the <link> with none of the visual-hierarchy outcome) and the
+// var()-resolved VISUAL FACT that the lock digests.
 //
 // P-1 proved COPY reaches no digest; P-3 proved the same of LAYOUT. This suite makes a
 // weaker-sounding but differently-shaped claim about TOKENS: L0 is the level that is "not
 // reachable into any digest, and appears only in CSS", so the plane must be measurably
 // populated, measurably harmless, and measurably tied to the visual language it mirrors.
 //
-// Five questions, each falsifiable:
+// The standing questions, each falsifiable:
 //
 //   1. POPULATED — `l0Digest` moved off sha256({}), and L1/L2/presentationDigest did NOT.
 //      Orthogonality is asserted rather than assumed: `sectionsAtLevel` projects by level,
@@ -34,8 +53,10 @@
 
 import { describe, it, expect } from "vitest"
 import {
+  BASELINE_SELECTORS,
   CANONICAL_FIXTURES,
   DEFAULT_PRESENTATION,
+  DEFAULT_TOKENS,
   EMPTY_PRESENTATION_CONTENT,
   FORBIDDEN_CSS_CONSTRUCTS,
   LEVEL_BY_SECTION,
@@ -47,6 +68,8 @@ import {
   parseClassSelectors,
   parseRootTokens,
   parseStyledClasses,
+  nonClassRuleHeads,
+  resolveDeclarations,
   presentationDigest,
   renderSafeInstall,
   resolvePresentation,
@@ -76,6 +99,20 @@ const PLANE_PATH = path.join(repoRoot, "apps", "web", "styles", "tokens.css")
 const SERVED_PATH = path.join(repoRoot, "apps", "web", "public", "styles.css")
 const planeCss = fs.readFileSync(PLANE_PATH, "utf8")
 const servedCss = fs.readFileSync(SERVED_PATH, "utf8")
+
+/** Every committed install page. Walked, not globbed, so it needs no dev dependency. */
+const installPages = (): string[] => {
+  const out: string[] = []
+  const walk = (dir: string): void => {
+    for (const e of fs.readdirSync(dir, { withFileTypes: true })) {
+      const p = path.join(dir, e.name)
+      if (e.isDirectory()) walk(p)
+      else if (e.name === "index.html") out.push(p)
+    }
+  }
+  walk(path.join(repoRoot, "apps", "web", "public", "install"))
+  return out.sort()
+}
 
 /** The committed catalog — the document the bake actually resolves. */
 const CATALOG_PATH = path.join(repoRoot, "apps", "web", "content", "safe-install", "presentation.v1.json")
@@ -151,31 +188,56 @@ describe("L0 token plane — populated (the level is no longer indistinguishable
     expect(href).toBeDefined()
     expect(href).toMatch(/^\/styles\/[a-z0-9./-]+\.css$/)
     expect(href).not.toMatch(/^https?:|^\/\//) // no scheme, no host: never a third-party origin
-    expect(fs.existsSync(path.join(repoRoot, "apps", "web", (href as string).replace(/^\//, "")))).toBe(true)
+    // P-4b: the href is now LIVE, so it must resolve inside the SERVED tree. Checking the
+    // authored source directory would still pass for a sheet no deploy publishes — a 404 on
+    // a served trust surface, which is the failure the P-4 comment above anticipated.
+    expect(
+      fs.existsSync(path.join(repoRoot, "apps", "web", "public", (href as string).replace(/^\//, ""))),
+    ).toBe(true)
+    // And the catalog restates the shipped default rather than re-pointing it.
+    expect(href).toBe(DEFAULT_TOKENS.stylesheetHref)
   })
 
-  it("the plane is NOT served — it lives outside apps/web/public/", () => {
-    // The structural half of ADR 0058 §4. Not a promise about the renderer: the deploy step
-    // publishes `public` only, so a path outside it cannot reach a visitor.
+  it("the SOURCE plane still lives outside apps/web/public/", () => {
+    // P-4's structural claim, kept: the authored file is still not itself deployable, and
+    // `sync-assets.mjs` is the only thing that puts a copy where a visitor can reach it.
+    // Keeping this after P-4b matters — it is what stops the plane from being "fixed" by
+    // moving the source into public/ and editing the served bytes directly.
     const rel = path.relative(path.join(repoRoot, "apps", "web", "public"), PLANE_PATH)
     expect(rel.startsWith("..")).toBe(true)
-    // And no served install page references any stylesheet yet.
-    const installRoot = path.join(repoRoot, "apps", "web", "public", "install")
-    const pages: string[] = []
-    const walk = (dir: string): void => {
-      for (const e of fs.readdirSync(dir, { withFileTypes: true })) {
-        const p = path.join(dir, e.name)
-        if (e.isDirectory()) walk(p)
-        else if (e.name === "index.html") pages.push(p)
-      }
-    }
-    walk(installRoot)
+  })
+
+  it("the served copy is byte-identical to the source", () => {
+    // Every other assertion in this file reads the SOURCE. Browsers read the copy. This is
+    // the one assertion that makes those the same claim.
+    const served = path.join(repoRoot, "apps", "web", "public", "styles", "tokens.css")
+    expect(fs.existsSync(served)).toBe(true)
+    expect(fs.readFileSync(served, "utf8")).toBe(planeCss)
+  })
+
+  it("every served install page links the plane — and links nothing else (P-4b)", () => {
+    // INVERTED from P-4, which asserted zero stylesheets here. P-4b is the one PR ADR 0058
+    // §4 licenses to change served bytes, so the floor moves rather than being dropped:
+    // absence is now the failure. `<style>` stays forbidden either way — an inline block
+    // would be unmeasurable by the plane's parsers and unreviewable in a diff of 19 pages.
+    const pages = installPages()
     expect(pages.length).toBeGreaterThan(0) // anti-vacuity
     for (const p of pages) {
       const html = fs.readFileSync(p, "utf8")
-      expect(html).not.toMatch(/rel="stylesheet"/)
+      const hrefs = [...html.matchAll(/<link\b[^>]*rel="stylesheet"[^>]*>/g)].map(
+        (m) => /href="([^"]*)"/.exec(m[0])?.[1],
+      )
+      expect(hrefs).toEqual([DEFAULT_TOKENS.stylesheetHref])
       expect(html).not.toMatch(/<style[\s>]/)
     }
+  })
+
+  it("the link sits AFTER the agent-contract alternate link", () => {
+    // Order is a claim, not an accident: the machine relation that makes this surface
+    // agent-readable stays the first thing a parser meets. A stylesheet no agent needs must
+    // not be inserted ahead of it.
+    const html = fs.readFileSync(installPages()[0] as string, "utf8")
+    expect(html.indexOf('rel="stylesheet"')).toBeGreaterThan(html.indexOf("agent-adoption+json"))
   })
 })
 
@@ -230,35 +292,79 @@ describe("L0 token plane — INV-P2 behavior isolation", () => {
     }
   })
 
-  it("the rendered HTML is BYTE-IDENTICAL under any tokens block", () => {
-    // The strongest form of "P-4 changes no served byte": not a digest that held, the
-    // actual bytes. If a later PR wires tokens into the renderer without also moving the
-    // reproducibility gate, this fails first.
+  it("a tokens mutation changes ONLY the href — the rest of the page is byte-identical", () => {
+    // P-4's version asserted the whole page was byte-identical under any tokens block. That
+    // claim was true then and is false now by design, so it is REPLACED rather than deleted:
+    // the href must move (or the plane is not wired), and nothing else may. Substituting the
+    // sentinel href back and requiring byte equality is what makes "only" measurable — a
+    // weaker test that just checked the pages differ would pass if tokens also reordered
+    // sections or dropped a decision group.
     const rendered = freshProjections()
     const control = freshProjections()
     for (const [i, p] of rendered.entries()) {
       const baseline = renderSafeInstall(control[i]!)
-      for (const tokens of [undefined, catalog.tokens, MUTATED_TOKENS]) {
-        const doc = { ...catalog, tokens } as PresentationContentV1
-        const resolved = resolvePresentation(doc)
-        expect(renderSafeInstall(p, resolved.sectionTitles, resolved.layout)).toBe(baseline)
-      }
+      const resolved = resolvePresentation({ ...catalog, tokens: MUTATED_TOKENS })
+      const moved = renderSafeInstall(p, resolved.sectionTitles, resolved.layout, resolved.tokens)
+      expect(moved).not.toBe(baseline) // the plane really is wired
+      expect(moved.split(resolved.tokens.stylesheetHref).join(DEFAULT_TOKENS.stylesheetHref)).toBe(baseline)
     }
   })
 
-  it("the resolver treats tokens as a NON-SLOT — it is not overridden, and not rejected", () => {
-    // L0 appears only in CSS, so no resolver slot consumes it. Recording that explicitly
-    // matters: were `tokens` to appear in `unwiredSlots`, the lock would fail (a key that
-    // validates and then does nothing), and were it to appear in `overriddenSlots`, it
-    // would be claiming to reach a renderer it does not reach.
+  it("tokens is now a RESOLVED slot — overridden when it differs, never unwired", () => {
+    // INVERTED from P-4, where L0 appeared only in CSS and no slot consumed it. P-4b wires
+    // it, so the correct assertion flips: a differing block must be RECORDED as overridden,
+    // and `unwiredSlots` must stay empty — a key that validates and then does nothing is the
+    // failure ADR 0058 §3 names, and it is now avoidable rather than accepted.
     const r = resolvePresentation({ ...EMPTY_PRESENTATION_CONTENT, tokens: MUTATED_TOKENS })
-    expect(r.overriddenSlots.filter((s) => s.startsWith("tokens"))).toEqual([])
+    expect(r.overriddenSlots).toContain("tokens.tokensVersion")
     expect(r.unwiredSlots.filter((s) => s.startsWith("tokens"))).toEqual([])
     expect(r.rejectedSlots.filter((s) => s.startsWith("tokens"))).toEqual([])
     // And a malformed tokens block cannot take the document down with it (INV-P3).
     const bad = resolvePresentation({ ...EMPTY_PRESENTATION_CONTENT, tokens: "dark-mode" as never })
     expect(bad.sectionTitles).toEqual(DEFAULT_PRESENTATION.sectionTitles)
     expect(bad.layout).toEqual(DEFAULT_PRESENTATION.layout)
+    expect(bad.tokens).toEqual(DEFAULT_TOKENS)
+    expect(bad.rejectedSlots).toContain("tokens: not an object")
+  })
+
+  it("refuses any href that is not a rooted same-origin .css path", () => {
+    // The one resolved value that reaches an ATTRIBUTE on a served page, so its failure mode
+    // is a NETWORK REQUEST rather than a misleading sentence. `//evil.example/x.css` is the
+    // case a naive "starts with /" check waves through — it is a protocol-relative absolute
+    // URL, and it is why the predicate is an allow-list.
+    const bad = [
+      "//evil.example/x.css",
+      "https://evil.example/x.css",
+      "http://evil.example/x.css",
+      "styles/tokens.css", // relative: resolves against the page's own deep path
+      "/../../etc/passwd.css",
+      "/styles/tokens.css?v=1",
+      "/styles/tokens.css#x",
+      "\\\\evil.example\\x.css",
+      "/styles/tokens.js",
+      "",
+      "  ",
+    ]
+    for (const href of bad) {
+      const r = resolvePresentation({
+        ...EMPTY_PRESENTATION_CONTENT,
+        tokens: { tokensVersion: "probe", stylesheetHref: href },
+      } as PresentationContentV1)
+      // Falls back to the shipped sheet — the page keeps its styling ...
+      expect(r.tokens.stylesheetHref, `accepted ${JSON.stringify(href)}`).toBe(DEFAULT_TOKENS.stylesheetHref)
+      // ... and says so, so the lock fails rather than serving a quiet fallback.
+      expect(r.rejectedSlots).toContain("tokens.stylesheetHref: not a rooted same-origin .css path")
+      // The rejection must not echo the attacker-influenced value into a CI log.
+      expect(r.rejectedSlots.join("\n")).not.toContain("evil.example")
+    }
+    // Positive control: a legitimate same-origin path IS accepted, so the predicate is not
+    // simply refusing everything (which would make every assertion above vacuous).
+    const good = resolvePresentation({
+      ...EMPTY_PRESENTATION_CONTENT,
+      tokens: { tokensVersion: "probe", stylesheetHref: "/styles/other-theme.css" },
+    } as PresentationContentV1)
+    expect(good.tokens.stylesheetHref).toBe("/styles/other-theme.css")
+    expect(good.rejectedSlots.filter((s) => s.startsWith("tokens"))).toEqual([])
   })
 })
 
@@ -294,6 +400,46 @@ describe("L0 token plane — the drift pin against the served sheet", () => {
     const dropped = plane.filter((t) => t.name !== "--brand")
     expect(tokenDrift(dropped, served).sharedNames).not.toContain("--brand")
     expect(tokenDrift(dropped, served).sharedNames.length).toBe(plane.length - 1)
+  })
+})
+
+describe("L0 token plane — the element baseline and the visual fact (PR P-4b)", () => {
+  it("styles EXACTLY the permitted element selectors — no more, no fewer", () => {
+    // The class-scoped parsers above cannot see an element rule at all, so before P-4b a
+    // `body` rule was both unmeasurable and, missing, would have shipped the <link> with
+    // none of the outcome: styled sections on a browser-default page. Asserted as a set in
+    // both directions, so neither dropping `body` nor adding `div` passes.
+    expect(nonClassRuleHeads(planeCss)).toEqual([...BASELINE_SELECTORS])
+  })
+
+  it("a baseline rule cannot hide a decision group either", () => {
+    // `.install-verdict { display: none }` was already a finding. `body { display: none }`
+    // hides the same disposition just as completely, and under a class-only scan it was not
+    // a finding at all — so the suppression scan covers the baseline heads too.
+    expect(suppressionViolations(planeCss)).toEqual([])
+    for (const head of BASELINE_SELECTORS) {
+      expect(suppressionViolations(`${head} { display: none }`)).toEqual([`${head} → display: none`])
+    }
+    // And a mere descendant mention is not the subject, so it is not a false positive.
+    expect(suppressionViolations(".install-authority body code { color: red }")).toEqual([])
+  })
+
+  it("resolves var() to the visual fact, and is blind to comments", () => {
+    // The measure the lock digests. A raw-bytes digest moves when a comment is reworded; a
+    // token-NAME comparison misses a palette re-pointed through renamed variables. Resolving
+    // var() against :root and digesting the result is what tracks what a visitor SEES.
+    const tokens = parseRootTokens(planeCss).tokens
+    const rules = resolveDeclarations(planeCss, tokens)
+    expect(rules.length).toBeGreaterThan(0)
+    // No unresolved var() survives — an undefined token would silently render as nothing.
+    expect(rules.flatMap((r) => r.declarations).filter((d) => d.includes("var("))).toEqual([])
+    // Comment-blind: same visual fact, different bytes.
+    const commented = `/* a reworded comment */\n${planeCss}`
+    expect(resolveDeclarations(commented, parseRootTokens(commented).tokens)).toEqual(rules)
+    // But a re-pointed value moves it, even with every token NAME unchanged.
+    const repointed = planeCss.replace(/--ink:\s*[^;]+;/, "--ink: #ff00ff;")
+    expect(repointed).not.toBe(planeCss) // anti-vacuity: the substitution really happened
+    expect(resolveDeclarations(repointed, parseRootTokens(repointed).tokens)).not.toEqual(rules)
   })
 })
 

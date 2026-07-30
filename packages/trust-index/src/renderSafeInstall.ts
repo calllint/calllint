@@ -24,6 +24,7 @@ import {
   type AboveFoldSectionId,
   type ResolvedLayout,
 } from "./safe-install/layoutStructure.js"
+import { DEFAULT_TOKENS, type ResolvedTokens } from "./safe-install/tokenPlane.js"
 
 /**
  * The renderer's FIXED section titles (PR P-2 lifts the wording; the POSITION and
@@ -34,18 +35,24 @@ import {
  * block or into a decision group: the block is emitted from exactly one place below,
  * after every decision group, and nothing in the document can address its position.
  *
- * The schema's fourth slot, `boundary`, is deliberately NOT resolved here. Its emitted
- * form spans three source-folded lines, so lifting it would require either storing the
- * renderer's HTML indentation inside the content document (configuration owning layout,
- * which §3 forbids) or re-folding the text and changing served bytes (which §4 reserves
- * for PR P-4b). Deferring one slot is cheaper than either. The deferral is DECLARED in
- * `resolvePresentation.ts` and gated, so a config key can never validate and then do
- * nothing unnoticed.
+ * `boundary` is the fourth slot, WIRED by PR P-4b. P-2 deferred it for one reason:
+ * its emitted form was folded across three source lines, so lifting it meant either
+ * storing the renderer's HTML indentation in the content document (configuration
+ * owning layout, which §3 forbids) or re-folding the text and moving served bytes,
+ * which §4 reserves for this PR. P-4b is that PR, so the sentence is now emitted as
+ * ONE line through `escText` and the fold is gone — the slot holds a sentence, and
+ * nothing about the renderer's whitespace is configurable.
+ *
+ * `UNWIRED_SECTION_TITLES` is consequently now empty, which is why the test that
+ * covered it became a synthetic positive control rather than a vacuous pass.
  */
 export const SECTION_TITLES = {
   authorityFacts: "What it can do",
   provenance: "Provenance",
   publisherBlock: "Publisher-provided description — not used for CallLint's safety decision.",
+  boundary:
+    "This page is an observation at a specific artifact digest and time under the stated completeness." +
+    " It is not a certification, an endorsement, or a guarantee of safety.",
 } as const
 
 export type SectionTitles = Record<keyof typeof SECTION_TITLES, string>
@@ -170,11 +177,32 @@ function publisherBlock(p: SafeInstallProjection, titles: SectionTitles): string
  * quarantined publisher block, provenance (with both binding digests, so the
  * HTML↔JSON digest-consistency test can verify one fact object), and the boundary
  * framing follow below the fold. No <script>, no inline `on*` handler.
+ *
+ * PR P-4b — THIS RENDERER NOW MOVES SERVED BYTES, by exactly two edits per page:
+ *
+ *   • one `<link rel="stylesheet">` in `<head>`, last, AFTER the agent-contract
+ *     `alternate` link. Order is deliberate: the machine relation that makes this
+ *     surface agent-readable stays the first thing a parser meets, and a stylesheet
+ *     — which no agent needs — does not get inserted ahead of it.
+ *   • the boundary sentence, refolded from three source lines to one (−22 B), which
+ *     is what let the fourth copy slot be wired at all.
+ *
+ * Net +34 B per page. The `<link>` is still not JS and still cannot decide anything:
+ * ADR 0056 §7's rule is that JS never decides, and CSS cannot even in principle. What
+ * CSS *can* do is hide a decision group, which is why the plane it points at is
+ * gated for suppression properties rather than trusted.
+ *
+ * `tokens.stylesheetHref` goes through the ATTRIBUTE escape, not the text one — it
+ * lands in an attribute value, and it is the only configured value on this surface
+ * that does. `resolvePresentation` additionally refuses any href that is not a
+ * single-slash-rooted same-origin path, so configuration cannot point a served page
+ * at a third-party sheet.
  */
 export function renderSafeInstall(
   p: SafeInstallProjection,
   titles: SectionTitles = SECTION_TITLES,
   layout: ResolvedLayout = DEFAULT_LAYOUT,
+  tokens: ResolvedTokens = DEFAULT_TOKENS,
 ): string {
   const c = p.agentContract
   const version = p.subject.version
@@ -216,6 +244,7 @@ export function renderSafeInstall(
     <meta name="robots" content="index,follow" />
     <link rel="canonical" href="${esc(`${SITE_ORIGIN}/install/${p.canonicalSlug}/`)}" />
     <link rel="alternate" type="application/vnd.calllint.agent-adoption+json;version=1" href="./index.json" />
+    <link rel="stylesheet" href="${esc(tokens.stylesheetHref)}" />
   </head>
   <body>
     <main>
@@ -228,9 +257,7 @@ ${publisherBlock(p, titles)}
           <li>Artifact digest: <code>${esc(c.subject.artifactDigest)}</code></li>
           <li>Contract digest: <code>${esc(c.contract.contractDigest)}</code></li>
         </ul>
-        <p>This page is an observation at a specific artifact digest and time under the
-           stated completeness. It is not a certification, an endorsement, or a
-           guarantee of safety.</p>
+        <p>${escText(titles.boundary)}</p>
       </section>
     </main>
   </body>

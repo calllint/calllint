@@ -30,6 +30,7 @@ import {
   ABSENCE_CONSEQUENCE,
   CANONICAL_FIXTURES,
   DEFAULT_LAYOUT,
+  DEFAULT_TOKENS,
   DEFAULT_PRESENTATION,
   EMPTY_CLAIM_STORE,
   OBSERVED_CONSEQUENCE,
@@ -202,6 +203,11 @@ const MUTATED: ResolvedPresentation = {
   // reworded page fail in different ways and a combined mutation could not tell which
   // one moved a digest.
   layout: DEFAULT_LAYOUT,
+  // Tokens are the SHIPPED ones for the same reason as layout: an href is not copy, it
+  // is a fetch target, and it fails differently. PR P-4b gives it its own probes — the
+  // resolver's `usableStylesheetHref` rejection tests below, plus the plane audit's
+  // foreign-href check over the served pages.
+  tokens: DEFAULT_TOKENS,
   overriddenSlots: [],
   unwiredSlots: [],
   rejectedSlots: [],
@@ -366,18 +372,39 @@ describe("INV-P3 — a bad or partial document degrades to the shipped copy, nev
       authorityCopy: { observedPhrases: { INVENTED_AUTHORITY: "It can do a new thing." } },
       sectionTitles: { inventedSection: "Invented" },
     })
-    expect(r).toEqual(DEFAULT_PRESENTATION)
-    expect(JSON.stringify(r)).not.toContain("Invented")
-    expect(JSON.stringify(r)).not.toContain("new thing")
+    // Every RESOLVED value is the shipped default — nothing was coined.
+    expect(r.primaryCta).toEqual(DEFAULT_PRESENTATION.primaryCta)
+    expect(r.authority).toEqual(DEFAULT_PRESENTATION.authority)
+    expect(r.sectionTitles).toEqual(DEFAULT_PRESENTATION.sectionTitles)
+    expect(r.layout).toEqual(DEFAULT_PRESENTATION.layout)
+    expect(r.tokens).toEqual(DEFAULT_PRESENTATION.tokens)
+    expect(JSON.stringify(r.sectionTitles)).not.toContain("Invented")
+    expect(JSON.stringify(r.primaryCta)).not.toContain("new thing")
+    // But the invented TITLE key is now REPORTED rather than silently dropped (P-4b
+    // generalized unwiredSlots from the deferral list to "configured but not wired"). A
+    // key that does nothing is drift whether it is a planned deferral or a typo, and
+    // `unwiredSlots` is a lock failure — so this surfaces in CI instead of in a diff
+    // nobody reads. The coined STATE and AUTHORITY token stay silent: those are
+    // enum-keyed merges where an unknown key cannot be distinguished from a stale one.
+    expect(r.unwiredSlots).toEqual(["sectionTitles.inventedSection"])
   })
 
   it("reports a configured-but-unwired slot instead of silently ignoring it", () => {
+    // P-4b wired `boundary`, the last unwired slot, so this test lost its subject. Keeping it
+    // as-is would have left it passing while measuring nothing — the exact defect the
+    // unwired-slot mechanism exists to catch, reproduced in the test for that mechanism.
+    //
+    // So it becomes a SYNTHETIC positive control: an unwired name is injected here rather
+    // than found in the schema, which proves the detection still works and will report the
+    // NEXT real deferral. The empty-list assertion over the real catalog lives above.
+    expect(UNWIRED_SECTION_TITLES).toEqual([]) // no real deferral remains ...
     const r = resolvePresentation({
       schema: PRESENTATION_CONTENT_VERSION,
       locale: "en-US",
-      sectionTitles: { boundary: "What this does not tell you" },
+      sectionTitles: { notASlot: "What this does not tell you" } as never,
     })
-    expect(r.unwiredSlots).toEqual(["sectionTitles.boundary"])
+    // ... and an unknown title key is still caught rather than silently dropped.
+    expect(r.unwiredSlots).toEqual(["sectionTitles.notASlot"])
     // And the wording did NOT reach the resolved copy, since nothing consumes it.
     expect(JSON.stringify(r.sectionTitles)).not.toContain("does not tell you")
   })

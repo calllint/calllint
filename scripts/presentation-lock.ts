@@ -47,6 +47,7 @@
 import fs from "node:fs"
 import path from "node:path"
 import { fileURLToPath } from "node:url"
+import { hashJson } from "@calllint/fingerprint"
 import { VERDICT_PUBLIC_LABEL } from "@calllint/types"
 import {
   ABOVE_FOLD_SECTION_IDS,
@@ -80,6 +81,9 @@ import {
   suppressionViolations,
   tokenDrift,
   validatePresentationContent,
+  BASELINE_SELECTORS,
+  nonClassRuleHeads,
+  resolveDeclarations,
   type PresentationContentV1,
   type ResolvedPresentation,
 } from "../packages/trust-index/src/index.js"
@@ -92,8 +96,18 @@ const CONTENT_ROOT = "apps/web/content/safe-install"
 /** The merged document P-2 writes; the lock validates and digests it. */
 const CONTENT_DOC = `${CONTENT_ROOT}/presentation.v1.json`
 
-/** The L0 token plane created by PR P-4. NOT served — outside apps/web/public/. */
+/** The L0 token plane created by PR P-4. The authored SOURCE, outside apps/web/public/. */
 const TOKEN_PLANE_CSS = "apps/web/styles/tokens.css"
+/**
+ * The SERVED copy of that plane (PR P-4b) — the bytes a visitor actually receives.
+ *
+ * Two files, one truth: `sync-assets.mjs` copies source → served, and this lock
+ * BYTE-COMPARES them. Without that compare the arrangement would be worse than a single
+ * file, because every measure below reads the SOURCE while browsers read the copy: a
+ * hand-edit under `public/` would pass every token, coverage, and suppression check while
+ * serving something else entirely. The compare is what makes "the plane" one object.
+ */
+const SERVED_TOKEN_CSS = "apps/web/public/styles/tokens.css"
 /** The served marketing sheet whose `:root` block P-4 mirrors (never edits). */
 const SERVED_MARKETING_CSS = "apps/web/public/styles.css"
 /**
@@ -125,6 +139,38 @@ function permutations<T>(items: readonly T[]): T[][] {
     for (const p of permutations(rest)) out.push([items[i] as T, ...p])
   }
   return out
+}
+
+/**
+ * Emit the install tree with a SENTINEL href and require every page to carry it (P-4b).
+ * Returns a failure string, or null.
+ *
+ * A sentinel rather than the shipped value on purpose: asserting the real href appears
+ * would also pass if the renderer hardcoded it, which is the specific defect this probe
+ * exists to exclude — a value that resolves correctly and reaches the page from somewhere
+ * other than the resolver. The sentinel can only appear if the argument travelled.
+ */
+function probeEmittedStylesheet(): string | null {
+  const snapPath = path.join(repoRoot, "packages", "trust-index", "snapshots", "official-mcp-registry.json")
+  if (!fs.existsSync(snapPath)) return `stylesheet wiring probe found no committed registry snapshot at ${snapPath}`
+  const evPath = path.join(repoRoot, "packages", "trust-index", "snapshots", "evidence-snapshot.json")
+  const snapshot = parseSnapshot(fs.readFileSync(snapPath, "utf8"))
+  const evidence = fs.existsSync(evPath) ? parseEvidenceSnapshot(fs.readFileSync(evPath, "utf8")) : null
+  const sentinel = "/styles/__wiring-probe__.css"
+  const pages = emitSafeInstall(snapshot, evidence, "0.0.0-probe", {
+    ...DEFAULT_PRESENTATION,
+    tokens: { tokensVersion: "wiring-probe", stylesheetHref: sentinel },
+  }).files.filter((f) => f.path.endsWith("/index.html"))
+  if (pages.length === 0) return "stylesheet wiring probe emitted no install pages — it would measure nothing"
+  const missing = pages.filter((f) => !f.content.includes(`href="${sentinel}"`))
+  if (missing.length > 0) {
+    return (
+      `tokens.stylesheetHref is declared configurable but a probe value reached ${pages.length - missing.length}/` +
+      `${pages.length} emitted page(s) (e.g. ${missing[0]?.path}) — the resolved href never reaches the renderer ` +
+      `(ADR 0058 §3: a key that validates and then does nothing)`
+    )
+  }
+  return null
 }
 
 /**
@@ -298,7 +344,11 @@ function build(): { json: string; pass: boolean; failures: readonly string[] } {
     JSON.stringify(resolved.primaryCta) === JSON.stringify(DEFAULT_PRESENTATION.primaryCta) &&
     JSON.stringify(resolved.authority) === JSON.stringify(DEFAULT_PRESENTATION.authority) &&
     JSON.stringify(resolved.sectionTitles) === JSON.stringify(DEFAULT_PRESENTATION.sectionTitles) &&
-    JSON.stringify(resolved.layout) === JSON.stringify(DEFAULT_PRESENTATION.layout)
+    JSON.stringify(resolved.layout) === JSON.stringify(DEFAULT_PRESENTATION.layout) &&
+    // PR P-4b: tokens joins the identity. It has to, now that the href reaches served
+    // bytes — a catalog that quietly re-pointed the stylesheet would otherwise satisfy
+    // "resolves to defaults" while changing what every install page loads.
+    JSON.stringify(resolved.tokens) === JSON.stringify(DEFAULT_PRESENTATION.tokens)
   if (docPresent && validationErrors.length === 0 && !resolvesToDefaults) {
     failures.push(
       `${CONTENT_DOC}: resolves to copy that differs from the shipped code defaults — ` +
@@ -441,6 +491,21 @@ function build(): { json: string; pass: boolean; failures: readonly string[] } {
   const planeTokens = parseRootTokens(tokenCss)
   const servedTokens = parseRootTokens(servedCss)
   const drift = tokenDrift(planeTokens.tokens, servedTokens.tokens)
+
+  // PR P-4b — the served copy, and the VISUAL fact.
+  const servedPlanePath = path.join(repoRoot, SERVED_TOKEN_CSS)
+  const servedPlanePresent = fs.existsSync(servedPlanePath)
+  const servedPlaneCss = servedPlanePresent ? fs.readFileSync(servedPlanePath, "utf8") : ""
+  const servedCopyMatchesSource = servedPlanePresent && tokenPlanePresent && servedPlaneCss === tokenCss
+  // The element baseline: rule heads with no class in them. Asserted as a SET against
+  // BASELINE_SELECTORS, so the plane can neither drop `body` (styling the sections while
+  // the page stays at browser defaults) nor add an element rule no measure looks at.
+  const baselineHeads = nonClassRuleHeads(tokenCss)
+  // `var()` resolved against the plane's own :root, then digested. This is the measure a
+  // raw-bytes digest cannot be: a comment edit leaves it still, and a re-pointed palette
+  // moves it even if every selector and token NAME is unchanged.
+  const resolvedRules = resolveDeclarations(tokenCss, planeTokens.tokens)
+  const visualDigest = hashJson(resolvedRules)
   // TWO selector measures, deliberately. `planeStyled` is the classes that directly
   // receive declarations — the coverage scope, because a descendant-only mention like
   // `.install-authority code` styles the `code`, not the class, and counting it would let
@@ -480,19 +545,47 @@ function build(): { json: string; pass: boolean; failures: readonly string[] } {
         `the L0 section is not reaching presentationDigest`,
     )
   }
-  // The declared href must name the file that exists. P-4 records it without emitting
-  // it, so nothing checks the path at runtime this batch — which is exactly why it has
-  // to be checked here: a stale href would surface for the first time in P-4b, as a 404
-  // on a served page.
+  // The declared href must resolve to a file INSIDE the served tree. P-4 checked this
+  // against the authored source, which was the right check while nothing was emitted; now
+  // the href is a live URL, so the path it has to resolve under is `public/`. Checking the
+  // source directory would still pass for a sheet that no deploy publishes — a 404 on a
+  // served trust surface, which is exactly the failure the P-4 comment anticipated here.
   if (tokensBlock?.stylesheetHref !== undefined) {
     const declared = tokensBlock.stylesheetHref.replace(/^\//, "")
-    const declaredExists = fs.existsSync(path.join(repoRoot, "apps", "web", declared))
-    if (!declaredExists) {
+    if (!fs.existsSync(path.join(repoRoot, "apps", "web", "public", declared))) {
       failures.push(
-        `${CONTENT_DOC}: tokens.stylesheetHref "${tokensBlock.stylesheetHref}" resolves to apps/web/${declared}, ` +
-          `which does not exist — PR P-4b would emit a link to a missing sheet`,
+        `${CONTENT_DOC}: tokens.stylesheetHref "${tokensBlock.stylesheetHref}" resolves to ` +
+          `apps/web/public/${declared}, which does not exist — the served install pages link a missing sheet ` +
+          `(run \`pnpm -F @calllint/web build\`)`,
       )
     }
+  }
+  // The served copy must exist and be byte-identical to the authored source. Both halves
+  // matter and they fail differently: no copy means the deploy has nothing to publish,
+  // while a differing copy means every measure in this block is describing a file that is
+  // not the one users receive.
+  if (!servedPlanePresent) {
+    failures.push(
+      `${SERVED_TOKEN_CSS} is missing — the install pages link it (run \`pnpm -F @calllint/web build\`)`,
+    )
+  } else if (!servedCopyMatchesSource) {
+    failures.push(
+      `${SERVED_TOKEN_CSS} differs from ${TOKEN_PLANE_CSS} — the served bytes are not the plane this lock measures ` +
+        `(the served copy is a build OUTPUT: edit the source, then \`pnpm -F @calllint/web build\`)`,
+    )
+  }
+  // The element baseline, as an exact set (PR P-4b).
+  for (const head of baselineHeads.filter((h) => !BASELINE_SELECTORS.includes(h))) {
+    failures.push(
+      `${TOKEN_PLANE_CSS} styles "${head}", which is not one of the ${BASELINE_SELECTORS.length} permitted element ` +
+        `selectors (${BASELINE_SELECTORS.join(", ")}) — an element rule is outside every class-scoped measure here`,
+    )
+  }
+  for (const want of BASELINE_SELECTORS.filter((s) => !baselineHeads.includes(s))) {
+    failures.push(
+      `${TOKEN_PLANE_CSS} has no "${want}" rule — the served pages would link a sheet that styles the install ` +
+        `sections while leaving the page itself at browser defaults (the mechanism without the outcome)`,
+    )
   }
   if (tokenPlanePresent && drift.sharedNames.length === 0) {
     failures.push(
@@ -552,6 +645,14 @@ function build(): { json: string; pass: boolean; failures: readonly string[] } {
         `never hide it (an invisible disposition is a safety regression, not a theme)`,
     )
   }
+  // 3d — the plane is WIRED, proven by emitted bytes (PR P-4b).
+  //
+  // Same discipline as the layout wiring probe above, and for the same reason: the token
+  // block could resolve perfectly while the emit edge dropped its fourth argument, and
+  // every check up to here would still pass. Re-emitting and requiring the href in the
+  // output is the weakest claim a renderer that ignores its tokens cannot satisfy.
+  const wiring = probeEmittedStylesheet()
+  if (wiring !== null) failures.push(wiring)
 
   // 4 — the import boundary (ADR 0058 §2).
   const violations = importBoundaryViolations()
@@ -562,16 +663,16 @@ function build(): { json: string; pass: boolean; failures: readonly string[] } {
   const report = {
     schema: "calllint.presentation-lock.v0",
     $comment:
-      "Workstream P digest seams (ADR 0058 §5; new15 §7), re-baselined by PR P-4, which populates the L0 token plane (see tokenPlane). RECORDS presentationDigest + semanticContractDigest; it does NOT re-point what install plans bind — plans still bind contractDigest, and moving that binding is a P-7 decision requiring an ADR amendment (doing it here would smuggle a behavior change into a batch declared as having none). `semanticContractDigest` is defined by DELETION from the sealed contract, so a new contract field is bound by default and omission is the reviewable exception. The gate is noProseLeaves: machine tokens carry no whitespace, prose always does, so an empty result proves no copy is bound — for any input, not just those measured. Regenerate with `pnpm audit:presentation:lock:write`; enforce with `pnpm audit:presentation:lock:gate`.",
+      "Workstream P digest seams (ADR 0058 §5; new15 §7), re-baselined by PR P-4b, which SERVES the L0 token plane (see tokenPlane) — the one Workstream P PR §4 licenses to change served bytes, and the only re-baseline in this workstream where install HTML moves (+34 B/page, 19 pages, 0 JSON bytes: the agent contract is untouched). RECORDS presentationDigest + semanticContractDigest; it does NOT re-point what install plans bind — plans still bind contractDigest, and moving that binding is a P-7 decision requiring an ADR amendment (doing it here would smuggle a behavior change into a batch declared as having none). `semanticContractDigest` is defined by DELETION from the sealed contract, so a new contract field is bound by default and omission is the reviewable exception. The gate is noProseLeaves: machine tokens carry no whitespace, prose always does, so an empty result proves no copy is bound — for any input, not just those measured. Regenerate with `pnpm audit:presentation:lock:write`; enforce with `pnpm audit:presentation:lock:gate`.",
     workstream: "P",
-    pr: "P-4",
+    pr: "P-4b",
     status: failures.length === 0 ? "PASSED" : "FAILED",
     contentPlane: {
       root: CONTENT_ROOT,
       document: CONTENT_DOC,
       state: docPresent ? "present" : "absent",
       $comment:
-        "PRESENT since PR P-2, which lifted the Install-surface L1/L2 copy into this one merged document (O-4: newest surface first). The recorded digests are over the real committed bytes; P-1's baseline recorded the canonical EMPTY document instead, because the plane did not exist yet. resolvesToDefaults is the load-bearing measurement: the committed document resolves DEEP-EQUAL to the shipped code defaults through the same resolver the bake calls, which is why creating this file changes no served byte (ADR 0058 §4 — a visual change is PR P-4b's own PR). overriddenSlots is recorded so the identity claim cannot hold vacuously via an inert document, and unwiredSlots must stay empty so a key can never validate and then do nothing.",
+        "PRESENT since PR P-2, which lifted the Install-surface L1/L2 copy into this one merged document (O-4: newest surface first). The recorded digests are over the real committed bytes; P-1's baseline recorded the canonical EMPTY document instead, because the plane did not exist yet. resolvesToDefaults is still the load-bearing measurement, and P-4b EXTENDS it to the tokens block: the committed document resolves DEEP-EQUAL to the shipped code defaults through the same resolver the bake calls, so this DOCUMENT still moves no served byte. That claim and P-4b's +34 B/page are not in tension — the served-byte change comes from the RENDERER (a <link> plus the refolded boundary sentence), and the document restating the shipped href is what keeps configuration out of it. Extending the identity to tokens is what stops a catalog from quietly re-pointing what every install page loads while still reading as 'resolves to defaults'. unwiredSectionTitles is now EMPTY because P-4b wired `boundary`, the slot P-2 deferred; unwiredSlots must stay empty so a key can never validate and then do nothing.",
       schemaTag: PRESENTATION_CONTENT_VERSION,
       locale: doc.locale,
       levelBySection: LEVEL_BY_SECTION,
@@ -598,11 +699,18 @@ function build(): { json: string; pass: boolean; failures: readonly string[] } {
     },
     tokenPlane: {
       $comment:
-        "PR P-4 — the L0 level, POPULATED. l0DigestWasEmpty is the before/after measurement that makes this batch verifiable: l0Digest held sha256({}) from P-1 through P-3, so a declared-but-empty level was indistinguishable from one that does not work. sharedTokenNames/tokensDrifted are the DRIFT PIN: ADR 0058 §4 forbids editing the served apps/web/public/styles.css, so the palette must be duplicated into the plane, and a per-name byte comparison is what keeps that duplication measured rather than latent — a marketing-CSS tweak now fails here until the plane follows, which is the coupling PR P-4b needs so it cannot inherit a stale palette. selectorsCovered/selectorsUncovered are computed against install-* classes parsed from the COMMITTED served HTML, so coverage tracks the renderer instead of a hardcoded list. forbiddenConstructs and suppressionViolations must both stay empty: a stylesheet cannot compute a verdict, but it can hide one, and an invisible disposition is a safety regression wearing a theme. NOTE the plane is NOT served — apps/web/styles/ sits outside apps/web/public/ and deploy-web.yml publishes public/ only, so P-4 is unpublishable by construction, not merely unreferenced; stylesheetHref is RECORDED here and emitted by P-4b.",
+        "PR P-4b — the L0 level, SERVED. P-4 populated the plane and proved it unpublishable; this batch links it from all 19 install pages (+34 B each: a 56-B <link>, minus 22 B from refolding the boundary sentence onto one line, which is what let the fourth copy slot be wired at all). `served` is now true and `servedCopy` is the byte a visitor receives: sync-assets.mjs copies source → public/, and servedCopyMatchesSource BYTE-COMPARES them, because every other measure in this block reads the SOURCE while browsers read the copy — without that compare a hand-edit under public/ would pass all of them. baselineSelectors is asserted as an exact SET: the class-only parsers could not see an element rule at all, so `body`/`main` were both unmeasurable and, missing, would have shipped the <link> with none of the visual-hierarchy outcome (styled sections on a browser-default page). visualDigest digests the var()-RESOLVED declarations: a raw-bytes digest moves on a comment edit, and a name-only comparison would miss a palette re-pointed through renamed tokens. sharedTokenNames/tokensDrifted remain the DRIFT PIN against the served marketing sheet §4 forbids editing. selectorsCovered/selectorsUncovered are computed against install-* classes parsed from the COMMITTED served HTML. forbiddenConstructs and suppressionViolations must both stay empty, and suppression is now checked inside the baseline rules too — `body { display: none }` hides a disposition exactly as well as the class-scoped version did, and under the install-only scan it was not a finding.",
       plane: TOKEN_PLANE_CSS,
       planePresent: tokenPlanePresent,
       servedMirrorSource: SERVED_MARKETING_CSS,
-      served: false,
+      served: true,
+      servedCopy: SERVED_TOKEN_CSS,
+      servedCopyPresent: servedPlanePresent,
+      servedCopyMatchesSource,
+      baselineSelectors: BASELINE_SELECTORS,
+      baselineSelectorsFound: baselineHeads,
+      resolvedRuleCount: resolvedRules.length,
+      visualDigest,
       tokensBlockPresent: tokensBlock !== undefined,
       tokensVersion: tokensBlock?.tokensVersion ?? null,
       stylesheetHref: tokensBlock?.stylesheetHref ?? null,

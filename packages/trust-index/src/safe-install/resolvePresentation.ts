@@ -22,9 +22,12 @@
 //      document a silent deletion; per-slot merge makes it exactly the edit it looks
 //      like.
 //
-//   3. NARROW WHAT TRAVELS INWARD. The resolver returns three small slices, and each
+//   3. NARROW WHAT TRAVELS INWARD. The resolver returns small slices, and each
 //      consumer is handed only its own. `selectDecisionAuthorities` receives authority
-//      wording and cannot see CTAs; the renderer receives titles and cannot see either.
+//      wording and cannot see CTAs; the renderer receives titles, layout, and — since
+//      PR P-4b — tokens, and cannot see either. The href is the one resolved value that
+//      reaches an attribute on a served page, so it gets its own stricter predicate
+//      (`usableStylesheetHref`) rather than sharing the text-grade one.
 //      Combined with ADR 0058 §2's "configuration is a parameter, never an import",
 //      the blast radius of a bad document is bounded by what was handed to whom.
 //
@@ -48,6 +51,7 @@ import {
   type AuthorityCopy,
 } from "../selectDecisionAuthorities.js"
 import { PRESENTATION_STATES, type PresentationContentV1 } from "./presentationContent.js"
+import { DEFAULT_TOKENS, type ResolvedTokens } from "./tokenPlane.js"
 import {
   ABOVE_FOLD_SECTION_IDS,
   DEFAULT_LAYOUT,
@@ -58,7 +62,7 @@ import {
   type ResolvedLayout,
 } from "./layoutStructure.js"
 
-export { DEFAULT_LAYOUT, type ResolvedLayout }
+export { DEFAULT_LAYOUT, type ResolvedLayout, DEFAULT_TOKENS, type ResolvedTokens }
 
 /**
  * The `sectionTitles` slots the RENDERER actually consumes today.
@@ -73,10 +77,23 @@ export const WIRED_SECTION_TITLES: readonly (keyof SectionTitles)[] = [
   "authorityFacts",
   "provenance",
   "publisherBlock",
+  "boundary",
 ]
 
-/** Copy slots declared by the schema but not yet consumed by a renderer (P-3/P-4b). */
-export const UNWIRED_SECTION_TITLES: readonly string[] = ["boundary"]
+/**
+ * Copy slots declared by the schema but consumed by no renderer.
+ *
+ * EMPTY since PR P-4b, which wired `boundary` — the slot P-2 deferred because its
+ * emitted form was folded across three source lines and unfolding it would have moved
+ * served bytes outside the one PR licensed to do that. Every schema slot is now wired.
+ *
+ * The list stays as a named export rather than being deleted, because it is the
+ * mechanism that makes a FUTURE deferral visible: `unwiredSlots` is a lock failure, so
+ * a slot added to the schema and not to a renderer fails CI instead of validating and
+ * then doing nothing. Its test is now a synthetic positive control — an empty list
+ * would otherwise make that test pass by measuring nothing.
+ */
+export const UNWIRED_SECTION_TITLES: readonly string[] = []
 
 /** Upper bound on one copy value, mirroring the schema's `copyText.maxLength`. */
 const MAX_COPY_LENGTH = 400
@@ -91,6 +108,12 @@ export interface ResolvedPresentation {
   readonly sectionTitles: SectionTitles
   /** L1 — section order + render caps (PR P-3). */
   readonly layout: ResolvedLayout
+  /**
+   * L0 — the token plane's version + the href the page links (PR P-4b). The only
+   * resolved value on this surface that reaches an ATTRIBUTE, and the only one that
+   * reaches served bytes without passing through a text node.
+   */
+  readonly tokens: ResolvedTokens
   /** Which slots came from configuration, in stable order. A measurement, for the lock. */
   readonly overriddenSlots: readonly string[]
   /** Configured slots that no renderer consumes yet. Non-empty ⇒ the lock gate fails. */
@@ -110,6 +133,7 @@ export const DEFAULT_PRESENTATION: ResolvedPresentation = Object.freeze({
   authority: DEFAULT_AUTHORITY_COPY,
   sectionTitles: SECTION_TITLES,
   layout: DEFAULT_LAYOUT,
+  tokens: DEFAULT_TOKENS,
   overriddenSlots: Object.freeze([]),
   unwiredSlots: Object.freeze([]),
   rejectedSlots: Object.freeze([]),
@@ -130,6 +154,34 @@ function usableCopy(value: unknown): value is string {
     value.trim() !== "" &&
     value.length <= MAX_COPY_LENGTH &&
     !/[<>]/.test(value)
+  )
+}
+
+/**
+ * Is this a usable STYLESHEET HREF? Stricter than `usableCopy`, and deliberately so.
+ *
+ * Every other slot this module resolves lands in a text node, where the worst a bad
+ * value can do is read badly. This one lands in `<link href>` on a served page, where
+ * a bad value is a NETWORK REQUEST — the failure mode is a trust surface fetching
+ * bytes this repo does not commit, which would end the offline-verifiable-provenance
+ * claim regardless of what the sheet contained.
+ *
+ * So the rule is allow-list, not deny-list: a same-origin ABSOLUTE path, one leading
+ * slash, no scheme, no `//` authority, no `\` (which some parsers fold to `/`), no
+ * backtracking, no query or fragment. `//evil.example/x.css` is the case a naive
+ * "starts with /" check waves through, and it is a protocol-relative absolute URL.
+ *
+ * A rejected href falls back to the shipped default and is RECORDED in `rejectedSlots`,
+ * which the lock fails on — so the served page keeps its own stylesheet rather than
+ * losing its styling, and the bad document cannot be quiet about it.
+ */
+function usableStylesheetHref(value: unknown): value is string {
+  return (
+    typeof value === "string" &&
+    /^\/[A-Za-z0-9._~\-/]*$/.test(value) &&
+    !value.startsWith("//") &&
+    !value.includes("..") &&
+    value.endsWith(".css")
   )
 }
 
@@ -228,12 +280,21 @@ export function resolvePresentation(doc: unknown): ResolvedPresentation {
 
   // A configured slot that no renderer reads would be a config edit with no effect —
   // the exact drift a lock file exists to catch, so it is MEASURED and reported.
+  //
+  // Computed as "configured but NOT WIRED" rather than "in the deferral list", changed in
+  // PR P-4b. The old form enumerated UNWIRED_SECTION_TITLES, which became empty when this
+  // batch wired `boundary` — leaving the mechanism live but with nothing to match, so it
+  // would have reported nothing forever. This form derives the answer from the wired set,
+  // so it keeps working with an empty deferral list AND catches a case the old one missed
+  // entirely: a MISSPELLED key (`provenence`) is not a declared deferral, so it was
+  // silently dropped by the per-key merge and reported by nothing.
   const unwiredSlots =
     configuredTitles === undefined
       ? []
-      : UNWIRED_SECTION_TITLES.filter((k) => configuredTitles[k] !== undefined).map(
-          (k) => `sectionTitles.${k}`,
-        )
+      : Object.keys(configuredTitles)
+          .filter((k) => !(WIRED_SECTION_TITLES as readonly string[]).includes(k))
+          .sort()
+          .map((k) => `sectionTitles.${k}`)
 
   // L1 — the LAYOUT MANIFEST (PR P-3). Three separate decisions, deliberately not
   // collapsed into one "is this layout ok" branch, because they fail for different
@@ -297,11 +358,48 @@ export function resolvePresentation(doc: unknown): ResolvedPresentation {
     layout = { sectionOrder, maxAuthorityFacts: facts, maxSecondaryLinks: links }
   }
 
+  // L0 — the TOKEN block (PR P-4b). Two slots, resolved by different predicates
+  // because they carry different risk: `tokensVersion` is a label that reaches no
+  // page, while `stylesheetHref` reaches a served attribute and can cause a fetch.
+  //
+  // Present-but-malformed is recorded, absent is silent — the same asymmetry the
+  // layout block uses above, and for the same reason: a committed `tokens: 3` that
+  // fell back in silence would read as a document that asked for nothing.
+  const tokensRaw = objectOrUndefined(d.tokens as Record<string, unknown> | undefined)
+  if (d.tokens !== undefined && tokensRaw === undefined) {
+    rejected.push("tokens: not an object")
+  }
+  let tokens: ResolvedTokens = DEFAULT_TOKENS
+  if (tokensRaw !== undefined) {
+    let tokensVersion = DEFAULT_TOKENS.tokensVersion
+    if (tokensRaw.tokensVersion !== undefined) {
+      if (usableCopy(tokensRaw.tokensVersion)) {
+        tokensVersion = tokensRaw.tokensVersion
+        if (tokensVersion !== DEFAULT_TOKENS.tokensVersion) overridden.push("tokens.tokensVersion")
+      } else {
+        rejected.push("tokens.tokensVersion: not a usable string")
+      }
+    }
+    let stylesheetHref = DEFAULT_TOKENS.stylesheetHref
+    if (tokensRaw.stylesheetHref !== undefined) {
+      if (usableStylesheetHref(tokensRaw.stylesheetHref)) {
+        stylesheetHref = tokensRaw.stylesheetHref
+        if (stylesheetHref !== DEFAULT_TOKENS.stylesheetHref) overridden.push("tokens.stylesheetHref")
+      } else {
+        // No echo of the offending value: it is attacker-influenced text bound for a
+        // CI log and a committed artifact, and the slot name is what a reviewer needs.
+        rejected.push("tokens.stylesheetHref: not a rooted same-origin .css path")
+      }
+    }
+    tokens = { tokensVersion, stylesheetHref }
+  }
+
   return {
     primaryCta,
     authority: { observed, absence },
     sectionTitles,
     layout,
+    tokens,
     overriddenSlots: overridden.sort(),
     unwiredSlots,
     rejectedSlots: rejected.sort(),

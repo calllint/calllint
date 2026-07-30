@@ -173,8 +173,18 @@ export function forbiddenCssConstructs(css: string): readonly string[] {
 }
 
 /**
- * Suppression properties present inside a rule whose selector mentions an
- * `install-*` class. Returns `"selector → property"` strings.
+ * Suppression properties present inside a rule that can hide the install surface:
+ * one whose selector mentions an `install-*` class, OR one of the baseline
+ * selectors the plane gained in PR P-4b. Returns `"selector → property"` strings.
+ *
+ * The baseline half is not defensive symmetry — it closes a real hole. `body {
+ * display: none }` hides the disposition exactly as effectively as
+ * `.install-disposition { display: none }`, and under the install-only scan it was
+ * not a finding. P-4b is the batch that both introduces element rules and makes
+ * these bytes reach a screen, so the measure widens in the same commit.
+ *
+ * Still SCOPED, not global: a `display` in some unrelated marketing rule is not a
+ * finding, which is what keeps this a statement about the install surface.
  */
 export function suppressionViolations(css: string): readonly string[] {
   const body = stripComments(css)
@@ -182,12 +192,28 @@ export function suppressionViolations(css: string): readonly string[] {
   for (const m of body.matchAll(/([^{}]+)\{([^}]*)\}/g)) {
     const selector = (m[1] ?? "").trim()
     const block = (m[2] ?? "").toLowerCase()
-    if (!/\.install-/.test(selector)) continue
+    if (!/\.install-/.test(selector) && !mentionsBaselineSelector(selector)) continue
     for (const prop of SUPPRESSION_PROPERTIES) {
       if (block.includes(prop)) out.push(`${selector} → ${prop.trim()}`)
     }
   }
   return out.sort()
+}
+
+/**
+ * Does any comma-separated part of this head target a baseline element?
+ *
+ * Compared on the SUBJECT of each part (last compound, pseudo-parts stripped) so
+ * `body > main` and `main:first-child` are both in scope, while a descendant
+ * mention inside an unrelated rule is not the subject and is not matched.
+ */
+function mentionsBaselineSelector(head: string): boolean {
+  return head.split(",").some((part) => {
+    const subject = (part.trim().split(/[\s>+~]+/).pop() ?? "").toLowerCase()
+    // Equality OR a pseudo-suffix. Matching on a prefix boundary of `:` rather than
+    // splitting on `:` matters for `:root`, whose whole name IS a pseudo-class.
+    return BASELINE_SELECTORS.some((sel) => subject === sel || subject.startsWith(`${sel}:`))
+  })
 }
 
 /**
@@ -229,4 +255,94 @@ export function emittedInstallClasses(html: string): readonly string[] {
     }
   }
   return [...out].sort()
+}
+
+// --- PR P-4b: the plane becomes SERVED, so two new measures ------------------
+
+/**
+ * The L0 values the RENDERER consumes. `stylesheetHref` is the one token that
+ * reaches served bytes (ADR 0058 §4) — everything else in the plane reaches a
+ * page only through the sheet those bytes point at.
+ *
+ * This lives here, beside the parsers, for the same reason `ResolvedLayout` lives
+ * in `layoutStructure.ts`: the renderer imports the type, the resolver imports the
+ * default, and neither has to import the other.
+ */
+export interface ResolvedTokens {
+  readonly tokensVersion: string
+  readonly stylesheetHref: string
+}
+
+/** The shipped L0 defaults. The committed catalog restates these verbatim. */
+export const DEFAULT_TOKENS: ResolvedTokens = Object.freeze({
+  tokensVersion: "p4b-1",
+  stylesheetHref: "/styles/tokens.css",
+})
+
+/**
+ * Selectors the plane may style WITHOUT a class — the element baseline.
+ *
+ * PR P-4b adds these because a `<link>` to a sheet with no `body` rule delivers
+ * the mechanism with none of the outcome ADR 0058 §4 names ("visual hierarchy"):
+ * the served sheet would set the install surface's boxes while the page rendered
+ * in browser-default type. The set is CLOSED and asserted by exact equality, so
+ * the plane cannot grow an element selector no measure looks at.
+ */
+export const BASELINE_SELECTORS: readonly string[] = Object.freeze([":root", "body", "main"])
+
+/**
+ * Every rule head carrying NO class selector, deduplicated and sorted.
+ *
+ * The two class parsers above are both class-only, so before this function an
+ * element rule was invisible to every measure the plane had: `header { … }` could
+ * appear and nothing would move. Sorted rather than document-ordered because the
+ * caller asserts set equality against `BASELINE_SELECTORS`, and a set comparison
+ * must not depend on where in the file a rule sits.
+ */
+export function nonClassRuleHeads(css: string): readonly string[] {
+  const out = new Set<string>()
+  for (const head of ruleHeads(stripComments(css))) {
+    if (!head.includes(".")) out.add(head)
+  }
+  return [...out].sort()
+}
+
+/** One rule's declarations with every `var(--…)` replaced by its `:root` value. */
+export interface ResolvedRule {
+  readonly selector: string
+  readonly declarations: readonly string[]
+}
+
+/**
+ * Resolve every rule's declarations against the plane's own `:root` tokens.
+ *
+ * This is the VISUAL fact, computed without a rendering engine: what a browser
+ * would end up applying, in declaration terms, once indirection is removed. It is
+ * what makes the lock's `visualDigest` move when a token VALUE changes — a digest
+ * over the raw text would move too, but a digest over the raw text also moves for
+ * a comment edit, and one that never resolves `var()` would not move at all if the
+ * palette were re-pointed through a renamed token.
+ *
+ * Custom-property declarations are dropped from the output: `--brand: #c41e3a`
+ * inside `:root` is the definition, and carrying it as a declaration would count
+ * the same fact twice. Unknown `var()` names are left verbatim rather than blanked,
+ * so a typo shows up as itself instead of silently resolving to nothing.
+ */
+export function resolveDeclarations(
+  css: string,
+  rootTokens: readonly CssToken[],
+): readonly ResolvedRule[] {
+  const byName = new Map(rootTokens.map((t) => [t.name, t.value]))
+  const out: ResolvedRule[] = []
+  for (const m of stripComments(css).matchAll(/([^{}]+)\{([^}]*)\}/g)) {
+    const selector = (m[1] ?? "").trim().replace(/\s+/g, " ")
+    const declarations = (m[2] ?? "")
+      .split(";")
+      .map((d) => d.trim().replace(/\s+/g, " "))
+      .filter((d) => d !== "" && !d.startsWith("--"))
+      .map((d) => d.replace(/var\((--[a-z0-9-]+)\)/gi, (whole, name: string) => byName.get(name) ?? whole))
+    if (selector === "" || declarations.length === 0) continue
+    out.push({ selector, declarations })
+  }
+  return out
 }
