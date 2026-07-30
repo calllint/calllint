@@ -61,20 +61,20 @@
   "inventory": [
     {
       "source": "packages/trust-index/src/renderSafeInstall.ts",
-      "copyLiterals": 7,
+      "copyLiterals": 38,
       "samples": [
-        "Authority facts",
-        "Publisher description",
-        "Publisher-provided description — not used for CallLint's safety decision."
+        "Added through CallLint's approval gate",
+        "Agent obligations",
+        "Authority facts"
       ]
     },
     {
       "source": "packages/trust-index/src/safeInstallProjection.ts",
       "copyLiterals": 5,
       "samples": [
-        "Add with CallLint",
-        "Inspect blockers",
-        "Review and add"
+        "Check it on your machine",
+        "Open in CallLint",
+        "Review in CallLint"
       ]
     },
     {
@@ -113,7 +113,7 @@
       ]
     }
   ],
-  "inventoryTotal": 66,
+  "inventoryTotal": 97,
   "reachability": {
     "sitesProbed": 7,
     "presentationSites": 5,
@@ -175,7 +175,7 @@
         "declaredPlane": "presentation",
         "configurableTo": "apps/web/content/safe-install/presentation.v1.json#/sectionTitles",
         "rationale": "Renderer section headings. Wording is cognitive copy; the POSITION and the key set stay code, so no document can move publisher text into a decision group (INV-2.4-05).",
-        "mutation": "containment over 4 value(s) + re-projection with copy replaced by PROBE_MUTATED_COPY_SENTINEL",
+        "mutation": "containment over 10 value(s) + re-projection with copy replaced by PROBE_MUTATED_COPY_SENTINEL",
         "contractDigestMoved": false,
         "htmlMoved": true,
         "decisionRouteMoved": false,

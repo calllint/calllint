@@ -30,6 +30,7 @@ export {
   pageUrl,
   CORRECTION_URL,
   CLAIM_APP_URL,
+  CLI_VERSION,
   SITE_ORIGIN,
   LOOKUP_PAGE_PATH,
 } from "./renderPage.js"
@@ -159,6 +160,7 @@ export {
   ABSENCE_CONSEQUENCE,
   DEFAULT_AUTHORITY_COPY,
   selectDecisionAuthorities,
+  MAX_DECISION_AUTHORITY_FACTS,
   type AdoptionAuthority,
   type AuthorityCopy,
   type DecisionAuthorityFact,
@@ -204,6 +206,7 @@ export {
   renderSafeInstall,
   renderSafeInstallContract,
   SECTION_TITLES,
+  INSTALL_COPY_SCRIPT_SRC,
   type SectionTitles,
 } from "./renderSafeInstall.js"
 export {

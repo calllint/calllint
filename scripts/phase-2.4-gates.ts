@@ -615,6 +615,11 @@ const SERVED_SUBTREES: readonly { subtree: string; pin: string; guardTest: strin
   { subtree: "apps/web/public/.well-known/calllint.json", pin: "apps/web/public/.well-known/calllint.json text eol=lf", guardTest: "packages/trust-index/test/safe-install/committed-install-tree.test.ts" },
   { subtree: "packages/calllint-mcp/src/data/**", pin: "packages/calllint-mcp/src/data/** text eol=lf", guardTest: "packages/calllint-mcp/test/committed-contracts-drift.test.ts" },
   { subtree: "artifacts/phase-2.4/**", pin: "artifacts/phase-2.4/** text eol=lf", guardTest: "scripts/phase-2.4-gates.ts" },
+  // ADR 0059 §4 — the copy-only assist every install page references by src. Served bytes
+  // with a source/served split, so both sides carry the pin and the guard test byte-compares
+  // them; a pin with no row here is itself unguarded (deleting it would fail nothing).
+  { subtree: "apps/web/public/scripts/**", pin: "apps/web/public/scripts/** text eol=lf", guardTest: "packages/trust-index/test/safe-install/token-plane.test.ts" },
+  { subtree: "apps/web/public/styles/**", pin: "apps/web/public/styles/** text eol=lf", guardTest: "packages/trust-index/test/safe-install/token-plane.test.ts" },
 ]
 
 /** Count the MCP tools in each place that states a count. Drift here is the gate. */

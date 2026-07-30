@@ -37,7 +37,8 @@
             "plan sha256:<redacted> computed for host \"claude-code\" — NOT applied",
             "to apply non-interactively, re-run prepare with  --plan-out <file>  then:  --plan <file> --apply --approve <digest>",
             "to apply interactively, re-run with  --apply  and confirm at the prompt"
-          ]
+          ],
+          "refusalCites": []
         },
         {
           "step": "prepare-with-plan-out",
@@ -52,7 +53,8 @@
             "plan sha256:<redacted> computed for host \"claude-code\" — NOT applied",
             "plan written to <sandbox>",
             "to apply, re-run with:  --plan <sandbox> --apply --approve sha256:<redacted>"
-          ]
+          ],
+          "refusalCites": []
         },
         {
           "step": "apply-non-interactive",
@@ -66,7 +68,8 @@
           "notes": [
             "config written atomically (temp → fsync → rename)",
             "post-apply verify OK — resulting config re-parses and matches the plan"
-          ]
+          ],
+          "refusalCites": []
         },
         {
           "step": "apply-without-replay-rejected",
@@ -77,20 +80,26 @@
           "persistentComponents": [],
           "workspaceFiles": [],
           "hostConfigWritten": false,
-          "notes": []
+          "notes": [],
+          "refusalCites": [
+            "--approve",
+            "--plan "
+          ]
         },
         {
-          "step": "apply-interactive",
-          "exitCode": 0,
-          "outcome": "APPLIED_AND_VERIFIED",
-          "planDigest": "sha256",
-          "receiptDigest": "sha256",
+          "step": "apply-piped-approval-refused",
+          "exitCode": 2,
+          "outcome": null,
+          "planDigest": "null",
+          "receiptDigest": "null",
           "persistentComponents": [],
           "workspaceFiles": [],
-          "hostConfigWritten": true,
-          "notes": [
-            "config written atomically (temp → fsync → rename)",
-            "post-apply verify OK — resulting config re-parses and matches the plan"
+          "hostConfigWritten": false,
+          "notes": [],
+          "refusalCites": [
+            "not a TTY",
+            "--approve",
+            "--plan "
           ]
         }
       ],
@@ -118,12 +127,12 @@
         {
           "id": "no-persistent-components-in-one-time-mode",
           "pass": true,
-          "observed": "prepare:0 prepare-with-plan-out:0 apply-non-interactive:0 apply-without-replay-rejected:0 apply-interactive:0"
+          "observed": "prepare:0 prepare-with-plan-out:0 apply-non-interactive:0 apply-without-replay-rejected:0 apply-piped-approval-refused:0"
         },
         {
           "id": "zero-workspace-files-through-whole-chain",
           "pass": true,
-          "observed": "prepare:0 prepare-with-plan-out:0 apply-non-interactive:0 apply-without-replay-rejected:0 apply-interactive:0"
+          "observed": "prepare:0 prepare-with-plan-out:0 apply-non-interactive:0 apply-without-replay-rejected:0 apply-piped-approval-refused:0"
         },
         {
           "id": "prepare-yields-an-approvable-plan-digest",
@@ -156,19 +165,19 @@
           "observed": "exit = 2, hostConfigWritten = false"
         },
         {
-          "id": "interactive-approval-applies-and-verifies",
+          "id": "piped-approval-is-refused-not-applied",
           "pass": true,
-          "observed": "outcome = APPLIED_AND_VERIFIED"
+          "observed": "exit = 2, outcome = null"
         },
         {
-          "id": "apply-emits-a-verified-receipt",
+          "id": "piped-approval-writes-nothing",
           "pass": true,
-          "observed": "receiptDigest = sha256"
+          "observed": "hostConfigWritten = false, receiptDigest = null"
         },
         {
-          "id": "apply-writes-the-host-config",
+          "id": "piped-approval-refusal-names-the-script-route",
           "pass": true,
-          "observed": "hostConfigWritten = true"
+          "observed": "cites = [\"not a TTY\",\"--approve\",\"--plan \"]"
         }
       ],
       "pass": true
@@ -195,7 +204,8 @@
             "plan sha256:<redacted> computed for host \"claude-code\" — NOT applied",
             "to apply non-interactively, re-run prepare with  --plan-out <file>  then:  --plan <file> --apply --approve <digest>",
             "to apply interactively, re-run with  --apply  and confirm at the prompt"
-          ]
+          ],
+          "refusalCites": []
         },
         {
           "step": "prepare-with-plan-out",
@@ -210,7 +220,8 @@
             "plan sha256:<redacted> computed for host \"claude-code\" — NOT applied",
             "plan written to <sandbox>",
             "to apply, re-run with:  --plan <sandbox> --apply --approve sha256:<redacted>"
-          ]
+          ],
+          "refusalCites": []
         },
         {
           "step": "apply-non-interactive",
@@ -224,7 +235,8 @@
           "notes": [
             "config written atomically (temp → fsync → rename)",
             "post-apply verify OK — resulting config re-parses and matches the plan"
-          ]
+          ],
+          "refusalCites": []
         },
         {
           "step": "apply-without-replay-rejected",
@@ -235,20 +247,26 @@
           "persistentComponents": [],
           "workspaceFiles": [],
           "hostConfigWritten": false,
-          "notes": []
+          "notes": [],
+          "refusalCites": [
+            "--approve",
+            "--plan "
+          ]
         },
         {
-          "step": "apply-interactive",
-          "exitCode": 0,
-          "outcome": "APPLIED_AND_VERIFIED",
-          "planDigest": "sha256",
-          "receiptDigest": "sha256",
+          "step": "apply-piped-approval-refused",
+          "exitCode": 2,
+          "outcome": null,
+          "planDigest": "null",
+          "receiptDigest": "null",
           "persistentComponents": [],
           "workspaceFiles": [],
-          "hostConfigWritten": true,
-          "notes": [
-            "config written atomically (temp → fsync → rename)",
-            "post-apply verify OK — resulting config re-parses and matches the plan"
+          "hostConfigWritten": false,
+          "notes": [],
+          "refusalCites": [
+            "not a TTY",
+            "--approve",
+            "--plan "
           ]
         }
       ],
@@ -276,12 +294,12 @@
         {
           "id": "no-persistent-components-in-one-time-mode",
           "pass": true,
-          "observed": "prepare:0 prepare-with-plan-out:0 apply-non-interactive:0 apply-without-replay-rejected:0 apply-interactive:0"
+          "observed": "prepare:0 prepare-with-plan-out:0 apply-non-interactive:0 apply-without-replay-rejected:0 apply-piped-approval-refused:0"
         },
         {
           "id": "zero-workspace-files-through-whole-chain",
           "pass": true,
-          "observed": "prepare:0 prepare-with-plan-out:0 apply-non-interactive:0 apply-without-replay-rejected:0 apply-interactive:0"
+          "observed": "prepare:0 prepare-with-plan-out:0 apply-non-interactive:0 apply-without-replay-rejected:0 apply-piped-approval-refused:0"
         },
         {
           "id": "prepare-yields-an-approvable-plan-digest",
@@ -314,19 +332,19 @@
           "observed": "exit = 2, hostConfigWritten = false"
         },
         {
-          "id": "interactive-approval-applies-and-verifies",
+          "id": "piped-approval-is-refused-not-applied",
           "pass": true,
-          "observed": "outcome = APPLIED_AND_VERIFIED"
+          "observed": "exit = 2, outcome = null"
         },
         {
-          "id": "apply-emits-a-verified-receipt",
+          "id": "piped-approval-writes-nothing",
           "pass": true,
-          "observed": "receiptDigest = sha256"
+          "observed": "hostConfigWritten = false, receiptDigest = null"
         },
         {
-          "id": "apply-writes-the-host-config",
+          "id": "piped-approval-refusal-names-the-script-route",
           "pass": true,
-          "observed": "hostConfigWritten = true"
+          "observed": "cites = [\"not a TTY\",\"--approve\",\"--plan \"]"
         }
       ],
       "pass": true
@@ -351,7 +369,8 @@
           "hostConfigWritten": false,
           "notes": [
             "public verdict BLOCK — blocked by policy; inspect blockers before any install"
-          ]
+          ],
+          "refusalCites": []
         }
       ],
       "assertions": [
@@ -418,7 +437,8 @@
           "hostConfigWritten": false,
           "notes": [
             "public verdict UNKNOWN — insufficient evidence / no exact target; run local pre-flight"
-          ]
+          ],
+          "refusalCites": []
         }
       ],
       "assertions": [
@@ -485,7 +505,8 @@
           "hostConfigWritten": false,
           "notes": [
             "no supported install plan for this target — view manual setup"
-          ]
+          ],
+          "refusalCites": []
         }
       ],
       "assertions": [

@@ -119,7 +119,21 @@ interface StepRecord {
   readonly workspaceFiles: readonly string[]
   readonly hostConfigWritten: boolean
   readonly notes: readonly string[]
+  /**
+   * Which fixed refusal markers the step's stderr cited. A closed vocabulary, not the
+   * raw stream: stderr carries sandbox paths, and this artifact is drift-checked, so
+   * anything path-shaped in it makes the file permanently stale on some other OS.
+   * Empty for every step that is not a refusal, which is itself the negative control.
+   */
+  readonly refusalCites: readonly string[]
 }
+
+/**
+ * The markers a refusal must cite to be actionable. A refusal that does not name the
+ * route a script actually has is a dead end, and "exit 2" alone cannot tell the two
+ * apart.
+ */
+const REFUSAL_MARKERS = ["not a TTY", "--approve", "--plan "] as const
 
 interface FixtureRecord {
   readonly id: string
@@ -175,6 +189,7 @@ function record(step: string, r: Run, ws: string, hostCfg: string): StepRecord {
     workspaceFiles: walk(ws),
     hostConfigWritten: fs.existsSync(hostCfg),
     notes: read.notes.map(normalizeNote),
+    refusalCites: REFUSAL_MARKERS.filter((m) => r.stderr.includes(m)),
   }
 }
 
@@ -231,10 +246,22 @@ function runFixture(f: CanonicalFixture): FixtureRecord {
       steps.push(record("apply-without-replay-rejected", bare, ws, hostCfg))
     }
 
-    // Step 3 — the interactive approval gate in a single invocation.
+    // Step 3 — a PIPED approval, which is now a negative control (ADR 0057 §6).
+    //
+    // This step used to assert that `--apply` with `"yes\n"` on stdin applied and
+    // verified. It did — and that was the defect, not the feature: nothing had been
+    // printed before the read, so the "approval" was a signature on bytes no human saw,
+    // and a pipe satisfying the gate meant `yes | calllint … --apply` was an auto-apply
+    // in interactive clothing. Interactive `--apply` now requires a real TTY, which this
+    // harness cannot and must not fake.
+    //
+    // So the measurement inverts: the pipe must be REFUSED, and the refusal must name the
+    // route a script actually has. The apply mechanism itself is still measured
+    // end-to-end by step 2 (the non-interactive handshake), which is a strictly stronger
+    // demonstration of review — it names the exact digest.
     if (actionable) {
-      const inter = runBin([...base, "--apply"], ws, "yes\n")
-      steps.push(record("apply-interactive", inter, ws, hostCfg))
+      const piped = runBin([...base, "--apply"], ws, "yes\n")
+      steps.push(record("apply-piped-approval-refused", piped, ws, hostCfg))
     }
 
     const assertions = assertFixture(f, p, steps, actionable, hostCfg)
@@ -267,7 +294,7 @@ function assertFixture(
   const planOut = steps.find((s) => s.step === "prepare-with-plan-out")
   const nonInteractive = steps.find((s) => s.step === "apply-non-interactive")
   const bare = steps.find((s) => s.step === "apply-without-replay-rejected")
-  const interactive = steps.find((s) => s.step === "apply-interactive")
+  const piped = steps.find((s) => s.step === "apply-piped-approval-refused")
   const a: { id: string; pass: boolean; observed: string }[] = []
 
   a.push({
@@ -351,20 +378,26 @@ function assertFixture(
     pass: bare?.exitCode === 2 && bare?.hostConfigWritten === false,
     observed: `exit = ${bare?.exitCode ?? "n/a"}, hostConfigWritten = ${bare?.hostConfigWritten ?? "n/a"}`,
   })
+  // INVERTED from three assertions that a PIPED "yes" applied and verified (ADR 0057 §6).
+  // Those three passed because interactive `--apply` read stdin having printed nothing —
+  // so what the gate was certifying as "the interactive approval gate works" was, exactly,
+  // that an unattended pipe could authorize a config write. The apply path itself is
+  // still measured end-to-end above by the non-interactive handshake.
   a.push({
-    id: "interactive-approval-applies-and-verifies",
-    pass: interactive?.outcome === "APPLIED_AND_VERIFIED",
-    observed: `outcome = ${interactive?.outcome ?? "n/a"}`,
+    id: "piped-approval-is-refused-not-applied",
+    pass: piped?.exitCode === 2 && piped?.outcome === null,
+    observed: `exit = ${piped?.exitCode ?? "n/a"}, outcome = ${piped?.outcome ?? "null"}`,
   })
   a.push({
-    id: "apply-emits-a-verified-receipt",
-    pass: interactive?.receiptDigest === "sha256",
-    observed: `receiptDigest = ${interactive?.receiptDigest ?? "n/a"}`,
+    id: "piped-approval-writes-nothing",
+    pass: piped?.hostConfigWritten === false && piped?.receiptDigest === "null",
+    observed: `hostConfigWritten = ${piped?.hostConfigWritten ?? "n/a"}, receiptDigest = ${piped?.receiptDigest ?? "n/a"}`,
   })
+  // A refusal that does not name the working route just moves the dead end.
   a.push({
-    id: "apply-writes-the-host-config",
-    pass: interactive?.hostConfigWritten === true,
-    observed: `hostConfigWritten = ${interactive?.hostConfigWritten ?? "n/a"}`,
+    id: "piped-approval-refusal-names-the-script-route",
+    pass: REFUSAL_MARKERS.every((m) => piped?.refusalCites.includes(m)),
+    observed: `cites = ${JSON.stringify(piped?.refusalCites ?? [])}`,
   })
   return a
 }

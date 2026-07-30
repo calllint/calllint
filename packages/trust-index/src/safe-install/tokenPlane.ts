@@ -275,7 +275,7 @@ export interface ResolvedTokens {
 
 /** The shipped L0 defaults. The committed catalog restates these verbatim. */
 export const DEFAULT_TOKENS: ResolvedTokens = Object.freeze({
-  tokensVersion: "p4b-1",
+  tokensVersion: "impression-2",
   stylesheetHref: "/styles/tokens.css",
 })
 

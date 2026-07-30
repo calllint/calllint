@@ -13,7 +13,7 @@
 // action within five seconds". That is a human measurement. Code cannot produce
 // it and MUST NOT simulate it. So this module splits the gate in two:
 //   • the STRUCTURAL PRECONDITION — machine-checkable and enforced at 100%:
-//     exactly one CTA, ≤3 authority facts, and each of the three answers present
+//     exactly one CTA, ≤5 authority facts, and each of the three answers present
 //     exactly once and above the fold. If this fails, a human panel is pointless.
 //   • the HUMAN PANEL — data a human records in
 //     `artifacts/phase-2.4/five-second-panel-store.json` and commits. Absent
@@ -27,6 +27,7 @@ import {
   type SafeInstallProjection,
   type SafeInstallProjectionInput,
 } from "./safeInstallProjection.js"
+import { INSTALL_COPY_SCRIPT_SRC } from "./renderSafeInstall.js"
 import { bakeTrustPage } from "./bakeTrustPage.js"
 import { fixtureCohort } from "./cohort.js"
 import { stableStringify } from "@calllint/fingerprint"
@@ -81,15 +82,32 @@ function unesc(s: string): string {
     .replace(/&amp;/g, "&")
 }
 
-/** Extract the inner text of the first element carrying `attr`. Null when absent. */
+/**
+ * Extract the VISIBLE TEXT of the first element carrying `attr`. Null when absent.
+ *
+ * Reads to the element's matching close rather than to the next `<`, and strips inner
+ * tags. The earlier form stopped at the first `<`, so an element containing any child
+ * yielded `""` — which R-2 turned from a latent limitation into a live failure by putting
+ * the decorative logo `<img>` inside the CTA anchor. An empty string is the worst
+ * possible answer here, because this feeds the gate that asks whether a human can read
+ * the action: it would report "the CTA says nothing" for a CTA that reads fine.
+ *
+ * What a human sees is the text with the mark removed, so that is what this returns.
+ */
 function firstInner(html: string, attr: string): string | null {
   const open = html.indexOf(attr)
   if (open === -1) return null
   const gt = html.indexOf(">", open)
   if (gt === -1) return null
-  const close = html.indexOf("<", gt)
+  // The tag name of the element carrying `attr`, so the scan ends at ITS close tag.
+  const tagStart = html.lastIndexOf("<", open)
+  if (tagStart === -1) return null
+  const tag = /^<([a-z0-9]+)/i.exec(html.slice(tagStart, gt))?.[1]
+  if (tag === undefined) return null
+  const close = html.indexOf(`</${tag}`, gt)
   if (close === -1) return null
-  return unesc(html.slice(gt + 1, close).trim())
+  const inner = html.slice(gt + 1, close).replace(/<[^>]*>/g, "")
+  return unesc(inner.replace(/\s+/g, " ").trim())
 }
 
 /**
@@ -103,6 +121,25 @@ function firstParagraphIn(html: string, sectionAttr: string): string | null {
   const section = html.slice(start, end === -1 ? undefined : end)
   const m = /<p>([\s\S]*?)<\/p>/.exec(section)
   return m === null ? null : unesc((m[1] as string).trim())
+}
+
+/**
+ * ADR 0059: the Install page may carry exactly one external copy-assist script.
+ * Anything else — other src, inline body, or on* handlers — fails the gate.
+ */
+export function htmlAllowsOnlyInstallCopyScript(html: string): boolean {
+  if (/\son[a-z]+=/i.test(html)) return false
+  const blocks = [...html.matchAll(/<script\b([^>]*)>([\s\S]*?)<\/script>/gi)]
+  if (blocks.length === 0) return false
+  for (const m of blocks) {
+    const attrs = m[1] ?? ""
+    const body = (m[2] ?? "").trim()
+    if (body !== "") return false
+    const src = /\bsrc\s*=\s*"([^"]+)"/i.exec(attrs)?.[1]
+    if (src !== INSTALL_COPY_SCRIPT_SRC) return false
+    if (!/\bdefer\b/i.test(attrs)) return false
+  }
+  return true
 }
 
 /**
@@ -141,8 +178,8 @@ export function evaluateHumanCapsule(
       observed: `install-cta count = ${ctaCount}`,
     },
     {
-      id: "at-most-three-authority-facts",
-      pass: factCount >= 1 && factCount <= 3,
+      id: "at-most-five-authority-facts",
+      pass: factCount >= 1 && factCount <= 5,
       observed: `authority facts = ${factCount}`,
     },
     {
@@ -156,8 +193,20 @@ export function evaluateHumanCapsule(
       observed: `consequence = ${JSON.stringify(consequence)}`,
     },
     {
+      // The CTA must carry the configured verb phrase AND name its subject (R-2).
+      //
+      // Equality was the right check while the CTA was the verb phrase alone. It now
+      // reads "<verb phrase> <display name>", and that is a stronger answer to "what
+      // will happen", not a weaker one — the shipped "Add with CallLint" never said what
+      // was being added. So the check is composition, not equality: the phrase is still
+      // required verbatim (a config that drops it still fails), and the subject must be
+      // present too (a CTA that reverts to generic chrome fails a gate that equality
+      // would have happily passed).
       id: "answer-action-present",
-      pass: action === p.humanDisposition.primaryCta,
+      pass:
+        action !== null &&
+        action.includes(p.humanDisposition.primaryCta) &&
+        action.includes(p.displayName),
       observed: `cta = ${JSON.stringify(action)}`,
     },
     {
@@ -171,9 +220,11 @@ export function evaluateHumanCapsule(
       observed: `publisher index = ${iPublisher}, secondary index = ${iSecondary}`,
     },
     {
-      id: "no-decision-javascript",
-      pass: !html.includes("<script") && !/\son[a-z]+=/.test(html),
-      observed: `script tags = ${countOf(html, "<script")}`,
+      id: "copy-only-javascript-whitelist",
+      pass: htmlAllowsOnlyInstallCopyScript(html),
+      observed: `script tags = ${countOf(html, "<script")}; on* attrs = ${
+        (html.match(/\son[a-z]+=/gi) ?? []).length
+      }`,
     },
   ]
 

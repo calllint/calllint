@@ -35,4 +35,13 @@ for (const [src, dest] of styles) {
   await copyFile(join(app, "..", "styles", src), join(pub, dest))
 }
 
-console.log(`synced ${files.length} brand asset(s) + ${styles.length} stylesheet(s) → apps/web/public`)
+// ADR 0059 — copy-only assist. Authored outside public/, synced in (same split as tokens).
+const scripts = [["install-copy.js", join("scripts", "install-copy.js")]]
+for (const [src, dest] of scripts) {
+  await mkdir(join(pub, dirname(dest)), { recursive: true })
+  await copyFile(join(app, src), join(pub, dest))
+}
+
+console.log(
+  `synced ${files.length} brand asset(s) + ${styles.length} stylesheet(s) + ${scripts.length} script(s) → apps/web/public`,
+)

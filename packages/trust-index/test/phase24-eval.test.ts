@@ -8,6 +8,7 @@
  * with no human panel recorded, Gate 2.4-B is PENDING_HUMAN_PANEL — never PASSED.
  */
 import { describe, it, expect } from "vitest"
+import crypto from "node:crypto"
 import fs from "node:fs"
 import path from "node:path"
 import { fileURLToPath } from "node:url"
@@ -35,6 +36,26 @@ import {
 } from "../src/index.js"
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..", "..", "..")
+
+function servedInstallPageDigests(): Map<string, string> {
+  const root = path.join(repoRoot, "apps", "web", "public", "install")
+  const out = new Map<string, string>()
+  if (!fs.existsSync(root)) return out
+  for (const cohort of fs.readdirSync(root)) {
+    const dir = path.join(root, cohort)
+    if (!fs.statSync(dir).isDirectory()) continue
+    for (const name of fs.readdirSync(dir)) {
+      const page = path.join(dir, name, "index.html")
+      if (fs.existsSync(page)) {
+        out.set(
+          `${cohort}/${name}`,
+          `sha256:${crypto.createHash("sha256").update(fs.readFileSync(page)).digest("hex")}`,
+        )
+      }
+    }
+  }
+  return out
+}
 const ajv = new Ajv({ allErrors: true, strict: false })
 const validate = ajv.compile(
   JSON.parse(fs.readFileSync(path.join(repoRoot, "schemas/calllint.agent-adoption-contract.v1.schema.json"), "utf8")),
@@ -72,7 +93,12 @@ describe("Gate 2.4-B — structural precondition", () => {
       expect(r.pass, JSON.stringify(r.checks.filter((c) => !c.pass))).toBe(true)
       expect(r.answers.target).not.toBeNull()
       expect(r.answers.consequence).toBe(p.consequenceSummary)
-      expect(r.answers.action).toBe(p.humanDisposition.primaryCta)
+      // The CTA now reads "<verb phrase> <display name>" (R-2), so this asserts
+      // composition rather than equality — and asserts BOTH halves, because a CTA that
+      // kept the phrase and dropped the subject is exactly the generic-chrome regression
+      // this change set out to fix.
+      expect(r.answers.action).toContain(p.humanDisposition.primaryCta)
+      expect(r.answers.action).toContain(p.displayName)
     }
   })
 
@@ -85,19 +111,26 @@ describe("Gate 2.4-B — structural precondition", () => {
     expect(r.checks.find((c) => c.id === "exactly-one-primary-cta")?.pass).toBe(false)
   })
 
-  it("FAILS when a fourth authority fact is introduced (negative control)", () => {
+  it("FAILS when more than five authority facts are introduced (negative control)", () => {
     const { p } = projections[1] as { p: ReturnType<typeof canonicalProjection> }
     const html = renderSafeInstall(p)
-    const broken = html.replace("</ul>", '<li data-observed="true">extra</li><li data-observed="true">more</li></ul>')
+    const extras = Array.from({ length: 6 }, (_, i) => `<li data-observed="true">extra${i}</li>`).join("")
+    const broken = html.replace("</ul>", `${extras}</ul>`)
     const r = evaluateHumanCapsule(p, broken)
-    expect(r.checks.find((c) => c.id === "at-most-three-authority-facts")?.pass).toBe(false)
+    expect(r.checks.find((c) => c.id === "at-most-five-authority-facts")?.pass).toBe(false)
   })
 
-  it("FAILS when decision JavaScript appears (negative control)", () => {
+  it("FAILS when non-whitelist decision JavaScript appears (negative control)", () => {
     const { p } = projections[0] as { p: ReturnType<typeof canonicalProjection> }
     const broken = renderSafeInstall(p).replace("</body>", "<script>decide()</script></body>")
     const r = evaluateHumanCapsule(p, broken)
-    expect(r.checks.find((c) => c.id === "no-decision-javascript")?.pass).toBe(false)
+    expect(r.checks.find((c) => c.id === "copy-only-javascript-whitelist")?.pass).toBe(false)
+  })
+
+  it("PASSES the JS whitelist when only the copy-assist script is present", () => {
+    const { p } = projections[0] as { p: ReturnType<typeof canonicalProjection> }
+    const r = evaluateHumanCapsule(p, renderSafeInstall(p))
+    expect(r.checks.find((c) => c.id === "copy-only-javascript-whitelist")?.pass).toBe(true)
   })
 
   it("FAILS when the consequence sentence is altered (negative control)", () => {
@@ -131,13 +164,25 @@ describe("Gate 2.4-B — the human panel is DATA, never simulated", () => {
     expect(decideGateB(structures, empty)) .toBe("PENDING_HUMAN_PANEL")
   })
 
-  it("the committed panel store is empty, so the shipped gate status is pending", () => {
+  it("the committed panel store, when recorded and fresh, has ≥10 responses and passes Gate 2.4-B", () => {
     const store = JSON.parse(
       fs.readFileSync(path.join(repoRoot, "artifacts/phase-2.4/five-second-panel-store.json"), "utf8"),
     ) as FiveSecondPanelStore
     expect(store.schema).toBe("calllint.five-second-panel.v0")
-    expect(store.responses).toEqual([])
-    expect(decideGateB(structures, measureFiveSecondPanel(store))).toBe("PENDING_HUMAN_PANEL")
+    const { fresh, stale } = partitionPanelFreshness(store, servedInstallPageDigests())
+    // Honest empty or fully-stale store is PENDING — pages were rebuilt and humans must re-record.
+    if (fresh.length < FIVE_SECOND_MIN_PANEL) {
+      expect(decideGateB(structures, measureFiveSecondPanel({ ...store, responses: fresh }))).toBe(
+        "PENDING_HUMAN_PANEL",
+      )
+      return
+    }
+    expect(stale).toEqual([])
+    const panel = measureFiveSecondPanel({ ...store, responses: fresh })
+    expect(panel.recognition.target).toBe(1)
+    expect(panel.recognition.consequence).toBe(1)
+    expect(panel.recognition.action).toBe(1)
+    expect(decideGateB(structures, panel)).toBe("PASSED")
   })
 
   it("an UNDERSIZED panel stays pending even at 100% recognition", () => {
@@ -359,13 +404,22 @@ describe("committed Phase 2.4 evidence", () => {
   const read = (f: string): Record<string, unknown> =>
     JSON.parse(fs.readFileSync(path.join(repoRoot, "artifacts/phase-2.4", f), "utf8")) as Record<string, unknown>
 
-  it("records Gate 2.4-B as pending with a 100% structural precondition", () => {
+  it("records Gate 2.4-B with a 100% structural precondition; human panel PASSED or PENDING", () => {
     const a = read("human-five-second-test.json")
     expect(a.gate).toBe("2.4-B")
-    expect(a.status).toBe("PENDING_HUMAN_PANEL")
+    expect(["PASSED", "PENDING_HUMAN_PANEL"]).toContain(a.status)
     expect((a.structuralPrecondition as { pass: boolean }).pass).toBe(true)
     expect((a.structuralPrecondition as { pagesEvaluated: number }).pagesEvaluated).toBe(5)
-    expect((a.humanPanel as { status: string }).status).toBe("NOT_RUN")
+    const hp = a.humanPanel as { status: string; responses: number; recognition: Record<string, number> }
+    if (a.status === "PASSED") {
+      expect(hp.status).toBe("RECORDED")
+      expect(hp.responses).toBeGreaterThanOrEqual(FIVE_SECOND_MIN_PANEL)
+      for (const q of FIVE_SECOND_QUESTIONS) expect(hp.recognition[q]).toBeGreaterThanOrEqual(0.9)
+      expect((a.blockers as string[]) ?? []).toEqual([])
+    } else {
+      expect(["UNRECORDED", "NOT_RUN"]).toContain(hp.status)
+      expect(hp.responses).toBe(0)
+    }
   })
 
   it("records Gate 2.4-C as passed with every rate at 1 and every count at 0", () => {

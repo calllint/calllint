@@ -59,6 +59,7 @@ import {
   DEFAULT_TOKENS,
   EMPTY_PRESENTATION_CONTENT,
   FORBIDDEN_CSS_CONSTRUCTS,
+  INSTALL_COPY_SCRIPT_SRC,
   LEVEL_BY_SECTION,
   canonicalProjectionInput,
   countCssRules,
@@ -213,6 +214,31 @@ describe("L0 token plane — populated (the level is no longer indistinguishable
     const served = path.join(repoRoot, "apps", "web", "public", "styles", "tokens.css")
     expect(fs.existsSync(served)).toBe(true)
     expect(fs.readFileSync(served, "utf8")).toBe(planeCss)
+  })
+
+  it("the served copy-assist script exists, is byte-identical to its source, and stays copy-only", () => {
+    // Same source/served split as tokens.css, and it needs the same three claims. ADR 0059
+    // §4 whitelists exactly one script by src, and phase24Eval's whitelist checks the HTML
+    // reference — but a reference is not a file. All 19 pages point at this path, so a
+    // missing served copy is a 404 on a live acquisition surface that every HTML-side
+    // measure still reads as satisfied.
+    const source = path.join(repoRoot, "apps", "web", "scripts", "install-copy.js")
+    const served = path.join(repoRoot, "apps", "web", "public", "scripts", "install-copy.js")
+    expect(fs.existsSync(source)).toBe(true)
+    expect(fs.existsSync(served)).toBe(true)
+    const js = fs.readFileSync(served, "utf8")
+    expect(js).toBe(fs.readFileSync(source, "utf8"))
+    // The served path is the one the renderer emits — asserted, not restated, so renaming
+    // the constant cannot leave this guard pinning a file nothing references.
+    expect(path.posix.join("/", "scripts", "install-copy.js")).toBe(INSTALL_COPY_SCRIPT_SRC)
+    // Copy-only, per ADR 0059 §4: it may read a data-copy-from target and write the
+    // clipboard. It may not fetch, navigate, read the contract, or eval. CSS cannot decide;
+    // neither can this.
+    for (const forbidden of [/\bfetch\s*\(/, /XMLHttpRequest/, /\beval\s*\(/, /new\s+Function\s*\(/, /location\s*=/, /\.href\s*=/, /import\s*\(/]) {
+      expect(js).not.toMatch(forbidden)
+    }
+    expect(js).toContain("data-copy-from")
+    expect(js).toContain("clipboard")
   })
 
   it("every served install page links the plane — and links nothing else (P-4b)", () => {
@@ -399,7 +425,13 @@ describe("L0 token plane — the drift pin against the served sheet", () => {
     expect(tokenDrift(tampered, served).drifted.map((d) => d.name)).toEqual(["--brand"])
     const dropped = plane.filter((t) => t.name !== "--brand")
     expect(tokenDrift(dropped, served).sharedNames).not.toContain("--brand")
-    expect(tokenDrift(dropped, served).sharedNames.length).toBe(plane.length - 1)
+    // Measured against the SHARED count, not against `plane.length`. The plane is a
+    // superset of the served palette — R-2 added plane-only tokens (`--warn`, `--ok`)
+    // for the observed/absent glyphs, which have no marketing counterpart to drift
+    // from. Anchoring to plane.length silently assumed plane ⊆ served, so it would
+    // fail on any plane-only token while claiming to test the drop detection.
+    const sharedBefore = tokenDrift(plane, served).sharedNames.length
+    expect(tokenDrift(dropped, served).sharedNames.length).toBe(sharedBefore - 1)
   })
 })
 

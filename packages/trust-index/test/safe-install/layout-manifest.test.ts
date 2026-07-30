@@ -359,7 +359,7 @@ describe("layout manifest — caps may only narrow (containment)", () => {
     for (const v of [-99, -1, 0, 1, 2, 3, 4, 99, 1.5, NaN, Infinity, "3", null, {}, []]) {
       const out = clampCap(v as never, 3, 1)
       expect(out).toBeGreaterThanOrEqual(1)
-      expect(out).toBeLessThanOrEqual(3)
+      expect(out).toBeLessThanOrEqual(5)
     }
   })
 })
@@ -368,7 +368,7 @@ describe("layout manifest — the config plane (loud in CI, fail-open at emit)",
   const rulesFor = (doc: unknown): string[] => validatePresentationContent(doc, ctx).map((e) => e.rule)
 
   it("an over-range cap is REJECTED loudly by the validator", () => {
-    expect(rulesFor({ ...EMPTY_PRESENTATION_CONTENT, layout: { maxAuthorityFacts: 5 } })).toContain("layout-cap")
+    expect(rulesFor({ ...EMPTY_PRESENTATION_CONTENT, layout: { maxAuthorityFacts: 6 } })).toContain("layout-cap")
     expect(rulesFor({ ...EMPTY_PRESENTATION_CONTENT, layout: { maxSecondaryLinks: 9 } })).toContain("layout-cap")
   })
 
@@ -447,14 +447,15 @@ describe("layout manifest — branches the 19 committed pages cannot cover", () 
     expect(renderSafeInstall(p)).not.toContain('class="install-publisher"')
   })
 
-  it("every layout still emits a well-formed, script-free page", () => {
+  it("every layout still emits a well-formed page with only the copy-assist script", () => {
     // Layout rearranges trusted fragments; it must not be able to produce an injection
     // surface or an unbalanced document.
     for (const p of projections) {
       for (const layout of [DEFAULT_LAYOUT, reorderedLayout(), { ...DEFAULT_LAYOUT, maxAuthorityFacts: 1, maxSecondaryLinks: 0 }]) {
         const html = renderSafeInstall(p, DEFAULT_PRESENTATION.sectionTitles, layout)
-        expect(html).not.toMatch(/<script/i)
         expect(html).not.toMatch(/\son[a-z]+=/i)
+        expect(html).toMatch(/<script\s+src="\/scripts\/install-copy\.js"\s+defer>\s*<\/script>/i)
+        expect([...html.matchAll(/<script\b/gi)].length).toBe(1)
         expect([...html.matchAll(/<section/g)].length).toBe([...html.matchAll(/<\/section>/g)].length)
       }
     }

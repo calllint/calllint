@@ -43,7 +43,7 @@ import {
   type GuardHostId,
 } from "@calllint/core"
 import { adoptionBasisPolicyJson, loadPolicyOrDefault } from "@calllint/policy"
-import type { ApplyResult, TrustPreparation } from "@calllint/types"
+import type { ApplyResult, InstallPlan, TrustPreparation } from "@calllint/types"
 import type { CommandResult } from "./scan.js"
 import { trustCommand } from "./trust.js"
 import { EXIT, flagBool, flagStr, type ParsedArgs } from "../args.js"
@@ -66,6 +66,26 @@ export interface SafeInstallDeps {
   toolVersion?: string
   /** Reads the interactive approval line (injected; same port `check --stdin` uses). */
   readStdin: () => string
+  /**
+   * Writes the approval preview BEFORE `readStdin` blocks (R-2b).
+   *
+   * Why a port rather than appending to `stdout`: a `CommandResult.stdout` is returned
+   * only after the command finishes, i.e. after the read. Without this, interactive
+   * `--apply` was a BLIND SIGNATURE — the process blocked on stdin having printed
+   * nothing, so the human approved a plan they were never shown. That defect is the
+   * reason the install page could not honestly offer a one-command route.
+   *
+   * Absent ⇒ no preview is printed AND interactive `--apply` is refused, so a caller
+   * that cannot show the plan can never collect an approval for it.
+   */
+  promptOut?: (text: string) => void
+  /**
+   * True when stdin is a real terminal. Interactive `--apply` requires it: without it,
+   * piped bytes (`yes | calllint …`) would satisfy the approval gate, which is a
+   * non-interactive auto-apply wearing an interactive costume. Absent ⇒ treated as
+   * false (fail closed).
+   */
+  stdinIsTty?: boolean
   /**
    * The contract, already acquired + wire-shape-checked at the async CLI edge
    * (computeContractFetch, mirroring `online`). The command stays synchronous and
@@ -591,6 +611,13 @@ function runActionable(
   // 5) Single explicit approval gate. Machine mode requires the exact plan digest
   // via --approve (§10.7 never auto-applies). Interactive mode reads one
   // confirmation line; a non-matching / negative / empty answer is a clean DECLINE.
+  //
+  // Show the plan FIRST. The read below blocks, and a `CommandResult.stdout` is only
+  // returned after it returns — so anything not written through `promptOut` here is
+  // invisible at the moment the human decides.
+  if (!modes.nonInteractive && !flagStr(args.flags, "approve") && deps.promptOut) {
+    deps.promptOut(approvalPreview(plan, view, host))
+  }
   const approval = resolveApproval(args, deps, planDigest, modes.nonInteractive)
   if ("error" in approval) return usageErr(approval.error)
   if (approval.decision === "declined") {
@@ -653,6 +680,36 @@ function runActionable(
   )
 }
 
+/**
+ * The approval preview — what a human sees BEFORE the read blocks (R-2b).
+ *
+ * Renders from the plan's own operations, so it cannot describe a write the plan does
+ * not contain: every target path and every JSON-Patch path is enumerated from
+ * `plan.operations`, not from a summary someone maintains by hand. This is the text
+ * that makes an interactive approval an informed one.
+ */
+function approvalPreview(plan: InstallPlan, view: ContractView, host: string): string {
+  const lines = [
+    "",
+    `  CallLint — review before writing`,
+    "",
+    `    server    ${view.canonicalName}${view.version ? `@${view.version}` : ""}`,
+    `    host      ${host} (tier ${plan.tier})`,
+  ]
+  if (view.artifactDigest) lines.push(`    artifact  ${view.artifactDigest}`)
+  lines.push(`    plan      ${plan.planDigest}`, "", "  Writes:")
+  for (const op of plan.operations) {
+    lines.push(`    ${op.target}${op.preconditionDigest === "absent" ? "  (new file)" : ""}`)
+    for (const p of op.patch) lines.push(`      ${op.type === "json-patch" ? op.type : "write"}  ${p.op} ${p.path}`)
+  }
+  lines.push(
+    "",
+    "  Nothing has been written yet. Type  yes  to approve, anything else to decline.",
+    "  approve> ",
+  )
+  return lines.join("\n")
+}
+
 /** Resolve the approval decision at the single gate. */
 function resolveApproval(
   args: ParsedArgs,
@@ -684,6 +741,22 @@ function resolveApproval(
   }
   // Interactive: an explicit --approve wins; otherwise read one confirmation line.
   if (approve) return { decision: "approved", digest: approve }
+  // Two preconditions for collecting a typed approval, both fail-closed. Without a
+  // terminal, `yes | calllint … --apply` would satisfy this gate — a non-interactive
+  // auto-apply in interactive clothing. Without a preview port the human cannot have
+  // seen the plan, so the keystroke would authorize bytes they never read.
+  if (deps.stdinIsTty !== true) {
+    return {
+      error:
+        "interactive --apply needs a terminal (stdin is not a TTY)\n" +
+        "  to apply from a script, review a plan first, then name its digest:\n" +
+        "    calllint safe-install --contract <c> --host <h> --json --plan-out plan.json\n" +
+        "    calllint safe-install --contract <c> --host <h> --json --plan plan.json --apply --approve <digest>",
+    }
+  }
+  if (!deps.promptOut) {
+    return { error: "interactive --apply is unavailable in this context (no way to show the plan for review)" }
+  }
   const answer = deps.readStdin().trim()
   if (answer === planDigest || answer.toLowerCase() === "yes" || answer.toLowerCase() === "y") {
     return { decision: "approved", digest: planDigest }

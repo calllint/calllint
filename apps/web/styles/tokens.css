@@ -62,6 +62,20 @@
   --radius: 14px;
   --font: "Segoe UI", system-ui, -apple-system, sans-serif;
   --mono: ui-monospace, "Cascadia Code", "SF Mono", Consolas, monospace;
+
+  /* PLANE-ONLY tokens (R-2). These have no counterpart in the served marketing
+   * palette, so they are deliberately NOT part of the mirror pin above — that
+   * pin requires this file to carry every served name at the served value, and
+   * a name the marketing sheet never had cannot drift from it. They exist
+   * because the authority list needs to distinguish "we observed this" from "we
+   * did not", and the shipped palette has exactly one accent (`--brand`, the
+   * CTA red) with no neutral-positive counterpart.
+   *
+   * Colour is the SECOND channel here, never the only one: every row still
+   * carries its consequence sentence and its `data-observed` attribute, so a
+   * reader who cannot distinguish these two hues loses nothing. */
+  --warn: #8a5a00;
+  --ok: #1f6b3a;
 }
 
 /* --- Part 2: the element baseline (P-4b) ---------------------------------- */
@@ -99,8 +113,11 @@ main {
 
 /* Disposition — the fused verdict headline + primary action. The shipped
  * markup carries both display groups in this one section, which is why the
- * layout manifest refuses any order that separates them. */
+ * layout manifest refuses any order that separates them. Column flex so the
+ * protection badge can shrink-wrap (`align-self: start`) instead of stretching. */
 .install-disposition {
+  display: flex;
+  flex-direction: column;
   margin: 20px 0;
   padding: 18px;
   background: var(--surface);
@@ -116,35 +133,410 @@ main {
   color: var(--ink);
 }
 
-/* The primary action — a documentation anchor, never a command. */
+/* Dual equal CTAs: Open in CallLint | I don't have CallLint yet */
+.install-cta-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 12px;
+  margin-top: 14px;
+}
+
+/* The primary-action control — solid brand. Deep-link pages point at calllint://;
+ * docs-only routes keep the documentation href. */
 .install-cta {
-  display: inline-block;
-  margin-top: 12px;
-  padding: 10px 18px;
+  display: grid;
+  place-items: center;
+  gap: 8px;
+  margin: 0;
+  padding: 14px 16px;
   color: var(--surface);
   background: var(--brand);
   border-radius: var(--radius);
   font-weight: 600;
+  text-align: center;
   text-decoration: none;
+  box-sizing: border-box;
 }
 
 .install-cta:hover {
   box-shadow: 0 0 0 4px var(--brand-glow);
 }
 
-/* One-sentence consequence. */
+.install-cta-alt {
+  display: grid;
+  place-items: center;
+  margin: 0;
+  padding: 14px 16px;
+  color: var(--brand);
+  background: var(--surface);
+  border: 2px solid var(--brand);
+  border-radius: var(--radius);
+  font: inherit;
+  font-weight: 600;
+  text-align: center;
+  cursor: pointer;
+  box-sizing: border-box;
+}
+
+.install-cta-alt:hover {
+  background: var(--brand-soft);
+}
+
+.install-cta-pair-note {
+  margin: 10px 0 0;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+/* Command-primary cluster under the dual CTAs. */
+.install-primary-path {
+  margin-top: 8px;
+}
+
+.install-primary-path .install-fallback {
+  margin-top: 12px;
+  padding: 14px 16px;
+  background: var(--bg);
+  border: 1px solid var(--line);
+  border-left: 4px solid var(--brand);
+  border-radius: var(--radius);
+  color: var(--ink);
+  font-size: 0.95rem;
+  box-shadow: 0 1px 0 var(--line);
+}
+
+/* Clicking the brand CTA sets `#install-command` as :target — no JS required. */
+.install-fallback:target {
+  border-color: var(--brand);
+  box-shadow: 0 0 0 4px var(--brand-glow);
+}
+
+.install-command-label {
+  display: block;
+  margin: 0 0 8px;
+  color: var(--brand);
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+/* One surface for the command card — do not nest a second box on `<code>`. */
+.install-primary-path .install-fallback code {
+  margin-top: 0;
+  padding: 0;
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+/* Command + tiny Copy control on one row (ADR 0059). */
+.install-command-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.install-copy {
+  flex: none;
+  margin: 0;
+  padding: 4px 10px;
+  color: var(--ink);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  font: inherit;
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.install-copy:hover {
+  border-color: var(--brand);
+  color: var(--brand);
+}
+
+.install-command-full {
+  margin: 10px 0 0;
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+
+.install-command-full summary {
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.install-command-full code {
+  display: block;
+  margin-top: 8px;
+  font-family: var(--mono);
+  color: var(--ink);
+  overflow-x: auto;
+  white-space: pre-wrap;
+}
+
+.install-consequence-lead {
+  margin: 10px 0 0;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.install-reason-heading {
+  margin: 16px 0 8px;
+  color: var(--muted);
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+.install-reason-codes {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.install-reason-codes li {
+  display: inline-block;
+  margin: 0 8px 8px 0;
+  padding: 4px 10px;
+  background: var(--bg);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  font-size: 0.8rem;
+}
+
+.install-reason-empty {
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+/* The two groups that were rendering as bare text between cards (R-2).
+ *
+ * `install-consequence` and `install-secondary` are both REQUIRED decision groups — the
+ * gate reads the consequence sentence out of the first one — but neither had a container,
+ * so they floated on the page background between two bordered cards and read as stray
+ * fragments that had escaped a box. The consequence sentence is the single most important
+ * line on the page after the verdict, and it looked like debris.
+ *
+ * They are NOT merged into their neighbours and NOT removed: group order is configurable
+ * (`layout.groupOrder`) and the gate asserts each group's DOM position independently, so
+ * each one has to stand alone. They just get the same surface + line treatment every
+ * other group already had, so the page reads as six deliberate blocks. */
+.install-consequence,
+.install-secondary {
+  margin: 20px 0;
+  padding: 16px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+}
+
+/* The consequence IS the headline claim about what happens, so it carries weight the
+ * secondary-links row does not. */
+.install-consequence p {
+  margin: 0;
+  font-size: 1.05rem;
+}
+
+/* Card headings. Both `install-consequence` and `install-authority` emit an `<h2>` and
+ * neither was styled, so they rendered at the UA default — ~1.5rem with a large top
+ * margin, which made a section label louder than the verdict headline it sits under and
+ * pushed the authority card's first row well down the page. Sized as a label: small,
+ * uppercase-free, muted, tight to the content it introduces. */
+.install-consequence h2,
+.install-authority h2 {
+  margin: 0 0 8px;
+  color: var(--muted);
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+.install-secondary p {
+  margin: 0;
+}
+
+/* The verified-identity line, shown only when the publisher's display name and the
+ * resolved canonical name actually differ. Quiet, because when it appears it is a
+ * cross-check rather than the title. */
+.install-canonical {
+  margin: 4px 0 0;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+/* The two `code` sites no block rule covered (R-2).
+ *
+ * Blocks set `--mono` on their own descendants, which left three elements on the generic
+ * `monospace` family: the h1 version, the identity slug, and — worst — the fallback
+ * COMMAND, the string this page asks a visitor to copy and run. On Windows that family
+ * resolves to Courier New and renders "0.3.2" with visible gaps between the dots; a
+ * command shown in a broken-looking font undercuts the one route un-registered users
+ * have.
+ *
+ * SCOPED BY CLASS, NOT `main code`. An element rule is invisible to the plane's
+ * class-scoped scanners, which is why BASELINE_SELECTORS is pinned as an exact set in
+ * both directions — widening that set to carry an ordinary typography fix would spend a
+ * structural allowance on a cosmetic need and make the next real baseline change harder
+ * to see. These two class selectors are measured by the scanners that already run. */
+.install-identity code,
+.install-fallback code {
+  font-family: var(--mono);
+}
+
+/* The value line above the button (R-2 item 3). Sits between the verdict headline
+ * and the action because that is the order the reader needs it in: what this is,
+ * why it is safe to proceed, then the button. Quieter than the headline so it
+ * informs the click without competing with the verdict. */
+.install-value-line {
+  margin: 6px 0 0;
+  color: var(--muted);
+  font-size: 0.95rem;
+}
+
+/* The protection badge — logo OUT of the button (R-2 items 2/5/7).
+ *
+ * The mark was inside the CTA at 20px. The mark is a red shield and the CTA is solid
+ * brand red, so it was red-on-red: present in the markup, invisible on screen, and
+ * competing with the one string the five-second test measures. Two changes fix that
+ * without a new asset: the mark moves OUT of the button onto a pale surface where a red
+ * shield actually reads, and it goes up to 28px from the 256px source so it is legible.
+ *
+ * It sits ABOVE the button, not below, because it is the premise for the click rather
+ * than a footnote to it: the badge says what this install is, then the button does it.
+ * `alt=""` because the adjacent text is the accessible name — a screen reader that
+ * announced "CallLint logo" before the same words would just repeat itself. */
+.install-badge {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 12px 0 0;
+  padding: 8px 12px;
+  /* NEUTRAL surface, not `--brand-soft`. On a REVIEW_REQUIRED page the headline above is
+   * already brand red; a pink chip with a red border directly beneath it read as a second
+   * warning rather than as reassurance — the same inversion the authority container had.
+   * White + a green check keeps the reassuring element reassuring, and leaves red to mean
+   * exactly one thing on this page: attention. */
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  font-weight: 600;
+  /* Shrink-wrap the text: a full-width bar would read as a page-level banner
+   * (the class of thing readers skip) rather than a property of this install. */
+  align-self: start;
+  width: fit-content;
+}
+
+.install-badge-mark {
+  width: 28px;
+  height: 28px;
+  flex: none;
+}
+
+/* The affirmation glyph. Green on the brand-tinted chip, so "on" is carried by a
+ * shape as well as by colour — the same rule the authority rows follow. */
+.install-badge-check {
+  color: var(--ok);
+  font-weight: 700;
+}
+
+/* What the primary path will do, in words. Quiet: informs without competing
+ * with the verdict headline. */
+.install-cta-note {
+  margin: 8px 0 0;
+  font-size: 0.9rem;
+  color: var(--muted);
+}
+
+/* Quiet opt-out / misc action links sit below the dual CTA row. */
+
+/* The "MCP server only" route. Quietest action: less-protected path, still
+ * present and legible (new14 §2.4). */
+.install-alt-route {
+  margin: 8px 0 0;
+  font-size: 0.85rem;
+}
+
+.install-alt-route a {
+  color: var(--muted);
+}
+
+/* The visible command — primary visual on command-primary pages (card chrome
+ * from `.install-primary-path .install-fallback`); muted reference otherwise.
+ * `overflow-wrap` alone used to fracture digests; the `code` rule below keeps
+ * tokens intact. */
+.install-fallback {
+  margin: 12px 0 0;
+  font-size: 0.9rem;
+  color: var(--muted);
+}
+
+/* The command itself is a BLOCK, and wraps only at spaces (R-2).
+ *
+ * It inherited `overflow-wrap: anywhere` from the paragraph, which broke it mid-token —
+ * `--contract` split across two lines as "- -contract", and the sha256 digest fractured
+ * arbitrarily. This is the one string on the page a visitor is asked to copy and run by
+ * hand, and a command that cannot be read cannot be checked before it is run.
+ *
+ * `overflow-wrap: normal` keeps flags and the digest intact; `pre-wrap` preserves the
+ * single spaces that separate arguments; `overflow-x: auto` lets the digest scroll rather
+ * than force the page wide. Block display with its own surface also makes it look like a
+ * command instead of a run-on sentence. */
+.install-fallback code {
+  display: block;
+  margin-top: 6px;
+  padding: 10px 12px;
+  background: var(--bg);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  color: var(--ink);
+  white-space: pre-wrap;
+  overflow-wrap: normal;
+  overflow-x: auto;
+}
+
+/* One-sentence consequence. Container (surface, border, padding) is set above with
+ * `.install-secondary`; this keeps only the ink colour, which is specific to it. */
 .install-consequence {
-  margin: 16px 0;
   color: var(--ink);
 }
 
 /* The ≤3 authority facts. Each row is an observation about evidence; the
  * styling stays neutral so nothing reads as a denial or a guarantee. */
+/* The authority block's container is NEUTRAL, changed in R-2.
+ *
+ * Through P-4 it was `background: var(--brand-soft)` — a wash of brand red over the
+ * whole block. That was defensible while the block had no per-row signal: the tint read
+ * as "this is the capability section", not as a verdict.
+ *
+ * R-2 added per-row amber/green glyphs, and that made the wash WRONG rather than merely
+ * decorative: "no financial capability was observed" is the reassuring row, and it was
+ * being rendered inside an alarm-coloured box. A container that asserts a verdict its
+ * own contents contradict is the exact inversion item 6 exists to prevent — one
+ * direction sells risk as certification, this one sells safety as alarm.
+ *
+ * So the verdict now lives ONLY at the row that owns it, and the container is surface +
+ * line: it groups, it does not judge. */
 .install-authority {
   margin: 20px 0;
   padding: 16px;
-  background: var(--brand-soft);
+  background: var(--surface);
+  border: 1px solid var(--line);
   border-radius: var(--radius);
+}
+
+/* The glyph IS the list marker, so the native bullet is suppressed — otherwise every
+ * row carries two markers ("• !") and the one that means something is the second. */
+.install-authority ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.install-authority li + li {
+  margin-top: 6px;
 }
 
 .install-authority code {
@@ -152,9 +544,51 @@ main {
   font-size: 0.9em;
 }
 
-/* Secondary links — the full Trust Page, then the correction route. */
-.install-secondary {
+/* The observed / not-observed glyph. THE MAPPING IS INVERTED FROM THE OBVIOUS
+ * ONE, and that inversion is the whole reason these rules exist: `is-observed`
+ * means CallLint SAW the capability, which is the thing to weigh — so it is the
+ * warning. `is-absent` means it was not seen at this digest, which is the
+ * reassuring case — so it is the check. Reading the glyphs the intuitive way
+ * ("observed = verified = good") would invert the page's meaning.
+ *
+ * KEYED ON A PRESENTATIONAL CLASS, NEVER ON `data-observed`. That attribute is
+ * what agents read, and a stylesheet able to select on it could target exactly
+ * the row it wanted to suppress — so the renderer decides which class an item
+ * carries and the sheet only colours what it is handed. */
+.install-authority-mark {
+  display: inline-block;
+  width: 1.1em;
+  font-weight: 700;
+  font-family: var(--mono);
+}
+
+.install-authority-mark.is-observed {
+  color: var(--warn);
+}
+
+.install-authority-mark.is-absent {
+  color: var(--ok);
+}
+
+/* The agent-obligation block — the sealed contract's own `mustAskBefore` list,
+ * made visible to the human. Styled as a peer of the authority list because it
+ * carries comparable weight: it is what the agent is bound to stop for. */
+.install-agent-reads {
   margin: 20px 0;
+  padding: 16px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+}
+
+.install-agent-reads code {
+  font-family: var(--mono);
+  font-size: 0.9em;
+}
+
+/* Secondary links — the full Trust Page, then the correction route. Container is set
+ * above alongside `.install-consequence`; these two declarations are its own. */
+.install-secondary {
   color: var(--muted);
   font-size: 0.95rem;
 }

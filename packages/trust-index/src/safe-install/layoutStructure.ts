@@ -185,10 +185,10 @@ export function sectionOrderFor(order: readonly unknown[]): readonly AboveFoldSe
 /**
  * The shipped render caps. Configuration may only NARROW these: `maxAuthorityFacts`
  * is applied strictly downstream of the seal, so it cannot reach `authorityDelta`
- * (INV-P1), and it can never raise the evidence-derived ≤3 selection cap.
+ * (INV-P1), and it can never raise the evidence-derived selection cap (ADR 0059: 5).
  */
 export const SHIPPED_LAYOUT_CAPS = Object.freeze({
-  maxAuthorityFacts: 3,
+  maxAuthorityFacts: 5,
   maxSecondaryLinks: 2,
 } as const)
 
@@ -209,7 +209,7 @@ export const SHIPPED_LAYOUT_CAPS = Object.freeze({
 export interface ResolvedLayout {
   /** The above-the-fold sections, in emit order. Always a full, supported sequence. */
   readonly sectionOrder: readonly AboveFoldSectionId[]
-  /** Render-time cap on authority facts SHOWN. Never raises the sealed ≤3 selection. */
+  /** Render-time cap on authority facts SHOWN. Never raises the sealed selection cap. */
   readonly maxAuthorityFacts: number
   /** Render-time cap on secondary links shown. */
   readonly maxSecondaryLinks: number

@@ -177,6 +177,47 @@ export {
   type SafeInstallHostPlan,
 } from "./gateway/prepareSafeInstall.js"
 
+// Workstream R — the `calllint://adoption/…` deep link an install page emits.
+//
+// Three pure modules and one writer, kept separate on purpose:
+//   adoptionUri         — parse/build the URI as HOSTILE input (fails closed, by name)
+//   adoptionUriDispatch — the exact argv a handler may run; the write flags are
+//                         unreachable by construction, so a link cannot install
+//   urlHandlerPlan      — per-platform registration plan (macOS = reasoned refusal)
+//   urlHandlerWriter    — the SECOND live writer in this repo (registry/.desktop are
+//                         not JSON-patchable, so `applyPlan` cannot be reused); same
+//                         plan → digest → approve → verify → rollback discipline
+export {
+  ADOPTION_URI_SCHEME,
+  buildAdoptionUri,
+  parseAdoptionUri,
+  type AdoptionUriParse,
+  type AdoptionUriRejection,
+  type AdoptionUriRequest,
+} from "./gateway/adoptionUri.js"
+export {
+  FORBIDDEN_ARGS,
+  dispatchAdoptionUri,
+  type AdoptionDispatch,
+  type AdoptionDispatchResult,
+} from "./gateway/adoptionUriDispatch.js"
+export {
+  planUrlHandler,
+  type HandlerPlatform,
+  type HandlerRecord,
+  type PlanInput as UrlHandlerPlanInput,
+  type UrlHandlerPlan,
+} from "./gateway/urlHandlerPlan.js"
+export {
+  applyUrlHandler,
+  planDigest as urlHandlerPlanDigest,
+  unregisterUrlHandler,
+  urlHandlerStatus,
+  type ApplyOutcome as UrlHandlerApplyOutcome,
+  type ApplyResult as UrlHandlerApplyResult,
+  type HandlerRegistry,
+} from "./gateway/urlHandlerWriter.js"
+
 // Phase 2.4 Batch 8 — continuous-protection conversion (INV-2.4-07). Pure disclosure:
 // the one component list + uninstall story + renderer shared by the CLI post-success
 // offer and the MCP `enable_continuous_guard` tool. Enables nothing, writes nothing.

@@ -53,13 +53,13 @@ const FULL_DOC = {
     states: {
       PREPARE_AVAILABLE: {
         headline: "No blockers observed",
-        primaryAction: "Add with CallLint",
+        primaryAction: "Open in CallLint",
         supportingText: "Exact package · Preview changes · Verify what was written",
       },
-      REVIEW_REQUIRED: { headline: "Review required", primaryAction: "Review and add" },
-      BLOCKED: { headline: "Blocked by policy", primaryAction: "Inspect blockers" },
-      LOCAL_PREFLIGHT_REQUIRED: { headline: "Insufficient evidence", primaryAction: "Run local pre-flight" },
-      UNSUPPORTED: { headline: "No supported install plan", primaryAction: "View manual setup" },
+      REVIEW_REQUIRED: { headline: "Review required", primaryAction: "Review in CallLint" },
+      BLOCKED: { headline: "Blocked by policy", primaryAction: "See why it is blocked" },
+      LOCAL_PREFLIGHT_REQUIRED: { headline: "Insufficient evidence", primaryAction: "Check it on your machine" },
+      UNSUPPORTED: { headline: "No supported install plan", primaryAction: "See manual setup" },
     },
   },
   authorityCopy: {
@@ -307,7 +307,7 @@ describe("presentation-content validator — falsifications", () => {
     expect(validatePresentationContent(doc, ctx)).toEqual([])
   })
 
-  it("rejects a BLOCKED page whose CTA impersonates the SAFE 'Add with CallLint' action", () => {
+  it("rejects a BLOCKED page whose CTA impersonates the SAFE 'Open in CallLint' action", () => {
     const doc = {
       ...EMPTY_PRESENTATION_CONTENT,
       decisionCopy: { states: { BLOCKED: { primaryAction: PRIMARY_CTA.PREPARE_AVAILABLE } } },

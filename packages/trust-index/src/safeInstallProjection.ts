@@ -45,11 +45,11 @@ export type Installability =
  * here as the DEFAULT the resolver fails open to, per slot (ADR 0058 §5 INV-P3).
  */
 export const PRIMARY_CTA: Record<Installability, string> = {
-  PREPARE_AVAILABLE: "Add with CallLint",
-  REVIEW_REQUIRED: "Review and add",
-  BLOCKED: "Inspect blockers",
-  LOCAL_PREFLIGHT_REQUIRED: "Run local pre-flight",
-  UNSUPPORTED: "View manual setup",
+  PREPARE_AVAILABLE: "Open in CallLint",
+  REVIEW_REQUIRED: "Review in CallLint",
+  BLOCKED: "See why it is blocked",
+  LOCAL_PREFLIGHT_REQUIRED: "Check it on your machine",
+  UNSUPPORTED: "See manual setup",
 }
 
 /** Human disposition = headline + one primary CTA (never a generic "Install"). */

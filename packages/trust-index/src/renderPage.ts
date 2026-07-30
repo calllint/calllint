@@ -35,6 +35,17 @@ export const CORRECTION_URL =
 export const SITE_ORIGIN = "https://calllint.com"
 
 /**
+ * The published CLI version the Install pages tell a visitor to run.
+ *
+ * Pinned rather than read from `apps/cli/package.json` at render time for the same reason
+ * `EVAL_ENGINE_VERSION` is: the bake must be reproducible from committed bytes, and a
+ * renderer that reaches into a sibling workspace manifest makes the emitted page depend
+ * on install layout. A test pins this against that manifest, so a version bump that
+ * forgets this line fails rather than shipping an `npx` target that may not exist.
+ */
+export const CLI_VERSION = "1.7.3"
+
+/**
  * The clean URL segment of the standing lookup utility page (ADR 0055 §5). Served at
  * `${SITE_ORIGIN}/trust/lookup` (the `.html` 308-redirects to this extensionless form).
  * Single source of truth shared by the sitemap `<loc>` and the page's own canonical link.

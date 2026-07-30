@@ -1,4 +1,4 @@
-import { parseArgs } from "./args.js"
+import { EXIT, parseArgs } from "./args.js"
 import { helpCommand } from "./commands/help.js"
 import { scanCommand, type CommandResult } from "./commands/scan.js"
 import { checkCommand } from "./commands/check.js"
@@ -19,6 +19,7 @@ import { safeInstallCommand } from "./commands/safeInstall.js"
 import type { ResolvedContract } from "./commands/safeInstall/contractFetch.js"
 import { guardCommand } from "./commands/guard.js"
 import { integrateCommand } from "./commands/integrate.js"
+import { urlHandlerCommand, type UrlHandlerDeps } from "./commands/urlHandler.js"
 import { emitCommandSignal } from "./telemetry.js"
 import type { Emitter } from "@calllint/telemetry-emit"
 import type { Finding } from "@calllint/types"
@@ -39,6 +40,14 @@ export interface OnlineEnrichment {
 export interface RunDeps {
   cwd: string
   readStdin: () => string
+  /**
+   * Writes an interactive prompt BEFORE `readStdin` blocks (R-2b). Only the
+   * safe-install approval gate uses it; absent ⇒ interactive `--apply` is refused
+   * rather than collecting an approval for a plan the human was never shown.
+   */
+  promptOut?: (text: string) => void
+  /** True when stdin is a real terminal. Absent ⇒ false (fail closed). */
+  stdinIsTty?: boolean
   now: number
   generatedAt: string
   writeCacheFile?: boolean
@@ -60,6 +69,13 @@ export interface RunDeps {
    * every other command, so their paths stay network-free and byte-identical.
    */
   contract?: ResolvedContract
+  /**
+   * Workstream R — the OS-facing deps for `url-handler`. Injected so no test ever
+   * touches a real registry or a real home directory, and so the platform branch is
+   * exercisable on every CI OS. Absent ⇒ `url-handler` reports its dependency is
+   * unavailable rather than silently guessing the machine.
+   */
+  urlHandler?: UrlHandlerDeps
 }
 
 /**
@@ -162,10 +178,23 @@ function dispatch(argv: string[], deps: RunDeps): CommandResult {
         generatedAt: deps.generatedAt,
         toolVersion: deps.toolVersion,
         readStdin: deps.readStdin,
+        promptOut: deps.promptOut,
+        stdinIsTty: deps.stdinIsTty,
         contract: deps.contract,
       })
     case "integrate":
       return integrateCommand(args, { cwd: deps.cwd, generatedAt: deps.generatedAt, toolVersion: deps.toolVersion })
+    case "url-handler":
+      // No silent fallback to a real machine: without the injected port this command
+      // has no business guessing, so it refuses.
+      if (!deps.urlHandler) {
+        return {
+          stdout: "",
+          stderr: "Error: url-handler is unavailable in this context (no OS registry port)\n",
+          exitCode: EXIT.USAGE,
+        }
+      }
+      return urlHandlerCommand(args, deps.urlHandler)
     case "guard":
       return guardCommand(args, {
         cwd: deps.cwd,
