@@ -12,6 +12,37 @@ onward. While pre-1.0, minor versions may include breaking changes.
 
 ### Added
 
+- **Workstream P PR P-4b — serving the L0 plane (ADR 0058 §1/§4).** P-4 built the token plane
+  and proved it unpublishable; this batch **serves** it. `sync-assets.mjs` copies
+  `apps/web/styles/tokens.css` to `apps/web/public/styles/tokens.css`, the renderer emits a
+  single `<link rel="stylesheet">` in `<head>`, and the resolved `tokens.stylesheetHref` is what
+  it emits — so all 19 install pages gain **+34 bytes each and 0 JSON bytes**: the agent
+  contract, all four sealed digests, every verdict, and every `recommendedNextAction` are
+  untouched, and the change is measured that way rather than asserted. This is the one
+  Workstream-P PR §4 licenses to change a served byte. Net +34 rather than +56 because wiring
+  the fourth copy slot let the boundary sentence refold onto one line (−22): `sectionTitles`
+  now has **no unwired slot**, closing the deferral P-2 opened. Because the source and the
+  served copy are two files, the lock **byte-compares** them — without that, every token,
+  coverage, and hygiene measure would read the source while browsers read the copy, and a
+  hand-edit under `public/` would pass all of them. Two measures are new because P-4b is the
+  first batch where they could fail: an **element baseline** asserted as an exact set
+  (`:root`/`body`/`main` were invisible to every class-scoped parser, and a missing `body` rule
+  would have shipped the `<link>` with none of the visual-hierarchy outcome — styled sections on
+  a browser-default page), and a **`var()`-resolved visual digest**, which a raw-bytes digest
+  cannot be (it moves on a comment edit) and a token-name comparison cannot be (it misses a
+  palette re-pointed through renamed tokens). The suppression scan now covers those element
+  heads too: `body { display: none }` hides a disposition exactly as well as the class-scoped
+  form did, and under an install-only scan it was not a finding. The resolver gains an
+  **href allow-list** — rooted, same-origin, `.css`, no query or fragment — so a catalog cannot
+  point a served trust surface at third-party bytes; a rejected href falls back to the shipped
+  sheet, is reported in `rejectedSlots`, and never echoes the offending value into a CI log.
+  `unwiredSlots` is now derived from the *wired* set rather than the deferral list, which keeps
+  the mechanism alive with an empty list and catches a case it previously missed entirely: a
+  **misspelled** title key, which the per-key merge silently dropped. Three P-4 assertions
+  **invert** rather than being deleted (a deleted check cannot fail when a page silently loses
+  its stylesheet), and both the wiring probe and the byte-compare were verified by
+  reintroducing the defects they exist to catch.
+
 - **Workstream P PR P-4 — the L0 design-token plane (ADR 0058 §1/§4).** Populates the one
   configuration level that was declared but empty: **L0**, defined as "not reachable into any
   digest, and appears only in CSS." Adds `apps/web/styles/tokens.css` — the 11 shipped `:root`

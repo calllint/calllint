@@ -334,6 +334,11 @@ export {
 // 0058 §1/§4). Pure parsing + comparison, no filesystem: the lock script and the
 // tests read the files and hand the bytes here, so both measure the token plane
 // through one implementation instead of describing it twice.
+//
+// PR P-4b adds the pieces that make the plane SERVED: `ResolvedTokens`/`DEFAULT_TOKENS`
+// (the renderer's fourth argument), `BASELINE_SELECTORS` + `nonClassRuleHeads` (the
+// element rules a class-only parser could not see), and `resolveDeclarations` (the
+// var()-resolved visual fact the lock digests).
 export {
   parseRootTokens,
   parseClassSelectors,
@@ -343,7 +348,13 @@ export {
   suppressionViolations,
   tokenDrift,
   emittedInstallClasses,
+  nonClassRuleHeads,
+  resolveDeclarations,
   FORBIDDEN_CSS_CONSTRUCTS,
   SUPPRESSION_PROPERTIES,
+  BASELINE_SELECTORS,
+  DEFAULT_TOKENS,
   type CssToken,
+  type ResolvedRule,
+  type ResolvedTokens,
 } from "./safe-install/tokenPlane.js"

@@ -24,7 +24,8 @@
 // ---------------------------------------------------------------------------
 
 import { hashJson } from "@calllint/fingerprint"
-import { renderSafeInstall } from "./renderSafeInstall.js"
+import { renderSafeInstall, SECTION_TITLES } from "./renderSafeInstall.js"
+import { DEFAULT_LAYOUT } from "./safe-install/layoutStructure.js"
 import { safeInstallProjection, type SafeInstallProjectionInput } from "./safeInstallProjection.js"
 import type { SafeInstallProjection } from "./safeInstallProjection.js"
 import {
@@ -303,6 +304,25 @@ export const COPY_SITES: readonly CopySiteDeclaration[] = [
       "Renderer section headings. Wording is cognitive copy; the POSITION and the key set stay code, so no document can move publisher text into a decision group (INV-2.4-05).",
   },
   {
+    // Added by PR P-4b, the batch that WIRED it. Same rule as SECTION_TITLES above: the
+    // table grows with each lift, in the lift's own commit, because a copy site the audit
+    // does not probe is a copy site with no boundary.
+    //
+    // This row is different from every other presentation row in one way worth stating: it
+    // is the only value that reaches an HTML ATTRIBUTE rather than a text node, so its
+    // failure mode is a network request rather than a misleading sentence. The probe still
+    // asks the same question — can it reach `contractDigest`? — and the answer is still no.
+    // What keeps the ATTRIBUTE risk from being unmeasured is not this row but
+    // `usableStylesheetHref` in the resolver plus the plane audit's foreign-href check.
+    constant: "STYLESHEET_HREF",
+    source: "packages/trust-index/src/safe-install/tokenPlane.ts",
+    declaredLevel: "L0",
+    declaredPlane: "presentation",
+    configurableTo: "apps/web/content/safe-install/presentation.v1.json#/tokens/stylesheetHref",
+    rationale:
+      "The L0 href the install page links (PR P-4b). Reaches served bytes but no digest: a stylesheet cannot compute a verdict, and the resolver refuses any href that is not a rooted same-origin .css path.",
+  },
+  {
     constant: "VERDICT_PUBLIC_LABEL",
     source: "packages/types/src/verdict.ts",
     declaredLevel: "L3",
@@ -338,6 +358,7 @@ export function runPresentationAudit(
     readonly absenceConsequence: readonly string[]
     readonly primaryCta: readonly string[]
     readonly sectionTitles: readonly string[]
+    readonly stylesheetHref: readonly string[]
     readonly verdictLabel: readonly string[]
     readonly guidanceSteps: readonly string[]
   },
@@ -417,6 +438,23 @@ export function runPresentationAudit(
       authorityFacts: PROBE_SENTINEL,
       provenance: PROBE_SENTINEL,
       publisherBlock: PROBE_SENTINEL,
+      // Wired by P-4b, so it is now part of this probe's mutation rather than a
+      // deferred slot the sentinel could not reach.
+      boundary: PROBE_SENTINEL,
+    }),
+    routeKey: routeKey(s.projection),
+  })
+
+  // STYLESHEET_HREF (PR P-4b) mutates at the renderer's FOURTH argument — the same seam
+  // the emit edge supplies — and reuses the sealed contract untouched, exactly as the
+  // section-titles probe does. A stylesheet href has no path into
+  // `AgentAdoptionContractInput`, which is the structural half of the claim; containment
+  // over the shipped href is the measured half.
+  const mutateTokens = (s: ProbeSubject) => ({
+    contractDigest: s.contractDigest,
+    html: renderSafeInstall(s.projection, SECTION_TITLES, DEFAULT_LAYOUT, {
+      tokensVersion: PROBE_SENTINEL,
+      stylesheetHref: `/${PROBE_SENTINEL}.css`,
     }),
     routeKey: routeKey(s.projection),
   })
@@ -426,6 +464,7 @@ export function runPresentationAudit(
     probeCopySite(decl("ABSENCE_CONSEQUENCE"), values.absenceConsequence, subjects, mutateConsequences),
     probeCopySite(decl("PRIMARY_CTA"), values.primaryCta, subjects, mutateCta),
     probeCopySite(decl("SECTION_TITLES"), values.sectionTitles, subjects, mutateSectionTitles),
+    probeCopySite(decl("STYLESHEET_HREF"), values.stylesheetHref, subjects, mutateTokens),
     probeCopySite(decl("VERDICT_PUBLIC_LABEL"), values.verdictLabel, subjects),
     probeCopySite(decl("AGENT_GUIDANCE.steps"), values.guidanceSteps, subjects),
   ])

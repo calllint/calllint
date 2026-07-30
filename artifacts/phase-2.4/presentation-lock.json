@@ -1,14 +1,14 @@
 {
   "schema": "calllint.presentation-lock.v0",
-  "$comment": "Workstream P digest seams (ADR 0058 §5; new15 §7), re-baselined by PR P-4, which populates the L0 token plane (see tokenPlane). RECORDS presentationDigest + semanticContractDigest; it does NOT re-point what install plans bind — plans still bind contractDigest, and moving that binding is a P-7 decision requiring an ADR amendment (doing it here would smuggle a behavior change into a batch declared as having none). `semanticContractDigest` is defined by DELETION from the sealed contract, so a new contract field is bound by default and omission is the reviewable exception. The gate is noProseLeaves: machine tokens carry no whitespace, prose always does, so an empty result proves no copy is bound — for any input, not just those measured. Regenerate with `pnpm audit:presentation:lock:write`; enforce with `pnpm audit:presentation:lock:gate`.",
+  "$comment": "Workstream P digest seams (ADR 0058 §5; new15 §7), re-baselined by PR P-4b, which SERVES the L0 token plane (see tokenPlane) — the one Workstream P PR §4 licenses to change served bytes, and the only re-baseline in this workstream where install HTML moves (+34 B/page, 19 pages, 0 JSON bytes: the agent contract is untouched). RECORDS presentationDigest + semanticContractDigest; it does NOT re-point what install plans bind — plans still bind contractDigest, and moving that binding is a P-7 decision requiring an ADR amendment (doing it here would smuggle a behavior change into a batch declared as having none). `semanticContractDigest` is defined by DELETION from the sealed contract, so a new contract field is bound by default and omission is the reviewable exception. The gate is noProseLeaves: machine tokens carry no whitespace, prose always does, so an empty result proves no copy is bound — for any input, not just those measured. Regenerate with `pnpm audit:presentation:lock:write`; enforce with `pnpm audit:presentation:lock:gate`.",
   "workstream": "P",
-  "pr": "P-4",
+  "pr": "P-4b",
   "status": "PASSED",
   "contentPlane": {
     "root": "apps/web/content/safe-install",
     "document": "apps/web/content/safe-install/presentation.v1.json",
     "state": "present",
-    "$comment": "PRESENT since PR P-2, which lifted the Install-surface L1/L2 copy into this one merged document (O-4: newest surface first). The recorded digests are over the real committed bytes; P-1's baseline recorded the canonical EMPTY document instead, because the plane did not exist yet. resolvesToDefaults is the load-bearing measurement: the committed document resolves DEEP-EQUAL to the shipped code defaults through the same resolver the bake calls, which is why creating this file changes no served byte (ADR 0058 §4 — a visual change is PR P-4b's own PR). overriddenSlots is recorded so the identity claim cannot hold vacuously via an inert document, and unwiredSlots must stay empty so a key can never validate and then do nothing.",
+    "$comment": "PRESENT since PR P-2, which lifted the Install-surface L1/L2 copy into this one merged document (O-4: newest surface first). The recorded digests are over the real committed bytes; P-1's baseline recorded the canonical EMPTY document instead, because the plane did not exist yet. resolvesToDefaults is still the load-bearing measurement, and P-4b EXTENDS it to the tokens block: the committed document resolves DEEP-EQUAL to the shipped code defaults through the same resolver the bake calls, so this DOCUMENT still moves no served byte. That claim and P-4b's +34 B/page are not in tension — the served-byte change comes from the RENDERER (a <link> plus the refolded boundary sentence), and the document restating the shipped href is what keeps configuration out of it. Extending the identity to tokens is what stops a catalog from quietly re-pointing what every install page loads while still reading as 'resolves to defaults'. unwiredSectionTitles is now EMPTY because P-4b wired `boundary`, the slot P-2 deferred; unwiredSlots must stay empty so a key can never validate and then do nothing.",
     "schemaTag": "calllint.presentation-content.v1",
     "locale": "en-US",
     "levelBySection": {
@@ -49,18 +49,17 @@
       "decisionCopy.states.REVIEW_REQUIRED.primaryAction",
       "decisionCopy.states.UNSUPPORTED.primaryAction",
       "sectionTitles.authorityFacts",
+      "sectionTitles.boundary",
       "sectionTitles.provenance",
       "sectionTitles.publisherBlock"
     ],
     "unwiredSlots": [],
-    "unwiredSectionTitles": [
-      "boundary"
-    ],
+    "unwiredSectionTitles": [],
     "rejectedSlots": [],
     "validationErrors": [],
-    "presentationDigest": "sha256:05f5b22271c112ad04410714f5063b0a4124e639bdf4f0b5306f57932e1ade53",
-    "l0Digest": "sha256:b784a4ad444f281d1d230b9eb52c60b07d7875ca9e35db585dc77d70f0e794bb",
-    "l1Digest": "sha256:ccdd4d4ad8152a39721269c36ad23e2069555a59dd5d13c8bab597616d7a0597",
+    "presentationDigest": "sha256:cc0387e96684236e0d5e1ddfadef2c00e6d999985b451af2cf882228d66d614b",
+    "l0Digest": "sha256:23e692279d5da2baa34d6cc884a155b033d96fcabca893cbfead2d175485c961",
+    "l1Digest": "sha256:c4e893056d8b9b9d20f1dc7e23c76b6cd8b5ee51ca66eb59513e77fc2cbb755a",
     "l2Digest": "sha256:e060be6edee1ea584c9b44f71338d9c2a24d9e84726912341ae363124ecad82b",
     "sections": [
       "decisionCopy",
@@ -128,13 +127,28 @@
     }
   },
   "tokenPlane": {
-    "$comment": "PR P-4 — the L0 level, POPULATED. l0DigestWasEmpty is the before/after measurement that makes this batch verifiable: l0Digest held sha256({}) from P-1 through P-3, so a declared-but-empty level was indistinguishable from one that does not work. sharedTokenNames/tokensDrifted are the DRIFT PIN: ADR 0058 §4 forbids editing the served apps/web/public/styles.css, so the palette must be duplicated into the plane, and a per-name byte comparison is what keeps that duplication measured rather than latent — a marketing-CSS tweak now fails here until the plane follows, which is the coupling PR P-4b needs so it cannot inherit a stale palette. selectorsCovered/selectorsUncovered are computed against install-* classes parsed from the COMMITTED served HTML, so coverage tracks the renderer instead of a hardcoded list. forbiddenConstructs and suppressionViolations must both stay empty: a stylesheet cannot compute a verdict, but it can hide one, and an invisible disposition is a safety regression wearing a theme. NOTE the plane is NOT served — apps/web/styles/ sits outside apps/web/public/ and deploy-web.yml publishes public/ only, so P-4 is unpublishable by construction, not merely unreferenced; stylesheetHref is RECORDED here and emitted by P-4b.",
+    "$comment": "PR P-4b — the L0 level, SERVED. P-4 populated the plane and proved it unpublishable; this batch links it from all 19 install pages (+34 B each: a 56-B <link>, minus 22 B from refolding the boundary sentence onto one line, which is what let the fourth copy slot be wired at all). `served` is now true and `servedCopy` is the byte a visitor receives: sync-assets.mjs copies source → public/, and servedCopyMatchesSource BYTE-COMPARES them, because every other measure in this block reads the SOURCE while browsers read the copy — without that compare a hand-edit under public/ would pass all of them. baselineSelectors is asserted as an exact SET: the class-only parsers could not see an element rule at all, so `body`/`main` were both unmeasurable and, missing, would have shipped the <link> with none of the visual-hierarchy outcome (styled sections on a browser-default page). visualDigest digests the var()-RESOLVED declarations: a raw-bytes digest moves on a comment edit, and a name-only comparison would miss a palette re-pointed through renamed tokens. sharedTokenNames/tokensDrifted remain the DRIFT PIN against the served marketing sheet §4 forbids editing. selectorsCovered/selectorsUncovered are computed against install-* classes parsed from the COMMITTED served HTML. forbiddenConstructs and suppressionViolations must both stay empty, and suppression is now checked inside the baseline rules too — `body { display: none }` hides a disposition exactly as well as the class-scoped version did, and under the install-only scan it was not a finding.",
     "plane": "apps/web/styles/tokens.css",
     "planePresent": true,
     "servedMirrorSource": "apps/web/public/styles.css",
-    "served": false,
+    "served": true,
+    "servedCopy": "apps/web/public/styles/tokens.css",
+    "servedCopyPresent": true,
+    "servedCopyMatchesSource": true,
+    "baselineSelectors": [
+      ":root",
+      "body",
+      "main"
+    ],
+    "baselineSelectorsFound": [
+      ":root",
+      "body",
+      "main"
+    ],
+    "resolvedRuleCount": 14,
+    "visualDigest": "sha256:1a24418aa712e96f511b672cf841faced2d4a396a1eac7eb9ce44a183c2aab5d",
     "tokensBlockPresent": true,
-    "tokensVersion": "p4-1",
+    "tokensVersion": "p4b-1",
     "stylesheetHref": "/styles/tokens.css",
     "emptyObjectDigest": "sha256:44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
     "l0DigestWasEmpty": false,
@@ -181,7 +195,7 @@
     ],
     "sharedTokensDrifted": [],
     "servedTokensNotMirrored": [],
-    "cssRuleCount": 13,
+    "cssRuleCount": 15,
     "installPagesMeasured": 19,
     "emittedInstallClasses": [
       "install-authority",
