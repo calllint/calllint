@@ -22,6 +22,11 @@ import {
   evaluateAgentContract,
   evaluateHumanCapsule,
   measureFiveSecondPanel,
+  partitionPanelFreshness,
+  stylesheetHrefs,
+  auditShownArtifact,
+  extractCapsuleAnswers,
+  FIVE_SECOND_QUESTIONS,
   redactRunVaryingNote,
   renderSafeInstall,
   type FiveSecondPanelStore,
@@ -114,6 +119,8 @@ describe("Gate 2.4-B — the human panel is DATA, never simulated", () => {
       canonicalSlug: "calllint-fixtures-safe-time",
       at: "2026-07-28T00:00:00.000Z",
       correct: { target: true, consequence: correct, action: true },
+      shownFrom: "http://127.0.0.1",
+      shownDigest: `sha256:${"a".repeat(64)}`,
     })),
   })
 
@@ -159,6 +166,121 @@ describe("Gate 2.4-B — the human panel is DATA, never simulated", () => {
   it("a broken capsule FAILS the gate even with a perfect panel", () => {
     const broken = [...structures, { ...(structures[0] as HumanCapsuleStructure), pass: false }]
     expect(decideGateB(broken, measureFiveSecondPanel(panel(FIVE_SECOND_MIN_PANEL)))).toBe("FAILED")
+  })
+
+  // --- freshness: recognition is evidence about ONE artifact ------------------
+
+  const DIGEST_A = `sha256:${"a".repeat(64)}`
+  const DIGEST_B = `sha256:${"b".repeat(64)}`
+  const servedAs = (d: string) => new Map([["calllint-fixtures-safe-time", d]])
+
+  it("responses are FRESH while the served page still digests to what was shown", () => {
+    const f = partitionPanelFreshness(panel(FIVE_SECOND_MIN_PANEL), servedAs(DIGEST_A))
+    expect(f.fresh).toHaveLength(FIVE_SECOND_MIN_PANEL)
+    expect(f.stale).toEqual([])
+    expect(decideGateB(structures, measureFiveSecondPanel({ ...panel(0), responses: f.fresh }))).toBe("PASSED")
+  })
+
+  it("a page EDIT makes every response measuring it stale, demoting a PASS to pending", () => {
+    const store = panel(FIVE_SECOND_MIN_PANEL)
+    // The page moved: it now digests to B, but the panel saw A.
+    const f = partitionPanelFreshness(store, servedAs(DIGEST_B))
+    expect(f.fresh).toEqual([])
+    expect(f.stale).toHaveLength(FIVE_SECOND_MIN_PANEL)
+    expect(f.stale[0]).toMatchObject({ shownDigest: DIGEST_A, currentDigest: DIGEST_B })
+    // Fails CLOSED: the new page inherits nothing.
+    expect(decideGateB(structures, measureFiveSecondPanel({ ...store, responses: f.fresh }))).toBe(
+      "PENDING_HUMAN_PANEL",
+    )
+  })
+
+  it("a REMOVED page is stale with a null current digest, not a silent pass", () => {
+    const f = partitionPanelFreshness(panel(2), new Map())
+    expect(f.fresh).toEqual([])
+    expect(f.stale.map((s) => s.currentDigest)).toEqual([null, null])
+  })
+
+  // --- the artifact a session is allowed to measure (PR P-4b) ----------------
+
+  const PAGE = '<html><head><link rel="stylesheet" href="/styles/tokens.css" /></head><body>x</body></html>'
+  const withCss = (body: string | null) => new Map([["/styles/tokens.css", body]])
+
+  it("accepts the served page when it matches committed and its stylesheet resolves", () => {
+    const a = auditShownArtifact({ servedHtml: PAGE, committedHtml: PAGE, stylesheetBodies: withCss(":root{}") })
+    expect(a.ok).toBe(true)
+    expect(a.problems).toEqual([])
+    expect(a.stylesheets).toEqual(["/styles/tokens.css"])
+  })
+
+  it("REFUSES when the stylesheet does not resolve — the file:// failure this guards", () => {
+    const a = auditShownArtifact({ servedHtml: PAGE, committedHtml: PAGE, stylesheetBodies: withCss(null) })
+    expect(a.ok).toBe(false)
+    expect(a.problems.some((p) => p.includes("render unstyled"))).toBe(true)
+  })
+
+  it("REFUSES an empty stylesheet — resolving is not the same as styling", () => {
+    const a = auditShownArtifact({ servedHtml: PAGE, committedHtml: PAGE, stylesheetBodies: withCss("  \n") })
+    expect(a.ok).toBe(false)
+    expect(a.problems.some((p) => p.includes("is empty"))).toBe(true)
+  })
+
+  it("REFUSES a page with no stylesheet at all — a post-P-4b regression", () => {
+    const bare = "<html><head></head><body>x</body></html>"
+    const a = auditShownArtifact({ servedHtml: bare, committedHtml: bare, stylesheetBodies: new Map() })
+    expect(a.ok).toBe(false)
+    expect(a.problems.some((p) => p.includes("references no stylesheet"))).toBe(true)
+  })
+
+  it("REFUSES when the served bytes drift from the committed page", () => {
+    const a = auditShownArtifact({
+      servedHtml: PAGE,
+      committedHtml: PAGE.replace("x", "y"),
+      stylesheetBodies: withCss(":root{}"),
+    })
+    expect(a.ok).toBe(false)
+    expect(a.problems.some((p) => p.includes("differ from the committed page"))).toBe(true)
+  })
+
+  const shippedPage = (): string =>
+    fs.readFileSync(path.join(repoRoot, "apps/web/public/install/mcp-registry/ai.adeu-adeu/index.html"), "utf8")
+
+  it("finds every stylesheet the SHIPPED page references", () => {
+    expect(stylesheetHrefs(shippedPage())).toEqual(["/styles/tokens.css"])
+  })
+
+  it("derives the operator's grading key from the SHIPPED page — all three present", () => {
+    const a = extractCapsuleAnswers(shippedPage())
+    for (const q of FIVE_SECOND_QUESTIONS) {
+      expect(a[q], `${q} must be extractable or the operator cannot grade`).toBeTruthy()
+    }
+    // It must agree with the structural evaluator, or the gate and the operator
+    // would be grading against different text.
+    const { p } = projections[0] as { p: ReturnType<typeof canonicalProjection> }
+    const rendered = renderSafeInstall(p)
+    expect(extractCapsuleAnswers(rendered)).toEqual(evaluateHumanCapsule(p, rendered).answers)
+  })
+
+  it("reports an absent answer as null rather than inventing one", () => {
+    expect(extractCapsuleAnswers("<html><body></body></html>")).toEqual({
+      target: null,
+      consequence: null,
+      action: null,
+    })
+  })
+
+  it("partitions per response — one stale session does not discard the rest", () => {
+    const store = panel(FIVE_SECOND_MIN_PANEL)
+    const withOneStale: FiveSecondPanelStore = {
+      ...store,
+      responses: store.responses.map((r, i) => (i === 0 ? { ...r, shownDigest: DIGEST_B } : r)),
+    }
+    const f = partitionPanelFreshness(withOneStale, servedAs(DIGEST_A))
+    expect(f.fresh).toHaveLength(FIVE_SECOND_MIN_PANEL - 1)
+    expect(f.stale).toHaveLength(1)
+    // 9 fresh responses is below the floor, so the gate pends rather than passing.
+    expect(decideGateB(structures, measureFiveSecondPanel({ ...store, responses: f.fresh }))).toBe(
+      "PENDING_HUMAN_PANEL",
+    )
   })
 })
 
