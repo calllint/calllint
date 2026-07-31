@@ -316,15 +316,42 @@ export interface ConversionObservation {
   readonly components: readonly { readonly id: string; readonly label: string; readonly artifactPath: string; readonly uninstallCommand: string }[]
   /** What the human sees, verbatim. Measured for disclosure, not for tone. */
   readonly renderedText: string
+  /**
+   * PR P-5. Whether the offer this row observed was built with the CONFIGURED copy
+   * plane or with the built-in code defaults. It is recorded rather than asserted here
+   * because the gate cannot tell the two apart from the text alone — the shipped
+   * catalog restates the defaults verbatim, which is precisely what keeps P-5 at zero
+   * served bytes. So the field is the audit trail for a question the bytes cannot
+   * answer: did the observing edge actually read the configuration plane?
+   */
+  readonly copySource: "defaults" | "configured"
+  /**
+   * PR P-5. The `disclosureDigest` of the SAME host rendered a second time with
+   * sentinel copy substituted in every configurable slot. It must equal
+   * `disclosureDigest`, and that equality is the whole claim: configured wording
+   * provably cannot move the token a human approved. The preimage covers components
+   * only (`continuousProtection.ts:187-197` hashes id/artifactPath/posture/install/
+   * uninstall and NOT `label`), so a drift here means someone widened it.
+   */
+  readonly disclosureDigestUnderSentinelCopy: string
 }
 
 /**
  * Gate 2.4-F. Floors, in the plan's own words: components disclosed = 100%,
- * separate authorization required, `[Not now]` visible, disable/uninstall present.
+ * separate authorization required, the decline affordance visible, disable/uninstall present.
  *
  * "Disclosed" is deliberately strict — every component's LABEL and its
  * ARTIFACT PATH must appear in the rendered text. A path-free disclosure would
  * let a component be installed somewhere the operator was never shown.
+ *
+ * PR P-5 changed WHAT these floors grade without changing the floors. The observing edge now
+ * builds each offer from the resolved copy plane, so every check above is an assertion about
+ * the configured surface: configuration sits beside INV-2.4-07 and is answerable to it. Two
+ * slots stayed in code deliberately and are reported as code-owned rather than wired —
+ * `declineLabel`, because this gate compares it as a literal and `ContinuousProtectionOffer`
+ * types it as one (letting a document reach it would let a legal config edit weaken the floor,
+ * or force the floor to compare whatever it was given), and the disclosure lines, because
+ * INV-2.4-07 depends on the separate-decision framing staying visible.
  */
 export function evaluateConversion(
   observations: readonly ConversionObservation[],
@@ -341,7 +368,13 @@ export function evaluateConversion(
     const faults: string[] = []
     if (!o.requiresSeparateAuthorization) faults.push("requiresSeparateAuthorization is false — a one-time setup would authorize persistent protection")
     if (o.declineOption !== "Not now") faults.push(`declineOption is ${JSON.stringify(o.declineOption)}`)
-    if (!o.renderedText.includes("[Not now]")) faults.push("[Not now] is not visible in the rendered offer")
+    // Derived from the observed field, not written as the literal `[Not now]`. The literal
+    // form passed whenever the string appeared ANYWHERE in the text, so a render that
+    // showed a hardcoded `[Not now]` while offering a different `declineOption` satisfied
+    // it. Pairing it with the equality above makes the visible token and the offer's own
+    // field one measurement instead of two that can disagree.
+    if (!o.renderedText.includes(`[${o.declineOption}]`))
+      faults.push(`the decline affordance [${o.declineOption}] is not visible in the rendered offer`)
     if (!o.disableCommand) faults.push("no disableCommand")
     if (!o.renderedText.includes(o.disableCommand)) faults.push(`disableCommand ${JSON.stringify(o.disableCommand)} is not shown to the human`)
     if (o.components.length === 0) faults.push("no components disclosed — an offer with nothing to disclose cannot be audited")
@@ -361,7 +394,58 @@ export function evaluateConversion(
           : faults.join("; "),
     })
   }
-  return decideGate(measures, expectedHosts + 1)
+  // PR P-5's one new measure — the only thing the floors above cannot see.
+  //
+  // Every check so far grades ONE render. Once the observing edge feeds the configured copy
+  // plane in (which it now does), those checks silently became assertions about the
+  // CONFIGURED surface — a configured string that dropped a component label, hid the disable
+  // command, or removed the decline affordance now fails the row for that host. That is the
+  // leverage: no new check was needed to make configuration answerable to the existing floor.
+  //
+  // What no single render can show is whether wording moved the APPROVAL TOKEN. So each
+  // observation carries the same host rendered twice — once as configured, once with sentinel
+  // copy in every configurable slot — and the digests must be equal. Unequal means the
+  // disclosure preimage now depends on copy, i.e. a human's approval of a component set could
+  // be invalidated by an editorial change. Measured over every host at once because the claim
+  // is about the mechanism, not about any one adapter.
+  const copyMovedDigest = observations.filter(
+    (o) => o.disclosureDigestUnderSentinelCopy !== o.disclosureDigest,
+  )
+  measures.push({
+    id: "disclosure-digest-invariant-under-configured-copy",
+    pass: copyMovedDigest.length === 0,
+    observed:
+      copyMovedDigest.length === 0
+        ? `${observations.length} host(s): disclosureDigest identical under sentinel copy — configured wording cannot move the approval token`
+        : copyMovedDigest
+            .map((o) => `${o.host}: ${o.disclosureDigest} → ${o.disclosureDigestUnderSentinelCopy} under sentinel copy`)
+            .join("; "),
+  })
+  // And the measure that makes all of the above mean what it says.
+  //
+  // Everything from `conversion/<host>` down grades whatever render it was handed. If the
+  // observing edge stopped feeding the configured plane in, every one of those checks would
+  // keep passing — the catalog restates the shipped defaults, so the render is byte-identical
+  // either way. The gate would then be grading the built-in copy while its own docblock
+  // claimed otherwise, which is worse than not grading configuration at all.
+  //
+  // `copySource` is the edge's measurement of whether the plane genuinely reached the render
+  // (`observeGateF` derives it from a sentinel probe through the same construction path as the
+  // observation, so it cannot self-certify). Requiring it here is what turns that measurement
+  // into a floor. Negative control #8 removes the `copy:` argument at the edge and must land
+  // exactly on this row.
+  const fromDefaults = observations.filter((o) => o.copySource !== "configured")
+  measures.push({
+    id: "graded-surface-is-the-configured-plane",
+    pass: fromDefaults.length === 0,
+    observed:
+      fromDefaults.length === 0
+        ? `${observations.length} host(s) observed from the resolved copy plane — the floors above grade the configured surface`
+        : `${fromDefaults.length} host(s) observed from built-in defaults (${fromDefaults
+            .map((o) => o.host)
+            .join(", ")}) — the floors above are grading copy no document can reach`,
+  })
+  return decideGate(measures, expectedHosts + 3)
 }
 
 // --- Gate 2.4-H · no regression ----------------------------------------------

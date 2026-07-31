@@ -12,6 +12,40 @@ onward. While pre-1.0, minor versions may include breaking changes.
 
 ### Added
 
+- **Workstream P PR P-5 — close the three dead presentation sections, and make `unwiredSlots`
+  total.** `LEVEL_BY_SECTION` declared eight presentation sections; the resolver read five. The
+  other three — `guardConversion`, `agentRelayCopy`, `overrides` — validated clean, were levelled,
+  moved `presentationDigest`, appeared in the lock's `sections` list, and reached **nothing**. A
+  document carrying all three resolved to `overriddenSlots: []`, `unwiredSlots: []`,
+  `rejectedSlots: []`: a clean bill of health for a document that did nothing. That is ADR 0058
+  §3's named drift ("a key that validates and then does nothing") live in three places, invisible
+  to every gate.
+  Each section now has at least one slot with a real consumer: three of `guardConversion`'s four
+  reach the Guard offer render, `agentRelayCopy.guardOffer` templates the MCP relay line, and
+  `overrides.resources.*.{displayName,reason}` reach the install page and the lock artifact. The
+  remaining slots are **declared code-owned with their measured reason** rather than accepted in
+  silence — a security floor compares it as a literal (`declineLabel`), no consumer exists yet
+  (the five decision-relay slots, P-6), wiring it would add served bytes, it is L3-reachable, or
+  honoring it would make the bake clock-dependent (`expiresAt`). `unwiredSlots` is derived over
+  all eight sections from the WIRED set, and both tables `satisfies Record<PresentationSection, …>`,
+  so adding a ninth section without classifying it is a **typecheck error** rather than a silent
+  hole. Gate 2.4-F now grades the **configured** surface, which makes its shipped floors — every
+  component label disclosed, the disable command shown, `[Not now]` visible — guard configuration
+  for free, plus two new measures (8 → 10): configured wording cannot move the `disclosureDigest`
+  a human approved, and the surface those floors grade is provably the resolved plane rather than
+  the built-in defaults. The second exists because the first eight cannot see the difference — the
+  catalog restates the defaults, so the render is byte-identical whether or not the observing edge
+  reads the plane at all, and a label that merely *claims* it did would keep every floor green
+  while grading copy no document can reach. The edge derives that answer from a sentinel probe
+  built through the same constructor as the graded offer, so it cannot self-certify.
+  Per-resource overrides are keyed by a measured `/` → `__` encoding (19 of 19
+  committed slugs round-trip; `__` occurs in none), which works around a schema `propertyNames`
+  pattern that admits the *leaf* segment and so would silently key the wrong resource; the pattern
+  defect is recorded, not fixed. **No behavior change and zero served bytes** — the catalog
+  restates every default verbatim, and the claim is measured rather than promised: no resolved
+  guard or relay string appears in any of the 19 committed pages or 19 sealed contracts, and
+  `apps/web/public/` comes out byte-identical.
+
 - **Workstream R PR R-1 — the `calllint://` adoption deep link (ADR 0057).** A registered URI
   scheme turns a page link into a local CallLint invocation, so cold-start adoption no longer
   requires the visitor to transcribe a command. What it deliberately does **not** do is the

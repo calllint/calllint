@@ -323,6 +323,32 @@ export const COPY_SITES: readonly CopySiteDeclaration[] = [
       "The L0 href the install page links (PR P-4b). Reaches served bytes but no digest: a stylesheet cannot compute a verdict, and the resolver refuses any href that is not a rooted same-origin .css path.",
   },
   {
+    // Added by PR P-5, the batch that WIRED it. Same rule as the two rows above.
+    //
+    // This row carries a hazard no other row has, and it is worth stating because getting
+    // it wrong produces a CONFIDENT WRONG ANSWER rather than an error. The values probed
+    // here must be the OVERRIDE-SUPPLIED ones, never the shipped default: the default
+    // `displayName` is derived from `packageName ?? canonicalName`
+    // (safeInstallProjection.ts:149), both of which ARE sealed, so it is present in 19 of
+    // 19 committed contracts. A row probed with default values would find them in the
+    // sealed bytes, set `contractDigestMoved` by containment, measure "decision", and fail
+    // its own `presentation` declaration — for a reason that has nothing to do with the
+    // override's isolation. The override value is a string no sealed contract contains,
+    // which is what makes the containment half of the measurement meaningful.
+    //
+    // The mutation half exercises the real emit seam: the override is applied downstream of
+    // the seal (emitSafeInstall.ts), so the probe re-renders with the substituted name and
+    // reuses the sealed contract untouched — the section-titles/tokens pattern.
+    constant: "RESOURCE_DISPLAY_NAME",
+    source: "packages/trust-index/src/emitSafeInstall.ts",
+    declaredLevel: "L1",
+    declaredPlane: "presentation",
+    configurableTo:
+      "apps/web/content/safe-install/presentation.v1.json#/overrides/resources/<encoded-slug>/displayName",
+    rationale:
+      "The per-resource identity line the install page shows (PR P-5). Applied strictly downstream of the seal, and absent from AgentAdoptionContractInput entirely, so it reaches served HTML but no digest. Selects a label for an already-decided subject; it can never change which subject was decided.",
+  },
+  {
     constant: "VERDICT_PUBLIC_LABEL",
     source: "packages/types/src/verdict.ts",
     declaredLevel: "L3",
@@ -359,6 +385,12 @@ export function runPresentationAudit(
     readonly primaryCta: readonly string[]
     readonly sectionTitles: readonly string[]
     readonly stylesheetHref: readonly string[]
+    /**
+     * PR P-5. MUST be override-supplied strings, NOT the shipped derived `displayName` —
+     * see the `RESOURCE_DISPLAY_NAME` declaration for why a default-valued probe measures
+     * "decision" and fails its own row. The caller passes what a document would configure.
+     */
+    readonly resourceDisplayName: readonly string[]
     readonly verdictLabel: readonly string[]
     readonly guidanceSteps: readonly string[]
   },
@@ -472,12 +504,37 @@ export function runPresentationAudit(
     routeKey: routeKey(s.projection),
   })
 
+  // RESOURCE_DISPLAY_NAME (PR P-5) mutates the projection field the emit edge substitutes,
+  // in the same position and with the same shape: `{...projection, displayName}` applied
+  // AFTER `safeInstallProjection` has sealed the contract, with `agentContract` carried
+  // through untouched. So this probe reproduces the shipped ordering rather than describing
+  // it, and `contractDigest` is reused rather than recomputed — a recomputation here would
+  // assume the isolation it is meant to measure, the same circularity `mutateConsequences`
+  // avoids by resealing.
+  //
+  // Note what this row's `htmlMoved` comes from. Every other presentation row has its
+  // shipped value present in the page, so containment alone makes the probe non-vacuous.
+  // Here the probed values are override-supplied and appear in NO committed page, so it is
+  // the mutation that establishes the value reaches the page at all. That is why this row
+  // must keep a `mutate` seam: drop it and the row would fail as vacuous, correctly.
+  const mutateDisplayName = (s: ProbeSubject) => ({
+    contractDigest: s.contractDigest,
+    html: renderSafeInstall({ ...s.projection, displayName: PROBE_SENTINEL }),
+    routeKey: routeKey(s.projection),
+  })
+
   return gradePresentationAudit([
     probeCopySite(decl("OBSERVED_CONSEQUENCE"), values.observedConsequence, subjects, mutateConsequences),
     probeCopySite(decl("ABSENCE_CONSEQUENCE"), values.absenceConsequence, subjects, mutateConsequences),
     probeCopySite(decl("PRIMARY_CTA"), values.primaryCta, subjects, mutateCta),
     probeCopySite(decl("SECTION_TITLES"), values.sectionTitles, subjects, mutateSectionTitles),
     probeCopySite(decl("STYLESHEET_HREF"), values.stylesheetHref, subjects, mutateTokens),
+    probeCopySite(
+      decl("RESOURCE_DISPLAY_NAME"),
+      values.resourceDisplayName,
+      subjects,
+      mutateDisplayName,
+    ),
     probeCopySite(decl("VERDICT_PUBLIC_LABEL"), values.verdictLabel, subjects),
     probeCopySite(decl("AGENT_GUIDANCE.steps"), values.guidanceSteps, subjects),
   ])

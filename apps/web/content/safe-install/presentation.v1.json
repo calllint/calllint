@@ -73,5 +73,21 @@
   "tokens": {
     "tokensVersion": "impression-2",
     "stylesheetHref": "/styles/tokens.css"
+  },
+  "guardConversion": {
+    "offerHeadline": "Protect future agent-tool changes",
+    "offerBody": "CallLint can:",
+    "acceptLabel": "Enable continuous protection"
+  },
+  "agentRelayCopy": {
+    "guardOffer": "this tool installed nothing: enabling persistent protection is a separate operator action, run from a terminal"
+  },
+  "overrides": {
+    "resources": {
+      "mcp-registry__io.github.calllint-calllint": {
+        "displayName": "calllint-mcp",
+        "reason": "Restates the shipped derived display name verbatim, so this entry exercises the override path without moving a served byte. The key is the canonical slug with / encoded as __ — the schema's propertyNames pattern admits no slash, and the leaf segment alone would silently key the wrong resource."
+      }
+    }
   }
 }

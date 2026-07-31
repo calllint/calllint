@@ -314,13 +314,46 @@ export {
 // Workstream P Batch 2 — the resolver P-1 deferred (new15 §6.2 PR P-2; ADR 0058
 // §2/§5). Fails open per slot to the shipped code defaults, so an absent, partial,
 // or rejected document still renders a complete page.
+//
+// PR P-5 widens this export: the two classification tables and `codeOwnedReason` are
+// exported because the LOCK reads them — a failure message that names the measured reason a
+// slot is code-owned has to read that reason from the same table the resolver derives
+// `unwiredSlots` from, or the two can disagree. `overrideKey`/`decodeOverrideKey` are
+// exported for the same reason: a consumer holding a canonical slug must encode it the one
+// way the resolver decodes, and the round-trip test needs both directions.
 export {
   resolvePresentation,
   DEFAULT_PRESENTATION,
   WIRED_SECTION_TITLES,
   UNWIRED_SECTION_TITLES,
+  WIRED_SLOTS,
+  CODE_OWNED_SLOTS,
+  codeOwnedReason,
+  overrideKey,
+  decodeOverrideKey,
   type ResolvedPresentation,
+  type ResolvedOverrides,
+  type ResolvedResourceOverride,
+  type ResourceOverride,
 } from "./safe-install/resolvePresentation.js"
+// PR P-5 — the AGENT RELAY copy slice (new15 §20.2; ADR 0058 §6). One of six slots has a
+// consumer today (`guardOffer`, the MCP guard tool's relay line); the five decision-relay
+// slots are declared code-owned with that measured reason until P-6 gives them a surface.
+export {
+  DEFAULT_AGENT_RELAY_COPY,
+  WIRED_AGENT_RELAY,
+  AGENT_RELAY_SLOTS,
+  type AgentRelayCopy,
+} from "./safe-install/agentRelay.js"
+// PR P-5 — the SHIPPED fail-open loader, exported so a second edge (Gate 2.4-F) reuses it
+// rather than reimplementing the path and the try/catch. Two copies of a fail-open loader is
+// two chances to fail CLOSED by accident, and the gate would be the copy nobody notices.
+//
+// This does NOT weaken ADR 0058 §2: the export hands out a FUNCTION, and the path it defaults
+// to is computed at the edge from `import.meta.url`. Nothing under `packages/*/src` imports
+// from `apps/web/content/**` — the import-boundary probe in the lock still measures that, and
+// still measures it over this file.
+export { loadPresentationIfPresent, PRESENTATION_DOC_PATH } from "./bake.js"
 // Workstream P Batch 3 — the LAYOUT STRUCTURE model (new15 §6.2 PR P-3; ADR 0058
 // §3). The section/group model the renderer actually emits, and the predicate that
 // decides which group orderings it can express. Exported so the lock script and the

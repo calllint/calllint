@@ -29,10 +29,13 @@ import { fileURLToPath } from "node:url"
 import {
   ABSENCE_CONSEQUENCE,
   CANONICAL_FIXTURES,
+  CODE_OWNED_SLOTS,
+  DEFAULT_AGENT_RELAY_COPY,
   DEFAULT_LAYOUT,
   DEFAULT_TOKENS,
   DEFAULT_PRESENTATION,
   EMPTY_CLAIM_STORE,
+  LEVEL_BY_SECTION,
   OBSERVED_CONSEQUENCE,
   PRESENTATION_CONTENT_VERSION,
   PRESENTATION_STATES,
@@ -40,8 +43,11 @@ import {
   SECTION_TITLES,
   UNWIRED_SECTION_TITLES,
   WIRED_SECTION_TITLES,
+  WIRED_SLOTS,
   canonicalProjectionInput,
+  decodeOverrideKey,
   emitAllCohorts,
+  overrideKey,
   parseClaimStore,
   parseEvidenceSnapshot,
   parseSnapshot,
@@ -50,9 +56,11 @@ import {
   safeInstallProjection,
   validatePresentationContent,
   type EvidenceSnapshot,
+  type PresentationSection,
   type RegistrySnapshot,
   type ResolvedPresentation,
 } from "../../src/index.js"
+import { DEFAULT_GUARD_OFFER_COPY } from "@calllint/core"
 import { VERDICT_PUBLIC_LABEL } from "@calllint/types"
 
 const here = dirname(fileURLToPath(import.meta.url))
@@ -208,6 +216,16 @@ const MUTATED: ResolvedPresentation = {
   // resolver's `usableStylesheetHref` rejection tests below, plus the plane audit's
   // foreign-href check over the served pages.
   tokens: DEFAULT_TOKENS,
+  // Guard and relay copy are the SHIPPED ones, and that is the correct fixture here: this
+  // probe mutates copy that reaches a PAGE, and neither of those reaches one — the guard
+  // offer renders to a terminal, the relay line to an MCP `notes[]`. Sentinel values here
+  // would make the page-mutation assertion below pass for a reason unrelated to what it
+  // claims to measure. Their own isolation is measured where they render: gate 2.4-F's
+  // disclosure-invariance check, and `configured-copy-plane.test.ts`'s zero-containment
+  // scan over all 19 pages and all 19 sealed contracts.
+  guardConversion: DEFAULT_GUARD_OFFER_COPY,
+  agentRelay: DEFAULT_AGENT_RELAY_COPY,
+  overrides: { resources: {} },
   overriddenSlots: [],
   unwiredSlots: [],
   rejectedSlots: [],
@@ -380,13 +398,25 @@ describe("INV-P3 — a bad or partial document degrades to the shipped copy, nev
     expect(r.tokens).toEqual(DEFAULT_PRESENTATION.tokens)
     expect(JSON.stringify(r.sectionTitles)).not.toContain("Invented")
     expect(JSON.stringify(r.primaryCta)).not.toContain("new thing")
-    // But the invented TITLE key is now REPORTED rather than silently dropped (P-4b
-    // generalized unwiredSlots from the deferral list to "configured but not wired"). A
-    // key that does nothing is drift whether it is a planned deferral or a typo, and
-    // `unwiredSlots` is a lock failure — so this surfaces in CI instead of in a diff
-    // nobody reads. The coined STATE and AUTHORITY token stay silent: those are
-    // enum-keyed merges where an unknown key cannot be distinguished from a stale one.
-    expect(r.unwiredSlots).toEqual(["sectionTitles.inventedSection"])
+    // All THREE coined keys are now REPORTED rather than silently dropped, and each report
+    // carries the measured reason it reached nothing. P-4b generalized `unwiredSlots` from
+    // the deferral list to "configured but not wired" for ONE section; P-5 made it total
+    // over all eight, which is what brings the coined STATE and AUTHORITY token in.
+    //
+    // This assertion previously read `["sectionTitles.inventedSection"]`, and the comment
+    // here recorded that the other two "stay silent: those are enum-keyed merges where an
+    // unknown key cannot be distinguished from a stale one". That reading is now FALSE and
+    // is inverted rather than removed: an enum-keyed merge CAN distinguish them, because
+    // `WIRED_SLOTS` enumerates the legal state and authority keys concretely, so a key
+    // outside that enumeration is reported by the same mechanism that reports a bad title.
+    // A key that does nothing is drift whether it is a planned deferral, a coinage, or a
+    // typo, and `unwiredSlots` is a lock failure — so all three surface in CI rather than
+    // in a diff nobody reads.
+    expect(r.unwiredSlots).toEqual([
+      "authorityCopy.observedPhrases.INVENTED_AUTHORITY: matches no known slot — check the spelling against the schema",
+      "decisionCopy.states.TOTALLY_NEW_STATE.primaryAction: matches no known slot — check the spelling against the schema",
+      "sectionTitles.inventedSection: matches no known slot — check the spelling against the schema",
+    ])
   })
 
   it("reports a configured-but-unwired slot instead of silently ignoring it", () => {
@@ -403,8 +433,12 @@ describe("INV-P3 — a bad or partial document degrades to the shipped copy, nev
       locale: "en-US",
       sectionTitles: { notASlot: "What this does not tell you" } as never,
     })
-    // ... and an unknown title key is still caught rather than silently dropped.
-    expect(r.unwiredSlots).toEqual(["sectionTitles.notASlot"])
+    // ... and an unknown title key is still caught rather than silently dropped. P-5 added
+    // the reason clause: a slot in NEITHER table is a misspelling, and saying so is what
+    // makes the report actionable instead of just non-empty.
+    expect(r.unwiredSlots).toEqual([
+      "sectionTitles.notASlot: matches no known slot — check the spelling against the schema",
+    ])
     // And the wording did NOT reach the resolved copy, since nothing consumes it.
     expect(JSON.stringify(r.sectionTitles)).not.toContain("does not tell you")
   })
@@ -419,5 +453,266 @@ describe("INV-P3 — a bad or partial document degrades to the shipped copy, nev
     })
     total(hostile, "hostile document")
     expect(hostile).toEqual(DEFAULT_PRESENTATION)
+  })
+})
+
+// --- PR P-5: the three sections that were declared, levelled, and dead ---------
+
+/**
+ * `LEVEL_BY_SECTION` declared eight sections; the resolver read five. The other three
+ * validated clean, were typed, moved `presentationDigest`, appeared in the lock's section
+ * list — and reached nothing, tripping no gate. A document carrying all three resolved to
+ * `overriddenSlots: []`, `unwiredSlots: []`, `rejectedSlots: []`: a clean bill of health
+ * for a document that did nothing.
+ *
+ * These tests measure the close from both directions. The wired slots must reach the
+ * resolved plane; every slot that CANNOT honestly be wired must be reported by name with
+ * its own measured reason. A test that only checked the first half would pass just as well
+ * against the silent-acceptance behaviour this batch removes.
+ */
+describe("PR P-5 — guardConversion, agentRelayCopy and overrides resolve", () => {
+  const CONFIGURED = {
+    schema: PRESENTATION_CONTENT_VERSION,
+    locale: "en-US",
+    guardConversion: {
+      offerHeadline: "Configured headline",
+      offerBody: "Configured lead-in:",
+      acceptLabel: "Configured accept",
+    },
+    agentRelayCopy: { guardOffer: "configured relay sentence" },
+    overrides: {
+      resources: {
+        "mcp-registry__io.github.example-example": { displayName: "Configured Name", reason: "a measured reason" },
+      },
+    },
+  }
+
+  it("carries configured guard, relay and override values into the resolved plane", () => {
+    const r = resolvePresentation(CONFIGURED)
+    expect(r.guardConversion).toEqual(CONFIGURED.guardConversion)
+    expect(r.agentRelay.guardOffer).toBe("configured relay sentence")
+    expect(r.overrides.resources["mcp-registry__io.github.example-example"]).toEqual({
+      displayName: "Configured Name",
+      reason: "a measured reason",
+    })
+  })
+
+  it("records every configured slot in overriddenSlots", () => {
+    // The positive control for the whole section: without it, "resolves" could mean the
+    // resolver read the block and then dropped it, which is the state P-5 closes.
+    const r = resolvePresentation(CONFIGURED)
+    for (const slot of ["offerHeadline", "offerBody", "acceptLabel"]) {
+      expect(r.overriddenSlots).toContain(`guardConversion.${slot}`)
+    }
+    expect(r.overriddenSlots).toContain("agentRelayCopy.guardOffer")
+    expect(r.overriddenSlots).toContain(
+      "overrides.resources.mcp-registry__io.github.example-example.displayName",
+    )
+    expect(r.overriddenSlots).toContain("overrides.resources.mcp-registry__io.github.example-example.reason")
+    expect(r.unwiredSlots).toEqual([])
+    expect(r.rejectedSlots).toEqual([])
+  })
+
+  it("keeps the five decision-relay slots out of the resolved relay wording it did not configure", () => {
+    // Configuring `guardOffer` alone must not blank the others — fail open PER SLOT.
+    const r = resolvePresentation(CONFIGURED)
+    expect(r.agentRelay.headline).toBe(DEFAULT_AGENT_RELAY_COPY.headline)
+    expect(r.agentRelay.approvalQuestion).toBe(DEFAULT_AGENT_RELAY_COPY.approvalQuestion)
+  })
+
+  it("falls back per SECTION when a block is malformed, keeping every other block (INV-P3)", () => {
+    const r = resolvePresentation({
+      schema: PRESENTATION_CONTENT_VERSION,
+      locale: "en-US",
+      guardConversion: "not an object",
+      agentRelayCopy: [],
+      overrides: { resources: 7 },
+      // A wired slot in an unrelated section proves the fallback is scoped to the bad
+      // blocks rather than discarding the document.
+      sectionTitles: { provenance: "Still configured" },
+    })
+    expect(r.guardConversion).toEqual(DEFAULT_GUARD_OFFER_COPY)
+    expect(r.agentRelay).toEqual(DEFAULT_AGENT_RELAY_COPY)
+    expect(r.overrides).toEqual({ resources: {} })
+    expect(r.sectionTitles.provenance).toBe("Still configured")
+    expect(r.overriddenSlots).toContain("sectionTitles.provenance")
+  })
+
+  it("reports each code-owned slot with its OWN measured reason, not a generic one", () => {
+    // The distinctness is the assertion. Five different reasons apply here, and collapsing
+    // them into one message would make the report unactionable — a reviewer could not tell
+    // "wiring this needs an ADR" from "wiring this would break a security floor".
+    const r = resolvePresentation({
+      schema: PRESENTATION_CONTENT_VERSION,
+      locale: "en-US",
+      decisionCopy: {
+        states: {
+          BLOCKED: { headline: "h", supportingText: "s", secondaryLinkLabel: "l" },
+        },
+      },
+      guardConversion: { declineLabel: "Later" },
+      agentRelayCopy: {
+        headline: "h",
+        reason: "r",
+        adds: "a",
+        notObserved: "n",
+        approvalQuestion: "q",
+      },
+      overrides: {
+        resources: {
+          "mcp-registry__io.github.example-example": {
+            scopeAlias: "alias",
+            originalSetupUrl: "https://example.com/setup",
+            expiresAt: "2030-01-01T00:00:00Z",
+          },
+        },
+      },
+    })
+    const reasonFor = (slot: string): string => {
+      const hit = r.unwiredSlots.find((u) => u.startsWith(`${slot}:`))
+      expect(hit, `${slot} was not reported at all`).toBeDefined()
+      return (hit as string).slice(slot.length + 2)
+    }
+    expect(reasonFor("decisionCopy.states.BLOCKED.headline")).toContain("L3")
+    expect(reasonFor("decisionCopy.states.BLOCKED.supportingText")).toContain("no shipped counterpart")
+    expect(reasonFor("decisionCopy.states.BLOCKED.secondaryLinkLabel")).toContain("no shipped counterpart")
+    expect(reasonFor("guardConversion.declineLabel")).toContain("security floor compares it as a literal")
+    for (const slot of ["headline", "reason", "adds", "notObserved", "approvalQuestion"]) {
+      expect(reasonFor(`agentRelayCopy.${slot}`)).toContain("no consumer exists")
+    }
+    const overrideBase = "overrides.resources.mcp-registry__io.github.example-example"
+    expect(reasonFor(`${overrideBase}.scopeAlias`)).toContain("no consumer exists")
+    expect(reasonFor(`${overrideBase}.originalSetupUrl`)).toContain("no consumer exists")
+    expect(reasonFor(`${overrideBase}.expiresAt`)).toContain("clock-dependent")
+    // Distinctness, asserted rather than eyeballed: at least four different reasons appear.
+    const distinct = new Set(r.unwiredSlots.map((u) => u.slice(u.indexOf(": ") + 2)))
+    expect(distinct.size).toBeGreaterThanOrEqual(4)
+    // And none of it reached the resolved plane.
+    expect(r.guardConversion).toEqual(DEFAULT_GUARD_OFFER_COPY)
+    expect(r.agentRelay).toEqual(DEFAULT_AGENT_RELAY_COPY)
+  })
+
+  it("distinguishes a code-owned slot from a MISSPELLED one", () => {
+    // Two failure modes, two messages. A slot in `CODE_OWNED_SLOTS` is a deliberate
+    // decision with a reason; a slot in neither table is a typo. If both reported the same
+    // way, a misspelling would read as a design decision and be left in the document.
+    const r = resolvePresentation({
+      schema: PRESENTATION_CONTENT_VERSION,
+      locale: "en-US",
+      guardConversion: { declineLabel: "Later", offerHeadlne: "typo" } as never,
+    })
+    const typo = r.unwiredSlots.find((u) => u.startsWith("guardConversion.offerHeadlne:"))
+    expect(typo).toContain("check the spelling against the schema")
+    expect(r.unwiredSlots.find((u) => u.startsWith("guardConversion.declineLabel:"))).not.toContain(
+      "check the spelling",
+    )
+  })
+})
+
+/**
+ * The override key encoding (PR P-5).
+ *
+ * The corpus here is the COMMITTED lookup index, not the eval fixtures: fixture slugs are
+ * sanitized (`[^a-z0-9]+` → `-`) and so contain no slash at all, which would make every
+ * assertion below pass without exercising the encoding once. The 19 real canonical slugs
+ * are the only corpus that carries the shape the encoding exists for.
+ */
+const LOOKUP_PATH = resolve(repoRoot, "apps", "web", "public", ".well-known", "calllint.json")
+const committedSlugs: readonly string[] = existsSync(LOOKUP_PATH)
+  ? ((JSON.parse(readFileSync(LOOKUP_PATH, "utf8")) as { resources: { canonicalSlug: string }[] }).resources ?? []).map(
+      (r) => r.canonicalSlug,
+    )
+  : []
+
+describe("PR P-5 — the override key encoding", () => {
+  it("round-trips every committed canonical slug", () => {
+    // The measured trap: the schema's `propertyNames` pattern admits no slash, so a canonical
+    // slug cannot be a key directly — and the LEAF segment alone DOES satisfy the pattern
+    // (measured: 19 of 19), so a naive attempt silently keys the wrong resource and validates
+    // clean. A round-trip is the only check that catches that, which is why this asserts
+    // `decode(encode(slug)) === slug` rather than just "the key matches the pattern".
+    const pattern = /^[a-z0-9][a-z0-9._-]*$/
+    let slugsWithSlash = 0
+    for (const slug of committedSlugs) {
+      if (slug.includes("/")) slugsWithSlash += 1
+      const key = overrideKey(slug)
+      expect(key, `${slug} encodes to a key the schema would reject`).toMatch(pattern)
+      expect(decodeOverrideKey(key)).toBe(slug)
+      // The leaf segment also matches the pattern — that is exactly why the round-trip is the
+      // assertion. Keying by the leaf would validate and address nothing.
+      const leaf = slug.slice(slug.lastIndexOf("/") + 1)
+      if (slug.includes("/")) expect(decodeOverrideKey(leaf)).not.toBe(slug)
+    }
+    // Anti-vacuity, twice over: an empty corpus or a slash-free one would make every
+    // assertion above hold without testing the encoding.
+    expect(committedSlugs.length).toBeGreaterThan(0)
+    expect(slugsWithSlash).toBe(committedSlugs.length)
+  })
+
+  it("is injective over the committed corpus, and `__` occurs in no real slug", () => {
+    // Injectivity is what makes the encoding safe to use as an address. The second clause is
+    // what makes it UNAMBIGUOUS: if a canonical slug ever contained `__`, decode would split
+    // it into a path segment and two distinct resources could collide on one key.
+    expect(new Set(committedSlugs.map(overrideKey)).size).toBe(committedSlugs.length)
+    expect(committedSlugs.filter((s) => s.includes("__"))).toEqual([])
+  })
+
+  it("resolves a raw-slash key rather than rejecting it — the gate is the SCHEMA, measured", () => {
+    // Measured, and initially assumed otherwise: neither the resolver nor
+    // `validatePresentationContent` rejects an un-encoded key. The resolver merges any present
+    // key, and the validator is deliberately not a JSON Schema re-implementation (its own
+    // docblock says so) — `propertyNames` is shape, and shape is Ajv's, asserted over in
+    // `presentation-content.test.ts`.
+    //
+    // Stated as an inverted assertion rather than deleted, because the behaviour is a real
+    // hazard worth pinning: a raw-slash key validates at the value layer, resolves, and is
+    // even recorded in `overriddenSlots` — while `emitSafeInstall` looks up by the ENCODED
+    // key, so it can never address a resource. That is ADR 0058 §3's named drift exactly. It
+    // is caught, one door earlier, by the schema; if a future edit ever makes the resolver
+    // itself reject it, this test should be inverted again, not removed.
+    const r = resolvePresentation({
+      schema: PRESENTATION_CONTENT_VERSION,
+      locale: "en-US",
+      overrides: { resources: { "mcp-registry/io.github.example-example": { displayName: "Raw slash" } } },
+    } as never)
+    expect(JSON.stringify(r.overrides)).toContain("Raw slash")
+    // And it is NOT reported as unwired — `displayName` is a wired slot, so the mechanism has
+    // nothing to complain about. This is the precise reason the schema has to be the gate.
+    expect(r.unwiredSlots).toEqual([])
+  })
+})
+
+describe("PR P-5 — the classification is TOTAL and the compiler enforces it", () => {
+  it("classifies every section of LEVEL_BY_SECTION in both tables", () => {
+    // `satisfies Record<PresentationSection, …>` already makes this a typecheck error, so
+    // this test is the runtime witness of that guarantee: it fails loudly if either table
+    // is ever widened to a plain object, which would make the compile-time check silently
+    // stop applying.
+    for (const section of Object.keys(LEVEL_BY_SECTION) as PresentationSection[]) {
+      expect(WIRED_SLOTS[section], `${section} missing from WIRED_SLOTS`).toBeDefined()
+      expect(CODE_OWNED_SLOTS[section], `${section} missing from CODE_OWNED_SLOTS`).toBeDefined()
+    }
+    // Eight, not five — the count P-5 moves. Naming it here means a section added without
+    // classification fails a test that says WHY rather than only failing a typecheck.
+    expect(Object.keys(LEVEL_BY_SECTION)).toHaveLength(8)
+  })
+
+  it("puts no slot in BOTH tables", () => {
+    // A slot that is both wired and code-owned would report as code-owned while actually
+    // reaching a renderer, which is the most confusing possible state: the lock would tell
+    // a reviewer to remove a key that is doing real work.
+    for (const section of Object.keys(LEVEL_BY_SECTION) as PresentationSection[]) {
+      const wired: readonly string[] = WIRED_SLOTS[section]
+      for (const owned of Object.keys(CODE_OWNED_SLOTS[section])) {
+        expect(wired, `${section}.${owned} is in both tables`).not.toContain(owned)
+      }
+    }
+  })
+
+  it("covers every slot the committed catalog configures", () => {
+    // The pre-flight that keeps this batch from turning the tree red on landing: the
+    // shipped document must configure only WIRED slots. Measured against the real catalog
+    // rather than a fixture, because that is the document CI resolves.
+    expect(resolvePresentation(doc).unwiredSlots).toEqual([])
   })
 })
