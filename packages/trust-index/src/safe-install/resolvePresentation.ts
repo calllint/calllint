@@ -40,6 +40,7 @@
 // document a loud build failure, and this makes it a harmless one if it ever gets past.
 // ---------------------------------------------------------------------------
 
+import { DEFAULT_GUARD_OFFER_COPY, type GuardOfferCopy } from "@calllint/core"
 import { PRIMARY_CTA, type Installability } from "../safeInstallProjection.js"
 import { SECTION_TITLES, type SectionTitles } from "../renderSafeInstall.js"
 import {
@@ -50,8 +51,19 @@ import {
   type AdoptionAuthority,
   type AuthorityCopy,
 } from "../selectDecisionAuthorities.js"
-import { PRESENTATION_STATES, type PresentationContentV1 } from "./presentationContent.js"
+import {
+  LEVEL_BY_SECTION,
+  PRESENTATION_STATES,
+  type PresentationContentV1,
+  type PresentationSection,
+} from "./presentationContent.js"
 import { DEFAULT_TOKENS, type ResolvedTokens } from "./tokenPlane.js"
+import {
+  AGENT_RELAY_SLOTS,
+  DEFAULT_AGENT_RELAY_COPY,
+  WIRED_AGENT_RELAY,
+  type AgentRelayCopy,
+} from "./agentRelay.js"
 import {
   ABOVE_FOLD_SECTION_IDS,
   DEFAULT_LAYOUT,
@@ -63,15 +75,16 @@ import {
 } from "./layoutStructure.js"
 
 export { DEFAULT_LAYOUT, type ResolvedLayout, DEFAULT_TOKENS, type ResolvedTokens }
+export { DEFAULT_AGENT_RELAY_COPY, type AgentRelayCopy }
 
 /**
- * The `sectionTitles` slots the RENDERER actually consumes today.
+ * The `sectionTitles` slots the RENDERER actually consumes today — all ten of them.
  *
- * The schema declares four; this names three. `boundary` is schema-valid and
- * digest-bound but not yet wired, because its emitted form carries the renderer's HTML
- * fold indentation — see the `SECTION_TITLES` comment. Declaring the gap here (rather
- * than silently ignoring the key) is what lets `unwiredSectionTitles` report it, so a
- * document can never configure a slot that quietly does nothing.
+ * Complete since PR P-4b wired `boundary`, the one slot P-2 deferred because its emitted
+ * form was folded across three source lines. This array is now the section's full wired
+ * set, and it is the reason a MISSPELLED key is catchable: `unwiredSlots` is derived by
+ * subtracting this list from what a document configured, so `provenence` is reported
+ * rather than silently dropped by the per-key merge.
  */
 export const WIRED_SECTION_TITLES: readonly (keyof SectionTitles)[] = [
   "authorityFacts",
@@ -104,6 +117,234 @@ export const UNWIRED_SECTION_TITLES: readonly string[] = []
 /** Upper bound on one copy value, mirroring the schema's `copyText.maxLength`. */
 const MAX_COPY_LENGTH = 400
 
+/**
+ * The three guard slots configuration may reach. `declineLabel` is absent ON PURPOSE —
+ * see `CODE_OWNED_SLOTS.guardConversion` for the measured reason.
+ */
+const WIRED_GUARD_SLOTS: readonly (keyof GuardOfferCopy)[] = [
+  "offerHeadline",
+  "offerBody",
+  "acceptLabel",
+]
+
+/** Every guard slot the schema declares, in schema order — the classification domain. */
+const GUARD_SLOTS: readonly string[] = ["offerHeadline", "offerBody", "declineLabel", "acceptLabel"]
+
+/**
+ * The per-resource override slots with a consumer. Three more are code-owned.
+ *
+ * Typed against `ResolvedResourceOverride` — the RESOLVED shape — not against the wider
+ * `ResourceOverride` the schema declares. That is what makes the wired set and the resolved
+ * record the same domain by construction: adding a name here without adding the field to
+ * `ResolvedResourceOverride` is a typecheck error, so the resolver cannot honour a field it
+ * has nowhere to put.
+ */
+const WIRED_OVERRIDE_SLOTS: readonly (keyof ResolvedResourceOverride)[] = ["displayName", "reason"]
+
+/** Every override slot the schema's `resourceOverride` declares. */
+const OVERRIDE_SLOTS: readonly string[] = [
+  "displayName",
+  "scopeAlias",
+  "originalSetupUrl",
+  "expiresAt",
+  "reason",
+]
+
+/**
+ * ENCODE a canonical slug into an `overrides.resources` KEY.
+ *
+ * The schema's `propertyNames.pattern` is `^[a-z0-9][a-z0-9._-]*$`, which admits no `/`.
+ * Every one of the 19 committed canonical slugs contains a `/` (`io.github.owner/name`),
+ * so **0 of 19** can be written literally. Measured, not assumed.
+ *
+ * THE TRAP THIS FUNCTION EXISTS TO CLOSE. The LEAF segment of a slug
+ * (`ac.inference.sh-mcp`) *does* match the pattern, so the obvious attempt — key by the
+ * part after the slash — validates cleanly and then silently addresses the wrong thing, or
+ * collides across two publishers with the same package name. The shipped fixture's
+ * slash-free `io.github.example-mcp` is why nobody hit this.
+ *
+ * So the key space is reached by ENCODING rather than by widening the schema:
+ * `/` → `__`, which is measured legal (19/19 encoded keys match the pattern), injective
+ * (19 unique), and unambiguous (`__` occurs in 0 real slugs, so decoding is exact).
+ *
+ * The pattern defect itself is RECORDED in the plane audit and left for an ADR to fix —
+ * changing a schema file is not licensed in this batch. A round-trip test over all 19
+ * committed slugs is what keeps this honest; a containment check would not catch the leaf.
+ */
+export function overrideKey(canonicalSlug: string): string {
+  return canonicalSlug.replaceAll("/", "__")
+}
+
+/** Decode an `overrides.resources` key back to its canonical slug. Exact inverse. */
+export function decodeOverrideKey(key: string): string {
+  return key.replaceAll("__", "/")
+}
+
+/** The permitted per-resource override fields (ADR 0058 §3), all optional. */
+export interface ResourceOverride {
+  readonly displayName?: string
+  readonly scopeAlias?: string
+  readonly originalSetupUrl?: string
+  readonly expiresAt?: string
+  readonly reason?: string
+}
+
+/**
+ * The resolved override slice: encoded key → the wired fields that survived resolution.
+ *
+ * Keyed by the ENCODED form, because that is what a document writes and what a lock
+ * artifact must echo back for a reviewer to find. Consumers that hold a canonical slug
+ * call `overrideKey` on it — one direction, one place.
+ */
+export interface ResolvedOverrides {
+  readonly resources: Readonly<Record<string, ResolvedResourceOverride>>
+}
+
+/** One resource's honoured overrides. Absent field ⇒ the shipped derived value stands. */
+export interface ResolvedResourceOverride {
+  /** Replaces the projection's derived identity line — applied DOWNSTREAM of the seal. */
+  readonly displayName?: string
+  /** Why this override exists. Reaches the lock artifact; reaches no served byte. */
+  readonly reason?: string
+}
+
+// --- the classification tables (PR P-5) -------------------------------------
+//
+// Two tables partition every configurable slot in the document. Together they are what
+// makes `unwiredSlots` TOTAL — before P-5 the mechanism covered `sectionTitles` alone, so
+// `guardConversion`, `agentRelayCopy` and `overrides` could be configured, validate clean,
+// move `presentationDigest`, and reach nothing, tripping no gate. That is ADR 0058 §3's
+// named drift ("a key that validates and then does nothing") and it was live in three
+// places.
+//
+// Both tables are `satisfies Record<PresentationSection, …>`, so adding a 9th section to
+// `LEVEL_BY_SECTION` without classifying its slots is a TYPECHECK error — the failure
+// arrives before any gate runs. That is the P-4b `mutateSectionTitles` precedent (a 3-key
+// literal became a compile error when a 4th key landed) applied to the resolver, and it is
+// the difference between "declared with its reason" as a mechanism and as a claim.
+
+/**
+ * Slots with a REAL consumer, per section. `unwiredSlots` is derived by subtracting these
+ * from what a document actually configured.
+ *
+ * Derived from the WIRED set, never from a deferral list. P-4b learned this the hard way:
+ * `UNWIRED_SECTION_TITLES` went empty when `boundary` was wired, which left the mechanism
+ * running with nothing to match — it would have reported nothing forever. Subtraction from
+ * "what is wired" keeps working at an empty deferral list AND catches a case enumeration
+ * never could: a misspelled key belongs to no declared bucket.
+ *
+ * Entries reuse the constants that already exist rather than restating them, so a slot
+ * cannot be wired in one place and forgotten in the other.
+ */
+export const WIRED_SLOTS = {
+  decisionCopy: PRESENTATION_STATES.map((s) => `states.${s}.primaryAction`),
+  authorityCopy: [
+    ...ADOPTION_AUTHORITIES.map((a) => `observedPhrases.${a}`),
+    ...ADOPTION_AUTHORITIES.map((a) => `absencePhrases.${a}`),
+  ],
+  sectionTitles: WIRED_SECTION_TITLES,
+  guardConversion: WIRED_GUARD_SLOTS,
+  agentRelayCopy: WIRED_AGENT_RELAY,
+  layout: ["groupOrder", "maxAuthorityFacts", "maxSecondaryLinks"],
+  tokens: ["tokensVersion", "stylesheetHref"],
+  // Override slots are PER-RESOURCE, so they are written in the wildcard form and matched
+  // through `wildcardOf` — the resource key is caller data, so it cannot be enumerated the
+  // way `decisionCopy`'s states are.
+  //
+  // That difference is load-bearing rather than stylistic. `decisionCopy` lists its states
+  // CONCRETELY, so `states.NOT_A_STATE.primaryAction` matches no entry and gets reported;
+  // if it were wildcarded, an invented state key would be silently accepted. Wildcards are
+  // used only where the variable segment genuinely cannot be known.
+  overrides: ["resources", ...WIRED_OVERRIDE_SLOTS.map((f) => `resources.*.${f}`)],
+} as const satisfies Record<PresentationSection, readonly string[]>
+
+/**
+ * Slots that are CODE-OWNED BY DESIGN, each with the measured reason it cannot be wired.
+ *
+ * The reason is the point. A slot in this table is not "not done yet" — it is a slot that
+ * *should not* be configurable, and a document that configures one gets a lock failure
+ * naming why rather than a generic "unwired" with an empty list interpolated into it.
+ *
+ * Five distinct reasons cover every slot here, and each is a measurement:
+ *   • L3 REACHABILITY — the value reaches `contractDigest`, so configuring it would move a
+ *     sealed artifact (ADR 0058 §1).
+ *   • NO SHIPPED COUNTERPART — the renderer emits nothing for it, so wiring it would ADD
+ *     served bytes, which needs an ADR 0058 §4 license this batch does not have.
+ *   • A SECURITY FLOOR COMPARES IT AS A LITERAL — configuration would be able to fail, or
+ *     to weaken, its own gate.
+ *   • NO CONSUMER EXISTS — repo-wide search finds no reader, so wiring it anywhere would be
+ *     dishonest rather than useful.
+ *   • CLOCK-DEPENDENT — honouring it needs a clock the reproducibility-gated bake cannot
+ *     have without two bakes of one commit disagreeing.
+ */
+export const CODE_OWNED_SLOTS = {
+  decisionCopy: {
+    "states.*.headline":
+      "L3: the state headline reaches contractDigest, so configuring it would move a sealed artifact",
+    "states.*.supportingText":
+      "no shipped counterpart: the renderer emits no supporting line, so wiring it would ADD served bytes (needs an ADR 0058 §4 license)",
+    "states.*.secondaryLinkLabel":
+      "no shipped counterpart: the renderer emits no secondary link, so wiring it would ADD served bytes (needs an ADR 0058 §4 license)",
+  },
+  authorityCopy: {},
+  sectionTitles: {},
+  guardConversion: {
+    declineLabel:
+      "security floor compares it as a literal: Gate 2.4-F asserts declineOption === 'Not now' and that '[Not now]' is rendered, and ContinuousProtectionOffer types the field as that literal — configuration reaching it could fail, or weaken, INV-2.4-07's own floor",
+  },
+  agentRelayCopy: {
+    headline: "no consumer exists: no code produces a decision-relay surface (P-6)",
+    reason: "no consumer exists: no code produces a decision-relay surface (P-6)",
+    adds: "no consumer exists: no code produces a decision-relay surface (P-6)",
+    notObserved: "no consumer exists: no code produces a decision-relay surface (P-6)",
+    approvalQuestion: "no consumer exists: no code produces a decision-relay surface (P-6)",
+  },
+  layout: {},
+  tokens: {},
+  overrides: {
+    "resources.*.scopeAlias": "no consumer exists: repo-wide search finds no reader",
+    "resources.*.originalSetupUrl": "no consumer exists: repo-wide search finds no reader",
+    "resources.*.expiresAt":
+      "clock-dependent: resolvePresentation is pure by contract and the install tree is reproducibility-gated, so honouring an expiry would make two bakes of one commit disagree",
+  },
+} as const satisfies Record<PresentationSection, Readonly<Record<string, string>>>
+
+/**
+ * Look up why a slot is code-owned, tolerating the per-key wildcard forms above.
+ *
+ * `decisionCopy` and `overrides` are keyed per-state and per-resource, so their table
+ * entries are written with a `*` where the variable segment goes. Reporting has the
+ * concrete path in hand (`states.BLOCKED.headline`), so it is normalized here rather than
+ * enumerating every state × slot pair in the table — the pairs are mechanical, the reasons
+ * are not.
+ */
+export function codeOwnedReason(
+  section: PresentationSection,
+  slotPath: string,
+  wildcardPath?: string,
+): string | undefined {
+  const table: Readonly<Record<string, string>> = CODE_OWNED_SLOTS[section]
+  return table[slotPath] ?? table[wildcardPath ?? wildcardOf(slotPath)]
+}
+
+/**
+ * Normalize one concrete slot path to its wildcard form: `states.BLOCKED.headline` →
+ * `states.*.headline`. Returns the path unchanged when it has no third segment.
+ *
+ * DERIVATION IS THE FALLBACK, NOT THE CONTRACT. It assumes the variable segment contains no
+ * dot, which holds for `decisionCopy`'s state keys and fails for `overrides`' encoded slugs —
+ * `resources.io.github.calllint__calllint.displayName` would wildcard `io`, i.e. address a
+ * slot nobody wrote. So `collectUnwired`, which knows the variable segment because it is
+ * iterating over it, passes `wildcardPath` explicitly and never relies on this. It stays for
+ * the two-level call sites (tests, and a reviewer asking "why is this slot code-owned?")
+ * where the derivation is exact.
+ */
+function wildcardOf(slotPath: string): string {
+  const parts = slotPath.split(".")
+  if (parts.length < 3) return slotPath
+  return [parts[0], "*", ...parts.slice(2)].join(".")
+}
+
 /** The fully-resolved copy, total in every slot. Safe to hand to a renderer as-is. */
 export interface ResolvedPresentation {
   /** L1 — wording for the single primary action, per shipped route state. */
@@ -120,9 +361,34 @@ export interface ResolvedPresentation {
    * reaches served bytes without passing through a text node.
    */
   readonly tokens: ResolvedTokens
+  /**
+   * L1 — the Guard offer's three configurable strings (PR P-5). Handed to
+   * `continuousProtectionOffer({ copy })` at the bake/gate edge; reaches a TERMINAL, never
+   * a served page, which is why lifting it is structurally zero-served-byte.
+   */
+  readonly guardConversion: GuardOfferCopy
+  /**
+   * L1 — relay wording an agent echoes (PR P-5). One of six slots has a consumer today;
+   * the other five are declared code-owned with that reason rather than wired dishonestly.
+   * ADR 0058 §6: relay copy may never add or remove a protocol trigger.
+   */
+  readonly agentRelay: AgentRelayCopy
+  /**
+   * L1 — per-resource overrides, keyed by `overrideKey(canonicalSlug)` (PR P-5). Applied
+   * strictly DOWNSTREAM of the seal, so an override can change what a page reads and can
+   * never change what a contract digest covers.
+   */
+  readonly overrides: ResolvedOverrides
   /** Which slots came from configuration, in stable order. A measurement, for the lock. */
   readonly overriddenSlots: readonly string[]
-  /** Configured slots that no renderer consumes yet. Non-empty ⇒ the lock gate fails. */
+  /**
+   * Configured slots that reach nothing, each with the reason. Non-empty ⇒ the lock fails.
+   *
+   * TOTAL over all eight sections since PR P-5. Two causes land here and the message
+   * distinguishes them: a slot in `CODE_OWNED_SLOTS` reports its measured reason, and a
+   * slot in neither table (a misspelling, or a section key the schema admits but no
+   * resolver reads) reports that it matches no known slot.
+   */
   readonly unwiredSlots: readonly string[]
   /**
    * Configured slots REJECTED at resolve time, with a cause (PR P-3). A rejection is
@@ -140,6 +406,12 @@ export const DEFAULT_PRESENTATION: ResolvedPresentation = Object.freeze({
   sectionTitles: SECTION_TITLES,
   layout: DEFAULT_LAYOUT,
   tokens: DEFAULT_TOKENS,
+  // Imported from `@calllint/core`, not restated. ONE default source survives, so
+  // "the catalog restates the shipped defaults" is checkable against the render's own
+  // constants rather than against a second copy that merely happens to agree.
+  guardConversion: DEFAULT_GUARD_OFFER_COPY,
+  agentRelay: DEFAULT_AGENT_RELAY_COPY,
+  overrides: Object.freeze({ resources: Object.freeze({}) }),
   overriddenSlots: Object.freeze([]),
   unwiredSlots: Object.freeze([]),
   rejectedSlots: Object.freeze([]),
@@ -189,6 +461,49 @@ function usableStylesheetHref(value: unknown): value is string {
     !value.includes("..") &&
     value.endsWith(".css")
   )
+}
+
+/**
+ * Record every configured key in one section that reaches nothing, with its reason.
+ *
+ * Called once per section, which is what makes `unwiredSlots` total. Two outcomes, and the
+ * message distinguishes them because a reviewer needs different actions:
+ *   • the slot is in `CODE_OWNED_SLOTS` ⇒ report its measured reason. This is a document
+ *     asking for something that should not be configurable — the fix is to remove the key.
+ *   • the slot is in neither table ⇒ report that it matches no known slot. This is a
+ *     misspelling, and the fix is to correct it.
+ *
+ * BOTH path forms are consulted, because the two tables are deliberately written in different
+ * forms and each choice is load-bearing:
+ *   • `WIRED_SLOTS.decisionCopy` lists states CONCRETELY (`states.BLOCKED.primaryAction`), so
+ *     an INVENTED state key matches nothing and gets reported. Wildcarding it would silently
+ *     accept `states.NOT_A_STATE.primaryAction`.
+ *   • `WIRED_SLOTS.overrides` must be wildcarded (`resources.*.displayName`), because the
+ *     resource key is caller data and cannot be enumerated.
+ * Consulting both forms is what lets each section use the stricter convention available to it
+ * without a per-section branch here.
+ *
+ * `prefix.concrete` is what the message shows — a reviewer needs the real key to find it in
+ * the document — and `prefix.wildcard` is supplied by the caller rather than derived, because
+ * an encoded slug contains dots and derivation would wildcard the wrong segment.
+ */
+function collectUnwired(
+  section: PresentationSection,
+  configured: Readonly<Record<string, unknown>> | undefined,
+  out: string[],
+  prefix?: { readonly concrete: string; readonly wildcard: string },
+): void {
+  if (configured === undefined) return
+  const wired: readonly string[] = WIRED_SLOTS[section]
+  for (const key of Object.keys(configured).sort()) {
+    const concrete = prefix === undefined ? key : `${prefix.concrete}.${key}`
+    const wildcard = prefix === undefined ? key : `${prefix.wildcard}.${key}`
+    if (wired.includes(concrete) || wired.includes(wildcard)) continue
+    const reason = codeOwnedReason(section, concrete, wildcard)
+    out.push(
+      `${section}.${concrete}: ${reason ?? "matches no known slot — check the spelling against the schema"}`,
+    )
+  }
 }
 
 /**
@@ -288,19 +603,46 @@ export function resolvePresentation(doc: unknown): ResolvedPresentation {
   // the exact drift a lock file exists to catch, so it is MEASURED and reported.
   //
   // Computed as "configured but NOT WIRED" rather than "in the deferral list", changed in
-  // PR P-4b. The old form enumerated UNWIRED_SECTION_TITLES, which became empty when this
+  // PR P-4b. The old form enumerated UNWIRED_SECTION_TITLES, which became empty when that
   // batch wired `boundary` — leaving the mechanism live but with nothing to match, so it
   // would have reported nothing forever. This form derives the answer from the wired set,
   // so it keeps working with an empty deferral list AND catches a case the old one missed
   // entirely: a MISSPELLED key (`provenence`) is not a declared deferral, so it was
   // silently dropped by the per-key merge and reported by nothing.
-  const unwiredSlots =
-    configuredTitles === undefined
-      ? []
-      : Object.keys(configuredTitles)
-          .filter((k) => !(WIRED_SECTION_TITLES as readonly string[]).includes(k))
-          .sort()
-          .map((k) => `sectionTitles.${k}`)
+  //
+  // PR P-5 makes it TOTAL: `unwired` accumulates across every section (see
+  // `collectUnwired`, called once per section below), because the P-4b form covered
+  // `sectionTitles` alone — so three whole sections could be configured, validate, move
+  // the digest, and report nothing.
+  const unwired: string[] = []
+  collectUnwired("sectionTitles", configuredTitles, unwired)
+  // `authorityCopy` is wired as `observedPhrases.<authority>` / `absencePhrases.<authority>`,
+  // so each block is collected under its own prefix rather than at the top level.
+  // Concrete in both positions: the authority token set is shipped and enumerated, so an
+  // invented token must be reported rather than wildcarded into acceptance.
+  collectUnwired("authorityCopy", objectOrUndefined(authorityCopy?.observedPhrases), unwired, {
+    concrete: "observedPhrases",
+    wildcard: "observedPhrases",
+  })
+  collectUnwired("authorityCopy", objectOrUndefined(authorityCopy?.absencePhrases), unwired, {
+    concrete: "absencePhrases",
+    wildcard: "absencePhrases",
+  })
+  // `decisionCopy` is nested per state, so it is collected one level down with the state
+  // in the prefix — `states.BLOCKED.headline`, which `codeOwnedReason` wildcards.
+  if (states !== null && typeof states === "object" && states !== undefined) {
+    for (const state of Object.keys(states as Record<string, unknown>).sort()) {
+      collectUnwired(
+        "decisionCopy",
+        objectOrUndefined((states as Record<string, unknown>)[state]),
+        unwired,
+        // Concrete AND wildcard: `states.BLOCKED.primaryAction` hits the wired list by its
+        // concrete form (so an invented state is caught), while `states.*.headline` hits the
+        // code-owned table by its wildcard form (so five states share one reason).
+        { concrete: `states.${state}`, wildcard: "states.*" },
+      )
+    }
+  }
 
   // L1 — the LAYOUT MANIFEST (PR P-3). Three separate decisions, deliberately not
   // collapsed into one "is this layout ok" branch, because they fail for different
@@ -399,6 +741,92 @@ export function resolvePresentation(doc: unknown): ResolvedPresentation {
     }
     tokens = { tokensVersion, stylesheetHref }
   }
+  collectUnwired("layout", layoutRaw, unwired)
+  collectUnwired("tokens", tokensRaw, unwired)
+
+  // L1 — the GUARD CONVERSION block (PR P-5). Three of four slots wired; `declineLabel` is
+  // code-owned and reports as such, because a security floor compares it as a literal.
+  //
+  // Resolved through `mergeSlots` like every other copy slice, so fail-open-per-slot and the
+  // `overriddenSlots` convention are INHERITED rather than re-implemented — one behaviour for
+  // an unusable configured string across the whole document, not a second convention here.
+  const guardRaw = objectOrUndefined(d.guardConversion as Record<string, unknown> | undefined)
+  if (d.guardConversion !== undefined && guardRaw === undefined) {
+    rejected.push("guardConversion: not an object")
+  }
+  const guardConversion = mergeSlots(
+    DEFAULT_GUARD_OFFER_COPY as Record<keyof GuardOfferCopy, string>,
+    guardRaw,
+    WIRED_GUARD_SLOTS,
+    (k) => `guardConversion.${k}`,
+    overridden,
+  )
+  collectUnwired("guardConversion", guardRaw, unwired)
+
+  // L1 — the AGENT RELAY block (PR P-5). One of six slots has a consumer (`guardOffer`, the
+  // MCP guard tool's relay line); the five decision-relay slots are code-owned with the
+  // no-consumer reason until P-6 gives them a surface.
+  const relayRaw = objectOrUndefined(d.agentRelayCopy as Record<string, unknown> | undefined)
+  if (d.agentRelayCopy !== undefined && relayRaw === undefined) {
+    rejected.push("agentRelayCopy: not an object")
+  }
+  const agentRelay = mergeSlots(
+    DEFAULT_AGENT_RELAY_COPY as Record<keyof AgentRelayCopy, string>,
+    relayRaw,
+    WIRED_AGENT_RELAY,
+    (k) => `agentRelayCopy.${k}`,
+    overridden,
+  )
+  collectUnwired("agentRelayCopy", relayRaw, unwired)
+
+  // L1 — PER-RESOURCE OVERRIDES (PR P-5). Two of five fields wired: `displayName` (reaches
+  // the projection's identity line, applied strictly downstream of the seal) and `reason`
+  // (reaches the lock artifact — a real emitted artifact whose bytes move when it moves).
+  //
+  // Keys are the ENCODED slug form (`overrideKey`). No decoding happens here: the resolver
+  // does not know the corpus, so it cannot tell a typo'd slug from an unpublished one, and
+  // guessing would be worse than passing the key through for the consumer to miss.
+  const overridesRaw = objectOrUndefined(d.overrides as Record<string, unknown> | undefined)
+  if (d.overrides !== undefined && overridesRaw === undefined) {
+    rejected.push("overrides: not an object")
+  }
+  const resourcesRaw = objectOrUndefined(overridesRaw?.resources)
+  if (overridesRaw?.resources !== undefined && resourcesRaw === undefined) {
+    rejected.push("overrides.resources: not an object")
+  }
+  const resolvedResources: Record<string, ResolvedResourceOverride> = {}
+  if (resourcesRaw !== undefined) {
+    for (const key of Object.keys(resourcesRaw).sort()) {
+      const entry = objectOrUndefined(resourcesRaw[key])
+      if (entry === undefined) {
+        rejected.push(`overrides.resources.${key}: not an object`)
+        continue
+      }
+      const one: { displayName?: string; reason?: string } = {}
+      for (const field of WIRED_OVERRIDE_SLOTS) {
+        const value = entry[field]
+        if (value === undefined) continue
+        if (!usableCopy(value)) continue
+        one[field] = value
+        overridden.push(`overrides.resources.${key}.${field}`)
+      }
+      // An entry whose every field was unwired or unusable resolves to nothing. Recorded as
+      // an empty record rather than dropped, so the lock can show that the key was SEEN —
+      // the alternative reads identically to a key that was never written.
+      resolvedResources[key] = Object.freeze(one)
+      // The wildcard form is passed explicitly, NOT derived: an encoded slug contains dots
+      // (`io.github.calllint__calllint`), so splitting the concrete path would wildcard `io`
+      // and address a slot nobody wrote.
+      collectUnwired("overrides", entry, unwired, {
+        concrete: `resources.${key}`,
+        wildcard: "resources.*",
+      })
+    }
+  }
+  if (overridesRaw !== undefined) {
+    // Only top-level `overrides` keys; `resources` is descended into above.
+    collectUnwired("overrides", overridesRaw, unwired)
+  }
 
   return {
     primaryCta,
@@ -406,8 +834,11 @@ export function resolvePresentation(doc: unknown): ResolvedPresentation {
     sectionTitles,
     layout,
     tokens,
+    guardConversion,
+    agentRelay,
+    overrides: { resources: Object.freeze(resolvedResources) },
     overriddenSlots: overridden.sort(),
-    unwiredSlots,
+    unwiredSlots: unwired.sort(),
     rejectedSlots: rejected.sort(),
   }
 }

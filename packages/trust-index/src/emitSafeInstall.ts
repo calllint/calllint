@@ -26,7 +26,11 @@ import { renderSafeInstall, renderSafeInstallContract } from "./renderSafeInstal
 import { renderDiscoveryManifest, type DiscoveryResourceEntry } from "./renderDiscoveryManifest.js"
 import type { Installability } from "./safeInstallProjection.js"
 import type { EmittedFile } from "./emitCohort.js"
-import { DEFAULT_PRESENTATION, type ResolvedPresentation } from "./safe-install/resolvePresentation.js"
+import {
+  DEFAULT_PRESENTATION,
+  overrideKey,
+  type ResolvedPresentation,
+} from "./safe-install/resolvePresentation.js"
 
 /**
  * One emitted acquisition resource — the canonical name/slug plus its human/route
@@ -134,6 +138,24 @@ export function emitSafeInstall(
         presentation: { primaryCta: presentation.primaryCta, authority: presentation.authority },
       })
       const slug = projection.canonicalSlug
+      // PR P-5 — the per-resource `displayName` override, applied STRICTLY DOWNSTREAM of
+      // the seal. `safeInstallProjection` above already built and sealed the contract, so
+      // this substitution cannot reach `contractDigest` by construction: the only object it
+      // can influence is the one handed to `renderSafeInstall` below, and `agentContract` is
+      // carried through by reference, unchanged. That ordering IS the isolation — the
+      // `SHIPPED_LAYOUT_CAPS`/`maxAuthorityFacts` precedent (layoutStructure.ts:187).
+      //
+      // Two further facts make this narrower than it looks. `displayName` appears nowhere in
+      // `AgentAdoptionContractInput` (a repo-wide search finds zero `displayName` in
+      // agentAdoptionContract.ts), so there is no path into the builder even if the order
+      // were wrong. And the resolver has already rejected any non-string or blank value, so
+      // an unusable override cannot blank the page's identity line — it resolves to absent
+      // and the derived name stands.
+      const override = presentation.overrides.resources[overrideKey(slug)]
+      const shown =
+        override?.displayName !== undefined
+          ? { ...projection, displayName: override.displayName }
+          : projection
       files.push({
         path: `install/${slug}/index.html`,
         // The renderer gets titles + layout + tokens and nothing else — no CTA wording,
@@ -143,12 +165,16 @@ export function emitSafeInstall(
         // carries the stylesheet href, already narrowed to a rooted same-origin .css path
         // by the resolver — this edge is where the L0 plane finally becomes served bytes.
         content: renderSafeInstall(
-          projection,
+          shown,
           presentation.sectionTitles,
           presentation.layout,
           presentation.tokens,
         ),
       })
+      // The sidecar renders `projection`, NOT `shown` — deliberately, and it is the same
+      // line that keeps INV-P1 true: the contract sidecar is the sealed bytes, so it must
+      // never be re-serialized from an object a configuration document touched. The two
+      // arguments differing on this line is what a reviewer should look for.
       files.push({ path: `install/${slug}/index.json`, content: renderSafeInstallContract(projection) })
       discovery.push({ canonicalName: projection.canonicalName, canonicalSlug: slug })
       resources.push({

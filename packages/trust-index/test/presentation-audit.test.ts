@@ -41,6 +41,13 @@ const audit = () =>
     stylesheetHref: [DEFAULT_TOKENS.stylesheetHref],
     verdictLabel: Object.values(VERDICT_PUBLIC_LABEL),
     guidanceSteps: [...AGENT_GUIDANCE.steps],
+    // PR P-5. A SYNTHETIC value, deliberately — not the shipped derived `displayName`.
+    // That derivation is `packageName ?? canonicalName` (safeInstallProjection.ts:149),
+    // both sealed, so the default sits in 19 of 19 committed contracts; probing with it
+    // would set `contractDigestMoved` by containment and fail the row's own `presentation`
+    // declaration for a reason unrelated to the override's isolation. What a document can
+    // actually configure is an arbitrary label, so that is what gets probed.
+    resourceDisplayName: ["Configured Display Name (audit probe)"],
   })
 
 describe("presentation audit — the measurement itself", () => {

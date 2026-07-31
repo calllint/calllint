@@ -187,13 +187,23 @@ function conversion(over: Partial<ConversionObservation> = {}): ConversionObserv
     disableCommand: "calllint guard disable",
     disclosureDigest: DIGEST,
     components: [COMPONENT],
+    // PR P-5 defaults. `copySource: "configured"` mirrors the shipped edge; the sentinel
+    // digest defaults to EQUAL, so the invariance measure passes unless a test moves it
+    // deliberately — the same convention as every other field here.
+    copySource: "configured" as const,
+    disclosureDigestUnderSentinelCopy: DIGEST,
   }
   const merged = { ...base, ...over }
   return {
     ...merged,
+    // The decline affordance is derived from `merged`, not hardcoded. PR P-5 made the gate
+    // check `[${declineOption}]` rather than the literal `[Not now]`, so a fixture that
+    // overrode `declineOption` while rendering a fixed `[Not now]` would now be testing the
+    // mismatch instead of the case it was written for. Deriving keeps each test's intent
+    // exactly what its name says, and the mismatch gets its own named test below.
     renderedText:
       over.renderedText ??
-      `${COMPONENT.label} (${COMPONENT.id})\n  creates: ${COMPONENT.artifactPath}\n  remove: ${COMPONENT.uninstallCommand}\n  disable later: ${merged.disableCommand}\n  [Not now]`,
+      `${COMPONENT.label} (${COMPONENT.id})\n  creates: ${COMPONENT.artifactPath}\n  remove: ${COMPONENT.uninstallCommand}\n  disable later: ${merged.disableCommand}\n  [${merged.declineOption}]`,
   }
 }
 
@@ -242,6 +252,52 @@ describe("Gate 2.4-F · continuous-protection conversion", () => {
 
   it("FAILS when a guard host is missing from the cohort", () => {
     expect(evaluateConversion([conversion()], 7).status).toBe("FAILED")
+  })
+
+  // --- PR P-5: configuration now sits beside these floors ---------------------
+
+  it("FAILS when configured copy moves the disclosureDigest — wording must never move the approval token", () => {
+    // The one measure P-5 added, and the reason it exists. A human approves a COMPONENT SET,
+    // and `disclosureDigest` is the token recording what they were shown. Its preimage covers
+    // components only (continuousProtection.ts:187-197 — id/artifactPath/posture/install/
+    // uninstall, and deliberately NOT `label`), so re-rendering with sentinel copy must
+    // reproduce it exactly. If it ever does not, an editorial change could invalidate an
+    // approval that a human already gave, which is why this fails the gate rather than
+    // warning. The negative control for the preimage: add `label` to it and this goes red.
+    const r = evaluateConversion(
+      [conversion({ disclosureDigestUnderSentinelCopy: "sha256:" + "b".repeat(64) })],
+      1,
+    )
+    expect(r.status).toBe("FAILED")
+    expect(r.blockers.join(" ")).toContain("under sentinel copy")
+  })
+
+  it("FAILS when the decline affordance is rendered as a literal instead of derived from declineOption", () => {
+    // Why the check is `[${declineOption}]` and not the literal `[Not now]`. This fixture is
+    // exactly the shape the old literal check could not see: the offer says the exit is
+    // "Later", the render shows "[Not now]". Under the literal form both halves passed — the
+    // field equality still held against its own value and the literal was present in the
+    // text — so a render could show a button the offer did not offer. Nothing else in this
+    // suite fails on it, which is what makes the derivation load-bearing rather than cosmetic.
+    const r = evaluateConversion(
+      [
+        conversion({
+          declineOption: "Later",
+          renderedText: `${COMPONENT.label} (${COMPONENT.id})\n  creates: ${COMPONENT.artifactPath}\n  remove: ${COMPONENT.uninstallCommand}\n  disable later: calllint guard disable\n  [Not now]`,
+        }),
+      ],
+      1,
+    )
+    expect(r.status).toBe("FAILED")
+    expect(r.blockers.join(" ")).toContain("[Later] is not visible")
+  })
+
+  it("PASSES a fully disclosed offer built from configured copy", () => {
+    // The positive half: `copySource: "configured"` is an audit field, not a fault. A gate
+    // that failed on it would make reading the copy plane look like a regression.
+    const r = evaluateConversion([conversion({ copySource: "configured" })], 1)
+    expect(r.status).toBe("PASSED")
+    expect(r.measures.map((m) => m.id)).toContain("disclosure-digest-invariant-under-configured-copy")
   })
 })
 

@@ -37,8 +37,28 @@ import {
   PRIMARY_CTA,
   SECTION_TITLES,
   canonicalProjectionInput,
+  overrideKey,
   runPresentationAudit,
 } from "../packages/trust-index/src/index.js"
+
+/**
+ * The `displayName` value the P-5 row probes — synthetic, and deliberately NOT read from
+ * the committed catalog.
+ *
+ * Reading it from the catalog would be the obvious move and it would be wrong, for a reason
+ * worth writing down because it is the same trap twice. The catalog's one override entry
+ * RESTATES the shipped derived display name verbatim — that is what keeps P-5 at zero served
+ * bytes. But the derived name is `packageName ?? canonicalName`, both of which are sealed, so
+ * it is present in 19 of 19 committed contracts. A probe carrying it would find it in the
+ * sealed bytes, set `contractDigestMoved` by containment, measure "decision", and fail the
+ * row — reporting a boundary violation that does not exist.
+ *
+ * So the row probes a string a document COULD configure and no contract contains. The
+ * catalog's actual value is measured elsewhere and better: the lock asserts the override's
+ * effective display name equals the shipped derived value, which is the byte-identity claim
+ * this row cannot make.
+ */
+const PROBED_OVERRIDE_DISPLAY_NAME = "Configured Display Name (P-5 probe)"
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..")
 const outPath = path.join(repoRoot, "artifacts", "phase-2.4", "presentation-plane-audit.json")
@@ -51,6 +71,9 @@ const COPY_SOURCES = [
   "packages/trust-index/src/agentAdoptionContract.ts",
   "packages/trust-index/src/language.ts",
   "packages/core/src/gateway/continuousProtection.ts",
+  // PR P-5 — the relay copy slice. A source that OWNS copy belongs in the inventory in the
+  // commit that creates it; adding it later would make the count look like it drifted.
+  "packages/trust-index/src/safe-install/agentRelay.ts",
 ] as const
 
 /**
@@ -223,6 +246,57 @@ function servedStylesheetRefs(): {
   }
 }
 
+/**
+ * PR P-5 — the measured keyability of `overrides.resources`, recorded because it is a real
+ * schema defect this batch WORKS AROUND rather than fixes.
+ *
+ * The schema constrains `propertyNames` to `^[a-z0-9][a-z0-9._-]*$`, which admits no `/`.
+ * Every canonical slug contains one. So the key space the schema declares does not contain
+ * a single real resource, and the section could never have been used as written.
+ *
+ * The trap — and the reason this is measured rather than described — is that the defect is
+ * not merely restrictive, it is WRONG IN A WAY THAT LOOKS RIGHT. The LEAF segment of every
+ * slug does match the pattern, so a reader reaching for "the obvious key" writes the leaf,
+ * the document validates, and the override silently addresses nothing. The shipped fixture's
+ * slash-free `io.github.example-mcp` is exactly why this never surfaced in testing.
+ *
+ * P-5's answer is an ENCODING, not a schema change: `overrideKey` maps `/` → `__`. This
+ * function measures that the encoding is legal, injective and unambiguous over the real
+ * corpus rather than trusting the argument. Fixing `propertyNames` needs an ADR, and ADR
+ * 0060 is deliberately left free for it.
+ */
+function overrideKeyability(): {
+  readonly slugs: number
+  readonly rawSlugsMatchingPattern: number
+  readonly leafSegmentsMatchingPattern: number
+  readonly encodedKeysMatchingPattern: number
+  readonly encodedKeysUnique: number
+  readonly rawSlugsContainingSeparator: number
+  readonly pattern: string
+  readonly separator: string
+  readonly $comment: string
+} {
+  const PATTERN = /^[a-z0-9][a-z0-9._-]*$/
+  const manifestPath = path.join(repoRoot, "apps", "web", "public", ".well-known", "calllint.json")
+  const manifest = JSON.parse(fs.readFileSync(manifestPath, "utf8")) as {
+    resources?: readonly { canonicalSlug: string }[]
+  }
+  const slugs = (manifest.resources ?? []).map((r) => r.canonicalSlug)
+  const encoded = slugs.map(overrideKey)
+  return {
+    slugs: slugs.length,
+    rawSlugsMatchingPattern: slugs.filter((s) => PATTERN.test(s)).length,
+    leafSegmentsMatchingPattern: slugs.filter((s) => PATTERN.test(s.split("/").at(-1) ?? "")).length,
+    encodedKeysMatchingPattern: encoded.filter((k) => PATTERN.test(k)).length,
+    encodedKeysUnique: new Set(encoded).size,
+    rawSlugsContainingSeparator: slugs.filter((s) => s.includes("__")).length,
+    pattern: "^[a-z0-9][a-z0-9._-]*$",
+    separator: "__",
+    $comment:
+      "MEASURED over the served discovery manifest. rawSlugsMatchingPattern must be 0 and leafSegmentsMatchingPattern must equal slugs: together those two numbers ARE the trap — the schema pattern admits the leaf segment of every slug while admitting no whole slug, so a naive key validates and addresses nothing. encodedKeysMatchingPattern and encodedKeysUnique must both equal slugs (legal + injective), and rawSlugsContainingSeparator must be 0 (unambiguous, so decodeOverrideKey round-trips). The propertyNames defect itself is RECORDED, NOT FIXED by PR P-5 — that is a schema change requiring an ADR, and ADR 0060 is reserved for it.",
+  }
+}
+
 /** Build the artifact. No clock, no RNG — byte-stable across runs. */
 function build(): { json: string; pass: boolean; failures: readonly string[] } {
   const inputs = CANONICAL_FIXTURES.map((f) => canonicalProjectionInput(f))
@@ -234,6 +308,12 @@ function build(): { json: string; pass: boolean; failures: readonly string[] } {
     // The href the renderer really emits, so containment is checked against the shipped
     // value rather than a restatement of it.
     stylesheetHref: [DEFAULT_TOKENS.stylesheetHref],
+    // PR P-5 — OVERRIDE-supplied, never the shipped derived `displayName`. The default is
+    // `packageName ?? canonicalName`, both sealed, so it is present in 19 of 19 committed
+    // contracts and a row probed with it would measure "decision" and fail its own
+    // declaration (see the RESOURCE_DISPLAY_NAME row). This value is what a document would
+    // configure, which is a string no sealed contract contains.
+    resourceDisplayName: [PROBED_OVERRIDE_DISPLAY_NAME],
     verdictLabel: Object.values(VERDICT_PUBLIC_LABEL),
     guidanceSteps: [...AGENT_GUIDANCE.steps],
   })
@@ -255,6 +335,7 @@ function build(): { json: string; pass: boolean; failures: readonly string[] } {
     return { source: rel, copyLiterals: c.count, samples: c.samples }
   })
   const css = servedStylesheetRefs()
+  const keyability = overrideKeyability()
 
   const failures = [
     ...audit.failures,
@@ -298,14 +379,33 @@ function build(): { json: string; pass: boolean; failures: readonly string[] } {
     ...PRE_EXISTING_STYLED_PAGES.filter((p) => !css.pagesWithStylesheet.includes(p)).map(
       (p) => `${p} no longer references a stylesheet — served bytes moved outside PR P-4b's scope (ADR 0058 §4)`,
     ),
+    // PR P-5 — the override key space must stay legal, injective and unambiguous. These are
+    // failures, not just recorded numbers: the encoding is what makes `overrides.resources`
+    // reachable at all without a schema change, so if a future slug broke any of the three
+    // the section would go back to being unkeyable and the audit should say so by name.
+    ...(keyability.encodedKeysMatchingPattern === keyability.slugs
+      ? []
+      : [
+          `overrideKey produced ${keyability.slugs - keyability.encodedKeysMatchingPattern} key(s) that the schema's propertyNames pattern rejects — overrides.resources would be unkeyable for those resources (ADR 0060)`,
+        ]),
+    ...(keyability.encodedKeysUnique === keyability.slugs
+      ? []
+      : [
+          `overrideKey is not injective over the served corpus (${keyability.encodedKeysUnique} unique keys for ${keyability.slugs} slugs) — one override would address two resources`,
+        ]),
+    ...(keyability.rawSlugsContainingSeparator === 0
+      ? []
+      : [
+          `${keyability.rawSlugsContainingSeparator} canonical slug(s) already contain the "${keyability.separator}" separator — decodeOverrideKey can no longer round-trip, so the encoding is ambiguous`,
+        ]),
   ]
 
   const report = {
     schema: "calllint.presentation-plane-audit.v0",
     $comment:
-      "Workstream P presentation-plane reality audit (ADR 0058 §1/§5), re-baselined by PR P-4b — the ONE Workstream P PR licensed to change served bytes. reachability[] is MEASURED by mutation/containment probe over the shipped projection, not declared: a row whose declaredPlane disagrees with its measuredPlane fails. The VERDICT_PUBLIC_LABEL and AGENT_GUIDANCE.steps rows are negative controls — they MUST measure as decision-plane, otherwise the probe cannot detect reachability and every other row is meaningless. STYLESHEET_HREF is P-4b's new row and the only presentation site that reaches an ATTRIBUTE rather than a text node. planeStages replaces P-0's blanket greenfield assertion: creating each plane is a specific PR's WORK, so the expectation is per-plane and bidirectional. servedStylesheets INVERTED at P-4b: P-4's rule was that zero install pages carry CSS; the rule is now that EVERY install page carries exactly /styles/tokens.css, and separately that none carries a foreign href. Inverting is stronger than deleting — absence now fails, so a page cannot silently lose its stylesheet. Regenerate with `pnpm audit:presentation:write`; enforce with `pnpm audit:presentation:gate`.",
+      "Workstream P presentation-plane reality audit (ADR 0058 §1/§5), re-baselined by PR P-5 (adds the RESOURCE_DISPLAY_NAME row + overrideKeyability; P-4b was the ONE Workstream P PR licensed to change served bytes, and that license is SPENT — P-5 changes zero served bytes). inventoryTotal ROSE at P-5 and that is correct, not a regression: PR P-5 lifted three guard strings out of renderContinuousProtectionOffer into named DEFAULT_GUARD_OFFER_COPY constants, and countCopyLiterals' leading-letter clause could not see them while they were indented inside the template (\"  CallLint can:\"). Naming them unindented makes them COUNTABLE for the first time. The predicate was not bent to make the number fall — this is an INVENTORY, not a boundary, and the boundary is reachability[] below. reachability[] is MEASURED by mutation/containment probe over the shipped projection, not declared: a row whose declaredPlane disagrees with its measuredPlane fails. The VERDICT_PUBLIC_LABEL and AGENT_GUIDANCE.steps rows are negative controls — they MUST measure as decision-plane, otherwise the probe cannot detect reachability and every other row is meaningless. STYLESHEET_HREF is P-4b's new row and the only presentation site that reaches an ATTRIBUTE rather than a text node. planeStages replaces P-0's blanket greenfield assertion: creating each plane is a specific PR's WORK, so the expectation is per-plane and bidirectional. servedStylesheets INVERTED at P-4b: P-4's rule was that zero install pages carry CSS; the rule is now that EVERY install page carries exactly /styles/tokens.css, and separately that none carries a foreign href. Inverting is stronger than deleting — absence now fails, so a page cannot silently lose its stylesheet. Regenerate with `pnpm audit:presentation:write`; enforce with `pnpm audit:presentation:gate`.",
     workstream: "P",
-    pr: "P-4b",
+    pr: "P-5",
     status: failures.length === 0 ? "PASSED" : "FAILED",
     planeStages,
     servedStylesheets: {
@@ -317,6 +417,7 @@ function build(): { json: string; pass: boolean; failures: readonly string[] } {
     },
     inventory,
     inventoryTotal: inventory.reduce((n, i) => n + i.copyLiterals, 0),
+    overrideKeyability: keyability,
     reachability: {
       sitesProbed: audit.sitesProbed,
       presentationSites: audit.presentationSites,

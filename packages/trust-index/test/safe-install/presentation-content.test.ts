@@ -186,6 +186,25 @@ describe("presentation-content schema — the shape boundary", () => {
       expect(["L0", "L1", "L2"]).toContain(level)
     }
   })
+
+  it("keeps agentRelayCopy at L1: ADR 0058 §6 names the section by type, and §6 is later and more specific than §1", () => {
+    // Pinned because the two clauses can be read against each other, and an unpinned reading
+    // drifts silently — a level change would move `l1Digest` and `l2Digest` with nothing in the
+    // suite naming why. The reconciliation, recorded here and in the lock's `$comment`:
+    //
+    //   • ADR 0058 §6 names `AgentRelayCopy` (new15 §20.2's type) as the L1-editable section.
+    //     It is the later clause and the more specific one — it names the type, not a category.
+    //   • §1's "agent relay summaries" reads as the authority-consequence sentences an agent
+    //     relays, which are L2. That reading leaves both clauses true.
+    //
+    // Deciding it the other way would need an ADR, because it moves two digests. This test is
+    // what forces that conversation to happen instead of a one-token edit.
+    expect(LEVEL_BY_SECTION.agentRelayCopy).toBe("L1")
+    // The neighbours the reading depends on, so a wholesale re-levelling cannot pass by
+    // dragging this one along with it.
+    expect(LEVEL_BY_SECTION.guardConversion).toBe("L1")
+    expect(LEVEL_BY_SECTION.tokens).toBe("L0")
+  })
 })
 
 /** Rules are only real if they FAIL on the thing they claim to forbid. */
@@ -214,6 +233,64 @@ describe("presentation-content validator — falsifications", () => {
       const doc = { ...EMPTY_PRESENTATION_CONTENT, guardConversion: { [key]: "x" } }
       expect(validatePresentationContent(doc, ctx).some((e) => e.rule === "reserved-key")).toBe(true)
     }
+  })
+
+  it("rejects every reserved key in agentRelayCopy and in overrides too, at any depth (PR P-5)", () => {
+    // P-5 wires three sections that until now validated clean and reached nothing. The claim
+    // that no NEW validator rule was needed rests on the reserved-key rule being genuinely
+    // depth-independent, so it is PROVEN over the newly-live sections rather than assumed
+    // from the `guardConversion` loop above.
+    //
+    // `agentRelayCopy` is the one that matters most: ADR 0058 §6 says relay copy may never add
+    // or remove a protocol trigger, and this is the mechanism that makes that structural.
+    for (const key of RESERVED_KEYS) {
+      const relay = { ...EMPTY_PRESENTATION_CONTENT, agentRelayCopy: { [key]: "x" } }
+      expect(
+        validatePresentationContent(relay, ctx).some((e) => e.rule === "reserved-key"),
+        `agentRelayCopy.${key} was accepted`,
+      ).toBe(true)
+      // Two levels deeper, under a caller-supplied resource key — the shape a real override
+      // takes, and the one place a shallow rule would miss.
+      const nested = {
+        ...EMPTY_PRESENTATION_CONTENT,
+        overrides: { resources: { "io.github.x__y": { displayName: "X", [key]: "x" } } },
+      }
+      expect(
+        validatePresentationContent(nested, ctx).some((e) => e.rule === "reserved-key"),
+        `overrides.resources.*.${key} was accepted`,
+      ).toBe(true)
+    }
+  })
+
+  it("is the layer that rejects an UN-ENCODED override key — propertyNames is shape, so Ajv owns it", () => {
+    // Measured while writing PR P-5, and worth pinning here because the first guess was wrong:
+    // neither `resolvePresentation` nor `validatePresentationContent` rejects a raw canonical
+    // slug as an `overrides.resources` key. The resolver merges any present key; the validator
+    // is deliberately not a JSON Schema re-implementation. So the ONLY gate is this one.
+    //
+    // The hazard it stops is ADR 0058 §3's named drift: a raw-slash key would validate at the
+    // value layer, resolve, and be recorded in `overriddenSlots`, while `emitSafeInstall` looks
+    // up by the ENCODED key — a configured override that addresses nothing. And the trap is
+    // that the LEAF segment alone DOES satisfy the pattern (measured: 19 of 19 committed
+    // slugs), so a naive attempt validates and silently keys the wrong resource; the
+    // round-trip test in `resolve-presentation.test.ts` is the other half of this pair.
+    const raw = {
+      ...EMPTY_PRESENTATION_CONTENT,
+      overrides: { resources: { "mcp-registry/io.github.example-example": { displayName: "Raw slash" } } },
+    }
+    expect(validateSchema(raw), "Ajv accepted a raw-slash override key").toBe(false)
+    // The value layer does NOT catch it — asserted, not merely omitted, so the division of
+    // labour is recorded where a future reader will look for it.
+    expect(validatePresentationContent(raw, ctx)).toEqual([])
+    // Positive control: the same document with the key ENCODED passes both layers. Without
+    // this, the assertion above could hold because the document was malformed for some
+    // unrelated reason.
+    const encoded = {
+      ...EMPTY_PRESENTATION_CONTENT,
+      overrides: { resources: { "mcp-registry__io.github.example-example": { displayName: "Raw slash" } } },
+    }
+    expect(validateSchema(encoded), ajv.errorsText(validateSchema.errors)).toBe(true)
+    expect(validatePresentationContent(encoded, ctx)).toEqual([])
   })
 
   it("rejects a layout that DELETES a shipped group (hiding consequence)", () => {

@@ -27,6 +27,15 @@ import { renderExplain, NO_EMOJI_STYLE } from "@calllint/report-renderer"
 import { VERDICT_PUBLIC_LABEL } from "@calllint/types"
 import type { ApplyResult, Baseline, InstallPlan, TrustPreparation } from "@calllint/types"
 import { matchLexical } from "@calllint/trust-index/matchLexical"
+// PR P-5 — the guard-relay sentence below is composed from the shared default rather than
+// restated inline, so the copy catalog and this tool cannot drift apart. Imported by SUBPATH
+// for the same reason `matchLexical` is: `agentRelay.ts` is leaf-pure (types + one frozen
+// object, zero imports), so this pulls in no ingestion code and the esbuild bundle stays
+// what it was. Relay copy may never add or remove a protocol trigger (ADR 0058 §6) — the
+// fields that carry this tool's actual meaning (`enabled: false`,
+// `requiresSeparateAuthorization: true`) are typed literals set in code below, so a
+// configured string can reword this fact but cannot make it untrue.
+import { DEFAULT_AGENT_RELAY_COPY } from "@calllint/trust-index/agentRelay"
 import {
   applyPlan,
   buildDecisionReceipt,
@@ -866,9 +875,7 @@ function enableContinuousGuardHandler(args: Record<string, unknown>): ToolResult
       `approvalDigest does not match the current disclosure (${offer.disclosureDigest}) — the component set you reviewed is not the one on offer`,
     )
   }
-  notes.push(
-    "this tool installed nothing: enabling persistent protection is a separate operator action, run from a terminal",
-  )
+  notes.push(DEFAULT_AGENT_RELAY_COPY.guardOffer)
   notes.push(`decline at any time — ${offer.declineOption} leaves the one-time install untouched`)
 
   return json({

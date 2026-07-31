@@ -124,6 +124,15 @@ export interface ContinuousProtectionOffer {
   readonly declineOption: "Not now"
   /** How to turn it off after enabling, without removing files. */
   readonly disableCommand: string
+  /**
+   * The wording this offer renders with — TOTAL, resolved at offer time (PR P-5).
+   *
+   * On the offer rather than a second render parameter, so the render stays a pure
+   * function of one value and Gate 2.4-F observes exactly the strings a human sees. It is
+   * deliberately NOT part of `disclosureDigest`: the approval token names the component
+   * set, so configured copy provably cannot move a digest a human already reviewed.
+   */
+  readonly copy: GuardOfferCopy
 }
 
 /**
@@ -138,6 +147,72 @@ const GUARD_CAPABILITIES: readonly string[] = [
   "refuse a tampered install plan (approval is bound to the exact plan digest)",
 ]
 
+/**
+ * The three CONFIGURABLE strings in the Guard offer (new15 §6.2 PR P-5; ADR 0058 §1 L1).
+ *
+ * Authored here, beside the render that consumes them, so ONE module owns both the
+ * default wording and the template it must reproduce. The presentation resolver imports
+ * these rather than restating them, which is what makes "the catalog restates the shipped
+ * defaults" a checkable claim instead of two lists that happen to agree.
+ *
+ * WHAT IS DELIBERATELY ABSENT, and why each absence is load-bearing:
+ *
+ *   • `declineLabel`. The schema declares it; this type does not. `declineOption` is typed
+ *     as the literal `"Not now"` and Gate 2.4-F compares it as a literal, so letting
+ *     configuration reach it would let a legal config edit fail a security gate — or force
+ *     the gate to grade the configured value, i.e. configuration weakening its own floor
+ *     (INV-2.4-07). The render derives the token from the literal-typed field instead, so
+ *     `[Not now]` is STRUCTURAL rather than a string a document could forget.
+ *
+ *   • The disclosure block. `offerBody` is the capabilities LEAD-IN only. The
+ *     separate-decision sentence, the per-component creates/remove/enable lines,
+ *     `disable later:`, `disclosure:` and the two closing "nothing persistent was
+ *     installed" lines are disclosure, not copy — INV-2.4-07 depends on that framing
+ *     staying visible, so configuration must not be able to remove it.
+ *
+ *   • Per-host labels. `GUARD_ARTIFACTS[host].label` stays sole owner of the seven
+ *     per-host strings: `$defs.guardConversion` is closed at four properties, so a
+ *     per-host slot is a schema change and belongs to a PR licensed to make one.
+ */
+export interface GuardOfferCopy {
+  /** The offer's heading line. */
+  readonly offerHeadline: string
+  /** The lead-in above the capability bullets. Rendered indented; author it unindented. */
+  readonly offerBody: string
+  /** The affirmative affordance, rendered inside `[...]`. */
+  readonly acceptLabel: string
+}
+
+/** The shipped wording. Byte-for-byte what `renderContinuousProtectionOffer` emitted before P-5. */
+export const DEFAULT_GUARD_OFFER_COPY: GuardOfferCopy = Object.freeze({
+  offerHeadline: "Protect future agent-tool changes",
+  offerBody: "CallLint can:",
+  acceptLabel: "Enable continuous protection",
+})
+
+/**
+ * Fill a partial copy record to a total one, per slot.
+ *
+ * Per-slot rather than all-or-nothing for the same reason the presentation resolver is
+ * (ADR 0058 §5 INV-P3): supplying two of three slots must not blank the third. The check
+ * is deliberately thin — a non-empty string, nothing more — because the reviewable rules
+ * on what a configured string may SAY (length, markup, banned phrases) live in the
+ * content plane's validator and resolver. This is the structural floor beneath them, so
+ * the offer type can be total even when an edge hands over junk.
+ */
+export function resolveGuardOfferCopy(partial?: Partial<GuardOfferCopy>): GuardOfferCopy {
+  if (partial === undefined) return DEFAULT_GUARD_OFFER_COPY
+  const pick = (k: keyof GuardOfferCopy): string => {
+    const v = partial[k]
+    return typeof v === "string" && v.trim() !== "" ? v : DEFAULT_GUARD_OFFER_COPY[k]
+  }
+  return {
+    offerHeadline: pick("offerHeadline"),
+    offerBody: pick("offerBody"),
+    acceptLabel: pick("acceptLabel"),
+  }
+}
+
 export interface ContinuousProtectionInput {
   /** Hosts to disclose. Unknown ids are rejected by the caller, never guessed. */
   readonly hosts: readonly GuardHostId[]
@@ -145,6 +220,12 @@ export interface ContinuousProtectionInput {
   readonly alreadyInstalled?: boolean
   /** An org policy pre-authorized persistent protection (edge-supplied). */
   readonly preAuthorizedByPolicy?: boolean
+  /**
+   * Configured offer wording (edge-supplied, PR P-5). OPTIONAL and per-slot, so every
+   * existing call site keeps compiling and renders exactly what it rendered before.
+   * Only the bake/gate edge reads a config document; an installed binary never does.
+   */
+  readonly copy?: Partial<GuardOfferCopy>
 }
 
 /**
@@ -175,6 +256,7 @@ export function continuousProtectionOffer(
     disclosureDigest: disclosureDigest(components),
     declineOption: "Not now",
     disableCommand: "calllint guard disable",
+    copy: resolveGuardOfferCopy(input.copy),
   }
 }
 
@@ -212,11 +294,13 @@ export function renderContinuousProtectionOffer(offer: ContinuousProtectionOffer
   }
   const lines = [
     "",
-    "Protect future agent-tool changes",
+    offer.copy.offerHeadline,
     "",
-    "  CallLint can:",
+    `  ${offer.copy.offerBody}`,
     ...offer.capabilities.map((c) => `    • ${c}`),
     "",
+    // NOT configurable: the separate-decision framing is what INV-2.4-07 rests on, so a
+    // config document must not be able to soften or drop it.
     "  This installs persistent components (a separate decision from the install above):",
   ]
   for (const c of offer.components) {
@@ -234,10 +318,16 @@ export function renderContinuousProtectionOffer(offer: ContinuousProtectionOffer
   // out. Disclosing only removal makes turning it off look harder than it is.
   lines.push(`  disable later: ${offer.disableCommand}`)
   lines.push(`  disclosure: ${offer.disclosureDigest}`)
+  // The decline token is DERIVED from `offer.declineOption`, whose type is the literal
+  // `"Not now"`. Interpolating it rather than typing it again is what makes `[Not now]`
+  // structurally unmissable: no configured string, and no future edit to this template,
+  // can print the affirmative affordance without printing the decline one beside it.
+  const accept = `[${offer.copy.acceptLabel}]`
+  const decline = `[${offer.declineOption}]`
   lines.push(
     offer.recommendation === "AUTO_ENABLE_BY_POLICY"
-      ? "  [Enable continuous protection]  (pre-authorized by org policy)   [Not now]"
-      : "  [Enable continuous protection]   [Not now]",
+      ? `  ${accept}  (pre-authorized by org policy)   ${decline}`
+      : `  ${accept}   ${decline}`,
   )
   lines.push("")
   lines.push("  Nothing persistent was installed by the step above, and nothing is")

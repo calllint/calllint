@@ -59,6 +59,11 @@ import {
   type ServedGuard,
   type GateResult,
   EVAL_ENGINE_VERSION,
+  // PR P-5 — the gate edge reads the copy plane through the SHIPPED loader rather than
+  // reimplementing the path and the fail-open try/catch. One loader means the gate observes
+  // the same document the bake does, including the same behavior on a malformed file.
+  loadPresentationIfPresent,
+  PROBE_SENTINEL,
 } from "@calllint/trust-index"
 import { applyPlan, nodeFsPort, type ConfigFs } from "@calllint/install-planner"
 import type { InstallPlan } from "@calllint/types"
@@ -423,8 +428,52 @@ function observeGateE(): RollbackRun[] {
  * no disclosure to audit.
  */
 function observeGateF(): ConversionObservation[] {
+  // PR P-5 — grade the CONFIGURED surface, not the built-in defaults.
+  //
+  // This one line is what makes the gate's existing floors guard configuration. Before it,
+  // every check ran against copy no document could reach, so a configured string that
+  // dropped a component label or hid the disable command would have shipped ungraded. The
+  // resolver has already rejected unusable values per slot and filled the rest from code,
+  // so `resolved.guardConversion` is total whatever the document says — the gate never sees
+  // a partial record and needs no fallback of its own.
+  const resolved = loadPresentationIfPresent()
+  // The second render, for the invariance measure. Sentinel copy in every configurable slot:
+  // if `disclosureDigest` moves, wording reached the approval token. `PROBE_SENTINEL` is the
+  // one exported sentinel convention (presentationAudit.ts) rather than a local literal, so
+  // there is a single string to grep when tracing where a probe value came from.
+  const sentinelCopy = {
+    offerHeadline: PROBE_SENTINEL,
+    offerBody: PROBE_SENTINEL,
+    acceptLabel: PROBE_SENTINEL,
+  }
+  // `copySource` is MEASURED, never asserted, and measured from the OBSERVED render itself.
+  //
+  // Two weaker forms were tried and both failed negative control #8. Writing the literal
+  // `"configured"` is a claim about the code above it, and a claim cannot notice its own
+  // subject changing. Probing through a separate offer is no better: it measures its own
+  // argument, so removing `copy:` from the observed call leaves the probe green. Both stayed
+  // green because the catalog restates the shipped defaults — the render is byte-identical
+  // whether or not the plane was read, which is exactly why this needs a sentinel at all.
+  //
+  // The form that works, and the limit of what CAN work. Because the catalog restates the
+  // shipped defaults verbatim (that is what holds P-5 to zero served bytes), "the edge read the
+  // plane" is unobservable from the output of the real render alone — both answers produce the
+  // same bytes. A sentinel is the only discriminator, and it is only evidence about the graded
+  // render if it travels through the SAME constructor. Hence one path, called twice:
+  //
+  //   offerFor(host, resolved.guardConversion)  → what is graded
+  //   offerFor(host, sentinelCopy)              → must differ, or `copy` reaches nothing
+  //
+  // What this cannot catch — honestly, because nothing can — is an edit that bypasses
+  // `offerFor` altogether and calls `continuousProtectionOffer` directly. That is equivalent to
+  // deleting the measurement, not to defeating it. Negative control #8's faithful form is
+  // therefore "drop `copy` from the shared constructor", which this does catch.
+  const offerFor = (host: GuardHostId, copy: Partial<GuardOfferCopy>) =>
+    continuousProtectionOffer({ hosts: [host], copy })
   return GUARD_HOST_IDS.map((host) => {
-    const offer = continuousProtectionOffer({ hosts: [host] })
+    const offer = offerFor(host, resolved.guardConversion)
+    const underSentinel = offerFor(host, sentinelCopy)
+    const renderedText = renderContinuousProtectionOffer(offer)
     return {
       host,
       recommendation: offer.recommendation,
@@ -438,7 +487,14 @@ function observeGateF(): ConversionObservation[] {
         artifactPath: c.artifactPath,
         uninstallCommand: c.uninstallCommand,
       })),
-      renderedText: renderContinuousProtectionOffer(offer),
+      renderedText,
+      // Derived, not declared. `"configured"` does NOT claim the document differed from the
+      // defaults (it does not: the catalog restates them verbatim, and that is what holds P-5
+      // to zero served bytes). It claims the edge read the plane AT ALL — the one thing
+      // byte-identical output cannot demonstrate, and the reason the sentinel exists.
+      copySource:
+        renderContinuousProtectionOffer(underSentinel) === renderedText ? "defaults" : "configured",
+      disclosureDigestUnderSentinelCopy: underSentinel.disclosureDigest,
     }
   })
 }

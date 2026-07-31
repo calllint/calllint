@@ -8,7 +8,8 @@
   "types": "./src/index.ts",
   "exports": {
     ".": "./src/index.ts",
-    "./matchLexical": "./src/matchLexical.ts"
+    "./matchLexical": "./src/matchLexical.ts",
+    "./agentRelay": "./src/safe-install/agentRelay.ts"
   },
   "scripts": {
     "test": "vitest run",

@@ -221,17 +221,22 @@ export {
 // Phase 2.4 Batch 8 — continuous-protection conversion (INV-2.4-07). Pure disclosure:
 // the one component list + uninstall story + renderer shared by the CLI post-success
 // offer and the MCP `enable_continuous_guard` tool. Enables nothing, writes nothing.
+// PR P-5 adds the three configurable offer strings (`DEFAULT_GUARD_OFFER_COPY`) so the
+// presentation resolver can import ONE default source rather than restating the wording.
 export {
   CONTINUOUS_PROTECTION_OFFER_SCHEMA,
+  DEFAULT_GUARD_OFFER_COPY,
   GUARD_HOST_IDS,
   continuousProtectionOffer,
   disclosureDigest,
   isGuardHostId,
   persistentComponentFor,
   renderContinuousProtectionOffer,
+  resolveGuardOfferCopy,
   type ContinuousProtectionInput,
   type ContinuousProtectionOffer,
   type ContinuousProtectionRecommendation,
   type GuardHostId,
+  type GuardOfferCopy,
   type PersistentComponent,
 } from "./gateway/continuousProtection.js"

@@ -1,8 +1,8 @@
 {
   "schema": "calllint.presentation-plane-audit.v0",
-  "$comment": "Workstream P presentation-plane reality audit (ADR 0058 §1/§5), re-baselined by PR P-4b — the ONE Workstream P PR licensed to change served bytes. reachability[] is MEASURED by mutation/containment probe over the shipped projection, not declared: a row whose declaredPlane disagrees with its measuredPlane fails. The VERDICT_PUBLIC_LABEL and AGENT_GUIDANCE.steps rows are negative controls — they MUST measure as decision-plane, otherwise the probe cannot detect reachability and every other row is meaningless. STYLESHEET_HREF is P-4b's new row and the only presentation site that reaches an ATTRIBUTE rather than a text node. planeStages replaces P-0's blanket greenfield assertion: creating each plane is a specific PR's WORK, so the expectation is per-plane and bidirectional. servedStylesheets INVERTED at P-4b: P-4's rule was that zero install pages carry CSS; the rule is now that EVERY install page carries exactly /styles/tokens.css, and separately that none carries a foreign href. Inverting is stronger than deleting — absence now fails, so a page cannot silently lose its stylesheet. Regenerate with `pnpm audit:presentation:write`; enforce with `pnpm audit:presentation:gate`.",
+  "$comment": "Workstream P presentation-plane reality audit (ADR 0058 §1/§5), re-baselined by PR P-5 (adds the RESOURCE_DISPLAY_NAME row + overrideKeyability; P-4b was the ONE Workstream P PR licensed to change served bytes, and that license is SPENT — P-5 changes zero served bytes). inventoryTotal ROSE at P-5 and that is correct, not a regression: PR P-5 lifted three guard strings out of renderContinuousProtectionOffer into named DEFAULT_GUARD_OFFER_COPY constants, and countCopyLiterals' leading-letter clause could not see them while they were indented inside the template (\"  CallLint can:\"). Naming them unindented makes them COUNTABLE for the first time. The predicate was not bent to make the number fall — this is an INVENTORY, not a boundary, and the boundary is reachability[] below. reachability[] is MEASURED by mutation/containment probe over the shipped projection, not declared: a row whose declaredPlane disagrees with its measuredPlane fails. The VERDICT_PUBLIC_LABEL and AGENT_GUIDANCE.steps rows are negative controls — they MUST measure as decision-plane, otherwise the probe cannot detect reachability and every other row is meaningless. STYLESHEET_HREF is P-4b's new row and the only presentation site that reaches an ATTRIBUTE rather than a text node. planeStages replaces P-0's blanket greenfield assertion: creating each plane is a specific PR's WORK, so the expectation is per-plane and bidirectional. servedStylesheets INVERTED at P-4b: P-4's rule was that zero install pages carry CSS; the rule is now that EVERY install page carries exactly /styles/tokens.css, and separately that none carries a foreign href. Inverting is stronger than deleting — absence now fails, so a page cannot silently lose its stylesheet. Regenerate with `pnpm audit:presentation:write`; enforce with `pnpm audit:presentation:gate`.",
   "workstream": "P",
-  "pr": "P-4b",
+  "pr": "P-5",
   "status": "PASSED",
   "planeStages": [
     {
@@ -105,18 +105,38 @@
     },
     {
       "source": "packages/core/src/gateway/continuousProtection.ts",
-      "copyLiterals": 14,
+      "copyLiterals": 16,
       "samples": [
+        "CallLint can:",
         "Claude Code SessionStart hook",
-        "Continuous protection: already enabled for this host.",
-        "Copilot CLI sessionStart hook"
+        "Continuous protection: already enabled for this host."
+      ]
+    },
+    {
+      "source": "packages/trust-index/src/safe-install/agentRelay.ts",
+      "copyLiterals": 6,
+      "samples": [
+        "CallLint decided this agent-tool install before anything ran",
+        "absence of evidence is recorded as absence, never as safety",
+        "approve this exact plan, or stop and review the evidence?"
       ]
     }
   ],
-  "inventoryTotal": 97,
+  "inventoryTotal": 105,
+  "overrideKeyability": {
+    "slugs": 19,
+    "rawSlugsMatchingPattern": 0,
+    "leafSegmentsMatchingPattern": 19,
+    "encodedKeysMatchingPattern": 19,
+    "encodedKeysUnique": 19,
+    "rawSlugsContainingSeparator": 0,
+    "pattern": "^[a-z0-9][a-z0-9._-]*$",
+    "separator": "__",
+    "$comment": "MEASURED over the served discovery manifest. rawSlugsMatchingPattern must be 0 and leafSegmentsMatchingPattern must equal slugs: together those two numbers ARE the trap — the schema pattern admits the leaf segment of every slug while admitting no whole slug, so a naive key validates and addresses nothing. encodedKeysMatchingPattern and encodedKeysUnique must both equal slugs (legal + injective), and rawSlugsContainingSeparator must be 0 (unambiguous, so decodeOverrideKey round-trips). The propertyNames defect itself is RECORDED, NOT FIXED by PR P-5 — that is a schema change requiring an ADR, and ADR 0060 is reserved for it."
+  },
   "reachability": {
-    "sitesProbed": 7,
-    "presentationSites": 5,
+    "sitesProbed": 8,
+    "presentationSites": 6,
     "decisionSites": 2,
     "pass": true,
     "probes": [
@@ -191,6 +211,22 @@
         "declaredPlane": "presentation",
         "configurableTo": "apps/web/content/safe-install/presentation.v1.json#/tokens/stylesheetHref",
         "rationale": "The L0 href the install page links (PR P-4b). Reaches served bytes but no digest: a stylesheet cannot compute a verdict, and the resolver refuses any href that is not a rooted same-origin .css path.",
+        "mutation": "containment over 1 value(s) + re-projection with copy replaced by PROBE_MUTATED_COPY_SENTINEL",
+        "contractDigestMoved": false,
+        "htmlMoved": true,
+        "decisionRouteMoved": false,
+        "measuredPlane": "presentation",
+        "pass": true,
+        "failures": [],
+        "method": "containment+mutation"
+      },
+      {
+        "constant": "RESOURCE_DISPLAY_NAME",
+        "source": "packages/trust-index/src/emitSafeInstall.ts",
+        "declaredLevel": "L1",
+        "declaredPlane": "presentation",
+        "configurableTo": "apps/web/content/safe-install/presentation.v1.json#/overrides/resources/<encoded-slug>/displayName",
+        "rationale": "The per-resource identity line the install page shows (PR P-5). Applied strictly downstream of the seal, and absent from AgentAdoptionContractInput entirely, so it reaches served HTML but no digest. Selects a label for an already-decided subject; it can never change which subject was decided.",
         "mutation": "containment over 1 value(s) + re-projection with copy replaced by PROBE_MUTATED_COPY_SENTINEL",
         "contractDigestMoved": false,
         "htmlMoved": true,

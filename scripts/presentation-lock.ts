@@ -62,7 +62,14 @@ import {
   SECTION_GROUPS,
   SEMANTIC_PREIMAGE_OMISSIONS,
   SHIPPED_LAYOUT_CAPS,
+  // PR P-5 — the total code-owned map replaces the permanently-empty title list in the
+  // artifact. `UNWIRED_SECTION_TITLES` stays imported because the artifact keeps recording
+  // it: it is now provably empty, and an empty field with a history is more useful to a
+  // reviewer than a field that vanished.
+  CODE_OWNED_SLOTS,
   UNWIRED_SECTION_TITLES,
+  decodeOverrideKey,
+  type ResolvedPresentation,
   FORBIDDEN_CSS_CONSTRUCTS,
   countCssRules,
   emitSafeInstall,
@@ -261,6 +268,59 @@ function servedInstallPages(): { slug: string; html: string }[] {
   return out
 }
 
+/**
+ * PR P-5 — does every per-resource override resolve to the name the code already derives?
+ *
+ * The served consequence of a `displayName` override is the page's identity line, so this
+ * compares against the SERVED bytes rather than against a code default: for each override
+ * key, decode it back to a canonical slug, find that resource's committed page, and require
+ * the configured name to be the name that page already carries. A document that renamed a
+ * resource would fail here — which is what makes "committing the catalog moves no served
+ * byte" a measurement for this slice too.
+ *
+ * Two failure modes are folded in deliberately. An override whose decoded slug matches NO
+ * committed resource is a failure, not a no-op: it is the misspelling case, and silently
+ * ignoring it is exactly the drift ADR 0058 §3 names. And the comparison uses the `<title>`
+ * of the committed page, because that is where the derived display name is observable in
+ * served bytes without re-running the projection — re-deriving it here would mean restating
+ * `packageName ?? canonicalName` in a second place, which is the duplication this repo keeps
+ * removing.
+ */
+function overridesResolveToShippedNames(resolved: ResolvedPresentation): boolean {
+  return overrideNameFaults(resolved).length === 0
+}
+
+/** The same measurement, but reporting WHICH override failed and why. */
+function overrideNameFaults(resolved: ResolvedPresentation): string[] {
+  const pages = servedInstallPages()
+  const titleBySlug = new Map<string, string>()
+  for (const { slug, html } of pages) {
+    const m = /<title>Add ([^<]*) with CallLint<\/title>/.exec(html)
+    if (m?.[1] !== undefined) titleBySlug.set(slug, m[1])
+  }
+  const faults: string[] = []
+  for (const [key, override] of Object.entries(resolved.overrides.resources)) {
+    if (override.displayName === undefined) continue // `reason`-only entry: no served effect
+    const slug = decodeOverrideKey(key)
+    const shipped = titleBySlug.get(slug)
+    if (shipped === undefined) {
+      faults.push(
+        `overrides.resources.${key} decodes to slug ${JSON.stringify(slug)}, which matches no committed ` +
+          `install page — the override reaches nothing (check the / → __ encoding, and note that the ` +
+          `LEAF segment alone also satisfies the schema's propertyNames pattern)`,
+      )
+      continue
+    }
+    if (override.displayName !== shipped) {
+      faults.push(
+        `overrides.resources.${key}.displayName is ${JSON.stringify(override.displayName)} but the committed ` +
+          `page for ${slug} shows ${JSON.stringify(shipped)} — committing this would change served bytes`,
+      )
+    }
+  }
+  return faults
+}
+
 /** Scan for a forbidden import of the config plane. Returns offending files. */
 function importBoundaryViolations(): string[] {
   const hits: string[] = []
@@ -329,9 +389,17 @@ function build(): { json: string; pass: boolean; failures: readonly string[] } {
   //     it can show up in production as a changed page.
   //   • does every configured slot actually reach a renderer? A key that validates and
   //     then does nothing is the precise drift a lock exists to catch, so `unwiredSlots`
-  //     is a failure rather than a note. `boundary` is schema-valid and deliberately
-  //     unwired (see renderSafeInstall's SECTION_TITLES), which is why the document must
-  //     not carry it yet.
+  //     is a failure rather than a note.
+  //
+  //     That second bullet USED to name `boundary` as "schema-valid and deliberately
+  //     unwired … which is why the document must not carry it yet". Both halves are now
+  //     false and are corrected rather than deleted: P-4b wired `boundary`, and the
+  //     committed document carries it (`sectionTitles.boundary` is in `overriddenSlots`).
+  //     The mechanism the sentence described also changed shape twice — P-4b generalized
+  //     it from a deferral list to "configured but not wired", and P-5 made it TOTAL over
+  //     all eight sections of `LEVEL_BY_SECTION` rather than over `sectionTitles` alone.
+  //     So `unwiredSlots` now reports a dead key in guard copy, relay copy or a per-resource
+  //     override too, and each report carries the measured reason it reaches nothing.
   //
   // PR P-3 adds a THIRD question and a fourth slice. The layout slice is compared the same
   // way as the copy slices — a document whose `groupOrder` resolved to a different SECTION
@@ -348,17 +416,44 @@ function build(): { json: string; pass: boolean; failures: readonly string[] } {
     // PR P-4b: tokens joins the identity. It has to, now that the href reaches served
     // bytes — a catalog that quietly re-pointed the stylesheet would otherwise satisfy
     // "resolves to defaults" while changing what every install page loads.
-    JSON.stringify(resolved.tokens) === JSON.stringify(DEFAULT_PRESENTATION.tokens)
+    JSON.stringify(resolved.tokens) === JSON.stringify(DEFAULT_PRESENTATION.tokens) &&
+    // PR P-5 — the three sections that were declared, levelled, and dead until this batch.
+    // Guard and relay copy join the identity for the same reason tokens did: they now reach
+    // a real consumer (the guard render, the MCP relay line), so a catalog that reworded
+    // them would change what a human or an agent is told while still passing every other
+    // clause here.
+    JSON.stringify(resolved.guardConversion) === JSON.stringify(DEFAULT_PRESENTATION.guardConversion) &&
+    JSON.stringify(resolved.agentRelay) === JSON.stringify(DEFAULT_PRESENTATION.agentRelay) &&
+    // The override slice is compared by its EFFECTIVE DISPLAY NAME, not by deep equality
+    // against a default (there is no default override set — `DEFAULT_PRESENTATION.overrides`
+    // is empty, so deep equality could only ever pass for a document with no overrides at
+    // all, which would make the whole slice untestable). What must hold is the served
+    // consequence: for every override the document carries, the name it produces equals the
+    // name the shipped derivation produces. `reason` is deliberately NOT part of this — it
+    // reaches the lock artifact below and no served byte, so requiring it to match a
+    // "default" would be requiring a value that has no served meaning.
+    overridesResolveToShippedNames(resolved)
   if (docPresent && validationErrors.length === 0 && !resolvesToDefaults) {
     failures.push(
       `${CONTENT_DOC}: resolves to copy that differs from the shipped code defaults — ` +
-        `committing the catalog would change served bytes, which ADR 0058 §4 reserves for PR P-4b`,
+        // The old text ended "which ADR 0058 §4 reserves for PR P-4b". That license was
+        // SPENT by P-4b and does not renew, so naming it here would read as though a served
+        // byte were still available to spend. Every batch from P-5 on is under the default
+        // rule, which is byte-identity.
+        `committing the catalog would change served bytes, which ADR 0058 §4 forbids outside ` +
+        `the single license already spent by PR P-4b`,
     )
   }
   for (const slot of resolved.unwiredSlots) {
+    // `slot` already carries its own measured reason (`section.key: reason`), supplied by
+    // `WIRED_SLOTS`/`CODE_OWNED_SLOTS` in the resolver. The previous form interpolated
+    // `UNWIRED_SECTION_TITLES`, which P-4b had emptied — so the message rendered a literal
+    // `(unwired: )` and told a reader nothing. Naming the reason at its source means there
+    // is one place to state why a slot is code-owned, and it is the same place the compiler
+    // checks for totality.
     failures.push(
-      `${CONTENT_DOC}: configures ${slot}, which no renderer consumes yet — ` +
-        `a config key that validates and then does nothing (unwired: ${UNWIRED_SECTION_TITLES.join(", ")})`,
+      `${CONTENT_DOC}: configures ${slot} — a config key that validates and then does nothing ` +
+        `(ADR 0058 §3). Remove it from the document, or wire it in the batch that needs it.`,
     )
   }
   // A rejected slot means the resolver silently substituted the shipped value. That is the
@@ -660,19 +755,76 @@ function build(): { json: string; pass: boolean; failures: readonly string[] } {
     failures.push(`forbidden config-plane import: ${v} — presentation config is a PARAMETER, not an import (ADR 0058 §2)`)
   }
 
+  // 5 — the ZERO-SERVED-BYTE claim, measured (PR P-5).
+  //
+  // Everything above measures that the committed document resolves to the shipped values.
+  // That is necessary and it is not sufficient: it would hold just as well if a future edit
+  // routed guard or relay copy INTO the install renderer, because both sides of the identity
+  // would move together and every clause would still pass. What P-5 actually claims is
+  // stronger — that these two slices reach no served byte AT ALL — and the only way to
+  // measure that is to look for their strings in the bytes themselves.
+  //
+  // So: every resolved guard and relay string, searched for in all 19 committed pages AND
+  // all 19 sealed contract sidecars. Both counts must be zero. This is a STRUCTURAL claim,
+  // not a coincidence of the current wording — the guard offer renders to a terminal and the
+  // relay line lands in an MCP `notes[]` array, neither of which is an install page. If a
+  // string ever appears here, a renderer gained a surface it should not have, and the batch's
+  // headline claim is false.
+  //
+  // Two design notes, both load-bearing:
+  //
+  //   • it searches the COMMITTED corpus, so it fails on a stale tree as well as on a bad
+  //     edit. `pnpm bake:trust-index` then `git status -- apps/web/public/` is the companion
+  //     measurement; this one catches the case where the bake was never re-run.
+  //   • the shipped `offerBody` is "CallLint can:" — short, and the kind of phrase that could
+  //     plausibly appear in marketing copy. That is a feature: it makes this check sensitive.
+  //     If a page ever legitimately needs that phrase, the right resolution is to reword one
+  //     side, not to loosen the search — a substring test that skips short strings would be
+  //     blind to precisely the accidental collisions worth knowing about.
+  const configuredCopyStrings: { slot: string; value: string }[] = [
+    ...Object.entries(resolved.guardConversion).map(([k, v]) => ({ slot: `guardConversion.${k}`, value: v })),
+    ...Object.entries(resolved.agentRelay).map(([k, v]) => ({ slot: `agentRelay.${k}`, value: v })),
+  ]
+  const configuredCopyHits: { slot: string; where: string }[] = []
+  for (const { slot, value } of configuredCopyStrings) {
+    for (const { slug, html } of servedInstallPages()) {
+      if (html.includes(value)) configuredCopyHits.push({ slot, where: `install/${slug}/index.html` })
+    }
+    for (const { slug, contract } of served) {
+      if (JSON.stringify(contract).includes(value)) configuredCopyHits.push({ slot, where: `install/${slug}/index.json` })
+    }
+  }
+  for (const hit of configuredCopyHits) {
+    failures.push(
+      `${hit.where} contains the configured ${hit.slot} string — guard and relay copy must reach NO served byte. ` +
+        `The guard offer renders to a terminal and the relay line lands in an MCP notes[] array; a served page or ` +
+        `sidecar carrying either means a renderer gained a surface, and PR P-5's zero-served-byte claim is false ` +
+        `(ADR 0058 §4: the single license was spent by P-4b and does not renew).`,
+    )
+  }
+  // A corpus that reads as empty would make the check above pass for the wrong reason — the
+  // same vacuity trap the audit's probe rows guard against. Requiring a non-empty search
+  // space costs one line and turns "found nothing" into "looked, and found nothing".
+  if (configuredCopyStrings.length === 0) {
+    failures.push(
+      "the configured-copy containment check has no strings to search for — the guard/relay slices resolved empty, " +
+        "so a zero-hit result would be vacuous",
+    )
+  }
+
   const report = {
     schema: "calllint.presentation-lock.v0",
     $comment:
-      "Workstream P digest seams (ADR 0058 §5; new15 §7), re-baselined by PR P-4b, which SERVES the L0 token plane (see tokenPlane) — the one Workstream P PR §4 licenses to change served bytes, and the only re-baseline in this workstream where install HTML moves (+34 B/page, 19 pages, 0 JSON bytes: the agent contract is untouched). RECORDS presentationDigest + semanticContractDigest; it does NOT re-point what install plans bind — plans still bind contractDigest, and moving that binding is a P-7 decision requiring an ADR amendment (doing it here would smuggle a behavior change into a batch declared as having none). `semanticContractDigest` is defined by DELETION from the sealed contract, so a new contract field is bound by default and omission is the reviewable exception. The gate is noProseLeaves: machine tokens carry no whitespace, prose always does, so an empty result proves no copy is bound — for any input, not just those measured. Regenerate with `pnpm audit:presentation:lock:write`; enforce with `pnpm audit:presentation:lock:gate`.",
+      "Workstream P digest seams (ADR 0058 §5; new15 §7), re-baselined by PR P-5, which CLOSES the three declared-but-dead sections (guardConversion, agentRelayCopy, overrides) and makes unwiredSlots TOTAL over all eight sections of levelBySection — the mechanism that reports a key which validates and then does nothing now covers every section rather than sectionTitles alone, and the compiler enforces that totality (adding a ninth section without classifying its slots fails typecheck). P-5 is back under the DEFAULT rule: byte-identity. P-4b spent ADR 0058 §4's single served-byte license and it does not renew, so `git status --porcelain -- apps/web/public/` must be EMPTY for this batch — the exact inverse of P-4b's gate. l1Digest and presentationDigest MOVE (three L1 sections gained content); l0Digest and l2Digest must NOT. Three slots stayed in code with their measured reasons rather than being wired dishonestly: guardConversion.declineLabel (Gate 2.4-F compares it as a literal and ContinuousProtectionOffer types it as one, so a document reaching it could weaken INV-2.4-07's own floor), the five decision-relay slots (no code produces that surface yet — P-6), and expiresAt (honoring it needs a clock, and the install tree is reproducibility-gated). RECORDS presentationDigest + semanticContractDigest; it does NOT re-point what install plans bind — plans still bind contractDigest, and moving that binding is a P-7 decision requiring an ADR amendment (doing it here would smuggle a behavior change into a batch declared as having none). `semanticContractDigest` is defined by DELETION from the sealed contract, so a new contract field is bound by default and omission is the reviewable exception. The gate is noProseLeaves: machine tokens carry no whitespace, prose always does, so an empty result proves no copy is bound — for any input, not just those measured. Regenerate with `pnpm audit:presentation:lock:write`; enforce with `pnpm audit:presentation:lock:gate`.",
     workstream: "P",
-    pr: "P-4b",
+    pr: "P-5",
     status: failures.length === 0 ? "PASSED" : "FAILED",
     contentPlane: {
       root: CONTENT_ROOT,
       document: CONTENT_DOC,
       state: docPresent ? "present" : "absent",
       $comment:
-        "PRESENT since PR P-2, which lifted the Install-surface L1/L2 copy into this one merged document (O-4: newest surface first). The recorded digests are over the real committed bytes; P-1's baseline recorded the canonical EMPTY document instead, because the plane did not exist yet. resolvesToDefaults is still the load-bearing measurement, and P-4b EXTENDS it to the tokens block: the committed document resolves DEEP-EQUAL to the shipped code defaults through the same resolver the bake calls, so this DOCUMENT still moves no served byte. That claim and P-4b's +34 B/page are not in tension — the served-byte change comes from the RENDERER (a <link> plus the refolded boundary sentence), and the document restating the shipped href is what keeps configuration out of it. Extending the identity to tokens is what stops a catalog from quietly re-pointing what every install page loads while still reading as 'resolves to defaults'. unwiredSectionTitles is now EMPTY because P-4b wired `boundary`, the slot P-2 deferred; unwiredSlots must stay empty so a key can never validate and then do nothing.",
+        "PRESENT since PR P-2, which lifted the Install-surface L1/L2 copy into this one merged document (O-4: newest surface first). The recorded digests are over the real committed bytes; P-1's baseline recorded the canonical EMPTY document instead, because the plane did not exist yet. resolvesToDefaults is still the load-bearing measurement, and P-4b EXTENDS it to the tokens block: the committed document resolves DEEP-EQUAL to the shipped code defaults through the same resolver the bake calls, so this DOCUMENT still moves no served byte. That claim and P-4b's +34 B/page are not in tension — the served-byte change comes from the RENDERER (a <link> plus the refolded boundary sentence), and the document restating the shipped href is what keeps configuration out of it. Extending the identity to tokens is what stops a catalog from quietly re-pointing what every install page loads while still reading as 'resolves to defaults'. unwiredSectionTitles is now EMPTY because P-4b wired `boundary`, the slot P-2 deferred; unwiredSlots must stay empty so a key can never validate and then do nothing. PR P-5 EXTENDS resolvesToDefaults again, to guardConversion, agentRelayCopy, and the overrides slice — the first two by deep equality against the shipped code defaults (they now reach the guard render and the MCP relay line, so a reworded catalog would change what a human or an agent is told), the third by its EFFECTIVE served name: for every override the document carries, the display name it produces must equal the name the committed install page already shows. `reason` is deliberately excluded from that identity because it reaches this artifact and no served byte, so requiring it to match a default would be requiring a value with no served meaning. codeOwnedSlots replaces the permanently-empty unwiredSectionTitles as the reviewable record: slot → the measured reason it is code-owned, total over all eight sections. RELAY LEVEL, reconciled here rather than by an ADR because nothing is weakened and no digest moves on account of the reading: levelBySection.agentRelayCopy stays L1 exactly as shipped. ADR 0058 §6 is the more specific and later clause and names this section by its new15 §20.2 type name (AgentRelayCopy is L1-editable); §1's 'agent relay summaries' reads as the authority-consequence sentences an agent relays, not as this section. §5's '不能混在一个 JSON 里' is honoured as protocol-vs-relay: AgentProtocolPolicy stays code (RESERVED_KEYS rejects every protocol key at any depth, and the audit's AGENT_GUIDANCE.steps row is the negative control proving it), which is what keeps ONE merged document legitimate and creates no apps/web/content/agent/**. A named test pins levelBySection.agentRelayCopy === 'L1' so this reading cannot drift silently. The schema's SIX relay slots against §5's FOUR is RECORDED, not reconciled — that goes with P-6, together with the surface the five decision-relay slots could honestly render on.",
       schemaTag: PRESENTATION_CONTENT_VERSION,
       locale: doc.locale,
       levelBySection: LEVEL_BY_SECTION,
@@ -680,6 +832,13 @@ function build(): { json: string; pass: boolean; failures: readonly string[] } {
       overriddenSlots: resolved.overriddenSlots,
       unwiredSlots: resolved.unwiredSlots,
       unwiredSectionTitles: UNWIRED_SECTION_TITLES,
+      // PR P-5 — the field that replaces the one above in practice. `unwiredSectionTitles`
+      // is provably empty and stays for continuity; this map is the reviewable content:
+      // every slot that cannot honestly be wired, with the measured reason, total over all
+      // eight sections. A reviewer asking "why can't the catalog set this?" gets an answer
+      // from the artifact instead of from prose.
+      codeOwnedSlots: CODE_OWNED_SLOTS,
+      overrideNameFaults: overrideNameFaults(resolved),
       rejectedSlots: resolved.rejectedSlots,
       validationErrors,
       ...digests,
@@ -752,6 +911,14 @@ function build(): { json: string; pass: boolean; failures: readonly string[] } {
       rootsScanned: IMPORT_BOUNDARY_ROOTS,
       forbiddenSpecifiers: FORBIDDEN_IMPORTS,
       violations,
+    },
+    configuredCopy: {
+      $comment:
+        "PR P-5's headline claim, MEASURED rather than asserted: the guard and relay slices reach NO served byte. Every resolved string in both slices is searched for in all committed install pages AND all sealed contract sidecars; `hits` must be empty. This is stronger than the resolvesToDefaults identity above, which would still pass if a future edit routed guard copy into the install renderer — both sides of that comparison would move together. It is structural, not incidental: the guard offer renders to a terminal and the relay line lands in an MCP notes[] array. Because it reads the COMMITTED corpus, it also fails on a stale tree, which is the case `pnpm bake:trust-index && git status -- apps/web/public/` cannot distinguish from a clean one on its own.",
+      slotsSearched: configuredCopyStrings.map((s) => s.slot),
+      pagesSearched: servedInstallPages().length,
+      contractsSearched: served.length,
+      hits: configuredCopyHits,
     },
     failures,
   }

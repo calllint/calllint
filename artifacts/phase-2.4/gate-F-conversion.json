@@ -21,7 +21,9 @@
           "uninstallCommand": "rm .git/hooks/pre-commit"
         }
       ],
-      "renderedText": "\nProtect future agent-tool changes\n\n  CallLint can:\n    • re-decide the approved agent-tool authority surface when a session starts\n    • detect authority drift against the approved baseline\n    • re-check upgrades of already-approved tools\n    • refuse a tampered install plan (approval is bound to the exact plan digest)\n\n  This installs persistent components (a separate decision from the install above):\n    git pre-commit hook (calllint-guard:git)\n      creates:   .git/hooks/pre-commit\n      remove:    rm .git/hooks/pre-commit\n      enable:    calllint guard install --host git\n\n  disable later: calllint guard disable\n  disclosure: sha256:7b9592e96c45ad24add0054a83f177b9442f31388dd91ba7860965a2ec3638c4\n  [Enable continuous protection]   [Not now]\n\n  Nothing persistent was installed by the step above, and nothing is\n  installed by this offer. Run the enable command yourself to opt in."
+      "renderedText": "\nProtect future agent-tool changes\n\n  CallLint can:\n    • re-decide the approved agent-tool authority surface when a session starts\n    • detect authority drift against the approved baseline\n    • re-check upgrades of already-approved tools\n    • refuse a tampered install plan (approval is bound to the exact plan digest)\n\n  This installs persistent components (a separate decision from the install above):\n    git pre-commit hook (calllint-guard:git)\n      creates:   .git/hooks/pre-commit\n      remove:    rm .git/hooks/pre-commit\n      enable:    calllint guard install --host git\n\n  disable later: calllint guard disable\n  disclosure: sha256:7b9592e96c45ad24add0054a83f177b9442f31388dd91ba7860965a2ec3638c4\n  [Enable continuous protection]   [Not now]\n\n  Nothing persistent was installed by the step above, and nothing is\n  installed by this offer. Run the enable command yourself to opt in.",
+      "copySource": "configured",
+      "disclosureDigestUnderSentinelCopy": "sha256:7b9592e96c45ad24add0054a83f177b9442f31388dd91ba7860965a2ec3638c4"
     },
     {
       "host": "git-pre-push",
@@ -38,7 +40,9 @@
           "uninstallCommand": "rm .git/hooks/pre-push"
         }
       ],
-      "renderedText": "\nProtect future agent-tool changes\n\n  CallLint can:\n    • re-decide the approved agent-tool authority surface when a session starts\n    • detect authority drift against the approved baseline\n    • re-check upgrades of already-approved tools\n    • refuse a tampered install plan (approval is bound to the exact plan digest)\n\n  This installs persistent components (a separate decision from the install above):\n    git pre-push hook (calllint-guard:git-pre-push)\n      creates:   .git/hooks/pre-push\n      remove:    rm .git/hooks/pre-push\n      enable:    calllint guard install --host git-pre-push\n\n  disable later: calllint guard disable\n  disclosure: sha256:3fa8966b9f0cb8fd0e93f1739c9ba771a009e9ac816b20305e9eadd3bf5eacc7\n  [Enable continuous protection]   [Not now]\n\n  Nothing persistent was installed by the step above, and nothing is\n  installed by this offer. Run the enable command yourself to opt in."
+      "renderedText": "\nProtect future agent-tool changes\n\n  CallLint can:\n    • re-decide the approved agent-tool authority surface when a session starts\n    • detect authority drift against the approved baseline\n    • re-check upgrades of already-approved tools\n    • refuse a tampered install plan (approval is bound to the exact plan digest)\n\n  This installs persistent components (a separate decision from the install above):\n    git pre-push hook (calllint-guard:git-pre-push)\n      creates:   .git/hooks/pre-push\n      remove:    rm .git/hooks/pre-push\n      enable:    calllint guard install --host git-pre-push\n\n  disable later: calllint guard disable\n  disclosure: sha256:3fa8966b9f0cb8fd0e93f1739c9ba771a009e9ac816b20305e9eadd3bf5eacc7\n  [Enable continuous protection]   [Not now]\n\n  Nothing persistent was installed by the step above, and nothing is\n  installed by this offer. Run the enable command yourself to opt in.",
+      "copySource": "configured",
+      "disclosureDigestUnderSentinelCopy": "sha256:3fa8966b9f0cb8fd0e93f1739c9ba771a009e9ac816b20305e9eadd3bf5eacc7"
     },
     {
       "host": "github",
@@ -55,7 +59,9 @@
           "uninstallCommand": "rm .github/workflows/calllint.yml"
         }
       ],
-      "renderedText": "\nProtect future agent-tool changes\n\n  CallLint can:\n    • re-decide the approved agent-tool authority surface when a session starts\n    • detect authority drift against the approved baseline\n    • re-check upgrades of already-approved tools\n    • refuse a tampered install plan (approval is bound to the exact plan digest)\n\n  This installs persistent components (a separate decision from the install above):\n    GitHub Actions drift-gate workflow (calllint-guard:github)\n      creates:   .github/workflows/calllint.yml\n      remove:    rm .github/workflows/calllint.yml\n      enable:    calllint guard install --host github\n\n  disable later: calllint guard disable\n  disclosure: sha256:1a2e7a594f31e16d977e2125129af0f1818b79985feddd64a19386621e12a1df\n  [Enable continuous protection]   [Not now]\n\n  Nothing persistent was installed by the step above, and nothing is\n  installed by this offer. Run the enable command yourself to opt in."
+      "renderedText": "\nProtect future agent-tool changes\n\n  CallLint can:\n    • re-decide the approved agent-tool authority surface when a session starts\n    • detect authority drift against the approved baseline\n    • re-check upgrades of already-approved tools\n    • refuse a tampered install plan (approval is bound to the exact plan digest)\n\n  This installs persistent components (a separate decision from the install above):\n    GitHub Actions drift-gate workflow (calllint-guard:github)\n      creates:   .github/workflows/calllint.yml\n      remove:    rm .github/workflows/calllint.yml\n      enable:    calllint guard install --host github\n\n  disable later: calllint guard disable\n  disclosure: sha256:1a2e7a594f31e16d977e2125129af0f1818b79985feddd64a19386621e12a1df\n  [Enable continuous protection]   [Not now]\n\n  Nothing persistent was installed by the step above, and nothing is\n  installed by this offer. Run the enable command yourself to opt in.",
+      "copySource": "configured",
+      "disclosureDigestUnderSentinelCopy": "sha256:1a2e7a594f31e16d977e2125129af0f1818b79985feddd64a19386621e12a1df"
     },
     {
       "host": "copilot",
@@ -72,7 +78,9 @@
           "uninstallCommand": "rm .github/hooks/calllint.json"
         }
       ],
-      "renderedText": "\nProtect future agent-tool changes\n\n  CallLint can:\n    • re-decide the approved agent-tool authority surface when a session starts\n    • detect authority drift against the approved baseline\n    • re-check upgrades of already-approved tools\n    • refuse a tampered install plan (approval is bound to the exact plan digest)\n\n  This installs persistent components (a separate decision from the install above):\n    Copilot CLI sessionStart hook (calllint-guard:copilot)\n      creates:   .github/hooks/calllint.json\n      remove:    rm .github/hooks/calllint.json\n      enable:    calllint guard install --host copilot\n\n  disable later: calllint guard disable\n  disclosure: sha256:6ffa82ff4e1630beabb0d9f071f15ecdd23409557bebc717a379747ffe4e86b6\n  [Enable continuous protection]   [Not now]\n\n  Nothing persistent was installed by the step above, and nothing is\n  installed by this offer. Run the enable command yourself to opt in."
+      "renderedText": "\nProtect future agent-tool changes\n\n  CallLint can:\n    • re-decide the approved agent-tool authority surface when a session starts\n    • detect authority drift against the approved baseline\n    • re-check upgrades of already-approved tools\n    • refuse a tampered install plan (approval is bound to the exact plan digest)\n\n  This installs persistent components (a separate decision from the install above):\n    Copilot CLI sessionStart hook (calllint-guard:copilot)\n      creates:   .github/hooks/calllint.json\n      remove:    rm .github/hooks/calllint.json\n      enable:    calllint guard install --host copilot\n\n  disable later: calllint guard disable\n  disclosure: sha256:6ffa82ff4e1630beabb0d9f071f15ecdd23409557bebc717a379747ffe4e86b6\n  [Enable continuous protection]   [Not now]\n\n  Nothing persistent was installed by the step above, and nothing is\n  installed by this offer. Run the enable command yourself to opt in.",
+      "copySource": "configured",
+      "disclosureDigestUnderSentinelCopy": "sha256:6ffa82ff4e1630beabb0d9f071f15ecdd23409557bebc717a379747ffe4e86b6"
     },
     {
       "host": "claude-code",
@@ -89,7 +97,9 @@
           "uninstallCommand": "remove the CallLint guard entry from .claude/settings.json by hand"
         }
       ],
-      "renderedText": "\nProtect future agent-tool changes\n\n  CallLint can:\n    • re-decide the approved agent-tool authority surface when a session starts\n    • detect authority drift against the approved baseline\n    • re-check upgrades of already-approved tools\n    • refuse a tampered install plan (approval is bound to the exact plan digest)\n\n  This installs persistent components (a separate decision from the install above):\n    Claude Code SessionStart hook (calllint-guard:claude-code)\n      creates:   .claude/settings.json (merged into your own config)\n      remove:    remove the CallLint guard entry from .claude/settings.json by hand\n      enable:    calllint guard install --host claude-code\n\n  disable later: calllint guard disable\n  disclosure: sha256:8700b3707ab2dc4ba5a06afe51b78a4141f24f8a703033122596d2e1c7efa22b\n  [Enable continuous protection]   [Not now]\n\n  Nothing persistent was installed by the step above, and nothing is\n  installed by this offer. Run the enable command yourself to opt in."
+      "renderedText": "\nProtect future agent-tool changes\n\n  CallLint can:\n    • re-decide the approved agent-tool authority surface when a session starts\n    • detect authority drift against the approved baseline\n    • re-check upgrades of already-approved tools\n    • refuse a tampered install plan (approval is bound to the exact plan digest)\n\n  This installs persistent components (a separate decision from the install above):\n    Claude Code SessionStart hook (calllint-guard:claude-code)\n      creates:   .claude/settings.json (merged into your own config)\n      remove:    remove the CallLint guard entry from .claude/settings.json by hand\n      enable:    calllint guard install --host claude-code\n\n  disable later: calllint guard disable\n  disclosure: sha256:8700b3707ab2dc4ba5a06afe51b78a4141f24f8a703033122596d2e1c7efa22b\n  [Enable continuous protection]   [Not now]\n\n  Nothing persistent was installed by the step above, and nothing is\n  installed by this offer. Run the enable command yourself to opt in.",
+      "copySource": "configured",
+      "disclosureDigestUnderSentinelCopy": "sha256:8700b3707ab2dc4ba5a06afe51b78a4141f24f8a703033122596d2e1c7efa22b"
     },
     {
       "host": "gemini",
@@ -106,7 +116,9 @@
           "uninstallCommand": "remove the CallLint guard entry from .gemini/settings.json by hand"
         }
       ],
-      "renderedText": "\nProtect future agent-tool changes\n\n  CallLint can:\n    • re-decide the approved agent-tool authority surface when a session starts\n    • detect authority drift against the approved baseline\n    • re-check upgrades of already-approved tools\n    • refuse a tampered install plan (approval is bound to the exact plan digest)\n\n  This installs persistent components (a separate decision from the install above):\n    Gemini CLI SessionStart hook (calllint-guard:gemini)\n      creates:   .gemini/settings.json (merged into your own config)\n      remove:    remove the CallLint guard entry from .gemini/settings.json by hand\n      enable:    calllint guard install --host gemini\n\n  disable later: calllint guard disable\n  disclosure: sha256:0dc8f5f00e2dff05ea496c48a8f26ff73c3f8aaf93e28628ccefb8df2e5d1c98\n  [Enable continuous protection]   [Not now]\n\n  Nothing persistent was installed by the step above, and nothing is\n  installed by this offer. Run the enable command yourself to opt in."
+      "renderedText": "\nProtect future agent-tool changes\n\n  CallLint can:\n    • re-decide the approved agent-tool authority surface when a session starts\n    • detect authority drift against the approved baseline\n    • re-check upgrades of already-approved tools\n    • refuse a tampered install plan (approval is bound to the exact plan digest)\n\n  This installs persistent components (a separate decision from the install above):\n    Gemini CLI SessionStart hook (calllint-guard:gemini)\n      creates:   .gemini/settings.json (merged into your own config)\n      remove:    remove the CallLint guard entry from .gemini/settings.json by hand\n      enable:    calllint guard install --host gemini\n\n  disable later: calllint guard disable\n  disclosure: sha256:0dc8f5f00e2dff05ea496c48a8f26ff73c3f8aaf93e28628ccefb8df2e5d1c98\n  [Enable continuous protection]   [Not now]\n\n  Nothing persistent was installed by the step above, and nothing is\n  installed by this offer. Run the enable command yourself to opt in.",
+      "copySource": "configured",
+      "disclosureDigestUnderSentinelCopy": "sha256:0dc8f5f00e2dff05ea496c48a8f26ff73c3f8aaf93e28628ccefb8df2e5d1c98"
     },
     {
       "host": "vscode",
@@ -123,7 +135,9 @@
           "uninstallCommand": "remove the CallLint guard entry from .vscode/tasks.json by hand"
         }
       ],
-      "renderedText": "\nProtect future agent-tool changes\n\n  CallLint can:\n    • re-decide the approved agent-tool authority surface when a session starts\n    • detect authority drift against the approved baseline\n    • re-check upgrades of already-approved tools\n    • refuse a tampered install plan (approval is bound to the exact plan digest)\n\n  This installs persistent components (a separate decision from the install above):\n    VS Code folderOpen guard task (calllint-guard:vscode)\n      creates:   .vscode/tasks.json (merged into your own config)\n      remove:    remove the CallLint guard entry from .vscode/tasks.json by hand\n      enable:    calllint guard install --host vscode\n\n  disable later: calllint guard disable\n  disclosure: sha256:c647b20cf1622ad6617071c5d216fcca926e0969c7b14158def7d15dfff80c9b\n  [Enable continuous protection]   [Not now]\n\n  Nothing persistent was installed by the step above, and nothing is\n  installed by this offer. Run the enable command yourself to opt in."
+      "renderedText": "\nProtect future agent-tool changes\n\n  CallLint can:\n    • re-decide the approved agent-tool authority surface when a session starts\n    • detect authority drift against the approved baseline\n    • re-check upgrades of already-approved tools\n    • refuse a tampered install plan (approval is bound to the exact plan digest)\n\n  This installs persistent components (a separate decision from the install above):\n    VS Code folderOpen guard task (calllint-guard:vscode)\n      creates:   .vscode/tasks.json (merged into your own config)\n      remove:    remove the CallLint guard entry from .vscode/tasks.json by hand\n      enable:    calllint guard install --host vscode\n\n  disable later: calllint guard disable\n  disclosure: sha256:c647b20cf1622ad6617071c5d216fcca926e0969c7b14158def7d15dfff80c9b\n  [Enable continuous protection]   [Not now]\n\n  Nothing persistent was installed by the step above, and nothing is\n  installed by this offer. Run the enable command yourself to opt in.",
+      "copySource": "configured",
+      "disclosureDigestUnderSentinelCopy": "sha256:c647b20cf1622ad6617071c5d216fcca926e0969c7b14158def7d15dfff80c9b"
     }
   ],
   "measures": [
@@ -166,6 +180,16 @@
       "id": "conversion/vscode",
       "pass": true,
       "observed": "ASK_AFTER_SUCCESS: 1 component(s) fully disclosed, [Not now] visible, disable + uninstall shown"
+    },
+    {
+      "id": "disclosure-digest-invariant-under-configured-copy",
+      "pass": true,
+      "observed": "7 host(s): disclosureDigest identical under sentinel copy — configured wording cannot move the approval token"
+    },
+    {
+      "id": "graded-surface-is-the-configured-plane",
+      "pass": true,
+      "observed": "7 host(s) observed from the resolved copy plane — the floors above grade the configured surface"
     }
   ],
   "blockers": []
