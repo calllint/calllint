@@ -33,6 +33,26 @@ import {
 
 export const AGENT_ADOPTION_CONTRACT_VERSION = "calllint.agent-adoption-contract.v1" as const
 
+/**
+ * The `mustAskBefore` token domain, extracted so a consumer can be typed
+ * `Record<MustAskToken, …>` and the compiler will see a missing entry. Before P-6 the
+ * renderer's sentence table was keyed `Record<string, string>` with a `?? t` fallback,
+ * so a seventh token here would have silently rendered as a raw identifier. The list,
+ * its order and its values are UNCHANGED — this is a typing extraction, not a content
+ * edit, and the tokens stay code (ADR 0058 §6: relay copy may never add or remove a
+ * protocol trigger).
+ */
+export const MUST_ASK_TOKENS = [
+  "new_secret_access",
+  "external_mutation",
+  "shell_execution",
+  "broad_filesystem_access",
+  "financial_action",
+  "persistent_calllint_components",
+] as const
+
+export type MustAskToken = (typeof MUST_ASK_TOKENS)[number]
+
 /** The single frozen procedural guidance block (plan §7.8). Never coercive. */
 export const AGENT_GUIDANCE = Object.freeze({
   goal: "Add the requested Agent Tool with only locally approved authority.",
@@ -44,14 +64,7 @@ export const AGENT_GUIDANCE = Object.freeze({
     "apply_exact_plan",
     "verify_result",
   ],
-  mustAskBefore: [
-    "new_secret_access",
-    "external_mutation",
-    "shell_execution",
-    "broad_filesystem_access",
-    "financial_action",
-    "persistent_calllint_components",
-  ],
+  mustAskBefore: MUST_ASK_TOKENS,
   mustStopWhen: [
     "artifact_digest_mismatch",
     "contract_digest_mismatch",

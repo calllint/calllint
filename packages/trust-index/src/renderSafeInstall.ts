@@ -19,6 +19,7 @@
 
 import { buildAdoptionUri } from "@calllint/core"
 import { REASON_CODE_META, type ReasonCode } from "@calllint/types"
+import type { MustAskToken } from "./agentAdoptionContract.js"
 import type { SafeInstallProjection, Installability } from "./safeInstallProjection.js"
 import { CLI_VERSION, CORRECTION_URL, SITE_ORIGIN } from "./renderPage.js"
 import {
@@ -156,8 +157,13 @@ function escText(s: string): string {
  *
  * These remain the href for every state a click cannot honestly act on, and the
  * fallback for every state when a deep link cannot be built.
+ *
+ * EXPORTED at P-6 (additive; no emitted byte changes). The preview harness grades
+ * "同一 Host 的 CTA 一致" by reading this table's totality over `Installability` and by
+ * partitioning pages on the CTA route. A harness that restated the hrefs instead would
+ * be self-certifying — it would agree with its own copy while the renderer drifted.
  */
-const CTA_DOC_HREF: Record<Installability, string> = {
+export const CTA_DOC_HREF: Record<Installability, string> = {
   PREPARE_AVAILABLE: `${SITE_ORIGIN}/docs/safe-install`,
   REVIEW_REQUIRED: `${SITE_ORIGIN}/docs/safe-install#review`,
   BLOCKED: `${SITE_ORIGIN}/docs/safe-install#blocked`,
@@ -173,8 +179,13 @@ const CTA_DOC_HREF: Record<Installability, string> = {
  * link there would open the CLI only to refuse, which is worse than a link that
  * explains. `LOCAL_PREFLIGHT_REQUIRED` is excluded for the same reason: the honest next
  * step is the pre-flight, not an adoption prompt.
+ *
+ * EXPORTED at P-6 (additive). `dispositionBlock` emits two structurally different
+ * branches, and this set is exactly the predicate that chooses between them — so the
+ * harness's page-consistency partition is DERIVED from the renderer's own condition
+ * rather than a hand-kept list that could fall out of step with it.
  */
-const DEEP_LINK_STATES: ReadonlySet<Installability> = new Set<Installability>([
+export const DEEP_LINK_STATES: ReadonlySet<Installability> = new Set<Installability>([
   "PREPARE_AVAILABLE",
   "REVIEW_REQUIRED",
 ])
@@ -366,16 +377,32 @@ function shortFallbackCommand(p: SafeInstallProjection): string {
  *     and no shipped page is in this state today (a fixture is, which is why it is here).
  */
 function altRouteLink(p: SafeInstallProjection): string {
+  const href = altRouteHref(p)
+  if (href === null) return ""
+  return `<p class="install-alt-route"><a href="${esc(href)}" rel="nofollow noopener"
+              >Install this MCP only (without CallLint)</a></p>`
+}
+
+/**
+ * The opt-out target, or `null` when this projection has none.
+ *
+ * EXTRACTED + EXPORTED at P-6 (additive; `altRouteLink` emits the same bytes it always
+ * did). `install-alt-route` is one of the conditional sites the preview harness records
+ * as `present|absent`, and the plan's rule is that every tolerated variance carries the
+ * assertion of the condition that produced it. A harness that re-derived "is there an
+ * opt-out?" from its own copy of the `npm:` mapping and the https test would be checking
+ * its own arithmetic — and on the day the two disagreed, the copy claiming success would
+ * be the wrong one. So the condition is READ from here.
+ */
+export function altRouteHref(p: SafeInstallProjection): string | null {
   const loc = p.agentContract.subject.sourceLocator
-  if (loc === null) return ""
+  if (loc === null) return null
   const npm = /^npm:(.+)$/.exec(loc)
   // Split the version off the LAST `@`, so a scoped name (`@adeu/mcp-server`) keeps its own.
   const href = npm
     ? `https://www.npmjs.com/package/${(npm[1] ?? "").replace(/@[^@]*$/, "")}`
     : loc
-  if (!/^https:\/\//.test(href)) return ""
-  return `<p class="install-alt-route"><a href="${esc(href)}" rel="nofollow noopener"
-              >Install this MCP only (without CallLint)</a></p>`
+  return /^https:\/\//.test(href) ? href : null
 }
 
 /**
@@ -391,7 +418,7 @@ function altRouteLink(p: SafeInstallProjection): string {
  * token rather than dropped: showing an unpolished string is honest, while silently
  * omitting one would understate what the agent is bound by.
  */
-const MUST_ASK_SENTENCE: Readonly<Record<string, string>> = Object.freeze({
+const MUST_ASK_SENTENCE: Readonly<Record<MustAskToken, string>> = Object.freeze({
   new_secret_access: "before it reads a new secret or credential",
   external_mutation: "before it changes anything outside this machine",
   shell_execution: "before it runs a shell command",

@@ -1,0 +1,706 @@
+{
+  "schema": "calllint.preview-snapshot.v0",
+  "$comment": "Workstream P preview & snapshot harness (new15 §14 PR P-6; ADR 0058) — the FOUR acceptance-gate blocks §14 declares and nothing ran before this PR. The corpus is the five CANONICAL FIXTURES, not the served tree, and that is a measured choice: the 19 committed pages carry exactly ONE structural signature and only two verdicts, so grading page consistency against them would pass while never exercising BLOCK, UNKNOWN or UNSUPPORTED. pageConsistency PARTITIONS on the CTA route because dispositionBlock genuinely emits two different structures (DEEP_LINK_STATES vs its complement, 2 vs 3 states); within a partition the signature must be IDENTICAL and across partitions it must DIFFER — the cross-partition inequality is the load-bearing half, since a signature that collapsed to a constant would satisfy 'identical within a partition' perfectly while measuring nothing. Every tolerated structural variance carries the assertion of the condition that produced it (install-canonical, install-publisher, install-reason-empty, install-alt-route) rather than being smoothed away; TEXT is outside the signature by construction, which is why the UNSUPPORTED fixture's version-less <h1> does not perturb it. securityIsolation grades all five zero-counts and THREE of them had no grader before P-6 — above all publisher→HTML, where the five injection blurbs were previously checked only against the contract's decision scope (built by omission), so nothing ever rendered them into HTML and counted. That check runs in BOTH escape forms because `esc` and `escText` differ on the quote characters, and a check that guessed one form could report zero occurrences of a string that is on the page. The digest-invariance check is derived through the SAME constructor from a sentinel, never asserted against a literal: a hardcoded digest cannot detect its own subject changing. visualRegression is BROWSERLESS and says so — it measures which declarations apply (var()-resolved, so a token VALUE change is visible) and how the one grid reflows across three viewports that straddle the 452 px column boundary and the 720 px main cap; it does NOT measure glyph rasterization. Zero @media is ASSERTED rather than assumed, because resolveDeclarations is a flat rule walk with no nesting support, so a media query would be silently mis-parsed — and adding one would also spend a served-byte license this batch does not have. Duplicate catalog keys are measured over RAW BYTES: JSON.parse collapses a duplicate last-wins, so a parsed check is structurally blind to the defect. thresholds.maxAuthorityFacts is now READ from human-five-second-test.json and graded against the measured counts; before P-6 nothing read it, and it sat at 3 while all five fixtures measured 5. Regenerate with `pnpm audit:preview:write`; enforce with `pnpm audit:preview:gate`.",
+  "workstream": "P",
+  "pr": "P-6",
+  "status": "PASSED",
+  "corpus": {
+    "fixtures": [
+      {
+        "id": "safe-npm-package",
+        "installability": "PREPARE_AVAILABLE",
+        "partition": "deep-linked",
+        "ctaRowItems": 2,
+        "signature": "sections:install-identity[identity]>install-disposition[disposition+primary_action]>install-consequence[consequence]>install-authority[authority_facts]>install-secondary[secondary_links] | disposition:install-disposition>install-headline>install-value-line>install-badge>install-badge-mark>install-badge-check>install-cta-row>install-cta>install-cta-alt install-copy>install-cta-pair-note>install-primary-path>install-fallback>install-command-label>install-command-row>install-copy>install-command-full>install-cta-note",
+        "conditionals": [
+          "install-canonical=present",
+          "install-publisher=absent",
+          "install-reason-empty=present",
+          "install-alt-route=present"
+        ]
+      },
+      {
+        "id": "review-external-mutation-mcp",
+        "installability": "REVIEW_REQUIRED",
+        "partition": "deep-linked",
+        "ctaRowItems": 2,
+        "signature": "sections:install-identity[identity]>install-disposition[disposition+primary_action]>install-consequence[consequence]>install-authority[authority_facts]>install-secondary[secondary_links] | disposition:install-disposition>install-headline>install-value-line>install-badge>install-badge-mark>install-badge-check>install-cta-row>install-cta>install-cta-alt install-copy>install-cta-pair-note>install-primary-path>install-fallback>install-command-label>install-command-row>install-copy>install-command-full>install-cta-note",
+        "conditionals": [
+          "install-canonical=present",
+          "install-publisher=absent",
+          "install-reason-empty=absent",
+          "install-alt-route=present"
+        ]
+      },
+      {
+        "id": "block-prompt-poisoned-mcp",
+        "installability": "BLOCKED",
+        "partition": "docs-primary",
+        "ctaRowItems": 0,
+        "signature": "sections:install-identity[identity]>install-disposition[disposition+primary_action]>install-consequence[consequence]>install-authority[authority_facts]>install-secondary[secondary_links] | disposition:install-disposition>install-headline>install-value-line>install-cta>install-cta-note>install-fallback",
+        "conditionals": [
+          "install-canonical=present",
+          "install-publisher=absent",
+          "install-reason-empty=absent",
+          "install-alt-route=present"
+        ]
+      },
+      {
+        "id": "unknown-remote-mcp",
+        "installability": "LOCAL_PREFLIGHT_REQUIRED",
+        "partition": "docs-primary",
+        "ctaRowItems": 0,
+        "signature": "sections:install-identity[identity]>install-disposition[disposition+primary_action]>install-consequence[consequence]>install-authority[authority_facts]>install-secondary[secondary_links] | disposition:install-disposition>install-headline>install-value-line>install-cta>install-cta-note>install-fallback",
+        "conditionals": [
+          "install-canonical=present",
+          "install-publisher=absent",
+          "install-reason-empty=absent",
+          "install-alt-route=present"
+        ]
+      },
+      {
+        "id": "unsupported-incomplete-entry",
+        "installability": "UNSUPPORTED",
+        "partition": "docs-primary",
+        "ctaRowItems": 0,
+        "signature": "sections:install-identity[identity]>install-disposition[disposition+primary_action]>install-consequence[consequence]>install-authority[authority_facts]>install-secondary[secondary_links] | disposition:install-disposition>install-headline>install-value-line>install-cta>install-cta-note>install-fallback",
+        "conditionals": [
+          "install-canonical=present",
+          "install-publisher=absent",
+          "install-reason-empty=present",
+          "install-alt-route=absent"
+        ]
+      }
+    ],
+    "servedPagesInZeroContainmentScope": 19,
+    "stylesheetCopies": [
+      "apps/web/styles/tokens.css",
+      "apps/web/public/styles/tokens.css"
+    ],
+    "$comment": "One fixture per Installability, which is what makes the five-state corpus real rather than a sample of the served tree's single shape. `partition` is derived from DEEP_LINK_STATES through the renderer's own predicate, so the split cannot drift from the markup it describes. ctaRowItems is COUNTED off the rendered row rather than assumed, so a renderer that added a third CTA moves the reflow prediction on its own."
+  },
+  "configIntegrity": {
+    "block": "配置完整性",
+    "checks": [
+      {
+        "id": "domain-total/verdict-public-label",
+        "pass": true,
+        "observed": "4 verdict(s), missing: none"
+      },
+      {
+        "id": "domain-total/reason-code-meta",
+        "pass": true,
+        "observed": "13 reason code(s), missing: none"
+      },
+      {
+        "id": "domain-total/authority-consequences",
+        "pass": true,
+        "observed": "10 authority(ies), missing observed: none, missing absence: none"
+      },
+      {
+        "id": "domain-total/cta-doc-href",
+        "pass": true,
+        "observed": "5 state(s) in PRIMARY_CTA, missing an href: none"
+      },
+      {
+        "id": "domain-total/cta-corpus-covers-every-state",
+        "pass": true,
+        "observed": "corpus covers 5/5; unexercised: none"
+      },
+      {
+        "id": "domain-total/must-ask-sentence",
+        "pass": true,
+        "observed": "6 token(s); AGENT_GUIDANCE.mustAskBefore references the same list"
+      },
+      {
+        "id": "host-copy/complete",
+        "pass": true,
+        "observed": "7 guard host(s), incomplete: none"
+      },
+      {
+        "id": "host-copy/vocabulary-split",
+        "pass": true,
+        "observed": "guard=7 rule=9 adapter=5; guard∩rule=copilot, gemini; guard∩adapter=claude-code, vscode"
+      },
+      {
+        "id": "catalog/no-duplicate-keys",
+        "pass": true,
+        "observed": "duplicate key(s) in raw bytes: none"
+      },
+      {
+        "id": "catalog/no-unwired-slots",
+        "pass": true,
+        "observed": "slot(s) that validate and reach nothing: none"
+      },
+      {
+        "id": "catalog/no-rejected-slots",
+        "pass": true,
+        "observed": "slot(s) the resolver refused: none"
+      },
+      {
+        "id": "threshold/max-authority-facts-graded",
+        "pass": true,
+        "observed": "declared 5; measured block-prompt-poisoned-mcp=5, review-external-mutation-mcp=5, safe-npm-package=5, unknown-remote-mcp=5, unsupported-incomplete-entry=5"
+      }
+    ],
+    "pass": true
+  },
+  "pageConsistency": {
+    "block": "页面一致性",
+    "checks": [
+      {
+        "id": "partition/both-populated",
+        "pass": true,
+        "observed": "partitions: deep-linked=2, docs-primary=3"
+      },
+      {
+        "id": "partition/deep-linked/one-signature",
+        "pass": true,
+        "observed": "2 page(s), signature sections:install-identity[identity]>install-disposition[disposition+primary_action]>install-consequence[consequence]>install-authority[authority_facts]>install-secondary[secondary_links] | disposition:install-disposition>install-headline>install-value-line>install-badge>install-badge-mark>install-badge-check>install-cta-row>install-cta>install-cta-alt install-copy>install-cta-pair-note>install-primary-path>install-fallback>install-command-label>install-command-row>install-copy>install-command-full>install-cta-note"
+      },
+      {
+        "id": "partition/deep-linked/exactly-one-primary-cta",
+        "pass": true,
+        "observed": "2/2 page(s) carry exactly one .install-cta"
+      },
+      {
+        "id": "partition/deep-linked/one-cta-scheme",
+        "pass": true,
+        "observed": "scheme(s): calllint://adoption"
+      },
+      {
+        "id": "partition/docs-primary/one-signature",
+        "pass": true,
+        "observed": "3 page(s), signature sections:install-identity[identity]>install-disposition[disposition+primary_action]>install-consequence[consequence]>install-authority[authority_facts]>install-secondary[secondary_links] | disposition:install-disposition>install-headline>install-value-line>install-cta>install-cta-note>install-fallback"
+      },
+      {
+        "id": "partition/docs-primary/exactly-one-primary-cta",
+        "pass": true,
+        "observed": "3/3 page(s) carry exactly one .install-cta"
+      },
+      {
+        "id": "partition/docs-primary/one-cta-scheme",
+        "pass": true,
+        "observed": "scheme(s): https://calllint.com"
+      },
+      {
+        "id": "partition/signatures-differ",
+        "pass": true,
+        "observed": "deep-linked ≠ docs-primary (as the two disposition branches require)"
+      },
+      {
+        "id": "conditional/safe-npm-package/install-canonical",
+        "pass": true,
+        "observed": "present; condition (canonicalName !== displayName) is true"
+      },
+      {
+        "id": "conditional/safe-npm-package/install-publisher",
+        "pass": true,
+        "observed": "absent; condition (publisherDescription is a non-empty string) is false"
+      },
+      {
+        "id": "conditional/safe-npm-package/install-reason-empty",
+        "pass": true,
+        "observed": "present; condition (publicObservation.reasonCodes.length === 0) is true"
+      },
+      {
+        "id": "conditional/safe-npm-package/install-alt-route",
+        "pass": true,
+        "observed": "present; condition (altRouteHref(projection) !== null) is true"
+      },
+      {
+        "id": "authority-shape/safe-npm-package",
+        "pass": true,
+        "observed": "reasonCodes=0, install-reason-empty present"
+      },
+      {
+        "id": "conditional/review-external-mutation-mcp/install-canonical",
+        "pass": true,
+        "observed": "present; condition (canonicalName !== displayName) is true"
+      },
+      {
+        "id": "conditional/review-external-mutation-mcp/install-publisher",
+        "pass": true,
+        "observed": "absent; condition (publisherDescription is a non-empty string) is false"
+      },
+      {
+        "id": "conditional/review-external-mutation-mcp/install-reason-empty",
+        "pass": true,
+        "observed": "absent; condition (publicObservation.reasonCodes.length === 0) is false"
+      },
+      {
+        "id": "conditional/review-external-mutation-mcp/install-alt-route",
+        "pass": true,
+        "observed": "present; condition (altRouteHref(projection) !== null) is true"
+      },
+      {
+        "id": "authority-shape/review-external-mutation-mcp",
+        "pass": true,
+        "observed": "reasonCodes=2, install-reason-empty absent"
+      },
+      {
+        "id": "conditional/block-prompt-poisoned-mcp/install-canonical",
+        "pass": true,
+        "observed": "present; condition (canonicalName !== displayName) is true"
+      },
+      {
+        "id": "conditional/block-prompt-poisoned-mcp/install-publisher",
+        "pass": true,
+        "observed": "absent; condition (publisherDescription is a non-empty string) is false"
+      },
+      {
+        "id": "conditional/block-prompt-poisoned-mcp/install-reason-empty",
+        "pass": true,
+        "observed": "absent; condition (publicObservation.reasonCodes.length === 0) is false"
+      },
+      {
+        "id": "conditional/block-prompt-poisoned-mcp/install-alt-route",
+        "pass": true,
+        "observed": "present; condition (altRouteHref(projection) !== null) is true"
+      },
+      {
+        "id": "authority-shape/block-prompt-poisoned-mcp",
+        "pass": true,
+        "observed": "reasonCodes=1, install-reason-empty absent"
+      },
+      {
+        "id": "conditional/unknown-remote-mcp/install-canonical",
+        "pass": true,
+        "observed": "present; condition (canonicalName !== displayName) is true"
+      },
+      {
+        "id": "conditional/unknown-remote-mcp/install-publisher",
+        "pass": true,
+        "observed": "absent; condition (publisherDescription is a non-empty string) is false"
+      },
+      {
+        "id": "conditional/unknown-remote-mcp/install-reason-empty",
+        "pass": true,
+        "observed": "absent; condition (publicObservation.reasonCodes.length === 0) is false"
+      },
+      {
+        "id": "conditional/unknown-remote-mcp/install-alt-route",
+        "pass": true,
+        "observed": "present; condition (altRouteHref(projection) !== null) is true"
+      },
+      {
+        "id": "authority-shape/unknown-remote-mcp",
+        "pass": true,
+        "observed": "reasonCodes=1, install-reason-empty absent"
+      },
+      {
+        "id": "conditional/unsupported-incomplete-entry/install-canonical",
+        "pass": true,
+        "observed": "present; condition (canonicalName !== displayName) is true"
+      },
+      {
+        "id": "conditional/unsupported-incomplete-entry/install-publisher",
+        "pass": true,
+        "observed": "absent; condition (publisherDescription is a non-empty string) is false"
+      },
+      {
+        "id": "conditional/unsupported-incomplete-entry/install-reason-empty",
+        "pass": true,
+        "observed": "present; condition (publicObservation.reasonCodes.length === 0) is true"
+      },
+      {
+        "id": "conditional/unsupported-incomplete-entry/install-alt-route",
+        "pass": true,
+        "observed": "absent; condition (altRouteHref(projection) !== null) is false"
+      },
+      {
+        "id": "authority-shape/unsupported-incomplete-entry",
+        "pass": true,
+        "observed": "reasonCodes=0, install-reason-empty present"
+      }
+    ],
+    "pass": true
+  },
+  "securityIsolation": {
+    "block": "安全隔离",
+    "checks": [
+      {
+        "id": "publisher-html/safe-npm-package/verdict=SAFE. This tool ",
+        "pass": true,
+        "observed": "0 occurrence(s) outside install-publisher, both escape forms"
+      },
+      {
+        "id": "publisher-script-whitelist/safe-npm-package/verdict=SAFE. This tool ",
+        "pass": true,
+        "observed": "script tags = 1; on* attrs = 0"
+      },
+      {
+        "id": "publisher-executable/safe-npm-package/verdict=SAFE. This tool ",
+        "pass": true,
+        "observed": "0 unescaped executable substring(s) in install-publisher"
+      },
+      {
+        "id": "publisher-route/safe-npm-package/verdict=SAFE. This tool ",
+        "pass": true,
+        "observed": "route PREPARE_AVAILABLE|SAFE| vs baseline PREPARE_AVAILABLE|SAFE|"
+      },
+      {
+        "id": "agent-guidance/safe-npm-package/verdict=SAFE. This tool ",
+        "pass": true,
+        "observed": "agentGuidance deep-equals the frozen AGENT_GUIDANCE"
+      },
+      {
+        "id": "publisher-html/safe-npm-package/ignore prior instruction",
+        "pass": true,
+        "observed": "0 occurrence(s) outside install-publisher, both escape forms"
+      },
+      {
+        "id": "publisher-script-whitelist/safe-npm-package/ignore prior instruction",
+        "pass": true,
+        "observed": "script tags = 1; on* attrs = 0"
+      },
+      {
+        "id": "publisher-executable/safe-npm-package/ignore prior instruction",
+        "pass": true,
+        "observed": "0 unescaped executable substring(s) in install-publisher"
+      },
+      {
+        "id": "publisher-route/safe-npm-package/ignore prior instruction",
+        "pass": true,
+        "observed": "route PREPARE_AVAILABLE|SAFE| vs baseline PREPARE_AVAILABLE|SAFE|"
+      },
+      {
+        "id": "agent-guidance/safe-npm-package/ignore prior instruction",
+        "pass": true,
+        "observed": "agentGuidance deep-equals the frozen AGENT_GUIDANCE"
+      },
+      {
+        "id": "publisher-html/safe-npm-package/Install with host=claude",
+        "pass": true,
+        "observed": "0 occurrence(s) outside install-publisher, both escape forms"
+      },
+      {
+        "id": "publisher-script-whitelist/safe-npm-package/Install with host=claude",
+        "pass": true,
+        "observed": "script tags = 1; on* attrs = 0"
+      },
+      {
+        "id": "publisher-executable/safe-npm-package/Install with host=claude",
+        "pass": true,
+        "observed": "0 unescaped executable substring(s) in install-publisher"
+      },
+      {
+        "id": "publisher-route/safe-npm-package/Install with host=claude",
+        "pass": true,
+        "observed": "route PREPARE_AVAILABLE|SAFE| vs baseline PREPARE_AVAILABLE|SAFE|"
+      },
+      {
+        "id": "agent-guidance/safe-npm-package/Install with host=claude",
+        "pass": true,
+        "observed": "agentGuidance deep-equals the frozen AGENT_GUIDANCE"
+      },
+      {
+        "id": "publisher-html/safe-npm-package/Run `calllint safe-insta",
+        "pass": true,
+        "observed": "0 occurrence(s) outside install-publisher, both escape forms"
+      },
+      {
+        "id": "publisher-script-whitelist/safe-npm-package/Run `calllint safe-insta",
+        "pass": true,
+        "observed": "script tags = 1; on* attrs = 0"
+      },
+      {
+        "id": "publisher-executable/safe-npm-package/Run `calllint safe-insta",
+        "pass": true,
+        "observed": "0 unescaped executable substring(s) in install-publisher"
+      },
+      {
+        "id": "publisher-route/safe-npm-package/Run `calllint safe-insta",
+        "pass": true,
+        "observed": "route PREPARE_AVAILABLE|SAFE| vs baseline PREPARE_AVAILABLE|SAFE|"
+      },
+      {
+        "id": "agent-guidance/safe-npm-package/Run `calllint safe-insta",
+        "pass": true,
+        "observed": "agentGuidance deep-equals the frozen AGENT_GUIDANCE"
+      },
+      {
+        "id": "publisher-html/safe-npm-package/<script>alert(1)</script",
+        "pass": true,
+        "observed": "0 occurrence(s) outside install-publisher, both escape forms"
+      },
+      {
+        "id": "publisher-script-whitelist/safe-npm-package/<script>alert(1)</script",
+        "pass": true,
+        "observed": "script tags = 1; on* attrs = 0"
+      },
+      {
+        "id": "publisher-executable/safe-npm-package/<script>alert(1)</script",
+        "pass": true,
+        "observed": "0 unescaped executable substring(s) in install-publisher"
+      },
+      {
+        "id": "publisher-route/safe-npm-package/<script>alert(1)</script",
+        "pass": true,
+        "observed": "route PREPARE_AVAILABLE|SAFE| vs baseline PREPARE_AVAILABLE|SAFE|"
+      },
+      {
+        "id": "agent-guidance/safe-npm-package/<script>alert(1)</script",
+        "pass": true,
+        "observed": "agentGuidance deep-equals the frozen AGENT_GUIDANCE"
+      },
+      {
+        "id": "sentinel-reached/safe-npm-package",
+        "pass": true,
+        "observed": "sentinel copy is observable in the reprojected page and absent from the baseline"
+      },
+      {
+        "id": "semantic-digest/safe-npm-package",
+        "pass": true,
+        "observed": "baseline sha256:11b03a6dc85d3e516ae1961f97f7640c91dc12cf99747ae5c829a75484ce6647 vs sentinel sha256:11b03a6dc85d3e516ae1961f97f7640c91dc12cf99747ae5c829a75484ce6647"
+      },
+      {
+        "id": "semantic-route/safe-npm-package",
+        "pass": true,
+        "observed": "route PREPARE_AVAILABLE|SAFE| vs sentinel PREPARE_AVAILABLE|SAFE|"
+      },
+      {
+        "id": "sentinel-reached/review-external-mutation-mcp",
+        "pass": true,
+        "observed": "sentinel copy is observable in the reprojected page and absent from the baseline"
+      },
+      {
+        "id": "semantic-digest/review-external-mutation-mcp",
+        "pass": true,
+        "observed": "baseline sha256:dd67b089fb97b74199d17733747ecd6b69e12759b6c3a1a33895c61d63cea626 vs sentinel sha256:dd67b089fb97b74199d17733747ecd6b69e12759b6c3a1a33895c61d63cea626"
+      },
+      {
+        "id": "semantic-route/review-external-mutation-mcp",
+        "pass": true,
+        "observed": "route REVIEW_REQUIRED|REVIEW| vs sentinel REVIEW_REQUIRED|REVIEW|"
+      },
+      {
+        "id": "sentinel-reached/block-prompt-poisoned-mcp",
+        "pass": true,
+        "observed": "sentinel copy is observable in the reprojected page and absent from the baseline"
+      },
+      {
+        "id": "semantic-digest/block-prompt-poisoned-mcp",
+        "pass": true,
+        "observed": "baseline sha256:672cc57bf04807903ee60e4c02b018a273628a137fff52c6d606fba372432682 vs sentinel sha256:672cc57bf04807903ee60e4c02b018a273628a137fff52c6d606fba372432682"
+      },
+      {
+        "id": "semantic-route/block-prompt-poisoned-mcp",
+        "pass": true,
+        "observed": "route BLOCKED|BLOCK| vs sentinel BLOCKED|BLOCK|"
+      },
+      {
+        "id": "sentinel-reached/unknown-remote-mcp",
+        "pass": true,
+        "observed": "sentinel copy is observable in the reprojected page and absent from the baseline"
+      },
+      {
+        "id": "semantic-digest/unknown-remote-mcp",
+        "pass": true,
+        "observed": "baseline sha256:b1601b85684b652f5489b5d726806d6ace8f9e078f784077cb8fef9b65ac89f2 vs sentinel sha256:b1601b85684b652f5489b5d726806d6ace8f9e078f784077cb8fef9b65ac89f2"
+      },
+      {
+        "id": "semantic-route/unknown-remote-mcp",
+        "pass": true,
+        "observed": "route LOCAL_PREFLIGHT_REQUIRED|UNKNOWN| vs sentinel LOCAL_PREFLIGHT_REQUIRED|UNKNOWN|"
+      },
+      {
+        "id": "sentinel-reached/unsupported-incomplete-entry",
+        "pass": true,
+        "observed": "sentinel copy is observable in the reprojected page and absent from the baseline"
+      },
+      {
+        "id": "semantic-digest/unsupported-incomplete-entry",
+        "pass": true,
+        "observed": "baseline sha256:6749277969fa7a878095f87064ecf8f5852d49b844d339d92cbc7c851a9a68fa vs sentinel sha256:6749277969fa7a878095f87064ecf8f5852d49b844d339d92cbc7c851a9a68fa"
+      },
+      {
+        "id": "semantic-route/unsupported-incomplete-entry",
+        "pass": true,
+        "observed": "route UNSUPPORTED|UNKNOWN| vs sentinel UNSUPPORTED|UNKNOWN|"
+      }
+    ],
+    "pass": true
+  },
+  "visualRegression": {
+    "block": "视觉回归",
+    "checks": [
+      {
+        "id": "stylesheet/apps/web/styles/tokens.css/no-media-queries",
+        "pass": true,
+        "observed": "0 @media block(s) — the flat declaration parser is sound and the reflow is arithmetic"
+      },
+      {
+        "id": "stylesheet/apps/web/public/styles/tokens.css/no-media-queries",
+        "pass": true,
+        "observed": "0 @media block(s) — the flat declaration parser is sound and the reflow is arithmetic"
+      },
+      {
+        "id": "stylesheet/copies-resolve-identically",
+        "pass": true,
+        "observed": "2 cop(ies) resolve to identical declarations"
+      },
+      {
+        "id": "declarations/safe-npm-package/covered",
+        "pass": true,
+        "observed": "30 emitted class(es), uncovered: none"
+      },
+      {
+        "id": "declarations/review-external-mutation-mcp/covered",
+        "pass": true,
+        "observed": "29 emitted class(es), uncovered: none"
+      },
+      {
+        "id": "declarations/block-prompt-poisoned-mcp/covered",
+        "pass": true,
+        "observed": "18 emitted class(es), uncovered: none"
+      },
+      {
+        "id": "declarations/unknown-remote-mcp/covered",
+        "pass": true,
+        "observed": "18 emitted class(es), uncovered: none"
+      },
+      {
+        "id": "declarations/unsupported-incomplete-entry/covered",
+        "pass": true,
+        "observed": "18 emitted class(es), uncovered: none"
+      },
+      {
+        "id": "reflow/non-vacuous",
+        "pass": true,
+        "observed": "2 page(s) hold ≥2 CTA-row items, so the 452 px boundary is exercised"
+      },
+      {
+        "id": "reflow/safe-npm-package/crosses-boundary",
+        "pass": true,
+        "observed": "390px ⇒ 1 column(s), 768px ⇒ 2 column(s)"
+      },
+      {
+        "id": "reflow/review-external-mutation-mcp/crosses-boundary",
+        "pass": true,
+        "observed": "390px ⇒ 1 column(s), 768px ⇒ 2 column(s)"
+      }
+    ],
+    "pass": true,
+    "observations": [
+      {
+        "id": "safe-npm-package",
+        "viewport": 390,
+        "ctaRowItems": 2,
+        "predictedColumns": 1
+      },
+      {
+        "id": "safe-npm-package",
+        "viewport": 768,
+        "ctaRowItems": 2,
+        "predictedColumns": 2
+      },
+      {
+        "id": "safe-npm-package",
+        "viewport": 1280,
+        "ctaRowItems": 2,
+        "predictedColumns": 2
+      },
+      {
+        "id": "review-external-mutation-mcp",
+        "viewport": 390,
+        "ctaRowItems": 2,
+        "predictedColumns": 1
+      },
+      {
+        "id": "review-external-mutation-mcp",
+        "viewport": 768,
+        "ctaRowItems": 2,
+        "predictedColumns": 2
+      },
+      {
+        "id": "review-external-mutation-mcp",
+        "viewport": 1280,
+        "ctaRowItems": 2,
+        "predictedColumns": 2
+      },
+      {
+        "id": "block-prompt-poisoned-mcp",
+        "viewport": 390,
+        "ctaRowItems": 0,
+        "predictedColumns": 0
+      },
+      {
+        "id": "block-prompt-poisoned-mcp",
+        "viewport": 768,
+        "ctaRowItems": 0,
+        "predictedColumns": 0
+      },
+      {
+        "id": "block-prompt-poisoned-mcp",
+        "viewport": 1280,
+        "ctaRowItems": 0,
+        "predictedColumns": 0
+      },
+      {
+        "id": "unknown-remote-mcp",
+        "viewport": 390,
+        "ctaRowItems": 0,
+        "predictedColumns": 0
+      },
+      {
+        "id": "unknown-remote-mcp",
+        "viewport": 768,
+        "ctaRowItems": 0,
+        "predictedColumns": 0
+      },
+      {
+        "id": "unknown-remote-mcp",
+        "viewport": 1280,
+        "ctaRowItems": 0,
+        "predictedColumns": 0
+      },
+      {
+        "id": "unsupported-incomplete-entry",
+        "viewport": 390,
+        "ctaRowItems": 0,
+        "predictedColumns": 0
+      },
+      {
+        "id": "unsupported-incomplete-entry",
+        "viewport": 768,
+        "ctaRowItems": 0,
+        "predictedColumns": 0
+      },
+      {
+        "id": "unsupported-incomplete-entry",
+        "viewport": 1280,
+        "ctaRowItems": 0,
+        "predictedColumns": 0
+      }
+    ],
+    "declarationCoverage": [
+      {
+        "id": "safe-npm-package",
+        "classes": 30,
+        "rules": 56
+      },
+      {
+        "id": "review-external-mutation-mcp",
+        "classes": 29,
+        "rules": 56
+      },
+      {
+        "id": "block-prompt-poisoned-mcp",
+        "classes": 18,
+        "rules": 56
+      },
+      {
+        "id": "unknown-remote-mcp",
+        "classes": 18,
+        "rules": 56
+      },
+      {
+        "id": "unsupported-incomplete-entry",
+        "classes": 18,
+        "rules": 56
+      }
+    ]
+  },
+  "failures": []
+}

@@ -229,7 +229,9 @@ describe("renderSafeInstall — six decision groups, semantic DOM order (§7)", 
     expect(order).toEqual(sorted)
   })
 
-  it("shows at most three authority facts (plan §6.6)", () => {
+  // Titled for the assertion it makes: the cap is 5 (ADR 0059), not the 3 new15 §14
+  // and plan §6.6 first wrote. The old title had drifted from its own expectation.
+  it("shows at most five authority facts (ADR 0059)", () => {
     for (const page of pages) {
       const p = project(page)
       const html = renderSafeInstall(p)

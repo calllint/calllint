@@ -12,6 +12,52 @@ onward. While pre-1.0, minor versions may include breaking changes.
 
 ### Added
 
+- **Workstream P PR P-6 — the preview & snapshot harness, the decision-relay surface, and the
+  6-vs-4 slot reconciliation.** new15 §14 declared four acceptance-gate blocks and nothing ran
+  them; five of six relay slots reached no consumer; and the schema shipped six relay slots
+  against §5's four, recorded as unreconciled. These are one problem seen from three sides — the
+  slots cannot be wired without a surface, and a new surface should not be trusted before the
+  harness that grades it exists.
+  `pnpm audit:preview` grades all four blocks over the five canonical fixtures (a measured choice:
+  the 19 served pages carry exactly ONE structural signature and only two verdicts, so grading
+  page consistency against them would pass while never exercising BLOCK, UNKNOWN or UNSUPPORTED).
+  **配置完整性** enumerates six copy domains and closes the one gap a compiler could close —
+  `MUST_ASK_SENTENCE` is now `Readonly<Record<MustAskToken, string>>`, so a seventh token without a
+  sentence is a typecheck error rather than a page rendering a raw identifier. Duplicate catalog
+  keys are measured over **raw bytes**, because `JSON.parse` collapses them last-wins and a parsed
+  check is structurally blind. **页面一致性** partitions on the CTA route and asserts the signature
+  differs ACROSS partitions as well as matching within one — the cross-partition inequality is the
+  load-bearing half, since a signature that collapsed to a constant would satisfy the first half
+  perfectly while measuring nothing. **安全隔离** grades all five zero-counts; three had no grader,
+  above all publisher→HTML, where the five injection blurbs were previously checked only against
+  the contract's decision scope, so nothing ever rendered them into HTML and counted (and the
+  check runs in BOTH escape forms, because `esc` and `escText` differ on the quote characters).
+  **视觉回归** is browserless and says so: it measures which declarations apply (var()-resolved)
+  and how the one grid reflows across three viewports straddling the 452 px column boundary and
+  the 720 px cap — not glyph rasterization. Zero `@media` is asserted rather than assumed, since
+  `resolveDeclarations` is a flat rule walk that would silently mis-parse a nested query.
+  The five relay slots land in the MCP prepare result's non-decision `notes[]`, composed by
+  `composeRelayNotes` and **fact-gated**: each sentence is relay wording plus a machine fact read
+  off the sealed contract, and a sentence whose basis is absent is not emitted — `adds` only with a
+  non-empty `authorityDelta.adds`, `notObserved` only when `completeness === "complete"` (absence
+  of evidence is recorded as absence, never as safety), `approvalQuestion` only with a real
+  `planDigest`. `CODE_OWNED_SLOTS.agentRelayCopy` is now `{}` and the compiler forces both slot
+  tables to move together. That gating is also the 6-vs-4 reconciliation: §5's four are the
+  **minimum**, the two extras name `authorityDelta.{adds,notObserved}` as their basis, and a
+  seventh slot with no contract field behind it fails the check. Recorded rather than implied:
+  configuration reaches these sentences at **build time only** — both binaries declare empty
+  runtime deps and the catalog ships in no `files` list, the same limit `guardOffer` has carried
+  since P-5 — so the lock's `resolvesToDefaults` is what keeps a reworded catalog from silently
+  disagreeing with the shipped binary.
+  §14's *"at most three authority facts"* is **inverted, not deleted**: ADR 0059's cap of 5 is
+  later and more specific, and all five fixtures measure exactly 5, so grading a 3 would fail 5/5.
+  `thresholds.maxAuthorityFacts` also stops being self-certifying — the harness now READS it and
+  grades the measured counts against it. The MCP result schema declares the 8 properties the code
+  already emitted (declaring is additive and changes no published byte; dropping them would have
+  been a behavior change), and real results from every outcome path are validated against it.
+  No verdict moves, `git status --porcelain -- apps/web/public/` is empty, and `l0Digest` /
+  `l2Digest` do not move while `l1Digest` / `presentationDigest` do.
+
 - **Workstream P PR P-5 — close the three dead presentation sections, and make `unwiredSlots`
   total.** `LEVEL_BY_SECTION` declared eight presentation sections; the resolver read five. The
   other three — `guardConversion`, `agentRelayCopy`, `overrides` — validated clean, were levelled,

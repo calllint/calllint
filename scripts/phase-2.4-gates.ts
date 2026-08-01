@@ -658,6 +658,12 @@ const REGRESSION_CHECKS: readonly CheckSpec[] = [
   // batch widens.)
   { id: "audit:presentation:gate", script: "audit:presentation:gate", remoteOnly: false, role: "check", workflow: "ci.yml", job: "test" },
   { id: "audit:presentation:lock:gate", script: "audit:presentation:lock:gate", remoteOnly: false, role: "check", workflow: "ci.yml", job: "test" },
+  // P-6 — new15 §14's four acceptance-gate blocks. Both halves tracked for the same
+  // reason as the pair above: the drift row proves the artifact is current, the gate
+  // row proves 安全隔离 is still enforced. §14 declared these blocks and nothing ran
+  // them until P-6, so an untracked step here would let them go quiet the same way.
+  { id: "audit:preview", script: "audit:preview", remoteOnly: false, role: "check", workflow: "ci.yml", job: "test" },
+  { id: "audit:preview:gate", script: "audit:preview:gate", remoteOnly: false, role: "check", workflow: "ci.yml", job: "test" },
   // Remote-only: the CRLF-checkout and isolated-install failure modes exist only
   // on a fresh runner, so a local pass proves nothing about them.
   { id: "pack:smoke:mcp", script: "pack:smoke:mcp", remoteOnly: true, role: "check", workflow: "ci.yml", job: "test" },

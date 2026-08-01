@@ -226,6 +226,7 @@ export {
 export {
   CONTINUOUS_PROTECTION_OFFER_SCHEMA,
   DEFAULT_GUARD_OFFER_COPY,
+  GUARD_ARTIFACTS,
   GUARD_HOST_IDS,
   continuousProtectionOffer,
   disclosureDigest,
@@ -236,6 +237,7 @@ export {
   type ContinuousProtectionInput,
   type ContinuousProtectionOffer,
   type ContinuousProtectionRecommendation,
+  type GuardArtifactFacts,
   type GuardHostId,
   type GuardOfferCopy,
   type PersistentComponent,

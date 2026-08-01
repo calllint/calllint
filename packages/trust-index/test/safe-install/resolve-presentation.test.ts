@@ -28,9 +28,11 @@ import { dirname, resolve } from "node:path"
 import { fileURLToPath } from "node:url"
 import {
   ABSENCE_CONSEQUENCE,
+  AGENT_RELAY_SLOTS,
   CANONICAL_FIXTURES,
   CODE_OWNED_SLOTS,
   DEFAULT_AGENT_RELAY_COPY,
+  WIRED_AGENT_RELAY,
   DEFAULT_LAYOUT,
   DEFAULT_TOKENS,
   DEFAULT_PRESENTATION,
@@ -551,6 +553,11 @@ describe("PR P-5 — guardConversion, agentRelayCopy and overrides resolve", () 
         },
       },
       guardConversion: { declineLabel: "Later" },
+      // P-6 INVERTS the relay half of this case rather than deleting it. The five
+      // decision-relay slots were code-owned at P-5 ("no consumer exists"); they now compose
+      // into the MCP prepare result's `notes[]`, so the same configured block must produce the
+      // OPPOSITE measurement — no reason, and the wording reaching the resolved plane. Asserted
+      // below, so this case still names the relay slots instead of falling silent about them.
       agentRelayCopy: {
         headline: "h",
         reason: "r",
@@ -577,8 +584,25 @@ describe("PR P-5 — guardConversion, agentRelayCopy and overrides resolve", () 
     expect(reasonFor("decisionCopy.states.BLOCKED.supportingText")).toContain("no shipped counterpart")
     expect(reasonFor("decisionCopy.states.BLOCKED.secondaryLinkLabel")).toContain("no shipped counterpart")
     expect(reasonFor("guardConversion.declineLabel")).toContain("security floor compares it as a literal")
-    for (const slot of ["headline", "reason", "adds", "notObserved", "approvalQuestion"]) {
-      expect(reasonFor(`agentRelayCopy.${slot}`)).toContain("no consumer exists")
+    // The inverted half: WIRED as of P-6, so each of the five must be absent from
+    // `unwiredSlots` AND present in `overriddenSlots` with its value on the resolved plane.
+    // Absence alone would also hold if the resolver had silently dropped the block, which is
+    // why the value is asserted too.
+    const RELAYED = ["headline", "reason", "adds", "notObserved", "approvalQuestion"] as const
+    const configured: Record<string, string> = {
+      headline: "h",
+      reason: "r",
+      adds: "a",
+      notObserved: "n",
+      approvalQuestion: "q",
+    }
+    for (const slot of RELAYED) {
+      expect(
+        r.unwiredSlots.find((u) => u.startsWith(`agentRelayCopy.${slot}:`)),
+        `agentRelayCopy.${slot} is wired at P-6 and must carry no code-owned reason`,
+      ).toBeUndefined()
+      expect(r.overriddenSlots).toContain(`agentRelayCopy.${slot}`)
+      expect(r.agentRelay[slot]).toBe(configured[slot])
     }
     const overrideBase = "overrides.resources.mcp-registry__io.github.example-example"
     expect(reasonFor(`${overrideBase}.scopeAlias`)).toContain("no consumer exists")
@@ -587,9 +611,12 @@ describe("PR P-5 — guardConversion, agentRelayCopy and overrides resolve", () 
     // Distinctness, asserted rather than eyeballed: at least four different reasons appear.
     const distinct = new Set(r.unwiredSlots.map((u) => u.slice(u.indexOf(": ") + 2)))
     expect(distinct.size).toBeGreaterThanOrEqual(4)
-    // And none of it reached the resolved plane.
+    // And none of the CODE-OWNED configuration reached the resolved plane. `guardConversion`
+    // still falls back whole (`declineLabel` is compared as a literal by a security floor);
+    // the relay block no longer does, because P-6 wired it — asserted slot-by-slot above,
+    // and `guardOffer` is untouched here, so the unconfigured slot still defaults.
     expect(r.guardConversion).toEqual(DEFAULT_GUARD_OFFER_COPY)
-    expect(r.agentRelay).toEqual(DEFAULT_AGENT_RELAY_COPY)
+    expect(r.agentRelay.guardOffer).toBe(DEFAULT_AGENT_RELAY_COPY.guardOffer)
   })
 
   it("distinguishes a code-owned slot from a MISSPELLED one", () => {
@@ -695,6 +722,18 @@ describe("PR P-5 — the classification is TOTAL and the compiler enforces it", 
     // Eight, not five — the count P-5 moves. Naming it here means a section added without
     // classification fails a test that says WHY rather than only failing a typecheck.
     expect(Object.keys(LEVEL_BY_SECTION)).toHaveLength(8)
+  })
+
+  it("has NO code-owned relay slot left at P-6 — all six are wired, and both tables say so", () => {
+    // The batch's own closure, named. P-5 made this report total; P-6 makes it empty for this
+    // one section. Asserted from BOTH sides on purpose: an empty `CODE_OWNED_SLOTS` entry alone
+    // would also be produced by deleting the slots from the schema, so the wired table has to
+    // show all six present. `AGENT_RELAY_SLOTS` is the classification domain, so this compares
+    // against the schema's own slot list rather than a literal restated here.
+    expect(CODE_OWNED_SLOTS.agentRelayCopy).toEqual({})
+    expect([...WIRED_SLOTS.agentRelayCopy].sort()).toEqual([...AGENT_RELAY_SLOTS].sort())
+    expect([...WIRED_AGENT_RELAY].sort()).toEqual([...AGENT_RELAY_SLOTS].sort())
+    expect(WIRED_AGENT_RELAY).toHaveLength(6)
   })
 
   it("puts no slot in BOTH tables", () => {

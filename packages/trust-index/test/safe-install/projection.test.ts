@@ -3,7 +3,7 @@
  * (ADR 0056; plan §7/§8). Everything here is PURE and deterministic: real baked
  * fixture pages in, one projection object out. The five required properties
  * (plan Batch 1): byte-identical canonical JSON, publisher text can never touch a
- * decision field, all four verdict maps, the top-three selector, and the
+ * decision field, all four verdict maps, the top-N authority selector, and the
  * unsupported/incomplete routes. Plus schema self-validation (Gate 2.4-C seed).
  */
 import { describe, it, expect } from "vitest"

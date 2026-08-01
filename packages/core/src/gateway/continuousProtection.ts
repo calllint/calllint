@@ -65,14 +65,22 @@ export const GUARD_HOST_IDS = [
 ] as const
 export type GuardHostId = (typeof GUARD_HOST_IDS)[number]
 
-interface GuardArtifactFacts {
+export interface GuardArtifactFacts {
   readonly label: string
   readonly artifactPath: string
   readonly posture: "dedicated" | "shared"
 }
 
-/** Byte-for-byte the artifact facts the shipped `guard install` writer produces. */
-const GUARD_ARTIFACTS: Readonly<Record<GuardHostId, GuardArtifactFacts>> = {
+/**
+ * Byte-for-byte the artifact facts the shipped `guard install` writer produces.
+ *
+ * Exported since P-6 so the preview harness can grade host-copy completeness at the
+ * plane where the copy actually lives. The install page names no host — adding host
+ * copy there would add served bytes — so this table is the only place a missing host
+ * label could hide. Exporting is additive: `disclosureDigest`'s preimage, the render
+ * and `persistentComponentFor` are untouched.
+ */
+export const GUARD_ARTIFACTS: Readonly<Record<GuardHostId, GuardArtifactFacts>> = {
   git: { label: "git pre-commit hook", artifactPath: ".git/hooks/pre-commit", posture: "dedicated" },
   "git-pre-push": { label: "git pre-push hook", artifactPath: ".git/hooks/pre-push", posture: "dedicated" },
   github: { label: "GitHub Actions drift-gate workflow", artifactPath: ".github/workflows/calllint.yml", posture: "dedicated" },

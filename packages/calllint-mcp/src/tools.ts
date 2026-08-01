@@ -27,15 +27,24 @@ import { renderExplain, NO_EMOJI_STYLE } from "@calllint/report-renderer"
 import { VERDICT_PUBLIC_LABEL } from "@calllint/types"
 import type { ApplyResult, Baseline, InstallPlan, TrustPreparation } from "@calllint/types"
 import { matchLexical } from "@calllint/trust-index/matchLexical"
-// PR P-5 — the guard-relay sentence below is composed from the shared default rather than
+// PR P-5/P-6 — the relay sentences below are composed from the shared defaults rather than
 // restated inline, so the copy catalog and this tool cannot drift apart. Imported by SUBPATH
-// for the same reason `matchLexical` is: `agentRelay.ts` is leaf-pure (types + one frozen
-// object, zero imports), so this pulls in no ingestion code and the esbuild bundle stays
-// what it was. Relay copy may never add or remove a protocol trigger (ADR 0058 §6) — the
-// fields that carry this tool's actual meaning (`enabled: false`,
-// `requiresSeparateAuthorization: true`) are typed literals set in code below, so a
-// configured string can reword this fact but cannot make it untrue.
-import { DEFAULT_AGENT_RELAY_COPY } from "@calllint/trust-index/agentRelay"
+// for the same reason `matchLexical` is: `agentRelay.ts` is leaf-pure (types, one frozen
+// object and one pure composer, zero imports), so this pulls in no ingestion code and the
+// esbuild bundle stays what it was. Relay copy may never add or remove a protocol trigger
+// (ADR 0058 §6) — the fields that carry each tool's actual meaning (`enabled: false`,
+// `requiresSeparateAuthorization: true`; the prepare outcome and plan digest) are typed and
+// decided in code, so a configured string can reword a fact but cannot make it untrue.
+//
+// P-6 adds `composeRelayNotes`: the five decision-relay slots reach `runPrepare`'s existing
+// `notes[]`. The composer is FACT-GATED, so this tool gains a surface without gaining prose —
+// every sentence is relay wording plus a field read off the sealed contract, and a sentence
+// whose field is absent is not emitted. Reading `DEFAULT_AGENT_RELAY_COPY` (not a resolved
+// document) is deliberate and unchanged from P-5: both binaries declare empty runtime
+// dependencies and the catalog ships in no `files` list, so configuration reaches these
+// sentences at BUILD TIME only. The presentation lock is what keeps the catalog honest about
+// that — it proves the committed document restates these defaults verbatim.
+import { composeRelayNotes, DEFAULT_AGENT_RELAY_COPY } from "@calllint/trust-index/agentRelay"
 import {
   applyPlan,
   buildDecisionReceipt,
@@ -382,6 +391,28 @@ function runPrepare(
   } else if (outcome === "PREPARED" && !planDigest) {
     notes.push(`local verdict ${prep.decision?.verdict ?? "?"} — preparable; name a host to compute the applyable plan`)
   }
+
+  // PR P-6 — the decision-relay sentences. Read STRICTLY off the sealed contract this call
+  // already resolved plus the plan digest already computed above: nothing here recomputes a
+  // verdict, and no sentence can state a fact the contract does not carry. `notes` is typed
+  // by the result schema as "non-decision notes… Never carries publisher content", and this
+  // adds nothing else — the authority tokens are engine vocabulary, and the publisher's own
+  // description is never read here.
+  const obs = contract.publicObservation
+  const delta = contract.authorityDelta
+  notes.push(
+    ...composeRelayNotes(DEFAULT_AGENT_RELAY_COPY, {
+      verdict: obs.verdict,
+      publicLabel: obs.publicLabel,
+      reasonCodes: obs.reasonCodes ?? [],
+      evidenceLevel: obs.evidenceLevel ?? null,
+      completeness: obs.completeness ?? null,
+      adds: (delta?.adds ?? []).map((a) => a.authority),
+      notObserved: delta?.notObserved ?? [],
+      planDigest,
+    }),
+  )
+
   return emitResult({ ...base, host: host ?? null, outcome, planDigest, notes })
 }
 
