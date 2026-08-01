@@ -1,5 +1,5 @@
 // ---------------------------------------------------------------------------
-// Phase 2.4 Batch 1 — deterministic top-three authority selector (ADR 0056; plan §6.6).
+// Phase 2.4 Batch 1 — deterministic top-N authority selector (ADR 0056; plan §6.6).
 //
 // PURE + deterministic. Projects the shipped, frozen reason-code vocabulary
 // (@calllint/types REASON_CODES) onto a small, closed lowercase CONSEQUENCE
@@ -9,10 +9,16 @@
 // the risk engine are untouched (INV-2.4-01/10). No LLM, no free text, no clock.
 //
 // The selector answers one question for the human capsule: "what are the at-most
-// three authority facts that matter for THIS decision?" — highest observed
-// consequence first, at most one meaningful absence, and only when evidence
-// supports that absence (completeness === "complete"). "not observed" is NEVER
-// rendered as "impossible" (plan §6.6; INV vocabulary rule §4.1).
+// MAX_DECISION_AUTHORITY_FACTS authority facts that matter for THIS decision?" —
+// highest observed consequence first, at most one meaningful absence, and only when
+// evidence supports that absence (completeness === "complete"). "not observed" is
+// NEVER rendered as "impossible" (plan §6.6; INV vocabulary rule §4.1).
+//
+// That cap is 5 (ADR 0059, mirrored by SHIPPED_LAYOUT_CAPS.maxAuthorityFacts). The
+// earlier "top three" of new15 §14 / plan §6.6 is SUPERSEDED — all five canonical
+// fixtures measure exactly 5 facts, so a 3 was unsatisfiable rather than merely
+// stale. `pnpm audit:preview` grades the measured counts against the declared
+// threshold, so the number cannot drift back silently.
 // ---------------------------------------------------------------------------
 
 import type { BakedTrustPage } from "./bakeTrustPage.js"

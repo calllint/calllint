@@ -186,14 +186,32 @@
       "type": "object",
       "additionalProperties": false,
       "minProperties": 1,
-      "description": "The six new15 §20.2 relay slots. Relay copy may never add or remove a protocol trigger (ADR 0058 §6); it is wording an agent echoes, not policy an agent obeys.",
+      "description": "The six new15 §20.2 relay slots. Relay copy may never add or remove a protocol trigger (ADR 0058 §6); it is wording an agent echoes, not policy an agent obeys. new15 §5 names FOUR relay slots and this block declares six: the extra two (`adds`, `notObserved`) are not invented copy — each names a field the sealed contract already carries, so §5's four are the MINIMUM. The rule that keeps the superset honest is enforced rather than asserted: EVERY slot below names a contract field or a plan fact as its BASIS, and a sentence whose basis is absent is not emitted at all. A seventh slot with no basis fails that check. Each `description` records its own basis so the reconciliation lives beside the declaration.",
       "properties": {
-        "headline": { "$ref": "#/$defs/copyText" },
-        "reason": { "$ref": "#/$defs/copyText" },
-        "adds": { "$ref": "#/$defs/copyText" },
-        "notObserved": { "$ref": "#/$defs/copyText" },
-        "approvalQuestion": { "$ref": "#/$defs/copyText" },
-        "guardOffer": { "$ref": "#/$defs/copyText" }
+        "headline": {
+          "description": "BASIS: publicObservation.verdict + publicLabel. Unconditional — a resolved contract always carries a verdict.",
+          "allOf": [{ "$ref": "#/$defs/copyText" }]
+        },
+        "reason": {
+          "description": "BASIS: publicObservation.reasonCodes + evidenceLevel. Reason codes are NAMED from the contract, never paraphrased into new claims.",
+          "allOf": [{ "$ref": "#/$defs/copyText" }]
+        },
+        "adds": {
+          "description": "BASIS: authorityDelta.adds. Emitted only when that array is non-empty — an \"adds\" sentence with nothing to add would be decoration, not a projection. (Measured: non-empty on 17 of 19 served identities.)",
+          "allOf": [{ "$ref": "#/$defs/copyText" }]
+        },
+        "notObserved": {
+          "description": "BASIS: authorityDelta.notObserved, gated on publicObservation.completeness === \"complete\" exactly as the contract builder gates it. When the inventory is partial, silence is a GAP rather than evidence of absence, so the sentence must not appear — absence of evidence is recorded as absence, never as safety.",
+          "allOf": [{ "$ref": "#/$defs/copyText" }]
+        },
+        "approvalQuestion": {
+          "description": "BASIS: a computed planDigest. Without one there is no exact plan to approve, so the question would invite approval of something unnamed.",
+          "allOf": [{ "$ref": "#/$defs/copyText" }]
+        },
+        "guardOffer": {
+          "description": "BASIS: the guard tool's own typed outcome fields (enabled: false, requiresSeparateAuthorization: true). Configurable WORDING, not configurable MEANING — a configured string can restate the fact differently but cannot make it untrue, and cannot cause the tool to install anything.",
+          "allOf": [{ "$ref": "#/$defs/copyText" }]
+        }
       }
     },
     "layout": {

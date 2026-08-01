@@ -66,7 +66,44 @@
     "notes": {
       "type": "array",
       "items": { "type": "string" },
-      "description": "Human-readable, non-decision notes (e.g. why a slot is empty). Never carries publisher content."
+      "description": "Human-readable, non-decision notes (e.g. why a slot is empty, and the decision-relay sentences an agent may echo). Never carries publisher content, and never a decision: each sentence is wording plus a field read off the sealed contract, and a sentence whose field is absent is omitted rather than softened (ADR 0058 §6 — relay copy may never add or remove a protocol trigger)."
+    },
+    "tool": {
+      "type": "string",
+      "minLength": 1,
+      "description": "The MCP tool that emitted this envelope (e.g. calllint_prepare_safe_install). Absent on the CLI's own result, which has no tool identity. DECLARED at P-6: the MCP surface has emitted this since Batch 6, so a schema that forbade it described something the code does not do (the same defect class as a key that validates and does nothing). Declaring is the honest fix — dropping the field would change published MCP output."
+    },
+    "note": {
+      "type": "string",
+      "minLength": 1,
+      "description": "The singular no-write / apply-provenance disclosure sentence. Distinct from `notes`: this is one fixed statement about what the tool did NOT do, not a list. Carries no verdict."
+    },
+    "receipt": {
+      "type": "object",
+      "description": "The shipped calllint.decision-receipt.v1 emitted by the apply service, carried verbatim so a caller can re-verify the apply later. Emitted only on the apply path. Opaque here — the receipt has its own schema and is never re-serialized by this envelope."
+    },
+    "configPath": {
+      "type": "string",
+      "minLength": 1,
+      "description": "The host config file the apply engine actually wrote. Emitted only on the apply path; never a guessed location (INV-2.4-04)."
+    },
+    "configDigestBefore": {
+      "type": "string",
+      "pattern": "^(sha256:[0-9a-f]{64}|absent)$",
+      "description": "Digest of the host config before the write, or the literal \"absent\" when no file existed. Emitted only on the apply path."
+    },
+    "configDigestAfter": {
+      "type": ["string", "null"],
+      "pattern": "^sha256:[0-9a-f]{64}$",
+      "description": "Digest of the host config after the write; null when no durable write survived (including after a rollback). Emitted only on the apply path."
+    },
+    "backupPath": {
+      "type": ["string", "null"],
+      "description": "The backup the apply engine took before writing; null when there was no pre-existing file to back up. Emitted only on the apply path."
+    },
+    "rolledBack": {
+      "type": "boolean",
+      "description": "Whether verification failed and the engine restored the backup. Emitted only on the apply path. A true value means no CallLint change survived."
     }
   }
 }

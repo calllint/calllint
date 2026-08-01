@@ -24,7 +24,19 @@ interface CommittedContracts {
 }
 
 /** The baked contract shape — only the fields the MCP tools project are typed; the rest is
- *  preserved opaquely so the bundle stays a verbatim copy (never a re-serialization). */
+ *  preserved opaquely so the bundle stays a verbatim copy (never a re-serialization).
+ *
+ *  P-6 widens the TYPING, never the data: `publicObservation`'s three extra fields and
+ *  `authorityDelta` are already in every bundled byte (measured: `completeness: "complete"`
+ *  on all 19, `adds|notObserved` = 1|8 ×17 and 0|9 ×2). They are typed here because the
+ *  decision-relay notes are a PROJECTION of the sealed contract — a relay sentence may only
+ *  name a field the contract carries — and an untyped read through `[key: string]: unknown`
+ *  would make that basis a cast rather than a checked fact.
+ *
+ *  Every added field is OPTIONAL on purpose. A contract is read from bytes, so absence is a
+ *  real answer; the composer treats a missing field as "no basis" and omits the sentence
+ *  rather than inventing one. `[key: string]: unknown` stays, so the bundle is still carried
+ *  through verbatim and no field is dropped by being untyped. */
 export interface AdoptionContract {
   schema: string
   contract: { contractDigest: string; generatedAt: string; expiresAt: string | null }
@@ -37,7 +49,29 @@ export interface AdoptionContract {
     artifactDigest: string
     sourceLocator: string | null
   }
-  publicObservation: { verdict: string; publicLabel: string }
+  publicObservation: {
+    verdict: string
+    publicLabel: string
+    /** Sealed reason codes, in contract order — the basis of the `reason` relay sentence. */
+    reasonCodes?: readonly string[]
+    /** E0–E3 evidence level — the other half of the `reason` sentence's basis. */
+    evidenceLevel?: string
+    /**
+     * Whether the authority inventory was complete. GATES the `notObserved` relay
+     * sentence, mirroring the contract builder's own gate: when the inventory is partial
+     * the builder leaves `notObserved` empty precisely because silence is a GAP, not
+     * evidence of absence.
+     */
+    completeness?: "complete" | "partial"
+  }
+  /**
+   * What the install would add, and the high-authority complement that was NOT observed.
+   * Present on every bundled contract; typed optional because a contract is read from bytes.
+   */
+  authorityDelta?: {
+    readonly adds?: readonly { authority: string }[]
+    readonly notObserved?: readonly string[]
+  }
   recommendedNextAction: { kind: string; tool: string; arguments: Record<string, unknown> }
   [key: string]: unknown
 }

@@ -27,12 +27,16 @@ import { readFileSync, existsSync, readdirSync } from "node:fs"
 import { dirname, resolve } from "node:path"
 import { fileURLToPath } from "node:url"
 import {
+  AGENT_RELAY_SLOTS,
   DEFAULT_AGENT_RELAY_COPY,
   PRESENTATION_CONTENT_VERSION,
+  WIRED_AGENT_RELAY,
+  composeRelayNotes,
   evaluateConversion,
   overrideKey,
   resolvePresentation,
   type ConversionObservation,
+  type RelayFacts,
 } from "../../src/index.js"
 import {
   DEFAULT_GUARD_OFFER_COPY,
@@ -166,6 +170,143 @@ describe("PR P-5 — the zero-served-byte claim, measured", () => {
     // And the sidecars genuinely differ from the pages, so "searched both" is not one search
     // twice. The sealed contract carries no page chrome.
     expect(served.filter((p) => p.json.includes("with CallLint"))).toEqual([])
+  })
+})
+
+describe("PR P-6 — the relay surface is a projection, and it is served nowhere", () => {
+  /**
+   * Relay facts read off a SEALED sidecar, exactly as `runPrepare` reads them off a committed
+   * contract. Nothing is composed or defaulted here — a field the sidecar does not carry stays
+   * absent, which is what lets the gates below be exercised by real bytes instead of fixtures.
+   *
+   * `planDigest` is deliberately synthesized: it is the one fact that is NOT in a contract (it
+   * is computed per plan), and `planDigest present in any sidecar` measures 0 of 19. Passing a
+   * digest here is therefore the honest way to reach the `approvalQuestion` sentence — and the
+   * per-slot gate assertions in `packages/calllint-mcp/test/relay-notes.test.ts` grade its
+   * absence.
+   */
+  const factsFromSidecar = (json: string): RelayFacts => {
+    const c = JSON.parse(json) as {
+      publicObservation?: {
+        verdict?: string
+        publicLabel?: string
+        reasonCodes?: readonly string[]
+        evidenceLevel?: string
+        completeness?: "complete" | "partial"
+      }
+      authorityDelta?: { adds?: readonly { authority: string }[]; notObserved?: readonly string[] }
+    }
+    const obs = c.publicObservation ?? {}
+    const delta = c.authorityDelta ?? {}
+    return {
+      verdict: obs.verdict ?? null,
+      publicLabel: obs.publicLabel ?? null,
+      reasonCodes: obs.reasonCodes ?? [],
+      evidenceLevel: obs.evidenceLevel ?? null,
+      completeness: obs.completeness ?? null,
+      adds: (delta.adds ?? []).map((a) => a.authority),
+      notObserved: delta.notObserved ?? [],
+      planDigest: `sha256:${"b".repeat(64)}`,
+    }
+  }
+
+  it("wires all six slots, with the two tables agreeing", () => {
+    // P-5 shipped one wired slot; P-6 wires the other five. Asserted as SET equality against
+    // the schema domain rather than a count, so a slot renamed on one side and not the other
+    // fails by name instead of still totalling six.
+    expect([...WIRED_AGENT_RELAY].sort()).toEqual([...AGENT_RELAY_SLOTS].sort())
+    expect(new Set(WIRED_AGENT_RELAY).size).toBe(WIRED_AGENT_RELAY.length)
+  })
+
+  it("records all six relay slots as overridden — the catalog reaches every one", () => {
+    // P-5 could only assert `agentRelayCopy.guardOffer`, because it was the only slot with a
+    // consumer. The catalog now restates all six, and each must be RECORDED as overridden or
+    // the resolver silently dropped a key the document carries.
+    for (const slot of AGENT_RELAY_SLOTS) {
+      expect(resolved.overriddenSlots, `agentRelayCopy.${slot} is not recorded`).toContain(
+        `agentRelayCopy.${slot}`,
+      )
+    }
+  })
+
+  it("composes the SAME sentences from the catalog as from the code defaults", () => {
+    // The identity assertion above compares the two copy objects; this one compares what they
+    // PRODUCE. A resolver that returned the right strings but reordered or dropped a slot would
+    // pass the first and fail here, which is why both exist.
+    expect(served.length, "no sealed contract to compose from").toBeGreaterThan(0)
+    for (const page of served) {
+      const facts = factsFromSidecar(page.json)
+      expect(
+        composeRelayNotes(resolved.agentRelay, facts),
+        `install/${page.slug} composes differently from configured copy`,
+      ).toEqual(composeRelayNotes(DEFAULT_AGENT_RELAY_COPY, facts))
+    }
+  })
+
+  it("finds NO composed relay SENTENCE in any committed page or sealed contract", () => {
+    // P-5's search covered the six raw slot values. A composed sentence is a different string —
+    // slot wording, a separator, and a machine fact — so a renderer that emitted the projection
+    // rather than the slot would have slipped past the P-5 search while spending served bytes.
+    // Searching what `runPrepare` actually pushes closes that gap.
+    //
+    // The claim is structural: the sentences land in an MCP `notes[]` array, which is not an
+    // install page. Reading the COMMITTED corpus means a stale tree fails too.
+    const sentences = new Set<string>()
+    for (const page of served) {
+      for (const note of composeRelayNotes(resolved.agentRelay, factsFromSidecar(page.json))) {
+        sentences.add(note)
+      }
+    }
+    expect(sentences.size, "nothing composed — the search would pass by finding nothing").toBeGreaterThan(0)
+    const hits: string[] = []
+    for (const sentence of sentences) {
+      for (const page of served) {
+        if (page.html.includes(sentence)) hits.push(`"${sentence}" in install/${page.slug}/index.html`)
+        if (page.json.includes(sentence)) hits.push(`"${sentence}" in install/${page.slug}/index.json`)
+      }
+    }
+    expect(hits).toEqual([])
+  })
+
+  it("every emitted sentence names a machine fact from the contract it was composed from", () => {
+    // Decision 7's superset rule, graded on real bytes: a relay slot may only be emitted when
+    // the sealed contract carries its basis. Each sentence is checked to CONTAIN the field it
+    // relays, so relay wording alone can never satisfy the check.
+    for (const page of served) {
+      const facts = factsFromSidecar(page.json)
+      const notes = composeRelayNotes(resolved.agentRelay, facts)
+      const find = (slot: keyof typeof DEFAULT_AGENT_RELAY_COPY): string | undefined =>
+        notes.find((n) => n.startsWith(DEFAULT_AGENT_RELAY_COPY[slot]))
+
+      // Unconditional, because every sealed contract carries a verdict and an evidence level.
+      expect(find("headline"), `install/${page.slug} headline`).toContain(String(facts.verdict))
+      expect(find("reason"), `install/${page.slug} reason`).toContain(String(facts.evidenceLevel))
+
+      // Gated. Presence must track the basis in BOTH directions — an omitted sentence whose
+      // fact is present is as wrong as an emitted one whose fact is absent.
+      expect(find("adds") !== undefined, `install/${page.slug} adds`).toBe(facts.adds.length > 0)
+      if (facts.adds.length > 0) expect(find("adds")).toContain(facts.adds[0])
+
+      const notObservedExpected = facts.completeness === "complete" && facts.notObserved.length > 0
+      expect(find("notObserved") !== undefined, `install/${page.slug} notObserved`).toBe(notObservedExpected)
+      if (notObservedExpected) expect(find("notObserved")).toContain(facts.notObserved[0])
+
+      // `guardOffer` belongs to a different tool's outcome and is pushed by that tool, so the
+      // decision-relay composer must never emit it — the seam that keeps the two surfaces apart.
+      expect(find("guardOffer"), `install/${page.slug} leaked guardOffer`).toBeUndefined()
+    }
+  })
+
+  it("the served corpus really does exercise both sides of the `adds` gate", () => {
+    // Anti-vacuity for the gate assertions above. Measured on the committed bundle: 17 sidecars
+    // carry `adds: [1]` and 2 carry `adds: []`, so the both-directions check has a witness on
+    // each side. A corpus that had drifted to one shape would make half of it decorative.
+    const withAdds = served.filter((p) => factsFromSidecar(p.json).adds.length > 0)
+    expect(withAdds.length, "no sidecar carries adds — the emit side is untested").toBeGreaterThan(0)
+    expect(
+      served.length - withAdds.length,
+      "every sidecar carries adds — the omit side is untested",
+    ).toBeGreaterThan(0)
   })
 })
 

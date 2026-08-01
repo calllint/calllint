@@ -80,6 +80,11 @@
     "acceptLabel": "Enable continuous protection"
   },
   "agentRelayCopy": {
+    "headline": "CallLint decided this agent-tool install before anything ran",
+    "reason": "the verdict follows from observed authority, not from reputation",
+    "adds": "this install adds the authority surface listed in the contract",
+    "notObserved": "absence of evidence is recorded as absence, never as safety",
+    "approvalQuestion": "approve this exact plan, or stop and review the evidence?",
     "guardOffer": "this tool installed nothing: enabling persistent protection is a separate operator action, run from a terminal"
   },
   "overrides": {

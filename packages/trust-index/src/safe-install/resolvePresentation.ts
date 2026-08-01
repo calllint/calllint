@@ -292,13 +292,11 @@ export const CODE_OWNED_SLOTS = {
     declineLabel:
       "security floor compares it as a literal: Gate 2.4-F asserts declineOption === 'Not now' and that '[Not now]' is rendered, and ContinuousProtectionOffer types the field as that literal — configuration reaching it could fail, or weaken, INV-2.4-07's own floor",
   },
-  agentRelayCopy: {
-    headline: "no consumer exists: no code produces a decision-relay surface (P-6)",
-    reason: "no consumer exists: no code produces a decision-relay surface (P-6)",
-    adds: "no consumer exists: no code produces a decision-relay surface (P-6)",
-    notObserved: "no consumer exists: no code produces a decision-relay surface (P-6)",
-    approvalQuestion: "no consumer exists: no code produces a decision-relay surface (P-6)",
-  },
+  // Empty as of P-6: the five decision-relay slots gained a real consumer
+  // (`composeRelayNotes` → the MCP prepare result's `notes[]`), so every slot moved into
+  // `WIRED_AGENT_RELAY`. The compiler forces both edits to happen together — a slot left
+  // here while also wired appears in both tables, which the totality test fails by name.
+  agentRelayCopy: {},
   layout: {},
   tokens: {},
   overrides: {
@@ -368,8 +366,9 @@ export interface ResolvedPresentation {
    */
   readonly guardConversion: GuardOfferCopy
   /**
-   * L1 — relay wording an agent echoes (PR P-5). One of six slots has a consumer today;
-   * the other five are declared code-owned with that reason rather than wired dishonestly.
+   * L1 — relay wording an agent echoes (PR P-5; all six slots wired at P-6). The five
+   * decision-relay slots compose into the MCP prepare result's `notes[]` through
+   * `composeRelayNotes`, each sentence gated on the contract field it relays.
    * ADR 0058 §6: relay copy may never add or remove a protocol trigger.
    */
   readonly agentRelay: AgentRelayCopy
@@ -763,9 +762,10 @@ export function resolvePresentation(doc: unknown): ResolvedPresentation {
   )
   collectUnwired("guardConversion", guardRaw, unwired)
 
-  // L1 — the AGENT RELAY block (PR P-5). One of six slots has a consumer (`guardOffer`, the
-  // MCP guard tool's relay line); the five decision-relay slots are code-owned with the
-  // no-consumer reason until P-6 gives them a surface.
+  // L1 — the AGENT RELAY block (PR P-5; ALL SIX slots wired at P-6). `guardOffer` reaches
+  // the MCP guard tool's relay line; the five decision-relay slots reach the MCP prepare
+  // result's `notes[]` through `composeRelayNotes`, each gated on the contract field it
+  // relays. `CODE_OWNED_SLOTS.agentRelayCopy` is consequently empty.
   const relayRaw = objectOrUndefined(d.agentRelayCopy as Record<string, unknown> | undefined)
   if (d.agentRelayCopy !== undefined && relayRaw === undefined) {
     rejected.push("agentRelayCopy: not an object")

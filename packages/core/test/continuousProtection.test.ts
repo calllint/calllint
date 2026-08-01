@@ -9,6 +9,7 @@
 import { describe, it, expect } from "vitest"
 import {
   DEFAULT_GUARD_OFFER_COPY,
+  GUARD_ARTIFACTS,
   GUARD_HOST_IDS,
   continuousProtectionOffer,
   disclosureDigest,
@@ -68,6 +69,55 @@ describe("continuous-protection disclosure (INV-2.4-07)", () => {
     expect(isGuardHostId("emacs")).toBe(false)
     expect(isGuardHostId(null)).toBe(false)
     expect(isGuardHostId(undefined)).toBe(false)
+  })
+})
+
+/**
+ * Host copy completeness (PR P-6, §14 Config 完整性).
+ *
+ * `GUARD_ARTIFACTS` became exported at P-6 so the preview harness can grade host copy at the
+ * plane where it actually lives: the install page names no host at all, so a missing label
+ * would have nowhere else to surface. These assertions are the package-side floor the harness
+ * reads — the compiler already proves the table is TOTAL (`Record<GuardHostId, …>`), so what
+ * is left to grade is that no entry is present-but-empty, which a `Record` cannot see.
+ */
+describe("guard host copy is complete for every host (P-6)", () => {
+  it("gives all seven hosts a non-empty label, artifact path and uninstall command", () => {
+    // Driven off `GUARD_HOST_IDS`, so a host added without copy fails here as well as at the
+    // typecheck — a list is what the harness enumerates, and it can always be one entry short.
+    expect(Object.keys(GUARD_ARTIFACTS)).toHaveLength(GUARD_HOST_IDS.length)
+    for (const host of GUARD_HOST_IDS) {
+      const facts = GUARD_ARTIFACTS[host]
+      expect(facts.label.trim().length, `${host} has no label`).toBeGreaterThan(0)
+      expect(facts.artifactPath.trim().length, `${host} has no artifact path`).toBeGreaterThan(0)
+      // The uninstall command is derived, not stored, so it is graded through the discloser
+      // that the surfaces actually call rather than off the table.
+      const uninstall = persistentComponentFor(host).uninstallCommand
+      expect(uninstall.trim().length, `${host} has no uninstall command`).toBeGreaterThan(0)
+      // INV-2.4-08: a shared-posture artifact must never claim an automated removal.
+      if (facts.posture === "shared") expect(uninstall).toContain("by hand")
+    }
+  })
+
+  it("names a DISTINCT artifact for each host, so no removal instruction is ambiguous", () => {
+    // Two hosts sharing an artifact path would make one host's uninstall command silently
+    // remove another's protection. `git` and `git-pre-push` are the near-collision this guards.
+    const paths = GUARD_HOST_IDS.map((h) => GUARD_ARTIFACTS[h].artifactPath)
+    expect(new Set(paths).size, `duplicate artifact path in ${paths.join(", ")}`).toBe(paths.length)
+    const labels = GUARD_HOST_IDS.map((h) => GUARD_ARTIFACTS[h].label)
+    expect(new Set(labels).size).toBe(labels.length)
+  })
+
+  it("exports the SAME table the discloser reads — not a copy that could drift", () => {
+    // Exporting a table invites a second source of truth. This asserts the export IS the input
+    // to `persistentComponentFor`, so the harness grades the shipped facts rather than a
+    // parallel record that agrees today.
+    for (const host of GUARD_HOST_IDS) {
+      const component = persistentComponentFor(host)
+      expect(component.label).toBe(GUARD_ARTIFACTS[host].label)
+      expect(component.artifactPath).toBe(GUARD_ARTIFACTS[host].artifactPath)
+      expect(component.posture).toBe(GUARD_ARTIFACTS[host].posture)
+    }
   })
 })
 

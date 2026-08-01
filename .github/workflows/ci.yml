@@ -130,6 +130,16 @@ jobs:
       - name: Workstream P presentation lock (digest-seam gate)
         run: pnpm audit:presentation:lock:gate
 
+      # new15 §14's four acceptance-gate blocks (配置完整性 · 页面一致性 · 安全隔离 ·
+      # 视觉回归), which nothing ran before P-6. The gate's teeth are 安全隔离: a hostile
+      # publisher string reaching the DOM, configured copy reaching an agent protocol
+      # trigger, or a configured token moving a sealed digest all fail here.
+      - name: Workstream P preview & snapshot harness (drift)
+        run: pnpm audit:preview
+
+      - name: Workstream P preview & snapshot harness (§14 gate)
+        run: pnpm audit:preview:gate
+
       - name: Package smoke (shipped artifact)
         run: pnpm smoke
 

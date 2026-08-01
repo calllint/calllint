@@ -216,8 +216,15 @@ function routeKey(p: SafeInstallProjection): string {
  * attribute escape turns into `&#39;` and the text escape leaves alone — and would then
  * report a real copy site as "never rendered". Checking both is what keeps `htmlMoved`
  * a measurement rather than an artifact of which escape the probe happened to guess.
+ *
+ * EXPORTED at P-6 (additive). The preview harness's publisher→HTML zero-count needs the
+ * SAME two forms: a hostile blurb that leaked into a decision group would be escaped by
+ * whichever helper that group happens to use, so a check that guessed one form could
+ * report zero occurrences of a string that is on the page. One implementation, two
+ * consumers — the alternative is two definitions that can disagree about what "rendered"
+ * means, and the one that is wrong would be the one reporting success.
  */
-function renderedForms(s: string): string[] {
+export function renderedForms(s: string): string[] {
   const text = s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
   return [text, text.replace(/"/g, "&quot;").replace(/'/g, "&#39;")]
 }

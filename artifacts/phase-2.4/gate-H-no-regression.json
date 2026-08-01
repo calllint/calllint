@@ -67,7 +67,7 @@
   "regressionChecks": [
     {
       "id": "ci:local",
-      "script": "pnpm typecheck && pnpm test && pnpm build && pnpm corpus:test && pnpm bench:test && pnpm check:public-copy && pnpm audit:evidence && pnpm audit:coverage && pnpm audit:calibration && pnpm eval:phase-2.4 && pnpm eval:phase-2.4:dogfood && pnpm eval:phase-2.4:gates && pnpm eval:phase-2.4:panel:validate && pnpm audit:presentation && pnpm audit:presentation:gate && pnpm audit:presentation:lock && pnpm audit:presentation:lock:gate",
+      "script": "pnpm typecheck && pnpm test && pnpm build && pnpm corpus:test && pnpm bench:test && pnpm check:public-copy && pnpm audit:evidence && pnpm audit:coverage && pnpm audit:calibration && pnpm eval:phase-2.4 && pnpm eval:phase-2.4:dogfood && pnpm eval:phase-2.4:gates && pnpm eval:phase-2.4:panel:validate && pnpm audit:presentation && pnpm audit:presentation:gate && pnpm audit:presentation:lock && pnpm audit:presentation:lock:gate && pnpm audit:preview && pnpm audit:preview:gate",
       "inLocalChain": true,
       "workflowBinding": null,
       "remoteOnly": false,
@@ -180,6 +180,22 @@
     {
       "id": "audit:presentation:lock:gate",
       "script": "tsx scripts/presentation-lock.ts --gate",
+      "inLocalChain": true,
+      "workflowBinding": "ci.yml#test",
+      "remoteOnly": false,
+      "role": "check"
+    },
+    {
+      "id": "audit:preview",
+      "script": "tsx scripts/preview-snapshot.ts",
+      "inLocalChain": true,
+      "workflowBinding": "ci.yml#test",
+      "remoteOnly": false,
+      "role": "check"
+    },
+    {
+      "id": "audit:preview:gate",
+      "script": "tsx scripts/preview-snapshot.ts --gate",
       "inLocalChain": true,
       "workflowBinding": "ci.yml#test",
       "remoteOnly": false,
@@ -332,6 +348,16 @@
     },
     {
       "id": "wired/audit:presentation:lock:gate",
+      "pass": true,
+      "observed": "ci:local + ci.yml#test"
+    },
+    {
+      "id": "wired/audit:preview",
+      "pass": true,
+      "observed": "ci:local + ci.yml#test"
+    },
+    {
+      "id": "wired/audit:preview:gate",
       "pass": true,
       "observed": "ci:local + ci.yml#test"
     },

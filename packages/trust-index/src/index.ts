@@ -193,6 +193,7 @@ export {
   PROBE_SENTINEL,
   gradePresentationAudit,
   probeCopySite,
+  renderedForms,
   runPresentationAudit,
   toProbeSubject,
   type CopyPlane,
@@ -202,11 +203,17 @@ export {
   type ProbeSubject,
 } from "./presentationAudit.js"
 // Phase 2.4 — Human Install renderer + discovery manifest + Safe-install emit (ADR 0056).
+// `CTA_DOC_HREF` + `DEEP_LINK_STATES` are exported at P-6 (additive): the preview
+// harness partitions pages on the CTA route, and it must read the renderer's own
+// predicate rather than keep a second copy that could fall out of step with it.
 export {
   renderSafeInstall,
   renderSafeInstallContract,
   SECTION_TITLES,
   INSTALL_COPY_SCRIPT_SRC,
+  CTA_DOC_HREF,
+  DEEP_LINK_STATES,
+  altRouteHref,
   type SectionTitles,
 } from "./renderSafeInstall.js"
 export {
@@ -336,14 +343,17 @@ export {
   type ResolvedResourceOverride,
   type ResourceOverride,
 } from "./safe-install/resolvePresentation.js"
-// PR P-5 — the AGENT RELAY copy slice (new15 §20.2; ADR 0058 §6). One of six slots has a
-// consumer today (`guardOffer`, the MCP guard tool's relay line); the five decision-relay
-// slots are declared code-owned with that measured reason until P-6 gives them a surface.
+// PR P-5/P-6 — the AGENT RELAY copy slice (new15 §20.2; ADR 0058 §6). ALL SIX slots are
+// wired: `guardOffer` reaches the MCP guard tool's relay line, and the five decision-relay
+// slots reach the MCP prepare result's `notes[]` through `composeRelayNotes` — each sentence
+// gated on the sealed-contract field it relays, so the surface cannot overstate the contract.
 export {
   DEFAULT_AGENT_RELAY_COPY,
   WIRED_AGENT_RELAY,
   AGENT_RELAY_SLOTS,
+  composeRelayNotes,
   type AgentRelayCopy,
+  type RelayFacts,
 } from "./safe-install/agentRelay.js"
 // PR P-5 — the SHIPPED fail-open loader, exported so a second edge (Gate 2.4-F) reuses it
 // rather than reimplementing the path and the try/catch. Two copies of a fail-open loader is
@@ -373,6 +383,44 @@ export {
   type LayoutSupportResult,
   type ResolvedLayout,
 } from "./safe-install/layoutStructure.js"
+// Workstream P Batch 7 — the PREVIEW & SNAPSHOT harness (new15 §14 PR P-6). Pure
+// measurement for the four acceptance-gate blocks §14 declares and nothing ran:
+// 配置完整性 · 页面一致性 · 安全隔离 · 视觉回归. All I/O lives in scripts/preview-snapshot.ts,
+// which is why each block is unit-testable without a bake — and why the observer cannot
+// quietly become a second renderer.
+export {
+  structuralSignature,
+  signatureConditionals,
+  ctaRoutePartition,
+  predictCtaColumns,
+  gradeConfigIntegrity,
+  gradePageConsistency,
+  gradeSecurityIsolation,
+  gradeVisualRegression,
+  gradePreviewSnapshot,
+  CTA_ROUTE_PARTITIONS,
+  CTA_REFLOW_RULES,
+  CONDITIONAL_SITES,
+  PREVIEW_VIEWPORTS,
+  type PreviewCheck,
+  type PreviewBlock,
+  type PreviewSnapshotInput,
+  type PreviewSnapshotResult,
+  type CtaRoutePartition,
+  type CatalogFacts,
+  type HostCopyFacts,
+  type HostVocabularyFacts,
+  type ConfigIntegrityInput,
+  type PageSample,
+  type PageConsistencyInput,
+  type InjectionSample,
+  type SentinelSample,
+  type SecurityIsolationInput,
+  type StylesheetSample,
+  type VisualRegressionInput,
+  type VisualRegressionResult,
+  type ViewportObservation,
+} from "./previewSnapshot.js"
 // Workstream P Batch 4 — the L0 TOKEN PLANE measurement (new15 §4.2 PR P-4; ADR
 // 0058 §1/§4). Pure parsing + comparison, no filesystem: the lock script and the
 // tests read the files and hand the bytes here, so both measure the token plane

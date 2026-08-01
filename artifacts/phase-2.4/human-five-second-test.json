@@ -1,12 +1,12 @@
 {
   "schema": "calllint.phase-2.4-human-capsule-eval.v0",
-  "$comment": "Gate 2.4-B evidence. Two independent inputs. (1) structuralPrecondition is machine-measured by evaluateHumanCapsule() over the SHIPPED renderer and must be 100% — one CTA, <=3 authority facts, all three five-second answers present exactly once above the fold, no decision JS. (2) humanPanel is read from five-second-panel-store.json, which only a human writes; code never simulates a human study, so an unrecorded panel yields PENDING_HUMAN_PANEL rather than a pass. Each response carries the sha256 of the page the participant was actually shown; responses whose page has since changed are reported under humanPanel.stale and EXCLUDED from the rates, so a page edit demotes the gate to PENDING_HUMAN_PANEL instead of inheriting recognition it never earned. Regenerate with `pnpm eval:phase-2.4:write`; enforce with `pnpm eval:phase-2.4:gate`.",
+  "$comment": "Gate 2.4-B evidence. Two independent inputs. (1) structuralPrecondition is machine-measured by evaluateHumanCapsule() over the SHIPPED renderer and must be 100% — one CTA, <=5 authority facts, all three five-second answers present exactly once above the fold, no decision JS. thresholds.maxAuthorityFacts is 5 per ADR 0059 (SHIPPED_LAYOUT_CAPS.maxAuthorityFacts = MAX_DECISION_AUTHORITY_FACTS = 5); new15 §14's earlier cap of 3 is SUPERSEDED and was unsatisfiable — all five canonical fixtures measure exactly 5, so grading a 3 would fail 5/5. The number is no longer self-certifying either: `pnpm audit:preview` (P-6) READS it and grades the measured fact counts against it, so editing it is graded rather than decorative. (2) humanPanel is read from five-second-panel-store.json, which only a human writes; code never simulates a human study, so an unrecorded panel yields PENDING_HUMAN_PANEL rather than a pass. Each response carries the sha256 of the page the participant was actually shown; responses whose page has since changed are reported under humanPanel.stale and EXCLUDED from the rates, so a page edit demotes the gate to PENDING_HUMAN_PANEL instead of inheriting recognition it never earned. Regenerate with `pnpm eval:phase-2.4:write`; enforce with `pnpm eval:phase-2.4:gate`.",
   "gate": "2.4-B",
   "status": "PASSED",
   "engineVersion": "1.7.3",
   "thresholds": {
     "singlePrimaryCta": 1,
-    "maxAuthorityFacts": 3,
+    "maxAuthorityFacts": 5,
     "recognitionPerQuestion": 0.9,
     "minPanelResponses": 10
   },
