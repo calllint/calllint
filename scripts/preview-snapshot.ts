@@ -483,13 +483,25 @@ function build(): { json: string; pass: boolean; failures: readonly string[] } {
       // one of its 19 rows is that job — and `deploy-web.yml` has a single `deploy:` job
       // graded by nothing. So the workflow is verified AS TEXT here, which is the same
       // idiom and the same fault class as a row bound to no workflow job.
-          // Bind the INVOKED COMMAND, not the word. `presentationDigest` appears in that
-        // step's own explanatory comment, so a probe for the word would keep passing after
-        // someone deleted the command — the "mentions ≠ does" trap, which this repo has
-        // already paid for once.
-        deployWorkflowRecordsDigest: /^\s*pnpm ledger:presentation:validate:offline\b/m.test(deployWorkflow),
+      //
+      // Both probes read the workflow as LINES, and `.gitattributes` does NOT cover
+      // `.github/workflows/**`, so the bytes on disk depend on the checkout: LF locally and
+      // on the POSIX runners, CRLF on `windows-latest`, whose `core.autocrlf` defaults to
+      // true. The first version of the permissions probe spelled the line break as a literal
+      // `\n` and went red on windows-latest ALONE — reporting a write permission that
+      // `deploy-web.yml` does not have. A checkout artifact must not be able to manufacture a
+      // fault, so the line break is matched as `\r?\n`: what is under test is the workflow's
+      // permissions, not the line endings of the machine that cloned it.
+      //
+      // Bind the INVOKED COMMAND, not the word. `presentationDigest` appears in that step's
+      // own explanatory comment, so a probe for the word would keep passing after someone
+      // deleted the command — the "mentions ≠ does" trap, which this repo has already paid
+      // for once. (`\s` already spans `\r`, so this one was newline-safe by accident;
+      // measured on both shapes rather than assumed.)
+      deployWorkflowRecordsDigest: /^\s*pnpm ledger:presentation:validate:offline\b/m.test(deployWorkflow),
       deployWorkflowPermissionsReadOnly:
-        /^permissions:\n  contents: read$/m.test(deployWorkflow) && !/contents:\s*write/.test(deployWorkflow),
+        /^permissions:\r?\n  contents: read\s*$/m.test(deployWorkflow) &&
+        !/contents:\s*write/.test(deployWorkflow),
       schemaPropertyNames: Object.keys(contentSchema.properties ?? {}),
       validatorKnownKeys,
       // Every slot the resolver can fill, flattened from BOTH tables. `configVersion` must
