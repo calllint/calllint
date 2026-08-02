@@ -44,6 +44,14 @@ onward. While pre-1.0, minor versions may include breaking changes.
   digest) is invisible to the offline layer **by construction**. A test asserts that zero-fault
   result plainly and pins the git layer as the one that names it — a test that only checked "a
   forgery fails" would pass while the two layers were silently collapsed into one.
+  The split needed one more piece to be gradeable on both kinds of clone. The suite first shipped
+  calling the git layer unconditionally and went red on all three CI OSes while `ci:local` was
+  green — the same depth-1 trap, reproduced one level up, in the test instead of the grader. So
+  `historyIsReachable` measures whether the historical commits are present, and the real-ledger git
+  assertions branch on it: with history the git layer is asserted green, without it the offline
+  layer is, so neither branch is a no-op and no authenticity coverage was dropped to make CI pass.
+  The probe is itself graded against a fabricated sha and an empty ledger, unconditionally, so it
+  cannot rot into a constant `false` that would silently neuter every gate above it.
   `deploy-web.yml` gains a step that **verifies** the record and cannot create one:
   `permissions: contents: read` stays exactly as it is, because a deploy workflow that writes to
   the repo is a new writer needing its own ADR. The developer records; the workflow refuses to

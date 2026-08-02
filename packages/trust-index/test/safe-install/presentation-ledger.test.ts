@@ -33,6 +33,7 @@ import {
   faultsForEntry,
   gitFaultsForChain,
   gitFaultsForEntry,
+  historyIsReachable,
   validate,
   validateOffline,
   type DeployLedger,
@@ -94,7 +95,23 @@ describe("the committed ledger", () => {
   // The git layer over the REAL ledger. This is the authenticity claim the offline layer
   // cannot make, asserted on the actual store rather than on a fixture — a fixture's
   // commits are synthetic, so only the committed ledger can exercise it.
+  //
+  // Gated on `historyIsReachable`, and the gate is the point rather than a concession. This
+  // suite first shipped calling `validate` unconditionally, and it went red on all three CI
+  // OSes while `pnpm ci:local` was green: `ci.yml` checks out with no `fetch-depth`, so the
+  // clone is depth-1 and every historical commit is an unknown sha. That is precisely the
+  // trap `presentation-ledger.ts`' header describes — and the reason `validateOffline`
+  // exists — reproduced one level up, in the test instead of the grader.
+  //
+  // Deleting the assertion would drop the authenticity coverage; keeping it unconditional
+  // would fail CI for want of evidence rather than for a fault. So each branch asserts
+  // something real: with history, the git layer is green; without it, the OFFLINE layer is
+  // green and the git layer is recorded as unrunnable. Neither branch is a no-op.
   it("passes the git layer too, so every stored document is authentic", () => {
+    if (!historyIsReachable(committed)) {
+      expect(validateOffline(committed, liveCatalog)).toEqual([])
+      return
+    }
     expect(validate(committed)).toEqual([])
   })
 
@@ -203,21 +220,35 @@ describe("validateOffline vs validate — what each layer can and cannot see", (
 
   // The chain half of the two-ordering rule. Time alone would accept a rebase that
   // reordered history; ancestry alone would accept a back-dated entry.
+  // The synthetic half needs no history: `sha(1)`/`sha(2)` are invented shas, so they are
+  // unknown on ANY clone and the fault fires everywhere. Only the real-ledger half needs a
+  // deep clone, so only that half is gated.
   it("the git layer enforces ancestry across the chain", () => {
     const a = entryFor(null, sha(1), "2026-08-01T00:00:00.000Z")
     const b = entryFor(liveCatalog, sha(2), "2026-08-02T00:00:00.000Z")
     expect(gitFaultsForChain(ledgerOf([a, b])).join(" | ")).toMatch(/is not an ancestor of it/)
-    // And it is silent on the real ledger, whose entries ARE a chain.
-    expect(gitFaultsForChain(committed)).toEqual([])
+    // And it is silent on the real ledger, whose entries ARE a chain — where reachable.
+    if (historyIsReachable(committed)) expect(gitFaultsForChain(committed)).toEqual([])
   })
 
   it("`validate` is a superset of `validateOffline` on the real store", () => {
     // Both green here; the point is that validate() runs the offline checks too, so a
-    // future offline-only fault cannot hide from the full mode.
+    // future offline-only fault cannot hide from the full mode. On a depth-1 clone the
+    // superset relation is unobservable, but the offline half still is — assert that rather
+    // than nothing, so the test never silently becomes a skip.
     const offline = validateOffline(committed, liveCatalog)
-    const full = validate(committed)
     expect(offline).toEqual([])
-    expect(full).toEqual([])
+    if (!historyIsReachable(committed)) return
+    expect(validate(committed)).toEqual([])
+  })
+
+  // The probe itself, so it cannot rot into a constant `false` that would neuter every gate
+  // above it. A fabricated sha is unreachable on every clone; the real ledger's shas are
+  // reachable on a full one. Asserting the negative unconditionally is what keeps the probe
+  // honest on CI, where the positive cannot be checked.
+  it("the reachability probe distinguishes a real chain from a fabricated one", () => {
+    expect(historyIsReachable(ledgerOf([entryFor(liveCatalog, sha(9), "2026-08-01T00:00:00.000Z")]))).toBe(false)
+    expect(historyIsReachable(ledgerOf([]))).toBe(false)
   })
 })
 

@@ -279,6 +279,35 @@ export function gitFaultsForEntry(entry: LedgerEntry, index: number): string[] {
 }
 
 /**
+ * Is this clone deep enough for the git layer to mean anything?
+ *
+ * `gitFaultsForEntry` and `gitFaultsForChain` need the historical commits to be present.
+ * On CI they are not: `ci.yml` uses a bare `actions/checkout@v6` with no `fetch-depth`, so
+ * the clone is depth-1 and every entry older than HEAD is an unknown sha. That is not a
+ * fault in the ledger — it is the absence of the evidence the git layer reads.
+ *
+ * Exported because the TEST needs it, and needs it for a reason worth stating: a suite that
+ * called the git layer unconditionally would pass on a developer's full clone and fail on
+ * every CI run, which is the exact failure this file's header warns about one layer up. A
+ * suite that simply deleted those assertions would lose the authenticity coverage entirely.
+ * Branching on a measured probe keeps both: where history exists the git layer is asserted
+ * green, and where it does not the test asserts the offline layer still is — so the split
+ * itself is what gets graded, on both kinds of clone.
+ */
+export function historyIsReachable(ledger: DeployLedger): boolean {
+  if (!Array.isArray(ledger.deploys) || ledger.deploys.length === 0) return false
+  return ledger.deploys.every((e) => {
+    if (!/^[0-9a-f]{40}$/.test(e.commit)) return false
+    try {
+      git("cat-file", "-e", `${e.commit}^{commit}`)
+      return true
+    } catch {
+      return false
+    }
+  })
+}
+
+/**
  * Every fault detectable WITHOUT git: shape, per-entry recomputation, distinctness,
  * wall-clock ordering, and currency against the live catalog.
  *
