@@ -505,6 +505,9 @@ function build(): { json: string; pass: boolean; failures: readonly string[] } {
         ...Object.keys(CODE_OWNED_SLOTS),
       ],
       malformedVersionRules,
+      // The COMMITTED pages, so the version's value is searched for in the bytes that ship.
+      // Read here rather than in the observer, which stays filesystem-free.
+      servedInstallPages: servedInstallPages(),
     },
   })
 

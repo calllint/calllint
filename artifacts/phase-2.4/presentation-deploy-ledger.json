@@ -664,6 +664,125 @@
           }
         }
       }
+    },
+    {
+      "at": "2026-08-02T04:02:11.247Z",
+      "commit": "6ec3fe93c0acca98e37a62d251ac96e67cb8a70c",
+      "configVersion": "2026.08.01-p7",
+      "presentationDigest": "sha256:c85acef1855a795af2079f8fed6a7f05f44e57b3b215eb72f804f618bffd515e",
+      "l0Digest": "sha256:becc1ea41c7477e4c57cd54af62f9bb1e7b78fb192183f12be9292e1ee4a610e",
+      "l1Digest": "sha256:5001d98b2353caac82c416167f52b589e51b724b657d05e1556fe4f79363cb40",
+      "l2Digest": "sha256:16169a4b9def23ddaeb79f9b71d02b977888d01f9d17b2a175520c1d8c550e88",
+      "sections": [
+        "decisionCopy",
+        "authorityCopy",
+        "sectionTitles",
+        "guardConversion",
+        "agentRelayCopy",
+        "layout",
+        "tokens",
+        "overrides"
+      ],
+      "deploymentUrl": null,
+      "document": {
+        "schema": "calllint.presentation-content.v1",
+        "locale": "en-US",
+        "configVersion": "2026.08.01-p7",
+        "decisionCopy": {
+          "states": {
+            "PREPARE_AVAILABLE": {
+              "primaryAction": "Open in CallLint"
+            },
+            "REVIEW_REQUIRED": {
+              "primaryAction": "Review in CallLint"
+            },
+            "BLOCKED": {
+              "primaryAction": "See why it is blocked"
+            },
+            "LOCAL_PREFLIGHT_REQUIRED": {
+              "primaryAction": "Check it on your machine"
+            },
+            "UNSUPPORTED": {
+              "primaryAction": "See manual setup"
+            }
+          }
+        },
+        "authorityCopy": {
+          "observedPhrases": {
+            "financial_action": "Can initiate payments or financial actions.",
+            "secret_access": "Requires access to configured secrets.",
+            "shell_execution": "Can run shell commands with access to configured paths.",
+            "broad_filesystem_access": "Can read and write across a broad filesystem scope.",
+            "external_mutation": "Can create and update external records.",
+            "messaging_send": "Can send messages on your behalf.",
+            "oauth_scope": "Requests OAuth scopes that may be broad or unverified.",
+            "gateway_runtime": "Runs as a long-lived gateway process.",
+            "network_egress": "Your agent could send data to an unverified remote endpoint — CallLint could not inspect what that endpoint does.",
+            "no_high_authority_observed": "No high-authority capability was observed."
+          },
+          "absencePhrases": {
+            "financial_action": "No financial or payment capability was observed.",
+            "secret_access": "No secret access was observed.",
+            "shell_execution": "No shell or command execution was observed.",
+            "broad_filesystem_access": "No broad filesystem access was observed.",
+            "external_mutation": "No external mutation was observed.",
+            "messaging_send": "No message-sending capability was observed.",
+            "oauth_scope": "No OAuth scope request was observed.",
+            "gateway_runtime": "No long-lived gateway runtime was observed.",
+            "network_egress": "No unverified network egress was observed.",
+            "no_high_authority_observed": "No high-authority capability was observed."
+          }
+        },
+        "sectionTitles": {
+          "authorityFacts": "What it can do",
+          "agentReads": "What your agent must ask you about first",
+          "valueLine": "Scanned by CallLint — one config entry can expand what your agent is allowed to do, so the blast radius is stated here before you approve it, not after. No server was executed to produce this page.",
+          "protectionBadge": "Added through CallLint's approval gate",
+          "consequenceHeading": "What happens if you install it",
+          "consequenceLead": "This is the top consequence CallLint observed from a static scan of the install config — not a product pitch. Capability rows and hit reason codes follow; the full Trust Page holds every finding.",
+          "reasonCodesHeading": "What this scan hit",
+          "provenance": "Provenance",
+          "publisherBlock": "Publisher-provided description — not used for CallLint's safety decision.",
+          "boundary": "This page is an observation at a specific artifact digest and time under the stated completeness. It is not a certification, an endorsement, or a guarantee of safety."
+        },
+        "layout": {
+          "groupOrder": [
+            "identity",
+            "disposition",
+            "primary_action",
+            "consequence",
+            "authority_facts",
+            "secondary_links"
+          ],
+          "maxAuthorityFacts": 5,
+          "maxSecondaryLinks": 2
+        },
+        "tokens": {
+          "tokensVersion": "impression-2",
+          "stylesheetHref": "/styles/tokens.css"
+        },
+        "guardConversion": {
+          "offerHeadline": "Protect future agent-tool changes",
+          "offerBody": "CallLint can:",
+          "acceptLabel": "Enable continuous protection"
+        },
+        "agentRelayCopy": {
+          "headline": "CallLint decided this agent-tool install before anything ran",
+          "reason": "the verdict follows from observed authority, not from reputation",
+          "adds": "this install adds the authority surface listed in the contract",
+          "notObserved": "absence of evidence is recorded as absence, never as safety",
+          "approvalQuestion": "approve this exact plan, or stop and review the evidence?",
+          "guardOffer": "this tool installed nothing: enabling persistent protection is a separate operator action, run from a terminal"
+        },
+        "overrides": {
+          "resources": {
+            "mcp-registry__io.github.calllint-calllint": {
+              "displayName": "calllint-mcp",
+              "reason": "Restates the shipped derived display name verbatim, so this entry exercises the override path without moving a served byte. The key is the canonical slug with / encoded as __ — the schema's propertyNames pattern admits no slash, and the leaf segment alone would silently key the wrong resource."
+            }
+          }
+        }
+      }
     }
   ]
 }

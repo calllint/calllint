@@ -960,6 +960,12 @@ const rollbackInput = (over: Partial<RollbackInput> = {}): RollbackInput => ({
     { ...EMPTY_PRESENTATION_CONTENT, configVersion: "August 2026 rebuild" },
     { verdictLabels: VERDICT_PUBLIC_LABEL, stateCtas: PRIMARY_CTA, forbiddenPhrases: [] },
   ).map((e) => e.rule),
+  // Served pages that do NOT carry the version — the shipped state. Non-empty on purpose:
+  // an empty list is graded as a vacuous search, asserted separately below.
+  servedInstallPages: [
+    { slug: "mcp-registry/a", html: "<!doctype html><meta name=\"robots\" content=\"index,follow\" />" },
+    { slug: "mcp-registry/b", html: "<!doctype html><h1>Add a thing with CallLint</h1>" },
+  ],
   ...over,
 })
 
@@ -1006,6 +1012,50 @@ describe("gradeRollback — 有版本", () => {
       rollbackInput({ resolverSlotNames: [...Object.values(WIRED_SLOTS).flat(), "configVersion"] }),
     )
     expect(failedIds(block)).toContain("version/not-a-resolver-slot")
+  })
+
+  // --- control #21, as a graded check rather than a habit ---------------------
+  //
+  // #21 was RUN and it exposed a gap: a `<meta>` tag carrying the catalog's configVersion
+  // drifted all 19 served pages, yet 900 trust-index tests, `check:public-copy`, the plane
+  // audit, the lock's `configuredCopy` containment (it searches only the 9 guard/relay
+  // slots) and all five gate-H blocks stayed green. `git status -- apps/web/public/` was
+  // the only detector — and that is a reviewer's habit, silent on a stale tree and
+  // re-baselined by every `:write`. These three tests are that habit turned into a check.
+
+  it("passes when no served page carries the version, and says how many it searched", () => {
+    const block = gradeRollback(rollbackInput())
+    expect(failedIds(block)).not.toContain("version/reaches-no-served-byte")
+    expect(observedOf(block, "version/reaches-no-served-byte")).toContain("searched 2 served page(s)")
+    expect(observedOf(block, "version/reaches-no-served-byte")).toContain("hits: none")
+  })
+
+  it("NEGATIVE — a served page carrying the version fails, and NAMES the page (control #21)", () => {
+    // The mutation #21 actually made: the value in a head <meta>, reached by a renderer
+    // reading the document directly — no resolver slot involved, which is why
+    // `not-a-resolver-slot` cannot stand in for this check.
+    const block = gradeRollback(
+      rollbackInput({
+        servedInstallPages: [
+          { slug: "mcp-registry/a", html: "<!doctype html><meta name=\"robots\" content=\"index,follow\" />" },
+          {
+            slug: "mcp-registry/leaky",
+            html: `<!doctype html><meta name="calllint-config-version" content="${LIVE_DOC.configVersion}" />`,
+          },
+        ],
+      }),
+    )
+    expect(failedIds(block)).toContain("version/reaches-no-served-byte")
+    expect(observedOf(block, "version/reaches-no-served-byte")).toContain("mcp-registry/leaky")
+  })
+
+  it("NEGATIVE — an empty corpus of pages is a VACUOUS search, not a pass", () => {
+    // Without this, deleting the served tree (or mis-wiring the reader) would make the
+    // check above pass by having looked at nothing — the same vacuity trap the lock's
+    // containment check guards with its non-empty-strings assertion.
+    const block = gradeRollback(rollbackInput({ servedInstallPages: [] }))
+    expect(failedIds(block)).toContain("version/reaches-no-served-byte")
+    expect(observedOf(block, "version/reaches-no-served-byte")).toContain("vacuous")
   })
 
   it("grades the identity signature derivationally: the aggregate moves, all three levels hold", () => {

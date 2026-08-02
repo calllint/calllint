@@ -54,6 +54,19 @@ onward. While pre-1.0, minor versions may include breaking changes.
   `restoreByDigest` is **pure** — it takes the corpus as a parameter, and the round-trip
   `presentationDigest(restoreByDigest(d)) === d` is asserted for all 8 members, the only control
   that separates a real restore from a constant.
+  A twentieth check, `version/reaches-no-served-byte`, exists because a negative control was run
+  and **found a gap rather than firing**: rendering `configVersion` into the install-page head
+  drifted all 19 served pages, yet 900 trust-index tests, `check:public-copy`, the plane audit, the
+  lock's `configuredCopy` containment and all five gate-H blocks stayed green. The lock was blind
+  by construction — that scan searches only the 9 guard/relay slot strings, and an identity key is
+  in neither slice. The sole detector was `git status -- apps/web/public/`, which is a reviewer's
+  habit and not a gate: it is silent on a stale tree, and each regenerating `:write` half would
+  re-baseline the leak into the artifact. So the version's **value** is now searched for across the
+  committed pages, in the shape the lock already uses for copy. It is not redundant with
+  `not-a-resolver-slot`: that proves the resolver cannot carry the key, while a renderer can read
+  the document directly and needs no slot at all — which is the path the control actually took.
+  An empty page list is graded as a named `vacuous` failure, so the search cannot pass by having
+  looked at nothing.
   `semanticContract.bindingUnchanged` stops being a self-certifying literal. It was one occurrence
   repo-wide, asserted by no test, and is now **derived** from five facts measured over the 19
   committed sidecars: `kind`, `tool`, the exact five-key argument set,

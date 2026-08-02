@@ -1080,6 +1080,13 @@ export interface RollbackInput {
   readonly resolverSlotNames: readonly string[]
   /** Faults the real validator returns for a deliberately malformed version. */
   readonly malformedVersionRules: readonly string[]
+  /**
+   * The COMMITTED install pages, so `configVersion`'s value can be searched for in the
+   * bytes that are actually served. Read by `scripts/`, never here — the observer stays
+   * filesystem-free. Must be non-empty, or the containment check would pass by having
+   * looked at nothing.
+   */
+  readonly servedInstallPages: readonly { readonly slug: string; readonly html: string }[]
 }
 
 /**
@@ -1167,6 +1174,36 @@ export function gradeRollback(input: RollbackInput): PreviewBlock {
       `${input.resolverSlotNames.length} resolver slot(s), configVersion among them: ${input.resolverSlotNames.includes("configVersion")}`,
     ),
   )
+  // The CONSEQUENCE of the two checks above, measured on the served bytes rather than
+  // inferred from them. Added because the plan's negative control #21 — render
+  // `configVersion` into an install page — was run and MOST of the harness stayed green:
+  // a `<meta>` tag carrying the catalog's version value drifted all 19 pages, yet 900
+  // trust-index tests, `check:public-copy`, the plane audit, the lock (including its
+  // `configuredCopy` containment, which searches only the 9 guard/relay slots) and all
+  // five gate-H blocks passed. The sole detector was `git status -- apps/web/public/`,
+  // which is a reviewer's habit and not a gate: on a stale tree it says nothing, and the
+  // regenerating `:write` halves re-baseline the leak into the artifact.
+  //
+  // So the check is a containment search for the version's VALUE across the served pages,
+  // in the shape the lock already uses for guard/relay copy. It is not redundant with
+  // `not-a-resolver-slot`: that one proves the resolver cannot carry the key, while a
+  // renderer can read the document directly and needs no slot at all — which is exactly
+  // the path #21 took.
+  {
+    const needle = typeof version === "string" ? version : null
+    const hits = needle === null ? [] : input.servedInstallPages.filter((p) => p.html.includes(needle)).map((p) => p.slug)
+    checks.push(
+      check(
+        "version/reaches-no-served-byte",
+        needle !== null && input.servedInstallPages.length > 0 && hits.length === 0,
+        needle === null
+          ? "no configVersion to search for"
+          : input.servedInstallPages.length === 0
+            ? "no served install pages were searched — a zero-hit result would be vacuous"
+            : `searched ${input.servedInstallPages.length} served page(s) for ${JSON.stringify(needle)}, hits: ${hits.length === 0 ? "none" : list(hits)}`,
+      ),
+    )
+  }
   // The signature that proves it is an IDENTITY key and not a levelled section, derived
   // through `presentationDigest` itself rather than compared to a literal: adding the key
   // must move the aggregate and leave all three level digests untouched.
