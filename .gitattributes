@@ -78,3 +78,12 @@ apps/web/public/scripts/** text eol=lf
 # hit. Pin them to LF on every platform. `five-second-panel-store.json` is
 # HUMAN-written rather than rendered, but is pinned too so its digest is stable.
 artifacts/phase-2.4/** text eol=lf
+
+# The Workstream R Batch-0 reality-audit artifacts (new15 R-0; ADR 0061). Nothing
+# drift-checks these bytes YET, so nothing fails today — the pin is added in the same
+# batch that creates the directory precisely BECAUSE of that. Every later R batch reads
+# these six artifacts, and the first one to byte-compare them would otherwise introduce
+# the check and the missing pin together, where a miss surfaces on windows-latest ALONE
+# (CRLF checkout) and `ci:local` structurally cannot see it. That is the trap #240 hit.
+# Pin the directory before anything measures it; the line costs nothing until it doesn't.
+artifacts/adoption-index-v1/** text eol=lf

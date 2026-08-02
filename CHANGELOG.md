@@ -12,6 +12,70 @@ onward. While pre-1.0, minor versions may include breaking changes.
 
 ### Added
 
+- **Workstream R PR R-0 — the compiler boundary ADR and the Batch-0 reality audit.** Documents only:
+  no production code, no served bytes, no verdict or decision behavior. That is the batch's gate, not
+  its modesty — a Workstream-R entry that changed one byte under `packages/*/src/**` would have
+  failed whatever else it proved, so it is asserted as a `git status --porcelain` path check rather
+  than trusted as intent, alongside an empty `apps/web/public/` diff and an unmoved MCP surface
+  (13 tools / 19 resources).
+  **The boundary ADR is `0061`, and the number is a correction with an evidence chain.** Both trackers
+  said 0057. Measured at `84f56c5`: 0057 is `adrs/0057-adoption-deep-link-boundary.md` (`8ef6319`,
+  #245), 0058 is the presentation control plane, 0059 is the install capsule — and **0060 is reserved
+  by committed, drift-checked artifact bytes**, not by a note:
+  `artifacts/phase-2.4/presentation-plane-audit.json:135` states the reservation verbatim, with it
+  also written into the generator at `scripts/presentation-plane-audit.ts:296` and a fault message at
+  `:389`. Taking 0060 would have put a new ADR in contradiction with bytes a gate already reads. The
+  renumber is in-contract rather than a deviation: integration §2.1 carries its own escape clause —
+  final numbers are assigned *at authoring, after re-inspecting the repo, never trusting the
+  blueprint's numbers* — and R-0 is that authoring moment. The stale tracker rows were **inverted in
+  place with their reason preserved**, following the shipped "invert a stale assertion, never delete
+  it" discipline, so a later reader finds why the number moved instead of a bare 0061 matching no
+  document. 0060's reservation is untouched, and the ADR-0057-as-"PR R-1" label collision is left
+  alone by design: two different things legitimately share that label and the disambiguator is
+  permanently the ADR number.
+  **The one-writer gate passes by resource class, which is what makes it pass honestly.** The gate
+  says *one live-config writer is identified* and *stop if one writer cannot be identified*. A bare
+  count returns 2 and halts the workstream on a false negative; recording 1 and omitting the second
+  writer would make the audit less honest than the ADR it audits, since ADR 0057:191 put the second
+  writer on the record itself — *"'one writer' is now 'one config writer plus one narrowly-scoped
+  OS-registration writer', and that distinction has to be kept"*. So `current-authority-map.md`
+  records `liveHostConfigWriters: 1` (`applyPlan`, `install-planner/src/applyEngine.ts:99`, with all
+  three of its filesystem writes enumerated), `osRegistrationWriters: 1` (`applyUrlHandler`,
+  `core/src/gateway/urlHandlerWriter.ts:84`, disjoint and disclosed — grep for
+  `mcp.json|settings.json|mcpServers` in that file returns no hit), and `contendingWriters: 0`. The
+  same axis splits the other two duals, plan digest and rollback. This is the correction P-7 made
+  when it replaced `bindingUnchanged: true` with a measurement: a count is not a fact about authority.
+  **Five of the 21 named subsystems have two real owners, so the schema was extended rather than the
+  truth flattened.** §6.2's example gives one scalar `path`/`symbol` per row; 16 rows honour it
+  exactly and the five forks carry `bindings[{path, symbol, line, role, note}]`. Naming one owner
+  loses the second and inventing a composite path is fiction — both point a later batch at the wrong
+  file. Concretely: evidence resolution is a tsx script whose **only** export is `remoteSubjects`
+  (`main()` at `:48` is not exported, so it cannot be driven as a schedulable unit) beside the
+  reusable engine `resolver/src/evidence/resolveSubject.ts:17`; receipt **v0 still ships** for
+  `scan --receipt` alongside v1; telemetry is two independent closed vocabularies with separate
+  version constants. Row 4 is the only `PARTIAL` of 21 and the fork is precisely why.
+  **`CONTRADICTED` is a used bucket, not an edge case.** Five capabilities the blueprint asserts as
+  confirmed gaps measurably shipped — self-claim closed 3/3 on the live account (new13), safe search
+  (N7, `b7c7bfd`/#227), install interception (N8, `95587aa`/#228), the `/install/{tool}/` capsule
+  (new14 Batch 3, `f0e58d6`, 38 served files) and 19 Agent Adoption Contracts. Grading them `ABSENT`
+  would re-authorize building what exists, the exact waste `Blueprint v1.4:216` forbids. Of 55 graded
+  rows, 18 are `ABSENT` but 12 of those are do-not-build rows where absence is the *passing* state, so
+  the real gap surface is **six**. Every `EXISTS` row names its tests and the generator **exits
+  nonzero rather than emit one that does not** — each cited path is `existsSync`-checked, which turns
+  "an EXISTS with no test is unfalsifiable" from a review step into a property.
+  `current-generated-tree.json` enumerates **159** committed files from `git ls-files`, not from a
+  bake (§6.3's "do not infer from code"), with a producer per entry and `.well-known/security.txt`
+  marked **FOREIGN** on the evidence of `.gitattributes:35` — claiming authorship of a file the repo
+  deliberately disowns would license a later batch to regenerate or delete it.
+  Open decisions: **O-2** the compiler lives in `packages/adoption-index/`; **O-3** the driver is
+  `better-sqlite3` pinned to exactly `12.11.1` — measured, and the newest version is the wrong one,
+  because the repo's Node floor is `>=20` (so `node:sqlite` is out) and `better-sqlite3@13.x`
+  declares `engines.node: ">=22"`, reintroducing the same incompatibility; **O-1** LORDL credential
+  handling stays the user's call, deferred in the ADR by name, never harvested. The ADR restates the
+  compiler's hard boundaries: never executes the target, writes **0** host config, persists only
+  under `.var/calllint-adoption-index/`. `artifacts/adoption-index-v1/**` is pinned `text eol=lf` in
+  this batch, before anything measures it — no gate reads these bytes yet, so nothing fails today,
+  but a missing pin false-fails on windows-latest alone and `ci:local` structurally cannot see it.
 - **Workstream P PR P-7 — config version, the deploy ledger, and digest→document rollback.**
   Closes new15 §14's fifth acceptance block, **可回滚性**, whose three lines were prose nothing ran:
   每个 presentation config 有版本 / 每次 deploy 记录 presentationDigest / 可按 digest 恢复上一版本.
