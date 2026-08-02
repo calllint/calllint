@@ -12,6 +12,58 @@ onward. While pre-1.0, minor versions may include breaking changes.
 
 ### Added
 
+- **Workstream P PR P-7 — config version, the deploy ledger, and digest→document rollback.**
+  Closes new15 §14's fifth acceptance block, **可回滚性**, whose three lines were prose nothing ran:
+  每个 presentation config 有版本 / 每次 deploy 记录 presentationDigest / 可按 digest 恢复上一版本.
+  Measured against the code, each was a distinct unmet obligation — the document had no version
+  field, no deploy recorded anything durable, and no code mapped a digest back to a document. They
+  are one loop, so they land together: **version → recorded digest → restorable document.**
+  `configVersion` is a third **identity** key modelled on `locale`, not a levelled section. Two
+  shipped constraints force that shape: `presentation-content.test.ts` pins `schema.properties`
+  minus the identity keys to exactly `LEVEL_BY_SECTION`'s keys, and `sectionsAtLevel` walks only
+  `LEVEL_BY_SECTION`. So a levelled section would move a level digest and a bare property would
+  fail an existing test; identity is the only shape yielding the intended signature —
+  `presentationDigest` **moves** while `l0`/`l1`/`l2` **hold**, asserted derivationally through
+  `presentationDigest` itself rather than as a hex literal that could not detect its own subject
+  changing. It is **optional**, which is load-bearing three ways: the empty document's digest stays
+  `sha256:b9bbb27a…` so P-1's pin and rollback's non-branching predecessor both survive, the seven
+  historical documents stay valid restore inputs instead of becoming retroactively malformed, and a
+  catalog omitting it still resolves. Its value shape copies `tokensVersion` verbatim — a non-prose
+  token, so it cannot be rendered as copy — and it is validated and digested but **never resolved**:
+  `overriddenSlots` stays 46.
+  The ledger is a **committed** artifact with an explicit append mode, not a git query. Measured:
+  no workflow sets `fetch-depth`, so CI's clone is depth-1 while the local one is full — a grader
+  shelling out to `git log` would pass locally and fail on CI for a reason unrelated to its claim.
+  `artifacts/phase-2.4/presentation-deploy-ledger.json` is shaped on `five-second-panel-store.json`
+  and appended only by `pnpm ledger:presentation:record`, never by a `:write`. Validation splits in
+  two **on purpose**: `validateOffline` recomputes all five recorded values from each entry's stored
+  document and is CI-safe, while `validate` adds the git layer — ancestry of HEAD, and each stored
+  document equals the document at its own commit. The honest limit is stated rather than papered
+  over: the ledger is append-only by convention plus a duplicate refusal, not by cryptography, and
+  a self-consistent forgery (a fabricated document stored with that document's correctly-computed
+  digest) is invisible to the offline layer **by construction**. A test asserts that zero-fault
+  result plainly and pins the git layer as the one that names it — a test that only checked "a
+  forgery fails" would pass while the two layers were silently collapsed into one.
+  `deploy-web.yml` gains a step that **verifies** the record and cannot create one:
+  `permissions: contents: read` stays exactly as it is, because a deploy workflow that writes to
+  the repo is a new writer needing its own ADR. The developer records; the workflow refuses to
+  deploy a document the ledger does not name.
+  可回滚性 joins `gradePreviewSnapshot` as a fifth block over an 8-member corpus (7 committed
+  documents + the empty predecessor `emptyPresentationDigest` reserved for exactly this batch), so
+  `REGRESSION_CHECKS` stays 19, gate-H `measures` stays 30, and `GATE_ARTIFACTS.length` stays 7.
+  `restoreByDigest` is **pure** — it takes the corpus as a parameter, and the round-trip
+  `presentationDigest(restoreByDigest(d)) === d` is asserted for all 8 members, the only control
+  that separates a real restore from a constant.
+  `semanticContract.bindingUnchanged` stops being a self-certifying literal. It was one occurrence
+  repo-wide, asserted by no test, and is now **derived** from five facts measured over the 19
+  committed sidecars: `kind`, `tool`, the exact five-key argument set,
+  `expectedContractDigest === contract.contractDigest` (19/19), and **no argument value equal to
+  the computed `semanticContractDigest`** — the clause that makes new15 §2.5's deliberately-deferred
+  re-pointing a visible artifact diff instead of a silent one. A per-resource `bindingFaults[]`
+  names any sidecar that disagrees. Re-pointing itself stays out of scope; it needs an ADR
+  amendment. Zero served bytes: `git status --porcelain -- apps/web/public/` is EMPTY, the inverse
+  of P-4b's gate and the same one P-5 and P-6 proved. **Workstream P is complete.**
+
 - **Workstream P PR P-6 — the preview & snapshot harness, the decision-relay surface, and the
   6-vs-4 slot reconciliation.** new15 §14 declared four acceptance-gate blocks and nothing ran
   them; five of six relay slots reached no consumer; and the schema shipped six relay slots

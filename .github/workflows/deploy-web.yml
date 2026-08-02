@@ -87,6 +87,41 @@ jobs:
           url=$(grep -oE 'https://[a-z0-9]+\.[a-z0-9-]+\.pages\.dev' deploy.log | head -1)
           echo "deployment-url=$url" >> "$GITHUB_OUTPUT"
 
+      # new15 §14, 可回滚性 line 2: 每次 deploy 记录 presentationDigest.
+      #
+      # This step VERIFIES the record; it does not create one. The division is deliberate.
+      # Creating one means committing to the repo, and `permissions: contents: read` above
+      # stays exactly as it is — a deploy workflow that writes to the repo is a new writer
+      # and would need its own ADR. So the developer appends the entry with
+      # `pnpm ledger:presentation:record` in the same PR that changes the catalog, and this
+      # step fails the deploy if that did not happen.
+      #
+      # `--offline` is not a shortcut. `actions/checkout@v6` above is depth-1, so `git show`
+      # at a historical commit reports the blob MISSING and `merge-base --is-ancestor` exits
+      # `fatal: Not a valid object name` — the git layer would fail here on every run for a
+      # reason unrelated to its claim. Offline recomputes all five recorded values from each
+      # entry's stored document, which is what makes "the deployed document is the newest
+      # entry" answerable without history. Authenticity (a stored document equals the
+      # document at its commit) stays a full-clone obligation, checked by
+      # `pnpm ledger:presentation:validate` and by the preview gate on every PR.
+      - name: Record the deployed presentationDigest
+        run: |
+          set -o pipefail
+          # The validator prints the five recorded values for the newest entry and exits 2
+          # when the document being deployed is not that entry. Reusing it rather than
+          # recomputing the digests inline keeps ONE implementation of "what this deploy
+          # published" — an inline copy is a second place for the answer to be wrong.
+          pnpm ledger:presentation:validate:offline 2>&1 | tee ledger.log
+          {
+            echo "### Deployed presentation config"
+            echo
+            echo '```'
+            cat ledger.log
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+          rm -f ledger.log
+          echo "verified: the deployed document is the deploy ledger's newest entry."
+
       - name: Verify the deployment serves the repo's logo
         env:
           DEPLOY_URL: ${{ steps.deploy.outputs.deployment-url }}

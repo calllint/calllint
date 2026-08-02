@@ -8,7 +8,8 @@
  * unit-testable without a bake, and why the observer cannot quietly become a second
  * renderer.
  *
- * §14 declares four acceptance-gate blocks and, until this PR, nothing ran them:
+ * §14 declares five acceptance-gate blocks. P-6 built the first four; PR P-7 adds the
+ * fifth, and until then nothing ran any of them:
  *
  *   1. 配置完整性 — every copy domain a page reads from is TOTAL, and no configured key
  *      is dead or duplicated. Duplicates are measured over the RAW catalog bytes, because
@@ -23,6 +24,19 @@
  *      declarations apply (var()-resolved) and how the one grid reflows. Zero `@media`
  *      is ASSERTED, because `resolveDeclarations` is a flat rule walk with no nesting
  *      support, so a media query would be silently mis-parsed.
+ *   5. 可回滚性 (PR P-7) — the version exists, every deploy is recorded, and any recorded
+ *      digest restores its document. Graded as ONE block because the three are one loop.
+ *
+ * WHY THE ROLLBACK CORPUS COMES FROM THE COMMITTED LEDGER AND NOT FROM `git show`. This
+ * script runs inside CI in `--check` mode, which REBUILDS the artifact and byte-compares
+ * it, and `ci.yml`'s checkout is bare — depth 1. Measured on a depth-1 clone of this repo:
+ * `git log --follow` on the catalog returns 1 commit rather than 8, the historical blobs
+ * report MISSING, and `merge-base --is-ancestor` fatals on an unknown sha instead of
+ * returning false. A git-derived corpus would therefore make the byte-compare fail on
+ * every CI run forever. The deeper point: if past documents existed only in git history,
+ * then on a shallow clone they do not exist at all, and §14's 可按 digest 恢复 would be
+ * FALSE there rather than merely ungraded. So each ledger entry stores its document, and
+ * this script reads committed JSON only — no git, at all, anywhere in the graded path.
  *
  * The corpus is the five canonical fixtures, NOT the served tree. Measured reason: the 19
  * committed pages carry exactly one structural signature and only two verdicts, so grading
@@ -42,8 +56,10 @@ import path from "node:path"
 import { fileURLToPath } from "node:url"
 import { GUARD_ARTIFACTS, GUARD_HOST_IDS, RULE_HOSTS, persistentComponentFor } from "@calllint/core"
 import { HOST_ADAPTERS } from "@calllint/install-planner"
+import { VERDICT_PUBLIC_LABEL } from "@calllint/types"
 import {
   CANONICAL_FIXTURES,
+  PRIMARY_CTA,
   PROBE_SENTINEL,
   PUBLISHER_INJECTION_BLURBS,
   canonicalProjection,
@@ -59,13 +75,23 @@ import {
   safeInstallProjection,
   semanticContractDigest,
   canonicalProjectionInput,
+  validatePresentationContent,
+  LEVEL_BY_SECTION,
+  WIRED_SLOTS,
+  CODE_OWNED_SLOTS,
   type CanonicalFixture,
   type HostCopyFacts,
   type InjectionSample,
   type PageSample,
+  type PresentationContentV1,
+  type RollbackCorpusMember,
   type SentinelSample,
   type StylesheetSample,
 } from "../packages/trust-index/src/index.js"
+// The ledger's OFFLINE validator and its types. Importing the script is safe: its mode
+// dispatch is guarded on `invokedDirectly`, measured the hard way — an unguarded top-level
+// dispatch made a probe exit with the CLI's code before its first assertion.
+import { validateOffline, type DeployLedger } from "./presentation-ledger.js"
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..")
 const outPath = path.join(repoRoot, "artifacts", "phase-2.4", "preview-snapshot.json")
@@ -353,6 +379,70 @@ function build(): { json: string; pass: boolean; failures: readonly string[] } {
     return { path: rel, css, tokens: parseRootTokens(css).tokens }
   })
 
+  // --- block 5 inputs: 可回滚性 ------------------------------------------------
+  // Committed JSON only. See the header for the depth-1 measurement that rules git out of
+  // this path, and `scripts/presentation-ledger.ts` for the two-layer trust model: the
+  // offline layer called here proves each entry SELF-CONSISTENT, and `--validate` adds the
+  // git layer that proves it AUTHENTIC. That limit is stated rather than papered over.
+  const liveDocument = JSON.parse(catalogBytes) as PresentationContentV1
+  const ledger = JSON.parse(
+    fs.readFileSync(path.join(repoRoot, "artifacts", "phase-2.4", "presentation-deploy-ledger.json"), "utf8"),
+  ) as DeployLedger
+  const corpus: RollbackCorpusMember[] = ledger.deploys.map((e) => ({
+    commit: e.commit.slice(0, 8),
+    at: e.at,
+    presentationDigest: e.presentationDigest,
+    l0Digest: e.l0Digest,
+    l1Digest: e.l1Digest,
+    l2Digest: e.l2Digest,
+    configVersion: e.configVersion,
+    sections: e.sections,
+    document: e.document,
+  }))
+
+  const contentSchema = JSON.parse(
+    fs.readFileSync(path.join(repoRoot, "schemas", "calllint.presentation-content.v1.schema.json"), "utf8"),
+  ) as { properties?: Record<string, unknown> }
+
+  // The validator's context, built from the SHIPPED constants exactly as the lock builds it
+  // (`scripts/presentation-lock.ts:368`). It is a parameter rather than an import inside the
+  // validator for the reason its own docblock gives: a local copy of the label and CTA maps
+  // would drift from the bytes they govern. Passing the real ones keeps both probes below
+  // running through the same rules the catalog is actually held to.
+  const facts = JSON.parse(fs.readFileSync(path.join(repoRoot, "project-facts.json"), "utf8")) as {
+    forbiddenPhrases: string[]
+    trustPageForbiddenPhrases: string[]
+  }
+  const validationCtx = {
+    verdictLabels: VERDICT_PUBLIC_LABEL,
+    stateCtas: PRIMARY_CTA,
+    forbiddenPhrases: [...facts.forbiddenPhrases, ...facts.trustPageForbiddenPhrases],
+  }
+
+  // The validator's accepted key set, measured BEHAVIOURALLY rather than imported. `known`
+  // is function-local inside the validator, so any exported mirror of it would be a second
+  // copy free to drift from the one that actually decides. Instead: feed the validator a
+  // document carrying `configVersion` and confirm it does not report the key as unknown.
+  const versionRejectedAsUnknown = validatePresentationContent(
+    { ...liveDocument, configVersion: "probe-1" },
+    validationCtx,
+  ).some((e) => e.rule === "unknown-section" && e.path === "/configVersion")
+  const validatorKnownKeys = [
+    ...Object.keys(LEVEL_BY_SECTION),
+    "schema",
+    "locale",
+    ...(versionRejectedAsUnknown ? [] : ["configVersion"]),
+  ]
+
+  // A deliberately malformed version through the REAL validator. Prose is the shape that
+  // must be refused, since a prose version would be renderable copy.
+  const malformedVersionRules = validatePresentationContent(
+    { ...liveDocument, configVersion: "August 2026 rebuild" },
+    validationCtx,
+  ).map((e) => e.rule)
+
+  const deployWorkflow = fs.readFileSync(path.join(repoRoot, ".github", "workflows", "deploy-web.yml"), "utf8")
+
   const result = gradePreviewSnapshot({
     configIntegrity: {
       catalog: {
@@ -384,6 +474,38 @@ function build(): { json: string; pass: boolean; failures: readonly string[] } {
       pages,
       ctaRowItems: Object.fromEntries(pages.map((p) => [p.id, ctaRowItemCount(p.html)])),
     },
+    rollback: {
+      corpus,
+      liveDocument,
+      ledgerFaults: validateOffline(ledger, liveDocument),
+      ledgerEntryCount: ledger.deploys.length,
+      // Anchored text bindings. `REGRESSION_CHECKS` can only bind `ci.yml`#`test` — every
+      // one of its 19 rows is that job — and `deploy-web.yml` has a single `deploy:` job
+      // graded by nothing. So the workflow is verified AS TEXT here, which is the same
+      // idiom and the same fault class as a row bound to no workflow job.
+          // Bind the INVOKED COMMAND, not the word. `presentationDigest` appears in that
+        // step's own explanatory comment, so a probe for the word would keep passing after
+        // someone deleted the command — the "mentions ≠ does" trap, which this repo has
+        // already paid for once.
+        deployWorkflowRecordsDigest: /^\s*pnpm ledger:presentation:validate:offline\b/m.test(deployWorkflow),
+      deployWorkflowPermissionsReadOnly:
+        /^permissions:\n  contents: read$/m.test(deployWorkflow) && !/contents:\s*write/.test(deployWorkflow),
+      schemaPropertyNames: Object.keys(contentSchema.properties ?? {}),
+      validatorKnownKeys,
+      // Every slot the resolver can fill, flattened from BOTH tables. `configVersion` must
+      // appear in neither: an identity key is validated and digested, never resolved.
+      resolverSlotNames: [
+        ...Object.entries(WIRED_SLOTS).flatMap(([section, slots]) =>
+          (slots as readonly string[]).map((s) => `${section}.${s}`),
+        ),
+        ...Object.entries(CODE_OWNED_SLOTS).flatMap(([section, slots]) =>
+          Object.keys(slots as Record<string, string>).map((s) => `${section}.${s}`),
+        ),
+        ...Object.keys(WIRED_SLOTS),
+        ...Object.keys(CODE_OWNED_SLOTS),
+      ],
+      malformedVersionRules,
+    },
   })
 
   const served = servedInstallPages()
@@ -391,9 +513,9 @@ function build(): { json: string; pass: boolean; failures: readonly string[] } {
   const report = {
     schema: "calllint.preview-snapshot.v0",
     $comment:
-      "Workstream P preview & snapshot harness (new15 §14 PR P-6; ADR 0058) — the FOUR acceptance-gate blocks §14 declares and nothing ran before this PR. The corpus is the five CANONICAL FIXTURES, not the served tree, and that is a measured choice: the 19 committed pages carry exactly ONE structural signature and only two verdicts, so grading page consistency against them would pass while never exercising BLOCK, UNKNOWN or UNSUPPORTED. pageConsistency PARTITIONS on the CTA route because dispositionBlock genuinely emits two different structures (DEEP_LINK_STATES vs its complement, 2 vs 3 states); within a partition the signature must be IDENTICAL and across partitions it must DIFFER — the cross-partition inequality is the load-bearing half, since a signature that collapsed to a constant would satisfy 'identical within a partition' perfectly while measuring nothing. Every tolerated structural variance carries the assertion of the condition that produced it (install-canonical, install-publisher, install-reason-empty, install-alt-route) rather than being smoothed away; TEXT is outside the signature by construction, which is why the UNSUPPORTED fixture's version-less <h1> does not perturb it. securityIsolation grades all five zero-counts and THREE of them had no grader before P-6 — above all publisher→HTML, where the five injection blurbs were previously checked only against the contract's decision scope (built by omission), so nothing ever rendered them into HTML and counted. That check runs in BOTH escape forms because `esc` and `escText` differ on the quote characters, and a check that guessed one form could report zero occurrences of a string that is on the page. The digest-invariance check is derived through the SAME constructor from a sentinel, never asserted against a literal: a hardcoded digest cannot detect its own subject changing. visualRegression is BROWSERLESS and says so — it measures which declarations apply (var()-resolved, so a token VALUE change is visible) and how the one grid reflows across three viewports that straddle the 452 px column boundary and the 720 px main cap; it does NOT measure glyph rasterization. Zero @media is ASSERTED rather than assumed, because resolveDeclarations is a flat rule walk with no nesting support, so a media query would be silently mis-parsed — and adding one would also spend a served-byte license this batch does not have. Duplicate catalog keys are measured over RAW BYTES: JSON.parse collapses a duplicate last-wins, so a parsed check is structurally blind to the defect. thresholds.maxAuthorityFacts is now READ from human-five-second-test.json and graded against the measured counts; before P-6 nothing read it, and it sat at 3 while all five fixtures measured 5. Regenerate with `pnpm audit:preview:write`; enforce with `pnpm audit:preview:gate`.",
+      "Workstream P preview & snapshot harness (new15 §14 PR P-6/P-7; ADR 0058) — the FIVE acceptance-gate blocks §14 declares and nothing ran before these PRs (P-6 built the first four; P-7 added 可回滚性). The corpus is the five CANONICAL FIXTURES, not the served tree, and that is a measured choice: the 19 committed pages carry exactly ONE structural signature and only two verdicts, so grading page consistency against them would pass while never exercising BLOCK, UNKNOWN or UNSUPPORTED. pageConsistency PARTITIONS on the CTA route because dispositionBlock genuinely emits two different structures (DEEP_LINK_STATES vs its complement, 2 vs 3 states); within a partition the signature must be IDENTICAL and across partitions it must DIFFER — the cross-partition inequality is the load-bearing half, since a signature that collapsed to a constant would satisfy 'identical within a partition' perfectly while measuring nothing. Every tolerated structural variance carries the assertion of the condition that produced it (install-canonical, install-publisher, install-reason-empty, install-alt-route) rather than being smoothed away; TEXT is outside the signature by construction, which is why the UNSUPPORTED fixture's version-less <h1> does not perturb it. securityIsolation grades all five zero-counts and THREE of them had no grader before P-6 — above all publisher→HTML, where the five injection blurbs were previously checked only against the contract's decision scope (built by omission), so nothing ever rendered them into HTML and counted. That check runs in BOTH escape forms because `esc` and `escText` differ on the quote characters, and a check that guessed one form could report zero occurrences of a string that is on the page. The digest-invariance check is derived through the SAME constructor from a sentinel, never asserted against a literal: a hardcoded digest cannot detect its own subject changing. visualRegression is BROWSERLESS and says so — it measures which declarations apply (var()-resolved, so a token VALUE change is visible) and how the one grid reflows across three viewports that straddle the 452 px column boundary and the 720 px main cap; it does NOT measure glyph rasterization. Zero @media is ASSERTED rather than assumed, because resolveDeclarations is a flat rule walk with no nesting support, so a media query would be silently mis-parsed — and adding one would also spend a served-byte license this batch does not have. Duplicate catalog keys are measured over RAW BYTES: JSON.parse collapses a duplicate last-wins, so a parsed check is structurally blind to the defect. thresholds.maxAuthorityFacts is now READ from human-five-second-test.json and graded against the measured counts; before P-6 nothing read it, and it sat at 3 while all five fixtures measured 5. Regenerate with `pnpm audit:preview:write`; enforce with `pnpm audit:preview:gate`.",
     workstream: "P",
-    pr: "P-6",
+    pr: "P-7",
     status: result.pass ? "PASSED" : "FAILED",
     corpus: {
       fixtures: pages.map((p) => ({
@@ -418,6 +540,14 @@ function build(): { json: string; pass: boolean; failures: readonly string[] } {
       ...result.blocks[3],
       observations: result.visual.observations,
       declarationCoverage: result.visual.declarationCoverage,
+    },
+    rollback: {
+      ...result.blocks[4],
+      recoverableVersions: corpus.length,
+      newest: corpus.length === 0 ? null : corpus[corpus.length - 1]!.commit,
+      configVersion: liveDocument.configVersion ?? null,
+      $comment:
+        "§14's fifth acceptance block, ungraded until PR P-7. The corpus is the COMMITTED ledger, not `git show`, and that is a measured choice rather than a stylistic one: this script runs in CI in --check mode (which rebuilds the artifact and byte-compares it) against a bare `actions/checkout@v6`, i.e. depth 1. On a depth-1 clone of this repo `git log --follow` over the catalog returns 1 commit rather than 8, the historical blobs report MISSING, and `merge-base --is-ancestor` FATALS on an unknown sha instead of returning false — so a git-derived corpus would fail the byte-compare on every CI run forever, and could not even fail gracefully. The stronger consequence is why each ledger entry now STORES its document: if past documents existed only in git history, then on a shallow clone they do not exist, and §14's 可按 digest 恢复 would be FALSE there rather than merely ungraded. Trust is therefore two honest layers, and the split is stated rather than implied: the offline validator called here recomputes all five recorded values from the stored bytes (catching a doctored digest, doctored bytes, or an unrecorded catalog change) but CANNOT catch a self-consistent forgery — measured, not assumed: a fabricated document with a correctly recomputed digest yields 0 offline faults. `pnpm ledger:presentation:validate` adds the git layer that proves each entry AUTHENTIC by comparing the stored document to the document at its own commit. validatorKnownKeys is derived BEHAVIOURALLY (feed the validator a configVersion and see whether it reports the key unknown) because the validator's `known` set is function-local, and any exported mirror would be a second copy free to drift from the one that decides. deploy-web.yml is verified AS TEXT because every one of REGRESSION_CHECKS' 19 rows binds ci.yml#test and deploy-web.yml's single `deploy:` job is graded by nothing.",
     },
     failures: result.failures,
   }
@@ -451,7 +581,7 @@ if (argv.includes("--write")) {
 
 if (argv.includes("--gate")) {
   if (pass) {
-    console.log("preview & snapshot harness: PASSED — all four §14 acceptance blocks green.")
+    console.log("preview & snapshot harness: PASSED — all five §14 acceptance blocks green.")
     process.exit(0)
   }
   console.error("preview & snapshot harness: FAILED")

@@ -397,7 +397,11 @@ export {
   gradePageConsistency,
   gradeSecurityIsolation,
   gradeVisualRegression,
+  gradeRollback,
+  restoreByDigest,
+  previousDeploy,
   gradePreviewSnapshot,
+  PREVIEW_BLOCK_NAMES,
   CTA_ROUTE_PARTITIONS,
   CTA_REFLOW_RULES,
   CONDITIONAL_SITES,
@@ -420,6 +424,8 @@ export {
   type VisualRegressionInput,
   type VisualRegressionResult,
   type ViewportObservation,
+  type RollbackCorpusMember,
+  type RollbackInput,
 } from "./previewSnapshot.js"
 // Workstream P Batch 4 — the L0 TOKEN PLANE measurement (new15 §4.2 PR P-4; ADR
 // 0058 §1/§4). Pure parsing + comparison, no filesystem: the lock script and the

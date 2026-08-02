@@ -15,6 +15,11 @@
       "$ref": "#/$defs/locale",
       "description": "BCP-47 tag this document supplies copy for. One document per locale; the emit edge selects."
     },
+    "configVersion": {
+      "type": "string",
+      "pattern": "^[a-z0-9]+(?:[.-][a-z0-9]+)*$",
+      "description": "Which revision of this catalog is deployed (new15 §14 可回滚性; PR P-7). Machine token — deliberately not prose, so it stays outside every copy mechanism and cannot be rendered onto a page. The THIRD identity key beside `schema` and `locale`: validated and digested, never resolved, and deliberately absent from LEVEL_BY_SECTION so it moves `presentationDigest` while `l0Digest`/`l1Digest`/`l2Digest` hold. OPTIONAL — every catalog revision committed before P-7 stays a valid document, and the empty document's digest is unchanged, so rollback keeps a real predecessor instead of a special case."
+    },
     "decisionCopy": {
       "$ref": "#/$defs/decisionCopy",
       "description": "L1 cognitive copy. Destination: apps/web/content/safe-install/decision-copy/<locale>.json"

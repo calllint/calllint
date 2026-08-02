@@ -39,6 +39,12 @@ import { CTA_DOC_HREF, DEEP_LINK_STATES, altRouteHref } from "./renderSafeInstal
 import { renderedForms } from "./presentationAudit.js"
 import { ABOVE_FOLD_SECTION_IDS, SECTION_GROUPS } from "./safe-install/layoutStructure.js"
 import {
+  CONFIG_VERSION_PATTERN,
+  EMPTY_PRESENTATION_CONTENT,
+  type PresentationContentV1,
+} from "./safe-install/presentationContent.js"
+import { emptyPresentationDigest, presentationDigest } from "./safe-install/presentationDigest.js"
+import {
   emittedInstallClasses,
   parseStyledClasses,
   resolveDeclarations,
@@ -986,6 +992,358 @@ export function gradeVisualRegression(input: VisualRegressionInput): VisualRegre
 }
 
 // ---------------------------------------------------------------------------
+// 可回滚性 — §14's fifth block (PR P-7)
+// ---------------------------------------------------------------------------
+//
+// §14 states three obligations and nothing ran them:
+//
+//     每个 presentation config 有版本          → the `configVersion` identity key
+//     每次 deploy 记录 presentationDigest      → the committed deploy ledger
+//     可按 digest 恢复上一版本                  → `restoreByDigest` + the round-trip below
+//
+// They are graded as ONE block because they are one loop. A version nothing records is
+// decoration; a ledger keyed on a digest no document can be recovered from is a receipt
+// for something unrecoverable; and a restore that cannot name which version it restored
+// to is a guess. Breaking any single link makes the other two worthless, so a block that
+// passes with one link broken would be a block worth deleting.
+//
+// WHY THIS GRADER TOUCHES NO GIT. Measured on a depth-1 clone of this very repo — which
+// is what `ci.yml`'s bare `actions/checkout@v6` produces — `git cat-file -e` on a
+// historical blob reports MISSING and `git merge-base --is-ancestor` exits `fatal: Not a
+// valid object name`, i.e. it cannot even fail gracefully. And `audit:preview` runs in CI
+// in `--check` mode, which REBUILDS this artifact and byte-compares it against the
+// committed copy. A git-reading grader would therefore make that byte-compare fail on
+// every CI run, forever, for a reason having nothing to do with the claim.
+//
+// That measurement forces a stronger conclusion than "keep git out of the grader". If a
+// past document's only copy lived in git history, then on a depth-1 clone the past
+// documents DO NOT EXIST — §14's 可按 digest 恢复上一版本 would be FALSE there, not merely
+// ungraded. So each ledger entry STORES its document, and the ledger is a restore store
+// rather than a receipt for something unrecoverable.
+//
+// So the corpus arrives as a PARAMETER: `scripts/preview-snapshot.ts` reads it out of the
+// committed ledger — no git, which is why the graded path runs identically on a full clone
+// and on CI's depth-1 checkout — and this function only grades what it is handed. What git
+// still buys is AUTHENTICITY (a stored document equals the document at its commit), and
+// that check lives in `scripts/presentation-ledger.ts --validate`, on a full clone, outside
+// every gate. This is the shipped observer/evaluator split, and it is also what makes the
+// round-trip unit-testable without a repository.
+
+/** One recoverable document: a digest and the bytes it must restore to. */
+export interface RollbackCorpusMember {
+  /** Short commit label, for readable observations. */
+  readonly commit: string
+  readonly at: string
+  readonly presentationDigest: string
+  readonly l0Digest: string
+  readonly l1Digest: string
+  readonly l2Digest: string
+  readonly configVersion: string | null
+  readonly sections: readonly string[]
+  /**
+   * The document itself, or `null` when the catalog did not exist at that commit.
+   *
+   * `null` is a measured state, not a sentinel: the oldest member is the parent of the
+   * catalog's first commit, and git proves the absence. Recording it as a member rather
+   * than as a special case gives rollback a floor reached by the SAME lookup as every
+   * other member — see `emptyPresentationDigest`, whose own docblock reserves this for
+   * PR P-7 by name.
+   */
+  readonly document: PresentationContentV1 | null
+}
+
+export interface RollbackInput {
+  /** Oldest first. Built from git by `scripts/`, never here. */
+  readonly corpus: readonly RollbackCorpusMember[]
+  /** The live catalog, as committed. */
+  readonly liveDocument: PresentationContentV1
+  /** Faults reported by `scripts/presentation-ledger.ts`'s validator — MUST be empty. */
+  readonly ledgerFaults: readonly string[]
+  /** `deploys[]` length, so an empty ledger is a named failure rather than a vacuous pass. */
+  readonly ledgerEntryCount: number
+  /**
+   * Does `deploy-web.yml` RUN the ledger check? An anchored binding, and the anchor is the
+   * invoked command rather than the word `presentationDigest` — that word appears in the
+   * step's own comment, so a substring probe for it would keep passing after the command
+   * was deleted. This is the `REGRESSION_CHECKS` idiom, used here because no
+   * `REGRESSION_CHECKS` row can name that workflow: all 19 bind `ci.yml`#`test`, and
+   * `deploy-web.yml`'s single `deploy:` job is graded by nothing.
+   */
+  readonly deployWorkflowRecordsDigest: boolean
+  /** Is `deploy-web.yml` still `contents: read`? A deploy that writes to the repo needs an ADR. */
+  readonly deployWorkflowPermissionsReadOnly: boolean
+  /** Schema property names, so the version's declaration is graded, not assumed. */
+  readonly schemaPropertyNames: readonly string[]
+  /** The validator's accepted top-level key set. */
+  readonly validatorKnownKeys: readonly string[]
+  /** Every slot name the resolver can fill — `configVersion` must appear in none. */
+  readonly resolverSlotNames: readonly string[]
+  /** Faults the real validator returns for a deliberately malformed version. */
+  readonly malformedVersionRules: readonly string[]
+}
+
+/**
+ * Restore the document a digest names. PURE: the corpus is a parameter.
+ *
+ * Returns `null` for an unknown digest, and that refusal is the point. A rollback that
+ * silently restored a nearest match would be worse than one that refuses — it would
+ * deploy the wrong bytes under the right name, which is the failure mode a digest exists
+ * to prevent. `undefined` document (the pre-catalog state) is returned as
+ * `EMPTY_PRESENTATION_CONTENT` so callers get a real document rather than a branch.
+ */
+export function restoreByDigest(
+  corpus: readonly RollbackCorpusMember[],
+  digest: string,
+): PresentationContentV1 | null {
+  const hit = corpus.find((m) => m.presentationDigest === digest)
+  if (hit === undefined) return null
+  return hit.document ?? EMPTY_PRESENTATION_CONTENT
+}
+
+/**
+ * The member deployed immediately before `digest` — §14's 上一版本, made computable.
+ *
+ * Depends on `deploys[]` being a chain, which the ledger validator enforces with two
+ * independent orderings (wall-clock and git ancestry). Without that, "previous" is not a
+ * defined notion and this function would be returning an arbitrary neighbour.
+ */
+export function previousDeploy(
+  corpus: readonly RollbackCorpusMember[],
+  digest: string,
+): RollbackCorpusMember | null {
+  const i = corpus.findIndex((m) => m.presentationDigest === digest)
+  return i <= 0 ? null : (corpus[i - 1] ?? null)
+}
+
+export function gradeRollback(input: RollbackInput): PreviewBlock {
+  const checks: PreviewCheck[] = []
+  const { corpus } = input
+
+  // --- 每个 presentation config 有版本 -------------------------------------
+  const version = input.liveDocument.configVersion
+  checks.push(
+    check(
+      "version/present",
+      typeof version === "string" && version.length > 0,
+      version === undefined ? "the live catalog carries no configVersion" : `configVersion ${JSON.stringify(version)}`,
+    ),
+  )
+  checks.push(
+    check(
+      "version/non-prose",
+      typeof version === "string" && CONFIG_VERSION_PATTERN.test(version),
+      `${JSON.stringify(version ?? null)} against ${String(CONFIG_VERSION_PATTERN)}`,
+    ),
+  )
+  checks.push(
+    check(
+      "version/declared-in-schema",
+      input.schemaPropertyNames.includes("configVersion"),
+      `schema properties: ${list(input.schemaPropertyNames)}`,
+    ),
+  )
+  checks.push(
+    check(
+      "version/accepted-by-validator",
+      input.validatorKnownKeys.includes("configVersion"),
+      `validator known keys: ${list(input.validatorKnownKeys)}`,
+    ),
+  )
+  // A field the schema admits but the validator rejects — or vice versa — is a field that
+  // fails on a real catalog. The pair above is graded together for that reason.
+  checks.push(
+    check(
+      "version/malformed-is-rejected",
+      input.malformedVersionRules.includes("config-version"),
+      `a malformed configVersion yields: ${list(input.malformedVersionRules)}`,
+    ),
+  )
+  // An identity key is validated and digested, NEVER resolved. A version that became a
+  // resolver slot would be renderable copy, and copy is what this key must never be.
+  checks.push(
+    check(
+      "version/not-a-resolver-slot",
+      !input.resolverSlotNames.includes("configVersion"),
+      `${input.resolverSlotNames.length} resolver slot(s), configVersion among them: ${input.resolverSlotNames.includes("configVersion")}`,
+    ),
+  )
+  // The signature that proves it is an IDENTITY key and not a levelled section, derived
+  // through `presentationDigest` itself rather than compared to a literal: adding the key
+  // must move the aggregate and leave all three level digests untouched.
+  {
+    const { configVersion: _drop, ...withoutVersion } = input.liveDocument
+    const withV = presentationDigest(input.liveDocument)
+    const without = presentationDigest(withoutVersion as PresentationContentV1)
+    const aggregateMoves = withV.presentationDigest !== without.presentationDigest
+    const levelsHold =
+      withV.l0Digest === without.l0Digest &&
+      withV.l1Digest === without.l1Digest &&
+      withV.l2Digest === without.l2Digest
+    checks.push(
+      check(
+        "version/identity-digest-signature",
+        aggregateMoves && levelsHold,
+        `aggregate moves: ${aggregateMoves}, l0/l1/l2 hold: ${levelsHold}`,
+      ),
+    )
+    checks.push(
+      check(
+        "version/carries-no-level",
+        JSON.stringify(withV.sections) === JSON.stringify(without.sections),
+        `sections with: ${list(withV.sections)} / without: ${list(without.sections)}`,
+      ),
+    )
+  }
+
+  // --- 每次 deploy 记录 presentationDigest ---------------------------------
+  checks.push(
+    check(
+      "ledger/valid",
+      input.ledgerFaults.length === 0,
+      input.ledgerFaults.length === 0
+        ? `every entry recomputed against its own commit`
+        : `${input.ledgerFaults.length} fault(s): ${input.ledgerFaults.join(" | ")}`,
+    ),
+  )
+  checks.push(
+    check("ledger/non-empty", input.ledgerEntryCount > 0, `${input.ledgerEntryCount} recorded deploy(s)`),
+  )
+  // The newest recorded document must be the one that exists NOW. This is §14's second
+  // line as an enforceable obligation: change the catalog without recording, and this
+  // check is the one that names it.
+  {
+    const live = presentationDigest(input.liveDocument).presentationDigest
+    const newest = corpus.length === 0 ? null : corpus[corpus.length - 1]!
+    checks.push(
+      check(
+        "ledger/newest-is-current",
+        newest !== null && newest.presentationDigest === live,
+        newest === null ? "the corpus is empty" : `newest ${newest.presentationDigest.slice(7, 19)}… vs live ${live.slice(7, 19)}…`,
+      ),
+    )
+  }
+  checks.push(
+    check(
+      "ledger/deploy-workflow-records",
+      input.deployWorkflowRecordsDigest,
+      `deploy-web.yml contains the digest-recording step: ${input.deployWorkflowRecordsDigest}`,
+    ),
+  )
+  checks.push(
+    check(
+      "ledger/deploy-workflow-is-read-only",
+      input.deployWorkflowPermissionsReadOnly,
+      `deploy-web.yml permissions remain contents: read — ${input.deployWorkflowPermissionsReadOnly}`,
+    ),
+  )
+
+  // --- 可按 digest 恢复上一版本 --------------------------------------------
+  checks.push(check("restore/corpus-non-empty", corpus.length > 0, `${corpus.length} recoverable version(s)`))
+
+  // Distinctness is what makes a digest a restore KEY. Two members sharing one digest
+  // would make `restoreByDigest` ambiguous, and an ambiguous restore is a guess.
+  const digests = corpus.map((m) => m.presentationDigest)
+  checks.push(
+    check(
+      "restore/digests-distinct",
+      new Set(digests).size === digests.length,
+      `${new Set(digests).size} distinct digest(s) across ${digests.length} member(s)`,
+    ),
+  )
+
+  // THE ROUND TRIP, per member. A constant-returning `restoreByDigest` fails every member
+  // but one, which is the only control that separates a real restore from a stub that
+  // passes by agreeing with itself.
+  const roundTripFailures: string[] = []
+  for (const member of corpus) {
+    const restored = restoreByDigest(corpus, member.presentationDigest)
+    if (restored === null) {
+      roundTripFailures.push(`${member.commit}: not restorable`)
+      continue
+    }
+    const recomputed = presentationDigest(restored)
+    if (recomputed.presentationDigest !== member.presentationDigest) {
+      roundTripFailures.push(`${member.commit}: restored to ${recomputed.presentationDigest.slice(7, 19)}…`)
+      continue
+    }
+    // The level digests and the version must survive the trip too — an aggregate-only
+    // check would accept a restore that reconstructed the right whole from wrong parts.
+    if (
+      recomputed.l0Digest !== member.l0Digest ||
+      recomputed.l1Digest !== member.l1Digest ||
+      recomputed.l2Digest !== member.l2Digest
+    ) {
+      roundTripFailures.push(`${member.commit}: level digests disagree`)
+      continue
+    }
+    if ((restored.configVersion ?? null) !== member.configVersion) {
+      roundTripFailures.push(`${member.commit}: configVersion disagrees`)
+    }
+  }
+  checks.push(
+    check(
+      "restore/round-trip",
+      roundTripFailures.length === 0,
+      roundTripFailures.length === 0
+        ? `all ${corpus.length} member(s) round-trip: digest → document → same digest`
+        : `${roundTripFailures.length} failure(s): ${roundTripFailures.join(" | ")}`,
+    ),
+  )
+
+  // A refusal, graded. Silently restoring a nearest match would deploy the wrong bytes
+  // under the right name — the exact failure a digest exists to prevent.
+  const unknown = "sha256:" + "e".repeat(64)
+  checks.push(
+    check(
+      "restore/unknown-digest-refuses",
+      restoreByDigest(corpus, unknown) === null && restoreByDigest(corpus, "") === null,
+      `an unrecorded digest returns null rather than a nearest match`,
+    ),
+  )
+
+  // The floor. The oldest member is the pre-catalog state, reached by the same lookup as
+  // every other member — no branch, which is what `emptyPresentationDigest`'s docblock
+  // asked PR P-7 to preserve.
+  {
+    const empty = emptyPresentationDigest()
+    const oldest = corpus.length === 0 ? null : corpus[0]!
+    const restored = restoreByDigest(corpus, empty.presentationDigest)
+    checks.push(
+      check(
+        "restore/empty-predecessor",
+        oldest !== null &&
+          oldest.document === null &&
+          oldest.presentationDigest === empty.presentationDigest &&
+          restored !== null &&
+          presentationDigest(restored).presentationDigest === empty.presentationDigest,
+        oldest === null
+          ? "the corpus is empty"
+          : `oldest ${oldest.commit} carries ${oldest.document === null ? "no document" : "a document"}, ` +
+            `digest ${oldest.presentationDigest.slice(7, 19)}…, restores: ${restored !== null}`,
+      ),
+    )
+  }
+
+  // 上一版本 — "the previous version" must be computable for every member but the floor,
+  // and must be undefined for the floor itself. A ledger that is a set rather than a
+  // chain cannot answer this, which is why the validator enforces the ordering.
+  {
+    const missing = corpus.slice(1).filter((m) => previousDeploy(corpus, m.presentationDigest) === null)
+    checks.push(
+      check(
+        "restore/previous-version-defined",
+        missing.length === 0 && previousDeploy(corpus, digests[0] ?? "") === null,
+        missing.length === 0
+          ? `every version but the floor has a computable predecessor; the floor has none`
+          : `${missing.length} member(s) without a predecessor: ${list(missing.map((m) => m.commit))}`,
+      ),
+    )
+  }
+
+  return { block: "可回滚性", checks, pass: checks.every((c) => c.pass) }
+}
+
+// ---------------------------------------------------------------------------
 // The whole harness
 // ---------------------------------------------------------------------------
 
@@ -994,7 +1352,25 @@ export interface PreviewSnapshotInput {
   readonly pageConsistency: PageConsistencyInput
   readonly securityIsolation: SecurityIsolationInput
   readonly visualRegression: VisualRegressionInput
+  readonly rollback: RollbackInput
 }
+
+/**
+ * §14's five block names, in the order `gradePreviewSnapshot` composes them.
+ *
+ * Exported so a test can assert that `blocks[]` is exactly this list. The artifact wiring
+ * in `scripts/preview-snapshot.ts` is POSITIONAL (`result.blocks[0]` … `result.blocks[4]`),
+ * so a block appended here without a matching artifact key would be graded and then
+ * discarded — failures reaching no reviewable output. This constant is what lets that be
+ * a failing test rather than a silent hole.
+ */
+export const PREVIEW_BLOCK_NAMES = [
+  "配置完整性",
+  "页面一致性",
+  "安全隔离",
+  "视觉回归",
+  "可回滚性",
+] as const
 
 export interface PreviewSnapshotResult {
   readonly blocks: readonly PreviewBlock[]
@@ -1005,7 +1381,7 @@ export interface PreviewSnapshotResult {
 }
 
 /**
- * Grade all four §14 blocks.
+ * Grade all five §14 blocks.
  *
  * `failures[]` rather than `GateMeasure[]`: this artifact is graded by its own
  * `audit:preview:gate` and is not a `GATE_ARTIFACTS` row, so a row-per-check measures
@@ -1017,11 +1393,13 @@ export function gradePreviewSnapshot(input: PreviewSnapshotInput): PreviewSnapsh
   const pageConsistency = gradePageConsistency(input.pageConsistency)
   const securityIsolation = gradeSecurityIsolation(input.securityIsolation)
   const visual = gradeVisualRegression(input.visualRegression)
+  const rollback = gradeRollback(input.rollback)
   const blocks: PreviewBlock[] = [
     configIntegrity,
     pageConsistency,
     securityIsolation,
     { block: visual.block, checks: visual.checks, pass: visual.pass },
+    rollback,
   ]
 
   const failures: string[] = []

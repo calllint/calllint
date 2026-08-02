@@ -32,6 +32,7 @@
 // ---------------------------------------------------------------------------
 
 import { describe, it, expect } from "vitest"
+import { VERDICT_PUBLIC_LABEL } from "@calllint/types"
 import {
   AGENT_GUIDANCE,
   CANONICAL_FIXTURES,
@@ -39,25 +40,41 @@ import {
   CTA_REFLOW_RULES,
   CTA_ROUTE_PARTITIONS,
   DEEP_LINK_STATES,
+  DEFAULT_GROUP_ORDER,
+  EMPTY_PRESENTATION_CONTENT,
+  LEVEL_BY_SECTION,
   MAX_DECISION_AUTHORITY_FACTS,
+  PRESENTATION_CONTENT_VERSION,
+  PREVIEW_BLOCK_NAMES,
+  PRIMARY_CTA,
   PUBLISHER_INJECTION_BLURBS,
+  WIRED_SLOTS,
   canonicalProjection,
   ctaRoutePartition,
+  emptyPresentationDigest,
   evaluateHumanCapsule,
   gradeConfigIntegrity,
   gradePageConsistency,
   gradePreviewSnapshot,
+  gradeRollback,
   gradeSecurityIsolation,
   gradeVisualRegression,
   predictCtaColumns,
+  presentationDigest,
+  previousDeploy,
   renderSafeInstall,
   renderedForms,
+  restoreByDigest,
   signatureConditionals,
   structuralSignature,
+  validatePresentationContent,
   type ConfigIntegrityInput,
   type InjectionSample,
   type PageSample,
+  type PresentationContentV1,
   type PreviewBlock,
+  type RollbackCorpusMember,
+  type RollbackInput,
   type SecurityIsolationInput,
   type SentinelSample,
   type VisualRegressionInput,
@@ -834,6 +851,319 @@ describe("视觉回归", () => {
 })
 
 // ---------------------------------------------------------------------------
+// 可回滚性 — §14's fifth block (PR P-7)
+// ---------------------------------------------------------------------------
+//
+// The corpus here is SYNTHETIC and that is deliberate. `scripts/preview-snapshot.ts`
+// builds the real 8-member corpus from `git show`; this suite proves the grader over
+// documents it constructs, which is the whole payoff of taking the corpus as a parameter:
+// the round-trip is testable without a repository, and therefore also on CI's depth-1
+// clone where the historical blobs do not exist at all.
+//
+// The load-bearing control is `restore/round-trip` under a CONSTANT `restoreByDigest`.
+// A stub that returns the newest document for every input satisfies "restorable" and
+// "distinct" and only fails the round trip — on every member but one. That asymmetry is
+// the only thing separating a real restore from a lookup that agrees with itself.
+
+/**
+ * Documents that differ in each of the three levels plus identity, so no digest collides.
+ *
+ * Each successive entry moves a DIFFERENT level, which is what makes the round trip a real
+ * test rather than four comparisons of the same shape: [0] moves L1 off the empty document,
+ * [1] moves L0 by introducing `tokens`, [2] moves L1 again, [3] moves the AGGREGATE ONLY by
+ * adding the identity key.
+ *
+ * `[0]` must NOT be the bare `{schema, locale}` pair. That pair is exactly
+ * `EMPTY_PRESENTATION_CONTENT`, so its digest equals the floor member's and the corpus
+ * silently acquires a duplicate — measured: `restore/digests-distinct` and
+ * `restore/previous-version-defined` both fail, the latter because `findIndex` on a
+ * duplicated digest resolves to the FLOOR and that member then has no computable
+ * predecessor. The grader was right and the fixture was wrong; the collision is left
+ * described here because a future edit could reintroduce it in one keystroke.
+ */
+const ROLLBACK_DOCS: readonly PresentationContentV1[] = [
+  { schema: PRESENTATION_CONTENT_VERSION, locale: "en-US", sectionTitles: { valueLine: "Install with evidence" } },
+  {
+    schema: PRESENTATION_CONTENT_VERSION,
+    locale: "en-US",
+    sectionTitles: { valueLine: "Install with evidence" },
+    tokens: { tokensVersion: "r-one" },
+  },
+  {
+    schema: PRESENTATION_CONTENT_VERSION,
+    locale: "en-US",
+    tokens: { tokensVersion: "r-two" },
+    layout: { groupOrder: [...DEFAULT_GROUP_ORDER], maxSecondaryLinks: 2 },
+  },
+  {
+    schema: PRESENTATION_CONTENT_VERSION,
+    locale: "en-US",
+    tokens: { tokensVersion: "r-two" },
+    layout: { groupOrder: [...DEFAULT_GROUP_ORDER], maxSecondaryLinks: 2 },
+    configVersion: "2026.08.01-p7",
+  },
+]
+
+const rollbackCorpus = (): RollbackCorpusMember[] => {
+  const empty = emptyPresentationDigest()
+  const floor: RollbackCorpusMember = {
+    commit: "aaaaaaa",
+    at: "2026-07-01T00:00:00Z",
+    presentationDigest: empty.presentationDigest,
+    l0Digest: empty.l0Digest,
+    l1Digest: empty.l1Digest,
+    l2Digest: empty.l2Digest,
+    configVersion: null,
+    sections: empty.sections,
+    document: null,
+  }
+  return [
+    floor,
+    ...ROLLBACK_DOCS.map((document, i) => {
+      const d = presentationDigest(document)
+      return {
+        commit: `c${String(i)}${"0".repeat(6)}`,
+        at: `2026-07-0${String(i + 2)}T00:00:00Z`,
+        presentationDigest: d.presentationDigest,
+        l0Digest: d.l0Digest,
+        l1Digest: d.l1Digest,
+        l2Digest: d.l2Digest,
+        configVersion: document.configVersion ?? null,
+        sections: d.sections,
+        document,
+      }
+    }),
+  ]
+}
+
+const LIVE_DOC = ROLLBACK_DOCS[ROLLBACK_DOCS.length - 1]!
+
+const rollbackInput = (over: Partial<RollbackInput> = {}): RollbackInput => ({
+  corpus: rollbackCorpus(),
+  liveDocument: LIVE_DOC,
+  ledgerFaults: [],
+  ledgerEntryCount: 5,
+  deployWorkflowRecordsDigest: true,
+  deployWorkflowPermissionsReadOnly: true,
+  // The schema's property list is FILE data, so it arrives as a parameter here exactly as
+  // it does in production. `scripts/preview-snapshot.ts` passes the real
+  // `schemas/calllint.presentation-content.v1.schema.json` keys; this suite passes a list
+  // whose only graded property is that `configVersion` is in it, keeping the module pure.
+  schemaPropertyNames: [...Object.keys(LEVEL_BY_SECTION), "schema", "locale", "configVersion"],
+  validatorKnownKeys: [...Object.keys(LEVEL_BY_SECTION), "schema", "locale", "configVersion"],
+  resolverSlotNames: Object.values(WIRED_SLOTS).flat() as readonly string[],
+  // Run through the REAL validator, not a hand-written list: the claim is that a prose
+  // version is rejected by the shipped rule, and a literal `["config-version"]` here could
+  // not detect the rule being deleted. `forbiddenPhrases: []` is sufficient and honest —
+  // that context field feeds the overclaim rule, which this document does not touch.
+  malformedVersionRules: validatePresentationContent(
+    { ...EMPTY_PRESENTATION_CONTENT, configVersion: "August 2026 rebuild" },
+    { verdictLabels: VERDICT_PUBLIC_LABEL, stateCtas: PRIMARY_CTA, forbiddenPhrases: [] },
+  ).map((e) => e.rule),
+  ...over,
+})
+
+describe("gradeRollback — 有版本", () => {
+  it("passes on a catalog carrying a machine version, and names it", () => {
+    const block = gradeRollback(rollbackInput())
+    expect(block.pass, JSON.stringify(failedIds(block))).toBe(true)
+    expect(block.block).toBe("可回滚性")
+    expect(observedOf(block, "version/present")).toContain("2026.08.01-p7")
+  })
+
+  it("NEGATIVE — a catalog with no configVersion fails present, by name", () => {
+    const { configVersion: _drop, ...noVersion } = LIVE_DOC
+    const block = gradeRollback(rollbackInput({ liveDocument: noVersion as PresentationContentV1 }))
+    expect(failedIds(block)).toContain("version/present")
+    expect(observedOf(block, "version/present")).toContain("no configVersion")
+  })
+
+  it("NEGATIVE — a prose version fails the non-prose pattern (control #6)", () => {
+    const block = gradeRollback(
+      rollbackInput({ liveDocument: { ...LIVE_DOC, configVersion: "August 2026 rebuild" } }),
+    )
+    expect(failedIds(block)).toContain("version/non-prose")
+  })
+
+  it("NEGATIVE — undeclared in the schema, or unknown to the validator, each fail by name", () => {
+    expect(failedIds(gradeRollback(rollbackInput({ schemaPropertyNames: ["schema", "locale"] })))).toContain(
+      "version/declared-in-schema",
+    )
+    expect(failedIds(gradeRollback(rollbackInput({ validatorKnownKeys: ["schema", "locale"] })))).toContain(
+      "version/accepted-by-validator",
+    )
+  })
+
+  it("NEGATIVE — a validator that ACCEPTS a prose version fails malformed-is-rejected", () => {
+    // The check that stops the pattern from being decorative: without it, a validator
+    // could stop enforcing the shape and every other version check would still pass.
+    const block = gradeRollback(rollbackInput({ malformedVersionRules: [] }))
+    expect(failedIds(block)).toContain("version/malformed-is-rejected")
+  })
+
+  it("NEGATIVE — wiring the version as a resolver slot fails (control #7)", () => {
+    const block = gradeRollback(
+      rollbackInput({ resolverSlotNames: [...Object.values(WIRED_SLOTS).flat(), "configVersion"] }),
+    )
+    expect(failedIds(block)).toContain("version/not-a-resolver-slot")
+  })
+
+  it("grades the identity signature derivationally: the aggregate moves, all three levels hold", () => {
+    const block = gradeRollback(rollbackInput())
+    expect(observedOf(block, "version/identity-digest-signature")).toBe(
+      "aggregate moves: true, l0/l1/l2 hold: true",
+    )
+    expect(observedOf(block, "version/carries-no-level")).toContain("sections with:")
+  })
+
+  it("NEGATIVE — a document whose version changes nothing fails the signature (control #1's shape)", () => {
+    // A version that did not reach the digest at all — the failure a levelled or ignored
+    // key would produce. Derived through `presentationDigest`, never compared to a literal,
+    // so this assertion cannot go blind when the catalog changes.
+    const block = gradeRollback(rollbackInput({ liveDocument: ROLLBACK_DOCS[0]! }))
+    expect(failedIds(block)).toContain("version/identity-digest-signature")
+    expect(observedOf(block, "version/identity-digest-signature")).toContain("aggregate moves: false")
+  })
+})
+
+describe("gradeRollback — 每次 deploy 记录 presentationDigest", () => {
+  it("NEGATIVE — any ledger fault surfaces here, quoted (controls #8/#9)", () => {
+    const block = gradeRollback(
+      rollbackInput({ ledgerFaults: ["deploys[3] (b5a8818c): recorded l1Digest … != recomputed …"] }),
+    )
+    expect(failedIds(block)).toContain("ledger/valid")
+    expect(observedOf(block, "ledger/valid")).toContain("b5a8818c")
+  })
+
+  it("NEGATIVE — an empty ledger fails rather than passing vacuously", () => {
+    const block = gradeRollback(rollbackInput({ ledgerEntryCount: 0 }))
+    expect(failedIds(block)).toContain("ledger/non-empty")
+  })
+
+  it("NEGATIVE — changing the catalog without recording fails newest-is-current (control #10)", () => {
+    // §14's second line as an enforceable obligation: the newest recorded document must be
+    // the one that exists now.
+    const block = gradeRollback(
+      rollbackInput({ liveDocument: { ...LIVE_DOC, configVersion: "2026.09.01-unrecorded" } }),
+    )
+    expect(failedIds(block)).toContain("ledger/newest-is-current")
+    expect(observedOf(block, "ledger/newest-is-current")).toContain(" vs live ")
+  })
+
+  it("NEGATIVE — dropping the deploy-web.yml step fails the workflow binding (control #11)", () => {
+    const block = gradeRollback(rollbackInput({ deployWorkflowRecordsDigest: false }))
+    expect(failedIds(block)).toContain("ledger/deploy-workflow-records")
+  })
+
+  it("NEGATIVE — a deploy workflow that gained write permission fails (control #18)", () => {
+    const block = gradeRollback(rollbackInput({ deployWorkflowPermissionsReadOnly: false }))
+    expect(failedIds(block)).toContain("ledger/deploy-workflow-is-read-only")
+    expect(observedOf(block, "ledger/deploy-workflow-is-read-only")).toContain("contents: read")
+  })
+})
+
+describe("gradeRollback — 可按 digest 恢复上一版本", () => {
+  it("round-trips every corpus member: digest → document → the same digest", () => {
+    const corpus = rollbackCorpus()
+    for (const m of corpus) {
+      const restored = restoreByDigest(corpus, m.presentationDigest)
+      expect(restored, m.commit).not.toBeNull()
+      expect(presentationDigest(restored!).presentationDigest, m.commit).toBe(m.presentationDigest)
+    }
+    const block = gradeRollback(rollbackInput())
+    expect(observedOf(block, "restore/round-trip")).toContain(`all ${corpus.length} member(s)`)
+  })
+
+  it("NEGATIVE — a CONSTANT restore fails on every member but one (control #12)", () => {
+    // The one control that separates a real restore from a stub. Simulated by handing the
+    // grader a corpus whose members all claim the newest document: the digests stay
+    // distinct, every lookup succeeds, and the round trip fails n-1 times.
+    const corpus = rollbackCorpus()
+    const constant = corpus.map((m) => ({ ...m, document: LIVE_DOC }))
+    const block = gradeRollback(rollbackInput({ corpus: constant, liveDocument: LIVE_DOC }))
+    expect(failedIds(block)).toContain("restore/round-trip")
+    const observed = observedOf(block, "restore/round-trip")
+    expect(observed).toContain(`${corpus.length - 1} failure(s)`)
+  })
+
+  it("NEGATIVE — an aggregate-only restore is caught by the level digests", () => {
+    // A member whose recorded l1 disagrees with its own document: the aggregate matches,
+    // so only the per-level comparison can see it.
+    const corpus = rollbackCorpus()
+    const damaged = corpus.map((m, i) => (i === 2 ? { ...m, l1Digest: "sha256:" + "f".repeat(64) } : m))
+    const block = gradeRollback(rollbackInput({ corpus: damaged }))
+    expect(failedIds(block)).toContain("restore/round-trip")
+    expect(observedOf(block, "restore/round-trip")).toContain("level digests disagree")
+  })
+
+  it("NEGATIVE — a member whose recorded configVersion disagrees with its document fails", () => {
+    const corpus = rollbackCorpus()
+    const damaged = corpus.map((m, i) => (i === 3 ? { ...m, configVersion: "2026.01.01-wrong" } : m))
+    const block = gradeRollback(rollbackInput({ corpus: damaged }))
+    expect(failedIds(block)).toContain("restore/round-trip")
+    expect(observedOf(block, "restore/round-trip")).toContain("configVersion disagrees")
+  })
+
+  it("refuses an unknown digest instead of returning a nearest match (control #13)", () => {
+    const corpus = rollbackCorpus()
+    expect(restoreByDigest(corpus, "sha256:" + "e".repeat(64))).toBeNull()
+    expect(restoreByDigest(corpus, "")).toBeNull()
+    // A digest one character off a real one must also refuse — nearest-match is the failure
+    // mode a content hash exists to prevent.
+    const real = corpus[2]!.presentationDigest
+    expect(restoreByDigest(corpus, real.slice(0, -1) + (real.endsWith("a") ? "b" : "a"))).toBeNull()
+  })
+
+  it("NEGATIVE — a nearest-match restore fails unknown-digest-refuses", () => {
+    // Simulated by a corpus member claiming the sentinel digest: if any lookup answered an
+    // unrecorded digest, this check would be the one to name it.
+    const corpus = rollbackCorpus()
+    const leaky = [...corpus, { ...corpus[1]!, presentationDigest: "sha256:" + "e".repeat(64) }]
+    const block = gradeRollback(rollbackInput({ corpus: leaky }))
+    expect(failedIds(block)).toContain("restore/unknown-digest-refuses")
+  })
+
+  it("resolves the empty predecessor through the corpus, not a branch (control #14)", () => {
+    const corpus = rollbackCorpus()
+    const empty = emptyPresentationDigest()
+    const restored = restoreByDigest(corpus, empty.presentationDigest)
+    expect(restored).toEqual(EMPTY_PRESENTATION_CONTENT)
+    expect(presentationDigest(restored!).presentationDigest).toBe(empty.presentationDigest)
+    const block = gradeRollback(rollbackInput())
+    expect(observedOf(block, "restore/empty-predecessor")).toContain("no document")
+  })
+
+  it("NEGATIVE — a corpus with no empty floor fails the predecessor check", () => {
+    const block = gradeRollback(rollbackInput({ corpus: rollbackCorpus().slice(1) }))
+    expect(failedIds(block)).toContain("restore/empty-predecessor")
+  })
+
+  it("NEGATIVE — two members sharing a digest make restore ambiguous, and fail", () => {
+    const corpus = rollbackCorpus()
+    const dup = [...corpus, { ...corpus[2]!, commit: "dddddd0" }]
+    const block = gradeRollback(rollbackInput({ corpus: dup }))
+    expect(failedIds(block)).toContain("restore/digests-distinct")
+  })
+
+  it("computes 上一版本 for every member but the floor", () => {
+    const corpus = rollbackCorpus()
+    expect(previousDeploy(corpus, corpus[0]!.presentationDigest)).toBeNull()
+    for (let i = 1; i < corpus.length; i++) {
+      expect(previousDeploy(corpus, corpus[i]!.presentationDigest)?.commit).toBe(corpus[i - 1]!.commit)
+    }
+    expect(previousDeploy(corpus, "sha256:" + "e".repeat(64))).toBeNull()
+    expect(failedIds(gradeRollback(rollbackInput()))).not.toContain("restore/previous-version-defined")
+  })
+
+  it("NEGATIVE — an empty corpus fails rather than passing vacuously", () => {
+    const block = gradeRollback(rollbackInput({ corpus: [] }))
+    expect(failedIds(block)).toContain("restore/corpus-non-empty")
+    expect(failedIds(block)).toContain("ledger/newest-is-current")
+    expect(failedIds(block)).toContain("restore/empty-predecessor")
+  })
+})
+
+// ---------------------------------------------------------------------------
 // The whole harness
 // ---------------------------------------------------------------------------
 
@@ -843,9 +1173,10 @@ describe("gradePreviewSnapshot", () => {
     pageConsistency: { pages },
     securityIsolation: securityInput(),
     visualRegression: visualInput(),
+    rollback: rollbackInput(),
   })
 
-  it("grades all four §14 blocks and passes on the shipped corpus", () => {
+  it("grades all five §14 blocks and passes on the shipped corpus", () => {
     const result = gradePreviewSnapshot(passing())
     expect(result.failures).toEqual([])
     expect(result.pass).toBe(true)
@@ -854,7 +1185,28 @@ describe("gradePreviewSnapshot", () => {
       "页面一致性",
       "安全隔离",
       "视觉回归",
+      "可回滚性",
     ])
+  })
+
+  it("pins the block order to PREVIEW_BLOCK_NAMES, which the artifact wiring is positional on", () => {
+    // `scripts/preview-snapshot.ts` reads `result.blocks[0]` … `blocks[4]` by index, so a
+    // block appended without a matching artifact key would be graded and then discarded.
+    // Asserting against the exported constant is what makes control #20 a failing test.
+    const result = gradePreviewSnapshot(passing())
+    expect(result.blocks.map((b) => b.block)).toEqual([...PREVIEW_BLOCK_NAMES])
+    expect(result.blocks).toHaveLength(PREVIEW_BLOCK_NAMES.length)
+  })
+
+  it("flattens a rollback failure into `failures[]` under its own block name", () => {
+    const result = gradePreviewSnapshot({
+      ...passing(),
+      rollback: rollbackInput({ deployWorkflowRecordsDigest: false }),
+    })
+    expect(result.pass).toBe(false)
+    expect(result.failures).toHaveLength(1)
+    expect(result.failures[0]).toContain("可回滚性")
+    expect(result.failures[0]).toContain("ledger/deploy-workflow-records")
   })
 
   it("flattens a failure into `failures[]` with its block, id and measurement", () => {

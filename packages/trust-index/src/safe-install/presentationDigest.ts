@@ -80,9 +80,26 @@ export interface PresentationDigestSet {
   readonly sections: readonly PresentationSection[]
 }
 
-/** The document's canonical form: sections in a fixed order, absent keys omitted. */
+/**
+ * The document's canonical form: identity keys, then sections in a fixed order,
+ * absent keys omitted.
+ *
+ * `configVersion` is seeded here (PR P-7) and NOWHERE else, which is the whole of
+ * its digest behavior: it moves `presentationDigest` — the aggregate over this
+ * canonical form — while `l0Digest`/`l1Digest`/`l2Digest` hold, because
+ * `sectionsAtLevel` walks only `LEVEL_BY_SECTION` and an identity key is not in it.
+ * That signature is what a version field has to have. A version that moved a level
+ * digest would make every catalog revision look like a token or copy change; a
+ * version that moved nothing could disagree with the document it names and nothing
+ * would show.
+ *
+ * Seeded CONDITIONALLY: absent stays absent, so the empty document's digest is the
+ * value P-1 pinned and rollback's predecessor needs no special case. `hashJson`
+ * sorts keys recursively, so the insertion order here is presentation only.
+ */
 function canonicalDocument(doc: PresentationContentV1): Record<string, unknown> {
   const out: Record<string, unknown> = { schema: doc.schema, locale: doc.locale }
+  if (doc.configVersion !== undefined) out.configVersion = doc.configVersion
   for (const section of Object.keys(LEVEL_BY_SECTION) as PresentationSection[]) {
     const value = (doc as unknown as Record<string, unknown>)[section]
     if (value !== undefined) out[section] = value

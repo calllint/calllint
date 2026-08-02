@@ -754,4 +754,57 @@ describe("PR P-5 — the classification is TOTAL and the compiler enforces it", 
     // rather than a fixture, because that is the document CI resolves.
     expect(resolvePresentation(doc).unwiredSlots).toEqual([])
   })
+
+  // --- PR P-7: an identity key is NOT a slot ---------------------------------
+  //
+  // Measured, not assumed: adding `configVersion` to an existing section's slot list
+  // moves NOTHING — not `overriddenSlots` (which counts slots actually overridden at
+  // resolve time, and a phantom entry is never filled), not the plane audit's
+  // `inventoryTotal` (which counts hardcoded copy literals in seven `src/` files). So a
+  // resolve-time count alone cannot carry this claim. The structural assertion below is
+  // what does, and it is enforced by the COMPILER: `WIRED_SLOTS` is
+  // `satisfies Record<PresentationSection, readonly string[]>`, so a top-level
+  // `configVersion` key is `error TS2353` — `configVersion` is not a PresentationSection.
+  // Both halves are asserted because they fail for different reasons.
+
+  it("configVersion appears in NO slot table — identity is validated and digested, never resolved", () => {
+    for (const section of Object.keys(WIRED_SLOTS) as PresentationSection[]) {
+      const wired: readonly string[] = WIRED_SLOTS[section]
+      expect(wired, `${section} wires configVersion`).not.toContain("configVersion")
+      expect(Object.keys(CODE_OWNED_SLOTS[section]), `${section} code-owns configVersion`).not.toContain(
+        "configVersion",
+      )
+    }
+    // The section vocabularies are disjoint from the identity keys, which is the same
+    // claim `presentation-digest.test.ts` makes against LEVEL_BY_SECTION — asserted here
+    // too because a slot table and a level table can drift apart independently.
+    expect(Object.keys(WIRED_SLOTS)).not.toContain("configVersion")
+  })
+
+  it("the live catalog carries a configVersion and STILL overrides exactly 46 slots", () => {
+    // The positive control that keeps the test above from passing vacuously: the real
+    // document does carry the key (so the resolver is genuinely seeing it), the resolver
+    // reports it in no slot, and the total is unmoved from its pre-P-7 value. A count with
+    // no witness that the key was present would pass on a catalog that simply lacked it.
+    expect(doc).toHaveProperty("configVersion")
+    const r = resolvePresentation(doc)
+    expect(r.overriddenSlots).toHaveLength(46)
+    expect(r.overriddenSlots.filter((s) => s.includes("configVersion"))).toEqual([])
+    expect(r.rejectedSlots).toEqual([])
+  })
+
+  it("the resolved plane exposes no configVersion — it is not carried onto a rendered surface", () => {
+    // §14's zero-served-byte gate, at the seam where a violation would originate: if the
+    // key reached the resolved plane, a renderer could read it and the install pages would
+    // drift. `resolvePresentation` returns the plane the renderer consumes, so its absence
+    // here is the reason the key cannot become copy.
+    const { overriddenSlots: _o, unwiredSlots: _u, rejectedSlots: _r, ...plane } = resolvePresentation(doc)
+    // The eight resolved surfaces the renderer reads, with the three diagnostic arrays
+    // removed — a slot name appearing in `overriddenSlots` is a report, not a surface.
+    expect(Object.keys(plane).sort()).toEqual(
+      ["agentRelay", "authority", "guardConversion", "layout", "overrides", "primaryCta", "sectionTitles", "tokens"],
+    )
+    expect(JSON.stringify(plane)).not.toContain("configVersion")
+    expect(JSON.stringify(plane)).not.toContain("2026.08.01-p7")
+  })
 })

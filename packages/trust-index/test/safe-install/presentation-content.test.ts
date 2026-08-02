@@ -35,6 +35,20 @@ const facts = JSON.parse(fs.readFileSync(path.join(repoRoot, "project-facts.json
   trustPageForbiddenPhrases: string[]
 }
 
+/**
+ * The SHIPPED catalog, read raw (PR P-7). Raw because `loadPresentationIfPresent`
+ * already resolves, and re-measuring a resolved document mis-measures silently.
+ * Read at all because an obligation on the deployed document cannot be graded from
+ * synthetic inputs — a suite that only fed hand-built documents would stay green
+ * with the real catalog unversioned.
+ */
+const liveCatalog = JSON.parse(
+  fs.readFileSync(
+    path.join(repoRoot, "apps", "web", "content", "safe-install", "presentation.v1.json"),
+    "utf8",
+  ),
+) as Record<string, unknown>
+
 /** The real shipped constants — never a local copy, or the rule checks nothing. */
 const ctx: PresentationValidationContext = {
   verdictLabels: VERDICT_PUBLIC_LABEL,
@@ -178,8 +192,14 @@ describe("presentation-content schema — the shape boundary", () => {
   })
 
   it("every top-level section carries a declared level, and none is L3", () => {
+    // The three IDENTITY keys are excluded because they carry no level BY CONSTRUCTION:
+    // `sectionsAtLevel` projects only `LEVEL_BY_SECTION`, so a key outside it cannot
+    // reach a level digest. `configVersion` (PR P-7) joins `schema` and `locale` for
+    // exactly that reason — it names which revision of the document is deployed, which
+    // is identity, not content. Putting it in LEVEL_BY_SECTION to satisfy this
+    // assertion would move `l0`/`l1`/`l2` on every catalog revision.
     const props = Object.keys(schema.properties as Record<string, unknown>).filter(
-      (k) => k !== "schema" && k !== "locale",
+      (k) => k !== "schema" && k !== "locale" && k !== "configVersion",
     )
     expect(props.sort()).toEqual(Object.keys(LEVEL_BY_SECTION).sort())
     for (const level of Object.values(LEVEL_BY_SECTION)) {
@@ -216,6 +236,59 @@ describe("presentation-content validator — falsifications", () => {
     expect(rulesFor({ ...EMPTY_PRESENTATION_CONTENT, mystery: { a: "b" } })).toContain(
       "unknown-section",
     )
+  })
+
+  // --- PR P-7: configVersion (§14 可回滚性, "每个 presentation config 有版本") -----
+
+  it("accepts an ABSENT configVersion — the pre-P-7 state, and every committed revision", () => {
+    expect(rulesFor(EMPTY_PRESENTATION_CONTENT)).toEqual([])
+  })
+
+  it("accepts a machine-token configVersion", () => {
+    expect(rulesFor({ ...EMPTY_PRESENTATION_CONTENT, configVersion: "2026.08.01-p7" })).toEqual([])
+  })
+
+  it("rejects a PROSE configVersion by name — it is identity, never copy", () => {
+    // The fault this rule exists for. A version holding a sentence would be a copy slot
+    // wearing an identity key's name: it would be reachable by anything that renders
+    // configuration, and `proseLeaves` keys on whitespace, so it would also become the
+    // first prose leaf in a document whose whole design is that it has none.
+    const rules = rulesFor({ ...EMPTY_PRESENTATION_CONTENT, configVersion: "August 2026 rebuild" })
+    expect(rules).toContain("config-version")
+  })
+
+  it("rejects a malformed configVersion — uppercase, leading punctuation, empty segments", () => {
+    for (const bad of ["P7", "2026_08_01", "-p7", "p7-", "2026..08", "v 1"]) {
+      expect(
+        validatePresentationContent({ ...EMPTY_PRESENTATION_CONTENT, configVersion: bad }, ctx).some(
+          (e) => e.rule === "config-version",
+        ),
+        bad,
+      ).toBe(true)
+    }
+  })
+
+  it("rejects a non-string configVersion", () => {
+    expect(rulesFor({ ...EMPTY_PRESENTATION_CONTENT, configVersion: 20260801 })).toContain(
+      "config-version",
+    )
+  })
+
+  it("a BLANK configVersion reports config-version, NOT empty-value — the specific rule is the honest one", () => {
+    // Both rules would be true; the exemption from the empty-leaf scan is deliberate so
+    // the reported fault names the actual obligation ("must be a machine token") rather
+    // than the generic one ("omit the key to keep the shipped default"), which is advice
+    // that does not apply to an identity key.
+    const rules = rulesFor({ ...EMPTY_PRESENTATION_CONTENT, configVersion: "   " })
+    expect(rules).toContain("config-version")
+    expect(rules).not.toContain("empty-value")
+  })
+
+  it("the live catalog carries a configVersion and validates clean", () => {
+    // The obligation is on the SHIPPED document, not merely on the type: a rule that
+    // only graded synthetic inputs would pass with the catalog unversioned.
+    expect(typeof liveCatalog.configVersion).toBe("string")
+    expect(rulesFor(liveCatalog)).toEqual([])
   })
 
   it("rejects a reserved L3 key nested deep inside a permitted section", () => {
