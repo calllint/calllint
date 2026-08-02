@@ -243,6 +243,63 @@ function servedContracts(): { slug: string; contract: unknown }[] {
 }
 
 /**
+ * The five facts that make up "the plan binding is UNCHANGED", measured on one served
+ * sidecar. Returns a fault per fact that disagrees; an empty array is the claim.
+ *
+ * Why this exists. Until P-7 the artifact carried `bindingUnchanged: true` as a bare
+ * literal — one occurrence repo-wide, asserted by no test. A literal cannot detect its
+ * own subject changing: re-point every sidecar's `expectedContractDigest` at the semantic
+ * digest and the field still reads `true`, which is the precise defect new15 §2.5's
+ * deferral depends on NOT having. So the boolean stays (no consumer breaks) but it is now
+ * derived from the bytes users receive.
+ *
+ * Fact 5 is the load-bearing one and the reason this takes `semantic` as a parameter: a
+ * silent re-pointing would leave facts 1–4 intact and show up ONLY as an argument whose
+ * value equals the computed semantic digest. Checking every argument value rather than
+ * `expectedContractDigest` alone means a re-pointing routed through a NEW argument name is
+ * caught too.
+ */
+function planBindingFaults(contract: unknown, semantic: string): string[] {
+  const faults: string[] = []
+  const action = (contract as { recommendedNextAction?: Record<string, unknown> } | null)?.recommendedNextAction
+  if (action === undefined || action === null || typeof action !== "object") {
+    return ["recommendedNextAction is absent — the sidecar recommends no plan at all"]
+  }
+  if (action.kind !== "PREPARE_LOCALLY") faults.push(`recommendedNextAction.kind is ${JSON.stringify(action.kind)}, not "PREPARE_LOCALLY"`)
+  if (action.tool !== "calllint_prepare_safe_install") {
+    faults.push(`recommendedNextAction.tool is ${JSON.stringify(action.tool)}, not "calllint_prepare_safe_install"`)
+  }
+  const args = action.arguments
+  if (args === undefined || args === null || typeof args !== "object") {
+    faults.push("recommendedNextAction.arguments is absent")
+    return faults
+  }
+  const argMap = args as Record<string, unknown>
+  const keys = Object.keys(argMap).sort()
+  const want = ["canonicalName", "expectedArtifactDigest", "expectedContractDigest", "expectedVersion", "host"]
+  if (keys.join(",") !== want.join(",")) {
+    faults.push(`argument keys are [${keys.join(", ")}], not exactly [${want.join(", ")}]`)
+  }
+  const sealed = (contract as { contract?: { contractDigest?: unknown } }).contract?.contractDigest
+  if (argMap.expectedContractDigest !== sealed) {
+    faults.push(
+      `expectedContractDigest ${JSON.stringify(argMap.expectedContractDigest)} !== contract.contractDigest ${JSON.stringify(sealed)}`,
+    )
+  }
+  // The semantic-leak clause. new15 §2.5 says plans SHOULD eventually bind the semantic
+  // digest; ADR-less, that re-pointing is a behavior change. Naming it here makes the
+  // deferred change DETECTABLE instead of silent — the whole of P-7's contribution to it.
+  for (const [k, v] of Object.entries(argMap)) {
+    if (v === semantic) {
+      faults.push(
+        `argument ${k} binds the SEMANTIC digest (${semantic}) — re-pointing plans off contractDigest is a behavior change needing an ADR amendment (new15 §2.5)`,
+      )
+    }
+  }
+  return faults
+}
+
+/**
  * Every committed served install PAGE, in stable path order.
  *
  * Separate from `servedContracts()` on purpose: that reads the JSON sidecar, this
@@ -486,6 +543,8 @@ function build(): { json: string; pass: boolean; failures: readonly string[] } {
       )
     }
     if (r.contractDigest === null) failures.push(`${slug}: served sidecar carries no contract.contractDigest`)
+    const bindingFaults = planBindingFaults(contract, r.semanticContractDigest)
+    for (const f of bindingFaults) failures.push(`${slug}: plan binding moved — ${f}`)
     return {
       canonicalSlug: slug,
       contractDigest: r.contractDigest,
@@ -493,6 +552,7 @@ function build(): { json: string; pass: boolean; failures: readonly string[] } {
       omissionsApplied: r.omissionsApplied,
       omissionsNotPresent: r.omissionsNotPresent,
       proseLeaves: r.proseLeaves.map((l) => l.path),
+      bindingFaults,
     }
   })
   if (resources.length === 0) {
@@ -817,7 +877,7 @@ function build(): { json: string; pass: boolean; failures: readonly string[] } {
     $comment:
       "Workstream P digest seams (ADR 0058 §5; new15 §7), re-baselined by PR P-6, which gives the five decision-relay slots a real consumer and so empties codeOwnedSlots.agentRelayCopy to {}. The surface is the MCP prepare result's non-decision `notes[]`, composed by composeRelayNotes and fact-gated: each sentence is relay wording plus a machine fact read off the SEALED contract, and a sentence whose basis is absent is not emitted — so the relay plane is a projection of the contract and cannot state what the contract does not carry. P-5's own claim stands unchanged: unwiredSlots is TOTAL over all eight sections of levelBySection, and the compiler enforces it. P-6 stays under the DEFAULT rule: byte-identity. P-4b spent ADR 0058 §4's single served-byte license and it does not renew, so `git status --porcelain -- apps/web/public/` must be EMPTY for this batch — the exact inverse of P-4b's gate. l1Digest and presentationDigest MOVE (one L1 section gained five slots); l0Digest and l2Digest must NOT. CONFIGURABILITY LIMIT, recorded rather than implied: configuration reaches these sentences at BUILD time only. apps/cli and packages/calllint-mcp both declare empty runtime dependencies (esbuild-inlined) and apps/web/content/** ships in no `files` list, so a catalog edit can never change an installed binary — the identical limit guardOffer has carried since P-5, which is why tools.ts reads DEFAULT_AGENT_RELAY_COPY. What the catalog CAN do is be measured: resolvesToDefaults proves the committed document restates the shipped defaults verbatim, so a reworded catalog turns this lock red instead of silently disagreeing with the shipped binary. Two slots still stay in code with their measured reasons rather than being wired dishonestly: guardConversion.declineLabel (Gate 2.4-F compares it as a literal and ContinuousProtectionOffer types it as one, so a document reaching it could weaken INV-2.4-07's own floor) and expiresAt (honoring it needs a clock, and the install tree is reproducibility-gated). RECORDS presentationDigest + semanticContractDigest; it does NOT re-point what install plans bind — plans still bind contractDigest, and moving that binding is a P-7 decision requiring an ADR amendment (doing it here would smuggle a behavior change into a batch declared as having none). `semanticContractDigest` is defined by DELETION from the sealed contract, so a new contract field is bound by default and omission is the reviewable exception. The gate is noProseLeaves: machine tokens carry no whitespace, prose always does, so an empty result proves no copy is bound — for any input, not just those measured. Regenerate with `pnpm audit:presentation:lock:write`; enforce with `pnpm audit:presentation:lock:gate`.",
     workstream: "P",
-    pr: "P-6",
+    pr: "P-7",
     status: failures.length === 0 ? "PASSED" : "FAILED",
     contentPlane: {
       root: CONTENT_ROOT,
@@ -827,6 +887,12 @@ function build(): { json: string; pass: boolean; failures: readonly string[] } {
         "PRESENT since PR P-2, which lifted the Install-surface L1/L2 copy into this one merged document (O-4: newest surface first). The recorded digests are over the real committed bytes; P-1's baseline recorded the canonical EMPTY document instead, because the plane did not exist yet. resolvesToDefaults is still the load-bearing measurement, and P-4b EXTENDS it to the tokens block: the committed document resolves DEEP-EQUAL to the shipped code defaults through the same resolver the bake calls, so this DOCUMENT still moves no served byte. That claim and P-4b's +34 B/page are not in tension — the served-byte change comes from the RENDERER (a <link> plus the refolded boundary sentence), and the document restating the shipped href is what keeps configuration out of it. Extending the identity to tokens is what stops a catalog from quietly re-pointing what every install page loads while still reading as 'resolves to defaults'. unwiredSectionTitles is now EMPTY because P-4b wired `boundary`, the slot P-2 deferred; unwiredSlots must stay empty so a key can never validate and then do nothing. PR P-5 EXTENDS resolvesToDefaults again, to guardConversion, agentRelayCopy, and the overrides slice — the first two by deep equality against the shipped code defaults (they now reach the guard render and the MCP relay line, so a reworded catalog would change what a human or an agent is told), the third by its EFFECTIVE served name: for every override the document carries, the display name it produces must equal the name the committed install page already shows. `reason` is deliberately excluded from that identity because it reaches this artifact and no served byte, so requiring it to match a default would be requiring a value with no served meaning. codeOwnedSlots replaces the permanently-empty unwiredSectionTitles as the reviewable record: slot → the measured reason it is code-owned, total over all eight sections. RELAY LEVEL, reconciled here rather than by an ADR because nothing is weakened and no digest moves on account of the reading: levelBySection.agentRelayCopy stays L1 exactly as shipped. ADR 0058 §6 is the more specific and later clause and names this section by its new15 §20.2 type name (AgentRelayCopy is L1-editable); §1's 'agent relay summaries' reads as the authority-consequence sentences an agent relays, not as this section. §5's '不能混在一个 JSON 里' is honoured as protocol-vs-relay: AgentProtocolPolicy stays code (RESERVED_KEYS rejects every protocol key at any depth, and the audit's AGENT_GUIDANCE.steps row is the negative control proving it), which is what keeps ONE merged document legitimate and creates no apps/web/content/agent/**. A named test pins levelBySection.agentRelayCopy === 'L1' so this reading cannot drift silently. RELAY SLOT COUNT, reconciled at P-6 as a SUPERSET rather than a mismatch: the schema's SIX slots against new15 §5's FOUR is not a drift, because each of the two extras is relay wording for a field the sealed contract already carries — `adds` for authorityDelta.adds and `notObserved` for authorityDelta.notObserved, both measured non-empty on the served identities (adds|notObserved = 1|8 on 17 pages, 0|9 on 2) and both gated on publicObservation.completeness === 'complete', mirroring the contract builder's own gate. So §5's four are the MINIMUM, and the reconciliation is an enforced rule rather than a count: EVERY relay slot must name a contract field or a plan fact as its basis, and a slot whose basis is absent must not be emitted. A seventh slot with no basis fails that check, which is why nothing was deleted and no $defs block moved.",
       schemaTag: PRESENTATION_CONTENT_VERSION,
       locale: doc.locale,
+      // PR P-7 — the document's own version, recorded beside the other two IDENTITY keys
+      // because that is exactly what it is. It is optional, so `null` here is a legitimate
+      // state (and the one every document before P-7 was in), not a fault. It moves
+      // `presentationDigest` while `l0`/`l1`/`l2` hold, which is the signature of an
+      // identity key and of nothing else — `sectionsAtLevel` walks only LEVEL_BY_SECTION.
+      configVersion: doc.configVersion ?? null,
       levelBySection: LEVEL_BY_SECTION,
       resolvesToDefaults,
       overriddenSlots: resolved.overriddenSlots,
@@ -896,13 +962,14 @@ function build(): { json: string; pass: boolean; failures: readonly string[] } {
     },
     semanticContract: {
       $comment:
-        "Read from the COMMITTED served sidecars (apps/web/public/install/**), so these are the bytes users actually receive — not a re-derivation that could agree with itself while disagreeing with production.",
+        "Read from the COMMITTED served sidecars (apps/web/public/install/**), so these are the bytes users actually receive — not a re-derivation that could agree with itself while disagreeing with production. `bindingUnchanged` was a bare literal `true` until PR P-7 and is now DERIVED from five facts measured per sidecar (kind, tool, the exact five-key argument set, expectedContractDigest === contract.contractDigest, and no argument equal to the computed semanticContractDigest). Measured 19/19 at P-7. new15 §2.5 says plans SHOULD eventually bind the semantic digest; that re-pointing is a behavior change needing an ADR amendment, and the fifth fact is what makes it a visible artifact diff instead of a silent one.",
       omissions: SEMANTIC_PREIMAGE_OMISSIONS,
       resourcesMeasured: resources.length,
       distinctContractDigests: distinctContract,
       distinctSemanticContractDigests: distinctSemantic,
       noProseLeaves: resources.every((r) => r.proseLeaves.length === 0),
-      bindingUnchanged: true,
+      bindingUnchanged: resources.length > 0 && resources.every((r) => r.bindingFaults.length === 0),
+      bindingFaults: resources.flatMap((r) => r.bindingFaults.map((f) => `${r.canonicalSlug}: ${f}`)),
       resources,
     },
     importBoundary: {

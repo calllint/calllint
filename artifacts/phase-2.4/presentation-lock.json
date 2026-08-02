@@ -2,7 +2,7 @@
   "schema": "calllint.presentation-lock.v0",
   "$comment": "Workstream P digest seams (ADR 0058 §5; new15 §7), re-baselined by PR P-6, which gives the five decision-relay slots a real consumer and so empties codeOwnedSlots.agentRelayCopy to {}. The surface is the MCP prepare result's non-decision `notes[]`, composed by composeRelayNotes and fact-gated: each sentence is relay wording plus a machine fact read off the SEALED contract, and a sentence whose basis is absent is not emitted — so the relay plane is a projection of the contract and cannot state what the contract does not carry. P-5's own claim stands unchanged: unwiredSlots is TOTAL over all eight sections of levelBySection, and the compiler enforces it. P-6 stays under the DEFAULT rule: byte-identity. P-4b spent ADR 0058 §4's single served-byte license and it does not renew, so `git status --porcelain -- apps/web/public/` must be EMPTY for this batch — the exact inverse of P-4b's gate. l1Digest and presentationDigest MOVE (one L1 section gained five slots); l0Digest and l2Digest must NOT. CONFIGURABILITY LIMIT, recorded rather than implied: configuration reaches these sentences at BUILD time only. apps/cli and packages/calllint-mcp both declare empty runtime dependencies (esbuild-inlined) and apps/web/content/** ships in no `files` list, so a catalog edit can never change an installed binary — the identical limit guardOffer has carried since P-5, which is why tools.ts reads DEFAULT_AGENT_RELAY_COPY. What the catalog CAN do is be measured: resolvesToDefaults proves the committed document restates the shipped defaults verbatim, so a reworded catalog turns this lock red instead of silently disagreeing with the shipped binary. Two slots still stay in code with their measured reasons rather than being wired dishonestly: guardConversion.declineLabel (Gate 2.4-F compares it as a literal and ContinuousProtectionOffer types it as one, so a document reaching it could weaken INV-2.4-07's own floor) and expiresAt (honoring it needs a clock, and the install tree is reproducibility-gated). RECORDS presentationDigest + semanticContractDigest; it does NOT re-point what install plans bind — plans still bind contractDigest, and moving that binding is a P-7 decision requiring an ADR amendment (doing it here would smuggle a behavior change into a batch declared as having none). `semanticContractDigest` is defined by DELETION from the sealed contract, so a new contract field is bound by default and omission is the reviewable exception. The gate is noProseLeaves: machine tokens carry no whitespace, prose always does, so an empty result proves no copy is bound — for any input, not just those measured. Regenerate with `pnpm audit:presentation:lock:write`; enforce with `pnpm audit:presentation:lock:gate`.",
   "workstream": "P",
-  "pr": "P-6",
+  "pr": "P-7",
   "status": "PASSED",
   "contentPlane": {
     "root": "apps/web/content/safe-install",
@@ -11,6 +11,7 @@
     "$comment": "PRESENT since PR P-2, which lifted the Install-surface L1/L2 copy into this one merged document (O-4: newest surface first). The recorded digests are over the real committed bytes; P-1's baseline recorded the canonical EMPTY document instead, because the plane did not exist yet. resolvesToDefaults is still the load-bearing measurement, and P-4b EXTENDS it to the tokens block: the committed document resolves DEEP-EQUAL to the shipped code defaults through the same resolver the bake calls, so this DOCUMENT still moves no served byte. That claim and P-4b's +34 B/page are not in tension — the served-byte change comes from the RENDERER (a <link> plus the refolded boundary sentence), and the document restating the shipped href is what keeps configuration out of it. Extending the identity to tokens is what stops a catalog from quietly re-pointing what every install page loads while still reading as 'resolves to defaults'. unwiredSectionTitles is now EMPTY because P-4b wired `boundary`, the slot P-2 deferred; unwiredSlots must stay empty so a key can never validate and then do nothing. PR P-5 EXTENDS resolvesToDefaults again, to guardConversion, agentRelayCopy, and the overrides slice — the first two by deep equality against the shipped code defaults (they now reach the guard render and the MCP relay line, so a reworded catalog would change what a human or an agent is told), the third by its EFFECTIVE served name: for every override the document carries, the display name it produces must equal the name the committed install page already shows. `reason` is deliberately excluded from that identity because it reaches this artifact and no served byte, so requiring it to match a default would be requiring a value with no served meaning. codeOwnedSlots replaces the permanently-empty unwiredSectionTitles as the reviewable record: slot → the measured reason it is code-owned, total over all eight sections. RELAY LEVEL, reconciled here rather than by an ADR because nothing is weakened and no digest moves on account of the reading: levelBySection.agentRelayCopy stays L1 exactly as shipped. ADR 0058 §6 is the more specific and later clause and names this section by its new15 §20.2 type name (AgentRelayCopy is L1-editable); §1's 'agent relay summaries' reads as the authority-consequence sentences an agent relays, not as this section. §5's '不能混在一个 JSON 里' is honoured as protocol-vs-relay: AgentProtocolPolicy stays code (RESERVED_KEYS rejects every protocol key at any depth, and the audit's AGENT_GUIDANCE.steps row is the negative control proving it), which is what keeps ONE merged document legitimate and creates no apps/web/content/agent/**. A named test pins levelBySection.agentRelayCopy === 'L1' so this reading cannot drift silently. RELAY SLOT COUNT, reconciled at P-6 as a SUPERSET rather than a mismatch: the schema's SIX slots against new15 §5's FOUR is not a drift, because each of the two extras is relay wording for a field the sealed contract already carries — `adds` for authorityDelta.adds and `notObserved` for authorityDelta.notObserved, both measured non-empty on the served identities (adds|notObserved = 1|8 on 17 pages, 0|9 on 2) and both gated on publicObservation.completeness === 'complete', mirroring the contract builder's own gate. So §5's four are the MINIMUM, and the reconciliation is an enforced rule rather than a count: EVERY relay slot must name a contract field or a plan fact as its basis, and a slot whose basis is absent must not be emitted. A seventh slot with no basis fails that check, which is why nothing was deleted and no $defs block moved.",
     "schemaTag": "calllint.presentation-content.v1",
     "locale": "en-US",
+    "configVersion": "2026.08.01-p7",
     "levelBySection": {
       "decisionCopy": "L1",
       "authorityCopy": "L2",
@@ -95,7 +96,7 @@
     "overrideNameFaults": [],
     "rejectedSlots": [],
     "validationErrors": [],
-    "presentationDigest": "sha256:0d7937303f5a65554b0ba80973cd384c1a14f0cc99402928c02b2668992f4bec",
+    "presentationDigest": "sha256:c85acef1855a795af2079f8fed6a7f05f44e57b3b215eb72f804f618bffd515e",
     "l0Digest": "sha256:becc1ea41c7477e4c57cd54af62f9bb1e7b78fb192183f12be9292e1ee4a610e",
     "l1Digest": "sha256:5001d98b2353caac82c416167f52b589e51b724b657d05e1556fe4f79363cb40",
     "l2Digest": "sha256:16169a4b9def23ddaeb79f9b71d02b977888d01f9d17b2a175520c1d8c550e88",
@@ -347,7 +348,7 @@
     "suppressionViolations": []
   },
   "semanticContract": {
-    "$comment": "Read from the COMMITTED served sidecars (apps/web/public/install/**), so these are the bytes users actually receive — not a re-derivation that could agree with itself while disagreeing with production.",
+    "$comment": "Read from the COMMITTED served sidecars (apps/web/public/install/**), so these are the bytes users actually receive — not a re-derivation that could agree with itself while disagreeing with production. `bindingUnchanged` was a bare literal `true` until PR P-7 and is now DERIVED from five facts measured per sidecar (kind, tool, the exact five-key argument set, expectedContractDigest === contract.contractDigest, and no argument equal to the computed semanticContractDigest). Measured 19/19 at P-7. new15 §2.5 says plans SHOULD eventually bind the semantic digest; that re-pointing is a behavior change needing an ADR amendment, and the fifth fact is what makes it a visible artifact diff instead of a silent one.",
     "omissions": [
       {
         "path": "contract.contractDigest",
@@ -380,6 +381,7 @@
     "distinctSemanticContractDigests": 19,
     "noProseLeaves": true,
     "bindingUnchanged": true,
+    "bindingFaults": [],
     "resources": [
       {
         "canonicalSlug": "mcp-registry/ac.inference.sh-mcp",
@@ -393,7 +395,8 @@
           "agentGuidance.goal"
         ],
         "omissionsNotPresent": [],
-        "proseLeaves": []
+        "proseLeaves": [],
+        "bindingFaults": []
       },
       {
         "canonicalSlug": "mcp-registry/ac.tandem-docs-mcp",
@@ -407,7 +410,8 @@
           "agentGuidance.goal"
         ],
         "omissionsNotPresent": [],
-        "proseLeaves": []
+        "proseLeaves": [],
+        "bindingFaults": []
       },
       {
         "canonicalSlug": "mcp-registry/ag.hood-name-service",
@@ -421,7 +425,8 @@
           "agentGuidance.goal"
         ],
         "omissionsNotPresent": [],
-        "proseLeaves": []
+        "proseLeaves": [],
+        "bindingFaults": []
       },
       {
         "canonicalSlug": "mcp-registry/agency.lona-trading",
@@ -435,7 +440,8 @@
           "agentGuidance.goal"
         ],
         "omissionsNotPresent": [],
-        "proseLeaves": []
+        "proseLeaves": [],
+        "bindingFaults": []
       },
       {
         "canonicalSlug": "mcp-registry/ai.1325-mcp",
@@ -449,7 +455,8 @@
           "agentGuidance.goal"
         ],
         "omissionsNotPresent": [],
-        "proseLeaves": []
+        "proseLeaves": [],
+        "bindingFaults": []
       },
       {
         "canonicalSlug": "mcp-registry/ai.aarna-atars-mcp",
@@ -463,7 +470,8 @@
           "agentGuidance.goal"
         ],
         "omissionsNotPresent": [],
-        "proseLeaves": []
+        "proseLeaves": [],
+        "bindingFaults": []
       },
       {
         "canonicalSlug": "mcp-registry/ai.abmeter-abmeter",
@@ -477,7 +485,8 @@
           "agentGuidance.goal"
         ],
         "omissionsNotPresent": [],
-        "proseLeaves": []
+        "proseLeaves": [],
+        "bindingFaults": []
       },
       {
         "canonicalSlug": "mcp-registry/ai.adadvisor-mcp-server",
@@ -491,7 +500,8 @@
           "agentGuidance.goal"
         ],
         "omissionsNotPresent": [],
-        "proseLeaves": []
+        "proseLeaves": [],
+        "bindingFaults": []
       },
       {
         "canonicalSlug": "mcp-registry/ai.adeu-adeu",
@@ -505,7 +515,8 @@
           "agentGuidance.goal"
         ],
         "omissionsNotPresent": [],
-        "proseLeaves": []
+        "proseLeaves": [],
+        "bindingFaults": []
       },
       {
         "canonicalSlug": "mcp-registry/ai.adramp-google-ads",
@@ -519,7 +530,8 @@
           "agentGuidance.goal"
         ],
         "omissionsNotPresent": [],
-        "proseLeaves": []
+        "proseLeaves": [],
+        "bindingFaults": []
       },
       {
         "canonicalSlug": "mcp-registry/ai.adside-adside",
@@ -533,7 +545,8 @@
           "agentGuidance.goal"
         ],
         "omissionsNotPresent": [],
-        "proseLeaves": []
+        "proseLeaves": [],
+        "bindingFaults": []
       },
       {
         "canonicalSlug": "mcp-registry/ai.adweave-meta-ads-mcp",
@@ -547,7 +560,8 @@
           "agentGuidance.goal"
         ],
         "omissionsNotPresent": [],
-        "proseLeaves": []
+        "proseLeaves": [],
+        "bindingFaults": []
       },
       {
         "canonicalSlug": "mcp-registry/ai.agentberg-agentberg",
@@ -561,7 +575,8 @@
           "agentGuidance.goal"
         ],
         "omissionsNotPresent": [],
-        "proseLeaves": []
+        "proseLeaves": [],
+        "bindingFaults": []
       },
       {
         "canonicalSlug": "mcp-registry/ai.agentdm-agentdm",
@@ -575,7 +590,8 @@
           "agentGuidance.goal"
         ],
         "omissionsNotPresent": [],
-        "proseLeaves": []
+        "proseLeaves": [],
+        "bindingFaults": []
       },
       {
         "canonicalSlug": "mcp-registry/ai.agentic-news-mcp",
@@ -589,7 +605,8 @@
           "agentGuidance.goal"
         ],
         "omissionsNotPresent": [],
-        "proseLeaves": []
+        "proseLeaves": [],
+        "bindingFaults": []
       },
       {
         "canonicalSlug": "mcp-registry/ai.agenticshelf-graffeo",
@@ -603,7 +620,8 @@
           "agentGuidance.goal"
         ],
         "omissionsNotPresent": [],
-        "proseLeaves": []
+        "proseLeaves": [],
+        "bindingFaults": []
       },
       {
         "canonicalSlug": "mcp-registry/ai.agenticshelf-mcp",
@@ -617,7 +635,8 @@
           "agentGuidance.goal"
         ],
         "omissionsNotPresent": [],
-        "proseLeaves": []
+        "proseLeaves": [],
+        "bindingFaults": []
       },
       {
         "canonicalSlug": "mcp-registry/ai.agenticshelf-puroair",
@@ -631,7 +650,8 @@
           "agentGuidance.goal"
         ],
         "omissionsNotPresent": [],
-        "proseLeaves": []
+        "proseLeaves": [],
+        "bindingFaults": []
       },
       {
         "canonicalSlug": "mcp-registry/io.github.calllint-calllint",
@@ -645,7 +665,8 @@
           "agentGuidance.goal"
         ],
         "omissionsNotPresent": [],
-        "proseLeaves": []
+        "proseLeaves": [],
+        "bindingFaults": []
       }
     ]
   },

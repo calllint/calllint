@@ -12,6 +12,87 @@ onward. While pre-1.0, minor versions may include breaking changes.
 
 ### Added
 
+- **Workstream P PR P-7 — config version, the deploy ledger, and digest→document rollback.**
+  Closes new15 §14's fifth acceptance block, **可回滚性**, whose three lines were prose nothing ran:
+  每个 presentation config 有版本 / 每次 deploy 记录 presentationDigest / 可按 digest 恢复上一版本.
+  Measured against the code, each was a distinct unmet obligation — the document had no version
+  field, no deploy recorded anything durable, and no code mapped a digest back to a document. They
+  are one loop, so they land together: **version → recorded digest → restorable document.**
+  `configVersion` is a third **identity** key modelled on `locale`, not a levelled section. Two
+  shipped constraints force that shape: `presentation-content.test.ts` pins `schema.properties`
+  minus the identity keys to exactly `LEVEL_BY_SECTION`'s keys, and `sectionsAtLevel` walks only
+  `LEVEL_BY_SECTION`. So a levelled section would move a level digest and a bare property would
+  fail an existing test; identity is the only shape yielding the intended signature —
+  `presentationDigest` **moves** while `l0`/`l1`/`l2` **hold**, asserted derivationally through
+  `presentationDigest` itself rather than as a hex literal that could not detect its own subject
+  changing. It is **optional**, which is load-bearing three ways: the empty document's digest stays
+  `sha256:b9bbb27a…` so P-1's pin and rollback's non-branching predecessor both survive, the seven
+  historical documents stay valid restore inputs instead of becoming retroactively malformed, and a
+  catalog omitting it still resolves. Its value shape copies `tokensVersion` verbatim — a non-prose
+  token, so it cannot be rendered as copy — and it is validated and digested but **never resolved**:
+  `overriddenSlots` stays 46.
+  The ledger is a **committed** artifact with an explicit append mode, not a git query. Measured:
+  no workflow sets `fetch-depth`, so CI's clone is depth-1 while the local one is full — a grader
+  shelling out to `git log` would pass locally and fail on CI for a reason unrelated to its claim.
+  `artifacts/phase-2.4/presentation-deploy-ledger.json` is shaped on `five-second-panel-store.json`
+  and appended only by `pnpm ledger:presentation:record`, never by a `:write`. Validation splits in
+  two **on purpose**: `validateOffline` recomputes all five recorded values from each entry's stored
+  document and is CI-safe, while `validate` adds the git layer — ancestry of HEAD, and each stored
+  document equals the document at its own commit. The honest limit is stated rather than papered
+  over: the ledger is append-only by convention plus a duplicate refusal, not by cryptography, and
+  a self-consistent forgery (a fabricated document stored with that document's correctly-computed
+  digest) is invisible to the offline layer **by construction**. A test asserts that zero-fault
+  result plainly and pins the git layer as the one that names it — a test that only checked "a
+  forgery fails" would pass while the two layers were silently collapsed into one.
+  The split needed one more piece to be gradeable on both kinds of clone. The suite first shipped
+  calling the git layer unconditionally and went red on all three CI OSes while `ci:local` was
+  green — the same depth-1 trap, reproduced one level up, in the test instead of the grader. So
+  `historyIsReachable` measures whether the historical commits are present, and the real-ledger git
+  assertions branch on it: with history the git layer is asserted green, without it the offline
+  layer is, so neither branch is a no-op and no authenticity coverage was dropped to make CI pass.
+  The probe is itself graded against a fabricated sha and an empty ledger, unconditionally, so it
+  cannot rot into a constant `false` that would silently neuter every gate above it.
+  A second green-locally/red-remotely fault surfaced in the same shape and is recorded rather than
+  quietly patched: the new `deploy-web.yml` permissions probe spelled its line break as a literal
+  `\n`, and `.gitattributes` does not cover `.github/workflows/**`, so on `windows-latest` — the
+  only OS whose `core.autocrlf` defaults to true — it reported a write permission the workflow does
+  not have. Matching `\r?\n` fixes it, and the fix is deliberately not a `.gitattributes` pin: what
+  is under test is the workflow's permissions, not the line endings of the machine that cloned it.
+  The 19 shipped `REGRESSION_CHECKS` anchors were audited for the same fault class and are safe,
+  because `$` under `/m` matches before a `\r` and `\s` spans it.
+  `deploy-web.yml` gains a step that **verifies** the record and cannot create one:
+  `permissions: contents: read` stays exactly as it is, because a deploy workflow that writes to
+  the repo is a new writer needing its own ADR. The developer records; the workflow refuses to
+  deploy a document the ledger does not name.
+  可回滚性 joins `gradePreviewSnapshot` as a fifth block over an 8-member corpus (7 committed
+  documents + the empty predecessor `emptyPresentationDigest` reserved for exactly this batch), so
+  `REGRESSION_CHECKS` stays 19, gate-H `measures` stays 30, and `GATE_ARTIFACTS.length` stays 7.
+  `restoreByDigest` is **pure** — it takes the corpus as a parameter, and the round-trip
+  `presentationDigest(restoreByDigest(d)) === d` is asserted for all 8 members, the only control
+  that separates a real restore from a constant.
+  A twentieth check, `version/reaches-no-served-byte`, exists because a negative control was run
+  and **found a gap rather than firing**: rendering `configVersion` into the install-page head
+  drifted all 19 served pages, yet 900 trust-index tests, `check:public-copy`, the plane audit, the
+  lock's `configuredCopy` containment and all five gate-H blocks stayed green. The lock was blind
+  by construction — that scan searches only the 9 guard/relay slot strings, and an identity key is
+  in neither slice. The sole detector was `git status -- apps/web/public/`, which is a reviewer's
+  habit and not a gate: it is silent on a stale tree, and each regenerating `:write` half would
+  re-baseline the leak into the artifact. So the version's **value** is now searched for across the
+  committed pages, in the shape the lock already uses for copy. It is not redundant with
+  `not-a-resolver-slot`: that proves the resolver cannot carry the key, while a renderer can read
+  the document directly and needs no slot at all — which is the path the control actually took.
+  An empty page list is graded as a named `vacuous` failure, so the search cannot pass by having
+  looked at nothing.
+  `semanticContract.bindingUnchanged` stops being a self-certifying literal. It was one occurrence
+  repo-wide, asserted by no test, and is now **derived** from five facts measured over the 19
+  committed sidecars: `kind`, `tool`, the exact five-key argument set,
+  `expectedContractDigest === contract.contractDigest` (19/19), and **no argument value equal to
+  the computed `semanticContractDigest`** — the clause that makes new15 §2.5's deliberately-deferred
+  re-pointing a visible artifact diff instead of a silent one. A per-resource `bindingFaults[]`
+  names any sidecar that disagrees. Re-pointing itself stays out of scope; it needs an ADR
+  amendment. Zero served bytes: `git status --porcelain -- apps/web/public/` is EMPTY, the inverse
+  of P-4b's gate and the same one P-5 and P-6 proved. **Workstream P is complete.**
+
 - **Workstream P PR P-6 — the preview & snapshot harness, the decision-relay surface, and the
   6-vs-4 slot reconciliation.** new15 §14 declared four acceptance-gate blocks and nothing ran
   them; five of six relay slots reached no consumer; and the schema shipped six relay slots

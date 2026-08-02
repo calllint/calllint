@@ -36,6 +36,19 @@
 /** Wire identity (ADR 0043/0055 §5). The tag, not the filename, is the contract. */
 export const PRESENTATION_CONTENT_VERSION = "calllint.presentation-content.v1" as const
 
+/**
+ * The permitted shape of `configVersion` (PR P-7) — copied verbatim from the
+ * shipped `tokensVersion` pattern, and for the same reason: a machine token, so
+ * "deliberately not prose".
+ *
+ * Prose is detectable by whitespace (see `proseLeaves`), and every mechanism that
+ * governs copy — the `proseLeaves` gate, `check:public-copy`'s prose surface — keys
+ * on that. A version that could hold a sentence would be a copy slot wearing an
+ * identity key's name, and could be rendered onto a page. This pattern admits no
+ * whitespace at all, so it cannot become one.
+ */
+export const CONFIG_VERSION_PATTERN = /^[a-z0-9]+(?:[.-][a-z0-9]+)*$/
+
 /** ADR 0058 §1 configuration levels, by measured digest reachability. */
 export type PresentationLevel = "L0" | "L1" | "L2"
 
@@ -160,6 +173,25 @@ export interface StateCopy {
 export interface PresentationContentV1 {
   readonly schema: typeof PRESENTATION_CONTENT_VERSION
   readonly locale: string
+  /**
+   * Which revision of this catalog is deployed (§14 可回滚性, "每个 presentation
+   * config 有版本"; PR P-7). An IDENTITY key like `schema` and `locale` — validated
+   * and digested, never resolved — NOT a levelled section:
+   *
+   *   • `sectionsAtLevel` walks only `LEVEL_BY_SECTION`, so a levelled version would
+   *     drag `l0`/`l1`/`l2` on every catalog revision and destroy the point of having
+   *     per-level digests at all.
+   *   • `presentationDigest` covers the whole canonical document, so an identity key
+   *     DOES move it — which is exactly right: the version and the document it names
+   *     must never disagree, and a moved aggregate digest is how a disagreement shows.
+   *
+   * OPTIONAL, three ways load-bearing: the empty document's digest stays what P-1
+   * pinned (so rollback keeps a real predecessor rather than a branch), every
+   * pre-P-7 committed revision stays a valid document instead of becoming
+   * retroactively malformed, and a catalog that omits it still resolves — so this
+   * field can never become a deployment blocker.
+   */
+  readonly configVersion?: string
   readonly decisionCopy?: { readonly states?: Readonly<Partial<Record<(typeof PRESENTATION_STATES)[number], StateCopy>>> }
   readonly authorityCopy?: {
     readonly observedPhrases?: Readonly<Record<string, string>>
@@ -200,6 +232,7 @@ export interface PresentationContentError {
   readonly rule:
     | "schema-tag"
     | "locale"
+    | "config-version"
     | "unknown-section"
     | "reserved-key"
     | "unknown-key"
@@ -320,11 +353,27 @@ export function validatePresentationContent(
   if (typeof d.locale !== "string" || !/^[a-z]{2}(-[A-Z]{2})?$/.test(d.locale)) {
     add("/locale", "locale", "locale must be a BCP-47 tag such as en-US")
   }
+  // PR P-7 — the version is OPTIONAL (an absent key is the pre-P-7 state and every
+  // committed revision of the catalog), but a PRESENT one must be a machine token.
+  // A blank value reports `config-version` rather than `empty-value`: the two rules
+  // would both be true, and the specific one names the actual obligation.
+  if (d.configVersion !== undefined) {
+    if (typeof d.configVersion !== "string" || !CONFIG_VERSION_PATTERN.test(d.configVersion)) {
+      add(
+        "/configVersion",
+        "config-version",
+        `configVersion must be a machine token matching ${CONFIG_VERSION_PATTERN.source} — deliberately not prose, so it can never be rendered as copy`,
+      )
+    }
+  }
 
   // Unknown top-level sections. The schema rejects these too; doing it here as
   // well means the validator is usable standalone (the lock script runs it before
   // any Ajv instance exists) and cannot silently diverge from LEVEL_BY_SECTION.
-  const known = new Set<string>([...Object.keys(LEVEL_BY_SECTION), "schema", "locale"])
+  // `schema`/`locale`/`configVersion` are the three IDENTITY keys: they carry no
+  // level by construction, which is why they are named here rather than living in
+  // LEVEL_BY_SECTION.
+  const known = new Set<string>([...Object.keys(LEVEL_BY_SECTION), "schema", "locale", "configVersion"])
   for (const key of Object.keys(d)) {
     if (!known.has(key)) add(`/${key}`, "unknown-section", `unknown top-level section "${key}"`)
   }
@@ -339,7 +388,12 @@ export function validatePresentationContent(
   // Empty strings: a blank slot would silently erase a shipped default, which is a
   // deletion disguised as a config edit.
   walkLeaves(d, "", (path, leaf) => {
-    if (path !== "/schema" && path !== "/locale" && leaf.trim() === "") {
+    if (
+      path !== "/schema" &&
+      path !== "/locale" &&
+      path !== "/configVersion" &&
+      leaf.trim() === ""
+    ) {
       add(path, "empty-value", "value is empty — omit the key to keep the shipped default")
     }
   })

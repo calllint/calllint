@@ -1,8 +1,8 @@
 {
   "schema": "calllint.preview-snapshot.v0",
-  "$comment": "Workstream P preview & snapshot harness (new15 §14 PR P-6; ADR 0058) — the FOUR acceptance-gate blocks §14 declares and nothing ran before this PR. The corpus is the five CANONICAL FIXTURES, not the served tree, and that is a measured choice: the 19 committed pages carry exactly ONE structural signature and only two verdicts, so grading page consistency against them would pass while never exercising BLOCK, UNKNOWN or UNSUPPORTED. pageConsistency PARTITIONS on the CTA route because dispositionBlock genuinely emits two different structures (DEEP_LINK_STATES vs its complement, 2 vs 3 states); within a partition the signature must be IDENTICAL and across partitions it must DIFFER — the cross-partition inequality is the load-bearing half, since a signature that collapsed to a constant would satisfy 'identical within a partition' perfectly while measuring nothing. Every tolerated structural variance carries the assertion of the condition that produced it (install-canonical, install-publisher, install-reason-empty, install-alt-route) rather than being smoothed away; TEXT is outside the signature by construction, which is why the UNSUPPORTED fixture's version-less <h1> does not perturb it. securityIsolation grades all five zero-counts and THREE of them had no grader before P-6 — above all publisher→HTML, where the five injection blurbs were previously checked only against the contract's decision scope (built by omission), so nothing ever rendered them into HTML and counted. That check runs in BOTH escape forms because `esc` and `escText` differ on the quote characters, and a check that guessed one form could report zero occurrences of a string that is on the page. The digest-invariance check is derived through the SAME constructor from a sentinel, never asserted against a literal: a hardcoded digest cannot detect its own subject changing. visualRegression is BROWSERLESS and says so — it measures which declarations apply (var()-resolved, so a token VALUE change is visible) and how the one grid reflows across three viewports that straddle the 452 px column boundary and the 720 px main cap; it does NOT measure glyph rasterization. Zero @media is ASSERTED rather than assumed, because resolveDeclarations is a flat rule walk with no nesting support, so a media query would be silently mis-parsed — and adding one would also spend a served-byte license this batch does not have. Duplicate catalog keys are measured over RAW BYTES: JSON.parse collapses a duplicate last-wins, so a parsed check is structurally blind to the defect. thresholds.maxAuthorityFacts is now READ from human-five-second-test.json and graded against the measured counts; before P-6 nothing read it, and it sat at 3 while all five fixtures measured 5. Regenerate with `pnpm audit:preview:write`; enforce with `pnpm audit:preview:gate`.",
+  "$comment": "Workstream P preview & snapshot harness (new15 §14 PR P-6/P-7; ADR 0058) — the FIVE acceptance-gate blocks §14 declares and nothing ran before these PRs (P-6 built the first four; P-7 added 可回滚性). The corpus is the five CANONICAL FIXTURES, not the served tree, and that is a measured choice: the 19 committed pages carry exactly ONE structural signature and only two verdicts, so grading page consistency against them would pass while never exercising BLOCK, UNKNOWN or UNSUPPORTED. pageConsistency PARTITIONS on the CTA route because dispositionBlock genuinely emits two different structures (DEEP_LINK_STATES vs its complement, 2 vs 3 states); within a partition the signature must be IDENTICAL and across partitions it must DIFFER — the cross-partition inequality is the load-bearing half, since a signature that collapsed to a constant would satisfy 'identical within a partition' perfectly while measuring nothing. Every tolerated structural variance carries the assertion of the condition that produced it (install-canonical, install-publisher, install-reason-empty, install-alt-route) rather than being smoothed away; TEXT is outside the signature by construction, which is why the UNSUPPORTED fixture's version-less <h1> does not perturb it. securityIsolation grades all five zero-counts and THREE of them had no grader before P-6 — above all publisher→HTML, where the five injection blurbs were previously checked only against the contract's decision scope (built by omission), so nothing ever rendered them into HTML and counted. That check runs in BOTH escape forms because `esc` and `escText` differ on the quote characters, and a check that guessed one form could report zero occurrences of a string that is on the page. The digest-invariance check is derived through the SAME constructor from a sentinel, never asserted against a literal: a hardcoded digest cannot detect its own subject changing. visualRegression is BROWSERLESS and says so — it measures which declarations apply (var()-resolved, so a token VALUE change is visible) and how the one grid reflows across three viewports that straddle the 452 px column boundary and the 720 px main cap; it does NOT measure glyph rasterization. Zero @media is ASSERTED rather than assumed, because resolveDeclarations is a flat rule walk with no nesting support, so a media query would be silently mis-parsed — and adding one would also spend a served-byte license this batch does not have. Duplicate catalog keys are measured over RAW BYTES: JSON.parse collapses a duplicate last-wins, so a parsed check is structurally blind to the defect. thresholds.maxAuthorityFacts is now READ from human-five-second-test.json and graded against the measured counts; before P-6 nothing read it, and it sat at 3 while all five fixtures measured 5. Regenerate with `pnpm audit:preview:write`; enforce with `pnpm audit:preview:gate`.",
   "workstream": "P",
-  "pr": "P-6",
+  "pr": "P-7",
   "status": "PASSED",
   "corpus": {
     "fixtures": [
@@ -701,6 +701,116 @@
         "rules": 56
       }
     ]
+  },
+  "rollback": {
+    "block": "可回滚性",
+    "checks": [
+      {
+        "id": "version/present",
+        "pass": true,
+        "observed": "configVersion \"2026.08.01-p7\""
+      },
+      {
+        "id": "version/non-prose",
+        "pass": true,
+        "observed": "\"2026.08.01-p7\" against /^[a-z0-9]+(?:[.-][a-z0-9]+)*$/"
+      },
+      {
+        "id": "version/declared-in-schema",
+        "pass": true,
+        "observed": "schema properties: agentRelayCopy, authorityCopy, configVersion, decisionCopy, guardConversion, layout, locale, overrides, schema, sectionTitles, tokens"
+      },
+      {
+        "id": "version/accepted-by-validator",
+        "pass": true,
+        "observed": "validator known keys: agentRelayCopy, authorityCopy, configVersion, decisionCopy, guardConversion, layout, locale, overrides, schema, sectionTitles, tokens"
+      },
+      {
+        "id": "version/malformed-is-rejected",
+        "pass": true,
+        "observed": "a malformed configVersion yields: config-version"
+      },
+      {
+        "id": "version/not-a-resolver-slot",
+        "pass": true,
+        "observed": "75 resolver slot(s), configVersion among them: false"
+      },
+      {
+        "id": "version/reaches-no-served-byte",
+        "pass": true,
+        "observed": "searched 19 served page(s) for \"2026.08.01-p7\", hits: none"
+      },
+      {
+        "id": "version/identity-digest-signature",
+        "pass": true,
+        "observed": "aggregate moves: true, l0/l1/l2 hold: true"
+      },
+      {
+        "id": "version/carries-no-level",
+        "pass": true,
+        "observed": "sections with: agentRelayCopy, authorityCopy, decisionCopy, guardConversion, layout, overrides, sectionTitles, tokens / without: agentRelayCopy, authorityCopy, decisionCopy, guardConversion, layout, overrides, sectionTitles, tokens"
+      },
+      {
+        "id": "ledger/valid",
+        "pass": true,
+        "observed": "every entry recomputed against its own commit"
+      },
+      {
+        "id": "ledger/non-empty",
+        "pass": true,
+        "observed": "9 recorded deploy(s)"
+      },
+      {
+        "id": "ledger/newest-is-current",
+        "pass": true,
+        "observed": "newest c85acef1855a… vs live c85acef1855a…"
+      },
+      {
+        "id": "ledger/deploy-workflow-records",
+        "pass": true,
+        "observed": "deploy-web.yml contains the digest-recording step: true"
+      },
+      {
+        "id": "ledger/deploy-workflow-is-read-only",
+        "pass": true,
+        "observed": "deploy-web.yml permissions remain contents: read — true"
+      },
+      {
+        "id": "restore/corpus-non-empty",
+        "pass": true,
+        "observed": "9 recoverable version(s)"
+      },
+      {
+        "id": "restore/digests-distinct",
+        "pass": true,
+        "observed": "9 distinct digest(s) across 9 member(s)"
+      },
+      {
+        "id": "restore/round-trip",
+        "pass": true,
+        "observed": "all 9 member(s) round-trip: digest → document → same digest"
+      },
+      {
+        "id": "restore/unknown-digest-refuses",
+        "pass": true,
+        "observed": "an unrecorded digest returns null rather than a nearest match"
+      },
+      {
+        "id": "restore/empty-predecessor",
+        "pass": true,
+        "observed": "oldest dc7c81c7 carries no document, digest b9bbb27a74ad…, restores: true"
+      },
+      {
+        "id": "restore/previous-version-defined",
+        "pass": true,
+        "observed": "every version but the floor has a computable predecessor; the floor has none"
+      }
+    ],
+    "pass": true,
+    "recoverableVersions": 9,
+    "newest": "6ec3fe93",
+    "configVersion": "2026.08.01-p7",
+    "$comment": "§14's fifth acceptance block, ungraded until PR P-7. The corpus is the COMMITTED ledger, not `git show`, and that is a measured choice rather than a stylistic one: this script runs in CI in --check mode (which rebuilds the artifact and byte-compares it) against a bare `actions/checkout@v6`, i.e. depth 1. On a depth-1 clone of this repo `git log --follow` over the catalog returns 1 commit rather than 8, the historical blobs report MISSING, and `merge-base --is-ancestor` FATALS on an unknown sha instead of returning false — so a git-derived corpus would fail the byte-compare on every CI run forever, and could not even fail gracefully. The stronger consequence is why each ledger entry now STORES its document: if past documents existed only in git history, then on a shallow clone they do not exist, and §14's 可按 digest 恢复 would be FALSE there rather than merely ungraded. Trust is therefore two honest layers, and the split is stated rather than implied: the offline validator called here recomputes all five recorded values from the stored bytes (catching a doctored digest, doctored bytes, or an unrecorded catalog change) but CANNOT catch a self-consistent forgery — measured, not assumed: a fabricated document with a correctly recomputed digest yields 0 offline faults. `pnpm ledger:presentation:validate` adds the git layer that proves each entry AUTHENTIC by comparing the stored document to the document at its own commit. validatorKnownKeys is derived BEHAVIOURALLY (feed the validator a configVersion and see whether it reports the key unknown) because the validator's `known` set is function-local, and any exported mirror would be a second copy free to drift from the one that decides. deploy-web.yml is verified AS TEXT because every one of REGRESSION_CHECKS' 19 rows binds ci.yml#test and deploy-web.yml's single `deploy:` job is graded by nothing."
   },
   "failures": []
 }

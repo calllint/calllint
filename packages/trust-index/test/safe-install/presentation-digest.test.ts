@@ -19,6 +19,7 @@ import {
   CANONICAL_FIXTURES,
   DEFAULT_GROUP_ORDER,
   EMPTY_PRESENTATION_CONTENT,
+  LEVEL_BY_SECTION,
   PRESENTATION_CONTENT_VERSION,
   SEMANTIC_PREIMAGE_OMISSIONS,
   buildAgentAdoptionContract,
@@ -104,6 +105,82 @@ describe("presentationDigest", () => {
     expect(presentationDigest(EMPTY_PRESENTATION_CONTENT).presentationDigest).toBe(
       hashJson({ schema: PRESENTATION_CONTENT_VERSION, locale: "en-US" }),
     )
+  })
+
+  // --- PR P-7: configVersion is a third IDENTITY key ------------------------
+  //
+  // The claim is a SIGNATURE across four digests, so it is derived both ways through
+  // `presentationDigest` itself from one document ± the key. Asserting the moved
+  // aggregate as a literal would be self-certifying: a literal cannot detect its own
+  // subject changing, which is what cost 4-of-5 fixtures at P-6. Here the assertion
+  // is the RELATION (one moves, three hold), which no change to the catalog, to the
+  // hash function, or to the level model can satisfy accidentally.
+
+  it("configVersion moves ONLY the aggregate digest — l0/l1/l2 all hold", () => {
+    const base: PresentationContentV1 = {
+      schema: PRESENTATION_CONTENT_VERSION,
+      locale: "en-US",
+      sectionTitles: { provenance: "Provenance" },
+      authorityCopy: { observedPhrases: { secret_access: "Requires access to configured secrets." } },
+      tokens: { tokensVersion: "v1" },
+    }
+    const versioned: PresentationContentV1 = { ...base, configVersion: "2026.08.01-p7" }
+    const before = presentationDigest(base)
+    const after = presentationDigest(versioned)
+
+    // The one that must move: identity is part of the document, so the document's
+    // digest changes. A version that could not disagree with its document would make
+    // §14's "有版本" unfalsifiable.
+    expect(after.presentationDigest).not.toBe(before.presentationDigest)
+    // The three that must hold: an identity key is outside LEVEL_BY_SECTION, so
+    // `sectionsAtLevel` never projects it. This is what keeps a catalog revision from
+    // masquerading as a token change (L0) or a copy change (L1/L2).
+    expect(after.l0Digest).toBe(before.l0Digest)
+    expect(after.l1Digest).toBe(before.l1Digest)
+    expect(after.l2Digest).toBe(before.l2Digest)
+  })
+
+  it("configVersion is not a section: `sections` is unchanged by it", () => {
+    const base: PresentationContentV1 = {
+      schema: PRESENTATION_CONTENT_VERSION,
+      locale: "en-US",
+      tokens: { tokensVersion: "v1" },
+    }
+    expect(presentationDigest({ ...base, configVersion: "rev-2" }).sections).toEqual(
+      presentationDigest(base).sections,
+    )
+  })
+
+  it("a DIFFERENT configVersion moves the aggregate — the key is bound, not merely tolerated", () => {
+    // Negative control on the test above: if `canonicalDocument` accepted the key and
+    // dropped it, "absent vs present" would still differ for some other reason while
+    // two present-but-different revisions would collide. Both directions are needed.
+    const base: PresentationContentV1 = { schema: PRESENTATION_CONTENT_VERSION, locale: "en-US" }
+    const a = presentationDigest({ ...base, configVersion: "2026.08.01-p7" })
+    const b = presentationDigest({ ...base, configVersion: "2026.09.01-p8" })
+    expect(a.presentationDigest).not.toBe(b.presentationDigest)
+  })
+
+  it("an ABSENT configVersion leaves the empty document's digest exactly where P-1 pinned it", () => {
+    // Load-bearing three ways, and the reason the key is optional rather than required:
+    // rollback keeps the non-branching predecessor `emptyPresentationDigest`'s own
+    // docblock reserved for this batch; every catalog revision committed before P-7
+    // stays a valid document rather than becoming retroactively malformed; and a
+    // catalog that omits the key still resolves, so it can never block a deploy.
+    expect(EMPTY_PRESENTATION_CONTENT).not.toHaveProperty("configVersion")
+    expect(emptyPresentationDigest().presentationDigest).toBe(
+      hashJson({ schema: PRESENTATION_CONTENT_VERSION, locale: "en-US" }),
+    )
+  })
+
+  it("the identity keys are exactly {schema, locale, configVersion} — disjoint from every levelled section", () => {
+    // The structural claim behind the signature, asserted directly so a future PR that
+    // moves `configVersion` into LEVEL_BY_SECTION fails here as well as in the
+    // signature test — a level change would otherwise only surface as two moved
+    // digests in an artifact diff, with nothing naming why.
+    expect(Object.keys(LEVEL_BY_SECTION)).not.toContain("configVersion")
+    expect(Object.keys(LEVEL_BY_SECTION)).not.toContain("schema")
+    expect(Object.keys(LEVEL_BY_SECTION)).not.toContain("locale")
   })
 })
 
