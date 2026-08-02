@@ -52,6 +52,14 @@ onward. While pre-1.0, minor versions may include breaking changes.
   layer is, so neither branch is a no-op and no authenticity coverage was dropped to make CI pass.
   The probe is itself graded against a fabricated sha and an empty ledger, unconditionally, so it
   cannot rot into a constant `false` that would silently neuter every gate above it.
+  A second green-locally/red-remotely fault surfaced in the same shape and is recorded rather than
+  quietly patched: the new `deploy-web.yml` permissions probe spelled its line break as a literal
+  `\n`, and `.gitattributes` does not cover `.github/workflows/**`, so on `windows-latest` — the
+  only OS whose `core.autocrlf` defaults to true — it reported a write permission the workflow does
+  not have. Matching `\r?\n` fixes it, and the fix is deliberately not a `.gitattributes` pin: what
+  is under test is the workflow's permissions, not the line endings of the machine that cloned it.
+  The 19 shipped `REGRESSION_CHECKS` anchors were audited for the same fault class and are safe,
+  because `$` under `/m` matches before a `\r` and `\s` spans it.
   `deploy-web.yml` gains a step that **verifies** the record and cannot create one:
   `permissions: contents: read` stays exactly as it is, because a deploy workflow that writes to
   the repo is a new writer needing its own ADR. The developer records; the workflow refuses to
