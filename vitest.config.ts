@@ -27,6 +27,7 @@ export default defineConfig({
       "@calllint/trust-index": r("./packages/trust-index/src/index.ts"),
       "@calllint/partner-api": r("./packages/partner-api/src/index.ts"),
       "@calllint/trust-event-contract": r("./packages/trust-event-contract/src/index.ts"),
+      "@calllint/adoption-index": r("./packages/adoption-index/src/index.ts"),
     },
   },
   test: {

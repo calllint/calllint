@@ -46,3 +46,12 @@ PROJECT_STATUS.md
 
 # local Playwright/MCP verification artifacts (not published)
 .playwright-mcp/
+
+# The Canonical Adoption Index's ENTIRE persistence (new15 R-1; ADR 0061 INV-R7):
+# the SQLite database, its -wal/-shm sidecars, the content-addressed blob store, work
+# and dead-letter dirs, and run reports. This lands in the SAME commit as the store that
+# writes it, not later: the first real compile run offers `adoption-index.sqlite-wal` to
+# `git status`, and a WAL file is exactly the kind of thing a hurried `git add -A`
+# commits. A boundary no gate reads is not a boundary, so R-1 also asserts
+# `git status --porcelain` is empty after a real run.
+.var/

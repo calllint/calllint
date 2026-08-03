@@ -1,0 +1,46 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://calllint.com/schemas/calllint.canonical-subject.v1.schema.json",
+  "title": "CallLint canonical subject",
+  "description": "The resolved product/tool IDENTITY in the Canonical Adoption Index (calllint.canonical-subject.v1; §7.1, ADR 0061). Distinct from calllint.source-record.v1, which records what one source claimed: a subject is what identity resolution CONCLUDED across records, and `identityBasis` names the evidence for that conclusion. `identityStatus` is a fail-closed lifecycle — `CONFLICT` is TERMINAL and never a warning, because silently merging two products under one identity would attach one product's evidence to the other's page. `PROVISIONAL` means resolved-from-a-single-source (§8.1: the Official MCP Registry canonical name is the Phase 2.3 seed identity, and broad multi-source merges stay off in the first release). Written by R-3; the table and schema land in R-1 so the canonical DDL cannot drift table by table.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "subjectId",
+    "canonicalName",
+    "canonicalSlug",
+    "displayName",
+    "aliases",
+    "sourceRecordIds",
+    "identityBasis",
+    "identityStatus",
+    "firstSeenAt",
+    "lastSeenAt"
+  ],
+  "properties": {
+    "schema": { "const": "calllint.canonical-subject.v1" },
+    "subjectId": { "type": "string", "minLength": 1 },
+    "canonicalName": { "type": "string", "minLength": 1 },
+    "canonicalSlug": { "type": "string", "minLength": 1 },
+    "displayName": { "type": "string", "minLength": 1 },
+    "aliases": { "type": "array", "items": { "type": "string", "minLength": 1 } },
+    "sourceRecordIds": { "type": "array", "items": { "type": "string", "minLength": 1 } },
+    "identityBasis": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["kind", "value", "sourceRecordId"],
+        "properties": {
+          "kind": { "enum": ["registry-canonical-name", "repository-url", "package-identifier", "verified-publisher"] },
+          "value": { "type": "string", "minLength": 1 },
+          "sourceRecordId": { "type": "string", "minLength": 1 }
+        }
+      }
+    },
+    "identityStatus": { "enum": ["RESOLVED", "PROVISIONAL", "CONFLICT", "TOMBSTONED"] },
+    "firstSeenAt": { "type": "string", "format": "date-time" },
+    "lastSeenAt": { "type": "string", "format": "date-time" }
+  }
+}

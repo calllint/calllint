@@ -1,0 +1,48 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://calllint.com/schemas/calllint.compiler-job.v1.schema.json",
+  "title": "CallLint compiler job",
+  "description": "One unit of pending compiler work (calllint.compiler-job.v1; §7.1, §10.2, ADR 0061). The queue is IDEMPOTENT by identity, not by attempt: `inputDigest` plus `jobType` plus `subjectKey` is the canonical DDL's UNIQUE triple, so re-enqueueing unchanged inputs updates the existing row instead of growing the queue — a rolling compiler that re-reads a source every hour must not accumulate one job per read. `state` is fail-closed: `FAILED` and `DEAD_LETTER` are TERMINAL and never re-run implicitly, because a job that silently retries forever is how a compiler burns a rate limit and reports nothing. `leaseOwner`/`leaseExpiresAt` are nullable together and only populated while `LEASED`: a lease is a claim with an expiry, so a worker that dies leaves an expired lease another worker may reclaim, rather than a permanently-held row. `lastErrorDigest` points into the CAS instead of inlining the error, keeping the queue row small and the error bytes content-addressed. `availableAt` is an injected ISO-8601 timestamp — the backoff schedule is computed by the caller, never from a wall-clock read inside the compile path (INV-R6, §9.5). Written by R-6; the table and schema land in R-1 with the rest of the canonical DDL.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "jobId",
+    "jobType",
+    "subjectKey",
+    "inputDigest",
+    "state",
+    "priority",
+    "attemptCount",
+    "availableAt",
+    "createdAt",
+    "updatedAt"
+  ],
+  "properties": {
+    "schema": { "const": "calllint.compiler-job.v1" },
+    "jobId": { "type": "string", "minLength": 1 },
+    "jobType": {
+      "enum": [
+        "ingest-source",
+        "resolve-identity",
+        "resolve-artifact",
+        "compile-evidence",
+        "compile-decision",
+        "compile-presentation",
+        "emit-projection"
+      ]
+    },
+    "subjectKey": { "type": "string", "minLength": 1 },
+    "inputDigest": { "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" },
+    "state": { "enum": ["PENDING", "LEASED", "SUCCEEDED", "FAILED", "DEAD_LETTER"] },
+    "priority": { "type": "integer", "minimum": 0 },
+    "attemptCount": { "type": "integer", "minimum": 0 },
+    "availableAt": { "type": "string", "format": "date-time" },
+    "leaseOwner": { "type": ["string", "null"] },
+    "leaseExpiresAt": { "type": ["string", "null"], "format": "date-time" },
+    "lastErrorCode": { "type": ["string", "null"] },
+    "lastErrorDigest": { "type": ["string", "null"], "pattern": "^sha256:[0-9a-f]{64}$" },
+    "createdAt": { "type": "string", "format": "date-time" },
+    "updatedAt": { "type": "string", "format": "date-time" }
+  }
+}

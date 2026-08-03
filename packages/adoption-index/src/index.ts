@@ -1,0 +1,83 @@
+/**
+ * @calllint/adoption-index — the Canonical Adoption Index store (Phase 2.3, ADR 0061).
+ *
+ * PRIVATE AND STRUCTURALLY UNREACHABLE from the published surface, by two independent
+ * mechanisms, because either one alone is insufficient:
+ *
+ *   - `"private": true` stops PUBLISHING. It does not stop importing, and it does not
+ *     even stop installing: the workspace globs `packages/*` and CI runs
+ *     `pnpm install --frozen-lockfile`, so this package's native driver resolves on all
+ *     three CI legs regardless.
+ *   - The import-boundary scan stops REACHING. `calllint` and `calllint-mcp` ship as
+ *     esbuild bundles with empty runtime dependencies; `better-sqlite3` is a `.node`
+ *     binary and cannot be bundled. So no publishable package may name this one, and a
+ *     gate asserts it rather than trusting it.
+ *
+ * The compiler NEVER executes a target, writes ZERO host configuration, and persists only
+ * under `.var/calllint-adoption-index/` (INV-R3, INV-R7). The Trust Gateway remains the
+ * one live-config writer.
+ */
+
+// Domain (§7.1)
+export type {
+  SourceRecordV1,
+  SourcePackageRef,
+  SourceRemoteRef,
+  SourceType,
+  SourceLifecycleStatus,
+} from "./domain/sourceRecord.js"
+export { SOURCE_RECORD_SCHEMA } from "./domain/sourceRecord.js"
+export type { SourceCheckpoint, CheckpointStatus } from "./domain/checkpoint.js"
+export {
+  TERMINAL_CHECKPOINT_STATUSES,
+  isTerminalCheckpointStatus,
+  assertUsableCheckpoint,
+  emptyCheckpoint,
+} from "./domain/checkpoint.js"
+
+// Storage (§10.2, §10.3, §11.1)
+export type { SqliteDatabase, SqliteDriver, SqliteStatement } from "./storage/driver.js"
+export { openBetterSqlite3 } from "./storage/driver.js"
+export type { IndexPaths } from "./storage/paths.js"
+export { INDEX_ROOT_DIRNAME, INDEX_SUBDIRS, resolveIndexPaths, isInsideRoot } from "./storage/paths.js"
+export type { Migration, AppliedMigration } from "./storage/migrate.js"
+export { loadMigrations, applyMigrations, readAppliedMigrations } from "./storage/migrate.js"
+export type { AdoptionIndexTx, OpenStoreOptions, PersistResult, StoredSourceRecord } from "./storage/store.js"
+export { AdoptionIndexStore, sourceRecordRowId } from "./storage/store.js"
+
+// Sources (§9.3, §9.4)
+export type { SourceAdapter, SourceSyncContext, SyncOutcome } from "./sources/sourceAdapter.js"
+export {
+  OFFICIAL_REGISTRY_SOURCE_ID,
+  DEFAULT_ENDPOINT,
+  DEFAULT_MAX_PAGES,
+  OVERLAP_WINDOW_MS,
+  createOfficialRegistryAdapter,
+  toSourceRecord,
+  normalizeLifecycle,
+  overlappedWatermark,
+  highWaterMark,
+} from "./sources/officialRegistry.js"
+
+// Operations
+export type { SyncSourceOptions, SyncSourceResult } from "./operations/syncSource.js"
+export { syncSource, pickLater, assertMirrorComplete, MirrorIncompleteError } from "./operations/syncSource.js"
+export type { RefreshFromMirrorOptions, RefreshFromMirrorResult } from "./operations/refreshFromMirror.js"
+export {
+  refreshFromMirror,
+  DEFAULT_MIRROR_MAX_ENTRIES,
+  DEFAULT_SOURCE_ID,
+} from "./operations/refreshFromMirror.js"
+
+// Projections
+export type {
+  ProjectedSnapshot,
+  ProjectedEntry,
+  ProjectedPackage,
+  ProjectedRemote,
+  ProjectSnapshotOptions,
+} from "./projections/snapshotProjection.js"
+export { projectSnapshot, serializeSnapshot, isLiveCohort } from "./projections/snapshotProjection.js"
+
+/** Where the migrations live, relative to this package root (§10.2). */
+export const MIGRATIONS_DIRNAME = "migrations"

@@ -221,10 +221,40 @@ database dependency into the package that CI builds on every PR, and would make
 Only the compiler's later Layer-4/Layer-5 edits touch `packages/trust-index/src/`,
 and those are EXTEND edits to existing entry points, reviewed as projection changes.
 
-### §7 O-3 — the SQLite driver is `better-sqlite3`, pinned to exactly `12.11.1`
+### §7 O-3 — the SQLite driver is `better-sqlite3`, pinned to exactly `12.9.0`
 
 **Decided, with the version pinned exactly and no range operator.** The dependency
-is recorded as `"better-sqlite3": "12.11.1"` — not `^12.11.1`, not `~12.11.1`.
+is recorded as `"better-sqlite3": "12.9.0"` — not `^12.9.0`, not `~12.9.0`.
+
+> **AMENDED 2026-08-03, at R-1 authoring time, by re-measurement.** This section
+> originally pinned **`12.11.1`**. That pin was chosen by reading `engines.node`,
+> which for `12.11.1` still declares `20.x`. Re-measuring against the registry and
+> the upstream release assets found a second, independent fact that `engines.node`
+> does not express: **`better-sqlite3` dropped its Node 20 prebuild (ABI 115) at
+> `12.10.0`**, while continuing to declare `20.x` support.
+>
+> | version | `engines.node` | node-ABI prebuilds | ABI 115 (Node 20) |
+> | --- | --- | --- | --- |
+> | `12.9.0` | `20.x \|\| 22.x \|\| 23.x \|\| 24.x \|\| 25.x` | 115, 127, 131, 137, 141 | **yes** |
+> | `12.10.0` | `20.x \|\| … \|\| 26.x` | 127, 137, 141, 147 | no |
+> | `12.11.1` | `20.x \|\| … \|\| 26.x` | 127, 137, 141, 147 | **no** |
+> | `13.0.2` (latest) | `>=22` | — | excluded by the floor |
+>
+> The repo floor is `>=20` and **all three CI legs run Node 20**
+> (`ci.yml:29` `[ubuntu-latest, macos-latest, windows-latest]`, `:42`
+> `node-version: 20`). `better-sqlite3`'s install script is
+> `prebuild-install || node-gyp rebuild --release`, so under the original pin every
+> leg would fall through to a **source build**, adding a Python and C++ toolchain
+> dependency to CI on three operating systems. `12.9.0` is the newest release with an
+> ABI-115 prebuild, and its coverage was verified per leg: `win32-x64`,
+> `darwin-arm64`, `darwin-x64`, `linux-x64`.
+>
+> The original reasoning below is left standing rather than rewritten, because it was
+> not wrong — it was **incomplete**, and the shape of the omission is the reusable
+> lesson: `engines.node` states what upstream *permits*, prebuild assets state what
+> upstream *ships*, and only the second one decides whether CI compiles C++. This is
+> the case §7's closing paragraph anticipated: this ADR is authority for the decision
+> *procedure*, never a cache of a version fact.
 
 The candidate this displaces is `node:sqlite`, and the reason it loses is measured
 rather than preferred: **the repo's own Node floor forbids it.** `package.json`
@@ -243,6 +273,11 @@ reintroduce the exact incompatibility that disqualified `node:sqlite`, which is 
 the version is measured rather than taken from `npm view better-sqlite3 version`.
 When the monorepo floor rises to 22, moving to 13.x is a deliberate follow-up with
 its own lockfile diff — not a range operator that would have done it silently.
+
+*(Superseded in part by the amendment above: `12.11.1` declares the floor but does
+not ship a binary for it. The selection rule is unchanged — the floor still selects
+the version — but the rule now reads both `engines.node` **and** the published
+prebuild ABIs, which moves the answer to `12.9.0`.)*
 
 `better-sqlite3` is native and needs a build toolchain, which is a real cost. It is
 an acceptable one here because §10.1 of the execution plan fixes the production
@@ -323,8 +358,19 @@ stays its own gated PR with its own artifact.
 ## Consequences
 
 **Accepted cost.** A native dependency (`better-sqlite3`) means the compiler package
-needs a build toolchain wherever it is installed. Bounded by the single-Linux-host
-production target (§7) and by the compiler's exclusion from the published CLI.
+needs a build toolchain wherever no prebuilt binary is available. Bounded by the
+single-Linux-host production target (§7), by the compiler's exclusion from the
+published CLI, and — after the §7 amendment — by pinning a version that ships an
+ABI-115 prebuild for all three CI platforms, so the toolchain is not exercised on any
+gate leg.
+
+**A cost the original decision missed:** `"private": true` keeps this package out of
+every *published* artifact, but it does **not** keep the driver out of CI's *install*
+graph. The workspace globs `packages/*` (`pnpm-workspace.yaml`) and every gate leg
+runs `pnpm install --frozen-lockfile`, so the dependency resolves on all three
+operating systems regardless of privacy. Privacy is a publishing boundary, not an
+installation one — which is why the prebuild coverage above had to be verified per
+platform rather than only for the Linux production target.
 
 **Accepted cost.** Refusing to execute subjects means some evidence is permanently
 unobtainable — runtime behavior, actual network destinations, real credential

@@ -1,0 +1,42 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://calllint.com/schemas/calllint.identity-conflict.v1.schema.json",
+  "title": "CallLint identity conflict",
+  "description": "An UNRESOLVED identity collision, recorded as a first-class row rather than handled as an exception (calllint.identity-conflict.v1; §7.1, §10.2, ADR 0061). This schema exists because the fail-closed path needs somewhere to put its output: when two source records claim one identity, the compiler must refuse to merge them, and a refusal that is only a thrown error loses the very evidence a human needs to adjudicate it. So `sourceRecordIds` carries every record that participated in the collision — a conflict naming one record is not a conflict, which is why `minItems` is 2. `status` never silently drains: `OPEN` and `ACKNOWLEDGED` both keep the affected subject at identityStatus CONFLICT (terminal, per calllint.canonical-subject.v1), and only an explicit `RESOLVED` with a `resolution` object may release it. `resolvedAt` and `resolution` are nullable in lockstep with that: a resolved conflict without a recorded resolution would be indistinguishable from a dropped one. Written by R-3; the table and schema land in R-1 with the rest of the canonical DDL.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "conflictId", "subjectKey", "conflictType", "sourceRecordIds", "status", "createdAt"],
+  "properties": {
+    "schema": { "const": "calllint.identity-conflict.v1" },
+    "conflictId": { "type": "string", "minLength": 1 },
+    "subjectKey": { "type": "string", "minLength": 1 },
+    "conflictType": {
+      "enum": [
+        "canonical-name-collision",
+        "slug-collision",
+        "repository-url-divergence",
+        "package-identifier-divergence",
+        "publisher-divergence"
+      ]
+    },
+    "sourceRecordIds": {
+      "type": "array",
+      "minItems": 2,
+      "items": { "type": "string", "minLength": 1 }
+    },
+    "status": { "enum": ["OPEN", "ACKNOWLEDGED", "RESOLVED"] },
+    "createdAt": { "type": "string", "format": "date-time" },
+    "resolvedAt": { "type": ["string", "null"], "format": "date-time" },
+    "resolution": {
+      "type": ["object", "null"],
+      "additionalProperties": false,
+      "required": ["outcome", "decidedBy", "rationale"],
+      "properties": {
+        "outcome": { "enum": ["MERGED", "SPLIT", "TOMBSTONED", "DISMISSED"] },
+        "decidedBy": { "enum": ["human", "policy"] },
+        "rationale": { "type": "string", "minLength": 1 },
+        "winningSourceRecordId": { "type": ["string", "null"] }
+      }
+    }
+  }
+}
