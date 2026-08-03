@@ -12,6 +12,105 @@ onward. While pre-1.0, minor versions may include breaking changes.
 
 ### Added
 
+- **Workstream R PR R-1 (ADR 0061) — the canonical adoption store, the seven identity schemas, and
+  the `SourceRecord` mirror.** The first Workstream-R batch that builds: R-0 measured the repo, this
+  adds the private SQLite adoption index and demotes the committed registry snapshot to a
+  **projection** of a full upstream mirror. No verdict or decision behavior moves, no served byte
+  moves (`git diff main...HEAD -- apps/web/public/` EMPTY), the MCP surface stays at 13 tools / 19
+  resources, and `deploy-web` did not run — no `apps/web/**`, `assets/brand/**`, or `deploy-web.yml`
+  path is touched. Note this is **not** the "PR R-1" at the bottom of this section: that one is the
+  `calllint://` deep link under ADR 0057. Two different batches legitimately share the label and the
+  disambiguator is permanently the ADR number.
+  **`packages/adoption-index/` (private).** The canonical 10-table DDL ships as one digest-pinned
+  migration applied on open, WAL enabled, `foreign_keys` ON per connection, forward-only: a migration
+  edited after it was applied is rejected by digest, a pending migration numbered below the highest
+  applied one is rejected as a backfill, and a migration that fails mid-way is rolled back whole so no
+  partial schema survives.
+  **The seven identity schemas, flat in `schemas/`.** `calllint.source-record.v1`,
+  `canonical-subject.v1`, `adoption-record.v1`, `artifact-version.v1`, `identity-conflict.v1`,
+  `compiler-job.v1`, `compiler-run.v1`, each `additionalProperties: false` at every level so a score,
+  a verdict, or a PII field is structurally impossible rather than merely discouraged. A
+  `SourceRecord` keeps the identity it *claims* in a `claimedIdentity` object precisely so no reader
+  can mistake it for resolved identity, and publisher prose is quarantined under
+  `untrustedPublisherContent` (INV-2.4-05). The schema-compatibility gate validates **real store
+  output**; hand-authored instances would grade the schemas against a fixture rather than against
+  what the code emits.
+  **The mirror in front of the snapshot.** `refreshSnapshot` becomes an orchestrator: mirror the full
+  cursor-paginated source into `source_records` behind an `updated_since` watermark, then project the
+  snapshot out of the mirror. Until now the snapshot WAS the record of upstream, so everything the
+  emitter dropped at ingestion — deprecated servers, superseded versions, anything past the cap — was
+  unrecoverable, and the cap kept the alphabetically-first entries rather than a considered cohort
+  (R-0's own capability matrix already named this reduction at
+  `artifacts/adoption-index-v1/current-capability-matrix.json:231`). The projection is asserted
+  **byte-identical** to what `fetchRegistrySnapshot` produced for the same upstream, over the shipped
+  emitter's own output rather than claimed, because these bytes feed the reproducibility gate.
+  **Neither shipped smoke gate could detect a bundled-in store.** `scripts/package-smoke.mjs:121` and
+  `scripts/mcp-pack-smoke.mjs:67` assert runtime `dependencies` are empty and `:137`/`:80` assert no
+  unresolved `@calllint/*` specifier survives — but both bundles are built with an unqualified
+  `bundle: true` and **no `external` list**, so esbuild inlines every reachable module and runtime
+  deps stay empty whatever the graph contains. A bundled-in store satisfies all four assertions, would
+  ship silently, and the first symptom would be `better-sqlite3` failing to load on a user's machine,
+  since a `.node` binary cannot be bundled at all. The manifest is the wrong boundary; the module
+  graph is the right one. `tests/invariants/adoption-index-unreachable.invariants.test.ts` walks the
+  graph the bundler walks, from the same two entry points, and it lives in `tests/invariants/` because
+  **`pnpm test` is in the 19-link `ci:local` chain while `pack:smoke` and `pack:smoke:mcp` are not** —
+  the #240 trap shape, where a gate that only runs in the 3-OS matrix cannot be reproduced locally.
+  Its assertions would go green by resolving nothing, so it carries two guards that must both hold
+  first: a **witness** that subpath `exports` resolution works (`calllint-mcp` must reach exactly the
+  two trust-index subpath modules it imports, the same two esbuild's own metafile reports) and a
+  **positive control** that the detector fires (the same walker, from the real shipped file that
+  legitimately imports the store, must reach adoption-index and must name `better-sqlite3`).
+  **Nothing asserted the publishable SET.** Each smoke script validates one bundle it is handed by
+  name; neither enumerates the workspace, so a package that silently became publishable was invisible
+  to both. Now pinned as a set of four — `@calllint/credits`, `@calllint/signature`, `calllint`,
+  `calllint-mcp` — so a swap that keeps the size at four still fails.
+  **ADR 0061 §7 is amended by measurement, and the pin is now gated.** The ADR pinned `12.11.1`;
+  re-measured, `better-sqlite3` **dropped its Node 20 prebuild (ABI 115) at `12.10.0`** while still
+  declaring `engines.node: "20.x || …"`. All three CI legs run Node 20 (`ci.yml:42`) and the install
+  script is `prebuild-install || node-gyp rebuild`, so any resolution at or above `12.10.0` falls
+  through to a **source build**, adding a Python and C++ toolchain requirement on three operating
+  systems. Re-pinned to `12.9.0`, whose prebuilds cover ABI 115/127/131/137/141 on `win32-x64`,
+  `darwin-arm64`, `darwin-x64` and `linux-x64`; `trust-ingest.yml` runs `node-version: 24` (ABI 137),
+  inside that set. Confirmed in CI rather than argued: `install: Done` landed 0.8 s after
+  `prebuild-install || node-gyp rebuild --release` on windows and macOS with no `gyp` output and no
+  `gyp ERR`, and the tests that open a real store passed on all three legs. The reusable lesson, now
+  written into the ADR: **`engines.node` states what upstream permits; the prebuild assets state what
+  upstream ships, and only the second decides whether CI compiles C++.** The superseded reasoning is
+  left standing with a supersession note beside it. The pin itself was documented in three places and
+  read by no gate — mutating it to `^12.9.0` passed all 117 R-1 tests, the P-4b shape exactly — so it
+  is now asserted in `packages/adoption-index/test/store-schema.test.ts` on the **declared** specifier,
+  not the resolved version: a lockfile already resolves to something exact, which is why
+  `pnpm-lock.yaml` looked fine either way and why the range survived every gate.
+  **Four defects this batch found in its own first draft or in the assertions themselves.** An ABI
+  assertion was coupled to the schema, so a 10-table→2 mutation failed the DDL test *and* the ABI
+  test, reporting "no source build required" for a schema defect; it now goes through the driver
+  (`SELECT 1`, plus the `foreign_keys` pragma that is the driver's own contract) and touches no schema.
+  Three assertions failed without naming their offender — an INV-R7 boolean reported "expected false
+  to be true", true of every violation and diagnostic of none — and each is now a collected list that
+  names the offending write, path, or module. `resolveMirrorMaxEntries` had two boundary defects: the
+  raw-read ceiling is a different quantity from the served cap, and since `paginate` reports
+  `capReached` at `yielded >= maxEntries`, a mirror ceiling merely *equal* to the snapshot cap makes
+  the snapshot's own cap structurally unreachable, failing closed on exactly the run where the
+  snapshot would first fill — hence strict inequality, and a fallback that is derived rather than the
+  bare constant, because `TRUST_INGEST_MAX_ENTRIES` can raise the snapshot cap above
+  `DEFAULT_MIRROR_MAX_ENTRIES`. And a missing `invokedAsScript` guard meant
+  `expansion-eligibility.test.ts`, which imports `refreshSnapshot.ts` for `resolveMaxEntries` alone,
+  performed a **real network read at import** and left `.var/calllint-adoption-index/` behind — a test
+  that passed only because the rejection landed after the suite had finished.
+  **Twelve negative controls, each restored byte-identical**, covering the store reaching `apps/cli`
+  runtime deps, the store imported from `packages/core/src/`, a dropped `"private": true`, `.var/` out
+  of `.gitignore`, `^`/`~` on the driver pin, a `tsconfig` path with no vitest alias, 2 tables instead
+  of 10, a mirror that perturbs the snapshot, a hand-authored schema instance, a removed `failRun()`,
+  `Date.now()`/argless `new Date()`, and a write outside the root. Controls 1 and 2 are the
+  load-bearing pair — one fires the shipping gate, the other the reachability scan — and only #1's
+  mutation added a dependency, so the reachability scan correctly stayed silent; that separation is
+  what makes the pair meaningful rather than redundant. Verified on the squashed tree at `c7f25e8`,
+  not inherited from the branch: `pnpm ci:local` exit 0 with `Test Files 193 passed (193)` and
+  `Tests 2896 passed | 1 skipped (2897)` (the skip pre-exists in
+  `packages/report-renderer/test/sarif-schema.test.ts`), both smoke gates PASS, and a real cold
+  compile run producing 10 tables at schema version 1 with exactly one persisted file, `.var/` proven
+  *ignored* rather than merely absent via `git check-ignore -v` — an empty diff alone would not
+  distinguish an ignore rule from an unwritten file.
 - **Workstream R PR R-0 — the compiler boundary ADR and the Batch-0 reality audit.** Documents only:
   no production code, no served bytes, no verdict or decision behavior. That is the batch's gate, not
   its modesty — a Workstream-R entry that changed one byte under `packages/*/src/**` would have
@@ -71,7 +170,13 @@ onward. While pre-1.0, minor versions may include breaking changes.
   `better-sqlite3` pinned to exactly `12.11.1` — measured, and the newest version is the wrong one,
   because the repo's Node floor is `>=20` (so `node:sqlite` is out) and `better-sqlite3@13.x`
   declares `engines.node: ">=22"`, reintroducing the same incompatibility; **O-1** LORDL credential
-  handling stays the user's call, deferred in the ADR by name, never harvested. The ADR restates the
+  handling stays the user's call, deferred in the ADR by name, never harvested.
+  (**Superseded at R-1: the version is `12.9.0`, not `12.11.1`.** The reasoning above was right about
+  the driver and about `13.x`, and wrong about which `12.x`: it read `engines.node`, which states what
+  upstream *permits*, where the deciding evidence is the prebuild assets, which state what upstream
+  *ships*. Node-20 prebuilds (ABI 115) were dropped at `12.10.0`, so `12.11.1` would have compiled
+  from source on all three CI legs. Left standing rather than edited, per "invert a stale assertion,
+  never delete it" — see the R-1 entry above and ADR 0061 §7's amendment.) The ADR restates the
   compiler's hard boundaries: never executes the target, writes **0** host config, persists only
   under `.var/calllint-adoption-index/`. `artifacts/adoption-index-v1/**` is pinned `text eol=lf` in
   this batch, before anything measures it — no gate reads these bytes yet, so nothing fails today,

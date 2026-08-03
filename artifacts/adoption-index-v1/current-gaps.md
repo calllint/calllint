@@ -88,6 +88,26 @@ Also absent by design: no SQLite dependency exists anywhere yet
 `package.json` → **no match**). ADR 0061 §7 decides the driver and pins
 `better-sqlite3` to exactly `12.11.1`; R-1 is the batch that may add it.
 
+> **CLOSED at R-1 (`c7f25e8`, #251), and the pinned version above is superseded.** Both sentences
+> were true when measured at `84f56c5` and both have since moved, so they are left standing per the
+> house rule "invert a stale assertion, never delete it" — this artifact is R-0's measurement of the
+> repo as it stood, not a live index.
+>
+> The dependency now exists: `packages/adoption-index/package.json` declares it, and it is reachable
+> from exactly one shipped file (`packages/trust-index/src/refreshSnapshot.ts`) and from no bundled
+> entry point — asserted by `tests/invariants/adoption-index-unreachable.invariants.test.ts`, which
+> walks the same module graph esbuild walks from both publishable entry points.
+>
+> The version is **`12.9.0`**, not `12.11.1`. ADR 0061 §7 was amended by re-measurement at R-1
+> authoring: `better-sqlite3` dropped its Node 20 prebuild (ABI 115) at `12.10.0` while still
+> declaring `engines.node: "20.x || …"`, and all three CI legs run Node 20, so `12.11.1` would have
+> fallen through `prebuild-install || node-gyp rebuild` to a source build on every leg. `engines.node`
+> states what upstream permits; the prebuild assets state what upstream ships, and only the second
+> decides whether CI compiles C++. The pin is also now **gated**
+> (`packages/adoption-index/test/store-schema.test.ts`, on the declared specifier rather than the
+> resolved version) — before R-1 it was documented in three places and read by no gate, so an open
+> `^12.9.0` passed all 117 R-1 tests.
+
 ## 2. The five forks — one capability, two real owners
 
 These are **not** gaps. They are recorded here because §6.5's job is to surface authority
