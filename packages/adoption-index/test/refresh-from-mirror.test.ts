@@ -38,6 +38,7 @@ import {
   refreshFromMirror,
   syncSource,
   assertMirrorComplete,
+  describeSourceChange,
   MirrorIncompleteError,
   DEFAULT_MIRROR_MAX_ENTRIES,
   DEFAULT_SOURCE_ID,
@@ -306,6 +307,196 @@ describe("a capped read is refused, never projected (control #12)", () => {
       expect((err as Error).name).toBe("MirrorIncompleteError")
     }
     expect(() => assertMirrorComplete({ ...sync, capReached: false }, 2)).not.toThrow()
+  })
+})
+
+describe("the change key is persisted, and read back from DURABLE state (controls #2, #3)", () => {
+  it("writes the cohort digest to the checkpoint the run leaves on disk", async () => {
+    const store = await freshStore()
+    const result = await refresh(store, { servers: [item("io.example/alpha", { version: "1.0.0" })] })
+
+    // #3: the column existed before this batch and nothing produced a value for it. If it
+    // stays producerless, run 2 reads `null` forever, the reason is permanently
+    // NO_PRIOR_DIGEST, and the skip path is structurally unreachable.
+    expect(result.snapshotDigest).toMatch(/^sha256:[0-9a-f]{64}$/)
+    expect(store.readCheckpoint(OFFICIAL_REGISTRY_SOURCE_ID).snapshotDigest).toBe(result.snapshotDigest)
+
+    // The RETURNED checkpoint must match disk. `syncSource` writes its checkpoint mid-run,
+    // before the digest exists, so returning that one verbatim would report a checkpoint the
+    // store no longer holds — true of the value, false of the system.
+    expect(result.sync.checkpoint.snapshotDigest).toBe(result.snapshotDigest)
+    expect(result.sync.checkpoint.status).toBe("COMPLETED")
+  })
+
+  it("digests the projected ENTRIES, not the snapshot envelope (controls #5, #6)", async () => {
+    // Same upstream, two DIFFERENT clock reads. `fetchedAt` moves, so a digest over the
+    // envelope — or over raw mirror rows, whose `last_seen_at` is refreshed on every
+    // observation — changes here and the detector never skips. A detector that never skips
+    // delivers nothing, and the batch would look finished while doing nothing.
+    const payload = { servers: [item("io.example/alpha", { version: "1.0.0" })] }
+    const store = await freshStore()
+    const first = await refresh(store, payload, { now: T0 })
+    const second = await refresh(store, payload, { now: T1 })
+
+    // WITNESS that the envelope really did move on this fixture — without it the assertion
+    // below would pass on a fixture where the defect cannot occur.
+    expect(second.snapshot.fetchedAt).not.toBe(first.snapshot.fetchedAt)
+    expect(second.snapshotText).not.toBe(first.snapshotText)
+    // And the KEY did not.
+    expect(second.snapshotDigest).toBe(first.snapshotDigest)
+    expect(second.change).toMatchObject({ changed: false, reason: "NO_CHANGE" })
+  })
+
+  it("the first run is NO_PRIOR_DIGEST, the second is NO_CHANGE", async () => {
+    const payload = { servers: [item("io.example/alpha", { version: "1.0.0" })] }
+    const store = await freshStore()
+    const first = await refresh(store, payload)
+
+    // A first run has nothing to compare against and must not be reported as unchanged: an
+    // empty store with a full source is the one case where skipping loses the whole tree.
+    expect(first.change).toMatchObject({ changed: true, reason: "NO_PRIOR_DIGEST" })
+    expect((await refresh(store, payload)).change).toMatchObject({ changed: false, reason: "NO_CHANGE" })
+  })
+
+  it("a moved cohort is COHORT_DIGEST_MOVED, and the digest advances on disk", async () => {
+    const store = await freshStore()
+    const first = await refresh(store, { servers: [item("io.example/alpha", { version: "1.0.0" })] }, { now: T0 })
+    const second = await refresh(store, { servers: [item("io.example/alpha", { version: "2.0.0" })] }, { now: T1 })
+
+    expect(second.change).toMatchObject({ changed: true, reason: "COHORT_DIGEST_MOVED" })
+    expect(second.snapshotDigest).not.toBe(first.snapshotDigest)
+    // The NEW digest is what run 3 compares against. Persisting the prior one — or nothing —
+    // would make every later run report a move.
+    expect(store.readCheckpoint(OFFICIAL_REGISTRY_SOURCE_ID).snapshotDigest).toBe(second.snapshotDigest)
+  })
+
+  it("an ADDED server moves the digest even though nothing was removed", async () => {
+    const store = await freshStore()
+    await refresh(store, { servers: [item("io.a/one")] }, { now: T0 })
+    const grown = await refresh(store, { servers: [item("io.a/one"), item("io.b/two")] }, { now: T1 })
+    expect(grown.change.reason).toBe("COHORT_DIGEST_MOVED")
+    expect(grown.snapshot.count).toBe(2)
+  })
+})
+
+describe("a withdrawal is detected, which a count cannot see (controls #1, #4)", () => {
+  it("reports SOURCE_WITHDRAWAL when upstream stops serving a subject", async () => {
+    const store = await freshStore()
+    await refresh(store, { servers: [item("io.a/one"), item("io.b/gone")] }, { now: T0 })
+    const shrunk = await refresh(store, { servers: [item("io.a/one")] }, { now: T1 })
+
+    // #1, measured where the shortcut is actually available: a withdrawal writes NO ROW, so
+    // `persisted.inserted` is 0 and a count-keyed detector reports "unchanged" while the
+    // served cohort has lost an entry. This is the assertion that pins the count as unsound —
+    // the precondition is graded, not assumed.
+    expect(shrunk.sync.persisted.inserted).toBe(0)
+    expect(shrunk.change.changed).toBe(true)
+    expect(shrunk.change.reason).toBe("SOURCE_WITHDRAWAL")
+    expect(shrunk.change.absentFromSource).toEqual(["io.b/gone"])
+  })
+
+  it("the mirror KEEPS the withdrawn subject — its memory is what makes detection possible", async () => {
+    const store = await freshStore()
+    await refresh(store, { servers: [item("io.a/one"), item("io.b/gone")] }, { now: T0 })
+    const shrunk = await refresh(store, { servers: [item("io.a/one")] }, { now: T1 })
+
+    // Append-only: there is no DELETE anywhere in this package. The withdrawn subject stays
+    // current in the mirror, and the snapshot therefore STILL SERVES IT. That is the deferred
+    // half this batch reports rather than fixes — de-listing needs a lifecycle terminal state
+    // no batch owns yet, and silently dropping it here would be an unrecorded policy change.
+    expect(shrunk.currentSubjects).toBe(2)
+    expect(shrunk.snapshot.entries.map((e) => e.name)).toEqual(["io.a/one", "io.b/gone"])
+    expect(describeSourceChange(shrunk.change)).toMatch(/de-listing is NOT applied/)
+  })
+
+  it("is measured against the subjects that were current BEFORE the sync", async () => {
+    // The ordering control. `refreshFromMirror` reads `subjectsBefore` before `syncSource`
+    // persists, because afterwards this run's own records are current by construction and the
+    // set difference is empty for every input — the probe would be structurally blind.
+    const store = await freshStore()
+    await refresh(store, { servers: [item("io.a/one"), item("io.b/gone")] }, { now: T0 })
+    const before = new Set(store.listLatestSourceRecords(OFFICIAL_REGISTRY_SOURCE_ID).map((r) => r.sourceNativeId))
+    expect(before.size).toBe(2)
+
+    const shrunk = await refresh(store, { servers: [item("io.a/one")] }, { now: T1 })
+    expect(shrunk.sync.observedNativeIds.size).toBe(1)
+    // AFTER the sync the mirror still reports 2 current subjects, so a probe run at this point
+    // would difference 2 against the 1 observed and — for the withdrawal — still find it. What
+    // it could NOT find is the case where the withdrawn subject was never in `subjectsBefore`:
+    // this assertion pins that the two reads see different populations at all.
+    expect(store.listLatestSourceRecords(OFFICIAL_REGISTRY_SOURCE_ID)).toHaveLength(2)
+  })
+
+  it("observedNativeIds is REPORTED by the run, not recovered from last_seen_at", async () => {
+    // Two runs sharing one injected clock value. Recovering "what this run saw" from
+    // `last_seen_at` is wrong for exactly this input — every test that pins `now`, and any two
+    // real runs inside the same millisecond.
+    const store = await freshStore()
+    await refresh(store, { servers: [item("io.a/one"), item("io.b/gone")] }, { now: T0 })
+    const same = await refresh(store, { servers: [item("io.a/one")] }, { now: T0 })
+
+    const stamps = store.listLatestSourceRecords(OFFICIAL_REGISTRY_SOURCE_ID).map((r) => r.lastSeenAt)
+    // WITNESS: both rows carry the SAME stamp, so a `last_seen_at === now` filter would report
+    // both as observed and find no withdrawal.
+    expect(stamps).toEqual([T0, T0])
+    expect(same.change.reason).toBe("SOURCE_WITHDRAWAL")
+    expect(same.change.absentFromSource).toEqual(["io.b/gone"])
+  })
+
+  it("a version bump is NOT a withdrawal — the subject was observed", async () => {
+    // The positive half of #4. A probe that differenced payload digests instead of native ids
+    // would call every version bump a withdrawal, and every assertion above would still pass.
+    const store = await freshStore()
+    await refresh(store, { servers: [item("io.a/one", { version: "1.0.0" })] }, { now: T0 })
+    const bumped = await refresh(store, { servers: [item("io.a/one", { version: "2.0.0" })] }, { now: T1 })
+    expect(bumped.change.reason).toBe("COHORT_DIGEST_MOVED")
+    expect(bumped.change.absentFromSource).toEqual([])
+  })
+
+  it("sorts the absent set, so the report is deterministic", async () => {
+    const store = await freshStore()
+    await refresh(store, { servers: [item("io.z/last"), item("io.a/first"), item("io.m/mid")] }, { now: T0 })
+    const shrunk = await refresh(store, { servers: [item("io.m/mid")] }, { now: T1 })
+    expect(shrunk.change.absentFromSource).toEqual(["io.a/first", "io.z/last"])
+  })
+})
+
+describe("INV-R6: an unchanged upstream commits BYTE-identical bytes (control #13)", () => {
+  it("compares the committed BYTES with ===, not the parsed snapshot", async () => {
+    // The reproducibility gate byte-compares committed served bytes against a fresh render, so
+    // byte-identity is the requirement. `toEqual` on the parsed object would pass for an
+    // equivalent-but-reordered snapshot and fail the real gate — a weaker test that looks like
+    // the same assertion.
+    const payload = {
+      servers: [
+        item("io.example/zulu", { version: "3.1.0" }, { publishedAt: T0 }),
+        item("io.example/alpha", { version: "1.0.0" }, { publishedAt: T0 }),
+        item("io.example/gone", {}, { status: "deprecated" }),
+      ],
+    }
+    const store = await freshStore()
+    const first = await refresh(store, payload, { now: T0 })
+    const second = await refresh(store, payload, { now: T0 })
+
+    expect(second.snapshotText === first.snapshotText).toBe(true)
+    // And the skip is EARNED on the same run: the bytes are identical AND the detector says so.
+    expect(second.change).toMatchObject({ changed: false, reason: "NO_CHANGE" })
+    expect(second.snapshotDigest).toBe(first.snapshotDigest)
+  })
+
+  it("a skipped run still advances the run bookkeeping", async () => {
+    // "Skip the rebuild" must never mean "skip the checkpoint". The run completed; recording it
+    // as anything else would leave a RUNNING checkpoint behind and trip INV-R5.
+    const payload = { servers: [item("io.a/one")] }
+    const store = await freshStore()
+    await refresh(store, payload, { now: T0 })
+    const second = await refresh(store, payload, { now: T1 })
+
+    expect(second.change.changed).toBe(false)
+    const cp = store.readCheckpoint(OFFICIAL_REGISTRY_SOURCE_ID)
+    expect(cp.status).toBe("COMPLETED")
+    expect(cp.lastCompletedAt).toBe(T1)
+    expect(store.allRunsTerminal()).toBe(true)
   })
 })
 

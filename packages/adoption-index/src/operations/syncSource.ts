@@ -39,6 +39,17 @@ export interface SyncSourceResult {
   persisted: PersistResult
   checkpoint: SourceCheckpoint
   /**
+   * The native ids this run's stream actually contained, deduplicated.
+   *
+   * Reported rather than inferred, because R-2's withdrawal probe set-differences it against
+   * the subjects the mirror already considered current. The alternative — recovering "what
+   * this run saw" from `last_seen_at` after the write — is wrong whenever two runs share an
+   * injected clock value, which is every test that pins `now` and any two real runs inside
+   * the same millisecond. A stream can also legitimately yield one native id more than once
+   * (successive versions of a server), so this is a Set, not a count.
+   */
+  observedNativeIds: ReadonlySet<string>
+  /**
    * True when the read stopped at `ctx.maxEntries` rather than at the end of the source.
    *
    * The adapter's cap is a runaway guard applied in ARRIVAL order and BEFORE the lifecycle
@@ -126,6 +137,7 @@ export async function syncSource(opts: SyncSourceOptions): Promise<SyncSourceRes
     records: records.length,
     persisted: result.persisted,
     checkpoint: result.checkpoint,
+    observedNativeIds: new Set(records.map((r) => r.source.sourceRecordId)),
     // `paginate` returns at `yielded >= maxEntries`, so `>` is unreachable and `===` is
     // the whole condition. Derived here rather than reported by the adapter: the adapter
     // is a generator and a generator cannot return a value the consumer sees.

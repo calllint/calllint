@@ -12,6 +12,119 @@ onward. While pre-1.0, minor versions may include breaking changes.
 
 ### Added
 
+- **Workstream R PR R-2 (§16.1/§16.2) — the source-payload change detector, and the deletion of a
+  re-bake that was emitting the wrong tree.** Replaces the unconditional full re-bake at the ingest
+  bin with a measured verdict: an unchanged upstream is now *skippable* and provably commits
+  byte-identical bytes (INV-R6), while a changed one reports which §16.2 tier the change reaches. No
+  verdict or decision behavior moves, no served byte moves (`git status --porcelain --
+  apps/web/public/` EMPTY), the MCP surface stays at 13 tools / 19 resources, and **zero migrations**
+  — `source_checkpoints.snapshot_digest` was already declared in the canonical DDL
+  (`001-canonical-adoption-graph.sql:38`) and round-tripped by the store; what was missing was a
+  **producer**. A column with no writer is not a feature, and the mutation that adds a second
+  `ALTER TABLE` for it now fails by name with `duplicate column name: snapshot_digest`.
+  **A count cannot be the change key, and it is unsound in the one direction that ships a wrong
+  page.** `PersistResult` already splits `inserted` from `unchanged`, so `inserted === 0` looks like a
+  ready-made "nothing changed" — and it passes on every fixture where upstream only ever ADDS. When
+  upstream **withdraws** a server the run inserts no row, so the count says "unchanged" while the
+  cohort that feeds the bake has lost an entry. The mirror is append-only (there is no `DELETE`
+  anywhere in the package), so its memory of a withdrawn subject outlives the withdrawal and a count
+  can never see the difference. Keyed on the digest instead, the withdrawal fixture fails the count
+  shortcut in 4 tests.
+  **The digest is over the projected cohort's `entries`, which is the only one of three candidates
+  that is honest.** The raw mirror rows carry `last_seen_at`, refreshed on every unchanged
+  observation, so that digest moves every run and the detector never skips — a detector that never
+  skips delivers nothing. The whole projected snapshot carries `fetchedAt`, the run's one clock read,
+  so it fails the same way. The `entries` are exactly the population the served tree is derived from
+  and free of both the storage bookkeeping and the clock. Both wrong candidates are negative controls,
+  and the `fetchedAt` one additionally breaks "a skipped run still advances the run bookkeeping" —
+  with the clock in the digest there is no skip left to bookkeep.
+  **The prior digest is read back from durable state, before the sync.** A digest compared against
+  something the same run computed detects nothing, and the failure is silent because the code still
+  *looks* like a comparison. Read ordering is equally load-bearing: the prior digest and the mirror's
+  current subject set are both read **before** the sync, because afterwards this run's own records are
+  current and the withdrawal set-difference is structurally blind. `observedNativeIds` is therefore
+  reported by the sync rather than recovered from `last_seen_at`, which would be wrong whenever two
+  runs share a clock value — every test that pins `now`, and any two real runs in the same
+  millisecond.
+  **`RebuildScope` says `null` where it cannot measure, never `false`.** §16.2 spans seven tiers;
+  R-2 honestly owns exactly the first (source-payload ⇒ canonicalize). The other six are `null` with
+  the batch that fills each named in a comment, because `false` asserts "no rebuild needed" — a claim
+  with no measurement behind it — while `null` says "this batch cannot know". A partial fan-out that
+  reads as complete is precisely the drift that makes a later batch trust a field nothing ever wrote.
+  **INVERTED, not deleted: the ingest bin's re-bake was emitting a claims- and evidence-stripped
+  tree.** Its docblock claimed the emitted trust and Safe-install trees were "byte-identical" to
+  `bake.ts`'s. Measured, **94 of the 158 committed served files differ**, over the same file set:
+  `bake.ts:165-184` passes `loadClaimStoreIfPresent()` and `loadEvidenceSnapshotIfPresent()`, while
+  the ingest bin passed `undefined, undefined, []`. The original claim was true only of the two
+  arguments it was *written about* — `engineVersion()` and the presentation document, whose own
+  comments at `emitCohort.ts:226-236` say they flow ONLY into `installFiles` — and false of everything
+  else. It never shipped a wrong page for a reason that is an accident of **ordering** rather than a
+  safeguard: `.github/workflows/trust-ingest.yml:49-53` runs ingest, then resolve-evidence, then bake,
+  and `writeServedTree` `rmSync`s both roots before writing, so the stripped bytes were deleted and
+  rewritten by the correct bin seconds later inside the same job. Reproduced by writing the stripped
+  shape to disk on purpose: the two committed-tree gates fail on **94** files and `public/` restores
+  to zero. **Deleted rather than made conditional** — a bake of the wrong shape stays the wrong shape
+  when it runs less often, so gating it behind the new detector would have made the defect *rarer*,
+  which is strictly worse: a bake that emits a stripped tree on every run is found the first time
+  anyone looks. The stale assertion is left standing, inverted in place with the measurement beside
+  it. The bin now measures and reports; `bake.ts` remains the one bin that bakes, because it is the
+  one that loads the complete input set, and the workflow already runs it on the next line.
+  **Seventeen negative controls, each restored byte-identical, and one of them was a finding about the
+  harness rather than the code.** Control #11 edits the applied migration in place and **passed when
+  it had to fail**: every migration test builds a fresh `:memory:` store from whatever bytes are on
+  disk, so an in-place edit moves the file and the recorded digest together and no assertion can see
+  the difference — `loadMigrations` only checks the digest's *shape*. The drift guard itself is real
+  and fires on a synthetic tamper, but it can only fire against a store applied from the OLD bytes,
+  and no such store exists in CI: `.var/` is gitignored and every run is a cold checkout. So an edit
+  to the canonical DDL was green on every leg and would throw on exactly the machines that already
+  hold a store — an operator's, days later, with the failure attributed to whatever ran last. The
+  shipped migration's digest is now pinned to its **value** (transcribed from `loadMigrations`' own
+  output, never derived from the file — deriving it would pass for any bytes, which is the mutation
+  restated), and the filename set is pinned alongside it so adding a legitimate `002` forces a
+  deliberate visit rather than silently widening what the pin covers.
+  **That pin then found a second, older fault, on the one CI leg that could see it.** With the digest
+  pinned by value, `test (windows-latest)` went red **alone** while ubuntu and macOS passed: expected
+  `sha256:4ac16f96…`, received `sha256:7886b43b…` — the same DDL, digested after a CRLF checkout.
+  `git check-attr text eol -- packages/adoption-index/migrations/001-…sql` reported `unspecified` for
+  both. R-0 pinned `artifacts/adoption-index-v1/**` and its comment names this exact trap, but the pin
+  covered audit artifacts, not the one directory whose bytes the compiler *hashes*. Migrations are the
+  single place in the repo where a **source** file's bytes are a durable identifier: the digest is
+  recorded into `schema_migrations` and `applyMigrations` refuses to open a store whose recorded digest
+  no longer matches the file, so a CRLF checkout does not reformat the migration, it changes its
+  **identity** — a store created on Linux would report "modified after it was applied" on Windows and
+  refuse to open. That fault was latent from R-1; pinning the digest is what made it observable.
+  `packages/adoption-index/migrations/** text eol=lf` is now pinned, and — because a pin no gate reads
+  is itself unguarded (the P-4b lesson) — the *consequence* is asserted in the suite as well, following
+  `resolve-presentation.test.ts:109`'s pattern, so all three legs measure it. Control #18 rewrites the
+  migration to CRLF locally: 2 failed / 15 passed, naming both the digest mismatch **and** the newline
+  shape. The second assertion is the diagnostic one — alone, the digest pin reports only "expected
+  4ac16f96… to be 7886b43b…", which is true of any edit and therefore diagnostic of none.
+  The other controls: the count
+  key (4 failures), a self-compared digest (4), a producerless column (8 — the widest, since the skip
+  path becomes structurally unreachable), a skippable withdrawal (16 — the guard gates every row of
+  the input-space table), the raw-row digest (2), `fetchedAt` in the digest (2), a conditional re-bake
+  and a last-writer re-bake (1 and 94), the `RebuildScope` `false` claim, `toEqual` on the parsed
+  snapshot instead of `===` on the bytes (measured: re-indentation is byte-different and
+  parse-equal, so the weaker assertion passes where the real gate fails), a clock parameter on the
+  detector, a bundled-in store (3 axes, naming all 13 leaked modules plus `better-sqlite3`), and a
+  loosened driver pin. The detector's own purity is what makes this cheap: three inputs, so the
+  6-row table over `prior ∈ {null, equal, different} × absent ∈ {empty, non-empty}` **is** the
+  specification rather than a sample of it, with a count assertion that exactly one row is skippable —
+  a detector that skipped two, or none, would satisfy every individual row while being wrong about the
+  whole.
+  **A defect the controls caught in the implementation itself.** Every verdict returned the
+  module-level `RebuildScope` constant *by reference*, so one caller writing
+  `verdict.rebuild.identity = true` — exactly what a later batch filling in its own tier reaches for —
+  would silently rewrite every verdict computed afterwards in the process. The constants are now
+  frozen **and** spread at each return site, because neither alone suffices: the freeze without the
+  spread turns a reasonable caller into a crash, and the spread without the freeze leaves the next
+  branch added there free to reintroduce the sharing unnoticed.
+  **The structural test that the re-bake cannot come back strips comments first.** The house
+  discipline is "invert a stale assertion, never delete it", so the docblock deliberately *names*
+  `writeServedTree` — a bare grep over the source would pass or fail for the wrong reason. The check
+  runs on comment-stripped source and carries a positive control that the raw source still matches
+  and that the stripped source still contains the code it should, so a stripper that deleted
+  everything cannot make it vacuous.
 - **Workstream R PR R-1 (ADR 0061) — the canonical adoption store, the seven identity schemas, and
   the `SourceRecord` mirror.** The first Workstream-R batch that builds: R-0 measured the repo, this
   adds the private SQLite adoption index and demotes the committed registry snapshot to a

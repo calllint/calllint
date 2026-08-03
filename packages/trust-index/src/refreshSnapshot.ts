@@ -6,11 +6,39 @@
  *   1. mirror the Official MCP Registry into the adoption index (impure edge)
  *   2. PROJECT the PII-free snapshot from the mirror and write it to SNAPSHOT_PATH
  *      (ADR 0038 §1 raw-input retention)
- *   3. re-bake ALL cohorts from the committed tree into apps/web/public/trust
+ *   3. MEASURE and REPORT whether the served tree needs rebuilding (§16.1/§16.2, R-2)
+ *
+ * It does NOT bake. That is the change R-2 made, and the reason is measured — see the
+ * inverted claim below.
  *
  * The workflow then opens a PR with the diff; a human merges → CF Pages deploys. CI
  * on that PR re-bakes from the committed snapshot PURELY and diffs — so the network
  * result is frozen into a reviewable artifact, never trusted live at serve time.
+ *
+ * INVERTED, R-2 (do not restore). Until this batch step 3 called `emitAllCohorts` +
+ * `writeServedTree` here, and its comment claimed the emitted trust and Safe-install trees
+ * were "byte-identical" to `bake.ts`'s. MEASURED, they are not: 94 of the 158 committed
+ * served files differ, over the SAME file set. `bake.ts:165-184` passes
+ * `loadClaimStoreIfPresent()` and `loadEvidenceSnapshotIfPresent()`; this bin passed
+ * `undefined, undefined, []`, so its tree was claims- and evidence-STRIPPED. The original
+ * claim was true only of the two arguments it was written about — `engineVersion()` and the
+ * presentation document, whose own comments at `emitCohort.ts:226-236` say they flow ONLY
+ * into `installFiles` — and false of everything else.
+ *
+ * It never shipped a wrong page for one reason, and it is an accident of ORDERING rather
+ * than a safeguard: `.github/workflows/trust-ingest.yml:49-53` runs `ingest:trust-index`,
+ * then `resolve-evidence:trust-index`, then `bake:trust-index`, and `writeServedTree`
+ * `rmSync`s both roots before writing — so the stripped bytes were deleted and rewritten
+ * by the correct bin seconds later, inside the same job. The two committed-tree gates
+ * (`test/committed-tree.test.ts:49`, `test/safe-install/committed-install-tree.test.ts:51`)
+ * compare on-disk bytes against the BAKE shape, which is why the stripped shape could never
+ * reach a merge.
+ *
+ * DELETED rather than made conditional. R-2's mandate is "replace the unconditional full
+ * re-bake", and a bake of the wrong shape stays the wrong shape when it runs less often.
+ * Gating it behind the change detector would have made the defect RARER, which is strictly
+ * worse: a bake that emits a stripped tree on every run is found the first time anyone
+ * looks, while one that does it on the runs where upstream happened to move is not.
  *
  * WHY THE MIRROR SITS IN FRONT OF THE SNAPSHOT (R-1, ADR 0061). Until this batch the
  * snapshot WAS the record of upstream, so everything the emitter dropped at ingestion —
@@ -45,19 +73,13 @@ import {
   openBetterSqlite3,
   refreshFromMirror,
   resolveIndexPaths,
+  describeSourceChange,
   DEFAULT_MIRROR_MAX_ENTRIES,
   MIGRATIONS_DIRNAME,
 } from "@calllint/adoption-index"
 import { DEFAULT_ENDPOINT, DEFAULT_MAX_ENTRIES } from "./fetchRegistry.js"
 import { parseSnapshot } from "./snapshot.js"
-import { emitAllCohorts } from "./emitCohort.js"
-import {
-  SNAPSHOT_PATH,
-  DEFAULT_OUT,
-  engineVersion,
-  writeServedTree,
-  loadPresentationIfPresent,
-} from "./bake.js"
+import { SNAPSHOT_PATH } from "./bake.js"
 
 /**
  * Resolve the ingestion cap (ADR 0038 §6). Defaults to DEFAULT_MAX_ENTRIES; an
@@ -162,21 +184,13 @@ async function main(): Promise<void> {
   writeFileSync(SNAPSHOT_PATH, snapshotText, "utf8")
   const committed = parseSnapshot(snapshotText)
 
-  // 3. Re-bake all cohorts into the served tree (clean first → no stale pages). Uses the
-  //    SAME engine version, presentation loader, and shared writer as bake.ts, so a
-  //    scheduled ingest and a CI re-bake emit byte-identical trust AND Safe-install
-  //    (/install/**, .well-known) trees — the reproducibility gate holds across both bins
-  //    (ADR 0056; INV-2.4-10). The presentation document is read HERE, at the edge, and
-  //    passed inward (ADR 0058 §2); both bins must read it or they would disagree.
-  const { files, installFiles, baked, incomplete } = emitAllCohorts(
-    committed,
-    undefined,
-    undefined,
-    [],
-    engineVersion(),
-    loadPresentationIfPresent(),
-  )
-  writeServedTree(DEFAULT_OUT, resolve(DEFAULT_OUT, ".."), files, installFiles)
+  // 3. REPORT the change verdict. This bin measures; it does not rebuild. `bake.ts` is the
+  //    one bin that bakes, because it is the one that loads the COMPLETE input set (claims,
+  //    evidence, presentation), and the workflow already runs it on the next line
+  //    (`trust-ingest.yml:53`). The verdict is stdout, not an exit code: a run that mirrored
+  //    successfully and found nothing changed SUCCEEDED, and reporting that as a failure
+  //    would make the common case red.
+  const change = mirrored.change
 
   // eslint-disable-next-line no-console
   console.log(
@@ -184,8 +198,8 @@ async function main(): Promise<void> {
       `${mirrored.sync.persisted.unchanged} unchanged), ${mirrored.mirroredRecords} row(s) stored, ` +
       `${mirrored.currentSubjects} current subject(s); ` +
       `snapshot: ${committed.count} entry(ies) @ ${committed.fetchedAt}; ` +
-      `baked ${baked} page(s), ${incomplete} incomplete, ` +
-      `${files.length} trust file(s) + ${installFiles.length} install file(s)`,
+      `cohort digest ${mirrored.snapshotDigest}; ` +
+      `${describeSourceChange(change)}`,
   )
 }
 

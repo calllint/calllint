@@ -28,11 +28,13 @@
  * cap defaults well above the snapshot cap rather than equal to it. Setting them equal
  * would look correct and would be wrong precisely when the source grows.
  */
+import { hashJson } from "@calllint/fingerprint"
 import { AdoptionIndexStore } from "../storage/store.js"
 import type { SourceAdapter, SourceSyncContext } from "../sources/sourceAdapter.js"
 import { OFFICIAL_REGISTRY_SOURCE_ID } from "../sources/officialRegistry.js"
 import { assertMirrorComplete, syncSource, type SyncSourceResult } from "./syncSource.js"
 import { projectSnapshot, serializeSnapshot, type ProjectedSnapshot } from "../projections/snapshotProjection.js"
+import { detectSourceChange, type SourceChangeVerdict } from "./detectSourceChange.js"
 
 /**
  * How many raw records one mirror run reads, when the caller names no cap.
@@ -77,6 +79,32 @@ export interface RefreshFromMirrorResult {
   mirroredRecords: number
   /** Distinct subjects after collapsing history — the population the projection reads. */
   currentSubjects: number
+  /**
+   * Whether this run changed anything the served tree is a function of, and which §16.2
+   * tier the change reaches (R-2). The caller decides what to rebuild; this operation only
+   * measures and persists the key.
+   */
+  change: SourceChangeVerdict
+  /**
+   * `hashJson` over the projected cohort's ENTRIES — the value persisted to
+   * `source_checkpoints.snapshot_digest` and compared on the next run.
+   */
+  snapshotDigest: string
+}
+
+/**
+ * The change key: a digest of the projected cohort's ENTRIES.
+ *
+ * Deliberately not the snapshot envelope. `ProjectedSnapshot` carries `fetchedAt`, which is
+ * the run's one clock read, so digesting the envelope would move the key on every run and the
+ * detector would never skip. `count` is derived from `entries` and `endpoint`/`schema`/`source`
+ * are constants of the projection, so `entries` alone is both necessary and sufficient.
+ *
+ * `hashJson` sorts object keys recursively, so the digest is stable against key-order drift in
+ * the payloads the mirror stores.
+ */
+export function cohortDigest(snapshot: ProjectedSnapshot): string {
+  return hashJson(snapshot.entries)
 }
 
 /**
@@ -91,6 +119,15 @@ export interface RefreshFromMirrorResult {
  * The read is `listLatestSourceRecordPayloads`, NOT `listSourceRecordPayloads`. The mirror
  * keeps every observation of a subject on purpose, so the plain read returns the same
  * server once per historical payload and the projection would emit it that many times.
+ *
+ * R-2 adds the change detection, and the ORDER of its three reads is what makes it sound:
+ *
+ *   1. the PRIOR cohort digest, read BEFORE the sync. Comparing against durable state is the
+ *      whole point — a digest compared against something this run computed detects nothing.
+ *   2. the mirror's current subjects, also read BEFORE the sync. After `syncSource` persists,
+ *      this run's own records are current, so the set difference that finds a withdrawal is
+ *      unmeasurable: everything observed is present by construction.
+ *   3. the NEXT cohort digest, after projecting.
  */
 export async function refreshFromMirror(opts: RefreshFromMirrorOptions): Promise<RefreshFromMirrorResult> {
   const mirrorMaxEntries = opts.mirrorMaxEntries ?? DEFAULT_MIRROR_MAX_ENTRIES
@@ -100,6 +137,14 @@ export async function refreshFromMirror(opts: RefreshFromMirrorOptions): Promise
     maxEntries: mirrorMaxEntries,
     ...(opts.maxPages === undefined ? {} : { maxPages: opts.maxPages }),
   }
+
+  // Read #1 and #2, both BEFORE the sync — see the docblock. `priorSnapshotDigest` is `null`
+  // on a first run or a store rebuilt from scratch, which the detector reports as its own
+  // reason rather than conflating with "changed".
+  const priorSnapshotDigest = opts.store.readCheckpoint(opts.adapter.sourceId).snapshotDigest
+  const subjectsBefore = new Set(
+    opts.store.listLatestSourceRecords(opts.adapter.sourceId).map((r) => r.sourceNativeId),
+  )
 
   const sync = await syncSource({
     store: opts.store,
@@ -121,12 +166,34 @@ export async function refreshFromMirror(opts: RefreshFromMirrorOptions): Promise
     maxEntries: opts.snapshotMaxEntries,
   })
 
+  // A subject the mirror already considered current that this run did NOT observe. The mirror
+  // is append-only — there is no DELETE in this package — so its memory of a withdrawn
+  // subject outlives the withdrawal, and nothing else in the run can notice the absence.
+  // Sorted so the reported set (and any log line built from it) is deterministic.
+  const absentFromSource = [...subjectsBefore].filter((id) => !sync.observedNativeIds.has(id)).sort()
+
+  const snapshotDigest = cohortDigest(snapshot)
+  const change = detectSourceChange({ priorSnapshotDigest, nextSnapshotDigest: snapshotDigest, absentFromSource })
+
+  // Persist the key AFTER projecting — the digest cannot exist before the cohort does, which
+  // is why this is a second checkpoint write rather than a field on `syncSource`'s. It reuses
+  // the run's own checkpoint so nothing else on it moves.
+  const checkpoint = { ...sync.checkpoint, snapshotDigest }
+  opts.store.transaction((tx) => {
+    tx.advanceCheckpoint(checkpoint)
+  })
+
   return {
-    sync,
+    // `sync.checkpoint` is the value written mid-run, before the digest existed. Returning it
+    // verbatim would report a checkpoint that no longer matches the store, so the digest-
+    // carrying one replaces it: what the caller sees is what is on disk.
+    sync: { ...sync, checkpoint },
     snapshot,
     snapshotText: serializeSnapshot(snapshot),
     mirroredRecords: opts.store.listSourceRecords(opts.adapter.sourceId).length,
     currentSubjects: records.length,
+    change,
+    snapshotDigest,
   }
 }
 
