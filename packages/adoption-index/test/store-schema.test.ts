@@ -138,6 +138,37 @@ describe("canonical DDL (§10.2, control #7)", () => {
 })
 
 describe("migration discipline (forward-only, digest-pinned)", () => {
+  /**
+   * The shipped migration's digest, pinned to its VALUE.
+   *
+   * Added by R-2's control #11, which is the reason it exists: that control edits
+   * `001-canonical-adoption-graph.sql` in place and must fail by name. Measured, it did not —
+   * every test around it builds a fresh `:memory:` store from whatever bytes are on disk, so an
+   * in-place edit moves the file and the recorded digest together and no assertion can see the
+   * difference. `loadMigrations` checks the digest's SHAPE (`/^sha256:[0-9a-f]{64}$/`), which is
+   * satisfied by any edit.
+   *
+   * The drift guard itself is real — `applyMigrations` throws, and the test below proves it with
+   * a synthetic tamper — but it can only fire against a store that was applied from the OLD
+   * bytes. No such store exists in CI: `.var/` is gitignored and every run is a cold checkout.
+   * So an edit to the canonical DDL is green on every leg here and throws on exactly the
+   * machines that already hold a store — an operator's, days later, with the failure attributed
+   * to whatever ran last.
+   *
+   * Pinning the value moves that failure to the edit. The number is not derived from the file
+   * (deriving it would pass for any bytes, which is control #11's mutation restated) — it is
+   * transcribed from `loadMigrations`' own output at the time the DDL was frozen in R-1.
+   */
+  const CANONICAL_MIGRATION_DIGEST = "sha256:4ac16f9636b2fadcbbd947db52ecc8f213462d7f62a16066396fae563dc701b7"
+
+  it("pins the shipped migration's digest to its value, so an in-place edit fails HERE", () => {
+    const migrations = loadMigrations(MIGRATIONS_DIR)
+    // One migration today. Asserted so that adding 002 — which is legitimate, forward-only —
+    // forces a deliberate visit to this pin rather than silently widening what it covers.
+    expect(migrations.map((m) => m.filename)).toEqual(["001-canonical-adoption-graph.sql"])
+    expect(migrations[0]!.digest).toBe(CANONICAL_MIGRATION_DIGEST)
+  })
+
   it("rejects a migration edited after it was applied", async () => {
     // Applied against a raw driver handle rather than through the store, so the drift
     // check is exercised directly on the bytes/database pair it guards.

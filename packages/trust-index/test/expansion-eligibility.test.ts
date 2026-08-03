@@ -1,4 +1,7 @@
 import { describe, it, expect } from "vitest"
+import { readFileSync } from "node:fs"
+import { dirname, resolve } from "node:path"
+import { fileURLToPath } from "node:url"
 import { emitAllCohorts, type ExpansionCandidate } from "../src/emitCohort.js"
 import { resolveMaxEntries, resolveMirrorMaxEntries } from "../src/refreshSnapshot.js"
 import { DEFAULT_MAX_ENTRIES } from "../src/fetchRegistry.js"
@@ -207,5 +210,58 @@ describe("resolveMirrorMaxEntries — the raw-read ceiling, fail-safe and strict
         expect(resolveMirrorMaxEntries(mirrorEnv, snapshotCap)).toBeGreaterThan(snapshotCap)
       }
     }
+  })
+})
+
+// ── the ingest bin does not bake (R-2, §16.2) ──────────────────────────────────
+
+describe("refreshSnapshot measures; it does not write the served tree (controls #7, #8)", () => {
+  /**
+   * The module's own source, with comments STRIPPED.
+   *
+   * Load-bearing. The deleted step is recorded in the file's docblock as an inverted
+   * assertion — the house discipline is to invert a stale claim, never delete it — so a bare
+   * grep for `writeServedTree` matches the explanation and the control passes for the wrong
+   * reason (or fails for one). Stripping comments first is what makes this a check on CODE.
+   */
+  function ingestCode(): string {
+    const src = readFileSync(
+      resolve(dirname(fileURLToPath(import.meta.url)), "..", "src", "refreshSnapshot.ts"),
+      "utf8",
+    )
+    return src.replace(/\/\*[\s\S]*?\*\//g, "").replace(/(^|[^:])\/\/.*$/gm, "$1")
+  }
+
+  it("references neither writeServedTree nor emitAllCohorts in code", () => {
+    // Until R-2 this bin baked all cohorts with `claims=undefined, evidence=undefined`, and
+    // MEASURED that tree differs from `bake.ts`'s in 94 of the 158 committed served files — a
+    // claims- and evidence-stripped shape. It never shipped only because the workflow runs
+    // `bake:trust-index` immediately afterwards and `writeServedTree` rmSyncs both roots
+    // first. Deleted rather than gated: a wrong-shaped bake stays wrong-shaped when it runs
+    // less often, and one that fires rarely is harder to find than one that fires always.
+    const code = ingestCode()
+    expect(code).not.toMatch(/writeServedTree/)
+    expect(code).not.toMatch(/emitAllCohorts/)
+  })
+
+  it("the stripper really does remove the docblock that names them (positive control)", () => {
+    // Without this, a stripper that accidentally deleted the WHOLE file would make the
+    // assertion above vacuous. The raw source must mention the deleted call; the stripped
+    // source must still contain the code that remains.
+    const raw = readFileSync(
+      resolve(dirname(fileURLToPath(import.meta.url)), "..", "src", "refreshSnapshot.ts"),
+      "utf8",
+    )
+    expect(raw).toMatch(/writeServedTree/) // the inverted-assertion record
+    expect(ingestCode()).toMatch(/refreshFromMirror/) // the code that stayed
+    expect(ingestCode()).toMatch(/describeSourceChange/) // the verdict it now reports
+  })
+
+  it("still writes the snapshot — only the BAKE was removed", () => {
+    // The scope control. Deleting the write of SNAPSHOT_PATH would silently turn the
+    // scheduled workflow into a no-op that opens an empty PR, and every assertion above
+    // would still pass.
+    const code = ingestCode()
+    expect(code).toMatch(/writeFileSync\(SNAPSHOT_PATH/)
   })
 })

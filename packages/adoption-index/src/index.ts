@@ -62,9 +62,17 @@ export {
 // Operations
 export type { SyncSourceOptions, SyncSourceResult } from "./operations/syncSource.js"
 export { syncSource, pickLater, assertMirrorComplete, MirrorIncompleteError } from "./operations/syncSource.js"
+export type {
+  ChangeReason,
+  RebuildScope,
+  SourceChangeInput,
+  SourceChangeVerdict,
+} from "./operations/detectSourceChange.js"
+export { detectSourceChange, describeSourceChange } from "./operations/detectSourceChange.js"
 export type { RefreshFromMirrorOptions, RefreshFromMirrorResult } from "./operations/refreshFromMirror.js"
 export {
   refreshFromMirror,
+  cohortDigest,
   DEFAULT_MIRROR_MAX_ENTRIES,
   DEFAULT_SOURCE_ID,
 } from "./operations/refreshFromMirror.js"
