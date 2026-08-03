@@ -87,3 +87,17 @@ artifacts/phase-2.4/** text eol=lf
 # (CRLF checkout) and `ci:local` structurally cannot see it. That is the trap #240 hit.
 # Pin the directory before anything measures it; the line costs nothing until it doesn't.
 artifacts/adoption-index-v1/** text eol=lf
+
+# The canonical adoption-graph migrations (new15 R-1; ADR 0061 §10.2). These are the one
+# place in the repo where a source file's BYTES are a durable identifier: `loadMigrations`
+# records `sha256(sql)` into `schema_migrations`, and `applyMigrations` refuses to run when
+# a recorded digest no longer matches the file. A CRLF checkout therefore does not merely
+# reformat a file, it CHANGES ITS IDENTITY — the same DDL digests 4ac16f96… at LF and
+# 7886b43b… at CRLF, so a store created on Linux and opened on Windows would report the
+# migration as "modified after it was applied" and refuse to open.
+#
+# Measured, not anticipated: R-2 pinned the shipped migration's digest to its value (the
+# harness gap control #11 exposed), and windows-latest went red ALONE while ubuntu and
+# macOS passed — `git check-attr text` on this directory reported `unspecified`. That is
+# the #240 trap, and `ci:local` cannot see it on an LF working copy by construction.
+packages/adoption-index/migrations/** text eol=lf

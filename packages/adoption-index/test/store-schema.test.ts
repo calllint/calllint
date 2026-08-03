@@ -169,6 +169,24 @@ describe("migration discipline (forward-only, digest-pinned)", () => {
     expect(migrations[0]!.digest).toBe(CANONICAL_MIGRATION_DIGEST)
   })
 
+  it("is stored LF-only with a trailing newline (the .gitattributes pin, verified)", () => {
+    // The pin above is only well-defined for ONE newline shape, and this is where that shape
+    // is measured rather than assumed. Migrations are the one place in the repo where a
+    // source file's BYTES are a durable identifier: the digest goes into `schema_migrations`
+    // and `applyMigrations` refuses to run when it no longer matches. So a CRLF checkout does
+    // not reformat this file, it changes its IDENTITY — the same DDL digests 4ac16f96… at LF
+    // and 7886b43b… at CRLF, which would make a store created on Linux unopenable on Windows.
+    //
+    // Measured, not anticipated: pinning the digest by value turned windows-latest red ALONE
+    // while ubuntu and macOS passed, because `packages/adoption-index/migrations/` carried no
+    // eol pin (`git check-attr text` → `unspecified`). `ci:local` cannot see that on an LF
+    // working copy by construction, which is why the consequence is asserted here — a pin no
+    // gate reads is itself unguarded.
+    const bytes = readFileSync(join(MIGRATIONS_DIR, "001-canonical-adoption-graph.sql"), "utf8")
+    expect(bytes).not.toContain("\r")
+    expect(bytes.endsWith("\n")).toBe(true)
+  })
+
   it("rejects a migration edited after it was applied", async () => {
     // Applied against a raw driver handle rather than through the store, so the drift
     // check is exercised directly on the bytes/database pair it guards.
