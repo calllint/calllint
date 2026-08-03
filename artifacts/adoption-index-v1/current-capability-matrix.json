@@ -1,0 +1,714 @@
+{
+  "$comment": "Workstream R Batch-0 reality audit (new15 Execution Plan section 6.4). Every capability the Blueprint v1.4 section 2 names, graded against committed code at 84f56c5. Section 6.4 says: 'If EXISTS, identify tests and remove it from implementation batches.' So every EXISTS row names the test that would fail if the capability regressed — an EXISTS with no test is an unfalsifiable claim, and this generator EXITS NONZERO rather than emit one. CONTRADICTED is used where the blueprint asserts a CONFIRMED gap that measurably shipped in new13/new14; grading those ABSENT would re-authorize building what already exists, which is the exact waste Blueprint v1.4 line 216 forbids. In the do-not-build bucket, ABSENT is the PASSING state and any EXISTS would be a defect.",
+  "adr": "0061",
+  "batch": "new15 Workstream R / Batch 0 / PR R-0",
+  "measuredAt": "2026-08-02",
+  "measuredAtCommit": "84f56c5",
+  "source": "docs/new15ref/CallLint_Canonical_Adoption_Safe_Install_Blueprint_v1.4.md section 2 (lines 815-879) plus sections 1.1-1.3",
+  "gradingRules": {
+    "EXISTS": "shipped in committed code AND names at least one test that would fail on regression",
+    "PARTIAL": "the capability exists but not in the shape the blueprint asks for; the delta is real Workstream R work",
+    "ABSENT": "not built. In the do-not-build bucket this is the PASSING state",
+    "CONTRADICTED": "the blueprint asserts this as a confirmed GAP, and it measurably shipped. Cites the PR that falsified it"
+  },
+  "bucketCounts": {
+    "keep": 15,
+    "refactor": 9,
+    "add": 14,
+    "do-not-build": 12,
+    "contradicted-gap": 5
+  },
+  "statusCounts": {
+    "EXISTS": 23,
+    "PARTIAL": 9,
+    "ABSENT": 18,
+    "CONTRADICTED": 5
+  },
+  "invariants": {
+    "existsWithoutTests": 0,
+    "note": "asserted by the generator, which exits nonzero rather than emit an EXISTS row with an empty tests[]; every cited path is existsSync-checked"
+  },
+  "capabilities": [
+    {
+      "bucket": "keep",
+      "id": "K-01",
+      "capability": "one CallLint scan engine",
+      "status": "EXISTS",
+      "tests": [
+        "packages/risk-engine/test/risk-engine.test.ts"
+      ],
+      "evidence": [
+        "packages/risk-engine/src/computeVerdict.ts:21 computeVerdict is the only verdict engine"
+      ],
+      "note": "INV-01. ADR 0061 section 4 restates it for the graph: identity is resolved, verdicts are not."
+    },
+    {
+      "bucket": "keep",
+      "id": "K-02",
+      "capability": "SAFE / REVIEW / BLOCK / UNKNOWN semantics",
+      "status": "EXISTS",
+      "tests": [
+        "packages/risk-engine/test/risk-engine.test.ts",
+        "packages/fixtures/test/evidence.test.ts"
+      ],
+      "evidence": [
+        "CLAUDE.md verdict semantics table; VERDICT_PUBLIC_LABEL is not overridable from configuration"
+      ]
+    },
+    {
+      "bucket": "keep",
+      "id": "K-03",
+      "capability": "UNKNOWN fail-closed rule",
+      "status": "EXISTS",
+      "tests": [
+        "packages/risk-engine/test/risk-engine.test.ts",
+        "packages/evidence/test/eligibility.test.ts"
+      ],
+      "evidence": [
+        "INV-05; UNKNOWN never auto-upgrades to SAFE"
+      ]
+    },
+    {
+      "bucket": "keep",
+      "id": "K-04",
+      "capability": "Trust Gateway digest chain",
+      "status": "EXISTS",
+      "tests": [
+        "packages/install-planner/test/receiptDrift.test.ts",
+        "packages/install-planner/test/decisionReceipt.test.ts"
+      ],
+      "evidence": [
+        "packages/install-planner/src/buildPlan.ts:112 planDigest = hashJson(sealed), verified at :117-118"
+      ]
+    },
+    {
+      "bucket": "keep",
+      "id": "K-05",
+      "capability": "@calllint/evidence",
+      "status": "EXISTS",
+      "tests": [
+        "packages/evidence/test/model.test.ts",
+        "packages/evidence/test/model-schema.test.ts"
+      ],
+      "evidence": [
+        "packages/evidence/src/model/stateMachine.ts is the RESOLUTION state machine the compiler generalizes (ADR 0061 section 10)"
+      ]
+    },
+    {
+      "bucket": "keep",
+      "id": "K-06",
+      "capability": "@calllint/fingerprint",
+      "status": "EXISTS",
+      "tests": [
+        "packages/fingerprint/test/fingerprint.test.ts",
+        "packages/core/test/extract-fingerprint.test.ts"
+      ],
+      "evidence": []
+    },
+    {
+      "bucket": "keep",
+      "id": "K-07",
+      "capability": "@calllint/signature",
+      "status": "EXISTS",
+      "tests": [
+        "packages/signature/test/signature.test.ts"
+      ],
+      "evidence": []
+    },
+    {
+      "bucket": "keep",
+      "id": "K-08",
+      "capability": "no target execution",
+      "status": "EXISTS",
+      "tests": [
+        "packages/resolver/test/evidence/noExec.test.ts"
+      ],
+      "evidence": [
+        "INV-04; ADR 0061 section 2 enumerates the forbidden operations as the compiler's own boundary"
+      ],
+      "note": "The single most load-bearing keep item for Workstream R: the compiler is the component with the strongest incentive to violate it."
+    },
+    {
+      "bucket": "keep",
+      "id": "K-09",
+      "capability": "serving plane cannot scan",
+      "status": "EXISTS",
+      "tests": [
+        "packages/trust-index/test/discovery.test.ts"
+      ],
+      "evidence": [
+        "ADR 0038; INV-11; ADR 0061 section 5 — no request path reaches the compiler database"
+      ]
+    },
+    {
+      "bucket": "keep",
+      "id": "K-10",
+      "capability": "deterministic page bake",
+      "status": "EXISTS",
+      "tests": [
+        "packages/trust-index/test/safe-install/preview-snapshot.test.ts"
+      ],
+      "evidence": [
+        "artifacts/adoption-index-v1/current-generated-tree.json enumerates the 159 committed outputs"
+      ]
+    },
+    {
+      "bucket": "keep",
+      "id": "K-11",
+      "capability": "retained raw snapshots",
+      "status": "EXISTS",
+      "tests": [
+        "packages/trust-index/test/evidenceManifest.test.ts"
+      ],
+      "evidence": [
+        "packages/trust-index/src/snapshot.ts:43 RegistrySnapshot; parseSnapshot at :62"
+      ]
+    },
+    {
+      "bucket": "keep",
+      "id": "K-12",
+      "capability": "public copy guard",
+      "status": "EXISTS",
+      "tests": [
+        "packages/trust-index/test/app-created.test.ts",
+        "apps/cli/test/host-help-parity.test.ts"
+      ],
+      "evidence": [
+        "scripts/check-public-copy.mjs, enforced at .github/workflows/public-facts-consistency.yml:46 and in pnpm ci:local"
+      ]
+    },
+    {
+      "bucket": "keep",
+      "id": "K-13",
+      "capability": "PII-free public artifacts",
+      "status": "EXISTS",
+      "tests": [
+        "packages/telemetry-contract/test/sanitize.test.ts"
+      ],
+      "evidence": [
+        "check:public-copy forbids PII; INV-07 keeps publisher content out of decisions"
+      ]
+    },
+    {
+      "bucket": "keep",
+      "id": "K-14",
+      "capability": "correction / dispute mechanism",
+      "status": "EXISTS",
+      "tests": [
+        "packages/trust-index/test/reconcileClaims.test.ts",
+        "packages/trust-index/test/verifyClaims.test.ts"
+      ],
+      "evidence": []
+    },
+    {
+      "bucket": "keep",
+      "id": "K-15",
+      "capability": "Git-reviewed publication during early phases",
+      "status": "EXISTS",
+      "tests": [
+        "packages/trust-index/test/publishChannel.gate.test.ts"
+      ],
+      "evidence": [
+        "ADR 0058 rejected a CMS service for this reason; v1 content edits are ordinary pull requests"
+      ]
+    },
+    {
+      "bucket": "refactor",
+      "id": "R-01",
+      "capability": "fetchRegistry.ts — split registry client, pagination, delta plan, normalization",
+      "status": "PARTIAL",
+      "tests": [
+        "packages/trust-index/test/lookup-index.test.ts"
+      ],
+      "evidence": [
+        "packages/trust-index/src/fetchRegistry.ts:90 fetchRegistrySnapshot exists as one function"
+      ],
+      "note": "The capability exists; the SPLIT does not. This is real Workstream R work."
+    },
+    {
+      "bucket": "refactor",
+      "id": "R-02",
+      "capability": "refreshSnapshot.ts — reduce to an orchestrator over job primitives",
+      "status": "PARTIAL",
+      "tests": [],
+      "evidence": [
+        "packages/trust-index/src/refreshSnapshot.ts exists as an all-in-one script"
+      ],
+      "note": "Blocked on the job primitives, which do not exist yet (A-02). Real Workstream R work."
+    },
+    {
+      "bucket": "refactor",
+      "id": "R-03",
+      "capability": "snapshot.ts — v1 source cursor and per-entry revision, retaining the v0 reader",
+      "status": "ABSENT",
+      "tests": [
+        "packages/trust-index/test/evidenceManifest.test.ts"
+      ],
+      "evidence": [
+        "packages/trust-index/src/snapshot.ts:43 is v0 only; no cursor, no per-entry revision"
+      ],
+      "note": "The retain-v0-reader requirement is the shape receipt v0/v1 already demonstrates (see current-symbol-bindings #14)."
+    },
+    {
+      "bucket": "refactor",
+      "id": "R-04",
+      "capability": "bakeTrustPage.ts — evidence level, freshness, coverage projection; no verdict changes",
+      "status": "PARTIAL",
+      "tests": [
+        "packages/trust-index/test/evidenceLevel.test.ts",
+        "packages/resolver/test/evidence/coverageAudit.ts"
+      ],
+      "evidence": [
+        "evidence level EXISTS (evidenceLevel.test.ts); coverage audited at packages/resolver/audit/coverage-audit.json"
+      ],
+      "note": "Evidence level shipped; freshness has no calculator (A-06)."
+    },
+    {
+      "bucket": "refactor",
+      "id": "R-05",
+      "capability": "renderPage.ts — production Trust Page information architecture",
+      "status": "PARTIAL",
+      "tests": [
+        "packages/trust-index/test/safe-install/preview-snapshot.test.ts"
+      ],
+      "evidence": [
+        "packages/trust-index/src/renderPage.ts:256 renderHtml; ADR 0058 presentation control plane shipped in Workstream P"
+      ],
+      "note": "Workstream P (#241-#248) delivered the copy/layout/token plane over the Install page. Trust-page IA is O-4's second half."
+    },
+    {
+      "bucket": "refactor",
+      "id": "R-06",
+      "capability": "claim.ts — publisher namespace claim v1, preserving the v0 migration reader",
+      "status": "EXISTS",
+      "tests": [
+        "packages/trust-index/test/claim-namespace.test.ts",
+        "packages/trust-index/test/claim.test.ts",
+        "packages/trust-index/test/claimStateMachine.test.ts"
+      ],
+      "evidence": [
+        "shipped in new12 D6, merged c758b0d (#214): one reverse-DNS claim propagates verifiedPublisher to children by EXACT segment equality, not prefix"
+      ]
+    },
+    {
+      "bucket": "refactor",
+      "id": "R-07",
+      "capability": "verifyClaims.ts — separate challenge verification, reconciliation, projection",
+      "status": "EXISTS",
+      "tests": [
+        "packages/trust-index/test/verifyClaims.test.ts",
+        "packages/trust-index/test/reconcileClaims.test.ts"
+      ],
+      "evidence": [
+        "reconcileClaims is a separate module from verifyClaims"
+      ]
+    },
+    {
+      "bucket": "refactor",
+      "id": "R-08",
+      "capability": "partner-api/router.ts — stable v1 resource/version/badge/registry-meta endpoints",
+      "status": "PARTIAL",
+      "tests": [],
+      "evidence": [
+        "Partner API shipped in Phase I (#155-#159)"
+      ],
+      "note": "Endpoints exist; the v1 stability contract is not pinned by a schema-compatibility gate."
+    },
+    {
+      "bucket": "refactor",
+      "id": "R-09",
+      "capability": "trust-ingest.yml — thin orchestrator, reusable jobs, publish lanes",
+      "status": "PARTIAL",
+      "tests": [
+        "packages/trust-index/test/publishChannel.test.ts"
+      ],
+      "evidence": [
+        ".github/workflows/trust-ingest.yml exists; publish channels shipped in new12 D5 (e57c1e8, #213)"
+      ],
+      "note": "Publish lanes EXIST as a channel decision (AUTO_PUBLISH/REVIEW_HOLD/SECURITY_HOLD). The workflow is still monolithic."
+    },
+    {
+      "bucket": "add",
+      "id": "A-01",
+      "capability": "versioned JSON schemas",
+      "status": "EXISTS",
+      "tests": [
+        "packages/evidence/test/model-schema.test.ts",
+        "packages/telemetry-contract/test/schema.test.ts"
+      ],
+      "evidence": [
+        "schemas/ holds install-plan, decision-receipt, receipt and more; ADR 0043 fixes the $id/domain convention",
+        "pnpm schema:compat is a dedicated gate"
+      ],
+      "note": "CONTRADICTED-adjacent: the blueprint lists this as Add, but versioned schemas shipped. Graded EXISTS because the blueprint does not assert their absence as a measured gap."
+    },
+    {
+      "bucket": "add",
+      "id": "A-02",
+      "capability": "job state machine",
+      "status": "ABSENT",
+      "tests": [
+        "packages/evidence/test/model.test.ts"
+      ],
+      "evidence": [
+        "packages/evidence/src/model/stateMachine.ts is the RESOLUTION state machine — canTransition/isTerminal/stateFromResolverStatus"
+      ],
+      "note": "GENERALIZE, do not rebuild (ADR 0061 section 10). It must grow to cover INV-10's seven terminal states."
+    },
+    {
+      "bucket": "add",
+      "id": "A-03",
+      "capability": "publication decision state machine",
+      "status": "PARTIAL",
+      "tests": [
+        "packages/trust-index/test/publishChannel.test.ts",
+        "packages/trust-index/test/publishChannel.gate.test.ts",
+        "packages/trust-index/test/claimStateMachine.test.ts"
+      ],
+      "evidence": [
+        "publishChannel decides AUTO_PUBLISH/REVIEW_HOLD/SECURITY_HOLD and never moves a verdict; fails closed"
+      ],
+      "note": "The decision exists; a state MACHINE over publication lanes does not."
+    },
+    {
+      "bucket": "add",
+      "id": "A-04",
+      "capability": "deterministic auto-publish policy",
+      "status": "EXISTS",
+      "tests": [
+        "packages/trust-index/test/publishChannel.gate.test.ts"
+      ],
+      "evidence": [
+        "new12 D5, merged e57c1e8 (#213); Gate C complete"
+      ]
+    },
+    {
+      "bucket": "add",
+      "id": "A-05",
+      "capability": "evidence level calculator",
+      "status": "EXISTS",
+      "tests": [
+        "packages/trust-index/test/evidenceLevel.test.ts",
+        "packages/trust-index/test/evidence-refinement.test.ts"
+      ],
+      "evidence": [
+        "new12 D4 evidence manifest, merged 9d5c3db (#212), a projection on ADR 0034 with no new score"
+      ]
+    },
+    {
+      "bucket": "add",
+      "id": "A-06",
+      "capability": "freshness calculator",
+      "status": "ABSENT",
+      "tests": [],
+      "evidence": [
+        "no freshness module found under packages/*/src"
+      ],
+      "note": "Real Workstream R work. It is the calculation the ROLLING part of the compiler exists to feed."
+    },
+    {
+      "bucket": "add",
+      "id": "A-07",
+      "capability": "publisher namespace claim",
+      "status": "EXISTS",
+      "tests": [
+        "packages/trust-index/test/claim-namespace.test.ts"
+      ],
+      "evidence": [
+        "new12 D6, merged c758b0d (#214)"
+      ]
+    },
+    {
+      "bucket": "add",
+      "id": "A-08",
+      "capability": "signed receipt intake",
+      "status": "PARTIAL",
+      "tests": [
+        "packages/core/test/receipt-verify.test.ts",
+        "packages/signature/test/signature.test.ts",
+        "packages/install-planner/test/receiptDrift.test.ts"
+      ],
+      "evidence": [
+        "receipt v1 and v0 both ship; @calllint/signature ships"
+      ],
+      "note": "Signing is shipped-not-wired: an intake path that verifies a third-party signed receipt does not exist."
+    },
+    {
+      "bucket": "add",
+      "id": "A-09",
+      "capability": "claim-facing control API",
+      "status": "ABSENT",
+      "tests": [],
+      "evidence": [
+        "no claim-facing control API found"
+      ],
+      "note": "The blueprint's own Do-not-build list forbids a central claim dashboard before the GitHub App flow works end to end. The App flow now works (self-claim closed 3/3 at new13), so this is unblocked but unbuilt."
+    },
+    {
+      "bucket": "add",
+      "id": "A-10",
+      "capability": "segmented sitemaps and robots policy",
+      "status": "PARTIAL",
+      "tests": [
+        "packages/trust-index/test/discovery.test.ts",
+        "packages/trust-index/test/app-created.test.ts"
+      ],
+      "evidence": [
+        "apps/web/public/trust/sitemap.xml is committed (fixtures filtered, 19 real entries only); robots.txt Sitemap line shipped in #217 (7309219), ADR 0054 accepted Option B"
+      ],
+      "note": "One sitemap exists and is filtered. SEGMENTED sitemaps are a scale requirement that arrives with the 25->500 expansion (O-5)."
+    },
+    {
+      "bucket": "add",
+      "id": "A-11",
+      "capability": "privacy-preserving growth event schema",
+      "status": "EXISTS",
+      "tests": [
+        "packages/telemetry-contract/test/schema.test.ts",
+        "packages/telemetry-contract/test/sanitize.test.ts",
+        "packages/telemetry-contract/test/tiers-and-id.test.ts",
+        "packages/telemetry-emit/test/emitter.test.ts"
+      ],
+      "evidence": [
+        "TWO independent closed vocabularies: telemetry-contract ALLOWED_EVENTS:11 and trust-event-contract TRUST_EVENTS:31 (see current-symbol-bindings #21)"
+      ]
+    },
+    {
+      "bucket": "add",
+      "id": "A-12",
+      "capability": "no-LLM dependency guard",
+      "status": "EXISTS",
+      "tests": [
+        "packages/telemetry-emit/test/gate.test.ts",
+        "packages/risk-engine/test/risk-engine.test.ts"
+      ],
+      "evidence": [
+        "INV-12: the full system works with llm.enabled=false; all gates pass with it off"
+      ]
+    },
+    {
+      "bucket": "add",
+      "id": "A-13",
+      "capability": "scale threshold instrumentation",
+      "status": "ABSENT",
+      "tests": [],
+      "evidence": [
+        "no scale-threshold instrumentation found"
+      ],
+      "note": "Gated: Gate S0 and PR R-9 confirm the 25->100->500 step sizes (O-5). ADR 0061 section 11 authorizes no expansion step."
+    },
+    {
+      "bucket": "add",
+      "id": "A-14",
+      "capability": "D1/R2 adapters only when the Phase 4 gate is met",
+      "status": "ABSENT",
+      "tests": [],
+      "evidence": [
+        "the blueprint's own Do-not-build list forbids a Cloudflare storage migration before Git-tree thresholds are measured"
+      ],
+      "note": "Correctly absent. ADR 0061 section 7 fixes SQLite + filesystem CAS for the single-Linux-host target; D1/R2 stay gated on Phase 4."
+    },
+    {
+      "bucket": "do-not-build",
+      "id": "N-01",
+      "capability": "a new scoring engine",
+      "status": "ABSENT",
+      "tests": [
+        "packages/risk-engine/test/risk-engine.test.ts"
+      ],
+      "evidence": [
+        "INV-01; ADR 0061 section 4 forecloses a second verdict field on the graph"
+      ]
+    },
+    {
+      "bucket": "do-not-build",
+      "id": "N-02",
+      "capability": "an LLM explanation service",
+      "status": "ABSENT",
+      "tests": [],
+      "evidence": [
+        "INV-12; Product Principle 5 — an LLM may summarize evidence but must not decide verdicts"
+      ]
+    },
+    {
+      "bucket": "do-not-build",
+      "id": "N-03",
+      "capability": "a dynamic scanner inside the web application",
+      "status": "ABSENT",
+      "tests": [
+        "packages/trust-index/test/discovery.test.ts"
+      ],
+      "evidence": [
+        "ADR 0038; INV-11; ADR 0061 section 5"
+      ]
+    },
+    {
+      "bucket": "do-not-build",
+      "id": "N-04",
+      "capability": "an always-live fetch at page request time",
+      "status": "ABSENT",
+      "tests": [
+        "packages/trust-index/test/discovery.test.ts"
+      ],
+      "evidence": [
+        "serving reads committed static artifacts; 159 committed files enumerated in current-generated-tree.json"
+      ]
+    },
+    {
+      "bucket": "do-not-build",
+      "id": "N-05",
+      "capability": "a mutable public record without an immutable evidence digest",
+      "status": "ABSENT",
+      "tests": [
+        "packages/trust-index/test/evidenceManifest.test.ts",
+        "packages/install-planner/test/receiptDrift.test.ts"
+      ],
+      "evidence": []
+    },
+    {
+      "bucket": "do-not-build",
+      "id": "N-06",
+      "capability": "a central claim dashboard before the GitHub App flow works end to end",
+      "status": "ABSENT",
+      "tests": [],
+      "evidence": [
+        "the App flow now works (new13 self-claim closed 3/3), so the precondition is met; the dashboard is still not built and is not Workstream R work"
+      ]
+    },
+    {
+      "bucket": "do-not-build",
+      "id": "N-07",
+      "capability": "a distributed queue before Phase 2 job semantics are proven in GitHub Actions",
+      "status": "ABSENT",
+      "tests": [],
+      "evidence": [
+        "ADR 0061 section 7 chooses SQLite on one Linux host precisely to avoid this"
+      ]
+    },
+    {
+      "bucket": "do-not-build",
+      "id": "N-08",
+      "capability": "a Cloudflare storage migration before Git-tree thresholds are measured",
+      "status": "ABSENT",
+      "tests": [],
+      "evidence": [
+        "same gate as A-14"
+      ]
+    },
+    {
+      "bucket": "do-not-build",
+      "id": "N-09",
+      "capability": "a parallel MCP server solely for Agent search",
+      "status": "ABSENT",
+      "tests": [
+        "packages/calllint-mcp/test/committed-lookup-drift.test.ts"
+      ],
+      "evidence": [
+        "ONE server, 13 tools, 19 resources, asserted by pnpm pack:smoke:mcp; new15 adds ZERO MCP tools",
+        "N7 (#227) delivered safe search INSIDE the one server"
+      ]
+    },
+    {
+      "bucket": "do-not-build",
+      "id": "N-10",
+      "capability": "an LLM search/ranking dependency in the critical path",
+      "status": "ABSENT",
+      "tests": [
+        "packages/calllint-mcp/test/committed-lookup-drift.test.ts"
+      ],
+      "evidence": [
+        "search is deterministic lexical matching over a committed index (COMMITTED_LOOKUP_ENTRIES)"
+      ]
+    },
+    {
+      "bucket": "do-not-build",
+      "id": "N-11",
+      "capability": "prompt-injection or hidden recommendation manipulation",
+      "status": "ABSENT",
+      "tests": [
+        "packages/trust-index/test/app-created.test.ts"
+      ],
+      "evidence": [
+        "check:public-copy forbids injected-instruction MCP tool descriptions; INV-07 keeps publisher content out of agent protocol policy"
+      ]
+    },
+    {
+      "bucket": "do-not-build",
+      "id": "N-12",
+      "capability": "silent tool installation",
+      "status": "ABSENT",
+      "tests": [
+        "packages/install-planner/test/decisionReceipt.test.ts"
+      ],
+      "evidence": [
+        "ADR 0057 section 1 permanently rejects silent apply; --approve is unreachable from any link path; non-interactive apply requires both --approve and --plan"
+      ]
+    },
+    {
+      "bucket": "contradicted-gap",
+      "id": "C-01",
+      "capability": "blueprint section 1.1: 'Production installations: 0 / Active claim store: empty'",
+      "status": "CONTRADICTED",
+      "tests": [
+        "packages/trust-index/test/self-claim-dogfood.test.ts"
+      ],
+      "evidence": [
+        "new13 Phase 2.5-A: the self-claim lifecycle closed 3/3 on the live calllint account (revoke #220 + reactivate #221, harness #219 merged bd53d15); pnpm audit:self-claim prints 3/3 with no faults",
+        "verdict SAFE and pageDigest sha256:20091cd... byte-identical across all three legs — the kill-gate held"
+      ],
+      "note": "Grading this ABSENT would re-authorize building a claim store that already has a proven lifecycle."
+    },
+    {
+      "bucket": "contradicted-gap",
+      "id": "C-02",
+      "capability": "blueprint section 1.2: missing 'deterministic task-to-tool safe search'",
+      "status": "CONTRADICTED",
+      "tests": [
+        "packages/calllint-mcp/test/committed-lookup-drift.test.ts",
+        "packages/trust-index/test/lookup-index.test.ts"
+      ],
+      "evidence": [
+        "N7 shipped in b7c7bfd (#227): shared matchLexical over a byte-copied committed lookup-index.json"
+      ],
+      "note": "Blueprint v1.4 line 216 forbids duplicate construction. ABSENT here would license rebuilding a shipped surface."
+    },
+    {
+      "bucket": "contradicted-gap",
+      "id": "C-03",
+      "capability": "blueprint section 1.2: missing 'Claude Code installation/configuration interception'",
+      "status": "CONTRADICTED",
+      "tests": [
+        "packages/install-planner/test/decisionReceipt.test.ts"
+      ],
+      "evidence": [
+        "N8 shipped in 95587aa (#228): preflight-core.mjs installCapture names the trust prepare -> apply route verbatim, emits a calllint.receipt.v1 receipt, exit 0, no permissionDecision, no write, never applyPlan"
+      ]
+    },
+    {
+      "bucket": "contradicted-gap",
+      "id": "C-04",
+      "capability": "blueprint section 1.3: 'no dedicated /install/{tool}/ human decision capsule'",
+      "status": "CONTRADICTED",
+      "tests": [
+        "packages/trust-index/test/safe-install/preview-snapshot.test.ts"
+      ],
+      "evidence": [
+        "new14 Phase 2.4 Batch 3 (f0e58d6) PROMOTED the shadow tree to SERVED apps/web/public/install/**; 38 committed files enumerated in current-generated-tree.json",
+        "ADR 0059 fixes the capsule first screen"
+      ]
+    },
+    {
+      "bucket": "contradicted-gap",
+      "id": "C-05",
+      "capability": "blueprint section 1.3: 'no Agent Adoption Contract'",
+      "status": "CONTRADICTED",
+      "tests": [
+        "packages/calllint-mcp/test/committed-lookup-drift.test.ts"
+      ],
+      "evidence": [
+        "new14 Phase 2.4 Batch 2 shipped the contract renderer in 5a8a0e2 (#232): packages/trust-index/src/renderSafeInstall.ts:643 renderSafeInstallContract",
+        "new14 Phase 2.4 Batch 6 shipped the agent-facing surface in 9c604b8 (#237): 19 adoption contracts exposed as MCP resources at calllint://adoption/{slug}[@{version}], served verbatim"
+      ]
+    }
+  ]
+}

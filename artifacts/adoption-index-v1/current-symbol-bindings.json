@@ -1,0 +1,383 @@
+{
+  "$comment": "Workstream R Batch-0 reality audit (new15 Execution Plan section 6.2). Symbol bindings for the 21 named subsystems, read from files at 84f56c5 — never from planning prose. SCHEMA NOTE: section 6.2's example gives ONE scalar path and ONE scalar symbol per row. Sixteen rows honour that shape exactly. Five rows (4, 11, 14, 20, 21) have TWO OR MORE REAL OWNERS and carry bindings[{path,symbol,role,note}] instead, because the example shape cannot express them: naming one owner loses the fact that a second exists, and inventing a composite path is fiction. Both errors point a later batch at the wrong file. The schema was extended rather than the truth flattened.",
+  "adr": "0061",
+  "batch": "new15 Workstream R / Batch 0 / PR R-0",
+  "measuredAt": "2026-08-02",
+  "measuredAtCommit": "84f56c5",
+  "authority": "Blueprint v1.4 section 2: 'If current file paths differ from the blueprint, Phase 0/current-state artifacts are authoritative.'",
+  "schema": {
+    "scalarRow": "{ id, name, layer, path, symbol, status, evidence[] }",
+    "forkRow": "{ id, name, layer, status, bindings: [{ path, symbol, line, role, note }], evidence[] }",
+    "statusValues": [
+      "EXISTS",
+      "PARTIAL",
+      "ABSENT"
+    ],
+    "note": "A row has `bindings` if and only if the capability has more than one real owner in committed code."
+  },
+  "totals": {
+    "subsystems": 21,
+    "EXISTS": 20,
+    "PARTIAL": 1,
+    "ABSENT": 0,
+    "forks": 5,
+    "forkIds": [
+      4,
+      11,
+      14,
+      20,
+      21
+    ]
+  },
+  "subsystems": [
+    {
+      "id": 1,
+      "name": "Registry fetch",
+      "layer": "1-registry-ingestion",
+      "path": "packages/trust-index/src/fetchRegistry.ts",
+      "symbol": "fetchRegistrySnapshot",
+      "status": "EXISTS",
+      "evidence": [
+        "packages/trust-index/src/fetchRegistry.ts:90"
+      ]
+    },
+    {
+      "id": 2,
+      "name": "Registry snapshot schema",
+      "layer": "1-registry-ingestion",
+      "path": "packages/trust-index/src/snapshot.ts",
+      "symbol": "RegistrySnapshot",
+      "status": "EXISTS",
+      "evidence": [
+        "packages/trust-index/src/snapshot.ts:43",
+        "parseSnapshot at :62",
+        "REGISTRY_NAMESPACE at :54"
+      ]
+    },
+    {
+      "id": 3,
+      "name": "Registry to cohort conversion",
+      "layer": "1-registry-ingestion",
+      "path": "packages/trust-index/src/registryCohort.ts",
+      "symbol": "registryCohort",
+      "status": "EXISTS",
+      "evidence": [
+        "packages/trust-index/src/registryCohort.ts:49"
+      ]
+    },
+    {
+      "id": 4,
+      "name": "Evidence resolution",
+      "layer": "2-evidence-resolution",
+      "status": "PARTIAL",
+      "bindings": [
+        {
+          "path": "packages/trust-index/src/resolveEvidence.ts",
+          "symbol": "remoteSubjects",
+          "line": 40,
+          "role": "SCRIPT",
+          "note": "A tsx script wired at packages/trust-index/package.json:19. Its ONLY export is remoteSubjects; the orchestration is a NON-EXPORTED main() at :48, so this file cannot be driven as a schedulable unit by the rolling compiler."
+        },
+        {
+          "path": "packages/resolver/src/evidence/resolveSubject.ts",
+          "symbol": "resolveSubject",
+          "line": 17,
+          "role": "ENGINE",
+          "note": "The reusable engine behind ADR 0034's provider interface. This is what the compiler drives on a schedule."
+        },
+        {
+          "path": "packages/resolver/src/evidence/index.ts",
+          "symbol": "P1_RESOLVERS",
+          "line": 32,
+          "role": "REGISTRY",
+          "note": "The resolver registry the engine dispatches through."
+        }
+      ],
+      "evidence": [
+        "status is PARTIAL, not EXISTS: the capability exists but is not reachable as an importable schedulable unit — binding the script alone points a later batch at a main() it cannot import"
+      ]
+    },
+    {
+      "id": 5,
+      "name": "Baked Trust object",
+      "layer": "3-bake-and-render",
+      "path": "packages/trust-index/src/bakeTrustPage.ts",
+      "symbol": "bakeTrustPage",
+      "status": "EXISTS",
+      "evidence": [
+        "packages/trust-index/src/bakeTrustPage.ts:118",
+        "type BakedTrustPage at :66"
+      ]
+    },
+    {
+      "id": 6,
+      "name": "Trust HTML and JSON rendering",
+      "layer": "3-bake-and-render",
+      "path": "packages/trust-index/src/renderPage.ts",
+      "symbol": "renderHtml",
+      "status": "EXISTS",
+      "evidence": [
+        "packages/trust-index/src/renderPage.ts:256",
+        "renderSidecar at :146"
+      ]
+    },
+    {
+      "id": 7,
+      "name": "Install page and contract rendering",
+      "layer": "3-bake-and-render",
+      "path": "packages/trust-index/src/renderSafeInstall.ts",
+      "symbol": "renderSafeInstall",
+      "status": "EXISTS",
+      "evidence": [
+        "packages/trust-index/src/renderSafeInstall.ts:559",
+        "renderSafeInstallContract at :643"
+      ]
+    },
+    {
+      "id": 8,
+      "name": "Lookup index",
+      "layer": "3-bake-and-render",
+      "path": "packages/trust-index/src/renderLookup.ts",
+      "symbol": "renderLookupIndex",
+      "status": "EXISTS",
+      "evidence": [
+        "packages/trust-index/src/renderLookup.ts:72",
+        "renderLookupPage at :154"
+      ]
+    },
+    {
+      "id": 9,
+      "name": "Safe Search committed index",
+      "layer": "4-agent-surfaces",
+      "path": "packages/calllint-mcp/src/committedLookup.ts",
+      "symbol": "COMMITTED_LOOKUP_ENTRIES",
+      "status": "EXISTS",
+      "evidence": [
+        "packages/calllint-mcp/src/committedLookup.ts:43"
+      ]
+    },
+    {
+      "id": 10,
+      "name": "MCP tool registry",
+      "layer": "4-agent-surfaces",
+      "path": "packages/calllint-mcp/src/tools.ts",
+      "symbol": "TOOLS",
+      "status": "EXISTS",
+      "evidence": [
+        "packages/calllint-mcp/src/tools.ts:939",
+        "TOOLS_BY_NAME at :1350",
+        "HELD INVARIANT: 13 tools + 19 resources, asserted by pnpm pack:smoke:mcp; new15 adds ZERO MCP tools"
+      ]
+    },
+    {
+      "id": 11,
+      "name": "Trust Gateway prepare",
+      "layer": "5-trust-gateway",
+      "status": "EXISTS",
+      "bindings": [
+        {
+          "path": "packages/core/src/gateway/prepare.ts",
+          "symbol": "prepare",
+          "line": 134,
+          "role": "GENERAL",
+          "note": "The general gateway prepare path."
+        },
+        {
+          "path": "packages/core/src/gateway/prepareSafeInstall.ts",
+          "symbol": "prepareSafeInstall",
+          "line": 137,
+          "role": "SAFE_INSTALL",
+          "note": "The path BOTH the CLI and MCP calllint_prepare_safe_install delegate to; re-exported at packages/core/src/index.ts:173. ONE source, two surfaces."
+        }
+      ],
+      "evidence": [
+        "both return TrustPreparation (packages/types/src/trustGateway.ts:75)",
+        "not a duplication: recording only prepare would point a batch at the general path when the safe-install path is the one under test"
+      ]
+    },
+    {
+      "id": 12,
+      "name": "Trust Gateway apply writer",
+      "layer": "5-trust-gateway",
+      "path": "packages/install-planner/src/applyEngine.ts",
+      "symbol": "applyPlan",
+      "status": "EXISTS",
+      "evidence": [
+        "packages/install-planner/src/applyEngine.ts:99",
+        "never called directly by an edge: adapters re-export it (adapters/claudeCode.ts:36) and call sites go through the adapter (apps/cli/src/commands/trust.ts:756, calllint-mcp/src/tools.ts:668)",
+        "INV-02: the ONLY writer of host CONFIG"
+      ]
+    },
+    {
+      "id": 13,
+      "name": "Install-plan schema",
+      "layer": "5-trust-gateway",
+      "path": "packages/types/src/installPlan.ts",
+      "symbol": "InstallPlan",
+      "status": "EXISTS",
+      "evidence": [
+        "packages/types/src/installPlan.ts:65",
+        "INSTALL_PLAN_SCHEMA_VERSION at :98",
+        "schemas/install-plan.schema.json"
+      ]
+    },
+    {
+      "id": 14,
+      "name": "Decision receipt schema",
+      "layer": "5-trust-gateway",
+      "status": "EXISTS",
+      "bindings": [
+        {
+          "path": "packages/types/src/decisionReceipt.ts",
+          "symbol": "DECISION_RECEIPT_SCHEMA",
+          "line": 89,
+          "role": "V1",
+          "schemaId": "calllint.receipt.v1",
+          "note": "The install decision receipt. Built by packages/install-planner/src/decisionReceipt.ts:61 buildDecisionReceipt. JSON Schema: schemas/decision-receipt.schema.json"
+        },
+        {
+          "path": "packages/core/src/receipt/types.ts",
+          "symbol": "CalllintReceipt",
+          "line": 17,
+          "role": "V0",
+          "schemaId": "calllint.receipt.v0",
+          "note": "STILL SHIPS for `scan --receipt`, built by packages/core/src/receipt/createReceipt.ts:55. JSON Schema: schemas/receipt.schema.json"
+        }
+      ],
+      "evidence": [
+        "two LIVE schemas, not a migration in progress",
+        "flattening to v1 only would license deleting a live surface"
+      ]
+    },
+    {
+      "id": 15,
+      "name": "Host adapter registry",
+      "layer": "5-trust-gateway",
+      "path": "packages/install-planner/src/index.ts",
+      "symbol": "HOST_ADAPTERS",
+      "status": "EXISTS",
+      "evidence": [
+        "packages/install-planner/src/index.ts:82",
+        "getHostAdapter at :91",
+        "declared in the BARREL, not in hostAdapter.ts (which holds only the HostAdapter interface at :78)",
+        "five adapters: claudeCode, claudeDesktop, cursor, vscode, windsurf"
+      ]
+    },
+    {
+      "id": 16,
+      "name": "Continuous Guard",
+      "layer": "6-cli-and-host",
+      "path": "apps/cli/src/commands/guard.ts",
+      "symbol": "guardCommand",
+      "status": "EXISTS",
+      "evidence": [
+        "apps/cli/src/commands/guard.ts:87",
+        "drift logic: packages/core/src/state/continuousGuard.ts:65 assessGuardDrift",
+        "offer surface: packages/core/src/gateway/continuousProtection.ts:243 continuousProtectionOffer",
+        "MCP tool calllint_enable_continuous_guard at packages/calllint-mcp/src/tools.ts:1326",
+        "NO packages/*/src module owns persisted Guard state",
+        "packages/evidence/src/model/stateMachine.ts is the RESOLUTION state machine (canTransition/isTerminal/stateFromResolverStatus), NOT the Guard state machine — see ADR 0061 section 10"
+      ]
+    },
+    {
+      "id": 17,
+      "name": "Integrate command",
+      "layer": "6-cli-and-host",
+      "path": "apps/cli/src/commands/integrate.ts",
+      "symbol": "integrateCommand",
+      "status": "EXISTS",
+      "evidence": [
+        "apps/cli/src/commands/integrate.ts:89"
+      ]
+    },
+    {
+      "id": 18,
+      "name": "Plugin preflight hook",
+      "layer": "6-cli-and-host",
+      "path": "plugins/calllint/hooks/preflight-core.mjs",
+      "symbol": "preflightFor",
+      "status": "EXISTS",
+      "evidence": [
+        "plugins/calllint/hooks/preflight-core.mjs:119",
+        "wired via plugins/calllint/hooks/hooks.json:9 -> preflight.mjs",
+        "hand-authored .d.mts sidecar: tsc reads it, so a new export must be declared there too"
+      ]
+    },
+    {
+      "id": 19,
+      "name": "Public-copy guard",
+      "layer": "7-publication",
+      "path": "scripts/check-public-copy.mjs",
+      "symbol": null,
+      "status": "EXISTS",
+      "evidence": [
+        "top-level script, NO export",
+        "enforced at .github/workflows/public-facts-consistency.yml:46"
+      ]
+    },
+    {
+      "id": 20,
+      "name": "Generated static deployment",
+      "layer": "7-publication",
+      "status": "EXISTS",
+      "bindings": [
+        {
+          "path": "packages/trust-index/src/bake.ts",
+          "symbol": "DEFAULT_OUT",
+          "line": 121,
+          "role": "PRODUCER",
+          "note": "Bakes apps/web/public/trust; via emitAllCohorts -> emitSafeInstall it also writes install/** and .well-known/calllint.json"
+        },
+        {
+          "path": "apps/web/scripts/sync-assets.mjs",
+          "symbol": null,
+          "role": "PRODUCER",
+          "note": "Copies authored assets (tokens.css, install-copy.js) into the served tree; both sides byte-compared and eol-pinned"
+        },
+        {
+          "path": ".github/workflows/deploy-web.yml",
+          "symbol": "wrangler pages deploy public",
+          "line": 85,
+          "role": "DEPLOYER",
+          "note": "Also gates on `pnpm ledger:presentation:validate:offline` at :114"
+        }
+      ],
+      "evidence": [
+        "produce-vs-deploy, and both halves matter: binding only the producer hides the deploy gate; binding only the workflow hides who writes the bytes"
+      ]
+    },
+    {
+      "id": 21,
+      "name": "Telemetry event contracts",
+      "layer": "7-publication",
+      "status": "EXISTS",
+      "bindings": [
+        {
+          "path": "packages/telemetry-contract/src/events.ts",
+          "symbol": "ALLOWED_EVENTS",
+          "line": 11,
+          "role": "VOCABULARY_PRODUCT",
+          "note": "Product telemetry vocabulary. EVENT_VERSION at :56; sanitizeEvent in the same module."
+        },
+        {
+          "path": "packages/trust-event-contract/src/events.ts",
+          "symbol": "TRUST_EVENTS",
+          "line": 31,
+          "role": "VOCABULARY_TRUST",
+          "note": "Trust-funnel vocabulary. TRUST_EVENT_VERSION at :21. Independent allow-list and independent version constant."
+        },
+        {
+          "path": "packages/telemetry-emit/src/emitter.ts",
+          "symbol": "createEmitter",
+          "line": 70,
+          "role": "EMITTER",
+          "note": "Emission is a THIRD package, separate from both vocabularies."
+        }
+      ],
+      "evidence": [
+        "two INDEPENDENT closed vocabularies, not one contract split across files",
+        "recording one would make a later batch believe an event name is allowed when its vocabulary does not contain it"
+      ]
+    }
+  ]
+}

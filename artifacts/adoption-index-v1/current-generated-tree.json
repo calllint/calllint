@@ -1,0 +1,1319 @@
+{
+  "$comment": "Workstream R Batch-0 reality audit (new15 §6.3). The served static tree, ENUMERATED FROM `git ls-files` — committed bytes, not a bake, not a directory walk. §6.3 says \"Do not infer from code\": a fresh bake would silently exclude committed-but-no-longer-emitted files and include untracked output, and either error would be invisible in the counts. Every entry carries its producer. `.well-known/security.txt` is marked FOREIGN because CallLint does not produce it and the repo deliberately disowns it; an audit that claimed authorship would license a later batch to regenerate or delete a file that is not ours.",
+  "adr": "0061",
+  "batch": "new15 Workstream R / Batch 0 / PR R-0",
+  "measuredAt": "2026-08-02",
+  "measuredAtCommit": "84f56c5",
+  "method": "git ls-files apps/web/public/{trust,install,.well-known}",
+  "roots": [
+    "apps/web/public/trust",
+    "apps/web/public/install",
+    "apps/web/public/.well-known"
+  ],
+  "totals": {
+    "files": 159,
+    "byRoot": {
+      ".well-known": 2,
+      "install": 38,
+      "trust": 119
+    },
+    "byType": {
+      "json": 98,
+      "txt": 1,
+      "html": 59,
+      "xml": 1
+    },
+    "byProvenance": {
+      "GENERATED": 158,
+      "FOREIGN": 1
+    }
+  },
+  "producers": {
+    "apps/web/public/trust/**": "packages/trust-index/src/bake.ts:121 DEFAULT_OUT",
+    "apps/web/public/install/**": "packages/trust-index/src/emitSafeInstall.ts via bake.ts → emitCohort.ts emitAllCohorts",
+    "apps/web/public/.well-known/calllint.json": "packages/trust-index/src/emitSafeInstall.ts:191 (renderDiscoveryManifest.ts)",
+    "apps/web/public/.well-known/security.txt": null
+  },
+  "cleaningBehavior": {
+    "install": "bake.ts rmSync(join(publicRoot,'install')) — CallLint owns the whole tree, so a de-listed resource's page disappears",
+    ".well-known": "NOT wholesale-cleaned, by design — bake.ts:140 states the reason is the foreign security.txt"
+  },
+  "eolPin": {
+    ".gitattributes": "apps/web/public/** and artifacts/adoption-index-v1/** are pinned text eol=lf",
+    "why": "a CRLF checkout false-fails byte-comparison gates on windows-latest alone, invisible to ci:local"
+  },
+  "files": [
+    {
+      "path": "apps/web/public/.well-known/calllint.json",
+      "type": "json",
+      "root": ".well-known",
+      "producer": "packages/trust-index/src/emitSafeInstall.ts:191",
+      "provenance": "GENERATED",
+      "note": "calllint.discovery.v1, rendered by renderDiscoveryManifest.ts and emitted at the SITE root."
+    },
+    {
+      "path": "apps/web/public/.well-known/security.txt",
+      "type": "txt",
+      "root": ".well-known",
+      "producer": null,
+      "provenance": "FOREIGN",
+      "note": "NOT produced by CallLint. .gitattributes pins .well-known narrowly so a foreign security.txt is untouched, and bake.ts does not wholesale-clean the directory for the same reason."
+    },
+    {
+      "path": "apps/web/public/install/mcp-registry/ac.inference.sh-mcp/index.html",
+      "type": "html",
+      "root": "install",
+      "producer": "packages/trust-index/src/emitSafeInstall.ts",
+      "provenance": "GENERATED",
+      "note": "Emitted via bake.ts → emitAllCohorts → emitSafeInstall. CallLint owns the whole /install tree; bake.ts rmSync-cleans it before emit."
+    },
+    {
+      "path": "apps/web/public/install/mcp-registry/ac.inference.sh-mcp/index.json",
+      "type": "json",
+      "root": "install",
+      "producer": "packages/trust-index/src/emitSafeInstall.ts",
+      "provenance": "GENERATED",
+      "note": "Emitted via bake.ts → emitAllCohorts → emitSafeInstall. CallLint owns the whole /install tree; bake.ts rmSync-cleans it before emit."
+    },
+    {
+      "path": "apps/web/public/install/mcp-registry/ac.tandem-docs-mcp/index.html",
+      "type": "html",
+      "root": "install",
+      "producer": "packages/trust-index/src/emitSafeInstall.ts",
+      "provenance": "GENERATED",
+      "note": "Emitted via bake.ts → emitAllCohorts → emitSafeInstall. CallLint owns the whole /install tree; bake.ts rmSync-cleans it before emit."
+    },
+    {
+      "path": "apps/web/public/install/mcp-registry/ac.tandem-docs-mcp/index.json",
+      "type": "json",
+      "root": "install",
+      "producer": "packages/trust-index/src/emitSafeInstall.ts",
+      "provenance": "GENERATED",
+      "note": "Emitted via bake.ts → emitAllCohorts → emitSafeInstall. CallLint owns the whole /install tree; bake.ts rmSync-cleans it before emit."
+    },
+    {
+      "path": "apps/web/public/install/mcp-registry/ag.hood-name-service/index.html",
+      "type": "html",
+      "root": "install",
+      "producer": "packages/trust-index/src/emitSafeInstall.ts",
+      "provenance": "GENERATED",
+      "note": "Emitted via bake.ts → emitAllCohorts → emitSafeInstall. CallLint owns the whole /install tree; bake.ts rmSync-cleans it before emit."
+    },
+    {
+      "path": "apps/web/public/install/mcp-registry/ag.hood-name-service/index.json",
+      "type": "json",
+      "root": "install",
+      "producer": "packages/trust-index/src/emitSafeInstall.ts",
+      "provenance": "GENERATED",
+      "note": "Emitted via bake.ts → emitAllCohorts → emitSafeInstall. CallLint owns the whole /install tree; bake.ts rmSync-cleans it before emit."
+    },
+    {
+      "path": "apps/web/public/install/mcp-registry/agency.lona-trading/index.html",
+      "type": "html",
+      "root": "install",
+      "producer": "packages/trust-index/src/emitSafeInstall.ts",
+      "provenance": "GENERATED",
+      "note": "Emitted via bake.ts → emitAllCohorts → emitSafeInstall. CallLint owns the whole /install tree; bake.ts rmSync-cleans it before emit."
+    },
+    {
+      "path": "apps/web/public/install/mcp-registry/agency.lona-trading/index.json",
+      "type": "json",
+      "root": "install",
+      "producer": "packages/trust-index/src/emitSafeInstall.ts",
+      "provenance": "GENERATED",
+      "note": "Emitted via bake.ts → emitAllCohorts → emitSafeInstall. CallLint owns the whole /install tree; bake.ts rmSync-cleans it before emit."
+    },
+    {
+      "path": "apps/web/public/install/mcp-registry/ai.1325-mcp/index.html",
+      "type": "html",
+      "root": "install",
+      "producer": "packages/trust-index/src/emitSafeInstall.ts",
+      "provenance": "GENERATED",
+      "note": "Emitted via bake.ts → emitAllCohorts → emitSafeInstall. CallLint owns the whole /install tree; bake.ts rmSync-cleans it before emit."
+    },
+    {
+      "path": "apps/web/public/install/mcp-registry/ai.1325-mcp/index.json",
+      "type": "json",
+      "root": "install",
+      "producer": "packages/trust-index/src/emitSafeInstall.ts",
+      "provenance": "GENERATED",
+      "note": "Emitted via bake.ts → emitAllCohorts → emitSafeInstall. CallLint owns the whole /install tree; bake.ts rmSync-cleans it before emit."
+    },
+    {
+      "path": "apps/web/public/install/mcp-registry/ai.aarna-atars-mcp/index.html",
+      "type": "html",
+      "root": "install",
+      "producer": "packages/trust-index/src/emitSafeInstall.ts",
+      "provenance": "GENERATED",
+      "note": "Emitted via bake.ts → emitAllCohorts → emitSafeInstall. CallLint owns the whole /install tree; bake.ts rmSync-cleans it before emit."
+    },
+    {
+      "path": "apps/web/public/install/mcp-registry/ai.aarna-atars-mcp/index.json",
+      "type": "json",
+      "root": "install",
+      "producer": "packages/trust-index/src/emitSafeInstall.ts",
+      "provenance": "GENERATED",
+      "note": "Emitted via bake.ts → emitAllCohorts → emitSafeInstall. CallLint owns the whole /install tree; bake.ts rmSync-cleans it before emit."
+    },
+    {
+      "path": "apps/web/public/install/mcp-registry/ai.abmeter-abmeter/index.html",
+      "type": "html",
+      "root": "install",
+      "producer": "packages/trust-index/src/emitSafeInstall.ts",
+      "provenance": "GENERATED",
+      "note": "Emitted via bake.ts → emitAllCohorts → emitSafeInstall. CallLint owns the whole /install tree; bake.ts rmSync-cleans it before emit."
+    },
+    {
+      "path": "apps/web/public/install/mcp-registry/ai.abmeter-abmeter/index.json",
+      "type": "json",
+      "root": "install",
+      "producer": "packages/trust-index/src/emitSafeInstall.ts",
+      "provenance": "GENERATED",
+      "note": "Emitted via bake.ts → emitAllCohorts → emitSafeInstall. CallLint owns the whole /install tree; bake.ts rmSync-cleans it before emit."
+    },
+    {
+      "path": "apps/web/public/install/mcp-registry/ai.adadvisor-mcp-server/index.html",
+      "type": "html",
+      "root": "install",
+      "producer": "packages/trust-index/src/emitSafeInstall.ts",
+      "provenance": "GENERATED",
+      "note": "Emitted via bake.ts → emitAllCohorts → emitSafeInstall. CallLint owns the whole /install tree; bake.ts rmSync-cleans it before emit."
+    },
+    {
+      "path": "apps/web/public/install/mcp-registry/ai.adadvisor-mcp-server/index.json",
+      "type": "json",
+      "root": "install",
+      "producer": "packages/trust-index/src/emitSafeInstall.ts",
+      "provenance": "GENERATED",
+      "note": "Emitted via bake.ts → emitAllCohorts → emitSafeInstall. CallLint owns the whole /install tree; bake.ts rmSync-cleans it before emit."
+    },
+    {
+      "path": "apps/web/public/install/mcp-registry/ai.adeu-adeu/index.html",
+      "type": "html",
+      "root": "install",
+      "producer": "packages/trust-index/src/emitSafeInstall.ts",
+      "provenance": "GENERATED",
+      "note": "Emitted via bake.ts → emitAllCohorts → emitSafeInstall. CallLint owns the whole /install tree; bake.ts rmSync-cleans it before emit."
+    },
+    {
+      "path": "apps/web/public/install/mcp-registry/ai.adeu-adeu/index.json",
+      "type": "json",
+      "root": "install",
+      "producer": "packages/trust-index/src/emitSafeInstall.ts",
+      "provenance": "GENERATED",
+      "note": "Emitted via bake.ts → emitAllCohorts → emitSafeInstall. CallLint owns the whole /install tree; bake.ts rmSync-cleans it before emit."
+    },
+    {
+      "path": "apps/web/public/install/mcp-registry/ai.adramp-google-ads/index.html",
+      "type": "html",
+      "root": "install",
+      "producer": "packages/trust-index/src/emitSafeInstall.ts",
+      "provenance": "GENERATED",
+      "note": "Emitted via bake.ts → emitAllCohorts → emitSafeInstall. CallLint owns the whole /install tree; bake.ts rmSync-cleans it before emit."
+    },
+    {
+      "path": "apps/web/public/install/mcp-registry/ai.adramp-google-ads/index.json",
+      "type": "json",
+      "root": "install",
+      "producer": "packages/trust-index/src/emitSafeInstall.ts",
+      "provenance": "GENERATED",
+      "note": "Emitted via bake.ts → emitAllCohorts → emitSafeInstall. CallLint owns the whole /install tree; bake.ts rmSync-cleans it before emit."
+    },
+    {
+      "path": "apps/web/public/install/mcp-registry/ai.adside-adside/index.html",
+      "type": "html",
+      "root": "install",
+      "producer": "packages/trust-index/src/emitSafeInstall.ts",
+      "provenance": "GENERATED",
+      "note": "Emitted via bake.ts → emitAllCohorts → emitSafeInstall. CallLint owns the whole /install tree; bake.ts rmSync-cleans it before emit."
+    },
+    {
+      "path": "apps/web/public/install/mcp-registry/ai.adside-adside/index.json",
+      "type": "json",
+      "root": "install",
+      "producer": "packages/trust-index/src/emitSafeInstall.ts",
+      "provenance": "GENERATED",
+      "note": "Emitted via bake.ts → emitAllCohorts → emitSafeInstall. CallLint owns the whole /install tree; bake.ts rmSync-cleans it before emit."
+    },
+    {
+      "path": "apps/web/public/install/mcp-registry/ai.adweave-meta-ads-mcp/index.html",
+      "type": "html",
+      "root": "install",
+      "producer": "packages/trust-index/src/emitSafeInstall.ts",
+      "provenance": "GENERATED",
+      "note": "Emitted via bake.ts → emitAllCohorts → emitSafeInstall. CallLint owns the whole /install tree; bake.ts rmSync-cleans it before emit."
+    },
+    {
+      "path": "apps/web/public/install/mcp-registry/ai.adweave-meta-ads-mcp/index.json",
+      "type": "json",
+      "root": "install",
+      "producer": "packages/trust-index/src/emitSafeInstall.ts",
+      "provenance": "GENERATED",
+      "note": "Emitted via bake.ts → emitAllCohorts → emitSafeInstall. CallLint owns the whole /install tree; bake.ts rmSync-cleans it before emit."
+    },
+    {
+      "path": "apps/web/public/install/mcp-registry/ai.agentberg-agentberg/index.html",
+      "type": "html",
+      "root": "install",
+      "producer": "packages/trust-index/src/emitSafeInstall.ts",
+      "provenance": "GENERATED",
+      "note": "Emitted via bake.ts → emitAllCohorts → emitSafeInstall. CallLint owns the whole /install tree; bake.ts rmSync-cleans it before emit."
+    },
+    {
+      "path": "apps/web/public/install/mcp-registry/ai.agentberg-agentberg/index.json",
+      "type": "json",
+      "root": "install",
+      "producer": "packages/trust-index/src/emitSafeInstall.ts",
+      "provenance": "GENERATED",
+      "note": "Emitted via bake.ts → emitAllCohorts → emitSafeInstall. CallLint owns the whole /install tree; bake.ts rmSync-cleans it before emit."
+    },
+    {
+      "path": "apps/web/public/install/mcp-registry/ai.agentdm-agentdm/index.html",
+      "type": "html",
+      "root": "install",
+      "producer": "packages/trust-index/src/emitSafeInstall.ts",
+      "provenance": "GENERATED",
+      "note": "Emitted via bake.ts → emitAllCohorts → emitSafeInstall. CallLint owns the whole /install tree; bake.ts rmSync-cleans it before emit."
+    },
+    {
+      "path": "apps/web/public/install/mcp-registry/ai.agentdm-agentdm/index.json",
+      "type": "json",
+      "root": "install",
+      "producer": "packages/trust-index/src/emitSafeInstall.ts",
+      "provenance": "GENERATED",
+      "note": "Emitted via bake.ts → emitAllCohorts → emitSafeInstall. CallLint owns the whole /install tree; bake.ts rmSync-cleans it before emit."
+    },
+    {
+      "path": "apps/web/public/install/mcp-registry/ai.agentic-news-mcp/index.html",
+      "type": "html",
+      "root": "install",
+      "producer": "packages/trust-index/src/emitSafeInstall.ts",
+      "provenance": "GENERATED",
+      "note": "Emitted via bake.ts → emitAllCohorts → emitSafeInstall. CallLint owns the whole /install tree; bake.ts rmSync-cleans it before emit."
+    },
+    {
+      "path": "apps/web/public/install/mcp-registry/ai.agentic-news-mcp/index.json",
+      "type": "json",
+      "root": "install",
+      "producer": "packages/trust-index/src/emitSafeInstall.ts",
+      "provenance": "GENERATED",
+      "note": "Emitted via bake.ts → emitAllCohorts → emitSafeInstall. CallLint owns the whole /install tree; bake.ts rmSync-cleans it before emit."
+    },
+    {
+      "path": "apps/web/public/install/mcp-registry/ai.agenticshelf-graffeo/index.html",
+      "type": "html",
+      "root": "install",
+      "producer": "packages/trust-index/src/emitSafeInstall.ts",
+      "provenance": "GENERATED",
+      "note": "Emitted via bake.ts → emitAllCohorts → emitSafeInstall. CallLint owns the whole /install tree; bake.ts rmSync-cleans it before emit."
+    },
+    {
+      "path": "apps/web/public/install/mcp-registry/ai.agenticshelf-graffeo/index.json",
+      "type": "json",
+      "root": "install",
+      "producer": "packages/trust-index/src/emitSafeInstall.ts",
+      "provenance": "GENERATED",
+      "note": "Emitted via bake.ts → emitAllCohorts → emitSafeInstall. CallLint owns the whole /install tree; bake.ts rmSync-cleans it before emit."
+    },
+    {
+      "path": "apps/web/public/install/mcp-registry/ai.agenticshelf-mcp/index.html",
+      "type": "html",
+      "root": "install",
+      "producer": "packages/trust-index/src/emitSafeInstall.ts",
+      "provenance": "GENERATED",
+      "note": "Emitted via bake.ts → emitAllCohorts → emitSafeInstall. CallLint owns the whole /install tree; bake.ts rmSync-cleans it before emit."
+    },
+    {
+      "path": "apps/web/public/install/mcp-registry/ai.agenticshelf-mcp/index.json",
+      "type": "json",
+      "root": "install",
+      "producer": "packages/trust-index/src/emitSafeInstall.ts",
+      "provenance": "GENERATED",
+      "note": "Emitted via bake.ts → emitAllCohorts → emitSafeInstall. CallLint owns the whole /install tree; bake.ts rmSync-cleans it before emit."
+    },
+    {
+      "path": "apps/web/public/install/mcp-registry/ai.agenticshelf-puroair/index.html",
+      "type": "html",
+      "root": "install",
+      "producer": "packages/trust-index/src/emitSafeInstall.ts",
+      "provenance": "GENERATED",
+      "note": "Emitted via bake.ts → emitAllCohorts → emitSafeInstall. CallLint owns the whole /install tree; bake.ts rmSync-cleans it before emit."
+    },
+    {
+      "path": "apps/web/public/install/mcp-registry/ai.agenticshelf-puroair/index.json",
+      "type": "json",
+      "root": "install",
+      "producer": "packages/trust-index/src/emitSafeInstall.ts",
+      "provenance": "GENERATED",
+      "note": "Emitted via bake.ts → emitAllCohorts → emitSafeInstall. CallLint owns the whole /install tree; bake.ts rmSync-cleans it before emit."
+    },
+    {
+      "path": "apps/web/public/install/mcp-registry/io.github.calllint-calllint/index.html",
+      "type": "html",
+      "root": "install",
+      "producer": "packages/trust-index/src/emitSafeInstall.ts",
+      "provenance": "GENERATED",
+      "note": "Emitted via bake.ts → emitAllCohorts → emitSafeInstall. CallLint owns the whole /install tree; bake.ts rmSync-cleans it before emit."
+    },
+    {
+      "path": "apps/web/public/install/mcp-registry/io.github.calllint-calllint/index.json",
+      "type": "json",
+      "root": "install",
+      "producer": "packages/trust-index/src/emitSafeInstall.ts",
+      "provenance": "GENERATED",
+      "note": "Emitted via bake.ts → emitAllCohorts → emitSafeInstall. CallLint owns the whole /install tree; bake.ts rmSync-cleans it before emit."
+    },
+    {
+      "path": "apps/web/public/trust/app-created.html",
+      "type": "html",
+      "root": "trust",
+      "producer": "packages/trust-index/src/bake.ts:121 (DEFAULT_OUT)",
+      "provenance": "GENERATED",
+      "note": "Baked into apps/web/public/trust by bake.ts."
+    },
+    {
+      "path": "apps/web/public/trust/calllint-fixtures/block-dangerous-command.html",
+      "type": "html",
+      "root": "trust",
+      "producer": "packages/trust-index/src/bake.ts:121 (DEFAULT_OUT)",
+      "provenance": "GENERATED",
+      "note": "Baked into apps/web/public/trust by bake.ts."
+    },
+    {
+      "path": "apps/web/public/trust/calllint-fixtures/block-dangerous-command.json",
+      "type": "json",
+      "root": "trust",
+      "producer": "packages/trust-index/src/bake.ts:121 (DEFAULT_OUT)",
+      "provenance": "GENERATED",
+      "note": "Baked into apps/web/public/trust by bake.ts."
+    },
+    {
+      "path": "apps/web/public/trust/calllint-fixtures/block-dangerous-command.manifest.json",
+      "type": "json",
+      "root": "trust",
+      "producer": "packages/trust-index/src/bake.ts:121 (DEFAULT_OUT)",
+      "provenance": "GENERATED",
+      "note": "Baked into apps/web/public/trust by bake.ts."
+    },
+    {
+      "path": "apps/web/public/trust/calllint-fixtures/block-docker-bind-broad.html",
+      "type": "html",
+      "root": "trust",
+      "producer": "packages/trust-index/src/bake.ts:121 (DEFAULT_OUT)",
+      "provenance": "GENERATED",
+      "note": "Baked into apps/web/public/trust by bake.ts."
+    },
+    {
+      "path": "apps/web/public/trust/calllint-fixtures/block-docker-bind-broad.json",
+      "type": "json",
+      "root": "trust",
+      "producer": "packages/trust-index/src/bake.ts:121 (DEFAULT_OUT)",
+      "provenance": "GENERATED",
+      "note": "Baked into apps/web/public/trust by bake.ts."
+    },
+    {
+      "path": "apps/web/public/trust/calllint-fixtures/block-docker-bind-broad.manifest.json",
+      "type": "json",
+      "root": "trust",
+      "producer": "packages/trust-index/src/bake.ts:121 (DEFAULT_OUT)",
+      "provenance": "GENERATED",
+      "note": "Baked into apps/web/public/trust by bake.ts."
+    },
+    {
+      "path": "apps/web/public/trust/calllint-fixtures/block-filesystem.html",
+      "type": "html",
+      "root": "trust",
+      "producer": "packages/trust-index/src/bake.ts:121 (DEFAULT_OUT)",
+      "provenance": "GENERATED",
+      "note": "Baked into apps/web/public/trust by bake.ts."
+    },
+    {
+      "path": "apps/web/public/trust/calllint-fixtures/block-filesystem.json",
+      "type": "json",
+      "root": "trust",
+      "producer": "packages/trust-index/src/bake.ts:121 (DEFAULT_OUT)",
+      "provenance": "GENERATED",
+      "note": "Baked into apps/web/public/trust by bake.ts."
+    },
+    {
+      "path": "apps/web/public/trust/calllint-fixtures/block-filesystem.manifest.json",
+      "type": "json",
+      "root": "trust",
+      "producer": "packages/trust-index/src/bake.ts:121 (DEFAULT_OUT)",
+      "provenance": "GENERATED",
+      "note": "Baked into apps/web/public/trust by bake.ts."
+    },
+    {
+      "path": "apps/web/public/trust/calllint-fixtures/block-observed-payment.html",
+      "type": "html",
+      "root": "trust",
+      "producer": "packages/trust-index/src/bake.ts:121 (DEFAULT_OUT)",
+      "provenance": "GENERATED",
+      "note": "Baked into apps/web/public/trust by bake.ts."
+    },
+    {
+      "path": "apps/web/public/trust/calllint-fixtures/block-observed-payment.json",
+      "type": "json",
+      "root": "trust",
+      "producer": "packages/trust-index/src/bake.ts:121 (DEFAULT_OUT)",
+      "provenance": "GENERATED",
+      "note": "Baked into apps/web/public/trust by bake.ts."
+    },
+    {
+      "path": "apps/web/public/trust/calllint-fixtures/block-observed-payment.manifest.json",
+      "type": "json",
+      "root": "trust",
+      "producer": "packages/trust-index/src/bake.ts:121 (DEFAULT_OUT)",
+      "provenance": "GENERATED",
+      "note": "Baked into apps/web/public/trust by bake.ts."
+    },
+    {
+      "path": "apps/web/public/trust/calllint-fixtures/block-powershell-command.html",
+      "type": "html",
+      "root": "trust",
+      "producer": "packages/trust-index/src/bake.ts:121 (DEFAULT_OUT)",
+      "provenance": "GENERATED",
+      "note": "Baked into apps/web/public/trust by bake.ts."
+    },
+    {
+      "path": "apps/web/public/trust/calllint-fixtures/block-powershell-command.json",
+      "type": "json",
+      "root": "trust",
+      "producer": "packages/trust-index/src/bake.ts:121 (DEFAULT_OUT)",
+      "provenance": "GENERATED",
+      "note": "Baked into apps/web/public/trust by bake.ts."
+    },
+    {
+      "path": "apps/web/public/trust/calllint-fixtures/block-powershell-command.manifest.json",
+      "type": "json",
+      "root": "trust",
+      "producer": "packages/trust-index/src/bake.ts:121 (DEFAULT_OUT)",
+      "provenance": "GENERATED",
+      "note": "Baked into apps/web/public/trust by bake.ts."
+    },
+    {
+      "path": "apps/web/public/trust/calllint-fixtures/block-prompt-poison.html",
+      "type": "html",
+      "root": "trust",
+      "producer": "packages/trust-index/src/bake.ts:121 (DEFAULT_OUT)",
+      "provenance": "GENERATED",
+      "note": "Baked into apps/web/public/trust by bake.ts."
+    },
+    {
+      "path": "apps/web/public/trust/calllint-fixtures/block-prompt-poison.json",
+      "type": "json",
+      "root": "trust",
+      "producer": "packages/trust-index/src/bake.ts:121 (DEFAULT_OUT)",
+      "provenance": "GENERATED",
+      "note": "Baked into apps/web/public/trust by bake.ts."
+    },
+    {
+      "path": "apps/web/public/trust/calllint-fixtures/block-prompt-poison.manifest.json",
+      "type": "json",
+      "root": "trust",
+      "producer": "packages/trust-index/src/bake.ts:121 (DEFAULT_OUT)",
+      "provenance": "GENERATED",
+      "note": "Baked into apps/web/public/trust by bake.ts."
+    },
+    {
+      "path": "apps/web/public/trust/calllint-fixtures/block-windows-user-profile.html",
+      "type": "html",
+      "root": "trust",
+      "producer": "packages/trust-index/src/bake.ts:121 (DEFAULT_OUT)",
+      "provenance": "GENERATED",
+      "note": "Baked into apps/web/public/trust by bake.ts."
+    },
+    {
+      "path": "apps/web/public/trust/calllint-fixtures/block-windows-user-profile.json",
+      "type": "json",
+      "root": "trust",
+      "producer": "packages/trust-index/src/bake.ts:121 (DEFAULT_OUT)",
+      "provenance": "GENERATED",
+      "note": "Baked into apps/web/public/trust by bake.ts."
+    },
+    {
+      "path": "apps/web/public/trust/calllint-fixtures/block-windows-user-profile.manifest.json",
+      "type": "json",
+      "root": "trust",
+      "producer": "packages/trust-index/src/bake.ts:121 (DEFAULT_OUT)",
+      "provenance": "GENERATED",
+      "note": "Baked into apps/web/public/trust by bake.ts."
+    },
+    {
+      "path": "apps/web/public/trust/calllint-fixtures/review-financial.html",
+      "type": "html",
+      "root": "trust",
+      "producer": "packages/trust-index/src/bake.ts:121 (DEFAULT_OUT)",
+      "provenance": "GENERATED",
+      "note": "Baked into apps/web/public/trust by bake.ts."
+    },
+    {
+      "path": "apps/web/public/trust/calllint-fixtures/review-financial.json",
+      "type": "json",
+      "root": "trust",
+      "producer": "packages/trust-index/src/bake.ts:121 (DEFAULT_OUT)",
+      "provenance": "GENERATED",
+      "note": "Baked into apps/web/public/trust by bake.ts."
+    },
+    {
+      "path": "apps/web/public/trust/calllint-fixtures/review-financial.manifest.json",
+      "type": "json",
+      "root": "trust",
+      "producer": "packages/trust-index/src/bake.ts:121 (DEFAULT_OUT)",
+      "provenance": "GENERATED",
+      "note": "Baked into apps/web/public/trust by bake.ts."
+    },
+    {
+      "path": "apps/web/public/trust/calllint-fixtures/review-github.html",
+      "type": "html",
+      "root": "trust",
+      "producer": "packages/trust-index/src/bake.ts:121 (DEFAULT_OUT)",
+      "provenance": "GENERATED",
+      "note": "Baked into apps/web/public/trust by bake.ts."
+    },
+    {
+      "path": "apps/web/public/trust/calllint-fixtures/review-github.json",
+      "type": "json",
+      "root": "trust",
+      "producer": "packages/trust-index/src/bake.ts:121 (DEFAULT_OUT)",
+      "provenance": "GENERATED",
+      "note": "Baked into apps/web/public/trust by bake.ts."
+    },
+    {
+      "path": "apps/web/public/trust/calllint-fixtures/review-github.manifest.json",
+      "type": "json",
+      "root": "trust",
+      "producer": "packages/trust-index/src/bake.ts:121 (DEFAULT_OUT)",
+      "provenance": "GENERATED",
+      "note": "Baked into apps/web/public/trust by bake.ts."
+    },
+    {
+      "path": "apps/web/public/trust/calllint-fixtures/review-hidden-instructions.html",
+      "type": "html",
+      "root": "trust",
+      "producer": "packages/trust-index/src/bake.ts:121 (DEFAULT_OUT)",
+      "provenance": "GENERATED",
+      "note": "Baked into apps/web/public/trust by bake.ts."
+    },
+    {
+      "path": "apps/web/public/trust/calllint-fixtures/review-hidden-instructions.json",
+      "type": "json",
+      "root": "trust",
+      "producer": "packages/trust-index/src/bake.ts:121 (DEFAULT_OUT)",
+      "provenance": "GENERATED",
+      "note": "Baked into apps/web/public/trust by bake.ts."
+    },
+    {
+      "path": "apps/web/public/trust/calllint-fixtures/review-hidden-instructions.manifest.json",
+      "type": "json",
+      "root": "trust",
+      "producer": "packages/trust-index/src/bake.ts:121 (DEFAULT_OUT)",
+      "provenance": "GENERATED",
+      "note": "Baked into apps/web/public/trust by bake.ts."
+    },
+    {
+      "path": "apps/web/public/trust/calllint-fixtures/review-unpinned-package.html",
+      "type": "html",
+      "root": "trust",
+      "producer": "packages/trust-index/src/bake.ts:121 (DEFAULT_OUT)",
+      "provenance": "GENERATED",
+      "note": "Baked into apps/web/public/trust by bake.ts."
+    },
+    {
+      "path": "apps/web/public/trust/calllint-fixtures/review-unpinned-package.json",
+      "type": "json",
+      "root": "trust",
+      "producer": "packages/trust-index/src/bake.ts:121 (DEFAULT_OUT)",
+      "provenance": "GENERATED",
+      "note": "Baked into apps/web/public/trust by bake.ts."
+    },
+    {
+      "path": "apps/web/public/trust/calllint-fixtures/review-unpinned-package.manifest.json",
+      "type": "json",
+      "root": "trust",
+      "producer": "packages/trust-index/src/bake.ts:121 (DEFAULT_OUT)",
+      "provenance": "GENERATED",
+      "note": "Baked into apps/web/public/trust by bake.ts."
+    },
+    {
+      "path": "apps/web/public/trust/calllint-fixtures/review-unverified-local-source.html",
+      "type": "html",
+      "root": "trust",
+      "producer": "packages/trust-index/src/bake.ts:121 (DEFAULT_OUT)",
+      "provenance": "GENERATED",
+      "note": "Baked into apps/web/public/trust by bake.ts."
+    },
+    {
+      "path": "apps/web/public/trust/calllint-fixtures/review-unverified-local-source.json",
+      "type": "json",
+      "root": "trust",
+      "producer": "packages/trust-index/src/bake.ts:121 (DEFAULT_OUT)",
+      "provenance": "GENERATED",
+      "note": "Baked into apps/web/public/trust by bake.ts."
+    },
+    {
+      "path": "apps/web/public/trust/calllint-fixtures/review-unverified-local-source.manifest.json",
+      "type": "json",
+      "root": "trust",
+      "producer": "packages/trust-index/src/bake.ts:121 (DEFAULT_OUT)",
+      "provenance": "GENERATED",
+      "note": "Baked into apps/web/public/trust by bake.ts."
+    },
+    {
+      "path": "apps/web/public/trust/calllint-fixtures/safe-clean-unicode-metadata.html",
+      "type": "html",
+      "root": "trust",
+      "producer": "packages/trust-index/src/bake.ts:121 (DEFAULT_OUT)",
+      "provenance": "GENERATED",
+      "note": "Baked into apps/web/public/trust by bake.ts."
+    },
+    {
+      "path": "apps/web/public/trust/calllint-fixtures/safe-clean-unicode-metadata.json",
+      "type": "json",
+      "root": "trust",
+      "producer": "packages/trust-index/src/bake.ts:121 (DEFAULT_OUT)",
+      "provenance": "GENERATED",
+      "note": "Baked into apps/web/public/trust by bake.ts."
+    },
+    {
+      "path": "apps/web/public/trust/calllint-fixtures/safe-clean-unicode-metadata.manifest.json",
+      "type": "json",
+      "root": "trust",
+      "producer": "packages/trust-index/src/bake.ts:121 (DEFAULT_OUT)",
+      "provenance": "GENERATED",
+      "note": "Baked into apps/web/public/trust by bake.ts."
+    },
+    {
+      "path": "apps/web/public/trust/calllint-fixtures/safe-docker-volume-scoped.html",
+      "type": "html",
+      "root": "trust",
+      "producer": "packages/trust-index/src/bake.ts:121 (DEFAULT_OUT)",
+      "provenance": "GENERATED",
+      "note": "Baked into apps/web/public/trust by bake.ts."
+    },
+    {
+      "path": "apps/web/public/trust/calllint-fixtures/safe-docker-volume-scoped.json",
+      "type": "json",
+      "root": "trust",
+      "producer": "packages/trust-index/src/bake.ts:121 (DEFAULT_OUT)",
+      "provenance": "GENERATED",
+      "note": "Baked into apps/web/public/trust by bake.ts."
+    },
+    {
+      "path": "apps/web/public/trust/calllint-fixtures/safe-docker-volume-scoped.manifest.json",
+      "type": "json",
+      "root": "trust",
+      "producer": "packages/trust-index/src/bake.ts:121 (DEFAULT_OUT)",
+      "provenance": "GENERATED",
+      "note": "Baked into apps/web/public/trust by bake.ts."
+    },
+    {
+      "path": "apps/web/public/trust/calllint-fixtures/safe-filesystem-workspace.html",
+      "type": "html",
+      "root": "trust",
+      "producer": "packages/trust-index/src/bake.ts:121 (DEFAULT_OUT)",
+      "provenance": "GENERATED",
+      "note": "Baked into apps/web/public/trust by bake.ts."
+    },
+    {
+      "path": "apps/web/public/trust/calllint-fixtures/safe-filesystem-workspace.json",
+      "type": "json",
+      "root": "trust",
+      "producer": "packages/trust-index/src/bake.ts:121 (DEFAULT_OUT)",
+      "provenance": "GENERATED",
+      "note": "Baked into apps/web/public/trust by bake.ts."
+    },
+    {
+      "path": "apps/web/public/trust/calllint-fixtures/safe-filesystem-workspace.manifest.json",
+      "type": "json",
+      "root": "trust",
+      "producer": "packages/trust-index/src/bake.ts:121 (DEFAULT_OUT)",
+      "provenance": "GENERATED",
+      "note": "Baked into apps/web/public/trust by bake.ts."
+    },
+    {
+      "path": "apps/web/public/trust/calllint-fixtures/safe-time.html",
+      "type": "html",
+      "root": "trust",
+      "producer": "packages/trust-index/src/bake.ts:121 (DEFAULT_OUT)",
+      "provenance": "GENERATED",
+      "note": "Baked into apps/web/public/trust by bake.ts."
+    },
+    {
+      "path": "apps/web/public/trust/calllint-fixtures/safe-time.json",
+      "type": "json",
+      "root": "trust",
+      "producer": "packages/trust-index/src/bake.ts:121 (DEFAULT_OUT)",
+      "provenance": "GENERATED",
+      "note": "Baked into apps/web/public/trust by bake.ts."
+    },
+    {
+      "path": "apps/web/public/trust/calllint-fixtures/safe-time.manifest.json",
+      "type": "json",
+      "root": "trust",
+      "producer": "packages/trust-index/src/bake.ts:121 (DEFAULT_OUT)",
+      "provenance": "GENERATED",
+      "note": "Baked into apps/web/public/trust by bake.ts."
+    },
+    {
+      "path": "apps/web/public/trust/calllint-fixtures/safe-windows-workspace.html",
+      "type": "html",
+      "root": "trust",
+      "producer": "packages/trust-index/src/bake.ts:121 (DEFAULT_OUT)",
+      "provenance": "GENERATED",
+      "note": "Baked into apps/web/public/trust by bake.ts."
+    },
+    {
+      "path": "apps/web/public/trust/calllint-fixtures/safe-windows-workspace.json",
+      "type": "json",
+      "root": "trust",
+      "producer": "packages/trust-index/src/bake.ts:121 (DEFAULT_OUT)",
+      "provenance": "GENERATED",
+      "note": "Baked into apps/web/public/trust by bake.ts."
+    },
+    {
+      "path": "apps/web/public/trust/calllint-fixtures/safe-windows-workspace.manifest.json",
+      "type": "json",
+      "root": "trust",
+      "producer": "packages/trust-index/src/bake.ts:121 (DEFAULT_OUT)",
+      "provenance": "GENERATED",
+      "note": "Baked into apps/web/public/trust by bake.ts."
+    },
+    {
+      "path": "apps/web/public/trust/calllint-fixtures/unknown-remote.html",
+      "type": "html",
+      "root": "trust",
+      "producer": "packages/trust-index/src/bake.ts:121 (DEFAULT_OUT)",
+      "provenance": "GENERATED",
+      "note": "Baked into apps/web/public/trust by bake.ts."
+    },
+    {
+      "path": "apps/web/public/trust/calllint-fixtures/unknown-remote.json",
+      "type": "json",
+      "root": "trust",
+      "producer": "packages/trust-index/src/bake.ts:121 (DEFAULT_OUT)",
+      "provenance": "GENERATED",
+      "note": "Baked into apps/web/public/trust by bake.ts."
+    },
+    {
+      "path": "apps/web/public/trust/calllint-fixtures/unknown-remote.manifest.json",
+      "type": "json",
+      "root": "trust",
+      "producer": "packages/trust-index/src/bake.ts:121 (DEFAULT_OUT)",
+      "provenance": "GENERATED",
+      "note": "Baked into apps/web/public/trust by bake.ts."
+    },
+    {
+      "path": "apps/web/public/trust/calllint-fixtures/unknown-unrecognized-shape.html",
+      "type": "html",
+      "root": "trust",
+      "producer": "packages/trust-index/src/bake.ts:121 (DEFAULT_OUT)",
+      "provenance": "GENERATED",
+      "note": "Baked into apps/web/public/trust by bake.ts."
+    },
+    {
+      "path": "apps/web/public/trust/calllint-fixtures/unknown-unrecognized-shape.json",
+      "type": "json",
+      "root": "trust",
+      "producer": "packages/trust-index/src/bake.ts:121 (DEFAULT_OUT)",
+      "provenance": "GENERATED",
+      "note": "Baked into apps/web/public/trust by bake.ts."
+    },
+    {
+      "path": "apps/web/public/trust/calllint-fixtures/unknown-unrecognized-shape.manifest.json",
+      "type": "json",
+      "root": "trust",
+      "producer": "packages/trust-index/src/bake.ts:121 (DEFAULT_OUT)",
+      "provenance": "GENERATED",
+      "note": "Baked into apps/web/public/trust by bake.ts."
+    },
+    {
+      "path": "apps/web/public/trust/index.json",
+      "type": "json",
+      "root": "trust",
+      "producer": "packages/trust-index/src/bake.ts:121 (DEFAULT_OUT)",
+      "provenance": "GENERATED",
+      "note": "Baked into apps/web/public/trust by bake.ts."
+    },
+    {
+      "path": "apps/web/public/trust/lookup-index.json",
+      "type": "json",
+      "root": "trust",
+      "producer": "packages/trust-index/src/bake.ts:121 (DEFAULT_OUT)",
+      "provenance": "GENERATED",
+      "note": "Baked into apps/web/public/trust by bake.ts."
+    },
+    {
+      "path": "apps/web/public/trust/lookup.html",
+      "type": "html",
+      "root": "trust",
+      "producer": "packages/trust-index/src/bake.ts:121 (DEFAULT_OUT)",
+      "provenance": "GENERATED",
+      "note": "Baked into apps/web/public/trust by bake.ts."
+    },
+    {
+      "path": "apps/web/public/trust/mcp-registry/ac.inference.sh-mcp.html",
+      "type": "html",
+      "root": "trust",
+      "producer": "packages/trust-index/src/bake.ts:121 (DEFAULT_OUT)",
+      "provenance": "GENERATED",
+      "note": "Baked into apps/web/public/trust by bake.ts."
+    },
+    {
+      "path": "apps/web/public/trust/mcp-registry/ac.inference.sh-mcp.json",
+      "type": "json",
+      "root": "trust",
+      "producer": "packages/trust-index/src/bake.ts:121 (DEFAULT_OUT)",
+      "provenance": "GENERATED",
+      "note": "Baked into apps/web/public/trust by bake.ts."
+    },
+    {
+      "path": "apps/web/public/trust/mcp-registry/ac.inference.sh-mcp.manifest.json",
+      "type": "json",
+      "root": "trust",
+      "producer": "packages/trust-index/src/bake.ts:121 (DEFAULT_OUT)",
+      "provenance": "GENERATED",
+      "note": "Baked into apps/web/public/trust by bake.ts."
+    },
+    {
+      "path": "apps/web/public/trust/mcp-registry/ac.tandem-docs-mcp.html",
+      "type": "html",
+      "root": "trust",
+      "producer": "packages/trust-index/src/bake.ts:121 (DEFAULT_OUT)",
+      "provenance": "GENERATED",
+      "note": "Baked into apps/web/public/trust by bake.ts."
+    },
+    {
+      "path": "apps/web/public/trust/mcp-registry/ac.tandem-docs-mcp.json",
+      "type": "json",
+      "root": "trust",
+      "producer": "packages/trust-index/src/bake.ts:121 (DEFAULT_OUT)",
+      "provenance": "GENERATED",
+      "note": "Baked into apps/web/public/trust by bake.ts."
+    },
+    {
+      "path": "apps/web/public/trust/mcp-registry/ac.tandem-docs-mcp.manifest.json",
+      "type": "json",
+      "root": "trust",
+      "producer": "packages/trust-index/src/bake.ts:121 (DEFAULT_OUT)",
+      "provenance": "GENERATED",
+      "note": "Baked into apps/web/public/trust by bake.ts."
+    },
+    {
+      "path": "apps/web/public/trust/mcp-registry/ag.hood-name-service.html",
+      "type": "html",
+      "root": "trust",
+      "producer": "packages/trust-index/src/bake.ts:121 (DEFAULT_OUT)",
+      "provenance": "GENERATED",
+      "note": "Baked into apps/web/public/trust by bake.ts."
+    },
+    {
+      "path": "apps/web/public/trust/mcp-registry/ag.hood-name-service.json",
+      "type": "json",
+      "root": "trust",
+      "producer": "packages/trust-index/src/bake.ts:121 (DEFAULT_OUT)",
+      "provenance": "GENERATED",
+      "note": "Baked into apps/web/public/trust by bake.ts."
+    },
+    {
+      "path": "apps/web/public/trust/mcp-registry/ag.hood-name-service.manifest.json",
+      "type": "json",
+      "root": "trust",
+      "producer": "packages/trust-index/src/bake.ts:121 (DEFAULT_OUT)",
+      "provenance": "GENERATED",
+      "note": "Baked into apps/web/public/trust by bake.ts."
+    },
+    {
+      "path": "apps/web/public/trust/mcp-registry/agency.lona-trading.html",
+      "type": "html",
+      "root": "trust",
+      "producer": "packages/trust-index/src/bake.ts:121 (DEFAULT_OUT)",
+      "provenance": "GENERATED",
+      "note": "Baked into apps/web/public/trust by bake.ts."
+    },
+    {
+      "path": "apps/web/public/trust/mcp-registry/agency.lona-trading.json",
+      "type": "json",
+      "root": "trust",
+      "producer": "packages/trust-index/src/bake.ts:121 (DEFAULT_OUT)",
+      "provenance": "GENERATED",
+      "note": "Baked into apps/web/public/trust by bake.ts."
+    },
+    {
+      "path": "apps/web/public/trust/mcp-registry/agency.lona-trading.manifest.json",
+      "type": "json",
+      "root": "trust",
+      "producer": "packages/trust-index/src/bake.ts:121 (DEFAULT_OUT)",
+      "provenance": "GENERATED",
+      "note": "Baked into apps/web/public/trust by bake.ts."
+    },
+    {
+      "path": "apps/web/public/trust/mcp-registry/ai.1325-mcp.html",
+      "type": "html",
+      "root": "trust",
+      "producer": "packages/trust-index/src/bake.ts:121 (DEFAULT_OUT)",
+      "provenance": "GENERATED",
+      "note": "Baked into apps/web/public/trust by bake.ts."
+    },
+    {
+      "path": "apps/web/public/trust/mcp-registry/ai.1325-mcp.json",
+      "type": "json",
+      "root": "trust",
+      "producer": "packages/trust-index/src/bake.ts:121 (DEFAULT_OUT)",
+      "provenance": "GENERATED",
+      "note": "Baked into apps/web/public/trust by bake.ts."
+    },
+    {
+      "path": "apps/web/public/trust/mcp-registry/ai.1325-mcp.manifest.json",
+      "type": "json",
+      "root": "trust",
+      "producer": "packages/trust-index/src/bake.ts:121 (DEFAULT_OUT)",
+      "provenance": "GENERATED",
+      "note": "Baked into apps/web/public/trust by bake.ts."
+    },
+    {
+      "path": "apps/web/public/trust/mcp-registry/ai.aarna-atars-mcp.html",
+      "type": "html",
+      "root": "trust",
+      "producer": "packages/trust-index/src/bake.ts:121 (DEFAULT_OUT)",
+      "provenance": "GENERATED",
+      "note": "Baked into apps/web/public/trust by bake.ts."
+    },
+    {
+      "path": "apps/web/public/trust/mcp-registry/ai.aarna-atars-mcp.json",
+      "type": "json",
+      "root": "trust",
+      "producer": "packages/trust-index/src/bake.ts:121 (DEFAULT_OUT)",
+      "provenance": "GENERATED",
+      "note": "Baked into apps/web/public/trust by bake.ts."
+    },
+    {
+      "path": "apps/web/public/trust/mcp-registry/ai.aarna-atars-mcp.manifest.json",
+      "type": "json",
+      "root": "trust",
+      "producer": "packages/trust-index/src/bake.ts:121 (DEFAULT_OUT)",
+      "provenance": "GENERATED",
+      "note": "Baked into apps/web/public/trust by bake.ts."
+    },
+    {
+      "path": "apps/web/public/trust/mcp-registry/ai.abmeter-abmeter.html",
+      "type": "html",
+      "root": "trust",
+      "producer": "packages/trust-index/src/bake.ts:121 (DEFAULT_OUT)",
+      "provenance": "GENERATED",
+      "note": "Baked into apps/web/public/trust by bake.ts."
+    },
+    {
+      "path": "apps/web/public/trust/mcp-registry/ai.abmeter-abmeter.json",
+      "type": "json",
+      "root": "trust",
+      "producer": "packages/trust-index/src/bake.ts:121 (DEFAULT_OUT)",
+      "provenance": "GENERATED",
+      "note": "Baked into apps/web/public/trust by bake.ts."
+    },
+    {
+      "path": "apps/web/public/trust/mcp-registry/ai.abmeter-abmeter.manifest.json",
+      "type": "json",
+      "root": "trust",
+      "producer": "packages/trust-index/src/bake.ts:121 (DEFAULT_OUT)",
+      "provenance": "GENERATED",
+      "note": "Baked into apps/web/public/trust by bake.ts."
+    },
+    {
+      "path": "apps/web/public/trust/mcp-registry/ai.adadvisor-mcp-server.html",
+      "type": "html",
+      "root": "trust",
+      "producer": "packages/trust-index/src/bake.ts:121 (DEFAULT_OUT)",
+      "provenance": "GENERATED",
+      "note": "Baked into apps/web/public/trust by bake.ts."
+    },
+    {
+      "path": "apps/web/public/trust/mcp-registry/ai.adadvisor-mcp-server.json",
+      "type": "json",
+      "root": "trust",
+      "producer": "packages/trust-index/src/bake.ts:121 (DEFAULT_OUT)",
+      "provenance": "GENERATED",
+      "note": "Baked into apps/web/public/trust by bake.ts."
+    },
+    {
+      "path": "apps/web/public/trust/mcp-registry/ai.adadvisor-mcp-server.manifest.json",
+      "type": "json",
+      "root": "trust",
+      "producer": "packages/trust-index/src/bake.ts:121 (DEFAULT_OUT)",
+      "provenance": "GENERATED",
+      "note": "Baked into apps/web/public/trust by bake.ts."
+    },
+    {
+      "path": "apps/web/public/trust/mcp-registry/ai.adeu-adeu.html",
+      "type": "html",
+      "root": "trust",
+      "producer": "packages/trust-index/src/bake.ts:121 (DEFAULT_OUT)",
+      "provenance": "GENERATED",
+      "note": "Baked into apps/web/public/trust by bake.ts."
+    },
+    {
+      "path": "apps/web/public/trust/mcp-registry/ai.adeu-adeu.json",
+      "type": "json",
+      "root": "trust",
+      "producer": "packages/trust-index/src/bake.ts:121 (DEFAULT_OUT)",
+      "provenance": "GENERATED",
+      "note": "Baked into apps/web/public/trust by bake.ts."
+    },
+    {
+      "path": "apps/web/public/trust/mcp-registry/ai.adeu-adeu.manifest.json",
+      "type": "json",
+      "root": "trust",
+      "producer": "packages/trust-index/src/bake.ts:121 (DEFAULT_OUT)",
+      "provenance": "GENERATED",
+      "note": "Baked into apps/web/public/trust by bake.ts."
+    },
+    {
+      "path": "apps/web/public/trust/mcp-registry/ai.adramp-google-ads.html",
+      "type": "html",
+      "root": "trust",
+      "producer": "packages/trust-index/src/bake.ts:121 (DEFAULT_OUT)",
+      "provenance": "GENERATED",
+      "note": "Baked into apps/web/public/trust by bake.ts."
+    },
+    {
+      "path": "apps/web/public/trust/mcp-registry/ai.adramp-google-ads.json",
+      "type": "json",
+      "root": "trust",
+      "producer": "packages/trust-index/src/bake.ts:121 (DEFAULT_OUT)",
+      "provenance": "GENERATED",
+      "note": "Baked into apps/web/public/trust by bake.ts."
+    },
+    {
+      "path": "apps/web/public/trust/mcp-registry/ai.adramp-google-ads.manifest.json",
+      "type": "json",
+      "root": "trust",
+      "producer": "packages/trust-index/src/bake.ts:121 (DEFAULT_OUT)",
+      "provenance": "GENERATED",
+      "note": "Baked into apps/web/public/trust by bake.ts."
+    },
+    {
+      "path": "apps/web/public/trust/mcp-registry/ai.adside-adside.html",
+      "type": "html",
+      "root": "trust",
+      "producer": "packages/trust-index/src/bake.ts:121 (DEFAULT_OUT)",
+      "provenance": "GENERATED",
+      "note": "Baked into apps/web/public/trust by bake.ts."
+    },
+    {
+      "path": "apps/web/public/trust/mcp-registry/ai.adside-adside.json",
+      "type": "json",
+      "root": "trust",
+      "producer": "packages/trust-index/src/bake.ts:121 (DEFAULT_OUT)",
+      "provenance": "GENERATED",
+      "note": "Baked into apps/web/public/trust by bake.ts."
+    },
+    {
+      "path": "apps/web/public/trust/mcp-registry/ai.adside-adside.manifest.json",
+      "type": "json",
+      "root": "trust",
+      "producer": "packages/trust-index/src/bake.ts:121 (DEFAULT_OUT)",
+      "provenance": "GENERATED",
+      "note": "Baked into apps/web/public/trust by bake.ts."
+    },
+    {
+      "path": "apps/web/public/trust/mcp-registry/ai.adweave-meta-ads-mcp.html",
+      "type": "html",
+      "root": "trust",
+      "producer": "packages/trust-index/src/bake.ts:121 (DEFAULT_OUT)",
+      "provenance": "GENERATED",
+      "note": "Baked into apps/web/public/trust by bake.ts."
+    },
+    {
+      "path": "apps/web/public/trust/mcp-registry/ai.adweave-meta-ads-mcp.json",
+      "type": "json",
+      "root": "trust",
+      "producer": "packages/trust-index/src/bake.ts:121 (DEFAULT_OUT)",
+      "provenance": "GENERATED",
+      "note": "Baked into apps/web/public/trust by bake.ts."
+    },
+    {
+      "path": "apps/web/public/trust/mcp-registry/ai.adweave-meta-ads-mcp.manifest.json",
+      "type": "json",
+      "root": "trust",
+      "producer": "packages/trust-index/src/bake.ts:121 (DEFAULT_OUT)",
+      "provenance": "GENERATED",
+      "note": "Baked into apps/web/public/trust by bake.ts."
+    },
+    {
+      "path": "apps/web/public/trust/mcp-registry/ai.agentberg-agentberg.html",
+      "type": "html",
+      "root": "trust",
+      "producer": "packages/trust-index/src/bake.ts:121 (DEFAULT_OUT)",
+      "provenance": "GENERATED",
+      "note": "Baked into apps/web/public/trust by bake.ts."
+    },
+    {
+      "path": "apps/web/public/trust/mcp-registry/ai.agentberg-agentberg.json",
+      "type": "json",
+      "root": "trust",
+      "producer": "packages/trust-index/src/bake.ts:121 (DEFAULT_OUT)",
+      "provenance": "GENERATED",
+      "note": "Baked into apps/web/public/trust by bake.ts."
+    },
+    {
+      "path": "apps/web/public/trust/mcp-registry/ai.agentberg-agentberg.manifest.json",
+      "type": "json",
+      "root": "trust",
+      "producer": "packages/trust-index/src/bake.ts:121 (DEFAULT_OUT)",
+      "provenance": "GENERATED",
+      "note": "Baked into apps/web/public/trust by bake.ts."
+    },
+    {
+      "path": "apps/web/public/trust/mcp-registry/ai.agentdm-agentdm.html",
+      "type": "html",
+      "root": "trust",
+      "producer": "packages/trust-index/src/bake.ts:121 (DEFAULT_OUT)",
+      "provenance": "GENERATED",
+      "note": "Baked into apps/web/public/trust by bake.ts."
+    },
+    {
+      "path": "apps/web/public/trust/mcp-registry/ai.agentdm-agentdm.json",
+      "type": "json",
+      "root": "trust",
+      "producer": "packages/trust-index/src/bake.ts:121 (DEFAULT_OUT)",
+      "provenance": "GENERATED",
+      "note": "Baked into apps/web/public/trust by bake.ts."
+    },
+    {
+      "path": "apps/web/public/trust/mcp-registry/ai.agentdm-agentdm.manifest.json",
+      "type": "json",
+      "root": "trust",
+      "producer": "packages/trust-index/src/bake.ts:121 (DEFAULT_OUT)",
+      "provenance": "GENERATED",
+      "note": "Baked into apps/web/public/trust by bake.ts."
+    },
+    {
+      "path": "apps/web/public/trust/mcp-registry/ai.agentic-news-mcp.html",
+      "type": "html",
+      "root": "trust",
+      "producer": "packages/trust-index/src/bake.ts:121 (DEFAULT_OUT)",
+      "provenance": "GENERATED",
+      "note": "Baked into apps/web/public/trust by bake.ts."
+    },
+    {
+      "path": "apps/web/public/trust/mcp-registry/ai.agentic-news-mcp.json",
+      "type": "json",
+      "root": "trust",
+      "producer": "packages/trust-index/src/bake.ts:121 (DEFAULT_OUT)",
+      "provenance": "GENERATED",
+      "note": "Baked into apps/web/public/trust by bake.ts."
+    },
+    {
+      "path": "apps/web/public/trust/mcp-registry/ai.agentic-news-mcp.manifest.json",
+      "type": "json",
+      "root": "trust",
+      "producer": "packages/trust-index/src/bake.ts:121 (DEFAULT_OUT)",
+      "provenance": "GENERATED",
+      "note": "Baked into apps/web/public/trust by bake.ts."
+    },
+    {
+      "path": "apps/web/public/trust/mcp-registry/ai.agenticshelf-graffeo.html",
+      "type": "html",
+      "root": "trust",
+      "producer": "packages/trust-index/src/bake.ts:121 (DEFAULT_OUT)",
+      "provenance": "GENERATED",
+      "note": "Baked into apps/web/public/trust by bake.ts."
+    },
+    {
+      "path": "apps/web/public/trust/mcp-registry/ai.agenticshelf-graffeo.json",
+      "type": "json",
+      "root": "trust",
+      "producer": "packages/trust-index/src/bake.ts:121 (DEFAULT_OUT)",
+      "provenance": "GENERATED",
+      "note": "Baked into apps/web/public/trust by bake.ts."
+    },
+    {
+      "path": "apps/web/public/trust/mcp-registry/ai.agenticshelf-graffeo.manifest.json",
+      "type": "json",
+      "root": "trust",
+      "producer": "packages/trust-index/src/bake.ts:121 (DEFAULT_OUT)",
+      "provenance": "GENERATED",
+      "note": "Baked into apps/web/public/trust by bake.ts."
+    },
+    {
+      "path": "apps/web/public/trust/mcp-registry/ai.agenticshelf-mcp.html",
+      "type": "html",
+      "root": "trust",
+      "producer": "packages/trust-index/src/bake.ts:121 (DEFAULT_OUT)",
+      "provenance": "GENERATED",
+      "note": "Baked into apps/web/public/trust by bake.ts."
+    },
+    {
+      "path": "apps/web/public/trust/mcp-registry/ai.agenticshelf-mcp.json",
+      "type": "json",
+      "root": "trust",
+      "producer": "packages/trust-index/src/bake.ts:121 (DEFAULT_OUT)",
+      "provenance": "GENERATED",
+      "note": "Baked into apps/web/public/trust by bake.ts."
+    },
+    {
+      "path": "apps/web/public/trust/mcp-registry/ai.agenticshelf-mcp.manifest.json",
+      "type": "json",
+      "root": "trust",
+      "producer": "packages/trust-index/src/bake.ts:121 (DEFAULT_OUT)",
+      "provenance": "GENERATED",
+      "note": "Baked into apps/web/public/trust by bake.ts."
+    },
+    {
+      "path": "apps/web/public/trust/mcp-registry/ai.agenticshelf-puroair.html",
+      "type": "html",
+      "root": "trust",
+      "producer": "packages/trust-index/src/bake.ts:121 (DEFAULT_OUT)",
+      "provenance": "GENERATED",
+      "note": "Baked into apps/web/public/trust by bake.ts."
+    },
+    {
+      "path": "apps/web/public/trust/mcp-registry/ai.agenticshelf-puroair.json",
+      "type": "json",
+      "root": "trust",
+      "producer": "packages/trust-index/src/bake.ts:121 (DEFAULT_OUT)",
+      "provenance": "GENERATED",
+      "note": "Baked into apps/web/public/trust by bake.ts."
+    },
+    {
+      "path": "apps/web/public/trust/mcp-registry/ai.agenticshelf-puroair.manifest.json",
+      "type": "json",
+      "root": "trust",
+      "producer": "packages/trust-index/src/bake.ts:121 (DEFAULT_OUT)",
+      "provenance": "GENERATED",
+      "note": "Baked into apps/web/public/trust by bake.ts."
+    },
+    {
+      "path": "apps/web/public/trust/mcp-registry/io.github.calllint-calllint.html",
+      "type": "html",
+      "root": "trust",
+      "producer": "packages/trust-index/src/bake.ts:121 (DEFAULT_OUT)",
+      "provenance": "GENERATED",
+      "note": "Baked into apps/web/public/trust by bake.ts."
+    },
+    {
+      "path": "apps/web/public/trust/mcp-registry/io.github.calllint-calllint.json",
+      "type": "json",
+      "root": "trust",
+      "producer": "packages/trust-index/src/bake.ts:121 (DEFAULT_OUT)",
+      "provenance": "GENERATED",
+      "note": "Baked into apps/web/public/trust by bake.ts."
+    },
+    {
+      "path": "apps/web/public/trust/mcp-registry/io.github.calllint-calllint.manifest.json",
+      "type": "json",
+      "root": "trust",
+      "producer": "packages/trust-index/src/bake.ts:121 (DEFAULT_OUT)",
+      "provenance": "GENERATED",
+      "note": "Baked into apps/web/public/trust by bake.ts."
+    },
+    {
+      "path": "apps/web/public/trust/sitemap.xml",
+      "type": "xml",
+      "root": "trust",
+      "producer": "packages/trust-index/src/bake.ts:121 (DEFAULT_OUT)",
+      "provenance": "GENERATED",
+      "note": "Baked into apps/web/public/trust by bake.ts."
+    }
+  ]
+}
