@@ -81,7 +81,25 @@ onward. While pre-1.0, minor versions may include breaking changes.
   shipped migration's digest is now pinned to its **value** (transcribed from `loadMigrations`' own
   output, never derived from the file — deriving it would pass for any bytes, which is the mutation
   restated), and the filename set is pinned alongside it so adding a legitimate `002` forces a
-  deliberate visit rather than silently widening what the pin covers. The other controls: the count
+  deliberate visit rather than silently widening what the pin covers.
+  **That pin then found a second, older fault, on the one CI leg that could see it.** With the digest
+  pinned by value, `test (windows-latest)` went red **alone** while ubuntu and macOS passed: expected
+  `sha256:4ac16f96…`, received `sha256:7886b43b…` — the same DDL, digested after a CRLF checkout.
+  `git check-attr text eol -- packages/adoption-index/migrations/001-…sql` reported `unspecified` for
+  both. R-0 pinned `artifacts/adoption-index-v1/**` and its comment names this exact trap, but the pin
+  covered audit artifacts, not the one directory whose bytes the compiler *hashes*. Migrations are the
+  single place in the repo where a **source** file's bytes are a durable identifier: the digest is
+  recorded into `schema_migrations` and `applyMigrations` refuses to open a store whose recorded digest
+  no longer matches the file, so a CRLF checkout does not reformat the migration, it changes its
+  **identity** — a store created on Linux would report "modified after it was applied" on Windows and
+  refuse to open. That fault was latent from R-1; pinning the digest is what made it observable.
+  `packages/adoption-index/migrations/** text eol=lf` is now pinned, and — because a pin no gate reads
+  is itself unguarded (the P-4b lesson) — the *consequence* is asserted in the suite as well, following
+  `resolve-presentation.test.ts:109`'s pattern, so all three legs measure it. Control #18 rewrites the
+  migration to CRLF locally: 2 failed / 15 passed, naming both the digest mismatch **and** the newline
+  shape. The second assertion is the diagnostic one — alone, the digest pin reports only "expected
+  4ac16f96… to be 7886b43b…", which is true of any edit and therefore diagnostic of none.
+  The other controls: the count
   key (4 failures), a self-compared digest (4), a producerless column (8 — the widest, since the skip
   path becomes structurally unreachable), a skippable withdrawal (16 — the guard gates every row of
   the input-space table), the raw-row digest (2), `fetchedAt` in the digest (2), a conditional re-bake
