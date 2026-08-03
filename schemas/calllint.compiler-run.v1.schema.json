@@ -1,0 +1,32 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://calllint.com/schemas/calllint.compiler-run.v1.schema.json",
+  "title": "CallLint compiler run",
+  "description": "One execution of the rolling compiler, recorded so a run is REPRODUCIBLE rather than merely finished (calllint.compiler-run.v1; §7.1, §10.2, ADR 0061). `inputManifestDigest` is required and `outputManifestDigest` is nullable, and that asymmetry is the whole point: a run always knows what it was given, but a run that crashed produced no output, and a schema that required both would force a lie (an empty-string or all-zero digest) into the one place a later replay reads to decide whether the run is comparable. Two runs over the same input manifest must produce the same output manifest; the pair is what makes that assertion checkable at all. `state` admits `PARTIAL` as distinct from `SUCCEEDED` because a run that compiled 24 of 25 subjects is not a success, and grading it as one would let a projection ship over an incomplete index. `metrics` is a closed, numeric-only object — no verdict, no score, no free-form prose — so a run report can never become a second, unaudited place where a decision is made. `startedAt`/`completedAt` are injected ISO-8601 inputs, never wall-clock reads (INV-R6, §9.5). Written by R-6; the table and schema land in R-1 with the rest of the canonical DDL.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "runId", "runType", "inputManifestDigest", "outputManifestDigest", "state", "startedAt", "metrics"],
+  "properties": {
+    "schema": { "const": "calllint.compiler-run.v1" },
+    "runId": { "type": "string", "minLength": 1 },
+    "runType": { "enum": ["full", "incremental", "reconcile", "dry-run"] },
+    "inputManifestDigest": { "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" },
+    "outputManifestDigest": { "type": ["string", "null"], "pattern": "^sha256:[0-9a-f]{64}$" },
+    "state": { "enum": ["RUNNING", "SUCCEEDED", "PARTIAL", "FAILED"] },
+    "startedAt": { "type": "string", "format": "date-time" },
+    "completedAt": { "type": ["string", "null"], "format": "date-time" },
+    "metrics": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["sourceRecordsRead", "subjectsCompiled", "artifactsResolved", "evidenceCompiled", "recordsEmitted", "failures"],
+      "properties": {
+        "sourceRecordsRead": { "type": "integer", "minimum": 0 },
+        "subjectsCompiled": { "type": "integer", "minimum": 0 },
+        "artifactsResolved": { "type": "integer", "minimum": 0 },
+        "evidenceCompiled": { "type": "integer", "minimum": 0 },
+        "recordsEmitted": { "type": "integer", "minimum": 0 },
+        "failures": { "type": "integer", "minimum": 0 }
+      }
+    }
+  }
+}

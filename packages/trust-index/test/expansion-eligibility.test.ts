@@ -1,7 +1,8 @@
 import { describe, it, expect } from "vitest"
 import { emitAllCohorts, type ExpansionCandidate } from "../src/emitCohort.js"
-import { resolveMaxEntries } from "../src/refreshSnapshot.js"
+import { resolveMaxEntries, resolveMirrorMaxEntries } from "../src/refreshSnapshot.js"
 import { DEFAULT_MAX_ENTRIES } from "../src/fetchRegistry.js"
+import { DEFAULT_MIRROR_MAX_ENTRIES } from "@calllint/adoption-index"
 import { mergeResults, type EvidenceSubject, type ResolverResult } from "@calllint/evidence"
 
 /**
@@ -127,6 +128,84 @@ describe("resolveMaxEntries — parameterized cap, fail-safe", () => {
   it("falls back to the default on invalid input (fail-safe, never unbounded/empty)", () => {
     for (const bad of ["0", "-5", "abc", "12.5", "NaN"]) {
       expect(resolveMaxEntries({ TRUST_INGEST_MAX_ENTRIES: bad })).toBe(DEFAULT_MAX_ENTRIES)
+    }
+  })
+})
+
+// ── the RAW-READ ceiling — a different quantity from the cap above (R-1) ───────
+
+/**
+ * `resolveMirrorMaxEntries` bounds how many raw records the mirror READS, in arrival order,
+ * before any filter. `resolveMaxEntries` bounds how many entries the snapshot EMITS, after
+ * filtering to live records and sorting by name. The two count different populations, and the
+ * mirror's must be STRICTLY greater — live records are a subset of read records, so emitting
+ * N requires reading at least N, and `paginate` flags `capReached` at `yielded >= maxEntries`.
+ *
+ * The env var is read here rather than in the operation because `refreshFromMirror` takes the
+ * resolved number; there is no ambient env access inside `@calllint/adoption-index`.
+ */
+describe("resolveMirrorMaxEntries — the raw-read ceiling, fail-safe and strictly above the cap", () => {
+  it("defaults to DEFAULT_MIRROR_MAX_ENTRIES when unset, empty, or whitespace", () => {
+    expect(resolveMirrorMaxEntries({}, DEFAULT_MAX_ENTRIES)).toBe(DEFAULT_MIRROR_MAX_ENTRIES)
+    expect(resolveMirrorMaxEntries({ TRUST_INGEST_MIRROR_MAX_ENTRIES: "" }, DEFAULT_MAX_ENTRIES)).toBe(
+      DEFAULT_MIRROR_MAX_ENTRIES,
+    )
+    expect(resolveMirrorMaxEntries({ TRUST_INGEST_MIRROR_MAX_ENTRIES: "   " }, DEFAULT_MAX_ENTRIES)).toBe(
+      DEFAULT_MIRROR_MAX_ENTRIES,
+    )
+  })
+
+  it("honors a valid integer strictly above the snapshot cap", () => {
+    expect(resolveMirrorMaxEntries({ TRUST_INGEST_MIRROR_MAX_ENTRIES: "5000" }, DEFAULT_MAX_ENTRIES)).toBe(5000)
+    // Below the default but still strictly above the snapshot cap: honoured, because the
+    // invariant is the inequality, not the constant. An operator may legitimately LOWER the
+    // read ceiling for a bounded run.
+    expect(resolveMirrorMaxEntries({ TRUST_INGEST_MIRROR_MAX_ENTRIES: "26" }, DEFAULT_MAX_ENTRIES)).toBe(26)
+  })
+
+  it("falls back on invalid input, the same shapes as the snapshot cap", () => {
+    for (const bad of ["0", "-5", "abc", "12.5", "NaN"]) {
+      expect(resolveMirrorMaxEntries({ TRUST_INGEST_MIRROR_MAX_ENTRIES: bad }, DEFAULT_MAX_ENTRIES)).toBe(
+        DEFAULT_MIRROR_MAX_ENTRIES,
+      )
+    }
+  })
+
+  it("REFUSES a ceiling at or below the snapshot cap, raising it to the floor instead", () => {
+    // The distinguishing behaviour, and the reason `<=` rather than `<`: honouring either
+    // value would guarantee a read whose only outcome is the fail-closed MirrorIncompleteError.
+    // 24 (below) is obviously wrong; 25 (EQUAL) is the subtle one — reading exactly as many
+    // records as the snapshot emits makes the snapshot's cap structurally unreachable, since
+    // the mirror also stores the records the snapshot drops.
+    expect(resolveMirrorMaxEntries({ TRUST_INGEST_MIRROR_MAX_ENTRIES: "24" }, DEFAULT_MAX_ENTRIES)).toBe(
+      DEFAULT_MIRROR_MAX_ENTRIES,
+    )
+    expect(
+      resolveMirrorMaxEntries({ TRUST_INGEST_MIRROR_MAX_ENTRIES: String(DEFAULT_MAX_ENTRIES) }, DEFAULT_MAX_ENTRIES),
+    ).toBe(DEFAULT_MIRROR_MAX_ENTRIES)
+  })
+
+  it("derives the floor, so the FALLBACK itself never violates the inequality", () => {
+    // A scale-out run raises the snapshot cap past the mirror default. Returning the bare
+    // constant here would break the invariant on the path a run with no mirror override takes
+    // — a defect visible only at 1000+, which is exactly where the expansion is headed.
+    const big = DEFAULT_MIRROR_MAX_ENTRIES + 500
+    for (const env of [{}, { TRUST_INGEST_MIRROR_MAX_ENTRIES: "abc" }, { TRUST_INGEST_MIRROR_MAX_ENTRIES: "10" }]) {
+      expect(resolveMirrorMaxEntries(env, big)).toBeGreaterThan(big)
+    }
+    expect(resolveMirrorMaxEntries({}, big)).toBe(big + 1)
+  })
+
+  it("the resolved pair always satisfies mirror > snapshot, across every input shape", () => {
+    // The invariant stated as one property over the cross product, rather than as a list of
+    // cases. A future edit that adds a branch has to keep this true too.
+    for (const snapshotRaw of [undefined, "", "  ", "0", "-5", "abc", "1", "25", "100", "1000", "2000"]) {
+      const snapshotEnv = snapshotRaw === undefined ? {} : { TRUST_INGEST_MAX_ENTRIES: snapshotRaw }
+      const snapshotCap = resolveMaxEntries(snapshotEnv)
+      for (const mirrorRaw of [undefined, "", "0", "-1", "1.5", "1", "25", "26", "999", "5000"]) {
+        const mirrorEnv = mirrorRaw === undefined ? {} : { TRUST_INGEST_MIRROR_MAX_ENTRIES: mirrorRaw }
+        expect(resolveMirrorMaxEntries(mirrorEnv, snapshotCap)).toBeGreaterThan(snapshotCap)
+      }
     }
   })
 })

@@ -20,6 +20,7 @@
     "verify-claims": "tsx src/verifyClaims.ts"
   },
   "dependencies": {
+    "@calllint/adoption-index": "workspace:*",
     "@calllint/config-parser": "workspace:*",
     "@calllint/core": "workspace:*",
     "@calllint/evidence": "workspace:*",

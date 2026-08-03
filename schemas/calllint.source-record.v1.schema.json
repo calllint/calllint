@@ -1,0 +1,83 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://calllint.com/schemas/calllint.source-record.v1.schema.json",
+  "title": "CallLint source record",
+  "description": "One source-specific OBSERVATION in the Canonical Adoption Index (calllint.source-record.v1; Phase 2.3 §7.1, ADR 0061). Not a truth claim: it records what a single source said at a single retrieval time, and the identity it CLAIMS is kept in a `claimedIdentity` object precisely so no reader can mistake it for resolved identity (that is calllint.canonical-subject.v1's job). Publisher-supplied prose is quarantined under `untrustedPublisherContent` and is never permitted in a decision group (INV-2.4-05). `retrievedAt` belongs to source provenance, not to the compile: it is an explicit input so a projection over these records reproduces byte-identically with no wall-clock read (INV-R6, §9.5). `lifecycle.status` admits `unknown` as a distinct state that never means `active` — UNKNOWN is not SAFE. additionalProperties:false at every level keeps a score, a verdict, or a PII field structurally impossible here.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "source", "claimedIdentity", "lifecycle"],
+  "properties": {
+    "schema": { "const": "calllint.source-record.v1" },
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["sourceId", "sourceType", "sourceRecordId", "retrievedAt", "payloadDigest"],
+      "properties": {
+        "sourceId": { "type": "string", "minLength": 1 },
+        "sourceType": {
+          "enum": ["official-mcp-registry", "third-party-registry", "package-index", "github"]
+        },
+        "sourceRecordId": { "type": "string", "minLength": 1 },
+        "sourceUrl": { "type": "string", "pattern": "^https://" },
+        "retrievedAt": { "type": "string", "format": "date-time" },
+        "payloadDigest": { "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" }
+      }
+    },
+    "claimedIdentity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["packages", "remotes"],
+      "properties": {
+        "canonicalName": { "type": "string", "minLength": 1 },
+        "displayName": { "type": "string", "minLength": 1 },
+        "version": { "type": "string", "minLength": 1 },
+        "repositoryUrl": { "type": "string", "minLength": 1 },
+        "packages": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["registryType", "identifier", "version", "transport"],
+            "properties": {
+              "registryType": { "type": "string", "minLength": 1 },
+              "identifier": { "type": "string", "minLength": 1 },
+              "version": { "type": ["string", "null"] },
+              "transport": { "type": ["string", "null"] }
+            }
+          }
+        },
+        "remotes": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["type", "url"],
+            "properties": {
+              "type": { "type": "string" },
+              "url": { "type": "string", "minLength": 1 }
+            }
+          }
+        }
+      }
+    },
+    "lifecycle": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status"],
+      "properties": {
+        "status": { "enum": ["active", "deprecated", "deleted", "unknown"] },
+        "isLatest": { "type": "boolean" },
+        "publishedAt": { "type": "string", "format": "date-time" }
+      }
+    },
+    "untrustedPublisherContent": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "description": { "type": "string" },
+        "keywords": { "type": "array", "items": { "type": "string" } },
+        "categories": { "type": "array", "items": { "type": "string" } }
+      }
+    }
+  }
+}

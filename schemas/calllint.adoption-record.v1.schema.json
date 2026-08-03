@@ -1,0 +1,119 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://calllint.com/schemas/calllint.adoption-record.v1.schema.json",
+  "title": "CallLint adoption record",
+  "description": "THE canonical system asset (calllint.adoption-record.v1; §7.1, ADR 0061). Every human page, agent contract, lookup entry and partner response is a PROJECTION of this record — the record is the product, and the pages are views of it. `digests` is the 8-field AdoptionDigestSet whose ORDER encodes the dependency chain: sourcePayloadDigest → identityDigest → artifactDigest → evidenceDigest → decisionDigest → semanticContractDigest → presentationDigest → pageDigest. A batch that needs a digest its predecessors have not produced is mis-ordered, which is why the nullability is per-field rather than uniform: an artifact that could not be resolved has no artifactDigest and therefore no evidenceDigest, yet still has a decision (UNKNOWN is a decision, and it is not SAFE). `evidence` is nullable for the same reason and is a PUBLIC projection — never the raw evidence bundle. Written by R-7; the table and schema land in R-1 with the rest of the canonical DDL.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "subject", "selectedArtifact", "sources", "evidence", "decision", "hostCompatibility", "lifecycle", "digests"],
+  "properties": {
+    "schema": { "const": "calllint.adoption-record.v1" },
+    "subject": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["subjectId", "canonicalName", "canonicalSlug", "displayName", "identityStatus"],
+      "properties": {
+        "subjectId": { "type": "string", "minLength": 1 },
+        "canonicalName": { "type": "string", "minLength": 1 },
+        "canonicalSlug": { "type": "string", "minLength": 1 },
+        "displayName": { "type": "string", "minLength": 1 },
+        "identityStatus": { "enum": ["RESOLVED", "PROVISIONAL", "CONFLICT", "TOMBSTONED"] }
+      }
+    },
+    "selectedArtifact": {
+      "type": ["object", "null"],
+      "additionalProperties": false,
+      "required": ["artifactVersionId", "packageType", "packageIdentifier", "version", "artifactStatus"],
+      "properties": {
+        "artifactVersionId": { "type": "string", "minLength": 1 },
+        "packageType": { "type": "string", "minLength": 1 },
+        "packageIdentifier": { "type": "string", "minLength": 1 },
+        "version": { "type": ["string", "null"] },
+        "artifactStatus": { "enum": ["RESOLVED", "FETCHED", "UNAVAILABLE", "UNSUPPORTED", "REJECTED"] }
+      }
+    },
+    "sources": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["sourceId", "sourceRecordId", "retrievedAt", "lifecycleStatus"],
+        "properties": {
+          "sourceId": { "type": "string", "minLength": 1 },
+          "sourceRecordId": { "type": "string", "minLength": 1 },
+          "retrievedAt": { "type": "string", "format": "date-time" },
+          "lifecycleStatus": { "enum": ["active", "deprecated", "deleted", "unknown"] }
+        }
+      }
+    },
+    "evidence": {
+      "type": ["object", "null"],
+      "additionalProperties": false,
+      "required": ["evidenceDigest", "engineVersion", "policyDigest", "findingCount"],
+      "properties": {
+        "evidenceDigest": { "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" },
+        "engineVersion": { "type": "string", "minLength": 1 },
+        "policyDigest": { "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" },
+        "findingCount": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "decision": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["verdict", "decisionDigest", "policyDigest"],
+      "properties": {
+        "verdict": { "enum": ["SAFE", "REVIEW", "BLOCK", "UNKNOWN"] },
+        "decisionDigest": { "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" },
+        "policyDigest": { "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" }
+      }
+    },
+    "hostCompatibility": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["host", "tier", "installability"],
+        "properties": {
+          "host": { "type": "string", "minLength": 1 },
+          "tier": { "enum": ["A", "B", "C"] },
+          "installability": {
+            "enum": ["PREPARE_AVAILABLE", "REVIEW_REQUIRED", "BLOCKED", "LOCAL_PREFLIGHT_REQUIRED", "UNSUPPORTED"]
+          }
+        }
+      }
+    },
+    "lifecycle": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "firstSeenAt", "lastSeenAt"],
+      "properties": {
+        "status": { "enum": ["ACTIVE", "DEPRECATED", "WITHDRAWN", "TOMBSTONED"] },
+        "firstSeenAt": { "type": "string", "format": "date-time" },
+        "lastSeenAt": { "type": "string", "format": "date-time" }
+      }
+    },
+    "digests": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "sourcePayloadDigest",
+        "identityDigest",
+        "artifactDigest",
+        "evidenceDigest",
+        "decisionDigest",
+        "semanticContractDigest",
+        "presentationDigest"
+      ],
+      "properties": {
+        "sourcePayloadDigest": { "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" },
+        "identityDigest": { "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" },
+        "artifactDigest": { "type": ["string", "null"], "pattern": "^sha256:[0-9a-f]{64}$" },
+        "evidenceDigest": { "type": ["string", "null"], "pattern": "^sha256:[0-9a-f]{64}$" },
+        "decisionDigest": { "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" },
+        "semanticContractDigest": { "type": ["string", "null"], "pattern": "^sha256:[0-9a-f]{64}$" },
+        "presentationDigest": { "type": "string", "minLength": 1 },
+        "pageDigest": { "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" }
+      }
+    }
+  }
+}

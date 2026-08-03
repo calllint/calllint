@@ -1,0 +1,33 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://calllint.com/schemas/calllint.artifact-version.v1.schema.json",
+  "title": "CallLint artifact version",
+  "description": "A precise, INSPECTABLE artifact belonging to one canonical subject (calllint.artifact-version.v1; §7.1, ADR 0061). This is the unit evidence attaches to, which is why `immutableDigest` is nullable and `artifactStatus` is an explicit enum rather than a boolean: an artifact that could not be resolved, could not be fetched, or is an unsupported package type is a real and distinct state that must survive into the record instead of being dropped. `UNAVAILABLE` and `UNSUPPORTED` never upgrade to a verdict of SAFE. Resolving an artifact NEVER executes it (INV-R3, the cardinal safety line): a remote-only artifact resolves to LOCAL_PREFLIGHT_REQUIRED handling rather than being run to find out what it does. Written by R-4; the table and schema land in R-1 with the rest of the canonical DDL.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "artifactVersionId",
+    "subjectId",
+    "version",
+    "packageType",
+    "packageIdentifier",
+    "packageRegistry",
+    "sourceLocator",
+    "immutableDigest",
+    "artifactStatus"
+  ],
+  "properties": {
+    "schema": { "const": "calllint.artifact-version.v1" },
+    "artifactVersionId": { "type": "string", "minLength": 1 },
+    "subjectId": { "type": "string", "minLength": 1 },
+    "version": { "type": ["string", "null"] },
+    "packageType": { "type": "string", "minLength": 1 },
+    "packageIdentifier": { "type": "string", "minLength": 1 },
+    "packageRegistry": { "type": ["string", "null"] },
+    "sourceLocator": { "type": "string", "minLength": 1 },
+    "immutableDigest": { "type": ["string", "null"], "pattern": "^sha256:[0-9a-f]{64}$" },
+    "registryIntegrity": { "type": "string", "minLength": 1 },
+    "artifactStatus": { "enum": ["RESOLVED", "FETCHED", "UNAVAILABLE", "UNSUPPORTED", "REJECTED"] }
+  }
+}
