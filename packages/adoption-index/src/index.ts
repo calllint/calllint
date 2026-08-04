@@ -28,6 +28,28 @@ export type {
 } from "./domain/sourceRecord.js"
 export { SOURCE_RECORD_SCHEMA } from "./domain/sourceRecord.js"
 export type { SourceCheckpoint, CheckpointStatus } from "./domain/checkpoint.js"
+export type {
+  CanonicalSubjectV1,
+  SubjectAliasV1,
+  ArtifactVersionV1,
+  IdentityConflictV1,
+  IdentityBasis,
+  IdentityBasisKind,
+  IdentityStatus,
+  ArtifactStatus,
+  ConflictType,
+  ConflictStatus,
+  ConflictResolution,
+} from "./domain/subject.js"
+export {
+  CANONICAL_SUBJECT_SCHEMA,
+  ARTIFACT_VERSION_SCHEMA,
+  IDENTITY_CONFLICT_SCHEMA,
+  TERMINAL_IDENTITY_STATUSES,
+  isTerminalIdentityStatus,
+  releasesSubject,
+  assertConflictParticipants,
+} from "./domain/subject.js"
 export {
   TERMINAL_CHECKPOINT_STATUSES,
   isTerminalCheckpointStatus,
@@ -42,8 +64,34 @@ export type { IndexPaths } from "./storage/paths.js"
 export { INDEX_ROOT_DIRNAME, INDEX_SUBDIRS, resolveIndexPaths, isInsideRoot } from "./storage/paths.js"
 export type { Migration, AppliedMigration } from "./storage/migrate.js"
 export { loadMigrations, applyMigrations, readAppliedMigrations } from "./storage/migrate.js"
-export type { AdoptionIndexTx, OpenStoreOptions, PersistResult, StoredSourceRecord } from "./storage/store.js"
-export { AdoptionIndexStore, sourceRecordRowId } from "./storage/store.js"
+export type {
+  AdoptionIndexTx,
+  OpenStoreOptions,
+  PersistResult,
+  PersistIdentityResult,
+  ResolvedIdentityWrite,
+  StoredSourceRecord,
+  StoredSubject,
+  StoredSubjectAlias,
+  StoredIdentityConflict,
+  StoredArtifactVersion,
+} from "./storage/store.js"
+export { AdoptionIndexStore, sourceRecordRowId, subjectIdentityDigest } from "./storage/store.js"
+
+// Identity (§7.1, §8.1) — the pure resolver, written by R-3.
+export type { ResolveIdentityOptions, ResolveIdentityResult } from "./identity/resolveIdentity.js"
+export {
+  resolveIdentity,
+  canonicalSlug,
+  claimedName,
+  publisherHead,
+  subjectId,
+  artifactVersionId,
+  conflictId,
+  participantId,
+  REGISTRY_SLUG_NAMESPACE,
+  RESOLVABLE_PACKAGE_TYPES,
+} from "./identity/resolveIdentity.js"
 
 // Sources (§9.3, §9.4)
 export type { SourceAdapter, SourceSyncContext, SyncOutcome } from "./sources/sourceAdapter.js"

@@ -541,3 +541,158 @@ describe("the two caps count different populations", () => {
     expect(result.mirroredRecords).toBe(4)
   })
 })
+
+/**
+ * R-3's end-to-end closure: the identity layer resolves and persists inside the SAME run, and
+ * `rebuild.identity` stops being `null`.
+ *
+ * The two facts worth stating before the assertions, because both were measured and neither is
+ * what the plan predicted:
+ *
+ *   - ARTIFACTS FOLLOW PACKAGES, NOT SUBJECTS. The plan said "19 records ⇒ 19 subjects + 19
+ *     artifact rows". The committed corpus declares 2 packages against 18 remotes over its 19
+ *     entries, so the real number is 19 subjects and TWO artifacts. A remote is an endpoint, not
+ *     a downloadable artifact; there is nothing to pin a digest to. Asserting 19 here would have
+ *     forced either a fabricated artifact per remote or a loosened assertion.
+ *   - `rebuild.identity` IS ASYMMETRIC ON PURPOSE. `true` on a changed run, `null` on
+ *     `NO_CHANGE` — never `false`. A skipped run did not re-measure the identity layer, and
+ *     `false` would assert a measurement that never happened. That is control #13.
+ */
+describe("identity resolves and persists in the same run (R-3)", () => {
+  const twoSubjects = {
+    servers: [
+      item("io.test/alpha", {
+        version: "1",
+        packages: [{ registryType: "npm", identifier: "alpha", version: "1.2.3" }],
+      }),
+      item("io.test/beta", { version: "1", remotes: [{ type: "http", url: "https://beta.dev" }] }),
+    ],
+  }
+
+  it("persists a subject per current observation, and artifacts follow PACKAGES", async () => {
+    const store = await freshStore()
+    const result = await refresh(store, twoSubjects)
+
+    expect(result.identity.subjects).toBe(2)
+    expect(result.identity.conflicts).toBe(0)
+    // One package across the two entries ⇒ ONE artifact row. `beta` declares a remote, which
+    // carries nothing to resolve. This is the corpus's 19-subjects/2-artifacts shape in
+    // miniature, and it is the assertion that would have failed against the plan's "19".
+    expect(result.identity.artifacts).toBe(1)
+
+    // What the RUN reported and what the STORE holds are two different measurements. Reading
+    // both is the point: `persisted` counts rows the transaction wrote, and a document entry
+    // the store silently folded would show up here as an inequality.
+    expect(result.identity.persisted.subjects).toBe(2)
+    expect(result.identity.persisted.artifacts).toBe(1)
+    expect(result.identity.persisted.conflicts).toBe(0)
+    expect(store.listSubjects()).toHaveLength(2)
+    expect(store.listArtifactVersions()).toHaveLength(1)
+    expect(store.listIdentityConflicts()).toEqual([])
+    expect(store.countSubjectAliases()).toBe(result.identity.persisted.aliases)
+  })
+
+  it("stamps every subject from `now`, never from a clock or from retrievedAt (control #15)", async () => {
+    const store = await freshStore()
+    await refresh(store, twoSubjects, { now: T1 })
+    // `refresh` passes `now: T1` as BOTH the sync stamp and `observedAt`, so this asserts the
+    // parameter reached the resolver rather than that two clocks happened to agree.
+    for (const s of store.listSubjects()) {
+      expect(s.firstSeenAt).toBe(T1)
+      expect(s.lastSeenAt).toBe(T1)
+    }
+  })
+
+  it("flips rebuild.identity from null to a measured TRUE on a changed run", async () => {
+    const store = await freshStore()
+    const result = await refresh(store, twoSubjects)
+    // The R-2 seam closed. This cell was `boolean | null` with the comment "Needs
+    // canonical_subjects — R-3", and the whole batch exists to make it a measurement.
+    expect(result.change.rebuild.identity).toBe(true)
+    expect(result.change.rebuild.canonicalize).toBe(true)
+    // The five tiers R-3 still cannot honestly compute stay `null`. Asserted as a set so a
+    // future batch that flips one has to come here and say so.
+    expect(result.change.rebuild.artifact).toBeNull()
+    expect(result.change.rebuild.evidence).toBeNull()
+    expect(result.change.rebuild.decision).toBeNull()
+    expect(result.change.rebuild.semanticContract).toBeNull()
+    expect(result.change.rebuild.presentation).toBeNull()
+  })
+
+  it("keeps rebuild.identity NULL on NO_CHANGE — null is not false (control #13)", async () => {
+    const store = await freshStore()
+    const first = await refresh(store, twoSubjects)
+    expect(first.change.reason).toBe("NO_PRIOR_DIGEST")
+    expect(first.change.rebuild.identity).toBe(true)
+
+    // Second run over an unchanged upstream. The run DID resolve an identity layer — the
+    // records are still there — and `identityResolved: true` still reaches the detector. The
+    // verdict discards it anyway, which is the behaviour under test: nothing was re-measured
+    // for the purposes of a rebuild, so the tier reports "unknown", not "no".
+    const second = await refresh(store, twoSubjects)
+    expect(second.change.reason).toBe("NO_CHANGE")
+    expect(second.change.rebuild.identity).toBeNull()
+    expect(second.change.rebuild.identity).not.toBe(false)
+    expect(second.identity.subjects).toBe(2)
+  })
+
+  it("is idempotent across runs — a replay upserts, never duplicates", async () => {
+    const store = await freshStore()
+    await refresh(store, twoSubjects)
+    const after1 = store.listSubjects()
+    await refresh(store, twoSubjects)
+    // Ids are `hashJson`-derived, so the same bytes reproduce the same rows. A uuid would
+    // double the table here (control #10, measured at the operation level rather than the unit).
+    expect(store.listSubjects()).toEqual(after1)
+    expect(store.listArtifactVersions()).toHaveLength(1)
+  })
+
+  it("resolves the CURRENT observation only — a version bump is one subject, not two", async () => {
+    const store = await freshStore()
+    await refresh(store, { servers: [item("io.test/alpha", { version: "1" })] })
+    await refresh(store, { servers: [item("io.test/alpha", { version: "2" })] }, { now: T1 })
+
+    // The mirror deliberately keeps both observations; identity must read the current one. This
+    // is the history-duplication defect this file was written for, now measured on the identity
+    // layer as well as on the projection.
+    expect(store.listSourceRecords(OFFICIAL_REGISTRY_SOURCE_ID).length).toBe(2)
+    expect(store.listSubjects()).toHaveLength(1)
+  })
+
+  it("the projection is a function of the MIRROR ALONE — identity never feeds it (control #16)", async () => {
+    // CONTROL #16, RESTATED BY MEASUREMENT. The plan specified the mutation as "resolve identity
+    // BEFORE `projectSnapshot`" and expected the byte comparison to fail. It does not: moving the
+    // call above the projection leaves all 44 tests here and in `snapshot-projection` GREEN, and
+    // it has to — `resolveIdentity` is pure, `records` is computed before both call sites, and
+    // the projection never reads what resolution returns, so the two statements commute. A
+    // control that cannot go red is a finding about the harness, not a pass (R-2 control #11).
+    //
+    // The invariant worth guarding was never line order; it is the DATA DEPENDENCY. So the
+    // falsifiable mutation is to give the projection an identity-derived input — filter `records`
+    // by resolved subject, project only non-conflicted names, anything of that shape — which
+    // breaks this equality because the entries projected are no longer the entries mirrored.
+    // Recorded here rather than deleted, because the wrong version of this control is the reason
+    // the right one is legible.
+    const store = await freshStore()
+    const result = await refresh(store, twoSubjects)
+    expect(result.snapshotText).toBe(await shippedBytes(twoSubjects))
+    // Not the vacuous kind of equality: the same run resolved and persisted a real identity
+    // layer, so the projection stayed put while something downstream of it definitely ran.
+    expect(result.identity.persisted.subjects).toBe(2)
+    // The dependency stated as a count. `shippedBytes` renders from the SAME fixture through the
+    // shipped emitter with no identity layer in scope at all, so an identity-derived filter would
+    // change one side and not the other. Asserting the entry count too means the failure names
+    // "the projection lost an entry" rather than only "bytes differ".
+    expect(JSON.parse(result.snapshotText).entries).toHaveLength(2)
+  })
+
+  it("commits the checkpoint and the identity layer TOGETHER", async () => {
+    const store = await freshStore()
+    const result = await refresh(store, twoSubjects)
+    // One transaction. A run that advanced the digest without persisting subjects would report
+    // NO_CHANGE forever after while holding no identity for the cohort that digest names — so
+    // the digest on disk and the subjects on disk are asserted as one fact.
+    expect(store.readCheckpoint(OFFICIAL_REGISTRY_SOURCE_ID)?.snapshotDigest).toBe(result.snapshotDigest)
+    expect(store.listSubjects()).toHaveLength(2)
+  })
+})

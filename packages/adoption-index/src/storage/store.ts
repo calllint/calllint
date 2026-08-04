@@ -28,6 +28,18 @@ import {
   type SourceCheckpoint,
 } from "../domain/checkpoint.js"
 import type { SourceRecordV1 } from "../domain/sourceRecord.js"
+import type {
+  ArtifactStatus,
+  ArtifactVersionV1,
+  CanonicalSubjectV1,
+  ConflictResolution,
+  ConflictStatus,
+  ConflictType,
+  IdentityBasisKind,
+  IdentityConflictV1,
+  IdentityStatus,
+  SubjectAliasV1,
+} from "../domain/subject.js"
 
 /** A row of `source_records`, as stored. `payload_json` holds the SourceRecordV1. */
 export interface StoredSourceRecord {
@@ -50,11 +62,33 @@ export interface PersistResult {
   unchanged: number
 }
 
+/** What one `persistIdentity` call wrote, per table. */
+export interface PersistIdentityResult {
+  subjects: number
+  aliases: number
+  artifacts: number
+  conflicts: number
+}
+
 /** The write surface available inside a transaction. */
 export interface AdoptionIndexTx {
   persistSourceRecords(records: SourceRecordV1[], seenAt: string): PersistResult
   advanceCheckpoint(next: SourceCheckpoint): void
   readCheckpoint(sourceId: string): SourceCheckpoint
+  persistIdentity(identity: ResolvedIdentityWrite): PersistIdentityResult
+}
+
+/**
+ * The identity collections one transaction writes. Structurally identical to
+ * `ResolveIdentityResult`, declared here as its own type so `store.ts` does not import from
+ * `identity/` — the store is the persistence port and the resolver is a caller of it, not
+ * the reverse.
+ */
+export interface ResolvedIdentityWrite {
+  subjects: readonly CanonicalSubjectV1[]
+  aliases: readonly SubjectAliasV1[]
+  artifacts: readonly ArtifactVersionV1[]
+  conflicts: readonly IdentityConflictV1[]
 }
 
 export interface OpenStoreOptions {
@@ -125,7 +159,205 @@ export class AdoptionIndexStore {
       persistSourceRecords: (records, seenAt) => this.persistSourceRecords(records, seenAt),
       advanceCheckpoint: (next) => this.writeCheckpoint(next),
       readCheckpoint: (sourceId) => this.readCheckpoint(sourceId),
+      persistIdentity: (identity) => this.persistIdentity(identity),
     }
+  }
+
+  /**
+   * Persist one resolved identity cohort: subjects, their aliases, their artifacts, and any
+   * conflict that refused a merge.
+   *
+   * Reachable only through `transaction`, like every other write, and for a sharper reason
+   * here than for source records: a conflict row and the `CONFLICT` status on the subjects it
+   * names are ONE fact recorded in two tables. Committing the subjects without the conflict
+   * would publish an unresolved identity as merely provisional; committing the conflict
+   * without the subjects would leave a row pointing at nothing.
+   *
+   * All four writes are upserts on the canonical primary keys, so replaying the same cohort
+   * is idempotent — every id is `hashJson`-derived, so the same input yields the same keys.
+   */
+  private persistIdentity(identity: ResolvedIdentityWrite): PersistIdentityResult {
+    const subject = this.db.prepare(
+      `INSERT INTO canonical_subjects (
+         subject_id, canonical_name, canonical_slug, display_name,
+         identity_status, identity_digest, first_seen_at, last_seen_at
+       ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+       ON CONFLICT(subject_id) DO UPDATE SET
+         canonical_slug = excluded.canonical_slug,
+         display_name = excluded.display_name,
+         identity_status = excluded.identity_status,
+         identity_digest = excluded.identity_digest,
+         last_seen_at = excluded.last_seen_at`,
+    )
+    for (const s of identity.subjects) {
+      subject.run(
+        s.subjectId,
+        s.canonicalName,
+        s.canonicalSlug,
+        s.displayName,
+        s.identityStatus,
+        subjectIdentityDigest(s),
+        s.firstSeenAt,
+        s.lastSeenAt,
+      )
+    }
+
+    const alias = this.db.prepare(
+      `INSERT INTO subject_aliases (alias, subject_id, source_record_id, alias_type)
+       VALUES (?, ?, ?, ?)
+       ON CONFLICT(alias, subject_id) DO UPDATE SET
+         source_record_id = excluded.source_record_id,
+         alias_type = excluded.alias_type`,
+    )
+    for (const a of identity.aliases) alias.run(a.alias, a.subjectId, a.sourceRecordId, a.aliasType)
+
+    const artifact = this.db.prepare(
+      `INSERT INTO artifact_versions (
+         artifact_version_id, subject_id, package_type, package_identifier, version,
+         source_locator, immutable_digest, registry_integrity, artifact_status,
+         cache_key, first_seen_at, last_verified_at
+       ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+       ON CONFLICT(artifact_version_id) DO UPDATE SET
+         source_locator = excluded.source_locator,
+         artifact_status = excluded.artifact_status`,
+    )
+    for (const a of identity.artifacts) {
+      artifact.run(
+        a.artifactVersionId,
+        a.subjectId,
+        a.packageType,
+        a.packageIdentifier,
+        a.version,
+        a.sourceLocator,
+        // R-3 writes these three as NULL and R-4 fills them. `registryIntegrity` is absent
+        // from the document rather than null (its schema forbids null), so `?? null` is the
+        // translation from an omitted property to an empty column — not a fabricated value.
+        a.immutableDigest,
+        a.registryIntegrity ?? null,
+        a.artifactStatus,
+        null,
+        // `first_seen_at` is NOT NULL in the DDL and absent from the artifact SCHEMA, so it
+        // is taken from the subject this artifact belongs to. The resolver only ever emits an
+        // artifact alongside its subject, so the lookup cannot miss; the throw makes that an
+        // assertion instead of a silent `""`.
+        subjectFirstSeen(identity, a.subjectId),
+        null,
+      )
+    }
+
+    const conflict = this.db.prepare(
+      `INSERT INTO identity_conflicts (
+         conflict_id, subject_key, conflict_type, source_record_ids_json,
+         status, created_at, resolved_at, resolution_json
+       ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+       ON CONFLICT(conflict_id) DO UPDATE SET
+         status = excluded.status,
+         resolved_at = excluded.resolved_at,
+         resolution_json = excluded.resolution_json`,
+    )
+    for (const c of identity.conflicts) {
+      conflict.run(
+        c.conflictId,
+        c.subjectKey,
+        c.conflictType,
+        JSON.stringify(c.sourceRecordIds),
+        c.status,
+        c.createdAt,
+        c.resolvedAt ?? null,
+        c.resolution == null ? null : JSON.stringify(c.resolution),
+      )
+    }
+
+    return {
+      subjects: identity.subjects.length,
+      aliases: identity.aliases.length,
+      artifacts: identity.artifacts.length,
+      conflicts: identity.conflicts.length,
+    }
+  }
+
+  /** Subjects for a cohort, ordered by canonical name for a stable read. */
+  listSubjects(): StoredSubject[] {
+    return this.db
+      .prepare(
+        `SELECT subject_id AS subjectId, canonical_name AS canonicalName, canonical_slug AS canonicalSlug,
+                display_name AS displayName, identity_status AS identityStatus,
+                identity_digest AS identityDigest, first_seen_at AS firstSeenAt, last_seen_at AS lastSeenAt
+         FROM canonical_subjects ORDER BY canonical_name`,
+      )
+      .all() as StoredSubject[]
+  }
+
+  /**
+   * Every recorded conflict, newest key first by id for stability.
+   *
+   * `sourceRecordIds` is parsed back from JSON here rather than at the call site, because a
+   * conflict whose participants stayed a string would be trivially mis-read as one
+   * participant — `minItems: 2` is the invariant, and a caller counting characters would not
+   * see it.
+   */
+  listIdentityConflicts(): StoredIdentityConflict[] {
+    const rows = this.db
+      .prepare(
+        `SELECT conflict_id AS conflictId, subject_key AS subjectKey, conflict_type AS conflictType,
+                source_record_ids_json AS sourceRecordIdsJson, status, created_at AS createdAt,
+                resolved_at AS resolvedAt, resolution_json AS resolutionJson
+         FROM identity_conflicts ORDER BY conflict_id`,
+      )
+      .all() as (Omit<StoredIdentityConflict, "sourceRecordIds" | "resolution"> & {
+      sourceRecordIdsJson: string
+      resolutionJson: string | null
+    })[]
+    return rows.map((r) => ({
+      conflictId: r.conflictId,
+      subjectKey: r.subjectKey,
+      conflictType: r.conflictType,
+      sourceRecordIds: JSON.parse(r.sourceRecordIdsJson) as string[],
+      status: r.status,
+      createdAt: r.createdAt,
+      resolvedAt: r.resolvedAt,
+      resolution: r.resolutionJson == null ? null : (JSON.parse(r.resolutionJson) as ConflictResolution),
+    }))
+  }
+
+  /**
+   * Alias rows for a subject, or all of them. Ordered by `(alias, subject_id)` — the primary
+   * key, so the read order is the storage order.
+   */
+  listSubjectAliases(subjectId?: string): StoredSubjectAlias[] {
+    const where = subjectId === undefined ? "" : " WHERE subject_id = ?"
+    const stmt = this.db.prepare(
+      `SELECT alias, subject_id AS subjectId, source_record_id AS sourceRecordId, alias_type AS aliasType
+       FROM subject_aliases${where} ORDER BY alias, subject_id`,
+    )
+    return (subjectId === undefined ? stmt.all() : stmt.all(subjectId)) as StoredSubjectAlias[]
+  }
+
+  /**
+   * How many alias ROWS exist. Distinct from `PersistIdentityResult.aliases`, which counts
+   * DOCUMENT entries, and the gap between them is the whole reason this method exists:
+   * `subject_aliases`' PRIMARY KEY is `(alias, subject_id)`, so a document carrying one pair
+   * twice is folded to one row SILENTLY. Without a row count, that over-report is invisible —
+   * a persist→read-back comparison would fail on a difference that is not a difference, or
+   * worse, pass while the store held less than the caller was told it wrote.
+   */
+  countSubjectAliases(): number {
+    const row = this.db.prepare("SELECT COUNT(*) AS n FROM subject_aliases").all() as { n: number }[]
+    return row[0]!.n
+  }
+
+  /** Artifact identity rows. R-4's columns are read here too, and are null until it runs. */
+  listArtifactVersions(): StoredArtifactVersion[] {
+    return this.db
+      .prepare(
+        `SELECT artifact_version_id AS artifactVersionId, subject_id AS subjectId,
+                package_type AS packageType, package_identifier AS packageIdentifier, version,
+                source_locator AS sourceLocator, immutable_digest AS immutableDigest,
+                registry_integrity AS registryIntegrity, artifact_status AS artifactStatus,
+                cache_key AS cacheKey, first_seen_at AS firstSeenAt, last_verified_at AS lastVerifiedAt
+         FROM artifact_versions ORDER BY artifact_version_id`,
+      )
+      .all() as StoredArtifactVersion[]
   }
 
   /**
@@ -338,4 +570,90 @@ export function sourceRecordRowId(record: SourceRecordV1): string {
     sourceNativeId: record.source.sourceRecordId,
     payloadDigest: record.source.payloadDigest,
   })
+}
+
+/**
+ * `canonical_subjects.identity_digest` — a STORAGE-derived column.
+ *
+ * It is `NOT NULL` in the canonical DDL and absent from `calllint.canonical-subject.v1`'s
+ * properties (which are `additionalProperties: false`), so it cannot live on the document and
+ * has to be computed where the row is written. Same arrangement as `sourceRecordRowId`.
+ *
+ * The timestamps are DELIBERATELY EXCLUDED. `firstSeenAt`/`lastSeenAt` move on every run
+ * that observes the subject again, so including them would make the digest change when
+ * nothing about the identity did — which is the exact defect R-2 measured in its own change
+ * key (`last_seen_at` and `fetchedAt` move every run and never skip). What this digest
+ * answers is "did the CONCLUSION change", so it covers the conclusion and its evidence.
+ */
+export function subjectIdentityDigest(subject: CanonicalSubjectV1): string {
+  return hashJson({
+    canonicalName: subject.canonicalName,
+    canonicalSlug: subject.canonicalSlug,
+    displayName: subject.displayName,
+    identityStatus: subject.identityStatus,
+    aliases: subject.aliases,
+    sourceRecordIds: subject.sourceRecordIds,
+    identityBasis: subject.identityBasis,
+  })
+}
+
+/**
+ * The `first_seen_at` for an artifact, taken from the subject that owns it. Throws rather
+ * than defaulting: an artifact without its subject in the same write is a resolver defect,
+ * and a `NOT NULL` column filled with a placeholder would hide it.
+ */
+function subjectFirstSeen(identity: ResolvedIdentityWrite, subjectId: string): string {
+  const owner = identity.subjects.find((s) => s.subjectId === subjectId)
+  if (owner === undefined) {
+    throw new Error(`artifact names subject "${subjectId}", which is not in the same identity write`)
+  }
+  return owner.firstSeenAt
+}
+
+/** A row of `canonical_subjects`, as stored — including the derived digest column. */
+export interface StoredSubject {
+  subjectId: string
+  canonicalName: string
+  canonicalSlug: string
+  displayName: string
+  identityStatus: IdentityStatus
+  identityDigest: string
+  firstSeenAt: string
+  lastSeenAt: string
+}
+
+/** A row of `subject_aliases`. `sourceRecordId` is null for an alias no record supplied. */
+export interface StoredSubjectAlias {
+  alias: string
+  subjectId: string
+  sourceRecordId: string | null
+  aliasType: IdentityBasisKind
+}
+
+/** A row of `identity_conflicts`, with its two JSON columns already parsed. */
+export interface StoredIdentityConflict {
+  conflictId: string
+  subjectKey: string
+  conflictType: ConflictType
+  sourceRecordIds: string[]
+  status: ConflictStatus
+  createdAt: string
+  resolvedAt: string | null
+  resolution: ConflictResolution | null
+}
+
+/** A row of `artifact_versions`. The four R-4 columns are read and are null until it runs. */
+export interface StoredArtifactVersion {
+  artifactVersionId: string
+  subjectId: string
+  packageType: string
+  packageIdentifier: string
+  version: string | null
+  sourceLocator: string
+  immutableDigest: string | null
+  registryIntegrity: string | null
+  artifactStatus: ArtifactStatus
+  cacheKey: string | null
+  firstSeenAt: string
+  lastVerifiedAt: string | null
 }

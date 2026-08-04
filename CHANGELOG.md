@@ -12,6 +12,67 @@ onward. While pre-1.0, minor versions may include breaking changes.
 
 ### Added
 
+- **Workstream R PR R-3 (§8.1) — the Canonical Adoption Graph: identity resolution that fails
+  closed.** `SourceRecord` records what one source *claimed*; R-3 adds the layer that CONCLUDES an
+  identity across records (`canonical_subjects`, `subject_aliases`, `artifact_versions` identity
+  columns) and, when two records claim one identity, **refuses to merge them** and records the
+  refusal as a first-class `identity_conflicts` row. `CONFLICT` is terminal, never a warning: a
+  conflicted subject yields **zero** `artifact_versions` rows, so a collision produces *less* data
+  rather than a winner. No verdict or decision behavior moves, no served byte moves
+  (`git status --porcelain -- apps/web/public/` EMPTY), the MCP surface stays at 13 tools /
+  19 resources, and **zero migrations** — all four tables landed with the canonical DDL in R-1, whose
+  digest is still pinned by value at `sha256:4ac16f9636b2fadcbb…`.
+  **The merge keys the corpus proves wrong are the ones worth naming.** Grouping is by EXACT
+  `canonical_name` only. `repositoryUrl` cannot be a key: 9 of 19 committed entries have
+  `repositoryUrl: null`, and `null === null` in a JS `Map`, so a naive group-by fuses 9 unrelated
+  products into one subject. Publisher (reverse-DNS head) cannot be a key either: the corpus's one
+  *apparent* publisher collision is `ai.agenticshelf/{graffeo,mcp,puroair}` — a coffee roaster, an
+  e-commerce catalog and an air-purifier brand sharing one hosting platform. `publisher-divergence`
+  therefore means *one identity claimed by different publishers*, **never** *one publisher with many
+  products*. Both wrong keys, plus the remote-host variant that reaches the same trio a second way,
+  are negative controls; they fail in 18, 19 and 2 tests respectively.
+  **The slug is lossy, so it is never an identity key — and the witness for that was itself wrong
+  until it was measured.** `registryCanonicalName` preserves `[a-z0-9._-]` and rewrites only the runs
+  outside it, so the reverse-DNS `/` boundary flattens while `.` and `-` pass through: `a.b/c` and
+  `a.b-c` collide, `a-b-c` does **not**, and `A.B/C` joins via the lowercase step. Grouping by slug
+  instead of name fails 13 tests and destroys the classification as well as the count
+  (`expected ['canonical-name-collision'] to deeply equal ['slug-collision']`).
+  **`registryCohort`'s silent election becomes a reported collision, with the bytes pinned unmoved.**
+  Keeping the first entry answers "which file owns this path"; it does not answer "are these the same
+  product", and reading it as though it did is how one product's evidence would reach another's page.
+  `registryCollisions` now reports the shared slug with every ORIGINAL name, as a plain structural
+  value — `packages/trust-index` gains no dependency on `@calllint/adoption-index`. The election
+  itself is unchanged, `incompleteReason` included byte for byte, which is why `apps/web/public/`
+  cannot move.
+  **Measured on real data: the conflict path is unreachable, all five classes.** Over the committed
+  snapshot — raw name 19 distinct / 0 collisions · slug 19 / 0 · `repositoryUrl` 10 / 0 ·
+  package-identifier 2 / 0 · publisher head 17 / 1 *apparent, and not a conflict*. So the conflict
+  logic is graded on synthetic fixtures by necessity, and re-pointing those fixtures at the real
+  corpus fails 5 tests with `expected [] to have a length of 1` — the vacuity a real-data-only suite
+  would have shipped as a permanent green over a branch never entered.
+  **`rebuild.identity` flips from `null` to a measured boolean, and stays asymmetric on purpose.**
+  `true` when a run actually resolved an identity layer; `null` on `NO_CHANGE`, because a skipped run
+  measured nothing and asserting `false` would be a claim with nothing behind it. Setting it `false`
+  there fails with `expected false to be null`.
+  **19 subjects, 2 artifact rows — not 19.** Artifact versions follow PACKAGES, and the corpus
+  declares 2 packages against 18 remotes: a remote is an endpoint with nothing to pin a digest to.
+  The R-4 columns (`immutable_digest`, `registry_integrity`, `cache_key`, `last_verified_at`,
+  `artifact_status = FETCHED`) are left unwritten, and the two are deliberately not symmetric on the
+  document — `immutableDigest` is required-and-nullable, `registryIntegrity` is omitted — because a
+  fabricated digest is worse than an absent one.
+  **Two negative controls did not fire where they were aimed, and both are recorded rather than
+  quietly re-specified** (R-2's control #11: a control that passes when it should fail is a finding
+  about the harness, not a pass). (1) "Resolve identity BEFORE `projectSnapshot`" leaves 44/44 green,
+  and structurally must: `resolveIdentity` is pure, `records` is computed before both call sites, and
+  the projection never reads what resolution returns, so the two statements commute. **Line order was
+  never the invariant; the data dependency is.** Restated as "feed identity output *into* the
+  projection", it fails 12 tests. (2) Importing the store into `registryCohort.ts` leaves the
+  module-graph boundary gate at 11/11 green — that gate walks from the two PUBLISHED bundle entry
+  points, and no shipped bundle reaches `emitCohort`, which is bake-time. Re-aimed at `matchLexical.ts`
+  (one of the two `exports` subpaths the gate's own witness test pins as a set) it fails three ways:
+  15 adoption-index modules bundled, the `@calllint/adoption-index` specifier named, and
+  `better-sqlite3` named — the last being the `.node`-cannot-be-bundled failure ADR 0061 exists to
+  produce. Every wrong claim was inverted in place with its reason, in source, test and plan alike.
 - **Workstream R PR R-2 (§16.1/§16.2) — the source-payload change detector, and the deletion of a
   re-bake that was emitting the wrong tree.** Replaces the unconditional full re-bake at the ingest
   bin with a measured verdict: an unchanged upstream is now *skippable* and provably commits

@@ -509,11 +509,27 @@ describe("the checkpoint is written only after the records (§9.4)", () => {
     const storeSrc = readFileSync(join(SRC_DIR, "storage", "store.ts"), "utf8")
     expect(storeSrc).toMatch(/^ {2}private persistSourceRecords\(/m)
     expect(storeSrc).toMatch(/^ {2}private writeCheckpoint\(/m)
+    // R-3's writer joins the same compiler-enforced discipline. Asserted here rather than
+    // only in the key list below because the key list would still pass if the modifier were
+    // dropped — the handle would carry the same name either way.
+    expect(storeSrc).toMatch(/^ {2}private persistIdentity\(/m)
 
-    // The ordering rule's positive half: the handle carries exactly these three and no
-    // fourth, so a caller inside a transaction cannot reach a wider write surface.
+    // The ordering rule's positive half: the handle carries exactly these FOUR and no
+    // fifth, so a caller inside a transaction cannot reach a wider write surface.
+    //
+    // This list was THREE until R-3 and is widened here deliberately, not relaxed. The
+    // assertion's subject is that the write surface is a CLOSED SET enumerated in one place;
+    // R-3 adds `persistIdentity` to it because the identity layer must commit in the same
+    // transaction as the checkpoint that describes it (a digest advanced without its subjects
+    // would report "no change" forever). Growing the list is how a new writer announces
+    // itself; a writer that reached the handle without appearing here is the defect.
     const keys = store.transaction((tx) => Object.keys(tx).sort())
-    expect(keys).toEqual(["advanceCheckpoint", "persistSourceRecords", "readCheckpoint"])
+    expect(keys).toEqual([
+      "advanceCheckpoint",
+      "persistIdentity",
+      "persistSourceRecords",
+      "readCheckpoint",
+    ])
   })
 })
 
