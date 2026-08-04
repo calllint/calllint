@@ -16,7 +16,11 @@
 import type { SourceRecordV1 } from "../domain/sourceRecord.js"
 import type { SourceCheckpoint } from "../domain/checkpoint.js"
 import type { AdoptionIndexStore, PersistResult } from "../storage/store.js"
-import type { SourceAdapter, SourceSyncContext } from "../sources/sourceAdapter.js"
+import type {
+  SourceAdapter,
+  SourceSyncContext,
+  SyncTruncationReason,
+} from "../sources/sourceAdapter.js"
 import { highWaterMark } from "../sources/officialRegistry.js"
 
 export interface SyncSourceOptions {
@@ -50,7 +54,7 @@ export interface SyncSourceResult {
    */
   observedNativeIds: ReadonlySet<string>
   /**
-   * True when the read stopped at `ctx.maxEntries` rather than at the end of the source.
+   * True when the read stopped for ANY reason other than the source running out of records.
    *
    * The adapter's cap is a runaway guard applied in ARRIVAL order and BEFORE the lifecycle
    * filter, so a capped read yields an arbitrary subset of the source. Any projection that
@@ -58,29 +62,66 @@ export interface SyncSourceResult {
    * cap keeps the N alphabetically-first LIVE entries, and you cannot know which those are
    * from a prefix of the arrival order.
    *
-   * `paginate` returns as soon as `yielded >= maxEntries`, so the count can never exceed
-   * the cap and equality is the exact condition. Equality is also reached by a source that
-   * happens to hold exactly `maxEntries` records, which is indistinguishable from
-   * truncation without one more request — so this reports the AMBIGUOUS case as capped and
-   * a caller that projects must refuse it. Over-reporting costs a raised cap; under-
-   * reporting silently ships a snapshot missing entries.
+   * REPORTED BY THE ADAPTER, NOT INFERRED FROM THE COUNT. This was
+   * `records.length >= ctx.maxEntries`, which is a test only the RECORD-cap exit passes.
+   * The paginator has two other exits — the `maxPages` ceiling and a repeated cursor — and
+   * both truncate while leaving `records.length` well under the cap, so both passed
+   * `assertMirrorComplete` as complete reads. Measured: 5 pages x 3 records against a
+   * 100_000 record cap yields 15 records and `records.length >= maxEntries` is false.
+   *
+   * The record-cap exit remains deliberately AMBIGUOUS-AS-CAPPED: a source holding exactly
+   * `maxEntries` records is indistinguishable from truncation without one more request, so
+   * it is reported as capped. Over-reporting costs a raised cap; under-reporting silently
+   * ships a snapshot missing entries.
    */
   capReached: boolean
+  /**
+   * Which exit ended the read, or null when the source was exhausted.
+   *
+   * Kept alongside `capReached` rather than replacing it because the two answer different
+   * questions — "may I project?" is a boolean and every existing caller asks only that,
+   * while "what should the operator change?" differs per reason: a `page-cap` needs
+   * `maxPages`, a `record-cap` needs `maxEntries`, and `cursor-repeat` needs neither
+   * because no local number fixes a source that will not advance its own cursor.
+   */
+  truncationReason: SyncTruncationReason | null
 }
 
-/** Thrown by `assertMirrorComplete`. Named so a caller can catch this and nothing else. */
+/** What an operator should change, per exit. `cursor-repeat` names no knob on purpose. */
+const REMEDY: Record<SyncTruncationReason, string> = {
+  "record-cap": "Raise the record cap (TRUST_INGEST_MIRROR_MAX_ENTRIES) and re-run.",
+  "page-cap":
+    "Raise the page ceiling (maxPages / TRUST_INGEST_MIRROR_MAX_PAGES) and re-run. " +
+    "Note the record cap was NOT the binding limit here.",
+  "cursor-repeat":
+    "The source echoed a cursor back instead of advancing it. No local cap fixes this; " +
+    "the read cannot be completed until the source paginates correctly.",
+}
+
+/**
+ * Thrown by `assertMirrorComplete`. Named so a caller can catch this and nothing else.
+ *
+ * `reason` is optional so the class stays constructible from the two-argument form used by
+ * existing callers and tests. When present it selects the remedy, because "raise the cap"
+ * is actively misleading advice for a `page-cap` truncation — the record cap was not what
+ * bound the read, and raising it changes nothing.
+ */
 export class MirrorIncompleteError extends Error {
   readonly records: number
   readonly maxEntries: number
-  constructor(records: number, maxEntries: number) {
+  readonly reason: SyncTruncationReason | null
+  constructor(records: number, maxEntries: number, reason: SyncTruncationReason | null = null) {
+    const where = reason === null ? "a cap" : `the ${reason} limit`
     super(
-      `mirror read stopped at the record cap (${records}/${maxEntries}): the source may hold more. ` +
-        `A projection over a capped read can silently omit entries, because the cap applies in ` +
-        `arrival order before the lifecycle filter. Raise the cap and re-run.`,
+      `mirror read stopped at ${where} (${records} records read, cap ${maxEntries}): the source ` +
+        `may hold more. A projection over a truncated read can silently omit entries, because the ` +
+        `read stops in arrival order before the lifecycle filter. ` +
+        (reason === null ? "Raise the cap and re-run." : REMEDY[reason]),
     )
     this.name = "MirrorIncompleteError"
     this.records = records
     this.maxEntries = maxEntries
+    this.reason = reason
   }
 }
 
@@ -94,16 +135,31 @@ export class MirrorIncompleteError extends Error {
  * detectable without the source.
  */
 export function assertMirrorComplete(result: SyncSourceResult, maxEntries: number): void {
-  if (result.capReached) throw new MirrorIncompleteError(result.records, maxEntries)
+  if (result.capReached) {
+    throw new MirrorIncompleteError(result.records, maxEntries, result.truncationReason)
+  }
 }
 
 export async function syncSource(opts: SyncSourceOptions): Promise<SyncSourceResult> {
   const { store, adapter, ctx, mode } = opts
   const prior = store.beginRun(adapter.sourceId, ctx.retrievedAt)
 
+  // Truncation is REPORTED by the adapter through the context, because an AsyncIterable
+  // gives its consumer no channel but items. The first reason wins: an adapter stops at the
+  // first exit it hits, so a second report would mean two exits fired in one read.
+  let truncationReason: SyncTruncationReason | null = null
+  const syncCtx: SourceSyncContext = {
+    ...ctx,
+    onTruncated: (reason) => {
+      truncationReason ??= reason
+      ctx.onTruncated?.(reason)
+    },
+  }
+
   let records: SourceRecordV1[]
   try {
-    const stream = mode === "full" ? adapter.fullSync(ctx) : adapter.incrementalSync(prior, ctx)
+    const stream =
+      mode === "full" ? adapter.fullSync(syncCtx) : adapter.incrementalSync(prior, syncCtx)
     records = []
     for await (const record of stream) records.push(record)
   } catch (err) {
@@ -138,10 +194,18 @@ export async function syncSource(opts: SyncSourceOptions): Promise<SyncSourceRes
     persisted: result.persisted,
     checkpoint: result.checkpoint,
     observedNativeIds: new Set(records.map((r) => r.source.sourceRecordId)),
-    // `paginate` returns at `yielded >= maxEntries`, so `>` is unreachable and `===` is
-    // the whole condition. Derived here rather than reported by the adapter: the adapter
-    // is a generator and a generator cannot return a value the consumer sees.
-    capReached: records.length >= ctx.maxEntries,
+    // REPORTED, not derived. The previous form was `records.length >= ctx.maxEntries`, on
+    // the reasoning that "the adapter is a generator and a generator cannot return a value
+    // the consumer sees" — a true premise with a wrong conclusion, since the channel is the
+    // context, not the return value. That derivation is blind to every exit except the
+    // record cap, so a read truncated by the page ceiling reported itself complete.
+    //
+    // The record-cap case still ORs in the count comparison, so an adapter that caps
+    // without reporting (any future adapter behind this port) is still caught by the
+    // conservative test rather than trusted.
+    capReached: truncationReason !== null || records.length >= ctx.maxEntries,
+    truncationReason:
+      truncationReason ?? (records.length >= ctx.maxEntries ? "record-cap" : null),
   }
 }
 

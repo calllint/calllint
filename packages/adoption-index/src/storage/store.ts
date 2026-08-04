@@ -287,7 +287,10 @@ export class AdoptionIndexStore {
       subject.run(
         s.subjectId,
         s.canonicalName,
-        s.canonicalSlug,
+        // NOT `s.canonicalSlug` — see `subjectSlugRow`. A `CONFLICT` subject stores NULL, so
+        // two subjects that flattened to one slug can BOTH be recorded (SQLite treats NULLs as
+        // distinct under UNIQUE) instead of the second one rolling back the whole cohort.
+        subjectSlugRow(s),
         s.displayName,
         s.identityStatus,
         subjectIdentityDigest(s),
@@ -671,6 +674,50 @@ export function sourceRecordRowId(record: SourceRecordV1): string {
 }
 
 /**
+ * `canonical_subjects.canonical_slug` — the ONE place the document's always-present slug
+ * becomes a nullable row, and the only translation between the two shapes.
+ *
+ * A function rather than an inline ternary at the writer because this is the whole of
+ * migration 002's semantics, and it needs to be nameable by a test. `store.ts` is where every
+ * other document/storage divergence is resolved (`subjectIdentityDigest` is a column with no
+ * property; this is a property with a nullable column), so it belongs here.
+ *
+ * THE RULE: an ADDRESS IS A PROPERTY OF A CONCLUDED IDENTITY. `CONFLICT` is terminal and
+ * carries zero artifacts, so nothing may ever be served at that subject's slug — and a row
+ * holding an address nothing can serve is a claim the identity layer explicitly refused to
+ * make. `NULL` is how the column says "no address was concluded", which is precisely what
+ * `identity_status = 'CONFLICT'` already means.
+ *
+ * KEYED ON `CONFLICT`, NOT ON "did this slug actually collide", and deliberately so:
+ *
+ *   - It is a function of the DOCUMENT alone, so no collision set has to be threaded from
+ *     `resolveIdentity` into the write and the two can never disagree about who lost a slug.
+ *   - It is uniform across conflict CLASSES. A `canonical-name-collision` (two records, one
+ *     name) yields one subject and therefore one uncontested slug, so nulling it is not
+ *     strictly required — but the subject is still terminal with zero artifacts, so the
+ *     address is still unserveable, and a per-class exception would be a second rule to keep
+ *     in sync with a `ConflictType` union that later batches extend.
+ *   - It fails CLOSED under extension. A future conflict class that happens to produce
+ *     colliding slugs is handled by this rule as written; a narrower one would crash the
+ *     cohort exactly the way this migration exists to stop.
+ *
+ * WHY `UNIQUE` STILL DOES REAL WORK AFTER THIS. Two `PROVISIONAL` subjects cannot share a
+ * slug: `resolveIdentity` computes slug ownership across ALL claimed names before building any
+ * subject, and marks EVERY participant of a shared slug `CONFLICT`. So each surviving non-NULL
+ * slug is held by exactly one subject, and `UNIQUE` refuses a second — which is the invariant
+ * that was worth enforcing. Only the `NOT NULL` half, the half that crashed the fail-closed
+ * path, is gone.
+ *
+ * `subject_aliases` is NOT affected and must not be: its PK is `(alias, subject_id)`, so both
+ * contesting subjects legitimately record the shared slug string as an alias. An alias RECORDS
+ * a claim (many-to-many, evidence); `canonical_slug` ASSIGNS an address (one-to-one, a
+ * conclusion). Conflating them is what made a collision look unstorable.
+ */
+export function subjectSlugRow(subject: CanonicalSubjectV1): string | null {
+  return subject.identityStatus === "CONFLICT" ? null : subject.canonicalSlug
+}
+
+/**
  * `canonical_subjects.identity_digest` — a STORAGE-derived column.
  *
  * It is `NOT NULL` in the canonical DDL and absent from `calllint.canonical-subject.v1`'s
@@ -682,6 +729,12 @@ export function sourceRecordRowId(record: SourceRecordV1): string {
  * nothing about the identity did — which is the exact defect R-2 measured in its own change
  * key (`last_seen_at` and `fetchedAt` move every run and never skip). What this digest
  * answers is "did the CONCLUSION change", so it covers the conclusion and its evidence.
+ *
+ * It covers the DOCUMENT's `canonicalSlug`, never `subjectSlugRow`'s nullable projection, and
+ * that asymmetry is deliberate: the derived slug is part of what identity CONCLUDED about a
+ * subject even when the conclusion was a refusal. Digesting the row instead would collapse
+ * every `CONFLICT` subject's slug to one absent value, so a collision moving from one pair of
+ * names to another would leave the digest — the "did the conclusion change" key — unmoved.
  */
 export function subjectIdentityDigest(subject: CanonicalSubjectV1): string {
   return hashJson({
@@ -712,7 +765,12 @@ function subjectFirstSeen(identity: ResolvedIdentityWrite, subjectId: string): s
 export interface StoredSubject {
   subjectId: string
   canonicalName: string
-  canonicalSlug: string
+  /**
+   * `null` for a `CONFLICT` subject — see `subjectSlugRow`. Typed nullable rather than
+   * `string` so a reader that addresses a subject by slug has to handle the refusal at compile
+   * time; `canonicalName` is the authoritative key and is never null.
+   */
+  canonicalSlug: string | null
   displayName: string
   identityStatus: IdentityStatus
   identityDigest: string

@@ -27,6 +27,7 @@ import {
   AdoptionIndexStore,
   openBetterSqlite3,
   resolveIndexPaths,
+  resolveIdentity,
   toSourceRecord,
   OFFICIAL_REGISTRY_SOURCE_ID,
   MIGRATIONS_DIRNAME,
@@ -251,8 +252,62 @@ async function storedSourceRecord(): Promise<SourceRecordV1> {
 
 // ── the coverage table: {schema, a valid instance, a malformed instance} ──────
 
+/**
+ * A REAL `CanonicalSubjectV1` and `IdentityConflictV1`, from the shipped resolver.
+ *
+ * Both schemas sat in `AWAITING_EMITTER` with the reason "no emitter exists yet (control #9)".
+ * That reason was true when written and became false when R-3 merged — the excuse block's own
+ * contract says "each batch that writes one of these tables removes its entry here in the same
+ * PR that adds its emitter", and R-3 and R-4 both shipped a writer without paying that. So two
+ * published schemas were graded structurally while a live producer existed to grade them
+ * against, which is exactly the gap `EXCUSED_REASONS` is supposed to make impossible.
+ *
+ * Paid here because THIS PR is the one that needs the answer. Migration 002 makes
+ * `canonical_subjects.canonical_slug` nullable in STORAGE while
+ * `calllint.canonical-subject.v1` keeps `canonicalSlug` required and non-nullable, and that
+ * asymmetry is only safe if the DOCUMENT still always carries a slug. A structural grade cannot
+ * see that. This one can: the input is a slug COLLISION, so both subjects come back `CONFLICT`
+ * — the exact shape whose row is NULL — and the schema must still accept them.
+ *
+ * `resolveIdentity` is pure, so no store is opened. Unlike `storedSourceRecord` above there is
+ * nothing storage adds to these documents that the resolver does not already produce.
+ */
+function resolvedIdentityDocuments() {
+  const raw = (name: string) => ({
+    server: { name, description: "prose", version: "1.0.0" },
+    _meta: {
+      "io.modelcontextprotocol.registry/official": {
+        status: "active",
+        isLatest: true,
+        publishedAt: "2026-07-01T00:00:00.000Z",
+      },
+    },
+  })
+  // The measured real-world case-fold pair, not a synthetic one — see migration 002's header.
+  const records = ["io.github.LocalSynapse/LocalSynapse-mcp", "io.github.LocalSynapse/localsynapse-mcp"]
+    .map((n) => toSourceRecord(raw(n) as never, REGISTRY_NOW))
+    .filter((r): r is SourceRecordV1 => r !== null)
+  if (records.length !== 2) throw new Error("the adapter rejected a fixture item — the producer, not the schema")
+
+  const identity = resolveIdentity({ records, sourceId: OFFICIAL_REGISTRY_SOURCE_ID, observedAt: REGISTRY_NOW })
+  if (identity.subjects.length !== 2 || identity.conflicts.length !== 1) {
+    throw new Error(
+      `expected 2 subjects + 1 conflict, got ${identity.subjects.length}/${identity.conflicts.length}`,
+    )
+  }
+  // The property migration 002 depends on, asserted at construction so a regression fails here
+  // rather than producing an instance that passes for the wrong reason: a CONFLICT subject's
+  // DOCUMENT still carries a non-empty slug even though its ROW will hold NULL.
+  const subject = identity.subjects[0]!
+  if (subject.identityStatus !== "CONFLICT" || !subject.canonicalSlug) {
+    throw new Error(`expected a CONFLICT subject carrying a slug, got ${subject.identityStatus}`)
+  }
+  return { subject, conflict: identity.conflicts[0]! }
+}
+
 const { plan, decisionReceipt } = buildPlanAndReceipt()
 const sourceRecord = await storedSourceRecord()
+const { subject: canonicalSubject, conflict: identityConflict } = resolvedIdentityDocuments()
 
 interface Case {
   schema: string
@@ -333,6 +388,21 @@ const CASES: Case[] = [
     // schema that accepted it would let an unrecognized upstream status read as current.
     malformed: { ...sourceRecord, lifecycle: { ...sourceRecord.lifecycle, status: "live" } },
   },
+  {
+    schema: "calllint.canonical-subject.v1",
+    valid: canonicalSubject,
+    // `canonicalSlug: null` is THE malformed case for this PR rather than a generic bad enum.
+    // Migration 002 makes the COLUMN nullable; the document must keep refusing it, because that
+    // refusal is the whole reason the divergence is confined to storage. If this ever accepted
+    // null, `subjectSlugRow`'s translation would be pointless and the published schema would
+    // have silently changed meaning.
+    malformed: { ...canonicalSubject, canonicalSlug: null },
+  },
+  {
+    schema: "calllint.identity-conflict.v1",
+    valid: identityConflict,
+    malformed: { ...identityConflict, conflictType: "vibes" },
+  },
 ]
 
 /**
@@ -362,8 +432,6 @@ const EXCUSED_REASONS: ReadonlyArray<readonly [string, string]> = [
   ["calllint.presentation-content.v1", "covered by packages/trust-index/test/safe-install/presentation-content.test.ts"],
   ["calllint.safe-install-result.v1", "covered by packages/trust-index/test/safe-install/projection.test.ts"],
   ["calllint.agent-adoption-contract.v1", "covered by packages/trust-index/test/safe-install/projection.test.ts"],
-  ["calllint.canonical-subject.v1", "R-3 writes canonical_subjects; no emitter exists yet, and control #9 forbids a hand-authored stand-in"],
-  ["calllint.identity-conflict.v1", "R-3 writes identity_conflicts; no emitter exists yet (control #9)"],
   ["calllint.artifact-version.v1", "R-4 writes artifact_versions; no emitter exists yet (control #9)"],
   ["calllint.adoption-record.v1", "R-7 projects adoption_records; no emitter exists yet (control #9)"],
   ["calllint.compiler-job.v1", "R-6 writes compiler_jobs; no emitter exists yet (control #9)"],
@@ -443,8 +511,10 @@ describe("schema compatibility — every committed schema accepts real output + 
    * there is otherwise found by R-6, three batches later.
    */
   const AWAITING_EMITTER = [
-    "calllint.canonical-subject.v1",
-    "calllint.identity-conflict.v1",
+    // `calllint.canonical-subject.v1` and `calllint.identity-conflict.v1` LEFT this list when
+    // the nullable-slug PR wired R-3's resolver output into a real instance case above. They
+    // should have left when R-3 merged — the docblock's "in the same PR that adds its emitter"
+    // was not honoured, and a structural-only grade outlived its excuse for two batches.
     "calllint.artifact-version.v1",
     "calllint.adoption-record.v1",
     "calllint.compiler-job.v1",

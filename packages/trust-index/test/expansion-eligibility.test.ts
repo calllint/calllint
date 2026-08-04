@@ -3,9 +3,9 @@ import { readFileSync } from "node:fs"
 import { dirname, resolve } from "node:path"
 import { fileURLToPath } from "node:url"
 import { emitAllCohorts, type ExpansionCandidate } from "../src/emitCohort.js"
-import { resolveMaxEntries, resolveMirrorMaxEntries } from "../src/refreshSnapshot.js"
+import { resolveMaxEntries, resolveMirrorMaxEntries, resolveMirrorMaxPages } from "../src/refreshSnapshot.js"
 import { DEFAULT_MAX_ENTRIES } from "../src/fetchRegistry.js"
-import { DEFAULT_MIRROR_MAX_ENTRIES } from "@calllint/adoption-index"
+import { DEFAULT_MIRROR_MAX_ENTRIES, DEFAULT_MAX_PAGES, PAGE_SIZE } from "@calllint/adoption-index"
 import { mergeResults, type EvidenceSubject, type ResolverResult } from "@calllint/evidence"
 
 /**
@@ -213,6 +213,146 @@ describe("resolveMirrorMaxEntries — the raw-read ceiling, fail-safe and strict
   })
 })
 
+// ── the PAGE-COUNT ceiling — the third bound, and the one that had no knob ──────
+
+/**
+ * A read stops at whichever of THREE limits it reaches first: the served-cohort cap
+ * (`resolveMaxEntries`), the raw-record cap (`resolveMirrorMaxEntries`), or this one. The first
+ * two were already operator-settable; the page ceiling was a bare constant, so an operator facing
+ * a page-cap truncation had no env var to raise and the only remedy was a code change.
+ *
+ * That asymmetry is what `resolveMirrorMaxPages` closes, and it is not cosmetic:
+ * `MirrorIncompleteError`'s `page-cap` remedy NAMES `TRUST_INGEST_MIRROR_MAX_PAGES`, and a remedy
+ * naming a knob the operator does not have is not a remedy.
+ */
+describe("resolveMirrorMaxPages — the page ceiling, fail-safe, with NO inequality to enforce", () => {
+  it("defaults to DEFAULT_MAX_PAGES when unset, empty, or whitespace", () => {
+    expect(resolveMirrorMaxPages({})).toBe(DEFAULT_MAX_PAGES)
+    expect(resolveMirrorMaxPages({ TRUST_INGEST_MIRROR_MAX_PAGES: "" })).toBe(DEFAULT_MAX_PAGES)
+    expect(resolveMirrorMaxPages({ TRUST_INGEST_MIRROR_MAX_PAGES: "   " })).toBe(DEFAULT_MAX_PAGES)
+  })
+
+  it("honors any valid positive integer, above OR below the default", () => {
+    expect(resolveMirrorMaxPages({ TRUST_INGEST_MIRROR_MAX_PAGES: "1000" })).toBe(1000)
+    // Below the default is honoured, unlike the record cap. There is deliberately NO inequality
+    // here: a page count has no fixed relationship to a record count, since records-per-page is
+    // the SOURCE's choice and not ours. An operator bounding a probe run to 3 pages is doing
+    // something legitimate, and raising that to 400 behind their back would be the bug.
+    expect(resolveMirrorMaxPages({ TRUST_INGEST_MIRROR_MAX_PAGES: "3" })).toBe(3)
+    expect(resolveMirrorMaxPages({ TRUST_INGEST_MIRROR_MAX_PAGES: "1" })).toBe(1)
+  })
+
+  it("falls back on invalid input, the same shapes as both caps above", () => {
+    for (const bad of ["0", "-5", "abc", "12.5", "NaN", "Infinity", "-Infinity"]) {
+      expect(resolveMirrorMaxPages({ TRUST_INGEST_MIRROR_MAX_PAGES: bad })).toBe(DEFAULT_MAX_PAGES)
+    }
+  })
+
+  it("accepts exponent notation, because Number('1e3') IS the integer 1000", () => {
+    // Recorded because I first asserted the opposite and the code was right. `Number.isInteger`
+    // tests the VALUE, not the spelling, so `1e3` is 1000 and is honoured — the same as it is by
+    // both caps above, which share this exact validation shape. Pinned so the three stay aligned.
+    expect(resolveMirrorMaxPages({ TRUST_INGEST_MIRROR_MAX_PAGES: "1e3" })).toBe(1000)
+    expect(resolveMirrorMaxEntries({ TRUST_INGEST_MIRROR_MAX_ENTRIES: "1e3" }, DEFAULT_MAX_ENTRIES)).toBe(1000)
+    expect(resolveMaxEntries({ TRUST_INGEST_MAX_ENTRIES: "1e3" })).toBe(1000)
+  })
+
+  it("never returns a non-positive integer, across every input shape", () => {
+    // Fail-safe stated as a property: an unbounded or zero page count is the one outcome that
+    // must be unreachable. Zero would read nothing and report it as a complete source; unbounded
+    // would let a source that never terminates spin forever.
+    for (const raw of [undefined, "", "  ", "0", "-1", "-400", "abc", "1.5", "NaN", "1", "400", "9999"]) {
+      const env = raw === undefined ? {} : { TRUST_INGEST_MIRROR_MAX_PAGES: raw }
+      const n = resolveMirrorMaxPages(env)
+      expect(Number.isInteger(n)).toBe(true)
+      expect(n).toBeGreaterThan(0)
+    }
+  })
+
+  it("the two ceilings bind at the SAME read by construction, so neither is dead code", () => {
+    // The measured argument for the numbers, asserted rather than left in a docblock.
+    //
+    // A record cap BELOW pages x page-size can never let the page ceiling fire; ABOVE it, the
+    // record cap can never fire itself. Set equal, whichever exit reports first is the one that
+    // actually bound — so the operator's remedy names the knob that will change the outcome.
+    expect(DEFAULT_MIRROR_MAX_ENTRIES).toBe(DEFAULT_MAX_PAGES * PAGE_SIZE)
+  })
+
+  it("the default read ceiling clears the EXHAUSTED source size with headroom", () => {
+    // INVERTED, not edited. This assertion read `MEASURED_SOURCE_FLOOR = 21_000` and described a
+    // walk that "reached 21_000 records at 210 pages and was STILL not exhausted". Both halves of
+    // that sentence were true and the number was still wrong as a measurement of the SOURCE:
+    // 21_000 is 210 x 100, i.e. the PROBE'S OWN CEILING. A second probe capped at 500 pages duly
+    // reported "50_000+" for the same reason. Only a walk that terminated with `reason=exhausted`
+    // measured anything: `pages=653 total=65235 elapsed=7090s` (2026-08-04).
+    //
+    // The cost of believing the old figure: the ceiling shipped to fix this very defect was
+    // 40_000, which is BELOW 65_235, so the fail-closed guard would have kept firing on every
+    // scheduled run. Suspect the probe before the source — including your own probe.
+    //
+    // Still pinned as a floor, not an equality: the source grows, and a ceiling sized exactly to
+    // today's measurement starts failing the week it does.
+    const EXHAUSTED_SOURCE_SIZE = 65_235
+    expect(DEFAULT_MAX_PAGES * PAGE_SIZE).toBeGreaterThan(EXHAUSTED_SOURCE_SIZE)
+    // 100 is the source's HARD maximum page size, not a number chosen here: limit=100 returns
+    // 100, and limit=101/200/500/999 are all refused with HTTP 422.
+    expect(PAGE_SIZE).toBe(100)
+  })
+
+  it("the ceiling stays REACHABLE inside the ingest job's pinned wall-clock budget", () => {
+    // The upper bound, and the one that had no control at all. Everything above this test bounds
+    // the ceiling from BELOW — clear the source or every run truncates. Nothing bounded it from
+    // above, and above is where the failure is silent: a ceiling the job cannot reach before the
+    // runner kills it is not the limit that binds. The TIMEOUT is. And a timeout truncates without
+    // a word — the process dies, no `MirrorIncompleteError` is constructed, `assertMirrorComplete`
+    // never runs, and the fail-closed guard this whole file feeds is simply bypassed.
+    //
+    // So "raise the cap for headroom" is not a free move: past the budget it DISABLES the guard.
+    // At 2000 pages the arithmetic below lands at ≈362 min, over both the pin and GitHub's own
+    // 360-min job maximum, and no assertion in the repo would have noticed.
+    //
+    // Throughput is measured, not assumed: 7090s / 653 pages ≈ 10.9 s/page against this source.
+    const MEASURED_SECONDS_PER_PAGE = 7090 / 653
+    const budgetMinutes = ingestJobTimeoutMinutes()
+    const worstCaseMinutes = (DEFAULT_MAX_PAGES * MEASURED_SECONDS_PER_PAGE) / 60
+
+    expect(worstCaseMinutes).toBeLessThan(budgetMinutes)
+    // And the pin itself must stay inside the platform's ceiling, or it is decorative: GitHub
+    // kills the job at 360 whatever the file says.
+    expect(budgetMinutes).toBeLessThanOrEqual(360)
+  })
+})
+
+/**
+ * `timeout-minutes` on the `ingest` job, read from the workflow rather than duplicated here.
+ *
+ * Read, not copied, because a copy is what the test would then be checking. The number is
+ * load-bearing for the cap argument above, and the failure it guards against is a future edit that
+ * raises the ceiling without re-reading the budget — which a second hardcoded 300 could not see.
+ *
+ * Throws when the key is ABSENT rather than defaulting to GitHub's 360. Inheriting the platform
+ * default is exactly the state this batch found and fixed: the ceiling was argued against a limit
+ * no line in the repo stated.
+ */
+function ingestJobTimeoutMinutes(): number {
+  const wf = readFileSync(
+    resolve(dirname(fileURLToPath(import.meta.url)), "..", "..", "..", ".github", "workflows", "trust-ingest.yml"),
+    "utf8",
+  )
+    // CRLF normalized at the READ. `git check-attr text eol -- .github/workflows/trust-ingest.yml`
+    // reports `unspecified`, so a Windows checkout can hold `\r\n` — the unpinned-newline shape
+    // that already cost one windows-only red leg in this workstream.
+    .replace(/\r\n/g, "\n")
+  const m = /^\s*timeout-minutes:\s*(\d+)\s*$/m.exec(wf)
+  if (m === null) {
+    throw new Error(
+      "trust-ingest.yml pins no timeout-minutes — the mirror's page ceiling is argued against " +
+        "that budget, and without it the job silently inherits GitHub's 360-minute maximum",
+    )
+  }
+  return Number(m[1])
+}
+
 // ── the ingest bin does not bake (R-2, §16.2) ──────────────────────────────────
 
 describe("refreshSnapshot measures; it does not write the served tree (controls #7, #8)", () => {
@@ -229,7 +369,19 @@ describe("refreshSnapshot measures; it does not write the served tree (controls 
       resolve(dirname(fileURLToPath(import.meta.url)), "..", "src", "refreshSnapshot.ts"),
       "utf8",
     )
-    return src.replace(/\/\*[\s\S]*?\*\//g, "").replace(/(^|[^:])\/\/.*$/gm, "$1")
+    // CRLF normalized at the READ, so this function's output does not depend on the checkout.
+    // `git check-attr text eol` reports `unspecified` for `refreshSnapshot.ts`, which is the
+    // shape that cost a windows-only red leg once already.
+    //
+    // MEASURED, and stated precisely rather than as a scare: today's assertions survive CRLF
+    // unnormalized, because `indexOf("\n    })")` finds the `\n` inside `\r\n`. What is NOT
+    // stable is the stripped output itself — `.*$` matches `\r`, so comment lines lose theirs
+    // while code lines keep them, leaving mixed endings. Normalizing removes the coincidence
+    // this currently rests on.
+    return src
+      .replace(/\r\n/g, "\n")
+      .replace(/\/\*[\s\S]*?\*\//g, "")
+      .replace(/(^|[^:])\/\/.*$/gm, "$1")
   }
 
   it("references neither writeServedTree nor emitAllCohorts in code", () => {
@@ -255,6 +407,32 @@ describe("refreshSnapshot measures; it does not write the served tree (controls 
     expect(raw).toMatch(/writeServedTree/) // the inverted-assertion record
     expect(ingestCode()).toMatch(/refreshFromMirror/) // the code that stayed
     expect(ingestCode()).toMatch(/describeSourceChange/) // the verdict it now reports
+  })
+
+  it("passes all THREE resolved ceilings into the read — a resolved-but-unpassed knob is dead", () => {
+    // ADDED because negative control #45 stayed GREEN, which is a finding about the harness
+    // and not a pass. Deleting `maxPages,` from the `refreshFromMirror` call left `main()`
+    // resolving the env var and then dropping it, and typecheck plus all 1210 package tests
+    // still passed — because `maxPages` is OPTIONAL on the options type and `main()` is neither
+    // exported nor callable (it opens a real DB and hits the network).
+    //
+    // That is the exact "shipped-not-wired" shape: `MirrorIncompleteError`'s page-cap remedy
+    // names `TRUST_INGEST_MIRROR_MAX_PAGES`, and an operator would set it, see no change, and
+    // have no way to tell the knob from a no-op. Asserted on the CALL SITE rather than on the
+    // resolver, because the resolvers already have their own tests and all six passed while
+    // the wire was cut.
+    const code = ingestCode()
+    const at = code.indexOf("refreshFromMirror({")
+    expect(at).toBeGreaterThan(-1)
+    // The argument object, from `({` to the first line that closes it at the call's indent.
+    const args = code.slice(at, code.indexOf("\n    })", at))
+    for (const wired of ["snapshotMaxEntries: maxEntries", "mirrorMaxEntries,", "maxPages,"]) {
+      expect(args).toContain(wired)
+    }
+    // And each name is the resolver's result, not a literal that happens to share the name.
+    expect(code).toMatch(/const maxEntries = resolveMaxEntries\(process\.env\)/)
+    expect(code).toMatch(/const mirrorMaxEntries = resolveMirrorMaxEntries\(process\.env, maxEntries\)/)
+    expect(code).toMatch(/const maxPages = resolveMirrorMaxPages\(process\.env\)/)
   })
 
   it("still writes the snapshot — only the BAKE was removed", () => {

@@ -4,16 +4,25 @@
  * WHY SYNTHETIC FIXTURES ARE MANDATORY HERE, stated up front because it is the reason this
  * file is shaped the way it is. Measured over the committed 19-entry corpus: raw name 19
  * distinct / 0 collisions · slug 19 / 0 · repositoryUrl 10 non-null / 0 · package identifier
- * 2 / 0 · publisher head 17 / 1 apparent-but-not-a-conflict. So EVERY conflict class is
- * structurally unreachable on real data. A suite that exercised the resolver only through the
- * real snapshot would pass with the conflict branches never entered, and its green would say
- * nothing about them — R-2's control #11 restated: a control that passes when it should fail
- * is a finding about the harness.
+ * 2 / 0 · publisher head 17 / 1 apparent-but-not-a-conflict. A suite that exercised the
+ * resolver only through that snapshot would pass with the conflict branches never entered, and
+ * its green would say nothing about them — R-2's control #11 restated: a control that passes
+ * when it should fail is a finding about the harness.
  *
- * The corpus is still measured (the last describe), because "0 conflicts on real data" is
- * itself a claim that has to be re-measured rather than remembered: if a future snapshot
- * refresh introduced a real collision, the conflict path would start firing in production and
- * this file should be the thing that says so.
+ * ONE SENTENCE HERE IS NOW INVERTED, kept visible because the prediction it got wrong is worth
+ * more than a clean paragraph. It read: "So EVERY conflict class is structurally unreachable on
+ * real data." The measurements are unchanged; their SCOPE was the error. They describe the 19
+ * committed snapshot entries, and identity resolution now runs over the source's full live
+ * cohort (19_739 `active` + `isLatest` names, walked to `reason=exhausted` on 2026-08-04), where
+ * the SLUG class is measured — at least two case-fold pairs, a floor rather than a count.
+ * "Unreachable" was true of the corpus and never of the source; the corpus was the whole world
+ * this package could see at R-3, and the cap raise widened it.
+ *
+ * The remaining four classes are still unexercised by real data, so synthetic input remains
+ * mandatory for them — the reason this file exists is intact, only its universal quantifier is
+ * gone. The corpus is still measured (the last describe), because "0 conflicts on real data"
+ * has to be re-measured rather than remembered; that is precisely the check that would have
+ * caught this drift earlier had it been pointed at the live cohort rather than the snapshot.
  *
  * THREE PLAN CLAIMS THIS FILE CORRECTS BY MEASUREMENT, recorded rather than quietly fixed:
  *

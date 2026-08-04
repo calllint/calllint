@@ -242,8 +242,16 @@ describe("a capped read is refused, never projected (control #12)", () => {
 
     // The message has to name the numbers: an operator's only fix is to raise the cap, and
     // a bare "mirror incomplete" does not say to what.
+    //
+    // UPDATED, not weakened: this asserted `/stopped at the record cap \(2\/2\)/`, a shape that
+    // said WHICH numbers but not WHICH EXIT — and the read now has three, only one of which the
+    // record cap fixes. So the assertion gains what the message gained: the exit is named, and
+    // the remedy is asserted to name the knob for THAT exit rather than any knob.
     await expect(refresh(await freshStore(), payload, { mirrorMaxEntries: 2 })).rejects.toThrow(
-      /stopped at the record cap \(2\/2\)/,
+      /stopped at the record-cap limit \(2 records read, cap 2\)/,
+    )
+    await expect(refresh(await freshStore(), payload, { mirrorMaxEntries: 2 })).rejects.toThrow(
+      /TRUST_INGEST_MIRROR_MAX_ENTRIES/,
     )
   })
 
@@ -279,7 +287,11 @@ describe("a capped read is refused, never projected (control #12)", () => {
     expect(result.snapshot.count).toBe(2)
   })
 
-  it("capReached is derived from the record count, and assertMirrorComplete reads only it", async () => {
+  it("capReached is REPORTED by the adapter, with the count as a conservative fallback", async () => {
+    // RETITLED, because the old title ("capReached is derived from the record count") became
+    // false and a false title is worse than a missing one — it describes the very derivation
+    // that made the page-cap and cursor-repeat exits invisible. `capReached` is now the
+    // adapter's report OR the count test, and this case is the one where BOTH are true.
     const store = await freshStore()
     const sync = await syncSource({
       store,
@@ -296,6 +308,7 @@ describe("a capped read is refused, never projected (control #12)", () => {
     // the cap and equality is the whole condition.
     expect(sync.records).toBe(2)
     expect(sync.capReached).toBe(true)
+    expect(sync.truncationReason).toBe("record-cap")
     expect(() => assertMirrorComplete(sync, 2)).toThrow(MirrorIncompleteError)
     try {
       assertMirrorComplete(sync, 2)
@@ -307,6 +320,61 @@ describe("a capped read is refused, never projected (control #12)", () => {
       expect((err as Error).name).toBe("MirrorIncompleteError")
     }
     expect(() => assertMirrorComplete({ ...sync, capReached: false }, 2)).not.toThrow()
+  })
+
+  it("refuses a read truncated by the PAGE ceiling, whose record count is nowhere near the cap", async () => {
+    // The control the old derivation could not pass, stated as an end-to-end refusal rather than
+    // a unit assertion on `capReached`.
+    //
+    // MEASURED, and this is why the workflow's fail-closed guard was worth fixing before raising
+    // any number: 5 pages x 1 record against a 1000-record cap yields 5 records, and
+    // `records.length >= maxEntries` is 5 >= 1000 — FALSE. So the read reported itself complete,
+    // `assertMirrorComplete` let it through, and `projectSnapshot` filtered-sorted-sliced a cohort
+    // out of 5 records of an unbounded source. A short snapshot is well-formed, passes every
+    // schema check, and is undetectable without the source.
+    const store = await freshStore()
+    let n = 0
+    const fetchImpl = (async () => {
+      n += 1
+      // A fresh cursor forever: the record cap can never bind, only the page ceiling can.
+      return {
+        ok: true,
+        status: 200,
+        json: async () => ({ servers: [item(`io.page/s${n}`)], metadata: { nextCursor: `c${n}` } }),
+      }
+    }) as unknown as typeof fetch
+
+    await expect(
+      refreshFromMirror({
+        store,
+        adapter: createOfficialRegistryAdapter(ENDPOINT),
+        fetchImpl,
+        now: T0,
+        endpoint: ENDPOINT,
+        snapshotMaxEntries: 25,
+        mirrorMaxEntries: 1000,
+        maxPages: 5,
+        mode: "full",
+      }),
+    ).rejects.toThrow(MirrorIncompleteError)
+
+    expect(n).toBe(5)
+
+    // The remedy must name the PAGE knob. "Raise the record cap" is actively misleading here —
+    // the record cap was not what bound the read, and raising it changes nothing.
+    await expect(
+      refreshFromMirror({
+        store: await freshStore(),
+        adapter: createOfficialRegistryAdapter(ENDPOINT),
+        fetchImpl,
+        now: T0,
+        endpoint: ENDPOINT,
+        snapshotMaxEntries: 25,
+        mirrorMaxEntries: 1000,
+        maxPages: 5,
+        mode: "full",
+      }),
+    ).rejects.toThrow(/TRUST_INGEST_MIRROR_MAX_PAGES/)
   })
 })
 

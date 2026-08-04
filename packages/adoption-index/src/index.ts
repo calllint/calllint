@@ -91,7 +91,7 @@ export type {
   StoredArtifactVersion,
   ArtifactResolutionWrite,
 } from "./storage/store.js"
-export { AdoptionIndexStore, sourceRecordRowId, subjectIdentityDigest } from "./storage/store.js"
+export { AdoptionIndexStore, sourceRecordRowId, subjectIdentityDigest, subjectSlugRow } from "./storage/store.js"
 
 // Identity (§7.1, §8.1) — the pure resolver, written by R-3.
 export type { ResolveIdentityOptions, ResolveIdentityResult } from "./identity/resolveIdentity.js"
@@ -109,11 +109,20 @@ export {
 } from "./identity/resolveIdentity.js"
 
 // Sources (§9.3, §9.4)
-export type { SourceAdapter, SourceSyncContext, SyncOutcome } from "./sources/sourceAdapter.js"
+export type {
+  SourceAdapter,
+  SourceSyncContext,
+  SyncOutcome,
+  // Exported because `SyncSourceResult.truncationReason` is part of the public shape: a caller
+  // that switches on it needs the union, and re-deriving the three string literals at each call
+  // site is how a fourth exit gets missed.
+  SyncTruncationReason,
+} from "./sources/sourceAdapter.js"
 export {
   OFFICIAL_REGISTRY_SOURCE_ID,
   DEFAULT_ENDPOINT,
   DEFAULT_MAX_PAGES,
+  PAGE_SIZE,
   OVERLAP_WINDOW_MS,
   createOfficialRegistryAdapter,
   toSourceRecord,

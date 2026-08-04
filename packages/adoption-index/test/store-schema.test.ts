@@ -89,8 +89,13 @@ describe("canonical DDL (§10.2, control #7)", () => {
     const cwd = tempCwd()
     const store = await openAt(cwd)
     try {
-      expect(store.schemaVersion()).toEqual([1])
-      expect(store.appliedMigrations.map((m) => m.filename)).toEqual(["001-canonical-adoption-graph.sql"])
+      // Both migrations, in order. 002 is the nullable-`canonical_slug` rebuild; `schemaVersion()`
+      // reports the applied ids, so it moves with the set rather than being pinned to R-1's one.
+      expect(store.schemaVersion()).toEqual([1, 2])
+      expect(store.appliedMigrations.map((m) => m.filename)).toEqual([
+        "001-canonical-adoption-graph.sql",
+        "002-nullable-canonical-slug.sql",
+      ])
     } finally {
       store.close()
     }
@@ -109,7 +114,9 @@ describe("canonical DDL (§10.2, control #7)", () => {
       // The re-open applied NOTHING — that is what "self-migrating on open" must mean for
       // every open after the first, and an empty list is the only honest evidence of it.
       expect(second.appliedMigrations).toHaveLength(0)
-      expect(second.schemaVersion()).toEqual([1])
+      // The DURABLE set is still both, which is the distinction this test turns on: nothing was
+      // applied on re-open, and everything that was ever applied is still recorded.
+      expect(second.schemaVersion()).toEqual([1, 2])
       expect(second.tableNames()).toEqual(before)
     } finally {
       second.close()
@@ -161,15 +168,84 @@ describe("migration discipline (forward-only, digest-pinned)", () => {
    */
   const CANONICAL_MIGRATION_DIGEST = "sha256:4ac16f9636b2fadcbbd947db52ecc8f213462d7f62a16066396fae563dc701b7"
 
-  it("pins the shipped migration's digest to its value, so an in-place edit fails HERE", () => {
+  /**
+   * 002's digest, pinned the same way and for the same reason — THE DELIBERATE VISIT the
+   * assertion below asked for.
+   *
+   * `CANONICAL_MIGRATION_DIGEST` above is UNMOVED, and that is the substance of "forward-only"
+   * rather than a courtesy: 001's bytes are still exactly the bytes that were reviewed in R-1,
+   * and any store that already applied them still opens. Had the nullable-slug fix been an edit
+   * to 001 instead of a new file, this constant would have had to move, every existing store
+   * would throw on `applyMigrations`' pre-check, and the pin's whole purpose — moving that
+   * failure to the edit — would have been discharged by rewriting the expectation.
+   */
+  const NULLABLE_SLUG_MIGRATION_DIGEST = "sha256:5871598f4147384b0344b80c9534676b118212155f68c37ee23da1a20d9311d5"
+
+  it("pins each shipped migration's digest to its value, so an in-place edit fails HERE", () => {
     const migrations = loadMigrations(MIGRATIONS_DIR)
-    // One migration today. Asserted so that adding 002 — which is legitimate, forward-only —
-    // forces a deliberate visit to this pin rather than silently widening what it covers.
-    expect(migrations.map((m) => m.filename)).toEqual(["001-canonical-adoption-graph.sql"])
+    // TWO migrations today. Still asserted by exact list, so a third forces the same deliberate
+    // visit rather than silently widening what this pin covers.
+    expect(migrations.map((m) => m.filename)).toEqual([
+      "001-canonical-adoption-graph.sql",
+      "002-nullable-canonical-slug.sql",
+    ])
     expect(migrations[0]!.digest).toBe(CANONICAL_MIGRATION_DIGEST)
+    expect(migrations[1]!.digest).toBe(NULLABLE_SLUG_MIGRATION_DIGEST)
   })
 
-  it("is stored LF-only with a trailing newline (the .gitattributes pin, verified)", () => {
+  it("leaves canonical_slug NULLABLE but still UNIQUE after 002 — the DDL, read back", async () => {
+    // The shape 002 exists to produce, asserted against the LIVE schema rather than against the
+    // migration text. Reading the file back would only prove the file says what it says; the
+    // question is what the rebuilt table ended up as, and a twelve-step rebuild is exactly the
+    // operation that can drop a constraint by omission. No other test in this package asserts a
+    // column's nullability, so without this one the two halves of the fix — nullable AND unique —
+    // are only ever verified together by the collision tests, where either could be carrying it.
+    const db = await openBetterSqlite3(":memory:")
+    try {
+      applyMigrations(db, loadMigrations(MIGRATIONS_DIR), NOW)
+
+      const cols = db.prepare("PRAGMA table_info(canonical_subjects)").all() as {
+        name: string
+        notnull: number
+        pk: number
+      }[]
+      const slug = cols.find((c) => c.name === "canonical_slug")
+      expect(slug).toBeDefined()
+      // NULLABLE — the single byte of difference from 001.
+      expect(slug!.notnull).toBe(0)
+      // And NOTHING ELSE moved: same eight columns, same order, same nullability, same PK. A
+      // rebuild that silently reordered or relaxed a second column would pass a nullability-only
+      // check, and column order is load-bearing here because 002's INSERT names both sides.
+      expect(cols.map((c) => [c.name, c.notnull, c.pk])).toEqual([
+        ["subject_id", 0, 1],
+        ["canonical_name", 1, 0],
+        ["canonical_slug", 0, 0],
+        ["display_name", 1, 0],
+        ["identity_status", 1, 0],
+        ["identity_digest", 1, 0],
+        ["first_seen_at", 1, 0],
+        ["last_seen_at", 1, 0],
+      ])
+
+      // STILL UNIQUE. Asserted by BEHAVIOUR, not by reading the DDL text: two NULLs are accepted
+      // (SQLite treats them as distinct) while a duplicate non-NULL is still refused. That pair
+      // is the entire premise of the fix, and it is a property of the sqlite build rather than of
+      // anything in this repo — so it is measured against the pinned driver, not assumed.
+      const ins = db.prepare(
+        "INSERT INTO canonical_subjects (subject_id, canonical_name, canonical_slug, display_name," +
+          " identity_status, identity_digest, first_seen_at, last_seen_at)" +
+          " VALUES (?, ?, ?, 'd', 'CONFLICT', 'sha256:x', ?, ?)",
+      )
+      ins.run("s1", "A.B/C", null, NOW, NOW)
+      ins.run("s2", "a.b/c", null, NOW, NOW)
+      expect(() => ins.run("s3", "keeps-uniqueness", "taken", NOW, NOW)).not.toThrow()
+      expect(() => ins.run("s4", "wants-the-same", "taken", NOW, NOW)).toThrow(/UNIQUE constraint failed/)
+    } finally {
+      db.close()
+    }
+  })
+
+  it("is stored LF-only with a trailing newline, for EVERY migration (the .gitattributes pin)", () => {
     // The pin above is only well-defined for ONE newline shape, and this is where that shape
     // is measured rather than assumed. Migrations are the one place in the repo where a
     // source file's BYTES are a durable identifier: the digest goes into `schema_migrations`
@@ -182,9 +258,17 @@ describe("migration discipline (forward-only, digest-pinned)", () => {
     // eol pin (`git check-attr text` → `unspecified`). `ci:local` cannot see that on an LF
     // working copy by construction, which is why the consequence is asserted here — a pin no
     // gate reads is itself unguarded.
-    const bytes = readFileSync(join(MIGRATIONS_DIR, "001-canonical-adoption-graph.sql"), "utf8")
-    expect(bytes).not.toContain("\r")
-    expect(bytes.endsWith("\n")).toBe(true)
+    //
+    // ITERATES the migration set rather than naming 001, extended when 002 landed: the failure
+    // mode is a property of "a migration's bytes are its identity", so it applies to every file
+    // in the directory and a per-file check would leave each new one unguarded until someone
+    // remembered. `.gitattributes:103` pins the directory — verified `text: set, eol: lf` for
+    // both files — and this asserts the consequence rather than trusting the pin.
+    for (const m of loadMigrations(MIGRATIONS_DIR)) {
+      const bytes = readFileSync(join(MIGRATIONS_DIR, m.filename), "utf8")
+      expect(bytes, m.filename).not.toContain("\r")
+      expect(bytes.endsWith("\n"), m.filename).toBe(true)
+    }
   })
 
   it("rejects a migration edited after it was applied", async () => {

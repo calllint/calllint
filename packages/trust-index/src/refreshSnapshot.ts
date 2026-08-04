@@ -26,7 +26,7 @@
  * into `installFiles` — and false of everything else.
  *
  * It never shipped a wrong page for one reason, and it is an accident of ORDERING rather
- * than a safeguard: `.github/workflows/trust-ingest.yml:49-53` runs `ingest:trust-index`,
+ * than a safeguard: `.github/workflows/trust-ingest.yml` runs `ingest:trust-index`,
  * then `resolve-evidence:trust-index`, then `bake:trust-index`, and `writeServedTree`
  * `rmSync`s both roots before writing — so the stripped bytes were deleted and rewritten
  * by the correct bin seconds later, inside the same job. The two committed-tree gates
@@ -69,6 +69,7 @@
  * Usage:  tsx packages/trust-index/src/refreshSnapshot.ts
  *   env:  TRUST_INGEST_NOW (ISO-8601, optional) pins fetchedAt for a reproducible run
  *         TRUST_INGEST_MIRROR_MAX_ENTRIES (optional) raises the raw-read ceiling
+ *         TRUST_INGEST_MIRROR_MAX_PAGES (optional) raises the page-count ceiling
  *         TRUST_INGEST_ARTIFACTS (optional) `0` skips artifact resolution entirely
  */
 import { mkdirSync, writeFileSync } from "node:fs"
@@ -86,6 +87,7 @@ import {
   resolveIndexPaths,
   describeSourceChange,
   DEFAULT_MIRROR_MAX_ENTRIES,
+  DEFAULT_MAX_PAGES,
   MIGRATIONS_DIRNAME,
 } from "@calllint/adoption-index"
 import { DEFAULT_ENDPOINT, DEFAULT_MAX_ENTRIES } from "./fetchRegistry.js"
@@ -147,6 +149,30 @@ export function resolveMirrorMaxEntries(
 }
 
 /**
+ * Resolve the PAGE-COUNT ceiling — the third bound on a read, and the one that had no knob.
+ *
+ * A read stops at whichever of three limits it reaches first: the served-cohort cap, the
+ * raw-record cap, or this. The first two were already operator-settable; this one was a bare
+ * constant, so an operator facing a page-ceiling truncation had no env var to raise and the
+ * only remedy was a code change. That asymmetry is what this closes — `MirrorIncompleteError`
+ * now names `TRUST_INGEST_MIRROR_MAX_PAGES` in its `page-cap` remedy, and a remedy that names
+ * a knob the operator does not have is not a remedy.
+ *
+ * Fails SAFE identically to the two caps above: missing, blank, non-integer, zero or negative
+ * falls back to `DEFAULT_MAX_PAGES` rather than reading unbounded. There is deliberately NO
+ * inequality to enforce here — unlike the record cap, which must stay strictly above the
+ * snapshot cap or the snapshot can never fill, a page count has no fixed relationship to a
+ * record count, since the records-per-page is the source's choice and not ours.
+ */
+export function resolveMirrorMaxPages(env: Record<string, string | undefined>): number {
+  const raw = env.TRUST_INGEST_MIRROR_MAX_PAGES
+  if (raw == null || raw.trim() === "") return DEFAULT_MAX_PAGES
+  const n = Number(raw)
+  if (!Number.isInteger(n) || n <= 0) return DEFAULT_MAX_PAGES
+  return n
+}
+
+/**
  * Whether this run resolves artifacts (R-4).
  *
  * Defaults ON, which is the opposite polarity from the two caps above, and the asymmetry is
@@ -181,6 +207,7 @@ async function main(): Promise<void> {
   const now = process.env.TRUST_INGEST_NOW || new Date().toISOString()
   const maxEntries = resolveMaxEntries(process.env)
   const mirrorMaxEntries = resolveMirrorMaxEntries(process.env, maxEntries)
+  const maxPages = resolveMirrorMaxPages(process.env)
 
   // 1. Mirror the full source into the adoption index, then project the snapshot from it
   //    (the only network step). The store self-migrates on open, so a cold CI checkout —
@@ -217,6 +244,7 @@ async function main(): Promise<void> {
       endpoint: DEFAULT_ENDPOINT,
       snapshotMaxEntries: maxEntries,
       mirrorMaxEntries,
+      maxPages,
       mode: "full",
       ...(artifactPort === undefined ? {} : { artifactPort }),
     })
@@ -234,7 +262,9 @@ async function main(): Promise<void> {
   // 3. REPORT the change verdict. This bin measures; it does not rebuild. `bake.ts` is the
   //    one bin that bakes, because it is the one that loads the COMPLETE input set (claims,
   //    evidence, presentation), and the workflow already runs it on the next line
-  //    (`trust-ingest.yml:53`). The verdict is stdout, not an exit code: a run that mirrored
+  //    (`trust-ingest.yml`, the `bake:trust-index` step — named rather than numbered, because
+  //    this batch's own edit to that file shifted the lines a `:53` used to point at). The
+  //    verdict is stdout, not an exit code: a run that mirrored
   //    successfully and found nothing changed SUCCEEDED, and reporting that as a failure
   //    would make the common case red.
   const change = mirrored.change
