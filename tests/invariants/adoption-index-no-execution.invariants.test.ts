@@ -335,7 +335,14 @@ describe("ADR 0061 §2 — the dependency SET is the enforcement mechanism", () 
     // The manifest states intent; the lockfile states what `pnpm install` will actually place in
     // `node_modules`. Asserting only the manifest would miss a lockfile that resolved a
     // transitive execution helper into this importer's own dependency block.
-    const lock = readFileSync(join(repoRoot, "pnpm-lock.yaml"), "utf8")
+    // NEWLINES ARE NORMALIZED ONCE, HERE. `pnpm-lock.yaml` is not covered by a `.gitattributes`
+    // `eol=lf` rule, so a Windows checkout materializes it with CRLF while ubuntu/macos see LF.
+    // Every structural match below is anchored on "\n", so reading the raw bytes makes this gate
+    // pass on two of three CI legs and fail on the third — which is what it did: `expected -1 to
+    // be greater than -1` on windows-latest only. Normalizing at the single read is preferred over
+    // making each pattern CRLF-tolerant, because the next assertion added here would otherwise
+    // have to remember to be.
+    const lock = readFileSync(join(repoRoot, "pnpm-lock.yaml"), "utf8").replace(/\r\n/g, "\n")
     const start = lock.indexOf("\n  packages/adoption-index:\n")
     expect(start, "the lockfile must carry an importer entry for this package").toBeGreaterThan(-1)
     // The importer's own block runs to the next top-level `  <path>:` key at the same indent.
