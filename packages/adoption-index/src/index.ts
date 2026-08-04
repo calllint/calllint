@@ -51,6 +51,13 @@ export {
   assertConflictParticipants,
 } from "./domain/subject.js"
 export {
+  ARTIFACT_TRANSITIONS,
+  ARTIFACT_RESOLUTION_INPUT_STATUSES,
+  isTerminalArtifactStatus,
+  canTransitionArtifact,
+  assertArtifactTransition,
+} from "./domain/artifactTransitions.js"
+export {
   TERMINAL_CHECKPOINT_STATUSES,
   isTerminalCheckpointStatus,
   assertUsableCheckpoint,
@@ -61,7 +68,14 @@ export {
 export type { SqliteDatabase, SqliteDriver, SqliteStatement } from "./storage/driver.js"
 export { openBetterSqlite3 } from "./storage/driver.js"
 export type { IndexPaths } from "./storage/paths.js"
-export { INDEX_ROOT_DIRNAME, INDEX_SUBDIRS, resolveIndexPaths, isInsideRoot } from "./storage/paths.js"
+export {
+  INDEX_ROOT_DIRNAME,
+  INDEX_SUBDIRS,
+  resolveIndexPaths,
+  isInsideRoot,
+  casBlobPath,
+  casStagingPath,
+} from "./storage/paths.js"
 export type { Migration, AppliedMigration } from "./storage/migrate.js"
 export { loadMigrations, applyMigrations, readAppliedMigrations } from "./storage/migrate.js"
 export type {
@@ -75,6 +89,7 @@ export type {
   StoredSubjectAlias,
   StoredIdentityConflict,
   StoredArtifactVersion,
+  ArtifactResolutionWrite,
 } from "./storage/store.js"
 export { AdoptionIndexStore, sourceRecordRowId, subjectIdentityDigest } from "./storage/store.js"
 
@@ -124,6 +139,49 @@ export {
   DEFAULT_MIRROR_MAX_ENTRIES,
   DEFAULT_SOURCE_ID,
 } from "./operations/refreshFromMirror.js"
+
+// Artifacts (§10, ADR 0061 §2) — R-4. Registry metadata reads and artifact DOWNLOADS only;
+// nothing here executes, extracts, or installs what it describes.
+export type {
+  ArtifactAdapter,
+  ArtifactAdapterRegistry,
+  ArtifactFetchContext,
+  ArtifactMetadata,
+  ArtifactMetadataFailure,
+  ArtifactMetadataResult,
+} from "./artifacts/artifactAdapter.js"
+export { createAdapterRegistry } from "./artifacts/artifactAdapter.js"
+export type {
+  IntegrityAlgorithm,
+  IntegrityClaim,
+  IntegrityClaimParse,
+  IntegrityClaimRejection,
+  IntegrityVerification,
+} from "./artifacts/integrityClaim.js"
+export {
+  SUPPORTED_INTEGRITY_ALGORITHMS,
+  parseIntegrityClaim,
+  verifyBytesAgainstClaim,
+} from "./artifacts/integrityClaim.js"
+export type { TarEntry, TarInspectCaps, TarInspection, TarRefusal } from "./artifacts/tarInspect.js"
+export { inspectTarball, normalizeEntryPath, DEFAULT_TAR_CAPS } from "./artifacts/tarInspect.js"
+export type { CasWriteAccepted, CasWriteRefused, CasWriteResult } from "./artifacts/cas.js"
+export { verifyAndStore, existsAsFile } from "./artifacts/cas.js"
+export type { ArtifactDownload } from "./artifacts/npmArtifactAdapter.js"
+export { npmArtifactAdapter, downloadArtifact, NPM_REGISTRY } from "./artifacts/npmArtifactAdapter.js"
+export type {
+  ArtifactResolutionOutcome,
+  ArtifactResolutionRecord,
+  ArtifactResolutionSummary,
+  ResolveArtifactsInput,
+} from "./operations/resolveArtifacts.js"
+export {
+  resolveArtifacts,
+  describeArtifactResolution,
+  DEFAULT_REQUEST_TIMEOUT_MS,
+  DEFAULT_MAX_ARTIFACT_BYTES,
+  DEFAULT_MAX_ARTIFACTS,
+} from "./operations/resolveArtifacts.js"
 
 // Projections
 export type {

@@ -27,6 +27,7 @@ import {
   type CheckpointStatus,
   type SourceCheckpoint,
 } from "../domain/checkpoint.js"
+import { assertArtifactTransition } from "../domain/artifactTransitions.js"
 import type { SourceRecordV1 } from "../domain/sourceRecord.js"
 import type {
   ArtifactStatus,
@@ -70,12 +71,42 @@ export interface PersistIdentityResult {
   conflicts: number
 }
 
+/**
+ * One artifact's resolution outcome, as R-4 records it.
+ *
+ * Exactly the four columns `CHANGELOG.md` names as R-4's write surface, plus the status. Nothing
+ * about identity is in here: `subject_id`, `package_type`, `package_identifier`, `version` and
+ * `source_locator` belong to R-3 and this write must not touch them, or the row's
+ * `artifact_version_id` — derived from four of those — would stop being derivable from the row.
+ */
+export interface ArtifactResolutionWrite {
+  artifactVersionId: string
+  /** The status this artifact moves TO. Validated against the transition table before writing. */
+  artifactStatus: ArtifactStatus
+  /** `sha256:<hex>` of the verified bytes, or null when no bytes were accepted. */
+  immutableDigest: string | null
+  /** The registry's claim, verbatim as stated, or null when it stated none. */
+  registryIntegrity: string | null
+  /** The CAS key of the stored blob (equal to `immutableDigest`), or null. */
+  cacheKey: string | null
+  /**
+   * When this artifact was last VERIFIED — set only on `FETCHED`.
+   *
+   * Deliberately not "when we last tried". A failed attempt must not refresh it, because a
+   * freshness calculator reading this column asks "how stale is what we hold", and a run of
+   * 404s would otherwise report a stale blob as freshly verified. `UNAVAILABLE`/`REJECTED`
+   * therefore pass null and the previous value is preserved (see `updateArtifactResolution`).
+   */
+  lastVerifiedAt: string | null
+}
+
 /** The write surface available inside a transaction. */
 export interface AdoptionIndexTx {
   persistSourceRecords(records: SourceRecordV1[], seenAt: string): PersistResult
   advanceCheckpoint(next: SourceCheckpoint): void
   readCheckpoint(sourceId: string): SourceCheckpoint
   persistIdentity(identity: ResolvedIdentityWrite): PersistIdentityResult
+  updateArtifactResolution(write: ArtifactResolutionWrite): void
 }
 
 /**
@@ -160,7 +191,59 @@ export class AdoptionIndexStore {
       advanceCheckpoint: (next) => this.writeCheckpoint(next),
       readCheckpoint: (sourceId) => this.readCheckpoint(sourceId),
       persistIdentity: (identity) => this.persistIdentity(identity),
+      updateArtifactResolution: (write) => this.updateArtifactResolution(write),
     }
+  }
+
+  /**
+   * Record one artifact's resolution outcome: R-4's four columns and the status.
+   *
+   * Reachable only through `transaction`, like every other write. The transaction here is per
+   * ARTIFACT rather than per cohort, because artifact resolution is a network loop: one slow or
+   * failing artifact must not roll back the outcomes already established for the others.
+   *
+   * The status transition is validated INSIDE the transaction, against
+   * `domain/artifactTransitions.ts`, by reading the current row first. That read is the reason
+   * `REJECTED` can be terminal at all — without it, "refuse to move away from REJECTED" would be
+   * a claim about the caller's control flow rather than a property of the store, and a second
+   * caller (or a re-run) could quietly heal a digest mismatch. Control #25 widens the table and
+   * observes exactly that.
+   *
+   * `last_verified_at` uses `COALESCE(?, last_verified_at)` so a null from a failed attempt
+   * PRESERVES the previous verification time instead of erasing it. The other three columns are
+   * overwritten unconditionally: they describe the bytes we currently hold, and on a rejection we
+   * hold none, so nulling them is the accurate record.
+   */
+  private updateArtifactResolution(write: ArtifactResolutionWrite): void {
+    const current = this.db
+      .prepare("SELECT artifact_status AS artifactStatus FROM artifact_versions WHERE artifact_version_id = ?")
+      .all(write.artifactVersionId) as { artifactStatus: ArtifactStatus }[]
+    const row = current[0]
+    if (row === undefined) {
+      // Throwing rather than inserting: an artifact row is R-3's to create, and an id that does
+      // not exist means the resolver was handed something the identity layer never wrote.
+      throw new Error(`artifact "${write.artifactVersionId}" has no row to update`)
+    }
+    assertArtifactTransition(row.artifactStatus, write.artifactStatus, write.artifactVersionId)
+
+    this.db
+      .prepare(
+        `UPDATE artifact_versions
+            SET artifact_status = ?,
+                immutable_digest = ?,
+                registry_integrity = ?,
+                cache_key = ?,
+                last_verified_at = COALESCE(?, last_verified_at)
+          WHERE artifact_version_id = ?`,
+      )
+      .run(
+        write.artifactStatus,
+        write.immutableDigest,
+        write.registryIntegrity,
+        write.cacheKey,
+        write.lastVerifiedAt,
+        write.artifactVersionId,
+      )
   }
 
   /**
@@ -175,6 +258,17 @@ export class AdoptionIndexStore {
    *
    * All four writes are upserts on the canonical primary keys, so replaying the same cohort
    * is idempotent — every id is `hashJson`-derived, so the same input yields the same keys.
+   *
+   * That idempotence is exactly why the artifact upsert may NOT assign `artifact_status`
+   * unconditionally. `artifactVersionId` hashes `{subjectId, packageType, packageIdentifier,
+   * version}`, and `resolveIdentity` derives the status from `packageType` alone — so on
+   * conflict `excluded.artifact_status` is always the same value this row was created with.
+   * Assigning it is therefore a no-op for a row R-3 still owns, and a CLOBBER for one R-4 has
+   * since moved to `FETCHED`/`UNAVAILABLE`/`REJECTED`: every replay would reset the row to
+   * `RESOLVED` without ever consulting `assertArtifactTransition`, un-rejecting a digest
+   * mismatch and making a cache hit unobservable. The `CASE` narrows the write to the two
+   * statuses the identity layer owns, which keeps `updateArtifactResolution`'s guard the only
+   * path out of them. Control #32 removes the `CASE` and observes a `REJECTED` artifact heal.
    */
   private persistIdentity(identity: ResolvedIdentityWrite): PersistIdentityResult {
     const subject = this.db.prepare(
@@ -219,7 +313,11 @@ export class AdoptionIndexStore {
        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
        ON CONFLICT(artifact_version_id) DO UPDATE SET
          source_locator = excluded.source_locator,
-         artifact_status = excluded.artifact_status`,
+         artifact_status = CASE
+           WHEN artifact_versions.artifact_status IN ('RESOLVED', 'UNSUPPORTED')
+             THEN excluded.artifact_status
+           ELSE artifact_versions.artifact_status
+         END`,
     )
     for (const a of identity.artifacts) {
       artifact.run(

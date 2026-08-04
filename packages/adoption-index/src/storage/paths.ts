@@ -57,6 +57,43 @@ export function resolveIndexPaths(cwd: string): IndexPaths {
 }
 
 /**
+ * The content-addressed path of one verified blob, `cas/blobs/<hex[0:2]>/<hex>`.
+ *
+ * It lives here, and not in the CAS writer, because INV-R7's credibility rests on a single
+ * owner of the layout (see the module docblock) — a writer that joined its own path would put
+ * a write outside the audited set. The two-character fan-out keeps any one directory small
+ * enough that a listing stays cheap at expansion scale.
+ *
+ * `digest` must be this repo's `sha256:<hex>` convention. A digest in any other shape is a
+ * programming error rather than bad input — the only callers are internal, and the digest they
+ * pass is one `sha256Bytes` just produced — so this throws instead of returning a refusal. The
+ * hex is validated because it becomes a path segment: accepting arbitrary text here is what
+ * turns a digest bug into a write outside the root, which is exactly what control #30 checks.
+ */
+export function casBlobPath(root: string, digest: string): string {
+  const hex = digest.startsWith("sha256:") ? digest.slice("sha256:".length) : ""
+  if (!/^[0-9a-f]{64}$/.test(hex)) {
+    throw new Error(`casBlobPath: expected a "sha256:<64 hex>" digest, received ${JSON.stringify(digest)}`)
+  }
+  return resolve(root, "cas", "blobs", hex.slice(0, 2), hex)
+}
+
+/**
+ * The staging path a blob is written to before it is renamed into place.
+ *
+ * The temp name is the digest itself: deterministic, so no clock and no `Math.random` enter the
+ * store, and idempotent, so two concurrent writes of identical content cannot collide on a name
+ * while carrying different bytes.
+ */
+export function casStagingPath(root: string, digest: string): string {
+  const hex = digest.startsWith("sha256:") ? digest.slice("sha256:".length) : ""
+  if (!/^[0-9a-f]{64}$/.test(hex)) {
+    throw new Error(`casStagingPath: expected a "sha256:<64 hex>" digest, received ${JSON.stringify(digest)}`)
+  }
+  return resolve(root, "work", `${hex}.part`)
+}
+
+/**
  * True when `candidate` is inside `root`. Used by the INV-R7 assertion, and written
  * with `resolve` on both sides so a `..` segment cannot smuggle a path past a plain
  * `startsWith` on unnormalized text.
