@@ -29,7 +29,8 @@
  * would look correct and would be wrong precisely when the source grows.
  */
 import { hashJson } from "@calllint/fingerprint"
-import { AdoptionIndexStore } from "../storage/store.js"
+import { AdoptionIndexStore, type PersistIdentityResult } from "../storage/store.js"
+import { resolveIdentity } from "../identity/resolveIdentity.js"
 import type { SourceAdapter, SourceSyncContext } from "../sources/sourceAdapter.js"
 import { OFFICIAL_REGISTRY_SOURCE_ID } from "../sources/officialRegistry.js"
 import { assertMirrorComplete, syncSource, type SyncSourceResult } from "./syncSource.js"
@@ -90,6 +91,21 @@ export interface RefreshFromMirrorResult {
    * `source_checkpoints.snapshot_digest` and compared on the next run.
    */
   snapshotDigest: string
+  /**
+   * What identity resolution CONCLUDED this run, and what reached the store (R-3).
+   *
+   * `conflicts > 0` is not a warning: each conflict is a refusal to merge, its subjects are
+   * `CONFLICT` (terminal), and none of them contributed an artifact row. So `subjects` and
+   * `artifacts` do not track each other when a collision occurs — by design.
+   */
+  identity: {
+    subjects: number
+    conflicts: number
+    artifacts: number
+    aliases: number
+    /** Row counts as written, from the store's own report rather than from the resolver's. */
+    persisted: PersistIdentityResult
+  }
 }
 
 /**
@@ -173,14 +189,52 @@ export async function refreshFromMirror(opts: RefreshFromMirrorOptions): Promise
   const absentFromSource = [...subjectsBefore].filter((id) => !sync.observedNativeIds.has(id)).sort()
 
   const snapshotDigest = cohortDigest(snapshot)
-  const change = detectSourceChange({ priorSnapshotDigest, nextSnapshotDigest: snapshotDigest, absentFromSource })
+
+  // IDENTITY RESOLUTION RUNS HERE — after the projection, and never upstream of it (R-3).
+  //
+  // WHAT ACTUALLY PROTECTS THE PROJECTION IS DATA FLOW, NOT LINE ORDER. This comment first
+  // claimed the ordering was "asserted by a control that moves it". Measured: moving this call
+  // above `projectSnapshot` leaves all 44 tests in `refresh-from-mirror` +
+  // `snapshot-projection` GREEN. It has to. `resolveIdentity` is pure, `records` is computed
+  // before both call sites, and its return value is never read by the projection — so the two
+  // statements commute and no byte can move. The control as first written was unfalsifiable,
+  // and a green that cannot go red is not evidence (R-2 control #11: a control that passes when
+  // it should fail is a finding about the harness).
+  //
+  // The real invariant, stated so it can be broken: `snapshot` is a function of `records`
+  // ALONE. The committed snapshot feeds a reproducibility gate that byte-compares committed
+  // served bytes against a fresh render, so anything identity concludes must stay downstream.
+  // The falsifiable mutation is therefore a DEPENDENCY, not a reorder — pass any part of
+  // `identity` into `projectSnapshot`'s input (filter `records` by resolved subject, say) and
+  // the byte comparison fails, because 19 entries no longer project 19. That is the shape
+  // `refresh-from-mirror.test.ts` records for control #16.
+  //
+  // Resolution reads the SAME `records` the projection read — the current observation of each
+  // subject, not history — so a subject cannot be concluded from a payload the source has
+  // withdrawn.
+  const identity = resolveIdentity({ records, sourceId: opts.adapter.sourceId, observedAt: opts.now })
+
+  const change = detectSourceChange({
+    priorSnapshotDigest,
+    nextSnapshotDigest: snapshotDigest,
+    absentFromSource,
+    // R-3 flips this grid cell from `null` to a MEASURED boolean. It is true exactly when
+    // this run actually resolved an identity layer — which a skipped run did not, and which is
+    // why `NO_CHANGE` keeps `null` rather than taking `false`.
+    identityResolved: identity.subjects.length > 0,
+  })
 
   // Persist the key AFTER projecting — the digest cannot exist before the cohort does, which
   // is why this is a second checkpoint write rather than a field on `syncSource`'s. It reuses
   // the run's own checkpoint so nothing else on it moves.
+  // The checkpoint and the identity layer commit TOGETHER. A run that advanced the digest but
+  // failed to persist its subjects would report "no change" on the next run — the digest
+  // matches — while the store holds no identity for the cohort that digest describes. One
+  // transaction makes that state unreachable rather than merely unlikely.
   const checkpoint = { ...sync.checkpoint, snapshotDigest }
-  opts.store.transaction((tx) => {
+  const persistedIdentity = opts.store.transaction((tx) => {
     tx.advanceCheckpoint(checkpoint)
+    return tx.persistIdentity(identity)
   })
 
   return {
@@ -194,6 +248,13 @@ export async function refreshFromMirror(opts: RefreshFromMirrorOptions): Promise
     currentSubjects: records.length,
     change,
     snapshotDigest,
+    identity: {
+      subjects: identity.subjects.length,
+      conflicts: identity.conflicts.length,
+      artifacts: identity.artifacts.length,
+      aliases: identity.aliases.length,
+      persisted: persistedIdentity,
+    },
   }
 }
 

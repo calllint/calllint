@@ -61,7 +61,13 @@ export type ChangeReason =
 export interface RebuildScope {
   /** §16.2 source-payload-only ⇒ canonicalize (maybe presentation). Owned by THIS batch. */
   canonicalize: boolean
-  /** identity ⇒ subject/search/projections. Needs `canonical_subjects` — R-3. */
+  /**
+   * identity ⇒ subject/search/projections. RESOLVED, R-3 (do not restore the `null` default).
+   *
+   * Measured, not assumed: it is `true` exactly when the run resolved an identity layer, and
+   * it stays `null` on `NO_CHANGE` — a skipped run resolved nothing, so `false` would assert a
+   * measurement that never happened. That asymmetry is the same one the six tiers below rest on.
+   */
   identity: boolean | null
   /** artifact ⇒ fetch/inspect/evidence/decision/all projections. Needs adapters — R-4. */
   artifact: boolean | null
@@ -85,6 +91,13 @@ export interface SourceChangeInput {
   nextSnapshotDigest: string
   /** Native ids the mirror considers current that this run's stream did NOT contain. */
   absentFromSource: readonly string[]
+  /**
+   * Whether this run actually resolved an identity layer (R-3). OPTIONAL, and absent means
+   * `null` rather than `false`: a caller that cannot measure it must not be able to assert
+   * "no identity rebuild needed" by saying nothing, which is what a non-optional boolean
+   * defaulting to `false` would let it do.
+   */
+  identityResolved?: boolean
 }
 
 export interface SourceChangeVerdict {
@@ -137,23 +150,33 @@ const CANONICALIZE: RebuildScope = Object.freeze({ ...NO_REBUILD, canonicalize: 
  * conservative direction: an unnecessary rebuild costs time, a missed one ships a stale page.
  */
 export function detectSourceChange(input: SourceChangeInput): SourceChangeVerdict {
+  // R-3's tier, resolved once for every CHANGED branch below. `undefined` stays `null`: the
+  // caller could not measure it, and a caller's silence must never read as "nothing to do".
+  // Spread onto a fresh object every time — `CANONICALIZE` is frozen and shared by every
+  // verdict in the process, so assigning onto it would rewrite verdicts already returned.
+  const identity = input.identityResolved ?? null
+  const changedScope: RebuildScope = { ...CANONICALIZE, identity }
+
   if (input.absentFromSource.length > 0) {
     return {
       changed: true,
       reason: "SOURCE_WITHDRAWAL",
-      rebuild: { ...CANONICALIZE },
+      rebuild: { ...changedScope },
       absentFromSource: input.absentFromSource,
     }
   }
 
   if (input.priorSnapshotDigest === null) {
-    return { changed: true, reason: "NO_PRIOR_DIGEST", rebuild: { ...CANONICALIZE }, absentFromSource: [] }
+    return { changed: true, reason: "NO_PRIOR_DIGEST", rebuild: { ...changedScope }, absentFromSource: [] }
   }
 
   if (input.priorSnapshotDigest !== input.nextSnapshotDigest) {
-    return { changed: true, reason: "COHORT_DIGEST_MOVED", rebuild: { ...CANONICALIZE }, absentFromSource: [] }
+    return { changed: true, reason: "COHORT_DIGEST_MOVED", rebuild: { ...changedScope }, absentFromSource: [] }
   }
 
+  // NO_CHANGE keeps `identity: null` from `NO_REBUILD`, deliberately, even when the caller
+  // passed `identityResolved: true`. The run was skipped; nothing about the identity layer was
+  // re-measured, and `false` would be a claim with no measurement behind it.
   return { changed: false, reason: "NO_CHANGE", rebuild: { ...NO_REBUILD }, absentFromSource: [] }
 }
 

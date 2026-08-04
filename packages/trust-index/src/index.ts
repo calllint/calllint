@@ -99,8 +99,10 @@ export {
 } from "./claim.js"
 export {
   registryCohort,
+  registryCollisions,
   registryNameFromSourceLabel,
   type RegistryEntryPlan,
+  type RegistryCollision,
 } from "./registryCohort.js"
 export {
   reconcileClaims,
