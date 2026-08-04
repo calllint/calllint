@@ -513,22 +513,34 @@ describe("the checkpoint is written only after the records (§9.4)", () => {
     // only in the key list below because the key list would still pass if the modifier were
     // dropped — the handle would carry the same name either way.
     expect(storeSrc).toMatch(/^ {2}private persistIdentity\(/m)
+    // R-4's writer likewise. It is the one writer on the handle that does NOT participate in
+    // the checkpoint transaction — `resolveArtifacts` opens one transaction PER ARTIFACT,
+    // because it runs a network loop and holding a single transaction across it would let one
+    // slow artifact roll back the outcomes already established for the others. It is on the
+    // handle anyway, and privately declared, so that the "all SQL lives in store.ts" rule
+    // (§10.3) has no exception carved for it.
+    expect(storeSrc).toMatch(/^ {2}private updateArtifactResolution\(/m)
 
-    // The ordering rule's positive half: the handle carries exactly these FOUR and no
-    // fifth, so a caller inside a transaction cannot reach a wider write surface.
+    // The ordering rule's positive half: the handle carries exactly these FIVE and no
+    // sixth, so a caller inside a transaction cannot reach a wider write surface.
     //
-    // This list was THREE until R-3 and is widened here deliberately, not relaxed. The
-    // assertion's subject is that the write surface is a CLOSED SET enumerated in one place;
-    // R-3 adds `persistIdentity` to it because the identity layer must commit in the same
+    // This list was THREE until R-3, FOUR until R-4, and is widened here deliberately, not
+    // relaxed. The assertion's subject is that the write surface is a CLOSED SET enumerated in
+    // one place; R-3 added `persistIdentity` because the identity layer must commit in the same
     // transaction as the checkpoint that describes it (a digest advanced without its subjects
-    // would report "no change" forever). Growing the list is how a new writer announces
-    // itself; a writer that reached the handle without appearing here is the defect.
+    // would report "no change" forever), and R-4 adds `updateArtifactResolution` because the
+    // four artifact columns are the batch's whole write surface and they must not be reachable
+    // outside a transaction. Growing the list is how a new writer announces itself; a writer
+    // that reached the handle without appearing here is the defect. This assertion CAUGHT R-4's
+    // writer rather than being updated alongside it — it failed on the run that added the fifth
+    // key, which is the behaviour a closed-set pin exists for.
     const keys = store.transaction((tx) => Object.keys(tx).sort())
     expect(keys).toEqual([
       "advanceCheckpoint",
       "persistIdentity",
       "persistSourceRecords",
       "readCheckpoint",
+      "updateArtifactResolution",
     ])
   })
 })

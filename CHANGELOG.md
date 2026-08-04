@@ -12,6 +12,108 @@ onward. While pre-1.0, minor versions may include breaking changes.
 
 ### Added
 
+- **Workstream R PR R-4 (ADR 0061 §2/§10) — the Package Adapter Registry: fetch the declared
+  artifact, verify its bytes against the registry's own integrity claim, and never execute it.**
+  R-3 concluded *which* artifact a subject declares; R-4 obtains it. `artifact_versions` stops being
+  a table with four permanently-null columns: `immutable_digest`, `registry_integrity`, `cache_key`
+  and `last_verified_at` now carry measurements, `artifact_status` reaches `FETCHED` /
+  `UNAVAILABLE` / `REJECTED`, and the §16.1 chain gains its third link
+  (`sourcePayloadDigest → identityDigest → artifactDigest`). No verdict or decision behavior moves,
+  no served byte moves (`git diff --stat -- apps/web/public` EMPTY), the MCP surface stays at 13
+  tools / 19 resources, **zero migrations** (all four columns landed with R-1's canonical DDL, whose
+  digest is still pinned by value at `sha256:4ac16f9636b2fadcbb…`, re-verified over the real bytes),
+  and **zero new dependencies** — `packages/adoption-index` still declares exactly
+  `@calllint/fingerprint` and `better-sqlite3@12.9.0`. Decompression is `node:zlib`; the tar reader
+  is a read-only header parser in this package. No `tar`, `pacote`, `npm-registry-fetch`, `execa`,
+  `cross-spawn`, or package manager. ADR 0061 §2's enforcement is *dependency absence*, so a
+  violation has to appear in a lockfile diff rather than in a control-flow review — and a new gate
+  (`tests/invariants/adoption-index-no-execution.invariants.test.ts`) now walks every module under
+  `src/` for a forbidden specifier and pins the manifest's dependency set to those two entries.
+  **The defect this batch exists to avoid is the comparison, not the fetch.** npm states integrity as
+  SRI (`sha512-<base64>`); this repo's digest convention is `sha256:<hex>`. They never compare equal.
+  Verification therefore parses the claim, takes *its* algorithm, computes that algorithm over the
+  bytes, and compares in the claim's own encoding — so `registry_integrity` and `immutable_digest`
+  are two different strings that agree, and the tests assert they are *unequal* as stored. Replacing
+  the parse with string equality (control #22) rejects **every** artifact, which is what makes the
+  parse observably load-bearing rather than incidental.
+  **Metadata and bytes are two phases because they are two risk classes.** Phase A reads one JSON
+  document for the version and the integrity claim (the mapping is ported from
+  `resolver/src/evidence/npmResolver.ts`, not forked); Phase B downloads, hashes, compares. Phase A
+  can succeed while Phase B fails, and collapsing them would make "the registry claims `sha512-…`"
+  and "we hold bytes that hash to it" one indistinguishable field — exactly the Observed-vs-Inferred
+  line Product Principle 8 requires be kept. A failed attempt still records the claim, because the
+  claim is an observation either way.
+  **The CAS only ever contains verified bytes.** Buffer under a hard streaming cap → hash → compare →
+  *then* stage at `work/<digest>.part` and rename into `cas/blobs/<hex[0:2]>/<hex>`. A refused blob is
+  never written at all, which is strictly stronger than write-then-delete; the staging name is the
+  digest itself, so there is no clock and no `Math.random`, and two concurrent writes of identical
+  content are idempotent. Writing before verifying (control #26) puts unverified bytes in the CAS;
+  removing the byte cap (#24) turns the oversized fixture `FETCHED` instead of `REJECTED`; flipping
+  one byte of the fixture tarball (#23) yields `REJECTED` **and** an empty `cas/blobs`. `cas/expanded`
+  stays empty — "static unpack" here means parsing the tar stream in memory to enumerate and hash
+  entries, and expansion is the evidence batch's need, not R-4's.
+  **`UNAVAILABLE` and `REJECTED` are not interchangeable, and `REJECTED` is terminal.** No bytes in
+  hand (404, reset, timeout, cap) is *tried and failed* — retryable. Bytes in hand and refused (digest
+  mismatch, not a gzip/tar, path escape, entry cap) is terminal for that (artifact, claim) pair,
+  because a digest mismatch is not transient. Widening the transition table to permit
+  `REJECTED → FETCHED` (control #25) lets a re-run silently heal a mismatch. A package type with **no
+  adapter** is a third thing again: R-4 ships one adapter (npm — the only type the corpus declares),
+  and pypi/oci/nuget/mcpb are *not tried*, so they must not become `UNAVAILABLE`, which would claim an
+  attempt that never happened. They stay `RESOLVED` and are counted under `skipped: NO_ADAPTER`.
+  **The stickiness guard had a second writer, and only an end-to-end replay found it.** Control #25
+  passed because it measures the guard inside `updateArtifactResolution` — but `persistIdentity`'s
+  artifact upsert assigned `artifact_status = excluded.artifact_status` unconditionally, and
+  `artifactVersionId` hashes only `{subjectId, packageType, packageIdentifier, version}` while
+  `resolveIdentity` derives the status from `packageType` alone. So the row collides every run and
+  R-3's replay reset `FETCHED`/`REJECTED` back to `RESOLVED` **without ever reaching the transition
+  table**: a rejected artifact was silently un-rejected and refetched, and a cache hit could never be
+  observed because `FETCHED` never survived. The upsert now narrows that assignment to rows still in
+  `RESOLVED`/`UNSUPPORTED`, which keeps the identity layer able to re-grade what it owns (asserted:
+  `UNSUPPORTED → RESOLVED` still works) while making `updateArtifactResolution` the only path out.
+  Control #32 removes the narrowing and observes `expected "REJECTED" … received "RESOLVED"`. **The
+  guard was enforced on one writer and bypassed on the other; a per-writer control cannot see that,
+  which is why the two-run end-to-end test exists.**
+  **Where it runs: a port, not an import.** Artifact resolution is a network loop with a per-artifact
+  time budget, and `store.transaction()` issues raw `BEGIN`/`COMMIT`, so the loop cannot live inside
+  `refreshFromMirror`'s short transaction. `resolveArtifacts` persists **one transaction per
+  artifact** — one slow or failing artifact cannot roll back the cohort, asserted by a throwing
+  artifact that leaves its neighbours committed. `refreshFromMirror` gains an *optional injected*
+  `artifactPort`; omitted, `artifactResolved` stays `null` and the returned verdict is byte-identical
+  to R-3's, so every existing assertion stays green unchanged. Keeping it a port also keeps the
+  data-flow invariant structurally visible: `snapshot` remains a function of `records` alone, which is
+  what the reproducibility gate byte-compares (asserted: port and no-port commit identical
+  `snapshotText`/`snapshotDigest`). `detectSourceChange` moves *after* the port so the verdict
+  describes what the run did; its four inputs are all read before the persist, so the no-port verdict
+  is unchanged. `rebuild.artifact` flips `null → measured`, `null` on `NO_CHANGE` even when the caller
+  passed `true`; defaulting it to `false` (#27) asserts "no artifact rebuild needed" with nothing
+  behind it, and passing `true` with `NO_CHANGE` (#28) must stay `null`.
+  **Measured end-to-end, offline, over the committed corpus:** 19 entries → **2** npm artifacts, both
+  `FETCHED`, 0 `UNAVAILABLE`, 0 `REJECTED`, 0 skipped, exactly 2 CAS blobs byte-compared at their
+  digest-derived paths, `cas/expanded` and `work/` empty, `rebuild.artifact === true` with the four
+  unknowable tiers still `null`. Only two hosts are contacted and no remote-only subject's URL is ever
+  fetched. A warm second run re-verifies with **0** tarball calls and `last_verified_at` unmoved —
+  which can only ever be a test, never a CI observation, because every scheduled run is a cold
+  checkout. Wire-level tampering yields 0 fetched / 2 rejected / no blobs / sticky; a 404'd tarball
+  yields 2 `UNAVAILABLE` that a later run retries to `FETCHED`. Fixtures are built in memory with
+  `zlib.gzipSync` and a hand-written tar header, never a committed binary: the tests must control the
+  exact byte to flip, and a committed archive would make git call the file binary.
+  `sha256Bytes` is added to `@calllint/fingerprint` (§10 keeps hashing in one package) — additive, so
+  no committed digest can move, and its control is that it agrees with `sha256()` on their overlap.
+  **Measured once against the LIVE registry, and it exercised the paths the corpus cannot.** The
+  committed 19-entry corpus declares 2 packages, so `UNAVAILABLE` and `NO_ADAPTER` were fixture-only
+  facts. A local live run (`TRUST_INGEST_MIRROR_MAX_ENTRIES=5000`, never in CI) read 1200 records /
+  298 subjects and reported **64 considered, 45 fetched, 8 unavailable, 0 rejected, 11 skipped (no
+  adapter)** — so all three non-terminal outcomes are now observed on real data, and `REJECTED` stayed
+  at zero across 45 real tarballs, which is the expected shape when every registry states a claim its
+  own bytes satisfy. All 45 blobs re-verified independently of the writer: each filename equals the
+  sha256 of its bytes, each sits in its correct `<hex[0:2]>` shard, all 45 carry the gzip magic,
+  3.89 MiB total, with `cas/expanded` and `work/` empty (no staging residue survives a real run).
+  Resolution is default-ON in the ingest bin with `TRUST_INGEST_ARTIFACTS=0` to disable, safe because
+  it writes only to the gitignored `.var/` — confirmed for both roots the bin can resolve, since
+  `pnpm --filter` runs with the package as cwd and creates `packages/trust-index/.var/`, which
+  `.gitignore:57` also covers. A scheduled run's PR diff is unchanged by R-4: only public HTTP GETs
+  whose bytes are never executed. **New negative controls #22–#32; #31 is the
+  vacuity control on the new gate — pointed at a module-free directory it must FAIL, not pass.**
 - **Workstream R PR R-3 (§8.1) — the Canonical Adoption Graph: identity resolution that fails
   closed.** `SourceRecord` records what one source *claimed*; R-3 adds the layer that CONCLUDES an
   identity across records (`canonical_subjects`, `subject_aliases`, `artifact_versions` identity
@@ -53,13 +155,14 @@ onward. While pre-1.0, minor versions may include breaking changes.
   **`rebuild.identity` flips from `null` to a measured boolean, and stays asymmetric on purpose.**
   `true` when a run actually resolved an identity layer; `null` on `NO_CHANGE`, because a skipped run
   measured nothing and asserting `false` would be a claim with nothing behind it. Setting it `false`
-  there fails with `expected false to be null`.
+  there fails with `expected false to be null`. (`rebuild.artifact` stayed `null` at R-3 for the same
+  reason; **R-4 below flips it to measured, with the same asymmetry.**)
   **19 subjects, 2 artifact rows — not 19.** Artifact versions follow PACKAGES, and the corpus
   declares 2 packages against 18 remotes: a remote is an endpoint with nothing to pin a digest to.
   The R-4 columns (`immutable_digest`, `registry_integrity`, `cache_key`, `last_verified_at`,
-  `artifact_status = FETCHED`) are left unwritten, and the two are deliberately not symmetric on the
-  document — `immutableDigest` is required-and-nullable, `registryIntegrity` is omitted — because a
-  fabricated digest is worse than an absent one.
+  `artifact_status = FETCHED`) are left unwritten **by R-3 — R-4 below now writes all five**, and the
+  two are deliberately not symmetric on the document — `immutableDigest` is required-and-nullable,
+  `registryIntegrity` is omitted — because a fabricated digest is worse than an absent one.
   **Two negative controls did not fire where they were aimed, and both are recorded rather than
   quietly re-specified** (R-2's control #11: a control that passes when it should fail is a finding
   about the harness, not a pass). (1) "Resolve identity BEFORE `projectSnapshot`" leaves 44/44 green,

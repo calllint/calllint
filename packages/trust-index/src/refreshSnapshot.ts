@@ -60,18 +60,29 @@
  * source file in the repo (the one test importing this module takes `resolveMaxEntries`
  * alone), and the boundary scan asserts it rather than trusting it.
  *
+ * ARTIFACT RESOLUTION (R-4) is step 1b, and it is DEFAULT ON. Safe to default on because it
+ * writes only under `.var/calllint-adoption-index/` — gitignored, never cached — so a scheduled
+ * run's PR DIFF IS UNCHANGED by it. What it adds to a run is public HTTP GETs whose bytes are
+ * hashed, statically inspected, and stored; never executed, extracted, or installed (ADR 0061 §2).
+ * `TRUST_INGEST_ARTIFACTS=0` disables it, following the `resolveMaxEntries` fail-safe precedent.
+ *
  * Usage:  tsx packages/trust-index/src/refreshSnapshot.ts
  *   env:  TRUST_INGEST_NOW (ISO-8601, optional) pins fetchedAt for a reproducible run
  *         TRUST_INGEST_MIRROR_MAX_ENTRIES (optional) raises the raw-read ceiling
+ *         TRUST_INGEST_ARTIFACTS (optional) `0` skips artifact resolution entirely
  */
 import { mkdirSync, writeFileSync } from "node:fs"
 import { dirname, resolve } from "node:path"
 import { fileURLToPath } from "node:url"
 import {
   AdoptionIndexStore,
+  createAdapterRegistry,
   createOfficialRegistryAdapter,
+  describeArtifactResolution,
+  npmArtifactAdapter,
   openBetterSqlite3,
   refreshFromMirror,
+  resolveArtifacts,
   resolveIndexPaths,
   describeSourceChange,
   DEFAULT_MIRROR_MAX_ENTRIES,
@@ -136,6 +147,25 @@ export function resolveMirrorMaxEntries(
 }
 
 /**
+ * Whether this run resolves artifacts (R-4).
+ *
+ * Defaults ON, which is the opposite polarity from the two caps above, and the asymmetry is
+ * deliberate: those two bound a quantity, so their fail-safe direction is "fall back to the
+ * conservative number", while this one enables a capability whose entire write surface is
+ * gitignored. A run that silently skipped artifact resolution would leave `artifact_versions`
+ * holding four permanently-null columns and `rebuild.artifact` reporting `null` forever — the
+ * shipped-not-wired shape, arriving by default.
+ *
+ * Only the exact string `0` disables it. Not `false`, not `no`, not any non-empty value: a
+ * three-way spelling contest over an off switch is how an operator ends up believing a run is
+ * skipping work it is doing. One spelling, and everything else means on — including a typo, which
+ * fails toward doing the measurement rather than toward quietly not doing it.
+ */
+export function resolveArtifactsEnabled(env: Record<string, string | undefined>): boolean {
+  return (env.TRUST_INGEST_ARTIFACTS ?? "").trim() !== "0"
+}
+
+/**
  * Absolute path of the adoption index's migrations directory.
  *
  * Resolved from THIS module's URL rather than from `process.cwd()`, because the store's
@@ -163,6 +193,22 @@ async function main(): Promise<void> {
   const store = AdoptionIndexStore.open({ cwd, migrationsDir: migrationsDir(), db, now })
   let mirrored: Awaited<ReturnType<typeof refreshFromMirror>>
   try {
+    // 1b. Artifact resolution (R-4), passed as a PORT rather than imported by the operation.
+    //     The closure is built here, at the one place in the repo that already holds `fetch`
+    //     and the store, so `refreshFromMirror` stays a function of its arguments and the
+    //     no-port path — every existing test — is untouched. `undefined` when disabled, which
+    //     is what keeps `rebuild.artifact` at `null`: a run that was not asked to resolve
+    //     artifacts must not report "no artifact rebuild needed".
+    const artifactPort = resolveArtifactsEnabled(process.env)
+      ? (ctx: { now: string }) =>
+          resolveArtifacts({
+            store,
+            adapters: createAdapterRegistry([npmArtifactAdapter]),
+            fetchImpl: fetch,
+            now: ctx.now,
+          })
+      : undefined
+
     mirrored = await refreshFromMirror({
       store,
       adapter: createOfficialRegistryAdapter(DEFAULT_ENDPOINT),
@@ -172,6 +218,7 @@ async function main(): Promise<void> {
       snapshotMaxEntries: maxEntries,
       mirrorMaxEntries,
       mode: "full",
+      ...(artifactPort === undefined ? {} : { artifactPort }),
     })
   } finally {
     store.close()
@@ -192,6 +239,13 @@ async function main(): Promise<void> {
   //    would make the common case red.
   const change = mirrored.change
 
+  // The artifact clause is OMITTED when no port ran, rather than printed as a row of zeros.
+  // "0 considered, 0 fetched" and "not asked to resolve" are different facts about a run, and
+  // the log is the only place an operator sees either — the same distinction the `null` tier
+  // and the `null` summary keep in the data.
+  const artifactClause =
+    mirrored.artifacts === null ? "" : `${describeArtifactResolution(mirrored.artifacts)}; `
+
   // eslint-disable-next-line no-console
   console.log(
     `mirror: ${mirrored.sync.records} record(s) read (${mirrored.sync.persisted.inserted} new, ` +
@@ -199,6 +253,7 @@ async function main(): Promise<void> {
       `${mirrored.currentSubjects} current subject(s); ` +
       `snapshot: ${committed.count} entry(ies) @ ${committed.fetchedAt}; ` +
       `cohort digest ${mirrored.snapshotDigest}; ` +
+      artifactClause +
       `${describeSourceChange(change)}`,
   )
 }

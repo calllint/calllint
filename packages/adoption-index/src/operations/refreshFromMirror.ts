@@ -36,6 +36,7 @@ import { OFFICIAL_REGISTRY_SOURCE_ID } from "../sources/officialRegistry.js"
 import { assertMirrorComplete, syncSource, type SyncSourceResult } from "./syncSource.js"
 import { projectSnapshot, serializeSnapshot, type ProjectedSnapshot } from "../projections/snapshotProjection.js"
 import { detectSourceChange, type SourceChangeVerdict } from "./detectSourceChange.js"
+import type { ArtifactResolutionSummary } from "./resolveArtifacts.js"
 
 /**
  * How many raw records one mirror run reads, when the caller names no cap.
@@ -69,6 +70,21 @@ export interface RefreshFromMirrorOptions {
   mode?: "full" | "incremental"
   /** Page-count ceiling, forwarded to the adapter. */
   maxPages?: number
+  /**
+   * Artifact resolution (R-4), as an injected PORT rather than an import.
+   *
+   * A port for two reasons. First, artifact resolution is a NETWORK loop with a per-artifact time
+   * budget, and it must run outside the identity transaction — `store.transaction()` issues raw
+   * `BEGIN`/`COMMIT` with no nesting, so a loop inside it would hold a write lock across every
+   * socket timeout in the run and roll back the whole cohort on one failure. Second, it keeps the
+   * data-flow invariant structurally visible: `snapshot` stays a function of `records` ALONE, so
+   * nothing artifact resolution concludes can reach the bytes the reproducibility gate compares.
+   *
+   * OMITTED ⇒ the run behaves exactly as it did at R-3: `rebuild.artifact` stays `null` and the
+   * returned verdict is byte-identical. That is what lets every existing assertion stay green
+   * unchanged and confines the new behaviour to callers that opt in.
+   */
+  artifactPort?: (ctx: { now: string }) => Promise<ArtifactResolutionSummary>
 }
 
 export interface RefreshFromMirrorResult {
@@ -106,6 +122,14 @@ export interface RefreshFromMirrorResult {
     /** Row counts as written, from the store's own report rather than from the resolver's. */
     persisted: PersistIdentityResult
   }
+  /**
+   * What artifact resolution did this run (R-4), or `null` when no port was passed.
+   *
+   * `null` rather than a zeroed summary: a run that was never asked to resolve artifacts is not
+   * the same as a run that resolved none, and a summary of all zeros would read as the latter.
+   * The same distinction `rebuild.artifact` keeps.
+   */
+  artifacts: ArtifactResolutionSummary | null
 }
 
 /**
@@ -214,16 +238,6 @@ export async function refreshFromMirror(opts: RefreshFromMirrorOptions): Promise
   // withdrawn.
   const identity = resolveIdentity({ records, sourceId: opts.adapter.sourceId, observedAt: opts.now })
 
-  const change = detectSourceChange({
-    priorSnapshotDigest,
-    nextSnapshotDigest: snapshotDigest,
-    absentFromSource,
-    // R-3 flips this grid cell from `null` to a MEASURED boolean. It is true exactly when
-    // this run actually resolved an identity layer — which a skipped run did not, and which is
-    // why `NO_CHANGE` keeps `null` rather than taking `false`.
-    identityResolved: identity.subjects.length > 0,
-  })
-
   // Persist the key AFTER projecting — the digest cannot exist before the cohort does, which
   // is why this is a second checkpoint write rather than a field on `syncSource`'s. It reuses
   // the run's own checkpoint so nothing else on it moves.
@@ -235,6 +249,41 @@ export async function refreshFromMirror(opts: RefreshFromMirrorOptions): Promise
   const persistedIdentity = opts.store.transaction((tx) => {
     tx.advanceCheckpoint(checkpoint)
     return tx.persistIdentity(identity)
+  })
+
+  // ARTIFACT RESOLUTION RUNS HERE (R-4) — after the identity commit, outside any transaction.
+  //
+  // After, because it resolves the artifact ROWS that commit just wrote: there is nothing to
+  // fetch until `persistIdentity` has created them. Outside, because it is a network loop and
+  // `store.transaction()` does not nest — `resolveArtifacts` opens one transaction per artifact
+  // so a single slow or failing download cannot roll back the cohort.
+  const artifactResolved = await opts.artifactPort?.({ now: opts.now })
+
+  // THE VERDICT IS BUILT LAST, and this is the one deliberate reorder in the batch (R-4).
+  //
+  // Safe because the verdict's inputs are all fixed before the persist: `priorSnapshotDigest` was
+  // read before the sync, `nextSnapshotDigest` comes from the projection, `absentFromSource` from
+  // `subjectsBefore` + `sync.observedNativeIds`, and the two `*Resolved` booleans from work
+  // already done. The persist mutates none of them, which is why the no-port verdict is
+  // byte-identical to R-3's — the control that keeps this reorder honest.
+  //
+  // Building it last is also the more truthful arrangement: the verdict describes what the run
+  // DID, and the artifact tier cannot be described before the artifacts are resolved.
+  const change = detectSourceChange({
+    priorSnapshotDigest,
+    nextSnapshotDigest: snapshotDigest,
+    absentFromSource,
+    // R-3 flips this grid cell from `null` to a MEASURED boolean. It is true exactly when
+    // this run actually resolved an identity layer — which a skipped run did not, and which is
+    // why `NO_CHANGE` keeps `null` rather than taking `false`.
+    identityResolved: identity.subjects.length > 0,
+    // R-4 flips the artifact cell the same way, and keeps the same asymmetry: no port ⇒ the key
+    // is omitted entirely ⇒ the tier stays `null`. Passing `false` here on a portless run would
+    // assert "no artifact rebuild needed" about a layer nothing measured (control #27). With a
+    // port, `true` means the run actually resolved an artifact layer — `considered > 0` rather
+    // than `fetched > 0`, because a cohort whose every artifact came back UNAVAILABLE was still
+    // measured, and its downstream tiers still need rebuilding to reflect that.
+    ...(artifactResolved === undefined ? {} : { artifactResolved: artifactResolved.considered > 0 }),
   })
 
   return {
@@ -255,6 +304,9 @@ export async function refreshFromMirror(opts: RefreshFromMirrorOptions): Promise
       aliases: identity.aliases.length,
       persisted: persistedIdentity,
     },
+    // `null` when no port was passed, so "this run resolved no artifacts" and "this run was not
+    // asked to" stay distinguishable in the result exactly as they are in the rebuild tier.
+    artifacts: artifactResolved ?? null,
   }
 }
 
