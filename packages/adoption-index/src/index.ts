@@ -225,6 +225,94 @@ export {
   DEFAULT_MAX_EVIDENCE_ARTIFACTS,
 } from "./operations/compileEvidence.js"
 
+// Compiler jobs and runs (§7.1, §10.2) — R-6. The QUEUE: whether a unit of compiler work is
+// waiting, held, or finished. Not the seven INV-10 terminal states (those are a per-source-record
+// CONCLUSION and land on `adoption_records`), and not any of the four other state vocabularies this
+// package already exports — `jobStates.ts`'s docblock names each one it is not.
+export type {
+  CompilerJobState,
+  CompilerJobType,
+  CompilerJobV1,
+  CompilerRunMetrics,
+  CompilerRunState,
+  CompilerRunType,
+  CompilerRunV1,
+} from "./domain/job.js"
+export {
+  COMPILER_JOB_SCHEMA,
+  COMPILER_JOB_STATES,
+  COMPILER_JOB_TYPES,
+  COMPILER_RUN_METRIC_KEYS,
+  COMPILER_RUN_SCHEMA,
+  COMPILER_RUN_STATES,
+  COMPILER_RUN_TYPES,
+  assertDigestShape,
+  assertLeaseCoherent,
+  assertRunMetrics,
+  compilerJobId,
+  compilerRunId,
+  emptyRunMetrics,
+  parseRunMetrics,
+  serializeRunMetrics,
+  toCompilerJobDocument,
+  toCompilerRunDocument,
+} from "./domain/job.js"
+export {
+  COMPILER_JOB_TRANSITIONS,
+  COMPILER_RUN_TRANSITIONS,
+  LEASABLE_JOB_STATES,
+  assertJobTransition,
+  assertRunTransition,
+  canTransitionJob,
+  canTransitionRun,
+  isLeasableJobState,
+  isTerminalJobState,
+  isTerminalRunState,
+} from "./domain/jobStates.js"
+export type {
+  CompilerJobCompletion,
+  CompilerJobEnqueue,
+  CompilerJobEnqueueResult,
+  CompilerJobLeaseRequest,
+  CompilerJobRenewal,
+  CompilerRunBegin,
+  CompilerRunConclusion,
+  StoredCompilerJob,
+  StoredCompilerRun,
+} from "./storage/store.js"
+export { DEFAULT_JOB_PRIORITY } from "./storage/store.js"
+export type {
+  AttemptDisposition,
+  AttemptOutcome,
+  BeginRunInput,
+  ConcludeRunInput,
+  EnqueueJobsInput,
+  EnqueueJobsResult,
+  JobRequest,
+  LeaseNextInput,
+  ReclaimInput,
+  RenewLeaseInput,
+  ScheduleFn,
+  SettleAttemptInput,
+  WithCompilerRunInput,
+} from "./operations/compilerQueue.js"
+export {
+  DEFAULT_BACKOFF_MS,
+  DEFAULT_MAX_ATTEMPTS,
+  MAX_BACKOFF_MS,
+  beginCompilerRun,
+  concludeCompilerRun,
+  decideDisposition,
+  enqueueJobs,
+  gradeRun,
+  leaseNextJob,
+  reclaimExpiredLeases,
+  renewLease,
+  retryDelayMs,
+  settleAttempt,
+  withCompilerRun,
+} from "./operations/compilerQueue.js"
+
 // Projections
 export type {
   ProjectedSnapshot,
