@@ -48,7 +48,9 @@ import {
   NPM_REGISTRY,
   OFFICIAL_REGISTRY_SOURCE_ID,
   MIGRATIONS_DIRNAME,
+  compileEvidence,
   type ArtifactResolutionSummary,
+  type EvidenceCompilationSummary,
 } from "../src/index.js"
 
 const PKG_ROOT = join(dirname(fileURLToPath(import.meta.url)), "..")
@@ -58,6 +60,9 @@ const ENDPOINT = "https://registry.modelcontextprotocol.io/v0/servers"
 const OFFICIAL_META = "io.modelcontextprotocol.registry/official"
 const T0 = "2026-08-01T00:00:00.000Z"
 const T1 = "2026-08-02T00:00:00.000Z"
+/** R-5's two injected inputs. Fixed here so a digest that moves means the BYTES moved. */
+const POLICY_DIGEST = "sha256:" + "9".repeat(64)
+const ENGINE_VERSION = "0.1.0-e2e"
 
 // ── the corpus, replayed as wire bytes ─────────────────────────────────────────────────────────
 
@@ -256,7 +261,7 @@ async function freshStore(now = T0): Promise<Opened> {
 async function refresh(
   opened: Opened,
   fetchImpl: typeof fetch,
-  opts?: { now?: string; withPort?: boolean },
+  opts?: { now?: string; withPort?: boolean; withEvidencePort?: boolean },
 ): Promise<Awaited<ReturnType<typeof refreshFromMirror>>> {
   const now = opts?.now ?? T0
   const withPort = opts?.withPort ?? true
@@ -269,6 +274,21 @@ async function refresh(
           now: ctx.now,
         })
     : undefined
+  // R-5's port, built the same way and DEFAULTED OFF so every existing assertion in this file
+  // keeps measuring what it measured before. Note what is NOT threaded through: `fetchImpl`. R-5
+  // reads the CAS, so there is no parameter to hand it — the offline property is visible right
+  // here, in the shape of the call site, rather than only in a docblock.
+  const evidencePort = (opts?.withEvidencePort ?? false)
+    ? (ctx: { now: string }): Promise<EvidenceCompilationSummary> =>
+        Promise.resolve(
+          compileEvidence({
+            store: opened.store,
+            now: ctx.now,
+            policyDigest: POLICY_DIGEST,
+            engineVersion: ENGINE_VERSION,
+          }),
+        )
+    : undefined
   return refreshFromMirror({
     store: opened.store,
     adapter: createOfficialRegistryAdapter(ENDPOINT),
@@ -277,6 +297,7 @@ async function refresh(
     endpoint: ENDPOINT,
     snapshotMaxEntries: 25,
     ...(artifactPort === undefined ? {} : { artifactPort }),
+    ...(evidencePort === undefined ? {} : { evidencePort }),
   })
 }
 
@@ -551,5 +572,110 @@ describe("the injected port resolves the committed corpus end to end (plan step 
     expect(second.artifacts!.fetched).toBe(2)
     expect(casBlobs(opened.root)).toHaveLength(2)
     for (const row of opened.store.listArtifactVersions()) expect(row.lastVerifiedAt).toBe(T1)
+  })
+})
+
+// ── R-5 through the WIRING (the plan's verification step 8) ─────────────────────────────────────
+
+/**
+ * `evidence-compilation.test.ts` drives `compileEvidence` directly, which proves the operation.
+ * This proves the PORT — that a run reaches it, that its summary lands on `RefreshResult`, and that
+ * `rebuild.evidence` stops being `null` because something measured it.
+ *
+ * Those are different failures. R-4 built exactly this file for `artifactPort` for the same reason:
+ * a wired-but-never-driven port is the "shipped-not-wired" shape the A-08 grading penalizes, and it
+ * is invisible to a unit test of the operation and to a tier assertion over a hand-built verdict.
+ * R-5 shipped the port with the unit half only; this closes it over the real committed corpus.
+ */
+describe("R-5's evidencePort, driven end-to-end over the committed corpus", () => {
+  it("compiles evidence for the corpus's FETCHED artifacts and reports it on the result", async () => {
+    // ONE COLD RUN, both ports on — and that is the only arrangement in which the tier can flip.
+    // I first wrote this as two runs (fetch, then compile on a replay) and it failed with
+    // `expected null to be true`. The failure was the assertion's, not the code's: a replay leaves
+    // the cohort digest unmoved, so the verdict is `NO_CHANGE` and `NO_REBUILD` holds EVERY tier at
+    // `null` — control #62's property, arriving here uninvited. A tier assertion is therefore only
+    // meaningful on a run that changed something.
+    //
+    // Keeping both ports on one cold run also asserts something the two-run shape could not:
+    // `refreshFromMirror` awaits `artifactPort` BEFORE `evidencePort` (its own comment calls this a
+    // data dependency, not a preference), so 2 artifacts fetched AND 2 evidence rows compiled in a
+    // single pass is that ordering, measured. Reverse the two awaits and `compiled` becomes 0,
+    // because nothing is in `FETCHED` yet.
+    const opened = await freshStore()
+    const first = await refresh(opened, stubFetch(corpusRoutes().routes).fetchImpl, {
+      now: T1,
+      withEvidencePort: true,
+    })
+
+    expect(first.artifacts!.fetched).toBe(2)
+    expect(first.evidence!.considered).toBe(2)
+    expect(first.evidence!.compiled).toBe(2)
+    // `NO_PRIOR_DIGEST` on a cold store ⇒ `changed`, so the measured tiers are reported.
+    expect(first.change.rebuild.evidence).toBe(true)
+
+    const rows = opened.store.listEvidenceRecords()
+    expect(rows).toHaveLength(2)
+    // The verdict is `UNKNOWN` by construction, and asserting it over a REAL corpus is the point:
+    // "Never mark an unknown source as SAFE" has to hold on the honest path, not only in a fixture.
+    for (const row of rows) {
+      expect(row.verdict).toBe("UNKNOWN")
+      expect(row.policyDigest).toBe(POLICY_DIGEST)
+      expect(row.engineVersion).toBe(ENGINE_VERSION)
+      expect(row.createdAt).toBe(T1)
+    }
+  })
+
+  it("a THIRD run inserts nothing and moves no created_at — idempotence through the port", async () => {
+    // Step 8's "run twice, assert exactly one row" measured against the wiring rather than the
+    // operation. `evidence_digest` is a function of its four inputs and no clock, so a later run at
+    // a different `now` must land on the same key and be ignored.
+    const opened = await freshStore()
+    await refresh(opened, stubFetch(corpusRoutes().routes).fetchImpl, { now: T1, withEvidencePort: true })
+    const before = opened.store.listEvidenceRecords()
+    expect(before).toHaveLength(2)
+
+    const third = await refresh(opened, stubFetch(corpusRoutes().routes).fetchImpl, {
+      now: "2026-08-03T00:00:00.000Z",
+      withEvidencePort: true,
+    })
+    expect(third.evidence!.compiled).toBe(0)
+    expect(third.evidence!.unchanged).toBe(2)
+
+    const after = opened.store.listEvidenceRecords()
+    expect(after).toHaveLength(2)
+    // Byte-for-byte, INCLUDING `created_at`. A row rewritten under a new clock reading would still
+    // be "two rows", so the count alone cannot see control #55's failure — the digests and the
+    // timestamps are what can.
+    expect(after).toEqual(before)
+  })
+
+  it("the tier stays null when the port is absent, on a CHANGED run that had bytes to compile", async () => {
+    // Control #61 asserts this over a hand-built verdict. Here it is asserted over a real run that
+    // COULD have compiled: the artifacts reach `FETCHED` in this very run and their blobs are in the
+    // CAS, so `null` is demonstrably "nobody measured it" rather than "there was nothing to measure".
+    //
+    // ON A CHANGED RUN, and this file taught me why the word matters. I first wrote this against a
+    // replay and it passed — but a replay is `NO_CHANGE`, which returns the frozen `NO_REBUILD`
+    // constant, so `null` arrived from a shared literal regardless of what the portless default is.
+    // Mutating that default to `false` (control #61's mutation, applied here) left the test GREEN and
+    // tripped only R-4's artifact assertion. A cold run is `NO_PRIOR_DIGEST` ⇒ `changed`, so the
+    // value under test is the DERIVED one, and the assertion can finally fail.
+    const opened = await freshStore()
+    const cold = await refresh(opened, stubFetch(corpusRoutes().routes).fetchImpl, { now: T1 })
+
+    // Bytes were available to compile from: the run that skipped evidence is the same run that
+    // fetched them, so "nothing to measure" is ruled out before `null` is interpreted.
+    expect(cold.artifacts!.fetched).toBe(2)
+    expect(opened.store.listArtifactVersions().every((r) => r.artifactStatus === "FETCHED")).toBe(true)
+    expect(cold.change.changed).toBe(true)
+    expect(cold.change.reason).toBe("NO_PRIOR_DIGEST")
+    // The measured neighbour is `true` on this same verdict, which is what makes the `null` next to
+    // it meaningful: the two tiers are derived side by side and disagree, so `null` cannot be an
+    // artifact of the whole verdict having been skipped.
+    expect(cold.change.rebuild.artifact).toBe(true)
+
+    expect(cold.evidence).toBeNull()
+    expect(cold.change.rebuild.evidence).toBeNull()
+    expect(opened.store.listEvidenceRecords()).toEqual([])
   })
 })
