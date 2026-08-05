@@ -192,6 +192,39 @@ export {
   DEFAULT_MAX_ARTIFACTS,
 } from "./operations/resolveArtifacts.js"
 
+// Evidence compilation (§16.1, ADR 0061) — R-5. Reads bytes ALREADY verified into the CAS and
+// re-measures them; there is no `fetchImpl` anywhere in this group, which is what makes "offline"
+// a property of the types rather than a claim in a comment.
+export type { SurfaceExtraction } from "./artifacts/documentSurfaces.js"
+export { extractDocumentSurfaces, SURFACE_SIZE_CAP } from "./artifacts/documentSurfaces.js"
+export type { CasReadAccepted, CasReadRefused, CasReadResult } from "./artifacts/casRead.js"
+export { readVerifiedBlob } from "./artifacts/casRead.js"
+export type { TarEntryVisitor } from "./artifacts/tarInspect.js"
+export type { EvidenceDigestInput } from "./domain/evidenceDigest.js"
+export { evidenceDigest, observationDigest } from "./domain/evidenceDigest.js"
+export type { EvidenceDocument, RecordedSurface } from "./domain/evidenceDocument.js"
+export { EVIDENCE_DOCUMENT_SCHEMA, serializeEvidenceDocument } from "./domain/evidenceDocument.js"
+export {
+  EVIDENCE_COMPILATION_INPUT_STATUSES,
+  isEvidenceCompilable,
+} from "./domain/evidenceInputs.js"
+export type {
+  EvidenceRecordWrite,
+  EvidenceWriteResult,
+  StoredEvidenceRecord,
+} from "./storage/store.js"
+export type {
+  CompileEvidenceInput,
+  EvidenceCompilationOutcome,
+  EvidenceCompilationRecord,
+  EvidenceCompilationSummary,
+} from "./operations/compileEvidence.js"
+export {
+  compileEvidence,
+  describeEvidenceCompilation,
+  DEFAULT_MAX_EVIDENCE_ARTIFACTS,
+} from "./operations/compileEvidence.js"
+
 // Projections
 export type {
   ProjectedSnapshot,

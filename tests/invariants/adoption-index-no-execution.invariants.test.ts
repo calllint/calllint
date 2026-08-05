@@ -165,9 +165,10 @@ function forbiddenCapability(spec: string): string | null {
 
 describe("the gate measures a real package (vacuity guards — control #31)", () => {
   it("finds the package's modules — a count floor, not an existence check", () => {
-    // 23 `.ts` files at authoring. The floor is 20 rather than 23 so a legitimate refactor that
-    // merges two modules does not fail the gate, and low enough to be a real traversal: a walker
-    // pointed at the wrong directory returns 0 and would satisfy every assertion below.
+    // 29 `.ts` files at R-5 (23 when this gate was authored). The floor stays 20 rather than
+    // tracking the count: it exists to catch a walker that found NOTHING, and a floor ratcheted to
+    // the exact current count would fail on every legitimate refactor that merges two modules,
+    // which is how a gate earns a `.skip`.
     expect(existsSync(SRC_DIR), `${rel(SRC_DIR)} must exist`).toBe(true)
     expect(MODULES.length).toBeGreaterThan(20)
     // And it must have descended: a walker that only read the top level would miss `artifacts/`,
@@ -177,10 +178,12 @@ describe("the gate measures a real package (vacuity guards — control #31)", ()
   })
 
   it("WITNESS: the extractor finds the specifiers that ARE there", () => {
-    // An extractor returning nothing satisfies "no forbidden specifier" perfectly. These four are
+    // An extractor returning nothing satisfies "no forbidden specifier" perfectly. These five are
     // the package's real external surface, and one of them (`better-sqlite3`) is a native binding
     // — the closest thing to an execution capability this package legitimately holds.
-    for (const spec of ["better-sqlite3", "@calllint/fingerprint", "node:zlib", "node:crypto"]) {
+    // `@calllint/static-analyzer` joined the list at R-5: the widening above is only meaningful if
+    // the extractor can actually SEE the new edge, so the witness names it rather than trusting it.
+    for (const spec of ["better-sqlite3", "@calllint/fingerprint", "@calllint/static-analyzer", "node:zlib", "node:crypto"]) {
       expect(SPECIFIERS.has(spec), `expected the extractor to find "${spec}"`).toBe(true)
     }
     // And it read more than one file.
@@ -246,7 +249,7 @@ describe("ADR 0061 §2 — no module in the compiler can execute anything (INV-0
     expect(offenders, `ADR 0061 §2 forbids these:\n  ${offenders.join("\n  ")}`).toEqual([])
   })
 
-  it("the package's ENTIRE external specifier set is exactly the six known entries", () => {
+  it("the package's ENTIRE external specifier set is exactly the eight known entries", () => {
     // The stronger assertion, and the one that catches a capability the FORBIDDEN table did not
     // anticipate. A pattern list can only refuse what someone thought of; an exact SET refuses
     // everything nobody vouched for, so a novel `import "some-exec-helper"` fails here even though
@@ -257,10 +260,23 @@ describe("ADR 0061 §2 — no module in the compiler can execute anything (INV-0
     // `tarInspect.ts` ("...from \"this archive is broken\"" and "...from \"512 arbitrary bytes\"").
     // They are named rather than filtered out: a filter would be a hole, while naming them means
     // rewording a comment fails this test and someone re-confirms the list on purpose.
+    // WIDENED BY R-5, from six entries to eight, and the two additions are the batch's whole new
+    // reach: `@calllint/static-analyzer` (the detectors R-5 calls) and `@calllint/types` (the
+    // `Finding` and `DocumentSurface` shapes they exchange). Neither grants a §2 capability, and
+    // that was MEASURED over the transitive closure rather than assumed from the direct edge —
+    // see the closure assertion in the dependency-set suite below, which is the reason this
+    // widening is defensible at all. A workspace edge inherits everything the target can reach,
+    // so "it's just a workspace package" is not an argument.
+    //
+    // Note `better-sqlite3` does not appear in `dependencies`-order here: this is the SOURCE set,
+    // and the two sets differ on purpose. `node:*` builtins are reachable without a manifest entry,
+    // which is exactly why this assertion exists alongside the manifest one.
     const external = [...SPECIFIERS.keys()].filter((s) => !s.startsWith(".")).sort()
     expect(external).toEqual([
       "512 arbitrary bytes",
       "@calllint/fingerprint",
+      "@calllint/static-analyzer",
+      "@calllint/types",
       "better-sqlite3",
       "node:crypto",
       "node:fs",
@@ -298,7 +314,7 @@ describe("ADR 0061 §2 — the dependency SET is the enforcement mechanism", () 
     private?: boolean
   }
 
-  it("dependencies are EXACTLY the two entries, at exactly these versions", () => {
+  it("dependencies are EXACTLY the four entries, at exactly these versions", () => {
     // §2: "If executing a subject requires adding a dependency, the violation shows up in a
     // lockfile diff rather than in a control-flow review." That is only true if something reads
     // the set. This is that something.
@@ -306,10 +322,83 @@ describe("ADR 0061 §2 — the dependency SET is the enforcement mechanism", () 
     // The version is pinned by VALUE for `better-sqlite3` because it is not a normal pin: Node-20
     // prebuilds were dropped at 12.10.0, so a range that resolved to 12.10+ would compile from
     // source on all three CI legs. `12.9.0` exactly, no caret.
+    //
+    // WIDENED BY R-5, from two entries to four, DELIBERATELY and with the reason recorded here
+    // rather than relaxed into a subset check. §2's mechanism is that adding a capability costs a
+    // manifest diff someone has to defend; a gate edited without an argument converts that cost to
+    // zero, so the argument is the edit:
+    //
+    //   - `@calllint/static-analyzer` is added BECAUSE R-5 CALLS IT. `analyzeDocumentSurfaces` is
+    //     the repo's one deterministic detector pipeline, and R-5 is its fourth consumer. The
+    //     alternative was re-implementing the detectors here, which would be a second decision path
+    //     (user rule 6) grading the same bytes differently from the CLI. ADR 0061 §2 asks for
+    //     no-execution, not no-dependencies.
+    //   - `@calllint/types` closes a gap rather than opening one: `documentSurfaces.ts` already
+    //     imported it for `DocumentSurface`, undeclared. Workspace resolution hid that, so the
+    //     manifest was UNDER-declaring what the source already reached. This entry makes the
+    //     manifest true, which is a prerequisite for a manifest-reading gate to mean anything.
     expect(manifest.dependencies).toEqual({
       "@calllint/fingerprint": "workspace:*",
+      "@calllint/static-analyzer": "workspace:*",
+      "@calllint/types": "workspace:*",
       "better-sqlite3": "12.9.0",
     })
+  })
+
+  it("the TRANSITIVE closure of the workspace edges grants no §2 capability", () => {
+    // THE ASSERTION THE DIRECT-SET CHECK ABOVE CANNOT MAKE, and the one that makes R-5's widening
+    // defensible instead of merely declared. A workspace dependency inherits everything its target
+    // can reach: `@calllint/static-analyzer` depends on `@calllint/resolver`, which depends on
+    // `@calllint/evidence`, and a `tar-fs` or an `execa` three edges down would be just as much an
+    // execution capability as one written here — while being invisible to a check that reads only
+    // this package's own four entries and only this package's own modules.
+    //
+    // So this walks the closure and asserts two things about it: every edge is a WORKSPACE edge
+    // (no registry dependency enters through the back door, which is what would make the lockfile
+    // diff §2 relies on appear somewhere nobody is looking), and no module anywhere in it names a
+    // FORBIDDEN specifier. Measured at authoring: five packages, whose entire external surface is
+    // `node:crypto` plus each other.
+    const seen = new Set<string>()
+    const offenders: string[] = []
+    const registryEdges: string[] = []
+
+    const visit = (pkgName: string): void => {
+      if (seen.has(pkgName)) return
+      seen.add(pkgName)
+      const dir = join(repoRoot, "packages", pkgName.replace("@calllint/", ""))
+      const mf = JSON.parse(readFileSync(join(dir, "package.json"), "utf8")) as {
+        dependencies?: Record<string, string>
+      }
+      // `devDependencies` are deliberately NOT followed: they are not installed for a consumer of
+      // the package, so they are not part of what this package can reach at runtime.
+      for (const [dep, range] of Object.entries(mf.dependencies ?? {})) {
+        if (!dep.startsWith("@calllint/")) {
+          registryEdges.push(`${pkgName} → ${dep}@${range}`)
+          continue
+        }
+        if (range !== "workspace:*") registryEdges.push(`${pkgName} → ${dep}@${range} (not workspace:*)`)
+        visit(dep)
+      }
+      for (const [spec, files] of specifierMap(join(dir, "src"))) {
+        const capability = forbiddenCapability(spec)
+        if (capability !== null) offenders.push(`"${spec}" (${capability}) in ${files.join(", ")}`)
+      }
+    }
+
+    visit("@calllint/static-analyzer")
+    visit("@calllint/types")
+
+    // The vacuity guard: a `visit` that resolved nothing would report a clean closure. Five
+    // packages — static-analyzer, resolver, evidence, fingerprint, types.
+    expect([...seen].sort()).toEqual([
+      "@calllint/evidence",
+      "@calllint/fingerprint",
+      "@calllint/resolver",
+      "@calllint/static-analyzer",
+      "@calllint/types",
+    ])
+    expect(registryEdges, `the closure must be workspace-only:\n  ${registryEdges.join("\n  ")}`).toEqual([])
+    expect(offenders, `ADR 0061 §2 forbids these in the closure:\n  ${offenders.join("\n  ")}`).toEqual([])
   })
 
   it("declares no dev, optional, or peer dependency at all", () => {
