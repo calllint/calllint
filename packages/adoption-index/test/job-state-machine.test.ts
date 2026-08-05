@@ -82,10 +82,11 @@ const DIGEST = "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb
  * INV-10's seven terminal states, as a literal.
  *
  * Written out here rather than imported BECAUSE NOTHING EXPORTS THEM: R-6 measured that no column in
- * the canonical DDL carries them and no module declares them, which is precisely the finding that
- * makes them R-7's. A test that imported them would not compile; a test that omitted them could not
- * detect the fusion this guards against. So they are a literal, and the guard below asserts the
- * literal is DISJOINT from every vocabulary R-6 does declare.
+ * the canonical DDL carries them and no module declares them. That is STILL TRUE after R-7 — R-6's
+ * further guess, that this made them "R-7's", is not; see `jobStates.ts` for the inversion. A test
+ * that imported them would not compile; a test that omitted them could not detect the fusion this
+ * guards against. So they are a literal, and the guard below asserts the literal is DISJOINT from
+ * every vocabulary R-6 declares.
  */
 const INV10_TERMINAL_STATES = [
   "SUPPORTED",
@@ -133,8 +134,10 @@ describe("the two unions are closed sets (control #90)", () => {
 
   it("keeps INV-10's seven terminal states out of every R-6 vocabulary (control #90)", () => {
     // THE LAYER BOUNDARY, as an assertion rather than a docblock claim. The seven are one source
-    // record's compiled CONCLUSION and land on `adoption_records.lifecycle_status` (R-7's); the
-    // unions here are the compiler's QUEUE. Fusing them is the specific defect this refuses.
+    // record's compiled CONCLUSION; the unions here are the compiler's QUEUE. Fusing them is the
+    // specific defect this refuses. (R-6 expected the seven to land on
+    // `adoption_records.lifecycle_status`; R-7 wrote that column with four uppercase values instead,
+    // so the seven still have no home — which changes nothing about the disjointness asserted here.)
     //
     // VACUITY GUARD, because a forbidden-value scan over an empty array passes: the literal is
     // pinned at seven and each scanned array is pinned non-empty, so a scan cannot pass by reading
@@ -152,9 +155,10 @@ describe("the two unions are closed sets (control #90)", () => {
     for (const vocabulary of vocabularies) {
       expect(vocabulary.length).toBeGreaterThan(0)
       for (const forbidden of INV10_TERMINAL_STATES) {
-        expect(vocabulary, `${forbidden} belongs to R-7's conclusion layer, not R-6's queue`).not.toContain(
-          forbidden,
-        )
+        expect(
+          vocabulary,
+          `${forbidden} belongs to INV-10's conclusion layer, not R-6's queue`,
+        ).not.toContain(forbidden)
       }
     }
 

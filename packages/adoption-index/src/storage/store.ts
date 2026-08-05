@@ -29,6 +29,15 @@ import {
   type SourceCheckpoint,
 } from "../domain/checkpoint.js"
 import { assertArtifactTransition } from "../domain/artifactTransitions.js"
+import { assertDigestChain } from "../domain/adoptionDigestSet.js"
+import {
+  adoptionRecordDigest,
+  isAdoptionLifecycleStatus,
+  ADOPTION_LIFECYCLE_STATUSES,
+  ADOPTION_RECORD_SCHEMA,
+  type AdoptionLifecycleStatus,
+  type AdoptionRecordV1,
+} from "../domain/adoptionRecord.js"
 import { isEvidenceCompilable } from "../domain/evidenceInputs.js"
 import {
   assertDigestShape,
@@ -274,6 +283,34 @@ export interface AdoptionIndexTx {
    */
   beginCompilerRun(run: CompilerRunBegin): string
   concludeCompilerRun(conclusion: CompilerRunConclusion): void
+  /** R-7's write surface, and `adoption_records`' only writer. */
+  upsertAdoptionRecord(write: AdoptionRecordWrite): AdoptionRecordWriteResult
+}
+
+/**
+ * One `adoption_records` row to write.
+ *
+ * The record itself is passed whole rather than as columns: five of the nine columns are projections
+ * OF the record (`decision_digest`, `lifecycle_status`, `semantic_contract_digest`,
+ * `presentation_digest`, `selected_artifact_version_id`), so accepting them separately would let a
+ * caller write a row whose columns disagree with the `record_json` beside them. They are derived here
+ * instead, from the one object, and a negative control that passes a contradicting column has nowhere
+ * to put it.
+ *
+ * `adoptionRecordDigest` is NOT accepted for the same reason `enqueueJob` does not accept `jobId`: it
+ * is a function of the record, so a supplied value could disagree with its own contents.
+ */
+export interface AdoptionRecordWrite {
+  record: AdoptionRecordV1
+  /** Injected ISO-8601 (§9.5). Never a wall-clock read inside the store. */
+  updatedAt: string
+}
+
+/** What one `upsertAdoptionRecord` did. `inserted` false ⇒ the subject's row was updated. */
+export interface AdoptionRecordWriteResult {
+  subjectId: string
+  adoptionRecordDigest: string
+  inserted: boolean
 }
 
 /**
@@ -367,7 +404,137 @@ export class AdoptionIndexStore {
       reclaimExpiredLeases: (now) => this.reclaimExpiredLeases(now),
       beginCompilerRun: (run) => this.beginCompilerRun(run),
       concludeCompilerRun: (conclusion) => this.concludeCompilerRun(conclusion),
+      upsertAdoptionRecord: (write) => this.upsertAdoptionRecord(write),
     }
+  }
+
+  /**
+   * Write one adoption record. R-7's write surface, and `adoption_records`' ONLY writer.
+   *
+   * ONE SUBJECT, EXACTLY ONE ROW. `subject_id` is the PRIMARY KEY — the opposite of
+   * `source_records`, which is append-only and keyed by a payload digest. A record is a CONCLUSION
+   * about a subject, and a subject has one current conclusion, so a re-compile must overwrite rather
+   * than accumulate. Hence `ON CONFLICT(subject_id) DO UPDATE`, and neither shorter spelling:
+   *
+   *   - `INSERT OR REPLACE` deletes and re-inserts, so it cannot preserve anything about the previous
+   *     row. Harmless-looking here because every column is rewritten — except that a DELETE fires
+   *     `ON DELETE` behaviour on any future child table and silently changes what a re-compile means.
+   *     Control (a) measures it against the row's identity.
+   *   - `INSERT OR IGNORE` drops the update entirely, which is the worst of the three: a subject whose
+   *     verdict moved from SAFE to BLOCK would keep serving the old conclusion, and the caller would
+   *     see a successful write. That is the stale-verdict failure arriving as a cache hit — the same
+   *     shape R-5 named for `evidence_records` and rejected for the opposite reason (its key is a
+   *     timeless digest; this one is a mutable subject).
+   *
+   * EVERY COLUMN IS REWRITTEN, deliberately, unlike `enqueueJob`'s narrowed update. There is no second
+   * writer to clobber: this method is the only one, and the whole row is one indivisible conclusion —
+   * a row with a new `record_json` and a stale `decision_digest` beside it is not a partial update,
+   * it is a corrupt record. `updated_at` moves on every write because that is what the column means.
+   *
+   * THE ENUM IS ASSERTED HERE, on the value being written. `lifecycle_status` is a bare
+   * `TEXT NOT NULL` with no CHECK constraint in `001-canonical-adoption-graph.sql`, and TypeScript is
+   * erased before SQLite sees the string, so a misspelled status would otherwise be accepted silently.
+   * Same conclusion R-6 reached for `compiler_jobs.state`. Control (b) writes a misspelling.
+   */
+  private upsertAdoptionRecord(write: AdoptionRecordWrite): AdoptionRecordWriteResult {
+    const { record } = write
+    const subjectId = record.subject.subjectId
+
+    if (record.schema !== ADOPTION_RECORD_SCHEMA) {
+      throw new Error(
+        `adoption record for "${subjectId}": schema must be ${ADOPTION_RECORD_SCHEMA}, got ${JSON.stringify(record.schema)}`,
+      )
+    }
+    if (subjectId.length === 0) throw new Error("an adoption record must name a subject; found an empty subjectId")
+
+    // The enum closure the DDL does not carry.
+    if (!isAdoptionLifecycleStatus(record.lifecycle.status)) {
+      throw new Error(
+        `adoption record for "${subjectId}": lifecycle_status ${JSON.stringify(record.lifecycle.status)} is not one of ${ADOPTION_LIFECYCLE_STATUSES.join("|")} — the column is TEXT with no CHECK constraint, so this is the only thing standing between a typo and a stored row`,
+      )
+    }
+
+    // The chain is re-checked at the boundary rather than trusted from `compileAdoptionRecord`, for
+    // the R-4 reason: a guard that lives in one caller is a guard the next caller bypasses.
+    assertDigestChain(record.digests)
+    assertDigestShape(record.digests.decisionDigest, "decisionDigest", subjectId)
+
+    const digest = adoptionRecordDigest(record)
+    // `changes` is 1 on both branches of an upsert, so existence is read on the key before the write.
+    const seenBefore =
+      this.db.prepare("SELECT 1 FROM adoption_records WHERE subject_id = ?").get(subjectId) !== undefined
+
+    this.db
+      .prepare(
+        `INSERT INTO adoption_records (
+           subject_id, selected_artifact_version_id, adoption_record_digest, decision_digest,
+           semantic_contract_digest, presentation_digest, lifecycle_status, record_json, updated_at
+         ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+         ON CONFLICT(subject_id) DO UPDATE SET
+           selected_artifact_version_id = excluded.selected_artifact_version_id,
+           adoption_record_digest = excluded.adoption_record_digest,
+           decision_digest = excluded.decision_digest,
+           semantic_contract_digest = excluded.semantic_contract_digest,
+           presentation_digest = excluded.presentation_digest,
+           lifecycle_status = excluded.lifecycle_status,
+           record_json = excluded.record_json,
+           updated_at = excluded.updated_at`,
+      )
+      .run(
+        subjectId,
+        record.selectedArtifact?.artifactVersionId ?? null,
+        digest,
+        record.digests.decisionDigest,
+        record.digests.semanticContractDigest,
+        record.digests.presentationDigest,
+        record.lifecycle.status,
+        JSON.stringify(record),
+        write.updatedAt,
+      )
+
+    return { subjectId, adoptionRecordDigest: digest, inserted: !seenBefore }
+  }
+
+  /**
+   * Adoption records, by subject id, with `record_json` parsed.
+   *
+   * Every row's `lifecycle_status` is validated on the way OUT as well as in, for the reason
+   * `listCompilerJobs` validates its state: the column has no CHECK constraint, so a row written by
+   * some future path that skipped the write-path assertion would otherwise be handed to callers as an
+   * `AdoptionLifecycleStatus` the type system believes in.
+   */
+  listAdoptionRecords(): StoredAdoptionRecord[] {
+    const rows = this.db
+      .prepare(
+        `SELECT subject_id AS subjectId,
+                selected_artifact_version_id AS selectedArtifactVersionId,
+                adoption_record_digest AS adoptionRecordDigest,
+                decision_digest AS decisionDigest,
+                semantic_contract_digest AS semanticContractDigest,
+                presentation_digest AS presentationDigest,
+                lifecycle_status AS lifecycleStatus,
+                record_json AS recordJson,
+                updated_at AS updatedAt
+         FROM adoption_records ORDER BY subject_id`,
+      )
+      .all() as StoredAdoptionRecord[]
+    for (const r of rows) {
+      if (!isAdoptionLifecycleStatus(r.lifecycleStatus)) {
+        throw new Error(
+          `adoption record "${r.subjectId}" carries lifecycle_status ${JSON.stringify(r.lifecycleStatus)}, which is not one of ${ADOPTION_LIFECYCLE_STATUSES.join("|")}`,
+        )
+      }
+    }
+    return rows
+  }
+
+  /** One record's payload, parsed. `null` when the subject has no record. */
+  readAdoptionRecord(subjectId: string): AdoptionRecordV1 | null {
+    const row = this.db
+      .prepare("SELECT record_json AS recordJson FROM adoption_records WHERE subject_id = ?")
+      .get(subjectId) as { recordJson: string } | undefined
+    if (row === undefined) return null
+    return JSON.parse(row.recordJson) as AdoptionRecordV1
   }
 
   /**
@@ -1459,6 +1626,25 @@ function subjectFirstSeen(identity: ResolvedIdentityWrite, subjectId: string): s
     throw new Error(`artifact names subject "${subjectId}", which is not in the same identity write`)
   }
   return owner.firstSeenAt
+}
+
+/**
+ * A row of `adoption_records`, as stored.
+ *
+ * `recordJson` is left as a string rather than parsed here so a caller that only needs the indexed
+ * columns (a freshness sweep, a digest comparison) does not pay to parse every payload. Use
+ * `readAdoptionRecord` for the parsed form.
+ */
+export interface StoredAdoptionRecord {
+  subjectId: string
+  selectedArtifactVersionId: string | null
+  adoptionRecordDigest: string
+  decisionDigest: string
+  semanticContractDigest: string | null
+  presentationDigest: string | null
+  lifecycleStatus: AdoptionLifecycleStatus
+  recordJson: string
+  updatedAt: string
 }
 
 /** A row of `canonical_subjects`, as stored — including the derived digest column. */

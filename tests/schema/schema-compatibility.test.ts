@@ -30,12 +30,14 @@ import {
   resolveIdentity,
   toSourceRecord,
   beginCompilerRun,
+  compileAdoptionRecord,
   enqueueJobs,
   leaseNextJob,
   toCompilerJobDocument,
   toCompilerRunDocument,
   OFFICIAL_REGISTRY_SOURCE_ID,
   MIGRATIONS_DIRNAME,
+  type AdoptionRecordV1,
   type CompilerJobV1,
   type CompilerRunV1,
   type SourceRecordV1,
@@ -439,11 +441,159 @@ async function storedCompilerDocuments(): Promise<{ job: CompilerJobV1; run: Com
   }
 }
 
+/**
+ * A REAL `AdoptionRecordV1`, compiled by R-7 and read back out of `adoption_records`.
+ *
+ * THE LAST EXCUSE, and the one whose payment this file demanded in writing: the vacuity guard under
+ * the cross-check below said "R-7 is the LAST batch entitled to shrink this: when it lands, the list
+ * empties, and this guard must be replaced by its inverse … in that same PR". So the excuse is paid
+ * here and the guard is inverted below.
+ *
+ * ROUND-TRIPPED THROUGH SQLITE, like `storedSourceRecord` and `storedCompilerDocuments`, and for a
+ * sharper reason than either: `record_json` is the canonical asset and the nine columns beside it are
+ * an INDEX into it, so `readAdoptionRecord` is the only path that proves what a projection will
+ * actually be handed. `compileAdoptionRecord`'s return value would grade the compiler, which
+ * `adoption-record.test.ts` already does.
+ *
+ * THE UPSTREAM ROWS ARE THE SHIPPED ONES. `resolveIdentity` produces the subject and the artifact,
+ * `updateArtifactResolution` moves the artifact to `FETCHED` with a digest, and `recordEvidence`
+ * writes the evidence row — so every field of the compiled record traces to a producer rather than to
+ * a literal in this file. Only the four digests whose producers live OUTSIDE this package
+ * (`decisionDigest` from `@calllint/policy`, `presentationDigest`/`semanticContractDigest` from
+ * `@calllint/trust-index`) are passed in as values, which is exactly the injection
+ * `compileAdoptionRecord` is designed around: importing them here would invert the dependency the
+ * compiler's docblock forbids inverting.
+ *
+ * THE INSTANCE IS THE FULLY-RESOLVED ONE, on purpose, and it is the harder of the two shapes to get
+ * right: seven of the eight digests are non-null and `evidence` is an object, so the schema grades
+ * the whole chain rather than a mostly-null record. `pageDigest` is left OMITTED — it is the one
+ * property that is neither required nor nullable, so a record carrying an explicit null there would
+ * be invalid, and `additionalProperties: false` means an absent key is the only honest spelling of
+ * "not baked yet". The malformed twin nulls `decisionDigest`, which is the one mid-chain digest the
+ * schema forbids to be null, because UNKNOWN is a decision and it is not SAFE.
+ */
+async function storedAdoptionRecord(): Promise<AdoptionRecordV1> {
+  const cwd = fs.mkdtempSync(path.join(os.tmpdir(), "calllint-schema-compat-r7-"))
+  try {
+    const paths = resolveIndexPaths(cwd)
+    for (const dir of paths.dirs) fs.mkdirSync(dir, { recursive: true })
+    const db = await openBetterSqlite3(paths.db)
+    const store = AdoptionIndexStore.open({
+      cwd,
+      migrationsDir: path.join(repoRoot, "packages", "adoption-index", MIGRATIONS_DIRNAME),
+      db,
+      now: REGISTRY_NOW,
+    })
+    try {
+      const raw = {
+        server: {
+          name: "io.example/schema-compat",
+          description: "prose",
+          version: "2.0.0",
+          packages: [
+            { registryType: "npm", identifier: "@example/schema-compat", version: "2.0.0", transport: "stdio" },
+          ],
+        },
+        _meta: {
+          "io.modelcontextprotocol.registry/official": {
+            status: "active",
+            isLatest: true,
+            publishedAt: "2026-07-01T00:00:00.000Z",
+          },
+        },
+      }
+      const record = toSourceRecord(raw as never, REGISTRY_NOW)
+      if (record === null) throw new Error("the adapter rejected the fixture item — the producer, not the schema")
+      const identity = resolveIdentity({
+        records: [record],
+        sourceId: OFFICIAL_REGISTRY_SOURCE_ID,
+        observedAt: REGISTRY_NOW,
+      })
+      store.transaction((tx) => {
+        tx.persistSourceRecords([record], REGISTRY_NOW)
+        tx.persistIdentity(identity)
+      })
+
+      const subject = store.listSubjects()[0]
+      const resolved = store.listArtifactVersions()[0]
+      if (subject === undefined || resolved === undefined) {
+        throw new Error("the resolver produced no subject/artifact — the producer, not the schema")
+      }
+
+      // Verified bytes, so `artifactDigest` is non-null and `evidenceDigest` may legally follow it.
+      // Through the store's own writer, so `ARTIFACT_TRANSITIONS` grades the fixture too.
+      const artifactDigest = `sha256:${"a".repeat(64)}`
+      const evidenceRowDigest = `sha256:${"b".repeat(64)}`
+      const policyDigest = `sha256:${"c".repeat(64)}`
+      store.transaction((tx) => {
+        tx.updateArtifactResolution({
+          artifactVersionId: resolved.artifactVersionId,
+          artifactStatus: "FETCHED",
+          immutableDigest: artifactDigest,
+          registryIntegrity: null,
+          cacheKey: artifactDigest,
+          lastVerifiedAt: REGISTRY_NOW,
+        })
+        tx.recordEvidence({
+          evidenceDigest: evidenceRowDigest,
+          artifactVersionId: resolved.artifactVersionId,
+          engineVersion: "1.7.2",
+          policyDigest,
+          verdict: "UNKNOWN",
+          evidenceJson: JSON.stringify({ findings: [{ id: "MCP-EXEC-01", severity: "high" }] }),
+          createdAt: REGISTRY_NOW,
+        })
+      })
+
+      const artifact = store.listArtifactVersions()[0]
+      const evidence = store.listEvidenceRecords()[0]
+      if (artifact === undefined || evidence === undefined) throw new Error("the store returned no row to compile from")
+
+      const compiled = compileAdoptionRecord({
+        subject,
+        selectedArtifact: artifact,
+        sourcePayloads: store.listLatestSourceRecordPayloads(OFFICIAL_REGISTRY_SOURCE_ID),
+        evidence,
+        findingCount: 1,
+        // The three digests produced outside this package, injected rather than imported.
+        decision: { verdict: "REVIEW", decisionDigest: `sha256:${"d".repeat(64)}`, policyDigest },
+        presentation: {
+          presentationDigest: `sha256:${"e".repeat(64)}`,
+          semanticContractDigest: `sha256:${"f".repeat(64)}`,
+        },
+        hostCompatibility: [{ host: "cursor", tier: "A", installability: "REVIEW_REQUIRED" }],
+        lifecycleStatus: "ACTIVE",
+      })
+      store.transaction((tx) => tx.upsertAdoptionRecord({ record: compiled, updatedAt: REGISTRY_NOW }))
+
+      const readBack = store.readAdoptionRecord(subject.subjectId)
+      if (readBack === null) throw new Error("the record did not survive the round trip — the store, not the schema")
+      // Asserted at construction so a regression fails HERE and names itself, rather than producing
+      // an instance that validates for a reason nobody chose. The three properties this case exists
+      // to grade: the chain is fully populated, the findings did NOT leak into the public projection,
+      // and `pageDigest` is absent rather than null.
+      if (readBack.digests.artifactDigest === null || readBack.digests.evidenceDigest === null) {
+        throw new Error("expected a fully-resolved chain; the weak shape leaves the chain ungraded")
+      }
+      if (JSON.stringify(readBack).includes("MCP-EXEC-01")) {
+        throw new Error("the raw findings reached the public record — the compiler, not the schema")
+      }
+      if ("pageDigest" in readBack.digests) throw new Error("expected pageDigest to be absent, not present")
+      return readBack
+    } finally {
+      store.close()
+    }
+  } finally {
+    fs.rmSync(cwd, { recursive: true, force: true })
+  }
+}
+
 const { plan, decisionReceipt } = buildPlanAndReceipt()
 const sourceRecord = await storedSourceRecord()
 const { subject: canonicalSubject, conflict: identityConflict } = resolvedIdentityDocuments()
 const artifactVersion = resolvedArtifactDocument()
 const { job: compilerJob, run: compilerRun } = await storedCompilerDocuments()
+const adoptionRecord = await storedAdoptionRecord()
 
 interface Case {
   schema: string
@@ -581,21 +731,50 @@ const CASES: Case[] = [
     // the closure is the property that keeps verdicts in the rules layer.
     malformed: { ...compilerRun, metrics: { ...compilerRun.metrics, verdict: "SAFE" } },
   },
+  {
+    // R-7: THE canonical asset. Every page, contract, lookup entry and partner response is a
+    // projection of this document, so it is the last schema in this table and the one whose excuse
+    // this batch was required to pay.
+    schema: "calllint.adoption-record.v1",
+    valid: adoptionRecord,
+    // A NULL `decisionDigest` is the malformed case, and it is chosen over the easy alternatives (a
+    // bad `lifecycle.status`, an unknown key) because it is the one the schema argues for: the digest
+    // set makes exactly this member non-nullable in the middle of a chain whose neighbours ARE
+    // nullable, so that a record can never be published without a verdict attached. A record with no
+    // decision is the false-SAFE shape — Product Principle 2. `assertDigestChain` refuses it on the
+    // write path too (`adoption-digest-chain.test.ts` control (e)); this asserts the PUBLISHED schema
+    // refuses it independently, so a future writer that skipped that guard still cannot ship one.
+    malformed: { ...adoptionRecord, digests: { ...adoptionRecord.digests, decisionDigest: null } },
+  },
 ]
 
 /**
  * Schemas deliberately WITHOUT a case in this file, each with the reason it is excused.
  *
- * Two distinct kinds live here, and the distinction matters:
+ * ONE KIND IS LEFT, and the emptying of the other is the point of this batch:
  *
  *   - Covered elsewhere. A dedicated test already validates real output against the schema,
  *     so a second case here would duplicate the coverage rather than add any.
- *   - No emitter yet. The six Workstream R tables beyond the mirror are created by R-1's
- *     canonical DDL but populated by R-3…R-7. There is no production builder to validate
- *     against, and control #9 forbids the alternative: a hand-authored instance would pass
- *     forever while proving only that this file and the schema agree with each other. The
- *     honest state is "declared, not yet graded" — and each batch that writes one of these
- *     tables removes its entry here in the same PR that adds its emitter.
+ *   - ~~No emitter yet.~~ EXHAUSTED at R-7. The six Workstream R tables beyond the mirror were
+ *     created by R-1's canonical DDL and populated by R-3…R-7; every one now has a writer, so every
+ *     one has a real instance above and no entry here. The rule that governed them — control #9's
+ *     "a hand-authored instance would pass forever while proving only that this file and the schema
+ *     agree with each other", and the obligation that "each batch that writes one of these tables
+ *     removes its entry here in the same PR that adds its emitter" — is kept rather than deleted,
+ *     because it binds the NEXT schema that lands without a producer. The two batches that did not
+ *     pay it on time (R-3, R-4) are recorded at `resolvedIdentityDocuments` and
+ *     `resolvedArtifactDocument`; R-7 paid it in its own PR.
+ *
+ * A REASON THAT WENT STALE, and is corrected here rather than left to read as coverage. The
+ * `sarif-schema-2.1.0` entry claimed "vendored; covered by report-renderer/test/sarif-schema.test.ts",
+ * and BOTH halves are false as committed: `schemas/sarif-schema-2.1.0.json` is 14 bytes holding the
+ * literal text `404: Not Found` (a failed download committed in #114), and that test does not read it
+ * — it `fetch`es `json.schemastore.org` at run time. Nothing in the repo reads the file. It is
+ * therefore excused as an UNREAD, BROKEN artifact, which is what it is, so the next reader is not
+ * told a validator exists where none does. Replacing or deleting the file is a change to committed
+ * bytes with its own blast radius (the fetch-based test would need to move offline), so it is named
+ * here and left to a batch that can carry it; `EXCUSED_REASONS`'s own directional checks below still
+ * force it to stay listed and caseless.
  */
 const EXCUSED_REASONS: ReadonlyArray<readonly [string, string]> = [
   ["evidence-bundle", "covered by packages/evidence/test/model-schema.test.ts against real importEvidence output"],
@@ -603,16 +782,37 @@ const EXCUSED_REASONS: ReadonlyArray<readonly [string, string]> = [
   ["evidence-subject", "covered by packages/evidence/test/model-schema.test.ts"],
   ["telemetry-event", "covered by packages/telemetry-contract/test/schema.test.ts"],
   ["registry-listing", "covered by tests/readback/manifestSchema.test.ts"],
-  ["sarif-schema-2.1.0", "the upstream SARIF 2.1.0 schema, vendored; covered by report-renderer/test/sarif-schema.test.ts"],
+  // MEASURED, not assumed — see the docblock above. 14 bytes of `404: Not Found`, read by nothing.
+  ["sarif-schema-2.1.0", "NOT a schema: 14 bytes of `404: Not Found` from a failed vendoring in #114, read by no code; SARIF output is graded against the LIVE schemastore.org copy in report-renderer/test/sarif-schema.test.ts"],
   ["calllint.trust-event.v1", "covered by packages/trust-event-contract/test/trust-event-contract.test.ts"],
   ["calllint.trust-lookup-index.v1", "covered by packages/trust-index/test/lookup-index.test.ts"],
   ["calllint.discovery.v1", "covered by packages/trust-index/test/safe-install/committed-install-tree.test.ts"],
   ["calllint.presentation-content.v1", "covered by packages/trust-index/test/safe-install/presentation-content.test.ts"],
   ["calllint.safe-install-result.v1", "covered by packages/trust-index/test/safe-install/projection.test.ts"],
   ["calllint.agent-adoption-contract.v1", "covered by packages/trust-index/test/safe-install/projection.test.ts"],
-  ["calllint.adoption-record.v1", "R-7 projects adoption_records; no emitter exists yet (control #9)"],
 ]
 const EXCUSED = new Set(EXCUSED_REASONS.map(([name]) => name))
+
+/**
+ * The seven Workstream R schemas — the canonical graph's own documents.
+ *
+ * Declared as data because the inverse guard at the bottom of this file asserts over ALL of them, not
+ * only over R-7's. Every one of the seven now has a writer, so every one must have a real instance
+ * case; a future R schema that lands without one fails there rather than sitting excused.
+ *
+ * `calllint.discovery.v1`, `calllint.trust-lookup-index.v1` and the safe-install documents are NOT
+ * here: they are projections OF this graph, produced in `@calllint/trust-index`, and their coverage
+ * lives with their producers.
+ */
+const R_SCHEMAS = new Set([
+  "calllint.source-record.v1",
+  "calllint.canonical-subject.v1",
+  "calllint.identity-conflict.v1",
+  "calllint.artifact-version.v1",
+  "calllint.compiler-job.v1",
+  "calllint.compiler-run.v1",
+  "calllint.adoption-record.v1",
+])
 
 describe("schema compatibility — every committed schema accepts real output + rejects malformed", () => {
   for (const c of CASES) {
@@ -678,37 +878,34 @@ describe("schema compatibility — every committed schema accepts real output + 
   })
 
   /**
-   * The Workstream R schemas whose tables no batch populates yet — down to ONE, R-7's.
+   * THE BACKLOG, NOW EMPTY — and the guard below is its INVERSE, as the previous version of this
+   * block required in writing.
    *
-   * "Excused from an instance case" must not mean "unmeasured": without an emitter there is nothing
-   * to validate against, but the schema is still committed bytes that a later batch will build to,
-   * so the parts that are checkable without an instance are checked now — it compiles under Ajv, it
-   * is fail-closed, and its `schema` const matches its own filename. A typo there is otherwise found
+   * What this list was: the Workstream R schemas whose tables no batch populated yet. "Excused from
+   * an instance case" must not mean "unmeasured", so each got a structural grade — compiles under
+   * Ajv, fail-closed, `schema` const matching its filename — because a typo there is otherwise found
    * by the batch that writes the table, several batches later.
    *
-   * This list started at six and shrank as each writer landed, which is the shape the excuse
-   * docblock above prescribes. It is now one element from empty, so the cross-check below carries a
-   * vacuity guard: `toEqual` between two empty arrays passes, and a green suite must not be
-   * obtainable by deleting both lists.
+   * It started at six and shrank as each writer landed. R-3's two left with the nullable-slug PR,
+   * R-6 took `compiler-job`/`compiler-run` (it was their emitter) and `artifact-version` (R-4's had
+   * already shipped and the excuse outlived it). `calllint.adoption-record.v1` was the LAST entry,
+   * and R-7 is its emitter, so the list is empty.
+   *
+   * WHY IT STAYS DECLARED AT ZERO LENGTH RATHER THAN BEING DELETED. The old vacuity guard read
+   * `expect(AWAITING_EMITTER.length).toBeGreaterThan(0)`, and it named its own successor: "R-7 is the
+   * LAST batch entitled to shrink this: when it lands, the list empties, and this guard must be
+   * replaced by its inverse (both lists are empty AND every schema on disk has a case) in that same
+   * PR." Deleting the list would satisfy the letter of that and lose the mechanism: the NEXT schema
+   * that lands without a producer needs somewhere to go, and an empty array with a live assertion on
+   * its emptiness is what forces the choice to be explicit — either give the schema a real case, or
+   * add it here and watch the inverse guard fail until the structural grade is restored.
+   *
+   * THE INVERSE IS A STRONGER CLAIM, not a weaker one. `> 0` said "the backlog is non-empty";
+   * `=== 0` says "the backlog is empty" AND — this is the half that has teeth — "every schema on disk
+   * is either cased or excused for a reason that is not control #9". A list emptied by deleting the
+   * coverage would fail the second half.
    */
-  const AWAITING_EMITTER = [
-    // `calllint.canonical-subject.v1` and `calllint.identity-conflict.v1` LEFT this list when
-    // the nullable-slug PR wired R-3's resolver output into a real instance case above. They
-    // should have left when R-3 merged — the docblock's "in the same PR that adds its emitter"
-    // was not honoured, and a structural-only grade outlived its excuse for two batches.
-    //
-    // R-6 emptied the rest of the backlog. `calllint.compiler-job.v1` and
-    // `calllint.compiler-run.v1` left because this batch IS their emitter, and
-    // `calllint.artifact-version.v1` left because R-4's was already shipped and the excuse had
-    // simply outlived it — see `resolvedArtifactDocument` for the measurement, and for why the
-    // obvious grep said the opposite.
-    //
-    // ONE ENTRY IS LEFT, and that is the interesting property of this list now. A single-element
-    // set is one deletion away from empty, at which point every loop below iterates zero times and
-    // passes — so the vacuity guard under the cross-check is what keeps this block honest, not the
-    // loops themselves.
-    "calllint.adoption-record.v1",
-  ] as const
+  const AWAITING_EMITTER: readonly string[] = []
 
   describe("Workstream R schemas awaiting an emitter — structural grade only", () => {
     for (const name of AWAITING_EMITTER) {
@@ -730,20 +927,38 @@ describe("schema compatibility — every committed schema accepts real output + 
       })
     }
 
-    it("is exactly the set excused for having no emitter, so a graded schema cannot sit here", () => {
-      // Derived cross-check between the two lists above: every entry here must also be
-      // excused (else it has a real case and this grade is the weaker duplicate), and every
-      // excuse citing control #9 must appear here (else it is excused AND ungraded).
-      for (const name of AWAITING_EMITTER) expect(EXCUSED.has(name)).toBe(true)
+    it("the backlog is EMPTY, and every schema on disk is cased or excused for another reason", () => {
+      // HALF ONE: the backlog is empty, in both of its spellings. The `for` above therefore
+      // registers no `it`, which is the honest consequence of every table having a writer.
+      expect(AWAITING_EMITTER).toHaveLength(0)
       const byControl9 = EXCUSED_REASONS.filter(([, r]) => r.includes("control #9")).map(([n]) => n).sort()
-      expect(byControl9).toEqual([...AWAITING_EMITTER].sort())
-      // VACUITY GUARD, load-bearing now that the list holds one entry. `toEqual([], [])` passes, and
-      // the `for` above iterates zero times over an empty list — so deleting both lists would turn
-      // this test green while removing the coverage it exists to force. R-7 is the LAST batch
-      // entitled to shrink this: when it lands, the list empties, and this guard must be replaced by
-      // its inverse (both lists are empty AND every schema on disk has a case) in that same PR.
-      expect(AWAITING_EMITTER.length).toBeGreaterThan(0)
-      expect(byControl9.length).toBe(AWAITING_EMITTER.length)
+      expect(byControl9).toEqual([])
+
+      // HALF TWO, which is what makes half one non-vacuous. Emptying `AWAITING_EMITTER` by DELETING
+      // the coverage instead of adding an emitter is the failure mode the old guard warned about, and
+      // it is caught here: every schema on disk must now be reachable as either a real case or an
+      // excuse whose reason is NOT "no emitter yet". Re-derived from the directory rather than reusing
+      // the sets above, so this assertion cannot be satisfied by a change to those declarations alone.
+      const covered = new Set(CASES.map((c) => c.schema))
+      const onDisk = fs
+        .readdirSync(SCHEMAS_DIR)
+        .filter((f) => f.endsWith(".json"))
+        .map((f) => f.replace(/(?:\.schema)?\.json$/, ""))
+      expect(onDisk.length).toBeGreaterThan(25)
+      for (const name of onDisk) {
+        expect(covered.has(name) || EXCUSED.has(name), `${name} is neither cased nor excused`).toBe(true)
+      }
+      // And the specific schema this batch owns is on the CASED side, not the excused one — the
+      // assertion the previous guard could not make, and the one a future reader will check first.
+      expect(covered.has("calllint.adoption-record.v1")).toBe(true)
+      expect(EXCUSED.has("calllint.adoption-record.v1")).toBe(false)
+      // Every Workstream R schema, not only R-7's: this is the batch that closes the whole set, so
+      // the claim is asserted over all seven rather than over the one that happened to be last.
+      for (const name of onDisk.filter((n) => R_SCHEMAS.has(n))) {
+        expect(covered.has(name), `${name} is a Workstream R schema and must have a real instance case`).toBe(true)
+      }
+      // VACUITY GUARD on that loop: a mistyped name in `R_SCHEMAS` would make it iterate zero times.
+      expect(onDisk.filter((n) => R_SCHEMAS.has(n))).toHaveLength(R_SCHEMAS.size)
     })
   })
 })

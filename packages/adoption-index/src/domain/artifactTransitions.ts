@@ -8,10 +8,13 @@
  * Nor is it either of R-6's two queue machines (`jobStates.ts`), which are about whether a unit of
  * compiler WORK is waiting, held, or finished.
  *
- * INV-10's seven terminal states are R-7's, and R-6 measured where they land: no column in the
- * canonical DDL carries them yet, and `adoption_records.lifecycle_status` is the one that will. So
- * generalizing to them covers none of these four sets — it is a fifth fact, about one source record's
- * compiled CONCLUSION.
+ * INV-10's seven terminal states are a fifth fact, about one source record's compiled CONCLUSION, so
+ * generalizing to them covers none of these four sets. R-6 additionally predicted they would land in
+ * `adoption_records.lifecycle_status` and were therefore "R-7's"; R-7 WROTE that column and the
+ * prediction is FALSIFIED — inverted in place, not deleted. The column holds four UPPERCASE values
+ * (`ACTIVE|DEPRECATED|WITHDRAWN|TOMBSTONED`), which is a fifth vocabulary and not the seven; the seven
+ * belong to a generalized `stateMachine.ts` (adrs/0061 §8), untouched to date. `jobStates.ts` carries
+ * the full inversion with the measurement behind it.
  *
  * The table exists as data, rather than as `if` statements in the write path, for one reason:
  * `REJECTED` must be terminal, and a rule enforced at a single consulted point is a rule a

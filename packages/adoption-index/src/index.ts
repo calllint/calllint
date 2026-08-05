@@ -313,6 +313,49 @@ export {
   withCompilerRun,
 } from "./operations/compilerQueue.js"
 
+// R-7 — adoption records (THE canonical system asset)
+export type {
+  AdoptionLifecycleStatus,
+  AdoptionRecordDecision,
+  AdoptionRecordDigests,
+  AdoptionRecordEvidence,
+  AdoptionRecordHostCompatibility,
+  AdoptionRecordLifecycle,
+  AdoptionRecordSource,
+  AdoptionRecordSubject,
+  AdoptionRecordArtifact,
+  AdoptionRecordV1,
+  AdoptionVerdict,
+  HostInstallability,
+  HostTier,
+} from "./domain/adoptionRecord.js"
+export {
+  ADOPTION_LIFECYCLE_STATUSES,
+  ADOPTION_RECORD_SCHEMA,
+  adoptionRecordDigest,
+  isAdoptionLifecycleStatus,
+} from "./domain/adoptionRecord.js"
+export type { AdoptionDigestName } from "./domain/adoptionDigestSet.js"
+export {
+  ADOPTION_DIGEST_CHAIN,
+  NULLABLE_ADOPTION_DIGESTS,
+  assertDigestChain,
+} from "./domain/adoptionDigestSet.js"
+export type {
+  CompileAdoptionRecordInput,
+  DecisionInputs,
+  PresentationInputs,
+} from "./operations/compileAdoptionRecord.js"
+export {
+  compileAdoptionRecord,
+  compileAdoptionRecordWithDigest,
+} from "./operations/compileAdoptionRecord.js"
+export type {
+  AdoptionRecordWrite,
+  AdoptionRecordWriteResult,
+  StoredAdoptionRecord,
+} from "./storage/store.js"
+
 // Projections
 export type {
   ProjectedSnapshot,
