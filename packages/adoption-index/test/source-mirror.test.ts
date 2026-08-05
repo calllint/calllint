@@ -601,6 +601,57 @@ describe("the checkpoint is written only after the records (§9.4)", () => {
       "updateArtifactResolution",
     ])
   })
+
+  /**
+   * Control #65 — the WRITER CENSUS for `evidence_records`, as an assertion rather than a grep.
+   *
+   * The closed-set pin above guards the transaction HANDLE. This guards the SQL. They are not the
+   * same property, and R-4 is why: its second writer reached `artifact_versions` through
+   * `persistIdentity` — a key that was already on the handle and already pinned — so no handle
+   * assertion could have seen it. It was found by enumerating the SQL that touches the column.
+   *
+   * So the census runs in CI. `INSERT OR IGNORE` exactly once, and no `UPDATE` / `DELETE` /
+   * `INSERT OR REPLACE` at all: `OR REPLACE` would delete and re-insert, advancing `created_at` on
+   * a row whose digest is deliberately timeless, which is control #55's failure arriving by another
+   * route.
+   */
+  it("evidence_records has EXACTLY ONE writer, and it is INSERT OR IGNORE (control #65)", () => {
+    const storeSrc = readFileSync(join(SRC_DIR, "storage/store.ts"), "utf8")
+    // Comments discuss these verbs in prose ("`INSERT OR IGNORE`, not `OR REPLACE`"), so the census
+    // must read CODE. Suspect the probe before the source: an un-stripped grep would "find" writers
+    // that are sentences.
+    const code = storeSrc.replace(/\/\*[\s\S]*?\*\//g, "").replace(/(^|[^:])\/\/.*$/gm, "$1")
+
+    const writes = [...code.matchAll(/\b(INSERT|UPDATE|DELETE|REPLACE)\b[^;`]*evidence_records/gi)].map(
+      // `?? m[0]` rather than `!`: a non-null assertion would silently paper over a future regex
+      // edit that drops the capture group, and the census would then compare empty strings and pass.
+      (m) => (m[1] ?? m[0]).toUpperCase(),
+    )
+    expect(writes).toEqual(["INSERT"])
+    expect(code).toMatch(/INSERT OR IGNORE INTO evidence_records/)
+    expect(code, "OR REPLACE would advance created_at on a timeless key").not.toMatch(
+      /INSERT OR REPLACE INTO evidence_records/,
+    )
+
+    // And the whole repo, not just this file — a writer added elsewhere would bypass §10.3's
+    // "all SQL lives in store.ts" rule, and that is exactly the kind of edit this catches.
+    const offenders: string[] = []
+    const walk = (d: string): void => {
+      for (const e of readdirSync(d, { withFileTypes: true })) {
+        const p = join(d, e.name)
+        if (e.isDirectory()) {
+          walk(p)
+        } else if (e.name.endsWith(".ts") && p !== join(SRC_DIR, "storage/store.ts")) {
+          const s = readFileSync(p, "utf8")
+            .replace(/\/\*[\s\S]*?\*\//g, "")
+            .replace(/(^|[^:])\/\/.*$/gm, "$1")
+          if (/\b(INSERT|UPDATE|DELETE|REPLACE)\b[^;`]*evidence_records/i.test(s)) offenders.push(p)
+        }
+      }
+    }
+    walk(SRC_DIR)
+    expect(offenders).toEqual([])
+  })
 })
 
 describe("no wall clock on the compile path (INV-R6, control #11)", () => {
