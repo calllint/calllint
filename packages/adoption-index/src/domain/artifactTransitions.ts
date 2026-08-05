@@ -5,7 +5,13 @@
  * `packages/evidence/src/model/stateMachine.ts`. That one is over `ResolutionState` (8 states,
  * about whether a subject's evidence resolved); this is over `ArtifactStatus` (5 states, about
  * whether we hold verified bytes). The sets are disjoint and neither is a superset of the other.
- * Generalizing to INV-10's seven terminal states is a later batch and covers neither set.
+ * Nor is it either of R-6's two queue machines (`jobStates.ts`), which are about whether a unit of
+ * compiler WORK is waiting, held, or finished.
+ *
+ * INV-10's seven terminal states are R-7's, and R-6 measured where they land: no column in the
+ * canonical DDL carries them yet, and `adoption_records.lifecycle_status` is the one that will. So
+ * generalizing to them covers none of these four sets — it is a fifth fact, about one source record's
+ * compiled CONCLUSION.
  *
  * The table exists as data, rather than as `if` statements in the write path, for one reason:
  * `REJECTED` must be terminal, and a rule enforced at a single consulted point is a rule a

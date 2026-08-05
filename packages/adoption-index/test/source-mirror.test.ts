@@ -576,28 +576,55 @@ describe("the checkpoint is written only after the records (§9.4)", () => {
     // transaction PER ARTIFACT, because a single transaction around the loop would let one
     // unreadable CAS blob roll back every row already compiled — the fail-DESTRUCTIVE shape.
     expect(storeSrc).toMatch(/^ {2}private recordEvidence\(/m)
+    // R-6's SEVEN writers, all privately declared for the same reason. They are seven rather than
+    // one because the queue's operations are genuinely distinct SQL with distinct WHERE clauses —
+    // `leaseJob` must be one conditional UPDATE for single ownership, `renewLease` must name the
+    // owner in its own WHERE, and `reclaimExpiredLeases` must deliberately NOT touch
+    // `attempt_count`. Collapsing them into a `writeJob(patch)` would put those three rules behind
+    // one signature and lose exactly the properties the tests below measure.
+    expect(storeSrc).toMatch(/^ {2}private enqueueJob\(/m)
+    expect(storeSrc).toMatch(/^ {2}private leaseJob\(/m)
+    expect(storeSrc).toMatch(/^ {2}private renewLease\(/m)
+    expect(storeSrc).toMatch(/^ {2}private completeJob\(/m)
+    expect(storeSrc).toMatch(/^ {2}private reclaimExpiredLeases\(/m)
+    expect(storeSrc).toMatch(/^ {2}private beginCompilerRun\(/m)
+    expect(storeSrc).toMatch(/^ {2}private concludeCompilerRun\(/m)
 
-    // The ordering rule's positive half: the handle carries exactly these SIX and no
-    // seventh, so a caller inside a transaction cannot reach a wider write surface.
+    // The ordering rule's positive half: the handle carries exactly these THIRTEEN and no
+    // fourteenth, so a caller inside a transaction cannot reach a wider write surface.
     //
-    // This list was THREE until R-3, FOUR until R-4, FIVE until R-5, and is widened here
-    // deliberately, not relaxed. The assertion's subject is that the write surface is a CLOSED SET
-    // enumerated in one place; R-3 added `persistIdentity` because the identity layer must commit
+    // This list was THREE until R-3, FOUR until R-4, FIVE until R-5, SIX until R-6, and is widened
+    // here deliberately, not relaxed. The assertion's subject is that the write surface is a CLOSED
+    // SET enumerated in one place; R-3 added `persistIdentity` because the identity layer must commit
     // in the same transaction as the checkpoint that describes it (a digest advanced without its
     // subjects would report "no change" forever), R-4 added `updateArtifactResolution` because the
-    // four artifact columns are that batch's whole write surface, and R-5 adds `recordEvidence`
-    // because `evidence_records` gains its first writer. Growing the list is how a new writer
-    // announces itself; a writer that reached the handle without appearing here is the defect.
-    // This assertion CAUGHT R-4's writer rather than being updated alongside it, and CAUGHT R-5's
-    // the same way — it failed on the run that added the sixth key, before any control was
-    // applied. That is twice now, which is the behaviour a closed-set pin exists for.
+    // four artifact columns are that batch's whole write surface, R-5 added `recordEvidence` because
+    // `evidence_records` gained its first writer, and R-6 adds SEVEN at once because
+    // `compiler_jobs`/`compiler_runs` gain theirs. Growing the list is how a new writer announces
+    // itself; a writer that reached the handle without appearing here is the defect. This assertion
+    // CAUGHT R-4's writer rather than being updated alongside it, and CAUGHT R-5's the same way — it
+    // failed on the run that added the sixth key, before any control was applied. That is twice now,
+    // which is the behaviour a closed-set pin exists for.
+    //
+    // SEVEN NEW KEYS IS THE LARGEST WIDENING SO FAR, so note what does NOT widen with it: the
+    // `beginCompilerRun`/`concludeCompilerRun` names are deliberately not `beginRun`/`concludeRun`,
+    // because `beginRun` is already taken by the SOURCE-checkpoint path (`source_checkpoints`), and
+    // two "run" vocabularies sharing a method name is how a later reader concludes a sync run and a
+    // compiler run are the same event.
     const keys = store.transaction((tx) => Object.keys(tx).sort())
     expect(keys).toEqual([
       "advanceCheckpoint",
+      "beginCompilerRun",
+      "completeJob",
+      "concludeCompilerRun",
+      "enqueueJob",
+      "leaseJob",
       "persistIdentity",
       "persistSourceRecords",
       "readCheckpoint",
+      "reclaimExpiredLeases",
       "recordEvidence",
+      "renewLease",
       "updateArtifactResolution",
     ])
   })
@@ -646,6 +673,86 @@ describe("the checkpoint is written only after the records (§9.4)", () => {
             .replace(/\/\*[\s\S]*?\*\//g, "")
             .replace(/(^|[^:])\/\/.*$/gm, "$1")
           if (/\b(INSERT|UPDATE|DELETE|REPLACE)\b[^;`]*evidence_records/i.test(s)) offenders.push(p)
+        }
+      }
+    }
+    walk(SRC_DIR)
+    expect(offenders).toEqual([])
+  })
+
+  /**
+   * The same census, for R-6's two tables (controls #78, #79 by another route).
+   *
+   * WHY THE QUEUE NEEDS SEVEN WRITERS WHERE `evidence_records` NEEDS ONE. Every method on the handle
+   * is one statement whose atomicity IS the invariant: `leaseJob` must be a single conditional UPDATE
+   * or two workers claim one row, `renewLease` must name the owner in its own WHERE or the expiry
+   * sweep slips between the check and the write, and `reclaimExpiredLeases` must NOT touch
+   * `attempt_count` while the other two do. Merging any pair would relax exactly the property that
+   * pair exists to hold. So the census pins a COUNT PER VERB rather than "exactly one writer".
+   *
+   * THE ABSENCES ARE THE POINT, and each names a different failure:
+   *   - No `DELETE` on `compiler_jobs`: the queue is a durable record of work. Deleting a settled row
+   *     would erase the attempt history `DEAD_LETTER` exists to preserve, and a re-enqueue of the same
+   *     identity would then look like new work.
+   *   - No `DELETE` on `compiler_runs`: the run table IS the reproducibility record.
+   *   - No `OR REPLACE` anywhere: it deletes and re-inserts, so `created_at` moves on a stable
+   *     identity — control #76's failure arriving by another route.
+   *   - No `OR IGNORE` on `compiler_jobs`: it would drop the re-schedule the schema says an
+   *     idempotent enqueue must apply (control #77).
+   */
+  it("compiler_jobs and compiler_runs have exactly the writers the lifecycle needs", () => {
+    const storeSrc = readFileSync(join(SRC_DIR, "storage/store.ts"), "utf8")
+    const code = storeSrc.replace(/\/\*[\s\S]*?\*\//g, "").replace(/(^|[^:])\/\/.*$/gm, "$1")
+
+    const census = (table: string): string[] =>
+      [...code.matchAll(new RegExp(`\\b(INSERT|UPDATE|DELETE|REPLACE)\\b[^;\`]*${table}`, "gi"))].map((m) =>
+        (m[1] ?? m[0]).toUpperCase(),
+      )
+
+    // One INSERT (the idempotent enqueue) and four UPDATEs: lease, renew, complete, reclaim. Measured
+    // against the source rather than assumed — a fifth UPDATE is a new writer of a guarded column, and
+    // R-4's second writer is why that is worth a named failure.
+    const jobWrites = census("compiler_jobs")
+    expect(jobWrites.filter((v) => v === "INSERT")).toHaveLength(1)
+    expect(jobWrites.filter((v) => v === "UPDATE")).toHaveLength(4)
+    expect(jobWrites.filter((v) => v === "DELETE" || v === "REPLACE")).toEqual([])
+
+    // One INSERT (begin) and one UPDATE (conclude). A run is opened once and concluded once; the
+    // transition table refuses a second conclusion, and there is no third statement to bypass it.
+    const runWrites = census("compiler_runs")
+    expect(runWrites.filter((v) => v === "INSERT")).toHaveLength(1)
+    expect(runWrites.filter((v) => v === "UPDATE")).toHaveLength(1)
+    expect(runWrites.filter((v) => v === "DELETE" || v === "REPLACE")).toEqual([])
+
+    // The vacuity guard: a regex that matched nothing would satisfy every `toEqual([])` above.
+    expect(jobWrites.length).toBe(5)
+    expect(runWrites.length).toBe(2)
+
+    for (const table of ["compiler_jobs", "compiler_runs"]) {
+      expect(code, `OR REPLACE on ${table} would move created_at on a stable identity`).not.toMatch(
+        new RegExp(`INSERT OR REPLACE INTO ${table}`),
+      )
+      expect(code, `OR IGNORE on ${table} would drop the re-schedule an enqueue must apply`).not.toMatch(
+        new RegExp(`INSERT OR IGNORE INTO ${table}`),
+      )
+    }
+    // The upsert names THREE columns. `state` among them would let a re-enqueue revive a terminal row
+    // without ever consulting the transition table (control #75).
+    expect(code).toMatch(/ON CONFLICT\(job_id\) DO UPDATE SET\s+priority = excluded\.priority/)
+    expect(code, "a re-enqueue must not write state").not.toMatch(/DO UPDATE SET[^;]*state = excluded\.state/)
+
+    // And no writer outside `store.ts`, the §10.3 rule the R-4 lesson turned into an assertion.
+    const offenders: string[] = []
+    const walk = (d: string): void => {
+      for (const e of readdirSync(d, { withFileTypes: true })) {
+        const p = join(d, e.name)
+        if (e.isDirectory()) {
+          walk(p)
+        } else if (e.name.endsWith(".ts") && p !== join(SRC_DIR, "storage/store.ts")) {
+          const s = readFileSync(p, "utf8")
+            .replace(/\/\*[\s\S]*?\*\//g, "")
+            .replace(/(^|[^:])\/\/.*$/gm, "$1")
+          if (/\b(INSERT|UPDATE|DELETE|REPLACE)\b[^;`]*compiler_(jobs|runs)/i.test(s)) offenders.push(p)
         }
       }
     }

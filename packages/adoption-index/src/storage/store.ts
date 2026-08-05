@@ -30,6 +30,26 @@ import {
 } from "../domain/checkpoint.js"
 import { assertArtifactTransition } from "../domain/artifactTransitions.js"
 import { isEvidenceCompilable } from "../domain/evidenceInputs.js"
+import {
+  assertDigestShape,
+  assertLeaseCoherent,
+  assertRunMetrics,
+  compilerJobId,
+  compilerRunId,
+  COMPILER_JOB_STATES,
+  COMPILER_JOB_TYPES,
+  COMPILER_RUN_STATES,
+  COMPILER_RUN_TYPES,
+  emptyRunMetrics,
+  parseRunMetrics,
+  serializeRunMetrics,
+  type CompilerJobState,
+  type CompilerJobType,
+  type CompilerRunMetrics,
+  type CompilerRunState,
+  type CompilerRunType,
+} from "../domain/job.js"
+import { assertJobTransition, assertRunTransition, isLeasableJobState } from "../domain/jobStates.js"
 import type { SourceRecordV1 } from "../domain/sourceRecord.js"
 import type {
   ArtifactStatus,
@@ -145,6 +165,93 @@ export interface StoredEvidenceRecord {
   createdAt: string
 }
 
+/**
+ * One job to enqueue. R-6's write surface.
+ *
+ * The identity triple is `(jobType, subjectKey, inputDigest)`; `jobId` is derived from it by
+ * `compilerJobId` and is not accepted here, so a caller cannot supply a key that disagrees with the
+ * row's own contents. `priority` and `availableAt` are the two properties a re-enqueue is allowed to
+ * move — see `enqueueJob`.
+ */
+export interface CompilerJobEnqueue {
+  jobType: CompilerJobType
+  subjectKey: string
+  inputDigest: string
+  /** Lower runs first. Defaults to the DDL's 100 when omitted. */
+  priority?: number
+  /** Injected ISO-8601: when this job becomes leasable. The caller's backoff (INV-R6). */
+  availableAt: string
+  /** Injected ISO-8601 for `created_at` on a new row, and `updated_at` on either path. */
+  now: string
+}
+
+/** Whether an `enqueueJob` call created a row, or moved an existing one's schedule. */
+export interface CompilerJobEnqueueResult {
+  jobId: string
+  /** False when the identity triple was already queued — the idempotent path. */
+  inserted: boolean
+}
+
+/** What a worker needs in order to claim one job. */
+export interface CompilerJobLeaseRequest {
+  /** Who is claiming. Recorded verbatim in `lease_owner`. */
+  owner: string
+  /** Injected ISO-8601 "now": rows with `available_at <= now` are eligible. */
+  now: string
+  /** Injected ISO-8601: when this claim lapses. Must be after `now`. */
+  leaseExpiresAt: string
+  /** Restrict the claim to one stage. Omitted ⇒ any type. */
+  jobType?: CompilerJobType
+}
+
+/** A holder extending its own claim on a row it already leased. */
+export interface CompilerJobRenewal {
+  jobId: string
+  /** Must equal the row's `lease_owner`. Named in the UPDATE's `WHERE`, not compared afterwards. */
+  owner: string
+  /** Injected ISO-8601 "now", for `updated_at` and the expiry sanity check. */
+  now: string
+  /** The new expiry. Must be after `now`. */
+  leaseExpiresAt: string
+}
+
+/** How one job's work ended, as the holder reports it. */
+export interface CompilerJobCompletion {
+  jobId: string
+  /**
+   * The state to move to. `PENDING` releases the row for another attempt; the three terminal
+   * states conclude it. Validated against `COMPILER_JOB_TRANSITIONS`.
+   */
+  state: CompilerJobState
+  /** Injected ISO-8601 for `updated_at`. */
+  now: string
+  /** When releasing to `PENDING`: when the next attempt may start. Required for that path. */
+  availableAt?: string
+  lastErrorCode?: string | null
+  /** `sha256:<hex>` into the CAS. The error bytes are content-addressed, never inlined. */
+  lastErrorDigest?: string | null
+}
+
+/** One `compiler_runs` row to open. */
+export interface CompilerRunBegin {
+  runType: CompilerRunType
+  inputManifestDigest: string
+  /** Injected ISO-8601. Part of `runId`, so a replay with the same stamp is the same run. */
+  startedAt: string
+}
+
+/** How one compiler pass ended. */
+export interface CompilerRunConclusion {
+  runId: string
+  /** One of the three terminal run states. `RUNNING` is refused by the transition table. */
+  state: CompilerRunState
+  /** `null` for a crashed run — never an all-zero digest. See `job.ts`'s docblock. */
+  outputManifestDigest: string | null
+  /** Injected ISO-8601. */
+  completedAt: string
+  metrics: CompilerRunMetrics
+}
+
 /** The write surface available inside a transaction. */
 export interface AdoptionIndexTx {
   persistSourceRecords(records: SourceRecordV1[], seenAt: string): PersistResult
@@ -153,6 +260,20 @@ export interface AdoptionIndexTx {
   persistIdentity(identity: ResolvedIdentityWrite): PersistIdentityResult
   updateArtifactResolution(write: ArtifactResolutionWrite): void
   recordEvidence(write: EvidenceRecordWrite): EvidenceWriteResult
+  enqueueJob(job: CompilerJobEnqueue): CompilerJobEnqueueResult
+  leaseJob(request: CompilerJobLeaseRequest): StoredCompilerJob | null
+  renewLease(renewal: CompilerJobRenewal): boolean
+  completeJob(completion: CompilerJobCompletion): void
+  reclaimExpiredLeases(now: string): number
+  /**
+   * `beginCompilerRun`, not `beginRun`: `AdoptionIndexStore.beginRun` already exists and marks one
+   * SOURCE's sync as started (`source_checkpoints`). Two different facts — a source's sync position
+   * versus a whole compiler pass — and the near-collision is exactly the kind of thing that makes a
+   * later reader treat two layers as one. `jobStates.ts`'s docblock names the same hazard for
+   * `CheckpointStatus` versus `CompilerRunState`.
+   */
+  beginCompilerRun(run: CompilerRunBegin): string
+  concludeCompilerRun(conclusion: CompilerRunConclusion): void
 }
 
 /**
@@ -239,7 +360,465 @@ export class AdoptionIndexStore {
       persistIdentity: (identity) => this.persistIdentity(identity),
       updateArtifactResolution: (write) => this.updateArtifactResolution(write),
       recordEvidence: (write) => this.recordEvidence(write),
+      enqueueJob: (job) => this.enqueueJob(job),
+      leaseJob: (request) => this.leaseJob(request),
+      renewLease: (renewal) => this.renewLease(renewal),
+      completeJob: (completion) => this.completeJob(completion),
+      reclaimExpiredLeases: (now) => this.reclaimExpiredLeases(now),
+      beginCompilerRun: (run) => this.beginCompilerRun(run),
+      concludeCompilerRun: (conclusion) => this.concludeCompilerRun(conclusion),
     }
+  }
+
+  /**
+   * Enqueue one unit of compiler work. R-6's write surface, and `compiler_jobs`' only writer.
+   *
+   * IDEMPOTENT BY IDENTITY, NOT BY ATTEMPT — the schema's own words. `job_id` is `hashJson` over
+   * `(jobType, subjectKey, inputDigest)`, which is also the DDL's UNIQUE triple, so the PRIMARY KEY
+   * and the UNIQUE constraint are the same constraint and one upsert satisfies both. A rolling
+   * compiler that re-reads a source every hour therefore updates one row instead of accumulating one
+   * job per read.
+   *
+   * `ON CONFLICT ... DO UPDATE`, and NEITHER of the two shorter spellings would do:
+   *
+   *   - `INSERT OR REPLACE` deletes the row and re-inserts it, moving `created_at` forward on every
+   *     enqueue. That column means "when this work was first queued"; a value that advances on every
+   *     no-op makes a stuck job indistinguishable from a fresh one. Control #76 measures it. This is
+   *     the same reason `recordEvidence` refuses `OR REPLACE`.
+   *   - `INSERT OR IGNORE` silently discards the update, which is wrong here in a way it is NOT
+   *     wrong for `evidence_records`. An evidence row is keyed by a digest of its inputs and is
+   *     timeless — a duplicate carries no new information. A queue row is MUTABLE: a re-enqueue is
+   *     how a caller raises priority or reschedules a backoff, and dropping that leaves the job
+   *     waiting on the old schedule while the caller believes it moved. Control #77 measures it.
+   *
+   * THE UPDATE IS NARROWED TO THE SCHEDULE, and that is the R-4 lesson applied rather than
+   * re-learned. `persistIdentity` clobbered `artifact_status` because its upsert assigned a column a
+   * different writer owned. So this one assigns `priority`, `available_at` and `updated_at` and
+   * nothing else: `state`, `attempt_count` and the lease columns belong to `leaseJob` /
+   * `completeJob` / `reclaimExpiredLeases`, and re-enqueueing must not resurrect a terminal job or
+   * reset an attempt counter. Control #75 widens it to `state = excluded.state` and observes a
+   * `DEAD_LETTER` job return to `PENDING` without ever consulting the transition table.
+   *
+   * A re-enqueue of a TERMINAL row is therefore a schedule update on a row that will never be
+   * leased again — deliberately not an error. The caller cannot know the row's state without a read
+   * it has no reason to perform, and the fail-closed reading is that a terminal job stays terminal,
+   * not that the enqueue throws. `enqueueJobs` reports the distinction (`inserted`) so a caller that
+   * cares can see it.
+   */
+  private enqueueJob(job: CompilerJobEnqueue): CompilerJobEnqueueResult {
+    assertJobType(job.jobType)
+    assertDigestShape(job.inputDigest, "inputDigest", `${job.jobType}/${job.subjectKey}`)
+    if (job.subjectKey.length === 0) throw new Error(`job "${job.jobType}" has an empty subjectKey`)
+    const priority = job.priority ?? DEFAULT_JOB_PRIORITY
+    if (!Number.isInteger(priority) || priority < 0) {
+      throw new Error(`job "${job.jobType}/${job.subjectKey}": priority must be a non-negative integer`)
+    }
+
+    const jobId = compilerJobId(job.jobType, job.subjectKey, job.inputDigest)
+    // The classification probe, for the same reason `persistSourceRecords` has one: `changes` is 1
+    // on both branches of an upsert, so existence is read on the key before the write.
+    const seenBefore =
+      this.db.prepare("SELECT 1 FROM compiler_jobs WHERE job_id = ?").get(jobId) !== undefined
+
+    // A NEW row is PENDING with zero attempts and no lease. `assertJobState` runs on the value
+    // written rather than on a literal, so the enum stays closed on the write path — the DDL has no
+    // CHECK constraint on `state`, and TypeScript is erased at runtime.
+    assertJobState("PENDING", jobId)
+    assertLeaseCoherent("PENDING", null, null, jobId)
+
+    this.db
+      .prepare(
+        `INSERT INTO compiler_jobs (
+           job_id, job_type, subject_key, input_digest, state, priority, attempt_count,
+           available_at, lease_owner, lease_expires_at, last_error_code, last_error_digest,
+           created_at, updated_at
+         ) VALUES (?, ?, ?, ?, 'PENDING', ?, 0, ?, NULL, NULL, NULL, NULL, ?, ?)
+         ON CONFLICT(job_id) DO UPDATE SET
+           priority = excluded.priority,
+           available_at = excluded.available_at,
+           updated_at = excluded.updated_at`,
+      )
+      .run(
+        jobId,
+        job.jobType,
+        job.subjectKey,
+        job.inputDigest,
+        priority,
+        job.availableAt,
+        job.now,
+        job.now,
+      )
+
+    return { jobId, inserted: !seenBefore }
+  }
+
+  /**
+   * Claim one job for `owner` until `leaseExpiresAt`, or return null when none is available.
+   *
+   * SINGLE OWNERSHIP COMES FROM ONE CONDITIONAL UPDATE, never from a read followed by a write. Two
+   * workers that both `SELECT` the highest-priority `PENDING` row see the same row and both claim
+   * it; the guard has to be the UPDATE's own `WHERE`, whose evaluation and write are atomic within
+   * the statement. `changes === 0` is how a loser learns it lost — that is why the driver port
+   * exposes `changes` at all. Control #70 replaces this with select-then-update and observes two
+   * owners on one row.
+   *
+   * The row is picked by a scalar subquery in the same statement rather than by a prior read, so
+   * there is no window between choosing and claiming. Ordering is `(priority, available_at, job_id)`:
+   * priority first because that is what it means, `available_at` next so the longest-waiting eligible
+   * job goes first, and `job_id` last because two rows can tie on both and SQLite would otherwise be
+   * free to return either — a queue whose hand-out order is unspecified is not reproducible.
+   *
+   * ELIGIBILITY IS TWO CONDITIONS, and both are load-bearing. `state = 'PENDING'` (from
+   * `LEASABLE_JOB_STATES`, asserted below so the whitelist and the SQL cannot disagree) excludes
+   * both a row someone else holds and a terminal row the schema forbids re-running. `available_at
+   * <= :now` excludes a row scheduled for later — a state test alone hands out work whose backoff
+   * has not elapsed. `now` is INJECTED: no `CURRENT_TIMESTAMP`, no `Date` in this file (INV-R6,
+   * §9.5). Control #71 drops the availability test; control #72 uses SQLite's clock.
+   *
+   * `attempt_count` increments HERE, when the work is handed out, not when it finishes. A worker
+   * that dies mid-job never reports anything, so a counter incremented on completion would let a
+   * crash-looping job retry forever — which is precisely the "burns a rate limit and reports
+   * nothing" failure `DEAD_LETTER` exists to stop. Counting hand-outs makes the exhaustion test
+   * `attemptCount >= max` decidable from the row alone.
+   */
+  private leaseJob(request: CompilerJobLeaseRequest): StoredCompilerJob | null {
+    if (request.owner.length === 0) throw new Error("a lease owner must be named; found an empty string")
+    if (request.leaseExpiresAt <= request.now) {
+      // ISO-8601 UTC stamps compare correctly as strings, which is why the store never parses one.
+      // An expiry at or before `now` is a lease that is already expired: the row would be reclaimed
+      // by the next sweep while its holder believed it held the claim.
+      throw new Error(
+        `lease for "${request.owner}" expires at ${request.leaseExpiresAt}, which is not after now (${request.now})`,
+      )
+    }
+    if (request.jobType !== undefined) assertJobType(request.jobType)
+
+    // The whitelist decides which states the SQL admits, rather than the SQL deciding for itself.
+    // One member today; the assertion is what makes a widened set a deliberate act.
+    const leasable = COMPILER_JOB_STATES.filter((s) => isLeasableJobState(s))
+    if (leasable.length !== 1 || leasable[0] !== "PENDING") {
+      throw new Error(`LEASABLE_JOB_STATES changed to [${leasable.join(", ")}]; leaseJob's SQL admits only PENDING`)
+    }
+
+    const typeFilter = request.jobType === undefined ? "" : " AND job_type = :jobType"
+    const params: Record<string, string> = {
+      owner: request.owner,
+      now: request.now,
+      leaseExpiresAt: request.leaseExpiresAt,
+    }
+    if (request.jobType !== undefined) params.jobType = request.jobType
+
+    const info = this.db
+      .prepare(
+        `UPDATE compiler_jobs
+            SET state = 'LEASED',
+                lease_owner = :owner,
+                lease_expires_at = :leaseExpiresAt,
+                attempt_count = attempt_count + 1,
+                updated_at = :now
+          WHERE job_id = (
+            SELECT job_id FROM compiler_jobs
+             WHERE state = 'PENDING' AND available_at <= :now${typeFilter}
+             ORDER BY priority, available_at, job_id
+             LIMIT 1
+          )`,
+      )
+      .run(params)
+
+    if (info.changes === 0) return null
+    const claimed = this.listCompilerJobs().find((j) => j.leaseOwner === request.owner && j.state === "LEASED")
+    if (claimed === undefined) {
+      throw new Error(`lease for "${request.owner}" reported ${info.changes} row(s) changed but no LEASED row is held`)
+    }
+    // The read-back is not decoration: it asserts the row the UPDATE produced satisfies the same
+    // coherence rule every other write path checks, so a future edit to the SQL cannot half-set a
+    // lease without a named failure.
+    assertLeaseCoherent(claimed.state, claimed.leaseOwner, claimed.leaseExpiresAt, claimed.jobId)
+    return claimed
+  }
+
+  /**
+   * Extend an existing claim. True when this owner still held the row; false otherwise.
+   *
+   * THE OWNER IS IN THE `WHERE`, not compared after a read. A renewal that read the row, checked the
+   * owner, then wrote would let the expiry sweep reclaim the row between the two — and the write
+   * would then hand the lease back to a worker that no longer holds it, producing two holders from
+   * a check that looked correct. One conditional UPDATE makes the ownership test and the write the
+   * same operation, the same argument as `leaseJob`'s.
+   *
+   * `state = 'LEASED'` is in the `WHERE` as well, so a renewal cannot revive a row that was
+   * completed or reclaimed while the holder was working. That is the `LEASED -> LEASED` edge of
+   * `COMPILER_JOB_TRANSITIONS`, enforced by the statement rather than asserted beside it.
+   *
+   * `attempt_count` is NOT incremented. A renewal is the same attempt continuing; counting it would
+   * let a long-running job exhaust its budget by being slow rather than by failing.
+   *
+   * Returning a BOOLEAN rather than throwing, unlike the other write paths. Losing a lease is not a
+   * logic defect — it is the expected outcome of taking longer than the expiry — and the caller's
+   * correct response is to stop working, not to crash. `completeJob` still refuses the transition if
+   * such a caller writes anyway, so the fail-closed property does not rest on this return value.
+   */
+  private renewLease(renewal: CompilerJobRenewal): boolean {
+    if (renewal.owner.length === 0) throw new Error("a lease owner must be named; found an empty string")
+    if (renewal.leaseExpiresAt <= renewal.now) {
+      throw new Error(
+        `renewal for "${renewal.owner}" expires at ${renewal.leaseExpiresAt}, which is not after now (${renewal.now})`,
+      )
+    }
+    const info = this.db
+      .prepare(
+        `UPDATE compiler_jobs
+            SET lease_expires_at = ?, updated_at = ?
+          WHERE job_id = ? AND state = 'LEASED' AND lease_owner = ?`,
+      )
+      .run(renewal.leaseExpiresAt, renewal.now, renewal.jobId, renewal.owner)
+    return info.changes === 1
+  }
+
+  /**
+   * Record how one job's work ended: released for another attempt, or concluded.
+   *
+   * The transition is validated INSIDE the transaction against `COMPILER_JOB_TRANSITIONS`, by
+   * reading the current state first. That read is what makes `FAILED`/`DEAD_LETTER` terminal as a
+   * property of the STORE rather than a claim about a caller's control flow — the R-4 lesson: a
+   * guard that lives in one caller is a guard the next caller bypasses. Control #78 widens the table
+   * and observes a `DEAD_LETTER` job resurrect.
+   *
+   * THE LEASE IS ALWAYS CLEARED, on both paths, because every state reachable from `LEASED` is a
+   * state in which no one holds the row. `assertLeaseCoherent` then re-checks that against the state
+   * being written, so the two cannot disagree.
+   *
+   * A release to `PENDING` REQUIRES `availableAt`. Retrying immediately is what turns a failing job
+   * into a hot loop against someone else's rate limit, and the backoff is the caller's to compute
+   * (INV-R6) — so the absence of a schedule is an error here rather than a default of "now", which
+   * would be a clock read this file must not perform.
+   */
+  private completeJob(completion: CompilerJobCompletion): void {
+    const current = this.db
+      .prepare("SELECT state FROM compiler_jobs WHERE job_id = ?")
+      .all(completion.jobId) as { state: string }[]
+    const row = current[0]
+    if (row === undefined) throw new Error(`job "${completion.jobId}" has no row to complete`)
+
+    // The STORED value is validated, not just the incoming one: a row written by some future path
+    // that skipped these assertions would otherwise be read into the transition table as a state
+    // the table has no key for, yielding `undefined.includes` instead of a named failure.
+    assertJobState(row.state, completion.jobId)
+    assertJobState(completion.state, completion.jobId)
+    assertJobTransition(row.state as CompilerJobState, completion.state, completion.jobId)
+    assertLeaseCoherent(completion.state, null, null, completion.jobId)
+
+    if (completion.state === "PENDING" && completion.availableAt === undefined) {
+      throw new Error(
+        `job "${completion.jobId}": releasing to PENDING requires an availableAt — the retry schedule is the caller's to compute (INV-R6)`,
+      )
+    }
+    if (completion.lastErrorDigest != null) {
+      assertDigestShape(completion.lastErrorDigest, "lastErrorDigest", completion.jobId)
+    }
+
+    this.db
+      .prepare(
+        `UPDATE compiler_jobs
+            SET state = ?,
+                lease_owner = NULL,
+                lease_expires_at = NULL,
+                available_at = COALESCE(?, available_at),
+                last_error_code = ?,
+                last_error_digest = ?,
+                updated_at = ?
+          WHERE job_id = ?`,
+      )
+      .run(
+        completion.state,
+        completion.availableAt ?? null,
+        completion.lastErrorCode ?? null,
+        completion.lastErrorDigest ?? null,
+        completion.now,
+        completion.jobId,
+      )
+  }
+
+  /**
+   * Release every lease that expired at or before `now`, returning how many rows were reclaimed.
+   *
+   * A lease is a claim WITH AN EXPIRY, so a worker that dies leaves a row another worker may
+   * reclaim rather than a permanently-held one (the schema's words). This is the sweep that makes
+   * that true, and it is one conditional UPDATE for the same reason `leaseJob` is: a read followed
+   * by a write lets two sweepers reclaim the same row, and `changes` is how many were actually
+   * released.
+   *
+   * `lease_expires_at <= :now` with an INJECTED `now`. Not `CURRENT_TIMESTAMP`, not `Date.now()` —
+   * both would put a clock inside the compile path, and a test asserts this file has no `Date`
+   * import by reading these bytes. Control #72 substitutes SQLite's clock and control #73 makes the
+   * comparison strict-greater so a lease expiring exactly at `now` is never reclaimed.
+   *
+   * The row returns to `PENDING` and `available_at` is left ALONE. The reclaimed job was already
+   * eligible when it was leased, so its schedule has passed; advancing it would be a delay nobody
+   * asked for, and moving it backwards would be a clock read. `attempt_count` is not touched either:
+   * `leaseJob` counted the hand-out, so the crashed attempt is already counted, which is what stops
+   * a crash-looping job from evading `DEAD_LETTER`.
+   */
+  private reclaimExpiredLeases(now: string): number {
+    const info = this.db
+      .prepare(
+        `UPDATE compiler_jobs
+            SET state = 'PENDING',
+                lease_owner = NULL,
+                lease_expires_at = NULL,
+                updated_at = ?
+          WHERE state = 'LEASED' AND lease_expires_at IS NOT NULL AND lease_expires_at <= ?`,
+      )
+      .run(now, now)
+    return info.changes
+  }
+
+  /**
+   * Open one `compiler_runs` row and return its `runId`.
+   *
+   * `output_manifest_digest` is NULL and `completed_at` is NULL while the run is `RUNNING`, which is
+   * the honest record: a run that has not finished has produced no output manifest. The schema
+   * requires the property to be PRESENT and permits it to be null precisely so this state is
+   * representable without "an empty-string or all-zero digest" — its description says so.
+   *
+   * `metrics` starts at six zeros rather than being omitted, because `metrics_json` is NOT NULL and
+   * a crashed run must still read back as a valid document. `assertRunMetrics` runs on the way in
+   * even for the zero object, so the closed-set rule has exactly one definition.
+   *
+   * Named `beginCompilerRun` and not `beginRun`: the latter already exists on this class for a
+   * SOURCE's sync checkpoint, and the two are different facts.
+   */
+  private beginCompilerRun(run: CompilerRunBegin): string {
+    assertRunType(run.runType)
+    const runId = compilerRunId(run.runType, run.inputManifestDigest, run.startedAt)
+    assertDigestShape(run.inputManifestDigest, "inputManifestDigest", runId)
+    assertRunState("RUNNING", runId)
+
+    const metrics = emptyRunMetrics()
+    assertRunMetrics(metrics, runId)
+
+    this.db
+      .prepare(
+        `INSERT INTO compiler_runs (
+           run_id, run_type, input_manifest_digest, output_manifest_digest,
+           state, started_at, completed_at, metrics_json
+         ) VALUES (?, ?, ?, NULL, 'RUNNING', ?, NULL, ?)`,
+      )
+      .run(runId, run.runType, run.inputManifestDigest, run.startedAt, serializeRunMetrics(metrics))
+
+    return runId
+  }
+
+  /**
+   * Conclude one compiler pass: its terminal state, its output manifest, and its counters.
+   *
+   * The transition is validated against `COMPILER_RUN_TRANSITIONS` after reading the stored state,
+   * so a concluded run cannot be re-graded. That matters more here than for a job: the run record is
+   * the reproducibility record — "two runs over the same input manifest must produce the same output
+   * manifest" is only checkable if a run's stored output cannot be rewritten after the fact.
+   *
+   * A `FAILED` run writes `outputManifestDigest: null`. A CRASHED RUN MUST NOT SUBSTITUTE A DIGEST:
+   * `sha256:000…0` is a well-formed digest, so `assertDigestShape` cannot refuse it — the refusal has
+   * to be that a non-`SUCCEEDED`/`PARTIAL` run has no output at all. Control #87 supplies the
+   * all-zero digest on a `FAILED` run and observes the named failure.
+   *
+   * Conversely a `SUCCEEDED` or `PARTIAL` run MUST carry one. A concluded run with no output
+   * manifest is indistinguishable from a crashed one, and `PARTIAL` is a real conclusion — it
+   * compiled 24 of 25 subjects and emitted a manifest for the 24.
+   */
+  private concludeCompilerRun(conclusion: CompilerRunConclusion): void {
+    const current = this.db
+      .prepare("SELECT state FROM compiler_runs WHERE run_id = ?")
+      .all(conclusion.runId) as { state: string }[]
+    const row = current[0]
+    if (row === undefined) throw new Error(`run "${conclusion.runId}" has no row to conclude`)
+
+    assertRunState(row.state, conclusion.runId)
+    assertRunState(conclusion.state, conclusion.runId)
+    assertRunTransition(row.state as CompilerRunState, conclusion.state, conclusion.runId)
+    assertRunMetrics(conclusion.metrics, conclusion.runId)
+
+    const producedOutput = conclusion.state === "SUCCEEDED" || conclusion.state === "PARTIAL"
+    if (producedOutput) {
+      if (conclusion.outputManifestDigest === null) {
+        throw new Error(
+          `run "${conclusion.runId}": a ${conclusion.state} run must carry an outputManifestDigest — without one it is indistinguishable from a crashed run`,
+        )
+      }
+      assertDigestShape(conclusion.outputManifestDigest, "outputManifestDigest", conclusion.runId)
+    } else if (conclusion.outputManifestDigest !== null) {
+      throw new Error(
+        `run "${conclusion.runId}": a ${conclusion.state} run produced no output, so outputManifestDigest must be null, not ${JSON.stringify(conclusion.outputManifestDigest)}`,
+      )
+    }
+
+    this.db
+      .prepare(
+        `UPDATE compiler_runs
+            SET state = ?, output_manifest_digest = ?, completed_at = ?, metrics_json = ?
+          WHERE run_id = ?`,
+      )
+      .run(
+        conclusion.state,
+        conclusion.outputManifestDigest,
+        conclusion.completedAt,
+        serializeRunMetrics(conclusion.metrics),
+        conclusion.runId,
+      )
+  }
+
+  /**
+   * Queue rows, ordered by the hand-out order `leaseJob` uses.
+   *
+   * `(priority, available_at, job_id)` rather than by primary key, so a reader sees the queue as the
+   * leaser does. `job_id` is a digest, so ordering by it alone would look arbitrary and hide the
+   * scheduling.
+   */
+  listCompilerJobs(): StoredCompilerJob[] {
+    const rows = this.db
+      .prepare(
+        `SELECT job_id AS jobId, job_type AS jobType, subject_key AS subjectKey,
+                input_digest AS inputDigest, state, priority, attempt_count AS attemptCount,
+                available_at AS availableAt, lease_owner AS leaseOwner,
+                lease_expires_at AS leaseExpiresAt, last_error_code AS lastErrorCode,
+                last_error_digest AS lastErrorDigest, created_at AS createdAt, updated_at AS updatedAt
+         FROM compiler_jobs ORDER BY priority, available_at, job_id`,
+      )
+      .all() as StoredCompilerJob[]
+    // Every row is validated on the way out, for the reason `parseRunMetrics` is: these are TEXT
+    // columns with no CHECK constraint, so a value the union does not contain would otherwise be
+    // handed to callers as a `CompilerJobState` the type system believes in.
+    for (const r of rows) {
+      assertJobState(r.state, r.jobId)
+      assertJobType(r.jobType)
+    }
+    return rows
+  }
+
+  /** Run rows, newest start first, with `metrics_json` parsed and validated. */
+  listCompilerRuns(): StoredCompilerRun[] {
+    const rows = this.db
+      .prepare(
+        `SELECT run_id AS runId, run_type AS runType, input_manifest_digest AS inputManifestDigest,
+                output_manifest_digest AS outputManifestDigest, state, started_at AS startedAt,
+                completed_at AS completedAt, metrics_json AS metricsJson
+         FROM compiler_runs ORDER BY started_at DESC, run_id`,
+      )
+      .all() as (Omit<StoredCompilerRun, "metrics"> & { metricsJson: string })[]
+    return rows.map((r) => {
+      assertRunState(r.state, r.runId)
+      assertRunType(r.runType)
+      return {
+        runId: r.runId,
+        runType: r.runType,
+        inputManifestDigest: r.inputManifestDigest,
+        outputManifestDigest: r.outputManifestDigest,
+        state: r.state,
+        startedAt: r.startedAt,
+        completedAt: r.completedAt,
+        metrics: parseRunMetrics(r.metricsJson, r.runId),
+      }
+    })
   }
 
   /**
@@ -917,6 +1496,97 @@ export interface StoredIdentityConflict {
   createdAt: string
   resolvedAt: string | null
   resolution: ConflictResolution | null
+}
+
+/**
+ * `compiler_jobs.priority`'s default, transcribed from `migrations/001:117` (`DEFAULT 100`).
+ *
+ * Named here rather than left to SQLite's own default, because this writer always supplies the
+ * column explicitly — an upsert that omitted it would reset priority to the DDL default on every
+ * re-enqueue, which is the opposite of what a re-enqueue is for.
+ */
+export const DEFAULT_JOB_PRIORITY = 100
+
+/**
+ * Throw unless `state` is one of the five declared job states.
+ *
+ * ON THE WRITE PATH, not only in the type checker, and the reason is measured: `migrations/001`
+ * declares `state TEXT NOT NULL` with NO `CHECK` constraint, so SQLite accepts `"SUCCEEEDED"`
+ * without complaint, and TypeScript's union is erased before any row is written. The enum's closure
+ * exists in two places that cannot enforce it at runtime (a JSON schema nothing validates rows
+ * against, and a type) — so it is asserted here, where rows are actually written. Control #80 writes
+ * a misspelling and control #81 removes this function's call sites.
+ */
+function assertJobState(state: string, jobId: string): asserts state is CompilerJobState {
+  if (!COMPILER_JOB_STATES.includes(state as CompilerJobState)) {
+    throw new Error(
+      `job "${jobId}": state must be one of [${COMPILER_JOB_STATES.join(", ")}], found ${JSON.stringify(state)}`,
+    )
+  }
+}
+
+/** Throw unless `jobType` is one of the seven declared stages. Same argument as `assertJobState`. */
+function assertJobType(jobType: string): asserts jobType is CompilerJobType {
+  if (!COMPILER_JOB_TYPES.includes(jobType as CompilerJobType)) {
+    throw new Error(
+      `jobType must be one of [${COMPILER_JOB_TYPES.join(", ")}], found ${JSON.stringify(jobType)}`,
+    )
+  }
+}
+
+/** Throw unless `state` is one of the four declared run states. */
+function assertRunState(state: string, runId: string): asserts state is CompilerRunState {
+  if (!COMPILER_RUN_STATES.includes(state as CompilerRunState)) {
+    throw new Error(
+      `run "${runId}": state must be one of [${COMPILER_RUN_STATES.join(", ")}], found ${JSON.stringify(state)}`,
+    )
+  }
+}
+
+/** Throw unless `runType` is one of the four declared run kinds. */
+function assertRunType(runType: string): asserts runType is CompilerRunType {
+  if (!COMPILER_RUN_TYPES.includes(runType as CompilerRunType)) {
+    throw new Error(
+      `runType must be one of [${COMPILER_RUN_TYPES.join(", ")}], found ${JSON.stringify(runType)}`,
+    )
+  }
+}
+
+/**
+ * A row of `compiler_jobs`, as stored.
+ *
+ * Column-for-property with `calllint.compiler-job.v1` minus its `schema` property, which is a
+ * document-only field — there is no `schema` column. `state` and `jobType` are the narrow unions
+ * rather than `string`, which is only sound because `listCompilerJobs` validates every row it
+ * returns; the DDL itself would permit any text.
+ */
+export interface StoredCompilerJob {
+  jobId: string
+  jobType: CompilerJobType
+  subjectKey: string
+  inputDigest: string
+  state: CompilerJobState
+  priority: number
+  attemptCount: number
+  availableAt: string
+  leaseOwner: string | null
+  leaseExpiresAt: string | null
+  lastErrorCode: string | null
+  lastErrorDigest: string | null
+  createdAt: string
+  updatedAt: string
+}
+
+/** A row of `compiler_runs`, with `metrics_json` parsed back into the closed counter object. */
+export interface StoredCompilerRun {
+  runId: string
+  runType: CompilerRunType
+  inputManifestDigest: string
+  outputManifestDigest: string | null
+  state: CompilerRunState
+  startedAt: string
+  completedAt: string | null
+  metrics: CompilerRunMetrics
 }
 
 /** A row of `artifact_versions`. The four R-4 columns are read and are null until it runs. */

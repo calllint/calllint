@@ -29,8 +29,15 @@ import {
   resolveIndexPaths,
   resolveIdentity,
   toSourceRecord,
+  beginCompilerRun,
+  enqueueJobs,
+  leaseNextJob,
+  toCompilerJobDocument,
+  toCompilerRunDocument,
   OFFICIAL_REGISTRY_SOURCE_ID,
   MIGRATIONS_DIRNAME,
+  type CompilerJobV1,
+  type CompilerRunV1,
   type SourceRecordV1,
 } from "@calllint/adoption-index"
 
@@ -305,9 +312,138 @@ function resolvedIdentityDocuments() {
   return { subject, conflict: identity.conflicts[0]! }
 }
 
+/**
+ * A REAL `ArtifactVersionV1`, from the same shipped resolver.
+ *
+ * The third excuse R-6 pays. `calllint.artifact-version.v1` was excused as "R-4 writes
+ * artifact_versions; no emitter exists yet" and R-4 MERGED — so the excuse outlived its reason, the
+ * same way the two identity schemas above did. It took a measurement to be sure: the obvious probe,
+ * `git grep -nE '(INSERT|UPDATE)[^;]*artifact_versions'`, returns NOTHING, because the SQL spans
+ * lines and no verb sits on the same line as the table name. A grep-shaped conclusion here would have
+ * been "still no emitter", which is false — `resolveIdentity` has emitted these documents since R-3
+ * and R-4 gave them their four resolution columns.
+ *
+ * The document a bare `resolveIdentity` produces is deliberately the WEAK one — `RESOLVED`, with
+ * `immutableDigest: null` — and that is the case worth grading. `immutableDigest` is in `required`
+ * and is nullable, exactly like `outputManifestDigest` on a run: an artifact we have merely NAMED has
+ * no verified bytes, and a schema that demanded a digest would force a lie into the field a later
+ * verification compares against. So the instance asserts the pairing rather than picking the
+ * comfortable `FETCHED` case, which would leave the nullable branch ungraded.
+ */
+function resolvedArtifactDocument() {
+  const raw = {
+    server: {
+      name: "io.example/schema-compat",
+      description: "prose",
+      version: "2.0.0",
+      packages: [
+        { registryType: "npm", identifier: "@example/schema-compat", version: "2.0.0", transport: "stdio" },
+      ],
+    },
+    _meta: {
+      "io.modelcontextprotocol.registry/official": {
+        status: "active",
+        isLatest: true,
+        publishedAt: "2026-07-01T00:00:00.000Z",
+      },
+    },
+  }
+  const record = toSourceRecord(raw as never, REGISTRY_NOW)
+  if (record === null) throw new Error("the adapter rejected the fixture item — the producer, not the schema")
+  const identity = resolveIdentity({
+    records: [record],
+    sourceId: OFFICIAL_REGISTRY_SOURCE_ID,
+    observedAt: REGISTRY_NOW,
+  })
+  const artifact = identity.artifacts[0]
+  if (artifact === undefined) throw new Error("the resolver produced no artifact — the producer, not the schema")
+  // Asserted at construction, so a regression fails HERE and names itself rather than producing an
+  // instance that validates for a reason nobody chose.
+  if (artifact.artifactStatus !== "RESOLVED" || artifact.immutableDigest !== null) {
+    throw new Error(
+      `expected a RESOLVED artifact with a null digest, got ${artifact.artifactStatus}/${String(artifact.immutableDigest)}`,
+    )
+  }
+  return artifact
+}
+
+/**
+ * REAL `CompilerJobV1` and `CompilerRunV1` documents, read back out of a real store — R-6's own
+ * excuses, paid in the PR that adds the emitter.
+ *
+ * BOTH GO THROUGH SQLITE rather than being taken from the operations layer's return values, for the
+ * reason `storedSourceRecord` does: the round-trip is where a translation error appears. Two are
+ * specific to these tables — `metrics` is one TEXT column that `serializeRunMetrics` writes and
+ * `parseRunMetrics` reads, and every enum is a `TEXT` column with NO CHECK constraint — so a document
+ * built from the in-memory objects would grade the types, not the storage.
+ *
+ * THE INSTANCES ARE THE AWKWARD ONES ON PURPOSE. The job is `LEASED`, the one state where
+ * `leaseOwner`/`leaseExpiresAt` are populated together; the run is `RUNNING`, the state whose
+ * `outputManifestDigest` must be present AND null. Grading a `PENDING` job and a `SUCCEEDED` run
+ * would leave both of those asymmetries untested, and they are the two the schemas argue for at
+ * length.
+ *
+ * `toCompilerJobDocument` supplies `schema`, which no table has a column for. That projection is the
+ * only difference between the row and the document, and `job-schema.test.ts` asserts the row alone
+ * fails validation — so this case cannot pass by accident.
+ */
+async function storedCompilerDocuments(): Promise<{ job: CompilerJobV1; run: CompilerRunV1 }> {
+  const cwd = fs.mkdtempSync(path.join(os.tmpdir(), "calllint-schema-compat-r6-"))
+  try {
+    const paths = resolveIndexPaths(cwd)
+    for (const dir of paths.dirs) fs.mkdirSync(dir, { recursive: true })
+    const db = await openBetterSqlite3(paths.db)
+    const store = AdoptionIndexStore.open({
+      cwd,
+      migrationsDir: path.join(repoRoot, "packages", "adoption-index", MIGRATIONS_DIRNAME),
+      db,
+      now: REGISTRY_NOW,
+    })
+    try {
+      const inputDigest = `sha256:${"1".repeat(64)}`
+      enqueueJobs({
+        store,
+        jobs: [{ jobType: "compile-evidence", subjectKey: "io.example/schema-compat", inputDigest }],
+        now: REGISTRY_NOW,
+      })
+      const leased = leaseNextJob({
+        store,
+        owner: "schema-compat-worker",
+        now: REGISTRY_NOW,
+        leaseExpiresAt: "2026-08-03T01:00:00.000Z",
+      })
+      if (leased === null) throw new Error("nothing was leasable — the producer, not the schema")
+
+      beginCompilerRun({
+        store,
+        runType: "incremental",
+        inputManifestDigest: `sha256:${"a".repeat(64)}`,
+        startedAt: REGISTRY_NOW,
+      })
+
+      const jobRow = store.listCompilerJobs()[0]
+      const runRow = store.listCompilerRuns()[0]
+      if (jobRow === undefined || runRow === undefined) throw new Error("the store returned no row to grade")
+      if (jobRow.state !== "LEASED" || jobRow.leaseOwner === null || jobRow.leaseExpiresAt === null) {
+        throw new Error(`expected a LEASED job with both lease properties set, got ${jobRow.state}`)
+      }
+      if (runRow.state !== "RUNNING" || runRow.outputManifestDigest !== null) {
+        throw new Error(`expected a RUNNING run with a null output manifest, got ${runRow.state}`)
+      }
+      return { job: toCompilerJobDocument(jobRow), run: toCompilerRunDocument(runRow) }
+    } finally {
+      store.close()
+    }
+  } finally {
+    fs.rmSync(cwd, { recursive: true, force: true })
+  }
+}
+
 const { plan, decisionReceipt } = buildPlanAndReceipt()
 const sourceRecord = await storedSourceRecord()
 const { subject: canonicalSubject, conflict: identityConflict } = resolvedIdentityDocuments()
+const artifactVersion = resolvedArtifactDocument()
+const { job: compilerJob, run: compilerRun } = await storedCompilerDocuments()
 
 interface Case {
   schema: string
@@ -403,6 +539,48 @@ const CASES: Case[] = [
     valid: identityConflict,
     malformed: { ...identityConflict, conflictType: "vibes" },
   },
+  {
+    // R-4's excuse, paid by R-6 — see `resolvedArtifactDocument` for why a grep said otherwise.
+    schema: "calllint.artifact-version.v1",
+    valid: artifactVersion,
+    // `RESOLVED`/`FETCHED`/`UNAVAILABLE`/`UNSUPPORTED`/`REJECTED` are the five real statuses.
+    // `VERIFIED` is the plausible sixth that does not exist, and it is the dangerous kind of
+    // wrong: a reader dispatching on it would treat an unfetched artifact as one whose bytes
+    // were checked against its claim.
+    malformed: { ...artifactVersion, artifactStatus: "VERIFIED" },
+  },
+  {
+    // R-6: the queue row this batch's store writes, read back through SQLite.
+    schema: "calllint.compiler-job.v1",
+    valid: compilerJob,
+    // A MISSPELLED STATE, because the enum is the only structural closure this row has anywhere.
+    // `compiler_jobs.state` is `TEXT NOT NULL` with NO CHECK constraint (migration 001:111-138), so
+    // SQLite accepts any string; TypeScript is erased at runtime; the schema's `enum` and the store's
+    // `assertJobState` are the two things left. `SUCEEDED` is the dangerous kind of wrong — a job
+    // that is actually finished matches neither `PENDING` nor any terminal, so it is invisible to
+    // both the lease sweep and the completion census rather than loudly broken.
+    //
+    // MEASURED, and worth stating because the first attempt here was wrong: a HALF-SET LEASE
+    // (`leaseExpiresAt: null` with an owner set) is STRUCTURALLY VALID against this schema. The
+    // "nullable together" rule is in the schema's prose, but the schema carries no
+    // `dependentRequired`/`allOf`, and both properties are independently `["string","null"]`. So that
+    // rule is enforced ONLY by `assertLeaseCoherent` on the write path — see `job-lease.test.ts`
+    // (controls #88/#89), which is where the guarantee actually lives. Pointing this case at the
+    // half-set lease would have asserted a refusal the published schema does not make.
+    malformed: { ...compilerJob, state: "SUCEEDED" },
+  },
+  {
+    // R-6: the run record. `valid` is `RUNNING`, so `outputManifestDigest` is present AND null —
+    // the asymmetry the schema's description argues for at length.
+    schema: "calllint.compiler-run.v1",
+    valid: compilerRun,
+    // `metrics` carrying a verdict is THE malformed case for this schema. It is closed
+    // (`additionalProperties: false`) for a stated reason — so "a run report can never become a
+    // second, unaudited place where a decision is made" — and Product Principle 4 is why that
+    // matters. A bad `state` enum would also be rejected, but it would not grade the closure, and
+    // the closure is the property that keeps verdicts in the rules layer.
+    malformed: { ...compilerRun, metrics: { ...compilerRun.metrics, verdict: "SAFE" } },
+  },
 ]
 
 /**
@@ -432,10 +610,7 @@ const EXCUSED_REASONS: ReadonlyArray<readonly [string, string]> = [
   ["calllint.presentation-content.v1", "covered by packages/trust-index/test/safe-install/presentation-content.test.ts"],
   ["calllint.safe-install-result.v1", "covered by packages/trust-index/test/safe-install/projection.test.ts"],
   ["calllint.agent-adoption-contract.v1", "covered by packages/trust-index/test/safe-install/projection.test.ts"],
-  ["calllint.artifact-version.v1", "R-4 writes artifact_versions; no emitter exists yet (control #9)"],
   ["calllint.adoption-record.v1", "R-7 projects adoption_records; no emitter exists yet (control #9)"],
-  ["calllint.compiler-job.v1", "R-6 writes compiler_jobs; no emitter exists yet (control #9)"],
-  ["calllint.compiler-run.v1", "R-6 writes compiler_runs; no emitter exists yet (control #9)"],
 ]
 const EXCUSED = new Set(EXCUSED_REASONS.map(([name]) => name))
 
@@ -503,22 +678,36 @@ describe("schema compatibility — every committed schema accepts real output + 
   })
 
   /**
-   * The six Workstream R schemas whose tables no batch populates yet. "Excused from an
-   * instance case" must not mean "unmeasured": without an emitter there is nothing to
-   * validate against, but the schema is still committed bytes that a later batch will build
-   * to, so the parts that are checkable without an instance are checked now — it compiles
-   * under Ajv, it is fail-closed, and its `schema` const matches its own filename. A typo
-   * there is otherwise found by R-6, three batches later.
+   * The Workstream R schemas whose tables no batch populates yet — down to ONE, R-7's.
+   *
+   * "Excused from an instance case" must not mean "unmeasured": without an emitter there is nothing
+   * to validate against, but the schema is still committed bytes that a later batch will build to,
+   * so the parts that are checkable without an instance are checked now — it compiles under Ajv, it
+   * is fail-closed, and its `schema` const matches its own filename. A typo there is otherwise found
+   * by the batch that writes the table, several batches later.
+   *
+   * This list started at six and shrank as each writer landed, which is the shape the excuse
+   * docblock above prescribes. It is now one element from empty, so the cross-check below carries a
+   * vacuity guard: `toEqual` between two empty arrays passes, and a green suite must not be
+   * obtainable by deleting both lists.
    */
   const AWAITING_EMITTER = [
     // `calllint.canonical-subject.v1` and `calllint.identity-conflict.v1` LEFT this list when
     // the nullable-slug PR wired R-3's resolver output into a real instance case above. They
     // should have left when R-3 merged — the docblock's "in the same PR that adds its emitter"
     // was not honoured, and a structural-only grade outlived its excuse for two batches.
-    "calllint.artifact-version.v1",
+    //
+    // R-6 emptied the rest of the backlog. `calllint.compiler-job.v1` and
+    // `calllint.compiler-run.v1` left because this batch IS their emitter, and
+    // `calllint.artifact-version.v1` left because R-4's was already shipped and the excuse had
+    // simply outlived it — see `resolvedArtifactDocument` for the measurement, and for why the
+    // obvious grep said the opposite.
+    //
+    // ONE ENTRY IS LEFT, and that is the interesting property of this list now. A single-element
+    // set is one deletion away from empty, at which point every loop below iterates zero times and
+    // passes — so the vacuity guard under the cross-check is what keeps this block honest, not the
+    // loops themselves.
     "calllint.adoption-record.v1",
-    "calllint.compiler-job.v1",
-    "calllint.compiler-run.v1",
   ] as const
 
   describe("Workstream R schemas awaiting an emitter — structural grade only", () => {
@@ -548,6 +737,13 @@ describe("schema compatibility — every committed schema accepts real output + 
       for (const name of AWAITING_EMITTER) expect(EXCUSED.has(name)).toBe(true)
       const byControl9 = EXCUSED_REASONS.filter(([, r]) => r.includes("control #9")).map(([n]) => n).sort()
       expect(byControl9).toEqual([...AWAITING_EMITTER].sort())
+      // VACUITY GUARD, load-bearing now that the list holds one entry. `toEqual([], [])` passes, and
+      // the `for` above iterates zero times over an empty list — so deleting both lists would turn
+      // this test green while removing the coverage it exists to force. R-7 is the LAST batch
+      // entitled to shrink this: when it lands, the list empties, and this guard must be replaced by
+      // its inverse (both lists are empty AND every schema on disk has a case) in that same PR.
+      expect(AWAITING_EMITTER.length).toBeGreaterThan(0)
+      expect(byControl9.length).toBe(AWAITING_EMITTER.length)
     })
   })
 })
