@@ -76,9 +76,32 @@ export type TarInspection =
   | { readonly ok: false; readonly refusal: TarRefusal; readonly detail: string }
 
 /**
+ * Called for each accepted FILE entry, with the bytes this inspection already holds.
+ *
+ * R-5 needs the TEXT of a handful of allowlisted documents, and this enumeration is the one place
+ * in the repo that has already decompressed, bounds-checked and path-normalized them. The
+ * alternative — a second tar reader over the same bytes — would be a second parser to keep in
+ * agreement about PAX headers, path escapes and octal fields, which is exactly the "two competing
+ * implementations" shape the contract forbids.
+ *
+ * A CALLBACK rather than `entries[].content`, because the memory profile is the reason this hook
+ * exists at all: returning every entry's bytes would hold a whole 64 MiB archive resident on every
+ * R-4 call, while a visitor lets the caller keep only what it asked for (R-5 keeps at most four
+ * surfaces, each capped). `data` is a `subarray` VIEW into the decompressed buffer and is valid
+ * only during the call — a visitor that keeps it must copy, and `documentSurfaces.ts` does.
+ *
+ * Omitted by every existing caller, so R-4's behaviour is unchanged byte-for-byte.
+ */
+export type TarEntryVisitor = (entry: TarEntry, data: Uint8Array) => void
+
+/**
  * Decompress and enumerate. Never throws, never writes, never executes.
  */
-export function inspectTarball(gzipped: Uint8Array, caps: TarInspectCaps = DEFAULT_TAR_CAPS): TarInspection {
+export function inspectTarball(
+  gzipped: Uint8Array,
+  caps: TarInspectCaps = DEFAULT_TAR_CAPS,
+  visit?: TarEntryVisitor,
+): TarInspection {
   // Gzip magic, checked before handing bytes to zlib so "this isn't an archive" is distinguishable
   // from "this archive is broken". A registry serving an HTML error page with a 200 lands here.
   if (gzipped.length < 2 || gzipped[0] !== 0x1f || gzipped[1] !== 0x8b) {
@@ -157,12 +180,17 @@ export function inspectTarball(gzipped: Uint8Array, caps: TarInspectCaps = DEFAU
     }
 
     const kind = entryKind(typeFlag, normalized)
-    entries.push({
+    const entry: TarEntry = {
       path: normalized,
       size,
       kind,
       digest: kind === "file" ? sha256Bytes(data) : null,
-    })
+    }
+    entries.push(entry)
+    // AFTER the entry is accepted, so a visitor can never observe bytes from an entry this
+    // inspection went on to refuse. Files only: a directory header's `data` is empty, and handing
+    // a visitor an empty buffer for one would invite it to treat a directory as an empty document.
+    if (visit !== undefined && kind === "file") visit(entry, data)
   }
 
   return { ok: true, entries, uncompressedBytes: tar.length }

@@ -97,6 +97,12 @@ importers:
       '@calllint/fingerprint':
         specifier: workspace:*
         version: link:../fingerprint
+      '@calllint/static-analyzer':
+        specifier: workspace:*
+        version: link:../static-analyzer
+      '@calllint/types':
+        specifier: workspace:*
+        version: link:../types
       better-sqlite3:
         specifier: 12.9.0
         version: 12.9.0

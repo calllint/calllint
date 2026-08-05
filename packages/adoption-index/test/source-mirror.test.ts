@@ -572,26 +572,32 @@ describe("the checkpoint is written only after the records (§9.4)", () => {
     // handle anyway, and privately declared, so that the "all SQL lives in store.ts" rule
     // (§10.3) has no exception carved for it.
     expect(storeSrc).toMatch(/^ {2}private updateArtifactResolution\(/m)
+    // R-5's writer likewise, and for the same reason as R-4's: `compileEvidence` opens one
+    // transaction PER ARTIFACT, because a single transaction around the loop would let one
+    // unreadable CAS blob roll back every row already compiled — the fail-DESTRUCTIVE shape.
+    expect(storeSrc).toMatch(/^ {2}private recordEvidence\(/m)
 
-    // The ordering rule's positive half: the handle carries exactly these FIVE and no
-    // sixth, so a caller inside a transaction cannot reach a wider write surface.
+    // The ordering rule's positive half: the handle carries exactly these SIX and no
+    // seventh, so a caller inside a transaction cannot reach a wider write surface.
     //
-    // This list was THREE until R-3, FOUR until R-4, and is widened here deliberately, not
-    // relaxed. The assertion's subject is that the write surface is a CLOSED SET enumerated in
-    // one place; R-3 added `persistIdentity` because the identity layer must commit in the same
-    // transaction as the checkpoint that describes it (a digest advanced without its subjects
-    // would report "no change" forever), and R-4 adds `updateArtifactResolution` because the
-    // four artifact columns are the batch's whole write surface and they must not be reachable
-    // outside a transaction. Growing the list is how a new writer announces itself; a writer
-    // that reached the handle without appearing here is the defect. This assertion CAUGHT R-4's
-    // writer rather than being updated alongside it — it failed on the run that added the fifth
-    // key, which is the behaviour a closed-set pin exists for.
+    // This list was THREE until R-3, FOUR until R-4, FIVE until R-5, and is widened here
+    // deliberately, not relaxed. The assertion's subject is that the write surface is a CLOSED SET
+    // enumerated in one place; R-3 added `persistIdentity` because the identity layer must commit
+    // in the same transaction as the checkpoint that describes it (a digest advanced without its
+    // subjects would report "no change" forever), R-4 added `updateArtifactResolution` because the
+    // four artifact columns are that batch's whole write surface, and R-5 adds `recordEvidence`
+    // because `evidence_records` gains its first writer. Growing the list is how a new writer
+    // announces itself; a writer that reached the handle without appearing here is the defect.
+    // This assertion CAUGHT R-4's writer rather than being updated alongside it, and CAUGHT R-5's
+    // the same way — it failed on the run that added the sixth key, before any control was
+    // applied. That is twice now, which is the behaviour a closed-set pin exists for.
     const keys = store.transaction((tx) => Object.keys(tx).sort())
     expect(keys).toEqual([
       "advanceCheckpoint",
       "persistIdentity",
       "persistSourceRecords",
       "readCheckpoint",
+      "recordEvidence",
       "updateArtifactResolution",
     ])
   })

@@ -78,7 +78,14 @@ export interface RebuildScope {
    * when the caller passed no artifact port at all. Controls #27 and #28 measure both halves.
    */
   artifact: boolean | null
-  /** evidence ⇒ decision/all projections. Needs the evidence records — R-4/R-5. */
+  /**
+   * evidence ⇒ decision/all projections. RESOLVED, R-5 (do not restore the `null` default).
+   *
+   * Measured exactly like `identity` and `artifact`, and the third repetition is the point: the
+   * asymmetry is now a PATTERN three tiers deep rather than a special case. `true` when the run
+   * actually compiled an evidence layer, `null` on `NO_CHANGE`, and `null` — never `false` — when
+   * the caller passed no evidence port. Controls #61 and #62 measure both halves.
+   */
   evidence: boolean | null
   /** decision ⇒ contracts/search/human page. Needs decision records — R-7. */
   decision: boolean | null
@@ -112,6 +119,12 @@ export interface SourceChangeInput {
    * to `false` and observes a no-port run make exactly that unmeasured claim.
    */
   artifactResolved?: boolean
+  /**
+   * Whether this run actually compiled an evidence layer (R-5). OPTIONAL for the same reason the
+   * two above are. Control #61 defaults it to `false` and observes a no-port run assert "no
+   * evidence rebuild needed" about a layer nothing measured.
+   */
+  evidenceCompiled?: boolean
 }
 
 export interface SourceChangeVerdict {
@@ -170,7 +183,8 @@ export function detectSourceChange(input: SourceChangeInput): SourceChangeVerdic
   // verdict in the process, so assigning onto it would rewrite verdicts already returned.
   const identity = input.identityResolved ?? null
   const artifact = input.artifactResolved ?? null
-  const changedScope: RebuildScope = { ...CANONICALIZE, identity, artifact }
+  const evidence = input.evidenceCompiled ?? null
+  const changedScope: RebuildScope = { ...CANONICALIZE, identity, artifact, evidence }
 
   if (input.absentFromSource.length > 0) {
     return {
@@ -189,10 +203,11 @@ export function detectSourceChange(input: SourceChangeInput): SourceChangeVerdic
     return { changed: true, reason: "COHORT_DIGEST_MOVED", rebuild: { ...changedScope }, absentFromSource: [] }
   }
 
-  // NO_CHANGE keeps `identity: null` AND `artifact: null` from `NO_REBUILD`, deliberately, even
-  // when the caller passed either as `true`. The run was skipped; nothing about those layers was
-  // re-measured, and `false` would be a claim with no measurement behind it. Control #28 passes
-  // `artifactResolved: true` with an unmoved digest and requires the tier to stay `null`.
+  // NO_CHANGE keeps `identity`, `artifact` AND `evidence` at `null` from `NO_REBUILD`, deliberately,
+  // even when the caller passed any of them as `true`. The run was skipped; nothing about those
+  // layers was re-measured, and `false` would be a claim with no measurement behind it. Control #28
+  // passes `artifactResolved: true` with an unmoved digest and requires the tier to stay `null`;
+  // control #62 does the same for `evidenceCompiled`.
   return { changed: false, reason: "NO_CHANGE", rebuild: { ...NO_REBUILD }, absentFromSource: [] }
 }
 

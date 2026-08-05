@@ -17,6 +17,7 @@
  */
 import { mkdirSync } from "node:fs"
 import { hashJson } from "@calllint/fingerprint"
+import type { Verdict } from "@calllint/types"
 import type { SqliteDatabase, SqliteDriver } from "./driver.js"
 import { applyMigrations, loadMigrations, readAppliedMigrations, type Migration } from "./migrate.js"
 import { resolveIndexPaths, type IndexPaths } from "./paths.js"
@@ -28,6 +29,7 @@ import {
   type SourceCheckpoint,
 } from "../domain/checkpoint.js"
 import { assertArtifactTransition } from "../domain/artifactTransitions.js"
+import { isEvidenceCompilable } from "../domain/evidenceInputs.js"
 import type { SourceRecordV1 } from "../domain/sourceRecord.js"
 import type {
   ArtifactStatus,
@@ -100,6 +102,49 @@ export interface ArtifactResolutionWrite {
   lastVerifiedAt: string | null
 }
 
+/**
+ * One compiled evidence row, as R-5 records it.
+ *
+ * `evidenceDigest` is supplied by the caller rather than derived here, because it is a function of
+ * the compilation INPUTS (`domain/evidenceDigest.ts`) and the store holds none of them — deriving
+ * it in here would mean passing the four inputs plus the row, and the row's own columns are not
+ * all inputs (`createdAt` deliberately is not).
+ */
+export interface EvidenceRecordWrite {
+  /** `sha256:<hex>` over the four inputs. The PRIMARY KEY, so this decides idempotence. */
+  evidenceDigest: string
+  /** The artifact whose verified bytes were observed. Must already exist. */
+  artifactVersionId: string
+  /** The engine version whose detectors produced the findings. */
+  engineVersion: string
+  /** `hashJson(policy)` — the policy the findings were graded under. */
+  policyDigest: string
+  /** One of the four verdicts, carried verbatim. R-5 writes `UNKNOWN`; see `compileEvidence`. */
+  verdict: Verdict
+  /** The serialized evidence document. */
+  evidenceJson: string
+  /** When this observation was FIRST compiled. Never advanced by a re-run. */
+  createdAt: string
+}
+
+/** Whether a `recordEvidence` call created a row or hit the existing key. */
+export interface EvidenceWriteResult {
+  evidenceDigest: string
+  /** False when the row was already present — the idempotent path. */
+  inserted: boolean
+}
+
+/** One evidence row as stored. */
+export interface StoredEvidenceRecord {
+  evidenceDigest: string
+  artifactVersionId: string
+  engineVersion: string
+  policyDigest: string
+  verdict: Verdict
+  evidenceJson: string
+  createdAt: string
+}
+
 /** The write surface available inside a transaction. */
 export interface AdoptionIndexTx {
   persistSourceRecords(records: SourceRecordV1[], seenAt: string): PersistResult
@@ -107,6 +152,7 @@ export interface AdoptionIndexTx {
   readCheckpoint(sourceId: string): SourceCheckpoint
   persistIdentity(identity: ResolvedIdentityWrite): PersistIdentityResult
   updateArtifactResolution(write: ArtifactResolutionWrite): void
+  recordEvidence(write: EvidenceRecordWrite): EvidenceWriteResult
 }
 
 /**
@@ -192,7 +238,82 @@ export class AdoptionIndexStore {
       readCheckpoint: (sourceId) => this.readCheckpoint(sourceId),
       persistIdentity: (identity) => this.persistIdentity(identity),
       updateArtifactResolution: (write) => this.updateArtifactResolution(write),
+      recordEvidence: (write) => this.recordEvidence(write),
     }
+  }
+
+  /**
+   * Record one compiled evidence row. R-5's write surface, and the table's ONLY writer.
+   *
+   * IDEMPOTENT BY PRIMARY KEY, not by a pre-read. `evidence_digest` is a function of the inputs
+   * alone (`domain/evidenceDigest.ts`), so the same bytes graded under the same policy by the same
+   * engine produce the same key — and `INSERT OR IGNORE` therefore makes a second run a no-op
+   * rather than a duplicate or an overwrite. Returning whether the row was new is what lets the
+   * caller tell a freshly compiled row apart from one already held, without a second query.
+   *
+   * `OR IGNORE` and not `OR REPLACE`, and the difference is load-bearing: `REPLACE` would delete
+   * and re-insert, moving `created_at` forward on every run. That column means "when this
+   * observation was first compiled", and a freshness calculator reading a value that advances on
+   * every no-op run would report stale evidence as fresh — the same defect
+   * `updateArtifactResolution` avoids by only setting `last_verified_at` on `FETCHED`.
+   *
+   * The artifact row is read first so a foreign key to a non-existent artifact throws here rather
+   * than at COMMIT: `evidence_records.artifact_version_id` is `NOT NULL` but the schema declares no
+   * FK, so nothing else would catch an id the identity layer never wrote.
+   *
+   * THE `FETCHED` GATE IS RE-CHECKED HERE, and this is the R-4 lesson applied before it is
+   * repeated rather than after. `updateArtifactResolution`'s transition check was a property of the
+   * store, so `persistIdentity` — a second writer of the same column — bypassed it and control #25
+   * could not see the defect, because #25 measures one writer. The same read is what makes "only
+   * verified bytes are observed" a property of this table instead of a claim about
+   * `compileEvidence`'s control flow: a future second caller inherits the refusal for free, and a
+   * caller that skips `isEvidenceCompilable` cannot write a row anyway. Both sides use the same
+   * whitelist (`domain/evidenceInputs.ts`), so they cannot drift apart into disagreement.
+   */
+  private recordEvidence(write: EvidenceRecordWrite): EvidenceWriteResult {
+    const artifact = this.db
+      .prepare("SELECT artifact_status AS artifactStatus FROM artifact_versions WHERE artifact_version_id = ?")
+      .all(write.artifactVersionId) as { artifactStatus: ArtifactStatus }[]
+    const row = artifact[0]
+    if (row === undefined) {
+      throw new Error(`evidence for artifact "${write.artifactVersionId}" has no artifact row`)
+    }
+    if (!isEvidenceCompilable(row.artifactStatus)) {
+      throw new Error(
+        `evidence for artifact "${write.artifactVersionId}" requires status FETCHED, found ${row.artifactStatus}`,
+      )
+    }
+
+    const info = this.db
+      .prepare(
+        `INSERT OR IGNORE INTO evidence_records
+           (evidence_digest, artifact_version_id, engine_version, policy_digest, verdict,
+            evidence_json, created_at)
+         VALUES (?, ?, ?, ?, ?, ?, ?)`,
+      )
+      .run(
+        write.evidenceDigest,
+        write.artifactVersionId,
+        write.engineVersion,
+        write.policyDigest,
+        write.verdict,
+        write.evidenceJson,
+        write.createdAt,
+      )
+
+    return { evidenceDigest: write.evidenceDigest, inserted: info.changes === 1 }
+  }
+
+  /** Evidence rows, ordered by their primary key. */
+  listEvidenceRecords(): StoredEvidenceRecord[] {
+    return this.db
+      .prepare(
+        `SELECT evidence_digest AS evidenceDigest, artifact_version_id AS artifactVersionId,
+                engine_version AS engineVersion, policy_digest AS policyDigest, verdict,
+                evidence_json AS evidenceJson, created_at AS createdAt
+         FROM evidence_records ORDER BY evidence_digest`,
+      )
+      .all() as StoredEvidenceRecord[]
   }
 
   /**
