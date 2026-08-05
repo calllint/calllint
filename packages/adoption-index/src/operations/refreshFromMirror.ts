@@ -37,6 +37,7 @@ import { assertMirrorComplete, syncSource, type SyncSourceResult } from "./syncS
 import { projectSnapshot, serializeSnapshot, type ProjectedSnapshot } from "../projections/snapshotProjection.js"
 import { detectSourceChange, type SourceChangeVerdict } from "./detectSourceChange.js"
 import type { ArtifactResolutionSummary } from "./resolveArtifacts.js"
+import type { EvidenceCompilationSummary } from "./compileEvidence.js"
 
 /**
  * How many raw records one mirror run reads, when the caller names no cap.
@@ -102,6 +103,26 @@ export interface RefreshFromMirrorOptions {
    * unchanged and confines the new behaviour to callers that opt in.
    */
   artifactPort?: (ctx: { now: string }) => Promise<ArtifactResolutionSummary>
+  /**
+   * Evidence compilation (R-5), as a second injected PORT — never a widening of the first.
+   *
+   * A SECOND port rather than an extra field on `artifactPort`'s context, because the two answer
+   * different questions about different inputs. R-4 asks what a registry SERVES (a network read,
+   * `Inferred` until its bytes are verified); R-5 asks what VERIFIED BYTES CONTAIN (a local read,
+   * `Observed`). Fusing them into one capability would make the Observed/Inferred boundary
+   * unrepresentable in the type — the same reason `ResolverContext` was not given a blob capability
+   * (control #63).
+   *
+   * `Promise` even though `compileEvidence` is synchronous: the port is the SEAM, and a caller that
+   * needs to await something around compilation (a job-state write, in the batch that owns
+   * `compiler_runs`) must not force this signature to change. `await` on a non-promise is a no-op.
+   *
+   * OMITTED ⇒ the run behaves exactly as it did at R-4: `rebuild.evidence` stays `null`, `evidence`
+   * is `null`, and the returned verdict is byte-identical. Same asymmetry as `artifactPort`, for the
+   * same reason — a run that was never asked to compile evidence has not measured the layer, and
+   * `false` would assert it did (control #61).
+   */
+  evidencePort?: (ctx: { now: string }) => Promise<EvidenceCompilationSummary>
 }
 
 export interface RefreshFromMirrorResult {
@@ -147,6 +168,13 @@ export interface RefreshFromMirrorResult {
    * The same distinction `rebuild.artifact` keeps.
    */
   artifacts: ArtifactResolutionSummary | null
+  /**
+   * What evidence compilation did this run (R-5), or `null` when no port was passed.
+   *
+   * `null` rather than a zeroed summary, for the third time in this result and the same reason each
+   * time: a run that was never asked to compile evidence is not a run that compiled none.
+   */
+  evidence: EvidenceCompilationSummary | null
 }
 
 /**
@@ -276,6 +304,17 @@ export async function refreshFromMirror(opts: RefreshFromMirrorOptions): Promise
   // so a single slow or failing download cannot roll back the cohort.
   const artifactResolved = await opts.artifactPort?.({ now: opts.now })
 
+  // EVIDENCE COMPILATION RUNS HERE (R-5) — after artifact resolution, and the order is a data
+  // dependency rather than a preference. R-5 compiles from artifacts in `FETCHED`, and `FETCHED` is
+  // exactly what this run's `artifactPort` may just have produced. Running it first would compile
+  // evidence for the artifacts a PREVIOUS run fetched and silently skip this run's, so a cold store
+  // would need two runs to reach a state one run already justifies.
+  //
+  // Still outside any transaction, and for a sharper reason than R-4's: `compileEvidence` opens one
+  // transaction PER ARTIFACT itself, and `store.transaction()` does not nest. Calling it from inside
+  // a transaction would issue a nested `BEGIN`.
+  const evidenceCompiled = await opts.evidencePort?.({ now: opts.now })
+
   // THE VERDICT IS BUILT LAST, and this is the one deliberate reorder in the batch (R-4).
   //
   // Safe because the verdict's inputs are all fixed before the persist: `priorSnapshotDigest` was
@@ -301,6 +340,13 @@ export async function refreshFromMirror(opts: RefreshFromMirrorOptions): Promise
     // than `fetched > 0`, because a cohort whose every artifact came back UNAVAILABLE was still
     // measured, and its downstream tiers still need rebuilding to reflect that.
     ...(artifactResolved === undefined ? {} : { artifactResolved: artifactResolved.considered > 0 }),
+    // R-5 flips the evidence cell, same asymmetry again: no port ⇒ the key is omitted ⇒ the tier
+    // stays `null`. `considered > 0` and not `compiled > 0`, for the reason R-4 established one
+    // tier up — a cohort whose every blob came back unreadable was still MEASURED, and the
+    // downstream tiers still need rebuilding to reflect what it found. Using `compiled` would also
+    // make the tier flip to `false` on the second identical run, when the rows are all `UNCHANGED`
+    // and idempotence is working correctly.
+    ...(evidenceCompiled === undefined ? {} : { evidenceCompiled: evidenceCompiled.considered > 0 }),
   })
 
   return {
@@ -324,6 +370,17 @@ export async function refreshFromMirror(opts: RefreshFromMirrorOptions): Promise
     // `null` when no port was passed, so "this run resolved no artifacts" and "this run was not
     // asked to" stay distinguishable in the result exactly as they are in the rebuild tier.
     artifacts: artifactResolved ?? null,
+    // `null` when no port was passed, so "compiled no evidence" and "was never asked to" stay
+    // distinguishable — exactly as `artifacts` does one line up and as `rebuild.evidence` does.
+    //
+    // The phrasing deliberately keeps no quoted string adjacent to the word f-r-o-m. INV-04's
+    // specifier extractor is a regex whose `[^;]*?` crosses newlines, so prose in that shape is
+    // read as a module name and lands in the external-specifier set. The gate names its two known
+    // prose false positives rather than filtering them, and that is the right default — but a third
+    // entry spanning two lines with `//` inside it would make the allowlist stop reading like a
+    // list of module names, which is the property that lets a real violation stand out in it.
+    // Measured, not theorized: the first draft of THIS comment tripped the trap it describes.
+    evidence: evidenceCompiled ?? null,
   }
 }
 

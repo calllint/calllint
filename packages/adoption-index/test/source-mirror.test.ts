@@ -572,28 +572,85 @@ describe("the checkpoint is written only after the records (§9.4)", () => {
     // handle anyway, and privately declared, so that the "all SQL lives in store.ts" rule
     // (§10.3) has no exception carved for it.
     expect(storeSrc).toMatch(/^ {2}private updateArtifactResolution\(/m)
+    // R-5's writer likewise, and for the same reason as R-4's: `compileEvidence` opens one
+    // transaction PER ARTIFACT, because a single transaction around the loop would let one
+    // unreadable CAS blob roll back every row already compiled — the fail-DESTRUCTIVE shape.
+    expect(storeSrc).toMatch(/^ {2}private recordEvidence\(/m)
 
-    // The ordering rule's positive half: the handle carries exactly these FIVE and no
-    // sixth, so a caller inside a transaction cannot reach a wider write surface.
+    // The ordering rule's positive half: the handle carries exactly these SIX and no
+    // seventh, so a caller inside a transaction cannot reach a wider write surface.
     //
-    // This list was THREE until R-3, FOUR until R-4, and is widened here deliberately, not
-    // relaxed. The assertion's subject is that the write surface is a CLOSED SET enumerated in
-    // one place; R-3 added `persistIdentity` because the identity layer must commit in the same
-    // transaction as the checkpoint that describes it (a digest advanced without its subjects
-    // would report "no change" forever), and R-4 adds `updateArtifactResolution` because the
-    // four artifact columns are the batch's whole write surface and they must not be reachable
-    // outside a transaction. Growing the list is how a new writer announces itself; a writer
-    // that reached the handle without appearing here is the defect. This assertion CAUGHT R-4's
-    // writer rather than being updated alongside it — it failed on the run that added the fifth
-    // key, which is the behaviour a closed-set pin exists for.
+    // This list was THREE until R-3, FOUR until R-4, FIVE until R-5, and is widened here
+    // deliberately, not relaxed. The assertion's subject is that the write surface is a CLOSED SET
+    // enumerated in one place; R-3 added `persistIdentity` because the identity layer must commit
+    // in the same transaction as the checkpoint that describes it (a digest advanced without its
+    // subjects would report "no change" forever), R-4 added `updateArtifactResolution` because the
+    // four artifact columns are that batch's whole write surface, and R-5 adds `recordEvidence`
+    // because `evidence_records` gains its first writer. Growing the list is how a new writer
+    // announces itself; a writer that reached the handle without appearing here is the defect.
+    // This assertion CAUGHT R-4's writer rather than being updated alongside it, and CAUGHT R-5's
+    // the same way — it failed on the run that added the sixth key, before any control was
+    // applied. That is twice now, which is the behaviour a closed-set pin exists for.
     const keys = store.transaction((tx) => Object.keys(tx).sort())
     expect(keys).toEqual([
       "advanceCheckpoint",
       "persistIdentity",
       "persistSourceRecords",
       "readCheckpoint",
+      "recordEvidence",
       "updateArtifactResolution",
     ])
+  })
+
+  /**
+   * Control #65 — the WRITER CENSUS for `evidence_records`, as an assertion rather than a grep.
+   *
+   * The closed-set pin above guards the transaction HANDLE. This guards the SQL. They are not the
+   * same property, and R-4 is why: its second writer reached `artifact_versions` through
+   * `persistIdentity` — a key that was already on the handle and already pinned — so no handle
+   * assertion could have seen it. It was found by enumerating the SQL that touches the column.
+   *
+   * So the census runs in CI. `INSERT OR IGNORE` exactly once, and no `UPDATE` / `DELETE` /
+   * `INSERT OR REPLACE` at all: `OR REPLACE` would delete and re-insert, advancing `created_at` on
+   * a row whose digest is deliberately timeless, which is control #55's failure arriving by another
+   * route.
+   */
+  it("evidence_records has EXACTLY ONE writer, and it is INSERT OR IGNORE (control #65)", () => {
+    const storeSrc = readFileSync(join(SRC_DIR, "storage/store.ts"), "utf8")
+    // Comments discuss these verbs in prose ("`INSERT OR IGNORE`, not `OR REPLACE`"), so the census
+    // must read CODE. Suspect the probe before the source: an un-stripped grep would "find" writers
+    // that are sentences.
+    const code = storeSrc.replace(/\/\*[\s\S]*?\*\//g, "").replace(/(^|[^:])\/\/.*$/gm, "$1")
+
+    const writes = [...code.matchAll(/\b(INSERT|UPDATE|DELETE|REPLACE)\b[^;`]*evidence_records/gi)].map(
+      // `?? m[0]` rather than `!`: a non-null assertion would silently paper over a future regex
+      // edit that drops the capture group, and the census would then compare empty strings and pass.
+      (m) => (m[1] ?? m[0]).toUpperCase(),
+    )
+    expect(writes).toEqual(["INSERT"])
+    expect(code).toMatch(/INSERT OR IGNORE INTO evidence_records/)
+    expect(code, "OR REPLACE would advance created_at on a timeless key").not.toMatch(
+      /INSERT OR REPLACE INTO evidence_records/,
+    )
+
+    // And the whole repo, not just this file — a writer added elsewhere would bypass §10.3's
+    // "all SQL lives in store.ts" rule, and that is exactly the kind of edit this catches.
+    const offenders: string[] = []
+    const walk = (d: string): void => {
+      for (const e of readdirSync(d, { withFileTypes: true })) {
+        const p = join(d, e.name)
+        if (e.isDirectory()) {
+          walk(p)
+        } else if (e.name.endsWith(".ts") && p !== join(SRC_DIR, "storage/store.ts")) {
+          const s = readFileSync(p, "utf8")
+            .replace(/\/\*[\s\S]*?\*\//g, "")
+            .replace(/(^|[^:])\/\/.*$/gm, "$1")
+          if (/\b(INSERT|UPDATE|DELETE|REPLACE)\b[^;`]*evidence_records/i.test(s)) offenders.push(p)
+        }
+      }
+    }
+    walk(SRC_DIR)
+    expect(offenders).toEqual([])
   })
 })
 
