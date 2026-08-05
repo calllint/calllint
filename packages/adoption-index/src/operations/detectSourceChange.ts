@@ -52,11 +52,17 @@ export type ChangeReason =
 /**
  * Which §16.2 rebuild tiers a change reaches.
  *
- * All seven tiers are declared so the shape is the canonical one from the start, and the six
- * this batch cannot compute are `null` rather than `false`. That distinction is load-bearing:
- * `false` asserts "no rebuild needed", which would be a claim with no measurement behind it,
- * while `null` says "this batch cannot know". A partial fan-out that reads as complete is
- * precisely the drift that makes a later batch trust a field nothing ever wrote.
+ * All seven tiers were declared at once, in R-2, so the shape would be the canonical one from the
+ * start even while six of them were unmeasurable. R-3 through R-7 then filled five in, and ONE is
+ * still unmeasured here: `presentation`, which belongs to the presentation plane. (R-2's original
+ * "the six this batch cannot compute" is inverted in place rather than deleted — the count moved,
+ * the reasoning did not.)
+ *
+ * The `null`-vs-`false` distinction is what let that happen incrementally without any tier ever
+ * lying: `false` asserts "no rebuild needed", which is a claim requiring a measurement, while `null`
+ * says "not measured here". A partial fan-out that reads as complete is precisely the drift that
+ * makes a later batch trust a field nothing ever wrote — so an unfilled tier stays `null`, and a
+ * filled one is `null` on any run that skipped the work.
  */
 export interface RebuildScope {
   /** §16.2 source-payload-only ⇒ canonicalize (maybe presentation). Owned by THIS batch. */
@@ -87,9 +93,26 @@ export interface RebuildScope {
    * the caller passed no evidence port. Controls #61 and #62 measure both halves.
    */
   evidence: boolean | null
-  /** decision ⇒ contracts/search/human page. Needs decision records — R-7. */
+  /**
+   * decision ⇒ contracts/search/human page. RESOLVED, R-7 (do not restore the `null` default).
+   *
+   * Measured exactly like the three above, and the fourth repetition means the asymmetry is the
+   * file's rule rather than three coincidences: `true` when the run actually compiled an adoption
+   * record (a record always carries a decision — `decisionDigest` is the one mid-chain digest the
+   * schema forbids to be null, because UNKNOWN is a decision), `null` on `NO_CHANGE`, and `null` —
+   * never `false` — when the caller passed no record port. Controls (k1) and (k2) measure both.
+   */
   decision: boolean | null
-  /** semantic-contract ⇒ Agent contract/MCP committed data. Needs R-7. */
+  /**
+   * semantic-contract ⇒ Agent contract/MCP committed data. RESOLVED, R-7 (do not restore the
+   * `null` default).
+   *
+   * NOT the same measurement as `decision`, which is why it is a separate tier rather than an alias
+   * of it: `semanticContractDigest` IS nullable in the record, so a run can compile a record — and
+   * therefore a decision — while sealing no contract. It is `true` only when the compiled record
+   * actually carried a `semanticContractDigest`, `null` on `NO_CHANGE`, and `null` when no record
+   * port was passed. A control that fuses the two tiers must fail.
+   */
   semanticContract: boolean | null
   /** presentation ⇒ human HTML only. Owned by the presentation plane (Workstream P). */
   presentation: boolean | null
@@ -125,6 +148,21 @@ export interface SourceChangeInput {
    * evidence rebuild needed" about a layer nothing measured.
    */
   evidenceCompiled?: boolean
+  /**
+   * Whether this run actually compiled an adoption record (R-7), which is the same thing as having
+   * reached a decision: `decisionDigest` is the one mid-chain digest `assertDigestChain` refuses to
+   * let be null, because UNKNOWN is a decision. OPTIONAL for the same reason the three above are.
+   */
+  decisionCompiled?: boolean
+  /**
+   * Whether the record this run compiled actually carried a `semanticContractDigest` (R-7).
+   *
+   * A SECOND flag rather than a reuse of `decisionCompiled`, because the two measure different
+   * things and the record schema says so: `semanticContractDigest` is nullable, `decisionDigest` is
+   * not. So a run can compile a record — reaching a decision — while sealing no contract, and the
+   * caller must be able to report that honestly instead of being forced to claim both or neither.
+   */
+  semanticContractSealed?: boolean
 }
 
 export interface SourceChangeVerdict {
@@ -139,7 +177,8 @@ export interface SourceChangeVerdict {
 }
 
 /**
- * Nothing to rebuild. The six unknowable tiers stay `null`, never `false`.
+ * Nothing to rebuild. Every non-`canonicalize` tier stays `null`, never `false` — the five that are
+ * now measurable included, because a skipped run measured none of them.
  *
  * FROZEN, and every branch below returns a SPREAD of it rather than the object itself. These
  * are module-level constants shared by every verdict in the process, so handing one back by
@@ -184,7 +223,16 @@ export function detectSourceChange(input: SourceChangeInput): SourceChangeVerdic
   const identity = input.identityResolved ?? null
   const artifact = input.artifactResolved ?? null
   const evidence = input.evidenceCompiled ?? null
-  const changedScope: RebuildScope = { ...CANONICALIZE, identity, artifact, evidence }
+  const decision = input.decisionCompiled ?? null
+  const semanticContract = input.semanticContractSealed ?? null
+  const changedScope: RebuildScope = {
+    ...CANONICALIZE,
+    identity,
+    artifact,
+    evidence,
+    decision,
+    semanticContract,
+  }
 
   if (input.absentFromSource.length > 0) {
     return {
@@ -203,11 +251,11 @@ export function detectSourceChange(input: SourceChangeInput): SourceChangeVerdic
     return { changed: true, reason: "COHORT_DIGEST_MOVED", rebuild: { ...changedScope }, absentFromSource: [] }
   }
 
-  // NO_CHANGE keeps `identity`, `artifact` AND `evidence` at `null` from `NO_REBUILD`, deliberately,
-  // even when the caller passed any of them as `true`. The run was skipped; nothing about those
-  // layers was re-measured, and `false` would be a claim with no measurement behind it. Control #28
-  // passes `artifactResolved: true` with an unmoved digest and requires the tier to stay `null`;
-  // control #62 does the same for `evidenceCompiled`.
+  // NO_CHANGE keeps ALL FIVE measured tiers at `null` from `NO_REBUILD`, deliberately, even when the
+  // caller passed any of them as `true`. The run was skipped; nothing about those layers was
+  // re-measured, and `false` would be a claim with no measurement behind it. Control #28 passes
+  // `artifactResolved: true` with an unmoved digest and requires the tier to stay `null`; #62 does the
+  // same for `evidenceCompiled`, and (k2) for `decisionCompiled` + `semanticContractSealed`.
   return { changed: false, reason: "NO_CHANGE", rebuild: { ...NO_REBUILD }, absentFromSource: [] }
 }
 

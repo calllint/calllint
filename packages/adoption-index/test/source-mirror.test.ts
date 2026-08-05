@@ -589,22 +589,32 @@ describe("the checkpoint is written only after the records (§9.4)", () => {
     expect(storeSrc).toMatch(/^ {2}private reclaimExpiredLeases\(/m)
     expect(storeSrc).toMatch(/^ {2}private beginCompilerRun\(/m)
     expect(storeSrc).toMatch(/^ {2}private concludeCompilerRun\(/m)
+    // R-7's writer, and it is ONE method for a table with nine columns because a record is a
+    // subject's whole current conclusion — there is no partial update of it that means anything. It
+    // is also the only writer on the handle whose statement is an UPSERT on a PRIMARY KEY rather
+    // than an append: `adoption_records` holds exactly one row per subject, so the write must
+    // overwrite. `resolveArtifacts`'s per-artifact scoping applies here too — the caller opens one
+    // transaction PER RECORD, because one incoherent record must not roll back the cohort.
+    expect(storeSrc).toMatch(/^ {2}private upsertAdoptionRecord\(/m)
 
-    // The ordering rule's positive half: the handle carries exactly these THIRTEEN and no
-    // fourteenth, so a caller inside a transaction cannot reach a wider write surface.
+    // The ordering rule's positive half: the handle carries exactly these FOURTEEN and no
+    // fifteenth, so a caller inside a transaction cannot reach a wider write surface.
     //
-    // This list was THREE until R-3, FOUR until R-4, FIVE until R-5, SIX until R-6, and is widened
-    // here deliberately, not relaxed. The assertion's subject is that the write surface is a CLOSED
-    // SET enumerated in one place; R-3 added `persistIdentity` because the identity layer must commit
-    // in the same transaction as the checkpoint that describes it (a digest advanced without its
-    // subjects would report "no change" forever), R-4 added `updateArtifactResolution` because the
-    // four artifact columns are that batch's whole write surface, R-5 added `recordEvidence` because
-    // `evidence_records` gained its first writer, and R-6 adds SEVEN at once because
-    // `compiler_jobs`/`compiler_runs` gain theirs. Growing the list is how a new writer announces
-    // itself; a writer that reached the handle without appearing here is the defect. This assertion
-    // CAUGHT R-4's writer rather than being updated alongside it, and CAUGHT R-5's the same way — it
-    // failed on the run that added the sixth key, before any control was applied. That is twice now,
-    // which is the behaviour a closed-set pin exists for.
+    // This list was THREE until R-3, FOUR until R-4, FIVE until R-5, SIX until R-6, THIRTEEN until
+    // R-7, and is widened here deliberately, not relaxed. The assertion's subject is that the write
+    // surface is a CLOSED SET enumerated in one place; R-3 added `persistIdentity` because the
+    // identity layer must commit in the same transaction as the checkpoint that describes it (a
+    // digest advanced without its subjects would report "no change" forever), R-4 added
+    // `updateArtifactResolution` because the four artifact columns are that batch's whole write
+    // surface, R-5 added `recordEvidence` because `evidence_records` gained its first writer, R-6
+    // added SEVEN at once because `compiler_jobs`/`compiler_runs` gained theirs, and R-7 adds
+    // `upsertAdoptionRecord` — the LAST of the ten tables to gain a writer, which is what makes this
+    // the final widening of this list for Workstream R. Growing the list is how a new writer
+    // announces itself; a writer that reached the handle without appearing here is the defect. This
+    // assertion CAUGHT R-4's writer rather than being updated alongside it, CAUGHT R-5's the same
+    // way, and CAUGHT R-7's on the batch's first full-suite run — it failed on the run that added
+    // the fourteenth key, before any control was applied. That is three times now, which is the
+    // behaviour a closed-set pin exists for.
     //
     // SEVEN NEW KEYS IS THE LARGEST WIDENING SO FAR, so note what does NOT widen with it: the
     // `beginCompilerRun`/`concludeCompilerRun` names are deliberately not `beginRun`/`concludeRun`,
@@ -626,6 +636,7 @@ describe("the checkpoint is written only after the records (§9.4)", () => {
       "recordEvidence",
       "renewLease",
       "updateArtifactResolution",
+      "upsertAdoptionRecord",
     ])
   })
 

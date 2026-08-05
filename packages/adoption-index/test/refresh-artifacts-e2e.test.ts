@@ -26,6 +26,12 @@
  *
  * `it.each` is deliberately absent: each assertion below names a different failure, and a table
  * would collapse them into one row label.
+ *
+ * R-7 EXTENDS IT, and does NOT add a port. `refreshFromMirror` has an `artifactPort` and an
+ * `evidencePort` and deliberately no record port: this batch writes `adoption_records` and does not
+ * wire the projection, so the compiler is driven where production will drive it — from the caller
+ * that holds both packages. The last describe therefore refreshes the chain first and compiles
+ * against the ROWS that run left behind, which is the honest shape of the seam as it stands at HEAD.
  */
 import { describe, it, expect, afterEach } from "vitest"
 import { createHash } from "node:crypto"
@@ -49,6 +55,8 @@ import {
   OFFICIAL_REGISTRY_SOURCE_ID,
   MIGRATIONS_DIRNAME,
   compileEvidence,
+  compileAdoptionRecordWithDigest,
+  type AdoptionRecordV1,
   type ArtifactResolutionSummary,
   type EvidenceCompilationSummary,
 } from "../src/index.js"
@@ -677,5 +685,232 @@ describe("R-5's evidencePort, driven end-to-end over the committed corpus", () =
     expect(cold.evidence).toBeNull()
     expect(cold.change.rebuild.evidence).toBeNull()
     expect(opened.store.listEvidenceRecords()).toEqual([])
+  })
+})
+
+// ── R-7: the canonical record, compiled over the same corpus ────────────────────────────────────
+
+/**
+ * The three digests R-7 does not produce, fixed here so a record digest that moves means the RECORD
+ * moved. `presentationDigest` and `semanticContractDigest` are `@calllint/trust-index`'s, and the
+ * dependency runs trust-index → adoption-index, so this file injects them exactly as production
+ * will: from the caller that holds both packages.
+ */
+const PRESENTATION_DIGEST = "sha256:" + "a".repeat(64)
+const CONTRACT_DIGEST = "sha256:" + "b".repeat(64)
+const DECISION_DIGEST = "sha256:" + "c".repeat(64)
+
+/**
+ * Compile a record for every subject the store holds, joining the five upstream tables the way a
+ * projection caller would.
+ *
+ * THE JOIN IS THE MEASUREMENT. `compileAdoptionRecord` is pure and every unit test hands it a
+ * literal; what no unit test can answer is whether the rows five different batches wrote can
+ * actually be joined into one record. The path is subject → `subject_aliases.sourceRecordId` →
+ * `source_records` payload → `artifact_versions` → `evidence_records`, and each hop is a real
+ * committed read method rather than a query written here.
+ */
+function compileAll(
+  store: AdoptionIndexStore,
+  opts?: { sealContract?: boolean },
+): { record: AdoptionRecordV1; adoptionRecordDigest: string }[] {
+  const payloadById = new Map(
+    store.listLatestSourceRecordPayloads(OFFICIAL_REGISTRY_SOURCE_ID).map((p) => [p.source.sourceRecordId, p]),
+  )
+  const artifacts = store.listArtifactVersions()
+  const evidenceByArtifact = new Map(store.listEvidenceRecords().map((e) => [e.artifactVersionId, e]))
+
+  const out: { record: AdoptionRecordV1; adoptionRecordDigest: string }[] = []
+  for (const subject of store.listSubjects()) {
+    // Every DISTINCT payload this subject was merged from, not just the first: a subject built from
+    // two records must carry both in `sources[]`, and `compileAdoptionRecord` sorts them itself.
+    const recordIds = new Set(
+      store
+        .listSubjectAliases(subject.subjectId)
+        .map((a) => a.sourceRecordId)
+        .filter((id): id is string => id !== null),
+    )
+    const sourcePayloads = [...recordIds].map((id) => payloadById.get(id)).filter((p) => p !== undefined)
+    // A subject with no reachable payload or no slug is SKIPPED, not compiled with a substitute —
+    // `compileAdoptionRecord` would refuse both, and papering over the refusal here would hide it.
+    if (sourcePayloads.length === 0 || subject.canonicalSlug === null) continue
+
+    const artifact = artifacts.find((a) => a.subjectId === subject.subjectId) ?? null
+    const evidence = artifact === null ? null : evidenceByArtifact.get(artifact.artifactVersionId) ?? null
+    // The count comes off the stored document, which is where the findings actually live. The record
+    // publishes the COUNT; the findings stay in `evidence_json` (D3).
+    const findingCount =
+      evidence === null ? null : (JSON.parse(evidence.evidenceJson) as { findings: unknown[] }).findings.length
+
+    out.push(
+      compileAdoptionRecordWithDigest({
+        subject,
+        selectedArtifact: artifact,
+        sourcePayloads,
+        evidence,
+        findingCount,
+        // UNKNOWN because nothing in this package decides: `decideOverAuthority` lives in
+        // `@calllint/policy` and its digest is COPIED. A record with no graded bytes still carries a
+        // decision, which is product principle 2 and the one mid-chain digest that may not be null.
+        decision: { verdict: "UNKNOWN", decisionDigest: DECISION_DIGEST, policyDigest: POLICY_DIGEST },
+        presentation: {
+          presentationDigest: PRESENTATION_DIGEST,
+          semanticContractDigest: (opts?.sealContract ?? false) ? CONTRACT_DIGEST : null,
+        },
+        hostCompatibility: [{ host: "claude-code", tier: "A", installability: "LOCAL_PREFLIGHT_REQUIRED" }],
+        lifecycleStatus: "ACTIVE",
+      }),
+    )
+  }
+  return out
+}
+
+/** Refresh the whole chain, then persist one record per subject. Returns the write results. */
+function persistAll(
+  store: AdoptionIndexStore,
+  updatedAt: string,
+  opts?: { sealContract?: boolean },
+): { compiled: { record: AdoptionRecordV1; adoptionRecordDigest: string }[]; inserted: boolean[] } {
+  const compiled = compileAll(store, opts)
+  // PER-RECORD transactions, the `fail-closed` shape: one subject that cannot be written must not
+  // discard the nineteen that can. Control (m) measures both halves of this choice.
+  const inserted = compiled.map(
+    (c) => store.transaction((tx) => tx.upsertAdoptionRecord({ record: c.record, updatedAt })).inserted,
+  )
+  return { compiled, inserted }
+}
+
+describe("R-7's adoption records, compiled over the committed corpus (plan step 9)", () => {
+  it("writes exactly one row per subject", async () => {
+    const opened = await freshStore()
+    const { routes } = corpusRoutes()
+    const { fetchImpl } = stubFetch(routes)
+    await refresh(opened, fetchImpl, { withEvidencePort: true })
+
+    const subjects = opened.store.listSubjects()
+    expect(subjects).toHaveLength(19)
+    const { compiled, inserted } = persistAll(opened.store, T1)
+    // Every subject the corpus produced is compilable: no slug is null and every one reaches a
+    // payload. Asserted as an equality against the subject count rather than as a bare 19, so a
+    // corpus that grows keeps this honest and a subject that becomes uncompilable fails here.
+    expect(compiled).toHaveLength(subjects.length)
+    expect(inserted.every((i) => i)).toBe(true)
+
+    const rows = opened.store.listAdoptionRecords()
+    expect(rows).toHaveLength(subjects.length)
+    // PRIMARY KEY, unlike append-only `source_records`: one row per subject, so the distinct count
+    // and the row count are the same number.
+    expect(new Set(rows.map((r) => r.subjectId)).size).toBe(subjects.length)
+    expect(rows.map((r) => r.subjectId).sort()).toEqual(subjects.map((s) => s.subjectId).sort())
+  })
+
+  it("holds the 8-digest chain on the corpus's real 2-with-bytes / 17-without split", async () => {
+    const opened = await freshStore()
+    const { routes } = corpusRoutes()
+    const { fetchImpl } = stubFetch(routes)
+    await refresh(opened, fetchImpl, { withEvidencePort: true })
+    const { compiled } = persistAll(opened.store, T1)
+
+    const withBytes = compiled.filter((c) => c.record.digests.artifactDigest !== null)
+    const withoutBytes = compiled.filter((c) => c.record.digests.artifactDigest === null)
+    // The corpus's own shape — 19 subjects declare only 2 npm packages — reaching the record layer.
+    expect(withBytes).toHaveLength(2)
+    expect(withoutBytes).toHaveLength(17)
+
+    for (const { record } of withBytes) {
+      expect(record.digests.evidenceDigest).not.toBeNull()
+      expect(record.selectedArtifact?.artifactStatus).toBe("FETCHED")
+      expect(record.evidence).not.toBeNull()
+      // FOUR FIELDS, on real evidence rows rather than a literal: the public projection cannot widen.
+      expect(Object.keys(record.evidence!).sort()).toEqual([
+        "engineVersion",
+        "evidenceDigest",
+        "findingCount",
+        "policyDigest",
+      ])
+    }
+    for (const { record } of withoutBytes) {
+      // Control (d)'s claim, over 17 real subjects instead of one fixture: no bytes ⇒ no evidence.
+      expect(record.digests.evidenceDigest).toBeNull()
+      expect(record.evidence).toBeNull()
+      expect(record.selectedArtifact).toBeNull()
+    }
+    for (const { record } of compiled) {
+      // Product principle 2 across the whole cohort: every record has a decision, including the 17
+      // that resolved nothing. This is the assertion `evidenceDigest === null` most tempts a reader
+      // to weaken.
+      expect(record.digests.decisionDigest).toBe(DECISION_DIGEST)
+      expect(record.decision.verdict).toBe("UNKNOWN")
+      expect(record.digests.sourcePayloadDigest).toMatch(/^sha256:[0-9a-f]{64}$/)
+      expect(record.digests.identityDigest).toMatch(/^sha256:[0-9a-f]{64}$/)
+      expect(record.digests.presentationDigest).toBe(PRESENTATION_DIGEST)
+      expect(record.digests.semanticContractDigest).toBeNull()
+      // Omitted, not null: no page is baked, and this batch deliberately does not bake one.
+      expect("pageDigest" in record.digests).toBe(false)
+      expect(record.sources.length).toBeGreaterThan(0)
+    }
+  })
+
+  it("adds no row on a second pass, and moves only updated_at", async () => {
+    const opened = await freshStore()
+    const { routes } = corpusRoutes()
+    const { fetchImpl } = stubFetch(routes)
+    await refresh(opened, fetchImpl, { withEvidencePort: true })
+
+    const first = persistAll(opened.store, T1)
+    expect(first.inserted.every((i) => i)).toBe(true)
+    const afterFirst = opened.store.listAdoptionRecords()
+
+    // SECOND PASS at a later clock. The rows are re-derived from the same stored corpus, so a record
+    // that moved would mean the projection is not a function of the tables it reads.
+    const T2 = "2026-08-03T00:00:00.000Z"
+    const second = persistAll(opened.store, T2)
+    // `inserted: false` on every one — the upsert found each key. `OR IGNORE` would report the same
+    // thing while silently dropping the update, which is why `updated_at` is checked below too.
+    expect(second.inserted.every((i) => !i)).toBe(true)
+
+    const afterSecond = opened.store.listAdoptionRecords()
+    expect(afterSecond).toHaveLength(afterFirst.length)
+    expect(second.compiled.map((c) => c.record)).toEqual(first.compiled.map((c) => c.record))
+    expect(second.compiled.map((c) => c.adoptionRecordDigest)).toEqual(
+      first.compiled.map((c) => c.adoptionRecordDigest),
+    )
+    // The digest column did NOT move; the timestamp column DID. Both halves matter: the first says
+    // the record is stable, the second says the write actually happened rather than being ignored.
+    expect(afterSecond.map((r) => r.adoptionRecordDigest)).toEqual(afterFirst.map((r) => r.adoptionRecordDigest))
+    expect(afterFirst.every((r) => r.updatedAt === T1)).toBe(true)
+    expect(afterSecond.every((r) => r.updatedAt === T2)).toBe(true)
+    // And the stored document round-trips to the compiled one, so `record_json` is the record rather
+    // than a re-serialization that lost a field.
+    for (const c of second.compiled) {
+      expect(opened.store.readAdoptionRecord(c.record.subject.subjectId)).toEqual(c.record)
+    }
+  })
+
+  it("moves the record when a contract is sealed, without moving the decision", async () => {
+    const opened = await freshStore()
+    const { routes } = corpusRoutes()
+    const { fetchImpl } = stubFetch(routes)
+    await refresh(opened, fetchImpl, { withEvidencePort: true })
+
+    const plain = persistAll(opened.store, T1)
+    const sealed = persistAll(opened.store, T1, { sealContract: true })
+
+    // WHY THIS IS A SEPARATE TEST AND NOT A VARIANT OF THE ONE ABOVE: it is the corpus-scale
+    // justification for `semanticContract` being its own rebuild tier in `detectSourceChange`. The
+    // decision is byte-identical across the two runs and the record is not, so a fan-out that fused
+    // the two tiers would rebuild the wrong set of projections.
+    for (let i = 0; i < plain.compiled.length; i += 1) {
+      const before = plain.compiled[i]!
+      const after = sealed.compiled[i]!
+      expect(after.record.digests.decisionDigest).toBe(before.record.digests.decisionDigest)
+      expect(after.record.digests.semanticContractDigest).toBe(CONTRACT_DIGEST)
+      expect(after.adoptionRecordDigest).not.toBe(before.adoptionRecordDigest)
+    }
+    expect(sealed.inserted.every((i) => !i)).toBe(true)
+    expect(opened.store.listAdoptionRecords()).toHaveLength(plain.compiled.length)
+    expect(
+      opened.store.listAdoptionRecords().every((r) => r.semanticContractDigest === CONTRACT_DIGEST),
+    ).toBe(true)
   })
 })

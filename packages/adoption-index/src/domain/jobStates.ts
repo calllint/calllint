@@ -13,12 +13,21 @@
  *     The closest sibling: both grade a run, and `RUNNING` means the same thing in both.
  *   - NOT INV-10's seven terminal states (`SUPPORTED`, `LOCAL_PREFLIGHT_REQUIRED`, `UNSUPPORTED`,
  *     `DEPRECATED`, `TOMBSTONED`, `IDENTITY_CONFLICT`, `PROCESSING_FAILED`). Those are the
- *     compiler's CONCLUSION about one source record, and this batch measured that no column in the
- *     canonical DDL carries them yet: `source_records.lifecycle_status` holds the source's own four
+ *     compiler's CONCLUSION about one source record, and R-6 measured that no column in the
+ *     canonical DDL carries them: `source_records.lifecycle_status` holds the source's own four
  *     lowercase values, `canonical_subjects.identity_status` holds R-3's four, and
- *     `artifact_versions.artifact_status` holds R-4's five. `adoption_records.lifecycle_status` is
- *     where they land, so they are R-7's to introduce — see `test/job-state-machine.test.ts`, which
- *     refuses either union naming any of the seven.
+ *     `artifact_versions.artifact_status` holds R-4's five. See `test/job-state-machine.test.ts`,
+ *     which refuses either union naming any of the seven.
+ *
+ *     R-6 ALSO CONCLUDED, FROM THAT SAME MEASUREMENT, that `adoption_records.lifecycle_status` "is
+ *     where they land, so they are R-7's to introduce". THAT INFERENCE IS FALSIFIED — inverted here
+ *     rather than deleted, because the measurement above is still sound and only the forward pointer
+ *     was wrong. R-7 wrote that column and it holds FOUR uppercase values
+ *     (`ACTIVE|DEPRECATED|WITHDRAWN|TOMBSTONED`, `adoptionRecord.ts`), a fifth distinct vocabulary
+ *     rather than the seven. Two of the seven (`DEPRECATED`, `TOMBSTONED`) do appear in it, which is
+ *     exactly how the wrong inference was reached: a spelling overlap read as an identity. The seven
+ *     belong to a GENERALIZED `packages/evidence/src/model/stateMachine.ts` (adrs/0061 §8), which
+ *     R-7 left untouched, so they remain unintroduced by any batch to date.
  *
  * THREE OF THE FOUR RUN STATES SHARE A SPELLING WITH A JOB STATE OR A RESOLUTION STATE, and the
  * collision is in the committed schemas, not a choice available here: `SUCCEEDED`/`FAILED` appear in
