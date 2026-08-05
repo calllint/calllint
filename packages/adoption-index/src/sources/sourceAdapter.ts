@@ -22,7 +22,31 @@ export interface SourceSyncContext {
   maxEntries: number
   /** Hard cap on HTTP requests per run, so a cursor loop cannot spin forever. */
   maxPages?: number
+  /**
+   * Called by the adapter when a read ends for any reason OTHER than the source running
+   * out of records, so the caller can refuse to project from a truncated mirror.
+   *
+   * WHY A CALLBACK AND NOT A RETURN VALUE. `fullSync`/`incrementalSync` return an
+   * `AsyncIterable` so a large source streams rather than buffers, and an iterable's
+   * consumer sees only items — there is no channel on which "I stopped early" can arrive.
+   * `SyncOutcome` was declared for this and is produced by nothing, which is exactly how
+   * the page ceiling stayed invisible: `capReached` was computed by the CALLER as
+   * `records.length >= maxEntries`, a test the page-limit exit passes while truncating.
+   *
+   * Optional so existing callers compile unchanged; a caller that omits it is choosing not
+   * to hear about truncation, and the only caller that projects does not omit it.
+   */
+  onTruncated?: (reason: SyncTruncationReason) => void
 }
+
+/**
+ * Why a paginated read stopped short of exhausting the source.
+ *
+ * Three distinct exits, kept distinct because they need different operator responses:
+ * `record-cap` and `page-cap` are raised by config, while `cursor-repeat` means the source
+ * echoed a cursor back and is a source-side fault no local number can fix.
+ */
+export type SyncTruncationReason = "record-cap" | "page-cap" | "cursor-repeat"
 
 export interface SourceAdapter {
   sourceId: string
@@ -39,6 +63,13 @@ export interface SourceAdapter {
  * The advertised end of a paginated read: the cursor the NEXT run resumes from, and the
  * watermark it filters on. Returned separately from the records because §9.4 forbids
  * advancing either one before the records are durably committed.
+ *
+ * NOT PRODUCED BY ANY ADAPTER. Both port methods return a bare `AsyncIterable`, so nothing
+ * on this interface — `nextCursor`, `pagesFetched` — ever reaches a caller. It is kept
+ * because it documents the §9.4 shape a future batched-persist adapter owes, and removing
+ * it would delete that contract; it is annotated because reading it as live plumbing is
+ * what made the page-ceiling truncation look reported when it was not. Truncation travels
+ * on `SourceSyncContext.onTruncated`, which an adapter does call.
  */
 export interface SyncOutcome {
   records: SourceRecordV1[]

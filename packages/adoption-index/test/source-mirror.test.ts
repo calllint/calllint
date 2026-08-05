@@ -37,8 +37,10 @@ import {
   OFFICIAL_REGISTRY_SOURCE_ID,
   OVERLAP_WINDOW_MS,
   MIGRATIONS_DIRNAME,
+  PAGE_SIZE,
   type SourceRecordV1,
   type SourceSyncContext,
+  type SyncTruncationReason,
 } from "../src/index.js"
 
 const PKG_ROOT = join(dirname(fileURLToPath(import.meta.url)), "..")
@@ -120,9 +122,18 @@ describe("cursor pagination (§9.4)", () => {
     expect(result.records).toBe(3)
     expect(urls).toHaveLength(3)
     // Page 1 carries no cursor; pages 2 and 3 carry the cursor the PREVIOUS page returned.
-    expect(urls[0]).toBe(ENDPOINT)
+    //
+    // UPDATED: this asserted `urls[0] === ENDPOINT` — page 1 sent NO query string at all, so it
+    // took the source's default page size of 30 and made the page ceiling bind 3.3x sooner for
+    // the same round trips. `limit` is now on every request, so the assertion becomes
+    // "page 1 carries the limit and no cursor" rather than "page 1 is the bare endpoint".
+    expect(urls[0]).toBe(`${ENDPOINT}?limit=${PAGE_SIZE}`)
+    expect(urls[0]).not.toContain("cursor")
     expect(urls[1]).toContain("cursor=c1")
     expect(urls[2]).toContain("cursor=c2")
+    // The limit is sent on EVERY page, not just the first. A cap that lapses after page 1 would
+    // silently fall back to 30/page for the rest of the read and be invisible in the record count.
+    for (const u of urls) expect(u).toContain(`limit=${PAGE_SIZE}`)
     // A full sync never sends a watermark, whatever the checkpoint holds.
     for (const u of urls) expect(u).not.toContain("updated_since")
   })
@@ -142,6 +153,12 @@ describe("cursor pagination (§9.4)", () => {
     // which is the repeat that ends the read.
     expect(urls).toHaveLength(2)
     expect(result.records).toBe(2)
+    // And it is REPORTED as a truncation, not as exhaustion. A source that echoes a cursor said
+    // "there is more" and then failed to advance — collapsing that to `cursor = null` (which this
+    // did) makes a broken cursor indistinguishable from a complete read, and a complete read is
+    // what `assertMirrorComplete` lets through.
+    expect(result.truncationReason).toBe<SyncTruncationReason>("cursor-repeat")
+    expect(result.capReached).toBe(true)
   })
 
   it("honours the page ceiling so a broken cursor cannot spin", async () => {
@@ -152,7 +169,7 @@ describe("cursor pagination (§9.4)", () => {
       // A fresh cursor every time: only maxPages can stop this.
       return { ok: true, status: 200, json: async () => ({ servers: [item(`io.test/s${n}`, T0)], metadata: { nextCursor: `c${n}` } }) }
     }) as unknown as typeof fetch
-    await syncSource({
+    const result = await syncSource({
       store,
       adapter: createOfficialRegistryAdapter(ENDPOINT),
       ctx: ctx(fetchImpl, T0, { maxPages: 3 }),
@@ -160,6 +177,36 @@ describe("cursor pagination (§9.4)", () => {
       completedAt: T1,
     })
     expect(n).toBe(3)
+
+    // THE ASSERTION THIS TEST WAS MISSING, and the reason a truncated mirror shipped as complete.
+    //
+    // `expect(n).toBe(3)` alone measures that the ceiling STOPPED the read. It says nothing about
+    // whether the read admitted it, and `capReached` used to be `records.length >= maxEntries` —
+    // 3 records against a cap of 1000 is false, so this read reported itself COMPLETE and
+    // `assertMirrorComplete` projected a snapshot from 3 of an unbounded source.
+    expect(result.records).toBe(3)
+    expect(result.records).toBeLessThan(1000) // the record cap is nowhere near binding here
+    expect(result.capReached).toBe(true)
+    expect(result.truncationReason).toBe<SyncTruncationReason>("page-cap")
+  })
+
+  it("reports exhaustion as NOT truncated — the negative half of the same measurement", async () => {
+    // Without this, every assertion above is satisfied by a `capReached` that is hardcoded true.
+    const { store } = await freshStore()
+    const { fetchImpl } = pagingFetch([
+      { servers: [item("io.test/a", T0)], metadata: { nextCursor: "c1" } },
+      { servers: [item("io.test/b", T0)] },
+    ])
+    const result = await syncSource({
+      store,
+      adapter: createOfficialRegistryAdapter(ENDPOINT),
+      ctx: ctx(fetchImpl, T0, { maxPages: 3 }),
+      mode: "full",
+      completedAt: T1,
+    })
+    expect(result.records).toBe(2)
+    expect(result.capReached).toBe(false)
+    expect(result.truncationReason).toBeNull()
   })
 
   it("stops at maxEntries mid-page", async () => {
@@ -175,6 +222,11 @@ describe("cursor pagination (§9.4)", () => {
       completedAt: T1,
     })
     expect(result.records).toBe(2)
+    // The third exit, asserted on the SAME channel as the other two. This was the only exit
+    // `capReached` could ever see, and it saw it by a count comparison rather than by report —
+    // so it is now the one exit where both the report and the fallback must agree.
+    expect(result.capReached).toBe(true)
+    expect(result.truncationReason).toBe<SyncTruncationReason>("record-cap")
   })
 })
 

@@ -5,8 +5,12 @@
  * function cannot see. The distinction is not ceremony — three of the facts asserted here are
  * properties of the DDL, not of the document:
  *
- *   - `canonical_subjects.canonical_slug` is `NOT NULL UNIQUE`, so a slug collision is refused
- *     by STORAGE as well as by the resolver. Two subjects sharing a slug cannot both land.
+ *   - `canonical_subjects.canonical_slug` is `UNIQUE` but NULLABLE (migration 002), so a slug
+ *     collision is RECORDED rather than refused. This assertion is INVERTED from what this file
+ *     first claimed — "NOT NULL UNIQUE … two subjects sharing a slug cannot both land" — which
+ *     was a true reading of 001's DDL and the wrong requirement. See the two collision tests
+ *     below for the argument; the short form is that the resolver's fail-closed path emitted
+ *     output its own schema could not store, so a refusal rolled back the entire cohort.
  *   - `subject_aliases`' PRIMARY KEY is `(alias, subject_id)`, so a duplicate alias pair is
  *     folded silently. `PersistIdentityResult.aliases` counts DOCUMENT entries, so document
  *     count and row count are two different numbers and only the store knows the second.
@@ -297,46 +301,114 @@ describe("fail closed, asserted on ROWS (control #6)", () => {
 })
 
 describe("what STORAGE refuses that the document alone would not", () => {
-  it("refuses two subjects sharing one canonical_slug — the DDL is the second gate", async () => {
+  it("RECORDS two subjects sharing one canonical_slug, both at NULL — migration 002", async () => {
     const store = await openStore()
     try {
-      // Distinct names, one slug (`/` → `-` is irreversible). The resolver records the conflict
-      // AND still emits both subjects, because the row is the evidence a human adjudicates
-      // from. `canonical_slug` is NOT NULL UNIQUE, so the second insert cannot land.
-      const identity = resolve([record("a.b/c"), record("a.b-c")])
+      // THIS ASSERTION IS INVERTED, and the inversion is the point of the change that carries it.
+      //
+      // It previously read `expect(() => persist(...)).toThrow(/UNIQUE constraint failed/)` and
+      // `expect(store.listSubjects()).toEqual([])`, with a comment calling the throw "the honest
+      // outcome" and the input "UNREACHABLE ON REAL DATA … 19 names → 19 distinct slugs → 0
+      // collisions". Both halves were true when written and both are now false:
+      //
+      //   REACHABILITY. 19-of-19 was a property of the 19 COMMITTED SNAPSHOT ENTRIES, not of the
+      //   source. The companion cap raise fans identity resolution out to the full live cohort
+      //   (19_739 `active` + `isLatest` names, measured 2026-08-04 by a walk that ran to
+      //   `reason=exhausted`), where collisions are MEASURED. The two below are real registry
+      //   names, substituted for this test's original synthetic `a.b/c` / `a.b-c` pair precisely
+      //   so the input can no longer be dismissed as hypothetical.
+      //
+      //   CORRECTNESS. The throw was not fail-closed, it was fail-DESTRUCTIVE. `resolveIdentity`
+      //   emits both contesting subjects deliberately — "dropping it would turn a refusal into a
+      //   silent omission" — marks both CONFLICT, and withholds every artifact row. Storage was
+      //   the ONLY layer that disagreed, and it disagreed by rolling back the whole cohort: 19_737
+      //   uncontested subjects discarded because 2 collided. A refusal that destroys the evidence
+      //   it refuses over is worse than the merge it prevented.
+      //
+      // TWO IS A FLOOR, NOT A COUNT: the probe that found these stopped at its own 500-page
+      // ceiling, having seen 14_454 of the 19_739 live names.
+      const identity = resolve([
+        record("io.github.LocalSynapse/LocalSynapse-mcp"),
+        record("io.github.LocalSynapse/localsynapse-mcp"),
+      ])
       expect(identity.conflicts.map((c) => c.conflictType)).toContain("slug-collision")
       expect(identity.subjects).toHaveLength(2)
+      // Case-fold, not `/`-rewrite: `canonicalSlug` lowercases and the registry does not.
       expect(new Set(identity.subjects.map((s) => s.canonicalSlug)).size).toBe(1)
+      // The DOCUMENT still carries its required non-null slug. `calllint.canonical-subject.v1`
+      // types `canonicalSlug` as `{"type": "string", "minLength": 1}`, required — and it is a
+      // PUBLISHED schema behind a compatibility gate. The divergence is storage-only.
+      expect(identity.subjects.every((s) => s.canonicalSlug.length > 0)).toBe(true)
 
-      // MEASURED, and recorded as the behaviour rather than asserted as a preference: the
-      // write throws on the UNIQUE constraint and `transaction` rolls the whole cohort back.
-      // Fail-closed at the storage layer too — a slug collision persists NOTHING, so a
-      // partially-written cohort (one product served at a slug the other also claims) is
-      // unreachable. R-4+ owns electing a slug for a conflicted pair; until something does,
-      // refusing the write is the honest outcome.
-      //
-      // UNREACHABLE ON REAL DATA, which is why this input is synthetic (control #21). The
-      // committed corpus is 19 names → 19 distinct slugs → 0 collisions, asserted in
-      // `resolve-identity.test.ts`. So no committed cohort can trigger this throw, and a test
-      // that only replayed the corpus would pass without ever executing the path.
-      expect(() => persist(store, identity)).toThrow(/UNIQUE constraint failed: canonical_subjects.canonical_slug/)
-      expect(store.listSubjects()).toEqual([])
-      expect(store.listIdentityConflicts()).toEqual([])
+      const res = persist(store, identity)
+      expect(res).toEqual({ subjects: 2, aliases: 4, artifacts: 0, conflicts: 1 })
+
+      // BOTH rows land, both CONFLICT, both slugs NULL. SQLite treats NULLs as DISTINCT under
+      // UNIQUE, so the true invariant — one address, one owner — survives untouched while the
+      // column gains the ability to say "no address was concluded".
+      expect(store.listSubjects().map((s) => [s.canonicalName, s.canonicalSlug, s.identityStatus])).toEqual([
+        ["io.github.LocalSynapse/LocalSynapse-mcp", null, "CONFLICT"],
+        ["io.github.LocalSynapse/localsynapse-mcp", null, "CONFLICT"],
+      ])
+      // The conflict row is the adjudication evidence, and it is now REACHABLE — under 001 it
+      // was rolled back with everything else, so the refusal left no trace at all.
+      expect(store.listIdentityConflicts()).toHaveLength(1)
+      // Still fail-closed where fail-closed belongs: a CONFLICT subject contributes no artifact.
       expect(store.listArtifactVersions()).toEqual([])
     } finally {
       store.close()
     }
   })
 
-  it("rolls back the whole cohort when any single row is refused", async () => {
+  it("keeps uncontested subjects when a collision occurs — the cohort is no longer rolled back", async () => {
     const store = await openStore()
     try {
-      // One clean subject alongside the colliding pair. Without one transaction the clean
-      // subject would land and the conflict row would not, publishing an identity whose
-      // refusal was lost.
-      const identity = resolve([record("io.test/clean"), record("a.b/c"), record("a.b-c")])
-      expect(() => persist(store, identity)).toThrow(/UNIQUE constraint/)
-      expect(store.listSubjects()).toEqual([])
+      // INVERTED from "rolls back the whole cohort when any single row is refused", which
+      // asserted `listSubjects()` was EMPTY. That test's own reasoning was sound — one
+      // transaction, so a refusal must not publish a partial cohort — but it was measuring the
+      // wrong refusal. Nothing here is refused: all three subjects are recorded, and the
+      // conflicted pair is recorded AS conflicted. That is what makes the clean subject's
+      // survival safe rather than partial.
+      const identity = resolve([
+        record("io.test/clean"),
+        record("io.github.LocalSynapse/LocalSynapse-mcp"),
+        record("io.github.LocalSynapse/localsynapse-mcp"),
+      ])
+      persist(store, identity)
+      expect(
+        store.listSubjects().map((s) => [s.canonicalName, s.canonicalSlug === null, s.identityStatus]),
+      ).toEqual([
+        ["io.github.LocalSynapse/LocalSynapse-mcp", true, "CONFLICT"],
+        ["io.github.LocalSynapse/localsynapse-mcp", true, "CONFLICT"],
+        // The uncontested subject keeps its address. Under 001 this row was destroyed by a
+        // collision it had no part in — the defect stated as a single assertion.
+        ["io.test/clean", false, "PROVISIONAL"],
+      ])
+    } finally {
+      store.close()
+    }
+  })
+
+  it("stays idempotent across a replay of a colliding cohort — TWO runs, ONE store", async () => {
+    const store = await openStore()
+    try {
+      // The R-4 lesson, applied without being made to learn it again: a per-writer control
+      // cannot see a second writer, so the guarded column is graded by READING BACK after a
+      // realistic replay rather than by inspecting one call site. `persistIdentity`'s upsert is
+      // the writer that reset FETCHED→RESOLVED every replay in R-4 and passed its own control.
+      //
+      // Two NULLs re-inserted must not become two rows: the UNIQUE column cannot dedupe them
+      // (NULLs are distinct), so idempotence here rests entirely on `subject_id` being the
+      // PRIMARY KEY and a function of the inputs alone.
+      const identity = resolve([
+        record("io.github.LocalSynapse/LocalSynapse-mcp"),
+        record("io.github.LocalSynapse/localsynapse-mcp"),
+      ])
+      persist(store, identity)
+      const first = store.listSubjects()
+      persist(store, identity)
+      expect(store.listSubjects()).toEqual(first)
+      expect(store.listIdentityConflicts()).toHaveLength(1)
     } finally {
       store.close()
     }

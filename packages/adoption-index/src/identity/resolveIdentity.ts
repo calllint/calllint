@@ -3,12 +3,28 @@
  * two records claim one (§8.1, §7.1, ADR 0061). Written by R-3.
  *
  * PURE. No clock, no filesystem, no database, no network — the same observer/evaluator
- * split `detectSourceChange` uses. That is not tidiness: the conflict path is UNREACHABLE
- * on real data (measured over the committed corpus: raw name 19 distinct / 0 collisions ·
- * slug 19 / 0 · repositoryUrl 10 / 0 · package identifier 2 / 0 · publisher head 17 / 1
- * apparent-but-not-a-conflict), so the only way to grade it is to hand it synthetic input.
- * A function that reads a database cannot be graded that way, and a guard that can never
- * fire on real data is R-2's control #11 restated.
+ * split `detectSourceChange` uses. That is not tidiness: it is what lets the conflict path be
+ * graded on constructed input, which is the only way to cover the classes the live cohort does
+ * not currently exhibit.
+ *
+ * THE "UNREACHABLE ON REAL DATA" CLAIM THAT WAS HERE IS NOW FALSE, and is inverted rather than
+ * deleted because the correction is the useful part. It read: "the conflict path is UNREACHABLE
+ * on real data (measured over the committed corpus: raw name 19 distinct / 0 collisions · slug
+ * 19 / 0 · repositoryUrl 10 / 0 · package identifier 2 / 0 · publisher head 17 / 1
+ * apparent-but-not-a-conflict)". Every one of those numbers is still correct AND the conclusion
+ * drawn from them no longer holds: they measure the 19 COMMITTED SNAPSHOT ENTRIES, while this
+ * function is now handed the source's full live cohort — 19_739 `active` + `isLatest` names,
+ * measured 2026-08-04 by a walk that ran to `reason=exhausted`. At that fan-out slug collisions
+ * are MEASURED, not hypothetical: at least two case-fold pairs
+ * (`io.github.LocalSynapse/{LocalSynapse-mcp,localsynapse-mcp}` and
+ * `io.github.Zuga-luga/{Zugabot,zugabot}`), a FLOOR rather than a count because the probe that
+ * found them stopped at its own 500-page ceiling having seen 14_454 of the 19_739.
+ *
+ * So class 2 now fires in production, and the fail-closed path is live rather than defensive.
+ * That is what forced migration 002: this function correctly emits BOTH contesting subjects, and
+ * storage could not hold two rows carrying one slug. Reaching a guard for the first time is the
+ * moment to check the whole path it feeds, not just the guard — the corpus measurement above
+ * made the path look untested when it was merely unexercised.
  *
  * THE GROUPING KEY IS EXACT `canonicalName`. Nothing else. Three heuristics that look
  * reasonable are each falsified by the corpus, and each is wrong in the direction that

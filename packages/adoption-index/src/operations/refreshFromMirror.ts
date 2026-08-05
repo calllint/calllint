@@ -41,13 +41,30 @@ import type { ArtifactResolutionSummary } from "./resolveArtifacts.js"
 /**
  * How many raw records one mirror run reads, when the caller names no cap.
  *
- * Chosen as a multiple of the snapshot cap, not equal to it, for a measured reason: the
- * mirror keeps the non-live records the snapshot drops, so it must read strictly more than
- * the snapshot emits to fill it. The committed snapshot holds 19 of a 25 cap today, so this
- * ceiling is not close to binding; when it does bind, `assertMirrorComplete` says so
- * instead of quietly shipping a short snapshot.
+ * Still a multiple of the snapshot cap, not equal to it, for the original measured reason: the
+ * mirror keeps the non-live records the snapshot drops, so it must read strictly more than the
+ * snapshot emits to fill it.
+ *
+ * RAISED 1000 → 40_000 → 100_000, and BOTH earlier numbers were wrong for the same reason, so
+ * the reason is recorded rather than just the number. 1000 reasoned from the SNAPSHOT's 19-of-25
+ * occupancy — a property of the projection, while this bounds the RAW read. 40_000 reasoned from
+ * "the source holds well over 21_000", which was a probe stopped at its own 210-page ceiling; a
+ * later probe capped at 500 pages reported "50_000+" the same way. Only a walk that terminated
+ * with `reason=exhausted` measured the source: `pages=653 total=65235 elapsed=7090s`
+ * (2026-08-04). At 40_000 the fail-closed guard would still have fired on every scheduled run —
+ * the fix I first shipped for this defect did not clear it.
+ *
+ * 100_000 is `DEFAULT_MAX_PAGES` x `PAGE_SIZE`, and the two ceilings are deliberately EQUAL so
+ * that neither is dead code: a record cap below pages x page-size can never let the page ceiling
+ * fire, and above it can never fire itself. Equal, whichever exit reports first is the one that
+ * actually bound, and the operator's remedy names the knob that will change the outcome.
+ *
+ * Why not more headroom: `DEFAULT_MAX_PAGES` argues the upper bound in wall-clock — a ceiling
+ * the job cannot reach before its timeout is not the limit that binds, and a timeout truncates
+ * SILENTLY, bypassing this guard entirely. That argument caps this number too, since the two
+ * move together.
  */
-export const DEFAULT_MIRROR_MAX_ENTRIES = 1000
+export const DEFAULT_MIRROR_MAX_ENTRIES = 100_000
 
 export interface RefreshFromMirrorOptions {
   store: AdoptionIndexStore

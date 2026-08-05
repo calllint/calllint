@@ -32,6 +32,19 @@ concurrency:
 jobs:
   ingest:
     runs-on: ubuntu-latest
+    # PINNED, and it is a load-bearing number rather than hygiene.
+    #
+    # The mirror's page ceiling is argued in WALL CLOCK (`officialRegistry.ts`): a ceiling the job
+    # cannot reach before it is killed is not the limit that binds — the timeout is, and a timeout
+    # truncates SILENTLY. The runner kills the process, no `MirrorIncompleteError` is constructed,
+    # and `assertMirrorComplete` never runs. That is the one truncation this repo's fail-closed
+    # guard cannot see, so the budget it is argued against must be EXPLICIT here and not inherited.
+    #
+    # 300 min against a measured full walk of 7090s ≈ 118 min (653 pages, 65_235 records,
+    # 2026-08-04) — ~2.5x the measurement, and below GitHub's 360-min job maximum so the number is
+    # ours rather than the platform's. Left implicit, the job would inherit exactly that 360, i.e.
+    # the ceiling would be argued against a limit no line in this repo states.
+    timeout-minutes: 300
     steps:
       - uses: actions/checkout@v6
 
@@ -45,7 +58,18 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Ingest — fetch registry, retain snapshot, re-bake all cohorts
+      - name: Ingest — mirror the registry, project + retain the snapshot, report the change
+        # The caps are LEFT TO THE DEFAULTS on purpose. `DEFAULT_MIRROR_MAX_ENTRIES` (100_000) and
+        # `DEFAULT_MAX_PAGES` (1000) are argued from a walk of the live source that ran to
+        # EXHAUSTION (653 pages / 65_235 records / 7090s, 2026-08-04) and against this job's
+        # `timeout-minutes` above; they are set to bind at the same read. Pinning either number a
+        # second time here would create a copy that drifts from the one the tests pin, and the
+        # scheduled run is exactly where a stale copy would be least visible.
+        #
+        # `TRUST_INGEST_MIRROR_MAX_ENTRIES` / `TRUST_INGEST_MIRROR_MAX_PAGES` exist for the
+        # operator: when `MirrorIncompleteError` names one in its remedy, it is settable HERE or as
+        # a workflow_dispatch input without a code change. That was the asymmetry worth closing —
+        # a remedy naming a knob the operator does not have is not a remedy.
         run: pnpm ingest:trust-index
 
       - name: Resolve evidence — identity-only resolution of remote endpoints (ADR 0050)
