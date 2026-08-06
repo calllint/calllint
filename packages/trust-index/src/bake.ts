@@ -23,6 +23,7 @@ import { emitAllCohorts } from "./emitCohort.js"
 import { parseSnapshot, type RegistrySnapshot } from "./snapshot.js"
 import { parseClaimStore, EMPTY_CLAIM_STORE, type ClaimStore } from "./claim.js"
 import { parseEvidenceSnapshot, type EvidenceSnapshot } from "./evidenceSnapshot.js"
+import { parseAdoptionIndex, type AdoptionIndexSnapshot } from "./adoptionIndexSnapshot.js"
 import {
   resolvePresentation,
   DEFAULT_PRESENTATION,
@@ -70,6 +71,25 @@ export function loadEvidenceSnapshotIfPresent(path = EVIDENCE_SNAPSHOT_PATH): Ev
   if (!existsSync(path)) return null
   return parseEvidenceSnapshot(readFileSync(path, "utf8"))
 }
+/**
+ * The committed adoption index — the IDENTITY projection of the canonical adoption graph
+ * (ADR 0061 §7.1). Lives under the package (an ingestion INPUT, not a served artifact).
+ * `projectAdoptionIndex.ts` writes it from the compiler's store; the bake reads it PURELY, so a
+ * Trust page request never causes a database read (§5).
+ *
+ * Absent ⇒ no identity on any index entry ⇒ byte-identical pages, so this is inert until it
+ * exists — the same fail-inert shape `EVIDENCE_SNAPSHOT_PATH` has. Unlike that one it is
+ * DERIVABLE offline from the committed registry snapshot, which is what lets the reproducibility
+ * gate re-derive and byte-compare rather than merely validate the schema (control #117).
+ */
+export const ADOPTION_INDEX_PATH = resolve(here, "..", "snapshots", "adoption-index.json")
+
+/** Load + validate the committed adoption index if present; null when there is none. */
+export function loadAdoptionIndexIfPresent(path = ADOPTION_INDEX_PATH): AdoptionIndexSnapshot | null {
+  if (!existsSync(path)) return null
+  return parseAdoptionIndex(readFileSync(path, "utf8"))
+}
+
 /**
  * The presentation content document (Workstream P PR P-2; ADR 0058 §2).
  *
@@ -172,6 +192,7 @@ function main(): void {
   const claims = loadClaimStoreIfPresent()
   const evidence = loadEvidenceSnapshotIfPresent()
   const presentation = loadPresentationIfPresent()
+  const adoption = loadAdoptionIndexIfPresent()
   const { files, installFiles, baked, incomplete } = emitAllCohorts(
     snapshot,
     claims,
@@ -179,6 +200,7 @@ function main(): void {
     [],
     engineVersion(),
     presentation,
+    adoption,
   )
 
   writeServedTree(outDir, publicRoot, files, installFiles)

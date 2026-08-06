@@ -129,7 +129,17 @@ export {
   evidenceMap,
   type EvidenceSnapshot,
 } from "./evidenceSnapshot.js"
+export {
+  parseAdoptionIndex,
+  adoptionMap,
+  type AdoptionIndexSnapshot,
+  type AdoptionIndexEntry,
+} from "./adoptionIndexSnapshot.js"
 export { remoteSubjects } from "./resolveEvidence.js"
+// The projector's refusal rule, exported for the same reason `remoteSubjects` is: it is a pure
+// decision living inside a bin, and the alternative to exporting it was spawning `tsx` to reach it.
+// Importing this pulls in no database — the bin's `main` is fenced behind `invokedAsScript`.
+export { refuseToProject } from "./projectAdoptionIndex.js"
 export {
   MAINTAINER_CONTEXT_KINDS,
   assertNoVerdictAuthority,

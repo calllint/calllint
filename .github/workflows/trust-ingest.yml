@@ -79,6 +79,20 @@ jobs:
         # (packages/trust-index/snapshots/evidence-snapshot.json).
         run: pnpm resolve-evidence:trust-index
 
+      - name: Project the adoption index — freeze the identity plane from the store (ADR 0061 §5)
+        # NOT a network step, and the ONLY step in this file that opens the compiler's database.
+        # `ingest:trust-index` above already ran `persistIdentity`, so `canonical_subjects` holds
+        # the mirrored cohort together with the `firstSeenAt` history no derivation can
+        # reconstruct — which is why this uses the `:store` variant and not the pure
+        # `--from-snapshot` one a human re-derive uses. The bake below then reads the committed
+        # file PURELY: "nothing served ever queries the compiler" (ADR 0061 §5).
+        #
+        # It must run BEFORE the bake and AFTER the ingest. Reversed, the bake would read the
+        # previous run's identity; without the ingest, the store would be empty and this would fall
+        # back to deriving from the snapshot rather than failing — never writing an empty document
+        # either way, so a half-finished compiler run cannot blank 19 live subjects' identity.
+        run: pnpm project-adoption-index:trust-index:store
+
       - name: Re-bake with evidence — refine remote UNKNOWN verdicts (ADR 0050)
         # Pure re-bake: reads BOTH committed snapshots and refines remote UNKNOWN
         # pages to REVIEW where identity resolved cleanly. No network, no clock.
@@ -103,6 +117,10 @@ jobs:
               (`packages/trust-index/snapshots/official-mcp-registry.json`).
             - Resolved remote-endpoint identity into the retained evidence snapshot
               (`packages/trust-index/snapshots/evidence-snapshot.json`, ADR 0050).
+            - Projected the canonical adoption graph's identity plane into
+              (`packages/trust-index/snapshots/adoption-index.json`, ADR 0061 §7.1).
+              Identity and addressing only — it carries no verdict, and cannot:
+              `computeVerdict` stays the only verdict engine (ADR 0061 §4).
             - Re-baked all cohorts into `apps/web/public/trust/`, refining remote
               UNKNOWN → REVIEW where identity resolved cleanly (never SAFE).
 

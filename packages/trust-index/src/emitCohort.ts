@@ -16,6 +16,7 @@ import { fixtureCohort } from "./cohort.js"
 import { registryCohort, registryNameFromSourceLabel } from "./registryCohort.js"
 import type { RegistrySnapshot } from "./snapshot.js"
 import { evidenceMap, type EvidenceSnapshot } from "./evidenceSnapshot.js"
+import { adoptionMap, type AdoptionIndexSnapshot } from "./adoptionIndexSnapshot.js"
 import {
   evaluatePublishEligibility,
   explainUnknown,
@@ -68,6 +69,32 @@ export interface EmittedCohort {
   incomplete: number
 }
 
+/**
+ * The identity block on an index entry — where the canonical adoption graph reaches a served
+ * surface, and the ONLY place it does (ADR 0061 §7.1: every served surface is a projection of the
+ * graph).
+ *
+ * EVERY FIELD IS ADDRESSING. There is no verdict here and there cannot be one: the projection's own
+ * reader (`parseAdoptionIndex`) refuses a document carrying a decision field, so a verdict could not
+ * reach this block even if something tried to put it here. ADR 0061 §4: the graph "has no opinion
+ * about whether that subject is safe"; `computeVerdict` is the only verdict engine, every time.
+ *
+ * IT IS DELIBERATELY OUTSIDE `pageDigest`. That digest seals the PAGE
+ * (`hashJson({canonicalName, verdict, preparation, scan, observedAt})`) and identity is not page
+ * CONTENT; putting identity inside it would move all 19 digests plus 19 `.json`, 19 `.html` and 19
+ * manifests, re-binding "is the wiring right" to "should the pages change" — the exact tangle R-7
+ * split apart. The same reasoning the claim overlay already carries above (a claim never alters a
+ * verdict, ADR 0053 §3). So identity lands on the index entry only.
+ */
+interface IndexEntryIdentity {
+  /** The canonical subject's stable id — the identity layer's primary key. */
+  subjectId: string
+  /** R-3's `subjectIdentityDigest`: what the identity layer concluded. Copied, never recomputed. */
+  identityDigest: string
+  /** `PROVISIONAL` / `VERIFIED` / … — the identity layer's own status, never a safety verdict. */
+  identityStatus: string
+}
+
 /** Index entry per resource — the `{ns}/{name}` → digest map (ADR 0046 §6). */
 interface IndexEntry {
   canonicalName: string
@@ -77,6 +104,17 @@ interface IndexEntry {
   verdict: string | null
   observedAt: string
   reason?: string
+  /**
+   * The canonical subject this served page addresses, when the adoption graph knows it.
+   *
+   * Present exactly when the committed adoption index carries this entry's `canonicalName`.
+   * Absent — the KEY absent, not a key holding `undefined` — otherwise, so that with no committed
+   * adoption index (or with a subject it does not know) the emitted bytes of every existing file
+   * are byte-identical to today's — which is what makes an absent adoption index inert and keeps
+   * this landable without re-baking the whole tree. `markIncomplete` never sets it, and no fixture
+   * matches: local goldens were never registry subjects and have no canonical identity.
+   */
+  identity?: IndexEntryIdentity
 }
 
 /**
@@ -112,6 +150,17 @@ function bakeItems(
   index: IndexEntry[],
   claims: ClaimStore,
   evidence: ReadonlyMap<string, EvidenceBundle>,
+  /**
+   * `canonicalSlug` → canonical identity, from the committed adoption index. Empty by default so
+   * every existing caller (and the fixtures cohort, which is passed nothing) emits byte-identically.
+   *
+   * KEYED ON THE SLUG, NOT THE RAW REGISTRY NAME, and that was measured rather than assumed: the
+   * store's `canonical_name` holds the reverse-DNS name (`ac.inference.sh/mcp`) while a served
+   * index entry's `canonicalName` holds the ADDRESS (`mcp-registry/ac.inference.sh-mcp`). Against the
+   * committed files: raw name matched 0/19, slug matched 19/19. `adoptionMap` builds the map on that
+   * key.
+   */
+  adoption: ReadonlyMap<string, { subjectId: string; identityDigest: string; identityStatus: string }> = new Map(),
 ): {
   baked: number
   incomplete: number
@@ -157,6 +206,11 @@ function bakeItems(
       // (revocable) claim overlay as the sidecar, so it never touches the page digest.
       const manifest = buildEvidenceManifest(page, { authorityClaimed: publisher !== undefined })
       files.push({ path: `${base}.manifest.json`, content: JSON.stringify(manifest, null, 2) + "\n" })
+      // Canonical identity for this resource, when the adoption graph resolved one. Spread-or-
+      // nothing, so an unmatched entry carries no `identity` KEY at all rather than one holding
+      // `undefined` — `JSON.stringify` drops both, but `Object.keys` reports the second, and the
+      // wiring test reads keys as well as bytes.
+      const identity = adoption.get(page.canonicalName)
       index.push({
         canonicalName: page.canonicalName,
         status: "baked",
@@ -164,6 +218,15 @@ function bakeItems(
         pageDigest: page.pageDigest,
         verdict: page.verdict,
         observedAt: page.observedAt,
+        ...(identity === undefined
+          ? {}
+          : {
+              identity: {
+                subjectId: identity.subjectId,
+                identityDigest: identity.identityDigest,
+                identityStatus: identity.identityStatus,
+              },
+            }),
       })
       baked++
     } catch (err) {
@@ -234,9 +297,24 @@ export function emitAllCohorts(
   // consume presentation copy yet, so omitting it — as every pre-P-2 caller does — bakes
   // a byte-identical tree.
   presentation: ResolvedPresentation = DEFAULT_PRESENTATION,
+  // The committed IDENTITY projection of the canonical adoption graph (ADR 0061 §7.1, R-8), read at
+  // the bin's edge by `loadAdoptionIndexIfPresent` and handed inward — never queried here, because
+  // "nothing served ever queries the compiler" (ADR 0061 §5) and this function must stay pure for
+  // the reproducibility gate to re-run it.
+  //
+  // UNLIKE PARAMETERS 5 AND 6 ABOVE, THIS ONE IS MEANT TO MOVE BYTES. Both of those flow only into
+  // `installFiles` and their own test asserts they leave the trust tree byte-identical; this adds an
+  // `identity` block to each matching `index.json` entry, so `null` vs. supplied is a REAL
+  // difference — and a positive control asserts exactly that, since a 7th parameter that changed
+  // nothing would be wiring in name only. What it must NOT move is any verdict, any `pageDigest`, or
+  // any other file; that is the opposing half of the same test.
+  adoption: AdoptionIndexSnapshot | null = null,
 ): EmittedCohort {
   const files: EmittedFile[] = []
   const index: IndexEntry[] = []
+  // `canonicalSlug` → identity, built once for the whole emit. `adoptionMap(null)` is an empty map,
+  // so an absent committed document leaves every byte exactly as it is today (fail-inert).
+  const adoptionBySlug = adoptionMap(adoption)
 
   // Fixtures never carry remote evidence (they are local goldens) — pass the empty
   // map so the fixtures cohort is byte-identical regardless of any evidence snapshot.
@@ -247,10 +325,13 @@ export function emitAllCohorts(
     claims,
     new Map(),
   )
-  // The registry cohort is the only one refined by evidence (ADR 0050).
+  // The registry cohort is the only one refined by evidence (ADR 0050), and the only one that can
+  // carry canonical identity: a fixture is a local golden that was never a registry subject, so
+  // passing the map here and NOWHERE ELSE makes that structural rather than a lookup that happens to
+  // miss. "Fixtures carry no identity" is then a property of the call graph, not of a failed match.
   const evidenceBundles = evidenceMap(evidence)
   const registry = snapshot
-    ? bakeItems(registryCohort(snapshot), files, index, claims, evidenceBundles)
+    ? bakeItems(registryCohort(snapshot), files, index, claims, evidenceBundles, adoptionBySlug)
     : { baked: 0, incomplete: 0 }
 
   // Expansion cohort (scale-out): each candidate must clear the §4.7 gate. Empty by
