@@ -88,6 +88,19 @@ makes "rolling" currently unrepresentable.
 > Thresholds are derived from `trust-ingest.yml`'s weekly cron rather than invented:
 > `FRESH ≤ 1× cadence · AGING ≤ 3× · STALE > 3×`. `publishedAt` remains **unused** — it
 > measures the upstream release, not our observation.
+>
+> **Served to consumers at S-3 (#265).** The axis reached the partner API, which cannot
+> import the calculator (`@calllint/trust-index` is in `SCANNER_PKGS`, `no-scanner.test.ts:24`;
+> deps are pinned to exactly `{"@calllint/types"}` at `:43`), so `EnvelopeFreshness` is a
+> structural mirror served **verbatim** from the index entry — 38/38 baked entries carry
+> `freshness`, **0** sidecars do, which is why `toEnvelope` takes the entry as well.
+>
+> One measurement there is worth carrying forward as method, not trivia: a negative control
+> that dropped a key from the mirrored `interface` reddened the typecheck but left all 15
+> tests **green**, because an `interface` is erased at runtime and the "agreement" test was
+> only checking a restatement of it. The fix inverts the direction — `FRESHNESS_KEYS` /
+> `FRESHNESS_STATES` are **runtime** constants, the type derives from them, and a two-sided
+> `AssertNever` bridge fails the typecheck on drift from either side.
 
 ### 1.5 No claim-facing control API
 
