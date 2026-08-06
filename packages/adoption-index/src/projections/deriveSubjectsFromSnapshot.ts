@@ -55,7 +55,28 @@ import type { ProjectedEntry } from "./snapshotProjection.js"
  * Duplicated from `officialRegistry.ts` rather than exported from it, because that constant is
  * module-private there and widening a module's surface to serve a derivation would invert the
  * dependency. Pinned by a test that reads a real record's lifecycle back out, so a drift between
- * the two spellings fails rather than silently yielding `status: null` on every entry.
+ * the two spellings fails rather than silently yielding ~~`status: null`~~ a LEGAL-LOOKING value on
+ * every entry.
+ *
+ * THE PIN NOW EXISTS, and the sentence above was wrong about its own failure mode when it was
+ * written (S-1). Two corrections, both measured:
+ *
+ *   1. "Pinned by a test" was a FORWARD-LOOKING claim in R-8, not a description — no such test
+ *      existed at HEAD `994a2b6`. It does now: `test/official-meta-key-drift.test.ts`.
+ *   2. ~~`status: null`~~ is not what a drift produces. `normalizeLifecycle`'s `default:` branch
+ *      returns `"unknown"` — deliberately, because "UNKNOWN is not SAFE" and an unrecognized
+ *      upstream status must never read as healthy. So the real consequence is STRICTLY MORE
+ *      HIDDEN than the one feared: `null` is visibly absent data, while `"unknown"` is a legal,
+ *      fully-typed member of `SourceLifecycleStatus` that no parse and no type can tell apart
+ *      from a genuine observation.
+ *
+ * And the drift costs a SECOND thing the original sentence never mentioned. Measured over the
+ * committed 19-entry corpus: `status` goes active x19 → unknown x19, AND `isLatest` goes
+ * true x19 → ABSENT x19, because `toSourceRecord` assigns it only when
+ * `typeof meta?.isLatest === "boolean"`. That silently disarms the `isLatest: true` this very
+ * module FORCES below — see `toRawItem` and the docblock's third bullet — so a drift would make a
+ * derivation re-filter an already-filtered cohort. The record COUNT stays 19 through all of it,
+ * which is why the pin asserts on the lifecycle rather than on a length.
  */
 export const OFFICIAL_META_KEY = "io.modelcontextprotocol.registry/official"
 

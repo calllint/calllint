@@ -3,9 +3,18 @@ import { readFileSync } from "node:fs"
 import { dirname, resolve } from "node:path"
 import { fileURLToPath } from "node:url"
 import { emitAllCohorts, type ExpansionCandidate } from "../src/emitCohort.js"
-import { resolveMaxEntries, resolveMirrorMaxEntries, resolveMirrorMaxPages } from "../src/refreshSnapshot.js"
+import {
+  resolveArtifactsEnabled,
+  resolveEvidenceEnabled,
+  resolveMaxEntries,
+  resolveMirrorMaxEntries,
+  resolveMirrorMaxPages,
+} from "../src/refreshSnapshot.js"
 import { DEFAULT_MAX_ENTRIES } from "../src/fetchRegistry.js"
 import { DEFAULT_MIRROR_MAX_ENTRIES, DEFAULT_MAX_PAGES, PAGE_SIZE } from "@calllint/adoption-index"
+import { hashJson } from "@calllint/fingerprint"
+import { adoptionBasisPolicy, defaultPolicy } from "@calllint/policy"
+import { engineVersion } from "../src/bake.js"
 import { mergeResults, type EvidenceSubject, type ResolverResult } from "@calllint/evidence"
 
 /**
@@ -441,5 +450,163 @@ describe("refreshSnapshot measures; it does not write the served tree (controls 
     // would still pass.
     const code = ingestCode()
     expect(code).toMatch(/writeFileSync\(SNAPSHOT_PATH/)
+  })
+
+  /**
+   * THE TWO BOOLEAN CAPABILITY SWITCHES — and a debt R-4 left that S-1 found by looking.
+   *
+   * The three ceilings above each had a switch table from the batch that shipped them.
+   * `resolveArtifactsEnabled` (R-4) had NONE: measured across every `*.test.ts` in the repo, no test
+   * named it. So S-1 writes both tables, not just its own, because a polarity defect in either one
+   * is silent in the same way — the run simply does less work and reports a `null` layer, which
+   * reads as "not asked" rather than as "broken".
+   *
+   * WHY `!== "0"` AND NOT `=== "1"`, asserted rather than argued: the default must be ON, and a
+   * TYPO must fail toward DOING the measurement. `TRUST_INGEST_EVIDENCE=fasle` should compile
+   * evidence, not skip it. `resolveMaxEntries` and both mirror caps already fail-safe this way; a
+   * boolean's version of fail-safe is a single recognized off-spelling.
+   */
+  describe("the two boolean capability switches — default ON, one off-spelling each", () => {
+    const CASES: ReadonlyArray<readonly [string | undefined, boolean]> = [
+      [undefined, true],
+      ["", true],
+      ["   ", true],
+      // The ONE spelling that disables. Whitespace-trimmed, matching the cap resolvers.
+      ["0", false],
+      [" 0 ", false],
+      ["\t0\n", false],
+      // Everything else is ON — including every plausible near-miss. A typo must fail toward
+      // doing the measurement, never toward silently skipping it.
+      ["1", true],
+      ["false", true],
+      ["FALSE", true],
+      ["no", true],
+      ["off", true],
+      ["disabled", true],
+      ["00", true],
+      ["0.0", true],
+      ["-0", true],
+      ["null", true],
+      ["undefined", true],
+      ["true", true],
+    ]
+
+    it("resolveEvidenceEnabled: exactly `0` disables, everything else enables", () => {
+      for (const [raw, expected] of CASES) {
+        const env = raw === undefined ? {} : { TRUST_INGEST_EVIDENCE: raw }
+        expect(resolveEvidenceEnabled(env), `TRUST_INGEST_EVIDENCE=${JSON.stringify(raw)}`).toBe(
+          expected,
+        )
+      }
+    })
+
+    it("resolveArtifactsEnabled: the SAME table — R-4's untested switch, pinned here", () => {
+      // Identical polarity by construction, so the two knobs cannot drift into behaving
+      // differently for the same operator input.
+      for (const [raw, expected] of CASES) {
+        const env = raw === undefined ? {} : { TRUST_INGEST_ARTIFACTS: raw }
+        expect(resolveArtifactsEnabled(env), `TRUST_INGEST_ARTIFACTS=${JSON.stringify(raw)}`).toBe(
+          expected,
+        )
+      }
+    })
+
+    it("neither switch reads the other's variable", () => {
+      // A copy-paste of the resolver body would leave both reading `TRUST_INGEST_ARTIFACTS`, and
+      // every assertion above would still pass — each table only ever sets its own name. Setting
+      // one OFF must leave the other ON.
+      expect(resolveEvidenceEnabled({ TRUST_INGEST_ARTIFACTS: "0" })).toBe(true)
+      expect(resolveArtifactsEnabled({ TRUST_INGEST_EVIDENCE: "0" })).toBe(true)
+      expect(resolveEvidenceEnabled({ TRUST_INGEST_EVIDENCE: "0", TRUST_INGEST_ARTIFACTS: "0" })).toBe(
+        false,
+      )
+      expect(resolveArtifactsEnabled({ TRUST_INGEST_EVIDENCE: "0", TRUST_INGEST_ARTIFACTS: "0" })).toBe(
+        false,
+      )
+    })
+
+    it("the resolved switch reaches the CALL as a port — a resolved-but-unpassed switch is dead", () => {
+      // The #45 lesson applied to S-1's own wire. `evidencePort` is OPTIONAL on the options type,
+      // so dropping it from the call site typechecks clean and every table above stays green —
+      // exactly how `maxPages` was resolved-then-discarded for a whole batch.
+      const code = ingestCode()
+      const at = code.indexOf("refreshFromMirror({")
+      expect(at).toBeGreaterThan(-1)
+      const args = code.slice(at, code.indexOf("\n    })", at))
+      // Spread-or-nothing, both ports: passing `evidencePort: undefined` explicitly would make the
+      // run report `evidence: null` for a DIFFERENT reason than "not asked", and R-4 established
+      // the spread form for exactly that distinction.
+      expect(args).toContain("...(artifactPort === undefined ? {} : { artifactPort })")
+      expect(args).toContain("...(evidencePort === undefined ? {} : { evidencePort })")
+      // And each port is gated by its own resolver, not by a literal or by the other's.
+      expect(code).toMatch(/const artifactPort = resolveArtifactsEnabled\(process\.env\)/)
+      expect(code).toMatch(/const evidencePort = resolveEvidenceEnabled\(process\.env\)/)
+    })
+
+    it("the evidence port injects the policy DIGEST and the ONE engine version", () => {
+      // `compileEvidence` takes `policyDigest` and `engineVersion` as required inputs precisely so
+      // a policy change cannot silently reuse evidence graded under the old one. A hardcoded ""
+      // would satisfy the type and defeat that (control #126), so the call is pinned on the code.
+      const code = ingestCode()
+      expect(code).toMatch(/policyDigest: hashJson\(adoptionBasisPolicy\(\)\)/)
+      // `engineVersion()` CALLED, not the identifier passed — the latter would put a function
+      // reference where a string belongs and only fail at runtime inside the digest.
+      expect(code).toMatch(/engineVersion: engineVersion\(\)/)
+      // A fingerprint, never a decision: no decision engine is named anywhere in this module.
+      expect(code).not.toMatch(/\bdecideOverAuthority\b/)
+      expect(code).not.toMatch(/\bapplyPolicy\b/)
+    })
+
+    /**
+     * AND THE TWO EXPRESSIONS ACTUALLY YIELD USABLE VALUES — the half a source scan cannot see.
+     *
+     * The scan above proves the CALL SITE says `hashJson(adoptionBasisPolicy())` and
+     * `engineVersion()`. It cannot prove either one returns a non-blank string, and after S-1 that
+     * gap is load-bearing in a way it was not before: `compileEvidence` now THROWS on a blank
+     * `policyDigest` or `engineVersion` (control #126), so a degenerate return here would take the
+     * whole ingest run down at the port instead of silently storing a blank grouping key.
+     *
+     * Measured by hand first — a throwaway probe drove these two expressions against the real
+     * `.var/` store and printed `sha256:1db6cc…` / `0.1.0`. That measurement is worth nothing to a
+     * later reader, so it is pinned here. Both suites that exercise `compileEvidence` inject their
+     * OWN digest, so nothing else in the repo evaluates what the bin actually passes.
+     */
+    it("and both injected expressions EVALUATE to values `compileEvidence` accepts", () => {
+      // Evaluated, not string-matched. `hashJson` is a fixed-width digest and `engineVersion()`
+      // reads the package's own `version`, so both are asserted on shape rather than on a literal
+      // value that would pin this test to a version bump.
+      const policyDigest = hashJson(adoptionBasisPolicy())
+      const engine = engineVersion()
+      expect(policyDigest.trim().length).toBeGreaterThan(0)
+      expect(policyDigest).toMatch(/^sha256:[0-9a-f]{64}$/)
+      expect(engine.trim().length).toBeGreaterThan(0)
+      expect(engine).toMatch(/^\d+\.\d+\.\d+/)
+
+      // THE GUARD THIS FEEDS, run for real rather than described. `compileEvidence` refuses a blank
+      // on either field; these two values must pass that same floor, or the production port throws
+      // on every run. Asserted through the refusal's own predicate so the two cannot drift.
+      for (const [field, value] of [
+        ["policyDigest", policyDigest],
+        ["engineVersion", engine],
+      ] as const) {
+        expect(value.trim().length, `${field} is blank — the evidence port would throw on it`).toBeGreaterThan(0)
+      }
+
+      // POSITIVE CONTROL on the digest's own sensitivity: two DIFFERENT policies must not share a
+      // grouping key, which is the entire reason the field exists (#56). Without this, the assertion
+      // above would pass on a `hashJson` that returned a constant.
+      expect(hashJson(adoptionBasisPolicy())).toBe(policyDigest)
+      expect(hashJson(defaultPolicy())).not.toBe(policyDigest)
+    })
+
+    it("a not-asked layer prints NOTHING, and a measured one prints its counts", () => {
+      // R-4's rule, inherited verbatim: "'0 considered, 0 fetched' and 'not asked to resolve' are
+      // different facts". The clause is empty-string on `null` rather than a zero line (#122).
+      const code = ingestCode()
+      expect(code).toMatch(/mirrored\.artifacts === null \? "" :/)
+      expect(code).toMatch(/mirrored\.evidence === null \? "" :/)
+      // The wording comes from the package that owns the numbers, not re-phrased at the bin.
+      expect(code).toMatch(/describeEvidenceCompilation\(mirrored\.evidence\)/)
+    })
   })
 })

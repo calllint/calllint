@@ -33,10 +33,37 @@
  * No findings-only verdict path exists in the repo, and adding one here would be a SECOND decision
  * path competing with `applyPolicy` (user rule 6; the A-08 "shipped-not-wired" grading). So R-5
  * records the honest value. The contract already names it: "UNKNOWN is not SAFE", "Never mark an
- * unknown source as SAFE." The findings are real and OBSERVED; the verdict is deferred to the
- * decision batch that will own `adoption_records`. `policy_digest` is still recorded, because it
- * says which policy this row stands under — that is what lets the later batch know whether a
- * recompilation is required — but no override is applied, so idempotence holds.
+ * unknown source as SAFE." The findings are real and OBSERVED; the verdict is deferred to
+ * ~~the decision batch that will own `adoption_records`~~ A PRODUCT JUDGEMENT — see below.
+ * `policy_digest` is still recorded, because it says which policy this row stands under — that is
+ * what lets the later batch know whether a recompilation is required — but no override is applied,
+ * so idempotence holds.
+ *
+ * THE DEFERRAL SURVIVED, ITS REASON DID NOT (S-1). ~~"the decision batch that will own
+ * `adoption_records`"~~ describes a batch that has already happened: R-7 (#260) gave that table its
+ * writer. The verdict is STILL `UNKNOWN` here, but not for want of a table — it is blocked on a
+ * question code cannot answer. Measured at HEAD `811edc6`, both engines run over the SAME committed
+ * 19-entry corpus:
+ *
+ *   | engine / input                                          | outcome            |
+ *   | ------------------------------------------------------- | ------------------ |
+ *   | `computeVerdict` (bake, no evidence)                     | UNKNOWN 17 / SAFE 2 |
+ *   | `computeVerdict` + committed `evidence-snapshot.json`    | REVIEW 17 / SAFE 2  |
+ *   | `decideOverAuthority` + `defaultPolicy()`                | BLOCK 19            |
+ *   | `decideOverAuthority` + `adoptionBasisPolicy()`          | BLOCK 17 / REVIEW 2 |
+ *
+ * 19/19 DISAGREE with what the public tree serves today. And the BLOCK is not a fail-closed
+ * degradation: `completeness` is `complete` 19/19 with `unknowns: []` and no null `artifactDigest`,
+ * so it is a real policy floor — 17 of 19 entries are remote-only → `UNKNOWN_REMOTE` → both
+ * policies' `unknownSource` is `"deny"`. Meanwhile `adoptionBasisPolicy`'s own docblock claims it
+ * deviates from `defaultPolicy` on ONE axis (`arbitraryCommandExecution`), and all four of its
+ * arguments are about the `npx -y pkg@ver` PACKAGE-INSTALL shape: it was never tuned for remote,
+ * and this corpus is 89% remote-only.
+ *
+ * So writing a real verdict here would publish a BLOCK about 17 third parties on the strength of a
+ * policy that never considered their shape. That is a product decision (which policy adjudicates a
+ * remote-only server's adoption), not a missing function — which is why S-1 wired the EVIDENCE port
+ * instead and left this line as it stands.
  */
 import { analyzeDocumentSurfaces } from "@calllint/static-analyzer"
 import type { Finding } from "@calllint/types"
@@ -134,6 +161,34 @@ export const DEFAULT_MAX_EVIDENCE_ARTIFACTS = 64
  * somewhere in here.
  */
 export function compileEvidence(input: CompileEvidenceInput): EvidenceCompilationSummary {
+  // FAIL CLOSED ON THE TWO INJECTED IDENTIFIERS, before a single row is read. Both are digest
+  // inputs, and R-5 shipped this function with no caller, so until S-1 gave it one nothing could
+  // supply a degenerate value. Control #126 supplied one: `policyDigest: ""` compiled every row
+  // and stored them all, because the empty string is a perfectly good `string`.
+  //
+  // That is the exact harm this field's own docblock names — "dropping it would let a policy
+  // change silently reuse evidence graded under the old one (control #56)" — arriving by a route
+  // the type system cannot see. An empty digest does not move with the policy, so every row it
+  // stamps is grouped under a key that means nothing, and no later query can tell those rows from
+  // rows graded under a policy that genuinely hashed to nothing (none can: `hashJson` of any value
+  // is a fixed-width hex string). A blank grouping key is worse than a wrong one, because a wrong
+  // one at least changes when the policy does.
+  //
+  // A THROW, not a skip: an evidence row whose provenance is unidentifiable must not exist, and
+  // this runs before `listArtifactVersions`, so a refusal writes nothing at all
+  // ([[fail-closed-vs-fail-destructive]] — the whole run is the contested unit here, since one bad
+  // digest taints every row equally rather than a subset of them).
+  if (input.policyDigest.trim().length === 0) {
+    throw new Error(
+      "compileEvidence: `policyDigest` is empty — every compiled row would carry a grouping key that cannot move with the policy, which is the silent-reuse hazard the field exists to prevent",
+    )
+  }
+  if (input.engineVersion.trim().length === 0) {
+    throw new Error(
+      "compileEvidence: `engineVersion` is empty — a finding with no engine version cannot be attributed to the detectors that produced it",
+    )
+  }
+
   const tarCaps = input.tarCaps ?? DEFAULT_TAR_CAPS
   const maxArtifacts = input.maxArtifacts ?? DEFAULT_MAX_EVIDENCE_ARTIFACTS
 
