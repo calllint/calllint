@@ -53,6 +53,18 @@ export const CLI_VERSION = "1.7.3"
 export const LOOKUP_PAGE_PATH = "lookup"
 
 /**
+ * The ONLY script a Trust Page carries (S-2): the freshness refresh. External and `defer`red,
+ * following the shipped `install-copy.js` shape rather than inlining, so the byte-compare gate
+ * covers its source→served copy the same way.
+ *
+ * Its licence is narrower than the copy-assist script's — it may rewrite the text of a
+ * `data-freshness` element and nothing else. The file's own docblock enumerates what is
+ * forbidden; the short version is that it never touches a verdict, because freshness is a
+ * display axis and not a safety signal (ADR 0053 §5).
+ */
+export const TRUST_FRESHNESS_SCRIPT_SRC = "/scripts/trust-freshness.js" as const
+
+/**
  * The clean (extensionless) public URL a page is served at. The `.html` artifact
  * 308-redirects to this form at the edge, so this is the canonical, non-redirecting
  * address — the only form that belongs in `<link rel="canonical">` and in the
@@ -358,7 +370,7 @@ export function renderHtml(page: BakedTrustPage, verifiedPublisher?: VerifiedPub
       <h1>${esc(page.canonicalName)}</h1>
       <p><strong>${esc(VERDICT_PUBLIC_LABEL[page.verdict])}</strong></p>
       <p>Observed at artifact digest <code>${esc(page.artifactDigest)}</code>
-         at <time datetime="${esc(page.observedAt)}">${esc(page.observedAt)}</time>.
+         at <time datetime="${esc(page.observedAt)}" data-freshness>${esc(page.observedAt)}</time>.
          Completeness: <strong>${esc(completeness)}</strong>.</p>
       <p>This is an observation at a specific artifact digest and time under the
          stated completeness. It is not a certification, an endorsement, or a
@@ -386,6 +398,7 @@ ${historyBlock}
         <li><a href="${esc(CORRECTION_URL)}">Report a correction or dispute</a></li>
       </ul>
     </main>
+    <script src="${esc(TRUST_FRESHNESS_SCRIPT_SRC)}" defer></script>
   </body>
 </html>
 `

@@ -36,7 +36,12 @@ for (const [src, dest] of styles) {
 }
 
 // ADR 0059 — copy-only assist. Authored outside public/, synced in (same split as tokens).
-const scripts = [["install-copy.js", join("scripts", "install-copy.js")]]
+// S-2 adds the trust-page freshness refresh on the same terms: authored here, synced in,
+// byte-compared by a gate. Both are external + `defer`red so no page inlines executable JS.
+const scripts = [
+  ["install-copy.js", join("scripts", "install-copy.js")],
+  ["trust-freshness.js", join("scripts", "trust-freshness.js")],
+]
 for (const [src, dest] of scripts) {
   await mkdir(join(pub, dirname(dest)), { recursive: true })
   await copyFile(join(app, src), join(pub, dest))

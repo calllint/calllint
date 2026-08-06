@@ -55,6 +55,18 @@ export {
   type EvidenceLevelMeta,
   type FourDimensionStatus,
 } from "./evidenceLevel.js"
+// The freshness display axis (S-2), exported beside `evidenceLevel` because it is the same
+// KIND of thing: a projection of committed evidence onto a label, with no verdict authority.
+// Both must be reachable by the partner API and any future renderer without importing a
+// deep path, which is what keeps the axis single-sourced instead of re-derived per consumer.
+export {
+  computeFreshness,
+  CADENCE_DAYS,
+  AGING_MULTIPLE,
+  type Freshness,
+  type FreshnessState,
+  type ComputeFreshnessInput,
+} from "./freshness.js"
 export {
   publishChannel,
   AUTO_PUBLISH_EVIDENCE_LIMITATION,

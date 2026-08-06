@@ -17,6 +17,7 @@ import { registryCohort, registryNameFromSourceLabel } from "./registryCohort.js
 import type { RegistrySnapshot } from "./snapshot.js"
 import { evidenceMap, type EvidenceSnapshot } from "./evidenceSnapshot.js"
 import { adoptionMap, type AdoptionIndexSnapshot } from "./adoptionIndexSnapshot.js"
+import { computeFreshness, type Freshness } from "./freshness.js"
 import {
   evaluatePublishEligibility,
   explainUnknown,
@@ -115,6 +116,21 @@ interface IndexEntry {
    * matches: local goldens were never registry subjects and have no canonical identity.
    */
   identity?: IndexEntryIdentity
+  /**
+   * How old this observation is, projected onto the display axis (S-2, gaps §1.4).
+   *
+   * OUTSIDE `pageDigest`, and that placement is forced rather than chosen: `observedAt` is sealed
+   * INSIDE the digest, so a freshness field in the page body would make all 39 digests a function
+   * of the wall clock and red the reproducibility gate on any day the bake re-ran. Same reasoning
+   * as `identity` above and as the claim overlay below.
+   *
+   * Present exactly when a `now` was injected AND the entry is `baked`. `markIncomplete` never sets
+   * it — an incomplete entry has no page, no digest and no verdict, so it has no observation to age,
+   * and the null-input path passes an EMPTY `observedAt` that the calculator would (correctly) refuse.
+   * Absent — the KEY absent, not a key holding `undefined` — with no `now`, so every existing caller
+   * emits byte-identically.
+   */
+  freshness?: Freshness
 }
 
 /**
@@ -161,6 +177,17 @@ function bakeItems(
    * key.
    */
   adoption: ReadonlyMap<string, { subjectId: string; identityDigest: string; identityStatus: string }> = new Map(),
+  /**
+   * The INJECTED wall clock for the freshness projection (S-2). `null` ⇒ no `freshness` key on any
+   * entry, so every pre-S-2 caller emits byte-identically.
+   *
+   * Passed to EVERY cohort, unlike `adoption` above which the registry cohort alone receives. That
+   * asymmetry is deliberate on both sides: identity is a property only a registry subject can have,
+   * while every observation has an age — including a fixture's, whose age is `TIMELESS` rather than
+   * absent. Reporting the epoch anchor as ~20 700 days stale would be a false statement about 20 of
+   * the 39 entries, which is the whole reason `computeFreshness` carries that state.
+   */
+  now: string | null = null,
 ): {
   baked: number
   incomplete: number
@@ -227,6 +254,10 @@ function bakeItems(
                 identityStatus: identity.identityStatus,
               },
             }),
+        // Freshness, same spread-or-nothing discipline. Computed from the page's OWN sealed
+        // `observedAt` against the injected `now`, so it is a projection of committed bytes and a
+        // clock — never a re-derivation of anything, and never a verdict input (ADR 0053 §5).
+        ...(now === null ? {} : { freshness: computeFreshness({ observedAt: page.observedAt, now }) }),
       })
       baked++
     } catch (err) {
@@ -309,6 +340,16 @@ export function emitAllCohorts(
   // nothing would be wiring in name only. What it must NOT move is any verdict, any `pageDigest`, or
   // any other file; that is the opposing half of the same test.
   adoption: AdoptionIndexSnapshot | null = null,
+  // The INJECTED wall clock for the freshness projection (S-2, gaps §1.4). `null` ⇒ no `freshness`
+  // key anywhere, so every pre-S-2 caller bakes a byte-identical tree — the same fail-inert shape
+  // parameter 7 uses.
+  //
+  // LIKE PARAMETER 7, THIS IS MEANT TO MOVE BYTES, and only in `index.json`. It must not move a
+  // `pageDigest`, a verdict, or any other file: `observedAt` is sealed inside the digest, so a
+  // freshness field in the page body would make the served tree a function of the day it was baked.
+  // Both halves are asserted — a positive control that the bytes DO move, and a zero-movement
+  // assertion over every page, digest and verdict.
+  now: string | null = null,
 ): EmittedCohort {
   const files: EmittedFile[] = []
   const index: IndexEntry[] = []
@@ -324,6 +365,9 @@ export function emitAllCohorts(
     index,
     claims,
     new Map(),
+    // Fixtures carry no identity by construction (see below), but they DO carry an age — `TIMELESS`.
+    new Map(),
+    now,
   )
   // The registry cohort is the only one refined by evidence (ADR 0050), and the only one that can
   // carry canonical identity: a fixture is a local golden that was never a registry subject, so
@@ -331,7 +375,7 @@ export function emitAllCohorts(
   // miss. "Fixtures carry no identity" is then a property of the call graph, not of a failed match.
   const evidenceBundles = evidenceMap(evidence)
   const registry = snapshot
-    ? bakeItems(registryCohort(snapshot), files, index, claims, evidenceBundles, adoptionBySlug)
+    ? bakeItems(registryCohort(snapshot), files, index, claims, evidenceBundles, adoptionBySlug, now)
     : { baked: 0, incomplete: 0 }
 
   // Expansion cohort (scale-out): each candidate must clear the §4.7 gate. Empty by
@@ -339,7 +383,7 @@ export function emitAllCohorts(
   // preserving the reproducibility gate (ADR 0046 §4). Each candidate carries its own
   // evidence bundle, so refinement is per-item (not the shared registry map).
   const expanded = expansion.length
-    ? bakeItems(expansionItems(expansion), files, index, claims, new Map())
+    ? bakeItems(expansionItems(expansion), files, index, claims, new Map(), new Map(), now)
     : { baked: 0, incomplete: 0 }
 
   const baked = fixtures.baked + registry.baked + expanded.baked
@@ -358,6 +402,19 @@ export function emitAllCohorts(
   const indexDoc = {
     schema: "calllint.trust-index.v0",
     cohorts,
+    // The clock the per-entry `freshness` blocks below were computed against, RECORDED IN THE
+    // OUTPUT so the bake stays a pure function of committed bytes (ADR 0046 §4).
+    //
+    // THIS FIELD IS WHAT MAKES THE REPRODUCIBILITY GATE STILL WORK. Freshness is f(observedAt, now),
+    // so a bake that read the clock and did not record it would emit different bytes every day and
+    // `committed-tree.test.ts` — which re-runs this very function and byte-compares 119 files on three
+    // OSes — could never reproduce it. By recording `now` here, the gate reads this value back out of
+    // the committed document and passes it in, exactly as it already reads `fetchedAt` out of the
+    // committed snapshot. Same shape as `official-mcp-registry.json`'s `fetchedAt` and
+    // `adoption-index.json`'s `projectedAt`: the timestamp is an input, and the artifact carries it.
+    //
+    // Omitted (the KEY absent) when no `now` was injected, so a pre-S-2 caller's bytes are unchanged.
+    ...(now === null ? {} : { bakedAt: now }),
     baked,
     incomplete,
     entries: index,
