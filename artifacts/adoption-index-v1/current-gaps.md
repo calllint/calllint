@@ -70,6 +70,25 @@ No module under `packages/*/src` computes freshness. Evidence *level* ships
 calculation the **rolling** half of the compiler exists to feed, so its absence is what
 makes "rolling" currently unrepresentable.
 
+> **CLOSED at S-2 (#263).** Inverted in place, not deleted — this artifact is R-0's
+> measurement of the repo as it stood, not a live index.
+>
+> `packages/trust-index/src/freshness.ts` now computes it, exported from the package root
+> beside `evidenceLevel` because it is the same **kind** of thing: a projection of committed
+> evidence onto a label, with no verdict authority (ADR 0053 §5, ADR 0061 §4).
+>
+> Two facts measured during S-2 shaped it and are worth carrying forward:
+> `observedAt` is sealed **inside** `pageDigest` (`bakeTrustPage.ts:162-172`), so a
+> freshness field in the page body would have made all 38 digests a function of the wall
+> clock — it lands outside, on `index.json`, alongside R-8's `identity`. And 20 of 39
+> entries are fixtures pinned to `FIXTURE_OBSERVED_AT`, which a naive subtraction reports
+> as **20 671 days** stale; hence the `TIMELESS` state, detected by exact equality with the
+> imported constant rather than any magnitude heuristic.
+>
+> Thresholds are derived from `trust-ingest.yml`'s weekly cron rather than invented:
+> `FRESH ≤ 1× cadence · AGING ≤ 3× · STALE > 3×`. `publishedAt` remains **unused** — it
+> measures the upstream release, not our observation.
+
 ### 1.5 No claim-facing control API
 
 Nothing serves a publisher-facing control surface. Note the precondition **has** been met:
