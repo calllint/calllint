@@ -506,6 +506,43 @@ describe("evidence_digest is a function of the four inputs, and nothing else", (
     expect(compile(opened, { engineVersion: "0.2.0-test" }).compiled).toBe(1)
     expect(opened.store.listEvidenceRecords()).toHaveLength(2)
   })
+
+  /**
+   * THE EMPTY CASE, which #56 above does not cover and could not (S-1).
+   *
+   * #56 proves a digest that MOVES gets its own row. This proves a digest that cannot move is
+   * refused outright. The gap was invisible until S-1 gave this function its first production
+   * caller: negative control #126 set the port's `policyDigest` to `""`, and every assertion in
+   * this file stayed green while every row was stored under a blank grouping key. The empty string
+   * is a valid `string`, so neither the type nor the digest function objects.
+   *
+   * A blank key is strictly worse than a wrong one: a wrong key at least changes when the policy
+   * changes, so #56's mechanism still fires. A blank key is constant across every policy, which is
+   * exactly the silent-reuse hazard `policyDigest` was added to prevent.
+   */
+  it("an EMPTY policy digest is REFUSED before any row is read (control #126)", async () => {
+    const opened = await openStore()
+    seed(opened.store, [record("io.test/a", [{ registryType: "npm", identifier: "pkg-a", version: "1.0.0" }])])
+    holdBytes(opened, "pkg-a", benignTgz("pkg-a"))
+
+    // VACUITY GUARD FIRST, and it must run before the refusal: without it this test would pass on a
+    // store holding nothing compilable, where zero rows is the correct outcome for every input.
+    expect(compile(opened, { policyDigest: POLICY }).compiled).toBe(1)
+    const before = opened.store.listEvidenceRecords().length
+    expect(before).toBe(1)
+
+    for (const blank of ["", "   ", "\t\n"]) {
+      expect(() => compile(opened, { policyDigest: blank })).toThrow(/policyDigest.*is empty/)
+    }
+    // NOTHING WAS WRITTEN. The refusal is before `listArtifactVersions`, so it is not a partial
+    // run that rolled back — it never began ([[fail-closed-vs-fail-destructive]]: the whole run is
+    // the contested unit, since one blank digest taints every row identically).
+    expect(opened.store.listEvidenceRecords()).toHaveLength(before)
+
+    // The engine version gets the same floor, for the same reason and by the same shape.
+    expect(() => compile(opened, { engineVersion: "" })).toThrow(/engineVersion.*is empty/)
+    expect(opened.store.listEvidenceRecords()).toHaveLength(before)
+  })
 })
 
 // ── idempotence: the run-twice assertion ──────────────────────────────────────────────────────

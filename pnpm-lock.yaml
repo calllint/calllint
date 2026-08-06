@@ -405,6 +405,9 @@ importers:
       '@calllint/fixtures':
         specifier: workspace:*
         version: link:../fixtures
+      '@calllint/policy':
+        specifier: workspace:*
+        version: link:../policy
       '@calllint/resolver':
         specifier: workspace:*
         version: link:../resolver

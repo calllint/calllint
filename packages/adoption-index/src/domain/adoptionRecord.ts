@@ -134,6 +134,27 @@ export interface AdoptionRecordEvidence {
  * All three are COPIED from a `TrustDecision` produced by `decideOverAuthority`, never recomputed.
  * Recomputing `decisionDigest` here would make this file a second, unaudited place where a security
  * decision is made, which product principles 4 and 5 forbid.
+ *
+ * TODAY EVERY WRITTEN RECORD CARRIES `verdict: "UNKNOWN"` — 19/19, measured — and that is an HONEST
+ * value, not a placeholder awaiting a function (S-1). R-7 wired this table with no decision port;
+ * S-1 measured what a real one would produce over the SAME committed 19-entry corpus and found no
+ * agreement to copy:
+ *
+ *   `decideOverAuthority` + `defaultPolicy()`         →  BLOCK 19
+ *   `decideOverAuthority` + `adoptionBasisPolicy()`   →  BLOCK 17 / REVIEW 2
+ *   what the public tree serves today (`computeVerdict` + committed evidence)
+ *                                                     →  REVIEW 17 / SAFE 2
+ *
+ * 19/19 disagree with the served tree, and the BLOCK is a genuine policy floor rather than a
+ * fail-closed degradation (`completeness` is `complete` 19/19, `unknowns: []`): 17 entries are
+ * remote-only → `UNKNOWN_REMOTE` → `unknownSource: "deny"` in BOTH policies. Copying either one into
+ * this field would publish a BLOCK about 17 third parties under a policy whose four documented
+ * arguments are all about the `npx -y pkg@ver` package-install shape — never about remote.
+ *
+ * So `UNKNOWN` here reads exactly as the contract intends ("UNKNOWN is not SAFE", principle 2): the
+ * verdict could not be established, and saying so is the correct record. What unblocks it is a
+ * product judgement about which policy adjudicates remote-only adoption, not this file. See
+ * `operations/compileEvidence.ts`, which carries the same table with the same measurement.
  */
 export interface AdoptionRecordDecision {
   verdict: AdoptionVerdict

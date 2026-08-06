@@ -380,6 +380,109 @@ describe("the bake plane never queries the compiler (ADR 0061 §5, control #116)
     expect(src).toMatch(/adoption:\s*AdoptionIndexSnapshot\s*\|\s*null\s*=\s*null/)
     expect(src).toMatch(/adoptionMap\(adoption\)/)
   })
+
+  /**
+   * A SECOND DIMENSION on the same six modules: no DECISION authority either (S-1).
+   *
+   * WHY IT IS OWED NOW. The scan above guards one axis — the bake plane must not query the store.
+   * S-1 gave `refreshSnapshot.ts` a `@calllint/policy` import (`hashJson(adoptionBasisPolicy())`, a
+   * fingerprint for an `evidence_records` grouping key), so a policy name now legitimately exists
+   * inside `trust-index`. Legitimately, at the INGESTION edge. Nothing stopped the same import
+   * landing in `emitCohort.ts`, where it would be a second decision authority in the SERVING plane:
+   * the seven store tokens are blind to `decideOverAuthority` (control #123). A guard whose absence
+   * makes a new failure mode invisible is the shape [[absence-makes-a-gate-skip-itself]] names.
+   *
+   * ADR 0061 §4 is the claim being measured: the graph "has no opinion about whether that subject is
+   * safe", and `computeVerdict` "is the only verdict engine … every time". The bake plane's verdict
+   * comes from `bakeTrustPage.ts` calling that one engine; a policy or a `TrustDecision` reaching
+   * these modules by any other route means a served verdict has a second source.
+   *
+   * THE MODULE SET STAYS AT SIX, DELIBERATELY. Widening it to `refreshSnapshot.ts` would red the
+   * legal import this batch just added. The axis being guarded is the PLANE, not the package.
+   */
+  const FORBIDDEN_DECISION_TOKENS = [
+    { pattern: /\bdecideOverAuthority\b/, why: "the authority decision engine" },
+    { pattern: /\bprepareSafeInstall\b/, why: "the safe-install decision orchestrator" },
+    { pattern: /\bTrustDecision\b/, why: "the decision type — carrying one is deciding" },
+    { pattern: /["']@calllint\/policy["']/, why: "the policy package, in the serving plane" },
+    { pattern: /\bapplyPolicy\b/, why: "the policy application entry point" },
+    { pattern: /\badoptionBasisPolicy\b/, why: "a named policy" },
+    { pattern: /\bdefaultPolicy\b/, why: "a named policy" },
+  ] as const
+
+  it("the decision token set EXCLUDES `decisionDigest` on purpose — a measured exclusion", () => {
+    // `adoptionIndexSnapshot.ts:106` holds the literal `"decisionDigest"` in CODE, as a member of
+    // `FORBIDDEN_ENTRY_FIELDS` — the consuming-side guard that REFUSES a served entry carrying a
+    // decision field. Comment-stripping cannot save it, because it is not prose. Scanning for that
+    // token would red the very module enforcing the rule, which is the same trap the store scan hit
+    // on a docblock ([[source-scan-must-read-code-not-prose]]) — except here the collision is with
+    // real code, so the honest fix is to leave the token OUT rather than to weaken the stripper.
+    // Asserted rather than commented, so a future edit that adds it gets this explanation.
+    expect(FORBIDDEN_DECISION_TOKENS.some((t) => t.pattern.source.includes("decisionDigest"))).toBe(
+      false,
+    )
+    expect(rawSourceOf("adoptionIndexSnapshot.ts")).toMatch(/"decisionDigest"/)
+    // And the reason it is there: a refusal, not a use.
+    expect(sourceOf("adoptionIndexSnapshot.ts")).toMatch(/FORBIDDEN_ENTRY_FIELDS/)
+  })
+
+  it("the decision token set is non-trivial — the vacuity guard", () => {
+    expect(FORBIDDEN_DECISION_TOKENS.length).toBeGreaterThan(5)
+  })
+
+  for (const m of PURE_BAKE_MODULES) {
+    it(`${m} names no decision engine, policy, or decision type`, () => {
+      const src = sourceOf(m)
+      for (const { pattern, why } of FORBIDDEN_DECISION_TOKENS) {
+        expect(
+          pattern.test(src),
+          `${m} names ${pattern.source} (${why}) — a served verdict comes from computeVerdict every time, and the adoption graph has no opinion about safety (ADR 0061 §4); the bake plane must hold no second decision authority`,
+        ).toBe(false)
+      }
+    })
+  }
+
+  it("stripping is what keeps `bakeTrustPage.ts` green here — measured, not assumed", () => {
+    // The store scan learned this on a docblock; the decision scan has its own instance, and it is
+    // worth pinning because it is the one module that legitimately DISCUSSES the boundary.
+    // `bakeTrustPage.ts:154` carries `// … (I1b wires decideOverAuthority) …` in a comment. Without
+    // the stripper this dimension would go red on the file that computes the one honest verdict.
+    expect(rawSourceOf("bakeTrustPage.ts")).toMatch(/\bdecideOverAuthority\b/)
+    expect(sourceOf("bakeTrustPage.ts")).not.toMatch(/\bdecideOverAuthority\b/)
+  })
+
+  it("the decision patterns match the real thing — POSITIVE controls, one per pattern", () => {
+    // Every assertion above is a NOT-match, so a typo'd regex passes all six modules silently. Each
+    // pattern must fire on a shipped module that legitimately does the thing. Two of these live in
+    // OTHER packages, because `trust-index`'s serving plane correctly contains no such module — the
+    // absence being guarded is real, so the control has to come from outside it.
+    const repoRoot = resolve(here, "..", "..", "..")
+    const read = (p: string) => readFileSync(resolve(repoRoot, p), "utf8")
+    const cases: ReadonlyArray<readonly [string, string]> = [
+      ["decideOverAuthority", "packages/policy/src/decideOverAuthority.ts"],
+      ["prepareSafeInstall", "packages/core/src/gateway/prepareSafeInstall.ts"],
+      ["TrustDecision", "packages/types/src/trustDecision.ts"],
+      // The ingestion edge this batch created: a policy named legally, one plane away.
+      ["@calllint\\/policy", "packages/trust-index/src/refreshSnapshot.ts"],
+      ["adoptionBasisPolicy", "packages/policy/src/adoptionPolicy.ts"],
+      ["defaultPolicy", "packages/policy/src/defaultPolicy.ts"],
+    ]
+    for (const [needle, file] of cases) {
+      const { pattern } = FORBIDDEN_DECISION_TOKENS.find((t) => t.pattern.source.includes(needle))!
+      expect(
+        pattern.test(read(file)),
+        `${pattern.source} does not match ${file}, which really does this — the pattern is dead`,
+      ).toBe(true)
+    }
+    // `applyPolicy` has no dedicated module; find it wherever it is actually called.
+    const applyPolicyHome = "packages/core/src/scanServer.ts"
+    expect(
+      /\bapplyPolicy\b/.test(read(applyPolicyHome)),
+      `applyPolicy is no longer named in ${applyPolicyHome} — re-home this control`,
+    ).toBe(true)
+    // Every pattern got a control: 6 named above + `applyPolicy`.
+    expect(cases.length + 1).toBe(FORBIDDEN_DECISION_TOKENS.length)
+  })
 })
 
 /**

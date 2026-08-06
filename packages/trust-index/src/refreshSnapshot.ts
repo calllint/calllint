@@ -66,20 +66,45 @@
  * hashed, statically inspected, and stored; never executed, extracted, or installed (ADR 0061 §2).
  * `TRUST_INGEST_ARTIFACTS=0` disables it, following the `resolveMaxEntries` fail-safe precedent.
  *
+ * EVIDENCE COMPILATION (R-5) is step 1c, added by S-1, and it is DEFAULT ON for a STRICTLY
+ * STRONGER reason than R-4's: it touches no network at all. `CompileEvidenceInput` has no
+ * `fetchImpl` field, so offline is a property of the TYPE rather than a promise in a comment
+ * (`compileEvidence.ts:15-19`); it reads bytes R-4 already put in the CAS and writes only
+ * `evidence_records`, under the same gitignored `.var/`. So this clause adds neither a public
+ * request nor a committed byte. `TRUST_INGEST_EVIDENCE=0` disables it, same one-spelling rule.
+ *
+ * R-5 SHIPPED THIS PORT WITH NO PRODUCTION CONSUMER, and it said so itself:
+ * `compileEvidence.ts:33-39` names the shape it was avoiding — "the A-08 'shipped-not-wired'
+ * grading" — and then stopped on it. Measured at HEAD `994a2b6`, every reference to
+ * `evidencePort` in the repo was inside `refresh-artifacts-e2e.test.ts`, whose helper defaults
+ * `withEvidencePort ?? false`. This module is where that ends; the repo's own rhythm is
+ * write-then-consume (R-7 wrote `adoption_records`, R-8 consumed them).
+ *
+ * DO NOT CONFUSE THIS WITH THE `resolve-evidence` WORKFLOW STEP. They are different things
+ * that share a word. `resolveEvidence.ts` (ADR 0050) resolves REMOTE IDENTITY over the network
+ * and writes the committed `evidence-snapshot.json` that `bake.ts` reads; R-5's
+ * `compileEvidence` reads already-fetched artifact bytes out of the CAS and writes
+ * `evidence_records` rows that reach no served byte. Nothing here duplicates that step, which
+ * is why `trust-ingest.yml` needs no new step: this compilation happens INSIDE
+ * `refreshFromMirror`, i.e. inside the existing `ingest:trust-index`.
+ *
  * Usage:  tsx packages/trust-index/src/refreshSnapshot.ts
  *   env:  TRUST_INGEST_NOW (ISO-8601, optional) pins fetchedAt for a reproducible run
  *         TRUST_INGEST_MIRROR_MAX_ENTRIES (optional) raises the raw-read ceiling
  *         TRUST_INGEST_MIRROR_MAX_PAGES (optional) raises the page-count ceiling
  *         TRUST_INGEST_ARTIFACTS (optional) `0` skips artifact resolution entirely
+ *         TRUST_INGEST_EVIDENCE (optional) `0` skips evidence compilation entirely
  */
 import { mkdirSync, writeFileSync } from "node:fs"
 import { dirname, resolve } from "node:path"
 import { fileURLToPath } from "node:url"
 import {
   AdoptionIndexStore,
+  compileEvidence,
   createAdapterRegistry,
   createOfficialRegistryAdapter,
   describeArtifactResolution,
+  describeEvidenceCompilation,
   npmArtifactAdapter,
   openBetterSqlite3,
   refreshFromMirror,
@@ -90,9 +115,23 @@ import {
   DEFAULT_MAX_PAGES,
   MIGRATIONS_DIRNAME,
 } from "@calllint/adoption-index"
+import { hashJson } from "@calllint/fingerprint"
+// A POLICY NAME, in the INGESTION plane. Not a decision: `hashJson(policy)` is a FINGERPRINT,
+// and the digest it produces is a grouping key on an `evidence_records` row — "which policy was
+// this row graded under" — never an input to a verdict. ADR 0061 §5 forbids the SERVING plane
+// from reaching the compiler or a second decision authority, and this module is the ingestion
+// edge: `tests/invariants/adoption-index-unreachable.invariants.test.ts:225` uses this very file
+// as its POSITIVE CONTROL that a shipped ingestion module legitimately DOES reach the store.
+//
+// The distinction is enforced, not asserted: `adoption-identity-wiring.test.ts` scans the six
+// PURE BAKE modules for decision tokens, and this file is deliberately not among them — which is
+// exactly why that scan's module set stays at six while its token set grew in this batch. This
+// line is in fact that scan's POSITIVE CONTROL for the `@calllint/policy` pattern: an ingestion
+// module that legitimately names a policy is how the scan proves its own regexes still match.
+import { adoptionBasisPolicy } from "@calllint/policy"
 import { DEFAULT_ENDPOINT, DEFAULT_MAX_ENTRIES } from "./fetchRegistry.js"
 import { parseSnapshot } from "./snapshot.js"
-import { SNAPSHOT_PATH } from "./bake.js"
+import { SNAPSHOT_PATH, engineVersion } from "./bake.js"
 
 /**
  * Resolve the ingestion cap (ADR 0038 §6). Defaults to DEFAULT_MAX_ENTRIES; an
@@ -192,6 +231,27 @@ export function resolveArtifactsEnabled(env: Record<string, string | undefined>)
 }
 
 /**
+ * Whether this run compiles evidence from already-fetched artifacts (R-5, wired by S-1).
+ *
+ * Defaults ON, and the argument is R-4's with its one cost removed. R-4 had to weigh a default-on
+ * capability that adds public HTTP GETs; this one adds NONE. `CompileEvidenceInput` carries no
+ * `fetchImpl`, so a compilation that reached the network could not typecheck — offline is a
+ * property of the type, not a claim in a docblock. Its whole write surface is `evidence_records`
+ * under the gitignored `.var/`, so a scheduled run's PR diff is byte-identical either way.
+ *
+ * What default-OFF would cost is the same thing R-4 named: `evidence_records` empty forever and
+ * `rebuild.evidence` reporting `null` on every run, which is the shipped-not-wired shape arriving
+ * by default — the shape R-5's own docblock said it was trying to avoid.
+ *
+ * Only the exact string `0` disables it, deliberately identical to the artifact switch rather than
+ * more permissive. Two switches on one bin with two different spellings of "off" is worse than
+ * either spelling alone, and a typo here fails toward doing the measurement.
+ */
+export function resolveEvidenceEnabled(env: Record<string, string | undefined>): boolean {
+  return (env.TRUST_INGEST_EVIDENCE ?? "").trim() !== "0"
+}
+
+/**
  * Absolute path of the adoption index's migrations directory.
  *
  * Resolved from THIS module's URL rather than from `process.cwd()`, because the store's
@@ -236,6 +296,37 @@ async function main(): Promise<void> {
           })
       : undefined
 
+    // 1c. Evidence compilation (R-5), the SECOND port — and the one R-5 shipped without a caller.
+    //     It is built here for the same reason as 1b (this is where the store lives) and it comes
+    //     AFTER it for a reason that is not ordering preference: `refreshFromMirror` awaits the
+    //     artifact port first and the evidence port second, and R-5 reads exactly the bytes R-4
+    //     just wrote into the CAS. A cold run therefore fetches and compiles in ONE pass; swapping
+    //     them would make evidence perpetually one run stale.
+    //
+    //     `Promise.resolve` is not decoration. `compileEvidence` is SYNCHRONOUS on purpose
+    //     (`compileEvidence.ts:130-135`: an `async` signature would imply a network round trip it
+    //     must never take), while the port's type is the seam. Wrapping states both facts at once.
+    //
+    //     The two injected inputs both come from sources that already exist here — no new
+    //     dependency edge is invented for them. `engineVersion()` is `bake.ts`'s one definition,
+    //     from the module this file already imports `SNAPSHOT_PATH` from. `policyDigest` is
+    //     `hashJson(adoptionBasisPolicy())`: `adoptionBasisPolicy` because the adoption surface
+    //     already has exactly ONE policy source, shared by the CLI and the MCP surfaces, and
+    //     `defaultPolicy()` here would create a second one. It moves no verdict either way — the
+    //     compiled row's verdict is the literal `"UNKNOWN"` at `compileEvidence.ts:278`, because
+    //     R-5 deliberately compiles no decision.
+    const evidencePort = resolveEvidenceEnabled(process.env)
+      ? (ctx: { now: string }) =>
+          Promise.resolve(
+            compileEvidence({
+              store,
+              now: ctx.now,
+              policyDigest: hashJson(adoptionBasisPolicy()),
+              engineVersion: engineVersion(),
+            }),
+          )
+      : undefined
+
     mirrored = await refreshFromMirror({
       store,
       adapter: createOfficialRegistryAdapter(DEFAULT_ENDPOINT),
@@ -247,6 +338,7 @@ async function main(): Promise<void> {
       maxPages,
       mode: "full",
       ...(artifactPort === undefined ? {} : { artifactPort }),
+      ...(evidencePort === undefined ? {} : { evidencePort }),
     })
   } finally {
     store.close()
@@ -276,6 +368,18 @@ async function main(): Promise<void> {
   const artifactClause =
     mirrored.artifacts === null ? "" : `${describeArtifactResolution(mirrored.artifacts)}; `
 
+  // The evidence clause inherits that rule verbatim, for the same reason: `null` means the port
+  // was never invoked, and printing "0 considered, 0 compiled" for it would assert a measurement
+  // nobody took. Placed after the artifact clause because that is the order the data flows in.
+  //
+  // A SMALL NUMBER HERE IS CORRECT, not a symptom. `isEvidenceCompilable` is a positive whitelist
+  // containing `FETCHED` alone (`evidenceInputs.ts:29-35`), and 17 of the 19 live registry entries
+  // are remote-only with no package to download. So the expected line on this corpus is 2
+  // considered / 2 compiled cold, and 2 unchanged warm — those two are the only entries that have
+  // bytes at all.
+  const evidenceClause =
+    mirrored.evidence === null ? "" : `${describeEvidenceCompilation(mirrored.evidence)}; `
+
   // eslint-disable-next-line no-console
   console.log(
     `mirror: ${mirrored.sync.records} record(s) read (${mirrored.sync.persisted.inserted} new, ` +
@@ -284,6 +388,7 @@ async function main(): Promise<void> {
       `snapshot: ${committed.count} entry(ies) @ ${committed.fetchedAt}; ` +
       `cohort digest ${mirrored.snapshotDigest}; ` +
       artifactClause +
+      evidenceClause +
       `${describeSourceChange(change)}`,
   )
 }

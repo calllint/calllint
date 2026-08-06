@@ -16,7 +16,25 @@ import type { Policy } from "@calllint/types"
  *     MORE cautious than the public SAFE it re-decodes.
  *   - A manifest `approvalRequirement:"block"` capability still forces BLOCK — the
  *     fail-closed floor a lenient policy cannot loosen. Every OTHER axis stays strict,
- *     and `allowedSources` is empty so nothing is auto-allowed by source.
+ *     and ~~`allowedSources` is empty so nothing is auto-allowed by source~~ — see below.
+ *
+ * THE `allowedSources` CLAUSE ABOVE IS AN ARGUMENT ABOUT A FIELD NOTHING READS (S-1, comment only,
+ * no behaviour change). Measured across every `src/` in the repo, `allowedSources` appears exactly
+ * three times: DECLARED at `types/src/policy.ts:54`, POPULATED at `defaultPolicy.ts:19`, and emptied
+ * here at `:34`. There is no consumer. So "empty, therefore nothing is auto-allowed by source" is
+ * true only vacuously: a NON-empty value would auto-allow nothing either, which means the sentence
+ * cannot support the safety conclusion it was written to support. `policy.md:84` already records the
+ * field as "declared, not yet read by the verdict path" — the correction here is that it groups
+ * `allowedSources` with `defaults`, and those two are NOT alike: `defaults` has a real reader
+ * (`decideOverAuthority.ts:96`, `const d = policy.defaults`), which is precisely why this policy's
+ * one deliberate deviation works at all.
+ *
+ * The safety floor is UNAFFECTED, and that is the reason this is a comment and not a fix. Every
+ * other clause above rests on a field with a reader: `arbitraryCommandExecution` and the other six
+ * axes flow through `policy.defaults`, and the `approvalRequirement:"block"` floor is independent of
+ * policy entirely. Removing the dead clause would be the honest edit; giving `allowedSources` a
+ * consumer would be a SECURITY-POLICY CHANGE (a source pattern that auto-allows) and needs an ADR
+ * first per the development contract. Neither belongs in a batch about wiring the evidence port.
  */
 export function adoptionBasisPolicy(): Policy {
   return {
