@@ -15,6 +15,11 @@ import { isDigest, loadIndex, findByName, findByDigest, loadSidecar, loadManifes
  * It reads ONLY pre-baked, committed artifacts through `read`. It never
  * resolves, fetches, or scans — no scanner is in this deployable by
  * construction (the invariant is structural: the accessor cannot scan).
+ *
+ * Every envelope is built from BOTH halves of the served truth: the sidecar carries what
+ * is inside `pageDigest`, and the index `entry` carries the projections deliberately kept
+ * outside it (`identity`, `freshness`). The index is already loaded once at the top and
+ * the entry is already in hand on every route, so this costs no extra read.
  */
 export async function handleApiRequest(req: ApiRequest, read: AssetReader): Promise<ApiResponse> {
   if (req.method === "OPTIONS") return preflight()
@@ -39,7 +44,7 @@ export async function handleApiRequest(req: ApiRequest, read: AssetReader): Prom
     if (!entry) return err(404, "not_found", "No baked artifact for that digest.")
     const sidecar = await loadSidecar(read, entry.canonicalName)
     if (!sidecar) return err(404, "not_found", "Artifact page is not available.")
-    return ok(toEnvelope("artifact", sidecar, sidecar), String(entry.pageDigest ?? ""), ifNoneMatch)
+    return ok(toEnvelope("artifact", sidecar, sidecar, entry), String(entry.pageDigest ?? ""), ifNoneMatch)
   }
 
   // /resources/{ns}/{name}[/authority|/manifest]
@@ -56,16 +61,16 @@ export async function handleApiRequest(req: ApiRequest, read: AssetReader): Prom
     if (parts[3] === "authority") {
       const prep = sidecar.preparation as Record<string, unknown> | undefined
       const authority = prep?.authority ?? null
-      return ok(toEnvelope("authority", sidecar, authority), String(entry.pageDigest ?? ""), ifNoneMatch)
+      return ok(toEnvelope("authority", sidecar, authority, entry), String(entry.pageDigest ?? ""), ifNoneMatch)
     }
     if (parts[3] === "manifest") {
       // The committed Evidence Manifest projection (PR-D4), served verbatim. Absent
       // only if the tree predates D4 — a 404 (never a fabricated manifest).
       const manifest = await loadManifest(read, name)
       if (!manifest) return err(404, "not_found", "Evidence manifest is not available.")
-      return ok(toEnvelope("manifest", sidecar, manifest), String(entry.pageDigest ?? ""), ifNoneMatch)
+      return ok(toEnvelope("manifest", sidecar, manifest, entry), String(entry.pageDigest ?? ""), ifNoneMatch)
     }
-    return ok(toEnvelope("resource", sidecar, sidecar), String(entry.pageDigest ?? ""), ifNoneMatch)
+    return ok(toEnvelope("resource", sidecar, sidecar, entry), String(entry.pageDigest ?? ""), ifNoneMatch)
   }
 
   return err(404, "not_found", "Unknown route.")
