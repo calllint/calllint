@@ -226,9 +226,18 @@ export {
 } from "./operations/compileEvidence.js"
 
 // Compiler jobs and runs (§7.1, §10.2) — R-6. The QUEUE: whether a unit of compiler work is
-// waiting, held, or finished. Not the seven INV-10 terminal states (those are a per-source-record
-// CONCLUSION and land on `adoption_records`), and not any of the four other state vocabularies this
-// package already exports — `jobStates.ts`'s docblock names each one it is not.
+// waiting, held, or finished. Not any of the FIVE other state vocabularies this package exports —
+// `jobStates.ts`'s docblock names each one it is not.
+//
+// ~~those are a per-source-record CONCLUSION and land on `adoption_records`~~ — INVERTED here, kept
+// because the wrong reading is the instructive part. R-7 landed `adoption_records` and measured its
+// committed schema: it carries FIVE status vocabularies and none of them is INV-10's seven
+// (`identityStatus` 4, `artifactStatus` 5, `sources[].lifecycleStatus` 4 lowercase, `lifecycle.status`
+// 4 uppercase, `decision.verdict` 4). `adrs/0061:340` says the seven are to GENERALIZE
+// `evidence/src/model/stateMachine.ts`, not to land as a column anywhere. What made the wrong reading
+// survive two batches: `DEPRECATED` and `TOMBSTONED` are in BOTH vocabularies, so a grep for the seven
+// hits `adoption_records`. `jobStates.ts` and `artifactTransitions.ts` were inverted at R-7; this
+// comment was the one site that still carried the stale claim.
 export type {
   CompilerJobState,
   CompilerJobType,
@@ -365,6 +374,27 @@ export type {
   ProjectSnapshotOptions,
 } from "./projections/snapshotProjection.js"
 export { projectSnapshot, serializeSnapshot, isLiveCohort } from "./projections/snapshotProjection.js"
+export type {
+  AdoptionIndexDocument,
+  AdoptionIndexEntry,
+  ProjectAdoptionIndexOptions,
+} from "./projections/adoptionIndexProjection.js"
+export {
+  ADOPTION_INDEX_ENTRY_FIELDS,
+  ADOPTION_INDEX_RECORD_FIELDS,
+  ADOPTION_INDEX_SCHEMA,
+  FORBIDDEN_PROJECTION_FIELDS,
+  projectAdoptionIndex,
+  serializeAdoptionIndex,
+} from "./projections/adoptionIndexProjection.js"
+// The PURE re-derivation of the identity plane from a committed snapshot. Exported because the
+// reproducibility gate needs it and cannot read the store: `.var/` is gitignored and never cached,
+// so the ordinary vitest suite has no database on any of the three CI legs.
+export {
+  OFFICIAL_META_KEY,
+  deriveSourceRecords,
+  deriveSubjectsFromSnapshot,
+} from "./projections/deriveSubjectsFromSnapshot.js"
 
 /** Where the migrations live, relative to this package root (§10.2). */
 export const MIGRATIONS_DIRNAME = "migrations"

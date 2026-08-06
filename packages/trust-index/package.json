@@ -17,6 +17,8 @@
     "bake": "tsx src/bake.ts",
     "ingest": "tsx src/refreshSnapshot.ts",
     "resolve-evidence": "tsx src/resolveEvidence.ts",
+    "project-adoption-index": "tsx src/projectAdoptionIndex.ts --from-snapshot",
+    "project-adoption-index:store": "tsx src/projectAdoptionIndex.ts",
     "verify-claims": "tsx src/verifyClaims.ts"
   },
   "dependencies": {
