@@ -51,6 +51,10 @@ const EVIDENCE = resolve(here, "..", "snapshots", "evidence-snapshot.json")
 // gate that only validated its schema would pass a hand-edited `identityDigest` in silence, which is
 // the no-op assertion shape the negative-control checklist warns about.
 const ADOPTION = resolve(here, "..", "snapshots", "adoption-index.json")
+// The committed index document, read here for ONE reason: to recover the clock the committed bake
+// used (`bakedAt`, S-2). It is an OUTPUT of the bake, not an ingestion input like the four above —
+// which is exactly why it can carry the instant this gate must replay. See position 8 below.
+const INDEX_JSON = resolve(BAKED, "index.json")
 
 describe("committed served tree matches a fresh emit (reproducibility gate)", () => {
   const snapshot: RegistrySnapshot | null = existsSync(SNAPSHOT)
@@ -68,7 +72,30 @@ describe("committed served tree matches a fresh emit (reproducibility gate)", ()
   // gate covers separately; position 7 MUST be threaded here or this gate is blind to the identity
   // wiring — measured: with it omitted, a mutation that pushed identity into every page's bytes left
   // all 120 assertions green.
-  const { files } = emitAllCohorts(snapshot, claims, evidence, [], undefined, undefined, adoption)
+  //
+  // POSITION 8 (`now`, the freshness clock) IS READ BACK OUT OF THE COMMITTED DOCUMENT, not taken
+  // from this process's clock. That is the only way this gate can survive a time-dependent field:
+  // `freshness` is f(observedAt, now), so re-running with `Date.now()` would compute a different age
+  // than the commit did and every entry would mismatch. The bake records the clock it used as
+  // `bakedAt`, so the gate replays that exact instant — the same trick that lets it replay the
+  // registry cohort from the snapshot's own `fetchedAt`. A committed tree with no `bakedAt` (pre-S-2)
+  // yields `null`, which reproduces the freshness-free bytes it was baked with.
+  const committedBakedAt: string | null = (() => {
+    if (!existsSync(INDEX_JSON)) return null
+    const parsed: unknown = JSON.parse(readFileSync(INDEX_JSON, "utf8"))
+    const value = (parsed as { bakedAt?: unknown }).bakedAt
+    return typeof value === "string" && value.length > 0 ? value : null
+  })()
+  const { files } = emitAllCohorts(
+    snapshot,
+    claims,
+    evidence,
+    [],
+    undefined,
+    undefined,
+    adoption,
+    committedBakedAt,
+  )
 
   it("has a non-trivial number of committed files", () => {
     expect(files.length).toBeGreaterThanOrEqual(20)

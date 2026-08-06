@@ -201,6 +201,12 @@ function main(): void {
     engineVersion(),
     presentation,
     adoption,
+    // The freshness clock (S-2). Same env pin every other bin in this package already honors
+    // (`refreshSnapshot.ts`, `projectAdoptionIndex.ts`, `resolveEvidence.ts`), so a scheduled
+    // ingestion or a replay can pin it and get byte-identical output. It is echoed into
+    // `index.json` as `bakedAt`, which is what keeps the committed-tree gate able to reproduce
+    // this bake — see the comment on that field in `emitCohort.ts`.
+    process.env.TRUST_INGEST_NOW || new Date().toISOString(),
   )
 
   writeServedTree(outDir, publicRoot, files, installFiles)
