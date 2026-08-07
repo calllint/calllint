@@ -1,0 +1,66 @@
+[Unit]
+Description=CallLint Adoption Index Worker
+Documentation=https://github.com/calllint/calllint
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=calllint
+Group=calllint
+WorkingDirectory=/opt/calllint
+
+# A run that hangs must fail, not sit holding the timer's next trigger. Set well ABOVE the
+# expected wall clock (the Actions ingest completes in minutes) so this trips on a hang rather
+# than truncating a healthy run — a timeout inside the working budget would silently cut the
+# mirror short and the completeness guards would never see it.
+TimeoutStartSec=45min
+
+# Resource limits (ADR 0061 §8.3)
+MemoryMax=1G
+CPUQuota=50%
+TasksMax=256
+IOWeight=100
+
+# TRUST_INGEST_ARTIFACTS and TRUST_INGEST_EVIDENCE are deliberately NOT set. Both default ON
+# (refreshSnapshot.ts:229,250), and a worker that turned them off would leave `artifacts` and
+# `evidence_records` empty forever — the shipped-not-wired shape R-4/R-5 exist to avoid. The
+# persistent `.var/` is the whole reason a worker exists rather than only the Actions runner.
+Environment="CAS_RETENTION_DAYS=90"
+Environment="NODE_ENV=production"
+
+# Step 1 — mirror the registry, resolve artifacts, compile evidence (writes .var/).
+ExecStart=/usr/bin/pnpm ingest:trust-index
+
+# Step 2 — project the identity plane FROM THE COMMITTED SNAPSHOT, never from the store.
+#   This is ADR 0061 §8.1 option A, and it is the one line in this unit that must not be
+#   "improved" into `:store`. On a warm `.var/` the store-first path commits 298 subjects where
+#   the snapshot derives 19 (projectAdoptionIndex.ts:29-33). The Actions workflow runs `:store`
+#   correctly only because its store is cold on every run; this host's is not.
+ExecStart=/usr/bin/pnpm project-adoption-index:trust-index
+
+# Step 3 — bound CAS growth. Step 1 writes blobs on every run and nothing else removes them
+#   (ADR 0061 §8.4), so this is what keeps a persistent `.var/` from growing without limit.
+ExecStart=/usr/bin/pnpm prune:cas
+
+# Hardening. `ProtectSystem=strict` makes the whole filesystem read-only except what is listed
+# below, which is the mechanism that enforces INV-R7 ("writes nothing outside root") at the OS
+# level rather than only in the store's own path checks.
+#
+# LORDL shares this host. `ProtectHome=true` plus a strict read-only root is what keeps this unit
+# from reading anything of its neighbour's — no allowance is made anywhere in this file for a path
+# outside CallLint's own tree.
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+PrivateDevices=true
+RestrictSUIDSGID=true
+# The store, the CAS, and the work/dead-letter dirs all live under this one root
+# (INDEX_ROOT_DIRNAME = `.var/calllint-adoption-index`).
+ReadWritePaths=/opt/calllint/.var
+# Steps 1 and 2 rewrite the committed snapshots in place.
+ReadWritePaths=/opt/calllint/packages/trust-index/snapshots
+
+[Install]
+WantedBy=multi-user.target

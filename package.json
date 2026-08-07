@@ -65,6 +65,7 @@
     "check:telemetry-boundary": "node scripts/check-telemetry-boundary.mjs",
     "bake:trust-index": "pnpm --filter @calllint/trust-index bake",
     "ingest:trust-index": "pnpm --filter @calllint/trust-index ingest",
+    "prune:cas": "pnpm --filter @calllint/trust-index prune-cas",
     "resolve-evidence:trust-index": "pnpm --filter @calllint/trust-index resolve-evidence",
     "project-adoption-index:trust-index": "pnpm --filter @calllint/trust-index project-adoption-index",
     "project-adoption-index:trust-index:store": "pnpm --filter @calllint/trust-index project-adoption-index:store",

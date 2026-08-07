@@ -80,6 +80,7 @@ export {
   resolveIndexPaths,
   isInsideRoot,
   casBlobPath,
+  casBlobsRoot,
   casStagingPath,
 } from "./storage/paths.js"
 export type { Migration, AppliedMigration } from "./storage/migrate.js"

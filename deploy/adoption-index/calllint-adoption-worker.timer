@@ -1,0 +1,24 @@
+[Unit]
+Description=Daily CallLint adoption-index ingest
+Documentation=https://github.com/calllint/calllint
+# `Requires` (not `Wants`): a timer whose service unit is missing should fail loudly at
+# `systemctl enable` time, not fire nightly into nothing.
+Requires=calllint-adoption-worker.service
+
+[Timer]
+# 02:30 UTC — 10:30 Asia/Shanghai on this host. Chosen off the hour: the registry endpoint sees
+# every scheduler in the world at :00, and this job has no reason to be in that crowd. The time is
+# UTC regardless of the host's timezone because `OnCalendar` here has no `Timezone=` override and
+# the unit must not silently shift when the host's zone is changed.
+OnCalendar=*-*-* 02:30:00
+
+# Run once after boot if the host was down at the trigger. The mirror is idempotent — a late run
+# writes the same snapshot a punctual one would — so catching up is strictly better than skipping.
+Persistent=true
+
+# Spread the start over five minutes. Two co-tenant jobs that both fire exactly on a calendar
+# second contend for the same CPU quota; a small jitter removes that without loosening the schedule.
+RandomizedDelaySec=5min
+
+[Install]
+WantedBy=timers.target
