@@ -67,6 +67,22 @@ export {
   type FreshnessState,
   type ComputeFreshnessInput,
 } from "./freshness.js"
+// The multi-axis resolution calculator (R-10, §P4). Adjacent to `computeFreshness`, never inside
+// it: `freshness` is one axis and is recomputed in the browser from a page's own `datetime`, while
+// this is decided by the OLDEST of several independently-staling axes. See `resolution.ts`'s
+// docblock for why widening `Freshness` instead would have moved a pinned partner-API key set.
+export {
+  computeResolution,
+  cadenceDaysFromCron,
+  RESOLUTION_AXES,
+  RESOLUTION_STATES,
+  UNMEASURED_AXES,
+  type Resolution,
+  type ResolutionAxis,
+  type ResolutionBasis,
+  type ResolutionStatus,
+  type ComputeResolutionInput,
+} from "./resolution.js"
 export {
   publishChannel,
   AUTO_PUBLISH_EVIDENCE_LIMITATION,

@@ -21,6 +21,19 @@ export interface RegistryEntryPlan {
   /** null ⇒ nothing to scan; recorded as incomplete, no page baked. */
   input: BakeInput | null
   incompleteReason?: string
+  /**
+   * The snapshot entry's upstream release instant, or `null` when the registry declared none.
+   *
+   * DELIBERATELY NOT AN INPUT TO ANY STATUS. It becomes `upstreamAgeDays` on the served index entry
+   * — a display fact only. Making it a resolution axis would be wrong on the committed corpus: the
+   * oldest `publishedAt` is 2026-02-24, 162 days before the committed bake, so a stable package
+   * nobody has had to republish would read as permanently STALE. Age-since-release measures the
+   * PACKAGE's activity; staleness measures OUR knowledge (see `resolution.ts`).
+   *
+   * Absent on the incomplete branches above for the same reason `identity` is: an entry with
+   * nothing to scan has no page to carry a display field.
+   */
+  publishedAt?: string | null
 }
 
 /**
@@ -162,6 +175,12 @@ export function registryCohort(snapshot: RegistrySnapshot): RegistryEntryPlan[] 
         sourceLabel: `${SOURCE_LABEL_PREFIX}${entry.name}`,
         observedAt: snapshot.fetchedAt,
       },
+      // Carried through rather than dropped (R-10). This is the entry's UPSTREAM release instant,
+      // which is a different fact from `observedAt` (when WE looked) — the distinction gaps §1.4
+      // recorded when it noted `publishedAt` "measures the upstream release, not our observation".
+      // 18 of the 19 committed entries carry one; the null is passed through as null, never
+      // defaulted to `fetchedAt`, which would silently equate the two facts.
+      publishedAt: entry.publishedAt,
     }
   })
 
