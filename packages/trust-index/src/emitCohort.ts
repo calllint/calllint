@@ -12,12 +12,13 @@
  * dropped — ADR 0038 completeness) and produce no page.
  */
 import { bakeTrustPage, ConfigParseError, type BakeInput, type BakedTrustPage } from "./bakeTrustPage.js"
-import { fixtureCohort } from "./cohort.js"
+import { fixtureCohort, FIXTURE_OBSERVED_AT } from "./cohort.js"
 import { registryCohort, registryNameFromSourceLabel } from "./registryCohort.js"
 import type { RegistrySnapshot } from "./snapshot.js"
 import { evidenceMap, type EvidenceSnapshot } from "./evidenceSnapshot.js"
 import { adoptionMap, type AdoptionIndexSnapshot } from "./adoptionIndexSnapshot.js"
-import { computeFreshness, type Freshness } from "./freshness.js"
+import { computeFreshness, AGING_MULTIPLE, CADENCE_DAYS, type Freshness } from "./freshness.js"
+import { computeResolution, RESOLUTION_AXES, UNMEASURED_AXES, type Resolution } from "./resolution.js"
 import {
   evaluatePublishEligibility,
   explainUnknown,
@@ -131,6 +132,25 @@ interface IndexEntry {
    * emits byte-identically.
    */
   freshness?: Freshness
+
+  /**
+   * The multi-axis §P4 resolution block (R-10). Same placement and the same forced reason as
+   * `freshness` above — it is a function of the injected clock, so it cannot live in a page body
+   * without making all 39 `pageDigest`s clock-dependent.
+   *
+   * Distinct from `freshness`, not a wider version of it. `freshness.state` ages ONE axis (this
+   * page's own `observedAt`) and the browser recomputes exactly that; `resolution.status` is decided
+   * by the OLDEST of every axis that can stale independently, so the two can legitimately disagree
+   * — and when they do, `resolution` is the stricter one. Neither is ever a verdict input.
+   */
+  resolution?: Resolution
+
+  /**
+   * Days between the UPSTREAM release and the injected clock, when the registry declared a release
+   * instant. Display only — explicitly NOT a resolution axis; see `RegistryEntryPlan.publishedAt`
+   * for the measurement that rules it out. Registry cohort only.
+   */
+  upstreamAgeDays?: number
 }
 
 /**
@@ -146,11 +166,50 @@ function pageBase(page: BakedTrustPage): string {
   return page.canonicalName
 }
 
+/**
+ * Assemble one entry's §P4 resolution from the axes available at this call site.
+ *
+ * The fixture anchor is passed as a FAILED axis (`at: null`) rather than as an observation. That is
+ * the honest reading: `FIXTURE_OBSERVED_AT` is the epoch, a pinned reproducibility constant and not
+ * a moment anyone observed anything. Subtracting it reports ~20 700 days (a false statement about
+ * 20 of 39 entries), and excusing it as FRESH would be worse — so it lands in `blockingUnknowns`
+ * and the status is `UNKNOWN`, which is exactly what product principle 2 requires of an
+ * unverifiable observation. `computeFreshness` answers the same input with `TIMELESS`; the two
+ * labels differ because the questions do.
+ */
+function resolutionFor(observedAt: string, evidenceResolvedAt: string | null, now: string): Resolution {
+  return computeResolution({
+    axes: [
+      { axis: "source-observation", at: observedAt === FIXTURE_OBSERVED_AT ? null : observedAt },
+      // Omitted, not nulled, when the cohort has no evidence pass: a cohort the pass never covered
+      // has no such axis, whereas `at: null` would claim the axis exists and failed.
+      ...(evidenceResolvedAt === null ? [] : [{ axis: "evidence-resolution" as const, at: evidenceResolvedAt }]),
+    ],
+    now,
+  })
+}
+
+/** Whole days from an upstream release to the injected clock, floored at zero. Display only. */
+function upstreamAge(publishedAt: string, now: string): number {
+  const published = Date.parse(publishedAt)
+  const nowMs = Date.parse(now)
+  if (!Number.isFinite(published) || !Number.isFinite(nowMs)) {
+    throw new Error(`emitCohort: unparseable publishedAt/now pair ${JSON.stringify([publishedAt, now])}`)
+  }
+  return Math.max(0, Math.floor((nowMs - published) / 86_400_000))
+}
+
 /** One cohort item to bake: a bakeable input, or a pre-known incomplete marker. */
 interface CohortItem {
   canonicalName: string
   input: BakeInput | null
   incompleteReason?: string
+  /**
+   * Upstream release instant (R-10), supplied by `registryCohort` and by nothing else — a fixture
+   * has no upstream and an expansion candidate's release date is not in the snapshot. Optional, so
+   * both of those cohorts pass no such key and emit byte-identically.
+   */
+  publishedAt?: string | null
 }
 
 /**
@@ -188,6 +247,17 @@ function bakeItems(
    * the 39 entries, which is the whole reason `computeFreshness` carries that state.
    */
   now: string | null = null,
+  /**
+   * When the committed evidence snapshot last resolved (R-10's second axis), or `null` for a cohort
+   * the evidence pass does not cover.
+   *
+   * Registry cohort only, and structurally so — fixtures and expansion are already passed an empty
+   * evidence map a few lines below, so handing them this timestamp would assert a resolution that
+   * demonstrably did not happen for them. `null` here means the axis is ABSENT for the cohort, not
+   * that it failed: a failed axis is `{ axis, at: null }` inside `computeResolution`, which is the
+   * INV-R11 path that lands in `blockingUnknowns`.
+   */
+  evidenceResolvedAt: string | null = null,
 ): {
   baked: number
   incomplete: number
@@ -258,6 +328,19 @@ function bakeItems(
         // `observedAt` against the injected `now`, so it is a projection of committed bytes and a
         // clock — never a re-derivation of anything, and never a verdict input (ADR 0053 §5).
         ...(now === null ? {} : { freshness: computeFreshness({ observedAt: page.observedAt, now }) }),
+        // The §P4 multi-axis block (R-10), same spread-or-nothing discipline again.
+        //
+        // `bakedAt` IS NOT AN AXIS, and that omission is the batch's load-bearing decision: the bake
+        // re-runs on every push, so counting it would make every entry permanently FRESH and the
+        // field would measure CI cadence instead of knowledge (§P4: 页面重新生成不能让旧 evidence
+        // 变新 — INV-R11's first half).
+        ...(now === null
+          ? {}
+          : { resolution: resolutionFor(page.observedAt, evidenceResolvedAt, now) }),
+        // Upstream release age — display only, never a status axis (see `RegistryEntryPlan`).
+        ...(now === null || item.publishedAt === undefined || item.publishedAt === null
+          ? {}
+          : { upstreamAgeDays: upstreamAge(item.publishedAt, now) }),
       })
       baked++
     } catch (err) {
@@ -374,8 +457,12 @@ export function emitAllCohorts(
   // passing the map here and NOWHERE ELSE makes that structural rather than a lookup that happens to
   // miss. "Fixtures carry no identity" is then a property of the call graph, not of a failed match.
   const evidenceBundles = evidenceMap(evidence)
+  // The evidence-resolution axis reaches the registry cohort ALONE, for the same structural reason
+  // `adoptionBySlug` does: the other two cohorts are handed an empty evidence map, so claiming a
+  // resolution instant for them would assert a pass that never ran over them (R-10).
+  const evidenceResolvedAt = evidence === null ? null : evidence.resolvedAt
   const registry = snapshot
-    ? bakeItems(registryCohort(snapshot), files, index, claims, evidenceBundles, adoptionBySlug, now)
+    ? bakeItems(registryCohort(snapshot), files, index, claims, evidenceBundles, adoptionBySlug, now, evidenceResolvedAt)
     : { baked: 0, incomplete: 0 }
 
   // Expansion cohort (scale-out): each candidate must clear the §4.7 gate. Empty by
@@ -415,6 +502,25 @@ export function emitAllCohorts(
     //
     // Omitted (the KEY absent) when no `now` was injected, so a pre-S-2 caller's bytes are unchanged.
     ...(now === null ? {} : { bakedAt: now }),
+    // What the per-entry `resolution` blocks above could and could NOT measure (R-10, §P4).
+    //
+    // Document level, once, because these are properties of the CALCULATOR and identical for every
+    // subject — 39 per-entry copies would be 39 restatements of one fact. A per-entry
+    // `blockingUnknowns` carries only what is unknown about that entry (its own failed axes).
+    //
+    // Published rather than implied: a consumer that sees `status: "FRESH"` is entitled to know the
+    // status was decided over two axes and not nine, and shipping the coverage limit beside the
+    // value is what keeps "no blockers observed" from reading as "nothing can be wrong".
+    ...(now === null
+      ? {}
+      : {
+          resolutionPolicy: {
+            cadenceDays: CADENCE_DAYS,
+            agingMultiple: AGING_MULTIPLE,
+            measuredAxes: [...RESOLUTION_AXES],
+            unmeasuredAxes: UNMEASURED_AXES.map((u) => ({ fact: u.fact, reason: u.reason })),
+          },
+        }),
     baked,
     incomplete,
     entries: index,
