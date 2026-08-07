@@ -192,7 +192,7 @@ describe("the lifecycle vocabulary is closed, and is NOT INV-10's seven (control
     for (const forbidden of notOurs) {
       expect(
         ADOPTION_LIFECYCLE_STATUSES as readonly string[],
-        `${forbidden} is INV-10's conclusion layer (adrs/0061 §8), not adoption_records.lifecycle_status`,
+        `${forbidden} is INV-10's conclusion layer (adrs/0061 §9), not adoption_records.lifecycle_status`,
       ).not.toContain(forbidden)
       expect(isAdoptionLifecycleStatus(forbidden)).toBe(false)
     }

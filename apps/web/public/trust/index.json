@@ -4,7 +4,7 @@
     "fixtures",
     "mcp-registry"
   ],
-  "bakedAt": "2026-08-06T00:00:00.000Z",
+  "bakedAt": "2026-08-07T08:23:59.403Z",
   "resolutionPolicy": {
     "cadenceDays": 7,
     "agingMultiple": 3,
@@ -31,7 +31,7 @@
       },
       {
         "fact": "upstream-withdrawal",
-        "reason": "withdrawal/tombstone lifecycle is R-11; the mirror is append-only"
+        "reason": "the lifecycle shipped (R-11), but its state lives in the gitignored store and the bake reads committed bytes only"
       },
       {
         "fact": "claim-status-changed",
@@ -524,7 +524,7 @@
         "identityStatus": "PROVISIONAL"
       },
       "freshness": {
-        "ageDays": 20,
+        "ageDays": 21,
         "state": "AGING",
         "cadenceDays": 7,
         "basis": "snapshot-fetchedAt"
@@ -535,12 +535,12 @@
           {
             "axis": "evidence-resolution",
             "at": "2026-07-20T00:00:00.000Z",
-            "ageDays": 17
+            "ageDays": 18
           },
           {
             "axis": "source-observation",
             "at": "2026-07-17T00:00:00.000Z",
-            "ageDays": 20
+            "ageDays": 21
           }
         ],
         "lastSuccessfulResolution": "2026-07-20T00:00:00.000Z",
@@ -548,7 +548,7 @@
         "blockingUnknowns": [],
         "cadenceDays": 7
       },
-      "upstreamAgeDays": 114
+      "upstreamAgeDays": 115
     },
     {
       "canonicalName": "mcp-registry/ac.tandem-docs-mcp",
@@ -563,7 +563,7 @@
         "identityStatus": "PROVISIONAL"
       },
       "freshness": {
-        "ageDays": 20,
+        "ageDays": 21,
         "state": "AGING",
         "cadenceDays": 7,
         "basis": "snapshot-fetchedAt"
@@ -574,12 +574,12 @@
           {
             "axis": "evidence-resolution",
             "at": "2026-07-20T00:00:00.000Z",
-            "ageDays": 17
+            "ageDays": 18
           },
           {
             "axis": "source-observation",
             "at": "2026-07-17T00:00:00.000Z",
-            "ageDays": 20
+            "ageDays": 21
           }
         ],
         "lastSuccessfulResolution": "2026-07-20T00:00:00.000Z",
@@ -587,7 +587,7 @@
         "blockingUnknowns": [],
         "cadenceDays": 7
       },
-      "upstreamAgeDays": 105
+      "upstreamAgeDays": 106
     },
     {
       "canonicalName": "mcp-registry/ag.hood-name-service",
@@ -602,7 +602,7 @@
         "identityStatus": "PROVISIONAL"
       },
       "freshness": {
-        "ageDays": 20,
+        "ageDays": 21,
         "state": "AGING",
         "cadenceDays": 7,
         "basis": "snapshot-fetchedAt"
@@ -613,12 +613,12 @@
           {
             "axis": "evidence-resolution",
             "at": "2026-07-20T00:00:00.000Z",
-            "ageDays": 17
+            "ageDays": 18
           },
           {
             "axis": "source-observation",
             "at": "2026-07-17T00:00:00.000Z",
-            "ageDays": 20
+            "ageDays": 21
           }
         ],
         "lastSuccessfulResolution": "2026-07-20T00:00:00.000Z",
@@ -626,7 +626,7 @@
         "blockingUnknowns": [],
         "cadenceDays": 7
       },
-      "upstreamAgeDays": 26
+      "upstreamAgeDays": 28
     },
     {
       "canonicalName": "mcp-registry/agency.lona-trading",
@@ -641,7 +641,7 @@
         "identityStatus": "PROVISIONAL"
       },
       "freshness": {
-        "ageDays": 20,
+        "ageDays": 21,
         "state": "AGING",
         "cadenceDays": 7,
         "basis": "snapshot-fetchedAt"
@@ -652,12 +652,12 @@
           {
             "axis": "evidence-resolution",
             "at": "2026-07-20T00:00:00.000Z",
-            "ageDays": 17
+            "ageDays": 18
           },
           {
             "axis": "source-observation",
             "at": "2026-07-17T00:00:00.000Z",
-            "ageDays": 20
+            "ageDays": 21
           }
         ],
         "lastSuccessfulResolution": "2026-07-20T00:00:00.000Z",
@@ -665,7 +665,7 @@
         "blockingUnknowns": [],
         "cadenceDays": 7
       },
-      "upstreamAgeDays": 162
+      "upstreamAgeDays": 164
     },
     {
       "canonicalName": "mcp-registry/ai.1325-mcp",
@@ -680,7 +680,7 @@
         "identityStatus": "PROVISIONAL"
       },
       "freshness": {
-        "ageDays": 20,
+        "ageDays": 21,
         "state": "AGING",
         "cadenceDays": 7,
         "basis": "snapshot-fetchedAt"
@@ -691,12 +691,12 @@
           {
             "axis": "evidence-resolution",
             "at": "2026-07-20T00:00:00.000Z",
-            "ageDays": 17
+            "ageDays": 18
           },
           {
             "axis": "source-observation",
             "at": "2026-07-17T00:00:00.000Z",
-            "ageDays": 20
+            "ageDays": 21
           }
         ],
         "lastSuccessfulResolution": "2026-07-20T00:00:00.000Z",
@@ -704,7 +704,7 @@
         "blockingUnknowns": [],
         "cadenceDays": 7
       },
-      "upstreamAgeDays": 26
+      "upstreamAgeDays": 28
     },
     {
       "canonicalName": "mcp-registry/ai.aarna-atars-mcp",
@@ -719,7 +719,7 @@
         "identityStatus": "PROVISIONAL"
       },
       "freshness": {
-        "ageDays": 20,
+        "ageDays": 21,
         "state": "AGING",
         "cadenceDays": 7,
         "basis": "snapshot-fetchedAt"
@@ -730,12 +730,12 @@
           {
             "axis": "evidence-resolution",
             "at": "2026-07-20T00:00:00.000Z",
-            "ageDays": 17
+            "ageDays": 18
           },
           {
             "axis": "source-observation",
             "at": "2026-07-17T00:00:00.000Z",
-            "ageDays": 20
+            "ageDays": 21
           }
         ],
         "lastSuccessfulResolution": "2026-07-20T00:00:00.000Z",
@@ -743,7 +743,7 @@
         "blockingUnknowns": [],
         "cadenceDays": 7
       },
-      "upstreamAgeDays": 148
+      "upstreamAgeDays": 149
     },
     {
       "canonicalName": "mcp-registry/ai.abmeter-abmeter",
@@ -758,7 +758,7 @@
         "identityStatus": "PROVISIONAL"
       },
       "freshness": {
-        "ageDays": 20,
+        "ageDays": 21,
         "state": "AGING",
         "cadenceDays": 7,
         "basis": "snapshot-fetchedAt"
@@ -769,12 +769,12 @@
           {
             "axis": "evidence-resolution",
             "at": "2026-07-20T00:00:00.000Z",
-            "ageDays": 17
+            "ageDays": 18
           },
           {
             "axis": "source-observation",
             "at": "2026-07-17T00:00:00.000Z",
-            "ageDays": 20
+            "ageDays": 21
           }
         ],
         "lastSuccessfulResolution": "2026-07-20T00:00:00.000Z",
@@ -782,7 +782,7 @@
         "blockingUnknowns": [],
         "cadenceDays": 7
       },
-      "upstreamAgeDays": 108
+      "upstreamAgeDays": 109
     },
     {
       "canonicalName": "mcp-registry/ai.adadvisor-mcp-server",
@@ -797,7 +797,7 @@
         "identityStatus": "PROVISIONAL"
       },
       "freshness": {
-        "ageDays": 20,
+        "ageDays": 21,
         "state": "AGING",
         "cadenceDays": 7,
         "basis": "snapshot-fetchedAt"
@@ -808,12 +808,12 @@
           {
             "axis": "evidence-resolution",
             "at": "2026-07-20T00:00:00.000Z",
-            "ageDays": 17
+            "ageDays": 18
           },
           {
             "axis": "source-observation",
             "at": "2026-07-17T00:00:00.000Z",
-            "ageDays": 20
+            "ageDays": 21
           }
         ],
         "lastSuccessfulResolution": "2026-07-20T00:00:00.000Z",
@@ -821,7 +821,7 @@
         "blockingUnknowns": [],
         "cadenceDays": 7
       },
-      "upstreamAgeDays": 158
+      "upstreamAgeDays": 159
     },
     {
       "canonicalName": "mcp-registry/ai.adeu-adeu",
@@ -836,7 +836,7 @@
         "identityStatus": "PROVISIONAL"
       },
       "freshness": {
-        "ageDays": 20,
+        "ageDays": 21,
         "state": "AGING",
         "cadenceDays": 7,
         "basis": "snapshot-fetchedAt"
@@ -847,12 +847,12 @@
           {
             "axis": "evidence-resolution",
             "at": "2026-07-20T00:00:00.000Z",
-            "ageDays": 17
+            "ageDays": 18
           },
           {
             "axis": "source-observation",
             "at": "2026-07-17T00:00:00.000Z",
-            "ageDays": 20
+            "ageDays": 21
           }
         ],
         "lastSuccessfulResolution": "2026-07-20T00:00:00.000Z",
@@ -860,7 +860,7 @@
         "blockingUnknowns": [],
         "cadenceDays": 7
       },
-      "upstreamAgeDays": 81
+      "upstreamAgeDays": 82
     },
     {
       "canonicalName": "mcp-registry/ai.adramp-google-ads",
@@ -875,7 +875,7 @@
         "identityStatus": "PROVISIONAL"
       },
       "freshness": {
-        "ageDays": 20,
+        "ageDays": 21,
         "state": "AGING",
         "cadenceDays": 7,
         "basis": "snapshot-fetchedAt"
@@ -886,12 +886,12 @@
           {
             "axis": "evidence-resolution",
             "at": "2026-07-20T00:00:00.000Z",
-            "ageDays": 17
+            "ageDays": 18
           },
           {
             "axis": "source-observation",
             "at": "2026-07-17T00:00:00.000Z",
-            "ageDays": 20
+            "ageDays": 21
           }
         ],
         "lastSuccessfulResolution": "2026-07-20T00:00:00.000Z",
@@ -899,7 +899,7 @@
         "blockingUnknowns": [],
         "cadenceDays": 7
       },
-      "upstreamAgeDays": 138
+      "upstreamAgeDays": 139
     },
     {
       "canonicalName": "mcp-registry/ai.adside-adside",
@@ -914,7 +914,7 @@
         "identityStatus": "PROVISIONAL"
       },
       "freshness": {
-        "ageDays": 20,
+        "ageDays": 21,
         "state": "AGING",
         "cadenceDays": 7,
         "basis": "snapshot-fetchedAt"
@@ -925,12 +925,12 @@
           {
             "axis": "evidence-resolution",
             "at": "2026-07-20T00:00:00.000Z",
-            "ageDays": 17
+            "ageDays": 18
           },
           {
             "axis": "source-observation",
             "at": "2026-07-17T00:00:00.000Z",
-            "ageDays": 20
+            "ageDays": 21
           }
         ],
         "lastSuccessfulResolution": "2026-07-20T00:00:00.000Z",
@@ -938,7 +938,7 @@
         "blockingUnknowns": [],
         "cadenceDays": 7
       },
-      "upstreamAgeDays": 20
+      "upstreamAgeDays": 21
     },
     {
       "canonicalName": "mcp-registry/ai.adweave-meta-ads-mcp",
@@ -953,7 +953,7 @@
         "identityStatus": "PROVISIONAL"
       },
       "freshness": {
-        "ageDays": 20,
+        "ageDays": 21,
         "state": "AGING",
         "cadenceDays": 7,
         "basis": "snapshot-fetchedAt"
@@ -964,12 +964,12 @@
           {
             "axis": "evidence-resolution",
             "at": "2026-07-20T00:00:00.000Z",
-            "ageDays": 17
+            "ageDays": 18
           },
           {
             "axis": "source-observation",
             "at": "2026-07-17T00:00:00.000Z",
-            "ageDays": 20
+            "ageDays": 21
           }
         ],
         "lastSuccessfulResolution": "2026-07-20T00:00:00.000Z",
@@ -977,7 +977,7 @@
         "blockingUnknowns": [],
         "cadenceDays": 7
       },
-      "upstreamAgeDays": 117
+      "upstreamAgeDays": 118
     },
     {
       "canonicalName": "mcp-registry/ai.agentberg-agentberg",
@@ -992,7 +992,7 @@
         "identityStatus": "PROVISIONAL"
       },
       "freshness": {
-        "ageDays": 20,
+        "ageDays": 21,
         "state": "AGING",
         "cadenceDays": 7,
         "basis": "snapshot-fetchedAt"
@@ -1003,12 +1003,12 @@
           {
             "axis": "evidence-resolution",
             "at": "2026-07-20T00:00:00.000Z",
-            "ageDays": 17
+            "ageDays": 18
           },
           {
             "axis": "source-observation",
             "at": "2026-07-17T00:00:00.000Z",
-            "ageDays": 20
+            "ageDays": 21
           }
         ],
         "lastSuccessfulResolution": "2026-07-20T00:00:00.000Z",
@@ -1016,7 +1016,7 @@
         "blockingUnknowns": [],
         "cadenceDays": 7
       },
-      "upstreamAgeDays": 48
+      "upstreamAgeDays": 50
     },
     {
       "canonicalName": "mcp-registry/ai.agentdm-agentdm",
@@ -1031,7 +1031,7 @@
         "identityStatus": "PROVISIONAL"
       },
       "freshness": {
-        "ageDays": 20,
+        "ageDays": 21,
         "state": "AGING",
         "cadenceDays": 7,
         "basis": "snapshot-fetchedAt"
@@ -1042,12 +1042,12 @@
           {
             "axis": "evidence-resolution",
             "at": "2026-07-20T00:00:00.000Z",
-            "ageDays": 17
+            "ageDays": 18
           },
           {
             "axis": "source-observation",
             "at": "2026-07-17T00:00:00.000Z",
-            "ageDays": 20
+            "ageDays": 21
           }
         ],
         "lastSuccessfulResolution": "2026-07-20T00:00:00.000Z",
@@ -1055,7 +1055,7 @@
         "blockingUnknowns": [],
         "cadenceDays": 7
       },
-      "upstreamAgeDays": 87
+      "upstreamAgeDays": 89
     },
     {
       "canonicalName": "mcp-registry/ai.agentic-news-mcp",
@@ -1070,7 +1070,7 @@
         "identityStatus": "PROVISIONAL"
       },
       "freshness": {
-        "ageDays": 20,
+        "ageDays": 21,
         "state": "AGING",
         "cadenceDays": 7,
         "basis": "snapshot-fetchedAt"
@@ -1081,12 +1081,12 @@
           {
             "axis": "evidence-resolution",
             "at": "2026-07-20T00:00:00.000Z",
-            "ageDays": 17
+            "ageDays": 18
           },
           {
             "axis": "source-observation",
             "at": "2026-07-17T00:00:00.000Z",
-            "ageDays": 20
+            "ageDays": 21
           }
         ],
         "lastSuccessfulResolution": "2026-07-20T00:00:00.000Z",
@@ -1094,7 +1094,7 @@
         "blockingUnknowns": [],
         "cadenceDays": 7
       },
-      "upstreamAgeDays": 121
+      "upstreamAgeDays": 122
     },
     {
       "canonicalName": "mcp-registry/ai.agenticshelf-graffeo",
@@ -1109,7 +1109,7 @@
         "identityStatus": "PROVISIONAL"
       },
       "freshness": {
-        "ageDays": 20,
+        "ageDays": 21,
         "state": "AGING",
         "cadenceDays": 7,
         "basis": "snapshot-fetchedAt"
@@ -1120,12 +1120,12 @@
           {
             "axis": "evidence-resolution",
             "at": "2026-07-20T00:00:00.000Z",
-            "ageDays": 17
+            "ageDays": 18
           },
           {
             "axis": "source-observation",
             "at": "2026-07-17T00:00:00.000Z",
-            "ageDays": 20
+            "ageDays": 21
           }
         ],
         "lastSuccessfulResolution": "2026-07-20T00:00:00.000Z",
@@ -1133,7 +1133,7 @@
         "blockingUnknowns": [],
         "cadenceDays": 7
       },
-      "upstreamAgeDays": 83
+      "upstreamAgeDays": 84
     },
     {
       "canonicalName": "mcp-registry/ai.agenticshelf-mcp",
@@ -1148,7 +1148,7 @@
         "identityStatus": "PROVISIONAL"
       },
       "freshness": {
-        "ageDays": 20,
+        "ageDays": 21,
         "state": "AGING",
         "cadenceDays": 7,
         "basis": "snapshot-fetchedAt"
@@ -1159,12 +1159,12 @@
           {
             "axis": "evidence-resolution",
             "at": "2026-07-20T00:00:00.000Z",
-            "ageDays": 17
+            "ageDays": 18
           },
           {
             "axis": "source-observation",
             "at": "2026-07-17T00:00:00.000Z",
-            "ageDays": 20
+            "ageDays": 21
           }
         ],
         "lastSuccessfulResolution": "2026-07-20T00:00:00.000Z",
@@ -1172,7 +1172,7 @@
         "blockingUnknowns": [],
         "cadenceDays": 7
       },
-      "upstreamAgeDays": 91
+      "upstreamAgeDays": 92
     },
     {
       "canonicalName": "mcp-registry/ai.agenticshelf-puroair",
@@ -1187,7 +1187,7 @@
         "identityStatus": "PROVISIONAL"
       },
       "freshness": {
-        "ageDays": 20,
+        "ageDays": 21,
         "state": "AGING",
         "cadenceDays": 7,
         "basis": "snapshot-fetchedAt"
@@ -1198,12 +1198,12 @@
           {
             "axis": "evidence-resolution",
             "at": "2026-07-20T00:00:00.000Z",
-            "ageDays": 17
+            "ageDays": 18
           },
           {
             "axis": "source-observation",
             "at": "2026-07-17T00:00:00.000Z",
-            "ageDays": 20
+            "ageDays": 21
           }
         ],
         "lastSuccessfulResolution": "2026-07-20T00:00:00.000Z",
@@ -1211,7 +1211,7 @@
         "blockingUnknowns": [],
         "cadenceDays": 7
       },
-      "upstreamAgeDays": 34
+      "upstreamAgeDays": 35
     },
     {
       "canonicalName": "mcp-registry/io.github.calllint-calllint",
@@ -1226,7 +1226,7 @@
         "identityStatus": "PROVISIONAL"
       },
       "freshness": {
-        "ageDays": 20,
+        "ageDays": 21,
         "state": "AGING",
         "cadenceDays": 7,
         "basis": "snapshot-fetchedAt"
@@ -1237,12 +1237,12 @@
           {
             "axis": "evidence-resolution",
             "at": "2026-07-20T00:00:00.000Z",
-            "ageDays": 17
+            "ageDays": 18
           },
           {
             "axis": "source-observation",
             "at": "2026-07-17T00:00:00.000Z",
-            "ageDays": 20
+            "ageDays": 21
           }
         ],
         "lastSuccessfulResolution": "2026-07-20T00:00:00.000Z",

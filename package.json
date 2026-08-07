@@ -39,6 +39,8 @@
     "audit:preview": "tsx scripts/preview-snapshot.ts",
     "audit:preview:write": "tsx scripts/preview-snapshot.ts --write",
     "audit:preview:gate": "tsx scripts/preview-snapshot.ts --gate",
+    "gate:s0": "tsx scripts/gate-s0.ts",
+    "gate:s0:gate": "tsx scripts/gate-s0.ts --gate",
     "ledger:presentation:validate": "tsx scripts/presentation-ledger.ts",
     "ledger:presentation:validate:offline": "tsx scripts/presentation-ledger.ts --offline",
     "ledger:presentation:record": "tsx scripts/presentation-ledger.ts --record",
