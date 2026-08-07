@@ -362,11 +362,12 @@ as a follow-up ADR — not inferred from whatever a script happened to need.
 > deploy key / service account supplied out-of-band by the operator, recorded in the deploy
 > runbook **by key name only**. The §8 boundary above is unchanged and unweakened:
 > **LORDL's secrets are never read, reused, copied, or harvested** — this amendment adds no
-> exception, and the isolation contract needs none to be correct. This repo contains no
-> `deploy/` directory at all; LORDL's `deploy/systemd/**`, `deploy/nginx/**`, and
-> `deploy/ssl.env` live in a **separate repository**, so R-9's new `deploy/adoption-index/**`
-> has no path overlap with LORDL's tree. Isolation is a filesystem fact here, not a
-> convention to be remembered.
+> exception, and the isolation contract needs none to be correct. ~~This repo contains no
+> `deploy/` directory at all~~ — **superseded by §8.5: `deploy/adoption-index/` now exists and is
+> the only thing under `deploy/` here.** The claim it was making still holds and is what matters:
+> LORDL's `deploy/systemd/**`, `deploy/nginx/**`, and `deploy/ssl.env` live in a **separate
+> repository**, so `deploy/adoption-index/**` has no path overlap with LORDL's tree. Isolation is a
+> filesystem fact here, not a convention to be remembered.
 >
 > **§8.3 Resource quotas, and what each number is argued against.** Measured
 > 2026-08-04 rather than estimated:
@@ -397,6 +398,55 @@ as a follow-up ADR — not inferred from whatever a script happened to need.
 > a monotonic CAS on a co-tenant host is precisely the failure mode §7.1's quotas exist
 > to prevent. Until R-9 ships it, the operator's disk headroom is the only bound —
 > stated here so it is a known gap rather than a discovered one.
+>
+> **§8.5 The §8.4 gap is CLOSED — the retention policy shipped with the units.** `pnpm prune:cas`
+> (`packages/trust-index/src/{casRetention,pruneCas}.ts`) deletes blobs whose mtime precedes
+> `now - CAS_RETENTION_DAYS`, default **90**, and runs as the third `ExecStart` of
+> `deploy/adoption-index/calllint-adoption-worker.service`. §8.4's "together with" is honoured
+> literally: the units and the policy are one change, so no revision of this repo has a worker
+> without a bound.
+>
+> Three things were measured while closing it, each of which had to change a decision:
+>
+> - **The blob tree is two levels deep** (`cas/blobs/<hex[0:2]>/<hex>`, `paths.ts:90`). A
+>   single-level sweep typechecks, passes a flat-layout test suite, and inspects **zero** blobs
+>   against a real store. The tests place their blobs through `casBlobPath` for that reason, and a
+>   negative control confirmed 5 of 8 go red when the descent is removed.
+> - **`cas/expanded` and `cas/manifests` have no writer at all** — `tarInspect.ts` never
+>   materializes an archive. So `cas/blobs` is the whole growth surface, and the sweep's scope is
+>   measured rather than assumed.
+> - **The sweep cannot live in `packages/adoption-index`.** A retention decision needs a clock, and
+>   INV-R6 / control #11 (`source-mirror.test.ts:849`) forbids argless `new Date()` anywhere under
+>   that package's `src/` *and* pins the set of files permitted to name `new Date(` to one entry.
+>   The invariant is right; the placement was wrong. The sweep lives in `trust-index` beside the
+>   worker's other two steps, and imports `casBlobsRoot` from `adoption-index` so INV-R7 still has
+>   exactly one owner of the layout.
+>
+> `pruneOldBlobs` **throws** on an absent `cas/blobs` rather than reporting a clean zero: a
+> misconfigured root must fail the unit, not log `deleted 0` nightly forever. A failed delete sets a
+> non-zero exit so a partial sweep surfaces as a systemd failure.
+>
+> **What §8.4 asked for and this does NOT deliver: the daily backup.** §8.4 requires the retention
+> policy to ship "**together with** the daily backup", and only the retention half is here. The
+> pairing is not decorative — retention deletes bytes, and deleting without a restore path is
+> strictly worse than not deleting. Two things make the gap smaller than it reads, and neither
+> closes it:
+>
+> - Nothing under `.var/` is a source of truth. The identity plane, the evidence, and the registry
+>   snapshot are all **committed** (`packages/trust-index/snapshots/*.json`), and §5 requires the
+>   bake to read those committed bytes and never the store. A total loss of `.var/` costs one
+>   re-fetch, not a fact.
+> - The one thing a re-fetch cannot reconstruct is `firstSeenAt` history
+>   (`projectAdoptionIndex.ts:26-27`) — which is exactly why the committed projection carries
+>   `lastSeenAt` instead, so nothing served depends on it.
+>
+> So the honest scope is: **`firstSeenAt` history is unbacked, and the sweep does not touch it.**
+> `first_seen_at` is a column on `source_records`, `canonical_subjects`, and `artifact_versions`
+> (`migrations/001-canonical-adoption-graph.sql`) — all inside the SQLite file, none of it in the CAS,
+> so a 90-day blob sweep cannot reach it either way. A backup needs a destination, a retention window
+> of its own, and a credential — three decisions with no measured basis in this repo yet. Adding an
+> `ExecStart=… rsync …` line to satisfy the letter of §8.4 would be inventing all three silently.
+> It is named here as an open R-9 item rather than closed by prose.
 
 ### §9 The twelve invariants, as they bind Workstream R
 

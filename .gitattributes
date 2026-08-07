@@ -101,3 +101,15 @@ artifacts/adoption-index-v1/** text eol=lf
 # macOS passed — `git check-attr text` on this directory reported `unspecified`. That is
 # the #240 trap, and `ci:local` cannot see it on an LF working copy by construction.
 packages/adoption-index/migrations/** text eol=lf
+
+# The Workstream R worker deployment units (new15 R-9; ADR 0061 §8.5). Unlike every pin
+# above, nothing in this repo hashes these bytes — the consumer is systemd on the worker
+# host, and it is NOT tolerant: a CRLF checkout makes the last token of every line carry a
+# trailing \r, so `ExecStart=/usr/bin/pnpm prune:cas` becomes a request to run a binary
+# whose name ends in \r, and `Environment="CAS_RETENTION_DAYS=90"` yields the value `90\r`.
+# The failure lands at deploy time on the host, where no CI job of ours is watching, which
+# makes it strictly worse than the windows-latest-only false-fails the pins above prevent.
+# `core.autocrlf` is false on the authoring machine, so the hazard is invisible here and
+# arrives with the first contributor running Git for Windows defaults. Pin the directory
+# with the batch that creates it, exactly as artifacts/adoption-index-v1 did at R-0.
+deploy/** text eol=lf

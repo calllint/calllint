@@ -70,6 +70,18 @@ export function resolveIndexPaths(cwd: string): IndexPaths {
  * hex is validated because it becomes a path segment: accepting arbitrary text here is what
  * turns a digest bug into a write outside the root, which is exactly what control #30 checks.
  */
+/**
+ * The root of the content-addressed blob tree, `cas/blobs`.
+ *
+ * It exists for the same reason `casBlobPath` does: INV-R7 gives the layout ONE owner. The
+ * retention sweep (`casRetention.ts`) has to enumerate the tree rather than address one blob, and
+ * a sweep that joined `"cas", "blobs"` itself would be a second definition of the layout — the
+ * exact drift the invariant exists to prevent. Whatever `casBlobPath` writes under, this returns.
+ */
+export function casBlobsRoot(root: string): string {
+  return resolve(root, "cas", "blobs")
+}
+
 export function casBlobPath(root: string, digest: string): string {
   const hex = digest.startsWith("sha256:") ? digest.slice("sha256:".length) : ""
   if (!/^[0-9a-f]{64}$/.test(hex)) {

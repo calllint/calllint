@@ -18,6 +18,7 @@
     "ingest": "tsx src/refreshSnapshot.ts",
     "resolve-evidence": "tsx src/resolveEvidence.ts",
     "project-adoption-index": "tsx src/projectAdoptionIndex.ts --from-snapshot",
+    "prune-cas": "tsx src/pruneCas.ts",
     "project-adoption-index:store": "tsx src/projectAdoptionIndex.ts",
     "verify-claims": "tsx src/verifyClaims.ts"
   },
