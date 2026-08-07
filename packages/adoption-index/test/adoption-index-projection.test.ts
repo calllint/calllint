@@ -59,6 +59,9 @@ function subject(overrides: Partial<StoredSubject> = {}): StoredSubject {
     identityDigest: IDENTITY,
     firstSeenAt: FIRST_SEEN,
     lastSeenAt: UPDATED_AT,
+    // Before `...overrides`, so a test that wants a withdrawn subject can still say so.
+    lifecycleStatus: "ACTIVE",
+    withdrawnAt: null,
     ...overrides,
   }
 }

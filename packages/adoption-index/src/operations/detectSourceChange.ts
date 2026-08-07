@@ -271,7 +271,11 @@ export function describeSourceChange(v: SourceChangeVerdict): string {
     case "SOURCE_WITHDRAWAL":
       return (
         `source withdrawal: ${v.absentFromSource.length} current subject(s) absent from this run ` +
-        `(${v.absentFromSource.join(", ")}) — reproject; de-listing is NOT applied by this batch`
+        // "de-listing is NOT applied by this batch" was true from R-2 until R-11 and is now false:
+        // `refreshFromMirror` applies the plan through `applyWithdrawal` right after the identity
+        // commit. Inverted in place rather than left as a stale caveat, because a message that
+        // under-reports what the run DID is the kind of drift a reader trusts by default.
+        `(${v.absentFromSource.join(", ")}) — reproject; de-listing applied to the subject plane (R-11)`
       )
   }
 }

@@ -166,5 +166,11 @@ export function deriveSubjectsFromSnapshot(opts: {
     identityDigest: subjectIdentityDigest(s),
     firstSeenAt: s.firstSeenAt,
     lastSeenAt: s.lastSeenAt,
+    // A snapshot carries no lifecycle history, the same way it carries no `firstSeenAt` history. Every
+    // entry in it IS an observation at `observedAt`, so `ACTIVE`/`null` is the measured value rather
+    // than an optimistic default — the identical argument `migrations/003` makes for its backfill. A
+    // withdrawal is by definition a subject the snapshot does NOT contain, so it can never appear here.
+    lifecycleStatus: "ACTIVE",
+    withdrawnAt: null,
   }))
 }
