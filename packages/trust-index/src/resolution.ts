@@ -72,7 +72,15 @@ export const UNMEASURED_AXES = [
   { fact: "resolver-version-changed", reason: "resolver version is not stamped into the snapshot" },
   { fact: "policy-version-changed", reason: "the served tree records no per-entry policy identity" },
   { fact: "evidence-ttl", reason: "no upstream advisory declares a TTL; ttlMs=0 is the conservative default" },
-  { fact: "upstream-withdrawal", reason: "withdrawal/tombstone lifecycle is R-11; the mirror is append-only" },
+  // R-11 SHIPPED (`f545984`), so this reason is no longer a forward reference. Restated to what is
+  // now true: the lifecycle EXISTS (`applyWithdrawal` writes WITHDRAWN/TOMBSTONED to
+  // `canonical_subjects`), and the axis is still unmeasured for a DIFFERENT reason — that state lives
+  // in the compiler's `.var/` store, which is gitignored, while the bake reads committed bytes only
+  // (ADR 0061 §5). Naming the shipped batch as the blocker would now be false.
+  {
+    fact: "upstream-withdrawal",
+    reason: "the lifecycle shipped (R-11), but its state lives in the gitignored store and the bake reads committed bytes only",
+  },
   { fact: "claim-status-changed", reason: "the claim store carries no transition timestamps" },
   { fact: "failed-refresh-count", reason: "the ingest workflow records no per-subject failure counter" },
 ] as const

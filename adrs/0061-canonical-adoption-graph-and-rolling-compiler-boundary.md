@@ -310,6 +310,94 @@ it must respect:
 When the user decides the deploy shape, it is recorded as an amendment to this ADR or
 as a follow-up ADR — not inferred from whatever a script happened to need.
 
+> **AMENDED 2026-08-04 — the user decided the deploy shape. O-1 is now CLOSED.**
+> Recorded here, per the sentence above, rather than left to a provisioning script.
+>
+> **The decision, in the user's terms:** deploy on the **existing Aliyun VPS**,
+> **co-tenant with LORDL, which is left running** — not stopped, not disabled. The
+> user offered to take LORDL down to free resources; measurement says that trade buys
+> nothing, so it is declined on evidence rather than accepted on courtesy.
+>
+> **§8.1 The committed artifact stays a pure function of committed bytes (the load-bearing half).**
+> The worker owns the canonical store and the CAS. It does **not** own
+> `packages/trust-index/snapshots/adoption-index.json`: that file is always produced by
+> the `--from-snapshot` path, never by a warm store. `firstSeenAt` history lives on the
+> worker and does not enter committed bytes.
+>
+> This is not a new rule and does not need a new gate — **it is already gated**, which is
+> why it was chosen over the alternatives. `packages/trust-index/test/committed-tree.test.ts`
+> re-derives the committed document from the committed snapshot and byte-compares
+> (control #117), and separately pins `adoption.projectedAt === snapshot.fetchedAt`.
+>
+> **Both halves were falsified before this amendment was written** (2026-08-04, negative
+> controls run against the committed file, which was then restored byte-identically):
+>
+> | Mutation, simulating | Result |
+> | --- | --- |
+> | `projectedAt` → a wall clock (`2026-08-04T08:15:00Z`) | **1 failed / 123 passed** — the `fetchedAt` pin |
+> | a 20th ghost subject (the warm store's larger row set) | **1 failed / 123 passed** — control #117's byte-compare |
+>
+> Each shape trips **one** test, not both, and the split is by design: the byte-compare
+> deliberately reads `projectedAt` from the committed document (`committed-tree.test.ts:151-154`)
+> so that it measures identity rather than timing, while the stamp is pinned separately. A
+> real warm-store artifact carries both defects at once and so trips both — but each is
+> caught independently, which is what makes the pair non-redundant.
+>
+> The measurement that makes this load-bearing is already recorded at
+> `packages/trust-index/src/projectAdoptionIndex.ts:81-86` — run against a warm `.var/`,
+> the store path emitted **298** subjects under a wall clock while the committed snapshot
+> beside it derived **19**, and the snapshot's own `io.github.calllint/calllint` was
+> **absent** from the 298. Those are two different observations, not a superset and a
+> subset. **In Actions the store is ephemeral, so it is always cold and the two paths
+> agree; a persistent store on a VPS is warm by definition.** So the thing that currently
+> keeps the committed artifact reproducible is the absence of persistence — exactly what
+> R-9 introduces. Recording §8.1 is what keeps R-9 from silently spending that guarantee.
+>
+> **Consequence for `trust-ingest.yml`:** unchanged. Its `project-adoption-index:trust-index:store`
+> step (line 94) stays correct **because** Actions' store is cold and was just written by
+> the ingest one step earlier. The worker does not inherit that property, and therefore
+> does not inherit that step.
+>
+> **§8.2 Provisioning and credentials.** The credential-provisioning method is a dedicated
+> deploy key / service account supplied out-of-band by the operator, recorded in the deploy
+> runbook **by key name only**. The §8 boundary above is unchanged and unweakened:
+> **LORDL's secrets are never read, reused, copied, or harvested** — this amendment adds no
+> exception, and the isolation contract needs none to be correct. This repo contains no
+> `deploy/` directory at all; LORDL's `deploy/systemd/**`, `deploy/nginx/**`, and
+> `deploy/ssl.env` live in a **separate repository**, so R-9's new `deploy/adoption-index/**`
+> has no path overlap with LORDL's tree. Isolation is a filesystem fact here, not a
+> convention to be remembered.
+>
+> **§8.3 Resource quotas, and what each number is argued against.** Measured
+> 2026-08-04 rather than estimated:
+>
+> | Measured | Value | Where |
+> | --- | --- | --- |
+> | committed registry snapshot | 490 B / entry (9 310 B / 19) | `snapshots/official-mcp-registry.json` |
+> | committed identity plane | 404 B / subject (7 681 B / 19) | `snapshots/adoption-index.json` |
+> | committed evidence | 1 149 B / record (20 682 B / 18) | `snapshots/evidence-snapshot.json` |
+> | empty SQLite schema | 131 072 B (32 pages × 4 096) | local `.var/`, **0 data rows** |
+> | full upstream walk | 653 pages / 65 235 records / 7 090 s | `trust-ingest.yml:45` |
+> | per-run artifact ceiling | 64 × 32 MiB = **2 GiB** | `DEFAULT_MAX_ARTIFACTS` × `DEFAULT_MAX_ARTIFACT_BYTES` |
+>
+> `MemoryMax=1G`, `CPUQuota=50%`, `TasksMax=256`, `IOWeight=100`. The memory number is
+> argued against a full-corpus database, not against today's 19 rows: ~2 KB of projected
+> JSON per subject across the three planes × 65 235 records ≈ 133 MB raw, and SQLite with
+> indices runs 2–3× that, so 270–400 MB of database against a 1 GB ceiling leaves room for
+> Node, the driver, and one 32 MiB artifact buffer. `CPUQuota=50%` is the co-tenancy term:
+> it bounds a compile storm's blast radius so it cannot starve LORDL, per §7.1.
+>
+> **§8.4 A CAS retention policy is now an R-9 deliverable, because it does not exist.**
+> Measured, not assumed: `packages/adoption-index/src/artifacts/` contains **no** GC,
+> prune, evict, or retention path — the only `rmSync` calls (`cas.ts:85,88`) delete a
+> failed *staging* file, never a stored blob. **CAS growth is therefore monotonic and
+> unbounded**, and no committed line states a disk ceiling. A quota cannot be derived
+> from code that has no retention policy, so this amendment does not invent one by
+> arithmetic. R-9 must ship a retention policy **together with** the daily backup, and
+> a monotonic CAS on a co-tenant host is precisely the failure mode §7.1's quotas exist
+> to prevent. Until R-9 ships it, the operator's disk headroom is the only bound —
+> stated here so it is a known gap rather than a discovered one.
+
 ### §9 The twelve invariants, as they bind Workstream R
 
 Restated so that a compiler PR can be checked against one list. None of these are new;
