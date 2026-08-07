@@ -12,6 +12,28 @@ onward. While pre-1.0, minor versions may include breaking changes.
 
 ### Added
 
+- **Workstream R PR R-11 (INV-R12) — withdrawal lifecycle, subject-plane de-listing applied.
+  Withdrawal ≠ deletion. The mirror (source_records) is append-only and KEEPS withdrawn rows;
+  the subject plane (canonical_subjects) moves withdrawn subjects to WITHDRAWN, never deletes
+  them. A re-observation reinstates (WITHDRAWN→ACTIVE), fail safe.** Migration 003 adds the
+  lifecycle pair (`lifecycle_status` with 4 states: ACTIVE, DEPRECATED, WITHDRAWN, TOMBSTONED;
+  `withdrawn_at` nullable ISO-8601, frozen on first absence) to `canonical_subjects`.
+  `setSubjectLifecycle` reads the current row, enforces legal transitions via
+  SUBJECT_LIFECYCLE_TRANSITIONS table, writes the pair atomically. `planWithdrawal` is pure &
+  idempotent: `absentFromSource` + `observedNativeIds` → {withdraw, reinstate, unmatched,
+  skippedTerminal}. `applyWithdrawal` writes the plan. `refreshFromMirror` applies the lifecycle
+  axis AFTER the identity commit, in its own transaction; splitting is safe because the plan is
+  idempotent and replay changes nothing. Detection shipped in R-2, application deferred until the
+  lifecycle terminal state existed. Message assertions inverted: "de-listing is NOT applied" →
+  "de-listing applied to the subject plane (R-11)". The two-plane distinction is the whole content
+  of INV-R12. Four schema pins deliberately widened: migration-set (1,2 → 1,2,3), digest,
+  schemaVersion, column-order (8 → 10). Write-surface enumeration grows 14→15
+  (setSubjectLifecycle), the FOURTH time this guard caught a missing writer. `deriveSubjectsFromSnapshot`
+  hardcodes `lifecycleStatus: "ACTIVE"` as a literal, never a function of `_meta` — the
+  official-meta-key-drift test inverts from "field absent" to "field present but immovable under
+  drift", a strictly stronger guarantee. 17 files: 3 new (migration, planWithdrawal,
+  applyWithdrawal), 14 modified. Passes 506/506 adoption-index tests + 3518/3518 full-repo tests.
+
 - **Workstream R PR R-4 (ADR 0061 §2/§10) — the Package Adapter Registry: fetch the declared
   artifact, verify its bytes against the registry's own integrity claim, and never execute it.**
   R-3 concluded *which* artifact a subject declares; R-4 obtains it. `artifact_versions` stops being
