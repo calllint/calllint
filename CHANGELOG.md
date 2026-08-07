@@ -34,6 +34,87 @@ onward. While pre-1.0, minor versions may include breaking changes.
   drift", a strictly stronger guarantee. 17 files: 3 new (migration, planWithdrawal,
   applyWithdrawal), 14 modified. Passes 506/506 adoption-index tests + 3518/3518 full-repo tests.
 
+- **Workstream R PR R-10 (§P4) — the multi-axis resolution calculator. Nine axes are NAMED; only
+  two have a producer, and the other seven are declared unmeasured WITH REASONS rather than
+  defaulted.** Status is the **OLDEST** axis, never an average — an average lets a fresh axis hide a
+  stale one. `bakedAt` is deliberately excluded: it would measure CI cadence, not knowledge age.
+  `publishedAt` spans 0–162d across the corpus, so it is display-only `upstreamAgeDays` and never a
+  status axis. Fixtures answer **UNKNOWN** because their epoch anchor is an assumption, not an
+  observation. Landed `62d3d1f` (#267).
+
+- **Workstream S PR S-3 — serve the S-2 freshness projection through the partner API, mirrored
+  under the scanner-free floor.** All 38 entries carry `freshness` on the entry itself (0 sidecars),
+  so the envelope needs the entry; the scanner-free floor forces a mirror rather than an import, and
+  a test pins the mirror byte-equivalent. Omission never defaults to a value. The first design's
+  runtime control could only check a restatement of an ERASED interface — a second source of truth —
+  so it was inverted: `FRESHNESS_KEYS` is the runtime primary, the type derives from it, and an
+  `AssertNever` bridge closes both directions. Landed `417b216` (#265).
+
+- **Workstream S PR S-2 — the freshness calculator, on both planes.** Closes `current-gaps.md` §1.4
+  ("no module under `packages/*/src` computes freshness"), which is what made the *rolling* half of the
+  compiler unrepresentable. `observedAt` is sealed **inside** `pageDigest`, and freshness =
+  f(observedAt, now), so a freshness field in the page body would make all 38 digests a function of the
+  wall clock and red the reproducibility gate daily — it therefore lands **outside** `pageDigest`, on
+  `index.json`, exactly where R-8 put `identity` and for the same reason. `bake.ts` had zero clock
+  reads and `committed-tree.test.ts` byte-compares 119 files on 3 OSes, so rather than weakening that
+  gate the clock is **recorded** as a top-level `bakedAt` and the gate replays that exact instant.
+  `TIMELESS` is load-bearing: 20 of 39 entries are fixtures pinned to `FIXTURE_OBSERVED_AT`, which a
+  naive subtraction reports **20_671 days stale**; the anchor is detected by exact equality with the
+  imported constant, never by a magnitude heuristic that would also swallow a genuinely ancient real
+  entry. **Thresholds are derived, not invented** — `trust-ingest.yml` runs `cron: "17 6 * * 1"`, so
+  `CADENCE_DAYS = 7` with FRESH ≤ 1× · AGING ≤ 3× · STALE > 3×, and moving the cron moves the
+  thresholds with it. "Both planes" = the bake stamps `index.json` for agents/partner API/SEO while
+  `trust-freshness.js` recomputes in the browser so a human reading a week later sees a current age;
+  two planes computing one label is a real hazard, so their agreement is **asserted on the literals**
+  rather than trusted to review. **Freshness is a display axis, never a verdict input** — a stale page
+  is not a less-safe page, asserted as code: the served script contains none of
+  `verdict`/`BLOCK`/`SAFE`/`REVIEW`/`UNKNOWN`/`score`. Landed `8570dfd` (#263).
+
+- **Workstream S PR S-1 — give the evidence port a production consumer.** `evidencePort` had none,
+  and an asset with zero consumers is not canonical (ADR 0061 §7.1). `OFFICIAL_META_KEY` is pinned,
+  the stale pointers are inverted in place per the house rule, and `compileEvidence` now **fails
+  closed on a blank `policyDigest`/`engineVersion`** — two batches shipped without that guard because
+  nothing could hand it a blank value, and a test that injects its own value structurally cannot
+  guard the bin's. Landed `efca26c` (#262).
+
+- **Workstream R PR R-8 — canonical identity reaches the served tree, as a PROJECTION only.**
+  ADR 0061 §4: the graph resolves *which subject this is* and has no opinion about whether that
+  subject is safe. `computeVerdict` stays the only verdict engine. All 19 records carry
+  `decision.verdict: "UNKNOWN"`, so granting the graph verdict authority would have regressed 19 real
+  verdicts *and* displaced the one engine — product principles 4 and 5 in a single edit.
+  `FORBIDDEN_PROJECTION_FIELDS` plus a refusing reader make that a runtime property, not prose. The
+  join is on the **slug** (raw name matches 0/19, slug 19/19); identity lands on `index.json` only,
+  outside `pageDigest`. The batch's own entry premise — "rewire `emitCohort`/`bake` to read
+  `adoption_records`" — was **refuted in measurement**: nothing in any `src/` compiles a record, so a
+  canonical *subject* is the unit and a compiled record is optional enrichment. Landed `994a2b6` (#261).
+
+- **Workstream R PR R-7 — the adoption record compiler, the last zero-writer table.**
+  `calllint.adoption-record.v1` is the canonical system asset (ADR 0061 §7.1): every human page, agent
+  contract, lookup entry and partner response is a projection of it. This batch writes the record and
+  deliberately does **not** rewire the projections — `emitCohort`/`bake` are untouched, asserted by an
+  empty diff, because binding "is the record right?" to "is the served tree unchanged?" in one PR makes
+  a red on either side undiagnosable. Every digest is **copied, never recomputed**. `semanticContract`
+  is a separate rebuild tier from `decision` because its digest is nullable and the other's is not.
+  Landed `338e455` (#260).
+
+- **Workstream R PR R-6 — the compiler job state machine and the queue primitives.**
+  `compiler_jobs.state` is a **QUEUE** lifecycle (`PENDING`/`LEASED`/`SUCCEEDED`/`FAILED`/
+  `DEAD_LETTER`), *not* INV-10's seven terminal states — those are a per-source-record conclusion and
+  no column in any of the ten tables carries them, so the earlier "they're R-7's" pointer is inverted
+  in place: they generalize `stateMachine.ts`. Lease/idempotence/zero-clock boundaries were already in
+  the schema `description`, so no ADR was required. `availableAt` defaults to `now`. Landed `b02b23c`
+  (#259).
+
+- **Workstream R PR R-5 — evidence compilation, the first writer of `evidence_records`.** For each
+  `FETCHED` artifact: read the verified CAS blob, **re-hash it**, inspect the tar in memory, select the
+  allowlisted document surfaces, run the **existing** detector pipeline, and write exactly one row keyed
+  by `evidence_digest`. `RebuildScope.evidence` flips from a permanent `null` to a measured tier. Zero
+  migrations, zero served-byte change, zero verdict movement, zero writes to `cas/expanded/`. The digest
+  **excludes every clock** — `hashJson({artifactDigest, policyDigest, engineVersion, observationDigest})`
+  — and the write is `INSERT OR IGNORE`, never `OR REPLACE`, because `REPLACE` deletes and re-inserts and
+  would advance `created_at` on every no-op run, making an idempotent run look like fresh evidence.
+  Landed `0b31df4` (#258).
+
 - **Workstream R PR R-4 (ADR 0061 §2/§10) — the Package Adapter Registry: fetch the declared
   artifact, verify its bytes against the registry's own integrity claim, and never execute it.**
   R-3 concluded *which* artifact a subject declares; R-4 obtains it. `artifact_versions` stops being
@@ -962,6 +1043,20 @@ onward. While pre-1.0, minor versions may include breaking changes.
   no token, adds no App scope, and starts no phase. Phase 2.5-A (the self-claim dogfood spine,
   #219/#220/#221) is already on `main` at 3/3, verdict + `pageDigest` byte-identical across
   activate→revoke→reactivate.
+
+### Fixed
+
+- **All three truncation exits are guarded, and a slug collision no longer destroys the cohort.**
+  `paginate` can stop for three reasons — `record-cap`, `page-cap`, `cursor-repeat` — and only the
+  first surfaced. Raising the record cap alone would have converted a loud failure into a **silent**
+  one: the walk would stop at the page ceiling instead, hand back a well-formed short snapshot, and
+  nothing would say so. All three now report through `ctx.onTruncated(reason)` and all three reach
+  `assertMirrorComplete`. A **fourth** exit — a job timeout — is silent by construction and therefore
+  bounds the caps from above: at a measured 653 pages / 7090 s ≈ 10.9 s/page, a cap set past the
+  wall-clock budget *disables* the completeness guard instead of tripping it. Separately, a
+  cohort-wide refusal on a slug collision discarded **19_737 innocent subjects because 2 collided**;
+  the refusal is now scoped to the contested rows, with both halves graded in a 2×2 — fail-closed, not
+  fail-**destructive**. Landed `e24f6a0` (#256).
 
 ### Changed
 
