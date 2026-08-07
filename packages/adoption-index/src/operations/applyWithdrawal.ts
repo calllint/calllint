@@ -56,6 +56,17 @@ export interface ApplyWithdrawalResult {
   unchanged: number
 }
 
+/**
+ * THE REPORTED `from` IS THE STORE'S, NOT THE PLAN'S, and the two are not always the same value.
+ *
+ * `setSubjectLifecycle` deliberately ignores `entry.from` and re-reads the row inside the write, so the
+ * transition it validates is against reality rather than against a claim. That leaves the plan's `from`
+ * as a *stale copy* the moment the row moves between planning and writing. It cannot diverge on an
+ * ILLEGAL move — that throws — but it can on a legal one: plan `ACTIVE -> WITHDRAWN`, row meanwhile
+ * became `DEPRECATED`, the write performs `DEPRECATED -> WITHDRAWN` legally, and a summary echoing the
+ * plan would report a transition out of `ACTIVE` that never happened. Overwriting `from` with
+ * `result.from` costs one spread and makes the summary describe the write instead of the intent.
+ */
 export function applyWithdrawal(input: ApplyWithdrawalInput): ApplyWithdrawalResult {
   const withdrawn: WithdrawalPlanEntry[] = []
   const reinstated: WithdrawalPlanEntry[] = []
@@ -68,7 +79,7 @@ export function applyWithdrawal(input: ApplyWithdrawalInput): ApplyWithdrawalRes
         status: entry.to,
         observedAt: input.observedAt,
       })
-      if (result.changed) withdrawn.push(entry)
+      if (result.changed) withdrawn.push({ ...entry, from: result.from })
       else unchanged += 1
     }
     for (const entry of input.plan.reinstate) {
@@ -77,7 +88,7 @@ export function applyWithdrawal(input: ApplyWithdrawalInput): ApplyWithdrawalRes
         status: entry.to,
         observedAt: input.observedAt,
       })
-      if (result.changed) reinstated.push(entry)
+      if (result.changed) reinstated.push({ ...entry, from: result.from })
       else unchanged += 1
     }
   })
