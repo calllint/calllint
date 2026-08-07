@@ -1,0 +1,54 @@
+-- 003-subject-lifecycle — give `canonical_subjects` a LIFECYCLE axis, so a withdrawal that
+-- `detectSourceChange` already REPORTS can finally be APPLIED (INV-R12).
+--
+-- WHAT WAS MISSING, measured. R-2 shipped both halves of detection and neither half of
+-- application:
+--
+--   * `refreshFromMirror.ts` computes `absentFromSource` — "the mirror considered it current,
+--     this run did NOT observe it" — and the mirror is append-only, so its memory of a
+--     withdrawn subject outlives the withdrawal;
+--   * `detectSourceChange.ts` consumes that set and returns `reason: "SOURCE_WITHDRAWAL"`,
+--     whose own remedy string ends "de-listing is NOT applied by this batch".
+--
+-- That sentence is this migration's scope. `ADOPTION_LIFECYCLE_STATUSES`
+-- (`ACTIVE|DEPRECATED|WITHDRAWN|TOMBSTONED`, frozen at R-7) has had ZERO producers since it
+-- was written; `domain/adoptionRecord.ts` already says `WITHDRAWN` "is a conclusion drawn
+-- from a record's disappearance", which is exactly `absentFromSource`. So the vocabulary is
+-- reused, not invented — a sixth status vocabulary would be the defect, not the fix.
+--
+-- WHY ON `canonical_subjects` AND NOT `adoption_records`. Measured: `compileAdoptionRecord`
+-- has NO call site anywhere in `src/`, and the committed projection carries the record triple
+-- 0/19 while carrying `identityStatus` 19/19. A conclusion written to a table nothing
+-- populates is a conclusion nothing can read. The subject is the unit that has producers
+-- (`persistIdentity`, `persistSourceRecords`) — the same inversion R-8 measured.
+--
+-- WHY NOT REUSE `identity_status = 'TOMBSTONED'`, which already exists in that column's
+-- vocabulary. Because it means a DIFFERENT thing: `identity_conflicts.resolution.outcome`
+-- tombstones one side of a MERGE — "this id was superseded by another id". Upstream
+-- de-listing leaves identity perfectly intact. Overloading one column with two axes is the
+-- vocabulary collapse the R-6/R-7 docblocks were written to prevent.
+--
+-- `withdrawn_at` IS NULLABLE AND CARRIES NO DEFAULT, deliberately: it is an OBSERVATION
+-- ("when did we first fail to see it"), and a default would manufacture one. NULL means
+-- never withdrawn, which is what every backfilled row is.
+--
+-- `DEFAULT 'ACTIVE'` BACKFILLS CORRECTLY rather than conveniently: every row already in this
+-- table was written by a run that OBSERVED the subject (`persistIdentity` only writes what a
+-- cohort contained), so `ACTIVE` is the measured truth for all of them, not an optimistic
+-- guess. `UNKNOWN` is not in this vocabulary and must not be smuggled in as a fifth member.
+--
+-- NO TABLE REBUILD, unlike 002. `ALTER TABLE … ADD COLUMN` is O(1) in SQLite and is legal
+-- with NOT NULL exactly when a non-NULL default is supplied. 002 needed the twelve-step
+-- rebuild only because DROPPING a NOT NULL has no `ALTER COLUMN` form. Adding one does.
+-- 001's and 002's bytes stay untouched, so their digest pins do not move.
+--
+-- NO CHECK CONSTRAINT, consistent with every other status column in 001 and for the same
+-- reason R-6 recorded for `compiler_jobs.state`: closure is asserted on the WRITE PATH
+-- against the frozen runtime list, because TypeScript is erased before SQLite sees the write.
+-- A CHECK here would also be unable to see the PREVIOUS value, and the load-bearing rule in
+-- this axis is a TRANSITION rule (`TOMBSTONED` is terminal; a truncated run must never
+-- tombstone), which only `domain/subjectLifecycle.ts` can enforce.
+
+ALTER TABLE canonical_subjects ADD COLUMN lifecycle_status TEXT NOT NULL DEFAULT 'ACTIVE';
+
+ALTER TABLE canonical_subjects ADD COLUMN withdrawn_at TEXT;

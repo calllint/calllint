@@ -58,6 +58,12 @@ export {
   assertArtifactTransition,
 } from "./domain/artifactTransitions.js"
 export {
+  SUBJECT_LIFECYCLE_TRANSITIONS,
+  isTerminalLifecycle,
+  canTransitionLifecycle,
+  assertLifecycleTransition,
+} from "./domain/subjectLifecycle.js"
+export {
   TERMINAL_CHECKPOINT_STATUSES,
   isTerminalCheckpointStatus,
   assertUsableCheckpoint,
@@ -90,6 +96,8 @@ export type {
   StoredIdentityConflict,
   StoredArtifactVersion,
   ArtifactResolutionWrite,
+  SubjectLifecycleWrite,
+  SubjectLifecycleResult,
 } from "./storage/store.js"
 export { AdoptionIndexStore, sourceRecordRowId, subjectIdentityDigest, subjectSlugRow } from "./storage/store.js"
 
@@ -141,6 +149,14 @@ export type {
   SourceChangeVerdict,
 } from "./operations/detectSourceChange.js"
 export { detectSourceChange, describeSourceChange } from "./operations/detectSourceChange.js"
+export type {
+  WithdrawalPlan,
+  WithdrawalPlanEntry,
+  PlanWithdrawalInput,
+} from "./operations/planWithdrawal.js"
+export { planWithdrawal } from "./operations/planWithdrawal.js"
+export type { ApplyWithdrawalInput, ApplyWithdrawalResult } from "./operations/applyWithdrawal.js"
+export { applyWithdrawal } from "./operations/applyWithdrawal.js"
 export type { RefreshFromMirrorOptions, RefreshFromMirrorResult } from "./operations/refreshFromMirror.js"
 export {
   refreshFromMirror,

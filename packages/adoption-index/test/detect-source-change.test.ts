@@ -242,13 +242,19 @@ describe("describeSourceChange — one actionable line per reason", () => {
     }
   })
 
-  it("names the withdrawn subjects, and says de-listing is NOT applied", () => {
+  it("names the withdrawn subjects, and says de-listing IS applied to the subject plane", () => {
     const line = describeSourceChange(verdict(D1, D1, ["io.a/one", "io.b/two"]))
     expect(line).toContain("io.a/one")
     expect(line).toContain("io.b/two")
     expect(line).toContain("2 current subject(s)")
-    // The line has to disclaim the remedy. A withdrawal detected and reported reads as
-    // handled unless the log says the lifecycle change is still owed.
-    expect(line).toMatch(/de-listing is NOT applied/)
+    // R-11 INVERTS THIS ASSERTION AND THIS TEST'S NAME, in place. From R-2 until R-11 the line had
+    // to DISCLAIM the remedy ("de-listing is NOT applied"), because a withdrawal detected and
+    // reported reads as handled unless the log says the lifecycle change is still owed. The remedy
+    // now ships, so the same reasoning inverts: a log that still disclaimed it would understate what
+    // the run did, and an operator reading it would go looking for a de-listing step that already
+    // ran. The name changes with the assertion deliberately — a test named for the old behaviour is
+    // the kind of stale pointer that survives a batch and misleads the next one.
+    expect(line).toMatch(/de-listing applied to the subject plane/)
+    expect(line, "the retired disclaimer must not survive anywhere in the line").not.toMatch(/NOT applied/)
   })
 })

@@ -97,6 +97,8 @@ function subject(overrides: Partial<StoredSubject> = {}): StoredSubject {
     identityDigest: IDENTITY,
     firstSeenAt: FIRST_SEEN,
     lastSeenAt: LAST_SEEN,
+    lifecycleStatus: "ACTIVE",
+    withdrawnAt: null,
     ...overrides,
   }
 }

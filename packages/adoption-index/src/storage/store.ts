@@ -29,6 +29,7 @@ import {
   type SourceCheckpoint,
 } from "../domain/checkpoint.js"
 import { assertArtifactTransition } from "../domain/artifactTransitions.js"
+import { assertLifecycleTransition } from "../domain/subjectLifecycle.js"
 import { assertDigestChain } from "../domain/adoptionDigestSet.js"
 import {
   adoptionRecordDigest,
@@ -267,6 +268,15 @@ export interface AdoptionIndexTx {
   advanceCheckpoint(next: SourceCheckpoint): void
   readCheckpoint(sourceId: string): SourceCheckpoint
   persistIdentity(identity: ResolvedIdentityWrite): PersistIdentityResult
+  /**
+   * Move ONE subject along the lifecycle axis, transition-checked against its stored value.
+   *
+   * Deliberately NOT folded into `persistIdentity`: that method's `ON CONFLICT DO UPDATE` fires for
+   * every observed subject on every replay, and a lifecycle write must instead fire for subjects the
+   * cohort did NOT contain. R-4 measured the cost of missing exactly this distinction — an upsert that
+   * reset a guarded column on every replay, because the control only counted one writer.
+   */
+  setSubjectLifecycle(write: SubjectLifecycleWrite): SubjectLifecycleResult
   updateArtifactResolution(write: ArtifactResolutionWrite): void
   recordEvidence(write: EvidenceRecordWrite): EvidenceWriteResult
   enqueueJob(job: CompilerJobEnqueue): CompilerJobEnqueueResult
@@ -324,6 +334,27 @@ export interface ResolvedIdentityWrite {
   aliases: readonly SubjectAliasV1[]
   artifacts: readonly ArtifactVersionV1[]
   conflicts: readonly IdentityConflictV1[]
+}
+
+/** One subject's move along the lifecycle axis. */
+export interface SubjectLifecycleWrite {
+  subjectId: string
+  /** The concluded status. Transition-checked against the row's current value before it is written. */
+  status: AdoptionLifecycleStatus
+  /**
+   * Injected ISO-8601, stored as `withdrawn_at` when `status` LEAVES the listed states and cleared to
+   * NULL when it returns to them. The caller supplies it — no clock is read here (INV-R7).
+   */
+  observedAt: string
+}
+
+export interface SubjectLifecycleResult {
+  /** The status the row held before this write. */
+  from: AdoptionLifecycleStatus
+  /** The status it holds after. Equal to `from` on an idempotent replay. */
+  to: AdoptionLifecycleStatus
+  /** False when `from === to` and `withdrawn_at` was already correct — nothing was written. */
+  changed: boolean
 }
 
 export interface OpenStoreOptions {
@@ -395,6 +426,7 @@ export class AdoptionIndexStore {
       advanceCheckpoint: (next) => this.writeCheckpoint(next),
       readCheckpoint: (sourceId) => this.readCheckpoint(sourceId),
       persistIdentity: (identity) => this.persistIdentity(identity),
+      setSubjectLifecycle: (write) => this.setSubjectLifecycle(write),
       updateArtifactResolution: (write) => this.updateArtifactResolution(write),
       recordEvidence: (write) => this.recordEvidence(write),
       enqueueJob: (job) => this.enqueueJob(job),
@@ -1244,16 +1276,71 @@ export class AdoptionIndexStore {
     }
   }
 
+  /**
+   * Move one subject along the lifecycle axis, reading its current value FIRST so the transition table
+   * can see it — the same read-then-assert shape `updateArtifactResolution` uses, and for the same
+   * reason: a SQLite CHECK constraint cannot see the previous value, so `migrations/003` carries none.
+   *
+   * `withdrawn_at` HOLDS THE FIRST ABSENCE, NOT THE LATEST. A replay that re-asserts `WITHDRAWN` keeps
+   * the original stamp, exactly as `persistIdentity` keeps `first_seen_at` by omitting it from its
+   * `DO UPDATE SET`. Overwriting it every run would make a long-withdrawn subject permanently look
+   * freshly withdrawn, which is the same defect class as re-baking making old evidence look new.
+   * Returning to a listed status CLEARS it, because the absence it recorded was refuted.
+   */
+  private setSubjectLifecycle(write: SubjectLifecycleWrite): SubjectLifecycleResult {
+    const row = this.db
+      .prepare(
+        `SELECT lifecycle_status AS lifecycleStatus, withdrawn_at AS withdrawnAt
+         FROM canonical_subjects WHERE subject_id = ?`,
+      )
+      .get(write.subjectId) as { lifecycleStatus: string; withdrawnAt: string | null } | undefined
+    if (row === undefined) {
+      throw new Error(
+        `subject "${write.subjectId}": cannot set lifecycle on a subject that is not stored — ` +
+          `withdrawal is not deletion (INV-R12), so the row must exist before it can be withdrawn`,
+      )
+    }
+    if (!isAdoptionLifecycleStatus(row.lifecycleStatus)) {
+      throw new Error(
+        `subject "${write.subjectId}" carries lifecycle_status ${JSON.stringify(row.lifecycleStatus)}, which is not one of ${ADOPTION_LIFECYCLE_STATUSES.join("|")}`,
+      )
+    }
+    const from = row.lifecycleStatus
+    assertLifecycleTransition(from, write.status, write.subjectId)
+
+    const listed = write.status === "ACTIVE" || write.status === "DEPRECATED"
+    const withdrawnAt = listed ? null : (row.withdrawnAt ?? write.observedAt)
+    if (from === write.status && row.withdrawnAt === withdrawnAt) {
+      return { from, to: write.status, changed: false }
+    }
+    this.db
+      .prepare(`UPDATE canonical_subjects SET lifecycle_status = ?, withdrawn_at = ? WHERE subject_id = ?`)
+      .run(write.status, withdrawnAt, write.subjectId)
+    return { from, to: write.status, changed: true }
+  }
+
   /** Subjects for a cohort, ordered by canonical name for a stable read. */
   listSubjects(): StoredSubject[] {
-    return this.db
+    const rows = this.db
       .prepare(
         `SELECT subject_id AS subjectId, canonical_name AS canonicalName, canonical_slug AS canonicalSlug,
                 display_name AS displayName, identity_status AS identityStatus,
-                identity_digest AS identityDigest, first_seen_at AS firstSeenAt, last_seen_at AS lastSeenAt
+                identity_digest AS identityDigest, first_seen_at AS firstSeenAt, last_seen_at AS lastSeenAt,
+                lifecycle_status AS lifecycleStatus, withdrawn_at AS withdrawnAt
          FROM canonical_subjects ORDER BY canonical_name`,
       )
       .all() as StoredSubject[]
+    // Closure on the READ path too, the same way `listAdoptionRecords` does it: `lifecycle_status` is
+    // `TEXT` with no CHECK (`migrations/003`), so a value written by an older or hand-patched binary
+    // would otherwise flow into a projection typed as if it were closed.
+    for (const r of rows) {
+      if (!isAdoptionLifecycleStatus(r.lifecycleStatus)) {
+        throw new Error(
+          `subject "${r.subjectId}" carries lifecycle_status ${JSON.stringify(r.lifecycleStatus)}, which is not one of ${ADOPTION_LIFECYCLE_STATUSES.join("|")}`,
+        )
+      }
+    }
+    return rows
   }
 
   /**
@@ -1662,6 +1749,18 @@ export interface StoredSubject {
   identityDigest: string
   firstSeenAt: string
   lastSeenAt: string
+  /**
+   * Our concluded lifecycle for this subject, on its OWN axis — `identityStatus` answers "is this the
+   * right id" and this answers "is upstream still listing it". `migrations/003` defaults the column to
+   * `ACTIVE`, so every pre-003 row reads back as `ACTIVE`, which is the measured truth: a row exists
+   * here only because some cohort observed the subject.
+   */
+  lifecycleStatus: AdoptionLifecycleStatus
+  /**
+   * When this subject was first observed ABSENT from a completed cohort. `null` whenever
+   * `lifecycleStatus` is `ACTIVE` or `DEPRECATED`; an observation, never a default (`migrations/003`).
+   */
+  withdrawnAt: string | null
 }
 
 /** A row of `subject_aliases`. `sourceRecordId` is null for an alias no record supplied. */

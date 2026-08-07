@@ -38,6 +38,8 @@ import { projectSnapshot, serializeSnapshot, type ProjectedSnapshot } from "../p
 import { detectSourceChange, type SourceChangeVerdict } from "./detectSourceChange.js"
 import type { ArtifactResolutionSummary } from "./resolveArtifacts.js"
 import type { EvidenceCompilationSummary } from "./compileEvidence.js"
+import { planWithdrawal } from "./planWithdrawal.js"
+import { applyWithdrawal, type ApplyWithdrawalResult } from "./applyWithdrawal.js"
 
 /**
  * How many raw records one mirror run reads, when the caller names no cap.
@@ -175,6 +177,21 @@ export interface RefreshFromMirrorResult {
    * time: a run that was never asked to compile evidence is not a run that compiled none.
    */
   evidence: EvidenceCompilationSummary | null
+  /**
+   * What the lifecycle axis did this run (R-11) — the APPLICATION of the withdrawal this operation has
+   * REPORTED since R-2 without acting on it.
+   *
+   * NOT nullable, unlike the three summaries above, and the difference is not an inconsistency: those
+   * three are optional PORTS, so "never asked" is a state they can be in. Withdrawal has no port — it
+   * is pure computation plus a local write over rows this run already committed, so it always runs and
+   * an empty result means "nothing to move", which is exactly what the zeroes say.
+   */
+  lifecycle: ApplyWithdrawalResult & {
+    /** Absent native ids no stored subject claimed. Surfaced, never silently dropped. */
+    unmatched: readonly string[]
+    /** Absent subjects already `TOMBSTONED` — terminal, so deliberately untouched. */
+    skippedTerminal: readonly string[]
+  }
 }
 
 /**
@@ -296,6 +313,34 @@ export async function refreshFromMirror(opts: RefreshFromMirrorOptions): Promise
     return tx.persistIdentity(identity)
   })
 
+  // THE LIFECYCLE AXIS IS APPLIED HERE (R-11) — after the identity commit, in its own transaction.
+  //
+  // AFTER, because `planWithdrawal` joins the absent native ids against STORED subjects, and this run's
+  // subjects do not exist until the commit above. IN ITS OWN TRANSACTION for the same mechanical reason
+  // as `resolveArtifacts`: `store.transaction()` does not nest, and `applyWithdrawal` opens one.
+  //
+  // Splitting the two commits is safe because the plan is PURE AND IDEMPOTENT. A crash between them
+  // leaves the identity committed and the lifecycle unwritten; the next run reads the same mirror,
+  // recomputes the same absences, and applies the same plan. Nothing is lost and nothing double-counts,
+  // because `setSubjectLifecycle` keeps the FIRST `withdrawn_at` on a replay.
+  //
+  // THE COHORT IS ALREADY KNOWN COMPLETE at this point — `assertMirrorComplete` failed the run closed
+  // above, BEFORE `absentFromSource` was computed. That ordering is what makes automatic application
+  // safe: a truncated read cannot reach here and therefore cannot manufacture an absence. The second
+  // line of defence is that this path writes `WITHDRAWN` only, never `TOMBSTONED`, so even a defect
+  // upstream of it produces a state the next complete run reverses by itself.
+  const withdrawalPlan = planWithdrawal({
+    subjects: opts.store.listSubjects(),
+    absentFromSource,
+    observedNativeIds: sync.observedNativeIds,
+  })
+  const applied = applyWithdrawal({ store: opts.store, plan: withdrawalPlan, observedAt: opts.now })
+  const lifecycle = {
+    ...applied,
+    unmatched: withdrawalPlan.unmatched,
+    skippedTerminal: withdrawalPlan.skippedTerminal,
+  }
+
   // ARTIFACT RESOLUTION RUNS HERE (R-4) — after the identity commit, outside any transaction.
   //
   // After, because it resolves the artifact ROWS that commit just wrote: there is nothing to
@@ -381,6 +426,7 @@ export async function refreshFromMirror(opts: RefreshFromMirrorOptions): Promise
     // list of module names, which is the property that lets a real violation stand out in it.
     // Measured, not theorized: the first draft of THIS comment tripped the trap it describes.
     evidence: evidenceCompiled ?? null,
+    lifecycle,
   }
 }
 

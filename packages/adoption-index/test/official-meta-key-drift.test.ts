@@ -144,16 +144,33 @@ describe("OFFICIAL_META_KEY is pinned against the corpus and against its private
     // The honest record of why the assertions above target records. This is not a redundant count:
     // it is the measurement that makes a subjects-level test unacceptable, kept as an executable
     // fact so a later refactor cannot quietly move the pin here and believe it still guards.
+    //
+    // THE ORIGINAL REASON IS FALSIFIED, AND IS INVERTED HERE IN PLACE. It read "`StoredSubject`
+    // carries no lifecycle field at all — so there is nothing here a drift could move", asserted as
+    // two `not.toContain` lines. R-11 gave the row a lifecycle (`migrations/003`), so the absence
+    // that argument rested on is gone. The CONCLUSION survives, on a strictly stronger measurement:
+    // the drift IS reachable here (`toRawItem` builds its `_meta` from the same shared constant),
+    // yet the derivation writes `lifecycleStatus` as a LITERAL rather than as a function of
+    // `_meta` — so the field is present AND provably immovable. Asserted as deep equality over the
+    // whole subject array instead of over two key names, because what makes a pin here
+    // unfalsifiable is that NO field moves, not that two of them are absent.
     const subjects = deriveSubjectsFromSnapshot({ entries: snapshot.entries, observedAt: T0 })
     expect(subjects).toHaveLength(snapshot.entries.length)
     expect(subjects.every((s) => s.identityDigest.length > 0)).toBe(true)
-    // `StoredSubject` carries no lifecycle field at all — so there is nothing here a drift could move.
-    // Narrowed rather than `!`-asserted: under `noUncheckedIndexedAccess` the index is
-    // `| undefined`, and an explicit check keeps the failure "the derivation produced no subject"
-    // instead of a TypeError inside `Object.keys` two lines later.
-    const first = subjects[0]
-    expect(first, "the derivation produced no subjects — the keys assertion below cannot run").toBeDefined()
-    expect(Object.keys(first!)).not.toContain("lifecycleStatus")
-    expect(Object.keys(first!)).not.toContain("status")
+
+    // `status` is the ONE lever a drift moves that is reachable from this input: `isLatest` is
+    // forced true by the derivation and never read from the entry, so it cannot be gutted from
+    // here. An unrecognized status is what a drifted key produces downstream (`→ "unknown"`).
+    // Applied to the input, so this stays a test and not a mutation of the constant.
+    const gutted = snapshot.entries.map((e) => ({ ...e, status: "drifted-x" }))
+    const fromGutted = deriveSubjectsFromSnapshot({ entries: gutted, observedAt: T0 })
+    expect(
+      fromGutted,
+      "a gutted lifecycle moved a subject — a subjects-level pin is NOT unfalsifiable after all, and the assertions above belong here too",
+    ).toEqual(subjects)
+    expect(
+      [...new Set(fromGutted.map((s) => s.lifecycleStatus))],
+      "the derivation began reading `_meta` for its lifecycle — it must stay a literal, or a drift silently de-lists the cohort",
+    ).toEqual(["ACTIVE"])
   })
 })

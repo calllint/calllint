@@ -109,6 +109,31 @@ the blueprint's do-not-build list forbade this "before the GitHub App flow works
 end", and that flow now works — new13 closed the self-claim lifecycle 3/3 on the live
 account. So this is unblocked-but-unbuilt, which is a different fact from forbidden.
 
+> **STILL OPEN at R-11 (`dee4e32`), and open DELIBERATELY — the batch that could have closed it
+> chose not to.** R-11 shipped the withdrawal lifecycle, which is the *mechanism* a de-listing
+> control would drive: `planWithdrawal` / `applyWithdrawal` / `setSubjectLifecycle`, plus the
+> `WITHDRAWN → ACTIVE` healing path. What it did **not** ship is any way for a publisher, or an
+> agent, to *invoke* it. The two operators are internal exported functions, and
+> `git diff origin/main -- packages/calllint-mcp apps/web/public` is **empty**.
+>
+> On the surface count, one asymmetry is worth recording rather than glossing: `pack:smoke:mcp`
+> pins the tools exactly (`tools/list expected 13`, `mcp-pack-smoke.mjs:112`) but pins the
+> resources only at **≥ 1** (`:117`). So "13 tools / 19 resources" is two claims of unequal
+> strength — the first is gated, the second is a description. R-11 moves neither, so nothing is
+> at risk here today; it is the *guard* that is uneven, not the surface.
+>
+> The reason is a product principle, not a schedule: a de-listing is a claim-facing **authority**
+> decision, and exposing it to an autonomous caller before the authority model exists is the same
+> mistake as shipping a verdict with no evidence. The table permits `WITHDRAWN → TOMBSTONED`
+> precisely so that the irreversible conclusion stays reachable **only** from an explicit
+> human-authorized path — and `applyWithdrawal` writes `WITHDRAWN` only, so no cohort observation
+> can reach it. Measured over the planner's whole output space, the automatic path emits exactly
+> `{ACTIVE, WITHDRAWN}`.
+>
+> So this section's status is unchanged but its *content* is not: the gap was "no mechanism and no
+> surface", and it is now "mechanism present, surface withheld on purpose". Closing it is a
+> decision about the authority model, not a wiring task.
+
 ### 1.6 No scale-threshold instrumentation
 
 Nothing measures the 25 → 100 → 500 step. This absence is **deliberate and gated**:

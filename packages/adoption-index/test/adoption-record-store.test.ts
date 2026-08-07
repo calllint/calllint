@@ -121,6 +121,8 @@ function subject(id: string, slug: string): StoredSubject {
     identityDigest: IDENTITY,
     firstSeenAt: T0,
     lastSeenAt: T0,
+    lifecycleStatus: "ACTIVE",
+    withdrawnAt: null,
   }
 }
 

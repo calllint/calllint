@@ -469,12 +469,35 @@ describe("a withdrawal is detected, which a count cannot see (controls #1, #4)",
     const shrunk = await refresh(store, { servers: [item("io.a/one")] }, { now: T1 })
 
     // Append-only: there is no DELETE anywhere in this package. The withdrawn subject stays
-    // current in the mirror, and the snapshot therefore STILL SERVES IT. That is the deferred
-    // half this batch reports rather than fixes — de-listing needs a lifecycle terminal state
-    // no batch owns yet, and silently dropping it here would be an unrecorded policy change.
+    // current in the mirror, and the snapshot therefore STILL SERVES IT.
     expect(shrunk.currentSubjects).toBe(2)
     expect(shrunk.snapshot.entries.map((e) => e.name)).toEqual(["io.a/one", "io.b/gone"])
-    expect(describeSourceChange(shrunk.change)).toMatch(/de-listing is NOT applied/)
+
+    // R-11 CLOSES THE OTHER HALF, AND THE OLD ASSERTION HERE IS INVERTED IN PLACE. It read
+    // `toMatch(/de-listing is NOT applied/)` under a comment calling this "the deferred half this
+    // batch reports rather than fixes". Both halves are now asserted TOGETHER, because they are two
+    // planes and not one deferral — that is the whole content of INV-R12, and an assertion on either
+    // plane alone reads as if the other did not exist:
+    //
+    //   MIRROR (source_records)   — KEEPS the row. Asserted above: 2 current, both names served.
+    //   SUBJECT (canonical_subjects) — MOVES the row to `WITHDRAWN`. Asserted below.
+    //
+    // The mirror's memory is what makes detection possible on the NEXT run too, so a withdrawal that
+    // deleted mirror rows would destroy the evidence for its own reversal.
+    expect(shrunk.lifecycle.withdrawn.map((e) => e.canonicalName)).toEqual(["io.b/gone"])
+    expect(shrunk.lifecycle.withdrawn.map((e) => `${e.from}->${e.to}`)).toEqual(["ACTIVE->WITHDRAWN"])
+    expect(shrunk.lifecycle.reinstated).toEqual([])
+    expect(shrunk.lifecycle.unmatched).toEqual([])
+    expect(shrunk.lifecycle.unchanged).toBe(0)
+    expect(describeSourceChange(shrunk.change)).toMatch(/de-listing applied to the subject plane/)
+
+    // And the plane that moved is the STORE's, read back rather than inferred from the summary.
+    const gone = store.listSubjects().find((s) => s.canonicalName === "io.b/gone")
+    expect(gone?.lifecycleStatus).toBe("WITHDRAWN")
+    expect(gone?.withdrawnAt).toBe(T1)
+    const kept = store.listSubjects().find((s) => s.canonicalName === "io.a/one")
+    expect(kept?.lifecycleStatus, "an observed subject must not move").toBe("ACTIVE")
+    expect(kept?.withdrawnAt).toBeNull()
   })
 
   it("is measured against the subjects that were current BEFORE the sync", async () => {

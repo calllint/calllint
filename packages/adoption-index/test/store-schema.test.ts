@@ -89,12 +89,14 @@ describe("canonical DDL (§10.2, control #7)", () => {
     const cwd = tempCwd()
     const store = await openAt(cwd)
     try {
-      // Both migrations, in order. 002 is the nullable-`canonical_slug` rebuild; `schemaVersion()`
-      // reports the applied ids, so it moves with the set rather than being pinned to R-1's one.
-      expect(store.schemaVersion()).toEqual([1, 2])
+      // All THREE migrations, in order. 002 is the nullable-`canonical_slug` rebuild and 003 is
+      // R-11's lifecycle pair; `schemaVersion()` reports the applied ids, so it moves with the set
+      // rather than being pinned to R-1's one.
+      expect(store.schemaVersion()).toEqual([1, 2, 3])
       expect(store.appliedMigrations.map((m) => m.filename)).toEqual([
         "001-canonical-adoption-graph.sql",
         "002-nullable-canonical-slug.sql",
+        "003-subject-lifecycle.sql",
       ])
     } finally {
       store.close()
@@ -114,9 +116,9 @@ describe("canonical DDL (§10.2, control #7)", () => {
       // The re-open applied NOTHING — that is what "self-migrating on open" must mean for
       // every open after the first, and an empty list is the only honest evidence of it.
       expect(second.appliedMigrations).toHaveLength(0)
-      // The DURABLE set is still both, which is the distinction this test turns on: nothing was
+      // The DURABLE set is still all three, which is the distinction this test turns on: nothing was
       // applied on re-open, and everything that was ever applied is still recorded.
-      expect(second.schemaVersion()).toEqual([1, 2])
+      expect(second.schemaVersion()).toEqual([1, 2, 3])
       expect(second.tableNames()).toEqual(before)
     } finally {
       second.close()
@@ -180,17 +182,20 @@ describe("migration discipline (forward-only, digest-pinned)", () => {
    * failure to the edit — would have been discharged by rewriting the expectation.
    */
   const NULLABLE_SLUG_MIGRATION_DIGEST = "sha256:5871598f4147384b0344b80c9534676b118212155f68c37ee23da1a20d9311d5"
+  const LIFECYCLE_MIGRATION_DIGEST = "sha256:aad0e5c73bbab0efd1565313b2ff6e1a5f8a187553fe8887f4dbc68f91a60347"
 
   it("pins each shipped migration's digest to its value, so an in-place edit fails HERE", () => {
     const migrations = loadMigrations(MIGRATIONS_DIR)
-    // TWO migrations today. Still asserted by exact list, so a third forces the same deliberate
+    // THREE migrations today. Still asserted by exact list, so a FOURTH forces the same deliberate
     // visit rather than silently widening what this pin covers.
     expect(migrations.map((m) => m.filename)).toEqual([
       "001-canonical-adoption-graph.sql",
       "002-nullable-canonical-slug.sql",
+      "003-subject-lifecycle.sql",
     ])
     expect(migrations[0]!.digest).toBe(CANONICAL_MIGRATION_DIGEST)
     expect(migrations[1]!.digest).toBe(NULLABLE_SLUG_MIGRATION_DIGEST)
+    expect(migrations[2]!.digest).toBe(LIFECYCLE_MIGRATION_DIGEST)
   })
 
   it("leaves canonical_slug NULLABLE but still UNIQUE after 002 — the DDL, read back", async () => {
@@ -213,9 +218,13 @@ describe("migration discipline (forward-only, digest-pinned)", () => {
       expect(slug).toBeDefined()
       // NULLABLE — the single byte of difference from 001.
       expect(slug!.notnull).toBe(0)
-      // And NOTHING ELSE moved: same eight columns, same order, same nullability, same PK. A
+      // And NOTHING ELSE moved: same TEN columns, same order, same nullability, same PK. A
       // rebuild that silently reordered or relaxed a second column would pass a nullability-only
-      // check, and column order is load-bearing here because 002's INSERT names both sides.
+      // check, and column order is load-bearing here because 002's INSERT names both sides. The
+      // assertion stayed at eight until R-11, and that pin is deliberately widened HERE to cover the
+      // lifecycle pair 003 adds — because those two are subject to the same rebuild risk 002's
+      // recovery took INV-10's word for, and an omission in a future reordering rebuild is exactly
+      // what a column-order pin is meant to catch.
       expect(cols.map((c) => [c.name, c.notnull, c.pk])).toEqual([
         ["subject_id", 0, 1],
         ["canonical_name", 1, 0],
@@ -225,6 +234,8 @@ describe("migration discipline (forward-only, digest-pinned)", () => {
         ["identity_digest", 1, 0],
         ["first_seen_at", 1, 0],
         ["last_seen_at", 1, 0],
+        ["lifecycle_status", 1, 0],
+        ["withdrawn_at", 0, 0],
       ])
 
       // STILL UNIQUE. Asserted by BEHAVIOUR, not by reading the DDL text: two NULLs are accepted

@@ -596,9 +596,16 @@ describe("the checkpoint is written only after the records (§9.4)", () => {
     // overwrite. `resolveArtifacts`'s per-artifact scoping applies here too — the caller opens one
     // transaction PER RECORD, because one incoherent record must not roll back the cohort.
     expect(storeSrc).toMatch(/^ {2}private upsertAdoptionRecord\(/m)
+    // R-11's writer. ONE method for the lifecycle PAIR (`lifecycle_status`, `withdrawn_at`) because
+    // a transition is a single fact: the status and the stamp that justifies it must never be
+    // writable apart, or a row could carry `WITHDRAWN` with a null `withdrawn_at`. It also reads the
+    // CURRENT status inside its own transaction and refuses an illegal transition there — which a
+    // SQLite CHECK constraint structurally cannot do, because a CHECK sees only the new row and
+    // never the value being replaced.
+    expect(storeSrc).toMatch(/^ {2}private setSubjectLifecycle\(/m)
 
-    // The ordering rule's positive half: the handle carries exactly these FOURTEEN and no
-    // fifteenth, so a caller inside a transaction cannot reach a wider write surface.
+    // The ordering rule's positive half: the handle carries exactly these FIFTEEN and no
+    // sixteenth, so a caller inside a transaction cannot reach a wider write surface.
     //
     // This list was THREE until R-3, FOUR until R-4, FIVE until R-5, SIX until R-6, THIRTEEN until
     // R-7, and is widened here deliberately, not relaxed. The assertion's subject is that the write
@@ -607,14 +614,21 @@ describe("the checkpoint is written only after the records (§9.4)", () => {
     // digest advanced without its subjects would report "no change" forever), R-4 added
     // `updateArtifactResolution` because the four artifact columns are that batch's whole write
     // surface, R-5 added `recordEvidence` because `evidence_records` gained its first writer, R-6
-    // added SEVEN at once because `compiler_jobs`/`compiler_runs` gained theirs, and R-7 adds
-    // `upsertAdoptionRecord` — the LAST of the ten tables to gain a writer, which is what makes this
-    // the final widening of this list for Workstream R. Growing the list is how a new writer
-    // announces itself; a writer that reached the handle without appearing here is the defect. This
-    // assertion CAUGHT R-4's writer rather than being updated alongside it, CAUGHT R-5's the same
-    // way, and CAUGHT R-7's on the batch's first full-suite run — it failed on the run that added
-    // the fourteenth key, before any control was applied. That is three times now, which is the
-    // behaviour a closed-set pin exists for.
+    // added SEVEN at once because `compiler_jobs`/`compiler_runs` gained theirs, R-7 added
+    // `upsertAdoptionRecord` — the last of the ten tables to gain its FIRST writer — and R-11 adds
+    // `setSubjectLifecycle`, a SECOND writer to a table that already had one. Growing the list is how
+    // a new writer announces itself; a writer that reached the handle without appearing here is the
+    // defect. This assertion CAUGHT R-4's writer rather than being updated alongside it, CAUGHT R-5's
+    // the same way, CAUGHT R-7's on that batch's first full-suite run, and CAUGHT R-11's on this
+    // one — four times now, which is the behaviour a closed-set pin exists for.
+    //
+    // R-7's entry CLAIMED THIS WAS THE FINAL WIDENING FOR WORKSTREAM R, and R-11 falsifies it; the
+    // claim is corrected above rather than deleted, because the reason it was wrong is the reusable
+    // part. It conflated "every table has a writer" with "no table needs a second one":
+    // `canonical_subjects` had `persistIdentity` from R-3, and R-11 still needs its own writer,
+    // because an observation-driven upsert and a lifecycle transition are different authorities over
+    // the same row — [[workstream-r-r4-second-writer]] is the same mistake caught one batch earlier.
+    // No batch should predict the closure of this list again; the pin will say when.
     //
     // SEVEN NEW KEYS IS THE LARGEST WIDENING SO FAR, so note what does NOT widen with it: the
     // `beginCompilerRun`/`concludeCompilerRun` names are deliberately not `beginRun`/`concludeRun`,
@@ -635,6 +649,7 @@ describe("the checkpoint is written only after the records (§9.4)", () => {
       "reclaimExpiredLeases",
       "recordEvidence",
       "renewLease",
+      "setSubjectLifecycle",
       "updateArtifactResolution",
       "upsertAdoptionRecord",
     ])
