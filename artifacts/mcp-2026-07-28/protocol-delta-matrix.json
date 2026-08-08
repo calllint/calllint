@@ -1,0 +1,87 @@
+{
+  "schema": "calllint.mcp-protocol-delta.v1",
+  "from": "2024-11-05",
+  "to": "2026-07-28",
+  "measuredAt": "2026-08-08",
+  "measuredAgainstCommit": "b136f44",
+  "currentState": {
+    "advertised": "2024-11-05",
+    "source": "packages/calllint-mcp/src/server.ts:13",
+    "servedAt": "packages/calllint-mcp/src/server.ts:61",
+    "unchangedByThisBatch": true
+  },
+  "readingGuide": "`affectsCallLint` answers one narrow question: would adopting this delta change a byte CallLint SERVES or a verdict it EMITS? A delta can be normatively important upstream and still be scored `false` here, because CallLint is a stdio server with 13 tools and 19 read-only resources — it is not an HTTP transport, has no auth surface, and runs no long-lived tasks.",
+  "deltas": [
+    {
+      "id": "D1",
+      "area": "version negotiation",
+      "change": "Per-request protocol version declaration via the `io.modelcontextprotocol/protocolVersion` key in `_meta`, replacing initialize-only negotiation as the sole signal.",
+      "normative": true,
+      "affectsCallLint": true,
+      "why": "server.ts returns a single fixed protocolVersion at initialize (:61) and reads no per-request _meta. Adopting 2026-07-28 means honouring a per-request declaration and rejecting an unsupported one.",
+      "owner": "M26-1 (blocked by F8)"
+    },
+    {
+      "id": "D2",
+      "area": "transport",
+      "change": "`MCP-Protocol-Version` header required on Streamable HTTP requests.",
+      "normative": true,
+      "affectsCallLint": false,
+      "why": "CallLint's MCP server is stdio-only (driven over stdin/stdout by scripts/mcp-pack-smoke.mjs:105). It exposes no HTTP transport, so no header applies.",
+      "owner": "n/a"
+    },
+    {
+      "id": "D3",
+      "area": "error taxonomy",
+      "change": "`UnsupportedProtocolVersionError` for a version mismatch.",
+      "normative": true,
+      "affectsCallLint": true,
+      "why": "The current error set (server.ts ERR.*) has no version-mismatch member, so a mismatched client today gets a generic error or a silent success at the wrong version.",
+      "owner": "M26-1 (blocked by F8)"
+    },
+    {
+      "id": "D4",
+      "area": "discovery",
+      "change": "`server/discover` — mandatory to implement, optional to call.",
+      "normative": true,
+      "affectsCallLint": true,
+      "why": "Not implemented today; the method table in server.ts handles initialize, tools/list, tools/call, resources/list, resources/templates/list, resources/read. 'Mandatory to implement' makes its absence a conformance gap the moment the version is advertised.",
+      "owner": "M26-2 (blocked by F8)"
+    },
+    {
+      "id": "D5",
+      "area": "extensions — Tasks",
+      "change": "Long-running task lifecycle, opt-in via initialization negotiation.",
+      "normative": true,
+      "isCore": false,
+      "affectsCallLint": false,
+      "why": "Every CallLint tool is a synchronous pure delegator returning one result (ADR 0025). There is no long-running work to model, and declining the extension is conformant.",
+      "owner": "n/a — explicit non-goal, see non-goals.md"
+    },
+    {
+      "id": "D6",
+      "area": "deprecations",
+      "change": "6 features deprecated; Removed section empty; earliest removal is the first revision on or after 2027-07-28.",
+      "normative": true,
+      "affectsCallLint": false,
+      "why": "Nothing is removed within this revision (F7), so no CallLint code path breaks by continuing to advertise 2024-11-05.",
+      "owner": "re-measure at M26-1"
+    }
+  ],
+  "summary": {
+    "totalDeltas": 6,
+    "affectingCallLint": 3,
+    "affectingIds": ["D1", "D3", "D4"],
+    "allBlockedBy": "F8 — no vendored bytes, so none of the three can be gated offline (INV-M4)"
+  },
+  "boundaries": {
+    "forbiddenPaths": [
+      "packages/adoption-index/** (ADR 0061 semantics are out of Workstream M's authority)",
+      "computeVerdict (sole adjudicator; M never moves a verdict)",
+      "apps/web/public/** (served bytes)",
+      "the 13-tool / 19-resource surface counts",
+      "packages/calllint-mcp runtime dependencies (must stay {})"
+    ],
+    "measuredThisBatch": "zero changes under packages/; `git diff --stat -- packages/` is empty. The only source change is scripts/mcp-pack-smoke.mjs (INV-M8)."
+  }
+}

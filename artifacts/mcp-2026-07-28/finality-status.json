@@ -1,0 +1,110 @@
+{
+  "schema": "calllint.mcp-protocol-finality.v1",
+  "protocolRevision": "2026-07-28",
+  "measuredAt": "2026-08-08",
+  "measuredAgainstCommit": "b136f44",
+  "verdict": "PENDING_FINAL",
+  "productionChangesAllowed": false,
+  "verdictBasis": {
+    "summary": "F8 is the only FAIL. F1-F7 were measured PASS against primary upstream sources on 2026-08-08.",
+    "whyStillPending": "INV-M4 requires finality be evaluated over VENDORED bytes, never a live fetch. No vendored copy exists (third_party/ measured ABSENT), so no gate in this repo can re-evaluate F1-F7 offline. The upstream revision is ready; our evidence base is not.",
+    "narrowedFrom": "docs/new16-new17-execution-status.md:103-113 listed all eight gates as unverified and derived PENDING_FINAL from that. Seven of those eight are now measured PASS. The verdict is unchanged but its REASON narrows from 'upstream may not be ready' to 'we have not vendored the bytes' — which is a step only this repo can take.",
+    "unblockingAction": "M26-5 (vendor the spec bytes under third_party/ with a digest lock). This confirms O-M1's default of 'lock first' on measured grounds rather than editorial preference."
+  },
+  "vocabularyMapping": {
+    "hazard": "The word 'Final' means OPPOSITE things in new17's F1 and in the upstream versioning vocabulary. Reading upstream's 'not Final' as an F1 failure imports someone else's vocabulary into our criterion.",
+    "upstreamStates": ["Draft", "Current", "Final"],
+    "upstreamFinalMeans": "past, complete specifications that will not be changed (i.e. frozen and superseded)",
+    "f1FinalMeans": "published and citable rather than draft/RC",
+    "measured": "2026-07-28 is upstream 'Current'. Under upstream's vocabulary it is deliberately NOT 'Final'; under F1's criterion it PASSES.",
+    "consequence": "A future reader of this file must not invert F1 by applying the upstream glossary to it."
+  },
+  "gates": [
+    {
+      "id": "F1",
+      "requirement": "The revision is published (not draft/RC) and citable",
+      "status": "PASS",
+      "evidence": {
+        "source": "https://modelcontextprotocol.io/specification/versioning",
+        "observation": "The versioning page defines three revision states (Draft / Current / Final) and names 2026-07-28 as the CURRENT protocol version.",
+        "caveat": "See vocabularyMapping — upstream 'Final' denotes a frozen past revision, so 'Current' is the strongest state a live revision can hold."
+      }
+    },
+    {
+      "id": "F2",
+      "requirement": "The version string is stable and citable",
+      "status": "PASS",
+      "evidence": {
+        "source": "https://modelcontextprotocol.io/specification/versioning",
+        "observation": "Version string is the date form 2026-07-28 (YYYY-MM-DD). Upstream states the version will NOT be incremented for changes that maintain backwards compatibility, so the string is a stable anchor."
+      }
+    },
+    {
+      "id": "F3",
+      "requirement": "A schema artifact is retrievable and summarizable",
+      "status": "PASS",
+      "evidence": {
+        "source": "https://modelcontextprotocol.io/specification/2026-07-28",
+        "observation": "The specification page names specification/schema/2026-07-28/schema.ts as the authoritative schema for the revision."
+      }
+    },
+    {
+      "id": "F4",
+      "requirement": "A changelog snapshot is retrievable",
+      "status": "PASS",
+      "evidence": {
+        "source": "https://modelcontextprotocol.io/specification/2026-07-28/changelog",
+        "observation": "Two enumerable sections exist: Key Changes and Deprecated Features."
+      }
+    },
+    {
+      "id": "F5",
+      "requirement": "Transport / auth / cache semantics are normative",
+      "status": "PASS",
+      "evidence": {
+        "source": "https://modelcontextprotocol.io/specification/2026-07-28",
+        "observation": "Per-request version declaration via the io.modelcontextprotocol/protocolVersion _meta key; MCP-Protocol-Version header on Streamable HTTP; UnsupportedProtocolVersionError for mismatch. All expressed in MUST-level BCP-14 wording."
+      }
+    },
+    {
+      "id": "F6",
+      "requirement": "Task / consequence semantics are normative",
+      "status": "PASS",
+      "qualifier": "normative but NOT part of core",
+      "evidence": {
+        "source": "https://modelcontextprotocol.io/specification/2026-07-28/extensions/tasks/overview",
+        "observation": "Tasks are specified as an EXTENSION: opt-in, negotiated during initialization. The semantics are normative within the extension; a core-only implementation is conformant without them.",
+        "consequence": "Any future CallLint claim about task semantics must be scoped to the extension, never stated as core protocol support."
+      }
+    },
+    {
+      "id": "F7",
+      "requirement": "No pending breaking erratum",
+      "status": "PASS",
+      "evidence": {
+        "source": "https://modelcontextprotocol.io/specification/2026-07-28/changelog",
+        "observation": "The deprecation registry lists 6 deprecated features and an EMPTY Removed section. The earliest possible removal is the first revision on or after 2027-07-28, so nothing breaks within this revision."
+      }
+    },
+    {
+      "id": "F8",
+      "requirement": "Vendored bytes are verifiable offline",
+      "status": "FAIL",
+      "evidence": {
+        "source": "this repository",
+        "observation": "third_party/ measured ABSENT on b136f44 (`ls -d third_party` → no such directory).",
+        "consequence": "INV-M4 forbids CI fetching the live spec, so with no vendored bytes there is no offline basis for F1-F7. Their PASS above rests on a one-time manual read recorded here, NOT on a repeatable gate.",
+        "closedBy": "M26-5"
+      }
+    }
+  ],
+  "invariantCompliance": {
+    "INV-M4": "Honoured. F1-F7 were read manually and transcribed here; no CI job fetches the live specification. This artifact is a dated human observation, not a gate.",
+    "INV-M5": "Honoured. Every gate above carries an evidence object. A gate with no evidence would be recorded false, never omitted."
+  },
+  "nonClaims": [
+    "CallLint does NOT support MCP 2026-07-28.",
+    "packages/calllint-mcp/src/server.ts:13 still advertises PROTOCOL_VERSION 2024-11-05, which remains the accurate public state.",
+    "No public surface asserts 2026-07-28 compatibility (new17 §19 forbidden-copy list)."
+  ]
+}
