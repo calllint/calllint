@@ -12,6 +12,60 @@ onward. While pre-1.0, minor versions may include breaking changes.
 
 ### Added
 
+- **Workstream T PR T0 + Workstream R §8.6 — the trajectory-readiness audit lands where it can
+  actually be delivered, and the daily-backup gap ADR 0061 §8.5 left open is closed. Zero `src/`
+  change, zero schema, zero verdict movement, zero bytes published from `docs/`.** T0's
+  specification named `docs/audits/trajectory/**` as its home, and `docs/` is gitignored — measured
+  `git ls-files docs/` = **0** against 153 local files — so an audit written there could not enter a
+  PR, be read by CI, or exist on another machine. The blocker was not that `docs/` is ignored (that
+  is a deliberate convention, reaffirmed by the operator) but that the **spec named an inconsistent
+  home**; only the second is fixable in a batch. Re-homed to `artifacts/trajectory-v0/` — measured
+  not ignored, and **no generic scanner walks `artifacts/*`** (5 files reference it, every one by a
+  named path), so the audit carries **zero** T1 gate cost. That is why the earlier rejection of
+  `packages/fixtures/` does not migrate: its files enter the gates. **ADR 0062** records the
+  decision, following a precedent already committed in `artifacts/mcp-2026-07-28/non-goals.md`:
+  *"An audit that cannot be committed is not an audit; it is a local note."* Ten chapters
+  (`00-index.md` + `01`…`09`), each claim bound to a `path:line`, five status words, all 12 spec
+  questions measured. Five answers invert what a name-based search returns: `REQUIRE_CONFIRMATION`
+  has **0** occurrences yet the capability exists in **five** closed vocabularies; receipt extension
+  is not merely absent but **actively gated** (`additionalProperties: false` on 29/30 schemas + a
+  test asserting unknown keys are *rejected*); a decision cannot reference a decision — only a
+  receipt can reference a receipt (`supersedes` is on the event, because a decision is
+  re-derivable); `session`/`task`/`principal`/`delegation` are **all four absent** with no session
+  store at all; and the hook's completeness is **`CONTRADICTED`** — guaranteed incomplete on three
+  axes, with a dropped event byte-identical to "nothing to report". That last one is the audit's most
+  useful output: it makes RG-2's 0/5 machine-checkable, bound to the matcher at
+  `plugins/calllint/hooks/hooks.json:5`. Two planning-level citations were corrected by measurement:
+  `.claude/hooks.json` does not exist, and canonical serialization is `PARTIAL` (`stableStringify`
+  canonicalizes key ordering only) rather than `EXISTS`. Inference is labelled as inference in two
+  places — the "four stable schemas" (named upstream by category only; `schema:compat` covers all
+  **30**) and `AuthorityCompleteness`'s unread members. `07` carries T0-b's five fixture designs as
+  **prose only**: zero files, zero executable schema. **The Runtime-Guard gate stays 0/5 and T1 stays
+  blocked** — T0 could never move the score, only make the reasons checkable. **ADR 0061 §8.6**
+  closes the backup gap with its three decisions measured: destination **Aliyun OSS** (already this
+  host's provider per the deploy README, so no new trust boundary), window **03:30 UTC** (one hour
+  after ingest, which clears the worker's `TimeoutStartSec=45min` + `RandomizedDelaySec=5min`, so the
+  archive cannot capture a half-mirrored run), and credentials **by key name only** via a root-only
+  `EnvironmentFile` outside git. It is its **own** unit, not a fourth `ExecStart`: `Type=oneshot`
+  skips later steps after a failure, so a fourth step would skip the backup exactly when ingest
+  failed, and a credential error would poison the `prune:cas failed 0` success signal. Cleanup — the
+  operator's explicit requirement — targets three surfaces: the staged archive (removed by
+  `ExecStopPost=`, which fires on success, failure, *and* timeout, unlike a third `ExecStart`),
+  `work/*.part` orphans (the gap that had **no cleaner at all** — `prune:cas` swept only `cas/blobs`
+  while a SIGKILL leaves partials behind; now bounded by `CAS_STAGING_ORPHAN_HOURS=48` with a parser
+  refusing zero/negative/non-integer), and the OSS side (a lifecycle rule recorded by key prefix and
+  day count, **no code deletes a remote object**). The CAS is deliberately not archived — blobs are
+  re-fetchable, and shipping them would move the growth surface `prune:cas` bounds into object
+  storage; recorded as a decision, not an omission. **No restore has been exercised**, so
+  "restorable" is a design property here, named as the open item. Also folds in the parked §8.5 cwd
+  asymmetry note as **§8.5.1** (a guard that fires on absence cannot see a substitution), per its own
+  stated condition of waiting for a batch that edits ADR 0061 anyway. Two stale M26-0 lines reserving
+  ADR 0062 for M26-1 are amended by **append** — `proposed-file-map.md` carried the instruction
+  *"Re-`ls adrs/` when authorized rather than trusting this line"*, so amending it executes that
+  instruction; **M26-1 uses 0063**, and 0060 stays reserved for the `propertyNames` defect recorded in
+  drift-checked bytes. Six negative controls (#122–#127) plus a positive control (#128) proving the
+  new hours-window pin can actually fail.
+
 - **Workstream R PR R-11 (INV-R12) — withdrawal lifecycle, subject-plane de-listing applied.
   Withdrawal ≠ deletion. The mirror (source_records) is append-only and KEEPS withdrawn rows;
   the subject plane (canonical_subjects) moves withdrawn subjects to WITHDRAWN, never deletes

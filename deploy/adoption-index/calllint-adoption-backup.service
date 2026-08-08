@@ -1,0 +1,82 @@
+[Unit]
+Description=CallLint Adoption Index Daily Backup
+Documentation=https://github.com/calllint/calllint
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=calllint
+Group=calllint
+WorkingDirectory=/opt/calllint
+
+# Well above the expected wall clock, for the same reason the worker sets it high: this must trip
+# on a hang, not truncate a healthy run. A `VACUUM INTO` of a store this size takes seconds; the
+# upload is the variable part.
+TimeoutStartSec=20min
+
+# Resource limits (ADR 0061 §8.3). Lower than the worker's on purpose: this unit reads a database
+# and streams one file, where the worker resolves artifacts and compiles evidence.
+MemoryMax=512M
+CPUQuota=25%
+TasksMax=128
+IOWeight=50
+
+# The OSS credential (ADR 0061 §8.6). Only the KEY NAMES appear in this repo; the values live in a
+# root-only file on the host that is NOT in git:
+#
+#   OSS_BUCKET  OSS_ENDPOINT  OSS_ACCESS_KEY_ID  OSS_ACCESS_KEY_SECRET
+#
+# Create it with `chmod 600` and `chown root:root` — see the README. A missing file makes this unit
+# fail at start, which is the correct outcome: a backup that silently ran without a destination is
+# worse than one that did not run.
+EnvironmentFile=/etc/calllint/backup.env
+Environment="NODE_ENV=production"
+
+# ADOPTION_INDEX_CWD is deliberately NOT set here, exactly as in the worker unit. The archive step
+# resolves the store from the same `ADOPTION_INDEX_CWD ?? process.cwd()` seam the sweep uses, so
+# setting it would point the backup at a tree the ingest never writes to. `WorkingDirectory=` above
+# is the one lever, and a machine gate keeps this variable out of both units.
+
+# Step 1 — snapshot the SQLite store into `.var/calllint-adoption-backup/` via VACUUM INTO.
+#   The CAS is NOT archived: blobs are content-addressed downloads, so losing one costs a re-fetch
+#   rather than a fact, and shipping them would move the growth surface `prune:cas` bounds into
+#   object storage. ADR 0061 §8.6 records that as a decision, not an omission.
+ExecStart=/usr/bin/pnpm backup:adoption-index
+
+# Step 2 — upload. A SEPARATE step so a credential failure is attributable to the upload rather
+#   than folded into "backup failed", and so the archive step's own success is already recorded in
+#   the journal when it happens. `ossutil` is not installed by this repo; see the README.
+ExecStart=/usr/bin/ossutil cp --update --recursive /opt/calllint/.var/calllint-adoption-backup/ oss://${OSS_BUCKET}/adoption-index/ -e ${OSS_ENDPOINT} -i ${OSS_ACCESS_KEY_ID} -k ${OSS_ACCESS_KEY_SECRET}
+
+# Cleanup — `ExecStopPost=` rather than a third `ExecStart`, and that is the whole point: it fires
+# whether the archive and the upload succeeded, failed, or timed out. A staged archive left behind
+# is one full copy of the store per day on this host, which is the largest single growth surface
+# here. `Type=oneshot` would skip a third ExecStart after any failure — i.e. exactly when a stale
+# archive is most likely to be sitting there.
+ExecStopPost=/usr/bin/pnpm backup:adoption-index:prune-staging
+
+# Hardening. Same shape as the worker: `ProtectSystem=strict` makes the filesystem read-only except
+# what is listed, which is what enforces INV-R7 at the OS level rather than only in path checks.
+#
+# LORDL shares this host. `ProtectHome=true` plus a strict read-only root keeps this unit out of its
+# neighbour's tree; no allowance is made anywhere in this file for a path outside CallLint's own.
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+PrivateDevices=true
+RestrictSUIDSGID=true
+# ONE writable path, and it is the only one this unit needs. The staging archive lives at
+# `.var/calllint-adoption-backup/` — a SIBLING of the index root, not a ninth subdirectory of it,
+# because `INDEX_SUBDIRS` enumerates the STORE's persistence and an operational archive is not that
+# (store-schema.test.ts pins it at exactly 8). Both stay under `/opt/calllint/.var`, which is what
+# makes the write legal here at all.
+#
+# The worker's second entry (`packages/trust-index/snapshots`) is deliberately absent: this unit
+# rewrites no committed bytes, and granting a path it does not need would widen the surface for no
+# reason.
+ReadWritePaths=/opt/calllint/.var
+
+[Install]
+WantedBy=multi-user.target

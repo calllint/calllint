@@ -122,3 +122,15 @@ artifacts/mcp-2026-07-28/** text eol=lf
 # arrives with the first contributor running Git for Windows defaults. Pin the directory
 # with the batch that creates it, exactly as artifacts/adoption-index-v1 did at R-0.
 deploy/** text eol=lf
+
+# The T0 trajectory-readiness audit (new16 §T0; ADR 0062). Same reasoning as
+# artifacts/mcp-2026-07-28 above: nothing hashes these bytes YET, so nothing fails today, and the
+# pin is added by the batch that CREATES the directory precisely so a later batch cannot introduce
+# a byte-comparison and a missing pin together — a miss that surfaces on windows-latest ALONE and
+# that `ci:local` structurally cannot see on an LF working copy.
+#
+# Unlike every pin above, this one has NO row in `SERVED_SUBTREES` (scripts/phase-2.4-gates.ts) and
+# no guard test, so by that table's own docblock it is itself unguarded: deleting this line would
+# fail nothing. Recorded rather than hidden. These are prose chapters with no source/served split to
+# byte-compare, so a guard would mean inventing a consumer for the sake of guarding the pin.
+artifacts/trajectory-v0/** text eol=lf

@@ -27,6 +27,13 @@ IOWeight=100
 # `evidence_records` empty forever — the shipped-not-wired shape R-4/R-5 exist to avoid. The
 # persistent `.var/` is the whole reason a worker exists rather than only the Actions runner.
 Environment="CAS_RETENTION_DAYS=90"
+# The SECOND window, in hours rather than days, for the second tree step 3 sweeps (§8.6). Recorded
+# here for the same reason as the line above: a window absent from the unit falls back to its code
+# default silently, and this file is where the host's chosen windows are meant to be readable. The
+# two are deliberately different magnitudes — a `work/<hex>.part` file is live for milliseconds, so
+# 48h is two full ingest cycles, where reusing the 90-day blob window would leave every orphan on
+# disk for three months.
+Environment="CAS_STAGING_ORPHAN_HOURS=48"
 Environment="NODE_ENV=production"
 
 # Step 1 — mirror the registry, resolve artifacts, compile evidence (writes .var/).
@@ -41,6 +48,10 @@ ExecStart=/usr/bin/pnpm project-adoption-index:trust-index
 
 # Step 3 — bound CAS growth. Step 1 writes blobs on every run and nothing else removes them
 #   (ADR 0061 §8.4), so this is what keeps a persistent `.var/` from growing without limit.
+#   It sweeps TWO trees (§8.6): `cas/blobs` on the days window above, and orphaned `work/*.part`
+#   staging files on the hours window. The second tree had no sweeper at all — `cas.ts:85,88` cleans
+#   up on both of its failure paths, but a SIGKILL from `MemoryMax=` or `TimeoutStartSec=` above
+#   lands between the write and the rename, and the blob sweep never looks at `work/`.
 ExecStart=/usr/bin/pnpm prune:cas
 
 # Hardening. `ProtectSystem=strict` makes the whole filesystem read-only except what is listed

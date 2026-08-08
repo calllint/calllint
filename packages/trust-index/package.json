@@ -19,6 +19,8 @@
     "resolve-evidence": "tsx src/resolveEvidence.ts",
     "project-adoption-index": "tsx src/projectAdoptionIndex.ts --from-snapshot",
     "prune-cas": "tsx src/pruneCas.ts",
+    "backup-adoption-index": "tsx src/backupAdoptionIndex.ts",
+    "backup-adoption-index:prune-staging": "tsx src/backupAdoptionIndex.ts --prune-staging",
     "project-adoption-index:store": "tsx src/projectAdoptionIndex.ts",
     "verify-claims": "tsx src/verifyClaims.ts"
   },

@@ -82,6 +82,7 @@ export {
   casBlobPath,
   casBlobsRoot,
   casStagingPath,
+  casWorkRoot,
 } from "./storage/paths.js"
 export type { Migration, AppliedMigration } from "./storage/migrate.js"
 export { loadMigrations, applyMigrations, readAppliedMigrations } from "./storage/migrate.js"
