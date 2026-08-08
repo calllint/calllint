@@ -102,6 +102,15 @@ artifacts/adoption-index-v1/** text eol=lf
 # the #240 trap, and `ci:local` cannot see it on an LF working copy by construction.
 packages/adoption-index/migrations/** text eol=lf
 
+# The Workstream M MCP 2026-07-28 readiness audit (new16-new17 §4.2; M26-0). Same reasoning as
+# artifacts/adoption-index-v1 at R-0: nothing drift-checks these bytes YET, so nothing fails
+# today — the pin is added in the batch that CREATES the directory precisely because of that.
+# `finality-status.json` is the evidence base every later M batch reads (INV-M5), and M26-5 will
+# digest-lock vendored spec bytes against it. The first batch to byte-compare or hash these files
+# would otherwise introduce the check and the missing pin together, where a miss surfaces on
+# windows-latest ALONE (CRLF checkout) and `ci:local` structurally cannot see it — the #240 trap.
+artifacts/mcp-2026-07-28/** text eol=lf
+
 # The Workstream R worker deployment units (new15 R-9; ADR 0061 §8.5). Unlike every pin
 # above, nothing in this repo hashes these bytes — the consumer is systemd on the worker
 # host, and it is NOT tolerant: a CRLF checkout makes the last token of every line carry a

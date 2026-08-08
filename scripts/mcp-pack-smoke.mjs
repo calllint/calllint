@@ -81,7 +81,7 @@ try {
   ok("dist/index.js has shebang and is self-contained")
 
   // 5. Drive the server over stdio: initialize, tools/list (=13), tools/call BLOCK,
-  //    resources/list (>0) + resources/read (verbatim contract).
+  //    resources/list (= every committed contract) + resources/read (verbatim contract).
   const requests = [
     { jsonrpc: "2.0", id: 1, method: "initialize", params: {} },
     { jsonrpc: "2.0", id: 2, method: "tools/list" },
@@ -114,12 +114,46 @@ try {
   const decision = JSON.parse(callRes.result.content[0].text)
   if (decision[0].verdict !== "BLOCK") fail(`scan_mcp_config_json expected BLOCK, got ${decision[0].verdict}`)
 
-  // resources/list must expose ≥1 committed adoption contract; templates must advertise the scheme.
+  // resources/list must expose EVERY committed adoption contract; templates must advertise the
+  // scheme. Closes INV-M8 (new16-new17-integration §2.4): the resource count was documented as
+  // 19 but only ever checked for `> 0`, so the surface could shrink silently. Measured on this
+  // branch before the fix: mutating `server.ts`'s `resources/list` to `RESOURCES.slice(0, 3)`
+  // served 3 of 19 contracts — 84% of the surface gone — while 220 test files / 3548 tests and
+  // this very script all passed, printing `resources(3)` on its own success line.
+  //
+  // The expected count is DERIVED from the committed bundle, never hardcoded. A frozen `19`
+  // would go red the moment a 20th contract lands, i.e. exactly when the gate's own goal is met.
+  // (Contrast the tool count on line 112: 13 is a frozen PRODUCT surface, so a literal is right
+  // there. The resource count is a FUNCTION of the bundle, so it must be read from the bundle.)
+  //
+  // This is the only check that spans the whole chain. Every in-package assertion sits on one
+  // side of it: `resources.test.ts` compares RESOURCES to COMMITTED_CONTRACT_SLUGS, but RESOURCES
+  // is `.map()`-derived from those slugs, so that equality is a tautology; and the drift test
+  // compares the bundle to the baked sidecars, which cannot see a wire that ignores the bundle.
+  const bundlePath = join(pkgDir, "src", "data", "adoption-contracts.json")
+  const bundle = JSON.parse(readFileSync(bundlePath, "utf8"))
+  const bundleSlugs = Object.keys(bundle?.contracts ?? {})
+  // Vacuity guard: with an empty bundle every assertion below is trivially true, and an empty
+  // bundle is itself the failure (esbuild inlines this file, so a lost bundle is a lost surface).
+  if (bundleSlugs.length === 0) fail(`committed bundle exposes no contracts: ${bundlePath}`)
+
   const resList = lines.find((l) => l.id === 4)
   const resources = resList?.result?.resources
-  if (!Array.isArray(resources) || resources.length === 0) fail("resources/list returned no resources")
+  if (!Array.isArray(resources)) fail("resources/list did not return a resources array")
+  if (resources.length !== bundleSlugs.length) {
+    fail(`resources/list served ${resources.length} of ${bundleSlugs.length} committed contracts`)
+  }
   if (!resources.every((r) => typeof r.uri === "string" && r.uri.startsWith("calllint://adoption/"))) {
     fail("resources/list returned a non-adoption URI")
+  }
+  // Set equality, not just the count: a same-sized set of different slugs is also a broken
+  // surface. Named difference on both sides, so a failure prints WHICH slug moved.
+  const servedSlugs = resources.map((r) => r.uri.slice("calllint://adoption/".length)).sort()
+  const expectedSlugs = [...bundleSlugs].sort()
+  const missing = expectedSlugs.filter((s) => !servedSlugs.includes(s))
+  const extra = servedSlugs.filter((s) => !expectedSlugs.includes(s))
+  if (missing.length > 0 || extra.length > 0) {
+    fail(`resources/list slug set drifted from the bundle — missing: [${missing}], extra: [${extra}]`)
   }
   const tmplList = lines.find((l) => l.id === 5)
   const templates = tmplList?.result?.resourceTemplates
