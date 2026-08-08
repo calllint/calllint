@@ -447,6 +447,89 @@ as a follow-up ADR — not inferred from whatever a script happened to need.
 > of its own, and a credential — three decisions with no measured basis in this repo yet. Adding an
 > `ExecStart=… rsync …` line to satisfy the letter of §8.4 would be inventing all three silently.
 > It is named here as an open R-9 item rather than closed by prose.
+>
+> **§8.5.1 A fourth measured item, added 2026-08-08 (append, not a rewrite of the three above).**
+> Deferred at R-9 by decision — the information was already enforced by a gate and documented for
+> operators, so landing a sentence of ADR prose alone would have spent a full 3-OS matrix run for no
+> protection. Folded in here because this batch edits §8 for an independent reason (§8.6), which was
+> the stated condition:
+>
+> - **The two worker steps do not share root-resolution logic, and a guard that fires on absence
+>   cannot see a substitution.** `refreshSnapshot.ts:276` reads a bare `process.cwd()`; `pruneCas.ts`
+>   reads `ADOPTION_INDEX_CWD ?? process.cwd()` because it needs a test seam. Setting that variable
+>   in the unit moves **only the sweep**, so it would delete from a tree ingest never writes to — and
+>   because the decoy directory *exists*, the throw-on-absent-tree guard above is blind to it. The run
+>   reports healthy `inspected`/`deleted` counts while the real CAS keeps growing. `WorkingDirectory=`
+>   is the one lever that moves all three steps. General shape: pair every "fail loud if missing" with
+>   "and pin what it points at". Enforced at
+>   `tests/invariants/worker-deployment-unit.invariants.test.ts` (the unit must set **no**
+>   `ADOPTION_INDEX_CWD`, with a vacuity guard) and warned at `deploy/adoption-index/README.md`.
+>
+> **§8.6 The §8.5 backup gap is CLOSED — destination, window, and credential are decided.** §8.5
+> left three decisions with "no measured basis in this repo yet". Each now has one, and the unit is
+> `deploy/adoption-index/calllint-adoption-backup.{service,timer}` — its **own** unit, not a fourth
+> step on the worker.
+>
+> - **Destination: Aliyun OSS.** Authorized by the operator. The measured reason it introduces no new
+>   trust boundary: `deploy/adoption-index/README.md` already describes this as "the shared **Aliyun**
+>   host", so the provider is extended from the compute plane to the storage plane within one
+>   credential domain rather than a new one being added.
+> - **Window: `OnCalendar=*-*-* 03:30:00`,** UTC with no `Timezone=` override, one hour after the
+>   ingest's 02:30. The gap is bounded by measurement, not taste: the worker's
+>   `TimeoutStartSec=45min` plus `RandomizedDelaySec=5min` fits inside 60 minutes, so the backup
+>   cannot overlap the worst *legal* ingest. Overlapping would still yield a **consistent** archive —
+>   `VACUUM INTO` snapshots a transaction — but it would capture a half-mirrored run, i.e. valid
+>   SQLite holding a state no complete run ever produced. That is the failure mode worth avoiding,
+>   and it is not the one "consistency" describes.
+> - **Credential: key names only.** `OSS_BUCKET`, `OSS_ENDPOINT`, `OSS_ACCESS_KEY_ID`,
+>   `OSS_ACCESS_KEY_SECRET`, supplied by `EnvironmentFile=/etc/calllint/backup.env`, root-only and
+>   `chmod 600`, **not in git**. §8.2 binds this: no value of any credential appears in this
+>   repository, and a machine gate scans the units for assigned secret values so the discipline is
+>   enforced rather than remembered.
+>
+> **Why a separate unit rather than a fourth `ExecStart`.** `Type=oneshot` runs `ExecStart=` lines in
+> order and **skips the remainder after any failure**. A fourth step would therefore skip the backup
+> exactly when ingest failed — the moment a backup is most valuable — and, in the other direction, a
+> credential error would fail the whole worker unit, corrupting the `prune:cas failed 0` signal the
+> README already documents as a success criterion. The README's own precedent for the push case says
+> a credentialed action is "an independent decision with its own credential problem — not something
+> wired onto `ExecStart`". This is the same shape.
+>
+> **Scope, narrowed deliberately: the CAS is not archived.** Blobs are content-addressed downloads,
+> so losing one costs a re-fetch rather than a fact, and shipping them would move the growth surface
+> `prune:cas` exists to bound into object storage. What *is* archived is the SQLite store — the only
+> holder of the unreconstructable `first_seen_at` history §8.5 identified, on `source_records`,
+> `canonical_subjects`, and `artifact_versions`. Recorded here as a **decision**, so that a later
+> reader finds a reason rather than an omission.
+>
+> **The cleanup mechanism, and the growth surface it was built from.** The operator's requirement was
+> that the host not fill up. Three targets, measured before being addressed:
+>
+> - **The staged archive** — one full copy of the store per day, and the largest single new surface.
+>   Removed by `ExecStopPost=`, **not** a third `ExecStart`: `ExecStopPost` fires whether the archive
+>   and upload succeeded, failed, or timed out, whereas `Type=oneshot` would skip a third `ExecStart`
+>   after any failure, i.e. precisely when a stale archive is most likely to be sitting there.
+> - **`work/*.part` orphans** — the gap that had **no cleaner at all**. Both failure paths in
+>   `cas.ts` `rmSync` their partial, but a SIGKILL (hitting `MemoryMax=1G` or
+>   `TimeoutStartSec=45min`) leaves it, and `prune:cas` swept only `cas/blobs` and never looked at
+>   `work/`. Now bounded by `CAS_STAGING_ORPHAN_HOURS`, default **48**, with a validating parser that
+>   refuses zero, negative, and non-integer values — the same per-variable discipline
+>   `CAS_RETENTION_DAYS` follows, since §8.5's measurement stands that this repo has no flag
+>   framework. The window is recorded in the unit and pinned by a gate, so it cannot silently fall
+>   back to a code default.
+> - **The OSS side** — a lifecycle rule, recorded in the README and here **by key prefix and day
+>   count**, configured console-side. No code in this repository deletes a remote object: that is an
+>   irreversible action against a store this batch cannot verify, and automating it is out of scope.
+>
+> **Failure semantics, unchanged from `prune:cas`.** A partial failure sets a non-zero exit so it
+> surfaces as a systemd failure rather than a quiet log line, and a missing input is an error rather
+> than a clean zero.
+>
+> **What §8.6 still does not deliver.** No restore has been exercised. The archive is produced and
+> uploaded; nothing in this repository has read one back and rebuilt a store from it, so
+> "restorable" is a design property here and not a measured one. A restore drill needs host access
+> and a place to restore *to*, and it is named as the open item rather than implied by the presence
+> of a backup.
 
 ### §9 The twelve invariants, as they bind Workstream R
 

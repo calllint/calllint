@@ -10,7 +10,7 @@ omission is never mistaken for an oversight.
 | --- | --- |
 | Advertise 2026-07-28 | `PROTOCOL_VERSION` stays `2024-11-05` (`server.ts:13`). That is today's accurate public state. Claiming otherwise before F1-F8 pass is on new17 §19's forbidden-copy list. |
 | Vendor the spec bytes | That is F8 / M26-5. M26-0 is audit-only; `third_party/` remains ABSENT (measured). |
-| Write ADR 0062 | Belongs to M26-1, which is blocked by F8. M26-0 consumes no ADR number. |
+| Write ADR 0062 | Belongs to M26-1, which is blocked by F8. M26-0 consumes no ADR number. **Amended 2026-08-08:** 0062 was consumed by the T0 trajectory-audit landing-site decision ([adrs/0062](../../adrs/0062-trajectory-audit-landing-site.md)), which landed first. **M26-1 uses 0063.** The non-goal itself is unchanged — M26-0 still consumes no ADR number; only the number M26-1 will take has moved. |
 | Implement `server/discover` | D4. Mandatory to implement under 2026-07-28, but adopting it before the version moves would ship a method for a protocol we do not claim. |
 | Read `_meta` | D1. Same reason: the parser change and the version claim must land together. |
 | Move any verdict | `computeVerdict` is the sole adjudicator and is a forbidden path for Workstream M. Measured: `git diff --stat -- packages/` is empty for this batch. |

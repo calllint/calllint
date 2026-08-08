@@ -1,0 +1,29 @@
+[Unit]
+Description=Daily CallLint adoption-index backup to Aliyun OSS
+Documentation=https://github.com/calllint/calllint
+# `Requires` (not `Wants`): a timer whose service unit is missing should fail loudly at
+# `systemctl enable` time, not fire nightly into nothing. Same rule as the worker's timer.
+Requires=calllint-adoption-backup.service
+
+[Timer]
+# 03:30 UTC — one hour after the ingest's 02:30 trigger. The gap is not decoration: the worker's
+# `TimeoutStartSec=45min` bounds how long a run can hold the store, so 60 minutes puts this outside
+# the worst legal ingest even after the worker's own `RandomizedDelaySec=5min`. Backing up mid-ingest
+# would still produce a CONSISTENT archive (`VACUUM INTO` snapshots a transaction, and WAL readers
+# do not block the writer) — but it would capture a half-mirrored run, so the archive would be
+# valid SQLite holding a state no complete run ever produced.
+#
+# UTC regardless of the host's timezone: no `Timezone=` override, so the unit cannot silently shift
+# when the host's zone changes.
+OnCalendar=*-*-* 03:30:00
+
+# Run once after boot if the host was down at the trigger. An archive is date-stamped per day, so a
+# late run writes the same key a punctual one would and simply replaces it.
+Persistent=true
+
+# Spread the start over five minutes, for the co-tenant reason the worker's timer gives. Five
+# minutes cannot reach back into the ingest's window: the gap above is sixty.
+RandomizedDelaySec=5min
+
+[Install]
+WantedBy=timers.target

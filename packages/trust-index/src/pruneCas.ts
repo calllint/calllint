@@ -30,18 +30,32 @@
  * bin lets that throw reach the exit code instead of reporting a clean zero — a misconfigured
  * `ADOPTION_INDEX_CWD` must fail loudly rather than log "0 deleted" every night forever.
  *
+ * TWO SWEEPS, ONE BIN (ADR 0061 §8.6). `cas/blobs` was the only surface §8.4 named, and measuring
+ * the rest found one more that nothing bounded: `work/<hex>.part`. `cas.ts:85,88` cleans the staging
+ * file on both failure paths, but a SIGKILL between the write and the rename leaves it, and this
+ * unit's own `MemoryMax=1G` / `TimeoutStartSec=45min` are exactly what delivers that signal. The
+ * other candidates were measured and are NOT swept, deliberately: every store table but
+ * `compiler_runs` is `ON CONFLICT`-keyed, and `compiler_runs` appends one sub-kB row per daily run.
+ *
  * Usage:  pnpm prune:cas
- *   env:  CAS_RETENTION_DAYS  (positive integer, default 90)
- *         ADOPTION_INDEX_CWD  (directory holding `.var/`, default `process.cwd()`)
+ *   env:  CAS_RETENTION_DAYS        (positive integer, days, default 90)
+ *         CAS_STAGING_ORPHAN_HOURS  (positive integer, HOURS, default 48)
+ *         ADOPTION_INDEX_CWD        (directory holding `.var/`, default `process.cwd()`)
  */
 
 import { resolve } from "node:path"
 import { fileURLToPath } from "node:url"
 import { resolveIndexPaths } from "@calllint/adoption-index"
-import { pruneOldBlobs, resolveRetentionDays } from "./casRetention.js"
+import {
+  pruneOldBlobs,
+  pruneStaleStaging,
+  resolveRetentionDays,
+  resolveStagingOrphanHours,
+} from "./casRetention.js"
 
 function main(): void {
   const retentionDays = resolveRetentionDays(process.env)
+  const orphanHours = resolveStagingOrphanHours(process.env)
   const cwd = (process.env.ADOPTION_INDEX_CWD ?? "").trim() || process.cwd()
   const { root } = resolveIndexPaths(cwd)
   const now = new Date().toISOString()
@@ -55,9 +69,22 @@ function main(): void {
   console.log(`  deleted   ${result.deleted}`)
   console.log(`  failed    ${result.failed}`)
 
+  // The second sweep (ADR 0061 §8.6). It runs unconditionally rather than behind a switch: an
+  // orphan sweep that can be turned off is an unbounded directory with an off switch.
+  const staging = pruneStaleStaging({ root, orphanHours, now })
+  const stagingCutoff = new Date(new Date(now).getTime() - orphanHours * 3600 * 1000).toISOString()
+
+  console.log(`prune:cas — staging orphans ${orphanHours}h, cutoff ${stagingCutoff}`)
+  console.log(`  inspected ${staging.inspected}`)
+  console.log(`  deleted   ${staging.deleted}`)
+  console.log(`  failed    ${staging.failed}`)
+  console.log(`  skipped   ${staging.skipped}`)
+
   // A delete that failed is a policy that did not fully apply. Report it in the exit code so the
-  // systemd unit records a failure instead of a silent partial sweep.
-  if (result.failed > 0) process.exitCode = 1
+  // systemd unit records a failure instead of a silent partial sweep. BOTH sweeps count: an
+  // exit code that reflected only the blob sweep would make a wholly-failed staging sweep read as
+  // a clean run, which is the shape ADR 0061 §8.5 measured for a mis-rooted sweep.
+  if (result.failed > 0 || staging.failed > 0) process.exitCode = 1
 }
 
 // Run ONLY when executed as a script, never on import — the same guard `refreshSnapshot.ts:403`

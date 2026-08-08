@@ -106,6 +106,22 @@ export function casStagingPath(root: string, digest: string): string {
 }
 
 /**
+ * The root of the staging tree, `work` — the directory `casStagingPath` writes into.
+ *
+ * Same argument as `casBlobsRoot`: INV-R7 gives the layout ONE owner, and the ADR 0061 §8.6 orphan
+ * sweep has to ENUMERATE this directory rather than address one file in it. A sweep that joined
+ * `"work"` itself would be a second definition of the layout, and the first one to drift would do
+ * so silently — it would simply sweep a directory nothing writes to and report `inspected 0`
+ * forever, which is the failure mode §8.5 already measured for a mis-rooted CAS sweep.
+ *
+ * Note the asymmetry with `casBlobsRoot`: that tree is a two-character fan-out, this one is flat.
+ * Callers must not assume a shared traversal shape.
+ */
+export function casWorkRoot(root: string): string {
+  return resolve(root, "work")
+}
+
+/**
  * True when `candidate` is inside `root`. Used by the INV-R7 assertion, and written
  * with `resolve` on both sides so a `..` segment cannot smuggle a path past a plain
  * `startsWith` on unnormalized text.
