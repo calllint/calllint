@@ -310,7 +310,23 @@ describe("M26-1 negotiation constants are quotations, not restatements", () => {
 // ---------------------------------------------------------------------------
 
 describe("M26-2 server/discover is built from upstream's required arrays", () => {
-  const serverSource = () => readText("packages/calllint-mcp/src/server.ts")
+  /**
+   * `server.ts` with CRLF folded to LF. This gate measures CODE SHAPE, and a
+   * checkout's line-ending style is not part of that shape: `server.ts` carries no
+   * `text eol=lf` pin (correctly — nothing hashes it, unlike `third_party/**`), so
+   * on windows-latest it arrives CRLF. A blank-line delimiter search for `"\n\n"`
+   * then never matches, `indexOf` returns -1, and every arm-scoped assertion either
+   * reds on the slice or silently measures the WRONG arm — which is how the first CI
+   * run reported `initialize` containing `resultType`: the -1 made the initialize
+   * slice run to end-of-file and swallow the discover arm below it.
+   *
+   * Normalizing here rather than pinning the file keeps the claim honest in both
+   * directions: the vendored bytes' CRLF IS a defect (the digest lock and a
+   * dedicated `\r` count hold that), while this file's line endings are the local
+   * checkout's business. Same class as M-OPEN-4's unstripped `\r` in the
+   * deprecated-table row filter.
+   */
+  const serverSource = () => readText("packages/calllint-mcp/src/server.ts").replace(/\r\n/g, "\n")
   const schemaSource = () => readText(`${VENDOR_DIR}/schema.ts`)
   const changelog = () => readText(`${VENDOR_DIR}/changelog.snapshot.md`)
   interface Def {
@@ -321,15 +337,24 @@ describe("M26-2 server/discover is built from upstream's required arrays", () =>
   const defs = (): Record<string, Def> =>
     (JSON.parse(readText(`${VENDOR_DIR}/schema.json`)) as { $defs: Record<string, Def> }).$defs
 
-  /** The `server/discover` arm's body, so an assertion cannot be satisfied by another method. */
-  const discoverArm = (): string => {
+  /**
+   * One `case` arm's body, so an assertion cannot be satisfied by a DIFFERENT method.
+   *
+   * Both bounds are asserted before the slice. `String.prototype.slice` treats a -1
+   * end as "one before the end", so an unmatched delimiter would slice to almost the
+   * whole file and QUIETLY measure every arm below the target — a false green for a
+   * `not.toContain` assertion and a false red for a `toContain` one. Failing on the
+   * bound is what keeps this helper's answer scoped to the arm it names.
+   */
+  const arm = (caseLabel: string): string => {
     const src = serverSource()
-    const start = src.indexOf('case "server/discover":')
-    expect(start, 'server.ts must serve `case "server/discover"`').toBeGreaterThan(-1)
+    const start = src.indexOf(`case "${caseLabel}":`)
+    expect(start, `server.ts must serve \`case "${caseLabel}"\``).toBeGreaterThan(-1)
     const end = src.indexOf("\n\n", start)
-    expect(end, "the discover arm must be a delimited block").toBeGreaterThan(start)
+    expect(end, `the ${caseLabel} arm must be a blank-line-delimited block`).toBeGreaterThan(start)
     return src.slice(start, end)
   }
+  const discoverArm = (): string => arm("server/discover")
 
   it("every field DiscoverResult requires is emitted by the discover arm", () => {
     // The load-bearing one. Iterating upstream's array — rather than a list typed
@@ -426,10 +451,7 @@ describe("M26-2 server/discover is built from upstream's required arrays", () =>
     // ADR 0064 §4. The `initialize` arm is the witness: if a batch adopts the
     // revision it must add `resultType` there, and this assertion is what makes
     // that a deliberate edit rather than a silent byte change for every client.
-    const src = serverSource()
-    const start = src.indexOf('case "initialize":')
-    const arm = src.slice(start, src.indexOf("\n\n", start))
-    expect(arm).not.toContain("resultType")
+    expect(arm("initialize")).not.toContain("resultType")
     // Non-vacuity: the discover arm DOES carry it, so this is a measured asymmetry
     // rather than the token simply never appearing in the file.
     expect(discoverArm()).toContain("resultType")

@@ -168,9 +168,11 @@ reding anything, exactly as M-OPEN-1 describes for F5/F6.
 
 ## §6.1 Negative controls — what each gate was measured to catch
 
-Seven mutations applied to **source** (never to a test), each run against the same runner, each rolled
+Eight mutations applied to **source** (never to a test), each run against the same runner, each rolled
 back and confirmed byte-identical by sha256. A **positive control** ran first on unmutated source
-(77/77 green), so a red below cannot be a broken importer.
+(77/77 green), so a red below cannot be a broken importer. #142–#148 were run before the first push;
+**#149 was run against a red CI job** and is written up in §6.2 because it falsified the gate itself,
+not the source.
 
 | # | Mutation | Failed naming | Which layer caught it |
 | --: | --- | --- | --- |
@@ -181,6 +183,7 @@ back and confirmed byte-identical by sha256. A **positive control** ran first on
 | 146 | replace `[...SUPPORTED_PROTOCOL_VERSIONS]` with the literal `["2024-11-05"]` | `to match /supportedVersions:\s*\[\s*\.\.\.SUPPO…/` | **source-shape only** — every wire test stayed green, because the value is identical *today*. A second literal is only wrong later, when the set moves and the copy does not |
 | 147 | exempt `server/discover` from the version check | `discover must not bypass version negotiation: expected { jsonrpc, id, …(1) } to have property "error.code" with value -32022` | wire — see below |
 | 148 | add `resultType` to the `initialize` arm | `expected [ 'resultType', …(4) ] to not include 'resultType'` | both — the §4 asymmetry |
+| 149 | convert `server.ts` to CRLF, i.e. reproduce a windows-latest checkout | `the server/discover arm must be a blank-line-delimited block: expected -1 to be greater than 8324` ×4 + the same for `initialize` | **the gate itself** — see §6.2 |
 
 **#145 and #146 are the informative pair.** They fail in *different* layers and neither layer could
 have caught the other: an upstream-derived gate cannot object to a legal-but-wrong value, and a wire
@@ -193,6 +196,54 @@ assertion was rewritten to `toHaveProperty("error.code", -32022)` with a message
 prints the result object that should have been an error. This is
 [[every-collapses-the-observed-value]] in a different disguise: an assertion that reaches *through* a
 missing object prints the reach, not the absence.
+
+## §6.2 The gate was wrong on windows-latest, and its failure named the wrong claim
+
+The first push went green on **ubuntu-latest** and **macos-latest** and red on **windows-latest**
+alone — `1 failed | 221 passed (222)`, five tests, all in this batch's new block. Four reded on the
+arm slice; the fifth printed
+`expected 'case "initialize":\r\n      return re…' not to contain 'resultType'`.
+
+**That fifth message was a false accusation.** `server.ts` does not put `resultType` on `initialize`
+(§4 is intact, and #148 proves the assertion catches it when it does). The `\r\n` in the printed
+string is the whole diagnosis: on a CRLF checkout a blank line is `\r\n\r\n`, so
+`src.indexOf("\n\n", start)` never matches and returns **-1**. `String.prototype.slice(start, -1)`
+does not throw — it slices to one-before-end — so the `initialize` slice ran to **end of file** and
+swallowed the `server/discover` arm below it, where `resultType` legitimately lives. A gate that
+silently widens its own scope reports a defect in the wrong method.
+
+The direction of the error is worth stating, because it is not symmetric: the same -1 makes a
+`not.toContain` assertion a **false red** and a `toContain` assertion a **false green**. This batch
+happened to get the loud half.
+
+`server.ts` arrives CRLF on windows because it carries **no** `text eol=lf` pin — which is correct.
+Nothing hashes it, unlike `third_party/**`, and adding a pin no gate reads would itself be unguarded
+([[served-asset-source-split-pattern]]). So the fix normalizes the **reader**, not the file:
+`readText(...).replace(/\r\n/g, "\n")`. The vendored bytes' CRLF remains a real defect, held by the
+digest lock plus a dedicated `\r`-count assertion — the two claims are kept apart on purpose.
+
+Two changes, because the message mattered as much as the pass:
+
+1. The unguarded slices became one helper, `arm(caseLabel)`, which asserts **both** bounds before
+   slicing. An unmatched delimiter now reds *naming the delimiter*, instead of quietly measuring
+   every arm below the target.
+2. The `initialize` test, which had its own hand-rolled slice, now calls that helper — so there is
+   one scoping implementation, not two.
+
+Measured, not assumed: with the source CRLF and the normalization stripped (#149), the suite
+reproduces CI's five failures exactly, and the fifth now reads
+`the initialize arm must be a blank-line-delimited block` rather than blaming `resultType`. With the
+normalization restored and the source still CRLF: **77/77 green**. The `M26-1` block at
+`tests/invariants/mcp-spec-vendor.invariants.test.ts:223` keeps a second, **un-normalized** reader; it
+was run against the CRLF source too and passed 6/6, because every one of its patterns is either
+`\s`-tolerant or a single-line literal. Left alone deliberately — normalizing a reader whose
+assertions cannot see line endings would be a change no test could justify.
+
+This is the same class as **M-OPEN-4** (the deprecated-table row filter that does not strip `\r`) and
+as [[lockfile-crlf-unpinned]]: a `"\n"` anchor passes two of three OSes. The general rule this batch
+adds — **a gate that slices source on a line-ending-bearing delimiter must normalize first, and must
+assert its bounds** — is recorded here so the next such gate is written correctly rather than
+debugged from a red windows job.
 
 ## §7 What this ADR does not decide
 

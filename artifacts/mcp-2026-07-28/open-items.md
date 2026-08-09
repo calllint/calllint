@@ -151,6 +151,31 @@ reach in practice; this only shapes the diagnostic if it somehow does.
 and re-run control #130 to confirm the count now reads **6** while the CR counter still reds. Both
 halves matter — a fix that made the count right by making the file pass would be strictly worse.
 
+> **Amended 2026-08-09 (M26-2, ADR 0064 §6.2). Read this note as current; the text above stands as
+> the original measurement.**
+>
+> The status above still holds for **this** location: the vendored file is digest-locked and CR-counted,
+> so its CRLF path is unreachable in practice, and the defect remains a message-quality one. What has
+> changed is the **premise used to defer it**. "Cosmetic, with no live failure" was true of the class
+> as well when this was written; it no longer is.
+>
+> M26-2 shipped a gate in the *same file* that slices **un-locked** source (`server.ts`, which carries
+> no `eol=lf` pin, correctly) on a `"\n\n"` delimiter. That gate passed ubuntu-latest and macos-latest
+> and **failed windows-latest alone**, and it failed *naming the wrong method* — `indexOf` returned
+> `-1`, `slice(start, -1)` silently ran to end-of-file, and the `initialize` arm absorbed the
+> `server/discover` arm below it. Negative control **#149** reproduces it exactly. Fixed at source by
+> normalizing the reader and asserting both slice bounds (ADR 0064 §6.2).
+>
+> So the generalizable rule, which did not exist when M-OPEN-4 was filed: **an unlocked file read by a
+> gate is CRLF on one of the three CI OSes, so any delimiter search or line filter over it must
+> normalize first — and any slice must assert its bounds, because `slice(start, -1)` widens scope
+> instead of failing.** The distinction that decides which side a file falls on is *digest-locked vs
+> not*, not *vendored vs ours*.
+>
+> This does not change M-OPEN-4's fix shape or its priority. It records that the fix is now the
+> *second* instance of a known class rather than a one-off, which is the argument for doing it in
+> whichever batch next edits these assertions for a substantive reason.
+
 ---
 
 ## M-OPEN-5 — the surface 2026-07-28 requires is not implemented, and each omission is gated
