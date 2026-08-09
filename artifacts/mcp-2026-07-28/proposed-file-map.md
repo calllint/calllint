@@ -23,7 +23,7 @@ Rows are ordered by the batch that must land first.
 | `packages/calllint-mcp/src/server.ts:20-25` | `JsonRpcRequest` | Must admit `_meta`; today the per-request version is silently discarded (see `current-parser-map.md`). |
 | `packages/calllint-mcp/src/server.ts:31-37` | `ERR` | Needs an `UnsupportedProtocolVersionError` member; the current set is the five base JSON-RPC codes. |
 | `packages/calllint-mcp/src/server.ts:59-62` | `initialize` | Must compare the requested version instead of returning a fixed one. |
-| new ADR | **required** | A change to the advertised protocol version is a public-surface change. Next free number is **0062** (measured: `adrs/` tops out at `0061`; `0060` is reserved by drift-checked bytes at `artifacts/phase-2.4/presentation-plane-audit.json:135`). Re-`ls adrs/` when authorized rather than trusting this line. **Amended 2026-08-08, by executing that instruction:** re-`ls adrs/` returned `0061` as the top and `0062` as free, so the T0 trajectory-audit landing decision took it ([adrs/0062](../../adrs/0062-trajectory-audit-landing-site.md)). **M26-1's next free number is now 0063**; `0060` remains reserved as stated. Re-`ls adrs/` again when M26-1 is authorized rather than trusting this line either. **Amended 2026-08-09, by executing it a third time:** `adrs/` topped out at `0062`, so M26-1 took **0063** ([adrs/0063](../../adrs/0063-per-request-protocol-version-negotiation.md)). `0060` still reserved. |
+| new ADR | **required** | A change to the advertised protocol version is a public-surface change. Next free number is **0062** (measured: `adrs/` tops out at `0061`; `0060` is reserved by drift-checked bytes at `artifacts/phase-2.4/presentation-plane-audit.json:135`). Re-`ls adrs/` when authorized rather than trusting this line. **Amended 2026-08-08, by executing that instruction:** re-`ls adrs/` returned `0061` as the top and `0062` as free, so the T0 trajectory-audit landing decision took it ([adrs/0062](../../adrs/0062-trajectory-audit-landing-site.md)). **M26-1's next free number is now 0063**; `0060` remains reserved as stated. Re-`ls adrs/` again when M26-1 is authorized rather than trusting this line either. **Amended 2026-08-09, by executing it a third time:** `adrs/` topped out at `0062`, so M26-1 took **0063** ([adrs/0063](../../adrs/0063-per-request-protocol-version-negotiation.md)). `0060` still reserved. **Amended 2026-08-09, by executing it a fourth time:** `adrs/` topped out at `0063`, so M26-2 took **0064** ([adrs/0064](../../adrs/0064-server-discover-without-claiming-the-revision.md)). `0060` is **still** reserved — four ADRs have now been numbered around it, so taking it would break a reservation a gate reads. Re-`ls adrs/` a fifth time rather than trusting this line. |
 | new17 §19 forbidden-copy surfaces | **same batch** | The version constant and every public claim must move together. Moving one first is either a false claim or a silent conformance bug. |
 
 ### Amended 2026-08-09 — M26-1 EXECUTED, and one row above is measurably wrong
@@ -65,12 +65,21 @@ must deliberately edit.
 | `packages/calllint-mcp/src/server.ts:59-113` | new `case` | Mandatory to implement, optional to call. Absent today. **Still absent after M26-1 — but its absence is now ASSERTED, not merely pending:** two gates red if `case "server/discover"` appears here (`mcp-spec-vendor.invariants.test.ts`, and a wire test expecting `-32601`). M26-2 must edit both deliberately; see M-OPEN-5. Upstream declares it at `schema.ts:665`/`:678`/`:707`. |
 | `scripts/mcp-pack-smoke.mjs` | new stdio assertion | The gate already drives 6 requests over stdio; a 7th proves the method answers from the *published tarball*, not just in unit tests. |
 
+**Amended 2026-08-09 — M26-2 executed (ADR 0064).** Both rows above are **DONE**, and both gates
+named in the first row were deliberately inverted. Two things this table did not know, recorded so a
+reader does not re-derive them: the new `case` emits **five** fields, not the two D4's row names
+(`DiscoverResult.required` is `["cacheScope","capabilities","resultType","supportedVersions","ttlMs"]`),
+and the 7th stdio request had to take **id 7** rather than 6 because the existing `resources/read`
+check already owns id 6 in a second spawn. The scope stopped at M-OPEN-5 item (a): `initialize` /
+`ping` stay served and `SUPPORTED_PROTOCOL_VERSIONS` is unmoved, so rows (b) and (c) of that work
+order are still live.
+
 ## Gates that will need updating in whichever batch changes the surface
 
 | Path | Why |
 | --- | --- |
 | `scripts/mcp-pack-smoke.mjs:109` | asserts `initialize` returns *some* `protocolVersion`; it does not pin the value. Pinning it is how a version bump becomes visible in the published artifact. |
-| `packages/calllint-mcp/test/*` | 139 tests measured on this branch; the version-shape tests move with `server.ts`. **M26-1 raised `test/server.test.ts` from 16 to 29 tests**; the three new describe blocks (D1, D3, and "no premature claim") are where a version bump will red first. |
+| `packages/calllint-mcp/test/*` | 139 tests measured on this branch; the version-shape tests move with `server.ts`. **M26-1 raised `test/server.test.ts` from 16 to 29 tests**; the three new describe blocks (D1, D3, and "no premature claim") are where a version bump will red first. **M26-2 raised it to 42** and added a fourth place a version bump reds: the `resultType is on discover ONLY` sweep asserts five *other* results carry **no** `resultType`, which the batch adopting 2026-07-28 must delete rather than edit. |
 
 ## Explicitly NOT in scope for any M batch
 

@@ -34,6 +34,26 @@ const SUPPORTED_PROTOCOL_VERSIONS: readonly string[] = [PROTOCOL_VERSION]
  */
 const META_PROTOCOL_VERSION_KEY = "io.modelcontextprotocol/protocolVersion"
 
+/**
+ * The natural-language guidance returned by BOTH `initialize` (as `instructions`)
+ * and `server/discover` (as `DiscoverResult.instructions`). One constant, because
+ * the two methods describe the same server — a second copy would be a claim about
+ * two strings that a test measures as one.
+ */
+const INSTRUCTIONS =
+  "Use BEFORE installing or approving other MCP servers. CallLint is a " +
+  "static preflight safety gate — it never executes a scanned server. " +
+  "Verdicts: SAFE (no blockers observed) / REVIEW / BLOCK / UNKNOWN."
+
+/**
+ * The `ServerCapabilities` object, shared by `initialize` and `server/discover`
+ * for the same reason as `INSTRUCTIONS`. Both keys are empty objects: the tools
+ * and resources capabilities are advertised as present, with no sub-capabilities
+ * (no `listChanged`, no `subscribe` — this server serves committed bytes and has
+ * nothing to notify about).
+ */
+const CAPABILITIES = { tools: {}, resources: {} } as const
+
 export interface ServerInfo {
   name: string
   version: string
@@ -149,12 +169,39 @@ export function handleRequest(
     case "initialize":
       return result(id, {
         protocolVersion: PROTOCOL_VERSION,
-        capabilities: { tools: {}, resources: {} },
+        capabilities: CAPABILITIES,
         serverInfo: info,
-        instructions:
-          "Use BEFORE installing or approving other MCP servers. CallLint is a " +
-          "static preflight safety gate — it never executes a scanned server. " +
-          "Verdicts: SAFE (no blockers observed) / REVIEW / BLOCK / UNKNOWN.",
+        instructions: INSTRUCTIONS,
+      })
+
+    /**
+     * `server/discover` — D4, ADR 0064. Upstream declares it **MUST implement**
+     * (`third_party/mcp-spec/2026-07-28/schema.ts:657`), so it is served here even
+     * though this server still advertises 2024-11-05: implementing it is what makes
+     * a later adoption possible, and it is additive at today's version because the
+     * method did not previously exist.
+     *
+     * All five fields `DiscoverResult` requires are emitted — `supportedVersions`
+     * and `capabilities` from `schema.ts:678`, plus `resultType`/`ttlMs`/`cacheScope`
+     * inherited from `CacheableResult`/`Result`. D4's row in the delta matrix names
+     * only the first two; the other three were measured off the locked
+     * `schema.json` `required` arrays (ADR 0064 §2) and are asserted by a gate that
+     * reads those arrays rather than restating them.
+     *
+     * `resultType` is on THIS result only, not on the other eight — see ADR 0064 §4.
+     * `ttlMs: 0` / `cacheScope: "private"` are the inert ends of both enums, not a
+     * caching strategy (§4). There is deliberately no `serverInfo` in the body:
+     * upstream puts identity in `_meta` as an optional SHOULD, and the changelog
+     * sentence claiming otherwise is wrong (§2.1).
+     */
+    case "server/discover":
+      return result(id, {
+        resultType: "complete",
+        ttlMs: 0,
+        cacheScope: "private",
+        supportedVersions: [...SUPPORTED_PROTOCOL_VERSIONS],
+        capabilities: CAPABILITIES,
+        instructions: INSTRUCTIONS,
       })
 
     case "notifications/initialized":

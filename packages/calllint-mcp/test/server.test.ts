@@ -233,8 +233,131 @@ describe("no premature claim of 2026-07-28 support", () => {
     expect(res && "error" in res).toBe(true)
   })
 
-  it("server/discover is still absent — M26-2's surface is not smuggled in here", () => {
+  it("server/discover advertises 2024-11-05 and NOT 2026-07-28", () => {
+    // Inverted from "is still absent" by M26-2 (ADR 0064) — deliberately, per
+    // M-OPEN-5's work order. The method now exists; what must NOT change is what
+    // it advertises. `supportedVersions` is the same array the negotiation layer
+    // validates against, so this is the wire-level half of the "no premature
+    // claim" assertion below.
     const res = handleRequest({ jsonrpc: "2.0", id: 1, method: "server/discover" }, INFO, OPTS)
-    expect((res as { error: { code: number } }).error.code).toBe(-32601)
+    const r = (res as { result: { supportedVersions: string[] } }).result
+    expect(r.supportedVersions).toEqual(["2024-11-05"])
+    expect(r.supportedVersions).not.toContain("2026-07-28")
+  })
+})
+
+// ---------------------------------------------------------------------------
+// server/discover — D4, ADR 0064.
+//
+// The five required fields are QUOTATIONS of the vendored `schema.json`
+// `required` arrays; `tests/invariants/mcp-spec-vendor.invariants.test.ts` reads
+// those arrays off disk and asserts this file's shape against them. These tests
+// measure the wire result.
+// ---------------------------------------------------------------------------
+
+describe("server/discover (D4)", () => {
+  const discover = (id: number = 1) =>
+    (handleRequest({ jsonrpc: "2.0", id, method: "server/discover" }, INFO, OPTS) as {
+      result: Record<string, unknown>
+    }).result
+
+  it("carries ALL FIVE fields DiscoverResult requires", () => {
+    // Asserted as a set rather than field-by-field: a missing field prints as a
+    // set difference naming itself, where five separate `toBeDefined()` calls
+    // would print "undefined" and leave the reader to work out which one.
+    const r = discover()
+    for (const k of ["cacheScope", "capabilities", "resultType", "supportedVersions", "ttlMs"]) {
+      expect(Object.keys(r), `DiscoverResult.required member ${k}`).toContain(k)
+    }
+  })
+
+  it("resultType is \"complete\" — the value upstream's back-compat rule names", () => {
+    expect(discover().resultType).toBe("complete")
+  })
+
+  it("the cache hints are the inert ends of both enums", () => {
+    // ttlMs 0 = "immediately stale", cacheScope "private" = never shared across
+    // authorization contexts. ADR 0064 §4: chosen to be inert, not as a caching
+    // strategy. A future batch wanting discover cached must change these and say why.
+    const r = discover()
+    expect(r.ttlMs).toBe(0)
+    expect(r.cacheScope).toBe("private")
+  })
+
+  it("capabilities and instructions are the SAME values initialize returns", () => {
+    // One server, two methods that describe it. Two copies of these values would
+    // be a claim about two strings, and a drift between them would be invisible
+    // to a test that read only one.
+    const init = (handleRequest({ jsonrpc: "2.0", id: 1, method: "initialize" }, INFO, OPTS) as {
+      result: Record<string, unknown>
+    }).result
+    const disc = discover()
+    expect(disc.capabilities).toEqual(init.capabilities)
+    expect(disc.instructions).toEqual(init.instructions)
+  })
+
+  it("carries NO serverInfo in the result body — the changelog's claim is wrong", () => {
+    // changelog.snapshot.md:16 says discover advertises "identity". DiscoverResult
+    // has no such field: upstream puts identity in `_meta` as an optional SHOULD
+    // (schema.ts:157). Asserted so a reader following the changelog cannot add it
+    // back silently. ADR 0064 §2.1.
+    expect(Object.keys(discover())).not.toContain("serverInfo")
+  })
+
+  it("a version declaration is still checked — discover is not a negotiation bypass", () => {
+    // The check runs before the method switch, so this holds by construction; it
+    // is asserted because discover is exactly the method a client would call to
+    // ESCAPE a version disagreement, which makes "does it bypass?" worth measuring.
+    // Asserted on the whole response, not on `.error.code`: a bypass returns a
+    // RESULT, so reading `.error.code` off it reds with "cannot read properties
+    // of undefined" — a message that names neither the bypass nor what arrived.
+    const res = handleRequest(withVersion("2026-07-28", "server/discover"), INFO, OPTS)
+    expect(res, "discover must not bypass version negotiation").toHaveProperty("error.code", -32022)
+  })
+
+  it("declaring the advertised version reaches discover normally", () => {
+    // Non-vacuity for the test above: proves -32022 came from the version, not
+    // from `server/discover` being unreachable with a `_meta` block present.
+    const res = handleRequest(withVersion("2024-11-05", "server/discover"), INFO, OPTS)
+    expect((res as { result: { resultType: string } }).result.resultType).toBe("complete")
+  })
+
+  it("clientCapabilities is required upstream, unread here, and harmless either way", () => {
+    // ADR 0064 §5. A strict read would reject every 2024-11-05 request, since
+    // that wire shape has no `_meta` at all. Asserted two-sidedly: declaring the
+    // key changes nothing, and omitting it is not an error.
+    const withCaps = {
+      jsonrpc: "2.0" as const,
+      id: 1,
+      method: "server/discover",
+      params: {
+        _meta: {
+          [META_KEY]: "2024-11-05",
+          "io.modelcontextprotocol/clientCapabilities": { elicitation: {} },
+        },
+      },
+    }
+    const declared = (handleRequest(withCaps, INFO, OPTS) as { result: unknown }).result
+    expect(declared).toEqual(discover())
+  })
+})
+
+describe("resultType is on discover ONLY — the other results are unchanged", () => {
+  // ADR 0064 §4: upstream requires `resultType` on every result at 2026-07-28,
+  // but this server serves 2024-11-05, where its ABSENCE is the defined
+  // behaviour ("the client MUST treat the absent field as `complete`"). Adding it
+  // to the eight pre-existing results would change bytes today's clients already
+  // receive, for a revision we do not claim. The batch that adopts the revision
+  // must add it everywhere and delete this test — which is why it exists.
+  it.each([
+    "initialize",
+    "tools/list",
+    "resources/list",
+    "resources/templates/list",
+    "ping",
+  ])("%s result carries no resultType", (method) => {
+    const res = handleRequest({ jsonrpc: "2.0", id: 1, method }, INFO, OPTS)
+    const r = (res as { result: Record<string, unknown> }).result
+    expect(Object.keys(r)).not.toContain("resultType")
   })
 })

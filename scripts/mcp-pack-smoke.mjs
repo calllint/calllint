@@ -81,7 +81,8 @@ try {
   ok("dist/index.js has shebang and is self-contained")
 
   // 5. Drive the server over stdio: initialize, tools/list (=13), tools/call BLOCK,
-  //    resources/list (= every committed contract) + resources/read (verbatim contract).
+  //    resources/list (= every committed contract) + resources/read (verbatim contract),
+  //    server/discover (M26-2 / ADR 0064 — upstream MUST implement).
   const requests = [
     { jsonrpc: "2.0", id: 1, method: "initialize", params: {} },
     { jsonrpc: "2.0", id: 2, method: "tools/list" },
@@ -100,6 +101,8 @@ try {
     },
     { jsonrpc: "2.0", id: 4, method: "resources/list" },
     { jsonrpc: "2.0", id: 5, method: "resources/templates/list" },
+    // id 6 belongs to the second spawn's resources/read below, so discover takes 7.
+    { jsonrpc: "2.0", id: 7, method: "server/discover" },
   ]
   const input = requests.map((r) => JSON.stringify(r)).join("\n") + "\n"
   const res = spawnSync(process.execPath, [distPath], { input, encoding: "utf8", timeout: 30000 })
@@ -159,6 +162,37 @@ try {
   const templates = tmplList?.result?.resourceTemplates
   if (!Array.isArray(templates) || templates.length === 0) fail("resources/templates/list returned no templates")
 
+  // server/discover — M26-2 / ADR 0064. Upstream declares it MUST implement
+  // (third_party/mcp-spec/2026-07-28/schema.ts:657), so the 7th request proves the method answers
+  // from the PUBLISHED TARBALL, not only in unit tests. That distinction has bitten this surface
+  // before: INV-M8's 3-of-19 truncation was a wire defect that 3548 unit tests could not see.
+  //
+  // The five field names are DiscoverResult's `required` array, asserted as a set difference so a
+  // missing field prints its own name. `tests/invariants/mcp-spec-vendor.invariants.test.ts` reads
+  // that array off the digest-locked schema.json and checks server.ts against it; here the names
+  // are restated deliberately, because this script must run against a tarball with no repo beside
+  // it — the vendor gate is what keeps this list honest.
+  const disc = lines.find((l) => l.id === 7)
+  if (disc?.result == null) fail("server/discover returned no result — upstream declares it MUST implement")
+  const discMissing = ["cacheScope", "capabilities", "resultType", "supportedVersions", "ttlMs"].filter(
+    (k) => !(k in disc.result),
+  )
+  if (discMissing.length > 0) fail(`server/discover omitted DiscoverResult required fields: [${discMissing}]`)
+  if (disc.result.resultType !== "complete") fail(`server/discover resultType should be complete, got ${disc.result.resultType}`)
+  // The public claim, checked at the distribution boundary: new17 §19 forbids advertising
+  // 2026-07-28 until a batch implements the surface, and M-OPEN-5 orders that claim LAST — after
+  // (a) this method and (b) removing the handshake. Neither is done, so the shipped bytes must
+  // still advertise 2024-11-05 only. A premature flip in server.ts reds here as well as in tests.
+  const advertised = disc.result.supportedVersions
+  if (!Array.isArray(advertised) || advertised.length !== 1 || advertised[0] !== "2024-11-05") {
+    fail(`server/discover must advertise exactly ["2024-11-05"], got ${JSON.stringify(advertised)}`)
+  }
+  // One server, two methods describing it: a drift between these would be invisible to a check
+  // that read only one of them.
+  if (JSON.stringify(disc.result.capabilities) !== JSON.stringify(init.result.capabilities)) {
+    fail("server/discover capabilities differ from initialize's")
+  }
+
   // resources/read the first advertised contract → must return verbatim JSON text.
   const readReq = { jsonrpc: "2.0", id: 6, method: "resources/read", params: { uri: resources[0].uri } }
   const res2 = spawnSync(process.execPath, [distPath], {
@@ -172,7 +206,7 @@ try {
   const contract = JSON.parse(contents[0].text)
   if (typeof contract?.contract?.contractDigest !== "string") fail("resources/read did not return a valid adoption contract")
   ok(
-    `stdio server: initialize + tools/list(${list.result.tools.length}) + tools/call → BLOCK + resources(${resources.length}) + read verbatim`,
+    `stdio server: initialize + tools/list(${list.result.tools.length}) + tools/call → BLOCK + resources(${resources.length}) + read verbatim + server/discover(${advertised.join(",")})`,
   )
 
   console.log("mcp-pack-smoke: PASS")
