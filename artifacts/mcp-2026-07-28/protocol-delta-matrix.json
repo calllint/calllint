@@ -8,7 +8,13 @@
     "advertised": "2024-11-05",
     "source": "packages/calllint-mcp/src/server.ts:13",
     "servedAt": "packages/calllint-mcp/src/server.ts:61",
-    "unchangedByThisBatch": true
+    "unchangedByThisBatch": true,
+    "amendedByM26-3": {
+      "supersedes": "`servedAt` above. It is retained verbatim rather than corrected in place; read this block as current.",
+      "servedAt": "packages/calllint-mcp/src/server.ts:171",
+      "asMeasured": "Line 61 is now BLANK. M26-2 hoisted the `INSTRUCTIONS` and `CAPABILITIES` constants above the method switch so `initialize` and `server/discover` could share one copy of each, which moved every line in the switch down. `protocolVersion: PROTOCOL_VERSION` — the place the advertised version is actually served — is line 171. The recorded value was correct at `measuredAgainstCommit` and drifted with a refactor that changed no served byte.",
+      "whyThisIsRecordedRatherThanJustFixed": "A line-number pointer degrades silently: nothing red when line 61 stopped being the served location, because nothing read this file. That is the motivation for the pointer-truth layer M26-3 added, not an incidental catch. `tests/invariants/mcp-artifact-claims.invariants.test.ts` now asserts each cited `path:line` CONTAINS what the artifact claims — asserting merely that the line exists would have been satisfied by the blank line."
+    }
   },
   "readingGuide": "`affectsCallLint` answers one narrow question: would adopting this delta change a byte CallLint SERVES or a verdict it EMITS? A delta can be normatively important upstream and still be scored `false` here, because CallLint is a stdio server with 13 tools and 19 read-only resources — it is not an HTTP transport, has no auth surface, and runs no long-lived tasks.",
   "deltas": [
@@ -44,7 +50,13 @@
       "normative": true,
       "affectsCallLint": true,
       "why": "The current error set (server.ts ERR.*) has no version-mismatch member, so a mismatched client today gets a generic error or a silent success at the wrong version.",
-      "owner": "M26-1 (blocked by F8)"
+      "owner": "M26-1 (blocked by F8)",
+      "amendedByM26-1": {
+        "supersedes": "The `why` field above, which is written in the PRESENT TENSE and is now false. It is retained verbatim rather than rewritten; read this block as current.",
+        "why": "IMPLEMENTED. `ERR.UNSUPPORTED_PROTOCOL_VERSION: -32022` exists in `packages/calllint-mcp/src/server.ts`, quoted from the locked bytes at `third_party/mcp-spec/2026-07-28/schema.ts:450`, and `unsupportedVersionError()` returns the `UnsupportedProtocolVersionError` shape with `data.supported` and `data.requested`. A mismatched client no longer gets a generic error or a silent success at the wrong version.",
+        "asMeasured": "Recorded by M26-3, not M26-1. D3 was the only row with `affectsCallLint: true` and NO amendment: D1 and D4 each got one when their batch landed, and D3's implementation arrived inside M26-1 alongside D1's, so nothing prompted a second edit. The claim was true when written and stayed on the page for two batches after it stopped being true.",
+        "whyTheStaleTextStays": "A deleted claim is indistinguishable from a claim never made. The present-tense form is exactly the shape that misleads a later reader, so it is worth keeping visible next to its correction."
+      }
     },
     {
       "id": "D4",
@@ -82,7 +94,15 @@
       "normative": true,
       "affectsCallLint": false,
       "why": "Nothing is removed within this revision (F7), so no CallLint code path breaks by continuing to advertise 2024-11-05.",
-      "owner": "re-measure at M26-1"
+      "owner": "re-measure at M26-1",
+      "amendedByM26-3": {
+        "supersedes": "The `change` and `owner` fields above. Both are retained verbatim; read this block as current. `why` and `affectsCallLint: false` are UNCHANGED and still correct — removal is a future-revision act, so nothing in this revision breaks on any clock.",
+        "change": "6 features deprecated; Removed section empty. The removal clock is NOT uniform: 4 of the 6 rows read \"First revision released on or after 2027-07-28\", `includeContext` reads \"Follows Sampling ([SEP-2577](…/pull/2577))\" — a markdown LINK in the locked bytes, not the plain-text form the rendered page shows — and the HTTP+SSE row reads \"Three months after SEP-2596 reaches Final\" — a date the registry does not record, because SEP-2596 has not reached Final.",
+        "owner": "DISCHARGED at M26-3. The re-measure this field asked for is done; there is nothing further owed on D6.",
+        "asMeasured": "Measured against the digest-locked `third_party/mcp-spec/2026-07-28/deprecated.snapshot.md`, whose `## Deprecated` table has 6 rows and whose `## Removed` section is empty.",
+        "whyThisMatteredMoreThanAStaleOwner": "The superseded `change` states a SINGLE UNIFORM removal date — the exact claim F7's own `forwardObligation` in `finality-status.json` forbids: \"Any future CallLint copy about 2026-07-28 deprecations must not state a single uniform removal date.\" That over-statement was already found, corrected and GATED in `finality-status.json` by `tests/invariants/mcp-spec-vendor.invariants.test.ts:180`. It survived verbatim here because NOTHING READ THIS FILE. A correction reaches only the copy that something reads — which is why M26-3's deliverable is a reader, not a rewrite.",
+        "gate": "`tests/invariants/mcp-artifact-claims.invariants.test.ts` derives the non-uniformity from the locked bytes (some rows dated, not all) rather than restating it, so a gate cannot agree with the error it exists to prevent."
+      }
     }
   ],
   "summary": {

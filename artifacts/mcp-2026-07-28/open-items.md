@@ -62,7 +62,9 @@ assertions, at which point all eight gates are gate-backed and this row closes.
 
 ## M-OPEN-2 — the superseded top-level `verdict` has no reader-side guard
 
-**Status:** OPEN. A documentation hazard, not a correctness bug.
+**Status:** **CLOSED 2026-08-09 (M26-3, ADR 0065).** Closed by this row's own stated condition; the
+original text below stands unedited as the measurement that motivated it. See the closing note at the
+end of the row.
 
 | | |
 | --- | --- |
@@ -92,6 +94,40 @@ value justified only by neighbouring prose is a claim about two files, and tests
 
 **What would make this row false:** an amendment-resolution helper plus an assertion that the stale
 top-level value cannot be read as current.
+
+> **CLOSED 2026-08-09 (M26-3, ADR 0065). Read this note as current; everything above stands as the
+> original measurement.**
+>
+> Both halves of the stated condition now exist in
+> `tests/invariants/mcp-artifact-claims.invariants.test.ts`, the **first machine reader** of this
+> directory: `resolveAmended(obj, field)` prefers `*AmendedByM26-*` and falls back to the top level
+> only when no amendment supplies the field, and five call sites route through
+> `expectResolvedViaAmendment`, which reds when the resolution did **not** come from an amendment —
+> printing the stale value that would otherwise have been read as current.
+>
+> Nothing was overwritten. The top-level `verdict` / `productionChangesAllowed` still read
+> `PENDING_FINAL` / `false`, exactly as this row required.
+>
+> **Two things this row could not have anticipated, both found by the assertions failing:**
+>
+> 1. **There are two amendment-key casings.** This file writes `verdictAmendedByM26-5`
+>    (field-prefixed, capital `A`); `protocol-delta-matrix.json` writes `amendedByM26-1` (bare,
+>    lowercase `a`). The first draft matched `/AmendedByM26-/`, so **all five** matrix lookups fell
+>    through to the stale top-level value **and reported success** — this row's exact hazard,
+>    reproduced by the gate written to prevent it. It surfaced only because the assertions check
+>    *which source answered* (`via`) and not just the value. A value-only assertion would have passed
+>    for the wrong reason.
+> 2. **There are two amendment shapes**, so one helper is not enough. Replacement blocks restate the
+>    field; **supersede-in-prose-only** blocks do not — `summary.amendedByM26-1` carries no
+>    `allBlockedBy`, and `D1.amendedByM26-1` carries no `why`. Folding both into one helper would make
+>    a superseded-only claim indistinguishable from an unamended one, which is this row's conflation in
+>    a different disguise. Hence a second helper, `supersededBy`, matching the `supersedes` prose
+>    (which names its target in backticks).
+>
+> **Negative controls:** #150 (delete `verdictAmendedByM26-5` wholesale) reds naming the missing
+> amendment and printing `false`; #151 (a `resolveAmended` that ignores amendments) reds **five times**,
+> each printing the exact stale claim a naive reader would have believed. #151 is the control that
+> directly demonstrates this row's requirement.
 
 ---
 
@@ -175,6 +211,41 @@ halves matter — a fix that made the count right by making the file pass would 
 > This does not change M-OPEN-4's fix shape or its priority. It records that the fix is now the
 > *second* instance of a known class rather than a one-off, which is the argument for doing it in
 > whichever batch next edits these assertions for a substantive reason.
+
+> **Amended again 2026-08-09 (M26-3, ADR 0065 §6) — third instance, and the boundary is sharper than
+> the note above states. Read this as current; both notes above stand.**
+>
+> M26-3 added `tests/invariants/mcp-artifact-claims.invariants.test.ts`, which reads three files in
+> `artifacts/mcp-2026-07-28/` plus `packages/calllint-mcp/src/server.ts`. Its reader normalizes CRLF,
+> applied at authoring time from the rule above rather than after a red windows job — so this is the
+> third instance of the class, and the first where the rule was used **preventively**.
+>
+> **But the premise M26-3 started from was wrong, and measuring it narrowed the rule.** The plan
+> asserted `artifacts/**` carries no `eol` pin and therefore *must* be normalized. Measured with
+> `git check-attr text eol`:
+>
+> | Path | `eol` | Held by |
+> | --- | --- | --- |
+> | `artifacts/mcp-2026-07-28/**` | **lf** | `.gitattributes:112`, added by M26-0 for this exact trap |
+> | `third_party/**` | **lf** | `.gitattributes:149` + sha256 lock + a `\r` counter |
+> | `packages/calllint-mcp/src/server.ts` | **unspecified** | nothing — correctly, nothing hashes it |
+>
+> So `artifacts/**` is **unhashed yet on the safe side**, and the deciding line is not
+> *digest-locked vs not* as the note above puts it, but **pinned-or-locked vs not**. Negative control
+> **#154** — strip that reader's normalization *and* CRLF-ify `server.ts`, i.e. reproduce a
+> windows-latest checkout exactly — leaves the suite **8/8 green**, because every assertion over the
+> one unpinned file is `\r`-blind by construction (two `\s`-tolerant regexes; a `toContain` on a line,
+> where a trailing `\r` sits past the match). The shape that *would* break is an exact `toBe` on a
+> line. That is the same reason the M26-1 block at `mcp-spec-vendor.invariants.test.ts:223` was left
+> un-normalized deliberately.
+>
+> The normalization in the new gate stays regardless, as **defensive rather than load-bearing** — the
+> next assertion added there does not inherit that accidental tolerance. Recorded because a green
+> negative control is either a weak gate or a false premise, and here it was the premise; the check
+> that settled it was `git check-attr`, not argument.
+>
+> M-OPEN-4's own fix shape and priority are **unchanged**. Its location remains digest-locked and
+> CR-counted, so its CRLF path stays unreachable in practice.
 
 ---
 
