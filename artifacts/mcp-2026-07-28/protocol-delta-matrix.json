@@ -19,7 +19,14 @@
       "normative": true,
       "affectsCallLint": true,
       "why": "server.ts returns a single fixed protocolVersion at initialize (:61) and reads no per-request _meta. Adopting 2026-07-28 means honouring a per-request declaration and rejecting an unsupported one.",
-      "owner": "M26-1 (blocked by F8)"
+      "owner": "M26-1 (blocked by F8)",
+      "amendedByM26-1": {
+        "supersedes": "The `change` field above, specifically the phrase \"replacing initialize-only negotiation as the sole signal\". Retained verbatim because a deleted claim is indistinguishable from a claim never made — but a reader must take this amendment as current.",
+        "asMeasured": "2026-07-28 does not DEMOTE `initialize`, it DELETES it. `grep -c 'nitialize'` over the vendored schema.ts is 0, and over schema.json is 0. changelog.snapshot.md Major changes #2 reads verbatim: \"Make MCP stateless: remove the `initialize`/`notifications/initialized` handshake.\" The same changelog's Major #5 removes `ping` and `logging/setLevel` (both 0 hits in schema.ts).",
+        "whyTheOriginalWasWrong": "The phrase was authored before the bytes were vendored, from a rendered documentation page no gate could read back — the same mechanism that made F4's section names and F7's source URL wrong. Note the internal contradiction: this row's own citation, SEP-2575, IS the SEP that deletes the method the row describes as surviving.",
+        "consequenceForScope": "M26-1's recorded fix shape (`proposed-file-map.md`: \"`initialize` must compare the requested version\") targets a method that will not exist. So M26-1 as EXECUTED implements the negotiation layer only — per-request `_meta` read + UnsupportedProtocolVersionError — and leaves `initialize`/`ping` served, because REMOVING a served method is a public-surface change that needs `server/discover` (MUST implement upstream, owned by M26-2) to replace it. See ADR 0063 §2.",
+        "landedBy": "ADR 0063; gated by tests/invariants/mcp-spec-vendor.invariants.test.ts (both halves parsed) and packages/calllint-mcp/test/server.test.ts."
+      }
     },
     {
       "id": "D2",
@@ -72,7 +79,17 @@
     "totalDeltas": 6,
     "affectingCallLint": 3,
     "affectingIds": ["D1", "D3", "D4"],
-    "allBlockedBy": "F8 — no vendored bytes, so none of the three can be gated offline (INV-M4)"
+    "allBlockedBy": "F8 — no vendored bytes, so none of the three can be gated offline (INV-M4)",
+    "amendedByM26-1": {
+      "supersedes": "`allBlockedBy` above, and the `(blocked by F8)` suffix on every `owner` field. Both are retained verbatim rather than rewritten; read this block as current.",
+      "asMeasured": "F8 is PASS as of M26-5 (`669ebf9`, PR #274), which vendored the bytes under third_party/mcp-spec/2026-07-28/ behind a sha256 lock. All eight finality gates now pass, so the blocker named above is SPENT — it was the correct blocker when written and is no longer a live one.",
+      "statusAfterThisBatch": {
+        "D1": "IMPLEMENTED (negotiation layer only) — ADR 0063",
+        "D3": "IMPLEMENTED — ADR 0063",
+        "D4": "OPEN, owned by M26-2, needs its own authorization. Its absence is now ASSERTED rather than merely pending: a gate reds if `case \"server/discover\"` appears in server.ts."
+      },
+      "whatIsStillNotClaimed": "PROTOCOL_VERSION remains 2024-11-05 and 2026-07-28 is absent from SUPPORTED_PROTOCOL_VERSIONS. Finality passing is permission to SCOPE the revision, not to claim it (new17 §19). `currentState.unchangedByThisBatch` above referred to the M26-5 batch; M26-1 likewise does not change the advertised string, but it DOES change server.ts — see ADR 0063 §3.1."
+    }
   },
   "boundaries": {
     "forbiddenPaths": [

@@ -210,3 +210,92 @@ describe("M26-5 vendored MCP spec — the offline facts F1-F7 cite", () => {
     )
   })
 })
+
+// ---------------------------------------------------------------------------
+// M26-1 (ADR 0063) — the two constants server.ts adopted are QUOTATIONS of the
+// vendored bytes, so each is a claim about TWO files. A comment naming the
+// upstream source is exactly the shape that drifts unnoticed, so both halves
+// are parsed here rather than restated.
+// ---------------------------------------------------------------------------
+
+describe("M26-1 negotiation constants are quotations, not restatements", () => {
+  const schemaSource = () => readText(`${VENDOR_DIR}/schema.ts`)
+  const serverSource = () => readText("packages/calllint-mcp/src/server.ts")
+
+  it("D1 — the _meta version key server.ts uses is the key upstream declares", () => {
+    const KEY = "io.modelcontextprotocol/protocolVersion"
+    // Upstream side: a REQUIRED field of RequestMetaObject (not optional — no `?:`).
+    expect(schemaSource()).toContain(`"${KEY}": string;`)
+    // Our side: the same literal, and it must be the value of the named constant.
+    expect(serverSource()).toMatch(
+      new RegExp(`META_PROTOCOL_VERSION_KEY\\s*=\\s*"${KEY.replace(/[./]/g, "\\$&")}"`),
+    )
+  })
+
+  it("D3 — the error code server.ts uses is the code upstream assigns", () => {
+    const m = /export const UNSUPPORTED_PROTOCOL_VERSION = (-?\d+);/.exec(schemaSource())
+    expect(m, "upstream must still export UNSUPPORTED_PROTOCOL_VERSION").not.toBeNull()
+    const upstreamCode = Number(m![1])
+    expect(upstreamCode).toBe(-32022)
+    expect(serverSource()).toMatch(
+      new RegExp(`UNSUPPORTED_PROTOCOL_VERSION:\\s*${upstreamCode}`),
+    )
+    // In the MCP reserved range, so it cannot collide with a base JSON-RPC code.
+    expect(upstreamCode).toBeLessThanOrEqual(-32000)
+    expect(upstreamCode).toBeGreaterThanOrEqual(-32099)
+  })
+
+  it("D3 — the error DATA shape carries both fields upstream requires", () => {
+    // `supported` is what the client retries with; `requested` is what it sent
+    // (schema.ts:483). A bare code would say "no" without saying "try this".
+    const iface = schemaSource()
+    const start = iface.indexOf("export interface UnsupportedProtocolVersionError")
+    expect(start).toBeGreaterThan(-1)
+    const body = iface.slice(start, start + 900)
+    expect(body).toContain("supported: string[];")
+    expect(body).toContain("requested: string;")
+    expect(serverSource()).toMatch(/data:\s*\{\s*supported:[\s\S]{0,80}requested\s*\}/)
+  })
+
+  it("initialize and ping are REMOVED upstream — recorded, and deliberately still served here", () => {
+    // The finding that reshaped M26-1: `proposed-file-map.md` scoped it as "make
+    // `initialize` compare the requested version", but 2026-07-28 deletes the
+    // method outright (changelog Major #2) along with `ping` (Major #5). This
+    // batch keeps both, because REMOVING them is a public-surface change that
+    // needs `server/discover` (MUST implement, owned by M26-2) to replace them.
+    // Asserted two-sidedly so neither half can drift: gone upstream, present here.
+    const upstream = schemaSource()
+    expect(upstream).not.toMatch(/nitialize/)
+    expect(upstream).not.toContain('"ping"')
+    expect(readText(`${VENDOR_DIR}/changelog.snapshot.md`)).toContain(
+      "remove the `initialize`/`notifications/initialized` handshake",
+    )
+    const ours = serverSource()
+    expect(ours).toContain('case "initialize":')
+    expect(ours).toContain('case "ping":')
+  })
+
+  it("2026-07-28 is absent from the supported set — the omission is gated, not pending", () => {
+    // The single line that separates "negotiation implemented" from "revision
+    // claimed". Adding the revision here without M26-2's `server/discover`
+    // would advertise support for a surface that does not exist.
+    const m = /SUPPORTED_PROTOCOL_VERSIONS:\s*readonly string\[\]\s*=\s*\[([^\]]*)\]/.exec(
+      serverSource(),
+    )
+    expect(m, "SUPPORTED_PROTOCOL_VERSIONS must exist and be a literal array").not.toBeNull()
+    expect(m![1]).not.toContain("2026-07-28")
+    expect(m![1]).toContain("PROTOCOL_VERSION")
+    // Non-vacuity: read upstream's own revision string, so this assertion cannot
+    // be satisfied by the revision simply never having been vendored.
+    const rev = /export const LATEST_PROTOCOL_VERSION = "([^"]+)";/.exec(schemaSource())
+    expect(rev![1]).toBe("2026-07-28")
+  })
+
+  it("server/discover is NOT implemented here — M26-2's surface is not smuggled in", () => {
+    // Upstream: MUST implement. Ours: absent, on purpose and by authorization
+    // scope. If a later batch adds it, this assertion is the one that must be
+    // deliberately updated — which is the point.
+    expect(schemaSource()).toContain('method: "server/discover"')
+    expect(serverSource()).not.toContain('case "server/discover"')
+  })
+})

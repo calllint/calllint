@@ -153,6 +153,64 @@ halves matter — a fix that made the count right by making the file pass would 
 
 ---
 
+## M-OPEN-5 — the surface 2026-07-28 requires is not implemented, and each omission is gated
+
+**Status:** OPEN **by design**. Measured 2026-08-09 against the M26-1 working tree (ADR 0063).
+This is the deliberate residue of M26-1, not an oversight — the distinction is that every item
+below is **asserted by a test**, so the batch that lands one must edit a named assertion.
+
+| | |
+| --- | --- |
+| **Measured** | `grep -c 'nitialize'` over `third_party/mcp-spec/2026-07-28/schema.ts` → **0**; over `schema.json` → **0**; `grep -c '"ping"' schema.ts` → **0**; `changelog.snapshot.md` Major #2 and #5 |
+| **Location** | `packages/calllint-mcp/src/server.ts` (the served method table); `SUPPORTED_PROTOCOL_VERSIONS` at `:26` |
+| **Recorded in** | ADR 0063 §3.1 (the four omissions and what holds each line) |
+
+M26-1 implemented **D1 and D3 only** — the per-request `_meta` version read and
+`UnsupportedProtocolVersionError` (-32022). Three things a real adoption of 2026-07-28 needs are
+therefore still absent:
+
+| # | Absent | Upstream status | Owner |
+| --- | --- | --- | --- |
+| a | `server/discover` | **MUST implement** (`schema.ts:665`/`:678`/`:707`) | M26-2 (D4) |
+| b | Removal of `initialize` / `notifications/initialized` / `ping` | deleted by SEP-2575 (stateless MCP) | unassigned |
+| c | `2026-07-28` in `SUPPORTED_PROTOCOL_VERSIONS` | — | the batch that finishes a + b |
+
+**Why none of this is a bug today.** The server advertises **2024-11-05**, whose wire shape
+contains all three methods. Serving a method a *later* revision deleted is only wrong once you
+claim that later revision. So (b) is not dead code — it is the current contract, and removing it
+would be a public-surface break made for the sake of a revision we do not serve.
+
+**The ordering is the finding, and it is not obvious from the delta matrix.** (a) must land
+**before** (b): `server/discover` is what *replaces* the handshake. A batch that reads "2026-07-28
+removes `initialize`" and removes it first leaves a client with no way to learn the server's
+capabilities at all — strictly worse than the pre-batch state, and it would pass any test written
+only about absence. Then (c) last, because (c) is the public claim and new17 §19 forbids it until
+the surface exists.
+
+**Shape of the fix — the assertions a later batch must deliberately edit.** Each was written to
+red on exactly this change, so this list is the work order:
+
+| To land | Assertion that must be changed | Where |
+| --- | --- | --- |
+| a | `expect(serverSource()).not.toContain('case "server/discover"')` | `tests/invariants/mcp-spec-vendor.invariants.test.ts` ("server/discover is NOT implemented here") |
+| a | `server/discover` reds `-32601` | `packages/calllint-mcp/test/server.test.ts` ("server/discover is still absent") |
+| b | `expect(ours).toContain('case "initialize":')` and `'case "ping":'` | `mcp-spec-vendor.invariants.test.ts` ("initialize and ping are REMOVED upstream") |
+| b | `initialize` returns `protocolVersion` / `ping` replies `{}` | `server.test.ts` (two long-standing tests) |
+| c | `expect(m![1]).not.toContain("2026-07-28")` | `mcp-spec-vendor.invariants.test.ts` ("2026-07-28 is absent from the supported set") |
+| c | declaring `2026-07-28` must error; `PROTOCOL_VERSION` regex | `server.test.ts` ("no premature claim"), and the vendor gate's `2024-11-05` pin |
+
+**One engineering fact worth not re-deriving.** The negotiation layer M26-1 shipped is
+**version-agnostic**: it validates a declared version against a *set*
+(`SUPPORTED_PROTOCOL_VERSIONS`), not against a hardcoded string. So (c) is genuinely a one-line
+change to that array once (a) and (b) exist — no rework of the negotiation path, and no second
+code path for the new revision. The cost of adoption lives entirely in the surface, which is why
+M26-1 could be authorized separately at all.
+
+**What would make this row false:** all three landing, at which point `PROTOCOL_VERSION` itself
+becomes the open question and this row is replaced by an ADR, not by an amendment.
+
+---
+
 ## Not open — closed items recorded so they are not re-analyzed
 
 | item | state | where it is recorded |
@@ -162,3 +220,6 @@ halves matter — a fix that made the count right by making the file pass would 
 | A restore has never been exercised | **OPEN, but already recorded** | ADR 0061 §8.6 "What §8.6 still does not deliver" — needs host access and somewhere to restore *to*; not a code change |
 | F8 (vendored bytes absent) | **CLOSED** by M26-5 | `finality-status.json` F8 `closedByM26-5` |
 | ADR number collision (0062) | **CLOSED** | consumed by the T0 landing decision; M26-1 uses **0063**; 0060 stays reserved |
+| D1's "`initialize`-only negotiation" premise | **REFUTED, and amended in place** | `protocol-delta-matrix.json` D1 `amendedByM26-1`; ADR 0063 §2. 2026-07-28 **deletes** `initialize`; it does not demote it. |
+| D1 / D3 (per-request version + -32022) | **CLOSED** by M26-1 | ADR 0063; gated two-sidedly in `mcp-spec-vendor.invariants.test.ts` |
+| "all three deltas blocked by F8" | **SPENT** | `protocol-delta-matrix.json` `summary.amendedByM26-1` — F8 is PASS, so the blocker named in `allBlockedBy` is no longer live |

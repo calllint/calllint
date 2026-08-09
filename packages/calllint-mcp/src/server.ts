@@ -12,21 +12,52 @@ import { RESOURCES, RESOURCE_TEMPLATES, readResource } from "./resources.js"
 
 const PROTOCOL_VERSION = "2024-11-05"
 
+/**
+ * Every protocol revision this server can serve a request at. `PROTOCOL_VERSION`
+ * is the one advertised at `initialize`; this is the set a per-request
+ * declaration is checked against (ADR 0063).
+ *
+ * 2026-07-28 is deliberately ABSENT. Adding it here is the public claim of
+ * support, and new17 §19 forbids that until a batch implements the surface —
+ * which this one does not: `server/discover` is `MUST implement` upstream and
+ * is owned by M26-2. Asserted in `test/server.test.ts` so the omission cannot
+ * be undone silently.
+ */
+const SUPPORTED_PROTOCOL_VERSIONS: readonly string[] = [PROTOCOL_VERSION]
+
+/**
+ * The `_meta` key carrying the per-request protocol version in 2026-07-28.
+ * Quoted from the vendored bytes at
+ * `third_party/mcp-spec/2026-07-28/schema.ts:76` (`RequestMetaObject`), where
+ * it is a REQUIRED field. Digest-locked, so this string cannot drift from
+ * upstream unnoticed.
+ */
+const META_PROTOCOL_VERSION_KEY = "io.modelcontextprotocol/protocolVersion"
+
 export interface ServerInfo {
   name: string
   version: string
+}
+
+interface RequestMeta {
+  [META_PROTOCOL_VERSION_KEY]?: unknown
+  [key: string]: unknown
 }
 
 interface JsonRpcRequest {
   jsonrpc: "2.0"
   id?: string | number | null
   method: string
-  params?: Record<string, unknown>
+  params?: Record<string, unknown> & { _meta?: RequestMeta }
 }
 
 type JsonRpcResponse =
   | { jsonrpc: "2.0"; id: string | number | null; result: unknown }
-  | { jsonrpc: "2.0"; id: string | number | null; error: { code: number; message: string } }
+  | {
+      jsonrpc: "2.0"
+      id: string | number | null
+      error: { code: number; message: string; data?: unknown }
+    }
 
 const ERR = {
   PARSE: -32700,
@@ -34,6 +65,14 @@ const ERR = {
   METHOD_NOT_FOUND: -32601,
   INVALID_PARAMS: -32602,
   INTERNAL: -32603,
+  /**
+   * `UNSUPPORTED_PROTOCOL_VERSION`, quoted from the vendored bytes at
+   * `third_party/mcp-spec/2026-07-28/schema.ts:450`. In the MCP reserved range
+   * (-32000..-32099), so it does not collide with the five base JSON-RPC codes
+   * above. Digest-locked upstream; asserted against the bytes by
+   * `tests/invariants/mcp-spec-vendor.invariants.test.ts`.
+   */
+  UNSUPPORTED_PROTOCOL_VERSION: -32022,
 } as const
 
 function result(id: string | number | null, value: unknown): JsonRpcResponse {
@@ -41,6 +80,47 @@ function result(id: string | number | null, value: unknown): JsonRpcResponse {
 }
 function error(id: string | number | null, code: number, message: string): JsonRpcResponse {
   return { jsonrpc: "2.0", id, error: { code, message } }
+}
+
+/**
+ * The `UnsupportedProtocolVersionError` shape from
+ * `third_party/mcp-spec/2026-07-28/schema.ts:483` — `data` carries `supported`
+ * (so the client can pick a mutually supported version and retry) and
+ * `requested`. Upstream requires both; a bare code would tell a client it
+ * failed without telling it what to retry with.
+ */
+function unsupportedVersionError(
+  id: string | number | null,
+  requested: string,
+): JsonRpcResponse {
+  return {
+    jsonrpc: "2.0",
+    id,
+    error: {
+      code: ERR.UNSUPPORTED_PROTOCOL_VERSION,
+      message: `Unsupported protocol version: ${requested}`,
+      data: { supported: [...SUPPORTED_PROTOCOL_VERSIONS], requested },
+    },
+  }
+}
+
+/**
+ * Read the per-request protocol version from `_meta`, if declared.
+ *
+ * Returns `undefined` when the key is absent — which is the 2024-11-05 wire
+ * shape and stays legal here. This server advertises 2024-11-05, so a client
+ * that declares nothing gets today's behaviour unchanged; only an explicit
+ * declaration is checked. A non-string value is NOT silently ignored: it is
+ * returned as the empty string so it fails the check rather than passing as
+ * "undeclared", because a malformed declaration is a client bug, not an
+ * absence.
+ */
+export function readRequestedProtocolVersion(req: JsonRpcRequest): string | undefined {
+  const meta = req.params?._meta
+  if (meta == null || typeof meta !== "object") return undefined
+  if (!(META_PROTOCOL_VERSION_KEY in meta)) return undefined
+  const declared = meta[META_PROTOCOL_VERSION_KEY]
+  return typeof declared === "string" ? declared : ""
 }
 
 /**
@@ -54,6 +134,16 @@ export function handleRequest(
 ): JsonRpcResponse | null {
   const id = req.id ?? null
   const isNotification = req.id === undefined || req.id === null
+
+  // Per-request version negotiation (D1/D3, ADR 0063). Checked BEFORE the
+  // method switch so an unsupported version is rejected uniformly instead of
+  // per-method — and before any tool handler runs, so a mismatched client
+  // cannot reach a scan. A notification gets no reply even on mismatch (no id
+  // → nowhere to send the error), which is JSON-RPC, not a version exemption.
+  const requested = readRequestedProtocolVersion(req)
+  if (requested !== undefined && !SUPPORTED_PROTOCOL_VERSIONS.includes(requested)) {
+    return isNotification ? null : unsupportedVersionError(id, requested)
+  }
 
   switch (req.method) {
     case "initialize":
