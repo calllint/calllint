@@ -134,3 +134,16 @@ deploy/** text eol=lf
 # fail nothing. Recorded rather than hidden. These are prose chapters with no source/served split to
 # byte-compare, so a guard would mean inventing a consumer for the sake of guarding the pin.
 artifacts/trajectory-v0/** text eol=lf
+
+# The vendored MCP 2026-07-28 specification bytes (M26-5; third_party/mcp-spec/2026-07-28/).
+#
+# This pin differs from every other one above in that it is NOT unguarded. The digest lock in
+# `SOURCE.json` is read by `tests/invariants/mcp-spec-vendor.invariants.test.ts`, so a CRLF checkout
+# reds the gate twice over: the sha256 moves, and a dedicated assertion counts \r bytes and names
+# the file. `deploy/**` and `artifacts/trajectory-v0/**` are pins that nothing hashes; this one has a
+# consumer, which is what O-M1 means by "a gate with no evidence artifact is not a gate".
+#
+# These bytes must stay verbatim upstream copies — that is the entire value of vendoring them. Any
+# transformation on checkout, line endings included, makes the local file something upstream never
+# published while leaving it looking authentic.
+third_party/** text eol=lf

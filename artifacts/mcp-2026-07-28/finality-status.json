@@ -5,6 +5,20 @@
   "measuredAgainstCommit": "b136f44",
   "verdict": "PENDING_FINAL",
   "productionChangesAllowed": false,
+  "verdictAmendedByM26-5": {
+    "amendedAt": "2026-08-09",
+    "verdict": "FINALITY_MET_NOT_IMPLEMENTED",
+    "productionChangesAllowed": true,
+    "supersedes": "The `verdict` and `productionChangesAllowed` fields above described the state at b136f44 and are retained verbatim, not overwritten. A reader must take THIS object as current.",
+    "why": "INV-M5 verbatim: 'production_changes_allowed stays false until F1–F8 all pass.' F8 was the sole FAIL; M26-5 closed it, and all eight now PASS. Leaving the flag false would be an editorial override of a written invariant, exactly as leaving it true prematurely would have been.",
+    "whyANewLabel": "Neither label the integration doc names fits. `PENDING_FINAL` is DEFINED there as 'F1–F8 unmet' (§5.4, line 53) and is now false by its own definition. `IMPLEMENTED_NOT_PUBLICLY_CLAIMED` presupposes an implementation that does not exist — no M batch has changed a single line of runtime. This label is therefore NOT one of the two upstream-named states; it is introduced here because the honest state falls between them, and it is flagged as an addition rather than passed off as existing vocabulary.",
+    "whatItUnblocksAndWhatItDoesNot": {
+      "unblocked": "The FINALITY precondition on M26-1…M26-4. They may now be authorized on their merits.",
+      "notAuthorized": "Nothing is authorized BY this flag. M26-1 additionally requires its own ADR (0063 — 0062 was consumed by the T0 landing decision) and an explicit batch authorization. A gate ceasing to block is not a decision to proceed.",
+      "stillForbidden": "Every item on new17 §19's forbidden-copy list. `PROTOCOL_VERSION` remains 2024-11-05, and no public surface may claim 2026-07-28 support — that claim needs an implementation, not an evidence lock. Asserted by a gate, not just stated: tests/invariants/mcp-spec-vendor.invariants.test.ts pins the served constant, in the very file that could otherwise read as permission."
+    },
+    "unevenEvidenceQuality": "All eight PASS, but not on equal footing, and averaging them would hide that. F1, F2, F3, F4, F7 now rest on digest-locked bytes a gate re-reads every CI run. F5 (transport/auth/cache semantics) and F6 (the tasks extension) still rest on the 2026-08-08 manual read of pages NOT vendored here — their evidence is normative prose across many spec pages, and vendoring the whole documentation tree was out of scope for M26-5. So the gap NARROWS from 'nothing is re-checkable' to 'two of eight are not'. Recorded rather than smoothed over; closing it means vendoring those pages, which is a scoping decision for a later batch."
+  },
   "verdictBasis": {
     "summary": "F8 is the only FAIL. F1-F7 were measured PASS against primary upstream sources on 2026-08-08.",
     "whyStillPending": "INV-M4 requires finality be evaluated over VENDORED bytes, never a live fetch. No vendored copy exists (third_party/ measured ABSENT), so no gate in this repo can re-evaluate F1-F7 offline. The upstream revision is ready; our evidence base is not.",
@@ -55,6 +69,14 @@
       "evidence": {
         "source": "https://modelcontextprotocol.io/specification/2026-07-28/changelog",
         "observation": "Two enumerable sections exist: Key Changes and Deprecated Features."
+      },
+      "amendedByM26-5": {
+        "verdict": "PASS stands — a changelog snapshot IS retrievable, which is all F4 requires.",
+        "correction": "The observation above is FALSE as written. Neither 'Key Changes' nor 'Deprecated Features' appears in the bytes, and there are seven sections, not two.",
+        "measured": ["Major changes", "Minor changes", "Deprecated", "Other schema changes", "Governance and process updates", "Process changes", "Full changelog"],
+        "source": "third_party/mcp-spec/2026-07-28/changelog.snapshot.md (sha256 ba4d0ba2…, upstream commit 271ecc9a…)",
+        "whyItWasWrong": "The section names were transcribed from a rendered web page, which no gate in this repository could read back. That is the failure mode F8 names in the abstract; this is the concrete instance it caught. The corrected names are now pinned in tests/invariants/mcp-spec-vendor.invariants.test.ts, so artifact and bytes can no longer drift apart in either direction.",
+        "originalRetained": "The original observation is preserved above verbatim rather than overwritten, per the append-amend discipline ADR 0061 §8.5 established: a record of what we believed is evidence about our method, and deleting it would hide the very drift this batch demonstrates."
       }
     },
     {
@@ -84,17 +106,39 @@
       "evidence": {
         "source": "https://modelcontextprotocol.io/specification/2026-07-28/changelog",
         "observation": "The deprecation registry lists 6 deprecated features and an EMPTY Removed section. The earliest possible removal is the first revision on or after 2027-07-28, so nothing breaks within this revision."
+      },
+      "amendedByM26-5": {
+        "verdict": "PASS stands. The substance of the observation is confirmed; its attribution and one sub-claim are corrected.",
+        "sourceMisattributed": {
+          "asRecorded": "https://modelcontextprotocol.io/specification/2026-07-28/changelog",
+          "asMeasured": "third_party/mcp-spec/2026-07-28/deprecated.snapshot.md (sha256 6ec5fc90…) — upstream docs/specification/2026-07-28/deprecated.mdx",
+          "detail": "The changelog has NO 'Removed' heading at all and 4 numbered deprecation items. The registry is a separate page: `## Deprecated` with exactly 6 feature rows, plus `## Removed` reading 'No features have been removed under this policy yet.' The count and the empty section were right; the URL pointed at a page that cannot support either. This is why deprecated.mdx is vendored — an evidence artifact whose source URL is wrong is not re-checkable."
+        },
+        "subClaimOverPrecise": {
+          "asRecorded": "The earliest possible removal is the first revision on or after 2027-07-28.",
+          "asMeasured": "True of 4 of the 6 rows. `includeContext: \"thisServer\"/\"allServers\"` reads 'Follows Sampling (SEP-2577)', and HTTP+SSE transport reads 'Three months after SEP-2596 reaches Final' — a date the registry does not record and that this repository cannot compute.",
+          "whyTheVerdictSurvives": "F7 asks whether a breaking ERRATUM is pending, and deprecation is not removal. Upstream states a Deprecated feature 'remains part of the specification but is scheduled for removal', that earliest removal only marks ELIGIBILITY, and that the actual removal is a Core Maintainer decision taken during release preparation — i.e. an act of a FUTURE revision. The Removed section is empty. So nothing breaks within 2026-07-28 on either clock, and the unrecorded SEP-2596 date cannot move the verdict; it bounds only how precisely the sentence may be phrased.",
+          "forwardObligation": "Any future CallLint copy about 2026-07-28 deprecations must not state a single uniform removal date. Two of the six clocks are relative, and one of those two depends on an upstream event with no published date."
+        }
       }
     },
     {
       "id": "F8",
       "requirement": "Vendored bytes are verifiable offline",
-      "status": "FAIL",
+      "status": "PASS",
       "evidence": {
         "source": "this repository",
         "observation": "third_party/ measured ABSENT on b136f44 (`ls -d third_party` → no such directory).",
         "consequence": "INV-M4 forbids CI fetching the live spec, so with no vendored bytes there is no offline basis for F1-F7. Their PASS above rests on a one-time manual read recorded here, NOT on a repeatable gate.",
         "closedBy": "M26-5"
+      },
+      "closedByM26-5": {
+        "status": "PASS as of 2026-08-09. The observation above described b136f44 and remains true OF THAT COMMIT; it is retained rather than rewritten so the transition is legible.",
+        "vendored": "third_party/mcp-spec/2026-07-28/ — 5 files (schema.json, schema.ts, changelog.snapshot.md, deprecated.snapshot.md, LICENSE) at upstream commit 271ecc9accafdd9b83a3c869fa67c22953b2af80, each digest-locked in SOURCE.json under schema calllint.mcp-spec-source-lock.v1.",
+        "gate": "tests/invariants/mcp-spec-vendor.invariants.test.ts — 20 assertions, no network. Two layers: sha256 + byte-count + zero-CR per file, and the five specific offline facts F1-F7 cite (LATEST_PROTOCOL_VERSION at schema.ts:30, schema.json's populated $defs, the changelog's seven headings, the registry's 6 rows and empty Removed section, the non-uniform removal clock).",
+        "inv-M4": "Honoured. The fetch happened once at authoring time and is pinned to an immutable commit; the gate reads only committed bytes. The prohibition is on CI fetching, which is what makes vendoring the remedy rather than the violation.",
+        "whatChangedForF1-F7": "Their VERDICTS are unchanged — vendoring re-confirmed all seven. What changed is their standing: F1, F2, F3, F4 and F7 now rest on committed bytes a gate re-reads on every CI run, where before they rested on a dated manual read. F5 and F6 still do NOT: their evidence is normative prose on pages not vendored here (transport/auth semantics; the tasks extension). Recorded as a narrowed gap rather than presented as fully closed.",
+        "whatItCaughtImmediately": "Two of the seven recorded observations were falsified by the bytes on first read — F4's section names, and F7's source URL plus its uniform-date sub-claim. Both had survived a merged batch. This is the measured argument for O-M1's 'lock first' default: the errors were not in the verdicts but in the evidence, and only committed bytes could expose them."
       }
     }
   ],

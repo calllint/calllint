@@ -1,0 +1,72 @@
+{
+  "schema": "calllint.mcp-spec-source-lock.v1",
+  "protocolRevision": "2026-07-28",
+  "vendoredAt": "2026-08-09",
+  "upstream": {
+    "repository": "https://github.com/modelcontextprotocol/modelcontextprotocol",
+    "commit": "271ecc9accafdd9b83a3c869fa67c22953b2af80",
+    "commitDate": "2026-07-28T16:42:34Z",
+    "commitSubject": "fix(schema): apply subscriptions/listen envelope and MetaObject rename to 2026-07-28",
+    "license": "Apache-2.0",
+    "whyACommitAndNotABranch": "A digest lock over a moving ref is not a lock. Pinning the immutable commit is what makes every digest below re-derivable by a third party: `git -C <clone> show <commit>:<upstreamPath>` reproduces the exact bytes. Fetching `main` would produce a different tree on every upstream merge and turn each digest into a dated coincidence.",
+    "licenseNote": "The vendored LICENSE records a transition from MIT to Apache-2.0. Apache-2.0 is what governs these bytes at this commit; the MIT text is retained in the file because upstream retains it, not because it is being asserted here."
+  },
+  "files": [
+    {
+      "path": "schema.json",
+      "upstreamPath": "schema/2026-07-28/schema.json",
+      "sha256": "ef70b61f99b6d2e5e3b46863822eab08dff6a45bedc7a08914e0e5b133f40203",
+      "bytes": 181474,
+      "digestField": "schemaDigest",
+      "role": "The machine-readable schema. 155 `$defs`. This is the artifact F3 requires be retrievable and summarizable."
+    },
+    {
+      "path": "schema.ts",
+      "upstreamPath": "schema/2026-07-28/schema.ts",
+      "sha256": "742750af0bb8c716e7030c4977c992b55d1adc4407e9e66997db5846baedc2cd",
+      "bytes": 98426,
+      "digestField": "schemaSourceDigest",
+      "role": "The TypeScript source upstream names as AUTHORITATIVE for the revision (schema.json is generated from it). Vendored because it — not schema.json — carries `LATEST_PROTOCOL_VERSION = \"2026-07-28\"` at line 30, which is the offline proof of F1 and F2. Without this file the version string would be an assertion in our own artifact rather than a quotation of upstream's."
+    },
+    {
+      "path": "changelog.snapshot.md",
+      "upstreamPath": "docs/specification/2026-07-28/changelog.mdx",
+      "sha256": "ba4d0ba299ff0b45d26c52111d41dc0c862dd04ef973f63f93570c2b020f3974",
+      "bytes": 11714,
+      "digestField": "changelogDigest",
+      "role": "The changelog F4 requires. Named `.snapshot.md` rather than `.mdx` deliberately: the extension records that this is a frozen copy for offline evidence, and it keeps the bytes out of any tooling that would try to COMPILE an .mdx file."
+    },
+    {
+      "path": "deprecated.snapshot.md",
+      "upstreamPath": "docs/specification/2026-07-28/deprecated.mdx",
+      "sha256": "6ec5fc903d1be37e5ab0afda2acd7765aaf2909b90a2dca405e1aaea8936225b",
+      "bytes": 5031,
+      "digestField": "releaseMetadataDigest",
+      "role": "The deprecation registry. Vendored because F7's evidence is HERE and not, as `finality-status.json` recorded before these bytes existed, in the changelog. See `f7SourceCorrection` below."
+    },
+    {
+      "path": "LICENSE",
+      "upstreamPath": "LICENSE",
+      "sha256": "0382b0057770ca05e9c350a50aa3b1c1fea84da0bc81d723bf00b9aa841be58a",
+      "bytes": 12227,
+      "digestField": "licenseDigest",
+      "role": "Redistribution term for every byte in this directory. Vendored bytes without their license are a compliance defect, not a saving."
+    }
+  ],
+  "invariantCompliance": {
+    "INV-M4": "This lock is what INV-M4 asks for. The prohibition is on CI FETCHING the live spec, not on vendoring: the fetch happened once at authoring time and is recorded here by immutable commit. The gate (tests/invariants/mcp-spec-vendor.invariants.test.ts) reads only these committed bytes and opens no socket.",
+    "O-M1": "\"A gate with no evidence artifact is not a gate.\" Before this directory, F1-F7's PASS rested on a dated manual read. Every digest above is now re-derivable offline by anyone with a checkout."
+  },
+  "whatThisLockDoesNotClaim": [
+    "It does not claim CallLint supports MCP 2026-07-28. `packages/calllint-mcp/src/server.ts` still advertises 2024-11-05, which remains the accurate public state.",
+    "It does not claim these bytes were read exhaustively. Five specific offline facts are asserted and gated; the rest of the 181 KB schema is vendored evidence, not audited evidence.",
+    "It does not make schema.json a build input. Nothing in `tsconfig.json` (`packages/*/src`, `apps/*/src`, `tests/**`) or `vitest.config.ts` (`packages/**`, `apps/**`, `tests/**`) reaches `third_party/`, so these bytes enter no existing gate — measured, not assumed. Only the named gate above reads them."
+  ],
+  "f7SourceCorrection": {
+    "finding": "Vendoring falsified the RECORDED REASON for F7 while leaving its verdict standing — the direct payoff O-M1 predicted.",
+    "asRecorded": "finality-status.json F7 sourced the deprecation registry to .../2026-07-28/changelog and stated \"6 deprecated features and an EMPTY Removed section ... earliest possible removal is the first revision on or after 2027-07-28\".",
+    "asMeasured": "The changelog has no `Removed` heading at all and 4 numbered deprecation items. The registry is `deprecated.mdx`: `## Deprecated` (exactly 6 feature rows) + `## Removed` (\"No features have been removed under this policy yet.\"). So the count and the empty Removed section are RIGHT and the URL was WRONG.",
+    "overPreciseSubClaim": "4 of the 6 rows read \"First revision released on or after 2027-07-28\". The other two do not: `includeContext` follows Sampling, and HTTP+SSE reads \"Three months after SEP-2596 reaches Final\" — a date this registry does not record. \"Earliest possible removal is 2027-07-28\" was therefore stated more precisely than the source supports.",
+    "whyTheVerdictSurvives": "F7 asks for no pending breaking ERRATUM. Deprecation is not removal: upstream states removal happens in a future revision by Core Maintainer decision, and the Removed section is empty. Nothing breaks WITHIN 2026-07-28 on either clock, so the unknown SEP-2596 date cannot change the verdict — only the precision of the sentence describing it."
+  }
+}
