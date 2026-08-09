@@ -58,3 +58,16 @@ F8 is the **only** failing gate. That makes the order non-negotiable: **M26-5 fi
 until vendored bytes exist, F1-F7 rest on the dated manual reads in `finality-status.json` and no
 CI job can re-derive them. This confirms O-M1's stated default of "lock first" — now on measured
 grounds rather than as an editorial preference.
+
+**Amended 2026-08-09, M26-5 having merged (`669ebf9` #274).** F8 is now PASS and all eight gates
+pass, so this section's premise is spent — kept verbatim because it is the record of *why* M26-5 went
+first, and that reasoning was correct. The sequencing constraint it imposed no longer binds: M26-1…
+M26-4 are unblocked on finality and may be authorized on their merits.
+
+What M26-5 did **not** close is now enumerated in [open-items.md](./open-items.md) rather than left
+to be re-derived: **F5 and F6 still rest on unvendored pages** (this table has no row scoping that
+work — M-OPEN-1 supplies one), the superseded top-level `verdict` has no reader-side guard
+(M-OPEN-2), the SEP-2596 removal clock is unresolvable from vendored bytes (M-OPEN-3), and the
+deprecated-table row filter does not strip `\r` (M-OPEN-4). Read that file before scoping any M
+batch; it also records which carried items are already **closed**, since two were being tracked as
+open after they had in fact landed.
