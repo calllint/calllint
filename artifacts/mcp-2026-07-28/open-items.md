@@ -151,6 +151,31 @@ reach in practice; this only shapes the diagnostic if it somehow does.
 and re-run control #130 to confirm the count now reads **6** while the CR counter still reds. Both
 halves matter — a fix that made the count right by making the file pass would be strictly worse.
 
+> **Amended 2026-08-09 (M26-2, ADR 0064 §6.2). Read this note as current; the text above stands as
+> the original measurement.**
+>
+> The status above still holds for **this** location: the vendored file is digest-locked and CR-counted,
+> so its CRLF path is unreachable in practice, and the defect remains a message-quality one. What has
+> changed is the **premise used to defer it**. "Cosmetic, with no live failure" was true of the class
+> as well when this was written; it no longer is.
+>
+> M26-2 shipped a gate in the *same file* that slices **un-locked** source (`server.ts`, which carries
+> no `eol=lf` pin, correctly) on a `"\n\n"` delimiter. That gate passed ubuntu-latest and macos-latest
+> and **failed windows-latest alone**, and it failed *naming the wrong method* — `indexOf` returned
+> `-1`, `slice(start, -1)` silently ran to end-of-file, and the `initialize` arm absorbed the
+> `server/discover` arm below it. Negative control **#149** reproduces it exactly. Fixed at source by
+> normalizing the reader and asserting both slice bounds (ADR 0064 §6.2).
+>
+> So the generalizable rule, which did not exist when M-OPEN-4 was filed: **an unlocked file read by a
+> gate is CRLF on one of the three CI OSes, so any delimiter search or line filter over it must
+> normalize first — and any slice must assert its bounds, because `slice(start, -1)` widens scope
+> instead of failing.** The distinction that decides which side a file falls on is *digest-locked vs
+> not*, not *vendored vs ours*.
+>
+> This does not change M-OPEN-4's fix shape or its priority. It records that the fix is now the
+> *second* instance of a known class rather than a one-off, which is the argument for doing it in
+> whichever batch next edits these assertions for a substantive reason.
+
 ---
 
 ## M-OPEN-5 — the surface 2026-07-28 requires is not implemented, and each omission is gated
@@ -209,6 +234,50 @@ M26-1 could be authorized separately at all.
 **What would make this row false:** all three landing, at which point `PROTOCOL_VERSION` itself
 becomes the open question and this row is replaced by an ADR, not by an amendment.
 
+### M-OPEN-5, amended by M26-2 (2026-08-09) — (a) is LANDED; (b) and (c) are unchanged
+
+*Appended, not rewritten. Everything above is retained verbatim: a deleted claim is
+indistinguishable from a claim never made. Read this block as current where the two differ.*
+
+**(a) is CLOSED.** `case "server/discover"` is served in
+`packages/calllint-mcp/src/server.ts`, recorded in **ADR 0064**, and both assertions named in row
+(a) of the work-order table above were **deliberately inverted** — they now assert the method is
+present rather than absent, which is exactly what that table was written to force. The 7th stdio
+request in `scripts/mcp-pack-smoke.mjs` proves it answers from the published tarball.
+
+**(b) and (c) are untouched and still gated.** `initialize` / `notifications/initialized` / `ping`
+stay served; `SUPPORTED_PROTOCOL_VERSIONS` stays `["2024-11-05"]`; `PROTOCOL_VERSION` stays
+`2024-11-05`. Rows (b) and (c) of the work-order table remain the live work order, and their
+assertions are unedited. The ordering finding above is what made this batch stop at (a).
+
+**What M26-2 measured that this row did not know.** D4's own row in the delta matrix names two
+fields; the digest-locked bytes require **five**. From `schema.json`'s `required` arrays:
+`DiscoverResult` = `["cacheScope","capabilities","resultType","supportedVersions","ttlMs"]`, via
+`CacheableResult` = `["cacheScope","resultType","ttlMs"]` and `Result` = `["resultType"]`. So three
+obligations were invisible here:
+
+| Newly measured | What it means | Where it is decided |
+| --- | --- | --- |
+| `resultType` | required on **every** result at 2026-07-28 (14 `$defs`), and an **open** type — `"complete" \| "input_required" \| string`, no `enum`/`const` in `schema.json` | ADR 0064 §4 — emitted on **discover only**, because 2024-11-05 *defines* its absence as `"complete"`; a gate asserts the other results still lack it |
+| `ttlMs` + `cacheScope` | discover is a **cacheable** response; `cacheScope: "public"` would let an intermediary serve one capability list across authorization contexts | ADR 0064 §4 — `0` / `"private"`, the inert ends of both enums, chosen to decide nothing |
+| `params._meta` requires **two** keys | `io.modelcontextprotocol/clientCapabilities` **and** `…/protocolVersion`; upstream: *"Servers MUST NOT infer capabilities from prior requests"* | ADR 0064 §5 — the second key is **read at all**, and that is recorded as a decision, not an omission |
+
+**A fourth prose claim falsified by the M26-5 lock.** `changelog.snapshot.md:16` says discover
+advertises versions, capabilities *"and identity"*. `DiscoverResult` has **no identity field** —
+neither `serverInfo` nor any reference to `Implementation` appears in its `$defs` entry. Identity
+lives in `_meta` on the **response**, as `ResultMetaObject["io.modelcontextprotocol/serverInfo"]?`
+(`schema.ts:157`): optional, a **SHOULD**, and carrying its own *"SHOULD NOT rely on it for
+security decisions"*. A reader implementing from that sentence would put `serverInfo` in the result
+body, where the schema does not define it — so a gate asserts our discover arm has no such key.
+This is the same failure mode as F4's section names, F7's source URL, and D1's `initialize`
+premise: prose authored about a rendered page, which no gate could read back.
+
+**Still open after M26-2, and belonging to whichever batch adopts the revision:**
+`clientCapabilities` is required upstream and unread here (ADR 0064 §5 — rejecting its absence
+would reject **every** request today's 2024-11-05 clients send); `resultType` must go on the other
+eight results, deleting the assertion that currently forbids it; and `examples/*.json` remains
+unvendored, so discover's three `{@includeCode}` payloads cannot be gated offline (ADR 0064 §6).
+
 ---
 
 ## Not open — closed items recorded so they are not re-analyzed
@@ -222,4 +291,5 @@ becomes the open question and this row is replaced by an ADR, not by an amendmen
 | ADR number collision (0062) | **CLOSED** | consumed by the T0 landing decision; M26-1 uses **0063**; 0060 stays reserved |
 | D1's "`initialize`-only negotiation" premise | **REFUTED, and amended in place** | `protocol-delta-matrix.json` D1 `amendedByM26-1`; ADR 0063 §2. 2026-07-28 **deletes** `initialize`; it does not demote it. |
 | D1 / D3 (per-request version + -32022) | **CLOSED** by M26-1 | ADR 0063; gated two-sidedly in `mcp-spec-vendor.invariants.test.ts` |
+| D4 (`server/discover`) / M-OPEN-5 item (a) | **CLOSED** by M26-2 | ADR 0064; `protocol-delta-matrix.json` D4 `amendedByM26-2`; M-OPEN-5's own amendment above. D4's row understated the obligation by **four** fields — see that amendment before re-reading the row. |
 | "all three deltas blocked by F8" | **SPENT** | `protocol-delta-matrix.json` `summary.amendedByM26-1` — F8 is PASS, so the blocker named in `allBlockedBy` is no longer live |

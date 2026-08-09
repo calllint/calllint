@@ -291,11 +291,177 @@ describe("M26-1 negotiation constants are quotations, not restatements", () => {
     expect(rev![1]).toBe("2026-07-28")
   })
 
-  it("server/discover is NOT implemented here — M26-2's surface is not smuggled in", () => {
-    // Upstream: MUST implement. Ours: absent, on purpose and by authorization
-    // scope. If a later batch adds it, this assertion is the one that must be
-    // deliberately updated — which is the point.
+  it("server/discover IS implemented here — the assertion M26-2 deliberately inverted", () => {
+    // Was `not.toContain('case "server/discover"')` through M26-1, so that adding
+    // the method required editing a test that said why its absence was deliberate.
+    // M26-2 (ADR 0064) edited it. Both halves are still parsed: upstream declares
+    // the method, and we serve it.
     expect(schemaSource()).toContain('method: "server/discover"')
-    expect(serverSource()).not.toContain('case "server/discover"')
+    expect(serverSource()).toContain('case "server/discover"')
+  })
+})
+
+// ---------------------------------------------------------------------------
+// M26-2 (ADR 0064) — `server/discover`'s field set is a QUOTATION of the locked
+// `schema.json` `required` arrays, not a transcription of D4's prose row. D4 named
+// two of the five required fields; the other three are inherited through
+// CacheableResult → Result and were invisible in the matrix. So the gate reads the
+// arrays and checks server.ts against them, rather than restating five names.
+// ---------------------------------------------------------------------------
+
+describe("M26-2 server/discover is built from upstream's required arrays", () => {
+  /**
+   * `server.ts` with CRLF folded to LF. This gate measures CODE SHAPE, and a
+   * checkout's line-ending style is not part of that shape: `server.ts` carries no
+   * `text eol=lf` pin (correctly — nothing hashes it, unlike `third_party/**`), so
+   * on windows-latest it arrives CRLF. A blank-line delimiter search for `"\n\n"`
+   * then never matches, `indexOf` returns -1, and every arm-scoped assertion either
+   * reds on the slice or silently measures the WRONG arm — which is how the first CI
+   * run reported `initialize` containing `resultType`: the -1 made the initialize
+   * slice run to end-of-file and swallow the discover arm below it.
+   *
+   * Normalizing here rather than pinning the file keeps the claim honest in both
+   * directions: the vendored bytes' CRLF IS a defect (the digest lock and a
+   * dedicated `\r` count hold that), while this file's line endings are the local
+   * checkout's business. Same class as M-OPEN-4's unstripped `\r` in the
+   * deprecated-table row filter.
+   */
+  const serverSource = () => readText("packages/calllint-mcp/src/server.ts").replace(/\r\n/g, "\n")
+  const schemaSource = () => readText(`${VENDOR_DIR}/schema.ts`)
+  const changelog = () => readText(`${VENDOR_DIR}/changelog.snapshot.md`)
+  interface Def {
+    readonly required?: readonly string[]
+    readonly properties?: Record<string, { readonly enum?: readonly string[]; readonly minimum?: number }>
+    readonly additionalProperties?: unknown
+  }
+  const defs = (): Record<string, Def> =>
+    (JSON.parse(readText(`${VENDOR_DIR}/schema.json`)) as { $defs: Record<string, Def> }).$defs
+
+  /**
+   * One `case` arm's body, so an assertion cannot be satisfied by a DIFFERENT method.
+   *
+   * Both bounds are asserted before the slice. `String.prototype.slice` treats a -1
+   * end as "one before the end", so an unmatched delimiter would slice to almost the
+   * whole file and QUIETLY measure every arm below the target — a false green for a
+   * `not.toContain` assertion and a false red for a `toContain` one. Failing on the
+   * bound is what keeps this helper's answer scoped to the arm it names.
+   */
+  const arm = (caseLabel: string): string => {
+    const src = serverSource()
+    const start = src.indexOf(`case "${caseLabel}":`)
+    expect(start, `server.ts must serve \`case "${caseLabel}"\``).toBeGreaterThan(-1)
+    const end = src.indexOf("\n\n", start)
+    expect(end, `the ${caseLabel} arm must be a blank-line-delimited block`).toBeGreaterThan(start)
+    return src.slice(start, end)
+  }
+  const discoverArm = (): string => arm("server/discover")
+
+  it("every field DiscoverResult requires is emitted by the discover arm", () => {
+    // The load-bearing one. Iterating upstream's array — rather than a list typed
+    // here — is what makes a NEW required field at a future revision red this line
+    // instead of passing a stale five-name check.
+    const required = defs().DiscoverResult?.required ?? []
+    expect(required.length).toBeGreaterThanOrEqual(5)
+    const arm = discoverArm()
+    const missing = required.filter((k) => !new RegExp(`\\b${k}\\s*:`).test(arm))
+    expect(missing).toEqual([])
+  })
+
+  it("the required set is exactly what M26-2 measured — three fields D4 never named", () => {
+    // Pins the measurement itself, so the finding in ADR 0064 §2 cannot quietly
+    // become untrue in either direction. `resultType` arrives from Result,
+    // `ttlMs`/`cacheScope` from CacheableResult — none of the three appears in D4's row.
+    const d = defs()
+    expect([...(d.DiscoverResult?.required ?? [])].sort()).toEqual([
+      "cacheScope",
+      "capabilities",
+      "resultType",
+      "supportedVersions",
+      "ttlMs",
+    ])
+    expect([...(d.CacheableResult?.required ?? [])].sort()).toEqual(["cacheScope", "resultType", "ttlMs"])
+    expect(d.Result?.required).toEqual(["resultType"])
+  })
+
+  it("cacheScope is one of upstream's two enum members, and ttlMs respects its minimum", () => {
+    const scope = defs().DiscoverResult?.properties?.cacheScope?.enum
+      ?? defs().CacheableResult?.properties?.cacheScope?.enum
+      ?? []
+    expect([...scope].sort()).toEqual(["private", "public"])
+    const arm = discoverArm()
+    const emitted = /cacheScope:\s*"([^"]+)"/.exec(arm)
+    expect(emitted, "the arm must emit a literal cacheScope").not.toBeNull()
+    expect(scope).toContain(emitted![1])
+    const min = defs().CacheableResult?.properties?.ttlMs?.minimum ?? 0
+    const ttl = /ttlMs:\s*(\d+)/.exec(arm)
+    expect(ttl, "the arm must emit a literal ttlMs").not.toBeNull()
+    expect(Number(ttl![1])).toBeGreaterThanOrEqual(min)
+  })
+
+  it("resultType's type is OPEN upstream, so no closed-set gate is possible", () => {
+    // Recorded as an assertion because the natural instinct is to gate the value
+    // against an enum. There is none: schema.json gives a bare string, and
+    // schema.ts unions the two known literals with `string`. A gate that invented
+    // a closed set would be asserting something upstream does not say.
+    const rt = defs().Result?.properties?.resultType as { enum?: unknown; const?: unknown } | undefined
+    expect(rt?.enum).toBeUndefined()
+    expect(rt?.const).toBeUndefined()
+    expect(schemaSource()).toContain('export type ResultType = "complete" | "input_required" | string;')
+  })
+
+  it("identity is in _meta as a SHOULD — the changelog's \"and identity\" is wrong", () => {
+    // Two-sided: the changelog makes the claim, the schema does not carry the field,
+    // and our arm does not emit it. ADR 0064 §2.1. The fourth prose claim the lock
+    // has falsified, after F4, F7, and D1.
+    expect(changelog()).toContain("capabilities, and identity")
+    const src = schemaSource()
+    const start = src.indexOf("export interface DiscoverResult")
+    const body = src.slice(start, src.indexOf("}", start))
+    expect(body).not.toContain("serverInfo")
+    expect(body).not.toContain("Implementation")
+    // Where it actually lives: optional, on the RESPONSE's _meta.
+    expect(src).toContain('"io.modelcontextprotocol/serverInfo"?: Implementation;')
+    expect(discoverArm()).not.toContain("serverInfo")
+  })
+
+  it("supportedVersions is the negotiation set itself, not a second literal", () => {
+    // Two arrays of version strings would be two sources of truth, and the "no
+    // premature claim" gate below parses only one of them — so a literal here
+    // could advertise 2026-07-28 while that gate stayed green.
+    expect(discoverArm()).toMatch(/supportedVersions:\s*\[\s*\.\.\.SUPPORTED_PROTOCOL_VERSIONS\s*\]/)
+    expect(discoverArm()).not.toContain("2026-07-28")
+  })
+
+  it("a conformant DiscoverRequest needs params._meta with TWO required keys", () => {
+    // Measured, and unread by this server on purpose (ADR 0064 §5). Pinned because
+    // "we implement server/discover" would otherwise read as "we handle its params".
+    const d = defs()
+    expect(d.RequestParams?.required).toEqual(["_meta"])
+    expect([...(d.RequestMetaObject?.required ?? [])].sort()).toEqual([
+      "io.modelcontextprotocol/clientCapabilities",
+      "io.modelcontextprotocol/protocolVersion",
+    ])
+    expect(schemaSource()).toContain("Servers MUST NOT infer capabilities from prior requests")
+    // Our side: the version key is read, the capabilities key is not.
+    expect(serverSource()).toContain("io.modelcontextprotocol/protocolVersion")
+    expect(serverSource()).not.toContain("io.modelcontextprotocol/clientCapabilities")
+  })
+
+  it("resultType is NOT added to the other results — 2024-11-05 defines its absence", () => {
+    // ADR 0064 §4. The `initialize` arm is the witness: if a batch adopts the
+    // revision it must add `resultType` there, and this assertion is what makes
+    // that a deliberate edit rather than a silent byte change for every client.
+    expect(arm("initialize")).not.toContain("resultType")
+    // Non-vacuity: the discover arm DOES carry it, so this is a measured asymmetry
+    // rather than the token simply never appearing in the file.
+    expect(discoverArm()).toContain("resultType")
+  })
+
+  it("upstream's examples/ is NOT vendored, so example payloads are ungated", () => {
+    // ADR 0064 §6 records this bound rather than leaving a reader to assume the
+    // `{@includeCode}` payloads were checked. If a later batch vendors them, the
+    // `>= 5` floor lets the covered set grow without reding.
+    expect(schemaSource()).toContain("{@includeCode ./examples/DiscoverRequest/")
+    expect(lock.files.map((f) => f.path)).not.toContain("examples")
   })
 })

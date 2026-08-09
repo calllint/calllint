@@ -53,7 +53,17 @@
       "normative": true,
       "affectsCallLint": true,
       "why": "Not implemented today; the method table in server.ts handles initialize, tools/list, tools/call, resources/list, resources/templates/list, resources/read. 'Mandatory to implement' makes its absence a conformance gap the moment the version is advertised.",
-      "owner": "M26-2 (blocked by F8)"
+      "owner": "M26-2 (blocked by F8)",
+      "amendedByM26-2": {
+        "supersedes": "The `change` field above, which names TWO obligations where the locked bytes require FIVE, and the `(blocked by F8)` suffix on `owner`. Both retained verbatim rather than rewritten — a deleted claim is indistinguishable from a claim never made. Read this block as current.",
+        "asMeasured": "A conformant DiscoverResult requires FIVE fields, not two. From third_party/mcp-spec/2026-07-28/schema.json `required` arrays: DiscoverResult = [\"cacheScope\",\"capabilities\",\"resultType\",\"supportedVersions\",\"ttlMs\"], inherited via CacheableResult = [\"cacheScope\",\"resultType\",\"ttlMs\"] and Result = [\"resultType\"]; `additionalProperties` is ABSENT on all three. Separately, DiscoverRequest.params is NON-OPTIONAL (`params: RequestParams;`, schema.ts:667) and RequestParams requires `_meta`, whose RequestMetaObject requires TWO keys: `io.modelcontextprotocol/clientCapabilities` AND `io.modelcontextprotocol/protocolVersion`. M26-1 shipped a reader for the second only.",
+        "whyTheOriginalWasWrong": "The row was authored from the changelog's one-line summary of SEP-2575, before the bytes were vendored. `resultType` is invisible in any description of discover because it is inherited from `Result` and required on EVERY result in this revision (it appears in 14 $defs); `ttlMs`/`cacheScope` are invisible because they come from CacheableResult and make discover a cacheable response — semantics quoted from HTTP Cache-Control, which CallLint had never decided anything about. Same mechanism as F4's section names, F7's source URL and D1's initialize premise: prose about a rendered page, unreadable by any gate.",
+        "changelogAlsoWrong": "changelog.snapshot.md:16 says discover advertises \"supported protocol versions, capabilities, and identity\". DiscoverResult has NO identity field — neither `serverInfo` nor `Implementation` appears in its $defs entry. Identity is ResultMetaObject[\"io.modelcontextprotocol/serverInfo\"]? (schema.ts:157): optional, a SHOULD, and warned against for security decisions. A reader implementing from that sentence would put serverInfo in the result body, where the schema does not define it.",
+        "resultTypeIsOpen": "`export type ResultType = \"complete\" | \"input_required\" | string;` (schema.ts:216), and schema.json gives it a bare {\"type\":\"string\"} with no `enum` and no `const`. So no closed-set gate over its value is possible; the gate asserts the OPENNESS instead.",
+        "consequenceForScope": "M26-2 implements the method and emits all five required fields, but `resultType` goes on THIS result only — at 2024-11-05 its absence is the DEFINED behaviour (\"the client MUST treat the absent field as `complete`\"), so adding it to the other eight results would change bytes today's clients already receive for a revision we do not claim. `ttlMs: 0` / `cacheScope: \"private\"` are the inert ends of both enums, not a caching strategy. `clientCapabilities` is deliberately unread: at 2024-11-05 there is no `_meta` at all, so a strict read would reject every request today's clients send. See ADR 0064 §4 and §5.",
+        "landedBy": "ADR 0064; gated by tests/invariants/mcp-spec-vendor.invariants.test.ts (which reads the `required` arrays off disk and checks server.ts against them, rather than restating the five names), packages/calllint-mcp/test/server.test.ts, and a 7th stdio request in scripts/mcp-pack-smoke.mjs that proves the method answers from the published tarball.",
+        "stillNotClaimed": "PROTOCOL_VERSION remains 2024-11-05 and 2026-07-28 remains absent from SUPPORTED_PROTOCOL_VERSIONS. M-OPEN-5 orders the public claim LAST — after (a) this method and (b) removing the handshake. Only (a) is done."
+      }
     },
     {
       "id": "D5",
@@ -86,7 +96,8 @@
       "statusAfterThisBatch": {
         "D1": "IMPLEMENTED (negotiation layer only) — ADR 0063",
         "D3": "IMPLEMENTED — ADR 0063",
-        "D4": "OPEN, owned by M26-2, needs its own authorization. Its absence is now ASSERTED rather than merely pending: a gate reds if `case \"server/discover\"` appears in server.ts."
+        "D4": "OPEN, owned by M26-2, needs its own authorization. Its absence is now ASSERTED rather than merely pending: a gate reds if `case \"server/discover\"` appears in server.ts.",
+        "amendedByM26-2": "D4 is now IMPLEMENTED — ADR 0064. The absence gate named above was deliberately INVERTED (it now asserts the case IS present), which is what writing it as an assertion was for. D1/D3 are unchanged. See the D4 row's `amendedByM26-2` block: the row understated the obligation by four fields."
       },
       "whatIsStillNotClaimed": "PROTOCOL_VERSION remains 2024-11-05 and 2026-07-28 is absent from SUPPORTED_PROTOCOL_VERSIONS. Finality passing is permission to SCOPE the revision, not to claim it (new17 §19). `currentState.unchangedByThisBatch` above referred to the M26-5 batch; M26-1 likewise does not change the advertised string, but it DOES change server.ts — see ADR 0063 §3.1."
     }
