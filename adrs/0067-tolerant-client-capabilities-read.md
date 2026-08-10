@@ -89,13 +89,34 @@ interface DeclaredClientCapabilities {
   `{declared: true, capabilities: null}`. A client bug stays visible as a bug; see §5.
 
 **We never send -32021.** Not as a policy choice — as a consequence. `ClientCapabilities`
-has `required: null` and five optional members (`elicitation`, `experimental`, `extensions`,
-`roots`, `sampling`), with upstream stating *"an empty object means the client supports no
-optional capabilities."* None of CallLint's 13 tools needs any of them: they read committed
-bytes, run deterministic rules, and return a verdict. There is no elicitation, no sampling,
-no roots traversal. `-32021` **requires** `data.requiredCapabilities` — the capabilities the
-server needs — and we have none to name. Emitting it would be a false statement about our
+carries **no `required` key at all** and five optional members (`elicitation`, `experimental`,
+`extensions`, `roots`, `sampling`), with upstream stating *"an empty object means the client
+supports no optional capabilities."* None of CallLint's 13 tools needs any of them: they read
+committed bytes, run deterministic rules, and return a verdict. There is no elicitation, no
+sampling, no roots traversal. `-32021` **requires** `data.requiredCapabilities` — the capabilities
+the server needs — and we have none to name. Emitting it would be a false statement about our
 own needs, which for a verdict engine is the same class of defect as a false finding.
+
+> **Amended 2026-08-10, after this ADR was merged at `05ee77c`.** The paragraph above first read
+> *"`ClientCapabilities` has `required: null`."* Measured against the locked bytes:
+> `Object.keys($defs.ClientCapabilities)` is `["description", "properties", "type"]` — the key is
+> **absent**, not present-and-null. The conclusion is unchanged and still derivable, but from the
+> *absence* of `required`, which is what makes every member optional and `{}` a conformant
+> declaration.
+>
+> Worse, §4.2's gate encoded the same slip in a way that could not catch it:
+> `expect(d.ClientCapabilities?.required ?? null).toBeNull()`. The `?? null` maps a **missing
+> `ClientCapabilities`** to `null` as well, so the assertion passed whether upstream said "nothing
+> is required" or had deleted the definition — `[[absence-makes-a-gate-skip-itself]]`, in the one
+> gate whose stated purpose is to *derive* rather than restate. Now: assert the definition exists,
+> assert `hasOwnProperty("required")` is `false`, and pin the five member names so upstream adding
+> a **required** member cannot pass the absence check. Control #168 (delete `ClientCapabilities`
+> from the locked schema) reds with *"the locked schema must define ClientCapabilities at all"*
+> where the old form went green.
+>
+> Third time in this workstream that a claim's *prose* outran its bytes, and the first where the
+> ADR doing the correcting committed the same class of error in the same batch — see §2's own
+> lesson, which applies to this document.
 
 ### §3.1 Why read-but-unused is not dead code
 
@@ -113,7 +134,7 @@ The read converts three unverified sentences into checkable facts:
 1. Both required `_meta` keys have a reader, so a gate can assert on the *presence* of the
    read instead of on the absence of a rejection.
 2. `-32021` is absent from `server.ts` **because** no tool needs a capability — derivable
-   from `ClientCapabilities.required === null` in the locked bytes (§4.2), not asserted.
+   from `ClientCapabilities` carrying no `required` key in the locked bytes (§4.2), not asserted.
 3. The reader is request-scoped, which makes upstream's MUST NOT rule checkable (§4.3).
 
 The call site is `void readClientCapabilities(req)`. The `void` is deliberate: it marks the
@@ -138,10 +159,12 @@ worked. Both keys are now asserted `toContain`, and the title records that the t
 ### §4.2 -32021 derived from locked bytes, then asserted absent from our source
 
 Parses `MissingRequiredClientCapabilityError` out of the schema: the `const` code must be
-`[-32021]`, `data.required` must contain `requiredCapabilities`, and
-`ClientCapabilities.required` must be `null`. Only then does it assert `server.ts` does not
-contain `32021`. The reason is **derived**, not restated — the shape
-`[[prose-justified-constant-is-ungated]]` requires.
+`[-32021]`, `data.required` must contain `requiredCapabilities`, and `ClientCapabilities` must
+exist while carrying **no `required` key**, with its five optional members pinned by name. Only
+then does it assert `server.ts` does not contain `32021`. The reason is **derived**, not
+restated — the shape `[[prose-justified-constant-is-ungated]]` requires. (This paragraph
+described a `required: null` check until 2026-08-10; see §3's amendment for why that form was
+both wrong and unable to catch itself.)
 
 The forbidden-token half needs a comment stripper, because the docblock *arguing for* the
 rule contains the token. That stripper is guarded two-sidedly (real code still present,
