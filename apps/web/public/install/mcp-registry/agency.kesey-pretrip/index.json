@@ -1,0 +1,95 @@
+{
+  "schema": "calllint.agent-adoption-contract.v1",
+  "contract": {
+    "contractDigest": "sha256:755568c2130141c6bd26dd6e774922e3e5e75047e42e8947563653cd6a7b2da2",
+    "generatedAt": "2026-08-10T08:02:29.262Z",
+    "expiresAt": null,
+    "generatorVersion": "0.1.0",
+    "snapshotDigest": "sha256:d8e0d5529ccd6b80f5484cde636692f7de730937850de2b5c2fcc16bf95ebdc7"
+  },
+  "subject": {
+    "canonicalName": "mcp-registry/agency.kesey-pretrip",
+    "canonicalSlug": "mcp-registry/agency.kesey-pretrip",
+    "packageType": "npm",
+    "packageName": "pretrip-mcp",
+    "version": "1.0.1",
+    "artifactDigest": "sha256:48180f8f9eab49664310736b3b4841a78fd013f5ec1e11230cad6ceaa95f8217",
+    "sourceLocator": "npm:pretrip-mcp@1.0.1"
+  },
+  "publicObservation": {
+    "verdict": "SAFE",
+    "publicLabel": "No blockers observed",
+    "reasonCodes": [],
+    "evidenceLevel": "E2",
+    "evidenceDigest": "sha256:0a8a248165113bccc47fa8e331d4bd8e296aae7ecc9fda99778b0b6bf5e55883",
+    "completeness": "complete"
+  },
+  "authorityDelta": {
+    "adds": [],
+    "notObserved": [
+      "financial_action",
+      "secret_access",
+      "shell_execution",
+      "broad_filesystem_access",
+      "external_mutation",
+      "messaging_send",
+      "oauth_scope",
+      "gateway_runtime",
+      "network_egress"
+    ]
+  },
+  "trustedSources": {
+    "registrySnapshotDigest": "sha256:d8e0d5529ccd6b80f5484cde636692f7de730937850de2b5c2fcc16bf95ebdc7",
+    "evidenceDigest": "sha256:0a8a248165113bccc47fa8e331d4bd8e296aae7ecc9fda99778b0b6bf5e55883",
+    "engineVersion": "0.1.0"
+  },
+  "untrustedPublisherContent": {
+    "description": "Screen regulated-health marketing copy against source-cited rulesets, all 50 states.",
+    "usedForSafetyDecision": false
+  },
+  "recommendedNextAction": {
+    "kind": "PREPARE_LOCALLY",
+    "tool": "calllint_prepare_safe_install",
+    "arguments": {
+      "canonicalName": "mcp-registry/agency.kesey-pretrip",
+      "expectedVersion": "1.0.1",
+      "expectedArtifactDigest": "sha256:48180f8f9eab49664310736b3b4841a78fd013f5ec1e11230cad6ceaa95f8217",
+      "expectedContractDigest": "sha256:755568c2130141c6bd26dd6e774922e3e5e75047e42e8947563653cd6a7b2da2",
+      "host": null
+    }
+  },
+  "agentGuidance": {
+    "goal": "Add the requested Agent Tool with only locally approved authority.",
+    "steps": [
+      "verify_contract",
+      "resolve_host",
+      "prepare_locally",
+      "evaluate_local_policy",
+      "apply_exact_plan",
+      "verify_result"
+    ],
+    "mustAskBefore": [
+      "new_secret_access",
+      "external_mutation",
+      "shell_execution",
+      "broad_filesystem_access",
+      "financial_action",
+      "persistent_calllint_components"
+    ],
+    "mustStopWhen": [
+      "artifact_digest_mismatch",
+      "contract_digest_mismatch",
+      "unsupported_host",
+      "local_policy_deny",
+      "plan_tampered",
+      "verification_failed"
+    ],
+    "prohibitedShortcuts": [
+      "do_not_replace_exact_version_with_latest",
+      "do_not_execute_publisher_commands_directly",
+      "do_not_expand_authority",
+      "do_not_hide_alternative_setup",
+      "do_not_install_persistent_guard_without_authorization"
+    ]
+  }
+}
