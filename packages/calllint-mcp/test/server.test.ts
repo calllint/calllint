@@ -1,7 +1,12 @@
 import { describe, it, expect } from "vitest"
 import { readFileSync } from "node:fs"
 import { fileURLToPath } from "node:url"
-import { handleRequest, decodeLine, readRequestedProtocolVersion } from "../src/server.js"
+import {
+  handleRequest,
+  decodeLine,
+  readRequestedProtocolVersion,
+  readClientCapabilities,
+} from "../src/server.js"
 import { VERSION } from "../src/version.js"
 import type { ScanOptions } from "@calllint/core"
 
@@ -266,6 +271,87 @@ describe("the 2026-07-28 claim, made by M26-4 (ADR 0066)", () => {
     const res = handleRequest({ jsonrpc: "2.0", id: 1, method: "server/discover" }, INFO, OPTS)
     const r = (res as { result: { supportedVersions: string[] } }).result
     expect(r.supportedVersions).toEqual(["2024-11-05", "2026-07-28"])
+  })
+})
+
+describe("clientCapabilities is read at 2026-07-28 and decides nothing (M26-6, ADR 0067)", () => {
+  const CAPS_KEY = "io.modelcontextprotocol/clientCapabilities"
+  /** A bare request carrying the given `_meta`, for reading the helper directly. */
+  const reqWith = (meta: Record<string, unknown>) => ({
+    jsonrpc: "2.0" as const,
+    id: 1,
+    method: "tools/list",
+    params: { _meta: meta },
+  })
+  /** A 2026-07-28 request whose `_meta` carries exactly the given extra keys. */
+  const withMeta = (extra: Record<string, unknown>) =>
+    handleRequest(
+      {
+        jsonrpc: "2.0",
+        id: 1,
+        method: "tools/list",
+        params: { _meta: { [META_KEY]: "2026-07-28", ...extra } },
+      },
+      INFO,
+      OPTS,
+    )
+
+  it("a client sending ONLY the version key is served byte-identically to one sending both", () => {
+    // This is the testable form of "tolerant". Upstream marks both `_meta` keys
+    // REQUIRED, but its remedy for a missing capability is the on-demand -32021
+    // whose `data.requiredCapabilities` names what the SERVER needs — and no
+    // CallLint tool needs anything. Refusing here would reject exactly the
+    // clients that can reach 2026-07-28 at all, since the version key is how
+    // they get here.
+    const versionOnly = withMeta({})
+    const both = withMeta({ [CAPS_KEY]: { sampling: {} } })
+    expect(JSON.stringify(versionOnly)).toBe(JSON.stringify(both))
+    expect(versionOnly).toHaveProperty("result")
+  })
+
+  it("an EMPTY capabilities object is a declaration, not an absence", () => {
+    // `ClientCapabilities.required` is null upstream and "an empty object means
+    // the client supports no optional capabilities" — a real statement, distinct
+    // from sending no key. The reader keeps the two apart; collapsing them would
+    // make a future reader's "did the client tell us?" answer wrong for `{}`.
+    expect(readClientCapabilities(reqWith({}))).toEqual({ declared: false, capabilities: null })
+    expect(readClientCapabilities(reqWith({ [CAPS_KEY]: {} }))).toEqual({
+      declared: true,
+      capabilities: {},
+    })
+    expect(readClientCapabilities(reqWith({ [CAPS_KEY]: { roots: {} } }))).toEqual({
+      declared: true,
+      capabilities: { roots: {} },
+    })
+  })
+
+  it("a malformed declaration is declared-but-null, never folded into absence", () => {
+    // Same rule as a malformed version string becoming `""`: a client bug must
+    // stay visible. An array is an object to `typeof`, so it is excluded
+    // explicitly rather than by accident.
+    //
+    // Explicit `null` is DECLARED. The first draft of this test expected
+    // `declared: false` for it and red — correctly. JSON `null` is a value the
+    // client sent, not a key it omitted, so reading it as an absence is the very
+    // collapse this pair of fields exists to prevent. The expectation was wrong,
+    // not the reader.
+    for (const bad of ["yes", 7, true, [], null]) {
+      expect(readClientCapabilities(reqWith({ [CAPS_KEY]: bad })), `${JSON.stringify(bad)}`).toEqual(
+        { declared: true, capabilities: null },
+      )
+    }
+    // The contrast that makes the row above meaningful: no key at all.
+    expect(readClientCapabilities(reqWith({}))).toEqual({ declared: false, capabilities: null })
+  })
+
+  it("-32021 is never sent, whatever the client declares or omits", () => {
+    const bodies = [
+      withMeta({}),
+      withMeta({ [CAPS_KEY]: {} }),
+      withMeta({ [CAPS_KEY]: { sampling: {}, roots: {} } }),
+    ].map((r) => JSON.stringify(r))
+    for (const body of bodies) expect(body).not.toContain("32021")
+    expect(bodies.every((b) => b.includes('"result"'))).toBe(true)
   })
 })
 

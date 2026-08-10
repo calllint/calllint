@@ -398,6 +398,56 @@ be rejected; the version key is exactly what a client must send to reach the new
 Recorded in ADR 0066 §7, gated by `mcp-spec-vendor.invariants.test.ts:581`. `examples/*.json` is
 still unvendored (ADR 0064 §6), and F5/F6 still rest on unvendored pages (M-OPEN-1).
 
+### `clientCapabilities`, amended by M26-6 (2026-08-10) — CLOSED, and the reason above is refined
+
+*Appended, not rewritten. Everything above is retained verbatim, including the sentence this block
+refines. Read this block as current where the two differ.*
+
+**CLOSED by ADR 0067.** Both required `_meta` keys are now read on every request at 2026-07-28.
+`readClientCapabilities(req)` returns `{declared, capabilities}` and decides nothing: a request
+omitting the key is served byte-identically to one declaring it, asserted as such.
+
+**The reason recorded above is true and its framing is not.** The paragraph above argues that a
+strict read would reject a client sending only the version key, and that the version key is exactly
+what selects the new revision — both correct. The frame it builds on them is that conformance and
+usability conflict here, so we decline to read the key. Reading further in the same digest-locked
+schema removes the conflict:
+
+| What the paragraph above rests on | What M26-6 measured in the same locked bytes |
+| --- | --- |
+| `RequestMetaObject.required` names **both** keys, so a strict read rejects the minimal request | True. But `required` governs the object's **shape**, not the consequence of a missing capability. |
+| (not known when that paragraph was written) | `$defs.MissingRequiredClientCapabilityError` pins `error.code` to `const` **-32021** and **requires** `error.data.requiredCapabilities`. Verbatim: *"Returned when processing a request requires a capability the client did not declare in `clientCapabilities`."* An **on-demand** refusal, naming what the server needs. |
+| (not known when that paragraph was written) | `ClientCapabilities.required` is **`null`**; all five members are optional, and *"an empty object means the client supports no optional capabilities."* |
+
+So a tolerant read is **what upstream asks for**, not a deviation we are tolerating. And because no
+CallLint tool needs a capability — the 13 tools read committed bytes, run deterministic rules, and
+return a verdict — there is nothing this server could put in `requiredCapabilities`. **We can never
+legitimately send -32021**, and that is now derived in a gate from `ClientCapabilities.required ===
+null` rather than asserted in prose. Before this batch, `grep -rn "32021"` over `packages/ tests/
+scripts/` returned **0 hits**: the error code upstream defines for this exact situation was
+unmentioned anywhere in the repo, in either direction.
+
+**Two properties gained a guard that had none.** Upstream's *"Servers MUST NOT infer capabilities
+from prior requests"* was asserted only as **vendored text existing**; nothing checked our
+compliance. There is now a gate that the reader is request-scoped and that no module-scope binding
+is assigned from it — a capabilities cache returns a plausible value, so no behavioural test could
+see it. Separately, `RequestMetaObject`'s `clientInfo` carries *"SHOULD NOT rely on it for security
+decisions"*, which for a verdict engine is product principles 3/4/5 restated by upstream;
+`server.ts` reads it zero times today and now a gate keeps it that way. Zero source change for that
+one — it guards a property that is already true.
+
+**A pointer in the paragraph above has already drifted.** It cites
+`mcp-spec-vendor.invariants.test.ts:581`; that test is now at **`:599`**, moved by this batch's own
+edits. The line number is not corrected above, per the append discipline — this is the second batch
+in a row where a `path:line` pointer went stale inside the committed record, which is why the
+artifact gate anchors pointers **by content** rather than by existence (ADR 0065; M26-4's own
+pointer moved twice inside one batch).
+
+**Still open, untouched by this batch, and each still needing its own authorization:**
+`examples/*.json` remains unvendored (ADR 0064 §6); F5/F6 still rest on unvendored pages (M-OPEN-1);
+`resultType` on the other eight results is unchanged; M-OPEN-3 and M-OPEN-4 are unedited. This
+batch's scope was fixed at `clientCapabilities` alone.
+
 ---
 
 ## Not open — closed items recorded so they are not re-analyzed
@@ -413,3 +463,6 @@ still unvendored (ADR 0064 §6), and F5/F6 still rest on unvendored pages (M-OPE
 | D1 / D3 (per-request version + -32022) | **CLOSED** by M26-1 | ADR 0063; gated two-sidedly in `mcp-spec-vendor.invariants.test.ts` |
 | D4 (`server/discover`) / M-OPEN-5 item (a) | **CLOSED** by M26-2 | ADR 0064; `protocol-delta-matrix.json` D4 `amendedByM26-2`; M-OPEN-5's own amendment above. D4's row understated the obligation by **four** fields — see that amendment before re-reading the row. |
 | "all three deltas blocked by F8" | **SPENT** | `protocol-delta-matrix.json` `summary.amendedByM26-1` — F8 is PASS, so the blocker named in `allBlockedBy` is no longer live |
+| M-OPEN-5 items (b) + (c) | **CLOSED** by M26-4 | ADR 0066; M-OPEN-5's `amendedByM26-4` block above. The row's "(c) is a one-line change" estimate is the one thing it got wrong — read that amendment before re-costing anything from this row. |
+| `clientCapabilities` required upstream and unread | **CLOSED** by M26-6 | ADR 0067; the `amendedByM26-6` block above. Read tolerantly on every request, decides nothing. The earlier reason ("both keys required, so a strict read rejects the minimal request") is **refined**, not reversed: `-32021` is an on-demand error, so tolerance is upstream's design. |
+| Whether this server may ever send `-32021` | **DECIDED: no** | ADR 0067 §3. Derived, not chosen — `ClientCapabilities.required` is `null` and no CallLint tool needs a capability, so `requiredCapabilities` would have nothing to name. A gate asserts `server.ts` does not contain the code. |
