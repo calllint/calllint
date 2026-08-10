@@ -135,6 +135,23 @@ deploy/** text eol=lf
 # byte-compare, so a guard would mean inventing a consumer for the sake of guarding the pin.
 artifacts/trajectory-v0/** text eol=lf
 
+# The Gate S0 carried open items (Workstream S; `artifacts/gate-s0/open-items.md`).
+#
+# Same reasoning as artifacts/mcp-2026-07-28 above, with one difference that makes the pin land
+# earlier rather than later: the batch that creates this directory ALSO creates its first reader
+# (`tests/invariants/gate-s0-claims.invariants.test.ts`), so unlike every unguarded pin above there
+# is a consumer from day one. That reader normalizes CRLF at its own boundary anyway — per ADR 0064
+# §6.2, which was paid for by a gate that sliced un-normalized source and then blamed the wrong
+# method — so the pin is not what keeps it green.
+#
+# It is here because the reader also reads `scripts/gate-s0.ts`, `package.json` and
+# `.github/workflows/trust-ingest.yml`, all `unspecified`, and normalization at the reader is a
+# property of the reader, not of these bytes. A second consumer that byte-compares or hashes this
+# artifact — the shape every other artifact directory eventually grew — would otherwise introduce
+# the check and the missing pin together, where the miss surfaces on windows-latest ALONE and
+# `ci:local` structurally cannot see it (the #240 trap).
+artifacts/gate-s0/** text eol=lf
+
 # The vendored MCP 2026-07-28 specification bytes (M26-5; third_party/mcp-spec/2026-07-28/).
 #
 # This pin differs from every other one above in that it is NOT unguarded. The digest lock in
