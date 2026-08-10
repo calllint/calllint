@@ -407,10 +407,14 @@ describe("M26-3 — every path:line an artifact cites must still point at what i
       "servedAt",
       "The recorded line number drifted when M26-2 hoisted INSTRUCTIONS/CAPABILITIES above the switch, and again when M26-4 added its docblocks.",
     )
+    // Amended THREE times now (M26-3 → :171, M26-4 → :335, M26-6 → :418), and the newest must
+    // win each time. This literal is the one place a batch that moves this pointer has to edit by
+    // hand; it is deliberate, and it is paired with the content assertion below, which is what
+    // actually caught the ascending-order bug when `via` alone stayed plausible.
     expect(
       servedAt.via,
-      "with two amendments supplying `servedAt`, the NEWEST must win — the older one points at a docblock line",
-    ).toBe("amendedByM26-4")
+      "with three amendments supplying `servedAt`, the NEWEST must win — the older ones point at unrelated lines",
+    ).toBe("amendedByM26-6")
     assertPointer(String(servedAt.value), "protocolVersion: PROTOCOL_VERSION", "currentState.servedAt")
 
     // The claim `unchangedByThisBatch: false` is DERIVED, not taken on the artifact's word: the
@@ -436,8 +440,15 @@ describe("M26-3 — every path:line an artifact cites must still point at what i
     const matrix = readJson<Amendable>(`${ARTIFACT_DIR}/protocol-delta-matrix.json`)
     const state = matrix.currentState as Amendable
     const keys = amendmentKeysOf(state)
-    expect(keys.length, "currentState is the object that carries two amendments — if it stops, this test is vacuous").toBeGreaterThan(1)
-    expect(keys).toEqual(["amendedByM26-4", "amendedByM26-3"])
+    expect(keys.length, "currentState is the object that carries the amendment stack — if it stops, this test is vacuous").toBeGreaterThan(1)
+    // Asserted as ORDER, not as a fixed list. The earlier form hardcoded
+    // `["amendedByM26-4","amendedByM26-3"]`, which red on M26-6 for adding a third amendment —
+    // i.e. it doubled as a change-detector for a claim `:413` already makes with a name on it.
+    // What belongs here is the property `amendmentKeysOf` exists to provide: strictly descending
+    // batch numbers, whatever the stack's height. A batch that appends correctly should not have
+    // to edit this line; one that breaks the ordering still reds.
+    expect(keys).toEqual([...keys].sort((a, b) => batchNoOf(b) - batchNoOf(a)))
+    expect(batchNoOf(keys[0]!), "the newest amendment must sort first").toBeGreaterThan(batchNoOf(keys[keys.length - 1]!))
 
     // The tenth-batch trap, on synthetic keys because no real object has reached M26-10. A
     // lexicographic sort puts `M26-10` first among these; a numeric one puts it first too but for

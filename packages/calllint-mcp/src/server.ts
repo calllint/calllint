@@ -113,6 +113,29 @@ const CACHE_SCOPE = "private"
 const META_PROTOCOL_VERSION_KEY = "io.modelcontextprotocol/protocolVersion"
 
 /**
+ * The `_meta` key carrying the per-request client capabilities in 2026-07-28.
+ * Also REQUIRED by `RequestMetaObject` — `required` names BOTH this key and the
+ * version key — yet this server reads it WITHOUT ever refusing a request that
+ * omits it. That is not laxity; it is what the locked schema actually asks for:
+ *
+ *   - `ClientCapabilities.required` is `null` and every member
+ *     (`elicitation`, `experimental`, `extensions`, `roots`, `sampling`) is
+ *     optional, so "an empty object means the client supports no optional
+ *     capabilities" is a conformant declaration.
+ *   - Upstream defines a dedicated error for the missing case,
+ *     `MissingRequiredClientCapabilityError` (-32021), whose `data` REQUIRES
+ *     `requiredCapabilities` — the capabilities *the server needs*. It is an
+ *     on-demand refusal, not a schema-shaped one.
+ *
+ * None of CallLint's tools need a client capability: they read committed bytes,
+ * run deterministic rules, and return a verdict. There is no elicitation, no
+ * sampling, no roots traversal. So there is no capability this server could name
+ * in `requiredCapabilities`, and emitting -32021 would be a false statement
+ * about our own needs. ADR 0067 §3.
+ */
+const META_CLIENT_CAPABILITIES_KEY = "io.modelcontextprotocol/clientCapabilities"
+
+/**
  * The natural-language guidance returned by BOTH `initialize` (as `instructions`)
  * and `server/discover` (as `DiscoverResult.instructions`). One constant, because
  * the two methods describe the same server — a second copy would be a claim about
@@ -139,7 +162,22 @@ export interface ServerInfo {
 
 interface RequestMeta {
   [META_PROTOCOL_VERSION_KEY]?: unknown
+  [META_CLIENT_CAPABILITIES_KEY]?: unknown
   [key: string]: unknown
+}
+
+/**
+ * What a client declared about its capabilities on ONE request.
+ *
+ * `declared` is separate from `capabilities` on purpose: the locked schema says
+ * an empty object is a meaningful declaration ("supports no optional
+ * capabilities"), which is NOT the same statement as sending no key at all. A
+ * single nullable field would collapse the two, and a reader asking "did the
+ * client tell us?" would get the wrong answer for `{}`.
+ */
+export interface DeclaredClientCapabilities {
+  declared: boolean
+  capabilities: Record<string, unknown> | null
 }
 
 interface JsonRpcRequest {
@@ -258,6 +296,33 @@ export function readRequestedProtocolVersion(req: JsonRpcRequest): string | unde
 }
 
 /**
+ * Read the per-request client capabilities from `_meta`.
+ *
+ * Read fresh from THIS request every time, and stored nowhere: the locked schema
+ * says "Servers MUST NOT infer capabilities from prior requests", so a
+ * module-scope cache of this value would be a conformance bug, not an
+ * optimisation. `handleRequest` is the only caller and passes its own `req`.
+ *
+ * Absence is not an error (see `META_CLIENT_CAPABILITIES_KEY`): it returns
+ * `{ declared: false, capabilities: null }` and the request proceeds exactly as
+ * if the key had been sent. A non-object value is reported as declared-but-null
+ * rather than as absent, for the same reason `readRequestedProtocolVersion`
+ * turns a malformed version into `""`: a malformed declaration is a client bug,
+ * and folding it into "absent" would hide it from any future reader that starts
+ * caring about the contents.
+ */
+export function readClientCapabilities(req: JsonRpcRequest): DeclaredClientCapabilities {
+  const meta = req.params?._meta
+  if (meta == null || typeof meta !== "object") return { declared: false, capabilities: null }
+  if (!(META_CLIENT_CAPABILITIES_KEY in meta)) return { declared: false, capabilities: null }
+  const value = meta[META_CLIENT_CAPABILITIES_KEY]
+  if (value == null || typeof value !== "object" || Array.isArray(value)) {
+    return { declared: true, capabilities: null }
+  }
+  return { declared: true, capabilities: value as Record<string, unknown> }
+}
+
+/**
  * Handle a single decoded JSON-RPC request. Pure given `info`/`scanOpts`.
  * Returns a response, or null for notifications (no id → no reply).
  */
@@ -290,6 +355,24 @@ export function handleRequest(
    * is one of exactly two values from this line down.
    */
   const servedAt = requested ?? PROTOCOL_VERSION
+
+  /**
+   * Read per-request, used to decide nothing (M26-6, ADR 0067). The declaration
+   * is REQUIRED upstream alongside the version key, so a server that reads only
+   * one of the two required keys is making a claim it never checked. Reading
+   * both makes the claim measurable: this line is why "no CallLint tool needs a
+   * client capability" is a fact with a reader rather than a sentence in a
+   * comment, and why the absence of -32021 anywhere in this file is asserted
+   * rather than incidental.
+   *
+   * It deliberately does NOT gate anything. Refusing a request that omits the
+   * key would reject exactly the clients that reach 2026-07-28 at all (the
+   * version key is how they get here), and upstream's own remedy for a missing
+   * capability is the on-demand -32021 with the needed capabilities named — a
+   * list this server cannot fill in. `void` marks the non-use as intentional so
+   * a future reader does not "fix" it by deleting the call.
+   */
+  void readClientCapabilities(req)
 
   /**
    * The four methods 2026-07-28 removed answer `METHOD_NOT_FOUND` when the

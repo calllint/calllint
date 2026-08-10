@@ -357,11 +357,36 @@ describe("M26-2 server/discover is built from upstream's required arrays", () =>
    * deprecated-table row filter.
    */
   const serverSource = () => readText("packages/calllint-mcp/src/server.ts").replace(/\r\n/g, "\n")
+  /**
+   * `server.ts` with comments removed, for the forbidden-token scans only.
+   * A scan over raw text reds on the docblock that explains the rule; every
+   * caller of this asserts two-sidedly (real code still present, prose gone) so
+   * a stripper that ate the file could not pass.
+   */
+  const serverCode = () =>
+    serverSource()
+      .replace(/\/\*[\s\S]*?\*\//g, "")
+      .replace(/(^|[^:])\/\/.*$/gm, "$1")
   const schemaSource = () => readText(`${VENDOR_DIR}/schema.ts`)
   const changelog = () => readText(`${VENDOR_DIR}/changelog.snapshot.md`)
   interface Def {
     readonly required?: readonly string[]
-    readonly properties?: Record<string, { readonly enum?: readonly string[]; readonly minimum?: number }>
+    readonly properties?: Record<
+      string,
+      {
+        readonly enum?: readonly string[]
+        readonly minimum?: number
+        /** Upstream's prose for one property. Wrapped mid-sentence — collapse whitespace before matching. */
+        readonly description?: string
+        /** `MissingRequiredClientCapabilityError.error` composes `Error` with its own const-pinned code. */
+        readonly allOf?: readonly {
+          readonly properties?: {
+            readonly code?: { readonly const?: unknown }
+            readonly data?: { readonly required?: readonly string[] }
+          }
+        }[]
+      }
+    >
     readonly additionalProperties?: unknown
   }
   const defs = (): Record<string, Def> =>
@@ -571,9 +596,16 @@ describe("M26-2 server/discover is built from upstream's required arrays", () =>
     expect(codeOf("server/discover")).not.toContain("2026-07-28")
   })
 
-  it("a conformant DiscoverRequest needs params._meta with TWO required keys", () => {
-    // Measured, and unread by this server on purpose (ADR 0064 §5). Pinned because
-    // "we implement server/discover" would otherwise read as "we handle its params".
+  it("a conformant DiscoverRequest needs params._meta with TWO required keys — BOTH now read", () => {
+    // M26-6 (ADR 0067) reversed the last line of this test. Until then the
+    // capabilities key was measured-but-unread (ADR 0064 §5), and this assertion
+    // was the named thing a landing batch had to edit — which is what happened.
+    //
+    // Reading both keys is not the same as enforcing both. The consequences of
+    // omitting them differ, and that asymmetry is upstream's, not ours: an
+    // unsupported version is refused (-32022), while a missing capability has a
+    // separate on-demand error (-32021) this server can never legitimately send.
+    // See the two tests below.
     const d = defs()
     expect(d.RequestParams?.required).toEqual(["_meta"])
     expect([...(d.RequestMetaObject?.required ?? [])].sort()).toEqual([
@@ -581,9 +613,107 @@ describe("M26-2 server/discover is built from upstream's required arrays", () =>
       "io.modelcontextprotocol/protocolVersion",
     ])
     expect(schemaSource()).toContain("Servers MUST NOT infer capabilities from prior requests")
-    // Our side: the version key is read, the capabilities key is not.
+    // Our side: both required keys are now read.
     expect(serverSource()).toContain("io.modelcontextprotocol/protocolVersion")
-    expect(serverSource()).not.toContain("io.modelcontextprotocol/clientCapabilities")
+    expect(serverSource()).toContain("io.modelcontextprotocol/clientCapabilities")
+  })
+
+  it("-32021 is upstream's remedy for a missing capability, and this server must never send it", () => {
+    // Derived from the locked bytes, not restated: the code and the required
+    // `requiredCapabilities` field both come out of the schema. That field is
+    // the reason we cannot send it — it demands the capabilities THE SERVER
+    // NEEDS, and CallLint's tools read committed bytes and run deterministic
+    // rules. There is nothing to name.
+    const d = defs()
+    const err = d.MissingRequiredClientCapabilityError
+    expect(err, "the locked schema must define MissingRequiredClientCapabilityError").toBeTypeOf(
+      "object",
+    )
+    const variants = err?.properties?.error?.allOf ?? []
+    const codes = variants.map((v) => v.properties?.code?.const).filter((c) => c !== undefined)
+    expect(codes, "the error's code must be pinned as a const in the schema").toEqual([-32021])
+    const dataRequired = variants.flatMap((v) => [...(v.properties?.data?.required ?? [])])
+    expect(dataRequired).toContain("requiredCapabilities")
+
+    // Every capability upstream knows about is optional, so "no capabilities" is
+    // a conformant client, and an empty object is a real declaration.
+    expect(d.ClientCapabilities?.required ?? null).toBeNull()
+
+    // Therefore: absent from our server's CODE, and asserted so a future batch
+    // that starts refusing has to change this line and say why.
+    //
+    // Scanned with comments stripped. The first run of this gate red on the
+    // docblock that ARGUES FOR the rule — the same trap as
+    // `source-scan-must-read-code-not-prose`: a forbidden-token scan over raw
+    // text cannot tell a violation from an explanation. The stripper is guarded
+    // two-sidedly below so it cannot pass by deleting everything.
+    const code = serverCode()
+    expect(code, "the stripper must leave real code behind").toContain("readClientCapabilities")
+    expect(code, "the stripper must remove docblock prose").not.toContain("on-demand refusal")
+    expect(code).not.toContain("32021")
+  })
+
+  it("the capabilities reader is request-scoped — MUST NOT infer from prior requests", () => {
+    // #165 in the plan predicted this property had no guard on OUR side: `:583`
+    // only asserts upstream SAYS it. This asserts our implementation obeys it.
+    //
+    // The observable form of "does not infer from prior requests" is that the
+    // value is never stored: the reader takes `req` and returns, and no
+    // module-scope binding holds its result.
+    const src = serverSource()
+    expect(src).toMatch(/export function readClientCapabilities\(req: JsonRpcRequest\)/)
+    // No module-scope (column-0) binding is ever assigned from the reader.
+    expect(src).not.toMatch(/^(?:const|let|var)\s+\w+\s*=\s*readClientCapabilities/m)
+    // And the one call site passes the live request rather than anything retained.
+    expect(src).toContain("void readClientCapabilities(req)")
+    // The three assertions above were measured INSUFFICIENT while this batch was
+    // being written. Control #165b declared `let lastCaps` with a neutral
+    // initializer at module scope and assigned it INSIDE the handler:
+    //
+    //   let lastCaps: DeclaredClientCapabilities = { declared: false, capabilities: null }
+    //   ...
+    //   void readClientCapabilities(req)                       // literal preserved
+    //   if (readClientCapabilities(req).declared) lastCaps = readClientCapabilities(req)
+    //
+    // That is a working cache, and all three passed it: the regex above matches a
+    // declaration INITIALIZED from the reader, not an assignment to one declared
+    // earlier, and the `void` literal was still present verbatim. A cache is the
+    // conformance bug no behavioural test can see (it returns a plausible value),
+    // so the gate cannot afford a hole this shape. What the mutation could not fake
+    // is arity: it needed FOUR mentions of the reader where the honest form has
+    // exactly TWO — the declaration and the single discarded call.
+    const mentions = [...serverCode().matchAll(/readClientCapabilities\(/g)].length
+    expect(
+      mentions,
+      "exactly two mentions in stripped code — the declaration and the one `void` call site; a retained value needs a third to read it back",
+    ).toBe(2)
+  })
+
+  it("clientInfo is self-reported, so it must not reach a verdict path", () => {
+    // Upstream's own words, and a hard constraint for a verdict engine: product
+    // principles 3-5 forbid deciding on unverified input. Currently zero reads,
+    // so this gate is written while it is cheap — it guards a property that is
+    // true today and has nothing else stopping it from changing.
+    // Read from the PARSED description with whitespace collapsed. Upstream wraps
+    // this sentence mid-phrase, and the wrap survives in both vendored forms —
+    // as a docblock line break in `schema.ts` and as an escaped `\n` inside the
+    // JSON string. Two drafts of this gate red on that alone, against each file
+    // in turn: the claim was right both times, the probe was matching a line
+    // that upstream never wrote as one line.
+    const clientInfoDoc = String(
+      defs().RequestMetaObject?.properties?.["io.modelcontextprotocol/clientInfo"]?.description ??
+        "",
+    ).replace(/\s+/g, " ")
+    expect(clientInfoDoc).toContain("SHOULD NOT rely on it for security decisions")
+    const code = serverCode()
+    expect(code, "the stripper must leave real code behind").toContain("readClientCapabilities")
+    // Message spelled out because the bare form prints the whole stripped source and
+    // names nothing — measured under control #166, which reads clientInfo in the
+    // handler and produced `expected '\n\n\n\nimport ty...' not to contain 'clientInfo'`.
+    expect(
+      code.includes("clientInfo"),
+      "server.ts reads io.modelcontextprotocol/clientInfo — upstream: SHOULD NOT rely on it for security decisions, and a verdict engine has no other kind of decision. If a batch needs this, it argues here first.",
+    ).toBe(false)
   })
 
   it("resultType is emitted CONDITIONALLY — never unconditionally on a shared arm", () => {
