@@ -85,11 +85,43 @@ interface Amendable {
  * source that answered — and not just the value.
  */
 const AMENDMENT_KEY = /^(?:\w+A|a)mendedByM26-/
+const BATCH_NO = /M26-(\d+)/
+
+/**
+ * Amendment keys on one object, NEWEST BATCH FIRST, ordered numerically.
+ *
+ * Both halves of that sentence were wrong in the first version of this helper, which sorted
+ * lexicographically ascending. M26-4 is what exposed it, because `currentState` became the first
+ * object in either artifact to carry TWO amendments (`amendedByM26-3`, `amendedByM26-4`) that both
+ * supply the same field:
+ *
+ *   - ASCENDING made the OLDEST amendment win. `servedAt` resolved to M26-3's `server.ts:171`
+ *     instead of M26-4's `:325`, i.e. the gate read a superseded pointer as current.
+ *   - LEXICOGRAPHIC breaks at the tenth batch: `["M26-3","M26-4","M26-10","M26-2"].sort()` puts
+ *     `M26-10` FIRST. Nothing has reached M26-10 yet, so this is fixed now, while it is a
+ *     one-line change and not a debugging session.
+ *
+ * The first defect is the dangerous one, and it is dangerous in a specific way worth naming:
+ * `expectResolvedViaAmendment` would have stayed GREEN, because `via` was non-null — an amendment
+ * did answer, just the wrong one. [[assert-which-source-answered]] in a sharper form than the
+ * memory records it: checking THAT a non-obvious source answered is not the same as checking that
+ * the CURRENT one did. What actually caught it is layer 2 asserting the cited line's CONTENT, since
+ * `server.ts:171` is a docblock line. An `assertPointer` that only checked the line exists would
+ * have passed on the stale pointer.
+ *
+ * Unparseable keys are surfaced rather than coerced: `Number(undefined)` is `NaN`, every comparison
+ * against it is false, and the key would drift to an arbitrary position while the regex still
+ * matched it. So they sort LAST and are asserted against in "amendment keys resolve newest-first".
+ */
+const batchNoOf = (key: string): number => {
+  const m = BATCH_NO.exec(key)
+  return m === null ? Number.NEGATIVE_INFINITY : Number(m[1])
+}
 
 const amendmentKeysOf = (obj: Amendable): readonly string[] =>
   Object.keys(obj)
     .filter((k) => AMENDMENT_KEY.test(k))
-    .sort()
+    .sort((a, b) => batchNoOf(b) - batchNoOf(a) || a.localeCompare(b))
 
 const asBlock = (v: unknown): Amendable | null =>
   v !== null && typeof v === "object" ? (v as Amendable) : null
@@ -215,6 +247,67 @@ describe("M26-3 — the mcp-2026-07-28 artifacts have a reader, and it resolves 
     expect(JSON.stringify(amendment)).toContain("supersedes")
   })
 
+  it("finality-status.json: every original nonClaim is superseded, and the replacements hold", () => {
+    // `nonClaims` had ZERO readers until this test — measured, `grep -rn nonClaims --include=*.ts
+    // --include=*.mjs` returned only the artifact itself. All three entries went false at M26-4
+    // and nothing would have said so. That is M26-3's own finding recurring ONE FIELD AWAY from
+    // the reader M26-3 installed: a reader covers the fields it names, and the fields beside them
+    // keep drifting. Adding a reader is not a property of a file, it is a property of a field.
+    const status = readJson<Amendable>(`${ARTIFACT_DIR}/finality-status.json`)
+
+    const original = status.nonClaims as readonly string[] | undefined
+    expect(Array.isArray(original), "finality-status.json must keep its original nonClaims[]").toBe(true)
+    expect(original?.length, "all three original entries must stay verbatim (M-OPEN-2)").toBe(3)
+    // The one that names support, asserted verbatim — this is the sentence M26-4 falsified.
+    expect(original?.[0]).toContain("does NOT support MCP 2026-07-28")
+
+    const amended = resolveAmended(status, "nonClaims")
+    // `nonClaims` is superseded WITHOUT a replacement under the same key: the amendment carries
+    // `nonClaimsNow`, deliberately renamed so a consumer cannot read the new list as the old one.
+    // So `resolveAmended` answers `via: null` here, and that is correct — the assertion is on
+    // `supersededBy`, the same distinction `summary.allBlockedBy` needed.
+    expect(
+      amended.via,
+      "nonClaims is superseded in prose with a RENAMED replacement; a same-key value would be a different claim",
+    ).toBeNull()
+    const via = supersededBy(status, "nonClaims")
+    expect(
+      via,
+      `nonClaims must be superseded — all three entries are false as of M26-4. Amendment keys present: ${JSON.stringify(
+        amendmentKeysOf(status),
+      )}`,
+    ).toMatch(AMENDMENT_KEY)
+
+    const block = asBlock(status[via as string])
+    const now = block?.nonClaimsNow as readonly string[] | undefined
+    expect(Array.isArray(now), "the amendment must carry a replacement list under `nonClaimsNow`").toBe(
+      true,
+    )
+    expect(now?.length, "a superseding list must not be empty — that would claim everything").toBeGreaterThan(0)
+
+    // DERIVED, not taken on the artifact's word. Entry 1 said support is not claimed; the source
+    // must now show the second revision in the supported set, or the supersede is itself false.
+    const server = readText("packages/calllint-mcp/src/server.ts")
+    expect(
+      server,
+      "nonClaims[0] is declared false, so the supported set must actually carry the second revision",
+    ).toMatch(/SUPPORTED_PROTOCOL_VERSIONS[^=]*=[\s\S]{0,200}STATELESS_PROTOCOL_VERSION/)
+    expect(server).toMatch(/STATELESS_PROTOCOL_VERSION\s*=\s*"2026-07-28"/)
+
+    // And the replacement list must not quietly re-assert what was just retired. A future batch
+    // copying entry 1 forward would reinstate a false claim under a new key.
+    const reasserted = (now ?? []).filter((s) => /does NOT support MCP 2026-07-28/.test(s))
+    expect(reasserted, "the replacement list must not re-assert the retired non-claim").toEqual([])
+
+    // The two things still genuinely unclaimed must survive: F5/F6's unvendored basis, and the
+    // no-execution floor. Named, so a replacement list that drops them reds.
+    const joined = (now ?? []).join("\n")
+    expect(joined, "F5/F6's unvendored basis is still a real limitation (M-OPEN-1)").toMatch(/F5 and F6/)
+    expect(joined, "the no-execution floor is a product principle, not a batch detail").toMatch(
+      /never executes|Deep Scan/,
+    )
+  })
+
   it("all eight finality gates pass, and F5/F6 still rest on unvendored pages", () => {
     const status = readJson<Amendable>(`${ARTIFACT_DIR}/finality-status.json`)
     const gates = status.gates as readonly Amendable[] | undefined
@@ -259,20 +352,119 @@ describe("M26-3 — every path:line an artifact cites must still point at what i
   it("protocol-delta-matrix currentState points at the version constant and where it is served", () => {
     const matrix = readJson<Amendable>(`${ARTIFACT_DIR}/protocol-delta-matrix.json`)
     const state = matrix.currentState as Amendable
-    expect(state.advertised).toBe("2024-11-05")
 
-    assertPointer(String(state.source), 'PROTOCOL_VERSION = "2024-11-05"', "currentState.source")
+    // The stale top level, asserted verbatim — same discipline as the finality-status layer above.
+    // All four of these fields were true when written and all four are now superseded.
+    expect(state.advertised, "the top-level value must stay verbatim-stale (M-OPEN-2)").toBe(
+      "2024-11-05",
+    )
+    expect(state.unchangedByThisBatch).toBe(true)
 
-    // `servedAt` resolves through the amendment: the recorded value was correct when written and
-    // drifted when this batch's predecessor hoisted INSTRUCTIONS/CAPABILITIES above the switch.
+    // Every one of them resolves through the chain. `source` and `advertised` did NOT, until M26-4
+    // amended them and this gate red on `source` — with the message that made the cause obvious:
+    // `server.ts:13 should contain 'PROTOCOL_VERSION = "2024-11-05"', but that line reads "// ---"`.
+    // That red is the gate working: M26-3 predicted it in this artifact's own amendment prose ("a
+    // batch that moves a `path:line` an artifact cites will red there, and the fix is to append an
+    // amendment, never to edit the pointer in place"), and the prediction came true on the first
+    // run after the implementation landed. Reading the top level here would have re-created exactly
+    // the hazard layer 1 exists to forbid, one field over.
+    const advertised = resolveAmended(state, "advertised")
+    expectResolvedViaAmendment(
+      advertised,
+      state,
+      "advertised",
+      "M26-4 (ADR 0066) made the public claim, so a single-revision answer is no longer the whole set.",
+    )
+    // Both revisions named, and the ORDER asserted. The order is an advertisement that must agree
+    // with the fallback rather than the fallback itself — negative control #156 measured that
+    // reversing the source array reds three assertions but moves no client, because `servedAt`
+    // reads `PROTOCOL_VERSION` directly. Oldest-first is what keeps the artifact's description
+    // consistent with what today's clients, none of which send `_meta`, actually receive.
+    expect(String(advertised.value)).toContain("2024-11-05")
+    expect(String(advertised.value)).toContain("2026-07-28")
+    expect(
+      String(advertised.value).indexOf("2024-11-05"),
+      "the legacy revision must be named FIRST — an undeclared request is served at it",
+    ).toBeLessThan(String(advertised.value).indexOf("2026-07-28"))
+
+    const source = resolveAmended(state, "source")
+    expectResolvedViaAmendment(
+      source,
+      state,
+      "source",
+      "This batch's docblocks moved `const PROTOCOL_VERSION` from line 13 to 29.",
+    )
+    assertPointer(String(source.value), 'PROTOCOL_VERSION = "2024-11-05"', "currentState.source")
+
+    // `servedAt` is amended TWICE (M26-3 → :171, M26-4 → :325), which is what forced
+    // `amendmentKeysOf` to order newest-first. Ascending order resolved to M26-3's now-stale :171
+    // while `expectResolvedViaAmendment` stayed green, because an amendment DID answer — just not
+    // the current one. Only the content assertion below caught it.
     const servedAt = resolveAmended(state, "servedAt")
     expectResolvedViaAmendment(
       servedAt,
       state,
       "servedAt",
-      "The recorded line number drifted when M26-2 hoisted INSTRUCTIONS/CAPABILITIES above the switch.",
+      "The recorded line number drifted when M26-2 hoisted INSTRUCTIONS/CAPABILITIES above the switch, and again when M26-4 added its docblocks.",
     )
+    expect(
+      servedAt.via,
+      "with two amendments supplying `servedAt`, the NEWEST must win — the older one points at a docblock line",
+    ).toBe("amendedByM26-4")
     assertPointer(String(servedAt.value), "protocolVersion: PROTOCOL_VERSION", "currentState.servedAt")
+
+    // The claim `unchangedByThisBatch: false` is DERIVED, not taken on the artifact's word: the
+    // supported set must actually carry the second revision now.
+    const unchanged = resolveAmended(state, "unchangedByThisBatch")
+    expectResolvedViaAmendment(
+      unchanged,
+      state,
+      "unchangedByThisBatch",
+      "M26-4 changed the served surface, so `true` is no longer a description of this file.",
+    )
+    expect(unchanged.value).toBe(false)
+    expect(
+      readText("packages/calllint-mcp/src/server.ts"),
+      "the artifact says the surface changed; the source must show the second revision in the supported set",
+    ).toMatch(/SUPPORTED_PROTOCOL_VERSIONS[^=]*=[\s\S]{0,200}STATELESS_PROTOCOL_VERSION/)
+  })
+
+  it("amendment keys resolve newest-first, numerically, and every key parses", () => {
+    // The guard on `amendmentKeysOf`'s ORDER, sited once and non-vacuously. Without it the
+    // ordering fix above is a silent behaviour with no assertion, and the ascending-order bug it
+    // replaced was green everywhere except one content check.
+    const matrix = readJson<Amendable>(`${ARTIFACT_DIR}/protocol-delta-matrix.json`)
+    const state = matrix.currentState as Amendable
+    const keys = amendmentKeysOf(state)
+    expect(keys.length, "currentState is the object that carries two amendments — if it stops, this test is vacuous").toBeGreaterThan(1)
+    expect(keys).toEqual(["amendedByM26-4", "amendedByM26-3"])
+
+    // The tenth-batch trap, on synthetic keys because no real object has reached M26-10. A
+    // lexicographic sort puts `M26-10` first among these; a numeric one puts it first too but for
+    // the right reason — so the discriminating case is `M26-2` vs `M26-10`, asserted by position.
+    const synthetic = amendmentKeysOf({
+      "amendedByM26-2": {},
+      "amendedByM26-10": {},
+      "amendedByM26-3": {},
+      other: {},
+    })
+    expect(synthetic).toEqual(["amendedByM26-10", "amendedByM26-3", "amendedByM26-2"])
+
+    // Every amendment key in BOTH artifacts must carry a parseable batch number. An unparseable
+    // one still matches `AMENDMENT_KEY`, sorts to the end, and would make resolution order
+    // arbitrary — so it is named here rather than tolerated.
+    const unparseable: string[] = []
+    const walk = (node: unknown): void => {
+      if (node === null || typeof node !== "object") return
+      for (const [k, v] of Object.entries(node)) {
+        if (AMENDMENT_KEY.test(k) && !Number.isFinite(batchNoOf(k))) unparseable.push(k)
+        walk(v)
+      }
+    }
+    for (const f of ["finality-status.json", "protocol-delta-matrix.json"]) {
+      walk(readJson<unknown>(`${ARTIFACT_DIR}/${f}`))
+    }
+    expect(unparseable, "every amendedByM26-* key must carry a numeric batch").toEqual([])
   })
 
   it("D3's falsified premise is amended, and the error code it said was missing exists", () => {

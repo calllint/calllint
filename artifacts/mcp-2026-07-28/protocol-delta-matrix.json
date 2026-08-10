@@ -14,6 +14,16 @@
       "servedAt": "packages/calllint-mcp/src/server.ts:171",
       "asMeasured": "Line 61 is now BLANK. M26-2 hoisted the `INSTRUCTIONS` and `CAPABILITIES` constants above the method switch so `initialize` and `server/discover` could share one copy of each, which moved every line in the switch down. `protocolVersion: PROTOCOL_VERSION` — the place the advertised version is actually served — is line 171. The recorded value was correct at `measuredAgainstCommit` and drifted with a refactor that changed no served byte.",
       "whyThisIsRecordedRatherThanJustFixed": "A line-number pointer degrades silently: nothing red when line 61 stopped being the served location, because nothing read this file. That is the motivation for the pointer-truth layer M26-3 added, not an incidental catch. `tests/invariants/mcp-artifact-claims.invariants.test.ts` now asserts each cited `path:line` CONTAINS what the artifact claims — asserting merely that the line exists would have been satisfied by the blank line."
+    },
+    "amendedByM26-4": {
+      "supersedes": "`advertised`, `source`, `servedAt` (as amended by M26-3), and `unchangedByThisBatch` — every field of this block. Read this amendment as current; the values above are retained because a deleted claim is indistinguishable from one never made.",
+      "advertised": "2024-11-05 and 2026-07-28, in that order",
+      "source": "packages/calllint-mcp/src/server.ts:29",
+      "servedAt": "packages/calllint-mcp/src/server.ts:335",
+      "unchangedByThisBatch": false,
+      "asMeasured": "M26-4 (ADR 0066) serves BOTH revisions in parallel, selected per request from `_meta`. `SUPPORTED_PROTOCOL_VERSIONS` is now `[PROTOCOL_VERSION, STATELESS_PROTOCOL_VERSION]`, and `server/discover` advertises both, oldest first — the order is load-bearing, because an undeclared request resolves to the first member (`const servedAt = requested ?? PROTOCOL_VERSION`). The two pointers moved again, for the second consecutive batch: this batch's docblocks pushed `const PROTOCOL_VERSION` from line 13 to 29, and `protocolVersion: PROTOCOL_VERSION` from 171 to 335 — the second number moved twice WITHIN this batch, from 325 to 335, when negative control #160 forced a docblock correction. The gate caught that shift itself, which is the whole reason the pointer is asserted by content rather than by existence.",
+      "whatDidNotChange": "`PROTOCOL_VERSION` is still the literal \"2024-11-05\". Its MEANING narrowed rather than its value moving: it is now the revision the legacy handshake answers with, not \"the version this server is\". Moving it would have told a 2024-11-05 client it was speaking a revision whose `initialize` this server no longer implements.",
+      "whyThisIsRecordedRatherThanJustFixed": "M26-3 predicted this exact red — \"a batch that moves a `path:line` an artifact cites will red there, and the fix is to append an amendment, never to edit the pointer in place\". It did, on the first run of the artifact-claims gate after the implementation landed. This is the pointer-truth layer working as designed rather than a defect: the pointer that drifted silently for two batches now cannot drift for one."
     }
   },
   "readingGuide": "`affectsCallLint` answers one narrow question: would adopting this delta change a byte CallLint SERVES or a verdict it EMITS? A delta can be normatively important upstream and still be scored `false` here, because CallLint is a stdio server with 13 tools and 19 read-only resources — it is not an HTTP transport, has no auth surface, and runs no long-lived tasks.",
@@ -32,6 +42,13 @@
         "whyTheOriginalWasWrong": "The phrase was authored before the bytes were vendored, from a rendered documentation page no gate could read back — the same mechanism that made F4's section names and F7's source URL wrong. Note the internal contradiction: this row's own citation, SEP-2575, IS the SEP that deletes the method the row describes as surviving.",
         "consequenceForScope": "M26-1's recorded fix shape (`proposed-file-map.md`: \"`initialize` must compare the requested version\") targets a method that will not exist. So M26-1 as EXECUTED implements the negotiation layer only — per-request `_meta` read + UnsupportedProtocolVersionError — and leaves `initialize`/`ping` served, because REMOVING a served method is a public-surface change that needs `server/discover` (MUST implement upstream, owned by M26-2) to replace it. See ADR 0063 §2.",
         "landedBy": "ADR 0063; gated by tests/invariants/mcp-spec-vendor.invariants.test.ts (both halves parsed) and packages/calllint-mcp/test/server.test.ts."
+      },
+      "amendedByM26-4": {
+        "supersedes": "`amendedByM26-1.consequenceForScope`, specifically \"leaves `initialize`/`ping` served\". Retained verbatim; read this block as current.",
+        "asMeasured": "M26-4 (ADR 0066) removes the handshake AT 2026-07-28 ONLY. `initialize`, `notifications/initialized`, the bare `initialized` alias, and `ping` are the four members of `REMOVED_AT_STATELESS`; a request declaring 2026-07-28 gets METHOD_NOT_FOUND (-32601) with the revision named in the message, while the same request declaring nothing — or declaring 2024-11-05 — is served exactly as before. So the sentence above is now half true, and the half that is false is the half that matters: the methods are still served, but no longer unconditionally.",
+        "whyTheOriginalWasRightWhenWritten": "It named a real dependency and the dependency was honoured: removing a served method needed `server/discover` in place first, and M26-2 put it there. What the sentence could not anticipate is that the removal would not have to be a public-surface BREAK at all. Serving both revisions in parallel means the removal is scoped to clients that ask for it, so the breaking change the sentence was pricing never had to be paid.",
+        "whatThisCostInstead": "A second code path, which M-OPEN-5 explicitly predicted would not be needed (\"no second code path for the new revision\") — see that item's own M26-4 amendment. The cost moved from a break in the public surface to a branch in the server, and the branch is gated on both sides rather than assumed.",
+        "landedBy": "ADR 0066; gated by packages/calllint-mcp/test/server.test.ts (`dual-revision serving: one revision per request, never a blend`), tests/invariants/mcp-spec-vendor.invariants.test.ts, and a third stdio spawn in scripts/mcp-pack-smoke.mjs that refuses the handshake at 2026-07-28 from the published tarball."
       }
     },
     {
@@ -75,6 +92,14 @@
         "consequenceForScope": "M26-2 implements the method and emits all five required fields, but `resultType` goes on THIS result only — at 2024-11-05 its absence is the DEFINED behaviour (\"the client MUST treat the absent field as `complete`\"), so adding it to the other eight results would change bytes today's clients already receive for a revision we do not claim. `ttlMs: 0` / `cacheScope: \"private\"` are the inert ends of both enums, not a caching strategy. `clientCapabilities` is deliberately unread: at 2024-11-05 there is no `_meta` at all, so a strict read would reject every request today's clients send. See ADR 0064 §4 and §5.",
         "landedBy": "ADR 0064; gated by tests/invariants/mcp-spec-vendor.invariants.test.ts (which reads the `required` arrays off disk and checks server.ts against them, rather than restating the five names), packages/calllint-mcp/test/server.test.ts, and a 7th stdio request in scripts/mcp-pack-smoke.mjs that proves the method answers from the published tarball.",
         "stillNotClaimed": "PROTOCOL_VERSION remains 2024-11-05 and 2026-07-28 remains absent from SUPPORTED_PROTOCOL_VERSIONS. M-OPEN-5 orders the public claim LAST — after (a) this method and (b) removing the handshake. Only (a) is done."
+      },
+      "amendedByM26-4": {
+        "supersedes": "`amendedByM26-2.stillNotClaimed` in full, and the sentence in `amendedByM26-2.consequenceForScope` reading \"adding it to the other eight results would change bytes today's clients already receive for a revision we do not claim\". Both retained verbatim; read this block as current.",
+        "asMeasured": "M26-4 adds 2026-07-28 to SUPPORTED_PROTOCOL_VERSIONS, so (b) and (c) are both discharged and `stillNotClaimed` describes nothing. PROTOCOL_VERSION is still the literal \"2024-11-05\" — that part of the sentence remains true, but it no longer supports the conclusion it was written to support, because the array and the constant are now different claims: the constant answers the legacy handshake, the array is the public support set.",
+        "whatTheEarlierReasoningGotRight": "The conditional-emission argument was correct and it is the reason this batch could be additive. `resultType` is absent at 2024-11-05 and present at 2026-07-28 — the envelope is emitted per-revision rather than everywhere, exactly as the earlier sentence reasoned it would have to be. What changed is that the revision is no longer one \"we do not claim\", so the eight other results DO carry the envelope now, at the declared revision only. 13 conditional emissions across 5 result types, each derived from the locked schema's `required` arrays.",
+        "cacheabilityIsStillInert": "`ttlMs: 0` / `cacheScope: \"private\"` are unchanged and still the inert ends of both enums. Recorded as an IMPLICATION rather than a literal in the gate (`if (ttlMs > 0) then listChanged must be advertised`), because CAPABILITIES advertises neither `listChanged` nor `subscribe` and upstream's changelog says the hints complement those notifications. A later batch may legitimately raise the TTL once it has a revocation channel; the gate permits that and forbids a freshness promise with no way to revoke it.",
+        "whatCannotStaleAVerdict": "`tools/call` is non-cacheable UPSTREAM — `CallToolResult.required` is `[\"content\",\"resultType\"]`, with no `ttlMs`/`cacheScope` member. So no caching decision at either revision can stale a CallLint verdict, which is the only property of this row that touches Product Principle 1.",
+        "landedBy": "ADR 0066."
       }
     },
     {
@@ -120,6 +145,21 @@
         "amendedByM26-2": "D4 is now IMPLEMENTED — ADR 0064. The absence gate named above was deliberately INVERTED (it now asserts the case IS present), which is what writing it as an assertion was for. D1/D3 are unchanged. See the D4 row's `amendedByM26-2` block: the row understated the obligation by four fields."
       },
       "whatIsStillNotClaimed": "PROTOCOL_VERSION remains 2024-11-05 and 2026-07-28 is absent from SUPPORTED_PROTOCOL_VERSIONS. Finality passing is permission to SCOPE the revision, not to claim it (new17 §19). `currentState.unchangedByThisBatch` above referred to the M26-5 batch; M26-1 likewise does not change the advertised string, but it DOES change server.ts — see ADR 0063 §3.1."
+    },
+    "amendedByM26-4": {
+      "supersedes": "`amendedByM26-1.whatIsStillNotClaimed` in full. Retained verbatim; read this block as current. Note that this is the THIRD amendment to reach this object — `amendedByM26-1`, its nested `statusAfterThisBatch.amendedByM26-2`, and now this one — which is why the reader added at M26-3 had to be taught to resolve amendments newest-first rather than in key order.",
+      "asMeasured": "M26-4 (ADR 0066) makes the claim. SUPPORTED_PROTOCOL_VERSIONS is `[PROTOCOL_VERSION, STATELESS_PROTOCOL_VERSION]` = `[\"2024-11-05\", \"2026-07-28\"]`, and `server/discover` advertises exactly that, in that order.",
+      "statusAfterThisBatch": {
+        "D1": "IMPLEMENTED IN FULL — the negotiation layer at ADR 0063, the handshake removal at ADR 0066. See the D1 row's `amendedByM26-4`.",
+        "D3": "IMPLEMENTED — ADR 0063, unchanged.",
+        "D4": "IMPLEMENTED — ADR 0064, and now reachable at BOTH revisions with an identical body, which is asserted rather than assumed.",
+        "D2": "still n/a — no HTTP transport exists to be affected, derived by a source scan rather than asserted.",
+        "D5": "still an explicit non-goal.",
+        "D6": "DISCHARGED at M26-3."
+      },
+      "soTheMatrixIsClosed": "All six deltas are now resolved: three implemented, two n/a by measurement, one discharged. This artifact was opened at M26-0 to decide whether the revision could be scoped; it can now be read as the record of a completed adoption rather than a plan.",
+      "whatIsStillNotClaimedNow": "F5 and F6 rest on pages not vendored here, so two of the eight finality gates stand on a dated manual read rather than committed bytes — M-OPEN-1 owns that and it is unchanged by this batch. And the ORDER of the supported set is a claim in its own right: an undeclared request is served at 2024-11-05, so no existing client is moved onto the new shapes by this batch. Nothing here claims the stateless revision is the default.",
+      "whyNewOrder19DoesNotForbidThis": "§19's forbidden-copy list governed a period when the verdict was PENDING_FINAL and `productionChangesAllowed` was false. F8 flipped at M26-5 and finality-status.json's own amendment records `productionChangesAllowed: true`. The permission this batch spends is the one that flip granted; the list was never a permanent prohibition, it was a gate."
     }
   },
   "boundaries": {
@@ -130,6 +170,12 @@
       "the 13-tool / 19-resource surface counts",
       "packages/calllint-mcp runtime dependencies (must stay {})"
     ],
-    "measuredThisBatch": "zero changes under packages/; `git diff --stat -- packages/` is empty. The only source change is scripts/mcp-pack-smoke.mjs (INV-M8)."
+    "measuredThisBatch": "zero changes under packages/; `git diff --stat -- packages/` is empty. The only source change is scripts/mcp-pack-smoke.mjs (INV-M8).",
+    "measuredThisBatchAmendedByM26-4": {
+      "supersedes": "`measuredThisBatch` above, which described M26-0 (`764005a`) — the batch that authored this file — and was never scoped to say so. Retained verbatim; read this block as current.",
+      "asMeasured": "M26-4 changes packages/calllint-mcp/src/server.ts, so \"zero changes under packages/\" is false for this batch and was already false for M26-1 and M26-2. The field read as a standing property of the artifact when it was only ever an observation about one commit.",
+      "whyThisIsRecordedRatherThanJustFixed": "A per-batch measurement stored under an un-scoped key is a claim that goes stale on the next batch without anyone touching it — the same shape as D6's `owner: \"re-measure at M26-1\"`, which sat spent for two batches. Successors must record their own diff under their own dated key rather than editing this one.",
+      "boundariesHeldByThisBatch": "The `forbiddenPaths` list above is unchanged and every entry holds: no diff under packages/adoption-index/**, `computeVerdict` untouched, zero bytes under apps/web/public/**, 13 tools and 19 resources at BOTH revisions (asserted, not assumed — the payload must be identical across the envelope), and `dependencies` still `{}`."
+    }
   }
 }

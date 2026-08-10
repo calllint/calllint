@@ -179,13 +179,19 @@ try {
   )
   if (discMissing.length > 0) fail(`server/discover omitted DiscoverResult required fields: [${discMissing}]`)
   if (disc.result.resultType !== "complete") fail(`server/discover resultType should be complete, got ${disc.result.resultType}`)
-  // The public claim, checked at the distribution boundary: new17 §19 forbids advertising
-  // 2026-07-28 until a batch implements the surface, and M-OPEN-5 orders that claim LAST — after
-  // (a) this method and (b) removing the handshake. Neither is done, so the shipped bytes must
-  // still advertise 2024-11-05 only. A premature flip in server.ts reds here as well as in tests.
+  // The public claim, checked at the distribution boundary — in the SHIPPED bundle, which is the
+  // only place this can be measured. M26-4 (ADR 0066) makes the claim: both revisions are served
+  // in parallel, each whole. Order is asserted, not just membership — as the ADVERTISED fallback
+  // preference, which must agree with what the server actually does with absence. Negative control
+  // #156: reversing the source array reds three assertions but changes no served revision, because
+  // `servedAt` is `requested ?? PROTOCOL_VERSION` and never indexes this array. Oldest-first is
+  // therefore what keeps the advertisement honest about today's clients staying on today's shapes.
   const advertised = disc.result.supportedVersions
-  if (!Array.isArray(advertised) || advertised.length !== 1 || advertised[0] !== "2024-11-05") {
-    fail(`server/discover must advertise exactly ["2024-11-05"], got ${JSON.stringify(advertised)}`)
+  const ADVERTISED_EXPECTED = ["2024-11-05", "2026-07-28"]
+  if (JSON.stringify(advertised) !== JSON.stringify(ADVERTISED_EXPECTED)) {
+    fail(
+      `server/discover must advertise exactly ${JSON.stringify(ADVERTISED_EXPECTED)} in order, got ${JSON.stringify(advertised)}`,
+    )
   }
   // One server, two methods describing it: a drift between these would be invisible to a check
   // that read only one of them.
@@ -205,8 +211,60 @@ try {
   if (!Array.isArray(contents) || contents.length === 0) fail("resources/read returned no contents")
   const contract = JSON.parse(contents[0].text)
   if (typeof contract?.contract?.contractDigest !== "string") fail("resources/read did not return a valid adoption contract")
+
+  // ---------------------------------------------------------------------------
+  // M26-4 (ADR 0066): the SECOND revision, measured on the same tarball.
+  //
+  // Every request above declares nothing, so together they prove the legacy shapes ship
+  // unchanged. That is half the claim. This batch declares 2026-07-28 and proves the other half
+  // reaches the wire: the envelope appears, and the removed handshake is refused. Without it the
+  // bundle could serve one revision correctly and the other not at all — the same class of gap as
+  // INV-M8, where a wire defect passed every unit test.
+  const META_KEY = "io.modelcontextprotocol/protocolVersion"
+  const atNew = (id, method, params = {}) => ({
+    jsonrpc: "2.0",
+    id,
+    method,
+    params: { ...params, _meta: { [META_KEY]: "2026-07-28" } },
+  })
+  const statelessReqs = [
+    atNew(10, "tools/list"),
+    atNew(11, "resources/list"),
+    atNew(12, "initialize"),
+    atNew(13, "ping"),
+  ]
+  const res3 = spawnSync(process.execPath, [distPath], {
+    input: statelessReqs.map((r) => JSON.stringify(r)).join("\n") + "\n",
+    encoding: "utf8",
+    timeout: 30000,
+  })
+  const sLines = res3.stdout.trim().split("\n").filter(Boolean).map((l) => JSON.parse(l))
+  // The envelope, on the two cacheable results. Values are asserted, not just presence: a `ttlMs`
+  // this batch did not intend would be a freshness promise with no `listChanged` to revoke it.
+  for (const id of [10, 11]) {
+    const r = sLines.find((l) => l.id === id)?.result
+    if (r == null) fail(`no result for stateless request ${id}`)
+    if (r.resultType !== "complete") fail(`stateless ${id} resultType: ${JSON.stringify(r.resultType)}`)
+    if (r.ttlMs !== 0) fail(`stateless ${id} ttlMs must be 0, got ${JSON.stringify(r.ttlMs)}`)
+    if (r.cacheScope !== "private") fail(`stateless ${id} cacheScope: ${JSON.stringify(r.cacheScope)}`)
+  }
+  // The payload must be identical across revisions — the envelope wraps, it does not reshape.
+  const sTools = sLines.find((l) => l.id === 10)?.result?.tools
+  if (sTools?.length !== 13) fail(`tools/list at 2026-07-28 expected 13 tools, got ${sTools?.length}`)
+  const sResources = sLines.find((l) => l.id === 11)?.result?.resources
+  if (sResources?.length !== bundleSlugs.length) {
+    fail(`resources/list at 2026-07-28 served ${sResources?.length} of ${bundleSlugs.length}`)
+  }
+  // The removed handshake, refused with METHOD_NOT_FOUND naming the revision.
+  for (const id of [12, 13]) {
+    const err = sLines.find((l) => l.id === id)?.error
+    if (err?.code !== -32601) fail(`stateless ${id} must be -32601, got ${JSON.stringify(err)}`)
+    if (!String(err.message).includes("2026-07-28")) {
+      fail(`stateless ${id} error must name the revision, got ${JSON.stringify(err.message)}`)
+    }
+  }
   ok(
-    `stdio server: initialize + tools/list(${list.result.tools.length}) + tools/call → BLOCK + resources(${resources.length}) + read verbatim + server/discover(${advertised.join(",")})`,
+    `stdio server: initialize + tools/list(${list.result.tools.length}) + tools/call → BLOCK + resources(${resources.length}) + read verbatim + server/discover(${advertised.join(",")}) + 2026-07-28 envelope/handshake-refused`,
   )
 
   console.log("mcp-pack-smoke: PASS")
