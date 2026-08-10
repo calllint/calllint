@@ -349,6 +349,55 @@ would reject **every** request today's 2024-11-05 clients send); `resultType` mu
 eight results, deleting the assertion that currently forbids it; and `examples/*.json` remains
 unvendored, so discover's three `{@includeCode}` payloads cannot be gated offline (ADR 0064 §6).
 
+### M-OPEN-5, amended by M26-4 (2026-08-09) — (b) and (c) are LANDED, and the row's own cost estimate was wrong
+
+*Appended, not rewritten. Everything above is retained verbatim. Read this block as current where
+the two differ. This row's closing condition — "all three landing" — is now met, so per its own
+**What would make this row false** it is replaced by an ADR: **ADR 0066**.*
+
+**(b) is CLOSED, scoped to the revision that removes it.** `REMOVED_AT_STATELESS` holds **four**
+members, not the three this row names: `initialize`, `notifications/initialized`, the bare
+`initialized` alias, and `ping`. A request declaring `2026-07-28` gets `-32601` with the revision
+named in the message; the same request declaring nothing, or declaring `2024-11-05`, is served
+exactly as before. So the methods were not deleted — their availability became a function of the
+declared revision.
+
+**(c) is CLOSED.** `SUPPORTED_PROTOCOL_VERSIONS` is `[PROTOCOL_VERSION, STATELESS_PROTOCOL_VERSION]`
+= `["2024-11-05", "2026-07-28"]`, and `server/discover` advertises exactly that. Both work-order
+assertions for (c) were deliberately inverted, and every test that used `2026-07-28` as its
+*unsupported* version moved to `1999-01-01` — a test still using it would have passed for the
+opposite reason and read as green.
+
+**The one engineering fact above is the one thing this row got wrong, and it was the load-bearing
+one.** Verbatim: *"(c) is genuinely a one-line change to that array once (a) and (b) exist — no
+rework of the negotiation path, and no second code path for the new revision."* Both halves are
+false as executed:
+
+| The row's claim | What M26-4 measured |
+| --- | --- |
+| "a one-line change to that array" | The array line is one line. It forced **13 conditional field emissions** across 5 result types, each derived from a `required` array in the locked schema, plus a removed-method guard placed *after* the version check so a mismatch is not misreported as a missing method. |
+| "no second code path for the new revision" | There is one: `servedAt === STATELESS_PROTOCOL_VERSION` branches the envelope and the handshake. Every branch is asserted on **both** sides, because a one-sided assertion on a conditional emission passes when the condition never fires. |
+
+**Why the row was wrong is more useful than that it was wrong.** The negotiation layer *is*
+version-agnostic, exactly as recorded — validating against a set, not a string. That made the
+row's author conclude the cost was in the surface only. The missed step is that *validating* a
+version and *serving at* it are different jobs: the set decides admission, and nothing in M26-1
+decided **shape**. The row measured the admission cost and called it the adoption cost.
+
+**What the row's ordering finding got right, and kept.** (a) before (b) held, and it is why (b)
+could be scoped rather than breaking: `server/discover` is reachable at **both** revisions with a
+byte-identical body, so a client that loses the handshake at 2026-07-28 still has a way to learn
+capabilities. Serving both revisions in parallel is what made (b) and (c) landable in one batch
+without the public-surface break this row priced — the ordering constraint was satisfied, not
+bypassed.
+
+**Still open, unchanged by this batch:** `clientCapabilities` remains required upstream and unread
+here — now for a sharper reason than before. At 2026-07-28 a strict read would be conformant, but
+`RequestMetaObject.required` names **both** keys, so a client declaring only the version key would
+be rejected; the version key is exactly what a client must send to reach the new revision at all.
+Recorded in ADR 0066 §7, gated by `mcp-spec-vendor.invariants.test.ts:581`. `examples/*.json` is
+still unvendored (ADR 0064 §6), and F5/F6 still rest on unvendored pages (M-OPEN-1).
+
 ---
 
 ## Not open — closed items recorded so they are not re-analyzed

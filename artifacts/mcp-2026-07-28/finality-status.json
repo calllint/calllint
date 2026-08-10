@@ -150,5 +150,21 @@
     "CallLint does NOT support MCP 2026-07-28.",
     "packages/calllint-mcp/src/server.ts:13 still advertises PROTOCOL_VERSION 2024-11-05, which remains the accurate public state.",
     "No public surface asserts 2026-07-28 compatibility (new17 §19 forbidden-copy list)."
-  ]
+  ],
+  "nonClaimsAmendedByM26-4": {
+    "amendedAt": "2026-08-09",
+    "supersedes": "All three entries of `nonClaims` above. Every one of them is now false. Retained verbatim, not overwritten: this list is the record of what the project deliberately refused to claim for five batches, and that refusal is why the claim is now defensible. A reader must take THIS object as current.",
+    "nonClaimsNow": [
+      "CallLint does not implement the Tasks extension (D5) and declines it conformantly — an explicit non-goal, not a gap.",
+      "F5 and F6 still rest on pages not vendored here (transport/auth semantics; the tasks extension), so two of the eight gates stand on a dated manual read rather than on committed bytes. M-OPEN-1 owns that.",
+      "No sandboxed/Deep Scan behaviour is claimed at either revision; CallLint still never executes a scanned server (Product Principle 6)."
+    ],
+    "whyEachOriginalEntryIsNowFalse": {
+      "entry1": "M26-4 (ADR 0066) adds 2026-07-28 to SUPPORTED_PROTOCOL_VERSIONS and serves it wholly — the envelope is emitted, the removed handshake is refused with METHOD_NOT_FOUND naming the revision, and `server/discover` advertises both. Support is now claimed, and measured on the published tarball by scripts/mcp-pack-smoke.mjs.",
+      "entry2": "Two errors in one sentence. The pointer drifted twice (line 13 → 29; see protocol-delta-matrix.json `currentState.amendedByM26-4`), and the CLAIM is wrong independently of the pointer: PROTOCOL_VERSION is still the literal \"2024-11-05\", but it no longer means \"what version we are\". Its meaning narrowed to \"what the legacy handshake answers\" — the value did not move, the sentence around it did.",
+      "entry3": "The public surface now asserts it: `server/discover`'s `supportedVersions` is a wire-visible claim of both revisions, asserted in order by the pack smoke. new17 §19's forbidden-copy list governed a period when finality was PENDING_FINAL; F8 flipped at M26-5 and `productionChangesAllowed` is true, which is the permission this batch spends."
+    },
+    "whyThisIsRecordedRatherThanJustDeleted": "`nonClaims` had ZERO machine readers — measured: `grep -rn 'nonClaims' --include=*.ts --include=*.mjs` returns only this file. So all three entries could go stale silently, which is precisely the defect M26-3 (ADR 0065) was built to end, recurring one field away from the reader it installed. M26-3's gate reads `verdict`, `productionChangesAllowed`, and the eight gate rows; it does not read this list. That is the general lesson restated with a new instance: a reader covers the fields it names, and the fields beside them keep drifting.",
+    "readerAddedByThisBatch": "tests/invariants/mcp-artifact-claims.invariants.test.ts now asserts that every original entry is superseded here AND that the replacement list is consistent with the source — so entry 1 cannot be re-stated as true while the supported set carries the second revision."
+  }
 }

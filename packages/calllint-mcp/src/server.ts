@@ -4,26 +4,104 @@
 // esbuild like the CLI. stdout is the protocol channel ONLY — all logs go to
 // stderr. We implement just the slice MCP needs: initialize / tools/list /
 // tools/call (+ the `notifications/initialized` no-op).
+//
+// Since M26-4 (ADR 0066) this server serves TWO revisions in parallel, selected
+// per request from `_meta`: 2024-11-05 keeps the handshake and the bare result
+// shapes, 2026-07-28 drops the four removed methods and adds the
+// `Result`/`CacheableResult` envelope. A request is served wholly at one
+// revision or the other — never a blend of the two.
 // ---------------------------------------------------------------------------
 
 import type { ScanOptions } from "@calllint/core"
 import { TOOLS, TOOLS_BY_NAME } from "./tools.js"
 import { RESOURCES, RESOURCE_TEMPLATES, readResource } from "./resources.js"
 
+/**
+ * The revision the LEGACY handshake answers with — not "the version this server
+ * is". That narrowing is the whole of ADR 0066: before M26-4 this constant was
+ * the server's single identity, so `SUPPORTED_PROTOCOL_VERSIONS` could only ever
+ * hold one member. It now names one of two revisions served in parallel, and it
+ * is `initialize`'s answer specifically, because `initialize` does not exist at
+ * 2026-07-28 (see `REMOVED_AT_STATELESS`) and so can only ever speak for the old
+ * one. The literal is unchanged and must stay unchanged: an artifact pointer
+ * cites this exact line (`mcp-artifact-claims.invariants.test.ts`).
+ */
 const PROTOCOL_VERSION = "2024-11-05"
 
 /**
- * Every protocol revision this server can serve a request at. `PROTOCOL_VERSION`
- * is the one advertised at `initialize`; this is the set a per-request
- * declaration is checked against (ADR 0063).
- *
- * 2026-07-28 is deliberately ABSENT. Adding it here is the public claim of
- * support, and new17 §19 forbids that until a batch implements the surface —
- * which this one does not: `server/discover` is `MUST implement` upstream and
- * is owned by M26-2. Asserted in `test/server.test.ts` so the omission cannot
- * be undone silently.
+ * The stateless revision, added to the supported set by M26-4 (ADR 0066). Named
+ * rather than inlined because three separate things now branch on it — the
+ * removed-method guard, the result envelope, and `server/discover`'s advertised
+ * list — and a gate asserting "the branch reads the same version the array
+ * advertises" needs one symbol to point at.
  */
-const SUPPORTED_PROTOCOL_VERSIONS: readonly string[] = [PROTOCOL_VERSION]
+const STATELESS_PROTOCOL_VERSION = "2026-07-28"
+
+/**
+ * Every protocol revision this server can serve a request at, and — since M26-4 —
+ * the public claim of support (M-OPEN-5 (c), discharged by ADR 0066). A request
+ * declaring either member is served AT that member: 2024-11-05 keeps the
+ * handshake and the bare result shapes, 2026-07-28 drops the handshake and adds
+ * the `Result`/`CacheableResult` envelope. Neither revision is served in a
+ * blend; that is why the claim is honest rather than premature.
+ *
+ * `PROTOCOL_VERSION` first, deliberately: an undeclared request is 2024-11-05
+ * traffic, so the oldest supported revision leads the list a client picks a
+ * fallback from. Order is asserted, not incidental.
+ */
+const SUPPORTED_PROTOCOL_VERSIONS: readonly string[] = [PROTOCOL_VERSION, STATELESS_PROTOCOL_VERSION]
+
+/**
+ * The methods 2026-07-28 REMOVES, served here only for 2024-11-05 traffic. Each
+ * member is measured absent from the vendored, digest-locked schema (`grep -ci`
+ * → 0 for `initialize`, `initialized`, `ping`), so this set is upstream's
+ * deletion list, not a preference — asserted against those bytes by
+ * `tests/invariants/mcp-spec-vendor.invariants.test.ts`.
+ *
+ * `"initialized"` is the bare alias `server.ts` has always accepted alongside
+ * `"notifications/initialized"`; it is listed explicitly because a guard built
+ * from the changelog's three names would leave the fourth arm serving at a
+ * revision that deleted it.
+ */
+const REMOVED_AT_STATELESS: ReadonlySet<string> = new Set([
+  "initialize",
+  "notifications/initialized",
+  "initialized",
+  "ping",
+])
+
+/**
+ * `Result.resultType` — the only member of `Result.required` upstream. An OPEN
+ * type (no `enum`, no `const` in the locked `schema.json`), so this is the value
+ * we choose, not the value the schema pins: every result this server returns is
+ * fully formed at the moment it is returned, never a partial awaiting input.
+ */
+const RESULT_TYPE_COMPLETE = "complete"
+
+/**
+ * The two `CacheableResult` cache hints, decided by ADR 0066 §3 — the decision
+ * ADR 0064 §2 recorded as never made ("response caching is a thing CallLint has
+ * never decided anything about").
+ *
+ * `ttlMs: 0` is upstream's "immediately stale, the client MAY re-fetch every
+ * time". It is tied to a measurable fact, not to caution: `CAPABILITIES`
+ * advertises no `listChanged` and no `subscribe`, and upstream's own changelog
+ * says these fields "complement existing `listChanged` notifications". A
+ * positive TTL is a freshness promise with no channel to revoke it. So the rule
+ * this batch records is not the number — it is that **`ttlMs` may go positive
+ * only in the batch that advertises `listChanged`**, which a gate pins.
+ *
+ * `cacheScope: "private"` is the end of the enum that cannot mis-permit:
+ * `"public"` licenses shared intermediaries to serve one authorization
+ * context's response to another, `"private"` only restricts. While `ttlMs` is 0
+ * the scope is unreachable, so the restrictive value costs nothing.
+ *
+ * Neither hint can stale a verdict: upstream made the one verdict-bearing
+ * method non-cacheable (`CallToolResult.required = ["content", "resultType"]` —
+ * no `ttlMs`), which is measured off the locked schema rather than assumed.
+ */
+const CACHE_TTL_MS = 0
+const CACHE_SCOPE = "private"
 
 /**
  * The `_meta` key carrying the per-request protocol version in 2026-07-28.
@@ -98,6 +176,42 @@ const ERR = {
 function result(id: string | number | null, value: unknown): JsonRpcResponse {
   return { jsonrpc: "2.0", id, result: value }
 }
+
+/**
+ * Add `Result.resultType` when — and only when — the request declared
+ * 2026-07-28. Upstream licenses exactly this conditional in the field's own
+ * description, quoted verbatim from the locked `schema.json`:
+ *
+ *   "Servers implementing this protocol version MUST include this field. For
+ *   backward compatibility, when a client receives a result from a server
+ *   implementing an earlier protocol version (which does not include
+ *   `resultType`), the client MUST treat the absent field as \"complete\"."
+ *
+ * So omitting it for 2024-11-05 traffic is not a gap the client has to tolerate
+ * — it is the case upstream wrote a rule for, and the rule's default is the
+ * value we would have sent. Emitting it unconditionally would instead add a
+ * field to results served at a revision that has no such field.
+ */
+function withResultType<T extends object>(value: T, at: string): T & { resultType?: string } {
+  return at === STATELESS_PROTOCOL_VERSION ? { ...value, resultType: RESULT_TYPE_COMPLETE } : value
+}
+
+/**
+ * `CacheableResult`'s three fields — `resultType` plus the two cache hints — for
+ * the four results upstream made cacheable (`tools/list`, `resources/list`,
+ * `resources/templates/list`, `resources/read`). Separate from
+ * `withResultType` because the split is upstream's, not ours: `tools/call`
+ * requires `resultType` and NOT the hints, so one helper covering both would
+ * have to be told which half to apply, and the caller could get it wrong
+ * silently.
+ */
+function withCacheable<T extends object>(
+  value: T,
+  at: string,
+): T & { resultType?: string; ttlMs?: number; cacheScope?: string } {
+  if (at !== STATELESS_PROTOCOL_VERSION) return value
+  return { ...value, resultType: RESULT_TYPE_COMPLETE, ttlMs: CACHE_TTL_MS, cacheScope: CACHE_SCOPE }
+}
 function error(id: string | number | null, code: number, message: string): JsonRpcResponse {
   return { jsonrpc: "2.0", id, error: { code, message } }
 }
@@ -165,7 +279,57 @@ export function handleRequest(
     return isNotification ? null : unsupportedVersionError(id, requested)
   }
 
+  /**
+   * The revision this ONE request is served at (D2, ADR 0066). An undeclared
+   * request is 2024-11-05 traffic — that is the whole reason the old wire shape
+   * has no `_meta` — so absence resolves to `PROTOCOL_VERSION` rather than to
+   * the newest supported member. Reading it the other way would silently move
+   * every existing client onto the stateless shapes.
+   *
+   * `requested` is already known to be a supported member here, so `servedAt`
+   * is one of exactly two values from this line down.
+   */
+  const servedAt = requested ?? PROTOCOL_VERSION
+
+  /**
+   * The four methods 2026-07-28 removed answer `METHOD_NOT_FOUND` when the
+   * request declares that revision — the same code any other unknown method
+   * gets, because to a stateless client these ARE unknown methods. This is what
+   * makes the dual claim honest rather than a blend: a client declaring
+   * 2026-07-28 cannot reach the handshake, so the server it observes is the one
+   * upstream describes, with no removed surface reachable behind the version it
+   * asked for.
+   *
+   * Checked before the switch so the arms below stay single-purpose. It also sits
+   * after the version check, but negative control #160 measured that this order is
+   * NOT load-bearing today, and the honest reason is worth keeping: the two
+   * conditions are DISJOINT. `servedAt` equals `STATELESS_PROTOCOL_VERSION` only
+   * when `requested` was already validated as a supported member, so an
+   * unsupported declaration can never reach this guard — `"1999-01-01"` + `ping`
+   * answers -32022 with the guard in either position, measured both ways.
+   *
+   * So the ordering is redundant with that disjointness rather than protected by
+   * it. Kept because the disjointness is a property of two lines that a later
+   * change could break independently (a guard rewritten to test `requested`
+   * directly, or a `servedAt` that defaults differently), and this order is the
+   * one that stays correct if it does.
+   */
+  if (servedAt === STATELESS_PROTOCOL_VERSION && REMOVED_AT_STATELESS.has(req.method)) {
+    if (isNotification) return null
+    return error(
+      id,
+      ERR.METHOD_NOT_FOUND,
+      `Method not found at ${STATELESS_PROTOCOL_VERSION}: ${req.method}`,
+    )
+  }
+
   switch (req.method) {
+    /**
+     * Reachable only at 2024-11-05 — `REMOVED_AT_STATELESS` intercepts it above
+     * for stateless traffic. So this arm needs no version branch, and its result
+     * carries no `resultType`: `InitializeResult` does not exist at the revision
+     * that would require one.
+     */
     case "initialize":
       return result(id, {
         protocolVersion: PROTOCOL_VERSION,
@@ -188,17 +352,23 @@ export function handleRequest(
      * `schema.json` `required` arrays (ADR 0064 §2) and are asserted by a gate that
      * reads those arrays rather than restating them.
      *
-     * `resultType` is on THIS result only, not on the other eight — see ADR 0064 §4.
-     * `ttlMs: 0` / `cacheScope: "private"` are the inert ends of both enums, not a
-     * caching strategy (§4). There is deliberately no `serverInfo` in the body:
-     * upstream puts identity in `_meta` as an optional SHOULD, and the changelog
-     * sentence claiming otherwise is wrong (§2.1).
+     * The three envelope fields are UNCONDITIONAL on this arm, unlike every other
+     * result (ADR 0066 §4). `server/discover` exists only at 2026-07-28, so a
+     * request reaching it without declaring that revision is a client reading the
+     * new spec while omitting the `_meta` the new spec requires — and answering
+     * that with a deliberately malformed `DiscoverResult` would punish the one
+     * method whose entire job is to tell such a client what we support. `ttlMs: 0`
+     * / `cacheScope: "private"` are ADR 0066 §3's decided values, not the inert
+     * placeholders ADR 0064 §4 chose; the values coincide, the justification does
+     * not. There is deliberately no `serverInfo` in the body: upstream puts
+     * identity in `_meta` as an optional SHOULD, and the changelog sentence
+     * claiming otherwise is wrong (ADR 0064 §2.1).
      */
     case "server/discover":
       return result(id, {
-        resultType: "complete",
-        ttlMs: 0,
-        cacheScope: "private",
+        resultType: RESULT_TYPE_COMPLETE,
+        ttlMs: CACHE_TTL_MS,
+        cacheScope: CACHE_SCOPE,
         supportedVersions: [...SUPPORTED_PROTOCOL_VERSIONS],
         capabilities: CAPABILITIES,
         instructions: INSTRUCTIONS,
@@ -206,19 +376,25 @@ export function handleRequest(
 
     case "notifications/initialized":
     case "initialized":
-      return null // notification: no reply
+      return null // notification: no reply (2024-11-05 only — see REMOVED_AT_STATELESS)
 
     case "ping":
       return result(id, {})
 
     case "tools/list":
-      return result(id, {
-        tools: TOOLS.map((t) => ({
-          name: t.name,
-          description: t.description,
-          inputSchema: t.inputSchema,
-        })),
-      })
+      return result(
+        id,
+        withCacheable(
+          {
+            tools: TOOLS.map((t) => ({
+              name: t.name,
+              description: t.description,
+              inputSchema: t.inputSchema,
+            })),
+          },
+          servedAt,
+        ),
+      )
 
     case "tools/call": {
       if (isNotification) return null
@@ -228,21 +404,24 @@ export function handleRequest(
       if (!tool) return error(id, ERR.INVALID_PARAMS, `Unknown tool: ${name || "(none)"}`)
       const args = (params.arguments as Record<string, unknown>) ?? {}
       const toolResult = tool.handler(args, scanOpts)
-      return result(id, toolResult)
+      // `withResultType`, NOT `withCacheable`: upstream made the one
+      // verdict-bearing result non-cacheable (`CallToolResult.required` has
+      // `resultType` and no `ttlMs`), so no cache hint can stale a verdict.
+      return result(id, withResultType(toolResult, servedAt))
     }
 
     case "resources/list":
-      return result(id, { resources: RESOURCES })
+      return result(id, withCacheable({ resources: RESOURCES }, servedAt))
 
     case "resources/templates/list":
-      return result(id, { resourceTemplates: RESOURCE_TEMPLATES })
+      return result(id, withCacheable({ resourceTemplates: RESOURCE_TEMPLATES }, servedAt))
 
     case "resources/read": {
       if (isNotification) return null
       const uri = typeof req.params?.uri === "string" ? req.params.uri : ""
       const contents = readResource(uri)
       if (!contents) return error(id, ERR.INVALID_PARAMS, `Unknown resource: ${uri || "(none)"}`)
-      return result(id, { contents })
+      return result(id, withCacheable({ contents }, servedAt))
     }
 
     default:

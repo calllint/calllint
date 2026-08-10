@@ -257,13 +257,16 @@ describe("M26-1 negotiation constants are quotations, not restatements", () => {
     expect(serverSource()).toMatch(/data:\s*\{\s*supported:[\s\S]{0,80}requested\s*\}/)
   })
 
-  it("initialize and ping are REMOVED upstream — recorded, and deliberately still served here", () => {
+  it("the four methods REMOVED upstream are served at 2024-11-05 and refused at 2026-07-28", () => {
     // The finding that reshaped M26-1: `proposed-file-map.md` scoped it as "make
     // `initialize` compare the requested version", but 2026-07-28 deletes the
-    // method outright (changelog Major #2) along with `ping` (Major #5). This
-    // batch keeps both, because REMOVING them is a public-surface change that
-    // needs `server/discover` (MUST implement, owned by M26-2) to replace them.
-    // Asserted two-sidedly so neither half can drift: gone upstream, present here.
+    // method outright (changelog Major #2) along with `ping` (Major #5).
+    //
+    // M26-4 (ADR 0066) resolved this without deleting them: they are served at
+    // 2024-11-05 and unreachable at 2026-07-28. So the assertion is now THREE-sided
+    // — gone upstream, present here, and gated by revision — because the middle
+    // claim alone would be satisfied by a server that served them at BOTH
+    // revisions, which is precisely the dishonest state the dual claim must avoid.
     const upstream = schemaSource()
     expect(upstream).not.toMatch(/nitialize/)
     expect(upstream).not.toContain('"ping"')
@@ -273,20 +276,47 @@ describe("M26-1 negotiation constants are quotations, not restatements", () => {
     const ours = serverSource()
     expect(ours).toContain('case "initialize":')
     expect(ours).toContain('case "ping":')
+    // The guard, and its membership. All FOUR names, including the bare
+    // `initialized` alias the changelog's prose does not mention — a set built from
+    // that prose would leave the fourth arm reachable at a revision that deleted it.
+    const set = /const REMOVED_AT_STATELESS: ReadonlySet<string> = new Set\(\[([\s\S]*?)\]\)/.exec(ours)
+    const setBody = set?.[1]
+    expect(setBody, "server.ts must declare REMOVED_AT_STATELESS as a literal set").toBeTypeOf("string")
+    const members = [...String(setBody).matchAll(/"([^"]+)"/g)].map((m) => m[1]).sort()
+    expect(members).toEqual(["initialize", "initialized", "notifications/initialized", "ping"])
+    // Every member must be an arm this file actually serves, or the guard is
+    // refusing a method nobody could have called.
+    for (const m of members) expect(ours).toContain(`case "${m}":`)
+    expect(ours).toMatch(
+      /if \(servedAt === STATELESS_PROTOCOL_VERSION && REMOVED_AT_STATELESS\.has\(req\.method\)\)/,
+    )
   })
 
-  it("2026-07-28 is absent from the supported set — the omission is gated, not pending", () => {
-    // The single line that separates "negotiation implemented" from "revision
-    // claimed". Adding the revision here without M26-2's `server/discover`
-    // would advertise support for a surface that does not exist.
+  it("2026-07-28 IS in the supported set — the claim M26-4 deliberately inverted", () => {
+    // Was `not.toContain("2026-07-28")` through M26-3, so that claiming the revision
+    // required editing a test that said why the omission was deliberate. M26-4
+    // (ADR 0066) edited it: the claim is honest now because a request declaring the
+    // revision is served wholly AT it — removed methods refused, envelope emitted.
+    //
+    // Both members are asserted, and their ORDER — as an advertisement that must agree
+    // with the fallback, not as the fallback's mechanism. Negative control #156 measured
+    // the difference: reversing this array reds three assertions but changes no served
+    // revision, because `servedAt` reads `PROTOCOL_VERSION` directly (:624). A reversed
+    // array would therefore be a server that serves absence as 2024-11-05 while
+    // advertising the stateless revision as the leading fallback.
     const m = /SUPPORTED_PROTOCOL_VERSIONS:\s*readonly string\[\]\s*=\s*\[([^\]]*)\]/.exec(
       serverSource(),
     )
-    expect(m, "SUPPORTED_PROTOCOL_VERSIONS must exist and be a literal array").not.toBeNull()
-    expect(m![1]).not.toContain("2026-07-28")
-    expect(m![1]).toContain("PROTOCOL_VERSION")
-    // Non-vacuity: read upstream's own revision string, so this assertion cannot
-    // be satisfied by the revision simply never having been vendored.
+    const arrayBody = m?.[1]
+    expect(arrayBody, "SUPPORTED_PROTOCOL_VERSIONS must exist and be a literal array").toBeTypeOf("string")
+    const members = String(arrayBody).split(",").map((s) => s.trim()).filter(Boolean)
+    expect(members).toEqual(["PROTOCOL_VERSION", "STATELESS_PROTOCOL_VERSION"])
+    // Both symbols resolve to the two revisions, read off the source rather than
+    // restated: a rename that pointed either at a third value would red here.
+    expect(serverSource()).toMatch(/const PROTOCOL_VERSION = "2024-11-05"/)
+    expect(serverSource()).toMatch(/const STATELESS_PROTOCOL_VERSION = "2026-07-28"/)
+    // Non-vacuity, and the reason the claim is now correct: the revision we name is
+    // upstream's own latest, read from the locked bytes.
     const rev = /export const LATEST_PROTOCOL_VERSION = "([^"]+)";/.exec(schemaSource())
     expect(rev![1]).toBe("2026-07-28")
   })
@@ -356,6 +386,37 @@ describe("M26-2 server/discover is built from upstream's required arrays", () =>
   }
   const discoverArm = (): string => arm("server/discover")
 
+  /**
+   * One arm's body with comments removed, for assertions of the form "this arm must
+   * NOT mention X".
+   *
+   * A bare `not.toContain` over raw source cannot tell code from prose, so it reds on
+   * the very comment that explains why the rule holds — which is what happened here:
+   * the `tools/call` arm carries a line reading "`withResultType`, NOT
+   * `withCacheable`", and the negative check tripped on it. Rephrasing the comment
+   * would have made the test pass while deleting the explanation, so the scan learns
+   * to read code instead. Same defect and same remedy as the forbidden-token scan
+   * that red on the docblock arguing FOR its own rule.
+   *
+   * Only line comments are stripped — that is all `server.ts`'s arm bodies contain
+   * (measured: 3 comment lines across the 10 arms, all in `tools/call`). A
+   * block-comment stripper would be code written against no instance of the thing it
+   * strips, so it is not written.
+   *
+   * The stripper is NOT guarded at each call site. An "it must have removed
+   * something" check here would red on the six arms that legitimately carry no
+   * comment, so the helper would only ever be usable on the arm that happened to
+   * need it — leaving every other negative assertion raw and exposed to the same
+   * defect. The guard lives once, non-vacuously, in "the comment stripper reads code
+   * and drops prose" below.
+   */
+  const stripLineComments = (body: string): string =>
+    body
+      .split("\n")
+      .filter((line) => !line.trimStart().startsWith("//"))
+      .join("\n")
+  const codeOf = (caseLabel: string): string => stripLineComments(arm(caseLabel))
+
   it("every field DiscoverResult requires is emitted by the discover arm", () => {
     // The load-bearing one. Iterating upstream's array — rather than a list typed
     // here — is what makes a NEW required field at a future revision red this line
@@ -384,18 +445,96 @@ describe("M26-2 server/discover is built from upstream's required arrays", () =>
   })
 
   it("cacheScope is one of upstream's two enum members, and ttlMs respects its minimum", () => {
+    // M26-4 (ADR 0066 §3) hoisted both values into named constants, because five
+    // emission sites now share them. Written against the ARM's literals, this gate
+    // silently stopped measuring anything the moment they moved — the regex found
+    // no literal and only `not.toBeNull()` caught it. So it reads the CONSTANTS,
+    // and separately asserts the arm reaches them by name: value-correct plus
+    // reachable, which the arm-literal form conflated into one check.
     const scope = defs().DiscoverResult?.properties?.cacheScope?.enum
       ?? defs().CacheableResult?.properties?.cacheScope?.enum
       ?? []
     expect([...scope].sort()).toEqual(["private", "public"])
-    const arm = discoverArm()
-    const emitted = /cacheScope:\s*"([^"]+)"/.exec(arm)
-    expect(emitted, "the arm must emit a literal cacheScope").not.toBeNull()
+    const src = serverSource()
+    const emitted = /const CACHE_SCOPE = "([^"]+)"/.exec(src)
+    expect(emitted, "server.ts must define CACHE_SCOPE as a literal").not.toBeNull()
     expect(scope).toContain(emitted![1])
     const min = defs().CacheableResult?.properties?.ttlMs?.minimum ?? 0
-    const ttl = /ttlMs:\s*(\d+)/.exec(arm)
-    expect(ttl, "the arm must emit a literal ttlMs").not.toBeNull()
+    const ttl = /const CACHE_TTL_MS = (\d+)/.exec(src)
+    expect(ttl, "server.ts must define CACHE_TTL_MS as a literal").not.toBeNull()
     expect(Number(ttl![1])).toBeGreaterThanOrEqual(min)
+    // Reachability: the constants are only an invariant if the wire uses them.
+    expect(discoverArm()).toContain("ttlMs: CACHE_TTL_MS")
+    expect(discoverArm()).toContain("cacheScope: CACHE_SCOPE")
+  })
+
+  it("ttlMs may go positive ONLY in the batch that advertises listChanged", () => {
+    // ADR 0066 §3's decision, made checkable rather than left in prose. The two
+    // facts are linked upstream, verbatim in the changelog: the cache hints
+    // "complement existing `listChanged` notifications". We advertise none, so a
+    // positive TTL would be a freshness promise with no channel to revoke it.
+    //
+    // Deliberately an IMPLICATION, not `ttlMs === 0`: a later batch that adds
+    // `listChanged` may raise the TTL, and this gate lets it — while a batch that
+    // raises the TTL alone reds with the reason on it. Pinning 0 outright would
+    // red at exactly the moment the decision was legitimately revisited
+    // ([[a-gate-that-cannot-pass-on-success]]).
+    expect(changelog()).toContain("complement existing `listChanged` notifications")
+    const src = serverSource()
+    const ttl = Number(/const CACHE_TTL_MS = (\d+)/.exec(src)![1])
+    const advertisesListChanged = /const CAPABILITIES = \{[^}]*listChanged/.test(src)
+    if (ttl > 0) {
+      expect(
+        advertisesListChanged,
+        `CACHE_TTL_MS is ${ttl} but CAPABILITIES advertises no listChanged — a freshness ` +
+          `promise with no channel to revoke it (ADR 0066 §3)`,
+      ).toBe(true)
+    }
+    // Non-vacuity: the premise must actually hold today, or the implication above
+    // is unfalsifiable for the wrong reason.
+    expect(advertisesListChanged).toBe(false)
+    expect(ttl).toBe(0)
+  })
+
+  it("the comment stripper reads code and drops prose, on a body that has both", () => {
+    // The stripper exists because a raw `not.toContain` red on the comment explaining
+    // why the rule holds. Guarded here rather than at each call site: six of the ten
+    // arms carry no comment at all, so a per-site "must have removed something" check
+    // would red on them and confine the helper to the one arm that needed it.
+    //
+    // `tools/call` is the arm that has both halves, which is what makes this
+    // non-vacuous — an over-stripping bug (or a stripper fed a comment-free body)
+    // would make every negative assertion downstream vacuously true.
+    const raw = arm("tools/call")
+    const code = codeOf("tools/call")
+    expect(raw, "the fixture arm must still contain the prose being stripped").toContain(
+      "NOT `withCacheable`",
+    )
+    expect(code.length, "stripping must remove something from an arm that has comments").toBeLessThan(
+      raw.length,
+    )
+    // Code survives: the label that scopes the arm, and the call the positive half asserts.
+    expect(code).toContain('case "tools/call":')
+    expect(code).toContain("withResultType(toolResult, servedAt)")
+    // And a comment-free arm is passed through unchanged, so the filter is not eating code.
+    expect(codeOf("resources/read")).toBe(arm("resources/read"))
+  })
+
+  it("the one verdict-bearing result is non-cacheable UPSTREAM, so no hint can stale a verdict", () => {
+    // The safety-relevant half of ADR 0066 §3, and it is upstream's decision, not
+    // ours: `tools/call` carries every CallLint verdict, and its required array has
+    // `resultType` without the two cache hints. Measured off the locked schema, so
+    // if a future revision made it cacheable this reds and the caching decision
+    // gets re-made with verdict staleness actually on the table.
+    const req = [...(defs().CallToolResult?.required ?? [])].sort()
+    expect(req).toEqual(["content", "resultType"])
+    expect(req).not.toContain("ttlMs")
+    expect(req).not.toContain("cacheScope")
+    // Our side matches: the arm uses the resultType-only helper, not the cacheable
+    // one. The negative half reads CODE, not prose — the arm's own comment names
+    // `withCacheable` to explain why it is not used, and a raw scan reds on that.
+    expect(arm("tools/call")).toContain("withResultType(toolResult, servedAt)")
+    expect(codeOf("tools/call")).not.toContain("withCacheable")
   })
 
   it("resultType's type is OPEN upstream, so no closed-set gate is possible", () => {
@@ -421,7 +560,7 @@ describe("M26-2 server/discover is built from upstream's required arrays", () =>
     expect(body).not.toContain("Implementation")
     // Where it actually lives: optional, on the RESPONSE's _meta.
     expect(src).toContain('"io.modelcontextprotocol/serverInfo"?: Implementation;')
-    expect(discoverArm()).not.toContain("serverInfo")
+    expect(codeOf("server/discover")).not.toContain("serverInfo")
   })
 
   it("supportedVersions is the negotiation set itself, not a second literal", () => {
@@ -429,7 +568,7 @@ describe("M26-2 server/discover is built from upstream's required arrays", () =>
     // premature claim" gate below parses only one of them — so a literal here
     // could advertise 2026-07-28 while that gate stayed green.
     expect(discoverArm()).toMatch(/supportedVersions:\s*\[\s*\.\.\.SUPPORTED_PROTOCOL_VERSIONS\s*\]/)
-    expect(discoverArm()).not.toContain("2026-07-28")
+    expect(codeOf("server/discover")).not.toContain("2026-07-28")
   })
 
   it("a conformant DiscoverRequest needs params._meta with TWO required keys", () => {
@@ -447,14 +586,51 @@ describe("M26-2 server/discover is built from upstream's required arrays", () =>
     expect(serverSource()).not.toContain("io.modelcontextprotocol/clientCapabilities")
   })
 
-  it("resultType is NOT added to the other results — 2024-11-05 defines its absence", () => {
-    // ADR 0064 §4. The `initialize` arm is the witness: if a batch adopts the
-    // revision it must add `resultType` there, and this assertion is what makes
-    // that a deliberate edit rather than a silent byte change for every client.
-    expect(arm("initialize")).not.toContain("resultType")
-    // Non-vacuity: the discover arm DOES carry it, so this is a measured asymmetry
-    // rather than the token simply never appearing in the file.
-    expect(discoverArm()).toContain("resultType")
+  it("resultType is emitted CONDITIONALLY — never unconditionally on a shared arm", () => {
+    // ADR 0064 §4 forbade `resultType` on the other results; M26-4 (ADR 0066 §4)
+    // supersedes that with the narrower rule the revision actually requires: the
+    // field is owed at 2026-07-28 and must be absent at 2024-11-05, so on any arm
+    // serving BOTH it can only appear behind the version branch.
+    //
+    // Asserted structurally, not by absence: the five shared arms must reach the
+    // field through a helper that takes `servedAt`. A bare `resultType:` literal on
+    // one of them would add a field to every 2024-11-05 client's results — exactly
+    // what the old assertion protected against, now stated in a form that survives
+    // the revision being claimed.
+    for (const label of ["tools/list", "tools/call", "resources/list", "resources/templates/list", "resources/read"]) {
+      expect(codeOf(label), `the ${label} arm must not emit a bare resultType literal`).not.toMatch(
+        /resultType:\s*"/,
+      )
+      expect(arm(label), `the ${label} arm must shape its result by servedAt`).toMatch(
+        /with(ResultType|Cacheable)\([\s\S]*servedAt/,
+      )
+    }
+    // `initialize` is the one arm that must NEVER carry it: it is unreachable at the
+    // revision that would require it, so a `resultType` there would be owed to
+    // nobody. This is the surviving half of the old assertion.
+    expect(codeOf("initialize")).not.toContain("resultType")
+    // Non-vacuity, both ways. The discover arm carries it UNCONDITIONALLY (ADR 0066
+    // §4 — the method exists only at the new revision), and the two helpers gate on
+    // the version symbol rather than on something incidental.
+    expect(discoverArm()).toContain("resultType: RESULT_TYPE_COMPLETE")
+    const src = serverSource()
+    for (const helper of ["withResultType", "withCacheable"]) {
+      const start = src.indexOf(`function ${helper}`)
+      expect(start, `server.ts must define ${helper}`).toBeGreaterThan(-1)
+      const body = src.slice(start, src.indexOf("\n}", start))
+      expect(body, `${helper} must branch on STATELESS_PROTOCOL_VERSION`).toContain(
+        "STATELESS_PROTOCOL_VERSION",
+      )
+    }
+  })
+
+  it("an undeclared request resolves to the OLD revision, not the newest supported", () => {
+    // The single most dangerous way dual-version serving could go wrong: reading
+    // absence as "newest" would move every existing client — none of which sends
+    // `_meta`, because 2024-11-05 has no such field — onto the stateless shapes
+    // without any of them asking. Pinned at the source because the wire tests
+    // exercise it per-method, and this states the rule once, where it is decided.
+    expect(serverSource()).toMatch(/const servedAt = requested \?\? PROTOCOL_VERSION/)
   })
 
   it("upstream's examples/ is NOT vendored, so example payloads are ungated", () => {
