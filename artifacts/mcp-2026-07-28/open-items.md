@@ -58,6 +58,66 @@ scoping decision, and M26-5 was authorized to close **F8**, whose failure was bl
 **What would make this row false:** those two pages appearing in `SOURCE.json` with content-layer
 assertions, at which point all eight gates are gate-backed and this row closes.
 
+### M-OPEN-1, amended by M26-7 (2026-08-10) — the row is still OPEN, but its **fix shape is refuted**
+
+*Appended, not rewritten. Everything above is retained verbatim, including the fix shape this block
+refutes. Read this block as current where the two differ.*
+
+**Status stays OPEN.** No gate was added, F5/F6 still carry a `source` that is a URL, and vendoring
+is still unauthorized. What changed is that the prescribed fix was **measured**, and most of the
+work it asks for is unnecessary.
+
+**Measured 2026-08-10 against the already-locked `schema.json`** (sha256 `ef70b61f…`, 181474 bytes,
+155 `$defs`). The row's fix shape names four specific claims to assert *after* vendoring two pages.
+Three of the four are **already in the locked bytes**:
+
+| Named claim | Where it actually lives | Vendoring needed? |
+| --- | --- | --- |
+| the `_meta` version key | `$defs.RequestMetaObject.required` = both keys; `properties["io.modelcontextprotocol/protocolVersion"]` | **No** |
+| the `MCP-Protocol-Version` header | that same property's `description`, verbatim: *"For the HTTP transport, this value MUST match the `MCP-Protocol-Version` header; otherwise the server MUST return a `400 Bad Request`"* | **No** |
+| `UnsupportedProtocolVersionError` | `$defs.UnsupportedProtocolVersionError`, `error.code` `const` **-32022** under `allOf[1]`, `error.data` requiring `["requested","supported"]` | **No** |
+| tasks are an opt-in **extension**, not core | **an absence**: `0` task-named `$defs`, `0` occurrences of `"tasks/"`, and the single case-insensitive `task` hit is an *example identifier* inside `$defs.ServerCapabilities.properties.extensions.description` | **No — but see below** |
+
+So F5's entire recorded `observation` is derivable today, and F6's is derivable **as an absence**,
+which is the harder and more interesting form: the claim "a core-only implementation is conformant
+without tasks" is proven by tasks having no core `$defs` at all, not by reading the extension page.
+That absence needs `[[absence-makes-a-gate-skip-itself]]` discipline — assert the schema parsed, the
+def count is 155, **then** assert zero task defs, or the gate passes on an empty object.
+
+**What genuinely is not in the locked bytes.** F5's requirement line says "transport / auth / cache
+semantics". Measured: `cache` is covered (`$defs.CacheableResult` with `cacheScope` public/private
+and TTL, 78 hits). `auth` is **not** — one `oauth` hit, and it is an example extension identifier.
+`initialize` as a method name is **absent entirely** (`raw.includes("initialize") === false`); the
+word survives only inside the `clientCapabilities` description saying capabilities are declared
+*"per-request rather than once at initialization."* So a page vendoring would buy the auth semantics
+and nothing else on this list.
+
+**Why this matters more than the saved work.** The row's fix shape sent a future batch to vendor two
+pages before writing any assertion. A batch that trusted it would have done the expensive,
+authorization-requiring half first and discovered afterwards that the cheap half was already
+possible. Same failure as `[[m26-3-first-artifact-reader]]`: a recorded *fix shape* is a claim about
+the world, and nothing was reading it either.
+
+**Revised fix shape, in two independently-authorizable halves:**
+
+1. **No vendoring.** Add content-layer assertions for F5's three claims and F6's absence against the
+   existing locked `schema.json`, and change F5/F6's `evidence.source` to name that file. This
+   closes the *gate-backed* question for both rows. It needs no new bytes and no scoping decision.
+2. **Vendoring, if ever authorized.** Only the auth semantics require it, and only if CallLint makes
+   a claim that rests on them. Today it makes none — no HTTP transport exists in
+   `packages/calllint-mcp/src/` (measured at M26-3, fact 4).
+
+**What would make this row false, revised:** half 1 landing. At that point all eight gates are
+gate-backed, and any residual auth question is a **new** row scoped to a claim CallLint actually
+makes, not a leftover from this one.
+
+**Careful:** the first probe of `UnsupportedProtocolVersionError` above read
+`properties.error.properties.code` and returned `undefined`, which reads exactly like "upstream
+doesn't pin the code." The real shape is `properties.error.allOf[1].properties.code`. The def was
+right; the probe was wrong — `[[resolved-vs-raw-presentation-doc]]`, third instance in this
+workstream. Any gate written for half 1 must resolve `allOf` rather than index `properties`
+directly, or it will assert an absence that is really a wrong path.
+
 ---
 
 ## M-OPEN-2 — the superseded top-level `verdict` has no reader-side guard

@@ -691,3 +691,196 @@ describe("M26-3 — an artifact claim must not contradict the digest-locked byte
     expect(found, "calllint-mcp is stdio-only; an HTTP construct would make D2 live").toEqual([])
   })
 })
+
+/**
+ * M26-7. `M-OPEN-1` records that F5 and F6 "rest on unvendored pages" and prescribes vendoring two
+ * more pages BEFORE any assertion can be written. Measured 2026-08-10: three of the four claims its
+ * fix shape names are already in the digest-locked `schema.json`, and the fourth is provable as an
+ * ABSENCE in the same file. So the expensive, authorization-requiring half was never the blocker.
+ *
+ * That fix shape had no reader either — the same defect M26-3 was written to fix one level up. The
+ * `it()` at :311 even carries "F5/F6 still rest on unvendored pages" in its TITLE while its body
+ * asserts only that eight gates read PASS. A title is prose.
+ *
+ * This block is the reader. It does NOT close M-OPEN-1: F5/F6 still carry a URL in
+ * `evidence.source`, and changing that is a separate authorized edit. What it does is make the
+ * refutation executable, so the next batch cannot re-derive it and cannot be misdirected by the
+ * original fix shape.
+ */
+describe("M26-7 — M-OPEN-1's fix shape is refuted from the locked bytes it says are insufficient", () => {
+  interface SchemaDefs {
+    readonly $defs: Record<string, Record<string, unknown>>
+  }
+
+  const lockedSchema = (): SchemaDefs => readJson<SchemaDefs>(`${VENDOR_DIR}/schema.json`)
+
+  /** Collapse upstream's mid-sentence wraps. They survive in BOTH vendored forms (ADR 0067 §4.4). */
+  const norm = (s: unknown): string => String(s ?? "").replace(/\s+/g, " ")
+
+  it("the locked schema is parsed and non-degenerate before any absence is asserted", () => {
+    // [[absence-makes-a-gate-skip-itself]]. Two of the assertions below are absences (zero task
+    // defs, no `required` key). An absence measured against an empty or unparsed object passes
+    // trivially, so the shape of the haystack is asserted FIRST and everything else depends on it.
+    const defs = lockedSchema().$defs
+    expect(defs, "the locked schema must carry a $defs object").toBeTypeOf("object")
+    expect(
+      Object.keys(defs).length,
+      "155 defs as locked; a different count means the vendored bytes moved and every absence below must be re-measured",
+    ).toBe(155)
+  })
+
+  it("F5 claim 1/3 — the per-request _meta version key is in the locked bytes, not on a page", () => {
+    const meta = lockedSchema().$defs.RequestMetaObject as {
+      readonly required?: readonly string[]
+      readonly properties?: Record<string, unknown>
+    }
+    expect(meta, "$defs.RequestMetaObject must exist").toBeTypeOf("object")
+    expect(
+      [...(meta.required ?? [])].sort(),
+      "both _meta keys are required at 2026-07-28 — this is F5's 'per-request version declaration', locked",
+    ).toEqual([
+      "io.modelcontextprotocol/clientCapabilities",
+      "io.modelcontextprotocol/protocolVersion",
+    ])
+  })
+
+  it("F5 claim 2/3 — the MCP-Protocol-Version header requirement is in the locked bytes", () => {
+    // The claim M-OPEN-1 says needs the transport page vendored. It is a sentence inside the
+    // version key's own description, and it carries the 400 consequence with it.
+    const meta = lockedSchema().$defs.RequestMetaObject as {
+      readonly properties: Record<string, { readonly description?: string }>
+    }
+    const desc = norm(meta.properties["io.modelcontextprotocol/protocolVersion"]?.description)
+    expect(
+      desc.includes("MUST match the `MCP-Protocol-Version` header"),
+      `the header requirement must be derivable from the locked schema, not from an unvendored page. Observed description: ${desc.slice(0, 200)}`,
+    ).toBe(true)
+    expect(
+      desc.includes("MUST return a `400 Bad Request`"),
+      "and its consequence travels with it, which is what makes the claim normative rather than descriptive",
+    ).toBe(true)
+  })
+
+  it("F5 claim 3/3 — UnsupportedProtocolVersionError pins -32022 under allOf, not properties", () => {
+    // The trap this gate exists to hold still: the first probe of this def read
+    // `properties.error.properties.code` and returned `undefined`, which reads exactly like
+    // "upstream does not pin the code". The real path is `properties.error.allOf[1].properties`.
+    // [[resolved-vs-raw-presentation-doc]] — suspect the probe before the source.
+    const def = lockedSchema().$defs.UnsupportedProtocolVersionError as {
+      readonly properties: {
+        readonly error: { readonly allOf?: readonly Record<string, unknown>[] }
+      }
+    }
+    expect(def, "$defs.UnsupportedProtocolVersionError must exist").toBeTypeOf("object")
+
+    const allOf = def.properties.error.allOf ?? []
+    expect(
+      allOf.length,
+      "the error member is composed with allOf; a gate indexing `properties` directly reads undefined and mistakes it for an absence",
+    ).toBe(2)
+
+    const constrained = allOf.find((branch) => "properties" in branch) as
+      | { readonly properties: Record<string, { readonly const?: unknown }> }
+      | undefined
+    expect(constrained, "one allOf branch must carry the constrained properties").toBeTypeOf("object")
+    expect(
+      constrained?.properties.code?.const,
+      "-32022 is pinned upstream — the same constant server.ts serves as ERR.UNSUPPORTED_PROTOCOL_VERSION",
+    ).toBe(-32022)
+  })
+
+  it("F6 — tasks are absent from core entirely, which is stronger than the extension page's prose", () => {
+    // F6's recorded observation is "tasks are an EXTENSION: a core-only implementation is conformant
+    // without them". That is provable here as an absence, and an absence in the locked bytes is a
+    // stronger form of the claim than a page saying so.
+    const raw = readText(`${VENDOR_DIR}/schema.json`)
+    const defs = lockedSchema().$defs
+
+    const taskDefs = Object.keys(defs).filter((k) => /task/i.test(k))
+    expect(taskDefs, "core defines NO task type — that absence is F6's evidence").toEqual([])
+    expect(
+      raw.includes("tasks/"),
+      "and no task method namespace appears anywhere in the locked bytes",
+    ).toBe(false)
+
+    // The single case-insensitive hit is an EXAMPLE extension identifier. Pinned so that a future
+    // re-vendor introducing real task semantics reds here instead of silently satisfying the
+    // absence assertions above with a renamed def.
+    const hits = [...raw.matchAll(/task/gi)]
+    expect(
+      hits.length,
+      "exactly one `task` occurrence, and it is an example identifier inside ServerCapabilities.extensions",
+    ).toBe(1)
+    expect(
+      norm((defs.ServerCapabilities as { properties: Record<string, { description?: string }> })
+        .properties.extensions?.description),
+      "the sole occurrence is an illustrative extension key, which is itself the proof tasks are opt-in",
+    ).toContain('io.modelcontextprotocol/tasks')
+  })
+
+  it("what M-OPEN-1 genuinely still needs is AUTH, and only auth", () => {
+    // The other half of an honest refutation: name what vendoring WOULD buy. F5's requirement line
+    // reads "transport / auth / cache semantics". Cache is covered by CacheableResult; transport is
+    // covered by the header sentence above; auth is not covered at all. A refutation that only
+    // listed the wins would be as misleading as the fix shape it corrects.
+    const raw = readText(`${VENDOR_DIR}/schema.json`)
+    const defs = lockedSchema().$defs
+
+    expect(
+      defs.CacheableResult,
+      "cache semantics ARE locked — $defs.CacheableResult carries cacheScope and the TTL hint",
+    ).toBeTypeOf("object")
+
+    const authDefs = Object.keys(defs).filter((k) => /auth|oauth/i.test(k))
+    expect(
+      authDefs,
+      "no auth type is defined in core — this is the ONE part of F5 that a page vendoring would actually add",
+    ).toEqual([])
+    expect(
+      [...raw.matchAll(/oauth/gi)].length,
+      "the single oauth occurrence is an example extension identifier, not a definition",
+    ).toBe(1)
+
+    // And the reason the auth gap is not urgent, derived rather than assumed: no HTTP transport
+    // exists to authenticate. Asserted in its own right at "D2 stays n/a" above; re-derived here so
+    // this conclusion does not depend on reading that test's title.
+    const code = readText("packages/calllint-mcp/src/server.ts")
+      .split("\n")
+      .filter((l) => !/^\s*(\/\/|\*|\/\*)/.test(l))
+      .join("\n")
+    expect(
+      ["createServer(", ".listen(", "Authorization", "Bearer "].filter((n) => code.includes(n)),
+      "stdio-only and unauthenticated by construction, so the auth gap bears on no claim CallLint makes today",
+    ).toEqual([])
+  })
+
+  it("M-OPEN-1 stays OPEN, and its amendment records the refutation rather than a closure", () => {
+    // This gate must not be read as closing the row. F5/F6 still cite URLs; changing that is a
+    // separate edit. Assert both halves so a future batch that closes the row by deleting the
+    // amendment, or one that flips the source without amending, reds here.
+    const items = readText(`${ARTIFACT_DIR}/open-items.md`)
+    const start = items.indexOf("## M-OPEN-1")
+    const end = items.indexOf("## M-OPEN-2")
+    expect(start, "open-items.md must carry an M-OPEN-1 heading").toBeGreaterThan(-1)
+    expect(end, "and an M-OPEN-2 heading after it").toBeGreaterThan(start)
+    const row = items.slice(start, end)
+
+    expect(
+      row.includes("**Status:** OPEN"),
+      "the original status line stays verbatim — a deleted claim is indistinguishable from one never made",
+    ).toBe(true)
+    expect(
+      row.includes("amended by M26-7"),
+      "and the refutation is recorded as an APPEND (ADR 0061 §8.5.1), not by rewriting the fix shape",
+    ).toBe(true)
+
+    const status = readJson<{ gates: readonly Amendable[] }>(`${ARTIFACT_DIR}/finality-status.json`)
+    const unvendored = status.gates
+      .filter((g) => g.id === "F5" || g.id === "F6")
+      .map((g) => `${String(g.id)}=${String((g.evidence as { source?: string } | undefined)?.source ?? "")}`)
+    expect(
+      unvendored.filter((s) => s.includes("https://modelcontextprotocol.io")).length,
+      "both rows still cite a URL — when that changes, THIS assertion is the one that must be edited by hand",
+    ).toBe(2)
+  })
+})

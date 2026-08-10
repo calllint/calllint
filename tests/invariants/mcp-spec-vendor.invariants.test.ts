@@ -637,7 +637,30 @@ describe("M26-2 server/discover is built from upstream's required arrays", () =>
 
     // Every capability upstream knows about is optional, so "no capabilities" is
     // a conformant client, and an empty object is a real declaration.
-    expect(d.ClientCapabilities?.required ?? null).toBeNull()
+    //
+    // Asserted as ABSENCE OF THE KEY, and only after proving the definition is
+    // there. The first form of this was `expect(d.ClientCapabilities?.required ??
+    // null).toBeNull()`, which is vacuous: `?? null` maps a MISSING
+    // `ClientCapabilities` to `null` too, so it passed whether upstream said
+    // "nothing is required" or upstream had no such definition at all —
+    // `absence-makes-a-gate-skip-itself`, inside the gate whose entire job is to
+    // derive rather than restate. And the ADR that shipped it said the schema
+    // "has `required: null`"; measured, the key is not present in any form.
+    // Asserted as SET EQUALITY over the definition's own keys, which is the one
+    // form that cannot go vacuous here. A boolean `hasOwnProperty` check reads
+    // `false` both when the key is absent and when the whole definition is —
+    // `expect(cc !== undefined && hasOwn(cc, "required")).toBe(false)` passes on a
+    // deleted definition, which is the same hole in a new coat. A missing
+    // definition yields `[]` and reds against the expected list.
+    const cc: Def | undefined = d.ClientCapabilities
+    expect(
+      Object.keys(cc ?? {}).sort(),
+      "ClientCapabilities must exist and carry exactly these keys — NO `required` among them. That absence is what makes every member optional and `{}` a conformant declaration; a deleted definition reds here as `[]`",
+    ).toEqual(["description", "properties", "type"])
+    expect(
+      Object.keys(cc?.properties ?? {}).sort(),
+      "and the optional members are enumerated, so upstream adding a REQUIRED one cannot slip past the absence check above",
+    ).toEqual(["elicitation", "experimental", "extensions", "roots", "sampling"])
 
     // Therefore: absent from our server's CODE, and asserted so a future batch
     // that starts refusing has to change this line and say why.
