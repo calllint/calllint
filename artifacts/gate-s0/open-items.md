@@ -109,6 +109,57 @@ red gate would mean one of the five assertions broke.
 2026-07-27, which is *fewer* than the committed 19. Merging it shrinks the cohort and moves
 this row further from false while appearing to be progress.
 
+### Amendment 2026-08-10 — the run happened, and it satisfies this row's own falsification test
+
+Everything above was measured on 2026-08-09 and is left verbatim. Within a day, three of its
+statements became false. Recorded as an amendment rather than an edit, because *what changed
+them* is the finding.
+
+**The pipeline completed.** `trust-ingest` run `31368307622` started 2026-08-10T08:02:07Z and
+succeeded at 08:11:12Z, all 11 steps green. So the table row above reading
+*"since | **no run has completed**, so the fix is unexercised in production"* is now false:
+`e24f6a0`'s raised caps ran in production for the first time, five days after landing, and held.
+The mirror read **69_327** records and stored **20_852** current subjects — no
+`MirrorIncompleteError`, and far past the old `1000` cap that produced the 2026-08-03 failure.
+
+**The snapshot reached exactly 25.** `snapshot: 25 entry(ies) @ 2026-08-10T08:02:29.262Z`.
+Confirmed on the PR head rather than trusted from the log: `count: 25`, `entries: 25`,
+`fetchedAt: 2026-08-10T08:02:29.262Z`. This is the 25/25 coincidence above behaving exactly as
+predicted — 20_852 live subjects projected through `DEFAULT_MAX_ENTRIES = 25` emit 25, not more.
+It also settles the number the false reason got wrong: upstream's size is five digits, and the
+19 was only ever our own projection's.
+
+**`gate:s0 --gate` exits 0 on those bytes.** Measured in a throwaway worktree at the PR head,
+not inferred from the count:
+
+```
+Registry:  25 / 25 required (met)      Fixtures: 20 (excluded by design)      Total: 45
+[MEASURED]      INV-R5    ✓  reconciles 45 = 25 snapshot + 20 fixtures
+[MEASURED]      INV-R4    ✓  44/45 judgeable; SAFE+UNKNOWN found 5, all fixture-anchor
+[GATE-VERIFIED] INV-04+R7 ✓     [GATE-VERIFIED] INV-R6 ✓     [GATE-VERIFIED] DEP-8 ✓
+✓ All assertions passed, cohort meets the requirement          EXIT=0
+```
+
+That is **both** halves of *"What would make this row false"* above, and in the order the row
+required: the requirement was **not** lowered (`S0_REQUIRED_RECORDS` is still 25 — the cohort
+rose to meet it), and no assertion broke to get there.
+
+**Why this row is nevertheless still OPEN.** The 25 entries live on
+`trust-ingest/registry-refresh`, not on `main`. On this checkout's served bytes the gate still
+reports `Registry: 19 / 25 required (SHORTFALL)`. A gate that passes on an unmerged branch has
+not passed. Merging #234 is a served-bytes change under `apps/web/public/**` and needs its own
+authorization, which is not given here — so this row closes when those bytes are on `main`, and
+not before.
+
+**The "do not merge #234" warning above is now wrong about its reason, and right about its
+conclusion.** `trust-ingest.yml` **force-pushes the same branch** rather than opening a new PR,
+so #234's head is no longer the 2026-07-27 commit: it is a single commit `9ca5c7e` dated
+2026-08-10T08:11:03Z, and the `count: 18` snapshot that made merging it *harmful* no longer
+exists anywhere. The warning's conclusion survives on the unrelated ground that merging is an
+authorization decision, not on the ground it was written on. Both statements are kept: the
+falsified reason is the record of why a PR's identity cannot be inferred from its title and
+creation date — #234 still *presents* as a 2026-07-27 PR titled for a July refresh.
+
 ---
 
 ## S0-OPEN-2 — `gate:s0` is outside `ci:local`, so nothing runs it on any schedule

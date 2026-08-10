@@ -214,9 +214,14 @@ describe("Gate S0 — every number the record states is derived from the file it
       readText("packages/trust-index/snapshots/official-mcp-registry.json"),
     ) as { fetchedAt: string; count: number; entries: readonly unknown[] }
     expect(snap.entries.length, "count must equal the real entry count").toBe(snap.count)
+    // 19 is the value ON THIS BRANCH. The 2026-08-10 amendment records a 25-entry snapshot living
+    // on `trust-ingest/registry-refresh`, which is precisely why this stays 19: merging that branch
+    // is the event that closes S0-OPEN-1, and this assertion is what notices it happening. When it
+    // reds with 25, the row's closing conditions are met and the row must be amended to CLOSED —
+    // do not "fix" this number to make the suite green.
     expect(
       snap.count,
-      `the record's whole argument rests on a stale 19-entry snapshot; it now holds ${snap.count}, so S0-OPEN-1 needs re-measuring rather than trusting`,
+      `the record's whole argument rests on a stale 19-entry snapshot; it now holds ${snap.count}. If this is 25, #234 landed: S0-OPEN-1's falsification test is satisfied and the row must be amended to CLOSED, not this number edited`,
     ).toBe(19)
     expect(snap.fetchedAt).toBe("2026-07-17T00:00:00.000Z")
     // And the cap did NOT bind: 19 < 25 means fewer than 25 live entries reached the slice. This is
@@ -261,6 +266,48 @@ describe("Gate S0 — every number the record states is derived from the file it
       "gate:s0",
       "gate:s0:gate",
     ])
+  })
+
+  it("the 2026-08-10 amendment's numbers are consistent with the source they describe", () => {
+    // The amendment carries four claims measured against a REMOTE run and a REMOTE branch, neither of
+    // which a test may reach (INV-M4 forbids the network; reaching for `main`'s served bytes is what
+    // S0-OPEN-2 exists to say a test must not do). So this asserts the one thing that is checkable
+    // offline and is also the thing that rots: that the amendment's numbers agree with the committed
+    // source they are about. A remote-only claim gets a date and a run id so it can be re-measured,
+    // which is the honest form — NOT a string match dressed up as verification.
+    const a = row(1)
+    const at = (label: string, re: RegExp): string => {
+      const m = re.exec(a)
+      expect(m?.[1], `the 2026-08-10 amendment must still state ${label}`).not.toBeUndefined()
+      return m?.[1] ?? ""
+    }
+
+    // The requirement was NOT lowered — that is the amendment's load-bearing claim, and it is
+    // checkable here: the cohort figure the amendment reports must equal the gate's own constant.
+    const met = at("the cohort it measured (`25 / 25 required`)", /Registry:\s+(\d+)\s+\/\s+\d+\s+required\s+\(met\)/)
+    const required = /S0_REQUIRED_RECORDS\s*=\s*(\d+)/.exec(readText(GATE))?.[1]
+    expect(
+      met,
+      `the amendment reports a cohort of ${met} meeting the requirement, but the gate now requires ${required} — one of the two moved, so the amendment is stale`,
+    ).toBe(required)
+
+    // The reconciliation the amendment quotes must be arithmetic, not decoration. 45 = 25 + 20.
+    const total = Number(at("its reconciliation total", /reconciles\s+(\d+)\s*=/))
+    const snapPart = Number(at("the snapshot half of that reconciliation", /reconciles\s+\d+\s*=\s*(\d+)\s+snapshot/))
+    const fixPart = Number(at("the fixture half", /=\s*\d+\s+snapshot\s*\+\s*(\d+)\s+fixtures/))
+    expect(snapPart + fixPart, `the amendment's own reconciliation must add up: ${snapPart} + ${fixPart} != ${total}`).toBe(total)
+    expect(snapPart, "and its snapshot half is the cohort it reported meeting the requirement").toBe(Number(met))
+
+    // The amendment claims the gate exited 0 on those bytes. Unreachable offline — so what is pinned
+    // is that it named a re-measurable run rather than asserting a verdict from nowhere.
+    expect(a, "a remote measurement must carry the run id that produced it, or it cannot be re-measured").toMatch(/`31368307622`/)
+    // Collapsed before matching: this sentence is hard-wrapped in the artifact, so `has not passed`
+    // spans a newline. A bare substring match on prose is the ADR 0064 §6.2 trap in miniature — the
+    // first draft of this line looked for the unwrapped form and red on a claim that was present.
+    expect(
+      a.replace(/\s+/g, " "),
+      "and the row must still say why a green gate on an unmerged branch leaves it OPEN",
+    ).toContain("A gate that passes on an unmerged branch has not passed")
   })
 
   it("the three env knobs are named in prose as workflow_dispatch inputs the workflow does not have", () => {
