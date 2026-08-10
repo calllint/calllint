@@ -22,12 +22,27 @@ wrong, which is the history that makes a finding worth anything.
 
 **Status:** OPEN
 
-**What `--gate` does today.** `scripts/gate-s0.ts:234` computes
+**What `--gate` does today.** `scripts/gate-s0.ts:498` computes
 `registryShort = censusRegistry < S0_REQUIRED_RECORDS` with `S0_REQUIRED_RECORDS = 25` at
-`:45`, and `:254-256` exits `2` on a shortfall even when all five assertions pass. The
-served census is **19** registry pages (`apps/web/public/trust/index.json`, cohort census
-`{"fixtures":20,"mcp-registry":19}`); fixtures are excluded from the requirement on purpose
-(`FIXTURE_PREFIX` at `:52`). So `--gate` exits 2 on the cohort size alone.
+`:59`, and the `--gate` block below it exits `2` on a shortfall even when all five assertions
+pass. The served census is **19** registry pages (`apps/web/public/trust/index.json`, cohort
+census `{"fixtures":20,"mcp-registry":19}`); fixtures are excluded from the requirement on
+purpose (`FIXTURE_PREFIX` at `:66`). So `--gate` exits 2 on the cohort size alone.
+
+> **Line pointers corrected 2026-08-10 (S batch 1).** These read `:234` / `:45` / `:52`
+> when written. S batch 1's EXECUTED tier added imports and a ~90-line runner, moving every
+> line below the docblock. The drift was caught by `assertPointer`, which asserts each line's
+> **content** rather than its existence — the third consecutive batch to find a rotted pointer
+> this way (M26-3 found `server.ts:61` on a blank line; M26-8 found `:173` for `:175`). The
+> exit-block pointer is now named by its variable rather than by a line range, because a range
+> rots faster than a name and nothing was reading the range.
+>
+> The shortfall pointer then drifted **again inside this same batch**, `:401` → `:498`, when
+> `stripComments` became string-aware. Recorded because one line number moving twice in one
+> sitting is the case for content-addressed pointers over numeric ones: what made both moves
+> harmless is that the assertion carries the expected **content**, so each failure printed the
+> line it actually found. A pointer asserting only that line 401 exists would have passed both
+> times, and the record would now cite a docblock.
 
 **The recorded reason, verbatim, and why it is false.** `docs/gate-s0-next.md:64` records:
 
@@ -192,11 +207,36 @@ record cannot silently drift from the gate it describes.
 invocation is sufficient, with the reason stated. The second is a legitimate close; an
 unstated status is not.
 
+### Amendment 2026-08-10 (S batch 1) — re-measured, still OPEN, and now with a cost attached
+
+Re-measured rather than restated: `grep -rn "gate:s0"` across `.github/workflows/**`,
+`package.json`, and `scripts/**` returns **two** hits, both the script *definitions* at
+`package.json:42-43`. No workflow, no `ci:local` step, no test, no cron. So the row's claim
+holds verbatim: **the gate's exit code has no consumer at all.**
+
+That reframes S0-OPEN-3's fix (below) more sharply than either row anticipated. This batch made
+`--gate` unable to report success while its named tests fail — but a corrected exit code that
+nothing reads changes nothing about what CI enforces. The two rows are therefore **sequential,
+not independent**: S0-OPEN-3 was a prerequisite for this one being worth closing, because
+scheduling a gate that cannot see its own failure would have scheduled a false green.
+
+**A cost this row did not previously carry.** `gate:s0` now spawns vitest over three files
+(**156 tests**, ~25s wall clock), so a scheduled report-mode invocation is no longer free. That
+is an argument about *where* it runs, not whether: `--no-run` exists for a caller that has
+already run `pnpm test`, and is **refused under `--gate`** so the cheap path can never be
+mistaken for enforcement.
+
+**What would make this row false — unchanged**, plus one addition: if the answer is a scheduled
+run, it must state whether it runs with `--no-run` and why, since that choice decides whether
+the EXECUTED tier is evidence or decoration.
+
 ---
 
 ## S0-OPEN-3 — three of S0's five assertions are GATE-VERIFIED, which reads a string
 
-**Status:** OPEN
+**Status:** **CLOSED 2026-08-10** (S batch 1, ADR 0069) — by this row's own first disjunct: the
+three became EXECUTED. See the amendment at the end of this row. Everything below is the
+2026-08-09 text, left verbatim, including the two claims the close falsified.
 
 `scripts/gate-s0.ts` splits its five assertions by provenance, and prints the split
 (`:243-247`):
@@ -225,3 +265,190 @@ with a name on it rather than silently downgrading the gate.
 **What would make this row false.** Either the three become MEASURED, or a recorded decision
 that string-verification is the accepted contract for cross-gate assertions, naming the risk it
 accepts.
+
+### Amendment 2026-08-10 (S batch 1) — CLOSED, and two of this row's own sentences were false
+
+**The row understated its own subject, and the understatement was the reason it stayed open.**
+The text above says a delete-with-comment-left-behind *"flips them to passing while the property
+is gone"* — correct, and filed under refactor hygiene. It does not say the same thing happens
+when the test is **present and FAILING**, which needs no refactor at all and is reachable on any
+red suite. Demonstrated on `main`, not argued: the byte-identical re-derive assertion inside
+`committed-tree.test.ts` was broken while the grepped `control #117` comment was left untouched.
+That run went `1 failed | 123 passed`, and the gate printed
+
+```
+[GATE-VERIFIED]  INV-R6  ✓  byte-identical derivation verified
+```
+
+on those same bytes. A tier whose green survives its own subject's failure is not weaker
+evidence than MEASURED — it is evidence of **a different proposition** than the one it prints.
+
+**`control #117` is carried by comments as well as by its test.** MEASURED: three occurrences in
+`committed-tree.test.ts` — `:50` and `:116` in comments, `:145` in the `it()` title. A raw-text
+probe is therefore satisfiable by the prose *about* the test, so renaming or deleting the test
+leaves the probe green. The row's *"assert the three probes still find their targets"* intermediate
+step was, for this gate, satisfiable without any target existing.
+
+> **Correction, same batch (S batch 1).** This paragraph first read *"All three occurrences … are
+> in comments; the string appears in **no** `it()` title"* — false, and falsified by re-running the
+> grep it claimed to rest on. It was written alongside a `NamedGate.anchorIsComment: true` field in
+> `scripts/gate-s0.ts` carrying the same error. Recorded rather than quietly replaced because the
+> shape of the mistake is the batch's own subject: a sentence asserting something *about* a probe,
+> with nothing reading it. The prose and the boolean agreed with each other for one run and with the
+> corpus never — two copies of a claim are not two measurements of it.
+>
+> The repair is not a corrected boolean. The field asked the wrong question: what decides whether a
+> scan can see a deletion is not *"is this anchor in a comment"* but *"does a comment ALSO carry
+> it."* So `anchorIsComment` is gone, the scan strips comments before matching (`stripComments`), and
+> a comments-only survivor is reported as `anchor present only in COMMENTS` rather than as absent —
+> the two need different repairs. **Control #168** renames the `it()` title away, leaves both
+> comments, and now reds by that exact wording; it was green before this correction. The stripper is
+> itself guarded two-sidedly from inside the gate (`assertStrips`), because **control #169** loosened
+> its line-comment pattern and the guard stayed **green** until the fixture gained a `https://` line
+> — the guard's fixture had no line where code preceded the marker, so leading-only and
+> anywhere-on-the-line were indistinguishable. Adding that line also red the real stripper on the
+> opposite side (a trailing `// … control #X` was not stripped), so `stripComments` became
+> string-aware rather than regex-only. One under-strip and one over-strip, both now pinned.
+
+**The "not fixable cheaply" claim was false, and its arithmetic was never done.** The row argued
+re-running the gates *"multiplies its runtime by their sum and makes S0 fail for reasons that are
+not S0's."* Measured: one batched `vitest run` over the three named files is **156 tests in ~25s**
+— not a multiplier on anything, because the three files were always going to run in `pnpm test`
+anyway. The second half is also backwards: S0 failing when INV-R6 fails is not a foreign reason,
+it is the entire proposition S0 was printing a tick for.
+
+**What replaced it.** `scripts/gate-s0.ts` now has a three-tier provenance split:
+
+| Tier | Meaning | Assertions |
+|---|---|---|
+| **MEASURED** | computed here from committed bytes | INV-R5, INV-R4 |
+| **EXECUTED** | the named gates are RUN; S0's verdict is that run's verdict | INV-04, INV-R7, INV-R6 |
+| **SCANNED** | the subject is SOURCE, so reading it *is* the measurement | DEP-8 |
+
+Four properties, each with its own failure mode, because the obvious single check has holes on
+both sides:
+
+1. **The string scan survives as a PRECONDITION**, not as a substitute. Scan-without-run is green
+   while the assertion is present and failing; run-without-scan is green after the assertion is
+   *renamed or deleted*, since the file still passes. They catch opposite things.
+2. **Keyed on the parsed JSON report**, never on the child's exit status or stdout — per
+   `[[subprocess-negative-control-prints-fail]]`. Concretely: the child prints failing-test output,
+   so a caller reading the stream cannot distinguish `1 failed` from a fixture that prints `FAIL`.
+3. **Absence is its own outcome.** A missing, empty, or unparseable report, a file the runner never
+   collected, or a file that collected **0 tests**, each returns not-ok with the reason named — per
+   `[[absence-must-not-become-a-category]]`. A two-way ok/not-ok split over a possibly-absent report
+   would let a crashed runner sort itself into whichever branch the falsy value satisfied.
+4. **`--no-run` is refused under `--gate`.** A flag that turns enforcement off would restore this
+   exact defect with a command-line switch instead of a grep. In report mode a skip prints `–`,
+   never `✓`, and does not satisfy `allOk`.
+
+**DEP-8 stayed a scan, and the relabel is the point.** Its subject is `apps/cli/src/commands/trust.ts`
+— **source, not a test**. There is nothing to run, so reading the source for its three `--expect-*`
+flags *is* the measurement. Calling that GATE-VERIFIED alongside two test-file probes was the
+labelling error underneath this row: one name covered two different epistemic situations, so
+fixing the tests' tier would have silently downgraded DEP-8's honest name or dragged a source scan
+into a runner that has no test to execute.
+
+**Controls that validated the close** (numbering continues from #162, ADR 0068 §8; each applied to
+**source or artifact, never to a test**, run, observed to fail naming its own subject, rolled back
+and confirmed byte-identical):
+
+| # | Mutation | Observed failure |
+|---|---|---|
+| 163 | flip one derived character in `snapshots/adoption-index.json` | `GATE RED: 2/156 test(s) failed: …committed-tree.test.ts → failed`, per-file `INV-R6 ✗`. **Same bytes the old tier printed `✓` on** |
+| 164 | rename the anchor in `NAMED_GATES` to a string not in the gate file | `PRECONDITION FAILED: INV-R6: anchor absent — "control #99999-renamed"` — the delete/rename direction the run alone cannot see |
+| 165 | `gate:s0 --gate --no-run` | refused, EXIT=2: *"enforcement cannot be asked to skip itself"* |
+| 166 | `gate:s0 --no-run` (report mode) | prints `–  SKIPPED (--no-run); the named gates were not run, so this is not a pass` — never `✓` |
+
+**#163 is the one that matters**, and it is worth stating why: it is not merely a red control. It
+is the *same mutation* that produced the false green above, re-run against the new tier. A control
+that only turned red would show the new code works; this one shows the old code was wrong, on
+identical bytes.
+
+**What is NOT closed by this.** The corrected exit code still has no consumer — see S0-OPEN-2's
+amendment. `--gate` remains red on `main` for the cohort shortfall (S0-OPEN-1), which is the
+correct verdict and unrelated to this row.
+
+---
+
+## S0-OPEN-4 — closing S0's shortfall evicts CallLint's own claimed page, and the gate goes green as it happens
+
+**Status:** OPEN (filed 2026-08-10, S batch 1, ADR 0069). **Now guarded** by
+`tests/invariants/registry-cohort-retention.invariants.test.ts` — the guard is what makes this row
+a *tracked* hazard rather than a latent one, and it does not resolve it.
+
+**The arithmetic, over two constants that are the same number by coincidence.**
+`S0_REQUIRED_RECORDS` (`scripts/gate-s0.ts`) == `DEFAULT_MAX_ENTRIES`
+(`packages/trust-index/src/fetchRegistry.ts`) == **25**. The requirement is satisfiable only once
+the cohort reaches 25; the cap begins evicting at 26. Both numbers are read from their declaring
+files by the guard, never restated, so a batch that moves one alone reds:
+
+| Cohort size | S0 `--gate` | CallLint's own page |
+|---|---|---|
+| 19…24 | SHORTFALL (red) | present |
+| **25** | **MET (green)** | **present** ← the only size satisfying both |
+| 26+ | MET (green) | **EVICTED** |
+
+S0-OPEN-1 already recorded the 25/25 coincidence as *"worth recording rather than relying on."*
+This row is what it costs: **the action that closes S0's shortfall by growing the cohort is the
+same action that deletes this project's own trust page**, and the gate reports success while it
+happens. Not a slippery-slope argument — arithmetic.
+
+**Why the claimed subject is first in line, measured.** `io.github.calllint/calllint` sits at index
+**18 of 19** — dead last. Prefix census of the committed cohort: `{ ac: 2, ag: 2, ai: 14, io: 1 }`.
+Upstream names are reverse-DNS and this is the **only** `io.*` entry, so sorting last is
+**structural**, not a coincidence of today's 19 names. Derived headroom is **6**: a seventh
+alphabetically-earlier upstream name evicts it. Simulated through the real `projectSnapshot`, not a
+reimplementation — `+6 → cohort 25, retained 25, PRESENT`; `+7 → cohort 26, retained 25, EVICTED`.
+
+**Why the existing tests could not see it.** `snapshot-projection.test.ts:208` and
+`refresh-from-mirror.test.ts:602` both pin `["io.example/alpha", "io.example/mike"]` over synthetic
+fixtures. Both are correct and both are blind here: a **mechanism** test says *"the cap slices after
+the sort."* It cannot say *"and the entry that sorts last is the one page this project claims about
+itself."* Three tests asserted the mechanism; none asserted the consequence.
+
+**What eviction costs, censused rather than asserted as harm:**
+- `apps/web/public/trust/index.json` carries exactly **one** row for
+  `mcp-registry/io.github.calllint-calllint` — `status: "baked"`, `verdict: "SAFE"`, real
+  `pageDigest`. Eviction removes the row, so the bake stops emitting the page.
+- `artifacts/phase-2.4/presentation-lock.json` holds **three** references keyed to that slug:
+  `contentPlane.overriddenSlots[34]`, `[35]`, and `semanticContract.resources[18].canonicalSlug`.
+  `resources[18]` is the *same last index* the subject holds in the cohort — the lock's resource
+  list is in cohort order, so the eviction boundary and the lock's tail are the same boundary.
+- **No second copy exists.** `claims/claim-store.json` has 2 keys, none matching;
+  `snapshots/adoption-index.json` has 0 subjects. The served snapshot is its only home.
+
+**The production chain, corrected — three locations, not the one previously recorded.**
+S0-OPEN-1 names `fetchRegistry.ts:19` + `:109` as the cap, then correctly observes
+`fetchRegistrySnapshot` has no production caller. The cap that actually binds the served cohort is
+reached by a different path, and it must be written down or the next batch re-derives it:
+
+```
+refreshSnapshot.ts:143  resolveMaxEntries(env)   → DEFAULT_MAX_ENTRIES, raisable via TRUST_INGEST_MAX_ENTRIES
+refreshSnapshot.ts:330  refreshFromMirror({ snapshotMaxEntries: maxEntries, … })
+                        → snapshotProjection.ts:113   ← the slice that evicts
+```
+
+`snapshotProjection.ts:15-19` already flags the shape in its own docblock: *"Step 3 caps AFTER step
+2, so the retained 25 are the 25 alphabetically first — NOT the 25 most recent. That is a
+surprising property and it is load-bearing."* Load-bearing was right; what it bears is this row.
+
+**Why this row is OPEN rather than fixed.** Every candidate remedy is a decision this batch is not
+authorized to take, and they are not equivalent:
+- **Pin the claimed subject into the cohort unconditionally** — changes `snapshotProjection.ts`
+  semantics, i.e. `packages/adoption-index/**`, and makes the projection non-uniform in the
+  subject's favour. That is a product judgement about self-dealing in a trust index, not a bug fix.
+- **Raise `DEFAULT_MAX_ENTRIES` above `S0_REQUIRED_RECORDS`** — decouples the two constants and
+  buys headroom, but ADR 0061 §11 authorizes no expansion step (25 → 100 → 500) for any batch yet,
+  and `artifacts/adoption-index-v1/current-gaps.md:137-146` records the absence as *deliberate and
+  gated*.
+- **Replace alphabetical slicing with a considered selection** — the honest fix, and the largest.
+
+**What would make this row false.** A recorded decision on which of the three applies, *plus* a
+cohort at ≥26 on `main` with the claimed subject's served page still present. A cohort at exactly
+25 does not close it: 25 is the single size where the hazard is invisible, so passing there is the
+one outcome that proves nothing.
+
+**Interaction with S0-OPEN-1 that a reader must not miss.** PR #234's head carries `count: 25` —
+*exactly* the overlap size. Merging it would satisfy S0 **and** retain the page, and would tell you
+nothing about size 26. The next ingest run after that merge is where this row bites.

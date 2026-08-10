@@ -10,25 +10,39 @@
  * harness that reported five green ticks from one JSON file would be measuring two things and
  * asserting five. So each assertion is labelled by HOW it was established:
  *
- *   MEASURED       — computed here, from committed bytes, over the real cohort.
- *   GATE-VERIFIED  — not computable from `index.json`; instead the named gate is READ and its
- *                    assertion confirmed present. This is the prose-justified-constant lesson
- *                    applied to coverage claims: a doc sentence saying "INV-R6 is covered by
- *                    committed-tree.test.ts" is a claim about a second file that nothing checks, so
- *                    deleting that gate would leave the sentence green. Parsing the file makes the
- *                    coverage claim itself gated — a deleted or renamed gate fails S0.
+ *   MEASURED   — computed here, from committed bytes, over the real cohort.
+ *   EXECUTED   — the named gate is RUN, and S0's verdict is that run's verdict. A string scan for
+ *                the assertion's text runs first, as a PRECONDITION: a renamed or deleted assertion
+ *                must red even if the file's other tests pass.
+ *   SCANNED    — the subject is SOURCE, not a test, so there is nothing to run. Reading the source
+ *                for the required tokens IS the measurement (DEP-8's `--expect-*` flags).
  *
- * GATE-VERIFIED is weaker than MEASURED and is not presented as its equal. It proves the gate exists
- * and still asserts what S0 relies on; it does not re-run it. `pnpm test` runs it.
+ * WHY `EXECUTED` REPLACED `GATE-VERIFIED`, measured rather than argued. The previous tier read the
+ * named test file and confirmed its assertion's TEXT was present, explicitly not re-running it. That
+ * made the coverage claim gated against deletion and blind to failure, and the gap was demonstrated,
+ * not inferred: breaking the byte-identical re-derive assertion inside `committed-tree.test.ts` —
+ * while leaving the grepped `control #117` comment untouched — left this harness printing
+ *
+ *     [GATE-VERIFIED]  INV-R6  ✓  byte-identical derivation verified
+ *
+ * on bytes where that very test was RED. Worse, the grepped string lives in a COMMENT, so the probe
+ * could not observe whether the test existed at all — only whether the comment did. A tier whose
+ * green survives its own subject's failure is not weaker evidence than MEASURED; it is evidence of
+ * a different proposition than the one it prints.
  *
  * Modes:
  *   (default) report — print the five assertions + the cohort census. Exit 0 even when short,
  *                      because measuring a shortfall IS a successful measurement.
  *   --gate           — ENFORCEMENT. Exit 2 if any assertion fails OR the cohort is under 25.
+ *   --no-run         — skip the EXECUTED tier (report mode only). For a fast census when the
+ *                      caller has already run `pnpm test`. REFUSED under `--gate`: a gate that can
+ *                      be asked to skip its own enforcement is the defect above, restored as a flag.
  *
  * Exit codes: 0 ok · 2 gate failed (--gate) / unexpected error.
  */
-import { readFileSync, existsSync } from "node:fs"
+import { spawnSync } from "node:child_process"
+import { readFileSync, existsSync, mkdtempSync, rmSync } from "node:fs"
+import { tmpdir } from "node:os"
 import path from "node:path"
 import { fileURLToPath } from "node:url"
 
@@ -56,6 +70,15 @@ const REGISTRY_PREFIX = "mcp-registry/"
 // CLI
 //---------------------------------------------------------------------------------------------------
 const isGate = process.argv.includes("--gate")
+const noRun = process.argv.includes("--no-run")
+
+// `--no-run` under `--gate` is refused, not honoured-with-a-warning. The whole point of this batch is
+// that S0's green must not be reachable while its named tests are red; a flag that turns the check
+// off would restore exactly that, with a command-line switch instead of a grep.
+if (isGate && noRun) {
+  console.error(`❌ --no-run is refused under --gate: enforcement cannot be asked to skip itself`)
+  process.exit(2)
+}
 
 //---------------------------------------------------------------------------------------------------
 // Load the cohort
@@ -183,6 +206,99 @@ const invR4_message = !domainIntact
       : `DANGEROUS: ${safeUnknownDangerous.length} SAFE+UNKNOWN entry(ies) without fixture-anchor: ${safeUnknownDangerous.map((p) => p.canonicalName).join(", ")}`
 
 //---------------------------------------------------------------------------------------------------
+// EXECUTED tier — run the named gates and adopt their verdict
+//---------------------------------------------------------------------------------------------------
+/**
+ * One RUN of the vitest files S0 names, parsed from the JSON reporter.
+ *
+ * Keyed on the PARSED REPORT, not on the child's exit status. `[[subprocess-negative-control-prints-fail]]`
+ * is the general rule (a test's result is its assertion, never a child's stream), and it bites here
+ * concretely: the child prints failing-test output to stdout, so a caller reading the stream cannot
+ * tell "1 failed" from a test whose own fixture prints the word `FAIL`. The report has counts.
+ *
+ * Absence is its own outcome, never a category. A missing, empty, or unparseable report returns
+ * `ok: false` with the reason named — per `[[absence-must-not-become-a-category]]`, a two-way
+ * ok/not-ok split over a possibly-absent file would let a crashed runner sort itself into whichever
+ * branch the falsy value satisfies. Here it sorts into FAILED, loudly.
+ */
+interface RunOutcome {
+  ok: boolean
+  reason: string
+  /** Per-file status, so a file that was never collected is distinguishable from one that passed. */
+  files: Map<string, string>
+  total: number
+  failed: number
+}
+
+function runVitest(files: readonly string[]): RunOutcome {
+  const empty = new Map<string, string>()
+  const outDir = mkdtempSync(path.join(tmpdir(), "gate-s0-"))
+  const outFile = path.join(outDir, "report.json")
+  try {
+    const child = spawnSync(
+      process.execPath,
+      [path.join(repoRoot, "node_modules/vitest/vitest.mjs"), "run", ...files, "--reporter=json", `--outputFile=${outFile}`],
+      { cwd: repoRoot, encoding: "utf8", stdio: ["ignore", "pipe", "pipe"] },
+    )
+
+    if (child.error) return { ok: false, reason: `runner failed to start: ${child.error.message}`, files: empty, total: 0, failed: 0 }
+    if (!existsSync(outFile)) {
+      // The runner produced no report at all — a collection error, a config error, or a crash. The
+      // child's own stderr is the only evidence of WHY, so it is surfaced rather than swallowed.
+      const tail = (child.stderr || child.stdout || "").trim().split("\n").slice(-4).join(" / ")
+      return { ok: false, reason: `no JSON report written (exit ${child.status}): ${tail || "no output"}`, files: empty, total: 0, failed: 0 }
+    }
+
+    let report: {
+      success?: boolean
+      numTotalTests?: number
+      numFailedTests?: number
+      testResults?: { name?: string; status?: string }[]
+    }
+    try {
+      report = JSON.parse(readFileSync(outFile, "utf8"))
+    } catch (e) {
+      return { ok: false, reason: `JSON report unparseable: ${(e as Error).message}`, files: empty, total: 0, failed: 0 }
+    }
+
+    const byFile = new Map<string, string>()
+    for (const r of report.testResults ?? []) {
+      if (typeof r?.name === "string") byFile.set(rel(r.name), r.status ?? "unknown")
+    }
+
+    const total = report.numTotalTests ?? 0
+    const failed = report.numFailedTests ?? 0
+
+    // Every named file must be present in the report AND passing. A file vitest never collected is
+    // absent from `testResults`, and `success` alone would still be true — the same shape of blindness
+    // this tier exists to remove, one layer down.
+    const missing = files.filter((f) => !byFile.has(rel(path.join(repoRoot, f))))
+    if (missing.length > 0) {
+      return { ok: false, reason: `not collected by the runner: ${missing.join(", ")}`, files: byFile, total, failed }
+    }
+    const notPassed = [...byFile.entries()].filter(([, s]) => s !== "passed")
+    if (notPassed.length > 0) {
+      return {
+        ok: false,
+        reason: `${failed}/${total} test(s) failed: ${notPassed.map(([f, s]) => `${f} → ${s}`).join(", ")}`,
+        files: byFile,
+        total,
+        failed,
+      }
+    }
+    // Vacuity guard: a file that collected zero tests reports `success: true`. Zero assertions is not
+    // a pass, for the same reason INV-R4's empty observation set is not one.
+    if (total === 0) return { ok: false, reason: `VACUOUS: the runner collected 0 tests`, files: byFile, total, failed }
+    if (report.success !== true || failed !== 0) {
+      return { ok: false, reason: `runner reported success=${report.success}, failed=${failed}`, files: byFile, total, failed }
+    }
+    return { ok: true, reason: `${total} test(s) passed across ${byFile.size} file(s)`, files: byFile, total, failed }
+  } finally {
+    rmSync(outDir, { recursive: true, force: true })
+  }
+}
+
+//---------------------------------------------------------------------------------------------------
 // Verify gates by source scan (prose-justified-constant pattern)
 //---------------------------------------------------------------------------------------------------
 // S0's "0 hidden persistent installs" has TWO layers, and verifying one would report half an
@@ -192,28 +308,176 @@ const invR4_message = !domainIntact
 //   INV-R7  — nothing persists outside `.var/calllint-adoption-index/` (the containment backstop)
 // Naming them separately also means deleting either gate reds S0, rather than the surviving one
 // covering for the deleted one.
-const inv04_gate = path.join(repoRoot, "tests/invariants/adoption-index-no-execution.invariants.test.ts")
-const inv04_ok =
-  existsSync(inv04_gate) &&
-  readFileSync(inv04_gate, "utf8").includes("no module in the compiler can execute anything (INV-04)")
+/**
+ * A named gate: the file S0 relies on, plus the assertion text whose disappearance must red even
+ * when the file's remaining tests pass. The scan is a PRECONDITION on the run, not a substitute for
+ * it — the two catch opposite things:
+ *
+ *   scan without run  → green while the assertion is present and FAILING  (the defect, §docblock)
+ *   run without scan  → green after the assertion is RENAMED OR DELETED, since the file still passes
+ *
+ * The anchor is matched against the file with COMMENTS STRIPPED, and this is not a stylistic choice.
+ * MEASURED over the three anchors below: `control #117` occurs three times in
+ * `committed-tree.test.ts` — `:50` and `:116` in comments, `:145` in the `it()` title. Matching raw
+ * text means deleting the test still leaves the precondition green, because the prose ABOUT the test
+ * satisfies it. That is the same class of defect as the run-less scan in the docblock: a probe agreeing
+ * with a claim's description instead of the claim. The other two anchors are `describe()` titles with
+ * zero comment occurrences, so stripping changes nothing for them and everything for INV-R6.
+ *
+ * The stripper is guarded two-sidedly (`assertStrips`) — it must remove the comment occurrences AND
+ * retain the title one. A stripper that over-removed would red every gate and read as "anchors gone."
+ */
+interface NamedGate {
+  id: string
+  file: string
+  anchor: string
+}
 
-const containment_gate = path.join(repoRoot, "packages/adoption-index/test/store-schema.test.ts")
-const containment_ok =
-  existsSync(containment_gate) &&
-  readFileSync(containment_gate, "utf8").includes("write containment (INV-R7, control #12)")
+const NAMED_GATES: NamedGate[] = [
+  {
+    id: "INV-04",
+    // `describe()` title at :242, zero comment occurrences.
+    file: "tests/invariants/adoption-index-no-execution.invariants.test.ts",
+    anchor: "no module in the compiler can execute anything (INV-04)",
+  },
+  {
+    id: "INV-R7",
+    // `describe()` title at :360, zero comment occurrences.
+    file: "packages/adoption-index/test/store-schema.test.ts",
+    anchor: "write containment (INV-R7, control #12)",
+  },
+  {
+    id: "INV-R6",
+    // `it()` title at :145, plus TWO comment occurrences at :50 and :116 — the reason the scan strips
+    // comments before matching. This is also the gate whose blindness was demonstrated: the mutation
+    // left both the comment and the title intact, and the old probe stayed green while the test red.
+    file: "packages/trust-index/test/committed-tree.test.ts",
+    anchor: "control #117",
+  },
+]
 
-const invR7_ok = inv04_ok && containment_ok
-const invR7_message = invR7_ok
-  ? `no-execution (INV-04) + write containment (INV-R7) both verified`
-  : `MISSING: no-execution ${inv04_ok ? "ok" : `ABSENT (${rel(inv04_gate)})`}; containment ${containment_ok ? "ok" : `ABSENT (${rel(containment_gate)})`}`
+/**
+ * Strip line and block comments so an anchor is matched against CODE. Deliberately naive — it does not
+ * parse strings, so a `//` inside a string literal would over-strip. `assertStrips` below is what makes
+ * that safe to accept: every anchor is checked to survive stripping, so an over-eager strip reds loudly
+ * here rather than silently weakening a precondition.
+ */
+function stripComments(src: string): string {
+  const noBlocks = src.replace(/\/\*[\s\S]*?\*\//g, "")
+  // Scanned character by character rather than by regex, because the two failure modes are opposite and a
+  // single pattern buys one by giving up the other. `^[ \t]*//` misses a TRAILING comment (so a deleted
+  // test whose anchor survives after code stays "present"); `//` anywhere eats a `https://` inside a test
+  // title (so a live test reads as absent). Tracking whether we are inside a string is what admits both.
+  // Both directions are pinned by `assertStrips`, and both were observed: the trailing case red the real
+  // stripper when the fixture gained its line, and the URL case is what control #169 fired on.
+  let out = ""
+  let quote: string | null = null
+  for (let i = 0; i < noBlocks.length; i++) {
+    const c = noBlocks[i]!
+    if (quote !== null) {
+      out += c
+      if (c === "\\") {
+        out += noBlocks[++i] ?? ""
+      } else if (c === quote) {
+        quote = null
+      }
+      continue
+    }
+    if (c === '"' || c === "'" || c === "`") {
+      quote = c
+      out += c
+      continue
+    }
+    if (c === "/" && noBlocks[i + 1] === "/") {
+      while (i < noBlocks.length && noBlocks[i] !== "\n") i++
+      out += "\n"
+      continue
+    }
+    out += c
+  }
+  return out
+}
 
-// INV-R6: the committed adoption-index.json is byte-identical to what the committed snapshot derives.
-// Gate: packages/trust-index/test/committed-tree.test.ts, control #117
-const invR6_gate = path.join(repoRoot, "packages/trust-index/test/committed-tree.test.ts")
-const invR6_ok = existsSync(invR6_gate) && readFileSync(invR6_gate, "utf8").includes('control #117')
-const invR6_message = invR6_ok
-  ? `byte-identical derivation verified (${rel(invR6_gate)})`
-  : `MISSING: gate not found or control #117 absent (${rel(invR6_gate)})`
+/**
+ * Two-sided guard on the stripper, over a synthetic fixture rather than the corpus, so it measures the
+ * function and not today's files. Both directions are failures of equal weight:
+ *
+ *   under-strip → a deleted test stays "present" via its own docs (the defect being fixed)
+ *   over-strip  → every anchor reads as absent, and three green gates report as missing
+ *
+ * Reported through `scanFailures` so a broken stripper reds the EXECUTED tier by name, instead of
+ * silently turning the precondition into a coin flip.
+ */
+function assertStrips(): string[] {
+  const KEEP = `it("keeps this (control #X)", () => {})`
+  // The URL line is the fixture's whole point, and it was added because control #169 caught its absence.
+  // #169 loosened the line-comment pattern from `^[ \t]*//` to `//` anywhere and the guard stayed GREEN:
+  // every fixture line either began with the comment marker or contained no `//` at all, so leading-only
+  // and anywhere-on-the-line were indistinguishable. A protocol-relative `//` inside a STRING is the case
+  // that separates them, and it is not hypothetical — test titles cite spec URLs throughout this repo.
+  const KEEP_URL = `it("see https://x.dev — also keeps this (control #Y)", () => {})`
+  const fixture = [
+    `// a comment naming control #X`,
+    `/* a block naming control #X */`,
+    KEEP,
+    KEEP_URL,
+    `const x = 1 // a trailing comment naming control #X`,
+  ].join("\n")
+  const out = stripComments(fixture)
+  const failures: string[] = []
+  const occurrences = out.split("control #X").length - 1
+  if (occurrences !== 1) {
+    failures.push(
+      `stripComments is UNSAFE: expected exactly 1 surviving "control #X" (the it() title), observed ${occurrences}`,
+    )
+  }
+  if (!out.includes(KEEP)) failures.push(`stripComments OVER-STRIPPED: the plain it() title did not survive`)
+  if (!out.includes(KEEP_URL)) {
+    failures.push(`stripComments OVER-STRIPPED: an it() title containing "https://" did not survive`)
+  }
+  return failures
+}
+
+/** Precondition: the file exists and still carries its anchor IN CODE, not merely in prose about it. */
+const scanFailures: string[] = [...assertStrips()]
+for (const g of NAMED_GATES) {
+  const abs = path.join(repoRoot, g.file)
+  if (!existsSync(abs)) {
+    scanFailures.push(`${g.id}: file ABSENT (${g.file})`)
+    continue
+  }
+  const raw = readFileSync(abs, "utf8").replace(/\r\n/g, "\n")
+  const code = stripComments(raw)
+  if (!code.includes(g.anchor)) {
+    // Name WHICH way it went missing. "absent from code but present in a comment" is a rename or a
+    // deletion that left its docs behind — a different repair than "gone entirely".
+    const inProse = raw.includes(g.anchor)
+    scanFailures.push(
+      inProse
+        ? `${g.id}: anchor present only in COMMENTS — "${g.anchor}" no longer names a test in ${g.file}`
+        : `${g.id}: anchor absent — "${g.anchor}" not in ${g.file}`,
+    )
+  }
+}
+
+/**
+ * One run covering all three files. Batched because vitest's startup dominates, and because a single
+ * report lets the per-file status check above see all three at once.
+ *
+ * Under `--no-run` (report mode only) the tier is SKIPPED, and skipped is printed as `–`, never as
+ * `✓`. `allOk` treats a skip as not-ok, so the only way to reach a green S0 is to run the gates.
+ */
+const executed: RunOutcome | null = noRun ? null : runVitest(NAMED_GATES.map((g) => g.file))
+
+const executedOk = scanFailures.length === 0 && executed !== null && executed.ok
+const executedMessage =
+  scanFailures.length > 0
+    ? `PRECONDITION FAILED: ${scanFailures.join("; ")}`
+    : executed === null
+      ? `SKIPPED (--no-run); the named gates were not run, so this is not a pass`
+      : executed.ok
+        ? `ran ${NAMED_GATES.length} named gate file(s): ${executed.reason}`
+        : `GATE RED: ${executed.reason}`
 
 // DEP-8: the CLI verifies artifact digest + version + contract digest.
 // Gate: apps/cli/src/commands/trust.ts, the three --expect-* flags
@@ -230,7 +494,7 @@ const dep8_message = dep8_ok
 //---------------------------------------------------------------------------------------------------
 // Report
 //---------------------------------------------------------------------------------------------------
-const allOk = invR5_terminal && invR4_ok && invR7_ok && invR6_ok && dep8_ok
+const allOk = invR5_terminal && invR4_ok && executedOk && dep8_ok
 const registryShort = censusRegistry < S0_REQUIRED_RECORDS
 
 console.log(`\n=== Gate S0 — the 25-record vertical slice ===\n`)
@@ -239,12 +503,29 @@ console.log(`  Registry:  ${censusRegistry} / ${S0_REQUIRED_RECORDS} required ${
 console.log(`  Fixtures:  ${censusFixtures} (excluded from the requirement by design)`)
 console.log(`  Total:     ${censusTotal}\n`)
 
+// The EXECUTED tick is `–` when skipped, never `✓`. A skipped check that prints the same glyph as a
+// passing one is the docblock's defect in miniature: the reader cannot tell evidence from absence.
+const executedTick = executedOk ? "✓" : executed === null && scanFailures.length === 0 ? "–" : "✗"
+
 console.log(`Assertions:`)
-console.log(`  [MEASURED]       INV-R5     ${invR5_terminal ? "✓" : "✗"}  ${invR5_message}`)
-console.log(`  [MEASURED]       INV-R4     ${invR4_ok ? "✓" : "✗"}  ${invR4_message}`)
-console.log(`  [GATE-VERIFIED]  INV-04+R7  ${invR7_ok ? "✓" : "✗"}  ${invR7_message}`)
-console.log(`  [GATE-VERIFIED]  INV-R6     ${invR6_ok ? "✓" : "✗"}  ${invR6_message}`)
-console.log(`  [GATE-VERIFIED]  DEP-8      ${dep8_ok ? "✓" : "✗"}  ${dep8_message}\n`)
+console.log(`  [MEASURED]  INV-R5           ${invR5_terminal ? "✓" : "✗"}  ${invR5_message}`)
+console.log(`  [MEASURED]  INV-R4           ${invR4_ok ? "✓" : "✗"}  ${invR4_message}`)
+console.log(`  [EXECUTED]  INV-04+R7+R6     ${executedTick}  ${executedMessage}`)
+if (executed !== null) {
+  for (const g of NAMED_GATES) {
+    const status = executed.files.get(g.file) ?? "NOT COLLECTED"
+    // A per-gate tick must not contradict its own tier. Control #168 renamed INV-R6's `it()` title away
+    // while leaving the comments: the tier red on the precondition, and this line still printed `✓`
+    // because the FILE passed — a passing file whose named assertion is gone is exactly what the scan
+    // exists to catch. The tick therefore requires both: the run passed AND no precondition names it.
+    const preconditionFailed = scanFailures.some((f) => f.startsWith(`${g.id}:`))
+    const detail = preconditionFailed ? `${status} (but its named assertion is missing)` : status
+    console.log(
+      `                ${g.id.padEnd(8)} ${status === "passed" && !preconditionFailed ? "✓" : "✗"}  ${g.file} → ${detail}`,
+    )
+  }
+}
+console.log(`  [SCANNED]   DEP-8            ${dep8_ok ? "✓" : "✗"}  ${dep8_message}\n`)
 
 if (isGate) {
   if (!allOk) {
