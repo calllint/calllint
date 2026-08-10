@@ -108,19 +108,25 @@ describe("Gate S0 — the status record is parsed, and it is not degenerate", ()
   // VACUITY GUARD, and it runs before any absence is asserted below. Every "the artifact does not
   // say X" assertion in this file is vacuously true against an empty or missing file, so the size
   // and row count are pinned first. [[absence-makes-a-gate-skip-itself]].
-  it("the artifact parses, carries all three rows, and is substantial", () => {
+  it("the artifact parses, carries all four rows, and is substantial", () => {
     const text = readText(ARTIFACT)
     expect(text.length, "an empty artifact makes every absence assertion below vacuous").toBeGreaterThan(
       4000,
     )
     const headings = [...text.matchAll(/^## S0-OPEN-(\d+)/gm)].map((m) => m[1])
-    expect(headings, "all three rows must be present, in order").toEqual(["1", "2", "3"])
+    expect(headings, "all four rows must be present, in order").toEqual(["1", "2", "3", "4"])
     // Set equality over statuses, not `.every()`: a boolean collapse prints "expected false to be
     // true" with no name on it, and passes vacuously on an empty array.
-    const statuses = [...text.matchAll(/^\*\*Status:\*\* (\w+)$/gm)].map((m) => m[1])
-    expect(statuses, "each row states a status; all three are OPEN today").toEqual([
+    //
+    // The status line is matched to end-of-line rather than as a bare `\w+`: S0-OPEN-3 closed at S
+    // batch 1 and its status carries a date and an ADR reference after the word. A `(\w+)$` pattern
+    // silently matched ZERO statuses on those bytes, and set-equality against a 3-element literal is
+    // what printed the discrepancy instead of an empty array passing something.
+    const statuses = [...text.matchAll(/^\*\*Status:\*\* (?:\*\*)?(\w+)/gm)].map((m) => m[1])
+    expect(statuses, "each row states a status; three OPEN, S0-OPEN-3 CLOSED by this batch").toEqual([
       "OPEN",
       "OPEN",
+      "CLOSED",
       "OPEN",
     ])
   })
@@ -145,9 +151,17 @@ describe("Gate S0 — the status record is parsed, and it is not degenerate", ()
 
 describe("Gate S0 — every path:line the record cites still points at what it claims", () => {
   it("the gate's own constants are where S0-OPEN-1 says they are", () => {
-    assertPointer(GATE, 45, "S0_REQUIRED_RECORDS = 25", "S0_REQUIRED_RECORDS")
-    assertPointer(GATE, 52, "FIXTURE_PREFIX", "FIXTURE_PREFIX")
-    assertPointer(GATE, 234, "registryShort", "the shortfall computation")
+    // Drifted at S batch 1 (was :45 / :52 / :234). The EXECUTED tier added imports and a runner, so
+    // every line below the docblock moved. This is `assertPointer` earning its keep: it asserts the
+    // line's CONTENT, so the drift red with the real line quoted instead of passing on a line that
+    // happened to exist. S0-OPEN-1's prose was corrected to match, and the old numbers are recorded
+    // in its amendment rather than silently replaced — the third batch running to find drift this way.
+    assertPointer(GATE, 59, "S0_REQUIRED_RECORDS = 25", "S0_REQUIRED_RECORDS")
+    assertPointer(GATE, 66, "FIXTURE_PREFIX", "FIXTURE_PREFIX")
+    // Drifted a SECOND time inside the same batch, 401 → 498, when `stripComments` became string-aware.
+    // Worth noting because it is the argument for content-addressed pointers rather than line numbers:
+    // this one number moved twice in one afternoon, and both times the failure named the line it found.
+    assertPointer(GATE, 498, "registryShort", "the shortfall computation")
   })
 
   it("the cap the record exonerates, and the un-paginated GET that exonerates it", () => {
@@ -381,28 +395,90 @@ describe("Gate S0 — every number the record states is derived from the file it
     expect(r, "the two-days-late ordering is the finding, not an aside").toContain("2026-08-05")
   })
 
-  it("the five assertion IDs S0-OPEN-3 tabulates are the five the gate prints", () => {
+  it("the assertion IDs S0-OPEN-3 tabulates are the ones the gate prints, in the tiers it prints them", () => {
     const gate = readText(GATE)
-    // Parse the gate's OWN provenance labels rather than trusting the table. A rename flips three
-    // of five assertions without any behaviour changing, and this is where it reds.
+    // Parse the gate's OWN provenance labels rather than trusting the table. A rename moves an
+    // assertion between tiers without any behaviour changing, and this is where it reds.
+    //
+    // The label set was `MEASURED` / `GATE-VERIFIED` until S batch 1. It is now three tiers, and the
+    // old two-label parse is deliberately NOT kept as a fallback: a parser that accepts both
+    // vocabularies would go green on a half-finished rename, which is the failure this assertion is
+    // for. The 2026-08-10 amendment on S0-OPEN-3 records why the middle tier changed meaning.
     const ids = (re: RegExp): readonly string[] =>
       [...gate.matchAll(re)].map((m) => m[1]).filter((s): s is string => s !== undefined)
     const measured = ids(/\[MEASURED\]\s+(\S+)/g)
-    const verified = ids(/\[GATE-VERIFIED\]\s+(\S+)/g)
+    const executed = ids(/\[EXECUTED\]\s+(\S+)/g)
+    const scanned = ids(/\[SCANNED\]\s+(\S+)/g)
     expect(measured, "two MEASURED assertions, by id").toEqual(["INV-R5", "INV-R4"])
-    expect(verified, "three GATE-VERIFIED assertions, by id").toEqual(["INV-04+R7", "INV-R6", "DEP-8"])
-    // The SPLIT is the claim, not the ids alone: S0-OPEN-3's whole argument is 3-of-5 verified by
-    // reading a string. A batch that promotes one to MEASURED changes that ratio, and the row must
-    // be amended rather than left describing a split that moved.
-    expect(measured.length + verified.length, "five assertions in total").toBe(5)
+    expect(executed, "the three test-subject gates are RUN, as one batched invocation").toEqual([
+      "INV-04+R7+R6",
+    ])
+    expect(scanned, "DEP-8 alone is SCANNED — its subject is source, so there is nothing to run").toEqual([
+      "DEP-8",
+    ])
+
+    // `GATE-VERIFIED` must be GONE from the printed labels. It survives in the docblock on purpose,
+    // as the quoted false-green example, so this is scoped to the `console.log` lines rather than the
+    // whole file — asserting its absence file-wide would red on the record of why it was removed.
+    const printed = [...gate.matchAll(/console\.log\(`\s+\[([A-Z-]+)\]/g)].map((m) => m[1])
+    expect([...new Set(printed)].sort(), "the printed tier vocabulary is exactly these three").toEqual([
+      "EXECUTED",
+      "MEASURED",
+      "SCANNED",
+    ])
+
+    // The five assertions still total five: three tiers, five subjects, with INV-04/R7/R6 batched
+    // into one printed row. Stated as the subject count so a gate that silently dropped one reds.
     const r = row(3)
-    expect(r, "the row's count must match the parsed split").toContain("three of S0's five")
-    for (const id of [...measured, ...verified]) {
-      expect(r, `S0-OPEN-3's table must name ${id}`).toContain(id.replace("+R7", " + INV-R7"))
+    for (const id of ["INV-R5", "INV-R4", "INV-04", "INV-R7", "INV-R6", "DEP-8"]) {
+      expect(r, `S0-OPEN-3's tier table must name ${id}`).toContain(id)
     }
+    expect(r, "the row is CLOSED by its own first disjunct — the three became EXECUTED").toContain(
+      "**Status:** **CLOSED 2026-08-10**",
+    )
+    expect(r, "and the original three-of-five framing stays verbatim above the amendment").toContain(
+      "three of S0's five",
+    )
     expect(r).toContain("control #117")
-    expect(gate, "INV-R6's probe still looks for the control identifier it is verified by").toContain(
-      "control #117",
+    expect(gate, "INV-R6's precondition still anchors on the control identifier").toContain("control #117")
+
+    // This assertion previously pinned `anchorIsComment: true` — a field that recorded, per gate, that
+    // an anchor "lives in a comment" and therefore could not be scanned for. Both halves were wrong.
+    // MEASURED: `control #117` occurs 3x in `committed-tree.test.ts` — :50 and :116 in comments, :145 in
+    // the `it()` title. So the field's VALUE was false, and its QUESTION was the wrong one: what decides
+    // whether the scan can see a deletion is not "is the anchor in a comment" but "does a comment ALSO
+    // carry it", which makes the raw-text match satisfiable without the test. The field is gone and the
+    // scan strips comments instead, so the situation it documented cannot arise. Pinned by behaviour.
+    expect(gate, "the mis-named boolean must not come back").not.toContain("anchorIsComment")
+    expect(gate, "the anchor is matched against code, not prose about the code").toContain("stripComments")
+    expect(gate, "and a comments-only survivor must be named as such, not reported as merely absent").toContain(
+      "anchor present only in COMMENTS",
+    )
+    // The stripper is guarded in BOTH directions from inside the gate. Control #169 loosened it and the
+    // guard stayed green until the fixture gained a `https://` line, so the URL case is pinned by name.
+    expect(gate, "the stripper must be guarded two-sidedly").toContain("OVER-STRIPPED")
+    expect(gate, "including the case that control #169 walked through").toContain("https://")
+  })
+
+  it("the EXECUTED tier cannot be skipped into a pass", () => {
+    // S0-OPEN-3 closed on four properties, not one. Three of them live in `scripts/gate-s0.ts` as
+    // code that no other assertion here reads, so they are pinned by their own subject.
+    const gate = readText(GATE)
+    expect(gate, "--no-run must be refused under --gate, not honoured with a warning").toContain(
+      "--no-run is refused under --gate",
+    )
+    // A skip must not print the passing glyph. Asserted on the expression that chooses it.
+    expect(gate, "a skipped tier prints an en-dash, never a tick").toMatch(/executedOk \?\s*"✓"\s*:.*"–"/s)
+    // The verdict must come from the parsed report, not the child's exit status or stdout.
+    expect(gate, "the runner's verdict is read from the JSON report").toContain("numFailedTests")
+    expect(gate, "a report that cannot be read is a FAILURE, not an absence").toContain(
+      "JSON report unparseable",
+    )
+    expect(gate, "a file the runner never collected must red by name").toContain("not collected by the runner")
+    expect(gate, "zero collected tests is vacuous, not a pass").toContain("VACUOUS")
+    // And the tier must actually gate: `allOk` has to consume it.
+    expect(gate, "executedOk must be part of allOk, or the tier is decoration").toMatch(
+      /const allOk\s*=.*executedOk/,
     )
   })
 })
