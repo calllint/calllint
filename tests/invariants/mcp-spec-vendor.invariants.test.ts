@@ -165,16 +165,54 @@ describe("M26-5 vendored MCP spec — the offline facts F1-F7 cite", () => {
     expect(removed.split("\n").filter((line) => /^\|/.test(line))).toEqual([])
   })
 
-  it("F7 — the Deprecated table holds exactly 6 feature rows", () => {
-    const text = deprecated()
-    const table = text.slice(text.indexOf("## Deprecated"), text.indexOf("## Removed"))
-    const rows = table
+  /**
+   * Split a Markdown table into its FEATURE rows: header and `| --- |` separator dropped.
+   *
+   * The `.replace(/\r$/, "")` is M-OPEN-4's fix, and it is load-bearing rather than cosmetic —
+   * which is the opposite of what that row recorded. `readText` here does NOT normalize (it is
+   * `readBytes().toString()`, deliberately, so the digest and CR assertions above see raw bytes),
+   * so on a CRLF checkout the separator line ends `|\r`, fails `/^\|[\s|:-]+\|$/`, and is counted
+   * as a seventh FEATURE. That is what negative control #130 reported as "6 → 7".
+   *
+   * M-OPEN-4 called that a message-quality defect. Measured, it is not: the phantom row makes F7's
+   * removal-clock INEQUALITY below (`dated < rows`) unfalsifiable. With every clock uniformly dated
+   * — the exact upstream drift that assertion exists to catch — `dated` reaches 6 while the blind
+   * filter reports 7 rows, so `6 < 7` PASSES and the drift goes unseen. Both filters are extracted
+   * here so the two cannot diverge, and so the fix cannot be applied to one and forgotten at the
+   * other.
+   *
+   * The `\r` strip and the pinned row count below guard OPPOSITE directions — measured as control
+   * #162 over the cross-product of separator style × claim shape × filter (ADR 0068 §4.1):
+   *
+   *   - The PINNED COUNT prevents a false GREEN. On CRLF with uniformly-dated clocks the inequality
+   *     still reads `6 < 7` = PASS; it is the count that reds.
+   *   - This `\r` STRIP prevents a false RED. On a legitimate CRLF checkout of real bytes the blind
+   *     filter reports 7 rows and the pinned count reds on a property that HOLDS.
+   *
+   * So neither is redundant. A gate that reds on correct input gets deleted by whoever meets it on
+   * windows-latest, and the pinned count dies with it — a slower version of the same failure.
+   */
+  const featureRows = (table: string): readonly string[] =>
+    table
       .split("\n")
+      .map((line) => line.replace(/\r$/, ""))
       .filter((line) => line.startsWith("|"))
-      // Drop the header and its `| --- |` separator; what remains is one line per feature.
       .filter((line) => !/^\|[\s|:-]+\|$/.test(line))
       .slice(1)
-    expect(rows).toHaveLength(6)
+
+  const deprecatedTable = (): string => {
+    const text = deprecated()
+    // ADR 0064 §6.2: assert BOTH slice bounds. `indexOf` returning -1 makes `slice` widen scope
+    // silently instead of failing, which is the defect that named the wrong method in M26-2.
+    const start = text.indexOf("## Deprecated")
+    const end = text.indexOf("## Removed")
+    expect(start, "the Deprecated heading must be present").toBeGreaterThan(-1)
+    expect(end, "the Removed heading must follow it").toBeGreaterThan(start)
+    return text.slice(start, end)
+  }
+
+  it("F7 — the Deprecated table holds exactly 6 feature rows", () => {
+    expect(featureRows(deprecatedTable())).toHaveLength(6)
   })
 
   it("F7 — the removal clock is NOT uniformly 2027-07-28, which the recorded claim over-stated", () => {
@@ -185,19 +223,33 @@ describe("M26-5 vendored MCP spec — the offline facts F1-F7 cite", () => {
     // Pinned as an INEQUALITY (some rows carry the date, not all) because that asymmetry is the
     // whole finding. Asserting the date on every row would encode the over-precise version of
     // the claim into the gate and make the gate agree with the error it is meant to prevent.
-    const text = deprecated()
-    const table = text.slice(text.indexOf("## Deprecated"), text.indexOf("## Removed"))
-    const rows = table
-      .split("\n")
-      .filter((line) => line.startsWith("|") && !/^\|[\s|:-]+\|$/.test(line))
-      .slice(1)
+    //
+    // The row count is asserted FIRST, and that ordering is the finding M26-8 measured rather than
+    // a style choice ([[assertion-order-decides-falsifiability]]). `dated < rows` is satisfiable by
+    // inflating `rows`, so a filter that miscounts can keep this green while the property is gone:
+    // on a CRLF checkout the un-normalized filter reported 7 rows, and uniformly-dated clocks then
+    // read `6 < 7` = PASS. Pinning `rows` to 6 first means the inequality can only be satisfied by
+    // the asymmetry it is about.
+    const table = deprecatedTable()
+    const rows = featureRows(table)
+    expect(rows.length, "6 feature rows; an inflated count makes the inequality below vacuous").toBe(
+      6,
+    )
     const dated = rows.filter((r) => r.includes("First revision released on or after 2027-07-28"))
     expect(dated.length).toBeGreaterThanOrEqual(1)
-    expect(dated.length).toBeLessThan(rows.length)
+    expect(
+      dated.length,
+      `not every row carries the date — that asymmetry IS the finding. Clocks observed: ${JSON.stringify(
+        rows.map((r) => {
+          const cells = r.split("|").filter((c) => c.trim().length)
+          return (cells[cells.length - 1] ?? "").trim().slice(0, 60)
+        }),
+      )}`,
+    ).toBeLessThan(rows.length)
     expect(table).toContain("Three months after SEP-2596 reaches Final")
     // And the verdict's actual basis: removal is a FUTURE-revision act, so nothing in this
-    // revision breaks on either clock.
-    expect(text).toContain("remains part of the specification but is scheduled for")
+    // revision breaks on either clock. Read from the whole file, not the sliced table.
+    expect(deprecated()).toContain("remains part of the specification but is scheduled for")
   })
 
   it("does not assert MCP 2026-07-28 support — the served version is still 2024-11-05", () => {

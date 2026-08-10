@@ -25,6 +25,11 @@ was still being carried as an open item after it had actually been closed.
 
 ## M-OPEN-1 — F5 and F6 rest on unvendored pages
 
+**Status:** **CLOSED 2026-08-10 (M26-8, ADR 0068)** — half 1 only, by this row's own *revised*
+condition. The original status line and the M26-7 amendment below both stand unedited; the closing
+note is at the end of the row. Half 2 (vendoring for auth) is **not** closed and is **not** carried
+here: it needs a claim CallLint actually makes, which is a new row's subject, not this one's residue.
+
 **Status:** OPEN. Narrowed by M26-5, not closed.
 
 | | |
@@ -117,6 +122,64 @@ doesn't pin the code." The real shape is `properties.error.allOf[1].properties.c
 right; the probe was wrong — `[[resolved-vs-raw-presentation-doc]]`, third instance in this
 workstream. Any gate written for half 1 must resolve `allOf` rather than index `properties`
 directly, or it will assert an absence that is really a wrong path.
+
+> **CLOSED 2026-08-10 (M26-8, ADR 0068) — half 1. Read this note as current; everything above stands
+> as the original measurement and its M26-7 refutation.**
+>
+> Half 1's condition was *"Add content-layer assertions for F5's three claims and F6's absence
+> against the existing locked `schema.json`, and change F5/F6's `evidence.source` to name that
+> file."* Both parts exist now, and the second one **could not be done as written** — see below.
+>
+> **The assertions.** Seven tests in the `M26-7` block of
+> `tests/invariants/mcp-artifact-claims.invariants.test.ts`: the 155-`$defs` non-degeneracy guard
+> first (`[[absence-makes-a-gate-skip-itself]]`), then F5's three claims, F6's absence, the
+> auth-and-only-auth residue, and the row-state guard. The `allOf` warning above was followed: the
+> `-32022` assertion resolves `properties.error.allOf[]` and pins `allOf.length === 2`, so a gate
+> indexing `properties` directly reds instead of reporting a false absence.
+>
+> **The `evidence.source` change, and why the instruction was unfollowable verbatim.** Half 1 said to
+> *change* F5/F6's `evidence.source`. Doing that would **overwrite** an append-only field, which
+> M-OPEN-2 forbids for the reason that row exists. So the source moved by **append**: F5 and F6 each
+> gained an `amendedByM26-8` block naming
+> `third_party/mcp-spec/2026-07-28/schema.json (sha256 ef70b61f…, 181474 bytes, 155 $defs)`, and the
+> top-level URLs are retained verbatim. Two rows of one file can prescribe contradictory things; the
+> reader-side rule wins, because it is the one with a gate.
+>
+> **F5's amendment records what is still NOT in the locked bytes** — auth: one `oauth` occurrence, an
+> example extension identifier, and zero auth `$defs`. An amendment that claimed full coverage would
+> have been the same error as the fix shape M26-7 refuted, one layer down.
+>
+> **What this close cost, measured.** The guard M26-7 left behind
+> (*"both rows still cite a URL — when that changes, THIS assertion is the one that must be edited by
+> hand"*) counted URLs in F5/F6's **top-level** `evidence.source` and required exactly `2`. Append
+> discipline **freezes** that field, so the count is 2 before and after half 1: the guard passes in
+> both states and reds only if someone **overwrites** the top level — the action M-OPEN-2 forbids. It
+> was structurally blind to the authorized change it was written to detect. Replaced with a two-layer
+> assertion (top-level URL retained **and** `source` resolving via `amendedByM26-*` to the locked
+> file, `via` asserted before the value), plus a derived-digest check so a re-vendor cannot leave both
+> rows citing a stale sha256. **General form: on an append-only record, a guard bound to the
+> top-level field measures whether the history was destroyed, never whether the claim advanced.**
+>
+> **Two defects the new assertions found in themselves, both while being written:**
+>
+> 1. **An absent field produced a category, not an error.** The end-state assertion classified each
+>    gate's source as URL-or-FILE via `String(resolveAmended(g,"source").value)`. An **unamended**
+>    source lives at `evidence.source`; only an **amended** one is flat. So the fallback read
+>    `gate["source"]` = `undefined`, `String(undefined)` = `"undefined"`, which fails `/^https?:/` —
+>    and F1/F2/F3 were silently classified **FILE**. The assertion would have certified "all eight
+>    rest on committed bytes" from three missing keys. `MISSING` is now its own outcome.
+> 2. **`closedByM26-5` is an amendment key the reader cannot see.** `AMENDMENT_KEY` is
+>    `/^(?:\w+A|a)mendedByM26-/`; F8's amendment is named `closedByM26-5` and matches neither casing.
+>    Ten distinct amendment keys across both artifacts match; that one does not. It is the same defect
+>    class M26-3 found in this regex, one key shape further out — recorded as **M-OPEN-6** rather than
+>    widened here, because widening the pattern is a change to how *every* field in both artifacts
+>    resolves and belongs in a batch that can measure the effect.
+>
+> **Negative controls:** #157 (drop `amendedByM26-8` from F5) reds naming the missing amendment and
+> printing the stale URL a naive reader would have taken as current; #158 (a re-vendor simulated by
+> mutating one byte of `schema.json`) reds on the derived digest while both citations stay unchanged;
+> #159 (restore the superseded top-level URL guard) passes in **both** row states, which is the
+> measurement that condemned it.
 
 ---
 
@@ -223,6 +286,11 @@ claim whose correctness depends on that clock. Neither is a CallLint code change
 
 ## M-OPEN-4 — the deprecated-table row filter does not strip `\r`
 
+**Status:** **CLOSED 2026-08-10 (M26-8, ADR 0068).** Fixed in both places by this row's own stated fix
+shape, and both halves of its stated verification hold. **Its premise below was falsified in the
+process: the defect is not cosmetic.** The original text and both earlier amendments stand unedited;
+the closing note is at the end of the row.
+
 **Status:** OPEN. Cosmetic; the assertion is correct, its failure *message* can mislead.
 
 | | |
@@ -307,7 +375,83 @@ halves matter — a fix that made the count right by making the file pass would 
 > M-OPEN-4's own fix shape and priority are **unchanged**. Its location remains digest-locked and
 > CR-counted, so its CRLF path stays unreachable in practice.
 
----
+> **CLOSED 2026-08-10 (M26-8, ADR 0068). Read this note as current; the original text and both
+> amendments above stand as written, including the premise this note falsifies.**
+>
+> **The fix.** `.replace(/\r$/, "")` now runs before the separator test, in **both** places — and the
+> two places are no longer two: the filter and the table slice were extracted into `featureRows()` and
+> `deprecatedTable()`, so the fix cannot be applied at one and forgotten at the other. That was the
+> row's own risk (*"in both places"*) turned into something structural rather than remembered. The
+> slice also asserts **both** bounds, per ADR 0064 §6.2, because `indexOf` returning `-1` makes
+> `slice` widen scope silently instead of failing.
+>
+> **Both halves of the stated verification hold.** Control #130 re-run: the count reads **6**, and the
+> file still cannot pass — 2 assertions red, `expected 5072 to be 5031` and `expected 41 to be +0`.
+> The row insisted on both, and it was right to: *"a fix that made the count right by making the file
+> pass would be strictly worse."*
+>
+> ---
+>
+> **The premise was false. This was never cosmetic.** Three notes above call it a message-quality
+> defect with no live failure. Measured across four scenarios, the `\r`-blind filter makes F7's
+> removal-clock **inequality unfalsifiable**:
+>
+> | Scenario | rows | dated | `dated < rows` |
+> | --- | --- | --- | --- |
+> | LF + blind filter, real bytes | 6 | 4 | PASSES (correct) |
+> | LF + blind filter, uniformly dated | 6 | 6 | **REDS** (correct) |
+> | **CRLF + blind filter, uniformly dated** | **7** | 6 | **PASSES — blind** |
+> | CRLF + fixed filter, uniformly dated | 6 | 6 | **REDS** (correct) |
+>
+> The phantom separator row inflates `rows` to 7, so `6 < 7` passes — and the drift that assertion
+> exists to catch is **exactly** upstream making every clock uniformly `2027-07-28`. On a
+> windows-latest checkout the gate would have reported green while the property was gone. Control #156
+> (uniformly date all six clocks) reds on LF; **#156b** (uniform dates **and** CRLF) is the scenario
+> the blind filter passed, and it now reds too.
+>
+> **Why three passes over this row all called it cosmetic.** Control #130 only ever reported the
+> *count* test failing, so every reading stopped at "the count is wrong, the outcome is right." Nobody
+> asked what a **different** assertion did with the inflated count. The inequality is two lines below
+> the filter and reads `rows.length`, so its correctness depends on a number the same defect corrupts.
+> The general form is worth more than the fix: **a miscounted denominator does not fail — it makes an
+> inequality above it satisfiable for the wrong reason.** An assertion is only as strong as the
+> weakest quantity it reads, and "the message is bad but the outcome is right" is a judgement about
+> one assertion made without checking its neighbours.
+>
+> **Ordering fixed as part of the same finding** (`[[assertion-order-decides-falsifiability]]`):
+> `rows.length` is now pinned to `6` **before** the inequality, so the inequality can only be
+> satisfied by the asymmetry it is about, never by an inflated denominator. The failure message prints
+> all six observed clock cells, so a future red names what arrived instead of collapsing to a boolean.
+>
+> **Amended by M26-8, control #162 — the two halves of the fix guard OPPOSITE directions, and the
+> four-scenario table above is missing the row that shows it.** The table omits *CRLF + blind filter +
+> **real** bytes*. Measured over the full cross-product (bytes × claim × filter), that row reads
+> `rows=7, dated=4` → the pinned count **REDS on bytes whose property holds**. So:
+>
+> - **Pinning the count** prevents a false **GREEN** (the bottom table row: the inequality still reads
+>   `6 < 7` = PASS even after the pin; what reds is the count).
+> - **Stripping `\r`** prevents a false **RED** on a legitimate CRLF checkout.
+>
+> Neither subsumes the other. My own framing at the time — *"without the ordering, stripping `\r` is a
+> fix the next CRLF checkout can silently undo"* — had the shape wrong: with the pin in place a CRLF
+> checkout makes the gate **loud**, not silent. The real cost of omitting the `\r` strip is a gate that
+> reds on correct input until someone deletes it, taking the pin with it. **A gate that cries wolf is
+> removed, and its true assertion dies with it** — which is a slower version of the same failure.
+>
+> **Control #162 was also INVALID as designed, and that is worth as much as the fix.** It specified
+> CRLF-ifying `deprecated.snapshot.md` and claiming a uniform date. Applied, it red on the **digest
+> lock** (`expected 5041 to be 5031`, `expected 41 to be +0`, plus a literal-content miss) — M26-5's
+> assertions fire *before* the clock assertion is ever evaluated, so the mutation could not reach its
+> own subject. A second flaw: only one of the two clock cells matched the replacement, because the real
+> cell reads `Follows Sampling ([SEP-2577](…))` — a markdown link, not the bare prose assumed. **A
+> control on a digest-locked file cannot test anything downstream of the digest**
+> (`[[negative-control-validity-checklist]]`, question 2). Restated as a direct cross-product over the
+> two filter functions with the locked file left byte-identical; restored and re-verified at
+> `sha256 ef70b61f…`, 5031 bytes, 0 CR.
+>
+> **The recorded Location was also off by two.** It reads `:173`, `:192`; the separator filter was at
+> `:175`. Small, and the reason it matters here: this row was read three times without anyone landing
+> on the line, which is part of why the neighbouring assertion was never examined.
 
 ## M-OPEN-5 — the surface 2026-07-28 requires is not implemented, and each omission is gated
 
@@ -510,6 +654,61 @@ batch's scope was fixed at `clientCapabilities` alone.
 
 ---
 
+## M-OPEN-6 — one amendment key in these artifacts is invisible to the reader that resolves them
+
+**Status:** OPEN. Filed by M26-8 (ADR 0068 §5), which found it while closing M-OPEN-1 and deliberately
+did **not** fix it — the fix changes how *every* field in both artifacts resolves.
+
+| | |
+| --- | --- |
+| **Measured** | a recursive walk over both artifacts for keys matching `/M26-\d+/`: **20 occurrences / 10 distinct names** match `AMENDMENT_KEY`; **1 occurrence / 1 name** does not |
+| **Location** | `tests/invariants/mcp-artifact-claims.invariants.test.ts` `AMENDMENT_KEY = /^(?:\w+A\|a)mendedByM26-/`; the unmatched key is `finality-status.json` `gates[7].closedByM26-5` (F8) |
+
+The reader resolves an append-amended field by scanning for keys matching `AMENDMENT_KEY`. F8's
+amendment is named **`closedByM26-5`**, not `amendedByM26-5`, so it matches neither the bare nor the
+field-prefixed casing. Every other amendment in both files matches:
+
+```
+verdictAmendedByM26-5   amendedByM26-1   amendedByM26-2   amendedByM26-3   amendedByM26-4
+amendedByM26-5          amendedByM26-6   amendedByM26-8   nonClaimsAmendedByM26-4
+measuredThisBatchAmendedByM26-4                                    <- 10 matched
+closedByM26-5                                                      <- 1 MISSED
+```
+
+**Why nothing is broken today.** F8's top-level `evidence.source` reads `"this repository"` and its
+`observation` describes `b136f44`, where `third_party/` was absent. No assertion resolves F8 through
+the chain, so the miss costs nothing *now*. The hazard is the ordinary one this file exists for: the
+next batch that asserts over F8 will read its **superseded** observation — *"third_party/ measured
+ABSENT"* — as current, and that sentence is false of every commit since M26-5.
+
+**This is the same defect class M26-3 found in this very regex.** That batch's first draft matched only
+`/AmendedByM26-/`, so all five `protocol-delta-matrix.json` lookups silently fell through to stale
+top-level values **and reported success** (M-OPEN-2's closing note, finding 1). The pattern was widened
+to two casings. It is now measurably three naming conventions, and the third was already in the file
+when the second was added — so widening twice from examples has not converged. That is the argument
+for the fix shape below being a *rule*, not a third alternation.
+
+**Shape of the fix.** Do not add `closedBy` to the alternation. Instead:
+
+1. Match the **batch suffix** — any key matching `/M26-\d+$/` whose value is an object — and treat it
+   as an amendment regardless of its verb. The suffix is the part every convention shares.
+2. Assert the **complement**: enumerate every key in both artifacts matching `/M26-\d+/` and assert
+   that the set the resolver recognizes equals it. A resolver that recognizes *most* keys is exactly
+   the failure this row records, and only a complement check can see it.
+3. Then either rename `closedByM26-5` for consistency **or** leave it and let (1) cover it — but
+   renaming is an edit to an append-only record, so (1) is preferred.
+
+**Why M26-8 did not do it.** Widening `AMENDMENT_KEY` changes resolution for **every** field in both
+artifacts, including the five `protocol-delta-matrix.json` lookups and the `supersededBy` helper. That
+needs its own before/after measurement of what each field resolves to, which is a batch, not a
+line — and M26-8's authorized scope was M-OPEN-1 half 1 plus M-OPEN-4.
+
+**What would make this row false:** a resolver keyed on the batch suffix, plus a complement assertion
+that no `/M26-\d+/` key in either artifact is unrecognized. Either alone is insufficient: a widened
+pattern with no complement check is the same guess that has now been made twice.
+
+---
+
 ## Not open — closed items recorded so they are not re-analyzed
 
 | item | state | where it is recorded |
@@ -526,3 +725,6 @@ batch's scope was fixed at `clientCapabilities` alone.
 | M-OPEN-5 items (b) + (c) | **CLOSED** by M26-4 | ADR 0066; M-OPEN-5's `amendedByM26-4` block above. The row's "(c) is a one-line change" estimate is the one thing it got wrong — read that amendment before re-costing anything from this row. |
 | `clientCapabilities` required upstream and unread | **CLOSED** by M26-6 | ADR 0067; the `amendedByM26-6` block above. Read tolerantly on every request, decides nothing. The earlier reason ("both keys required, so a strict read rejects the minimal request") is **refined**, not reversed: `-32021` is an on-demand error, so tolerance is upstream's design. |
 | Whether this server may ever send `-32021` | **DECIDED: no** | ADR 0067 §3. Derived, not chosen — `ClientCapabilities.required` is `null` and no CallLint tool needs a capability, so `requiredCapabilities` would have nothing to name. A gate asserts `server.ts` does not contain the code. |
+| M-OPEN-1 **half 1** (F5/F6 gate-backed) | **CLOSED** by M26-8 | ADR 0068; M-OPEN-1's closing note above. Half 1's literal instruction (*"change* F5/F6's `evidence.source`") was **unfollowable** — that would overwrite an append-only field. Moved by amendment instead. Half 2 (vendoring for auth) is **not** carried: it needs a claim CallLint makes. |
+| M-OPEN-4 (the `\r`-blind row filter) | **CLOSED** by M26-8 | ADR 0068 §4; M-OPEN-4's closing note above. **Its "cosmetic" premise is falsified** — the inflated row count made F7's removal-clock inequality *unfalsifiable* on a CRLF checkout. Read that note before believing any "message-quality only" assessment in this file. |
+| The superseded top-level-URL guard on F5/F6 | **REPLACED** by M26-8 | M-OPEN-1's closing note. It could only red on the action M-OPEN-2 **forbids** (overwriting the top level) and was blind to the authorized amendment. General form: on an append-only record, a top-level-bound guard measures whether history was destroyed, not whether the claim advanced. |

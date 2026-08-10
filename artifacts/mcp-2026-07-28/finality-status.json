@@ -86,6 +86,21 @@
       "evidence": {
         "source": "https://modelcontextprotocol.io/specification/2026-07-28",
         "observation": "Per-request version declaration via the io.modelcontextprotocol/protocolVersion _meta key; MCP-Protocol-Version header on Streamable HTTP; UnsupportedProtocolVersionError for mismatch. All expressed in MUST-level BCP-14 wording."
+      },
+      "amendedByM26-8": {
+        "amendedAt": "2026-08-10",
+        "verdict": "PASS stands, and it is now GATE-BACKED rather than resting on a manual page read.",
+        "supersedes": "The `evidence.source` above is a URL no gate in this repository can re-read. Read THIS block's `source` as current; the URL is retained verbatim as the record of where the claim was first measured.",
+        "source": "third_party/mcp-spec/2026-07-28/schema.json (sha256 ef70b61f…, 181474 bytes, 155 $defs), asserted by tests/invariants/mcp-artifact-claims.invariants.test.ts",
+        "whatWasVerifiedFromLockedBytes": [
+          "$defs.RequestMetaObject.required lists BOTH io.modelcontextprotocol/protocolVersion and io.modelcontextprotocol/clientCapabilities — the per-request version declaration, locked.",
+          "That property's own description carries the transport requirement verbatim: the value MUST match the `MCP-Protocol-Version` header, and the server MUST return a `400 Bad Request` otherwise. The consequence travels with the requirement, which is what makes it normative rather than descriptive.",
+          "$defs.UnsupportedProtocolVersionError pins error.code const -32022 under allOf[1], and error.data requires [requested, supported] — the same constant server.ts serves as ERR.UNSUPPORTED_PROTOCOL_VERSION.",
+          "$defs.CacheableResult carries cacheScope (private|public) and a TTL hint, covering the `cache` third of this gate's requirement line."
+        ],
+        "whatIsStillNotInTheLockedBytes": "AUTH. One `oauth` occurrence exists and it is an example extension identifier, not a definition; zero auth $defs. This gate's requirement line reads 'transport / auth / cache', so two thirds are locked and one is not. Recorded rather than smoothed over: a page vendoring would buy the auth semantics and nothing else on this list, and it stays unauthorized because CallLint makes no claim resting on them — packages/calllint-mcp/src/ has no HTTP transport, so there is nothing to authenticate. The gate re-derives that absence rather than citing it.",
+        "whyItWasWrong": "Nothing in the observation above was false. What was wrong was its PROVENANCE: it was transcribed from a rendered web page, so no CI run could re-derive it — the failure mode F4's amendment records concretely and F8 names in the abstract. M-OPEN-1's own recorded fix shape said this needed two pages vendored first; measured, three of its four named claims were already inside bytes locked since M26-5. A recorded fix shape is itself a claim that can be false.",
+        "originalRetained": "The URL and the original observation stay verbatim per the append-amend discipline (ADR 0061 §8.5.1). Overwriting `source` would destroy the record that this evidence was once unre-derivable, which is the finding itself."
       }
     },
     {
@@ -97,6 +112,16 @@
         "source": "https://modelcontextprotocol.io/specification/2026-07-28/extensions/tasks/overview",
         "observation": "Tasks are specified as an EXTENSION: opt-in, negotiated during initialization. The semantics are normative within the extension; a core-only implementation is conformant without them.",
         "consequence": "Any future CallLint claim about task semantics must be scoped to the extension, never stated as core protocol support."
+      },
+      "amendedByM26-8": {
+        "amendedAt": "2026-08-10",
+        "verdict": "PASS stands, and it is now GATE-BACKED — by an ABSENCE, which is the stronger form of this claim.",
+        "supersedes": "The `evidence.source` above is a URL no gate in this repository can re-read. Read THIS block's `source` as current; the URL is retained verbatim as the record of where the claim was first measured.",
+        "source": "third_party/mcp-spec/2026-07-28/schema.json (sha256 ef70b61f…, 181474 bytes, 155 $defs), asserted by tests/invariants/mcp-artifact-claims.invariants.test.ts",
+        "whyAnAbsenceIsStronger": "The observation above says tasks are an extension, so a core-only implementation is conformant without them. Read on the extension page, that is upstream's prose about its own scoping. Read in the locked core schema, it is a measured absence: ZERO task-named $defs, ZERO occurrences of `tasks/` as a method namespace, and exactly ONE case-insensitive `task` hit — an example identifier inside $defs.ServerCapabilities.properties.extensions.description, which is itself the proof that tasks are opt-in. The core schema does not merely say tasks are optional; it does not define them at all.",
+        "absenceVacuityDiscipline": "An absence asserted against an unparsed or empty object passes trivially. The gate therefore asserts the schema parsed and carries exactly 155 $defs BEFORE any of the three absences above, and pins the single `task` hit's location so that a future re-vendor introducing real task semantics reds instead of satisfying the absence with a renamed def.",
+        "whyItWasWrong": "Nothing in the observation above was false. What was wrong was its PROVENANCE: transcribed from a rendered page, unre-derivable by any CI run. M-OPEN-1's fix shape listed this as the fourth of four claims needing a page vendored; measured, it was the one claim that needed no page at all, because it is provable from what the locked core schema LACKS.",
+        "originalRetained": "The URL, the observation and the consequence stay verbatim per ADR 0061 §8.5.1. The `consequence` line in particular is unchanged and still binding: any CallLint claim about task semantics must be scoped to the extension."
       }
     },
     {

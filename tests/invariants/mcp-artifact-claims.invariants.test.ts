@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest"
+import { createHash } from "node:crypto"
 import { readFileSync } from "node:fs"
 import { fileURLToPath } from "node:url"
 
@@ -187,6 +188,15 @@ function supersededBy(obj: Amendable, field: string): string | null {
  * to an absence rather than to a boolean. Control #151 (a `resolveAmended` that ignores amendments)
  * is what demonstrates the payoff: five reds, each printing the exact stale claim a naive reader
  * would have believed.
+ *
+ * `undefined` is reported as ABSENT-AT-TOP-LEVEL rather than printed raw, and this distinction was
+ * bought by control #157 (delete F5's `amendedByM26-8`). That control red on the right assertion,
+ * but its message read `the STALE top-level value undefined would be read as current` — which is a
+ * false sentence twice over: F5's unamended source is not absent, it lives NESTED at
+ * `evidence.source`, and no reader would have read `undefined` as anything. `resolveAmended` knows
+ * only the flat shape (§6 of ADR 0068), so a raw print of its fallback describes the resolver's
+ * blind spot as if it were the record's content. Naming the absence and the two places a value can
+ * live sends the next reader to the shape question instead of to a phantom missing field.
  */
 function expectResolvedViaAmendment(
   resolved: { value: unknown; via: string | null },
@@ -194,11 +204,13 @@ function expectResolvedViaAmendment(
   field: string,
   why: string,
 ): void {
+  const stale =
+    resolved.value === undefined
+      ? `ABSENT-AT-TOP-LEVEL (an unamended \`${field}\` lives nested, e.g. evidence.${field} — resolveAmended reads only the flat key)`
+      : `the STALE top-level value ${JSON.stringify(resolved.value)}`
   expect(
     resolved.via,
-    `${field}: no amendment block supplies it, so the STALE top-level value ${JSON.stringify(
-      resolved.value,
-    )} would be read as current. ${why} Amendment keys present: ${JSON.stringify(
+    `${field}: no amendment block supplies it, so ${stale} would be read as current. ${why} Amendment keys present: ${JSON.stringify(
       amendmentKeysOf(obj),
     )}`,
   ).not.toBeNull()
@@ -854,10 +866,10 @@ describe("M26-7 — M-OPEN-1's fix shape is refuted from the locked bytes it say
     ).toEqual([])
   })
 
-  it("M-OPEN-1 stays OPEN, and its amendment records the refutation rather than a closure", () => {
-    // This gate must not be read as closing the row. F5/F6 still cite URLs; changing that is a
-    // separate edit. Assert both halves so a future batch that closes the row by deleting the
-    // amendment, or one that flips the source without amending, reds here.
+  it("M-OPEN-1's original text and its M26-7 refutation both stay verbatim through the close", () => {
+    // The row closes at M26-8, and closing it must not consume either earlier layer. The original
+    // fix shape is what M26-7 refuted; M26-7's refutation is what M26-8 executed. A close that
+    // rewrote either one would leave the closing note asserting a history nothing else records.
     const items = readText(`${ARTIFACT_DIR}/open-items.md`)
     const start = items.indexOf("## M-OPEN-1")
     const end = items.indexOf("## M-OPEN-2")
@@ -866,21 +878,178 @@ describe("M26-7 — M-OPEN-1's fix shape is refuted from the locked bytes it say
     const row = items.slice(start, end)
 
     expect(
-      row.includes("**Status:** OPEN"),
-      "the original status line stays verbatim — a deleted claim is indistinguishable from one never made",
+      row.includes("**Status:** OPEN. Narrowed by M26-5, not closed."),
+      "the ORIGINAL status line stays verbatim below the close — a deleted claim is indistinguishable from one never made",
     ).toBe(true)
     expect(
       row.includes("amended by M26-7"),
       "and the refutation is recorded as an APPEND (ADR 0061 §8.5.1), not by rewriting the fix shape",
     ).toBe(true)
-
-    const status = readJson<{ gates: readonly Amendable[] }>(`${ARTIFACT_DIR}/finality-status.json`)
-    const unvendored = status.gates
-      .filter((g) => g.id === "F5" || g.id === "F6")
-      .map((g) => `${String(g.id)}=${String((g.evidence as { source?: string } | undefined)?.source ?? "")}`)
     expect(
-      unvendored.filter((s) => s.includes("https://modelcontextprotocol.io")).length,
-      "both rows still cite a URL — when that changes, THIS assertion is the one that must be edited by hand",
-    ).toBe(2)
+      row.includes("CLOSED 2026-08-10 (M26-8, ADR 0068)"),
+      "M26-8 satisfied this row's own revised condition ('half 1 landing'), so the close is stated in the row",
+    ).toBe(true)
+  })
+
+  /**
+   * The assertion that replaced a guard which could not have observed its own subject.
+   *
+   * The version this supersedes counted `https://modelcontextprotocol.io` in F5/F6's **top-level**
+   * `evidence.source` and required exactly 2, with the message *"when that changes, THIS assertion is
+   * the one that must be edited by hand."* Measured at M26-8, that instruction was unfollowable as
+   * written: append discipline **freezes** `evidence.source`, so the count is 2 both before and after
+   * half 1 lands. The three states it can distinguish are
+   *
+   *   half 1 not done      -> top-level is a URL -> 2 -> PASS
+   *   half 1 done          -> top-level is a URL -> 2 -> PASS   <- indistinguishable
+   *   top level OVERWRITTEN -> < 2 -> RED
+   *
+   * i.e. it reds only on the action M-OPEN-2 **forbids** and is blind to the one M26-8 was authorized
+   * to perform. The generalization worth keeping: on an append-only record, a guard bound to the
+   * top-level field watches the wrong layer — it measures whether the history was destroyed, never
+   * whether the claim advanced. [[assert-which-source-answered]] one level up from where that memory
+   * puts it, since here BOTH layers must be asserted and for opposite reasons.
+   */
+  it("F5/F6 now resolve to the locked schema through an amendment, with the URLs retained", () => {
+    const status = readJson<{ gates: readonly Amendable[] }>(`${ARTIFACT_DIR}/finality-status.json`)
+    const rows = status.gates.filter((g) => g.id === "F5" || g.id === "F6")
+    expect(rows.map((g) => String(g.id)), "both rows must be present before either is resolved").toEqual([
+      "F5",
+      "F6",
+    ])
+
+    for (const gate of rows) {
+      const id = String(gate.id)
+
+      // Layer 1 — the append record survives. This is what the superseded guard measured, kept
+      // because it is a real requirement, just not the one the row's closure turns on.
+      const top = String((gate.evidence as { source?: string } | undefined)?.source ?? "")
+      expect(
+        top,
+        `${id}: the original URL must stay verbatim — overwriting it to "fix" the source destroys the append record (M-OPEN-2 forbids exactly this)`,
+      ).toContain("https://modelcontextprotocol.io")
+
+      // Layer 2 — the CURRENT source is the locked file, and it answered from an amendment. `via` is
+      // asserted before the value: a value-only check passes if a future batch overwrites the top
+      // level, which is the failure mode layer 1 exists to catch, and the two must not be able to
+      // pass for each other's reasons.
+      const resolved = resolveAmended(gate, "source")
+      expectResolvedViaAmendment(
+        resolved,
+        gate,
+        "source",
+        `${id} rests on digest-locked bytes as of M26-8 (M-OPEN-1 half 1); a reader taking the top level concludes the evidence is still an unvendored page.`,
+      )
+      expect(
+        String(resolved.value),
+        `${id}: the current source must name the locked schema, not a page`,
+      ).toContain(`${VENDOR_DIR}/schema.json`)
+    }
+
+    // And the digest the amendments cite is DERIVED, not trusted. An amendment naming a file is only
+    // as good as the bytes it pins: without this, a re-vendor could change schema.json while both
+    // rows kept citing the old digest, and every assertion above would still pass.
+    const actual = createHash("sha256")
+      .update(readFileSync(fileURLToPath(new URL(`${VENDOR_DIR}/schema.json`, repoRoot))))
+      .digest("hex")
+    // Set form over both rows rather than a loop with a fallback sentinel: a missing digest must
+    // print AS a missing digest, and `cited?.[1] ?? <sentinel>` would quietly compare against the
+    // sentinel instead — the same "an absence answered and looked like a value" shape this file
+    // guards against everywhere else.
+    const digests = rows.map((gate) => {
+      const cited = /sha256 ([0-9a-f]{8,})/.exec(String(resolveAmended(gate, "source").value))
+      return `${String(gate.id)}=${cited === null ? "NO-DIGEST-CITED" : cited[1]}`
+    })
+    expect(
+      digests.filter((d) => d.endsWith("NO-DIGEST-CITED")),
+      "each amendment must cite a sha256 prefix for the file it names, or the file reference pins nothing",
+    ).toEqual([])
+    expect(
+      digests.filter((d) => !actual.startsWith(String(d.split("=")[1]))),
+      `every cited digest must be a prefix of the file's ACTUAL sha256 ${actual}`,
+    ).toEqual([])
+  })
+
+  /**
+   * The end state the batch was authorized to produce, asserted as a property rather than a title.
+   *
+   * The test at :311 carries "F5/F6 still rest on unvendored pages" in its NAME while its body only
+   * checks eight `PASS` — flagged at M26-7 as *"a title is prose."* Half 1 makes that title false,
+   * and the honest repair is not to edit the string: it is to assert the thing the title was gesturing
+   * at, in a form that can fail. So this enumerates, per gate, whether its CURRENT evidence source is
+   * a committed file or a URL.
+   *
+   * Two gates legitimately resolve to neither a locked file nor a page, and both are named rather
+   * than filtered: F8's evidence is `"this repository"` (its subject IS the vendoring), and F1/F2/F3
+   * cite the versioning pages whose content is locked in `schema.ts`/`schema.json` under DIFFERENT
+   * gates. Asserting "all eight name a file" would therefore be false; asserting the exact split is
+   * what makes a regression visible.
+   */
+  it("the eight gates' current sources partition exactly as M26-8 leaves them", () => {
+    const status = readJson<{ gates: readonly Amendable[] }>(`${ARTIFACT_DIR}/finality-status.json`)
+    const gates = status.gates
+    expect(gates.length, "eight finality gates").toBe(8)
+
+    /**
+     * The two shapes a gate's `source` can take, and why this cannot be one lookup.
+     *
+     * Measured when the first draft of this assertion reported `F1=FILE` for three gates that plainly
+     * cite URLs. An UNAMENDED source lives one level down at `evidence.source`; an AMENDED one is
+     * flat inside the amendment block (`amendedByM26-8.source`). `resolveAmended(gate, "source")`
+     * finds the amended shape and, for the rest, falls back to `gate["source"]` — which does not
+     * exist. `String(undefined)` is `"undefined"`, that does not match `/^https?:/`, and the gate was
+     * silently CLASSIFIED as FILE.
+     *
+     * That is worse than a wrong answer: an absent field produced a *category*, so the three gates
+     * that most need to read URL read FILE, and the end-state assertion would have certified
+     * "everything rests on committed bytes" from three missing keys. Hence `MISSING` is its own
+     * outcome here — a value that cannot be read must never fall into either real bucket.
+     */
+    const sourceOf = (g: Amendable): { value: string; via: string | null } => {
+      const amended = resolveAmended(g, "source")
+      if (amended.via !== null) return { value: String(amended.value), via: amended.via }
+      const nested = (g.evidence as { source?: unknown } | undefined)?.source
+      return { value: typeof nested === "string" ? nested : "", via: null }
+    }
+
+    const split = gates.map((g) => {
+      const { value } = sourceOf(g)
+      const kind = value === "" ? "MISSING" : /^https?:/.test(value) ? "URL" : "FILE"
+      return `${String(g.id)}=${kind}`
+    })
+    // Printed as a set so a drift names the gate that moved, not just a count
+    // ([[every-collapses-the-observed-value]]).
+    expect(
+      split,
+      "F5/F6 moved from URL to FILE at M26-8; F1/F2/F3 still cite versioning pages (their CONTENT is locked under F1/F2/F3's own vendor gate), F8's subject is the repository itself. MISSING means a gate carries no readable source at all",
+    ).toEqual([
+      "F1=URL",
+      "F2=URL",
+      "F3=URL",
+      "F4=FILE",
+      "F5=FILE",
+      "F6=FILE",
+      "F7=URL",
+      "F8=FILE",
+    ])
+
+    // The claim the user's end-state actually rests on: every gate has a TEST reading it, which is a
+    // different property from its `source` naming a file. Derived from the two invariant files'
+    // titles rather than asserted as a number, so adding a gate without a reader reds here.
+    const titles = [
+      readText("tests/invariants/mcp-spec-vendor.invariants.test.ts"),
+      readText("tests/invariants/mcp-artifact-claims.invariants.test.ts"),
+    ].join("\n")
+    // `F2` is named MID-title (`it("F1/F2 — the revision string is upstream's own…`), so anchoring the
+    // id to the start of the title misses it and reports a gate as unread when it is not. Measured,
+    // not guessed at: the first draft anchored `it("${id}` and returned `["F2"]`. The id must be
+    // matched wherever it appears in the title, bounded so `F1` cannot satisfy `F11` later.
+    const unread = gates
+      .map((g) => String(g.id))
+      .filter((id) => !new RegExp(`it\\("[^"]*\\b${id}\\b`).test(titles) && id !== "F8")
+    expect(
+      unread,
+      "every F-row except F8 must be named by at least one it() title; F8 is asserted by the whole vendor file existing (SOURCE.json digests), not by one test",
+    ).toEqual([])
   })
 })
