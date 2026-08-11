@@ -179,10 +179,15 @@ creation date — #234 still *presents* as a 2026-07-27 PR titled for a July ref
 
 ## S0-OPEN-2 — `gate:s0` is outside `ci:local`, so nothing runs it on any schedule
 
-**Status:** OPEN
+**Status:** **CLOSED 2026-08-10** (S batch 2, ADR 0070) — but by **neither** of the two disjuncts
+this row wrote for itself, and that is the finding. Its first disjunct was *measured and refused*.
+See the second amendment at the end of the row. Everything between here and there is the
+2026-08-09/2026-08-10 text, left verbatim, including the runtime figure the close corrects.
 
 `package.json:42-43` wires `gate:s0` and `gate:s0:gate`; `:75`'s `ci:local` has **19**
-`&&`-joined steps and includes **neither**. (The count is asserted by the reader rather than
+`&&`-joined steps and includes **neither**. (Both counts moved when this row closed: a third
+script `gate:s0:regression` was added and `ci:local` now has **20** steps, the twentieth being
+that mode. The 2026-08-09 figures are left as written — see the closing amendment.) (The count is asserted by the reader rather than
 trusted here — an earlier draft of this line said 18, which is the kind of number that rots
 quietly.) The exclusion is argued and correct (`scripts/gate-s0.ts:5-7`). The
 consequence is not addressed: no workflow, no cron, and no test invokes either script, so the
@@ -229,6 +234,102 @@ mistaken for enforcement.
 **What would make this row false — unchanged**, plus one addition: if the answer is a scheduled
 run, it must state whether it runs with `--no-run` and why, since that choice decides whether
 the EXECUTED tier is evidence or decoration.
+
+### Amendment 2026-08-10 (S batch 2, ADR 0070) — CLOSED, by refusing this row's own first remedy
+
+The row is closed by a **third** mode, `--regression`, wired into both `ci:local` and
+`.github/workflows/ci.yml`. Neither of the two disjuncts above is what closed it. The first was
+measured and found to carry the exact defect S batch 1 had just removed from `--gate`; the second
+was available but would have been a worse answer once the first was understood.
+
+**Why the first disjunct — "a scheduled invocation of `gate:s0` in report mode" — was refused.**
+Measured before implementing, by breaking report mode's subject and observing its exit code:
+DEP-8's flag scan was pointed at a token that does not exist in the source, and report mode
+printed `✗` beside DEP-8 and **exited 0**. Report mode exits 0 *unconditionally*; it has no
+failing mode at all. So scheduling it would have added a CI step that cannot fail — a step whose
+green says nothing about the bytes it read. That is ADR 0069 §2's defect wearing a workflow file:
+the previous batch stopped `--gate` printing `✓` over red bytes, and this row's own suggested
+remedy would have reintroduced it one level up, as a scheduled green over any bytes whatsoever.
+The parenthetical justifying it — *"measuring is useful even when the gate would fail"* — is true
+of a human reading output and false of CI, which reads only the exit code.
+
+**Why not `--gate`.** It exits 2 on `main` today for the cohort shortfall (19 < 25, S0-OPEN-1),
+and only merging the registry expansion can clear that. Wiring it would pin the required check red
+for a reason **no PR under review can fix**, which is a different way of making CI's signal
+meaningless. The reader asserts `gate:s0:gate` never appears in `ci.yml` or `ci:local`, so this
+cannot be "fixed" later by wiring the enforcing mode without that assertion going red first.
+
+**What `--regression` enforces, and the one thing it does not.** Exit 2 if any of the five
+assertions fails, or if the registry cohort **shrinks** below a floor derived from HEAD. The
+25-record requirement is reported as census — the number is printed, never enforced. This is the
+split the row could not see while treating "the gate" as one thing: the 25-record *requirement*
+is what cannot pass today, but the five *assertions* all pass on `main` right now, and a passing
+assertion nothing runs is not a measurement. Two failing modes, separated:
+`registryShort` (true on `main`, not a regression) and `cohortRegressed` (false on `main`, a real
+defect if it ever goes true). Blending them into one boolean is what made the gate unwireable.
+
+**The floor cannot be edited slack.** `S0_REGRESSION_FLOOR` is asserted `<= S0_REQUIRED_RECORDS`
+at load time — incoherent constants exit 2 before any measurement — and pinned by the reader
+against `packages/trust-index/snapshots/official-mcp-registry.json`, the **input** the gate
+reconciles against under INV-R5, not the served bytes. A future batch that lowers the floor to
+make a red CI green reds the pin instead. Anchoring to the upstream snapshot rather than
+`apps/web/public/trust/index.json` is deliberate and is this row's own rule applied to itself: a
+test must not depend on baked bytes.
+
+**`--no-run` is refused under `--regression`**, as it already was under `--gate`, so the addition
+this row asked for is answered by construction rather than by prose: CI runs the full form, and
+the cheap path can never be mistaken for enforcement. The two modes are also mutually exclusive —
+asking for both exits 2 rather than silently preferring one.
+
+**The cost, re-measured — the figure above is wrong.** This row's first amendment says
+**~25s wall clock**, and ADR 0069 §5 and §11 repeat it. Measured three times on this machine:
+**7s / 9s / 9s**, 156/156 tests passing, EXIT=0. The `**156 tests**` figure is correct; the
+seconds are out by roughly 3×, and the corrected number is what made "where does it run" a
+non-question — at ~8s it goes in the main matrix, not on a schedule. Both figures are kept: the
+overstatement is the record of a cost estimated rather than timed, which is what turned a
+one-line wiring decision into a paragraph of scheduling deliberation.
+
+**What is NOT closed by this.** S0-OPEN-1 is untouched: the cohort is still 19/25 and
+`--regression` deliberately does not enforce that. S0-OPEN-4 is untouched and is now the one that
+matters most, because closing S0-OPEN-1 by expanding the cohort **evicts CallLint's own claimed
+page** at cohort 26 — and would do so while going green. `--regression`'s floor does not see that
+either: it counts records, and an eviction that adds a record while removing the self-claim
+holds any floor. That is S0-OPEN-4's business, and its three remedies each need their own
+authorization.
+
+**What would make this closure false.** If `ci:local` or `ci.yml` stops invoking
+`gate:s0:regression`, or if `--regression` ever exits 0 with an assertion red. Both are asserted
+by the reader in `tests/invariants/gate-s0-claims.invariants.test.ts`, in both files, so the
+closure is guarded rather than declared.
+
+**Measured side by side, since this row's refusal rests on it.** With `INV-R6`'s anchor pointed at
+a token that does not exist, on the same bytes in the same working tree:
+
+```
+report mode (the refused remedy)   ✗ INV-R6: anchor absent …          EXIT=0
+--regression (what CI runs)        ❌ one or more assertions FAILED   EXIT=2
+```
+
+Both **print** the failure. Only one **reports** it. That is the whole difference between the
+remedy this row prescribed and the one that closed it.
+
+**A fourth consumer of `ci:local`'s script string, found by it going red.** Appending a step to
+`ci:local` red `pnpm ci:local` itself, at **Gate 2.4-H**, not at the new step:
+`artifacts/phase-2.4/gate-H-no-regression.json` embeds that `&&`-joined string **verbatim** and
+byte-compares it. Regenerated with `pnpm eval:phase-2.4:gates:write`; the diff is exactly one line,
+the appended step. Recorded because this row's own first amendment enumerated the consumers of
+`ci:local` (`package.json:75`, the reader's step count, and this row's prose) and **missed this
+one** — so the next batch that edits `ci:local` should expect a drift-checked artifact to move with
+it, and should not mistake that red for a defect in its own step.
+
+**One control changed the reader rather than confirming it.** Control #174 swapped `ci.yml`'s step
+to `gate:s0:gate` — the precise mistake the exclusion assertion exists to catch — and the red read
+*"expected … to contain 'pnpm gate:s0:regression'"*: true, but it names a **missing step** instead of
+the hazard, because the presence assertion sat before the exclusion and short-circuited it. The
+exclusion never ran. The order is now exclusion-first, and the swap reds on the swap.
+[[assertion-order-decides-falsifiability]] — inside the file that cites it, and in the same batch
+where the `ci:local` half of the very same test already had the order right. Getting the principle
+right once in a file does not propagate it to the next assertion in that file.
 
 ---
 

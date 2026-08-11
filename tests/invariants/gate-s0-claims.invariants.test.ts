@@ -122,13 +122,16 @@ describe("Gate S0 — the status record is parsed, and it is not degenerate", ()
     // batch 1 and its status carries a date and an ADR reference after the word. A `(\w+)$` pattern
     // silently matched ZERO statuses on those bytes, and set-equality against a 3-element literal is
     // what printed the discrepancy instead of an empty array passing something.
+    //
+    // The literal is POSITIONAL, and that is the point: it names WHICH row moved. S batch 2 closed
+    // S0-OPEN-2 and this assertion red with `['OPEN','CLOSED','CLOSED','OPEN']` against the previous
+    // expectation — pointing at index 1, not at "a status changed somewhere". A `.filter(s => s ===
+    // "OPEN").length` form would have printed `expected 2 to be 3` and left which row to a human.
     const statuses = [...text.matchAll(/^\*\*Status:\*\* (?:\*\*)?(\w+)/gm)].map((m) => m[1])
-    expect(statuses, "each row states a status; three OPEN, S0-OPEN-3 CLOSED by this batch").toEqual([
-      "OPEN",
-      "OPEN",
-      "CLOSED",
-      "OPEN",
-    ])
+    expect(
+      statuses,
+      "each row states a status; S0-OPEN-2 and S0-OPEN-3 are CLOSED, S0-OPEN-1 and S0-OPEN-4 remain OPEN",
+    ).toEqual(["OPEN", "CLOSED", "CLOSED", "OPEN"])
   })
 
   // THE ONLY ASSERTION HERE THAT READS THE `eol=lf` PIN, and it exists because control #181 proved
@@ -156,12 +159,18 @@ describe("Gate S0 — every path:line the record cites still points at what it c
     // line's CONTENT, so the drift red with the real line quoted instead of passing on a line that
     // happened to exist. S0-OPEN-1's prose was corrected to match, and the old numbers are recorded
     // in its amendment rather than silently replaced — the third batch running to find drift this way.
-    assertPointer(GATE, 59, "S0_REQUIRED_RECORDS = 25", "S0_REQUIRED_RECORDS")
-    assertPointer(GATE, 66, "FIXTURE_PREFIX", "FIXTURE_PREFIX")
-    // Drifted a SECOND time inside the same batch, 401 → 498, when `stripComments` became string-aware.
-    // Worth noting because it is the argument for content-addressed pointers rather than line numbers:
-    // this one number moved twice in one afternoon, and both times the failure named the line it found.
-    assertPointer(GATE, 498, "registryShort", "the shortfall computation")
+    // Drifted AGAIN in S batch 2 (59→90, 66→124, 498→568): the docblock gained the third mode's
+    // justification and `S0_REGRESSION_FLOOR` was inserted between the two constants. That is the
+    // fourth consecutive batch to move these, which is the empirical case for content-addressed
+    // pointers — and the reason every one of those drifts has been HARMLESS is that `assertPointer`
+    // matches content: :59 now holds docblock prose, so an existence-only check would have passed.
+    assertPointer(GATE, 90, "S0_REQUIRED_RECORDS = 25", "S0_REQUIRED_RECORDS")
+    assertPointer(GATE, 108, "S0_REGRESSION_FLOOR = 19", "S0_REGRESSION_FLOOR")
+    assertPointer(GATE, 124, "FIXTURE_PREFIX", "FIXTURE_PREFIX")
+    // Drifted a SECOND time inside S batch 1, 401 → 498, when `stripComments` became string-aware; now
+    // 568. Worth noting because it is the argument for content-addressed pointers rather than line
+    // numbers: this one number has moved three times, and every time the failure named what it found.
+    assertPointer(GATE, 568, "registryShort", "the shortfall computation")
   })
 
   it("the cap the record exonerates, and the un-paginated GET that exonerates it", () => {
@@ -248,7 +257,7 @@ describe("Gate S0 — every number the record states is derived from the file it
     )?.[1]))
   })
 
-  it("ci:local's step count is counted, not quoted, and still excludes gate:s0", () => {
+  it("ci:local's step count is counted, not quoted, and now INCLUDES the gate's regression mode", () => {
     const pkg = JSON.parse(readText("package.json")) as {
       scripts: Record<string, string | undefined>
     }
@@ -266,20 +275,76 @@ describe("Gate S0 — every number the record states is derived from the file it
     // being outside `ci:local` — just stopped being true. Measured, not assumed: control #179 did
     // exactly that. Set form over `.every()` so the failure prints WHICH step arrived
     // ([[every-collapses-the-observed-value]]).
+    // INVERTED IN S BATCH 2, and the inversion is the interesting part of this test's history.
+    //
+    // This assertion previously required `[]` — no `gate:s0` step in `ci:local` — with the message
+    // "that closes S0-OPEN-2, so amend the row instead of leaving it OPEN". Wiring the gate red it
+    // exactly as designed, naming the row's subject instead of an off-by-one. So the test did its
+    // job; what changed is which state is correct. It now asserts the OPPOSITE, because a row that
+    // has closed must not keep a guard that reds when its remedy is present.
+    //
+    // The set form is kept ([[every-collapses-the-observed-value]]) and so is the exclusion-before-
+    // count ordering: `gate:s0:gate` must NEVER appear here. That mode is red on `main` for the
+    // cohort shortfall, so wiring it would pin `ci:local` red for a reason no PR can clear — the
+    // hazard the original comment was really guarding against, now stated precisely enough to
+    // survive the row closing.
     expect(
       steps.filter((s) => /gate:s0/.test(s)),
-      "gate:s0 is now INSIDE ci:local (argued against at scripts/gate-s0.ts:5-7) — that closes S0-OPEN-2, so amend the row instead of leaving it OPEN",
-    ).toEqual([])
+      "ci:local must run exactly the regression mode — S0-OPEN-2 closed by wiring THIS mode, and only this one",
+    ).toEqual(["pnpm gate:s0:regression"])
     expect(
       steps.length,
-      `S0-OPEN-2 states 19 &&-joined steps; ci:local now has ${steps.length}`,
-    ).toBe(19)
-    expect(row(2)).toContain("**19**")
-    // Both scripts must still exist, or S0-OPEN-2 describes a gate that is gone.
+      `S0-OPEN-2's amendment states 20 &&-joined steps; ci:local now has ${steps.length}`,
+    ).toBe(20)
+    expect(row(2), "the row must state the new count, since wiring the gate is what changed it").toContain(
+      "**20**",
+    )
+    // All three scripts must exist, or S0-OPEN-2's closure describes a gate that is gone.
     expect(Object.keys(pkg.scripts).filter((k) => k.startsWith("gate:s0")).sort()).toEqual([
       "gate:s0",
       "gate:s0:gate",
+      "gate:s0:regression",
     ])
+  })
+
+  // The closure is CLAIMED in the artifact; these assertions are what make it guarded instead. The
+  // row's own final paragraph names its falsification conditions ("if `ci:local` or `ci.yml` stops
+  // invoking `gate:s0:regression`, or if `--regression` ever exits 0 with an assertion red") and both
+  // are pinned — the first by the two invocation tests, the second by the branch-shape test.
+  //
+  // The load-bearing assertion is the REFUSAL, and it is the one a future batch is most likely to
+  // undo quietly. Report mode was this row's own suggested remedy; it was refused because it exits 0
+  // unconditionally. If somebody later schedules `gate:s0` in report mode as well — reasoning that
+  // more measurement cannot hurt — every other assertion here still passes, and CI gains a step that
+  // cannot fail. So the refusal is asserted over the artifact's prose, which is the only place the
+  // reasoning lives.
+  it("S0-OPEN-2's closure records WHICH remedy it refused, and refuses it for the measured reason", () => {
+    const r = row(2)
+    expect(r, "the row must state its own closure, not leave the status to be inferred").toContain(
+      "**Status:** **CLOSED 2026-08-10**",
+    )
+    // Collapsed before matching — these sentences are hard-wrapped in the artifact, and a bare
+    // substring match on wrapped prose is the ADR 0064 §6.2 trap (it red once already, on a claim
+    // that was present).
+    const flat = r.replace(/\s+/g, " ")
+    expect(
+      flat,
+      "report mode's unconditional exit 0 is the measured reason the row's first disjunct was refused; without it the refusal reads as a preference",
+    ).toContain("exits 0 *unconditionally*")
+    expect(
+      flat,
+      "and the refusal must name the mode it refused, so a later batch cannot schedule it as an improvement",
+    ).toMatch(/report mode.{0,400}refused|refused.{0,400}report mode/)
+    // The original text must survive above the amendment. A row rewritten to look like it always
+    // knew the answer destroys the only record of the estimate that misled it.
+    expect(r, "the 2026-08-09 framing stays verbatim").toContain(
+      "so nothing runs it on any schedule",
+    )
+    expect(
+      r,
+      "including the overstated runtime, which is the record of a cost estimated rather than timed",
+    ).toContain("~25s wall clock")
+    expect(r, "corrected beside it by measurement, not silently deleted").toContain("**7s / 9s / 9s**")
   })
 
   it("the 2026-08-10 amendment's numbers are consistent with the source they describe", () => {
@@ -464,8 +529,16 @@ describe("Gate S0 — every number the record states is derived from the file it
     // S0-OPEN-3 closed on four properties, not one. Three of them live in `scripts/gate-s0.ts` as
     // code that no other assertion here reads, so they are pinned by their own subject.
     const gate = readText(GATE)
-    expect(gate, "--no-run must be refused under --gate, not honoured with a warning").toContain(
-      "--no-run is refused under --gate",
+    // The refusal message became interpolated when `--regression` joined it (`under ${mode}`), so the
+    // old literal `--no-run is refused under --gate` no longer appears in the source. This assertion
+    // was correct to red on that change: it pins a real behaviour. What it pins is now the GUARD
+    // rather than the string, and the guard is asserted to cover BOTH enforcing modes — a narrower
+    // check would have gone green again the moment `--regression` was exempted from it.
+    expect(gate, "--no-run must be refused under an enforcing mode, not honoured with a warning").toMatch(
+      /\(isGate \|\| isRegression\) && noRun/,
+    )
+    expect(gate, "and the refusal must name the mode that refused").toMatch(
+      /--no-run is refused under \$\{mode\}/,
     )
     // A skip must not print the passing glyph. Asserted on the expression that chooses it.
     expect(gate, "a skipped tier prints an en-dash, never a tick").toMatch(/executedOk \?\s*"✓"\s*:.*"–"/s)
@@ -480,6 +553,157 @@ describe("Gate S0 — every number the record states is derived from the file it
     expect(gate, "executedOk must be part of allOk, or the tier is decoration").toMatch(
       /const allOk\s*=.*executedOk/,
     )
+  })
+})
+
+describe("Gate S0 — the regression mode CI runs enforces something, and the ratchet cannot be edited slack", () => {
+  /**
+   * Read a numeric constant out of the gate's source by name.
+   *
+   * Read rather than restated: both numbers are claims about `scripts/gate-s0.ts`, and a test that
+   * hardcoded them would agree with a copy of the value instead of measuring it
+   * ([[prose-justified-constant-is-ungated]]). Absence is its own failure with the name printed,
+   * so a renamed constant reds here instead of silently reading as 0.
+   */
+  function constant(name: string): number {
+    const m = new RegExp(`^const ${name} = (\\d+)$`, "m").exec(readText(GATE))
+    expect(m, `${GATE} must declare \`const ${name} = <number>\``).not.toBeNull()
+    return Number(m![1])
+  }
+
+  it("the ratchet floor is at or below the requirement, and matches the cohort actually served", () => {
+    const floor = constant("S0_REGRESSION_FLOOR")
+    const required = constant("S0_REQUIRED_RECORDS")
+
+    // The relationship, not the values. A floor ABOVE the requirement would red the ratchet on
+    // cohorts `--gate` accepts, inverting the two modes. The gate asserts this at load time too;
+    // pinned here as well because that check exits the process, which a test cannot observe.
+    expect(floor, "the ratchet floor must never exceed the requirement it sits under").toBeLessThanOrEqual(
+      required,
+    )
+
+    // THE POINT OF THIS TEST. The floor is a ratchet, so the cheap way to defeat it is to edit the
+    // literal downward when CI reds — a one-character diff that silently disables the guard. Pinning
+    // it against the real cohort means lowering it requires failing this assertion, whose message
+    // says why it exists.
+    //
+    // Pinned against the UPSTREAM SNAPSHOT, not `apps/web/public/trust/index.json`. The served copy
+    // is the number the gate actually counts, so it looks like the more faithful anchor — but this
+    // suite forbids itself from reading served bytes (asserted below, with its reason), and that
+    // rule outranks the convenience. The snapshot is the INPUT the gate reconciles the served count
+    // against under INV-R5, so if the two ever disagree, INV-R5 reds in the gate itself rather than
+    // being silently absorbed here. Anchoring upstream also means this assertion measures the cohort
+    // the repo has ingested rather than the cohort it has baked, which is the quantity the ratchet
+    // is about.
+    const snapshot: { entries: unknown[] } = JSON.parse(
+      readText("packages/trust-index/snapshots/official-mcp-registry.json"),
+    )
+    const upstreamRegistry = snapshot.entries.length
+
+    expect(
+      { floor, upstreamRegistry },
+      "the ratchet floor must equal the registry cohort at HEAD — a lower floor is slack that hides a lost record, a higher one reds CI for growth that has not happened",
+    ).toEqual({ floor: upstreamRegistry, upstreamRegistry })
+  })
+
+  it("--regression enforces the assertions and the ratchet, and does NOT enforce the 25-record requirement", () => {
+    const gate = readText(GATE)
+
+    // The mode exists at all.
+    expect(gate, "the mode CI runs must be a real branch, not a flag that falls through to report").toMatch(
+      /else if \(isRegression\)/,
+    )
+
+    // It consumes `allOk`, or it is decoration — the same check the EXECUTED tier gets above.
+    expect(gate, "--regression must gate on allOk").toMatch(/isRegression\)[\s\S]{0,600}?if \(!allOk\)/)
+
+    // It gates on the RATCHET, and the ratchet is a distinct boolean from the shortfall. Blending
+    // them is precisely what made neither existing mode wireable, so the separation is pinned.
+    expect(gate, "the regression direction has its own boolean").toContain(
+      "cohortRegressed = censusRegistry < S0_REGRESSION_FLOOR",
+    )
+    expect(gate, "and --regression enforces it").toMatch(
+      /isRegression\)[\s\S]{0,900}?if \(cohortRegressed\)/,
+    )
+
+    // And it must NOT enforce the shortfall. `registryShort` may be READ inside the branch (the
+    // success message distinguishes the two cases), but it must never decide the exit code there —
+    // that would pin CI red for S0-OPEN-1, which no PR under review can clear.
+    // Both boundaries asserted before the cut (ADR 0064 §6.2). The first draft of this slice used
+    // `indexOf("} else {")` for the end and got a NEGATIVE-length slice: that string also occurs
+    // ~360 lines EARLIER, inside `runVitest`, so the end landed before the start and the branch came
+    // back empty — an assertion over nothing, which would have passed the two `.test(...) === false`
+    // checks below for the wrong reason. The end is therefore searched FROM the start index.
+    const bStart = gate.indexOf("} else if (isRegression) {")
+    expect(bStart, "the --regression branch must exist").toBeGreaterThan(-1)
+    const bEnd = gate.indexOf("\n} else {", bStart)
+    expect(bEnd, "the --regression branch must be followed by the report-mode branch").toBeGreaterThan(
+      bStart,
+    )
+    const branch = gate.slice(bStart, bEnd)
+    expect(branch.length, "the --regression branch must be non-empty").toBeGreaterThan(0)
+    expect(
+      /if \(registryShort\)[\s\S]{0,200}?process\.exit\(2\)/.test(branch),
+      "--regression must not exit 2 on the 25-record shortfall — that is S0-OPEN-1's subject, clearable only by a served-bytes change",
+    ).toBe(false)
+  })
+
+  it("neither enforcing mode can be asked to skip itself, and the two modes cannot be combined", () => {
+    const gate = readText(GATE)
+    // `--no-run` was already refused under `--gate`. `--regression` is the mode CI runs, which is
+    // where an escape hatch would matter most, so the refusal must cover it.
+    expect(gate, "--no-run must be refused under --regression too").toMatch(
+      /\(isGate \|\| isRegression\) && noRun/,
+    )
+    expect(gate, "and the refusal must name which mode refused").toContain(
+      "enforcement cannot be asked to skip itself",
+    )
+    // Combining them is refused rather than resolved by precedence: they enforce different claims,
+    // so silently honouring one prints a verdict the caller did not ask for.
+    expect(gate, "--gate and --regression must be mutually exclusive").toMatch(/isGate && isRegression/)
+  })
+
+  it("the mode is actually invoked — by ci.yml AND by ci:local", () => {
+    // S0-OPEN-2 was never about the gate being wrong; it was about nothing running it. So the
+    // closing evidence is the invocation itself, asserted over both consumers.
+    const pkg: { scripts: Record<string, string> } = JSON.parse(readText("package.json"))
+    expect(pkg.scripts["gate:s0:regression"], "the regression script must exist").toBe(
+      "tsx scripts/gate-s0.ts --regression",
+    )
+    expect(pkg.scripts["ci:local"], "ci:local must run it").toContain("pnpm gate:s0:regression")
+
+    const ci = readText(".github/workflows/ci.yml")
+
+    // EXCLUSION BEFORE PRESENCE, and the order was fixed by a control that exposed it. Control #174
+    // swapped `ci.yml`'s step to `gate:s0:gate` — the exact mistake this test exists to catch — and
+    // the red said `expected '# Main CI for CallLint…' to contain 'pnpm gate:s0:regression'`. True,
+    // but it names a MISSING step, not the hazard: the enforcing mode is red on `main` for the cohort
+    // shortfall (S0-OPEN-1), so wiring it pins the required check red for a reason no PR under review
+    // can clear. With presence asserted first, the exclusion below never ran at all.
+    //
+    // This is [[assertion-order-decides-falsifiability]] inside the file that cites it: an assertion
+    // placed after one that fails on the same mutation is unreachable, and its subject goes unnamed.
+    // Asserting the more specific claim first means the swap reds on the swap.
+    expect(
+      ci,
+      "ci.yml must not run the enforcing gate: --gate is red on main for the cohort shortfall alone, so it would pin the required check red for a reason no PR can fix",
+    ).not.toContain("gate:s0:gate")
+    expect(ci, "ci.yml must run it").toContain("pnpm gate:s0:regression")
+
+    // A FOURTH consumer of `ci:local`'s script string, discovered because appending a step red
+    // `pnpm ci:local` at Gate 2.4-H rather than at the new step:
+    // `artifacts/phase-2.4/gate-H-no-regression.json` embeds that `&&`-joined string VERBATIM and
+    // byte-compares it. S0-OPEN-2's first amendment enumerated the consumers and missed this one.
+    //
+    // Asserted here so the coupling is documented by a test rather than rediscovered as a confusing
+    // red. Kept narrow on purpose: the SHAPE of the two strings must agree (Gate H's copy contains
+    // ci:local's exactly), not the artifact's contents in general — Gate H has its own drift check
+    // and duplicating it here would make one gate's failure red in two places for one cause.
+    const gateH: string = readText("artifacts/phase-2.4/gate-H-no-regression.json")
+    expect(
+      gateH,
+      "Gate 2.4-H records ci:local verbatim, so editing ci:local without `pnpm eval:phase-2.4:gates:write` reds ci:local itself — at Gate H, not at the edited step",
+    ).toContain(pkg.scripts["ci:local"])
   })
 })
 

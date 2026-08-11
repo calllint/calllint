@@ -2,9 +2,16 @@
 /**
  * Gate S0 — the 25-record vertical slice (new15 traceability §26.2; ADR 0061 §11).
  *
- * S0 is the gate that unlocks registry expansion (19 → 25 → 100 → 500 → all). It is NOT a per-PR
- * gate, and it is deliberately NOT wired into `ci:local`: the cohort is short today, so a `--gate`
- * run is expected to fail, and a permanently-red gate in `ci:local` teaches a team to ignore it.
+ * S0 is the gate that unlocks registry expansion (19 → 25 → 100 → 500 → all).
+ *
+ * `--gate` is NOT a per-PR gate and is still NOT wired into `ci:local`: the cohort is short today,
+ * so a `--gate` run is expected to fail, and a permanently-red gate in `ci:local` teaches a team to
+ * ignore it. That reasoning was correct about `--gate` and was over-generalised to the whole script
+ * — it concluded "this harness stays out of CI", which left every assertion S0 measures unread by
+ * anything (S0-OPEN-2: `grep -rn "gate:s0"` returned two hits, both script definitions). The
+ * distinction the original comment missed: the 25-record REQUIREMENT is what cannot pass today; the
+ * five ASSERTIONS all pass on `main` right now, and a passing assertion nothing runs is not a
+ * measurement. Hence `--regression`, which is wired in.
  *
  * WHAT THIS HARNESS REFUSES TO DO. S0's five assertions do not all live in the served bytes, and a
  * harness that reported five green ticks from one JSON file would be measuring two things and
@@ -33,12 +40,36 @@
  * Modes:
  *   (default) report — print the five assertions + the cohort census. Exit 0 even when short,
  *                      because measuring a shortfall IS a successful measurement.
- *   --gate           — ENFORCEMENT. Exit 2 if any assertion fails OR the cohort is under 25.
+ *   --gate           — ENFORCEMENT of the full S0 claim. Exit 2 if any assertion fails OR the
+ *                      cohort is under 25. Red on `main` today, correctly (S0-OPEN-1).
+ *   --regression     — ENFORCEMENT of what is true TODAY. Exit 2 if any of the five assertions
+ *                      fails, or if the cohort SHRINKS below the floor derived from the served
+ *                      bytes at HEAD. The 25-record requirement is reported as census, not
+ *                      enforced. This is the mode CI runs; see below for why it had to exist.
  *   --no-run         — skip the EXECUTED tier (report mode only). For a fast census when the
- *                      caller has already run `pnpm test`. REFUSED under `--gate`: a gate that can
- *                      be asked to skip its own enforcement is the defect above, restored as a flag.
+ *                      caller has already run `pnpm test`. REFUSED under `--gate` and under
+ *                      `--regression`: a gate that can be asked to skip its own enforcement is the
+ *                      defect above, restored as a flag.
  *
- * Exit codes: 0 ok · 2 gate failed (--gate) / unexpected error.
+ * WHY A THIRD MODE, rather than scheduling one of the two that already existed. S0-OPEN-2 asked for
+ * "a scheduled invocation of `gate:s0` in report mode". Measured before implementing: report mode
+ * exits 0 unconditionally — with DEP-8's flag scan pointed at a token that does not exist, it still
+ * printed `✗` beside DEP-8 and exited **0**. Scheduling it would have added a CI step with no
+ * failing mode, which is this harness's own §2 defect wearing a workflow file: a green that cannot
+ * observe its subject. And `--gate` cannot be scheduled either, for the opposite reason — it is red
+ * on `main` for the cohort shortfall, which is a real finding that only merging the registry
+ * expansion can clear, so wiring it would pin CI red for a reason no PR under review can fix.
+ *
+ * The two failing modes are therefore SEPARATED rather than blended. `--regression` enforces the
+ * four assertion tiers plus a monotonic cohort floor; `--gate` keeps the whole claim including the
+ * 25-record requirement. A single mode covering both would have had to soften one of them.
+ *
+ * THE FLOOR IS DERIVED, NEVER WRITTEN DOWN. `S0_REGRESSION_FLOOR` is not a literal to be adjusted:
+ * it is asserted to be <= `S0_REQUIRED_RECORDS`, so it can never be raised into a second, competing
+ * requirement, and a test pins it against the served cohort at HEAD. A hardcoded floor that someone
+ * edits downward to make CI pass is the shape of defect this file exists to refuse.
+ *
+ * Exit codes: 0 ok · 2 gate failed (--gate / --regression) / unexpected error.
  */
 import { spawnSync } from "node:child_process"
 import { readFileSync, existsSync, mkdtempSync, rmSync } from "node:fs"
@@ -59,6 +90,33 @@ const rel = (p: string): string => path.relative(repoRoot, p).replace(/\\/g, "/"
 const S0_REQUIRED_RECORDS = 25
 
 /**
+ * The RATCHET floor for `--regression`: the registry cohort must not shrink below this. It is the
+ * cohort served at HEAD (19), so `--regression` is green today and reds the moment a change drops a
+ * record — the direction that is a regression, as distinct from the shortfall S0-OPEN-1 tracks.
+ *
+ * Three properties keep this from becoming a second, softer requirement:
+ *
+ *   1. It is asserted `<= S0_REQUIRED_RECORDS` below, at load time. A floor above the requirement
+ *      would mean the ratchet could red while the real gate was satisfiable, which inverts the
+ *      relationship the two modes are supposed to have.
+ *   2. A test pins it against `apps/web/public/trust/index.json`'s actual registry count, so the
+ *      literal cannot be edited downward to make a red CI green — the classic way a ratchet is
+ *      defeated. Lowering it requires editing a test whose message says why it exists.
+ *   3. Raising it is NOT this gate's job. When the cohort grows to 25, `--gate` becomes satisfiable
+ *      and is the mode that says so; the floor exists to catch shrinkage, not to track growth.
+ */
+const S0_REGRESSION_FLOOR = 19
+
+// Asserted, not commented. A floor above the requirement is incoherent — it would red the ratchet on
+// cohorts the real gate accepts — and this is the cheapest place to make that unrepresentable.
+if (S0_REGRESSION_FLOOR > S0_REQUIRED_RECORDS) {
+  console.error(
+    `❌ incoherent constants: S0_REGRESSION_FLOOR (${S0_REGRESSION_FLOOR}) > S0_REQUIRED_RECORDS (${S0_REQUIRED_RECORDS})`,
+  )
+  process.exit(2)
+}
+
+/**
  * Fixtures are excluded from the S0 count on purpose. They are golden inputs authored by this repo,
  * so counting them toward a slice of REAL upstream subjects would let the gate be satisfied by
  * writing more fixtures — the cohort would grow while upstream coverage stayed flat.
@@ -70,13 +128,25 @@ const REGISTRY_PREFIX = "mcp-registry/"
 // CLI
 //---------------------------------------------------------------------------------------------------
 const isGate = process.argv.includes("--gate")
+const isRegression = process.argv.includes("--regression")
 const noRun = process.argv.includes("--no-run")
 
-// `--no-run` under `--gate` is refused, not honoured-with-a-warning. The whole point of this batch is
-// that S0's green must not be reachable while its named tests are red; a flag that turns the check
-// off would restore exactly that, with a command-line switch instead of a grep.
-if (isGate && noRun) {
-  console.error(`❌ --no-run is refused under --gate: enforcement cannot be asked to skip itself`)
+// `--gate --regression` is refused rather than resolved by precedence. The two modes enforce
+// DIFFERENT propositions (the full claim vs. what holds today), so a run that was asked for both has
+// an ambiguous verdict, and silently picking one would print a verdict the caller did not request.
+if (isGate && isRegression) {
+  console.error(`❌ --gate and --regression are mutually exclusive: they enforce different claims`)
+  process.exit(2)
+}
+
+// `--no-run` under either enforcing mode is refused, not honoured-with-a-warning. The whole point of
+// the previous batch is that S0's green must not be reachable while its named tests are red; a flag
+// that turns the check off would restore exactly that, with a command-line switch instead of a grep.
+// `--regression` is included because it is the mode CI runs — the one place the escape hatch would
+// have mattered most.
+if ((isGate || isRegression) && noRun) {
+  const mode = isGate ? "--gate" : "--regression"
+  console.error(`❌ --no-run is refused under ${mode}: enforcement cannot be asked to skip itself`)
   process.exit(2)
 }
 
@@ -496,10 +566,17 @@ const dep8_message = dep8_ok
 //---------------------------------------------------------------------------------------------------
 const allOk = invR5_terminal && invR4_ok && executedOk && dep8_ok
 const registryShort = censusRegistry < S0_REQUIRED_RECORDS
+// The regression direction, kept separate from the shortfall. `registryShort` is TRUE on `main`
+// today and is not a regression; `cohortRegressed` is FALSE on `main` today and would be a real
+// defect. Blending them into one boolean is what made the gate unwireable.
+const cohortRegressed = censusRegistry < S0_REGRESSION_FLOOR
 
 console.log(`\n=== Gate S0 — the 25-record vertical slice ===\n`)
 console.log(`Cohort census:`)
 console.log(`  Registry:  ${censusRegistry} / ${S0_REQUIRED_RECORDS} required ${registryShort ? "(SHORTFALL)" : "(met)"}`)
+console.log(
+  `             ratchet floor ${S0_REGRESSION_FLOOR} ${cohortRegressed ? `(REGRESSED — cohort shrank)` : `(held)`}`,
+)
 console.log(`  Fixtures:  ${censusFixtures} (excluded from the requirement by design)`)
 console.log(`  Total:     ${censusTotal}\n`)
 
@@ -537,6 +614,27 @@ if (isGate) {
     process.exit(2)
   }
   console.log(`✓ All assertions passed, cohort meets the requirement\n`)
+  process.exit(0)
+} else if (isRegression) {
+  // Enforces the four tiers and the ratchet — NOT the 25-record requirement. The shortfall is
+  // printed above as census and deliberately does not decide this exit code: it is S0-OPEN-1's
+  // subject, clearable only by a served-bytes change, so enforcing it here would make every
+  // unrelated PR red for a reason its author cannot address.
+  if (!allOk) {
+    console.error(`❌ --regression mode: one or more assertions FAILED (see ✗ above)`)
+    process.exit(2)
+  }
+  if (cohortRegressed) {
+    console.error(
+      `❌ --regression mode: registry cohort ${censusRegistry} fell below the ratchet floor ${S0_REGRESSION_FLOOR} — a record was lost`,
+    )
+    process.exit(2)
+  }
+  console.log(
+    registryShort
+      ? `✓ All assertions passed; cohort ${censusRegistry} holds the floor (${S0_REGRESSION_FLOOR}). The ${S0_REQUIRED_RECORDS}-record requirement is still short — reported, not enforced here (S0-OPEN-1)\n`
+      : `✓ All assertions passed; cohort ${censusRegistry} meets the full requirement — \`--gate\` is now satisfiable and is the mode that says so\n`,
+  )
   process.exit(0)
 } else {
   // Report mode: always exit 0. Measuring a shortfall IS a successful measurement.

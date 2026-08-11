@@ -248,3 +248,25 @@ requires both the run passing **and** no precondition naming that gate, printing
 - **The original `GATE-VERIFIED` table stays verbatim** in the artifact, with the correction
   appended beneath it. ADR 0061 §8.5.1: a falsified claim keeps its bytes, because the record of
   having been wrong is the part that stops the next batch re-deriving it.
+
+## §8 Correction 2026-08-10 (S batch 2, ADR 0070) — the runtime figure in §2 and §5 is wrong
+
+§2 and §5 both state the batched `vitest run` over the three named gate files costs **~25 s**.
+Measured three times on the S batch 2 machine, via `pnpm gate:s0:regression` end to end:
+**7 s / 9 s / 9 s**, 156/156 passing, EXIT=0. The **156 tests** figure is right; the seconds are
+out by roughly 3×.
+
+The overstatement was never timed — it was estimated while arguing that the cost was an input to
+*where* the gate runs. At ~8 s that question dissolves: it goes in the main matrix as one more
+step, which is what S batch 2 did. So the figure did not merely misreport a number, it sustained a
+scheduling deliberation that the measured number does not support. Both figures stay in place, here
+and in the artifact, because "estimated a cost, then reasoned from the estimate" is the reusable
+part.
+
+§7's last bullet — *"`gate:s0` not wired into CI … wiring it is a CI-spend decision"* — is now
+resolved and no longer describes the repository. It was correct as of this ADR. S batch 2 wired a
+**third** mode, `--regression`, into `ci:local` and `ci.yml`, and closed S0-OPEN-2 by explicitly
+**refusing** that row's own first remedy: report mode was measured to exit 0 unconditionally (with
+DEP-8's scan token deliberately broken it still printed `✗` and exited **0**), so scheduling it
+would have reinstated one level up the exact defect §2/§3 removed. `--gate` stays out of CI, since
+it is red on `main` for the cohort shortfall alone. See ADR 0070 and S0-OPEN-2's closing amendment.
