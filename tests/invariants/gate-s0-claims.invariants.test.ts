@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest"
-import { readFileSync } from "node:fs"
+import { readFileSync, readdirSync } from "node:fs"
 import { fileURLToPath } from "node:url"
+import { parse as parseYaml } from "yaml"
 
 // The FIRST machine reader of `artifacts/gate-s0/**`, and the first machine reader of ANY Gate S0
 // status record.
@@ -108,13 +109,13 @@ describe("Gate S0 — the status record is parsed, and it is not degenerate", ()
   // VACUITY GUARD, and it runs before any absence is asserted below. Every "the artifact does not
   // say X" assertion in this file is vacuously true against an empty or missing file, so the size
   // and row count are pinned first. [[absence-makes-a-gate-skip-itself]].
-  it("the artifact parses, carries all four rows, and is substantial", () => {
+  it("the artifact parses, carries all five rows, and is substantial", () => {
     const text = readText(ARTIFACT)
     expect(text.length, "an empty artifact makes every absence assertion below vacuous").toBeGreaterThan(
       4000,
     )
     const headings = [...text.matchAll(/^## S0-OPEN-(\d+)/gm)].map((m) => m[1])
-    expect(headings, "all four rows must be present, in order").toEqual(["1", "2", "3", "4"])
+    expect(headings, "all five rows must be present, in order").toEqual(["1", "2", "3", "4", "5"])
     // Set equality over statuses, not `.every()`: a boolean collapse prints "expected false to be
     // true" with no name on it, and passes vacuously on an empty array.
     //
@@ -127,11 +128,15 @@ describe("Gate S0 — the status record is parsed, and it is not degenerate", ()
     // S0-OPEN-2 and this assertion red with `['OPEN','CLOSED','CLOSED','OPEN']` against the previous
     // expectation — pointing at index 1, not at "a status changed somewhere". A `.filter(s => s ===
     // "OPEN").length` form would have printed `expected 2 to be 3` and left which row to a human.
+    //
+    // The fifth element arrived with S0-OPEN-5 in the same batch's post-push correction. Appending a
+    // row is a deliberate edit to this literal, which is the property worth keeping: a row that
+    // appears without one is a row nothing agreed to.
     const statuses = [...text.matchAll(/^\*\*Status:\*\* (?:\*\*)?(\w+)/gm)].map((m) => m[1])
     expect(
       statuses,
-      "each row states a status; S0-OPEN-2 and S0-OPEN-3 are CLOSED, S0-OPEN-1 and S0-OPEN-4 remain OPEN",
-    ).toEqual(["OPEN", "CLOSED", "CLOSED", "OPEN"])
+      "each row states a status; S0-OPEN-2 and S0-OPEN-3 are CLOSED, S0-OPEN-1/4/5 remain OPEN",
+    ).toEqual(["OPEN", "CLOSED", "CLOSED", "OPEN", "OPEN"])
   })
 
   // THE ONLY ASSERTION HERE THAT READS THE `eol=lf` PIN, and it exists because control #181 proved
@@ -674,6 +679,40 @@ describe("Gate S0 — the regression mode CI runs enforces something, and the ra
 
     const ci = readText(".github/workflows/ci.yml")
 
+    // PARSE BEFORE MATCHING, and this was paid for on the remote. The first push of this batch put
+    // the step in as `- name: Gate S0 (regression: assertions + cohort ratchet)` — an unquoted `: `
+    // inside a YAML scalar, which makes the WHOLE FILE unparseable. GitHub reported
+    // "This run likely failed because of a workflow file issue"; the `test` job never started, so
+    // `build-and-test` never appeared and the required check was simply ABSENT rather than red.
+    //
+    // Every assertion in this test passed on those bytes. `toContain("pnpm gate:s0:regression")` is
+    // true of a file that no runner can execute, because a text match asserts that a STRING IS
+    // PRESENT while the claim is that CI RUNS THE STEP. That is ADR 0069 §2's defect in this batch's
+    // own closing evidence: a probe agreeing with the description of a claim instead of the claim.
+    //
+    // So the workflow is parsed, and the step is looked up as a STRUCTURE — a run: value inside the
+    // named job's step list. An unparseable file now reds here by name instead of going green
+    // locally and vanishing from the remote's check list.
+    const wf = parseYaml(ci) as {
+      jobs?: Record<string, { steps?: { name?: string; run?: string }[] }>
+    }
+    const steps = wf.jobs?.test?.steps ?? []
+    expect(
+      steps.length,
+      "ci.yml must parse as YAML and its `test` job must have steps — a text match cannot tell an executable workflow from an unparseable one",
+    ).toBeGreaterThan(0)
+    const runs = steps.map((s) => s.run ?? "").filter((r) => r.includes("gate:s0"))
+    expect(
+      runs,
+      "exactly one parsed step in ci.yml#test runs Gate S0, and it is the regression mode",
+    ).toEqual(["pnpm gate:s0:regression"])
+    // The aggregator is the single required status check. If the file stops parsing, this job stops
+    // existing, and an ABSENT required check is not a red one — branch protection has nothing to fail.
+    expect(
+      Object.keys(wf.jobs ?? {}),
+      "the required-check aggregator must survive in the parsed graph",
+    ).toContain("build-and-test")
+
     // EXCLUSION BEFORE PRESENCE, and the order was fixed by a control that exposed it. Control #174
     // swapped `ci.yml`'s step to `gate:s0:gate` — the exact mistake this test exists to catch — and
     // the red said `expected '# Main CI for CallLint…' to contain 'pnpm gate:s0:regression'`. True,
@@ -705,6 +744,45 @@ describe("Gate S0 — the regression mode CI runs enforces something, and the ra
       "Gate 2.4-H records ci:local verbatim, so editing ci:local without `pnpm eval:phase-2.4:gates:write` reds ci:local itself — at Gate H, not at the edited step",
     ).toContain(pkg.scripts["ci:local"])
   })
+
+  it("EVERY workflow parses, because an unparseable one is a check that silently stops existing", () => {
+    // Broader than this batch's subject on purpose. The defect above was mine and in `ci.yml`, but
+    // nothing in this repo could have caught it in ANY of the fifteen workflow files, and the failure
+    // mode is worse than a red build: a workflow that does not parse contributes NO check runs, so a
+    // required check disappears from the rollup rather than failing. `gh pr checks` listed six green
+    // checks and omitted `build-and-test` entirely; only `gh run list` showed the `.github/workflows/
+    // ci.yml` entry as `failure` with no jobs at all.
+    //
+    // Two assertions per file, because they catch opposite things: a parse error, and a parse that
+    // SUCCEEDS into the wrong shape. `- name: a: b` can also parse into a nested map on some inputs
+    // rather than throwing, so `jobs` must exist and be an object afterwards.
+    const dir = fileURLToPath(new URL(".github/workflows", repoRoot))
+    const files = readdirSync(dir)
+      .filter((f) => f.endsWith(".yml") || f.endsWith(".yaml"))
+      .sort()
+    // Non-vacuous: an empty list would make every assertion below pass by having nothing to check.
+    expect(files.length, "there must be workflows to check").toBeGreaterThan(10)
+
+    const broken: string[] = []
+    const shapeless: string[] = []
+    for (const f of files) {
+      let doc: unknown
+      try {
+        doc = parseYaml(readText(`.github/workflows/${f}`))
+      } catch (err) {
+        // Name the file AND the parser's own message: "one workflow is invalid" sends the next reader
+        // back to a bisect, while `ci.yml: Nested mappings are not allowed…at line 150` does not.
+        broken.push(`${f}: ${err instanceof Error ? err.message.split("\n")[0] : String(err)}`)
+        continue
+      }
+      const jobs = (doc as { jobs?: unknown } | null)?.jobs
+      if (typeof jobs !== "object" || jobs === null || Object.keys(jobs).length === 0) {
+        shapeless.push(f)
+      }
+    }
+    expect(broken, "every workflow must parse as YAML").toEqual([])
+    expect(shapeless, "every workflow must parse into a non-empty `jobs` map").toEqual([])
+  })
 })
 
 describe("Gate S0 — the rows say OPEN, and what would make each false", () => {
@@ -728,12 +806,106 @@ describe("Gate S0 — the rows say OPEN, and what would make each false", () => 
   })
 
   it("each row states its own falsification condition, so none can be closed silently", () => {
-    for (const n of [1, 2, 3]) {
+    // All five, not the first three. The loop was written when the artifact had three rows and was
+    // never widened as rows 4 and 5 arrived, so two rows were exempt from the one requirement this
+    // file exists to impose. A hardcoded range over a growing list silently stops covering its tail.
+    for (const n of [1, 2, 3, 4, 5]) {
       expect(
         row(n),
         `S0-OPEN-${n} must state what would make it false — a row without one cannot be closed on evidence`,
       ).toContain("What would make this row false")
     }
+  })
+
+  // S0-OPEN-5's numbers are DERIVED from the two files it is about, never restated. The row exists
+  // because a text match cannot see that a runner rejects a file; a row about that defect whose own
+  // figures were copied by hand would be the same mistake in the record.
+  it("S0-OPEN-5's count of text-matched bindings is derived from Gate H's source and artifact", () => {
+    const r = row(5)
+    expect(r).toContain("**Status:** OPEN")
+
+    // ORDER IS LOAD-BEARING, and control #181 is why. The two `assertPointer` calls below were
+    // written FIRST, and inserting a 20th REGRESSION_CHECKS row red them — line 718 moved — so the
+    // count assertions this test exists for never ran. A pointer is *supporting* evidence for the
+    // row; the row's claim is the counts. Putting the support first made the claim unreachable, which
+    // is [[assertion-order-decides-falsifiability]] recurring in the same file that already cites it
+    // (ADR 0070 §8, control #174, was the identical mistake one batch earlier). Counts first,
+    // pointers after.
+    //
+    // (1) The row count and the remoteOnly count, read from the declaring source.
+    const gatesSrc = readText("scripts/phase-2.4-gates.ts")
+    const listStart = gatesSrc.indexOf("const REGRESSION_CHECKS")
+    expect(listStart, "REGRESSION_CHECKS must be declared").toBeGreaterThan(-1)
+    const listEnd = gatesSrc.indexOf("\n]", listStart)
+    expect(listEnd, "the REGRESSION_CHECKS literal must be closed — a missing end widens the slice").toBeGreaterThan(
+      listStart,
+    )
+    const list = gatesSrc.slice(listStart, listEnd)
+    const rows = (list.match(/\bid: "/g) ?? []).length
+    const remoteOnly = (list.match(/remoteOnly: true/g) ?? []).length
+    // Whitespace-collapsed before matching. The row is hand-wrapped prose, so a needle spanning a
+    // line break would red on a reflow that changed no claim — a guard whose failure mode is
+    // "somebody rewrapped a paragraph" trains people to edit the guard.
+    const flat = r.replace(/\s+/g, " ")
+    expect(flat, `S0-OPEN-5 states the row count; REGRESSION_CHECKS now has ${rows}`).toContain(
+      `**${rows} rows**`,
+    )
+    expect(flat, `S0-OPEN-5 states the remoteOnly count; the source now has ${remoteOnly}`).toContain(
+      `of which **${remoteOnly}** are \`remoteOnly\``,
+    )
+
+    // (2) The bound/null split, read from the drift-checked artifact rather than from the row.
+    const gateH = JSON.parse(readText("artifacts/phase-2.4/gate-H-no-regression.json")) as {
+      regressionChecks: { id: string; workflowBinding: string | null }[]
+    }
+    const checks = gateH.regressionChecks ?? []
+    expect(checks.length, "Gate H's artifact must carry its regressionChecks array").toBe(rows)
+    const bound = checks.filter((c) => c.workflowBinding !== null)
+    expect(
+      flat,
+      `S0-OPEN-5 states how many checks are recorded as bound; the artifact records ${bound.length}`,
+    ).toContain(`**${bound.length} bound**`)
+    // And the row's HEADING must carry the same number, because that is the sentence a reader sees
+    // first. Two copies of a figure in one row is exactly the situation ADR 0069 §3.1 records going
+    // wrong — prose and value written together from one reading, with nothing checking either.
+    expect(
+      flat,
+      `S0-OPEN-5's heading states how many checks are text-matched; the artifact records ${bound.length}`,
+    ).toContain(`asserts ${bound.length} checks are "wired" by matching text`)
+    // The single null row is `ci:local` BY NAME, not "one of them". If a different row went null the
+    // row's claim would be about something else entirely.
+    expect(
+      checks.filter((c) => c.workflowBinding === null).map((c) => c.id),
+      "exactly ci:local is unbound by design — it is the chain, not a step",
+    ).toEqual(["ci:local"])
+
+    // (3) The pointers, LAST — see the ordering note above. These say the row's citations still
+    //     resolve; they must never be able to pre-empt the counts, which are the row's own subject.
+    //     Content-addressed, not existence-addressed: a line number that merely exists is satisfied
+    //     by a blank line, the defect `assertPointer` was written for.
+    assertPointer(
+      "scripts/phase-2.4-gates.ts",
+      718,
+      "run: pnpm ${escapeRe(c.script)}",
+      "S0-OPEN-5's cited workflowBinding line",
+    )
+    assertPointer(
+      "scripts/phase-2.4-gates.ts",
+      637,
+      "const REGRESSION_CHECKS",
+      "S0-OPEN-5's cited check list",
+    )
+
+    // (4) The row must name the fix shape and its falsification condition, and must NOT claim the
+    //     repair already happened — Gate H is untouched by this batch on purpose.
+    expect(r, "the fix shape must be recorded so the next batch does not re-derive it").toContain(
+      "**Shape of the fix, for whichever batch takes it.**",
+    )
+    expect(r).toContain("What would make this row false")
+    expect(
+      /Gate 2\.4-H (?:now|already) parses/i.test(r),
+      "the row must not claim Gate H was repaired here — this batch deliberately left it alone",
+    ).toBe(false)
   })
 
   it("the record does not claim the gate passes, and does not run it", () => {

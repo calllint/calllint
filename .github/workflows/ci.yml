@@ -147,7 +147,9 @@ jobs:
       # suggested remedy: measured, it exits 0 unconditionally, so it would add a step
       # with no failing mode. `--regression` enforces the four assertion tiers plus a
       # monotonic cohort floor, and reports the 25-record shortfall as census. ~8s.
-      - name: Gate S0 (regression: assertions + cohort ratchet)
+      # Quoted deliberately: an unquoted `: ` inside this scalar makes the WHOLE file
+      # unparseable, and a text-matching reader cannot see that (control #177).
+      - name: "Gate S0 (regression: assertions + cohort ratchet)"
         run: pnpm gate:s0:regression
 
       - name: Package smoke (shipped artifact)

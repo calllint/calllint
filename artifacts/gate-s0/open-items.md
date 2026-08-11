@@ -331,6 +331,75 @@ exclusion never ran. The order is now exclusion-first, and the swap reds on the 
 where the `ci:local` half of the very same test already had the order right. Getting the principle
 right once in a file does not propagate it to the next assertion in that file.
 
+### Amendment 2026-08-11 (S batch 2, post-push) — the closing evidence was a text match, and the remote falsified it
+
+Everything above was verified locally and pushed as `d825330`. **The workflow it added never ran.**
+
+The step went in unquoted:
+
+```yaml
+- name: Gate S0 (regression: assertions + cohort ratchet)
+```
+
+An unquoted `: ` inside a YAML scalar makes the **whole file** unparseable. GitHub reported *"This
+run likely failed because of a workflow file issue"*, the `test` job never started, and the failure
+mode is **worse than a red build**:
+
+| | observed |
+|---|---|
+| `gh pr checks 286` | **six green**, `build-and-test` **absent from the list** |
+| `gh pr view --json mergeable` | `MERGEABLE` / `BLOCKED` |
+| `gh run list` | `.github/workflows/ci.yml  completed  failure` — **zero jobs** |
+
+A workflow that does not parse contributes **no check runs at all**, so the required check does not
+go red — it stops existing. The rollup showed only the six independent workflows, all green.
+
+**The 22 assertions this row calls its closing evidence all passed on those bytes**, because the
+reader read `ci.yml` as text:
+
+```ts
+expect(ci, "ci.yml must run it").toContain("pnpm gate:s0:regression")
+```
+
+That is true of a file no runner can execute. The assertion's subject is *"a string is present"*;
+the claim is *"CI runs the step."* **This is ADR 0069 §2's defect — a probe agreeing with the
+description of a claim instead of the claim — reproduced inside the batch that closes the row about
+it, in the very evidence offered for the closure.** The batch measured report mode's exit code
+rather than trusting its output, then trusted its own reader's `toContain` without asking what it
+would accept.
+
+**Repair, and why it is a parse rather than a better regex.** No regex distinguishes an executable
+workflow from an unparseable one; only a parser does. So `ci.yml` is now parsed, and Gate S0's step
+is looked up as a **structure** — a `run:` value inside `jobs.test.steps` — with `build-and-test`
+asserted to survive in the parsed job graph, because an **absent** required check is not a failing
+one. A second test parses **all fifteen** workflows: nothing in this repo could have caught this in
+any of them.
+
+`yaml@2.8.2` is now a pinned root devDependency. It was **not** declared before, and
+`require.resolve("yaml")` on this machine returned `D:\my-web-app\node_modules\yaml` — a package
+**outside the repository**, hoisted from a parent directory. A test importing it would have passed
+here and been missing in CI: [[lockfile-crlf-unpinned]]'s local-green/remote-red shape, arriving
+through the module resolver instead of through line endings. Control #179 confirms the declaration
+is load-bearing.
+
+**Three more controls, each restored byte-identical:**
+
+| # | mutation | required failure |
+|---|---|---|
+| 177 | remove the quotes — the exact bytes that were pushed | both new assertions red, naming the **file and the parser's line** (`ci.yml: Nested mappings are not allowed … at line 152`), not `expected false to be true` |
+| 178 | comment out one workflow's `jobs:` key — still valid YAML | only the **shape** assertion reds, printing `[ 'action-selftest.yml' ]`; the parse assertion stays green, so the two bounds are independent |
+| 179 | drop `yaml` from `devDependencies` | `pnpm install --frozen-lockfile` — CI's first step — refuses by name, so an undeclared parser cannot reach the suite |
+
+**What this says about the closure.** The row is still CLOSED, and by the same reasoning: the
+refusal of report mode was measured, and control #175's side-by-side exit codes stand. What was
+wrong was not the decision but the **evidence that the decision had been applied**. A row closed by
+*"CI runs it"* needs a reader that can tell whether CI **can** run it, and until this amendment it
+had one that could only tell whether the bytes mentioned it.
+
+Kept by append, not corrected in place: the sequence *local green → pushed → the remote had no
+opinion at all* is the reusable part, and a reader that silently gained a parser would leave no
+record that it once had none.
+
 ---
 
 ## S0-OPEN-3 — three of S0's five assertions are GATE-VERIFIED, which reads a string
@@ -553,3 +622,91 @@ one outcome that proves nothing.
 **Interaction with S0-OPEN-1 that a reader must not miss.** PR #234's head carries `count: 25` —
 *exactly* the overlap size. Merging it would satisfy S0 **and** retain the page, and would tell you
 nothing about size 26. The next ingest run after that merge is where this row bites.
+
+---
+
+## S0-OPEN-5 — Gate 2.4-H asserts 18 checks are "wired" by matching text, so it cannot see that the runner rejects the file
+
+**Status:** OPEN (filed 2026-08-11, S batch 2 post-push correction, ADR 0070 §10). Filed because
+the defect it describes **already fired once, in this batch**, one layer up: see S0-OPEN-2's
+2026-08-11 amendment. Gate 2.4-H itself belongs to Phase 2.4, so repairing it is that phase's
+authorization, not this row's.
+
+**The subject, at `path:line`.** `observeGateH()` in `scripts/phase-2.4-gates.ts:711-731` decides
+whether each regression check is wired to CI with two regexes over the workflow's **text**
+(`:717-719`):
+
+```ts
+const bound =
+  new RegExp(`run: pnpm ${escapeRe(c.script)}\\s*$`, "m").test(wfSrc) &&
+  new RegExp(`^  ${escapeRe(c.job)}:$`, "m").test(wfSrc)
+```
+
+`REGRESSION_CHECKS` (`:637`) has **19 rows**, all naming `workflow: "ci.yml"`, of which **2** are
+`remoteOnly` (`pack:smoke`, `pack:smoke:mcp`). `artifacts/phase-2.4/gate-H-no-regression.json`
+records **18 bound** (`ci.yml#test`) and **1 null** — `ci:local`, which is the chain itself and has
+no workflow step by design.
+
+**Measured, on the exact bytes GitHub refused.** The pushed `ci.yml`
+(`git show HEAD:.github/workflows/ci.yml`, the unquoted `- name: Gate S0 (regression: …)` form) is
+unparseable: `yaml@2.8.2` reports *"Nested mappings are not allowed in compact mappings at line 150,
+column 15"*, and GitHub started **zero jobs** from it. Gate H's regexes applied to those same bytes:
+
+| probe | result on the unparseable file |
+|---|---|
+| distinct `run: pnpm <script>` lines seen | **23** |
+| of those, `workflowBinding` = BOUND | **23** |
+| the 18 rows the artifact records as bound | **18 still bound — none lost** |
+| `gate:s0:regression` bound? | **true** |
+| `^  build-and-test:$` present? | **true** |
+| the runtime's own verdict | **parse FAILED, zero jobs** |
+
+So Gate 2.4-H would have reported all 18 checks wired, and the required-check aggregator present, on
+a file no runner will execute. This is not a hypothetical: it is a re-run of the state `main`'s
+sibling branch was actually in.
+
+**Why this is worth its own row rather than a note.** The mistake is not "someone forgot to parse
+YAML." It is that the assertion's *subject* and the gate's *claim* are different propositions:
+
+```
+subject: the string `run: pnpm X` appears in ci.yml, and a line reads `  test:`
+claim:   check X runs in CI
+```
+
+Every failure mode that lives **between** those two — an unparseable file, a step under a job that
+`if:`-skips, a job with no `runs-on`, a step inside a job the aggregator does not `need` — is
+invisible. ADR 0069 §2 named this shape for a different gate (a probe agreeing with a claim's
+*description* instead of the claim); [[assertion-order-decides-falsifiability]] and
+[[source-scan-must-read-code-not-prose]] are the same family. Gate H is the **largest** remaining
+instance in the repo by row count: 18 claims resting on one text match.
+
+**Why this row is OPEN rather than fixed.**
+- Gate 2.4-H is a **drift-checked** gate: `artifacts/phase-2.4/gate-H-no-regression.json` must stay
+  byte-identical to a fresh run, so changing how `workflowBinding` is computed changes the committed
+  artifact and needs Phase 2.4's regeneration path, not an S-batch edit.
+- It reads the same `REGRESSION_CHECKS` list four other gates key off. A parse-based binding may
+  legitimately produce a *different* answer for a row (e.g. a step guarded by `if:`), and deciding
+  what that answer should be is a Phase 2.4 judgement about what "wired" means.
+- This batch already carries its own correction (S0-OPEN-2's amendment). Fixing a second gate in the
+  same push would put two unrelated repairs behind one CI result.
+
+**Shape of the fix, for whichever batch takes it.** Do not add a second regex. Parse the workflow
+once with the pinned `yaml` devDependency (already declared at root as `yaml@2.8.2` — added by this
+batch, see S0-OPEN-2's amendment for why it was previously resolving from *outside* the repository),
+then look each check up **structurally**: `jobs[c.job].steps[].run` must contain `pnpm <script>` as a
+whole token, `jobs[c.job]` must exist as an object, and the required aggregator must survive in
+`Object.keys(jobs)`. Keep the text match as a *precondition* rather than replacing it, for the reason
+ADR 0069 §3 gives: a parse alone goes green when a step is renamed away, and a scan alone goes green
+when the file cannot run. Two probes, two failure modes, both named.
+
+**What would make this row false.** `observeGateH` resolving `workflowBinding` from a parsed workflow
+graph, **plus** a control that applies the pushed unparseable bytes and observes Gate 2.4-H red
+naming the parse failure — not merely a comment claiming the parse happens. A green Gate H on valid
+YAML proves nothing here: valid YAML is the case the current regex already handles.
+
+**Not blocked by anything, and blocking nothing.** Independent of S0-OPEN-1 (cohort size) and
+S0-OPEN-4 (the eviction boundary). The narrow instance that mattered to Workstream S — Gate S0's own
+step — is already parsed structurally by
+`tests/invariants/gate-s0-claims.invariants.test.ts`, which also sweeps **all 15** workflow files for
+parseability. So the hole is bounded to Gate H's own 18 rows, and the repository is no longer blind
+to an unparseable workflow in general.

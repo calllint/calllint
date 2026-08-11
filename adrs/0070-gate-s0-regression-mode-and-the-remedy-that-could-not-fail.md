@@ -183,3 +183,48 @@ argument for running a control per hazard rather than per file.
   resources) and `packages/calllint-mcp` runtime `dependencies: {}` are untouched.
 - **The overstated runtime keeps its bytes**, corrected beside it rather than in place. ADR 0061
   §8.5.1.
+
+## §10 Correction 2026-08-11 — the workflow this ADR wired in did not parse, and the reader could not tell
+
+Everything above was verified locally and pushed. **The step never ran.** It went in as
+`- name: Gate S0 (regression: assertions + cohort ratchet)`; the unquoted `: ` makes the whole file
+unparseable, so the `test` job never started.
+
+The failure mode is worse than a red build, and this is the part worth transferring:
+
+```
+gh pr checks 286   → six green checks, `build-and-test` ABSENT from the list
+gh run list        → .github/workflows/ci.yml   completed   failure   (zero jobs)
+```
+
+**An unparseable workflow contributes no check runs, so a required check does not fail — it stops
+existing.** Branch protection has nothing to fail on. §3's argument against wiring `--gate` was that
+it would pin the required check red for an unfixable reason; the actual outcome was the opposite
+hazard, a required check that was neither red nor green.
+
+**Why nothing caught it.** §7 says the closure's falsification conditions are pinned: *"`ci:local`
+and `ci.yml` must both invoke `gate:s0:regression`."* The reader implemented that as
+`expect(ci).toContain("pnpm gate:s0:regression")` — true of a file no runner can execute. The
+assertion's subject is *a string is present*; the claim is *CI runs the step*.
+
+That is **§2's defect reproduced inside this batch's own closing evidence.** §3 refused report mode
+by measuring its exit code rather than reading its output, and then this ADR accepted a text match as
+proof that the measurement had been applied. The same distinction, one level out from the gate and
+into the gate's own guard.
+
+**Repair.** `ci.yml` is parsed and Gate S0's step looked up as a structure inside `jobs.test.steps`,
+with `build-and-test` asserted to survive in the parsed graph. A second test parses **all fifteen**
+workflows — nothing here could have caught this in any of them. `yaml@2.8.2` is a pinned root
+devDependency; it was previously undeclared and resolved from `D:\my-web-app\node_modules`, i.e.
+**outside the repository**, so an import would have passed locally and been absent in CI.
+
+Controls #177 (the pushed bytes, red naming the parser's line), #178 (valid YAML, empty `jobs` —
+only the shape bound reds), #179 (`--frozen-lockfile` refuses the undeclared parser). All restored
+byte-identical.
+
+The generalisation, and it is narrower than "parse your YAML": **a guard asserting that a
+configuration file *mentions* a step cannot see whether the runtime *accepts the file*.** Wherever a
+gate's subject is "X is wired to something that runs it," the wiring must be read the way the runner
+reads it. Gate 2.4-H's `workflowBinding` check (`scripts/phase-2.4-gates.ts:717`) is regex-over-text
+for the same 20 checks and has the same blind spot; not changed here, because it belongs to Phase 2.4
+and this batch already carries its own correction — filed as **S0-OPEN-5**.
