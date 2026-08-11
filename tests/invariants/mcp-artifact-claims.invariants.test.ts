@@ -85,7 +85,30 @@ interface Amendable {
  * forbid, and the only reason it surfaced here is that the assertions below check `via` — the
  * source that answered — and not just the value.
  */
-const AMENDMENT_KEY = /^(?:\w+A|a)mendedByM26-/
+/**
+ * M-OPEN-6 (ADR 0072): keyed on the BATCH SUFFIX, not on the verb.
+ *
+ * The two-casing alternation above was widened twice from examples, and both times it covered
+ * exactly the examples in hand. Measured after the second widening: **21 occurrences / 11 distinct
+ * names** in the two artifacts match `/M26-\d+/`, and one of them — `finality-status.json`
+ * `gates[7].closedByM26-5` (F8) — matched neither casing, because its verb is `closedBy`. It was
+ * already in the file when the second alternation was added, so widening from examples has not
+ * converged and a third alternation would be the same guess a third time.
+ *
+ * The suffix is the part every convention shares: all 11 names end in `M26-<n>`, 21 of 21
+ * occurrences. So the rule is an INVARIANT rather than an enumeration, and
+ * "amendmentKeysCoverEveryBatchKey" below asserts the complement — a resolver that recognizes MOST
+ * keys is precisely the defect M-OPEN-6 records, and only a complement check can see it.
+ *
+ * Object-valued is part of the rule, and it is load-bearing on TODAY's bytes rather than a
+ * precaution: `protocol-delta-matrix.json` `summary.amendedByM26-1.statusAfterThisBatch
+ * .amendedByM26-2` is a STRING — an inline note among a map of D-row statuses, not a block of
+ * fields. The old prefix regex matched it too, and `asBlock` then dropped it silently. Either way it
+ * resolves nothing; the difference is that a key in the RECOGNIZED set which the resolver cannot use
+ * makes the complement assertion below report a coverage it does not have. So the guard is what lets
+ * that assertion mean what it says. Controls #191/#192 exercise both directions.
+ */
+const AMENDMENT_KEY = /M26-\d+$/
 const BATCH_NO = /M26-(\d+)/
 
 /**
@@ -119,13 +142,13 @@ const batchNoOf = (key: string): number => {
   return m === null ? Number.NEGATIVE_INFINITY : Number(m[1])
 }
 
-const amendmentKeysOf = (obj: Amendable): readonly string[] =>
-  Object.keys(obj)
-    .filter((k) => AMENDMENT_KEY.test(k))
-    .sort((a, b) => batchNoOf(b) - batchNoOf(a) || a.localeCompare(b))
-
 const asBlock = (v: unknown): Amendable | null =>
   v !== null && typeof v === "object" ? (v as Amendable) : null
+
+const amendmentKeysOf = (obj: Amendable): readonly string[] =>
+  Object.keys(obj)
+    .filter((k) => AMENDMENT_KEY.test(k) && asBlock(obj[k]) !== null)
+    .sort((a, b) => batchNoOf(b) - batchNoOf(a) || a.localeCompare(b))
 
 /**
  * Resolve one append-amended field to its CURRENT value.
@@ -333,6 +356,29 @@ describe("M26-3 — the mcp-2026-07-28 artifacts have a reader, and it resolves 
       .filter((g) => g.status !== "PASS")
       .map((g) => `${String(g.id)}=${String(g.status)}`)
     expect(notPassing, "every finality gate must read PASS").toEqual([])
+
+    // Why the filter above reads the RAW field while everything else in this file resolves through
+    // amendments (ADR 0072 §4). It is deliberate, and after M26-9 widened the resolver it stopped
+    // being obvious, because the resolver now CAN give a different answer for exactly one row.
+    //
+    // F8 carries `closedByM26-5`, whose `status` is prose beginning "PASS as of 2026-08-09…". Routed
+    // through `resolveAmended`, `!== "PASS"` is TRUE and this test would report F8 as not-passing —
+    // a strictly more correct resolution turning a correct assertion wrong. The question asked here
+    // is "do all eight gates read PASS", and F8's top-level `status` IS `"PASS"`; the amendment
+    // narrows WHICH COMMIT the observation described, not whether the gate passes.
+    //
+    // So both readings are pinned. Any edit that switches the filter to the resolver fails here
+    // first, against a message saying why — which is the whole point of writing it down.
+    const f8 = rows.find((g) => g.id === "F8")
+    expect(f8, "F8 must exist — this pin is about F8's amendment specifically").toBeDefined()
+    expect(f8?.status, "F8's TOP-LEVEL status must stay the bare verdict the eight-gate filter above reads").toBe("PASS")
+    const f8Resolved = resolveAmended(f8 as Amendable, "status")
+    expect(f8Resolved.via, "F8's status must still resolve THROUGH an amendment — if this goes null the widened resolver stopped seeing `closedByM26-5` and M-OPEN-6 has regressed").toBe(
+      "closedByM26-5",
+    )
+    expect(String(f8Resolved.value), "the amended reading dates the observation rather than revoking the PASS").toMatch(
+      /^PASS as of /,
+    )
   })
 })
 
@@ -488,6 +534,72 @@ describe("M26-3 — every path:line an artifact cites must still point at what i
       walk(readJson<unknown>(`${ARTIFACT_DIR}/${f}`))
     }
     expect(unparseable, "every amendedByM26-* key must carry a numeric batch").toEqual([])
+  })
+
+  /**
+   * M-OPEN-6's complement (ADR 0072 §7) — the assertion the resolver's docblock names.
+   *
+   * The census pattern is deliberately LOOSER than `AMENDMENT_KEY`: `/M26/i`, not `/M26-\d+/`.
+   * Keyed on the same suffix the resolver keys on, this check CANNOT FAIL — control #191 renames
+   * `closedByM26-5` to `closedAtStageM26x5`, dropping the suffix, so census and recognized set shrink
+   * TOGETHER, the complement stays empty, and the assertion passes while the resolver goes blind to
+   * exactly the key M-OPEN-6 was filed about. An audit must be keyed more loosely than its subject.
+   *
+   * `/M26/i` is the widest predicate that still means "this key names a batch", and measured over
+   * today's bytes it yields exactly the 11 real amendment names and zero noise.
+   *
+   * The row's own census is a snapshot worth distrusting: it records 20 occurrences / 10 distinct,
+   * and today it is 21 / 11 because M26-8 added one while filing the row. The MISS it diagnosed is
+   * still the same single key. So the count is pinned here rather than trusted from the prose.
+   */
+  it("every key naming a batch is recognized by the resolver (amendmentKeysCoverEveryBatchKey)", () => {
+    const BATCH_KEY_CENSUS = /M26/i
+    const unrecognized: string[] = []
+    const recognizedButUnusable: string[] = []
+    const scalarBatchKeys: string[] = []
+    const census = new Set<string>()
+    const walk = (node: unknown): void => {
+      if (node === null || typeof node !== "object") return
+      const recognizedHere = amendmentKeysOf(node as Amendable)
+      for (const k of recognizedHere) {
+        // The object guard's OWN failing mode. Without this, deleting `asBlock(obj[k]) !== null`
+        // from `amendmentKeysOf` changes nothing observable — `resolveAmended` skips the key either
+        // way — so the guard would be a claim with no way to be wrong
+        // ([[a-gate-that-cannot-pass-on-success]]). Here it reds, naming the unusable key.
+        if (asBlock((node as Amendable)[k]) === null) recognizedButUnusable.push(k)
+      }
+      for (const [k, v] of Object.entries(node)) {
+        if (BATCH_KEY_CENSUS.test(k)) {
+          census.add(k)
+          // Scalar-valued batch keys are EXPECTED not to be recognized — one exists in today's
+          // bytes (see `AMENDMENT_KEY`'s docblock), so requiring the whole census to be recognized
+          // would red on arrival. They are excluded from THIS requirement but counted below, so the
+          // exclusion cannot quietly grow into a hole.
+          if (asBlock(v) === null) scalarBatchKeys.push(k)
+          else if (!recognizedHere.includes(k)) unrecognized.push(k)
+        }
+        walk(v)
+      }
+    }
+    for (const f of ["finality-status.json", "protocol-delta-matrix.json"]) {
+      walk(readJson<unknown>(`${ARTIFACT_DIR}/${f}`))
+    }
+
+    // Pin the census size BEFORE the set claim, so a walk that stopped finding keys cannot make the
+    // complement vacuously empty ([[assertion-order-decides-falsifiability]]). 11 distinct names as
+    // of M26-9; a batch that appends a new amendment raises it and edits this line on purpose.
+    expect(census.size, "the batch-key census must not shrink — an empty complement means nothing if nothing was walked").toBeGreaterThanOrEqual(11)
+    // The scalar exclusion, pinned by NAME and not merely by count, so it cannot widen silently.
+    // Exactly one such key exists as of M26-9: an inline note among D-row statuses.
+    expect(scalarBatchKeys, "scalar-valued batch keys are excluded from recognition, and the exclusion is enumerated so a new one has to be justified here").toEqual([
+      "amendedByM26-2",
+    ])
+    expect(recognizedButUnusable, "a key amendmentKeysOf RECOGNIZES must be one resolveAmended can USE — this is the object guard's failing mode").toEqual([])
+    // The complement itself, as the SET of unrecognized names rather than a boolean
+    // ([[every-collapses-the-observed-value]]): a resolver that recognizes MOST keys is exactly the
+    // failure M-OPEN-6 records, and `[]` here is the only shape that both passes and prints the
+    // counterexample when it does not. Under the old prefix regex this reds naming `closedByM26-5`.
+    expect(unrecognized, "every object-valued key naming a batch must be RECOGNIZED by amendmentKeysOf — a resolver keyed on the verb misses conventions it has never seen").toEqual([])
   })
 
   it("D3's falsified premise is amended, and the error code it said was missing exists", () => {
