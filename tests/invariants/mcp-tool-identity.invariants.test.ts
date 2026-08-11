@@ -22,8 +22,8 @@ import { TOOLS } from "../../packages/calllint-mcp/src/tools.js"
 // That is INV-M8's 3-of-19 resources defect reproduced on the tools side, in the guard the record named
 // as the STRONGER of the two.
 //
-// Bounded honestly: `packages/calllint-mcp/test/tools.test.ts:31` hand-enumerates the 13 names, so that
-// rename WAS caught somewhere. This is a gate-strength gap, not an unguarded surface. The distinction
+// Bounded honestly: `packages/calllint-mcp/test/tools.test.ts:33-45` hand-enumerates the 13 names, so
+// that rename WAS caught somewhere. This is a gate-strength gap, not an unguarded surface. The distinction
 // still matters, for the reason `mcp-pack-smoke.mjs`'s own comments give: every in-package assertion
 // reads the SOURCE array, and only the smoke reads the WIRE of the built, packed bundle.
 //
@@ -50,9 +50,18 @@ const EXPECTED_TOOL_COUNT = 13
 const scanDeclared = (src: string): string[] =>
   [...src.matchAll(/^ {4}name: "([^"]+)",$/gm)].map((m) => m[1] as string)
 
-/** The hand-written enumeration in `tools.test.ts`. The only name list NOT derived from the table. */
+/**
+ * The hand-written enumeration in `tools.test.ts`. The only name list NOT derived from the table.
+ *
+ * `[^"]+` for the same reason `scanDeclared` uses it, and the asymmetry was a real defect until it
+ * was measured: under `[a-z_]+` a rename on THIS side (say `...install` → `...installX`, the same
+ * mutation as #198) captured 12 names instead of 13, so the vacuity guard fired and the failure named
+ * the SCAN rather than the drifted tool. The tight class cannot match an uppercase byte, so it
+ * reports a name as ABSENT rather than as CHANGED. Both sides of a pair must be scanned the same way
+ * or one of them silently reports the wrong failure ([[assertion-order-decides-falsifiability]]).
+ */
 const scanEnumerated = (src: string): string[] =>
-  [...src.matchAll(/^ {8}"([a-z_]+)",$/gm)].map((m) => m[1] as string)
+  [...src.matchAll(/^ {8}"([^"]+)",$/gm)].map((m) => m[1] as string)
 
 const AGG: AggregatorReach = {
   workflow: "ci.yml",
@@ -231,6 +240,56 @@ describe("S4 — a rename that preserves the count must not survive", () => {
     const m = toolNamesMeasure({ declared, enumerated })
     expect(m.pass, "12 declared against an agreed 13 must fail").toBe(false)
     expect(m.observed).toContain("table=12")
+  })
+
+  it("control #204 — a rename on the ENUMERATED side reds on the drift too, not on the capture", () => {
+    // The mirror of #198, and it was a real defect found while auditing this batch before merge.
+    // #198 renames in the TABLE; this renames in the hand-written ENUMERATION. Under the tight class
+    // `[a-z_]+` the mutated name `...installX` could not match at all, so this side captured 12 and
+    // the VACUITY GUARD fired — the same wrong-failure-mode ADR 0073 §6 records for the table side,
+    // still live on the other half of the pair because only one scanner had been widened.
+    //
+    // Measured before the fix: tight=12 / loose=13 on identical bytes, and only the loose class
+    // reported the renamed name at all. A tight class does not report a name as CHANGED; it reports
+    // it as ABSENT.
+    const declared = scanDeclared(readText(`${MCP}/src/tools.ts`))
+    const enumerated = scanEnumerated(
+      readText(`${MCP}/test/tools.test.ts`).replace(
+        '"calllint_verify_tool_install",',
+        '"calllint_verify_tool_installX",',
+      ),
+    )
+    expect(
+      enumerated.length,
+      "the ENUMERATED scan must still capture 13 under a rename — capturing 12 is the defect this control exists for",
+    ).toBe(EXPECTED_TOOL_COUNT)
+
+    const m = toolNamesMeasure({ declared, enumerated })
+    expect(m.pass, "a rename on either side must fail the agreement").toBe(false)
+    expect(
+      m.observed,
+      `the failure must name the drifted tool, not a count shortfall. Observed: ${m.observed}`,
+    ).toContain("calllint_verify_tool_installX")
+    expect(m.observed, "and it must NOT report a capture shortfall — 13 were captured").not.toContain(
+      "name scan captured",
+    )
+
+    // And the two scanners must stay on the same class, or this defect returns on whichever side was
+    // left behind. Asserted over the source because that is the only place the class is visible.
+    const self = readText("tests/invariants/mcp-tool-identity.invariants.test.ts")
+    expect(
+      self,
+      'the DECLARED scanner must use the `[^"]+` class',
+    ).toContain('/^ {4}name: "([^"]+)",$/gm')
+    expect(
+      self,
+      'the ENUMERATED scanner must use the same `[^"]+` class — a tight class here reports ABSENT instead of CHANGED',
+    ).toContain('/^ {8}"([^"]+)",$/gm')
+    // No `not.toContain("[a-z_]+")` here, and the reason is itself a finding: the first draft of this
+    // assertion red on the DOCBLOCK ABOVE, which quotes the tight class while explaining why it is
+    // wrong ([[source-scan-must-read-code-not-prose]]). The two positive checks pin each scanner's
+    // exact regex literal, so a swap back to the tight class reds on them without a prose-sensitive
+    // negative that would forbid this file from discussing its own defect.
   })
 
   it("control #203 — CRLF must NOT change the answer, or windows-latest reds alone", () => {

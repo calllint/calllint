@@ -33,8 +33,8 @@ left `pnpm pack:smoke:mcp` at **EXIT 0**, printing `tools/list(13)` on its own s
 This is INV-M8's resources defect — 3 of 19 served, 3548 tests and the smoke all green — reproduced on
 the side that `current-gaps.md` §1 recorded as the **stronger** of the two.
 
-**Bounded honestly.** `packages/calllint-mcp/test/tools.test.ts:31` hand-enumerates the 13 names, so
-that rename *was* caught somewhere. This is a gate-strength gap, not an unguarded surface. The
+**Bounded honestly.** `packages/calllint-mcp/test/tools.test.ts:33-45` hand-enumerates the 13 names,
+so that rename *was* caught somewhere. This is a gate-strength gap, not an unguarded surface. The
 distinction still matters for the reason the smoke's own comments give: every in-package assertion
 reads the **source array**; only the smoke reads the **wire**.
 
@@ -100,6 +100,45 @@ Widened to `[^"]+`. Measured: both classes capture the same 13 names today, so t
 precision and lets each assertion fail for **its own** reason. Both `mcp-pack-smoke.mjs` and
 `scripts/phase-2.4-gates.ts` are asserted to carry the same class, so the two files cannot drift onto
 different surfaces while each looks correct on its own.
+
+### §6.1 Amendment, 2026-08-11 — the same defect was live in this ADR's own control file
+
+Found by self-audit **before merge**, after the paragraph above was written. That paragraph names two
+files, and both were correct. The **control file's own second scanner was not**: `scanEnumerated` in
+`tests/invariants/mcp-tool-identity.invariants.test.ts` still carried `[a-z_]+` while every sentence
+here argued for `[^"]+`. Only one side of the compared pair had been widened.
+
+Measured on identical bytes, table side unchanged, enumeration side renamed
+(`calllint_verify_tool_install` → `...installX`): **tight = 12 names captured, loose = 13**, and only
+the loose class reported the renamed name at all. So a rename on the **enumerated** side reproduced
+exactly the wrong failure mode §6 was written to remove — the vacuity guard firing in place of the
+drift assertion, naming the scan instead of the tool. **A tight class does not report a name as
+CHANGED; it reports it as ABSENT.**
+
+Fixed, and control **#204** added as its failing mode: it renames on the enumerated side, asserts the
+capture still reaches 13, and asserts the measure names the drifted tool *without* reporting a capture
+shortfall. It also pins each scanner's exact regex literal, so a revert to the tight class reds here.
+
+Two general findings, both larger than the typo they came from:
+
+1. **Both sides of a compared pair must be scanned the same way**, or one of them silently reports the
+   wrong failure. An asymmetric pair still *fails* — which is why the suite stayed green and the audit,
+   not the gate, is what caught it — but it fails for a reason that sends the next reader to the regex
+   instead of to the drifted name.
+2. **A claim about "the files that carry this class" is a claim about a set someone has to keep
+   closed.** §6 enumerated two files and was true of both; the set had a third member, in the very
+   file whose job is to make §6 falsifiable. Prefer asserting the property over enumerating the
+   holders ([[prose-justified-constant-is-ungated]]).
+
+`#204`'s first draft also carried `expect(self).not.toContain('"([a-z_]+)",$/gm')`, which went **red on
+the docblock above it** — prose quoting the tight class in order to argue against it
+([[source-scan-must-read-code-not-prose]]). Dropped in favour of the two positive literal pins, which
+catch the same revert without forbidding the file from discussing its own defect.
+
+A citation was wrong in the same audit: `test/tools.test.ts:31` is `expect(TOOLS.map((t) => t.name)…`,
+the **derived** side. The hand-written array is `:33-45`. Corrected in §2 above and in the control
+file. The mechanism was never wrong — 13 matches, all inside 33–45 — only the address, which is
+[[a-pointer-rots-faster-than-its-claim]] arriving one more time, on this ADR's own bytes.
 
 ## §7 The denominator moved with the measure, and its guard is external
 
