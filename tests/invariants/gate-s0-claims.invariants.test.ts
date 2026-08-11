@@ -2,6 +2,9 @@ import { describe, expect, it } from "vitest"
 import { readFileSync, readdirSync } from "node:fs"
 import { fileURLToPath } from "node:url"
 import { parse as parseYaml } from "yaml"
+// The real evaluator, not a re-implementation. A control that re-derives the gate's logic proves the
+// control's logic (S0-OPEN-5's "not merely a comment claiming the parse happens").
+import { evaluateNoRegression, type AggregatorReach } from "@calllint/trust-index"
 
 // The FIRST machine reader of `artifacts/gate-s0/**`, and the first machine reader of ANY Gate S0
 // status record.
@@ -131,12 +134,13 @@ describe("Gate S0 — the status record is parsed, and it is not degenerate", ()
     //
     // The fifth element arrived with S0-OPEN-5 in the same batch's post-push correction. Appending a
     // row is a deliberate edit to this literal, which is the property worth keeping: a row that
-    // appears without one is a row nothing agreed to.
+    // appears without one is a row nothing agreed to. S batch 3 closed S0-OPEN-5, which red this
+    // assertion at index 4 — exactly the behaviour the positional form exists for.
     const statuses = [...text.matchAll(/^\*\*Status:\*\* (?:\*\*)?(\w+)/gm)].map((m) => m[1])
     expect(
       statuses,
-      "each row states a status; S0-OPEN-2 and S0-OPEN-3 are CLOSED, S0-OPEN-1/4/5 remain OPEN",
-    ).toEqual(["OPEN", "CLOSED", "CLOSED", "OPEN", "OPEN"])
+      "each row states a status; S0-OPEN-2/3/5 are CLOSED, S0-OPEN-1 and S0-OPEN-4 remain OPEN",
+    ).toEqual(["OPEN", "CLOSED", "CLOSED", "OPEN", "CLOSED"])
   })
 
   // THE ONLY ASSERTION HERE THAT READS THE `eol=lf` PIN, and it exists because control #181 proved
@@ -783,6 +787,84 @@ describe("Gate S0 — the regression mode CI runs enforces something, and the ra
     expect(broken, "every workflow must parse as YAML").toEqual([])
     expect(shapeless, "every workflow must parse into a non-empty `jobs` map").toEqual([])
   })
+
+  // The control S0-OPEN-5 demanded by name: "a control that applies the pushed unparseable bytes and
+  // observes Gate 2.4-H red naming the parse failure — not merely a comment claiming the parse
+  // happens. A green Gate H on valid YAML proves nothing here: valid YAML is the case the current
+  // regex already handles."
+  //
+  // The fragment is INLINED, not fetched. `git show d825330:…` would work here, but the CI checkout
+  // is depth-1 and an unknown sha makes git commands FATAL rather than returning false
+  // (`preview-snapshot.ts:565`) — a control that dies on the runner is not a control. Inlined bytes
+  // are also the honest form: what is being asserted is a property of these bytes, not of git.
+  it("applies the bytes GitHub REFUSED, and both probes disagree about them exactly as recorded", () => {
+    // Verbatim from `d825330:.github/workflows/ci.yml` around line 150 — the unquoted `: ` inside an
+    // unquoted step name, which is what made the whole file unparseable.
+    const rejected = [
+      "jobs:",
+      "  test:",
+      "    runs-on: ubuntu-latest",
+      "    steps:",
+      "      - name: Gate S0 (regression: assertions + cohort ratchet)",
+      "        run: pnpm gate:s0:regression",
+      "",
+      "  build-and-test:",
+      "    needs: [test]",
+      "    runs-on: ubuntu-latest",
+      "    steps:",
+      '      - run: echo "aggregate"',
+      "",
+    ].join("\n")
+
+    // (1) The runner's verdict: these bytes do not parse, and the message names WHY. Asserting only
+    //     "it threw" would be satisfied by a typo in the fixture itself.
+    let message: string | null = null
+    try {
+      parseYaml(rejected)
+    } catch (err) {
+      message = err instanceof Error ? err.message : String(err)
+    }
+    expect(message, "the rejected bytes must not parse — that is the premise of the whole row").not.toBeNull()
+    if (message === null) throw new Error("unreachable: asserted non-null above")
+    expect(
+      message,
+      "the parser must name the nested mapping; a different error would mean this fixture stopped reproducing the real defect",
+    ).toContain("Nested mappings are not allowed")
+
+    // (2) The OLD text probe, reproduced verbatim from the pre-close `observeGateH`, says BOUND on
+    //     those same bytes. This is the falsifying observation: not "the old code was ugly" but
+    //     "the old code returns BOUND for a file that starts zero jobs".
+    const script = "gate:s0:regression"
+    const textual =
+      new RegExp(`run: pnpm ${script.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\s*$`, "m").test(rejected) &&
+      /^  test:$/m.test(rejected)
+    expect(textual, "the old text probe reports BOUND on bytes no runner will execute").toBe(true)
+
+    // (3) And the aggregator's own line matches too, which is why the required check looked present
+    //     while it had in fact stopped existing.
+    expect(/^  build-and-test:$/m.test(rejected)).toBe(true)
+
+    // (4) The measure that now carries this: fed a parse error, it must red NAMING the parse failure
+    //     rather than reciting "bound to no workflow job" for every row. Driven through the real
+    //     evaluator with the real message, so this cannot pass on a hand-written string.
+    const firstLine = message.split("\n")[0] ?? message
+    const result = evaluateNoRegression(
+      [{ gate: "2.4-A", artifact: "artifacts/phase-2.4/gate-A-consistency.json", status: "PASSED", machineDecidable: true }],
+      [],
+      [],
+      [
+        { source: "tools.ts", count: 13 },
+        { source: "mcp-pack-smoke.mjs", count: 13 },
+      ],
+      1,
+      { workflow: "ci.yml", job: "build-and-test", present: false, needs: [], parseError: firstLine } satisfies AggregatorReach,
+    )
+    expect(result.status, "Gate 2.4-H must be RED on the refused bytes").toBe("FAILED")
+    expect(
+      result.blockers.join(" "),
+      "and it must name the parse failure — a red gate that blames the wrong thing is the defect, not the fix",
+    ).toContain("Nested mappings are not allowed")
+  })
 })
 
 describe("Gate S0 — the rows say OPEN, and what would make each false", () => {
@@ -822,7 +904,10 @@ describe("Gate S0 — the rows say OPEN, and what would make each false", () => 
   // figures were copied by hand would be the same mistake in the record.
   it("S0-OPEN-5's count of text-matched bindings is derived from Gate H's source and artifact", () => {
     const r = row(5)
-    expect(r).toContain("**Status:** OPEN")
+    // CLOSED as of S batch 3, and the close must name the ADR that carries the reasoning. A row that
+    // flips to CLOSED without one is a status change nothing accounts for.
+    expect(r).toContain("**Status:** **CLOSED 2026-08-11**")
+    expect(r, "the close must cite the ADR that records why").toContain("ADR 0071")
 
     // ORDER IS LOAD-BEARING, and control #181 is why. The two `assertPointer` calls below were
     // written FIRST, and inserting a 20th REGRESSION_CHECKS row red them — line 718 moved — so the
@@ -883,29 +968,78 @@ describe("Gate S0 — the rows say OPEN, and what would make each false", () => 
     //     resolve; they must never be able to pre-empt the counts, which are the row's own subject.
     //     Content-addressed, not existence-addressed: a line number that merely exists is satisfied
     //     by a blank line, the defect `assertPointer` was written for.
+    //
+    //     These follow the AMENDMENT's citations, not the original text's. The pre-close text is
+    //     preserved verbatim as history (same convention as S0-OPEN-3), so its `:717-719` two-regex
+    //     citation now points at code that no longer exists — by design. Asserting the historical
+    //     line numbers would force a rewrite of preserved history on every reflow; asserting the
+    //     live ones is what keeps the row actionable.
     assertPointer(
       "scripts/phase-2.4-gates.ts",
-      718,
-      "run: pnpm ${escapeRe(c.script)}",
-      "S0-OPEN-5's cited workflowBinding line",
+      783,
+      "function bindCheck",
+      "S0-OPEN-5's cited structural binding decision",
     )
     assertPointer(
       "scripts/phase-2.4-gates.ts",
-      637,
+      733,
+      "function readWorkflowGraph",
+      "S0-OPEN-5's cited one-parse-per-file reader",
+    )
+    assertPointer(
+      "scripts/phase-2.4-gates.ts",
+      640,
       "const REGRESSION_CHECKS",
       "S0-OPEN-5's cited check list",
     )
+    assertPointer(
+      "packages/trust-index/src/phase24Gates.ts",
+      493,
+      "readonly bindingFault",
+      "S0-OPEN-5's cited required fault field",
+    )
+    assertPointer(
+      "packages/trust-index/src/phase24Gates.ts",
+      553,
+      "function aggregatorMeasure",
+      "S0-OPEN-5's cited aggregator-reach measure",
+    )
+    // The denominator, by CONTENT. A `5 + …` that silently reverted to `4 + …` is the one edit in
+    // this close with no failing mode of its own — it only feeds `<`, so a short measure count would
+    // pass forever. This is the assertion that gives it one.
+    assertPointer(
+      "packages/trust-index/src/phase24Gates.ts",
+      711,
+      "5 + checks.length + served.length",
+      "S0-OPEN-5's cited synced denominator",
+    )
 
-    // (4) The row must name the fix shape and its falsification condition, and must NOT claim the
-    //     repair already happened — Gate H is untouched by this batch on purpose.
-    expect(r, "the fix shape must be recorded so the next batch does not re-derive it").toContain(
+    // (4) The row must keep its fix shape and its falsification condition, and — REVERSED by S batch
+    //     3 — must now claim the repair, because the repair happened. The previous form asserted the
+    //     row does NOT say Gate H parses, guarding a batch that deliberately left it alone. Left as
+    //     it was, it would forbid the row from recording its own close: a guard written to keep a
+    //     claim honest becomes a guard forbidding the truth the moment the world moves. Inverting it
+    //     is the edit, not deleting it.
+    expect(r, "the fix shape must stay recorded — a close does not erase how it was done").toContain(
       "**Shape of the fix, for whichever batch takes it.**",
     )
     expect(r).toContain("What would make this row false")
     expect(
-      /Gate 2\.4-H (?:now|already) parses/i.test(r),
-      "the row must not claim Gate H was repaired here — this batch deliberately left it alone",
-    ).toBe(false)
+      /resolves `workflowBinding` from a parsed workflow graph/.test(r),
+      "the row must now state that Gate H parses — this batch made it true",
+    ).toBe(true)
+    // Both halves of its own falsification condition, named. The parse alone was never sufficient:
+    // "A green Gate H on valid YAML proves nothing here."
+    expect(
+      r,
+      "the close must cite the control that applies the REJECTED bytes, not just the parse",
+    ).toContain("d825330")
+    // And it must record which of its own sentences did not survive. A close that quietly drops a
+    // falsified reason teaches the next reader to trust row prose.
+    expect(
+      r,
+      "the close must record that this row's own second OPEN reason was measured false",
+    ).toContain("second OPEN reason was measured false")
   })
 
   it("the record does not claim the gate passes, and does not run it", () => {

@@ -480,6 +480,17 @@ export interface WiredCheck {
   readonly inLocalChain: boolean
   /** `workflow.yml#job` that runs it, or null when no workflow does. */
   readonly workflowBinding: string | null
+  /**
+   * WHY there is no binding, in the observer's words, or null when there is one.
+   *
+   * Required rather than optional, and that is deliberate: an optional field lets a
+   * construction site stay silent and still typecheck, which is how a reason goes
+   * missing exactly when it is needed. S0-OPEN-5 (ADR 0071) is the case — with the
+   * binding decided by a text match, an unparseable `ci.yml` produced 18 rows all
+   * reading "bound to no workflow job", a true sentence that names the wrong cause.
+   * The observer knows the real one; this is how it survives to the observed line.
+   */
+  readonly bindingFault: string | null
   /** true when only remote CI can prove it (e.g. the cross-OS CRLF checkout). */
   readonly remoteOnly: boolean
   /**
@@ -506,6 +517,75 @@ export interface ServedGuard {
 }
 
 /**
+ * Whether the required check can still be REACHED from the jobs the checks bind to.
+ *
+ * A step is only a gate if failing it blocks a merge, and what blocks a merge is the
+ * repo ruleset's required check — `build-and-test`. So a binding to `ci.yml#test` is
+ * worth exactly as much as `build-and-test`'s dependency on `test`.
+ *
+ * `needs`, not "runs unconditionally", and that distinction is measured rather than
+ * assumed: `build-and-test` carries `if: always()` precisely so it runs when `test`
+ * fails and then fails itself by reading `needs.test.result`. Asserting that it were
+ * unconditional would assert something false about today's bytes; asserting `needs`
+ * covers every bound job is the property that actually holds.
+ */
+export interface AggregatorReach {
+  readonly workflow: string
+  /** The required check's job name — `build-and-test` for this repo's ruleset. */
+  readonly job: string
+  readonly present: boolean
+  /** The jobs it waits on, as declared. */
+  readonly needs: readonly string[]
+  /** The parser's message when the workflow does not parse at all, else null. */
+  readonly parseError: string | null
+}
+
+/**
+ * A bound job is only a gate if the REQUIRED check waits on it.
+ *
+ * Every `wired/*` measure asks whether a script is reachable from some job. None
+ * of them asks whether that job is reachable from the check the branch ruleset
+ * requires — so a workflow that stops parsing makes 18 rows fail for a reason
+ * none of them states, and a workflow whose aggregator drops its `needs` makes
+ * them all pass while blocking nothing. This measure is that missing claim, held
+ * separately so it can go red on its own terms.
+ */
+function aggregatorMeasure(checks: readonly WiredCheck[], agg: AggregatorReach): GateMeasure {
+  const boundJobs = [
+    ...new Set(
+      checks
+        .map((c) => c.workflowBinding)
+        .filter((b): b is string => b !== null && b.startsWith(`${agg.workflow}#`))
+        .map((b) => b.slice(agg.workflow.length + 1)),
+    ),
+  ].sort()
+  const unreached = boundJobs.filter((j) => j !== agg.job && !agg.needs.includes(j))
+
+  if (agg.parseError !== null) {
+    return {
+      id: "wired/aggregator-reachable",
+      pass: false,
+      observed: `${agg.workflow} does not parse, so the required \`${agg.job}\` check contributes no job at all — ${agg.parseError}`,
+    }
+  }
+  if (!agg.present) {
+    return {
+      id: "wired/aggregator-reachable",
+      pass: false,
+      observed: `${agg.workflow} declares no \`${agg.job}\` job, so the required check can never report`,
+    }
+  }
+  return {
+    id: "wired/aggregator-reachable",
+    pass: unreached.length === 0,
+    observed:
+      unreached.length === 0
+        ? `${agg.workflow}#${agg.job} present and needs [${agg.needs.join(", ") || "nothing"}], covering every bound job (${boundJobs.join(", ") || "none"})`
+        : `${agg.workflow}#${agg.job} needs [${agg.needs.join(", ") || "nothing"}], which does NOT cover bound job(s) ${unreached.join(", ")} — a failure there would not fail the required check`,
+  }
+}
+
+/**
  * Gate 2.4-H — no regression. The gate of last resort, and the only one whose
  * subject is the gate SYSTEM rather than the product.
  *
@@ -529,6 +609,7 @@ export function evaluateNoRegression(
   served: readonly ServedGuard[],
   toolCounts: readonly { readonly source: string; readonly count: number }[],
   expectedGates: number,
+  aggregator: AggregatorReach,
 ): GateResult {
   const machine = gates.filter((g) => g.machineDecidable)
   const regressed = machine.filter((g) => g.status !== "PASSED")
@@ -571,6 +652,7 @@ export function evaluateNoRegression(
           ? `${counts[0]} tools, agreed across ${toolCounts.length} sources (${toolCounts.map((t) => t.source).join(", ")})`
           : toolCounts.map((t) => `${t.source}=${t.count}`).join(" vs "),
     },
+    aggregatorMeasure(checks, aggregator),
   ]
 
   for (const c of checks) {
@@ -583,7 +665,15 @@ export function evaluateNoRegression(
       // this for six checks (calibration, coverage, the four Phase-2.4 evals);
       // requiring the binding is what stops it recurring.
       if (c.workflowBinding === null) {
-        faults.push("bound to no workflow job — only `ci:local` runs it, so nothing blocks a merge on it")
+        // Say WHY, not just THAT. "bound to no workflow job" is a true sentence
+        // that names the wrong cause when the real one is that the file does not
+        // parse: 18 rows all recite it while the workflow contributes zero jobs
+        // and the required check stops EXISTING rather than going red (S0-OPEN-5).
+        faults.push(
+          c.bindingFault === null
+            ? "bound to no workflow job — only `ci:local` runs it, so nothing blocks a merge on it"
+            : `bound to no workflow job: ${c.bindingFault}`,
+        )
       }
       // Local membership is required too, EXCEPT for the checks a local run
       // cannot prove — demanding it there would invite a false local green.
@@ -614,5 +704,9 @@ export function evaluateNoRegression(
     })
   }
 
-  return decideGate(measures, 4 + checks.length + served.length)
+  // 5, not 4: the four roll-up measures plus `wired/aggregator-reachable`. This
+  // denominator has no failing mode of its own — it only feeds `<` — so it must be
+  // synced in the same edit that adds a measure, or the gate reads green on a
+  // short count forever.
+  return decideGate(measures, 5 + checks.length + served.length)
 }

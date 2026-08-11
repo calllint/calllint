@@ -67,6 +67,9 @@ import {
 } from "@calllint/trust-index"
 import { applyPlan, nodeFsPort, type ConfigFs } from "@calllint/install-planner"
 import type { InstallPlan } from "@calllint/types"
+// Gate 2.4-H reads workflow wiring the way the RUNNER reads it (S0-OPEN-5, ADR 0071).
+// Root devDependency, pinned at 2.8.2; `scripts/phase-2.4-eval.ts` imports `ajv` the same way.
+import { parse as parseYaml } from "yaml"
 import {
   GUARD_HOST_IDS,
   continuousProtectionOffer,
@@ -698,25 +701,155 @@ function observeToolCounts(): { source: string; count: number }[] {
   ]
 }
 
+/**
+ * The job every wired check must ultimately reach. It is the repo ruleset's
+ * required check, so a step in a job this one does not `need` blocks nothing.
+ */
+const REQUIRED_AGGREGATOR = "build-and-test"
+
+/** A workflow file as the RUNNER sees it: parsed, or the reason it could not be. */
+interface WorkflowGraph {
+  readonly exists: boolean
+  /** The parser's own first line, or null when the file parsed. */
+  readonly parseError: string | null
+  readonly jobs: Record<string, unknown>
+  /** Raw source, kept for the text precondition (see `bindCheck`). */
+  readonly src: string
+}
+
+/**
+ * Parse one workflow, once. S0-OPEN-5 (ADR 0071): Gate 2.4-H used to decide wiring
+ * from a text match, so it reported 18 checks "wired" on the exact bytes GitHub
+ * refused — an unparseable workflow starts ZERO jobs, which means a required check
+ * stops EXISTING rather than going red.
+ *
+ * No `\r\n` normalization here on purpose, and that is measured, not assumed:
+ * `.github/workflows/**` carries no `eol` pin (`git check-attr text eol` → both
+ * unspecified), so windows-latest checks these out as CRLF — and `yaml@2.8.2`
+ * strips `\r` from scalars itself (24 `run:` scalars, 0 containing a raw `\r`).
+ * The regex path's CRLF tolerance was the accidental kind: `\s*` absorbing the
+ * `\r`, and `$` under `/m` treating it as a line terminator.
+ */
+function readWorkflowGraph(file: string): WorkflowGraph {
+  const p = path.join(repoRoot, ".github", "workflows", file)
+  if (!fs.existsSync(p)) return { exists: false, parseError: null, jobs: {}, src: "" }
+  const src = readText(p)
+  let doc: unknown
+  try {
+    doc = parseYaml(src)
+  } catch (err) {
+    // The parser's own message, not "invalid YAML": `Nested mappings are not allowed
+    // …at line 150` sends the reader to the line, while the generic form sends them
+    // to a bisect. This is the string the control in the test suite asserts on.
+    return {
+      exists: true,
+      parseError: err instanceof Error ? err.message.split("\n")[0] : String(err),
+      jobs: {},
+      src,
+    }
+  }
+  const jobs = (doc as { jobs?: unknown } | null)?.jobs
+  // A parse that SUCCEEDS into the wrong shape is its own failure mode: `- name: a: b`
+  // can yield a nested map rather than throwing, so `jobs` must be an object too.
+  if (typeof jobs !== "object" || jobs === null || Array.isArray(jobs)) {
+    return { exists: true, parseError: "parsed, but `jobs` is not a mapping", jobs: {}, src }
+  }
+  return { exists: true, parseError: null, jobs: jobs as Record<string, unknown>, src }
+}
+
+/** Every job the required aggregator waits on, as declared by its `needs`. */
+function aggregatorNeeds(graph: WorkflowGraph): string[] {
+  const agg = graph.jobs[REQUIRED_AGGREGATOR]
+  if (typeof agg !== "object" || agg === null) return []
+  const needs = (agg as { needs?: unknown }).needs
+  if (typeof needs === "string") return [needs]
+  return Array.isArray(needs) ? needs.filter((n): n is string => typeof n === "string") : []
+}
+
+/**
+ * Decide whether one check is wired, using TWO probes that fail on opposite things.
+ *
+ * The structural lookup answers the runner's question; the text match is kept as a
+ * PRECONDITION rather than replaced, for the reason ADR 0069 §3 gives: a parse alone
+ * goes green when a step is renamed away into a shape the parser still accepts, and a
+ * scan alone goes green when the file cannot run at all. Their DISAGREEMENT is a third,
+ * independent fault — it must not be absorbed by either side, because "the two ways of
+ * reading this file no longer agree" is exactly the state that hid the original defect.
+ *
+ * Returns the binding string, or the reason there is none. The reason is carried out to
+ * the measure so the observed line names the parse failure instead of the misleading
+ * "bound to no workflow job", which is what 18 rows printed before ADR 0071.
+ */
+function bindCheck(c: CheckSpec, graph: WorkflowGraph): { binding: string | null; why: string | null } {
+  if (!graph.exists) return { binding: null, why: `.github/workflows/${c.workflow} does not exist` }
+  if (graph.parseError !== null) {
+    return {
+      binding: null,
+      why: `${c.workflow} does not parse, so no runner will start a job from it — ${graph.parseError}`,
+    }
+  }
+  const job = graph.jobs[c.job]
+  const structural =
+    typeof job === "object" &&
+    job !== null &&
+    Array.isArray((job as { steps?: unknown }).steps) &&
+    ((job as { steps: unknown[] }).steps ?? []).some((s) => {
+      const run = (s as { run?: unknown } | null)?.run
+      // Whole token, and tolerant of the shapes a real step uses: `&&`-chained
+      // commands, and the one multi-line `run:` block in ci.yml. A bare `includes`
+      // would let `pnpm eval:phase-2.4` match `pnpm eval:phase-2.4:dogfood`.
+      return typeof run === "string" && new RegExp(`(^|\\s|&&\\s*)pnpm ${escapeRe(c.script)}(\\s|$)`).test(run)
+    })
+  // The original probe, preserved verbatim as the precondition.
+  const textual =
+    new RegExp(`run: pnpm ${escapeRe(c.script)}\\s*$`, "m").test(graph.src) &&
+    new RegExp(`^  ${escapeRe(c.job)}:$`, "m").test(graph.src)
+
+  if (structural !== textual) {
+    return {
+      binding: null,
+      why:
+        `the two probes disagree — the parsed graph says ${structural ? "BOUND" : "not bound"} while the text ` +
+        `match says ${textual ? "BOUND" : "not bound"}; one of them is reading something the runner does not`,
+    }
+  }
+  if (!structural) {
+    const jobMissing = typeof job !== "object" || job === null
+    return {
+      binding: null,
+      why: jobMissing
+        ? `${c.workflow} has no job \`${c.job}\` (jobs: ${Object.keys(graph.jobs).join(", ") || "none"})`
+        : `no step in ${c.workflow}#${c.job} runs \`pnpm ${c.script}\``,
+    }
+  }
+  return { binding: `${c.workflow}#${c.job}`, why: null }
+}
+
 function observeGateH(): {
   gates: GateRecord[]
   checks: WiredCheck[]
   served: ServedGuard[]
   toolCounts: { source: string; count: number }[]
+  aggregator: AggregatorReach
 } {
   const pkgScripts = (readJson(path.join(repoRoot, "package.json")).scripts ?? {}) as Record<string, string>
   const localChain = pkgScripts["ci:local"] ?? ""
   const gitattributes = readText(path.join(repoRoot, ".gitattributes"))
 
+  // One parse per FILE, not per row: all 19 rows name `ci.yml` today, and parsing it
+  // 19 times would also report the same parse error 19 times.
+  const graphs = new Map<string, WorkflowGraph>()
+  const graphFor = (file: string): WorkflowGraph => {
+    let g = graphs.get(file)
+    if (g === undefined) {
+      g = readWorkflowGraph(file)
+      graphs.set(file, g)
+    }
+    return g
+  }
+
   const checks: WiredCheck[] = REGRESSION_CHECKS.map((c) => {
-    const wf = path.join(repoRoot, ".github", "workflows", c.workflow)
-    const wfSrc = fs.existsSync(wf) ? readText(wf) : ""
-    // Anchored on purpose: a bare `includes("pnpm eval:phase-2.4")` also matches
-    // `pnpm eval:phase-2.4:dogfood`, so a deleted step would still read as bound.
-    // The script name must end the run: line, and the job must exist by name.
-    const bound =
-      new RegExp(`run: pnpm ${escapeRe(c.script)}\\s*$`, "m").test(wfSrc) &&
-      new RegExp(`^  ${escapeRe(c.job)}:$`, "m").test(wfSrc)
+    const { binding, why } = bindCheck(c, graphFor(c.workflow))
     return {
       id: c.id,
       script: pkgScripts[c.script] ?? null,
@@ -727,7 +860,8 @@ function observeGateH(): {
         c.role === "local-chain"
           ? true
           : new RegExp(`pnpm ${escapeRe(c.script)}(\\s|$)`).test(localChain),
-      workflowBinding: bound ? `${c.workflow}#${c.job}` : null,
+      workflowBinding: binding,
+      bindingFault: why,
       remoteOnly: c.remoteOnly,
       role: c.role,
     }
@@ -739,7 +873,18 @@ function observeGateH(): {
     eolPinned: gitattributes.includes(s.pin),
   }))
 
-  return { gates: GATE_ARTIFACTS.map(observeGateRow), checks, served, toolCounts: observeToolCounts() }
+  // The aggregator's reach, read from the same parsed graph. `ci.yml` is the only
+  // workflow any row binds; if that ever stops being true this needs a row per file.
+  const ciGraph = graphFor("ci.yml")
+  const aggregator: AggregatorReach = {
+    workflow: "ci.yml",
+    job: REQUIRED_AGGREGATOR,
+    present: Object.prototype.hasOwnProperty.call(ciGraph.jobs, REQUIRED_AGGREGATOR),
+    needs: aggregatorNeeds(ciGraph),
+    parseError: ciGraph.parseError,
+  }
+
+  return { gates: GATE_ARTIFACTS.map(observeGateRow), checks, served, toolCounts: observeToolCounts(), aggregator }
 }
 
 // --- render the artifacts ----------------------------------------------------
@@ -803,7 +948,7 @@ function buildAll(): Artifact[] {
   const f = observeGateF()
   const h = observeGateH()
   // Evaluated before the artifact is assembled: the roll-up needs 2.4-H's own status.
-  const hResult = evaluateNoRegression(h.gates, h.checks, h.served, h.toolCounts, GATE_ARTIFACTS.length)
+  const hResult = evaluateNoRegression(h.gates, h.checks, h.served, h.toolCounts, GATE_ARTIFACTS.length, h.aggregator)
 
   return [
     artifact(
@@ -837,13 +982,14 @@ function buildAll(): Artifact[] {
     artifact(
       "2.4-H",
       "gate-H-no-regression.json",
-      "Gate 2.4-H evidence — the only gate whose subject is the gate SYSTEM, not the product. It asks what the other seven cannot ask about themselves: is every mechanism that would CATCH a regression still present and still wired to something that runs it? Four things are measured. (1) All eight gate rows have a committed artifact and a recorded status, read from a longhand id→file map rather than a glob, so DELETING an artifact fails the gate instead of improving it. (2) Every machine-decidable gate is PASSED; 2.4-B is recorded as human-decided and excluded from the floor, because unfinished human work is not a regression — but it is never counted as passed either. (3) The MCP tool count agrees between the tool table that produces it and the pack smoke that asserts it — the Phase-2.6 N8 local-green/remote-red failure mode. (4) Every regression check resolves to a real package.json script AND to a place that runs it; the two checks a local run cannot prove (pack:smoke:mcp, the cross-OS CRLF checkout) are marked REMOTE-ONLY and asserted to be bound to a real workflow job instead of being claimed as passed. Finally, every served subtree is asserted to have BOTH a reproducibility guard test and a `.gitattributes eol=lf` pin. The `releaseBoundary` block is deliberately separate from this gate's status: 'nothing regressed' and 'the boundary is closed' are different claims, and collapsing them is how a machine run would authorize a release that still owes a human panel. Regenerate with `pnpm eval:phase-2.4:gates:write`.",
+      "Gate 2.4-H evidence — the only gate whose subject is the gate SYSTEM, not the product. It asks what the other seven cannot ask about themselves: is every mechanism that would CATCH a regression still present and still wired to something that runs it? Five things are measured. (1) All eight gate rows have a committed artifact and a recorded status, read from a longhand id→file map rather than a glob, so DELETING an artifact fails the gate instead of improving it. (2) Every machine-decidable gate is PASSED; 2.4-B is recorded as human-decided and excluded from the floor, because unfinished human work is not a regression — but it is never counted as passed either. (3) The MCP tool count agrees between the tool table that produces it and the pack smoke that asserts it — the Phase-2.6 N8 local-green/remote-red failure mode. (4) Every regression check resolves to a real package.json script AND to a place that runs it; the two checks a local run cannot prove (pack:smoke:mcp, the cross-OS CRLF checkout) are marked REMOTE-ONLY and asserted to be bound to a real workflow job instead of being claimed as passed. Bindings are read by PARSING the workflow the way the runner does, with the old text match kept as a precondition and any disagreement between the two probes recorded as its own fault: a parse alone would go green when a step is renamed away, a text scan alone would go green when the file cannot run at all. (5) The required `build-and-test` check exists and its `needs` covers every job those checks bind to — a bound job the required check does not wait on blocks nothing. That measure is held separately because when `ci.yml` stopped parsing, all 18 rows recited 'bound to no workflow job' and not one of them said why. Finally, every served subtree is asserted to have BOTH a reproducibility guard test and a `.gitattributes eol=lf` pin. The `releaseBoundary` block is deliberately separate from this gate's status: 'nothing regressed' and 'the boundary is closed' are different claims, and collapsing them is how a machine run would authorize a release that still owes a human panel. Regenerate with `pnpm eval:phase-2.4:gates:write`.",
       hResult,
       {
         releaseBoundary: boundaryRollUp(h.gates, hResult.status),
         gates: h.gates,
         mcpToolCounts: h.toolCounts,
         regressionChecks: h.checks,
+        requiredAggregator: h.aggregator,
         servedGuards: h.served,
       },
     ),
