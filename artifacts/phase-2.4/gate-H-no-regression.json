@@ -305,6 +305,11 @@
       "observed": "13 tools, agreed across 2 sources (packages/calllint-mcp/src/tools.ts (declared), scripts/mcp-pack-smoke.mjs (asserted))"
     },
     {
+      "id": "mcp-tool-names-agree",
+      "pass": true,
+      "observed": "13 tool names identical in src/tools.ts and test/tools.test.ts"
+    },
+    {
       "id": "wired/aggregator-reachable",
       "pass": true,
       "observed": "ci.yml#build-and-test present and needs [test], covering every bound job (test)"

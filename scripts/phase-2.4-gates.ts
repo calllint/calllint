@@ -58,6 +58,7 @@ import {
   type WiredCheck,
   type ServedGuard,
   type GateResult,
+  type ToolNameSources,
   EVAL_ENGINE_VERSION,
   // PR P-5 — the gate edge reads the copy plane through the SHIPPED loader rather than
   // reimplementing the path and the fail-open try/catch. One loader means the gate observes
@@ -687,13 +688,21 @@ const SERVED_SUBTREES: readonly { subtree: string; pin: string; guardTest: strin
   { subtree: "apps/web/public/styles/**", pin: "apps/web/public/styles/** text eol=lf", guardTest: "packages/trust-index/test/safe-install/token-plane.test.ts" },
 ]
 
+/** The tool names each source states, for the name-agreement measure below. */
+function readToolNameSources(): { declared: string[]; enumerated: string[] } {
+  const toolsSrc = readText(path.join(repoRoot, "packages", "calllint-mcp", "src", "tools.ts"))
+  const testSrc = readText(path.join(repoRoot, "packages", "calllint-mcp", "test", "tools.test.ts"))
+  // `[^"]+`, not `[a-z_]+`: a rename to `...installX` must show up as a DRIFTED NAME, not as a
+  // shortfall in the scan. Measured — both classes capture the same 13 names on today's bytes.
+  const declared = [...toolsSrc.matchAll(/^ {4}name: "([^"]+)",$/gm)].map((m) => m[1])
+  const enumerated = [...testSrc.matchAll(/^ {8}"([a-z_]+)",$/gm)].map((m) => m[1])
+  return { declared, enumerated }
+}
+
 /** Count the MCP tools in each place that states a count. Drift here is the gate. */
 function observeToolCounts(): { source: string; count: number }[] {
-  const toolsSrc = readText(path.join(repoRoot, "packages", "calllint-mcp", "src", "tools.ts"))
   const smokeSrc = readText(path.join(repoRoot, "scripts", "mcp-pack-smoke.mjs"))
-  // The tool table's entries are `name: "..."` at a fixed indent inside the array;
-  // counting the declared names is what tools/list will return.
-  const declared = [...toolsSrc.matchAll(/^ {4}name: "([a-z_]+)",$/gm)].length
+  const declared = readToolNameSources().declared.length
   const asserted = smokeSrc.match(/tools\?\.length !== (\d+)/)
   return [
     { source: "packages/calllint-mcp/src/tools.ts (declared)", count: declared },
@@ -831,6 +840,7 @@ function observeGateH(): {
   served: ServedGuard[]
   toolCounts: { source: string; count: number }[]
   aggregator: AggregatorReach
+  toolNames: ToolNameSources
 } {
   const pkgScripts = (readJson(path.join(repoRoot, "package.json")).scripts ?? {}) as Record<string, string>
   const localChain = pkgScripts["ci:local"] ?? ""
@@ -884,7 +894,14 @@ function observeGateH(): {
     parseError: ciGraph.parseError,
   }
 
-  return { gates: GATE_ARTIFACTS.map(observeGateRow), checks, served, toolCounts: observeToolCounts(), aggregator }
+  return {
+    gates: GATE_ARTIFACTS.map(observeGateRow),
+    checks,
+    served,
+    toolCounts: observeToolCounts(),
+    aggregator,
+    toolNames: readToolNameSources(),
+  }
 }
 
 // --- render the artifacts ----------------------------------------------------
@@ -948,7 +965,15 @@ function buildAll(): Artifact[] {
   const f = observeGateF()
   const h = observeGateH()
   // Evaluated before the artifact is assembled: the roll-up needs 2.4-H's own status.
-  const hResult = evaluateNoRegression(h.gates, h.checks, h.served, h.toolCounts, GATE_ARTIFACTS.length, h.aggregator)
+  const hResult = evaluateNoRegression(
+    h.gates,
+    h.checks,
+    h.served,
+    h.toolCounts,
+    GATE_ARTIFACTS.length,
+    h.aggregator,
+    h.toolNames,
+  )
 
   return [
     artifact(
