@@ -529,6 +529,18 @@ export interface ServedGuard {
  * unconditional would assert something false about today's bytes; asserting `needs`
  * covers every bound job is the property that actually holds.
  */
+/**
+ * The tool names as stated by two sources that can genuinely disagree: the table that produces
+ * `tools/list`, and the hand-written enumeration in `test/tools.test.ts`. Comparing the table with
+ * the pack smoke would be a tautology — the smoke derives its expectation from the table.
+ */
+export interface ToolNameSources {
+  /** Names parsed out of `packages/calllint-mcp/src/tools.ts`. */
+  readonly declared: readonly string[]
+  /** Names hand-enumerated in `packages/calllint-mcp/test/tools.test.ts`. */
+  readonly enumerated: readonly string[]
+}
+
 export interface AggregatorReach {
   readonly workflow: string
   /** The required check's job name — `build-and-test` for this repo's ruleset. */
@@ -610,11 +622,18 @@ export function evaluateNoRegression(
   toolCounts: readonly { readonly source: string; readonly count: number }[],
   expectedGates: number,
   aggregator: AggregatorReach,
+  // Optional so the existing call sites keep their arity, but the default is EMPTY and empty must
+  // FAIL: a default that passed would let the real producer omit the sources and still go green.
+  toolNames: ToolNameSources = { declared: [], enumerated: [] },
 ): GateResult {
   const machine = gates.filter((g) => g.machineDecidable)
   const regressed = machine.filter((g) => g.status !== "PASSED")
   const undecided = gates.filter((g) => !g.machineDecidable)
   const counts = [...new Set(toolCounts.map((t) => t.count))]
+  const declaredNames = [...toolNames.declared].sort()
+  const enumeratedNames = [...toolNames.enumerated].sort()
+  const nameOnlyInTable = declaredNames.filter((n) => !enumeratedNames.includes(n))
+  const nameOnlyInTest = enumeratedNames.filter((n) => !declaredNames.includes(n))
 
   const measures: GateMeasure[] = [
     {
@@ -651,6 +670,30 @@ export function evaluateNoRegression(
         counts.length === 1
           ? `${counts[0]} tools, agreed across ${toolCounts.length} sources (${toolCounts.map((t) => t.source).join(", ")})`
           : toolCounts.map((t) => `${t.source}=${t.count}`).join(" vs "),
+    },
+    // Cardinality agreement is not identity agreement: a rename that preserves the count keeps
+    // every count-based measure green. Measured — renaming the served `calllint_verify_tool_install`
+    // to `...installX` left `pack:smoke:mcp` at EXIT 0 printing `tools/list(13)`.
+    //
+    // The two sources compared here must be able to DISAGREE. The tool table and the pack smoke
+    // cannot: the smoke derives its expectation FROM the table, so comparing their names would be a
+    // tautology ([[audit-keyed-on-its-own-subject]]). `tools.test.ts` hand-enumerates the 13 names,
+    // so a rename in the table moves ONE side and this measure reds.
+    //
+    // The count is pinned before the set claim: two empty captures also compare equal.
+    {
+      id: "mcp-tool-names-agree",
+      pass:
+        declaredNames.length === counts[0] &&
+        enumeratedNames.length === counts[0] &&
+        nameOnlyInTable.length === 0 &&
+        nameOnlyInTest.length === 0,
+      observed:
+        declaredNames.length !== counts[0] || enumeratedNames.length !== counts[0]
+          ? `name scan captured table=${declaredNames.length}, test=${enumeratedNames.length}, expected ${counts[0]} in both`
+          : nameOnlyInTable.length === 0 && nameOnlyInTest.length === 0
+            ? `${declaredNames.length} tool names identical in src/tools.ts and test/tools.test.ts`
+            : `tool names drifted — only in table: [${nameOnlyInTable}], only in test: [${nameOnlyInTest}]`,
     },
     aggregatorMeasure(checks, aggregator),
   ]
@@ -704,9 +747,14 @@ export function evaluateNoRegression(
     })
   }
 
-  // 5, not 4: the four roll-up measures plus `wired/aggregator-reachable`. This
-  // denominator has no failing mode of its own — it only feeds `<` — so it must be
-  // synced in the same edit that adds a measure, or the gate reads green on a
-  // short count forever.
-  return decideGate(measures, 5 + checks.length + served.length)
+  // 6 fixed roll-up measures: the original four, plus `wired/aggregator-reachable` (S batch 3) and
+  // `mcp-tool-names-agree` (S batch 4). This denominator has NO failing mode of its own — it only
+  // feeds `<` — so it must be synced in the same edit that adds a measure, or the gate reads green on
+  // a short count forever ([[miscounted-denominator-is-a-false-green]]).
+  //
+  // Its guard is external, and it has to be: reverting the literal alone is not observable from
+  // outside (negative control #189 measured green for exactly that reason — lowering the floor from
+  // 31 to 30 leaves `31 < 30` false either way). What discriminates is a SHORT measure list, asserted
+  // in both directions by "refuses a SHORT measure list" in `test/phase24-gates.test.ts`.
+  return decideGate(measures, 6 + checks.length + served.length)
 }

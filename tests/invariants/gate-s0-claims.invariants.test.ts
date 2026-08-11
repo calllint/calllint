@@ -4,7 +4,7 @@ import { fileURLToPath } from "node:url"
 import { parse as parseYaml } from "yaml"
 // The real evaluator, not a re-implementation. A control that re-derives the gate's logic proves the
 // control's logic (S0-OPEN-5's "not merely a comment claiming the parse happens").
-import { evaluateNoRegression, type AggregatorReach } from "@calllint/trust-index"
+import { evaluateNoRegression, type AggregatorReach, type ToolNameSources } from "@calllint/trust-index"
 
 // The FIRST machine reader of `artifacts/gate-s0/**`, and the first machine reader of ANY Gate S0
 // status record.
@@ -34,6 +34,19 @@ import { evaluateNoRegression, type AggregatorReach } from "@calllint/trust-inde
 //   3. ROW STATUS — each row's `**Status:**` is asserted verbatim, so a batch that closes a row by
 //      deleting it, or leaves a closed row reading OPEN, reds by name.
 const repoRoot = new URL("../../", import.meta.url)
+
+/**
+ * Thirteen agreeing tool names, for the cases below that are about something else.
+ *
+ * Synthetic on purpose: a test whose subject is a YAML parse failure must not also depend on the real
+ * tool table, or a rename would red it and send the next reader to the wrong file. The 13 matches the
+ * count these cases pass as `toolCounts`, because `mcp-tool-names-agree` compares the name arity
+ * against the agreed count and would otherwise fail for a reason the case is not about.
+ */
+const AGREEING_TOOL_NAMES: ToolNameSources = {
+  declared: [...Array(13)].map((_, i) => `tool_${i}`),
+  enumerated: [...Array(13)].map((_, i) => `tool_${i}`),
+}
 
 /**
  * Read a repo-relative text file, with CRLF normalized to LF.
@@ -858,6 +871,10 @@ describe("Gate S0 — the regression mode CI runs enforces something, and the ra
       ],
       1,
       { workflow: "ci.yml", job: "build-and-test", present: false, needs: [], parseError: firstLine } satisfies AggregatorReach,
+      // Supplied even though this case expects FAILED. `evaluateNoRegression`'s 7th parameter defaults
+      // to two EMPTY name lists and empty must fail, so omitting it would make this test red for two
+      // reasons at once and stop isolating the parse failure it is about.
+      AGREEING_TOOL_NAMES,
     )
     expect(result.status, "Gate 2.4-H must be RED on the refused bytes").toBe("FAILED")
     expect(
@@ -969,26 +986,36 @@ describe("Gate S0 — the rows say OPEN, and what would make each false", () => 
     //     Content-addressed, not existence-addressed: a line number that merely exists is satisfied
     //     by a blank line, the defect `assertPointer` was written for.
     //
-    //     These follow the AMENDMENT's citations, not the original text's. The pre-close text is
-    //     preserved verbatim as history (same convention as S0-OPEN-3), so its `:717-719` two-regex
-    //     citation now points at code that no longer exists — by design. Asserting the historical
-    //     line numbers would force a rewrite of preserved history on every reflow; asserting the
-    //     live ones is what keeps the row actionable.
+    //     These follow the LATEST amendment's citations, not any earlier text's. Every pre-close and
+    //     superseded amendment is preserved verbatim as history (same convention as S0-OPEN-3), so
+    //     the original's `:717-719` two-regex citation and S batch 3's `:783`/`:733`/`:553`/`:711`
+    //     all now point at code that has moved or no longer exists — by design. Asserting historical
+    //     line numbers would force a rewrite of preserved history on every reflow; asserting the live
+    //     ones is what keeps the row actionable.
+    //
+    //     S batch 4 moved five of the six below by inserting `readToolNameSources()` into the script
+    //     and a sixth roll-up measure into `evaluateNoRegression`. It moved them from a DIFFERENT
+    //     workstream with no interest in this row, which is the whole argument for asserting pointers
+    //     here rather than trusting prose: every sentence in that amendment stayed true while its
+    //     addresses expired. The re-anchored table lives in the 2026-08-11 (S batch 4) amendment.
     assertPointer(
       "scripts/phase-2.4-gates.ts",
-      783,
+      792,
       "function bindCheck",
       "S0-OPEN-5's cited structural binding decision",
     )
     assertPointer(
       "scripts/phase-2.4-gates.ts",
-      733,
+      742,
       "function readWorkflowGraph",
       "S0-OPEN-5's cited one-parse-per-file reader",
     )
+    // 640 → 641, from a single `import` line added at the top of the file. And 640 is now BLANK,
+    // which is `assertPointer`'s reason for existing demonstrated on itself: an existence-addressed
+    // pointer would still resolve here and point at nothing at all.
     assertPointer(
       "scripts/phase-2.4-gates.ts",
-      640,
+      641,
       "const REGRESSION_CHECKS",
       "S0-OPEN-5's cited check list",
     )
@@ -1000,17 +1027,21 @@ describe("Gate S0 — the rows say OPEN, and what would make each false", () => 
     )
     assertPointer(
       "packages/trust-index/src/phase24Gates.ts",
-      553,
+      565,
       "function aggregatorMeasure",
       "S0-OPEN-5's cited aggregator-reach measure",
     )
-    // The denominator, by CONTENT. A `5 + …` that silently reverted to `4 + …` is the one edit in
-    // this close with no failing mode of its own — it only feeds `<`, so a short measure count would
-    // pass forever. This is the assertion that gives it one.
+    // The denominator, by CONTENT. A `6 + …` that silently reverted is the one edit in this close
+    // with no failing mode of its own — it only feeds `<`, so a short measure count would pass
+    // forever. This is the assertion that gives it one.
+    //
+    // `5 +` → `6 +` under S batch 4, which added `mcp-tool-names-agree`. Asserting the VALUE and not
+    // merely the address is what makes that visible: a line-number-only pointer would still resolve
+    // at 711 today, silently aimed at an unrelated statement.
     assertPointer(
       "packages/trust-index/src/phase24Gates.ts",
-      711,
-      "5 + checks.length + served.length",
+      759,
+      "6 + checks.length + served.length",
       "S0-OPEN-5's cited synced denominator",
     )
 

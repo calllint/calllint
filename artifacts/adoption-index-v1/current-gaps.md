@@ -231,3 +231,48 @@ which. It does not grade sufficiency for the compiler beyond the measured status
 does not treat a `PARTIAL` as a defect: nine capabilities exist in a shape the blueprint
 did not anticipate, and in at least three of those (publish channels, evidence level,
 namespace claims) the shipped shape is the one that passed a gate.
+
+## 6. Amendment 2026-08-11 (S batch 4) — §1's recorded asymmetry has INVERTED
+
+The R-11 note in §1 records an unevenness between the two halves of "13 tools / 19 resources":
+
+> `pack:smoke:mcp` pins the tools exactly (`tools/list expected 13`, `mcp-pack-smoke.mjs:112`) but
+> pins the resources only at **≥ 1** (`:117`). So "13 tools / 19 resources" is two claims of unequal
+> strength — the first is gated, the second is a description.
+
+**That was true when written. Both halves of it are now false, in opposite directions.** The text is
+preserved above verbatim; this section is the correction.
+
+**The side it called a description is now the stronger of the two.** INV-M8 rebuilt the resources
+check: it derives its expectation from the committed bundle, guards against a vacuous scan, and
+asserts **set equality** with both directions of the difference named. The `>= 1` bound is gone.
+
+**The side it called gated was, until this batch, a bare count.** `tools.length !== 13` and nothing
+else. Measured on this branch before the fix, then rolled back byte-identical: renaming the served
+`calllint_verify_tool_install` to `calllint_verify_tool_installX` while holding the cardinality at 13
+left `pnpm pack:smoke:mcp` at **EXIT 0** — printing `tools/list(13)` on its own success line — and
+`pnpm typecheck` at EXIT 0. The wire served a tool that does not exist and the gate called it fine.
+That is the same defect INV-M8 fixed on the resources side (3 of 19 served, everything green),
+reproduced on the side this row named as the stronger one.
+
+**What S batch 4 changed.** `mcp-pack-smoke.mjs` now scans the tool table, guards the scan against
+capturing nothing, and asserts the served name set against it with both differences named — in that
+order, because a set claim placed before the vacuity guard is satisfied by an empty scan. The
+`!== 13` literal is **kept**: 13 is a frozen product surface, unlike the resource count, which is a
+function of the committed bundle and must be derived. A kept literal that could not fail would be
+prose, so negative control #201 (drop a tool to 12) exists to pay for it.
+
+**A named bound, not silent coverage.** A *paired* rename — the table and its reader moved together —
+still agrees with itself, so the gate measure cannot see it. The wire read of the built, packed bundle
+is what covers that case, and the frozen `13` is what covers a count change. Both are asserted in
+`tests/invariants/mcp-tool-identity.invariants.test.ts` rather than argued here.
+
+**Both line numbers in the quoted text are also stale**: `:112` and `:117` no longer hold the
+assertions named, because this batch inserted the name-set check between them. Left as-is above, since
+rewriting quoted history on every reflow destroys the record of what was observed when.
+
+**A record of which guard is stronger rots like a line number.** The asymmetry was recorded honestly
+and then reversed by two batches that each had a different subject — INV-M8 strengthened one side, and
+nothing weakened the other; it simply stayed put while the comparison moved around it. A relative
+claim about two guards is a claim about two moving files, and it expires without either file being
+wrong. Prefer recording what each guard *asserts* over which one is stronger.

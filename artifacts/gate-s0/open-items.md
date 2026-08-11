@@ -782,3 +782,51 @@ says which of its own sentences did not survive.
 evaluate `if:` expressions, `runs-on` availability, matrix exclusions, or reusable-workflow
 indirection. Control #186 adds `if: false` to `jobs.test` and the gate stays **green** — the probe is
 weaker than "the step will run", and ADR 0071 §6 records that gap as measured rather than assumed.
+
+### Amendment 2026-08-11 (S batch 4) — the citations above moved, and the layer that noticed is the point
+
+**Still CLOSED. This amendment changes no claim; it re-anchors five line numbers.** S batch 4 inserted
+`readToolNameSources()` into `scripts/phase-2.4-gates.ts` and a sixth roll-up measure into
+`evaluateNoRegression`, which pushed every anchor below the insertion point down. The amendment above
+is preserved **verbatim**, including its now-stale numbers, for the same reason S0-OPEN-3's pre-close
+text is: rewriting history on every reflow destroys the record of what was true when it was written.
+The live pointers are here.
+
+| What the 2026-08-11 (S batch 3) amendment cites | Live line | Anchor content |
+|---|---|---|
+| `scripts/phase-2.4-gates.ts:783` (`bindCheck`) | **792** | `function bindCheck` |
+| `scripts/phase-2.4-gates.ts:733` (`readWorkflowGraph`) | **742** | `function readWorkflowGraph` |
+| `packages/trust-index/src/phase24Gates.ts:493` (`bindingFault`) | **493** | `readonly bindingFault` — unmoved |
+| `phase24Gates.ts:553` (`aggregatorMeasure`) | **565** | `function aggregatorMeasure` |
+| `phase24Gates.ts:711` (the denominator) | **759** | `6 + checks.length + served.length` |
+| `scripts/phase-2.4-gates.ts:637` (`REGRESSION_CHECKS`, cited in the pre-close text) | **641** | `const REGRESSION_CHECKS` |
+
+**One of those was already wrong before this batch.** The pre-close text's `REGRESSION_CHECKS` (`:637`)
+did not point at the list even at `dc32827`: line 637 was ` */`, the end of a docblock, and the
+declaration sat at 640. So that citation was off by three when written and nothing noticed, because no
+reader asserted it — the six pointers the test *does* assert were all correct at HEAD and drifted only
+under this batch. A citation with no reader is not a weaker guarantee than one with a reader; it is no
+guarantee at all.
+
+**And 640 is now a BLANK line.** A single `import` added at the top of the script pushed the
+declaration to 641 and left 640 empty. An existence-addressed pointer — one asserting only that the
+line number is within the file — would still resolve at 640 today and point at nothing. That is the
+exact defect `assertPointer` was written for after M26-3 found `server.ts:61` blank with the real
+location at 171, reproduced here on this repository's own bookkeeping.
+
+**The denominator's value changed too, not just its address.** `5 + checks.length + served.length` →
+`6 + …`, because S batch 4 added `mcp-tool-names-agree`; `measures` went 31 → 32. The S batch 3
+amendment's §4 recorded `5 +` correctly for its own batch and is left saying so. A pointer asserted by
+**content** catches this where a pointer asserted by line number alone would not: had the assertion
+only checked that line 711 exists, it would still pass today, pointing at an unrelated statement.
+
+**Why this is an append and not an edit.** Five stale `path:line` citations are exactly the defect
+`assertPointer` exists to catch, and it caught them — the batch could not reach its own verification
+sequence until they resolved. The repair is a new amendment carrying live numbers, never a silent
+in-place renumber of preserved text, which would leave no evidence that the drift occurred.
+
+**A pointer's line number rots faster than its claim.** Every sentence in the S batch 3 amendment is
+still true. Only its addresses expired, and they expired because of an edit in a *different*
+workstream that had no interest in this row. That is the argument for content-addressed pointers over
+existence-addressed ones, and for keeping the assertions in a test rather than in prose: prose cannot
+notice its own rot.

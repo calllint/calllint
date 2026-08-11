@@ -113,6 +113,46 @@ try {
   if (init?.result?.capabilities?.resources == null) fail("initialize did not advertise the resources capability")
   const list = lines.find((l) => l.id === 2)
   if (list?.result?.tools?.length !== 13) fail(`tools/list expected 13 tools, got ${list?.result?.tools?.length}`)
+
+  // The count above is necessary and NOT sufficient. Measured on this branch before this check
+  // existed: renaming the served `calllint_verify_tool_install` to `...installX` while leaving the
+  // cardinality at 13 kept `pack:smoke:mcp` at EXIT 0, and its own success line still printed
+  // `tools/list(13)` — the wire served a tool that does not exist and the gate called it fine.
+  // That is the INV-M8 resources defect (3 of 19 served, everything green) reproduced on the tools
+  // side, where the record claimed this guard was the STRONGER of the two.
+  //
+  // `tools.test.ts` does catch that rename, so this is a gate-strength gap and not an unguarded
+  // surface. But every in-package assertion reads the SOURCE array, and this is the only check that
+  // reads the WIRE of the built, packed bundle — the same reason the resource set-equality below
+  // cannot be delegated to `resources.test.ts`.
+  //
+  // The expected NAMES are derived from the tool table, keyed on the same anchor Gate 2.4-H uses
+  // (phase-2.4-gates.ts), so the two sides cannot drift into agreeing on a wrong surface. Unlike the
+  // resource count, the literal 13 stays: it is a frozen PRODUCT surface, not a function of the
+  // bundle (see line 129).
+  //
+  // The capture is `[^"]+` and deliberately NOT `[a-z_]+`: with the tight class, control #198
+  // (renaming a served tool to `...installX`) red on "captured 12 names" instead of naming the
+  // renamed tool — the guard fired, but on the wrong claim, so the failure message pointed at the
+  // scan rather than at the drift. On today's bytes both classes capture the same 13 names, so the
+  // looser one costs no precision and lets each assertion fail for its own reason.
+  const toolsSrcPath = join(pkgDir, "src", "tools.ts")
+  const declaredToolNames = [...readFileSync(toolsSrcPath, "utf8").matchAll(/^ {4}name: "([^"]+)",$/gm)].map(
+    (m) => m[1],
+  )
+  // Vacuity guard: if the regex captures nothing (an indent change, a reformat), both sets are
+  // empty and the set equality below passes by meaning nothing. Pin the count BEFORE the set claim.
+  if (declaredToolNames.length !== 13) {
+    fail(`tool-table scan captured ${declaredToolNames.length} names, expected 13 — ${toolsSrcPath}`)
+  }
+  const servedToolNames = list.result.tools.map((t) => t.name).sort()
+  const expectedToolNames = [...declaredToolNames].sort()
+  const missingTools = expectedToolNames.filter((n) => !servedToolNames.includes(n))
+  const extraTools = servedToolNames.filter((n) => !expectedToolNames.includes(n))
+  if (missingTools.length > 0 || extraTools.length > 0) {
+    fail(`tools/list name set drifted from the tool table — missing: [${missingTools}], extra: [${extraTools}]`)
+  }
+
   const callRes = lines.find((l) => l.id === 3)
   const decision = JSON.parse(callRes.result.content[0].text)
   if (decision[0].verdict !== "BLOCK") fail(`scan_mcp_config_json expected BLOCK, got ${decision[0].verdict}`)
@@ -264,7 +304,7 @@ try {
     }
   }
   ok(
-    `stdio server: initialize + tools/list(${list.result.tools.length}) + tools/call → BLOCK + resources(${resources.length}) + read verbatim + server/discover(${advertised.join(",")}) + 2026-07-28 envelope/handshake-refused`,
+    `stdio server: initialize + tools/list(${list.result.tools.length} named) + tools/call → BLOCK + resources(${resources.length}) + read verbatim + server/discover(${advertised.join(",")}) + 2026-07-28 envelope/handshake-refused`,
   )
 
   console.log("mcp-pack-smoke: PASS")

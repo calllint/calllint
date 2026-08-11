@@ -324,6 +324,7 @@ export {
   type WiredCheck,
   type ServedGuard,
   type AggregatorReach,
+  type ToolNameSources,
 } from "./phase24Gates.js"
 
 // Workstream P Batch 1 — the presentation control plane's schema + digest seams
