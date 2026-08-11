@@ -656,7 +656,10 @@ batch's scope was fixed at `clientCapabilities` alone.
 
 ## M-OPEN-6 — one amendment key in these artifacts is invisible to the reader that resolves them
 
-**Status:** OPEN. Filed by M26-8 (ADR 0068 §5), which found it while closing M-OPEN-1 and deliberately
+**Status:** ~~OPEN~~ → **CLOSED** by M26-9 (ADR 0072). See the `closedByM26-9` note at the end of this
+row; the original text below is preserved verbatim, including the census numbers that have since drifted.
+
+Filed by M26-8 (ADR 0068 §5), which found it while closing M-OPEN-1 and deliberately
 did **not** fix it — the fix changes how *every* field in both artifacts resolves.
 
 | | |
@@ -707,6 +710,68 @@ line — and M26-8's authorized scope was M-OPEN-1 half 1 plus M-OPEN-4.
 that no `/M26-\d+/` key in either artifact is unrecognized. Either alone is insufficient: a widened
 pattern with no complement check is the same guess that has now been made twice.
 
+### closedByM26-9 — 2026-08-11, M26-9 (ADR 0072)
+
+**Status: CLOSED**, by this row's own falsification condition and by both halves of it. `AMENDMENT_KEY`
+is now `/M26-\d+$/` with an object-valued guard (fix shape 1), and
+`amendmentKeysCoverEveryBatchKey` asserts the complement as the **set of unrecognized names** (fix
+shape 2). Control **#195** reverts the constant to the old prefix rule and the complement reds naming
+`closedByM26-5` — the defect this row records, reproducible on demand. Fix shape 3 chose **(1) over
+renaming**, as this row preferred: renaming is an edit to an append-only record.
+
+**M26-8's deferral is discharged, and the answer is narrower than it expected.** The before/after
+measurement it required — every field of every amended object, resolved under both rules — is:
+
+```
+objects carrying amendments: 14      fields compared: 159      DIFFERING: 6
+```
+
+All six are `finality-status.json` `gates[7].*` (F8): `status`, `vendored`, `gate`, `inv-M4`,
+`whatChangedForF1-F7`, `whatItCaughtImmediately`. Five were `<ABSENT>` under the old rule (the field
+exists only inside the amendment block); one is a real stale-value substitution — `status` was `"PASS"`
+and now resolves via `closedByM26-5` to prose beginning `"PASS as of 2026-08-09…"`. **Outside F8,
+nothing moved:** the five `protocol-delta-matrix.json` lookups and `supersededBy` resolve byte-for-byte
+as before. That is the safety result M26-8 wanted, and it is why this was a batch rather than a line —
+the measurement, not the edit, was the work.
+
+**One number in this row was already stale, and the correction matters more than the digits.** It
+records 20 occurrences / 10 distinct names + 1 miss; today it is **21 / 11** + the same 1 miss, because
+M26-8 added `amendedByM26-8` while filing this row. The diagnosis did not rot; the census did. A census
+written into prose is a snapshot, so the gate now pins `census.size >= 11` rather than trusting this
+paragraph.
+
+**Two things measured while implementing that this row did not anticipate.**
+
+1. **A scalar-valued batch key already exists.** `protocol-delta-matrix.json`
+   `summary.amendedByM26-1.statusAfterThisBatch.amendedByM26-2` is a **string** — an inline note among
+   a map of D-row statuses. The old prefix regex matched it too and `asBlock` dropped it silently, so
+   the object guard in fix shape 1 is load-bearing on today's bytes rather than a precaution: without
+   it that key would enter the *recognized* set unusable, and the complement assertion would report a
+   coverage it does not have. It is excluded by name, not by count, so a second one has to be justified
+   at the assertion.
+2. **The complement's census must be keyed more loosely than the resolver.** Written as `/M26-\d+/` —
+   this row's own wording — the census cannot fail: control **#191** renames `closedByM26-5` to
+   `closedAtStageM26x5`, which drops the suffix, so census and recognized set shrink **together** and
+   the check passes while the resolver goes blind. The census is therefore `/M26/i`, the widest pattern
+   that still means "this key names a batch". Measured over today's bytes it yields exactly the 11 real
+   names and zero noise, so the looseness costs nothing. **A complement check keyed on the same
+   predicate as the thing it audits is not a complement check.**
+
+**What this batch did *not* fix, deliberately.** `tests/invariants/mcp-artifact-claims.invariants.test.ts`
+`:358` still reads the **raw** `status` when asserting all eight gates pass, and that is correct: F8's
+top-level `status` **is** `"PASS"`, and its amendment dates the observation rather than revoking the
+verdict. Routed through the resolver, `!== "PASS"` would be true and a correct assertion would report
+F8 as failing. Both readings are now pinned side by side (control **#193** reds the resolver arm while
+the eight-gate filter stays green; **#194** reds the filter alone), so an edit that "helpfully" unifies
+them fails against a message saying why. **A strictly more correct resolution can make a correct
+assertion wrong — that is not a reason to keep the wrong resolver, but it is a reason to pin the
+distinction.**
+
+**This row's own "why nothing is broken today" still holds, and it is why the value here is
+prospective.** No assertion resolved F8 through the chain before this batch, so nothing was silently
+wrong. What changes is that the next batch to assert over F8 reads its **current** observation instead
+of *"third_party/ measured ABSENT"*, a sentence false of every commit since M26-5.
+
 ---
 
 ## Not open — closed items recorded so they are not re-analyzed
@@ -727,4 +792,5 @@ pattern with no complement check is the same guess that has now been made twice.
 | Whether this server may ever send `-32021` | **DECIDED: no** | ADR 0067 §3. Derived, not chosen — `ClientCapabilities.required` is `null` and no CallLint tool needs a capability, so `requiredCapabilities` would have nothing to name. A gate asserts `server.ts` does not contain the code. |
 | M-OPEN-1 **half 1** (F5/F6 gate-backed) | **CLOSED** by M26-8 | ADR 0068; M-OPEN-1's closing note above. Half 1's literal instruction (*"change* F5/F6's `evidence.source`") was **unfollowable** — that would overwrite an append-only field. Moved by amendment instead. Half 2 (vendoring for auth) is **not** carried: it needs a claim CallLint makes. |
 | M-OPEN-4 (the `\r`-blind row filter) | **CLOSED** by M26-8 | ADR 0068 §4; M-OPEN-4's closing note above. **Its "cosmetic" premise is falsified** — the inflated row count made F7's removal-clock inequality *unfalsifiable* on a CRLF checkout. Read that note before believing any "message-quality only" assessment in this file. |
+| M-OPEN-6 (the invisible amendment key) | **CLOSED** by M26-9 | ADR 0072; M-OPEN-6's `closedByM26-9` note above. The resolver is keyed on the batch **suffix** with an object-valued guard, and the complement is asserted as a set of names. Two things worth reading before touching this resolver: a **scalar-valued** batch key already exists (so the object guard is load-bearing today), and the complement's census is `/M26/i` on purpose — keyed on `/M26-\d+/` it **cannot fail**. The before/after is **6 of 159 fields, all on F8**; `:358` still reads the raw `status` deliberately. |
 | The superseded top-level-URL guard on F5/F6 | **REPLACED** by M26-8 | M-OPEN-1's closing note. It could only red on the action M-OPEN-2 **forbids** (overwriting the top level) and was blind to the authorized amendment. General form: on an append-only record, a top-level-bound guard measures whether history was destroyed, not whether the claim advanced. |
