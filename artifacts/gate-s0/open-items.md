@@ -179,10 +179,15 @@ creation date — #234 still *presents* as a 2026-07-27 PR titled for a July ref
 
 ## S0-OPEN-2 — `gate:s0` is outside `ci:local`, so nothing runs it on any schedule
 
-**Status:** OPEN
+**Status:** **CLOSED 2026-08-10** (S batch 2, ADR 0070) — but by **neither** of the two disjuncts
+this row wrote for itself, and that is the finding. Its first disjunct was *measured and refused*.
+See the second amendment at the end of the row. Everything between here and there is the
+2026-08-09/2026-08-10 text, left verbatim, including the runtime figure the close corrects.
 
 `package.json:42-43` wires `gate:s0` and `gate:s0:gate`; `:75`'s `ci:local` has **19**
-`&&`-joined steps and includes **neither**. (The count is asserted by the reader rather than
+`&&`-joined steps and includes **neither**. (Both counts moved when this row closed: a third
+script `gate:s0:regression` was added and `ci:local` now has **20** steps, the twentieth being
+that mode. The 2026-08-09 figures are left as written — see the closing amendment.) (The count is asserted by the reader rather than
 trusted here — an earlier draft of this line said 18, which is the kind of number that rots
 quietly.) The exclusion is argued and correct (`scripts/gate-s0.ts:5-7`). The
 consequence is not addressed: no workflow, no cron, and no test invokes either script, so the
@@ -229,6 +234,171 @@ mistaken for enforcement.
 **What would make this row false — unchanged**, plus one addition: if the answer is a scheduled
 run, it must state whether it runs with `--no-run` and why, since that choice decides whether
 the EXECUTED tier is evidence or decoration.
+
+### Amendment 2026-08-10 (S batch 2, ADR 0070) — CLOSED, by refusing this row's own first remedy
+
+The row is closed by a **third** mode, `--regression`, wired into both `ci:local` and
+`.github/workflows/ci.yml`. Neither of the two disjuncts above is what closed it. The first was
+measured and found to carry the exact defect S batch 1 had just removed from `--gate`; the second
+was available but would have been a worse answer once the first was understood.
+
+**Why the first disjunct — "a scheduled invocation of `gate:s0` in report mode" — was refused.**
+Measured before implementing, by breaking report mode's subject and observing its exit code:
+DEP-8's flag scan was pointed at a token that does not exist in the source, and report mode
+printed `✗` beside DEP-8 and **exited 0**. Report mode exits 0 *unconditionally*; it has no
+failing mode at all. So scheduling it would have added a CI step that cannot fail — a step whose
+green says nothing about the bytes it read. That is ADR 0069 §2's defect wearing a workflow file:
+the previous batch stopped `--gate` printing `✓` over red bytes, and this row's own suggested
+remedy would have reintroduced it one level up, as a scheduled green over any bytes whatsoever.
+The parenthetical justifying it — *"measuring is useful even when the gate would fail"* — is true
+of a human reading output and false of CI, which reads only the exit code.
+
+**Why not `--gate`.** It exits 2 on `main` today for the cohort shortfall (19 < 25, S0-OPEN-1),
+and only merging the registry expansion can clear that. Wiring it would pin the required check red
+for a reason **no PR under review can fix**, which is a different way of making CI's signal
+meaningless. The reader asserts `gate:s0:gate` never appears in `ci.yml` or `ci:local`, so this
+cannot be "fixed" later by wiring the enforcing mode without that assertion going red first.
+
+**What `--regression` enforces, and the one thing it does not.** Exit 2 if any of the five
+assertions fails, or if the registry cohort **shrinks** below a floor derived from HEAD. The
+25-record requirement is reported as census — the number is printed, never enforced. This is the
+split the row could not see while treating "the gate" as one thing: the 25-record *requirement*
+is what cannot pass today, but the five *assertions* all pass on `main` right now, and a passing
+assertion nothing runs is not a measurement. Two failing modes, separated:
+`registryShort` (true on `main`, not a regression) and `cohortRegressed` (false on `main`, a real
+defect if it ever goes true). Blending them into one boolean is what made the gate unwireable.
+
+**The floor cannot be edited slack.** `S0_REGRESSION_FLOOR` is asserted `<= S0_REQUIRED_RECORDS`
+at load time — incoherent constants exit 2 before any measurement — and pinned by the reader
+against `packages/trust-index/snapshots/official-mcp-registry.json`, the **input** the gate
+reconciles against under INV-R5, not the served bytes. A future batch that lowers the floor to
+make a red CI green reds the pin instead. Anchoring to the upstream snapshot rather than
+`apps/web/public/trust/index.json` is deliberate and is this row's own rule applied to itself: a
+test must not depend on baked bytes.
+
+**`--no-run` is refused under `--regression`**, as it already was under `--gate`, so the addition
+this row asked for is answered by construction rather than by prose: CI runs the full form, and
+the cheap path can never be mistaken for enforcement. The two modes are also mutually exclusive —
+asking for both exits 2 rather than silently preferring one.
+
+**The cost, re-measured — the figure above is wrong.** This row's first amendment says
+**~25s wall clock**, and ADR 0069 §5 and §11 repeat it. Measured three times on this machine:
+**7s / 9s / 9s**, 156/156 tests passing, EXIT=0. The `**156 tests**` figure is correct; the
+seconds are out by roughly 3×, and the corrected number is what made "where does it run" a
+non-question — at ~8s it goes in the main matrix, not on a schedule. Both figures are kept: the
+overstatement is the record of a cost estimated rather than timed, which is what turned a
+one-line wiring decision into a paragraph of scheduling deliberation.
+
+**What is NOT closed by this.** S0-OPEN-1 is untouched: the cohort is still 19/25 and
+`--regression` deliberately does not enforce that. S0-OPEN-4 is untouched and is now the one that
+matters most, because closing S0-OPEN-1 by expanding the cohort **evicts CallLint's own claimed
+page** at cohort 26 — and would do so while going green. `--regression`'s floor does not see that
+either: it counts records, and an eviction that adds a record while removing the self-claim
+holds any floor. That is S0-OPEN-4's business, and its three remedies each need their own
+authorization.
+
+**What would make this closure false.** If `ci:local` or `ci.yml` stops invoking
+`gate:s0:regression`, or if `--regression` ever exits 0 with an assertion red. Both are asserted
+by the reader in `tests/invariants/gate-s0-claims.invariants.test.ts`, in both files, so the
+closure is guarded rather than declared.
+
+**Measured side by side, since this row's refusal rests on it.** With `INV-R6`'s anchor pointed at
+a token that does not exist, on the same bytes in the same working tree:
+
+```
+report mode (the refused remedy)   ✗ INV-R6: anchor absent …          EXIT=0
+--regression (what CI runs)        ❌ one or more assertions FAILED   EXIT=2
+```
+
+Both **print** the failure. Only one **reports** it. That is the whole difference between the
+remedy this row prescribed and the one that closed it.
+
+**A fourth consumer of `ci:local`'s script string, found by it going red.** Appending a step to
+`ci:local` red `pnpm ci:local` itself, at **Gate 2.4-H**, not at the new step:
+`artifacts/phase-2.4/gate-H-no-regression.json` embeds that `&&`-joined string **verbatim** and
+byte-compares it. Regenerated with `pnpm eval:phase-2.4:gates:write`; the diff is exactly one line,
+the appended step. Recorded because this row's own first amendment enumerated the consumers of
+`ci:local` (`package.json:75`, the reader's step count, and this row's prose) and **missed this
+one** — so the next batch that edits `ci:local` should expect a drift-checked artifact to move with
+it, and should not mistake that red for a defect in its own step.
+
+**One control changed the reader rather than confirming it.** Control #174 swapped `ci.yml`'s step
+to `gate:s0:gate` — the precise mistake the exclusion assertion exists to catch — and the red read
+*"expected … to contain 'pnpm gate:s0:regression'"*: true, but it names a **missing step** instead of
+the hazard, because the presence assertion sat before the exclusion and short-circuited it. The
+exclusion never ran. The order is now exclusion-first, and the swap reds on the swap.
+[[assertion-order-decides-falsifiability]] — inside the file that cites it, and in the same batch
+where the `ci:local` half of the very same test already had the order right. Getting the principle
+right once in a file does not propagate it to the next assertion in that file.
+
+### Amendment 2026-08-11 (S batch 2, post-push) — the closing evidence was a text match, and the remote falsified it
+
+Everything above was verified locally and pushed as `d825330`. **The workflow it added never ran.**
+
+The step went in unquoted:
+
+```yaml
+- name: Gate S0 (regression: assertions + cohort ratchet)
+```
+
+An unquoted `: ` inside a YAML scalar makes the **whole file** unparseable. GitHub reported *"This
+run likely failed because of a workflow file issue"*, the `test` job never started, and the failure
+mode is **worse than a red build**:
+
+| | observed |
+|---|---|
+| `gh pr checks 286` | **six green**, `build-and-test` **absent from the list** |
+| `gh pr view --json mergeable` | `MERGEABLE` / `BLOCKED` |
+| `gh run list` | `.github/workflows/ci.yml  completed  failure` — **zero jobs** |
+
+A workflow that does not parse contributes **no check runs at all**, so the required check does not
+go red — it stops existing. The rollup showed only the six independent workflows, all green.
+
+**The 22 assertions this row calls its closing evidence all passed on those bytes**, because the
+reader read `ci.yml` as text:
+
+```ts
+expect(ci, "ci.yml must run it").toContain("pnpm gate:s0:regression")
+```
+
+That is true of a file no runner can execute. The assertion's subject is *"a string is present"*;
+the claim is *"CI runs the step."* **This is ADR 0069 §2's defect — a probe agreeing with the
+description of a claim instead of the claim — reproduced inside the batch that closes the row about
+it, in the very evidence offered for the closure.** The batch measured report mode's exit code
+rather than trusting its output, then trusted its own reader's `toContain` without asking what it
+would accept.
+
+**Repair, and why it is a parse rather than a better regex.** No regex distinguishes an executable
+workflow from an unparseable one; only a parser does. So `ci.yml` is now parsed, and Gate S0's step
+is looked up as a **structure** — a `run:` value inside `jobs.test.steps` — with `build-and-test`
+asserted to survive in the parsed job graph, because an **absent** required check is not a failing
+one. A second test parses **all fifteen** workflows: nothing in this repo could have caught this in
+any of them.
+
+`yaml@2.8.2` is now a pinned root devDependency. It was **not** declared before, and
+`require.resolve("yaml")` on this machine returned `D:\my-web-app\node_modules\yaml` — a package
+**outside the repository**, hoisted from a parent directory. A test importing it would have passed
+here and been missing in CI: [[lockfile-crlf-unpinned]]'s local-green/remote-red shape, arriving
+through the module resolver instead of through line endings. Control #179 confirms the declaration
+is load-bearing.
+
+**Three more controls, each restored byte-identical:**
+
+| # | mutation | required failure |
+|---|---|---|
+| 177 | remove the quotes — the exact bytes that were pushed | both new assertions red, naming the **file and the parser's line** (`ci.yml: Nested mappings are not allowed … at line 152`), not `expected false to be true` |
+| 178 | comment out one workflow's `jobs:` key — still valid YAML | only the **shape** assertion reds, printing `[ 'action-selftest.yml' ]`; the parse assertion stays green, so the two bounds are independent |
+| 179 | drop `yaml` from `devDependencies` | `pnpm install --frozen-lockfile` — CI's first step — refuses by name, so an undeclared parser cannot reach the suite |
+
+**What this says about the closure.** The row is still CLOSED, and by the same reasoning: the
+refusal of report mode was measured, and control #175's side-by-side exit codes stand. What was
+wrong was not the decision but the **evidence that the decision had been applied**. A row closed by
+*"CI runs it"* needs a reader that can tell whether CI **can** run it, and until this amendment it
+had one that could only tell whether the bytes mentioned it.
+
+Kept by append, not corrected in place: the sequence *local green → pushed → the remote had no
+opinion at all* is the reusable part, and a reader that silently gained a parser would leave no
+record that it once had none.
 
 ---
 
@@ -452,3 +622,91 @@ one outcome that proves nothing.
 **Interaction with S0-OPEN-1 that a reader must not miss.** PR #234's head carries `count: 25` —
 *exactly* the overlap size. Merging it would satisfy S0 **and** retain the page, and would tell you
 nothing about size 26. The next ingest run after that merge is where this row bites.
+
+---
+
+## S0-OPEN-5 — Gate 2.4-H asserts 18 checks are "wired" by matching text, so it cannot see that the runner rejects the file
+
+**Status:** OPEN (filed 2026-08-11, S batch 2 post-push correction, ADR 0070 §10). Filed because
+the defect it describes **already fired once, in this batch**, one layer up: see S0-OPEN-2's
+2026-08-11 amendment. Gate 2.4-H itself belongs to Phase 2.4, so repairing it is that phase's
+authorization, not this row's.
+
+**The subject, at `path:line`.** `observeGateH()` in `scripts/phase-2.4-gates.ts:711-731` decides
+whether each regression check is wired to CI with two regexes over the workflow's **text**
+(`:717-719`):
+
+```ts
+const bound =
+  new RegExp(`run: pnpm ${escapeRe(c.script)}\\s*$`, "m").test(wfSrc) &&
+  new RegExp(`^  ${escapeRe(c.job)}:$`, "m").test(wfSrc)
+```
+
+`REGRESSION_CHECKS` (`:637`) has **19 rows**, all naming `workflow: "ci.yml"`, of which **2** are
+`remoteOnly` (`pack:smoke`, `pack:smoke:mcp`). `artifacts/phase-2.4/gate-H-no-regression.json`
+records **18 bound** (`ci.yml#test`) and **1 null** — `ci:local`, which is the chain itself and has
+no workflow step by design.
+
+**Measured, on the exact bytes GitHub refused.** The pushed `ci.yml`
+(`git show HEAD:.github/workflows/ci.yml`, the unquoted `- name: Gate S0 (regression: …)` form) is
+unparseable: `yaml@2.8.2` reports *"Nested mappings are not allowed in compact mappings at line 150,
+column 15"*, and GitHub started **zero jobs** from it. Gate H's regexes applied to those same bytes:
+
+| probe | result on the unparseable file |
+|---|---|
+| distinct `run: pnpm <script>` lines seen | **23** |
+| of those, `workflowBinding` = BOUND | **23** |
+| the 18 rows the artifact records as bound | **18 still bound — none lost** |
+| `gate:s0:regression` bound? | **true** |
+| `^  build-and-test:$` present? | **true** |
+| the runtime's own verdict | **parse FAILED, zero jobs** |
+
+So Gate 2.4-H would have reported all 18 checks wired, and the required-check aggregator present, on
+a file no runner will execute. This is not a hypothetical: it is a re-run of the state `main`'s
+sibling branch was actually in.
+
+**Why this is worth its own row rather than a note.** The mistake is not "someone forgot to parse
+YAML." It is that the assertion's *subject* and the gate's *claim* are different propositions:
+
+```
+subject: the string `run: pnpm X` appears in ci.yml, and a line reads `  test:`
+claim:   check X runs in CI
+```
+
+Every failure mode that lives **between** those two — an unparseable file, a step under a job that
+`if:`-skips, a job with no `runs-on`, a step inside a job the aggregator does not `need` — is
+invisible. ADR 0069 §2 named this shape for a different gate (a probe agreeing with a claim's
+*description* instead of the claim); [[assertion-order-decides-falsifiability]] and
+[[source-scan-must-read-code-not-prose]] are the same family. Gate H is the **largest** remaining
+instance in the repo by row count: 18 claims resting on one text match.
+
+**Why this row is OPEN rather than fixed.**
+- Gate 2.4-H is a **drift-checked** gate: `artifacts/phase-2.4/gate-H-no-regression.json` must stay
+  byte-identical to a fresh run, so changing how `workflowBinding` is computed changes the committed
+  artifact and needs Phase 2.4's regeneration path, not an S-batch edit.
+- It reads the same `REGRESSION_CHECKS` list four other gates key off. A parse-based binding may
+  legitimately produce a *different* answer for a row (e.g. a step guarded by `if:`), and deciding
+  what that answer should be is a Phase 2.4 judgement about what "wired" means.
+- This batch already carries its own correction (S0-OPEN-2's amendment). Fixing a second gate in the
+  same push would put two unrelated repairs behind one CI result.
+
+**Shape of the fix, for whichever batch takes it.** Do not add a second regex. Parse the workflow
+once with the pinned `yaml` devDependency (already declared at root as `yaml@2.8.2` — added by this
+batch, see S0-OPEN-2's amendment for why it was previously resolving from *outside* the repository),
+then look each check up **structurally**: `jobs[c.job].steps[].run` must contain `pnpm <script>` as a
+whole token, `jobs[c.job]` must exist as an object, and the required aggregator must survive in
+`Object.keys(jobs)`. Keep the text match as a *precondition* rather than replacing it, for the reason
+ADR 0069 §3 gives: a parse alone goes green when a step is renamed away, and a scan alone goes green
+when the file cannot run. Two probes, two failure modes, both named.
+
+**What would make this row false.** `observeGateH` resolving `workflowBinding` from a parsed workflow
+graph, **plus** a control that applies the pushed unparseable bytes and observes Gate 2.4-H red
+naming the parse failure — not merely a comment claiming the parse happens. A green Gate H on valid
+YAML proves nothing here: valid YAML is the case the current regex already handles.
+
+**Not blocked by anything, and blocking nothing.** Independent of S0-OPEN-1 (cohort size) and
+S0-OPEN-4 (the eviction boundary). The narrow instance that mattered to Workstream S — Gate S0's own
+step — is already parsed structurally by
+`tests/invariants/gate-s0-claims.invariants.test.ts`, which also sweeps **all 15** workflow files for
+parseability. So the hole is bounded to Gate H's own 18 rows, and the repository is no longer blind
+to an unparseable workflow in general.

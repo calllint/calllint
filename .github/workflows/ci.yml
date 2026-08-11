@@ -140,6 +140,18 @@ jobs:
       - name: Workstream P preview & snapshot harness (§14 gate)
         run: pnpm audit:preview:gate
 
+      # Gate S0's regression mode (S0-OPEN-2). NOT `--gate`: that mode enforces the
+      # 25-record vertical slice, which is short on `main` today (19), so wiring it
+      # would pin CI red for a reason no PR under review can clear — only merging the
+      # registry expansion can. NOT report mode either, which was S0-OPEN-2's own
+      # suggested remedy: measured, it exits 0 unconditionally, so it would add a step
+      # with no failing mode. `--regression` enforces the four assertion tiers plus a
+      # monotonic cohort floor, and reports the 25-record shortfall as census. ~8s.
+      # Quoted deliberately: an unquoted `: ` inside this scalar makes the WHOLE file
+      # unparseable, and a text-matching reader cannot see that (control #177).
+      - name: "Gate S0 (regression: assertions + cohort ratchet)"
+        run: pnpm gate:s0:regression
+
       - name: Package smoke (shipped artifact)
         run: pnpm smoke
 
