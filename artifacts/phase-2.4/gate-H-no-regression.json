@@ -1,6 +1,6 @@
 {
   "schema": "calllint.phase-2.4-gate-h.v0",
-  "$comment": "Gate 2.4-H evidence — the only gate whose subject is the gate SYSTEM, not the product. It asks what the other seven cannot ask about themselves: is every mechanism that would CATCH a regression still present and still wired to something that runs it? Four things are measured. (1) All eight gate rows have a committed artifact and a recorded status, read from a longhand id→file map rather than a glob, so DELETING an artifact fails the gate instead of improving it. (2) Every machine-decidable gate is PASSED; 2.4-B is recorded as human-decided and excluded from the floor, because unfinished human work is not a regression — but it is never counted as passed either. (3) The MCP tool count agrees between the tool table that produces it and the pack smoke that asserts it — the Phase-2.6 N8 local-green/remote-red failure mode. (4) Every regression check resolves to a real package.json script AND to a place that runs it; the two checks a local run cannot prove (pack:smoke:mcp, the cross-OS CRLF checkout) are marked REMOTE-ONLY and asserted to be bound to a real workflow job instead of being claimed as passed. Finally, every served subtree is asserted to have BOTH a reproducibility guard test and a `.gitattributes eol=lf` pin. The `releaseBoundary` block is deliberately separate from this gate's status: 'nothing regressed' and 'the boundary is closed' are different claims, and collapsing them is how a machine run would authorize a release that still owes a human panel. Regenerate with `pnpm eval:phase-2.4:gates:write`.",
+  "$comment": "Gate 2.4-H evidence — the only gate whose subject is the gate SYSTEM, not the product. It asks what the other seven cannot ask about themselves: is every mechanism that would CATCH a regression still present and still wired to something that runs it? Five things are measured. (1) All eight gate rows have a committed artifact and a recorded status, read from a longhand id→file map rather than a glob, so DELETING an artifact fails the gate instead of improving it. (2) Every machine-decidable gate is PASSED; 2.4-B is recorded as human-decided and excluded from the floor, because unfinished human work is not a regression — but it is never counted as passed either. (3) The MCP tool count agrees between the tool table that produces it and the pack smoke that asserts it — the Phase-2.6 N8 local-green/remote-red failure mode. (4) Every regression check resolves to a real package.json script AND to a place that runs it; the two checks a local run cannot prove (pack:smoke:mcp, the cross-OS CRLF checkout) are marked REMOTE-ONLY and asserted to be bound to a real workflow job instead of being claimed as passed. Bindings are read by PARSING the workflow the way the runner does, with the old text match kept as a precondition and any disagreement between the two probes recorded as its own fault: a parse alone would go green when a step is renamed away, a text scan alone would go green when the file cannot run at all. (5) The required `build-and-test` check exists and its `needs` covers every job those checks bind to — a bound job the required check does not wait on blocks nothing. That measure is held separately because when `ci.yml` stopped parsing, all 18 rows recited 'bound to no workflow job' and not one of them said why. Finally, every served subtree is asserted to have BOTH a reproducibility guard test and a `.gitattributes eol=lf` pin. The `releaseBoundary` block is deliberately separate from this gate's status: 'nothing regressed' and 'the boundary is closed' are different claims, and collapsing them is how a machine run would authorize a release that still owes a human panel. Regenerate with `pnpm eval:phase-2.4:gates:write`.",
   "gate": "2.4-H",
   "status": "PASSED",
   "engine": "1.7.3",
@@ -70,6 +70,7 @@
       "script": "pnpm typecheck && pnpm test && pnpm build && pnpm corpus:test && pnpm bench:test && pnpm check:public-copy && pnpm audit:evidence && pnpm audit:coverage && pnpm audit:calibration && pnpm eval:phase-2.4 && pnpm eval:phase-2.4:dogfood && pnpm eval:phase-2.4:gates && pnpm eval:phase-2.4:panel:validate && pnpm audit:presentation && pnpm audit:presentation:gate && pnpm audit:presentation:lock && pnpm audit:presentation:lock:gate && pnpm audit:preview && pnpm audit:preview:gate && pnpm gate:s0:regression",
       "inLocalChain": true,
       "workflowBinding": null,
+      "bindingFault": "no step in ci.yml#test runs `pnpm ci:local`",
       "remoteOnly": false,
       "role": "local-chain"
     },
@@ -78,6 +79,7 @@
       "script": "tsc -p tsconfig.json",
       "inLocalChain": true,
       "workflowBinding": "ci.yml#test",
+      "bindingFault": null,
       "remoteOnly": false,
       "role": "check"
     },
@@ -86,6 +88,7 @@
       "script": "vitest run",
       "inLocalChain": true,
       "workflowBinding": "ci.yml#test",
+      "bindingFault": null,
       "remoteOnly": false,
       "role": "check"
     },
@@ -94,6 +97,7 @@
       "script": "node scripts/check-public-copy.mjs",
       "inLocalChain": true,
       "workflowBinding": "ci.yml#test",
+      "bindingFault": null,
       "remoteOnly": false,
       "role": "check"
     },
@@ -102,6 +106,7 @@
       "script": "tsx scripts/audit-evidence.ts",
       "inLocalChain": true,
       "workflowBinding": "ci.yml#test",
+      "bindingFault": null,
       "remoteOnly": false,
       "role": "check"
     },
@@ -110,6 +115,7 @@
       "script": "tsx scripts/calibration-audit.ts",
       "inLocalChain": true,
       "workflowBinding": "ci.yml#test",
+      "bindingFault": null,
       "remoteOnly": false,
       "role": "check"
     },
@@ -118,6 +124,7 @@
       "script": "tsx scripts/coverage-audit.ts",
       "inLocalChain": true,
       "workflowBinding": "ci.yml#test",
+      "bindingFault": null,
       "remoteOnly": false,
       "role": "check"
     },
@@ -126,6 +133,7 @@
       "script": "tsx scripts/phase-2.4-eval.ts",
       "inLocalChain": true,
       "workflowBinding": "ci.yml#test",
+      "bindingFault": null,
       "remoteOnly": false,
       "role": "check"
     },
@@ -134,6 +142,7 @@
       "script": "tsx scripts/phase-2.4-dogfood.ts",
       "inLocalChain": true,
       "workflowBinding": "ci.yml#test",
+      "bindingFault": null,
       "remoteOnly": false,
       "role": "check"
     },
@@ -142,6 +151,7 @@
       "script": "tsx scripts/phase-2.4-gates.ts",
       "inLocalChain": true,
       "workflowBinding": "ci.yml#test",
+      "bindingFault": null,
       "remoteOnly": false,
       "role": "check"
     },
@@ -150,6 +160,7 @@
       "script": "tsx scripts/phase-2.4-panel.ts --validate",
       "inLocalChain": true,
       "workflowBinding": "ci.yml#test",
+      "bindingFault": null,
       "remoteOnly": false,
       "role": "check"
     },
@@ -158,6 +169,7 @@
       "script": "tsx scripts/presentation-plane-audit.ts",
       "inLocalChain": true,
       "workflowBinding": "ci.yml#test",
+      "bindingFault": null,
       "remoteOnly": false,
       "role": "check"
     },
@@ -166,6 +178,7 @@
       "script": "tsx scripts/presentation-lock.ts",
       "inLocalChain": true,
       "workflowBinding": "ci.yml#test",
+      "bindingFault": null,
       "remoteOnly": false,
       "role": "check"
     },
@@ -174,6 +187,7 @@
       "script": "tsx scripts/presentation-plane-audit.ts --gate",
       "inLocalChain": true,
       "workflowBinding": "ci.yml#test",
+      "bindingFault": null,
       "remoteOnly": false,
       "role": "check"
     },
@@ -182,6 +196,7 @@
       "script": "tsx scripts/presentation-lock.ts --gate",
       "inLocalChain": true,
       "workflowBinding": "ci.yml#test",
+      "bindingFault": null,
       "remoteOnly": false,
       "role": "check"
     },
@@ -190,6 +205,7 @@
       "script": "tsx scripts/preview-snapshot.ts",
       "inLocalChain": true,
       "workflowBinding": "ci.yml#test",
+      "bindingFault": null,
       "remoteOnly": false,
       "role": "check"
     },
@@ -198,6 +214,7 @@
       "script": "tsx scripts/preview-snapshot.ts --gate",
       "inLocalChain": true,
       "workflowBinding": "ci.yml#test",
+      "bindingFault": null,
       "remoteOnly": false,
       "role": "check"
     },
@@ -206,6 +223,7 @@
       "script": "node scripts/mcp-pack-smoke.mjs",
       "inLocalChain": false,
       "workflowBinding": "ci.yml#test",
+      "bindingFault": null,
       "remoteOnly": true,
       "role": "check"
     },
@@ -214,10 +232,20 @@
       "script": "node scripts/package-smoke.mjs",
       "inLocalChain": false,
       "workflowBinding": "ci.yml#test",
+      "bindingFault": null,
       "remoteOnly": true,
       "role": "check"
     }
   ],
+  "requiredAggregator": {
+    "workflow": "ci.yml",
+    "job": "build-and-test",
+    "present": true,
+    "needs": [
+      "test"
+    ],
+    "parseError": null
+  },
   "servedGuards": [
     {
       "subtree": "apps/web/public/trust/**",
@@ -275,6 +303,11 @@
       "id": "mcp-tool-count-agrees",
       "pass": true,
       "observed": "13 tools, agreed across 2 sources (packages/calllint-mcp/src/tools.ts (declared), scripts/mcp-pack-smoke.mjs (asserted))"
+    },
+    {
+      "id": "wired/aggregator-reachable",
+      "pass": true,
+      "observed": "ci.yml#build-and-test present and needs [test], covering every bound job (test)"
     },
     {
       "id": "wired/ci:local",

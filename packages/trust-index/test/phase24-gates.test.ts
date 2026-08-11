@@ -16,6 +16,7 @@ import {
   type GateRecord,
   type WiredCheck,
   type ServedGuard,
+  type AggregatorReach,
 } from "../src/phase24Gates.js"
 
 // These tests exist for one reason: a gate that cannot fail proves nothing. Each
@@ -325,10 +326,20 @@ function check(over: Partial<WiredCheck> = {}): WiredCheck {
     script: "tsx scripts/phase-2.4-eval.ts",
     inLocalChain: true,
     workflowBinding: "ci.yml#test",
+    bindingFault: null,
     remoteOnly: false,
     role: "check",
     ...over,
   }
+}
+
+/** Today's shape: present, and `needs` covers the job every check binds to. */
+const AGG: AggregatorReach = {
+  workflow: "ci.yml",
+  job: "build-and-test",
+  present: true,
+  needs: ["test"],
+  parseError: null,
 }
 
 const GUARD: ServedGuard = {
@@ -343,17 +354,17 @@ const COUNTS = [COUNT_PRODUCER, COUNT_ASSERTION]
 
 describe("Gate 2.4-H — no regression", () => {
   it("PASSES when every gate row, check binding and served guard is in place", () => {
-    const r = evaluateNoRegression(GATES, [check()], [GUARD], COUNTS, 2)
+    const r = evaluateNoRegression(GATES, [check()], [GUARD], COUNTS, 2, AGG)
     expect(r.status).toBe("PASSED")
     expect(r.blockers).toEqual([])
   })
 
   it("a PENDING_HUMAN_PANEL gate does NOT regress the gate — unfinished human work is not a regression", () => {
-    expect(evaluateNoRegression(GATES, [check()], [GUARD], COUNTS, 2).status).toBe("PASSED")
+    expect(evaluateNoRegression(GATES, [check()], [GUARD], COUNTS, 2, AGG).status).toBe("PASSED")
   })
 
   it("but a human gate is never counted as passed — it stays declared as human-blocked", () => {
-    const r = evaluateNoRegression(GATES, [check()], [GUARD], COUNTS, 2)
+    const r = evaluateNoRegression(GATES, [check()], [GUARD], COUNTS, 2, AGG)
     const declared = r.measures.find((m) => m.id === "human-gates-declared")!
     expect(declared.observed).toContain("human panel required")
     // The machine roll-up must not silently absorb it into the passing set.
@@ -362,82 +373,206 @@ describe("Gate 2.4-H — no regression", () => {
 
   it("FAILS when a gate artifact was deleted — removing evidence must not make the gate greener", () => {
     const missing: GateRecord[] = [GATE_A, { ...GATE_B_HUMAN, artifact: null, status: "MISSING" }]
-    const r = evaluateNoRegression(missing, [check()], [GUARD], COUNTS, 2)
+    const r = evaluateNoRegression(missing, [check()], [GUARD], COUNTS, 2, AGG)
     expect(r.status).toBe("FAILED")
     expect(r.blockers.join(" ")).toContain("MISSING: 2.4-B")
   })
 
   it("FAILS when a gate row is dropped from the roll-up entirely", () => {
-    const r = evaluateNoRegression([GATE_A], [check()], [GUARD], COUNTS, 2)
+    const r = evaluateNoRegression([GATE_A], [check()], [GUARD], COUNTS, 2, AGG)
     expect(r.status).toBe("FAILED")
     expect(r.blockers.join(" ")).toContain("1/2 gate rows")
   })
 
   it("FAILS when a machine-decidable gate went red", () => {
     const red: GateRecord[] = [{ ...GATE_A, status: "FAILED" }, GATE_B_HUMAN]
-    const r = evaluateNoRegression(red, [check()], [GUARD], COUNTS, 2)
+    const r = evaluateNoRegression(red, [check()], [GUARD], COUNTS, 2, AGG)
     expect(r.status).toBe("FAILED")
     expect(r.blockers.join(" ")).toContain("2.4-A=FAILED")
   })
 
   it("FAILS when the MCP tool count drifts between producer and assertion", () => {
     const drifted = [{ ...COUNT_PRODUCER, count: 14 }, COUNT_ASSERTION]
-    const r = evaluateNoRegression(GATES, [check()], [GUARD], drifted, 2)
+    const r = evaluateNoRegression(GATES, [check()], [GUARD], drifted, 2, AGG)
     expect(r.status).toBe("FAILED")
     expect(r.blockers.join(" ")).toContain("tools.ts=14 vs mcp-pack-smoke.mjs=13")
   })
 
   it("FAILS when only one source states the tool count — agreement needs two", () => {
-    const r = evaluateNoRegression(GATES, [check()], [GUARD], [COUNT_PRODUCER], 2)
+    const r = evaluateNoRegression(GATES, [check()], [GUARD], [COUNT_PRODUCER], 2, AGG)
     expect(r.status).toBe("FAILED")
   })
 
   it("FAILS when a check script was deleted from package.json", () => {
-    const r = evaluateNoRegression(GATES, [check({ script: null })], [GUARD], COUNTS, 2)
+    const r = evaluateNoRegression(GATES, [check({ script: null })], [GUARD], COUNTS, 2, AGG)
     expect(r.status).toBe("FAILED")
     expect(r.blockers.join(" ")).toContain("a gate mechanism was removed")
   })
 
   it("FAILS when a check runs only in ci:local — a local-only check blocks no merge", () => {
-    const r = evaluateNoRegression(GATES, [check({ workflowBinding: null })], [GUARD], COUNTS, 2)
+    const r = evaluateNoRegression(GATES, [check({ workflowBinding: null })], [GUARD], COUNTS, 2, AGG)
     expect(r.status).toBe("FAILED")
     expect(r.blockers.join(" ")).toContain("nothing blocks a merge on it")
   })
 
   it("FAILS when a locally-provable check is absent from ci:local", () => {
-    const r = evaluateNoRegression(GATES, [check({ inLocalChain: false })], [GUARD], COUNTS, 2)
+    const r = evaluateNoRegression(GATES, [check({ inLocalChain: false })], [GUARD], COUNTS, 2, AGG)
     expect(r.status).toBe("FAILED")
     expect(r.blockers.join(" ")).toContain("cannot reproduce this gate before pushing")
   })
 
   it("a remote-only check is NOT required to be in ci:local, but IS required to be bound", () => {
-    const ok = evaluateNoRegression(GATES, [check({ id: "pack:smoke:mcp", inLocalChain: false, remoteOnly: true })], [GUARD], COUNTS, 2)
+    const ok = evaluateNoRegression(GATES, [check({ id: "pack:smoke:mcp", inLocalChain: false, remoteOnly: true })], [GUARD], COUNTS, 2, AGG)
     expect(ok.status).toBe("PASSED")
     expect(ok.measures.find((m) => m.id === "wired/pack:smoke:mcp")!.observed).toContain("REMOTE-ONLY")
 
-    const unbound = evaluateNoRegression(GATES, [check({ id: "pack:smoke:mcp", inLocalChain: false, remoteOnly: true, workflowBinding: null })], [GUARD], COUNTS, 2)
+    const unbound = evaluateNoRegression(GATES, [check({ id: "pack:smoke:mcp", inLocalChain: false, remoteOnly: true, workflowBinding: null })], [GUARD], COUNTS, 2, AGG)
     expect(unbound.status).toBe("FAILED")
   })
 
   it("the ci:local chain itself is graded on existing, not on being inside itself", () => {
     const chain = check({ id: "ci:local", role: "local-chain", workflowBinding: null })
-    expect(evaluateNoRegression(GATES, [chain], [GUARD], COUNTS, 2).status).toBe("PASSED")
-    expect(evaluateNoRegression(GATES, [{ ...chain, script: null }], [GUARD], COUNTS, 2).status).toBe("FAILED")
+    expect(evaluateNoRegression(GATES, [chain], [GUARD], COUNTS, 2, AGG).status).toBe("PASSED")
+    expect(evaluateNoRegression(GATES, [{ ...chain, script: null }], [GUARD], COUNTS, 2, AGG).status).toBe("FAILED")
   })
 
   it("FAILS when a served subtree has no reproducibility guard test", () => {
-    const r = evaluateNoRegression(GATES, [check()], [{ ...GUARD, guardTest: null }], COUNTS, 2)
+    const r = evaluateNoRegression(GATES, [check()], [{ ...GUARD, guardTest: null }], COUNTS, 2, AGG)
     expect(r.status).toBe("FAILED")
     expect(r.blockers.join(" ")).toContain("no reproducibility guard test")
   })
 
   it("FAILS when a served subtree is not eol=lf pinned — the windows-only CRLF trap", () => {
-    const r = evaluateNoRegression(GATES, [check()], [{ ...GUARD, eolPinned: false }], COUNTS, 2)
+    const r = evaluateNoRegression(GATES, [check()], [{ ...GUARD, eolPinned: false }], COUNTS, 2, AGG)
     expect(r.status).toBe("FAILED")
     expect(r.blockers.join(" ")).toContain("windows-latest only")
   })
 
   it("FAILS when the observation step hands over nothing to grade", () => {
-    expect(evaluateNoRegression([], [], [], [], 0).status).toBe("FAILED")
+    expect(evaluateNoRegression([], [], [], [], 0, AGG).status).toBe("FAILED")
+  })
+
+  // --- the aggregator's reach (S0-OPEN-5, ADR 0071) ------------------------------
+  //
+  // Every `wired/*` measure above asks whether a script is reachable from SOME job.
+  // None asks whether that job is reachable from the check the branch ruleset
+  // requires. These cover that gap, and they are separate tests because the three
+  // ways it breaks are three different sentences.
+
+  it("FAILS, NAMING THE PARSE ERROR, when the workflow does not parse at all", () => {
+    // The exact failure that fired on `d825330`: an unquoted `: ` in a step name made
+    // `ci.yml` unparseable, GitHub started ZERO jobs, and `build-and-test` STOPPED
+    // EXISTING rather than going red. The old text-match binding reported all 18
+    // checks wired on those bytes. What makes this control valid is not that the gate
+    // is red — an unbound check reds it too — but that the parse failure is NAMED.
+    const broken: AggregatorReach = {
+      ...AGG,
+      present: false,
+      needs: [],
+      parseError: "Nested mappings are not allowed in compact mappings at line 150, column 15",
+    }
+    const r = evaluateNoRegression(GATES, [check()], [GUARD], COUNTS, 2, broken)
+    expect(r.status).toBe("FAILED")
+    const m = r.measures.find((x) => x.id === "wired/aggregator-reachable")!
+    expect(m.pass).toBe(false)
+    // The message must carry the parser's own words through to the blocker, or the
+    // operator reads "not present" and goes looking for a deleted job.
+    expect(r.blockers.join(" ")).toContain("Nested mappings are not allowed")
+    expect(m.observed).toContain("contributes no job at all")
+    // And it must NOT be reported as a missing job: the job is declared, the FILE is
+    // broken. Naming the wrong cause is the defect S0-OPEN-5 was filed for.
+    expect(m.observed).not.toContain("declares no")
+  })
+
+  it("FAILS when the required aggregator job is gone", () => {
+    const r = evaluateNoRegression(GATES, [check()], [GUARD], COUNTS, 2, { ...AGG, present: false, needs: [] })
+    expect(r.status).toBe("FAILED")
+    expect(r.blockers.join(" ")).toContain("can never report")
+  })
+
+  it("FAILS when the aggregator no longer NEEDS the job the checks bind to", () => {
+    // The measure this gate lacked entirely. `build-and-test` carries `if: always()`
+    // on purpose — it runs even when `test` is red, then fails itself by reading
+    // `needs.test.result`. So "does it run?" is the wrong question; "does it wait on
+    // the job that runs our checks?" is the one that decides whether a red check
+    // blocks a merge. Drop the `needs` and every `wired/*` row still passes while
+    // nothing is gated.
+    const r = evaluateNoRegression(GATES, [check()], [GUARD], COUNTS, 2, { ...AGG, needs: [] })
+    expect(r.status).toBe("FAILED")
+    const m = r.measures.find((x) => x.id === "wired/aggregator-reachable")!
+    expect(m.pass).toBe(false)
+    expect(m.observed).toContain("does NOT cover bound job(s) test")
+    expect(m.observed).toContain("would not fail the required check")
+  })
+
+  it("does not demand the aggregator need ITSELF", () => {
+    // A check bound directly to `build-and-test` is reachable by definition. Without
+    // this carve-out the measure would fail on a correct wiring, which is
+    // [[a-gate-that-cannot-pass-on-success]].
+    const r = evaluateNoRegression(
+      GATES,
+      [check({ workflowBinding: "ci.yml#build-and-test" })],
+      [GUARD],
+      COUNTS,
+      2,
+      { ...AGG, needs: [] },
+    )
+    expect(r.status).toBe("PASSED")
+  })
+
+  it("names the CAUSE of an unbound check, not just the consequence", () => {
+    // 18 rows once read "bound to no workflow job — only `ci:local` runs it". Every
+    // word true; the cause — the file did not parse — appeared nowhere. `bindingFault`
+    // is required rather than optional precisely so no producer can stay silent here.
+    const r = evaluateNoRegression(
+      GATES,
+      [check({ workflowBinding: null, bindingFault: "ci.yml does not parse, so no runner will start a job from it — Nested mappings are not allowed in compact mappings at line 150, column 15" })],
+      [GUARD],
+      COUNTS,
+      2,
+      AGG,
+    )
+    expect(r.status).toBe("FAILED")
+    expect(r.blockers.join(" ")).toContain("does not parse")
+    expect(r.blockers.join(" ")).toContain("line 150")
+  })
+
+  it("still reports the generic consequence when no cause was observed", () => {
+    // A null fault is legitimate — `ci:local` is unbound by design. The generic
+    // sentence must survive for producers that genuinely have nothing to add.
+    const r = evaluateNoRegression(GATES, [check({ workflowBinding: null, bindingFault: null })], [GUARD], COUNTS, 2, AGG)
+    expect(r.status).toBe("FAILED")
+    expect(r.blockers.join(" ")).toContain("nothing blocks a merge on it")
+  })
+
+  it("counts 5 roll-up measures, so a sixth cannot be added without moving the denominator", () => {
+    // Pins the arity the denominator encodes. This is HALF the guard: it reds when a
+    // measure is added or dropped, but it says nothing about whether the denominator
+    // itself was synced — see the next test for that half.
+    const r = evaluateNoRegression(GATES, [check()], [GUARD], COUNTS, 2, AGG)
+    expect(r.status).toBe("PASSED")
+    expect(r.measures).toHaveLength(5 + 1 + 1)
+    expect(r.measures.map((m) => m.id)).toContain("wired/aggregator-reachable")
+  })
+
+  it("refuses a SHORT measure list, which is the only thing the denominator does", () => {
+    // Measured, not assumed: the denominator feeds exactly one comparison,
+    // `measures.length < requireAtLeast`. So reverting `5 +` to `4 +` on today's full
+    // list changes NOTHING — 31 < 30 is false either way. Negative control #189 was
+    // written expecting that revert to red, and it stayed green; this is the shape that
+    // actually discriminates ([[miscounted-denominator-is-a-false-green]]).
+    //
+    // `decideGate` is called directly because the point is the floor, not the
+    // observation: `evaluateNoRegression` cannot be made to emit a short list without
+    // editing the very code under test.
+    const full = Array.from({ length: 7 }, (_, i) => ({ id: `m${i}`, pass: true, observed: "ok" }))
+    expect(decideGate(full, 5 + 1 + 1).status).toBe("PASSED")
+    // Drop one. At the synced floor this is refused; at `4 +` it would pass silently,
+    // and the gate would grade an observation step that produced too little.
+    const short = full.slice(0, 6)
+    const refused = decideGate(short, 5 + 1 + 1)
+    expect(refused.status).toBe("FAILED")
+    expect(refused.blockers.join(" ")).toContain("expected at least 7 measures, got 6")
+    expect(decideGate(short, 4 + 1 + 1).status, "the off-by-one the control could not catch from outside").toBe("PASSED")
   })
 })

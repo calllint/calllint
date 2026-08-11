@@ -627,10 +627,14 @@ nothing about size 26. The next ingest run after that merge is where this row bi
 
 ## S0-OPEN-5 — Gate 2.4-H asserts 18 checks are "wired" by matching text, so it cannot see that the runner rejects the file
 
-**Status:** OPEN (filed 2026-08-11, S batch 2 post-push correction, ADR 0070 §10). Filed because
-the defect it describes **already fired once, in this batch**, one layer up: see S0-OPEN-2's
-2026-08-11 amendment. Gate 2.4-H itself belongs to Phase 2.4, so repairing it is that phase's
-authorization, not this row's.
+**Status:** **CLOSED 2026-08-11** (S batch 3, ADR 0071) — by this row's own falsification
+condition, both halves. See the amendment at the end of this row, which also records that **this
+row's second reason for staying OPEN was measured false**. Everything below is the original
+2026-08-11 text, left verbatim, including that falsified sentence.
+
+Filed because the defect it describes **already fired once, in this batch**, one layer up: see
+S0-OPEN-2's 2026-08-11 amendment. Gate 2.4-H itself belongs to Phase 2.4, so repairing it is that
+phase's authorization, not this row's.
 
 **The subject, at `path:line`.** `observeGateH()` in `scripts/phase-2.4-gates.ts:711-731` decides
 whether each regression check is wired to CI with two regexes over the workflow's **text**
@@ -710,3 +714,71 @@ step — is already parsed structurally by
 `tests/invariants/gate-s0-claims.invariants.test.ts`, which also sweeps **all 15** workflow files for
 parseability. So the hole is bounded to Gate H's own 18 rows, and the repository is no longer blind
 to an unparseable workflow in general.
+
+### Amendment 2026-08-11 (S batch 3) — CLOSED, and this row's own second reason was false
+
+**Closed by both halves of its own falsification condition, in that order.** `observeGateH` now
+resolves `workflowBinding` from a parsed workflow graph (`bindCheck`, `scripts/phase-2.4-gates.ts:783`,
+one parse per file via `readWorkflowGraph` at `:733`), **and** a control applies the exact bytes
+GitHub refused — `d825330`'s `- name: Gate S0 (regression: …)` fragment, inlined rather than fetched —
+and observes the gate red *naming the parse failure*, not reciting "bound to no workflow job" 18
+times. The control asserts the message's **content** (that it names a nested mapping), because a
+control satisfied by any thrown error would also be satisfied by the wrong error.
+
+**Four things the fix does that this row's "shape of the fix" did not fully specify.**
+
+1. **The two probes' disagreement is its own fault.** The row said keep the text match as a
+   precondition (ADR 0069 §3), which is done. What it did not say: when the structural and textual
+   probes *differ*, neither answer may be adopted. A disagreement means one probe is reading
+   something the runner does not, and that is a third independent failure mode — so `bindCheck`
+   returns `null` with a fault naming the disagreement itself.
+2. **The fault travels.** `WiredCheck` gained a **required** `bindingFault: string | null`
+   (`packages/trust-index/src/phase24Gates.ts:493`). Required, not optional: an optional field lets a
+   construction site stay silent and still typecheck ([[optional-field-defeats-source-guards]]), and
+   silence is precisely the defect — 18 rows recited a true sentence that named the wrong cause. This
+   is a **deviation** from the plan's "leave `WiredCheck`'s shape alone"; recorded in ADR 0071 §4
+   with the reason.
+3. **The aggregator is asserted by `needs`, not by survival.** The row's shape said *"the required
+   aggregator must survive in `Object.keys(jobs)`"*. Measured: `build-and-test` carries
+   `if: always()` and `needs: [test]`, so it runs **even when `test` is red** and then fails itself
+   by reading `needs.test.result`. Asserting it "runs unconditionally" would assert something false
+   about today's bytes. The new `wired/aggregator-reachable` measure
+   (`phase24Gates.ts:553`) therefore asserts presence **plus** `needs` covering every job any check
+   binds to — a bound job the required check does not wait on blocks nothing.
+4. **The denominator moved with the measure.** `decideGate(measures, 4 + …)` → `5 + …`
+   (`phase24Gates.ts:711`). A denominator feeding only `<` has no failing mode of its own, so a
+   short count would have read green forever ([[miscounted-denominator-is-a-false-green]]). Pinned in
+   the same edit that added the measure. `measures` went 30 → 31.
+
+   **And the control written to guard it could not fire.** Negative control #189 reverted `5 +` to
+   `4 +` and expected red; it stayed **green**, because that revert lowers the floor from 31 to 30 and
+   `31 < 30` is false either way — the mutation has no observable effect on today's inputs. What
+   discriminates is a **short measure list** (at 31 a dropped measure is refused; at 30 it passes
+   silently), now asserted in both directions by *"refuses a SHORT measure list"* in
+   `packages/trust-index/test/phase24-gates.test.ts`. Recorded because the lesson is recursive:
+   [[miscounted-denominator-is-a-false-green]] applies to the control as much as to the code, and a
+   green negative control must be diagnosed, never filed as a pass. ADR 0071 §8.
+
+**This row's second OPEN reason was measured false, and that is worth recording.** The text above
+says a parse *"may legitimately produce a different answer for a row (e.g. a step guarded by `if:`),
+and deciding what that answer should be is a Phase 2.4 judgement about what 'wired' means."* On
+today's bytes it produces **no** different answer: parse and regex agree on **all 19 rows**
+(`differing: 0`; only `ci:local` is false on both, by design), because `jobs.test` has **27 steps and
+zero step-level `if:`**, and no job-level `if:` either. There was no judgement to make. The
+substitution is behaviour-equivalent, and the artifact's **18 bound / 1 null** split is byte-identical
+across the change — verified by digest, not by eye. What did move is +1 measure and the new
+`bindingFault` / `requiredAggregator` evidence.
+
+The first reason (drift-checked artifact ⇒ needs Phase 2.4's regeneration path) was correct and was
+honoured: regenerated with `pnpm eval:phase-2.4:gates:write`. The third (two unrelated repairs behind
+one CI result) was correct when written and no longer applies — S batch 2 merged as `07b08fa` (#286).
+
+**A row's own reason for staying open can be wrong.** S0-OPEN-3's close recorded that two of its
+sentences were false; this one records that a reason for *deferral* was false. Both are the same
+lesson: the text of a row is a claim like any other, and it is measured, not trusted. An honest close
+says which of its own sentences did not survive.
+
+**What this close does NOT claim.** The structural probe reads `jobs[job].steps[].run`; it does not
+evaluate `if:` expressions, `runs-on` availability, matrix exclusions, or reusable-workflow
+indirection. Control #186 adds `if: false` to `jobs.test` and the gate stays **green** — the probe is
+weaker than "the step will run", and ADR 0071 §6 records that gap as measured rather than assumed.
