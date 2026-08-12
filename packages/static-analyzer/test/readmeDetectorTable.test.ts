@@ -61,4 +61,32 @@ describe("README detector table stays in sync with DETECTORS", () => {
       `README count word "${word ?? "(none)"}" is not a known number word`,
     ).toBe(DETECTORS.length)
   })
+
+  it("table detector NAMES match DETECTORS by set equality (order-free)", () => {
+    const rows = detectorTableRows(readme)
+    // First cell, backticked: `secretEnvKeys` → secretEnvKeys
+    const readmeNames = rows
+      .map((r) => r.split("|")[1]?.trim().replace(/`/g, "") ?? "")
+      .filter((n) => n.length > 0)
+      .map((n) => n.toLowerCase())
+    const runtimeNames = DETECTORS.map((d) =>
+      d.name.replace(/^detect/i, "").toLowerCase(),
+    )
+    const readmeSet = new Set(readmeNames)
+    const runtimeSet = new Set(runtimeNames)
+    // Set equality: same size, every element of A in B
+    expect(readmeSet.size).toBe(runtimeSet.size)
+    for (const name of readmeNames) {
+      expect(
+        runtimeSet.has(name),
+        `README lists "${name}" but DETECTORS does not have it`,
+      ).toBe(true)
+    }
+    for (const name of runtimeNames) {
+      expect(
+        readmeSet.has(name),
+        `DETECTORS has "${name}" but README table does not list it`,
+      ).toBe(true)
+    }
+  })
 })

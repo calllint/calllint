@@ -90,7 +90,11 @@ export const REASON_CODE_META: Record<ReasonCode, ReasonCodeMeta> = {
     label: "Messaging or email send",
   },
   PROMPT_METADATA_INSTRUCTION: {
-    backedBy: ["prompt.hidden-instructions", "prompt.poisoning"],
+    backedBy: [
+      "prompt.hidden-instructions",
+      "prompt.poisoning",
+      "prompt.surface-instructions",
+    ],
     status: "wired",
     label: "Prompt-metadata instruction",
   },

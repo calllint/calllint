@@ -1,4 +1,7 @@
 import { describe, it, expect } from "vitest"
+import { readdirSync, readFileSync } from "node:fs"
+import { dirname, join } from "node:path"
+import { fileURLToPath } from "node:url"
 import {
   REASON_CODES,
   REASON_CODE_META,
@@ -67,7 +70,7 @@ describe("reason-code vocabulary (ADR 0020)", () => {
     expect(reasonCodeForFinding("action.external-mutation")).not.toBe("TOXIC_FLOW_COMPOSITION")
   })
 
-  it("reasonCodeForFinding maps all 13 detector finding ids correctly", () => {
+  it("maps all wired detector finding ids", () => {
     const cases: Array<[string, ReasonCode]> = [
       ["supply.unpinned-package", "UNPINNED_PACKAGE"],
       ["supply.unknown-remote", "UNKNOWN_REMOTE"],
@@ -87,6 +90,53 @@ describe("reason-code vocabulary (ADR 0020)", () => {
     ]
     for (const [id, code] of cases) {
       expect(reasonCodeForFinding(id)).toBe(code)
+    }
+  })
+
+  it("every emitted finding id is backed by a reason code (reverse direction)", () => {
+    // Reverse guard: scan static-analyzer src for emitted ids, assert each is in some
+    // backedBy. The vocabulary-side readers (this file's other cases, previewSnapshot.ts)
+    // only check that backedBy is non-empty, so a NEW detector id could never enter their
+    // view. Read detector → vocabulary instead. Walks with fs only: @calllint/types
+    // declares zero dependencies by design (it is the schema source of truth), so this
+    // must not reach for glob.
+    const here = dirname(fileURLToPath(import.meta.url))
+    const srcDir = join(here, "..", "..", "static-analyzer", "src")
+    const walk = (dir: string): string[] =>
+      readdirSync(dir, { withFileTypes: true }).flatMap((e) => {
+        const full = join(dir, e.name)
+        if (e.isDirectory()) return walk(full)
+        return e.isFile() && e.name.endsWith(".ts") ? [full] : []
+      })
+    const files = walk(srcDir)
+    // The file this guard exists for (documentSurface.ts) sits at src/ ROOT, not in
+    // detectors/ — a subdirectory-only scan would miss it and be vacuous on its subject.
+    expect(
+      files.some((f) => f.endsWith("documentSurface.ts")),
+      "scan must reach src/ root, not only src/detectors/",
+    ).toBe(true)
+    const emittedIds = new Set<string>()
+    for (const file of files) {
+      const content = readFileSync(file, "utf8")
+      // Match `id: "xxx.yyy"` literals
+      const matches = content.matchAll(/\bid:\s*"([a-z][a-z.-]*)"/g)
+      for (const m of matches) emittedIds.add(m[1]!)
+    }
+    // Non-vacuity: the scan must find ids at all, or every assertion below is skipped.
+    expect(emittedIds.size).toBeGreaterThan(10)
+    // Union all backedBy arrays
+    const backedIds = new Set<string>()
+    for (const code of REASON_CODES) {
+      for (const id of REASON_CODE_META[code].backedBy) backedIds.add(id)
+    }
+    // Legitimate non-detector sources: drift signal, flow object
+    const exemptIds = new Set(["drift:toolMetadataHash", "flow:toxic-composition"])
+    // Every emitted id must be backed or explicitly exempt
+    for (const id of emittedIds) {
+      expect(
+        backedIds.has(id) || exemptIds.has(id),
+        `Finding id "${id}" is emitted but not backed by any reason code`,
+      ).toBe(true)
     }
   })
 
