@@ -175,6 +175,29 @@ authorization decision, not on the ground it was written on. Both statements are
 falsified reason is the record of why a PR's identity cannot be inferred from its title and
 creation date — #234 still *presents* as a 2026-07-27 PR titled for a July refresh.
 
+**AMENDED 2026-08-11 (S batch 5, ADR 0074) — the boundary paragraph above is now stale in its
+premise, and its conclusion changed sign.**
+
+That paragraph says *"the cap that selects them is 25"* and closes *"Raising either without the other
+moves the gate."* S batch 5 raised exactly one of them: `DEFAULT_MAX_ENTRIES` is **100**,
+`S0_REQUIRED_RECORDS` is **unchanged at 25**. So the gate did move — **deliberately, and in the
+direction this row wanted**:
+
+- The requirement is untouched, so *"`censusRegistry < 25` fails, so the cohort must reach 25"*
+  remains exactly true. **This row's own boundary is unaffected.** Nothing here got easier to satisfy.
+- What is no longer true is *"only because the cap and the requirement are the same number."* A
+  completed ingest now emits up to 100, not exactly 25, so satisfying this row no longer depends on a
+  coincidence between two unrelated constants.
+- The coincidence was not neutral. At 25 == 25, the cohort size satisfying this row was the size at
+  which the cap began evicting `io.github.calllint/calllint` — see S0-OPEN-4 for the arithmetic and
+  ADR 0074 for the decision. Closing this row and deleting this project's own trust page were the
+  same action. They are now separable.
+
+**PR #234's `count: 25` head is unaffected by the cap raise**, and this is the one place a reader
+could be misled: 25 ≤ 100, so a 25-entry snapshot is emitted whole under either cap. Merging it would
+still satisfy this row. What changed is that it is no longer the *only* size that does — and the next
+ingest after such a merge no longer evicts at 26.
+
 ---
 
 ## S0-OPEN-2 — `gate:s0` is outside `ci:local`, so nothing runs it on any schedule
@@ -622,6 +645,55 @@ one outcome that proves nothing.
 **Interaction with S0-OPEN-1 that a reader must not miss.** PR #234's head carries `count: 25` —
 *exactly* the overlap size. Merging it would satisfy S0 **and** retain the page, and would tell you
 nothing about size 26. The next ingest run after that merge is where this row bites.
+
+**AMENDED 2026-08-11 (S batch 5, ADR 0074) — the second remedy was authorized and applied. This row
+stays OPEN, and the reason it stays open is the finding.**
+
+`DEFAULT_MAX_ENTRIES` is now **100** (`fetchRegistry.ts:34`). `S0_REQUIRED_RECORDS` is **unchanged at
+25** — the requirement did not move, only the cap. The equality this row was built on is gone:
+
+```
+                        before (25 == 25)        after (100 > 25)
+cohort 19..24           SHORTFALL, self present  SHORTFALL, self present
+cohort 25               MET, self present  ←only MET, self present
+cohort 26..100          MET, self ** EVICTED **  MET, self present     ← 76 sizes, was 1
+cohort 101+             —                        MET, self ** EVICTED **
+```
+
+The single overlap size became a 76-size interval `[25..100]`, so *closing S0's shortfall* and
+*deleting this project's own trust page* are no longer the same action. That was the whole defect
+this row named, and it is defused.
+
+**What the cap did NOT do, measured rather than assumed.** It did not remove the eviction; it moved
+it. The slice is still alphabetical and `io.github.calllint/calllint` is still the only `io.*` name,
+so it still sorts last and is still the first entry the cap reaches. At **any** cap the claimed
+subject is evicted at cohort `cap + 1` — measured through the real projection: 25 → evicts at 26,
+100 → at 101, 500 → at 501. **Headroom was bought, not safety.** The third remedy above (a
+considered selection instead of alphabetical slicing) remains the only one that removes the hazard,
+and it remains unauthorized.
+
+**So this row's closing condition is unchanged and still unmet.** It requires a cohort at ≥26 **on
+`main`** with the served page present. Today's `main` carries 19. The cap raise makes that outcome
+*reachable* — before it, any cohort ≥26 evicted the page by construction — but reaching it needs an
+ingest run, which is a network action on the sole scanner and needs its own authorization.
+
+**One correction to this row's own census.** The prefix table above records `{ ac: 2, ag: 2, ai: 14,
+io: 1 }`. Measured on the committed snapshot it is `{ ac: 2, ag: 1, agency: 1, ai: 14, io: 1 }` — the
+row collapsed `agency.` into `ag`. The conclusion is unaffected (one `io.*` entry, sorting last), but
+a census that miscounts its own buckets is worth correcting where it stands.
+
+**Where the inequality is now enforced,** so a revert reds by name rather than silently restoring the
+coincidence:
+- `tests/invariants/registry-cohort-retention.invariants.test.ts` — asserts `cap > required`, and
+  asserts the overlap interval's endpoints are `[required, cap]`. Its scan bound is **derived from
+  the cap**; the previous hardcoded `extra <= 12` was accidentally correct at 25 and would have
+  reported 7 of the 76 satisfying sizes here — a truncated answer that reads as data.
+- `tests/invariants/gate-s0-claims.invariants.test.ts` — the former "these are the SAME number"
+  assertion is inverted to the inequality, with the requirement's literal pinned *after* the
+  relationship (order is load-bearing) and the cap's literal deliberately **not** pinned, since ADR
+  0074 expects it to move again.
+- `fetchRegistry.ts:19-33` — the docblock states the never-equal rule and the defer-not-remove
+  arithmetic at the declaration itself.
 
 ---
 

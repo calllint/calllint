@@ -197,11 +197,16 @@ describe("Gate S0 — every path:line the record cites still points at what it c
 
   it("the cap the record exonerates, and the un-paginated GET that exonerates it", () => {
     const f = "packages/trust-index/src/fetchRegistry.ts"
-    assertPointer(f, 19, "DEFAULT_MAX_ENTRIES = 25", "the 25 cap")
-    assertPointer(f, 109, ".slice(0, max)", "the cap applied after the sort")
+    // MOVED 19 → 34 by ADR 0074's docblock, and the ANCHOR CHANGED SHAPE with it. It used to read
+    // `DEFAULT_MAX_ENTRIES = 25`, pinning the declaration and its value in one string. The value is
+    // now the thing expected to move again (100 → 500 → all), so the anchor is the declaration
+    // alone; the value is asserted as a relationship by the inequality test below, and by
+    // `tests/invariants/registry-cohort-retention.invariants.test.ts`.
+    assertPointer(f, 34, "export const DEFAULT_MAX_ENTRIES", "the cohort cap")
+    assertPointer(f, 124, ".slice(0, max)", "the cap applied after the sort")
     // The load-bearing one: a SINGLE GET with no cursor. This is why the 25 cap cannot be the
     // constraint that produced 19 — it is not even on the production path.
-    assertPointer(f, 100, "doFetch(endpoint)", "the single un-paginated GET")
+    assertPointer(f, 115, "doFetch(endpoint)", "the single un-paginated GET")
   })
 
   it("the measured upstream size, which is what falsifies the recorded reason", () => {
@@ -227,28 +232,40 @@ describe("Gate S0 — every path:line the record cites still points at what it c
 })
 
 describe("Gate S0 — every number the record states is derived from the file it is about", () => {
-  it("S0_REQUIRED_RECORDS and DEFAULT_MAX_ENTRIES are the SAME number, which the record calls a coincidence", () => {
+  it("S0_REQUIRED_RECORDS and DEFAULT_MAX_ENTRIES are NO LONGER the same number, and the record says so", () => {
     const required = /S0_REQUIRED_RECORDS\s*=\s*(\d+)/.exec(readText(GATE))?.[1]
     const cap = /DEFAULT_MAX_ENTRIES\s*=\s*(\d+)/.exec(
       readText("packages/trust-index/src/fetchRegistry.ts"),
     )?.[1]
     expect(required, "the gate must still define S0_REQUIRED_RECORDS at all").not.toBeUndefined()
     expect(cap, "and fetchRegistry must still define DEFAULT_MAX_ENTRIES at all").not.toBeUndefined()
-    // ORDER IS LOAD-BEARING, and the first draft had it backwards. The coincidence is asserted
-    // BEFORE the two literal pins because pinning both to "25" first makes this assertion
-    // unreachable: any mutation that moves either constant reds on a literal pin, so the claim the
-    // row actually rests on could never be the one that fails. Asserted first, moving either
-    // constant alone reds HERE, by name, on the coincidence itself.
+    // ORDER IS STILL LOAD-BEARING, and the reasoning survives the inversion that S batch 5 made to
+    // this test. The RELATIONSHIP is asserted before any literal pin, because a literal pinned
+    // first makes the relationship unreachable: any mutation moving either constant reds on the
+    // literal, so the claim the row rests on could never be the one that fails
+    // ([[assertion-order-decides-falsifiability]]).
+    //
+    // WHAT INVERTED (ADR 0074). This previously asserted `cap === required` — both 25 — and called
+    // that a coincidence worth recording. It was worse than a coincidence: the cohort size that
+    // satisfied Gate S0 was the size at which the cap began evicting, and the evicted entry was
+    // this project's own trust page. S batch 5 raised the cap to break the equality, so the
+    // assertion is now the inequality and a revert reds HERE, by name.
     expect(
-      cap,
-      "the record argues the cohort requirement and the served cap coincide — raising one alone moves the gate, so re-read S0-OPEN-1 before editing this",
-    ).toBe(required)
-    // And the literal values, after: both moving together keeps the coincidence true while making
-    // the row's "25 is exactly the boundary" prose stale, which is a different defect needing a
-    // different message.
+      Number(cap),
+      `the served cap (${cap}) must stay STRICTLY ABOVE S0's requirement (${required}). At equality, closing S0's shortfall is the same action that evicts io.github.calllint/calllint — see ADR 0074 and S0-OPEN-4 before changing either`,
+    ).toBeGreaterThan(Number(required))
+    // The requirement's literal, after the relationship. The cap is deliberately NOT pinned to a
+    // literal: it is the number ADR 0074 expects to move again (100 → 500 → all), and a pin would
+    // red on a legitimate expansion while saying nothing about the property that matters.
     expect(required, "S0-OPEN-1's prose says 25; a moved requirement makes that prose stale").toBe("25")
-    expect(cap, "and the served cap the prose calls 25").toBe("25")
+    // The row's own boundary prose, which the 2026-08-11 amendment corrected rather than rewrote:
+    // the original paragraph still argues the two numbers are equal, so the amendment must be
+    // present for the record to be readable at all.
     expect(row(1)).toContain("25 is also exactly the boundary")
+    expect(
+      row(1),
+      "S0-OPEN-1's boundary paragraph claims the cap IS 25; the ADR 0074 amendment must be appended or the row reads as current",
+    ).toMatch(/AMENDED 2026-08-11.*ADR 0074/s)
   })
 
   it("the committed snapshot is still the stale 19 the record blames, not a fresh cohort", () => {

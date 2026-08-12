@@ -145,7 +145,16 @@ describe("the registry cohort slice retains the claimed subject", () => {
     const idx = [...names].sort((a, b) => (a < b ? -1 : a > b ? 1 : 0)).indexOf(CLAIMED_SUBJECT)
     // Headroom is derived: the subject survives while at most `cap - 1` names sort before it.
     const headroom = cap - 1 - idx
-    expect(headroom, "derived headroom before the claimed subject is evicted").toBe(6)
+    // Stated as the IDENTITY, not as a literal. The subject sorts last (asserted above), so
+    // `idx === names.length - 1` and the headroom collapses to `cap - cohortSize` — a claim about
+    // two independently-read numbers rather than a copy of today's difference. `toBe(6)` was true at
+    // cap 25 and `toBe(81)` would be true at cap 100; neither says WHY.
+    expect(headroom, `headroom must be the cap (${cap}) minus the cohort size (${names.length})`).toBe(
+      cap - names.length,
+    )
+    // And it must be POSITIVE, or the subject is already evicted at today's cohort and every
+    // boundary measured below is measuring the wrong side of it.
+    expect(headroom, "the claimed subject must still have headroom at today's cohort size").toBeGreaterThan(0)
 
     // The boundary, measured on both sides through the REAL projection rather than argued.
     const lastSafe = project([...committedRecords, ...earlierFillers(headroom)], cap)
@@ -162,23 +171,52 @@ describe("the registry cohort slice retains the claimed subject", () => {
     expect(firstEvicting.count).toBe(cap)
   })
 
-  it("the gate's requirement and the subject's survival overlap at exactly ONE cohort size", () => {
+  it("the cap is STRICTLY ABOVE the requirement, so green and eviction no longer coincide", () => {
     const cap = readCap()
     const required = readRequired()
-    // The two constants are the same number, and that is what creates the anti-correlation. Read
-    // from their own files so a batch that changes one alone reds here rather than shipping.
-    expect({ cap, required }, "the cap that selects the cohort IS the requirement").toEqual({ cap: 25, required: 25 })
+    // INVERTED AT S BATCH 5 (ADR 0074), and the inversion is this assertion's whole history.
+    //
+    // It previously required `{cap: 25, required: 25}` — the EQUALITY — because that equality was
+    // the defect: the cohort size satisfying Gate S0 was the size at which the cap began evicting,
+    // so the action closing S0's shortfall deleted this project's own page and the gate went green
+    // as it happened. The remedy raised the cap, which reds this assertion BY DESIGN. It is now the
+    // inequality, and the message says what a revert would mean.
+    //
+    // Asserted as the RELATIONSHIP, not as `{cap: 100, required: 25}`. Two literals would agree
+    // with a copy of today's values and would red on any future expansion step — including a
+    // legitimate one — while saying nothing about the property that matters
+    // ([[prose-justified-constant-is-ungated]]).
+    expect(
+      cap,
+      `the served cap (${cap}) must stay STRICTLY ABOVE S0's requirement (${required}). At equality the size that satisfies the gate is the size that evicts the claimed subject — S0-OPEN-4's arithmetic. Re-read ADR 0074 before changing either number`,
+    ).toBeGreaterThan(required)
 
+    // The overlap interval, which is what the decoupling actually bought. Scanned to a bound
+    // DERIVED FROM THE CAP, never a literal: the old `extra <= 12` was accidentally correct at
+    // cap == required (exactly one satisfying size, and 12 reached past it) and would have
+    // TRUNCATED the answer here — measured, 76 satisfying sizes clipped to 7, reporting a
+    // shortfall instead of the decoupling ([[hardcoded-range-stops-covering-its-tail]]).
+    const scanTo = cap - names.length + 2
     const both: number[] = []
-    for (let extra = 0; extra <= 12; extra++) {
+    for (let extra = 0; extra <= scanTo; extra++) {
       const out = project([...committedRecords, ...earlierFillers(extra)], cap)
       const meetsRequirement = out.count >= required
       const retainsSubject = out.entries.some((e) => e.name === CLAIMED_SUBJECT)
       if (meetsRequirement && retainsSubject) both.push(names.length + extra)
     }
-    // Printed as the list, not a count: a failure names WHICH sizes satisfy both, which is the
-    // datum. `[]` would mean the two properties had become unsatisfiable together.
-    expect(both, "cohort sizes that satisfy S0's requirement AND retain the claimed subject").toEqual([25])
+    // Endpoints, derived on both sides. The interval opens at the requirement (below it the gate is
+    // short) and closes at the cap (above it the slice evicts), so `[required, cap]` states the
+    // property rather than restating two numbers.
+    expect(both.length, "the two properties must be satisfiable together at more than one size — that is the decoupling").toBeGreaterThan(1)
+    expect(
+      [both[0], both[both.length - 1]],
+      `the overlap must run from S0's requirement to the cap. Observed ${both.length} sizes: ${both[0]}..${both[both.length - 1]}`,
+    ).toEqual([required, cap])
+    // And the scan must have RUN — a bound that collapsed to <= 0 would leave `both` empty or
+    // singular and the endpoints assertion would compare undefined against undefined.
+    expect(scanTo, "the derived scan bound must reach past the cap, or the interval above is truncated").toBeGreaterThan(
+      cap - names.length,
+    )
   })
 
   it("eviction would orphan committed bytes that name the claimed subject", () => {

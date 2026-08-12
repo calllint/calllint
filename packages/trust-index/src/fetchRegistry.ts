@@ -15,8 +15,23 @@ import type { RegistrySnapshot, SnapshotEntry, SnapshotPackage, SnapshotRemote }
 
 export const DEFAULT_ENDPOINT = "https://registry.modelcontextprotocol.io/v0/servers"
 
-/** How many entries the first cohort caps at (ADR 0038 §6 kill-gate; user-chosen). */
-export const DEFAULT_MAX_ENTRIES = 25
+/**
+ * How many entries a cohort caps at (ADR 0038 §6 kill-gate; ADR 0074 raised it 25 → 100).
+ *
+ * **This number must never equal `S0_REQUIRED_RECORDS` (`scripts/gate-s0.ts`).** While both were
+ * 25, the cohort size that satisfied Gate S0's requirement was the same size at which this cap
+ * began evicting, and `io.github.calllint/calllint` sorts LAST in the cohort (reverse-DNS; the only
+ * `io.*` name). So the action that closed S0's shortfall was the same action that deleted this
+ * project's own trust page, and the gate reported success while it happened — S0-OPEN-4's
+ * arithmetic. The inequality, not this value, is what defuses it; both are asserted by
+ * `tests/invariants/registry-cohort-retention.invariants.test.ts`.
+ *
+ * The cap CANNOT remove that eviction, only defer it: at any cap the claimed subject is evicted at
+ * cohort `cap + 1`, because the slice is alphabetical (`snapshotProjection.ts` step 3). Measured —
+ * 25 → evicts at 26, 100 → evicts at 101, 500 → evicts at 501. Headroom is bought, not safety, and
+ * ADR 0074 records that deliberately rather than presenting this as a fix.
+ */
+export const DEFAULT_MAX_ENTRIES = 100
 
 interface RawServer {
   name?: unknown
