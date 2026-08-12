@@ -141,6 +141,30 @@ green.
 \"auth.totally-new-id\" is emitted but not backed by any reason code"*. Rollback
 md5-identical, D2 green.
 
+**C4: Rename the id in `documentSurface.ts` — the `src/` ROOT file** — added during
+pre-merge self-check. C2 mutated only a file in `src/detectors/`, so it never proved the
+scan reaches the root, where the file D2 exists for actually sits — the shape
+`[[a-fixture-corpus-that-avoids-the-key-space]]` describes. Red: *"Finding id
+\"prompt.surface-renamed\" is emitted but not backed"*. Re-run after the dependency
+rewrite below, still red. Rollback md5-identical.
+
+**C5: Point the scan at `src/detectors/` only** — red on its own message: *"scan must reach
+src/ root, not only src/detectors/"*. Confirms the non-vacuity guard is itself falsifiable.
+
+### The defect self-check found
+
+D2 as first written called `glob.sync`. `packages/types` declares **zero** dependencies by
+design (it is the schema source of truth), and `glob` resolved locally to
+a `node_modules/glob` in the repo's **parent** directory — outside the repo, an accident of this
+machine. A fresh CI install has no such parent, so the require would have thrown. This is
+the class `[[shipped-with-no-caller-hides-degenerate-inputs]]` warns about, arriving through
+module resolution rather than a caller: passing locally proved nothing about CI.
+
+Rewritten with `node:fs` only (`readdirSync` recursion), and the CJS `require`/`__dirname`
+forms switched to ESM imports (the file is ESM; they worked only via vitest's transform).
+Two non-vacuity assertions added, since the rewrite could have silently scanned nothing:
+`documentSurface.ts` must be among the scanned files, and `emittedIds.size > 10`.
+
 ### Outcomes
 
 - typecheck clean
@@ -159,8 +183,11 @@ drifts. The 15th (`prompt.surface-instructions`) is now backed by a reason code,
 surface-instruction hit leaves its expected trace in `reasonCodes[]`, served bytes, web
 presentation, and agent relay judgments.
 
-Two negative controls confirm falsifiability: C1 reds when the README drifts, C2 reds when
-an unbacked id is emitted.
+Four negative controls confirm falsifiability: C1 reds when the README drifts, C2 when an
+unbacked id is emitted from `src/detectors/`, C4 when one is emitted from `src/` **root**,
+and C5 when the scan itself is narrowed to miss that root. C4 and C5 came from the
+pre-merge self-check, not the plan — the plan's two controls both happened to mutate
+subdirectory files, which would have left D2's actual subject unexercised.
 
 **Next.** ADR **0077** (0060 still reserved). Memory: the detector-count candidate marked
 CLOSED, title from "next batch's candidate" to "closed by S7".
