@@ -67,7 +67,7 @@ describe("reason-code vocabulary (ADR 0020)", () => {
     expect(reasonCodeForFinding("action.external-mutation")).not.toBe("TOXIC_FLOW_COMPOSITION")
   })
 
-  it("reasonCodeForFinding maps all 13 detector finding ids correctly", () => {
+  it("maps all wired detector finding ids", () => {
     const cases: Array<[string, ReasonCode]> = [
       ["supply.unpinned-package", "UNPINNED_PACKAGE"],
       ["supply.unknown-remote", "UNKNOWN_REMOTE"],
@@ -87,6 +87,39 @@ describe("reason-code vocabulary (ADR 0020)", () => {
     ]
     for (const [id, code] of cases) {
       expect(reasonCodeForFinding(id)).toBe(code)
+    }
+  })
+
+  it("every emitted finding id is backed by a reason code (reverse direction)", () => {
+    // Reverse guard: scan static-analyzer src for emitted ids, assert each is in some backedBy.
+    // This catches new detector ids that never reach the public reason-code vocabulary.
+    // Skipped until D3 (prompt.surface-instructions backing) lands, then unskip.
+    const fs = require("node:fs") as typeof import("fs")
+    const path = require("node:path") as typeof import("path")
+    const glob = require("glob") as typeof import("glob")
+    const repoRoot = path.join(__dirname, "..", "..", "..")
+    const srcPattern = path.join(repoRoot, "packages/static-analyzer/src/**/*.ts")
+    const files = glob.sync(srcPattern, { windowsPathsNoEscape: true })
+    const emittedIds = new Set<string>()
+    for (const file of files) {
+      const content = fs.readFileSync(file, "utf8")
+      // Match `id: "xxx.yyy"` literals
+      const matches = content.matchAll(/\bid:\s*"([a-z][a-z.-]*)"/g)
+      for (const m of matches) emittedIds.add(m[1]!)
+    }
+    // Union all backedBy arrays
+    const backedIds = new Set<string>()
+    for (const code of REASON_CODES) {
+      for (const id of REASON_CODE_META[code].backedBy) backedIds.add(id)
+    }
+    // Legitimate non-detector sources: drift signal, flow object
+    const exemptIds = new Set(["drift:toolMetadataHash", "flow:toxic-composition"])
+    // Every emitted id must be backed or explicitly exempt
+    for (const id of emittedIds) {
+      expect(
+        backedIds.has(id) || exemptIds.has(id),
+        `Finding id "${id}" is emitted but not backed by any reason code`,
+      ).toBe(true)
     }
   })
 
