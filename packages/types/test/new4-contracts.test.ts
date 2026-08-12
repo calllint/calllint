@@ -1,4 +1,7 @@
 import { describe, it, expect } from "vitest"
+import { readdirSync, readFileSync } from "node:fs"
+import { dirname, join } from "node:path"
+import { fileURLToPath } from "node:url"
 import {
   REASON_CODES,
   REASON_CODE_META,
@@ -91,22 +94,36 @@ describe("reason-code vocabulary (ADR 0020)", () => {
   })
 
   it("every emitted finding id is backed by a reason code (reverse direction)", () => {
-    // Reverse guard: scan static-analyzer src for emitted ids, assert each is in some backedBy.
-    // This catches new detector ids that never reach the public reason-code vocabulary.
-    // Skipped until D3 (prompt.surface-instructions backing) lands, then unskip.
-    const fs = require("node:fs") as typeof import("fs")
-    const path = require("node:path") as typeof import("path")
-    const glob = require("glob") as typeof import("glob")
-    const repoRoot = path.join(__dirname, "..", "..", "..")
-    const srcPattern = path.join(repoRoot, "packages/static-analyzer/src/**/*.ts")
-    const files = glob.sync(srcPattern, { windowsPathsNoEscape: true })
+    // Reverse guard: scan static-analyzer src for emitted ids, assert each is in some
+    // backedBy. The vocabulary-side readers (this file's other cases, previewSnapshot.ts)
+    // only check that backedBy is non-empty, so a NEW detector id could never enter their
+    // view. Read detector → vocabulary instead. Walks with fs only: @calllint/types
+    // declares zero dependencies by design (it is the schema source of truth), so this
+    // must not reach for glob.
+    const here = dirname(fileURLToPath(import.meta.url))
+    const srcDir = join(here, "..", "..", "static-analyzer", "src")
+    const walk = (dir: string): string[] =>
+      readdirSync(dir, { withFileTypes: true }).flatMap((e) => {
+        const full = join(dir, e.name)
+        if (e.isDirectory()) return walk(full)
+        return e.isFile() && e.name.endsWith(".ts") ? [full] : []
+      })
+    const files = walk(srcDir)
+    // The file this guard exists for (documentSurface.ts) sits at src/ ROOT, not in
+    // detectors/ — a subdirectory-only scan would miss it and be vacuous on its subject.
+    expect(
+      files.some((f) => f.endsWith("documentSurface.ts")),
+      "scan must reach src/ root, not only src/detectors/",
+    ).toBe(true)
     const emittedIds = new Set<string>()
     for (const file of files) {
-      const content = fs.readFileSync(file, "utf8")
+      const content = readFileSync(file, "utf8")
       // Match `id: "xxx.yyy"` literals
       const matches = content.matchAll(/\bid:\s*"([a-z][a-z.-]*)"/g)
       for (const m of matches) emittedIds.add(m[1]!)
     }
+    // Non-vacuity: the scan must find ids at all, or every assertion below is skipped.
+    expect(emittedIds.size).toBeGreaterThan(10)
     // Union all backedBy arrays
     const backedIds = new Set<string>()
     for (const code of REASON_CODES) {
