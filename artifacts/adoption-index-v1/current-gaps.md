@@ -140,6 +140,27 @@ Nothing measures the 25 → 100 → 500 step. This absence is **deliberate and g
 Gate S0 and PR R-9 confirm the step sizes, and ADR 0061 §11 authorizes no expansion step
 in this batch. Recording it as a gap is not a request to close it.
 
+> **PARTLY SUPERSEDED 2026-08-11 (S batch 5, ADR 0074): the first step was taken, and the gate the
+> sentence above describes is what authorized it.**
+>
+> `DEFAULT_MAX_ENTRIES` moved **25 → 100** (`packages/trust-index/src/fetchRegistry.ts:34`).
+> `S0_REQUIRED_RECORDS` is unchanged at 25. ADR 0061 §11 says *"This ADR authorizes no expansion
+> step"* and *"Each expansion step stays its own gated PR with its own artifact"* — the second clause
+> is the door: the step was separately authorized and ADR 0074 is its artifact. So the sentence above
+> is not falsified, it was *used*.
+>
+> **The step's motive was not scale.** It was that `DEFAULT_MAX_ENTRIES == S0_REQUIRED_RECORDS == 25`
+> made the cohort size satisfying Gate S0 the same size at which the cap began evicting
+> `io.github.calllint/calllint` — this project's own trust page, which sorts last (reverse-DNS, the
+> only `io.*` name). See `artifacts/gate-s0/open-items.md` S0-OPEN-4. The remedy was to break the
+> equality, and 100 is a headroom choice, not a capacity measurement.
+>
+> **What is still absent is exactly what this section names.** No instrumentation measures the step:
+> nothing observes ingest cost, mirror read volume, or bake time as a function of cohort size, so
+> 100 → 500 has no more evidence behind it today than it had before. And the cap **cannot** remove
+> the eviction, only defer it — measured, the claimed subject is evicted at cohort `cap + 1` at every
+> cap (25 → 26, 100 → 101, 500 → 501). This section stays OPEN on its own terms.
+
 Also absent by design: no SQLite dependency exists anywhere yet
 (`grep -rln "better-sqlite3\|node:sqlite"` across `packages/*/src`, `apps/*/src`, and every
 `package.json` → **no match**). ADR 0061 §7 decides the driver and pins

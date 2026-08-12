@@ -172,7 +172,17 @@ describe("resolveMirrorMaxEntries — the raw-read ceiling, fail-safe and strict
     // Below the default but still strictly above the snapshot cap: honoured, because the
     // invariant is the inequality, not the constant. An operator may legitimately LOWER the
     // read ceiling for a bounded run.
-    expect(resolveMirrorMaxEntries({ TRUST_INGEST_MIRROR_MAX_ENTRIES: "26" }, DEFAULT_MAX_ENTRIES)).toBe(26)
+    //
+    // DERIVED, not literal — and this line is why. It read `"26"` while the cap was 25, which was
+    // the SMALLEST honoured value then. ADR 0074 raised the cap to 100, and 26 silently became a
+    // REFUSED value: the assertion would have red claiming the resolver broke, when what had
+    // changed was the test's own hidden dependency on the old cap. Written as `cap + 1` the case
+    // stays "the smallest honoured value" at every cap, which is what the comment above already
+    // claimed the test was doing.
+    const justAboveCap = DEFAULT_MAX_ENTRIES + 1
+    expect(
+      resolveMirrorMaxEntries({ TRUST_INGEST_MIRROR_MAX_ENTRIES: String(justAboveCap) }, DEFAULT_MAX_ENTRIES),
+    ).toBe(justAboveCap)
   })
 
   it("falls back on invalid input, the same shapes as the snapshot cap", () => {
@@ -186,12 +196,17 @@ describe("resolveMirrorMaxEntries — the raw-read ceiling, fail-safe and strict
   it("REFUSES a ceiling at or below the snapshot cap, raising it to the floor instead", () => {
     // The distinguishing behaviour, and the reason `<=` rather than `<`: honouring either
     // value would guarantee a read whose only outcome is the fail-closed MirrorIncompleteError.
-    // 24 (below) is obviously wrong; 25 (EQUAL) is the subtle one — reading exactly as many
-    // records as the snapshot emits makes the snapshot's cap structurally unreachable, since
+    // `cap - 1` (below) is obviously wrong; `cap` (EQUAL) is the subtle one — reading exactly as
+    // many records as the snapshot emits makes the snapshot's cap structurally unreachable, since
     // the mirror also stores the records the snapshot drops.
-    expect(resolveMirrorMaxEntries({ TRUST_INGEST_MIRROR_MAX_ENTRIES: "24" }, DEFAULT_MAX_ENTRIES)).toBe(
-      DEFAULT_MIRROR_MAX_ENTRIES,
-    )
+    //
+    // Both derived from the cap. The below-case was the literal `"24"`, which stayed GREEN when ADR
+    // 0074 raised the cap to 100 — but 24 is then 76 below the boundary, so the case no longer
+    // measured the boundary it was written for. A green assertion that stopped testing its subject
+    // is the failure mode the equal-case never had, because it was already derived.
+    expect(
+      resolveMirrorMaxEntries({ TRUST_INGEST_MIRROR_MAX_ENTRIES: String(DEFAULT_MAX_ENTRIES - 1) }, DEFAULT_MAX_ENTRIES),
+    ).toBe(DEFAULT_MIRROR_MAX_ENTRIES)
     expect(
       resolveMirrorMaxEntries({ TRUST_INGEST_MIRROR_MAX_ENTRIES: String(DEFAULT_MAX_ENTRIES) }, DEFAULT_MAX_ENTRIES),
     ).toBe(DEFAULT_MIRROR_MAX_ENTRIES)
