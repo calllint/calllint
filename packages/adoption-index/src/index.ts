@@ -391,7 +391,13 @@ export type {
   ProjectedRemote,
   ProjectSnapshotOptions,
 } from "./projections/snapshotProjection.js"
-export { projectSnapshot, serializeSnapshot, isLiveCohort } from "./projections/snapshotProjection.js"
+export {
+  projectSnapshot,
+  serializeSnapshot,
+  isLiveCohort,
+  selectCohortEntries,
+  RESERVED_COHORT_NAMES,
+} from "./projections/snapshotProjection.js"
 export type {
   AdoptionIndexDocument,
   AdoptionIndexEntry,

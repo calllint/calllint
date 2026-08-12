@@ -3,55 +3,99 @@ import { readFileSync } from "node:fs"
 import { fileURLToPath } from "node:url"
 import path from "node:path"
 
-import { projectSnapshot } from "@calllint/adoption-index"
+import { projectSnapshot, RESERVED_COHORT_NAMES } from "@calllint/adoption-index"
 import type { SourceRecordV1 } from "@calllint/adoption-index"
 
 /**
  * The cohort slice has an assertion that can see whether the CLAIMED SUBJECT is still in it.
  *
  * Before this file, three tests asserted the alphabetical-cap MECHANISM and none asserted its
- * CONSEQUENCE. `snapshot-projection.test.ts:208` and `refresh-from-mirror.test.ts:602` both pin
+ * CONSEQUENCE. `snapshot-projection.test.ts:224` and `refresh-from-mirror.test.ts:616` both pin
  * `["io.example/alpha", "io.example/mike"]` over synthetic fixtures — correct, and blind to the
  * real corpus. A mechanism test says "the cap slices after the sort." It cannot say "and the entry
  * that sorts last is the one page this project claims about itself."
  *
+ * That blindness had a second cost, found only in ADR 0075: because EVERY fixture in the
+ * byte-equivalence suite is `io.example/*`, the reserved-retention branch was never entered on
+ * either side, so the two duplicated implementations would have agreed by never running the new
+ * code. `snapshot-projection.test.ts` now carries a case where the cap binds AND a reserved name
+ * would have been evicted. A fixture corpus that avoids the real key space cannot exercise a rule
+ * keyed on it.
+ *
  * MEASURED, and the reason this file exists rather than a comment:
  *
- *   `io.github.calllint/calllint` is at index 18 of 19 — DEAD LAST. Every other live name in the
- *   committed cohort begins `ac.` / `ag.` / `ai.` (2/2/14). Upstream is reverse-DNS, so `io.*`
- *   sorts after all of them, and this is the ONLY `io.*` entry. The claimed subject is not merely
- *   near the boundary; it is the entry the cap reaches first.
+ *   `io.github.calllint/calllint` is at index 18 of 19 — DEAD LAST. The committed cohort's prefix
+ *   census is `{ ac: 2, ag: 1, agency: 1, ai: 14, io: 1 }` — the original filing wrote `ag: 2` by
+ *   collapsing `agency.` into `ag`, corrected in ADR 0074. Upstream is reverse-DNS, so `io.*` sorts
+ *   after all of them, and this is the ONLY `io.*` entry. The claimed subject is not merely near the
+ *   boundary; it is the entry the cap reaches FIRST — which is why raising the cap could only move
+ *   the boundary, never remove it.
  *
- * THE ANTI-CORRELATION, which is the finding this file guards:
+ * THE ANTI-CORRELATION THIS FILE WAS FILED FOR — now DEFUSED, and the history is kept because the
+ * shape recurs:
  *
- *   `S0_REQUIRED_RECORDS` (scripts/gate-s0.ts) == `DEFAULT_MAX_ENTRIES` (fetchRegistry.ts) == 25.
- *   The gate's requirement is satisfiable only once the cohort reaches 25, and the cap begins
- *   evicting at 26. So:
+ *   `S0_REQUIRED_RECORDS` (scripts/gate-s0.ts) == `DEFAULT_MAX_ENTRIES` (fetchRegistry.ts) == 25,
+ *   two constants that were the same number by coincidence. The gate's requirement was satisfiable
+ *   only once the cohort reached 25, and the cap began evicting at 26:
  *
  *     cohort 19..24 -> gate SHORTFALL (red),  self present
  *     cohort 25     -> gate MET      (green), self present   <- the ONLY size satisfying both
  *     cohort 26+    -> gate MET      (green), self ** EVICTED **
  *
- *   Closing S0's shortfall by growing the cohort is therefore the same action that deletes this
- *   project's own trust page, and the gate goes GREEN as it happens. That is not a slippery-slope
- *   argument; it is arithmetic over two constants that are the same number by coincidence.
+ *   So closing S0's shortfall by growing the cohort was the same action that deleted this project's
+ *   own trust page, and the gate went GREEN as it happened. Two batches addressed it, and only the
+ *   second one actually removed it:
  *
- * WHAT EVICTION COSTS, measured rather than asserted as harm:
+ *     ADR 0074 raised the cap 25 -> 100. That DEFERRED the eviction to cohort 101; the slice was
+ *       still alphabetical, so the subject was still the first entry the cap reached. Headroom, not
+ *       safety — measured at three caps (25 -> evicts at 26, 100 -> at 101, 500 -> at 501).
+ *     ADR 0075 replaced the bare slice with `selectCohortEntries`, which retains
+ *       `RESERVED_COHORT_NAMES` against the cap. There is now NO cohort size at which the subject
+ *       is evicted, and the tests below assert that at the old boundary, at boundary+1, and far past
+ *       it. The cap stays an absolute ceiling: a reserved name takes a slot, never an extra one.
+ *
+ * WHAT EVICTION WOULD HAVE COST, measured rather than asserted as harm. Kept because it is what
+ * makes the retention rule worth its complexity — and because two of the three counts below were
+ * wrong in the original filing, each for an instructive reason:
  *
  *   - `apps/web/public/trust/index.json` carries exactly one row for
  *     `mcp-registry/io.github.calllint-calllint`, `status: "baked"`, `verdict: "SAFE"`, with a real
- *     `pageDigest`. Eviction removes the row, so the bake stops emitting the page.
- *   - `artifacts/phase-2.4/presentation-lock.json` holds TWO overrides keyed to that exact slug
- *     (`displayName`, `reason`). Eviction orphans both — a lock entry for a page that no longer
- *     exists.
- *   - Neither `claims/claim-store.json` (2 keys, none matching) nor `snapshots/adoption-index.json`
- *     (0 subjects) carries the self-claim. The served snapshot is its ONLY home, so there is no
- *     second copy to fall back on.
+ *     `pageDigest`. Eviction removes the row, so the bake stops emitting the page. Re-measured
+ *     2026-08-12 and CORRECT; the row also sits at index 18 of the 19-entry `mcp-registry` cohort,
+ *     i.e. last, which is the ordering fact everything here rests on.
+ *   - `artifacts/phase-2.4/presentation-lock.json` holds THREE references, not the TWO originally
+ *     recorded. `contentPlane.overriddenSlots[34]` and `[35]` key the subject as a FLAT DOTTED PATH
+ *     (`overrides.resources.mcp-registry__io.github.calllint-calllint.displayName` / `.reason`,
+ *     with `__` where the slug has `/`), and `semanticContract.resources[18].canonicalSlug` keys it
+ *     as the slug itself. An exact-string search for the slug finds only the third; a search for the
+ *     `__` form finds only the first two. The count was wrong because ONE key form was searched.
+ *   - ~~Neither `claims/claim-store.json` (2 keys, none matching) nor `snapshots/adoption-index.json`
+ *     (0 subjects) carries the self-claim. The served snapshot is its ONLY home.~~ **FALSE in all
+ *     three clauses, measured 2026-08-12, and both halves failed the same way — the probe read a
+ *     field name that does not exist.** The claim store's "2 keys" are the top-level `schema` +
+ *     `records`; `records` holds TWO claim records, BOTH for this subject — one `revoked`, one
+ *     **`active`** (`verifiedAt` 2026-07-24T09:44:55.534Z). The adoption-index field is `entries`,
+ *     not `subjects`: 19 of them, one being this subject (`identityStatus: PROVISIONAL`). So there
+ *     are THREE copies, not one. The row's conclusion survived on its own, which is exactly why the
+ *     wrong census went unchallenged for two batches.
+ *
+ * WHY THE RESERVED LIST IS A STATIC CONSTANT and not a claim-store lookup, given that an active
+ * claim demonstrably exists: `refreshFromMirror.ts:290-296` records that feeding any part of
+ * resolved identity into `projectSnapshot`'s input breaks the byte gate. The projection must stay a
+ * function of `records` alone.
  *
  * NOTHING HERE OPENS A SOCKET (INV-M4). Every input is committed bytes. The projection is called
  * in-process over records rebuilt from the committed snapshot, so this file asserts over the SAME
  * function production runs (`refreshSnapshot.ts:330` -> `refreshFromMirror` ->
- * `snapshotProjection.ts:113`) and not over a reimplementation of it.
+ * `snapshotProjection.ts:154` -> `selectCohortEntries`) and not over a reimplementation of it. The
+ * last hop used to be `snapshotProjection.ts:113`, the bare `.slice(0, max)`; ADR 0075 moved the cap
+ * into `selectCohortEntries`, so the chain gained a step rather than shifting a line number.
+ *
+ * `RESERVED_COHORT_NAMES` is imported from `@calllint/adoption-index` DELIBERATELY, not from
+ * `trust-index`: the rule is duplicated in both (adoption-index has zero imports of trust-index and
+ * a gate keeps it that way), and this file exercises `projectSnapshot`, so it must read the copy
+ * `projectSnapshot` actually uses. The two lists' equality is asserted in
+ * `packages/adoption-index/test/snapshot-projection.test.ts`, the one file where both are in scope.
  */
 
 const here = path.dirname(fileURLToPath(import.meta.url))
@@ -140,35 +184,82 @@ describe("the registry cohort slice retains the claimed subject", () => {
     expect(out.count).toBeLessThan(readCap())
   })
 
-  it("names the EXACT cohort size at which the claimed subject is evicted", () => {
+  it("there is NO cohort size at which the claimed subject is evicted", () => {
     const cap = readCap()
     const idx = [...names].sort((a, b) => (a < b ? -1 : a > b ? 1 : 0)).indexOf(CLAIMED_SUBJECT)
-    // Headroom is derived: the subject survives while at most `cap - 1` names sort before it.
+    // `headroom` is retained as a NAME for the old eviction boundary, and it still measures the
+    // same arithmetic: the size at which a purely alphabetical cap would have reached the subject.
+    // Keeping it is what lets the assertions below probe the exact size that used to fail rather
+    // than a size chosen for being comfortably large.
     const headroom = cap - 1 - idx
-    // Stated as the IDENTITY, not as a literal. The subject sorts last (asserted above), so
-    // `idx === names.length - 1` and the headroom collapses to `cap - cohortSize` — a claim about
-    // two independently-read numbers rather than a copy of today's difference. `toBe(6)` was true at
-    // cap 25 and `toBe(81)` would be true at cap 100; neither says WHY.
     expect(headroom, `headroom must be the cap (${cap}) minus the cohort size (${names.length})`).toBe(
       cap - names.length,
     )
-    // And it must be POSITIVE, or the subject is already evicted at today's cohort and every
-    // boundary measured below is measuring the wrong side of it.
-    expect(headroom, "the claimed subject must still have headroom at today's cohort size").toBeGreaterThan(0)
+    expect(headroom, "the alphabetical boundary must still lie above today's cohort size").toBeGreaterThan(0)
 
-    // The boundary, measured on both sides through the REAL projection rather than argued.
+    // INVERTED AT S BATCH 6 (ADR 0075). Until this batch, the second half of this test asserted
+    // that cohort `cap + 1` EVICTED the claimed subject, with the message "this is the defect this
+    // file exists for". That defect is now fixed at the selection rule, so the assertion is
+    // inverted: the same input that used to prove the hazard now proves its absence.
+    //
+    // Probed at the OLD boundary and one past it, not at a round number — those are the two sizes
+    // a reverted `selectCohortEntries` would fail at first.
     const lastSafe = project([...committedRecords, ...earlierFillers(headroom)], cap)
     expect(lastSafe.entries.map((e) => e.name), `at cohort ${names.length + headroom} the subject must survive`).toContain(
       CLAIMED_SUBJECT,
     )
     expect(lastSafe.count).toBe(cap)
 
-    const firstEvicting = project([...committedRecords, ...earlierFillers(headroom + 1)], cap)
+    const pastOldBoundary = project([...committedRecords, ...earlierFillers(headroom + 1)], cap)
     expect(
-      firstEvicting.entries.map((e) => e.name),
-      `at cohort ${names.length + headroom + 1} the cap evicts the claimed subject — this is the defect this file exists for`,
-    ).not.toContain(CLAIMED_SUBJECT)
-    expect(firstEvicting.count).toBe(cap)
+      pastOldBoundary.entries.map((e) => e.name),
+      `at cohort ${names.length + headroom + 1} the subject must SURVIVE — a plain alphabetical cap evicted it here, and ADR 0075's reserved-retention rule is what stops it`,
+    ).toContain(CLAIMED_SUBJECT)
+    // The cap remains an ABSOLUTE ceiling. This is the half that keeps the remedy honest: a rule
+    // that retained the subject by handing it an EXTRA slot would satisfy the assertion above and
+    // fail here, because it would emit `cap + 1` entries.
+    expect(pastOldBoundary.count, "a reserved name must take a slot, never an extra one").toBe(cap)
+
+    // And far past it, so retention is not an artefact of being one element over. `4 *` is chosen
+    // only to be unambiguously beyond the boundary; the assertion is about the size being large,
+    // not about that multiplier.
+    const farPast = project([...committedRecords, ...earlierFillers(headroom + 1 + 4 * cap)], cap)
+    expect(
+      farPast.entries.map((e) => e.name),
+      `at cohort ${names.length + headroom + 1 + 4 * cap} — far past the old boundary — the subject must still survive`,
+    ).toContain(CLAIMED_SUBJECT)
+    expect(farPast.count).toBe(cap)
+  })
+
+  it("a NEGATIVE cap emits nothing, which is the only thing the Math.max clamp guards", () => {
+    // Added at S batch 6 because negative control #214 — removing `Math.max(0, …)` from BOTH copies
+    // of `selectCohortEntries` — stayed GREEN across all 17 cases. A clamp with no failing mode is
+    // the shape [[a-prose-justified-constant-is-ungated]] warns about, so it gets one here.
+    //
+    // Measured, and the measurement corrected the comment that used to justify the clamp: the budget
+    // `max - reserved.length` CANNOT go negative for any `max >= 0`, because `reserved` is itself
+    // sliced to `max`. The clamp is reachable only for a negative `max`, and unclamped it fails
+    // BACKWARDS — `slice(0, -1)` means "all but the last", so over a four-name cohort an unclamped
+    // `max === -1` returns two entries and `-2` returns one. The more negative the ceiling, the more
+    // the function admits. Asserted over sizes where the cap BINDS, since the early exit
+    // (`byName.length <= max`) is unreachable for a negative max and the partition is the code under
+    // test.
+    const records = [...committedRecords, ...earlierFillers(200)]
+    for (const max of [-1, -2, -names.length, -1000]) {
+      const out = project(records, max)
+      // The list, not the length: a failure prints which entries leaked past a negative ceiling
+      // rather than an opaque count ([[every-collapses-the-observed-value]]).
+      expect(
+        out.entries.map((e) => e.name),
+        `maxEntries=${max} must emit NOTHING; unclamped, JS slice semantics admit the cohort minus ${-max}`,
+      ).toEqual([])
+      expect(out.count, `count must agree with the emitted entries at maxEntries=${max}`).toBe(0)
+    }
+    // `max === 0` is the boundary on the other side, and it is a DIFFERENT clause: the cap wins over
+    // the reservation, so the claimed subject is absent even though it is reserved.
+    const zero = project(records, 0)
+    expect(zero.entries, "at maxEntries=0 the caller asked for nothing and the cap outranks the reservation").toEqual([])
+    expect(RESERVED_COHORT_NAMES.length, "…and that is only meaningful while a name IS reserved").toBeGreaterThan(0)
   })
 
   it("the cap is STRICTLY ABOVE the requirement, so green and eviction no longer coincide", () => {
@@ -191,11 +282,17 @@ describe("the registry cohort slice retains the claimed subject", () => {
       `the served cap (${cap}) must stay STRICTLY ABOVE S0's requirement (${required}). At equality the size that satisfies the gate is the size that evicts the claimed subject — S0-OPEN-4's arithmetic. Re-read ADR 0074 before changing either number`,
     ).toBeGreaterThan(required)
 
-    // The overlap interval, which is what the decoupling actually bought. Scanned to a bound
-    // DERIVED FROM THE CAP, never a literal: the old `extra <= 12` was accidentally correct at
-    // cap == required (exactly one satisfying size, and 12 reached past it) and would have
-    // TRUNCATED the answer here — measured, 76 satisfying sizes clipped to 7, reporting a
-    // shortfall instead of the decoupling ([[hardcoded-range-stops-covering-its-tail]]).
+    // The overlap interval. Scanned to a bound DERIVED FROM THE CAP, never a literal: the old
+    // `extra <= 12` was accidentally correct at cap == required (exactly one satisfying size, and
+    // 12 reached past it) and would have TRUNCATED the answer at cap 100 — measured, 76 satisfying
+    // sizes clipped to 7 ([[hardcoded-range-stops-covering-its-tail]]).
+    //
+    // REOPENED AT S BATCH 6 (ADR 0075), and this is the finding that made the inversion worth
+    // measuring twice. Before this batch the interval was `[required, cap]` and its UPPER endpoint
+    // was set by eviction: past the cap the slice dropped the subject, so the overlap ended there.
+    // With reserved retention nothing ends it. The scan therefore observed `25..102` — the bound's
+    // own last two steps — and asserting `cap` as the top would have pinned a mechanism that no
+    // longer exists. The upper endpoint now states what it actually is: THE END OF THE SCAN.
     const scanTo = cap - names.length + 2
     const both: number[] = []
     for (let extra = 0; extra <= scanTo; extra++) {
@@ -204,19 +301,80 @@ describe("the registry cohort slice retains the claimed subject", () => {
       const retainsSubject = out.entries.some((e) => e.name === CLAIMED_SUBJECT)
       if (meetsRequirement && retainsSubject) both.push(names.length + extra)
     }
-    // Endpoints, derived on both sides. The interval opens at the requirement (below it the gate is
-    // short) and closes at the cap (above it the slice evicts), so `[required, cap]` states the
-    // property rather than restating two numbers.
     expect(both.length, "the two properties must be satisfiable together at more than one size — that is the decoupling").toBeGreaterThan(1)
+    // Lower endpoint: still the requirement, and still derived. Below it the gate is short, which
+    // has nothing to do with the slice and is unaffected by ADR 0075.
     expect(
-      [both[0], both[both.length - 1]],
-      `the overlap must run from S0's requirement to the cap. Observed ${both.length} sizes: ${both[0]}..${both[both.length - 1]}`,
-    ).toEqual([required, cap])
-    // And the scan must have RUN — a bound that collapsed to <= 0 would leave `both` empty or
-    // singular and the endpoints assertion would compare undefined against undefined.
-    expect(scanTo, "the derived scan bound must reach past the cap, or the interval above is truncated").toBeGreaterThan(
-      cap - names.length,
+      both[0],
+      `the overlap must OPEN at S0's requirement (${required}). Observed ${both.length} sizes: ${both[0]}..${both[both.length - 1]}`,
+    ).toBe(required)
+    // Upper endpoint: the scan's own last size. Asserted as UNBOUNDED-WITHIN-SCAN rather than as a
+    // number — the claim is that no size in the scan fails, so the top is wherever the scan stopped.
+    expect(
+      both[both.length - 1],
+      `the overlap must run to the END of the scan — with reserved retention nothing closes it. Observed ${both.length} sizes: ${both[0]}..${both[both.length - 1]}`,
+    ).toBe(names.length + scanTo)
+    // Stated as CONTIGUITY too, so a hole in the middle cannot hide behind two correct endpoints.
+    expect(both.length, "every scanned size at or above the requirement must satisfy both").toBe(
+      names.length + scanTo - required + 1,
     )
+    // And the scan must have reached PAST the cap, or it never probed a size where the old
+    // alphabetical slice would have evicted the subject and the interval above proves nothing.
+    expect(
+      names.length + scanTo,
+      "the derived scan bound must reach past the cap, or the interval above never crosses the old eviction boundary",
+    ).toBeGreaterThan(cap)
+  })
+
+  it("the reserved name is the REGISTRY name, so a slug impostor gets no exemption", () => {
+    // The security half of ADR 0075's remedy, and the reason the reserved list is keyed on the
+    // reverse-DNS name instead of the slug the served tree uses.
+    //
+    // MEASURED: `registryCanonicalName` lowercases and maps every `[^a-z0-9._-]` run to `-`, so all
+    // THREE of these names collide onto the claimed subject's slug
+    // `mcp-registry/io.github.calllint-calllint`. And `-` (45) sorts before `/` (47), so the first
+    // one sorts BEFORE the real subject — an impostor would be admitted first AND be
+    // indistinguishable from the real page by slug. A slug-keyed exemption is impersonable; this
+    // asserts the implemented one is not.
+    const IMPOSTORS = ["io.github.calllint-calllint", "IO.GITHUB.CALLLINT/CALLLINT", "io.github.calllint/CALLLINT"]
+
+    // Probed against the reserved list DIRECTLY, not through survival in the output.
+    //
+    // The first draft of this assertion asked whether each impostor survived a cohort over the cap,
+    // and `IO.GITHUB.CALLLINT/CALLLINT` survived — NOT because the exemption matched it, but because
+    // uppercase sorts before lowercase in ASCII (`I` is 73, `a` is 97), so it precedes the whole
+    // `ai.zz…` filler block and enters the alphabetical prefix on its own. Survival cannot
+    // distinguish "was exempted" from "was already inside the prefix", so it is the wrong probe for
+    // this claim ([[probe-agrees-with-the-description-not-the-claim]]).
+    for (const impostor of IMPOSTORS) {
+      expect(
+        RESERVED_COHORT_NAMES.includes(impostor),
+        `${impostor} must NOT be in the reserved list — it collides onto the claimed subject's SLUG but is a different registry name`,
+      ).toBe(false)
+    }
+    // The reserved list is the registry-name form, exactly. Asserted as the SET so a second member
+    // added without a reader is visible here.
+    expect(RESERVED_COHORT_NAMES, "the reserved list holds registry names, not slugs").toEqual([CLAIMED_SUBJECT])
+    expect(RESERVED_COHORT_NAMES, "the slug form must never appear in the reserved list").not.toContain(CLAIMED_SLUG)
+
+    // Then survival, for the two impostors where survival IS informative — both sort after the
+    // filler block, so being in the output could only come from an exemption.
+    for (const impostor of IMPOSTORS.filter((n) => n > "ai.zz999/filler")) {
+      const out = project([asRecord(impostor), ...earlierFillers(readCap() + 5)], readCap())
+      expect(out.count, `${impostor}: the cap must still bind`).toBe(readCap())
+      expect(
+        out.entries.map((e) => e.name),
+        `${impostor} sorts past the filler block, so surviving the cap could only mean it was exempted`,
+      ).not.toContain(impostor)
+    }
+
+    // And the positive control on the SAME input shape, so the loop above cannot pass merely
+    // because nothing is ever exempted. Same cohort size, same fillers, real name.
+    const real = project([asRecord(CLAIMED_SUBJECT), ...earlierFillers(readCap() + 5)], readCap())
+    expect(
+      real.entries.map((e) => e.name),
+      "the exact registry name must be exempted on the input shape where every impostor was refused",
+    ).toContain(CLAIMED_SUBJECT)
   })
 
   it("eviction would orphan committed bytes that name the claimed subject", () => {
