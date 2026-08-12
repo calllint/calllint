@@ -28,7 +28,13 @@ import { mkdtempSync, rmSync, mkdirSync } from "node:fs"
 import { tmpdir } from "node:os"
 import { join, dirname } from "node:path"
 import { fileURLToPath } from "node:url"
-import { fetchRegistrySnapshot, DEFAULT_MAX_ENTRIES } from "../../trust-index/src/fetchRegistry.js"
+import {
+  fetchRegistrySnapshot,
+  DEFAULT_MAX_ENTRIES,
+  // Aliased so the two duplicated lists can be compared against each other. This test file is the
+  // ONE place both are in scope, which is what makes it the place the drift is asserted.
+  RESERVED_COHORT_NAMES as SHIPPED_RESERVED_COHORT_NAMES,
+} from "../../trust-index/src/fetchRegistry.js"
 import {
   AdoptionIndexStore,
   openBetterSqlite3,
@@ -37,6 +43,7 @@ import {
   projectSnapshot,
   serializeSnapshot,
   isLiveCohort,
+  RESERVED_COHORT_NAMES,
   OFFICIAL_REGISTRY_SOURCE_ID,
   MIGRATIONS_DIRNAME,
   type SourceRecordV1,
@@ -217,6 +224,48 @@ describe("projection equivalence (control #8)", () => {
     expect(capped.entries.map((e) => e.name)).toEqual(["io.example/alpha", "io.example/mike"])
     expect(capped.count).toBe(2)
     expect(serializeSnapshot(capped)).toBe(await shippedBytes(payload, 2))
+  })
+
+  it("agrees BYTE-FOR-BYTE when the cap binds AND a reserved name would have been evicted", async () => {
+    // ADR 0075's rule lives in two files by necessity — this package has zero imports of
+    // trust-index, so `RESERVED_COHORT_NAMES` and `selectCohortEntries` are duplicated rather than
+    // shared. Duplication is a drift surface, and the existing byte-equivalence cases cannot see it:
+    // every one of them uses `io.example/*` fixtures, so the reserved branch is never entered and
+    // both sides agree by never running the new code.
+    //
+    // This case enters it. The reserved name sorts LAST (`io.github…` after `io.example…`), the cap
+    // binds at 2, so a plain alphabetical slice drops it. Both implementations must keep it, and must
+    // agree on the resulting bytes — including ORDER, since the reserved entry is prepended before
+    // the output is re-sorted.
+    const [reserved] = RESERVED_COHORT_NAMES
+    // Not a type appeasement: an empty reserved list would make every assertion below pass while
+    // testing nothing — the payload would hold three `io.example/*` names, the cap would bind
+    // normally, and the byte comparison would agree because neither side reserved anything. That is
+    // the exact vacuity ADR 0075 §9.2 records, so emptiness fails by name instead of silently.
+    if (reserved === undefined) throw new Error("RESERVED_COHORT_NAMES is empty; this case would be vacuous")
+    const payload = body([
+      { name: "io.example/alpha" },
+      { name: "io.example/mike" },
+      { name: "io.example/zulu" },
+      { name: reserved },
+    ])
+    const records = await throughStore(payload)
+    const capped = projectSnapshot({ records, endpoint: ENDPOINT, fetchedAt: NOW, maxEntries: 2 })
+
+    // The reserved name is retained and the output stays in NAME order, not reserved-first order.
+    // Asserted as the exact list: `["io.example/alpha", reserved]` would also hold if the entry were
+    // appended, but `count` and order together pin the shape.
+    expect(capped.entries.map((e) => e.name)).toEqual(["io.example/alpha", reserved])
+    expect(capped.count, "a reserved name takes a slot, never an extra one").toBe(2)
+    // The claim this test exists for.
+    expect(serializeSnapshot(capped)).toBe(await shippedBytes(payload, 2))
+
+    // And the two lists must hold the same members, asserted directly rather than inferred from the
+    // bytes above — a byte match at cap 2 would still pass if BOTH sides dropped a second reserved
+    // name that only one of them knew about.
+    expect(RESERVED_COHORT_NAMES, "the duplicated reserved lists must hold identical members").toEqual([
+      ...SHIPPED_RESERVED_COHORT_NAMES,
+    ])
   })
 
   it("agrees on the empty case", async () => {

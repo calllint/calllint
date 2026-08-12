@@ -149,6 +149,12 @@ describe("Gate S0 — the status record is parsed, and it is not degenerate", ()
     // row is a deliberate edit to this literal, which is the property worth keeping: a row that
     // appears without one is a row nothing agreed to. S batch 3 closed S0-OPEN-5, which red this
     // assertion at index 4 — exactly the behaviour the positional form exists for.
+    //
+    // S batch 6 red it at index 4 again, for a DIFFERENT reason worth writing down: an amendment
+    // appended to S0-OPEN-4 opened with its own `**Status:**` marker, so the extractor found SIX
+    // markers across five rows and the sixth displaced the fifth row's. The count is load-bearing
+    // beyond drift detection — `**Status:**` is a per-row token, and an amendment that reuses it
+    // makes the artifact claim a row it does not have. The fix was to the prose, not to this literal.
     const statuses = [...text.matchAll(/^\*\*Status:\*\* (?:\*\*)?(\w+)/gm)].map((m) => m[1])
     expect(
       statuses,
@@ -203,10 +209,29 @@ describe("Gate S0 — every path:line the record cites still points at what it c
     // alone; the value is asserted as a relationship by the inequality test below, and by
     // `tests/invariants/registry-cohort-retention.invariants.test.ts`.
     assertPointer(f, 34, "export const DEFAULT_MAX_ENTRIES", "the cohort cap")
-    assertPointer(f, 124, ".slice(0, max)", "the cap applied after the sort")
+    // ANCHOR RETIRED IN S BATCH 6 (ADR 0075). This read `assertPointer(f, 124, ".slice(0, max)")`
+    // — "the cap applied after the sort", the last hop of `map -> filter -> sort -> slice` at the
+    // ingest edge. That CHAIN is gone: the bare slice was replaced by `selectCohortEntries`, which
+    // reserves `RESERVED_COHORT_NAMES` against the cap so the claimed subject is not evicted at
+    // `cap + 1`. Note what is NOT true, because the first draft of this comment claimed it: the
+    // string `.slice(0, max)` still EXISTS in this file, at :90, inside the new function — what
+    // changed is what it slices (`byName.filter(isReserved)`, not the whole sorted cohort). An
+    // anchor retired for "the string vanished" would be falsifiable by grep; retired because the
+    // CLAIM it carried is no longer what that line says is the accurate reason, and it is why a
+    // content-matching pointer catches this: it red with `"      }"` quoted, not on a live line.
+    assertPointer(f, 68, "RESERVED_COHORT_NAMES", "the names the cap may not evict")
+    assertPointer(f, 86, "export function selectCohortEntries", "the reserved-first cap")
+    assertPointer(f, 188, "selectCohortEntries(", "the cap applied after the sort, at the ingest edge")
     // The load-bearing one: a SINGLE GET with no cursor. This is why the 25 cap cannot be the
-    // constraint that produced 19 — it is not even on the production path.
-    assertPointer(f, 115, "doFetch(endpoint)", "the single un-paginated GET")
+    // constraint that produced 19 — it is not even on the production path. Drifted 115 → 177 → 183
+    // in S batch 6, the FIFTH consecutive batch to move a pointer in this test — and it moved TWICE
+    // within the batch. The second move was my own: negative control #214 showed the `Math.max(0, …)`
+    // clamp had no failing mode AND that both copies' comments named a precondition that cannot
+    // occur, so rewriting those six comment lines pushed every anchor below them down by six. Worth
+    // recording rather than silently renumbering: a pointer's most likely mover is the batch that is
+    // currently editing the file, not some future one, and content matching is what turned that into
+    // a red line quoting `""` instead of a pointer that still resolved to a plausible-looking line.
+    assertPointer(f, 183, "doFetch(endpoint)", "the single un-paginated GET")
   })
 
   it("the measured upstream size, which is what falsifies the recorded reason", () => {

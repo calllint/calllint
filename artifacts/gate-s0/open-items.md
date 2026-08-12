@@ -566,9 +566,13 @@ correct verdict and unrelated to this row.
 
 ## S0-OPEN-4 — closing S0's shortfall evicts CallLint's own claimed page, and the gate goes green as it happens
 
-**Status:** OPEN (filed 2026-08-10, S batch 1, ADR 0069). **Now guarded** by
-`tests/invariants/registry-cohort-retention.invariants.test.ts` — the guard is what makes this row
-a *tracked* hazard rather than a latent one, and it does not resolve it.
+**Status:** **OPEN, and no longer for a reason any code change can address** (filed 2026-08-10, S batch
+1, ADR 0069). Both authorizable remedies have landed: the cap raise (2026-08-11, ADR 0074) and the
+reserved-retention selection rule (2026-08-12, ADR 0075). **The eviction the row names is gone at every
+cohort size** — see the two amendments at the end. What keeps it open is its closing condition's
+*observation* clause, which needs a cohort at ≥26 on `main`, i.e. an ingest run. Everything below is the
+original text, left verbatim, including the census sentence the 2026-08-12 amendment measures as **false
+in all three of its clauses**.
 
 **The arithmetic, over two constants that are the same number by coincidence.**
 `S0_REQUIRED_RECORDS` (`scripts/gate-s0.ts`) == `DEFAULT_MAX_ENTRIES`
@@ -694,6 +698,103 @@ coincidence:
   0074 expects it to move again.
 - `fetchRegistry.ts:19-33` — the docblock states the never-equal rule and the defer-not-remove
   arithmetic at the declaration itself.
+
+**AMENDED 2026-08-12 (S batch 6, ADR 0075) — the THIRD remedy was authorized and applied. This row is
+now CLOSED IN CODE and stays OPEN only on its `main`-cohort clause, which no code change can reach.**
+
+**What changed.** The hazard is **removed at the selection rule**, not deferred by headroom.
+`selectCohortEntries`
+(`fetchRegistry.ts:86`, duplicated verbatim at `snapshotProjection.ts`) retains every name in
+`RESERVED_COHORT_NAMES` (`fetchRegistry.ts:68`) against the cap, then fills the remaining budget
+alphabetically, then re-sorts so the output stays in **name order**. The reserved name takes a slot,
+never an extra one — the cap remains an absolute ceiling, asserted as `count === cap`.
+
+```
+                        after ADR 0074 (cap 100)   after ADR 0075 (this row)
+cohort 19..25           SHORTFALL/MET, self present  same
+cohort 26..100          MET, self present            same
+cohort 101+             MET, self ** EVICTED **      MET, self ** PRESENT **   ← the row's defect, gone
+```
+
+Measured through the real projection: there is now **no cohort size** at which the claimed subject is
+evicted, probed at the old boundary, at `boundary + 1`, and at `boundary + 1 + 4 × cap`.
+
+**Why the reserved list is keyed on the REGISTRY name and never the slug.** `registryCanonicalName`
+lowercases and maps every `[^a-z0-9._-]` run to `-`, so `io.github.calllint-calllint`,
+`IO.GITHUB.CALLLINT/CALLLINT` and `io.github.calllint/CALLLINT` **all collide** onto the one slug
+`mcp-registry/io.github.calllint-calllint`. `-` (45) sorts before `/` (47), so the first impostor lands
+*ahead of* the real name. Exact equality over the original reverse-DNS name is the only unimpersonable
+form — the same defence `claim.ts:166-173`'s `namespaceCovers` already applies. Guarded by
+`registry-cohort-retention.invariants.test.ts`, which probes the reserved list **directly** rather than
+probing survival: uppercase `I` (73) sorts before lowercase `a` (97), so an uppercase impostor enters the
+alphabetical prefix on its own and *survives without being exempted*. Survival cannot tell the two apart.
+
+**Why the list is a static in-code constant and not a claim-store lookup.** `refreshFromMirror.ts:290-296`
+records that feeding any part of resolved identity into `projectSnapshot`'s input breaks the byte gate:
+the projection must stay a function of `records` alone. An active verified claim for exactly this subject
+**does** exist (see the census correction below), and it still cannot be the source.
+
+**Why the rule is duplicated rather than imported.** trust-index depends on adoption-index; adoption-index
+has **zero** imports of trust-index and the import-boundary gate keeps it that way
+(`snapshotProjection.ts:21-26`). So both copies carry the rule and their equivalence is asserted
+*behaviourally* — `snapshot-projection.test.ts` byte-compares the two paths on a payload where the cap
+binds **and** a reserved name would have been evicted, and asserts the two lists hold identical members.
+That case had to be written: every pre-existing byte-equivalence fixture is `io.example/*`, so both sides
+agreed by **never running the reserved branch**.
+
+**Correction to this row's own census, the second one.** The 2026-08-11 line above reads *"**No second
+copy exists.** `claims/claim-store.json` has 2 keys, none matching; `snapshots/adoption-index.json` has 0
+subjects."* **Every clause of that is false, and both halves failed the same way — the probe read a field
+name that does not exist.** Measured at `packages/trust-index/`:
+
+| claim | measured |
+|---|---|
+| claim-store "has 2 keys, none matching" | the 2 keys are the top-level `schema` + `records`; `records` holds **2 claim records, BOTH** for `mcp-registry/io.github.calllint-calllint` — one `revoked` (`installationId` 147742681), one **`active`** (148693982, `verifiedAt` 2026-07-24T09:44:55.534Z) |
+| adoption-index "has 0 subjects" | the field is `entries`, not `subjects`; it holds **19**, of which **1** is this subject (`identityStatus: PROVISIONAL`, `canonicalName: io.github.calllint/calllint`) |
+| "the served snapshot is its only home" | **refuted** — there are three copies: the served index, the adoption-index projection, and an active verified claim |
+
+The row's *conclusion* still stood on its own (eviction removes the served page, and the page is what the
+bake emits), which is exactly why the wrong census survived two batches unchallenged. The served-index
+half of the census was re-measured and **is correct**: `apps/web/public/trust/index.json` carries exactly
+**one** row for the slug, `status: "baked"`, `verdict: "SAFE"`, and within the 19-row `mcp-registry`
+cohort it sits at **index 18 — the last**, which is the ordering fact the whole row rests on.
+
+**And a third census correction, in the opposite direction — this row was RIGHT where the guard was
+wrong.** The `presentation-lock.json` count of **three** is correct, but the three do not share a key
+form, and that is why the sibling census in
+`tests/invariants/registry-cohort-retention.invariants.test.ts` recorded only **two**:
+
+```
+contentPlane.overriddenSlots[34]   overrides.resources.mcp-registry__io.github.calllint-calllint.displayName
+contentPlane.overriddenSlots[35]   overrides.resources.mcp-registry__io.github.calllint-calllint.reason
+semanticContract.resources[18]     canonicalSlug = "mcp-registry/io.github.calllint-calllint"
+```
+
+The first two key the subject as a **flat dotted path with `__` where the slug has `/`**; only the third
+holds the slug verbatim. An exact-string search for the slug returns **1**; a search for the `__` form
+returns **2**. Both censuses were built by searching one key form and reporting the total — the same
+failure mode as the claim-store clause above, and the same one as
+[[assert-which-source-answered]]: **a census inherits the blind spots of its key form.** `resources[18]`
+is also the *same last index* the subject holds in the cohort, because the lock's resource list is in
+cohort order — so the eviction boundary and the lock's tail were always the same boundary.
+
+**What is still OPEN, precisely.** Only the closing condition's *observation* clause: a cohort at ≥26 **on
+`main`** with the served page present. That needs an ingest run — a network action on the sole scanner,
+with its own authorization — and today's `main` carries 19. What ADR 0074 made *reachable*, this batch
+makes **unconditional**: the outcome no longer depends on where the cap sits relative to the cohort.
+
+**Where the retention rule is enforced,** so a revert reds by name:
+- `tests/invariants/registry-cohort-retention.invariants.test.ts` — the former "names the EXACT cohort
+  size at which the subject is evicted" test is **inverted** to "there is NO such size", keeping the
+  `count === cap` ceiling half; plus the slug-impostor test. Its overlap-interval upper endpoint was
+  re-derived: it used to be set **by eviction**, and with retention nothing closes the interval, so the
+  top is now the scan bound's own last step, asserted with a contiguity check rather than a literal.
+- `packages/adoption-index/test/snapshot-projection.test.ts` — the cap-binds-with-a-reserved-name byte
+  case and the two-list equality assertion.
+- `tests/invariants/gate-s0-claims.invariants.test.ts` — the `.slice(0, max)` pointer is **retired**
+  (that string no longer exists) and re-aimed at the reserved list, the selection function, and its call
+  site. Fifth consecutive batch to move a pointer in that test; caught only because `assertPointer`
+  matches line **content**, not line existence.
 
 ---
 
