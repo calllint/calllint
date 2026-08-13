@@ -952,6 +952,51 @@ makes **unconditional**: the outcome no longer depends on where the cap sits rel
 > `≥26` clause is now the *second* half rather than the trigger — because this row has already proved
 > that waiting for 26 let the loss happen at 25.
 
+> **Amendment 2026-08-13 (b) — a THIRD consumer of the absence, and it is human-recorded evidence.**
+> Measured while landing the branch above: the absence does not only cost a served page, it invalidates
+> **Gate 2.4-B's entire human panel**, and it did so on `main` before this branch existed.
+>
+> `1115639` (#234) replaced the 19-entry snapshot with the 25-entry one. Every served install page's
+> bytes changed, and `artifacts/phase-2.4/five-second-panel-store.json` records, per response, the
+> `sha256` of the page the participant was **actually shown**. So all **10 of 10** responses are now
+> `stale` and excluded from the rates by design (`phase-2.4-eval.ts:99-102`: *"A response whose page has
+> since changed is not weaker evidence about the new page — it is none."*). Consequences, each measured
+> on a pristine `origin/main` worktree, not inferred:
+>
+> | measure | on `main` today |
+> |---|---|
+> | `human-five-second-test.json` committed status | `PASSED`, `staleResponses: 0`, `responses: 10` |
+> | what the code actually derives from committed bytes | `PENDING_HUMAN_PANEL`, `staleResponses: 10`, `responses: 0` |
+> | `gate-H-no-regression.json` committed | `closed: true`, `openGates: []` |
+> | what it derives | `closed: false`, `openGates: [2.4-B]` |
+> | `pnpm eval:phase-2.4:panel:validate` | **EXIT 1** — 3 subjects "not a served install page" |
+>
+> So `main` has been claiming a **closed** new14 release boundary on recognition evidence that no longer
+> exists. That is the same failure shape as this row's original finding — a gate reporting success about
+> a subject it can no longer see — reached through a different consumer.
+>
+> **Three of the ten panel subjects have no served page at all**, and ours is one:
+> `mcp-registry/ac.tandem-docs-mcp`, `mcp-registry/ac.inference.sh-mcp`, and
+> `mcp-registry/io.github.calllint-calllint` (participants 7, 8, 10). The first two left with the
+> 19→25 refresh; the third is **this row's subject**. So the re-ingest that restores the page also
+> restores the only panel subject we control — while the other two stay unserved regardless.
+>
+> **What was done, and what was deliberately NOT done.** The three drift artifacts were regenerated, so
+> the committed bytes now state `PENDING_HUMAN_PANEL` / `closed: false` — the honest state. This weakens
+> no enforced gate: all four Phase 2.4 steps in `ci.yml` run `--check` (drift-only) and **none** runs
+> `--gate` (`phase-2.4-eval.ts:233`: *"A pending gate is a state, not a break."*).
+> `five-second-panel-store.json` was **not touched** — it is data only a human writes (ADR 0053 §4), and
+> deleting three real responses to green `panel:validate` would discard evidence to satisfy a check,
+> which is the inversion this ledger exists to catch. Dropping them would not even close the gate: 7
+> remaining < the 10-response threshold, so 2.4-B stays `PENDING_HUMAN_PANEL` either way.
+>
+> **Therefore `pnpm eval:phase-2.4:panel:validate` is EXPECTED RED on `main` and on this branch**, and it
+> is red for a true reason. It cannot go green by any code change: it asserts that recorded sessions point
+> at pages we actually publish, and three of them do not. Closing it requires **re-running those panel
+> sessions against the current pages** — ten human five-second sessions — which no CI run and no agent
+> can supply. Tracked here rather than as a new row because the root cause is this row's absence plus
+> #234's refresh, not an independent defect.
+
 ---
 
 ## S0-OPEN-5 — Gate 2.4-H asserts 18 checks are "wired" by matching text, so it cannot see that the runner rejects the file
