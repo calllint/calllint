@@ -9,9 +9,9 @@
  *
  * Three things make this a distinct measurement rather than a bigger version of the others:
  *
- *   1. THE FIXTURE IS THE COMMITTED SNAPSHOT, not a hand-authored cohort. The 19 entries are
+ *   1. THE FIXTURE IS THE COMMITTED SNAPSHOT, not a hand-authored cohort. The 25 entries are
  *      replayed through the official adapter's raw wire shape, so the count under test is the
- *      corpus's own 19-subjects/2-artifacts shape rather than a number a fixture chose. If someone
+ *      corpus's own 25-subjects/3-artifacts shape rather than a number a fixture chose. If someone
  *      publishes a third npm package into the registry and re-bakes, this file changes — which is
  *      the point: the assertion is about the corpus, so the corpus moving should be visible.
  *   2. THE PORT IS INJECTED THE WAY PRODUCTION INJECTS IT. `refreshSnapshot.ts:202-210` builds a
@@ -81,7 +81,7 @@ interface CorpusPackage {
 }
 
 /**
- * The committed 19 entries, turned back into the raw registry shape the official adapter parses.
+ * The committed 25 entries, turned back into the raw registry shape the official adapter parses.
  *
  * Read from the snapshot rather than from a copy, so a re-bake that changes the corpus changes
  * this fixture too. `parseSnapshot` is the shipped reader — going through it means a snapshot this
@@ -323,22 +323,22 @@ function casBlobs(root: string): string[] {
 // ── the corpus preconditions ───────────────────────────────────────────────────────────────────
 
 describe("the corpus's own shape, graded before anything is asserted about it", () => {
-  it("declares 19 entries and exactly 2 npm packages", () => {
+  it("declares 25 entries and exactly 3 npm packages", () => {
     // The precondition for every count below. Asserted first and separately so a corpus change
     // reports "the corpus moved" rather than "artifact resolution broke" — the two failures need
     // different fixes and a single combined assertion cannot tell them apart.
-    expect(parseSnapshot(readFileSync(SNAPSHOT_PATH, "utf8")).entries).toHaveLength(19)
+    expect(parseSnapshot(readFileSync(SNAPSHOT_PATH, "utf8")).entries).toHaveLength(25)
     const packages = corpusPackages()
-    expect(packages).toHaveLength(2)
+    expect(packages).toHaveLength(3)
     expect([...new Set(packages.map((p) => p.registryType))]).toEqual(["npm"])
     for (const pkg of packages) expect(pkg.version, pkg.identifier).not.toBeNull()
   })
 
-  it("the two fixtures are DIFFERENT bytes, so two blobs is not one blob twice", () => {
+  it("the three fixtures are DIFFERENT bytes, so three blobs is not one blob reused", () => {
     const { bytesFor } = corpusRoutes()
     const digests = new Set([...bytesFor.values()].map((b) => createHash("sha256").update(b).digest("hex")))
-    expect(bytesFor.size).toBe(2)
-    expect(digests.size).toBe(2)
+    expect(bytesFor.size).toBe(3)
+    expect(digests.size).toBe(3)
   })
 
   it("covers a SCOPED name, which is the encoding the packument path gets wrong", () => {
@@ -358,11 +358,11 @@ describe("the injected port resolves the committed corpus end to end (plan step 
     const { fetchImpl } = stubFetch(corpusRoutes().routes)
     const result = await refresh(opened, fetchImpl)
 
-    // The mirror half first: 19 in, 19 subjects, 2 artifact rows. Grading this here means a
+    // The mirror half first: 25 in, 25 subjects, 3 artifact rows. Grading this here means a
     // failure below cannot be a mirror failure wearing an artifact failure's label.
-    expect(result.mirroredRecords).toBe(19)
-    expect(result.identity.subjects).toBe(19)
-    expect(result.identity.artifacts).toBe(2)
+    expect(result.mirroredRecords).toBe(25)
+    expect(result.identity.subjects).toBe(25)
+    expect(result.identity.artifacts).toBe(3)
     expect(result.identity.conflicts).toBe(0)
 
     const artifacts = result.artifacts
@@ -457,7 +457,7 @@ describe("the injected port resolves the committed corpus end to end (plan step 
     const { fetchImpl, calls } = stubFetch(corpusRoutes().routes)
     await refresh(opened, fetchImpl)
 
-    // 17 of the 19 entries declare remotes and no package. Their endpoints are recorded in the
+    // 22 of the 25 entries declare remotes and no package. Their endpoints are recorded in the
     // mirror; they must never be REQUESTED. Fetching one would be R-4 treating an endpoint as a
     // downloadable artifact — and, worse, contacting a third-party host during ingestion.
     const remoteHosts = parseSnapshot(readFileSync(SNAPSHOT_PATH, "utf8"))
@@ -788,10 +788,10 @@ describe("R-7's adoption records, compiled over the committed corpus (plan step 
     await refresh(opened, fetchImpl, { withEvidencePort: true })
 
     const subjects = opened.store.listSubjects()
-    expect(subjects).toHaveLength(19)
+    expect(subjects).toHaveLength(25)
     const { compiled, inserted } = persistAll(opened.store, T1)
     // Every subject the corpus produced is compilable: no slug is null and every one reaches a
-    // payload. Asserted as an equality against the subject count rather than as a bare 19, so a
+    // payload. Asserted as an equality against the subject count rather than as a bare 25, so a
     // corpus that grows keeps this honest and a subject that becomes uncompilable fails here.
     expect(compiled).toHaveLength(subjects.length)
     expect(inserted.every((i) => i)).toBe(true)
@@ -813,9 +813,9 @@ describe("R-7's adoption records, compiled over the committed corpus (plan step 
 
     const withBytes = compiled.filter((c) => c.record.digests.artifactDigest !== null)
     const withoutBytes = compiled.filter((c) => c.record.digests.artifactDigest === null)
-    // The corpus's own shape — 19 subjects declare only 2 npm packages — reaching the record layer.
-    expect(withBytes).toHaveLength(2)
-    expect(withoutBytes).toHaveLength(17)
+    // The corpus's own shape — 25 subjects declare only 3 npm packages — reaching the record layer.
+    expect(withBytes).toHaveLength(3)
+    expect(withoutBytes).toHaveLength(22)
 
     for (const { record } of withBytes) {
       expect(record.digests.evidenceDigest).not.toBeNull()
