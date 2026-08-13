@@ -90,9 +90,9 @@
   },
   "overrides": {
     "resources": {
-      "mcp-registry__io.github.calllint-calllint": {
-        "displayName": "calllint-mcp",
-        "reason": "Restates the shipped derived display name verbatim, so this entry exercises the override path without moving a served byte. The key is the canonical slug with / encoded as __ — the schema's propertyNames pattern admits no slash, and the leaf segment alone would silently key the wrong resource."
+      "mcp-registry__ag.hood-name-service": {
+        "displayName": "mcp-registry/ag.hood-name-service",
+        "reason": "Restates the shipped derived display name verbatim, so this entry exercises the override path without moving a served byte. The key encodes / as __; the leaf alone would key the wrong resource. RETARGETED (ADR 0078 D2) from mcp-registry__io.github.calllint-calllint, whose page the 19→25 re-selection removed — §3 dead config, not a byte change. Kept, not deleted: an empty override set is untestable"
       }
     }
   }

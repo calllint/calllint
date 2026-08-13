@@ -2,8 +2,8 @@
  * resolveIdentity — the pure identity resolver, graded over its whole input space.
  *
  * WHY SYNTHETIC FIXTURES ARE MANDATORY HERE, stated up front because it is the reason this
- * file is shaped the way it is. Measured over the committed 19-entry corpus: raw name 19
- * distinct / 0 collisions · slug 19 / 0 · repositoryUrl 10 non-null / 0 · package identifier
+ * file is shaped the way it is. Measured over the committed 25-entry corpus: raw name 25
+ * distinct / 0 collisions · slug 25 / 0 · repositoryUrl 11 non-null / 0 · package identifier
  * 2 / 0 · publisher head 17 / 1 apparent-but-not-a-conflict. A suite that exercised the
  * resolver only through that snapshot would pass with the conflict branches never entered, and
  * its green would say nothing about them — R-2's control #11 restated: a control that passes
@@ -11,7 +11,7 @@
  *
  * ONE SENTENCE HERE IS NOW INVERTED, kept visible because the prediction it got wrong is worth
  * more than a clean paragraph. It read: "So EVERY conflict class is structurally unreachable on
- * real data." The measurements are unchanged; their SCOPE was the error. They describe the 19
+ * real data." The measurements are unchanged; their SCOPE was the error. They describe the 25
  * committed snapshot entries, and identity resolution now runs over the source's full live
  * cohort (19_739 `active` + `isLatest` names, walked to `reason=exhausted` on 2026-08-04), where
  * the SLUG class is measured — at least two case-fold pairs, a floor rather than a count.
@@ -31,7 +31,7 @@
  *     `a-b-c`. The real buckets are `{a.b/c, a.b-c, A.B/C}` and `{x/y, x-y}`. The conclusion
  *     the wrong witness was offered for still holds — the slug is lossy, so it is never a key.
  *   - The corpus yields TWO artifact rows, not nineteen. Artifacts follow packages, and the
- *     snapshot declares 2 packages against 18 remotes over 19 entries.
+ *     snapshot declares 3 packages against 22 remotes over 25 entries.
  *   - A conflict's participants are mirror ROWS, not native ids. For the official registry
  *     `sourceRecordId` IS the server name, so two records claiming one name share it; keying
  *     on it alone collapsed a real collision to one participant and made the fail-closed path
@@ -163,7 +163,7 @@ describe("purity — the resolver reads no clock, no filesystem, no database", (
 describe("the slug is DERIVED from the shipped transform, and is never the key", () => {
   it("agrees with the shipped `registryCanonicalName` over every committed name", () => {
     const snapshot = parseSnapshot(readFileSync(SNAPSHOT_PATH, "utf8"))
-    expect(snapshot.entries).toHaveLength(19)
+    expect(snapshot.entries).toHaveLength(25)
     // The duplication in `canonicalSlug` is deliberate — importing the serving plane into
     // `src/` is the edge the boundary gate forbids. What makes duplication safe is precisely
     // this comparison: it catches BEHAVIOURAL drift, which a structural check (same file, same
@@ -770,7 +770,7 @@ describe("the shape of what is emitted", () => {
 })
 
 describe("control #21 — the corpus measurement, which cannot grade the conflict path", () => {
-  /** The 19 committed entries, rebuilt into records through the shipped adapter. */
+  /** The 25 committed entries, rebuilt into records through the shipped adapter. */
   function committedRecords(): SourceRecordV1[] {
     const snapshot = parseSnapshot(readFileSync(SNAPSHOT_PATH, "utf8"))
     return snapshot.entries.map((e) => {
@@ -790,19 +790,19 @@ describe("control #21 — the corpus measurement, which cannot grade the conflic
     })
   }
 
-  it("resolves the 19 committed entries to 19 PROVISIONAL subjects and ZERO conflicts", () => {
+  it("resolves the 25 committed entries to 25 PROVISIONAL subjects and ZERO conflicts", () => {
     const out = resolve(committedRecords())
-    expect(out.subjects).toHaveLength(19)
+    expect(out.subjects).toHaveLength(25)
     expect(out.conflicts).toEqual([])
     expect([...new Set(out.subjects.map((s) => s.identityStatus))]).toEqual(["PROVISIONAL"])
   })
 
-  it("emits TWO artifact rows, not nineteen — artifacts follow packages, not subjects", () => {
-    // The measured shape of the corpus: 2 packages against 18 remotes over 19 entries, so 17
+  it("emits THREE artifact rows, not twenty-five — artifacts follow packages, not subjects", () => {
+    // The measured shape of the corpus: 3 packages against 22 remotes over 25 entries, so 22
     // remote-only entries correctly yield zero artifact rows. The plan's step-6 line said 19;
     // asserting that would be asserting a number nothing in the data supports.
     const out = resolve(committedRecords())
-    expect(out.artifacts).toHaveLength(2)
+    expect(out.artifacts).toHaveLength(3)
     expect([...new Set(out.artifacts.map((a) => a.artifactStatus))]).toEqual(["RESOLVED"])
   })
 
@@ -811,24 +811,25 @@ describe("control #21 — the corpus measurement, which cannot grade the conflic
     const names = records.map(claimedName)
     // The five measurements the plan rests on, re-measured rather than remembered. If a future
     // snapshot refresh introduces a real collision, THIS is what says so.
-    expect(new Set(names).size).toBe(19)
-    expect(new Set(names.map(canonicalSlug)).size).toBe(19)
-    expect(new Set(records.map((r) => r.claimedIdentity.repositoryUrl).filter((u) => u != null)).size).toBe(10)
-    expect(records.filter((r) => r.claimedIdentity.repositoryUrl === undefined)).toHaveLength(9)
-    // 17 distinct publisher heads over 19 names — the ONE repeat is the `agenticshelf` trio,
-    // which must not merge. That is a fact about the corpus, not a conflict.
-    expect(new Set(names.map(publisherHead)).size).toBe(17)
-    expect(names.filter((n) => publisherHead(n) === "ai.agenticshelf")).toHaveLength(3)
+    expect(new Set(names).size).toBe(25)
+    expect(new Set(names.map(canonicalSlug)).size).toBe(25)
+    expect(new Set(records.map((r) => r.claimedIdentity.repositoryUrl).filter((u) => u != null)).size).toBe(11)
+    expect(records.filter((r) => r.claimedIdentity.repositoryUrl === undefined)).toHaveLength(14)
+    // 21 distinct publisher heads over 25 names — TWO repeats: `agenticshelf` (×2) and
+    // `agentlookups` (×4). That is a fact about the corpus, not a conflict.
+    expect(new Set(names.map(publisherHead)).size).toBe(21)
+    expect(names.filter((n) => publisherHead(n) === "ai.agenticshelf")).toHaveLength(2)
+    expect(names.filter((n) => publisherHead(n) === "ai.agentlookups")).toHaveLength(4)
     // Every participant is distinct, so no two committed entries are one observation twice.
-    expect(new Set(records.map(participantId)).size).toBe(19)
+    expect(new Set(records.map(participantId)).size).toBe(25)
   })
 
   it("every committed name passes through the irreversible `/` rewrite", () => {
     // The surviving half of the plan's slug measurement, which the corrected witness does not
-    // touch: 19/19 names contain a `/`, so every one of them is lossy under the slug even
+    // touch: 25/25 names contain a `/`, so every one of them is lossy under the slug even
     // though no two of them collide today.
     const names = committedRecords().map(claimedName)
-    expect(names.filter((n) => n.includes("/"))).toHaveLength(19)
+    expect(names.filter((n) => n.includes("/"))).toHaveLength(25)
     expect(names.every((n) => !canonicalSlug(n).slice(REGISTRY_SLUG_NAMESPACE.length + 1).includes("/"))).toBe(true)
   })
 })

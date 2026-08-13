@@ -381,6 +381,80 @@ describe("INV-P3 — a bad or partial document degrades to the shipped copy, nev
     expect(r.sectionTitles.provenance).toBe(SECTION_TITLES.provenance)
     // Exactly the one usable slot was recorded as overridden.
     expect(r.overriddenSlots).toEqual(["decisionCopy.states.PREPARE_AVAILABLE.primaryAction"])
+
+    // ...and each fallback was RECORDED, not merely performed. Until ADR 0078's follow-up
+    // this block asserted only the five lines above, so `rejectedSlots` was `[]` here and a
+    // silently-dropped copy value had no witness at all (D4). The four rules are named
+    // separately because one message covering all of them would not distinguish an
+    // over-long value from a deleted one, which need opposite fixes.
+    const rejectedFor = (slot: string): string => {
+      const hit = r.rejectedSlots.filter((s) => s.startsWith(`${slot}:`))
+      expect(hit, `nothing recorded for ${slot}`).toHaveLength(1)
+      return hit[0] as string
+    }
+    expect(rejectedFor("decisionCopy.states.REVIEW_REQUIRED.primaryAction")).toContain(
+      "blank after trim",
+    )
+    expect(rejectedFor("decisionCopy.states.BLOCKED.primaryAction")).toContain("blank after trim")
+    expect(rejectedFor("decisionCopy.states.LOCAL_PREFLIGHT_REQUIRED.primaryAction")).toContain(
+      "not a string (number)",
+    )
+    expect(rejectedFor("decisionCopy.states.UNSUPPORTED.primaryAction")).toContain(
+      "401 characters, over the 400 cap",
+    )
+    expect(rejectedFor("sectionTitles.provenance")).toContain("carries `<` or `>`")
+    // Each entry is SLOT + RULE and stops there. The "fell back to the shipped value"
+    // consequence is `presentation-lock.ts:564`'s to add, once, for every rejected slot;
+    // repeating it here printed it twice in the gate's own output.
+    for (const s of r.rejectedSlots) {
+      expect(s).not.toContain("fell back to the shipped value")
+    }
+    // The offending TEXT never travels: these strings reach a committed artifact and a CI
+    // log, and the slot plus the rule is what a reviewer needs.
+    expect(r.rejectedSlots.join("\n")).not.toContain("x".repeat(50))
+    expect(r.rejectedSlots.join("\n")).not.toContain("<b>")
+  })
+
+  it("records a copy fallback at EVERY mergeSlots call site, not just the CTA one", () => {
+    // ADR 0078 asked for a control per call site, because `rejected` is threaded in by hand
+    // six times and a missed argument is invisible: the slot would still fall back correctly
+    // and still be absent from `rejectedSlots` — the exact defect this closes. Each entry
+    // pairs one document with the slot path its own call site must emit.
+    const cases: readonly { slot: string; doc: Record<string, unknown> }[] = [
+      {
+        slot: "decisionCopy.states.BLOCKED.primaryAction",
+        doc: { decisionCopy: { states: { BLOCKED: { primaryAction: "" } } } },
+      },
+      {
+        slot: "authorityCopy.observedPhrases.shell_execution",
+        doc: { authorityCopy: { observedPhrases: { shell_execution: "" } } },
+      },
+      {
+        slot: "authorityCopy.absencePhrases.shell_execution",
+        doc: { authorityCopy: { absencePhrases: { shell_execution: "" } } },
+      },
+      { slot: "sectionTitles.provenance", doc: { sectionTitles: { provenance: "" } } },
+      { slot: "guardConversion.acceptLabel", doc: { guardConversion: { acceptLabel: "" } } },
+      { slot: "agentRelayCopy.headline", doc: { agentRelayCopy: { headline: "" } } },
+      {
+        slot: "overrides.resources.io.example-mcp.displayName",
+        doc: { overrides: { resources: { "io.example-mcp": { displayName: "" } } } },
+      },
+    ]
+    for (const { slot, doc } of cases) {
+      const r = resolvePresentation({
+        schema: PRESENTATION_CONTENT_VERSION,
+        locale: "en-US",
+        ...doc,
+      })
+      total(r, slot)
+      expect(
+        r.rejectedSlots.filter((s) => s.startsWith(`${slot}:`)),
+        `${slot} fell back without being recorded — its mergeSlots call is likely missing \`rejected\``,
+      ).toHaveLength(1)
+      // The fallback itself is unchanged: recording must not turn INV-P3 fail-open into a throw.
+      expect(r.overriddenSlots).toEqual([])
+    }
   })
 
   it("cannot coin a state, an authority token, or a title key", () => {

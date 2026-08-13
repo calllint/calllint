@@ -335,44 +335,75 @@ function servedInstallPages(): { slug: string; html: string }[] {
  * resource would fail here — which is what makes "committing the catalog moves no served
  * byte" a measurement for this slice too.
  *
- * Two failure modes are folded in deliberately. An override whose decoded slug matches NO
- * committed resource is a failure, not a no-op: it is the misspelling case, and silently
- * ignoring it is exactly the drift ADR 0058 §3 names. And the comparison uses the `<title>`
- * of the committed page, because that is where the derived display name is observable in
- * served bytes without re-running the projection — re-deriving it here would mean restating
- * `packageName ?? canonicalName` in a second place, which is the duplication this repo keeps
- * removing.
+ * Two failure modes are reported, and they are reported as DIFFERENT KINDS (ADR 0078 D1).
+ * Both are failures — neither may pass — but they are failures of different rules and they
+ * demand opposite remedies:
+ *
+ *   • `would-change-bytes` — the name differs from the served page's. Committing the catalog
+ *     WOULD move a byte, which is ADR 0058 §4. Remedy: do not commit it.
+ *   • `unreachable` — the decoded slug matches no committed page, so the override reaches
+ *     nothing and committing it CANNOT move any byte. That is ADR 0058 §3, the rule about a
+ *     key that validates and then does nothing — the same sentence `unwiredSlots` uses below.
+ *     Remedy: retarget or remove the entry.
+ *
+ * Folding both into one message (the previous form) asserted a byte change for a case where
+ * measurement shows none is possible, and sent a reader looking for a diff that does not
+ * exist. The 19→25 re-selection made this concrete: it removed the only override's target
+ * page, so the live fault was `unreachable` reported as §4.
+ *
+ * The comparison uses the `<title>` of the committed page, because that is where the derived
+ * display name is observable in served bytes without re-running the projection — re-deriving
+ * it here would mean restating `packageName ?? canonicalName` in a second place, which is the
+ * duplication this repo keeps removing.
  */
 function overridesResolveToShippedNames(resolved: ResolvedPresentation): boolean {
   return overrideNameFaults(resolved).length === 0
 }
 
-/** The same measurement, but reporting WHICH override failed and why. */
-function overrideNameFaults(resolved: ResolvedPresentation): string[] {
+/** Which override failed, and under which rule. `kind` decides the message and the §. */
+interface OverrideNameFault {
+  readonly key: string
+  readonly slug: string
+  readonly kind: "unreachable" | "would-change-bytes"
+  readonly message: string
+}
+
+function overrideNameFaults(resolved: ResolvedPresentation): OverrideNameFault[] {
   const pages = servedInstallPages()
   const titleBySlug = new Map<string, string>()
   for (const { slug, html } of pages) {
     const m = /<title>Add ([^<]*) with CallLint<\/title>/.exec(html)
     if (m?.[1] !== undefined) titleBySlug.set(slug, m[1])
   }
-  const faults: string[] = []
+  const faults: OverrideNameFault[] = []
   for (const [key, override] of Object.entries(resolved.overrides.resources)) {
     if (override.displayName === undefined) continue // `reason`-only entry: no served effect
     const slug = decodeOverrideKey(key)
     const shipped = titleBySlug.get(slug)
     if (shipped === undefined) {
-      faults.push(
-        `overrides.resources.${key} decodes to slug ${JSON.stringify(slug)}, which matches no committed ` +
-          `install page — the override reaches nothing (check the / → __ encoding, and note that the ` +
-          `LEAF segment alone also satisfies the schema's propertyNames pattern)`,
-      )
+      faults.push({
+        key,
+        slug,
+        kind: "unreachable",
+        message:
+          `overrides.resources.${key} decodes to slug ${JSON.stringify(slug)}, which matches no committed ` +
+          `install page — the override reaches nothing, so it configures a key that validates and then does ` +
+          `nothing (ADR 0058 §3). It moves no served byte; retarget it at a page the cohort serves, or remove ` +
+          `it. (Check the / → __ encoding, and note that the LEAF segment alone also satisfies the schema's ` +
+          `propertyNames pattern.)`,
+      })
       continue
     }
     if (override.displayName !== shipped) {
-      faults.push(
-        `overrides.resources.${key}.displayName is ${JSON.stringify(override.displayName)} but the committed ` +
-          `page for ${slug} shows ${JSON.stringify(shipped)} — committing this would change served bytes`,
-      )
+      faults.push({
+        key,
+        slug,
+        kind: "would-change-bytes",
+        message:
+          `overrides.resources.${key}.displayName is ${JSON.stringify(override.displayName)} but the committed ` +
+          `page for ${slug} shows ${JSON.stringify(shipped)} — committing this would change served bytes ` +
+          `(ADR 0058 §4)`,
+      })
     }
   }
   return faults
@@ -491,15 +522,27 @@ function build(): { json: string; pass: boolean; failures: readonly string[] } {
     // "default" would be requiring a value that has no served meaning.
     overridesResolveToShippedNames(resolved)
   if (docPresent && validationErrors.length === 0 && !resolvesToDefaults) {
-    failures.push(
-      `${CONTENT_DOC}: resolves to copy that differs from the shipped code defaults — ` +
-        // The old text ended "which ADR 0058 §4 reserves for PR P-4b". That license was
-        // SPENT by P-4b and does not renew, so naming it here would read as though a served
-        // byte were still available to spend. Every batch from P-5 on is under the default
-        // rule, which is byte-identity.
-        `committing the catalog would change served bytes, which ADR 0058 §4 forbids outside ` +
-        `the single license already spent by PR P-4b`,
-    )
+    // ADR 0078 D1. `resolvesToDefaults` is a conjunction over several slices, and the override
+    // slice can fail for a reason that is NOT a byte change. Report each override fault in its
+    // own words, and keep the byte-identity sentence for what it actually describes: a slice
+    // that resolves to different copy. Emitting the §4 text for an `unreachable` override
+    // asserted a byte change that measurement shows cannot happen (the override reaches no
+    // page at all) and sent a reader looking for a diff that does not exist.
+    const nameFaults = overrideNameFaults(resolved)
+    for (const f of nameFaults) failures.push(`${CONTENT_DOC}: ${f.message}`)
+    // Only claim a copy divergence when some slice OTHER than the overrides diverged. With no
+    // override faults, the conjunction can only have failed on a copy/layout/token slice.
+    if (nameFaults.length === 0) {
+      failures.push(
+        `${CONTENT_DOC}: resolves to copy that differs from the shipped code defaults — ` +
+          // The old text ended "which ADR 0058 §4 reserves for PR P-4b". That license was
+          // SPENT by P-4b and does not renew, so naming it here would read as though a served
+          // byte were still available to spend. Every batch from P-5 on is under the default
+          // rule, which is byte-identity.
+          `committing the catalog would change served bytes, which ADR 0058 §4 forbids outside ` +
+          `the single license already spent by PR P-4b`,
+      )
+    }
   }
   for (const slot of resolved.unwiredSlots) {
     // `slot` already carries its own measured reason (`section.key: reason`), supplied by

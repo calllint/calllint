@@ -212,10 +212,20 @@ function validate(store: FiveSecondPanelStore): string[] {
     const at = `responses[${i}]`
     if (typeof r.participant !== "string" || r.participant.trim() === "") errs.push(`${at}: empty participant`)
     if (typeof r.at !== "string" || Number.isNaN(Date.parse(r.at))) errs.push(`${at}: at is not an ISO timestamp`)
-    // The page must exist as SERVED bytes — a panel run against a page we do not
-    // publish would be measuring something no user can reach.
-    if (typeof r.canonicalSlug !== "string" || !fs.existsSync(path.join(served, r.canonicalSlug, "index.html"))) {
-      errs.push(`${at}: canonicalSlug ${String(r.canonicalSlug)} is not a served install page`)
+    // Form only — that a slug was recorded, never whether we still serve it. Whether
+    // the page still exists is CURRENCY, not integrity: a response naming a page we
+    // have since stopped serving is a true record of a real session, and calling it
+    // malformed confuses provenance with currency (ADR 0077 D1). `existsSync` was
+    // also the WEAKER reader of that question — blind to a page merely edited —
+    // while `partitionPanelFreshness` reports removal and edit alike, and fails
+    // closed by excluding both. It stays the single reader of serving state.
+    //
+    // It also made the store unappendable: `record()` validates the whole
+    // prospective store, so three unserved historical subjects refused every new
+    // response — the check blocked the ten human sessions that are the only way to
+    // close the gate it was guarding.
+    if (typeof r.canonicalSlug !== "string" || r.canonicalSlug.trim() === "") {
+      errs.push(`${at}: canonicalSlug ${String(r.canonicalSlug)} is not a slug`)
     }
     for (const q of FIVE_SECOND_QUESTIONS) {
       if (typeof r.correct?.[q] !== "boolean") errs.push(`${at}: correct.${q} must be a boolean the operator typed`)
@@ -408,6 +418,17 @@ if (argv.includes("--serve")) {
 
   if (argv.includes("--validate")) {
     console.log(`panel store OK — ${store.responses.length} response(s), schema ${store.schema}`)
+    // ADR 0077 D3: dropping the `existsSync` integrity rule must not make its subject
+    // invisible. Removal and edit are both reported here, and neither is an error:
+    // the record is sound, the WORLD moved. What it costs the gate is stated by
+    // `--status` and by the committed `human-five-second-test.json`.
+    const { fresh, stale } = partitionPanelFreshness(store, servedPageDigests())
+    console.log(`  fresh: ${fresh.length} · stale: ${stale.length} (stale responses do not count toward Gate 2.4-B)`)
+    for (const s of stale) {
+      console.log(
+        `  - ${s.participant} @ ${s.canonicalSlug} — ${s.currentDigest === null ? "PAGE NO LONGER SERVED" : "page edited since the session"}`,
+      )
+    }
     process.exit(0)
   }
 

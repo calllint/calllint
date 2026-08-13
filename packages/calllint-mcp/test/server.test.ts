@@ -476,8 +476,8 @@ describe("dual-revision serving: one revision per request, never a blend", () =>
     expect(tools("2026-07-28")).toHaveLength(13)
     const resources = (v: string) =>
       (at(v, "resources/list") as { result: { resources: unknown[] } }).result.resources
-    expect(resources("2024-11-05")).toHaveLength(19)
-    expect(resources("2026-07-28")).toHaveLength(19)
+    expect(resources("2024-11-05")).toHaveLength(25)
+    expect(resources("2026-07-28")).toHaveLength(25)
   })
 })
 

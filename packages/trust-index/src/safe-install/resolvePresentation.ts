@@ -435,6 +435,27 @@ function usableCopy(value: unknown): value is string {
 }
 
 /**
+ * Why was this copy value unusable? Returns `null` when it is usable.
+ *
+ * `usableCopy` answers whether to fall back; this answers what to RECORD, which the
+ * caller pushes onto `rejectedSlots`. Splitting the two is the point (ADR 0078 D4):
+ * the boolean collapses four distinct rules into one bit, and a bare `continue` on it
+ * left an over-long or markup-carrying value with no witness but an unasserted count.
+ *
+ * The reason strings name the rule and the observed value's shape — never the value
+ * itself, which can be arbitrary configured text and lands in a lock artifact.
+ */
+function copyRejection(value: unknown): string | null {
+  if (typeof value !== "string") return `not a string (${value === null ? "null" : typeof value})`
+  if (value.trim() === "") return "blank after trim — a deletion disguised as an edit"
+  if (value.length > MAX_COPY_LENGTH) {
+    return `${value.length} characters, over the ${MAX_COPY_LENGTH} cap`
+  }
+  if (/[<>]/.test(value)) return "carries `<` or `>`"
+  return null
+}
+
+/**
  * Is this a usable STYLESHEET HREF? Stricter than `usableCopy`, and deliberately so.
  *
  * Every other slot this module resolves lands in a text node, where the worst a bad
@@ -510,7 +531,10 @@ function collectUnwired(
  *
  * Only keys the default already declares are considered, so configuration cannot coin
  * a state or an authority token — it selects among what code implements (ADR 0058 §3).
- * Unusable values are skipped, which is why the result stays total.
+ * Unusable values are skipped, which is why the result stays total — and RECORDED in
+ * `rejected`, so falling back is never silent (ADR 0078 D4, and the rule
+ * `layout-manifest.test.ts` states outright). The fallback itself is unchanged: INV-P3
+ * keeps the served page on its shipped sentence rather than failing the render.
  */
 function mergeSlots<K extends string>(
   defaults: Record<K, string>,
@@ -518,14 +542,21 @@ function mergeSlots<K extends string>(
   keys: readonly K[],
   slotPath: (key: K) => string,
   overridden: string[],
+  rejected: string[],
 ): Record<K, string> {
   if (configured === undefined) return defaults
   const out = { ...defaults }
   for (const key of keys) {
     const value = configured[key]
     if (value === undefined) continue
-    if (!usableCopy(value)) continue
-    out[key] = value
+    const why = copyRejection(value)
+    if (why !== null) {
+      // Just the rule and the slot. `presentation-lock.ts` appends the "fell back to the
+      // shipped value" consequence to every rejected slot, so saying it here duplicates it.
+      rejected.push(`${slotPath(key)}: ${why}`)
+      continue
+    }
+    out[key] = value as string
     overridden.push(slotPath(key))
   }
   return out
@@ -548,6 +579,9 @@ export function resolvePresentation(doc: unknown): ResolvedPresentation {
   const d = doc as Partial<PresentationContentV1> & Record<string, unknown>
 
   const overridden: string[] = []
+  // Declared here, not at first use: every `mergeSlots` call below records fallbacks onto
+  // it, and the earliest of those precedes the layout section that used to own it.
+  const rejected: string[] = []
 
   // L1 — decisionCopy.states[STATE].primaryAction. The state key set is the shipped
   // `PRESENTATION_STATES`; a key outside it is ignored here and rejected by the schema.
@@ -567,6 +601,7 @@ export function resolvePresentation(doc: unknown): ResolvedPresentation {
     PRESENTATION_STATES as readonly Installability[],
     (state) => `decisionCopy.states.${state}.primaryAction`,
     overridden,
+    rejected,
   )
 
   // L2 — authorityCopy.{observedPhrases,absencePhrases}, keyed by shipped authority.
@@ -579,6 +614,7 @@ export function resolvePresentation(doc: unknown): ResolvedPresentation {
     ADOPTION_AUTHORITIES as readonly AdoptionAuthority[],
     (a) => `authorityCopy.observedPhrases.${a}`,
     overridden,
+    rejected,
   )
   const absence = mergeSlots(
     ABSENCE_CONSEQUENCE,
@@ -586,6 +622,7 @@ export function resolvePresentation(doc: unknown): ResolvedPresentation {
     ADOPTION_AUTHORITIES as readonly AdoptionAuthority[],
     (a) => `authorityCopy.absencePhrases.${a}`,
     overridden,
+    rejected,
   )
 
   // L1 — the renderer's fixed section titles, wired slots only.
@@ -596,6 +633,7 @@ export function resolvePresentation(doc: unknown): ResolvedPresentation {
     WIRED_SECTION_TITLES,
     (k) => `sectionTitles.${k}`,
     overridden,
+    rejected,
   )
 
   // A configured slot that no renderer reads would be a config edit with no effect —
@@ -656,7 +694,6 @@ export function resolvePresentation(doc: unknown): ResolvedPresentation {
   //     can only ever hide facts, never manufacture them — but an OUT-OF-RANGE cap is
   //     still recorded, so "I asked for 5 and got 3" is visible rather than silent.
   //   • absent layout ⇒ the shipped default, contributing no overrides.
-  const rejected: string[] = []
   const layoutRaw = objectOrUndefined(d.layout as Record<string, unknown> | undefined)
   // PRESENT-BUT-MALFORMED is not the same as ABSENT, and collapsing them would defeat the
   // point of `rejectedSlots`: `layout: "left-to-right"` would fall back to the shipped page
@@ -724,7 +761,7 @@ export function resolvePresentation(doc: unknown): ResolvedPresentation {
         tokensVersion = tokensRaw.tokensVersion
         if (tokensVersion !== DEFAULT_TOKENS.tokensVersion) overridden.push("tokens.tokensVersion")
       } else {
-        rejected.push("tokens.tokensVersion: not a usable string")
+        rejected.push(`tokens.tokensVersion: ${copyRejection(tokensRaw.tokensVersion)}`)
       }
     }
     let stylesheetHref = DEFAULT_TOKENS.stylesheetHref
@@ -759,6 +796,7 @@ export function resolvePresentation(doc: unknown): ResolvedPresentation {
     WIRED_GUARD_SLOTS,
     (k) => `guardConversion.${k}`,
     overridden,
+    rejected,
   )
   collectUnwired("guardConversion", guardRaw, unwired)
 
@@ -776,6 +814,7 @@ export function resolvePresentation(doc: unknown): ResolvedPresentation {
     WIRED_AGENT_RELAY,
     (k) => `agentRelayCopy.${k}`,
     overridden,
+    rejected,
   )
   collectUnwired("agentRelayCopy", relayRaw, unwired)
 
@@ -806,8 +845,12 @@ export function resolvePresentation(doc: unknown): ResolvedPresentation {
       for (const field of WIRED_OVERRIDE_SLOTS) {
         const value = entry[field]
         if (value === undefined) continue
-        if (!usableCopy(value)) continue
-        one[field] = value
+        const why = copyRejection(value)
+        if (why !== null) {
+          rejected.push(`overrides.resources.${key}.${field}: ${why}`)
+          continue
+        }
+        one[field] = value as string
         overridden.push(`overrides.resources.${key}.${field}`)
       }
       // An entry whose every field was unwired or unusable resolves to nothing. Recorded as

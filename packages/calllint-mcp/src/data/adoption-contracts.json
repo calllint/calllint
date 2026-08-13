@@ -1,214 +1,14 @@
 {
   "schema": "calllint.mcp-committed-contracts.v1",
   "contracts": {
-    "mcp-registry/ac.inference.sh-mcp": {
-      "schema": "calllint.agent-adoption-contract.v1",
-      "contract": {
-        "contractDigest": "sha256:90f1373a490e065d8427addc661276c523328e8f6b569e3cb3f8cdbbe9bec433",
-        "generatedAt": "2026-07-17T00:00:00.000Z",
-        "expiresAt": null,
-        "generatorVersion": "0.1.0",
-        "snapshotDigest": "sha256:0d35502e5cf3aff33c72a15bcf5e56c6c75bb3c0ec283593095a78b8c0824830"
-      },
-      "subject": {
-        "canonicalName": "mcp-registry/ac.inference.sh-mcp",
-        "canonicalSlug": "mcp-registry/ac.inference.sh-mcp",
-        "packageType": null,
-        "packageName": null,
-        "version": "1.0.1",
-        "artifactDigest": "sha256:0b91dc1f54023ed17fd4f38be57ebbbc1024bde797d160be2278c3b78aedc6d2",
-        "sourceLocator": "https://sh.inference.ac"
-      },
-      "publicObservation": {
-        "verdict": "REVIEW",
-        "publicLabel": "Review required",
-        "reasonCodes": [
-          "UNKNOWN_REMOTE"
-        ],
-        "evidenceLevel": "E2",
-        "evidenceDigest": "sha256:8f74750bcfbbb711c361f75ccf51ccd3d99b67231c821bdb1a2dcb610a5631f9",
-        "completeness": "complete"
-      },
-      "authorityDelta": {
-        "adds": [
-          {
-            "authority": "network_egress"
-          }
-        ],
-        "notObserved": [
-          "financial_action",
-          "secret_access",
-          "shell_execution",
-          "broad_filesystem_access",
-          "external_mutation",
-          "messaging_send",
-          "oauth_scope",
-          "gateway_runtime"
-        ]
-      },
-      "trustedSources": {
-        "registrySnapshotDigest": "sha256:0d35502e5cf3aff33c72a15bcf5e56c6c75bb3c0ec283593095a78b8c0824830",
-        "evidenceDigest": "sha256:8f74750bcfbbb711c361f75ccf51ccd3d99b67231c821bdb1a2dcb610a5631f9",
-        "engineVersion": "0.1.0"
-      },
-      "untrustedPublisherContent": {
-        "description": "Run 150+ AI apps — image, video, audio, LLMs, 3D and more. Browse, execute, stream results.",
-        "usedForSafetyDecision": false
-      },
-      "recommendedNextAction": {
-        "kind": "PREPARE_LOCALLY",
-        "tool": "calllint_prepare_safe_install",
-        "arguments": {
-          "canonicalName": "mcp-registry/ac.inference.sh-mcp",
-          "expectedVersion": "1.0.1",
-          "expectedArtifactDigest": "sha256:0b91dc1f54023ed17fd4f38be57ebbbc1024bde797d160be2278c3b78aedc6d2",
-          "expectedContractDigest": "sha256:90f1373a490e065d8427addc661276c523328e8f6b569e3cb3f8cdbbe9bec433",
-          "host": null
-        }
-      },
-      "agentGuidance": {
-        "goal": "Add the requested Agent Tool with only locally approved authority.",
-        "steps": [
-          "verify_contract",
-          "resolve_host",
-          "prepare_locally",
-          "evaluate_local_policy",
-          "apply_exact_plan",
-          "verify_result"
-        ],
-        "mustAskBefore": [
-          "new_secret_access",
-          "external_mutation",
-          "shell_execution",
-          "broad_filesystem_access",
-          "financial_action",
-          "persistent_calllint_components"
-        ],
-        "mustStopWhen": [
-          "artifact_digest_mismatch",
-          "contract_digest_mismatch",
-          "unsupported_host",
-          "local_policy_deny",
-          "plan_tampered",
-          "verification_failed"
-        ],
-        "prohibitedShortcuts": [
-          "do_not_replace_exact_version_with_latest",
-          "do_not_execute_publisher_commands_directly",
-          "do_not_expand_authority",
-          "do_not_hide_alternative_setup",
-          "do_not_install_persistent_guard_without_authorization"
-        ]
-      }
-    },
-    "mcp-registry/ac.tandem-docs-mcp": {
-      "schema": "calllint.agent-adoption-contract.v1",
-      "contract": {
-        "contractDigest": "sha256:f200af61d04e762810ba874e8bbe6dcb2e1a958e083114b697f79b8950bceba3",
-        "generatedAt": "2026-07-17T00:00:00.000Z",
-        "expiresAt": null,
-        "generatorVersion": "0.1.0",
-        "snapshotDigest": "sha256:0d35502e5cf3aff33c72a15bcf5e56c6c75bb3c0ec283593095a78b8c0824830"
-      },
-      "subject": {
-        "canonicalName": "mcp-registry/ac.tandem-docs-mcp",
-        "canonicalSlug": "mcp-registry/ac.tandem-docs-mcp",
-        "packageType": null,
-        "packageName": null,
-        "version": "0.3.2",
-        "artifactDigest": "sha256:ea5ff9be0d627a192408db08451d54dd04c54dda4ab0adca359f5a3b50e16ab1",
-        "sourceLocator": "https://tandem.ac/mcp"
-      },
-      "publicObservation": {
-        "verdict": "REVIEW",
-        "publicLabel": "Review required",
-        "reasonCodes": [
-          "UNKNOWN_REMOTE"
-        ],
-        "evidenceLevel": "E2",
-        "evidenceDigest": "sha256:8f74750bcfbbb711c361f75ccf51ccd3d99b67231c821bdb1a2dcb610a5631f9",
-        "completeness": "complete"
-      },
-      "authorityDelta": {
-        "adds": [
-          {
-            "authority": "network_egress"
-          }
-        ],
-        "notObserved": [
-          "financial_action",
-          "secret_access",
-          "shell_execution",
-          "broad_filesystem_access",
-          "external_mutation",
-          "messaging_send",
-          "oauth_scope",
-          "gateway_runtime"
-        ]
-      },
-      "trustedSources": {
-        "registrySnapshotDigest": "sha256:0d35502e5cf3aff33c72a15bcf5e56c6c75bb3c0ec283593095a78b8c0824830",
-        "evidenceDigest": "sha256:8f74750bcfbbb711c361f75ccf51ccd3d99b67231c821bdb1a2dcb610a5631f9",
-        "engineVersion": "0.1.0"
-      },
-      "untrustedPublisherContent": {
-        "description": "Remote MCP server for Tandem docs, install guides, SDKs, workflows, and agent setup help.",
-        "usedForSafetyDecision": false
-      },
-      "recommendedNextAction": {
-        "kind": "PREPARE_LOCALLY",
-        "tool": "calllint_prepare_safe_install",
-        "arguments": {
-          "canonicalName": "mcp-registry/ac.tandem-docs-mcp",
-          "expectedVersion": "0.3.2",
-          "expectedArtifactDigest": "sha256:ea5ff9be0d627a192408db08451d54dd04c54dda4ab0adca359f5a3b50e16ab1",
-          "expectedContractDigest": "sha256:f200af61d04e762810ba874e8bbe6dcb2e1a958e083114b697f79b8950bceba3",
-          "host": null
-        }
-      },
-      "agentGuidance": {
-        "goal": "Add the requested Agent Tool with only locally approved authority.",
-        "steps": [
-          "verify_contract",
-          "resolve_host",
-          "prepare_locally",
-          "evaluate_local_policy",
-          "apply_exact_plan",
-          "verify_result"
-        ],
-        "mustAskBefore": [
-          "new_secret_access",
-          "external_mutation",
-          "shell_execution",
-          "broad_filesystem_access",
-          "financial_action",
-          "persistent_calllint_components"
-        ],
-        "mustStopWhen": [
-          "artifact_digest_mismatch",
-          "contract_digest_mismatch",
-          "unsupported_host",
-          "local_policy_deny",
-          "plan_tampered",
-          "verification_failed"
-        ],
-        "prohibitedShortcuts": [
-          "do_not_replace_exact_version_with_latest",
-          "do_not_execute_publisher_commands_directly",
-          "do_not_expand_authority",
-          "do_not_hide_alternative_setup",
-          "do_not_install_persistent_guard_without_authorization"
-        ]
-      }
-    },
     "mcp-registry/ag.hood-name-service": {
       "schema": "calllint.agent-adoption-contract.v1",
       "contract": {
-        "contractDigest": "sha256:de52b7b178bb158f6aef12ff4b422b5ff9488586daf80a7dd99b874950c3b04e",
-        "generatedAt": "2026-07-17T00:00:00.000Z",
+        "contractDigest": "sha256:663887b0fced9bde87e653d683aa839be0e694a4d16df89107589ce6c67bf289",
+        "generatedAt": "2026-08-10T08:02:29.262Z",
         "expiresAt": null,
         "generatorVersion": "0.1.0",
-        "snapshotDigest": "sha256:0d35502e5cf3aff33c72a15bcf5e56c6c75bb3c0ec283593095a78b8c0824830"
+        "snapshotDigest": "sha256:d8e0d5529ccd6b80f5484cde636692f7de730937850de2b5c2fcc16bf95ebdc7"
       },
       "subject": {
         "canonicalName": "mcp-registry/ag.hood-name-service",
@@ -226,7 +26,7 @@
           "UNKNOWN_REMOTE"
         ],
         "evidenceLevel": "E2",
-        "evidenceDigest": "sha256:8f74750bcfbbb711c361f75ccf51ccd3d99b67231c821bdb1a2dcb610a5631f9",
+        "evidenceDigest": "sha256:0a8a248165113bccc47fa8e331d4bd8e296aae7ecc9fda99778b0b6bf5e55883",
         "completeness": "complete"
       },
       "authorityDelta": {
@@ -247,8 +47,8 @@
         ]
       },
       "trustedSources": {
-        "registrySnapshotDigest": "sha256:0d35502e5cf3aff33c72a15bcf5e56c6c75bb3c0ec283593095a78b8c0824830",
-        "evidenceDigest": "sha256:8f74750bcfbbb711c361f75ccf51ccd3d99b67231c821bdb1a2dcb610a5631f9",
+        "registrySnapshotDigest": "sha256:d8e0d5529ccd6b80f5484cde636692f7de730937850de2b5c2fcc16bf95ebdc7",
+        "evidenceDigest": "sha256:0a8a248165113bccc47fa8e331d4bd8e296aae7ecc9fda99778b0b6bf5e55883",
         "engineVersion": "0.1.0"
       },
       "untrustedPublisherContent": {
@@ -262,7 +62,202 @@
           "canonicalName": "mcp-registry/ag.hood-name-service",
           "expectedVersion": "0.1.0",
           "expectedArtifactDigest": "sha256:903432ed74561447d10761874fafa64277863152dee2df6a8ab2cf456fd49a62",
-          "expectedContractDigest": "sha256:de52b7b178bb158f6aef12ff4b422b5ff9488586daf80a7dd99b874950c3b04e",
+          "expectedContractDigest": "sha256:663887b0fced9bde87e653d683aa839be0e694a4d16df89107589ce6c67bf289",
+          "host": null
+        }
+      },
+      "agentGuidance": {
+        "goal": "Add the requested Agent Tool with only locally approved authority.",
+        "steps": [
+          "verify_contract",
+          "resolve_host",
+          "prepare_locally",
+          "evaluate_local_policy",
+          "apply_exact_plan",
+          "verify_result"
+        ],
+        "mustAskBefore": [
+          "new_secret_access",
+          "external_mutation",
+          "shell_execution",
+          "broad_filesystem_access",
+          "financial_action",
+          "persistent_calllint_components"
+        ],
+        "mustStopWhen": [
+          "artifact_digest_mismatch",
+          "contract_digest_mismatch",
+          "unsupported_host",
+          "local_policy_deny",
+          "plan_tampered",
+          "verification_failed"
+        ],
+        "prohibitedShortcuts": [
+          "do_not_replace_exact_version_with_latest",
+          "do_not_execute_publisher_commands_directly",
+          "do_not_expand_authority",
+          "do_not_hide_alternative_setup",
+          "do_not_install_persistent_guard_without_authorization"
+        ]
+      }
+    },
+    "mcp-registry/agency.goji-goji": {
+      "schema": "calllint.agent-adoption-contract.v1",
+      "contract": {
+        "contractDigest": "sha256:2bb38fdc61511c0f2d5015821c2a4cb7bcf78ab7c89e522ca28bd951f9223ff6",
+        "generatedAt": "2026-08-10T08:02:29.262Z",
+        "expiresAt": null,
+        "generatorVersion": "0.1.0",
+        "snapshotDigest": "sha256:d8e0d5529ccd6b80f5484cde636692f7de730937850de2b5c2fcc16bf95ebdc7"
+      },
+      "subject": {
+        "canonicalName": "mcp-registry/agency.goji-goji",
+        "canonicalSlug": "mcp-registry/agency.goji-goji",
+        "packageType": null,
+        "packageName": null,
+        "version": "1.0.0",
+        "artifactDigest": "sha256:3c2c08852743cc9cf0b5f2376f0bd53fd9e5c32e828eb423086d572cd7635d02",
+        "sourceLocator": "https://mcp.goji.agency/mcp"
+      },
+      "publicObservation": {
+        "verdict": "REVIEW",
+        "publicLabel": "Review required",
+        "reasonCodes": [
+          "UNKNOWN_REMOTE"
+        ],
+        "evidenceLevel": "E2",
+        "evidenceDigest": "sha256:0a8a248165113bccc47fa8e331d4bd8e296aae7ecc9fda99778b0b6bf5e55883",
+        "completeness": "complete"
+      },
+      "authorityDelta": {
+        "adds": [
+          {
+            "authority": "network_egress"
+          }
+        ],
+        "notObserved": [
+          "financial_action",
+          "secret_access",
+          "shell_execution",
+          "broad_filesystem_access",
+          "external_mutation",
+          "messaging_send",
+          "oauth_scope",
+          "gateway_runtime"
+        ]
+      },
+      "trustedSources": {
+        "registrySnapshotDigest": "sha256:d8e0d5529ccd6b80f5484cde636692f7de730937850de2b5c2fcc16bf95ebdc7",
+        "evidenceDigest": "sha256:0a8a248165113bccc47fa8e331d4bd8e296aae7ecc9fda99778b0b6bf5e55883",
+        "engineVersion": "0.1.0"
+      },
+      "untrustedPublisherContent": {
+        "description": "AEO, SEO, web and brand answers from a Melbourne agency's published glossary, guides and pricing.",
+        "usedForSafetyDecision": false
+      },
+      "recommendedNextAction": {
+        "kind": "PREPARE_LOCALLY",
+        "tool": "calllint_prepare_safe_install",
+        "arguments": {
+          "canonicalName": "mcp-registry/agency.goji-goji",
+          "expectedVersion": "1.0.0",
+          "expectedArtifactDigest": "sha256:3c2c08852743cc9cf0b5f2376f0bd53fd9e5c32e828eb423086d572cd7635d02",
+          "expectedContractDigest": "sha256:2bb38fdc61511c0f2d5015821c2a4cb7bcf78ab7c89e522ca28bd951f9223ff6",
+          "host": null
+        }
+      },
+      "agentGuidance": {
+        "goal": "Add the requested Agent Tool with only locally approved authority.",
+        "steps": [
+          "verify_contract",
+          "resolve_host",
+          "prepare_locally",
+          "evaluate_local_policy",
+          "apply_exact_plan",
+          "verify_result"
+        ],
+        "mustAskBefore": [
+          "new_secret_access",
+          "external_mutation",
+          "shell_execution",
+          "broad_filesystem_access",
+          "financial_action",
+          "persistent_calllint_components"
+        ],
+        "mustStopWhen": [
+          "artifact_digest_mismatch",
+          "contract_digest_mismatch",
+          "unsupported_host",
+          "local_policy_deny",
+          "plan_tampered",
+          "verification_failed"
+        ],
+        "prohibitedShortcuts": [
+          "do_not_replace_exact_version_with_latest",
+          "do_not_execute_publisher_commands_directly",
+          "do_not_expand_authority",
+          "do_not_hide_alternative_setup",
+          "do_not_install_persistent_guard_without_authorization"
+        ]
+      }
+    },
+    "mcp-registry/agency.kesey-pretrip": {
+      "schema": "calllint.agent-adoption-contract.v1",
+      "contract": {
+        "contractDigest": "sha256:755568c2130141c6bd26dd6e774922e3e5e75047e42e8947563653cd6a7b2da2",
+        "generatedAt": "2026-08-10T08:02:29.262Z",
+        "expiresAt": null,
+        "generatorVersion": "0.1.0",
+        "snapshotDigest": "sha256:d8e0d5529ccd6b80f5484cde636692f7de730937850de2b5c2fcc16bf95ebdc7"
+      },
+      "subject": {
+        "canonicalName": "mcp-registry/agency.kesey-pretrip",
+        "canonicalSlug": "mcp-registry/agency.kesey-pretrip",
+        "packageType": "npm",
+        "packageName": "pretrip-mcp",
+        "version": "1.0.1",
+        "artifactDigest": "sha256:48180f8f9eab49664310736b3b4841a78fd013f5ec1e11230cad6ceaa95f8217",
+        "sourceLocator": "npm:pretrip-mcp@1.0.1"
+      },
+      "publicObservation": {
+        "verdict": "SAFE",
+        "publicLabel": "No blockers observed",
+        "reasonCodes": [],
+        "evidenceLevel": "E2",
+        "evidenceDigest": "sha256:0a8a248165113bccc47fa8e331d4bd8e296aae7ecc9fda99778b0b6bf5e55883",
+        "completeness": "complete"
+      },
+      "authorityDelta": {
+        "adds": [],
+        "notObserved": [
+          "financial_action",
+          "secret_access",
+          "shell_execution",
+          "broad_filesystem_access",
+          "external_mutation",
+          "messaging_send",
+          "oauth_scope",
+          "gateway_runtime",
+          "network_egress"
+        ]
+      },
+      "trustedSources": {
+        "registrySnapshotDigest": "sha256:d8e0d5529ccd6b80f5484cde636692f7de730937850de2b5c2fcc16bf95ebdc7",
+        "evidenceDigest": "sha256:0a8a248165113bccc47fa8e331d4bd8e296aae7ecc9fda99778b0b6bf5e55883",
+        "engineVersion": "0.1.0"
+      },
+      "untrustedPublisherContent": {
+        "description": "Screen regulated-health marketing copy against source-cited rulesets, all 50 states.",
+        "usedForSafetyDecision": false
+      },
+      "recommendedNextAction": {
+        "kind": "PREPARE_LOCALLY",
+        "tool": "calllint_prepare_safe_install",
+        "arguments": {
+          "canonicalName": "mcp-registry/agency.kesey-pretrip",
+          "expectedVersion": "1.0.1",
+          "expectedArtifactDigest": "sha256:48180f8f9eab49664310736b3b4841a78fd013f5ec1e11230cad6ceaa95f8217",
+          "expectedContractDigest": "sha256:755568c2130141c6bd26dd6e774922e3e5e75047e42e8947563653cd6a7b2da2",
           "host": null
         }
       },
@@ -304,11 +299,11 @@
     "mcp-registry/agency.lona-trading": {
       "schema": "calllint.agent-adoption-contract.v1",
       "contract": {
-        "contractDigest": "sha256:b7d57c50604f6c5c9a4882f96e7c51709385c24c7fece0d5eb946049fd1d29f6",
-        "generatedAt": "2026-07-17T00:00:00.000Z",
+        "contractDigest": "sha256:1907fbff29463c6e77c03ba41507756f5d9d34f8976ca16a952088b9e8c6caf8",
+        "generatedAt": "2026-08-10T08:02:29.262Z",
         "expiresAt": null,
         "generatorVersion": "0.1.0",
-        "snapshotDigest": "sha256:0d35502e5cf3aff33c72a15bcf5e56c6c75bb3c0ec283593095a78b8c0824830"
+        "snapshotDigest": "sha256:d8e0d5529ccd6b80f5484cde636692f7de730937850de2b5c2fcc16bf95ebdc7"
       },
       "subject": {
         "canonicalName": "mcp-registry/agency.lona-trading",
@@ -326,7 +321,7 @@
           "UNKNOWN_REMOTE"
         ],
         "evidenceLevel": "E2",
-        "evidenceDigest": "sha256:8f74750bcfbbb711c361f75ccf51ccd3d99b67231c821bdb1a2dcb610a5631f9",
+        "evidenceDigest": "sha256:0a8a248165113bccc47fa8e331d4bd8e296aae7ecc9fda99778b0b6bf5e55883",
         "completeness": "complete"
       },
       "authorityDelta": {
@@ -347,8 +342,8 @@
         ]
       },
       "trustedSources": {
-        "registrySnapshotDigest": "sha256:0d35502e5cf3aff33c72a15bcf5e56c6c75bb3c0ec283593095a78b8c0824830",
-        "evidenceDigest": "sha256:8f74750bcfbbb711c361f75ccf51ccd3d99b67231c821bdb1a2dcb610a5631f9",
+        "registrySnapshotDigest": "sha256:d8e0d5529ccd6b80f5484cde636692f7de730937850de2b5c2fcc16bf95ebdc7",
+        "evidenceDigest": "sha256:0a8a248165113bccc47fa8e331d4bd8e296aae7ecc9fda99778b0b6bf5e55883",
         "engineVersion": "0.1.0"
       },
       "untrustedPublisherContent": {
@@ -362,7 +357,7 @@
           "canonicalName": "mcp-registry/agency.lona-trading",
           "expectedVersion": "2.0.0",
           "expectedArtifactDigest": "sha256:3ce01b0f8872a4aafa71b05210b2be91c3369714c5566bab9e57d1851ea58f0a",
-          "expectedContractDigest": "sha256:b7d57c50604f6c5c9a4882f96e7c51709385c24c7fece0d5eb946049fd1d29f6",
+          "expectedContractDigest": "sha256:1907fbff29463c6e77c03ba41507756f5d9d34f8976ca16a952088b9e8c6caf8",
           "host": null
         }
       },
@@ -404,11 +399,11 @@
     "mcp-registry/ai.1325-mcp": {
       "schema": "calllint.agent-adoption-contract.v1",
       "contract": {
-        "contractDigest": "sha256:11984e1f2004955a5770402b1c6d94c980d4694cf5b5a6153605948e67b3f521",
-        "generatedAt": "2026-07-17T00:00:00.000Z",
+        "contractDigest": "sha256:772ad4cd0d2bc80173ec7223d3d64d509a71aff89d7c61231adea31fedc545e8",
+        "generatedAt": "2026-08-10T08:02:29.262Z",
         "expiresAt": null,
         "generatorVersion": "0.1.0",
-        "snapshotDigest": "sha256:0d35502e5cf3aff33c72a15bcf5e56c6c75bb3c0ec283593095a78b8c0824830"
+        "snapshotDigest": "sha256:d8e0d5529ccd6b80f5484cde636692f7de730937850de2b5c2fcc16bf95ebdc7"
       },
       "subject": {
         "canonicalName": "mcp-registry/ai.1325-mcp",
@@ -426,7 +421,7 @@
           "UNKNOWN_REMOTE"
         ],
         "evidenceLevel": "E2",
-        "evidenceDigest": "sha256:8f74750bcfbbb711c361f75ccf51ccd3d99b67231c821bdb1a2dcb610a5631f9",
+        "evidenceDigest": "sha256:0a8a248165113bccc47fa8e331d4bd8e296aae7ecc9fda99778b0b6bf5e55883",
         "completeness": "complete"
       },
       "authorityDelta": {
@@ -447,8 +442,8 @@
         ]
       },
       "trustedSources": {
-        "registrySnapshotDigest": "sha256:0d35502e5cf3aff33c72a15bcf5e56c6c75bb3c0ec283593095a78b8c0824830",
-        "evidenceDigest": "sha256:8f74750bcfbbb711c361f75ccf51ccd3d99b67231c821bdb1a2dcb610a5631f9",
+        "registrySnapshotDigest": "sha256:d8e0d5529ccd6b80f5484cde636692f7de730937850de2b5c2fcc16bf95ebdc7",
+        "evidenceDigest": "sha256:0a8a248165113bccc47fa8e331d4bd8e296aae7ecc9fda99778b0b6bf5e55883",
         "engineVersion": "0.1.0"
       },
       "untrustedPublisherContent": {
@@ -462,7 +457,7 @@
           "canonicalName": "mcp-registry/ai.1325-mcp",
           "expectedVersion": "0.1.0",
           "expectedArtifactDigest": "sha256:bdbac793efd6905e417d643ab1d4e5e9c8a879e05f5e271d137422c169973592",
-          "expectedContractDigest": "sha256:11984e1f2004955a5770402b1c6d94c980d4694cf5b5a6153605948e67b3f521",
+          "expectedContractDigest": "sha256:772ad4cd0d2bc80173ec7223d3d64d509a71aff89d7c61231adea31fedc545e8",
           "host": null
         }
       },
@@ -504,11 +499,11 @@
     "mcp-registry/ai.aarna-atars-mcp": {
       "schema": "calllint.agent-adoption-contract.v1",
       "contract": {
-        "contractDigest": "sha256:5d1c62682a17d6684e89e8f500981e8af97a2f99679a0795a13b55b32b4bac98",
-        "generatedAt": "2026-07-17T00:00:00.000Z",
+        "contractDigest": "sha256:2f0bf8e3a10d032d36ed996d802937f7ed24ba33e99c215aa01283008f0fbde1",
+        "generatedAt": "2026-08-10T08:02:29.262Z",
         "expiresAt": null,
         "generatorVersion": "0.1.0",
-        "snapshotDigest": "sha256:0d35502e5cf3aff33c72a15bcf5e56c6c75bb3c0ec283593095a78b8c0824830"
+        "snapshotDigest": "sha256:d8e0d5529ccd6b80f5484cde636692f7de730937850de2b5c2fcc16bf95ebdc7"
       },
       "subject": {
         "canonicalName": "mcp-registry/ai.aarna-atars-mcp",
@@ -526,7 +521,7 @@
           "UNKNOWN_REMOTE"
         ],
         "evidenceLevel": "E2",
-        "evidenceDigest": "sha256:8f74750bcfbbb711c361f75ccf51ccd3d99b67231c821bdb1a2dcb610a5631f9",
+        "evidenceDigest": "sha256:0a8a248165113bccc47fa8e331d4bd8e296aae7ecc9fda99778b0b6bf5e55883",
         "completeness": "complete"
       },
       "authorityDelta": {
@@ -547,8 +542,8 @@
         ]
       },
       "trustedSources": {
-        "registrySnapshotDigest": "sha256:0d35502e5cf3aff33c72a15bcf5e56c6c75bb3c0ec283593095a78b8c0824830",
-        "evidenceDigest": "sha256:8f74750bcfbbb711c361f75ccf51ccd3d99b67231c821bdb1a2dcb610a5631f9",
+        "registrySnapshotDigest": "sha256:d8e0d5529ccd6b80f5484cde636692f7de730937850de2b5c2fcc16bf95ebdc7",
+        "evidenceDigest": "sha256:0a8a248165113bccc47fa8e331d4bd8e296aae7ecc9fda99778b0b6bf5e55883",
         "engineVersion": "0.1.0"
       },
       "untrustedPublisherContent": {
@@ -562,7 +557,7 @@
           "canonicalName": "mcp-registry/ai.aarna-atars-mcp",
           "expectedVersion": "0.1.0",
           "expectedArtifactDigest": "sha256:da6927a2f653489b9d12fe80b1d71d7c9abfc8cd505cd5fd226a67361efad4c6",
-          "expectedContractDigest": "sha256:5d1c62682a17d6684e89e8f500981e8af97a2f99679a0795a13b55b32b4bac98",
+          "expectedContractDigest": "sha256:2f0bf8e3a10d032d36ed996d802937f7ed24ba33e99c215aa01283008f0fbde1",
           "host": null
         }
       },
@@ -604,11 +599,11 @@
     "mcp-registry/ai.abmeter-abmeter": {
       "schema": "calllint.agent-adoption-contract.v1",
       "contract": {
-        "contractDigest": "sha256:c4a4f6e4235c1939c3b53168cf21200b5d45835fb49cd64881449147ce5bac7c",
-        "generatedAt": "2026-07-17T00:00:00.000Z",
+        "contractDigest": "sha256:cfecd4e812c3347380fb01c5192c7abde6503205648826c9260af5da74d6e1e0",
+        "generatedAt": "2026-08-10T08:02:29.262Z",
         "expiresAt": null,
         "generatorVersion": "0.1.0",
-        "snapshotDigest": "sha256:0d35502e5cf3aff33c72a15bcf5e56c6c75bb3c0ec283593095a78b8c0824830"
+        "snapshotDigest": "sha256:d8e0d5529ccd6b80f5484cde636692f7de730937850de2b5c2fcc16bf95ebdc7"
       },
       "subject": {
         "canonicalName": "mcp-registry/ai.abmeter-abmeter",
@@ -626,7 +621,7 @@
           "UNKNOWN_REMOTE"
         ],
         "evidenceLevel": "E2",
-        "evidenceDigest": "sha256:8f74750bcfbbb711c361f75ccf51ccd3d99b67231c821bdb1a2dcb610a5631f9",
+        "evidenceDigest": "sha256:0a8a248165113bccc47fa8e331d4bd8e296aae7ecc9fda99778b0b6bf5e55883",
         "completeness": "complete"
       },
       "authorityDelta": {
@@ -647,8 +642,8 @@
         ]
       },
       "trustedSources": {
-        "registrySnapshotDigest": "sha256:0d35502e5cf3aff33c72a15bcf5e56c6c75bb3c0ec283593095a78b8c0824830",
-        "evidenceDigest": "sha256:8f74750bcfbbb711c361f75ccf51ccd3d99b67231c821bdb1a2dcb610a5631f9",
+        "registrySnapshotDigest": "sha256:d8e0d5529ccd6b80f5484cde636692f7de730937850de2b5c2fcc16bf95ebdc7",
+        "evidenceDigest": "sha256:0a8a248165113bccc47fa8e331d4bd8e296aae7ecc9fda99778b0b6bf5e55883",
         "engineVersion": "0.1.0"
       },
       "untrustedPublisherContent": {
@@ -662,7 +657,7 @@
           "canonicalName": "mcp-registry/ai.abmeter-abmeter",
           "expectedVersion": "0.1.0",
           "expectedArtifactDigest": "sha256:c3670bfc209140bc70cf9e1a03be811c8b0e968fab3737e45e0034fb10dfc2b0",
-          "expectedContractDigest": "sha256:c4a4f6e4235c1939c3b53168cf21200b5d45835fb49cd64881449147ce5bac7c",
+          "expectedContractDigest": "sha256:cfecd4e812c3347380fb01c5192c7abde6503205648826c9260af5da74d6e1e0",
           "host": null
         }
       },
@@ -704,11 +699,11 @@
     "mcp-registry/ai.adadvisor-mcp-server": {
       "schema": "calllint.agent-adoption-contract.v1",
       "contract": {
-        "contractDigest": "sha256:73a501ed1df62d5d9a3b9bc2c0d8907d3ef35cb3dbefe25199a74f2f15ef814a",
-        "generatedAt": "2026-07-17T00:00:00.000Z",
+        "contractDigest": "sha256:1794c5837c0f4575890a32380a452f9cdfbb2dd2b3a99374486052daec844fd8",
+        "generatedAt": "2026-08-10T08:02:29.262Z",
         "expiresAt": null,
         "generatorVersion": "0.1.0",
-        "snapshotDigest": "sha256:0d35502e5cf3aff33c72a15bcf5e56c6c75bb3c0ec283593095a78b8c0824830"
+        "snapshotDigest": "sha256:d8e0d5529ccd6b80f5484cde636692f7de730937850de2b5c2fcc16bf95ebdc7"
       },
       "subject": {
         "canonicalName": "mcp-registry/ai.adadvisor-mcp-server",
@@ -726,7 +721,7 @@
           "UNKNOWN_REMOTE"
         ],
         "evidenceLevel": "E2",
-        "evidenceDigest": "sha256:8f74750bcfbbb711c361f75ccf51ccd3d99b67231c821bdb1a2dcb610a5631f9",
+        "evidenceDigest": "sha256:0a8a248165113bccc47fa8e331d4bd8e296aae7ecc9fda99778b0b6bf5e55883",
         "completeness": "complete"
       },
       "authorityDelta": {
@@ -747,8 +742,8 @@
         ]
       },
       "trustedSources": {
-        "registrySnapshotDigest": "sha256:0d35502e5cf3aff33c72a15bcf5e56c6c75bb3c0ec283593095a78b8c0824830",
-        "evidenceDigest": "sha256:8f74750bcfbbb711c361f75ccf51ccd3d99b67231c821bdb1a2dcb610a5631f9",
+        "registrySnapshotDigest": "sha256:d8e0d5529ccd6b80f5484cde636692f7de730937850de2b5c2fcc16bf95ebdc7",
+        "evidenceDigest": "sha256:0a8a248165113bccc47fa8e331d4bd8e296aae7ecc9fda99778b0b6bf5e55883",
         "engineVersion": "0.1.0"
       },
       "untrustedPublisherContent": {
@@ -762,7 +757,7 @@
           "canonicalName": "mcp-registry/ai.adadvisor-mcp-server",
           "expectedVersion": "1.0.1",
           "expectedArtifactDigest": "sha256:2c230c28640a0dcf1b8cc1a66ab330296a2768ae055449b9494b28506f44c239",
-          "expectedContractDigest": "sha256:73a501ed1df62d5d9a3b9bc2c0d8907d3ef35cb3dbefe25199a74f2f15ef814a",
+          "expectedContractDigest": "sha256:1794c5837c0f4575890a32380a452f9cdfbb2dd2b3a99374486052daec844fd8",
           "host": null
         }
       },
@@ -804,11 +799,11 @@
     "mcp-registry/ai.adeu-adeu": {
       "schema": "calllint.agent-adoption-contract.v1",
       "contract": {
-        "contractDigest": "sha256:199d6cc51bfdd9d3da062db47b703b6c776d8f6bad8f3da007c4858a2642fadb",
-        "generatedAt": "2026-07-17T00:00:00.000Z",
+        "contractDigest": "sha256:117ac7f19336f98c9a88788d9d4f9eede0b25595ce9727bb12d87f3e2861d3a4",
+        "generatedAt": "2026-08-10T08:02:29.262Z",
         "expiresAt": null,
         "generatorVersion": "0.1.0",
-        "snapshotDigest": "sha256:0d35502e5cf3aff33c72a15bcf5e56c6c75bb3c0ec283593095a78b8c0824830"
+        "snapshotDigest": "sha256:d8e0d5529ccd6b80f5484cde636692f7de730937850de2b5c2fcc16bf95ebdc7"
       },
       "subject": {
         "canonicalName": "mcp-registry/ai.adeu-adeu",
@@ -824,7 +819,7 @@
         "publicLabel": "No blockers observed",
         "reasonCodes": [],
         "evidenceLevel": "E2",
-        "evidenceDigest": "sha256:8f74750bcfbbb711c361f75ccf51ccd3d99b67231c821bdb1a2dcb610a5631f9",
+        "evidenceDigest": "sha256:0a8a248165113bccc47fa8e331d4bd8e296aae7ecc9fda99778b0b6bf5e55883",
         "completeness": "complete"
       },
       "authorityDelta": {
@@ -842,8 +837,8 @@
         ]
       },
       "trustedSources": {
-        "registrySnapshotDigest": "sha256:0d35502e5cf3aff33c72a15bcf5e56c6c75bb3c0ec283593095a78b8c0824830",
-        "evidenceDigest": "sha256:8f74750bcfbbb711c361f75ccf51ccd3d99b67231c821bdb1a2dcb610a5631f9",
+        "registrySnapshotDigest": "sha256:d8e0d5529ccd6b80f5484cde636692f7de730937850de2b5c2fcc16bf95ebdc7",
+        "evidenceDigest": "sha256:0a8a248165113bccc47fa8e331d4bd8e296aae7ecc9fda99778b0b6bf5e55883",
         "engineVersion": "0.1.0"
       },
       "untrustedPublisherContent": {
@@ -857,7 +852,7 @@
           "canonicalName": "mcp-registry/ai.adeu-adeu",
           "expectedVersion": "1.7.1",
           "expectedArtifactDigest": "sha256:f6f792740d19b83991bc32bd9f4878868d8f4ad0ae767d66e910af8d8afad2e9",
-          "expectedContractDigest": "sha256:199d6cc51bfdd9d3da062db47b703b6c776d8f6bad8f3da007c4858a2642fadb",
+          "expectedContractDigest": "sha256:117ac7f19336f98c9a88788d9d4f9eede0b25595ce9727bb12d87f3e2861d3a4",
           "host": null
         }
       },
@@ -896,23 +891,23 @@
         ]
       }
     },
-    "mcp-registry/ai.adramp-google-ads": {
+    "mcp-registry/ai.adoraads-beauty": {
       "schema": "calllint.agent-adoption-contract.v1",
       "contract": {
-        "contractDigest": "sha256:b9dbd9d1c49a93ac059429c83cba49ca2cdfa0c3aeb1fa6fb1bf2d8a973cc1f4",
-        "generatedAt": "2026-07-17T00:00:00.000Z",
+        "contractDigest": "sha256:7321ca480996f72d01107aca6bbad3958f74367f869533a6f455e5a6b3a7a95c",
+        "generatedAt": "2026-08-10T08:02:29.262Z",
         "expiresAt": null,
         "generatorVersion": "0.1.0",
-        "snapshotDigest": "sha256:0d35502e5cf3aff33c72a15bcf5e56c6c75bb3c0ec283593095a78b8c0824830"
+        "snapshotDigest": "sha256:d8e0d5529ccd6b80f5484cde636692f7de730937850de2b5c2fcc16bf95ebdc7"
       },
       "subject": {
-        "canonicalName": "mcp-registry/ai.adramp-google-ads",
-        "canonicalSlug": "mcp-registry/ai.adramp-google-ads",
+        "canonicalName": "mcp-registry/ai.adoraads-beauty",
+        "canonicalSlug": "mcp-registry/ai.adoraads-beauty",
         "packageType": null,
         "packageName": null,
-        "version": "1.0.3",
-        "artifactDigest": "sha256:e654a8dcd35ee9c48addce35e458ca33f64f255ec817dd77f281158bbd13efed",
-        "sourceLocator": "https://mcp.adramp.ai"
+        "version": "1.0.1",
+        "artifactDigest": "sha256:6a3cb413304c94adec850c54429773aebc77b9715d08d2399358818160426a15",
+        "sourceLocator": "https://mcp.adoraads.ai/beauty"
       },
       "publicObservation": {
         "verdict": "REVIEW",
@@ -921,7 +916,7 @@
           "UNKNOWN_REMOTE"
         ],
         "evidenceLevel": "E2",
-        "evidenceDigest": "sha256:8f74750bcfbbb711c361f75ccf51ccd3d99b67231c821bdb1a2dcb610a5631f9",
+        "evidenceDigest": "sha256:0a8a248165113bccc47fa8e331d4bd8e296aae7ecc9fda99778b0b6bf5e55883",
         "completeness": "complete"
       },
       "authorityDelta": {
@@ -942,22 +937,22 @@
         ]
       },
       "trustedSources": {
-        "registrySnapshotDigest": "sha256:0d35502e5cf3aff33c72a15bcf5e56c6c75bb3c0ec283593095a78b8c0824830",
-        "evidenceDigest": "sha256:8f74750bcfbbb711c361f75ccf51ccd3d99b67231c821bdb1a2dcb610a5631f9",
+        "registrySnapshotDigest": "sha256:d8e0d5529ccd6b80f5484cde636692f7de730937850de2b5c2fcc16bf95ebdc7",
+        "evidenceDigest": "sha256:0a8a248165113bccc47fa8e331d4bd8e296aae7ecc9fda99778b0b6bf5e55883",
         "engineVersion": "0.1.0"
       },
       "untrustedPublisherContent": {
-        "description": "Google Ads MCP server — manage campaigns, keywords, and metrics.",
+        "description": "AI-native beauty ads, sponsored product discovery, and brand recommendations.",
         "usedForSafetyDecision": false
       },
       "recommendedNextAction": {
         "kind": "PREPARE_LOCALLY",
         "tool": "calllint_prepare_safe_install",
         "arguments": {
-          "canonicalName": "mcp-registry/ai.adramp-google-ads",
-          "expectedVersion": "1.0.3",
-          "expectedArtifactDigest": "sha256:e654a8dcd35ee9c48addce35e458ca33f64f255ec817dd77f281158bbd13efed",
-          "expectedContractDigest": "sha256:b9dbd9d1c49a93ac059429c83cba49ca2cdfa0c3aeb1fa6fb1bf2d8a973cc1f4",
+          "canonicalName": "mcp-registry/ai.adoraads-beauty",
+          "expectedVersion": "1.0.1",
+          "expectedArtifactDigest": "sha256:6a3cb413304c94adec850c54429773aebc77b9715d08d2399358818160426a15",
+          "expectedContractDigest": "sha256:7321ca480996f72d01107aca6bbad3958f74367f869533a6f455e5a6b3a7a95c",
           "host": null
         }
       },
@@ -999,11 +994,11 @@
     "mcp-registry/ai.adside-adside": {
       "schema": "calllint.agent-adoption-contract.v1",
       "contract": {
-        "contractDigest": "sha256:7348302040de1540f77c85b692c3dedbd4d09a158c8eb80b984cd37cf89f3d98",
-        "generatedAt": "2026-07-17T00:00:00.000Z",
+        "contractDigest": "sha256:2c848593995aaca16956d949c8416d64e9d76eaf8919b809cdcbf6f9e5f56441",
+        "generatedAt": "2026-08-10T08:02:29.262Z",
         "expiresAt": null,
         "generatorVersion": "0.1.0",
-        "snapshotDigest": "sha256:0d35502e5cf3aff33c72a15bcf5e56c6c75bb3c0ec283593095a78b8c0824830"
+        "snapshotDigest": "sha256:d8e0d5529ccd6b80f5484cde636692f7de730937850de2b5c2fcc16bf95ebdc7"
       },
       "subject": {
         "canonicalName": "mcp-registry/ai.adside-adside",
@@ -1021,7 +1016,7 @@
           "UNKNOWN_REMOTE"
         ],
         "evidenceLevel": "E2",
-        "evidenceDigest": "sha256:8f74750bcfbbb711c361f75ccf51ccd3d99b67231c821bdb1a2dcb610a5631f9",
+        "evidenceDigest": "sha256:0a8a248165113bccc47fa8e331d4bd8e296aae7ecc9fda99778b0b6bf5e55883",
         "completeness": "complete"
       },
       "authorityDelta": {
@@ -1042,8 +1037,8 @@
         ]
       },
       "trustedSources": {
-        "registrySnapshotDigest": "sha256:0d35502e5cf3aff33c72a15bcf5e56c6c75bb3c0ec283593095a78b8c0824830",
-        "evidenceDigest": "sha256:8f74750bcfbbb711c361f75ccf51ccd3d99b67231c821bdb1a2dcb610a5631f9",
+        "registrySnapshotDigest": "sha256:d8e0d5529ccd6b80f5484cde636692f7de730937850de2b5c2fcc16bf95ebdc7",
+        "evidenceDigest": "sha256:0a8a248165113bccc47fa8e331d4bd8e296aae7ecc9fda99778b0b6bf5e55883",
         "engineVersion": "0.1.0"
       },
       "untrustedPublisherContent": {
@@ -1057,7 +1052,7 @@
           "canonicalName": "mcp-registry/ai.adside-adside",
           "expectedVersion": "1.0.0",
           "expectedArtifactDigest": "sha256:add7e15c2b429d3fa989e766fe421eb06f9a9095d03851a4cc0a8f8db18260c0",
-          "expectedContractDigest": "sha256:7348302040de1540f77c85b692c3dedbd4d09a158c8eb80b984cd37cf89f3d98",
+          "expectedContractDigest": "sha256:2c848593995aaca16956d949c8416d64e9d76eaf8919b809cdcbf6f9e5f56441",
           "host": null
         }
       },
@@ -1099,11 +1094,11 @@
     "mcp-registry/ai.adweave-meta-ads-mcp": {
       "schema": "calllint.agent-adoption-contract.v1",
       "contract": {
-        "contractDigest": "sha256:aea1f0df276ad90becc432a08be54b2a1b923eec35df218c25e90dd8b0f40718",
-        "generatedAt": "2026-07-17T00:00:00.000Z",
+        "contractDigest": "sha256:0decf5137a279ee6ee366cef7da8bc75ec41d72450ba160e8199fc256191e3e3",
+        "generatedAt": "2026-08-10T08:02:29.262Z",
         "expiresAt": null,
         "generatorVersion": "0.1.0",
-        "snapshotDigest": "sha256:0d35502e5cf3aff33c72a15bcf5e56c6c75bb3c0ec283593095a78b8c0824830"
+        "snapshotDigest": "sha256:d8e0d5529ccd6b80f5484cde636692f7de730937850de2b5c2fcc16bf95ebdc7"
       },
       "subject": {
         "canonicalName": "mcp-registry/ai.adweave-meta-ads-mcp",
@@ -1121,7 +1116,7 @@
           "UNKNOWN_REMOTE"
         ],
         "evidenceLevel": "E2",
-        "evidenceDigest": "sha256:8f74750bcfbbb711c361f75ccf51ccd3d99b67231c821bdb1a2dcb610a5631f9",
+        "evidenceDigest": "sha256:0a8a248165113bccc47fa8e331d4bd8e296aae7ecc9fda99778b0b6bf5e55883",
         "completeness": "complete"
       },
       "authorityDelta": {
@@ -1142,8 +1137,8 @@
         ]
       },
       "trustedSources": {
-        "registrySnapshotDigest": "sha256:0d35502e5cf3aff33c72a15bcf5e56c6c75bb3c0ec283593095a78b8c0824830",
-        "evidenceDigest": "sha256:8f74750bcfbbb711c361f75ccf51ccd3d99b67231c821bdb1a2dcb610a5631f9",
+        "registrySnapshotDigest": "sha256:d8e0d5529ccd6b80f5484cde636692f7de730937850de2b5c2fcc16bf95ebdc7",
+        "evidenceDigest": "sha256:0a8a248165113bccc47fa8e331d4bd8e296aae7ecc9fda99778b0b6bf5e55883",
         "engineVersion": "0.1.0"
       },
       "untrustedPublisherContent": {
@@ -1157,7 +1152,107 @@
           "canonicalName": "mcp-registry/ai.adweave-meta-ads-mcp",
           "expectedVersion": "1.0.0",
           "expectedArtifactDigest": "sha256:d9948f3b8f8def4ba2cb46af80c4a04b6464ad710358bed1a43a5bad17b79a99",
-          "expectedContractDigest": "sha256:aea1f0df276ad90becc432a08be54b2a1b923eec35df218c25e90dd8b0f40718",
+          "expectedContractDigest": "sha256:0decf5137a279ee6ee366cef7da8bc75ec41d72450ba160e8199fc256191e3e3",
+          "host": null
+        }
+      },
+      "agentGuidance": {
+        "goal": "Add the requested Agent Tool with only locally approved authority.",
+        "steps": [
+          "verify_contract",
+          "resolve_host",
+          "prepare_locally",
+          "evaluate_local_policy",
+          "apply_exact_plan",
+          "verify_result"
+        ],
+        "mustAskBefore": [
+          "new_secret_access",
+          "external_mutation",
+          "shell_execution",
+          "broad_filesystem_access",
+          "financial_action",
+          "persistent_calllint_components"
+        ],
+        "mustStopWhen": [
+          "artifact_digest_mismatch",
+          "contract_digest_mismatch",
+          "unsupported_host",
+          "local_policy_deny",
+          "plan_tampered",
+          "verification_failed"
+        ],
+        "prohibitedShortcuts": [
+          "do_not_replace_exact_version_with_latest",
+          "do_not_execute_publisher_commands_directly",
+          "do_not_expand_authority",
+          "do_not_hide_alternative_setup",
+          "do_not_install_persistent_guard_without_authorization"
+        ]
+      }
+    },
+    "mcp-registry/ai.afmr-discovery": {
+      "schema": "calllint.agent-adoption-contract.v1",
+      "contract": {
+        "contractDigest": "sha256:78f37ed1c9fd4eb604ab8d9d786000e42f0600996409daeede2b28975781a223",
+        "generatedAt": "2026-08-10T08:02:29.262Z",
+        "expiresAt": null,
+        "generatorVersion": "0.1.0",
+        "snapshotDigest": "sha256:d8e0d5529ccd6b80f5484cde636692f7de730937850de2b5c2fcc16bf95ebdc7"
+      },
+      "subject": {
+        "canonicalName": "mcp-registry/ai.afmr-discovery",
+        "canonicalSlug": "mcp-registry/ai.afmr-discovery",
+        "packageType": null,
+        "packageName": null,
+        "version": "1.0.0",
+        "artifactDigest": "sha256:25a1fd89acf93f9f7cff8030370e8bc829b7fc0aeac55298d41d4e554bcdd7e0",
+        "sourceLocator": "https://afmr.ai/api/rpc"
+      },
+      "publicObservation": {
+        "verdict": "REVIEW",
+        "publicLabel": "Review required",
+        "reasonCodes": [
+          "UNKNOWN_REMOTE"
+        ],
+        "evidenceLevel": "E2",
+        "evidenceDigest": "sha256:0a8a248165113bccc47fa8e331d4bd8e296aae7ecc9fda99778b0b6bf5e55883",
+        "completeness": "complete"
+      },
+      "authorityDelta": {
+        "adds": [
+          {
+            "authority": "network_egress"
+          }
+        ],
+        "notObserved": [
+          "financial_action",
+          "secret_access",
+          "shell_execution",
+          "broad_filesystem_access",
+          "external_mutation",
+          "messaging_send",
+          "oauth_scope",
+          "gateway_runtime"
+        ]
+      },
+      "trustedSources": {
+        "registrySnapshotDigest": "sha256:d8e0d5529ccd6b80f5484cde636692f7de730937850de2b5c2fcc16bf95ebdc7",
+        "evidenceDigest": "sha256:0a8a248165113bccc47fa8e331d4bd8e296aae7ecc9fda99778b0b6bf5e55883",
+        "engineVersion": "0.1.0"
+      },
+      "untrustedPublisherContent": {
+        "description": "Read AFMR failure modes and discover scoped attestation and lift-evidence contracts.",
+        "usedForSafetyDecision": false
+      },
+      "recommendedNextAction": {
+        "kind": "PREPARE_LOCALLY",
+        "tool": "calllint_prepare_safe_install",
+        "arguments": {
+          "canonicalName": "mcp-registry/ai.afmr-discovery",
+          "expectedVersion": "1.0.0",
+          "expectedArtifactDigest": "sha256:25a1fd89acf93f9f7cff8030370e8bc829b7fc0aeac55298d41d4e554bcdd7e0",
+          "expectedContractDigest": "sha256:78f37ed1c9fd4eb604ab8d9d786000e42f0600996409daeede2b28975781a223",
           "host": null
         }
       },
@@ -1199,11 +1294,11 @@
     "mcp-registry/ai.agentberg-agentberg": {
       "schema": "calllint.agent-adoption-contract.v1",
       "contract": {
-        "contractDigest": "sha256:fb8a20e076e654f0b8ad85df009eb4c788931ecfa0384a203a3985522470a231",
-        "generatedAt": "2026-07-17T00:00:00.000Z",
+        "contractDigest": "sha256:ff67488407fd26161d4c3ff606ec242de3760c6c876876ef572f64b766887b40",
+        "generatedAt": "2026-08-10T08:02:29.262Z",
         "expiresAt": null,
         "generatorVersion": "0.1.0",
-        "snapshotDigest": "sha256:0d35502e5cf3aff33c72a15bcf5e56c6c75bb3c0ec283593095a78b8c0824830"
+        "snapshotDigest": "sha256:d8e0d5529ccd6b80f5484cde636692f7de730937850de2b5c2fcc16bf95ebdc7"
       },
       "subject": {
         "canonicalName": "mcp-registry/ai.agentberg-agentberg",
@@ -1221,7 +1316,7 @@
           "UNKNOWN_REMOTE"
         ],
         "evidenceLevel": "E2",
-        "evidenceDigest": "sha256:8f74750bcfbbb711c361f75ccf51ccd3d99b67231c821bdb1a2dcb610a5631f9",
+        "evidenceDigest": "sha256:0a8a248165113bccc47fa8e331d4bd8e296aae7ecc9fda99778b0b6bf5e55883",
         "completeness": "complete"
       },
       "authorityDelta": {
@@ -1242,8 +1337,8 @@
         ]
       },
       "trustedSources": {
-        "registrySnapshotDigest": "sha256:0d35502e5cf3aff33c72a15bcf5e56c6c75bb3c0ec283593095a78b8c0824830",
-        "evidenceDigest": "sha256:8f74750bcfbbb711c361f75ccf51ccd3d99b67231c821bdb1a2dcb610a5631f9",
+        "registrySnapshotDigest": "sha256:d8e0d5529ccd6b80f5484cde636692f7de730937850de2b5c2fcc16bf95ebdc7",
+        "evidenceDigest": "sha256:0a8a248165113bccc47fa8e331d4bd8e296aae7ecc9fda99778b0b6bf5e55883",
         "engineVersion": "0.1.0"
       },
       "untrustedPublisherContent": {
@@ -1257,107 +1352,7 @@
           "canonicalName": "mcp-registry/ai.agentberg-agentberg",
           "expectedVersion": "0.2.0",
           "expectedArtifactDigest": "sha256:53381adee155197fa43a8639ff40cc88053388b29bea38d5f4ae6333693210f3",
-          "expectedContractDigest": "sha256:fb8a20e076e654f0b8ad85df009eb4c788931ecfa0384a203a3985522470a231",
-          "host": null
-        }
-      },
-      "agentGuidance": {
-        "goal": "Add the requested Agent Tool with only locally approved authority.",
-        "steps": [
-          "verify_contract",
-          "resolve_host",
-          "prepare_locally",
-          "evaluate_local_policy",
-          "apply_exact_plan",
-          "verify_result"
-        ],
-        "mustAskBefore": [
-          "new_secret_access",
-          "external_mutation",
-          "shell_execution",
-          "broad_filesystem_access",
-          "financial_action",
-          "persistent_calllint_components"
-        ],
-        "mustStopWhen": [
-          "artifact_digest_mismatch",
-          "contract_digest_mismatch",
-          "unsupported_host",
-          "local_policy_deny",
-          "plan_tampered",
-          "verification_failed"
-        ],
-        "prohibitedShortcuts": [
-          "do_not_replace_exact_version_with_latest",
-          "do_not_execute_publisher_commands_directly",
-          "do_not_expand_authority",
-          "do_not_hide_alternative_setup",
-          "do_not_install_persistent_guard_without_authorization"
-        ]
-      }
-    },
-    "mcp-registry/ai.agentdm-agentdm": {
-      "schema": "calllint.agent-adoption-contract.v1",
-      "contract": {
-        "contractDigest": "sha256:88ffd80cb7a3e4021aaff6856c219895b6707936d29d48ba2ec775f139005470",
-        "generatedAt": "2026-07-17T00:00:00.000Z",
-        "expiresAt": null,
-        "generatorVersion": "0.1.0",
-        "snapshotDigest": "sha256:0d35502e5cf3aff33c72a15bcf5e56c6c75bb3c0ec283593095a78b8c0824830"
-      },
-      "subject": {
-        "canonicalName": "mcp-registry/ai.agentdm-agentdm",
-        "canonicalSlug": "mcp-registry/ai.agentdm-agentdm",
-        "packageType": null,
-        "packageName": null,
-        "version": "2.0.0",
-        "artifactDigest": "sha256:adfed57c616360d34b99675a040070807d141bf949a86d74d02af5d671d491b7",
-        "sourceLocator": "https://api.agentdm.ai/mcp/v1/grid"
-      },
-      "publicObservation": {
-        "verdict": "REVIEW",
-        "publicLabel": "Review required",
-        "reasonCodes": [
-          "UNKNOWN_REMOTE"
-        ],
-        "evidenceLevel": "E2",
-        "evidenceDigest": "sha256:8f74750bcfbbb711c361f75ccf51ccd3d99b67231c821bdb1a2dcb610a5631f9",
-        "completeness": "complete"
-      },
-      "authorityDelta": {
-        "adds": [
-          {
-            "authority": "network_egress"
-          }
-        ],
-        "notObserved": [
-          "financial_action",
-          "secret_access",
-          "shell_execution",
-          "broad_filesystem_access",
-          "external_mutation",
-          "messaging_send",
-          "oauth_scope",
-          "gateway_runtime"
-        ]
-      },
-      "trustedSources": {
-        "registrySnapshotDigest": "sha256:0d35502e5cf3aff33c72a15bcf5e56c6c75bb3c0ec283593095a78b8c0824830",
-        "evidenceDigest": "sha256:8f74750bcfbbb711c361f75ccf51ccd3d99b67231c821bdb1a2dcb610a5631f9",
-        "engineVersion": "0.1.0"
-      },
-      "untrustedPublisherContent": {
-        "description": "Agent communication platform for agent to agent messaging via MCP. Messages, channels, skills.",
-        "usedForSafetyDecision": false
-      },
-      "recommendedNextAction": {
-        "kind": "PREPARE_LOCALLY",
-        "tool": "calllint_prepare_safe_install",
-        "arguments": {
-          "canonicalName": "mcp-registry/ai.agentdm-agentdm",
-          "expectedVersion": "2.0.0",
-          "expectedArtifactDigest": "sha256:adfed57c616360d34b99675a040070807d141bf949a86d74d02af5d671d491b7",
-          "expectedContractDigest": "sha256:88ffd80cb7a3e4021aaff6856c219895b6707936d29d48ba2ec775f139005470",
+          "expectedContractDigest": "sha256:ff67488407fd26161d4c3ff606ec242de3760c6c876876ef572f64b766887b40",
           "host": null
         }
       },
@@ -1399,11 +1394,11 @@
     "mcp-registry/ai.agentic-news-mcp": {
       "schema": "calllint.agent-adoption-contract.v1",
       "contract": {
-        "contractDigest": "sha256:1bd0f9f995394e7f6298c9d80aa6c9ca1fb476a1f81c4abe8e178410a7ac9888",
-        "generatedAt": "2026-07-17T00:00:00.000Z",
+        "contractDigest": "sha256:7e1ee98bacf615f5c4e37b3e4f01bbbd7ccaf566e5595dc54978abd1d800710a",
+        "generatedAt": "2026-08-10T08:02:29.262Z",
         "expiresAt": null,
         "generatorVersion": "0.1.0",
-        "snapshotDigest": "sha256:0d35502e5cf3aff33c72a15bcf5e56c6c75bb3c0ec283593095a78b8c0824830"
+        "snapshotDigest": "sha256:d8e0d5529ccd6b80f5484cde636692f7de730937850de2b5c2fcc16bf95ebdc7"
       },
       "subject": {
         "canonicalName": "mcp-registry/ai.agentic-news-mcp",
@@ -1421,7 +1416,7 @@
           "UNKNOWN_REMOTE"
         ],
         "evidenceLevel": "E2",
-        "evidenceDigest": "sha256:8f74750bcfbbb711c361f75ccf51ccd3d99b67231c821bdb1a2dcb610a5631f9",
+        "evidenceDigest": "sha256:0a8a248165113bccc47fa8e331d4bd8e296aae7ecc9fda99778b0b6bf5e55883",
         "completeness": "complete"
       },
       "authorityDelta": {
@@ -1442,8 +1437,8 @@
         ]
       },
       "trustedSources": {
-        "registrySnapshotDigest": "sha256:0d35502e5cf3aff33c72a15bcf5e56c6c75bb3c0ec283593095a78b8c0824830",
-        "evidenceDigest": "sha256:8f74750bcfbbb711c361f75ccf51ccd3d99b67231c821bdb1a2dcb610a5631f9",
+        "registrySnapshotDigest": "sha256:d8e0d5529ccd6b80f5484cde636692f7de730937850de2b5c2fcc16bf95ebdc7",
+        "evidenceDigest": "sha256:0a8a248165113bccc47fa8e331d4bd8e296aae7ecc9fda99778b0b6bf5e55883",
         "engineVersion": "0.1.0"
       },
       "untrustedPublisherContent": {
@@ -1457,7 +1452,7 @@
           "canonicalName": "mcp-registry/ai.agentic-news-mcp",
           "expectedVersion": "1.0.0",
           "expectedArtifactDigest": "sha256:6913ebe5d60fec1f4b63796b25508ba4b16021b86f343858aaafc48a13cb45f4",
-          "expectedContractDigest": "sha256:1bd0f9f995394e7f6298c9d80aa6c9ca1fb476a1f81c4abe8e178410a7ac9888",
+          "expectedContractDigest": "sha256:7e1ee98bacf615f5c4e37b3e4f01bbbd7ccaf566e5595dc54978abd1d800710a",
           "host": null
         }
       },
@@ -1496,23 +1491,23 @@
         ]
       }
     },
-    "mcp-registry/ai.agenticshelf-graffeo": {
+    "mcp-registry/ai.agenticaffiliate-affiliate-networks-mcp": {
       "schema": "calllint.agent-adoption-contract.v1",
       "contract": {
-        "contractDigest": "sha256:dc1dd66d3917712ae3dc20b7a681b98fb7a8c109c5c07df9a3866e10c3b5eae3",
-        "generatedAt": "2026-07-17T00:00:00.000Z",
+        "contractDigest": "sha256:c911023fe6606e70ff3a5f701492e50afa0bf38ff183e71e5023d906eb21916b",
+        "generatedAt": "2026-08-10T08:02:29.262Z",
         "expiresAt": null,
         "generatorVersion": "0.1.0",
-        "snapshotDigest": "sha256:0d35502e5cf3aff33c72a15bcf5e56c6c75bb3c0ec283593095a78b8c0824830"
+        "snapshotDigest": "sha256:d8e0d5529ccd6b80f5484cde636692f7de730937850de2b5c2fcc16bf95ebdc7"
       },
       "subject": {
-        "canonicalName": "mcp-registry/ai.agenticshelf-graffeo",
-        "canonicalSlug": "mcp-registry/ai.agenticshelf-graffeo",
-        "packageType": null,
-        "packageName": null,
-        "version": "1.0.2",
-        "artifactDigest": "sha256:6fb4d2a789a52a8debd01384956a71e6688fa25b0ba495fd32633ea028ff434e",
-        "sourceLocator": "https://api.agenticshelf.ai/m/graffeo/mcp"
+        "canonicalName": "mcp-registry/ai.agenticaffiliate-affiliate-networks-mcp",
+        "canonicalSlug": "mcp-registry/ai.agenticaffiliate-affiliate-networks-mcp",
+        "packageType": "npm",
+        "packageName": "affiliate-networks-mcp",
+        "version": "0.19.0",
+        "artifactDigest": "sha256:13478225665f07abb592178f4ac0f2c91a988729abe605c71543a4dd8951546d",
+        "sourceLocator": "npm:affiliate-networks-mcp@0.19.0"
       },
       "publicObservation": {
         "verdict": "REVIEW",
@@ -1521,7 +1516,7 @@
           "UNKNOWN_REMOTE"
         ],
         "evidenceLevel": "E2",
-        "evidenceDigest": "sha256:8f74750bcfbbb711c361f75ccf51ccd3d99b67231c821bdb1a2dcb610a5631f9",
+        "evidenceDigest": "sha256:0a8a248165113bccc47fa8e331d4bd8e296aae7ecc9fda99778b0b6bf5e55883",
         "completeness": "complete"
       },
       "authorityDelta": {
@@ -1542,22 +1537,122 @@
         ]
       },
       "trustedSources": {
-        "registrySnapshotDigest": "sha256:0d35502e5cf3aff33c72a15bcf5e56c6c75bb3c0ec283593095a78b8c0824830",
-        "evidenceDigest": "sha256:8f74750bcfbbb711c361f75ccf51ccd3d99b67231c821bdb1a2dcb610a5631f9",
+        "registrySnapshotDigest": "sha256:d8e0d5529ccd6b80f5484cde636692f7de730937850de2b5c2fcc16bf95ebdc7",
+        "evidenceDigest": "sha256:0a8a248165113bccc47fa8e331d4bd8e296aae7ecc9fda99778b0b6bf5e55883",
         "engineVersion": "0.1.0"
       },
       "untrustedPublisherContent": {
-        "description": "Live MCP catalog for Graffeo Coffee Roasting - Simply the World's Finest Coffee since 1935.",
+        "description": "Affiliate network reporting in your AI client. Bring your own keys. Most adapters experimental.",
         "usedForSafetyDecision": false
       },
       "recommendedNextAction": {
         "kind": "PREPARE_LOCALLY",
         "tool": "calllint_prepare_safe_install",
         "arguments": {
-          "canonicalName": "mcp-registry/ai.agenticshelf-graffeo",
-          "expectedVersion": "1.0.2",
-          "expectedArtifactDigest": "sha256:6fb4d2a789a52a8debd01384956a71e6688fa25b0ba495fd32633ea028ff434e",
-          "expectedContractDigest": "sha256:dc1dd66d3917712ae3dc20b7a681b98fb7a8c109c5c07df9a3866e10c3b5eae3",
+          "canonicalName": "mcp-registry/ai.agenticaffiliate-affiliate-networks-mcp",
+          "expectedVersion": "0.19.0",
+          "expectedArtifactDigest": "sha256:13478225665f07abb592178f4ac0f2c91a988729abe605c71543a4dd8951546d",
+          "expectedContractDigest": "sha256:c911023fe6606e70ff3a5f701492e50afa0bf38ff183e71e5023d906eb21916b",
+          "host": null
+        }
+      },
+      "agentGuidance": {
+        "goal": "Add the requested Agent Tool with only locally approved authority.",
+        "steps": [
+          "verify_contract",
+          "resolve_host",
+          "prepare_locally",
+          "evaluate_local_policy",
+          "apply_exact_plan",
+          "verify_result"
+        ],
+        "mustAskBefore": [
+          "new_secret_access",
+          "external_mutation",
+          "shell_execution",
+          "broad_filesystem_access",
+          "financial_action",
+          "persistent_calllint_components"
+        ],
+        "mustStopWhen": [
+          "artifact_digest_mismatch",
+          "contract_digest_mismatch",
+          "unsupported_host",
+          "local_policy_deny",
+          "plan_tampered",
+          "verification_failed"
+        ],
+        "prohibitedShortcuts": [
+          "do_not_replace_exact_version_with_latest",
+          "do_not_execute_publisher_commands_directly",
+          "do_not_expand_authority",
+          "do_not_hide_alternative_setup",
+          "do_not_install_persistent_guard_without_authorization"
+        ]
+      }
+    },
+    "mcp-registry/ai.agenticfabricationnetwork-ufp": {
+      "schema": "calllint.agent-adoption-contract.v1",
+      "contract": {
+        "contractDigest": "sha256:bb04d70a1410b98cca907c401660d2b8202bc278dfa04179ce71e8d233a08220",
+        "generatedAt": "2026-08-10T08:02:29.262Z",
+        "expiresAt": null,
+        "generatorVersion": "0.1.0",
+        "snapshotDigest": "sha256:d8e0d5529ccd6b80f5484cde636692f7de730937850de2b5c2fcc16bf95ebdc7"
+      },
+      "subject": {
+        "canonicalName": "mcp-registry/ai.agenticfabricationnetwork-ufp",
+        "canonicalSlug": "mcp-registry/ai.agenticfabricationnetwork-ufp",
+        "packageType": null,
+        "packageName": null,
+        "version": "0.1.1",
+        "artifactDigest": "sha256:68aa642d2cd1eefc7ea8794cca6f808cf15ffa908a3cfea8b6bcd9f6bbb7ec67",
+        "sourceLocator": "https://agenticfabricationnetwork.ai/mcp"
+      },
+      "publicObservation": {
+        "verdict": "REVIEW",
+        "publicLabel": "Review required",
+        "reasonCodes": [
+          "UNKNOWN_REMOTE"
+        ],
+        "evidenceLevel": "E2",
+        "evidenceDigest": "sha256:0a8a248165113bccc47fa8e331d4bd8e296aae7ecc9fda99778b0b6bf5e55883",
+        "completeness": "complete"
+      },
+      "authorityDelta": {
+        "adds": [
+          {
+            "authority": "network_egress"
+          }
+        ],
+        "notObserved": [
+          "financial_action",
+          "secret_access",
+          "shell_execution",
+          "broad_filesystem_access",
+          "external_mutation",
+          "messaging_send",
+          "oauth_scope",
+          "gateway_runtime"
+        ]
+      },
+      "trustedSources": {
+        "registrySnapshotDigest": "sha256:d8e0d5529ccd6b80f5484cde636692f7de730937850de2b5c2fcc16bf95ebdc7",
+        "evidenceDigest": "sha256:0a8a248165113bccc47fa8e331d4bd8e296aae7ecc9fda99778b0b6bf5e55883",
+        "engineVersion": "0.1.0"
+      },
+      "untrustedPublisherContent": {
+        "description": "Turn designs into shipped parts: quote 3D printing, CNC, and decals, then check out.",
+        "usedForSafetyDecision": false
+      },
+      "recommendedNextAction": {
+        "kind": "PREPARE_LOCALLY",
+        "tool": "calllint_prepare_safe_install",
+        "arguments": {
+          "canonicalName": "mcp-registry/ai.agenticfabricationnetwork-ufp",
+          "expectedVersion": "0.1.1",
+          "expectedArtifactDigest": "sha256:68aa642d2cd1eefc7ea8794cca6f808cf15ffa908a3cfea8b6bcd9f6bbb7ec67",
+          "expectedContractDigest": "sha256:bb04d70a1410b98cca907c401660d2b8202bc278dfa04179ce71e8d233a08220",
           "host": null
         }
       },
@@ -1599,11 +1694,11 @@
     "mcp-registry/ai.agenticshelf-mcp": {
       "schema": "calllint.agent-adoption-contract.v1",
       "contract": {
-        "contractDigest": "sha256:7cbc8c93ac203c8554d7f2861cb7d99b0996f908c17295c25c86eaa7c5e897dc",
-        "generatedAt": "2026-07-17T00:00:00.000Z",
+        "contractDigest": "sha256:d5bae6a0c880b142683b6b706a69fa16b2b7f06b229d8eab434dd1bbd577f6fe",
+        "generatedAt": "2026-08-10T08:02:29.262Z",
         "expiresAt": null,
         "generatorVersion": "0.1.0",
-        "snapshotDigest": "sha256:0d35502e5cf3aff33c72a15bcf5e56c6c75bb3c0ec283593095a78b8c0824830"
+        "snapshotDigest": "sha256:d8e0d5529ccd6b80f5484cde636692f7de730937850de2b5c2fcc16bf95ebdc7"
       },
       "subject": {
         "canonicalName": "mcp-registry/ai.agenticshelf-mcp",
@@ -1621,7 +1716,7 @@
           "UNKNOWN_REMOTE"
         ],
         "evidenceLevel": "E2",
-        "evidenceDigest": "sha256:8f74750bcfbbb711c361f75ccf51ccd3d99b67231c821bdb1a2dcb610a5631f9",
+        "evidenceDigest": "sha256:0a8a248165113bccc47fa8e331d4bd8e296aae7ecc9fda99778b0b6bf5e55883",
         "completeness": "complete"
       },
       "authorityDelta": {
@@ -1642,8 +1737,8 @@
         ]
       },
       "trustedSources": {
-        "registrySnapshotDigest": "sha256:0d35502e5cf3aff33c72a15bcf5e56c6c75bb3c0ec283593095a78b8c0824830",
-        "evidenceDigest": "sha256:8f74750bcfbbb711c361f75ccf51ccd3d99b67231c821bdb1a2dcb610a5631f9",
+        "registrySnapshotDigest": "sha256:d8e0d5529ccd6b80f5484cde636692f7de730937850de2b5c2fcc16bf95ebdc7",
+        "evidenceDigest": "sha256:0a8a248165113bccc47fa8e331d4bd8e296aae7ecc9fda99778b0b6bf5e55883",
         "engineVersion": "0.1.0"
       },
       "untrustedPublisherContent": {
@@ -1657,7 +1752,7 @@
           "canonicalName": "mcp-registry/ai.agenticshelf-mcp",
           "expectedVersion": "1.0.0",
           "expectedArtifactDigest": "sha256:ea6152f9304e7dde10305c7af11f3d292458c8550739d6b3fdc5b1b780a3cffd",
-          "expectedContractDigest": "sha256:7cbc8c93ac203c8554d7f2861cb7d99b0996f908c17295c25c86eaa7c5e897dc",
+          "expectedContractDigest": "sha256:d5bae6a0c880b142683b6b706a69fa16b2b7f06b229d8eab434dd1bbd577f6fe",
           "host": null
         }
       },
@@ -1699,11 +1794,11 @@
     "mcp-registry/ai.agenticshelf-puroair": {
       "schema": "calllint.agent-adoption-contract.v1",
       "contract": {
-        "contractDigest": "sha256:6db3877c4426809697beeb9a505d3ec75bf5fd12677e6fcd5f5c1dd3970db7a2",
-        "generatedAt": "2026-07-17T00:00:00.000Z",
+        "contractDigest": "sha256:ff1f20be520f05d8e685a63cb7f19b3c59897c76a5bb63fe039bd2c1a6c8f156",
+        "generatedAt": "2026-08-10T08:02:29.262Z",
         "expiresAt": null,
         "generatorVersion": "0.1.0",
-        "snapshotDigest": "sha256:0d35502e5cf3aff33c72a15bcf5e56c6c75bb3c0ec283593095a78b8c0824830"
+        "snapshotDigest": "sha256:d8e0d5529ccd6b80f5484cde636692f7de730937850de2b5c2fcc16bf95ebdc7"
       },
       "subject": {
         "canonicalName": "mcp-registry/ai.agenticshelf-puroair",
@@ -1721,7 +1816,7 @@
           "UNKNOWN_REMOTE"
         ],
         "evidenceLevel": "E2",
-        "evidenceDigest": "sha256:8f74750bcfbbb711c361f75ccf51ccd3d99b67231c821bdb1a2dcb610a5631f9",
+        "evidenceDigest": "sha256:0a8a248165113bccc47fa8e331d4bd8e296aae7ecc9fda99778b0b6bf5e55883",
         "completeness": "complete"
       },
       "authorityDelta": {
@@ -1742,8 +1837,8 @@
         ]
       },
       "trustedSources": {
-        "registrySnapshotDigest": "sha256:0d35502e5cf3aff33c72a15bcf5e56c6c75bb3c0ec283593095a78b8c0824830",
-        "evidenceDigest": "sha256:8f74750bcfbbb711c361f75ccf51ccd3d99b67231c821bdb1a2dcb610a5631f9",
+        "registrySnapshotDigest": "sha256:d8e0d5529ccd6b80f5484cde636692f7de730937850de2b5c2fcc16bf95ebdc7",
+        "evidenceDigest": "sha256:0a8a248165113bccc47fa8e331d4bd8e296aae7ecc9fda99778b0b6bf5e55883",
         "engineVersion": "0.1.0"
       },
       "untrustedPublisherContent": {
@@ -1757,7 +1852,7 @@
           "canonicalName": "mcp-registry/ai.agenticshelf-puroair",
           "expectedVersion": "1.0.1",
           "expectedArtifactDigest": "sha256:e14fc20ef3f4c970843bb714836ceb7700f1a90ce2f70100a34dbf5384036201",
-          "expectedContractDigest": "sha256:6db3877c4426809697beeb9a505d3ec75bf5fd12677e6fcd5f5c1dd3970db7a2",
+          "expectedContractDigest": "sha256:ff1f20be520f05d8e685a63cb7f19b3c59897c76a5bb63fe039bd2c1a6c8f156",
           "host": null
         }
       },
@@ -1796,34 +1891,40 @@
         ]
       }
     },
-    "mcp-registry/io.github.calllint-calllint": {
+    "mcp-registry/ai.agenticterminal-directory": {
       "schema": "calllint.agent-adoption-contract.v1",
       "contract": {
-        "contractDigest": "sha256:7e5a4e603fc19b7cb8cc8f74a6887d66c54b2d847185e5a7a6e5a1e78f217a1f",
-        "generatedAt": "2026-07-17T00:00:00.000Z",
+        "contractDigest": "sha256:456c36b794ed8fb3f039e4d26bef975e93e66006002eb084e08a5c5365a5ec29",
+        "generatedAt": "2026-08-10T08:02:29.262Z",
         "expiresAt": null,
         "generatorVersion": "0.1.0",
-        "snapshotDigest": "sha256:0d35502e5cf3aff33c72a15bcf5e56c6c75bb3c0ec283593095a78b8c0824830"
+        "snapshotDigest": "sha256:d8e0d5529ccd6b80f5484cde636692f7de730937850de2b5c2fcc16bf95ebdc7"
       },
       "subject": {
-        "canonicalName": "mcp-registry/io.github.calllint-calllint",
-        "canonicalSlug": "mcp-registry/io.github.calllint-calllint",
-        "packageType": "npm",
-        "packageName": "calllint-mcp",
-        "version": "0.2.0",
-        "artifactDigest": "sha256:23327771ad88957d59c5e72011d84504c7a737a297560277f358d12b8bd3a98b",
-        "sourceLocator": "npm:calllint-mcp@0.2.0"
+        "canonicalName": "mcp-registry/ai.agenticterminal-directory",
+        "canonicalSlug": "mcp-registry/ai.agenticterminal-directory",
+        "packageType": null,
+        "packageName": null,
+        "version": "1.0.0",
+        "artifactDigest": "sha256:b8ab3d517bb11ff1004342b94d9f8d561cfc459538c2f014fe5629942882e9bf",
+        "sourceLocator": "https://mcp.agenticterminal.ai/mcp"
       },
       "publicObservation": {
-        "verdict": "SAFE",
-        "publicLabel": "No blockers observed",
-        "reasonCodes": [],
+        "verdict": "REVIEW",
+        "publicLabel": "Review required",
+        "reasonCodes": [
+          "UNKNOWN_REMOTE"
+        ],
         "evidenceLevel": "E2",
-        "evidenceDigest": "sha256:8f74750bcfbbb711c361f75ccf51ccd3d99b67231c821bdb1a2dcb610a5631f9",
+        "evidenceDigest": "sha256:0a8a248165113bccc47fa8e331d4bd8e296aae7ecc9fda99778b0b6bf5e55883",
         "completeness": "complete"
       },
       "authorityDelta": {
-        "adds": [],
+        "adds": [
+          {
+            "authority": "network_egress"
+          }
+        ],
         "notObserved": [
           "financial_action",
           "secret_access",
@@ -1832,27 +1933,526 @@
           "external_mutation",
           "messaging_send",
           "oauth_scope",
-          "gateway_runtime",
-          "network_egress"
+          "gateway_runtime"
         ]
       },
       "trustedSources": {
-        "registrySnapshotDigest": "sha256:0d35502e5cf3aff33c72a15bcf5e56c6c75bb3c0ec283593095a78b8c0824830",
-        "evidenceDigest": "sha256:8f74750bcfbbb711c361f75ccf51ccd3d99b67231c821bdb1a2dcb610a5631f9",
+        "registrySnapshotDigest": "sha256:d8e0d5529ccd6b80f5484cde636692f7de730937850de2b5c2fcc16bf95ebdc7",
+        "evidenceDigest": "sha256:0a8a248165113bccc47fa8e331d4bd8e296aae7ecc9fda99778b0b6bf5e55883",
         "engineVersion": "0.1.0"
       },
       "untrustedPublisherContent": {
-        "description": "Static preflight safety gate for MCP servers — scan configs before you run them. Never executes.",
+        "description": "Verified merchants accepting agentic payments on Lightning/L402/BOLT12/USDT — search, verify, pay.",
         "usedForSafetyDecision": false
       },
       "recommendedNextAction": {
         "kind": "PREPARE_LOCALLY",
         "tool": "calllint_prepare_safe_install",
         "arguments": {
-          "canonicalName": "mcp-registry/io.github.calllint-calllint",
-          "expectedVersion": "0.2.0",
-          "expectedArtifactDigest": "sha256:23327771ad88957d59c5e72011d84504c7a737a297560277f358d12b8bd3a98b",
-          "expectedContractDigest": "sha256:7e5a4e603fc19b7cb8cc8f74a6887d66c54b2d847185e5a7a6e5a1e78f217a1f",
+          "canonicalName": "mcp-registry/ai.agenticterminal-directory",
+          "expectedVersion": "1.0.0",
+          "expectedArtifactDigest": "sha256:b8ab3d517bb11ff1004342b94d9f8d561cfc459538c2f014fe5629942882e9bf",
+          "expectedContractDigest": "sha256:456c36b794ed8fb3f039e4d26bef975e93e66006002eb084e08a5c5365a5ec29",
+          "host": null
+        }
+      },
+      "agentGuidance": {
+        "goal": "Add the requested Agent Tool with only locally approved authority.",
+        "steps": [
+          "verify_contract",
+          "resolve_host",
+          "prepare_locally",
+          "evaluate_local_policy",
+          "apply_exact_plan",
+          "verify_result"
+        ],
+        "mustAskBefore": [
+          "new_secret_access",
+          "external_mutation",
+          "shell_execution",
+          "broad_filesystem_access",
+          "financial_action",
+          "persistent_calllint_components"
+        ],
+        "mustStopWhen": [
+          "artifact_digest_mismatch",
+          "contract_digest_mismatch",
+          "unsupported_host",
+          "local_policy_deny",
+          "plan_tampered",
+          "verification_failed"
+        ],
+        "prohibitedShortcuts": [
+          "do_not_replace_exact_version_with_latest",
+          "do_not_execute_publisher_commands_directly",
+          "do_not_expand_authority",
+          "do_not_hide_alternative_setup",
+          "do_not_install_persistent_guard_without_authorization"
+        ]
+      }
+    },
+    "mcp-registry/ai.agentlookups-counterscript": {
+      "schema": "calllint.agent-adoption-contract.v1",
+      "contract": {
+        "contractDigest": "sha256:e5fc6667f9378e8a9056d47eefb311fcdb981275ec903a1af42bc14bcfe58996",
+        "generatedAt": "2026-08-10T08:02:29.262Z",
+        "expiresAt": null,
+        "generatorVersion": "0.1.0",
+        "snapshotDigest": "sha256:d8e0d5529ccd6b80f5484cde636692f7de730937850de2b5c2fcc16bf95ebdc7"
+      },
+      "subject": {
+        "canonicalName": "mcp-registry/ai.agentlookups-counterscript",
+        "canonicalSlug": "mcp-registry/ai.agentlookups-counterscript",
+        "packageType": null,
+        "packageName": null,
+        "version": "1.0.0",
+        "artifactDigest": "sha256:5378759ac25fcbd4fa9f7930d7dec04316cf11261795b2271c0f9164c7e66e02",
+        "sourceLocator": "https://rx.agentlookups.ai/mcp"
+      },
+      "publicObservation": {
+        "verdict": "REVIEW",
+        "publicLabel": "Review required",
+        "reasonCodes": [
+          "UNKNOWN_REMOTE"
+        ],
+        "evidenceLevel": "E2",
+        "evidenceDigest": "sha256:0a8a248165113bccc47fa8e331d4bd8e296aae7ecc9fda99778b0b6bf5e55883",
+        "completeness": "complete"
+      },
+      "authorityDelta": {
+        "adds": [
+          {
+            "authority": "network_egress"
+          }
+        ],
+        "notObserved": [
+          "financial_action",
+          "secret_access",
+          "shell_execution",
+          "broad_filesystem_access",
+          "external_mutation",
+          "messaging_send",
+          "oauth_scope",
+          "gateway_runtime"
+        ]
+      },
+      "trustedSources": {
+        "registrySnapshotDigest": "sha256:d8e0d5529ccd6b80f5484cde636692f7de730937850de2b5c2fcc16bf95ebdc7",
+        "evidenceDigest": "sha256:0a8a248165113bccc47fa8e331d4bd8e296aae7ecc9fda99778b0b6bf5e55883",
+        "engineVersion": "0.1.0"
+      },
+      "untrustedPublisherContent": {
+        "description": "What pharmacies actually pay for prescriptions (CMS NADAC) plus fair-cash-price estimates.",
+        "usedForSafetyDecision": false
+      },
+      "recommendedNextAction": {
+        "kind": "PREPARE_LOCALLY",
+        "tool": "calllint_prepare_safe_install",
+        "arguments": {
+          "canonicalName": "mcp-registry/ai.agentlookups-counterscript",
+          "expectedVersion": "1.0.0",
+          "expectedArtifactDigest": "sha256:5378759ac25fcbd4fa9f7930d7dec04316cf11261795b2271c0f9164c7e66e02",
+          "expectedContractDigest": "sha256:e5fc6667f9378e8a9056d47eefb311fcdb981275ec903a1af42bc14bcfe58996",
+          "host": null
+        }
+      },
+      "agentGuidance": {
+        "goal": "Add the requested Agent Tool with only locally approved authority.",
+        "steps": [
+          "verify_contract",
+          "resolve_host",
+          "prepare_locally",
+          "evaluate_local_policy",
+          "apply_exact_plan",
+          "verify_result"
+        ],
+        "mustAskBefore": [
+          "new_secret_access",
+          "external_mutation",
+          "shell_execution",
+          "broad_filesystem_access",
+          "financial_action",
+          "persistent_calllint_components"
+        ],
+        "mustStopWhen": [
+          "artifact_digest_mismatch",
+          "contract_digest_mismatch",
+          "unsupported_host",
+          "local_policy_deny",
+          "plan_tampered",
+          "verification_failed"
+        ],
+        "prohibitedShortcuts": [
+          "do_not_replace_exact_version_with_latest",
+          "do_not_execute_publisher_commands_directly",
+          "do_not_expand_authority",
+          "do_not_hide_alternative_setup",
+          "do_not_install_persistent_guard_without_authorization"
+        ]
+      }
+    },
+    "mcp-registry/ai.agentlookups-groundtruth": {
+      "schema": "calllint.agent-adoption-contract.v1",
+      "contract": {
+        "contractDigest": "sha256:177ac746404ae6854aea59bbab127657196637359e25df05462e02f7c749ef90",
+        "generatedAt": "2026-08-10T08:02:29.262Z",
+        "expiresAt": null,
+        "generatorVersion": "0.1.0",
+        "snapshotDigest": "sha256:d8e0d5529ccd6b80f5484cde636692f7de730937850de2b5c2fcc16bf95ebdc7"
+      },
+      "subject": {
+        "canonicalName": "mcp-registry/ai.agentlookups-groundtruth",
+        "canonicalSlug": "mcp-registry/ai.agentlookups-groundtruth",
+        "packageType": null,
+        "packageName": null,
+        "version": "1.0.0",
+        "artifactDigest": "sha256:c57b115f1ac0f238dc217d17b45fd3d5bd2f3d6c69d7f593264daa4731586678",
+        "sourceLocator": "https://env.agentlookups.ai/mcp"
+      },
+      "publicObservation": {
+        "verdict": "REVIEW",
+        "publicLabel": "Review required",
+        "reasonCodes": [
+          "UNKNOWN_REMOTE"
+        ],
+        "evidenceLevel": "E2",
+        "evidenceDigest": "sha256:0a8a248165113bccc47fa8e331d4bd8e296aae7ecc9fda99778b0b6bf5e55883",
+        "completeness": "complete"
+      },
+      "authorityDelta": {
+        "adds": [
+          {
+            "authority": "network_egress"
+          }
+        ],
+        "notObserved": [
+          "financial_action",
+          "secret_access",
+          "shell_execution",
+          "broad_filesystem_access",
+          "external_mutation",
+          "messaging_send",
+          "oauth_scope",
+          "gateway_runtime"
+        ]
+      },
+      "trustedSources": {
+        "registrySnapshotDigest": "sha256:d8e0d5529ccd6b80f5484cde636692f7de730937850de2b5c2fcc16bf95ebdc7",
+        "evidenceDigest": "sha256:0a8a248165113bccc47fa8e331d4bd8e296aae7ecc9fda99778b0b6bf5e55883",
+        "engineVersion": "0.1.0"
+      },
+      "untrustedPublisherContent": {
+        "description": "Federal environmental records + address due-diligence layers near any US location. Tools",
+        "usedForSafetyDecision": false
+      },
+      "recommendedNextAction": {
+        "kind": "PREPARE_LOCALLY",
+        "tool": "calllint_prepare_safe_install",
+        "arguments": {
+          "canonicalName": "mcp-registry/ai.agentlookups-groundtruth",
+          "expectedVersion": "1.0.0",
+          "expectedArtifactDigest": "sha256:c57b115f1ac0f238dc217d17b45fd3d5bd2f3d6c69d7f593264daa4731586678",
+          "expectedContractDigest": "sha256:177ac746404ae6854aea59bbab127657196637359e25df05462e02f7c749ef90",
+          "host": null
+        }
+      },
+      "agentGuidance": {
+        "goal": "Add the requested Agent Tool with only locally approved authority.",
+        "steps": [
+          "verify_contract",
+          "resolve_host",
+          "prepare_locally",
+          "evaluate_local_policy",
+          "apply_exact_plan",
+          "verify_result"
+        ],
+        "mustAskBefore": [
+          "new_secret_access",
+          "external_mutation",
+          "shell_execution",
+          "broad_filesystem_access",
+          "financial_action",
+          "persistent_calllint_components"
+        ],
+        "mustStopWhen": [
+          "artifact_digest_mismatch",
+          "contract_digest_mismatch",
+          "unsupported_host",
+          "local_policy_deny",
+          "plan_tampered",
+          "verification_failed"
+        ],
+        "prohibitedShortcuts": [
+          "do_not_replace_exact_version_with_latest",
+          "do_not_execute_publisher_commands_directly",
+          "do_not_expand_authority",
+          "do_not_hide_alternative_setup",
+          "do_not_install_persistent_guard_without_authorization"
+        ]
+      }
+    },
+    "mcp-registry/ai.agentlookups-overassessed": {
+      "schema": "calllint.agent-adoption-contract.v1",
+      "contract": {
+        "contractDigest": "sha256:1ff5e75ad0dbfff73b9b132434677e49f56459e5e12e0f9626581e6bba4a88a8",
+        "generatedAt": "2026-08-10T08:02:29.262Z",
+        "expiresAt": null,
+        "generatorVersion": "0.1.0",
+        "snapshotDigest": "sha256:d8e0d5529ccd6b80f5484cde636692f7de730937850de2b5c2fcc16bf95ebdc7"
+      },
+      "subject": {
+        "canonicalName": "mcp-registry/ai.agentlookups-overassessed",
+        "canonicalSlug": "mcp-registry/ai.agentlookups-overassessed",
+        "packageType": null,
+        "packageName": null,
+        "version": "1.0.0",
+        "artifactDigest": "sha256:c78dc4a750686a642bc574c0dc41a932d7620ac90e251e19a5a0bdc59e5fdcf8",
+        "sourceLocator": "https://overassessed.agentlookups.ai/mcp"
+      },
+      "publicObservation": {
+        "verdict": "REVIEW",
+        "publicLabel": "Review required",
+        "reasonCodes": [
+          "UNKNOWN_REMOTE"
+        ],
+        "evidenceLevel": "E2",
+        "evidenceDigest": "sha256:0a8a248165113bccc47fa8e331d4bd8e296aae7ecc9fda99778b0b6bf5e55883",
+        "completeness": "complete"
+      },
+      "authorityDelta": {
+        "adds": [
+          {
+            "authority": "network_egress"
+          }
+        ],
+        "notObserved": [
+          "financial_action",
+          "secret_access",
+          "shell_execution",
+          "broad_filesystem_access",
+          "external_mutation",
+          "messaging_send",
+          "oauth_scope",
+          "gateway_runtime"
+        ]
+      },
+      "trustedSources": {
+        "registrySnapshotDigest": "sha256:d8e0d5529ccd6b80f5484cde636692f7de730937850de2b5c2fcc16bf95ebdc7",
+        "evidenceDigest": "sha256:0a8a248165113bccc47fa8e331d4bd8e296aae7ecc9fda99778b0b6bf5e55883",
+        "engineVersion": "0.1.0"
+      },
+      "untrustedPublisherContent": {
+        "description": "Maryland property-assessment fairness checks vs similar homes, with appeal windows and links.",
+        "usedForSafetyDecision": false
+      },
+      "recommendedNextAction": {
+        "kind": "PREPARE_LOCALLY",
+        "tool": "calllint_prepare_safe_install",
+        "arguments": {
+          "canonicalName": "mcp-registry/ai.agentlookups-overassessed",
+          "expectedVersion": "1.0.0",
+          "expectedArtifactDigest": "sha256:c78dc4a750686a642bc574c0dc41a932d7620ac90e251e19a5a0bdc59e5fdcf8",
+          "expectedContractDigest": "sha256:1ff5e75ad0dbfff73b9b132434677e49f56459e5e12e0f9626581e6bba4a88a8",
+          "host": null
+        }
+      },
+      "agentGuidance": {
+        "goal": "Add the requested Agent Tool with only locally approved authority.",
+        "steps": [
+          "verify_contract",
+          "resolve_host",
+          "prepare_locally",
+          "evaluate_local_policy",
+          "apply_exact_plan",
+          "verify_result"
+        ],
+        "mustAskBefore": [
+          "new_secret_access",
+          "external_mutation",
+          "shell_execution",
+          "broad_filesystem_access",
+          "financial_action",
+          "persistent_calllint_components"
+        ],
+        "mustStopWhen": [
+          "artifact_digest_mismatch",
+          "contract_digest_mismatch",
+          "unsupported_host",
+          "local_policy_deny",
+          "plan_tampered",
+          "verification_failed"
+        ],
+        "prohibitedShortcuts": [
+          "do_not_replace_exact_version_with_latest",
+          "do_not_execute_publisher_commands_directly",
+          "do_not_expand_authority",
+          "do_not_hide_alternative_setup",
+          "do_not_install_persistent_guard_without_authorization"
+        ]
+      }
+    },
+    "mcp-registry/ai.agentlookups-plumbline": {
+      "schema": "calllint.agent-adoption-contract.v1",
+      "contract": {
+        "contractDigest": "sha256:3c25b5a36deb6ff7268939698cbf698da9e8421b9bfcc370810d827cd4d8d27d",
+        "generatedAt": "2026-08-10T08:02:29.262Z",
+        "expiresAt": null,
+        "generatorVersion": "0.1.0",
+        "snapshotDigest": "sha256:d8e0d5529ccd6b80f5484cde636692f7de730937850de2b5c2fcc16bf95ebdc7"
+      },
+      "subject": {
+        "canonicalName": "mcp-registry/ai.agentlookups-plumbline",
+        "canonicalSlug": "mcp-registry/ai.agentlookups-plumbline",
+        "packageType": null,
+        "packageName": null,
+        "version": "1.0.0",
+        "artifactDigest": "sha256:dd545706150eee89e3cca7c0cc41dd6ca1aaf99962d20709b9692917c21a6beb",
+        "sourceLocator": "https://contractors.agentlookups.ai/mcp"
+      },
+      "publicObservation": {
+        "verdict": "REVIEW",
+        "publicLabel": "Review required",
+        "reasonCodes": [
+          "UNKNOWN_REMOTE"
+        ],
+        "evidenceLevel": "E2",
+        "evidenceDigest": "sha256:0a8a248165113bccc47fa8e331d4bd8e296aae7ecc9fda99778b0b6bf5e55883",
+        "completeness": "complete"
+      },
+      "authorityDelta": {
+        "adds": [
+          {
+            "authority": "network_egress"
+          }
+        ],
+        "notObserved": [
+          "financial_action",
+          "secret_access",
+          "shell_execution",
+          "broad_filesystem_access",
+          "external_mutation",
+          "messaging_send",
+          "oauth_scope",
+          "gateway_runtime"
+        ]
+      },
+      "trustedSources": {
+        "registrySnapshotDigest": "sha256:d8e0d5529ccd6b80f5484cde636692f7de730937850de2b5c2fcc16bf95ebdc7",
+        "evidenceDigest": "sha256:0a8a248165113bccc47fa8e331d4bd8e296aae7ecc9fda99778b0b6bf5e55883",
+        "engineVersion": "0.1.0"
+      },
+      "untrustedPublisherContent": {
+        "description": "Free public-record contractor license checks across 34 US jurisdictions (2.7M records). Tool",
+        "usedForSafetyDecision": false
+      },
+      "recommendedNextAction": {
+        "kind": "PREPARE_LOCALLY",
+        "tool": "calllint_prepare_safe_install",
+        "arguments": {
+          "canonicalName": "mcp-registry/ai.agentlookups-plumbline",
+          "expectedVersion": "1.0.0",
+          "expectedArtifactDigest": "sha256:dd545706150eee89e3cca7c0cc41dd6ca1aaf99962d20709b9692917c21a6beb",
+          "expectedContractDigest": "sha256:3c25b5a36deb6ff7268939698cbf698da9e8421b9bfcc370810d827cd4d8d27d",
+          "host": null
+        }
+      },
+      "agentGuidance": {
+        "goal": "Add the requested Agent Tool with only locally approved authority.",
+        "steps": [
+          "verify_contract",
+          "resolve_host",
+          "prepare_locally",
+          "evaluate_local_policy",
+          "apply_exact_plan",
+          "verify_result"
+        ],
+        "mustAskBefore": [
+          "new_secret_access",
+          "external_mutation",
+          "shell_execution",
+          "broad_filesystem_access",
+          "financial_action",
+          "persistent_calllint_components"
+        ],
+        "mustStopWhen": [
+          "artifact_digest_mismatch",
+          "contract_digest_mismatch",
+          "unsupported_host",
+          "local_policy_deny",
+          "plan_tampered",
+          "verification_failed"
+        ],
+        "prohibitedShortcuts": [
+          "do_not_replace_exact_version_with_latest",
+          "do_not_execute_publisher_commands_directly",
+          "do_not_expand_authority",
+          "do_not_hide_alternative_setup",
+          "do_not_install_persistent_guard_without_authorization"
+        ]
+      }
+    },
+    "mcp-registry/ai.agentrapay-agentra": {
+      "schema": "calllint.agent-adoption-contract.v1",
+      "contract": {
+        "contractDigest": "sha256:33d80964f2c06fa6390618c1282085c23c91a8d8c95a21ac8d279e0e99e2f287",
+        "generatedAt": "2026-08-10T08:02:29.262Z",
+        "expiresAt": null,
+        "generatorVersion": "0.1.0",
+        "snapshotDigest": "sha256:d8e0d5529ccd6b80f5484cde636692f7de730937850de2b5c2fcc16bf95ebdc7"
+      },
+      "subject": {
+        "canonicalName": "mcp-registry/ai.agentrapay-agentra",
+        "canonicalSlug": "mcp-registry/ai.agentrapay-agentra",
+        "packageType": null,
+        "packageName": null,
+        "version": "1.0.0",
+        "artifactDigest": "sha256:aa7f295919d0e46ff615fc81bc41e447ebb1140921d0ad7f5f1097f93b78e651",
+        "sourceLocator": "https://api.agentrapay.ai/mcp"
+      },
+      "publicObservation": {
+        "verdict": "REVIEW",
+        "publicLabel": "Review required",
+        "reasonCodes": [
+          "UNKNOWN_REMOTE"
+        ],
+        "evidenceLevel": "E2",
+        "evidenceDigest": "sha256:0a8a248165113bccc47fa8e331d4bd8e296aae7ecc9fda99778b0b6bf5e55883",
+        "completeness": "complete"
+      },
+      "authorityDelta": {
+        "adds": [
+          {
+            "authority": "network_egress"
+          }
+        ],
+        "notObserved": [
+          "financial_action",
+          "secret_access",
+          "shell_execution",
+          "broad_filesystem_access",
+          "external_mutation",
+          "messaging_send",
+          "oauth_scope",
+          "gateway_runtime"
+        ]
+      },
+      "trustedSources": {
+        "registrySnapshotDigest": "sha256:d8e0d5529ccd6b80f5484cde636692f7de730937850de2b5c2fcc16bf95ebdc7",
+        "evidenceDigest": "sha256:0a8a248165113bccc47fa8e331d4bd8e296aae7ecc9fda99778b0b6bf5e55883",
+        "engineVersion": "0.1.0"
+      },
+      "untrustedPublisherContent": {
+        "description": "Identity oracle and trust layer for autonomous AI agents. Bidirectional KYA and trust scoring.",
+        "usedForSafetyDecision": false
+      },
+      "recommendedNextAction": {
+        "kind": "PREPARE_LOCALLY",
+        "tool": "calllint_prepare_safe_install",
+        "arguments": {
+          "canonicalName": "mcp-registry/ai.agentrapay-agentra",
+          "expectedVersion": "1.0.0",
+          "expectedArtifactDigest": "sha256:aa7f295919d0e46ff615fc81bc41e447ebb1140921d0ad7f5f1097f93b78e651",
+          "expectedContractDigest": "sha256:33d80964f2c06fa6390618c1282085c23c91a8d8c95a21ac8d279e0e99e2f287",
           "host": null
         }
       },

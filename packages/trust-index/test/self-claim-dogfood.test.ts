@@ -26,7 +26,7 @@
  * OFFLINE around that human action. The human ledger lives in
  * `artifacts/phase-2.5-self-claim/`.
  */
-import { readFileSync } from "node:fs"
+import { existsSync, readFileSync } from "node:fs"
 import { join } from "node:path"
 import { describe, expect, it } from "vitest"
 import { emitAllCohorts } from "../src/emitCohort.js"
@@ -92,6 +92,27 @@ describe("Phase 2.5-A — self-claim production dogfood (activate → revoke →
     expect(registryRepoIndex(snapshot!).size).toBeGreaterThan(0)
   })
 
+  /**
+   * Is CallLint's own name in the committed upstream snapshot?
+   *
+   * Two of the three proofs below need it and one does NOT, and that split is the whole
+   * point of this block. The lifecycle proof (1 active → 0 → 1) is PURE over two Maps the
+   * caller supplies — `repoIndex` and `bakedDigests` — so it is provable against a SYNTHETIC
+   * one-entry snapshot fed through the SHIPPED `registryRepoIndex`, with no dependency on
+   * what upstream published. Only the two proofs that byte-compare against the COMMITTED
+   * SERVED page need the real corpus, because that page is what they read.
+   *
+   * The earlier form of this block skipped ALL THREE on absence with a single `it.skip`, so
+   * when upstream dropped `io.github.calllint/calllint` the suite went green by switching off
+   * every check that could have observed the loss — including the lifecycle property, which
+   * never needed the corpus at all. A guard that disarms itself on the condition it exists to
+   * report is not a guard. So: the lifecycle proof always runs, and the corpus-gated pair
+   * ASSERTS the shape of the absence (name absent, page absent, no orphan served bytes)
+   * instead of asserting nothing.
+   */
+  const CLAIMED_NAME = "io.github.calllint/calllint"
+  const claimedInSnapshot = snapshot?.entries.some((e) => e.name === CLAIMED_NAME) ?? false
+
   // Reference bake with the EMPTY store gives the overlay-independent baked digests the
   // reconciler needs (a claim is only minted for a page that is actually baked).
   const refBake = emitAllCohorts(snapshot, EMPTY_CLAIM_STORE, evidence)
@@ -105,7 +126,69 @@ describe("Phase 2.5-A — self-claim production dogfood (activate → revoke →
   )
   const repoIndex = registryRepoIndex(snapshot!)
 
-  const life = reconcileSelfClaimLifecycle({ repoIndex, bakedDigests, timestamps: TIMESTAMPS })
+  /**
+   * The lifecycle inputs, built so the proof holds whether or not upstream carries our name.
+   *
+   * When the real corpus has it, these ARE the real corpus values — identical to what the
+   * previous form used. When it does not, the two Maps are synthesized through the SHIPPED
+   * `registryRepoIndex` over a one-entry snapshot bearing CallLint's real coordinates, plus a
+   * baked-digest entry for the same canonical name. Both are the reconciler's ONLY inputs
+   * besides the injected instants, and it reads them purely, so a synthetic corpus exercises
+   * the same code path — what it cannot prove is the served-page comparison, which is exactly
+   * why the two tests that DO compare served bytes stay gated below.
+   *
+   * The digest is a fixed, obviously-synthetic literal: `reconcileClaims` only requires that a
+   * digest EXIST for the name (an unbaked page mints no claim) and records it as observed; no
+   * assertion here reads its value. A real-looking hash would invite the misreading that this
+   * is a served digest.
+   */
+  const SYNTHETIC_DIGEST = `sha256:${"0".repeat(64)}` as const
+  const lifecycleRepoIndex = claimedInSnapshot
+    ? repoIndex
+    : registryRepoIndex({
+        schema: "calllint.trust-snapshot.v0",
+        source: "official-mcp-registry",
+        endpoint: "synthetic://self-claim-lifecycle",
+        fetchedAt: TIMESTAMPS.activate,
+        count: 1,
+        entries: [
+          {
+            name: CLAIMED_NAME,
+            description: "synthetic lifecycle input — not a served entry",
+            version: "0.0.0",
+            repositoryUrl: `https://github.com/${SELF_CLAIM.repo.owner}/${SELF_CLAIM.repo.name}`,
+            packages: [],
+            remotes: [],
+            status: "active",
+            publishedAt: TIMESTAMPS.activate,
+          },
+        ],
+      })
+  const lifecycleBakedDigests = claimedInSnapshot
+    ? bakedDigests
+    : new Map<string, `sha256:${string}`>([[SELF_CLAIM.canonicalName, SYNTHETIC_DIGEST]])
+
+  const life = reconcileSelfClaimLifecycle({
+    repoIndex: lifecycleRepoIndex,
+    bakedDigests: lifecycleBakedDigests,
+    timestamps: TIMESTAMPS,
+  })
+
+  it("the lifecycle inputs resolve CallLint's real coordinates to its real canonical name", () => {
+    // Guards the synthetic branch against proving the lifecycle over inputs that miss the
+    // subject entirely: `reconcileClaims` mints nothing for a name it cannot resolve or that
+    // has no baked digest, so 1 → 0 → 1 would collapse to 0 → 0 → 0 and every count below
+    // would still need to be asserted against SOMETHING. Pin the resolution first.
+    const key = `${SELF_CLAIM.repo.owner}/${SELF_CLAIM.repo.name}`.toLowerCase()
+    expect(
+      lifecycleRepoIndex.get(key),
+      "the repo grant must resolve to the canonical name the claim is minted under",
+    ).toBe(SELF_CLAIM.canonicalName)
+    expect(
+      lifecycleBakedDigests.has(SELF_CLAIM.canonicalName),
+      "an unbaked page mints no claim, so the digest must be present for the lifecycle to be non-vacuous",
+    ).toBe(true)
+  })
 
   it("drives the store through the exact reconcile lifecycle: 1 active → 0 active → 1 active", () => {
     // activate: minted fresh (empty → observed). revoke: flipped (not observed).
@@ -121,7 +204,35 @@ describe("Phase 2.5-A — self-claim production dogfood (activate → revoke →
     expect(life.reactivate.records.filter((r) => r.status === "revoked")).toHaveLength(1)
   })
 
-  it("VERDICT and PAGE DIGEST are byte-identical across all three legs (a claim never moves a verdict)", () => {
+  it("the served-page proofs' precondition is measured, and its absence is a stated shape", () => {
+    // The two tests after this one read `apps/web/public/trust/<self>.json`. This one records
+    // WHY they can or cannot, so the reason is asserted rather than assumed. On absence it
+    // pins all three halves of the expected shape — name absent upstream, page absent from
+    // the served index, no orphan sidecar — so a page that reappears WITHOUT the upstream
+    // name (a projection bug, i.e. bytes we serve for a subject the registry never listed)
+    // reds here instead of being skipped past.
+    const sidecar = join(DEFAULT_OUT, `${SELF_CLAIM.canonicalName}.json`)
+    if (claimedInSnapshot) {
+      expect(existsSync(sidecar), "upstream carries the name, so the served page must exist").toBe(true)
+      return
+    }
+    expect(
+      snapshot!.entries.some((e) => e.name === CLAIMED_NAME),
+      "precondition: the committed snapshot does not carry CallLint's own name",
+    ).toBe(false)
+    const servedIndex = JSON.parse(readFileSync(join(DEFAULT_OUT, "index.json"), "utf8")) as {
+      entries: { canonicalName: string }[]
+    }
+    expect(
+      servedIndex.entries.some((e) => e.canonicalName === SELF_CLAIM.canonicalName),
+      "and nothing may serve a page for a subject absent from the snapshot it is projected from",
+    ).toBe(false)
+    expect(existsSync(sidecar), "nor may an orphan sidecar survive the subject's removal").toBe(false)
+  })
+
+  it.skipIf(!claimedInSnapshot)(
+    "VERDICT and PAGE DIGEST are byte-identical across all three legs (a claim never moves a verdict)",
+    () => {
     const a = bakeSelfPage(life.activate, snapshot, evidence)
     const r = bakeSelfPage(life.revoke, snapshot, evidence)
     const re = bakeSelfPage(life.reactivate, snapshot, evidence)
@@ -140,9 +251,12 @@ describe("Phase 2.5-A — self-claim production dogfood (activate → revoke →
     ) as { verdict: string; pageDigest: string }
     expect(a.pageDigest).toBe(committed.pageDigest)
     expect(a.verdict).toBe(committed.verdict)
-  })
+  },
+  )
 
-  it("the overlay is OBSERVABLE and toggles present → absent → present (so the immutability is non-vacuous)", () => {
+  it.skipIf(!claimedInSnapshot)(
+    "the overlay is OBSERVABLE and toggles present → absent → present (so the immutability is non-vacuous)",
+    () => {
     const a = bakeSelfPage(life.activate, snapshot, evidence)
     const r = bakeSelfPage(life.revoke, snapshot, evidence)
     const re = bakeSelfPage(life.reactivate, snapshot, evidence)
@@ -162,5 +276,6 @@ describe("Phase 2.5-A — self-claim production dogfood (activate → revoke →
       readFileSync(join(DEFAULT_OUT, `${SELF_CLAIM.canonicalName}.json`), "utf8"),
     ) as { verifiedPublisher?: unknown }
     expect(re.overlay).toEqual(committed.verifiedPublisher)
-  })
+  },
+  )
 })

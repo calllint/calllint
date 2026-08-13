@@ -45,7 +45,7 @@ function callAt(
 
 // The only npm SAFE subject we assert against (grounded in the committed bundle).
 const NPM_SLUG = "mcp-registry/ai.adeu-adeu"
-const REMOTE_SLUG = "mcp-registry/ac.inference.sh-mcp"
+const REMOTE_SLUG = "mcp-registry/ag.hood-name-service"
 
 // Scratch host-config dirs. Apply is the one tool that WRITES, so every apply test
 // targets an isolated temp path — never a real host config.

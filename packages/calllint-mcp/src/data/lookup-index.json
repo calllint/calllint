@@ -2,37 +2,37 @@
   "schema": "calllint.trust-lookup-index.v1",
   "entries": [
     {
-      "canonicalName": "mcp-registry/ac.inference.sh-mcp",
-      "url": "/trust/mcp-registry/ac.inference.sh-mcp",
-      "verdict": "REVIEW",
-      "verdictLabel": "Review required",
-      "artifactDigest": "sha256:0b91dc1f54023ed17fd4f38be57ebbbc1024bde797d160be2278c3b78aedc6d2",
-      "observedAt": "2026-07-17T00:00:00.000Z",
-      "installUrl": "/install/mcp-registry/ac.inference.sh-mcp/",
-      "contractUrl": "/install/mcp-registry/ac.inference.sh-mcp/index.json",
-      "installability": "REVIEW_REQUIRED"
-    },
-    {
-      "canonicalName": "mcp-registry/ac.tandem-docs-mcp",
-      "url": "/trust/mcp-registry/ac.tandem-docs-mcp",
-      "verdict": "REVIEW",
-      "verdictLabel": "Review required",
-      "artifactDigest": "sha256:ea5ff9be0d627a192408db08451d54dd04c54dda4ab0adca359f5a3b50e16ab1",
-      "observedAt": "2026-07-17T00:00:00.000Z",
-      "installUrl": "/install/mcp-registry/ac.tandem-docs-mcp/",
-      "contractUrl": "/install/mcp-registry/ac.tandem-docs-mcp/index.json",
-      "installability": "REVIEW_REQUIRED"
-    },
-    {
       "canonicalName": "mcp-registry/ag.hood-name-service",
       "url": "/trust/mcp-registry/ag.hood-name-service",
       "verdict": "REVIEW",
       "verdictLabel": "Review required",
       "artifactDigest": "sha256:903432ed74561447d10761874fafa64277863152dee2df6a8ab2cf456fd49a62",
-      "observedAt": "2026-07-17T00:00:00.000Z",
+      "observedAt": "2026-08-10T08:02:29.262Z",
       "installUrl": "/install/mcp-registry/ag.hood-name-service/",
       "contractUrl": "/install/mcp-registry/ag.hood-name-service/index.json",
       "installability": "REVIEW_REQUIRED"
+    },
+    {
+      "canonicalName": "mcp-registry/agency.goji-goji",
+      "url": "/trust/mcp-registry/agency.goji-goji",
+      "verdict": "REVIEW",
+      "verdictLabel": "Review required",
+      "artifactDigest": "sha256:3c2c08852743cc9cf0b5f2376f0bd53fd9e5c32e828eb423086d572cd7635d02",
+      "observedAt": "2026-08-10T08:02:29.262Z",
+      "installUrl": "/install/mcp-registry/agency.goji-goji/",
+      "contractUrl": "/install/mcp-registry/agency.goji-goji/index.json",
+      "installability": "REVIEW_REQUIRED"
+    },
+    {
+      "canonicalName": "mcp-registry/agency.kesey-pretrip",
+      "url": "/trust/mcp-registry/agency.kesey-pretrip",
+      "verdict": "SAFE",
+      "verdictLabel": "No blockers observed",
+      "artifactDigest": "sha256:48180f8f9eab49664310736b3b4841a78fd013f5ec1e11230cad6ceaa95f8217",
+      "observedAt": "2026-08-10T08:02:29.262Z",
+      "installUrl": "/install/mcp-registry/agency.kesey-pretrip/",
+      "contractUrl": "/install/mcp-registry/agency.kesey-pretrip/index.json",
+      "installability": "PREPARE_AVAILABLE"
     },
     {
       "canonicalName": "mcp-registry/agency.lona-trading",
@@ -40,7 +40,7 @@
       "verdict": "REVIEW",
       "verdictLabel": "Review required",
       "artifactDigest": "sha256:3ce01b0f8872a4aafa71b05210b2be91c3369714c5566bab9e57d1851ea58f0a",
-      "observedAt": "2026-07-17T00:00:00.000Z",
+      "observedAt": "2026-08-10T08:02:29.262Z",
       "installUrl": "/install/mcp-registry/agency.lona-trading/",
       "contractUrl": "/install/mcp-registry/agency.lona-trading/index.json",
       "installability": "REVIEW_REQUIRED"
@@ -51,7 +51,7 @@
       "verdict": "REVIEW",
       "verdictLabel": "Review required",
       "artifactDigest": "sha256:bdbac793efd6905e417d643ab1d4e5e9c8a879e05f5e271d137422c169973592",
-      "observedAt": "2026-07-17T00:00:00.000Z",
+      "observedAt": "2026-08-10T08:02:29.262Z",
       "installUrl": "/install/mcp-registry/ai.1325-mcp/",
       "contractUrl": "/install/mcp-registry/ai.1325-mcp/index.json",
       "installability": "REVIEW_REQUIRED"
@@ -62,7 +62,7 @@
       "verdict": "REVIEW",
       "verdictLabel": "Review required",
       "artifactDigest": "sha256:da6927a2f653489b9d12fe80b1d71d7c9abfc8cd505cd5fd226a67361efad4c6",
-      "observedAt": "2026-07-17T00:00:00.000Z",
+      "observedAt": "2026-08-10T08:02:29.262Z",
       "installUrl": "/install/mcp-registry/ai.aarna-atars-mcp/",
       "contractUrl": "/install/mcp-registry/ai.aarna-atars-mcp/index.json",
       "installability": "REVIEW_REQUIRED"
@@ -73,7 +73,7 @@
       "verdict": "REVIEW",
       "verdictLabel": "Review required",
       "artifactDigest": "sha256:c3670bfc209140bc70cf9e1a03be811c8b0e968fab3737e45e0034fb10dfc2b0",
-      "observedAt": "2026-07-17T00:00:00.000Z",
+      "observedAt": "2026-08-10T08:02:29.262Z",
       "installUrl": "/install/mcp-registry/ai.abmeter-abmeter/",
       "contractUrl": "/install/mcp-registry/ai.abmeter-abmeter/index.json",
       "installability": "REVIEW_REQUIRED"
@@ -84,7 +84,7 @@
       "verdict": "REVIEW",
       "verdictLabel": "Review required",
       "artifactDigest": "sha256:2c230c28640a0dcf1b8cc1a66ab330296a2768ae055449b9494b28506f44c239",
-      "observedAt": "2026-07-17T00:00:00.000Z",
+      "observedAt": "2026-08-10T08:02:29.262Z",
       "installUrl": "/install/mcp-registry/ai.adadvisor-mcp-server/",
       "contractUrl": "/install/mcp-registry/ai.adadvisor-mcp-server/index.json",
       "installability": "REVIEW_REQUIRED"
@@ -95,20 +95,20 @@
       "verdict": "SAFE",
       "verdictLabel": "No blockers observed",
       "artifactDigest": "sha256:f6f792740d19b83991bc32bd9f4878868d8f4ad0ae767d66e910af8d8afad2e9",
-      "observedAt": "2026-07-17T00:00:00.000Z",
+      "observedAt": "2026-08-10T08:02:29.262Z",
       "installUrl": "/install/mcp-registry/ai.adeu-adeu/",
       "contractUrl": "/install/mcp-registry/ai.adeu-adeu/index.json",
       "installability": "PREPARE_AVAILABLE"
     },
     {
-      "canonicalName": "mcp-registry/ai.adramp-google-ads",
-      "url": "/trust/mcp-registry/ai.adramp-google-ads",
+      "canonicalName": "mcp-registry/ai.adoraads-beauty",
+      "url": "/trust/mcp-registry/ai.adoraads-beauty",
       "verdict": "REVIEW",
       "verdictLabel": "Review required",
-      "artifactDigest": "sha256:e654a8dcd35ee9c48addce35e458ca33f64f255ec817dd77f281158bbd13efed",
-      "observedAt": "2026-07-17T00:00:00.000Z",
-      "installUrl": "/install/mcp-registry/ai.adramp-google-ads/",
-      "contractUrl": "/install/mcp-registry/ai.adramp-google-ads/index.json",
+      "artifactDigest": "sha256:6a3cb413304c94adec850c54429773aebc77b9715d08d2399358818160426a15",
+      "observedAt": "2026-08-10T08:02:29.262Z",
+      "installUrl": "/install/mcp-registry/ai.adoraads-beauty/",
+      "contractUrl": "/install/mcp-registry/ai.adoraads-beauty/index.json",
       "installability": "REVIEW_REQUIRED"
     },
     {
@@ -117,7 +117,7 @@
       "verdict": "REVIEW",
       "verdictLabel": "Review required",
       "artifactDigest": "sha256:add7e15c2b429d3fa989e766fe421eb06f9a9095d03851a4cc0a8f8db18260c0",
-      "observedAt": "2026-07-17T00:00:00.000Z",
+      "observedAt": "2026-08-10T08:02:29.262Z",
       "installUrl": "/install/mcp-registry/ai.adside-adside/",
       "contractUrl": "/install/mcp-registry/ai.adside-adside/index.json",
       "installability": "REVIEW_REQUIRED"
@@ -128,9 +128,20 @@
       "verdict": "REVIEW",
       "verdictLabel": "Review required",
       "artifactDigest": "sha256:d9948f3b8f8def4ba2cb46af80c4a04b6464ad710358bed1a43a5bad17b79a99",
-      "observedAt": "2026-07-17T00:00:00.000Z",
+      "observedAt": "2026-08-10T08:02:29.262Z",
       "installUrl": "/install/mcp-registry/ai.adweave-meta-ads-mcp/",
       "contractUrl": "/install/mcp-registry/ai.adweave-meta-ads-mcp/index.json",
+      "installability": "REVIEW_REQUIRED"
+    },
+    {
+      "canonicalName": "mcp-registry/ai.afmr-discovery",
+      "url": "/trust/mcp-registry/ai.afmr-discovery",
+      "verdict": "REVIEW",
+      "verdictLabel": "Review required",
+      "artifactDigest": "sha256:25a1fd89acf93f9f7cff8030370e8bc829b7fc0aeac55298d41d4e554bcdd7e0",
+      "observedAt": "2026-08-10T08:02:29.262Z",
+      "installUrl": "/install/mcp-registry/ai.afmr-discovery/",
+      "contractUrl": "/install/mcp-registry/ai.afmr-discovery/index.json",
       "installability": "REVIEW_REQUIRED"
     },
     {
@@ -139,20 +150,9 @@
       "verdict": "REVIEW",
       "verdictLabel": "Review required",
       "artifactDigest": "sha256:53381adee155197fa43a8639ff40cc88053388b29bea38d5f4ae6333693210f3",
-      "observedAt": "2026-07-17T00:00:00.000Z",
+      "observedAt": "2026-08-10T08:02:29.262Z",
       "installUrl": "/install/mcp-registry/ai.agentberg-agentberg/",
       "contractUrl": "/install/mcp-registry/ai.agentberg-agentberg/index.json",
-      "installability": "REVIEW_REQUIRED"
-    },
-    {
-      "canonicalName": "mcp-registry/ai.agentdm-agentdm",
-      "url": "/trust/mcp-registry/ai.agentdm-agentdm",
-      "verdict": "REVIEW",
-      "verdictLabel": "Review required",
-      "artifactDigest": "sha256:adfed57c616360d34b99675a040070807d141bf949a86d74d02af5d671d491b7",
-      "observedAt": "2026-07-17T00:00:00.000Z",
-      "installUrl": "/install/mcp-registry/ai.agentdm-agentdm/",
-      "contractUrl": "/install/mcp-registry/ai.agentdm-agentdm/index.json",
       "installability": "REVIEW_REQUIRED"
     },
     {
@@ -161,20 +161,31 @@
       "verdict": "REVIEW",
       "verdictLabel": "Review required",
       "artifactDigest": "sha256:6913ebe5d60fec1f4b63796b25508ba4b16021b86f343858aaafc48a13cb45f4",
-      "observedAt": "2026-07-17T00:00:00.000Z",
+      "observedAt": "2026-08-10T08:02:29.262Z",
       "installUrl": "/install/mcp-registry/ai.agentic-news-mcp/",
       "contractUrl": "/install/mcp-registry/ai.agentic-news-mcp/index.json",
       "installability": "REVIEW_REQUIRED"
     },
     {
-      "canonicalName": "mcp-registry/ai.agenticshelf-graffeo",
-      "url": "/trust/mcp-registry/ai.agenticshelf-graffeo",
+      "canonicalName": "mcp-registry/ai.agenticaffiliate-affiliate-networks-mcp",
+      "url": "/trust/mcp-registry/ai.agenticaffiliate-affiliate-networks-mcp",
       "verdict": "REVIEW",
       "verdictLabel": "Review required",
-      "artifactDigest": "sha256:6fb4d2a789a52a8debd01384956a71e6688fa25b0ba495fd32633ea028ff434e",
-      "observedAt": "2026-07-17T00:00:00.000Z",
-      "installUrl": "/install/mcp-registry/ai.agenticshelf-graffeo/",
-      "contractUrl": "/install/mcp-registry/ai.agenticshelf-graffeo/index.json",
+      "artifactDigest": "sha256:13478225665f07abb592178f4ac0f2c91a988729abe605c71543a4dd8951546d",
+      "observedAt": "2026-08-10T08:02:29.262Z",
+      "installUrl": "/install/mcp-registry/ai.agenticaffiliate-affiliate-networks-mcp/",
+      "contractUrl": "/install/mcp-registry/ai.agenticaffiliate-affiliate-networks-mcp/index.json",
+      "installability": "REVIEW_REQUIRED"
+    },
+    {
+      "canonicalName": "mcp-registry/ai.agenticfabricationnetwork-ufp",
+      "url": "/trust/mcp-registry/ai.agenticfabricationnetwork-ufp",
+      "verdict": "REVIEW",
+      "verdictLabel": "Review required",
+      "artifactDigest": "sha256:68aa642d2cd1eefc7ea8794cca6f808cf15ffa908a3cfea8b6bcd9f6bbb7ec67",
+      "observedAt": "2026-08-10T08:02:29.262Z",
+      "installUrl": "/install/mcp-registry/ai.agenticfabricationnetwork-ufp/",
+      "contractUrl": "/install/mcp-registry/ai.agenticfabricationnetwork-ufp/index.json",
       "installability": "REVIEW_REQUIRED"
     },
     {
@@ -183,7 +194,7 @@
       "verdict": "REVIEW",
       "verdictLabel": "Review required",
       "artifactDigest": "sha256:ea6152f9304e7dde10305c7af11f3d292458c8550739d6b3fdc5b1b780a3cffd",
-      "observedAt": "2026-07-17T00:00:00.000Z",
+      "observedAt": "2026-08-10T08:02:29.262Z",
       "installUrl": "/install/mcp-registry/ai.agenticshelf-mcp/",
       "contractUrl": "/install/mcp-registry/ai.agenticshelf-mcp/index.json",
       "installability": "REVIEW_REQUIRED"
@@ -194,21 +205,76 @@
       "verdict": "REVIEW",
       "verdictLabel": "Review required",
       "artifactDigest": "sha256:e14fc20ef3f4c970843bb714836ceb7700f1a90ce2f70100a34dbf5384036201",
-      "observedAt": "2026-07-17T00:00:00.000Z",
+      "observedAt": "2026-08-10T08:02:29.262Z",
       "installUrl": "/install/mcp-registry/ai.agenticshelf-puroair/",
       "contractUrl": "/install/mcp-registry/ai.agenticshelf-puroair/index.json",
       "installability": "REVIEW_REQUIRED"
     },
     {
-      "canonicalName": "mcp-registry/io.github.calllint-calllint",
-      "url": "/trust/mcp-registry/io.github.calllint-calllint",
-      "verdict": "SAFE",
-      "verdictLabel": "No blockers observed",
-      "artifactDigest": "sha256:23327771ad88957d59c5e72011d84504c7a737a297560277f358d12b8bd3a98b",
-      "observedAt": "2026-07-17T00:00:00.000Z",
-      "installUrl": "/install/mcp-registry/io.github.calllint-calllint/",
-      "contractUrl": "/install/mcp-registry/io.github.calllint-calllint/index.json",
-      "installability": "PREPARE_AVAILABLE"
+      "canonicalName": "mcp-registry/ai.agenticterminal-directory",
+      "url": "/trust/mcp-registry/ai.agenticterminal-directory",
+      "verdict": "REVIEW",
+      "verdictLabel": "Review required",
+      "artifactDigest": "sha256:b8ab3d517bb11ff1004342b94d9f8d561cfc459538c2f014fe5629942882e9bf",
+      "observedAt": "2026-08-10T08:02:29.262Z",
+      "installUrl": "/install/mcp-registry/ai.agenticterminal-directory/",
+      "contractUrl": "/install/mcp-registry/ai.agenticterminal-directory/index.json",
+      "installability": "REVIEW_REQUIRED"
+    },
+    {
+      "canonicalName": "mcp-registry/ai.agentlookups-counterscript",
+      "url": "/trust/mcp-registry/ai.agentlookups-counterscript",
+      "verdict": "REVIEW",
+      "verdictLabel": "Review required",
+      "artifactDigest": "sha256:5378759ac25fcbd4fa9f7930d7dec04316cf11261795b2271c0f9164c7e66e02",
+      "observedAt": "2026-08-10T08:02:29.262Z",
+      "installUrl": "/install/mcp-registry/ai.agentlookups-counterscript/",
+      "contractUrl": "/install/mcp-registry/ai.agentlookups-counterscript/index.json",
+      "installability": "REVIEW_REQUIRED"
+    },
+    {
+      "canonicalName": "mcp-registry/ai.agentlookups-groundtruth",
+      "url": "/trust/mcp-registry/ai.agentlookups-groundtruth",
+      "verdict": "REVIEW",
+      "verdictLabel": "Review required",
+      "artifactDigest": "sha256:c57b115f1ac0f238dc217d17b45fd3d5bd2f3d6c69d7f593264daa4731586678",
+      "observedAt": "2026-08-10T08:02:29.262Z",
+      "installUrl": "/install/mcp-registry/ai.agentlookups-groundtruth/",
+      "contractUrl": "/install/mcp-registry/ai.agentlookups-groundtruth/index.json",
+      "installability": "REVIEW_REQUIRED"
+    },
+    {
+      "canonicalName": "mcp-registry/ai.agentlookups-overassessed",
+      "url": "/trust/mcp-registry/ai.agentlookups-overassessed",
+      "verdict": "REVIEW",
+      "verdictLabel": "Review required",
+      "artifactDigest": "sha256:c78dc4a750686a642bc574c0dc41a932d7620ac90e251e19a5a0bdc59e5fdcf8",
+      "observedAt": "2026-08-10T08:02:29.262Z",
+      "installUrl": "/install/mcp-registry/ai.agentlookups-overassessed/",
+      "contractUrl": "/install/mcp-registry/ai.agentlookups-overassessed/index.json",
+      "installability": "REVIEW_REQUIRED"
+    },
+    {
+      "canonicalName": "mcp-registry/ai.agentlookups-plumbline",
+      "url": "/trust/mcp-registry/ai.agentlookups-plumbline",
+      "verdict": "REVIEW",
+      "verdictLabel": "Review required",
+      "artifactDigest": "sha256:dd545706150eee89e3cca7c0cc41dd6ca1aaf99962d20709b9692917c21a6beb",
+      "observedAt": "2026-08-10T08:02:29.262Z",
+      "installUrl": "/install/mcp-registry/ai.agentlookups-plumbline/",
+      "contractUrl": "/install/mcp-registry/ai.agentlookups-plumbline/index.json",
+      "installability": "REVIEW_REQUIRED"
+    },
+    {
+      "canonicalName": "mcp-registry/ai.agentrapay-agentra",
+      "url": "/trust/mcp-registry/ai.agentrapay-agentra",
+      "verdict": "REVIEW",
+      "verdictLabel": "Review required",
+      "artifactDigest": "sha256:aa7f295919d0e46ff615fc81bc41e447ebb1140921d0ad7f5f1097f93b78e651",
+      "observedAt": "2026-08-10T08:02:29.262Z",
+      "installUrl": "/install/mcp-registry/ai.agentrapay-agentra/",
+      "contractUrl": "/install/mcp-registry/ai.agentrapay-agentra/index.json",
+      "installability": "REVIEW_REQUIRED"
     }
   ]
 }

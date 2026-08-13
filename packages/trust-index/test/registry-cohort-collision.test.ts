@@ -152,7 +152,7 @@ describe("the committed corpus (control #21)", () => {
   const snapshot = parseSnapshot(readFileSync(SNAPSHOT_PATH, "utf8"))
 
   it("has ZERO collisions — which is why every case above is synthetic", () => {
-    expect(snapshot.entries.length).toBe(19)
+    expect(snapshot.entries.length).toBe(25)
     expect(registryCollisions(snapshot)).toEqual([])
     // Stated as the mechanism too, so a future refresh that introduces a real collision fails
     // HERE with a name rather than somewhere downstream as a mysteriously merged page.

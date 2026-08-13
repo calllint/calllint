@@ -641,9 +641,9 @@ describe("the two caps count different populations", () => {
  * what the plan predicted:
  *
  *   - ARTIFACTS FOLLOW PACKAGES, NOT SUBJECTS. The plan said "19 records ⇒ 19 subjects + 19
- *     artifact rows". The committed corpus declares 2 packages against 18 remotes over its 19
- *     entries, so the real number is 19 subjects and TWO artifacts. A remote is an endpoint, not
- *     a downloadable artifact; there is nothing to pin a digest to. Asserting 19 here would have
+ *     artifact rows". The committed corpus declares 3 packages against 22 remotes over its 25
+ *     entries, so the real number is 25 subjects and THREE artifacts. A remote is an endpoint, not
+ *     a downloadable artifact; there is nothing to pin a digest to. Asserting 25 here would have
  *     forced either a fabricated artifact per remote or a loosened assertion.
  *   - `rebuild.identity` IS ASYMMETRIC ON PURPOSE. `true` on a changed run, `null` on
  *     `NO_CHANGE` — never `false`. A skipped run did not re-measure the identity layer, and
@@ -667,8 +667,8 @@ describe("identity resolves and persists in the same run (R-3)", () => {
     expect(result.identity.subjects).toBe(2)
     expect(result.identity.conflicts).toBe(0)
     // One package across the two entries ⇒ ONE artifact row. `beta` declares a remote, which
-    // carries nothing to resolve. This is the corpus's 19-subjects/2-artifacts shape in
-    // miniature, and it is the assertion that would have failed against the plan's "19".
+    // carries nothing to resolve. This is the corpus's 25-subjects/3-artifacts shape in
+    // miniature, and it is the assertion that would have failed against the plan's "25".
     expect(result.identity.artifacts).toBe(1)
 
     // What the RUN reported and what the STORE holds are two different measurements. Reading

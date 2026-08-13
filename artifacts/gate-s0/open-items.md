@@ -20,7 +20,10 @@ wrong, which is the history that makes a finding worth anything.
 
 ## S0-OPEN-1 — `--gate` mode cannot pass, and the recorded reason was false
 
-**Status:** OPEN
+**Status:** **CLOSED 2026-08-13** — `1115639` put `count: 25` on `main` and `gate:s0:gate` exits 0
+there; the `inputs:` half was discharged the same day. See the closing section at the end of this
+row for the measurements, and for the scar it hands S0-OPEN-4 (the self page was evicted at cohort
+**25**, by alphabetical rank, before ADR 0075's reservation existed).
 
 **What `--gate` does today.** `scripts/gate-s0.ts:498` computes
 `registryShort = censusRegistry < S0_REQUIRED_RECORDS` with `S0_REQUIRED_RECORDS = 25` at
@@ -102,6 +105,24 @@ unavailable knob *"not a remedy"* — while naming three knobs the workflow does
 So all three env knobs are reachable only by editing the workflow, i.e. by a code change.
 That is the asymmetry `:71` claims to have closed, still open.
 
+> **DISCHARGED 2026-08-13.** `workflow_dispatch:` now carries an `inputs:` block (three optional
+> `string` inputs) and the ingest step now carries the matching `env:`, so each of the three knobs
+> reads `github.event.inputs.*`. The paragraph above is preserved verbatim because the *shape* of
+> the defect is the finding: a comment asserted a capability, and the assertion was load-bearing
+> in a remedy, for as long as nothing read the workflow to check. `:73` is now `:112`.
+>
+> Typed `string` rather than `number` deliberately: an empty `number` input coerces to `0`, and
+> `0` is a value every resolver **rejects** (`n <= 0` → default). That still fails safe, but it
+> reaches the default via the "invalid" branch instead of the "absent" branch on every unfilled
+> run. `string` keeps absence absent, so an unfilled dispatch is byte-identical to the scheduled
+> run — verified behaviourally at `100 / 100_000 / 1000`, with `"0"` rejected and `"500"` honoured.
+>
+> The guard that pinned this row's *absence*
+> (`tests/invariants/gate-s0-claims.invariants.test.ts`) was inverted in the same change, on that
+> test's own instruction, and its negative control was run: reverting the workflow reds exactly 2
+> assertions, each naming the missing `inputs:` / `env:`. A ledger guard that cannot red when its
+> subject regresses would be [[a-green-negative-control-must-be-diagnosed]] again.
+
 25 is also exactly the boundary: `censusRegistry < 25` fails, so the cohort must reach 25
 served registry pages, and the cap that selects them is 25. A completed ingest over 19_739
 live names would emit exactly 25 and satisfy the gate — but only because the cap and the
@@ -114,6 +135,14 @@ on. Raising either without the other moves the gate.
 - any expansion step 25 → 100 → 500, which ADR 0061 §11 authorizes for **no** batch yet, and
   which `artifacts/adoption-index-v1/current-gaps.md:137-146` records as a *deliberate,
   gated* absence: *"Recording it as a gap is not a request to close it."*
+
+> **2026-08-13 — the second of the three was granted, and only the second.** The `inputs:` change
+> is authorized and landed (see the discharge note above). The first and third are **still not
+> given**: no ingest has been run or re-run from this batch, and no expansion step was taken —
+> `DEFAULT_MAX_ENTRIES` stayed where ADR 0074 put it and `S0_REQUIRED_RECORDS` is untouched at 25.
+> Recording which one moved matters because the `inputs:` block makes 100/500 a *form field*: the
+> capability to expand now exists without a code change, and that is precisely not the same thing
+> as authorization to use it.
 
 **What would make this row false.** A completed `trust-ingest` run whose snapshot carries
 `count >= 25`, together with `gate:s0:gate` exiting 0. Either alone is insufficient: a passing
@@ -197,6 +226,56 @@ direction this row wanted**:
 could be misled: 25 ≤ 100, so a 25-entry snapshot is emitted whole under either cap. Merging it would
 still satisfy this row. What changed is that it is no longer the *only* size that does — and the next
 ingest after such a merge no longer evicts at 26.
+
+### CLOSED 2026-08-13 — the bytes are on `main`, and the separation ADR 0074 promised arrived two days late
+
+**Status above is now `CLOSED`.** Both halves of *"What would make this row false"* hold on `main`,
+each measured on this checkout rather than inferred:
+
+- `git merge-base --is-ancestor 1115639 main` → **yes**. PR #234 merged as `1115639`; the snapshot
+  carries `count: 25`, `entries: 25`, `fetchedAt: 2026-08-10T08:02:29.262Z`.
+- `pnpm gate:s0:gate` → **EXIT 0**, `Registry: 25 / 25 required (met)`, `ratchet floor 25 (held)`,
+  all five assertions green (`INV-R5`, `INV-R4`, `INV-04+R7+R6` over 174 tests, `DEP-8`).
+
+The order the row demanded is satisfied: `S0_REQUIRED_RECORDS` is **still 25**, so the cohort rose
+to meet the requirement rather than the requirement dropping to meet the cohort, and no assertion
+broke to get there. The clause *"On this checkout's served bytes the gate still reports 19 / 25
+required (SHORTFALL)"* is false as of `1115639`; the served census is now
+`{"calllint-fixtures":20,"mcp-registry":25}`, total 45.
+
+**The scar, and it belongs to S0-OPEN-4.** The ADR 0074 amendment above closes with *"Closing this
+row and deleting this project's own trust page were the same action. They are now separable."* That
+separation is real in the code and **arrived two days after the fetch that needed it**. Measured:
+
+| What | When | Consequence |
+|---|---|---|
+| the ingest fetch that produced these 25 entries | 2026-08-10T08:02Z | `main` was `439829c`: `DEFAULT_MAX_ENTRIES = 25`, a bare `.slice(0, max)` after the name sort |
+| ADR 0074 raised the cap 25 → 100 | 2026-08-12 (`07f9b22`, #290) | too late to affect the 08-10 selection |
+| ADR 0075 added `selectCohortEntries` + `RESERVED_COHORT_NAMES` | 2026-08-12 (`08d65fe`, #291) | the reservation mechanism **did not exist** at fetch time |
+
+So `io.github.calllint/calllint` was not retained, and it was not retained for the reason 0074
+predicted: **113 live upstream names sort before it**, so it is outside both cap 25 and cap 100 on
+alphabetical rank alone. It is **not** absent upstream — `?search=calllint` returns v0.2.0,
+`active` + `isLatest`, published 2026-07-13T02:58:25Z, before the fetch. The earlier 19-entry
+snapshot carried it as its last entry with only 18 predecessors, i.e. it had been **injected**, not
+selected. Nothing in `apps/web/public/trust/mcp-registry/` or
+`apps/web/public/install/mcp-registry/` now names it, and
+`artifacts/phase-2.4/presentation-lock.json` retains three orphaned references (`:61`, `:62`,
+`:657`).
+
+**This row closes anyway, and deliberately.** Its falsification test never mentioned the self page —
+that is S0-OPEN-4's subject (*"observation clause — cohort ≥ 26, verify CallLint page retained"*),
+and folding a second requirement into this row at closing time would be moving the goalposts in the
+direction of keeping a row open. What this closure hands S0-OPEN-4 is a sharper subject than it had:
+its trigger is written as *cohort ≥ 26*, and the eviction it exists to catch **already happened at
+cohort 25** by a mechanism its trigger cannot observe. Two guards were weakened toward that absence
+(`tests/invariants/registry-cohort-retention.invariants.test.ts:166`,
+`packages/trust-index/test/self-claim-dogfood.test.ts:98`) — each now returns early with a single
+`it.skip` when the name is missing from the snapshot, so **22 assertions and 2 of 3 tests do not
+run**, and the suite is green *because* the only checks that could see the regression are switched
+off. Re-arming them requires deciding whether the reserved list should inject an absent-from-cohort
+name or whether this project accepts not being in its own index — a product judgement, unresolved,
+and tracked in S0-OPEN-4 rather than here.
 
 ---
 
@@ -566,13 +645,17 @@ correct verdict and unrelated to this row.
 
 ## S0-OPEN-4 — closing S0's shortfall evicts CallLint's own claimed page, and the gate goes green as it happens
 
-**Status:** **OPEN, and no longer for a reason any code change can address** (filed 2026-08-10, S batch
-1, ADR 0069). Both authorizable remedies have landed: the cap raise (2026-08-11, ADR 0074) and the
-reserved-retention selection rule (2026-08-12, ADR 0075). **The eviction the row names is gone at every
-cohort size** — see the two amendments at the end. What keeps it open is its closing condition's
-*observation* clause, which needs a cohort at ≥26 on `main`, i.e. an ingest run. Everything below is the
+**Status:** **OPEN, and its subject changed on 2026-08-13 from a future hazard to a PRESENT absence**
+(filed 2026-08-10, S batch 1, ADR 0069). Both authorizable remedies have landed: the cap raise
+(2026-08-11, ADR 0074) and the reserved-retention selection rule (2026-08-12, ADR 0075) — the eviction
+is gone from the *rule* at every cohort size, which is what those two amendments measured and still
+holds. What they could not do is retroactively protect a snapshot fetched **before** the rule existed,
+and that is what `main` now serves: the self page is **absent from the served tree today**, at cohort
+**25**. See the 2026-08-13 amendment at the end, which measures the absence, refutes the "upstream
+deleted us" reading of it, and narrows what remains to a single authorization. Everything below is the
 original text, left verbatim, including the census sentence the 2026-08-12 amendment measures as **false
-in all three of its clauses**.
+in all three of its clauses**, and the two 2026-08-11 clauses the 2026-08-13 amendment measures as
+stale (*"today's `main` carries 19"*).
 
 **The arithmetic, over two constants that are the same number by coincidence.**
 `S0_REQUIRED_RECORDS` (`scripts/gate-s0.ts`) == `DEFAULT_MAX_ENTRIES`
@@ -795,6 +878,158 @@ makes **unconditional**: the outcome no longer depends on where the cap sits rel
   (that string no longer exists) and re-aimed at the reserved list, the selection function, and its call
   site. Fifth consecutive batch to move a pointer in that test; caught only because `assertPointer`
   matches line **content**, not line existence.
+
+> **AMENDED 2026-08-13 — the hazard this row was filed against ARRIVED, before its trigger could fire,
+> and two guards were weakened toward it rather than reporting it.**
+>
+> **What is true on `main` today, measured.** `1115639` landed the 2026-08-10 registry refresh, so the
+> cohort is **25** and Gate S0 exits **0**. The self page is **gone**:
+>
+> | measure | value |
+> |---|---|
+> | `official-mcp-registry.json` → `count` / carries `io.github.calllint/calllint` | **25** / **no** |
+> | `apps/web/public/trust/index.json` → rows for the self slug | **0** (of 45 entries) |
+> | `apps/web/public/trust/mcp-registry/io.github.calllint-calllint.json` | **absent** |
+> | `claims/claim-store.json` → records for the self slug | **2** (`revoked`, `active`) — the claim outlived the page |
+> | `RESERVED_COHORT_NAMES` names the subject | **yes** |
+>
+> **Why the trigger could never have caught this.** This row's closing condition waits for a cohort
+> **≥26** on `main`, on the reasoning that 25 is the one size where the hazard is invisible. That
+> reasoning was sound for the cap-equality defect and **wrong for the arriving snapshot**: the eviction
+> landed *at* 25, by alphabetical rank, in a fetch that ran against `439829c` where the cap was 25 and
+> `selectCohortEntries` **did not exist yet**. A row watching for `≥26` cannot see a loss that happens
+> at 25. The condition was keyed to the mechanism, not to the subject — so it went on waiting while the
+> thing it protects disappeared.
+>
+> **The "upstream deleted us" reading is REFUTED, by direct read-only query.** `GET
+> /v0/servers?search=calllint` returns **two** records for `io.github.calllint/calllint`: `0.1.1`
+> (`isLatest: false`) and **`0.2.0`, `status: active`, `isLatest: true`, published 2026-07-13**. The
+> ingest keeps exactly `active` + `isLatest` (`fetchRegistry.ts:154`), so the live registry **does**
+> supply this name, and a re-ingest under today's code would see it. An earlier probe that walked 200
+> pages and reported the name absent was **truncated, not conclusive** — pagination is not alphabetical,
+> so a partial walk cannot establish absence. Consequence: nothing here requires the reserved list to
+> *inject* a name upstream does not publish, and no product judgement about self-dealing is on the table.
+> The list only has to retain a name that IS in its input, which is what ADR 0075 made it do.
+>
+> **Why the rule is what retains it, and alphabetical slicing never would.** Counted live: **121**
+> `active`+`isLatest` names sort before `io.github.calllint/calllint` within the first 3 pages alone
+> (the walk was stopped there — 121 already decides both caps; a full walk exceeds the local budget and
+> is the scheduled job's business, `timeout-minutes: 300`). So under plain alphabetical selection the
+> subject is outside cap 25 **and** outside cap 100. The 2026-08-11 "headroom was bought, not safety"
+> line was right, and the live corpus is the proof: only `RESERVED_COHORT_NAMES` retains this page now.
+> Proven offline at caps **25 / 100 / 500** over a 600-name synthetic corpus, with `count === cap` held
+> as a ceiling, and with the negative control that an absent name is never fabricated
+> (`registry-cohort-retention.invariants.test.ts`).
+>
+> **The two guards that were weakened toward this absence, now re-armed.** Both had been changed to
+> return early with a single `it.skip` when the name is missing from the snapshot — so the suite went
+> green *because* the only checks that could observe the regression were switched off: **22 assertions
+> and 2 of 3 tests did not run.**
+>
+> | guard | was | now |
+> |---|---|---|
+> | `tests/invariants/registry-cohort-retention.invariants.test.ts` | 1 `it.skip`, 22 assertions off | **2 tests run**: the retention rule proved synthetically at 25/100/500, plus a case-(a) test that ASSERTS the absence's shape |
+> | `packages/trust-index/test/self-claim-dogfood.test.ts` | 1 `it.skip`, 2 of 3 tests off | **4 tests run**, 2 corpus-gated: the lifecycle 1→0→1 is pure over two Maps, so it runs on a synthetic snapshot through the shipped `registryRepoIndex`; only the served-byte comparisons stay gated, and their precondition is asserted |
+>
+> Each re-arm was negative-controlled: emptying `RESERVED_COHORT_NAMES` reds **both** retention tests
+> (including the exemption branch, which previously could observe nothing); mutating `SELF_CLAIM.canonicalName`
+> reds the new precondition test *and* collapses the lifecycle to 0→0→0; planting an orphan served sidecar
+> reds the absence-shape test. The distinction the re-arms encode: absence because **upstream never
+> published** is honest to skip, absence because **our projection dropped it** must red — and the guards
+> now assert which one they are in rather than assuming.
+>
+> **What remains OPEN, and it is one authorization, not a decision.** The served page returns when a
+> re-ingest runs under today's code: `trust-ingest.yml` fetches, `selectCohortEntries` retains the
+> reserved name, the bake emits the page, and the workflow opens a PR a human reviews before anything
+> serves. That is a **network action on the sole scanner** and needs its own authorization; it has not
+> been given, and nothing in this repo may self-trigger it. Until then `main` serves 25 pages without
+> ours. The next scheduled run (Mondays 06:17 UTC) would also do it, so the choice is *authorize now* or
+> *wait for the schedule* — no code change is pending either way.
+>
+> **What would now make this row false.** Unchanged in substance but re-anchored to the subject rather
+> than the mechanism: the served tree carries `mcp-registry/io.github.calllint-calllint.json` again, on
+> `main`, at a cohort **≥26** so retention is proved past the cap-equality size. Both halves, and the
+> `≥26` clause is now the *second* half rather than the trigger — because this row has already proved
+> that waiting for 26 let the loss happen at 25.
+
+> **Amendment 2026-08-13 (b) — a THIRD consumer of the absence, and it is human-recorded evidence.**
+> Measured while landing the branch above: the absence does not only cost a served page, it invalidates
+> **Gate 2.4-B's entire human panel**, and it did so on `main` before this branch existed.
+>
+> `1115639` (#234) replaced the 19-entry snapshot with the 25-entry one. Every served install page's
+> bytes changed, and `artifacts/phase-2.4/five-second-panel-store.json` records, per response, the
+> `sha256` of the page the participant was **actually shown**. So all **10 of 10** responses are now
+> `stale` and excluded from the rates by design (`phase-2.4-eval.ts:99-102`: *"A response whose page has
+> since changed is not weaker evidence about the new page — it is none."*). Consequences, each measured
+> on a pristine `origin/main` worktree, not inferred:
+>
+> | measure | on `main` today |
+> |---|---|
+> | `human-five-second-test.json` committed status | `PASSED`, `staleResponses: 0`, `responses: 10` |
+> | what the code actually derives from committed bytes | `PENDING_HUMAN_PANEL`, `staleResponses: 10`, `responses: 0` |
+> | `gate-H-no-regression.json` committed | `closed: true`, `openGates: []` |
+> | what it derives | `closed: false`, `openGates: [2.4-B]` |
+> | `pnpm eval:phase-2.4:panel:validate` | **EXIT 1** — 3 subjects "not a served install page" |
+>
+> So `main` has been claiming a **closed** new14 release boundary on recognition evidence that no longer
+> exists. That is the same failure shape as this row's original finding — a gate reporting success about
+> a subject it can no longer see — reached through a different consumer.
+>
+> **Three of the ten panel subjects have no served page at all**, and ours is one:
+> `mcp-registry/ac.tandem-docs-mcp`, `mcp-registry/ac.inference.sh-mcp`, and
+> `mcp-registry/io.github.calllint-calllint` (participants 7, 8, 10). The first two left with the
+> 19→25 refresh; the third is **this row's subject**. So the re-ingest that restores the page also
+> restores the only panel subject we control — while the other two stay unserved regardless.
+>
+> **What was done, and what was deliberately NOT done.** The three drift artifacts were regenerated, so
+> the committed bytes now state `PENDING_HUMAN_PANEL` / `closed: false` — the honest state. This weakens
+> no enforced gate: all four Phase 2.4 steps in `ci.yml` run `--check` (drift-only) and **none** runs
+> `--gate` (`phase-2.4-eval.ts:233`: *"A pending gate is a state, not a break."*).
+> `five-second-panel-store.json` was **not touched** — it is data only a human writes (ADR 0053 §4), and
+> deleting three real responses to green `panel:validate` would discard evidence to satisfy a check,
+> which is the inversion this ledger exists to catch. Dropping them would not even close the gate: 7
+> remaining < the 10-response threshold, so 2.4-B stays `PENDING_HUMAN_PANEL` either way.
+>
+> **Therefore `pnpm eval:phase-2.4:panel:validate` is EXPECTED RED on `main` and on this branch**, and it
+> is red for a true reason. It cannot go green by any code change: it asserts that recorded sessions point
+> at pages we actually publish, and three of them do not. Closing it requires **re-running those panel
+> sessions against the current pages** — ten human five-second sessions — which no CI run and no agent
+> can supply. Tracked here rather than as a new row because the root cause is this row's absence plus
+> #234's refresh, not an independent defect.
+>
+> **Confirmed on CI, not only locally** (run `31683159184`, head `1ad3fbf`). All three matrix legs fail on
+> exactly one step — `Phase 2.4 human-panel store validation` — naming the same three responses `[6] [7]
+> [9]`; `build-and-test` fails only as *"Require all matrix legs to have succeeded"*, i.e. it relays.
+> The `pnpm eval:phase-2.4` drift red that also failed these legs on `main` is **gone**, so the artifact
+> regeneration did what it claimed. The six auxiliary jobs (`facts`, `schema-compatibility`,
+> `distribution-smoke`, `evidence-fixtures`, `telemetry-boundary`, `agent-integration-smoke`) all pass.
+>
+> **This branch introduces none of it, measured by byte compare rather than by argument.** `origin/main`
+> and this branch each serve **25** install pages, the same 25; all three subjects are absent from both;
+> and `git diff origin/main...HEAD -- apps/web/public/install` is **empty** — the PR does not touch a
+> single served page. The red arrived with `1115639`.
+>
+> **The finding worth carrying forward: two mechanisms read the same absence and only one read it
+> correctly.** A missing page reaches Gate 2.4-B twice.
+> 1. `partitionPanelFreshness` compares `shownDigest` against the digest served **today**, and reports a
+>    removed page as `currentDigest === null` → the response is `stale`, excluded, and the gate falls to
+>    `PENDING_HUMAN_PANEL`. **Fail-closed, and it worked** — this is what the regenerated artifact records.
+> 2. `validate()` (`phase-2.4-panel.ts:217`) tests `existsSync` on the served page and pushes an
+>    **integrity error**, which exits 1 and fails the leg.
+>
+> Both are defensible in isolation; together they classify one event as two different kinds of thing. (1)
+> treats "the page is gone" as *evidence expiring* — a state. (2) treats it as *the record being
+> malformed* — a break. But the record is not malformed: those sessions genuinely happened, against pages
+> we genuinely served on 2026-07-30, and the store faithfully says so. What changed is the world, not the
+> file. The docblock above `validate` states its own scope — *"about the RECORD, never about whether an
+> answer was right"* — and the `existsSync` check is the one rule in it that is **not** about the record;
+> it is about current serving state, which is (1)'s job and which (1) already does better, because it
+> distinguishes *page removed* from *page edited* while `existsSync` collapses both.
+>
+> No change is made here: correcting it means moving a rule out of a validator that CI runs, which is a
+> gate-strength change and needs its own ADR — and the honest red is more useful than a silent
+> reclassification while this row is open. Recorded so a future batch fixes the **classification** rather
+> than deleting the human data, and so nobody reads the green half as proof the absence was handled.
 
 ---
 
