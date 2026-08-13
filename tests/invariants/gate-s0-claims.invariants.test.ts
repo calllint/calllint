@@ -155,11 +155,15 @@ describe("Gate S0 — the status record is parsed, and it is not degenerate", ()
     // markers across five rows and the sixth displaced the fifth row's. The count is load-bearing
     // beyond drift detection — `**Status:**` is a per-row token, and an amendment that reuses it
     // makes the artifact claim a row it does not have. The fix was to the prose, not to this literal.
+    // Index 0 flipped OPEN → CLOSED on 2026-08-13, and the positional form did its job a third
+    // time: it named row 1 rather than reporting "a status changed somewhere". S0-OPEN-4 is the
+    // ONLY row still open, which is the state to notice — the artifact is one row from empty, and
+    // that row's subject (the evicted self page) is the thing S0-OPEN-1's closure walked past.
     const statuses = [...text.matchAll(/^\*\*Status:\*\* (?:\*\*)?(\w+)/gm)].map((m) => m[1])
     expect(
       statuses,
-      "each row states a status; S0-OPEN-2/3/5 are CLOSED, S0-OPEN-1 and S0-OPEN-4 remain OPEN",
-    ).toEqual(["OPEN", "CLOSED", "CLOSED", "OPEN", "CLOSED"])
+      "each row states a status; only S0-OPEN-4 remains OPEN (1 closed 2026-08-13, 2/3/5 earlier)",
+    ).toEqual(["CLOSED", "CLOSED", "CLOSED", "OPEN", "CLOSED"])
   })
 
   // THE ONLY ASSERTION HERE THAT READS THE `eol=lf` PIN, and it exists because control #181 proved
@@ -249,10 +253,13 @@ describe("Gate S0 — every path:line the record cites still points at what it c
     )
   })
 
-  it("the served-cohort knob, and the workflow line that does not expose it", () => {
+  it("the served-cohort knob, and the workflow line that now exposes it", () => {
     assertPointer("packages/trust-index/src/refreshSnapshot.ts", 143, "resolveMaxEntries", "the knob")
     assertPointer(WORKFLOW, 20, "workflow_dispatch:", "the dispatch trigger")
-    assertPointer(WORKFLOW, 73, "ingest:trust-index", "the ingest step")
+    // Moved 73 → 112 by the `inputs:` block this row's remedy called for. The pointer is re-pinned
+    // rather than loosened to a search: a `path:line` that drifts silently is the defect
+    // [[a-pointer-rots-faster-than-its-claim]] records, and 5 of 6 pointers had drifted that way.
+    assertPointer(WORKFLOW, 112, "ingest:trust-index", "the ingest step")
   })
 })
 
@@ -293,7 +300,7 @@ describe("Gate S0 — every number the record states is derived from the file it
     ).toMatch(/AMENDED 2026-08-11.*ADR 0074/s)
   })
 
-  it("the committed snapshot is still the stale 19 the record blames, not a fresh cohort", () => {
+  it("the committed snapshot holds the merged 25, and `count` is not a hand-edited number", () => {
     // Derived from the snapshot, never restated: `count` and the actual array length are asserted
     // SEPARATELY, because a hand-edited `count` is exactly the shape that would make this record
     // read as satisfied while the cohort had not moved.
@@ -309,14 +316,31 @@ describe("Gate S0 — every number the record states is derived from the file it
       `the committed snapshot must stay at 25 (the S0 cohort requirement). Current: ${snap.count}`,
     ).toBe(25)
     expect(snap.fetchedAt).toBe("2026-08-10T08:02:29.262Z")
-    // And the cap did NOT bind: 19 < 25 means fewer than 25 live entries reached the slice. This is
-    // the arithmetic that redirected the blame from the cap to the stale pipeline.
+    // The cap DID bind on this snapshot, and the old comment here had it backwards by 2026-08-13.
+    // It read: "19 < 25 means fewer than 25 live entries reached the slice ... the cap never bound",
+    // which was the arithmetic that redirected blame from the cap to the stale pipeline. True of the
+    // 19-entry snapshot; false of this one. The 2026-08-10 fetch ran against `439829c`, where the cap
+    // was 25 and selection was a bare alphabetical `.slice(0, max)` over 6904 live upstream names —
+    // so 25 is the cap's output, EXACTLY equal to it, not a cohort that came in under it.
+    //
+    // That equality is the whole finding, so it is asserted as an equality against the cap AT THAT
+    // COMMIT (25), not against today's `DEFAULT_MAX_ENTRIES` (100, raised two days later by ADR
+    // 0074). Comparing to today's constant would print `25 < 100` — true, and mute about the
+    // truncation. See S0-OPEN-4: 113 live names sort before `io.github.calllint/calllint`, which is
+    // why this project's own page is not in these 25.
+    const capAtFetch = 25
     expect(
       snap.count,
-      "a 25-cap over >=25 live entries yields exactly 25; 19 proves the cap never bound",
-    ).toBeLessThan(Number(/DEFAULT_MAX_ENTRIES\s*=\s*(\d+)/.exec(
-      readText("packages/trust-index/src/fetchRegistry.ts"),
-    )?.[1]))
+      "this snapshot is the cap's OUTPUT: a 25-cap over 6904 live entries yields exactly 25, and the tail was truncated",
+    ).toBe(capAtFetch)
+    // Today's cap must be >= the cap that produced these bytes, else a re-ingest would SHRINK the
+    // committed cohort — the direction S0-OPEN-1's "do not merge #234" warning existed to catch.
+    expect(
+      Number(/DEFAULT_MAX_ENTRIES\s*=\s*(\d+)/.exec(
+        readText("packages/trust-index/src/fetchRegistry.ts"),
+      )?.[1]),
+      "the current cap must not have dropped below the cap that produced the committed snapshot",
+    ).toBeGreaterThanOrEqual(capAtFetch)
   })
 
   it("ci:local's step count is counted, not quoted, and now INCLUDES the gate's regression mode", () => {
@@ -451,19 +475,21 @@ describe("Gate S0 — every number the record states is derived from the file it
     ).toContain("A gate that passes on an unmerged branch has not passed")
   })
 
-  it("the three env knobs are named in prose as workflow_dispatch inputs the workflow does not have", () => {
+  it("the three env knobs the prose calls workflow_dispatch inputs ARE now wired to the workflow", () => {
     const wf = readText(WORKFLOW)
-    // ABSENCE, guarded by the vacuity check above plus a positive control on the same file: the
-    // trigger IS present, so a `workflow_dispatch:` that gained `inputs:` is distinguishable from a
-    // workflow that lost the trigger entirely.
+    // This assertion is INVERTED from its first form, on the instruction the earlier version carried
+    // in its own failure message ("it now has some, so that half is discharged and the row must be
+    // amended"). It measured ABSENCE of `inputs:` / `env:` — the state that made the source's
+    // "workflow_dispatch input" prose false. The wiring has landed, so absence is no longer the
+    // truth to pin; what must be pinned is that the prose's claim is now SATISFIED, and stays so.
     expect(wf, "positive control — the dispatch trigger itself must be present").toContain(
       "workflow_dispatch:",
     )
     expect(
-      /workflow_dispatch:\s*\n\s+inputs:/.test(wf),
-      "S0-OPEN-1's second half rests on workflow_dispatch having NO inputs; it now has some, so that half is discharged and the row must be amended",
-    ).toBe(false)
-    // The ingest step must still set no env. Sliced between asserted boundaries, never by indexOf
+      /workflow_dispatch:\s*\n\s+(?:#[^\n]*\n\s*)*inputs:/.test(wf),
+      "workflow_dispatch must carry an inputs: block, else the three knobs need a code change again",
+    ).toBe(true)
+    // The ingest step must SET the env. Sliced between asserted boundaries, never by indexOf
     // alone (ADR 0064 §6.2).
     const stepStart = wf.indexOf("- name: Ingest —")
     const stepEnd = wf.indexOf("- name: Resolve evidence")
@@ -472,37 +498,51 @@ describe("Gate S0 — every number the record states is derived from the file it
     const step = wf.slice(stepStart, stepEnd)
     expect(
       /^\s+env:/m.test(step),
-      "the ingest step sets no env:, which is why the three knobs need a code change — if it gained one, re-read S0-OPEN-1",
-    ).toBe(false)
+      "the ingest step must set env:, which is what makes the three knobs settable without a code change",
+    ).toBe(true)
 
     // DERIVED from the source's own prose, not restated: the docblock claims the knob is a
-    // workflow_dispatch input. That claim is what the two assertions above falsify.
+    // workflow_dispatch input. The assertions above now CONFIRM that claim rather than falsify it,
+    // so the prose is pinned to keep the two in step — if the claim is ever deleted, this reds and
+    // the wiring's justification is re-read rather than silently orphaned.
     //
     // The comment furniture is stripped BEFORE whitespace is collapsed. A bare `\s+`→" " leaves the
     // continuation `*` sitting inside the sentence ("(workflow_dispatch * input)"), so the needle
     // would miss and this would read as "the claim is gone" — a false green on the one assertion
-    // that establishes there is a false claim to refute.
+    // that establishes which claim the wiring exists to satisfy.
     const prose = readText("packages/trust-index/src/refreshSnapshot.ts")
       .replace(/^\s*\*\s?/gm, "")
       .replace(/\s+/g, " ")
     expect(
       prose,
-      "resolveMaxEntries' docblock must still make the workflow_dispatch-input claim this row refutes",
+      "resolveMaxEntries' docblock must still make the workflow_dispatch-input claim the wiring satisfies",
     ).toContain("TRUST_INGEST_MAX_ENTRIES (workflow_dispatch input)")
     expect(
       prose,
       "and the 'ONLY knob' claim the row quotes must still be there to be quoted",
     ).toContain("the ONLY knob for 37 → 100+")
-    for (const knob of [
+    // Each knob must be BOTH named by the row and exposed by the workflow. Asserted as a set rather
+    // than a boolean per knob, so a failure prints which of the three is unwired instead of a bare
+    // `expected false to be true` (the `.every()` collapse this repo has been bitten by before).
+    const KNOBS = [
       "TRUST_INGEST_MAX_ENTRIES",
       "TRUST_INGEST_MIRROR_MAX_ENTRIES",
       "TRUST_INGEST_MIRROR_MAX_PAGES",
-    ]) {
+    ] as const
+    for (const knob of KNOBS) {
       expect(row(1), `S0-OPEN-1 must name ${knob}`).toContain(knob)
+    }
+    expect(
+      KNOBS.filter((k) => step.includes(`${k}:`)),
+      "every knob the prose calls operator-settable must be set by the ingest step",
+    ).toEqual([...KNOBS])
+    // And each must be reachable from a dispatch input rather than hardcoded to a literal: an
+    // `env:` pinning a constant would satisfy the assertion above while re-freezing the knob.
+    for (const knob of KNOBS) {
       expect(
-        wf.includes(`${knob}:`),
-        `${knob} is named in prose as operator-settable but the workflow does not set or expose it`,
-      ).toBe(false)
+        new RegExp(`${knob}:\\s*\\$\\{\\{\\s*github\\.event\\.inputs\\.`).test(step),
+        `${knob} must read a workflow_dispatch input, not a hardcoded value`,
+      ).toBe(true)
     }
   })
 
@@ -925,9 +965,30 @@ describe("Gate S0 — the regression mode CI runs enforces something, and the ra
 })
 
 describe("Gate S0 — the rows say OPEN, and what would make each false", () => {
-  it("S0-OPEN-1 stays OPEN, names the false reason verbatim, and warns off PR #234", () => {
+  it("S0-OPEN-1 is CLOSED on evidence, still names the false reason verbatim, and keeps the #234 trap", () => {
     const r = row(1)
-    expect(r).toContain("**Status:** OPEN")
+    // CLOSED 2026-08-13. The close must carry its two measurements, because this row's own
+    // falsification test named BOTH and either alone is a false green: a passing gate on a stale
+    // snapshot means the requirement was lowered, a fresh snapshot with a red gate means an
+    // assertion broke. So the merge commit and the exit code are pinned, not the word "CLOSED".
+    expect(r).toContain("**Status:** **CLOSED 2026-08-13**")
+    expect(r, "the close must name the commit that put count:25 on main").toContain("1115639")
+    expect(r, "and the gate result, since a closed row that never ran the gate is a claim").toContain(
+      "EXIT 0",
+    )
+    expect(
+      r,
+      "the requirement must be recorded as UNMOVED — the cohort rose to meet it, not the reverse",
+    ).toContain("still 25")
+    // The scar. S0-OPEN-1 closed WITHOUT the self page being retained, and the row must hand that
+    // to S0-OPEN-4 explicitly rather than let a CLOSED status imply the whole axis is settled.
+    // Without this, the artifact's last open row keeps a trigger (cohort >= 26) that cannot observe
+    // an eviction which already happened at 25.
+    expect(r, "the closure must name the row that inherits the evicted self page").toContain("S0-OPEN-4")
+    expect(
+      r,
+      "and must record that ADR 0075's reservation did not exist at the 2026-08-10 fetch",
+    ).toContain("did not exist")
     // The false reason must be quoted verbatim. A record that paraphrases the claim it corrects
     // cannot be checked against the original.
     expect(r).toContain("cohort size 19/25, cannot satisfy S0's 25-record requirement")
@@ -1113,15 +1174,44 @@ describe("Gate S0 — the rows say OPEN, and what would make each false", () => 
     ).toContain("second OPEN reason was measured false")
   })
 
-  it("the record does not claim the gate passes, and does not run it", () => {
+  it("the record's gate claim matches the cohort the committed snapshot can actually supply", () => {
     const text = readText(ARTIFACT)
-    // Guarded by the vacuity check. The record must not assert a green gate anywhere: `--gate`
-    // exits 2 today, and a record claiming otherwise would be the same class of false statement it
-    // was written to correct.
+    // REVERSED 2026-08-13, on the precedent set for S0-OPEN-5 above: the previous form asserted the
+    // record must NOT claim a green gate, because `--gate` exited 2 on a 19-entry cohort. `1115639`
+    // put 25 on `main` and the gate exits 0, so the old form had become a guard forbidding the truth.
+    //
+    // Inverted rather than deleted, and NOT into a prose match. "The record says EXIT 0" is worth
+    // nothing on its own — that is the class of statement this whole file exists to distrust. The
+    // claim is checked against the one committed input that decides it: the snapshot's own `count`
+    // versus `S0_REQUIRED_RECORDS` parsed from the gate's source. Both are COMMITTED SOURCE, so this
+    // reader still never touches `apps/web/public/**` (the constraint the docblock states) and still
+    // never shells out to the gate.
+    const snapshotCount = (
+      JSON.parse(readText("packages/trust-index/snapshots/official-mcp-registry.json")) as {
+        count: number
+      }
+    ).count
+    // Anchored to the DECLARATION form (`^const ... = N$`), matching the helper at :654, so a
+    // comment mentioning the constant cannot satisfy this — [[probe-agrees-with-the-description-not-the-claim]].
+    // `stripComments` lives in `scripts/gate-s0.ts` and is not in scope here; the anchor is what
+    // replaces it.
+    const required = Number(
+      /^const S0_REQUIRED_RECORDS = (\d+)$/m.exec(readText(GATE))?.[1],
+    )
+    expect(required, "S0_REQUIRED_RECORDS must be parseable, else the comparison below is vacuous").toBe(
+      25,
+    )
+    const cohortMeetsRequirement = snapshotCount >= required
     expect(
-      /gate:s0:gate.{0,40}(passes|green|exits 0)/i.test(text),
-      "the record must not claim the enforcing gate passes — it exits 2 on the cohort today",
-    ).toBe(false)
+      cohortMeetsRequirement,
+      `the snapshot supplies ${snapshotCount} against a requirement of ${required} — if this is false, the record must not claim a green gate`,
+    ).toBe(true)
+    // Only NOW is a pass claim permitted, and it is REQUIRED: a record that stayed silent about a
+    // gate it can prove green is as stale as one claiming a green it cannot.
+    expect(
+      /gate:s0:gate.{0,40}(passes|green|exits 0)/i.test(text) || /EXIT 0/.test(text),
+      "the cohort meets the requirement, so the record must say the gate passes rather than stay stale",
+    ).toBe(true)
     // And this reader must not have acquired a dependency on baked bytes.
     //
     // Read via `import.meta.url`, NOT by re-stating this file's own path: a renamed or moved test

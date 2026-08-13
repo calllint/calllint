@@ -157,16 +157,100 @@ function project(records: readonly SourceRecordV1[], maxEntries: number) {
 }
 
 describe("the registry cohort slice retains the claimed subject", () => {
-  // CONDITIONAL SUITE: All tests in this block assume CallLint (io.github.calllint/calllint) is in
-  // the upstream snapshot. Reserved retention can only protect entries that exist in the snapshot.
-  // If upstream has not published CallLint (typical at cohort < 26), skip the entire suite.
+  // RE-ARMED 2026-08-13. The previous form returned early with a single `it.skip` whenever
+  // `CLAIMED_SUBJECT` was missing from the committed snapshot, which switched 22 assertions off at
+  // exactly the moment they had something to say: the 2026-08-10 ingest DID evict the subject, the
+  // suite went green by not running, and `pnpm test` reported 3771 passing over a regression this
+  // file exists to catch. A guard that disarms itself on the condition it guards is the defect in
+  // [[a-guard-importing-one-of-two-copies]] with the copy count reduced to zero.
+  //
+  // Its stated reason — "reserved retention can only protect entries that exist in the snapshot" —
+  // is TRUE and does not justify a skip, because it conflates two absences that must be told apart:
+  //
+  //   (a) UPSTREAM does not publish the name. Nothing in this repo can retain it; the retention
+  //       assertions are genuinely untestable against the real corpus, and skipping is honest.
+  //   (b) Upstream publishes it and OUR projection dropped it. That is the eviction this file was
+  //       filed for, and it must RED.
+  //
+  // The committed snapshot alone cannot distinguish them — in both cases the name is simply absent.
+  // So the discriminator is the reserved list plus the cap: if the subject is reserved and the
+  // cohort is at the cap, the slice was truncated with a reservation in force, which under
+  // `selectCohortEntries` can only mean the name never reached the selector, i.e. case (a) — or a
+  // regression in the selector, which the SYNTHETIC assertions below still cover because they build
+  // their own input and never depend on the real corpus.
   const real = readJson(SNAPSHOT)
   const claimedInSnapshot = real.entries.some((e: any) => e.name === CLAIMED_SUBJECT)
 
+  // ALWAYS RUNS, in both cases. The retention RULE is a property of the code, provable over a
+  // synthetic corpus, and it is the half that was wrongly skipped: nothing about it depends on what
+  // upstream published today. Split out so case (a) cannot silence it.
+  it("the reserved list names the claimed subject, and the rule retains it against a binding cap", () => {
+    expect(
+      [...RESERVED_COHORT_NAMES],
+      "the claimed subject must be reserved, else nothing protects it at any cap",
+    ).toContain(CLAIMED_SUBJECT)
+
+    // A corpus where the cap binds hard AND every filler sorts before the subject: without the
+    // reservation the subject is evicted at every cap below the corpus size.
+    const fillers = Array.from({ length: 600 }, (_, i) =>
+      asRecord(`ai.zz${String(i).padStart(4, "0")}/filler`),
+    )
+    const withSubject = [...fillers, asRecord(CLAIMED_SUBJECT)]
+    for (const cap of [25, 100, 500]) {
+      const out = project(withSubject, cap)
+      expect(
+        out.entries.map((e) => e.name),
+        `at cap ${cap} the reserved subject must survive a binding slice`,
+      ).toContain(CLAIMED_SUBJECT)
+      // The cap stays an absolute ceiling — a reserved name takes a slot, never an extra one.
+      expect(out.count, `cap ${cap} must remain a hard ceiling`).toBe(cap)
+    }
+
+    // NEGATIVE CONTROL, and the one that makes case (a) above a measurement rather than an excuse:
+    // a name ABSENT from the input is not injected by the reservation. So "absent from the committed
+    // snapshot" genuinely cannot be repaired by the retention rule, and the skip below is honest.
+    const absent = project(fillers, 25)
+    expect(
+      absent.entries.map((e) => e.name),
+      "the reservation must not fabricate a subject that upstream did not publish",
+    ).not.toContain(CLAIMED_SUBJECT)
+    expect(absent.count).toBe(25)
+  })
+
   if (!claimedInSnapshot) {
-    it.skip("suite skipped: claimed subject not in upstream snapshot", () => {
-      // This is expected until upstream publishes io.github.calllint/calllint (cohort ≥26).
-      // When that happens, remove this conditional and the suite will run normally.
+    // Case (a), asserted rather than assumed. The remaining tests read the REAL corpus and cannot
+    // run, but the reason is now pinned to evidence: the cohort must be truncated at the cap (so the
+    // tail was cut) while the subject is reserved (so the rule was in force and still did not
+    // produce it). If the cohort is BELOW the cap and the subject is still missing, the slice did
+    // not truncate anything and its absence is upstream's — also case (a), and stated as such.
+    //
+    // MEASURED 2026-08-13: cohort 25, cap 100, subject reserved and absent. The 25 came from the
+    // 2026-08-10 fetch, which ran against `439829c` where the cap was 25 and `selectCohortEntries`
+    // DID NOT EXIST — so this snapshot is a cap-25 truncation taken before any reservation shipped,
+    // and 113 live upstream names sort before the subject. Re-ingesting under today's code retains
+    // it (proved above at caps 25/100/500). That re-ingest is a network action on the sole scanner
+    // and is not authorized here, so the real-corpus half stays skipped and S0-OPEN-4 stays OPEN.
+    it("the real-corpus assertions cannot run: the subject is absent from the committed snapshot", () => {
+      const cap = readCap()
+      expect(
+        [...RESERVED_COHORT_NAMES],
+        "the subject must be reserved — otherwise this is not case (a), it is an unprotected slice",
+      ).toContain(CLAIMED_SUBJECT)
+      expect(
+        names,
+        "sanity: this branch is only reachable while the subject is absent",
+      ).not.toContain(CLAIMED_SUBJECT)
+      // Pin the shape of the absence so a DIFFERENT absence cannot inherit this exemption.
+      expect(
+        names.length <= cap,
+        `cohort ${names.length} must not exceed the cap ${cap}; a cohort past the cap means the slice is not what dropped the subject`,
+      ).toBe(true)
+      // And the served tree must agree: no half-state where the page survives an absent subject.
+      const served = readJson(SERVED_INDEX)
+      expect(
+        served.entries.filter((e: any) => e.canonicalName === CLAIMED_SLUG),
+        "the served tree must not carry a page for a subject the snapshot does not hold",
+      ).toEqual([])
     })
     return
   }

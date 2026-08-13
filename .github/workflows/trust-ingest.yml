@@ -18,6 +18,36 @@ on:
     # because the cohort is small and each run needs human review before it ships.
     - cron: "17 6 * * 1"
   workflow_dispatch:
+    # The operator's knobs, wired to the three `resolve*` readers in `refreshSnapshot.ts`.
+    #
+    # Every one is OPTIONAL and defaults to the empty string, which is exactly the input each
+    # resolver treats as "absent" (`raw == null || raw.trim() === ""` → the derived default). So a
+    # bare dispatch with no inputs filled is byte-for-byte the scheduled run, and a scale-out is a
+    # form field rather than a code change. That equivalence is the point: the previous file
+    # asserted in a comment that these were "settable as a workflow_dispatch input", while
+    # `workflow_dispatch:` carried no `inputs:` at all and the step carried no `env:` — the claim
+    # named a knob the operator did not have.
+    #
+    # Typed `string`, not `number`: an empty `number` input coerces to `0`, and `0` is a value the
+    # resolvers REJECT (`n <= 0` → default). It would still fail safe, but it would take the
+    # "invalid, fall back" path on every unfilled run instead of the "absent" path — a silent
+    # difference in which branch the default comes from. `string` keeps absence absent.
+    inputs:
+      max_entries:
+        description: "Served cohort cap (TRUST_INGEST_MAX_ENTRIES). Blank = DEFAULT_MAX_ENTRIES."
+        required: false
+        type: string
+        default: ""
+      mirror_max_entries:
+        description: "Raw-read ceiling (TRUST_INGEST_MIRROR_MAX_ENTRIES). Must exceed the cohort cap, else ignored."
+        required: false
+        type: string
+        default: ""
+      mirror_max_pages:
+        description: "Page-count ceiling (TRUST_INGEST_MIRROR_MAX_PAGES). Blank = DEFAULT_MAX_PAGES."
+        required: false
+        type: string
+        default: ""
 
 # Least privilege: write a branch + open a PR. No broader scope; no deploy secrets.
 permissions:
@@ -67,9 +97,18 @@ jobs:
         # scheduled run is exactly where a stale copy would be least visible.
         #
         # `TRUST_INGEST_MIRROR_MAX_ENTRIES` / `TRUST_INGEST_MIRROR_MAX_PAGES` exist for the
-        # operator: when `MirrorIncompleteError` names one in its remedy, it is settable HERE or as
-        # a workflow_dispatch input without a code change. That was the asymmetry worth closing —
-        # a remedy naming a knob the operator does not have is not a remedy.
+        # operator: when `MirrorIncompleteError` names one in its remedy, it is settable as a
+        # workflow_dispatch input without a code change — see `inputs:` above, which is what makes
+        # that sentence true. It was NOT true when this comment first claimed it: `workflow_dispatch:`
+        # was bare and this step had no `env:`, so the only remedy was editing this file. A remedy
+        # naming a knob the operator does not have is not a remedy.
+        #
+        # On a scheduled run `github.event.inputs.*` is null and `||` yields `""` — the same absent
+        # value an unfilled dispatch sends, so the defaults above stay the defaults here.
+        env:
+          TRUST_INGEST_MAX_ENTRIES: ${{ github.event.inputs.max_entries || '' }}
+          TRUST_INGEST_MIRROR_MAX_ENTRIES: ${{ github.event.inputs.mirror_max_entries || '' }}
+          TRUST_INGEST_MIRROR_MAX_PAGES: ${{ github.event.inputs.mirror_max_pages || '' }}
         run: pnpm ingest:trust-index
 
       - name: Resolve evidence — identity-only resolution of remote endpoints (ADR 0050)
