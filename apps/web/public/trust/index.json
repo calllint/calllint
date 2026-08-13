@@ -4,7 +4,7 @@
     "fixtures",
     "mcp-registry"
   ],
-  "bakedAt": "2026-08-07T08:23:59.403Z",
+  "bakedAt": "2026-08-10T08:11:02.409Z",
   "resolutionPolicy": {
     "cadenceDays": 7,
     "agingMultiple": 3,
@@ -43,7 +43,7 @@
       }
     ]
   },
-  "baked": 38,
+  "baked": 44,
   "incomplete": 1,
   "entries": [
     {
@@ -512,744 +512,979 @@
       }
     },
     {
-      "canonicalName": "mcp-registry/ac.inference.sh-mcp",
-      "status": "baked",
-      "artifactDigest": "sha256:0b91dc1f54023ed17fd4f38be57ebbbc1024bde797d160be2278c3b78aedc6d2",
-      "pageDigest": "sha256:d71f54dc1a2c2f57e80790db2a3760734304db190088209edf1d09cce2810efc",
-      "verdict": "REVIEW",
-      "observedAt": "2026-07-17T00:00:00.000Z",
-      "identity": {
-        "subjectId": "sha256:ff1e94a4fa98e8d799e7137186580b2b4ac31639ec7c35ed286e5c1150483292",
-        "identityDigest": "sha256:e36cb818df65da24c579815d39bda8ea30ca32e2764f569109c0ed1d22b84c99",
-        "identityStatus": "PROVISIONAL"
-      },
-      "freshness": {
-        "ageDays": 21,
-        "state": "AGING",
-        "cadenceDays": 7,
-        "basis": "snapshot-fetchedAt"
-      },
-      "resolution": {
-        "status": "AGING",
-        "basis": [
-          {
-            "axis": "evidence-resolution",
-            "at": "2026-07-20T00:00:00.000Z",
-            "ageDays": 18
-          },
-          {
-            "axis": "source-observation",
-            "at": "2026-07-17T00:00:00.000Z",
-            "ageDays": 21
-          }
-        ],
-        "lastSuccessfulResolution": "2026-07-20T00:00:00.000Z",
-        "nextRequiredResolution": "2026-07-24T00:00:00.000Z",
-        "blockingUnknowns": [],
-        "cadenceDays": 7
-      },
-      "upstreamAgeDays": 115
-    },
-    {
-      "canonicalName": "mcp-registry/ac.tandem-docs-mcp",
-      "status": "baked",
-      "artifactDigest": "sha256:ea5ff9be0d627a192408db08451d54dd04c54dda4ab0adca359f5a3b50e16ab1",
-      "pageDigest": "sha256:01e140aee111fdbe62526a3de718c7d9bdb856c8d042c63f55e974e8ca3ca9e4",
-      "verdict": "REVIEW",
-      "observedAt": "2026-07-17T00:00:00.000Z",
-      "identity": {
-        "subjectId": "sha256:e7ee4a608e6ce3a973ac3e8277cc2dc75b3764be2bed4c739acaa9a56fb1e8a2",
-        "identityDigest": "sha256:12fe57c8c5e27c3a823f4d0a117f4dd43376d3b1e36b2a9a11b42167d9af6478",
-        "identityStatus": "PROVISIONAL"
-      },
-      "freshness": {
-        "ageDays": 21,
-        "state": "AGING",
-        "cadenceDays": 7,
-        "basis": "snapshot-fetchedAt"
-      },
-      "resolution": {
-        "status": "AGING",
-        "basis": [
-          {
-            "axis": "evidence-resolution",
-            "at": "2026-07-20T00:00:00.000Z",
-            "ageDays": 18
-          },
-          {
-            "axis": "source-observation",
-            "at": "2026-07-17T00:00:00.000Z",
-            "ageDays": 21
-          }
-        ],
-        "lastSuccessfulResolution": "2026-07-20T00:00:00.000Z",
-        "nextRequiredResolution": "2026-07-24T00:00:00.000Z",
-        "blockingUnknowns": [],
-        "cadenceDays": 7
-      },
-      "upstreamAgeDays": 106
-    },
-    {
       "canonicalName": "mcp-registry/ag.hood-name-service",
       "status": "baked",
       "artifactDigest": "sha256:903432ed74561447d10761874fafa64277863152dee2df6a8ab2cf456fd49a62",
-      "pageDigest": "sha256:f4e78839b0b91a8e1a7b1c392bed034c80885cdc241b25c6d6f0ddc4467fbb39",
+      "pageDigest": "sha256:f01ac36f8a847aa79768b4e5654630a58a56f1be03554f930052637295662106",
       "verdict": "REVIEW",
-      "observedAt": "2026-07-17T00:00:00.000Z",
+      "observedAt": "2026-08-10T08:02:29.262Z",
       "identity": {
         "subjectId": "sha256:733d855e62c17f6baa9de930e5873b798aea30d32bd1cd2188fb634e9bebc922",
         "identityDigest": "sha256:d575aba14136dc6685b6061c869bc907fa5aaad1c48fa06b7f80562126dab324",
         "identityStatus": "PROVISIONAL"
       },
       "freshness": {
-        "ageDays": 21,
-        "state": "AGING",
+        "ageDays": 0,
+        "state": "FRESH",
         "cadenceDays": 7,
         "basis": "snapshot-fetchedAt"
       },
       "resolution": {
-        "status": "AGING",
+        "status": "FRESH",
         "basis": [
           {
             "axis": "evidence-resolution",
-            "at": "2026-07-20T00:00:00.000Z",
-            "ageDays": 18
+            "at": "2026-08-10T08:10:55.262Z",
+            "ageDays": 0
           },
           {
             "axis": "source-observation",
-            "at": "2026-07-17T00:00:00.000Z",
-            "ageDays": 21
+            "at": "2026-08-10T08:02:29.262Z",
+            "ageDays": 0
           }
         ],
-        "lastSuccessfulResolution": "2026-07-20T00:00:00.000Z",
-        "nextRequiredResolution": "2026-07-24T00:00:00.000Z",
+        "lastSuccessfulResolution": "2026-08-10T08:10:55.262Z",
+        "nextRequiredResolution": "2026-08-17T08:02:29.262Z",
         "blockingUnknowns": [],
         "cadenceDays": 7
       },
-      "upstreamAgeDays": 28
+      "upstreamAgeDays": 31
+    },
+    {
+      "canonicalName": "mcp-registry/agency.goji-goji",
+      "status": "baked",
+      "artifactDigest": "sha256:3c2c08852743cc9cf0b5f2376f0bd53fd9e5c32e828eb423086d572cd7635d02",
+      "pageDigest": "sha256:dcfe817df2e6786688226a55e07c3d9c8c877264fde965b5df8be496ff283383",
+      "verdict": "REVIEW",
+      "observedAt": "2026-08-10T08:02:29.262Z",
+      "identity": {
+        "subjectId": "sha256:084d0910809f1fc9d186eb1a71c7eaab074dc96a1bdb457bc774822b3a84cb11",
+        "identityDigest": "sha256:79d9f09f3cbf78af1ecd13d5ef6375b48b8e75be19c9b1b4e91a99cba62b5b74",
+        "identityStatus": "PROVISIONAL"
+      },
+      "freshness": {
+        "ageDays": 0,
+        "state": "FRESH",
+        "cadenceDays": 7,
+        "basis": "snapshot-fetchedAt"
+      },
+      "resolution": {
+        "status": "FRESH",
+        "basis": [
+          {
+            "axis": "evidence-resolution",
+            "at": "2026-08-10T08:10:55.262Z",
+            "ageDays": 0
+          },
+          {
+            "axis": "source-observation",
+            "at": "2026-08-10T08:02:29.262Z",
+            "ageDays": 0
+          }
+        ],
+        "lastSuccessfulResolution": "2026-08-10T08:10:55.262Z",
+        "nextRequiredResolution": "2026-08-17T08:02:29.262Z",
+        "blockingUnknowns": [],
+        "cadenceDays": 7
+      },
+      "upstreamAgeDays": 6
+    },
+    {
+      "canonicalName": "mcp-registry/agency.kesey-pretrip",
+      "status": "baked",
+      "artifactDigest": "sha256:48180f8f9eab49664310736b3b4841a78fd013f5ec1e11230cad6ceaa95f8217",
+      "pageDigest": "sha256:35b33be6137f5399b6e8417ff5661e87424dce3f8e872a434032ac36df523147",
+      "verdict": "SAFE",
+      "observedAt": "2026-08-10T08:02:29.262Z",
+      "identity": {
+        "subjectId": "sha256:1804c89ba118dffc388b28b959a3d461faad96bea94b433fde3679709da8baa9",
+        "identityDigest": "sha256:f3b6d3f4daafa8317c407292e0229709e6229191cd29f460e60ba60c061b757c",
+        "identityStatus": "PROVISIONAL"
+      },
+      "freshness": {
+        "ageDays": 0,
+        "state": "FRESH",
+        "cadenceDays": 7,
+        "basis": "snapshot-fetchedAt"
+      },
+      "resolution": {
+        "status": "FRESH",
+        "basis": [
+          {
+            "axis": "evidence-resolution",
+            "at": "2026-08-10T08:10:55.262Z",
+            "ageDays": 0
+          },
+          {
+            "axis": "source-observation",
+            "at": "2026-08-10T08:02:29.262Z",
+            "ageDays": 0
+          }
+        ],
+        "lastSuccessfulResolution": "2026-08-10T08:10:55.262Z",
+        "nextRequiredResolution": "2026-08-17T08:02:29.262Z",
+        "blockingUnknowns": [],
+        "cadenceDays": 7
+      },
+      "upstreamAgeDays": 14
     },
     {
       "canonicalName": "mcp-registry/agency.lona-trading",
       "status": "baked",
       "artifactDigest": "sha256:3ce01b0f8872a4aafa71b05210b2be91c3369714c5566bab9e57d1851ea58f0a",
-      "pageDigest": "sha256:b0718630bf3957649f1dcbd36175caee7aa4580b1cdab7996409bd3d818e7859",
+      "pageDigest": "sha256:076e7c1a976788e64f729413940844f8d25c01a38fdabe4dad2456b93cfdb76d",
       "verdict": "REVIEW",
-      "observedAt": "2026-07-17T00:00:00.000Z",
+      "observedAt": "2026-08-10T08:02:29.262Z",
       "identity": {
         "subjectId": "sha256:843badc8dce83ff2fad5e05dadbd633d7ea583119833fe7c848261f94f26001e",
         "identityDigest": "sha256:5555615019ca9f5c516cb8c9fb322af6fef32f5ca53a61b5872dc0a57c57b212",
         "identityStatus": "PROVISIONAL"
       },
       "freshness": {
-        "ageDays": 21,
-        "state": "AGING",
+        "ageDays": 0,
+        "state": "FRESH",
         "cadenceDays": 7,
         "basis": "snapshot-fetchedAt"
       },
       "resolution": {
-        "status": "AGING",
+        "status": "FRESH",
         "basis": [
           {
             "axis": "evidence-resolution",
-            "at": "2026-07-20T00:00:00.000Z",
-            "ageDays": 18
+            "at": "2026-08-10T08:10:55.262Z",
+            "ageDays": 0
           },
           {
             "axis": "source-observation",
-            "at": "2026-07-17T00:00:00.000Z",
-            "ageDays": 21
+            "at": "2026-08-10T08:02:29.262Z",
+            "ageDays": 0
           }
         ],
-        "lastSuccessfulResolution": "2026-07-20T00:00:00.000Z",
-        "nextRequiredResolution": "2026-07-24T00:00:00.000Z",
+        "lastSuccessfulResolution": "2026-08-10T08:10:55.262Z",
+        "nextRequiredResolution": "2026-08-17T08:02:29.262Z",
         "blockingUnknowns": [],
         "cadenceDays": 7
       },
-      "upstreamAgeDays": 164
+      "upstreamAgeDays": 167
     },
     {
       "canonicalName": "mcp-registry/ai.1325-mcp",
       "status": "baked",
       "artifactDigest": "sha256:bdbac793efd6905e417d643ab1d4e5e9c8a879e05f5e271d137422c169973592",
-      "pageDigest": "sha256:808f8d348518db19221aa11874ffa760f28b1681dab1b9cd7b7a318afe6fa135",
+      "pageDigest": "sha256:77a0d6a054ab35e239ced728bb687d93f64896c33f1146baf2eca79b6423a18b",
       "verdict": "REVIEW",
-      "observedAt": "2026-07-17T00:00:00.000Z",
+      "observedAt": "2026-08-10T08:02:29.262Z",
       "identity": {
         "subjectId": "sha256:bfe9116fe6a1088572ab5aa9ce0f1deb007806779d222f37c99d71c898a25932",
         "identityDigest": "sha256:6e658061a3407fec191243435cfd7a5991b92eae7d313c8e798f724e2b7f5f56",
         "identityStatus": "PROVISIONAL"
       },
       "freshness": {
-        "ageDays": 21,
-        "state": "AGING",
+        "ageDays": 0,
+        "state": "FRESH",
         "cadenceDays": 7,
         "basis": "snapshot-fetchedAt"
       },
       "resolution": {
-        "status": "AGING",
+        "status": "FRESH",
         "basis": [
           {
             "axis": "evidence-resolution",
-            "at": "2026-07-20T00:00:00.000Z",
-            "ageDays": 18
+            "at": "2026-08-10T08:10:55.262Z",
+            "ageDays": 0
           },
           {
             "axis": "source-observation",
-            "at": "2026-07-17T00:00:00.000Z",
-            "ageDays": 21
+            "at": "2026-08-10T08:02:29.262Z",
+            "ageDays": 0
           }
         ],
-        "lastSuccessfulResolution": "2026-07-20T00:00:00.000Z",
-        "nextRequiredResolution": "2026-07-24T00:00:00.000Z",
+        "lastSuccessfulResolution": "2026-08-10T08:10:55.262Z",
+        "nextRequiredResolution": "2026-08-17T08:02:29.262Z",
         "blockingUnknowns": [],
         "cadenceDays": 7
       },
-      "upstreamAgeDays": 28
+      "upstreamAgeDays": 31
     },
     {
       "canonicalName": "mcp-registry/ai.aarna-atars-mcp",
       "status": "baked",
       "artifactDigest": "sha256:da6927a2f653489b9d12fe80b1d71d7c9abfc8cd505cd5fd226a67361efad4c6",
-      "pageDigest": "sha256:c7cc8afe6747795a25f0de07d287fa35870ee823a125afed14dc68de005aa55b",
+      "pageDigest": "sha256:5c4b3483c3e156189c037016ff72dcf7f0638e1dfede5c223563d6e530076a7d",
       "verdict": "REVIEW",
-      "observedAt": "2026-07-17T00:00:00.000Z",
+      "observedAt": "2026-08-10T08:02:29.262Z",
       "identity": {
         "subjectId": "sha256:a9e04983d1be543021ec01e42a8d39aa49c3997b64322bacb9377c5e249f847d",
         "identityDigest": "sha256:899e05b715a95717df86406b51218c0cc500647d4fc3473a3d5aa83e785e640c",
         "identityStatus": "PROVISIONAL"
       },
       "freshness": {
-        "ageDays": 21,
-        "state": "AGING",
+        "ageDays": 0,
+        "state": "FRESH",
         "cadenceDays": 7,
         "basis": "snapshot-fetchedAt"
       },
       "resolution": {
-        "status": "AGING",
+        "status": "FRESH",
         "basis": [
           {
             "axis": "evidence-resolution",
-            "at": "2026-07-20T00:00:00.000Z",
-            "ageDays": 18
+            "at": "2026-08-10T08:10:55.262Z",
+            "ageDays": 0
           },
           {
             "axis": "source-observation",
-            "at": "2026-07-17T00:00:00.000Z",
-            "ageDays": 21
+            "at": "2026-08-10T08:02:29.262Z",
+            "ageDays": 0
           }
         ],
-        "lastSuccessfulResolution": "2026-07-20T00:00:00.000Z",
-        "nextRequiredResolution": "2026-07-24T00:00:00.000Z",
+        "lastSuccessfulResolution": "2026-08-10T08:10:55.262Z",
+        "nextRequiredResolution": "2026-08-17T08:02:29.262Z",
         "blockingUnknowns": [],
         "cadenceDays": 7
       },
-      "upstreamAgeDays": 149
+      "upstreamAgeDays": 152
     },
     {
       "canonicalName": "mcp-registry/ai.abmeter-abmeter",
       "status": "baked",
       "artifactDigest": "sha256:c3670bfc209140bc70cf9e1a03be811c8b0e968fab3737e45e0034fb10dfc2b0",
-      "pageDigest": "sha256:1813d90c4294569fc991f26aa3de653b566d2a0c2c67f7d6afdf8f519805569d",
+      "pageDigest": "sha256:1f5f8c43caa3254f3065b313670b766951271ad23db4bf44b49f362e207a9b7e",
       "verdict": "REVIEW",
-      "observedAt": "2026-07-17T00:00:00.000Z",
+      "observedAt": "2026-08-10T08:02:29.262Z",
       "identity": {
         "subjectId": "sha256:1f6e1b36eae2ee41eea2e1daf5a8649f4e85807005a8e8af84a84b1b4ac3c423",
         "identityDigest": "sha256:905ef2a2d19bdb85083a797121c6caf9ae24ce2b3a299e227ce596e5309df61c",
         "identityStatus": "PROVISIONAL"
       },
       "freshness": {
-        "ageDays": 21,
-        "state": "AGING",
+        "ageDays": 0,
+        "state": "FRESH",
         "cadenceDays": 7,
         "basis": "snapshot-fetchedAt"
       },
       "resolution": {
-        "status": "AGING",
+        "status": "FRESH",
         "basis": [
           {
             "axis": "evidence-resolution",
-            "at": "2026-07-20T00:00:00.000Z",
-            "ageDays": 18
+            "at": "2026-08-10T08:10:55.262Z",
+            "ageDays": 0
           },
           {
             "axis": "source-observation",
-            "at": "2026-07-17T00:00:00.000Z",
-            "ageDays": 21
+            "at": "2026-08-10T08:02:29.262Z",
+            "ageDays": 0
           }
         ],
-        "lastSuccessfulResolution": "2026-07-20T00:00:00.000Z",
-        "nextRequiredResolution": "2026-07-24T00:00:00.000Z",
+        "lastSuccessfulResolution": "2026-08-10T08:10:55.262Z",
+        "nextRequiredResolution": "2026-08-17T08:02:29.262Z",
         "blockingUnknowns": [],
         "cadenceDays": 7
       },
-      "upstreamAgeDays": 109
+      "upstreamAgeDays": 112
     },
     {
       "canonicalName": "mcp-registry/ai.adadvisor-mcp-server",
       "status": "baked",
       "artifactDigest": "sha256:2c230c28640a0dcf1b8cc1a66ab330296a2768ae055449b9494b28506f44c239",
-      "pageDigest": "sha256:7ef60c0009e27c5a262f0b3c106a5d120104a2634eb949554c494d6a5b6c5f8c",
+      "pageDigest": "sha256:7384f1eb4f5fbe465d456cbb0f07ae51a03ffd1204980103a22cd8ce3aaec420",
       "verdict": "REVIEW",
-      "observedAt": "2026-07-17T00:00:00.000Z",
+      "observedAt": "2026-08-10T08:02:29.262Z",
       "identity": {
         "subjectId": "sha256:76290c20877fc425156d444d61ce070704c8934a1be7d1ee3eb02210781fd10c",
         "identityDigest": "sha256:0bddf688b94ec3bceacd9034c603db3499eca6690562413913e95411d5b1395f",
         "identityStatus": "PROVISIONAL"
       },
       "freshness": {
-        "ageDays": 21,
-        "state": "AGING",
+        "ageDays": 0,
+        "state": "FRESH",
         "cadenceDays": 7,
         "basis": "snapshot-fetchedAt"
       },
       "resolution": {
-        "status": "AGING",
+        "status": "FRESH",
         "basis": [
           {
             "axis": "evidence-resolution",
-            "at": "2026-07-20T00:00:00.000Z",
-            "ageDays": 18
+            "at": "2026-08-10T08:10:55.262Z",
+            "ageDays": 0
           },
           {
             "axis": "source-observation",
-            "at": "2026-07-17T00:00:00.000Z",
-            "ageDays": 21
+            "at": "2026-08-10T08:02:29.262Z",
+            "ageDays": 0
           }
         ],
-        "lastSuccessfulResolution": "2026-07-20T00:00:00.000Z",
-        "nextRequiredResolution": "2026-07-24T00:00:00.000Z",
+        "lastSuccessfulResolution": "2026-08-10T08:10:55.262Z",
+        "nextRequiredResolution": "2026-08-17T08:02:29.262Z",
         "blockingUnknowns": [],
         "cadenceDays": 7
       },
-      "upstreamAgeDays": 159
+      "upstreamAgeDays": 162
     },
     {
       "canonicalName": "mcp-registry/ai.adeu-adeu",
       "status": "baked",
       "artifactDigest": "sha256:f6f792740d19b83991bc32bd9f4878868d8f4ad0ae767d66e910af8d8afad2e9",
-      "pageDigest": "sha256:fd068ee8f7da41fe5efb553cda7a34df35349437b87222364896d584a1420f6d",
+      "pageDigest": "sha256:7e454f0bc118797af4cc50b6f52fd8c4d49b3329cb256d052deef6343af12ceb",
       "verdict": "SAFE",
-      "observedAt": "2026-07-17T00:00:00.000Z",
+      "observedAt": "2026-08-10T08:02:29.262Z",
       "identity": {
         "subjectId": "sha256:7a6e35c198476afaf868e7ae681aa039b30a42a5e90e47fdbc5a5443d9477936",
         "identityDigest": "sha256:c2fd936908863acab840dabe333bf74f1380c66a9e2c82d410ac904248188fb0",
         "identityStatus": "PROVISIONAL"
       },
       "freshness": {
-        "ageDays": 21,
-        "state": "AGING",
+        "ageDays": 0,
+        "state": "FRESH",
         "cadenceDays": 7,
         "basis": "snapshot-fetchedAt"
       },
       "resolution": {
-        "status": "AGING",
+        "status": "FRESH",
         "basis": [
           {
             "axis": "evidence-resolution",
-            "at": "2026-07-20T00:00:00.000Z",
-            "ageDays": 18
+            "at": "2026-08-10T08:10:55.262Z",
+            "ageDays": 0
           },
           {
             "axis": "source-observation",
-            "at": "2026-07-17T00:00:00.000Z",
-            "ageDays": 21
+            "at": "2026-08-10T08:02:29.262Z",
+            "ageDays": 0
           }
         ],
-        "lastSuccessfulResolution": "2026-07-20T00:00:00.000Z",
-        "nextRequiredResolution": "2026-07-24T00:00:00.000Z",
+        "lastSuccessfulResolution": "2026-08-10T08:10:55.262Z",
+        "nextRequiredResolution": "2026-08-17T08:02:29.262Z",
         "blockingUnknowns": [],
         "cadenceDays": 7
       },
-      "upstreamAgeDays": 82
+      "upstreamAgeDays": 85
     },
     {
-      "canonicalName": "mcp-registry/ai.adramp-google-ads",
+      "canonicalName": "mcp-registry/ai.adoraads-beauty",
       "status": "baked",
-      "artifactDigest": "sha256:e654a8dcd35ee9c48addce35e458ca33f64f255ec817dd77f281158bbd13efed",
-      "pageDigest": "sha256:7feae2ce1b4b82f35df33f0d6a17fdea90b3e6880a1ea6a9496f996f6dd2c3c8",
+      "artifactDigest": "sha256:6a3cb413304c94adec850c54429773aebc77b9715d08d2399358818160426a15",
+      "pageDigest": "sha256:d9817f421917d527fab7889c167b98ee17e9bc506f06855125c3e7931a3cd2f3",
       "verdict": "REVIEW",
-      "observedAt": "2026-07-17T00:00:00.000Z",
+      "observedAt": "2026-08-10T08:02:29.262Z",
       "identity": {
-        "subjectId": "sha256:39c0c8612534dcec1eca214c3b12f90d1e986728643892ece665f4035b154550",
-        "identityDigest": "sha256:55e4fafddb2dc8ec1a0add7b697c25ddc276a8f70204f280705baed94d574818",
+        "subjectId": "sha256:362f69b091b1cf698b6e265cc3a76833cde6d49b58ec4e557cf3d41eda5bdb3a",
+        "identityDigest": "sha256:1ba6154a68964a165baa7b072f1163451132b57687461cb4106ef7b6045acf0e",
         "identityStatus": "PROVISIONAL"
       },
       "freshness": {
-        "ageDays": 21,
-        "state": "AGING",
+        "ageDays": 0,
+        "state": "FRESH",
         "cadenceDays": 7,
         "basis": "snapshot-fetchedAt"
       },
       "resolution": {
-        "status": "AGING",
+        "status": "FRESH",
         "basis": [
           {
             "axis": "evidence-resolution",
-            "at": "2026-07-20T00:00:00.000Z",
-            "ageDays": 18
+            "at": "2026-08-10T08:10:55.262Z",
+            "ageDays": 0
           },
           {
             "axis": "source-observation",
-            "at": "2026-07-17T00:00:00.000Z",
-            "ageDays": 21
+            "at": "2026-08-10T08:02:29.262Z",
+            "ageDays": 0
           }
         ],
-        "lastSuccessfulResolution": "2026-07-20T00:00:00.000Z",
-        "nextRequiredResolution": "2026-07-24T00:00:00.000Z",
+        "lastSuccessfulResolution": "2026-08-10T08:10:55.262Z",
+        "nextRequiredResolution": "2026-08-17T08:02:29.262Z",
         "blockingUnknowns": [],
         "cadenceDays": 7
       },
-      "upstreamAgeDays": 139
+      "upstreamAgeDays": 1
     },
     {
       "canonicalName": "mcp-registry/ai.adside-adside",
       "status": "baked",
       "artifactDigest": "sha256:add7e15c2b429d3fa989e766fe421eb06f9a9095d03851a4cc0a8f8db18260c0",
-      "pageDigest": "sha256:a00a523a51e24ec0127107e3a66a845e015e97e64e935458f1c5c16293075af0",
+      "pageDigest": "sha256:97c8173d9fbba54c55c7639d2bf4dac7aedad55de2dac2f036b01868ee7cdb8c",
       "verdict": "REVIEW",
-      "observedAt": "2026-07-17T00:00:00.000Z",
+      "observedAt": "2026-08-10T08:02:29.262Z",
       "identity": {
         "subjectId": "sha256:c779004348b29ed67b5de1b151f2240520ea38ac663aeae6c1e5211c407ac256",
         "identityDigest": "sha256:856295590e7c9f58846e09c1ea68346e708812a0b8eadf5453708428764e1333",
         "identityStatus": "PROVISIONAL"
       },
       "freshness": {
-        "ageDays": 21,
-        "state": "AGING",
+        "ageDays": 0,
+        "state": "FRESH",
         "cadenceDays": 7,
         "basis": "snapshot-fetchedAt"
       },
       "resolution": {
-        "status": "AGING",
+        "status": "FRESH",
         "basis": [
           {
             "axis": "evidence-resolution",
-            "at": "2026-07-20T00:00:00.000Z",
-            "ageDays": 18
+            "at": "2026-08-10T08:10:55.262Z",
+            "ageDays": 0
           },
           {
             "axis": "source-observation",
-            "at": "2026-07-17T00:00:00.000Z",
-            "ageDays": 21
+            "at": "2026-08-10T08:02:29.262Z",
+            "ageDays": 0
           }
         ],
-        "lastSuccessfulResolution": "2026-07-20T00:00:00.000Z",
-        "nextRequiredResolution": "2026-07-24T00:00:00.000Z",
+        "lastSuccessfulResolution": "2026-08-10T08:10:55.262Z",
+        "nextRequiredResolution": "2026-08-17T08:02:29.262Z",
         "blockingUnknowns": [],
         "cadenceDays": 7
       },
-      "upstreamAgeDays": 21
+      "upstreamAgeDays": 24
     },
     {
       "canonicalName": "mcp-registry/ai.adweave-meta-ads-mcp",
       "status": "baked",
       "artifactDigest": "sha256:d9948f3b8f8def4ba2cb46af80c4a04b6464ad710358bed1a43a5bad17b79a99",
-      "pageDigest": "sha256:ebcce954084ad599b149464918c3656da1d87afc309dc9b2f9c6a7e245a7a08a",
+      "pageDigest": "sha256:673100f053291268d69424eee985507b126e437cfcd3d8702b9ec981d7408933",
       "verdict": "REVIEW",
-      "observedAt": "2026-07-17T00:00:00.000Z",
+      "observedAt": "2026-08-10T08:02:29.262Z",
       "identity": {
         "subjectId": "sha256:377257431124424a7c8c59c30d483c740d7a1a4972aad4822fc2d28f89f91d61",
         "identityDigest": "sha256:de76875e56eaabb0433de2c663f9d1b4718dc9f2f4f28c702e959aec79bb1174",
         "identityStatus": "PROVISIONAL"
       },
       "freshness": {
-        "ageDays": 21,
-        "state": "AGING",
+        "ageDays": 0,
+        "state": "FRESH",
         "cadenceDays": 7,
         "basis": "snapshot-fetchedAt"
       },
       "resolution": {
-        "status": "AGING",
+        "status": "FRESH",
         "basis": [
           {
             "axis": "evidence-resolution",
-            "at": "2026-07-20T00:00:00.000Z",
-            "ageDays": 18
+            "at": "2026-08-10T08:10:55.262Z",
+            "ageDays": 0
           },
           {
             "axis": "source-observation",
-            "at": "2026-07-17T00:00:00.000Z",
-            "ageDays": 21
+            "at": "2026-08-10T08:02:29.262Z",
+            "ageDays": 0
           }
         ],
-        "lastSuccessfulResolution": "2026-07-20T00:00:00.000Z",
-        "nextRequiredResolution": "2026-07-24T00:00:00.000Z",
+        "lastSuccessfulResolution": "2026-08-10T08:10:55.262Z",
+        "nextRequiredResolution": "2026-08-17T08:02:29.262Z",
         "blockingUnknowns": [],
         "cadenceDays": 7
       },
-      "upstreamAgeDays": 118
+      "upstreamAgeDays": 121
+    },
+    {
+      "canonicalName": "mcp-registry/ai.afmr-discovery",
+      "status": "baked",
+      "artifactDigest": "sha256:25a1fd89acf93f9f7cff8030370e8bc829b7fc0aeac55298d41d4e554bcdd7e0",
+      "pageDigest": "sha256:da019b21b4fa9d0b01bf6267172bf2c5ce5fadb8ea83981b5d79627f47e68b3b",
+      "verdict": "REVIEW",
+      "observedAt": "2026-08-10T08:02:29.262Z",
+      "identity": {
+        "subjectId": "sha256:65f2a30bf9726fd79c6d563acf7a4c06ccbf7a56f7827e07d30cf30e8cd9b49b",
+        "identityDigest": "sha256:14881f4abe818d123f887ab4ac0204f29e0369443650b31d3bb007c19d4bbdf1",
+        "identityStatus": "PROVISIONAL"
+      },
+      "freshness": {
+        "ageDays": 0,
+        "state": "FRESH",
+        "cadenceDays": 7,
+        "basis": "snapshot-fetchedAt"
+      },
+      "resolution": {
+        "status": "FRESH",
+        "basis": [
+          {
+            "axis": "evidence-resolution",
+            "at": "2026-08-10T08:10:55.262Z",
+            "ageDays": 0
+          },
+          {
+            "axis": "source-observation",
+            "at": "2026-08-10T08:02:29.262Z",
+            "ageDays": 0
+          }
+        ],
+        "lastSuccessfulResolution": "2026-08-10T08:10:55.262Z",
+        "nextRequiredResolution": "2026-08-17T08:02:29.262Z",
+        "blockingUnknowns": [],
+        "cadenceDays": 7
+      },
+      "upstreamAgeDays": 10
     },
     {
       "canonicalName": "mcp-registry/ai.agentberg-agentberg",
       "status": "baked",
       "artifactDigest": "sha256:53381adee155197fa43a8639ff40cc88053388b29bea38d5f4ae6333693210f3",
-      "pageDigest": "sha256:5a970fd1b210abdafdf1eed8227cef84bcb1598da0ebdd97880bd0ee6aab31f9",
+      "pageDigest": "sha256:ef837ff898299cfcb1438eab4688db7915bcef8a3ed679459ca8ba27d02981d7",
       "verdict": "REVIEW",
-      "observedAt": "2026-07-17T00:00:00.000Z",
+      "observedAt": "2026-08-10T08:02:29.262Z",
       "identity": {
         "subjectId": "sha256:bfa88c1c07ff7b39c6924a374d5efc1ce3eca92199b052d4bda10807221856e4",
         "identityDigest": "sha256:104114b8a341581cd6be9a004255b1a9335ad07f67c18c39249eee336214dede",
         "identityStatus": "PROVISIONAL"
       },
       "freshness": {
-        "ageDays": 21,
-        "state": "AGING",
+        "ageDays": 0,
+        "state": "FRESH",
         "cadenceDays": 7,
         "basis": "snapshot-fetchedAt"
       },
       "resolution": {
-        "status": "AGING",
+        "status": "FRESH",
         "basis": [
           {
             "axis": "evidence-resolution",
-            "at": "2026-07-20T00:00:00.000Z",
-            "ageDays": 18
+            "at": "2026-08-10T08:10:55.262Z",
+            "ageDays": 0
           },
           {
             "axis": "source-observation",
-            "at": "2026-07-17T00:00:00.000Z",
-            "ageDays": 21
+            "at": "2026-08-10T08:02:29.262Z",
+            "ageDays": 0
           }
         ],
-        "lastSuccessfulResolution": "2026-07-20T00:00:00.000Z",
-        "nextRequiredResolution": "2026-07-24T00:00:00.000Z",
+        "lastSuccessfulResolution": "2026-08-10T08:10:55.262Z",
+        "nextRequiredResolution": "2026-08-17T08:02:29.262Z",
         "blockingUnknowns": [],
         "cadenceDays": 7
       },
-      "upstreamAgeDays": 50
-    },
-    {
-      "canonicalName": "mcp-registry/ai.agentdm-agentdm",
-      "status": "baked",
-      "artifactDigest": "sha256:adfed57c616360d34b99675a040070807d141bf949a86d74d02af5d671d491b7",
-      "pageDigest": "sha256:342ac51fbe11d5e726acd04c7de012d7378c67261f982e8d3f5b03cc6ce50c54",
-      "verdict": "REVIEW",
-      "observedAt": "2026-07-17T00:00:00.000Z",
-      "identity": {
-        "subjectId": "sha256:e59e54fb3511eedae4817ca2cb6dadf0d705523dafa8cdf57a9019978b8540d4",
-        "identityDigest": "sha256:8d9c16f86735fac1913167cf61479715bdcad265af1da42553cee9f2679a971f",
-        "identityStatus": "PROVISIONAL"
-      },
-      "freshness": {
-        "ageDays": 21,
-        "state": "AGING",
-        "cadenceDays": 7,
-        "basis": "snapshot-fetchedAt"
-      },
-      "resolution": {
-        "status": "AGING",
-        "basis": [
-          {
-            "axis": "evidence-resolution",
-            "at": "2026-07-20T00:00:00.000Z",
-            "ageDays": 18
-          },
-          {
-            "axis": "source-observation",
-            "at": "2026-07-17T00:00:00.000Z",
-            "ageDays": 21
-          }
-        ],
-        "lastSuccessfulResolution": "2026-07-20T00:00:00.000Z",
-        "nextRequiredResolution": "2026-07-24T00:00:00.000Z",
-        "blockingUnknowns": [],
-        "cadenceDays": 7
-      },
-      "upstreamAgeDays": 89
+      "upstreamAgeDays": 53
     },
     {
       "canonicalName": "mcp-registry/ai.agentic-news-mcp",
       "status": "baked",
       "artifactDigest": "sha256:6913ebe5d60fec1f4b63796b25508ba4b16021b86f343858aaafc48a13cb45f4",
-      "pageDigest": "sha256:dc665b10d2b077237b9bc95196a2df2f6bb8af5b0846f6e8534cff51ee64f169",
+      "pageDigest": "sha256:b1404aeb4dd5b9677b8cef9d82e6b383a0f5a5f411c9ba54623b7951e7ffbad2",
       "verdict": "REVIEW",
-      "observedAt": "2026-07-17T00:00:00.000Z",
+      "observedAt": "2026-08-10T08:02:29.262Z",
       "identity": {
         "subjectId": "sha256:83f5691c7fdc63b2526cd948999ce1f4579ecb8c662e89c2fb8cda96a3434105",
         "identityDigest": "sha256:e5b24e9258b4ee26a13cbe59b7a5ba2afd497aa564536bccc01961994c87916e",
         "identityStatus": "PROVISIONAL"
       },
       "freshness": {
-        "ageDays": 21,
-        "state": "AGING",
+        "ageDays": 0,
+        "state": "FRESH",
         "cadenceDays": 7,
         "basis": "snapshot-fetchedAt"
       },
       "resolution": {
-        "status": "AGING",
+        "status": "FRESH",
         "basis": [
           {
             "axis": "evidence-resolution",
-            "at": "2026-07-20T00:00:00.000Z",
-            "ageDays": 18
+            "at": "2026-08-10T08:10:55.262Z",
+            "ageDays": 0
           },
           {
             "axis": "source-observation",
-            "at": "2026-07-17T00:00:00.000Z",
-            "ageDays": 21
+            "at": "2026-08-10T08:02:29.262Z",
+            "ageDays": 0
           }
         ],
-        "lastSuccessfulResolution": "2026-07-20T00:00:00.000Z",
-        "nextRequiredResolution": "2026-07-24T00:00:00.000Z",
+        "lastSuccessfulResolution": "2026-08-10T08:10:55.262Z",
+        "nextRequiredResolution": "2026-08-17T08:02:29.262Z",
         "blockingUnknowns": [],
         "cadenceDays": 7
       },
-      "upstreamAgeDays": 122
+      "upstreamAgeDays": 125
     },
     {
-      "canonicalName": "mcp-registry/ai.agenticshelf-graffeo",
+      "canonicalName": "mcp-registry/ai.agenticaffiliate-affiliate-networks-mcp",
       "status": "baked",
-      "artifactDigest": "sha256:6fb4d2a789a52a8debd01384956a71e6688fa25b0ba495fd32633ea028ff434e",
-      "pageDigest": "sha256:cac2c5b2c59583bc1ae3c2d8ad39fb6ab7708c5b0b19d6a9bbc33ef81386098a",
+      "artifactDigest": "sha256:13478225665f07abb592178f4ac0f2c91a988729abe605c71543a4dd8951546d",
+      "pageDigest": "sha256:01f5fda208aadedccea2b9cf702a0e3e3d74dc7e36ab0a26b7a2df48c0941fdb",
       "verdict": "REVIEW",
-      "observedAt": "2026-07-17T00:00:00.000Z",
+      "observedAt": "2026-08-10T08:02:29.262Z",
       "identity": {
-        "subjectId": "sha256:5751d0a4f72529e04eef880b66d813f0ecb1e65e0589da61760c983d72da98fa",
-        "identityDigest": "sha256:8a1e2b1da0d154e6ed57671b2c53409c606d9c83c132a791061c3da494605283",
+        "subjectId": "sha256:8c31e50fe38b92c124876cc1bb678b39956f38e7a7725059866dddb460afa792",
+        "identityDigest": "sha256:dfe865ae0f465753c46bfa9e37549586e9f8fe9817d3046daa8c989d60809a0f",
         "identityStatus": "PROVISIONAL"
       },
       "freshness": {
-        "ageDays": 21,
-        "state": "AGING",
+        "ageDays": 0,
+        "state": "FRESH",
         "cadenceDays": 7,
         "basis": "snapshot-fetchedAt"
       },
       "resolution": {
-        "status": "AGING",
+        "status": "FRESH",
         "basis": [
           {
             "axis": "evidence-resolution",
-            "at": "2026-07-20T00:00:00.000Z",
-            "ageDays": 18
+            "at": "2026-08-10T08:10:55.262Z",
+            "ageDays": 0
           },
           {
             "axis": "source-observation",
-            "at": "2026-07-17T00:00:00.000Z",
-            "ageDays": 21
+            "at": "2026-08-10T08:02:29.262Z",
+            "ageDays": 0
           }
         ],
-        "lastSuccessfulResolution": "2026-07-20T00:00:00.000Z",
-        "nextRequiredResolution": "2026-07-24T00:00:00.000Z",
+        "lastSuccessfulResolution": "2026-08-10T08:10:55.262Z",
+        "nextRequiredResolution": "2026-08-17T08:02:29.262Z",
         "blockingUnknowns": [],
         "cadenceDays": 7
       },
-      "upstreamAgeDays": 84
+      "upstreamAgeDays": 12
+    },
+    {
+      "canonicalName": "mcp-registry/ai.agenticfabricationnetwork-ufp",
+      "status": "baked",
+      "artifactDigest": "sha256:68aa642d2cd1eefc7ea8794cca6f808cf15ffa908a3cfea8b6bcd9f6bbb7ec67",
+      "pageDigest": "sha256:647e28186e536e8a6f18f8b994fbd2c5e4ff6e1dd018b098c5bbb820608300e4",
+      "verdict": "REVIEW",
+      "observedAt": "2026-08-10T08:02:29.262Z",
+      "identity": {
+        "subjectId": "sha256:480074e122e10e286c371395be20041108f835751ee7656e996f3a64e0a407d2",
+        "identityDigest": "sha256:89ca8f070f87bbfd72c1524cb3976176862bcc413210101a20b847c44d6dbc37",
+        "identityStatus": "PROVISIONAL"
+      },
+      "freshness": {
+        "ageDays": 0,
+        "state": "FRESH",
+        "cadenceDays": 7,
+        "basis": "snapshot-fetchedAt"
+      },
+      "resolution": {
+        "status": "FRESH",
+        "basis": [
+          {
+            "axis": "evidence-resolution",
+            "at": "2026-08-10T08:10:55.262Z",
+            "ageDays": 0
+          },
+          {
+            "axis": "source-observation",
+            "at": "2026-08-10T08:02:29.262Z",
+            "ageDays": 0
+          }
+        ],
+        "lastSuccessfulResolution": "2026-08-10T08:10:55.262Z",
+        "nextRequiredResolution": "2026-08-17T08:02:29.262Z",
+        "blockingUnknowns": [],
+        "cadenceDays": 7
+      },
+      "upstreamAgeDays": 2
     },
     {
       "canonicalName": "mcp-registry/ai.agenticshelf-mcp",
       "status": "baked",
       "artifactDigest": "sha256:ea6152f9304e7dde10305c7af11f3d292458c8550739d6b3fdc5b1b780a3cffd",
-      "pageDigest": "sha256:86ed9527bdc6341f13704630515a035a43ca56fa008f79ac10f817d27b7a5138",
+      "pageDigest": "sha256:04248f1badefd8d2bd3f9d44013fb4e00fba0ab76c61759c5f426a9d5ba31d2e",
       "verdict": "REVIEW",
-      "observedAt": "2026-07-17T00:00:00.000Z",
+      "observedAt": "2026-08-10T08:02:29.262Z",
       "identity": {
         "subjectId": "sha256:9b2001f2badbcb0e42ac1d9ab9fe7d2bb3d60ee63db9e2ac69c9c83a418b2b73",
         "identityDigest": "sha256:8d8da037038ecb52131ae6290b676d0526521288f37b24012a0f52ad7f6e5b66",
         "identityStatus": "PROVISIONAL"
       },
       "freshness": {
-        "ageDays": 21,
-        "state": "AGING",
+        "ageDays": 0,
+        "state": "FRESH",
         "cadenceDays": 7,
         "basis": "snapshot-fetchedAt"
       },
       "resolution": {
-        "status": "AGING",
+        "status": "FRESH",
         "basis": [
           {
             "axis": "evidence-resolution",
-            "at": "2026-07-20T00:00:00.000Z",
-            "ageDays": 18
+            "at": "2026-08-10T08:10:55.262Z",
+            "ageDays": 0
           },
           {
             "axis": "source-observation",
-            "at": "2026-07-17T00:00:00.000Z",
-            "ageDays": 21
+            "at": "2026-08-10T08:02:29.262Z",
+            "ageDays": 0
           }
         ],
-        "lastSuccessfulResolution": "2026-07-20T00:00:00.000Z",
-        "nextRequiredResolution": "2026-07-24T00:00:00.000Z",
+        "lastSuccessfulResolution": "2026-08-10T08:10:55.262Z",
+        "nextRequiredResolution": "2026-08-17T08:02:29.262Z",
         "blockingUnknowns": [],
         "cadenceDays": 7
       },
-      "upstreamAgeDays": 92
+      "upstreamAgeDays": 95
     },
     {
       "canonicalName": "mcp-registry/ai.agenticshelf-puroair",
       "status": "baked",
       "artifactDigest": "sha256:e14fc20ef3f4c970843bb714836ceb7700f1a90ce2f70100a34dbf5384036201",
-      "pageDigest": "sha256:51127d33c857a66489c65270ed9fee0c132e54dc04d091ca8a398d10625aa9cb",
+      "pageDigest": "sha256:3c63d96aca4a158eac3b554854740fad6cc61157303ed29da5c05bd22daf1c4f",
       "verdict": "REVIEW",
-      "observedAt": "2026-07-17T00:00:00.000Z",
+      "observedAt": "2026-08-10T08:02:29.262Z",
       "identity": {
         "subjectId": "sha256:5a81e21d7d3dead55390b50b4c0d68d995265229c258d1939f7fcbf52bd3c654",
         "identityDigest": "sha256:be4488a9bf05df1b6155c430e5d12b91ccdf063426d89a48915022f91a4d25a5",
         "identityStatus": "PROVISIONAL"
       },
       "freshness": {
-        "ageDays": 21,
-        "state": "AGING",
+        "ageDays": 0,
+        "state": "FRESH",
         "cadenceDays": 7,
         "basis": "snapshot-fetchedAt"
       },
       "resolution": {
-        "status": "AGING",
+        "status": "FRESH",
         "basis": [
           {
             "axis": "evidence-resolution",
-            "at": "2026-07-20T00:00:00.000Z",
-            "ageDays": 18
+            "at": "2026-08-10T08:10:55.262Z",
+            "ageDays": 0
           },
           {
             "axis": "source-observation",
-            "at": "2026-07-17T00:00:00.000Z",
-            "ageDays": 21
+            "at": "2026-08-10T08:02:29.262Z",
+            "ageDays": 0
           }
         ],
-        "lastSuccessfulResolution": "2026-07-20T00:00:00.000Z",
-        "nextRequiredResolution": "2026-07-24T00:00:00.000Z",
+        "lastSuccessfulResolution": "2026-08-10T08:10:55.262Z",
+        "nextRequiredResolution": "2026-08-17T08:02:29.262Z",
         "blockingUnknowns": [],
         "cadenceDays": 7
       },
-      "upstreamAgeDays": 35
+      "upstreamAgeDays": 38
     },
     {
-      "canonicalName": "mcp-registry/io.github.calllint-calllint",
+      "canonicalName": "mcp-registry/ai.agenticterminal-directory",
       "status": "baked",
-      "artifactDigest": "sha256:23327771ad88957d59c5e72011d84504c7a737a297560277f358d12b8bd3a98b",
-      "pageDigest": "sha256:20091cded7699f05bf0238bb57d20f8452da1755dcbf909a3bd4627d32b84e8d",
-      "verdict": "SAFE",
-      "observedAt": "2026-07-17T00:00:00.000Z",
+      "artifactDigest": "sha256:b8ab3d517bb11ff1004342b94d9f8d561cfc459538c2f014fe5629942882e9bf",
+      "pageDigest": "sha256:b8f00a3fe962abd4ab9ddca9cc6c5dfa8a072104ce98d8e9e74b33390c118a78",
+      "verdict": "REVIEW",
+      "observedAt": "2026-08-10T08:02:29.262Z",
       "identity": {
-        "subjectId": "sha256:70ffd1fee40ebdeaa25d19c6f37796c85e60370bcd2ff64628944a1fd3662441",
-        "identityDigest": "sha256:e26700346d4d3346258c0962ddeaf5bdf9cd91b7d483c955e8100950458e6c9c",
+        "subjectId": "sha256:0f2fe313207c09513670c9eff0ad16c43a11c27923e34e4b46681ea026a3fcff",
+        "identityDigest": "sha256:6ae472137f9e470feeb7544c7ba86c47b6044bd1ebc1ec3ef2ba5fae75d69040",
         "identityStatus": "PROVISIONAL"
       },
       "freshness": {
-        "ageDays": 21,
-        "state": "AGING",
+        "ageDays": 0,
+        "state": "FRESH",
         "cadenceDays": 7,
         "basis": "snapshot-fetchedAt"
       },
       "resolution": {
-        "status": "AGING",
+        "status": "FRESH",
         "basis": [
           {
             "axis": "evidence-resolution",
-            "at": "2026-07-20T00:00:00.000Z",
-            "ageDays": 18
+            "at": "2026-08-10T08:10:55.262Z",
+            "ageDays": 0
           },
           {
             "axis": "source-observation",
-            "at": "2026-07-17T00:00:00.000Z",
-            "ageDays": 21
+            "at": "2026-08-10T08:02:29.262Z",
+            "ageDays": 0
           }
         ],
-        "lastSuccessfulResolution": "2026-07-20T00:00:00.000Z",
-        "nextRequiredResolution": "2026-07-24T00:00:00.000Z",
+        "lastSuccessfulResolution": "2026-08-10T08:10:55.262Z",
+        "nextRequiredResolution": "2026-08-17T08:02:29.262Z",
         "blockingUnknowns": [],
         "cadenceDays": 7
-      }
+      },
+      "upstreamAgeDays": 82
+    },
+    {
+      "canonicalName": "mcp-registry/ai.agentlookups-counterscript",
+      "status": "baked",
+      "artifactDigest": "sha256:5378759ac25fcbd4fa9f7930d7dec04316cf11261795b2271c0f9164c7e66e02",
+      "pageDigest": "sha256:e086f64c142b29c4be3ebd50dac906fd20f83cc67e73ea3c2744d449c492baf5",
+      "verdict": "REVIEW",
+      "observedAt": "2026-08-10T08:02:29.262Z",
+      "identity": {
+        "subjectId": "sha256:6800c1dd69c918ba4de894020b2ee6c440465c52f3e71a5ba2b64ad8bd35405a",
+        "identityDigest": "sha256:d666a041f4b439c7421621f4f7258c3c2961c85b6bc0dc01b20ffcea33cc4e42",
+        "identityStatus": "PROVISIONAL"
+      },
+      "freshness": {
+        "ageDays": 0,
+        "state": "FRESH",
+        "cadenceDays": 7,
+        "basis": "snapshot-fetchedAt"
+      },
+      "resolution": {
+        "status": "FRESH",
+        "basis": [
+          {
+            "axis": "evidence-resolution",
+            "at": "2026-08-10T08:10:55.262Z",
+            "ageDays": 0
+          },
+          {
+            "axis": "source-observation",
+            "at": "2026-08-10T08:02:29.262Z",
+            "ageDays": 0
+          }
+        ],
+        "lastSuccessfulResolution": "2026-08-10T08:10:55.262Z",
+        "nextRequiredResolution": "2026-08-17T08:02:29.262Z",
+        "blockingUnknowns": [],
+        "cadenceDays": 7
+      },
+      "upstreamAgeDays": 5
+    },
+    {
+      "canonicalName": "mcp-registry/ai.agentlookups-groundtruth",
+      "status": "baked",
+      "artifactDigest": "sha256:c57b115f1ac0f238dc217d17b45fd3d5bd2f3d6c69d7f593264daa4731586678",
+      "pageDigest": "sha256:d0fcedc6cf0f60aca06f2bf2c42c0c8b6b2567b9f8d123c758a4127fbc686d46",
+      "verdict": "REVIEW",
+      "observedAt": "2026-08-10T08:02:29.262Z",
+      "identity": {
+        "subjectId": "sha256:3599ddfbc455b6de41be64e8a2c86901f529d13e9465275de77ae01c49e29f48",
+        "identityDigest": "sha256:9ccfad3e48ebf0095eb915349861a1e07c21627e1525302daf400eb24409c53b",
+        "identityStatus": "PROVISIONAL"
+      },
+      "freshness": {
+        "ageDays": 0,
+        "state": "FRESH",
+        "cadenceDays": 7,
+        "basis": "snapshot-fetchedAt"
+      },
+      "resolution": {
+        "status": "FRESH",
+        "basis": [
+          {
+            "axis": "evidence-resolution",
+            "at": "2026-08-10T08:10:55.262Z",
+            "ageDays": 0
+          },
+          {
+            "axis": "source-observation",
+            "at": "2026-08-10T08:02:29.262Z",
+            "ageDays": 0
+          }
+        ],
+        "lastSuccessfulResolution": "2026-08-10T08:10:55.262Z",
+        "nextRequiredResolution": "2026-08-17T08:02:29.262Z",
+        "blockingUnknowns": [],
+        "cadenceDays": 7
+      },
+      "upstreamAgeDays": 5
+    },
+    {
+      "canonicalName": "mcp-registry/ai.agentlookups-overassessed",
+      "status": "baked",
+      "artifactDigest": "sha256:c78dc4a750686a642bc574c0dc41a932d7620ac90e251e19a5a0bdc59e5fdcf8",
+      "pageDigest": "sha256:9c6fb7809f620118205b666c940acc46f19b9d7d6628ed789683afc5d71f51ff",
+      "verdict": "REVIEW",
+      "observedAt": "2026-08-10T08:02:29.262Z",
+      "identity": {
+        "subjectId": "sha256:d6214d1a3bb757e1448e74247b4b35ac881bf3f0839383bfb734e4ab8a597371",
+        "identityDigest": "sha256:1f95e0a011fc86021f5d99849235c9c1c9693cb23c6e8e258ddda3a8904cf391",
+        "identityStatus": "PROVISIONAL"
+      },
+      "freshness": {
+        "ageDays": 0,
+        "state": "FRESH",
+        "cadenceDays": 7,
+        "basis": "snapshot-fetchedAt"
+      },
+      "resolution": {
+        "status": "FRESH",
+        "basis": [
+          {
+            "axis": "evidence-resolution",
+            "at": "2026-08-10T08:10:55.262Z",
+            "ageDays": 0
+          },
+          {
+            "axis": "source-observation",
+            "at": "2026-08-10T08:02:29.262Z",
+            "ageDays": 0
+          }
+        ],
+        "lastSuccessfulResolution": "2026-08-10T08:10:55.262Z",
+        "nextRequiredResolution": "2026-08-17T08:02:29.262Z",
+        "blockingUnknowns": [],
+        "cadenceDays": 7
+      },
+      "upstreamAgeDays": 5
+    },
+    {
+      "canonicalName": "mcp-registry/ai.agentlookups-plumbline",
+      "status": "baked",
+      "artifactDigest": "sha256:dd545706150eee89e3cca7c0cc41dd6ca1aaf99962d20709b9692917c21a6beb",
+      "pageDigest": "sha256:2afdb6700aa3a1b27f5b982f734b6242a0199c349b64bd998f97b776ede7b25e",
+      "verdict": "REVIEW",
+      "observedAt": "2026-08-10T08:02:29.262Z",
+      "identity": {
+        "subjectId": "sha256:7d7d87c905fedbbdff591255a82470f7587dbfeb718c1d24bff3471d2763bfb3",
+        "identityDigest": "sha256:4225f2793bdb3a9c16e305f4b30211cbe5b518f2d6bc519fd673d8d7e8b90df2",
+        "identityStatus": "PROVISIONAL"
+      },
+      "freshness": {
+        "ageDays": 0,
+        "state": "FRESH",
+        "cadenceDays": 7,
+        "basis": "snapshot-fetchedAt"
+      },
+      "resolution": {
+        "status": "FRESH",
+        "basis": [
+          {
+            "axis": "evidence-resolution",
+            "at": "2026-08-10T08:10:55.262Z",
+            "ageDays": 0
+          },
+          {
+            "axis": "source-observation",
+            "at": "2026-08-10T08:02:29.262Z",
+            "ageDays": 0
+          }
+        ],
+        "lastSuccessfulResolution": "2026-08-10T08:10:55.262Z",
+        "nextRequiredResolution": "2026-08-17T08:02:29.262Z",
+        "blockingUnknowns": [],
+        "cadenceDays": 7
+      },
+      "upstreamAgeDays": 5
+    },
+    {
+      "canonicalName": "mcp-registry/ai.agentrapay-agentra",
+      "status": "baked",
+      "artifactDigest": "sha256:aa7f295919d0e46ff615fc81bc41e447ebb1140921d0ad7f5f1097f93b78e651",
+      "pageDigest": "sha256:acc2024da7a39506e47b428698d12270f7e5256be861a490793fffc189d58b07",
+      "verdict": "REVIEW",
+      "observedAt": "2026-08-10T08:02:29.262Z",
+      "identity": {
+        "subjectId": "sha256:5e3deed74e43f3fa568a39cabc72c14e4c311f102ca8392312289aa690746648",
+        "identityDigest": "sha256:22707e6319ee881da734b11c6e1a68f6556393d7cbc90df6c2844112c5fdc91d",
+        "identityStatus": "PROVISIONAL"
+      },
+      "freshness": {
+        "ageDays": 0,
+        "state": "FRESH",
+        "cadenceDays": 7,
+        "basis": "snapshot-fetchedAt"
+      },
+      "resolution": {
+        "status": "FRESH",
+        "basis": [
+          {
+            "axis": "evidence-resolution",
+            "at": "2026-08-10T08:10:55.262Z",
+            "ageDays": 0
+          },
+          {
+            "axis": "source-observation",
+            "at": "2026-08-10T08:02:29.262Z",
+            "ageDays": 0
+          }
+        ],
+        "lastSuccessfulResolution": "2026-08-10T08:10:55.262Z",
+        "nextRequiredResolution": "2026-08-17T08:02:29.262Z",
+        "blockingUnknowns": [],
+        "cadenceDays": 7
+      },
+      "upstreamAgeDays": 140
     }
   ]
 }

@@ -1,0 +1,48 @@
+{
+  "schema": "calllint.evidence-manifest.v1",
+  "subject": {
+    "canonicalName": "mcp-registry/agency.kesey-pretrip",
+    "artifactDigest": "sha256:48180f8f9eab49664310736b3b4841a78fd013f5ec1e11230cad6ceaa95f8217"
+  },
+  "verdict": "SAFE",
+  "verdictLabel": "No blockers observed",
+  "completeness": "complete",
+  "evidenceLevel": "E2",
+  "evidenceRationale": "install config observed → static blast radius normalized into an authority inventory. Higher levels (E3 tool schema, E4 maintainer receipt, E5 sandbox) are not carried by a static page.",
+  "status": {
+    "verdict": "SAFE",
+    "completeness": "complete",
+    "authorityClaimed": false,
+    "reproducibility": {
+      "pageDigest": "sha256:35b33be6137f5399b6e8417ff5661e87424dce3f8e872a434032ac36df523147",
+      "observedAt": "2026-08-10T08:02:29.262Z"
+    },
+    "evidenceLevel": "E2"
+  },
+  "authority": {
+    "digest": "sha256:96095e9189b0437a53b1bbb4f2a6423cdf0311b3ed1e87a9b9f704385001516b",
+    "completeness": "complete",
+    "capabilityCount": 1,
+    "approvalRequired": [],
+    "capabilities": [
+      {
+        "action": "execute",
+        "resource": "process",
+        "mutability": "mutating",
+        "reversibility": "irreversible",
+        "approvalRequirement": "none"
+      }
+    ]
+  },
+  "policyDigest": null,
+  "reproducibility": {
+    "pageDigest": "sha256:35b33be6137f5399b6e8417ff5661e87424dce3f8e872a434032ac36df523147",
+    "observedAt": "2026-08-10T08:02:29.262Z"
+  },
+  "engine": {
+    "name": "calllint"
+  },
+  "correctionUrl": "https://github.com/calllint/calllint/issues/new?labels=trust-page-correction",
+  "generatedAt": "2026-08-10T08:02:29.262Z",
+  "signature": null
+}

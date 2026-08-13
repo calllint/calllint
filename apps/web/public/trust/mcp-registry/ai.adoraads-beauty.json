@@ -1,0 +1,229 @@
+{
+  "schema": "calllint.trust-page.v0",
+  "canonicalName": "mcp-registry/ai.adoraads-beauty",
+  "artifactDigest": "sha256:6a3cb413304c94adec850c54429773aebc77b9715d08d2399358818160426a15",
+  "pageDigest": "sha256:d9817f421917d527fab7889c167b98ee17e9bc506f06855125c3e7931a3cd2f3",
+  "verdict": "REVIEW",
+  "verdictLabel": "Review required",
+  "observedAt": "2026-08-10T08:02:29.262Z",
+  "completeness": "complete",
+  "status": {
+    "verdict": "REVIEW",
+    "completeness": "complete",
+    "authorityClaimed": false,
+    "reproducibility": {
+      "pageDigest": "sha256:d9817f421917d527fab7889c167b98ee17e9bc506f06855125c3e7931a3cd2f3",
+      "observedAt": "2026-08-10T08:02:29.262Z"
+    },
+    "evidenceLevel": "E2",
+    "evidenceRationale": "install config observed → static blast radius normalized into an authority inventory. Higher levels (E3 tool schema, E4 maintainer receipt, E5 sandbox) are not carried by a static page."
+  },
+  "correctionUrl": "https://github.com/calllint/calllint/issues/new?labels=trust-page-correction",
+  "reproduction": {
+    "command": "npx calllint scan official-mcp-registry:ai.adoraads/beauty",
+    "artifactDigest": "sha256:6a3cb413304c94adec850c54429773aebc77b9715d08d2399358818160426a15",
+    "note": "Re-running this scan reproduces the verdict observed at the pinned artifact digest. It is a point-in-time observation, not a guarantee of future behavior."
+  },
+  "scanHistory": [
+    {
+      "observedAt": "2026-08-10T08:02:29.262Z",
+      "pageDigest": "sha256:d9817f421917d527fab7889c167b98ee17e9bc506f06855125c3e7931a3cd2f3",
+      "artifactDigest": "sha256:6a3cb413304c94adec850c54429773aebc77b9715d08d2399358818160426a15"
+    }
+  ],
+  "preparation": {
+    "schema": "calllint.trust-preparation.v0",
+    "artifact": {
+      "schema": "calllint.artifact.v1",
+      "sourceType": "mcp-config",
+      "source": "official-mcp-registry:ai.adoraads/beauty",
+      "requestedRef": null,
+      "resolvedRef": "sha256:6a3cb413304c94adec850c54429773aebc77b9715d08d2399358818160426a15",
+      "digest": "sha256:6a3cb413304c94adec850c54429773aebc77b9715d08d2399358818160426a15",
+      "resolvedAt": "2026-08-10T08:02:29.262Z",
+      "resolution": "resolved"
+    },
+    "evidence": null,
+    "authority": {
+      "schema": "calllint.authority.v0",
+      "subject": {
+        "artifactDigest": "sha256:6a3cb413304c94adec850c54429773aebc77b9715d08d2399358818160426a15"
+      },
+      "capabilities": [
+        {
+          "action": "connect",
+          "resource": "network",
+          "scope": "mcp.adoraads.ai",
+          "destination": "mcp.adoraads.ai",
+          "mutability": "mutating",
+          "reversibility": "irreversible",
+          "monetaryLimit": null,
+          "approvalRequirement": "review",
+          "evidenceSource": "server.url",
+          "confidence": "high",
+          "completeness": "complete"
+        }
+      ],
+      "limits": {
+        "spendPerCall": null,
+        "spendTotal": null
+      },
+      "approval": {
+        "required": [
+          "external-network-access"
+        ]
+      },
+      "unknowns": [],
+      "completeness": "complete",
+      "digest": "sha256:1a55a7f2de40156532514c3eed1a8b5709545da693f6f8d4bf96d03c6d37ba56"
+    },
+    "decision": null,
+    "plan": null,
+    "state": "AUTHORITY_NORMALIZED",
+    "notes": [
+      "no external evidence attached (optional); decision will rely on CallLint's own analysis",
+      "authority normalized: 1 capability, approvals required: external-network-access"
+    ],
+    "preparedAt": "2026-08-10T08:02:29.262Z"
+  },
+  "scan": {
+    "schemaVersion": "calllint.report.v0",
+    "reportKind": "config-summary",
+    "configPath": "official-mcp-registry:ai.adoraads/beauty",
+    "verdict": "REVIEW",
+    "publicVerdictLabel": "Review required",
+    "counts": {
+      "SAFE": 0,
+      "REVIEW": 1,
+      "BLOCK": 0,
+      "UNKNOWN": 0
+    },
+    "reports": [
+      {
+        "schemaVersion": "calllint.report.v0",
+        "reportKind": "single-target",
+        "target": {
+          "name": "remote",
+          "kind": "cursor-mcp-config",
+          "source": "https://mcp.adoraads.ai/beauty",
+          "configPath": "official-mcp-registry:ai.adoraads/beauty"
+        },
+        "verdict": "REVIEW",
+        "publicVerdictLabel": "Review required",
+        "policyApplied": false,
+        "riskClass": "S1",
+        "symbols": [
+          "NETWORK"
+        ],
+        "confidence": "high",
+        "reproducibility": {
+          "level": "LOW",
+          "reasons": [
+            "Remote endpoint domain ownership not verified",
+            "Remote endpoint identity verified; tool surface not analyzed"
+          ]
+        },
+        "summary": "\"remote\" could not be verified (insufficient evidence). Risk: Network (S1 Read-only utility).",
+        "observed": [
+          {
+            "id": "supply.unknown-remote",
+            "title": "Remote server source cannot be verified",
+            "severity": "high",
+            "blocker": false,
+            "symbol": "NETWORK",
+            "riskClass": "S1",
+            "mode": "OBSERVED",
+            "confidence": "high",
+            "detectionMethod": "runtime-binding",
+            "evidence": [
+              {
+                "type": "runtime-binding",
+                "path": "official-mcp-registry:ai.adoraads/beauty",
+                "key": "url",
+                "value": "https://mcp.adoraads.ai/beauty",
+                "line": 5,
+                "column": 7
+              }
+            ],
+            "impact": "The server runs on an unverified remote endpoint. Its tools, permissions, and behavior cannot be inspected statically and may change at any time.",
+            "fix": "Use a verified first-party endpoint, or run the server from a pinned, inspectable package.",
+            "falsePositiveNote": "A trusted internal endpoint may be fine; add it to the policy allowlist to verify it."
+          }
+        ],
+        "inferred": [],
+        "findings": [
+          {
+            "id": "supply.unknown-remote",
+            "title": "Remote server source cannot be verified",
+            "severity": "high",
+            "blocker": false,
+            "symbol": "NETWORK",
+            "riskClass": "S1",
+            "mode": "OBSERVED",
+            "confidence": "high",
+            "detectionMethod": "runtime-binding",
+            "evidence": [
+              {
+                "type": "runtime-binding",
+                "path": "official-mcp-registry:ai.adoraads/beauty",
+                "key": "url",
+                "value": "https://mcp.adoraads.ai/beauty",
+                "line": 5,
+                "column": 7
+              }
+            ],
+            "impact": "The server runs on an unverified remote endpoint. Its tools, permissions, and behavior cannot be inspected statically and may change at any time.",
+            "fix": "Use a verified first-party endpoint, or run the server from a pinned, inspectable package.",
+            "falsePositiveNote": "A trusted internal endpoint may be fine; add it to the policy allowlist to verify it."
+          }
+        ],
+        "topFindings": [
+          {
+            "id": "supply.unknown-remote",
+            "title": "Remote server source cannot be verified",
+            "severity": "high",
+            "blocker": false,
+            "symbol": "NETWORK",
+            "riskClass": "S1",
+            "mode": "OBSERVED",
+            "confidence": "high",
+            "detectionMethod": "runtime-binding",
+            "evidence": [
+              {
+                "type": "runtime-binding",
+                "path": "official-mcp-registry:ai.adoraads/beauty",
+                "key": "url",
+                "value": "https://mcp.adoraads.ai/beauty",
+                "line": 5,
+                "column": 7
+              }
+            ],
+            "impact": "The server runs on an unverified remote endpoint. Its tools, permissions, and behavior cannot be inspected statically and may change at any time.",
+            "fix": "Use a verified first-party endpoint, or run the server from a pinned, inspectable package.",
+            "falsePositiveNote": "A trusted internal endpoint may be fine; add it to the policy allowlist to verify it."
+          }
+        ],
+        "policy": {
+          "autonomousUse": "deny",
+          "manualApproval": "required",
+          "sandbox": "required"
+        },
+        "fingerprints": {
+          "configHash": "sha256:14d76b1d4a12ee81a7d9540083caa7f6862005f0fa7af2064157fc49b6efc35f",
+          "targetSpecHash": "sha256:6aabbc55eaa969f52dc0fd121dc7fce51ba5548de851cba09edcd3195317eb08",
+          "riskSurfaceHash": "sha256:47e9d20255a346b95323c2cb9e092621521638b987bbcd036e68e4aee12dcaf3"
+        },
+        "diagnostics": [
+          {
+            "level": "info",
+            "code": "evidence.remote-identity-verified",
+            "message": "Remote endpoint identity verified; tool surface not analyzed (evidence: https://mcp.adoraads.ai/beauty)"
+          }
+        ],
+        "generatedAt": "2026-08-10T08:02:29.262Z"
+      }
+    ],
+    "diagnostics": [],
+    "generatedAt": "2026-08-10T08:02:29.262Z"
+  }
+}
