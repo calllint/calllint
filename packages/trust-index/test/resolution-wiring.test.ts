@@ -24,7 +24,7 @@ const EVIDENCE = resolve(HERE, "..", "snapshots", "evidence-snapshot.json")
 
 const snapshot = parseSnapshot(readFileSync(SNAP, "utf8"))
 const evidence = parseEvidenceSnapshot(readFileSync(EVIDENCE, "utf8"))
-const NOW = "2026-08-30T00:00:00.000Z"
+const NOW = "2026-08-31T00:00:00.000Z"
 
 interface Entry {
   canonicalName: string
@@ -75,7 +75,7 @@ describe("the resolution block reaches index.json (positive control)", () => {
       lastSuccessfulResolution: evidence.resolvedAt,
       // The OLDEST instant + cadence — the deadline the weakest axis sets. Note it is already in
       // the past relative to NOW, which is why the status is not FRESH.
-      nextRequiredResolution: "2026-08-17T00:00:00.000Z",
+      nextRequiredResolution: "2026-08-17T08:02:29.262Z",
       blockingUnknowns: [],
       cadenceDays: CADENCE_DAYS,
     })
@@ -182,12 +182,12 @@ describe("publishedAt finally has a consumer (gaps §1.4)", () => {
     // would be a restatement of `observedAt` rather than a second fact.
     const spread = [...new Set(withAge.map((e) => e.upstreamAgeDays))]
     expect(spread.length).toBeGreaterThan(10)
-    expect(Math.max(...(withAge.map((e) => e.upstreamAgeDays ?? 0)))).toBe(162)
+    expect(Math.max(...(withAge.map((e) => e.upstreamAgeDays ?? 0)))).toBe(187)
   })
 
   /**
    * The measurement that rules `publishedAt` OUT as a status axis, asserted so a future batch
-   * cannot quietly promote it. The oldest upstream release is 162 days before the committed bake —
+   * cannot quietly promote it. The oldest upstream release is 187 days before the committed bake —
    * far past `cadenceDays * agingMultiple` — so treating release age as staleness would report a
    * stable package nobody has needed to republish as permanently STALE.
    */
@@ -199,11 +199,55 @@ describe("publishedAt finally has a consumer (gaps §1.4)", () => {
     expect(oldest?.resolution?.basis.map((b) => b.axis)).toEqual(["evidence-resolution", "source-observation"])
   })
 
+  /**
+   * Omission must never become a default — `upstreamAgeDays: 0` would read as "released
+   * today" for an entry that declared no instant at all.
+   *
+   * At cohort 19 one committed entry lacked `publishedAt`, so the corpus itself was the
+   * witness. The 19→25 refresh removed it: all 25 now carry one, measured. That makes the
+   * corpus-based form of this test VACUOUS — `expect(missing.length).toBe(0)` asserts the
+   * witness is gone and then proves nothing about the rule, and an `if (defined)` loop over
+   * the remaining entries is a tautology (it checks that defined values are defined).
+   *
+   * So the rule is proven where it lives: over a SYNTHETIC snapshot fed through the SHIPPED
+   * `emitAllCohorts`, with one entry stripped of `publishedAt` and one retaining it. The
+   * corpus count is still pinned below, as a precondition that says WHY the synthetic branch
+   * is load-bearing rather than leaving its absence unstated.
+   */
   it("omits the key rather than defaulting when the registry declared no release instant", () => {
     const entries = registryEntries(indexOf(NOW).entries)
-    const missing = entries.filter((e) => e.upstreamAgeDays === undefined)
-    expect(missing.length).toBe(1)
-    expect(Object.keys(missing[0] ?? {}).includes("upstreamAgeDays")).toBe(false)
+    expect(
+      entries.filter((e) => e.upstreamAgeDays === undefined).length,
+      "precondition: every committed entry now carries publishedAt, so the corpus is no longer a witness",
+    ).toBe(0)
+
+    // The rule half. Two entries, identical but for `publishedAt`, through the shipped emit.
+    const base = snapshot.entries[0]!
+    const synthetic = {
+      ...snapshot,
+      count: 2,
+      entries: [
+        { ...base, name: "io.example/with-instant", publishedAt: base.publishedAt },
+        // `null`, not `undefined`: `SnapshotEntry.publishedAt` is `string | null`, so null IS
+        // the shape a registry entry takes when it declares no release instant. The emit site
+        // treats both the same (`=== undefined || === null`); null is the reachable one.
+        { ...base, name: "io.example/no-instant", publishedAt: null },
+      ],
+    }
+    const { files } = emitAllCohorts(synthetic, undefined, evidence, [], undefined, undefined, null, NOW)
+    const doc = JSON.parse(files.find((f) => f.path === "index.json")!.content) as { entries: Entry[] }
+    const withInstant = doc.entries.find((e) => e.canonicalName.endsWith("with-instant"))
+    const noInstant = doc.entries.find((e) => e.canonicalName.endsWith("no-instant"))
+
+    expect(withInstant, "the synthetic corpus must bake the entry that HAS an instant").toBeDefined()
+    expect(noInstant, "the synthetic corpus must bake the entry that lacks one").toBeDefined()
+    // Non-vacuity: the positive twin proves the projection is live on this corpus, so the
+    // negative twin's silence is attributable to the missing field and to nothing else.
+    expect(typeof withInstant!.upstreamAgeDays, "the instant-bearing twin must project an age").toBe("number")
+    expect(
+      Object.keys(noInstant!).includes("upstreamAgeDays"),
+      "an entry with no declared instant must OMIT the key, never default it to 0",
+    ).toBe(false)
   })
 })
 

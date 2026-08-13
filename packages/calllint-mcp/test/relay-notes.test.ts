@@ -84,7 +84,23 @@ afterEach(() => {
 // one. Read from `COMMITTED_CONTRACTS` rather than hardcoded so a bundle change cannot leave
 // this suite asserting against a slug that no longer exists.
 const NPM_SLUG = "mcp-registry/ai.adeu-adeu"
-const REMOTE_SLUG = "mcp-registry/ac.inference.sh-mcp"
+/**
+ * DERIVED, never named. The 19→25 cohort refresh dropped `ac.inference.sh/mcp`, and the
+ * hardcoded slug went on returning `UNSUPPORTED` — so the schema case labelled
+ * "prepare-remote" was validating an unsupported-SUBJECT envelope rather than a remote one,
+ * and no assertion could notice, because it only checked that SOMETHING validated. Measured
+ * on the committed bundle: 22 of 25 contracts return LOCAL_PREFLIGHT_REQUIRED, 3 reach
+ * PREPARED, and none returns UNSUPPORTED. So select by the property the case needs.
+ */
+function remoteSlug(): string {
+  const slug = Object.keys(COMMITTED_CONTRACTS).find(
+    (s) =>
+      (call("calllint_prepare_safe_install", { canonicalName: s }).text as PrepResult).outcome ===
+      "LOCAL_PREFLIGHT_REQUIRED",
+  )
+  if (!slug) throw new Error("no contract returns LOCAL_PREFLIGHT_REQUIRED — the remote case has no subject")
+  return slug
+}
 
 interface PrepResult {
   readonly schema: string
@@ -291,33 +307,35 @@ describe("calllint_prepare_safe_install — relay notes on the wire", () => {
     }
   })
 
-  it("records that `adds` has no on-the-wire witness, and grades the gate that decides it", () => {
-    // HONEST SCOPE, measured rather than assumed. `adds` is non-empty on 17 of 19 committed
-    // contracts, but every one of those 17 is a remote/unpinned target that returns
-    // LOCAL_PREFLIGHT_REQUIRED *before* `runPrepare` — and both PREPARED subjects carry
-    // `adds: []`. So no bundle subject can make the `adds` sentence appear on the wire today.
+  it("witnesses `adds` on the wire, and grades the gate that decides it", () => {
+    // The 19→25 refresh CLOSED the gap this case was written to record. At cohort 19 no
+    // subject could put the `adds` sentence on the wire: all 17 contracts carrying the field
+    // returned LOCAL_PREFLIGHT_REQUIRED before `runPrepare`, and both PREPARED subjects had
+    // `adds: []`. Measured on the committed 25-entry bundle: 23 carry `adds`, and exactly
+    // ONE of those reaches PREPARED — so the sentence now HAS a wire witness.
     //
-    // Two things follow, and both are graded instead of narrated:
-    //   • the ABSENCE is correct for the corpus as it stands (the loop above proves the
-    //     sentence tracks the field, in the false direction);
-    //   • the wire PATH is nonetheless real, because the tool passes `delta.adds` straight
-    //     through — so the gate is graded here against the composer, which is the same
-    //     function the tool calls, with the mapping the tool performs applied by hand.
-    // The day a pinned npm contract ships a non-empty `adds`, the loop above starts asserting
-    // presence with no edit needed. This case exists so that gap is a recorded measurement
-    // rather than a blind spot.
+    // The witness count is asserted, not tolerated. An `if (outcome === "PREPARED")` guard
+    // would pass vacuously the day the last such subject leaves the corpus, which is the
+    // same failure mode as the dead slug above: silence where the gap reopened.
     const withAdds = Object.entries(COMMITTED_CONTRACTS).filter(
       ([, c]) => ((c.authorityDelta as { adds?: readonly unknown[] } | undefined)?.adds ?? []).length > 0,
     )
     expect(withAdds.length, "no contract carries authorityDelta.adds — the gate has no subject").toBeGreaterThan(0)
 
+    const wireWitnesses: string[] = []
     for (const [slug, contract] of withAdds) {
-      // Not PREPARED — which is exactly why the sentence cannot be witnessed on the wire.
       const { text } = call("calllint_prepare_safe_install", {
         canonicalName: slug,
         host: "claude-code",
       }) as { text: PrepResult }
-      expect(text.outcome).not.toBe("PREPARED")
+
+      // For a PREPARED subject the sentence MUST appear — the tool passes `delta.adds`
+      // straight through, so its absence would mean the composer dropped a declared
+      // authority surface on the one path a human actually reads.
+      if (text.outcome === "PREPARED") {
+        expect(carries(text.notes, "adds"), `${slug} declares adds but omitted it on the wire`).toBe(true)
+        wireWitnesses.push(slug)
+      }
 
       // The composer, fed the same fields through the same mapping `runPrepare` uses.
       const delta = contract.authorityDelta as { adds: readonly { authority: string }[] }
@@ -330,6 +348,14 @@ describe("calllint_prepare_safe_install — relay notes on the wire", () => {
         delta.adds[0]!.authority,
       )
     }
+
+    // The gap-closure itself, pinned. This is the assertion the `if` above cannot make: it
+    // reds if the corpus ever again carries `adds` on no plannable subject, restoring the
+    // blind spot rather than passing over it in silence.
+    expect(
+      wireWitnesses.length,
+      "no PREPARED subject declares adds — the wire witness is gone and this gate proves nothing",
+    ).toBeGreaterThan(0)
   })
 
   it("never relays publisher content", () => {
@@ -427,12 +453,23 @@ describe("calllint.safe-install-result.v1 — every outcome path validates", () 
         call("calllint_prepare_safe_install", { canonicalName: NPM_SLUG, host: "claude-code" }).text,
       ],
       ["prepare-hostless", call("calllint_prepare_safe_install", { canonicalName: NPM_SLUG }).text],
-      ["prepare-remote", call("calllint_prepare_safe_install", { canonicalName: REMOTE_SLUG }).text],
+      ["prepare-remote", call("calllint_prepare_safe_install", { canonicalName: remoteSlug() }).text],
       ["apply-verified", applied],
     ]
     for (const [label, result] of results) {
       expect(validate(result), `${label} failed schema validation`).toEqual([])
     }
+
+    // Each label must have validated the envelope it NAMES. Without this, a subject that
+    // leaves the corpus degrades its case to an `UNSUPPORTED` error envelope that still
+    // validates — which is exactly how the dead `ac.inference.sh/mcp` slug survived the
+    // 19→25 refresh, with "the schema holds" true of the wrong shape.
+    const outcomeOf = (label: string) =>
+      (results.find(([l]) => l === label)![1] as { outcome?: string }).outcome
+    expect(outcomeOf("prepare+host"), "prepare+host must be a planned envelope").toBe("PREPARED")
+    expect(outcomeOf("prepare-remote"), "prepare-remote must be a REMOTE envelope, not UNSUPPORTED").toBe(
+      "LOCAL_PREFLIGHT_REQUIRED",
+    )
 
     // Non-vacuity for the six apply-only declarations: the envelope must actually carry them,
     // else "the apply path validates" would be true of a result that omitted every one.
