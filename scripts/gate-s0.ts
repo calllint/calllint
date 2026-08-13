@@ -105,7 +105,7 @@ const S0_REQUIRED_RECORDS = 25
  *   3. Raising it is NOT this gate's job. When the cohort grows to 25, `--gate` becomes satisfiable
  *      and is the mode that says so; the floor exists to catch shrinkage, not to track growth.
  */
-const S0_REGRESSION_FLOOR = 19
+const S0_REGRESSION_FLOOR = 25
 
 // Asserted, not commented. A floor above the requirement is incoherent — it would red the ratchet on
 // cohorts the real gate accepts — and this is the cheapest place to make that unrepresentable.

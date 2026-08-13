@@ -367,8 +367,8 @@ describe("the injected port resolves the committed corpus end to end (plan step 
 
     const artifacts = result.artifacts
     expect(artifacts).not.toBeNull()
-    expect(artifacts!.considered).toBe(2)
-    expect(artifacts!.fetched).toBe(2)
+    expect(artifacts!.considered).toBe(3)
+    expect(artifacts!.fetched).toBe(3)
     expect(artifacts!.unavailable).toBe(0)
     expect(artifacts!.rejected).toBe(0)
     // Nothing skipped: every package the corpus declares is npm, and npm is the one adapter
@@ -406,7 +406,7 @@ describe("the injected port resolves the committed corpus end to end (plan step 
     await refresh(opened, fetchImpl)
 
     const rows = opened.store.listArtifactVersions()
-    expect(rows).toHaveLength(2)
+    expect(rows).toHaveLength(3)
     for (const row of rows) {
       const bytes = bytesFor.get(row.packageIdentifier)
       expect(bytes, row.packageIdentifier).toBeDefined()
@@ -433,7 +433,7 @@ describe("the injected port resolves the committed corpus end to end (plan step 
     await refresh(opened, fetchImpl)
 
     // The count the plan's step 8 checks against the LIVE registry, measured here offline.
-    expect(casBlobs(opened.root)).toHaveLength(2)
+    expect(casBlobs(opened.root)).toHaveLength(3)
 
     for (const [identifier, bytes] of bytesFor) {
       const digest = `sha256:${createHash("sha256").update(bytes).digest("hex")}`
@@ -477,7 +477,7 @@ describe("the injected port resolves the committed corpus end to end (plan step 
     const first = stubFetch(routes)
     await refresh(opened, first.fetchImpl)
     const tarballCalls = (calls: string[]) => calls.filter((c) => c.endsWith(".tgz"))
-    expect(tarballCalls(first.calls)).toHaveLength(2)
+    expect(tarballCalls(first.calls)).toHaveLength(3)
 
     // A SECOND stub, so the count starts at zero rather than being subtracted. Cache reuse can
     // never be observed in CI — every scheduled run is a cold checkout — so this test over a warm
@@ -496,7 +496,7 @@ describe("the injected port resolves the committed corpus end to end (plan step 
       expect(row.artifactStatus).toBe("FETCHED")
       expect(row.lastVerifiedAt).toBe(T0)
     }
-    expect(casBlobs(opened.root)).toHaveLength(2)
+    expect(casBlobs(opened.root)).toHaveLength(3)
   })
 
   it("resolves artifacts WITHOUT moving the projected bytes or the checkpoint digest", async () => {
@@ -512,9 +512,9 @@ describe("the injected port resolves the committed corpus end to end (plan step 
 
     expect(a.snapshotText).toBe(b.snapshotText)
     expect(a.snapshotDigest).toBe(b.snapshotDigest)
-    // Not vacuous: the ported run really did resolve two artifacts, and the unported one really
+    // Not vacuous: the ported run really did resolve three artifacts, and the unported one really
     // did resolve none.
-    expect(a.artifacts!.fetched).toBe(2)
+    expect(a.artifacts!.fetched).toBe(3)
     expect(b.artifacts).toBeNull()
     // The no-port run's tier stays `null` — the assertion control #27 inverts, restated here
     // against the corpus rather than against a two-entry fixture.
@@ -541,7 +541,7 @@ describe("the injected port resolves the committed corpus end to end (plan step 
     const result = await refresh(opened, stubFetch(routes).fetchImpl)
 
     expect(result.artifacts!.fetched).toBe(0)
-    expect(result.artifacts!.rejected).toBe(2)
+    expect(result.artifacts!.rejected).toBe(3)
     expect(result.artifacts!.unavailable).toBe(0)
     // Refused bytes were never written. Verify-then-write, not write-then-delete.
     expect(casBlobs(opened.root)).toEqual([])
@@ -570,15 +570,15 @@ describe("the injected port resolves the committed corpus end to end (plan step 
     for (const pkg of corpusPackages()) delete routes[tarballUrl(pkg.identifier, pkg.version!)]
     const first = await refresh(opened, stubFetch(routes).fetchImpl)
 
-    expect(first.artifacts!.unavailable).toBe(2)
+    expect(first.artifacts!.unavailable).toBe(3)
     expect(first.artifacts!.rejected).toBe(0)
     expect(casBlobs(opened.root)).toEqual([])
 
     const honest = stubFetch(corpusRoutes().routes)
     const second = await refresh(opened, honest.fetchImpl, { now: T1 })
-    expect(second.artifacts!.considered).toBe(2)
-    expect(second.artifacts!.fetched).toBe(2)
-    expect(casBlobs(opened.root)).toHaveLength(2)
+    expect(second.artifacts!.considered).toBe(3)
+    expect(second.artifacts!.fetched).toBe(3)
+    expect(casBlobs(opened.root)).toHaveLength(3)
     for (const row of opened.store.listArtifactVersions()) expect(row.lastVerifiedAt).toBe(T1)
   })
 })
@@ -615,14 +615,14 @@ describe("R-5's evidencePort, driven end-to-end over the committed corpus", () =
       withEvidencePort: true,
     })
 
-    expect(first.artifacts!.fetched).toBe(2)
-    expect(first.evidence!.considered).toBe(2)
-    expect(first.evidence!.compiled).toBe(2)
+    expect(first.artifacts!.fetched).toBe(3)
+    expect(first.evidence!.considered).toBe(3)
+    expect(first.evidence!.compiled).toBe(3)
     // `NO_PRIOR_DIGEST` on a cold store ⇒ `changed`, so the measured tiers are reported.
     expect(first.change.rebuild.evidence).toBe(true)
 
     const rows = opened.store.listEvidenceRecords()
-    expect(rows).toHaveLength(2)
+    expect(rows).toHaveLength(3)
     // The verdict is `UNKNOWN` by construction, and asserting it over a REAL corpus is the point:
     // "Never mark an unknown source as SAFE" has to hold on the honest path, not only in a fixture.
     for (const row of rows) {
@@ -640,17 +640,17 @@ describe("R-5's evidencePort, driven end-to-end over the committed corpus", () =
     const opened = await freshStore()
     await refresh(opened, stubFetch(corpusRoutes().routes).fetchImpl, { now: T1, withEvidencePort: true })
     const before = opened.store.listEvidenceRecords()
-    expect(before).toHaveLength(2)
+    expect(before).toHaveLength(3)
 
     const third = await refresh(opened, stubFetch(corpusRoutes().routes).fetchImpl, {
       now: "2026-08-03T00:00:00.000Z",
       withEvidencePort: true,
     })
     expect(third.evidence!.compiled).toBe(0)
-    expect(third.evidence!.unchanged).toBe(2)
+    expect(third.evidence!.unchanged).toBe(3)
 
     const after = opened.store.listEvidenceRecords()
-    expect(after).toHaveLength(2)
+    expect(after).toHaveLength(3)
     // Byte-for-byte, INCLUDING `created_at`. A row rewritten under a new clock reading would still
     // be "two rows", so the count alone cannot see control #55's failure — the digests and the
     // timestamps are what can.
@@ -673,7 +673,7 @@ describe("R-5's evidencePort, driven end-to-end over the committed corpus", () =
 
     // Bytes were available to compile from: the run that skipped evidence is the same run that
     // fetched them, so "nothing to measure" is ruled out before `null` is interpreted.
-    expect(cold.artifacts!.fetched).toBe(2)
+    expect(cold.artifacts!.fetched).toBe(3)
     expect(opened.store.listArtifactVersions().every((r) => r.artifactStatus === "FETCHED")).toBe(true)
     expect(cold.change.changed).toBe(true)
     expect(cold.change.reason).toBe("NO_PRIOR_DIGEST")

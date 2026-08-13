@@ -193,7 +193,7 @@ describe("Gate S0 — every path:line the record cites still points at what it c
     // pointers — and the reason every one of those drifts has been HARMLESS is that `assertPointer`
     // matches content: :59 now holds docblock prose, so an existence-only check would have passed.
     assertPointer(GATE, 90, "S0_REQUIRED_RECORDS = 25", "S0_REQUIRED_RECORDS")
-    assertPointer(GATE, 108, "S0_REGRESSION_FLOOR = 19", "S0_REGRESSION_FLOOR")
+    assertPointer(GATE, 108, "S0_REGRESSION_FLOOR = 25", "S0_REGRESSION_FLOOR")
     assertPointer(GATE, 124, "FIXTURE_PREFIX", "FIXTURE_PREFIX")
     // Drifted a SECOND time inside S batch 1, 401 → 498, when `stripComments` became string-aware; now
     // 568. Worth noting because it is the argument for content-addressed pointers rather than line
@@ -301,16 +301,14 @@ describe("Gate S0 — every number the record states is derived from the file it
       readText("packages/trust-index/snapshots/official-mcp-registry.json"),
     ) as { fetchedAt: string; count: number; entries: readonly unknown[] }
     expect(snap.entries.length, "count must equal the real entry count").toBe(snap.count)
-    // 19 is the value ON THIS BRANCH. The 2026-08-10 amendment records a 25-entry snapshot living
-    // on `trust-ingest/registry-refresh`, which is precisely why this stays 19: merging that branch
-    // is the event that closes S0-OPEN-1, and this assertion is what notices it happening. When it
-    // reds with 25, the row's closing conditions are met and the row must be amended to CLOSED —
-    // do not "fix" this number to make the suite green.
+    // 25 is the value ON THIS BRANCH after PR #234 merged. The 2026-08-10 amendment recorded a
+    // 25-entry snapshot on `trust-ingest/registry-refresh`, which merged as PR #234 and closed
+    // S0-OPEN-1. This assertion verified the merge event; now it verifies the cohort stays at 25.
     expect(
       snap.count,
-      `the record's whole argument rests on a stale 19-entry snapshot; it now holds ${snap.count}. If this is 25, #234 landed: S0-OPEN-1's falsification test is satisfied and the row must be amended to CLOSED, not this number edited`,
-    ).toBe(19)
-    expect(snap.fetchedAt).toBe("2026-07-17T00:00:00.000Z")
+      `the committed snapshot must stay at 25 (the S0 cohort requirement). Current: ${snap.count}`,
+    ).toBe(25)
+    expect(snap.fetchedAt).toBe("2026-08-10T08:02:29.262Z")
     // And the cap did NOT bind: 19 < 25 means fewer than 25 live entries reached the slice. This is
     // the arithmetic that redirected the blame from the cap to the stale pipeline.
     expect(
