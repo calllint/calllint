@@ -317,3 +317,43 @@ which point those 3 reds must be green and the count must be 3779 passed / 0 fai
   hole at the door): route `usableCopy` failures into `rejectedSlots` for the six `mergeSlots`
   call sites and the override loop, with a negative control per call site. It would still catch
   a value arriving from a non-committed path, which the schema assertion cannot see.
+  **CLOSED — see D6.**
+
+### D6: The follow-up, done — and the boolean was the thing losing the information
+
+The carried item above is implemented. `usableCopy` stays as the fall-back predicate, and a new
+`copyRejection` answers the separate question *which rule failed*, returning `null` when the value
+is usable. `mergeSlots` takes a `rejected` array and pushes `slot: reason` instead of running a
+bare `continue`; the override loop does the same. `rejected` moved up next to `overridden` because
+four of the six call sites precede the layout block that used to declare it.
+
+What the split makes visible is the part D4 could not: a four-rule predicate collapsed to one bit
+cannot say whether a value was **deleted**, **over-long**, **non-string**, or **markup-bearing** —
+and those need different fixes. This is the same classification-loss family as D1/D4/D4a, in its
+narrowest form yet: not a merged string, not a dropped value, not an unfed reader, but **a boolean
+standing in for a reason**.
+
+One thing measurement corrected mid-edit: the first version appended "the resolver fell back to
+the shipped value" to each reason, and the gate then printed that sentence **twice** —
+`presentation-lock.ts:564` already appends it for every rejected slot. The consequence belongs to
+the layer that reports, the rule to the layer that observes; the test now asserts the resolver's
+entries do **not** carry it.
+
+The offending text is never echoed — only the slot, the rule, and for the length rule the observed
+character count. These strings reach a committed artifact and a CI log, matching the reason already
+given for `tokens.stylesheetHref` at `resolvePresentation.ts:771`.
+
+**Verification.** Two controls, each red on its own claim:
+
+| control | result |
+|---|---|
+| Replace `rejected` with `[]` at ONE of the seven call sites (`agentRelayCopy`) | exactly **1 of 35** tests reds, naming the slot and "its mergeSlots call is likely missing `rejected`" — the missed-argument failure mode is caught, and caught specifically |
+| Append two characters to the **committed** `reason` (400 → 402) and run the lock gate | `presentation lock: FAILED`, **EXIT 2**, printing `…reason: 402 characters, over the 400 cap`. D4 measured this exact document as `rejectedSlots []`, EXIT **0** |
+
+The second control is the one that matters: it is the same mutation on the same real file that D4
+recorded as silent, so it measures the change rather than a synthetic stand-in.
+
+Suite 3779 passed / 0 failed (one new test), typecheck 0, all twelve `ci.yml` gate steps from
+`eval:phase-2.4` through `gate:s0:gate` EXIT 0. `git status --porcelain -- apps/web/public` empty
+and no artifact regenerated — with the committed catalog clean, `rejectedSlots` stays `[]`, so no
+digest moves. Two files changed in total.
