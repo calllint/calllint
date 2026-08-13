@@ -291,6 +291,44 @@ describe("presentation-content validator — falsifications", () => {
     expect(rulesFor(liveCatalog)).toEqual([])
   })
 
+  it("the live catalog satisfies the SHAPE schema too — the layer that owns bounds", () => {
+    // The gap this closes, measured while writing ADR 0078 and found by committing the
+    // fault: every other `validateSchema` call in this file feeds a SYNTHETIC document.
+    // `liveCatalog` was read and graded only by `validatePresentationContent`, which is
+    // deliberately not a JSON Schema re-implementation and therefore checks no LENGTH.
+    //
+    // So an over-long value in the shipped catalog was observable by nothing. It does not
+    // fail validation, it does not reach `rejectedSlots`, and the resolver drops it with a
+    // bare `continue` (`resolvePresentation.ts:527` and `:809`) — the only trace being
+    // `overriddenSlots` falling by one, which no assertion pins. Measured on the committed
+    // document with two characters appended to `overrides.resources.*.reason` (402 chars):
+    // validator errors 0, `rejectedSlots` [], `unwiredSlots` [], lock gate EXIT 0.
+    //
+    // Ajv sees it, and names the field and the bound. This assertion is the only thing
+    // that asks it about the document that actually ships.
+    const ok = validateSchema(liveCatalog)
+    expect(ok, ajv.errorsText(validateSchema.errors)).toBe(true)
+  })
+
+  it("that guard FAILS on an over-long committed value — the control for the assertion above", () => {
+    // Without this, the assertion above could hold because Ajv never checks length at all.
+    // Deriving the offender from the live document rather than hand-building one keeps the
+    // control honest: it is the real catalog, one character past the real cap.
+    const longest = Object.entries(
+      (liveCatalog.overrides as { resources: Record<string, { reason?: string }> }).resources,
+    ).find(([, v]) => typeof v.reason === "string")
+    expect(longest, "the catalog carries no override reason, so this control tests nothing").toBeDefined()
+    const [key, value] = longest as [string, { reason?: string }]
+    const over = structuredClone(liveCatalog) as typeof liveCatalog & {
+      overrides: { resources: Record<string, { reason?: string }> }
+    }
+    over.overrides.resources[key] = { ...value, reason: `${value.reason}x`.padEnd(401, "x") }
+    expect(validateSchema(over), "Ajv accepted a copy value past its own maxLength").toBe(false)
+    // And the value layer does NOT catch it — asserted, not merely omitted, so the division
+    // of labour is recorded where a future reader will look for it.
+    expect(rulesFor(over)).toEqual([])
+  })
+
   it("rejects a reserved L3 key nested deep inside a permitted section", () => {
     // The important case: not at the top level, where anyone would look, but buried
     // where only a depth-independent rule finds it.

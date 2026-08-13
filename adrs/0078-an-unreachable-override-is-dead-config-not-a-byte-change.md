@@ -196,6 +196,56 @@ today. Fixing it is a resolver change needing its own batch and its own negative
 scope-creeping it into a classification fix is how the merged fault in D1 got written. Recorded
 here as the follow-up, with the measurement attached so the next batch does not have to rediscover it.
 
+### D4a: The guard already existed and was never pointed at the shipped document
+
+D4 shortened the value and filed the resolver change as the fix. Re-measuring found the cheap
+fix first, and it is a better one, because it makes the fault **unwritable** instead of
+**reportable after the fact**:
+
+`schemas/calllint.presentation-content.v1.schema.json` already declares
+`$defs.copyText.maxLength: 400`, and `overrides.resources.*.reason` already `$ref`s it. Ajv
+rejects the 402-character document by name:
+
+```
+data/overrides/resources/mcp-registry__ag.hood-name-service/reason
+  must NOT have more than 400 characters
+```
+
+So `MAX_COPY_LENGTH` was never the only reader of the bound — the **shape layer** owns it, and
+it works. What was missing is that nothing ever fed it the **live catalog**. Measured over
+`presentation-content.test.ts`: 14 `validateSchema(...)` call sites, **all 14 synthetic**.
+`liveCatalog` is read at line 45 and reaches only `configVersion`'s type and
+`validatePresentationContent`, whose docblock (line 326) states it is deliberately *not* a JSON
+Schema re-implementation and therefore checks no length. Two layers, each correct, and the
+shipped document graded by only the one that cannot see the bound.
+
+This is the same shape a third time, in its own third form: not a merged string (D1), not a
+dropped value (D4), but **a working check with no path from the artifact to it**.
+
+Fixed by two assertions, in the file that already owns the schema boundary:
+
+| assertion | claim |
+|---|---|
+| `validateSchema(liveCatalog)` is `true` | the shipped document satisfies the bounds layer |
+| the same document with `reason` at 401 is `false`, and `rulesFor(...)` is still `[]` | the guard has a failing mode, **and** the value layer genuinely cannot catch it |
+
+The second is the control: without it the first could hold because Ajv checks no length. It
+derives the offender from the real catalog rather than hand-building one, so it cannot pass by
+testing a document the repo does not ship. Verified: 39 tests pass; with two characters appended
+to the committed `reason`, exactly the new assertion fails and prints the field and the bound.
+
+**Consequence for the resolver follow-up: it is now a defence-in-depth cleanup, not a
+correctness gap.** An over-long value can no longer be committed silently. Routing `usableCopy`
+into `rejectedSlots` still has value — it would catch a value that reaches the resolver from a
+non-committed path — but the urgent hole is closed at the door rather than by a report.
+
+**And the honest limit on the 400 question.** If a `reason` ever genuinely needs more than 400
+characters, the answer is neither raising the cap nor writing to 400 exactly. `reason` reaches
+**no served page** (measured: 0 hits under `apps/web/public/`) and appears in
+`presentation-lock.json` only as a slot **path**, never as its text — so a long rationale has no
+consumer that renders it. Prose that long belongs in the ADR, with the entry pointing at it. The
+cap is not a limit being fought; it is a signal that the text is in the wrong file.
+
 ### D5: What is NOT decided here
 
 - **The absence itself is not fixed.** `mcp-registry/io.github.calllint-calllint` is still
@@ -220,9 +270,18 @@ Negative controls, each red on its own claim:
 5. Append one word to the retargeted `reason` (400 → 402 chars) → the slot vanishes from
    `overriddenSlots` while `rejectedSlots`, `unwiredSlots` and `failures` all stay empty and
    the gate stays EXIT 0. Proves D4's claim that the skip is silent, rather than asserting it.
+6. (D4a) The same 402-character document through **Ajv** → rejected, naming the field and the
+   bound. Proves the bound has a working reader, so D4's "the fix is a resolver change" was
+   incomplete: the fix is to point the existing reader at the shipped document.
+7. (D4a) The new live-catalog assertion, with two characters appended to the committed `reason`
+   → exactly that assertion fails (38 pass / 1 fail) and prints
+   `…/reason must NOT have more than 400 characters`. Proves the guard has a failing mode.
+8. (D4a) The same mutated document through `validatePresentationContent` → `[]`. Proves the
+   value layer cannot catch it, so the new assertion is not redundant with an existing one.
 
-All five were run. Results: 1 fires §4 naming both values · 2 fires §3 with no §4 text · 3
-`PASSED` EXIT 0 · 4 empty · 5 silent as described.
+All eight were run. Results: 1 fires §4 naming both values · 2 fires §3 with no §4 text · 3
+`PASSED` EXIT 0 · 4 empty · 5 silent as described · 6 rejected by name · 7 red on the new
+assertion alone · 8 `[]`, confirming the layer split.
 
 Required to pass unchanged: `pnpm test`, `pnpm typecheck`, and every `ci.yml` step from
 `eval:phase-2.4` through `gate:s0:regression`, plus `pnpm gate:s0:gate` (EXIT 0, cohort 25/25).
@@ -249,7 +308,12 @@ which point those 3 reds must be green and the count must be 3779 passed / 0 fai
   Losing a world state does not require merging strings — dropping the value on the floor
   (`continue`) does it too, and leaves even less behind. Both call sites had a working reporting
   channel (`rejectedSlots`) sitting one line away, unfed.
-- Carried follow-up: route `usableCopy` failures into `rejectedSlots` for the six `mergeSlots`
-  call sites and the override loop, with a negative control per call site. Measured as
-  non-urgent (no committed value is currently unusable), which is exactly why it needs a ticket
-  rather than a memory.
+- D4a is the lesson's fourth form, and the cheapest to miss: the bound had a **correct reader
+  that worked**, and the shipped document had no path to it. 14 of 14 `validateSchema` call
+  sites were synthetic. Before writing a new check, ask which layer already owns the rule and
+  whether the real artifact is fed to it — "add a guard" was the wrong first instinct here, and
+  D4 recorded it as the plan.
+- Carried follow-up, now **defence-in-depth rather than a correctness gap** (D4a closed the
+  hole at the door): route `usableCopy` failures into `rejectedSlots` for the six `mergeSlots`
+  call sites and the override loop, with a negative control per call site. It would still catch
+  a value arriving from a non-committed path, which the schema assertion cannot see.
