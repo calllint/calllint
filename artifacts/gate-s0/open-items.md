@@ -996,6 +996,40 @@ makes **unconditional**: the outcome no longer depends on where the cap sits rel
 > sessions against the current pages** — ten human five-second sessions — which no CI run and no agent
 > can supply. Tracked here rather than as a new row because the root cause is this row's absence plus
 > #234's refresh, not an independent defect.
+>
+> **Confirmed on CI, not only locally** (run `31683159184`, head `1ad3fbf`). All three matrix legs fail on
+> exactly one step — `Phase 2.4 human-panel store validation` — naming the same three responses `[6] [7]
+> [9]`; `build-and-test` fails only as *"Require all matrix legs to have succeeded"*, i.e. it relays.
+> The `pnpm eval:phase-2.4` drift red that also failed these legs on `main` is **gone**, so the artifact
+> regeneration did what it claimed. The six auxiliary jobs (`facts`, `schema-compatibility`,
+> `distribution-smoke`, `evidence-fixtures`, `telemetry-boundary`, `agent-integration-smoke`) all pass.
+>
+> **This branch introduces none of it, measured by byte compare rather than by argument.** `origin/main`
+> and this branch each serve **25** install pages, the same 25; all three subjects are absent from both;
+> and `git diff origin/main...HEAD -- apps/web/public/install` is **empty** — the PR does not touch a
+> single served page. The red arrived with `1115639`.
+>
+> **The finding worth carrying forward: two mechanisms read the same absence and only one read it
+> correctly.** A missing page reaches Gate 2.4-B twice.
+> 1. `partitionPanelFreshness` compares `shownDigest` against the digest served **today**, and reports a
+>    removed page as `currentDigest === null` → the response is `stale`, excluded, and the gate falls to
+>    `PENDING_HUMAN_PANEL`. **Fail-closed, and it worked** — this is what the regenerated artifact records.
+> 2. `validate()` (`phase-2.4-panel.ts:217`) tests `existsSync` on the served page and pushes an
+>    **integrity error**, which exits 1 and fails the leg.
+>
+> Both are defensible in isolation; together they classify one event as two different kinds of thing. (1)
+> treats "the page is gone" as *evidence expiring* — a state. (2) treats it as *the record being
+> malformed* — a break. But the record is not malformed: those sessions genuinely happened, against pages
+> we genuinely served on 2026-07-30, and the store faithfully says so. What changed is the world, not the
+> file. The docblock above `validate` states its own scope — *"about the RECORD, never about whether an
+> answer was right"* — and the `existsSync` check is the one rule in it that is **not** about the record;
+> it is about current serving state, which is (1)'s job and which (1) already does better, because it
+> distinguishes *page removed* from *page edited* while `existsSync` collapses both.
+>
+> No change is made here: correcting it means moving a rule out of a validator that CI runs, which is a
+> gate-strength change and needs its own ADR — and the honest red is more useful than a silent
+> reclassification while this row is open. Recorded so a future batch fixes the **classification** rather
+> than deleting the human data, and so nobody reads the green half as proof the absence was handled.
 
 ---
 
