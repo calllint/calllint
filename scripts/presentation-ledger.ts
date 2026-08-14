@@ -310,6 +310,25 @@ export function historyIsReachable(ledger: DeployLedger): boolean {
 }
 
 /**
+ * Does git itself say this clone's history has been TRUNCATED?
+ *
+ * Deliberately not the same question as `historyIsReachable`, and the difference is the
+ * whole reason this exists. That function asks "can I see every commit this ledger names",
+ * which is false both when the clone is shallow AND when an entry is genuinely dangling —
+ * one bit standing in for two causes that want opposite responses
+ * ([[a-boolean-standing-in-for-a-reason]]). This one asks git directly, so absence of
+ * evidence can be told apart from evidence of a fault
+ * ([[absence-must-not-become-a-category]]).
+ */
+export function repositoryIsShallow(): boolean {
+  try {
+    return git("rev-parse", "--is-shallow-repository").trim() === "true"
+  } catch {
+    return false
+  }
+}
+
+/**
  * Every fault detectable WITHOUT git: shape, per-entry recomputation, distinctness,
  * wall-clock ordering, and currency against the live catalog.
  *
@@ -484,10 +503,31 @@ export interface Reseat {
  * Why this is not "trusting the squash": a squash preserves the tree, so the post-squash
  * commit carries byte-identical catalog bytes and is found here. A rebase that EDITED the
  * catalog does not, and is correctly refused. The distinction is measured, not assumed.
+ *
+ * REFUSES WHOLESALE ON A SHALLOW CLONE, and that is a safety property rather than a
+ * convenience. `isAncestorOfHead` is false for a dangling entry and equally false for a
+ * commit that was simply never fetched, so on a depth-1 clone every entry looks dangling.
+ * Measured on a real `--depth 1` clone of this repo: `rev-list HEAD -- <catalog>` yields
+ * ONE candidate, and the ten-entry ledger produced nine "matches NO commit" refusals plus
+ * one reseat — the newest entry, re-pointed onto HEAD. That reseat is the dangerous half:
+ * `record` guarantees the newest entry's document equals HEAD's catalog, so on a truncated
+ * clone the byte comparison always succeeds for it and the command would rewrite an
+ * AUTHENTIC pointer while calling nine authentic entries forgeries. Absence of history is
+ * not evidence of a fault, so the answer is neither "repair" nor "accuse".
  */
 export function findReseat(ledger: DeployLedger): { reseats: Reseat[]; refusals: string[] } {
   const reseats: Reseat[] = []
   const refusals: string[] = []
+  if (repositoryIsShallow()) {
+    return {
+      reseats: [],
+      refusals: [
+        "this clone is SHALLOW, so an entry that is merely unfetched is indistinguishable from one that is " +
+          "dangling. Refusing to reseat anything: re-run with full history (`git fetch --unshallow`, or " +
+          "`actions/checkout` with `fetch-depth: 0`).",
+      ],
+    }
+  }
   // Only commits that touched the catalog can carry a different version of it. `--follow`
   // is deliberately absent: a rename would change the path this ledger is about, and
   // silently following it would reseat onto a document at a path the entry never described.
