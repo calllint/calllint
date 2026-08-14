@@ -30,6 +30,9 @@
  *   --record <slug>       run one participant's session and append the result.
  *   --status              print how far the panel is from the gate's floor.
  *   --serve               serve the committed tree and print the URLs. No writes.
+ *   --reseat              recompute a pre-0079 response's measured-surface digest
+ *                         from the bytes its own `shownDigest` identifies in git
+ *                         history. Refuses rather than crediting today's page.
  *
  * Options:
  *   --base <origin>       show the page from this origin instead of an ephemeral
@@ -39,6 +42,7 @@
  * Exit codes: 0 ok · 1 invalid store / artifact mismatch · 2 refused (no TTY /
  * bad usage / page unreachable).
  */
+import { execFileSync } from "node:child_process"
 import { createHash } from "node:crypto"
 import fs from "node:fs"
 import http from "node:http"
@@ -51,6 +55,7 @@ import {
   FIVE_SECOND_THRESHOLD,
   FIVE_SECOND_MIN_PANEL,
   measureFiveSecondPanel,
+  panelSurfaceDigest,
   partitionPanelFreshness,
   stylesheetHrefs,
   auditShownArtifact,
@@ -69,7 +74,7 @@ const served = path.join(publicRoot, "install")
 const sha256 = (b: Buffer | string): string =>
   `sha256:${createHash("sha256").update(b).digest("hex")}`
 
-/** Digest of every served install page, keyed by canonicalSlug (cohort/name). */
+/** Measured-surface digest of every served install page, keyed by canonicalSlug. */
 function servedPageDigests(): Map<string, string> {
   const out = new Map<string, string>()
   if (!fs.existsSync(served)) return out
@@ -78,7 +83,7 @@ function servedPageDigests(): Map<string, string> {
     if (!fs.statSync(dir).isDirectory()) continue
     for (const name of fs.readdirSync(dir)) {
       const page = path.join(dir, name, "index.html")
-      if (fs.existsSync(page)) out.set(`${cohort}/${name}`, sha256(fs.readFileSync(page)))
+      if (fs.existsSync(page)) out.set(`${cohort}/${name}`, panelSurfaceDigest(fs.readFileSync(page, "utf8")))
     }
   }
   return out
@@ -150,6 +155,8 @@ interface Preflight {
   readonly pageUrl: string
   /** sha256 of the HTML actually fetched — recorded as the response's provenance. */
   readonly shownDigest: string
+  /** Digest of the surface this session measures — what freshness compares (ADR 0079). */
+  readonly shownSurfaceDigest: string
   readonly stylesheets: readonly string[]
   /** What the page actually says, so the operator grades against it, not memory. */
   readonly answers: Readonly<Record<(typeof FIVE_SECOND_QUESTIONS)[number], string | null>>
@@ -191,6 +198,7 @@ async function preflight(slug: string, base: string): Promise<Preflight> {
   return {
     pageUrl,
     shownDigest: sha256(html),
+    shownSurfaceDigest: panelSurfaceDigest(servedHtml),
     stylesheets: audit.stylesheets,
     answers: extractCapsuleAnswers(servedHtml),
   }
@@ -238,6 +246,13 @@ function validate(store: FiveSecondPanelStore): string[] {
     if (typeof r.shownDigest !== "string" || !/^sha256:[0-9a-f]{64}$/.test(r.shownDigest)) {
       errs.push(`${at}: shownDigest must be the sha256 of the HTML the participant was shown`)
     }
+    // Optional by design (ADR 0079 D3): pre-0079 responses carry no surface digest
+    // and are reported UNKNOWN_BASIS rather than rejected. Present-but-malformed is
+    // still an error — a wrong basis is worse than a missing one, because a missing
+    // one is reported and a malformed one would silently never match.
+    if (r.shownSurfaceDigest !== undefined && !/^sha256:[0-9a-f]{64}$/.test(String(r.shownSurfaceDigest))) {
+      errs.push(`${at}: shownSurfaceDigest, when present, must be a sha256:<hex> measured-surface digest`)
+    }
     const key = `${r.participant} ${r.canonicalSlug}`
     if (seen.has(key)) errs.push(`${at}: duplicate — ${r.participant} already has a recorded session for ${r.canonicalSlug}`)
     seen.add(key)
@@ -245,11 +260,106 @@ function validate(store: FiveSecondPanelStore): string[] {
   return errs
 }
 
+/**
+ * Candidate byte sequences for one page, newest first. Lazy on purpose (a page can
+ * have many commits) and INJECTED on purpose: the refusal path in `reseatResponses`
+ * is the one behaviour ADR 0079 D4 promises, and a real repo cannot be relied on to
+ * contain an unrecoverable response, so a test must be able to supply one.
+ */
+export type HistoryLookup = (canonicalSlug: string) => Iterable<Buffer>
+
+export interface ReseatOutcome {
+  readonly responses: readonly FiveSecondResponse[]
+  readonly changed: number
+  readonly refusals: readonly string[]
+}
+
+/**
+ * Supply `shownSurfaceDigest` for responses recorded before ADR 0079, computed
+ * from the bytes that response's own `shownDigest` identifies (ADR 0079 D4).
+ *
+ * It never reads the working tree and never invents a document: the only bytes it
+ * will accept are bytes whose sha256 already equals the recorded `shownDigest`.
+ * A response whose shown bytes are not offered is REFUSED, not upgraded — crediting
+ * it from today's page is exactly the substitution this basis change prevents.
+ */
+export function reseatResponses(store: FiveSecondPanelStore, lookup: HistoryLookup): ReseatOutcome {
+  const refusals: string[] = []
+  let changed = 0
+  const responses = store.responses.map((r, i) => {
+    if (r.shownSurfaceDigest !== undefined) return r
+    for (const bytes of lookup(r.canonicalSlug)) {
+      if (sha256(bytes) !== r.shownDigest) continue
+      changed += 1
+      return { ...r, shownSurfaceDigest: panelSurfaceDigest(bytes.toString("utf8")) }
+    }
+    refusals.push(
+      `responses[${i}] (${r.participant} @ ${r.canonicalSlug}): no commit on HEAD's history carries the bytes ` +
+        `${r.shownDigest.slice(0, 14)}… that this response records. Do not reseat it — the shown artifact is not recoverable.`,
+    )
+    return r
+  })
+  return { responses, changed, refusals }
+}
+
+/** Every version of a page committed on HEAD's history, newest first. */
+function* gitHistory(canonicalSlug: string): Iterable<Buffer> {
+  const rel = `apps/web/public/install/${canonicalSlug}/index.html`
+  let commits: string[] = []
+  try {
+    commits = execFileSync("git", ["rev-list", "HEAD", "--", rel], { encoding: "utf8", maxBuffer: 1 << 26 })
+      .trim()
+      .split("\n")
+      .filter(Boolean)
+  } catch {
+    return
+  }
+  for (const c of commits) {
+    try {
+      yield execFileSync("git", ["show", `${c}:${rel}`], { maxBuffer: 1 << 28 })
+    } catch {
+      continue // the path did not exist at this commit
+    }
+  }
+}
+
+function reseat(): number {
+  const store = readStore()
+  const errs = validate(store)
+  if (errs.length > 0) {
+    console.error("refusing to reseat an invalid store:")
+    for (const e of errs) console.error(`  - ${e}`)
+    return 1
+  }
+
+  const { responses, changed, refusals } = reseatResponses(store, gitHistory)
+
+  for (const m of refusals) console.error(`refusing — ${m}`)
+  if (changed === 0) {
+    if (refusals.length > 0) return 2
+    console.log("nothing to reseat — every response already carries a measured-surface digest.")
+    return 0
+  }
+
+  const next: FiveSecondPanelStore = { ...store, responses }
+  const after = validate(next)
+  if (after.length > 0) {
+    console.error("refusing to write — the result would be invalid:")
+    for (const e of after) console.error(`  - ${e}`)
+    return 1
+  }
+  fs.writeFileSync(storePath, JSON.stringify(next, null, 2) + "\n", "utf8")
+  console.log(`reseated ${changed} response(s) onto a measured-surface digest.`)
+  console.log(status(next))
+  return refusals.length > 0 ? 2 : 0
+}
+
 /** How far the recorded panel is from the gate's floor. Reports, never rounds up. */
 function status(store: FiveSecondPanelStore): string {
-  // Only responses whose page still matches what we serve count: recognition is
-  // evidence about one artifact, so a moved page invalidates it rather than
-  // downgrading it.
+  // Only responses whose MEASURED SURFACE still matches what we serve count:
+  // recognition is evidence about one measured subject, so a changed surface
+  // invalidates it rather than downgrading it. A rebake that moves only
+  // provenance is not such a change (ADR 0079).
   const { fresh, stale } = partitionPanelFreshness(store, servedPageDigests())
   const m = measureFiveSecondPanel({ ...store, responses: fresh })
   const lines = [
@@ -257,12 +367,14 @@ function status(store: FiveSecondPanelStore): string {
     `responses:    ${m.responses}`,
   ]
   if (stale.length > 0) {
+    const why: Record<typeof stale[number]["reason"], string> = {
+      PAGE_GONE: "PAGE REMOVED",
+      SURFACE_CHANGED: "measured surface changed",
+      UNKNOWN_BASIS: "no measured-surface digest — run panel:reseat",
+    }
     lines.push(
-      `stale:        ${stale.length} response(s) measured a page that has since changed — they do not count:`,
-      ...stale.map(
-        (s) =>
-          `  ${s.participant} @ ${s.canonicalSlug} — shown ${s.shownDigest.slice(0, 14)}…, now ${s.currentDigest === null ? "PAGE REMOVED" : `${s.currentDigest.slice(0, 14)}…`}`,
-      ),
+      `stale:        ${stale.length} response(s) do not count:`,
+      ...stale.map((s) => `  ${s.participant} @ ${s.canonicalSlug} — ${s.reason}: ${why[s.reason]}`),
     )
   }
   for (const q of FIVE_SECOND_QUESTIONS) {
@@ -361,6 +473,7 @@ async function record(slug: string, baseOverride: string | null): Promise<number
       // the port, so the store stays stable across sessions.
       shownFrom: local === null ? new URL(base).origin : "http://127.0.0.1",
       shownDigest: shown.shownDigest,
+      shownSurfaceDigest: shown.shownSurfaceDigest,
     }
     const next: FiveSecondPanelStore = { ...store, responses: [...store.responses, response] }
     const errs = validate(next)
@@ -380,8 +493,17 @@ async function record(slug: string, baseOverride: string | null): Promise<number
 
 // --- modes -------------------------------------------------------------------
 
+// Guarded so that IMPORTING this file does not run it. `reseatResponses` is exported
+// so ADR 0079 D4's refusal has a failing mode: an unguarded top-level dispatch makes
+// every import exit the process before its first assertion, and a real repo cannot be
+// relied on to hold an unrecoverable response to refuse.
+const invokedDirectly = (() => {
+  const entry = process.argv[1]
+  if (entry === undefined) return false
+  return path.resolve(entry) === fileURLToPath(import.meta.url)
+})()
+
 const argv = process.argv.slice(2)
-const store = readStore()
 const flagValue = (flag: string): string | null => {
   const i = argv.indexOf(flag)
   if (i === -1) return null
@@ -390,7 +512,9 @@ const flagValue = (flag: string): string | null => {
 }
 const base = flagValue("--base")
 
-if (argv.includes("--serve")) {
+if (!invokedDirectly) {
+  // imported as a module — expose the functions, run nothing
+} else if (argv.includes("--serve")) {
   // Keep one server up for a whole session, so several participants can be shown
   // pages without restarting anything. Ctrl-C ends it.
   const { origin } = await serveCommittedTree()
@@ -399,6 +523,8 @@ if (argv.includes("--serve")) {
   console.log(`${slugs.length} install page(s), e.g.`)
   for (const s of slugs.slice(0, 3)) console.log(`  ${origin}/install/${s}/`)
   console.log("\nCtrl-C to stop.")
+} else if (argv.includes("--reseat")) {
+  process.exit(reseat())
 } else if (argv.includes("--record")) {
   const slug = flagValue("--record")
   if (slug === null) {
@@ -408,7 +534,7 @@ if (argv.includes("--serve")) {
   }
   process.exit(await record(slug, base))
 } else {
-
+  const store = readStore()
   const errs = validate(store)
   if (errs.length > 0) {
     console.error(`${path.relative(repoRoot, storePath)} is invalid:`)
@@ -425,9 +551,13 @@ if (argv.includes("--serve")) {
     const { fresh, stale } = partitionPanelFreshness(store, servedPageDigests())
     console.log(`  fresh: ${fresh.length} · stale: ${stale.length} (stale responses do not count toward Gate 2.4-B)`)
     for (const s of stale) {
-      console.log(
-        `  - ${s.participant} @ ${s.canonicalSlug} — ${s.currentDigest === null ? "PAGE NO LONGER SERVED" : "page edited since the session"}`,
-      )
+      const why =
+        s.reason === "PAGE_GONE"
+          ? "PAGE NO LONGER SERVED"
+          : s.reason === "UNKNOWN_BASIS"
+            ? "NO MEASURED-SURFACE DIGEST (pre-0079) — run panel:reseat"
+            : "MEASURED SURFACE CHANGED since the session"
+      console.log(`  - ${s.participant} @ ${s.canonicalSlug} — ${why}`)
     }
     process.exit(0)
   }

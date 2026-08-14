@@ -277,95 +277,52 @@
     ]
   },
   "humanPanel": {
-    "status": "NOT_RUN",
+    "status": "RECORDED",
     "storePath": "artifacts/phase-2.4/five-second-panel-store.json",
     "questions": [
       "target",
       "consequence",
       "action"
     ],
-    "participants": 0,
-    "responses": 0,
+    "participants": 7,
+    "responses": 7,
     "recognition": {
-      "target": null,
-      "consequence": null,
-      "action": null
+      "target": 1,
+      "consequence": 1,
+      "action": 1
     },
-    "staleResponses": 10,
+    "staleResponses": 3,
     "stale": [
-      {
-        "participant": "1",
-        "canonicalSlug": "mcp-registry/ai.agenticshelf-mcp",
-        "shownDigest": "sha256:cd0618f855b8ab7827fc586860dd0543d6a5abf513f1cd0446d630f0af128ee4",
-        "currentDigest": "sha256:30b66338c9be424e59ced74daa83a01b6281450ccc46fe07c94f1fef963449ae"
-      },
-      {
-        "participant": "2",
-        "canonicalSlug": "mcp-registry/ai.agentic-news-mcp",
-        "shownDigest": "sha256:37d261116b454a23e459b7f082fca855e7f55276507302326dae5ef16ae5e287",
-        "currentDigest": "sha256:ba8d40cea6af79c78e09034a363c24188b7c0fb41dd56540738178ba10266a08"
-      },
-      {
-        "participant": "3",
-        "canonicalSlug": "mcp-registry/ai.adadvisor-mcp-server",
-        "shownDigest": "sha256:bdbffb95468d02b4600831e37888d67784526ed788ff7370ace1300a3f049921",
-        "currentDigest": "sha256:1c759e32e134260cd04be55678a60cf69dd3e796d556fe92822acd2046695fbf"
-      },
-      {
-        "participant": "4",
-        "canonicalSlug": "mcp-registry/ai.1325-mcp",
-        "shownDigest": "sha256:fae7ced99f9c21394320b1596bdf2a9c5d81d443e70fc602a70c35c4d31710b4",
-        "currentDigest": "sha256:a59689f167628edc84ef3a3864702d2f0aa786bf787aff315c1993082b94d4b6"
-      },
-      {
-        "participant": "5",
-        "canonicalSlug": "mcp-registry/agency.lona-trading",
-        "shownDigest": "sha256:0806acf14e6fa6e08338eb7664a42ca1de2c76bd503b4b908806e3cf4e6f4483",
-        "currentDigest": "sha256:729d43b4c4faab9a6bac0bb0cb20528803f75bf721aa065223e04e6cdd4023d5"
-      },
-      {
-        "participant": "6",
-        "canonicalSlug": "mcp-registry/ag.hood-name-service",
-        "shownDigest": "sha256:1e650097cafe54b9d1cc529a06fb85d1d4a8fe613439a8534261588ad1db5ea2",
-        "currentDigest": "sha256:4721ceab9be6a3f7575c62330a8f28df2442efaba8001078930fc4eb424e2a24"
-      },
       {
         "participant": "7",
         "canonicalSlug": "mcp-registry/ac.tandem-docs-mcp",
+        "reason": "PAGE_GONE",
         "shownDigest": "sha256:e3d22db1afa80223716e4b09219325be302100885f1dda97107912df2c6865e6",
-        "currentDigest": null
+        "shownSurfaceDigest": "sha256:139cbe551fa3f5972e5a75125297f93ee0378a2418d6c68e617303f7c07b720f",
+        "currentSurfaceDigest": null
       },
       {
         "participant": "8",
         "canonicalSlug": "mcp-registry/ac.inference.sh-mcp",
+        "reason": "PAGE_GONE",
         "shownDigest": "sha256:b0a2b6bc760d182966df97cc03c86e68851a7d9c3e8aabd8ce6bb1653c138728",
-        "currentDigest": null
-      },
-      {
-        "participant": "9",
-        "canonicalSlug": "mcp-registry/ai.adeu-adeu",
-        "shownDigest": "sha256:6fed098f2b5c0c045011a3b48ff4abcfccedcc1e1a88008e63b32b85be0b94e4",
-        "currentDigest": "sha256:36ecb9ac23e6dff54ac41b72923588e53450c53839adbf7b0cba52dd6c5eabb4"
+        "shownSurfaceDigest": "sha256:4862cb564c3718d1ec150059b04d9ea67ed3ef5688df06f5e88e884eb2cba509",
+        "currentSurfaceDigest": null
       },
       {
         "participant": "10",
         "canonicalSlug": "mcp-registry/io.github.calllint-calllint",
+        "reason": "PAGE_GONE",
         "shownDigest": "sha256:02df06de7dc296394b1924e14c265f22469a25afe7ce5228a15d41124f99674d",
-        "currentDigest": null
+        "shownSurfaceDigest": "sha256:38bd0490154b319b2f83a22cc529659a3da3faa31fbf7f78dc737859c28187fa",
+        "currentSurfaceDigest": null
       }
     ]
   },
   "blockers": [
-    "human panel not recorded: 0/10 responses in artifacts/phase-2.4/five-second-panel-store.json",
-    "stale panel response: 1 @ mcp-registry/ai.agenticshelf-mcp measured sha256:cd0618f855b8ab7827fc586860dd0543d6a5abf513f1cd0446d630f0af128ee4 but the served page is now sha256:30b66338c9be424e59ced74daa83a01b6281450ccc46fe07c94f1fef963449ae — re-run that session",
-    "stale panel response: 2 @ mcp-registry/ai.agentic-news-mcp measured sha256:37d261116b454a23e459b7f082fca855e7f55276507302326dae5ef16ae5e287 but the served page is now sha256:ba8d40cea6af79c78e09034a363c24188b7c0fb41dd56540738178ba10266a08 — re-run that session",
-    "stale panel response: 3 @ mcp-registry/ai.adadvisor-mcp-server measured sha256:bdbffb95468d02b4600831e37888d67784526ed788ff7370ace1300a3f049921 but the served page is now sha256:1c759e32e134260cd04be55678a60cf69dd3e796d556fe92822acd2046695fbf — re-run that session",
-    "stale panel response: 4 @ mcp-registry/ai.1325-mcp measured sha256:fae7ced99f9c21394320b1596bdf2a9c5d81d443e70fc602a70c35c4d31710b4 but the served page is now sha256:a59689f167628edc84ef3a3864702d2f0aa786bf787aff315c1993082b94d4b6 — re-run that session",
-    "stale panel response: 5 @ mcp-registry/agency.lona-trading measured sha256:0806acf14e6fa6e08338eb7664a42ca1de2c76bd503b4b908806e3cf4e6f4483 but the served page is now sha256:729d43b4c4faab9a6bac0bb0cb20528803f75bf721aa065223e04e6cdd4023d5 — re-run that session",
-    "stale panel response: 6 @ mcp-registry/ag.hood-name-service measured sha256:1e650097cafe54b9d1cc529a06fb85d1d4a8fe613439a8534261588ad1db5ea2 but the served page is now sha256:4721ceab9be6a3f7575c62330a8f28df2442efaba8001078930fc4eb424e2a24 — re-run that session",
-    "stale panel response: 7 @ mcp-registry/ac.tandem-docs-mcp measured sha256:e3d22db1afa80223716e4b09219325be302100885f1dda97107912df2c6865e6 but the served page is now REMOVED — re-run that session",
-    "stale panel response: 8 @ mcp-registry/ac.inference.sh-mcp measured sha256:b0a2b6bc760d182966df97cc03c86e68851a7d9c3e8aabd8ce6bb1653c138728 but the served page is now REMOVED — re-run that session",
-    "stale panel response: 9 @ mcp-registry/ai.adeu-adeu measured sha256:6fed098f2b5c0c045011a3b48ff4abcfccedcc1e1a88008e63b32b85be0b94e4 but the served page is now sha256:36ecb9ac23e6dff54ac41b72923588e53450c53839adbf7b0cba52dd6c5eabb4 — re-run that session",
-    "stale panel response: 10 @ mcp-registry/io.github.calllint-calllint measured sha256:02df06de7dc296394b1924e14c265f22469a25afe7ce5228a15d41124f99674d but the served page is now REMOVED — re-run that session"
+    "human panel not recorded: 7/10 responses in artifacts/phase-2.4/five-second-panel-store.json",
+    "stale panel response (PAGE_GONE): 7 @ mcp-registry/ac.tandem-docs-mcp — the page is no longer served — that subject left the cohort",
+    "stale panel response (PAGE_GONE): 8 @ mcp-registry/ac.inference.sh-mcp — the page is no longer served — that subject left the cohort",
+    "stale panel response (PAGE_GONE): 10 @ mcp-registry/io.github.calllint-calllint — the page is no longer served — that subject left the cohort"
   ]
 }

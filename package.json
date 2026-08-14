@@ -49,6 +49,7 @@
     "eval:phase-2.4:panel": "tsx scripts/phase-2.4-panel.ts",
     "eval:phase-2.4:panel:validate": "tsx scripts/phase-2.4-panel.ts --validate",
     "eval:phase-2.4:panel:record": "tsx scripts/phase-2.4-panel.ts --record",
+    "eval:phase-2.4:panel:reseat": "tsx scripts/phase-2.4-panel.ts --reseat",
     "smoke": "pnpm build && vitest run tests/e2e/test/package-smoke.test.ts",
     "pack:smoke": "node scripts/package-smoke.mjs",
     "pack:smoke:mcp": "node scripts/mcp-pack-smoke.mjs",

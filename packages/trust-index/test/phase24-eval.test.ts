@@ -24,6 +24,8 @@ import {
   evaluateHumanCapsule,
   measureFiveSecondPanel,
   partitionPanelFreshness,
+  panelMeasuredSurface,
+  panelSurfaceDigest,
   stylesheetHrefs,
   auditShownArtifact,
   extractCapsuleAnswers,
@@ -34,10 +36,16 @@ import {
   type FiveSecondResponse,
   type HumanCapsuleStructure,
 } from "../src/index.js"
+import { reseatResponses } from "../../../scripts/phase-2.4-panel.js"
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..", "..", "..")
 
-function servedInstallPageDigests(): Map<string, string> {
+/**
+ * canonicalSlug → the SERVED page's measured-surface digest (ADR 0079 D2). Uses
+ * the shipped `panelSurfaceDigest`, not a local re-implementation, so this test
+ * cannot disagree with `scripts/phase-2.4-panel.ts` about what freshness compares.
+ */
+function servedInstallSurfaceDigests(): Map<string, string> {
   const root = path.join(repoRoot, "apps", "web", "public", "install")
   const out = new Map<string, string>()
   if (!fs.existsSync(root)) return out
@@ -46,12 +54,7 @@ function servedInstallPageDigests(): Map<string, string> {
     if (!fs.statSync(dir).isDirectory()) continue
     for (const name of fs.readdirSync(dir)) {
       const page = path.join(dir, name, "index.html")
-      if (fs.existsSync(page)) {
-        out.set(
-          `${cohort}/${name}`,
-          `sha256:${crypto.createHash("sha256").update(fs.readFileSync(page)).digest("hex")}`,
-        )
-      }
+      if (fs.existsSync(page)) out.set(`${cohort}/${name}`, panelSurfaceDigest(fs.readFileSync(page, "utf8")))
     }
   }
   return out
@@ -169,7 +172,7 @@ describe("Gate 2.4-B — the human panel is DATA, never simulated", () => {
       fs.readFileSync(path.join(repoRoot, "artifacts/phase-2.4/five-second-panel-store.json"), "utf8"),
     ) as FiveSecondPanelStore
     expect(store.schema).toBe("calllint.five-second-panel.v0")
-    const { fresh, stale } = partitionPanelFreshness(store, servedInstallPageDigests())
+    const { fresh, stale } = partitionPanelFreshness(store, servedInstallSurfaceDigests())
     // Honest empty or fully-stale store is PENDING — pages were rebuilt and humans must re-record.
     if (fresh.length < FIVE_SECOND_MIN_PANEL) {
       expect(decideGateB(structures, measureFiveSecondPanel({ ...store, responses: fresh }))).toBe(
@@ -213,36 +216,217 @@ describe("Gate 2.4-B — the human panel is DATA, never simulated", () => {
     expect(decideGateB(broken, measureFiveSecondPanel(panel(FIVE_SECOND_MIN_PANEL)))).toBe("FAILED")
   })
 
-  // --- freshness: recognition is evidence about ONE artifact ------------------
+  // --- freshness: recognition is evidence about ONE MEASURED SURFACE ----------
+  //
+  // ADR 0079: the basis is the measured surface, not the whole page. These tests
+  // drive that from the SHIPPED bytes, because the failure that motivated the ADR
+  // was a real rebake — a synthetic digest pair cannot tell a provenance-only edit
+  // apart from a copy edit, which is the entire distinction under test.
 
-  const DIGEST_A = `sha256:${"a".repeat(64)}`
-  const DIGEST_B = `sha256:${"b".repeat(64)}`
+  const SURFACE_A = `sha256:${"a".repeat(64)}`
+  const SURFACE_B = `sha256:${"b".repeat(64)}`
   const servedAs = (d: string) => new Map([["calllint-fixtures-safe-time", d]])
+  const seated = (n: number, surface = SURFACE_A): FiveSecondPanelStore => ({
+    ...panel(n),
+    responses: panel(n).responses.map((r) => ({ ...r, shownSurfaceDigest: surface })),
+  })
 
-  it("responses are FRESH while the served page still digests to what was shown", () => {
-    const f = partitionPanelFreshness(panel(FIVE_SECOND_MIN_PANEL), servedAs(DIGEST_A))
+  it("responses are FRESH while the served page still digests to the surface shown", () => {
+    const f = partitionPanelFreshness(seated(FIVE_SECOND_MIN_PANEL), servedAs(SURFACE_A))
     expect(f.fresh).toHaveLength(FIVE_SECOND_MIN_PANEL)
     expect(f.stale).toEqual([])
     expect(decideGateB(structures, measureFiveSecondPanel({ ...panel(0), responses: f.fresh }))).toBe("PASSED")
   })
 
-  it("a page EDIT makes every response measuring it stale, demoting a PASS to pending", () => {
-    const store = panel(FIVE_SECOND_MIN_PANEL)
-    // The page moved: it now digests to B, but the panel saw A.
-    const f = partitionPanelFreshness(store, servedAs(DIGEST_B))
+  it("a SURFACE edit makes every response measuring it stale, demoting a PASS to pending", () => {
+    const store = seated(FIVE_SECOND_MIN_PANEL)
+    // The measured surface moved: it now digests to B, but the panel saw A.
+    const f = partitionPanelFreshness(store, servedAs(SURFACE_B))
     expect(f.fresh).toEqual([])
     expect(f.stale).toHaveLength(FIVE_SECOND_MIN_PANEL)
-    expect(f.stale[0]).toMatchObject({ shownDigest: DIGEST_A, currentDigest: DIGEST_B })
+    expect(f.stale[0]).toMatchObject({
+      reason: "SURFACE_CHANGED",
+      shownSurfaceDigest: SURFACE_A,
+      currentSurfaceDigest: SURFACE_B,
+    })
     // Fails CLOSED: the new page inherits nothing.
     expect(decideGateB(structures, measureFiveSecondPanel({ ...store, responses: f.fresh }))).toBe(
       "PENDING_HUMAN_PANEL",
     )
   })
 
-  it("a REMOVED page is stale with a null current digest, not a silent pass", () => {
-    const f = partitionPanelFreshness(panel(2), new Map())
+  it("a REMOVED page is stale as PAGE_GONE, not a silent pass", () => {
+    const f = partitionPanelFreshness(seated(2), new Map())
     expect(f.fresh).toEqual([])
-    expect(f.stale.map((s) => s.currentDigest)).toEqual([null, null])
+    expect(f.stale.map((s) => s.reason)).toEqual(["PAGE_GONE", "PAGE_GONE"])
+    expect(f.stale.map((s) => s.currentSurfaceDigest)).toEqual([null, null])
+  })
+
+  it("names WHY each response is excluded — one absence must not answer for two faults", () => {
+    // 0077's lesson: a single nullable field made one absence carry two different
+    // diagnoses. Each reason must be reachable on its own, in one partition.
+    const store: FiveSecondPanelStore = {
+      schema: "calllint.five-second-panel.v0",
+      responses: [
+        { ...(seated(1).responses[0] as FiveSecondResponse), participant: "gone", canonicalSlug: "absent/page" },
+        { ...(seated(1).responses[0] as FiveSecondResponse), participant: "moved", shownSurfaceDigest: SURFACE_B },
+        { ...(panel(1).responses[0] as FiveSecondResponse), participant: "pre-0079" },
+      ],
+    }
+    const f = partitionPanelFreshness(store, servedAs(SURFACE_A))
+    expect(f.fresh).toEqual([])
+    expect(f.stale.map((s) => [s.participant, s.reason])).toEqual([
+      ["gone", "PAGE_GONE"],
+      ["moved", "SURFACE_CHANGED"],
+      ["pre-0079", "UNKNOWN_BASIS"],
+    ])
+  })
+
+  it("a response with NO surface digest is UNKNOWN_BASIS and does not count toward the floor", () => {
+    // ADR 0079 D3: absent basis is UNKNOWN, and UNKNOWN never auto-upgrades to
+    // fresh. A full 10-response panel recorded pre-0079 must still PEND.
+    const f = partitionPanelFreshness(panel(FIVE_SECOND_MIN_PANEL), servedAs(SURFACE_A))
+    expect(f.fresh).toEqual([])
+    expect(f.stale.every((s) => s.reason === "UNKNOWN_BASIS")).toBe(true)
+    expect(f.stale.every((s) => s.shownSurfaceDigest === null)).toBe(true)
+    expect(decideGateB(structures, measureFiveSecondPanel({ ...panel(0), responses: f.fresh }))).toBe(
+      "PENDING_HUMAN_PANEL",
+    )
+  })
+
+  // --- what the basis includes, measured on the SHIPPED page (ADR 0079 D1/D7) --
+
+  const shipped = (): string =>
+    fs.readFileSync(path.join(repoRoot, "apps/web/public/install/mcp-registry/ai.adeu-adeu/index.html"), "utf8")
+
+  it("a REBAKE that moves only the contract digest leaves the surface digest UNCHANGED", () => {
+    // This is the exact edit that voided all ten responses before 0079: the page's
+    // whole-page digest moved, in two places, both carrying the contract digest.
+    const html = shipped()
+    const contract = /contract=sha256:([0-9a-f]{64})/.exec(html)?.[1]
+    expect(contract, "the deep link must carry a contract digest or this control proves nothing").toBeTruthy()
+    const rebaked = html.split(contract as string).join("0".repeat(64))
+    expect(rebaked, "the mutation must actually change the page").not.toBe(html)
+    expect(panelSurfaceDigest(rebaked)).toBe(panelSurfaceDigest(html))
+  })
+
+  it("a RESTYLE that moves only the stylesheet href CHANGES the surface digest", () => {
+    // The other half of D1, able to fire alone: excluding provenance must not
+    // start inheriting recognition across a page that renders differently.
+    const html = shipped()
+    expect(stylesheetHrefs(html)).toEqual(["/styles/tokens.css"])
+    const restyled = html.replace("/styles/tokens.css", "/styles/other.css")
+    expect(panelMeasuredSurface(restyled).answers).toEqual(panelMeasuredSurface(html).answers)
+    expect(panelSurfaceDigest(restyled)).not.toBe(panelSurfaceDigest(html))
+  })
+
+  it("a reworded graded ANSWER changes the surface digest", () => {
+    const html = shipped()
+    const consequence = extractCapsuleAnswers(html).consequence
+    expect(consequence).toBeTruthy()
+    const reworded = html.split(consequence as string).join("Totally safe, install away.")
+    expect(panelSurfaceDigest(reworded)).not.toBe(panelSurfaceDigest(html))
+  })
+
+  it("binds the surface's MEMBERSHIP, so dropping a component reds a test", () => {
+    // Without this, `panelMeasuredSurface` could silently narrow to just the
+    // answers and every test above would stay green — the basis would weaken with
+    // no failing mode. Asserted on real bytes, so each component is non-empty.
+    const s = panelMeasuredSurface(shipped())
+    expect(Object.keys(s).sort()).toEqual(["answers", "sections", "stylesheets"])
+    expect(Object.keys(s.answers).sort()).toEqual([...FIVE_SECOND_QUESTIONS].sort())
+    expect(s.stylesheets).toEqual(["/styles/tokens.css"])
+    expect(s.sections).toEqual(["install-identity", "install-disposition", "install-consequence"])
+  })
+
+  it("EXCLUDES provenance the participant cannot read in five seconds", () => {
+    // Stated as a property of the surface rather than of one digest: no serialized
+    // component may contain the contract digest, so adding a provenance field to
+    // the surface later would red here.
+    const html = shipped()
+    const contract = /contract=sha256:([0-9a-f]{64})/.exec(html)?.[1] as string
+    expect(JSON.stringify(panelMeasuredSurface(html))).not.toContain(contract)
+  })
+
+  it("digests the surface, rather than returning it — a basis is comparable, not readable", () => {
+    const d = panelSurfaceDigest(shipped())
+    expect(d).toMatch(/^sha256:[0-9a-f]{64}$/)
+  })
+
+  // --- recovery refuses rather than substitutes (ADR 0079 D4/D7) --------------
+  //
+  // Driven through `reseatResponses`' injected lookup, not through a real repo: the
+  // committed store happens to be fully recoverable (a real `panel:reseat` run
+  // reseated 10 and refused 0), so the refusal branch has no failing mode unless a
+  // test can supply bytes that do NOT match a recorded `shownDigest`.
+
+  const sha256Of = (s: string): string => `sha256:${crypto.createHash("sha256").update(s).digest("hex")}`
+  const preAdr = (slug: string, shownDigest: string): FiveSecondResponse => ({
+    ...(panel(1).responses[0] as FiveSecondResponse),
+    canonicalSlug: slug,
+    shownDigest,
+  })
+  const storeOf = (responses: FiveSecondResponse[]): FiveSecondPanelStore => ({
+    schema: "calllint.five-second-panel.v0",
+    responses,
+  })
+
+  it("RESEATS a response from bytes whose sha256 equals its recorded shownDigest", () => {
+    const html = shipped()
+    const store = storeOf([preAdr("mcp-registry/ai.adeu-adeu", sha256Of(html))])
+    const out = reseatResponses(store, () => [Buffer.from(html, "utf8")])
+    expect(out.refusals).toEqual([])
+    expect(out.changed).toBe(1)
+    expect(out.responses).toHaveLength(1)
+    // The recovered basis is the basis the served page would produce today, so a
+    // reseated response is fresh — recovery, not a widened rule.
+    expect(out.responses[0]?.shownSurfaceDigest).toBe(panelSurfaceDigest(html))
+  })
+
+  it("REFUSES a response whose recorded bytes history does not offer", () => {
+    // The substitution 0079 exists to prevent: today's page is offered, but this
+    // response recorded different bytes. It must stay UNKNOWN-basis, not be credited.
+    const store = storeOf([preAdr("mcp-registry/ai.adeu-adeu", sha256Of("what the participant actually saw"))])
+    const out = reseatResponses(store, () => [Buffer.from(shipped(), "utf8")])
+    expect(out.changed).toBe(0)
+    expect(out.refusals).toHaveLength(1)
+    expect(out.refusals[0]).toContain("the shown artifact is not recoverable")
+    expect(out.responses).toHaveLength(1)
+    expect(out.responses[0]?.shownSurfaceDigest).toBeUndefined()
+  })
+
+  it("REFUSES a response whose page has no history at all", () => {
+    const store = storeOf([preAdr("absent/page", sha256Of("x"))])
+    const out = reseatResponses(store, () => [])
+    expect(out.changed).toBe(0)
+    expect(out.refusals).toHaveLength(1)
+  })
+
+  it("refuses PER RESPONSE — one unrecoverable session does not discard the rest", () => {
+    // The mixed case decides the exit code: `reseat` returns 2 when anything was
+    // refused, even though it wrote the recoverable ones.
+    const html = shipped()
+    const store = storeOf([
+      preAdr("mcp-registry/ai.adeu-adeu", sha256Of(html)),
+      preAdr("mcp-registry/ai.adeu-adeu", sha256Of("never served")),
+    ])
+    const out = reseatResponses(store, () => [Buffer.from(html, "utf8")])
+    expect(out.changed).toBe(1)
+    expect(out.refusals).toHaveLength(1)
+    expect(out.responses.map((r) => r.shownSurfaceDigest === undefined)).toEqual([false, true])
+  })
+
+  it("leaves an ALREADY-seated response untouched — reseat is not a rewrite", () => {
+    const store: FiveSecondPanelStore = { ...seated(1) }
+    let consulted = 0
+    const out = reseatResponses(store, () => {
+      consulted += 1
+      return []
+    })
+    expect(out.changed).toBe(0)
+    expect(out.refusals).toEqual([])
+    expect(consulted, "a seated response must not be re-derived from history").toBe(0)
+    expect(out.responses[0]?.shownSurfaceDigest).toBe(SURFACE_A)
   })
 
   // --- the artifact a session is allowed to measure (PR P-4b) ----------------
@@ -314,12 +498,12 @@ describe("Gate 2.4-B — the human panel is DATA, never simulated", () => {
   })
 
   it("partitions per response — one stale session does not discard the rest", () => {
-    const store = panel(FIVE_SECOND_MIN_PANEL)
+    const store = seated(FIVE_SECOND_MIN_PANEL)
     const withOneStale: FiveSecondPanelStore = {
       ...store,
-      responses: store.responses.map((r, i) => (i === 0 ? { ...r, shownDigest: DIGEST_B } : r)),
+      responses: store.responses.map((r, i) => (i === 0 ? { ...r, shownSurfaceDigest: SURFACE_B } : r)),
     }
-    const f = partitionPanelFreshness(withOneStale, servedAs(DIGEST_A))
+    const f = partitionPanelFreshness(withOneStale, servedAs(SURFACE_A))
     expect(f.fresh).toHaveLength(FIVE_SECOND_MIN_PANEL - 1)
     expect(f.stale).toHaveLength(1)
     // 9 fresh responses is below the floor, so the gate pends rather than passing.
@@ -417,8 +601,14 @@ describe("committed Phase 2.4 evidence", () => {
       for (const q of FIVE_SECOND_QUESTIONS) expect(hp.recognition[q]).toBeGreaterThanOrEqual(0.9)
       expect((a.blockers as string[]) ?? []).toEqual([])
     } else {
-      expect(["UNRECORDED", "NOT_RUN"]).toContain(hp.status)
-      expect(hp.responses).toBe(0)
+      // PENDING means the FLOOR is unmet — not that the store is empty. Before ADR
+      // 0079 those coincided, because the whole-page basis voided every response and
+      // `fresh` was always []; `responses === 0` passed for a reason the gate never
+      // asserts. Assert the gate's own condition instead, and keep the honesty
+      // property that a pending artifact must still say WHY.
+      expect(hp.responses).toBeLessThan(FIVE_SECOND_MIN_PANEL)
+      expect(hp.status).toBe(hp.responses === 0 ? "NOT_RUN" : "RECORDED")
+      expect((a.blockers as string[]) ?? []).not.toEqual([])
     }
   })
 
