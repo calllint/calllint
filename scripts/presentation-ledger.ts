@@ -70,6 +70,8 @@
  *   pnpm ledger:presentation:validate          check every entry against the repo
  *   pnpm ledger:presentation:record            append an entry for the current HEAD
  *   pnpm ledger:presentation:record --at <iso> ...with an explicit timestamp
+ *   pnpm ledger:presentation:reseat            re-point post-squash dangling entries
+ *   pnpm ledger:presentation:reseat --dry-run  ...printing the repair without writing
  */
 import fs from "node:fs"
 import path from "node:path"
@@ -308,6 +310,25 @@ export function historyIsReachable(ledger: DeployLedger): boolean {
 }
 
 /**
+ * Does git itself say this clone's history has been TRUNCATED?
+ *
+ * Deliberately not the same question as `historyIsReachable`, and the difference is the
+ * whole reason this exists. That function asks "can I see every commit this ledger names",
+ * which is false both when the clone is shallow AND when an entry is genuinely dangling —
+ * one bit standing in for two causes that want opposite responses
+ * ([[a-boolean-standing-in-for-a-reason]]). This one asks git directly, so absence of
+ * evidence can be told apart from evidence of a fault
+ * ([[absence-must-not-become-a-category]]).
+ */
+export function repositoryIsShallow(): boolean {
+  try {
+    return git("rev-parse", "--is-shallow-repository").trim() === "true"
+  } catch {
+    return false
+  }
+}
+
+/**
  * Every fault detectable WITHOUT git: shape, per-entry recomputation, distinctness,
  * wall-clock ordering, and currency against the live catalog.
  *
@@ -453,6 +474,147 @@ function record(atOverride: string | null, deploymentUrl: string | null): number
   return 0
 }
 
+/**
+ * One dangling entry and the commit that actually carries its bytes (ADR 0080).
+ *
+ * `reason` is carried out rather than reduced to a boolean, because the two ways an entry
+ * can be unreseatable need OPPOSITE fixes and a bare `null` cannot tell them apart: an
+ * entry whose document exists nowhere on this branch is a forgery or a lost commit (do not
+ * touch it), while an entry that is simply already correct needs no command at all
+ * ([[a-boolean-standing-in-for-a-reason]]).
+ */
+export interface Reseat {
+  readonly index: number
+  readonly from: string
+  readonly to: string
+}
+
+/**
+ * Find the commit on HEAD's history that carries an entry's ALREADY-STORED document.
+ *
+ * This is the whole safety argument for `--reseat`, so it is worth stating precisely: the
+ * command never computes a new digest, never reads the working tree, and never invents a
+ * document. It searches the commits that touched the catalog for one whose catalog is
+ * byte-identical to the bytes the entry already carries, and re-points `commit` at that.
+ * Every digest in the entry stays as recorded, and `validate` then re-derives all of them
+ * against the new commit — so a reseat that changed meaning is a FAILING validation, not a
+ * silent success.
+ *
+ * Why this is not "trusting the squash": a squash preserves the tree, so the post-squash
+ * commit carries byte-identical catalog bytes and is found here. A rebase that EDITED the
+ * catalog does not, and is correctly refused. The distinction is measured, not assumed.
+ *
+ * REFUSES WHOLESALE ON A SHALLOW CLONE, and that is a safety property rather than a
+ * convenience. `isAncestorOfHead` is false for a dangling entry and equally false for a
+ * commit that was simply never fetched, so on a depth-1 clone every entry looks dangling.
+ * Measured on a real `--depth 1` clone of this repo: `rev-list HEAD -- <catalog>` yields
+ * ONE candidate, and the ten-entry ledger produced nine "matches NO commit" refusals plus
+ * one reseat — the newest entry, re-pointed onto HEAD. That reseat is the dangerous half:
+ * `record` guarantees the newest entry's document equals HEAD's catalog, so on a truncated
+ * clone the byte comparison always succeeds for it and the command would rewrite an
+ * AUTHENTIC pointer while calling nine authentic entries forgeries. Absence of history is
+ * not evidence of a fault, so the answer is neither "repair" nor "accuse".
+ */
+export function findReseat(ledger: DeployLedger): { reseats: Reseat[]; refusals: string[] } {
+  const reseats: Reseat[] = []
+  const refusals: string[] = []
+  if (repositoryIsShallow()) {
+    return {
+      reseats: [],
+      refusals: [
+        "this clone is SHALLOW, so an entry that is merely unfetched is indistinguishable from one that is " +
+          "dangling. Refusing to reseat anything: re-run with full history (`git fetch --unshallow`, or " +
+          "`actions/checkout` with `fetch-depth: 0`).",
+      ],
+    }
+  }
+  // Only commits that touched the catalog can carry a different version of it. `--follow`
+  // is deliberately absent: a rename would change the path this ledger is about, and
+  // silently following it would reseat onto a document at a path the entry never described.
+  const candidates = git("rev-list", "HEAD", "--", CATALOG).trim().split("\n").filter(Boolean)
+
+  ledger.deploys.forEach((entry, index) => {
+    if (!/^[0-9a-f]{40}$/.test(entry.commit)) return
+    if (isAncestorOfHead(entry.commit)) return // already authentic — nothing to reseat
+
+    const stored = JSON.stringify(entry.document)
+    const match = candidates.find((c) => JSON.stringify(documentAt(c)) === stored)
+    if (match === undefined) {
+      refusals.push(
+        `deploys[${index}] (${entry.commit.slice(0, 8)}): its stored document matches NO commit on HEAD's history — ` +
+          `this is not a squash artifact. Do not reseat it; find the commit that carries these bytes, or the entry is wrong.`,
+      )
+      return
+    }
+    reseats.push({ index, from: entry.commit, to: match })
+  })
+  return { reseats, refusals }
+}
+
+/**
+ * Re-point dangling entries at the commit that carries their bytes (ADR 0080).
+ *
+ * A squash-merge rewrites the sha a ledger entry recorded, so the entry becomes an ancestor
+ * of nothing and `validate` reds. This happened twice (#249 `4efe131`, #293 `7a6b0a5`) and
+ * both times the fix was a human hand-editing one 40-hex field in a JSON file — a fix that
+ * is correct and is also indistinguishable, in the diff, from fabricating a pointer. This
+ * mode makes the same repair a command whose safety is checked rather than trusted.
+ *
+ * `--dry-run` prints the repair and writes nothing, so the fix can be reviewed before it is
+ * applied. Without it, the write still happens only if `validate` passes on the result.
+ */
+function reseat(dryRun: boolean): number {
+  const ledger = readLedger()
+  const { reseats, refusals } = findReseat(ledger)
+
+  for (const r of refusals) console.error(`refusing — ${r}`)
+  if (reseats.length === 0) {
+    if (refusals.length > 0) return 2
+    // Not an error, and saying so matters: the mode is meant to be safe to run after any
+    // squash, including the ones that needed nothing.
+    console.log("nothing to reseat — every entry's commit is already an ancestor of HEAD.")
+    return 0
+  }
+
+  const deploys = ledger.deploys.map((e, i) => {
+    const r = reseats.find((x) => x.index === i)
+    return r === undefined ? e : { ...e, commit: r.to }
+  })
+  const next: DeployLedger = { ...ledger, deploys }
+
+  for (const r of reseats) {
+    console.log(
+      `deploys[${r.index}]: ${r.from.slice(0, 8)} → ${r.to.slice(0, 8)} ` +
+        `(same catalog bytes; every recorded digest left untouched)`,
+    )
+  }
+
+  // Ordered BEFORE validate() on purpose. An unexplained entry is never an ancestor of HEAD,
+  // so validate() is guaranteed to fail on it — putting this check after would make it
+  // unreachable and report a partial repair as a digest fault, hiding the real reason.
+  if (refusals.length > 0) {
+    console.error("refusing to write — some entries could be reseated but others are unexplained (see above).")
+    return 2
+  }
+
+  // The result is graded by the FULL validator, git layer included. That is what makes this
+  // a repair rather than an assertion: if re-pointing the entry made any recorded digest
+  // stop recomputing against its own commit, this refuses instead of writing.
+  const faults = validate(next)
+  if (faults.length > 0) {
+    console.error(`refusing to write — the reseated ledger would still be invalid:\n  ${faults.join("\n  ")}`)
+    return 1
+  }
+  if (dryRun) {
+    console.log("\n--dry-run: nothing written. The repair above validates.")
+    return 0
+  }
+  fs.writeFileSync(ledgerPath, JSON.stringify(next, null, 2) + "\n", "utf8")
+  console.log(`\n${path.relative(repoRoot, ledgerPath)} reseated — ${reseats.length} entr${reseats.length === 1 ? "y" : "ies"}.`)
+  console.log("The preview snapshot embeds the newest pointer; run `pnpm audit:preview:write` next.")
+  return 0
+}
+
 // --- modes -------------------------------------------------------------------
 //
 // Guarded so that IMPORTING this file does not run it. `validate`/`faultsForEntry` are
@@ -478,6 +640,8 @@ if (!invokedDirectly) {
   // imported as a module — expose the functions, run nothing
 } else if (argv.includes("--record")) {
   process.exit(record(flagValue("--at"), flagValue("--deployment-url")))
+} else if (argv.includes("--reseat")) {
+  process.exit(reseat(argv.includes("--dry-run")))
 } else {
   // `--offline` selects the git-free layer. It exists for ONE caller with a real
   // constraint: `deploy-web.yml`'s `actions/checkout@v6` is depth-1, so `git show` at a

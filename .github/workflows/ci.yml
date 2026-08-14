@@ -161,13 +161,70 @@ jobs:
       - name: Pack + stdio smoke (calllint-mcp)
         run: pnpm pack:smoke:mcp
 
+  # The deploy ledger's AUTHENTICITY layer — the one check in this repo that
+  # requires full git history, and therefore the one check the `test` matrix
+  # provably cannot make (ADR 0079).
+  #
+  # WHY A SEPARATE JOB. `scripts/presentation-ledger.ts` splits into two layers on
+  # purpose: `validateOffline` recomputes every digest from the stored document and
+  # runs anywhere, while `validate` adds the two checks that need history — each
+  # entry's commit is an ancestor of HEAD, and the stored document is byte-identical
+  # to the document at that commit. The matrix checks out at depth 1, so historical
+  # shas are unknown objects there; `historyIsReachable()` measures that and the git
+  # layer stands down rather than failing for a reason unrelated to the claim. That
+  # is correct for the matrix and it left this fault class with NO automated reader:
+  # a squash-merge rewrites the sha a ledger entry recorded, so the entry becomes an
+  # ancestor of nothing and only a full clone can see it. It happened twice (#249,
+  # #293), both times found by a human running the suite locally after the merge.
+  #
+  # `fetch-depth: 0` lives HERE and not on the matrix deliberately: cloning full
+  # history three times over would pay for it on every OS while the claim is
+  # OS-independent, and the matrix's own reproducibility gates depend on the shallow
+  # checkout staying cheap. One job, one full clone, one obligation.
+  #
+  # This job is in `build-and-test`'s `needs` — without that it would report a
+  # status nothing blocks a merge on (`wired/aggregator-reachable`, ADR 0071).
+  ledger-authenticity:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash
+    steps:
+      # The whole point of this job: `validate`'s git layer reads historical commits,
+      # and a depth-1 clone has none of them.
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - uses: pnpm/action-setup@v6
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 20
+          cache: pnpm
+
+      # Not install-free: the script imports the real digest functions from
+      # `packages/trust-index/src` rather than re-deriving them, so the ledger and
+      # the shipped renderers cannot disagree about what a digest is.
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      # Fails when an entry names a commit this branch never had — the squash-merge
+      # dangling-ref class, and any doctored entry whose stored document does not
+      # match the document at its own commit.
+      - name: Presentation deploy ledger (authenticity — needs full history)
+        run: pnpm ledger:presentation:validate
+
   # Aggregator: the single required status check on `main`. It passes only when
   # every leg of the `test` matrix passed, so branch protection stays a stable,
   # single context name (`build-and-test`) while CI fans out across three OSes.
   # `if: always()` + explicit result check means a skipped/failed leg fails this
   # gate too (a matrix leg that is cancelled must not read as a pass).
+  #
+  # `ledger-authenticity` is checked the same way and for the same reason: a job
+  # whose failure the required check does not read is a status, not a gate.
   build-and-test:
-    needs: [test]
+    needs: [test, ledger-authenticity]
     if: always()
     runs-on: ubuntu-latest
     steps:
@@ -178,3 +235,13 @@ jobs:
             exit 1
           fi
           echo "All cross-OS matrix legs passed."
+
+      - name: Require the ledger authenticity job to have succeeded
+        run: |
+          if [ "${{ needs.ledger-authenticity.result }}" != "success" ]; then
+            echo "'ledger-authenticity' result was '${{ needs.ledger-authenticity.result }}' — failing the gate."
+            echo "A ledger entry names a commit this branch never had, or a stored document does not match its commit."
+            echo "After a squash merge, reseat the newest entry: pnpm ledger:presentation:reseat"
+            exit 1
+          fi
+          echo "Deploy ledger passed the git authenticity layer on a full clone."

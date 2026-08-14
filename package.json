@@ -45,9 +45,11 @@
     "ledger:presentation:validate": "tsx scripts/presentation-ledger.ts",
     "ledger:presentation:validate:offline": "tsx scripts/presentation-ledger.ts --offline",
     "ledger:presentation:record": "tsx scripts/presentation-ledger.ts --record",
+    "ledger:presentation:reseat": "tsx scripts/presentation-ledger.ts --reseat",
     "eval:phase-2.4:panel": "tsx scripts/phase-2.4-panel.ts",
     "eval:phase-2.4:panel:validate": "tsx scripts/phase-2.4-panel.ts --validate",
     "eval:phase-2.4:panel:record": "tsx scripts/phase-2.4-panel.ts --record",
+    "eval:phase-2.4:panel:reseat": "tsx scripts/phase-2.4-panel.ts --reseat",
     "smoke": "pnpm build && vitest run tests/e2e/test/package-smoke.test.ts",
     "pack:smoke": "node scripts/package-smoke.mjs",
     "pack:smoke:mcp": "node scripts/mcp-pack-smoke.mjs",
@@ -73,7 +75,7 @@
     "project-adoption-index:trust-index": "pnpm --filter @calllint/trust-index project-adoption-index",
     "project-adoption-index:trust-index:store": "pnpm --filter @calllint/trust-index project-adoption-index:store",
     "verify-claims:trust-index": "pnpm --filter @calllint/trust-index verify-claims",
-    "ci:local": "pnpm typecheck && pnpm test && pnpm build && pnpm corpus:test && pnpm bench:test && pnpm check:public-copy && pnpm audit:evidence && pnpm audit:coverage && pnpm audit:calibration && pnpm eval:phase-2.4 && pnpm eval:phase-2.4:dogfood && pnpm eval:phase-2.4:gates && pnpm eval:phase-2.4:panel:validate && pnpm audit:presentation && pnpm audit:presentation:gate && pnpm audit:presentation:lock && pnpm audit:presentation:lock:gate && pnpm audit:preview && pnpm audit:preview:gate && pnpm gate:s0:regression"
+    "ci:local": "pnpm typecheck && pnpm test && pnpm build && pnpm corpus:test && pnpm bench:test && pnpm check:public-copy && pnpm audit:evidence && pnpm audit:coverage && pnpm audit:calibration && pnpm eval:phase-2.4 && pnpm eval:phase-2.4:dogfood && pnpm eval:phase-2.4:gates && pnpm eval:phase-2.4:panel:validate && pnpm audit:presentation && pnpm audit:presentation:gate && pnpm audit:presentation:lock && pnpm audit:presentation:lock:gate && pnpm audit:preview && pnpm audit:preview:gate && pnpm ledger:presentation:validate && pnpm gate:s0:regression"
   },
   "devDependencies": {
     "@types/node": "^20.14.0",

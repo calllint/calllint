@@ -23,7 +23,6 @@
  *
  * Exit codes: 0 ok · 1 drift (--check) · 2 gate not passed (--gate) / unexpected error.
  */
-import crypto from "node:crypto"
 import fs from "node:fs"
 import path from "node:path"
 import { fileURLToPath } from "node:url"
@@ -39,6 +38,7 @@ import {
   evaluateAgentContract,
   evaluateHumanCapsule,
   measureFiveSecondPanel,
+  panelSurfaceDigest,
   partitionPanelFreshness,
   renderSafeInstall,
   type AgentContractEval,
@@ -79,10 +79,7 @@ function servedPageDigests(): Map<string, string> {
     for (const name of fs.readdirSync(dir)) {
       const page = path.join(dir, name, "index.html")
       if (fs.existsSync(page)) {
-        out.set(
-          `${cohort}/${name}`,
-          `sha256:${crypto.createHash("sha256").update(fs.readFileSync(page)).digest("hex")}`,
-        )
+        out.set(`${cohort}/${name}`, panelSurfaceDigest(fs.readFileSync(page, "utf8")))
       }
     }
   }
@@ -96,9 +93,11 @@ function buildHumanReport(): { json: string; status: GateStatus; structures: Hum
     return evaluateHumanCapsule(p, renderSafeInstall(p))
   })
   const store = readPanelStore()
-  // Recognition is evidence about ONE artifact. A response whose page has since
-  // changed is not weaker evidence about the new page — it is none. Excluding it
-  // makes the gate fall back to PENDING_HUMAN_PANEL, which fails closed.
+  // Recognition is evidence about ONE measured subject. A response whose measured
+  // surface has since changed is not weaker evidence about the new page — it is
+  // none. Excluding it makes the gate fall back to PENDING_HUMAN_PANEL, which
+  // fails closed. A rebake that moves only provenance is not such a change
+  // (ADR 0079).
   const { fresh, stale } = partitionPanelFreshness(store, servedPageDigests())
   const panel = measureFiveSecondPanel({ ...store, responses: fresh })
   const status = decideGateB(structures, panel)
@@ -114,10 +113,13 @@ function buildHumanReport(): { json: string; status: GateStatus; structures: Hum
     )
   }
   for (const s of stale) {
-    blockers.push(
-      `stale panel response: ${s.participant} @ ${s.canonicalSlug} measured ${s.shownDigest} but the served page is now ` +
-        `${s.currentDigest ?? "REMOVED"} — re-run that session`,
-    )
+    const detail =
+      s.reason === "PAGE_GONE"
+        ? "the page is no longer served — that subject left the cohort"
+        : s.reason === "UNKNOWN_BASIS"
+          ? "recorded before ADR 0079, so it carries no measured-surface digest — run `pnpm eval:phase-2.4:panel:reseat`"
+          : "the measured surface changed — re-run that session"
+    blockers.push(`stale panel response (${s.reason}): ${s.participant} @ ${s.canonicalSlug} — ${detail}`)
   }
   const report = {
     schema: "calllint.phase-2.4-human-capsule-eval.v0",

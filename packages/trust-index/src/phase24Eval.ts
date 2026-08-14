@@ -30,7 +30,7 @@ import {
 import { INSTALL_COPY_SCRIPT_SRC } from "./renderSafeInstall.js"
 import { bakeTrustPage } from "./bakeTrustPage.js"
 import { fixtureCohort } from "./cohort.js"
-import { stableStringify } from "@calllint/fingerprint"
+import { hashJson, stableStringify } from "@calllint/fingerprint"
 
 /** The three questions the five-second test asks (plan §"人类认知"). Closed set. */
 export const FIVE_SECOND_QUESTIONS = ["target", "consequence", "action"] as const
@@ -264,6 +264,16 @@ export interface FiveSecondResponse {
    * rather than silently credited to a page it never measured.
    */
   readonly shownDigest: string
+  /**
+   * sha256-equivalent of the MEASURED SURFACE the participant was shown
+   * (`panelSurfaceDigest`). This is what freshness compares (ADR 0079 D2), so a
+   * rebake that moves only provenance does not void the response.
+   *
+   * Optional because responses recorded before 0079 do not carry it. Absent means
+   * UNKNOWN-basis, which is not fresh and does not count toward the floor — it can
+   * only be supplied by `panel:reseat`, from the bytes `shownDigest` identifies.
+   */
+  readonly shownSurfaceDigest?: string
 }
 
 export interface FiveSecondPanelStore {
@@ -364,14 +374,69 @@ export function auditShownArtifact(input: {
   return { ok: problems.length === 0, problems, stylesheets }
 }
 
-/** One response whose page has changed since it was measured. */
+/**
+ * The components a five-second session actually measures, in a fixed shape. This
+ * is the subject of a freshness comparison (ADR 0079 D1/D2).
+ *
+ * Membership rule: a field belongs here when a change to it would change what a
+ * participant perceives in five seconds. The three graded answers qualify by
+ * definition. Rendering-critical structure qualifies because the test measures a
+ * RENDERED page (see `auditShownArtifact`) — an unstyled page is a different
+ * subject even when every string is identical.
+ *
+ * Provenance fields are deliberately EXCLUDED: the contract digest changes on
+ * every rebake of the projection, no question asks about it, and no participant
+ * can read it in five seconds. Excluding it is what stops a rebake from voiding
+ * recognition evidence; including the structure below is what stops that
+ * exclusion from inheriting evidence across a restyle.
+ */
+export interface PanelMeasuredSurface {
+  readonly answers: Readonly<Record<FiveSecondQuestion, string | null>>
+  /** Every stylesheet the page references, in document order. */
+  readonly stylesheets: readonly string[]
+  /** The question-bearing sections, by `class`, in document order. */
+  readonly sections: readonly string[]
+}
+
+/** The sections the three questions are drawn from. A missing one is a changed subject. */
+const MEASURED_SECTIONS = ["install-identity", "install-disposition", "install-consequence"] as const
+
+/**
+ * Reduce served HTML to the surface a panel measured. Pure; uses the SAME
+ * extractor the operator's grading key uses, so "unchanged surface" cannot drift
+ * away from "unchanged answers".
+ */
+export function panelMeasuredSurface(html: string): PanelMeasuredSurface {
+  return {
+    answers: extractCapsuleAnswers(html),
+    stylesheets: stylesheetHrefs(html),
+    sections: MEASURED_SECTIONS.filter((c) => html.includes(`class="${c}"`)),
+  }
+}
+
+/**
+ * Digest of the measured surface. Freshness compares THIS, not the whole page
+ * (ADR 0079 D2). Derived through one function so the recorded value and the
+ * served value are always computed by the same code path.
+ */
+export function panelSurfaceDigest(html: string): string {
+  return hashJson(panelMeasuredSurface(html))
+}
+
+/** Why a recorded response is not eligible to be counted (ADR 0079 D6). */
+export type StaleReason = "PAGE_GONE" | "SURFACE_CHANGED" | "UNKNOWN_BASIS"
+
+/** One response that no longer measures the page we serve, and why. */
 export interface StalePanelResponse {
   readonly participant: string
   readonly canonicalSlug: string
-  /** The digest recorded at session time. */
+  readonly reason: StaleReason
+  /** The whole-page digest recorded at session time (retained, never reinterpreted). */
   readonly shownDigest: string
-  /** The digest of the page as served now, or null when the page is gone. */
-  readonly currentDigest: string | null
+  /** The measured-surface digest recorded at session time, or null pre-0079. */
+  readonly shownSurfaceDigest: string | null
+  /** The surface digest of the page as served now, or null when the page is gone. */
+  readonly currentSurfaceDigest: string | null
 }
 
 export interface PanelFreshness {
@@ -380,34 +445,51 @@ export interface PanelFreshness {
 }
 
 /**
- * Split recorded responses into those that still describe the page we serve and
- * those that do not. `servedDigests` maps canonicalSlug → sha256 of the served
- * HTML; a slug absent from the map is treated as a removed page.
+ * Split recorded responses into those that still measure the page we serve and
+ * those that do not. `servedSurfaceDigests` maps canonicalSlug → the SERVED
+ * page's `panelSurfaceDigest`; a slug absent from the map is a removed page.
  *
  * This exists because recognition data is only evidence ABOUT A SPECIFIC
- * ARTIFACT. Once the page moves, an old response is not a weaker measurement of
- * the new page — it is not a measurement of it at all. Excluding stale responses
- * lets the gate fall back to PENDING_HUMAN_PANEL, which fails closed, instead of
- * crediting the new page with recognition it never earned.
+ * MEASURED SUBJECT. Once that subject moves, an old response is not a weaker
+ * measurement of the new page — it is not a measurement of it at all. Excluding
+ * such responses lets the gate fall back to PENDING_HUMAN_PANEL, which fails
+ * closed, instead of crediting a page with recognition it never earned.
+ *
+ * The basis is the MEASURED SURFACE, not the whole page (ADR 0079 D1): a rebake
+ * that moves only the contract digest changes no measured component, while a
+ * restyle or a copy change to any graded answer does. A response recorded before
+ * 0079 carries no `shownSurfaceDigest` and is therefore UNKNOWN_BASIS — it cannot
+ * be graded on a basis it never recorded, and UNKNOWN never counts as fresh.
  *
  * Pure: the caller supplies the digests, so this stays testable and side-effect
  * free (the I/O lives in `scripts/`).
  */
 export function partitionPanelFreshness(
   store: FiveSecondPanelStore,
-  servedDigests: ReadonlyMap<string, string>,
+  servedSurfaceDigests: ReadonlyMap<string, string>,
 ): PanelFreshness {
   const fresh: FiveSecondResponse[] = []
   const stale: StalePanelResponse[] = []
   for (const r of store.responses) {
-    const currentDigest = servedDigests.get(r.canonicalSlug) ?? null
-    if (currentDigest !== null && currentDigest === r.shownDigest) fresh.push(r)
+    const currentSurfaceDigest = servedSurfaceDigests.get(r.canonicalSlug) ?? null
+    const shownSurfaceDigest = r.shownSurfaceDigest ?? null
+    const reason: StaleReason | null =
+      currentSurfaceDigest === null
+        ? "PAGE_GONE"
+        : shownSurfaceDigest === null
+          ? "UNKNOWN_BASIS"
+          : shownSurfaceDigest === currentSurfaceDigest
+            ? null
+            : "SURFACE_CHANGED"
+    if (reason === null) fresh.push(r)
     else
       stale.push({
         participant: r.participant,
         canonicalSlug: r.canonicalSlug,
+        reason,
         shownDigest: r.shownDigest,
-        currentDigest,
+        shownSurfaceDigest,
+        currentSurfaceDigest,
       })
   }
   return { fresh, stale }
