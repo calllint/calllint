@@ -378,13 +378,24 @@ describe("Gate S0 — every number the record states is derived from the file it
       steps.filter((s) => /gate:s0/.test(s)),
       "ci:local must run exactly the regression mode — S0-OPEN-2 closed by wiring THIS mode, and only this one",
     ).toEqual(["pnpm gate:s0:regression"])
+    // 20 → 21 in Workstream P Batch 8 (ADR 0080): `pnpm ledger:presentation:validate`. The count is
+    // pinned rather than derived on purpose — a step LEAVING `ci:local` is exactly as much of an
+    // event as one arriving, and only a literal reds on the departure.
     expect(
       steps.length,
-      `S0-OPEN-2's amendment states 20 &&-joined steps; ci:local now has ${steps.length}`,
-    ).toBe(20)
-    expect(row(2), "the row must state the new count, since wiring the gate is what changed it").toContain(
-      "**20**",
-    )
+      `S0-OPEN-2's amendment states 21 &&-joined steps; ci:local now has ${steps.length}`,
+    ).toBe(21)
+    // Asserted against the row's LATEST amendment, not the whole row: the 2026-08-09 text says
+    // **19** and the first closure says **20**, both left verbatim by this artifact's
+    // append-never-edit convention. A `toContain` over the full row would therefore be satisfied by
+    // the stale figures forever — it would pass today, and would have passed before the step was
+    // added. Slicing to the last amendment is what keeps the assertion about the CURRENT claim.
+    const row2 = row(2)
+    const lastAmendment = row2.slice(row2.lastIndexOf("### Amendment"))
+    expect(
+      lastAmendment,
+      "S0-OPEN-2's newest amendment must state the live step count, since adding a step is what changed it",
+    ).toContain(`**${steps.length}**`)
     // All three scripts must exist, or S0-OPEN-2's closure describes a gate that is gone.
     expect(Object.keys(pkg.scripts).filter((k) => k.startsWith("gate:s0")).sort()).toEqual([
       "gate:s0",
@@ -1049,13 +1060,32 @@ describe("Gate S0 — the rows say OPEN, and what would make each false", () => 
     // Whitespace-collapsed before matching. The row is hand-wrapped prose, so a needle spanning a
     // line break would red on a reflow that changed no claim — a guard whose failure mode is
     // "somebody rewrapped a paragraph" trains people to edit the guard.
+    //
+    // SCOPED TO THE LATEST AMENDMENT, and that narrowing is a repair, not a convenience.
+    //
+    // These three needles previously matched the WHOLE row, and the whole row carries this artifact's
+    // append-never-edit history: the pre-close 2026-08-11 text says "**19 rows**", "of which **2**
+    // are `remoteOnly`", and "**18 bound**" verbatim, and is frozen there by design. Measured on
+    // today's bytes: all three needles are satisfied by the pre-close text ALONE. So from S batch 3
+    // until this batch these assertions were green against preserved history, not against the current
+    // claim — they could not have observed the live counts drifting, because the frozen sentence kept
+    // answering for them. Adding the 20th row is what exposed it: `**20 rows**` appears nowhere in the
+    // historical text, so the needle finally had to be satisfied by something current.
+    //
+    // This is [[a-pointer-rots-faster-than-its-claim]] inverted. There, the addresses expired while
+    // the sentences stayed true. Here the sentences are deliberately immortal, so a `toContain` over
+    // all of them measures whether a number was EVER correct — never whether it is correct now. A
+    // guard whose subject is "the row's current claim" must read the row's current claim.
     const flat = r.replace(/\s+/g, " ")
-    expect(flat, `S0-OPEN-5 states the row count; REGRESSION_CHECKS now has ${rows}`).toContain(
-      `**${rows} rows**`,
-    )
-    expect(flat, `S0-OPEN-5 states the remoteOnly count; the source now has ${remoteOnly}`).toContain(
-      `of which **${remoteOnly}** are \`remoteOnly\``,
-    )
+    const latest = flat.slice(flat.lastIndexOf("### Amendment"))
+    expect(
+      latest,
+      `S0-OPEN-5's newest amendment must state the live row count; REGRESSION_CHECKS now has ${rows}`,
+    ).toContain(`**${rows} rows**`)
+    expect(
+      latest,
+      `S0-OPEN-5's newest amendment must state the live remoteOnly count; the source now has ${remoteOnly}`,
+    ).toContain(`of which **${remoteOnly}** are \`remoteOnly\``)
 
     // (2) The bound/null split, read from the drift-checked artifact rather than from the row.
     const gateH = JSON.parse(readText("artifacts/phase-2.4/gate-H-no-regression.json")) as {
@@ -1065,16 +1095,33 @@ describe("Gate S0 — the rows say OPEN, and what would make each false", () => 
     expect(checks.length, "Gate H's artifact must carry its regressionChecks array").toBe(rows)
     const bound = checks.filter((c) => c.workflowBinding !== null)
     expect(
-      flat,
-      `S0-OPEN-5 states how many checks are recorded as bound; the artifact records ${bound.length}`,
+      latest,
+      `S0-OPEN-5's newest amendment must state how many checks are recorded as bound; the artifact records ${bound.length}`,
     ).toContain(`**${bound.length} bound**`)
-    // And the row's HEADING must carry the same number, because that is the sentence a reader sees
-    // first. Two copies of a figure in one row is exactly the situation ADR 0069 §3.1 records going
-    // wrong — prose and value written together from one reading, with nothing checking either.
+    // The HEADING is asserted for its SUBJECT, never for a live count, and dropping the count from it
+    // is the point of this change rather than a side effect of it.
+    //
+    // The heading reads: `Gate 2.4-H asserts 18 checks are "wired" by matching text`. Both halves of
+    // that sentence are now historical — the row CLOSED by replacing the text match with a structural
+    // parse (`bindCheck`), so "by matching text" describes code that no longer exists, and 18 was the
+    // bound count at the time. The previous assertion pinned the LIVE bound count into that dead
+    // clause, which had two failure modes and no success mode: leave the heading alone and it reds on
+    // every new row, or update it and the heading asserts a live number about a mechanism the row
+    // itself refuted. Updating it to 19 was the tempting edit; it would have produced a heading that
+    // is false in a NEW way — a current figure certifying a superseded description.
+    //
+    // A heading is an index entry. It names which defect the row is about, and that never changes:
+    // a count in a heading is a figure with no reader's business in it. So the live count is asserted
+    // against the newest amendment (above), where it belongs, and the heading is asserted to still
+    // name its subject — which is what a reader scanning `## S0-OPEN-` headings actually needs.
     expect(
       flat,
-      `S0-OPEN-5's heading states how many checks are text-matched; the artifact records ${bound.length}`,
-    ).toContain(`asserts ${bound.length} checks are "wired" by matching text`)
+      "S0-OPEN-5's heading must still name its subject — the row is indexed by the defect, not by a count",
+    ).toContain(`Gate 2.4-H asserts`)
+    expect(
+      flat,
+      "S0-OPEN-5's heading must still name the wired-by-text defect it was filed for",
+    ).toMatch(/are "wired" by matching text, so it cannot see that the runner rejects the file/)
     // The single null row is `ci:local` BY NAME, not "one of them". If a different row went null the
     // row's claim would be about something else entirely.
     expect(
@@ -1099,15 +1146,20 @@ describe("Gate S0 — the rows say OPEN, and what would make each false", () => 
     //     workstream with no interest in this row, which is the whole argument for asserting pointers
     //     here rather than trusting prose: every sentence in that amendment stayed true while its
     //     addresses expired. The re-anchored table lives in the 2026-08-11 (S batch 4) amendment.
+    //
+    //     P Batch 8 (ADR 0080) moved two more — 792 → 808 and 742 → 758 — and did so from yet another
+    //     workstream, by adding the 20th `REGRESSION_CHECKS` row above them. Both reds arrived with the
+    //     content, not just the number: 792 now reads `}`. The four unmoved anchors below are asserted
+    //     unchanged rather than re-derived, which is what keeps a "nothing moved" claim falsifiable.
     assertPointer(
       "scripts/phase-2.4-gates.ts",
-      792,
+      808,
       "function bindCheck",
       "S0-OPEN-5's cited structural binding decision",
     )
     assertPointer(
       "scripts/phase-2.4-gates.ts",
-      742,
+      758,
       "function readWorkflowGraph",
       "S0-OPEN-5's cited one-parse-per-file reader",
     )

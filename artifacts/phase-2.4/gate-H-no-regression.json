@@ -73,7 +73,7 @@
   "regressionChecks": [
     {
       "id": "ci:local",
-      "script": "pnpm typecheck && pnpm test && pnpm build && pnpm corpus:test && pnpm bench:test && pnpm check:public-copy && pnpm audit:evidence && pnpm audit:coverage && pnpm audit:calibration && pnpm eval:phase-2.4 && pnpm eval:phase-2.4:dogfood && pnpm eval:phase-2.4:gates && pnpm eval:phase-2.4:panel:validate && pnpm audit:presentation && pnpm audit:presentation:gate && pnpm audit:presentation:lock && pnpm audit:presentation:lock:gate && pnpm audit:preview && pnpm audit:preview:gate && pnpm gate:s0:regression",
+      "script": "pnpm typecheck && pnpm test && pnpm build && pnpm corpus:test && pnpm bench:test && pnpm check:public-copy && pnpm audit:evidence && pnpm audit:coverage && pnpm audit:calibration && pnpm eval:phase-2.4 && pnpm eval:phase-2.4:dogfood && pnpm eval:phase-2.4:gates && pnpm eval:phase-2.4:panel:validate && pnpm audit:presentation && pnpm audit:presentation:gate && pnpm audit:presentation:lock && pnpm audit:presentation:lock:gate && pnpm audit:preview && pnpm audit:preview:gate && pnpm ledger:presentation:validate && pnpm gate:s0:regression",
       "inLocalChain": true,
       "workflowBinding": null,
       "bindingFault": "no step in ci.yml#test runs `pnpm ci:local`",
@@ -241,6 +241,15 @@
       "bindingFault": null,
       "remoteOnly": true,
       "role": "check"
+    },
+    {
+      "id": "ledger:presentation:validate",
+      "script": "tsx scripts/presentation-ledger.ts",
+      "inLocalChain": true,
+      "workflowBinding": "ci.yml#ledger-authenticity",
+      "bindingFault": null,
+      "remoteOnly": false,
+      "role": "check"
     }
   ],
   "requiredAggregator": {
@@ -248,7 +257,8 @@
     "job": "build-and-test",
     "present": true,
     "needs": [
-      "test"
+      "test",
+      "ledger-authenticity"
     ],
     "parseError": null
   },
@@ -318,7 +328,7 @@
     {
       "id": "wired/aggregator-reachable",
       "pass": true,
-      "observed": "ci.yml#build-and-test present and needs [test], covering every bound job (test)"
+      "observed": "ci.yml#build-and-test present and needs [test, ledger-authenticity], covering every bound job (ledger-authenticity, test)"
     },
     {
       "id": "wired/ci:local",
@@ -414,6 +424,11 @@
       "id": "wired/pack:smoke",
       "pass": true,
       "observed": "ci.yml#test + REMOTE-ONLY (not provable by a local run)"
+    },
+    {
+      "id": "wired/ledger:presentation:validate",
+      "pass": true,
+      "observed": "ci:local + ci.yml#ledger-authenticity"
     },
     {
       "id": "served/apps/web/public/trust/**",

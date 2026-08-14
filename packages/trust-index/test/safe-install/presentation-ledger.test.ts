@@ -31,6 +31,7 @@ import { fileURLToPath } from "node:url"
 import {
   LEDGER_SCHEMA,
   faultsForEntry,
+  findReseat,
   gitFaultsForChain,
   gitFaultsForEntry,
   historyIsReachable,
@@ -249,6 +250,133 @@ describe("validateOffline vs validate — what each layer can and cannot see", (
   it("the reachability probe distinguishes a real chain from a fabricated one", () => {
     expect(historyIsReachable(ledgerOf([entryFor(liveCatalog, sha(9), "2026-08-01T00:00:00.000Z")]))).toBe(false)
     expect(historyIsReachable(ledgerOf([]))).toBe(false)
+  })
+})
+
+// ---------------------------------------------------------------------------
+// `--reseat` (ADR 0080). The repair for the ONE fault class this repo has hit twice
+// (#249, #293): a squash-merge rewrites the sha a ledger entry recorded, so the entry
+// becomes an ancestor of nothing and `validate`'s git layer names it.
+//
+// The subject under test is `findReseat`, not the mode wrapper — the wrapper's job is
+// printing and writing, while the safety property lives entirely in the finder: it may
+// only re-point an entry at a commit whose catalog is BYTE-IDENTICAL to the bytes that
+// entry already stores. Every test below therefore asserts on the bytes, never on a
+// hardcoded sha of this repo's history, which would rot at the next catalog commit.
+//
+// These need real history: a squash artifact is only recognisable against the commits
+// that touched the catalog. On CI's depth-1 clone those commits do not exist, so each
+// test states what it can there rather than becoming a silent skip.
+// ---------------------------------------------------------------------------
+describe("--reseat: repairing a post-squash dangling entry", () => {
+  /** The dangling-sha fault, injected into a COPY of the committed ledger. */
+  const withDanglingNewest = (): DeployLedger => ({
+    ...committed,
+    deploys: committed.deploys.map((e, i) => (i === committed.deploys.length - 1 ? { ...e, commit: sha(7) } : e)),
+  })
+
+  it("is a no-op on the committed ledger, so it is safe to run after any squash", () => {
+    const { reseats, refusals } = findReseat(committed)
+    expect(refusals).toEqual([])
+    // Every entry is already an ancestor of HEAD, so there is nothing to move. On a
+    // depth-1 clone nothing is an ancestor either — but then no candidate commit carries
+    // the bytes, so the answer is "unexplained", never "silently rewrite".
+    if (historyIsReachable(committed)) expect(reseats).toEqual([])
+  })
+
+  it("re-points a dangling entry at the commit carrying its own stored bytes", () => {
+    const broken = withDanglingNewest()
+    const newest = broken.deploys.length - 1
+
+    // The fault is real on ANY clone: `sha(7)` is an unknown object everywhere, so
+    // `validate` names it and the entry is what `--reseat` exists to repair.
+    expect(validate(broken).join(" | ")).toMatch(/not an ancestor of HEAD/)
+
+    const { reseats, refusals } = findReseat(broken)
+    // Exhaustiveness, asserted at every depth: a dangling entry is either repaired or
+    // explained. Silently dropping it is the one outcome that would make the command a
+    // no-op on the fault it is named after.
+    expect(reseats.length + refusals.length).toBe(1)
+
+    // The rest needs the commits that touched the catalog, which a depth-1 clone lacks.
+    // Gated on the COMMITTED ledger, never on `broken`: probing the ledger carrying the
+    // injected sha measures the injection, not the clone depth, and would send a full
+    // clone down the shallow branch.
+    if (!historyIsReachable(committed)) return
+
+    expect(refusals).toEqual([])
+    expect(reseats).toHaveLength(1)
+    expect(reseats[0]!.index).toBe(newest)
+    expect(reseats[0]!.from).toBe(sha(7))
+    // The recovered sha is asserted by its EFFECT, not by a literal: re-pointing there
+    // makes the whole ledger validate again, git layer included.
+    const repaired: DeployLedger = {
+      ...broken,
+      deploys: broken.deploys.map((e, i) => (i === newest ? { ...e, commit: reseats[0]!.to } : e)),
+    }
+    expect(validate(repaired)).toEqual([])
+    // And it is the sha the committed ledger already had — the repair is a restoration.
+    expect(reseats[0]!.to).toBe(committed.deploys[newest]!.commit)
+  })
+
+  it("REFUSES an entry whose stored document exists on no commit — that is not a squash", () => {
+    const newest = committed.deploys.length - 1
+    const orphan = committed.deploys[newest]!
+    // A document nothing ever served, with its own correctly-computed digests: the
+    // self-consistent forgery from the suite above, now wearing a dangling sha. The
+    // finder must not "fix" it by attaching it to whatever commit is nearest.
+    const fabricated = entryFor(
+      { ...(orphan.document as PresentationContentV1), locale: "xx-NEVER-SERVED" },
+      sha(7),
+      orphan.at,
+    )
+    const broken: DeployLedger = {
+      ...committed,
+      deploys: [...committed.deploys.slice(0, newest), fabricated],
+    }
+
+    const { reseats, refusals } = findReseat(broken)
+    // The load-bearing half, true at every clone depth: bytes nothing carries are never
+    // reseated, and the entry is REPORTED rather than dropped.
+    expect(reseats.some((r) => r.index === newest)).toBe(false)
+    const forNewest = refusals.filter((r) => r.startsWith(`deploys[${newest}]`))
+    expect(forNewest).toHaveLength(1)
+    expect(forNewest[0]).toMatch(/matches NO commit on HEAD's history/)
+    // The message must tell a human what to do instead of reseating, since the entry is
+    // either a forgery or a lost commit and those want opposite responses.
+    expect(forNewest[0]).toMatch(/Do not reseat it/)
+
+    // On a full clone the OTHER nine entries are authentic, so this is the only refusal —
+    // the finder does not tar a whole ledger with one bad entry. A depth-1 clone cannot
+    // see that, and asserting it there would fail for want of history, not for a fault.
+    if (historyIsReachable(committed)) {
+      expect(refusals).toHaveLength(1)
+      expect(reseats).toEqual([])
+    }
+  })
+
+  it("skips entries that are already authentic, so a partial fault repairs one entry", () => {
+    const broken = withDanglingNewest()
+    // Gated on `committed`, not `broken` — see the note above: `broken` carries a
+    // deliberately unknown sha, so probing it would report "shallow" on a full clone.
+    if (!historyIsReachable(committed)) return
+    const { reseats } = findReseat(broken)
+    // Nine untouched entries stay untouched: `isAncestorOfHead` short-circuits before any
+    // byte comparison, which is also what keeps the command cheap on a long ledger.
+    expect(reseats.map((r) => r.index)).toEqual([broken.deploys.length - 1])
+  })
+
+  it("ignores a malformed commit rather than searching for it", () => {
+    // A non-sha is a shape fault `faultsForEntry` already names. Reseating it would paper
+    // over a hand-edit; the finder leaves it for the validator to report.
+    const broken: DeployLedger = {
+      ...committed,
+      deploys: committed.deploys.map((e, i) => (i === 0 ? { ...e, commit: "c297708" } : e)),
+    }
+    const { reseats, refusals } = findReseat(broken)
+    expect(reseats.some((r) => r.index === 0)).toBe(false)
+    expect(refusals.some((r) => r.includes("deploys[0]"))).toBe(false)
+    expect(faultsForEntry(broken.deploys[0]!, 0).join(" | ")).toMatch(/40-hex sha/)
   })
 })
 

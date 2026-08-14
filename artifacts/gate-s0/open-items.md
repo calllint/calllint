@@ -502,6 +502,35 @@ Kept by append, not corrected in place: the sequence *local green → pushed →
 opinion at all* is the reusable part, and a reader that silently gained a parser would leave no
 record that it once had none.
 
+### Amendment 2026-08-14 (Workstream P Batch 8, ADR 0080) — 20 → **21** steps, and the step is a ledger
+
+**Still CLOSED. `ci:local` now has **21** `&&`-joined steps.** The twenty-first is
+`pnpm ledger:presentation:validate`, added by ADR 0080 alongside a `ledger-authenticity` job in
+`ci.yml`. The count above is left as written, for the reason this row already gives about its own
+18/19/20 sequence: a figure that rots quietly is worth keeping visible, and the reader in
+`tests/invariants/gate-s0-claims.invariants.test.ts` is what makes the live number binding.
+
+**Why a ledger check belongs in the chain this row is about.** `scripts/presentation-ledger.ts`
+splits validation in two: `validateOffline` recomputes every recorded digest from each entry's
+stored document, and `validate` adds the git layer — each commit is an ancestor of HEAD, and the
+stored document is byte-identical to the document at that commit. Only the git layer decides
+*authenticity*; the offline layer, by construction, reports zero faults for a self-consistent
+forgery. And the git layer had **no automated reader anywhere**: `ci.yml`'s `test` matrix checks out
+at depth 1, so historical shas are unknown objects and `historyIsReachable()` stands the layer down.
+The fault class it exists to catch — a squash-merge rewriting the sha an entry recorded — has fired
+**twice** (#249, #293), both times found by a human running the suite on a full clone.
+
+**`remoteOnly: false` is the honest column, which is what forces the count to move.** The new
+`REGRESSION_CHECKS` row could have been marked `remoteOnly` — the job it binds to is remote, and
+that would have left `ci:local` at 20 and this row's number untouched. It would also have been
+false: `remoteOnly` means a local run *cannot* prove the check, and this fault class is fully
+local-reproducible. Both times it fired, a local run is exactly what proved it. So the row is
+`remoteOnly: false`, membership in `ci:local` follows, and 20 → 21 follows from that.
+
+**The number moved because the honest value of a different field required it** — not to satisfy a
+count. Recording that direction matters: the tempting edit was the one that kept this row's figure
+stable by mislabelling the check.
+
 ---
 
 ## S0-OPEN-3 — three of S0's five assertions are GATE-VERIFIED, which reads a string
@@ -1238,3 +1267,59 @@ still true. Only its addresses expired, and they expired because of an edit in a
 workstream that had no interest in this row. That is the argument for content-addressed pointers over
 existence-addressed ones, and for keeping the assertions in a test rather than in prose: prose cannot
 notice its own rot.
+
+### Amendment 2026-08-14 (Workstream P Batch 8, ADR 0080) — **20 rows**, and the 20th proves a bound job is not yet a gate
+
+**Still CLOSED. `REGRESSION_CHECKS` now has **20 rows**, all naming `workflow: "ci.yml"`, of which
+**2** are `remoteOnly` (`pack:smoke`, `pack:smoke:mcp` — unchanged).** The artifact records **19
+bound** and **1 null**, that null still being `ci:local`, which is the chain itself and has no
+workflow step by design. `measures` went 32 → **33**. The pre-close text's *"19 rows … 18 bound / 1
+null"* is left verbatim, as is every earlier figure in this row.
+
+**The 20th row is the first bound to a job other than `test`**, and the reason it exists is this
+row's own `wired/aggregator-reachable` measure rather than the ledger it names:
+
+```
+{ id: "ledger:presentation:validate", ... workflow: "ci.yml", job: "ledger-authenticity" }
+```
+
+**Measured, not predicted.** With the `ledger-authenticity` job present in `ci.yml` **and** wired
+into `build-and-test`'s `needs`, deleting it from that `needs` list left Gate 2.4-H **PASSED**.
+`aggregatorMeasure` computes `boundJobs` from these rows, so a job that no row names contributes
+nothing to `unreached` — the new job was a *status the required check happened to wait on*,
+indistinguishable from one it did not. Adding the row is what puts `ledger-authenticity` into
+`boundJobs`, which is what makes dropping it from `needs` a FAILING measure. Three controls now red
+with three distinct messages: dropped from `needs`, job deleted, removed from `ci:local`.
+
+**This is the S batch 3 amendment's §3 arriving at its second instance.** That §3 replaced *"the
+aggregator must survive in `Object.keys(jobs)`"* with *"presence **plus** `needs` covering every job
+any check binds to"*, on the argument that **a bound job the required check does not wait on blocks
+nothing**. Until this batch every row bound to the same job, so the coverage half of that measure had
+exactly one job to cover and could not distinguish a real answer from a vacuous one. The first job
+that was genuinely new found the remaining gap: coverage is computed over jobs **the rows name**, so
+an unnamed job is outside the quantifier rather than uncovered by it. The measure was right; its
+domain was supplied by the very list this row is about.
+
+**What this amendment does NOT claim.** `boundJobs` is still derived from `REGRESSION_CHECKS`, so a
+future job that no row names will be invisible to `wired/aggregator-reachable` in exactly the way
+`ledger-authenticity` was before this row existed. That is a property of deriving the domain from a
+hand-maintained list, and it is recorded as measured rather than fixed — closing it means enumerating
+`ci.yml`'s jobs and asserting every one is either needed or deliberately excluded, which is a
+different gate than this row's.
+
+**Live pointers, re-anchored again.** The S batch 4 amendment's table drifted under this batch and
+under S batches 5–7:
+
+| Anchor | S batch 4 said | Live line |
+|---|---|---|
+| `readWorkflowGraph` (`scripts/phase-2.4-gates.ts`) | 742 | **758** |
+| `bindCheck` (`scripts/phase-2.4-gates.ts`) | 792 | **808** |
+| `REGRESSION_CHECKS` (`scripts/phase-2.4-gates.ts`) | 641 | **641** — unmoved |
+| the 20th row itself | — | **690** |
+| `bindingFault` (`packages/trust-index/src/phase24Gates.ts`) | 493 | **493** — unmoved |
+| `aggregatorMeasure` (`phase24Gates.ts`) | 565 | **565** — unmoved |
+| the denominator (`phase24Gates.ts`) | 711 → `6 + …` | **759**, still `6 + checks.length + served.length` |
+
+The denominator's **form** did not change this time even though `measures` did: the new measure is a
+per-check `wired/*` entry, so it is already counted by `checks.length`. A batch that added a
+roll-up measure would have had to move the `6`, which is the case S batch 4's §4 recorded.

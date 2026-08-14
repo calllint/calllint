@@ -672,6 +672,22 @@ const REGRESSION_CHECKS: readonly CheckSpec[] = [
   // on a fresh runner, so a local pass proves nothing about them.
   { id: "pack:smoke:mcp", script: "pack:smoke:mcp", remoteOnly: true, role: "check", workflow: "ci.yml", job: "test" },
   { id: "pack:smoke", script: "pack:smoke", remoteOnly: true, role: "check", workflow: "ci.yml", job: "test" },
+  // The ONLY row bound to a job other than `test`, and the reason it exists is
+  // `wired/aggregator-reachable` rather than the ledger itself (ADR 0080).
+  //
+  // MEASURED, not predicted: with the `ledger-authenticity` job added to ci.yml and
+  // wired into `build-and-test`'s `needs`, deleting it from that `needs` list left
+  // Gate 2.4-H **PASSED**. `aggregatorMeasure` computes `boundJobs` from these rows,
+  // so a job no row names contributes nothing to `unreached` — the new job was a
+  // status the required check happened to wait on, indistinguishable from one it did
+  // not. This row is what puts `ledger-authenticity` into `boundJobs`, which is what
+  // makes dropping it from `needs` a FAILING measure.
+  //
+  // `remoteOnly: false` is the honest value even though the job is remote: the fault
+  // class is fully local-reproducible — both times it fired (#249, #293) a human found
+  // it by running the suite on a full clone. So it belongs in `ci:local` too, and
+  // adding it there is what moves that chain from 20 steps to 21.
+  { id: "ledger:presentation:validate", script: "ledger:presentation:validate", remoteOnly: false, role: "check", workflow: "ci.yml", job: "ledger-authenticity" },
 ]
 
 /** The served subtrees whose bytes are a published contract, and their two guards. */
