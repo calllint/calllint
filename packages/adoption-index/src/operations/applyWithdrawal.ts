@@ -2,7 +2,11 @@
  * applyWithdrawal — write a `WithdrawalPlan` to the subject plane. INV-R12's application half.
  *
  * THE CONTROL API IS AN INTERNAL EXPORTED FUNCTION, not an MCP tool. The MCP surface stays frozen at
- * 13 tools / 19 resources (`pack:smoke:mcp` asserts both), so this batch adds nothing an agent can
+ * 13 tools, and its resources are one per committed adoption contract — so the resource COUNT is the
+ * registry cohort's size (19 when this line was written, 100 after ADR 0074 raised the cap) and was
+ * never a frozen number. `pack:smoke:mcp` asserts the tool count as a literal and the resource set as
+ * a slug-set equality against the bundle, which is why the cohort raise moved it without a red. What
+ * matters for THIS module is the invariant that survived both: this batch adds nothing an agent can
  * call. A de-listing is a claim-facing authority decision; exposing it to an autonomous caller before
  * the authority model exists would be the same mistake as shipping a verdict with no evidence.
  *

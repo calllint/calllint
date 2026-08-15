@@ -72,7 +72,28 @@ export interface AdoptionContract {
     readonly adds?: readonly { authority: string }[]
     readonly notObserved?: readonly string[]
   }
-  recommendedNextAction: { kind: string; tool: string; arguments: Record<string, unknown> }
+  /**
+   * The route the contract recommends. `kind` is the ONLY field this package reads
+   * (`publicFloor` switches on it and handles every kind plus an unrecognized default),
+   * so the rest is typed as what the producer can actually emit rather than as what one
+   * kind happens to carry.
+   *
+   * WHY `arguments` IS OPTIONAL, MEASURED. The producer's union
+   * (`trust-index/src/agentAdoptionContract.ts:86-90`) has FOUR shapes and only
+   * `PREPARE_LOCALLY` carries `arguments`; `EXPLAIN_ONLY` carries neither `arguments`
+   * nor `tool`. Requiring `arguments` here was satisfied by coincidence for as long as
+   * every bundled contract routed `PREPARE_LOCALLY` — true of the 25-entry cohort, false
+   * at 100, where 3 of 100 route `LOCAL_PREFLIGHT_REQUIRED` (a subject with no exact
+   * identity must be re-decided locally, so there are no digests to assert and emitting
+   * an empty `arguments` would be a fabricated pin). Optional here is not a widening to
+   * silence a compiler: it is the reader agreeing with the producer, and it matches how
+   * `trust-index/src/phase24Eval.ts:598` already reads the same field.
+   */
+  recommendedNextAction: {
+    kind: string
+    tool?: string
+    arguments?: Record<string, unknown>
+  }
   [key: string]: unknown
 }
 

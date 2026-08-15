@@ -152,7 +152,11 @@ describe("the committed corpus (control #21)", () => {
   const snapshot = parseSnapshot(readFileSync(SNAPSHOT_PATH, "utf8"))
 
   it("has ZERO collisions — which is why every case above is synthetic", () => {
-    expect(snapshot.entries.length).toBe(25)
+    // A vacuity guard, not a cohort size requirement: `registryCollisions([])` is trivially `[]`,
+    // so the claim below needs a non-empty corpus to mean anything. The exact size belongs to
+    // `gate-s0-claims`, which owns which snapshot is committed; pinning it here reds this test on
+    // every refresh that changes nothing about collisions.
+    expect(snapshot.entries.length, "zero collisions is vacuous on an empty corpus").toBeGreaterThan(0)
     expect(registryCollisions(snapshot)).toEqual([])
     // Stated as the mechanism too, so a future refresh that introduces a real collision fails
     // HERE with a name rather than somewhere downstream as a mysteriously merged page.

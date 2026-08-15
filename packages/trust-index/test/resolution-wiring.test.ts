@@ -64,18 +64,32 @@ describe("the resolution block reaches index.json (positive control)", () => {
   })
 
   it("decides a registry entry over BOTH axes, with the deadline set by the older one", () => {
+    // Both `ageDays` and the deadline are pure functions of (NOW, the two instants, CADENCE_DAYS).
+    // Derived here rather than pinned as literals, because a snapshot refresh moves `fetchedAt` and
+    // would red this test over arithmetic it is not about. What the test IS about — that both axes
+    // report, that the deadline follows the OLDER instant, and that the status is AGING — stays
+    // asserted exactly, and each still reds if the wiring picks the wrong axis.
+    const days = (from: string): number =>
+      Math.floor((Date.parse(NOW) - Date.parse(from)) / 86_400_000)
+    const older = Date.parse(evidence.resolvedAt) < Date.parse(snapshot.fetchedAt) ? evidence.resolvedAt : snapshot.fetchedAt
+    const deadline = new Date(Date.parse(older) + CADENCE_DAYS * 86_400_000).toISOString()
+    // The deadline must be in the PAST relative to NOW, or the status below could not be AGING —
+    // asserted so the derivation cannot silently become a restatement of whatever emit produced.
+    expect(Date.parse(deadline), "the deadline must already have passed for AGING to be correct").toBeLessThan(
+      Date.parse(NOW),
+    )
     const e = registryEntries(entries)[0]
     expect(e?.resolution).toEqual({
       status: "AGING",
       basis: [
-        { axis: "evidence-resolution", at: evidence.resolvedAt, ageDays: 20 },
-        { axis: "source-observation", at: snapshot.fetchedAt, ageDays: 20 },
+        { axis: "evidence-resolution", at: evidence.resolvedAt, ageDays: days(evidence.resolvedAt) },
+        { axis: "source-observation", at: snapshot.fetchedAt, ageDays: days(snapshot.fetchedAt) },
       ],
       // The NEWEST instant — when we last succeeded at anything.
       lastSuccessfulResolution: evidence.resolvedAt,
       // The OLDEST instant + cadence — the deadline the weakest axis sets. Note it is already in
       // the past relative to NOW, which is why the status is not FRESH.
-      nextRequiredResolution: "2026-08-17T08:02:29.262Z",
+      nextRequiredResolution: deadline,
       blockingUnknowns: [],
       cadenceDays: CADENCE_DAYS,
     })
@@ -129,7 +143,14 @@ describe("INV-R11 on the served plane — a re-bake does not make old evidence n
     // Non-vacuous: something must actually have moved, or the assertion above is satisfied by a
     // field that never responds to the clock at all.
     const moved = before.filter((b, i) => b.resolution?.status !== after[i]?.resolution?.status)
-    expect(moved.map((m) => m.canonicalName).length).toBe(25)
+    // Every REGISTRY entry must respond to the clock. Scoped to the registry rather than to
+    // "everything with a resolution block", because fixtures carry one too and theirs is pinned:
+    // their observation instant is a constant, so they report UNKNOWN at every bake clock and
+    // correctly never move. Counting them would demand movement from the entries designed not to
+    // move. Derived from the corpus, so a snapshot refresh does not red this.
+    const clockDriven = registryEntries(before).filter((b) => b.resolution?.status !== undefined).length
+    expect(clockDriven, "nothing is clock-driven, so 'never improves' is vacuous").toBeGreaterThan(0)
+    expect(moved.map((m) => m.canonicalName).length).toBe(clockDriven)
   })
 
   it("leaves lastSuccessfulResolution untouched by the later bake", () => {
@@ -170,26 +191,45 @@ describe("publishedAt finally has a consumer (gaps §1.4)", () => {
   it("carries the upstream instant through the cohort plan", () => {
     const plans = registryCohort(snapshot)
     const carried = plans.filter((p) => p.publishedAt !== undefined && p.publishedAt !== null).length
-    expect({ carried, total: plans.length }).toEqual({ carried: 25, total: 25 })
+    // FULL coverage, stated as the relation: every plan carries the upstream instant. Asserted as
+    // `carried === total` rather than against a cohort literal, which is the STRONGER claim — a
+    // refresh where one entry lost its `publishedAt` reds here, and prints both numbers.
+    expect(plans.length, "an empty plan set carries everything trivially").toBeGreaterThan(0)
+    expect({ carried, total: plans.length }).toEqual({ carried: plans.length, total: plans.length })
   })
 
   it("projects it as upstreamAgeDays on the served entry, distinct from the observation age", () => {
     const entries = registryEntries(indexOf(NOW).entries)
     const withAge = entries.filter((e) => e.upstreamAgeDays !== undefined)
-    expect(withAge.length).toBe(25)
+    // Full coverage again, against the registry entry count rather than a cohort literal: every
+    // registry entry that reached the served plane carries an upstream age.
+    expect(entries.length, "no registry entries reached the served plane").toBeGreaterThan(0)
+    expect(withAge.length).toBe(entries.length)
     // Distinct from the source axis by construction: the upstream ages span months while every
     // entry's observation age is the snapshot's single `fetchedAt`. If these agreed, `publishedAt`
     // would be a restatement of `observedAt` rather than a second fact.
     const spread = [...new Set(withAge.map((e) => e.upstreamAgeDays))]
     expect(spread.length).toBeGreaterThan(10)
-    expect(Math.max(...(withAge.map((e) => e.upstreamAgeDays ?? 0)))).toBe(187)
+    // The DISTINCTION, not the extremum. This used to pin the oldest release at 187 days, which
+    // was true of the 25-entry cohort and became 354 at 100 — a literal that tracks whichever
+    // entry happens to survive the cap, and says nothing about the two axes being different facts.
+    // What is actually claimed: the upstream axis spans far more time than the observation axis,
+    // which is a single instant (`fetchedAt`) shared by every entry. If `publishedAt` were a
+    // restatement of `observedAt`, the spread would collapse to one value and this reds.
+    const observationAgeDays = Math.floor((Date.parse(NOW) - Date.parse(snapshot.fetchedAt)) / 86_400_000)
+    expect(
+      Math.max(...withAge.map((e) => e.upstreamAgeDays ?? 0)),
+      "the upstream axis must reach further back than the single observation instant",
+    ).toBeGreaterThan(observationAgeDays)
   })
 
   /**
    * The measurement that rules `publishedAt` OUT as a status axis, asserted so a future batch
-   * cannot quietly promote it. The oldest upstream release is 187 days before the committed bake —
-   * far past `cadenceDays * agingMultiple` — so treating release age as staleness would report a
-   * stable package nobody has needed to republish as permanently STALE.
+   * cannot quietly promote it. The oldest upstream release sits far past `cadenceDays *
+   * agingMultiple` before the committed bake (187 days at cohort 25, 354 at cohort 100 — the
+   * figure moves with whichever entry survives the cap, which is why the assertion below is an
+   * inequality against the cadence rather than a pinned day count). Treating release age as
+   * staleness would report a stable package nobody has needed to republish as permanently STALE.
    */
   it("does not let upstream age touch the status", () => {
     const entries = registryEntries(indexOf(NOW).entries)

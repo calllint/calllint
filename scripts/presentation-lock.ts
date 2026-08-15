@@ -258,6 +258,43 @@ function servedContracts(): { slug: string; contract: unknown }[] {
  * value equals the computed semantic digest. Checking every argument value rather than
  * `expectedContractDigest` alone means a re-pointing routed through a NEW argument name is
  * caught too.
+ *
+ * NOT EVERY SIDECAR HAS A PLAN TO BIND, AND AT COHORT 25 THAT WAS INVISIBLE. The producer
+ * (`trust-index/src/agentAdoptionContract.ts:139-161`) emits FOUR routes, and only
+ * `PREPARE_LOCALLY` carries a plan: an `UNKNOWN` verdict, or a subject with no exact
+ * artifact digest + version, routes `LOCAL_PREFLIGHT_REQUIRED` with NO arguments, because
+ * there is no pinned target to assert and inventing an empty `arguments` would be a
+ * fabricated pin on a subject we could not verify (UNKNOWN is not SAFE). Every contract in
+ * the 25-entry cohort happened to be actionable, so "has a plan" and "is a served sidecar"
+ * were the same set and demanding `PREPARE_LOCALLY` of all of them was satisfiable by
+ * accident. At cohort 100, 3 of 100 are UNKNOWN with `packageType: null`.
+ *
+ * So the fault is no longer "the kind is not PREPARE_LOCALLY" — that would report the
+ * honest refusal as a regression, and the only way to green it would be to fabricate a
+ * plan for an unverified subject. Instead the ROUTE ITSELF is checked against the
+ * producer's rule: a sidecar the producer would call actionable MUST carry a plan (a
+ * missing one is the regression this function exists for), and one it would refuse MUST
+ * NOT (a plan over an unverifiable subject is the more dangerous direction). Both halves
+ * can fail, so neither kind is exempt from measurement.
+ *
+ * WHICH FIELDS DECIDE, MEASURED RATHER THAN ASSUMED. A first draft of this read
+ * `artifact.artifactDigest` / `evidence.artifactDigest`; neither key exists on a served
+ * sidecar, so `exactTarget` was `undefined`-driven and false for all 100 — which would
+ * have exempted every real plan from facts 1–5 and left this function green over bytes it
+ * had stopped reading. The digest is at `subject.artifactDigest` (the builder projects
+ * `page.artifactDigest` there, `agentAdoptionContract.ts:206`), and over the served cohort
+ * `exactTarget` is true 100/100 while the UNKNOWN gate splits off exactly 3 — so the plan
+ * facts stay reachable for the other 97. `expectedActionable` is deliberately expressed as
+ * the producer's two clauses rather than as that measured 97/3, so it keeps constraining
+ * if a later cohort carries a subject with no digest.
+ *
+ * ONE PRODUCER INPUT IS NOT OBSERVABLE HERE, AND IS THEREFORE NOT CLAIMED. `unsupported`
+ * short-circuits to `EXPLAIN_ONLY` before any other clause (`:144`) and is never
+ * serialized into the contract, so no reader of the served bytes can tell a legitimate
+ * `EXPLAIN_ONLY` from a defective one. This function does not pretend otherwise: it
+ * checks `EXPLAIN_ONLY` carries no plan (that much the bytes do decide) and leaves the
+ * route's legitimacy unmeasured. Nothing in the current cohort routes it (0 of 100), so
+ * the gap is recorded here rather than silently covered by a guess.
  */
 function planBindingFaults(contract: unknown, semantic: string): string[] {
   const faults: string[] = []
@@ -265,6 +302,51 @@ function planBindingFaults(contract: unknown, semantic: string): string[] {
   if (action === undefined || action === null || typeof action !== "object") {
     return ["recommendedNextAction is absent — the sidecar recommends no plan at all"]
   }
+
+  // Would the producer call this subject actionable? Read off the SAME facts it reads —
+  // an exact sha256 artifact digest and a non-empty version (`isActionableSubject`), behind
+  // the verdict gate that precedes them — rather than trusting the kind the sidecar states.
+  const c = contract as {
+    publicObservation?: { verdict?: unknown }
+    subject?: { version?: unknown; artifactDigest?: unknown }
+  }
+  const verdict = c.publicObservation?.verdict
+  const digest = c.subject?.artifactDigest
+  const version = c.subject?.version
+  const exactTarget =
+    typeof digest === "string" && digest.startsWith("sha256:") && typeof version === "string" && version.length > 0
+  const expectedActionable = verdict !== "UNKNOWN" && verdict !== "BLOCK" && exactTarget
+
+  if (!expectedActionable) {
+    // The opposing half: a subject the producer would refuse must NOT carry a plan. A
+    // fabricated plan here is what would let an agent "assert" digests for a subject
+    // nobody verified, so this direction is a fault too, not a permitted silence.
+    if (action.kind === "PREPARE_LOCALLY" || action.arguments !== undefined) {
+      faults.push(
+        `recommends a plan (kind ${JSON.stringify(action.kind)}, arguments ` +
+          `${action.arguments === undefined ? "absent" : "present"}) for a subject the producer would refuse ` +
+          `(verdict ${JSON.stringify(verdict)}, version ${JSON.stringify(version)}, digest ${JSON.stringify(digest)}) — ` +
+          `an unverifiable subject must route a plan-less kind with no arguments`,
+      )
+    }
+    // BLOCK routes `explain_finding`; UNKNOWN routes `calllint_prepare_safe_install` with
+    // no arguments; EXPLAIN_ONLY carries no tool at all. Any other tool on a plan-less
+    // route means the sidecar is pointing an agent somewhere the producer never routes.
+    const planlessTool =
+      action.kind === "EXPLAIN_ONLY"
+        ? action.tool === undefined
+        : action.kind === "INSPECT_BLOCKERS"
+          ? action.tool === "explain_finding"
+          : action.tool === "calllint_prepare_safe_install"
+    if (!planlessTool) {
+      faults.push(
+        `recommendedNextAction.tool is ${JSON.stringify(action.tool)} on a plan-less ` +
+          `${JSON.stringify(action.kind)} route`,
+      )
+    }
+    return faults
+  }
+
   if (action.kind !== "PREPARE_LOCALLY") faults.push(`recommendedNextAction.kind is ${JSON.stringify(action.kind)}, not "PREPARE_LOCALLY"`)
   if (action.tool !== "calllint_prepare_safe_install") {
     faults.push(`recommendedNextAction.tool is ${JSON.stringify(action.tool)}, not "calllint_prepare_safe_install"`)
