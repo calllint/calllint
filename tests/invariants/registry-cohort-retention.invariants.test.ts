@@ -274,12 +274,20 @@ describe("the registry cohort slice retains the claimed subject", () => {
   })
 
   it("re-projecting the committed cohort keeps the claimed subject at today's cap", () => {
-    const out = project(committedRecords, readCap())
+    const cap = readCap()
+    const out = project(committedRecords, cap)
     expect(out.entries.map((e) => e.name)).toContain(CLAIMED_SUBJECT)
-    // The cap does not bind today, so `count` is the cohort size and not the cap. Stating both
-    // makes a future cohort that silently reached the cap visible here.
+    // THE CAP NOW BINDS, and this assertion is how that became visible. It used to read
+    // `toBeLessThan(readCap())` with the comment "the cap does not bind today ... stating both makes
+    // a future cohort that silently reached the cap visible here". That future arrived: the ADR 0074
+    // cap is 100 and the committed cohort is exactly 100, so the strict inequality red — the
+    // assertion did its job and is now replaced by the one that holds in both regimes.
+    //
+    // `count` is still pinned to the cohort size (not to the cap) so a projection that started
+    // emitting fewer entries than the cohort holds is still a failure here, and the cap is asserted
+    // as the ABSOLUTE CEILING it is under ADR 0075 — a reserved name takes a slot, never an extra.
     expect(out.count).toBe(names.length)
-    expect(out.count).toBeLessThan(readCap())
+    expect(out.count, "the cap is an absolute ceiling, never exceeded").toBeLessThanOrEqual(cap)
   })
 
   it("there is NO cohort size at which the claimed subject is evicted", () => {
@@ -293,7 +301,21 @@ describe("the registry cohort slice retains the claimed subject", () => {
     expect(headroom, `headroom must be the cap (${cap}) minus the cohort size (${names.length})`).toBe(
       cap - names.length,
     )
-    expect(headroom, "the alphabetical boundary must still lie above today's cohort size").toBeGreaterThan(0)
+    // THE BOUNDARY HAS BEEN REACHED, which is the state this assertion used to forbid. It read
+    // `toBeGreaterThan(0)` — "the alphabetical boundary must still lie above today's cohort size" —
+    // and that was a statement about the cohort having room left, not about retention. The ADR 0074
+    // cap is 100 and the cohort is exactly 100, so `headroom` is 0: a purely alphabetical cap would
+    // reach this subject AT TODAY'S SIZE, which is precisely the hazard ADR 0075 exists to neutralize
+    // and the strongest possible input for the probes below, not a reason to stop probing.
+    //
+    // Asserted `>= 0` because a NEGATIVE headroom would mean the subject sorts past the cap's reach
+    // in a way this arithmetic cannot describe (the cohort exceeding the cap), and the probes below —
+    // which add `headroom` fillers — would then be constructing cohorts smaller than today's and
+    // silently testing nothing. That is the vacuity this bound now guards.
+    expect(
+      headroom,
+      `headroom must not be negative — at ${headroom} the filler-based probes below would shrink the cohort instead of growing it`,
+    ).toBeGreaterThanOrEqual(0)
 
     // INVERTED AT S BATCH 6 (ADR 0075). Until this batch, the second half of this test asserted
     // that cohort `cap + 1` EVICTED the claimed subject, with the message "this is the defect this
@@ -400,12 +422,26 @@ describe("the registry cohort slice retains the claimed subject", () => {
       if (meetsRequirement && retainsSubject) both.push(names.length + extra)
     }
     expect(both.length, "the two properties must be satisfiable together at more than one size — that is the decoupling").toBeGreaterThan(1)
-    // Lower endpoint: still the requirement, and still derived. Below it the gate is short, which
-    // has nothing to do with the slice and is unaffected by ADR 0075.
+    // Lower endpoint: the first size the scan can actually REACH that satisfies both, derived from
+    // the same two quantities rather than restated.
+    //
+    // This used to be `toBe(required)` and it red at cohort 100. The reason is worth keeping: the
+    // scan grows the committed cohort with `earlierFillers`, so the smallest size it can construct
+    // is `names.length` — it cannot probe BELOW today's cohort, because that would mean removing
+    // committed records. While the cohort was 19 and the requirement 25, the opening size was the
+    // requirement (sizes 19..24 were scanned and failed `count >= 25`). Now the cohort is 100 and
+    // every scanned size already clears 25, so the overlap opens at the cohort size. Pinning
+    // `required` asserted a size the scan no longer visits — an endpoint that had become unreachable
+    // rather than a property that had broken.
+    //
+    // `Math.max` states both regimes in one expression: below the requirement the gate is short
+    // (nothing to do with the slice, unaffected by ADR 0075), and at or above it the binding
+    // constraint is simply where the scan starts.
+    const opensAt = Math.max(required, names.length)
     expect(
       both[0],
-      `the overlap must OPEN at S0's requirement (${required}). Observed ${both.length} sizes: ${both[0]}..${both[both.length - 1]}`,
-    ).toBe(required)
+      `the overlap must OPEN at the first scannable satisfying size (max of S0's requirement ${required} and today's cohort ${names.length}). Observed ${both.length} sizes: ${both[0]}..${both[both.length - 1]}`,
+    ).toBe(opensAt)
     // Upper endpoint: the scan's own last size. Asserted as UNBOUNDED-WITHIN-SCAN rather than as a
     // number — the claim is that no size in the scan fails, so the top is wherever the scan stopped.
     expect(
@@ -413,8 +449,9 @@ describe("the registry cohort slice retains the claimed subject", () => {
       `the overlap must run to the END of the scan — with reserved retention nothing closes it. Observed ${both.length} sizes: ${both[0]}..${both[both.length - 1]}`,
     ).toBe(names.length + scanTo)
     // Stated as CONTIGUITY too, so a hole in the middle cannot hide behind two correct endpoints.
+    // Derived from the same `opensAt`, so the count and the lower endpoint cannot disagree.
     expect(both.length, "every scanned size at or above the requirement must satisfy both").toBe(
-      names.length + scanTo - required + 1,
+      names.length + scanTo - opensAt + 1,
     )
     // And the scan must have reached PAST the cap, or it never probed a size where the old
     // alphabetical slice would have evicted the subject and the interval above proves nothing.
@@ -500,16 +537,47 @@ describe("the registry cohort slice retains the claimed subject", () => {
       .filter(([, v]) => String(v).includes("io.github.calllint-calllint"))
       .map(([k]) => k)
     // Printed as the paths, not a count: a failure names WHICH committed references eviction
-    // orphans. Asserted as the exact set so a batch that adds or drops one is visible here.
-    expect(lockRefs, `presentation-lock paths naming ${CLAIMED_SLUG}`).toEqual([
-      "contentPlane.overriddenSlots[34]",
-      "contentPlane.overriddenSlots[35]",
-      "semanticContract.resources[18].canonicalSlug",
-    ])
-    // `resources[18]` is the same last position the subject holds in the cohort: the lock's own
-    // resource list is in cohort order, so the eviction boundary and the lock's last index are the
-    // same boundary. That is why an evicting ingest orphans the tail of this list, not a middle row.
-    expect(flat["semanticContract.resources[18].canonicalSlug"]).toBe(CLAIMED_SLUG)
+    // orphans.
+    //
+    // WHY THIS IS NO LONGER AN EXACT THREE-PATH SET. The set used to be pinned as
+    // `overriddenSlots[34]`, `[35]` and `semanticContract.resources[18].canonicalSlug`, and the
+    // docblock above tells the story of that count being corrected from two to three by searching a
+    // second key form. Both override paths are now gone, and NOT because anything regressed: ADR
+    // 0078 D2 deliberately retargeted the one override entry off this subject (the 19→25
+    // re-selection had removed its page, making the key dead config) onto
+    // `mcp-registry__ag.hood-name-service`, restating that page's shipped display name so the
+    // override path stays exercised without moving a served byte. Re-pinning a new literal set here
+    // would just re-arm the same staleness: the census depends on which subject a config document
+    // happens to name, which is a catalog decision, while THIS test is about eviction orphaning
+    // committed bytes.
+    //
+    // So the assertion states the property instead of the inventory: the lock must reference the
+    // subject at least once, and the reference that eviction would orphan — the cohort-ordered
+    // resource entry — must be present. Both halves can fail (an evicting ingest drops the resource
+    // entry and the count goes to zero), so this is not a widening to absorb the change.
+    expect(
+      lockRefs.length,
+      `presentation-lock must reference ${CLAIMED_SLUG} at least once; observed [${lockRefs.join(", ")}]`,
+    ).toBeGreaterThan(0)
+    const resourceRefs = lockRefs.filter((k) => /^semanticContract\.resources\[\d+\]\.canonicalSlug$/.test(k))
+    expect(resourceRefs, `the lock's cohort-ordered resource list must name ${CLAIMED_SLUG} exactly once`).toHaveLength(
+      1,
+    )
+    // The subject's position in the lock's resource list is the LAST one, derived from the list's own
+    // length rather than restated. The lock's resources are in cohort order, so the eviction boundary
+    // and the lock's last index are the same boundary — that is why an evicting ingest orphans the
+    // tail of this list and not a middle row. Pinning `18` stopped being true at cohort 100 for the
+    // same reason it was true at 19: it was the length, not a fact about the subject.
+    const lockResources: unknown[] = readJson(PRESENTATION_LOCK).semanticContract?.resources ?? []
+    expect(lockResources.length, "the lock must carry a non-empty cohort-ordered resource list").toBeGreaterThan(0)
+    expect(resourceRefs[0], "the subject must sit at the TAIL of the lock's cohort-ordered resources").toBe(
+      `semanticContract.resources[${lockResources.length - 1}].canonicalSlug`,
+    )
+    // NOT re-read from `flat` at that key. `resourceRefs` was derived by filtering the flattened lock
+    // for keys whose VALUE already equals CLAIMED_SLUG, so `flat[resourceRefs[0]] === CLAIMED_SLUG`
+    // is true by construction — it restates the filter and cannot fail
+    // ([[audit-keyed-on-its-own-subject]]). The index assertion above is the one carrying content:
+    // it compares the subject's position against a length read from a DIFFERENT read of the file.
   })
 })
 

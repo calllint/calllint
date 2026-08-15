@@ -65,9 +65,14 @@
  * 25-record requirement. A single mode covering both would have had to soften one of them.
  *
  * THE FLOOR IS DERIVED, NEVER WRITTEN DOWN. `S0_REGRESSION_FLOOR` is not a literal to be adjusted:
- * it is asserted to be <= `S0_REQUIRED_RECORDS`, so it can never be raised into a second, competing
- * requirement, and a test pins it against the served cohort at HEAD. A hardcoded floor that someone
- * edits downward to make CI pass is the shape of defect this file exists to refuse.
+ * it is bounded below by the coherence check at load time and pinned to the committed upstream cohort
+ * by a test. A hardcoded floor that someone edits downward to make CI pass is the shape of defect
+ * this file exists to refuse.
+ *
+ * The floor used to be bounded ABOVE by `S0_REQUIRED_RECORDS`, and ADR 0083 removed that: once the
+ * cohort passed the requirement (100 vs 25) the two rules became unsatisfiable together, and holding
+ * the floor at 25 meant 75 committed records could be lost with `--regression` still green. The
+ * ordering that remains is against the COHORT, never against the requirement.
  *
  * Exit codes: 0 ok · 2 gate failed (--gate / --regression) / unexpected error.
  */
@@ -91,27 +96,61 @@ const S0_REQUIRED_RECORDS = 25
 
 /**
  * The RATCHET floor for `--regression`: the registry cohort must not shrink below this. It is the
- * cohort served at HEAD (19), so `--regression` is green today and reds the moment a change drops a
+ * cohort committed at HEAD, so `--regression` is green today and reds the moment a change drops a
  * record — the direction that is a regression, as distinct from the shortfall S0-OPEN-1 tracks.
+ *
+ * RAISED 25 → 100 BY ADR 0083, together with the removal of the `<= S0_REQUIRED_RECORDS` bound that
+ * used to sit under it. The bound's stated reason was that a floor above the requirement "could red
+ * while the real gate was satisfiable, which inverts the relationship the two modes are supposed to
+ * have" — true only while the requirement was the larger number. The S0-OPEN-4 re-ingest moved the
+ * cohort to 100 against a requirement of 25, at which point the bound demanded the floor stay at 25
+ * and the ratchet went blind to a 75-record loss: a guard whose only purpose is detecting a lost
+ * record, silently green through three quarters of the cohort disappearing.
  *
  * Three properties keep this from becoming a second, softer requirement:
  *
- *   1. It is asserted `<= S0_REQUIRED_RECORDS` below, at load time. A floor above the requirement
- *      would mean the ratchet could red while the real gate was satisfiable, which inverts the
- *      relationship the two modes are supposed to have.
- *   2. A test pins it against `apps/web/public/trust/index.json`'s actual registry count, so the
- *      literal cannot be edited downward to make a red CI green — the classic way a ratchet is
- *      defeated. Lowering it requires editing a test whose message says why it exists.
- *   3. Raising it is NOT this gate's job. When the cohort grows to 25, `--gate` becomes satisfiable
- *      and is the mode that says so; the floor exists to catch shrinkage, not to track growth.
+ *   1. It is bounded by the COMMITTED COHORT below, at load time — never by the requirement. A floor
+ *      above what is actually committed is still incoherent (it reds CI for growth that has not
+ *      happened) and still exits 2. A floor above the requirement is now legitimate, because
+ *      achievement is allowed to exceed ambition.
+ *   2. A test pins it against the committed upstream snapshot's entry count, so the literal cannot be
+ *      edited downward to make a red CI green — the classic way a ratchet is defeated. Lowering it
+ *      requires editing a test whose message says why it exists.
+ *   3. Raising it is NOT this gate's job, and the ordering is deliberate: an ingest moves the cohort
+ *      first, the derived test then reds until the floor follows. The floor may never LEAD the
+ *      cohort, which is what keeps it a record of achievement rather than a target.
  */
-const S0_REGRESSION_FLOOR = 25
+const S0_REGRESSION_FLOOR = 100
 
-// Asserted, not commented. A floor above the requirement is incoherent — it would red the ratchet on
-// cohorts the real gate accepts — and this is the cheapest place to make that unrepresentable.
-if (S0_REGRESSION_FLOOR > S0_REQUIRED_RECORDS) {
+/**
+ * The committed upstream cohort, read from the snapshot the gate reconciles against under INV-R5.
+ * Read here — not restated — because the coherence check below is about the relationship between the
+ * floor and what is actually committed, and a literal would make that check agree with itself.
+ *
+ * Returns null when the snapshot is unreadable. That is NOT treated as a coherence failure: the
+ * census below reports a missing snapshot with a message about the snapshot, and turning it into
+ * "incoherent constants" here would misname the fault ([[one-absence-read-by-two-mechanisms]]).
+ */
+function committedRegistryCohort(): number | null {
+  const p = path.join(repoRoot, "packages/trust-index/snapshots/official-mcp-registry.json")
+  if (!existsSync(p)) return null
+  try {
+    const snap = JSON.parse(readFileSync(p, "utf8")) as { entries?: readonly unknown[] }
+    return Array.isArray(snap.entries) ? snap.entries.length : null
+  } catch {
+    return null
+  }
+}
+
+// Asserted, not commented. A floor above the cohort actually committed is incoherent — it reds the
+// ratchet for growth that has not happened — and this is the cheapest place to make that
+// unrepresentable. ADR 0083 re-anchored this from the REQUIREMENT to the COHORT; the two agreed
+// while the cohort sat at or below 25 and became unsatisfiable together the moment it passed it.
+const committedCohort = committedRegistryCohort()
+if (committedCohort !== null && S0_REGRESSION_FLOOR > committedCohort) {
   console.error(
-    `❌ incoherent constants: S0_REGRESSION_FLOOR (${S0_REGRESSION_FLOOR}) > S0_REQUIRED_RECORDS (${S0_REQUIRED_RECORDS})`,
+    `❌ incoherent constants: S0_REGRESSION_FLOOR (${S0_REGRESSION_FLOOR}) > the committed registry cohort ` +
+      `(${committedCohort}) — a ratchet may never lead the cohort it measures (ADR 0083 D1)`,
   )
   process.exit(2)
 }
