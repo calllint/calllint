@@ -60,6 +60,24 @@ const liveCatalog = JSON.parse(
 ) as PresentationContentV1
 
 /**
+ * Is THIS checkout shallow, measured WITHOUT calling the helper under test?
+ *
+ * Every branch guard below decides which assertions run, so taking that answer from
+ * `repositoryIsShallow()` would let the function under test pick the branch that hides its
+ * own bug. Measured, not theorised, twice: forcing it `true` on a full clone left 24 tests
+ * green before 0081 D4 added an independent probe, and again at 0082 — where the probe
+ * existed but only ONE assertion used it, so the same forcing reded 1 of 28 while 27
+ * assertions moved into the unreachable half ([[a-branch-guard-must-not-ask-its-own-subject]],
+ * [[absence-makes-a-gate-skip-itself]]).
+ *
+ * `repositoryIsShallow` therefore appears below only as a SUBJECT of assertions, never as
+ * the reason a branch was taken.
+ */
+const cloneIsShallow = (): boolean =>
+  fs.existsSync(path.join(repoRoot, ".git", "shallow")) ||
+  execFileSync("git", ["-C", repoRoot, "rev-parse", "--is-shallow-repository"], { encoding: "utf8" }).trim() === "true"
+
+/**
  * Build an entry whose five recorded values are DERIVED from the document it stores.
  *
  * Every fixture below starts here, so a fixture is self-consistent by construction and a
@@ -111,11 +129,20 @@ describe("the committed ledger", () => {
   // something real: with history, the git layer is green; without it, the OFFLINE layer is
   // green and the git layer is recorded as unrunnable. Neither branch is a no-op.
   it("passes the git layer too, so every stored document is authentic", () => {
-    if (!historyIsReachable(committed)) {
+    // Keyed on truncation rather than on `historyIsReachable` (ADR 0082): the code under
+    // test branches on truncation, so the test must ask the same question. Asking "can I
+    // see every commit" instead would take the offline path for a DANGLING entry too, and
+    // silently stop asserting the thing this test is named for. Asked via `cloneIsShallow`,
+    // never via the subject: see that helper's note.
+    if (cloneIsShallow()) {
+      const outcome = validate(committed)
+      expect(outcome.kind).toBe("refused")
+      if (outcome.kind === "refused") expect(outcome.reason).toMatch(/SHALLOW/)
+      // The layer that CAN answer on a truncated clone still must.
       expect(validateOffline(committed, liveCatalog)).toEqual([])
       return
     }
-    expect(validate(committed)).toEqual([])
+    expect(validate(committed)).toEqual({ kind: "checked", faults: [] })
   })
 
   it("stores a document for every entry, since a ledger without bytes restores nothing", () => {
@@ -241,8 +268,13 @@ describe("validateOffline vs validate — what each layer can and cannot see", (
     // than nothing, so the test never silently becomes a skip.
     const offline = validateOffline(committed, liveCatalog)
     expect(offline).toEqual([])
-    if (!historyIsReachable(committed)) return
-    expect(validate(committed)).toEqual([])
+    if (cloneIsShallow()) {
+      // The superset relation is unobservable here, but the REFUSAL is, and it is the thing
+      // that must not silently become a pass (ADR 0082 D2).
+      expect(validate(committed).kind).toBe("refused")
+      return
+    }
+    expect(validate(committed)).toEqual({ kind: "checked", faults: [] })
   })
 
   // The probe itself, so it cannot rot into a constant `false` that would neuter every gate
@@ -252,6 +284,38 @@ describe("validateOffline vs validate — what each layer can and cannot see", (
   it("the reachability probe distinguishes a real chain from a fabricated one", () => {
     expect(historyIsReachable(ledgerOf([entryFor(liveCatalog, sha(9), "2026-08-01T00:00:00.000Z")]))).toBe(false)
     expect(historyIsReachable(ledgerOf([]))).toBe(false)
+  })
+
+  // ADR 0082. `validate` gained a third outcome, and the reason is a hazard rather than a
+  // preference: the obvious spelling of the shallow-clone guard was `faults: []`, which would
+  // make `ledger-authenticity` print "deploy ledger OK" and EXIT 0 on a truncated clone. That
+  // job's only protection is one `fetch-depth: 0` line, so a silent pass means deleting that
+  // line disarms the layer's only automated reader with nothing red.
+  //
+  // These two tests run on BOTH clone shapes and are what make the variant load-bearing: one
+  // pins that refusal and emptiness are distinguishable, the other that the offline layer —
+  // the mode that CAN answer on a truncated clone — still answers.
+  it("never spells a refusal as an empty fault list, on either clone shape", () => {
+    const outcome = validate(committed)
+    if (outcome.kind === "refused") {
+      expect(outcome.reason).toMatch(/SHALLOW/)
+      // The refusal must name the fix, or a human reading CI learns only that it failed.
+      expect(outcome.reason).toMatch(/unshallow|fetch-depth/)
+      // And it must not be mistakable for the checked-and-clean case.
+      expect(outcome).not.toEqual({ kind: "checked", faults: [] })
+    } else {
+      expect(outcome.faults).toEqual([])
+    }
+    // Whichever shape this is, the two states are distinct VALUES, not the same value read
+    // two ways — the property a boolean-plus-array return could not express.
+    expect(["checked", "refused"]).toContain(outcome.kind)
+  })
+
+  it("keeps an honest mode available on a truncated clone", () => {
+    // 0082 D4: refusing the git layer is only acceptable because `--offline` still grades
+    // recomputation from stored bytes. If that stopped being true, the refusal would leave a
+    // depth-1 caller with no way to check anything at all.
+    expect(validateOffline(committed, liveCatalog)).toEqual([])
   })
 })
 
@@ -275,25 +339,13 @@ describe("validateOffline vs validate — what each layer can and cannot see", (
 // entry, which is what turned all three matrix legs red on PR #295.
 // ---------------------------------------------------------------------------
 describe("--reseat: repairing a post-squash dangling entry", () => {
-  /**
-   * Is THIS checkout shallow, measured without calling the helper under test?
-   *
-   * The branch guard below decides which assertions run, so taking its answer from
-   * `repositoryIsShallow()` would let that function's own bug pick the branch that hides
-   * it — measured, not theorised: forcing `repositoryIsShallow` to return `true` on a full
-   * clone left all 24 tests GREEN, because every full-clone assertion had quietly moved
-   * into the unreachable half ([[absence-makes-a-gate-skip-itself]]). An independent probe
-   * of the same fact is what makes the split falsifiable rather than self-confirming
-   * ([[an-audit-keyed-on-its-own-subject-cannot-fail]]).
-   */
-  const cloneIsShallow = (): boolean =>
-    fs.existsSync(path.join(repoRoot, ".git", "shallow")) ||
-    execFileSync("git", ["-C", repoRoot, "rev-parse", "--is-shallow-repository"], { encoding: "utf8" }).trim() ===
-      "true"
-
-  it("agrees with git about whether this clone is shallow, so the branch below is real", () => {
-    // Without this the whole describe can be disarmed by one wrong boolean, and nothing
-    // reds. It is the only assertion here that runs on BOTH kinds of clone.
+  it("agrees with git about whether this clone is shallow, so every branch above is real", () => {
+    // The ONE place `repositoryIsShallow` appears as a subject rather than as a branch
+    // guard, and the seam the whole file rests on: every test branches on `cloneIsShallow`
+    // while the CODE branches on `repositoryIsShallow`, so a disagreement between them
+    // means the grader refuses on the wrong clone shape. Without this assertion that
+    // disagreement is invisible — each side would simply take its own branch and pass.
+    // It runs on BOTH kinds of clone, which no other assertion in the file does.
     expect(repositoryIsShallow()).toBe(cloneIsShallow())
   })
 
@@ -309,7 +361,7 @@ describe("--reseat: repairing a post-squash dangling entry", () => {
     // fault, so the refusal is the assertion there — not a skip, which would leave this
     // test proving nothing on the only clone CI's matrix ever has
     // ([[skip-on-absence-disarms-the-only-witness]]).
-    if (repositoryIsShallow()) {
+    if (cloneIsShallow()) {
       expect(reseats).toEqual([])
       expect(refusals).toHaveLength(1)
       expect(refusals[0]).toMatch(/SHALLOW/)
@@ -324,9 +376,18 @@ describe("--reseat: repairing a post-squash dangling entry", () => {
     const broken = withDanglingNewest()
     const newest = broken.deploys.length - 1
 
-    // The fault is real on ANY clone: `sha(7)` is an unknown object everywhere, so
-    // `validate` names it and the entry is what `--reseat` exists to repair.
-    expect(validate(broken).join(" | ")).toMatch(/not an ancestor of HEAD/)
+    // `sha(7)` is an unknown object on every clone, so the entry IS dangling here. But only a
+    // full clone can say so: on a truncated one `validate` refuses wholesale (ADR 0082),
+    // because it cannot tell this injected sha from the nine authentic ones it also cannot
+    // see. Asserting the fault text unconditionally would demand an accusation the evidence
+    // does not support — the exact thing 0081/0082 removed.
+    const outcome = validate(broken)
+    if (cloneIsShallow()) {
+      expect(outcome.kind).toBe("refused")
+    } else {
+      expect(outcome.kind).toBe("checked")
+      if (outcome.kind === "checked") expect(outcome.faults.join(" | ")).toMatch(/not an ancestor of HEAD/)
+    }
 
     const { reseats, refusals } = findReseat(broken)
 
@@ -334,7 +395,7 @@ describe("--reseat: repairing a post-squash dangling entry", () => {
     // cannot see, so the finder refuses everything. Asserting the per-entry exhaustiveness
     // here would fail for want of history rather than for a fault — and measured on a real
     // `--depth 1` clone it read `reseats + refusals === 10`, which is what reds CI.
-    if (repositoryIsShallow()) {
+    if (cloneIsShallow()) {
       expect(reseats).toEqual([])
       expect(refusals).toHaveLength(1)
       expect(refusals[0]).toMatch(/Refusing to reseat anything/)
@@ -356,7 +417,7 @@ describe("--reseat: repairing a post-squash dangling entry", () => {
       ...broken,
       deploys: broken.deploys.map((e, i) => (i === newest ? { ...e, commit: reseats[0]!.to } : e)),
     }
-    expect(validate(repaired)).toEqual([])
+    expect(validate(repaired)).toEqual({ kind: "checked", faults: [] })
     // And it is the sha the committed ledger already had — the repair is a restoration.
     expect(reseats[0]!.to).toBe(committed.deploys[newest]!.commit)
   })
@@ -380,7 +441,7 @@ describe("--reseat: repairing a post-squash dangling entry", () => {
     const { reseats, refusals } = findReseat(broken)
     // On a shallow clone the finder refuses wholesale before it looks at any entry, so the
     // per-entry refusal below is not produced there. Assert the wholesale refusal instead.
-    if (repositoryIsShallow()) {
+    if (cloneIsShallow()) {
       expect(reseats).toEqual([])
       expect(refusals).toHaveLength(1)
       expect(refusals[0]).toMatch(/SHALLOW/)
@@ -406,7 +467,7 @@ describe("--reseat: repairing a post-squash dangling entry", () => {
     const broken = withDanglingNewest()
     // A shallow clone cannot see the nine authentic entries, so "which ONE moved" is not a
     // question it can answer; the wholesale refusal is asserted by the tests above.
-    if (repositoryIsShallow()) return
+    if (cloneIsShallow()) return
     const { reseats } = findReseat(broken)
     // Nine untouched entries stay untouched: `isAncestorOfHead` short-circuits before any
     // byte comparison, which is also what keeps the command cheap on a long ledger.
@@ -425,6 +486,55 @@ describe("--reseat: repairing a post-squash dangling entry", () => {
     expect(refusals.some((r) => r.includes("deploys[0]"))).toBe(false)
     expect(faultsForEntry(broken.deploys[0]!, 0).join(" | ")).toMatch(/40-hex sha/)
   })
+})
+
+// ---------------------------------------------------------------------------
+// The EXIT CODE, measured through the real CLI (ADR 0082 D3).
+//
+// This is the only property in the file that cannot be tested in-process: what protects
+// `ledger-authenticity` is not the return value of `validate` but the process exit status
+// the workflow step reads. A refusal that exited 0 would let anyone delete that job's
+// `fetch-depth: 0` and keep a green check over an unverified ledger.
+//
+// The assertion is on THIS test's own reading of the status, never on the child's stdout
+// being scraped for a word like "OK" ([[subprocess-negative-control-prints-fail]]).
+// ---------------------------------------------------------------------------
+describe("the CLI's exit status", () => {
+  const runCli = (args: string[]): { status: number; stderr: string; stdout: string } => {
+    try {
+      const stdout = execFileSync(
+        process.execPath,
+        ["--import", "tsx", path.join(repoRoot, "scripts", "presentation-ledger.ts"), ...args],
+        { cwd: repoRoot, encoding: "utf8", stdio: ["ignore", "pipe", "pipe"] },
+      )
+      return { status: 0, stdout, stderr: "" }
+    } catch (e) {
+      const err = e as { status?: number; stdout?: string; stderr?: string }
+      return { status: err.status ?? -1, stdout: err.stdout ?? "", stderr: err.stderr ?? "" }
+    }
+  }
+
+  it("distinguishes 'cannot verify' from 'verified' and from 'invalid'", () => {
+    const full = runCli([])
+    if (cloneIsShallow()) {
+      // 3, not 0: the guard must survive someone truncating the clone. Not 2 either — a
+      // human reading CI needs "this clone cannot answer" apart from "your ledger is broken".
+      expect(full.status).toBe(3)
+      expect(full.stderr).toMatch(/cannot verify/)
+      expect(full.stderr).toMatch(/SHALLOW/)
+      // The failure must not read as a pass anywhere in its output.
+      expect(full.stdout).not.toMatch(/deploy ledger OK/)
+    } else {
+      expect(full.status).toBe(0)
+      expect(full.stdout).toMatch(/deploy ledger OK/)
+    }
+
+    // `--offline` is the honest mode on either shape, and it must keep exiting 0 — that is
+    // what makes refusing the git layer affordable rather than a dead end (0082 D4).
+    const offline = runCli(["--offline"])
+    expect(offline.status).toBe(0)
+    expect(offline.stdout).toMatch(/ancestry and authenticity NOT checked/)
+  }, 120_000)
 })
 
 describe("entry shape", () => {

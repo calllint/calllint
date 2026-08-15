@@ -401,19 +401,53 @@ export function gitFaultsForChain(ledger: DeployLedger): string[] {
 }
 
 /**
+ * The outcome of a full check — three states, not two (ADR 0082).
+ *
+ * `refused` exists because "nothing was wrong" and "nothing was checked" must not be
+ * spellable the same way. The obvious shape for the shallow-clone guard was to return an
+ * empty fault list, and that is strictly worse than the bug it fixes: `ledger-authenticity`
+ * is this layer's only automated reader and its only protection is one `fetch-depth: 0`
+ * line, so a silent pass would let deleting that line leave the job green while verifying
+ * nothing ([[absence-makes-a-gate-skip-itself]]). Making refusal a separate variant means a
+ * caller that ignores it does not typecheck.
+ */
+export type ValidationOutcome =
+  | { readonly kind: "checked"; readonly faults: string[] }
+  | { readonly kind: "refused"; readonly reason: string }
+
+/**
  * The full check: everything offline, plus the git layer that makes entries authentic.
  *
  * Used by `--validate` and `--record`, both of which a human runs on a full clone. The
  * graded path calls `validateOffline` instead — see this file's header for why that is a
  * deliberate, stated limit rather than an oversight.
+ *
+ * REFUSES ON A SHALLOW CLONE, for the same reason `findReseat` does and in the same class of
+ * fault (ADR 0081 fixed that function; ADR 0082 found the conflation still live here). The
+ * git layer keys on ancestry, and `!isAncestorOfHead` is true for a dangling entry AND for a
+ * commit that was merely never fetched. Measured on a real `--depth 1` clone of `02288fd2`:
+ * this function produced NINETEEN faults over ten authentic entries, each saying "a deploy
+ * record for a document this branch never had". Every one was false. It fails closed — no
+ * write happens — but it still accuses a human of a forgery on evidence that cannot support
+ * one, which is what 0081 D1 forbids. `--offline` is the mode that can answer honestly here.
  */
-export function validate(ledger: DeployLedger): string[] {
+export function validate(ledger: DeployLedger): ValidationOutcome {
+  if (repositoryIsShallow()) {
+    return {
+      kind: "refused",
+      reason:
+        "this clone is SHALLOW, so an entry that is merely unfetched is indistinguishable from one that names " +
+        "a commit this branch never had. Refusing to grade authenticity rather than accuse every entry: re-run " +
+        "with full history (`git fetch --unshallow`, or `actions/checkout` with `fetch-depth: 0`), or use " +
+        "`--offline` to check recomputation from stored bytes without the git layer.",
+    }
+  }
   const live = JSON.parse(fs.readFileSync(path.join(repoRoot, CATALOG), "utf8")) as PresentationContentV1
   const faults = validateOffline(ledger, live)
-  if (!Array.isArray(ledger.deploys) || ledger.deploys.length === 0) return faults
+  if (!Array.isArray(ledger.deploys) || ledger.deploys.length === 0) return { kind: "checked", faults }
   ledger.deploys.forEach((e, i) => faults.push(...gitFaultsForEntry(e, i)))
   faults.push(...gitFaultsForChain(ledger))
-  return faults
+  return { kind: "checked", faults }
 }
 
 /** Append an entry for HEAD's document. Refuses anything the validator would reject. */
@@ -460,9 +494,18 @@ function record(atOverride: string | null, deploymentUrl: string | null): number
     document: committed,
   }
   const next: DeployLedger = { ...ledger, deploys: [...ledger.deploys, entry] }
-  const faults = validate(next)
-  if (faults.length > 0) {
-    console.error(`refusing to write — the result would be invalid:\n  ${faults.join("\n  ")}`)
+  // The result is graded by the FULL validator, git layer included — which is why `record`
+  // inherits 0082's refusal rather than implementing one. 0081 left open "whether `record`
+  // should also refuse, since it reads only HEAD"; it does not, and never did: this call
+  // reads every entry's commit, so on a truncated clone it produced nineteen false
+  // accusations about ten authentic entries. Refusing here writes nothing, same as a fault.
+  const outcome = validate(next)
+  if (outcome.kind === "refused") {
+    console.error(`refusing to record — ${outcome.reason}`)
+    return 3
+  }
+  if (outcome.faults.length > 0) {
+    console.error(`refusing to write — the result would be invalid:\n  ${outcome.faults.join("\n  ")}`)
     return 1
   }
   fs.writeFileSync(ledgerPath, JSON.stringify(next, null, 2) + "\n", "utf8")
@@ -600,9 +643,18 @@ function reseat(dryRun: boolean): number {
   // The result is graded by the FULL validator, git layer included. That is what makes this
   // a repair rather than an assertion: if re-pointing the entry made any recorded digest
   // stop recomputing against its own commit, this refuses instead of writing.
-  const faults = validate(next)
-  if (faults.length > 0) {
-    console.error(`refusing to write — the reseated ledger would still be invalid:\n  ${faults.join("\n  ")}`)
+  //
+  // Unreachable on a shallow clone in practice — `findReseat` already returned a refusal
+  // above, so `reseats` was empty and this line was never reached. Handled explicitly
+  // anyway: an unhandled variant here would be a silent write on any future path that
+  // produced reseats without consulting `findReseat`'s guard.
+  const outcome = validate(next)
+  if (outcome.kind === "refused") {
+    console.error(`refusing to write — ${outcome.reason}`)
+    return 3
+  }
+  if (outcome.faults.length > 0) {
+    console.error(`refusing to write — the reseated ledger would still be invalid:\n  ${outcome.faults.join("\n  ")}`)
     return 1
   }
   if (dryRun) {
@@ -653,10 +705,22 @@ if (!invokedDirectly) {
   const offline = argv.includes("--offline")
   const ledger = readLedger()
   const live = JSON.parse(fs.readFileSync(path.join(repoRoot, CATALOG), "utf8")) as PresentationContentV1
-  const faults = offline ? validateOffline(ledger, live) : validate(ledger)
-  if (faults.length > 0) {
+  const outcome: ValidationOutcome = offline
+    ? { kind: "checked", faults: validateOffline(ledger, live) }
+    : validate(ledger)
+
+  // EXIT 3, deliberately not 0 and not 2 (ADR 0082 D3). Not 0, because `ledger-authenticity`
+  // is this layer's only automated reader and its only protection is one `fetch-depth: 0`
+  // line — passing here would mean deleting that line disarms the job silently. Not 2,
+  // because "this clone cannot answer the question" is not "your ledger is broken", and a
+  // human reading CI needs to tell those apart.
+  if (outcome.kind === "refused") {
+    console.error(`cannot verify ${path.relative(repoRoot, ledgerPath)} — ${outcome.reason}`)
+    process.exit(3)
+  }
+  if (outcome.faults.length > 0) {
     console.error(`${path.relative(repoRoot, ledgerPath)} is invalid:`)
-    for (const f of faults) console.error(`  - ${f}`)
+    for (const f of outcome.faults) console.error(`  - ${f}`)
     process.exit(2)
   }
   const newest = ledger.deploys[ledger.deploys.length - 1]!
