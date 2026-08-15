@@ -284,14 +284,14 @@
       "consequence",
       "action"
     ],
-    "participants": 7,
-    "responses": 7,
+    "participants": 8,
+    "responses": 8,
     "recognition": {
       "target": 1,
       "consequence": 1,
       "action": 1
     },
-    "staleResponses": 3,
+    "staleResponses": 2,
     "stale": [
       {
         "participant": "7",
@@ -308,21 +308,12 @@
         "shownDigest": "sha256:b0a2b6bc760d182966df97cc03c86e68851a7d9c3e8aabd8ce6bb1653c138728",
         "shownSurfaceDigest": "sha256:4862cb564c3718d1ec150059b04d9ea67ed3ef5688df06f5e88e884eb2cba509",
         "currentSurfaceDigest": null
-      },
-      {
-        "participant": "10",
-        "canonicalSlug": "mcp-registry/io.github.calllint-calllint",
-        "reason": "PAGE_GONE",
-        "shownDigest": "sha256:02df06de7dc296394b1924e14c265f22469a25afe7ce5228a15d41124f99674d",
-        "shownSurfaceDigest": "sha256:38bd0490154b319b2f83a22cc529659a3da3faa31fbf7f78dc737859c28187fa",
-        "currentSurfaceDigest": null
       }
     ]
   },
   "blockers": [
-    "human panel not recorded: 7/10 responses in artifacts/phase-2.4/five-second-panel-store.json",
+    "human panel not recorded: 8/10 responses in artifacts/phase-2.4/five-second-panel-store.json",
     "stale panel response (PAGE_GONE): 7 @ mcp-registry/ac.tandem-docs-mcp — the page is no longer served — that subject left the cohort",
-    "stale panel response (PAGE_GONE): 8 @ mcp-registry/ac.inference.sh-mcp — the page is no longer served — that subject left the cohort",
-    "stale panel response (PAGE_GONE): 10 @ mcp-registry/io.github.calllint-calllint — the page is no longer served — that subject left the cohort"
+    "stale panel response (PAGE_GONE): 8 @ mcp-registry/ac.inference.sh-mcp — the page is no longer served — that subject left the cohort"
   ]
 }
