@@ -2,8 +2,8 @@
   "schema": "calllint.trust-snapshot.v0",
   "source": "official-mcp-registry",
   "endpoint": "https://registry.modelcontextprotocol.io/v0/servers",
-  "fetchedAt": "2026-08-10T08:02:29.262Z",
-  "count": 25,
+  "fetchedAt": "2026-08-15T14:54:20.031Z",
+  "count": 100,
   "entries": [
     {
       "name": "ag.hood/name-service",
@@ -19,21 +19,6 @@
       ],
       "status": "active",
       "publishedAt": "2026-07-10T04:58:06.628668Z"
-    },
-    {
-      "name": "agency.goji/goji",
-      "description": "AEO, SEO, web and brand answers from a Melbourne agency's published glossary, guides and pricing.",
-      "version": "1.0.0",
-      "repositoryUrl": "https://github.com/goji-agency/website",
-      "packages": [],
-      "remotes": [
-        {
-          "type": "streamable-http",
-          "url": "https://mcp.goji.agency/mcp"
-        }
-      ],
-      "status": "active",
-      "publishedAt": "2026-08-03T10:29:06.593837Z"
     },
     {
       "name": "agency.kesey/pretrip",
@@ -111,6 +96,21 @@
       ],
       "status": "active",
       "publishedAt": "2026-04-19T18:11:04.905549Z"
+    },
+    {
+      "name": "ai.actwise/ideation",
+      "description": "Actwise Ideation helps founders benchmark startup and product ideas before they build.",
+      "version": "1.0.0",
+      "repositoryUrl": null,
+      "packages": [],
+      "remotes": [
+        {
+          "type": "streamable-http",
+          "url": "https://actwise.ai/ideation/mcp/v1"
+        }
+      ],
+      "status": "active",
+      "publishedAt": "2026-08-14T04:14:24.243152Z"
     },
     {
       "name": "ai.adadvisor/mcp-server",
@@ -390,6 +390,1199 @@
       ],
       "status": "active",
       "publishedAt": "2026-03-22T18:16:07.628131Z"
+    },
+    {
+      "name": "ai.agenttrust/mcp-server",
+      "description": "Identity, trust, and A2A orchestration for autonomous AI agents. Official A2A partner.",
+      "version": "1.1.1",
+      "repositoryUrl": "https://github.com/agenttrust/mcp-server",
+      "packages": [
+        {
+          "registryType": "npm",
+          "identifier": "@agenttrust/mcp-server",
+          "version": "1.1.1",
+          "transport": null
+        }
+      ],
+      "remotes": [],
+      "status": "active",
+      "publishedAt": "2026-03-06T11:23:10.721165Z"
+    },
+    {
+      "name": "ai.agentutility/mcp-agentops",
+      "description": "MCP server for the @agentutility agentops cluster — pay-per-call x402 tools, no API keys, USDC on…",
+      "version": "0.1.1",
+      "repositoryUrl": "https://github.com/rooz21/x402",
+      "packages": [
+        {
+          "registryType": "npm",
+          "identifier": "@agentutility/mcp-agentops",
+          "version": "0.1.1",
+          "transport": null
+        }
+      ],
+      "remotes": [],
+      "status": "active",
+      "publishedAt": "2026-07-14T21:10:14.904919Z"
+    },
+    {
+      "name": "ai.agentutility/mcp-bestiary",
+      "description": "MCP server for the @agentutility bestiary cluster — pay-per-call x402 tools, no API keys, USDC on…",
+      "version": "0.1.3",
+      "repositoryUrl": "https://github.com/rooz21/x402",
+      "packages": [
+        {
+          "registryType": "npm",
+          "identifier": "@agentutility/mcp-bestiary",
+          "version": "0.1.3",
+          "transport": null
+        }
+      ],
+      "remotes": [],
+      "status": "active",
+      "publishedAt": "2026-07-14T21:10:15.433564Z"
+    },
+    {
+      "name": "ai.agentutility/mcp-browser-workflow",
+      "description": "MCP server for the @agentutility browser-workflow cluster — pay-per-call x402 tools, no API keys…",
+      "version": "0.1.1",
+      "repositoryUrl": "https://github.com/rooz21/x402",
+      "packages": [
+        {
+          "registryType": "npm",
+          "identifier": "@agentutility/mcp-browser-workflow",
+          "version": "0.1.1",
+          "transport": null
+        }
+      ],
+      "remotes": [],
+      "status": "active",
+      "publishedAt": "2026-07-14T21:10:15.897391Z"
+    },
+    {
+      "name": "ai.agentutility/mcp-compose",
+      "description": "MCP server for the @agentutility compose cluster — pay-per-call x402 tools, no API keys, USDC on…",
+      "version": "0.13.0",
+      "repositoryUrl": "https://github.com/rooz21/x402",
+      "packages": [
+        {
+          "registryType": "npm",
+          "identifier": "@agentutility/mcp-compose",
+          "version": "0.13.0",
+          "transport": null
+        }
+      ],
+      "remotes": [],
+      "status": "active",
+      "publishedAt": "2026-07-14T21:10:16.321193Z"
+    },
+    {
+      "name": "ai.agentutility/mcp-edge-finance",
+      "description": "MCP server for the @agentutility edge-finance cluster — pay-per-call x402 tools, no API keys, USDC…",
+      "version": "0.18.8",
+      "repositoryUrl": "https://github.com/rooz21/x402",
+      "packages": [
+        {
+          "registryType": "npm",
+          "identifier": "@agentutility/mcp-edge-finance",
+          "version": "0.18.8",
+          "transport": null
+        }
+      ],
+      "remotes": [],
+      "status": "active",
+      "publishedAt": "2026-07-14T21:10:17.095531Z"
+    },
+    {
+      "name": "ai.agentutility/mcp-edge-market",
+      "description": "MCP server for the @agentutility edge-market cluster — pay-per-call x402 tools, no API keys, USDC…",
+      "version": "0.15.6",
+      "repositoryUrl": "https://github.com/rooz21/x402",
+      "packages": [
+        {
+          "registryType": "npm",
+          "identifier": "@agentutility/mcp-edge-market",
+          "version": "0.15.6",
+          "transport": null
+        }
+      ],
+      "remotes": [],
+      "status": "active",
+      "publishedAt": "2026-07-14T21:10:17.497855Z"
+    },
+    {
+      "name": "ai.agentutility/mcp-locale",
+      "description": "MCP server for the @agentutility locale cluster — pay-per-call x402 tools, no API keys, USDC on…",
+      "version": "0.8.7",
+      "repositoryUrl": "https://github.com/rooz21/x402",
+      "packages": [
+        {
+          "registryType": "npm",
+          "identifier": "@agentutility/mcp-locale",
+          "version": "0.8.7",
+          "transport": null
+        }
+      ],
+      "remotes": [],
+      "status": "active",
+      "publishedAt": "2026-07-14T21:10:17.9033Z"
+    },
+    {
+      "name": "ai.agentutility/mcp-matchpoint",
+      "description": "MCP server for the @agentutility matchpoint cluster — pay-per-call x402 tools, no API keys, USDC…",
+      "version": "0.1.4",
+      "repositoryUrl": "https://github.com/rooz21/x402",
+      "packages": [
+        {
+          "registryType": "npm",
+          "identifier": "@agentutility/mcp-matchpoint",
+          "version": "0.1.4",
+          "transport": null
+        }
+      ],
+      "remotes": [],
+      "status": "active",
+      "publishedAt": "2026-07-14T21:10:18.280353Z"
+    },
+    {
+      "name": "ai.agentutility/mcp-mediakit",
+      "description": "MCP server for the @agentutility mediakit cluster — pay-per-call x402 tools, no API keys, USDC on…",
+      "version": "0.11.9",
+      "repositoryUrl": "https://github.com/rooz21/x402",
+      "packages": [
+        {
+          "registryType": "npm",
+          "identifier": "@agentutility/mcp-mediakit",
+          "version": "0.11.9",
+          "transport": null
+        }
+      ],
+      "remotes": [],
+      "status": "active",
+      "publishedAt": "2026-07-14T21:10:18.653557Z"
+    },
+    {
+      "name": "ai.agentutility/mcp-model-router",
+      "description": "MCP server for the @agentutility model-router cluster — pay-per-call x402 tools, no API keys, USDC…",
+      "version": "0.1.1",
+      "repositoryUrl": "https://github.com/rooz21/x402",
+      "packages": [
+        {
+          "registryType": "npm",
+          "identifier": "@agentutility/mcp-model-router",
+          "version": "0.1.1",
+          "transport": null
+        }
+      ],
+      "remotes": [],
+      "status": "active",
+      "publishedAt": "2026-07-14T21:10:19.082426Z"
+    },
+    {
+      "name": "ai.agentutility/mcp-prooflayer",
+      "description": "MCP server for the @agentutility prooflayer cluster — pay-per-call x402 tools, no API keys, USDC…",
+      "version": "0.2.4",
+      "repositoryUrl": "https://github.com/rooz21/x402",
+      "packages": [
+        {
+          "registryType": "npm",
+          "identifier": "@agentutility/mcp-prooflayer",
+          "version": "0.2.4",
+          "transport": null
+        }
+      ],
+      "remotes": [],
+      "status": "active",
+      "publishedAt": "2026-07-14T21:10:19.560994Z"
+    },
+    {
+      "name": "ai.agentutility/mcp-retail",
+      "description": "MCP server for the @agentutility retail cluster — pay-per-call x402 tools, no API keys, USDC on…",
+      "version": "0.2.1",
+      "repositoryUrl": "https://github.com/rooz21/x402",
+      "packages": [
+        {
+          "registryType": "npm",
+          "identifier": "@agentutility/mcp-retail",
+          "version": "0.2.1",
+          "transport": null
+        }
+      ],
+      "remotes": [],
+      "status": "active",
+      "publishedAt": "2026-07-14T21:10:19.946363Z"
+    },
+    {
+      "name": "ai.agentutility/mcp-rollforge",
+      "description": "MCP server for the @agentutility rollforge cluster — pay-per-call x402 tools, no API keys, USDC on…",
+      "version": "0.1.5",
+      "repositoryUrl": "https://github.com/rooz21/x402",
+      "packages": [
+        {
+          "registryType": "npm",
+          "identifier": "@agentutility/mcp-rollforge",
+          "version": "0.1.5",
+          "transport": null
+        }
+      ],
+      "remotes": [],
+      "status": "active",
+      "publishedAt": "2026-07-14T21:10:20.41779Z"
+    },
+    {
+      "name": "ai.agentutility/mcp-statline",
+      "description": "MCP server for the @agentutility statline cluster — pay-per-call x402 tools, no API keys, USDC on…",
+      "version": "0.1.3",
+      "repositoryUrl": "https://github.com/rooz21/x402",
+      "packages": [
+        {
+          "registryType": "npm",
+          "identifier": "@agentutility/mcp-statline",
+          "version": "0.1.3",
+          "transport": null
+        }
+      ],
+      "remotes": [],
+      "status": "active",
+      "publishedAt": "2026-07-14T21:10:20.828032Z"
+    },
+    {
+      "name": "ai.agentutility/mcp-synthforge",
+      "description": "MCP server for the @agentutility synthforge cluster — pay-per-call x402 tools, no API keys, USDC…",
+      "version": "0.8.2",
+      "repositoryUrl": "https://github.com/rooz21/x402",
+      "packages": [
+        {
+          "registryType": "npm",
+          "identifier": "@agentutility/mcp-synthforge",
+          "version": "0.8.2",
+          "transport": null
+        }
+      ],
+      "remotes": [],
+      "status": "active",
+      "publishedAt": "2026-07-14T21:10:21.289726Z"
+    },
+    {
+      "name": "ai.agentutility/mcp-web-probe",
+      "description": "MCP server for the @agentutility web-probe cluster — pay-per-call x402 tools, no API keys, USDC on…",
+      "version": "0.32.1",
+      "repositoryUrl": "https://github.com/rooz21/x402",
+      "packages": [
+        {
+          "registryType": "npm",
+          "identifier": "@agentutility/mcp-web-probe",
+          "version": "0.32.1",
+          "transport": null
+        }
+      ],
+      "remotes": [],
+      "status": "active",
+      "publishedAt": "2026-07-14T21:10:21.796993Z"
+    },
+    {
+      "name": "ai.agentutility/mcp-wordmint",
+      "description": "MCP server for the @agentutility wordmint cluster — pay-per-call x402 tools, no API keys, USDC on…",
+      "version": "0.16.1",
+      "repositoryUrl": "https://github.com/rooz21/x402",
+      "packages": [
+        {
+          "registryType": "npm",
+          "identifier": "@agentutility/mcp-wordmint",
+          "version": "0.16.1",
+          "transport": null
+        }
+      ],
+      "remotes": [],
+      "status": "active",
+      "publishedAt": "2026-07-14T21:10:22.302521Z"
+    },
+    {
+      "name": "ai.ai-advisors/mcp",
+      "description": "Read-only AI search visibility data: citations, AEO audits, and advisor insights from AI-Advisors.",
+      "version": "1.0.0",
+      "repositoryUrl": null,
+      "packages": [],
+      "remotes": [
+        {
+          "type": "streamable-http",
+          "url": "https://app.ai-advisors.ai/api/mcp"
+        }
+      ],
+      "status": "active",
+      "publishedAt": "2026-08-02T18:21:16.578234Z"
+    },
+    {
+      "name": "ai.ai-akari/agent-trust-receipt",
+      "description": "Read-only Remote MCP for externally grounded AI agent trust receipts.",
+      "version": "1.1.0",
+      "repositoryUrl": "https://github.com/AInoAKARI/AInoAKARI",
+      "packages": [],
+      "remotes": [
+        {
+          "type": "streamable-http",
+          "url": "https://ai-akari.ai/mcp-trust"
+        }
+      ],
+      "status": "active",
+      "publishedAt": "2026-07-24T19:48:47.852003Z"
+    },
+    {
+      "name": "ai.ai-akari/one-minute-akari",
+      "description": "A free one-minute reset for people, delivered by AI, with no account or personal data.",
+      "version": "1.0.3",
+      "repositoryUrl": "https://github.com/AInoAKARI/arigatou-kawaii-lp",
+      "packages": [],
+      "remotes": [
+        {
+          "type": "streamable-http",
+          "url": "https://ai-akari.ai/mcp"
+        }
+      ],
+      "status": "active",
+      "publishedAt": "2026-07-18T04:01:27.700359Z"
+    },
+    {
+      "name": "ai.ai-portal/ai-portal",
+      "description": "Live AI data for agents: model releases, regulations (EU AI Act), GenAI glossary, daily news.",
+      "version": "1.0.1",
+      "repositoryUrl": null,
+      "packages": [],
+      "remotes": [
+        {
+          "type": "streamable-http",
+          "url": "https://www.ai-portal.ai/mcp"
+        }
+      ],
+      "status": "active",
+      "publishedAt": "2026-07-13T15:07:28.114017Z"
+    },
+    {
+      "name": "ai.aient/mcp",
+      "description": "MCP-native AI SRE: ask what's broken in production, get a reviewed GitHub fix PR.",
+      "version": "0.1.0",
+      "repositoryUrl": "https://github.com/haf/glimt",
+      "packages": [],
+      "remotes": [
+        {
+          "type": "streamable-http",
+          "url": "https://aient.ai/mcp"
+        }
+      ],
+      "status": "active",
+      "publishedAt": "2026-06-11T10:40:20.47951Z"
+    },
+    {
+      "name": "ai.airshelf/catalog",
+      "description": "Cross-vendor B2B catalog for AI agents: search, compare, find equivalents, request a quote.",
+      "version": "1.0.0",
+      "repositoryUrl": null,
+      "packages": [],
+      "remotes": [
+        {
+          "type": "streamable-http",
+          "url": "https://mcp.airshelf.ai/mcp"
+        }
+      ],
+      "status": "active",
+      "publishedAt": "2026-06-16T09:32:12.311101Z"
+    },
+    {
+      "name": "ai.aivonic/mcp",
+      "description": "Do business with Aivonic: pricing, products, check availability, book a demo, request a quote.",
+      "version": "1.0.0",
+      "repositoryUrl": null,
+      "packages": [],
+      "remotes": [
+        {
+          "type": "streamable-http",
+          "url": "https://mcp.aivonic.ai"
+        }
+      ],
+      "status": "active",
+      "publishedAt": "2026-08-05T14:07:36.70305Z"
+    },
+    {
+      "name": "ai.aliengiraffe/spotdb",
+      "description": "Ephemeral data sandbox for AI workflows with guardrails and security",
+      "version": "0.1.0",
+      "repositoryUrl": "https://github.com/aliengiraffe/spotdb",
+      "packages": [
+        {
+          "registryType": "oci",
+          "identifier": "docker.io/aliengiraffe/spotdb:0.1.0",
+          "version": null,
+          "transport": null
+        }
+      ],
+      "remotes": [],
+      "status": "active",
+      "publishedAt": "2025-10-09T17:05:17.793149Z"
+    },
+    {
+      "name": "ai.alphacreek/alphacreek-mcp",
+      "description": "Access SEC filings efficiently (10-K, 10-Q, etc), save time and tokens, and get cited answers.",
+      "version": "1.0.1",
+      "repositoryUrl": null,
+      "packages": [],
+      "remotes": [
+        {
+          "type": "streamable-http",
+          "url": "https://mcp.alphacreek.ai/mcp"
+        }
+      ],
+      "status": "active",
+      "publishedAt": "2026-06-12T13:01:13.227147Z"
+    },
+    {
+      "name": "ai.alpic.mcp/alpic-mcp",
+      "description": "Manage your projects, debug deployment, and check analytics for any MCP server you host with Alpic",
+      "version": "0.0.1",
+      "repositoryUrl": null,
+      "packages": [],
+      "remotes": [
+        {
+          "type": "streamable-http",
+          "url": "https://mcp.alpic.ai"
+        },
+        {
+          "type": "sse",
+          "url": "https://mcp.alpic.ai"
+        }
+      ],
+      "status": "active",
+      "publishedAt": "2026-02-18T15:32:32.672631Z"
+    },
+    {
+      "name": "ai.alpic.test/test-mcp-server",
+      "description": "Alpic Test MCP Server - great server!",
+      "version": "0.0.1",
+      "repositoryUrl": null,
+      "packages": [],
+      "remotes": [
+        {
+          "type": "streamable-http",
+          "url": "https://test.alpic.ai/"
+        }
+      ],
+      "status": "active",
+      "publishedAt": "2025-09-10T13:57:43.256739Z"
+    },
+    {
+      "name": "ai.ambix/ambix",
+      "description": "Your product team's shared strategic memory — an MCP server your AI tools reason over.",
+      "version": "0.1.0",
+      "repositoryUrl": "https://github.com/ambix-ai/mcp",
+      "packages": [],
+      "remotes": [
+        {
+          "type": "streamable-http",
+          "url": "https://mcp.ambix.ai"
+        }
+      ],
+      "status": "active",
+      "publishedAt": "2026-06-18T11:40:33.32243Z"
+    },
+    {
+      "name": "ai.analyticslegends/sap-analytics",
+      "description": "AI agent for SAP analytics: firms, day rates, contract radar, news, concepts, studies",
+      "version": "1.0.4",
+      "repositoryUrl": "https://github.com/analyticslegends/analytics-legends-mcp",
+      "packages": [],
+      "remotes": [
+        {
+          "type": "streamable-http",
+          "url": "https://analyticslegends.ai/mcp"
+        }
+      ],
+      "status": "active",
+      "publishedAt": "2026-08-11T23:02:10.427575Z"
+    },
+    {
+      "name": "ai.anomalyarmor/armor-mcp",
+      "description": "Data observability tools for engineering teams: alerts, freshness, schema drift, lineage, quality.",
+      "version": "0.6.1",
+      "repositoryUrl": "https://github.com/anomalyarmor/agents",
+      "packages": [
+        {
+          "registryType": "pypi",
+          "identifier": "armor-mcp",
+          "version": "0.6.1",
+          "transport": null
+        }
+      ],
+      "remotes": [
+        {
+          "type": "streamable-http",
+          "url": "https://mcp.anomalyarmor.ai/mcp"
+        }
+      ],
+      "status": "active",
+      "publishedAt": "2026-04-18T00:51:37.350253Z"
+    },
+    {
+      "name": "ai.anzenna/anzenna",
+      "description": "MCP server for Anzenna",
+      "version": "0.1",
+      "repositoryUrl": null,
+      "packages": [],
+      "remotes": [
+        {
+          "type": "sse",
+          "url": "https://mcp.anzenna.ai/sse"
+        }
+      ],
+      "status": "active",
+      "publishedAt": "2026-02-21T23:53:55.798606Z"
+    },
+    {
+      "name": "ai.apithreshold/apithreshold",
+      "description": "Quality scoring and progressive gates for AI-generated API tests. Stripe/Twilio profiles. Free tier.",
+      "version": "0.1.0",
+      "repositoryUrl": null,
+      "packages": [
+        {
+          "registryType": "oci",
+          "identifier": "ghcr.io/apithreshold/apithreshold:0.1.0",
+          "version": null,
+          "transport": null
+        }
+      ],
+      "remotes": [],
+      "status": "active",
+      "publishedAt": "2026-07-02T22:06:43.451983Z"
+    },
+    {
+      "name": "ai.appdeploy/deploy-app",
+      "description": "AppDeploy turns app ideas described in AI chat into live full-stack web applications",
+      "version": "2.6.13",
+      "repositoryUrl": null,
+      "packages": [],
+      "remotes": [
+        {
+          "type": "streamable-http",
+          "url": "https://api-v2.appdeploy.ai/mcp"
+        }
+      ],
+      "status": "active",
+      "publishedAt": "2026-07-13T12:28:46.556669Z"
+    },
+    {
+      "name": "ai.arclan/registry",
+      "description": "MCP server registry — validated by live handshake, scored on reliability, monitored continuously.",
+      "version": "0.1.0",
+      "repositoryUrl": null,
+      "packages": [],
+      "remotes": [
+        {
+          "type": "streamable-http",
+          "url": "https://arclan.ai/mcp"
+        }
+      ],
+      "status": "active",
+      "publishedAt": "2026-05-19T16:59:50.65972Z"
+    },
+    {
+      "name": "ai.argushq/enforcement-database",
+      "description": "Search Argus HQ public FDA enforcement data: warning letters, recalls, approvals, 483s.",
+      "version": "1.0.0",
+      "repositoryUrl": "https://github.com/andrewjgaber-commits/empire-distribution",
+      "packages": [],
+      "remotes": [
+        {
+          "type": "streamable-http",
+          "url": "https://argushq.ai/api/mcp"
+        }
+      ],
+      "status": "active",
+      "publishedAt": "2026-07-12T20:32:22.415073Z"
+    },
+    {
+      "name": "ai.arketo/arketo",
+      "description": "Draw your app's architecture on a live canvas and flag the bottlenecks and security gaps.",
+      "version": "1.0.0",
+      "repositoryUrl": null,
+      "packages": [],
+      "remotes": [
+        {
+          "type": "streamable-http",
+          "url": "https://arketo.ai/api/mcp"
+        }
+      ],
+      "status": "active",
+      "publishedAt": "2026-08-05T15:03:17.857696Z"
+    },
+    {
+      "name": "ai.arpi/arpi-mcp",
+      "description": "AI-powered ECG analysis: submit ECG images and receive diagnosis reports from ARPI's ECG AI.",
+      "version": "1.0.0",
+      "repositoryUrl": "https://github.com/arpi-ai/arpi-mcp",
+      "packages": [],
+      "remotes": [
+        {
+          "type": "streamable-http",
+          "url": "https://mcp.arpi.ai/mcp"
+        }
+      ],
+      "status": "active",
+      "publishedAt": "2026-07-08T04:42:03.74166Z"
+    },
+    {
+      "name": "ai.artidrop/artidrop",
+      "description": "Publish HTML, Markdown, and multi-file sites as shareable URLs instantly via MCP.",
+      "version": "1.1.0",
+      "repositoryUrl": null,
+      "packages": [],
+      "remotes": [
+        {
+          "type": "streamable-http",
+          "url": "https://artidrop.ai/mcp"
+        }
+      ],
+      "status": "active",
+      "publishedAt": "2026-04-17T04:01:26.724763Z"
+    },
+    {
+      "name": "ai.assetlog/assetlog",
+      "description": "Search AssetLog listings and find agents, dealers or recruiters by location (service areas).",
+      "version": "1.1.0",
+      "repositoryUrl": null,
+      "packages": [],
+      "remotes": [
+        {
+          "type": "streamable-http",
+          "url": "https://api.assetlog.ai/mcp"
+        }
+      ],
+      "status": "active",
+      "publishedAt": "2026-08-12T20:29:50.777319Z"
+    },
+    {
+      "name": "ai.atdev/supershopping",
+      "description": "나만을 위한 AI 쇼핑 MCP — 상품을 자연어로 검색·비교·추천해 사용자의 효과적인 쇼핑을 돕습니다.",
+      "version": "1.0.0",
+      "repositoryUrl": "https://github.com/alex-hoyeol-choi/headless-commerce",
+      "packages": [],
+      "remotes": [
+        {
+          "type": "streamable-http",
+          "url": "https://supershopping-mcp.atdev.ai/mcp"
+        }
+      ],
+      "status": "active",
+      "publishedAt": "2026-06-29T05:36:58.413006Z"
+    },
+    {
+      "name": "ai.atlaso/mcp",
+      "description": "AI memory layer — one shared, persistent memory across every AI tool you connect.",
+      "version": "1.0.1",
+      "repositoryUrl": "https://github.com/atlaso-labs/mcp",
+      "packages": [],
+      "remotes": [
+        {
+          "type": "streamable-http",
+          "url": "https://mcp.atlaso.ai/mcp"
+        }
+      ],
+      "status": "active",
+      "publishedAt": "2026-08-02T11:07:21.155706Z"
+    },
+    {
+      "name": "ai.atlasverified/atlas-mcp",
+      "description": "AI-powered organic supply chain verification: certification, OFAC, FDA import checks.",
+      "version": "1.0.0",
+      "repositoryUrl": null,
+      "packages": [],
+      "remotes": [
+        {
+          "type": "streamable-http",
+          "url": "https://api.atlasverified.ai/mcp"
+        }
+      ],
+      "status": "active",
+      "publishedAt": "2026-07-21T23:43:13.692003Z"
+    },
+    {
+      "name": "ai.augmentev/paseo",
+      "description": "Confidential AI execution with a post-quantum receipt on every job — verifiable by anyone.",
+      "version": "0.1.1",
+      "repositoryUrl": null,
+      "packages": [],
+      "remotes": [
+        {
+          "type": "streamable-http",
+          "url": "https://api.augmentev.ai/mcp"
+        }
+      ],
+      "status": "active",
+      "publishedAt": "2026-07-27T18:46:22.383841Z"
+    },
+    {
+      "name": "ai.auralogs/auralogs",
+      "description": "Read-only access to Auralogs production logs: search logs, inspect errors, review AI analyses.",
+      "version": "0.1.0",
+      "repositoryUrl": "https://github.com/auralogs-ai/auralogs-mcp",
+      "packages": [],
+      "remotes": [
+        {
+          "type": "streamable-http",
+          "url": "https://mcp.auralogs.ai/mcp"
+        }
+      ],
+      "status": "active",
+      "publishedAt": "2026-06-10T05:44:10.419193Z"
+    },
+    {
+      "name": "ai.auteng/docs",
+      "description": "Publish markdown documents as public share links with mermaid diagram support. Built by AutEng.ai",
+      "version": "1.1.0",
+      "repositoryUrl": null,
+      "packages": [],
+      "remotes": [
+        {
+          "type": "streamable-http",
+          "url": "https://auteng.ai/mcp/docs"
+        }
+      ],
+      "status": "active",
+      "publishedAt": "2026-02-06T20:56:39.150934Z"
+    },
+    {
+      "name": "ai.auteng/mcp",
+      "description": "Publish markdown documents as public share links with mermaid diagrams. Built by AutEng.ai",
+      "version": "1.0.1",
+      "repositoryUrl": null,
+      "packages": [],
+      "remotes": [
+        {
+          "type": "streamable-http",
+          "url": "https://auteng.ai/mcp"
+        }
+      ],
+      "status": "active",
+      "publishedAt": "2026-02-06T17:18:22.957864Z"
+    },
+    {
+      "name": "ai.authoryze/authoryze",
+      "description": "Payment infrastructure for AI agents: spending rules, approval flows, single-use virtual cards.",
+      "version": "1.0.0",
+      "repositoryUrl": null,
+      "packages": [],
+      "remotes": [
+        {
+          "type": "streamable-http",
+          "url": "https://authoryze.ai/api/mcp"
+        }
+      ],
+      "status": "active",
+      "publishedAt": "2026-07-15T01:01:52.175208Z"
+    },
+    {
+      "name": "ai.autoblocks/contextlayer-mcp",
+      "description": "Personal context management for AI assistants",
+      "version": "0.0.3",
+      "repositoryUrl": "https://github.com/autoblocksai/ctxl",
+      "packages": [
+        {
+          "registryType": "npm",
+          "identifier": "@contextlayer/mcp",
+          "version": "0.0.3",
+          "transport": null
+        }
+      ],
+      "remotes": [],
+      "status": "active",
+      "publishedAt": "2026-01-12T03:52:52.134106Z"
+    },
+    {
+      "name": "ai.autoblocks/ctxl",
+      "description": "Personal context management for AI assistants",
+      "version": "0.0.2",
+      "repositoryUrl": "https://github.com/autoblocksai/ctxl",
+      "packages": [
+        {
+          "registryType": "npm",
+          "identifier": "ctxl",
+          "version": "0.0.2",
+          "transport": null
+        }
+      ],
+      "remotes": [],
+      "status": "active",
+      "publishedAt": "2026-01-12T03:52:12.746584Z"
+    },
+    {
+      "name": "ai.autoblocks/ctxl-mcp",
+      "description": "Personal context management for AI assistants",
+      "version": "0.0.2",
+      "repositoryUrl": "https://github.com/autoblocksai/ctxl",
+      "packages": [
+        {
+          "registryType": "npm",
+          "identifier": "ctxl-mcp",
+          "version": "0.0.2",
+          "transport": null
+        }
+      ],
+      "remotes": [],
+      "status": "active",
+      "publishedAt": "2026-01-12T03:52:19.009876Z"
+    },
+    {
+      "name": "ai.autonomad/computeback",
+      "description": "Agent Rewards Marketplace: earn $NOMD on B2B work, spend on agent capabilities.",
+      "version": "1.1.3",
+      "repositoryUrl": "https://github.com/Autonomad1/computeback-mcp",
+      "packages": [
+        {
+          "registryType": "npm",
+          "identifier": "@autonomad1/computeback-mcp",
+          "version": "1.1.3",
+          "transport": null
+        }
+      ],
+      "remotes": [],
+      "status": "active",
+      "publishedAt": "2026-05-11T23:17:51.160439Z"
+    },
+    {
+      "name": "ai.autonomad/travel",
+      "description": "AI travel agent — book flights, hotels, activities, and events worldwide via autonomad.ai.",
+      "version": "1.4.0",
+      "repositoryUrl": "https://github.com/Autonomad1/autonomad1",
+      "packages": [
+        {
+          "registryType": "npm",
+          "identifier": "autonomad-travel",
+          "version": "1.4.0",
+          "transport": null
+        }
+      ],
+      "remotes": [
+        {
+          "type": "streamable-http",
+          "url": "https://mcp.autonomad.ai/mcp"
+        }
+      ],
+      "status": "active",
+      "publishedAt": "2026-05-11T09:19:18.416611Z"
+    },
+    {
+      "name": "ai.autoposting/autoposting",
+      "description": "Schedule, generate and publish social posts to X, LinkedIn, Instagram, Threads and YouTube",
+      "version": "1.0.0",
+      "repositoryUrl": null,
+      "packages": [],
+      "remotes": [
+        {
+          "type": "streamable-http",
+          "url": "https://app.autoposting.ai/mcp"
+        }
+      ],
+      "status": "active",
+      "publishedAt": "2026-08-07T08:29:28.425591Z"
+    },
+    {
+      "name": "ai.autorfp/mcp",
+      "description": "Search AutoRFP.ai projects, requirements, content library, and tags for Q&A and analytics.",
+      "version": "1.0.0",
+      "repositoryUrl": "https://github.com/AutoRFP/mcp",
+      "packages": [],
+      "remotes": [
+        {
+          "type": "streamable-http",
+          "url": "https://{api_host}/mcp"
+        }
+      ],
+      "status": "active",
+      "publishedAt": "2026-05-18T01:09:10.259215Z"
+    },
+    {
+      "name": "ai.aviado/health",
+      "description": "Supplement research, biomarker effects, drug interactions, and brand quality data",
+      "version": "0.1.0",
+      "repositoryUrl": "https://github.com/kipmcc/aviado-mcp",
+      "packages": [],
+      "remotes": [
+        {
+          "type": "streamable-http",
+          "url": "https://aviado.ai/api/mcp"
+        }
+      ],
+      "status": "active",
+      "publishedAt": "2026-06-30T13:03:52.011241Z"
+    },
+    {
+      "name": "ai.axonagentic/neuroautomata",
+      "description": "Protein analysis: ESM-2/ESMC embeddings, mutation scoring, landscape scans, ESMFold structure.",
+      "version": "0.29.0",
+      "repositoryUrl": null,
+      "packages": [],
+      "remotes": [
+        {
+          "type": "streamable-http",
+          "url": "https://mcp.neuroautomata.axonagentic.ai/mcp"
+        }
+      ],
+      "status": "active",
+      "publishedAt": "2026-07-01T18:54:25.720204Z"
+    },
+    {
+      "name": "ai.b77/ai-media-studio",
+      "description": "Generate images, videos, voiceovers, and captions from a chat prompt.",
+      "version": "1.0.0",
+      "repositoryUrl": null,
+      "packages": [],
+      "remotes": [
+        {
+          "type": "streamable-http",
+          "url": "https://ai-media-studio.b77.ai/mcp"
+        }
+      ],
+      "status": "active",
+      "publishedAt": "2026-08-14T20:37:53.66505Z"
+    },
+    {
+      "name": "ai.b77/apple-search-ads",
+      "description": "Manage Apple Ads campaigns and reporting in chat.",
+      "version": "1.0.0",
+      "repositoryUrl": null,
+      "packages": [],
+      "remotes": [
+        {
+          "type": "streamable-http",
+          "url": "https://apple-search-ads.b77.ai/mcp"
+        }
+      ],
+      "status": "active",
+      "publishedAt": "2026-08-14T20:37:59.146335Z"
+    },
+    {
+      "name": "ai.b77/chess-results",
+      "description": "Live chess tournament results and up-to-date player ratings in chat.",
+      "version": "1.0.0",
+      "repositoryUrl": null,
+      "packages": [],
+      "remotes": [
+        {
+          "type": "streamable-http",
+          "url": "https://chess-results.b77.ai/mcp"
+        }
+      ],
+      "status": "active",
+      "publishedAt": "2026-08-14T20:37:56.825933Z"
+    },
+    {
+      "name": "ai.b77/feedback",
+      "description": "Capture feature requests and bug reports from chat into a searchable, AI-categorized backlog.",
+      "version": "1.0.0",
+      "repositoryUrl": null,
+      "packages": [],
+      "remotes": [
+        {
+          "type": "streamable-http",
+          "url": "https://feedback.b77.ai/mcp"
+        }
+      ],
+      "status": "active",
+      "publishedAt": "2026-08-14T20:38:13.573877Z"
+    },
+    {
+      "name": "ai.b77/fibalo",
+      "description": "Query and add to your Fibalo bookkeeping: documents, bank transactions, suppliers, access.",
+      "version": "1.0.0",
+      "repositoryUrl": null,
+      "packages": [],
+      "remotes": [
+        {
+          "type": "streamable-http",
+          "url": "https://fibalo.b77.ai/mcp"
+        }
+      ],
+      "status": "active",
+      "publishedAt": "2026-08-14T20:37:07.451898Z"
+    },
+    {
+      "name": "ai.b77/file-storage",
+      "description": "Upload files and get public CDN links in chat.",
+      "version": "1.0.0",
+      "repositoryUrl": null,
+      "packages": [],
+      "remotes": [
+        {
+          "type": "streamable-http",
+          "url": "https://file-storage.b77.ai/mcp"
+        }
+      ],
+      "status": "active",
+      "publishedAt": "2026-08-14T20:37:53.160486Z"
+    },
+    {
+      "name": "ai.b77/google-ads",
+      "description": "Read and manage your Google Ads account in chat.",
+      "version": "1.0.0",
+      "repositoryUrl": null,
+      "packages": [],
+      "remotes": [
+        {
+          "type": "streamable-http",
+          "url": "https://google-ads.b77.ai/mcp"
+        }
+      ],
+      "status": "active",
+      "publishedAt": "2026-08-14T20:37:59.684281Z"
+    },
+    {
+      "name": "ai.b77/google-news",
+      "description": "Search and read the latest news in chat.",
+      "version": "1.0.0",
+      "repositoryUrl": null,
+      "packages": [],
+      "remotes": [
+        {
+          "type": "streamable-http",
+          "url": "https://google-news.b77.ai/mcp"
+        }
+      ],
+      "status": "active",
+      "publishedAt": "2026-08-14T20:37:54.813976Z"
+    },
+    {
+      "name": "ai.b77/google-search-console",
+      "description": "Search rankings, clicks, and indexing for your site — in chat.",
+      "version": "1.0.0",
+      "repositoryUrl": null,
+      "packages": [],
+      "remotes": [
+        {
+          "type": "streamable-http",
+          "url": "https://google-search-console.b77.ai/mcp"
+        }
+      ],
+      "status": "active",
+      "publishedAt": "2026-08-14T20:38:00.295202Z"
+    },
+    {
+      "name": "ai.b77/kinnovis-storage",
+      "description": "Manage Kinnovis self-storage tariffs from chat.",
+      "version": "1.0.0",
+      "repositoryUrl": null,
+      "packages": [],
+      "remotes": [
+        {
+          "type": "streamable-http",
+          "url": "https://kinnovis-storage.b77.ai/mcp"
+        }
+      ],
+      "status": "active",
+      "publishedAt": "2026-08-14T20:37:55.315141Z"
+    },
+    {
+      "name": "ai.b77/knowledge-base",
+      "description": "A searchable knowledge base your assistant reads and writes.",
+      "version": "1.0.0",
+      "repositoryUrl": null,
+      "packages": [],
+      "remotes": [
+        {
+          "type": "streamable-http",
+          "url": "https://knowledge-base.b77.ai/mcp"
+        }
+      ],
+      "status": "active",
+      "publishedAt": "2026-08-14T20:37:58.420833Z"
+    },
+    {
+      "name": "ai.b77/nightscout",
+      "description": "Your Nightscout glucose data, conversational.",
+      "version": "1.0.0",
+      "repositoryUrl": null,
+      "packages": [],
+      "remotes": [
+        {
+          "type": "streamable-http",
+          "url": "https://nightscout.b77.ai/mcp"
+        }
+      ],
+      "status": "active",
+      "publishedAt": "2026-08-14T20:37:57.32213Z"
+    },
+    {
+      "name": "ai.b77/seo-content-factory",
+      "description": "Draft SEO blog articles from topic to ready-to-review post.",
+      "version": "1.0.0",
+      "repositoryUrl": null,
+      "packages": [],
+      "remotes": [
+        {
+          "type": "streamable-http",
+          "url": "https://seo-content-factory.b77.ai/mcp"
+        }
+      ],
+      "status": "active",
+      "publishedAt": "2026-08-14T20:38:00.81901Z"
+    },
+    {
+      "name": "ai.b77/teamwork",
+      "description": "AI-first project management: plan epics, assign prioritized tasks, track team time.",
+      "version": "1.0.0",
+      "repositoryUrl": null,
+      "packages": [],
+      "remotes": [
+        {
+          "type": "streamable-http",
+          "url": "https://teamwork.b77.ai/mcp"
+        }
+      ],
+      "status": "active",
+      "publishedAt": "2026-08-14T20:37:55.811457Z"
+    },
+    {
+      "name": "ai.b77/time",
+      "description": "A live clock for your assistant.",
+      "version": "1.0.0",
+      "repositoryUrl": null,
+      "packages": [],
+      "remotes": [
+        {
+          "type": "streamable-http",
+          "url": "https://time.b77.ai/mcp"
+        }
+      ],
+      "status": "active",
+      "publishedAt": "2026-08-14T20:37:57.849395Z"
+    },
+    {
+      "name": "ai.b77/web-analytics",
+      "description": "Ask about your website traffic in chat.",
+      "version": "1.0.0",
+      "repositoryUrl": null,
+      "packages": [],
+      "remotes": [
+        {
+          "type": "streamable-http",
+          "url": "https://web-analytics.b77.ai/mcp"
+        }
+      ],
+      "status": "active",
+      "publishedAt": "2026-08-14T20:37:56.317987Z"
+    },
+    {
+      "name": "io.github.calllint/calllint",
+      "description": "Static preflight safety gate for MCP servers — scan configs before you run them. Never executes.",
+      "version": "0.2.0",
+      "repositoryUrl": "https://github.com/calllint/calllint",
+      "packages": [
+        {
+          "registryType": "npm",
+          "identifier": "calllint-mcp",
+          "version": "0.2.0",
+          "transport": null
+        }
+      ],
+      "remotes": [],
+      "status": "active",
+      "publishedAt": "2026-07-13T02:58:25.025551Z"
     }
   ]
 }
