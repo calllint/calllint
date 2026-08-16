@@ -87,6 +87,33 @@ file to **generalize** to INV-10's seven terminal states — `SUPPORTED`,
 not a job state machine. Both mislabels are live hazards: one sends a batch to generalize
 the wrong file, the other implies a machine already exists.
 
+> **FIRST SENTENCE SUPERSEDED 2026-08-16 (Step 3 follow-up). All four absences shipped.**
+> Inverted in place, not deleted — same policy as §1.4 and §5. Measured at `main` = `0e802a7`:
+>
+> | claimed absent | actually at |
+> | --- | --- |
+> | persistent job queue | `operations/compilerQueue.ts` — `enqueueJobs:94`, `leaseNextJob:137`, `renewLease:165`, over table `compiler_jobs` in `migrations/001` |
+> | leases | `domain/job.ts:136-137` `leaseOwner` / `leaseExpiresAt`, nullable **together** and populated only while `LEASED`, with `assertLeaseCoherent:344` enforcing the pairing |
+> | dead-letter | `domain/job.ts:46` — `CompilerJobState = "PENDING" \| "LEASED" \| "SUCCEEDED" \| "FAILED" \| "DEAD_LETTER"`; `FAILED` vs `DEAD_LETTER` differ by *intent*, not finality (`:41-42`) |
+> | idempotency key | `domain/job.ts:237` — `(job_type, subject_key, input_digest)`, `migrations/001:127`'s UNIQUE constraint verbatim, hashed via `hashJson` over a **named** object so field names are part of the key |
+>
+> A job **state machine** also exists, which is the load-bearing half of the reversal:
+> `domain/jobStates.ts` holds `COMPILER_JOB_TRANSITIONS:79`, `COMPILER_RUN_TRANSITIONS:100`,
+> `isTerminalJobState:115`, `canTransitionJob:125`, `assertJobTransition:143`,
+> `LEASABLE_JOB_STATES:175`, `isLeasableJobState:178`.
+>
+> **The heading's second clause is still true, and is the part to carry forward.**
+> `packages/evidence/src/model/stateMachine.ts` remains the *resolution* machine
+> (`canTransition:27`, `isTerminal:32`, `stateFromResolverStatus:37`) — it is still not the job
+> machine, and ADR 0061 §10 still names it as the file to generalize to INV-10's seven terminal
+> states. What changed is that the job machine no longer needs to be *built*; the remaining work
+> is the generalization, not the queue. All seven INV-10 states are live in
+> `packages/adoption-index/src`, with `PROCESSING_FAILED` appearing only in `domain/jobStates.ts`.
+>
+> Note the shape of this defect: the section was **right about the subtle thing** (which file to
+> generalize) and wrong about the four blunt ones. The subtle claim was re-verified every time
+> someone quoted it; the blunt list read as background and was never re-measured.
+
 ### 1.4 No freshness calculator
 
 No module under `packages/*/src` computes freshness. Evidence *level* ships
@@ -125,6 +152,28 @@ makes "rolling" currently unrepresentable.
 > only checking a restatement of it. The fix inverts the direction — `FRESHNESS_KEYS` /
 > `FRESHNESS_STATES` are **runtime** constants, the type derives from them, and a two-sided
 > `AssertNever` bridge fails the typecheck on drift from either side.
+>
+> **COUNTS RE-MEASURED 2026-08-16 (Step 3 follow-up). Every pointer above still resolves; three
+> denominators had rotted with cohort growth 39 → 120.** `bakeTrustPage.ts:162-172` still seals
+> `observedAt` inside `pageContent` → `pageDigest = hashJson(pageContent)`, so the reason freshness
+> lands on `index.json` rather than in the page body is unchanged. `freshness.ts` still exports
+> `CADENCE_DAYS = 7` (`:36`) and `AGING_MULTIPLE = 3` (`:43`), still derived from
+> `trust-ingest.yml:19`'s `cron: "17 6 * * 1"` rather than invented.
+>
+> Measured on the served `apps/web/public/trust/index.json`: **120** entries, not 39 — 100 at
+> `2026-08-15T14:54:20.031Z` and 20 at `FIXTURE_OBSERVED_AT`. So *"20 of 39 entries are fixtures"*
+> is now **20 of 120**; the numerator is unchanged and the `TIMELESS` mechanism it justifies is
+> untouched. *"38/38 baked entries carry `freshness`"* is now **119/119**.
+>
+> The 119 is worth stating precisely, because the raw ratio looks like a bug and is not. 119 of
+> **120** entries carry `freshness`, and only **19** of the 20 fixture-dated entries are `TIMELESS`.
+> The one entry in neither count is `calllint-fixtures/malformed`, `status: "incomplete"`,
+> `reason: "config did not parse — recorded as incomplete, no page baked"` — a third entry shape
+> with no `resolution` and no `freshness`, correctly, since nothing was baked to be fresh *about*.
+> The index's own `baked: 119` / `incomplete: 1` agree. The invariant is **"every baked entry
+> carries freshness"**, which holds 119/119; `38/38` was that invariant expressed as a literal at
+> a moment when no incomplete entry existed. Pinning the literal would have red-flagged a healthy
+> index the first time a config failed to parse.
 
 ### 1.5 No claim-facing control API
 
@@ -253,15 +302,34 @@ and load-bearing. Full detail in `current-symbol-bindings.json` (rows 4, 11, 14,
 
 | # | Capability | The two owners | Why flattening it is a defect |
 | --- | --- | --- | --- |
-| 4 | Evidence resolution | script `resolveEvidence.ts:40` (only export `remoteSubjects`; `main()` at `:48` is **not** exported) · engine `packages/resolver/src/evidence/resolveSubject.ts:17` + `P1_RESOLVERS` at `index.ts:32` | binding the script alone points every later batch at a `main()` it **cannot import**. The binding would look right and fail at the first `import` |
-| 11 | Gateway prepare | general `prepare.ts:134` · safe-install `prepareSafeInstall.ts:137` | the safe-install path is the one both the CLI and MCP delegate to. Recording only `prepare` aims a batch at the path *not* under test |
-| 14 | Receipt schema | v1 `decisionReceipt.ts:89` `calllint.receipt.v1` · v0 `core/src/receipt/types.ts:17` `calllint.receipt.v0` | **v0 still ships** for `scan --receipt`. "One receipt schema" would license deleting a live surface |
+| 4 | Evidence resolution | script `packages/trust-index/src/resolveEvidence.ts:40` (only export `remoteSubjects`; `main()` at `:48` is **not** exported) · engine `packages/resolver/src/evidence/resolveSubject.ts:17` + `P1_RESOLVERS` at `index.ts:32` | binding the script alone points every later batch at a `main()` it **cannot import**. The binding would look right and fail at the first `import` |
+| 11 | Gateway prepare | general `packages/core/src/gateway/prepare.ts:134` · safe-install `packages/core/src/gateway/prepareSafeInstall.ts:137` | the safe-install path is the one both the CLI and MCP delegate to. Recording only `prepare` aims a batch at the path *not* under test |
+| 14 | Receipt schema | v1 `packages/types/src/decisionReceipt.ts:89` `calllint.receipt.v1` · v0 `packages/core/src/receipt/types.ts:17` `calllint.receipt.v0` | **v0 still ships** for `scan --receipt`. "One receipt schema" would license deleting a live surface |
 | 20 | Generated deployment | producers `bake.ts:121` + `sync-assets.mjs` · deployer `deploy-web.yml:85` | binding only the producer hides the deploy gate at `:114`; binding only the workflow hides who writes the bytes |
 | 21 | Telemetry contracts | `telemetry-contract` `ALLOWED_EVENTS:11` · `trust-event-contract` `TRUST_EVENTS:31` | two **independent** closed vocabularies with separate version constants. Recording one makes a batch believe an event name is allowed when its vocabulary does not contain it |
 
 Row 4 is the only `PARTIAL` among the 21 subsystems, and the reason is precisely the fork:
 the capability exists, but not as an importable schedulable unit. Turning it into one is
 what the rolling compiler needs from it.
+
+> **ALL 15 POINTERS RE-MEASURED 2026-08-16 (Step 3 follow-up) — zero rot.** Every line in
+> every row still holds the symbol the table names: `remoteSubjects` at `resolveEvidence.ts:40`
+> with `main()` still unexported at `:48`, `prepare:134`, `prepareSafeInstall:137`,
+> `DECISION_RECEIPT_SCHEMA = "calllint.receipt.v1"` at `types/src/decisionReceipt.ts:89`,
+> `schema_version: "calllint.receipt.v0"` at `core/src/receipt/types.ts:17`, `bake.ts:121`,
+> `deploy-web.yml:85` + `:114`, `ALLOWED_EVENTS:11`, `TRUST_EVENTS:31`. This section is the
+> **one** part of §1–§2 that did not rot, which is worth recording: it is also the only part
+> whose rows were carried in a machine-readable sidecar (`current-symbol-bindings.json`).
+>
+> The four bare filenames have been qualified to full paths, because measuring them exposed a
+> reader hazard the table itself created. A bare `prepare.ts:134` invites the reader to
+> *construct* a path; the natural guesses (`packages/gateway/src/…`, `scripts/…`,
+> `packages/adoption-index/src/artifacts/…`) do not exist, and a scan keyed on them prints a
+> confident **MISSING FILE** for four rows that are perfectly intact. `decisionReceipt.ts` is
+> genuinely ambiguous — two files carry the name, and it is `packages/types/` that holds `:89`
+> while `packages/install-planner/src/decisionReceipt.ts:89` is an unrelated `expiration:` line
+> that a lazier check would have accepted. An absence measured through a guessed key form is
+> not an absence.
 
 ## 3. The five contradictions — the blueprint asserts gaps that shipped
 

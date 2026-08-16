@@ -233,7 +233,7 @@ export function toCompilerRunDocument(row: Omit<CompilerRunV1, "schema">): Compi
 /**
  * The stable id for one job: a digest over the canonical UNIQUE triple.
  *
- * `(job_type, subject_key, input_digest)` is `migrations/001:137`'s UNIQUE constraint verbatim, and
+ * `(job_type, subject_key, input_digest)` is `migrations/001:127`'s UNIQUE constraint verbatim, and
  * the schema's description names the same three as the idempotency key: "re-enqueueing unchanged
  * inputs updates the existing row instead of growing the queue". Deriving the PRIMARY KEY from the
  * UNIQUE triple makes those two constraints the same constraint, so one upsert satisfies both and no
