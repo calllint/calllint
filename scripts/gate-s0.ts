@@ -77,12 +77,13 @@
  * Exit codes: 0 ok · 2 gate failed (--gate / --regression) / unexpected error.
  */
 import { spawnSync } from "node:child_process"
-import { readFileSync, existsSync, mkdtempSync, rmSync } from "node:fs"
+import { readFileSync, readdirSync, existsSync, mkdtempSync, rmSync } from "node:fs"
 import { tmpdir } from "node:os"
 import path from "node:path"
 import { fileURLToPath } from "node:url"
 
 import { fixtureCohort } from "../packages/trust-index/src/cohort.js"
+import { checkCohortIdentity, formatIdentityOutcome } from "./cohort-identity.js"
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..")
 const rel = (p: string): string => path.relative(repoRoot, p).replace(/\\/g, "/")
@@ -163,6 +164,37 @@ if (committedCohort !== null && S0_REGRESSION_FLOOR > committedCohort) {
 const FIXTURE_PREFIX = "calllint-fixtures/"
 const REGISTRY_PREFIX = "mcp-registry/"
 
+/**
+ * ADR 0084 D4: is this de-listing ACKNOWLEDGED?
+ *
+ * The red is a demand for acknowledgement, not a claim of wrongdoing — a publisher pulling their
+ * server is legitimate and will recur. So there must be a way to say "yes, we saw it, here is why",
+ * and the choice of WHERE is constrained by D2: a dedicated `acknowledged-delistings.json` would be
+ * exactly the second copy of state that D2 refuses, editable to make a red go away.
+ *
+ * So the acknowledgement lives in the ADR corpus. Naming the subject in an ADR is the action D4
+ * actually wants (record WHICH subject and WHY); grepping for it means the gate reads the artifact
+ * the process already produces rather than a flag file invented for the gate's benefit.
+ */
+function acknowledgedDelistings(): Set<string> {
+  const acknowledged = new Set<string>()
+  const adrDir = path.join(repoRoot, "adrs")
+  if (!existsSync(adrDir)) return acknowledged
+  for (const file of readdirSync(adrDir)) {
+    if (!file.endsWith(".md")) continue
+    const text = readFileSync(path.join(adrDir, file), "utf8")
+    // The subject must appear in a sentence that also says it was de-listed, so an ADR merely
+    // MENTIONING a name (as a sorting example, say) does not silently acknowledge its removal.
+    for (const m of text.matchAll(/`([a-z0-9][a-z0-9._-]*\/[a-z0-9._-]+)`[^\n]*de-listed/gi)) {
+      acknowledged.add(m[1]!)
+    }
+    for (const m of text.matchAll(/de-listed[^\n]*`([a-z0-9][a-z0-9._-]*\/[a-z0-9._-]+)`/gi)) {
+      acknowledged.add(m[1]!)
+    }
+  }
+  return acknowledged
+}
+
 //---------------------------------------------------------------------------------------------------
 // CLI
 //---------------------------------------------------------------------------------------------------
@@ -170,11 +202,22 @@ const isGate = process.argv.includes("--gate")
 const isRegression = process.argv.includes("--regression")
 const noRun = process.argv.includes("--no-run")
 
+// `--identity` is a THIRD enforcing mode and it exists because of where it must run, not because of
+// what it adds (ADR 0084 D3). The identity witness reads a PREVIOUS REVISION of the snapshot, and the
+// `test` matrix checks out at depth 1 — so under `--regression`, on CI, this check can only ever
+// return `refused`. A witness that structurally cannot speak in the one place it is wired is not a
+// witness. This mode is hosted on `ledger-authenticity`, the single `fetch-depth: 0` job, where a
+// refusal means something went wrong rather than "as designed".
+const isIdentity = process.argv.includes("--identity")
+
 // `--gate --regression` is refused rather than resolved by precedence. The two modes enforce
 // DIFFERENT propositions (the full claim vs. what holds today), so a run that was asked for both has
 // an ambiguous verdict, and silently picking one would print a verdict the caller did not request.
-if (isGate && isRegression) {
-  console.error(`❌ --gate and --regression are mutually exclusive: they enforce different claims`)
+// `--identity` joins the same rule for the same reason: its subject is a different one again (who is
+// in the cohort, not how many), and its host job is different, so a combined run has no single verdict.
+const enforcing = [isGate, isRegression, isIdentity].filter(Boolean).length
+if (enforcing > 1) {
+  console.error(`❌ --gate, --regression and --identity are mutually exclusive: they enforce different claims`)
   process.exit(2)
 }
 
@@ -183,8 +226,8 @@ if (isGate && isRegression) {
 // that turns the check off would restore exactly that, with a command-line switch instead of a grep.
 // `--regression` is included because it is the mode CI runs — the one place the escape hatch would
 // have mattered most.
-if ((isGate || isRegression) && noRun) {
-  const mode = isGate ? "--gate" : "--regression"
+if ((isGate || isRegression || isIdentity) && noRun) {
+  const mode = isGate ? "--gate" : isRegression ? "--regression" : "--identity"
   console.error(`❌ --no-run is refused under ${mode}: enforcement cannot be asked to skip itself`)
   process.exit(2)
 }
@@ -610,6 +653,18 @@ const registryShort = censusRegistry < S0_REQUIRED_RECORDS
 // defect. Blending them into one boolean is what made the gate unwireable.
 const cohortRegressed = censusRegistry < S0_REGRESSION_FLOOR
 
+// ADR 0084: the IDENTITY axis, a second and independent witness. `cohortRegressed` above is a
+// MAGNITUDE and cannot witness a substitution — 1 lost against 76 gained nets +75, so a subject can
+// leave while the count rises and the gate stays green. Neither predicate subsumes the other and
+// neither is being replaced: a shrinking count and a substituted identity are different faults that
+// want different messages ([[a-boolean-standing-in-for-a-reason]]).
+const identity = checkCohortIdentity()
+// D4: only an UNACKNOWLEDGED loss decides an exit code. An acknowledged one still prints — the event
+// stays visible forever — but stops failing the build, because the demand it makes has been met.
+const unacknowledgedLosses =
+  identity.kind === "checked" ? identity.lost.filter((n) => !acknowledgedDelistings().has(n)) : []
+const cohortLostSubjects = unacknowledgedLosses.length > 0
+
 console.log(`\n=== Gate S0 — the 25-record vertical slice ===\n`)
 console.log(`Cohort census:`)
 console.log(`  Registry:  ${censusRegistry} / ${S0_REQUIRED_RECORDS} required ${registryShort ? "(SHORTFALL)" : "(met)"}`)
@@ -618,6 +673,28 @@ console.log(
 )
 console.log(`  Fixtures:  ${censusFixtures} (excluded from the requirement by design)`)
 console.log(`  Total:     ${censusTotal}\n`)
+
+// Printed in EVERY mode, including report mode, because D4's whole claim is that a de-listing must
+// not pass unobserved. A witness that only speaks when it also fails the build is a witness that can
+// be silenced by choosing a mode.
+console.log(`${formatIdentityOutcome(identity)}`)
+if (identity.kind === "checked" && identity.lost.length > 0) {
+  const ack = identity.lost.filter((n) => !unacknowledgedLosses.includes(n))
+  if (ack.length > 0) console.log(`  ACKNOWLEDGED in adrs/: ${ack.join(", ")} — reported, not failing`)
+  if (unacknowledgedLosses.length > 0) console.log(`  UNACKNOWLEDGED: ${unacknowledgedLosses.join(", ")}`)
+  // Which mode OWNS this loss, stated here rather than in the `--regression` branch. It sat there
+  // first, after that branch's `if (!allOk)` early exit, so an unrelated red — vitest failing to
+  // collect — suppressed the note entirely. A report that depends on other assertions passing is not
+  // a report; control C10 printed `reports as non-enforcing: 0` and found exactly that.
+  if (!isIdentity && cohortLostSubjects) {
+    console.log(
+      `  NOTE: reported, not enforced in this mode — the count did not fall ` +
+        `(${censusRegistry} >= ${S0_REGRESSION_FLOOR}), and enforcement lives in \`gate:s0:identity\` ` +
+        `on the \`fetch-depth: 0\` job (ADR 0084 D3).`,
+    )
+  }
+}
+console.log()
 
 // The EXECUTED tick is `–` when skipped, never `✓`. A skipped check that prints the same glyph as a
 // passing one is the docblock's defect in miniature: the reader cannot tell evidence from absence.
@@ -643,7 +720,44 @@ if (executed !== null) {
 }
 console.log(`  [SCANNED]   DEP-8            ${dep8_ok ? "✓" : "✗"}  ${dep8_message}\n`)
 
-if (isGate) {
+if (isIdentity) {
+  // ADR 0084 D3. This mode enforces ONE proposition — no subject left the cohort unacknowledged —
+  // and deliberately does not enforce the assertion tiers or the census: those are `--regression`'s
+  // subject, they run on the matrix, and re-failing here would red two jobs for one cause.
+  //
+  // THE DECISION THAT MAKES THIS MODE WORTH HAVING: a refusal is a FAILURE here, where under
+  // `--regression` it is merely reported. Same measurement, opposite exit code, because the host
+  // differs. On the depth-1 matrix "no previous revision" is the expected state and failing on it
+  // would red every PR for a reason no author can fix. On `ledger-authenticity` the clone is full by
+  // construction, so "I could not read the previous cohort" means the guard lost its evidence — and a
+  // guard that cannot see its subject must not print a tick ([[a-working-guard-with-no-path-from-the-artifact]]).
+  if (identity.kind === "refused") {
+    console.error(
+      `❌ --identity mode: the cohort identity witness REFUSED where it must be able to measure.\n` +
+        `   ${identity.reason}\n` +
+        `   This mode is hosted on the \`fetch-depth: 0\` job precisely so history IS reachable ` +
+        `(ADR 0084 D3). A refusal here is a broken guard, not an expected state — under ` +
+        `\`--regression\` on the depth-1 matrix the same reason is reported and tolerated.`,
+    )
+    process.exit(2)
+  }
+  if (cohortLostSubjects) {
+    console.error(
+      `❌ --identity mode: ${unacknowledgedLosses.length} subject(s) left the cohort UNACKNOWLEDGED — ` +
+        `${unacknowledgedLosses.join(", ")}. The count is ${censusRegistry} and the floor is ` +
+        `${S0_REGRESSION_FLOOR}, so the ratchet is green and CANNOT see this (ADR 0084). This is a ` +
+        `demand for acknowledgement, not an accusation: record the subject and the reason in an ADR, ` +
+        `then this passes.`,
+    )
+    process.exit(2)
+  }
+  console.log(
+    `✓ --identity mode: cohort identity measured against ${identity.previousRevision.slice(0, 8)} — ` +
+      `${identity.lost.length === 0 ? "no subject left the cohort" : `${identity.lost.length} loss(es), all acknowledged in adrs/`}` +
+      ` (${identity.previousCount} → ${identity.currentCount}, +${identity.gained.length} gained)\n`,
+  )
+  process.exit(0)
+} else if (isGate) {
   if (!allOk) {
     console.error(`❌ --gate mode: one or more assertions FAILED`)
     process.exit(2)
@@ -669,6 +783,13 @@ if (isGate) {
     )
     process.exit(2)
   }
+  // NO IDENTITY ENFORCEMENT HERE — deliberately, and the note saying so is printed with the outcome
+  // above rather than in this branch. This mode runs on the depth-1 `test` matrix, where
+  // `checkCohortIdentity` can only ever return `refused`, so enforcing here would give one assertion
+  // two meanings depending on clone depth: silently unenforceable on CI, red on a developer's full
+  // clone. It would also red two jobs for one cause. Control C10 measured the intended split: with a
+  // count-neutral substitution committed, `--identity` exits 2 naming the subject while this mode's
+  // ratchet reports `floor 100 (held)` — the blindness ADR 0084 documents, not a gap in it.
   console.log(
     registryShort
       ? `✓ All assertions passed; cohort ${censusRegistry} holds the floor (${S0_REGRESSION_FLOOR}). The ${S0_REQUIRED_RECORDS}-record requirement is still short — reported, not enforced here (S0-OPEN-1)\n`

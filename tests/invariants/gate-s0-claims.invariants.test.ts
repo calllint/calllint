@@ -207,13 +207,20 @@ describe("Gate S0 — every path:line the record cites still points at what it c
     // was deliberately dropped from its anchor) because a ratchet's whole failure mode is being
     // edited DOWNWARD quietly — the derived assertion further down is the primary guard against
     // that, and this pointer is a second, cheaper reader of the same literal.
-    assertPointer(GATE, 95, "S0_REQUIRED_RECORDS = 25", "S0_REQUIRED_RECORDS")
-    assertPointer(GATE, 123, "S0_REGRESSION_FLOOR = 100", "S0_REGRESSION_FLOOR")
-    assertPointer(GATE, 163, "FIXTURE_PREFIX", "FIXTURE_PREFIX")
-    // Drifted a SECOND time inside S batch 1, 401 → 498, when `stripComments` became string-aware; now
-    // 568. Worth noting because it is the argument for content-addressed pointers rather than line
-    // numbers: this one number has moved three times, and every time the failure named what it found.
-    assertPointer(GATE, 607, "registryShort", "the shortfall computation")
+    // DRIFTED A SIXTH TIME, in the ADR 0084 batch (95→96, 123→124, 163→164, 607→650): the gate gained
+    // `--identity`'s docblock, the `acknowledgedDelistings()` reader, and the identity print block. The
+    // failure quoted `" */"` at :95 — docblock prose again — which is the sixth consecutive time this
+    // mechanism has reported drift by naming what it actually found instead of passing on a line that
+    // merely exists. Six batches is no longer anecdote: the *pointers* are the fragile part, and their
+    // content anchors are the only reason each drift has been harmless.
+    assertPointer(GATE, 96, "S0_REQUIRED_RECORDS = 25", "S0_REQUIRED_RECORDS")
+    assertPointer(GATE, 124, "S0_REGRESSION_FLOOR = 100", "S0_REGRESSION_FLOOR")
+    assertPointer(GATE, 164, "FIXTURE_PREFIX", "FIXTURE_PREFIX")
+    // Drifted a SECOND time inside S batch 1, 401 → 498, when `stripComments` became string-aware; then
+    // 568, then 607, now 650. Worth noting because it is the argument for content-addressed pointers
+    // rather than line numbers: this one number has moved five times, and every time the failure named
+    // what it found.
+    assertPointer(GATE, 650, "registryShort", "the shortfall computation")
   })
 
   it("the cap the record exonerates, and the un-paginated GET that exonerates it", () => {
@@ -449,10 +456,15 @@ describe("Gate S0 — every number the record states is derived from the file it
       lastAmendment,
       "S0-OPEN-2's newest amendment must state the live step count, since adding a step is what changed it",
     ).toContain(`**${steps.length}**`)
-    // All three scripts must exist, or S0-OPEN-2's closure describes a gate that is gone.
+    // All four scripts must exist, or S0-OPEN-2's closure describes a gate that is gone. `gate:s0:identity`
+    // joined at ADR 0084: a third ENFORCING mode, deliberately absent from `ci:local` and from the `test`
+    // matrix because it needs full git history — the assertion above already pins that `ci:local` runs
+    // exactly `gate:s0:regression`, and the identity mode's own host is pinned in its dedicated test.
+    // The set form is kept (not `toContain`) so a script LEAVING is as much an event as one arriving.
     expect(Object.keys(pkg.scripts).filter((k) => k.startsWith("gate:s0")).sort()).toEqual([
       "gate:s0",
       "gate:s0:gate",
+      "gate:s0:identity",
       "gate:s0:regression",
     ])
   })
@@ -695,13 +707,17 @@ describe("Gate S0 — every number the record states is derived from the file it
     // S0-OPEN-3 closed on four properties, not one. Three of them live in `scripts/gate-s0.ts` as
     // code that no other assertion here reads, so they are pinned by their own subject.
     const gate = readText(GATE)
-    // The refusal message became interpolated when `--regression` joined it (`under ${mode}`), so the
-    // old literal `--no-run is refused under --gate` no longer appears in the source. This assertion
-    // was correct to red on that change: it pins a real behaviour. What it pins is now the GUARD
-    // rather than the string, and the guard is asserted to cover BOTH enforcing modes — a narrower
-    // check would have gone green again the moment `--regression` was exempted from it.
+    // `--no-run` must not be honoured under an enforcing mode, or the EXECUTED tier is skipped into a
+    // pass. WHICH modes the guard covers is asserted by arity in "no enforcing mode can be asked to skip
+    // itself, and no two can be combined" — do not re-pin the disjunction here. This assertion held
+    // `/\(isGate \|\| isRegression\) && noRun/` and drifted twice: once when `--regression` joined the
+    // guard, again when ADR 0084 added `--identity`. Both times the guard had been STRENGTHENED and the
+    // literal red anyway, which is the shape this file documents elsewhere — a check whose subject is the
+    // spelling of a condition rather than the condition. Two copies of one proposition also means the
+    // weaker copy can go green while the real claim is broken. What survives here is only the part this
+    // tier needs: the guard exists, and it EXITS rather than warning.
     expect(gate, "--no-run must be refused under an enforcing mode, not honoured with a warning").toMatch(
-      /\(isGate \|\| isRegression\) && noRun/,
+      /&& noRun\) \{[\s\S]{0,400}?process\.exit\(2\)/,
     )
     expect(gate, "and the refusal must name the mode that refused").toMatch(
       /--no-run is refused under \$\{mode\}/,
@@ -824,19 +840,71 @@ describe("Gate S0 — the regression mode CI runs enforces something, and the ra
     ).toBe(false)
   })
 
-  it("neither enforcing mode can be asked to skip itself, and the two modes cannot be combined", () => {
+  it("no enforcing mode can be asked to skip itself, and no two can be combined", () => {
     const gate = readText(GATE)
-    // `--no-run` was already refused under `--gate`. `--regression` is the mode CI runs, which is
-    // where an escape hatch would matter most, so the refusal must cover it.
-    expect(gate, "--no-run must be refused under --regression too").toMatch(
-      /\(isGate \|\| isRegression\) && noRun/,
-    )
+    // ADR 0084 added `--identity` as a THIRD enforcing mode, so both claims below are now over three
+    // modes rather than two. They are asserted by ARITY rather than by pinning the disjunction's exact
+    // text: the previous form pinned `(isGate || isRegression) && noRun` literally and therefore red on
+    // a change that STRENGTHENED it — the same "a red control can be the gate catching its own edit"
+    // trap this file documents elsewhere. What must hold is that *every* enforcing mode is covered.
+    const modes = ["isGate", "isRegression", "isIdentity"] as const
+
+    const noRunGuard = /if \(\(([^)]*)\) && noRun\)/.exec(gate)
+    expect(noRunGuard, "the `--no-run` refusal must still be a single guard over the enforcing modes").not.toBeNull()
+    for (const m of modes) {
+      expect(noRunGuard![1], `--no-run must be refused under ${m}: an escape hatch in ANY enforcing mode restores exactly what the guard exists to prevent`).toContain(m)
+    }
     expect(gate, "and the refusal must name which mode refused").toContain(
       "enforcement cannot be asked to skip itself",
     )
-    // Combining them is refused rather than resolved by precedence: they enforce different claims,
-    // so silently honouring one prints a verdict the caller did not ask for.
-    expect(gate, "--gate and --regression must be mutually exclusive").toMatch(/isGate && isRegression/)
+
+    // Combining modes is refused rather than resolved by precedence: they enforce different claims, so
+    // silently honouring one prints a verdict the caller did not ask for. With three modes the pairwise
+    // form (`isGate && isRegression`) no longer covers it, so the gate counts how many were requested.
+    const exclusion = /const enforcing = \[([^\]]*)\]\s*\.filter\(Boolean\)\.length/.exec(gate)
+    expect(exclusion, "mutual exclusion must be decided by counting the requested modes, not by pairwise tests that silently miss a third").not.toBeNull()
+    for (const m of modes) {
+      expect(exclusion![1], `${m} must be counted when checking for combined modes`).toContain(m)
+    }
+    expect(gate, "and combining them must be refused, not resolved").toMatch(
+      /if \(enforcing > 1\)[\s\S]{0,300}?process\.exit\(2\)/,
+    )
+  })
+
+  // ADR 0084 D3. The identity witness reads a PREVIOUS REVISION of the snapshot, so its verdict depends
+  // on clone depth — which makes WHERE it is wired part of the claim, not deployment trivia.
+  it("the identity mode is enforced only where history is reachable, and its host blocks the merge", () => {
+    const pkg: { scripts: Record<string, string> } = JSON.parse(readText("package.json"))
+    expect(pkg.scripts["gate:s0:identity"], "the identity script must exist").toBe(
+      "tsx scripts/gate-s0.ts --identity",
+    )
+
+    // Parsed, not text-matched: this file already paid for a text match on an unparseable workflow.
+    const ci = parseYaml(readText(".github/workflows/ci.yml")) as {
+      jobs: Record<string, { needs?: string[]; steps?: { run?: string; with?: Record<string, unknown> }[] }>
+    }
+    const host = ci.jobs["ledger-authenticity"]
+    expect(host, "`ledger-authenticity` is the one full-history job; the identity check lives there").toBeTruthy()
+
+    const runs = (j?: { steps?: { run?: string }[] }) => (j?.steps ?? []).map((s) => s.run ?? "").join("\n")
+
+    // The load-bearing pair. On a depth-1 clone the check can ONLY return `refused`, so enforcing it on
+    // the matrix would be a step with no failing mode — ADR 0084's own defect, reintroduced by its guard.
+    expect(runs(host), "the identity mode must run on the fetch-depth: 0 job").toContain("pnpm gate:s0:identity")
+    expect(runs(ci.jobs.test), "and must NOT run on the depth-1 matrix, where it could only ever refuse").not.toContain(
+      "pnpm gate:s0:identity",
+    )
+
+    // Optional-chained rather than relying on the `toBeTruthy` above to narrow: it does not narrow for
+    // tsc, and a missing host leaves `depth` undefined, which the `.toBe(0)` below reds on anyway.
+    const depth = (host?.steps ?? []).find((s) => s.with && "fetch-depth" in s.with)
+    expect(depth?.with?.["fetch-depth"], "its host must check out full history, or the check cannot measure").toBe(0)
+
+    // A job whose failure the required check does not read is a status, not a gate (ADR 0071).
+    expect(
+      ci.jobs["build-and-test"]?.needs,
+      "the host job must be in the required aggregator's needs, or a red identity check blocks nothing",
+    ).toContain("ledger-authenticity")
   })
 
   it("the mode is actually invoked — by ci.yml AND by ci:local", () => {
