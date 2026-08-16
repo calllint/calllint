@@ -159,6 +159,15 @@ export type {
 export { planWithdrawal } from "./operations/planWithdrawal.js"
 export type { ApplyWithdrawalInput, ApplyWithdrawalResult } from "./operations/applyWithdrawal.js"
 export { applyWithdrawal } from "./operations/applyWithdrawal.js"
+export type {
+  CohortConservation,
+  MeasureCohortConservationOptions,
+} from "./operations/assertCohortConservation.js"
+export {
+  measureCohortConservation,
+  assertCohortConserved,
+  CohortConservationError,
+} from "./operations/assertCohortConservation.js"
 export type { RefreshFromMirrorOptions, RefreshFromMirrorResult } from "./operations/refreshFromMirror.js"
 export {
   refreshFromMirror,

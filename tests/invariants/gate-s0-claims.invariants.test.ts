@@ -263,9 +263,14 @@ describe("Gate S0 — every path:line the record cites still points at what it c
       "19_739",
       "the live cohort size",
     )
+    // Moved 56 → 74 by ADR 0085's guard: the header docblock gained the paragraph naming the two
+    // fail-closed guards as distinct subjects (`assertMirrorComplete` reads, `assertCohortConserved`
+    // projects), and every anchor below it shifted by eighteen. Re-pinned, not loosened to a search,
+    // for the reason the sibling row above already records — and the mover was again the batch
+    // editing the file, which is the pattern [[a-pointer-rots-faster-than-its-claim]] predicts.
     assertPointer(
       "packages/adoption-index/src/operations/refreshFromMirror.ts",
-      56,
+      74,
       "65235",
       "the exhaustive walk",
     )
