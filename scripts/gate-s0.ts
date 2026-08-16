@@ -83,7 +83,11 @@ import path from "node:path"
 import { fileURLToPath } from "node:url"
 
 import { fixtureCohort } from "../packages/trust-index/src/cohort.js"
-import { checkCohortIdentity, formatIdentityOutcome } from "./cohort-identity.js"
+import {
+  acknowledgementClears,
+  checkCohortIdentity,
+  formatIdentityOutcome,
+} from "./cohort-identity.js"
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..")
 const rel = (p: string): string => path.relative(repoRoot, p).replace(/\\/g, "/")
@@ -175,6 +179,16 @@ const REGISTRY_PREFIX = "mcp-registry/"
  * So the acknowledgement lives in the ADR corpus. Naming the subject in an ADR is the action D4
  * actually wants (record WHICH subject and WHY); grepping for it means the gate reads the artifact
  * the process already produces rather than a flag file invented for the gate's benefit.
+ *
+ * WHAT THIS SET IS SCOPED TO (ADR 0085 D2). It reads the word `de-listed`, so it means exactly
+ * "this subject's WITHDRAWAL is acknowledged" — not "any future departure of this subject is
+ * pre-cleared". The distinction became load-bearing the moment departures acquired classes, and it
+ * was already being violated on `main`: goji's acknowledgement in ADR 0084 was clearing a departure
+ * the D2 classifier reports as `unknown`, so `--identity` printed "UNCLASSIFIED, not cleared" and
+ * then exited 0 having cleared it. ADR 0085 keeps that acknowledgement in place and annotates it —
+ * "the loss was real, the stated cause was wrong" — which is precisely why it must not travel to a
+ * departure with a different cause. `acknowledgementClears` (in `cohort-identity.ts`, next to the
+ * classifier, so it is importable by a test) is the rule this set feeds.
  */
 function acknowledgedDelistings(): Set<string> {
   const acknowledged = new Set<string>()
@@ -661,8 +675,17 @@ const cohortRegressed = censusRegistry < S0_REGRESSION_FLOOR
 const identity = checkCohortIdentity()
 // D4: only an UNACKNOWLEDGED loss decides an exit code. An acknowledged one still prints — the event
 // stays visible forever — but stops failing the build, because the demand it makes has been met.
+//
+// Filtered over `departures`, not over `lost` (ADR 0085 D2). The name-keyed version cleared ANY
+// departure of an already-acknowledged subject, so goji's ADR 0084 acknowledgement was silencing a
+// departure this witness classifies `unknown` — the report said "UNCLASSIFIED, not cleared" and the
+// gate exited 0 anyway. `clearsDeparture` requires the class to match what the acknowledgement is
+// actually a statement about.
+const ackNames = acknowledgedDelistings()
 const unacknowledgedLosses =
-  identity.kind === "checked" ? identity.lost.filter((n) => !acknowledgedDelistings().has(n)) : []
+  identity.kind === "checked"
+    ? identity.departures.filter((d) => !acknowledgementClears(d, ackNames)).map((d) => d.name)
+    : []
 const cohortLostSubjects = unacknowledgedLosses.length > 0
 
 console.log(`\n=== Gate S0 — the 25-record vertical slice ===\n`)
@@ -682,6 +705,34 @@ if (identity.kind === "checked" && identity.lost.length > 0) {
   const ack = identity.lost.filter((n) => !unacknowledgedLosses.includes(n))
   if (ack.length > 0) console.log(`  ACKNOWLEDGED in adrs/: ${ack.join(", ")} — reported, not failing`)
   if (unacknowledgedLosses.length > 0) console.log(`  UNACKNOWLEDGED: ${unacknowledgedLosses.join(", ")}`)
+  // A subject the corpus NAMES whose departure the acknowledgement cannot answer for. Printed
+  // separately because the remedy differs from a never-acknowledged loss: the ADR sentence exists
+  // and does not apply, so the fix is to the projection, not to the prose. Without this line the two
+  // cases render identically and a reader would reasonably conclude the ADR was missing.
+  const misfitAcks = identity.departures.filter(
+    (d) => !acknowledgementClears(d, ackNames) && ackNames.has(d.name),
+  )
+  for (const d of misfitAcks) {
+    console.log(
+      `  NOT CLEARED: ${d.name} is acknowledged in adrs/ as DE-LISTED, but this departure is ` +
+        `${d.class.toUpperCase()} — an acknowledgement of a withdrawal does not answer for a ` +
+        `different cause (ADR 0085 D2). Fix the projection; do not add prose.`,
+    )
+  }
+  // An acknowledgement CLEARED this, and the cause is still unestablished. Both facts, on one line,
+  // because either alone misleads: "acknowledged" without "unclassified" reads as a settled
+  // withdrawal, and refusing to clear it would wedge every network-free CI leg (see
+  // `clearsDeparture`). The pass is real; the classification is still owed.
+  const clearedButUnclassified = identity.departures.filter(
+    (d) => d.class === "unknown" && acknowledgementClears(d, ackNames),
+  )
+  for (const d of clearedButUnclassified) {
+    console.log(
+      `  NOT ESTABLISHED: ${d.name} is acknowledged, so it does not fail this run — but its cause ` +
+        `is UNKNOWN, not confirmed as a withdrawal. Re-run with a source view to classify it ` +
+        `(ADR 0082 + 0085 D2).`,
+    )
+  }
   // Which mode OWNS this loss, stated here rather than in the `--regression` branch. It sat there
   // first, after that branch's `if (!allOk)` early exit, so an unrelated red — vitest failing to
   // collect — suppressed the note entirely. A report that depends on other assertions passing is not

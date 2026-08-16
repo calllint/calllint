@@ -213,14 +213,19 @@ describe("Gate S0 — every path:line the record cites still points at what it c
     // mechanism has reported drift by naming what it actually found instead of passing on a line that
     // merely exists. Six batches is no longer anecdote: the *pointers* are the fragile part, and their
     // content anchors are the only reason each drift has been harmless.
-    assertPointer(GATE, 96, "S0_REQUIRED_RECORDS = 25", "S0_REQUIRED_RECORDS")
-    assertPointer(GATE, 124, "S0_REGRESSION_FLOOR = 100", "S0_REGRESSION_FLOOR")
-    assertPointer(GATE, 164, "FIXTURE_PREFIX", "FIXTURE_PREFIX")
+    // A SEVENTH TIME, in the ADR 0085 D2 batch (96→100, 124→128, 164→168, 650→664): the gate's
+    // `cohort-identity.js` import expanded to three lines to take `acknowledgementClears`, and the
+    // scoping note was added to `acknowledgedDelistings`'s docblock. The failure quoted the
+    // `S0_REQUIRED_RECORDS` docblock's own prose at :96 — prose for the third consecutive drift, which
+    // is what an anchor pinned one line above a constant will always eventually catch.
+    assertPointer(GATE, 100, "S0_REQUIRED_RECORDS = 25", "S0_REQUIRED_RECORDS")
+    assertPointer(GATE, 128, "S0_REGRESSION_FLOOR = 100", "S0_REGRESSION_FLOOR")
+    assertPointer(GATE, 168, "FIXTURE_PREFIX", "FIXTURE_PREFIX")
     // Drifted a SECOND time inside S batch 1, 401 → 498, when `stripComments` became string-aware; then
-    // 568, then 607, now 650. Worth noting because it is the argument for content-addressed pointers
-    // rather than line numbers: this one number has moved five times, and every time the failure named
-    // what it found.
-    assertPointer(GATE, 650, "registryShort", "the shortfall computation")
+    // 568, then 607, then 650, now 664. Worth noting because it is the argument for content-addressed
+    // pointers rather than line numbers: this one number has moved six times, and every time the
+    // failure named what it found.
+    assertPointer(GATE, 664, "registryShort", "the shortfall computation")
   })
 
   it("the cap the record exonerates, and the un-paginated GET that exonerates it", () => {
