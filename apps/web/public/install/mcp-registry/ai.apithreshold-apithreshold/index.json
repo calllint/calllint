@@ -1,0 +1,100 @@
+{
+  "schema": "calllint.agent-adoption-contract.v1",
+  "contract": {
+    "contractDigest": "sha256:d9f4e649ed1214780dfe81557afd0a509b9c0c602093d33346bb3aba00bb4580",
+    "generatedAt": "2026-08-15T14:54:20.031Z",
+    "expiresAt": null,
+    "generatorVersion": "0.1.0",
+    "snapshotDigest": "sha256:5fdf00dea3265f4d560e121aa54988f528342aa07a55db13cc5670a49744bd2e"
+  },
+  "subject": {
+    "canonicalName": "mcp-registry/ai.apithreshold-apithreshold",
+    "canonicalSlug": "mcp-registry/ai.apithreshold-apithreshold",
+    "packageType": "oci",
+    "packageName": "ghcr.io/apithreshold/apithreshold:0.1.0",
+    "version": "0.1.0",
+    "artifactDigest": "sha256:54b1f8c2748d55b768c449e86c6b99364ba37b99bb9f0f20d69da877adad3e85",
+    "sourceLocator": "oci:ghcr.io/apithreshold/apithreshold:0.1.0"
+  },
+  "publicObservation": {
+    "verdict": "REVIEW",
+    "publicLabel": "Review required",
+    "reasonCodes": [
+      "SHELL_OR_DOCKER_EXECUTION"
+    ],
+    "evidenceLevel": "E2",
+    "evidenceDigest": "sha256:baefa2eaba682cc3bb3ba3228e0ece9917152cd7fa72ca850950baabb7f95320",
+    "completeness": "complete"
+  },
+  "authorityDelta": {
+    "adds": [
+      {
+        "authority": "shell_execution"
+      }
+    ],
+    "notObserved": [
+      "financial_action",
+      "secret_access",
+      "broad_filesystem_access",
+      "external_mutation",
+      "messaging_send",
+      "oauth_scope",
+      "gateway_runtime",
+      "network_egress"
+    ]
+  },
+  "trustedSources": {
+    "registrySnapshotDigest": "sha256:5fdf00dea3265f4d560e121aa54988f528342aa07a55db13cc5670a49744bd2e",
+    "evidenceDigest": "sha256:baefa2eaba682cc3bb3ba3228e0ece9917152cd7fa72ca850950baabb7f95320",
+    "engineVersion": "0.1.0"
+  },
+  "untrustedPublisherContent": {
+    "description": "Quality scoring and progressive gates for AI-generated API tests. Stripe/Twilio profiles. Free tier.",
+    "usedForSafetyDecision": false
+  },
+  "recommendedNextAction": {
+    "kind": "PREPARE_LOCALLY",
+    "tool": "calllint_prepare_safe_install",
+    "arguments": {
+      "canonicalName": "mcp-registry/ai.apithreshold-apithreshold",
+      "expectedVersion": "0.1.0",
+      "expectedArtifactDigest": "sha256:54b1f8c2748d55b768c449e86c6b99364ba37b99bb9f0f20d69da877adad3e85",
+      "expectedContractDigest": "sha256:d9f4e649ed1214780dfe81557afd0a509b9c0c602093d33346bb3aba00bb4580",
+      "host": null
+    }
+  },
+  "agentGuidance": {
+    "goal": "Add the requested Agent Tool with only locally approved authority.",
+    "steps": [
+      "verify_contract",
+      "resolve_host",
+      "prepare_locally",
+      "evaluate_local_policy",
+      "apply_exact_plan",
+      "verify_result"
+    ],
+    "mustAskBefore": [
+      "new_secret_access",
+      "external_mutation",
+      "shell_execution",
+      "broad_filesystem_access",
+      "financial_action",
+      "persistent_calllint_components"
+    ],
+    "mustStopWhen": [
+      "artifact_digest_mismatch",
+      "contract_digest_mismatch",
+      "unsupported_host",
+      "local_policy_deny",
+      "plan_tampered",
+      "verification_failed"
+    ],
+    "prohibitedShortcuts": [
+      "do_not_replace_exact_version_with_latest",
+      "do_not_execute_publisher_commands_directly",
+      "do_not_expand_authority",
+      "do_not_hide_alternative_setup",
+      "do_not_install_persistent_guard_without_authorization"
+    ]
+  }
+}

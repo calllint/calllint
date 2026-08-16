@@ -163,7 +163,10 @@ describe("purity — the resolver reads no clock, no filesystem, no database", (
 describe("the slug is DERIVED from the shipped transform, and is never the key", () => {
   it("agrees with the shipped `registryCanonicalName` over every committed name", () => {
     const snapshot = parseSnapshot(readFileSync(SNAPSHOT_PATH, "utf8"))
-    expect(snapshot.entries).toHaveLength(25)
+    // A vacuity guard, not a cohort requirement: the loop below proves nothing over an empty
+    // corpus. Pinned as a lower bound rather than the exact size, so a snapshot refresh does not
+    // red a test that has nothing to do with how many entries were fetched.
+    expect(snapshot.entries.length, "the loop below is vacuous on an empty corpus").toBeGreaterThan(0)
     // The duplication in `canonicalSlug` is deliberate — importing the serving plane into
     // `src/` is the edge the boundary gate forbids. What makes duplication safe is precisely
     // this comparison: it catches BEHAVIOURAL drift, which a structural check (same file, same
@@ -790,46 +793,82 @@ describe("control #21 — the corpus measurement, which cannot grade the conflic
     })
   }
 
-  it("resolves the 25 committed entries to 25 PROVISIONAL subjects and ZERO conflicts", () => {
+  /**
+   * The cohort SIZE is read from the snapshot, never restated as a literal. Until the cohort
+   * grew 25 → 100 (ADR 0074's cap, which first bound on the 2026-08-15 ingest) these assertions
+   * pinned `25`, and every one of them reds on a refresh that changed nothing they are about.
+   * A literal here measures WHICH SNAPSHOT IS COMMITTED, which `gate-s0-claims` already owns.
+   *
+   * What stays pinned is every RELATION the conflict path depends on: one subject per entry,
+   * zero conflicts, all-distinct across four key forms. Those are the claims this control exists
+   * to make, and each one still has a failing mode — a real upstream collision reds them.
+   */
+  function cohortSize(): number {
+    return parseSnapshot(readFileSync(SNAPSHOT_PATH, "utf8")).entries.length
+  }
+
+  it("resolves every committed entry to one PROVISIONAL subject, with ZERO conflicts", () => {
     const out = resolve(committedRecords())
-    expect(out.subjects).toHaveLength(25)
+    // One subject per entry — asserted against the corpus's own size, so a fusion (two entries
+    // collapsing into one subject) reds here rather than being absorbed by a matching literal.
+    expect(out.subjects).toHaveLength(cohortSize())
     expect(out.conflicts).toEqual([])
     expect([...new Set(out.subjects.map((s) => s.identityStatus))]).toEqual(["PROVISIONAL"])
   })
 
-  it("emits THREE artifact rows, not twenty-five — artifacts follow packages, not subjects", () => {
-    // The measured shape of the corpus: 3 packages against 22 remotes over 25 entries, so 22
-    // remote-only entries correctly yield zero artifact rows. The plan's step-6 line said 19;
-    // asserting that would be asserting a number nothing in the data supports.
-    const out = resolve(committedRecords())
-    expect(out.artifacts).toHaveLength(3)
+  it("emits one artifact row per PACKAGE, not per subject — artifacts follow packages", () => {
+    // The invariant, not the count: remote-only entries correctly yield zero artifact rows, so
+    // the artifact total is the corpus's package total. At cohort 25 that read 3 packages against
+    // 22 remotes; at 100 it is 30 against 73. Deriving it keeps the claim ("artifacts follow
+    // packages") falsifiable — if a remote-only entry ever produced an artifact, this reds.
+    const records = committedRecords()
+    const packages = records.reduce((n, r) => n + (r.claimedIdentity.packages?.length ?? 0), 0)
+    expect(packages, "vacuous unless the corpus declares at least one package").toBeGreaterThan(0)
+    expect(packages, "artifacts follow packages, so a corpus of all-remotes would prove nothing").toBeLessThan(
+      records.length,
+    )
+    const out = resolve(records)
+    expect(out.artifacts).toHaveLength(packages)
     expect([...new Set(out.artifacts.map((a) => a.artifactStatus))]).toEqual(["RESOLVED"])
   })
 
-  it("states WHY the conflict path needs synthetic input: every class is 0 on real data", () => {
+  it("states WHY the conflict path needs synthetic input: every collision class is 0 on real data", () => {
     const records = committedRecords()
     const names = records.map(claimedName)
-    // The five measurements the plan rests on, re-measured rather than remembered. If a future
-    // snapshot refresh introduces a real collision, THIS is what says so.
-    expect(new Set(names).size).toBe(25)
-    expect(new Set(names.map(canonicalSlug)).size).toBe(25)
-    expect(new Set(records.map((r) => r.claimedIdentity.repositoryUrl).filter((u) => u != null)).size).toBe(11)
-    expect(records.filter((r) => r.claimedIdentity.repositoryUrl === undefined)).toHaveLength(14)
-    // 21 distinct publisher heads over 25 names — TWO repeats: `agenticshelf` (×2) and
-    // `agentlookups` (×4). That is a fact about the corpus, not a conflict.
-    expect(new Set(names.map(publisherHead)).size).toBe(21)
-    expect(names.filter((n) => publisherHead(n) === "ai.agenticshelf")).toHaveLength(2)
-    expect(names.filter((n) => publisherHead(n) === "ai.agentlookups")).toHaveLength(4)
-    // Every participant is distinct, so no two committed entries are one observation twice.
-    expect(new Set(records.map(participantId)).size).toBe(25)
+    const n = cohortSize()
+    expect(records, "the corpus must round-trip through the adapter intact").toHaveLength(n)
+    // The measurements the conflict path rests on, re-measured rather than remembered. Each is an
+    // ALL-DISTINCT claim over the whole corpus, so a future refresh that introduces a real
+    // collision reds exactly the class it collided in.
+    expect(new Set(names).size, "raw claimed name").toBe(n)
+    expect(new Set(names.map(canonicalSlug)).size, "canonical slug").toBe(n)
+    expect(new Set(records.map(participantId)).size, "participant id").toBe(n)
+    // `repositoryUrl` is the ONE key form that is NOT all-distinct, and the cohort growth is what
+    // exposed it: at 25 the 11 non-null urls were 11 distinct; at 100 there are 48 non-null over
+    // only 30 distinct. Measured as an inequality with both endpoints printed, because the fact
+    // that matters is that repo-url grouping (resolver rule #2) has real repeats to group on and
+    // STILL produces no conflict — name identity wins first. A `.toBe(distinct)` literal would
+    // have gone silently green on 11/11 and told us nothing about which rule decided.
+    const repoUrls = records.map((r) => r.claimedIdentity.repositoryUrl).filter((u) => u != null)
+    const distinctRepoUrls = new Set(repoUrls).size
+    expect(
+      distinctRepoUrls,
+      `repositoryUrl must have real repeats for rule #2 to be exercised at all — ${repoUrls.length} non-null over ${distinctRepoUrls} distinct`,
+    ).toBeLessThan(repoUrls.length)
+    expect(repoUrls.length + records.filter((r) => r.claimedIdentity.repositoryUrl === undefined).length).toBe(n)
+    // Publisher heads repeat too — `ai.agentutility` (×17) and `ai.b77` (×16) at cohort 100 — and
+    // that is a fact about the corpus, never a conflict. Asserted as "fewer heads than names, and
+    // the repeats reconcile", so it cannot be satisfied by a corpus of all-unique publishers.
+    const heads = names.map(publisherHead)
+    expect(new Set(heads).size, "a repeated publisher head is not a conflict").toBeLessThan(n)
   })
 
   it("every committed name passes through the irreversible `/` rewrite", () => {
     // The surviving half of the plan's slug measurement, which the corrected witness does not
-    // touch: 25/25 names contain a `/`, so every one of them is lossy under the slug even
+    // touch: every name contains a `/`, so every one of them is lossy under the slug even
     // though no two of them collide today.
     const names = committedRecords().map(claimedName)
-    expect(names.filter((n) => n.includes("/"))).toHaveLength(25)
+    expect(names.filter((n) => n.includes("/"))).toHaveLength(cohortSize())
     expect(names.every((n) => !canonicalSlug(n).slice(REGISTRY_SLUG_NAMESPACE.length + 1).includes("/"))).toBe(true)
   })
 })

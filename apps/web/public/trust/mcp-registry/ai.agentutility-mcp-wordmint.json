@@ -1,0 +1,144 @@
+{
+  "schema": "calllint.trust-page.v0",
+  "canonicalName": "mcp-registry/ai.agentutility-mcp-wordmint",
+  "artifactDigest": "sha256:b2b6708cf0800e7e571f2245b8aa487e40fc1870fa5ed7b153515980ed16dba9",
+  "pageDigest": "sha256:cd6df9072a07e660882604fa6508707950a222ece8a5d2bc8dee9a6fe2291401",
+  "verdict": "SAFE",
+  "verdictLabel": "No blockers observed",
+  "observedAt": "2026-08-15T14:54:20.031Z",
+  "completeness": "complete",
+  "status": {
+    "verdict": "SAFE",
+    "completeness": "complete",
+    "authorityClaimed": false,
+    "reproducibility": {
+      "pageDigest": "sha256:cd6df9072a07e660882604fa6508707950a222ece8a5d2bc8dee9a6fe2291401",
+      "observedAt": "2026-08-15T14:54:20.031Z"
+    },
+    "evidenceLevel": "E2",
+    "evidenceRationale": "install config observed → static blast radius normalized into an authority inventory. Higher levels (E3 tool schema, E4 maintainer receipt, E5 sandbox) are not carried by a static page."
+  },
+  "correctionUrl": "https://github.com/calllint/calllint/issues/new?labels=trust-page-correction",
+  "reproduction": {
+    "command": "npx calllint scan official-mcp-registry:ai.agentutility/mcp-wordmint",
+    "artifactDigest": "sha256:b2b6708cf0800e7e571f2245b8aa487e40fc1870fa5ed7b153515980ed16dba9",
+    "note": "Re-running this scan reproduces the verdict observed at the pinned artifact digest. It is a point-in-time observation, not a guarantee of future behavior."
+  },
+  "scanHistory": [
+    {
+      "observedAt": "2026-08-15T14:54:20.031Z",
+      "pageDigest": "sha256:cd6df9072a07e660882604fa6508707950a222ece8a5d2bc8dee9a6fe2291401",
+      "artifactDigest": "sha256:b2b6708cf0800e7e571f2245b8aa487e40fc1870fa5ed7b153515980ed16dba9"
+    }
+  ],
+  "preparation": {
+    "schema": "calllint.trust-preparation.v0",
+    "artifact": {
+      "schema": "calllint.artifact.v1",
+      "sourceType": "mcp-config",
+      "source": "official-mcp-registry:ai.agentutility/mcp-wordmint",
+      "requestedRef": null,
+      "resolvedRef": "sha256:b2b6708cf0800e7e571f2245b8aa487e40fc1870fa5ed7b153515980ed16dba9",
+      "digest": "sha256:b2b6708cf0800e7e571f2245b8aa487e40fc1870fa5ed7b153515980ed16dba9",
+      "resolvedAt": "2026-08-15T14:54:20.031Z",
+      "resolution": "resolved"
+    },
+    "evidence": null,
+    "authority": {
+      "schema": "calllint.authority.v0",
+      "subject": {
+        "artifactDigest": "sha256:b2b6708cf0800e7e571f2245b8aa487e40fc1870fa5ed7b153515980ed16dba9"
+      },
+      "capabilities": [
+        {
+          "action": "execute",
+          "resource": "process",
+          "scope": "npx",
+          "destination": null,
+          "mutability": "mutating",
+          "reversibility": "irreversible",
+          "monetaryLimit": null,
+          "approvalRequirement": "none",
+          "evidenceSource": "server.command",
+          "confidence": "high",
+          "completeness": "complete",
+          "trustSource": "trusted.local_project"
+        }
+      ],
+      "limits": {
+        "spendPerCall": null,
+        "spendTotal": null
+      },
+      "approval": {
+        "required": []
+      },
+      "unknowns": [],
+      "completeness": "complete",
+      "digest": "sha256:bbfcb94b8b1c8c2a28004bd3715261f6b0b06e91f916701def12bb56330d3670"
+    },
+    "decision": null,
+    "plan": null,
+    "state": "AUTHORITY_NORMALIZED",
+    "notes": [
+      "no external evidence attached (optional); decision will rely on CallLint's own analysis",
+      "authority normalized: 1 capability"
+    ],
+    "preparedAt": "2026-08-15T14:54:20.031Z"
+  },
+  "scan": {
+    "schemaVersion": "calllint.report.v0",
+    "reportKind": "config-summary",
+    "configPath": "official-mcp-registry:ai.agentutility/mcp-wordmint",
+    "verdict": "SAFE",
+    "publicVerdictLabel": "No blockers observed",
+    "counts": {
+      "SAFE": 1,
+      "REVIEW": 0,
+      "BLOCK": 0,
+      "UNKNOWN": 0
+    },
+    "reports": [
+      {
+        "schemaVersion": "calllint.report.v0",
+        "reportKind": "single-target",
+        "target": {
+          "name": "package",
+          "kind": "cursor-mcp-config",
+          "source": "@agentutility/mcp-wordmint",
+          "version": "0.16.1",
+          "configPath": "official-mcp-registry:ai.agentutility/mcp-wordmint"
+        },
+        "verdict": "SAFE",
+        "publicVerdictLabel": "No blockers observed",
+        "policyApplied": false,
+        "riskClass": "S1",
+        "symbols": [],
+        "confidence": "high",
+        "reproducibility": {
+          "level": "HIGH",
+          "reasons": []
+        },
+        "summary": "\"package\" has no blockers observed (S1 Read-only utility).",
+        "observed": [],
+        "inferred": [],
+        "findings": [],
+        "topFindings": [],
+        "policy": {
+          "autonomousUse": "allow",
+          "manualApproval": "none",
+          "sandbox": "none"
+        },
+        "fingerprints": {
+          "configHash": "sha256:d52d1e6a0a927f2f7ca9baae191ceb0807d808b3fede2c216432e3a06ca16e51",
+          "targetSpecHash": "sha256:54b6a9da48367f5a2fa47386c9c30826a7287c1f29fe6e02949f7d863ed55a3d",
+          "riskSurfaceHash": "sha256:69aae84c996fe93d537b08d906cb339866bd43f10876be403a0f4793915bef33",
+          "packageSpecHash": "sha256:e326cd95cf19e10ed5d50ec2b5e6264c6bb22660e0272792f860230c9fa56d51"
+        },
+        "diagnostics": [],
+        "generatedAt": "2026-08-15T14:54:20.031Z"
+      }
+    ],
+    "diagnostics": [],
+    "generatedAt": "2026-08-15T14:54:20.031Z"
+  }
+}

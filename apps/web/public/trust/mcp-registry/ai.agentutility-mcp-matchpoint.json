@@ -1,0 +1,144 @@
+{
+  "schema": "calllint.trust-page.v0",
+  "canonicalName": "mcp-registry/ai.agentutility-mcp-matchpoint",
+  "artifactDigest": "sha256:42e8c9680dd25bcc08215783b61b9f9471f28131988c7fb9abf389971cc7ad0c",
+  "pageDigest": "sha256:eaa92bbaa82423bbb845144f3cc29e119bb4b6edebea8e93732d38d2b6dbf2ee",
+  "verdict": "SAFE",
+  "verdictLabel": "No blockers observed",
+  "observedAt": "2026-08-15T14:54:20.031Z",
+  "completeness": "complete",
+  "status": {
+    "verdict": "SAFE",
+    "completeness": "complete",
+    "authorityClaimed": false,
+    "reproducibility": {
+      "pageDigest": "sha256:eaa92bbaa82423bbb845144f3cc29e119bb4b6edebea8e93732d38d2b6dbf2ee",
+      "observedAt": "2026-08-15T14:54:20.031Z"
+    },
+    "evidenceLevel": "E2",
+    "evidenceRationale": "install config observed → static blast radius normalized into an authority inventory. Higher levels (E3 tool schema, E4 maintainer receipt, E5 sandbox) are not carried by a static page."
+  },
+  "correctionUrl": "https://github.com/calllint/calllint/issues/new?labels=trust-page-correction",
+  "reproduction": {
+    "command": "npx calllint scan official-mcp-registry:ai.agentutility/mcp-matchpoint",
+    "artifactDigest": "sha256:42e8c9680dd25bcc08215783b61b9f9471f28131988c7fb9abf389971cc7ad0c",
+    "note": "Re-running this scan reproduces the verdict observed at the pinned artifact digest. It is a point-in-time observation, not a guarantee of future behavior."
+  },
+  "scanHistory": [
+    {
+      "observedAt": "2026-08-15T14:54:20.031Z",
+      "pageDigest": "sha256:eaa92bbaa82423bbb845144f3cc29e119bb4b6edebea8e93732d38d2b6dbf2ee",
+      "artifactDigest": "sha256:42e8c9680dd25bcc08215783b61b9f9471f28131988c7fb9abf389971cc7ad0c"
+    }
+  ],
+  "preparation": {
+    "schema": "calllint.trust-preparation.v0",
+    "artifact": {
+      "schema": "calllint.artifact.v1",
+      "sourceType": "mcp-config",
+      "source": "official-mcp-registry:ai.agentutility/mcp-matchpoint",
+      "requestedRef": null,
+      "resolvedRef": "sha256:42e8c9680dd25bcc08215783b61b9f9471f28131988c7fb9abf389971cc7ad0c",
+      "digest": "sha256:42e8c9680dd25bcc08215783b61b9f9471f28131988c7fb9abf389971cc7ad0c",
+      "resolvedAt": "2026-08-15T14:54:20.031Z",
+      "resolution": "resolved"
+    },
+    "evidence": null,
+    "authority": {
+      "schema": "calllint.authority.v0",
+      "subject": {
+        "artifactDigest": "sha256:42e8c9680dd25bcc08215783b61b9f9471f28131988c7fb9abf389971cc7ad0c"
+      },
+      "capabilities": [
+        {
+          "action": "execute",
+          "resource": "process",
+          "scope": "npx",
+          "destination": null,
+          "mutability": "mutating",
+          "reversibility": "irreversible",
+          "monetaryLimit": null,
+          "approvalRequirement": "none",
+          "evidenceSource": "server.command",
+          "confidence": "high",
+          "completeness": "complete",
+          "trustSource": "trusted.local_project"
+        }
+      ],
+      "limits": {
+        "spendPerCall": null,
+        "spendTotal": null
+      },
+      "approval": {
+        "required": []
+      },
+      "unknowns": [],
+      "completeness": "complete",
+      "digest": "sha256:6a255e92929c0d641a2db4b7024bc9dccaf1312d1821e979a4ee9b51528a05ef"
+    },
+    "decision": null,
+    "plan": null,
+    "state": "AUTHORITY_NORMALIZED",
+    "notes": [
+      "no external evidence attached (optional); decision will rely on CallLint's own analysis",
+      "authority normalized: 1 capability"
+    ],
+    "preparedAt": "2026-08-15T14:54:20.031Z"
+  },
+  "scan": {
+    "schemaVersion": "calllint.report.v0",
+    "reportKind": "config-summary",
+    "configPath": "official-mcp-registry:ai.agentutility/mcp-matchpoint",
+    "verdict": "SAFE",
+    "publicVerdictLabel": "No blockers observed",
+    "counts": {
+      "SAFE": 1,
+      "REVIEW": 0,
+      "BLOCK": 0,
+      "UNKNOWN": 0
+    },
+    "reports": [
+      {
+        "schemaVersion": "calllint.report.v0",
+        "reportKind": "single-target",
+        "target": {
+          "name": "package",
+          "kind": "cursor-mcp-config",
+          "source": "@agentutility/mcp-matchpoint",
+          "version": "0.1.4",
+          "configPath": "official-mcp-registry:ai.agentutility/mcp-matchpoint"
+        },
+        "verdict": "SAFE",
+        "publicVerdictLabel": "No blockers observed",
+        "policyApplied": false,
+        "riskClass": "S1",
+        "symbols": [],
+        "confidence": "high",
+        "reproducibility": {
+          "level": "HIGH",
+          "reasons": []
+        },
+        "summary": "\"package\" has no blockers observed (S1 Read-only utility).",
+        "observed": [],
+        "inferred": [],
+        "findings": [],
+        "topFindings": [],
+        "policy": {
+          "autonomousUse": "allow",
+          "manualApproval": "none",
+          "sandbox": "none"
+        },
+        "fingerprints": {
+          "configHash": "sha256:0978f9671994135b4bd22b6e178fad86ac42b2c5569a3bdbdccf07b6134dd86f",
+          "targetSpecHash": "sha256:37962938332d6e66758031544429bdc9e908b899a69f911908df44ed5e764a68",
+          "riskSurfaceHash": "sha256:69aae84c996fe93d537b08d906cb339866bd43f10876be403a0f4793915bef33",
+          "packageSpecHash": "sha256:26506f0fe06fdb9320dc44421c424afbc4347801329fda4fc6b87103b1b4bf1a"
+        },
+        "diagnostics": [],
+        "generatedAt": "2026-08-15T14:54:20.031Z"
+      }
+    ],
+    "diagnostics": [],
+    "generatedAt": "2026-08-15T14:54:20.031Z"
+  }
+}

@@ -8,6 +8,7 @@ import {
   readClientCapabilities,
 } from "../src/server.js"
 import { VERSION } from "../src/version.js"
+import { COMMITTED_CONTRACT_SLUGS } from "../src/committedContracts.js"
 import type { ScanOptions } from "@calllint/core"
 
 const INFO = { name: "calllint", version: VERSION }
@@ -468,16 +469,31 @@ describe("dual-revision serving: one revision per request, never a blend", () =>
   })
 
   it("the tool and resource counts are identical at both revisions", () => {
-    // The envelope wraps results; it must not add, drop, or reorder payload. 13/19 is
-    // a hard project constraint, so a revision-conditional count would be a
-    // contract break hiding inside a shape change.
+    // The envelope wraps results; it must not add, drop, or reorder payload. A
+    // revision-conditional count would be a contract break hiding inside a shape change.
+    //
+    // TOOLS ARE PINNED, RESOURCES ARE COMPARED — and the difference is not stylistic.
+    // The tool surface is a hand-authored constant (13 is a hard project constraint), so
+    // a literal is the claim. The resource surface is one entry PER COMMITTED CONTRACT
+    // (`resources.ts:40` maps `COMMITTED_CONTRACT_SLUGS`), so its size is the cohort's
+    // size and moves whenever the registry cohort does: it was 25, and is 100 after ADR
+    // 0074 raised the cap. Pinning it here would red this test on every cohort change
+    // while saying nothing about the two revisions agreeing, which is what the test is
+    // named for. So the cohort count is derived from the bundle and the REVISIONS are
+    // compared against each other.
     const tools = (v: string) => ((at(v, "tools/list") as { result: { tools: unknown[] } }).result.tools)
     expect(tools("2024-11-05")).toHaveLength(13)
     expect(tools("2026-07-28")).toHaveLength(13)
     const resources = (v: string) =>
       (at(v, "resources/list") as { result: { resources: unknown[] } }).result.resources
-    expect(resources("2024-11-05")).toHaveLength(25)
-    expect(resources("2026-07-28")).toHaveLength(25)
+    // Non-vacuity: an empty surface would satisfy the equality below trivially.
+    expect(COMMITTED_CONTRACT_SLUGS.length, "an empty contract bundle serves no resources").toBeGreaterThan(0)
+    expect(resources("2024-11-05")).toHaveLength(COMMITTED_CONTRACT_SLUGS.length)
+    expect(resources("2026-07-28")).toHaveLength(COMMITTED_CONTRACT_SLUGS.length)
+    // The equality the test is actually named for, stated over the payload rather than
+    // over two counts that could both be wrong in the same way.
+    expect(resources("2026-07-28")).toEqual(resources("2024-11-05"))
+    expect(tools("2026-07-28")).toEqual(tools("2024-11-05"))
   })
 })
 

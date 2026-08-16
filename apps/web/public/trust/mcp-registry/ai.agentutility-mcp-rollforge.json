@@ -1,0 +1,144 @@
+{
+  "schema": "calllint.trust-page.v0",
+  "canonicalName": "mcp-registry/ai.agentutility-mcp-rollforge",
+  "artifactDigest": "sha256:d80fbd96a07f9813ecce555d8d7ff4183b9110b6d6c203ec825b09c76fe4531f",
+  "pageDigest": "sha256:e043c5ae1be6556461922e8d8814768f85cc51efdfd8d9e1d2b6212f6ab7e336",
+  "verdict": "SAFE",
+  "verdictLabel": "No blockers observed",
+  "observedAt": "2026-08-15T14:54:20.031Z",
+  "completeness": "complete",
+  "status": {
+    "verdict": "SAFE",
+    "completeness": "complete",
+    "authorityClaimed": false,
+    "reproducibility": {
+      "pageDigest": "sha256:e043c5ae1be6556461922e8d8814768f85cc51efdfd8d9e1d2b6212f6ab7e336",
+      "observedAt": "2026-08-15T14:54:20.031Z"
+    },
+    "evidenceLevel": "E2",
+    "evidenceRationale": "install config observed → static blast radius normalized into an authority inventory. Higher levels (E3 tool schema, E4 maintainer receipt, E5 sandbox) are not carried by a static page."
+  },
+  "correctionUrl": "https://github.com/calllint/calllint/issues/new?labels=trust-page-correction",
+  "reproduction": {
+    "command": "npx calllint scan official-mcp-registry:ai.agentutility/mcp-rollforge",
+    "artifactDigest": "sha256:d80fbd96a07f9813ecce555d8d7ff4183b9110b6d6c203ec825b09c76fe4531f",
+    "note": "Re-running this scan reproduces the verdict observed at the pinned artifact digest. It is a point-in-time observation, not a guarantee of future behavior."
+  },
+  "scanHistory": [
+    {
+      "observedAt": "2026-08-15T14:54:20.031Z",
+      "pageDigest": "sha256:e043c5ae1be6556461922e8d8814768f85cc51efdfd8d9e1d2b6212f6ab7e336",
+      "artifactDigest": "sha256:d80fbd96a07f9813ecce555d8d7ff4183b9110b6d6c203ec825b09c76fe4531f"
+    }
+  ],
+  "preparation": {
+    "schema": "calllint.trust-preparation.v0",
+    "artifact": {
+      "schema": "calllint.artifact.v1",
+      "sourceType": "mcp-config",
+      "source": "official-mcp-registry:ai.agentutility/mcp-rollforge",
+      "requestedRef": null,
+      "resolvedRef": "sha256:d80fbd96a07f9813ecce555d8d7ff4183b9110b6d6c203ec825b09c76fe4531f",
+      "digest": "sha256:d80fbd96a07f9813ecce555d8d7ff4183b9110b6d6c203ec825b09c76fe4531f",
+      "resolvedAt": "2026-08-15T14:54:20.031Z",
+      "resolution": "resolved"
+    },
+    "evidence": null,
+    "authority": {
+      "schema": "calllint.authority.v0",
+      "subject": {
+        "artifactDigest": "sha256:d80fbd96a07f9813ecce555d8d7ff4183b9110b6d6c203ec825b09c76fe4531f"
+      },
+      "capabilities": [
+        {
+          "action": "execute",
+          "resource": "process",
+          "scope": "npx",
+          "destination": null,
+          "mutability": "mutating",
+          "reversibility": "irreversible",
+          "monetaryLimit": null,
+          "approvalRequirement": "none",
+          "evidenceSource": "server.command",
+          "confidence": "high",
+          "completeness": "complete",
+          "trustSource": "trusted.local_project"
+        }
+      ],
+      "limits": {
+        "spendPerCall": null,
+        "spendTotal": null
+      },
+      "approval": {
+        "required": []
+      },
+      "unknowns": [],
+      "completeness": "complete",
+      "digest": "sha256:bea5c14a2c89e2b4ae2917d67a7de0210acdb65d8c062716bb9708de00266da9"
+    },
+    "decision": null,
+    "plan": null,
+    "state": "AUTHORITY_NORMALIZED",
+    "notes": [
+      "no external evidence attached (optional); decision will rely on CallLint's own analysis",
+      "authority normalized: 1 capability"
+    ],
+    "preparedAt": "2026-08-15T14:54:20.031Z"
+  },
+  "scan": {
+    "schemaVersion": "calllint.report.v0",
+    "reportKind": "config-summary",
+    "configPath": "official-mcp-registry:ai.agentutility/mcp-rollforge",
+    "verdict": "SAFE",
+    "publicVerdictLabel": "No blockers observed",
+    "counts": {
+      "SAFE": 1,
+      "REVIEW": 0,
+      "BLOCK": 0,
+      "UNKNOWN": 0
+    },
+    "reports": [
+      {
+        "schemaVersion": "calllint.report.v0",
+        "reportKind": "single-target",
+        "target": {
+          "name": "package",
+          "kind": "cursor-mcp-config",
+          "source": "@agentutility/mcp-rollforge",
+          "version": "0.1.5",
+          "configPath": "official-mcp-registry:ai.agentutility/mcp-rollforge"
+        },
+        "verdict": "SAFE",
+        "publicVerdictLabel": "No blockers observed",
+        "policyApplied": false,
+        "riskClass": "S1",
+        "symbols": [],
+        "confidence": "high",
+        "reproducibility": {
+          "level": "HIGH",
+          "reasons": []
+        },
+        "summary": "\"package\" has no blockers observed (S1 Read-only utility).",
+        "observed": [],
+        "inferred": [],
+        "findings": [],
+        "topFindings": [],
+        "policy": {
+          "autonomousUse": "allow",
+          "manualApproval": "none",
+          "sandbox": "none"
+        },
+        "fingerprints": {
+          "configHash": "sha256:c0eb1b475ca3d2fd91e125717e07c3c3bdc5e5f36d19ca72adf1d657cf41a1a9",
+          "targetSpecHash": "sha256:25bc6918ce7b9d028382dddab686f423f830f7936f2a1e43ef56a6ca3e89a88a",
+          "riskSurfaceHash": "sha256:69aae84c996fe93d537b08d906cb339866bd43f10876be403a0f4793915bef33",
+          "packageSpecHash": "sha256:a353fb75cc69752f0ba2209dc466ba8b8755b8577a6cd1aac85f6ae1e243d0d0"
+        },
+        "diagnostics": [],
+        "generatedAt": "2026-08-15T14:54:20.031Z"
+      }
+    ],
+    "diagnostics": [],
+    "generatedAt": "2026-08-15T14:54:20.031Z"
+  }
+}

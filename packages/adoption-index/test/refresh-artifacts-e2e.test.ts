@@ -322,23 +322,94 @@ function casBlobs(root: string): string[] {
 
 // ── the corpus preconditions ───────────────────────────────────────────────────────────────────
 
+/**
+ * The corpus's dimensions, READ from the committed snapshot rather than written down. Every count
+ * in this file is one of these numbers, so pinning them as literals (`25` and `3`, true of the
+ * cohort committed before ADR 0074's cap first bound at 100) made a snapshot refresh red thirteen
+ * tests that are about artifact resolution, not about how many entries were fetched.
+ *
+ * Deriving them does NOT weaken the file: what each test asserts is a RELATION between them —
+ * subjects follow entries, artifact rows follow DECLARED packages, blobs follow FETCHABLE ones —
+ * and every one of those still has a failing mode. The shape itself is graded below, separately
+ * and first, so a corpus that lost its packages reports "the corpus moved" rather than
+ * "resolution broke".
+ *
+ * THERE ARE THREE NUMBERS HERE, NOT TWO, AND AT COHORT 25 THAT WAS INVISIBLE. Every package the
+ * 25-entry cohort declared was npm, so "declared" and "fetchable" were the same 3 and one constant
+ * served both. At 100 the corpus declares 30 — 27 npm, 2 oci, 1 pypi — and the two populations
+ * separate: `artifact_versions` gets a row per DECLARED package (identity does not care which
+ * types this build can fetch), while the CAS, the tarball calls and every FETCHED/REJECTED count
+ * follow only the ones an adapter exists for. Collapsing them would have made the non-npm branch
+ * unmeasurable at exactly the moment the corpus started exercising it.
+ */
+const CORPUS_ENTRIES = parseSnapshot(readFileSync(SNAPSHOT_PATH, "utf8")).entries.length
+/** Every package the corpus declares — the population `artifact_versions` holds a row for. */
+const CORPUS_PACKAGES = corpusPackages().length
+/** The subset an adapter ships for. `corpusRoutes` serves a tarball for exactly these. */
+const CORPUS_FETCHABLE = corpusPackages().filter((p) => p.registryType === "npm" && p.version !== null).length
+/** The remainder: declared, typed, and NOT TRIED — `NO_ADAPTER`, never `UNAVAILABLE`. */
+const CORPUS_NO_ADAPTER = CORPUS_PACKAGES - CORPUS_FETCHABLE
+
 describe("the corpus's own shape, graded before anything is asserted about it", () => {
-  it("declares 25 entries and exactly 3 npm packages", () => {
+  it("declares entries, strictly fewer packages, and splits them into fetchable and not", () => {
     // The precondition for every count below. Asserted first and separately so a corpus change
     // reports "the corpus moved" rather than "artifact resolution broke" — the two failures need
     // different fixes and a single combined assertion cannot tell them apart.
-    expect(parseSnapshot(readFileSync(SNAPSHOT_PATH, "utf8")).entries).toHaveLength(25)
-    const packages = corpusPackages()
-    expect(packages).toHaveLength(3)
-    expect([...new Set(packages.map((p) => p.registryType))]).toEqual(["npm"])
-    for (const pkg of packages) expect(pkg.version, pkg.identifier).not.toBeNull()
+    //
+    // Stated as inequalities because that is what the file downstream depends on: there must BE
+    // entries, there must BE packages (else every artifact assertion is vacuous), and packages
+    // must be FEWER than entries (else "artifacts follow packages, not subjects" is untestable —
+    // the two counts would coincide and no assertion could tell which rule produced the rows).
+    expect(CORPUS_ENTRIES, "an empty corpus makes every count below vacuous").toBeGreaterThan(0)
+    expect(CORPUS_PACKAGES, "a corpus with no packages cannot exercise artifact resolution").toBeGreaterThan(0)
+    expect(
+      CORPUS_PACKAGES,
+      "packages must be strictly fewer than entries, or 'artifacts follow packages' is unfalsifiable",
+    ).toBeLessThan(CORPUS_ENTRIES)
+    // The fetchable subset must be non-empty, or every FETCHED/CAS/tarball assertion below is
+    // vacuous. It must also be a real SUBSET — see the type census in the next assertion.
+    expect(CORPUS_FETCHABLE, "no fetchable package makes every FETCHED assertion vacuous").toBeGreaterThan(0)
+    expect(CORPUS_FETCHABLE, "fetchable cannot exceed declared").toBeLessThanOrEqual(CORPUS_PACKAGES)
+    // Every fetchable package carries a version — `corpusRoutes` builds its packument from it, so
+    // a null would silently drop a route and under-serve the wire.
+    for (const pkg of corpusPackages().filter((p) => p.registryType === "npm")) {
+      expect(pkg.version, pkg.identifier).not.toBeNull()
+    }
   })
 
-  it("the three fixtures are DIFFERENT bytes, so three blobs is not one blob reused", () => {
+  it("carries non-npm packages, which is what makes the NO_ADAPTER branch corpus-driven", () => {
+    // WHAT COHORT 100 CHANGED, RECORDED AS A MEASUREMENT RATHER THAN A COMMENT. At 25 every
+    // declared package was npm, so `skippedNoAdapter` was 0 on the corpus and the branch was
+    // reachable only from the unit suite's synthetic input. At 100 the corpus declares oci and
+    // pypi packages, so the "NOT TRIED" path — status does not move, nothing is written, and the
+    // outcome is `NO_ADAPTER` rather than the dishonest `UNAVAILABLE` — is exercised by committed
+    // bytes. Asserted as a census so a refresh that loses the non-npm entries reds HERE, naming
+    // the reason, rather than turning the branch back into dead corpus coverage silently.
+    const census: Record<string, number> = {}
+    for (const p of corpusPackages()) census[p.registryType] = (census[p.registryType] ?? 0) + 1
+    expect(Object.keys(census).sort(), "the corpus must declare more than one registryType").not.toEqual(["npm"])
+    expect(
+      CORPUS_NO_ADAPTER,
+      `the non-npm population is what drives skippedNoAdapter; census ${JSON.stringify(census)}`,
+    ).toBeGreaterThan(0)
+    // The partition is exact: declared = fetchable + not-tried, with no third bucket. If a type
+    // gained an adapter, this still holds and `CORPUS_FETCHABLE` moves with it.
+    expect({ fetchable: CORPUS_FETCHABLE, noAdapter: CORPUS_NO_ADAPTER }).toEqual({
+      fetchable: census.npm ?? 0,
+      noAdapter: CORPUS_PACKAGES - (census.npm ?? 0),
+    })
+  })
+
+  it("the package fixtures are DIFFERENT bytes, so N blobs is not one blob reused", () => {
     const { bytesFor } = corpusRoutes()
     const digests = new Set([...bytesFor.values()].map((b) => createHash("sha256").update(b).digest("hex")))
-    expect(bytesFor.size).toBe(3)
-    expect(digests.size).toBe(3)
+    // Keyed on the FETCHABLE count: `corpusRoutes` serves bytes only for packages it can build a
+    // packument for, so a non-npm package contributes no fixture and must not be counted here.
+    expect(bytesFor.size).toBe(CORPUS_FETCHABLE)
+    // The point of this control: as many DISTINCT digests as fixtures. If two packages served the
+    // same bytes, the CAS would hold one blob and every "N blobs" assertion below would be
+    // satisfied by a coincidence rather than by per-artifact storage.
+    expect(digests.size).toBe(CORPUS_FETCHABLE)
   })
 
   it("covers a SCOPED name, which is the encoding the packument path gets wrong", () => {
@@ -353,27 +424,38 @@ describe("the corpus's own shape, graded before anything is asserted about it", 
 // ── the plan's step 7 ──────────────────────────────────────────────────────────────────────────
 
 describe("the injected port resolves the committed corpus end to end (plan step 7)", () => {
-  it("reaches FETCHED for BOTH npm artifacts, with nothing unavailable and nothing rejected", async () => {
+  it("reaches FETCHED for every npm artifact, with nothing unavailable and nothing rejected", async () => {
     const opened = await freshStore()
     const { fetchImpl } = stubFetch(corpusRoutes().routes)
     const result = await refresh(opened, fetchImpl)
 
-    // The mirror half first: 25 in, 25 subjects, 3 artifact rows. Grading this here means a
-    // failure below cannot be a mirror failure wearing an artifact failure's label.
-    expect(result.mirroredRecords).toBe(25)
-    expect(result.identity.subjects).toBe(25)
-    expect(result.identity.artifacts).toBe(3)
+    // The mirror half first: entries in, one subject each, one artifact row per declared package.
+    // Grading this here means a failure below cannot be a mirror failure wearing an artifact
+    // failure's label.
+    expect(result.mirroredRecords).toBe(CORPUS_ENTRIES)
+    expect(result.identity.subjects).toBe(CORPUS_ENTRIES)
+    expect(result.identity.artifacts).toBe(CORPUS_PACKAGES)
     expect(result.identity.conflicts).toBe(0)
 
     const artifacts = result.artifacts
     expect(artifacts).not.toBeNull()
-    expect(artifacts!.considered).toBe(3)
-    expect(artifacts!.fetched).toBe(3)
+    // EVERY declared package is CONSIDERED — the pending set is built from the rows, not from the
+    // types this build happens to support — but only the fetchable ones can reach FETCHED.
+    expect(artifacts!.considered).toBe(CORPUS_PACKAGES)
+    expect(artifacts!.fetched).toBe(CORPUS_FETCHABLE)
     expect(artifacts!.unavailable).toBe(0)
     expect(artifacts!.rejected).toBe(0)
-    // Nothing skipped: every package the corpus declares is npm, and npm is the one adapter
-    // shipped. A non-npm package appearing upstream would land here rather than in `unavailable`.
-    expect(artifacts!.skippedNoAdapter).toBe(0)
+    // The non-npm remainder, and the DISTINCTION that makes it honest: a type with no adapter is
+    // NOT TRIED, so it lands in `skippedNoAdapter` and never in `unavailable`, which would claim
+    // "tried and failed". Both halves asserted — the count above is 0, and this one carries the
+    // rest — so a build that mislabelled the branch reds here rather than balancing out.
+    expect(artifacts!.skippedNoAdapter).toBe(CORPUS_NO_ADAPTER)
+    expect(artifacts!.fetched + artifacts!.skippedNoAdapter).toBe(artifacts!.considered)
+    // And the reason names the type, so the row says WHICH adapter was missing.
+    const notTried = artifacts!.records.filter((r) => r.outcome === "NO_ADAPTER")
+    expect(notTried).toHaveLength(CORPUS_NO_ADAPTER)
+    expect(notTried.every((r) => r.reason === `NO_ADAPTER:${r.packageType}`)).toBe(true)
+    expect(notTried.every((r) => r.packageType !== "npm")).toBe(true)
     // Cold store, so nothing was served from cache. Asserting 0 is what makes the warm-run
     // assertion below a measurement of reuse rather than of the counter existing.
     expect(artifacts!.cached).toBe(0)
@@ -399,15 +481,30 @@ describe("the injected port resolves the committed corpus end to end (plan step 
     expect(result.change.rebuild.presentation).toBeNull()
   })
 
-  it("writes the four R-4 columns for both artifacts, and NULLS none of them", async () => {
+  it("writes the four R-4 columns for every FETCHED artifact, and NULLS none of them", async () => {
     const opened = await freshStore()
     const { bytesFor, routes } = corpusRoutes()
     const { fetchImpl } = stubFetch(routes)
     await refresh(opened, fetchImpl)
 
     const rows = opened.store.listArtifactVersions()
-    expect(rows).toHaveLength(3)
-    for (const row of rows) {
+    // A row per DECLARED package, including the types no adapter shipped for: identity writes the
+    // row, resolution decides what fills it.
+    expect(rows).toHaveLength(CORPUS_PACKAGES)
+    const fetched = rows.filter((r) => bytesFor.has(r.packageIdentifier))
+    expect(fetched, "the fixture map must cover every fetchable row").toHaveLength(CORPUS_FETCHABLE)
+    // The NOT-TRIED half, asserted rather than filtered away. A row with no adapter keeps the
+    // status identity gave it and leaves the R-4 columns null — writing a digest for bytes nobody
+    // fetched is precisely the fabrication this branch exists to avoid.
+    const notTried = rows.filter((r) => !bytesFor.has(r.packageIdentifier))
+    expect(notTried).toHaveLength(CORPUS_NO_ADAPTER)
+    for (const row of notTried) {
+      expect(row.artifactStatus, row.packageIdentifier).toBe("RESOLVED")
+      expect(row.immutableDigest, row.packageIdentifier).toBeNull()
+      expect(row.cacheKey, row.packageIdentifier).toBeNull()
+      expect(row.packageType, row.packageIdentifier).not.toBe("npm")
+    }
+    for (const row of fetched) {
       const bytes = bytesFor.get(row.packageIdentifier)
       expect(bytes, row.packageIdentifier).toBeDefined()
       expect(row.artifactStatus, row.packageIdentifier).toBe("FETCHED")
@@ -433,7 +530,7 @@ describe("the injected port resolves the committed corpus end to end (plan step 
     await refresh(opened, fetchImpl)
 
     // The count the plan's step 8 checks against the LIVE registry, measured here offline.
-    expect(casBlobs(opened.root)).toHaveLength(3)
+    expect(casBlobs(opened.root)).toHaveLength(CORPUS_FETCHABLE)
 
     for (const [identifier, bytes] of bytesFor) {
       const digest = `sha256:${createHash("sha256").update(bytes).digest("hex")}`
@@ -477,7 +574,7 @@ describe("the injected port resolves the committed corpus end to end (plan step 
     const first = stubFetch(routes)
     await refresh(opened, first.fetchImpl)
     const tarballCalls = (calls: string[]) => calls.filter((c) => c.endsWith(".tgz"))
-    expect(tarballCalls(first.calls)).toHaveLength(3)
+    expect(tarballCalls(first.calls)).toHaveLength(CORPUS_FETCHABLE)
 
     // A SECOND stub, so the count starts at zero rather than being subtracted. Cache reuse can
     // never be observed in CI — every scheduled run is a cold checkout — so this test over a warm
@@ -485,18 +582,32 @@ describe("the injected port resolves the committed corpus end to end (plan step 
     const second = stubFetch(routes)
     const result = await refresh(opened, second.fetchImpl, { now: T1 })
 
-    // `FETCHED` is not an input status, so both artifacts are out of the pending set entirely.
-    expect(result.artifacts!.considered).toBe(0)
+    // `FETCHED` is not an input status, so every fetched artifact is out of the pending set. The
+    // NOT-TRIED rows are a different case and are asserted as one: `RESOLVED` IS an input status,
+    // so they are reconsidered on every run and skipped again — which is correct (an adapter could
+    // ship tomorrow) and is why `considered` is the not-tried count rather than 0.
+    expect(result.artifacts!.considered).toBe(CORPUS_NO_ADAPTER)
+    expect(result.artifacts!.skippedNoAdapter).toBe(CORPUS_NO_ADAPTER)
     expect(result.artifacts!.fetched).toBe(0)
+    // The load-bearing half: NOTHING went back on the wire. Reconsidering a row with no adapter
+    // must cost no request, so cache reuse is measured by the wire being silent, not by a counter.
     expect(tarballCalls(second.calls)).toHaveLength(0)
 
     // And the columns the first run wrote are untouched — `last_verified_at` still T0, not T1.
     // `COALESCE(?, last_verified_at)` is what protects it, and only a read-back shows that.
-    for (const row of opened.store.listArtifactVersions()) {
-      expect(row.artifactStatus).toBe("FETCHED")
-      expect(row.lastVerifiedAt).toBe(T0)
+    const rows = opened.store.listArtifactVersions()
+    const warmFetched = rows.filter((r) => r.artifactStatus === "FETCHED")
+    expect(warmFetched).toHaveLength(CORPUS_FETCHABLE)
+    for (const row of warmFetched) {
+      expect(row.lastVerifiedAt, row.packageIdentifier).toBe(T0)
     }
-    expect(casBlobs(opened.root)).toHaveLength(3)
+    // The not-tried rows never got a verification instant at all — an adapter-less type has no
+    // bytes anyone verified, so a timestamp here would be a claim about work never done.
+    for (const row of rows.filter((r) => r.artifactStatus !== "FETCHED")) {
+      expect(row.artifactStatus, row.packageIdentifier).toBe("RESOLVED")
+      expect(row.lastVerifiedAt, row.packageIdentifier).toBeNull()
+    }
+    expect(casBlobs(opened.root)).toHaveLength(CORPUS_FETCHABLE)
   })
 
   it("resolves artifacts WITHOUT moving the projected bytes or the checkpoint digest", async () => {
@@ -514,7 +625,7 @@ describe("the injected port resolves the committed corpus end to end (plan step 
     expect(a.snapshotDigest).toBe(b.snapshotDigest)
     // Not vacuous: the ported run really did resolve three artifacts, and the unported one really
     // did resolve none.
-    expect(a.artifacts!.fetched).toBe(3)
+    expect(a.artifacts!.fetched).toBe(CORPUS_FETCHABLE)
     expect(b.artifacts).toBeNull()
     // The no-port run's tier stays `null` — the assertion control #27 inverts, restated here
     // against the corpus rather than against a two-entry fixture.
@@ -541,25 +652,38 @@ describe("the injected port resolves the committed corpus end to end (plan step 
     const result = await refresh(opened, stubFetch(routes).fetchImpl)
 
     expect(result.artifacts!.fetched).toBe(0)
-    expect(result.artifacts!.rejected).toBe(3)
+    expect(result.artifacts!.rejected).toBe(CORPUS_FETCHABLE)
     expect(result.artifacts!.unavailable).toBe(0)
     // Refused bytes were never written. Verify-then-write, not write-then-delete.
     expect(casBlobs(opened.root)).toEqual([])
-    for (const row of opened.store.listArtifactVersions()) {
-      expect(row.artifactStatus, row.packageIdentifier).toBe("REJECTED")
+    // Only the tampered population can be REJECTED — the adapter-less rows were never fetched, so
+    // they cannot be refused either. Partitioned rather than looped over, so a build that refused
+    // a package it never requested reds instead of passing on a bulk `every`.
+    const rows = opened.store.listArtifactVersions()
+    const refused = rows.filter((r) => r.artifactStatus === "REJECTED")
+    expect(refused).toHaveLength(CORPUS_FETCHABLE)
+    for (const row of refused) {
       // The claim is recorded even on refusal — that is the evidence of WHAT was refused — while
       // `cache_key` stays null because no blob was stored.
       expect(row.registryIntegrity, row.packageIdentifier).not.toBeNull()
       expect(row.cacheKey, row.packageIdentifier).toBeNull()
     }
+    for (const row of rows.filter((r) => r.artifactStatus !== "REJECTED")) {
+      expect(row.artifactStatus, row.packageIdentifier).toBe("RESOLVED")
+      expect(row.registryIntegrity, row.packageIdentifier).toBeNull()
+    }
 
     // And it is STICKY: a later honest run cannot heal it. `REJECTED` is terminal and not an
-    // input status, so the artifacts are not even reconsidered.
+    // input status, so the refused artifacts are not even reconsidered — only the adapter-less
+    // rows come back around, and they still cost no request.
     const honest = stubFetch(corpusRoutes().routes)
     const second = await refresh(opened, honest.fetchImpl, { now: T1 })
-    expect(second.artifacts!.considered).toBe(0)
+    expect(second.artifacts!.considered).toBe(CORPUS_NO_ADAPTER)
+    expect(second.artifacts!.fetched).toBe(0)
     expect(honest.calls.filter((c) => c.endsWith(".tgz"))).toHaveLength(0)
-    for (const row of opened.store.listArtifactVersions()) expect(row.artifactStatus).toBe("REJECTED")
+    expect(opened.store.listArtifactVersions().filter((r) => r.artifactStatus === "REJECTED")).toHaveLength(
+      CORPUS_FETCHABLE,
+    )
   })
 
   it("a registry that 404s the tarball records UNAVAILABLE, which a later run RETRIES", async () => {
@@ -570,16 +694,22 @@ describe("the injected port resolves the committed corpus end to end (plan step 
     for (const pkg of corpusPackages()) delete routes[tarballUrl(pkg.identifier, pkg.version!)]
     const first = await refresh(opened, stubFetch(routes).fetchImpl)
 
-    expect(first.artifacts!.unavailable).toBe(3)
+    expect(first.artifacts!.unavailable).toBe(CORPUS_FETCHABLE)
     expect(first.artifacts!.rejected).toBe(0)
     expect(casBlobs(opened.root)).toEqual([])
 
     const honest = stubFetch(corpusRoutes().routes)
     const second = await refresh(opened, honest.fetchImpl, { now: T1 })
-    expect(second.artifacts!.considered).toBe(3)
-    expect(second.artifacts!.fetched).toBe(3)
-    expect(casBlobs(opened.root)).toHaveLength(3)
-    for (const row of opened.store.listArtifactVersions()) expect(row.lastVerifiedAt).toBe(T1)
+    // `UNAVAILABLE` retries, so the whole declared population is reconsidered here: the fetchable
+    // rows because their failure was transient, the adapter-less ones because `RESOLVED` never
+    // leaves the pending set. Both are in `considered` and only the first kind can succeed.
+    expect(second.artifacts!.considered).toBe(CORPUS_PACKAGES)
+    expect(second.artifacts!.fetched).toBe(CORPUS_FETCHABLE)
+    expect(second.artifacts!.skippedNoAdapter).toBe(CORPUS_NO_ADAPTER)
+    expect(casBlobs(opened.root)).toHaveLength(CORPUS_FETCHABLE)
+    const healed = opened.store.listArtifactVersions().filter((r) => r.artifactStatus === "FETCHED")
+    expect(healed).toHaveLength(CORPUS_FETCHABLE)
+    for (const row of healed) expect(row.lastVerifiedAt, row.packageIdentifier).toBe(T1)
   })
 })
 
@@ -615,14 +745,14 @@ describe("R-5's evidencePort, driven end-to-end over the committed corpus", () =
       withEvidencePort: true,
     })
 
-    expect(first.artifacts!.fetched).toBe(3)
-    expect(first.evidence!.considered).toBe(3)
-    expect(first.evidence!.compiled).toBe(3)
+    expect(first.artifacts!.fetched).toBe(CORPUS_FETCHABLE)
+    expect(first.evidence!.considered).toBe(CORPUS_FETCHABLE)
+    expect(first.evidence!.compiled).toBe(CORPUS_FETCHABLE)
     // `NO_PRIOR_DIGEST` on a cold store ⇒ `changed`, so the measured tiers are reported.
     expect(first.change.rebuild.evidence).toBe(true)
 
     const rows = opened.store.listEvidenceRecords()
-    expect(rows).toHaveLength(3)
+    expect(rows).toHaveLength(CORPUS_FETCHABLE)
     // The verdict is `UNKNOWN` by construction, and asserting it over a REAL corpus is the point:
     // "Never mark an unknown source as SAFE" has to hold on the honest path, not only in a fixture.
     for (const row of rows) {
@@ -640,17 +770,17 @@ describe("R-5's evidencePort, driven end-to-end over the committed corpus", () =
     const opened = await freshStore()
     await refresh(opened, stubFetch(corpusRoutes().routes).fetchImpl, { now: T1, withEvidencePort: true })
     const before = opened.store.listEvidenceRecords()
-    expect(before).toHaveLength(3)
+    expect(before).toHaveLength(CORPUS_FETCHABLE)
 
     const third = await refresh(opened, stubFetch(corpusRoutes().routes).fetchImpl, {
       now: "2026-08-03T00:00:00.000Z",
       withEvidencePort: true,
     })
     expect(third.evidence!.compiled).toBe(0)
-    expect(third.evidence!.unchanged).toBe(3)
+    expect(third.evidence!.unchanged).toBe(CORPUS_FETCHABLE)
 
     const after = opened.store.listEvidenceRecords()
-    expect(after).toHaveLength(3)
+    expect(after).toHaveLength(CORPUS_FETCHABLE)
     // Byte-for-byte, INCLUDING `created_at`. A row rewritten under a new clock reading would still
     // be "two rows", so the count alone cannot see control #55's failure — the digests and the
     // timestamps are what can.
@@ -673,8 +803,14 @@ describe("R-5's evidencePort, driven end-to-end over the committed corpus", () =
 
     // Bytes were available to compile from: the run that skipped evidence is the same run that
     // fetched them, so "nothing to measure" is ruled out before `null` is interpreted.
-    expect(cold.artifacts!.fetched).toBe(3)
-    expect(opened.store.listArtifactVersions().every((r) => r.artifactStatus === "FETCHED")).toBe(true)
+    expect(cold.artifacts!.fetched).toBe(CORPUS_FETCHABLE)
+    // Scoped to the fetchable population: the adapter-less rows stay `RESOLVED` and never had
+    // bytes, so an `every` over all rows would fail for a reason that has nothing to do with the
+    // evidence tier this test is about.
+    expect(
+      opened.store.listArtifactVersions().filter((r) => r.artifactStatus === "FETCHED"),
+      "bytes must exist to compile from, or `null` below means 'nothing to measure'",
+    ).toHaveLength(CORPUS_FETCHABLE)
     expect(cold.change.changed).toBe(true)
     expect(cold.change.reason).toBe("NO_PRIOR_DIGEST")
     // The measured neighbour is `true` on this same verdict, which is what makes the `null` next to
@@ -788,7 +924,7 @@ describe("R-7's adoption records, compiled over the committed corpus (plan step 
     await refresh(opened, fetchImpl, { withEvidencePort: true })
 
     const subjects = opened.store.listSubjects()
-    expect(subjects).toHaveLength(25)
+    expect(subjects).toHaveLength(CORPUS_ENTRIES)
     const { compiled, inserted } = persistAll(opened.store, T1)
     // Every subject the corpus produced is compilable: no slug is null and every one reaches a
     // payload. Asserted as an equality against the subject count rather than as a bare 25, so a
@@ -804,7 +940,7 @@ describe("R-7's adoption records, compiled over the committed corpus (plan step 
     expect(rows.map((r) => r.subjectId).sort()).toEqual(subjects.map((s) => s.subjectId).sort())
   })
 
-  it("holds the 8-digest chain on the corpus's real 2-with-bytes / 17-without split", async () => {
+  it("holds the 8-digest chain on the corpus's real with-bytes / without-bytes split", async () => {
     const opened = await freshStore()
     const { routes } = corpusRoutes()
     const { fetchImpl } = stubFetch(routes)
@@ -813,9 +949,15 @@ describe("R-7's adoption records, compiled over the committed corpus (plan step 
 
     const withBytes = compiled.filter((c) => c.record.digests.artifactDigest !== null)
     const withoutBytes = compiled.filter((c) => c.record.digests.artifactDigest === null)
-    // The corpus's own shape — 25 subjects declare only 3 npm packages — reaching the record layer.
-    expect(withBytes).toHaveLength(3)
-    expect(withoutBytes).toHaveLength(22)
+    // The corpus's own shape reaching the record layer: most subjects declare no fetchable package
+    // at all. Derived as the COMPLEMENT rather than pinned, because the two halves have to sum to
+    // the compiled population — a subject that fell out of both buckets is the failure this
+    // partition exists to catch, and a pair of literals cannot see it.
+    expect(withBytes).toHaveLength(CORPUS_FETCHABLE)
+    expect(withoutBytes).toHaveLength(compiled.length - CORPUS_FETCHABLE)
+    // Non-vacuity for the loop below: the without-bytes half must be non-empty, or control (d)'s
+    // "no bytes ⇒ no evidence" claim is asserted over nothing.
+    expect(withoutBytes.length, "no bytes-less subject makes control (d) vacuous").toBeGreaterThan(0)
 
     for (const { record } of withBytes) {
       expect(record.digests.evidenceDigest).not.toBeNull()
@@ -829,11 +971,31 @@ describe("R-7's adoption records, compiled over the committed corpus (plan step 
         "policyDigest",
       ])
     }
+    // THE WITHOUT-BYTES HALF IS TWO CASES AT COHORT 100, AND WAS ONE AT 25. A subject reaches
+    // `artifactDigest === null` either because it declared NO package at all, or because it declared
+    // one of a type no adapter ships for — the second row exists, is selected, and carries a null
+    // digest. Collapsing them into `selectedArtifact === null` was correct only while every declared
+    // package was npm. Split here, because the two say different things: the first is "nothing to
+    // fetch", the second is "something we chose not to try", and a record that confused them would
+    // report an unfetched artifact as an absent one.
+    const noArtifact = withoutBytes.filter((c) => c.record.selectedArtifact === null)
+    const unfetchedArtifact = withoutBytes.filter((c) => c.record.selectedArtifact !== null)
+    expect(noArtifact.length + unfetchedArtifact.length).toBe(withoutBytes.length)
+    expect(
+      unfetchedArtifact.length,
+      "the corpus must carry an adapter-less package, or the second case below is vacuous",
+    ).toBeGreaterThan(0)
     for (const { record } of withoutBytes) {
-      // Control (d)'s claim, over 17 real subjects instead of one fixture: no bytes ⇒ no evidence.
+      // Control (d)'s claim, over the real corpus instead of one fixture: no bytes ⇒ no evidence.
+      // True of BOTH cases — an artifact we never fetched grounds no evidence either.
       expect(record.digests.evidenceDigest).toBeNull()
       expect(record.evidence).toBeNull()
-      expect(record.selectedArtifact).toBeNull()
+    }
+    for (const { record } of unfetchedArtifact) {
+      // The row is REPORTED, with the status that says why it has no digest. Asserting the status
+      // rather than the absence is what keeps "not tried" distinguishable from "fetched and empty".
+      expect(record.selectedArtifact?.artifactStatus).toBe("RESOLVED")
+      expect(record.selectedArtifact?.packageType).not.toBe("npm")
     }
     for (const { record } of compiled) {
       // Product principle 2 across the whole cohort: every record has a decision, including the 17

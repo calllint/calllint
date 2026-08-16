@@ -1,0 +1,144 @@
+{
+  "schema": "calllint.trust-page.v0",
+  "canonicalName": "mcp-registry/ai.agentutility-mcp-bestiary",
+  "artifactDigest": "sha256:6dcbfb20003c9a8a3c98fc0d47890fddb6c320bb8d735e7d51f081dd3aa039bb",
+  "pageDigest": "sha256:2522598a62a66fd3f5a612c918f39d1e2d625d0f8dbab827941d5fddfe1d7cdb",
+  "verdict": "SAFE",
+  "verdictLabel": "No blockers observed",
+  "observedAt": "2026-08-15T14:54:20.031Z",
+  "completeness": "complete",
+  "status": {
+    "verdict": "SAFE",
+    "completeness": "complete",
+    "authorityClaimed": false,
+    "reproducibility": {
+      "pageDigest": "sha256:2522598a62a66fd3f5a612c918f39d1e2d625d0f8dbab827941d5fddfe1d7cdb",
+      "observedAt": "2026-08-15T14:54:20.031Z"
+    },
+    "evidenceLevel": "E2",
+    "evidenceRationale": "install config observed → static blast radius normalized into an authority inventory. Higher levels (E3 tool schema, E4 maintainer receipt, E5 sandbox) are not carried by a static page."
+  },
+  "correctionUrl": "https://github.com/calllint/calllint/issues/new?labels=trust-page-correction",
+  "reproduction": {
+    "command": "npx calllint scan official-mcp-registry:ai.agentutility/mcp-bestiary",
+    "artifactDigest": "sha256:6dcbfb20003c9a8a3c98fc0d47890fddb6c320bb8d735e7d51f081dd3aa039bb",
+    "note": "Re-running this scan reproduces the verdict observed at the pinned artifact digest. It is a point-in-time observation, not a guarantee of future behavior."
+  },
+  "scanHistory": [
+    {
+      "observedAt": "2026-08-15T14:54:20.031Z",
+      "pageDigest": "sha256:2522598a62a66fd3f5a612c918f39d1e2d625d0f8dbab827941d5fddfe1d7cdb",
+      "artifactDigest": "sha256:6dcbfb20003c9a8a3c98fc0d47890fddb6c320bb8d735e7d51f081dd3aa039bb"
+    }
+  ],
+  "preparation": {
+    "schema": "calllint.trust-preparation.v0",
+    "artifact": {
+      "schema": "calllint.artifact.v1",
+      "sourceType": "mcp-config",
+      "source": "official-mcp-registry:ai.agentutility/mcp-bestiary",
+      "requestedRef": null,
+      "resolvedRef": "sha256:6dcbfb20003c9a8a3c98fc0d47890fddb6c320bb8d735e7d51f081dd3aa039bb",
+      "digest": "sha256:6dcbfb20003c9a8a3c98fc0d47890fddb6c320bb8d735e7d51f081dd3aa039bb",
+      "resolvedAt": "2026-08-15T14:54:20.031Z",
+      "resolution": "resolved"
+    },
+    "evidence": null,
+    "authority": {
+      "schema": "calllint.authority.v0",
+      "subject": {
+        "artifactDigest": "sha256:6dcbfb20003c9a8a3c98fc0d47890fddb6c320bb8d735e7d51f081dd3aa039bb"
+      },
+      "capabilities": [
+        {
+          "action": "execute",
+          "resource": "process",
+          "scope": "npx",
+          "destination": null,
+          "mutability": "mutating",
+          "reversibility": "irreversible",
+          "monetaryLimit": null,
+          "approvalRequirement": "none",
+          "evidenceSource": "server.command",
+          "confidence": "high",
+          "completeness": "complete",
+          "trustSource": "trusted.local_project"
+        }
+      ],
+      "limits": {
+        "spendPerCall": null,
+        "spendTotal": null
+      },
+      "approval": {
+        "required": []
+      },
+      "unknowns": [],
+      "completeness": "complete",
+      "digest": "sha256:2bc31a76909ea8e5ca99872a5c46bb8ea9969d2c3f67136ae7980fa9c68f833b"
+    },
+    "decision": null,
+    "plan": null,
+    "state": "AUTHORITY_NORMALIZED",
+    "notes": [
+      "no external evidence attached (optional); decision will rely on CallLint's own analysis",
+      "authority normalized: 1 capability"
+    ],
+    "preparedAt": "2026-08-15T14:54:20.031Z"
+  },
+  "scan": {
+    "schemaVersion": "calllint.report.v0",
+    "reportKind": "config-summary",
+    "configPath": "official-mcp-registry:ai.agentutility/mcp-bestiary",
+    "verdict": "SAFE",
+    "publicVerdictLabel": "No blockers observed",
+    "counts": {
+      "SAFE": 1,
+      "REVIEW": 0,
+      "BLOCK": 0,
+      "UNKNOWN": 0
+    },
+    "reports": [
+      {
+        "schemaVersion": "calllint.report.v0",
+        "reportKind": "single-target",
+        "target": {
+          "name": "package",
+          "kind": "cursor-mcp-config",
+          "source": "@agentutility/mcp-bestiary",
+          "version": "0.1.3",
+          "configPath": "official-mcp-registry:ai.agentutility/mcp-bestiary"
+        },
+        "verdict": "SAFE",
+        "publicVerdictLabel": "No blockers observed",
+        "policyApplied": false,
+        "riskClass": "S1",
+        "symbols": [],
+        "confidence": "high",
+        "reproducibility": {
+          "level": "HIGH",
+          "reasons": []
+        },
+        "summary": "\"package\" has no blockers observed (S1 Read-only utility).",
+        "observed": [],
+        "inferred": [],
+        "findings": [],
+        "topFindings": [],
+        "policy": {
+          "autonomousUse": "allow",
+          "manualApproval": "none",
+          "sandbox": "none"
+        },
+        "fingerprints": {
+          "configHash": "sha256:7ab59b245f86e5e42c2e6d2dd102aa78dc4cda0b3bc109e519d9fdbabd61e5a0",
+          "targetSpecHash": "sha256:5766fef81794a158bb4897a5667e0e214e9cb43e1f0ecf277af782081c5dc688",
+          "riskSurfaceHash": "sha256:69aae84c996fe93d537b08d906cb339866bd43f10876be403a0f4793915bef33",
+          "packageSpecHash": "sha256:4532d0b541621d963f41209334ad6459e927db8c623311f0a97a0df34803309e"
+        },
+        "diagnostics": [],
+        "generatedAt": "2026-08-15T14:54:20.031Z"
+      }
+    ],
+    "diagnostics": [],
+    "generatedAt": "2026-08-15T14:54:20.031Z"
+  }
+}

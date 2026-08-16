@@ -196,13 +196,24 @@ describe("Gate S0 — every path:line the record cites still points at what it c
     // fourth consecutive batch to move these, which is the empirical case for content-addressed
     // pointers — and the reason every one of those drifts has been HARMLESS is that `assertPointer`
     // matches content: :59 now holds docblock prose, so an existence-only check would have passed.
-    assertPointer(GATE, 90, "S0_REQUIRED_RECORDS = 25", "S0_REQUIRED_RECORDS")
-    assertPointer(GATE, 108, "S0_REGRESSION_FLOOR = 25", "S0_REGRESSION_FLOOR")
-    assertPointer(GATE, 124, "FIXTURE_PREFIX", "FIXTURE_PREFIX")
+    // DRIFTED A FIFTH TIME, in the ADR 0083 batch (90→95, 108→123, 124→163, 568→607): the gate
+    // gained `committedRegistryCohort` plus the docblocks explaining why the load-time coherence
+    // check no longer reads `S0_REQUIRED_RECORDS`. Same harmless drift as the four before it, caught
+    // the same way — the failure quoted `"/**"`, the docblock prose now sitting at :90.
+    //
+    // ONE ANCHOR ALSO CHANGED VALUE, and unlike the line numbers that is a decision, not drift: this
+    // read `S0_REGRESSION_FLOOR = 25`. ADR 0083 D2 advanced the ratchet to 100 to follow the cohort,
+    // so the anchor follows. It stays value-pinned (unlike `DEFAULT_MAX_ENTRIES` below, whose value
+    // was deliberately dropped from its anchor) because a ratchet's whole failure mode is being
+    // edited DOWNWARD quietly — the derived assertion further down is the primary guard against
+    // that, and this pointer is a second, cheaper reader of the same literal.
+    assertPointer(GATE, 95, "S0_REQUIRED_RECORDS = 25", "S0_REQUIRED_RECORDS")
+    assertPointer(GATE, 123, "S0_REGRESSION_FLOOR = 100", "S0_REGRESSION_FLOOR")
+    assertPointer(GATE, 163, "FIXTURE_PREFIX", "FIXTURE_PREFIX")
     // Drifted a SECOND time inside S batch 1, 401 → 498, when `stripComments` became string-aware; now
     // 568. Worth noting because it is the argument for content-addressed pointers rather than line
     // numbers: this one number has moved three times, and every time the failure named what it found.
-    assertPointer(GATE, 568, "registryShort", "the shortfall computation")
+    assertPointer(GATE, 607, "registryShort", "the shortfall computation")
   })
 
   it("the cap the record exonerates, and the un-paginated GET that exonerates it", () => {
@@ -300,7 +311,7 @@ describe("Gate S0 — every number the record states is derived from the file it
     ).toMatch(/AMENDED 2026-08-11.*ADR 0074/s)
   })
 
-  it("the committed snapshot holds the merged 25, and `count` is not a hand-edited number", () => {
+  it("the committed snapshot's `count` is not a hand-edited number, and the cohort never falls under the ratchet", () => {
     // Derived from the snapshot, never restated: `count` and the actual array length are asserted
     // SEPARATELY, because a hand-edited `count` is exactly the shape that would make this record
     // read as satisfied while the cohort had not moved.
@@ -308,39 +319,81 @@ describe("Gate S0 — every number the record states is derived from the file it
       readText("packages/trust-index/snapshots/official-mcp-registry.json"),
     ) as { fetchedAt: string; count: number; entries: readonly unknown[] }
     expect(snap.entries.length, "count must equal the real entry count").toBe(snap.count)
-    // 25 is the value ON THIS BRANCH after PR #234 merged. The 2026-08-10 amendment recorded a
-    // 25-entry snapshot on `trust-ingest/registry-refresh`, which merged as PR #234 and closed
-    // S0-OPEN-1. This assertion verified the merge event; now it verifies the cohort stays at 25.
-    expect(
-      snap.count,
-      `the committed snapshot must stay at 25 (the S0 cohort requirement). Current: ${snap.count}`,
-    ).toBe(25)
-    expect(snap.fetchedAt).toBe("2026-08-10T08:02:29.262Z")
-    // The cap DID bind on this snapshot, and the old comment here had it backwards by 2026-08-13.
-    // It read: "19 < 25 means fewer than 25 live entries reached the slice ... the cap never bound",
-    // which was the arithmetic that redirected blame from the cap to the stale pipeline. True of the
-    // 19-entry snapshot; false of this one. The 2026-08-10 fetch ran against `439829c`, where the cap
-    // was 25 and selection was a bare alphabetical `.slice(0, max)` over 6904 live upstream names —
-    // so 25 is the cap's output, EXACTLY equal to it, not a cohort that came in under it.
+    // AMENDED BY ADR 0083 D3. This pinned `count` to 25 and `fetchedAt` to the 2026-08-10 instant,
+    // with the message "the committed snapshot must stay at 25 (the S0 cohort requirement)". Both
+    // literals described the PR #234 MERGE EVENT this assertion was written to verify. The cohort
+    // has since moved to 100 by an authorized re-ingest (S0-OPEN-4 closure), so the pins asserted
+    // that an INTENDED change had not happened — a stale literal reading as a guard.
     //
-    // That equality is the whole finding, so it is asserted as an equality against the cap AT THAT
-    // COMMIT (25), not against today's `DEFAULT_MAX_ENTRIES` (100, raised two days later by ADR
-    // 0074). Comparing to today's constant would print `25 < 100` — true, and mute about the
-    // truncation. See S0-OPEN-4: 113 live names sort before `io.github.calllint/calllint`, which is
-    // why this project's own page is not in these 25.
-    const capAtFetch = 25
+    // Replaced by the ratchet, read out of the gate rather than restated here, so one authorized
+    // ingest updates one place: the floor advances, and this follows it. The direction is what
+    // matters — a cohort BELOW the floor is a lost record, a cohort above it is growth the ratchet
+    // has not caught up to yet, and only the former is a fault ([[top-level-guard-on-append-only-record]]).
+    const ratchet = Number(
+      /^const S0_REGRESSION_FLOOR = (\d+)$/m.exec(readText(GATE))?.[1],
+    )
+    expect(ratchet, `${GATE} must declare \`const S0_REGRESSION_FLOOR = <number>\``).not.toBeNaN()
     expect(
       snap.count,
-      "this snapshot is the cap's OUTPUT: a 25-cap over 6904 live entries yields exactly 25, and the tail was truncated",
-    ).toBe(capAtFetch)
-    // Today's cap must be >= the cap that produced these bytes, else a re-ingest would SHRINK the
-    // committed cohort — the direction S0-OPEN-1's "do not merge #234" warning existed to catch.
+      `the committed cohort (${snap.count}) fell below the ratchet floor (${ratchet}) — that is a LOST RECORD, not an ingest`,
+    ).toBeGreaterThanOrEqual(ratchet)
+    // `fetchedAt` is asserted as a well-formed ISO-8601 instant, not a specific one. It changes on
+    // every legitimate ingest, so a literal here measures the timestamp of the last fetch and
+    // nothing else; the SHAPE is the part a hand-edit would get wrong. Round-tripped through Date
+    // rather than regex-matched, so `2026-08-32T99:99:99.999Z` fails.
+    expect(snap.fetchedAt, "fetchedAt must be a well-formed ISO-8601 instant").toMatch(
+      /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/,
+    )
+    // VALIDITY BEFORE ROUND-TRIP, and the negative control is why. `2026-08-32T99:99:99.999Z`
+    // satisfies the regex above — the shape is right, the instant is not. Asserting the round-trip
+    // directly made `.toISOString()` throw `RangeError: Invalid time value`, so the test red without
+    // naming its subject or printing the offending value. A test's red must come from its own
+    // assertion with its own message, never from an exception inside the expression being measured.
     expect(
-      Number(/DEFAULT_MAX_ENTRIES\s*=\s*(\d+)/.exec(
-        readText("packages/trust-index/src/fetchRegistry.ts"),
-      )?.[1]),
-      "the current cap must not have dropped below the cap that produced the committed snapshot",
-    ).toBeGreaterThanOrEqual(capAtFetch)
+      Number.isNaN(new Date(snap.fetchedAt).getTime()),
+      `fetchedAt is ISO-8601-SHAPED but not a real instant: ${snap.fetchedAt}`,
+    ).toBe(false)
+    expect(
+      new Date(snap.fetchedAt).toISOString(),
+      "fetchedAt must round-trip through Date — a shaped, valid, but non-canonical instant fails here",
+    ).toBe(snap.fetchedAt)
+    // THE CAP STILL BINDS, and that is still the finding — but the number moved and, more
+    // importantly, so did the consequence. History, kept because both inversions are the record:
+    //
+    //   1. The oldest comment read "19 < 25 ... the cap never bound", the arithmetic that redirected
+    //      blame from the cap to the stale pipeline. True of the 19-entry snapshot, false of the 25.
+    //   2. Then it asserted `count === 25` as "the cap's OUTPUT ... and the tail was truncated",
+    //      adding: "113 live names sort before `io.github.calllint/calllint`, which is why this
+    //      project's own page is not in these 25."
+    //
+    // Clause 2's last sentence is now FALSE, and falsifying it was the point of the re-ingest. The
+    // cap is 100, the cohort is 100 — the cap still binds exactly — but ADR 0075's reserved
+    // retention means the boundary no longer evicts the claimed subject. So the equality is kept
+    // (it is what proves truncation) and the eviction claim is deleted rather than re-dated,
+    // because it describes a mechanism that no longer exists at this boundary.
+    //
+    // Read from `fetchRegistry.ts` rather than pinned: this is the number ADR 0074 expects to move
+    // again (100 → 500), and a literal would red on a legitimate expansion while saying nothing
+    // about the property — that a cohort landing EXACTLY on the cap means the tail was cut.
+    const cap = Number(
+      /DEFAULT_MAX_ENTRIES\s*=\s*(\d+)/.exec(readText("packages/trust-index/src/fetchRegistry.ts"))?.[1],
+    )
+    expect(cap, "fetchRegistry.ts must declare DEFAULT_MAX_ENTRIES").not.toBeNaN()
+    expect(
+      snap.count,
+      `this snapshot is the cap's OUTPUT: a ${cap}-cap over thousands of live entries yields exactly ${cap}, and the tail was truncated`,
+    ).toBe(cap)
+    // The subject the truncation used to evict is IN this cohort, at the boundary, by retention
+    // rather than by luck. Asserted here as the counterpart to the deleted claim — the presence
+    // itself is guarded properly (set form, plus its alphabetical last place) in
+    // `registry-cohort-retention.invariants.test.ts:261`, so this is a one-line cross-check and not
+    // a second, weaker copy of that guard.
+    expect(
+      (snap.entries as readonly { name?: string }[]).filter(
+        (e) => e.name === "io.github.calllint/calllint",
+      ),
+      "the cap binds at exactly the cohort size, so ADR 0075 retention is the only thing keeping the claimed subject in — if this reds, the reserved list stopped being read",
+    ).toHaveLength(1)
   })
 
   it("ci:local's step count is counted, not quoted, and now INCLUDES the gate's regression mode", () => {
@@ -684,16 +737,26 @@ describe("Gate S0 — the regression mode CI runs enforces something, and the ra
     return Number(m![1])
   }
 
-  it("the ratchet floor is at or below the requirement, and matches the cohort actually served", () => {
+  it("the ratchet floor tracks the cohort at HEAD, and is not ordered against the requirement", () => {
     const floor = constant("S0_REGRESSION_FLOOR")
-    const required = constant("S0_REQUIRED_RECORDS")
 
-    // The relationship, not the values. A floor ABOVE the requirement would red the ratchet on
-    // cohorts `--gate` accepts, inverting the two modes. The gate asserts this at load time too;
-    // pinned here as well because that check exits the process, which a test cannot observe.
-    expect(floor, "the ratchet floor must never exceed the requirement it sits under").toBeLessThanOrEqual(
-      required,
-    )
+    // REMOVED BY ADR 0083 D1: `expect(floor).toBeLessThanOrEqual(required)`, whose message was "the
+    // ratchet floor must never exceed the requirement it sits under". It encoded a rule that became
+    // unsatisfiable the moment the cohort passed the requirement: the assertion below demands the
+    // floor EQUAL the cohort (100), and that clause forbade any floor above 25. No value satisfied
+    // both ([[two-constants-equal-by-accident]] — each half defensible alone, the pair wrong).
+    //
+    // Satisfying it by holding the floor at 25 was the dangerous branch, and it is why this is an
+    // ADR and not a test edit: against a 100-entry cohort, a floor of 25 lets 75 committed records
+    // be lost with `pnpm gate:s0:regression` still EXIT 0. The guard whose only purpose is catching
+    // a lost record would go blind to a 75-record loss — a silent green, strictly worse than the
+    // noisy red the removed clause was protecting against.
+    //
+    // The relationship it was trying to express is not lost, only re-anchored: the gate's load-time
+    // check now bounds the floor by the COMMITTED COHORT (`gate-s0.ts`, `committedRegistryCohort`),
+    // so a floor above what has actually been ingested still exits 2. `S0_REQUIRED_RECORDS` is
+    // deliberately NOT read here any more — the requirement and the ratchet answer different
+    // questions (ambition vs. achievement) and ordering them against each other is what conflicted.
 
     // THE POINT OF THIS TEST. The floor is a ratchet, so the cheap way to defeat it is to edit the
     // literal downward when CI reds — a one-character diff that silently disables the guard. Pinning

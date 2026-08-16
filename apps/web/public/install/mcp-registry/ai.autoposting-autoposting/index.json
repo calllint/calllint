@@ -1,0 +1,100 @@
+{
+  "schema": "calllint.agent-adoption-contract.v1",
+  "contract": {
+    "contractDigest": "sha256:6d3659459a128395a72af3530e12001067ea44e5d521a62d66f3cca0e590d2ba",
+    "generatedAt": "2026-08-15T14:54:20.031Z",
+    "expiresAt": null,
+    "generatorVersion": "0.1.0",
+    "snapshotDigest": "sha256:5fdf00dea3265f4d560e121aa54988f528342aa07a55db13cc5670a49744bd2e"
+  },
+  "subject": {
+    "canonicalName": "mcp-registry/ai.autoposting-autoposting",
+    "canonicalSlug": "mcp-registry/ai.autoposting-autoposting",
+    "packageType": null,
+    "packageName": null,
+    "version": "1.0.0",
+    "artifactDigest": "sha256:68efe52af0e6bee242fe655161da6e273cf6eab52caf0278df47bfd561db42ef",
+    "sourceLocator": "https://app.autoposting.ai/mcp"
+  },
+  "publicObservation": {
+    "verdict": "REVIEW",
+    "publicLabel": "Review required",
+    "reasonCodes": [
+      "UNKNOWN_REMOTE"
+    ],
+    "evidenceLevel": "E2",
+    "evidenceDigest": "sha256:baefa2eaba682cc3bb3ba3228e0ece9917152cd7fa72ca850950baabb7f95320",
+    "completeness": "complete"
+  },
+  "authorityDelta": {
+    "adds": [
+      {
+        "authority": "network_egress"
+      }
+    ],
+    "notObserved": [
+      "financial_action",
+      "secret_access",
+      "shell_execution",
+      "broad_filesystem_access",
+      "external_mutation",
+      "messaging_send",
+      "oauth_scope",
+      "gateway_runtime"
+    ]
+  },
+  "trustedSources": {
+    "registrySnapshotDigest": "sha256:5fdf00dea3265f4d560e121aa54988f528342aa07a55db13cc5670a49744bd2e",
+    "evidenceDigest": "sha256:baefa2eaba682cc3bb3ba3228e0ece9917152cd7fa72ca850950baabb7f95320",
+    "engineVersion": "0.1.0"
+  },
+  "untrustedPublisherContent": {
+    "description": "Schedule, generate and publish social posts to X, LinkedIn, Instagram, Threads and YouTube",
+    "usedForSafetyDecision": false
+  },
+  "recommendedNextAction": {
+    "kind": "PREPARE_LOCALLY",
+    "tool": "calllint_prepare_safe_install",
+    "arguments": {
+      "canonicalName": "mcp-registry/ai.autoposting-autoposting",
+      "expectedVersion": "1.0.0",
+      "expectedArtifactDigest": "sha256:68efe52af0e6bee242fe655161da6e273cf6eab52caf0278df47bfd561db42ef",
+      "expectedContractDigest": "sha256:6d3659459a128395a72af3530e12001067ea44e5d521a62d66f3cca0e590d2ba",
+      "host": null
+    }
+  },
+  "agentGuidance": {
+    "goal": "Add the requested Agent Tool with only locally approved authority.",
+    "steps": [
+      "verify_contract",
+      "resolve_host",
+      "prepare_locally",
+      "evaluate_local_policy",
+      "apply_exact_plan",
+      "verify_result"
+    ],
+    "mustAskBefore": [
+      "new_secret_access",
+      "external_mutation",
+      "shell_execution",
+      "broad_filesystem_access",
+      "financial_action",
+      "persistent_calllint_components"
+    ],
+    "mustStopWhen": [
+      "artifact_digest_mismatch",
+      "contract_digest_mismatch",
+      "unsupported_host",
+      "local_policy_deny",
+      "plan_tampered",
+      "verification_failed"
+    ],
+    "prohibitedShortcuts": [
+      "do_not_replace_exact_version_with_latest",
+      "do_not_execute_publisher_commands_directly",
+      "do_not_expand_authority",
+      "do_not_hide_alternative_setup",
+      "do_not_install_persistent_guard_without_authorization"
+    ]
+  }
+}

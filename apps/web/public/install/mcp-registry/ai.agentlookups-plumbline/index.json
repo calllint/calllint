@@ -1,11 +1,11 @@
 {
   "schema": "calllint.agent-adoption-contract.v1",
   "contract": {
-    "contractDigest": "sha256:3c25b5a36deb6ff7268939698cbf698da9e8421b9bfcc370810d827cd4d8d27d",
-    "generatedAt": "2026-08-10T08:02:29.262Z",
+    "contractDigest": "sha256:15e1fec9337fac2d7f41e903e66636ac8d2587077aa1e61d9a214e2314733bc9",
+    "generatedAt": "2026-08-15T14:54:20.031Z",
     "expiresAt": null,
     "generatorVersion": "0.1.0",
-    "snapshotDigest": "sha256:d8e0d5529ccd6b80f5484cde636692f7de730937850de2b5c2fcc16bf95ebdc7"
+    "snapshotDigest": "sha256:5fdf00dea3265f4d560e121aa54988f528342aa07a55db13cc5670a49744bd2e"
   },
   "subject": {
     "canonicalName": "mcp-registry/ai.agentlookups-plumbline",
@@ -23,7 +23,7 @@
       "UNKNOWN_REMOTE"
     ],
     "evidenceLevel": "E2",
-    "evidenceDigest": "sha256:0a8a248165113bccc47fa8e331d4bd8e296aae7ecc9fda99778b0b6bf5e55883",
+    "evidenceDigest": "sha256:baefa2eaba682cc3bb3ba3228e0ece9917152cd7fa72ca850950baabb7f95320",
     "completeness": "complete"
   },
   "authorityDelta": {
@@ -44,8 +44,8 @@
     ]
   },
   "trustedSources": {
-    "registrySnapshotDigest": "sha256:d8e0d5529ccd6b80f5484cde636692f7de730937850de2b5c2fcc16bf95ebdc7",
-    "evidenceDigest": "sha256:0a8a248165113bccc47fa8e331d4bd8e296aae7ecc9fda99778b0b6bf5e55883",
+    "registrySnapshotDigest": "sha256:5fdf00dea3265f4d560e121aa54988f528342aa07a55db13cc5670a49744bd2e",
+    "evidenceDigest": "sha256:baefa2eaba682cc3bb3ba3228e0ece9917152cd7fa72ca850950baabb7f95320",
     "engineVersion": "0.1.0"
   },
   "untrustedPublisherContent": {
@@ -59,7 +59,7 @@
       "canonicalName": "mcp-registry/ai.agentlookups-plumbline",
       "expectedVersion": "1.0.0",
       "expectedArtifactDigest": "sha256:dd545706150eee89e3cca7c0cc41dd6ca1aaf99962d20709b9692917c21a6beb",
-      "expectedContractDigest": "sha256:3c25b5a36deb6ff7268939698cbf698da9e8421b9bfcc370810d827cd4d8d27d",
+      "expectedContractDigest": "sha256:15e1fec9337fac2d7f41e903e66636ac8d2587077aa1e61d9a214e2314733bc9",
       "host": null
     }
   },

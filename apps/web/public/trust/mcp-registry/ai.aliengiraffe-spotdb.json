@@ -1,0 +1,218 @@
+{
+  "schema": "calllint.trust-page.v0",
+  "canonicalName": "mcp-registry/ai.aliengiraffe-spotdb",
+  "artifactDigest": "sha256:f82ac460627fa7063ca9eb0e43279f40ad29e2b7e2d9b6bec92b3e2c13ce2448",
+  "pageDigest": "sha256:69b21f72ef42b6f8993eab48d01142976791e6d73bad5a03173cd17e57d35c68",
+  "verdict": "REVIEW",
+  "verdictLabel": "Review required",
+  "observedAt": "2026-08-15T14:54:20.031Z",
+  "completeness": "complete",
+  "status": {
+    "verdict": "REVIEW",
+    "completeness": "complete",
+    "authorityClaimed": false,
+    "reproducibility": {
+      "pageDigest": "sha256:69b21f72ef42b6f8993eab48d01142976791e6d73bad5a03173cd17e57d35c68",
+      "observedAt": "2026-08-15T14:54:20.031Z"
+    },
+    "evidenceLevel": "E2",
+    "evidenceRationale": "install config observed → static blast radius normalized into an authority inventory. Higher levels (E3 tool schema, E4 maintainer receipt, E5 sandbox) are not carried by a static page."
+  },
+  "correctionUrl": "https://github.com/calllint/calllint/issues/new?labels=trust-page-correction",
+  "reproduction": {
+    "command": "npx calllint scan official-mcp-registry:ai.aliengiraffe/spotdb",
+    "artifactDigest": "sha256:f82ac460627fa7063ca9eb0e43279f40ad29e2b7e2d9b6bec92b3e2c13ce2448",
+    "note": "Re-running this scan reproduces the verdict observed at the pinned artifact digest. It is a point-in-time observation, not a guarantee of future behavior."
+  },
+  "scanHistory": [
+    {
+      "observedAt": "2026-08-15T14:54:20.031Z",
+      "pageDigest": "sha256:69b21f72ef42b6f8993eab48d01142976791e6d73bad5a03173cd17e57d35c68",
+      "artifactDigest": "sha256:f82ac460627fa7063ca9eb0e43279f40ad29e2b7e2d9b6bec92b3e2c13ce2448"
+    }
+  ],
+  "preparation": {
+    "schema": "calllint.trust-preparation.v0",
+    "artifact": {
+      "schema": "calllint.artifact.v1",
+      "sourceType": "mcp-config",
+      "source": "official-mcp-registry:ai.aliengiraffe/spotdb",
+      "requestedRef": null,
+      "resolvedRef": "sha256:f82ac460627fa7063ca9eb0e43279f40ad29e2b7e2d9b6bec92b3e2c13ce2448",
+      "digest": "sha256:f82ac460627fa7063ca9eb0e43279f40ad29e2b7e2d9b6bec92b3e2c13ce2448",
+      "resolvedAt": "2026-08-15T14:54:20.031Z",
+      "resolution": "resolved"
+    },
+    "evidence": null,
+    "authority": {
+      "schema": "calllint.authority.v0",
+      "subject": {
+        "artifactDigest": "sha256:f82ac460627fa7063ca9eb0e43279f40ad29e2b7e2d9b6bec92b3e2c13ce2448"
+      },
+      "capabilities": [
+        {
+          "action": "execute",
+          "resource": "process",
+          "scope": "docker.io/aliengiraffe/spotdb:0.1.0",
+          "destination": null,
+          "mutability": "mutating",
+          "reversibility": "irreversible",
+          "monetaryLimit": null,
+          "approvalRequirement": "none",
+          "evidenceSource": "server.command",
+          "confidence": "high",
+          "completeness": "complete",
+          "trustSource": "trusted.local_project"
+        }
+      ],
+      "limits": {
+        "spendPerCall": null,
+        "spendTotal": null
+      },
+      "approval": {
+        "required": []
+      },
+      "unknowns": [],
+      "completeness": "complete",
+      "digest": "sha256:0b9c0a34a40b0b4b19ee3cb2853ed6156907bc4e5b716d67ffb3fa65c6f08aaf"
+    },
+    "decision": null,
+    "plan": null,
+    "state": "AUTHORITY_NORMALIZED",
+    "notes": [
+      "no external evidence attached (optional); decision will rely on CallLint's own analysis",
+      "authority normalized: 1 capability"
+    ],
+    "preparedAt": "2026-08-15T14:54:20.031Z"
+  },
+  "scan": {
+    "schemaVersion": "calllint.report.v0",
+    "reportKind": "config-summary",
+    "configPath": "official-mcp-registry:ai.aliengiraffe/spotdb",
+    "verdict": "REVIEW",
+    "publicVerdictLabel": "Review required",
+    "counts": {
+      "SAFE": 0,
+      "REVIEW": 1,
+      "BLOCK": 0,
+      "UNKNOWN": 0
+    },
+    "reports": [
+      {
+        "schemaVersion": "calllint.report.v0",
+        "reportKind": "single-target",
+        "target": {
+          "name": "package",
+          "kind": "cursor-mcp-config",
+          "configPath": "official-mcp-registry:ai.aliengiraffe/spotdb"
+        },
+        "verdict": "REVIEW",
+        "publicVerdictLabel": "Review required",
+        "policyApplied": false,
+        "riskClass": "S2",
+        "symbols": [
+          "EXEC"
+        ],
+        "confidence": "medium",
+        "reproducibility": {
+          "level": "HIGH",
+          "reasons": []
+        },
+        "summary": "\"package\" needs review. Risk: Exec (S2 Sensitive read).",
+        "observed": [
+          {
+            "id": "exec.unverified-local-source",
+            "title": "Runs an unverified local executable",
+            "severity": "medium",
+            "blocker": false,
+            "symbol": "EXEC",
+            "riskClass": "S2",
+            "mode": "OBSERVED",
+            "confidence": "medium",
+            "detectionMethod": "runtime-binding",
+            "evidence": [
+              {
+                "type": "runtime-binding",
+                "path": "official-mcp-registry:ai.aliengiraffe/spotdb",
+                "key": "command",
+                "value": "docker.io/aliengiraffe/spotdb:0.1.0",
+                "line": 4,
+                "column": 7
+              }
+            ],
+            "impact": "The runtime executes a local script or binary whose contents CallLint never inspects. It is not a recognized package or pinned image, so what actually runs cannot be verified from the config alone.",
+            "fix": "Confirm you trust the local source, or run it from a pinned, recognized package (e.g. npx pkg@1.2.3 / a pinned docker image) so the runtime is independently verifiable.",
+            "falsePositiveNote": "A developer running their own local server (e.g. node ./dist/server.js) is normal; this flags that the source is not independently verifiable, not that it is malicious."
+          }
+        ],
+        "inferred": [],
+        "findings": [
+          {
+            "id": "exec.unverified-local-source",
+            "title": "Runs an unverified local executable",
+            "severity": "medium",
+            "blocker": false,
+            "symbol": "EXEC",
+            "riskClass": "S2",
+            "mode": "OBSERVED",
+            "confidence": "medium",
+            "detectionMethod": "runtime-binding",
+            "evidence": [
+              {
+                "type": "runtime-binding",
+                "path": "official-mcp-registry:ai.aliengiraffe/spotdb",
+                "key": "command",
+                "value": "docker.io/aliengiraffe/spotdb:0.1.0",
+                "line": 4,
+                "column": 7
+              }
+            ],
+            "impact": "The runtime executes a local script or binary whose contents CallLint never inspects. It is not a recognized package or pinned image, so what actually runs cannot be verified from the config alone.",
+            "fix": "Confirm you trust the local source, or run it from a pinned, recognized package (e.g. npx pkg@1.2.3 / a pinned docker image) so the runtime is independently verifiable.",
+            "falsePositiveNote": "A developer running their own local server (e.g. node ./dist/server.js) is normal; this flags that the source is not independently verifiable, not that it is malicious."
+          }
+        ],
+        "topFindings": [
+          {
+            "id": "exec.unverified-local-source",
+            "title": "Runs an unverified local executable",
+            "severity": "medium",
+            "blocker": false,
+            "symbol": "EXEC",
+            "riskClass": "S2",
+            "mode": "OBSERVED",
+            "confidence": "medium",
+            "detectionMethod": "runtime-binding",
+            "evidence": [
+              {
+                "type": "runtime-binding",
+                "path": "official-mcp-registry:ai.aliengiraffe/spotdb",
+                "key": "command",
+                "value": "docker.io/aliengiraffe/spotdb:0.1.0",
+                "line": 4,
+                "column": 7
+              }
+            ],
+            "impact": "The runtime executes a local script or binary whose contents CallLint never inspects. It is not a recognized package or pinned image, so what actually runs cannot be verified from the config alone.",
+            "fix": "Confirm you trust the local source, or run it from a pinned, recognized package (e.g. npx pkg@1.2.3 / a pinned docker image) so the runtime is independently verifiable.",
+            "falsePositiveNote": "A developer running their own local server (e.g. node ./dist/server.js) is normal; this flags that the source is not independently verifiable, not that it is malicious."
+          }
+        ],
+        "policy": {
+          "autonomousUse": "warn",
+          "manualApproval": "recommended",
+          "sandbox": "recommended"
+        },
+        "fingerprints": {
+          "configHash": "sha256:6b40e5ae43fd0720da0f00064240939bd4db336ad2432bf99e512e5605a21404",
+          "targetSpecHash": "sha256:f534610bca4c9d0daaf3844b5f95259c4df60ff1809a081fbd878e24bf373384",
+          "riskSurfaceHash": "sha256:89f49ea59b9805b51aab933fe7e81db3ff7eb3a3cb14bd71ca056ce387ce0ada"
+        },
+        "diagnostics": [],
+        "generatedAt": "2026-08-15T14:54:20.031Z"
+      }
+    ],
+    "diagnostics": [],
+    "generatedAt": "2026-08-15T14:54:20.031Z"
+  }
+}

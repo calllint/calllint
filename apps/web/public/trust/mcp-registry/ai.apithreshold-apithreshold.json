@@ -1,0 +1,218 @@
+{
+  "schema": "calllint.trust-page.v0",
+  "canonicalName": "mcp-registry/ai.apithreshold-apithreshold",
+  "artifactDigest": "sha256:54b1f8c2748d55b768c449e86c6b99364ba37b99bb9f0f20d69da877adad3e85",
+  "pageDigest": "sha256:1b43bca0ac94c7fbf8c1374d97f647c7a932a690224e97d16b3b6153cd20b7e2",
+  "verdict": "REVIEW",
+  "verdictLabel": "Review required",
+  "observedAt": "2026-08-15T14:54:20.031Z",
+  "completeness": "complete",
+  "status": {
+    "verdict": "REVIEW",
+    "completeness": "complete",
+    "authorityClaimed": false,
+    "reproducibility": {
+      "pageDigest": "sha256:1b43bca0ac94c7fbf8c1374d97f647c7a932a690224e97d16b3b6153cd20b7e2",
+      "observedAt": "2026-08-15T14:54:20.031Z"
+    },
+    "evidenceLevel": "E2",
+    "evidenceRationale": "install config observed → static blast radius normalized into an authority inventory. Higher levels (E3 tool schema, E4 maintainer receipt, E5 sandbox) are not carried by a static page."
+  },
+  "correctionUrl": "https://github.com/calllint/calllint/issues/new?labels=trust-page-correction",
+  "reproduction": {
+    "command": "npx calllint scan official-mcp-registry:ai.apithreshold/apithreshold",
+    "artifactDigest": "sha256:54b1f8c2748d55b768c449e86c6b99364ba37b99bb9f0f20d69da877adad3e85",
+    "note": "Re-running this scan reproduces the verdict observed at the pinned artifact digest. It is a point-in-time observation, not a guarantee of future behavior."
+  },
+  "scanHistory": [
+    {
+      "observedAt": "2026-08-15T14:54:20.031Z",
+      "pageDigest": "sha256:1b43bca0ac94c7fbf8c1374d97f647c7a932a690224e97d16b3b6153cd20b7e2",
+      "artifactDigest": "sha256:54b1f8c2748d55b768c449e86c6b99364ba37b99bb9f0f20d69da877adad3e85"
+    }
+  ],
+  "preparation": {
+    "schema": "calllint.trust-preparation.v0",
+    "artifact": {
+      "schema": "calllint.artifact.v1",
+      "sourceType": "mcp-config",
+      "source": "official-mcp-registry:ai.apithreshold/apithreshold",
+      "requestedRef": null,
+      "resolvedRef": "sha256:54b1f8c2748d55b768c449e86c6b99364ba37b99bb9f0f20d69da877adad3e85",
+      "digest": "sha256:54b1f8c2748d55b768c449e86c6b99364ba37b99bb9f0f20d69da877adad3e85",
+      "resolvedAt": "2026-08-15T14:54:20.031Z",
+      "resolution": "resolved"
+    },
+    "evidence": null,
+    "authority": {
+      "schema": "calllint.authority.v0",
+      "subject": {
+        "artifactDigest": "sha256:54b1f8c2748d55b768c449e86c6b99364ba37b99bb9f0f20d69da877adad3e85"
+      },
+      "capabilities": [
+        {
+          "action": "execute",
+          "resource": "process",
+          "scope": "ghcr.io/apithreshold/apithreshold:0.1.0",
+          "destination": null,
+          "mutability": "mutating",
+          "reversibility": "irreversible",
+          "monetaryLimit": null,
+          "approvalRequirement": "none",
+          "evidenceSource": "server.command",
+          "confidence": "high",
+          "completeness": "complete",
+          "trustSource": "trusted.local_project"
+        }
+      ],
+      "limits": {
+        "spendPerCall": null,
+        "spendTotal": null
+      },
+      "approval": {
+        "required": []
+      },
+      "unknowns": [],
+      "completeness": "complete",
+      "digest": "sha256:7d7c6a2da24435b567c1cc0752190d481bb0bea67633a6f45f953ab6989aaafe"
+    },
+    "decision": null,
+    "plan": null,
+    "state": "AUTHORITY_NORMALIZED",
+    "notes": [
+      "no external evidence attached (optional); decision will rely on CallLint's own analysis",
+      "authority normalized: 1 capability"
+    ],
+    "preparedAt": "2026-08-15T14:54:20.031Z"
+  },
+  "scan": {
+    "schemaVersion": "calllint.report.v0",
+    "reportKind": "config-summary",
+    "configPath": "official-mcp-registry:ai.apithreshold/apithreshold",
+    "verdict": "REVIEW",
+    "publicVerdictLabel": "Review required",
+    "counts": {
+      "SAFE": 0,
+      "REVIEW": 1,
+      "BLOCK": 0,
+      "UNKNOWN": 0
+    },
+    "reports": [
+      {
+        "schemaVersion": "calllint.report.v0",
+        "reportKind": "single-target",
+        "target": {
+          "name": "package",
+          "kind": "cursor-mcp-config",
+          "configPath": "official-mcp-registry:ai.apithreshold/apithreshold"
+        },
+        "verdict": "REVIEW",
+        "publicVerdictLabel": "Review required",
+        "policyApplied": false,
+        "riskClass": "S2",
+        "symbols": [
+          "EXEC"
+        ],
+        "confidence": "medium",
+        "reproducibility": {
+          "level": "HIGH",
+          "reasons": []
+        },
+        "summary": "\"package\" needs review. Risk: Exec (S2 Sensitive read).",
+        "observed": [
+          {
+            "id": "exec.unverified-local-source",
+            "title": "Runs an unverified local executable",
+            "severity": "medium",
+            "blocker": false,
+            "symbol": "EXEC",
+            "riskClass": "S2",
+            "mode": "OBSERVED",
+            "confidence": "medium",
+            "detectionMethod": "runtime-binding",
+            "evidence": [
+              {
+                "type": "runtime-binding",
+                "path": "official-mcp-registry:ai.apithreshold/apithreshold",
+                "key": "command",
+                "value": "ghcr.io/apithreshold/apithreshold:0.1.0",
+                "line": 4,
+                "column": 7
+              }
+            ],
+            "impact": "The runtime executes a local script or binary whose contents CallLint never inspects. It is not a recognized package or pinned image, so what actually runs cannot be verified from the config alone.",
+            "fix": "Confirm you trust the local source, or run it from a pinned, recognized package (e.g. npx pkg@1.2.3 / a pinned docker image) so the runtime is independently verifiable.",
+            "falsePositiveNote": "A developer running their own local server (e.g. node ./dist/server.js) is normal; this flags that the source is not independently verifiable, not that it is malicious."
+          }
+        ],
+        "inferred": [],
+        "findings": [
+          {
+            "id": "exec.unverified-local-source",
+            "title": "Runs an unverified local executable",
+            "severity": "medium",
+            "blocker": false,
+            "symbol": "EXEC",
+            "riskClass": "S2",
+            "mode": "OBSERVED",
+            "confidence": "medium",
+            "detectionMethod": "runtime-binding",
+            "evidence": [
+              {
+                "type": "runtime-binding",
+                "path": "official-mcp-registry:ai.apithreshold/apithreshold",
+                "key": "command",
+                "value": "ghcr.io/apithreshold/apithreshold:0.1.0",
+                "line": 4,
+                "column": 7
+              }
+            ],
+            "impact": "The runtime executes a local script or binary whose contents CallLint never inspects. It is not a recognized package or pinned image, so what actually runs cannot be verified from the config alone.",
+            "fix": "Confirm you trust the local source, or run it from a pinned, recognized package (e.g. npx pkg@1.2.3 / a pinned docker image) so the runtime is independently verifiable.",
+            "falsePositiveNote": "A developer running their own local server (e.g. node ./dist/server.js) is normal; this flags that the source is not independently verifiable, not that it is malicious."
+          }
+        ],
+        "topFindings": [
+          {
+            "id": "exec.unverified-local-source",
+            "title": "Runs an unverified local executable",
+            "severity": "medium",
+            "blocker": false,
+            "symbol": "EXEC",
+            "riskClass": "S2",
+            "mode": "OBSERVED",
+            "confidence": "medium",
+            "detectionMethod": "runtime-binding",
+            "evidence": [
+              {
+                "type": "runtime-binding",
+                "path": "official-mcp-registry:ai.apithreshold/apithreshold",
+                "key": "command",
+                "value": "ghcr.io/apithreshold/apithreshold:0.1.0",
+                "line": 4,
+                "column": 7
+              }
+            ],
+            "impact": "The runtime executes a local script or binary whose contents CallLint never inspects. It is not a recognized package or pinned image, so what actually runs cannot be verified from the config alone.",
+            "fix": "Confirm you trust the local source, or run it from a pinned, recognized package (e.g. npx pkg@1.2.3 / a pinned docker image) so the runtime is independently verifiable.",
+            "falsePositiveNote": "A developer running their own local server (e.g. node ./dist/server.js) is normal; this flags that the source is not independently verifiable, not that it is malicious."
+          }
+        ],
+        "policy": {
+          "autonomousUse": "warn",
+          "manualApproval": "recommended",
+          "sandbox": "recommended"
+        },
+        "fingerprints": {
+          "configHash": "sha256:1d5ad4101cb5665d4bf71b9ab95dcb113d468b1334cfcdc13375d1274998598c",
+          "targetSpecHash": "sha256:0c0c061a48672fcd3e8958aa7cfa21a0d37c99cddcca4f09a2cbc184cb26239d",
+          "riskSurfaceHash": "sha256:89f49ea59b9805b51aab933fe7e81db3ff7eb3a3cb14bd71ca056ce387ce0ada"
+        },
+        "diagnostics": [],
+        "generatedAt": "2026-08-15T14:54:20.031Z"
+      }
+    ],
+    "diagnostics": [],
+    "generatedAt": "2026-08-15T14:54:20.031Z"
+  }
+}
