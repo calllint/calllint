@@ -1,5 +1,15 @@
 import { describe, it, expect } from "vitest"
-import { existsSync, mkdirSync, mkdtempSync, readdirSync, rmSync, statSync, writeFileSync } from "node:fs"
+import {
+  copyFileSync,
+  existsSync,
+  mkdirSync,
+  mkdtempSync,
+  readFileSync,
+  readdirSync,
+  rmSync,
+  statSync,
+  writeFileSync,
+} from "node:fs"
 import { join } from "node:path"
 import { tmpdir } from "node:os"
 import { openBetterSqlite3, resolveIndexPaths } from "@calllint/adoption-index"
@@ -12,6 +22,8 @@ import {
   ensureStagingRoot,
   pruneBackupStaging,
   refuseToArchive,
+  UNREBUILDABLE_TABLES,
+  verifyArchive,
   writeArchive,
 } from "../src/backupStore.js"
 
@@ -137,8 +149,28 @@ describe("writeArchive — real SQLite", () => {
 
       const target = archivePath(cwd, "2026-08-08T03:30:00Z")
       ensureStagingRoot(cwd)
+
+      // The CONTRAST is the assertion. Taken at this same instant, with the writer still open: a
+      // copy of `db/…sqlite` alone is what the rejected implementation would have shipped. Without
+      // this line the test proves only that `VACUUM INTO` works, and the claim above — that a file
+      // copy loses the row — would stay an unfalsifiable comment. Swapping `writeArchive` for a
+      // `copyFileSync` must make this test red, and this is the line that makes it red.
+      const naive = `${target}.naive-copy`
+      copyFileSync(dbPath, naive)
+
       writeArchive({ db, target })
       db.close()
+
+      // MEASURED, not assumed: the copy loses more than the row. `CREATE TABLE` is itself an
+      // uncheckpointed transaction, so `probe` does not exist in the main db file at all — the copy
+      // opens cleanly as an EMPTY database. That is the shape `verifyArchive`'s missing-table refusal
+      // exists for, and it is why this archive would have read as "healthy, just a new deployment".
+      const fromCopy = await openBetterSqlite3(naive)
+      try {
+        expect(() => fromCopy.prepare("SELECT k FROM probe").all()).toThrow(/no such table: probe/)
+      } finally {
+        fromCopy.close()
+      }
 
       const restored = await openBetterSqlite3(target)
       try {
@@ -210,6 +242,131 @@ describe("writeArchive — real SQLite", () => {
       db.close()
       expect(existsSync(target)).toBe(true)
     })
+  })
+})
+
+describe("verifyArchive — the readback the upload depends on", () => {
+  const SCHEMA = UNREBUILDABLE_TABLES.map(
+    (t) => `CREATE TABLE ${t} (id TEXT PRIMARY KEY, first_seen_at TEXT NOT NULL)`,
+  ).join(";")
+
+  const withArchive = async (
+    build: (db: Awaited<ReturnType<typeof openBetterSqlite3>>) => void,
+    fn: (archive: Awaited<ReturnType<typeof openBetterSqlite3>>, target: string) => Promise<void>,
+  ) => {
+    const cwd = mkdtempSync(join(tmpdir(), "backup-verify-"))
+    try {
+      const { db: dbPath } = resolveIndexPaths(cwd)
+      mkdirSync(join(cwd, ".var", "calllint-adoption-index", "db"), { recursive: true })
+      const db = await openBetterSqlite3(dbPath)
+      build(db)
+      const target = archivePath(cwd, "2026-08-08T03:30:00Z")
+      ensureStagingRoot(cwd)
+      writeArchive({ db, target })
+      db.close()
+      const archive = await openBetterSqlite3(target)
+      try {
+        await fn(archive, target)
+      } finally {
+        archive.close()
+      }
+    } finally {
+      rmSync(cwd, { recursive: true, force: true })
+    }
+  }
+
+  it("passes a sound archive and REPORTS the unrebuildable row counts", async () => {
+    await withArchive(
+      (db) => {
+        db.exec(SCHEMA)
+        db.prepare("INSERT INTO source_records VALUES (?, ?)").run("a", "2026-01-01T00:00:00Z")
+        db.prepare("INSERT INTO source_records VALUES (?, ?)").run("b", "2026-01-02T00:00:00Z")
+        db.prepare("INSERT INTO canonical_subjects VALUES (?, ?)").run("c", "2026-01-03T00:00:00Z")
+      },
+      async (archive) => {
+        const r = verifyArchive({ db: archive })
+        expect(r.rows).toEqual({ source_records: 2, canonical_subjects: 1, artifact_versions: 0 })
+        expect(r.total).toBe(3)
+      },
+    )
+  })
+
+  it("passes an EMPTY archive — a new host's first backup is not a failure", async () => {
+    // The counts are evidence, never a floor. A threshold here would refuse the first backup a
+    // freshly deployed host takes, i.e. red on the system working as designed.
+    await withArchive(
+      (db) => db.exec(SCHEMA),
+      async (archive) => {
+        const r = verifyArchive({ db: archive })
+        expect(r.total).toBe(0)
+        expect(Object.keys(r.rows)).toEqual([...UNREBUILDABLE_TABLES])
+      },
+    )
+  })
+
+  it("REFUSES an archive that opens cleanly but lost an unrebuildable table", async () => {
+    // The load-bearing case, and the one `integrity_check` alone cannot catch: this file is a
+    // perfectly valid SQLite database. It is simply not a backup of the facts the archive exists
+    // for — the shape a mis-rooted or half-migrated source produces.
+    await withArchive(
+      (db) => db.exec("CREATE TABLE source_records (id TEXT PRIMARY KEY, first_seen_at TEXT NOT NULL)"),
+      async (archive) => {
+        expect(archive.pragma("integrity_check")).toEqual([{ integrity_check: "ok" }])
+        expect(() => verifyArchive({ db: archive })).toThrow(/missing 2 unrebuildable table\(s\)/)
+        expect(() => verifyArchive({ db: archive })).toThrow(/canonical_subjects, artifact_versions/)
+      },
+    )
+  })
+
+  it("names every missing table, so one run tells the operator the whole gap", async () => {
+    await withArchive(
+      (db) => db.exec("CREATE TABLE unrelated (k TEXT)"),
+      async (archive) => {
+        for (const t of UNREBUILDABLE_TABLES) {
+          expect(() => verifyArchive({ db: archive })).toThrow(new RegExp(t))
+        }
+      },
+    )
+  })
+
+  it("reports a damaged file through integrity_check rather than a row count", async () => {
+    // Corrupts the archive's bytes after it was written, which is what a torn upload or a bad disk
+    // yields. Asserting the integrity path fires FIRST matters: a count query on a damaged file
+    // throws SQLite's own error, and that message would not tell an operator the file is corrupt.
+    const cwd = mkdtempSync(join(tmpdir(), "backup-verify-bad-"))
+    try {
+      const { db: dbPath } = resolveIndexPaths(cwd)
+      mkdirSync(join(cwd, ".var", "calllint-adoption-index", "db"), { recursive: true })
+      const db = await openBetterSqlite3(dbPath)
+      db.exec(SCHEMA)
+      const target = archivePath(cwd, "2026-08-08T03:30:00Z")
+      ensureStagingRoot(cwd)
+      writeArchive({ db, target })
+      db.close()
+
+      const bytes = readFileSync(target)
+      // Page 2 onward: leaves the 100-byte header intact so the file still OPENS as a database,
+      // which is precisely the case a header-only check would wave through.
+      bytes.fill(0x5a, 4096, Math.min(6144, bytes.length))
+      writeFileSync(target, bytes)
+
+      const archive = await openBetterSqlite3(target)
+      try {
+        // Pinned to THIS module's message, not to SQLite's. `/malformed/` would have accepted the
+        // error `COUNT(*)` throws on a damaged file all by itself — i.e. the assertion would pass
+        // with the integrity_check removed entirely, crediting a guard that was not running. The
+        // prefix is what only `verifyArchive` can produce.
+        expect(() => verifyArchive({ db: archive })).toThrow(/^backup: archive failed integrity_check —/)
+      } finally {
+        try {
+          archive.close()
+        } catch {
+          // A corrupt handle can throw on close; the assertion above is the subject.
+        }
+      }
+    } finally {
+      rmSync(cwd, { recursive: true, force: true })
+    }
   })
 })
 

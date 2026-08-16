@@ -133,6 +133,29 @@ complete database on its own: committed transactions live in `-wal` until a chec
 three files while a writer runs yields a torn archive that only reveals itself when someone tries to
 restore it.
 
+Measured rather than asserted, 2026-08-16, with a writer held open and `wal_autocheckpoint = 0`: at
+one instant, `cp db/…sqlite` produced a database where the table **did not exist** (`no such table`),
+while `VACUUM INTO` produced one holding every row. The loss is worse than a missing row — `CREATE
+TABLE` is itself an uncheckpointed transaction, so the copy opens cleanly as an *empty* database and
+reads as "healthy, just a new deployment". `backup-store.test.ts` now takes both at the same instant
+and asserts the difference, so swapping the implementation for a copy turns 7 tests red instead of
+contradicting a comment.
+
+**The archive is read back before it is uploaded.** `VACUUM INTO` returning without error is not
+evidence that the file it wrote is a database. Step 1 opens the staged archive as its own connection
+and runs three checks in ascending order of what they catch: `PRAGMA integrity_check` (the engine's
+verdict — which for structural damage *throws* rather than returning a bad row, so both paths are
+funnelled into one message), then the presence of all three unrebuildable tables (a mis-rooted or
+half-migrated source produces a file that passes `integrity_check` happily while holding none of the
+facts), then the row counts. The counts are **reported, not gated**: a fresh host legitimately has
+zero rows, so a floor would refuse the first backup of a new deployment — a guard whose failing mode
+is the system working as designed. The number is evidence for a human and for the drill journal.
+
+Verified end-to-end on 2026-08-16 against a copy of a real store (`ADOPTION_INDEX_CWD` pointed at a
+temp root, so no host state was touched): empty store → `0 unrebuildable row(s)`; after seeding
+→ `3`, reported per table; a same-day re-run replaced the day's archive rather than failing. The
+upload leg is still unexercised — see below.
+
 **One object per day.** The archive is date-stamped, not timestamped, so "delete after N days" is a
 sentence about the object key. A same-day re-run replaces the day's archive rather than leaving two
 that age out independently.
@@ -225,9 +248,43 @@ journalctl -u calllint-adoption-backup.service -n 60 --no-pager
 ossutil ls oss://$OSS_BUCKET/adoption-index/ | tail -5
 ```
 
-A successful run logs the archive path, then the upload, then a staging sweep whose `deleted` count
-matches its `inspected` count. `failed` must be 0 — a partial sweep exits non-zero so it surfaces as
-a unit failure rather than a quiet log line, the same rule `prune:cas` follows.
+A successful run logs the archive path, then the readback (`verified integrity_check ok — N
+unrebuildable row(s) readable`, followed by one line per table), then the upload, then a staging sweep
+whose `deleted` count matches its `inspected` count. `failed` must be 0 — a partial sweep exits
+non-zero so it surfaces as a unit failure rather than a quiet log line, the same rule `prune:cas`
+follows.
+
+`N` is not a health threshold. On a host that has never ingested it is legitimately `0`; what the
+line proves is that the staged file *opened as a database* and held all three unrebuildable tables.
+Compare it against the source when you want a stronger claim than "restorable" — see below.
+
+### What is NOT yet exercised
+
+Two gaps, stated so neither reads as done:
+
+**There is no restore entry point.** Nothing in this repo opens an archive and puts it back. The
+readback above proves an archive is *restorable*; it does not constitute a restore, and no drill has
+ever moved an archive back into `.var/calllint-adoption-index/db/`. Until one has, the recovery
+procedure is the two manual commands below and their failure modes are untested:
+
+```bash
+sudo systemctl stop calllint-adoption-worker.timer calllint-adoption-backup.timer
+ossutil cp oss://$OSS_BUCKET/adoption-index/adoption-index-YYYY-MM-DD.sqlite /tmp/restore.sqlite
+# verify BEFORE overwriting anything — the archive is the only copy left in this scenario
+sqlite3 /tmp/restore.sqlite 'PRAGMA integrity_check; SELECT COUNT(*) FROM source_records;'
+sudo -u calllint cp /tmp/restore.sqlite /opt/calllint/.var/calllint-adoption-index/db/adoption-index.sqlite
+# the -wal/-shm of the OLD database must not survive next to the NEW file
+sudo -u calllint rm -f /opt/calllint/.var/calllint-adoption-index/db/adoption-index.sqlite-{wal,shm}
+```
+
+That last line is the step a first-time restorer is most likely to miss, and the one whose omission
+produces the least legible failure: a stale `-wal` beside a restored database is not a torn file, it
+is a *different* database, and SQLite may reject or silently mix them.
+
+**The upload leg has never run.** The archive and readback legs are verified locally (see above). Step
+2 requires `ossutil` on the host and `/etc/calllint/backup.env`, neither of which has been confirmed
+present, so `ExecStartPost=` has never executed and no object has ever landed in the bucket. Until it
+has, remote retention is a console setting governing a prefix that does not exist yet.
 
 ### Why the backup is its own unit, and not a fourth `ExecStart`
 
