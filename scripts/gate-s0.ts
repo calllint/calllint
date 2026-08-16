@@ -682,6 +682,17 @@ if (identity.kind === "checked" && identity.lost.length > 0) {
   const ack = identity.lost.filter((n) => !unacknowledgedLosses.includes(n))
   if (ack.length > 0) console.log(`  ACKNOWLEDGED in adrs/: ${ack.join(", ")} — reported, not failing`)
   if (unacknowledgedLosses.length > 0) console.log(`  UNACKNOWLEDGED: ${unacknowledgedLosses.join(", ")}`)
+  // Which mode OWNS this loss, stated here rather than in the `--regression` branch. It sat there
+  // first, after that branch's `if (!allOk)` early exit, so an unrelated red — vitest failing to
+  // collect — suppressed the note entirely. A report that depends on other assertions passing is not
+  // a report; control C10 printed `reports as non-enforcing: 0` and found exactly that.
+  if (!isIdentity && cohortLostSubjects) {
+    console.log(
+      `  NOTE: reported, not enforced in this mode — the count did not fall ` +
+        `(${censusRegistry} >= ${S0_REGRESSION_FLOOR}), and enforcement lives in \`gate:s0:identity\` ` +
+        `on the \`fetch-depth: 0\` job (ADR 0084 D3).`,
+    )
+  }
 }
 console.log()
 
@@ -772,22 +783,13 @@ if (isIdentity) {
     )
     process.exit(2)
   }
-  // THE IDENTITY LOSS IS REPORTED HERE AND ENFORCED IN `--identity`, NOT BOTH.
-  //
-  // This mode runs on the depth-1 `test` matrix, where `checkCohortIdentity` can only ever return
-  // `refused` — so enforcing here would give the assertion two different meanings depending on clone
-  // depth: silently unenforceable on CI, red on a developer's full clone. One fault would also red two
-  // jobs for one cause. A control measured exactly that: with a count-neutral substitution committed,
-  // `--identity` exits 2 naming the subject while this mode holds its floor (100 >= 100) and exits 0,
-  // which is the blindness ADR 0084 documents rather than a gap in it. `formatIdentityOutcome` is
-  // printed above in every mode, so the loss is never invisible here — only never fatal here.
-  if (cohortLostSubjects) {
-    console.log(
-      `  NOTE: ${unacknowledgedLosses.length} unacknowledged loss(es) — ${unacknowledgedLosses.join(", ")}. ` +
-        `Reported, not enforced in this mode: the count did not fall (${censusRegistry} >= ${S0_REGRESSION_FLOOR}), ` +
-        `and enforcement lives in \`gate:s0:identity\` on the \`fetch-depth: 0\` job (ADR 0084 D3).`,
-    )
-  }
+  // NO IDENTITY ENFORCEMENT HERE — deliberately, and the note saying so is printed with the outcome
+  // above rather than in this branch. This mode runs on the depth-1 `test` matrix, where
+  // `checkCohortIdentity` can only ever return `refused`, so enforcing here would give one assertion
+  // two meanings depending on clone depth: silently unenforceable on CI, red on a developer's full
+  // clone. It would also red two jobs for one cause. Control C10 measured the intended split: with a
+  // count-neutral substitution committed, `--identity` exits 2 naming the subject while this mode's
+  // ratchet reports `floor 100 (held)` — the blindness ADR 0084 documents, not a gap in it.
   console.log(
     registryShort
       ? `✓ All assertions passed; cohort ${censusRegistry} holds the floor (${S0_REGRESSION_FLOOR}). The ${S0_REQUIRED_RECORDS}-record requirement is still short — reported, not enforced here (S0-OPEN-1)\n`
