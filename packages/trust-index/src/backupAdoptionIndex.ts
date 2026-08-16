@@ -41,6 +41,7 @@ import {
   ensureStagingRoot,
   pruneBackupStaging,
   refuseToArchive,
+  verifyArchive,
   writeArchive,
 } from "./backupStore.js"
 
@@ -71,9 +72,23 @@ async function archive(cwd: string, now: string): Promise<void> {
     db.close()
   }
 
+  // Read the archive back BEFORE the unit's next ExecStart uploads it. A torn WAL snapshot only
+  // reveals itself on restore, so verifying after the upload would defer the discovery to the day
+  // the original is gone. Opened as its own connection: the point is to prove the FILE is a
+  // database, which a handle on the source could not tell us.
+  const check = await openBetterSqlite3(target)
+  let verified
+  try {
+    verified = verifyArchive({ db: check })
+  } finally {
+    check.close()
+  }
+
   console.log(`backup:adoption-index — archived ${paths.db}`)
   console.log(`  staging ${stagingRoot}`)
   console.log(`  archive ${target}`)
+  console.log(`  verified integrity_check ok — ${verified.total} unrebuildable row(s) readable`)
+  for (const [table, n] of Object.entries(verified.rows)) console.log(`    ${table} ${n}`)
 }
 
 function prune(cwd: string): void {

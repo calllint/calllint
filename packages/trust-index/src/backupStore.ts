@@ -146,6 +146,91 @@ export function writeArchive(input: WriteArchiveInput): void {
   db.prepare("VACUUM INTO ?").run(target)
 }
 
+/**
+ * The three tables whose rows cannot be rebuilt from any source: `first_seen_at` is the timestamp of
+ * an observation nobody can observe twice (`deploy/adoption-index/README.md`, "Only the database is
+ * archived"). An archive that opens cleanly but lost one of these is a backup of the rebuildable
+ * half, which is the failure this verification exists to make visible.
+ */
+export const UNREBUILDABLE_TABLES = ["source_records", "canonical_subjects", "artifact_versions"] as const
+
+export interface VerifyArchiveResult {
+  /** Row count per table in `UNREBUILDABLE_TABLES`, in that order. */
+  rows: Record<string, number>
+  /** Total across those tables — the one number a log line can carry. */
+  total: number
+}
+
+/**
+ * Read a freshly written archive back and prove it is restorable BEFORE anything uploads it.
+ *
+ * The store runs in WAL mode, so a torn archive is a real outcome, and the README already names when
+ * it surfaces: "only reveals itself when someone tries to restore it." Uploading bytes nobody has
+ * opened defers that discovery to the day the original is gone. `writeArchive`'s tests read the
+ * archive back for exactly this reason; this lifts that readback out of the tests and onto the
+ * production path, where the archive being verified is the one that gets shipped.
+ *
+ * Three checks, in ascending order of what they can catch:
+ *
+ * 1. `PRAGMA integrity_check` — the engine's own verdict. Anything other than the single row `ok`
+ *    means the file is damaged, and SQLite reports the specific damage, so the message carries it.
+ * 2. every `UNREBUILDABLE_TABLES` table is PRESENT. A syntactically valid database missing a table
+ *    passes `integrity_check` happily; that is the shape a mis-rooted or half-migrated source
+ *    produces.
+ * 3. row counts, REPORTED and not asserted against a threshold. A fresh deployment legitimately has
+ *    zero rows, so a floor here would refuse the first backup of a new host — a guard whose failing
+ *    mode is the system working as designed. The count is evidence for a human and for the drill
+ *    journal, not a gate.
+ *
+ * PURE with respect to the filesystem: the caller owns opening and closing `db`, so this can run
+ * against a temp archive in a test or the real staged one in the bin.
+ */
+export function verifyArchive(input: { db: SqliteDatabase }): VerifyArchiveResult {
+  const { db } = input
+
+  // `integrity_check` reports damage two different ways, and only one of them is a return value.
+  // Structural damage (a torn page) makes the PRAGMA itself THROW `database disk image is malformed`
+  // — so a bare `verdict !== "ok"` branch would never run for the most likely corruption, i.e. a
+  // check with no failing mode for the case it exists to catch. Both paths are funnelled into one
+  // message here so the operator gets this module's diagnosis either way.
+  let verdict: string
+  try {
+    const integrity = db.pragma("integrity_check") as unknown
+    verdict = Array.isArray(integrity)
+      ? integrity.map((r) => (r !== null && typeof r === "object" ? Object.values(r as object)[0] : r)).join("; ")
+      : String(integrity)
+  } catch (err) {
+    throw new Error(`backup: archive failed integrity_check — ${err instanceof Error ? err.message : String(err)}`)
+  }
+  if (verdict !== "ok") {
+    throw new Error(`backup: archive failed integrity_check — ${verdict}`)
+  }
+
+  const present = new Set(
+    (db.prepare("SELECT name FROM sqlite_master WHERE type = 'table'").all() as { name: string }[]).map((r) => r.name),
+  )
+  const missing = UNREBUILDABLE_TABLES.filter((t) => !present.has(t))
+  if (missing.length > 0) {
+    throw new Error(
+      `backup: archive is missing ${missing.length} unrebuildable table(s): ${missing.join(", ")} — ` +
+        `it opens cleanly but does not hold the facts the archive exists for`,
+    )
+  }
+
+  const rows: Record<string, number> = {}
+  let total = 0
+  for (const t of UNREBUILDABLE_TABLES) {
+    // The table name is from the frozen constant above, never from input — no interpolated identifier
+    // can reach this string. SQLite does not accept a bound parameter in a FROM clause.
+    const [row] = db.prepare(`SELECT COUNT(*) AS n FROM ${t}`).all() as { n: number }[]
+    const n = row?.n ?? 0
+    rows[t] = n
+    total += n
+  }
+
+  return { rows, total }
+}
+
 /** Create the staging directory. Separate from the write so the bin can report which step failed. */
 export function ensureStagingRoot(cwd: string): string {
   const root = backupStagingRoot(cwd)
