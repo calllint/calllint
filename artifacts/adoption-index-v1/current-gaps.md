@@ -33,6 +33,20 @@ returned nothing.
 There is no `SourceRecord`, no `calllint.adoption-record.v1`, and no table that could hold
 one. `packages/adoption-index/` does not exist (`ls -d` → absent).
 
+> **SUPERSEDED — every clause above is now false 2026-08-16 (Step 3).** Preserved verbatim because
+> this file's §5 forbids rewriting history, but nothing in that paragraph still measures anything.
+> `packages/adoption-index/` **exists**; the same `grep` now returns **10** files including
+> `domain/sourceRecord.ts`, `domain/adoptionRecord.ts`, and `operations/compileAdoptionRecord.ts`.
+> R-7 shipped `calllint.adoption-record.v1` and the store that holds it.
+>
+> **What is still open here is a narrower thing, and it is the R-7 judgement (J1).** The record
+> exists and is *not read by the serving projections*: `packages/trust-index/src/bake.ts` does not
+> compile one. R-7 left that wiring undone **on purpose** — binding "is the record right?" to "is the
+> served tree unchanged?" in one PR makes a red on either side undiagnosable (`CHANGELOG.md:145-152`).
+> That premise is now machine-read by `tests/invariants/open-judgements.invariants.test.ts` (J1) over
+> comment-stripped source, so the wiring cannot arrive — or be reverted — without this file being
+> forced to say so.
+
 ### 1.2 No incremental sync — ingestion is a single-shot full refresh
 
 `packages/trust-index/src/fetchRegistry.ts:90` `fetchRegistrySnapshot` performs **one**
@@ -46,6 +60,16 @@ The committed snapshot confirms the scale this was built for:
 `DEFAULT_MAX_ENTRIES = 25` (`fetchRegistry.ts:19`), fetched
 `2026-07-17T00:00:00.000Z`. Cadence is weekly (`.github/workflows/trust-ingest.yml:18`,
 `cron: "17 6 * * 1"`), and the workflow's own header calls itself "the SOLE scanner".
+
+> **POINTERS RE-MEASURED 2026-08-16 (Step 3).** Every line number and count in the two paragraphs
+> above had rotted; the conclusion below is unaffected, but its evidence no longer resolved.
+> `DEFAULT_MAX_ENTRIES` is **100** at `fetchRegistry.ts:34` (`:19` is a docblock line, and ADR 0074
+> raised the value); `fetchRegistrySnapshot` is at **`:173`**, its single `doFetch` at **`:183`** (not
+> `:90` / `:101`); and the committed snapshot now holds **100** entries, not 19 — S0-OPEN-4's
+> re-ingest (#297) replaced it. The `grep` for `cursor|updated_since|updatedSince|watermark` still
+> returns **no match**, and that is the one measurement this section actually rests on. It is now
+> re-run on every test run by `tests/invariants/open-judgements.invariants.test.ts` (J3) over
+> comment-stripped source, so the absence is machine-checked rather than quoted.
 
 **What that means precisely:** the ingestion path is correct and sufficient for 19–25
 entries reviewed weekly by a human. It has no mechanism that survives being asked for
@@ -62,6 +86,33 @@ file to **generalize** to INV-10's seven terminal states — `SUPPORTED`,
 `IDENTITY_CONFLICT`, `PROCESSING_FAILED`. It is **not** Guard's state machine and it is
 not a job state machine. Both mislabels are live hazards: one sends a batch to generalize
 the wrong file, the other implies a machine already exists.
+
+> **FIRST SENTENCE SUPERSEDED 2026-08-16 (Step 3 follow-up). All four absences shipped.**
+> Inverted in place, not deleted — same policy as §1.4 and §5. Measured at `main` = `0e802a7`:
+>
+> | claimed absent | actually at |
+> | --- | --- |
+> | persistent job queue | `operations/compilerQueue.ts` — `enqueueJobs:94`, `leaseNextJob:137`, `renewLease:165`, over table `compiler_jobs` in `migrations/001` |
+> | leases | `domain/job.ts:136-137` `leaseOwner` / `leaseExpiresAt`, nullable **together** and populated only while `LEASED`, with `assertLeaseCoherent:344` enforcing the pairing |
+> | dead-letter | `domain/job.ts:46` — `CompilerJobState = "PENDING" \| "LEASED" \| "SUCCEEDED" \| "FAILED" \| "DEAD_LETTER"`; `FAILED` vs `DEAD_LETTER` differ by *intent*, not finality (`:41-42`) |
+> | idempotency key | `domain/job.ts:237` — `(job_type, subject_key, input_digest)`, `migrations/001:127`'s UNIQUE constraint verbatim, hashed via `hashJson` over a **named** object so field names are part of the key |
+>
+> A job **state machine** also exists, which is the load-bearing half of the reversal:
+> `domain/jobStates.ts` holds `COMPILER_JOB_TRANSITIONS:79`, `COMPILER_RUN_TRANSITIONS:100`,
+> `isTerminalJobState:115`, `canTransitionJob:125`, `assertJobTransition:143`,
+> `LEASABLE_JOB_STATES:175`, `isLeasableJobState:178`.
+>
+> **The heading's second clause is still true, and is the part to carry forward.**
+> `packages/evidence/src/model/stateMachine.ts` remains the *resolution* machine
+> (`canTransition:27`, `isTerminal:32`, `stateFromResolverStatus:37`) — it is still not the job
+> machine, and ADR 0061 §10 still names it as the file to generalize to INV-10's seven terminal
+> states. What changed is that the job machine no longer needs to be *built*; the remaining work
+> is the generalization, not the queue. All seven INV-10 states are live in
+> `packages/adoption-index/src`, with `PROCESSING_FAILED` appearing only in `domain/jobStates.ts`.
+>
+> Note the shape of this defect: the section was **right about the subtle thing** (which file to
+> generalize) and wrong about the four blunt ones. The subtle claim was re-verified every time
+> someone quoted it; the blunt list read as background and was never re-measured.
 
 ### 1.4 No freshness calculator
 
@@ -101,6 +152,28 @@ makes "rolling" currently unrepresentable.
 > only checking a restatement of it. The fix inverts the direction — `FRESHNESS_KEYS` /
 > `FRESHNESS_STATES` are **runtime** constants, the type derives from them, and a two-sided
 > `AssertNever` bridge fails the typecheck on drift from either side.
+>
+> **COUNTS RE-MEASURED 2026-08-16 (Step 3 follow-up). Every pointer above still resolves; three
+> denominators had rotted with cohort growth 39 → 120.** `bakeTrustPage.ts:162-172` still seals
+> `observedAt` inside `pageContent` → `pageDigest = hashJson(pageContent)`, so the reason freshness
+> lands on `index.json` rather than in the page body is unchanged. `freshness.ts` still exports
+> `CADENCE_DAYS = 7` (`:36`) and `AGING_MULTIPLE = 3` (`:43`), still derived from
+> `trust-ingest.yml:19`'s `cron: "17 6 * * 1"` rather than invented.
+>
+> Measured on the served `apps/web/public/trust/index.json`: **120** entries, not 39 — 100 at
+> `2026-08-15T14:54:20.031Z` and 20 at `FIXTURE_OBSERVED_AT`. So *"20 of 39 entries are fixtures"*
+> is now **20 of 120**; the numerator is unchanged and the `TIMELESS` mechanism it justifies is
+> untouched. *"38/38 baked entries carry `freshness`"* is now **119/119**.
+>
+> The 119 is worth stating precisely, because the raw ratio looks like a bug and is not. 119 of
+> **120** entries carry `freshness`, and only **19** of the 20 fixture-dated entries are `TIMELESS`.
+> The one entry in neither count is `calllint-fixtures/malformed`, `status: "incomplete"`,
+> `reason: "config did not parse — recorded as incomplete, no page baked"` — a third entry shape
+> with no `resolution` and no `freshness`, correctly, since nothing was baked to be fresh *about*.
+> The index's own `baked: 119` / `incomplete: 1` agree. The invariant is **"every baked entry
+> carries freshness"**, which holds 119/119; `38/38` was that invariant expressed as a literal at
+> a moment when no incomplete entry existed. Pinning the literal would have red-flagged a healthy
+> index the first time a config failed to parse.
 
 ### 1.5 No claim-facing control API
 
@@ -134,6 +207,24 @@ account. So this is unblocked-but-unbuilt, which is a different fact from forbid
 > surface", and it is now "mechanism present, surface withheld on purpose". Closing it is a
 > decision about the authority model, not a wiring task.
 
+> **MACHINE READER 2026-08-16 (Step 3): `tests/invariants/open-judgements.invariants.test.ts`.**
+>
+> Until now this section's whole claim was carried by prose, and it is a claim about an **absence** —
+> invisible to every other guard, because nothing is broken and the missing surface is the point. The
+> reader pins the PREMISE rather than the sentence: the mechanism is present at its definition sites,
+> no file under `packages/calllint-mcp/src` or `apps/cli/src` invokes it, and the planner reaches
+> `{ACTIVE, WITHDRAWN}` only. A red is a demand to **acknowledge** — update this section, or write an
+> ADR — never a claim the change was wrong (ADR 0084 D4, generalized past the cohort).
+>
+> **One correction it produced.** The paragraph above says *"`applyWithdrawal` writes `WITHDRAWN`
+> only"*. `applyWithdrawal` writes whatever `entry.to` the plan carries
+> (`tx.setSubjectLifecycle({ status: entry.to })`) and contains no `TOMBSTONED` token at all — the
+> safety property lives one step **upstream**, in `planWithdrawal:99` (`to: "WITHDRAWN"`). The
+> conclusion stands; the enforcement point was misattributed, and the first draft of the guard was
+> aimed at the wrong file because of it. Also: the three operators are at
+> `packages/adoption-index/src/operations/`, and `setSubjectLifecycle` is a **transaction method**,
+> not a free function — a grep for `export function setSubjectLifecycle` finds nothing.
+
 ### 1.6 No scale-threshold instrumentation
 
 Nothing measures the 25 → 100 → 500 step. This absence is **deliberate and gated**:
@@ -160,6 +251,22 @@ in this batch. Recording it as a gap is not a request to close it.
 > 100 → 500 has no more evidence behind it today than it had before. And the cap **cannot** remove
 > the eviction, only defer it — measured, the claimed subject is evicted at cohort `cap + 1` at every
 > cap (25 → 26, 100 → 101, 500 → 501). This section stays OPEN on its own terms.
+
+> **HALF SUPERSEDED 2026-08-16 (Step 3, found while giving this section a machine reader).** The
+> sentence immediately above — *"the cap **cannot** remove the eviction, only defer it"* — was true
+> when written (2026-08-11) and was **falsified the next day** by ADR **0075**, titled verbatim *"The
+> cap deferred the eviction; the selection rule removes it."* `selectCohortEntries` retains every
+> `RESERVED_COHORT_NAMES` entry whenever `max >= 1`, so `cap + 1` no longer evicts the claimed subject
+> at any cap. ADR 0075 §8 records the consequence: S0-OPEN-4 stays open as an **observation**, not a
+> defect. Two sentences dated one day apart contradict each other, and the older one was still here.
+>
+> **What is still open is the INSTRUMENTATION half only** — nothing measures ingest cost, mirror read
+> volume, or bake time against cohort size, so 100 → 500 remains unevidenced. That half is what
+> `tests/invariants/open-judgements.invariants.test.ts` pins, and it deliberately does **not** pin the
+> `cap + 1` claim: that assertion would have gone green today for an unrelated reason, because
+> `.slice(0, max)` does still appear in the file, at the line capping the **reserved** partition. A
+> probe agreeing with a stale sentence is not a measurement. The reader asserts ADR 0075's retention
+> rule instead, so a revert to a bare alphabetical prefix reds and names the ADR it would undo.
 
 Also absent by design: no SQLite dependency exists anywhere yet
 (`grep -rln "better-sqlite3\|node:sqlite"` across `packages/*/src`, `apps/*/src`, and every
@@ -195,15 +302,34 @@ and load-bearing. Full detail in `current-symbol-bindings.json` (rows 4, 11, 14,
 
 | # | Capability | The two owners | Why flattening it is a defect |
 | --- | --- | --- | --- |
-| 4 | Evidence resolution | script `resolveEvidence.ts:40` (only export `remoteSubjects`; `main()` at `:48` is **not** exported) · engine `packages/resolver/src/evidence/resolveSubject.ts:17` + `P1_RESOLVERS` at `index.ts:32` | binding the script alone points every later batch at a `main()` it **cannot import**. The binding would look right and fail at the first `import` |
-| 11 | Gateway prepare | general `prepare.ts:134` · safe-install `prepareSafeInstall.ts:137` | the safe-install path is the one both the CLI and MCP delegate to. Recording only `prepare` aims a batch at the path *not* under test |
-| 14 | Receipt schema | v1 `decisionReceipt.ts:89` `calllint.receipt.v1` · v0 `core/src/receipt/types.ts:17` `calllint.receipt.v0` | **v0 still ships** for `scan --receipt`. "One receipt schema" would license deleting a live surface |
+| 4 | Evidence resolution | script `packages/trust-index/src/resolveEvidence.ts:40` (only export `remoteSubjects`; `main()` at `:48` is **not** exported) · engine `packages/resolver/src/evidence/resolveSubject.ts:17` + `P1_RESOLVERS` at `index.ts:32` | binding the script alone points every later batch at a `main()` it **cannot import**. The binding would look right and fail at the first `import` |
+| 11 | Gateway prepare | general `packages/core/src/gateway/prepare.ts:134` · safe-install `packages/core/src/gateway/prepareSafeInstall.ts:137` | the safe-install path is the one both the CLI and MCP delegate to. Recording only `prepare` aims a batch at the path *not* under test |
+| 14 | Receipt schema | v1 `packages/types/src/decisionReceipt.ts:89` `calllint.receipt.v1` · v0 `packages/core/src/receipt/types.ts:17` `calllint.receipt.v0` | **v0 still ships** for `scan --receipt`. "One receipt schema" would license deleting a live surface |
 | 20 | Generated deployment | producers `bake.ts:121` + `sync-assets.mjs` · deployer `deploy-web.yml:85` | binding only the producer hides the deploy gate at `:114`; binding only the workflow hides who writes the bytes |
 | 21 | Telemetry contracts | `telemetry-contract` `ALLOWED_EVENTS:11` · `trust-event-contract` `TRUST_EVENTS:31` | two **independent** closed vocabularies with separate version constants. Recording one makes a batch believe an event name is allowed when its vocabulary does not contain it |
 
 Row 4 is the only `PARTIAL` among the 21 subsystems, and the reason is precisely the fork:
 the capability exists, but not as an importable schedulable unit. Turning it into one is
 what the rolling compiler needs from it.
+
+> **ALL 15 POINTERS RE-MEASURED 2026-08-16 (Step 3 follow-up) — zero rot.** Every line in
+> every row still holds the symbol the table names: `remoteSubjects` at `resolveEvidence.ts:40`
+> with `main()` still unexported at `:48`, `prepare:134`, `prepareSafeInstall:137`,
+> `DECISION_RECEIPT_SCHEMA = "calllint.receipt.v1"` at `types/src/decisionReceipt.ts:89`,
+> `schema_version: "calllint.receipt.v0"` at `core/src/receipt/types.ts:17`, `bake.ts:121`,
+> `deploy-web.yml:85` + `:114`, `ALLOWED_EVENTS:11`, `TRUST_EVENTS:31`. This section is the
+> **one** part of §1–§2 that did not rot, which is worth recording: it is also the only part
+> whose rows were carried in a machine-readable sidecar (`current-symbol-bindings.json`).
+>
+> The four bare filenames have been qualified to full paths, because measuring them exposed a
+> reader hazard the table itself created. A bare `prepare.ts:134` invites the reader to
+> *construct* a path; the natural guesses (`packages/gateway/src/…`, `scripts/…`,
+> `packages/adoption-index/src/artifacts/…`) do not exist, and a scan keyed on them prints a
+> confident **MISSING FILE** for four rows that are perfectly intact. `decisionReceipt.ts` is
+> genuinely ambiguous — two files carry the name, and it is `packages/types/` that holds `:89`
+> while `packages/install-planner/src/decisionReceipt.ts:89` is an unrelated `expiration:` line
+> that a lazier check would have accepted. An absence measured through a guessed key form is
+> not an absence.
 
 ## 3. The five contradictions — the blueprint asserts gaps that shipped
 
