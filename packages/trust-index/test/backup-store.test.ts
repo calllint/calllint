@@ -20,12 +20,92 @@ import {
   archivePath,
   backupStagingRoot,
   ensureStagingRoot,
+  planRestore,
   pruneBackupStaging,
   refuseToArchive,
+  restoreArchive,
+  SQLITE_SIDECAR_SUFFIXES,
   UNREBUILDABLE_TABLES,
   verifyArchive,
   writeArchive,
 } from "../src/backupStore.js"
+
+/**
+ * Import the restore bin exactly once, INTO A TRAP that an unguarded module body would spring.
+ *
+ * Two problems make the obvious version of this a guard that cannot observe its subject, and both
+ * were found by bypassing `invokedAsScript` and watching the test stay green:
+ *
+ *  1. THE MODULE CACHE. An import runs the body at most once per process. Whichever test imported
+ *     first would be the only one that could ever see a leak, so the assertion has to live with the
+ *     import rather than in whichever test happens to run first.
+ *  2. VITEST'S ARGV. `main()` reads `process.argv.slice(2)`, which under vitest is `["run", "<file>"]`
+ *     — so an unguarded body refuses at `planRestore` ("no archive at …/run") and destroys nothing.
+ *     A test importing under those conditions proves only that vitest's argv is not a valid restore
+ *     invocation. So argv is replaced here with a call that would SUCCEED: a real, verifiable archive
+ *     plus `--force`. `argv[1]` deliberately still points elsewhere, exactly as it does under vitest,
+ *     which is the condition `invokedAsScript` must evaluate to false.
+ *
+ * The fixture is left in place for the guard test to inspect, and the verdict is captured at import
+ * time because that is the only instant the body could have run.
+ */
+const TRAP_STORE_BYTES = "the live store — an unguarded import would have replaced these bytes"
+const TRAP_ARCHIVE_ROWS = 2
+
+type RestoreBinModule = typeof import("../src/restoreAdoptionIndex.js")
+let cachedBin: { mod: RestoreBinModule; storeBytes: string; archivePresent: boolean } | null = null
+
+const loadRestoreBinOnce = async () => {
+  if (cachedBin !== null) return cachedBin
+
+  const source = mkdtempSync(join(tmpdir(), "restore-trap-src-"))
+  const trap = mkdtempSync(join(tmpdir(), "restore-trap-"))
+  try {
+    // A real archive, built by the production writer so it passes `verifyArchive` — every refusal in
+    // `main()` has to be satisfied, or the guard test measures a refusal instead of the guard.
+    const sourceDb = resolveIndexPaths(source).db
+    mkdirSync(join(source, ".var", "calllint-adoption-index", "db"), { recursive: true })
+    const db = await openBetterSqlite3(sourceDb)
+    db.exec(UNREBUILDABLE_TABLES.map((t) => `CREATE TABLE ${t} (id TEXT PRIMARY KEY)`).join(";"))
+    db.prepare("INSERT INTO source_records VALUES (?)").run("TRAP-A")
+    db.prepare("INSERT INTO canonical_subjects VALUES (?)").run("TRAP-B")
+    const built = archivePath(source, "2026-08-16T03:30:00Z")
+    ensureStagingRoot(source)
+    writeArchive({ db, target: built })
+    db.close()
+
+    const trapDb = resolveIndexPaths(trap).db
+    mkdirSync(join(trap, ".var", "calllint-adoption-index", "db"), { recursive: true })
+    writeFileSync(trapDb, TRAP_STORE_BYTES)
+    const archive = join(ensureStagingRoot(trap), `adoption-index-2026-08-16${ARCHIVE_SUFFIX}`)
+    copyFileSync(built, archive)
+
+    const previousEnv = process.env.ADOPTION_INDEX_CWD
+    const previousArgv = process.argv
+    process.env.ADOPTION_INDEX_CWD = trap
+    process.argv = [process.argv[0] ?? "node", join(source, "not-the-restore-bin.ts"), archive, "--force"]
+    let mod: RestoreBinModule
+    try {
+      mod = await import("../src/restoreAdoptionIndex.js")
+      // DRAIN BEFORE MEASURING. `main()` is async and its first `await` is the archive open, so the
+      // `copyFileSync` that would destroy the trap store lands in a later macrotask — after the
+      // import promise has already resolved. Reading the bytes immediately would therefore find them
+      // intact whether the guard held or not, which is the same unobservable-subject failure this
+      // helper exists to avoid. Several turns of the loop, so a chain of awaits cannot outrun it.
+      for (let i = 0; i < 10; i++) await new Promise((r) => setTimeout(r, 0))
+    } finally {
+      process.argv = previousArgv
+      if (previousEnv === undefined) delete process.env.ADOPTION_INDEX_CWD
+      else process.env.ADOPTION_INDEX_CWD = previousEnv
+    }
+
+    cachedBin = { mod, storeBytes: readFileSync(trapDb, "utf8"), archivePresent: existsSync(archive) }
+    return cachedBin
+  } finally {
+    rmSync(source, { recursive: true, force: true })
+    rmSync(trap, { recursive: true, force: true })
+  }
+}
 
 describe("archiveFileName", () => {
   it("is DATE-stamped, so one object per day is what the key itself says", () => {
@@ -476,6 +556,346 @@ describe("pruneBackupStaging", () => {
         skipped: 0,
       })
     })
+  })
+})
+
+describe("planRestore — the refusal set that guards an irreversible replacement", () => {
+  const base = { archive: "/staging/adoption-index-2026-08-16.sqlite", dbPath: "/store/adoption-index.sqlite" }
+
+  it("refuses when the archive is absent, instead of creating one by opening it", () => {
+    // Symmetric with `refuseToArchive`: `openBetterSqlite3` CREATES a missing file. Without this
+    // check the bin would open the *archive* path, get an empty database, verify it (an empty
+    // archive is legitimately valid — a new host's first backup), and copy 0 rows over a live store.
+    const refusal = planRestore({ ...base, archivePresent: false, dbPresent: true, force: true })
+    expect(refusal).not.toBeNull()
+    expect(refusal).toContain(base.archive)
+  })
+
+  it("refuses an existing store WITHOUT --force — the asymmetry that makes this different from writeArchive", () => {
+    // `writeArchive` deletes a same-day archive without asking because the store reproduces it.
+    // Nothing reproduces a store from an archive that has been overwritten by one, so the default
+    // here is refusal. Consent is a flag, not a shrug.
+    const refusal = planRestore({ ...base, archivePresent: true, dbPresent: true, force: false })
+    expect(refusal).not.toBeNull()
+    expect(refusal).toContain(base.dbPath)
+    // The literal, not the bin's export: this suite asserts the message an operator READS. The
+    // separate `parseRestoreArgs` test pins the export to this same literal, which is what proves
+    // the advice and the parser agree.
+    expect(refusal).toContain("--force")
+  })
+
+  it("permits an existing store WITH --force", () => {
+    expect(planRestore({ ...base, archivePresent: true, dbPresent: true, force: true })).toBeNull()
+  })
+
+  it("permits a first restore onto a host with no store, force or not", () => {
+    // Disaster recovery onto a fresh host is the case this tool exists for. Requiring `--force`
+    // there would gate the primary path behind a flag whose stated purpose is overwrite consent,
+    // with nothing to overwrite.
+    expect(planRestore({ ...base, archivePresent: true, dbPresent: false, force: false })).toBeNull()
+    expect(planRestore({ ...base, archivePresent: true, dbPresent: false, force: true })).toBeNull()
+  })
+
+  it("refuses when the archive IS the store, however the two paths are spelled", () => {
+    // `copyFileSync(x, x)` truncates on some platforms, and the sidecar removal that follows would
+    // then delete the WAL of the only remaining copy. Compared after `resolve`, so a relative or
+    // `.`-laden spelling of the same file cannot slip past a string comparison.
+    expect(
+      planRestore({ archive: base.dbPath, dbPath: base.dbPath, archivePresent: true, dbPresent: true, force: true }),
+    ).toContain("same file")
+    expect(
+      planRestore({
+        archive: "/store/./adoption-index.sqlite",
+        dbPath: "/store/adoption-index.sqlite",
+        archivePresent: true,
+        dbPresent: true,
+        force: true,
+      }),
+    ).toContain("same file")
+  })
+
+  it("checks absence BEFORE identity, so a bare typo is not reported as an aliasing bug", () => {
+    // Ordering is the assertion. Both conditions hold here; the message an operator gets must name
+    // the one they can act on.
+    const refusal = planRestore({
+      archive: base.dbPath,
+      dbPath: base.dbPath,
+      archivePresent: false,
+      dbPresent: true,
+      force: true,
+    })
+    expect(refusal).toContain("no archive at")
+    expect(refusal).not.toContain("same file")
+  })
+})
+
+describe("restoreArchive — real SQLite, and the sidecar removal that has no failure signal", () => {
+  const withDirs = async (fn: (ctx: { src: string; dst: string; srcDb: string; dstDb: string }) => Promise<void>) => {
+    const src = mkdtempSync(join(tmpdir(), "restore-src-"))
+    const dst = mkdtempSync(join(tmpdir(), "restore-dst-"))
+    try {
+      const srcDb = resolveIndexPaths(src).db
+      const dstDb = resolveIndexPaths(dst).db
+      mkdirSync(join(src, ".var", "calllint-adoption-index", "db"), { recursive: true })
+      mkdirSync(join(dst, ".var", "calllint-adoption-index", "db"), { recursive: true })
+      await fn({ src, dst, srcDb, dstDb })
+    } finally {
+      rmSync(src, { recursive: true, force: true })
+      rmSync(dst, { recursive: true, force: true })
+    }
+  }
+
+  const SCHEMA = UNREBUILDABLE_TABLES.map(
+    (t) => `CREATE TABLE ${t} (id TEXT PRIMARY KEY, first_seen_at TEXT NOT NULL)`,
+  ).join(";")
+
+  it("puts the archive's rows back and reports them through the same verifyArchive the backup runs", async () => {
+    await withDirs(async ({ src, srcDb, dstDb }) => {
+      const db = await openBetterSqlite3(srcDb)
+      db.exec(SCHEMA)
+      db.prepare("INSERT INTO source_records VALUES (?, ?)").run("KEEP-ME", "2026-01-01T00:00:00Z")
+      const archive = archivePath(src, "2026-08-16T03:30:00Z")
+      ensureStagingRoot(src)
+      writeArchive({ db, target: archive })
+      db.close()
+
+      restoreArchive({ archive, dbPath: dstDb })
+
+      const restored = await openBetterSqlite3(dstDb)
+      try {
+        expect(verifyArchive({ db: restored }).rows.source_records).toBe(1)
+        expect(restored.prepare("SELECT id FROM source_records").all()).toEqual([{ id: "KEEP-ME" }])
+      } finally {
+        restored.close()
+      }
+    })
+  })
+
+  it("creates the db directory, so a restore onto a bare host is not a two-step procedure", async () => {
+    // First-restore-after-total-loss is the primary path: nothing under `.var/` exists yet. An
+    // implementation that assumed the directory would fail here with ENOENT at the worst moment.
+    const src = mkdtempSync(join(tmpdir(), "restore-bare-src-"))
+    const dst = mkdtempSync(join(tmpdir(), "restore-bare-dst-"))
+    try {
+      const srcDb = resolveIndexPaths(src).db
+      mkdirSync(join(src, ".var", "calllint-adoption-index", "db"), { recursive: true })
+      const db = await openBetterSqlite3(srcDb)
+      db.exec(SCHEMA)
+      const archive = archivePath(src, "2026-08-16T03:30:00Z")
+      ensureStagingRoot(src)
+      writeArchive({ db, target: archive })
+      db.close()
+
+      const dstDb = resolveIndexPaths(dst).db
+      expect(existsSync(join(dst, ".var"))).toBe(false)
+      restoreArchive({ archive, dbPath: dstDb })
+      expect(existsSync(dstDb)).toBe(true)
+    } finally {
+      rmSync(src, { recursive: true, force: true })
+      rmSync(dst, { recursive: true, force: true })
+    }
+  })
+
+  /**
+   * THE MEASUREMENT THIS WHOLE MODULE RESTS ON, run 2026-08-16 rather than inherited from the README.
+   *
+   * The README claimed SQLite "may reject or silently mix" a stale `-wal`. Measured, it does neither:
+   * the restored database opens, reports `integrity_check` **ok**, and serves the OLD generation's
+   * rows — the archive's own row is simply absent. This test constructs the case so the two
+   * generations DISAGREE (the old one deleted the row the archive holds), because a probe where both
+   * hold the same rows cannot tell "the sidecar won" from "the copy worked".
+   *
+   * The stale-sidecar branch is asserted DIRECTLY, not just via the fixed path: without it, deleting
+   * the removal loop from `restoreArchive` would leave this file green.
+   */
+  it("a stale -wal serves the OLD generation and reports integrity_check ok — no failure signal at all", async () => {
+    await withDirs(async ({ src, srcDb, dst, dstDb }) => {
+      // Generation the archive captures: holds KEEP-ME.
+      const gen1 = await openBetterSqlite3(srcDb)
+      gen1.exec(SCHEMA)
+      gen1.prepare("INSERT INTO source_records VALUES (?, ?)").run("KEEP-ME", "2026-01-01T00:00:00Z")
+      const archive = archivePath(src, "2026-08-16T03:30:00Z")
+      ensureStagingRoot(src)
+      writeArchive({ db: gen1, target: archive })
+      gen1.close()
+
+      // Generation the operator is discarding: KEEP-ME deleted, LATER added. Its sidecars are
+      // captured while the handle is open, which is what they look like beside a live store.
+      const gen2 = await openBetterSqlite3(srcDb)
+      gen2.prepare("DELETE FROM source_records WHERE id = ?").run("KEEP-ME")
+      gen2.prepare("INSERT INTO source_records VALUES (?, ?)").run("LATER", "2026-02-02T00:00:00Z")
+      const sidecars = SQLITE_SIDECAR_SUFFIXES.map((s) => ({ suffix: s, path: `${srcDb}${s}` }))
+        .filter((s) => existsSync(s.path))
+        .map((s) => ({ suffix: s.suffix, bytes: readFileSync(s.path) }))
+      gen2.close()
+      // Non-vacuity: if WAL mode were off, there would be no sidecar to go stale and this test
+      // would silently assert nothing.
+      expect(sidecars.map((s) => s.suffix)).toEqual([...SQLITE_SIDECAR_SUFFIXES])
+
+      // THE WRONG RESTORE — a byte copy with the sidecars left in place, i.e. the README's step
+      // omitted. Every check an operator would think to run says the store is healthy.
+      copyFileSync(archive, dstDb)
+      for (const s of sidecars) writeFileSync(`${dstDb}${s.suffix}`, s.bytes)
+      const wrong = await openBetterSqlite3(dstDb)
+      try {
+        expect(wrong.pragma("integrity_check")).toEqual([{ integrity_check: "ok" }])
+        expect(verifyArchive({ db: wrong }).total).toBe(1)
+        // Serves the generation that was supposed to be discarded, and NOT the archive's row.
+        expect(wrong.prepare("SELECT id FROM source_records").all()).toEqual([{ id: "LATER" }])
+      } finally {
+        wrong.close()
+      }
+
+      // THE RESTORE THIS MODULE PERFORMS — same inputs, sidecars removed. Rebuilt from scratch so
+      // the only difference between the two outcomes is the removal itself.
+      rmSync(join(dst, ".var"), { recursive: true, force: true })
+      mkdirSync(join(dst, ".var", "calllint-adoption-index", "db"), { recursive: true })
+      copyFileSync(archive, dstDb)
+      for (const s of sidecars) writeFileSync(`${dstDb}${s.suffix}`, s.bytes)
+      const removed = restoreArchive({ archive, dbPath: dstDb })
+      expect(removed).toEqual(SQLITE_SIDECAR_SUFFIXES.map((s) => `${dstDb}${s}`))
+
+      const right = await openBetterSqlite3(dstDb)
+      try {
+        expect(right.prepare("SELECT id FROM source_records").all()).toEqual([{ id: "KEEP-ME" }])
+      } finally {
+        right.close()
+      }
+    })
+  })
+
+  it("reports zero removals when the replaced store was checkpointed, rather than claiming work it did not do", async () => {
+    // "0 removed" and "2 removed" are different stories about the store that was replaced, and the
+    // recovery log has to be able to tell them apart.
+    await withDirs(async ({ src, srcDb, dstDb }) => {
+      const db = await openBetterSqlite3(srcDb)
+      db.exec(SCHEMA)
+      const archive = archivePath(src, "2026-08-16T03:30:00Z")
+      ensureStagingRoot(src)
+      writeArchive({ db, target: archive })
+      db.close()
+
+      expect(restoreArchive({ archive, dbPath: dstDb })).toEqual([])
+    })
+  })
+
+  it("removes only the enumerated sidecars, never an archive staged beside the store", async () => {
+    // The reason `SQLITE_SIDECAR_SUFFIXES` is a list and not a `…sqlite-*` glob. A glob would also
+    // match `adoption-index.sqlite-backup-2026-08-16`, and a restore that deletes the operator's
+    // only remaining copy is worse than the failure it is preventing.
+    await withDirs(async ({ src, srcDb, dst, dstDb }) => {
+      const db = await openBetterSqlite3(srcDb)
+      db.exec(SCHEMA)
+      const archive = archivePath(src, "2026-08-16T03:30:00Z")
+      ensureStagingRoot(src)
+      writeArchive({ db, target: archive })
+      db.close()
+
+      const bystander = `${dstDb}-backup-2026-08-16`
+      writeFileSync(bystander, "an operator's only other copy")
+      const sibling = join(dst, ".var", "calllint-adoption-index", "db", "adoption-index-2026-08-15.sqlite")
+      writeFileSync(sibling, "yesterday's archive")
+
+      restoreArchive({ archive, dbPath: dstDb })
+
+      expect(existsSync(bystander)).toBe(true)
+      expect(readFileSync(bystander, "utf8")).toBe("an operator's only other copy")
+      expect(existsSync(sibling)).toBe(true)
+    })
+  })
+})
+
+describe("parseRestoreArgs — the argv split, pure so its refusal branch is reachable", () => {
+  it("returns a null archive when none was given, rather than treating the flag as a path", async () => {
+    // Control #112: a bin that read `process.argv[2]` inline would fence this branch behind
+    // `invokedAsScript`, where no test can reach it — and `--force` alone would then be resolved as
+    // a relative filename.
+    const { mod } = await loadRestoreBinOnce()
+    expect(mod.parseRestoreArgs([])).toEqual({ archive: null, force: false })
+    expect(mod.parseRestoreArgs([mod.FORCE_FLAG])).toEqual({ archive: null, force: true })
+  })
+
+  it("accepts the flag on either side of the archive", async () => {
+    const { mod } = await loadRestoreBinOnce()
+    expect(mod.parseRestoreArgs(["a.sqlite", mod.FORCE_FLAG])).toEqual({ archive: "a.sqlite", force: true })
+    expect(mod.parseRestoreArgs([mod.FORCE_FLAG, "a.sqlite"])).toEqual({ archive: "a.sqlite", force: true })
+    expect(mod.parseRestoreArgs(["a.sqlite"])).toEqual({ archive: "a.sqlite", force: false })
+  })
+
+  it("spells the flag exactly once, so the bin and the refusal message cannot disagree", async () => {
+    // `planRestore`'s message tells the operator to re-run with this flag. If the two spellings
+    // drifted, the advice would name a flag the parser ignores.
+    const { mod } = await loadRestoreBinOnce()
+    expect(mod.FORCE_FLAG).toBe("--force")
+    expect(
+      planRestore({ archive: "/a.sqlite", dbPath: "/b.sqlite", archivePresent: true, dbPresent: true, force: false }),
+    ).toContain(mod.FORCE_FLAG)
+  })
+})
+
+describe("restoreAdoptionIndex — the invoked-as-script guard", () => {
+  it("importing the bin does NOT replace the store, even with a valid archive and --force in argv", async () => {
+    // The highest-stakes instance of this guard in the package: `main()` REPLACES the store database.
+    // The trap is set up in `loadRestoreBinOnce` and every condition for a successful restore is
+    // satisfied at import time — a real archive that passes `verifyArchive`, `--force` present,
+    // `ADOPTION_INDEX_CWD` pointing at a store that exists — so the ONLY thing standing between the
+    // import and destroyed bytes is `invokedAsScript`. See that helper for why an earlier version of
+    // this test passed with the guard bypassed.
+    const { storeBytes, archivePresent } = await loadRestoreBinOnce()
+    expect(storeBytes).toBe(TRAP_STORE_BYTES)
+    // Non-vacuity: the archive must still have been there for the trap to have been armed at all. An
+    // absent one would mean the import refused on `planRestore` and this test proved nothing.
+    expect(archivePresent).toBe(true)
+  })
+
+  it("the trap's archive would really have restored — the guard test is not passing on a refusal", async () => {
+    // Proves the trap is live rather than merely unsprung. The same archive shape and the same
+    // `--force` argv, run through the library path the bin uses, DOES replace a store. So the bytes
+    // surviving above is attributable to the guard and to nothing else.
+    const source = mkdtempSync(join(tmpdir(), "restore-trap-live-src-"))
+    const victim = mkdtempSync(join(tmpdir(), "restore-trap-live-"))
+    try {
+      const sourceDb = resolveIndexPaths(source).db
+      mkdirSync(join(source, ".var", "calllint-adoption-index", "db"), { recursive: true })
+      const db = await openBetterSqlite3(sourceDb)
+      db.exec(UNREBUILDABLE_TABLES.map((t) => `CREATE TABLE ${t} (id TEXT PRIMARY KEY)`).join(";"))
+      db.prepare("INSERT INTO source_records VALUES (?)").run("TRAP-A")
+      db.prepare("INSERT INTO canonical_subjects VALUES (?)").run("TRAP-B")
+      const archive = archivePath(source, "2026-08-16T03:30:00Z")
+      ensureStagingRoot(source)
+      writeArchive({ db, target: archive })
+      db.close()
+
+      const victimDb = resolveIndexPaths(victim).db
+      mkdirSync(join(victim, ".var", "calllint-adoption-index", "db"), { recursive: true })
+      writeFileSync(victimDb, TRAP_STORE_BYTES)
+
+      const { mod } = await loadRestoreBinOnce()
+      const parsed = mod.parseRestoreArgs([archive, "--force"])
+      expect(parsed.force).toBe(true)
+      expect(
+        planRestore({
+          archive,
+          dbPath: victimDb,
+          archivePresent: true,
+          dbPresent: true,
+          force: parsed.force,
+        }),
+      ).toBeNull()
+
+      const opened = await openBetterSqlite3(archive)
+      try {
+        expect(verifyArchive({ db: opened }).total).toBe(TRAP_ARCHIVE_ROWS)
+      } finally {
+        opened.close()
+      }
+
+      restoreArchive({ archive, dbPath: victimDb })
+      expect(readFileSync(victimDb, "utf8")).not.toBe(TRAP_STORE_BYTES)
+    } finally {
+      rmSync(source, { recursive: true, force: true })
+      rmSync(victim, { recursive: true, force: true })
+    }
   })
 })
 

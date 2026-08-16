@@ -260,26 +260,7 @@ Compare it against the source when you want a stronger claim than "restorable" �
 
 ### What is NOT yet exercised
 
-Two gaps, stated so neither reads as done:
-
-**There is no restore entry point.** Nothing in this repo opens an archive and puts it back. The
-readback above proves an archive is *restorable*; it does not constitute a restore, and no drill has
-ever moved an archive back into `.var/calllint-adoption-index/db/`. Until one has, the recovery
-procedure is the two manual commands below and their failure modes are untested:
-
-```bash
-sudo systemctl stop calllint-adoption-worker.timer calllint-adoption-backup.timer
-ossutil cp oss://$OSS_BUCKET/adoption-index/adoption-index-YYYY-MM-DD.sqlite /tmp/restore.sqlite
-# verify BEFORE overwriting anything — the archive is the only copy left in this scenario
-sqlite3 /tmp/restore.sqlite 'PRAGMA integrity_check; SELECT COUNT(*) FROM source_records;'
-sudo -u calllint cp /tmp/restore.sqlite /opt/calllint/.var/calllint-adoption-index/db/adoption-index.sqlite
-# the -wal/-shm of the OLD database must not survive next to the NEW file
-sudo -u calllint rm -f /opt/calllint/.var/calllint-adoption-index/db/adoption-index.sqlite-{wal,shm}
-```
-
-That last line is the step a first-time restorer is most likely to miss, and the one whose omission
-produces the least legible failure: a stale `-wal` beside a restored database is not a torn file, it
-is a *different* database, and SQLite may reject or silently mix them.
+One gap, stated so it does not read as done:
 
 **The upload leg has never run.** The archive and readback legs are verified locally (see above). Step
 2 requires `ossutil` on the host and `/etc/calllint/backup.env`, neither of which has been confirmed
@@ -295,6 +276,50 @@ and poison `prune:cas … failed 0`, which this file documents above as the work
 
 This is the same shape as the note under [Committing the result](#committing-the-result): a step that
 needs its own credentials is a separate decision, not something bolted onto `ExecStart`.
+
+## Restoring
+
+```bash
+sudo systemctl stop calllint-adoption-worker.timer calllint-adoption-backup.timer
+ossutil cp oss://$OSS_BUCKET/adoption-index/adoption-index-YYYY-MM-DD.sqlite /tmp/restore.sqlite
+sudo -u calllint env ADOPTION_INDEX_CWD=/opt/calllint pnpm restore:adoption-index /tmp/restore.sqlite --force
+sudo systemctl start calllint-adoption-worker.timer calllint-adoption-backup.timer
+```
+
+`restore:adoption-index` verifies the archive **before** it replaces anything, using the same
+`verifyArchive` the backup runs before uploading — one definition of "this file is a restorable
+database", applied to both ends of the round trip. In a real recovery the archive is the only copy
+left, so verifying afterwards would mean discovering a bad archive at the moment both generations are
+gone.
+
+`--force` is required whenever a store already exists. Restoring replaces the live generation and
+nothing rebuilds it from the archive that overwrote it, so an existing database is a refusal by
+default. Without `--force` the command names the path it would have overwritten and exits non-zero.
+
+Three things it deliberately does not do. It does **not download** — the credential lives in a
+root-only file and a restore is a human-initiated recovery, not a timer's job, so the operator brings
+the file. It does **not stop the timers**; that needs root and this runs as `calllint`, which is why
+the first line above is still yours to run. And it **never deletes the archive**.
+
+**Why the stale-sidecar removal is code and not a line in this procedure.** Earlier revisions of this
+file carried the removal as a manual `rm -f …-{wal,shm}`, called it "the step a first-time restorer is
+most likely to miss", and said SQLite "may reject or silently mix" the two generations. Measured
+2026-08-16, it does neither, and the truth is worse than the warning: with an uncheckpointed `-wal`
+from the *old* generation left beside the restored file, SQLite opens it, reports `integrity_check`
+**ok**, and serves the **old** generation's rows. The archive's own rows are simply absent. The
+restore silently accomplishes nothing while every check an operator would think to run says the store
+is healthy. A step with no failure signal of its own cannot be delegated to human memory, so it is a
+line of code with a test behind it instead of a line of prose here.
+
+A successful restore logs the store it wrote, the archive it came from, `integrity_check ok — N
+unrebuildable row(s) readable` with one line per table, and the sidecars it removed by name and
+count. Zero removals is reported explicitly — "0 removed" and "2 removed" are different stories about
+the store that was replaced, and a recovery log needs to say which happened.
+
+**A restore has still never been drilled on the host.** Every branch above is covered by tests
+against real SQLite, including the stale-sidecar case, but no archive has ever moved back into
+`/opt/calllint/.var/calllint-adoption-index/db/` on the worker — the upload leg has not run, so there
+is nothing in the bucket to restore from yet.
 
 ## Resource caps and the co-tenant
 

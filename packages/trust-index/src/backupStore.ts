@@ -28,8 +28,8 @@
  * where no CI of ours is watching.
  */
 
-import { existsSync, mkdirSync, readdirSync, rmSync, statSync } from "node:fs"
-import { join, resolve } from "node:path"
+import { copyFileSync, existsSync, mkdirSync, readdirSync, rmSync, statSync } from "node:fs"
+import { dirname, join, resolve } from "node:path"
 import type { SqliteDatabase } from "@calllint/adoption-index"
 
 /**
@@ -229,6 +229,101 @@ export function verifyArchive(input: { db: SqliteDatabase }): VerifyArchiveResul
   }
 
   return { rows, total }
+}
+
+/**
+ * The WAL sidecars SQLite keeps beside a database file, enumerated rather than globbed.
+ *
+ * These are the files a restore MUST remove, and the reason is measured rather than inherited from
+ * folklore — see `planRestore`. Enumerated because a glob (`…sqlite-*`) would also match the
+ * archive an operator staged next to the store, and a restore that deletes an archive is the one
+ * failure mode worse than the one it is preventing.
+ */
+export const SQLITE_SIDECAR_SUFFIXES = ["-wal", "-shm"] as const
+
+export interface PlanRestoreInput {
+  /** Absolute path of the archive to restore FROM. */
+  archive: string
+  /** Absolute path of the store database to restore TO, from `resolveIndexPaths`. */
+  dbPath: string
+  /** Whether `archive` exists. Passed in for the same purity reason as `refuseToArchive`. */
+  archivePresent: boolean
+  /** Whether `dbPath` already exists — a restore over a live store needs explicit consent. */
+  dbPresent: boolean
+  /** The operator's explicit consent to overwrite an existing store. */
+  force: boolean
+}
+
+/**
+ * The restore refusal set — pure, so every branch is reachable from a test rather than fenced
+ * behind `invokedAsScript` (control #112, the same reason `refuseToArchive` takes its booleans).
+ *
+ * THE `force` GATE IS THE POINT OF THIS FUNCTION. A restore is the only operation in this module
+ * that destroys data the system is still using: it replaces the live store with an older
+ * generation. `writeArchive` may delete a same-day archive because that archive is reproducible
+ * from the store; nothing reproduces a store from an archive that has been overwritten by one. So
+ * an existing database is a refusal by default and an overwrite is an explicit act.
+ */
+export function planRestore(input: PlanRestoreInput): string | null {
+  const { archive, dbPath, archivePresent, dbPresent, force } = input
+  if (!archivePresent) {
+    return (
+      `restore: refusing — no archive at ${archive}. ` +
+      `Download it from object storage first; a restore cannot invent the generation it replaces.`
+    )
+  }
+  if (resolve(archive) === resolve(dbPath)) {
+    return `restore: refusing — the archive and the store are the same file (${archive})`
+  }
+  if (dbPresent && !force) {
+    return (
+      `restore: refusing — a store already exists at ${dbPath}. ` +
+      `Restoring replaces it with the archive's generation, and nothing rebuilds the current one. ` +
+      `Re-run with --force once you have confirmed that is what you want.`
+    )
+  }
+  return null
+}
+
+export interface RestoreResult {
+  /** Row counts the restored store holds, from `verifyArchive` — reported, never gated. */
+  rows: Record<string, number>
+  total: number
+  /** Sidecar files removed beside the restored database, by absolute path. */
+  removedSidecars: string[]
+}
+
+/**
+ * Copy a VERIFIED archive over the store database and remove the previous generation's WAL
+ * sidecars. The caller verifies the archive first; this function performs the replacement.
+ *
+ * WHY THE SIDECARS MUST GO, MEASURED 2026-08-16 AND WORSE THAN THE DOCUMENTED CLAIM. The README
+ * said a stale `-wal` beside a restored database "is a *different* database, and SQLite may reject
+ * or silently mix them." Run, it does not reject and it does not mix: with an uncheckpointed `-wal`
+ * from the OLD generation left in place, SQLite opens the file, reports `integrity_check` **ok**,
+ * and serves the OLD generation's rows — the restore silently does nothing at all while every
+ * check an operator would think to run says the store is healthy. The archive's rows are simply not
+ * there. That is why this is a step in code and not a line in a runbook: it has no failure signal
+ * of its own, so a human cannot be asked to remember it.
+ *
+ * `copyFileSync`, not `VACUUM INTO`: the source is a quiescent archive nobody is writing to, so
+ * there is no torn-snapshot risk in this direction, and a byte copy keeps the restored store
+ * bit-identical to the archive an operator verified.
+ */
+export function restoreArchive(input: { archive: string; dbPath: string }): string[] {
+  const { archive, dbPath } = input
+  mkdirSync(dirname(dbPath), { recursive: true })
+  copyFileSync(archive, dbPath)
+
+  const removed: string[] = []
+  for (const suffix of SQLITE_SIDECAR_SUFFIXES) {
+    const sidecar = `${dbPath}${suffix}`
+    if (existsSync(sidecar)) {
+      rmSync(sidecar, { force: true })
+      removed.push(sidecar)
+    }
+  }
+  return removed
 }
 
 /** Create the staging directory. Separate from the write so the bin can report which step failed. */
