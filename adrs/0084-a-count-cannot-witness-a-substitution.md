@@ -146,20 +146,53 @@ retention remains the separate, stronger rule for subjects that may never be dro
 
 ## Verification
 
-To be recorded on implementation, with a negative control per decision. Required shape, per this
-repo's standing rule: each control must red **by its own assertion, naming its own subject**
+Implemented in `scripts/cohort-identity.ts` (the witness) and `scripts/gate-s0.ts` (a third enforcing
+mode, `--identity`), hosted on `ledger-authenticity` per D3. **Eleven controls, all behaving as
+required.** Each red names its own subject, per this repo's standing rule
 ([[negative-control-validity-checklist]], [[green-negative-control-must-be-diagnosed]]).
 
-Controls this ADR's implementation owes:
+Controls C1–C6 and C8 ran in an isolated fixture repo with a synthetic 10-name cohort; C7 and C9–C11
+ran against **this** repository's real 100-record snapshot.
 
-| control | mutation | must red with |
-|---|---|---|
-| D1 | drop one name from the snapshot, add one so the count is unchanged | the lost name, from the identity assertion — proving a count-neutral substitution is caught |
-| D1 | drop one name, add none (count falls) | **both** witnesses independently — proving neither is load-bearing for the other |
-| D1 | add names only | **green** — proving growth is not reported as loss |
-| D3 | run the check on a depth-1 clone | an explicit **refusal**, textually distinct from a pass |
-| D4 | reserved name dropped | the ADR 0075 retention rule, not D1's message — proving the two rules stay separable |
+| # | mutation | required | observed |
+|---|---|---|---|
+| C1 | drop one name, add one — **count unchanged** | reds naming the lost name while `prev == cur` | ⚠ `LOST: pub.03/srv`, `prev=10 cur=10` |
+| C2 | drop one, add none (count falls) | reds naming the lost name | ⚠ `LOST: pub.07/srv`, `10 → 9` |
+| C3 | add names only | **green** — growth is never a fault | ✓ `lost=[] gained=[pub.aa/x, pub.bb/y]` |
+| C4 | `entries` keyed `serverName` | **refuses** — a partial name set is vacuous | ◇ `2 entries but only 0 usable name values` |
+| C5 | no `entries` array | **refuses**, naming the keys it did find | ◇ `found keys [schema, servers]` |
+| C6 | substitute 5 of 10, count unchanged | reds naming all five | ⚠ 5 lost, `prev=10 cur=10` |
+| C7 | depth-1 clone (D3) | refusal **textually distinct from a pass** | ◇ `SHALLOW CLONE… REFUSAL, not a pass`; tells the operator `fetch-depth: 0` |
+| C8 | reserved name dropped (D4) | the **0075 retention rule**, not D1's message | D1 reports the loss; its output contains no `reserved`/`retention`/`0075`. `registry-cohort-retention.invariants.test.ts` — **9 passed** — owns that input |
+| C9 | count-neutral substitution on the **real** cohort, unacknowledged | `--identity` **EXIT 2** | EXIT 2: `ag.hood/name-service` … `count is 100 and the floor is 100, so the ratchet is green and CANNOT see this` |
+| C10 | same repo, `--regression` | prints the loss, **claims no enforcement** | prints ⚠ + `NOTE: reported, not enforced in this mode`; ratchet says `floor 100 (held)` |
+| C11 | depth-1 clone, both modes | `--identity` EXIT 2; `--regression` EXIT 0 | as required — same measurement, different host, different verdict |
 
-The count-neutral control is the one that matters most: it is the only one the *existing* gate cannot
-already fail, and therefore the only one that proves D1 added a witness rather than a second copy of
-one.
+**C1 and C9 are the load-bearing pair.** Both hold the count constant, so `censusRegistry <
+S0_REGRESSION_FLOOR` is false and the pre-0084 gate **cannot** red on either. C9 does it on the real
+snapshot: cohort 100, floor 100, ratchet explicitly `(held)`, and `--identity` still exits 2 naming the
+subject. That is what distinguishes "D1 added a witness" from "D1 is a second copy of the count".
+
+### Three defects the controls found, and what each changed
+
+1. **The controls first red for the wrong reason.** C1–C3 all refused with `at aa6c8b34: 2 entries but
+   only 0 usable name values` — C4's malformed snapshot had been committed and became their *previous
+   revision*. The controls were reading a poisoned baseline, not exercising their mutations. Fixed by
+   giving every control its own branch off one pristine baseline. Inverse of
+   [[green-negative-control-must-be-diagnosed]]: a red is not evidence until you read *why*.
+
+2. **C9's first run was green, and was right to be.** The clone was made from `HEAD`, but the
+   implementation was uncommitted working-tree state — so the control measured the **pre-0084** gate
+   and correctly reproduced the blind spot this ADR exists to close. An accidental, faithful
+   replication of the original fault.
+
+3. **`--regression` enforced identity too, and the note that said otherwise never printed.** Enforcing
+   in both modes gives one assertion two meanings by clone depth: unenforceable on the depth-1 matrix
+   (where the check can only refuse), red on a developer's full clone — and one fault redding two jobs.
+   Removed. The explanatory note then still didn't appear, because it sat after that branch's
+   `if (!allOk)` early exit: an unrelated red (vitest failing to collect) suppressed it. **A report that
+   depends on other assertions passing is not a report.** Moved to the unconditional print block.
+
+Also measured, and it is why `--identity` is a separate mode rather than a step on the matrix: under
+`--regression` on CI the check can *only* return `refused`, so wiring enforcement there would have been
+a step with no failing mode — this ADR's own defect, reintroduced by its guard.
