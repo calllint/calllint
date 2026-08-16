@@ -623,5 +623,36 @@ describe("refreshSnapshot measures; it does not write the served tree (controls 
       // The wording comes from the package that owns the numbers, not re-phrased at the bin.
       expect(code).toMatch(/describeEvidenceCompilation\(mirrored\.evidence\)/)
     })
+
+    /**
+     * The conservation partition reaches the LOG, not just the result object (ADR 0085).
+     *
+     * `measureCohortConservation` has been wired into `refreshFromMirror` since D1, and
+     * `assertCohortConserved` refuses the unexplained case — but a guard that speaks only when it
+     * throws leaves the SUCCESSFUL run unmeasured, and the run that matters here succeeds while the
+     * number jumps. The next full ingest recovers 58 wrongly-dropped subjects; ADR 0083's ratchet
+     * sees magnitude, and magnitude is not a cause. The ADR's Consequences require that "the run's
+     * log must say why the number moved".
+     *
+     * Graded on SOURCE TEXT, for the same reason the clauses above are: `main()` opens a SQLite
+     * database under `.var/`, fetches the live registry, and rewrites the committed snapshot, so no
+     * suite on any CI leg can call it. String-matching a log line is a weak instrument and it is
+     * used here only because the alternative is no observer at all — the numbers themselves are
+     * graded properly in `cohort-conservation.test.ts`, which drives the emitter directly.
+     */
+    it("prints the conservation partition on EVERY run, sourced from the owning package", () => {
+      const code = ingestCode()
+      // Called with the measurement the mirror returns — not recomputed at the bin, which would let
+      // the log and the guard disagree about the same run.
+      expect(code).toMatch(/describeCohortConservation\(mirrored\.conservation\)/)
+      // UNCONDITIONAL, unlike the two clauses above. Those are empty-string on a `null` port because
+      // "not asked" is a real state; conservation is measured on every mirror, so a ternary here
+      // would mean some successful run prints no partition at all.
+      expect(code).not.toMatch(/mirrored\.conservation === null \? ""/)
+      // And it reaches stdout. Building the clause without emitting it is exactly the gap this test
+      // exists to close: before this batch the helper's own docblock promised a log line that no
+      // caller ever printed.
+      expect(code).toMatch(/console\.log\([\s\S]*conservationClause/)
+    })
   })
 })

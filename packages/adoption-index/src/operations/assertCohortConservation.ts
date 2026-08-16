@@ -197,3 +197,32 @@ export function assertCohortConserved(conservation: CohortConservation): void {
     )
   }
 }
+
+/**
+ * One line for a run log — the partition, stated on every run rather than only on a refusal.
+ *
+ * ADR 0085's Consequences require that when the cohort grows on the next full ingest, "the run's
+ * log must say why the number moved". A count alone cannot: `100 current subject(s)` reads
+ * identically whether the projection served everything it was given or silently dropped a fifth of
+ * it, which is exactly the indistinguishability ADR 0085 measured at 58 subjects. The guard above
+ * already refuses the unexplained case, but a guard that speaks only when it throws leaves the
+ * successful run unmeasured — and the run that matters here SUCCEEDS while the number jumps.
+ *
+ * So the identity is printed: `live = served + capped + stale`. An operator reading a large
+ * positive delta against a stated `served` and a stated `capped` can tell a correction from
+ * adoption without querying the store, which is the whole point — ADR 0083's ratchet measures
+ * magnitude and will see the jump, and magnitude is not a cause.
+ *
+ * The `capped` clause is OMITTED when nothing was capped, following `describeArtifactResolution`:
+ * "0 excluded by the cap" and "the ceiling did not bind on this run" are different facts, and a
+ * row of zeros reads as a measurement nobody took.
+ */
+export function describeCohortConservation(c: CohortConservation): string {
+  const capped = c.droppedByCap.length > 0 ? `, ${c.droppedByCap.length} capped` : ""
+  // `stale` is normally absent: `assertCohortConserved` throws on a non-empty set, so a caller
+  // that printed this after asserting can only ever see 0. Kept for the pre-assert caller and
+  // because a silent 0 here would be the one number worth seeing if that ordering ever changes.
+  const stale =
+    c.droppedByStaleCurrentRow.length > 0 ? `, ${c.droppedByStaleCurrentRow.length} stale` : ""
+  return `cohort: ${c.liveInMirror} live in mirror = ${c.served} served${capped}${stale}`
+}

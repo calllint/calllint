@@ -166,6 +166,7 @@ export type {
 export {
   measureCohortConservation,
   assertCohortConserved,
+  describeCohortConservation,
   CohortConservationError,
 } from "./operations/assertCohortConservation.js"
 export type { RefreshFromMirrorOptions, RefreshFromMirrorResult } from "./operations/refreshFromMirror.js"

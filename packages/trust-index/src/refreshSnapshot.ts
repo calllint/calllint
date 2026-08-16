@@ -104,6 +104,7 @@ import {
   createAdapterRegistry,
   createOfficialRegistryAdapter,
   describeArtifactResolution,
+  describeCohortConservation,
   describeEvidenceCompilation,
   npmArtifactAdapter,
   openBetterSqlite3,
@@ -380,11 +381,20 @@ async function main(): Promise<void> {
   const evidenceClause =
     mirrored.evidence === null ? "" : `${describeEvidenceCompilation(mirrored.evidence)}; `
 
+  // The conservation partition, on EVERY run and not only on a refusal (ADR 0085 Consequences).
+  // `${mirrored.currentSubjects} current subject(s)` above cannot carry this: a count reads the
+  // same whether the projection served everything it was handed or silently dropped a fifth of
+  // it. The next full ingest recovers 58 wrongly-dropped subjects, and ADR 0083's ratchet will
+  // see a large positive delta — magnitude is not a cause, so the log states the identity
+  // (`live = served + capped`) that lets an operator tell a correction from adoption growth.
+  const conservationClause = `${describeCohortConservation(mirrored.conservation)}; `
+
   // eslint-disable-next-line no-console
   console.log(
     `mirror: ${mirrored.sync.records} record(s) read (${mirrored.sync.persisted.inserted} new, ` +
       `${mirrored.sync.persisted.unchanged} unchanged), ${mirrored.mirroredRecords} row(s) stored, ` +
       `${mirrored.currentSubjects} current subject(s); ` +
+      conservationClause +
       `snapshot: ${committed.count} entry(ies) @ ${committed.fetchedAt}; ` +
       `cohort digest ${mirrored.snapshotDigest}; ` +
       artifactClause +

@@ -282,7 +282,12 @@ describe("Gate S0 — every path:line the record cites still points at what it c
   })
 
   it("the served-cohort knob, and the workflow line that now exposes it", () => {
-    assertPointer("packages/trust-index/src/refreshSnapshot.ts", 143, "resolveMaxEntries", "the knob")
+    // Moved 143 → 144 by ADR 0085's conservation log line: `refreshSnapshot.ts` gained ONE import
+    // (`describeCohortConservation`) and every anchor below it shifted by one. Re-pinned rather than
+    // loosened to a search, for the reason the two rows above already record — and the mover was
+    // once again the batch editing the file, which is what [[a-pointer-rots-faster-than-its-claim]]
+    // predicts. This guard catching a one-line import is the guard working, not a nuisance.
+    assertPointer("packages/trust-index/src/refreshSnapshot.ts", 144, "resolveMaxEntries", "the knob")
     assertPointer(WORKFLOW, 20, "workflow_dispatch:", "the dispatch trigger")
     // Moved 73 → 112 by the `inputs:` block this row's remedy called for. The pointer is re-pinned
     // rather than loosened to a search: a `path:line` that drifts silently is the defect

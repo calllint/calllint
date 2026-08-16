@@ -45,6 +45,7 @@ import {
   refreshFromMirror,
   measureCohortConservation,
   assertCohortConserved,
+  describeCohortConservation,
   CohortConservationError,
   projectSnapshot,
   toSourceRecord,
@@ -366,5 +367,98 @@ describe("the guard runs inside the operation, before anything is written (ADR 0
     expect(store.listSourceRecords("official-mcp-registry")).toHaveLength(2)
     expect(store.readCheckpoint("official-mcp-registry").snapshotDigest).toBeNull()
     expect(store.listSubjects()).toHaveLength(0)
+  })
+})
+
+/**
+ * ADR 0085's Consequences: "the run's log must say why the number moved".
+ *
+ * The block above proves the partition reaches the RESULT. That is necessary and not sufficient —
+ * a number on an object nobody prints is not a log line, and the run this requirement exists for
+ * SUCCEEDS while the cohort jumps by 58. So the phrasing itself is asserted here.
+ */
+describe("the run log states the partition, not just the total (ADR 0085)", () => {
+  it("prints the identity a reader needs: live = served", () => {
+    const raws = [item("io.example/alpha"), item("io.example/bravo")]
+    const records = raws.map((r) => record(r))
+    const line = describeCohortConservation(
+      measureCohortConservation({
+        allRecords: records,
+        currentRecords: records,
+        snapshot: snapshotOf(records, 100),
+      }),
+    )
+    expect(line).toBe("cohort: 2 live in mirror = 2 served")
+  })
+
+  it("names the cap when it bound, so an exclusion is never silent", () => {
+    const records = [item("io.example/alpha"), item("io.example/bravo"), item("io.example/charlie")].map(
+      (r) => record(r),
+    )
+    const conservation = measureCohortConservation({
+      allRecords: records,
+      currentRecords: records,
+      snapshot: snapshotOf(records, 1),
+    })
+    // Precondition graded first: the ceiling must genuinely bind, or this asserts nothing.
+    expect(conservation.droppedByCap.length).toBe(2)
+    expect(describeCohortConservation(conservation)).toBe("cohort: 3 live in mirror = 1 served, 2 capped")
+  })
+
+  it("omits the cap clause when the ceiling did not bind — not a row of zeros", () => {
+    const records = [item("io.example/alpha")].map((r) => record(r))
+    const line = describeCohortConservation(
+      measureCohortConservation({
+        allRecords: records,
+        currentRecords: records,
+        snapshot: snapshotOf(records, 100),
+      }),
+    )
+    // "0 capped" and "the ceiling did not bind" are different facts; the same rule
+    // `describeArtifactResolution` follows for a port that never ran.
+    expect(line).not.toContain("capped")
+  })
+
+  it("distinguishes a CORRECTION from adoption growth on the same served count", () => {
+    // The scenario ADR 0085 predicts: served jumps because subjects the projection was wrongly
+    // dropping come back. A log printing only the total cannot tell this from real growth — two
+    // runs serving 3 each, one with a mirror of 3 and one with a mirror of 30, must not read alike.
+    const three = [item("io.example/a"), item("io.example/b"), item("io.example/c")].map((r) => record(r))
+    const grown = describeCohortConservation(
+      measureCohortConservation({
+        allRecords: three,
+        currentRecords: three,
+        snapshot: snapshotOf(three, 100),
+      }),
+    )
+
+    const many = Array.from({ length: 30 }, (_, i) => record(item(`io.example/s${i}`)))
+    const capped = describeCohortConservation(
+      measureCohortConservation({
+        allRecords: many,
+        currentRecords: many,
+        snapshot: snapshotOf(many, 3),
+      }),
+    )
+
+    expect(grown).toContain("3 live in mirror = 3 served")
+    expect(capped).toContain("30 live in mirror = 3 served")
+    expect(grown).not.toBe(capped)
+  })
+
+  it("asserts no cause — the log states an arithmetic identity, never an event", () => {
+    const records = [item("io.example/alpha")].map((r) => record(r))
+    const line = describeCohortConservation(
+      measureCohortConservation({
+        allRecords: records,
+        currentRecords: records,
+        snapshot: snapshotOf(records, 100),
+      }),
+    ).toLowerCase()
+    // A conservation line reports counts. Naming a departure class here would be D2's
+    // classification asserted by a component that never consulted the source.
+    for (const forbidden of ["de-listed", "delisted", "withdrawn", "superseded", "adoption", "growth"]) {
+      expect(line).not.toContain(forbidden)
+    }
   })
 })
