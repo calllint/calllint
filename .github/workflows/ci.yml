@@ -215,6 +215,27 @@ jobs:
       - name: Presentation deploy ledger (authenticity — needs full history)
         run: pnpm ledger:presentation:validate
 
+      # ADR 0084 D3. Second tenant of this job, and for the same structural reason the
+      # first one is here: the check reads a PREVIOUS REVISION of the committed cohort
+      # snapshot, which a depth-1 clone does not have.
+      #
+      # WHY NOT ON THE MATRIX, where `gate:s0:regression` already calls the same
+      # function: there it can only ever return `refused`, so it would be a step with
+      # no failing mode — the exact defect ADR 0084 was written about, reintroduced by
+      # its own guard. `--regression` still prints the outcome (a witness must not be
+      # silenceable by choosing a mode) but does not enforce it; `--identity` enforces
+      # it here, where a refusal means the guard lost its evidence rather than "as
+      # designed".
+      #
+      # The teeth: a COUNT-NEUTRAL substitution — one name dropped, one gained, cohort
+      # size unchanged — leaves `gate:s0:regression` green because its ratchet is
+      # `censusRegistry < FLOOR`. That is not hypothetical; `agency.goji/goji` left the
+      # cohort that way between the 2026-08-10 and 2026-08-15 snapshots and CI stayed
+      # green. A de-listing is REPORTABLE, not automatically a fault (D4): naming it in
+      # an ADR clears this step.
+      - name: "Gate S0 (identity: no subject left the cohort — needs full history)"
+        run: pnpm gate:s0:identity
+
   # Aggregator: the single required status check on `main`. It passes only when
   # every leg of the `test` matrix passed, so branch protection stays a stable,
   # single context name (`build-and-test`) while CI fans out across three OSes.

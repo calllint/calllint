@@ -42,6 +42,7 @@
     "gate:s0": "tsx scripts/gate-s0.ts",
     "gate:s0:gate": "tsx scripts/gate-s0.ts --gate",
     "gate:s0:regression": "tsx scripts/gate-s0.ts --regression",
+    "gate:s0:identity": "tsx scripts/gate-s0.ts --identity",
     "ledger:presentation:validate": "tsx scripts/presentation-ledger.ts",
     "ledger:presentation:validate:offline": "tsx scripts/presentation-ledger.ts --offline",
     "ledger:presentation:record": "tsx scripts/presentation-ledger.ts --record",
