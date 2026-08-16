@@ -772,17 +772,21 @@ if (isIdentity) {
     )
     process.exit(2)
   }
-  // Checked AFTER the count and with its OWN message, so the two witnesses stay distinguishable in
-  // the log. A count-neutral substitution reaches this line with `cohortRegressed` false — that case
-  // is the entire reason ADR 0084 exists.
+  // THE IDENTITY LOSS IS REPORTED HERE AND ENFORCED IN `--identity`, NOT BOTH.
+  //
+  // This mode runs on the depth-1 `test` matrix, where `checkCohortIdentity` can only ever return
+  // `refused` — so enforcing here would give the assertion two different meanings depending on clone
+  // depth: silently unenforceable on CI, red on a developer's full clone. One fault would also red two
+  // jobs for one cause. A control measured exactly that: with a count-neutral substitution committed,
+  // `--identity` exits 2 naming the subject while this mode holds its floor (100 >= 100) and exits 0,
+  // which is the blindness ADR 0084 documents rather than a gap in it. `formatIdentityOutcome` is
+  // printed above in every mode, so the loss is never invisible here — only never fatal here.
   if (cohortLostSubjects) {
-    console.error(
-      `❌ --regression mode: ${unacknowledgedLosses.length} subject(s) left the cohort UNACKNOWLEDGED — ` +
-        `${unacknowledgedLosses.join(", ")}. The count did not fall (${censusRegistry} >= ${S0_REGRESSION_FLOOR}), ` +
-        `which is why the ratchet stayed green (ADR 0084). This is a demand for acknowledgement, not an ` +
-        `accusation: record the subject and the reason in an ADR, then this passes.`,
+    console.log(
+      `  NOTE: ${unacknowledgedLosses.length} unacknowledged loss(es) — ${unacknowledgedLosses.join(", ")}. ` +
+        `Reported, not enforced in this mode: the count did not fall (${censusRegistry} >= ${S0_REGRESSION_FLOOR}), ` +
+        `and enforcement lives in \`gate:s0:identity\` on the \`fetch-depth: 0\` job (ADR 0084 D3).`,
     )
-    process.exit(2)
   }
   console.log(
     registryShort
