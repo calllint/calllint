@@ -181,7 +181,7 @@ directly, or it will assert an absence that is really a wrong path.
 > #159 (restore the superseded top-level URL guard) passes in **both** row states, which is the
 > measurement that condemned it.
 
-### M-OPEN-1, amended by M26-10 (2026-08-17) — half 2 has **no subject**, and the two assertions proving that were **blind**
+### M-OPEN-1, amended by M26-10 (2026-08-17, ADR 0090) — half 2 has **no subject**, and the two assertions proving that were **blind**
 
 > **Read this note as current for half 2. Half 1 stays CLOSED as recorded above; this note does not
 > reopen it, and the M26-7 refutation above still stands.**
