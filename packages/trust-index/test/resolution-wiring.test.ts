@@ -238,7 +238,15 @@ describe("publishedAt finally has a consumer (gaps §1.4)", () => {
     // entry's observation age is the snapshot's single `fetchedAt`. If these agreed, `publishedAt`
     // would be a restatement of `observedAt` rather than a second fact.
     const spread = [...new Set(withAge.map((e) => e.upstreamAgeDays))]
-    expect(spread.length).toBeGreaterThan(10)
+    // Keyed to the POPULATION, not a literal. `> 10` was true of any cohort above a handful and
+    // would have survived a collapse from ~100 distinct release dates down to 11 — the same
+    // frozen-population defect the `187` below was removed for. A quarter of the baked entries
+    // having distinct upstream ages cannot be satisfied by a near-constant axis, and cannot rot as
+    // the cohort grows.
+    expect(
+      spread.length,
+      `upstream ages barely vary across ${baked.length} baked entries (${spread.length} distinct) — publishedAt may have collapsed toward a single instant`,
+    ).toBeGreaterThan(Math.floor(baked.length / 4))
     // The DISTINCTION, not the extremum. This used to pin the oldest release at 187 days, which
     // was true of the 25-entry cohort and became 354 at 100 — a literal that tracks whichever
     // entry happens to survive the cap, and says nothing about the two axes being different facts.

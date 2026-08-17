@@ -1,11 +1,15 @@
 /**
  * ADR 0085 D3 — the serving-plane behaviour, exercised without a deploy.
  *
- * WHY THIS FILE EXISTS. `apps/web/functions/**` is outside the root tsconfig's `include`, so the
- * Pages middleware gets no compile-time observation, and a Pages Function gets no runtime
- * observation short of a deploy. That combination is this project's dominant fault class: a guard
- * that cannot observe its subject. The handler is a plain exported async function over an injected
- * `ASSETS` binding, so it can be driven directly — and it is, here.
+ * WHY THIS FILE EXISTS. A Pages Function gets no runtime observation short of a deploy. The handler
+ * is a plain exported async function over an injected `ASSETS` binding, so it can be driven
+ * directly — and it is, here.
+ *
+ * `apps/web/functions/**` also had no COMPILE-time observer, being outside the root tsconfig's
+ * `include`; that half is now closed by `apps/web/functions/tsconfig.json` (chained into
+ * `pnpm typecheck`, guarded by `functions-typecheck-coverage.invariants.test.ts`). Types alone
+ * still cannot tell whether an absent path answers 404 with the right content-type, which is what
+ * this file measures.
  *
  * The fake `ASSETS` below answers from the REAL committed tree. A stub that invented its own
  * inventory would let this file stay green while the served bytes said something else.
