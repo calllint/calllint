@@ -246,3 +246,86 @@ describe("R-9 deployment units", () => {
     expect(read(rel)).toContain("Persistent=true")
   })
 })
+
+/**
+ * The README's OPERATOR-run commands, which the unit gate above structurally cannot reach.
+ *
+ * `services invokes only pnpm scripts that exist` covers every command systemd runs. The restore is
+ * deliberately NOT one of them — it needs root to stop the timers and a credential the units do not
+ * carry, so it is a human-initiated recovery and appears only in this README's prose. That exemption
+ * is correct and it is also exactly what leaves the chain unguarded: the same "script resolves to
+ * command not found mid-run" failure this file's docblock names, on the one command whose first real
+ * invocation is a recovery where the archive is the only copy left.
+ *
+ * The chain has three links and each can break on its own, so all three are walked rather than
+ * assuming the first implies the rest:
+ *   README prose → root `package.json` script → the workspace script it delegates to → the file on disk.
+ *
+ * Enumerated from the README, not from a literal list, for the reason this file's docblock gives about
+ * the unit list: a hand-written command list goes on passing while the document it guards grows.
+ */
+describe("R-9 README operator commands", () => {
+  const README = `${UNIT_DIR}/README.md`
+
+  /** Every `pnpm <script>` the README tells an operator to run, deduplicated, in first-seen order. */
+  const readmePnpmScripts = (): string[] => {
+    const found = new Set<string>()
+    for (const m of read(README).matchAll(/(?:^|\s)pnpm\s+([a-z0-9][\w:.-]*)/g)) {
+      const name = m[1]
+      // `pnpm install` and friends are npm's own verbs, not repo scripts; only colon-namespaced
+      // repo scripts are checked, which is the shape every script in this README uses.
+      if (name !== undefined && name.includes(":")) found.add(name)
+    }
+    return [...found]
+  }
+
+  it("names at least the restore command, so the assertions below are not vacuous", () => {
+    // Without this, a README that lost its command blocks entirely — or a regex that stopped
+    // matching — would leave the list empty and make every check that follows trivially true.
+    const scripts = readmePnpmScripts()
+    expect(scripts.length).toBeGreaterThanOrEqual(1)
+    expect(scripts).toContain("restore:adoption-index")
+  })
+
+  it("documents only root scripts that exist", () => {
+    const pkg = JSON.parse(read("package.json")) as { scripts?: Record<string, string> }
+    const scripts = pkg.scripts ?? {}
+    const missing = readmePnpmScripts().filter((name) => scripts[name] === undefined)
+    expect(missing).toEqual([])
+  })
+
+  it("resolves each documented root script through to a file that exists", () => {
+    const rootPkg = JSON.parse(read("package.json")) as { scripts?: Record<string, string> }
+    const rootScripts = rootPkg.scripts ?? {}
+
+    // Non-vacuity: a delegating root script is the shape this test exists to follow. If none of the
+    // documented commands delegated to a workspace package, the loop below would assert nothing.
+    let delegations = 0
+
+    for (const name of readmePnpmScripts()) {
+      const body = rootScripts[name]
+      expect(body, `root script ${name} is documented but absent`).toBeDefined()
+
+      // `pnpm --filter @calllint/<pkg> <script>` — the alias shape every operational root script in
+      // this repo uses. A root script that runs tsx directly is checked by the `tsx <path>` branch.
+      const delegated = /^pnpm\s+--filter\s+@calllint\/(\S+)\s+(\S+)$/.exec(body ?? "")
+      if (delegated === null) continue
+      delegations++
+
+      const [, pkgDir, inner] = delegated
+      const workspacePkg = JSON.parse(read(`packages/${pkgDir}/package.json`)) as {
+        scripts?: Record<string, string>
+      }
+      const innerBody = (workspacePkg.scripts ?? {})[inner ?? ""]
+      expect(innerBody, `${name} delegates to @calllint/${pkgDir} ${inner}, which does not exist`).toBeDefined()
+
+      // The last link: the script's entry file. `tsx src/foo.ts` pointing at a deleted or renamed
+      // file fails only when someone runs it, which for a restore means during a recovery.
+      const entry = /^tsx\s+(\S+\.ts)(?:\s|$)/.exec(innerBody ?? "")
+      expect(entry, `${inner} is not a tsx entry point: ${innerBody}`).not.toBeNull()
+      expect(() => read(`packages/${pkgDir}/${entry?.[1]}`)).not.toThrow()
+    }
+
+    expect(delegations).toBeGreaterThanOrEqual(1)
+  })
+})

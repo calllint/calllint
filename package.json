@@ -72,6 +72,7 @@
     "prune:cas": "pnpm --filter @calllint/trust-index prune-cas",
     "backup:adoption-index": "pnpm --filter @calllint/trust-index backup-adoption-index",
     "backup:adoption-index:prune-staging": "pnpm --filter @calllint/trust-index backup-adoption-index:prune-staging",
+    "restore:adoption-index": "pnpm --filter @calllint/trust-index restore-adoption-index",
     "resolve-evidence:trust-index": "pnpm --filter @calllint/trust-index resolve-evidence",
     "project-adoption-index:trust-index": "pnpm --filter @calllint/trust-index project-adoption-index",
     "project-adoption-index:trust-index:store": "pnpm --filter @calllint/trust-index project-adoption-index:store",

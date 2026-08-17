@@ -21,6 +21,7 @@
     "prune-cas": "tsx src/pruneCas.ts",
     "backup-adoption-index": "tsx src/backupAdoptionIndex.ts",
     "backup-adoption-index:prune-staging": "tsx src/backupAdoptionIndex.ts --prune-staging",
+    "restore-adoption-index": "tsx src/restoreAdoptionIndex.ts",
     "project-adoption-index:store": "tsx src/projectAdoptionIndex.ts",
     "verify-claims": "tsx src/verifyClaims.ts"
   },
