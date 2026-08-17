@@ -22,6 +22,16 @@ the publisher pulled it, or upstream unpublished it — not a selection artifact
 
 `pnpm gate:s0:regression` exits **0** with that record gone. Measured on this branch, not supposed.
 
+> **Amended 2026-08-16 — the two paragraphs above are wrong about the cause. See ADR 0085.**
+> `agency.goji/goji` was **never de-listed**: it is `active` and `isLatest` upstream today, and it
+> shipped `1.0.1` on 2026-08-13. It is also not at position 2 of the cohort — it would sort at
+> **index 1**, between two names that are both present, so the cap argument is right in its
+> conclusion (not an eviction) and wrong in its arithmetic. The real cause is
+> `listLatestSourceRecords`' `ORDER BY … payload_digest DESC`, which picks a subject's current
+> version by **content hash**; goji's stale `isLatest: false` row hashes higher than its live one.
+> **The loss was real. The stated cause was wrong.** Everything below about the *count's* blindness
+> stands — it is exactly why the substitution went unseen.
+
 ## Why the ratchet cannot see it
 
 `cohortRegressed` is a **count comparison**:
@@ -122,6 +132,13 @@ retention remains the separate, stronger rule for subjects that may never be dro
 `agency.goji/goji` is acknowledged here as the first such event: **de-listed upstream between
 2026-08-10 and 2026-08-15, six served files removed, no action required beyond this record.**
 
+> **Amended 2026-08-16 (ADR 0085):** this acknowledgement is retained per the rule that history is
+> amended, never rewritten — but it credits the publisher with an act they did not perform. There
+> was no de-listing; there was a version bump this system mis-read as a withdrawal. D4's principle
+> is unchanged and D4's *instance* is reclassified as `superseded`, which is 0085 D2's new first
+> class. That a wrong acknowledgement could be written at all is why 0085 requires a departure to be
+> **classified before it is reported as a loss**.
+
 ## Consequences
 
 - A mixed ingest that adds 76 and drops 1 now reds, naming the dropped subject.
@@ -143,6 +160,13 @@ retention remains the separate, stronger rule for subjects that may never be dro
   `absentFromSource` → `planWithdrawal` chain is the intended mechanism; wiring the serving plane to
   it means deciding whether a de-listed Trust Page should 410, tombstone in place, or vanish — a
   product judgement, not a mechanical one, and it is unanswered.
+
+  > **Answered 2026-08-16 by ADR 0085, as reframed.** All three options presuppose a de-listing, and
+  > the event that prompted the question was not one. 0085 rejects the trichotomy, fixes the version
+  > tiebreak (D1), requires a departure to be classified (D2), and ships `404` + a JSON error
+  > document instead of a tombstone (D3) — because a tombstone is a durable public claim about a
+  > third party, and this system could not yet tell a withdrawal from a patch release. A tombstone
+  > for the classified `de-listed` case is carried forward as **S0-OPEN-7**.
 
 ## Verification
 
