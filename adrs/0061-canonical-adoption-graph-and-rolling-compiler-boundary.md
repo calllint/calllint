@@ -348,15 +348,28 @@ as a follow-up ADR — not inferred from whatever a script happened to need.
 > the store path emitted **298** subjects under a wall clock while the committed snapshot
 > beside it derived **19**, and the snapshot's own `io.github.calllint/calllint` was
 > **absent** from the 298. Those are two different observations, not a superset and a
-> subset. **In Actions the store is ephemeral, so it is always cold and the two paths
-> agree; a persistent store on a VPS is warm by definition.** So the thing that currently
+> subset. ~~**In Actions the store is ephemeral, so it is always cold and the two paths
+> agree**~~; a persistent store on a VPS is warm by definition. So the thing that currently
 > keeps the committed artifact reproducible is the absence of persistence — exactly what
 > R-9 introduces. Recording §8.1 is what keeps R-9 from silently spending that guarantee.
 >
-> **Consequence for `trust-ingest.yml`:** unchanged. Its `project-adoption-index:trust-index:store`
+> **AMENDED 2026-08-17 — ADR 0087.** The struck clause is false *inside the ingest job*: the
+> runner's CHECKOUT is cold, but the store at the moment of projection is warm by construction,
+> because `ingest:trust-index` calls `persistIdentity` one step earlier
+> (`projectAdoptionIndex.ts:13-16`, `refreshFromMirror.ts:366`). "Cold" was doing the work of
+> "empty", and it is only empty *before* the step that fills it. The surviving half — a VPS store
+> is warm by definition — is unaffected and is what R-9 must reckon with.
+>
+> ~~**Consequence for `trust-ingest.yml`:** unchanged. Its `project-adoption-index:trust-index:store`
 > step (line 94) stays correct **because** Actions' store is cold and was just written by
-> the ingest one step earlier. The worker does not inherit that property, and therefore
-> does not inherit that step.
+> the ingest one step earlier.~~ **SUPERSEDED by ADR 0087 D1: the step now runs the PURE variant**
+> (`project-adoption-index:trust-index`). Beyond the falsified premise, the argument was inverted:
+> if a cold store makes the two paths agree, that is a reason the pure path is safe to adopt, never
+> a reason to keep the path that can disagree. The `:store` step's own stated justification —
+> preserving `firstSeenAt` — defended a field the artifact does not carry (measured: 0 of 100
+> committed entries; absent from `adoptionIndexProjection.ts:70-75`). The worker does not inherit
+> that property, and therefore does not inherit that step — unchanged, and the one part of this
+> paragraph that always held.
 >
 > **§8.2 Provisioning and credentials.** The credential-provisioning method is a dedicated
 > deploy key / service account supplied out-of-band by the operator, recorded in the deploy

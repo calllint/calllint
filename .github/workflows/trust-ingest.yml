@@ -78,6 +78,21 @@ jobs:
     steps:
       - uses: actions/checkout@v6
 
+      # ONE instant for the whole ingest, computed once and shared by every step below.
+      #
+      # Four modules read `TRUST_INGEST_NOW` and each falls back to its own `new Date()`:
+      # `refreshSnapshot` (`fetchedAt`), `resolveEvidence` (`resolvedAt`), `projectAdoptionIndex`
+      # (`projectedAt`), `bake` (`bakedAt`). Unset, one ingest therefore stamps FOUR different
+      # instants minutes apart, and the resulting artifacts cannot be checked against each other:
+      # `projectedAt == fetchedAt` is a real invariant the reproducibility gate pins, and with
+      # per-step clocks it holds only because the pure projection re-reads the snapshot's own stamp.
+      # Every other cross-artifact comparison is left unstateable.
+      #
+      # Not `date -u` inline per step — that is the bug, not the fix. It is computed HERE, once, and
+      # exported so the steps cannot drift from one another.
+      - name: Pin one instant for the whole ingest
+        run: echo "TRUST_INGEST_NOW=$(date -u +%Y-%m-%dT%H:%M:%S.000Z)" >> "$GITHUB_ENV"
+
       - uses: pnpm/action-setup@v6
 
       - uses: actions/setup-node@v6
@@ -118,24 +133,56 @@ jobs:
         # (packages/trust-index/snapshots/evidence-snapshot.json).
         run: pnpm resolve-evidence:trust-index
 
-      - name: Project the adoption index — freeze the identity plane from the store (ADR 0061 §5)
-        # NOT a network step, and the ONLY step in this file that opens the compiler's database.
-        # `ingest:trust-index` above already ran `persistIdentity`, so `canonical_subjects` holds
-        # the mirrored cohort together with the `firstSeenAt` history no derivation can
-        # reconstruct — which is why this uses the `:store` variant and not the pure
-        # `--from-snapshot` one a human re-derive uses. The bake below then reads the committed
-        # file PURELY: "nothing served ever queries the compiler" (ADR 0061 §5).
+      - name: Project the adoption index — purely, from the committed snapshot (ADR 0061 §8.1)
+        # NOT a network step, and it does NOT open the compiler's database. `--from-snapshot` makes
+        # the committed artifact a pure function of committed bytes, stamped `snapshot.fetchedAt`,
+        # so anyone can re-derive it and byte-compare. The bake below then reads that committed file
+        # purely: "nothing served ever queries the compiler" (ADR 0061 §5).
         #
-        # It must run BEFORE the bake and AFTER the ingest. Reversed, the bake would read the
-        # previous run's identity; without the ingest, the store would be empty and this would fall
-        # back to deriving from the snapshot rather than failing — never writing an empty document
-        # either way, so a half-finished compiler run cannot blank 19 live subjects' identity.
-        run: pnpm project-adoption-index:trust-index:store
+        # THIS STEP USED `:store`, AND THE REASON GIVEN FOR IT WAS FALSE. The old comment said the
+        # store variant was required because `persistIdentity` had just written the `firstSeenAt`
+        # history "no derivation can reconstruct". The first clause is true and the conclusion does
+        # not follow: `adoptionIndexProjection`'s field set is
+        # `subjectId, canonicalName, canonicalSlug, identityStatus, identityDigest, lastSeenAt` —
+        # `firstSeenAt` IS NOT IN IT (measured: 0 of 100 committed entries carry the field). The step
+        # was defending a column that never reaches the artifact, so `:store` bought nothing and
+        # spent reproducibility: what it actually did was make the committed bytes depend on whatever
+        # rows that runner's database happened to hold.
+        #
+        # ADR 0061 §8.1's own consequence line said this step "stays correct BECAUSE Actions' store
+        # is cold". Measured on 2026-08-17, that premise is falsified — see ADR 0087 — and it was
+        # never the load-bearing half anyway: a cold store makes the two paths AGREE, which is an
+        # argument for the pure path, not for the one that can disagree.
+        #
+        # Ordering no longer matters for correctness (a pure projection cannot read a previous run's
+        # identity), but it stays after the ingest so the snapshot it reads is this run's.
+        run: pnpm project-adoption-index:trust-index
 
       - name: Re-bake with evidence — refine remote UNKNOWN verdicts (ADR 0050)
         # Pure re-bake: reads BOTH committed snapshots and refines remote UNKNOWN
         # pages to REVIEW where identity resolved cleanly. No network, no clock.
         run: pnpm bake:trust-index
+
+      - name: Sync the MCP server's bundled data from the freshly baked tree
+        # THE STEP THAT DID NOT EXIST, AND WHOSE ABSENCE WAS PAID FOR BY HAND.
+        #
+        # Two committed files under `packages/calllint-mcp/src/data/` must be byte-identical to what
+        # `apps/web/public/` serves, each enforced by an anti-drift test in the normal suite
+        # (`committed-lookup-drift.test.ts`, `committed-contracts-drift.test.ts`). The bake above
+        # rewrites the served tree — so every ingest that changes a page also invalidates the bundle,
+        # and without this step the PR this workflow opens arrives with a RED CI by construction.
+        #
+        # That is what happened on the 2026-08-17 ingest: the tests were satisfied by a human
+        # remembering to copy two files, because `lookup-index.json` had no generator at all and
+        # `adoption-contracts.json`'s generator was never wired into `package.json`. The remedy for a
+        # guard has to be runnable, or the guard is satisfied by luck.
+        #
+        # Writes rather than `--check`es, deliberately, and it is the ONE exception to this job's
+        # "never rewrite committed bytes in an automated run" instinct: these two files are pure
+        # derivations of the bake in the same commit, so regenerating them is finishing the bake, not
+        # editing a source. Everything a reviewer must approve is still in the diff. `--check` is
+        # what CI runs on the resulting PR.
+        run: pnpm sync:mcp-bundle
 
       - name: Guard the regenerated pages (no overclaim / PII; completeness)
         run: pnpm check:public-copy

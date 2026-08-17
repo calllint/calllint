@@ -8,6 +8,11 @@
  * If the bake moves (a new resource, a re-observed verdict, a re-pinned version), this
  * fails until the bundle is regenerated — so the published server can never quietly serve
  * a stale or invented contract. Pure: reads committed files, no clock, no network.
+ *
+ * THE REMEDY IS `pnpm sync:mcp-bundle`, named in the failure messages below. It used to be
+ * `scripts/regen-mcp-contracts.mjs`, which was never wired into `package.json` — so the documented
+ * remedy was a file path a reader had to find, not a command. A guard whose remedy is undiscoverable
+ * is satisfied by luck; the assertions now carry the command.
  */
 import { describe, it, expect } from "vitest"
 import { readFileSync, readdirSync } from "node:fs"
@@ -37,8 +42,13 @@ describe("committed adoption contracts — anti-drift vs the baked served sideca
     for (const file of sidecars) {
       const baked = JSON.parse(readFileSync(file, "utf8"))
       const slug = baked.subject.canonicalSlug as string
-      expect(COMMITTED_CONTRACTS[slug]).toBeDefined()
-      expect(COMMITTED_CONTRACTS[slug]).toEqual(baked)
+      expect(
+        COMMITTED_CONTRACTS[slug],
+        `no bundled contract for baked slug ${slug} — run \`pnpm sync:mcp-bundle\` and commit the result`,
+      ).toBeDefined()
+      expect(COMMITTED_CONTRACTS[slug], `bundled contract for ${slug} drifted from ${file}`).toEqual(
+        baked,
+      )
     }
   })
 
@@ -46,7 +56,10 @@ describe("committed adoption contracts — anti-drift vs the baked served sideca
     const bakedSlugs = sidecars
       .map((f) => (JSON.parse(readFileSync(f, "utf8")).subject.canonicalSlug as string))
       .sort()
-    expect(Object.keys(COMMITTED_CONTRACTS).sort()).toEqual(bakedSlugs)
+    expect(
+      Object.keys(COMMITTED_CONTRACTS).sort(),
+      "bundled contract set differs from the baked set — run `pnpm sync:mcp-bundle` and commit the result",
+    ).toEqual(bakedSlugs)
   })
 
   it("keys equal each contract's own canonicalSlug (no key drift)", () => {

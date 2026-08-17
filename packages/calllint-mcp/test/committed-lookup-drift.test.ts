@@ -8,6 +8,11 @@
  * If the bake moves (a new resource, a re-observed verdict), this fails until the bundled
  * copy is refreshed — so the published bundle can never quietly serve a stale verdict.
  * Pure: reads two committed files, no clock, no network.
+ *
+ * THE REMEDY IS `pnpm sync:mcp-bundle`, and it is named in the failure message below because it
+ * did not used to exist. This file was reachable only by knowing to copy a file by hand; on the
+ * 2026-08-17 ingest it went green because a human remembered. A guard whose remedy lives nowhere
+ * is a guard that gets satisfied by luck, so the assertion carries the command.
  */
 import { describe, it, expect } from "vitest"
 import { readFileSync } from "node:fs"
@@ -24,7 +29,10 @@ describe("committed lookup projection — anti-drift vs the baked served index",
   it("the bundled copy is byte-identical to the baked lookup-index.json", () => {
     const baked = readFileSync(BAKED, "utf8")
     const bundled = readFileSync(BUNDLED, "utf8")
-    expect(bundled).toBe(baked)
+    expect(
+      bundled,
+      "bundled lookup-index.json drifted from the baked tree — run `pnpm sync:mcp-bundle` and commit the result",
+    ).toBe(baked)
   })
 
   it("the imported entries equal the baked entries verbatim (same order, same fields)", () => {
