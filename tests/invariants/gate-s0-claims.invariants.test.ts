@@ -218,14 +218,20 @@ describe("Gate S0 — every path:line the record cites still points at what it c
     // scoping note was added to `acknowledgedDelistings`'s docblock. The failure quoted the
     // `S0_REQUIRED_RECORDS` docblock's own prose at :96 — prose for the third consecutive drift, which
     // is what an anchor pinned one line above a constant will always eventually catch.
-    assertPointer(GATE, 100, "S0_REQUIRED_RECORDS = 25", "S0_REQUIRED_RECORDS")
-    assertPointer(GATE, 128, "S0_REGRESSION_FLOOR = 100", "S0_REGRESSION_FLOOR")
-    assertPointer(GATE, 168, "FIXTURE_PREFIX", "FIXTURE_PREFIX")
+    // AN EIGHTH TIME, in the ADR 0088 batch (100→102, 128→130, 168→170, 664→695): the gate took a
+    // second import line (`harvestAcknowledgedDelistings`, `harvestAcknowledgedEvictions`) and the
+    // `acknowledgedEvictions()` reader with its docblock. The failure quoted `" * to whatever happens
+    // to be committed."` at :100 — docblock prose for the FOURTH consecutive drift. Eight batches, and
+    // every single one was reported by the content anchor rather than by a line number that happened
+    // to still exist. The pointers are the fragile part; the anchors are why the fragility is harmless.
+    assertPointer(GATE, 102, "S0_REQUIRED_RECORDS = 25", "S0_REQUIRED_RECORDS")
+    assertPointer(GATE, 130, "S0_REGRESSION_FLOOR = 100", "S0_REGRESSION_FLOOR")
+    assertPointer(GATE, 170, "FIXTURE_PREFIX", "FIXTURE_PREFIX")
     // Drifted a SECOND time inside S batch 1, 401 → 498, when `stripComments` became string-aware; then
-    // 568, then 607, then 650, now 664. Worth noting because it is the argument for content-addressed
-    // pointers rather than line numbers: this one number has moved six times, and every time the
-    // failure named what it found.
-    assertPointer(GATE, 664, "registryShort", "the shortfall computation")
+    // 568, then 607, then 650, then 664, now 695. Worth noting because it is the argument for
+    // content-addressed pointers rather than line numbers: this one number has moved seven times, and
+    // every time the failure named what it found.
+    assertPointer(GATE, 695, "registryShort", "the shortfall computation")
   })
 
   it("the cap the record exonerates, and the un-paginated GET that exonerates it", () => {
@@ -289,10 +295,12 @@ describe("Gate S0 — every path:line the record cites still points at what it c
     // predicts. This guard catching a one-line import is the guard working, not a nuisance.
     assertPointer("packages/trust-index/src/refreshSnapshot.ts", 144, "resolveMaxEntries", "the knob")
     assertPointer(WORKFLOW, 20, "workflow_dispatch:", "the dispatch trigger")
-    // Moved 73 → 112 by the `inputs:` block this row's remedy called for. The pointer is re-pinned
-    // rather than loosened to a search: a `path:line` that drifts silently is the defect
-    // [[a-pointer-rots-faster-than-its-claim]] records, and 5 of 6 pointers had drifted that way.
-    assertPointer(WORKFLOW, 112, "ingest:trust-index", "the ingest step")
+    // Moved 73 → 112 by the `inputs:` block this row's remedy called for, then 112 → 127 by ADR 0087's
+    // batch: the job gained the `TRUST_INGEST_NOW` pin after checkout and the `:store` → pure-variant
+    // comment block. The pointer is re-pinned rather than loosened to a search: a `path:line` that
+    // drifts silently is the defect [[a-pointer-rots-faster-than-its-claim]] records, and 5 of 6
+    // pointers had drifted that way.
+    assertPointer(WORKFLOW, 127, "ingest:trust-index", "the ingest step")
   })
 })
 

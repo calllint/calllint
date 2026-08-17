@@ -42,6 +42,12 @@ import { existsSync, readFileSync } from "node:fs"
 import path from "node:path"
 import { fileURLToPath } from "node:url"
 
+// IMPORTED, NOT COPIED. `beyondCeiling` below has to know which names are admitted without competing
+// for a slot, and a second literal list would be a second thing to forget to update — the cap and its
+// witness would then disagree silently, which is the fault class this whole module exists to catch.
+// Same relative-path form `gate-s0.ts` already uses for `fixtureCohort`.
+import { RESERVED_COHORT_NAMES } from "../packages/trust-index/src/fetchRegistry.js"
+
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..")
 
 /** The one file whose history IS the record of every cohort we ever committed (D2). */
@@ -239,7 +245,24 @@ export function classifyDeparture(
   // The structural half of `evicted`, computed either way because it is the useful part of an
   // `unknown` message. A name sorting inside the served window was NOT squeezed out by the ceiling,
   // so the cap cannot be what removed it — that much IS readable from committed bytes.
-  const maxServed = currentNames.length > 0 ? [...currentNames].sort().at(-1)! : null
+  //
+  // THE CEILING IS THE LARGEST *NON-RESERVED* NAME, not the largest served name. A reserved name
+  // (ADR 0075) takes a slot rather than an extra one, but it is admitted REGARDLESS of where it
+  // sorts: `selectCohortEntries` takes the reserved set first and then fills `max - reserved.length`
+  // from the sorted rest (`fetchRegistry.ts:89-99`). So the competitive edge — the last name the cap
+  // actually let through — is the largest name that had to compete for its slot.
+  //
+  // Measured on the 2026-08-17 cohort: `io.github.calllint/calllint` is reserved and sorts LAST of
+  // all 100, so `sort().at(-1)` reported a ceiling of `io.*` and `beyondCeiling` was false for every
+  // name from `a*` to `i*`. The true edge was `ai.b77/chess-results` at `at(-2)`. All 13 departing
+  // `ai.b77/*` subjects sort past it and were squeezed out by 13 alphabetically-earlier arrivals —
+  // an ordinary capped eviction. The old form reported them as sorting INSIDE the window, and with a
+  // source view would have classified them `superseded`, whose own `why` says the recurrence "is a
+  // BUG IN THIS SYSTEM, not an act by the publisher". Every one is `active` + `isLatest` upstream
+  // (consulted 2026-08-17). A guard that cannot see the cap must not be the thing that decides the
+  // cap is innocent.
+  const competing = currentNames.filter((n) => !RESERVED_COHORT_NAMES.includes(n))
+  const maxServed = competing.length > 0 ? [...competing].sort().at(-1)! : null
   const beyondCeiling = maxServed !== null && name > maxServed
 
   if (source === null) {
@@ -274,7 +297,8 @@ export function classifyDeparture(
       name,
       class: "evicted",
       why:
-        `still \`active\` upstream, and sorts after the last served name (\`${maxServed}\`) — ` +
+        `still \`active\` upstream, and sorts after the last name that COMPETED for a slot ` +
+        `(\`${maxServed}\` — reserved names are admitted regardless of where they sort, ADR 0075) — ` +
         `outside the cohort ceiling (ADR 0074/0075), not withdrawn`,
     }
   }
@@ -327,9 +351,210 @@ export function classifyDeparture(
  * effects, and a rule that can only be observed by running the whole gate is a rule whose branches
  * go unmeasured.
  */
-export function acknowledgementClears(d: Departure, acknowledged: ReadonlySet<string>): boolean {
-  if (d.class === "superseded" || d.class === "evicted") return false
-  return acknowledged.has(d.name)
+const DELISTING_CLEARS: readonly Departure["class"][] = ["de-listed", "unknown"]
+
+const EVICTION_CLEARS: readonly Departure["class"][] = ["unknown"]
+
+/**
+ * EACH CHANNEL CARRIES ITS OWN ALLOWLIST, and that shape was forced by a surviving mutant.
+ *
+ * The first version of the eviction channel read:
+ *
+ *     if (d.class === "superseded" || d.class === "evicted") return false   // shared early return
+ *     if (acknowledged.has(d.name)) return true
+ *     return d.class === "unknown" && acknowledgedEvictions.has(d.name)
+ *
+ * Measured: replacing that last line with a bare `acknowledgedEvictions.has(d.name)` — i.e. letting a
+ * cap-eviction sentence clear ANY class, including `superseded` — left **42 of 42 tests green**. The
+ * shared early return answered first, so the channel's own restriction was unobservable, and the two
+ * tests written to witness it were in fact witnessing the early return. A guard that cannot observe
+ * its subject, in the tests for a guard that could not observe its subject.
+ *
+ * So the early return is gone and each channel states which classes it can answer for. The refusals
+ * are now properties of the channel rather than of the order the branches happen to run in, and a
+ * mutation to either allowlist reds a test that names that channel.
+ */
+export function acknowledgementClears(
+  d: Departure,
+  acknowledged: ReadonlySet<string>,
+  acknowledgedEvictions: ReadonlySet<string> = new Set(),
+): boolean {
+  // "A human saw this subject leave and wrote down that the PUBLISHER withdrew it." Clears the class
+  // that agrees with it, plus `unknown` — where the human engagement D4 demands has happened and only
+  // a source view is missing. Never `superseded` (our defect, and honouring it would let a real 2026-08
+  // sentence permanently silence a D1 regression) and never `evicted` (our cap, and calling it a
+  // withdrawal records a false claim about a third party).
+  if (acknowledged.has(d.name) && DELISTING_CLEARS.includes(d.class)) return true
+  // "A human recorded that OUR CAP moved past this subject" — a fact about our window, not about the
+  // publisher. Clears only `unknown`: the network-free case where the cause cannot be confirmed from
+  // bytes. Never `evicted`, even though that is the class the sentence describes — an `evicted`
+  // classification required a source view proving the subject live upstream, so it is established by
+  // measurement, and prose must not outrank an observation.
+  if (acknowledgedEvictions.has(d.name) && EVICTION_CLEARS.includes(d.class)) return true
+  return false
+}
+
+/**
+ * A NAME NEXT TO `de-listed` IS NOT AN ACKNOWLEDGEMENT THAT IT WAS DE-LISTED (S0-OPEN-8).
+ *
+ * The harvest is co-occurrence on one line: subject in backticks, the word `de-listed` somewhere on
+ * the same line. A regex has no notion of polarity, so the sentence *"`x` was **never de-listed**"*
+ * harvested `x` as an acknowledged de-listing — the corpus asserting the opposite of what the gate
+ * then believed.
+ *
+ * MEASURED BEFORE THE FIX (2026-08-17, all 15 harvesting lines in `adrs/`): **14 names harvested, 13
+ * of them supported ONLY by a negated line** — every `ai.b77/*` entry of ADR 0086 §4, each reading
+ * "evicted by the cap, **not de-listed**". The single name with a genuine affirmative line was
+ * `agency.goji/goji` (ADR 0084:132, "de-listed upstream between …"), which also carries a negated
+ * correction line (0084:26, "was **never de-listed**"). So the false-acknowledgement rate was 13/14,
+ * and the one true acknowledgement in the corpus is one a line-level filter keeps.
+ *
+ * WHY LINE-LEVEL AND NOT DOCUMENT-LEVEL. goji is the proof: one subject legitimately has both an
+ * affirmative line (the event) and a negated line (a later correction about the stated cause). A
+ * document-level rule would have to choose between dropping a real acknowledgement and honouring a
+ * denial; a line-level rule needs no such choice, because each line is a claim in its own right.
+ *
+ * WHY A CUE LIST AND NOT PARSING. This is deliberately a blunt instrument with a narrow job: decide
+ * whether one line ASSERTS or DENIES a de-listing. It cannot be right in general — natural language
+ * is not a regex — so it is built to fail toward NOT acknowledging:
+ *
+ *   - an unrecognised denial → the name is not harvested → the gate stays RED and asks a human. The
+ *     cost is a red that needs prose rewritten.
+ *   - the opposite direction, harvesting a denial, is the S0-OPEN-8 defect itself: a red silently
+ *     cleared by a sentence that denies the event. The cost is a departure nobody looks at.
+ *
+ * Those costs are not symmetric, so the tie is broken toward refusal. `acknowledgementClears` above
+ * is the second half of the same posture: it refuses `evicted` and `superseded` outright, so even a
+ * mis-harvested name cannot clear those two classes.
+ */
+const DENIAL_CUES = [
+  "not de-listed",
+  "never de-listed",
+  "no de-listing",
+  "not a de-listing",
+  "never a de-listing",
+  "not been de-listed",
+  "was not de-listed",
+  "wasn't de-listed",
+  "isn't de-listed",
+  "is not de-listed",
+  "not de-listing",
+  "rather than de-listed",
+  "instead of de-listed",
+] as const
+
+/**
+ * Does this line DENY a de-listing rather than assert one?
+ *
+ * Matches on the normalised line: markdown emphasis stripped and whitespace collapsed.
+ *
+ * THE STRIPPING IS DEFENSIVE, NOT LOAD-BEARING ON TODAY'S CORPUS, and an earlier version of this
+ * docblock claimed the opposite. Measured 2026-08-17 over all of `adrs/`: **21 denial lines, of which
+ * 0 require the stripping** — the corpus writes `**not de-listed**`, where the emphasis brackets the
+ * whole phrase, so the raw line still contains the substring `not de-listed`. The claim that "without
+ * the stripping this would match none of them" was false, and it mattered: it would have told a future
+ * reader that a control had a witness when it did not.
+ *
+ * What the stripping DOES buy is the emphasis-INSIDE-the-phrase forms — `not **de-listed**`,
+ * `**not** de-listed` — which a raw substring test misses and which are ordinary markdown a human
+ * would write without thinking. Cheap insurance against a phrasing the corpus has not used yet;
+ * `acknowledgement-polarity.invariants.test.ts` witnesses it with exactly that shape.
+ */
+export function lineDeniesDelisting(line: string): boolean {
+  const normalised = line
+    .replace(/[*_~`]/g, "")
+    .replace(/\s+/g, " ")
+    .toLowerCase()
+  return DENIAL_CUES.some((cue) => normalised.includes(cue))
+}
+
+/**
+ * Harvest acknowledged de-listings from one ADR's text, line by line, skipping denials.
+ *
+ * Split out from `gate-s0.ts`'s filesystem walk for the reason given on `acknowledgementClears`: the
+ * gate is a script with top-level effects, so a rule that can only be observed by running the whole
+ * gate is a rule whose branches go unmeasured. This takes text and returns names — a test can feed it
+ * a sentence.
+ */
+export function harvestAcknowledgedDelistings(text: string): Set<string> {
+  const found = new Set<string>()
+  const PATTERNS = [
+    /`([a-z0-9][a-z0-9._-]*\/[a-z0-9._-]+)`[^\n]*de-listed/gi,
+    /de-listed[^\n]*`([a-z0-9][a-z0-9._-]*\/[a-z0-9._-]+)`/gi,
+  ]
+  for (const line of text.split("\n")) {
+    if (lineDeniesDelisting(line)) continue
+    for (const re of PATTERNS) {
+      for (const m of line.matchAll(re)) found.add(m[1]!)
+    }
+  }
+  return found
+}
+
+/**
+ * A SECOND, SEPARATE ACKNOWLEDGEMENT CHANNEL: "our cap removed this subject."
+ *
+ * Fixing the denial harvest above re-opened a red it had been silencing, and the red was TRUE: the 13
+ * `ai.b77/*` subjects of the 2026-08-17 refresh really did leave, and the corpus contains no sentence
+ * that clears them without lying. Measured after the denial fix: `--identity` EXIT 2, "13 subject(s)
+ * left the cohort UNACKNOWLEDGED".
+ *
+ * Three ways out, and only one is honest:
+ *
+ *   - write an affirmative "de-listed" line — FALSE. All 13 are `active` + `isLatest` upstream
+ *     (ADR 0086 §1). This is the option the old denial-harvesting bug effectively took on our behalf,
+ *     and refusing it is the entire point of ADR 0085/0086.
+ *   - refuse to clear `unknown` too — wedges every network-free CI leg with no reachable green, for
+ *     the reason `acknowledgementClears` already documents.
+ *   - teach the gate to read the acknowledgement the corpus ALREADY WROTE: "evicted by the cap".
+ *
+ * This is the third. ADR 0086 §4 states the cause for each of the 13 in exactly that form; the gate
+ * simply could not read it. Making a mechanism able to see a record that already exists is not
+ * widening what can be cleared — it is closing the gap between what a human recorded and what the
+ * gate can observe.
+ *
+ * WHAT THIS CHANNEL DOES NOT DO. It is not a de-listing acknowledgement and must never be read as
+ * one: it asserts a fact about OUR window (ADR 0074's alphabetical cap moved past the subject), not a
+ * fact about the publisher. So it is harvested separately, cleared separately
+ * (`acknowledgementClears`), and printed on its own line by the gate — never folded into the
+ * de-listing set, whose whole meaning is "the publisher withdrew this."
+ *
+ * WHY IT STILL CANNOT CLEAR AN `evicted` DEPARTURE. `acknowledgementClears` refuses that class
+ * outright and this change does not touch that refusal. An `evicted` classification requires a SOURCE
+ * VIEW proving the subject is live upstream; when we have that, the departure is explained by
+ * measurement and needs no prose. This channel clears only `unknown` — the network-free case, where a
+ * human has recorded the cap as the cause and the source has not been consulted. The cause therefore
+ * still prints as unestablished, exactly as a de-listing acknowledgement of an `unknown` does.
+ */
+const EVICTION_CUES = [
+  "evicted by the cap",
+  "evicted by adr 0074",
+  "evicted by the alphabetical cap",
+  "evicted by our cap",
+] as const
+
+/**
+ * Harvest acknowledged CAP EVICTIONS from one ADR's text, line by line.
+ *
+ * Same line-level, normalise-then-match shape as the de-listing harvest, and the same fail-toward-
+ * refusal posture: an unrecognised phrasing leaves the gate red asking a human, never silently clear.
+ * The cue list is deliberately narrow — it names ADR 0074's cap specifically, so a loose sentence
+ * about something being "evicted" in another sense cannot acknowledge a cohort departure.
+ */
+export function harvestAcknowledgedEvictions(text: string): Set<string> {
+  const found = new Set<string>()
+  const NAME = /`([a-z0-9][a-z0-9._-]*\/[a-z0-9._-]+)`/gi
+  for (const line of text.split("\n")) {
+    const normalised = line
+      .replace(/[*_~`]/g, "")
+      .replace(/\s+/g, " ")
+      .toLowerCase()
+    if (!EVICTION_CUES.some((cue) => normalised.includes(cue))) continue
+    // The name is read from the RAW line (backticks intact) — the cue match is what the normalised
+    // form is for. Reading names from the stripped line would harvest every bare word with a slash.
+    for (const m of line.matchAll(NAME)) found.add(m[1]!)
+  }
+  return found
 }
 
 /**

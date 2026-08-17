@@ -4,7 +4,7 @@
     "fixtures",
     "mcp-registry"
   ],
-  "bakedAt": "2026-08-15T14:55:38.749Z",
+  "bakedAt": "2026-08-17T01:39:50.172Z",
   "resolutionPolicy": {
     "cadenceDays": 7,
     "agingMultiple": 3,
@@ -43,8 +43,8 @@
       }
     ]
   },
-  "baked": 119,
-  "incomplete": 1,
+  "baked": 118,
+  "incomplete": 2,
   "entries": [
     {
       "canonicalName": "calllint-fixtures/block-dangerous-command",
@@ -512,12 +512,90 @@
       }
     },
     {
+      "canonicalName": "mcp-registry/ac.inference.sh-mcp",
+      "status": "baked",
+      "artifactDigest": "sha256:52303e395caa843ebbf693030656a78abe8ad59285fcbd0fc51389a9609c9e25",
+      "pageDigest": "sha256:e730b989778b7ac40554f7da2d4cfc3410694e837c40793cfe6489ad79b75d19",
+      "verdict": "REVIEW",
+      "observedAt": "2026-08-17T01:39:50.172Z",
+      "identity": {
+        "subjectId": "sha256:ff1e94a4fa98e8d799e7137186580b2b4ac31639ec7c35ed286e5c1150483292",
+        "identityDigest": "sha256:e36cb818df65da24c579815d39bda8ea30ca32e2764f569109c0ed1d22b84c99",
+        "identityStatus": "PROVISIONAL"
+      },
+      "freshness": {
+        "ageDays": 0,
+        "state": "FRESH",
+        "cadenceDays": 7,
+        "basis": "snapshot-fetchedAt"
+      },
+      "resolution": {
+        "status": "FRESH",
+        "basis": [
+          {
+            "axis": "evidence-resolution",
+            "at": "2026-08-17T01:40:49.224Z",
+            "ageDays": 0
+          },
+          {
+            "axis": "source-observation",
+            "at": "2026-08-17T01:39:50.172Z",
+            "ageDays": 0
+          }
+        ],
+        "lastSuccessfulResolution": "2026-08-17T01:40:49.224Z",
+        "nextRequiredResolution": "2026-08-24T01:39:50.172Z",
+        "blockingUnknowns": [],
+        "cadenceDays": 7
+      },
+      "upstreamAgeDays": 20
+    },
+    {
+      "canonicalName": "mcp-registry/ac.tandem-docs-mcp",
+      "status": "baked",
+      "artifactDigest": "sha256:ea5ff9be0d627a192408db08451d54dd04c54dda4ab0adca359f5a3b50e16ab1",
+      "pageDigest": "sha256:55a138279fb069f96a0700091e0a3a2be8345a34b9288a9a33389ce8841b3528",
+      "verdict": "REVIEW",
+      "observedAt": "2026-08-17T01:39:50.172Z",
+      "identity": {
+        "subjectId": "sha256:e7ee4a608e6ce3a973ac3e8277cc2dc75b3764be2bed4c739acaa9a56fb1e8a2",
+        "identityDigest": "sha256:12fe57c8c5e27c3a823f4d0a117f4dd43376d3b1e36b2a9a11b42167d9af6478",
+        "identityStatus": "PROVISIONAL"
+      },
+      "freshness": {
+        "ageDays": 0,
+        "state": "FRESH",
+        "cadenceDays": 7,
+        "basis": "snapshot-fetchedAt"
+      },
+      "resolution": {
+        "status": "FRESH",
+        "basis": [
+          {
+            "axis": "evidence-resolution",
+            "at": "2026-08-17T01:40:49.224Z",
+            "ageDays": 0
+          },
+          {
+            "axis": "source-observation",
+            "at": "2026-08-17T01:39:50.172Z",
+            "ageDays": 0
+          }
+        ],
+        "lastSuccessfulResolution": "2026-08-17T01:40:49.224Z",
+        "nextRequiredResolution": "2026-08-24T01:39:50.172Z",
+        "blockingUnknowns": [],
+        "cadenceDays": 7
+      },
+      "upstreamAgeDays": 116
+    },
+    {
       "canonicalName": "mcp-registry/ag.hood-name-service",
       "status": "baked",
       "artifactDigest": "sha256:903432ed74561447d10761874fafa64277863152dee2df6a8ab2cf456fd49a62",
-      "pageDigest": "sha256:e97c9dc381780605a876aa241d7ef081adc5b9437227164aaa4d1eaa89891604",
+      "pageDigest": "sha256:7e92a600d80b97ecdb0504e4a658df34c3bfa89484845d6b486d56631917a319",
       "verdict": "REVIEW",
-      "observedAt": "2026-08-15T14:54:20.031Z",
+      "observedAt": "2026-08-17T01:39:50.172Z",
       "identity": {
         "subjectId": "sha256:733d855e62c17f6baa9de930e5873b798aea30d32bd1cd2188fb634e9bebc922",
         "identityDigest": "sha256:d575aba14136dc6685b6061c869bc907fa5aaad1c48fa06b7f80562126dab324",
@@ -534,29 +612,68 @@
         "basis": [
           {
             "axis": "evidence-resolution",
-            "at": "2026-08-15T14:55:09.781Z",
+            "at": "2026-08-17T01:40:49.224Z",
             "ageDays": 0
           },
           {
             "axis": "source-observation",
-            "at": "2026-08-15T14:54:20.031Z",
+            "at": "2026-08-17T01:39:50.172Z",
             "ageDays": 0
           }
         ],
-        "lastSuccessfulResolution": "2026-08-15T14:55:09.781Z",
-        "nextRequiredResolution": "2026-08-22T14:54:20.031Z",
+        "lastSuccessfulResolution": "2026-08-17T01:40:49.224Z",
+        "nextRequiredResolution": "2026-08-24T01:39:50.172Z",
         "blockingUnknowns": [],
         "cadenceDays": 7
       },
-      "upstreamAgeDays": 36
+      "upstreamAgeDays": 37
+    },
+    {
+      "canonicalName": "mcp-registry/agency.goji-goji",
+      "status": "baked",
+      "artifactDigest": "sha256:3c2c08852743cc9cf0b5f2376f0bd53fd9e5c32e828eb423086d572cd7635d02",
+      "pageDigest": "sha256:b2c93eb00581e915138f06ca9ac02283f5cc40eb8d2f5e30e8ba845a601c327c",
+      "verdict": "REVIEW",
+      "observedAt": "2026-08-17T01:39:50.172Z",
+      "identity": {
+        "subjectId": "sha256:084d0910809f1fc9d186eb1a71c7eaab074dc96a1bdb457bc774822b3a84cb11",
+        "identityDigest": "sha256:e04dad27d250e14ff8480d5c8fa87673ff66b8c7d7459eb9f280940ea11b3494",
+        "identityStatus": "PROVISIONAL"
+      },
+      "freshness": {
+        "ageDays": 0,
+        "state": "FRESH",
+        "cadenceDays": 7,
+        "basis": "snapshot-fetchedAt"
+      },
+      "resolution": {
+        "status": "FRESH",
+        "basis": [
+          {
+            "axis": "evidence-resolution",
+            "at": "2026-08-17T01:40:49.224Z",
+            "ageDays": 0
+          },
+          {
+            "axis": "source-observation",
+            "at": "2026-08-17T01:39:50.172Z",
+            "ageDays": 0
+          }
+        ],
+        "lastSuccessfulResolution": "2026-08-17T01:40:49.224Z",
+        "nextRequiredResolution": "2026-08-24T01:39:50.172Z",
+        "blockingUnknowns": [],
+        "cadenceDays": 7
+      },
+      "upstreamAgeDays": 3
     },
     {
       "canonicalName": "mcp-registry/agency.kesey-pretrip",
       "status": "baked",
       "artifactDigest": "sha256:48180f8f9eab49664310736b3b4841a78fd013f5ec1e11230cad6ceaa95f8217",
-      "pageDigest": "sha256:275b546798a38957857137123d94d1d74ccc9b8fb64519606012d7c0e31946b5",
+      "pageDigest": "sha256:c18657e8a5844eef4fadc62e9a87da00e479b7ba8317d638681ccc0d126e1958",
       "verdict": "SAFE",
-      "observedAt": "2026-08-15T14:54:20.031Z",
+      "observedAt": "2026-08-17T01:39:50.172Z",
       "identity": {
         "subjectId": "sha256:1804c89ba118dffc388b28b959a3d461faad96bea94b433fde3679709da8baa9",
         "identityDigest": "sha256:f3b6d3f4daafa8317c407292e0229709e6229191cd29f460e60ba60c061b757c",
@@ -573,29 +690,29 @@
         "basis": [
           {
             "axis": "evidence-resolution",
-            "at": "2026-08-15T14:55:09.781Z",
+            "at": "2026-08-17T01:40:49.224Z",
             "ageDays": 0
           },
           {
             "axis": "source-observation",
-            "at": "2026-08-15T14:54:20.031Z",
+            "at": "2026-08-17T01:39:50.172Z",
             "ageDays": 0
           }
         ],
-        "lastSuccessfulResolution": "2026-08-15T14:55:09.781Z",
-        "nextRequiredResolution": "2026-08-22T14:54:20.031Z",
+        "lastSuccessfulResolution": "2026-08-17T01:40:49.224Z",
+        "nextRequiredResolution": "2026-08-24T01:39:50.172Z",
         "blockingUnknowns": [],
         "cadenceDays": 7
       },
-      "upstreamAgeDays": 19
+      "upstreamAgeDays": 21
     },
     {
       "canonicalName": "mcp-registry/agency.lona-trading",
       "status": "baked",
       "artifactDigest": "sha256:3ce01b0f8872a4aafa71b05210b2be91c3369714c5566bab9e57d1851ea58f0a",
-      "pageDigest": "sha256:971db491bb941487e607028fc782436515302863dcb6f228a2ec35fb3bb33ee7",
+      "pageDigest": "sha256:373fdaf9326fe82a2f3261c1c8140e6c134100fdd86dd5f7e20299f4e7d466a6",
       "verdict": "REVIEW",
-      "observedAt": "2026-08-15T14:54:20.031Z",
+      "observedAt": "2026-08-17T01:39:50.172Z",
       "identity": {
         "subjectId": "sha256:843badc8dce83ff2fad5e05dadbd633d7ea583119833fe7c848261f94f26001e",
         "identityDigest": "sha256:5555615019ca9f5c516cb8c9fb322af6fef32f5ca53a61b5872dc0a57c57b212",
@@ -612,29 +729,29 @@
         "basis": [
           {
             "axis": "evidence-resolution",
-            "at": "2026-08-15T14:55:09.781Z",
+            "at": "2026-08-17T01:40:49.224Z",
             "ageDays": 0
           },
           {
             "axis": "source-observation",
-            "at": "2026-08-15T14:54:20.031Z",
+            "at": "2026-08-17T01:39:50.172Z",
             "ageDays": 0
           }
         ],
-        "lastSuccessfulResolution": "2026-08-15T14:55:09.781Z",
-        "nextRequiredResolution": "2026-08-22T14:54:20.031Z",
+        "lastSuccessfulResolution": "2026-08-17T01:40:49.224Z",
+        "nextRequiredResolution": "2026-08-24T01:39:50.172Z",
         "blockingUnknowns": [],
         "cadenceDays": 7
       },
-      "upstreamAgeDays": 172
+      "upstreamAgeDays": 174
     },
     {
       "canonicalName": "mcp-registry/ai.1325-mcp",
       "status": "baked",
       "artifactDigest": "sha256:bdbac793efd6905e417d643ab1d4e5e9c8a879e05f5e271d137422c169973592",
-      "pageDigest": "sha256:5b01eef52515b7be853cc99c0173219b6e69629446dc7044053fafaaedec5378",
+      "pageDigest": "sha256:30200cb6f0b6f9f817596fb7b051582a4954b407e09f129ba6da0944859b23c0",
       "verdict": "REVIEW",
-      "observedAt": "2026-08-15T14:54:20.031Z",
+      "observedAt": "2026-08-17T01:39:50.172Z",
       "identity": {
         "subjectId": "sha256:bfe9116fe6a1088572ab5aa9ce0f1deb007806779d222f37c99d71c898a25932",
         "identityDigest": "sha256:6e658061a3407fec191243435cfd7a5991b92eae7d313c8e798f724e2b7f5f56",
@@ -651,29 +768,29 @@
         "basis": [
           {
             "axis": "evidence-resolution",
-            "at": "2026-08-15T14:55:09.781Z",
+            "at": "2026-08-17T01:40:49.224Z",
             "ageDays": 0
           },
           {
             "axis": "source-observation",
-            "at": "2026-08-15T14:54:20.031Z",
+            "at": "2026-08-17T01:39:50.172Z",
             "ageDays": 0
           }
         ],
-        "lastSuccessfulResolution": "2026-08-15T14:55:09.781Z",
-        "nextRequiredResolution": "2026-08-22T14:54:20.031Z",
+        "lastSuccessfulResolution": "2026-08-17T01:40:49.224Z",
+        "nextRequiredResolution": "2026-08-24T01:39:50.172Z",
         "blockingUnknowns": [],
         "cadenceDays": 7
       },
-      "upstreamAgeDays": 36
+      "upstreamAgeDays": 37
     },
     {
       "canonicalName": "mcp-registry/ai.aarna-atars-mcp",
       "status": "baked",
       "artifactDigest": "sha256:da6927a2f653489b9d12fe80b1d71d7c9abfc8cd505cd5fd226a67361efad4c6",
-      "pageDigest": "sha256:bc0b253bb1432a27020f8a3079305addfafef712705ce20d3396312deadca5c3",
+      "pageDigest": "sha256:7b680e6c1e77209b6d00211403dd34e1deacce08f7f629333b3eb5bbce4c5298",
       "verdict": "REVIEW",
-      "observedAt": "2026-08-15T14:54:20.031Z",
+      "observedAt": "2026-08-17T01:39:50.172Z",
       "identity": {
         "subjectId": "sha256:a9e04983d1be543021ec01e42a8d39aa49c3997b64322bacb9377c5e249f847d",
         "identityDigest": "sha256:899e05b715a95717df86406b51218c0cc500647d4fc3473a3d5aa83e785e640c",
@@ -690,29 +807,29 @@
         "basis": [
           {
             "axis": "evidence-resolution",
-            "at": "2026-08-15T14:55:09.781Z",
+            "at": "2026-08-17T01:40:49.224Z",
             "ageDays": 0
           },
           {
             "axis": "source-observation",
-            "at": "2026-08-15T14:54:20.031Z",
+            "at": "2026-08-17T01:39:50.172Z",
             "ageDays": 0
           }
         ],
-        "lastSuccessfulResolution": "2026-08-15T14:55:09.781Z",
-        "nextRequiredResolution": "2026-08-22T14:54:20.031Z",
+        "lastSuccessfulResolution": "2026-08-17T01:40:49.224Z",
+        "nextRequiredResolution": "2026-08-24T01:39:50.172Z",
         "blockingUnknowns": [],
         "cadenceDays": 7
       },
-      "upstreamAgeDays": 158
+      "upstreamAgeDays": 159
     },
     {
       "canonicalName": "mcp-registry/ai.abmeter-abmeter",
       "status": "baked",
       "artifactDigest": "sha256:c3670bfc209140bc70cf9e1a03be811c8b0e968fab3737e45e0034fb10dfc2b0",
-      "pageDigest": "sha256:253827a0ad32b0f4518c5ba9af76006b980c448e6ca18060e3ccac98393ecdb8",
+      "pageDigest": "sha256:38918ac45242459bf46869c19a28c1cbe6f731e9ceff9ccd8f042de857d55108",
       "verdict": "REVIEW",
-      "observedAt": "2026-08-15T14:54:20.031Z",
+      "observedAt": "2026-08-17T01:39:50.172Z",
       "identity": {
         "subjectId": "sha256:1f6e1b36eae2ee41eea2e1daf5a8649f4e85807005a8e8af84a84b1b4ac3c423",
         "identityDigest": "sha256:905ef2a2d19bdb85083a797121c6caf9ae24ce2b3a299e227ce596e5309df61c",
@@ -729,29 +846,29 @@
         "basis": [
           {
             "axis": "evidence-resolution",
-            "at": "2026-08-15T14:55:09.781Z",
+            "at": "2026-08-17T01:40:49.224Z",
             "ageDays": 0
           },
           {
             "axis": "source-observation",
-            "at": "2026-08-15T14:54:20.031Z",
+            "at": "2026-08-17T01:39:50.172Z",
             "ageDays": 0
           }
         ],
-        "lastSuccessfulResolution": "2026-08-15T14:55:09.781Z",
-        "nextRequiredResolution": "2026-08-22T14:54:20.031Z",
+        "lastSuccessfulResolution": "2026-08-17T01:40:49.224Z",
+        "nextRequiredResolution": "2026-08-24T01:39:50.172Z",
         "blockingUnknowns": [],
         "cadenceDays": 7
       },
-      "upstreamAgeDays": 117
+      "upstreamAgeDays": 119
     },
     {
       "canonicalName": "mcp-registry/ai.actwise-ideation",
       "status": "baked",
       "artifactDigest": "sha256:e79c7a4ca1beed27d8e9ffa890116406c0104af021c21275708da30e0267ff80",
-      "pageDigest": "sha256:6122e622ffd3b3b5d3499e7e70994da7a6ac379d8f52a277013e00a55fdec656",
+      "pageDigest": "sha256:467e7a34756058388a2ecccbfe5e8bfeec40355e4ce1a38733b7e259f8504c74",
       "verdict": "REVIEW",
-      "observedAt": "2026-08-15T14:54:20.031Z",
+      "observedAt": "2026-08-17T01:39:50.172Z",
       "identity": {
         "subjectId": "sha256:b8adeee5142c4c4e727e8941fe784d3c6bc9342cc658091e2f6ca6714ab3563f",
         "identityDigest": "sha256:109512455bef8151f5af1f4d75b2a3e868384d4be91851003d006da27d72e79c",
@@ -768,29 +885,29 @@
         "basis": [
           {
             "axis": "evidence-resolution",
-            "at": "2026-08-15T14:55:09.781Z",
+            "at": "2026-08-17T01:40:49.224Z",
             "ageDays": 0
           },
           {
             "axis": "source-observation",
-            "at": "2026-08-15T14:54:20.031Z",
+            "at": "2026-08-17T01:39:50.172Z",
             "ageDays": 0
           }
         ],
-        "lastSuccessfulResolution": "2026-08-15T14:55:09.781Z",
-        "nextRequiredResolution": "2026-08-22T14:54:20.031Z",
+        "lastSuccessfulResolution": "2026-08-17T01:40:49.224Z",
+        "nextRequiredResolution": "2026-08-24T01:39:50.172Z",
         "blockingUnknowns": [],
         "cadenceDays": 7
       },
-      "upstreamAgeDays": 1
+      "upstreamAgeDays": 2
     },
     {
       "canonicalName": "mcp-registry/ai.adadvisor-mcp-server",
       "status": "baked",
       "artifactDigest": "sha256:2c230c28640a0dcf1b8cc1a66ab330296a2768ae055449b9494b28506f44c239",
-      "pageDigest": "sha256:eb2153a7eb1d143897a4f805120f90df926eab9e4aab4ad14ef08118fdb7e517",
+      "pageDigest": "sha256:7174151cd70fd952b9f88964559a8256ca4a9e4b59f4df18bdaed8d12b7f7020",
       "verdict": "REVIEW",
-      "observedAt": "2026-08-15T14:54:20.031Z",
+      "observedAt": "2026-08-17T01:39:50.172Z",
       "identity": {
         "subjectId": "sha256:76290c20877fc425156d444d61ce070704c8934a1be7d1ee3eb02210781fd10c",
         "identityDigest": "sha256:0bddf688b94ec3bceacd9034c603db3499eca6690562413913e95411d5b1395f",
@@ -807,29 +924,29 @@
         "basis": [
           {
             "axis": "evidence-resolution",
-            "at": "2026-08-15T14:55:09.781Z",
+            "at": "2026-08-17T01:40:49.224Z",
             "ageDays": 0
           },
           {
             "axis": "source-observation",
-            "at": "2026-08-15T14:54:20.031Z",
+            "at": "2026-08-17T01:39:50.172Z",
             "ageDays": 0
           }
         ],
-        "lastSuccessfulResolution": "2026-08-15T14:55:09.781Z",
-        "nextRequiredResolution": "2026-08-22T14:54:20.031Z",
+        "lastSuccessfulResolution": "2026-08-17T01:40:49.224Z",
+        "nextRequiredResolution": "2026-08-24T01:39:50.172Z",
         "blockingUnknowns": [],
         "cadenceDays": 7
       },
-      "upstreamAgeDays": 168
+      "upstreamAgeDays": 169
     },
     {
       "canonicalName": "mcp-registry/ai.adeu-adeu",
       "status": "baked",
       "artifactDigest": "sha256:f6f792740d19b83991bc32bd9f4878868d8f4ad0ae767d66e910af8d8afad2e9",
-      "pageDigest": "sha256:b438eabeb7ac6ab6542620b128ed5f740158549dbb0fe8358b43eee840678262",
+      "pageDigest": "sha256:1e12c962d995f5a7461d80cf37c277ca8da5c8df8e641db0f8e63abb40b05a5e",
       "verdict": "SAFE",
-      "observedAt": "2026-08-15T14:54:20.031Z",
+      "observedAt": "2026-08-17T01:39:50.172Z",
       "identity": {
         "subjectId": "sha256:7a6e35c198476afaf868e7ae681aa039b30a42a5e90e47fdbc5a5443d9477936",
         "identityDigest": "sha256:c2fd936908863acab840dabe333bf74f1380c66a9e2c82d410ac904248188fb0",
@@ -846,29 +963,29 @@
         "basis": [
           {
             "axis": "evidence-resolution",
-            "at": "2026-08-15T14:55:09.781Z",
+            "at": "2026-08-17T01:40:49.224Z",
             "ageDays": 0
           },
           {
             "axis": "source-observation",
-            "at": "2026-08-15T14:54:20.031Z",
+            "at": "2026-08-17T01:39:50.172Z",
             "ageDays": 0
           }
         ],
-        "lastSuccessfulResolution": "2026-08-15T14:55:09.781Z",
-        "nextRequiredResolution": "2026-08-22T14:54:20.031Z",
+        "lastSuccessfulResolution": "2026-08-17T01:40:49.224Z",
+        "nextRequiredResolution": "2026-08-24T01:39:50.172Z",
         "blockingUnknowns": [],
         "cadenceDays": 7
       },
-      "upstreamAgeDays": 91
+      "upstreamAgeDays": 92
     },
     {
       "canonicalName": "mcp-registry/ai.adoraads-beauty",
       "status": "baked",
       "artifactDigest": "sha256:6a3cb413304c94adec850c54429773aebc77b9715d08d2399358818160426a15",
-      "pageDigest": "sha256:549743ba021470346b0d2f2624f2a0e5522fdfd0d944526074300866a5e38f3e",
+      "pageDigest": "sha256:43b9cb74429ad8ba832cd23f7d386d54f1c26f10bccec18642e5a431bf46f27c",
       "verdict": "REVIEW",
-      "observedAt": "2026-08-15T14:54:20.031Z",
+      "observedAt": "2026-08-17T01:39:50.172Z",
       "identity": {
         "subjectId": "sha256:362f69b091b1cf698b6e265cc3a76833cde6d49b58ec4e557cf3d41eda5bdb3a",
         "identityDigest": "sha256:1ba6154a68964a165baa7b072f1163451132b57687461cb4106ef7b6045acf0e",
@@ -885,29 +1002,107 @@
         "basis": [
           {
             "axis": "evidence-resolution",
-            "at": "2026-08-15T14:55:09.781Z",
+            "at": "2026-08-17T01:40:49.224Z",
             "ageDays": 0
           },
           {
             "axis": "source-observation",
-            "at": "2026-08-15T14:54:20.031Z",
+            "at": "2026-08-17T01:39:50.172Z",
             "ageDays": 0
           }
         ],
-        "lastSuccessfulResolution": "2026-08-15T14:55:09.781Z",
-        "nextRequiredResolution": "2026-08-22T14:54:20.031Z",
+        "lastSuccessfulResolution": "2026-08-17T01:40:49.224Z",
+        "nextRequiredResolution": "2026-08-24T01:39:50.172Z",
         "blockingUnknowns": [],
         "cadenceDays": 7
       },
-      "upstreamAgeDays": 6
+      "upstreamAgeDays": 8
+    },
+    {
+      "canonicalName": "mcp-registry/ai.adplane-google-ads",
+      "status": "baked",
+      "artifactDigest": "sha256:f17f56a2ccc24fe444f00c9a63a17fba83f1c58b61a9e4b07b26e638517650af",
+      "pageDigest": "sha256:ace7cefd335adbace05722988e6471c1f44183ae28a597d2f4341da123584998",
+      "verdict": "REVIEW",
+      "observedAt": "2026-08-17T01:39:50.172Z",
+      "identity": {
+        "subjectId": "sha256:c394cadf52a9f9070f3e69cdd58076b7a1c5f71cf26043a4c17af2840d57bf5e",
+        "identityDigest": "sha256:4c3463e1110dff82f8abba5e59999a3d9ed3baa8ac2d9cd141ed4dcb829d49b8",
+        "identityStatus": "PROVISIONAL"
+      },
+      "freshness": {
+        "ageDays": 0,
+        "state": "FRESH",
+        "cadenceDays": 7,
+        "basis": "snapshot-fetchedAt"
+      },
+      "resolution": {
+        "status": "FRESH",
+        "basis": [
+          {
+            "axis": "evidence-resolution",
+            "at": "2026-08-17T01:40:49.224Z",
+            "ageDays": 0
+          },
+          {
+            "axis": "source-observation",
+            "at": "2026-08-17T01:39:50.172Z",
+            "ageDays": 0
+          }
+        ],
+        "lastSuccessfulResolution": "2026-08-17T01:40:49.224Z",
+        "nextRequiredResolution": "2026-08-24T01:39:50.172Z",
+        "blockingUnknowns": [],
+        "cadenceDays": 7
+      },
+      "upstreamAgeDays": 8
+    },
+    {
+      "canonicalName": "mcp-registry/ai.adramp-google-ads",
+      "status": "baked",
+      "artifactDigest": "sha256:e654a8dcd35ee9c48addce35e458ca33f64f255ec817dd77f281158bbd13efed",
+      "pageDigest": "sha256:8d6d27727dcc7aa3136d04160cdf72458830e3434eaa0a49252e412ed52254ec",
+      "verdict": "REVIEW",
+      "observedAt": "2026-08-17T01:39:50.172Z",
+      "identity": {
+        "subjectId": "sha256:39c0c8612534dcec1eca214c3b12f90d1e986728643892ece665f4035b154550",
+        "identityDigest": "sha256:55e4fafddb2dc8ec1a0add7b697c25ddc276a8f70204f280705baed94d574818",
+        "identityStatus": "PROVISIONAL"
+      },
+      "freshness": {
+        "ageDays": 0,
+        "state": "FRESH",
+        "cadenceDays": 7,
+        "basis": "snapshot-fetchedAt"
+      },
+      "resolution": {
+        "status": "FRESH",
+        "basis": [
+          {
+            "axis": "evidence-resolution",
+            "at": "2026-08-17T01:40:49.224Z",
+            "ageDays": 0
+          },
+          {
+            "axis": "source-observation",
+            "at": "2026-08-17T01:39:50.172Z",
+            "ageDays": 0
+          }
+        ],
+        "lastSuccessfulResolution": "2026-08-17T01:40:49.224Z",
+        "nextRequiredResolution": "2026-08-24T01:39:50.172Z",
+        "blockingUnknowns": [],
+        "cadenceDays": 7
+      },
+      "upstreamAgeDays": 149
     },
     {
       "canonicalName": "mcp-registry/ai.adside-adside",
       "status": "baked",
       "artifactDigest": "sha256:add7e15c2b429d3fa989e766fe421eb06f9a9095d03851a4cc0a8f8db18260c0",
-      "pageDigest": "sha256:8247afdbffdafd4993b25b048358378ae235f3c9eb6e67c899f6adab7581d58c",
+      "pageDigest": "sha256:dd8551b8f47b668bf59cc0ece7c404c176768a8ad983f8f320e07a3d4980cd70",
       "verdict": "REVIEW",
-      "observedAt": "2026-08-15T14:54:20.031Z",
+      "observedAt": "2026-08-17T01:39:50.172Z",
       "identity": {
         "subjectId": "sha256:c779004348b29ed67b5de1b151f2240520ea38ac663aeae6c1e5211c407ac256",
         "identityDigest": "sha256:856295590e7c9f58846e09c1ea68346e708812a0b8eadf5453708428764e1333",
@@ -924,29 +1119,29 @@
         "basis": [
           {
             "axis": "evidence-resolution",
-            "at": "2026-08-15T14:55:09.781Z",
+            "at": "2026-08-17T01:40:49.224Z",
             "ageDays": 0
           },
           {
             "axis": "source-observation",
-            "at": "2026-08-15T14:54:20.031Z",
+            "at": "2026-08-17T01:39:50.172Z",
             "ageDays": 0
           }
         ],
-        "lastSuccessfulResolution": "2026-08-15T14:55:09.781Z",
-        "nextRequiredResolution": "2026-08-22T14:54:20.031Z",
+        "lastSuccessfulResolution": "2026-08-17T01:40:49.224Z",
+        "nextRequiredResolution": "2026-08-24T01:39:50.172Z",
         "blockingUnknowns": [],
         "cadenceDays": 7
       },
-      "upstreamAgeDays": 29
+      "upstreamAgeDays": 31
     },
     {
       "canonicalName": "mcp-registry/ai.adweave-meta-ads-mcp",
       "status": "baked",
       "artifactDigest": "sha256:d9948f3b8f8def4ba2cb46af80c4a04b6464ad710358bed1a43a5bad17b79a99",
-      "pageDigest": "sha256:9ee384ab2f3c44e7e1a1ff76755e4f5ab1ea6d7a610db91515295085de08ab0a",
+      "pageDigest": "sha256:ed43e21cfb5d79281e4d5c5085b2c471385b9bf9e23a9dc64c4dbd04230fb6d8",
       "verdict": "REVIEW",
-      "observedAt": "2026-08-15T14:54:20.031Z",
+      "observedAt": "2026-08-17T01:39:50.172Z",
       "identity": {
         "subjectId": "sha256:377257431124424a7c8c59c30d483c740d7a1a4972aad4822fc2d28f89f91d61",
         "identityDigest": "sha256:de76875e56eaabb0433de2c663f9d1b4718dc9f2f4f28c702e959aec79bb1174",
@@ -963,29 +1158,68 @@
         "basis": [
           {
             "axis": "evidence-resolution",
-            "at": "2026-08-15T14:55:09.781Z",
+            "at": "2026-08-17T01:40:49.224Z",
             "ageDays": 0
           },
           {
             "axis": "source-observation",
-            "at": "2026-08-15T14:54:20.031Z",
+            "at": "2026-08-17T01:39:50.172Z",
             "ageDays": 0
           }
         ],
-        "lastSuccessfulResolution": "2026-08-15T14:55:09.781Z",
-        "nextRequiredResolution": "2026-08-22T14:54:20.031Z",
+        "lastSuccessfulResolution": "2026-08-17T01:40:49.224Z",
+        "nextRequiredResolution": "2026-08-24T01:39:50.172Z",
         "blockingUnknowns": [],
         "cadenceDays": 7
       },
-      "upstreamAgeDays": 126
+      "upstreamAgeDays": 128
+    },
+    {
+      "canonicalName": "mcp-registry/ai.aetherwealth-mcp",
+      "status": "baked",
+      "artifactDigest": "sha256:69c248fcb802a6a4dd67f467c0951800ddcc190ea7a97abdb956e29498f39426",
+      "pageDigest": "sha256:91583cc7340aeab8b6d1be59d6728eaaac29bd0675a4ee28325e946682d3ed33",
+      "verdict": "SAFE",
+      "observedAt": "2026-08-17T01:39:50.172Z",
+      "identity": {
+        "subjectId": "sha256:79329d442030b3947026df297de8413bb309644036270b22c89d57be050a70d6",
+        "identityDigest": "sha256:be1976be661b5ef244d24dd6699da3b89347b1abe884adb65c7fe20da2c09fe5",
+        "identityStatus": "PROVISIONAL"
+      },
+      "freshness": {
+        "ageDays": 0,
+        "state": "FRESH",
+        "cadenceDays": 7,
+        "basis": "snapshot-fetchedAt"
+      },
+      "resolution": {
+        "status": "FRESH",
+        "basis": [
+          {
+            "axis": "evidence-resolution",
+            "at": "2026-08-17T01:40:49.224Z",
+            "ageDays": 0
+          },
+          {
+            "axis": "source-observation",
+            "at": "2026-08-17T01:39:50.172Z",
+            "ageDays": 0
+          }
+        ],
+        "lastSuccessfulResolution": "2026-08-17T01:40:49.224Z",
+        "nextRequiredResolution": "2026-08-24T01:39:50.172Z",
+        "blockingUnknowns": [],
+        "cadenceDays": 7
+      },
+      "upstreamAgeDays": 8
     },
     {
       "canonicalName": "mcp-registry/ai.afmr-discovery",
       "status": "baked",
       "artifactDigest": "sha256:25a1fd89acf93f9f7cff8030370e8bc829b7fc0aeac55298d41d4e554bcdd7e0",
-      "pageDigest": "sha256:8e3b7d662f272f3ce6e4231d26bc2799ffbfefd621f0585ff03cbd0070757068",
+      "pageDigest": "sha256:e48838b6e209051d4985df90d9677b5ed7965d8cdc8f9d025a87a9b223b2e93e",
       "verdict": "REVIEW",
-      "observedAt": "2026-08-15T14:54:20.031Z",
+      "observedAt": "2026-08-17T01:39:50.172Z",
       "identity": {
         "subjectId": "sha256:65f2a30bf9726fd79c6d563acf7a4c06ccbf7a56f7827e07d30cf30e8cd9b49b",
         "identityDigest": "sha256:14881f4abe818d123f887ab4ac0204f29e0369443650b31d3bb007c19d4bbdf1",
@@ -1002,29 +1236,29 @@
         "basis": [
           {
             "axis": "evidence-resolution",
-            "at": "2026-08-15T14:55:09.781Z",
+            "at": "2026-08-17T01:40:49.224Z",
             "ageDays": 0
           },
           {
             "axis": "source-observation",
-            "at": "2026-08-15T14:54:20.031Z",
+            "at": "2026-08-17T01:39:50.172Z",
             "ageDays": 0
           }
         ],
-        "lastSuccessfulResolution": "2026-08-15T14:55:09.781Z",
-        "nextRequiredResolution": "2026-08-22T14:54:20.031Z",
+        "lastSuccessfulResolution": "2026-08-17T01:40:49.224Z",
+        "nextRequiredResolution": "2026-08-24T01:39:50.172Z",
         "blockingUnknowns": [],
         "cadenceDays": 7
       },
-      "upstreamAgeDays": 15
+      "upstreamAgeDays": 17
     },
     {
       "canonicalName": "mcp-registry/ai.agentberg-agentberg",
       "status": "baked",
       "artifactDigest": "sha256:53381adee155197fa43a8639ff40cc88053388b29bea38d5f4ae6333693210f3",
-      "pageDigest": "sha256:f41bbfae39ca792929379fd783e914408825842e12030c4b08f5458aa114aa7c",
+      "pageDigest": "sha256:62ea68daa4b93bcdfc699f594af4868eb81b183f037ce7db92ffe4ef3e48714d",
       "verdict": "REVIEW",
-      "observedAt": "2026-08-15T14:54:20.031Z",
+      "observedAt": "2026-08-17T01:39:50.172Z",
       "identity": {
         "subjectId": "sha256:bfa88c1c07ff7b39c6924a374d5efc1ce3eca92199b052d4bda10807221856e4",
         "identityDigest": "sha256:104114b8a341581cd6be9a004255b1a9335ad07f67c18c39249eee336214dede",
@@ -1041,29 +1275,68 @@
         "basis": [
           {
             "axis": "evidence-resolution",
-            "at": "2026-08-15T14:55:09.781Z",
+            "at": "2026-08-17T01:40:49.224Z",
             "ageDays": 0
           },
           {
             "axis": "source-observation",
-            "at": "2026-08-15T14:54:20.031Z",
+            "at": "2026-08-17T01:39:50.172Z",
             "ageDays": 0
           }
         ],
-        "lastSuccessfulResolution": "2026-08-15T14:55:09.781Z",
-        "nextRequiredResolution": "2026-08-22T14:54:20.031Z",
+        "lastSuccessfulResolution": "2026-08-17T01:40:49.224Z",
+        "nextRequiredResolution": "2026-08-24T01:39:50.172Z",
         "blockingUnknowns": [],
         "cadenceDays": 7
       },
-      "upstreamAgeDays": 58
+      "upstreamAgeDays": 59
+    },
+    {
+      "canonicalName": "mcp-registry/ai.agentdm-agentdm",
+      "status": "baked",
+      "artifactDigest": "sha256:adfed57c616360d34b99675a040070807d141bf949a86d74d02af5d671d491b7",
+      "pageDigest": "sha256:93869c1226b80968a7b51dcefd0f2a1ec33a471e31d6154a27f09d24f9b865a6",
+      "verdict": "REVIEW",
+      "observedAt": "2026-08-17T01:39:50.172Z",
+      "identity": {
+        "subjectId": "sha256:e59e54fb3511eedae4817ca2cb6dadf0d705523dafa8cdf57a9019978b8540d4",
+        "identityDigest": "sha256:8d9c16f86735fac1913167cf61479715bdcad265af1da42553cee9f2679a971f",
+        "identityStatus": "PROVISIONAL"
+      },
+      "freshness": {
+        "ageDays": 0,
+        "state": "FRESH",
+        "cadenceDays": 7,
+        "basis": "snapshot-fetchedAt"
+      },
+      "resolution": {
+        "status": "FRESH",
+        "basis": [
+          {
+            "axis": "evidence-resolution",
+            "at": "2026-08-17T01:40:49.224Z",
+            "ageDays": 0
+          },
+          {
+            "axis": "source-observation",
+            "at": "2026-08-17T01:39:50.172Z",
+            "ageDays": 0
+          }
+        ],
+        "lastSuccessfulResolution": "2026-08-17T01:40:49.224Z",
+        "nextRequiredResolution": "2026-08-24T01:39:50.172Z",
+        "blockingUnknowns": [],
+        "cadenceDays": 7
+      },
+      "upstreamAgeDays": 98
     },
     {
       "canonicalName": "mcp-registry/ai.agentic-news-mcp",
       "status": "baked",
       "artifactDigest": "sha256:6913ebe5d60fec1f4b63796b25508ba4b16021b86f343858aaafc48a13cb45f4",
-      "pageDigest": "sha256:7c655a0a74c49fecacdb188b79a639e82b6867f494925acb177da17222d4c4ca",
+      "pageDigest": "sha256:53d0b54e9b946437f2ed8fc570fc8177c77f4a7fd2a8ab0063201b207f1a8715",
       "verdict": "REVIEW",
-      "observedAt": "2026-08-15T14:54:20.031Z",
+      "observedAt": "2026-08-17T01:39:50.172Z",
       "identity": {
         "subjectId": "sha256:83f5691c7fdc63b2526cd948999ce1f4579ecb8c662e89c2fb8cda96a3434105",
         "identityDigest": "sha256:e5b24e9258b4ee26a13cbe59b7a5ba2afd497aa564536bccc01961994c87916e",
@@ -1080,29 +1353,29 @@
         "basis": [
           {
             "axis": "evidence-resolution",
-            "at": "2026-08-15T14:55:09.781Z",
+            "at": "2026-08-17T01:40:49.224Z",
             "ageDays": 0
           },
           {
             "axis": "source-observation",
-            "at": "2026-08-15T14:54:20.031Z",
+            "at": "2026-08-17T01:39:50.172Z",
             "ageDays": 0
           }
         ],
-        "lastSuccessfulResolution": "2026-08-15T14:55:09.781Z",
-        "nextRequiredResolution": "2026-08-22T14:54:20.031Z",
+        "lastSuccessfulResolution": "2026-08-17T01:40:49.224Z",
+        "nextRequiredResolution": "2026-08-24T01:39:50.172Z",
         "blockingUnknowns": [],
         "cadenceDays": 7
       },
-      "upstreamAgeDays": 130
+      "upstreamAgeDays": 132
     },
     {
       "canonicalName": "mcp-registry/ai.agenticaffiliate-affiliate-networks-mcp",
       "status": "baked",
       "artifactDigest": "sha256:13478225665f07abb592178f4ac0f2c91a988729abe605c71543a4dd8951546d",
-      "pageDigest": "sha256:62099211a8c0c1a5fbcfb5ce952da8b59a1b861e8d898f6b7becb5b43113b191",
+      "pageDigest": "sha256:15402642561401e284cd724ce17afd25356ad0ba10cfd61556858aa0e046cda7",
       "verdict": "REVIEW",
-      "observedAt": "2026-08-15T14:54:20.031Z",
+      "observedAt": "2026-08-17T01:39:50.172Z",
       "identity": {
         "subjectId": "sha256:8c31e50fe38b92c124876cc1bb678b39956f38e7a7725059866dddb460afa792",
         "identityDigest": "sha256:dfe865ae0f465753c46bfa9e37549586e9f8fe9817d3046daa8c989d60809a0f",
@@ -1119,29 +1392,29 @@
         "basis": [
           {
             "axis": "evidence-resolution",
-            "at": "2026-08-15T14:55:09.781Z",
+            "at": "2026-08-17T01:40:49.224Z",
             "ageDays": 0
           },
           {
             "axis": "source-observation",
-            "at": "2026-08-15T14:54:20.031Z",
+            "at": "2026-08-17T01:39:50.172Z",
             "ageDays": 0
           }
         ],
-        "lastSuccessfulResolution": "2026-08-15T14:55:09.781Z",
-        "nextRequiredResolution": "2026-08-22T14:54:20.031Z",
+        "lastSuccessfulResolution": "2026-08-17T01:40:49.224Z",
+        "nextRequiredResolution": "2026-08-24T01:39:50.172Z",
         "blockingUnknowns": [],
         "cadenceDays": 7
       },
-      "upstreamAgeDays": 17
+      "upstreamAgeDays": 18
     },
     {
       "canonicalName": "mcp-registry/ai.agenticfabricationnetwork-ufp",
       "status": "baked",
       "artifactDigest": "sha256:68aa642d2cd1eefc7ea8794cca6f808cf15ffa908a3cfea8b6bcd9f6bbb7ec67",
-      "pageDigest": "sha256:963a205166e42b20428cbad94d6ae112d36280e27377962f2ad8cb469bd87043",
+      "pageDigest": "sha256:5df6dcd9d66ba320eb9664713474e43ebcf4cfe9092de0849199470f655d1a4f",
       "verdict": "REVIEW",
-      "observedAt": "2026-08-15T14:54:20.031Z",
+      "observedAt": "2026-08-17T01:39:50.172Z",
       "identity": {
         "subjectId": "sha256:480074e122e10e286c371395be20041108f835751ee7656e996f3a64e0a407d2",
         "identityDigest": "sha256:89ca8f070f87bbfd72c1524cb3976176862bcc413210101a20b847c44d6dbc37",
@@ -1158,29 +1431,68 @@
         "basis": [
           {
             "axis": "evidence-resolution",
-            "at": "2026-08-15T14:55:09.781Z",
+            "at": "2026-08-17T01:40:49.224Z",
             "ageDays": 0
           },
           {
             "axis": "source-observation",
-            "at": "2026-08-15T14:54:20.031Z",
+            "at": "2026-08-17T01:39:50.172Z",
             "ageDays": 0
           }
         ],
-        "lastSuccessfulResolution": "2026-08-15T14:55:09.781Z",
-        "nextRequiredResolution": "2026-08-22T14:54:20.031Z",
+        "lastSuccessfulResolution": "2026-08-17T01:40:49.224Z",
+        "nextRequiredResolution": "2026-08-24T01:39:50.172Z",
         "blockingUnknowns": [],
         "cadenceDays": 7
       },
-      "upstreamAgeDays": 7
+      "upstreamAgeDays": 9
+    },
+    {
+      "canonicalName": "mcp-registry/ai.agenticshelf-graffeo",
+      "status": "baked",
+      "artifactDigest": "sha256:6fb4d2a789a52a8debd01384956a71e6688fa25b0ba495fd32633ea028ff434e",
+      "pageDigest": "sha256:46e7d7c03433262175339c1ba2445e96a2c9318e8814d881e7fad6d92003c96e",
+      "verdict": "REVIEW",
+      "observedAt": "2026-08-17T01:39:50.172Z",
+      "identity": {
+        "subjectId": "sha256:5751d0a4f72529e04eef880b66d813f0ecb1e65e0589da61760c983d72da98fa",
+        "identityDigest": "sha256:8a1e2b1da0d154e6ed57671b2c53409c606d9c83c132a791061c3da494605283",
+        "identityStatus": "PROVISIONAL"
+      },
+      "freshness": {
+        "ageDays": 0,
+        "state": "FRESH",
+        "cadenceDays": 7,
+        "basis": "snapshot-fetchedAt"
+      },
+      "resolution": {
+        "status": "FRESH",
+        "basis": [
+          {
+            "axis": "evidence-resolution",
+            "at": "2026-08-17T01:40:49.224Z",
+            "ageDays": 0
+          },
+          {
+            "axis": "source-observation",
+            "at": "2026-08-17T01:39:50.172Z",
+            "ageDays": 0
+          }
+        ],
+        "lastSuccessfulResolution": "2026-08-17T01:40:49.224Z",
+        "nextRequiredResolution": "2026-08-24T01:39:50.172Z",
+        "blockingUnknowns": [],
+        "cadenceDays": 7
+      },
+      "upstreamAgeDays": 94
     },
     {
       "canonicalName": "mcp-registry/ai.agenticshelf-mcp",
       "status": "baked",
       "artifactDigest": "sha256:ea6152f9304e7dde10305c7af11f3d292458c8550739d6b3fdc5b1b780a3cffd",
-      "pageDigest": "sha256:81ee1d4e9ef40f1a8f019290bbc55f9e86e6d0b185895c0591041114846182af",
+      "pageDigest": "sha256:331eb000425607aa8c8aead1e26c53065e672da42337cc2e0f24bdca57836706",
       "verdict": "REVIEW",
-      "observedAt": "2026-08-15T14:54:20.031Z",
+      "observedAt": "2026-08-17T01:39:50.172Z",
       "identity": {
         "subjectId": "sha256:9b2001f2badbcb0e42ac1d9ab9fe7d2bb3d60ee63db9e2ac69c9c83a418b2b73",
         "identityDigest": "sha256:8d8da037038ecb52131ae6290b676d0526521288f37b24012a0f52ad7f6e5b66",
@@ -1197,29 +1509,29 @@
         "basis": [
           {
             "axis": "evidence-resolution",
-            "at": "2026-08-15T14:55:09.781Z",
+            "at": "2026-08-17T01:40:49.224Z",
             "ageDays": 0
           },
           {
             "axis": "source-observation",
-            "at": "2026-08-15T14:54:20.031Z",
+            "at": "2026-08-17T01:39:50.172Z",
             "ageDays": 0
           }
         ],
-        "lastSuccessfulResolution": "2026-08-15T14:55:09.781Z",
-        "nextRequiredResolution": "2026-08-22T14:54:20.031Z",
+        "lastSuccessfulResolution": "2026-08-17T01:40:49.224Z",
+        "nextRequiredResolution": "2026-08-24T01:39:50.172Z",
         "blockingUnknowns": [],
         "cadenceDays": 7
       },
-      "upstreamAgeDays": 100
+      "upstreamAgeDays": 102
     },
     {
       "canonicalName": "mcp-registry/ai.agenticshelf-puroair",
       "status": "baked",
       "artifactDigest": "sha256:e14fc20ef3f4c970843bb714836ceb7700f1a90ce2f70100a34dbf5384036201",
-      "pageDigest": "sha256:d0c40e1174ddd1621bbc0e3b7991938c354a5e0afb4373e7605996436f90693d",
+      "pageDigest": "sha256:d5cdeb378f20e88693d64376bb056dc68aa56119e48ad70ec874640d18dc0031",
       "verdict": "REVIEW",
-      "observedAt": "2026-08-15T14:54:20.031Z",
+      "observedAt": "2026-08-17T01:39:50.172Z",
       "identity": {
         "subjectId": "sha256:5a81e21d7d3dead55390b50b4c0d68d995265229c258d1939f7fcbf52bd3c654",
         "identityDigest": "sha256:be4488a9bf05df1b6155c430e5d12b91ccdf063426d89a48915022f91a4d25a5",
@@ -1236,29 +1548,29 @@
         "basis": [
           {
             "axis": "evidence-resolution",
-            "at": "2026-08-15T14:55:09.781Z",
+            "at": "2026-08-17T01:40:49.224Z",
             "ageDays": 0
           },
           {
             "axis": "source-observation",
-            "at": "2026-08-15T14:54:20.031Z",
+            "at": "2026-08-17T01:39:50.172Z",
             "ageDays": 0
           }
         ],
-        "lastSuccessfulResolution": "2026-08-15T14:55:09.781Z",
-        "nextRequiredResolution": "2026-08-22T14:54:20.031Z",
+        "lastSuccessfulResolution": "2026-08-17T01:40:49.224Z",
+        "nextRequiredResolution": "2026-08-24T01:39:50.172Z",
         "blockingUnknowns": [],
         "cadenceDays": 7
       },
-      "upstreamAgeDays": 43
+      "upstreamAgeDays": 45
     },
     {
       "canonicalName": "mcp-registry/ai.agenticterminal-directory",
       "status": "baked",
       "artifactDigest": "sha256:b8ab3d517bb11ff1004342b94d9f8d561cfc459538c2f014fe5629942882e9bf",
-      "pageDigest": "sha256:e85a0b04e7cfe9deb74c61743e92f88c452ced16ec28bcc10be0e48d1ab07443",
+      "pageDigest": "sha256:a03c36113b278bbf35ee7534e4a506a62fa5fe843513744737c9c45d7c7a8806",
       "verdict": "REVIEW",
-      "observedAt": "2026-08-15T14:54:20.031Z",
+      "observedAt": "2026-08-17T01:39:50.172Z",
       "identity": {
         "subjectId": "sha256:0f2fe313207c09513670c9eff0ad16c43a11c27923e34e4b46681ea026a3fcff",
         "identityDigest": "sha256:6ae472137f9e470feeb7544c7ba86c47b6044bd1ebc1ec3ef2ba5fae75d69040",
@@ -1275,29 +1587,29 @@
         "basis": [
           {
             "axis": "evidence-resolution",
-            "at": "2026-08-15T14:55:09.781Z",
+            "at": "2026-08-17T01:40:49.224Z",
             "ageDays": 0
           },
           {
             "axis": "source-observation",
-            "at": "2026-08-15T14:54:20.031Z",
+            "at": "2026-08-17T01:39:50.172Z",
             "ageDays": 0
           }
         ],
-        "lastSuccessfulResolution": "2026-08-15T14:55:09.781Z",
-        "nextRequiredResolution": "2026-08-22T14:54:20.031Z",
+        "lastSuccessfulResolution": "2026-08-17T01:40:49.224Z",
+        "nextRequiredResolution": "2026-08-24T01:39:50.172Z",
         "blockingUnknowns": [],
         "cadenceDays": 7
       },
-      "upstreamAgeDays": 87
+      "upstreamAgeDays": 89
     },
     {
       "canonicalName": "mcp-registry/ai.agentlookups-counterscript",
       "status": "baked",
       "artifactDigest": "sha256:5378759ac25fcbd4fa9f7930d7dec04316cf11261795b2271c0f9164c7e66e02",
-      "pageDigest": "sha256:ab2a020a629ffc637d643003cf10bf80957bc084c9646ce1e340d43eba9325dd",
+      "pageDigest": "sha256:f4ef2fd9efe768fed8b91e91f2272547f8c0b6dddf0ab935675b7902a5a54deb",
       "verdict": "REVIEW",
-      "observedAt": "2026-08-15T14:54:20.031Z",
+      "observedAt": "2026-08-17T01:39:50.172Z",
       "identity": {
         "subjectId": "sha256:6800c1dd69c918ba4de894020b2ee6c440465c52f3e71a5ba2b64ad8bd35405a",
         "identityDigest": "sha256:d666a041f4b439c7421621f4f7258c3c2961c85b6bc0dc01b20ffcea33cc4e42",
@@ -1314,29 +1626,29 @@
         "basis": [
           {
             "axis": "evidence-resolution",
-            "at": "2026-08-15T14:55:09.781Z",
+            "at": "2026-08-17T01:40:49.224Z",
             "ageDays": 0
           },
           {
             "axis": "source-observation",
-            "at": "2026-08-15T14:54:20.031Z",
+            "at": "2026-08-17T01:39:50.172Z",
             "ageDays": 0
           }
         ],
-        "lastSuccessfulResolution": "2026-08-15T14:55:09.781Z",
-        "nextRequiredResolution": "2026-08-22T14:54:20.031Z",
+        "lastSuccessfulResolution": "2026-08-17T01:40:49.224Z",
+        "nextRequiredResolution": "2026-08-24T01:39:50.172Z",
         "blockingUnknowns": [],
         "cadenceDays": 7
       },
-      "upstreamAgeDays": 10
+      "upstreamAgeDays": 12
     },
     {
       "canonicalName": "mcp-registry/ai.agentlookups-groundtruth",
       "status": "baked",
       "artifactDigest": "sha256:c57b115f1ac0f238dc217d17b45fd3d5bd2f3d6c69d7f593264daa4731586678",
-      "pageDigest": "sha256:5d84b0dcc1d05e1d3ade1d1a7b36e0fcfe8bcd1a9ad77e5eb3145d1251b8e928",
+      "pageDigest": "sha256:9569f069778d14eb9e5177a0a69d567b9cc392ddb458ef4526ebef2c8c4091ff",
       "verdict": "REVIEW",
-      "observedAt": "2026-08-15T14:54:20.031Z",
+      "observedAt": "2026-08-17T01:39:50.172Z",
       "identity": {
         "subjectId": "sha256:3599ddfbc455b6de41be64e8a2c86901f529d13e9465275de77ae01c49e29f48",
         "identityDigest": "sha256:9ccfad3e48ebf0095eb915349861a1e07c21627e1525302daf400eb24409c53b",
@@ -1353,29 +1665,29 @@
         "basis": [
           {
             "axis": "evidence-resolution",
-            "at": "2026-08-15T14:55:09.781Z",
+            "at": "2026-08-17T01:40:49.224Z",
             "ageDays": 0
           },
           {
             "axis": "source-observation",
-            "at": "2026-08-15T14:54:20.031Z",
+            "at": "2026-08-17T01:39:50.172Z",
             "ageDays": 0
           }
         ],
-        "lastSuccessfulResolution": "2026-08-15T14:55:09.781Z",
-        "nextRequiredResolution": "2026-08-22T14:54:20.031Z",
+        "lastSuccessfulResolution": "2026-08-17T01:40:49.224Z",
+        "nextRequiredResolution": "2026-08-24T01:39:50.172Z",
         "blockingUnknowns": [],
         "cadenceDays": 7
       },
-      "upstreamAgeDays": 10
+      "upstreamAgeDays": 12
     },
     {
       "canonicalName": "mcp-registry/ai.agentlookups-overassessed",
       "status": "baked",
       "artifactDigest": "sha256:c78dc4a750686a642bc574c0dc41a932d7620ac90e251e19a5a0bdc59e5fdcf8",
-      "pageDigest": "sha256:18bbc2de930d82a57e6e12678f03763ba48d777b8f6b941525b49073c62612b5",
+      "pageDigest": "sha256:e4ea272ac568681eeb106fcf5b424d8dcd838180d091db8255282c64f9f04393",
       "verdict": "REVIEW",
-      "observedAt": "2026-08-15T14:54:20.031Z",
+      "observedAt": "2026-08-17T01:39:50.172Z",
       "identity": {
         "subjectId": "sha256:d6214d1a3bb757e1448e74247b4b35ac881bf3f0839383bfb734e4ab8a597371",
         "identityDigest": "sha256:1f95e0a011fc86021f5d99849235c9c1c9693cb23c6e8e258ddda3a8904cf391",
@@ -1392,29 +1704,29 @@
         "basis": [
           {
             "axis": "evidence-resolution",
-            "at": "2026-08-15T14:55:09.781Z",
+            "at": "2026-08-17T01:40:49.224Z",
             "ageDays": 0
           },
           {
             "axis": "source-observation",
-            "at": "2026-08-15T14:54:20.031Z",
+            "at": "2026-08-17T01:39:50.172Z",
             "ageDays": 0
           }
         ],
-        "lastSuccessfulResolution": "2026-08-15T14:55:09.781Z",
-        "nextRequiredResolution": "2026-08-22T14:54:20.031Z",
+        "lastSuccessfulResolution": "2026-08-17T01:40:49.224Z",
+        "nextRequiredResolution": "2026-08-24T01:39:50.172Z",
         "blockingUnknowns": [],
         "cadenceDays": 7
       },
-      "upstreamAgeDays": 10
+      "upstreamAgeDays": 12
     },
     {
       "canonicalName": "mcp-registry/ai.agentlookups-plumbline",
       "status": "baked",
       "artifactDigest": "sha256:dd545706150eee89e3cca7c0cc41dd6ca1aaf99962d20709b9692917c21a6beb",
-      "pageDigest": "sha256:25397f52bcde3216c53d3131c72b979f598a63b3f9277887c89781c2567d1add",
+      "pageDigest": "sha256:518e02b2e97075ae0566e7cc5c97bb1025c3bf73dd8e29f0cda6c900e954a781",
       "verdict": "REVIEW",
-      "observedAt": "2026-08-15T14:54:20.031Z",
+      "observedAt": "2026-08-17T01:39:50.172Z",
       "identity": {
         "subjectId": "sha256:7d7d87c905fedbbdff591255a82470f7587dbfeb718c1d24bff3471d2763bfb3",
         "identityDigest": "sha256:4225f2793bdb3a9c16e305f4b30211cbe5b518f2d6bc519fd673d8d7e8b90df2",
@@ -1431,29 +1743,29 @@
         "basis": [
           {
             "axis": "evidence-resolution",
-            "at": "2026-08-15T14:55:09.781Z",
+            "at": "2026-08-17T01:40:49.224Z",
             "ageDays": 0
           },
           {
             "axis": "source-observation",
-            "at": "2026-08-15T14:54:20.031Z",
+            "at": "2026-08-17T01:39:50.172Z",
             "ageDays": 0
           }
         ],
-        "lastSuccessfulResolution": "2026-08-15T14:55:09.781Z",
-        "nextRequiredResolution": "2026-08-22T14:54:20.031Z",
+        "lastSuccessfulResolution": "2026-08-17T01:40:49.224Z",
+        "nextRequiredResolution": "2026-08-24T01:39:50.172Z",
         "blockingUnknowns": [],
         "cadenceDays": 7
       },
-      "upstreamAgeDays": 10
+      "upstreamAgeDays": 12
     },
     {
       "canonicalName": "mcp-registry/ai.agentrapay-agentra",
       "status": "baked",
       "artifactDigest": "sha256:aa7f295919d0e46ff615fc81bc41e447ebb1140921d0ad7f5f1097f93b78e651",
-      "pageDigest": "sha256:2abcab8f9298ca47bdf86c8b1b78b9d38ed86ff01e1c115ba8a2c44fc8056f7a",
+      "pageDigest": "sha256:69a55b17c00e586b2a4b5285a409764ba80ea5d5d7c158ed4b0ab61da9340011",
       "verdict": "REVIEW",
-      "observedAt": "2026-08-15T14:54:20.031Z",
+      "observedAt": "2026-08-17T01:39:50.172Z",
       "identity": {
         "subjectId": "sha256:5e3deed74e43f3fa568a39cabc72c14e4c311f102ca8392312289aa690746648",
         "identityDigest": "sha256:22707e6319ee881da734b11c6e1a68f6556393d7cbc90df6c2844112c5fdc91d",
@@ -1470,29 +1782,29 @@
         "basis": [
           {
             "axis": "evidence-resolution",
-            "at": "2026-08-15T14:55:09.781Z",
+            "at": "2026-08-17T01:40:49.224Z",
             "ageDays": 0
           },
           {
             "axis": "source-observation",
-            "at": "2026-08-15T14:54:20.031Z",
+            "at": "2026-08-17T01:39:50.172Z",
             "ageDays": 0
           }
         ],
-        "lastSuccessfulResolution": "2026-08-15T14:55:09.781Z",
-        "nextRequiredResolution": "2026-08-22T14:54:20.031Z",
+        "lastSuccessfulResolution": "2026-08-17T01:40:49.224Z",
+        "nextRequiredResolution": "2026-08-24T01:39:50.172Z",
         "blockingUnknowns": [],
         "cadenceDays": 7
       },
-      "upstreamAgeDays": 145
+      "upstreamAgeDays": 147
     },
     {
       "canonicalName": "mcp-registry/ai.agenttrust-mcp-server",
       "status": "baked",
       "artifactDigest": "sha256:a7d18f0866dd51c47e1c9aa6bac405a38f5ef794b09ff0469d8c2c11e3992e1b",
-      "pageDigest": "sha256:4cb994041f3b7a3534c9c88f9873fcd77dca1ac6325e1df2274fe5911c9d047f",
+      "pageDigest": "sha256:90ac21389a976f22a9c118c529928d1c6c3d5e9428e42f9a0af29c1ba6759a7c",
       "verdict": "SAFE",
-      "observedAt": "2026-08-15T14:54:20.031Z",
+      "observedAt": "2026-08-17T01:39:50.172Z",
       "identity": {
         "subjectId": "sha256:f73d77a75b4410bf8790d8fbe2565680f06e0e448cb85b6a53b449006c8cd86a",
         "identityDigest": "sha256:75fcf94b6c79aac32dd31b86d2dd12bf045f8476edf9c908b01aae6911dc0525",
@@ -1509,29 +1821,29 @@
         "basis": [
           {
             "axis": "evidence-resolution",
-            "at": "2026-08-15T14:55:09.781Z",
+            "at": "2026-08-17T01:40:49.224Z",
             "ageDays": 0
           },
           {
             "axis": "source-observation",
-            "at": "2026-08-15T14:54:20.031Z",
+            "at": "2026-08-17T01:39:50.172Z",
             "ageDays": 0
           }
         ],
-        "lastSuccessfulResolution": "2026-08-15T14:55:09.781Z",
-        "nextRequiredResolution": "2026-08-22T14:54:20.031Z",
+        "lastSuccessfulResolution": "2026-08-17T01:40:49.224Z",
+        "nextRequiredResolution": "2026-08-24T01:39:50.172Z",
         "blockingUnknowns": [],
         "cadenceDays": 7
       },
-      "upstreamAgeDays": 162
+      "upstreamAgeDays": 163
     },
     {
       "canonicalName": "mcp-registry/ai.agentutility-mcp-agentops",
       "status": "baked",
       "artifactDigest": "sha256:982610c2fe19b866a5c1f091f9ecaabeaa070ed8c355d9efd93c0eb10133ba88",
-      "pageDigest": "sha256:678d6a3bc6cb7d600612232da92338d41ad93b052df5d7a2e3a76849f9698e5c",
+      "pageDigest": "sha256:77e41d82b4075a19bd44a7ea7ec3587dea18401dbd596fd44c5ea879883a1577",
       "verdict": "SAFE",
-      "observedAt": "2026-08-15T14:54:20.031Z",
+      "observedAt": "2026-08-17T01:39:50.172Z",
       "identity": {
         "subjectId": "sha256:52eee2a83052831e42d01366612616b4cdbee7c4c732a37687362f9dc518724c",
         "identityDigest": "sha256:cd1b35aeddbfeb6de5fcfeade2dfc225e86ea97e675fa1963559f801c8b6e4f3",
@@ -1548,29 +1860,29 @@
         "basis": [
           {
             "axis": "evidence-resolution",
-            "at": "2026-08-15T14:55:09.781Z",
+            "at": "2026-08-17T01:40:49.224Z",
             "ageDays": 0
           },
           {
             "axis": "source-observation",
-            "at": "2026-08-15T14:54:20.031Z",
+            "at": "2026-08-17T01:39:50.172Z",
             "ageDays": 0
           }
         ],
-        "lastSuccessfulResolution": "2026-08-15T14:55:09.781Z",
-        "nextRequiredResolution": "2026-08-22T14:54:20.031Z",
+        "lastSuccessfulResolution": "2026-08-17T01:40:49.224Z",
+        "nextRequiredResolution": "2026-08-24T01:39:50.172Z",
         "blockingUnknowns": [],
         "cadenceDays": 7
       },
-      "upstreamAgeDays": 31
+      "upstreamAgeDays": 33
     },
     {
       "canonicalName": "mcp-registry/ai.agentutility-mcp-bestiary",
       "status": "baked",
       "artifactDigest": "sha256:6dcbfb20003c9a8a3c98fc0d47890fddb6c320bb8d735e7d51f081dd3aa039bb",
-      "pageDigest": "sha256:2522598a62a66fd3f5a612c918f39d1e2d625d0f8dbab827941d5fddfe1d7cdb",
+      "pageDigest": "sha256:a476a08c680b0a39f37c99929c5a2904efcf36e8e5bec84501b72cbb15322bbf",
       "verdict": "SAFE",
-      "observedAt": "2026-08-15T14:54:20.031Z",
+      "observedAt": "2026-08-17T01:39:50.172Z",
       "identity": {
         "subjectId": "sha256:444d2c5e6dfec609031583c569a7efc0f98b9f2e9c9b093c43de6be8b94b3dce",
         "identityDigest": "sha256:cca46bd2f69e328c495400034370e6c0399aa0f1f5512f8b171fd0618681665d",
@@ -1587,29 +1899,29 @@
         "basis": [
           {
             "axis": "evidence-resolution",
-            "at": "2026-08-15T14:55:09.781Z",
+            "at": "2026-08-17T01:40:49.224Z",
             "ageDays": 0
           },
           {
             "axis": "source-observation",
-            "at": "2026-08-15T14:54:20.031Z",
+            "at": "2026-08-17T01:39:50.172Z",
             "ageDays": 0
           }
         ],
-        "lastSuccessfulResolution": "2026-08-15T14:55:09.781Z",
-        "nextRequiredResolution": "2026-08-22T14:54:20.031Z",
+        "lastSuccessfulResolution": "2026-08-17T01:40:49.224Z",
+        "nextRequiredResolution": "2026-08-24T01:39:50.172Z",
         "blockingUnknowns": [],
         "cadenceDays": 7
       },
-      "upstreamAgeDays": 31
+      "upstreamAgeDays": 33
     },
     {
       "canonicalName": "mcp-registry/ai.agentutility-mcp-browser-workflow",
       "status": "baked",
       "artifactDigest": "sha256:f18a8b556b1f74339de746ca17f4a1a821e098c82bd18c3f786e7d55a8fddd65",
-      "pageDigest": "sha256:7632520950484b9c5e7037be8f9c0307650d3bd7f8a8c5b66763fb8ea8650eee",
+      "pageDigest": "sha256:32a9b4e5aa1cc03b6532d4110dbc74648c8c4a883bb63db287b43380e9ab2416",
       "verdict": "SAFE",
-      "observedAt": "2026-08-15T14:54:20.031Z",
+      "observedAt": "2026-08-17T01:39:50.172Z",
       "identity": {
         "subjectId": "sha256:02d783ea5f2e19c9f85a0f682bb507f78f349dd8bc2ed3570973e34c219205ed",
         "identityDigest": "sha256:31e1ef79d9848fe4fec6c53d5aa532795d9690a06271f1f9429cfa6209f313a6",
@@ -1626,29 +1938,29 @@
         "basis": [
           {
             "axis": "evidence-resolution",
-            "at": "2026-08-15T14:55:09.781Z",
+            "at": "2026-08-17T01:40:49.224Z",
             "ageDays": 0
           },
           {
             "axis": "source-observation",
-            "at": "2026-08-15T14:54:20.031Z",
+            "at": "2026-08-17T01:39:50.172Z",
             "ageDays": 0
           }
         ],
-        "lastSuccessfulResolution": "2026-08-15T14:55:09.781Z",
-        "nextRequiredResolution": "2026-08-22T14:54:20.031Z",
+        "lastSuccessfulResolution": "2026-08-17T01:40:49.224Z",
+        "nextRequiredResolution": "2026-08-24T01:39:50.172Z",
         "blockingUnknowns": [],
         "cadenceDays": 7
       },
-      "upstreamAgeDays": 31
+      "upstreamAgeDays": 33
     },
     {
       "canonicalName": "mcp-registry/ai.agentutility-mcp-compose",
       "status": "baked",
       "artifactDigest": "sha256:c23628bc2b9da337554b2051167f4857b795b254ab8b50803285f7c6d928bf59",
-      "pageDigest": "sha256:b458290cf2f7737f0758b2ec1fe2b0e00a1a1c45d8804edcda27fa115ac1fff1",
+      "pageDigest": "sha256:47d41c3bc09ba5ebde5c71567b87d07d190450b43b878f78154c41ba87dd0574",
       "verdict": "SAFE",
-      "observedAt": "2026-08-15T14:54:20.031Z",
+      "observedAt": "2026-08-17T01:39:50.172Z",
       "identity": {
         "subjectId": "sha256:2d6ba6db025b8b2b82b2b33345601081c0a5d3c8e1f83ac06f390e81146743d6",
         "identityDigest": "sha256:ef988d84e7ba3fd135b75eacb7b296c0097d386549071c48eb18e371e0aa22c0",
@@ -1665,29 +1977,29 @@
         "basis": [
           {
             "axis": "evidence-resolution",
-            "at": "2026-08-15T14:55:09.781Z",
+            "at": "2026-08-17T01:40:49.224Z",
             "ageDays": 0
           },
           {
             "axis": "source-observation",
-            "at": "2026-08-15T14:54:20.031Z",
+            "at": "2026-08-17T01:39:50.172Z",
             "ageDays": 0
           }
         ],
-        "lastSuccessfulResolution": "2026-08-15T14:55:09.781Z",
-        "nextRequiredResolution": "2026-08-22T14:54:20.031Z",
+        "lastSuccessfulResolution": "2026-08-17T01:40:49.224Z",
+        "nextRequiredResolution": "2026-08-24T01:39:50.172Z",
         "blockingUnknowns": [],
         "cadenceDays": 7
       },
-      "upstreamAgeDays": 31
+      "upstreamAgeDays": 33
     },
     {
       "canonicalName": "mcp-registry/ai.agentutility-mcp-edge-finance",
       "status": "baked",
       "artifactDigest": "sha256:d5a1d85272187b753aa092bee3cc8ad7c3ac2be7d7cdbc268f1ae4b40f78b985",
-      "pageDigest": "sha256:0456b75f959af8ac1e914d00ba797e7db13e92977ee9f4fe16c47381808536fe",
+      "pageDigest": "sha256:a5f89ab4a72fc92198fbf62e2b6f3dc791b34a4db3574914496360815e24ea8b",
       "verdict": "SAFE",
-      "observedAt": "2026-08-15T14:54:20.031Z",
+      "observedAt": "2026-08-17T01:39:50.172Z",
       "identity": {
         "subjectId": "sha256:8201f4dade7f634e7e7dfad0f7e4cd728f948e518be77ce77d2bdc3d168d7ad7",
         "identityDigest": "sha256:95c6e371f1f951babb4566d14566b031984f4ffd25216990e32b8e88765f7447",
@@ -1704,29 +2016,29 @@
         "basis": [
           {
             "axis": "evidence-resolution",
-            "at": "2026-08-15T14:55:09.781Z",
+            "at": "2026-08-17T01:40:49.224Z",
             "ageDays": 0
           },
           {
             "axis": "source-observation",
-            "at": "2026-08-15T14:54:20.031Z",
+            "at": "2026-08-17T01:39:50.172Z",
             "ageDays": 0
           }
         ],
-        "lastSuccessfulResolution": "2026-08-15T14:55:09.781Z",
-        "nextRequiredResolution": "2026-08-22T14:54:20.031Z",
+        "lastSuccessfulResolution": "2026-08-17T01:40:49.224Z",
+        "nextRequiredResolution": "2026-08-24T01:39:50.172Z",
         "blockingUnknowns": [],
         "cadenceDays": 7
       },
-      "upstreamAgeDays": 31
+      "upstreamAgeDays": 33
     },
     {
       "canonicalName": "mcp-registry/ai.agentutility-mcp-edge-market",
       "status": "baked",
       "artifactDigest": "sha256:733a626c72e07da1d5306e3518394ca8520e41264264db6f0b949f5f8f144f54",
-      "pageDigest": "sha256:1ab40c446a4e03ecb28467362f21a306b5f27fe6635f75769fe8851b8bc44b29",
+      "pageDigest": "sha256:72eabff6bcdbf4b475ff6514cc5c647d2e6b2f389cc0d704b7be8caf1edba728",
       "verdict": "SAFE",
-      "observedAt": "2026-08-15T14:54:20.031Z",
+      "observedAt": "2026-08-17T01:39:50.172Z",
       "identity": {
         "subjectId": "sha256:80b7992d6da580b865c6faadad0474f4a2df66b43a98159c363262669a3c6e60",
         "identityDigest": "sha256:aff201697d1d095e9d26bc56e7066353fcb7ff60ba5c4662606b3e1af3b5dd25",
@@ -1743,29 +2055,29 @@
         "basis": [
           {
             "axis": "evidence-resolution",
-            "at": "2026-08-15T14:55:09.781Z",
+            "at": "2026-08-17T01:40:49.224Z",
             "ageDays": 0
           },
           {
             "axis": "source-observation",
-            "at": "2026-08-15T14:54:20.031Z",
+            "at": "2026-08-17T01:39:50.172Z",
             "ageDays": 0
           }
         ],
-        "lastSuccessfulResolution": "2026-08-15T14:55:09.781Z",
-        "nextRequiredResolution": "2026-08-22T14:54:20.031Z",
+        "lastSuccessfulResolution": "2026-08-17T01:40:49.224Z",
+        "nextRequiredResolution": "2026-08-24T01:39:50.172Z",
         "blockingUnknowns": [],
         "cadenceDays": 7
       },
-      "upstreamAgeDays": 31
+      "upstreamAgeDays": 33
     },
     {
       "canonicalName": "mcp-registry/ai.agentutility-mcp-locale",
       "status": "baked",
       "artifactDigest": "sha256:594dc14a6e507caa870d0c45b4455037071e2d92332b3251ba1a0abf9ae42e9d",
-      "pageDigest": "sha256:68eea4e7cfd340f1530f984882c3e986b18b33b07fecd356ff261bf1d03d9140",
+      "pageDigest": "sha256:d5fb12aa20e13cad19b9553181304e19683c6fadca39e42db96e2485d0c71e0d",
       "verdict": "SAFE",
-      "observedAt": "2026-08-15T14:54:20.031Z",
+      "observedAt": "2026-08-17T01:39:50.172Z",
       "identity": {
         "subjectId": "sha256:94b03dc3db3883384dc59a66269cc692db17550e288d4c0bebb843ab005ea769",
         "identityDigest": "sha256:72ca401b76adb77e1c3f72d05c021a2191d90bb332775379ade9292e3d0be25f",
@@ -1782,29 +2094,29 @@
         "basis": [
           {
             "axis": "evidence-resolution",
-            "at": "2026-08-15T14:55:09.781Z",
+            "at": "2026-08-17T01:40:49.224Z",
             "ageDays": 0
           },
           {
             "axis": "source-observation",
-            "at": "2026-08-15T14:54:20.031Z",
+            "at": "2026-08-17T01:39:50.172Z",
             "ageDays": 0
           }
         ],
-        "lastSuccessfulResolution": "2026-08-15T14:55:09.781Z",
-        "nextRequiredResolution": "2026-08-22T14:54:20.031Z",
+        "lastSuccessfulResolution": "2026-08-17T01:40:49.224Z",
+        "nextRequiredResolution": "2026-08-24T01:39:50.172Z",
         "blockingUnknowns": [],
         "cadenceDays": 7
       },
-      "upstreamAgeDays": 31
+      "upstreamAgeDays": 33
     },
     {
       "canonicalName": "mcp-registry/ai.agentutility-mcp-matchpoint",
       "status": "baked",
       "artifactDigest": "sha256:42e8c9680dd25bcc08215783b61b9f9471f28131988c7fb9abf389971cc7ad0c",
-      "pageDigest": "sha256:eaa92bbaa82423bbb845144f3cc29e119bb4b6edebea8e93732d38d2b6dbf2ee",
+      "pageDigest": "sha256:42dcebfb8156eaf103973a1f69ece49b54fe27348eb538055246e3b61f6ab8a6",
       "verdict": "SAFE",
-      "observedAt": "2026-08-15T14:54:20.031Z",
+      "observedAt": "2026-08-17T01:39:50.172Z",
       "identity": {
         "subjectId": "sha256:f4ca7e187c93b3507e830aeeea277b4ee0eb177bb74f86383961e80520adc01f",
         "identityDigest": "sha256:ae921b3c5202a1d3a11a4c8930f70ccbfc79b63897861553294ed5f563dcfcf9",
@@ -1821,29 +2133,29 @@
         "basis": [
           {
             "axis": "evidence-resolution",
-            "at": "2026-08-15T14:55:09.781Z",
+            "at": "2026-08-17T01:40:49.224Z",
             "ageDays": 0
           },
           {
             "axis": "source-observation",
-            "at": "2026-08-15T14:54:20.031Z",
+            "at": "2026-08-17T01:39:50.172Z",
             "ageDays": 0
           }
         ],
-        "lastSuccessfulResolution": "2026-08-15T14:55:09.781Z",
-        "nextRequiredResolution": "2026-08-22T14:54:20.031Z",
+        "lastSuccessfulResolution": "2026-08-17T01:40:49.224Z",
+        "nextRequiredResolution": "2026-08-24T01:39:50.172Z",
         "blockingUnknowns": [],
         "cadenceDays": 7
       },
-      "upstreamAgeDays": 31
+      "upstreamAgeDays": 33
     },
     {
       "canonicalName": "mcp-registry/ai.agentutility-mcp-mediakit",
       "status": "baked",
       "artifactDigest": "sha256:cc904846551968db079cd5581db694ee957555bc53e5b787ecafaadab8bdd150",
-      "pageDigest": "sha256:5114db8ed202f7228e8a0f9d566420bce933dc2062e9b48643c9c77b9526301e",
+      "pageDigest": "sha256:edf8acd925c9de157563dc507fb9e17aba8cdf0f31aaece8819b9daa45a3dad0",
       "verdict": "SAFE",
-      "observedAt": "2026-08-15T14:54:20.031Z",
+      "observedAt": "2026-08-17T01:39:50.172Z",
       "identity": {
         "subjectId": "sha256:8e71572350c3a9ac94aad1d7f4ce120bc23914b699ca50c677ec1dc4e60ebcba",
         "identityDigest": "sha256:9f651add221053623e2186cc5718ddece59d4a3ac526d0185b5813eb26b964ac",
@@ -1860,29 +2172,29 @@
         "basis": [
           {
             "axis": "evidence-resolution",
-            "at": "2026-08-15T14:55:09.781Z",
+            "at": "2026-08-17T01:40:49.224Z",
             "ageDays": 0
           },
           {
             "axis": "source-observation",
-            "at": "2026-08-15T14:54:20.031Z",
+            "at": "2026-08-17T01:39:50.172Z",
             "ageDays": 0
           }
         ],
-        "lastSuccessfulResolution": "2026-08-15T14:55:09.781Z",
-        "nextRequiredResolution": "2026-08-22T14:54:20.031Z",
+        "lastSuccessfulResolution": "2026-08-17T01:40:49.224Z",
+        "nextRequiredResolution": "2026-08-24T01:39:50.172Z",
         "blockingUnknowns": [],
         "cadenceDays": 7
       },
-      "upstreamAgeDays": 31
+      "upstreamAgeDays": 33
     },
     {
       "canonicalName": "mcp-registry/ai.agentutility-mcp-model-router",
       "status": "baked",
       "artifactDigest": "sha256:4cb6d626b50d2c4e8e6f75f0d7dc843205137530419f011f87feef462c0418ea",
-      "pageDigest": "sha256:c1fe497ca6341c5e6707f8d07b3b9072b1ba88058514d10a471e7496c79bc6a0",
+      "pageDigest": "sha256:0ef0984e10d5c272af53fdb271855cc5aafffc71173f729dbdd6a4a688bbe577",
       "verdict": "SAFE",
-      "observedAt": "2026-08-15T14:54:20.031Z",
+      "observedAt": "2026-08-17T01:39:50.172Z",
       "identity": {
         "subjectId": "sha256:cb77c445d940fa7c7f43810d7e59ee9e4cc5f9203abcbd47af75981e658da43c",
         "identityDigest": "sha256:49d4f3f17caa41a520d3d651570cdc10b775550ba16818e2589dda5832ce1e38",
@@ -1899,29 +2211,29 @@
         "basis": [
           {
             "axis": "evidence-resolution",
-            "at": "2026-08-15T14:55:09.781Z",
+            "at": "2026-08-17T01:40:49.224Z",
             "ageDays": 0
           },
           {
             "axis": "source-observation",
-            "at": "2026-08-15T14:54:20.031Z",
+            "at": "2026-08-17T01:39:50.172Z",
             "ageDays": 0
           }
         ],
-        "lastSuccessfulResolution": "2026-08-15T14:55:09.781Z",
-        "nextRequiredResolution": "2026-08-22T14:54:20.031Z",
+        "lastSuccessfulResolution": "2026-08-17T01:40:49.224Z",
+        "nextRequiredResolution": "2026-08-24T01:39:50.172Z",
         "blockingUnknowns": [],
         "cadenceDays": 7
       },
-      "upstreamAgeDays": 31
+      "upstreamAgeDays": 33
     },
     {
       "canonicalName": "mcp-registry/ai.agentutility-mcp-prooflayer",
       "status": "baked",
       "artifactDigest": "sha256:0dddfbedb2700df28dc3b929d6c6e4e4fd049e609124d09c17f1abab279a5df0",
-      "pageDigest": "sha256:de8db028a9b586856b95ee579a3b2992d08362c22279a9a7460ba40efa5855b6",
+      "pageDigest": "sha256:5fba67726f1f528ee79b2397c6ede4d79b8d827d81ea927f0e69fb4103c88744",
       "verdict": "SAFE",
-      "observedAt": "2026-08-15T14:54:20.031Z",
+      "observedAt": "2026-08-17T01:39:50.172Z",
       "identity": {
         "subjectId": "sha256:5c8704bc9b3231bc1a2fbab709bbd709e35fffb90bd7238e81529a43f0a65dac",
         "identityDigest": "sha256:8da2d609c2df4ca7cbfb3de39412ed7e5083566ebb7c6493d9700684d5a5dd60",
@@ -1938,29 +2250,29 @@
         "basis": [
           {
             "axis": "evidence-resolution",
-            "at": "2026-08-15T14:55:09.781Z",
+            "at": "2026-08-17T01:40:49.224Z",
             "ageDays": 0
           },
           {
             "axis": "source-observation",
-            "at": "2026-08-15T14:54:20.031Z",
+            "at": "2026-08-17T01:39:50.172Z",
             "ageDays": 0
           }
         ],
-        "lastSuccessfulResolution": "2026-08-15T14:55:09.781Z",
-        "nextRequiredResolution": "2026-08-22T14:54:20.031Z",
+        "lastSuccessfulResolution": "2026-08-17T01:40:49.224Z",
+        "nextRequiredResolution": "2026-08-24T01:39:50.172Z",
         "blockingUnknowns": [],
         "cadenceDays": 7
       },
-      "upstreamAgeDays": 31
+      "upstreamAgeDays": 33
     },
     {
       "canonicalName": "mcp-registry/ai.agentutility-mcp-retail",
       "status": "baked",
       "artifactDigest": "sha256:29364a3e1aab3ba2fa2beafc65ce6c90a47944dc72bff3783f94df8ae89eafb2",
-      "pageDigest": "sha256:26d00764dee5ad910658cada6f3262400402c2db1bba3635933d8d76485e7b9e",
+      "pageDigest": "sha256:ec8bd0dd73b5a6a2f4eb3315cf8134c7c51c84dae9cb1f2fd09f4a51d7bef888",
       "verdict": "SAFE",
-      "observedAt": "2026-08-15T14:54:20.031Z",
+      "observedAt": "2026-08-17T01:39:50.172Z",
       "identity": {
         "subjectId": "sha256:80e7f4303b6b863337a6ec241387809fa069d6f02d054503038cd34673b83823",
         "identityDigest": "sha256:b210c908d17d4522174c46d6b57b28e89d9f75fc7417cc1f8e9188b89e860f30",
@@ -1977,29 +2289,29 @@
         "basis": [
           {
             "axis": "evidence-resolution",
-            "at": "2026-08-15T14:55:09.781Z",
+            "at": "2026-08-17T01:40:49.224Z",
             "ageDays": 0
           },
           {
             "axis": "source-observation",
-            "at": "2026-08-15T14:54:20.031Z",
+            "at": "2026-08-17T01:39:50.172Z",
             "ageDays": 0
           }
         ],
-        "lastSuccessfulResolution": "2026-08-15T14:55:09.781Z",
-        "nextRequiredResolution": "2026-08-22T14:54:20.031Z",
+        "lastSuccessfulResolution": "2026-08-17T01:40:49.224Z",
+        "nextRequiredResolution": "2026-08-24T01:39:50.172Z",
         "blockingUnknowns": [],
         "cadenceDays": 7
       },
-      "upstreamAgeDays": 31
+      "upstreamAgeDays": 33
     },
     {
       "canonicalName": "mcp-registry/ai.agentutility-mcp-rollforge",
       "status": "baked",
       "artifactDigest": "sha256:d80fbd96a07f9813ecce555d8d7ff4183b9110b6d6c203ec825b09c76fe4531f",
-      "pageDigest": "sha256:e043c5ae1be6556461922e8d8814768f85cc51efdfd8d9e1d2b6212f6ab7e336",
+      "pageDigest": "sha256:cb6e70c1a38c805c96d38a41a2dc183b48a1d77ac3088b961a161082391b2453",
       "verdict": "SAFE",
-      "observedAt": "2026-08-15T14:54:20.031Z",
+      "observedAt": "2026-08-17T01:39:50.172Z",
       "identity": {
         "subjectId": "sha256:851ff7a5e3798a8d49ff603e52937439206215f57d7a8cf197040e207dd1c32d",
         "identityDigest": "sha256:4af89d6d21b645048e1802b51511cf37626be91fd9ebd111415b3eb4f977744e",
@@ -2016,29 +2328,29 @@
         "basis": [
           {
             "axis": "evidence-resolution",
-            "at": "2026-08-15T14:55:09.781Z",
+            "at": "2026-08-17T01:40:49.224Z",
             "ageDays": 0
           },
           {
             "axis": "source-observation",
-            "at": "2026-08-15T14:54:20.031Z",
+            "at": "2026-08-17T01:39:50.172Z",
             "ageDays": 0
           }
         ],
-        "lastSuccessfulResolution": "2026-08-15T14:55:09.781Z",
-        "nextRequiredResolution": "2026-08-22T14:54:20.031Z",
+        "lastSuccessfulResolution": "2026-08-17T01:40:49.224Z",
+        "nextRequiredResolution": "2026-08-24T01:39:50.172Z",
         "blockingUnknowns": [],
         "cadenceDays": 7
       },
-      "upstreamAgeDays": 31
+      "upstreamAgeDays": 33
     },
     {
       "canonicalName": "mcp-registry/ai.agentutility-mcp-statline",
       "status": "baked",
       "artifactDigest": "sha256:1b25fa6e76deb455234fb705d4ba6eeb781a39fcc94c0f81f3642f7ee9b4e533",
-      "pageDigest": "sha256:27eca7eb65d12d3f05bbf2042472b22062a30dbd8fdfd74160efcd257ba83051",
+      "pageDigest": "sha256:fbbbf664e91dfe46556935149cb5d986b889c7b7d3f7414d854d74847631304c",
       "verdict": "SAFE",
-      "observedAt": "2026-08-15T14:54:20.031Z",
+      "observedAt": "2026-08-17T01:39:50.172Z",
       "identity": {
         "subjectId": "sha256:33bff757333da5cf3437a138af8ed71c7b1abdcdc1cd549e45a2beab0ad2e325",
         "identityDigest": "sha256:587c51d9e6f0cb5f90519f4ff211a2463a1b57cc1b63330c70d0879f6ed9bd49",
@@ -2055,29 +2367,29 @@
         "basis": [
           {
             "axis": "evidence-resolution",
-            "at": "2026-08-15T14:55:09.781Z",
+            "at": "2026-08-17T01:40:49.224Z",
             "ageDays": 0
           },
           {
             "axis": "source-observation",
-            "at": "2026-08-15T14:54:20.031Z",
+            "at": "2026-08-17T01:39:50.172Z",
             "ageDays": 0
           }
         ],
-        "lastSuccessfulResolution": "2026-08-15T14:55:09.781Z",
-        "nextRequiredResolution": "2026-08-22T14:54:20.031Z",
+        "lastSuccessfulResolution": "2026-08-17T01:40:49.224Z",
+        "nextRequiredResolution": "2026-08-24T01:39:50.172Z",
         "blockingUnknowns": [],
         "cadenceDays": 7
       },
-      "upstreamAgeDays": 31
+      "upstreamAgeDays": 33
     },
     {
       "canonicalName": "mcp-registry/ai.agentutility-mcp-synthforge",
       "status": "baked",
       "artifactDigest": "sha256:8aee0401f18d85bafd1b35f3d7a27d1f52081ad7469a860f344b095b8ab5c3cc",
-      "pageDigest": "sha256:7d91cb0303e74467430d1c84b1b2bd553bac25bba69f1c2e20bc294a77d8a478",
+      "pageDigest": "sha256:24dd7eecb9c863ccd6227c6645877f2c10f74f2f9f3fa7186c9bb9493954938e",
       "verdict": "SAFE",
-      "observedAt": "2026-08-15T14:54:20.031Z",
+      "observedAt": "2026-08-17T01:39:50.172Z",
       "identity": {
         "subjectId": "sha256:19c1fa3b39fe1744c10d32755d66405635c3ca6a41d32ed5c492761a1affc242",
         "identityDigest": "sha256:2111319a3c77d026a15ced69d65479d84a3e39b24ed08d60b3d901204c1319e0",
@@ -2094,29 +2406,29 @@
         "basis": [
           {
             "axis": "evidence-resolution",
-            "at": "2026-08-15T14:55:09.781Z",
+            "at": "2026-08-17T01:40:49.224Z",
             "ageDays": 0
           },
           {
             "axis": "source-observation",
-            "at": "2026-08-15T14:54:20.031Z",
+            "at": "2026-08-17T01:39:50.172Z",
             "ageDays": 0
           }
         ],
-        "lastSuccessfulResolution": "2026-08-15T14:55:09.781Z",
-        "nextRequiredResolution": "2026-08-22T14:54:20.031Z",
+        "lastSuccessfulResolution": "2026-08-17T01:40:49.224Z",
+        "nextRequiredResolution": "2026-08-24T01:39:50.172Z",
         "blockingUnknowns": [],
         "cadenceDays": 7
       },
-      "upstreamAgeDays": 31
+      "upstreamAgeDays": 33
     },
     {
       "canonicalName": "mcp-registry/ai.agentutility-mcp-web-probe",
       "status": "baked",
       "artifactDigest": "sha256:50da64624952b3c78e62a87507f28ced7ae272106170e52eec8fe58c171c77c7",
-      "pageDigest": "sha256:5e53d9f138740ef772812dca34acff08a92fc011bcbc7d395c88bb7cd84ce1fd",
+      "pageDigest": "sha256:6fff392bbe3e2ca8c3f17f1467819aaa79497f4c9a8d1c1fe8f63f30be8dd246",
       "verdict": "SAFE",
-      "observedAt": "2026-08-15T14:54:20.031Z",
+      "observedAt": "2026-08-17T01:39:50.172Z",
       "identity": {
         "subjectId": "sha256:72d548b848cbdc9552e8aeb194606c5d6a62b77289e6a696d5e4493b60a37174",
         "identityDigest": "sha256:7d62bb8d674a738310bc92d7b1f936de6dd77972e8b6669d720205d9a30290b4",
@@ -2133,29 +2445,29 @@
         "basis": [
           {
             "axis": "evidence-resolution",
-            "at": "2026-08-15T14:55:09.781Z",
+            "at": "2026-08-17T01:40:49.224Z",
             "ageDays": 0
           },
           {
             "axis": "source-observation",
-            "at": "2026-08-15T14:54:20.031Z",
+            "at": "2026-08-17T01:39:50.172Z",
             "ageDays": 0
           }
         ],
-        "lastSuccessfulResolution": "2026-08-15T14:55:09.781Z",
-        "nextRequiredResolution": "2026-08-22T14:54:20.031Z",
+        "lastSuccessfulResolution": "2026-08-17T01:40:49.224Z",
+        "nextRequiredResolution": "2026-08-24T01:39:50.172Z",
         "blockingUnknowns": [],
         "cadenceDays": 7
       },
-      "upstreamAgeDays": 31
+      "upstreamAgeDays": 33
     },
     {
       "canonicalName": "mcp-registry/ai.agentutility-mcp-wordmint",
       "status": "baked",
       "artifactDigest": "sha256:b2b6708cf0800e7e571f2245b8aa487e40fc1870fa5ed7b153515980ed16dba9",
-      "pageDigest": "sha256:cd6df9072a07e660882604fa6508707950a222ece8a5d2bc8dee9a6fe2291401",
+      "pageDigest": "sha256:f3eb98fa28c3737fea6980cc2d35783b46b6bcc4f923c8beca2e038607382413",
       "verdict": "SAFE",
-      "observedAt": "2026-08-15T14:54:20.031Z",
+      "observedAt": "2026-08-17T01:39:50.172Z",
       "identity": {
         "subjectId": "sha256:39019e6da34024f83d29122e05c80afa9f3141eb957fbd837fa9c4d81ead1e45",
         "identityDigest": "sha256:d653beab62a95a773ef1ec5f84411c26d930c89af22454a493233a013d22ceb4",
@@ -2172,29 +2484,29 @@
         "basis": [
           {
             "axis": "evidence-resolution",
-            "at": "2026-08-15T14:55:09.781Z",
+            "at": "2026-08-17T01:40:49.224Z",
             "ageDays": 0
           },
           {
             "axis": "source-observation",
-            "at": "2026-08-15T14:54:20.031Z",
+            "at": "2026-08-17T01:39:50.172Z",
             "ageDays": 0
           }
         ],
-        "lastSuccessfulResolution": "2026-08-15T14:55:09.781Z",
-        "nextRequiredResolution": "2026-08-22T14:54:20.031Z",
+        "lastSuccessfulResolution": "2026-08-17T01:40:49.224Z",
+        "nextRequiredResolution": "2026-08-24T01:39:50.172Z",
         "blockingUnknowns": [],
         "cadenceDays": 7
       },
-      "upstreamAgeDays": 31
+      "upstreamAgeDays": 33
     },
     {
       "canonicalName": "mcp-registry/ai.ai-advisors-mcp",
       "status": "baked",
       "artifactDigest": "sha256:3031549eab990df812091c96526c44d17857b977e69a57857c9e5760c692c21d",
-      "pageDigest": "sha256:98c569949d233a6661dce21d8ea8cd6e1fe82a615db437c92ac47bd6d49c99c3",
+      "pageDigest": "sha256:dcb9af7ab2cee5b511e26f6dcec0bc519e059be77a9516775bc5ca66cf83b5ed",
       "verdict": "UNKNOWN",
-      "observedAt": "2026-08-15T14:54:20.031Z",
+      "observedAt": "2026-08-17T01:39:50.172Z",
       "identity": {
         "subjectId": "sha256:02d4b66fe212cb37881b057bb845dd1ab4fed7c11078a3304fcbcd4f9c056361",
         "identityDigest": "sha256:ba9a470351bb92e7f5d26f8f55be127d883b46bd0e367638375c7cafc66b5631",
@@ -2211,29 +2523,29 @@
         "basis": [
           {
             "axis": "evidence-resolution",
-            "at": "2026-08-15T14:55:09.781Z",
+            "at": "2026-08-17T01:40:49.224Z",
             "ageDays": 0
           },
           {
             "axis": "source-observation",
-            "at": "2026-08-15T14:54:20.031Z",
+            "at": "2026-08-17T01:39:50.172Z",
             "ageDays": 0
           }
         ],
-        "lastSuccessfulResolution": "2026-08-15T14:55:09.781Z",
-        "nextRequiredResolution": "2026-08-22T14:54:20.031Z",
+        "lastSuccessfulResolution": "2026-08-17T01:40:49.224Z",
+        "nextRequiredResolution": "2026-08-24T01:39:50.172Z",
         "blockingUnknowns": [],
         "cadenceDays": 7
       },
-      "upstreamAgeDays": 12
+      "upstreamAgeDays": 14
     },
     {
       "canonicalName": "mcp-registry/ai.ai-akari-agent-trust-receipt",
       "status": "baked",
       "artifactDigest": "sha256:a0bb40c777f8878364aa32d214be33e16f035a9ad9bd5b8fca7e0f91982b7502",
-      "pageDigest": "sha256:70b07d677cd745c0de8fac6f09ef521382371505d8f8615323fd87e3bb92ff8f",
+      "pageDigest": "sha256:c3584395b4f95d182e0ec4881765ed02b8b09f98d45f353396e10dea508a6b07",
       "verdict": "REVIEW",
-      "observedAt": "2026-08-15T14:54:20.031Z",
+      "observedAt": "2026-08-17T01:39:50.172Z",
       "identity": {
         "subjectId": "sha256:eeeba27f924c9010636ec5862e2dc4810f3a623148f148804679780d45817e80",
         "identityDigest": "sha256:1377ac0eaaa475b6a04061d25d3d427c26c7065a05fff51204369345de803c51",
@@ -2250,29 +2562,29 @@
         "basis": [
           {
             "axis": "evidence-resolution",
-            "at": "2026-08-15T14:55:09.781Z",
+            "at": "2026-08-17T01:40:49.224Z",
             "ageDays": 0
           },
           {
             "axis": "source-observation",
-            "at": "2026-08-15T14:54:20.031Z",
+            "at": "2026-08-17T01:39:50.172Z",
             "ageDays": 0
           }
         ],
-        "lastSuccessfulResolution": "2026-08-15T14:55:09.781Z",
-        "nextRequiredResolution": "2026-08-22T14:54:20.031Z",
+        "lastSuccessfulResolution": "2026-08-17T01:40:49.224Z",
+        "nextRequiredResolution": "2026-08-24T01:39:50.172Z",
         "blockingUnknowns": [],
         "cadenceDays": 7
       },
-      "upstreamAgeDays": 21
+      "upstreamAgeDays": 23
     },
     {
       "canonicalName": "mcp-registry/ai.ai-akari-one-minute-akari",
       "status": "baked",
       "artifactDigest": "sha256:229c0586bcac26d2397da02aa73d2bd5ef29b56377f53df8f92414d0ec793f65",
-      "pageDigest": "sha256:2da056f41777653ffd24053b155f794f3098fe401a802d0637ba462db8ddcfa7",
+      "pageDigest": "sha256:5e76ed90d5cba4d0bb0f0a9c2841a7a598c7f86b25d3e8e68d4742c4fce4ef50",
       "verdict": "REVIEW",
-      "observedAt": "2026-08-15T14:54:20.031Z",
+      "observedAt": "2026-08-17T01:39:50.172Z",
       "identity": {
         "subjectId": "sha256:67aeeb64780f9ec26df30457b08e90a0cdd18e9b991c352edbd55cf085cd44ab",
         "identityDigest": "sha256:498ce99d375a25fdb1fa7368d61dd3d7c90fff55e20f70331650a2f6cc68b59a",
@@ -2289,29 +2601,29 @@
         "basis": [
           {
             "axis": "evidence-resolution",
-            "at": "2026-08-15T14:55:09.781Z",
+            "at": "2026-08-17T01:40:49.224Z",
             "ageDays": 0
           },
           {
             "axis": "source-observation",
-            "at": "2026-08-15T14:54:20.031Z",
+            "at": "2026-08-17T01:39:50.172Z",
             "ageDays": 0
           }
         ],
-        "lastSuccessfulResolution": "2026-08-15T14:55:09.781Z",
-        "nextRequiredResolution": "2026-08-22T14:54:20.031Z",
+        "lastSuccessfulResolution": "2026-08-17T01:40:49.224Z",
+        "nextRequiredResolution": "2026-08-24T01:39:50.172Z",
         "blockingUnknowns": [],
         "cadenceDays": 7
       },
-      "upstreamAgeDays": 28
+      "upstreamAgeDays": 29
     },
     {
       "canonicalName": "mcp-registry/ai.ai-portal-ai-portal",
       "status": "baked",
       "artifactDigest": "sha256:ba80de56ba91c25cc91ed0f62b0b456a9e2bc83122bdcba18d302113682fa3de",
-      "pageDigest": "sha256:12eaa42e0eb7c1cf9f332edeb5e903f0d9e946cdcd3a4f5c5996a40e09ba6f85",
+      "pageDigest": "sha256:674004168aae21b9cf5fffc7df7cccddc6e0f888d756c7877c918125a4fe7bf0",
       "verdict": "REVIEW",
-      "observedAt": "2026-08-15T14:54:20.031Z",
+      "observedAt": "2026-08-17T01:39:50.172Z",
       "identity": {
         "subjectId": "sha256:34707bf83f7ed50eb483ead18f0f743e0bebc8f51225b5145f0a96e3c5cdec02",
         "identityDigest": "sha256:7faaf6640e1a921fb2505cdf3e6191ae5e3e46915e03e8f2815e983e3372cd75",
@@ -2328,29 +2640,29 @@
         "basis": [
           {
             "axis": "evidence-resolution",
-            "at": "2026-08-15T14:55:09.781Z",
+            "at": "2026-08-17T01:40:49.224Z",
             "ageDays": 0
           },
           {
             "axis": "source-observation",
-            "at": "2026-08-15T14:54:20.031Z",
+            "at": "2026-08-17T01:39:50.172Z",
             "ageDays": 0
           }
         ],
-        "lastSuccessfulResolution": "2026-08-15T14:55:09.781Z",
-        "nextRequiredResolution": "2026-08-22T14:54:20.031Z",
+        "lastSuccessfulResolution": "2026-08-17T01:40:49.224Z",
+        "nextRequiredResolution": "2026-08-24T01:39:50.172Z",
         "blockingUnknowns": [],
         "cadenceDays": 7
       },
-      "upstreamAgeDays": 32
+      "upstreamAgeDays": 34
     },
     {
       "canonicalName": "mcp-registry/ai.aient-mcp",
       "status": "baked",
       "artifactDigest": "sha256:c2c942e0ee23b7f324fb8b73006ab3de8e4086c3d41487a48f4247d68fb46ee0",
-      "pageDigest": "sha256:8f4278d302918b4b72128e3791f13e2ee01cfd70372236f4b002ade55651dc29",
+      "pageDigest": "sha256:d871d522e08ce82cdf3b7ab1115d96dcbcd7683928417dc2cae28ca8e6527878",
       "verdict": "REVIEW",
-      "observedAt": "2026-08-15T14:54:20.031Z",
+      "observedAt": "2026-08-17T01:39:50.172Z",
       "identity": {
         "subjectId": "sha256:819e73244339bdc7063f3781fa214f34f48f23dd178f0136b847e32c0358557a",
         "identityDigest": "sha256:bb05d298876603dc220efbc3176146dffc66c9a76073707682f029f568d61f1f",
@@ -2367,29 +2679,29 @@
         "basis": [
           {
             "axis": "evidence-resolution",
-            "at": "2026-08-15T14:55:09.781Z",
+            "at": "2026-08-17T01:40:49.224Z",
             "ageDays": 0
           },
           {
             "axis": "source-observation",
-            "at": "2026-08-15T14:54:20.031Z",
+            "at": "2026-08-17T01:39:50.172Z",
             "ageDays": 0
           }
         ],
-        "lastSuccessfulResolution": "2026-08-15T14:55:09.781Z",
-        "nextRequiredResolution": "2026-08-22T14:54:20.031Z",
+        "lastSuccessfulResolution": "2026-08-17T01:40:49.224Z",
+        "nextRequiredResolution": "2026-08-24T01:39:50.172Z",
         "blockingUnknowns": [],
         "cadenceDays": 7
       },
-      "upstreamAgeDays": 65
+      "upstreamAgeDays": 66
     },
     {
       "canonicalName": "mcp-registry/ai.airshelf-catalog",
       "status": "baked",
       "artifactDigest": "sha256:9e4e26d43e1973ee176f3fbda8137659a1738cd0dce4856e43f2281b65a81ce7",
-      "pageDigest": "sha256:01ddebcb4b158427fd6f9f729258c7bf935c6f93d960206bf7a413c482c0f3c3",
+      "pageDigest": "sha256:b1b6c42077ae3f645eab0336b2658dfabf1078ef27f037e0a739c7a7e5f503b7",
       "verdict": "REVIEW",
-      "observedAt": "2026-08-15T14:54:20.031Z",
+      "observedAt": "2026-08-17T01:39:50.172Z",
       "identity": {
         "subjectId": "sha256:0734110071b84897e0afea3fe8a4adc80a47f22513e23d3a43a7b399811cdcff",
         "identityDigest": "sha256:352b7fce1cb93b6c71726c3e38d44edc1643180acd055b7c816cf65814c48390",
@@ -2406,29 +2718,29 @@
         "basis": [
           {
             "axis": "evidence-resolution",
-            "at": "2026-08-15T14:55:09.781Z",
+            "at": "2026-08-17T01:40:49.224Z",
             "ageDays": 0
           },
           {
             "axis": "source-observation",
-            "at": "2026-08-15T14:54:20.031Z",
+            "at": "2026-08-17T01:39:50.172Z",
             "ageDays": 0
           }
         ],
-        "lastSuccessfulResolution": "2026-08-15T14:55:09.781Z",
-        "nextRequiredResolution": "2026-08-22T14:54:20.031Z",
+        "lastSuccessfulResolution": "2026-08-17T01:40:49.224Z",
+        "nextRequiredResolution": "2026-08-24T01:39:50.172Z",
         "blockingUnknowns": [],
         "cadenceDays": 7
       },
-      "upstreamAgeDays": 60
+      "upstreamAgeDays": 61
     },
     {
       "canonicalName": "mcp-registry/ai.aivonic-mcp",
       "status": "baked",
       "artifactDigest": "sha256:b333d5be018202c80b67dd83e33ce741504f8a63951a6cba69bd758679996572",
-      "pageDigest": "sha256:bd740421d1a7b8d53a536d388961ba23f6ca10401db74a7be3b1517c2ae3ac8f",
+      "pageDigest": "sha256:12ce4599b3f405caec1c95c902c42b239754696eda1aa563dff815b02b5579ec",
       "verdict": "REVIEW",
-      "observedAt": "2026-08-15T14:54:20.031Z",
+      "observedAt": "2026-08-17T01:39:50.172Z",
       "identity": {
         "subjectId": "sha256:80f48df40d5c0164f4794516c16c7acd3136c61446fad8393437f24031258a3e",
         "identityDigest": "sha256:fa07af159e3c66519c68f21e267c3e37de9beb63c249fe5254337687415f05c1",
@@ -2445,29 +2757,29 @@
         "basis": [
           {
             "axis": "evidence-resolution",
-            "at": "2026-08-15T14:55:09.781Z",
+            "at": "2026-08-17T01:40:49.224Z",
             "ageDays": 0
           },
           {
             "axis": "source-observation",
-            "at": "2026-08-15T14:54:20.031Z",
+            "at": "2026-08-17T01:39:50.172Z",
             "ageDays": 0
           }
         ],
-        "lastSuccessfulResolution": "2026-08-15T14:55:09.781Z",
-        "nextRequiredResolution": "2026-08-22T14:54:20.031Z",
+        "lastSuccessfulResolution": "2026-08-17T01:40:49.224Z",
+        "nextRequiredResolution": "2026-08-24T01:39:50.172Z",
         "blockingUnknowns": [],
         "cadenceDays": 7
       },
-      "upstreamAgeDays": 10
+      "upstreamAgeDays": 11
     },
     {
       "canonicalName": "mcp-registry/ai.aliengiraffe-spotdb",
       "status": "baked",
       "artifactDigest": "sha256:f82ac460627fa7063ca9eb0e43279f40ad29e2b7e2d9b6bec92b3e2c13ce2448",
-      "pageDigest": "sha256:69b21f72ef42b6f8993eab48d01142976791e6d73bad5a03173cd17e57d35c68",
+      "pageDigest": "sha256:85dd8914d8b8567fb51ae91cb7e4ad54a0343005c62d236a2db3bcb2dba18d9f",
       "verdict": "REVIEW",
-      "observedAt": "2026-08-15T14:54:20.031Z",
+      "observedAt": "2026-08-17T01:39:50.172Z",
       "identity": {
         "subjectId": "sha256:6bcf24da0e410fdde6d05890157b2dd317958c774edd58f8f29603eb96c42a24",
         "identityDigest": "sha256:eb16d6fdd830b4fe3e52d22addd78bdd3efbe5d1577c41c0f525f1f7c12d13ad",
@@ -2484,29 +2796,29 @@
         "basis": [
           {
             "axis": "evidence-resolution",
-            "at": "2026-08-15T14:55:09.781Z",
+            "at": "2026-08-17T01:40:49.224Z",
             "ageDays": 0
           },
           {
             "axis": "source-observation",
-            "at": "2026-08-15T14:54:20.031Z",
+            "at": "2026-08-17T01:39:50.172Z",
             "ageDays": 0
           }
         ],
-        "lastSuccessfulResolution": "2026-08-15T14:55:09.781Z",
-        "nextRequiredResolution": "2026-08-22T14:54:20.031Z",
+        "lastSuccessfulResolution": "2026-08-17T01:40:49.224Z",
+        "nextRequiredResolution": "2026-08-24T01:39:50.172Z",
         "blockingUnknowns": [],
         "cadenceDays": 7
       },
-      "upstreamAgeDays": 309
+      "upstreamAgeDays": 311
     },
     {
       "canonicalName": "mcp-registry/ai.alphacreek-alphacreek-mcp",
       "status": "baked",
       "artifactDigest": "sha256:635e54b2b296cc1e347b43fa9c3a4d4bf53549932bf0fbf3c0b271f7892f4eb5",
-      "pageDigest": "sha256:852af58aee2ecbe5a3b0ca4555fad3b844838a17e00a585832b2623f87c8be8a",
+      "pageDigest": "sha256:b5665021355f49d0d4233b85d790d7457fc26bf74eb469f10b74cc04cc70a67b",
       "verdict": "REVIEW",
-      "observedAt": "2026-08-15T14:54:20.031Z",
+      "observedAt": "2026-08-17T01:39:50.172Z",
       "identity": {
         "subjectId": "sha256:85ff31adee709f94700257b2c1bf137d8382ff4246cc6c081cf99b6c90e0ee17",
         "identityDigest": "sha256:fc044f25d80e7492f0631822c5614d60b253d5ba23aa2ad2052ff5ac75858b53",
@@ -2523,29 +2835,29 @@
         "basis": [
           {
             "axis": "evidence-resolution",
-            "at": "2026-08-15T14:55:09.781Z",
+            "at": "2026-08-17T01:40:49.224Z",
             "ageDays": 0
           },
           {
             "axis": "source-observation",
-            "at": "2026-08-15T14:54:20.031Z",
+            "at": "2026-08-17T01:39:50.172Z",
             "ageDays": 0
           }
         ],
-        "lastSuccessfulResolution": "2026-08-15T14:55:09.781Z",
-        "nextRequiredResolution": "2026-08-22T14:54:20.031Z",
+        "lastSuccessfulResolution": "2026-08-17T01:40:49.224Z",
+        "nextRequiredResolution": "2026-08-24T01:39:50.172Z",
         "blockingUnknowns": [],
         "cadenceDays": 7
       },
-      "upstreamAgeDays": 64
+      "upstreamAgeDays": 65
     },
     {
       "canonicalName": "mcp-registry/ai.alpic.mcp-alpic-mcp",
       "status": "baked",
       "artifactDigest": "sha256:1f0a1c11e92c19c7c31a8b7750a27343f6620b56e8dbeee1dbac5b7c1497e9ef",
-      "pageDigest": "sha256:ae830f4e7d6db72901adb9be28f47faabe672aa854d5a6e87130ece0d106b128",
+      "pageDigest": "sha256:2462a1a5315054f972300d03f5536ac9f000f37b8c82aa244858a62b5c0a6a34",
       "verdict": "REVIEW",
-      "observedAt": "2026-08-15T14:54:20.031Z",
+      "observedAt": "2026-08-17T01:39:50.172Z",
       "identity": {
         "subjectId": "sha256:201df5967518b69fe07e07850a2a724fb4ce6cd92afed95d59b283612374d4f5",
         "identityDigest": "sha256:62d60a596f781c99395f07a1a625ccb758f22aa7bd0f92baf67b9d33ce5524bb",
@@ -2562,29 +2874,29 @@
         "basis": [
           {
             "axis": "evidence-resolution",
-            "at": "2026-08-15T14:55:09.781Z",
+            "at": "2026-08-17T01:40:49.224Z",
             "ageDays": 0
           },
           {
             "axis": "source-observation",
-            "at": "2026-08-15T14:54:20.031Z",
+            "at": "2026-08-17T01:39:50.172Z",
             "ageDays": 0
           }
         ],
-        "lastSuccessfulResolution": "2026-08-15T14:55:09.781Z",
-        "nextRequiredResolution": "2026-08-22T14:54:20.031Z",
+        "lastSuccessfulResolution": "2026-08-17T01:40:49.224Z",
+        "nextRequiredResolution": "2026-08-24T01:39:50.172Z",
         "blockingUnknowns": [],
         "cadenceDays": 7
       },
-      "upstreamAgeDays": 177
+      "upstreamAgeDays": 179
     },
     {
       "canonicalName": "mcp-registry/ai.alpic.test-test-mcp-server",
       "status": "baked",
       "artifactDigest": "sha256:f1f646271a88538aca32b1e6058079399a1aacab2bf44cd2fa8682b4f12d32d1",
-      "pageDigest": "sha256:b9c8831946191f0ee135ed5f699da96b1b973a7296031b5199a9f5a67fd1ff41",
+      "pageDigest": "sha256:6390bace16287bdbf73ffcb6d3f846bf3c8831ad55283e14326bd68d60b7bd6c",
       "verdict": "UNKNOWN",
-      "observedAt": "2026-08-15T14:54:20.031Z",
+      "observedAt": "2026-08-17T01:39:50.172Z",
       "identity": {
         "subjectId": "sha256:232260a1c59d70f3b4dcf6f9a9b02b429e7733be0d1be0fb31e7c41c7b375ff2",
         "identityDigest": "sha256:86a16a51febcec2eb706a168440dde79c30abc7833a9fb534da341d835e7b714",
@@ -2601,29 +2913,29 @@
         "basis": [
           {
             "axis": "evidence-resolution",
-            "at": "2026-08-15T14:55:09.781Z",
+            "at": "2026-08-17T01:40:49.224Z",
             "ageDays": 0
           },
           {
             "axis": "source-observation",
-            "at": "2026-08-15T14:54:20.031Z",
+            "at": "2026-08-17T01:39:50.172Z",
             "ageDays": 0
           }
         ],
-        "lastSuccessfulResolution": "2026-08-15T14:55:09.781Z",
-        "nextRequiredResolution": "2026-08-22T14:54:20.031Z",
+        "lastSuccessfulResolution": "2026-08-17T01:40:49.224Z",
+        "nextRequiredResolution": "2026-08-24T01:39:50.172Z",
         "blockingUnknowns": [],
         "cadenceDays": 7
       },
-      "upstreamAgeDays": 339
+      "upstreamAgeDays": 340
     },
     {
       "canonicalName": "mcp-registry/ai.ambix-ambix",
       "status": "baked",
       "artifactDigest": "sha256:2c1a1917883ead3e5b95e69e0c781c5a81c9cffc037fdb27aad7af481c9f9837",
-      "pageDigest": "sha256:482d38d053d4c916390e2b6f963361a4a0d869f10d617d7cc3ff2a0cda31b55a",
+      "pageDigest": "sha256:5c7d49c6f7943a20eaa345ddf30b100be27652be04330c334c78ff0b9c6ec93c",
       "verdict": "REVIEW",
-      "observedAt": "2026-08-15T14:54:20.031Z",
+      "observedAt": "2026-08-17T01:39:50.172Z",
       "identity": {
         "subjectId": "sha256:5d89434ae0dc39ff3b8353bd37a0d77eb23f19465595f0b55c54da7b86b24ed6",
         "identityDigest": "sha256:989c3033956a6fae470c492bcf2dc18fb0d5b19019f5830e1245b1f28ab08b42",
@@ -2640,29 +2952,29 @@
         "basis": [
           {
             "axis": "evidence-resolution",
-            "at": "2026-08-15T14:55:09.781Z",
+            "at": "2026-08-17T01:40:49.224Z",
             "ageDays": 0
           },
           {
             "axis": "source-observation",
-            "at": "2026-08-15T14:54:20.031Z",
+            "at": "2026-08-17T01:39:50.172Z",
             "ageDays": 0
           }
         ],
-        "lastSuccessfulResolution": "2026-08-15T14:55:09.781Z",
-        "nextRequiredResolution": "2026-08-22T14:54:20.031Z",
+        "lastSuccessfulResolution": "2026-08-17T01:40:49.224Z",
+        "nextRequiredResolution": "2026-08-24T01:39:50.172Z",
         "blockingUnknowns": [],
         "cadenceDays": 7
       },
-      "upstreamAgeDays": 58
+      "upstreamAgeDays": 59
     },
     {
       "canonicalName": "mcp-registry/ai.analyticslegends-sap-analytics",
       "status": "baked",
       "artifactDigest": "sha256:c18adb10dc3dc20e57d74ec31d224e81c41fc74535eb4471c38ef634ffe2e877",
-      "pageDigest": "sha256:57753115935a365559948e54be3a7b156c8b1a4f36f6a7216e76440e51be6cc3",
+      "pageDigest": "sha256:36b5218a7afac7e936a49f645ebea45ef27b0d0f5c879f20db22e11b1494bf28",
       "verdict": "REVIEW",
-      "observedAt": "2026-08-15T14:54:20.031Z",
+      "observedAt": "2026-08-17T01:39:50.172Z",
       "identity": {
         "subjectId": "sha256:3bb0685f91d5e0aa9015e973af4352a5e13e5656bda905e83bfda96fbe26327c",
         "identityDigest": "sha256:2be85be0d676549f4830855e14e09a27822fcab6c82e5ae61841555315652dd1",
@@ -2679,29 +2991,77 @@
         "basis": [
           {
             "axis": "evidence-resolution",
-            "at": "2026-08-15T14:55:09.781Z",
+            "at": "2026-08-17T01:40:49.224Z",
             "ageDays": 0
           },
           {
             "axis": "source-observation",
-            "at": "2026-08-15T14:54:20.031Z",
+            "at": "2026-08-17T01:39:50.172Z",
             "ageDays": 0
           }
         ],
-        "lastSuccessfulResolution": "2026-08-15T14:55:09.781Z",
-        "nextRequiredResolution": "2026-08-22T14:54:20.031Z",
+        "lastSuccessfulResolution": "2026-08-17T01:40:49.224Z",
+        "nextRequiredResolution": "2026-08-24T01:39:50.172Z",
         "blockingUnknowns": [],
         "cadenceDays": 7
       },
-      "upstreamAgeDays": 3
+      "upstreamAgeDays": 5
+    },
+    {
+      "canonicalName": "mcp-registry/ai.ankimcp-anki-mcp-server",
+      "status": "baked",
+      "artifactDigest": "sha256:8f53000323ed828f84a339d251f47942ffa216d43ba7dc4c6efcc1dcbbfb222c",
+      "pageDigest": "sha256:9a590944e09f174faa4782f88ae4b0599ab2d30b717bb69ab63e1a59e67308f9",
+      "verdict": "SAFE",
+      "observedAt": "2026-08-17T01:39:50.172Z",
+      "identity": {
+        "subjectId": "sha256:57890e07f6ceb7f7ba099088b44d54e373562bf5c960e5bd212f8ec3a2cbf3f8",
+        "identityDigest": "sha256:f8916dbfe6d0f47fd2d2cb5dac8db841a41aecc088aee1503d377af73cd8829d",
+        "identityStatus": "PROVISIONAL"
+      },
+      "freshness": {
+        "ageDays": 0,
+        "state": "FRESH",
+        "cadenceDays": 7,
+        "basis": "snapshot-fetchedAt"
+      },
+      "resolution": {
+        "status": "FRESH",
+        "basis": [
+          {
+            "axis": "evidence-resolution",
+            "at": "2026-08-17T01:40:49.224Z",
+            "ageDays": 0
+          },
+          {
+            "axis": "source-observation",
+            "at": "2026-08-17T01:39:50.172Z",
+            "ageDays": 0
+          }
+        ],
+        "lastSuccessfulResolution": "2026-08-17T01:40:49.224Z",
+        "nextRequiredResolution": "2026-08-24T01:39:50.172Z",
+        "blockingUnknowns": [],
+        "cadenceDays": 7
+      },
+      "upstreamAgeDays": 0
+    },
+    {
+      "canonicalName": "mcp-registry/ai.ankimcp-anki-mcp-server-addon",
+      "status": "incomplete",
+      "artifactDigest": null,
+      "pageDigest": null,
+      "verdict": null,
+      "observedAt": "",
+      "reason": "entry declares neither a remote nor a package — nothing to scan"
     },
     {
       "canonicalName": "mcp-registry/ai.anomalyarmor-armor-mcp",
       "status": "baked",
       "artifactDigest": "sha256:64fe24a390cca7e0fabb4aae6f55764504b9eed7c3926c2ea6f731e6436c1543",
-      "pageDigest": "sha256:2ea213b4ac54307c9e4126482a6294ddbe991851d67dfd9b806e771be602af84",
+      "pageDigest": "sha256:8965ef309d78de833d53f2f3e992bed1496918abd6716cb7baf24d6964255c2b",
       "verdict": "REVIEW",
-      "observedAt": "2026-08-15T14:54:20.031Z",
+      "observedAt": "2026-08-17T01:39:50.172Z",
       "identity": {
         "subjectId": "sha256:8787d85dfae18634ba0c70a5451c2c469bfd0f918617d7b5e402ae6059ec1bfa",
         "identityDigest": "sha256:135523867ff16dc07b911f2e236212ae841680827910a52bd5e3d74ddc397a07",
@@ -2718,29 +3078,29 @@
         "basis": [
           {
             "axis": "evidence-resolution",
-            "at": "2026-08-15T14:55:09.781Z",
+            "at": "2026-08-17T01:40:49.224Z",
             "ageDays": 0
           },
           {
             "axis": "source-observation",
-            "at": "2026-08-15T14:54:20.031Z",
+            "at": "2026-08-17T01:39:50.172Z",
             "ageDays": 0
           }
         ],
-        "lastSuccessfulResolution": "2026-08-15T14:55:09.781Z",
-        "nextRequiredResolution": "2026-08-22T14:54:20.031Z",
+        "lastSuccessfulResolution": "2026-08-17T01:40:49.224Z",
+        "nextRequiredResolution": "2026-08-24T01:39:50.172Z",
         "blockingUnknowns": [],
         "cadenceDays": 7
       },
-      "upstreamAgeDays": 119
+      "upstreamAgeDays": 121
     },
     {
       "canonicalName": "mcp-registry/ai.anzenna-anzenna",
       "status": "baked",
       "artifactDigest": "sha256:56d269bceaa888f6f52118a2dc49d3fec9c3ae2064dbddf9dd529397abbd218b",
-      "pageDigest": "sha256:074c4251db08943509a42c6273246e4ed83dc98843830e6fe78c5d5ece4447c0",
+      "pageDigest": "sha256:eceaff38e123eead3993ddb7b848d86b0f9c22eacc0864c348cf202a82698c35",
       "verdict": "REVIEW",
-      "observedAt": "2026-08-15T14:54:20.031Z",
+      "observedAt": "2026-08-17T01:39:50.172Z",
       "identity": {
         "subjectId": "sha256:8c24c5a55f85ae69939f0090b04f64597cc385e72858b87ae125178bffac25c7",
         "identityDigest": "sha256:2d49defe01b0f27168a01dab0eac85902435596b61ff4998ed897da929c3d9e0",
@@ -2757,29 +3117,29 @@
         "basis": [
           {
             "axis": "evidence-resolution",
-            "at": "2026-08-15T14:55:09.781Z",
+            "at": "2026-08-17T01:40:49.224Z",
             "ageDays": 0
           },
           {
             "axis": "source-observation",
-            "at": "2026-08-15T14:54:20.031Z",
+            "at": "2026-08-17T01:39:50.172Z",
             "ageDays": 0
           }
         ],
-        "lastSuccessfulResolution": "2026-08-15T14:55:09.781Z",
-        "nextRequiredResolution": "2026-08-22T14:54:20.031Z",
+        "lastSuccessfulResolution": "2026-08-17T01:40:49.224Z",
+        "nextRequiredResolution": "2026-08-24T01:39:50.172Z",
         "blockingUnknowns": [],
         "cadenceDays": 7
       },
-      "upstreamAgeDays": 174
+      "upstreamAgeDays": 176
     },
     {
       "canonicalName": "mcp-registry/ai.apithreshold-apithreshold",
       "status": "baked",
       "artifactDigest": "sha256:54b1f8c2748d55b768c449e86c6b99364ba37b99bb9f0f20d69da877adad3e85",
-      "pageDigest": "sha256:1b43bca0ac94c7fbf8c1374d97f647c7a932a690224e97d16b3b6153cd20b7e2",
+      "pageDigest": "sha256:5991d4eb8c6bc1ee21c54b80909710f35690f6840321e2c7a6a1d2d8b4c67f78",
       "verdict": "REVIEW",
-      "observedAt": "2026-08-15T14:54:20.031Z",
+      "observedAt": "2026-08-17T01:39:50.172Z",
       "identity": {
         "subjectId": "sha256:53712a143144898bd9a882885fce97bba4421853b86a5993cb7b5ca68e7ed36a",
         "identityDigest": "sha256:cf21b89f3a1c5521b2a98a358030a622629daf4415f43cc724f2f8b9b5f034ae",
@@ -2796,29 +3156,29 @@
         "basis": [
           {
             "axis": "evidence-resolution",
-            "at": "2026-08-15T14:55:09.781Z",
+            "at": "2026-08-17T01:40:49.224Z",
             "ageDays": 0
           },
           {
             "axis": "source-observation",
-            "at": "2026-08-15T14:54:20.031Z",
+            "at": "2026-08-17T01:39:50.172Z",
             "ageDays": 0
           }
         ],
-        "lastSuccessfulResolution": "2026-08-15T14:55:09.781Z",
-        "nextRequiredResolution": "2026-08-22T14:54:20.031Z",
+        "lastSuccessfulResolution": "2026-08-17T01:40:49.224Z",
+        "nextRequiredResolution": "2026-08-24T01:39:50.172Z",
         "blockingUnknowns": [],
         "cadenceDays": 7
       },
-      "upstreamAgeDays": 43
+      "upstreamAgeDays": 45
     },
     {
       "canonicalName": "mcp-registry/ai.appdeploy-deploy-app",
       "status": "baked",
       "artifactDigest": "sha256:d9ee51281f51aa7a4150b6dda7a53bc490ac3d2c074f74bb5dd2d0ecf7614da6",
-      "pageDigest": "sha256:023b5729012d6ba53fb1ca8f81a8e568723f4e79b4ddaaafec53899df1b0f267",
+      "pageDigest": "sha256:7bd3e906915eff0676983ec12fcb7e3f9a4fdef6cad0cfc8545fd6cede0a1d1d",
       "verdict": "REVIEW",
-      "observedAt": "2026-08-15T14:54:20.031Z",
+      "observedAt": "2026-08-17T01:39:50.172Z",
       "identity": {
         "subjectId": "sha256:f471b52c58465ee68946ff5c18ae4b590c5e602dec48bbf608e5b3d88807f7e8",
         "identityDigest": "sha256:09a31b1e213107165e1688f2f4f2fd3fbebfcb26bc48b15c21f484506342cda9",
@@ -2835,29 +3195,29 @@
         "basis": [
           {
             "axis": "evidence-resolution",
-            "at": "2026-08-15T14:55:09.781Z",
+            "at": "2026-08-17T01:40:49.224Z",
             "ageDays": 0
           },
           {
             "axis": "source-observation",
-            "at": "2026-08-15T14:54:20.031Z",
+            "at": "2026-08-17T01:39:50.172Z",
             "ageDays": 0
           }
         ],
-        "lastSuccessfulResolution": "2026-08-15T14:55:09.781Z",
-        "nextRequiredResolution": "2026-08-22T14:54:20.031Z",
+        "lastSuccessfulResolution": "2026-08-17T01:40:49.224Z",
+        "nextRequiredResolution": "2026-08-24T01:39:50.172Z",
         "blockingUnknowns": [],
         "cadenceDays": 7
       },
-      "upstreamAgeDays": 33
+      "upstreamAgeDays": 34
     },
     {
       "canonicalName": "mcp-registry/ai.arclan-registry",
       "status": "baked",
       "artifactDigest": "sha256:1222343482ca9cba61fb646b21f8ebe68b6228f04d8c8384b91da80bb846497d",
-      "pageDigest": "sha256:9a34362c878d70c43ec313e6adb32fe2bfef8d40fda7ca64bfae155aeaaf3c60",
+      "pageDigest": "sha256:1b3e7cf5c88ade10ababb47b4cc59122fcf749fa1def45346b2bd02f605a2c0e",
       "verdict": "REVIEW",
-      "observedAt": "2026-08-15T14:54:20.031Z",
+      "observedAt": "2026-08-17T01:39:50.172Z",
       "identity": {
         "subjectId": "sha256:b5c0708c43ee124610cbca87eea100fc2eed228139806515688b08cc9de9c670",
         "identityDigest": "sha256:ba62c8686b789f54d88fbd1e4fc98e963ec72fc4fc73368b98dc911b3e137349",
@@ -2874,29 +3234,29 @@
         "basis": [
           {
             "axis": "evidence-resolution",
-            "at": "2026-08-15T14:55:09.781Z",
+            "at": "2026-08-17T01:40:49.224Z",
             "ageDays": 0
           },
           {
             "axis": "source-observation",
-            "at": "2026-08-15T14:54:20.031Z",
+            "at": "2026-08-17T01:39:50.172Z",
             "ageDays": 0
           }
         ],
-        "lastSuccessfulResolution": "2026-08-15T14:55:09.781Z",
-        "nextRequiredResolution": "2026-08-22T14:54:20.031Z",
+        "lastSuccessfulResolution": "2026-08-17T01:40:49.224Z",
+        "nextRequiredResolution": "2026-08-24T01:39:50.172Z",
         "blockingUnknowns": [],
         "cadenceDays": 7
       },
-      "upstreamAgeDays": 87
+      "upstreamAgeDays": 89
     },
     {
       "canonicalName": "mcp-registry/ai.argushq-enforcement-database",
       "status": "baked",
       "artifactDigest": "sha256:85553aa65f1586ce26269f0c89a104bb83799eba8e602e0846b867271c7dd5d0",
-      "pageDigest": "sha256:4f9b4dad69180198e1c71186a82f4b731d30d4d26c6c88bdfa2777dfad85345d",
+      "pageDigest": "sha256:39c00eb89f6171e8b4cb125aba5922546686ec0e92c47726a5f81d6ae77afdd0",
       "verdict": "REVIEW",
-      "observedAt": "2026-08-15T14:54:20.031Z",
+      "observedAt": "2026-08-17T01:39:50.172Z",
       "identity": {
         "subjectId": "sha256:216848112d07ca0e803e6040c3017dcc8ce33866f519ee8090da235c6b58f2ca",
         "identityDigest": "sha256:43cd5cd49d71261f8622b5ae5f89c9b6557f9cdc1a3c124bf5b3630db7c8d946",
@@ -2913,29 +3273,29 @@
         "basis": [
           {
             "axis": "evidence-resolution",
-            "at": "2026-08-15T14:55:09.781Z",
+            "at": "2026-08-17T01:40:49.224Z",
             "ageDays": 0
           },
           {
             "axis": "source-observation",
-            "at": "2026-08-15T14:54:20.031Z",
+            "at": "2026-08-17T01:39:50.172Z",
             "ageDays": 0
           }
         ],
-        "lastSuccessfulResolution": "2026-08-15T14:55:09.781Z",
-        "nextRequiredResolution": "2026-08-22T14:54:20.031Z",
+        "lastSuccessfulResolution": "2026-08-17T01:40:49.224Z",
+        "nextRequiredResolution": "2026-08-24T01:39:50.172Z",
         "blockingUnknowns": [],
         "cadenceDays": 7
       },
-      "upstreamAgeDays": 33
+      "upstreamAgeDays": 35
     },
     {
       "canonicalName": "mcp-registry/ai.arketo-arketo",
       "status": "baked",
       "artifactDigest": "sha256:3a47fd34212688e23e8b2442a14199bb7bd0e4e72968c698f704334b90f7a2a9",
-      "pageDigest": "sha256:2f1510e0cb710864d526eb5af9b910f1632e8504dcb2a0d016519f976e618f32",
+      "pageDigest": "sha256:67eeb3afa9741ba0219c230f2da888ea70a22039bf2a4f63b879ef64faa4a2a2",
       "verdict": "REVIEW",
-      "observedAt": "2026-08-15T14:54:20.031Z",
+      "observedAt": "2026-08-17T01:39:50.172Z",
       "identity": {
         "subjectId": "sha256:8b512da2d9aea1018add34ed94c207aa46555e2ce8f391e58d006c3fc14d70f7",
         "identityDigest": "sha256:3a4c13a160c2028a4f2c4bad5d98b9fb563638f105cccf165ba63f0542ae6baf",
@@ -2952,29 +3312,29 @@
         "basis": [
           {
             "axis": "evidence-resolution",
-            "at": "2026-08-15T14:55:09.781Z",
+            "at": "2026-08-17T01:40:49.224Z",
             "ageDays": 0
           },
           {
             "axis": "source-observation",
-            "at": "2026-08-15T14:54:20.031Z",
+            "at": "2026-08-17T01:39:50.172Z",
             "ageDays": 0
           }
         ],
-        "lastSuccessfulResolution": "2026-08-15T14:55:09.781Z",
-        "nextRequiredResolution": "2026-08-22T14:54:20.031Z",
+        "lastSuccessfulResolution": "2026-08-17T01:40:49.224Z",
+        "nextRequiredResolution": "2026-08-24T01:39:50.172Z",
         "blockingUnknowns": [],
         "cadenceDays": 7
       },
-      "upstreamAgeDays": 9
+      "upstreamAgeDays": 11
     },
     {
       "canonicalName": "mcp-registry/ai.arpi-arpi-mcp",
       "status": "baked",
       "artifactDigest": "sha256:24188b7f32b356d41fded2fc3b8b738f01107f8444549941601baac73d868b38",
-      "pageDigest": "sha256:c597b022d653c544e200b2646fbfad71159a1da97b9de7bc5554df15c8e532c0",
+      "pageDigest": "sha256:72d466ec816b97cf3f96dadbc898c23a57bc59334a274d259e385c3267d64129",
       "verdict": "REVIEW",
-      "observedAt": "2026-08-15T14:54:20.031Z",
+      "observedAt": "2026-08-17T01:39:50.172Z",
       "identity": {
         "subjectId": "sha256:5a7c52245823e544f155218c74fee335e935f256f51b132c36c99cb6c58952e3",
         "identityDigest": "sha256:a2413cb09c953d3f408c82b12c7503195fa38135489f8cab692353b49ceaf7c0",
@@ -2991,29 +3351,29 @@
         "basis": [
           {
             "axis": "evidence-resolution",
-            "at": "2026-08-15T14:55:09.781Z",
+            "at": "2026-08-17T01:40:49.224Z",
             "ageDays": 0
           },
           {
             "axis": "source-observation",
-            "at": "2026-08-15T14:54:20.031Z",
+            "at": "2026-08-17T01:39:50.172Z",
             "ageDays": 0
           }
         ],
-        "lastSuccessfulResolution": "2026-08-15T14:55:09.781Z",
-        "nextRequiredResolution": "2026-08-22T14:54:20.031Z",
+        "lastSuccessfulResolution": "2026-08-17T01:40:49.224Z",
+        "nextRequiredResolution": "2026-08-24T01:39:50.172Z",
         "blockingUnknowns": [],
         "cadenceDays": 7
       },
-      "upstreamAgeDays": 38
+      "upstreamAgeDays": 39
     },
     {
       "canonicalName": "mcp-registry/ai.artidrop-artidrop",
       "status": "baked",
       "artifactDigest": "sha256:b90748ab8a986345b49b362e276b2065298c2b46c667b21512594eeab6b7dd1a",
-      "pageDigest": "sha256:542ccfdc8592c3e1e97a0a3144a907c778ff3d7bd6496d134838b38ec2a96d11",
+      "pageDigest": "sha256:5bceee8230490ca55b76d95a2fd808807624438eedc88b7f6a48dc278ede031c",
       "verdict": "REVIEW",
-      "observedAt": "2026-08-15T14:54:20.031Z",
+      "observedAt": "2026-08-17T01:39:50.172Z",
       "identity": {
         "subjectId": "sha256:093e686c76f353c564bda4bdc01449ca03aba6dce94ac2007963d6cc7fefd1bc",
         "identityDigest": "sha256:2fbe324f6ee358dec3b10b312315ddc33ce0180f735b853288b8707238079f76",
@@ -3030,29 +3390,29 @@
         "basis": [
           {
             "axis": "evidence-resolution",
-            "at": "2026-08-15T14:55:09.781Z",
+            "at": "2026-08-17T01:40:49.224Z",
             "ageDays": 0
           },
           {
             "axis": "source-observation",
-            "at": "2026-08-15T14:54:20.031Z",
+            "at": "2026-08-17T01:39:50.172Z",
             "ageDays": 0
           }
         ],
-        "lastSuccessfulResolution": "2026-08-15T14:55:09.781Z",
-        "nextRequiredResolution": "2026-08-22T14:54:20.031Z",
+        "lastSuccessfulResolution": "2026-08-17T01:40:49.224Z",
+        "nextRequiredResolution": "2026-08-24T01:39:50.172Z",
         "blockingUnknowns": [],
         "cadenceDays": 7
       },
-      "upstreamAgeDays": 120
+      "upstreamAgeDays": 121
     },
     {
       "canonicalName": "mcp-registry/ai.assetlog-assetlog",
       "status": "baked",
       "artifactDigest": "sha256:a4235f977e30bb7bf59d59ffff54c0f431a65e64a757128d227f69c04c3ba8ff",
-      "pageDigest": "sha256:6c48957103ae624056d758b7250280c2198fab2e5636c8ce7fa0a9712357918e",
+      "pageDigest": "sha256:a1810be61973faf9966dcfc8df7469b613b53272640429325d4d0bf3c92e8fc8",
       "verdict": "REVIEW",
-      "observedAt": "2026-08-15T14:54:20.031Z",
+      "observedAt": "2026-08-17T01:39:50.172Z",
       "identity": {
         "subjectId": "sha256:3b358f0198221c8c0a1b2d910f266e4e84889694687e4c9c738f5f136827fca9",
         "identityDigest": "sha256:a4ea61823280feba29b178179c22e9cd9e190cd3188c8b857f345613b8cdfdf3",
@@ -3069,29 +3429,29 @@
         "basis": [
           {
             "axis": "evidence-resolution",
-            "at": "2026-08-15T14:55:09.781Z",
+            "at": "2026-08-17T01:40:49.224Z",
             "ageDays": 0
           },
           {
             "axis": "source-observation",
-            "at": "2026-08-15T14:54:20.031Z",
+            "at": "2026-08-17T01:39:50.172Z",
             "ageDays": 0
           }
         ],
-        "lastSuccessfulResolution": "2026-08-15T14:55:09.781Z",
-        "nextRequiredResolution": "2026-08-22T14:54:20.031Z",
+        "lastSuccessfulResolution": "2026-08-17T01:40:49.224Z",
+        "nextRequiredResolution": "2026-08-24T01:39:50.172Z",
         "blockingUnknowns": [],
         "cadenceDays": 7
       },
-      "upstreamAgeDays": 2
+      "upstreamAgeDays": 4
     },
     {
       "canonicalName": "mcp-registry/ai.atdev-supershopping",
       "status": "baked",
       "artifactDigest": "sha256:d83c1e7501784c04b684b052f9f63645e3489e28a188a43f55b5e7a5afe87cd2",
-      "pageDigest": "sha256:e38d112afa7b8ba49ae4f0f55b6b1d9a800e7a3e70846b286d2709e3bf50cb67",
+      "pageDigest": "sha256:37bafa9de5ecb095e2e0b2b2cb999d1b02e9f941cff4746522f9f0618fa1b3e2",
       "verdict": "REVIEW",
-      "observedAt": "2026-08-15T14:54:20.031Z",
+      "observedAt": "2026-08-17T01:39:50.172Z",
       "identity": {
         "subjectId": "sha256:aeed512afd80401ddd09eabc5dda33fc6553a23da504d64fcc5e3e817b107a65",
         "identityDigest": "sha256:21332f41faa9ca54b3211d3dbed953195210dbf067ff9fdb7b7ee7a8ace830a8",
@@ -3108,29 +3468,29 @@
         "basis": [
           {
             "axis": "evidence-resolution",
-            "at": "2026-08-15T14:55:09.781Z",
+            "at": "2026-08-17T01:40:49.224Z",
             "ageDays": 0
           },
           {
             "axis": "source-observation",
-            "at": "2026-08-15T14:54:20.031Z",
+            "at": "2026-08-17T01:39:50.172Z",
             "ageDays": 0
           }
         ],
-        "lastSuccessfulResolution": "2026-08-15T14:55:09.781Z",
-        "nextRequiredResolution": "2026-08-22T14:54:20.031Z",
+        "lastSuccessfulResolution": "2026-08-17T01:40:49.224Z",
+        "nextRequiredResolution": "2026-08-24T01:39:50.172Z",
         "blockingUnknowns": [],
         "cadenceDays": 7
       },
-      "upstreamAgeDays": 47
+      "upstreamAgeDays": 48
     },
     {
       "canonicalName": "mcp-registry/ai.atlaso-mcp",
       "status": "baked",
       "artifactDigest": "sha256:2ee3227f8e349233f103914037713bcac2dd78b7de06f3f3719ecf4fcc4c0f5d",
-      "pageDigest": "sha256:3fceb870f903cba35d41ba9c45bade168dd2bc67c7d5d2a996d425b783d14c8e",
+      "pageDigest": "sha256:55784c1b389b0fe1db3679896b8bd9dd4aa85eaa9d12ae7cf9bdd0215924f492",
       "verdict": "REVIEW",
-      "observedAt": "2026-08-15T14:54:20.031Z",
+      "observedAt": "2026-08-17T01:39:50.172Z",
       "identity": {
         "subjectId": "sha256:b2729def364c9ff12b46f863c2468f299b63cbe0be4dafb6980372cb1661675b",
         "identityDigest": "sha256:83e6fa448d4d11aae6bd9561914684dc951c2abb13ed32334041f8e3c3cf6916",
@@ -3147,29 +3507,29 @@
         "basis": [
           {
             "axis": "evidence-resolution",
-            "at": "2026-08-15T14:55:09.781Z",
+            "at": "2026-08-17T01:40:49.224Z",
             "ageDays": 0
           },
           {
             "axis": "source-observation",
-            "at": "2026-08-15T14:54:20.031Z",
+            "at": "2026-08-17T01:39:50.172Z",
             "ageDays": 0
           }
         ],
-        "lastSuccessfulResolution": "2026-08-15T14:55:09.781Z",
-        "nextRequiredResolution": "2026-08-22T14:54:20.031Z",
+        "lastSuccessfulResolution": "2026-08-17T01:40:49.224Z",
+        "nextRequiredResolution": "2026-08-24T01:39:50.172Z",
         "blockingUnknowns": [],
         "cadenceDays": 7
       },
-      "upstreamAgeDays": 13
+      "upstreamAgeDays": 14
     },
     {
       "canonicalName": "mcp-registry/ai.atlasverified-atlas-mcp",
       "status": "baked",
       "artifactDigest": "sha256:622cf0f01656cfdffb21fc0d34e29d1ed5bca91a3fcac248bc438c3841475e7b",
-      "pageDigest": "sha256:8887eee458be839b5104c87a44d1dfbd290ce112c47c7383ff85eefef839187c",
+      "pageDigest": "sha256:e9009a1a2da4110061a008378ba64c519598985ff5f3782c0d07f688cdd7d37e",
       "verdict": "REVIEW",
-      "observedAt": "2026-08-15T14:54:20.031Z",
+      "observedAt": "2026-08-17T01:39:50.172Z",
       "identity": {
         "subjectId": "sha256:a86a270109338b96a9e52be9adf5a132cdda809efd827949288df38e13877342",
         "identityDigest": "sha256:df1db18aae849f85bd208af5bdd489b0b2684171fb1e7cb381aecee110e01aef",
@@ -3186,29 +3546,29 @@
         "basis": [
           {
             "axis": "evidence-resolution",
-            "at": "2026-08-15T14:55:09.781Z",
+            "at": "2026-08-17T01:40:49.224Z",
             "ageDays": 0
           },
           {
             "axis": "source-observation",
-            "at": "2026-08-15T14:54:20.031Z",
+            "at": "2026-08-17T01:39:50.172Z",
             "ageDays": 0
           }
         ],
-        "lastSuccessfulResolution": "2026-08-15T14:55:09.781Z",
-        "nextRequiredResolution": "2026-08-22T14:54:20.031Z",
+        "lastSuccessfulResolution": "2026-08-17T01:40:49.224Z",
+        "nextRequiredResolution": "2026-08-24T01:39:50.172Z",
         "blockingUnknowns": [],
         "cadenceDays": 7
       },
-      "upstreamAgeDays": 24
+      "upstreamAgeDays": 26
     },
     {
       "canonicalName": "mcp-registry/ai.augmentev-paseo",
       "status": "baked",
       "artifactDigest": "sha256:5975b71c109affd476224a82ee0eb52b80de9cb9b270c55ceaaa886ada4b8372",
-      "pageDigest": "sha256:318449ef97da7c80a7e73367e0710f877bc2f0534d717a66df6a103b4bbf5ce0",
+      "pageDigest": "sha256:655e36d4bb6529c855cdb2ecb3343f22d5108c3c1fac23ad5f950f6f29738970",
       "verdict": "REVIEW",
-      "observedAt": "2026-08-15T14:54:20.031Z",
+      "observedAt": "2026-08-17T01:39:50.172Z",
       "identity": {
         "subjectId": "sha256:06ffe20ee62108abdfc16126a8a8b1619b6d59a8b4cfddf75e602e2d0daee5a5",
         "identityDigest": "sha256:1164a6aca246b3df3d7586b951a69260fa3b632da9cf4a3c9de68f966de3ec6a",
@@ -3225,29 +3585,68 @@
         "basis": [
           {
             "axis": "evidence-resolution",
-            "at": "2026-08-15T14:55:09.781Z",
+            "at": "2026-08-17T01:40:49.224Z",
             "ageDays": 0
           },
           {
             "axis": "source-observation",
-            "at": "2026-08-15T14:54:20.031Z",
+            "at": "2026-08-17T01:39:50.172Z",
             "ageDays": 0
           }
         ],
-        "lastSuccessfulResolution": "2026-08-15T14:55:09.781Z",
-        "nextRequiredResolution": "2026-08-22T14:54:20.031Z",
+        "lastSuccessfulResolution": "2026-08-17T01:40:49.224Z",
+        "nextRequiredResolution": "2026-08-24T01:39:50.172Z",
         "blockingUnknowns": [],
         "cadenceDays": 7
       },
-      "upstreamAgeDays": 18
+      "upstreamAgeDays": 20
+    },
+    {
+      "canonicalName": "mcp-registry/ai.augworlds-travel-world",
+      "status": "baked",
+      "artifactDigest": "sha256:80d803665e2ecae6a4d060a45afd3a2425fbd62c725f84cd836b36a0613163a6",
+      "pageDigest": "sha256:300b05ae39352ab3fa768e312f0c8ee946757135daf787ea81205efdfa65fca5",
+      "verdict": "REVIEW",
+      "observedAt": "2026-08-17T01:39:50.172Z",
+      "identity": {
+        "subjectId": "sha256:02a52ea5ab716c85f5899e196efd268bf30f7fff79247b16cefbadade9d46062",
+        "identityDigest": "sha256:f15e0d0ca5fa711608e2bcb71ee1ee63ab302a739074f368374fedb079046c6a",
+        "identityStatus": "PROVISIONAL"
+      },
+      "freshness": {
+        "ageDays": 0,
+        "state": "FRESH",
+        "cadenceDays": 7,
+        "basis": "snapshot-fetchedAt"
+      },
+      "resolution": {
+        "status": "FRESH",
+        "basis": [
+          {
+            "axis": "evidence-resolution",
+            "at": "2026-08-17T01:40:49.224Z",
+            "ageDays": 0
+          },
+          {
+            "axis": "source-observation",
+            "at": "2026-08-17T01:39:50.172Z",
+            "ageDays": 0
+          }
+        ],
+        "lastSuccessfulResolution": "2026-08-17T01:40:49.224Z",
+        "nextRequiredResolution": "2026-08-24T01:39:50.172Z",
+        "blockingUnknowns": [],
+        "cadenceDays": 7
+      },
+      "upstreamAgeDays": 20
     },
     {
       "canonicalName": "mcp-registry/ai.auralogs-auralogs",
       "status": "baked",
       "artifactDigest": "sha256:2c5d0ad4bfa938e407c43df7a2bbb64c371c19917241df602cd68fdbaeda38b5",
-      "pageDigest": "sha256:76d6e33aa7ec4cce9729285273971b87caf62f43388ae96755851b9382b72e78",
+      "pageDigest": "sha256:79694f9b7318cf8e75e3c0f8c151343d05029656ee9d841402f5f8228cc215f5",
       "verdict": "REVIEW",
-      "observedAt": "2026-08-15T14:54:20.031Z",
+      "observedAt": "2026-08-17T01:39:50.172Z",
       "identity": {
         "subjectId": "sha256:3b3c2f224cd172af659d8c6bccc555ea742ce5491f3d468438b202ed4eb4d8d2",
         "identityDigest": "sha256:343cac92253cfb9ee89f1f0615d89244ebe79f5a82ad26d3ece9863fb51aa59f",
@@ -3264,29 +3663,29 @@
         "basis": [
           {
             "axis": "evidence-resolution",
-            "at": "2026-08-15T14:55:09.781Z",
+            "at": "2026-08-17T01:40:49.224Z",
             "ageDays": 0
           },
           {
             "axis": "source-observation",
-            "at": "2026-08-15T14:54:20.031Z",
+            "at": "2026-08-17T01:39:50.172Z",
             "ageDays": 0
           }
         ],
-        "lastSuccessfulResolution": "2026-08-15T14:55:09.781Z",
-        "nextRequiredResolution": "2026-08-22T14:54:20.031Z",
+        "lastSuccessfulResolution": "2026-08-17T01:40:49.224Z",
+        "nextRequiredResolution": "2026-08-24T01:39:50.172Z",
         "blockingUnknowns": [],
         "cadenceDays": 7
       },
-      "upstreamAgeDays": 66
+      "upstreamAgeDays": 67
     },
     {
       "canonicalName": "mcp-registry/ai.auteng-docs",
       "status": "baked",
       "artifactDigest": "sha256:836cd5629382bbd92246d2da58739d1191eddec9b086513147170aec6b85bc1a",
-      "pageDigest": "sha256:73ee5e5b0fca4b741936eb831e13f60116cb6a99533d839a68c5981d417e08ad",
+      "pageDigest": "sha256:cf511dab2a04d2b2c5e1deac52319cbef68f45b3202b6a47ac64c6bbec29dfe4",
       "verdict": "REVIEW",
-      "observedAt": "2026-08-15T14:54:20.031Z",
+      "observedAt": "2026-08-17T01:39:50.172Z",
       "identity": {
         "subjectId": "sha256:0271eafb9e736ce116dece3e4b8ba4166d71ff4a9d5969884ddbf65291b076a6",
         "identityDigest": "sha256:969141e83fb037052133d7e640eb355ef23e37bb977e336f0ed83efa3b9caba7",
@@ -3303,29 +3702,29 @@
         "basis": [
           {
             "axis": "evidence-resolution",
-            "at": "2026-08-15T14:55:09.781Z",
+            "at": "2026-08-17T01:40:49.224Z",
             "ageDays": 0
           },
           {
             "axis": "source-observation",
-            "at": "2026-08-15T14:54:20.031Z",
+            "at": "2026-08-17T01:39:50.172Z",
             "ageDays": 0
           }
         ],
-        "lastSuccessfulResolution": "2026-08-15T14:55:09.781Z",
-        "nextRequiredResolution": "2026-08-22T14:54:20.031Z",
+        "lastSuccessfulResolution": "2026-08-17T01:40:49.224Z",
+        "nextRequiredResolution": "2026-08-24T01:39:50.172Z",
         "blockingUnknowns": [],
         "cadenceDays": 7
       },
-      "upstreamAgeDays": 189
+      "upstreamAgeDays": 191
     },
     {
       "canonicalName": "mcp-registry/ai.auteng-mcp",
       "status": "baked",
       "artifactDigest": "sha256:cfc60f9d3e78d2ae07e8c33781fc5449d2be56c5be065fb0272ae542a448004a",
-      "pageDigest": "sha256:7308208fb95d8235705005453af1385b1db4a72d039617026554a03c3bd52a8b",
+      "pageDigest": "sha256:fdb4d9031b0e7f65ed3bb3068c48508e9f7269b32d53c55e9416bbdbd0b2194f",
       "verdict": "REVIEW",
-      "observedAt": "2026-08-15T14:54:20.031Z",
+      "observedAt": "2026-08-17T01:39:50.172Z",
       "identity": {
         "subjectId": "sha256:3ac90d4f7885c708dd931fda292fed29d6189f2eab139bdaa441abbb04463742",
         "identityDigest": "sha256:ef6fb6a7be0c42fad66078ecc988212459bdd37d80c71940d6e556df4a084d54",
@@ -3342,29 +3741,29 @@
         "basis": [
           {
             "axis": "evidence-resolution",
-            "at": "2026-08-15T14:55:09.781Z",
+            "at": "2026-08-17T01:40:49.224Z",
             "ageDays": 0
           },
           {
             "axis": "source-observation",
-            "at": "2026-08-15T14:54:20.031Z",
+            "at": "2026-08-17T01:39:50.172Z",
             "ageDays": 0
           }
         ],
-        "lastSuccessfulResolution": "2026-08-15T14:55:09.781Z",
-        "nextRequiredResolution": "2026-08-22T14:54:20.031Z",
+        "lastSuccessfulResolution": "2026-08-17T01:40:49.224Z",
+        "nextRequiredResolution": "2026-08-24T01:39:50.172Z",
         "blockingUnknowns": [],
         "cadenceDays": 7
       },
-      "upstreamAgeDays": 189
+      "upstreamAgeDays": 191
     },
     {
       "canonicalName": "mcp-registry/ai.authoryze-authoryze",
       "status": "baked",
       "artifactDigest": "sha256:f0c3b9064ca5c59bf2a819285abc5893c32cafee543936a758fb1c9f3b044105",
-      "pageDigest": "sha256:08889351ec39407356f5e2e1d1382fd1f072b553edac5dd399ce599bffabf3da",
+      "pageDigest": "sha256:b41cf38deeecd80c90d41e66355b64d6e7ddc3277eb8d3187249afe1f9c9f3f9",
       "verdict": "REVIEW",
-      "observedAt": "2026-08-15T14:54:20.031Z",
+      "observedAt": "2026-08-17T01:39:50.172Z",
       "identity": {
         "subjectId": "sha256:d7cba581b4f4578de577602578dccb25eeb08d0a8c719b7a935d89db8e3bf692",
         "identityDigest": "sha256:2ca994d3ecdbc237641de4b90959fd2f2d3d091bc2501a01a423b385dbda44e0",
@@ -3381,29 +3780,29 @@
         "basis": [
           {
             "axis": "evidence-resolution",
-            "at": "2026-08-15T14:55:09.781Z",
+            "at": "2026-08-17T01:40:49.224Z",
             "ageDays": 0
           },
           {
             "axis": "source-observation",
-            "at": "2026-08-15T14:54:20.031Z",
+            "at": "2026-08-17T01:39:50.172Z",
             "ageDays": 0
           }
         ],
-        "lastSuccessfulResolution": "2026-08-15T14:55:09.781Z",
-        "nextRequiredResolution": "2026-08-22T14:54:20.031Z",
+        "lastSuccessfulResolution": "2026-08-17T01:40:49.224Z",
+        "nextRequiredResolution": "2026-08-24T01:39:50.172Z",
         "blockingUnknowns": [],
         "cadenceDays": 7
       },
-      "upstreamAgeDays": 31
+      "upstreamAgeDays": 33
     },
     {
       "canonicalName": "mcp-registry/ai.autoblocks-contextlayer-mcp",
       "status": "baked",
       "artifactDigest": "sha256:c72c9b144ef9621e055f6d3f74f23721ba9601b3c5b58ab86472a62a283fc025",
-      "pageDigest": "sha256:2f75298654ee5ada17b328c58cabfa90cf218cd1ea09815fa1729850a597634f",
+      "pageDigest": "sha256:d55a3d4971ca5cd5c05717b37705c23152d09e1d3f5b725de59e4593f6c5b799",
       "verdict": "SAFE",
-      "observedAt": "2026-08-15T14:54:20.031Z",
+      "observedAt": "2026-08-17T01:39:50.172Z",
       "identity": {
         "subjectId": "sha256:b40f0247ba7dcfcfcf58897d1f0c29cccc6ba4f4d846313da84c33419fbf203d",
         "identityDigest": "sha256:fd60b27b35acaa2ba22eb6e7721b44654f92f4de59d2b7aa04d7286eb75d8865",
@@ -3420,29 +3819,29 @@
         "basis": [
           {
             "axis": "evidence-resolution",
-            "at": "2026-08-15T14:55:09.781Z",
+            "at": "2026-08-17T01:40:49.224Z",
             "ageDays": 0
           },
           {
             "axis": "source-observation",
-            "at": "2026-08-15T14:54:20.031Z",
+            "at": "2026-08-17T01:39:50.172Z",
             "ageDays": 0
           }
         ],
-        "lastSuccessfulResolution": "2026-08-15T14:55:09.781Z",
-        "nextRequiredResolution": "2026-08-22T14:54:20.031Z",
+        "lastSuccessfulResolution": "2026-08-17T01:40:49.224Z",
+        "nextRequiredResolution": "2026-08-24T01:39:50.172Z",
         "blockingUnknowns": [],
         "cadenceDays": 7
       },
-      "upstreamAgeDays": 215
+      "upstreamAgeDays": 216
     },
     {
       "canonicalName": "mcp-registry/ai.autoblocks-ctxl",
       "status": "baked",
       "artifactDigest": "sha256:7777020f96255e0002c9c7ad3c205fcfc983bbfda87f06dcb9b20036e7f61d88",
-      "pageDigest": "sha256:0cc4ffb57045232daf280df9ccb3062647f3d473700882d678546dcff2981631",
+      "pageDigest": "sha256:a60b3d0887989958f7b9c1222db6da7cba7267cf3bdc52593b04809afafc552a",
       "verdict": "SAFE",
-      "observedAt": "2026-08-15T14:54:20.031Z",
+      "observedAt": "2026-08-17T01:39:50.172Z",
       "identity": {
         "subjectId": "sha256:5a011fabd0d0103548b94411ddcd18c81160be6a493676e842181252240b197f",
         "identityDigest": "sha256:8bd1f75ef48baee05717e54e7876b9529dddd803e77c72f6aaac7bc794409d62",
@@ -3459,29 +3858,29 @@
         "basis": [
           {
             "axis": "evidence-resolution",
-            "at": "2026-08-15T14:55:09.781Z",
+            "at": "2026-08-17T01:40:49.224Z",
             "ageDays": 0
           },
           {
             "axis": "source-observation",
-            "at": "2026-08-15T14:54:20.031Z",
+            "at": "2026-08-17T01:39:50.172Z",
             "ageDays": 0
           }
         ],
-        "lastSuccessfulResolution": "2026-08-15T14:55:09.781Z",
-        "nextRequiredResolution": "2026-08-22T14:54:20.031Z",
+        "lastSuccessfulResolution": "2026-08-17T01:40:49.224Z",
+        "nextRequiredResolution": "2026-08-24T01:39:50.172Z",
         "blockingUnknowns": [],
         "cadenceDays": 7
       },
-      "upstreamAgeDays": 215
+      "upstreamAgeDays": 216
     },
     {
       "canonicalName": "mcp-registry/ai.autoblocks-ctxl-mcp",
       "status": "baked",
       "artifactDigest": "sha256:dedfb3997cf74a10dde545777e99cb650aade2d9bf04ff9c1006c32b2d4f1ede",
-      "pageDigest": "sha256:8e54b001fb866683adc615cbcdd759ceefe9b12e1456a59a0f2dfa5eef0ea1c2",
+      "pageDigest": "sha256:ae6317114ebecd20f22e6bdd076c1969a920d48a8fde036b6b038c4d8715fb3f",
       "verdict": "SAFE",
-      "observedAt": "2026-08-15T14:54:20.031Z",
+      "observedAt": "2026-08-17T01:39:50.172Z",
       "identity": {
         "subjectId": "sha256:76a70d358ce607204bfb7e9f124c40c28767ebf27af0167ebfabfab35bc5a0b5",
         "identityDigest": "sha256:0ff7cd9083cf0f7aec3b9666b2b12499fd8255130df352256d3ac6688d9410d9",
@@ -3498,29 +3897,29 @@
         "basis": [
           {
             "axis": "evidence-resolution",
-            "at": "2026-08-15T14:55:09.781Z",
+            "at": "2026-08-17T01:40:49.224Z",
             "ageDays": 0
           },
           {
             "axis": "source-observation",
-            "at": "2026-08-15T14:54:20.031Z",
+            "at": "2026-08-17T01:39:50.172Z",
             "ageDays": 0
           }
         ],
-        "lastSuccessfulResolution": "2026-08-15T14:55:09.781Z",
-        "nextRequiredResolution": "2026-08-22T14:54:20.031Z",
+        "lastSuccessfulResolution": "2026-08-17T01:40:49.224Z",
+        "nextRequiredResolution": "2026-08-24T01:39:50.172Z",
         "blockingUnknowns": [],
         "cadenceDays": 7
       },
-      "upstreamAgeDays": 215
+      "upstreamAgeDays": 216
     },
     {
       "canonicalName": "mcp-registry/ai.autonomad-computeback",
       "status": "baked",
       "artifactDigest": "sha256:e1dd5ee3ee6d47a854afe8b92d1a6db5ff984943873c2e799417ebe2a6ab8580",
-      "pageDigest": "sha256:01a0509acb63fdbc8413526ef3e5dbd60e10535211b9a6a85e233c4b91f00b4c",
+      "pageDigest": "sha256:ededfc2ed3982f703ffd175cda63d7f4ce2d07a5854f02136ce0e600c4f44f45",
       "verdict": "SAFE",
-      "observedAt": "2026-08-15T14:54:20.031Z",
+      "observedAt": "2026-08-17T01:39:50.172Z",
       "identity": {
         "subjectId": "sha256:ac52ee9d976960914268def8ba1655702e91e504b03bf9faef57d4f7c5ccd13f",
         "identityDigest": "sha256:1c7cf905c6b93c2e0a9b33973d7a2e27476d70b3b58cfc041a708fb3025313b9",
@@ -3537,29 +3936,29 @@
         "basis": [
           {
             "axis": "evidence-resolution",
-            "at": "2026-08-15T14:55:09.781Z",
+            "at": "2026-08-17T01:40:49.224Z",
             "ageDays": 0
           },
           {
             "axis": "source-observation",
-            "at": "2026-08-15T14:54:20.031Z",
+            "at": "2026-08-17T01:39:50.172Z",
             "ageDays": 0
           }
         ],
-        "lastSuccessfulResolution": "2026-08-15T14:55:09.781Z",
-        "nextRequiredResolution": "2026-08-22T14:54:20.031Z",
+        "lastSuccessfulResolution": "2026-08-17T01:40:49.224Z",
+        "nextRequiredResolution": "2026-08-24T01:39:50.172Z",
         "blockingUnknowns": [],
         "cadenceDays": 7
       },
-      "upstreamAgeDays": 95
+      "upstreamAgeDays": 97
     },
     {
       "canonicalName": "mcp-registry/ai.autonomad-travel",
       "status": "baked",
       "artifactDigest": "sha256:1d39cd3d3878d3b7c9f32f6c71e77ee13cf02e059af98eff27fc13a925c7f02c",
-      "pageDigest": "sha256:276d0125197deb45ba662875e31b6fba81be25786ebc07b51f5152d476d9aa2f",
+      "pageDigest": "sha256:ed16ec33efb18a1fbecf797245a2f51325cc8e5aed5143a06827de1cc2504137",
       "verdict": "REVIEW",
-      "observedAt": "2026-08-15T14:54:20.031Z",
+      "observedAt": "2026-08-17T01:39:50.172Z",
       "identity": {
         "subjectId": "sha256:3e8bdf0736a72ca2ecb4d29983d3b17f5aacadff8447485534c5ca60bb646a57",
         "identityDigest": "sha256:a2c90d74cdbea45fde06557b9595eb8d416fe482eae77b67adf6bd2320d326af",
@@ -3576,29 +3975,29 @@
         "basis": [
           {
             "axis": "evidence-resolution",
-            "at": "2026-08-15T14:55:09.781Z",
+            "at": "2026-08-17T01:40:49.224Z",
             "ageDays": 0
           },
           {
             "axis": "source-observation",
-            "at": "2026-08-15T14:54:20.031Z",
+            "at": "2026-08-17T01:39:50.172Z",
             "ageDays": 0
           }
         ],
-        "lastSuccessfulResolution": "2026-08-15T14:55:09.781Z",
-        "nextRequiredResolution": "2026-08-22T14:54:20.031Z",
+        "lastSuccessfulResolution": "2026-08-17T01:40:49.224Z",
+        "nextRequiredResolution": "2026-08-24T01:39:50.172Z",
         "blockingUnknowns": [],
         "cadenceDays": 7
       },
-      "upstreamAgeDays": 96
+      "upstreamAgeDays": 97
     },
     {
       "canonicalName": "mcp-registry/ai.autoposting-autoposting",
       "status": "baked",
       "artifactDigest": "sha256:68efe52af0e6bee242fe655161da6e273cf6eab52caf0278df47bfd561db42ef",
-      "pageDigest": "sha256:98d31c522786f53f58dcaaab127a7dc1222761a8ce6f5e890e90c575d66281f5",
+      "pageDigest": "sha256:6442d85dea7ddf8f94d87f1f52289e6bb6115da43df1324f0f3ab743ed965eb0",
       "verdict": "REVIEW",
-      "observedAt": "2026-08-15T14:54:20.031Z",
+      "observedAt": "2026-08-17T01:39:50.172Z",
       "identity": {
         "subjectId": "sha256:f55e6015adc73d1e812c70a79f1f3fd5512447a28e44639862626e941f258ec0",
         "identityDigest": "sha256:6592ef3dd7fdcfc962e31e22a5ad093be6e990cceb1539210236d401a4447698",
@@ -3615,29 +4014,29 @@
         "basis": [
           {
             "axis": "evidence-resolution",
-            "at": "2026-08-15T14:55:09.781Z",
+            "at": "2026-08-17T01:40:49.224Z",
             "ageDays": 0
           },
           {
             "axis": "source-observation",
-            "at": "2026-08-15T14:54:20.031Z",
+            "at": "2026-08-17T01:39:50.172Z",
             "ageDays": 0
           }
         ],
-        "lastSuccessfulResolution": "2026-08-15T14:55:09.781Z",
-        "nextRequiredResolution": "2026-08-22T14:54:20.031Z",
+        "lastSuccessfulResolution": "2026-08-17T01:40:49.224Z",
+        "nextRequiredResolution": "2026-08-24T01:39:50.172Z",
         "blockingUnknowns": [],
         "cadenceDays": 7
       },
-      "upstreamAgeDays": 8
+      "upstreamAgeDays": 9
     },
     {
       "canonicalName": "mcp-registry/ai.autorfp-mcp",
       "status": "baked",
       "artifactDigest": "sha256:512f02bebf90fa21336ca8a1131d7dfd44d94d7a28899a14ac6f01cae21b5336",
-      "pageDigest": "sha256:3f9597315a8492b34a356ad47d5a25d18a85d0edcaf4815e445ad01ee75c3f55",
+      "pageDigest": "sha256:f57e565fe1ddb798571eaac5e74fea00752bed3fe734cab80881a59c0e0535c0",
       "verdict": "UNKNOWN",
-      "observedAt": "2026-08-15T14:54:20.031Z",
+      "observedAt": "2026-08-17T01:39:50.172Z",
       "identity": {
         "subjectId": "sha256:33ef15714e2f179e54605f0fa145041d7ba8d5c8bcee0d1bdb5befdadbb270e2",
         "identityDigest": "sha256:a279c78b7df21cd8f7762e868c9623c83e2254837a5df56a91f857b920fd75af",
@@ -3654,29 +4053,68 @@
         "basis": [
           {
             "axis": "evidence-resolution",
-            "at": "2026-08-15T14:55:09.781Z",
+            "at": "2026-08-17T01:40:49.224Z",
             "ageDays": 0
           },
           {
             "axis": "source-observation",
-            "at": "2026-08-15T14:54:20.031Z",
+            "at": "2026-08-17T01:39:50.172Z",
             "ageDays": 0
           }
         ],
-        "lastSuccessfulResolution": "2026-08-15T14:55:09.781Z",
-        "nextRequiredResolution": "2026-08-22T14:54:20.031Z",
+        "lastSuccessfulResolution": "2026-08-17T01:40:49.224Z",
+        "nextRequiredResolution": "2026-08-24T01:39:50.172Z",
         "blockingUnknowns": [],
         "cadenceDays": 7
       },
-      "upstreamAgeDays": 89
+      "upstreamAgeDays": 91
+    },
+    {
+      "canonicalName": "mcp-registry/ai.auxen-auxen",
+      "status": "baked",
+      "artifactDigest": "sha256:c42b4078803a87e4c4b95db2911ee2eca42c119ad0fb0d2bee34edc7ef92a491",
+      "pageDigest": "sha256:f4807763291aac7bfdd7225bab666fe7ec69041940572348d9f55c0e9351ef78",
+      "verdict": "REVIEW",
+      "observedAt": "2026-08-17T01:39:50.172Z",
+      "identity": {
+        "subjectId": "sha256:e5487e1392e8d34345bc7766b78603ed361d17f7b5b9a2b966772b317e6f8bda",
+        "identityDigest": "sha256:93c24ca6f9bc1755ccecee6cf5eb9713ec2abfcd440fecf75c0e096e66288627",
+        "identityStatus": "PROVISIONAL"
+      },
+      "freshness": {
+        "ageDays": 0,
+        "state": "FRESH",
+        "cadenceDays": 7,
+        "basis": "snapshot-fetchedAt"
+      },
+      "resolution": {
+        "status": "FRESH",
+        "basis": [
+          {
+            "axis": "evidence-resolution",
+            "at": "2026-08-17T01:40:49.224Z",
+            "ageDays": 0
+          },
+          {
+            "axis": "source-observation",
+            "at": "2026-08-17T01:39:50.172Z",
+            "ageDays": 0
+          }
+        ],
+        "lastSuccessfulResolution": "2026-08-17T01:40:49.224Z",
+        "nextRequiredResolution": "2026-08-24T01:39:50.172Z",
+        "blockingUnknowns": [],
+        "cadenceDays": 7
+      },
+      "upstreamAgeDays": 90
     },
     {
       "canonicalName": "mcp-registry/ai.aviado-health",
       "status": "baked",
       "artifactDigest": "sha256:629b7129266098b7e0b35e429c59db7b38d1379b89d29dae6042cad0f717fe46",
-      "pageDigest": "sha256:403242171e6c9472e31a3cdc3f28c08adb66de9adabaac27584657a6708cab64",
+      "pageDigest": "sha256:31d86aac57f4a32f10d8bff8daf233684c1eb35554961bdc24c905ce539d2893",
       "verdict": "REVIEW",
-      "observedAt": "2026-08-15T14:54:20.031Z",
+      "observedAt": "2026-08-17T01:39:50.172Z",
       "identity": {
         "subjectId": "sha256:708880dab54aa1b73b48d009f1f985e00a62da3bd575c0fde3b76d36a2820fc7",
         "identityDigest": "sha256:8aad358b11b20fa8baeb7938e5eb6617d8b8ef2dc03eb99aff5abf84d84db2c5",
@@ -3693,29 +4131,68 @@
         "basis": [
           {
             "axis": "evidence-resolution",
-            "at": "2026-08-15T14:55:09.781Z",
+            "at": "2026-08-17T01:40:49.224Z",
             "ageDays": 0
           },
           {
             "axis": "source-observation",
-            "at": "2026-08-15T14:54:20.031Z",
+            "at": "2026-08-17T01:39:50.172Z",
             "ageDays": 0
           }
         ],
-        "lastSuccessfulResolution": "2026-08-15T14:55:09.781Z",
-        "nextRequiredResolution": "2026-08-22T14:54:20.031Z",
+        "lastSuccessfulResolution": "2026-08-17T01:40:49.224Z",
+        "nextRequiredResolution": "2026-08-24T01:39:50.172Z",
         "blockingUnknowns": [],
         "cadenceDays": 7
       },
-      "upstreamAgeDays": 46
+      "upstreamAgeDays": 47
+    },
+    {
+      "canonicalName": "mcp-registry/ai.awardcast-federal-contracts",
+      "status": "baked",
+      "artifactDigest": "sha256:73a5e46548b45eab5022c6187e01eaaeef49ce70522da4c8a8fcca2d213d991f",
+      "pageDigest": "sha256:d3328dd77c753091c4f354659d761982774cb4a7abf5a6ab8124157608dfeeb5",
+      "verdict": "REVIEW",
+      "observedAt": "2026-08-17T01:39:50.172Z",
+      "identity": {
+        "subjectId": "sha256:238b10084fd9cbb5bd8e2a08c6142657691bbcd55023b83ca0cc331d52401272",
+        "identityDigest": "sha256:dd5fc717cdd26a5aeff06e39538ad10c529a1d7ad9406ec01a81539182d10460",
+        "identityStatus": "PROVISIONAL"
+      },
+      "freshness": {
+        "ageDays": 0,
+        "state": "FRESH",
+        "cadenceDays": 7,
+        "basis": "snapshot-fetchedAt"
+      },
+      "resolution": {
+        "status": "FRESH",
+        "basis": [
+          {
+            "axis": "evidence-resolution",
+            "at": "2026-08-17T01:40:49.224Z",
+            "ageDays": 0
+          },
+          {
+            "axis": "source-observation",
+            "at": "2026-08-17T01:39:50.172Z",
+            "ageDays": 0
+          }
+        ],
+        "lastSuccessfulResolution": "2026-08-17T01:40:49.224Z",
+        "nextRequiredResolution": "2026-08-24T01:39:50.172Z",
+        "blockingUnknowns": [],
+        "cadenceDays": 7
+      },
+      "upstreamAgeDays": 0
     },
     {
       "canonicalName": "mcp-registry/ai.axonagentic-neuroautomata",
       "status": "baked",
       "artifactDigest": "sha256:7b8cd4a72a383826e8d1ca035c11666448c8ef285c9f4f422986ba6292e250df",
-      "pageDigest": "sha256:da45d346100b4dd5bab69e5120a02afae7973e923ac45a40f4185213faac7c71",
+      "pageDigest": "sha256:73005b4db3a6ae3b08847fe7d0d143e91ae1f7f609812486c05eeb142439557a",
       "verdict": "REVIEW",
-      "observedAt": "2026-08-15T14:54:20.031Z",
+      "observedAt": "2026-08-17T01:39:50.172Z",
       "identity": {
         "subjectId": "sha256:b312d741882714e96c0bc621ea25eedf74b66ef6f45a469907e94971ec9aabee",
         "identityDigest": "sha256:57d1830f3d234e1ac27d9781de082c6e9e89d51f1b6dd3d65a9e65c8c7be4271",
@@ -3732,29 +4209,29 @@
         "basis": [
           {
             "axis": "evidence-resolution",
-            "at": "2026-08-15T14:55:09.781Z",
+            "at": "2026-08-17T01:40:49.224Z",
             "ageDays": 0
           },
           {
             "axis": "source-observation",
-            "at": "2026-08-15T14:54:20.031Z",
+            "at": "2026-08-17T01:39:50.172Z",
             "ageDays": 0
           }
         ],
-        "lastSuccessfulResolution": "2026-08-15T14:55:09.781Z",
-        "nextRequiredResolution": "2026-08-22T14:54:20.031Z",
+        "lastSuccessfulResolution": "2026-08-17T01:40:49.224Z",
+        "nextRequiredResolution": "2026-08-24T01:39:50.172Z",
         "blockingUnknowns": [],
         "cadenceDays": 7
       },
-      "upstreamAgeDays": 44
+      "upstreamAgeDays": 46
     },
     {
       "canonicalName": "mcp-registry/ai.b77-ai-media-studio",
       "status": "baked",
       "artifactDigest": "sha256:ff60e24c1fbbe6ec60f5fe7170fdc87cb5283ede3b19af00fb5bdcef48db841c",
-      "pageDigest": "sha256:be92f3caf683041a082340d518da8a595de84f5e31781659cffdacf627311128",
+      "pageDigest": "sha256:a980185a0ab515a7bbf9d24f3ce2477c939b73685c79fd5e0d50c513d638b8f2",
       "verdict": "REVIEW",
-      "observedAt": "2026-08-15T14:54:20.031Z",
+      "observedAt": "2026-08-17T01:39:50.172Z",
       "identity": {
         "subjectId": "sha256:2090ec570ef2a4a0af3fb65a442de32acad67e912d6e18ddbf8b1a2232d36c82",
         "identityDigest": "sha256:6b341e68b3f7b2938f1002cb31b4c2b3a13d66bbdbac3b32da55e7bd44807cbe",
@@ -3771,29 +4248,29 @@
         "basis": [
           {
             "axis": "evidence-resolution",
-            "at": "2026-08-15T14:55:09.781Z",
+            "at": "2026-08-17T01:40:49.224Z",
             "ageDays": 0
           },
           {
             "axis": "source-observation",
-            "at": "2026-08-15T14:54:20.031Z",
+            "at": "2026-08-17T01:39:50.172Z",
             "ageDays": 0
           }
         ],
-        "lastSuccessfulResolution": "2026-08-15T14:55:09.781Z",
-        "nextRequiredResolution": "2026-08-22T14:54:20.031Z",
+        "lastSuccessfulResolution": "2026-08-17T01:40:49.224Z",
+        "nextRequiredResolution": "2026-08-24T01:39:50.172Z",
         "blockingUnknowns": [],
         "cadenceDays": 7
       },
-      "upstreamAgeDays": 0
+      "upstreamAgeDays": 2
     },
     {
       "canonicalName": "mcp-registry/ai.b77-apple-search-ads",
       "status": "baked",
       "artifactDigest": "sha256:6886f396ab82b1717287fc70e031676ad4f1fb70163d38ffc70e49403f080cf0",
-      "pageDigest": "sha256:b395bed81b741f29c15db0a862fc80dc6a6b84af9b9bfd312ffa3fd493e41788",
+      "pageDigest": "sha256:d18df8235899f63774ab0ba184a42efde770797d5dd92674c86cfa8035b97e0a",
       "verdict": "REVIEW",
-      "observedAt": "2026-08-15T14:54:20.031Z",
+      "observedAt": "2026-08-17T01:39:50.172Z",
       "identity": {
         "subjectId": "sha256:29c760d48c01a0b1e2fb08e7305db53bbc3874ab7634bb667152172d1bb23a5a",
         "identityDigest": "sha256:c5814af6f34c57569d1554b057de99723dedf7bcfeeb81bf54fbecb833701767",
@@ -3810,29 +4287,29 @@
         "basis": [
           {
             "axis": "evidence-resolution",
-            "at": "2026-08-15T14:55:09.781Z",
+            "at": "2026-08-17T01:40:49.224Z",
             "ageDays": 0
           },
           {
             "axis": "source-observation",
-            "at": "2026-08-15T14:54:20.031Z",
+            "at": "2026-08-17T01:39:50.172Z",
             "ageDays": 0
           }
         ],
-        "lastSuccessfulResolution": "2026-08-15T14:55:09.781Z",
-        "nextRequiredResolution": "2026-08-22T14:54:20.031Z",
+        "lastSuccessfulResolution": "2026-08-17T01:40:49.224Z",
+        "nextRequiredResolution": "2026-08-24T01:39:50.172Z",
         "blockingUnknowns": [],
         "cadenceDays": 7
       },
-      "upstreamAgeDays": 0
+      "upstreamAgeDays": 2
     },
     {
       "canonicalName": "mcp-registry/ai.b77-chess-results",
       "status": "baked",
       "artifactDigest": "sha256:94a0a9fd067f336718cf5d82138445313b9ed2ccf5d01d977352e7261c0855cc",
-      "pageDigest": "sha256:c3efcd7f5ca0c38344125985ec09fe8086d82698cedcb79ca94ed011418b532f",
+      "pageDigest": "sha256:6a52f1cf45dda38f0b97656e8ddd24630bbd1d6c93a9fab2e4609929e64cc50f",
       "verdict": "REVIEW",
-      "observedAt": "2026-08-15T14:54:20.031Z",
+      "observedAt": "2026-08-17T01:39:50.172Z",
       "identity": {
         "subjectId": "sha256:0a1e1723975aa06d4290b4bfb1d6ca544c7fef061fc1538fde7e7f45d31d058f",
         "identityDigest": "sha256:49c632d8a04004ac54216501da77c9f499297cc288ede7bff63556c08b1aa75c",
@@ -3849,536 +4326,29 @@
         "basis": [
           {
             "axis": "evidence-resolution",
-            "at": "2026-08-15T14:55:09.781Z",
+            "at": "2026-08-17T01:40:49.224Z",
             "ageDays": 0
           },
           {
             "axis": "source-observation",
-            "at": "2026-08-15T14:54:20.031Z",
+            "at": "2026-08-17T01:39:50.172Z",
             "ageDays": 0
           }
         ],
-        "lastSuccessfulResolution": "2026-08-15T14:55:09.781Z",
-        "nextRequiredResolution": "2026-08-22T14:54:20.031Z",
+        "lastSuccessfulResolution": "2026-08-17T01:40:49.224Z",
+        "nextRequiredResolution": "2026-08-24T01:39:50.172Z",
         "blockingUnknowns": [],
         "cadenceDays": 7
       },
-      "upstreamAgeDays": 0
-    },
-    {
-      "canonicalName": "mcp-registry/ai.b77-feedback",
-      "status": "baked",
-      "artifactDigest": "sha256:d74f8cbe2e84b0cdd2d1246b857980111118ea69289fb076083b6eda01f56cf5",
-      "pageDigest": "sha256:68eb0887768d60df28a3520da00dc36580a949ff93c20671e92b382209cae1b4",
-      "verdict": "REVIEW",
-      "observedAt": "2026-08-15T14:54:20.031Z",
-      "identity": {
-        "subjectId": "sha256:2360619a6787c13e42684b76556f2b47ecf98ebc39c5ede6f3762b0a99324e62",
-        "identityDigest": "sha256:f80daf9cd5a5b52e71aa301a47b23f57932ff66f4a7f4ddb08e2f1fa60c19dbe",
-        "identityStatus": "PROVISIONAL"
-      },
-      "freshness": {
-        "ageDays": 0,
-        "state": "FRESH",
-        "cadenceDays": 7,
-        "basis": "snapshot-fetchedAt"
-      },
-      "resolution": {
-        "status": "FRESH",
-        "basis": [
-          {
-            "axis": "evidence-resolution",
-            "at": "2026-08-15T14:55:09.781Z",
-            "ageDays": 0
-          },
-          {
-            "axis": "source-observation",
-            "at": "2026-08-15T14:54:20.031Z",
-            "ageDays": 0
-          }
-        ],
-        "lastSuccessfulResolution": "2026-08-15T14:55:09.781Z",
-        "nextRequiredResolution": "2026-08-22T14:54:20.031Z",
-        "blockingUnknowns": [],
-        "cadenceDays": 7
-      },
-      "upstreamAgeDays": 0
-    },
-    {
-      "canonicalName": "mcp-registry/ai.b77-fibalo",
-      "status": "baked",
-      "artifactDigest": "sha256:2a639143164b5e48958340a7656a9f63f4d8565b7176dce17c603b61e4f45c21",
-      "pageDigest": "sha256:f607ea0a157f60554ed18e5e91f1be7152b51476452f5a4e447e409079d7f001",
-      "verdict": "REVIEW",
-      "observedAt": "2026-08-15T14:54:20.031Z",
-      "identity": {
-        "subjectId": "sha256:64f88a82aa3ff357fdb4fcfe30ac5a5cf1c1d17b456e81026d183cd922a8a9c9",
-        "identityDigest": "sha256:7d9bc3457d944e89131669646ec24181f725bb5003fd5a715e0a738d2555161d",
-        "identityStatus": "PROVISIONAL"
-      },
-      "freshness": {
-        "ageDays": 0,
-        "state": "FRESH",
-        "cadenceDays": 7,
-        "basis": "snapshot-fetchedAt"
-      },
-      "resolution": {
-        "status": "FRESH",
-        "basis": [
-          {
-            "axis": "evidence-resolution",
-            "at": "2026-08-15T14:55:09.781Z",
-            "ageDays": 0
-          },
-          {
-            "axis": "source-observation",
-            "at": "2026-08-15T14:54:20.031Z",
-            "ageDays": 0
-          }
-        ],
-        "lastSuccessfulResolution": "2026-08-15T14:55:09.781Z",
-        "nextRequiredResolution": "2026-08-22T14:54:20.031Z",
-        "blockingUnknowns": [],
-        "cadenceDays": 7
-      },
-      "upstreamAgeDays": 0
-    },
-    {
-      "canonicalName": "mcp-registry/ai.b77-file-storage",
-      "status": "baked",
-      "artifactDigest": "sha256:c59de4a666c9060a2a365cfefcb7b4caabe9f3873443fc85311b2c6020a9138f",
-      "pageDigest": "sha256:b8380c720a272f362e2aa6d6f3480b7191e3eb6ffd817d25c57fbec32609a406",
-      "verdict": "REVIEW",
-      "observedAt": "2026-08-15T14:54:20.031Z",
-      "identity": {
-        "subjectId": "sha256:926150b3f52c7c9cf95812892d25f6c99a4c39ecafa67df1bd36d51135d006b6",
-        "identityDigest": "sha256:527273566f97dad7dc05e3e827124b29f10cd2382c65135aee3cff8b1945af27",
-        "identityStatus": "PROVISIONAL"
-      },
-      "freshness": {
-        "ageDays": 0,
-        "state": "FRESH",
-        "cadenceDays": 7,
-        "basis": "snapshot-fetchedAt"
-      },
-      "resolution": {
-        "status": "FRESH",
-        "basis": [
-          {
-            "axis": "evidence-resolution",
-            "at": "2026-08-15T14:55:09.781Z",
-            "ageDays": 0
-          },
-          {
-            "axis": "source-observation",
-            "at": "2026-08-15T14:54:20.031Z",
-            "ageDays": 0
-          }
-        ],
-        "lastSuccessfulResolution": "2026-08-15T14:55:09.781Z",
-        "nextRequiredResolution": "2026-08-22T14:54:20.031Z",
-        "blockingUnknowns": [],
-        "cadenceDays": 7
-      },
-      "upstreamAgeDays": 0
-    },
-    {
-      "canonicalName": "mcp-registry/ai.b77-google-ads",
-      "status": "baked",
-      "artifactDigest": "sha256:7a8e47335b4b97c898c7871b5b4f16acfc2c361edfe6d64e615a01559fad44d4",
-      "pageDigest": "sha256:7faa77d1bbba63ee18e0c09f50088d8e381a10f572e04a1c0f2ef4a034d27441",
-      "verdict": "REVIEW",
-      "observedAt": "2026-08-15T14:54:20.031Z",
-      "identity": {
-        "subjectId": "sha256:903b2a6696315cc7b3c114ff66d5789d456ab001fd832eb1f6d2160639017ee2",
-        "identityDigest": "sha256:9fbb5dd2c01fb2615967c6c882079d390aa5fb6550c012824aff1a9ee717f325",
-        "identityStatus": "PROVISIONAL"
-      },
-      "freshness": {
-        "ageDays": 0,
-        "state": "FRESH",
-        "cadenceDays": 7,
-        "basis": "snapshot-fetchedAt"
-      },
-      "resolution": {
-        "status": "FRESH",
-        "basis": [
-          {
-            "axis": "evidence-resolution",
-            "at": "2026-08-15T14:55:09.781Z",
-            "ageDays": 0
-          },
-          {
-            "axis": "source-observation",
-            "at": "2026-08-15T14:54:20.031Z",
-            "ageDays": 0
-          }
-        ],
-        "lastSuccessfulResolution": "2026-08-15T14:55:09.781Z",
-        "nextRequiredResolution": "2026-08-22T14:54:20.031Z",
-        "blockingUnknowns": [],
-        "cadenceDays": 7
-      },
-      "upstreamAgeDays": 0
-    },
-    {
-      "canonicalName": "mcp-registry/ai.b77-google-news",
-      "status": "baked",
-      "artifactDigest": "sha256:1f11d52fcc0ba3f3822e7fe464f2a33ed6f62ec4f58e4f6fc2e74eea6152aa5f",
-      "pageDigest": "sha256:9b5dbd3e24db459f22f4c95a1914fa7709db4c8696d22e42c7b24eb8663613e9",
-      "verdict": "REVIEW",
-      "observedAt": "2026-08-15T14:54:20.031Z",
-      "identity": {
-        "subjectId": "sha256:25e1d5a1f0e22bbf61c7e2785e3eac71fb0d64c013f9d6d050df8bc6207973ae",
-        "identityDigest": "sha256:99e4220e1b38bf83f6a0cbdb328af709df17a3af57198288020068fa2be59447",
-        "identityStatus": "PROVISIONAL"
-      },
-      "freshness": {
-        "ageDays": 0,
-        "state": "FRESH",
-        "cadenceDays": 7,
-        "basis": "snapshot-fetchedAt"
-      },
-      "resolution": {
-        "status": "FRESH",
-        "basis": [
-          {
-            "axis": "evidence-resolution",
-            "at": "2026-08-15T14:55:09.781Z",
-            "ageDays": 0
-          },
-          {
-            "axis": "source-observation",
-            "at": "2026-08-15T14:54:20.031Z",
-            "ageDays": 0
-          }
-        ],
-        "lastSuccessfulResolution": "2026-08-15T14:55:09.781Z",
-        "nextRequiredResolution": "2026-08-22T14:54:20.031Z",
-        "blockingUnknowns": [],
-        "cadenceDays": 7
-      },
-      "upstreamAgeDays": 0
-    },
-    {
-      "canonicalName": "mcp-registry/ai.b77-google-search-console",
-      "status": "baked",
-      "artifactDigest": "sha256:41ee212191599550684c5ea20443beb3bbda676f54ab938c7a6ebf65562f501d",
-      "pageDigest": "sha256:2d75815d6ce5b702832656017fb21e829bb487ff0056d18c9ee377795d805875",
-      "verdict": "REVIEW",
-      "observedAt": "2026-08-15T14:54:20.031Z",
-      "identity": {
-        "subjectId": "sha256:7f1991585269e1b66f9461ec573fc506222eebaef0b887e03f75f8fa5b736b42",
-        "identityDigest": "sha256:56c01cbeec051aec07f75f9e9640fe1d6280366a950392662aa85a9dfb2368ba",
-        "identityStatus": "PROVISIONAL"
-      },
-      "freshness": {
-        "ageDays": 0,
-        "state": "FRESH",
-        "cadenceDays": 7,
-        "basis": "snapshot-fetchedAt"
-      },
-      "resolution": {
-        "status": "FRESH",
-        "basis": [
-          {
-            "axis": "evidence-resolution",
-            "at": "2026-08-15T14:55:09.781Z",
-            "ageDays": 0
-          },
-          {
-            "axis": "source-observation",
-            "at": "2026-08-15T14:54:20.031Z",
-            "ageDays": 0
-          }
-        ],
-        "lastSuccessfulResolution": "2026-08-15T14:55:09.781Z",
-        "nextRequiredResolution": "2026-08-22T14:54:20.031Z",
-        "blockingUnknowns": [],
-        "cadenceDays": 7
-      },
-      "upstreamAgeDays": 0
-    },
-    {
-      "canonicalName": "mcp-registry/ai.b77-kinnovis-storage",
-      "status": "baked",
-      "artifactDigest": "sha256:2e5d11ca30c97765b706c83cf13964b5e42d96314254ce3cb1b85b095e7b2633",
-      "pageDigest": "sha256:9ce52e56bf010e8a09cdc459a7a38ef70ddf8043e840162bba81ed66d5c33293",
-      "verdict": "REVIEW",
-      "observedAt": "2026-08-15T14:54:20.031Z",
-      "identity": {
-        "subjectId": "sha256:a03c489d6aa51d4946313095da004bd8db41abe7e54bece163f393fe478b70ca",
-        "identityDigest": "sha256:a2172e64e439927fd124813de1d91b1100a7f370c3e14d5b62c23a585724c9b9",
-        "identityStatus": "PROVISIONAL"
-      },
-      "freshness": {
-        "ageDays": 0,
-        "state": "FRESH",
-        "cadenceDays": 7,
-        "basis": "snapshot-fetchedAt"
-      },
-      "resolution": {
-        "status": "FRESH",
-        "basis": [
-          {
-            "axis": "evidence-resolution",
-            "at": "2026-08-15T14:55:09.781Z",
-            "ageDays": 0
-          },
-          {
-            "axis": "source-observation",
-            "at": "2026-08-15T14:54:20.031Z",
-            "ageDays": 0
-          }
-        ],
-        "lastSuccessfulResolution": "2026-08-15T14:55:09.781Z",
-        "nextRequiredResolution": "2026-08-22T14:54:20.031Z",
-        "blockingUnknowns": [],
-        "cadenceDays": 7
-      },
-      "upstreamAgeDays": 0
-    },
-    {
-      "canonicalName": "mcp-registry/ai.b77-knowledge-base",
-      "status": "baked",
-      "artifactDigest": "sha256:ec94268bec7223d920d0f8fefdebcb5247ca8fad48738199a778502b1048b45b",
-      "pageDigest": "sha256:7ccf2e521e79954f49976f44463f1849dbe07e5a1f6eb6719532a043f41b6f71",
-      "verdict": "REVIEW",
-      "observedAt": "2026-08-15T14:54:20.031Z",
-      "identity": {
-        "subjectId": "sha256:83c64f48be1e2d593fe2da12b078f34cc0538384ed26606fc241da393df21754",
-        "identityDigest": "sha256:ee233a82f6e0ff0b2a8a44d5f5a5a14df9c69d22ea951dfbcee3f4798910bfcd",
-        "identityStatus": "PROVISIONAL"
-      },
-      "freshness": {
-        "ageDays": 0,
-        "state": "FRESH",
-        "cadenceDays": 7,
-        "basis": "snapshot-fetchedAt"
-      },
-      "resolution": {
-        "status": "FRESH",
-        "basis": [
-          {
-            "axis": "evidence-resolution",
-            "at": "2026-08-15T14:55:09.781Z",
-            "ageDays": 0
-          },
-          {
-            "axis": "source-observation",
-            "at": "2026-08-15T14:54:20.031Z",
-            "ageDays": 0
-          }
-        ],
-        "lastSuccessfulResolution": "2026-08-15T14:55:09.781Z",
-        "nextRequiredResolution": "2026-08-22T14:54:20.031Z",
-        "blockingUnknowns": [],
-        "cadenceDays": 7
-      },
-      "upstreamAgeDays": 0
-    },
-    {
-      "canonicalName": "mcp-registry/ai.b77-nightscout",
-      "status": "baked",
-      "artifactDigest": "sha256:7d00c972db4b097fa409ee35bf71a359c0b19ff7ae66962b13b0ae4c57ce69bd",
-      "pageDigest": "sha256:efff20a1ad24ff2eb9bb7fdf8b42f9023805e3eb6bf6291eebb6bc96bf84ffa2",
-      "verdict": "REVIEW",
-      "observedAt": "2026-08-15T14:54:20.031Z",
-      "identity": {
-        "subjectId": "sha256:3cb0cda761c44a2a2f92a61605b05e9eee9e096bfa2eddf27c07455caf61a4c7",
-        "identityDigest": "sha256:6167285f4edac335b2d73f5cd3f7fa41609e10265f1179218a4c1825af665c9f",
-        "identityStatus": "PROVISIONAL"
-      },
-      "freshness": {
-        "ageDays": 0,
-        "state": "FRESH",
-        "cadenceDays": 7,
-        "basis": "snapshot-fetchedAt"
-      },
-      "resolution": {
-        "status": "FRESH",
-        "basis": [
-          {
-            "axis": "evidence-resolution",
-            "at": "2026-08-15T14:55:09.781Z",
-            "ageDays": 0
-          },
-          {
-            "axis": "source-observation",
-            "at": "2026-08-15T14:54:20.031Z",
-            "ageDays": 0
-          }
-        ],
-        "lastSuccessfulResolution": "2026-08-15T14:55:09.781Z",
-        "nextRequiredResolution": "2026-08-22T14:54:20.031Z",
-        "blockingUnknowns": [],
-        "cadenceDays": 7
-      },
-      "upstreamAgeDays": 0
-    },
-    {
-      "canonicalName": "mcp-registry/ai.b77-seo-content-factory",
-      "status": "baked",
-      "artifactDigest": "sha256:14a402b9409c236ce5d8f3a5c393d4db1e7082ad0ec9612183565ec135005d2c",
-      "pageDigest": "sha256:6a852dc3a5140c32b5d8b0f976fedea419e871714e142e4db62e2889df6bade9",
-      "verdict": "REVIEW",
-      "observedAt": "2026-08-15T14:54:20.031Z",
-      "identity": {
-        "subjectId": "sha256:07027d6b5a9da6b3403bcd3c8702e808919596fde1376de4e2c63c5d43cbcc60",
-        "identityDigest": "sha256:6a57fdff5be9596605e1dc202a1f1b637ea76e1698423df02e2c908c7b41c7e3",
-        "identityStatus": "PROVISIONAL"
-      },
-      "freshness": {
-        "ageDays": 0,
-        "state": "FRESH",
-        "cadenceDays": 7,
-        "basis": "snapshot-fetchedAt"
-      },
-      "resolution": {
-        "status": "FRESH",
-        "basis": [
-          {
-            "axis": "evidence-resolution",
-            "at": "2026-08-15T14:55:09.781Z",
-            "ageDays": 0
-          },
-          {
-            "axis": "source-observation",
-            "at": "2026-08-15T14:54:20.031Z",
-            "ageDays": 0
-          }
-        ],
-        "lastSuccessfulResolution": "2026-08-15T14:55:09.781Z",
-        "nextRequiredResolution": "2026-08-22T14:54:20.031Z",
-        "blockingUnknowns": [],
-        "cadenceDays": 7
-      },
-      "upstreamAgeDays": 0
-    },
-    {
-      "canonicalName": "mcp-registry/ai.b77-teamwork",
-      "status": "baked",
-      "artifactDigest": "sha256:0b7fbf19d3e68ca7dc651bd18af7a036c7ce644625954ba596704321f51fac42",
-      "pageDigest": "sha256:143b7eb48384432d239a1c19d94176310b99cdb5f92993178cd2420e81d036f2",
-      "verdict": "REVIEW",
-      "observedAt": "2026-08-15T14:54:20.031Z",
-      "identity": {
-        "subjectId": "sha256:7e3111a3d6d545fa04e22f4e2f14e24badbdff4fd11f12372451f1ef28042e50",
-        "identityDigest": "sha256:f6a1d3e82743b65ac51e835912afe5e2058d91f519fb20b142c44a58caeca7a3",
-        "identityStatus": "PROVISIONAL"
-      },
-      "freshness": {
-        "ageDays": 0,
-        "state": "FRESH",
-        "cadenceDays": 7,
-        "basis": "snapshot-fetchedAt"
-      },
-      "resolution": {
-        "status": "FRESH",
-        "basis": [
-          {
-            "axis": "evidence-resolution",
-            "at": "2026-08-15T14:55:09.781Z",
-            "ageDays": 0
-          },
-          {
-            "axis": "source-observation",
-            "at": "2026-08-15T14:54:20.031Z",
-            "ageDays": 0
-          }
-        ],
-        "lastSuccessfulResolution": "2026-08-15T14:55:09.781Z",
-        "nextRequiredResolution": "2026-08-22T14:54:20.031Z",
-        "blockingUnknowns": [],
-        "cadenceDays": 7
-      },
-      "upstreamAgeDays": 0
-    },
-    {
-      "canonicalName": "mcp-registry/ai.b77-time",
-      "status": "baked",
-      "artifactDigest": "sha256:534f1b3698508cadbaab60fc71c1a48ff403f36ed102ef468b1e19107480f47b",
-      "pageDigest": "sha256:6d6288b83692b92d96b27013eb3991a9587819cd7bea3ff0638da49e47e467e6",
-      "verdict": "REVIEW",
-      "observedAt": "2026-08-15T14:54:20.031Z",
-      "identity": {
-        "subjectId": "sha256:3acaad1ea5c2fc2f529b42e6492721196afb231d8f2855474f1f1cf432c57273",
-        "identityDigest": "sha256:4f81191d73f61ce7ab88990193aa567612ea8d5dd5235a13acb15c2999f01d0a",
-        "identityStatus": "PROVISIONAL"
-      },
-      "freshness": {
-        "ageDays": 0,
-        "state": "FRESH",
-        "cadenceDays": 7,
-        "basis": "snapshot-fetchedAt"
-      },
-      "resolution": {
-        "status": "FRESH",
-        "basis": [
-          {
-            "axis": "evidence-resolution",
-            "at": "2026-08-15T14:55:09.781Z",
-            "ageDays": 0
-          },
-          {
-            "axis": "source-observation",
-            "at": "2026-08-15T14:54:20.031Z",
-            "ageDays": 0
-          }
-        ],
-        "lastSuccessfulResolution": "2026-08-15T14:55:09.781Z",
-        "nextRequiredResolution": "2026-08-22T14:54:20.031Z",
-        "blockingUnknowns": [],
-        "cadenceDays": 7
-      },
-      "upstreamAgeDays": 0
-    },
-    {
-      "canonicalName": "mcp-registry/ai.b77-web-analytics",
-      "status": "baked",
-      "artifactDigest": "sha256:cd15155e1031104db37054e9336c128c5db30564a26ee10e2d6e1ce2b26d9e45",
-      "pageDigest": "sha256:95db8b219836c621fdd58751395d558417f3bfb3a18e5301697c83beb789fa8c",
-      "verdict": "REVIEW",
-      "observedAt": "2026-08-15T14:54:20.031Z",
-      "identity": {
-        "subjectId": "sha256:71fe63392b23930487b6f303419ef55d423eac708b81eb35b77e1831eb3100a1",
-        "identityDigest": "sha256:c4d3eccdeded4a3941b6fa75a27e2267a3c64fbf1679847cacd567ae190d6faa",
-        "identityStatus": "PROVISIONAL"
-      },
-      "freshness": {
-        "ageDays": 0,
-        "state": "FRESH",
-        "cadenceDays": 7,
-        "basis": "snapshot-fetchedAt"
-      },
-      "resolution": {
-        "status": "FRESH",
-        "basis": [
-          {
-            "axis": "evidence-resolution",
-            "at": "2026-08-15T14:55:09.781Z",
-            "ageDays": 0
-          },
-          {
-            "axis": "source-observation",
-            "at": "2026-08-15T14:54:20.031Z",
-            "ageDays": 0
-          }
-        ],
-        "lastSuccessfulResolution": "2026-08-15T14:55:09.781Z",
-        "nextRequiredResolution": "2026-08-22T14:54:20.031Z",
-        "blockingUnknowns": [],
-        "cadenceDays": 7
-      },
-      "upstreamAgeDays": 0
+      "upstreamAgeDays": 2
     },
     {
       "canonicalName": "mcp-registry/io.github.calllint-calllint",
       "status": "baked",
       "artifactDigest": "sha256:23327771ad88957d59c5e72011d84504c7a737a297560277f358d12b8bd3a98b",
-      "pageDigest": "sha256:7c8be08aff47584be2f59e7107b1c1f8ea34adb5e2c0d6ca54c3f9e87edab397",
+      "pageDigest": "sha256:672d3036e3f83077bd8cde289df951eae2f02e8e472b50d7695d1dc3c5276f8d",
       "verdict": "SAFE",
-      "observedAt": "2026-08-15T14:54:20.031Z",
+      "observedAt": "2026-08-17T01:39:50.172Z",
       "identity": {
         "subjectId": "sha256:70ffd1fee40ebdeaa25d19c6f37796c85e60370bcd2ff64628944a1fd3662441",
         "identityDigest": "sha256:e26700346d4d3346258c0962ddeaf5bdf9cd91b7d483c955e8100950458e6c9c",
@@ -4395,21 +4365,21 @@
         "basis": [
           {
             "axis": "evidence-resolution",
-            "at": "2026-08-15T14:55:09.781Z",
+            "at": "2026-08-17T01:40:49.224Z",
             "ageDays": 0
           },
           {
             "axis": "source-observation",
-            "at": "2026-08-15T14:54:20.031Z",
+            "at": "2026-08-17T01:39:50.172Z",
             "ageDays": 0
           }
         ],
-        "lastSuccessfulResolution": "2026-08-15T14:55:09.781Z",
-        "nextRequiredResolution": "2026-08-22T14:54:20.031Z",
+        "lastSuccessfulResolution": "2026-08-17T01:40:49.224Z",
+        "nextRequiredResolution": "2026-08-24T01:39:50.172Z",
         "blockingUnknowns": [],
         "cadenceDays": 7
       },
-      "upstreamAgeDays": 33
+      "upstreamAgeDays": 34
     }
   ]
 }

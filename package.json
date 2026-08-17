@@ -77,6 +77,8 @@
     "project-adoption-index:trust-index": "pnpm --filter @calllint/trust-index project-adoption-index",
     "project-adoption-index:trust-index:store": "pnpm --filter @calllint/trust-index project-adoption-index:store",
     "verify-claims:trust-index": "pnpm --filter @calllint/trust-index verify-claims",
+    "sync:mcp-bundle": "node scripts/sync-mcp-bundle.mjs",
+    "sync:mcp-bundle:check": "node scripts/sync-mcp-bundle.mjs --check",
     "ci:local": "pnpm typecheck && pnpm test && pnpm build && pnpm corpus:test && pnpm bench:test && pnpm check:public-copy && pnpm audit:evidence && pnpm audit:coverage && pnpm audit:calibration && pnpm eval:phase-2.4 && pnpm eval:phase-2.4:dogfood && pnpm eval:phase-2.4:gates && pnpm eval:phase-2.4:panel:validate && pnpm audit:presentation && pnpm audit:presentation:gate && pnpm audit:presentation:lock && pnpm audit:presentation:lock:gate && pnpm audit:preview && pnpm audit:preview:gate && pnpm ledger:presentation:validate && pnpm gate:s0:regression"
   },
   "devDependencies": {

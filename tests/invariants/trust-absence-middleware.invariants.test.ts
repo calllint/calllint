@@ -68,6 +68,46 @@ async function aLiveSubject(): Promise<string> {
   return json.replace(/\.json$/, "")
 }
 
+/**
+ * A subject the index KNOWS and the served tree has NO page for — discovered, for the same reason
+ * `aLiveSubject` is.
+ *
+ * This sample was `agency.goji-goji` until ADR 0085 D1 returned goji to the cohort and gave it a
+ * page, at which point 200 became the correct answer and these tests red. That is the churn
+ * `aLiveSubject`'s comment already warned about, applied to the absent half — where it had been
+ * hardcoded instead. A name is not a stable way to name an absence.
+ *
+ * It also measures a sharper case than §5's table did. §5 hashed `agency.goji-goji.json` and
+ * `zzz.never-existed.json` and got the SAME body (`1ceb1deb15e5`) — they were one observation, not
+ * two, and the never-existed sibling test already covers that shape. An `incomplete` entry is the
+ * case only this file can reach: a subject we have positively recorded and NOT assessed, where
+ * answering 200 would be the closest thing on this surface to publishing a verdict we never made.
+ */
+async function anIndexedSubjectWithNoPage(): Promise<string> {
+  const index = JSON.parse(await readFile(resolve(PUB, "trust", "index.json"), "utf8")) as {
+    entries: { canonicalName: string; status: string }[]
+  }
+  const files = await readdir(resolve(PUB, "trust", "mcp-registry"))
+  const served = new Set(
+    files
+      .filter((f) => f.endsWith(".json") && !f.endsWith(".manifest.json"))
+      .map((f) => "mcp-registry/" + f.replace(/\.json$/, "")),
+  )
+  const hit = index.entries.find(
+    (e) => e.canonicalName.startsWith("mcp-registry/") && !served.has(e.canonicalName),
+  )
+  // Fail the PREMISE rather than silently degrading into a second never-existed test. If every
+  // indexed registry subject gains a page, this file must say so out loud, not quietly stop
+  // measuring the case it exists for.
+  if (!hit)
+    throw new Error(
+      "premise gone: every mcp-registry entry in trust/index.json now has a served page, so this " +
+        "file can no longer distinguish a known-but-unassessed subject from a typo. Re-derive the " +
+        "sample or retire the case deliberately.",
+    )
+  return hit.canonicalName.replace(/^mcp-registry\//, "")
+}
+
 describe("trust middleware — a live subject is passed through untouched", () => {
   it("serves a baked .json as JSON at 200", async () => {
     const name = await aLiveSubject()
@@ -95,7 +135,7 @@ describe("trust middleware — a live subject is passed through untouched", () =
 
 describe("trust middleware — ADR 0085 §5's three requests, re-measured", () => {
   it("an absent subject's .json answers 404 as a PARSEABLE document", async () => {
-    const res = await call("/trust/mcp-registry/agency.goji-goji.json")
+    const res = await call(`/trust/mcp-registry/${await anIndexedSubjectWithNoPage()}.json`)
     expect(res.status).toBe(404)
     expect(res.headers.get("content-type")).toContain("application/json")
     const body = JSON.parse(await res.text())
@@ -111,7 +151,7 @@ describe("trust middleware — ADR 0085 §5's three requests, re-measured", () =
 
   it("no longer answers 200 with marketing HTML — the defect §5 measured is closed", async () => {
     for (const p of [
-      "/trust/mcp-registry/agency.goji-goji.json",
+      `/trust/mcp-registry/${await anIndexedSubjectWithNoPage()}.json`,
       "/trust/mcp-registry/zzz.never-existed.json",
     ]) {
       const res = await call(p)

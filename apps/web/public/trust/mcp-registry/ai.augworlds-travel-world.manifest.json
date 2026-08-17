@@ -1,0 +1,50 @@
+{
+  "schema": "calllint.evidence-manifest.v1",
+  "subject": {
+    "canonicalName": "mcp-registry/ai.augworlds-travel-world",
+    "artifactDigest": "sha256:80d803665e2ecae6a4d060a45afd3a2425fbd62c725f84cd836b36a0613163a6"
+  },
+  "verdict": "REVIEW",
+  "verdictLabel": "Review required",
+  "completeness": "complete",
+  "evidenceLevel": "E2",
+  "evidenceRationale": "install config observed → static blast radius normalized into an authority inventory. Higher levels (E3 tool schema, E4 maintainer receipt, E5 sandbox) are not carried by a static page.",
+  "status": {
+    "verdict": "REVIEW",
+    "completeness": "complete",
+    "authorityClaimed": false,
+    "reproducibility": {
+      "pageDigest": "sha256:300b05ae39352ab3fa768e312f0c8ee946757135daf787ea81205efdfa65fca5",
+      "observedAt": "2026-08-17T01:39:50.172Z"
+    },
+    "evidenceLevel": "E2"
+  },
+  "authority": {
+    "digest": "sha256:d03a570d2019633136fc937bb3dd2c5c1e90c3ad833b2e10702bcdb1836e17c2",
+    "completeness": "complete",
+    "capabilityCount": 1,
+    "approvalRequired": [
+      "external-network-access"
+    ],
+    "capabilities": [
+      {
+        "action": "connect",
+        "resource": "network",
+        "mutability": "mutating",
+        "reversibility": "irreversible",
+        "approvalRequirement": "review"
+      }
+    ]
+  },
+  "policyDigest": null,
+  "reproducibility": {
+    "pageDigest": "sha256:300b05ae39352ab3fa768e312f0c8ee946757135daf787ea81205efdfa65fca5",
+    "observedAt": "2026-08-17T01:39:50.172Z"
+  },
+  "engine": {
+    "name": "calllint"
+  },
+  "correctionUrl": "https://github.com/calllint/calllint/issues/new?labels=trust-page-correction",
+  "generatedAt": "2026-08-17T01:39:50.172Z",
+  "signature": null
+}
