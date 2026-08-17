@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest"
+import { execFileSync } from "node:child_process"
 import { createHash } from "node:crypto"
-import { readFileSync } from "node:fs"
+import { readFileSync, readdirSync } from "node:fs"
 import { fileURLToPath } from "node:url"
 
 // The FIRST machine reader of `artifacts/mcp-2026-07-28/**`.
@@ -110,6 +111,194 @@ interface Amendable {
  */
 const AMENDMENT_KEY = /M26-\d+$/
 const BATCH_NO = /M26-(\d+)/
+
+const MCP_SRC_DIR = "packages/calllint-mcp/src"
+
+/**
+ * Every `.ts` file under `packages/calllint-mcp/src`, ENUMERATED FROM THE DIRECTORY.
+ *
+ * M26-10. The two "no HTTP transport exists" assertions below each read `server.ts` and only
+ * `server.ts`, while stating their conclusion over the whole package — "no transport-bearing
+ * construct exists anywhere in the package's source", "stdio-only and unauthenticated by
+ * construction". Measured 2026-08-17: appending a well-typed, correctly-imported
+ * `createServer(...).listen(port)` to `version.ts` left BOTH assertions GREEN and `pnpm typecheck`
+ * at EXIT 0. The subject is the package; the instrument read 1 of 8 files.
+ *
+ * So the file set is walked rather than named. A hardcoded list is the same defect one layer out: it
+ * would cover exactly the files in hand, and a transport added in a NEW file would be invisible for
+ * the same reason `version.ts` was. `assertEnumerationIsComplete` below cross-checks the walk
+ * against `git ls-files`, because a walk can also go blind — an `index.ts` re-export of an untracked
+ * or newly-added module is precisely what the naive version missed.
+ */
+const mcpSourceFiles = (): readonly string[] => {
+  const walk = (dir: string): readonly string[] =>
+    readdirSync(fileURLToPath(new URL(dir, repoRoot)), { withFileTypes: true }).flatMap((e) => {
+      const rel = `${dir}/${e.name}`
+      return e.isDirectory() ? walk(rel) : /\.(?:m|c)?ts$/.test(e.name) ? [rel] : []
+    })
+  return [...walk(MCP_SRC_DIR)].sort()
+}
+
+/**
+ * Transport- and auth-bearing constructs. Word-boundary and CASE-SENSITIVE where the bare substring
+ * would collide with prose that legitimately exists today.
+ *
+ * `Authorization` is the case that forced this: `tools.ts` carries `requiresSeparateAuthorization`
+ * (a plan field), "not a current authorization" and "one authorization" (both prose about approval
+ * receipts, in a tool description STRING that no comment filter removes). A substring scan for
+ * `Authorization` reds on all three, so the guard would have been un-adoptable in exactly the shape
+ * that reads the whole package — and the tempting repair, dropping the needle, is what leaves an
+ * `Authorization: Bearer` header unobserved. Measured: `\bAuthorization\b` case-sensitive matches
+ * the header and none of the three.
+ */
+const TRANSPORT_NEEDLES: readonly { readonly name: string; readonly re: RegExp }[] = [
+  { name: "createServer(", re: /createServer\(/ },
+  { name: "http. / https.", re: /\bhttps?\./ },
+  { name: "express", re: /\bexpress\b/ },
+  { name: "EventSource", re: /\bEventSource\b/ },
+  { name: ".listen(", re: /\.listen\(/ },
+  { name: "fetch(", re: /\bfetch\(/ },
+  { name: "StreamableHTTP", re: /StreamableHTTP/ },
+  { name: "SSEServerTransport", re: /SSEServerTransport/ },
+  { name: "Authorization (header)", re: /\bAuthorization\b/ },
+  { name: "Bearer", re: /\bBearer\b/ },
+]
+
+/**
+ * Scan every file in the package for a transport construct, returning `file: needle` pairs.
+ *
+ * A source scan must read code, not prose ([[source-scan-must-read-code-not-prose]]). The filter drops
+ * comment-leading lines only — a trailing `// http.` on a code line still counts, which is the safe
+ * direction for a guard whose failure mode is a false GREEN.
+ *
+ * Measured, because the first version of this docblock claimed more than was true: at HEAD the filter is
+ * NOT load-bearing. It removes 678 of 2253 lines, but ZERO needles fire on the raw bytes — deleting the
+ * filter entirely leaves the scan empty and every assertion green. The needles were already chosen to
+ * miss prose (case-sensitive `\bAuthorization\b`, member-access `\bhttps?\.`), which is what makes that
+ * true. The filter earns its place against the 21 comment lines in this package that a looser scan would
+ * red (10 in `tools.ts`, 9 in `server.ts`), i.e. it is what lets the needle set stay strict rather than
+ * being widened into un-adoptability later.
+ */
+const stripCommentLines = (src: string): string =>
+  src
+    .split("\n")
+    .filter((l) => !/^\s*(?:\/\/|\*|\/\*)/.test(l))
+    .join("\n")
+
+const scanForTransport = (): readonly string[] =>
+  mcpSourceFiles().flatMap((rel) => {
+    const code = stripCommentLines(readText(rel))
+    return TRANSPORT_NEEDLES.filter((n) => n.re.test(code)).map((n) => `${rel}: ${n.name}`)
+  })
+
+/**
+ * The premise both transport assertions rest on: the walk actually sees the package.
+ *
+ * Asserted, not assumed. A walk that returned `[]` — wrong directory, renamed package, a glob that
+ * stopped matching — makes `scanForTransport()` return `[]` too, and an empty scan over an empty file
+ * set reads exactly like "no transport exists". That is the fault class this whole file is about, so
+ * the instrument is checked before its product ([[a-premise-block-keeps-a-blind-guard-from-reading-green]]).
+ */
+function assertEnumerationIsComplete(): readonly string[] {
+  const walked = mcpSourceFiles()
+  expect(walked.length, `${MCP_SRC_DIR} must contain source files — an empty walk scans nothing`)
+    .toBeGreaterThan(1)
+  expect(
+    walked,
+    "the walk must include the stdio server itself, else it is reading the wrong directory",
+  ).toContain(`${MCP_SRC_DIR}/server.ts`)
+
+  // Anchored by CONTENT, not by path. Measured: pointing MCP_SRC_DIR at `packages/types/src` — which
+  // also happens to hold a `server.ts` — left every assertion in this file green, because a path
+  // anchor interpolated from the constant under test moves with it instead of pinning it. These two
+  // identifiers exist only in the hand-rolled stdio server (ADR 0025; there is no
+  // `StdioServerTransport` to look for), and nowhere in `packages/types/src`.
+  const serverSrc = readText(`${MCP_SRC_DIR}/server.ts`)
+  for (const proof of ["runStdioServer", "process.stdin"]) {
+    expect(
+      serverSrc,
+      `${MCP_SRC_DIR} must be the stdio MCP server package — '${proof}' identifies it by content, so the scan cannot be aimed at some other directory that merely contains a server.ts`,
+    ).toContain(proof)
+  }
+
+  // Cross-checked against git, because the walk and the repo can disagree: a tracked file the walk
+  // misses is unscanned, and that is the silent half.
+  const tracked = execFileSync("git", ["ls-files", MCP_SRC_DIR], {
+    cwd: fileURLToPath(repoRoot),
+    encoding: "utf8",
+  })
+    .split("\n")
+    .map((l) => l.trim())
+    .filter((l) => /\.(?:m|c)?ts$/.test(l))
+    .sort()
+  expect(
+    tracked.filter((t) => !walked.includes(t)),
+    "every tracked .ts file in the package must be scanned",
+  ).toEqual([])
+
+  // And cross-checked against the filesystem by an independent mechanism, because git alone cannot
+  // see the case that matters. Measured: making the walk skip subdirectories, with a transport planted
+  // in `src/transport/http.ts`, left this block green — the planted file was UNTRACKED, so `git
+  // ls-files` never listed it and the comparison above had nothing to miss. Node's own recursive
+  // readdir is not my hand-rolled recursion, so a defect in one does not hide in the other.
+  const seenByNode = readdirSync(fileURLToPath(new URL(MCP_SRC_DIR, repoRoot)), { recursive: true })
+    .map((p) => `${MCP_SRC_DIR}/${String(p).split("\\").join("/")}`)
+    .filter((p) => /\.(?:m|c)?ts$/.test(p))
+    .sort()
+  expect(
+    seenByNode.filter((p) => !walked.includes(p)),
+    "every .ts file present on disk must be scanned, tracked or not — a subdirectory the walk declines to enter is unscanned code",
+  ).toEqual([])
+
+  // And the needles must be able to fire at all. A regex set that matched nothing would make the
+  // green below meaningless; this is the mutant the assertion cannot otherwise see.
+  //
+  // The sample is a working transport, not an import line — the first draft was
+  // `import { createServer } from "node:http"`, where `createServer(` has no paren and `"node:http"`
+  // no dot, so neither needle could fire and this very assertion red on its own sample. Kept as
+  // written: a premise check that can fail on the instrument is the point.
+  // `\bhttps?\.` is the MEMBER-ACCESS form (`https.request`), so a URL literal does not satisfy it —
+  // in `"https://…"` the next character is `:`. The sample carries both forms for that reason.
+  const sample = [
+    'const srv = createServer((_q, _s) => {})',
+    'srv.listen(port)',
+    'const r = https.request(u)',
+    'const h = { Authorization: `Bearer ${t}` }',
+    'await fetch("https://example.test/x")',
+  ].join("\n")
+  expect(
+    TRANSPORT_NEEDLES.filter((n) => n.re.test(sample)).map((n) => n.name),
+    "the needle set must detect a synthetic transport, or an empty scan proves nothing",
+  ).toEqual(
+    expect.arrayContaining([
+      "createServer(",
+      ".listen(",
+      "http. / https.",
+      "fetch(",
+      "Authorization (header)",
+      "Bearer",
+    ]),
+  )
+
+  // The comment filter is part of the instrument, so it is measured through the SAME function the scan
+  // uses — not re-implemented here, which would let the two drift apart silently.
+  //
+  // Measured: widening the filter to drop any line containing `//` survived every check above, because
+  // with no transport in the tree an already-empty result cannot change. It only showed up against a
+  // transport written on trailing-comment lines — a real construct, `// serve` at the end. So the
+  // trailing-comment case is asserted directly, in both directions.
+  const trailing = 'export const s = (p: number): void => void createServer(() => {}).listen(p) // serve'
+  expect(
+    TRANSPORT_NEEDLES.filter((n) => n.re.test(stripCommentLines(trailing))).map((n) => n.name),
+    "a transport on a line that merely ENDS in a comment must still be seen — the filter drops comment-LEADING lines only, which is the safe direction for a guard whose failure mode is a false green",
+  ).toEqual(expect.arrayContaining(["createServer(", ".listen("]))
+  expect(
+    stripCommentLines(" * discusses http. and Authorization at length\n  // createServer( in prose"),
+    "a comment-leading line must be dropped, or the docblocks in server.ts would red the scan on prose alone",
+  ).toBe("")
+
+  return walked
+}
 
 /**
  * Amendment keys on one object, NEWEST BATCH FIRST, ordered numerically.
@@ -796,23 +985,21 @@ describe("M26-3 — an artifact claim must not contradict the digest-locked byte
     // The HTTP+SSE deprecation cites `/specification/2024-11-05/...` — the revision this server
     // actually advertises — so "not affected" is a claim worth deriving rather than assuming.
     // Derived: no transport-bearing construct exists anywhere in the package's source.
+    //
+    // M26-10: "anywhere in the package's source" is now what the scan actually reads. It read
+    // `server.ts` alone until 2026-08-17, when a well-typed `createServer(...).listen(port)` in
+    // `version.ts` left this assertion green.
     const matrix = readJson<{ deltas: readonly Amendable[] }>(
       `${ARTIFACT_DIR}/protocol-delta-matrix.json`,
     )
     const d2 = matrix.deltas.find((r) => r.id === "D2") as Amendable
     expect(d2.affectsCallLint).toBe(false)
 
-    const server = readText("packages/calllint-mcp/src/server.ts")
-    const code = server
-      .split("\n")
-      .filter((l) => !/^\s*(\/\/|\*|\/\*)/.test(l))
-      .join("\n")
-    // A source scan must read code, not prose ([[source-scan-must-read-code-not-prose]]): the
-    // docblocks in this file discuss HTTP and would red an unfiltered scan.
-    const found = ["createServer(", "http.", "https.", "express", "EventSource", ".listen("].filter(
-      (needle) => code.includes(needle),
-    )
-    expect(found, "calllint-mcp is stdio-only; an HTTP construct would make D2 live").toEqual([])
+    const walked = assertEnumerationIsComplete()
+    expect(
+      scanForTransport(),
+      `calllint-mcp is stdio-only; an HTTP construct would make D2 live. Scanned ${walked.length} files under ${MCP_SRC_DIR}`,
+    ).toEqual([])
   })
 })
 
@@ -968,12 +1155,16 @@ describe("M26-7 — M-OPEN-1's fix shape is refuted from the locked bytes it say
     // And the reason the auth gap is not urgent, derived rather than assumed: no HTTP transport
     // exists to authenticate. Asserted in its own right at "D2 stays n/a" above; re-derived here so
     // this conclusion does not depend on reading that test's title.
-    const code = readText("packages/calllint-mcp/src/server.ts")
-      .split("\n")
-      .filter((l) => !/^\s*(\/\/|\*|\/\*)/.test(l))
-      .join("\n")
+    //
+    // M26-10: this scan read `server.ts` alone, which is the WRONG file for the auth half — the
+    // three real `authorization` strings live in `tools.ts`, so a substring needle here would have
+    // been silently un-adoptable at package scope. It now reads all 8 files with case-sensitive
+    // word boundaries, and this is the assertion that makes half 2 of M-OPEN-1 measurable rather
+    // than a standing promise: it reds the moment an auth-bearing construct appears, which is
+    // exactly when the vendored auth semantics would start backing a live claim.
+    assertEnumerationIsComplete()
     expect(
-      ["createServer(", ".listen(", "Authorization", "Bearer "].filter((n) => code.includes(n)),
+      scanForTransport(),
       "stdio-only and unauthenticated by construction, so the auth gap bears on no claim CallLint makes today",
     ).toEqual([])
   })

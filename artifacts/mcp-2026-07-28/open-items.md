@@ -181,6 +181,90 @@ directly, or it will assert an absence that is really a wrong path.
 > #159 (restore the superseded top-level URL guard) passes in **both** row states, which is the
 > measurement that condemned it.
 
+### M-OPEN-1, amended by M26-10 (2026-08-17) — half 2 has **no subject**, and the two assertions proving that were **blind**
+
+> **Read this note as current for half 2. Half 1 stays CLOSED as recorded above; this note does not
+> reopen it, and the M26-7 refutation above still stands.**
+>
+> Half 2 (vendor the auth pages) was **authorized** in this batch. It was **not** done, because the
+> measurement that would justify it came back empty — and the instrument that produced that answer
+> turned out to be measuring one eighth of what it claimed.
+>
+> **The boundary, restated from M26-7 and re-verified at HEAD rather than trusted.** Vendoring buys
+> **only** auth semantics, warranted *"only if CallLint makes a claim that rests on them."* It makes
+> none: `packages/calllint-mcp/src` is 8 `.ts` files with **zero** transport constructs, and every
+> `authorization` occurrence is prose — `requiresSeparateAuthorization` (a plan field), and receipt
+> wording inside a tool-description **string**. So vendored auth pages would add bytes backing no
+> claim. Half 2 stays open **for want of a subject, not for want of authorization**; the row's own
+> reading is right that its subject is a new row's, not this row's residue.
+>
+> **What that re-verification found.** The two assertions holding up "no HTTP transport exists"
+> (`D2 stays n/a…` and `what M-OPEN-1 genuinely still needs is AUTH, and only auth`) read
+> **`server.ts` alone** while stating their conclusion over the whole package. ADR 0065 §209 describes
+> the scan at **directory** scope — *"a comment-stripped scan of `packages/calllint-mcp/src/` … finds
+> zero hits, and the gate asserts that"* — so the prose and the gate had disagreed since M26-3.
+> **Same fault class as half 1's own cost above:** a guard that cannot observe its subject, here by
+> scope rather than by append-only field.
+>
+> **Proven blind, not assumed blind.** A well-typed, correctly-imported
+> `createServer(...).listen(port)` added to `version.ts` left **both assertions green and
+> `pnpm typecheck` at EXIT 0**. (The first probe was weaker than claimed — it omitted the import, so
+> `tsc`, not the guard, caught it. That loophole is why the second probe exists.)
+>
+> **The fix.** One shared scanner: a recursive walk of the package, cross-checked **twice** — against
+> `git ls-files` and against Node's own `readdirSync({recursive:true})` — behind a premise block that
+> asserts the instrument before its product
+> ([[a-premise-block-keeps-a-blind-guard-from-reading-green]]). Derive the set, never hardcode it: a
+> named file list covers exactly the files in hand.
+>
+> **Needle adoptability, measured in both directions.** A substring `Authorization` needle reds on the
+> three legitimate prose occurrences in `tools.ts` — one inside a string no comment filter removes —
+> and the tempting repair (drop the needle) is exactly what leaves `Authorization: Bearer`
+> unobserved. Case-sensitive `\bAuthorization\b` matches the header and none of the three.
+>
+> **Mutants — 11 run, product *and* instrument. Four survivals, each of which changed the fix:**
+>
+> | # | mutant | verdict |
+> |---|---|---|
+> | M1 | `createServer`+`.listen` in `version.ts` | KILLED (named the file and both needles) |
+> | M2 | `Authorization: Bearer` header in `tools.ts` | KILLED |
+> | M3 / M3b / M3c | transport in a new file / an **untracked subdirectory** / on **trailing-comment** lines | KILLED |
+> | M4 | walk narrowed to `server.ts` — *the original defect* | KILLED |
+> | M5 | `createServer(` needle deleted | KILLED |
+> | M6 | scan aimed at `packages/types/src` | **SURVIVED**, then KILLED |
+> | M7 | walk skips subdirectories | **SURVIVED**, then KILLED |
+> | M8 / M8b | comment filter widened to any `//` | **SURVIVED**, then KILLED |
+> | M8c | comment filter deleted outright | **SURVIVED — and it is correct that it does** |
+>
+> 1. **M6: a path anchor interpolated from the constant under test moves with the mutation.** The
+>    premise block anchored on `` `${MCP_SRC_DIR}/server.ts` ``, and `packages/types/src` *also* holds a
+>    `server.ts` — so aiming the scan at the wrong package left all 20 tests green. Now anchored by
+>    **content** (`runStdioServer`, `process.stdin`; there is no `StdioServerTransport` to look for —
+>    ADR 0025 hand-rolls the loop), both absent from `packages/types/src`.
+> 2. **M7: `git ls-files` cannot see the case that matters.** A subdir-skipping walk stayed green with a
+>    transport planted in `src/transport/http.ts`, because the plant was **untracked** and the
+>    cross-check had nothing to miss. A second, independent filesystem enumeration closes it — a defect
+>    in my recursion cannot hide in Node's.
+> 3. **M8: an already-empty result cannot change.** Widening the filter survived every check *until*
+>    it was run against a real transport on trailing-comment lines. The filter is now measured through
+>    the **same** `stripCommentLines` the scan uses, so the two cannot drift.
+> 4. **M8c is a survival I am keeping, because it falsified my own docblock.** I had written that
+>    `server.ts`'s docblocks *"would red an unfiltered scan."* Measured: **zero** needles fire on raw
+>    bytes; the filter drops 678 of 2253 lines and not one carries a needle, because the needles were
+>    already chosen to miss prose. The comment now says what is true — the filter is what lets the
+>    needle set stay **strict** rather than being widened into un-adoptability later.
+>
+> **General form, and the reason this note is longer than its fix:** *a guard's scope claim is part of
+> the claim.* Stating a conclusion over a package while reading one file is not a weaker measurement,
+> it is a different one — and it reads identically to the true one right up until the file it does not
+> read is the file that changes. **Mutate the instrument, not only the product**; four of these
+> mutants survived the product-only pass.
+>
+> **Verification:** full suite **234 files / 4326 passed / 1 skipped** (baseline-identical),
+> `pnpm typecheck` EXIT 0 on both projects. Every mutation reverted and confirmed by
+> `git diff --stat`; each was applied by a probe that **asserts its own bytes changed** before the run,
+> after one mutation silently failed to apply and reported a green that meant nothing.
+
 ---
 
 ## M-OPEN-2 — the superseded top-level `verdict` has no reader-side guard
