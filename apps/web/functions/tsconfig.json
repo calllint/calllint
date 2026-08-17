@@ -1,0 +1,26 @@
+{
+  "//": "The Cloudflare Pages Functions had NO typechecker. `apps/web/functions/**` falls outside the root tsconfig's `include` (`apps/*/src/**/*.ts`), so an injected `const x: number = \"string\"` in the I2a adapter left `pnpm typecheck` at EXIT 0 — measured, not assumed. These three files are the serving plane's only executable code: D3's absence middleware, the I2a Partner API adapter, and the trust-event collector. Run by `pnpm typecheck:functions`, which `pnpm typecheck` chains.",
+  "//lib": "DOM is required for Request/Response/URL/crypto.subtle and is the reason this is a SEPARATE project: adding these files to the root tsconfig would put DOM globals into every Node package, where `fetch`-shaped mistakes would then typecheck. `types: []` keeps @types/node OUT — the Workers runtime has no `process`/`Buffer`, so seeing them here would be a false negative.",
+  "compilerOptions": {
+    "noEmit": true,
+    "strict": true,
+    "target": "ES2022",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "lib": ["ES2022", "DOM"],
+    "types": [],
+    "skipLibCheck": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noFallthroughCasesInSwitch": true,
+    "exactOptionalPropertyTypes": false,
+    "baseUrl": "../../..",
+    "paths": {
+      "@calllint/partner-api": ["packages/partner-api/src/index.ts"],
+      "@calllint/trust-event-contract": ["packages/trust-event-contract/src/index.ts"],
+      "@calllint/types": ["packages/types/src/index.ts"],
+      "@calllint/types/*": ["packages/types/src/*"]
+    }
+  },
+  "include": ["**/*.ts"]
+}
