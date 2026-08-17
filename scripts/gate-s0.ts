@@ -87,6 +87,8 @@ import {
   acknowledgementClears,
   checkCohortIdentity,
   formatIdentityOutcome,
+  harvestAcknowledgedDelistings,
+  harvestAcknowledgedEvictions,
 } from "./cohort-identity.js"
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..")
@@ -180,6 +182,13 @@ const REGISTRY_PREFIX = "mcp-registry/"
  * actually wants (record WHICH subject and WHY); grepping for it means the gate reads the artifact
  * the process already produces rather than a flag file invented for the gate's benefit.
  *
+ * A DENIED DE-LISTING IS NOT AN ACKNOWLEDGED ONE (S0-OPEN-8, fixed by ADR 0088). The harvest is
+ * co-occurrence, and a regex cannot read polarity, so "`x` was **never de-listed**" used to
+ * acknowledge `x`. The line-level filter now lives in `harvestAcknowledgedDelistings`
+ * (`cohort-identity.ts`, importable by a test); this function is the filesystem walk around it and
+ * nothing more. Measured at the time of the fix: 13 of 14 harvested names were supported only by a
+ * negated line.
+ *
  * WHAT THIS SET IS SCOPED TO (ADR 0085 D2). It reads the word `de-listed`, so it means exactly
  * "this subject's WITHDRAWAL is acknowledged" — not "any future departure of this subject is
  * pre-cleared". The distinction became load-bearing the moment departures acquired classes, and it
@@ -197,14 +206,36 @@ function acknowledgedDelistings(): Set<string> {
   for (const file of readdirSync(adrDir)) {
     if (!file.endsWith(".md")) continue
     const text = readFileSync(path.join(adrDir, file), "utf8")
-    // The subject must appear in a sentence that also says it was de-listed, so an ADR merely
-    // MENTIONING a name (as a sorting example, say) does not silently acknowledge its removal.
-    for (const m of text.matchAll(/`([a-z0-9][a-z0-9._-]*\/[a-z0-9._-]+)`[^\n]*de-listed/gi)) {
-      acknowledged.add(m[1]!)
-    }
-    for (const m of text.matchAll(/de-listed[^\n]*`([a-z0-9][a-z0-9._-]*\/[a-z0-9._-]+)`/gi)) {
-      acknowledged.add(m[1]!)
-    }
+    // The subject must appear on a line that also says it was de-listed — so an ADR merely MENTIONING
+    // a name (as a sorting example, say) does not silently acknowledge its removal — AND that line
+    // must not deny the de-listing. Both rules live in `harvestAcknowledgedDelistings`.
+    for (const name of harvestAcknowledgedDelistings(text)) acknowledged.add(name)
+  }
+  return acknowledged
+}
+
+/**
+ * ADR 0088: is this departure acknowledged as OUR CAP'S EVICTION?
+ *
+ * A separate set from `acknowledgedDelistings()` and never merged with it, because the two say
+ * different things about a third party: one records that a publisher withdrew a server, the other
+ * that ADR 0074's alphabetical window moved past a subject that is still live. Conflating them is the
+ * accusation ADR 0085/0086 exist to prevent.
+ *
+ * It exists because fixing S0-OPEN-8's denial harvest re-opened a TRUE red that the bug had been
+ * silencing: 13 subjects left in the 2026-08-17 refresh, ADR 0086 §4 records the cause for each one
+ * as "evicted by the cap", and the gate could not read that sentence. See
+ * `harvestAcknowledgedEvictions` for why teaching the gate to read an existing record is not the same
+ * as widening what may be cleared.
+ */
+function acknowledgedEvictions(): Set<string> {
+  const acknowledged = new Set<string>()
+  const adrDir = path.join(repoRoot, "adrs")
+  if (!existsSync(adrDir)) return acknowledged
+  for (const file of readdirSync(adrDir)) {
+    if (!file.endsWith(".md")) continue
+    const text = readFileSync(path.join(adrDir, file), "utf8")
+    for (const name of harvestAcknowledgedEvictions(text)) acknowledged.add(name)
   }
   return acknowledged
 }
@@ -682,9 +713,12 @@ const identity = checkCohortIdentity()
 // gate exited 0 anyway. `clearsDeparture` requires the class to match what the acknowledgement is
 // actually a statement about.
 const ackNames = acknowledgedDelistings()
+const ackEvictions = acknowledgedEvictions()
 const unacknowledgedLosses =
   identity.kind === "checked"
-    ? identity.departures.filter((d) => !acknowledgementClears(d, ackNames)).map((d) => d.name)
+    ? identity.departures
+        .filter((d) => !acknowledgementClears(d, ackNames, ackEvictions))
+        .map((d) => d.name)
     : []
 const cohortLostSubjects = unacknowledgedLosses.length > 0
 
@@ -703,14 +737,29 @@ console.log(`  Total:     ${censusTotal}\n`)
 console.log(`${formatIdentityOutcome(identity)}`)
 if (identity.kind === "checked" && identity.lost.length > 0) {
   const ack = identity.lost.filter((n) => !unacknowledgedLosses.includes(n))
-  if (ack.length > 0) console.log(`  ACKNOWLEDGED in adrs/: ${ack.join(", ")} — reported, not failing`)
+  // Split by CHANNEL. Printing 13 cap-evictions under a bare "ACKNOWLEDGED" would read as 13
+  // publishers withdrawing servers that are in fact live upstream — the exact misattribution ADR 0086
+  // was written to prevent, reintroduced at the reporting layer.
+  const ackDelisted = ack.filter((n) => ackNames.has(n))
+  const ackEvicted = ack.filter((n) => !ackNames.has(n) && ackEvictions.has(n))
+  if (ackDelisted.length > 0) {
+    console.log(
+      `  ACKNOWLEDGED in adrs/ as DE-LISTED: ${ackDelisted.join(", ")} — reported, not failing`,
+    )
+  }
+  if (ackEvicted.length > 0) {
+    console.log(
+      `  ACKNOWLEDGED in adrs/ as EVICTED BY OUR CAP (ADR 0074, NOT a withdrawal): ` +
+        `${ackEvicted.join(", ")} — reported, not failing`,
+    )
+  }
   if (unacknowledgedLosses.length > 0) console.log(`  UNACKNOWLEDGED: ${unacknowledgedLosses.join(", ")}`)
   // A subject the corpus NAMES whose departure the acknowledgement cannot answer for. Printed
   // separately because the remedy differs from a never-acknowledged loss: the ADR sentence exists
   // and does not apply, so the fix is to the projection, not to the prose. Without this line the two
   // cases render identically and a reader would reasonably conclude the ADR was missing.
   const misfitAcks = identity.departures.filter(
-    (d) => !acknowledgementClears(d, ackNames) && ackNames.has(d.name),
+    (d) => !acknowledgementClears(d, ackNames, ackEvictions) && ackNames.has(d.name),
   )
   for (const d of misfitAcks) {
     console.log(
@@ -724,13 +773,20 @@ if (identity.kind === "checked" && identity.lost.length > 0) {
   // withdrawal, and refusing to clear it would wedge every network-free CI leg (see
   // `clearsDeparture`). The pass is real; the classification is still owed.
   const clearedButUnclassified = identity.departures.filter(
-    (d) => d.class === "unknown" && acknowledgementClears(d, ackNames),
+    (d) => d.class === "unknown" && acknowledgementClears(d, ackNames, ackEvictions),
   )
   for (const d of clearedButUnclassified) {
+    // WHICH acknowledgement cleared it is part of the report, not an implementation detail. The two
+    // channels make different claims about a third party — a withdrawal by the publisher vs. a move of
+    // our own window — and a reader who cannot tell which one applied cannot check it against the ADR.
+    // A de-listing acknowledgement wins the label when both exist, because it is the stronger claim.
+    const via = ackNames.has(d.name)
+      ? `acknowledged in adrs/ as a DE-LISTING`
+      : `acknowledged in adrs/ as an EVICTION BY OUR CAP (ADR 0074) — NOT as a withdrawal`
     console.log(
-      `  NOT ESTABLISHED: ${d.name} is acknowledged, so it does not fail this run — but its cause ` +
-        `is UNKNOWN, not confirmed as a withdrawal. Re-run with a source view to classify it ` +
-        `(ADR 0082 + 0085 D2).`,
+      `  NOT ESTABLISHED: ${d.name} is ${via}, so it does not fail this run — but its cause ` +
+        `is UNKNOWN to this leg: the source was not consulted. Re-run with a source view to ` +
+        `classify it (ADR 0082 + 0085 D2).`,
     )
   }
   // Which mode OWNS this loss, stated here rather than in the `--regression` branch. It sat there

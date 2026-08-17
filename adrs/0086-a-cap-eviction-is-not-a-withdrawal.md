@@ -183,6 +183,14 @@ I am not routing around that. Two reasons the phrasing above is the honest one:
   leg, per ADR 0082) and **refuses** to clear an `evicted` one. So this acknowledgement does not,
   and cannot, silence a future eviction that presents with a source view. It records the event.
 
+  > **CORRECTED 2026-08-17 — ADR 0088 §5.** Both sentences above are true and the conclusion does not
+  > follow. The gap is the word *future*: on a network-free leg — every CI leg, since `source` defaults
+  > to `null` — these 13 are classified `unknown`, not `evicted`, and `unknown` **is** clearable. So the
+  > refusal this bullet leans on was never reached, and the 13 were in fact being cleared, at the time
+  > of writing, by the lines above that deny the event. The bullet reasoned about the class the subjects
+  > would carry *with* a source view and drew a conclusion about the leg that has none. Per ADR 0061 §5
+  > the original text stands; ADR 0088 D1–D3 is the fix.
+
 The narrower defect — that the harvest is name-keyed co-occurrence and so cannot distinguish "was
 de-listed" from "was not de-listed" — is the same shape as the one ADR 0085 D2 fixed one layer up,
 and it already has a live instance in the corpus: ADR 0085's correction to ADR 0084 §26 states goji
@@ -202,6 +210,10 @@ clear, and that belongs in its own change with its own controls.
   read negation, so a sentence denying a de-listing acknowledges one. Two instances exist in the
   corpus today (ADR 0085's goji correction; §4 above). Fixing it changes which reds are clearable
   and needs its own controls.
+  **CLOSED 2026-08-17 by ADR 0088.** Measured worse than "two instances": **13 of 14** harvested names
+  were supported only by a denial line, all 13 being §4's list. The harvest is now line-level and
+  polarity-aware (14 → 1), and a second channel reads §4's "evicted by the cap" sentences without
+  rendering them as withdrawals.
 
 ## Controls run
 
