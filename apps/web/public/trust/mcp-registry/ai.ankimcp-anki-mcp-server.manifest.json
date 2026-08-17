@@ -1,0 +1,48 @@
+{
+  "schema": "calllint.evidence-manifest.v1",
+  "subject": {
+    "canonicalName": "mcp-registry/ai.ankimcp-anki-mcp-server",
+    "artifactDigest": "sha256:8f53000323ed828f84a339d251f47942ffa216d43ba7dc4c6efcc1dcbbfb222c"
+  },
+  "verdict": "SAFE",
+  "verdictLabel": "No blockers observed",
+  "completeness": "complete",
+  "evidenceLevel": "E2",
+  "evidenceRationale": "install config observed → static blast radius normalized into an authority inventory. Higher levels (E3 tool schema, E4 maintainer receipt, E5 sandbox) are not carried by a static page.",
+  "status": {
+    "verdict": "SAFE",
+    "completeness": "complete",
+    "authorityClaimed": false,
+    "reproducibility": {
+      "pageDigest": "sha256:9a590944e09f174faa4782f88ae4b0599ab2d30b717bb69ab63e1a59e67308f9",
+      "observedAt": "2026-08-17T01:39:50.172Z"
+    },
+    "evidenceLevel": "E2"
+  },
+  "authority": {
+    "digest": "sha256:dc0da05c1c7be8368f7a2c9fdd73272eb918f7b71845f286a6283301bc95837c",
+    "completeness": "complete",
+    "capabilityCount": 1,
+    "approvalRequired": [],
+    "capabilities": [
+      {
+        "action": "execute",
+        "resource": "process",
+        "mutability": "mutating",
+        "reversibility": "irreversible",
+        "approvalRequirement": "none"
+      }
+    ]
+  },
+  "policyDigest": null,
+  "reproducibility": {
+    "pageDigest": "sha256:9a590944e09f174faa4782f88ae4b0599ab2d30b717bb69ab63e1a59e67308f9",
+    "observedAt": "2026-08-17T01:39:50.172Z"
+  },
+  "engine": {
+    "name": "calllint"
+  },
+  "correctionUrl": "https://github.com/calllint/calllint/issues/new?labels=trust-page-correction",
+  "generatedAt": "2026-08-17T01:39:50.172Z",
+  "signature": null
+}

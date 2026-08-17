@@ -2,9 +2,39 @@
   "schema": "calllint.trust-snapshot.v0",
   "source": "official-mcp-registry",
   "endpoint": "https://registry.modelcontextprotocol.io/v0/servers",
-  "fetchedAt": "2026-08-15T14:54:20.031Z",
+  "fetchedAt": "2026-08-17T01:39:50.172Z",
   "count": 100,
   "entries": [
+    {
+      "name": "ac.inference.sh/mcp",
+      "description": "run any ai model. compose agents, stack knowledge, connect tools. one api, pay per run.",
+      "version": "2.0.1",
+      "repositoryUrl": null,
+      "packages": [],
+      "remotes": [
+        {
+          "type": "streamable-http",
+          "url": "https://api.inference.sh/mcp"
+        }
+      ],
+      "status": "active",
+      "publishedAt": "2026-07-27T10:44:51.359634Z"
+    },
+    {
+      "name": "ac.tandem/docs-mcp",
+      "description": "Remote MCP server for Tandem docs, install guides, SDKs, workflows, and agent setup help.",
+      "version": "0.3.2",
+      "repositoryUrl": "https://github.com/frumu-ai/tandem",
+      "packages": [],
+      "remotes": [
+        {
+          "type": "streamable-http",
+          "url": "https://tandem.ac/mcp"
+        }
+      ],
+      "status": "active",
+      "publishedAt": "2026-04-22T21:06:34.500049Z"
+    },
     {
       "name": "ag.hood/name-service",
       "description": "Resolve .hood names on Robinhood Chain — forward/reverse, text records, availability & pricing.",
@@ -19,6 +49,21 @@
       ],
       "status": "active",
       "publishedAt": "2026-07-10T04:58:06.628668Z"
+    },
+    {
+      "name": "agency.goji/goji",
+      "description": "Answers on AEO, SEO, web and brand from GOJI's published material. Melbourne, Australia.",
+      "version": "1.0.1",
+      "repositoryUrl": "https://github.com/goji-agency/goji-mcp",
+      "packages": [],
+      "remotes": [
+        {
+          "type": "streamable-http",
+          "url": "https://mcp.goji.agency/mcp"
+        }
+      ],
+      "status": "active",
+      "publishedAt": "2026-08-13T13:12:26.047978Z"
     },
     {
       "name": "agency.kesey/pretrip",
@@ -160,6 +205,36 @@
       "publishedAt": "2026-08-08T17:50:25.566057Z"
     },
     {
+      "name": "ai.adplane/google-ads",
+      "description": "Google Ads reporting and campaign management. Everything it creates starts paused.",
+      "version": "1.29.1",
+      "repositoryUrl": null,
+      "packages": [],
+      "remotes": [
+        {
+          "type": "streamable-http",
+          "url": "https://mcp.adplane.ai"
+        }
+      ],
+      "status": "active",
+      "publishedAt": "2026-08-08T18:01:15.320148Z"
+    },
+    {
+      "name": "ai.adramp/google-ads",
+      "description": "Google Ads MCP server — manage campaigns, keywords, and metrics.",
+      "version": "1.0.3",
+      "repositoryUrl": null,
+      "packages": [],
+      "remotes": [
+        {
+          "type": "streamable-http",
+          "url": "https://mcp.adramp.ai"
+        }
+      ],
+      "status": "active",
+      "publishedAt": "2026-03-20T11:16:36.853329Z"
+    },
+    {
       "name": "ai.adside/adside",
       "description": "AI agents that manage paid ads on Meta, LinkedIn, and Google Ads from any MCP client.",
       "version": "1.0.0",
@@ -190,6 +265,23 @@
       "publishedAt": "2026-04-10T16:46:57.731179Z"
     },
     {
+      "name": "ai.aetherwealth/mcp",
+      "description": "Aether Wealth MCP for AI assistants: trades, alerts, market data, macro calendar & indicators.",
+      "version": "0.2.14",
+      "repositoryUrl": null,
+      "packages": [
+        {
+          "registryType": "npm",
+          "identifier": "@aetherwealth/mcp",
+          "version": "0.2.14",
+          "transport": null
+        }
+      ],
+      "remotes": [],
+      "status": "active",
+      "publishedAt": "2026-08-08T11:13:36.874775Z"
+    },
+    {
       "name": "ai.afmr/discovery",
       "description": "Read AFMR failure modes and discover scoped attestation and lift-evidence contracts.",
       "version": "1.0.0",
@@ -218,6 +310,21 @@
       ],
       "status": "active",
       "publishedAt": "2026-06-18T01:49:38.050173Z"
+    },
+    {
+      "name": "ai.agentdm/agentdm",
+      "description": "Agent communication platform for agent to agent messaging via MCP. Messages, channels, skills.",
+      "version": "2.0.0",
+      "repositoryUrl": "https://github.com/agentdmai/agentdm",
+      "packages": [],
+      "remotes": [
+        {
+          "type": "streamable-http",
+          "url": "https://api.agentdm.ai/mcp/v1/grid"
+        }
+      ],
+      "status": "active",
+      "publishedAt": "2026-05-10T02:12:16.907792Z"
     },
     {
       "name": "ai.agentic-news/mcp",
@@ -270,6 +377,21 @@
       ],
       "status": "active",
       "publishedAt": "2026-08-07T18:18:36.945995Z"
+    },
+    {
+      "name": "ai.agenticshelf/graffeo",
+      "description": "Live MCP catalog for Graffeo Coffee Roasting - Simply the World's Finest Coffee since 1935.",
+      "version": "1.0.2",
+      "repositoryUrl": null,
+      "packages": [],
+      "remotes": [
+        {
+          "type": "streamable-http",
+          "url": "https://api.agenticshelf.ai/m/graffeo/mcp"
+        }
+      ],
+      "status": "active",
+      "publishedAt": "2026-05-14T20:40:06.442182Z"
     },
     {
       "name": "ai.agenticshelf/mcp",
@@ -899,6 +1021,33 @@
       "publishedAt": "2026-08-11T23:02:10.427575Z"
     },
     {
+      "name": "ai.ankimcp/anki-mcp-server",
+      "description": "MCP server for Anki flashcards: adaptive review, notes, media, and deck management via AnkiConnect.",
+      "version": "0.24.1",
+      "repositoryUrl": "https://github.com/ankimcp/anki-mcp-server",
+      "packages": [
+        {
+          "registryType": "npm",
+          "identifier": "@ankimcp/anki-mcp-server",
+          "version": "0.24.1",
+          "transport": null
+        }
+      ],
+      "remotes": [],
+      "status": "active",
+      "publishedAt": "2026-08-16T07:16:16.672192Z"
+    },
+    {
+      "name": "ai.ankimcp/anki-mcp-server-addon",
+      "description": "Anki addon that exposes your flashcard collection to AI assistants via a local MCP server.",
+      "version": "0.27.1",
+      "repositoryUrl": "https://github.com/ankimcp/anki-mcp-server-addon",
+      "packages": [],
+      "remotes": [],
+      "status": "active",
+      "publishedAt": "2026-08-16T07:36:55.850642Z"
+    },
+    {
       "name": "ai.anomalyarmor/armor-mcp",
       "description": "Data observability tools for engineering teams: alerts, freshness, schema drift, lineage, quality.",
       "version": "0.6.1",
@@ -1118,6 +1267,21 @@
       "publishedAt": "2026-07-27T18:46:22.383841Z"
     },
     {
+      "name": "ai.augworlds/travel-world",
+      "description": "Agent-native travel platform: read-only flight, hotel, and brand tools over MCP. OAuth sign-in.",
+      "version": "1.1.0",
+      "repositoryUrl": null,
+      "packages": [],
+      "remotes": [
+        {
+          "type": "streamable-http",
+          "url": "https://travel.augworlds.ai/mcp"
+        }
+      ],
+      "status": "active",
+      "publishedAt": "2026-07-27T04:28:55.036536Z"
+    },
+    {
       "name": "ai.auralogs/auralogs",
       "description": "Read-only access to Auralogs production logs: search logs, inspect errors, review AI analyses.",
       "version": "0.1.0",
@@ -1298,6 +1462,21 @@
       "publishedAt": "2026-05-18T01:09:10.259215Z"
     },
     {
+      "name": "ai.auxen/auxen",
+      "description": "Provision private AI model endpoints on dedicated GPUs (Llama, Qwen, Mistral). Pay per minute.",
+      "version": "1.0.2",
+      "repositoryUrl": "https://github.com/auxen-ai/auxen-mcp",
+      "packages": [],
+      "remotes": [
+        {
+          "type": "streamable-http",
+          "url": "https://api.auxen.ai/mcp"
+        }
+      ],
+      "status": "active",
+      "publishedAt": "2026-05-18T23:32:19.610277Z"
+    },
+    {
       "name": "ai.aviado/health",
       "description": "Supplement research, biomarker effects, drug interactions, and brand quality data",
       "version": "0.1.0",
@@ -1311,6 +1490,21 @@
       ],
       "status": "active",
       "publishedAt": "2026-06-30T13:03:52.011241Z"
+    },
+    {
+      "name": "ai.awardcast/federal-contracts",
+      "description": "US federal contracting data: open solicitations, buying agencies, contractors, price history.",
+      "version": "1.1.0",
+      "repositoryUrl": null,
+      "packages": [],
+      "remotes": [
+        {
+          "type": "streamable-http",
+          "url": "https://awardcast.ai/mcp"
+        }
+      ],
+      "status": "active",
+      "publishedAt": "2026-08-16T22:32:23.963785Z"
     },
     {
       "name": "ai.axonagentic/neuroautomata",
@@ -1371,201 +1565,6 @@
       ],
       "status": "active",
       "publishedAt": "2026-08-14T20:37:56.825933Z"
-    },
-    {
-      "name": "ai.b77/feedback",
-      "description": "Capture feature requests and bug reports from chat into a searchable, AI-categorized backlog.",
-      "version": "1.0.0",
-      "repositoryUrl": null,
-      "packages": [],
-      "remotes": [
-        {
-          "type": "streamable-http",
-          "url": "https://feedback.b77.ai/mcp"
-        }
-      ],
-      "status": "active",
-      "publishedAt": "2026-08-14T20:38:13.573877Z"
-    },
-    {
-      "name": "ai.b77/fibalo",
-      "description": "Query and add to your Fibalo bookkeeping: documents, bank transactions, suppliers, access.",
-      "version": "1.0.0",
-      "repositoryUrl": null,
-      "packages": [],
-      "remotes": [
-        {
-          "type": "streamable-http",
-          "url": "https://fibalo.b77.ai/mcp"
-        }
-      ],
-      "status": "active",
-      "publishedAt": "2026-08-14T20:37:07.451898Z"
-    },
-    {
-      "name": "ai.b77/file-storage",
-      "description": "Upload files and get public CDN links in chat.",
-      "version": "1.0.0",
-      "repositoryUrl": null,
-      "packages": [],
-      "remotes": [
-        {
-          "type": "streamable-http",
-          "url": "https://file-storage.b77.ai/mcp"
-        }
-      ],
-      "status": "active",
-      "publishedAt": "2026-08-14T20:37:53.160486Z"
-    },
-    {
-      "name": "ai.b77/google-ads",
-      "description": "Read and manage your Google Ads account in chat.",
-      "version": "1.0.0",
-      "repositoryUrl": null,
-      "packages": [],
-      "remotes": [
-        {
-          "type": "streamable-http",
-          "url": "https://google-ads.b77.ai/mcp"
-        }
-      ],
-      "status": "active",
-      "publishedAt": "2026-08-14T20:37:59.684281Z"
-    },
-    {
-      "name": "ai.b77/google-news",
-      "description": "Search and read the latest news in chat.",
-      "version": "1.0.0",
-      "repositoryUrl": null,
-      "packages": [],
-      "remotes": [
-        {
-          "type": "streamable-http",
-          "url": "https://google-news.b77.ai/mcp"
-        }
-      ],
-      "status": "active",
-      "publishedAt": "2026-08-14T20:37:54.813976Z"
-    },
-    {
-      "name": "ai.b77/google-search-console",
-      "description": "Search rankings, clicks, and indexing for your site — in chat.",
-      "version": "1.0.0",
-      "repositoryUrl": null,
-      "packages": [],
-      "remotes": [
-        {
-          "type": "streamable-http",
-          "url": "https://google-search-console.b77.ai/mcp"
-        }
-      ],
-      "status": "active",
-      "publishedAt": "2026-08-14T20:38:00.295202Z"
-    },
-    {
-      "name": "ai.b77/kinnovis-storage",
-      "description": "Manage Kinnovis self-storage tariffs from chat.",
-      "version": "1.0.0",
-      "repositoryUrl": null,
-      "packages": [],
-      "remotes": [
-        {
-          "type": "streamable-http",
-          "url": "https://kinnovis-storage.b77.ai/mcp"
-        }
-      ],
-      "status": "active",
-      "publishedAt": "2026-08-14T20:37:55.315141Z"
-    },
-    {
-      "name": "ai.b77/knowledge-base",
-      "description": "A searchable knowledge base your assistant reads and writes.",
-      "version": "1.0.0",
-      "repositoryUrl": null,
-      "packages": [],
-      "remotes": [
-        {
-          "type": "streamable-http",
-          "url": "https://knowledge-base.b77.ai/mcp"
-        }
-      ],
-      "status": "active",
-      "publishedAt": "2026-08-14T20:37:58.420833Z"
-    },
-    {
-      "name": "ai.b77/nightscout",
-      "description": "Your Nightscout glucose data, conversational.",
-      "version": "1.0.0",
-      "repositoryUrl": null,
-      "packages": [],
-      "remotes": [
-        {
-          "type": "streamable-http",
-          "url": "https://nightscout.b77.ai/mcp"
-        }
-      ],
-      "status": "active",
-      "publishedAt": "2026-08-14T20:37:57.32213Z"
-    },
-    {
-      "name": "ai.b77/seo-content-factory",
-      "description": "Draft SEO blog articles from topic to ready-to-review post.",
-      "version": "1.0.0",
-      "repositoryUrl": null,
-      "packages": [],
-      "remotes": [
-        {
-          "type": "streamable-http",
-          "url": "https://seo-content-factory.b77.ai/mcp"
-        }
-      ],
-      "status": "active",
-      "publishedAt": "2026-08-14T20:38:00.81901Z"
-    },
-    {
-      "name": "ai.b77/teamwork",
-      "description": "AI-first project management: plan epics, assign prioritized tasks, track team time.",
-      "version": "1.0.0",
-      "repositoryUrl": null,
-      "packages": [],
-      "remotes": [
-        {
-          "type": "streamable-http",
-          "url": "https://teamwork.b77.ai/mcp"
-        }
-      ],
-      "status": "active",
-      "publishedAt": "2026-08-14T20:37:55.811457Z"
-    },
-    {
-      "name": "ai.b77/time",
-      "description": "A live clock for your assistant.",
-      "version": "1.0.0",
-      "repositoryUrl": null,
-      "packages": [],
-      "remotes": [
-        {
-          "type": "streamable-http",
-          "url": "https://time.b77.ai/mcp"
-        }
-      ],
-      "status": "active",
-      "publishedAt": "2026-08-14T20:37:57.849395Z"
-    },
-    {
-      "name": "ai.b77/web-analytics",
-      "description": "Ask about your website traffic in chat.",
-      "version": "1.0.0",
-      "repositoryUrl": null,
-      "packages": [],
-      "remotes": [
-        {
-          "type": "streamable-http",
-          "url": "https://web-analytics.b77.ai/mcp"
-        }
-      ],
-      "status": "active",
-      "publishedAt": "2026-08-14T20:37:56.317987Z"
     },
     {
       "name": "io.github.calllint/calllint",
