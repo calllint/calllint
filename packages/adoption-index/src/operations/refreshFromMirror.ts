@@ -27,6 +27,19 @@
  * not that. So `assertMirrorComplete` refuses to project from a capped read, and the mirror
  * cap defaults well above the snapshot cap rather than equal to it. Setting them equal
  * would look correct and would be wrong precisely when the source grows.
+ *
+ * TWO FAIL-CLOSED GUARDS, ALSO DISTINCT, and the second was missing for two releases. They
+ * measure different subjects and neither substitutes for the other:
+ *
+ *   - `assertMirrorComplete` measures the READ. Did the mirror see the whole source?
+ *   - `assertCohortConserved` measures the PROJECTION. Did every live subject the mirror holds
+ *     reach the cohort, or get excluded by a cap that explains it?
+ *
+ * ADR 0085 is what makes the pair necessary rather than redundant: a COMPLETE read projected a
+ * cohort short by 58 of 293 live subjects, and both the read guard and the count ratchet were
+ * green throughout — the read was in fact complete, and the ratchet compares the cohort against
+ * its own previous value, which had been equally short. A projection that silently drops a
+ * fifth of its input had no reader at all.
  */
 import { hashJson } from "@calllint/fingerprint"
 import { AdoptionIndexStore, type PersistIdentityResult } from "../storage/store.js"
@@ -34,6 +47,11 @@ import { resolveIdentity } from "../identity/resolveIdentity.js"
 import type { SourceAdapter, SourceSyncContext } from "../sources/sourceAdapter.js"
 import { OFFICIAL_REGISTRY_SOURCE_ID } from "../sources/officialRegistry.js"
 import { assertMirrorComplete, syncSource, type SyncSourceResult } from "./syncSource.js"
+import {
+  assertCohortConserved,
+  measureCohortConservation,
+  type CohortConservation,
+} from "./assertCohortConservation.js"
 import { projectSnapshot, serializeSnapshot, type ProjectedSnapshot } from "../projections/snapshotProjection.js"
 import { detectSourceChange, type SourceChangeVerdict } from "./detectSourceChange.js"
 import type { ArtifactResolutionSummary } from "./resolveArtifacts.js"
@@ -136,6 +154,17 @@ export interface RefreshFromMirrorResult {
   mirroredRecords: number
   /** Distinct subjects after collapsing history — the population the projection reads. */
   currentSubjects: number
+  /**
+   * How the mirror's live population accounts for the served cohort (ADR 0085).
+   *
+   * REPORTED as well as asserted, and not nullable. The assertion above already threw on the
+   * fault classes, so by the time a caller holds this it describes a cohort that balances — the
+   * numbers are the point: they let a run's log state `293 live = 100 served + 193 capped`
+   * instead of a bare cohort size. ADR 0085's consequence section requires exactly that, because
+   * the next full ingest recovers 58 subjects and a log that prints only the new total is
+   * indistinguishable from adoption growth.
+   */
+  conservation: CohortConservation
   /**
    * Whether this run changed anything the served tree is a function of, and which §16.2
    * tier the change reaches (R-2). The caller decides what to rebuild; this operation only
@@ -267,6 +296,30 @@ export async function refreshFromMirror(opts: RefreshFromMirrorOptions): Promise
     fetchedAt: opts.now,
     maxEntries: opts.snapshotMaxEntries,
   })
+
+  // THE PROJECTION'S READER (ADR 0085). Fails CLOSED, here, before ANY write.
+  //
+  // Placement is the whole guarantee. `assertMirrorComplete` above measures the READ; this
+  // measures the PROJECTION, which is a different subject and was the unmeasured one — ADR 0085
+  // dropped 58 of 293 live subjects with a complete read and every gate green. Nothing else in
+  // this run compares the mirror's live population against the cohort: the count ratchet reads
+  // the cohort against its own prior value, so a projection that has always dropped a fifth
+  // reports a stable number forever.
+  //
+  // BEFORE the checkpoint advance and the identity commit, so a run that cannot account for its
+  // own cohort advances nothing. A guard placed after the persist would still throw, but the
+  // digest would already be on disk and the NEXT run would read "no change" against a cohort
+  // this run refused to certify — the failure would be latched instead of retried.
+  //
+  // It re-reads `listSourceRecords` rather than reusing the count returned at the bottom of this
+  // function: the guard needs the PAYLOADS to apply `isLiveCohort` to history, and a subject's
+  // liveness cannot be recovered from a row count.
+  const conservation = measureCohortConservation({
+    allRecords: opts.store.listSourceRecordPayloads(opts.adapter.sourceId),
+    currentRecords: records,
+    snapshot,
+  })
+  assertCohortConserved(conservation)
 
   // A subject the mirror already considered current that this run did NOT observe. The mirror
   // is append-only — there is no DELETE in this package — so its memory of a withdrawn
@@ -403,6 +456,7 @@ export async function refreshFromMirror(opts: RefreshFromMirrorOptions): Promise
     snapshotText: serializeSnapshot(snapshot),
     mirroredRecords: opts.store.listSourceRecords(opts.adapter.sourceId).length,
     currentSubjects: records.length,
+    conservation,
     change,
     snapshotDigest,
     identity: {
