@@ -42,6 +42,12 @@ import { existsSync, readFileSync } from "node:fs"
 import path from "node:path"
 import { fileURLToPath } from "node:url"
 
+// IMPORTED, NOT COPIED. `beyondCeiling` below has to know which names are admitted without competing
+// for a slot, and a second literal list would be a second thing to forget to update — the cap and its
+// witness would then disagree silently, which is the fault class this whole module exists to catch.
+// Same relative-path form `gate-s0.ts` already uses for `fixtureCohort`.
+import { RESERVED_COHORT_NAMES } from "../packages/trust-index/src/fetchRegistry.js"
+
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..")
 
 /** The one file whose history IS the record of every cohort we ever committed (D2). */
@@ -239,7 +245,24 @@ export function classifyDeparture(
   // The structural half of `evicted`, computed either way because it is the useful part of an
   // `unknown` message. A name sorting inside the served window was NOT squeezed out by the ceiling,
   // so the cap cannot be what removed it — that much IS readable from committed bytes.
-  const maxServed = currentNames.length > 0 ? [...currentNames].sort().at(-1)! : null
+  //
+  // THE CEILING IS THE LARGEST *NON-RESERVED* NAME, not the largest served name. A reserved name
+  // (ADR 0075) takes a slot rather than an extra one, but it is admitted REGARDLESS of where it
+  // sorts: `selectCohortEntries` takes the reserved set first and then fills `max - reserved.length`
+  // from the sorted rest (`fetchRegistry.ts:89-99`). So the competitive edge — the last name the cap
+  // actually let through — is the largest name that had to compete for its slot.
+  //
+  // Measured on the 2026-08-17 cohort: `io.github.calllint/calllint` is reserved and sorts LAST of
+  // all 100, so `sort().at(-1)` reported a ceiling of `io.*` and `beyondCeiling` was false for every
+  // name from `a*` to `i*`. The true edge was `ai.b77/chess-results` at `at(-2)`. All 13 departing
+  // `ai.b77/*` subjects sort past it and were squeezed out by 13 alphabetically-earlier arrivals —
+  // an ordinary capped eviction. The old form reported them as sorting INSIDE the window, and with a
+  // source view would have classified them `superseded`, whose own `why` says the recurrence "is a
+  // BUG IN THIS SYSTEM, not an act by the publisher". Every one is `active` + `isLatest` upstream
+  // (consulted 2026-08-17). A guard that cannot see the cap must not be the thing that decides the
+  // cap is innocent.
+  const competing = currentNames.filter((n) => !RESERVED_COHORT_NAMES.includes(n))
+  const maxServed = competing.length > 0 ? [...competing].sort().at(-1)! : null
   const beyondCeiling = maxServed !== null && name > maxServed
 
   if (source === null) {
@@ -274,7 +297,8 @@ export function classifyDeparture(
       name,
       class: "evicted",
       why:
-        `still \`active\` upstream, and sorts after the last served name (\`${maxServed}\`) — ` +
+        `still \`active\` upstream, and sorts after the last name that COMPETED for a slot ` +
+        `(\`${maxServed}\` — reserved names are admitted regardless of where they sort, ADR 0075) — ` +
         `outside the cohort ceiling (ADR 0074/0075), not withdrawn`,
     }
   }

@@ -35,9 +35,71 @@ import {
   type SourceObservation,
   type SourceView,
 } from "../../scripts/cohort-identity.js"
+import { RESERVED_COHORT_NAMES } from "../../packages/trust-index/src/fetchRegistry.js"
 
-/** The served window used throughout: a cohort whose largest name is `m.example/mid`. */
-const SERVED = ["a.example/first", "m.example/mid", "b.example/second"]
+/**
+ * The served window used throughout: a cohort whose largest COMPETING name is `d.example/last-competing`.
+ *
+ * THE SORT SHAPE IS THE FIXTURE. Sorted, this corpus is `a.example/first` < `b.example/second` <
+ * `d.example/last-competing` < `io.github.calllint/calllint` — the reserved name LAST, which is the
+ * shape of the real cohort (where it is `sorted.at(-1)` of 100). An earlier version of this corpus
+ * used `m.example/mid` as the largest competing name, and `i` < `m`, so the reserved name was not the
+ * maximum: `sort().at(-1)` and the competing-only max were the SAME string, the two ceiling forms were
+ * indistinguishable, and a control restoring the defective form stayed green (measured — 22 passed).
+ * The corpus has to place the reserved name past every competing name or it cannot witness anything.
+ *
+ * `io.github.calllint/calllint` is in it deliberately, and it sorts LAST. A reserved name (ADR 0075)
+ * is admitted regardless of where it sorts, so it is not the cap's edge — and until 2026-08-17 this
+ * corpus omitted it, which is exactly why the corpus could not witness the defect it was written to
+ * guard. `beyondCeiling` used `sort().at(-1)`, so on the real cohort (where the reserved name sorts
+ * last of 100) NO name could ever read as beyond the ceiling: 13 ordinary capped evictions were
+ * reported as sorting inside the window, and with a source view would have been classified
+ * `superseded` — a class whose own text calls the departure a bug in this system rather than an act
+ * by the publisher. A fixture set that avoids the key space cannot fail on it.
+ */
+const SERVED = [
+  "a.example/first",
+  "d.example/last-competing",
+  "b.example/second",
+  ...RESERVED_COHORT_NAMES,
+]
+
+/**
+ * The corpus shape, asserted rather than assumed.
+ *
+ * Every ceiling case below is only a witness while the reserved name sorts PAST every competing name
+ * and a sample exists strictly between them. Both properties are invisible at the call sites, and
+ * losing either one turns the whole ceiling group green-but-blind — which is not hypothetical: the
+ * `m.example/mid` corpus did exactly that, and the negative control for the `sort().at(-1)` defect
+ * passed 22/22 against it. Asserting the shape means a future edit to `SERVED` fails HERE, naming the
+ * property it broke, instead of silently retiring the tests that depend on it.
+ */
+describe("the corpus can witness the ceiling defect at all (premise, not behaviour)", () => {
+  const sorted = [...SERVED].sort()
+  const competing = SERVED.filter((n) => !RESERVED_COHORT_NAMES.includes(n))
+  const reserved = SERVED.filter((n) => RESERVED_COHORT_NAMES.includes(n))
+
+  it("holds a reserved name, otherwise the two ceiling forms cannot differ", () => {
+    expect(reserved.length, "no reserved name in SERVED — `sort().at(-1)` and the competing-only max would agree").toBeGreaterThan(0)
+  })
+
+  it("sorts the reserved name LAST, the shape of the real cohort", () => {
+    // On the 2026-08-17 cohort `io.github.calllint/calllint` was `sorted.at(-1)` of 100, which is why
+    // `sort().at(-1)` could never attribute any departure to the cap.
+    expect(RESERVED_COHORT_NAMES).toContain(sorted.at(-1))
+    expect(sorted.at(-1), "the reserved name must not also be the largest competing name").not.toBe(
+      [...competing].sort().at(-1),
+    )
+  })
+
+  it("leaves a non-empty interval between the last competing name and the reserved one", () => {
+    // `e.example/between` lives here. An empty interval means no sample can distinguish the forms.
+    const edge = [...competing].sort().at(-1)!
+    const gate = sorted.at(-1)!
+    expect("e.example/between" > edge, `the sample must sort past ${edge}`).toBe(true)
+    expect("e.example/between" < gate, `the sample must sort before ${gate}`).toBe(true)
+  })
+})
 
 function view(entries: Record<string, SourceObservation>): SourceView {
   return new Map(Object.entries(entries))
@@ -77,7 +139,7 @@ describe("the four classes are separated by what was actually observed (ADR 0085
   })
 
   it("calls a live subject outside the served window EVICTED, not withdrawn", () => {
-    // `z.` sorts after `m.example/mid`, and the source says it is live. BOTH halves are required.
+    // `z.` sorts after `d.example/last-competing`, and the source says it is live. BOTH halves are required.
     const d = classifyDeparture(
       "z.example/beyond",
       SERVED,
@@ -129,6 +191,43 @@ describe("an unconsulted source yields UNKNOWN, never an inferred class (ADR 008
     expect(d.class).toBe("unknown")
     expect(d.why).toMatch(/INSIDE the served window/)
     expect(d.why).toMatch(/the cap does not explain it/)
+  })
+
+  it("measures the ceiling against the last COMPETING name, never a reserved one (ADR 0075)", () => {
+    // The regression that made this file's corpus load-bearing. `io.github.calllint/calllint` is in
+    // SERVED and sorts after `d.example/last-competing`, but it was admitted without competing for a slot, so
+    // it is NOT the cap's edge. A name between the two must therefore read as BEYOND the ceiling.
+    //
+    // With the old `sort().at(-1)` form this returned "INSIDE the served window", and on the real
+    // 2026-08-17 cohort that verdict covered all 13 departures at once.
+    //
+    // THE SAMPLE MUST SORT BETWEEN THE TWO. `z.example/*` cannot witness this: it sorts past the
+    // reserved name too, so both the old and the new ceiling call it beyond, and a control that
+    // restores the old form stays green (measured — it did). The defect lives strictly in the
+    // interval `(last competing name, reserved name]`, which on the real cohort was
+    // `(ai.b77/chess-results, io.github.calllint/calllint]` — where all 13 `ai.b77/*` departures sat.
+    // Here that interval is `(d.example/last-competing, io.github.calllint/calllint]`, so the sample is
+    // `e.example/*`: past the last competing name, but BEFORE the reserved one.
+    const d = classifyDeparture("e.example/between", SERVED, null)
+    expect(d.class).toBe("unknown")
+    expect(d.why, "a name past the last competing slot must not read as inside the window").toMatch(
+      /CONSISTENT with ADR 0074's cap/,
+    )
+    expect(d.why).toContain("d.example/last-competing")
+    expect(d.why, "the reserved name is not the ceiling and must not be named as it").not.toContain(
+      "io.github.calllint/calllint",
+    )
+
+    // And the same input WITH a source view that says the subject is live must land on `evicted` —
+    // the class that attributes the departure to our ceiling — not on `superseded`, which attributes
+    // it to a bug in this system.
+    const live = classifyDeparture(
+      "z.example/beyond",
+      SERVED,
+      view({ "z.example/beyond": { status: "active", isLatest: true, version: "1.0.0" } }),
+    )
+    expect(live.class, "a live subject past the competing edge is EVICTED, not our defect").toBe("evicted")
+    expect(live.why).toContain("COMPETED for a slot")
   })
 
   it("treats an empty cohort as no window at all rather than a ceiling of nothing", () => {

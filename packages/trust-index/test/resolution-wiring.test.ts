@@ -190,21 +190,50 @@ describe("publishedAt finally has a consumer (gaps §1.4)", () => {
    */
   it("carries the upstream instant through the cohort plan", () => {
     const plans = registryCohort(snapshot)
-    const carried = plans.filter((p) => p.publishedAt !== undefined && p.publishedAt !== null).length
-    // FULL coverage, stated as the relation: every plan carries the upstream instant. Asserted as
-    // `carried === total` rather than against a cohort literal, which is the STRONGER claim — a
-    // refresh where one entry lost its `publishedAt` reds here, and prints both numbers.
-    expect(plans.length, "an empty plan set carries everything trivially").toBeGreaterThan(0)
-    expect({ carried, total: plans.length }).toEqual({ carried: plans.length, total: plans.length })
+    // SCOPED TO THE SCANNABLE PLANS, which is where the claim can hold at all. `publishedAt` is a
+    // display field on a page, and `registryCohort` deliberately omits it on the incomplete
+    // branches "for the same reason `identity` is: an entry with nothing to scan has no page to
+    // carry a display field" (`registryCohort.ts`). Asserting over ALL plans conflated "the
+    // instant was dropped" with "there is no page to put it on" — two different facts, and the
+    // 2026-08-17 refresh produced the second: `ai.ankimcp/anki-mcp-server-addon` declares neither
+    // a remote nor a package, so it plans as `input: null` and carries no instant, correctly. Its
+    // snapshot entry HAS a `publishedAt` (measured: 0 of 100 snapshot entries lack one), so the
+    // drop is the plan's design, not a lost field.
+    const scannable = plans.filter((p) => p.input !== null)
+    const carried = scannable.filter((p) => p.publishedAt !== undefined && p.publishedAt !== null).length
+    // The relation, not a cohort literal — a refresh where a SCANNABLE entry loses its
+    // `publishedAt` still reds here, and prints both numbers.
+    expect(scannable.length, "an empty plan set carries everything trivially").toBeGreaterThan(0)
+    expect({ carried, total: scannable.length }).toEqual({
+      carried: scannable.length,
+      total: scannable.length,
+    })
+    // And the omission is attributable: every plan that carries no instant must be one with
+    // nothing to scan. This is the half that keeps the narrowing above honest — without it,
+    // scoping to `input !== null` could hide a genuine drop behind a growing incomplete set.
+    expect(
+      plans.filter((p) => p.publishedAt === undefined || p.publishedAt === null).map((p) => p.input),
+      "an instant may be missing ONLY where there is no page to carry it",
+    ).toEqual(plans.filter((p) => p.publishedAt === undefined || p.publishedAt === null).map(() => null))
   })
 
   it("projects it as upstreamAgeDays on the served entry, distinct from the observation age", () => {
     const entries = registryEntries(indexOf(NOW).entries)
-    const withAge = entries.filter((e) => e.upstreamAgeDays !== undefined)
-    // Full coverage again, against the registry entry count rather than a cohort literal: every
-    // registry entry that reached the served plane carries an upstream age.
-    expect(entries.length, "no registry entries reached the served plane").toBeGreaterThan(0)
-    expect(withAge.length).toBe(entries.length)
+    // BAKED entries only — the same scoping the plan-level assertion above explains. An
+    // `incomplete` entry reaches the index as a row but has no page, so it carries no display
+    // field; `upstreamAgeDays` is absent there by the same rule that makes `resolution` absent
+    // (asserted directly in "lands on every BAKED entry and on no incomplete one").
+    const baked = entries.filter((e) => e.status === "baked")
+    const withAge = baked.filter((e) => e.upstreamAgeDays !== undefined)
+    // Full coverage again, against the baked count rather than a cohort literal: every registry
+    // entry that got a page carries an upstream age.
+    expect(baked.length, "no baked registry entries reached the served plane").toBeGreaterThan(0)
+    expect(withAge.length).toBe(baked.length)
+    // Attributable, exactly as above: the only entries without an age are the ones without a page.
+    expect(
+      entries.filter((e) => e.upstreamAgeDays === undefined).map((e) => e.status),
+      "an upstream age may be absent ONLY on an entry that got no page",
+    ).toEqual(entries.filter((e) => e.upstreamAgeDays === undefined).map(() => "incomplete"))
     // Distinct from the source axis by construction: the upstream ages span months while every
     // entry's observation age is the snapshot's single `fetchedAt`. If these agreed, `publishedAt`
     // would be a restatement of `observedAt` rather than a second fact.
@@ -256,9 +285,23 @@ describe("publishedAt finally has a consumer (gaps §1.4)", () => {
    */
   it("omits the key rather than defaulting when the registry declared no release instant", () => {
     const entries = registryEntries(indexOf(NOW).entries)
+    // PRECONDITION, restated on 2026-08-17: no committed entry witnesses THIS rule. Every snapshot
+    // entry declares a `publishedAt` (measured: 0 of 100 lack one), so the corpus cannot exhibit
+    // the "declared no release instant" case at all, which is why the synthetic branch below is
+    // load-bearing.
+    //
+    // The earlier form asserted `upstreamAgeDays === undefined` was empty. That became false
+    // without the rule changing: `ai.ankimcp/anki-mcp-server-addon` has an instant and no page, so
+    // it omits the field for the OTHER reason — nothing to scan. Counting those as witnesses would
+    // have read a page-less entry as a no-instant entry and left this test looking satisfied by a
+    // corpus that never contained its subject.
     expect(
-      entries.filter((e) => e.upstreamAgeDays === undefined).length,
-      "precondition: every committed entry now carries publishedAt, so the corpus is no longer a witness",
+      entries.filter((e) => e.upstreamAgeDays === undefined && e.status === "baked").length,
+      "precondition: no baked entry may omit the age — an omission there would mean a lost instant",
+    ).toBe(0)
+    expect(
+      (snapshot.entries as { publishedAt: string | null }[]).filter((e) => e.publishedAt === null).length,
+      "precondition: the corpus declares an instant everywhere, so only the synthetic pair below can witness the omission rule",
     ).toBe(0)
 
     // The rule half. Two entries, identical but for `publishedAt`, through the shipped emit.
