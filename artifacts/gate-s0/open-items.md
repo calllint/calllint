@@ -93,8 +93,8 @@ fixes and has not been exercised since** — not an upstream shortage. The remed
 ingest, which is a run, not a code change.
 
 **A second, independent blocker the false reason concealed.** Even a completed ingest cannot
-reach 25 today. `resolveMaxEntries` (`refreshSnapshot.ts:143-149`) caps the *served* cohort at
-`DEFAULT_MAX_ENTRIES = 25`, and its own docblock at `:137-142` states the knob is
+reach 25 today. `resolveMaxEntries` (`refreshSnapshot.ts:144-150`) caps the *served* cohort at
+`DEFAULT_MAX_ENTRIES = 25`, and its own docblock at `:137-143` states the knob is
 `TRUST_INGEST_MAX_ENTRIES`, described as *"the ONLY knob for 37 → 100+"* and as a
 **"workflow_dispatch input"**. Measured against `.github/workflows/trust-ingest.yml`:
 `workflow_dispatch:` at `:20` has **no `inputs:` block**, and the ingest step at `:73` sets
@@ -733,8 +733,8 @@ S0-OPEN-1 names `fetchRegistry.ts:19` + `:109` as the cap, then correctly observ
 reached by a different path, and it must be written down or the next batch re-derives it:
 
 ```
-refreshSnapshot.ts:143  resolveMaxEntries(env)   → DEFAULT_MAX_ENTRIES, raisable via TRUST_INGEST_MAX_ENTRIES
-refreshSnapshot.ts:330  refreshFromMirror({ snapshotMaxEntries: maxEntries, … })
+refreshSnapshot.ts:144  resolveMaxEntries(env)   → DEFAULT_MAX_ENTRIES, raisable via TRUST_INGEST_MAX_ENTRIES
+refreshSnapshot.ts:331  refreshFromMirror({ snapshotMaxEntries: maxEntries, … })
                         → snapshotProjection.ts:113   ← the slice that evicts
 ```
 

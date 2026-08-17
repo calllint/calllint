@@ -44,6 +44,8 @@ import {
   DEFAULT_SOURCE_ID,
   OFFICIAL_REGISTRY_SOURCE_ID,
   MIGRATIONS_DIRNAME,
+  toSourceRecord,
+  type SourceRecordV1,
 } from "../src/index.js"
 
 const PKG_ROOT = join(dirname(fileURLToPath(import.meta.url)), "..")
@@ -232,6 +234,227 @@ describe("history duplication — the projection reads the CURRENT observation",
     expect(result.mirroredRecords).toBe(3)
     expect(result.currentSubjects).toBe(2)
     expect(result.snapshot.entries.map((e) => `${e.name}@${e.version}`)).toEqual(["io.a/one@2", "io.b/two@1"])
+  })
+})
+
+/**
+ * ADR 0085 D1 — the current version of a subject is decided by `isLatest`, never by a hash.
+ *
+ * The tests above pass under BOTH orderings, and that is the finding this block exists for.
+ * Every fixture in this file bumps a version while leaving `isLatest: true` on the new row and
+ * no second row marked latest, so `listLatestSourceRecords` returns the right record whatever
+ * it orders by. The pre-0085 ordering was `last_seen_at DESC, payload_digest DESC`, and:
+ *
+ *   - `last_seen_at` NEVER discriminates. `persistSourceRecords(records, ctx.retrievedAt)`
+ *     (`syncSource.ts:178`) stamps one timestamp across a whole batch, and the upsert's only
+ *     `DO UPDATE SET` is `last_seen_at = excluded.last_seen_at` (`store.ts`), so after any full
+ *     sync every row of every subject carries an identical value. Measured on the real store:
+ *     89 of 89 multi-version subjects tie.
+ *   - so `payload_digest DESC` — a CONTENT HASH — decided which version represented a subject.
+ *     It picked a stale `isLatest: false` row in 60 of those 89, and because `isLiveCohort`
+ *     rejects a stale row, 58 subjects (20% of the mirror) were dropped from the cohort
+ *     entirely. `agency.goji/goji` was one, and the identity witness reported it as a publisher
+ *     de-listing (ADR 0084 D4) when the publisher had shipped `1.0.1`.
+ *
+ * Each fixture below therefore pins a SPECIFIC key of the new four-key ordering, and each one
+ * is chosen so the hash points the OTHER WAY: the digests are asserted inline, so the fixture
+ * cannot silently stop being adversarial if the payload shape changes. Names are load-bearing
+ * here — `hashJson` runs over the whole raw item including the name, so renaming a subject in
+ * these tests re-rolls the coin and can destroy the fixture's failing mode. The digest
+ * assertions are what make that a red rather than a silent pass.
+ */
+describe("ADR 0085 D1: isLatest decides which version is current, not a hash", () => {
+  /** The digest the adapter will store for one raw item — the value the old ORDER BY compared. */
+  function digestOf(raw: Record<string, unknown>): string {
+    return toSourceRecord(raw as never, T0)!.source.payloadDigest
+  }
+
+  it("keeps a subject whose STALE row hashes above its live one (key 1: isLatest)", async () => {
+    // `io.example/bumped` is the goji case in miniature. Upstream shipped 1.0.1 and flipped
+    // 1.0.0 to `isLatest: false`; both rows stay `active`, which is what the real registry
+    // serves and what the mirror deliberately stores (it defers the isLatest filter to the
+    // projection).
+    const stale = item("io.example/bumped", { version: "1.0.0" }, { isLatest: false, publishedAt: T0 })
+    const live = item("io.example/bumped", { version: "1.0.1" }, { isLatest: true, publishedAt: T1 })
+
+    // THE FIXTURE'S TEETH, asserted rather than assumed: the stale row's digest sorts ABOVE
+    // the live row's, so `payload_digest DESC` picks 1.0.0 — `isLatest: false` — and
+    // `isLiveCohort` then drops the subject from the cohort. If a payload change ever inverted
+    // these two, the assertions below would pass under the old ordering too and this test
+    // would be measuring nothing. That is why the comparison is here.
+    const dStale = digestOf(stale)
+    const dLive = digestOf(live)
+    expect(dStale > dLive).toBe(true)
+
+    const store = await freshStore()
+    const result = await refresh(store, { servers: [stale, live] }, { now: T0 })
+
+    // PRECONDITION: one sync, two rows, ONE subject — and the two rows share a `last_seen_at`,
+    // which is the structural tie that handed the decision to the hash.
+    expect(result.mirroredRecords).toBe(2)
+    const rows = store.listSourceRecords(OFFICIAL_REGISTRY_SOURCE_ID)
+    expect(rows).toHaveLength(2)
+    expect(new Set(rows.map((r) => r.lastSeenAt)).size).toBe(1)
+
+    // THE ASSERTION. Pre-0085 this read returned the 1.0.0 row and the cohort was EMPTY.
+    const current = store.listLatestSourceRecordPayloads(OFFICIAL_REGISTRY_SOURCE_ID)
+    expect(current).toHaveLength(1)
+    expect(current[0]?.claimedIdentity.version).toBe("1.0.1")
+    expect(current[0]?.lifecycle.isLatest).toBe(true)
+    expect(result.snapshot.entries.map((e) => `${e.name}@${e.version}`)).toEqual(["io.example/bumped@1.0.1"])
+  })
+
+  it("is decided by isLatest in BOTH hash directions — the coin flip is gone", async () => {
+    // The other side of the same coin. `io.example/patched` has the SAME shape as `bumped` and
+    // the opposite digest order, so the old code got this one right by luck. Both must now
+    // resolve to the live row, and that is what "the hash no longer decides" means: a test
+    // carrying only the unlucky direction could be satisfied by inverting the digest sort.
+    const stale = item("io.example/patched", { version: "1.0.0" }, { isLatest: false, publishedAt: T0 })
+    const live = item("io.example/patched", { version: "1.0.1" }, { isLatest: true, publishedAt: T1 })
+    expect(digestOf(stale) > digestOf(live)).toBe(false) // ← the LUCKY direction, pinned
+
+    const store = await freshStore()
+    const result = await refresh(store, { servers: [stale, live] }, { now: T0 })
+    expect(result.snapshot.entries.map((e) => `${e.name}@${e.version}`)).toEqual(["io.example/patched@1.0.1"])
+  })
+
+  it("prefers isLatest over a NEWER publishedAt — a yanked release (key 1 outranks key 2)", async () => {
+    // The two version-bump tests above cannot actually measure key 1: their live row is both
+    // `isLatest: true` AND the newest `publishedAt`, so `publishedAt DESC` alone satisfies them
+    // and deleting `isLatest DESC` leaves them green. Measured, not assumed — that green
+    // negative control is why this test exists.
+    //
+    // Here the two keys DISAGREE. Upstream published 2.0.0, then yanked it and re-marked 1.0.2
+    // as current: the row with the newest `publishedAt` is the one that is NOT latest. Only the
+    // source's own `isLatest` statement gets this right.
+    const yanked = item("io.example/yanked", { version: "2.0.0" }, { isLatest: false, publishedAt: T2 })
+    const current = item("io.example/yanked", { version: "1.0.2" }, { isLatest: true, publishedAt: T1 })
+
+    // Both fallbacks point the WRONG way, pinned so the fixture cannot quietly lose its teeth:
+    // `publishedAt DESC` picks the yanked row, and so does `payload_digest DESC`.
+    expect(digestOf(yanked) > digestOf(current)).toBe(true)
+
+    const store = await freshStore()
+    const result = await refresh(store, { servers: [yanked, current] }, { now: T0 })
+
+    expect(result.mirroredRecords).toBe(2)
+    const rows = store.listLatestSourceRecordPayloads(OFFICIAL_REGISTRY_SOURCE_ID)
+    expect(rows).toHaveLength(1)
+    expect(rows[0]?.claimedIdentity.version).toBe("1.0.2")
+    expect(rows[0]?.lifecycle.isLatest).toBe(true)
+    // And the subject stays in the cohort at its current version. Under EITHER fallback it
+    // would be dropped entirely — the yanked row is `isLatest: false`, which `isLiveCohort`
+    // rejects, so the cohort would be empty at one live subject.
+    expect(result.snapshot.entries.map((e) => `${e.name}@${e.version}`)).toEqual(["io.example/yanked@1.0.2"])
+  })
+
+  it("falls through to publishedAt when NO row states isLatest (key 2)", async () => {
+    // A source that marks nothing latest. `json_extract` returns NULL for both rows, and NULL
+    // sorts below 0 and 1 in SQLite, so `isLatest DESC` cannot discriminate and the second key
+    // must. `publishedAt` is a real ordinal; the digest is not, and it points the wrong way
+    // here — pinned below.
+    const older = item("io.example/nolatest", { version: "1.0.0" }, { isLatest: undefined, publishedAt: T0 })
+    const newer = item("io.example/nolatest", { version: "1.0.1" }, { isLatest: undefined, publishedAt: T1 })
+    expect(digestOf(older) > digestOf(newer)).toBe(true) // the OLDER row would win on the hash
+
+    const store = await freshStore()
+    await refresh(store, { servers: [older, newer] }, { now: T0 })
+
+    // PRECONDITION: neither row carries the key at all. `toSourceRecord` assigns `isLatest`
+    // only when the source sends a boolean, so this is an absent field and not `false`.
+    const rows = store.listSourceRecords(OFFICIAL_REGISTRY_SOURCE_ID)
+    expect(rows.map((r) => (JSON.parse(r.payloadJson) as SourceRecordV1).lifecycle.isLatest)).toEqual([
+      undefined,
+      undefined,
+    ])
+
+    const current = store.listLatestSourceRecordPayloads(OFFICIAL_REGISTRY_SOURCE_ID)
+    expect(current[0]?.claimedIdentity.version).toBe("1.0.1")
+    // …and the cohort is EMPTY regardless, because `isLiveCohort` requires `isLatest === true`.
+    // The read still has to pick the right row: this is the mirror's answer to "what does the
+    // source serve now", and a wrong pick here is a wrong answer even when nothing is emitted.
+    expect(store.listLatestSourceRecords(OFFICIAL_REGISTRY_SOURCE_ID)).toHaveLength(1)
+  })
+
+  it("keeps last_seen_at as the revert discriminator, below the two that carry meaning (key 3)", async () => {
+    // The revert argument the old docblock made is CORRECT and D1 preserves it — demoted, not
+    // deleted. `io.example/rolledback` is a deliberately different name from the sibling test
+    // at :194, which uses `io.example/alpha` where the digest happens to AGREE with
+    // `last_seen_at`: that test passes with the third key removed entirely and so cannot
+    // measure it. Here the digest points at the WITHDRAWN row, so only `last_seen_at` can pick
+    // correctly.
+    const a = { servers: [item("io.example/rolledback", { version: "1.0.0" })] }
+    const b = { servers: [item("io.example/rolledback", { version: "2.0.0" })] }
+    expect(digestOf((b.servers as Record<string, unknown>[])[0]!) > digestOf((a.servers as Record<string, unknown>[])[0]!)).toBe(
+      true,
+    )
+
+    const store = await freshStore()
+    await refresh(store, a, { now: T0 })
+    await refresh(store, b, { now: T1 })
+    const reverted = await refresh(store, a, { now: T2 })
+
+    // Both rows are `isLatest: true` with no `publishedAt`, so keys 1 and 2 tie and key 3 is
+    // the only one left that means anything. `last_seen_at DESC` → the re-served 1.0.0.
+    const stamps = store
+      .listSourceRecords(OFFICIAL_REGISTRY_SOURCE_ID)
+      .map((r) => `${r.firstSeenAt}|${r.lastSeenAt}`)
+      .sort()
+    expect(stamps).toEqual([`${T0}|${T2}`, `${T1}|${T1}`])
+    expect(reverted.snapshot.entries.map((e) => `${e.name}@${e.version}`)).toEqual(["io.example/rolledback@1.0.0"])
+    // The failing mode, stated so it is not mistaken for a tautology: DELETE `last_seen_at DESC`
+    // from the ordering and this reds with `@2.0.0` — the digest picks the row upstream has
+    // withdrawn. That is what the sibling test at :194 cannot show.
+  })
+
+  it("still returns exactly one row per subject when every meaningful key ties (key 4)", async () => {
+    // The pathological source the old docblock described as the ONLY way to tie: one sync
+    // yielding the same native id twice with different bytes. It is not the only way — it is
+    // the only way to tie all THREE meaningful keys — and the digest's real job is exactly
+    // this: keep the query a total order so the reproducibility gate's byte comparison is
+    // stable. A hash may break a tie; it may never decide a fact.
+    const first = item("io.example/twice", { version: "1.0.0", description: "first" })
+    const second = item("io.example/twice", { version: "1.0.0", description: "second" })
+    const store = await freshStore()
+    await refresh(store, { servers: [first, second] }, { now: T0 })
+
+    expect(store.listSourceRecords(OFFICIAL_REGISTRY_SOURCE_ID)).toHaveLength(2)
+    const current = store.listLatestSourceRecords(OFFICIAL_REGISTRY_SOURCE_ID)
+    expect(current).toHaveLength(1)
+    // Deterministic, and determined by the digest — the one thing it is still allowed to do.
+    expect(current[0]?.payloadDigest).toBe(
+      digestOf(first) > digestOf(second) ? digestOf(first) : digestOf(second),
+    )
+  })
+
+  it("recovers the whole cohort: 3 subjects, 3 stale rows outranking, 0 emitted before", async () => {
+    // Scale, in miniature. The single-subject tests can be satisfied by a fix that works for
+    // one partition; the real defect dropped 58 subjects at once and its signature was a
+    // cohort SMALLER than the subject count. This fixture asserts the two are equal again —
+    // which is also the conservation property the missing guard checks (see ADR 0085's Open).
+    const servers = ["io.example/bumped", "io.example/alpha", "io.example/beta"].flatMap((name) => [
+      item(name, { version: "1.0.0" }, { isLatest: false, publishedAt: T0 }),
+      item(name, { version: "1.0.1" }, { isLatest: true, publishedAt: T1 }),
+    ])
+    // All three are UNLUCKY names: every stale row outranks its live one, so pre-0085 the
+    // cohort was empty at 3 subjects. Asserted per subject so a lucky rename cannot quietly
+    // turn this into a weaker test.
+    for (let i = 0; i < servers.length; i += 2) {
+      expect(digestOf(servers[i]!) > digestOf(servers[i + 1]!)).toBe(true)
+    }
+
+    const store = await freshStore()
+    const result = await refresh(store, { servers }, { now: T0 })
+
+    expect(result.mirroredRecords).toBe(6)
+    expect(result.currentSubjects).toBe(3)
+    // INPUT vS OUTPUT: every live subject reaches the cohort. Pre-0085 this was 3 → 0.
+    expect(result.snapshot.count).toBe(3)
+    expect(result.snapshot.entries.map((e) => `${e.name}@${e.version}`)).toEqual([
+      "io.example/alpha@1.0.1",
+      "io.example/beta@1.0.1",
+      "io.example/bumped@1.0.1",
+    ])
   })
 })
 

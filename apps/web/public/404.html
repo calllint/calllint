@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>No assessment at this address — CallLint</title>
+    <meta
+      name="description"
+      content="CallLint publishes no assessment at this address. That is a statement about our records, not about the subject: it does not mean a server was withdrawn, and it is not a judgment of any publisher."
+    />
+    <link rel="icon" href="/favicon.png" type="image/png" />
+    <!-- Not indexable, and deliberately so: this page exists to answer a request correctly, not
+         to be found. Indexing it would put a page about nothing into results for real names. -->
+    <meta name="robots" content="noindex,follow" />
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <header class="site-header">
+      <a class="brand-lockup" href="/" aria-label="CallLint home">
+        <img class="brand-mark" src="/logo-mark-128.png" width="40" height="40" alt="" />
+        <span class="brand-name">CallLint</span>
+      </a>
+      <nav class="nav-links" aria-label="Primary">
+        <a href="/#how">How</a>
+        <a href="/agents">For agents</a>
+        <a href="/mcp-security">MCP security</a>
+        <a href="/team">Team</a>
+        <a href="https://github.com/calllint/calllint">GitHub</a>
+      </nav>
+    </header>
+    <main>
+      <section class="section section-narrow topic">
+        <p class="lede">HTTP 404 · no published assessment</p>
+        <h1>We publish no assessment at this address.</h1>
+
+        <p class="prose">
+          This is a statement about <strong>our records</strong>, not about a
+          server or its publisher. It does not mean a server was withdrawn,
+          removed, or found wanting. The most common cause is the most boring
+          one: a name that was mistyped, or a subject we have never assessed.
+        </p>
+
+        <p class="prose">
+          A trust surface that answered <code>200</code> here would be making a
+          claim it cannot support — and until recently this one did, returning
+          the homepage for every unmatched address. An absent subject and a typo
+          were indistinguishable on the wire. This page is the correction.
+        </p>
+
+        <h2 id="what-this-is-not">What this page does not tell you</h2>
+        <p class="prose">
+          Deliberately, <strong>nothing about the subject you asked for</strong>.
+          We do not state that it was de-listed, and we do not serve a tombstone.
+          A name can leave a published cohort for at least four reasons with
+          opposite meanings — the publisher withdrew it, it moved past the
+          published ceiling, our own projection dropped it, or we never looked —
+          and the serving plane cannot tell which. Asserting one would be a claim
+          about a third party that we have not measured.
+          <strong>Heuristic decision support</strong>, never a verdict on someone
+          by omission.
+        </p>
+
+        <h2 id="find-a-page">Finding what you were looking for</h2>
+        <ul class="prose">
+          <li><a href="/trust/lookup">Search published Trust Pages</a> by name — exact or prefix.</li>
+          <li><a href="/trust/sitemap.xml">Browse the Trust sitemap</a> for every published address.</li>
+          <li>
+            Scanning something not published here? The CLI runs locally and
+            offline: <code>npx calllint scan --auto</code>. It
+            <strong>never executes the server it judges</strong>.
+          </li>
+        </ul>
+
+        <h2 id="machines">If you are a machine client</h2>
+        <p class="prose">
+          Request the JSON API rather than a page, and an absence answers as a
+          document instead of HTML:
+        </p>
+        <pre><code>GET /v1/public/resources/mcp-registry/&lt;name&gt;
+→ 404 application/json
+{ "schema": "calllint.partner-api.error.v0", "code": "not_found", … }</code></pre>
+        <p class="prose">
+          A <code>.json</code> address under <code>/trust/</code> answers the
+          same way. Both are a plain <code>404</code>, never
+          <code>410</code>: <em>gone</em> is a claim about permanence we have no
+          evidence for.
+        </p>
+
+        <h2 id="verdicts">What our verdicts mean, when we do publish one</h2>
+        <p class="prose">
+          A published page carries one of four dispositions, and the boundaries
+          matter more than the labels. <strong>SAFE</strong> means
+          <strong>No blockers observed</strong> under the evidence we had — it is
+          <strong>Not a proof of runtime safety</strong>.
+          <strong>UNKNOWN is never SAFE</strong>: it records that we could not
+          verify, which is a different thing from a clean result.
+        </p>
+
+        <div class="cta-row">
+          <a class="btn btn-primary" href="/trust/lookup">Search Trust Pages</a>
+          <a class="btn btn-ghost" href="/">Back to CallLint</a>
+        </div>
+
+        <p class="prose">
+          Expected a page here?
+          <a href="https://github.com/calllint/calllint/issues/new?labels=trust-page-correction"
+            >Report a correction</a
+          >. A missing assessment is a gap worth hearing about.
+        </p>
+
+        <p class="topic-nav">Related:
+          <a href="/">Home</a> ·
+          <a href="/agents">For agents</a> ·
+          <a href="/mcp-security">MCP security</a> ·
+          <a href="/trust/lookup">Trust lookup</a>
+        </p>
+      </section>
+    </main>
+    <footer class="site-footer">
+      <div class="footer-brand">
+        <img src="/logo-mark-128.png" width="28" height="28" alt="" />
+        <span>CallLint · evidence-backed verdicts for agent tools</span>
+      </div>
+      <div class="footer-links">
+        <a href="/">Home</a> · <a href="/agents">For agents</a> ·
+        <a href="/team">Team</a> ·
+        <a href="https://github.com/calllint/calllint">Source</a> ·
+        <a href="/llms.txt">llms.txt</a>
+      </div>
+    </footer>
+  </body>
+</html>

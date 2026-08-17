@@ -75,6 +75,13 @@ const publicFiles = [
   "apps/web/public/cursor-mcp-security.html",
   "apps/web/public/claude-desktop-mcp-security.html",
   "apps/web/public/agent-tool-risk.html",
+  // ADR 0085 D3.1 — the absence page. Governed copy: it carries verdict semantics and, by
+  // construction, discusses a named subject we have NOT assessed, which is exactly where an
+  // absence could be worded as a denial (ADR 0058 §3). Unscanned, it was the one public page
+  // free to overclaim. Subject to the exclusion checks (overclaim, stale commands, stale
+  // status); it is deliberately not a quickstart surface, and those checks are offender-filters
+  // rather than per-file requirements, so it is not asked to carry copy it should not have.
+  "apps/web/public/404.html",
   "apps/web/public/agent-instructions.md",
   "apps/web/public/llms.txt",
   "apps/web/public/llms-full.txt",

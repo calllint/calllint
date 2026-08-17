@@ -1496,21 +1496,43 @@ export class AdoptionIndexStore {
    * invisible to a fixture where every record is a first observation, so the fix is a
    * distinct read rather than a filter at the call site.
    *
-   * The discriminator has to come from the ROW, because the payload cannot supply one:
-   * two observations of one subject are two different payloads with no ordering between
-   * them, and the primary key is a digest of the triple, not a counter — there is no
-   * ordinal column to sort on.
+   * The ordering is ADR 0085 D1, and the key order is the whole point: **`isLatest` decides,
+   * a hash only breaks ties.** The source states which version is current; that statement is
+   * the fact, and reading it is not a heuristic.
    *
-   * `last_seen_at DESC` is the right discriminator, and `first_seen_at` is not. Consider
-   * an upstream revert: bytes A are seen at T1, bytes B at T2, then A again at T3. A's
-   * `last_seen_at` moves to T3 while B's stays T2, so `last_seen_at` picks A — which is
-   * what the source actually serves now. `first_seen_at` would keep B forever, reporting
-   * a payload upstream has withdrawn. "Most recently observed" IS "current".
+   * What this replaced, and why it was wrong (ADR 0085): the ordering was
+   * `last_seen_at DESC, payload_digest DESC`, so a **content hash** chose which version
+   * represented a subject. `persistSourceRecords` stamps one `ctx.retrievedAt` across an
+   * entire batch and the upsert only refreshes `last_seen_at`, so after any full sync every
+   * row of every subject carries an IDENTICAL `last_seen_at`. The first key therefore never
+   * discriminated — measured 89 of 89 multi-version subjects — and the digest decided every
+   * time. It picked a non-`isLatest` row in 60 of them, dropping 58 subjects (20% of the
+   * mirror) from the projection, because `isLiveCohort` rejects a stale row. A publisher who
+   * shipped an update had a coin-flip chance of being deleted from the trust index, stably
+   * per content, which is indistinguishable from a real withdrawal.
    *
-   * The `payload_digest` tiebreak is arbitrary in direction but not optional. Two rows
-   * can share a `last_seen_at` only when one run yielded the same native id twice with
-   * different bytes; without a fixed second key SQLite could return either, and a
-   * projection that depends on the choice would stop being reproducible.
+   * The prior docblock claimed a `last_seen_at` tie needs "one run yielding the same native
+   * id twice with different bytes" — a pathological source. That was false and it is what
+   * made the digest look harmless: a full sync observes every version of every subject in
+   * one pass, so the tie is the NORMAL case. Do not restore that reasoning.
+   *
+   * Key by key:
+   *
+   * - `isLatest DESC` — the source's own statement of currency. NULL sorts below 0 and 1 in
+   *   SQLite, so a row that omits the field loses to one that sets it either way, and an
+   *   all-NULL subject falls through to the keys below.
+   * - `publishedAt DESC` — a real ordinal, for a source that marks several rows latest or
+   *   none. This is what the digest was standing in for and could not supply.
+   * - `last_seen_at DESC` — kept, and the revert argument for it still holds: bytes A seen
+   *   at T1, B at T2, A again at T3 leaves A's `last_seen_at` at T3, so A wins, which is
+   *   what the source serves now. `first_seen_at` would keep B forever. It is demoted, not
+   *   removed, because it only speaks to *observation*, never to *currency*.
+   * - `payload_digest DESC` — last, and for total order ONLY. A query that is not a total
+   *   order returns rows in an unspecified sequence and the reproducibility gate compares
+   *   bytes. A hash may break a tie. It may never decide a fact.
+   *
+   * The discriminator for the first two keys comes from the payload; the last two come from
+   * the row. Both are needed: the payload carries the fact, the row guarantees the order.
    */
   listLatestSourceRecords(sourceId: string): StoredSourceRecord[] {
     return this.db
@@ -1524,7 +1546,10 @@ export class AdoptionIndexStore {
                   retrieved_at AS retrievedAt, first_seen_at AS firstSeenAt, last_seen_at AS lastSeenAt,
                   ROW_NUMBER() OVER (
                     PARTITION BY source_native_id
-                    ORDER BY last_seen_at DESC, payload_digest DESC
+                    ORDER BY json_extract(payload_json, '$.lifecycle.isLatest') DESC,
+                             json_extract(payload_json, '$.lifecycle.publishedAt') DESC,
+                             last_seen_at DESC,
+                             payload_digest DESC
                   ) AS rn
            FROM source_records
            WHERE source_id = ?

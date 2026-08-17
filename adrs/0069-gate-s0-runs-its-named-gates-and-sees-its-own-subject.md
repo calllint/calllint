@@ -193,7 +193,7 @@ is its only home.
 **Not fixed here.** The three candidate remedies — raise the cap, exempt the self-claim from the
 slice, or seed the cohort from a pinned list — are each an ingest-policy or served-bytes change
 requiring its own authorization. The row records them with the production chain
-(`refreshSnapshot.ts:143` → `:330` → `snapshotProjection.ts:113`) so the next batch repairs
+(`refreshSnapshot.ts:144` → `:331` → `snapshotProjection.ts:113`) so the next batch repairs
 rather than re-derives.
 
 **Its falsification test is stated in the row, and it is not the obvious one:** a cohort of 25
