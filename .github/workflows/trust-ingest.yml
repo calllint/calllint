@@ -184,6 +184,38 @@ jobs:
         # what CI runs on the resulting PR.
         run: pnpm sync:mcp-bundle
 
+      - name: Refresh the derived phase-2.4 artifacts from the freshly baked tree
+        # THE SAME DEFECT AS THE STEP ABOVE, ONE CLASS WIDER — and the step above did not fix it.
+        #
+        # `sync:mcp-bundle` was added (ADR 0087) for the two files under `packages/calllint-mcp/src/data/`.
+        # But those are not the only committed bytes that are a pure function of the baked tree. Five
+        # artifacts under `artifacts/phase-2.4/` are too, each enforced by a `--check` step in `ci.yml`
+        # that fails when the file drifts from a fresh run:
+        #
+        #   human-five-second-test.json      `pnpm eval:phase-2.4`            reads public/install/*/index.html
+        #   gate-A-consistency.json          `pnpm eval:phase-2.4:gates`      reads public/install + public/trust
+        #   presentation-plane-audit.json    `pnpm audit:presentation`        reads public/install + public/trust
+        #   presentation-lock.json           `pnpm audit:presentation:lock`   reads public/install
+        #   preview-snapshot.json            `pnpm audit:preview`             reads public/install
+        #
+        # `bake.ts` `rmSync`es and rewrites `public/install` wholesale, so any ingest that moves the
+        # cohort invalidates all five. Measured on the 2026-08-17 ingest: 205 install pages changed and
+        # all five artifacts went stale, which is FIVE red CI checks on a PR this workflow opened —
+        # again by construction, and again paid for by hand.
+        #
+        # This is the general shape ADR 0087 named without closing: the remedy for a guard has to be
+        # runnable. `tests/invariants/derived-artifact-freshness.invariants.test.ts` now enumerates the
+        # class from `ci.yml` itself, so a sixth such artifact cannot be added without either appearing
+        # here or failing that test.
+        #
+        # Order matters here and did not for the bundle: `preview-snapshot.ts` READS
+        # `human-five-second-test.json`, so the eval must run before it. This is `ci.yml`'s order.
+        # `eval:phase-2.4:dogfood` is NOT here: it drives the five canonical fixtures through the built
+        # binary in a temp sandbox, reads no served page, and was measured still exit-0 after the bake
+        # that staled the other five. Rebuilding it would be a false demand — and the invariant asserts
+        # its absence, so this list and that test cannot drift apart.
+        run: pnpm eval:phase-2.4:write && pnpm eval:phase-2.4:gates:write && pnpm audit:presentation:write && pnpm audit:presentation:lock:write && pnpm audit:preview:write
+
       - name: Guard the regenerated pages (no overclaim / PII; completeness)
         run: pnpm check:public-copy
 

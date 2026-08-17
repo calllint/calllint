@@ -284,36 +284,27 @@
       "consequence",
       "action"
     ],
-    "participants": 8,
-    "responses": 8,
+    "participants": 9,
+    "responses": 9,
     "recognition": {
       "target": 1,
       "consequence": 1,
       "action": 1
     },
-    "staleResponses": 2,
+    "staleResponses": 1,
     "stale": [
-      {
-        "participant": "7",
-        "canonicalSlug": "mcp-registry/ac.tandem-docs-mcp",
-        "reason": "PAGE_GONE",
-        "shownDigest": "sha256:e3d22db1afa80223716e4b09219325be302100885f1dda97107912df2c6865e6",
-        "shownSurfaceDigest": "sha256:139cbe551fa3f5972e5a75125297f93ee0378a2418d6c68e617303f7c07b720f",
-        "currentSurfaceDigest": null
-      },
       {
         "participant": "8",
         "canonicalSlug": "mcp-registry/ac.inference.sh-mcp",
-        "reason": "PAGE_GONE",
+        "reason": "SURFACE_CHANGED",
         "shownDigest": "sha256:b0a2b6bc760d182966df97cc03c86e68851a7d9c3e8aabd8ce6bb1653c138728",
         "shownSurfaceDigest": "sha256:4862cb564c3718d1ec150059b04d9ea67ed3ef5688df06f5e88e884eb2cba509",
-        "currentSurfaceDigest": null
+        "currentSurfaceDigest": "sha256:f3da5f6d71e562ff46c05e9652d6678d1d84b10ac558ba1d8bfd3236e45100e6"
       }
     ]
   },
   "blockers": [
-    "human panel not recorded: 8/10 responses in artifacts/phase-2.4/five-second-panel-store.json",
-    "stale panel response (PAGE_GONE): 7 @ mcp-registry/ac.tandem-docs-mcp — the page is no longer served — that subject left the cohort",
-    "stale panel response (PAGE_GONE): 8 @ mcp-registry/ac.inference.sh-mcp — the page is no longer served — that subject left the cohort"
+    "human panel not recorded: 9/10 responses in artifacts/phase-2.4/five-second-panel-store.json",
+    "stale panel response (SURFACE_CHANGED): 8 @ mcp-registry/ac.inference.sh-mcp — the measured surface changed — re-run that session"
   ]
 }
