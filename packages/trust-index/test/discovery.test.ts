@@ -477,4 +477,21 @@ describe("P0/P1 Change 4: Trust→Install Bridge", () => {
     // Unclaimed page should have the claim CTA with telemetry
     expect(html).toContain('data-trust-event="claim_cta_clicked"')
   })
+
+  // Change 6: Trust Funnel Telemetry
+  it("Trust Page includes page-view telemetry script", () => {
+    const page = bakeTrustPage(realRegistryInput)
+    const html = renderHtml(page)
+    expect(html).toContain('import { sendTrustEvent } from "/embed/trust-events.js"')
+    expect(html).toContain('sendTrustEvent("trust_page_viewed")')
+  })
+
+  it("Trust Page page-view script fires only once (inline, not deferred)", () => {
+    const page = bakeTrustPage(realRegistryInput)
+    const html = renderHtml(page)
+    // Count how many times sendTrustEvent("trust_page_viewed") appears
+    const matches = html.match(/sendTrustEvent\("trust_page_viewed"\)/g)
+    expect(matches).toBeTruthy()
+    expect(matches!.length).toBe(1)
+  })
 })

@@ -465,6 +465,10 @@ export function renderHtml(page: BakedTrustPage, verifiedPublisher?: VerifiedPub
     <link rel="stylesheet" href="/styles.css" />
     ${socialMetadata(page)}
     ${structuredData(page)}
+    <script type="module">
+      import { sendTrustEvent } from "/embed/trust-events.js"
+      sendTrustEvent("trust_page_viewed")
+    </script>
   </head>
   <body>
     <main class="section section-narrow">
