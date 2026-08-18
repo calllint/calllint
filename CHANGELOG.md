@@ -12,6 +12,14 @@ onward. While pre-1.0, minor versions may include breaking changes.
 
 ### Added
 
+### Fixed
+
+### Changed
+
+## [1.8.0] — 2026-08-18 — Phase 2.4-B gate closure + Trust Index D1-D3 + R-9 backup
+
+### Added
+
 - **Workstream T PR T0 + Workstream R §8.6 — the trajectory-readiness audit lands where it can
   actually be delivered, and the daily-backup gap ADR 0061 §8.5 left open is closed. Zero `src/`
   change, zero schema, zero verdict movement, zero bytes published from `docs/`.** T0's
