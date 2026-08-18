@@ -388,6 +388,71 @@ describe("renderSafeInstall — language boundary + framing", () => {
   })
 })
 
+describe("P0/P1 Change 7: Safe Install Pre-Action Badge Wording", () => {
+  it("deep-linkable pages contain 'Use CallLint's approval gate' (present-tense, actionable)", () => {
+    // Badge appears only on PREPARE_AVAILABLE (SAFE) and REVIEW_REQUIRED (REVIEW) pages
+    const deepLinkPages = pages
+      .map(page => ({ page, projection: project(page) }))
+      .filter(({ projection }) =>
+        ["PREPARE_AVAILABLE", "REVIEW_REQUIRED"].includes(projection.installability),
+      )
+    expect(deepLinkPages.length).toBeGreaterThan(0)
+    for (const { projection } of deepLinkPages) {
+      const html = renderSafeInstall(projection)
+      expect(html).toContain("Use CallLint's approval gate")
+    }
+  })
+
+  it("does NOT contain 'Added through CallLint's approval gate' (past tense removed)", () => {
+    // No page should have the old past-tense wording
+    for (const page of pages) {
+      const p = project(page)
+      const html = renderSafeInstall(p)
+      expect(html).not.toContain("Added through CallLint's approval gate")
+    }
+  })
+
+  it("badge has no success check glyph (✓ removed)", () => {
+    const deepLinkPages = pages
+      .map(page => ({ page, projection: project(page) }))
+      .filter(({ projection }) =>
+        ["PREPARE_AVAILABLE", "REVIEW_REQUIRED"].includes(projection.installability),
+      )
+    for (const { projection } of deepLinkPages) {
+      const html = renderSafeInstall(projection)
+      // The badge section should not contain the checkmark span
+      const badgeMatch = html.match(/<p class="install-badge">[\s\S]*?<\/p>/)
+      expect(badgeMatch).toBeTruthy()
+      expect(badgeMatch![0]).not.toContain('✓')
+      expect(badgeMatch![0]).not.toContain('install-badge-check')
+    }
+  })
+
+  it("non-deep-linkable pages have no badge (UNKNOWN, BLOCKED, etc.)", () => {
+    const nonDeepLinkPages = pages
+      .map(page => ({ page, projection: project(page) }))
+      .filter(({ projection }) =>
+        !["PREPARE_AVAILABLE", "REVIEW_REQUIRED"].includes(projection.installability),
+      )
+    expect(nonDeepLinkPages.length).toBeGreaterThan(0)
+    for (const { projection } of nonDeepLinkPages) {
+      const html = renderSafeInstall(projection)
+      expect(html).not.toContain("install-badge")
+      expect(html).not.toContain("Use CallLint's approval gate")
+    }
+  })
+
+  it("badge still includes CallLint logo (visual identity preserved)", () => {
+    const deepLinkPage = pages
+      .map(page => ({ page, projection: project(page) }))
+      .find(({ projection }) => projection.installability === "PREPARE_AVAILABLE")
+    expect(deepLinkPage).toBeDefined()
+    const html = renderSafeInstall(deepLinkPage!.projection)
+    expect(html).toContain('install-badge-mark')
+    expect(html).toContain('/logo-mark-256.png')
+  })
+})
+
 describe("renderSafeInstall — deterministic (reproducibility gate)", () => {
   it("is byte-identical across renders of the same projection", () => {
     for (const page of pages) {
