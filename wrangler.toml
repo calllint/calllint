@@ -6,7 +6,7 @@ pages_build_output_dir = "public"
 [[d1_databases]]
 binding = "USAGE_DB"
 database_name = "calllint-usage"
-database_id = "" # Fill after: wrangler d1 create calllint-usage
+database_id = "98626b00-5c93-48c4-98b2-6632105b97df"
 
 # Secrets (set via wrangler secret put)
 # USAGE_HASH_KEY - HMAC secret for hashing installation IDs
