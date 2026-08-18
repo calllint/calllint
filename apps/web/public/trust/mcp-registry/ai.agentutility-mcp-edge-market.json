@@ -2,7 +2,7 @@
   "schema": "calllint.trust-page.v0",
   "canonicalName": "mcp-registry/ai.agentutility-mcp-edge-market",
   "artifactDigest": "sha256:733a626c72e07da1d5306e3518394ca8520e41264264db6f0b949f5f8f144f54",
-  "pageDigest": "sha256:72eabff6bcdbf4b475ff6514cc5c647d2e6b2f389cc0d704b7be8caf1edba728",
+  "pageDigest": "sha256:8f5a70d6affb93bf585c69da999502051a32b49c3d43c44297160c47c0f94155",
   "verdict": "SAFE",
   "verdictLabel": "No blockers observed",
   "observedAt": "2026-08-17T01:39:50.172Z",
@@ -12,7 +12,7 @@
     "completeness": "complete",
     "authorityClaimed": false,
     "reproducibility": {
-      "pageDigest": "sha256:72eabff6bcdbf4b475ff6514cc5c647d2e6b2f389cc0d704b7be8caf1edba728",
+      "pageDigest": "sha256:8f5a70d6affb93bf585c69da999502051a32b49c3d43c44297160c47c0f94155",
       "observedAt": "2026-08-17T01:39:50.172Z"
     },
     "evidenceLevel": "E2",
@@ -27,7 +27,7 @@
   "scanHistory": [
     {
       "observedAt": "2026-08-17T01:39:50.172Z",
-      "pageDigest": "sha256:72eabff6bcdbf4b475ff6514cc5c647d2e6b2f389cc0d704b7be8caf1edba728",
+      "pageDigest": "sha256:8f5a70d6affb93bf585c69da999502051a32b49c3d43c44297160c47c0f94155",
       "artifactDigest": "sha256:733a626c72e07da1d5306e3518394ca8520e41264264db6f0b949f5f8f144f54"
     }
   ],
@@ -103,7 +103,7 @@
         "reportKind": "single-target",
         "target": {
           "name": "package",
-          "kind": "cursor-mcp-config",
+          "kind": "mcp-servers",
           "source": "@agentutility/mcp-edge-market",
           "version": "0.15.6",
           "configPath": "official-mcp-registry:ai.agentutility/mcp-edge-market"

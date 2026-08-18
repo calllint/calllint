@@ -17,5 +17,9 @@
 # the synthetic calllint-fixtures/* reproducibility goldens are excluded at the
 # bake's emit layer. The listed URLs are the clean, non-redirecting /trust/{name}
 # form (the .html artifact 308-redirects to it at the edge).
+#
+# Harness distribution sitemap: canonical harness authority pages under
+# /harnesses/deepseek/. These are factual distribution surfaces, not keyword SEO.
 
 Sitemap: https://calllint.com/trust/sitemap.xml
+Sitemap: https://calllint.com/harnesses/sitemap.xml

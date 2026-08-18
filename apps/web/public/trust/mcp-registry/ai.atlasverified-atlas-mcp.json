@@ -2,7 +2,7 @@
   "schema": "calllint.trust-page.v0",
   "canonicalName": "mcp-registry/ai.atlasverified-atlas-mcp",
   "artifactDigest": "sha256:622cf0f01656cfdffb21fc0d34e29d1ed5bca91a3fcac248bc438c3841475e7b",
-  "pageDigest": "sha256:e9009a1a2da4110061a008378ba64c519598985ff5f3782c0d07f688cdd7d37e",
+  "pageDigest": "sha256:fdb6d4c956887c2f30e85c4eff6eccdf5d46fe594bff8cf976ab3c27977726f6",
   "verdict": "REVIEW",
   "verdictLabel": "Review required",
   "observedAt": "2026-08-17T01:39:50.172Z",
@@ -12,7 +12,7 @@
     "completeness": "complete",
     "authorityClaimed": false,
     "reproducibility": {
-      "pageDigest": "sha256:e9009a1a2da4110061a008378ba64c519598985ff5f3782c0d07f688cdd7d37e",
+      "pageDigest": "sha256:fdb6d4c956887c2f30e85c4eff6eccdf5d46fe594bff8cf976ab3c27977726f6",
       "observedAt": "2026-08-17T01:39:50.172Z"
     },
     "evidenceLevel": "E2",
@@ -27,7 +27,7 @@
   "scanHistory": [
     {
       "observedAt": "2026-08-17T01:39:50.172Z",
-      "pageDigest": "sha256:e9009a1a2da4110061a008378ba64c519598985ff5f3782c0d07f688cdd7d37e",
+      "pageDigest": "sha256:fdb6d4c956887c2f30e85c4eff6eccdf5d46fe594bff8cf976ab3c27977726f6",
       "artifactDigest": "sha256:622cf0f01656cfdffb21fc0d34e29d1ed5bca91a3fcac248bc438c3841475e7b"
     }
   ],
@@ -104,7 +104,7 @@
         "reportKind": "single-target",
         "target": {
           "name": "remote",
-          "kind": "cursor-mcp-config",
+          "kind": "mcp-servers",
           "source": "https://api.atlasverified.ai/mcp",
           "configPath": "official-mcp-registry:ai.atlasverified/atlas-mcp"
         },

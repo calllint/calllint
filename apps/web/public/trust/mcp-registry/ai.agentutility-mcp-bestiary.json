@@ -2,7 +2,7 @@
   "schema": "calllint.trust-page.v0",
   "canonicalName": "mcp-registry/ai.agentutility-mcp-bestiary",
   "artifactDigest": "sha256:6dcbfb20003c9a8a3c98fc0d47890fddb6c320bb8d735e7d51f081dd3aa039bb",
-  "pageDigest": "sha256:a476a08c680b0a39f37c99929c5a2904efcf36e8e5bec84501b72cbb15322bbf",
+  "pageDigest": "sha256:c56607406bffb0bfd58445ba9351f74028f4661f54303ea153e426fbca337754",
   "verdict": "SAFE",
   "verdictLabel": "No blockers observed",
   "observedAt": "2026-08-17T01:39:50.172Z",
@@ -12,7 +12,7 @@
     "completeness": "complete",
     "authorityClaimed": false,
     "reproducibility": {
-      "pageDigest": "sha256:a476a08c680b0a39f37c99929c5a2904efcf36e8e5bec84501b72cbb15322bbf",
+      "pageDigest": "sha256:c56607406bffb0bfd58445ba9351f74028f4661f54303ea153e426fbca337754",
       "observedAt": "2026-08-17T01:39:50.172Z"
     },
     "evidenceLevel": "E2",
@@ -27,7 +27,7 @@
   "scanHistory": [
     {
       "observedAt": "2026-08-17T01:39:50.172Z",
-      "pageDigest": "sha256:a476a08c680b0a39f37c99929c5a2904efcf36e8e5bec84501b72cbb15322bbf",
+      "pageDigest": "sha256:c56607406bffb0bfd58445ba9351f74028f4661f54303ea153e426fbca337754",
       "artifactDigest": "sha256:6dcbfb20003c9a8a3c98fc0d47890fddb6c320bb8d735e7d51f081dd3aa039bb"
     }
   ],
@@ -103,7 +103,7 @@
         "reportKind": "single-target",
         "target": {
           "name": "package",
-          "kind": "cursor-mcp-config",
+          "kind": "mcp-servers",
           "source": "@agentutility/mcp-bestiary",
           "version": "0.1.3",
           "configPath": "official-mcp-registry:ai.agentutility/mcp-bestiary"

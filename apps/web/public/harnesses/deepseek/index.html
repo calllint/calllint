@@ -1,0 +1,148 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>DeepSeek Agent Harness Authority — CallLint</title>
+    <meta
+      name="description"
+      content="Review MCP and agent-tool authority when using DeepSeek through coding agent harnesses. The model can change. The permissions do not."
+    />
+    <link rel="canonical" href="https://calllint.com/harnesses/deepseek/" />
+    <link rel="icon" href="/favicon.png" type="image/png" />
+    <link rel="apple-touch-icon" href="/logo-mark-256.png" />
+    <meta property="og:type" content="article" />
+    <meta property="og:url" content="https://calllint.com/harnesses/deepseek/" />
+    <meta property="og:title" content="DeepSeek Agent Harness Authority — CallLint" />
+    <meta property="og:description" content="The model can change. The permissions do not. Review MCP and agent-tool configuration before enabling them." />
+    <meta property="og:image" content="https://calllint.com/og-image.png" />
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <header class="site-header">
+      <a class="brand-lockup" href="/" aria-label="CallLint home">
+        <img class="brand-mark" src="/logo-mark-128.png" width="40" height="40" alt="" />
+        <span class="brand-name">CallLint</span>
+      </a>
+      <nav class="nav-links" aria-label="Primary">
+        <a href="/#how">How</a>
+        <a href="/#checks">Checks</a>
+        <a href="/#trust">Trust</a>
+        <a href="/agents">For agents</a>
+        <a href="/mcp-security">MCP security</a>
+        <a href="https://github.com/calllint/calllint">GitHub</a>
+      </nav>
+    </header>
+    <main>
+      <section class="section section-narrow topic">
+        <p class="lede">DeepSeek Agent Harness Authority</p>
+        <h1>The model can change. The permissions do not.</h1>
+
+        <p class="prose">DeepSeek can be used through multiple agent harnesses. Replacing Claude with DeepSeek does not itself change the MCP servers, filesystem access, shell commands, API calls, or other authority the harness grants. CallLint inspects supported MCP and agent-tool configuration before execution.</p>
+
+        <h2>Agent Harnesses</h2>
+
+        <div class="harness-grid">
+          <div class="harness-card">
+            <h3><a href="/harnesses/deepseek/workbuddy">WorkBuddy</a></h3>
+            <p class="small">Tencent Cloud Code Assistant</p>
+            <p class="small"><strong>Authority:</strong> MCP servers, extensions</p>
+            <p class="small"><strong>CallLint support:</strong> Native auto-discovery</p>
+            <code class="small">calllint scan --agent workbuddy</code>
+          </div>
+
+          <div class="harness-card">
+            <h3><a href="/harnesses/deepseek/claude-code">Claude Code</a></h3>
+            <p class="small">Anthropic</p>
+            <p class="small"><strong>Authority:</strong> MCP, filesystem, shell</p>
+            <p class="small"><strong>CallLint support:</strong> Native auto-discovery</p>
+            <code class="small">calllint scan --agent claude-code</code>
+          </div>
+
+          <div class="harness-card">
+            <h3><a href="/harnesses/deepseek/qwen-code">Qwen Code</a></h3>
+            <p class="small">Alibaba Cloud</p>
+            <p class="small"><strong>Authority:</strong> MCP servers, tools</p>
+            <p class="small"><strong>CallLint support:</strong> Native auto-discovery</p>
+            <code class="small">calllint scan --agent qwen-code</code>
+          </div>
+
+          <div class="harness-card">
+            <h3><a href="/harnesses/deepseek/openclaw">OpenClaw</a></h3>
+            <p class="small">Open Source</p>
+            <p class="small"><strong>Authority:</strong> MCP, skills, exec</p>
+            <p class="small"><strong>CallLint support:</strong> MCP config only</p>
+            <code class="small">calllint scan --config ~/.openclaw/openclaw.json</code>
+          </div>
+
+          <div class="harness-card">
+            <h3><a href="/harnesses/deepseek/opencode">OpenCode</a></h3>
+            <p class="small">Open Source</p>
+            <p class="small"><strong>Authority:</strong> MCP, tools</p>
+            <p class="small"><strong>CallLint support:</strong> Config path scan</p>
+            <code class="small">calllint scan --config &lt;path&gt;</code>
+          </div>
+
+          <div class="harness-card">
+            <h3><a href="/harnesses/deepseek/codex">Codex</a></h3>
+            <p class="small">GitHub</p>
+            <p class="small"><strong>Authority:</strong> Code generation, API</p>
+            <p class="small"><strong>CallLint support:</strong> Not yet supported</p>
+            <p class="small">See <a href="/trust/">Trust lookup</a> for published servers</p>
+          </div>
+
+          <div class="harness-card">
+            <h3><a href="/harnesses/deepseek/copilot-cli">Copilot CLI</a></h3>
+            <p class="small">GitHub</p>
+            <p class="small"><strong>Authority:</strong> Shell, CLI</p>
+            <p class="small"><strong>CallLint support:</strong> Not yet supported</p>
+            <p class="small">See <a href="/trust/">Trust lookup</a> for published servers</p>
+          </div>
+
+          <div class="harness-card">
+            <h3><a href="/harnesses/deepseek/cline">Cline</a></h3>
+            <p class="small">Open Source (VS Code)</p>
+            <p class="small"><strong>Authority:</strong> VS Code extensions, tools</p>
+            <p class="small"><strong>CallLint support:</strong> Not yet supported</p>
+            <p class="small">See <a href="/trust/">Trust lookup</a> for published servers</p>
+          </div>
+        </div>
+
+        <h2>What CallLint Does</h2>
+        <ul>
+          <li>Statically scans MCP and agent-tool configuration</li>
+          <li>Returns SAFE, REVIEW, BLOCK, or UNKNOWN with evidence</li>
+          <li>Identifies filesystem, shell, network, and API authority</li>
+          <li>Does not execute, install, or connect to servers</li>
+          <li>Works offline by default</li>
+        </ul>
+
+        <h2>What CallLint Does Not Do</h2>
+        <ul>
+          <li>Does not evaluate model safety or capabilities</li>
+          <li>Does not certify harnesses as "safe" or "secure"</li>
+          <li>Does not prove runtime behavior</li>
+          <li>Does not replace code review or security audit</li>
+          <li>UNKNOWN is not SAFE — it means the surface could not be verified statically</li>
+        </ul>
+
+        <div class="callout">CallLint is model-independent and harness-independent. It inspects authority surfaces, not model identity.</div>
+
+        <p class="prose"><a href="/">Learn more about CallLint</a> · <a href="https://github.com/calllint/calllint">GitHub</a> · <a href="/mcp-security">MCP security</a></p>
+      </section>
+    </main>
+    <footer class="site-footer">
+      <div class="footer-brand">
+        <img src="/logo-mark-128.png" width="28" height="28" alt="" />
+        <span>CallLint · evidence-backed verdicts for agent tools</span>
+      </div>
+      <div class="footer-links">
+        <a href="/">Home</a> ·
+        <a href="/mcp-security">MCP security</a> ·
+        <a href="/agent-tool-risk">Agent tool risk</a> ·
+        <a href="/agents">For agents</a> ·
+        <a href="https://github.com/calllint/calllint">GitHub</a>
+      </div>
+    </footer>
+  </body>
+</html>

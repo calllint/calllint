@@ -2,7 +2,7 @@
   "schema": "calllint.trust-page.v0",
   "canonicalName": "mcp-registry/ai.anomalyarmor-armor-mcp",
   "artifactDigest": "sha256:64fe24a390cca7e0fabb4aae6f55764504b9eed7c3926c2ea6f731e6436c1543",
-  "pageDigest": "sha256:8965ef309d78de833d53f2f3e992bed1496918abd6716cb7baf24d6964255c2b",
+  "pageDigest": "sha256:c5f08d1e412e6dfa3fda268d098cf6ccc3acd1e934627200586a028d92b4cf4a",
   "verdict": "REVIEW",
   "verdictLabel": "Review required",
   "observedAt": "2026-08-17T01:39:50.172Z",
@@ -12,7 +12,7 @@
     "completeness": "complete",
     "authorityClaimed": false,
     "reproducibility": {
-      "pageDigest": "sha256:8965ef309d78de833d53f2f3e992bed1496918abd6716cb7baf24d6964255c2b",
+      "pageDigest": "sha256:c5f08d1e412e6dfa3fda268d098cf6ccc3acd1e934627200586a028d92b4cf4a",
       "observedAt": "2026-08-17T01:39:50.172Z"
     },
     "evidenceLevel": "E2",
@@ -27,7 +27,7 @@
   "scanHistory": [
     {
       "observedAt": "2026-08-17T01:39:50.172Z",
-      "pageDigest": "sha256:8965ef309d78de833d53f2f3e992bed1496918abd6716cb7baf24d6964255c2b",
+      "pageDigest": "sha256:c5f08d1e412e6dfa3fda268d098cf6ccc3acd1e934627200586a028d92b4cf4a",
       "artifactDigest": "sha256:64fe24a390cca7e0fabb4aae6f55764504b9eed7c3926c2ea6f731e6436c1543"
     }
   ],
@@ -118,7 +118,7 @@
         "reportKind": "single-target",
         "target": {
           "name": "package",
-          "kind": "cursor-mcp-config",
+          "kind": "mcp-servers",
           "source": "armor-mcp",
           "version": "0.6.1",
           "configPath": "official-mcp-registry:ai.anomalyarmor/armor-mcp"
@@ -157,7 +157,7 @@
         "reportKind": "single-target",
         "target": {
           "name": "remote",
-          "kind": "cursor-mcp-config",
+          "kind": "mcp-servers",
           "source": "https://mcp.anomalyarmor.ai/mcp",
           "configPath": "official-mcp-registry:ai.anomalyarmor/armor-mcp"
         },

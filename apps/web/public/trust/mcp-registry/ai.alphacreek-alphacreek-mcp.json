@@ -2,7 +2,7 @@
   "schema": "calllint.trust-page.v0",
   "canonicalName": "mcp-registry/ai.alphacreek-alphacreek-mcp",
   "artifactDigest": "sha256:635e54b2b296cc1e347b43fa9c3a4d4bf53549932bf0fbf3c0b271f7892f4eb5",
-  "pageDigest": "sha256:b5665021355f49d0d4233b85d790d7457fc26bf74eb469f10b74cc04cc70a67b",
+  "pageDigest": "sha256:48ac8a099884d021cecbca3b2ddd5e5f40b9fe18103a8f14c162daa88ff97a24",
   "verdict": "REVIEW",
   "verdictLabel": "Review required",
   "observedAt": "2026-08-17T01:39:50.172Z",
@@ -12,7 +12,7 @@
     "completeness": "complete",
     "authorityClaimed": false,
     "reproducibility": {
-      "pageDigest": "sha256:b5665021355f49d0d4233b85d790d7457fc26bf74eb469f10b74cc04cc70a67b",
+      "pageDigest": "sha256:48ac8a099884d021cecbca3b2ddd5e5f40b9fe18103a8f14c162daa88ff97a24",
       "observedAt": "2026-08-17T01:39:50.172Z"
     },
     "evidenceLevel": "E2",
@@ -27,7 +27,7 @@
   "scanHistory": [
     {
       "observedAt": "2026-08-17T01:39:50.172Z",
-      "pageDigest": "sha256:b5665021355f49d0d4233b85d790d7457fc26bf74eb469f10b74cc04cc70a67b",
+      "pageDigest": "sha256:48ac8a099884d021cecbca3b2ddd5e5f40b9fe18103a8f14c162daa88ff97a24",
       "artifactDigest": "sha256:635e54b2b296cc1e347b43fa9c3a4d4bf53549932bf0fbf3c0b271f7892f4eb5"
     }
   ],
@@ -104,7 +104,7 @@
         "reportKind": "single-target",
         "target": {
           "name": "remote",
-          "kind": "cursor-mcp-config",
+          "kind": "mcp-servers",
           "source": "https://mcp.alphacreek.ai/mcp",
           "configPath": "official-mcp-registry:ai.alphacreek/alphacreek-mcp"
         },

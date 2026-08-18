@@ -2,7 +2,7 @@
   "schema": "calllint.trust-page.v0",
   "canonicalName": "mcp-registry/ai.agenticaffiliate-affiliate-networks-mcp",
   "artifactDigest": "sha256:13478225665f07abb592178f4ac0f2c91a988729abe605c71543a4dd8951546d",
-  "pageDigest": "sha256:15402642561401e284cd724ce17afd25356ad0ba10cfd61556858aa0e046cda7",
+  "pageDigest": "sha256:739e634a653174472a382054a8a1d66bcfaed798fa211e73ac0b847ebafb9a6e",
   "verdict": "REVIEW",
   "verdictLabel": "Review required",
   "observedAt": "2026-08-17T01:39:50.172Z",
@@ -12,7 +12,7 @@
     "completeness": "complete",
     "authorityClaimed": false,
     "reproducibility": {
-      "pageDigest": "sha256:15402642561401e284cd724ce17afd25356ad0ba10cfd61556858aa0e046cda7",
+      "pageDigest": "sha256:739e634a653174472a382054a8a1d66bcfaed798fa211e73ac0b847ebafb9a6e",
       "observedAt": "2026-08-17T01:39:50.172Z"
     },
     "evidenceLevel": "E2",
@@ -27,7 +27,7 @@
   "scanHistory": [
     {
       "observedAt": "2026-08-17T01:39:50.172Z",
-      "pageDigest": "sha256:15402642561401e284cd724ce17afd25356ad0ba10cfd61556858aa0e046cda7",
+      "pageDigest": "sha256:739e634a653174472a382054a8a1d66bcfaed798fa211e73ac0b847ebafb9a6e",
       "artifactDigest": "sha256:13478225665f07abb592178f4ac0f2c91a988729abe605c71543a4dd8951546d"
     }
   ],
@@ -118,7 +118,7 @@
         "reportKind": "single-target",
         "target": {
           "name": "package",
-          "kind": "cursor-mcp-config",
+          "kind": "mcp-servers",
           "source": "affiliate-networks-mcp",
           "version": "0.19.0",
           "configPath": "official-mcp-registry:ai.agenticaffiliate/affiliate-networks-mcp"
@@ -157,7 +157,7 @@
         "reportKind": "single-target",
         "target": {
           "name": "remote",
-          "kind": "cursor-mcp-config",
+          "kind": "mcp-servers",
           "source": "https://mcp.agenticaffiliate.ai/mcp",
           "configPath": "official-mcp-registry:ai.agenticaffiliate/affiliate-networks-mcp"
         },

@@ -2,7 +2,7 @@
   "schema": "calllint.trust-page.v0",
   "canonicalName": "mcp-registry/ai.atdev-supershopping",
   "artifactDigest": "sha256:d83c1e7501784c04b684b052f9f63645e3489e28a188a43f55b5e7a5afe87cd2",
-  "pageDigest": "sha256:37bafa9de5ecb095e2e0b2b2cb999d1b02e9f941cff4746522f9f0618fa1b3e2",
+  "pageDigest": "sha256:2055a496b95296e13cb7d8bfe35639cb7131fbbc858668fe77583f7e7b9a1473",
   "verdict": "REVIEW",
   "verdictLabel": "Review required",
   "observedAt": "2026-08-17T01:39:50.172Z",
@@ -12,7 +12,7 @@
     "completeness": "complete",
     "authorityClaimed": false,
     "reproducibility": {
-      "pageDigest": "sha256:37bafa9de5ecb095e2e0b2b2cb999d1b02e9f941cff4746522f9f0618fa1b3e2",
+      "pageDigest": "sha256:2055a496b95296e13cb7d8bfe35639cb7131fbbc858668fe77583f7e7b9a1473",
       "observedAt": "2026-08-17T01:39:50.172Z"
     },
     "evidenceLevel": "E2",
@@ -27,7 +27,7 @@
   "scanHistory": [
     {
       "observedAt": "2026-08-17T01:39:50.172Z",
-      "pageDigest": "sha256:37bafa9de5ecb095e2e0b2b2cb999d1b02e9f941cff4746522f9f0618fa1b3e2",
+      "pageDigest": "sha256:2055a496b95296e13cb7d8bfe35639cb7131fbbc858668fe77583f7e7b9a1473",
       "artifactDigest": "sha256:d83c1e7501784c04b684b052f9f63645e3489e28a188a43f55b5e7a5afe87cd2"
     }
   ],
@@ -104,7 +104,7 @@
         "reportKind": "single-target",
         "target": {
           "name": "remote",
-          "kind": "cursor-mcp-config",
+          "kind": "mcp-servers",
           "source": "https://supershopping-mcp.atdev.ai/mcp",
           "configPath": "official-mcp-registry:ai.atdev/supershopping"
         },

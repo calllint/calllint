@@ -2,7 +2,7 @@
   "schema": "calllint.trust-page.v0",
   "canonicalName": "calllint-fixtures/unknown-unrecognized-shape",
   "artifactDigest": "sha256:1f94b03fad0165713094e233104b57e21bba31c3edfb56728e44eb6dd0f2ca42",
-  "pageDigest": "sha256:d728959b5a5620380f50b5d5dfc03f4a308e69b8a55e9bd4ac36d9502d26d3d1",
+  "pageDigest": "sha256:baf0da42ffd770d2723affbcc0aa93985cfc34898e0c33403d444bc90988bbb9",
   "verdict": "UNKNOWN",
   "verdictLabel": "Insufficient evidence",
   "observedAt": "1970-01-01T00:00:00.000Z",
@@ -12,7 +12,7 @@
     "completeness": "complete",
     "authorityClaimed": false,
     "reproducibility": {
-      "pageDigest": "sha256:d728959b5a5620380f50b5d5dfc03f4a308e69b8a55e9bd4ac36d9502d26d3d1",
+      "pageDigest": "sha256:baf0da42ffd770d2723affbcc0aa93985cfc34898e0c33403d444bc90988bbb9",
       "observedAt": "1970-01-01T00:00:00.000Z"
     },
     "evidenceLevel": "E2",
@@ -27,7 +27,7 @@
   "scanHistory": [
     {
       "observedAt": "1970-01-01T00:00:00.000Z",
-      "pageDigest": "sha256:d728959b5a5620380f50b5d5dfc03f4a308e69b8a55e9bd4ac36d9502d26d3d1",
+      "pageDigest": "sha256:baf0da42ffd770d2723affbcc0aa93985cfc34898e0c33403d444bc90988bbb9",
       "artifactDigest": "sha256:1f94b03fad0165713094e233104b57e21bba31c3edfb56728e44eb6dd0f2ca42"
     }
   ],
@@ -88,7 +88,7 @@
         "reportKind": "single-target",
         "target": {
           "name": "custom-remote",
-          "kind": "cursor-mcp-config",
+          "kind": "mcp-servers",
           "configPath": "unknown-unrecognized-shape.json"
         },
         "verdict": "UNKNOWN",

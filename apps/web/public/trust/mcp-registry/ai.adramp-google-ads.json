@@ -2,7 +2,7 @@
   "schema": "calllint.trust-page.v0",
   "canonicalName": "mcp-registry/ai.adramp-google-ads",
   "artifactDigest": "sha256:e654a8dcd35ee9c48addce35e458ca33f64f255ec817dd77f281158bbd13efed",
-  "pageDigest": "sha256:8d6d27727dcc7aa3136d04160cdf72458830e3434eaa0a49252e412ed52254ec",
+  "pageDigest": "sha256:5a7c57b3bd3453d03a3d78862fec69e2aa3b0a77183277473e547be0bb25e803",
   "verdict": "REVIEW",
   "verdictLabel": "Review required",
   "observedAt": "2026-08-17T01:39:50.172Z",
@@ -12,7 +12,7 @@
     "completeness": "complete",
     "authorityClaimed": false,
     "reproducibility": {
-      "pageDigest": "sha256:8d6d27727dcc7aa3136d04160cdf72458830e3434eaa0a49252e412ed52254ec",
+      "pageDigest": "sha256:5a7c57b3bd3453d03a3d78862fec69e2aa3b0a77183277473e547be0bb25e803",
       "observedAt": "2026-08-17T01:39:50.172Z"
     },
     "evidenceLevel": "E2",
@@ -27,7 +27,7 @@
   "scanHistory": [
     {
       "observedAt": "2026-08-17T01:39:50.172Z",
-      "pageDigest": "sha256:8d6d27727dcc7aa3136d04160cdf72458830e3434eaa0a49252e412ed52254ec",
+      "pageDigest": "sha256:5a7c57b3bd3453d03a3d78862fec69e2aa3b0a77183277473e547be0bb25e803",
       "artifactDigest": "sha256:e654a8dcd35ee9c48addce35e458ca33f64f255ec817dd77f281158bbd13efed"
     }
   ],
@@ -104,7 +104,7 @@
         "reportKind": "single-target",
         "target": {
           "name": "remote",
-          "kind": "cursor-mcp-config",
+          "kind": "mcp-servers",
           "source": "https://mcp.adramp.ai",
           "configPath": "official-mcp-registry:ai.adramp/google-ads"
         },

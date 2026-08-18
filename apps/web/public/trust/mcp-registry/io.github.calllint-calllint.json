@@ -2,7 +2,7 @@
   "schema": "calllint.trust-page.v0",
   "canonicalName": "mcp-registry/io.github.calllint-calllint",
   "artifactDigest": "sha256:23327771ad88957d59c5e72011d84504c7a737a297560277f358d12b8bd3a98b",
-  "pageDigest": "sha256:672d3036e3f83077bd8cde289df951eae2f02e8e472b50d7695d1dc3c5276f8d",
+  "pageDigest": "sha256:5ab8bd007b10e91c387129ebbe7d47a96b2e0baa0437d15ca202df75e4d98f7a",
   "verdict": "SAFE",
   "verdictLabel": "No blockers observed",
   "observedAt": "2026-08-17T01:39:50.172Z",
@@ -12,7 +12,7 @@
     "completeness": "complete",
     "authorityClaimed": true,
     "reproducibility": {
-      "pageDigest": "sha256:672d3036e3f83077bd8cde289df951eae2f02e8e472b50d7695d1dc3c5276f8d",
+      "pageDigest": "sha256:5ab8bd007b10e91c387129ebbe7d47a96b2e0baa0437d15ca202df75e4d98f7a",
       "observedAt": "2026-08-17T01:39:50.172Z"
     },
     "evidenceLevel": "E2",
@@ -32,7 +32,7 @@
   "scanHistory": [
     {
       "observedAt": "2026-08-17T01:39:50.172Z",
-      "pageDigest": "sha256:672d3036e3f83077bd8cde289df951eae2f02e8e472b50d7695d1dc3c5276f8d",
+      "pageDigest": "sha256:5ab8bd007b10e91c387129ebbe7d47a96b2e0baa0437d15ca202df75e4d98f7a",
       "artifactDigest": "sha256:23327771ad88957d59c5e72011d84504c7a737a297560277f358d12b8bd3a98b"
     }
   ],
@@ -108,7 +108,7 @@
         "reportKind": "single-target",
         "target": {
           "name": "package",
-          "kind": "cursor-mcp-config",
+          "kind": "mcp-servers",
           "source": "calllint-mcp",
           "version": "0.2.0",
           "configPath": "official-mcp-registry:io.github.calllint/calllint"

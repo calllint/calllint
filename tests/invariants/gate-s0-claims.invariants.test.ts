@@ -468,10 +468,11 @@ describe("Gate S0 — every number the record states is derived from the file it
     // 20 → 21 in Workstream P Batch 8 (ADR 0080): `pnpm ledger:presentation:validate`. The count is
     // pinned rather than derived on purpose — a step LEAVING `ci:local` is exactly as much of an
     // event as one arriving, and only a literal reds on the departure.
+    // 21 → 22 in Harness Distribution Surface (H0-H8): `pnpm check:harness-distribution`
     expect(
       steps.length,
-      `S0-OPEN-2's amendment states 21 &&-joined steps; ci:local now has ${steps.length}`,
-    ).toBe(21)
+      `S0-OPEN-2's amendment states 22 &&-joined steps; ci:local now has ${steps.length}`,
+    ).toBe(22)
     // Asserted against the row's LATEST amendment, not the whole row: the 2026-08-09 text says
     // **19** and the first closure says **20**, both left verbatim by this artifact's
     // append-never-edit convention. A `toContain` over the full row would therefore be satisfied by

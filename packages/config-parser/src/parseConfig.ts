@@ -21,9 +21,34 @@ export interface ParsedConfig {
 /** Guess the target kind from a config file path. */
 export function kindForPath(path: string): TargetKind {
   const base = basename(path).toLowerCase()
-  if (base.includes("settings")) return "claude-settings"
-  if (base === "mcp.json" || path.includes(".cursor")) return "cursor-mcp-config"
-  return "cursor-mcp-config"
+  const normalized = path.toLowerCase().replace(/\\/g, "/")
+
+  // OpenClaw: ~/.openclaw/openclaw.json
+  if (normalized.includes(".openclaw/openclaw.json")) return "openclaw-config"
+
+  // WorkBuddy: .workbuddy/mcp.json or ~/.workbuddy/mcp.json
+  if (normalized.includes(".workbuddy/mcp.json")) return "mcp-servers"
+
+  // Qwen Code: .qwen/settings.json or ~/.qwen/settings.json
+  if (normalized.includes(".qwen/settings.json")) return "mcp-servers"
+
+  // Claude Code / Claude Desktop: settings.json with Claude in path
+  if (base.includes("settings") && normalized.includes("claude")) return "claude-settings"
+
+  // Cursor: mcp.json in .cursor directory
+  if (base === "mcp.json" && normalized.includes(".cursor")) return "cursor-mcp-config"
+
+  // VS Code
+  if (normalized.includes(".vscode/mcp.json")) return "vscode-mcp-config"
+
+  // Windsurf
+  if (normalized.includes(".windsurf/mcp.json")) return "windsurf-mcp-config"
+
+  // Generic MCP config
+  if (base === "mcp.json") return "mcp-servers"
+
+  // Fallback to generic MCP
+  return "mcp-servers"
 }
 
 /** Parse a config from raw text (used for inline input and tests). */

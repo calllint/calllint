@@ -2,7 +2,7 @@
   "schema": "calllint.trust-page.v0",
   "canonicalName": "mcp-registry/ai.arketo-arketo",
   "artifactDigest": "sha256:3a47fd34212688e23e8b2442a14199bb7bd0e4e72968c698f704334b90f7a2a9",
-  "pageDigest": "sha256:67eeb3afa9741ba0219c230f2da888ea70a22039bf2a4f63b879ef64faa4a2a2",
+  "pageDigest": "sha256:cedec4454df824e59e9e6d66466415e9b60426a73dfccbef9ceba06a16bd64d2",
   "verdict": "REVIEW",
   "verdictLabel": "Review required",
   "observedAt": "2026-08-17T01:39:50.172Z",
@@ -12,7 +12,7 @@
     "completeness": "complete",
     "authorityClaimed": false,
     "reproducibility": {
-      "pageDigest": "sha256:67eeb3afa9741ba0219c230f2da888ea70a22039bf2a4f63b879ef64faa4a2a2",
+      "pageDigest": "sha256:cedec4454df824e59e9e6d66466415e9b60426a73dfccbef9ceba06a16bd64d2",
       "observedAt": "2026-08-17T01:39:50.172Z"
     },
     "evidenceLevel": "E2",
@@ -27,7 +27,7 @@
   "scanHistory": [
     {
       "observedAt": "2026-08-17T01:39:50.172Z",
-      "pageDigest": "sha256:67eeb3afa9741ba0219c230f2da888ea70a22039bf2a4f63b879ef64faa4a2a2",
+      "pageDigest": "sha256:cedec4454df824e59e9e6d66466415e9b60426a73dfccbef9ceba06a16bd64d2",
       "artifactDigest": "sha256:3a47fd34212688e23e8b2442a14199bb7bd0e4e72968c698f704334b90f7a2a9"
     }
   ],
@@ -104,7 +104,7 @@
         "reportKind": "single-target",
         "target": {
           "name": "remote",
-          "kind": "cursor-mcp-config",
+          "kind": "mcp-servers",
           "source": "https://arketo.ai/api/mcp",
           "configPath": "official-mcp-registry:ai.arketo/arketo"
         },

@@ -2,7 +2,7 @@
   "schema": "calllint.trust-page.v0",
   "canonicalName": "mcp-registry/ai.alpic.mcp-alpic-mcp",
   "artifactDigest": "sha256:1f0a1c11e92c19c7c31a8b7750a27343f6620b56e8dbeee1dbac5b7c1497e9ef",
-  "pageDigest": "sha256:2462a1a5315054f972300d03f5536ac9f000f37b8c82aa244858a62b5c0a6a34",
+  "pageDigest": "sha256:3303a3db7f14958980a127d969ff94de8fa343baebc16882846d4e45ef6cfc94",
   "verdict": "REVIEW",
   "verdictLabel": "Review required",
   "observedAt": "2026-08-17T01:39:50.172Z",
@@ -12,7 +12,7 @@
     "completeness": "complete",
     "authorityClaimed": false,
     "reproducibility": {
-      "pageDigest": "sha256:2462a1a5315054f972300d03f5536ac9f000f37b8c82aa244858a62b5c0a6a34",
+      "pageDigest": "sha256:3303a3db7f14958980a127d969ff94de8fa343baebc16882846d4e45ef6cfc94",
       "observedAt": "2026-08-17T01:39:50.172Z"
     },
     "evidenceLevel": "E2",
@@ -27,7 +27,7 @@
   "scanHistory": [
     {
       "observedAt": "2026-08-17T01:39:50.172Z",
-      "pageDigest": "sha256:2462a1a5315054f972300d03f5536ac9f000f37b8c82aa244858a62b5c0a6a34",
+      "pageDigest": "sha256:3303a3db7f14958980a127d969ff94de8fa343baebc16882846d4e45ef6cfc94",
       "artifactDigest": "sha256:1f0a1c11e92c19c7c31a8b7750a27343f6620b56e8dbeee1dbac5b7c1497e9ef"
     }
   ],
@@ -117,7 +117,7 @@
         "reportKind": "single-target",
         "target": {
           "name": "remote-1",
-          "kind": "cursor-mcp-config",
+          "kind": "mcp-servers",
           "source": "https://mcp.alpic.ai",
           "configPath": "official-mcp-registry:ai.alpic.mcp/alpic-mcp"
         },
@@ -240,7 +240,7 @@
         "reportKind": "single-target",
         "target": {
           "name": "remote-2",
-          "kind": "cursor-mcp-config",
+          "kind": "mcp-servers",
           "source": "https://mcp.alpic.ai",
           "configPath": "official-mcp-registry:ai.alpic.mcp/alpic-mcp"
         },

@@ -2,7 +2,7 @@
   "schema": "calllint.trust-page.v0",
   "canonicalName": "calllint-fixtures/block-docker-bind-broad",
   "artifactDigest": "sha256:cbc3ffe8012988c3dbe4287bb0fc69af9a87b77e00fcd149d4668867f170e1ce",
-  "pageDigest": "sha256:add9c5e76999964090b85d80aa90b0ad6524efda9df04167d49ce75ba34e69a3",
+  "pageDigest": "sha256:0e84449c8ddd0842f5256c12a7c06d5d15a67b45e5415268bee73e04d0a6217f",
   "verdict": "BLOCK",
   "verdictLabel": "Blocked by policy",
   "observedAt": "1970-01-01T00:00:00.000Z",
@@ -12,7 +12,7 @@
     "completeness": "complete",
     "authorityClaimed": false,
     "reproducibility": {
-      "pageDigest": "sha256:add9c5e76999964090b85d80aa90b0ad6524efda9df04167d49ce75ba34e69a3",
+      "pageDigest": "sha256:0e84449c8ddd0842f5256c12a7c06d5d15a67b45e5415268bee73e04d0a6217f",
       "observedAt": "1970-01-01T00:00:00.000Z"
     },
     "evidenceLevel": "E2",
@@ -27,7 +27,7 @@
   "scanHistory": [
     {
       "observedAt": "1970-01-01T00:00:00.000Z",
-      "pageDigest": "sha256:add9c5e76999964090b85d80aa90b0ad6524efda9df04167d49ce75ba34e69a3",
+      "pageDigest": "sha256:0e84449c8ddd0842f5256c12a7c06d5d15a67b45e5415268bee73e04d0a6217f",
       "artifactDigest": "sha256:cbc3ffe8012988c3dbe4287bb0fc69af9a87b77e00fcd149d4668867f170e1ce"
     }
   ],
@@ -103,7 +103,7 @@
         "reportKind": "single-target",
         "target": {
           "name": "filesystem",
-          "kind": "cursor-mcp-config",
+          "kind": "mcp-servers",
           "configPath": "block-docker-bind-broad.json"
         },
         "verdict": "BLOCK",

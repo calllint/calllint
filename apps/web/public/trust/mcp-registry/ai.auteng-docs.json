@@ -2,7 +2,7 @@
   "schema": "calllint.trust-page.v0",
   "canonicalName": "mcp-registry/ai.auteng-docs",
   "artifactDigest": "sha256:836cd5629382bbd92246d2da58739d1191eddec9b086513147170aec6b85bc1a",
-  "pageDigest": "sha256:cf511dab2a04d2b2c5e1deac52319cbef68f45b3202b6a47ac64c6bbec29dfe4",
+  "pageDigest": "sha256:f95e9efb4ff919d2791ad79f93c4632788a46d589830c5dfc79777a21794ecb5",
   "verdict": "REVIEW",
   "verdictLabel": "Review required",
   "observedAt": "2026-08-17T01:39:50.172Z",
@@ -12,7 +12,7 @@
     "completeness": "complete",
     "authorityClaimed": false,
     "reproducibility": {
-      "pageDigest": "sha256:cf511dab2a04d2b2c5e1deac52319cbef68f45b3202b6a47ac64c6bbec29dfe4",
+      "pageDigest": "sha256:f95e9efb4ff919d2791ad79f93c4632788a46d589830c5dfc79777a21794ecb5",
       "observedAt": "2026-08-17T01:39:50.172Z"
     },
     "evidenceLevel": "E2",
@@ -27,7 +27,7 @@
   "scanHistory": [
     {
       "observedAt": "2026-08-17T01:39:50.172Z",
-      "pageDigest": "sha256:cf511dab2a04d2b2c5e1deac52319cbef68f45b3202b6a47ac64c6bbec29dfe4",
+      "pageDigest": "sha256:f95e9efb4ff919d2791ad79f93c4632788a46d589830c5dfc79777a21794ecb5",
       "artifactDigest": "sha256:836cd5629382bbd92246d2da58739d1191eddec9b086513147170aec6b85bc1a"
     }
   ],
@@ -104,7 +104,7 @@
         "reportKind": "single-target",
         "target": {
           "name": "remote",
-          "kind": "cursor-mcp-config",
+          "kind": "mcp-servers",
           "source": "https://auteng.ai/mcp/docs",
           "configPath": "official-mcp-registry:ai.auteng/docs"
         },

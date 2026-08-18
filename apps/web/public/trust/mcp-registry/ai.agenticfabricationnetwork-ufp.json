@@ -2,7 +2,7 @@
   "schema": "calllint.trust-page.v0",
   "canonicalName": "mcp-registry/ai.agenticfabricationnetwork-ufp",
   "artifactDigest": "sha256:68aa642d2cd1eefc7ea8794cca6f808cf15ffa908a3cfea8b6bcd9f6bbb7ec67",
-  "pageDigest": "sha256:5df6dcd9d66ba320eb9664713474e43ebcf4cfe9092de0849199470f655d1a4f",
+  "pageDigest": "sha256:a2a4ffd2aade30f7cdc5e0af3fc9a14273d66568dcc53b2c07ed9106f4d2689d",
   "verdict": "REVIEW",
   "verdictLabel": "Review required",
   "observedAt": "2026-08-17T01:39:50.172Z",
@@ -12,7 +12,7 @@
     "completeness": "complete",
     "authorityClaimed": false,
     "reproducibility": {
-      "pageDigest": "sha256:5df6dcd9d66ba320eb9664713474e43ebcf4cfe9092de0849199470f655d1a4f",
+      "pageDigest": "sha256:a2a4ffd2aade30f7cdc5e0af3fc9a14273d66568dcc53b2c07ed9106f4d2689d",
       "observedAt": "2026-08-17T01:39:50.172Z"
     },
     "evidenceLevel": "E2",
@@ -27,7 +27,7 @@
   "scanHistory": [
     {
       "observedAt": "2026-08-17T01:39:50.172Z",
-      "pageDigest": "sha256:5df6dcd9d66ba320eb9664713474e43ebcf4cfe9092de0849199470f655d1a4f",
+      "pageDigest": "sha256:a2a4ffd2aade30f7cdc5e0af3fc9a14273d66568dcc53b2c07ed9106f4d2689d",
       "artifactDigest": "sha256:68aa642d2cd1eefc7ea8794cca6f808cf15ffa908a3cfea8b6bcd9f6bbb7ec67"
     }
   ],
@@ -104,7 +104,7 @@
         "reportKind": "single-target",
         "target": {
           "name": "remote",
-          "kind": "cursor-mcp-config",
+          "kind": "mcp-servers",
           "source": "https://agenticfabricationnetwork.ai/mcp",
           "configPath": "official-mcp-registry:ai.agenticfabricationnetwork/ufp"
         },

@@ -9,22 +9,22 @@ describe("bootstrap", () => {
     registry.clear()
   })
 
-  it("should auto-register P0 + P1 extractors", () => {
+  it("should auto-register P0 + P1 + P3 (harness distribution) extractors", () => {
     // Bootstrap should have been called during module import
     bootstrapExtractors()
 
     const registered = registry.getAll()
-    expect(registered).toHaveLength(5)
+    expect(registered).toHaveLength(8)
 
     const types = registered.map(e => e.agentType).sort()
-    expect(types).toEqual(["claude-code", "claude-desktop", "cursor", "vscode", "windsurf"])
+    expect(types).toEqual(["claude-code", "claude-desktop", "cursor", "openclaw", "qwen-code", "vscode", "windsurf", "workbuddy"])
   })
 
   it("should register all P0 extractors with correct priority", () => {
     bootstrapExtractors()
 
     const p0Extractors = registry.getByPriority("P0")
-    expect(p0Extractors).toHaveLength(3)
+    expect(p0Extractors).toHaveLength(4) // cursor, claude-code, claude-desktop, workbuddy
 
     for (const extractor of p0Extractors) {
       expect(extractor.priority).toBe("P0")
@@ -35,7 +35,7 @@ describe("bootstrap", () => {
     bootstrapExtractors()
 
     const p1Extractors = registry.getByPriority("P1")
-    expect(p1Extractors).toHaveLength(2)
+    expect(p1Extractors).toHaveLength(3) // vscode, windsurf, qwen-code
 
     for (const extractor of p1Extractors) {
       expect(extractor.priority).toBe("P1")

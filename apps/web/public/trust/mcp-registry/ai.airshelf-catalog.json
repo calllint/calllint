@@ -2,7 +2,7 @@
   "schema": "calllint.trust-page.v0",
   "canonicalName": "mcp-registry/ai.airshelf-catalog",
   "artifactDigest": "sha256:9e4e26d43e1973ee176f3fbda8137659a1738cd0dce4856e43f2281b65a81ce7",
-  "pageDigest": "sha256:b1b6c42077ae3f645eab0336b2658dfabf1078ef27f037e0a739c7a7e5f503b7",
+  "pageDigest": "sha256:eb1262d92eed1e4e218190e901df59a8ab2aa25b04e65bed1a00007ad518dcfb",
   "verdict": "REVIEW",
   "verdictLabel": "Review required",
   "observedAt": "2026-08-17T01:39:50.172Z",
@@ -12,7 +12,7 @@
     "completeness": "complete",
     "authorityClaimed": false,
     "reproducibility": {
-      "pageDigest": "sha256:b1b6c42077ae3f645eab0336b2658dfabf1078ef27f037e0a739c7a7e5f503b7",
+      "pageDigest": "sha256:eb1262d92eed1e4e218190e901df59a8ab2aa25b04e65bed1a00007ad518dcfb",
       "observedAt": "2026-08-17T01:39:50.172Z"
     },
     "evidenceLevel": "E2",
@@ -27,7 +27,7 @@
   "scanHistory": [
     {
       "observedAt": "2026-08-17T01:39:50.172Z",
-      "pageDigest": "sha256:b1b6c42077ae3f645eab0336b2658dfabf1078ef27f037e0a739c7a7e5f503b7",
+      "pageDigest": "sha256:eb1262d92eed1e4e218190e901df59a8ab2aa25b04e65bed1a00007ad518dcfb",
       "artifactDigest": "sha256:9e4e26d43e1973ee176f3fbda8137659a1738cd0dce4856e43f2281b65a81ce7"
     }
   ],
@@ -104,7 +104,7 @@
         "reportKind": "single-target",
         "target": {
           "name": "remote",
-          "kind": "cursor-mcp-config",
+          "kind": "mcp-servers",
           "source": "https://mcp.airshelf.ai/mcp",
           "configPath": "official-mcp-registry:ai.airshelf/catalog"
         },

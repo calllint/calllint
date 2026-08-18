@@ -2,7 +2,7 @@
   "schema": "calllint.trust-page.v0",
   "canonicalName": "mcp-registry/ai.autoblocks-ctxl",
   "artifactDigest": "sha256:7777020f96255e0002c9c7ad3c205fcfc983bbfda87f06dcb9b20036e7f61d88",
-  "pageDigest": "sha256:a60b3d0887989958f7b9c1222db6da7cba7267cf3bdc52593b04809afafc552a",
+  "pageDigest": "sha256:7d4b0fc1d7508cb78945fec1e7daf193a17a0e47a6f1f3f1414639fa000d4330",
   "verdict": "SAFE",
   "verdictLabel": "No blockers observed",
   "observedAt": "2026-08-17T01:39:50.172Z",
@@ -12,7 +12,7 @@
     "completeness": "complete",
     "authorityClaimed": false,
     "reproducibility": {
-      "pageDigest": "sha256:a60b3d0887989958f7b9c1222db6da7cba7267cf3bdc52593b04809afafc552a",
+      "pageDigest": "sha256:7d4b0fc1d7508cb78945fec1e7daf193a17a0e47a6f1f3f1414639fa000d4330",
       "observedAt": "2026-08-17T01:39:50.172Z"
     },
     "evidenceLevel": "E2",
@@ -27,7 +27,7 @@
   "scanHistory": [
     {
       "observedAt": "2026-08-17T01:39:50.172Z",
-      "pageDigest": "sha256:a60b3d0887989958f7b9c1222db6da7cba7267cf3bdc52593b04809afafc552a",
+      "pageDigest": "sha256:7d4b0fc1d7508cb78945fec1e7daf193a17a0e47a6f1f3f1414639fa000d4330",
       "artifactDigest": "sha256:7777020f96255e0002c9c7ad3c205fcfc983bbfda87f06dcb9b20036e7f61d88"
     }
   ],
@@ -103,7 +103,7 @@
         "reportKind": "single-target",
         "target": {
           "name": "package",
-          "kind": "cursor-mcp-config",
+          "kind": "mcp-servers",
           "source": "ctxl",
           "version": "0.0.2",
           "configPath": "official-mcp-registry:ai.autoblocks/ctxl"

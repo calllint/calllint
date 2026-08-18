@@ -2,7 +2,7 @@
   "schema": "calllint.trust-page.v0",
   "canonicalName": "mcp-registry/ai.adplane-google-ads",
   "artifactDigest": "sha256:f17f56a2ccc24fe444f00c9a63a17fba83f1c58b61a9e4b07b26e638517650af",
-  "pageDigest": "sha256:ace7cefd335adbace05722988e6471c1f44183ae28a597d2f4341da123584998",
+  "pageDigest": "sha256:e1a523aa091b632b8fe61528c67000865c07e150dcb1b725576952ab91ba66e8",
   "verdict": "REVIEW",
   "verdictLabel": "Review required",
   "observedAt": "2026-08-17T01:39:50.172Z",
@@ -12,7 +12,7 @@
     "completeness": "complete",
     "authorityClaimed": false,
     "reproducibility": {
-      "pageDigest": "sha256:ace7cefd335adbace05722988e6471c1f44183ae28a597d2f4341da123584998",
+      "pageDigest": "sha256:e1a523aa091b632b8fe61528c67000865c07e150dcb1b725576952ab91ba66e8",
       "observedAt": "2026-08-17T01:39:50.172Z"
     },
     "evidenceLevel": "E2",
@@ -27,7 +27,7 @@
   "scanHistory": [
     {
       "observedAt": "2026-08-17T01:39:50.172Z",
-      "pageDigest": "sha256:ace7cefd335adbace05722988e6471c1f44183ae28a597d2f4341da123584998",
+      "pageDigest": "sha256:e1a523aa091b632b8fe61528c67000865c07e150dcb1b725576952ab91ba66e8",
       "artifactDigest": "sha256:f17f56a2ccc24fe444f00c9a63a17fba83f1c58b61a9e4b07b26e638517650af"
     }
   ],
@@ -104,7 +104,7 @@
         "reportKind": "single-target",
         "target": {
           "name": "remote",
-          "kind": "cursor-mcp-config",
+          "kind": "mcp-servers",
           "source": "https://mcp.adplane.ai",
           "configPath": "official-mcp-registry:ai.adplane/google-ads"
         },

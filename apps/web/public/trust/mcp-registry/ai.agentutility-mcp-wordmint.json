@@ -2,7 +2,7 @@
   "schema": "calllint.trust-page.v0",
   "canonicalName": "mcp-registry/ai.agentutility-mcp-wordmint",
   "artifactDigest": "sha256:b2b6708cf0800e7e571f2245b8aa487e40fc1870fa5ed7b153515980ed16dba9",
-  "pageDigest": "sha256:f3eb98fa28c3737fea6980cc2d35783b46b6bcc4f923c8beca2e038607382413",
+  "pageDigest": "sha256:323101c577d40696ec4a8a3118e326ac91d8e54626977a2842e924fe5a71d105",
   "verdict": "SAFE",
   "verdictLabel": "No blockers observed",
   "observedAt": "2026-08-17T01:39:50.172Z",
@@ -12,7 +12,7 @@
     "completeness": "complete",
     "authorityClaimed": false,
     "reproducibility": {
-      "pageDigest": "sha256:f3eb98fa28c3737fea6980cc2d35783b46b6bcc4f923c8beca2e038607382413",
+      "pageDigest": "sha256:323101c577d40696ec4a8a3118e326ac91d8e54626977a2842e924fe5a71d105",
       "observedAt": "2026-08-17T01:39:50.172Z"
     },
     "evidenceLevel": "E2",
@@ -27,7 +27,7 @@
   "scanHistory": [
     {
       "observedAt": "2026-08-17T01:39:50.172Z",
-      "pageDigest": "sha256:f3eb98fa28c3737fea6980cc2d35783b46b6bcc4f923c8beca2e038607382413",
+      "pageDigest": "sha256:323101c577d40696ec4a8a3118e326ac91d8e54626977a2842e924fe5a71d105",
       "artifactDigest": "sha256:b2b6708cf0800e7e571f2245b8aa487e40fc1870fa5ed7b153515980ed16dba9"
     }
   ],
@@ -103,7 +103,7 @@
         "reportKind": "single-target",
         "target": {
           "name": "package",
-          "kind": "cursor-mcp-config",
+          "kind": "mcp-servers",
           "source": "@agentutility/mcp-wordmint",
           "version": "0.16.1",
           "configPath": "official-mcp-registry:ai.agentutility/mcp-wordmint"

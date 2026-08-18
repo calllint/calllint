@@ -2,7 +2,7 @@
   "schema": "calllint.trust-page.v0",
   "canonicalName": "mcp-registry/ai.autoblocks-ctxl-mcp",
   "artifactDigest": "sha256:dedfb3997cf74a10dde545777e99cb650aade2d9bf04ff9c1006c32b2d4f1ede",
-  "pageDigest": "sha256:ae6317114ebecd20f22e6bdd076c1969a920d48a8fde036b6b038c4d8715fb3f",
+  "pageDigest": "sha256:43b6ee5384628df30b49ed2560159f816f41bd0a29d1313e76da9b43807bcf43",
   "verdict": "SAFE",
   "verdictLabel": "No blockers observed",
   "observedAt": "2026-08-17T01:39:50.172Z",
@@ -12,7 +12,7 @@
     "completeness": "complete",
     "authorityClaimed": false,
     "reproducibility": {
-      "pageDigest": "sha256:ae6317114ebecd20f22e6bdd076c1969a920d48a8fde036b6b038c4d8715fb3f",
+      "pageDigest": "sha256:43b6ee5384628df30b49ed2560159f816f41bd0a29d1313e76da9b43807bcf43",
       "observedAt": "2026-08-17T01:39:50.172Z"
     },
     "evidenceLevel": "E2",
@@ -27,7 +27,7 @@
   "scanHistory": [
     {
       "observedAt": "2026-08-17T01:39:50.172Z",
-      "pageDigest": "sha256:ae6317114ebecd20f22e6bdd076c1969a920d48a8fde036b6b038c4d8715fb3f",
+      "pageDigest": "sha256:43b6ee5384628df30b49ed2560159f816f41bd0a29d1313e76da9b43807bcf43",
       "artifactDigest": "sha256:dedfb3997cf74a10dde545777e99cb650aade2d9bf04ff9c1006c32b2d4f1ede"
     }
   ],
@@ -103,7 +103,7 @@
         "reportKind": "single-target",
         "target": {
           "name": "package",
-          "kind": "cursor-mcp-config",
+          "kind": "mcp-servers",
           "source": "ctxl-mcp",
           "version": "0.0.2",
           "configPath": "official-mcp-registry:ai.autoblocks/ctxl-mcp"

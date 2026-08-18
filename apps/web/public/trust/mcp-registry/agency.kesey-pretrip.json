@@ -2,7 +2,7 @@
   "schema": "calllint.trust-page.v0",
   "canonicalName": "mcp-registry/agency.kesey-pretrip",
   "artifactDigest": "sha256:48180f8f9eab49664310736b3b4841a78fd013f5ec1e11230cad6ceaa95f8217",
-  "pageDigest": "sha256:c18657e8a5844eef4fadc62e9a87da00e479b7ba8317d638681ccc0d126e1958",
+  "pageDigest": "sha256:4bbad90fa65e89c2ab6733b54f0d542042ad6d42dd4ae047ea8ae2eb5cd115c4",
   "verdict": "SAFE",
   "verdictLabel": "No blockers observed",
   "observedAt": "2026-08-17T01:39:50.172Z",
@@ -12,7 +12,7 @@
     "completeness": "complete",
     "authorityClaimed": false,
     "reproducibility": {
-      "pageDigest": "sha256:c18657e8a5844eef4fadc62e9a87da00e479b7ba8317d638681ccc0d126e1958",
+      "pageDigest": "sha256:4bbad90fa65e89c2ab6733b54f0d542042ad6d42dd4ae047ea8ae2eb5cd115c4",
       "observedAt": "2026-08-17T01:39:50.172Z"
     },
     "evidenceLevel": "E2",
@@ -27,7 +27,7 @@
   "scanHistory": [
     {
       "observedAt": "2026-08-17T01:39:50.172Z",
-      "pageDigest": "sha256:c18657e8a5844eef4fadc62e9a87da00e479b7ba8317d638681ccc0d126e1958",
+      "pageDigest": "sha256:4bbad90fa65e89c2ab6733b54f0d542042ad6d42dd4ae047ea8ae2eb5cd115c4",
       "artifactDigest": "sha256:48180f8f9eab49664310736b3b4841a78fd013f5ec1e11230cad6ceaa95f8217"
     }
   ],
@@ -103,7 +103,7 @@
         "reportKind": "single-target",
         "target": {
           "name": "package",
-          "kind": "cursor-mcp-config",
+          "kind": "mcp-servers",
           "source": "pretrip-mcp",
           "version": "1.0.1",
           "configPath": "official-mcp-registry:agency.kesey/pretrip"

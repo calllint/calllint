@@ -2,7 +2,7 @@
   "schema": "calllint.trust-page.v0",
   "canonicalName": "mcp-registry/ai.adoraads-beauty",
   "artifactDigest": "sha256:6a3cb413304c94adec850c54429773aebc77b9715d08d2399358818160426a15",
-  "pageDigest": "sha256:43b9cb74429ad8ba832cd23f7d386d54f1c26f10bccec18642e5a431bf46f27c",
+  "pageDigest": "sha256:b59e7390c1490447b097991bd5ccd43e5d166a4ae5fe65f51dea68d1f7d207b7",
   "verdict": "REVIEW",
   "verdictLabel": "Review required",
   "observedAt": "2026-08-17T01:39:50.172Z",
@@ -12,7 +12,7 @@
     "completeness": "complete",
     "authorityClaimed": false,
     "reproducibility": {
-      "pageDigest": "sha256:43b9cb74429ad8ba832cd23f7d386d54f1c26f10bccec18642e5a431bf46f27c",
+      "pageDigest": "sha256:b59e7390c1490447b097991bd5ccd43e5d166a4ae5fe65f51dea68d1f7d207b7",
       "observedAt": "2026-08-17T01:39:50.172Z"
     },
     "evidenceLevel": "E2",
@@ -27,7 +27,7 @@
   "scanHistory": [
     {
       "observedAt": "2026-08-17T01:39:50.172Z",
-      "pageDigest": "sha256:43b9cb74429ad8ba832cd23f7d386d54f1c26f10bccec18642e5a431bf46f27c",
+      "pageDigest": "sha256:b59e7390c1490447b097991bd5ccd43e5d166a4ae5fe65f51dea68d1f7d207b7",
       "artifactDigest": "sha256:6a3cb413304c94adec850c54429773aebc77b9715d08d2399358818160426a15"
     }
   ],
@@ -104,7 +104,7 @@
         "reportKind": "single-target",
         "target": {
           "name": "remote",
-          "kind": "cursor-mcp-config",
+          "kind": "mcp-servers",
           "source": "https://mcp.adoraads.ai/beauty",
           "configPath": "official-mcp-registry:ai.adoraads/beauty"
         },
