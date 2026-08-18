@@ -372,9 +372,15 @@ importers:
 
   packages/telemetry-contract:
     devDependencies:
-      ajv:
-        specifier: ^8.12.0
-        version: 8.20.0
+      '@types/node':
+        specifier: ^20.11.0
+        version: 20.19.43
+      typescript:
+        specifier: ^5.3.3
+        version: 5.9.3
+      vitest:
+        specifier: ^1.2.0
+        version: 1.6.1(@types/node@20.19.43)
 
   packages/telemetry-emit:
     dependencies:

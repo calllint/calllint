@@ -242,15 +242,21 @@ describe("ADR 0061 — the store is unpublishable, and the publishable SET is pi
     expect(PKGS.get("@calllint/adoption-index")?.manifest).toMatchObject({ private: true })
   })
 
-  it("the publishable set is EXACTLY the four known packages", () => {
+  it("the publishable set is EXACTLY the five known packages", () => {
     // Measured, because nothing else in the repo asserts it. `package-smoke.mjs` and
     // `mcp-pack-smoke.mjs` each validate ONE bundle they are handed by name — neither
     // enumerates the workspace, so a package that silently became publishable is invisible
     // to both. They also run outside `ci:local` (only in the 3-OS matrix), which is the
     // #240 trap: a local run cannot reproduce the failure. This assertion is a SET, not a
-    // count, so a swap that keeps the size at four still fails.
+    // count, so a swap that keeps the size at five still fails.
     const publishable = [...PKGS.entries()].filter(([, v]) => v.manifest.private !== true).map(([n]) => n).sort()
-    expect(publishable).toEqual(["@calllint/credits", "@calllint/signature", "calllint", "calllint-mcp"])
+    expect(publishable).toEqual([
+      "@calllint/credits",
+      "@calllint/signature",
+      "@calllint/telemetry-contract",
+      "calllint",
+      "calllint-mcp",
+    ])
   })
 })
 
