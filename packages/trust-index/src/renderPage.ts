@@ -43,7 +43,7 @@ export const SITE_ORIGIN = "https://calllint.com"
  * on install layout. A test pins this against that manifest, so a version bump that
  * forgets this line fails rather than shipping an `npx` target that may not exist.
  */
-export const CLI_VERSION = "1.7.3"
+export const CLI_VERSION = "1.8.0"
 
 /**
  * The clean URL segment of the standing lookup utility page (ADR 0055 §5). Served at
