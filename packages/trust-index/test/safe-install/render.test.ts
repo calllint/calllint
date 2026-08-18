@@ -243,16 +243,23 @@ describe("renderSafeInstall — six decision groups, semantic DOM order (§7)", 
 })
 
 describe("renderSafeInstall — the first-run path actually runs (R-2)", () => {
-  it("pins CLI_VERSION to the published CLI manifest", async () => {
-    // The page tells a visitor to run `npx calllint@<CLI_VERSION>`. If the CLI ships 1.8.0
-    // and this constant stays at 1.7.3, every Install page points at a stale version; if
-    // the constant is bumped ahead of a publish, it points at one that does not exist.
-    // Neither is visible in a byte-diff of the page, so it is pinned here instead.
+  it("CLI_VERSION binds to project-facts.json stableVersion (P0/P1 Change 1)", async () => {
+    // P0/P1 Change 1 (CLI Version Authority): project-facts.json stableVersion is the
+    // single public acquisition authority when releaseChannel == 'stable'. Every Install
+    // page tells a visitor to run `npx calllint@<CLI_VERSION>`. If this drifts from
+    // stableVersion, the page points at the wrong version (stale or nonexistent).
     const { readFile } = await import("node:fs/promises")
+    const facts = JSON.parse(
+      await readFile(new URL("../../../../project-facts.json", import.meta.url), "utf8"),
+    ) as { stableVersion: string; releaseChannel: string }
+    expect(CLI_VERSION).toBe(facts.stableVersion)
+    expect(facts.releaseChannel).toBe("stable")
+
+    // The published CLI manifest should match stableVersion (apps/cli is downstream)
     const manifest = JSON.parse(
       await readFile(new URL("../../../../apps/cli/package.json", import.meta.url), "utf8"),
     ) as { version: string }
-    expect(CLI_VERSION).toBe(manifest.version)
+    expect(manifest.version).toBe(facts.stableVersion)
   })
 
   it("the fallback command needs no pre-existing install, applies, and never self-approves", () => {

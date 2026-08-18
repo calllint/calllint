@@ -15,6 +15,9 @@
  * generated pages. Every page is reproducible, sourced, completeness-stated,
  * timestamped, correction-linked, and PII-free (ADR 0038 §5).
  */
+import { readFileSync } from "node:fs"
+import { join, dirname } from "node:path"
+import { fileURLToPath } from "node:url"
 import type { Verdict } from "@calllint/types"
 import { VERDICT_PUBLIC_LABEL } from "@calllint/types"
 import type { BakedTrustPage } from "./bakeTrustPage.js"
@@ -37,13 +40,20 @@ export const SITE_ORIGIN = "https://calllint.com"
 /**
  * The published CLI version the Install pages tell a visitor to run.
  *
- * Pinned rather than read from `apps/cli/package.json` at render time for the same reason
- * `EVAL_ENGINE_VERSION` is: the bake must be reproducible from committed bytes, and a
- * renderer that reaches into a sibling workspace manifest makes the emitted page depend
- * on install layout. A test pins this against that manifest, so a version bump that
- * forgets this line fails rather than shipping an `npx` target that may not exist.
+ * Read from `project-facts.json` stableVersion (P0/P1 Change 1 — CLI Version
+ * Authority): the single public acquisition authority when releaseChannel == 'stable'.
+ * Reproducible from committed bytes: project-facts.json is under git, so a re-bake is
+ * deterministic. A test pins this against `apps/cli/package.json`, so a version bump
+ * that drifts the sources fails rather than shipping an `npx` target that may not exist.
  */
-export const CLI_VERSION = "1.8.0"
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = dirname(__filename)
+const repoRoot = join(__dirname, "..", "..", "..")
+const projectFacts = JSON.parse(readFileSync(join(repoRoot, "project-facts.json"), "utf8")) as {
+  stableVersion: string
+  releaseChannel: string
+}
+export const CLI_VERSION = projectFacts.stableVersion
 
 /**
  * The clean URL segment of the standing lookup utility page (ADR 0055 §5). Served at
