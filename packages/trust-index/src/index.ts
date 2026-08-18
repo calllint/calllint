@@ -25,6 +25,8 @@ export {
   renderSidecar,
   renderSitemap,
   structuredData,
+  socialMetadata,
+  pageDescription,
   observedStatement,
   pagePath,
   pageUrl,

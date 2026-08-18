@@ -176,4 +176,75 @@ describe("public copy guard", () => {
       [...TRUST_PAGE_FORBIDDEN_PHRASES].sort(),
     )
   })
+
+  // Change 5: Agent/Geo Discovery — Lookup First (P1)
+  // Agents should check existing observations before running a fresh scan.
+  describe("lookup-first guidance", () => {
+    const agentDocs = files.filter(
+      (f) =>
+        f.rel === "apps/web/public/llms.txt" ||
+        f.rel === "apps/web/public/llms-full.txt" ||
+        f.rel === "apps/web/public/agent-instructions.md",
+    )
+
+    it("all three agent docs mention lookup-first", () => {
+      expect(agentDocs.length).toBe(3)
+      for (const f of agentDocs) {
+        expect(f.text.toLowerCase(), `${f.rel} must mention lookup-first`).toMatch(
+          /lookup[\s\-]*first/i,
+        )
+      }
+    })
+
+    it("all three agent docs list the Trust Page lookup URL pattern", () => {
+      for (const f of agentDocs) {
+        expect(
+          f.text,
+          `${f.rel} must list Trust Page lookup pattern`,
+        ).toMatch(/https:\/\/calllint\.com\/trust\/\{[^}]+\}\/\{[^}]+\}\/?/)
+      }
+    })
+
+    it("all three agent docs list the lookup API", () => {
+      for (const f of agentDocs) {
+        expect(f.text, `${f.rel} must list lookup API`).toContain(
+          "https://calllint.com/trust/lookup",
+        )
+      }
+    })
+
+    it("all three agent docs list the well-known discovery URL", () => {
+      for (const f of agentDocs) {
+        expect(f.text, `${f.rel} must list well-known discovery`).toContain(
+          "https://calllint.com/.well-known/calllint.json",
+        )
+      }
+    })
+
+    it("all three agent docs mention the bundled MCP search tool", () => {
+      for (const f of agentDocs) {
+        expect(f.text, `${f.rel} must mention bundled MCP search`).toContain(
+          "calllint_search_agent_tools",
+        )
+      }
+    })
+
+    it("all three agent docs recommend fresh scan when config/artifact differs", () => {
+      for (const f of agentDocs) {
+        expect(
+          f.text.toLowerCase(),
+          `${f.rel} must recommend fresh scan when config/artifact differs`,
+        ).toMatch(/config.*differ|artifact.*differ|digest.*differ/i)
+      }
+    })
+
+    it("all three agent docs recommend fresh scan when observation is stale", () => {
+      for (const f of agentDocs) {
+        expect(
+          f.text.toLowerCase(),
+          `${f.rel} must recommend fresh scan when stale`,
+        ).toMatch(/stale|freshness/i)
+      }
+    })
+  })
 })

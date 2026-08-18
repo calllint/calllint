@@ -435,13 +435,6 @@ main {
   flex: none;
 }
 
-/* The affirmation glyph. Green on the brand-tinted chip, so "on" is carried by a
- * shape as well as by colour — the same rule the authority rows follow. */
-.install-badge-check {
-  color: var(--ok);
-  font-weight: 700;
-}
-
 /* What the primary path will do, in words. Quiet: informs without competing
  * with the verdict headline. */
 .install-cta-note {

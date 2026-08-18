@@ -11,7 +11,7 @@
         "installability": "PREPARE_AVAILABLE",
         "partition": "deep-linked",
         "ctaRowItems": 2,
-        "signature": "sections:install-identity[identity]>install-disposition[disposition+primary_action]>install-consequence[consequence]>install-authority[authority_facts]>install-secondary[secondary_links] | disposition:install-disposition>install-headline>install-value-line>install-badge>install-badge-mark>install-badge-check>install-cta-row>install-cta>install-cta-alt install-copy>install-cta-pair-note>install-primary-path>install-fallback>install-command-label>install-command-row>install-copy>install-command-full>install-cta-note",
+        "signature": "sections:install-identity[identity]>install-disposition[disposition+primary_action]>install-consequence[consequence]>install-authority[authority_facts]>install-secondary[secondary_links] | disposition:install-disposition>install-headline>install-value-line>install-badge>install-badge-mark>install-cta-row>install-cta>install-cta-alt install-copy>install-cta-pair-note>install-primary-path>install-fallback>install-command-label>install-command-row>install-copy>install-command-full>install-cta-note",
         "conditionals": [
           "install-canonical=present",
           "install-publisher=absent",
@@ -24,7 +24,7 @@
         "installability": "REVIEW_REQUIRED",
         "partition": "deep-linked",
         "ctaRowItems": 2,
-        "signature": "sections:install-identity[identity]>install-disposition[disposition+primary_action]>install-consequence[consequence]>install-authority[authority_facts]>install-secondary[secondary_links] | disposition:install-disposition>install-headline>install-value-line>install-badge>install-badge-mark>install-badge-check>install-cta-row>install-cta>install-cta-alt install-copy>install-cta-pair-note>install-primary-path>install-fallback>install-command-label>install-command-row>install-copy>install-command-full>install-cta-note",
+        "signature": "sections:install-identity[identity]>install-disposition[disposition+primary_action]>install-consequence[consequence]>install-authority[authority_facts]>install-secondary[secondary_links] | disposition:install-disposition>install-headline>install-value-line>install-badge>install-badge-mark>install-cta-row>install-cta>install-cta-alt install-copy>install-cta-pair-note>install-primary-path>install-fallback>install-command-label>install-command-row>install-copy>install-command-full>install-cta-note",
         "conditionals": [
           "install-canonical=present",
           "install-publisher=absent",
@@ -156,7 +156,7 @@
       {
         "id": "partition/deep-linked/one-signature",
         "pass": true,
-        "observed": "2 page(s), signature sections:install-identity[identity]>install-disposition[disposition+primary_action]>install-consequence[consequence]>install-authority[authority_facts]>install-secondary[secondary_links] | disposition:install-disposition>install-headline>install-value-line>install-badge>install-badge-mark>install-badge-check>install-cta-row>install-cta>install-cta-alt install-copy>install-cta-pair-note>install-primary-path>install-fallback>install-command-label>install-command-row>install-copy>install-command-full>install-cta-note"
+        "observed": "2 page(s), signature sections:install-identity[identity]>install-disposition[disposition+primary_action]>install-consequence[consequence]>install-authority[authority_facts]>install-secondary[secondary_links] | disposition:install-disposition>install-headline>install-value-line>install-badge>install-badge-mark>install-cta-row>install-cta>install-cta-alt install-copy>install-cta-pair-note>install-primary-path>install-fallback>install-command-label>install-command-row>install-copy>install-command-full>install-cta-note"
       },
       {
         "id": "partition/deep-linked/exactly-one-primary-cta",
@@ -543,12 +543,12 @@
       {
         "id": "declarations/safe-npm-package/covered",
         "pass": true,
-        "observed": "30 emitted class(es), uncovered: none"
+        "observed": "29 emitted class(es), uncovered: none"
       },
       {
         "id": "declarations/review-external-mutation-mcp/covered",
         "pass": true,
-        "observed": "29 emitted class(es), uncovered: none"
+        "observed": "28 emitted class(es), uncovered: none"
       },
       {
         "id": "declarations/block-prompt-poisoned-mcp/covered",
@@ -677,28 +677,28 @@
     "declarationCoverage": [
       {
         "id": "safe-npm-package",
-        "classes": 30,
-        "rules": 56
+        "classes": 29,
+        "rules": 55
       },
       {
         "id": "review-external-mutation-mcp",
-        "classes": 29,
-        "rules": 56
+        "classes": 28,
+        "rules": 55
       },
       {
         "id": "block-prompt-poisoned-mcp",
         "classes": 18,
-        "rules": 56
+        "rules": 55
       },
       {
         "id": "unknown-remote-mcp",
         "classes": 18,
-        "rules": 56
+        "rules": 55
       },
       {
         "id": "unsupported-incomplete-entry",
         "classes": 18,
-        "rules": 56
+        "rules": 55
       }
     ]
   },
@@ -758,12 +758,12 @@
       {
         "id": "ledger/non-empty",
         "pass": true,
-        "observed": "10 recorded deploy(s)"
+        "observed": "11 recorded deploy(s)"
       },
       {
         "id": "ledger/newest-is-current",
         "pass": true,
-        "observed": "newest 247446fc31a4… vs live 247446fc31a4…"
+        "observed": "newest f55dad3e6c93… vs live f55dad3e6c93…"
       },
       {
         "id": "ledger/deploy-workflow-records",
@@ -778,17 +778,17 @@
       {
         "id": "restore/corpus-non-empty",
         "pass": true,
-        "observed": "10 recoverable version(s)"
+        "observed": "11 recoverable version(s)"
       },
       {
         "id": "restore/digests-distinct",
         "pass": true,
-        "observed": "10 distinct digest(s) across 10 member(s)"
+        "observed": "11 distinct digest(s) across 11 member(s)"
       },
       {
         "id": "restore/round-trip",
         "pass": true,
-        "observed": "all 10 member(s) round-trip: digest → document → same digest"
+        "observed": "all 11 member(s) round-trip: digest → document → same digest"
       },
       {
         "id": "restore/unknown-digest-refuses",
@@ -807,8 +807,8 @@
       }
     ],
     "pass": true,
-    "recoverableVersions": 10,
-    "newest": "3eeb9677",
+    "recoverableVersions": 11,
+    "newest": "daeef012",
     "configVersion": "2026.08.01-p7",
     "$comment": "§14's fifth acceptance block, ungraded until PR P-7. The corpus is the COMMITTED ledger, not `git show`, and that is a measured choice rather than a stylistic one: this script runs in CI in --check mode (which rebuilds the artifact and byte-compares it) against a bare `actions/checkout@v6`, i.e. depth 1. On a depth-1 clone of this repo `git log --follow` over the catalog returns 1 commit rather than 8, the historical blobs report MISSING, and `merge-base --is-ancestor` FATALS on an unknown sha instead of returning false — so a git-derived corpus would fail the byte-compare on every CI run forever, and could not even fail gracefully. The stronger consequence is why each ledger entry now STORES its document: if past documents existed only in git history, then on a shallow clone they do not exist, and §14's 可按 digest 恢复 would be FALSE there rather than merely ungraded. Trust is therefore two honest layers, and the split is stated rather than implied: the offline validator called here recomputes all five recorded values from the stored bytes (catching a doctored digest, doctored bytes, or an unrecorded catalog change) but CANNOT catch a self-consistent forgery — measured, not assumed: a fabricated document with a correctly recomputed digest yields 0 offline faults. `pnpm ledger:presentation:validate` adds the git layer that proves each entry AUTHENTIC by comparing the stored document to the document at its own commit. validatorKnownKeys is derived BEHAVIOURALLY (feed the validator a configVersion and see whether it reports the key unknown) because the validator's `known` set is function-local, and any exported mirror would be a second copy free to drift from the one that decides. deploy-web.yml is verified AS TEXT because every one of REGRESSION_CHECKS' 19 rows binds ci.yml#test and deploy-web.yml's single `deploy:` job is graded by nothing."
   },

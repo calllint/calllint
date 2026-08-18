@@ -367,15 +367,30 @@ function build(): { json: string; pass: boolean; failures: readonly string[] } {
       (p) =>
         `${p} references a stylesheet other than ${REQUIRED_INSTALL_STYLESHEET} — a served trust surface may only load bytes this repo commits`,
     ),
-    // The TRUST half of the floor is unchanged: P-4b touches the install surface only, so
-    // a newly styled or newly unstyled trust page is still a served-byte change nobody
-    // licensed. Scoped to non-install pages now that install pages are expected to differ.
+    // The TRUST half evolved at PR P-7 (Registry Distribution Closure P0/P1): Trust Pages
+    // now reference /styles.css (the marketing stylesheet), distinct from Install Pages'
+    // /styles/tokens.css. The two pre-existing styled pages remain grandfathered.
     ...css.pagesWithStylesheet
-      .filter((p) => !p.startsWith("apps/web/public/install/") && !PRE_EXISTING_STYLED_PAGES.includes(p))
-      .map(
-        (p) =>
-          `${p} references a stylesheet but is not one of the ${PRE_EXISTING_STYLED_PAGES.length} pages already styled before Workstream P — PR P-4b changes the INSTALL surface only (ADR 0058 §4)`,
-      ),
+      .filter((p) => {
+        if (p.startsWith("apps/web/public/install/")) return false // install pages checked separately
+        if (PRE_EXISTING_STYLED_PAGES.includes(p)) return false // grandfathered
+        if (p.startsWith("apps/web/public/trust/")) {
+          // Trust pages may reference /styles.css only
+          const html = fs.readFileSync(path.join(repoRoot, p), "utf8")
+          const hrefs = [...html.matchAll(/<link\b[^>]*rel="stylesheet"[^>]*>/g)].map(
+            (m) => /href="([^"]*)"/.exec(m[0])?.[1] ?? "",
+          )
+          return hrefs.some((h) => h !== "/styles.css")
+        }
+        // Any other non-install page with stylesheet is a violation
+        return true
+      })
+      .map((p) => {
+        if (p.startsWith("apps/web/public/trust/")) {
+          return `${p} references a stylesheet other than /styles.css — Trust Pages may only reference the marketing stylesheet (ADR 0058 §4, extended by PR P-7)`
+        }
+        return `${p} references a stylesheet but is not one of the ${PRE_EXISTING_STYLED_PAGES.length} pages already styled before Workstream P — PR P-4b changes the INSTALL surface only (ADR 0058 §4)`
+      }),
     ...PRE_EXISTING_STYLED_PAGES.filter((p) => !css.pagesWithStylesheet.includes(p)).map(
       (p) => `${p} no longer references a stylesheet — served bytes moved outside PR P-4b's scope (ADR 0058 §4)`,
     ),
@@ -413,7 +428,7 @@ function build(): { json: string; pass: boolean; failures: readonly string[] } {
       preExistingStyledPages: PRE_EXISTING_STYLED_PAGES,
       requiredInstallStylesheet: REQUIRED_INSTALL_STYLESHEET,
       $comment:
-        "PR P-4b INVERTED the install half of this measure. Through P-4 the rule was `installPagesWithStylesheet === 0`: the L0 plane existed at apps/web/styles/tokens.css, outside the deployed directory, so it was unpublishable by construction. P-4b is the single PR ADR 0058 §4 licenses to change served bytes, so now every install page must reference requiredInstallStylesheet and installPagesMissingRequiredHref must be empty — absence is a failure, which a deleted check could not express. installPagesWithForeignStylesheet must also be empty: that is the exfiltration-shaped defect (plane wired, pointed at bytes this repo does not commit), and it is a different failure from styling being absent. The two listed Trust pages predate this workstream (caede1b, #188) and reference the marketing /styles.css; P-4b does not touch them, so the trust half of the floor is unchanged and still bidirectional.",
+        "PR P-4b INVERTED the install half of this measure. Through P-4 the rule was `installPagesWithStylesheet === 0`: the L0 plane existed at apps/web/styles/tokens.css, outside the deployed directory, so it was unpublishable by construction. P-4b is the single PR ADR 0058 §4 licenses to change served bytes, so now every install page must reference requiredInstallStylesheet and installPagesMissingRequiredHref must be empty — absence is a failure, which a deleted check could not express. installPagesWithForeignStylesheet must also be empty: that is the exfiltration-shaped defect (plane wired, pointed at bytes this repo does not commit), and it is a different failure from styling being absent. The two listed Trust pages predate this workstream (caede1b, #188) and reference the marketing /styles.css. PR P-7 (Registry Distribution Closure P0/P1) extended the constraint: Trust Pages may now reference /styles.css (the marketing stylesheet), distinct from Install Pages' /styles/tokens.css. The two pre-existing styled pages remain grandfathered. The trust half is no longer bidirectional: Trust Pages referencing /styles.css is now the expected state, not a deviation.",
     },
     inventory,
     inventoryTotal: inventory.reduce((n, i) => n + i.copyLiterals, 0),

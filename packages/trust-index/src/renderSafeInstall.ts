@@ -83,15 +83,16 @@ export const SECTION_TITLES = {
     " so the blast radius is stated here before you approve it, not after. No server was executed" +
     " to produce this page.",
   /**
-   * The protection badge beside the action (R-2 items 2/5/7).
+   * The protection badge beside the action (R-2 items 2/5/7, P0/P1 Change 7).
    *
-   * Names the ROUTE, not a state. An earlier draft read "Continuously protected by
-   * CallLint" — false twice over: this page installs nothing by itself, and continuous
-   * Guard is a separate `ASK_AFTER_SUCCESS` offer that defaults to [Not now]
-   * (INV-2.4-07 forbids a one-time setup implying a persistent component). "Added
-   * through CallLint's approval gate" is what the button below actually does.
+   * Names the ROUTE, not a state. Temporal semantics: "Use" (actionable, future) not
+   * "Added through" (past tense). An earlier draft read "✓ Added through CallLint's
+   * approval gate" — temporally wrong because the page displays BEFORE the user acts,
+   * so "added" implies completion. Fixed in P0/P1 Change 7: remove checkmark, use
+   * present-tense imperative. Badge appears only on actionable (SAFE/REVIEW/UNKNOWN)
+   * pages; BLOCKED and UNSUPPORTED have no acquisition surface.
    */
-  protectionBadge: "Added through CallLint's approval gate",
+  protectionBadge: "Use CallLint's approval gate",
   /**
    * The consequence group's heading.
    *
@@ -300,7 +301,7 @@ function dispositionBlock(p: SafeInstallProjection, titles: SectionTitles): stri
   const shortCmd = shortFallbackCommand(p)
   const cliInstall = `npm i -g calllint@${CLI_VERSION}`
   const badge = deepLinked
-    ? `        <p class="install-badge"><img class="install-badge-mark" src="/logo-mark-256.png" width="28" height="28" alt="" /><span class="install-badge-check" aria-hidden="true">✓</span> ${escText(titles.protectionBadge)}</p>\n`
+    ? `        <p class="install-badge"><img class="install-badge-mark" src="/logo-mark-256.png" width="28" height="28" alt="" /> ${escText(titles.protectionBadge)}</p>\n`
     : ""
 
   if (deepLinked) {

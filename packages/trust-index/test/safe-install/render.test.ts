@@ -243,16 +243,23 @@ describe("renderSafeInstall — six decision groups, semantic DOM order (§7)", 
 })
 
 describe("renderSafeInstall — the first-run path actually runs (R-2)", () => {
-  it("pins CLI_VERSION to the published CLI manifest", async () => {
-    // The page tells a visitor to run `npx calllint@<CLI_VERSION>`. If the CLI ships 1.8.0
-    // and this constant stays at 1.7.3, every Install page points at a stale version; if
-    // the constant is bumped ahead of a publish, it points at one that does not exist.
-    // Neither is visible in a byte-diff of the page, so it is pinned here instead.
+  it("CLI_VERSION binds to project-facts.json stableVersion (P0/P1 Change 1)", async () => {
+    // P0/P1 Change 1 (CLI Version Authority): project-facts.json stableVersion is the
+    // single public acquisition authority when releaseChannel == 'stable'. Every Install
+    // page tells a visitor to run `npx calllint@<CLI_VERSION>`. If this drifts from
+    // stableVersion, the page points at the wrong version (stale or nonexistent).
     const { readFile } = await import("node:fs/promises")
+    const facts = JSON.parse(
+      await readFile(new URL("../../../../project-facts.json", import.meta.url), "utf8"),
+    ) as { stableVersion: string; releaseChannel: string }
+    expect(CLI_VERSION).toBe(facts.stableVersion)
+    expect(facts.releaseChannel).toBe("stable")
+
+    // The published CLI manifest should match stableVersion (apps/cli is downstream)
     const manifest = JSON.parse(
       await readFile(new URL("../../../../apps/cli/package.json", import.meta.url), "utf8"),
     ) as { version: string }
-    expect(CLI_VERSION).toBe(manifest.version)
+    expect(manifest.version).toBe(facts.stableVersion)
   })
 
   it("the fallback command needs no pre-existing install, applies, and never self-approves", () => {
@@ -378,6 +385,71 @@ describe("renderSafeInstall — language boundary + framing", () => {
       subject: subjectFor(anyPage, { publisherDescription: "contact me", sourceLocator: "npm:@x@1.0.0" }),
     })
     expect(EMAIL.test(renderSafeInstall(p))).toBe(false)
+  })
+})
+
+describe("P0/P1 Change 7: Safe Install Pre-Action Badge Wording", () => {
+  it("deep-linkable pages contain 'Use CallLint's approval gate' (present-tense, actionable)", () => {
+    // Badge appears only on PREPARE_AVAILABLE (SAFE) and REVIEW_REQUIRED (REVIEW) pages
+    const deepLinkPages = pages
+      .map(page => ({ page, projection: project(page) }))
+      .filter(({ projection }) =>
+        ["PREPARE_AVAILABLE", "REVIEW_REQUIRED"].includes(projection.installability),
+      )
+    expect(deepLinkPages.length).toBeGreaterThan(0)
+    for (const { projection } of deepLinkPages) {
+      const html = renderSafeInstall(projection)
+      expect(html).toContain("Use CallLint's approval gate")
+    }
+  })
+
+  it("does NOT contain 'Added through CallLint's approval gate' (past tense removed)", () => {
+    // No page should have the old past-tense wording
+    for (const page of pages) {
+      const p = project(page)
+      const html = renderSafeInstall(p)
+      expect(html).not.toContain("Added through CallLint's approval gate")
+    }
+  })
+
+  it("badge has no success check glyph (✓ removed)", () => {
+    const deepLinkPages = pages
+      .map(page => ({ page, projection: project(page) }))
+      .filter(({ projection }) =>
+        ["PREPARE_AVAILABLE", "REVIEW_REQUIRED"].includes(projection.installability),
+      )
+    for (const { projection } of deepLinkPages) {
+      const html = renderSafeInstall(projection)
+      // The badge section should not contain the checkmark span
+      const badgeMatch = html.match(/<p class="install-badge">[\s\S]*?<\/p>/)
+      expect(badgeMatch).toBeTruthy()
+      expect(badgeMatch![0]).not.toContain('✓')
+      expect(badgeMatch![0]).not.toContain('install-badge-check')
+    }
+  })
+
+  it("non-deep-linkable pages have no badge (UNKNOWN, BLOCKED, etc.)", () => {
+    const nonDeepLinkPages = pages
+      .map(page => ({ page, projection: project(page) }))
+      .filter(({ projection }) =>
+        !["PREPARE_AVAILABLE", "REVIEW_REQUIRED"].includes(projection.installability),
+      )
+    expect(nonDeepLinkPages.length).toBeGreaterThan(0)
+    for (const { projection } of nonDeepLinkPages) {
+      const html = renderSafeInstall(projection)
+      expect(html).not.toContain("install-badge")
+      expect(html).not.toContain("Use CallLint's approval gate")
+    }
+  })
+
+  it("badge still includes CallLint logo (visual identity preserved)", () => {
+    const deepLinkPage = pages
+      .map(page => ({ page, projection: project(page) }))
+      .find(({ projection }) => projection.installability === "PREPARE_AVAILABLE")
+    expect(deepLinkPage).toBeDefined()
+    const html = renderSafeInstall(deepLinkPage!.projection)
+    expect(html).toContain('install-badge-mark')
+    expect(html).toContain('/logo-mark-256.png')
   })
 })
 

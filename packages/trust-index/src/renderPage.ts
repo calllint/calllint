@@ -15,12 +15,57 @@
  * generated pages. Every page is reproducible, sourced, completeness-stated,
  * timestamped, correction-linked, and PII-free (ADR 0038 §5).
  */
+import { readFileSync } from "node:fs"
+import { join, dirname } from "node:path"
+import { fileURLToPath } from "node:url"
 import type { Verdict } from "@calllint/types"
 import { VERDICT_PUBLIC_LABEL } from "@calllint/types"
 import type { BakedTrustPage } from "./bakeTrustPage.js"
 import type { VerifiedPublisher } from "./claim.js"
 import { evidenceLevel, EVIDENCE_LEVEL_META } from "./evidenceLevel.js"
 import { reproductionCommand, scanHistory } from "./pageProjections.js"
+
+/**
+ * Deterministic, fact-only meta description for a Trust Page (P0/P1 Change 2).
+ * States WHAT was observed + WHEN + completeness, with the standing safety boundary.
+ * Never: "certified", "safe", scores, grades, recommendations.
+ */
+export function pageDescription(page: BakedTrustPage): string {
+  const completeness = page.preparation.authority?.completeness ?? "partial"
+  return (
+    `${VERDICT_PUBLIC_LABEL[page.verdict]}, observed at artifact digest ` +
+    `${page.artifactDigest} at ${page.observedAt} (completeness: ${completeness}). ` +
+    `An observation at a specific artifact digest and time — not a certification, ` +
+    `an endorsement, or a guarantee of safety.`
+  )
+}
+
+/**
+ * Deterministic social/discovery metadata for a Trust Page (P0/P1 Change 2).
+ * Open Graph + Twitter Card. Emitted into <head> only (never in sidecar).
+ * No dynamic OG images (ADR 0053 §4 out-of-scope), so og:image is the standing
+ * CallLint logo. All metadata is a pure projection of the immutable page — adding
+ * it never changes pageDigest, verdict, or sidecar bytes.
+ */
+export function socialMetadata(page: BakedTrustPage): string {
+  const url = pageUrl(page)
+  const title = `${page.canonicalName} — CallLint Trust Page`
+  const description = pageDescription(page)
+  // Standing CallLint logo (128×128 PNG, public, deterministic). No per-page images.
+  const image = `${SITE_ORIGIN}/logo-mark-128.png`
+
+  return `
+    <meta name="description" content="${esc(description)}" />
+    <meta property="og:type" content="article" />
+    <meta property="og:url" content="${esc(url)}" />
+    <meta property="og:title" content="${esc(title)}" />
+    <meta property="og:description" content="${esc(description)}" />
+    <meta property="og:image" content="${esc(image)}" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="${esc(title)}" />
+    <meta name="twitter:description" content="${esc(description)}" />
+    <meta name="twitter:image" content="${esc(image)}" />`
+}
 
 /** Where a viewer disputes or corrects a page (ADR 0038 §5 correction link). */
 export const CORRECTION_URL =
@@ -37,13 +82,20 @@ export const SITE_ORIGIN = "https://calllint.com"
 /**
  * The published CLI version the Install pages tell a visitor to run.
  *
- * Pinned rather than read from `apps/cli/package.json` at render time for the same reason
- * `EVAL_ENGINE_VERSION` is: the bake must be reproducible from committed bytes, and a
- * renderer that reaches into a sibling workspace manifest makes the emitted page depend
- * on install layout. A test pins this against that manifest, so a version bump that
- * forgets this line fails rather than shipping an `npx` target that may not exist.
+ * Read from `project-facts.json` stableVersion (P0/P1 Change 1 — CLI Version
+ * Authority): the single public acquisition authority when releaseChannel == 'stable'.
+ * Reproducible from committed bytes: project-facts.json is under git, so a re-bake is
+ * deterministic. A test pins this against `apps/cli/package.json`, so a version bump
+ * that drifts the sources fails rather than shipping an `npx` target that may not exist.
  */
-export const CLI_VERSION = "1.8.0"
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = dirname(__filename)
+const repoRoot = join(__dirname, "..", "..", "..")
+const projectFacts = JSON.parse(readFileSync(join(repoRoot, "project-facts.json"), "utf8")) as {
+  stableVersion: string
+  releaseChannel: string
+}
+export const CLI_VERSION = projectFacts.stableVersion
 
 /**
  * The clean URL segment of the standing lookup utility page (ADR 0055 §5). Served at
@@ -261,6 +313,52 @@ export function observedStatement(verdict: Verdict, page: BakedTrustPage): strin
 }
 
 /**
+ * Trust→Install Bridge CTA (P0/P1 Change 4).
+ *
+ * Provides a verdict-appropriate link from a Trust Page to its corresponding Safe
+ * Install page. Only Real Registry pages (namespace mcp-registry/*) receive this link;
+ * fixtures (calllint-fixtures/*) remain install-CTA-free so their Trust Pages stay
+ * pure observation anchors. The link is HTML-only and never appears in the JSON
+ * sidecar or pageDigest, so a CTA addition/mutation is a presentation change, not a
+ * content change.
+ *
+ * Copy per verdict:
+ *   SAFE     → "Review install plan"      (frame as review, not endorsement)
+ *   REVIEW   → "Review before adding"     (explicit pre-install review step)
+ *   BLOCK    → "See what must change before adding" (remediation-oriented)
+ *   UNKNOWN  → "Review evidence gap"      (frame as incomplete data)
+ *
+ * The link carries `data-trust-event="trust_page_to_install"` for telemetry (Change
+ * 6), so we can measure how many viewers proceed from a verdict to the install
+ * surface. No "install safely" or similar over-claim — the label remains action +
+ * inspection, never promise.
+ *
+ * Returns an empty string for fixture pages (the canonicalName guard).
+ */
+function installBridgeCta(page: BakedTrustPage): string {
+  // Only Real Registry pages get the CTA. Fixtures (calllint-fixtures/*) have no
+  // acquisition surface, so their Trust Pages remain pure observations.
+  if (page.canonicalName.startsWith("calllint-fixtures/")) {
+    return ""
+  }
+
+  const labels: Record<Verdict, string> = {
+    SAFE: "Review install plan",
+    REVIEW: "Review before adding",
+    BLOCK: "See what must change before adding",
+    UNKNOWN: "Review evidence gap",
+  }
+
+  const label = labels[page.verdict]
+  const installPath = `/install/${page.canonicalName}/`
+
+  return `
+      <p>
+        <a href="${esc(installPath)}" data-trust-event="trust_page_to_install">${esc(label)}</a>
+      </p>`
+}
+
+/**
  * The human-readable HTML. Minimal, dependency-free, and deterministic. Uses only
  * boundary-safe language; the completeness and "observed at digest" framing make it
  * clear this is a point-in-time observation, never a safety guarantee.
@@ -293,7 +391,7 @@ export function renderHtml(page: BakedTrustPage, verifiedPublisher?: VerifiedPub
       <h2>Are you the maintainer?</h2>
       <p>No one has claimed the <code>${esc(page.canonicalName)}</code> namespace yet.
          If you control it, you can
-         <a href="${esc(CLAIM_APP_URL)}">claim this page</a> by installing the CallLint
+         <a href="${esc(CLAIM_APP_URL)}" data-trust-event="claim_cta_clicked">claim this page</a> by installing the CallLint
          Trust GitHub App on the account that owns it. Claiming records who controls the
          namespace — it is not a safety claim, an endorsement, or a certification, and it
          does not change the observed verdict.</p>
@@ -363,10 +461,17 @@ export function renderHtml(page: BakedTrustPage, verifiedPublisher?: VerifiedPub
     <title>${esc(page.canonicalName)} — CallLint Trust Page</title>
     <meta name="robots" content="index,follow" />
     <link rel="canonical" href="${esc(pageUrl(page))}" />
+    <link rel="alternate" type="application/json" href="${esc(pageUrl(page))}.json" />
+    <link rel="stylesheet" href="/styles.css" />
+    ${socialMetadata(page)}
     ${structuredData(page)}
+    <script type="module">
+      import { sendTrustEvent } from "/embed/trust-events.js"
+      sendTrustEvent("trust_page_viewed")
+    </script>
   </head>
   <body>
-    <main>
+    <main class="section section-narrow">
       <h1>${esc(page.canonicalName)}</h1>
       <p><strong>${esc(VERDICT_PUBLIC_LABEL[page.verdict])}</strong></p>
       <p>Observed at artifact digest <code>${esc(page.artifactDigest)}</code>
@@ -377,6 +482,7 @@ export function renderHtml(page: BakedTrustPage, verifiedPublisher?: VerifiedPub
          guarantee of safety.</p>
 ${statusBlock}
 ${publisherBlock}
+${installBridgeCta(page)}
       <h2>Observed capabilities</h2>
       <ul>
         ${capItems}
