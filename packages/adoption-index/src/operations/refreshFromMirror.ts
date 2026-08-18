@@ -108,6 +108,8 @@ export interface RefreshFromMirrorOptions {
   mode?: "full" | "incremental"
   /** Page-count ceiling, forwarded to the adapter. */
   maxPages?: number
+  /** Previously published registry names (Cumulative Coverage Amendment v1, §G3) */
+  retainedNames?: readonly string[]
   /**
    * Artifact resolution (R-4), as an injected PORT rather than an import.
    *
@@ -295,6 +297,7 @@ export async function refreshFromMirror(opts: RefreshFromMirrorOptions): Promise
     endpoint: opts.endpoint,
     fetchedAt: opts.now,
     maxEntries: opts.snapshotMaxEntries,
+    retainedNames: opts.retainedNames,
   })
 
   // THE PROJECTION'S READER (ADR 0085). Fails CLOSED, here, before ANY write.
