@@ -544,7 +544,7 @@ npx calllint scan .cursor/mcp.json --html &gt; report.html</code></pre>
       }
 
       // Load data from API or use fallback
-      fetch('/v1/public/adoption')
+      fetch('/v1/public/adoption-signals')
         .then(r => r.json())
         .then(renderAdoption)
         .catch(() => {
