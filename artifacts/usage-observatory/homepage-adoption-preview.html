@@ -1,0 +1,226 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>CallLint Adoption Signals — Preview</title>
+    <style>
+      :root {
+        --bg: #f7f8fa;
+        --surface: #ffffff;
+        --ink: #1a1d21;
+        --muted: #5c6570;
+        --line: #e3e6ea;
+        --brand: #c41e3a;
+        --brand-soft: rgba(196, 30, 58, 0.12);
+        --brand-glow: rgba(196, 30, 58, 0.35);
+        --radius: 14px;
+        --font: "Segoe UI", system-ui, -apple-system, sans-serif;
+        --mono: ui-monospace, "Cascadia Code", "SF Mono", Consolas, monospace;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        font-family: var(--font);
+        color: var(--ink);
+        background: var(--bg);
+        line-height: 1.55;
+        -webkit-font-smoothing: antialiased;
+        padding: 48px 24px;
+      }
+
+      .adoption-section {
+        max-width: 920px;
+        margin: 0 auto;
+        background: var(--surface);
+        border: 1px solid var(--line);
+        border-radius: var(--radius);
+        padding: 40px 48px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+      }
+
+      .section-head {
+        margin-bottom: 32px;
+      }
+
+      .section-head h2 {
+        margin: 0 0 12px 0;
+        font-size: 1.75rem;
+        font-weight: 650;
+        letter-spacing: -0.02em;
+        color: var(--ink);
+      }
+
+      .section-head p {
+        margin: 0;
+        color: var(--muted);
+        font-size: 1rem;
+      }
+
+      .adoption-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 24px;
+        margin-top: 24px;
+      }
+
+      .adoption-card {
+        background: var(--bg);
+        border: 1px solid var(--line);
+        border-radius: 12px;
+        padding: 24px;
+        text-align: center;
+      }
+
+      .adoption-value {
+        display: block;
+        font-size: 2.5rem;
+        font-weight: 700;
+        color: var(--brand);
+        margin-bottom: 8px;
+        font-variant-numeric: tabular-nums;
+      }
+
+      .adoption-label {
+        display: block;
+        color: var(--muted);
+        font-size: 0.9rem;
+      }
+
+      .adoption-trend {
+        display: inline-block;
+        margin-top: 6px;
+        font-size: 0.85rem;
+        color: var(--brand);
+        background: var(--brand-soft);
+        padding: 4px 10px;
+        border-radius: 6px;
+        font-weight: 600;
+      }
+
+      .adoption-note {
+        margin-top: 32px;
+        padding: 20px;
+        background: var(--brand-soft);
+        border-left: 4px solid var(--brand);
+        border-radius: 8px;
+        color: var(--muted);
+        font-size: 0.9rem;
+        line-height: 1.6;
+      }
+
+      .adoption-note strong {
+        color: var(--ink);
+      }
+
+      code {
+        font-family: var(--mono);
+        font-size: 0.9em;
+        background: rgba(0, 0, 0, 0.06);
+        padding: 2px 6px;
+        border-radius: 4px;
+      }
+
+      .loading {
+        text-align: center;
+        color: var(--muted);
+        padding: 40px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="adoption-section">
+      <div class="section-head">
+        <h2>Adoption Signals</h2>
+        <p>
+          Privacy-first telemetry showing aggregate usage trends.
+          Opt-in, anonymous, milestone-thresholded counts only.
+        </p>
+      </div>
+
+      <div id="adoption-content" class="loading">
+        Loading adoption data...
+      </div>
+
+      <div class="adoption-note">
+        <strong>Privacy guarantee:</strong> All metrics are aggregate-only and
+        milestone-thresholded (1K+, 2.5K+). Individual installations are never
+        identified. Telemetry is opt-in via <code>calllint telemetry enable</code>
+        and can be disabled at any time.
+        <a href="/docs/PRIVACY.md" style="color: var(--brand); margin-left: 8px">
+          Read full privacy policy →
+        </a>
+      </div>
+    </div>
+
+    <script>
+      // Mock data for preview (replace with real API call)
+      const mockData = {
+        totalScans: 12453,
+        activeInstallations: 2847,
+        configsScanned: 5621,
+        verdicts: {
+          safe: 3204,
+          review: 1876,
+          block: 341,
+          unknown: 200
+        }
+      }
+
+      function formatNumber(num) {
+        if (num >= 1000000) return (num / 1000000).toFixed(1) + 'M'
+        if (num >= 1000) return (num / 1000).toFixed(1) + 'K'
+        return num.toString()
+      }
+
+      function renderAdoption() {
+        const content = document.getElementById('adoption-content')
+        const totalVerdicts = Object.values(mockData.verdicts).reduce((a, b) => a + b, 0)
+
+        content.innerHTML = `
+          <div class="adoption-grid">
+            <div class="adoption-card">
+              <span class="adoption-value">${formatNumber(mockData.totalScans)}</span>
+              <span class="adoption-label">Total scans</span>
+              <span class="adoption-trend">+18% this week</span>
+            </div>
+
+            <div class="adoption-card">
+              <span class="adoption-value">${formatNumber(mockData.activeInstallations)}</span>
+              <span class="adoption-label">Active installations</span>
+              <span class="adoption-trend">+12% this week</span>
+            </div>
+
+            <div class="adoption-card">
+              <span class="adoption-value">${formatNumber(mockData.configsScanned)}</span>
+              <span class="adoption-label">Configs scanned</span>
+              <span class="adoption-trend">+24% this week</span>
+            </div>
+
+            <div class="adoption-card">
+              <span class="adoption-value">${formatNumber(totalVerdicts)}</span>
+              <span class="adoption-label">Verdicts issued</span>
+              <span class="adoption-trend">+21% this week</span>
+            </div>
+          </div>
+        `
+      }
+
+      // Simulate data loading
+      setTimeout(renderAdoption, 500)
+
+      // In production, fetch from real endpoint:
+      // fetch('/v1/public/adoption')
+      //   .then(r => r.json())
+      //   .then(data => {
+      //     mockData = data
+      //     renderAdoption()
+      //   })
+    </script>
+  </body>
+</html>
+

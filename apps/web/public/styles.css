@@ -1040,3 +1040,65 @@ pre {
     grid-template-columns: 1fr;
   }
 }
+
+/* ---- Adoption Signals ---- */
+.adoption-loading {
+  text-align: center;
+  padding: 40px;
+}
+
+.adoption-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 24px;
+  margin-top: 24px;
+}
+
+.adoption-card {
+  background: var(--bg);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 24px;
+  text-align: center;
+}
+
+.adoption-value {
+  display: block;
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: var(--brand);
+  margin-bottom: 8px;
+  font-variant-numeric: tabular-nums;
+}
+
+.adoption-label {
+  display: block;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.adoption-trend {
+  display: inline-block;
+  margin-top: 6px;
+  font-size: 0.85rem;
+  color: var(--brand);
+  background: var(--brand-soft);
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-weight: 600;
+}
+
+.adoption-note {
+  margin-top: 32px;
+  padding: 20px;
+  background: var(--brand-soft);
+  border-left: 4px solid var(--brand);
+  border-radius: 8px;
+  color: var(--muted);
+  font-size: 0.9rem;
+  line-height: 1.6;
+}
+
+.adoption-note strong {
+  color: var(--ink);
+}
