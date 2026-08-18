@@ -313,6 +313,52 @@ export function observedStatement(verdict: Verdict, page: BakedTrustPage): strin
 }
 
 /**
+ * Trust→Install Bridge CTA (P0/P1 Change 4).
+ *
+ * Provides a verdict-appropriate link from a Trust Page to its corresponding Safe
+ * Install page. Only Real Registry pages (namespace mcp-registry/*) receive this link;
+ * fixtures (calllint-fixtures/*) remain install-CTA-free so their Trust Pages stay
+ * pure observation anchors. The link is HTML-only and never appears in the JSON
+ * sidecar or pageDigest, so a CTA addition/mutation is a presentation change, not a
+ * content change.
+ *
+ * Copy per verdict:
+ *   SAFE     → "Review install plan"      (frame as review, not endorsement)
+ *   REVIEW   → "Review before adding"     (explicit pre-install review step)
+ *   BLOCK    → "See what must change before adding" (remediation-oriented)
+ *   UNKNOWN  → "Review evidence gap"      (frame as incomplete data)
+ *
+ * The link carries `data-trust-event="trust_page_to_install"` for telemetry (Change
+ * 6), so we can measure how many viewers proceed from a verdict to the install
+ * surface. No "install safely" or similar over-claim — the label remains action +
+ * inspection, never promise.
+ *
+ * Returns an empty string for fixture pages (the canonicalName guard).
+ */
+function installBridgeCta(page: BakedTrustPage): string {
+  // Only Real Registry pages get the CTA. Fixtures (calllint-fixtures/*) have no
+  // acquisition surface, so their Trust Pages remain pure observations.
+  if (page.canonicalName.startsWith("calllint-fixtures/")) {
+    return ""
+  }
+
+  const labels: Record<Verdict, string> = {
+    SAFE: "Review install plan",
+    REVIEW: "Review before adding",
+    BLOCK: "See what must change before adding",
+    UNKNOWN: "Review evidence gap",
+  }
+
+  const label = labels[page.verdict]
+  const installPath = `/install/${page.canonicalName}/`
+
+  return `
+      <p>
+        <a href="${esc(installPath)}" data-trust-event="trust_page_to_install">${esc(label)}</a>
+      </p>`
+}
+
+/**
  * The human-readable HTML. Minimal, dependency-free, and deterministic. Uses only
  * boundary-safe language; the completeness and "observed at digest" framing make it
  * clear this is a point-in-time observation, never a safety guarantee.
@@ -345,7 +391,7 @@ export function renderHtml(page: BakedTrustPage, verifiedPublisher?: VerifiedPub
       <h2>Are you the maintainer?</h2>
       <p>No one has claimed the <code>${esc(page.canonicalName)}</code> namespace yet.
          If you control it, you can
-         <a href="${esc(CLAIM_APP_URL)}">claim this page</a> by installing the CallLint
+         <a href="${esc(CLAIM_APP_URL)}" data-trust-event="claim_cta_clicked">claim this page</a> by installing the CallLint
          Trust GitHub App on the account that owns it. Claiming records who controls the
          namespace — it is not a safety claim, an endorsement, or a certification, and it
          does not change the observed verdict.</p>
@@ -432,6 +478,7 @@ export function renderHtml(page: BakedTrustPage, verifiedPublisher?: VerifiedPub
          guarantee of safety.</p>
 ${statusBlock}
 ${publisherBlock}
+${installBridgeCta(page)}
       <h2>Observed capabilities</h2>
       <ul>
         ${capItems}
