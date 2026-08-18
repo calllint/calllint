@@ -10,7 +10,7 @@
  * Ships DARK this round: this test proves the shim is correct + safe; no page
  * references it and /v1/events/trust is not in _routes.json.
  */
-import { describe, it, expect } from "vitest"
+import { describe, it, expect, vi } from "vitest"
 import { readFileSync } from "node:fs"
 import { fileURLToPath } from "node:url"
 // The served bytes are the unit under test — same convention as embed.test.ts.
@@ -54,14 +54,11 @@ describe("sendTrustEvent — never throws, sends only closed events", () => {
   })
   it("dispatches a valid event via sendBeacon and posts the closed payload", () => {
     const calls = []
-    const g = globalThis as { navigator?: unknown }
-    const prev = g.navigator
-    g.navigator = { sendBeacon: (url: string, body: string) => (calls.push({ url, body }), true) }
+    vi.stubGlobal("navigator", { sendBeacon: (url: string, body: string) => (calls.push({ url, body }), true) })
     try {
       expect(shim.sendTrustEvent("trust_page_to_install", { page: "/trust/x.html?q=1" })).toBe(true)
     } finally {
-      if (prev === undefined) delete g.navigator
-      else g.navigator = prev
+      vi.unstubAllGlobals()
     }
     expect(calls.length).toBe(1)
     expect(calls[0].url).toBe(shim.EVENTS_PATH)
@@ -70,16 +67,12 @@ describe("sendTrustEvent — never throws, sends only closed events", () => {
     expect(calls[0].body).not.toContain("q=1") // query stripped before send
   })
   it("returns false when no transport is available (no beacon, no fetch)", () => {
-    const g = globalThis as { navigator?: unknown; fetch?: unknown }
-    const pNav = g.navigator
-    const pFetch = g.fetch
-    delete g.navigator
-    delete g.fetch
+    vi.stubGlobal("navigator", undefined)
+    vi.stubGlobal("fetch", undefined)
     try {
       expect(shim.sendTrustEvent("trust_page_viewed", { page: "/trust/" })).toBe(false)
     } finally {
-      if (pNav !== undefined) g.navigator = pNav
-      if (pFetch !== undefined) g.fetch = pFetch
+      vi.unstubAllGlobals()
     }
   })
 })
