@@ -416,11 +416,12 @@ export function renderHtml(page: BakedTrustPage, verifiedPublisher?: VerifiedPub
     <meta name="robots" content="index,follow" />
     <link rel="canonical" href="${esc(pageUrl(page))}" />
     <link rel="alternate" type="application/json" href="${esc(pageUrl(page))}.json" />
+    <link rel="stylesheet" href="/styles.css" />
     ${socialMetadata(page)}
     ${structuredData(page)}
   </head>
   <body>
-    <main>
+    <main class="section section-narrow">
       <h1>${esc(page.canonicalName)}</h1>
       <p><strong>${esc(VERDICT_PUBLIC_LABEL[page.verdict])}</strong></p>
       <p>Observed at artifact digest <code>${esc(page.artifactDigest)}</code>

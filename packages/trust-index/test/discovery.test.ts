@@ -364,3 +364,27 @@ describe("P0/P1 Change 2: Trust Page SEO + Social Metadata", () => {
     expect(sidecar).not.toContain("og:image")
   })
 })
+
+describe("P0/P1 Change 3: Trust Page Basic Visual Shell", () => {
+  it("renderHtml references /styles.css", () => {
+    const page = bakeTrustPage(anyCase.input)
+    const html = renderHtml(page)
+    expect(html).toContain('<link rel="stylesheet" href="/styles.css"')
+  })
+
+  it("main element uses section section-narrow classes (constrained reading measure)", () => {
+    const page = bakeTrustPage(anyCase.input)
+    const html = renderHtml(page)
+    expect(html).toContain('<main class="section section-narrow">')
+  })
+
+  it("stylesheet reference comes before body (in head)", () => {
+    const page = bakeTrustPage(anyCase.input)
+    const html = renderHtml(page)
+    const styleIndex = html.indexOf('<link rel="stylesheet"')
+    const bodyIndex = html.indexOf("<body>")
+    expect(styleIndex).toBeGreaterThan(-1)
+    expect(bodyIndex).toBeGreaterThan(-1)
+    expect(styleIndex).toBeLessThan(bodyIndex)
+  })
+})
