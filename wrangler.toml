@@ -1,0 +1,12 @@
+name = "calllint-usage-observatory"
+compatibility_date = "2024-01-01"
+pages_build_output_dir = "public"
+
+# D1 Database binding
+[[d1_databases]]
+binding = "USAGE_DB"
+database_name = "calllint-usage"
+database_id = "" # Fill after: wrangler d1 create calllint-usage
+
+# Secrets (set via wrangler secret put)
+# USAGE_HASH_KEY - HMAC secret for hashing installation IDs

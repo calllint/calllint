@@ -84,6 +84,7 @@
     "ci:local": "pnpm typecheck && pnpm test && pnpm build && pnpm corpus:test && pnpm bench:test && pnpm check:public-copy && pnpm check:harness-distribution && pnpm audit:evidence && pnpm audit:coverage && pnpm audit:calibration && pnpm eval:phase-2.4 && pnpm eval:phase-2.4:dogfood && pnpm eval:phase-2.4:gates && pnpm eval:phase-2.4:panel:validate && pnpm audit:presentation && pnpm audit:presentation:gate && pnpm audit:presentation:lock && pnpm audit:presentation:lock:gate && pnpm audit:preview && pnpm audit:preview:gate && pnpm ledger:presentation:validate && pnpm gate:s0:regression"
   },
   "devDependencies": {
+    "@cloudflare/workers-types": "^5.20260818.1",
     "@types/node": "^20.14.0",
     "ajv": "^8.12.0",
     "sharp": "^0.35.1",
