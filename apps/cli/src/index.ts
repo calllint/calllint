@@ -68,6 +68,15 @@ function gitChangedFiles(cwd: string): string {
 
 async function main(): Promise<void> {
   const invoked = process.argv.slice(2)
+
+  // Early exit for telemetry commands (async state operations)
+  if (invoked[0] === "telemetry") {
+    const { executeTelemetryCommand } = await import("./commands/telemetry.js")
+    const exitCode = await executeTelemetryCommand({ command: "telemetry", positional: invoked, flags: {} } as any)
+    process.exitCode = exitCode
+    return
+  }
+
   // A clicked `calllint://` link continues INTO the authority prompt instead of
   // printing a command to copy (R-2b / ADR 0057 §1+§6). The rewrite happens here,
   // before anything reads argv, so the contract fetch below sees the safe-install
@@ -171,6 +180,14 @@ async function main(): Promise<void> {
   if (result.stdout) process.stdout.write(result.stdout + "\n")
   if (result.stderr) process.stderr.write(result.stderr + "\n")
   process.exitCode = result.exitCode
+
+  // Best-effort telemetry flush: runs AFTER command completion, never affects output or exit code
+  try {
+    const { flushTelemetry } = await import("./flush.js")
+    await flushTelemetry()
+  } catch {
+    // Telemetry flush is best-effort, never breaks the CLI
+  }
 }
 
 void main()

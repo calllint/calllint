@@ -1,0 +1,27 @@
+{
+  "schema": "calllint.harness-native-installability.v0",
+  "observedAt": "2026-08-18T10:40:00Z",
+  "tests": [
+    {
+      "ecosystem": "cline",
+      "packageName": "calllint-mcp",
+      "advertisedCommand": "cline mcp install calllint -- npx -y calllint-mcp",
+      "underlyingCommand": "npx -y calllint-mcp",
+      "testApproach": "pnpm pack:smoke:mcp",
+      "outcome": "PASS",
+      "evidence": {
+        "packageVersion": "0.2.0",
+        "manifestClean": true,
+        "binCorrect": true,
+        "stdioCap": "initialize + tools/list(13 named) + tools/call → BLOCK + resources(99) + read verbatim + server/discover + handshake",
+        "apiKeyRequired": false
+      },
+      "notes": "calllint-mcp MCP smoke test passed. Package is usable, stdio server starts correctly, no API key required."
+    }
+  ],
+  "summary": {
+    "totalEcosystems": 1,
+    "totalPassed": 1,
+    "allAdvertisedCommandsUsable": true
+  }
+}
