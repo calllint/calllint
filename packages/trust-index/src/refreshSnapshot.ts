@@ -95,7 +95,7 @@
  *         TRUST_INGEST_ARTIFACTS (optional) `0` skips artifact resolution entirely
  *         TRUST_INGEST_EVIDENCE (optional) `0` skips evidence compilation entirely
  */
-import { mkdirSync, writeFileSync } from "node:fs"
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs"
 import { dirname, resolve } from "node:path"
 import { fileURLToPath } from "node:url"
 import {
@@ -130,23 +130,78 @@ import { hashJson } from "@calllint/fingerprint"
 // line is in fact that scan's POSITIVE CONTROL for the `@calllint/policy` pattern: an ingestion
 // module that legitimately names a policy is how the scan proves its own regexes still match.
 import { adoptionBasisPolicy } from "@calllint/policy"
-import { DEFAULT_ENDPOINT, DEFAULT_MAX_ENTRIES } from "./fetchRegistry.js"
+import {
+  CUMULATIVE_COVERAGE_CEILING,
+  CUMULATIVE_COVERAGE_STEP,
+  DEFAULT_ENDPOINT,
+  DEFAULT_MAX_ENTRIES,
+} from "./fetchRegistry.js"
 import { parseSnapshot } from "./snapshot.js"
 import { SNAPSHOT_PATH, engineVersion } from "./bake.js"
 
 /**
- * Resolve the ingestion cap (ADR 0038 §6). Defaults to DEFAULT_MAX_ENTRIES; an
- * operator raises it for a scale-out run via TRUST_INGEST_MAX_ENTRIES (workflow_dispatch
- * input). Fails SAFE: a missing, non-numeric, zero, or negative value falls back to the
- * default rather than fetching an unbounded / empty cohort. This is the ONLY knob for
- * 37 → 100+; it takes effect on the next real ingest run and touches no committed bytes.
+ * Resolve the ingestion cap with cumulative coverage auto-growth (Amendment v1, Section E).
+ *
+ * TRUST_INGEST_MAX_ENTRIES (workflow_dispatch input) is the ONLY knob for 37 → 100+.
+ *
+ * CASE 1 — no previous snapshot:
+ *   target = DEFAULT_MAX_ENTRIES (100)
+ *
+ * CASE 2 — previous count < 500 and no operator override:
+ *   target = min(CUMULATIVE_COVERAGE_CEILING, max(DEFAULT_MAX_ENTRIES, previousCount + STEP))
+ *   Examples: 100 → 150, 150 → 200, 450 → 500
+ *
+ * CASE 3 — previous count == 500:
+ *   target = 500 (hold at ceiling)
+ *
+ * CASE 4 — previous count > 500 (operator manually expanded farther):
+ *   target = previousCount (NEVER shrink automatically)
+ *
+ * CASE 5 — valid TRUST_INGEST_MAX_ENTRIES override > previousCount:
+ *   use the operator target
+ *
+ * CASE 6 — valid override < previousCount:
+ *   DO NOT SHRINK. effective target = previousCount
+ *
+ * Fails SAFE: missing, non-numeric, zero, or negative env value falls back to auto-growth.
+ * An ordinary workflow parameter must never become a destructive delete button (Amendment §E).
+ *
+ * @param env - Environment variables
+ * @param previousCount - Count from the previous committed snapshot (undefined if no previous)
  */
-export function resolveMaxEntries(env: Record<string, string | undefined>): number {
+export function resolveMaxEntries(
+  env: Record<string, string | undefined>,
+  previousCount?: number,
+): number {
   const raw = env.TRUST_INGEST_MAX_ENTRIES
-  if (raw == null || raw.trim() === "") return DEFAULT_MAX_ENTRIES
-  const n = Number(raw)
-  if (!Number.isInteger(n) || n <= 0) return DEFAULT_MAX_ENTRIES
-  return n
+  const hasOverride = raw != null && raw.trim() !== ""
+  const override = hasOverride ? Number(raw) : NaN
+  const validOverride = Number.isInteger(override) && override > 0
+
+  // No previous snapshot (bootstrap)
+  if (previousCount === undefined) {
+    return validOverride ? override : DEFAULT_MAX_ENTRIES
+  }
+
+  // Operator override (Cases 5-6)
+  if (validOverride) {
+    // Case 6: never shrink automatically (Amendment §E)
+    return Math.max(override, previousCount)
+  }
+
+  // Case 4: operator manually expanded >500 in a prior run; preserve it
+  if (previousCount > CUMULATIVE_COVERAGE_CEILING) {
+    return previousCount
+  }
+
+  // Case 3: already at ceiling; hold
+  if (previousCount >= CUMULATIVE_COVERAGE_CEILING) {
+    return CUMULATIVE_COVERAGE_CEILING
+  }
+
+  // Case 2: auto-growth (+50 per run, up to 500)
+  const nextTarget = previousCount + CUMULATIVE_COVERAGE_STEP
+  return Math.min(CUMULATIVE_COVERAGE_CEILING, Math.max(DEFAULT_MAX_ENTRIES, nextTarget))
 }
 
 /**
@@ -266,7 +321,33 @@ function migrationsDir(): string {
 
 async function main(): Promise<void> {
   const now = process.env.TRUST_INGEST_NOW || new Date().toISOString()
-  const maxEntries = resolveMaxEntries(process.env)
+
+  // BEFORE overwriting SNAPSHOT_PATH: read previous snapshot to extract retainedNames
+  // (Cumulative Coverage Amendment v1, §G4)
+  let previousSnapshot: ReturnType<typeof parseSnapshot> | null = null
+  let retainedNames: string[] = []
+  let previousCount: number | undefined = undefined
+
+  if (existsSync(SNAPSHOT_PATH)) {
+    try {
+      const previousText = readFileSync(SNAPSHOT_PATH, "utf8")
+      previousSnapshot = parseSnapshot(previousText)
+      retainedNames = previousSnapshot.entries.map((e) => e.name)
+      previousCount = previousSnapshot.count
+      // eslint-disable-next-line no-console
+      console.log(
+        `cumulative coverage: ${previousCount} previous, ${retainedNames.length} retained names extracted`,
+      )
+    } catch (err) {
+      // FAIL CLOSED (Amendment §G4): malformed snapshot must not silently become mass eviction
+      throw new Error(`Failed to read previous snapshot for cumulative coverage: ${err}`)
+    }
+  } else {
+    // eslint-disable-next-line no-console
+    console.log("cumulative coverage: no previous snapshot, bootstrap mode (target 100)")
+  }
+
+  const maxEntries = resolveMaxEntries(process.env, previousCount)
   const mirrorMaxEntries = resolveMirrorMaxEntries(process.env, maxEntries)
   const maxPages = resolveMirrorMaxPages(process.env)
 
@@ -338,6 +419,7 @@ async function main(): Promise<void> {
       mirrorMaxEntries,
       maxPages,
       mode: "full",
+      retainedNames,
       ...(artifactPort === undefined ? {} : { artifactPort }),
       ...(evidencePort === undefined ? {} : { evidencePort }),
     })
@@ -351,6 +433,16 @@ async function main(): Promise<void> {
   mkdirSync(dirname(SNAPSHOT_PATH), { recursive: true })
   writeFileSync(SNAPSHOT_PATH, snapshotText, "utf8")
   const committed = parseSnapshot(snapshotText)
+
+  // Cumulative coverage observability (Amendment v1, §M)
+  const currentRetainedCount = retainedNames.filter((name) =>
+    committed.entries.some((e) => e.name === name),
+  ).length
+  const newlyAdmittedCount = committed.count - currentRetainedCount
+  const atCeiling = committed.count >= CUMULATIVE_COVERAGE_CEILING
+  const coverageClause = atCeiling
+    ? `coverage: ${currentRetainedCount} retained, target ${maxEntries}, ${newlyAdmittedCount} newly admitted, ceiling reached; `
+    : `coverage: ${currentRetainedCount} retained, target ${maxEntries}, ${newlyAdmittedCount} newly admitted, ${committed.count} served; `
 
   // 3. REPORT the change verdict. This bin measures; it does not rebuild. `bake.ts` is the
   //    one bin that bakes, because it is the one that loads the COMPLETE input set (claims,
@@ -395,6 +487,7 @@ async function main(): Promise<void> {
       `${mirrored.sync.persisted.unchanged} unchanged), ${mirrored.mirroredRecords} row(s) stored, ` +
       `${mirrored.currentSubjects} current subject(s); ` +
       conservationClause +
+      coverageClause +
       `snapshot: ${committed.count} entry(ies) @ ${committed.fetchedAt}; ` +
       `cohort digest ${mirrored.snapshotDigest}; ` +
       artifactClause +

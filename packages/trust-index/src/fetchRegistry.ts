@@ -34,6 +34,19 @@ export const DEFAULT_ENDPOINT = "https://registry.modelcontextprotocol.io/v0/ser
 export const DEFAULT_MAX_ENTRIES = 100
 
 /**
+ * Cumulative coverage growth step — how many entries to add per scheduled run.
+ * (Cumulative Coverage Amendment v1, Section E)
+ */
+export const CUMULATIVE_COVERAGE_STEP = 50
+
+/**
+ * Cumulative coverage hard ceiling — automatic growth stops at this count.
+ * Manual operator overrides can still exceed it (Amendment Case 4).
+ * (Cumulative Coverage Amendment v1, Section E)
+ */
+export const CUMULATIVE_COVERAGE_CEILING = 500
+
+/**
  * Names the cohort slice must never evict, in the REGISTRY'S OWN KEY SPACE (reverse-DNS,
  * with the `/`). ADR 0075.
  *
@@ -68,36 +81,61 @@ export const DEFAULT_MAX_ENTRIES = 100
 export const RESERVED_COHORT_NAMES: readonly string[] = ["io.github.calllint/calllint"]
 
 /**
- * Apply the cap as a RESERVED-FIRST selection instead of a bare alphabetical prefix.
+ * Apply the cap as a RETAINED+RESERVED-FIRST selection (Cumulative Coverage Amendment v1, §D).
+ *
+ * Previously published names (retainedNames) are sticky: they survive even when new entries
+ * sort before them alphabetically. Reserved names (RESERVED_COHORT_NAMES) remain protected.
+ * Remaining slots are filled deterministically from alphabetically-first candidates.
  *
  * Contract, and every clause of it is asserted:
  *   - output stays sorted ascending by `name` (the bake and `presentation-lock.json` read
  *     cohort order; the claimed subject holds the last position in both)
  *   - `output.length === min(entries.length, max)` — the cap stays an absolute ceiling, so
- *     a reserved name takes a slot, never an extra one. At `max === 0` the output is empty:
- *     the caller asked for nothing, and the cap wins over the reservation.
+ *     a retained/reserved name takes a slot, never an extra one. At `max === 0` the output is empty.
+ *   - every retained name present in `entries` is present in the output (Amendment §D step 4)
  *   - every reserved name present in `entries` is present in the output whenever `max >= 1`
- *   - when the cap does not bind, this IS the old bare sort
+ *   - when retainedNames is omitted/empty and cap does not bind, this IS the old bare sort
  *
- * That last clause is why today's committed bytes cannot move: the cohort is 19 against a cap
- * of 100, so control returns at the early exit and never reaches the partition. Zero movement
- * is structural here, not a coincidence to be re-measured each batch.
+ * @param entries - Current live entries (already filtered to active+isLatest)
+ * @param max - Absolute ceiling on output size
+ * @param retainedNames - Previously published registry names (optional; enables cumulative coverage)
  */
-export function selectCohortEntries<T extends { readonly name: string }>(entries: readonly T[], max: number): T[] {
+export function selectCohortEntries<T extends { readonly name: string }>(
+  entries: readonly T[],
+  max: number,
+  retainedNames?: readonly string[],
+): T[] {
   const byName = [...entries].sort((a, b) => (a.name < b.name ? -1 : a.name > b.name ? 1 : 0))
   if (byName.length <= max) return byName
+
+  // A negative cap emits nothing (Amendment §D preserves this invariant from prior logic)
+  if (max < 0) return []
+
+  const retained = retainedNames ?? []
+  const isRetained = (e: T): boolean => retained.includes(e.name)
   const isReserved = (e: T): boolean => RESERVED_COHORT_NAMES.includes(e.name)
-  const reserved = byName.filter(isReserved).slice(0, max)
-  // `Math.max(0, …)` matters ONLY for a negative `max`, and that is the measured shape, not the
-  // one this comment first claimed. `reserved` is itself sliced to `max`, so `reserved.length <= max`
-  // and the budget cannot go negative on its own for any `max >= 0` — at `max === 0` it is exactly 0.
-  // A negative `max` is where it bites, and it bites backwards: `slice(0, -1)` means "all but the
-  // last" in JS, so unclamped, `max === -1` returns TWO entries from a four-name cohort and `-2`
-  // returns one — the more negative the ceiling, the MORE the function admits. Measured, then
-  // pinned by the `max < 0` case in `registry-cohort-retention.invariants.test.ts`, so this line
-  // now has a failing mode of its own rather than resting on prose.
-  const rest = byName.filter((e) => !isReserved(e)).slice(0, Math.max(0, max - reserved.length))
-  return [...reserved, ...rest].sort((a, b) => (a.name < b.name ? -1 : a.name > b.name ? 1 : 0))
+
+  // Step 2-3 (Amendment §D): partition into retained, reserved (minus already-retained), and candidates
+  const retainedPresent = byName.filter(isRetained)
+  const reservedPresent = byName.filter((e) => isReserved(e) && !isRetained(e)).slice(0, max)
+
+  // Step 4-5 (Amendment §D): fail closed if retained+reserved exceeds cap
+  if (retainedPresent.length + reservedPresent.length > max) {
+    throw new Error(
+      `Cumulative coverage conflict: ${retainedPresent.length} retained + ${reservedPresent.length} reserved > ${max} cap`,
+    )
+  }
+
+  // Step 6 (Amendment §D): fill remaining slots from alphabetically-first candidates
+  const candidates = byName.filter((e) => !isRetained(e) && !isReserved(e))
+  const remaining = max - retainedPresent.length - reservedPresent.length
+  // `Math.max(0, …)` guards against negative `max` (Amendment §D unchanged from prior logic)
+  const selected = candidates.slice(0, Math.max(0, remaining))
+
+  // Step 7 (Amendment §D): final sort by name
+  return [...retainedPresent, ...reservedPresent, ...selected].sort((a, b) =>
+    a.name < b.name ? -1 : a.name > b.name ? 1 : 0,
+  )
 }
 
 interface RawServer {
@@ -168,13 +206,16 @@ function toSnapshotEntry(item: RawItem): SnapshotEntry | null {
  * Fetch the registry and build a snapshot. `now` and `fetch` are injected so the
  * workflow controls the clock and tests can stub the network — this module stays
  * the only place a real fetch happens. Entries are sorted by name and capped by
- * `selectCohortEntries`, which reserves `RESERVED_COHORT_NAMES` against the cap.
+ * `selectCohortEntries`, which reserves `RESERVED_COHORT_NAMES` and optionally
+ * retains previously-published names (Cumulative Coverage Amendment v1).
  */
 export async function fetchRegistrySnapshot(opts: {
   now: string
   endpoint?: string
   maxEntries?: number
   fetchImpl?: typeof fetch
+  /** Previously published registry names (Cumulative Coverage Amendment v1, §G1) */
+  retainedNames?: readonly string[]
 }): Promise<RegistrySnapshot> {
   const endpoint = opts.endpoint ?? DEFAULT_ENDPOINT
   const max = opts.maxEntries ?? DEFAULT_MAX_ENTRIES
@@ -188,6 +229,7 @@ export async function fetchRegistrySnapshot(opts: {
   const entries = selectCohortEntries(
     items.map(toSnapshotEntry).filter((e): e is SnapshotEntry => e !== null),
     max,
+    opts.retainedNames,
   )
 
   return {

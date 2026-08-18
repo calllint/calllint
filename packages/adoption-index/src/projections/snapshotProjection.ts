@@ -107,6 +107,8 @@ export interface ProjectSnapshotOptions {
   fetchedAt: string
   /** The ADR 0038 §6 cap. Same default as the shipped edge. */
   maxEntries: number
+  /** Previously published registry names (Cumulative Coverage Amendment v1, §G2) */
+  retainedNames?: readonly string[]
 }
 
 /**
@@ -128,32 +130,63 @@ export interface ProjectSnapshotOptions {
 export const RESERVED_COHORT_NAMES: readonly string[] = ["io.github.calllint/calllint"]
 
 /**
- * Apply the cap as a reserved-first selection. The shipped edge's `selectCohortEntries`,
- * clause for clause: sorted output, `min(length, max)` as an absolute ceiling, every reserved
- * name present in the input present in the output whenever `max >= 1`, and — when the cap does
- * not bind — the bare sort this replaced.
+ * Apply the cap as a retained+reserved-first selection (Cumulative Coverage Amendment v1, §D).
  *
- * The early exit is why today's committed snapshot cannot move: 19 records against a cap of
- * 100 returns before the partition is reached.
+ * Previously published names (retainedNames) are sticky: they survive even when new entries
+ * sort before them alphabetically. Reserved names (RESERVED_COHORT_NAMES) remain protected.
+ * Remaining slots are filled deterministically from alphabetically-first candidates.
+ *
+ * Duplicated VERBATIM from `trust-index/src/fetchRegistry.ts` (Amendment §G2), which carries
+ * the full contract. The two must behave identically: a name retained on one side only would
+ * make the implementations disagree exactly when the cap binds, and `snapshot-projection.test.ts`
+ * asserts they agree byte-for-byte.
  */
-export function selectCohortEntries<T extends { readonly name: string }>(entries: readonly T[], max: number): T[] {
+export function selectCohortEntries<T extends { readonly name: string }>(
+  entries: readonly T[],
+  max: number,
+  retainedNames?: readonly string[],
+): T[] {
   const byName = [...entries].sort((a, b) => (a.name < b.name ? -1 : a.name > b.name ? 1 : 0))
   if (byName.length <= max) return byName
+
+  // A negative cap emits nothing (Amendment §D preserves this invariant from prior logic)
+  if (max < 0) return []
+
+  const retained = retainedNames ?? []
+  const isRetained = (e: T): boolean => retained.includes(e.name)
   const isReserved = (e: T): boolean => RESERVED_COHORT_NAMES.includes(e.name)
-  const reserved = byName.filter(isReserved).slice(0, max)
-  // Clamped for the same reason as the shipped edge, which carries the measurement: the clamp is
-  // reachable ONLY for a negative `max` — `reserved` is already sliced to `max`, so the budget
-  // cannot go negative for any `max >= 0`. Unclamped, `slice(0, -1)` means "all but the last", so a
-  // negative ceiling admits MORE the more negative it gets.
-  const rest = byName.filter((e) => !isReserved(e)).slice(0, Math.max(0, max - reserved.length))
-  return [...reserved, ...rest].sort((a, b) => (a.name < b.name ? -1 : a.name > b.name ? 1 : 0))
+
+  // Step 2-3 (Amendment §D): partition into retained, reserved (minus already-retained), and candidates
+  const retainedPresent = byName.filter(isRetained)
+  const reservedPresent = byName.filter((e) => isReserved(e) && !isRetained(e)).slice(0, max)
+
+  // Step 4-5 (Amendment §D): fail closed if retained+reserved exceeds cap
+  if (retainedPresent.length + reservedPresent.length > max) {
+    throw new Error(
+      `Cumulative coverage conflict: ${retainedPresent.length} retained + ${reservedPresent.length} reserved > ${max} cap`,
+    )
+  }
+
+  // Step 6 (Amendment §D): fill remaining slots from alphabetically-first candidates
+  const candidates = byName.filter((e) => !isRetained(e) && !isReserved(e))
+  const remaining = max - retainedPresent.length - reservedPresent.length
+  const selected = candidates.slice(0, Math.max(0, remaining))
+
+  // Step 7 (Amendment §D): final sort by name
+  return [...retainedPresent, ...reservedPresent, ...selected].sort((a, b) =>
+    a.name < b.name ? -1 : a.name > b.name ? 1 : 0,
+  )
 }
 
 export function projectSnapshot(opts: ProjectSnapshotOptions): ProjectedSnapshot {
   // The shipped comparator lives inside `selectCohortEntries`, character for character.
   // `localeCompare` would order differently under some locales and make the bytes
   // environment-dependent.
-  const entries = selectCohortEntries(opts.records.filter(isLiveCohort).map(toEntry), opts.maxEntries)
+  const entries = selectCohortEntries(
+    opts.records.filter(isLiveCohort).map(toEntry),
+    opts.maxEntries,
+    opts.retainedNames,
+  )
 
   return {
     schema: "calllint.trust-snapshot.v0",

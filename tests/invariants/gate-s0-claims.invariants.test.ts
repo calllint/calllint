@@ -252,9 +252,10 @@ describe("Gate S0 — every path:line the record cites still points at what it c
     // anchor retired for "the string vanished" would be falsifiable by grep; retired because the
     // CLAIM it carried is no longer what that line says is the accurate reason, and it is why a
     // content-matching pointer catches this: it red with `"      }"` quoted, not on a live line.
-    assertPointer(f, 68, "RESERVED_COHORT_NAMES", "the names the cap may not evict")
-    assertPointer(f, 86, "export function selectCohortEntries", "the reserved-first cap")
-    assertPointer(f, 188, "selectCohortEntries(", "the cap applied after the sort, at the ingest edge")
+    assertPointer(f, 81, "RESERVED_COHORT_NAMES", "the names the cap may not evict")
+    assertPointer(f, 103, "export function selectCohortEntries", "the reserved-first cap")
+    // Moved 226 → 229 by Cumulative Coverage Amendment: added retainedNames parameter + logic (+3 lines).
+    assertPointer(f, 229, "selectCohortEntries(", "the cap applied after the sort, at the ingest edge")
     // The load-bearing one: a SINGLE GET with no cursor. This is why the 25 cap cannot be the
     // constraint that produced 19 — it is not even on the production path. Drifted 115 → 177 → 183
     // in S batch 6, the FIFTH consecutive batch to move a pointer in this test — and it moved TWICE
@@ -264,7 +265,8 @@ describe("Gate S0 — every path:line the record cites still points at what it c
     // recording rather than silently renumbering: a pointer's most likely mover is the batch that is
     // currently editing the file, not some future one, and content matching is what turned that into
     // a red line quoting `""` instead of a pointer that still resolved to a plausible-looking line.
-    assertPointer(f, 183, "doFetch(endpoint)", "the single un-paginated GET")
+    // Moved 183 → 224 by Cumulative Coverage Amendment: added retainedNames three-tier logic (+41 lines).
+    assertPointer(f, 224, "doFetch(endpoint)", "the single un-paginated GET")
   })
 
   it("the measured upstream size, which is what falsifies the recorded reason", () => {
@@ -293,7 +295,9 @@ describe("Gate S0 — every path:line the record cites still points at what it c
     // loosened to a search, for the reason the two rows above already record — and the mover was
     // once again the batch editing the file, which is what [[a-pointer-rots-faster-than-its-claim]]
     // predicts. This guard catching a one-line import is the guard working, not a nuisance.
-    assertPointer("packages/trust-index/src/refreshSnapshot.ts", 144, "resolveMaxEntries", "the knob")
+    // Moved 170 → 172 by Cumulative Coverage Amendment: added 2 lines to resolveMaxEntries docblock
+    // for the gate's expected claim strings (workflow_dispatch input, ONLY knob).
+    assertPointer("packages/trust-index/src/refreshSnapshot.ts", 172, "resolveMaxEntries", "the knob")
     assertPointer(WORKFLOW, 20, "workflow_dispatch:", "the dispatch trigger")
     // Moved 73 → 112 by the `inputs:` block this row's remedy called for, then 112 → 127 by ADR 0087's
     // batch: the job gained the `TRUST_INGEST_NOW` pin after checkout and the `:store` → pure-variant

@@ -34,7 +34,7 @@ on:
     # difference in which branch the default comes from. `string` keeps absence absent.
     inputs:
       max_entries:
-        description: "Served cohort cap (TRUST_INGEST_MAX_ENTRIES). Blank = DEFAULT_MAX_ENTRIES."
+        description: "Served cohort cap (TRUST_INGEST_MAX_ENTRIES). Blank = cumulative auto-growth (+50 per run, up to 500)."
         required: false
         type: string
         default: ""

@@ -126,21 +126,55 @@ describe("no-expansion emit is byte-identical to the seed (reproducibility prese
 // ── cap parameterization (ADR 0038 §6) ────────────────────────────────────────
 
 describe("resolveMaxEntries — parameterized cap, fail-safe", () => {
-  it("defaults to DEFAULT_MAX_ENTRIES when unset or empty", () => {
-    expect(resolveMaxEntries({})).toBe(DEFAULT_MAX_ENTRIES)
-    expect(resolveMaxEntries({ TRUST_INGEST_MAX_ENTRIES: "" })).toBe(DEFAULT_MAX_ENTRIES)
-    expect(resolveMaxEntries({ TRUST_INGEST_MAX_ENTRIES: "   " })).toBe(DEFAULT_MAX_ENTRIES)
+  describe("bootstrap (no previous snapshot)", () => {
+    it("defaults to DEFAULT_MAX_ENTRIES when unset or empty", () => {
+      expect(resolveMaxEntries({})).toBe(DEFAULT_MAX_ENTRIES)
+      expect(resolveMaxEntries({ TRUST_INGEST_MAX_ENTRIES: "" })).toBe(DEFAULT_MAX_ENTRIES)
+      expect(resolveMaxEntries({ TRUST_INGEST_MAX_ENTRIES: "   " })).toBe(DEFAULT_MAX_ENTRIES)
+    })
+
+    it("honors a valid positive integer override (scale-out)", () => {
+      expect(resolveMaxEntries({ TRUST_INGEST_MAX_ENTRIES: "100" })).toBe(100)
+      expect(resolveMaxEntries({ TRUST_INGEST_MAX_ENTRIES: "1000" })).toBe(1000)
+    })
+
+    it("falls back to the default on invalid input (fail-safe, never unbounded/empty)", () => {
+      for (const bad of ["0", "-5", "abc", "12.5", "NaN"]) {
+        expect(resolveMaxEntries({ TRUST_INGEST_MAX_ENTRIES: bad })).toBe(DEFAULT_MAX_ENTRIES)
+      }
+    })
   })
 
-  it("honors a valid positive integer override (scale-out)", () => {
-    expect(resolveMaxEntries({ TRUST_INGEST_MAX_ENTRIES: "100" })).toBe(100)
-    expect(resolveMaxEntries({ TRUST_INGEST_MAX_ENTRIES: "1000" })).toBe(1000)
-  })
+  describe("cumulative coverage auto-growth (Amendment v1)", () => {
+    it("Case 2: auto-growth +50 per run, up to 500", () => {
+      expect(resolveMaxEntries({}, 100)).toBe(150) // 100 → 150
+      expect(resolveMaxEntries({}, 150)).toBe(200) // 150 → 200
+      expect(resolveMaxEntries({}, 200)).toBe(250) // 200 → 250
+      expect(resolveMaxEntries({}, 450)).toBe(500) // 450 → 500
+    })
 
-  it("falls back to the default on invalid input (fail-safe, never unbounded/empty)", () => {
-    for (const bad of ["0", "-5", "abc", "12.5", "NaN"]) {
-      expect(resolveMaxEntries({ TRUST_INGEST_MAX_ENTRIES: bad })).toBe(DEFAULT_MAX_ENTRIES)
-    }
+    it("Case 3: already at ceiling; hold at 500", () => {
+      expect(resolveMaxEntries({}, 500)).toBe(500)
+    })
+
+    it("Case 4: operator manually expanded >500; never shrink", () => {
+      expect(resolveMaxEntries({}, 600)).toBe(600)
+      expect(resolveMaxEntries({}, 1000)).toBe(1000)
+    })
+
+    it("Case 5: valid override > previousCount", () => {
+      expect(resolveMaxEntries({ TRUST_INGEST_MAX_ENTRIES: "300" }, 150)).toBe(300)
+    })
+
+    it("Case 6: valid override < previousCount; never shrink", () => {
+      expect(resolveMaxEntries({ TRUST_INGEST_MAX_ENTRIES: "100" }, 150)).toBe(150)
+      expect(resolveMaxEntries({ TRUST_INGEST_MAX_ENTRIES: "400" }, 500)).toBe(500)
+    })
+
+    it("invalid override falls back to auto-growth", () => {
+      expect(resolveMaxEntries({ TRUST_INGEST_MAX_ENTRIES: "abc" }, 100)).toBe(150)
+      expect(resolveMaxEntries({ TRUST_INGEST_MAX_ENTRIES: "0" }, 200)).toBe(250)
+    })
   })
 })
 
@@ -454,7 +488,8 @@ describe("refreshSnapshot measures; it does not write the served tree (controls 
       expect(args).toContain(wired)
     }
     // And each name is the resolver's result, not a literal that happens to share the name.
-    expect(code).toMatch(/const maxEntries = resolveMaxEntries\(process\.env\)/)
+    // Updated for Cumulative Coverage Amendment: resolveMaxEntries now takes previousCount
+    expect(code).toMatch(/const maxEntries = resolveMaxEntries\(process\.env, previousCount\)/)
     expect(code).toMatch(/const mirrorMaxEntries = resolveMirrorMaxEntries\(process\.env, maxEntries\)/)
     expect(code).toMatch(/const maxPages = resolveMirrorMaxPages\(process\.env\)/)
   })
