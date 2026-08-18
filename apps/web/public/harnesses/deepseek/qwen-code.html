@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Qwen Code + DeepSeek Authority Review — CallLint</title>
+    <meta
+      name="description"
+      content="Inspect MCP and tool authority when using DeepSeek with Qwen Code. CallLint can auto-discover and scan Qwen Code MCP configuration."
+    />
+    <link rel="canonical" href="https://calllint.com/harnesses/deepseek/qwen-code" />
+    <link rel="icon" href="/favicon.png" type="image/png" />
+    <link rel="apple-touch-icon" href="/logo-mark-256.png" />
+    <meta property="og:type" content="article" />
+    <meta property="og:url" content="https://calllint.com/harnesses/deepseek/qwen-code" />
+    <meta property="og:title" content="Qwen Code + DeepSeek Authority Review — CallLint" />
+    <meta property="og:description" content="Review Qwen Code MCP and tool configuration before enabling DeepSeek." />
+    <meta property="og:image" content="https://calllint.com/og-image.png" />
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <header class="site-header">
+      <a class="brand-lockup" href="/" aria-label="CallLint home">
+        <img class="brand-mark" src="/logo-mark-128.png" width="40" height="40" alt="" />
+        <span class="brand-name">CallLint</span>
+      </a>
+      <nav class="nav-links" aria-label="Primary">
+        <a href="/#how">How</a>
+        <a href="/#checks">Checks</a>
+        <a href="/#trust">Trust</a>
+        <a href="/agents">For agents</a>
+        <a href="/mcp-security">MCP security</a>
+        <a href="https://github.com/calllint/calllint">GitHub</a>
+      </nav>
+    </header>
+    <main>
+      <section class="section section-narrow topic">
+        <p class="lede"><a href="/harnesses/deepseek/">DeepSeek Harness Authority</a></p>
+        <h1>Qwen Code + DeepSeek</h1>
+
+        <p class="prose">Qwen Code (Alibaba Cloud) can grant authority through mcp and tools. Using DeepSeek as the model does not change these permissions — the harness configuration controls what the agent can access.</p>
+
+        <h2>Authority Surfaces</h2>
+        <ul>
+          <li><strong>MCP servers:</strong> Model Context Protocol servers with filesystem, shell, network, and API capabilities</li>
+          <li><strong>Tools:</strong> Agent tool plugins</li>
+        </ul>
+
+        <h2>Scan with CallLint</h2>
+        <p class="prose">CallLint can automatically discover and scan Qwen Code configuration:</p>
+        <pre><code>npx calllint scan --agent qwen-code</code></pre>
+        <p class="prose">Or scan all detected agent configs:</p>
+        <pre><code>npx calllint scan --auto</code></pre>
+        <p class="prose">Expected config paths:</p>
+        <ul>
+          <li><code>~/.qwen/settings.json</code></li>
+          <li><code><project>/.qwen/settings.json</code></li>
+        </ul>
+
+        
+
+        <h2>What Changes When Using DeepSeek?</h2>
+        <p class="prose">The model identity changes. The authority surfaces do not. Qwen Code grants the same filesystem, shell, network, and API permissions regardless of which model you select.</p>
+
+        <h2>What CallLint Inspects</h2>
+        <ul>
+          <li>Filesystem access patterns (read, write, delete)</li>
+          <li>Shell command execution capabilities</li>
+          <li>Network endpoints (HTTP, WebSocket, SSE)</li>
+          <li>Environment variable access</li>
+          <li>Package install and supply-chain surfaces</li>
+        </ul>
+
+        <p class="prose"><strong>CallLint does not:</strong></p>
+        <ul>
+          <li>Evaluate model safety or capabilities</li>
+          <li>Certify Qwen Code as "safe" or "secure"</li>
+          <li>Execute or install the servers it inspects</li>
+          <li>Make recommendations based on popularity or model choice</li>
+        </ul>
+
+        <div class="callout">UNKNOWN is not SAFE. It means the surface could not be verified statically. Review manually or use a published Trust Page.</div>
+
+        <p class="prose"><a href="/harnesses/deepseek/">All harnesses</a> · <a href="/">CallLint home</a> · <a href="https://github.com/calllint/calllint">GitHub</a></p>
+      </section>
+    </main>
+    <footer class="site-footer">
+      <div class="footer-brand">
+        <img src="/logo-mark-128.png" width="28" height="28" alt="" />
+        <span>CallLint · evidence-backed verdicts for agent tools</span>
+      </div>
+      <div class="footer-links">
+        <a href="/">Home</a> ·
+        <a href="/mcp-security">MCP security</a> ·
+        <a href="/agent-tool-risk">Agent tool risk</a> ·
+        <a href="/agents">For agents</a> ·
+        <a href="https://github.com/calllint/calllint">GitHub</a>
+      </div>
+    </footer>
+  </body>
+</html>

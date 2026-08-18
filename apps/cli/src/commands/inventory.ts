@@ -99,10 +99,18 @@ function formatAgentType(agentType: string): string {
       return "Claude Code"
     case "claude-desktop":
       return "Claude Desktop"
+    case "workbuddy":
+      return "WorkBuddy"
     case "vscode":
       return "VS Code"
     case "windsurf":
       return "Windsurf"
+    case "qwen-code":
+      return "Qwen Code"
+    case "openclaw":
+      return "OpenClaw"
+    case "opencode":
+      return "OpenCode"
     default:
       return agentType
   }

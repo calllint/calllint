@@ -2,7 +2,7 @@
   "schema": "calllint.trust-page.v0",
   "canonicalName": "mcp-registry/ai.agenticterminal-directory",
   "artifactDigest": "sha256:b8ab3d517bb11ff1004342b94d9f8d561cfc459538c2f014fe5629942882e9bf",
-  "pageDigest": "sha256:a03c36113b278bbf35ee7534e4a506a62fa5fe843513744737c9c45d7c7a8806",
+  "pageDigest": "sha256:fdcac32fe12c0da89dc33695e2ee9c81702ca083ef24160ab5556baa2eb98503",
   "verdict": "REVIEW",
   "verdictLabel": "Review required",
   "observedAt": "2026-08-17T01:39:50.172Z",
@@ -12,7 +12,7 @@
     "completeness": "complete",
     "authorityClaimed": false,
     "reproducibility": {
-      "pageDigest": "sha256:a03c36113b278bbf35ee7534e4a506a62fa5fe843513744737c9c45d7c7a8806",
+      "pageDigest": "sha256:fdcac32fe12c0da89dc33695e2ee9c81702ca083ef24160ab5556baa2eb98503",
       "observedAt": "2026-08-17T01:39:50.172Z"
     },
     "evidenceLevel": "E2",
@@ -27,7 +27,7 @@
   "scanHistory": [
     {
       "observedAt": "2026-08-17T01:39:50.172Z",
-      "pageDigest": "sha256:a03c36113b278bbf35ee7534e4a506a62fa5fe843513744737c9c45d7c7a8806",
+      "pageDigest": "sha256:fdcac32fe12c0da89dc33695e2ee9c81702ca083ef24160ab5556baa2eb98503",
       "artifactDigest": "sha256:b8ab3d517bb11ff1004342b94d9f8d561cfc459538c2f014fe5629942882e9bf"
     }
   ],
@@ -104,7 +104,7 @@
         "reportKind": "single-target",
         "target": {
           "name": "remote",
-          "kind": "cursor-mcp-config",
+          "kind": "mcp-servers",
           "source": "https://mcp.agenticterminal.ai/mcp",
           "configPath": "official-mcp-registry:ai.agenticterminal/directory"
         },

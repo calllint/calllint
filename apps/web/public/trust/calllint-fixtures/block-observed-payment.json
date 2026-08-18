@@ -2,7 +2,7 @@
   "schema": "calllint.trust-page.v0",
   "canonicalName": "calllint-fixtures/block-observed-payment",
   "artifactDigest": "sha256:578dd3d4f69fdd0a9deeef6d27451ee160627ab7c05e300b1a6f8a438bb3cf11",
-  "pageDigest": "sha256:58dc9a9c42f7e2917f96f2502ef9675b48f2ca717b4110b722a1d0203238fcde",
+  "pageDigest": "sha256:3f55a16d75b4a8aa84c4622e6860b6a2b061fa3e2e934d211eef5ad52a2b7691",
   "verdict": "BLOCK",
   "verdictLabel": "Blocked by policy",
   "observedAt": "1970-01-01T00:00:00.000Z",
@@ -12,7 +12,7 @@
     "completeness": "complete",
     "authorityClaimed": false,
     "reproducibility": {
-      "pageDigest": "sha256:58dc9a9c42f7e2917f96f2502ef9675b48f2ca717b4110b722a1d0203238fcde",
+      "pageDigest": "sha256:3f55a16d75b4a8aa84c4622e6860b6a2b061fa3e2e934d211eef5ad52a2b7691",
       "observedAt": "1970-01-01T00:00:00.000Z"
     },
     "evidenceLevel": "E2",
@@ -27,7 +27,7 @@
   "scanHistory": [
     {
       "observedAt": "1970-01-01T00:00:00.000Z",
-      "pageDigest": "sha256:58dc9a9c42f7e2917f96f2502ef9675b48f2ca717b4110b722a1d0203238fcde",
+      "pageDigest": "sha256:3f55a16d75b4a8aa84c4622e6860b6a2b061fa3e2e934d211eef5ad52a2b7691",
       "artifactDigest": "sha256:578dd3d4f69fdd0a9deeef6d27451ee160627ab7c05e300b1a6f8a438bb3cf11"
     }
   ],
@@ -119,7 +119,7 @@
         "reportKind": "single-target",
         "target": {
           "name": "merchant",
-          "kind": "cursor-mcp-config",
+          "kind": "mcp-servers",
           "source": "acme-commerce-mcp",
           "version": "3.0.0",
           "configPath": "block-observed-payment.json"

@@ -2,7 +2,7 @@
   "schema": "calllint.trust-page.v0",
   "canonicalName": "mcp-registry/ai.autonomad-travel",
   "artifactDigest": "sha256:1d39cd3d3878d3b7c9f32f6c71e77ee13cf02e059af98eff27fc13a925c7f02c",
-  "pageDigest": "sha256:ed16ec33efb18a1fbecf797245a2f51325cc8e5aed5143a06827de1cc2504137",
+  "pageDigest": "sha256:d9021b62732aef27c255d1e8f82adf57ead97fbf3870c4474d20424595fce9eb",
   "verdict": "REVIEW",
   "verdictLabel": "Review required",
   "observedAt": "2026-08-17T01:39:50.172Z",
@@ -12,7 +12,7 @@
     "completeness": "complete",
     "authorityClaimed": false,
     "reproducibility": {
-      "pageDigest": "sha256:ed16ec33efb18a1fbecf797245a2f51325cc8e5aed5143a06827de1cc2504137",
+      "pageDigest": "sha256:d9021b62732aef27c255d1e8f82adf57ead97fbf3870c4474d20424595fce9eb",
       "observedAt": "2026-08-17T01:39:50.172Z"
     },
     "evidenceLevel": "E2",
@@ -27,7 +27,7 @@
   "scanHistory": [
     {
       "observedAt": "2026-08-17T01:39:50.172Z",
-      "pageDigest": "sha256:ed16ec33efb18a1fbecf797245a2f51325cc8e5aed5143a06827de1cc2504137",
+      "pageDigest": "sha256:d9021b62732aef27c255d1e8f82adf57ead97fbf3870c4474d20424595fce9eb",
       "artifactDigest": "sha256:1d39cd3d3878d3b7c9f32f6c71e77ee13cf02e059af98eff27fc13a925c7f02c"
     }
   ],
@@ -118,7 +118,7 @@
         "reportKind": "single-target",
         "target": {
           "name": "package",
-          "kind": "cursor-mcp-config",
+          "kind": "mcp-servers",
           "source": "autonomad-travel",
           "version": "1.4.0",
           "configPath": "official-mcp-registry:ai.autonomad/travel"
@@ -157,7 +157,7 @@
         "reportKind": "single-target",
         "target": {
           "name": "remote",
-          "kind": "cursor-mcp-config",
+          "kind": "mcp-servers",
           "source": "https://mcp.autonomad.ai/mcp",
           "configPath": "official-mcp-registry:ai.autonomad/travel"
         },

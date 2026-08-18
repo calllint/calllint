@@ -2,7 +2,7 @@
   "schema": "calllint.trust-page.v0",
   "canonicalName": "mcp-registry/ai.adadvisor-mcp-server",
   "artifactDigest": "sha256:2c230c28640a0dcf1b8cc1a66ab330296a2768ae055449b9494b28506f44c239",
-  "pageDigest": "sha256:7174151cd70fd952b9f88964559a8256ca4a9e4b59f4df18bdaed8d12b7f7020",
+  "pageDigest": "sha256:3c44d92e19bede5c5f7bb7938131e48617f79278699db0a87aa8fad95d48c71c",
   "verdict": "REVIEW",
   "verdictLabel": "Review required",
   "observedAt": "2026-08-17T01:39:50.172Z",
@@ -12,7 +12,7 @@
     "completeness": "complete",
     "authorityClaimed": false,
     "reproducibility": {
-      "pageDigest": "sha256:7174151cd70fd952b9f88964559a8256ca4a9e4b59f4df18bdaed8d12b7f7020",
+      "pageDigest": "sha256:3c44d92e19bede5c5f7bb7938131e48617f79278699db0a87aa8fad95d48c71c",
       "observedAt": "2026-08-17T01:39:50.172Z"
     },
     "evidenceLevel": "E2",
@@ -27,7 +27,7 @@
   "scanHistory": [
     {
       "observedAt": "2026-08-17T01:39:50.172Z",
-      "pageDigest": "sha256:7174151cd70fd952b9f88964559a8256ca4a9e4b59f4df18bdaed8d12b7f7020",
+      "pageDigest": "sha256:3c44d92e19bede5c5f7bb7938131e48617f79278699db0a87aa8fad95d48c71c",
       "artifactDigest": "sha256:2c230c28640a0dcf1b8cc1a66ab330296a2768ae055449b9494b28506f44c239"
     }
   ],
@@ -104,7 +104,7 @@
         "reportKind": "single-target",
         "target": {
           "name": "remote",
-          "kind": "cursor-mcp-config",
+          "kind": "mcp-servers",
           "source": "https://api.adadvisor.ai/mcp",
           "configPath": "official-mcp-registry:ai.adadvisor/mcp-server"
         },

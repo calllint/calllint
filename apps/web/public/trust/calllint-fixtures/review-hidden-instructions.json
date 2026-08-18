@@ -2,7 +2,7 @@
   "schema": "calllint.trust-page.v0",
   "canonicalName": "calllint-fixtures/review-hidden-instructions",
   "artifactDigest": "sha256:6cddab4f5ad9b47f58e821f667e041a91622ece242394749278040365687bab9",
-  "pageDigest": "sha256:5cf94224cf756dc15625d492c7050ff25ca12ec7aade27c6a9cb0adc2d795afe",
+  "pageDigest": "sha256:2cde300eb6afaacf0dd0f50c45f964409e30b93b492e14efaacb281a8a0b7c47",
   "verdict": "REVIEW",
   "verdictLabel": "Review required",
   "observedAt": "1970-01-01T00:00:00.000Z",
@@ -12,7 +12,7 @@
     "completeness": "complete",
     "authorityClaimed": false,
     "reproducibility": {
-      "pageDigest": "sha256:5cf94224cf756dc15625d492c7050ff25ca12ec7aade27c6a9cb0adc2d795afe",
+      "pageDigest": "sha256:2cde300eb6afaacf0dd0f50c45f964409e30b93b492e14efaacb281a8a0b7c47",
       "observedAt": "1970-01-01T00:00:00.000Z"
     },
     "evidenceLevel": "E2",
@@ -27,7 +27,7 @@
   "scanHistory": [
     {
       "observedAt": "1970-01-01T00:00:00.000Z",
-      "pageDigest": "sha256:5cf94224cf756dc15625d492c7050ff25ca12ec7aade27c6a9cb0adc2d795afe",
+      "pageDigest": "sha256:2cde300eb6afaacf0dd0f50c45f964409e30b93b492e14efaacb281a8a0b7c47",
       "artifactDigest": "sha256:6cddab4f5ad9b47f58e821f667e041a91622ece242394749278040365687bab9"
     }
   ],
@@ -103,7 +103,7 @@
         "reportKind": "single-target",
         "target": {
           "name": "notes",
-          "kind": "cursor-mcp-config",
+          "kind": "mcp-servers",
           "source": "notes-mcp",
           "version": "3.0.0",
           "configPath": "review-hidden-instructions.json"

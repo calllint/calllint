@@ -2,7 +2,7 @@
   "schema": "calllint.trust-page.v0",
   "canonicalName": "mcp-registry/ai.adeu-adeu",
   "artifactDigest": "sha256:f6f792740d19b83991bc32bd9f4878868d8f4ad0ae767d66e910af8d8afad2e9",
-  "pageDigest": "sha256:1e12c962d995f5a7461d80cf37c277ca8da5c8df8e641db0f8e63abb40b05a5e",
+  "pageDigest": "sha256:c33d59a2c300d85fe6781046063b50139a93828f89596aad572ca500ff4a78e3",
   "verdict": "SAFE",
   "verdictLabel": "No blockers observed",
   "observedAt": "2026-08-17T01:39:50.172Z",
@@ -12,7 +12,7 @@
     "completeness": "complete",
     "authorityClaimed": false,
     "reproducibility": {
-      "pageDigest": "sha256:1e12c962d995f5a7461d80cf37c277ca8da5c8df8e641db0f8e63abb40b05a5e",
+      "pageDigest": "sha256:c33d59a2c300d85fe6781046063b50139a93828f89596aad572ca500ff4a78e3",
       "observedAt": "2026-08-17T01:39:50.172Z"
     },
     "evidenceLevel": "E2",
@@ -27,7 +27,7 @@
   "scanHistory": [
     {
       "observedAt": "2026-08-17T01:39:50.172Z",
-      "pageDigest": "sha256:1e12c962d995f5a7461d80cf37c277ca8da5c8df8e641db0f8e63abb40b05a5e",
+      "pageDigest": "sha256:c33d59a2c300d85fe6781046063b50139a93828f89596aad572ca500ff4a78e3",
       "artifactDigest": "sha256:f6f792740d19b83991bc32bd9f4878868d8f4ad0ae767d66e910af8d8afad2e9"
     }
   ],
@@ -103,7 +103,7 @@
         "reportKind": "single-target",
         "target": {
           "name": "package",
-          "kind": "cursor-mcp-config",
+          "kind": "mcp-servers",
           "source": "@adeu/mcp-server",
           "version": "1.7.1",
           "configPath": "official-mcp-registry:ai.adeu/adeu"

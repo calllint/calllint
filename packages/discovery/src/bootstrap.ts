@@ -4,8 +4,9 @@
  * This file is imported by index.ts so that extractors are automatically
  * registered when the package is imported. This provides zero-config discovery.
  *
- * P0 extractors (Cursor, Claude Code, Claude Desktop): Most common agents
- * P1 extractors (VS Code, Windsurf): Added in Stage 4
+ * P0 extractors (Cursor, Claude Code, Claude Desktop, WorkBuddy): Most common agents
+ * P1 extractors (VS Code, Windsurf, Qwen Code): Added in Stage 4 + harness distribution
+ * P3 extractors (OpenClaw): Harness distribution (MCP only)
  */
 
 import { registry } from "./registry.js"
@@ -14,9 +15,12 @@ import { ClaudeCodeExtractor } from "./extractors/claude-code.js"
 import { ClaudeDesktopExtractor } from "./extractors/claude-desktop.js"
 import { VSCodeExtractor } from "./extractors/vscode.js"
 import { WindsurfExtractor } from "./extractors/windsurf.js"
+import { WorkBuddyExtractor } from "./extractors/workbuddy.js"
+import { QwenCodeExtractor } from "./extractors/qwen-code.js"
+import { OpenClawExtractor } from "./extractors/openclaw.js"
 
 /**
- * Register P0 + P1 agent extractors.
+ * Register P0 + P1 + P3 (harness distribution) agent extractors.
  *
  * These are auto-registered on package import to provide zero-config discovery.
  * Users can still manually register additional extractors if needed.
@@ -26,10 +30,15 @@ function bootstrapExtractors(): void {
   registry.register(new CursorExtractor())
   registry.register(new ClaudeCodeExtractor())
   registry.register(new ClaudeDesktopExtractor())
+  registry.register(new WorkBuddyExtractor())
 
-  // P1: Additional major agents (Stage 4)
+  // P1: Additional major agents
   registry.register(new VSCodeExtractor())
   registry.register(new WindsurfExtractor())
+  registry.register(new QwenCodeExtractor())
+
+  // P3: Harness distribution (MCP coverage only)
+  registry.register(new OpenClawExtractor())
 }
 
 // Auto-register extractors on module load

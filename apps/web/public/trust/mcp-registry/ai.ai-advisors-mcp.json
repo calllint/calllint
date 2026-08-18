@@ -2,7 +2,7 @@
   "schema": "calllint.trust-page.v0",
   "canonicalName": "mcp-registry/ai.ai-advisors-mcp",
   "artifactDigest": "sha256:3031549eab990df812091c96526c44d17857b977e69a57857c9e5760c692c21d",
-  "pageDigest": "sha256:dcb9af7ab2cee5b511e26f6dcec0bc519e059be77a9516775bc5ca66cf83b5ed",
+  "pageDigest": "sha256:ddfc5da4e25d310ec77eb696d1bbc45dd2256c0ee1b7b17144e65f779a344b82",
   "verdict": "UNKNOWN",
   "verdictLabel": "Insufficient evidence",
   "observedAt": "2026-08-17T01:39:50.172Z",
@@ -12,7 +12,7 @@
     "completeness": "complete",
     "authorityClaimed": false,
     "reproducibility": {
-      "pageDigest": "sha256:dcb9af7ab2cee5b511e26f6dcec0bc519e059be77a9516775bc5ca66cf83b5ed",
+      "pageDigest": "sha256:ddfc5da4e25d310ec77eb696d1bbc45dd2256c0ee1b7b17144e65f779a344b82",
       "observedAt": "2026-08-17T01:39:50.172Z"
     },
     "evidenceLevel": "E2",
@@ -27,7 +27,7 @@
   "scanHistory": [
     {
       "observedAt": "2026-08-17T01:39:50.172Z",
-      "pageDigest": "sha256:dcb9af7ab2cee5b511e26f6dcec0bc519e059be77a9516775bc5ca66cf83b5ed",
+      "pageDigest": "sha256:ddfc5da4e25d310ec77eb696d1bbc45dd2256c0ee1b7b17144e65f779a344b82",
       "artifactDigest": "sha256:3031549eab990df812091c96526c44d17857b977e69a57857c9e5760c692c21d"
     }
   ],
@@ -104,7 +104,7 @@
         "reportKind": "single-target",
         "target": {
           "name": "remote",
-          "kind": "cursor-mcp-config",
+          "kind": "mcp-servers",
           "source": "https://app.ai-advisors.ai/api/mcp",
           "configPath": "official-mcp-registry:ai.ai-advisors/mcp"
         },

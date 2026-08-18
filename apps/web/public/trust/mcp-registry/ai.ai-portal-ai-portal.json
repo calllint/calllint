@@ -2,7 +2,7 @@
   "schema": "calllint.trust-page.v0",
   "canonicalName": "mcp-registry/ai.ai-portal-ai-portal",
   "artifactDigest": "sha256:ba80de56ba91c25cc91ed0f62b0b456a9e2bc83122bdcba18d302113682fa3de",
-  "pageDigest": "sha256:674004168aae21b9cf5fffc7df7cccddc6e0f888d756c7877c918125a4fe7bf0",
+  "pageDigest": "sha256:21bbc62e703bf7f238c4f6e9faa47724a4f93e0657bee71f10c9d4ba3914cc2d",
   "verdict": "REVIEW",
   "verdictLabel": "Review required",
   "observedAt": "2026-08-17T01:39:50.172Z",
@@ -12,7 +12,7 @@
     "completeness": "complete",
     "authorityClaimed": false,
     "reproducibility": {
-      "pageDigest": "sha256:674004168aae21b9cf5fffc7df7cccddc6e0f888d756c7877c918125a4fe7bf0",
+      "pageDigest": "sha256:21bbc62e703bf7f238c4f6e9faa47724a4f93e0657bee71f10c9d4ba3914cc2d",
       "observedAt": "2026-08-17T01:39:50.172Z"
     },
     "evidenceLevel": "E2",
@@ -27,7 +27,7 @@
   "scanHistory": [
     {
       "observedAt": "2026-08-17T01:39:50.172Z",
-      "pageDigest": "sha256:674004168aae21b9cf5fffc7df7cccddc6e0f888d756c7877c918125a4fe7bf0",
+      "pageDigest": "sha256:21bbc62e703bf7f238c4f6e9faa47724a4f93e0657bee71f10c9d4ba3914cc2d",
       "artifactDigest": "sha256:ba80de56ba91c25cc91ed0f62b0b456a9e2bc83122bdcba18d302113682fa3de"
     }
   ],
@@ -104,7 +104,7 @@
         "reportKind": "single-target",
         "target": {
           "name": "remote",
-          "kind": "cursor-mcp-config",
+          "kind": "mcp-servers",
           "source": "https://www.ai-portal.ai/mcp",
           "configPath": "official-mcp-registry:ai.ai-portal/ai-portal"
         },

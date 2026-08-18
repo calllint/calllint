@@ -2,7 +2,7 @@
   "schema": "calllint.trust-page.v0",
   "canonicalName": "mcp-registry/ai.agentutility-mcp-synthforge",
   "artifactDigest": "sha256:8aee0401f18d85bafd1b35f3d7a27d1f52081ad7469a860f344b095b8ab5c3cc",
-  "pageDigest": "sha256:24dd7eecb9c863ccd6227c6645877f2c10f74f2f9f3fa7186c9bb9493954938e",
+  "pageDigest": "sha256:fe01e0b0e20503deaaa998d2e2ec6e3397815dda09d53ee4834ac166ede613c9",
   "verdict": "SAFE",
   "verdictLabel": "No blockers observed",
   "observedAt": "2026-08-17T01:39:50.172Z",
@@ -12,7 +12,7 @@
     "completeness": "complete",
     "authorityClaimed": false,
     "reproducibility": {
-      "pageDigest": "sha256:24dd7eecb9c863ccd6227c6645877f2c10f74f2f9f3fa7186c9bb9493954938e",
+      "pageDigest": "sha256:fe01e0b0e20503deaaa998d2e2ec6e3397815dda09d53ee4834ac166ede613c9",
       "observedAt": "2026-08-17T01:39:50.172Z"
     },
     "evidenceLevel": "E2",
@@ -27,7 +27,7 @@
   "scanHistory": [
     {
       "observedAt": "2026-08-17T01:39:50.172Z",
-      "pageDigest": "sha256:24dd7eecb9c863ccd6227c6645877f2c10f74f2f9f3fa7186c9bb9493954938e",
+      "pageDigest": "sha256:fe01e0b0e20503deaaa998d2e2ec6e3397815dda09d53ee4834ac166ede613c9",
       "artifactDigest": "sha256:8aee0401f18d85bafd1b35f3d7a27d1f52081ad7469a860f344b095b8ab5c3cc"
     }
   ],
@@ -103,7 +103,7 @@
         "reportKind": "single-target",
         "target": {
           "name": "package",
-          "kind": "cursor-mcp-config",
+          "kind": "mcp-servers",
           "source": "@agentutility/mcp-synthforge",
           "version": "0.8.2",
           "configPath": "official-mcp-registry:ai.agentutility/mcp-synthforge"

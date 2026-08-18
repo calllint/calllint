@@ -2,7 +2,7 @@
   "schema": "calllint.trust-page.v0",
   "canonicalName": "mcp-registry/ai.agenticshelf-puroair",
   "artifactDigest": "sha256:e14fc20ef3f4c970843bb714836ceb7700f1a90ce2f70100a34dbf5384036201",
-  "pageDigest": "sha256:d5cdeb378f20e88693d64376bb056dc68aa56119e48ad70ec874640d18dc0031",
+  "pageDigest": "sha256:ef194467768a657c5370f44f147b39feb04935edec37956c22da37e4d5aaf7a0",
   "verdict": "REVIEW",
   "verdictLabel": "Review required",
   "observedAt": "2026-08-17T01:39:50.172Z",
@@ -12,7 +12,7 @@
     "completeness": "complete",
     "authorityClaimed": false,
     "reproducibility": {
-      "pageDigest": "sha256:d5cdeb378f20e88693d64376bb056dc68aa56119e48ad70ec874640d18dc0031",
+      "pageDigest": "sha256:ef194467768a657c5370f44f147b39feb04935edec37956c22da37e4d5aaf7a0",
       "observedAt": "2026-08-17T01:39:50.172Z"
     },
     "evidenceLevel": "E2",
@@ -27,7 +27,7 @@
   "scanHistory": [
     {
       "observedAt": "2026-08-17T01:39:50.172Z",
-      "pageDigest": "sha256:d5cdeb378f20e88693d64376bb056dc68aa56119e48ad70ec874640d18dc0031",
+      "pageDigest": "sha256:ef194467768a657c5370f44f147b39feb04935edec37956c22da37e4d5aaf7a0",
       "artifactDigest": "sha256:e14fc20ef3f4c970843bb714836ceb7700f1a90ce2f70100a34dbf5384036201"
     }
   ],
@@ -104,7 +104,7 @@
         "reportKind": "single-target",
         "target": {
           "name": "remote",
-          "kind": "cursor-mcp-config",
+          "kind": "mcp-servers",
           "source": "https://api.agenticshelf.ai/m/puroair/mcp",
           "configPath": "official-mcp-registry:ai.agenticshelf/puroair"
         },

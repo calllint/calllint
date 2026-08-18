@@ -2,7 +2,7 @@
   "schema": "calllint.trust-page.v0",
   "canonicalName": "mcp-registry/ai.autonomad-computeback",
   "artifactDigest": "sha256:e1dd5ee3ee6d47a854afe8b92d1a6db5ff984943873c2e799417ebe2a6ab8580",
-  "pageDigest": "sha256:ededfc2ed3982f703ffd175cda63d7f4ce2d07a5854f02136ce0e600c4f44f45",
+  "pageDigest": "sha256:65fccf860133512241f6b358e47c7e5cf0fb65bdf4e03e26b1f6947699a7e1d1",
   "verdict": "SAFE",
   "verdictLabel": "No blockers observed",
   "observedAt": "2026-08-17T01:39:50.172Z",
@@ -12,7 +12,7 @@
     "completeness": "complete",
     "authorityClaimed": false,
     "reproducibility": {
-      "pageDigest": "sha256:ededfc2ed3982f703ffd175cda63d7f4ce2d07a5854f02136ce0e600c4f44f45",
+      "pageDigest": "sha256:65fccf860133512241f6b358e47c7e5cf0fb65bdf4e03e26b1f6947699a7e1d1",
       "observedAt": "2026-08-17T01:39:50.172Z"
     },
     "evidenceLevel": "E2",
@@ -27,7 +27,7 @@
   "scanHistory": [
     {
       "observedAt": "2026-08-17T01:39:50.172Z",
-      "pageDigest": "sha256:ededfc2ed3982f703ffd175cda63d7f4ce2d07a5854f02136ce0e600c4f44f45",
+      "pageDigest": "sha256:65fccf860133512241f6b358e47c7e5cf0fb65bdf4e03e26b1f6947699a7e1d1",
       "artifactDigest": "sha256:e1dd5ee3ee6d47a854afe8b92d1a6db5ff984943873c2e799417ebe2a6ab8580"
     }
   ],
@@ -103,7 +103,7 @@
         "reportKind": "single-target",
         "target": {
           "name": "package",
-          "kind": "cursor-mcp-config",
+          "kind": "mcp-servers",
           "source": "@autonomad1/computeback-mcp",
           "version": "1.1.3",
           "configPath": "official-mcp-registry:ai.autonomad/computeback"

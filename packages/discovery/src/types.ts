@@ -8,12 +8,15 @@ export type AgentType =
   | "cursor"             // P0
   | "claude-code"        // P0
   | "claude-desktop"     // P0
+  | "workbuddy"          // P0 (harness distribution)
   | "vscode"             // P1
   | "windsurf"           // P1
+  | "qwen-code"          // P1 (harness distribution)
   | "codex"              // P2
   | "amazon-q"           // P2
   | "gemini-cli"         // P2
   | "openclaw"           // P3
+  | "opencode"           // P3 (harness distribution)
   | "antigravity"        // P3
   | "amp"                // P3
 

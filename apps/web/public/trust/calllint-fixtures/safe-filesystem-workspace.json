@@ -2,7 +2,7 @@
   "schema": "calllint.trust-page.v0",
   "canonicalName": "calllint-fixtures/safe-filesystem-workspace",
   "artifactDigest": "sha256:e348a92f54aa515bf94c1a272b1caf2567445ce76742ca38a1b1acb17c04753f",
-  "pageDigest": "sha256:ffa85c39f2855bd9e95a778e83badebc32212edd49706f12978af20f6ae68b7c",
+  "pageDigest": "sha256:4d367f01a3af46419d988affa99d8741536918957a112830c5bdea12453c48cc",
   "verdict": "SAFE",
   "verdictLabel": "No blockers observed",
   "observedAt": "1970-01-01T00:00:00.000Z",
@@ -12,7 +12,7 @@
     "completeness": "complete",
     "authorityClaimed": false,
     "reproducibility": {
-      "pageDigest": "sha256:ffa85c39f2855bd9e95a778e83badebc32212edd49706f12978af20f6ae68b7c",
+      "pageDigest": "sha256:4d367f01a3af46419d988affa99d8741536918957a112830c5bdea12453c48cc",
       "observedAt": "1970-01-01T00:00:00.000Z"
     },
     "evidenceLevel": "E2",
@@ -27,7 +27,7 @@
   "scanHistory": [
     {
       "observedAt": "1970-01-01T00:00:00.000Z",
-      "pageDigest": "sha256:ffa85c39f2855bd9e95a778e83badebc32212edd49706f12978af20f6ae68b7c",
+      "pageDigest": "sha256:4d367f01a3af46419d988affa99d8741536918957a112830c5bdea12453c48cc",
       "artifactDigest": "sha256:e348a92f54aa515bf94c1a272b1caf2567445ce76742ca38a1b1acb17c04753f"
     }
   ],
@@ -103,7 +103,7 @@
         "reportKind": "single-target",
         "target": {
           "name": "filesystem",
-          "kind": "cursor-mcp-config",
+          "kind": "mcp-servers",
           "source": "@modelcontextprotocol/server-filesystem",
           "version": "1.0.0",
           "configPath": "safe-filesystem-workspace.json"

@@ -2,7 +2,7 @@
   "schema": "calllint.trust-page.v0",
   "canonicalName": "mcp-registry/ai.b77-ai-media-studio",
   "artifactDigest": "sha256:ff60e24c1fbbe6ec60f5fe7170fdc87cb5283ede3b19af00fb5bdcef48db841c",
-  "pageDigest": "sha256:a980185a0ab515a7bbf9d24f3ce2477c939b73685c79fd5e0d50c513d638b8f2",
+  "pageDigest": "sha256:1de0a1d3f69a626958941a37892d39d915f322b40b11f9c1cac2e02c39c9282d",
   "verdict": "REVIEW",
   "verdictLabel": "Review required",
   "observedAt": "2026-08-17T01:39:50.172Z",
@@ -12,7 +12,7 @@
     "completeness": "complete",
     "authorityClaimed": false,
     "reproducibility": {
-      "pageDigest": "sha256:a980185a0ab515a7bbf9d24f3ce2477c939b73685c79fd5e0d50c513d638b8f2",
+      "pageDigest": "sha256:1de0a1d3f69a626958941a37892d39d915f322b40b11f9c1cac2e02c39c9282d",
       "observedAt": "2026-08-17T01:39:50.172Z"
     },
     "evidenceLevel": "E2",
@@ -27,7 +27,7 @@
   "scanHistory": [
     {
       "observedAt": "2026-08-17T01:39:50.172Z",
-      "pageDigest": "sha256:a980185a0ab515a7bbf9d24f3ce2477c939b73685c79fd5e0d50c513d638b8f2",
+      "pageDigest": "sha256:1de0a1d3f69a626958941a37892d39d915f322b40b11f9c1cac2e02c39c9282d",
       "artifactDigest": "sha256:ff60e24c1fbbe6ec60f5fe7170fdc87cb5283ede3b19af00fb5bdcef48db841c"
     }
   ],
@@ -104,7 +104,7 @@
         "reportKind": "single-target",
         "target": {
           "name": "remote",
-          "kind": "cursor-mcp-config",
+          "kind": "mcp-servers",
           "source": "https://ai-media-studio.b77.ai/mcp",
           "configPath": "official-mcp-registry:ai.b77/ai-media-studio"
         },

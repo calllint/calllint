@@ -2,7 +2,7 @@
   "schema": "calllint.trust-page.v0",
   "canonicalName": "mcp-registry/ai.afmr-discovery",
   "artifactDigest": "sha256:25a1fd89acf93f9f7cff8030370e8bc829b7fc0aeac55298d41d4e554bcdd7e0",
-  "pageDigest": "sha256:e48838b6e209051d4985df90d9677b5ed7965d8cdc8f9d025a87a9b223b2e93e",
+  "pageDigest": "sha256:418c26230f89032d9ac214b35f829beaa61c30fe64c4face1ca6542ddef90a1b",
   "verdict": "REVIEW",
   "verdictLabel": "Review required",
   "observedAt": "2026-08-17T01:39:50.172Z",
@@ -12,7 +12,7 @@
     "completeness": "complete",
     "authorityClaimed": false,
     "reproducibility": {
-      "pageDigest": "sha256:e48838b6e209051d4985df90d9677b5ed7965d8cdc8f9d025a87a9b223b2e93e",
+      "pageDigest": "sha256:418c26230f89032d9ac214b35f829beaa61c30fe64c4face1ca6542ddef90a1b",
       "observedAt": "2026-08-17T01:39:50.172Z"
     },
     "evidenceLevel": "E2",
@@ -27,7 +27,7 @@
   "scanHistory": [
     {
       "observedAt": "2026-08-17T01:39:50.172Z",
-      "pageDigest": "sha256:e48838b6e209051d4985df90d9677b5ed7965d8cdc8f9d025a87a9b223b2e93e",
+      "pageDigest": "sha256:418c26230f89032d9ac214b35f829beaa61c30fe64c4face1ca6542ddef90a1b",
       "artifactDigest": "sha256:25a1fd89acf93f9f7cff8030370e8bc829b7fc0aeac55298d41d4e554bcdd7e0"
     }
   ],
@@ -104,7 +104,7 @@
         "reportKind": "single-target",
         "target": {
           "name": "remote",
-          "kind": "cursor-mcp-config",
+          "kind": "mcp-servers",
           "source": "https://afmr.ai/api/rpc",
           "configPath": "official-mcp-registry:ai.afmr/discovery"
         },

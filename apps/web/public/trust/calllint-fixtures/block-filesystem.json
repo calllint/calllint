@@ -2,7 +2,7 @@
   "schema": "calllint.trust-page.v0",
   "canonicalName": "calllint-fixtures/block-filesystem",
   "artifactDigest": "sha256:5b96a3b96cae8824d66b71bf4f49af702b2ae25a4a82d27d59c08125310c09ee",
-  "pageDigest": "sha256:42e9cd174c76de48302d9461b23ad95e98a0d07b6259afe445a67135608e8680",
+  "pageDigest": "sha256:9b2247c3ed838bcf6704bbc9bed8611b34f8242202a89a2d2548bf6b8c01b1f0",
   "verdict": "BLOCK",
   "verdictLabel": "Blocked by policy",
   "observedAt": "1970-01-01T00:00:00.000Z",
@@ -12,7 +12,7 @@
     "completeness": "complete",
     "authorityClaimed": false,
     "reproducibility": {
-      "pageDigest": "sha256:42e9cd174c76de48302d9461b23ad95e98a0d07b6259afe445a67135608e8680",
+      "pageDigest": "sha256:9b2247c3ed838bcf6704bbc9bed8611b34f8242202a89a2d2548bf6b8c01b1f0",
       "observedAt": "1970-01-01T00:00:00.000Z"
     },
     "evidenceLevel": "E2",
@@ -27,7 +27,7 @@
   "scanHistory": [
     {
       "observedAt": "1970-01-01T00:00:00.000Z",
-      "pageDigest": "sha256:42e9cd174c76de48302d9461b23ad95e98a0d07b6259afe445a67135608e8680",
+      "pageDigest": "sha256:9b2247c3ed838bcf6704bbc9bed8611b34f8242202a89a2d2548bf6b8c01b1f0",
       "artifactDigest": "sha256:5b96a3b96cae8824d66b71bf4f49af702b2ae25a4a82d27d59c08125310c09ee"
     }
   ],
@@ -103,7 +103,7 @@
         "reportKind": "single-target",
         "target": {
           "name": "filesystem",
-          "kind": "cursor-mcp-config",
+          "kind": "mcp-servers",
           "source": "@modelcontextprotocol/server-filesystem",
           "configPath": "block-filesystem.json"
         },

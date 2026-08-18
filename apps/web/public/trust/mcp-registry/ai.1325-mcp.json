@@ -2,7 +2,7 @@
   "schema": "calllint.trust-page.v0",
   "canonicalName": "mcp-registry/ai.1325-mcp",
   "artifactDigest": "sha256:bdbac793efd6905e417d643ab1d4e5e9c8a879e05f5e271d137422c169973592",
-  "pageDigest": "sha256:30200cb6f0b6f9f817596fb7b051582a4954b407e09f129ba6da0944859b23c0",
+  "pageDigest": "sha256:d9543f175e7372d7e461030aa2fcc621eccd512a96e34fc03c17b36e7534f19f",
   "verdict": "REVIEW",
   "verdictLabel": "Review required",
   "observedAt": "2026-08-17T01:39:50.172Z",
@@ -12,7 +12,7 @@
     "completeness": "complete",
     "authorityClaimed": false,
     "reproducibility": {
-      "pageDigest": "sha256:30200cb6f0b6f9f817596fb7b051582a4954b407e09f129ba6da0944859b23c0",
+      "pageDigest": "sha256:d9543f175e7372d7e461030aa2fcc621eccd512a96e34fc03c17b36e7534f19f",
       "observedAt": "2026-08-17T01:39:50.172Z"
     },
     "evidenceLevel": "E2",
@@ -27,7 +27,7 @@
   "scanHistory": [
     {
       "observedAt": "2026-08-17T01:39:50.172Z",
-      "pageDigest": "sha256:30200cb6f0b6f9f817596fb7b051582a4954b407e09f129ba6da0944859b23c0",
+      "pageDigest": "sha256:d9543f175e7372d7e461030aa2fcc621eccd512a96e34fc03c17b36e7534f19f",
       "artifactDigest": "sha256:bdbac793efd6905e417d643ab1d4e5e9c8a879e05f5e271d137422c169973592"
     }
   ],
@@ -104,7 +104,7 @@
         "reportKind": "single-target",
         "target": {
           "name": "remote",
-          "kind": "cursor-mcp-config",
+          "kind": "mcp-servers",
           "source": "https://agoclnqfyinwjxdmjnns.supabase.co/functions/v1/mcp",
           "configPath": "official-mcp-registry:ai.1325/mcp"
         },

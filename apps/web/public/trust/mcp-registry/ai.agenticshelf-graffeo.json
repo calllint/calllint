@@ -2,7 +2,7 @@
   "schema": "calllint.trust-page.v0",
   "canonicalName": "mcp-registry/ai.agenticshelf-graffeo",
   "artifactDigest": "sha256:6fb4d2a789a52a8debd01384956a71e6688fa25b0ba495fd32633ea028ff434e",
-  "pageDigest": "sha256:46e7d7c03433262175339c1ba2445e96a2c9318e8814d881e7fad6d92003c96e",
+  "pageDigest": "sha256:f44c7ec373be4654a1b953b69fddf42361e7072ab47465d8663cd3b79e937627",
   "verdict": "REVIEW",
   "verdictLabel": "Review required",
   "observedAt": "2026-08-17T01:39:50.172Z",
@@ -12,7 +12,7 @@
     "completeness": "complete",
     "authorityClaimed": false,
     "reproducibility": {
-      "pageDigest": "sha256:46e7d7c03433262175339c1ba2445e96a2c9318e8814d881e7fad6d92003c96e",
+      "pageDigest": "sha256:f44c7ec373be4654a1b953b69fddf42361e7072ab47465d8663cd3b79e937627",
       "observedAt": "2026-08-17T01:39:50.172Z"
     },
     "evidenceLevel": "E2",
@@ -27,7 +27,7 @@
   "scanHistory": [
     {
       "observedAt": "2026-08-17T01:39:50.172Z",
-      "pageDigest": "sha256:46e7d7c03433262175339c1ba2445e96a2c9318e8814d881e7fad6d92003c96e",
+      "pageDigest": "sha256:f44c7ec373be4654a1b953b69fddf42361e7072ab47465d8663cd3b79e937627",
       "artifactDigest": "sha256:6fb4d2a789a52a8debd01384956a71e6688fa25b0ba495fd32633ea028ff434e"
     }
   ],
@@ -104,7 +104,7 @@
         "reportKind": "single-target",
         "target": {
           "name": "remote",
-          "kind": "cursor-mcp-config",
+          "kind": "mcp-servers",
           "source": "https://api.agenticshelf.ai/m/graffeo/mcp",
           "configPath": "official-mcp-registry:ai.agenticshelf/graffeo"
         },

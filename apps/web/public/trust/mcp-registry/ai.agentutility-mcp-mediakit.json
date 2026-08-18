@@ -2,7 +2,7 @@
   "schema": "calllint.trust-page.v0",
   "canonicalName": "mcp-registry/ai.agentutility-mcp-mediakit",
   "artifactDigest": "sha256:cc904846551968db079cd5581db694ee957555bc53e5b787ecafaadab8bdd150",
-  "pageDigest": "sha256:edf8acd925c9de157563dc507fb9e17aba8cdf0f31aaece8819b9daa45a3dad0",
+  "pageDigest": "sha256:1a47f69c3183132c07b360b19781d550814c34b0b4e3115b6e766ed2c7af6c34",
   "verdict": "SAFE",
   "verdictLabel": "No blockers observed",
   "observedAt": "2026-08-17T01:39:50.172Z",
@@ -12,7 +12,7 @@
     "completeness": "complete",
     "authorityClaimed": false,
     "reproducibility": {
-      "pageDigest": "sha256:edf8acd925c9de157563dc507fb9e17aba8cdf0f31aaece8819b9daa45a3dad0",
+      "pageDigest": "sha256:1a47f69c3183132c07b360b19781d550814c34b0b4e3115b6e766ed2c7af6c34",
       "observedAt": "2026-08-17T01:39:50.172Z"
     },
     "evidenceLevel": "E2",
@@ -27,7 +27,7 @@
   "scanHistory": [
     {
       "observedAt": "2026-08-17T01:39:50.172Z",
-      "pageDigest": "sha256:edf8acd925c9de157563dc507fb9e17aba8cdf0f31aaece8819b9daa45a3dad0",
+      "pageDigest": "sha256:1a47f69c3183132c07b360b19781d550814c34b0b4e3115b6e766ed2c7af6c34",
       "artifactDigest": "sha256:cc904846551968db079cd5581db694ee957555bc53e5b787ecafaadab8bdd150"
     }
   ],
@@ -103,7 +103,7 @@
         "reportKind": "single-target",
         "target": {
           "name": "package",
-          "kind": "cursor-mcp-config",
+          "kind": "mcp-servers",
           "source": "@agentutility/mcp-mediakit",
           "version": "0.11.9",
           "configPath": "official-mcp-registry:ai.agentutility/mcp-mediakit"

@@ -2,7 +2,7 @@
   "schema": "calllint.trust-page.v0",
   "canonicalName": "mcp-registry/ac.tandem-docs-mcp",
   "artifactDigest": "sha256:ea5ff9be0d627a192408db08451d54dd04c54dda4ab0adca359f5a3b50e16ab1",
-  "pageDigest": "sha256:55a138279fb069f96a0700091e0a3a2be8345a34b9288a9a33389ce8841b3528",
+  "pageDigest": "sha256:ea4b0c7e97ce6a5b23987891b839ad3ef65f5b33be095cc7a515ea21d1b7bbb7",
   "verdict": "REVIEW",
   "verdictLabel": "Review required",
   "observedAt": "2026-08-17T01:39:50.172Z",
@@ -12,7 +12,7 @@
     "completeness": "complete",
     "authorityClaimed": false,
     "reproducibility": {
-      "pageDigest": "sha256:55a138279fb069f96a0700091e0a3a2be8345a34b9288a9a33389ce8841b3528",
+      "pageDigest": "sha256:ea4b0c7e97ce6a5b23987891b839ad3ef65f5b33be095cc7a515ea21d1b7bbb7",
       "observedAt": "2026-08-17T01:39:50.172Z"
     },
     "evidenceLevel": "E2",
@@ -27,7 +27,7 @@
   "scanHistory": [
     {
       "observedAt": "2026-08-17T01:39:50.172Z",
-      "pageDigest": "sha256:55a138279fb069f96a0700091e0a3a2be8345a34b9288a9a33389ce8841b3528",
+      "pageDigest": "sha256:ea4b0c7e97ce6a5b23987891b839ad3ef65f5b33be095cc7a515ea21d1b7bbb7",
       "artifactDigest": "sha256:ea5ff9be0d627a192408db08451d54dd04c54dda4ab0adca359f5a3b50e16ab1"
     }
   ],
@@ -104,7 +104,7 @@
         "reportKind": "single-target",
         "target": {
           "name": "remote",
-          "kind": "cursor-mcp-config",
+          "kind": "mcp-servers",
           "source": "https://tandem.ac/mcp",
           "configPath": "official-mcp-registry:ac.tandem/docs-mcp"
         },

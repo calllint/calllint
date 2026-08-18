@@ -2,7 +2,7 @@
   "schema": "calllint.trust-page.v0",
   "canonicalName": "mcp-registry/ai.abmeter-abmeter",
   "artifactDigest": "sha256:c3670bfc209140bc70cf9e1a03be811c8b0e968fab3737e45e0034fb10dfc2b0",
-  "pageDigest": "sha256:38918ac45242459bf46869c19a28c1cbe6f731e9ceff9ccd8f042de857d55108",
+  "pageDigest": "sha256:cc67aa9f757d60fdf8723b611bb394270415cc232abfbf3f55ecbe5d981546fe",
   "verdict": "REVIEW",
   "verdictLabel": "Review required",
   "observedAt": "2026-08-17T01:39:50.172Z",
@@ -12,7 +12,7 @@
     "completeness": "complete",
     "authorityClaimed": false,
     "reproducibility": {
-      "pageDigest": "sha256:38918ac45242459bf46869c19a28c1cbe6f731e9ceff9ccd8f042de857d55108",
+      "pageDigest": "sha256:cc67aa9f757d60fdf8723b611bb394270415cc232abfbf3f55ecbe5d981546fe",
       "observedAt": "2026-08-17T01:39:50.172Z"
     },
     "evidenceLevel": "E2",
@@ -27,7 +27,7 @@
   "scanHistory": [
     {
       "observedAt": "2026-08-17T01:39:50.172Z",
-      "pageDigest": "sha256:38918ac45242459bf46869c19a28c1cbe6f731e9ceff9ccd8f042de857d55108",
+      "pageDigest": "sha256:cc67aa9f757d60fdf8723b611bb394270415cc232abfbf3f55ecbe5d981546fe",
       "artifactDigest": "sha256:c3670bfc209140bc70cf9e1a03be811c8b0e968fab3737e45e0034fb10dfc2b0"
     }
   ],
@@ -104,7 +104,7 @@
         "reportKind": "single-target",
         "target": {
           "name": "remote",
-          "kind": "cursor-mcp-config",
+          "kind": "mcp-servers",
           "source": "https://mcp.abmeter.ai",
           "configPath": "official-mcp-registry:ai.abmeter/abmeter"
         },

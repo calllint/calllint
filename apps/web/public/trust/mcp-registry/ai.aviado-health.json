@@ -2,7 +2,7 @@
   "schema": "calllint.trust-page.v0",
   "canonicalName": "mcp-registry/ai.aviado-health",
   "artifactDigest": "sha256:629b7129266098b7e0b35e429c59db7b38d1379b89d29dae6042cad0f717fe46",
-  "pageDigest": "sha256:31d86aac57f4a32f10d8bff8daf233684c1eb35554961bdc24c905ce539d2893",
+  "pageDigest": "sha256:359900a10e4c37c6ab343ce86fa6357231d1de967e3b27eb3687d11dd59226d6",
   "verdict": "REVIEW",
   "verdictLabel": "Review required",
   "observedAt": "2026-08-17T01:39:50.172Z",
@@ -12,7 +12,7 @@
     "completeness": "complete",
     "authorityClaimed": false,
     "reproducibility": {
-      "pageDigest": "sha256:31d86aac57f4a32f10d8bff8daf233684c1eb35554961bdc24c905ce539d2893",
+      "pageDigest": "sha256:359900a10e4c37c6ab343ce86fa6357231d1de967e3b27eb3687d11dd59226d6",
       "observedAt": "2026-08-17T01:39:50.172Z"
     },
     "evidenceLevel": "E2",
@@ -27,7 +27,7 @@
   "scanHistory": [
     {
       "observedAt": "2026-08-17T01:39:50.172Z",
-      "pageDigest": "sha256:31d86aac57f4a32f10d8bff8daf233684c1eb35554961bdc24c905ce539d2893",
+      "pageDigest": "sha256:359900a10e4c37c6ab343ce86fa6357231d1de967e3b27eb3687d11dd59226d6",
       "artifactDigest": "sha256:629b7129266098b7e0b35e429c59db7b38d1379b89d29dae6042cad0f717fe46"
     }
   ],
@@ -104,7 +104,7 @@
         "reportKind": "single-target",
         "target": {
           "name": "remote",
-          "kind": "cursor-mcp-config",
+          "kind": "mcp-servers",
           "source": "https://aviado.ai/api/mcp",
           "configPath": "official-mcp-registry:ai.aviado/health"
         },

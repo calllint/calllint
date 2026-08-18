@@ -2,7 +2,7 @@
   "schema": "calllint.trust-page.v0",
   "canonicalName": "mcp-registry/ai.auteng-mcp",
   "artifactDigest": "sha256:cfc60f9d3e78d2ae07e8c33781fc5449d2be56c5be065fb0272ae542a448004a",
-  "pageDigest": "sha256:fdb4d9031b0e7f65ed3bb3068c48508e9f7269b32d53c55e9416bbdbd0b2194f",
+  "pageDigest": "sha256:f82198276b8be36accd0ecf4f8d3cb5d24df4f15abc2b3fe9cce64b67a4b4aa3",
   "verdict": "REVIEW",
   "verdictLabel": "Review required",
   "observedAt": "2026-08-17T01:39:50.172Z",
@@ -12,7 +12,7 @@
     "completeness": "complete",
     "authorityClaimed": false,
     "reproducibility": {
-      "pageDigest": "sha256:fdb4d9031b0e7f65ed3bb3068c48508e9f7269b32d53c55e9416bbdbd0b2194f",
+      "pageDigest": "sha256:f82198276b8be36accd0ecf4f8d3cb5d24df4f15abc2b3fe9cce64b67a4b4aa3",
       "observedAt": "2026-08-17T01:39:50.172Z"
     },
     "evidenceLevel": "E2",
@@ -27,7 +27,7 @@
   "scanHistory": [
     {
       "observedAt": "2026-08-17T01:39:50.172Z",
-      "pageDigest": "sha256:fdb4d9031b0e7f65ed3bb3068c48508e9f7269b32d53c55e9416bbdbd0b2194f",
+      "pageDigest": "sha256:f82198276b8be36accd0ecf4f8d3cb5d24df4f15abc2b3fe9cce64b67a4b4aa3",
       "artifactDigest": "sha256:cfc60f9d3e78d2ae07e8c33781fc5449d2be56c5be065fb0272ae542a448004a"
     }
   ],
@@ -104,7 +104,7 @@
         "reportKind": "single-target",
         "target": {
           "name": "remote",
-          "kind": "cursor-mcp-config",
+          "kind": "mcp-servers",
           "source": "https://auteng.ai/mcp",
           "configPath": "official-mcp-registry:ai.auteng/mcp"
         },

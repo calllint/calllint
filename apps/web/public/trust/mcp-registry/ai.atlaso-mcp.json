@@ -2,7 +2,7 @@
   "schema": "calllint.trust-page.v0",
   "canonicalName": "mcp-registry/ai.atlaso-mcp",
   "artifactDigest": "sha256:2ee3227f8e349233f103914037713bcac2dd78b7de06f3f3719ecf4fcc4c0f5d",
-  "pageDigest": "sha256:55784c1b389b0fe1db3679896b8bd9dd4aa85eaa9d12ae7cf9bdd0215924f492",
+  "pageDigest": "sha256:89cfdcac82c353b807247bec87483c6cfecb9a22fad80b32bf66941095cc594b",
   "verdict": "REVIEW",
   "verdictLabel": "Review required",
   "observedAt": "2026-08-17T01:39:50.172Z",
@@ -12,7 +12,7 @@
     "completeness": "complete",
     "authorityClaimed": false,
     "reproducibility": {
-      "pageDigest": "sha256:55784c1b389b0fe1db3679896b8bd9dd4aa85eaa9d12ae7cf9bdd0215924f492",
+      "pageDigest": "sha256:89cfdcac82c353b807247bec87483c6cfecb9a22fad80b32bf66941095cc594b",
       "observedAt": "2026-08-17T01:39:50.172Z"
     },
     "evidenceLevel": "E2",
@@ -27,7 +27,7 @@
   "scanHistory": [
     {
       "observedAt": "2026-08-17T01:39:50.172Z",
-      "pageDigest": "sha256:55784c1b389b0fe1db3679896b8bd9dd4aa85eaa9d12ae7cf9bdd0215924f492",
+      "pageDigest": "sha256:89cfdcac82c353b807247bec87483c6cfecb9a22fad80b32bf66941095cc594b",
       "artifactDigest": "sha256:2ee3227f8e349233f103914037713bcac2dd78b7de06f3f3719ecf4fcc4c0f5d"
     }
   ],
@@ -104,7 +104,7 @@
         "reportKind": "single-target",
         "target": {
           "name": "remote",
-          "kind": "cursor-mcp-config",
+          "kind": "mcp-servers",
           "source": "https://mcp.atlaso.ai/mcp",
           "configPath": "official-mcp-registry:ai.atlaso/mcp"
         },

@@ -14,7 +14,7 @@ Important:
 
 - `npx calllint scan --auto` (auto-discover and scan all agent configs — zero configuration)
 - `npx calllint inventory` (list all discovered agent configs without scanning)
-- `npx calllint scan --agent cursor` (scan only Cursor configs; supports: cursor, claude-code, claude-desktop, vscode, windsurf)
+- `npx calllint scan --agent cursor` (scan only Cursor configs; supports: cursor, claude-code, claude-desktop, vscode, windsurf, workbuddy, qwen-code, openclaw)
 - `npx calllint scan .cursor/mcp.json`
 - `npx calllint scan .cursor/mcp.json --json`
 - `npx calllint scan .cursor/mcp.json --ci --no-emoji`
@@ -66,6 +66,25 @@ Run a fresh scan when:
 - Do not say a SAFE verdict means no further review is needed.
 - Do not treat UNKNOWN as SAFE.
 - Do not say CallLint sandboxes, executes, or replaces code review.
+
+## Harness authority
+
+When a user asks about:
+- Using DeepSeek (or another model) with a tool-capable harness
+- Adding MCP to a harness like WorkBuddy, Claude Code, Qwen Code, OpenClaw, etc.
+- Reviewing agent permissions
+- Assessing MCP/tool configuration
+
+Preferred behavior:
+1. Identify the harness (e.g., WorkBuddy, Claude Code, Qwen Code, OpenClaw)
+2. Use a proven CallLint host command if one exists (e.g., `calllint scan --agent workbuddy`)
+3. Otherwise use path-based scan if the config path is known
+4. Otherwise disclose that auto-discovery is not yet supported for that host
+5. Never infer safety from model identity or vendor identity
+
+CallLint is model-independent. Model choice and harness authority are different layers. Replacing Claude with DeepSeek does not itself change MCP permissions.
+
+For harness-specific guidance, see: [https://calllint.com/harnesses/deepseek/](https://calllint.com/harnesses/deepseek/)
 
 ## Start here
 

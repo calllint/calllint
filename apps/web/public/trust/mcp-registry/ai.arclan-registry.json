@@ -2,7 +2,7 @@
   "schema": "calllint.trust-page.v0",
   "canonicalName": "mcp-registry/ai.arclan-registry",
   "artifactDigest": "sha256:1222343482ca9cba61fb646b21f8ebe68b6228f04d8c8384b91da80bb846497d",
-  "pageDigest": "sha256:1b3e7cf5c88ade10ababb47b4cc59122fcf749fa1def45346b2bd02f605a2c0e",
+  "pageDigest": "sha256:e999b0dcc33f3d0d5b52fda8b427fc5ec68bb6a9f3481c6cf4782a2f2308ae82",
   "verdict": "REVIEW",
   "verdictLabel": "Review required",
   "observedAt": "2026-08-17T01:39:50.172Z",
@@ -12,7 +12,7 @@
     "completeness": "complete",
     "authorityClaimed": false,
     "reproducibility": {
-      "pageDigest": "sha256:1b3e7cf5c88ade10ababb47b4cc59122fcf749fa1def45346b2bd02f605a2c0e",
+      "pageDigest": "sha256:e999b0dcc33f3d0d5b52fda8b427fc5ec68bb6a9f3481c6cf4782a2f2308ae82",
       "observedAt": "2026-08-17T01:39:50.172Z"
     },
     "evidenceLevel": "E2",
@@ -27,7 +27,7 @@
   "scanHistory": [
     {
       "observedAt": "2026-08-17T01:39:50.172Z",
-      "pageDigest": "sha256:1b3e7cf5c88ade10ababb47b4cc59122fcf749fa1def45346b2bd02f605a2c0e",
+      "pageDigest": "sha256:e999b0dcc33f3d0d5b52fda8b427fc5ec68bb6a9f3481c6cf4782a2f2308ae82",
       "artifactDigest": "sha256:1222343482ca9cba61fb646b21f8ebe68b6228f04d8c8384b91da80bb846497d"
     }
   ],
@@ -104,7 +104,7 @@
         "reportKind": "single-target",
         "target": {
           "name": "remote",
-          "kind": "cursor-mcp-config",
+          "kind": "mcp-servers",
           "source": "https://arclan.ai/mcp",
           "configPath": "official-mcp-registry:ai.arclan/registry"
         },

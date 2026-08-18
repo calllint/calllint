@@ -2,7 +2,7 @@
   "schema": "calllint.trust-page.v0",
   "canonicalName": "mcp-registry/ai.argushq-enforcement-database",
   "artifactDigest": "sha256:85553aa65f1586ce26269f0c89a104bb83799eba8e602e0846b867271c7dd5d0",
-  "pageDigest": "sha256:39c00eb89f6171e8b4cb125aba5922546686ec0e92c47726a5f81d6ae77afdd0",
+  "pageDigest": "sha256:c66dfc70931078ddfc74710de2c0cb169113f8a9514ef9538a885acd1ed6648e",
   "verdict": "REVIEW",
   "verdictLabel": "Review required",
   "observedAt": "2026-08-17T01:39:50.172Z",
@@ -12,7 +12,7 @@
     "completeness": "complete",
     "authorityClaimed": false,
     "reproducibility": {
-      "pageDigest": "sha256:39c00eb89f6171e8b4cb125aba5922546686ec0e92c47726a5f81d6ae77afdd0",
+      "pageDigest": "sha256:c66dfc70931078ddfc74710de2c0cb169113f8a9514ef9538a885acd1ed6648e",
       "observedAt": "2026-08-17T01:39:50.172Z"
     },
     "evidenceLevel": "E2",
@@ -27,7 +27,7 @@
   "scanHistory": [
     {
       "observedAt": "2026-08-17T01:39:50.172Z",
-      "pageDigest": "sha256:39c00eb89f6171e8b4cb125aba5922546686ec0e92c47726a5f81d6ae77afdd0",
+      "pageDigest": "sha256:c66dfc70931078ddfc74710de2c0cb169113f8a9514ef9538a885acd1ed6648e",
       "artifactDigest": "sha256:85553aa65f1586ce26269f0c89a104bb83799eba8e602e0846b867271c7dd5d0"
     }
   ],
@@ -104,7 +104,7 @@
         "reportKind": "single-target",
         "target": {
           "name": "remote",
-          "kind": "cursor-mcp-config",
+          "kind": "mcp-servers",
           "source": "https://argushq.ai/api/mcp",
           "configPath": "official-mcp-registry:ai.argushq/enforcement-database"
         },

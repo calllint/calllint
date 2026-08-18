@@ -2,7 +2,7 @@
   "schema": "calllint.trust-page.v0",
   "canonicalName": "mcp-registry/ai.artidrop-artidrop",
   "artifactDigest": "sha256:b90748ab8a986345b49b362e276b2065298c2b46c667b21512594eeab6b7dd1a",
-  "pageDigest": "sha256:5bceee8230490ca55b76d95a2fd808807624438eedc88b7f6a48dc278ede031c",
+  "pageDigest": "sha256:35963501bd9f2892907b402fa26967e975957cfd97882f10ae59db26ba6a954e",
   "verdict": "REVIEW",
   "verdictLabel": "Review required",
   "observedAt": "2026-08-17T01:39:50.172Z",
@@ -12,7 +12,7 @@
     "completeness": "complete",
     "authorityClaimed": false,
     "reproducibility": {
-      "pageDigest": "sha256:5bceee8230490ca55b76d95a2fd808807624438eedc88b7f6a48dc278ede031c",
+      "pageDigest": "sha256:35963501bd9f2892907b402fa26967e975957cfd97882f10ae59db26ba6a954e",
       "observedAt": "2026-08-17T01:39:50.172Z"
     },
     "evidenceLevel": "E2",
@@ -27,7 +27,7 @@
   "scanHistory": [
     {
       "observedAt": "2026-08-17T01:39:50.172Z",
-      "pageDigest": "sha256:5bceee8230490ca55b76d95a2fd808807624438eedc88b7f6a48dc278ede031c",
+      "pageDigest": "sha256:35963501bd9f2892907b402fa26967e975957cfd97882f10ae59db26ba6a954e",
       "artifactDigest": "sha256:b90748ab8a986345b49b362e276b2065298c2b46c667b21512594eeab6b7dd1a"
     }
   ],
@@ -104,7 +104,7 @@
         "reportKind": "single-target",
         "target": {
           "name": "remote",
-          "kind": "cursor-mcp-config",
+          "kind": "mcp-servers",
           "source": "https://artidrop.ai/mcp",
           "configPath": "official-mcp-registry:ai.artidrop/artidrop"
         },

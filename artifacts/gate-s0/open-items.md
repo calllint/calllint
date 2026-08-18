@@ -531,6 +531,17 @@ local-reproducible. Both times it fired, a local run is exactly what proved it. 
 count. Recording that direction matters: the tempting edit was the one that kept this row's figure
 stable by mislabelling the check.
 
+### Amendment 2026-08-18 (Harness Distribution Surface, H0-H8) — 21 → **22** steps
+
+**Still CLOSED. `ci:local` now has **22** `&&`-joined steps.** The twenty-second is
+`pnpm check:harness-distribution`, added as a truth gate for the H0-H8 harness distribution
+surface batch. This gate validates that public harness pages advertise only CLI commands that
+exist in the shipped product, and that support-class claims match registered extractors.
+
+The count above is left as written, for the same reason this row gave for its 18/19/20/21
+sequence: numbers that rot quietly are worth keeping visible, and the reader in
+`tests/invariants/gate-s0-claims.invariants.test.ts` is what makes the live number binding.
+
 ---
 
 ## S0-OPEN-3 — three of S0's five assertions are GATE-VERIFIED, which reads a string

@@ -2,7 +2,7 @@
   "schema": "calllint.trust-page.v0",
   "canonicalName": "calllint-fixtures/review-unverified-local-source",
   "artifactDigest": "sha256:88f2052ebbeb0ac0da1b12bab2db35608035d986a9e0f28a1b767aa4b6f5c181",
-  "pageDigest": "sha256:1b8d9854d6d96a5c2aeea580e062f7d4e52ada03b3747a9b941febeac4d38533",
+  "pageDigest": "sha256:8cb40fbccc00b515180acbc3821c8fe1ad443d9df507e7e77efa6348e1586395",
   "verdict": "REVIEW",
   "verdictLabel": "Review required",
   "observedAt": "1970-01-01T00:00:00.000Z",
@@ -12,7 +12,7 @@
     "completeness": "complete",
     "authorityClaimed": false,
     "reproducibility": {
-      "pageDigest": "sha256:1b8d9854d6d96a5c2aeea580e062f7d4e52ada03b3747a9b941febeac4d38533",
+      "pageDigest": "sha256:8cb40fbccc00b515180acbc3821c8fe1ad443d9df507e7e77efa6348e1586395",
       "observedAt": "1970-01-01T00:00:00.000Z"
     },
     "evidenceLevel": "E2",
@@ -27,7 +27,7 @@
   "scanHistory": [
     {
       "observedAt": "1970-01-01T00:00:00.000Z",
-      "pageDigest": "sha256:1b8d9854d6d96a5c2aeea580e062f7d4e52ada03b3747a9b941febeac4d38533",
+      "pageDigest": "sha256:8cb40fbccc00b515180acbc3821c8fe1ad443d9df507e7e77efa6348e1586395",
       "artifactDigest": "sha256:88f2052ebbeb0ac0da1b12bab2db35608035d986a9e0f28a1b767aa4b6f5c181"
     }
   ],
@@ -103,7 +103,7 @@
         "reportKind": "single-target",
         "target": {
           "name": "local-tool",
-          "kind": "cursor-mcp-config",
+          "kind": "mcp-servers",
           "configPath": "review-unverified-local-source.json"
         },
         "verdict": "REVIEW",

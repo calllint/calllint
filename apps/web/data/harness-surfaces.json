@@ -1,0 +1,130 @@
+{
+  "$schema": "https://calllint.com/schemas/harness-surfaces.v0.json",
+  "version": "1.0.0",
+  "cohorts": {
+    "P0": [
+      {
+        "id": "workbuddy",
+        "displayName": "WorkBuddy",
+        "vendor": "Tencent Cloud",
+        "deepSeekIntegrationObserved": true,
+        "authoritySurfaces": ["mcp", "extensions"],
+        "configEvidence": [
+          "~/.workbuddy/mcp.json",
+          "<project>/.workbuddy/mcp.json"
+        ],
+        "calllintSupportClass": "NATIVE",
+        "truthfulCommand": "calllint scan --agent workbuddy",
+        "canonicalPath": "/harnesses/deepseek/workbuddy",
+        "upstreamIntegrationSource": "https://github.com/TencentCloud/workbuddy"
+      },
+      {
+        "id": "claude-code",
+        "displayName": "Claude Code",
+        "vendor": "Anthropic",
+        "deepSeekIntegrationObserved": true,
+        "authoritySurfaces": ["mcp", "filesystem", "shell"],
+        "configEvidence": [
+          "~/.claude/settings.json",
+          "<project>/.claude/settings.json"
+        ],
+        "calllintSupportClass": "NATIVE",
+        "truthfulCommand": "calllint scan --agent claude-code",
+        "canonicalPath": "/harnesses/deepseek/claude-code",
+        "upstreamIntegrationSource": "https://github.com/anthropics/anthropic-claude-code"
+      },
+      {
+        "id": "openclaw",
+        "displayName": "OpenClaw",
+        "vendor": "Open Source",
+        "deepSeekIntegrationObserved": true,
+        "authoritySurfaces": ["mcp", "skills", "exec"],
+        "configEvidence": [
+          "~/.openclaw/openclaw.json"
+        ],
+        "calllintSupportClass": "CONFIG_SCAN",
+        "truthfulCommand": "calllint scan --config ~/.openclaw/openclaw.json",
+        "canonicalPath": "/harnesses/deepseek/openclaw",
+        "upstreamIntegrationSource": "https://github.com/openclaw/openclaw",
+        "coverageBoundary": "CallLint scans MCP configuration only. Skills and exec permissions are not covered."
+      },
+      {
+        "id": "opencode",
+        "displayName": "OpenCode",
+        "vendor": "Open Source",
+        "deepSeekIntegrationObserved": true,
+        "authoritySurfaces": ["mcp", "tools"],
+        "configEvidence": [
+          "Documented config paths require verification"
+        ],
+        "calllintSupportClass": "CONFIG_SCAN",
+        "truthfulCommand": "calllint scan --config <path>",
+        "canonicalPath": "/harnesses/deepseek/opencode",
+        "upstreamIntegrationSource": "https://github.com/opencode/opencode",
+        "coverageBoundary": "Config path auto-discovery not yet supported."
+      }
+    ],
+    "P1": [
+      {
+        "id": "codex",
+        "displayName": "Codex",
+        "vendor": "GitHub",
+        "deepSeekIntegrationObserved": true,
+        "authoritySurfaces": ["code-generation", "api"],
+        "configEvidence": [
+          "Config mechanism requires verification"
+        ],
+        "calllintSupportClass": "DISCOVERY_ONLY",
+        "truthfulCommand": null,
+        "canonicalPath": "/harnesses/deepseek/codex",
+        "upstreamIntegrationSource": "https://github.com/features/copilot",
+        "coverageBoundary": "CallLint does not yet auto-discover Codex configuration."
+      },
+      {
+        "id": "copilot-cli",
+        "displayName": "GitHub Copilot CLI",
+        "vendor": "GitHub",
+        "deepSeekIntegrationObserved": true,
+        "authoritySurfaces": ["shell", "cli"],
+        "configEvidence": [
+          "Config mechanism requires verification"
+        ],
+        "calllintSupportClass": "DISCOVERY_ONLY",
+        "truthfulCommand": null,
+        "canonicalPath": "/harnesses/deepseek/copilot-cli",
+        "upstreamIntegrationSource": "https://github.com/github/gh-copilot",
+        "coverageBoundary": "CallLint does not yet auto-discover Copilot CLI configuration."
+      },
+      {
+        "id": "cline",
+        "displayName": "Cline",
+        "vendor": "Open Source",
+        "deepSeekIntegrationObserved": true,
+        "authoritySurfaces": ["vscode-extensions", "tools"],
+        "configEvidence": [
+          "VS Code extension, config mechanism TBD"
+        ],
+        "calllintSupportClass": "DISCOVERY_ONLY",
+        "truthfulCommand": null,
+        "canonicalPath": "/harnesses/deepseek/cline",
+        "upstreamIntegrationSource": "https://github.com/cline/cline",
+        "coverageBoundary": "CallLint does not yet auto-discover Cline configuration."
+      },
+      {
+        "id": "qwen-code",
+        "displayName": "Qwen Code",
+        "vendor": "Alibaba Cloud",
+        "deepSeekIntegrationObserved": true,
+        "authoritySurfaces": ["mcp", "tools"],
+        "configEvidence": [
+          "~/.qwen/settings.json",
+          "<project>/.qwen/settings.json"
+        ],
+        "calllintSupportClass": "NATIVE",
+        "truthfulCommand": "calllint scan --agent qwen-code",
+        "canonicalPath": "/harnesses/deepseek/qwen-code",
+        "upstreamIntegrationSource": "https://github.com/QwenLM/Qwen-Code"
+      }
+    ]
+  }
+}

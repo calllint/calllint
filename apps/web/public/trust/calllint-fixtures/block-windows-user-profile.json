@@ -2,7 +2,7 @@
   "schema": "calllint.trust-page.v0",
   "canonicalName": "calllint-fixtures/block-windows-user-profile",
   "artifactDigest": "sha256:8cb0eed5798ba0768ddd21ddb3add0b290c875da6447540a5020ed1b1603965f",
-  "pageDigest": "sha256:97b837a5609ed9507d9750a20fae8c169bb373385cb7457b469dad0554e3feed",
+  "pageDigest": "sha256:d0a985f31e9acd8f253f4ae254d91159d49afad993973decfe18c45034b790dd",
   "verdict": "BLOCK",
   "verdictLabel": "Blocked by policy",
   "observedAt": "1970-01-01T00:00:00.000Z",
@@ -12,7 +12,7 @@
     "completeness": "complete",
     "authorityClaimed": false,
     "reproducibility": {
-      "pageDigest": "sha256:97b837a5609ed9507d9750a20fae8c169bb373385cb7457b469dad0554e3feed",
+      "pageDigest": "sha256:d0a985f31e9acd8f253f4ae254d91159d49afad993973decfe18c45034b790dd",
       "observedAt": "1970-01-01T00:00:00.000Z"
     },
     "evidenceLevel": "E2",
@@ -27,7 +27,7 @@
   "scanHistory": [
     {
       "observedAt": "1970-01-01T00:00:00.000Z",
-      "pageDigest": "sha256:97b837a5609ed9507d9750a20fae8c169bb373385cb7457b469dad0554e3feed",
+      "pageDigest": "sha256:d0a985f31e9acd8f253f4ae254d91159d49afad993973decfe18c45034b790dd",
       "artifactDigest": "sha256:8cb0eed5798ba0768ddd21ddb3add0b290c875da6447540a5020ed1b1603965f"
     }
   ],
@@ -103,7 +103,7 @@
         "reportKind": "single-target",
         "target": {
           "name": "filesystem",
-          "kind": "cursor-mcp-config",
+          "kind": "mcp-servers",
           "source": "@modelcontextprotocol/server-filesystem",
           "version": "1.0.0",
           "configPath": "block-windows-user-profile.json"

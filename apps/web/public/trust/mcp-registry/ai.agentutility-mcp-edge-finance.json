@@ -2,7 +2,7 @@
   "schema": "calllint.trust-page.v0",
   "canonicalName": "mcp-registry/ai.agentutility-mcp-edge-finance",
   "artifactDigest": "sha256:d5a1d85272187b753aa092bee3cc8ad7c3ac2be7d7cdbc268f1ae4b40f78b985",
-  "pageDigest": "sha256:a5f89ab4a72fc92198fbf62e2b6f3dc791b34a4db3574914496360815e24ea8b",
+  "pageDigest": "sha256:ab59ece63f385601085ad028e11231a8d8901e1743d21a6a85b89419e479e855",
   "verdict": "SAFE",
   "verdictLabel": "No blockers observed",
   "observedAt": "2026-08-17T01:39:50.172Z",
@@ -12,7 +12,7 @@
     "completeness": "complete",
     "authorityClaimed": false,
     "reproducibility": {
-      "pageDigest": "sha256:a5f89ab4a72fc92198fbf62e2b6f3dc791b34a4db3574914496360815e24ea8b",
+      "pageDigest": "sha256:ab59ece63f385601085ad028e11231a8d8901e1743d21a6a85b89419e479e855",
       "observedAt": "2026-08-17T01:39:50.172Z"
     },
     "evidenceLevel": "E2",
@@ -27,7 +27,7 @@
   "scanHistory": [
     {
       "observedAt": "2026-08-17T01:39:50.172Z",
-      "pageDigest": "sha256:a5f89ab4a72fc92198fbf62e2b6f3dc791b34a4db3574914496360815e24ea8b",
+      "pageDigest": "sha256:ab59ece63f385601085ad028e11231a8d8901e1743d21a6a85b89419e479e855",
       "artifactDigest": "sha256:d5a1d85272187b753aa092bee3cc8ad7c3ac2be7d7cdbc268f1ae4b40f78b985"
     }
   ],
@@ -103,7 +103,7 @@
         "reportKind": "single-target",
         "target": {
           "name": "package",
-          "kind": "cursor-mcp-config",
+          "kind": "mcp-servers",
           "source": "@agentutility/mcp-edge-finance",
           "version": "0.18.8",
           "configPath": "official-mcp-registry:ai.agentutility/mcp-edge-finance"

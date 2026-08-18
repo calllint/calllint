@@ -2,7 +2,7 @@
   "schema": "calllint.trust-page.v0",
   "canonicalName": "mcp-registry/ai.analyticslegends-sap-analytics",
   "artifactDigest": "sha256:c18adb10dc3dc20e57d74ec31d224e81c41fc74535eb4471c38ef634ffe2e877",
-  "pageDigest": "sha256:36b5218a7afac7e936a49f645ebea45ef27b0d0f5c879f20db22e11b1494bf28",
+  "pageDigest": "sha256:de0c9e399e0973014bb1f0eb4523a134ba51078b8ae2cd975d267c3617ca988a",
   "verdict": "REVIEW",
   "verdictLabel": "Review required",
   "observedAt": "2026-08-17T01:39:50.172Z",
@@ -12,7 +12,7 @@
     "completeness": "complete",
     "authorityClaimed": false,
     "reproducibility": {
-      "pageDigest": "sha256:36b5218a7afac7e936a49f645ebea45ef27b0d0f5c879f20db22e11b1494bf28",
+      "pageDigest": "sha256:de0c9e399e0973014bb1f0eb4523a134ba51078b8ae2cd975d267c3617ca988a",
       "observedAt": "2026-08-17T01:39:50.172Z"
     },
     "evidenceLevel": "E2",
@@ -27,7 +27,7 @@
   "scanHistory": [
     {
       "observedAt": "2026-08-17T01:39:50.172Z",
-      "pageDigest": "sha256:36b5218a7afac7e936a49f645ebea45ef27b0d0f5c879f20db22e11b1494bf28",
+      "pageDigest": "sha256:de0c9e399e0973014bb1f0eb4523a134ba51078b8ae2cd975d267c3617ca988a",
       "artifactDigest": "sha256:c18adb10dc3dc20e57d74ec31d224e81c41fc74535eb4471c38ef634ffe2e877"
     }
   ],
@@ -104,7 +104,7 @@
         "reportKind": "single-target",
         "target": {
           "name": "remote",
-          "kind": "cursor-mcp-config",
+          "kind": "mcp-servers",
           "source": "https://analyticslegends.ai/mcp",
           "configPath": "official-mcp-registry:ai.analyticslegends/sap-analytics"
         },

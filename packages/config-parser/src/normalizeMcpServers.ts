@@ -52,15 +52,26 @@ function extractInstructions(server: Record<string, unknown>): string | undefine
 
 /**
  * Find the server map inside a parsed config. Supports:
- * - { mcpServers: { ... } }   (Cursor, Claude settings)
+ * - { mcpServers: { ... } }   (Cursor, Claude settings, WorkBuddy, Qwen Code)
+ * - { mcp: { servers: { ... } } }  (OpenClaw)
  * - { servers: { ... } }      (some variants)
  * - { ...serverEntries }      (a bare server map)
  * Returns an empty object if none found (tolerant).
  */
 export function findServerMap(root: unknown): Record<string, unknown> {
   if (!isRecord(root)) return {}
+
+  // Standard: { mcpServers: { ... } }
   if (isRecord(root.mcpServers)) return root.mcpServers
+
+  // OpenClaw: { mcp: { servers: { ... } } }
+  if (isRecord(root.mcp) && isRecord(root.mcp.servers)) {
+    return root.mcp.servers
+  }
+
+  // Generic: { servers: { ... } }
   if (isRecord(root.servers)) return root.servers
+
   // Bare map heuristic: every value is an object that looks like a server.
   const entries = Object.entries(root)
   if (

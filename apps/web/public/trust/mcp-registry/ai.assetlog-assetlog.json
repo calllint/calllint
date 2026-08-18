@@ -2,7 +2,7 @@
   "schema": "calllint.trust-page.v0",
   "canonicalName": "mcp-registry/ai.assetlog-assetlog",
   "artifactDigest": "sha256:a4235f977e30bb7bf59d59ffff54c0f431a65e64a757128d227f69c04c3ba8ff",
-  "pageDigest": "sha256:a1810be61973faf9966dcfc8df7469b613b53272640429325d4d0bf3c92e8fc8",
+  "pageDigest": "sha256:c421f405e28cdec8b1b9fff510790e1f73fabaa154286b43b6f7a00af589038e",
   "verdict": "REVIEW",
   "verdictLabel": "Review required",
   "observedAt": "2026-08-17T01:39:50.172Z",
@@ -12,7 +12,7 @@
     "completeness": "complete",
     "authorityClaimed": false,
     "reproducibility": {
-      "pageDigest": "sha256:a1810be61973faf9966dcfc8df7469b613b53272640429325d4d0bf3c92e8fc8",
+      "pageDigest": "sha256:c421f405e28cdec8b1b9fff510790e1f73fabaa154286b43b6f7a00af589038e",
       "observedAt": "2026-08-17T01:39:50.172Z"
     },
     "evidenceLevel": "E2",
@@ -27,7 +27,7 @@
   "scanHistory": [
     {
       "observedAt": "2026-08-17T01:39:50.172Z",
-      "pageDigest": "sha256:a1810be61973faf9966dcfc8df7469b613b53272640429325d4d0bf3c92e8fc8",
+      "pageDigest": "sha256:c421f405e28cdec8b1b9fff510790e1f73fabaa154286b43b6f7a00af589038e",
       "artifactDigest": "sha256:a4235f977e30bb7bf59d59ffff54c0f431a65e64a757128d227f69c04c3ba8ff"
     }
   ],
@@ -104,7 +104,7 @@
         "reportKind": "single-target",
         "target": {
           "name": "remote",
-          "kind": "cursor-mcp-config",
+          "kind": "mcp-servers",
           "source": "https://api.assetlog.ai/mcp",
           "configPath": "official-mcp-registry:ai.assetlog/assetlog"
         },

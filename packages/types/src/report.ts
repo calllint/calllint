@@ -15,6 +15,8 @@ export const TARGET_KINDS = [
   "claude-settings",
   "vscode-mcp-config",
   "windsurf-mcp-config",
+  "mcp-servers",        // WorkBuddy, Qwen Code (standard top-level mcpServers)
+  "openclaw-config",    // OpenClaw (mcp.servers structure)
   "npm",
   "github",
   "inline",

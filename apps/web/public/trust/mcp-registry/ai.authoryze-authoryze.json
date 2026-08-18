@@ -2,7 +2,7 @@
   "schema": "calllint.trust-page.v0",
   "canonicalName": "mcp-registry/ai.authoryze-authoryze",
   "artifactDigest": "sha256:f0c3b9064ca5c59bf2a819285abc5893c32cafee543936a758fb1c9f3b044105",
-  "pageDigest": "sha256:b41cf38deeecd80c90d41e66355b64d6e7ddc3277eb8d3187249afe1f9c9f3f9",
+  "pageDigest": "sha256:a02ec295f612f6c5d73b5ebd46476d285ece329e7390e712f605d8386067d863",
   "verdict": "REVIEW",
   "verdictLabel": "Review required",
   "observedAt": "2026-08-17T01:39:50.172Z",
@@ -12,7 +12,7 @@
     "completeness": "complete",
     "authorityClaimed": false,
     "reproducibility": {
-      "pageDigest": "sha256:b41cf38deeecd80c90d41e66355b64d6e7ddc3277eb8d3187249afe1f9c9f3f9",
+      "pageDigest": "sha256:a02ec295f612f6c5d73b5ebd46476d285ece329e7390e712f605d8386067d863",
       "observedAt": "2026-08-17T01:39:50.172Z"
     },
     "evidenceLevel": "E2",
@@ -27,7 +27,7 @@
   "scanHistory": [
     {
       "observedAt": "2026-08-17T01:39:50.172Z",
-      "pageDigest": "sha256:b41cf38deeecd80c90d41e66355b64d6e7ddc3277eb8d3187249afe1f9c9f3f9",
+      "pageDigest": "sha256:a02ec295f612f6c5d73b5ebd46476d285ece329e7390e712f605d8386067d863",
       "artifactDigest": "sha256:f0c3b9064ca5c59bf2a819285abc5893c32cafee543936a758fb1c9f3b044105"
     }
   ],
@@ -104,7 +104,7 @@
         "reportKind": "single-target",
         "target": {
           "name": "remote",
-          "kind": "cursor-mcp-config",
+          "kind": "mcp-servers",
           "source": "https://authoryze.ai/api/mcp",
           "configPath": "official-mcp-registry:ai.authoryze/authoryze"
         },

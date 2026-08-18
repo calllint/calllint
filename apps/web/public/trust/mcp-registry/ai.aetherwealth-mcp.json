@@ -2,7 +2,7 @@
   "schema": "calllint.trust-page.v0",
   "canonicalName": "mcp-registry/ai.aetherwealth-mcp",
   "artifactDigest": "sha256:69c248fcb802a6a4dd67f467c0951800ddcc190ea7a97abdb956e29498f39426",
-  "pageDigest": "sha256:91583cc7340aeab8b6d1be59d6728eaaac29bd0675a4ee28325e946682d3ed33",
+  "pageDigest": "sha256:3399c6e6d64fc6034ec7b640650a5b043d341b8c31f008e8c83eb4b2fefc35f7",
   "verdict": "SAFE",
   "verdictLabel": "No blockers observed",
   "observedAt": "2026-08-17T01:39:50.172Z",
@@ -12,7 +12,7 @@
     "completeness": "complete",
     "authorityClaimed": false,
     "reproducibility": {
-      "pageDigest": "sha256:91583cc7340aeab8b6d1be59d6728eaaac29bd0675a4ee28325e946682d3ed33",
+      "pageDigest": "sha256:3399c6e6d64fc6034ec7b640650a5b043d341b8c31f008e8c83eb4b2fefc35f7",
       "observedAt": "2026-08-17T01:39:50.172Z"
     },
     "evidenceLevel": "E2",
@@ -27,7 +27,7 @@
   "scanHistory": [
     {
       "observedAt": "2026-08-17T01:39:50.172Z",
-      "pageDigest": "sha256:91583cc7340aeab8b6d1be59d6728eaaac29bd0675a4ee28325e946682d3ed33",
+      "pageDigest": "sha256:3399c6e6d64fc6034ec7b640650a5b043d341b8c31f008e8c83eb4b2fefc35f7",
       "artifactDigest": "sha256:69c248fcb802a6a4dd67f467c0951800ddcc190ea7a97abdb956e29498f39426"
     }
   ],
@@ -103,7 +103,7 @@
         "reportKind": "single-target",
         "target": {
           "name": "package",
-          "kind": "cursor-mcp-config",
+          "kind": "mcp-servers",
           "source": "@aetherwealth/mcp",
           "version": "0.2.14",
           "configPath": "official-mcp-registry:ai.aetherwealth/mcp"

@@ -2,7 +2,7 @@
   "schema": "calllint.trust-page.v0",
   "canonicalName": "calllint-fixtures/unknown-remote",
   "artifactDigest": "sha256:fc5a61dd40cfb47c0e4cbebcd1bbcf6144aac662e87ac3eab8588cf1921e22f5",
-  "pageDigest": "sha256:80797cd97fb8bafd4c891cbed7e81133b67ee923e10fc2d871e8d6f325b8a7ee",
+  "pageDigest": "sha256:f3393e3fb137b8be8dece3a9dfcf451a62e8db864146a1140d98d10416e21277",
   "verdict": "UNKNOWN",
   "verdictLabel": "Insufficient evidence",
   "observedAt": "1970-01-01T00:00:00.000Z",
@@ -12,7 +12,7 @@
     "completeness": "complete",
     "authorityClaimed": false,
     "reproducibility": {
-      "pageDigest": "sha256:80797cd97fb8bafd4c891cbed7e81133b67ee923e10fc2d871e8d6f325b8a7ee",
+      "pageDigest": "sha256:f3393e3fb137b8be8dece3a9dfcf451a62e8db864146a1140d98d10416e21277",
       "observedAt": "1970-01-01T00:00:00.000Z"
     },
     "evidenceLevel": "E2",
@@ -27,7 +27,7 @@
   "scanHistory": [
     {
       "observedAt": "1970-01-01T00:00:00.000Z",
-      "pageDigest": "sha256:80797cd97fb8bafd4c891cbed7e81133b67ee923e10fc2d871e8d6f325b8a7ee",
+      "pageDigest": "sha256:f3393e3fb137b8be8dece3a9dfcf451a62e8db864146a1140d98d10416e21277",
       "artifactDigest": "sha256:fc5a61dd40cfb47c0e4cbebcd1bbcf6144aac662e87ac3eab8588cf1921e22f5"
     }
   ],
@@ -104,7 +104,7 @@
         "reportKind": "single-target",
         "target": {
           "name": "custom-remote",
-          "kind": "cursor-mcp-config",
+          "kind": "mcp-servers",
           "source": "https://mcp.example-unverified.dev/sse",
           "configPath": "unknown-remote.json"
         },
