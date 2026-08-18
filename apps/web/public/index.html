@@ -443,7 +443,24 @@ npx calllint scan .cursor/mcp.json --html &gt; report.html</code></pre>
         </p>
       </section>
 
-      <!-- 8b. Release Integrity -->
+      <!-- 8b. Adoption Signals -->
+      <section class="section section-narrow" id="adoption">
+        <div class="section-head">
+          <h2>Adoption Signals</h2>
+          <p>Privacy-first telemetry showing aggregate usage trends. Opt-in, anonymous, milestone-thresholded counts only.</p>
+        </div>
+        <div id="adoption-content" class="adoption-loading">
+          <p style="text-align: center; color: var(--muted);">Loading adoption data...</p>
+        </div>
+        <div class="adoption-note">
+          <strong>Privacy guarantee:</strong> All metrics are aggregate-only and
+          milestone-thresholded (1K+, 2.5K+). Individual installations are never
+          identified. Telemetry is opt-in via <code>calllint telemetry enable</code>
+          and can be disabled at any time.
+        </div>
+      </section>
+
+      <!-- 8c. Release Integrity -->
       <section class="band" id="release">
         <div class="band-inner">
           <div class="section-head">
@@ -485,6 +502,59 @@ npx calllint scan .cursor/mcp.json --html &gt; report.html</code></pre>
         </div>
       </section>
     </main>
+
+    <script>
+      // Load adoption signals
+      function formatNumber(num) {
+        if (num >= 1000000) return (num / 1000000).toFixed(1) + 'M'
+        if (num >= 1000) return (num / 1000).toFixed(1) + 'K'
+        return num.toString()
+      }
+
+      function renderAdoption(data) {
+        const content = document.getElementById('adoption-content')
+        if (!content) return
+
+        const totalVerdicts = Object.values(data.verdicts || {}).reduce((a, b) => a + b, 0)
+
+        content.innerHTML = `
+          <div class="adoption-grid">
+            <div class="adoption-card">
+              <span class="adoption-value">${formatNumber(data.totalScans)}</span>
+              <span class="adoption-label">Total scans</span>
+              <span class="adoption-trend">+${data.scanGrowth || 0}% this week</span>
+            </div>
+            <div class="adoption-card">
+              <span class="adoption-value">${formatNumber(data.activeInstallations)}</span>
+              <span class="adoption-label">Active installations</span>
+              <span class="adoption-trend">+${data.installGrowth || 0}% this week</span>
+            </div>
+            <div class="adoption-card">
+              <span class="adoption-value">${formatNumber(data.configsScanned)}</span>
+              <span class="adoption-label">Configs scanned</span>
+              <span class="adoption-trend">+${data.configGrowth || 0}% this week</span>
+            </div>
+            <div class="adoption-card">
+              <span class="adoption-value">${formatNumber(totalVerdicts)}</span>
+              <span class="adoption-label">Verdicts issued</span>
+              <span class="adoption-trend">+${data.verdictGrowth || 0}% this week</span>
+            </div>
+          </div>
+        `
+      }
+
+      // Load data from API or use fallback
+      fetch('/v1/public/adoption')
+        .then(r => r.json())
+        .then(renderAdoption)
+        .catch(() => {
+          // Fallback: show placeholder
+          const content = document.getElementById('adoption-content')
+          if (content) {
+            content.innerHTML = '<p style="text-align: center; color: var(--muted);">Adoption metrics coming soon</p>'
+          }
+        })
+    </script>
 
     <footer class="site-footer">
       <div class="footer-brand">
