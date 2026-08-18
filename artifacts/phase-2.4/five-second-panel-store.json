@@ -94,19 +94,6 @@
       "shownSurfaceDigest": "sha256:139cbe551fa3f5972e5a75125297f93ee0378a2418d6c68e617303f7c07b720f"
     },
     {
-      "participant": "8",
-      "canonicalSlug": "mcp-registry/ac.inference.sh-mcp",
-      "at": "2026-07-30T12:15:39.198Z",
-      "correct": {
-        "target": true,
-        "consequence": true,
-        "action": true
-      },
-      "shownFrom": "http://127.0.0.1",
-      "shownDigest": "sha256:b0a2b6bc760d182966df97cc03c86e68851a7d9c3e8aabd8ce6bb1653c138728",
-      "shownSurfaceDigest": "sha256:4862cb564c3718d1ec150059b04d9ea67ed3ef5688df06f5e88e884eb2cba509"
-    },
-    {
       "participant": "9",
       "canonicalSlug": "mcp-registry/ai.adeu-adeu",
       "at": "2026-07-30T12:15:44.583Z",
@@ -131,6 +118,32 @@
       "shownFrom": "http://127.0.0.1",
       "shownDigest": "sha256:02df06de7dc296394b1924e14c265f22469a25afe7ce5228a15d41124f99674d",
       "shownSurfaceDigest": "sha256:38bd0490154b319b2f83a22cc529659a3da3faa31fbf7f78dc737859c28187fa"
+    },
+    {
+      "participant": "P11",
+      "canonicalSlug": "mcp-registry/ai.aarna-atars-mcp",
+      "at": "2026-08-18T02:06:26.203Z",
+      "correct": {
+        "target": true,
+        "consequence": true,
+        "action": true
+      },
+      "shownFrom": "http://127.0.0.1",
+      "shownDigest": "sha256:7a15ce1c5264c09831e810aefeea0a59833976f29eb1c3406b369bade3351b0d",
+      "shownSurfaceDigest": "sha256:9865a9eb9bd3b2ab019eb74ab9f84137da73f26e32897f8b13598e765e89552d"
+    },
+    {
+      "participant": "P08",
+      "canonicalSlug": "mcp-registry/ac.inference.sh-mcp",
+      "at": "2026-08-18T02:16:14.081Z",
+      "correct": {
+        "target": true,
+        "consequence": true,
+        "action": true
+      },
+      "shownFrom": "http://127.0.0.1",
+      "shownDigest": "sha256:cb2e427ca36fab2de28fcc5e9510ec121005fc519503b9a39b7e982f7f2183be",
+      "shownSurfaceDigest": "sha256:f3da5f6d71e562ff46c05e9652d6678d1d84b10ac558ba1d8bfd3236e45100e6"
     }
   ]
 }
