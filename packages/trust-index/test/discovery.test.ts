@@ -29,6 +29,8 @@ import {
   renderSidecar,
   renderSitemap,
   structuredData,
+  socialMetadata,
+  pageDescription,
   pageUrl,
   emitAllCohorts,
   SITE_ORIGIN,
@@ -282,5 +284,83 @@ describe("emitAllCohorts — sitemap is chrome; discovery never moves the reprod
     expect(xml).toContain(`<loc>${SITE_ORIGIN}/trust/lookup</loc>`)
     expect(xml).not.toContain("calllint-fixtures/")
     expect(xml).not.toContain("malformed")
+  })
+})
+
+describe("P0/P1 Change 2: Trust Page SEO + Social Metadata", () => {
+  it("pageDescription is fact-only (verdict + digest + time + completeness + disclaimer)", () => {
+    const page = bakeTrustPage(anyCase.input)
+    const desc = pageDescription(page)
+    // Must contain: verdict label, digest, observedAt, completeness, disclaimer
+    expect(desc).toContain(page.artifactDigest)
+    expect(desc).toContain(page.observedAt)
+    expect(desc).toContain("completeness:")
+    expect(desc).toContain("not a certification")
+    expect(desc).toContain("guarantee of safety")
+    // Must NOT contain forbidden overclaim phrases
+    for (const phrase of TRUST_PAGE_FORBIDDEN_PHRASES) {
+      expect(desc.toLowerCase()).not.toContain(phrase)
+    }
+  })
+
+  it("renderHtml includes <meta name='description'> with fact-only content", () => {
+    const page = bakeTrustPage(anyCase.input)
+    const html = renderHtml(page)
+    expect(html).toMatch(/<meta name="description" content="[^"]+"\s*\/>/)
+    const match = html.match(/<meta name="description" content="([^"]+)"\s*\/>/)
+    expect(match).toBeTruthy()
+    const desc = match![1]!
+    expect(desc).toContain(page.artifactDigest)
+    expect(desc).toContain("not a certification")
+  })
+
+  it("renderHtml includes Open Graph metadata (type=article, url, title, description, image)", () => {
+    const page = bakeTrustPage(safeCase.input)
+    const html = renderHtml(page)
+    expect(html).toContain('<meta property="og:type" content="article"')
+    expect(html).toContain(`<meta property="og:url" content="${SITE_ORIGIN}/trust/${page.canonicalName}"`)
+    expect(html).toContain(`<meta property="og:title" content="${page.canonicalName} — CallLint Trust Page"`)
+    expect(html).toContain('<meta property="og:description"')
+    expect(html).toContain(`<meta property="og:image" content="${SITE_ORIGIN}/logo-mark-128.png"`)
+  })
+
+  it("renderHtml includes Twitter Card metadata (summary_large_image)", () => {
+    const page = bakeTrustPage(safeCase.input)
+    const html = renderHtml(page)
+    expect(html).toContain('<meta name="twitter:card" content="summary_large_image"')
+    expect(html).toContain('<meta name="twitter:title"')
+    expect(html).toContain('<meta name="twitter:description"')
+    expect(html).toContain('<meta name="twitter:image"')
+  })
+
+  it("renderHtml includes <link rel='alternate'> for JSON sidecar", () => {
+    const page = bakeTrustPage(anyCase.input)
+    const html = renderHtml(page)
+    expect(html).toMatch(/<link rel="alternate" type="application\/json" href="[^"]+\.json"\s*\/>/)
+    expect(html).toContain(`href="${SITE_ORIGIN}/trust/${page.canonicalName}.json"`)
+  })
+
+  it("canonical link remains clean (extensionless URL, no .html)", () => {
+    const page = bakeTrustPage(anyCase.input)
+    const html = renderHtml(page)
+    expect(html).toContain(`<link rel="canonical" href="${SITE_ORIGIN}/trust/${page.canonicalName}"`)
+    expect(html).not.toContain(".html")
+  })
+
+  it("structuredData remains TechArticle (not Review/Rating/Product)", () => {
+    const page = bakeTrustPage(anyCase.input)
+    const raw = structuredData(page)
+    const ld = JSON.parse(raw.replace(/^[\s\S]*?>\n/, "").replace(/\n\s*<\/script>$/, "").replace(/\\u003c/g, "<"))
+    expect(ld["@type"]).toBe("TechArticle")
+  })
+
+  it("social metadata never appears in sidecar (orthogonality: distribution ⟂ verdict)", () => {
+    const page = bakeTrustPage(anyCase.input)
+    const sidecar = renderSidecar(page)
+    // Open Graph and Twitter Card vocabulary must not appear in JSON sidecar
+    expect(sidecar).not.toContain("og:")
+    expect(sidecar).not.toContain("twitter:")
+    expect(sidecar).not.toContain("og:type")
+    expect(sidecar).not.toContain("og:image")
   })
 })

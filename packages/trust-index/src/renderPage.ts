@@ -25,6 +25,48 @@ import type { VerifiedPublisher } from "./claim.js"
 import { evidenceLevel, EVIDENCE_LEVEL_META } from "./evidenceLevel.js"
 import { reproductionCommand, scanHistory } from "./pageProjections.js"
 
+/**
+ * Deterministic, fact-only meta description for a Trust Page (P0/P1 Change 2).
+ * States WHAT was observed + WHEN + completeness, with the standing safety boundary.
+ * Never: "certified", "safe", scores, grades, recommendations.
+ */
+export function pageDescription(page: BakedTrustPage): string {
+  const completeness = page.preparation.authority?.completeness ?? "partial"
+  return (
+    `${VERDICT_PUBLIC_LABEL[page.verdict]}, observed at artifact digest ` +
+    `${page.artifactDigest} at ${page.observedAt} (completeness: ${completeness}). ` +
+    `An observation at a specific artifact digest and time — not a certification, ` +
+    `an endorsement, or a guarantee of safety.`
+  )
+}
+
+/**
+ * Deterministic social/discovery metadata for a Trust Page (P0/P1 Change 2).
+ * Open Graph + Twitter Card. Emitted into <head> only (never in sidecar).
+ * No dynamic OG images (ADR 0053 §4 out-of-scope), so og:image is the standing
+ * CallLint logo. All metadata is a pure projection of the immutable page — adding
+ * it never changes pageDigest, verdict, or sidecar bytes.
+ */
+export function socialMetadata(page: BakedTrustPage): string {
+  const url = pageUrl(page)
+  const title = `${page.canonicalName} — CallLint Trust Page`
+  const description = pageDescription(page)
+  // Standing CallLint logo (128×128 PNG, public, deterministic). No per-page images.
+  const image = `${SITE_ORIGIN}/logo-mark-128.png`
+
+  return `
+    <meta name="description" content="${esc(description)}" />
+    <meta property="og:type" content="article" />
+    <meta property="og:url" content="${esc(url)}" />
+    <meta property="og:title" content="${esc(title)}" />
+    <meta property="og:description" content="${esc(description)}" />
+    <meta property="og:image" content="${esc(image)}" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="${esc(title)}" />
+    <meta name="twitter:description" content="${esc(description)}" />
+    <meta name="twitter:image" content="${esc(image)}" />`
+}
+
 /** Where a viewer disputes or corrects a page (ADR 0038 §5 correction link). */
 export const CORRECTION_URL =
   "https://github.com/calllint/calllint/issues/new?labels=trust-page-correction"
@@ -373,6 +415,8 @@ export function renderHtml(page: BakedTrustPage, verifiedPublisher?: VerifiedPub
     <title>${esc(page.canonicalName)} — CallLint Trust Page</title>
     <meta name="robots" content="index,follow" />
     <link rel="canonical" href="${esc(pageUrl(page))}" />
+    <link rel="alternate" type="application/json" href="${esc(pageUrl(page))}.json" />
+    ${socialMetadata(page)}
     ${structuredData(page)}
   </head>
   <body>
