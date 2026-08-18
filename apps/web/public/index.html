@@ -515,31 +515,23 @@ npx calllint scan .cursor/mcp.json --html &gt; report.html</code></pre>
         const content = document.getElementById('adoption-content')
         if (!content) return
 
-        const totalVerdicts = Object.values(data.verdicts || {}).reduce((a, b) => a + b, 0)
-
+        // Only show metrics we actually have backend support for
         content.innerHTML = `
           <div class="adoption-grid">
             <div class="adoption-card">
-              <span class="adoption-value">${formatNumber(data.totalScans)}</span>
+              <span class="adoption-value">${data.totalScans || '—'}</span>
               <span class="adoption-label">Total scans</span>
-              <span class="adoption-trend">+${data.scanGrowth || 0}% this week</span>
             </div>
             <div class="adoption-card">
-              <span class="adoption-value">${formatNumber(data.activeInstallations)}</span>
+              <span class="adoption-value">${data.activeInstallations || '—'}</span>
               <span class="adoption-label">Active installations</span>
-              <span class="adoption-trend">+${data.installGrowth || 0}% this week</span>
-            </div>
-            <div class="adoption-card">
-              <span class="adoption-value">${formatNumber(data.configsScanned)}</span>
-              <span class="adoption-label">Configs scanned</span>
-              <span class="adoption-trend">+${data.configGrowth || 0}% this week</span>
-            </div>
-            <div class="adoption-card">
-              <span class="adoption-value">${formatNumber(totalVerdicts)}</span>
-              <span class="adoption-label">Verdicts issued</span>
-              <span class="adoption-trend">+${data.verdictGrowth || 0}% this week</span>
             </div>
           </div>
+          <p style="margin-top: 1rem; text-align: center; color: var(--muted); font-size: 0.875rem;">
+            Last updated: ${new Date(data.lastUpdated).toLocaleString('en-US', {
+              month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', timeZone: 'UTC', timeZoneName: 'short'
+            })}
+          </p>
         `
       }
 
