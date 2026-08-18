@@ -1,0 +1,87 @@
+{
+  "schema": "calllint.harness-native-presence.v0",
+  "observedAt": "2026-08-18T10:40:00Z",
+  "targets": [
+    {
+      "ecosystem": "cline",
+      "state": "SUBMITTABLE",
+      "officialSource": "https://github.com/cline/marketplace",
+      "submissionKind": "pr",
+      "submissionUrl": "https://github.com/cline/marketplace/pull/49",
+      "artifactPath": "artifacts/harness-distribution/native/cline/SUBMISSION.md",
+      "notes": "Draft PR opened. Entry validated (203 entries). Awaiting upstream CI validation and review."
+    },
+    {
+      "ecosystem": "deepseek",
+      "state": "NOT_A_FIT",
+      "officialSource": "https://github.com/deepseek-ai/awesome-deepseek-agent",
+      "submissionKind": "none",
+      "submissionUrl": null,
+      "artifactPath": "artifacts/harness-distribution/native/deepseek/evidence.md",
+      "notes": "awesome-deepseek-agent collects harness integration guides, not MCP tools. CallLint does not fit the repository's scope."
+    },
+    {
+      "ecosystem": "workbuddy",
+      "state": "NO_PUBLIC_CHANNEL",
+      "officialSource": "https://cloud.tencent.com/product/workbuddy",
+      "submissionKind": "none",
+      "submissionUrl": null,
+      "artifactPath": "artifacts/harness-distribution/native/workbuddy/evidence.md",
+      "notes": "No public third-party submission mechanism found in official sources. Marketplace may exist but submission path is not documented."
+    },
+    {
+      "ecosystem": "claude-code",
+      "state": "PRESENT",
+      "officialSource": null,
+      "submissionKind": "none",
+      "submissionUrl": null,
+      "artifactPath": null,
+      "notes": "Claude Code itself does not have a separate MCP marketplace. Users discover CallLint through claude.ai MCP directory or direct install."
+    },
+    {
+      "ecosystem": "opencode",
+      "state": "NO_PUBLIC_CHANNEL",
+      "officialSource": null,
+      "submissionKind": "none",
+      "submissionUrl": null,
+      "artifactPath": null,
+      "notes": "OpenCode marketplace status unknown. Not prioritized for H9 (within MAX_EXTERNAL_WRITE_TARGETS=3)."
+    },
+    {
+      "ecosystem": "openclaw",
+      "state": "NO_PUBLIC_CHANNEL",
+      "officialSource": null,
+      "submissionKind": "none",
+      "submissionUrl": null,
+      "artifactPath": null,
+      "notes": "OpenClaw marketplace status unknown. Not prioritized for H9."
+    },
+    {
+      "ecosystem": "qwen-code",
+      "state": "NO_PUBLIC_CHANNEL",
+      "officialSource": null,
+      "submissionKind": "none",
+      "submissionUrl": null,
+      "artifactPath": null,
+      "notes": "Qwen Code marketplace status unknown. Not prioritized for H9."
+    },
+    {
+      "ecosystem": "codex",
+      "state": "NO_PUBLIC_CHANNEL",
+      "officialSource": null,
+      "submissionKind": "none",
+      "submissionUrl": null,
+      "artifactPath": null,
+      "notes": "Codex (DISCOVERY_ONLY) — no auto-discovery yet, not prioritized for marketplace submission."
+    },
+    {
+      "ecosystem": "copilot-cli",
+      "state": "NO_PUBLIC_CHANNEL",
+      "officialSource": null,
+      "submissionKind": "none",
+      "submissionUrl": null,
+      "artifactPath": null,
+      "notes": "Copilot CLI (DISCOVERY_ONLY) — not prioritized for H9."
+    }
+  ]
+}
