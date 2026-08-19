@@ -799,11 +799,20 @@ pre {
   max-width: 920px;
   margin: 0 auto;
 }
+/* A card is a vertical layout contract, not a stretched box: title → copy →
+   flexible space → proof/action. The grid already equalizes cell heights, but
+   without this the lower proof block starts wherever the copy happens to end,
+   so three cards with different paragraph lengths never line up. Anchoring the
+   proof with `margin-top: auto` aligns them by construction — copy may grow a
+   line without re-breaking the row. */
 .agent-card {
   background: var(--surface);
   border: 1px solid var(--line);
   border-radius: var(--radius);
   padding: 22px 24px;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
 }
 .agent-card h3 {
   margin: 0 0 12px;
@@ -825,6 +834,21 @@ pre {
 .agents-grid-3 {
   grid-template-columns: 1fr 1fr 1fr;
   max-width: 1040px;
+}
+/* The proof/action row: pushed to the bottom of the card so every card in a row
+   presents its evidence on the same baseline. `margin-top: auto` consumes the
+   leftover space; the last-child guard keeps the rule from firing on a card
+   whose example sits mid-body. */
+.agent-card > .agent-card-example:last-child,
+.agent-card > .agent-card-links:last-child {
+  margin-top: auto;
+  /* Zero the trailing margin too, not just the leading one. `.agent-card p` sets
+     `margin: 0 0 12px` and outranks `.agent-card-links` (0,1,1 vs 0,1,0), so the
+     link row kept a 12px tail while the <pre> cards had none — measured as a 12px
+     baseline spread across one row even with the flex contract in place. The anchor
+     owns both ends of the last child, so the card's own padding is the only space
+     below it regardless of which element type ends the card. */
+  margin-bottom: 0;
 }
 .agent-card-example {
   margin: 0;
@@ -857,6 +881,12 @@ pre {
   grid-template-columns: 1fr 1fr;
   gap: 18px;
   margin: 0 0 22px;
+}
+/* One evidence card, full width. The section used to pair shipped evidence with a
+   roadmap card; with the roadmap gone a 2-col grid would leave a half-width orphan,
+   so the surviving proof occupies the row deliberately. */
+.corpus-grid-single {
+  grid-template-columns: 1fr;
 }
 .corpus-card {
   background: var(--surface);
@@ -903,9 +933,26 @@ pre {
   color: var(--muted);
 }
 
+/* Spacing between stacked card rows in the same section. Replaces an inline
+   `style="margin-top: 18px"` — row rhythm is presentation, so it lives here. */
+.agents-grid + .agents-grid {
+  margin-top: 18px;
+}
+
+/* ---- V3: tablet ---- */
+/* Three cards each carrying a code example are too narrow below ~1000px: the
+   `<pre>` wraps hard and the row reads as three cramped columns. Drop to two and
+   let the third wrap — readability over preserving the column count. */
+@media (max-width: 1000px) {
+  .agents-grid-3 {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
 /* ---- V3: mobile ---- */
 @media (max-width: 720px) {
   .agents-grid,
+  .agents-grid-3,
   .corpus-grid {
     grid-template-columns: 1fr;
   }
@@ -964,6 +1011,8 @@ pre {
   border-top: 1px solid var(--line);
   font-size: 0.92rem;
   color: var(--muted);
+}
+
 /* ---- V4: input→verdict demo + scenarios ---- */
 .demo-split {
   display: grid;
@@ -993,9 +1042,12 @@ pre {
 .t-key { color: #e7ecf3; }
 .t-str { color: #9ece6a; }
 
+/* Four scenarios, so a fixed 2×2 rather than `auto-fit`: auto-fit resolved to
+   three columns plus a lone orphan at common desktop widths. The count is known
+   and stable here, so the balanced arrangement is stated instead of derived. */
 .scenario-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  grid-template-columns: 1fr 1fr;
   gap: 16px;
 }
 .scenario {

@@ -57,7 +57,6 @@ export function renderAppCreatedPage(): string {
         <a href="/#how">How</a>
         <a href="/agents">For agents</a>
         <a href="/mcp-security">MCP security</a>
-        <a href="/team">Team</a>
         <a href="https://github.com/calllint/calllint">GitHub</a>
       </nav>
     </header>
@@ -132,8 +131,7 @@ export function renderAppCreatedPage(): string {
         <p class="topic-nav">Related:
           <a href="/">Home</a> ·
           <a href="/agents">For agents</a> ·
-          <a href="/mcp-security">MCP security</a> ·
-          <a href="/team">Team</a>
+          <a href="/mcp-security">MCP security</a>
         </p>
       </section>
     </main>
@@ -144,7 +142,6 @@ export function renderAppCreatedPage(): string {
       </div>
       <div class="footer-links">
         <a href="/">Home</a> · <a href="/agents">For agents</a> ·
-        <a href="/team">Team</a> ·
         <a href="https://github.com/calllint/calllint">Source</a> ·
         <a href="/llms.txt">llms.txt</a>
       </div>

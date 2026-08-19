@@ -13,6 +13,11 @@
     "integrate": "npx calllint integrate"
   },
   "nodeRequirement": ">=20",
+  "commercial": {
+    "$comment": "The authoritative commercial state. `check:public-copy` check 23 keys on paidOfferLive: while it is false, no public current-product surface may carry a price, a purchase path, or a permanence commitment about what is free. Recorded as a fact rather than left implicit because the previous absence of this block is why a $99/org/month page for a product with no checkout could ship and pass every gate. Flipping paidOfferLive to true is a product decision, not a copy edit: it re-permits price copy across every public surface at once.",
+    "paidOfferLive": false,
+    "publicPrice": null
+  },
   "headlines": {
     "eyebrow": "Pre-flight risk linting for agent tools",
     "headline": "Before your agent acts, check the blast radius.",

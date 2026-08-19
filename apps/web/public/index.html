@@ -35,7 +35,6 @@
         <a href="#trust">Trust</a>
         <a href="#agents">For agents</a>
         <a href="#limits">Limitations</a>
-        <a href="/team">Team</a>
         <a href="https://github.com/calllint/calllint">GitHub</a>
         <a href="https://www.npmjs.com/package/calllint">npm</a>
       </nav>
@@ -374,7 +373,7 @@ jobs:
             </p>
           </article>
         </div>
-        <div class="agents-grid" style="margin-top: 18px;">
+        <div class="agents-grid">
           <article class="agent-card">
             <h3>Let the agent run the preflight itself</h3>
             <p><code>calllint integrate</code> installs CallLint's own MCP server into the hosts you already use, so the agent can scan before it approves another server. Plan-only by default — it prints a reversible plan and writes nothing; applying is a separate, approved, atomically-rolled-back step.</p>
@@ -412,7 +411,7 @@ npx calllint scan .cursor/mcp.json --html &gt; report.html</code></pre>
           <h2>Calibrated by corpus, not vibes.</h2>
           <p>Each corpus case pins an expected verdict and required evidence. A detector change that breaks the contract fails the release gate.</p>
         </div>
-        <div class="corpus-grid">
+        <div class="corpus-grid corpus-grid-single">
           <article class="corpus-card corpus-shipped">
             <span class="corpus-tag">R2.2 · shipped, expansion ongoing</span>
             <ul>
@@ -421,15 +420,6 @@ npx calllint scan .cursor/mcp.json --html &gt; report.html</code></pre>
               <li>dangerous false-SAFE = 0</li>
               <li>UNKNOWN ratio 10.0% (target ≤ 15%)</li>
               <li>release gate enabled</li>
-            </ul>
-          </article>
-          <article class="corpus-card corpus-progress">
-            <span class="corpus-tag">Next</span>
-            <ul>
-              <li>grow toward 80 real-public snapshots</li>
-              <li>broader parser-boundary cases</li>
-              <li>keep UNKNOWN ≤ 15%</li>
-              <li>keep dangerous false-SAFE = 0</li>
             </ul>
           </article>
         </div>
