@@ -100,7 +100,8 @@
         {
           "kind": "mcp-stdio",
           "upstream": "officialMcpRegistry",
-          "state": "AVAILABLE"
+          "state": "AUDIT_REQUIRED",
+          "auditNote": "Cursor supports MCP stdio, but Registry auto-discovery not confirmed"
         },
         {
           "kind": "cursor-plugin",
@@ -132,7 +133,8 @@
         {
           "kind": "mcp-stdio",
           "upstream": "officialMcpRegistry",
-          "state": "AVAILABLE"
+          "state": "AUDIT_REQUIRED",
+          "auditNote": "MCP support via extensions, core VS Code Registry consumption unclear"
         }
       ],
       "coverageBoundary": null
@@ -159,7 +161,8 @@
         {
           "kind": "mcp-stdio",
           "upstream": "officialMcpRegistry",
-          "state": "AVAILABLE"
+          "state": "AUDIT_REQUIRED",
+          "auditNote": "Windsurf supports MCP, has marketplace, Registry consumption not confirmed"
         },
         {
           "kind": "windsurf-mcp-marketplace",
@@ -190,7 +193,8 @@
         {
           "kind": "mcp-stdio",
           "upstream": "officialMcpRegistry",
-          "state": "AVAILABLE"
+          "state": "AUDIT_REQUIRED",
+          "auditNote": "China-region product, Registry consumption relationship unclear"
         },
         {
           "kind": "tencent-mcp-market",
@@ -224,7 +228,8 @@
         {
           "kind": "mcp-stdio",
           "upstream": "officialMcpRegistry",
-          "state": "AVAILABLE"
+          "state": "AUDIT_REQUIRED",
+          "auditNote": "China-region product, Registry consumption unclear, may have independent extension system"
         },
         {
           "kind": "qwen-extension-conversion",
@@ -256,7 +261,8 @@
         {
           "kind": "mcp-stdio",
           "upstream": "officialMcpRegistry",
-          "state": "AVAILABLE"
+          "state": "AUDIT_REQUIRED",
+          "auditNote": "Open source project, Registry consumption not verified"
         },
         {
           "kind": "openclaw-clawhub",
@@ -284,8 +290,8 @@
         {
           "kind": "mcp-stdio",
           "upstream": "officialMcpRegistry",
-          "state": "AVAILABLE",
-          "note": "Codex supports local STDIO MCP"
+          "state": "AUDIT_REQUIRED",
+          "auditNote": "Codex supports local STDIO MCP, Registry auto-discovery not confirmed"
         },
         {
           "kind": "openai-plugin",
@@ -315,7 +321,7 @@
           "kind": "mcp-registry-discovery",
           "upstream": "officialMcpRegistry",
           "state": "AUDIT_REQUIRED",
-          "note": "Verify if Copilot CLI directly consumes Official MCP Registry"
+          "auditNote": "GitHub Copilot CLI MCP and Registry integration unclear"
         },
         {
           "kind": "github-copilot-plugin",
@@ -374,7 +380,8 @@
         {
           "kind": "mcp-stdio",
           "upstream": "officialMcpRegistry",
-          "state": "AVAILABLE"
+          "state": "AUDIT_REQUIRED",
+          "auditNote": "Gemini CLI MCP support and Registry consumption not confirmed"
         },
         {
           "kind": "gemini-extension-gallery",
@@ -404,7 +411,8 @@
         {
           "kind": "mcp-stdio",
           "upstream": "officialMcpRegistry",
-          "state": "AVAILABLE"
+          "state": "AUDIT_REQUIRED",
+          "auditNote": "Tencent product, Registry consumption relationship unclear"
         },
         {
           "kind": "tencent-mcp-market",
@@ -435,7 +443,8 @@
         {
           "kind": "mcp-stdio",
           "upstream": "officialMcpRegistry",
-          "state": "AVAILABLE"
+          "state": "AUDIT_REQUIRED",
+          "auditNote": "Open source project, Registry consumption not verified"
         }
       ],
       "coverageBoundary": "Config path auto-discovery not yet supported. Schema generation ambiguity must be handled deterministically."
@@ -459,7 +468,8 @@
         {
           "kind": "mcp-stdio",
           "upstream": "officialMcpRegistry",
-          "state": "AVAILABLE"
+          "state": "AVAILABLE",
+          "auditNote": "Anthropic product, likely consumes Registry but not externally confirmed"
         },
         {
           "kind": "kiro-workspace-config",

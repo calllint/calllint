@@ -62,7 +62,7 @@ Platforms that consume the Official MCP Registry can discover CallLint automatic
 - **Canonical URL**: https://calllint.com/harnesses/cursor
 
 **Distribution Primitives**:
-  - mcp-stdio: AVAILABLE (upstream: officialMcpRegistry)
+  - mcp-stdio: AUDIT_REQUIRED (upstream: officialMcpRegistry)
   - cursor-plugin: AUDIT_REQUIRED — https://cursor.com/marketplace
 
 
@@ -76,7 +76,7 @@ Platforms that consume the Official MCP Registry can discover CallLint automatic
 - **Canonical URL**: https://calllint.com/harnesses/vscode
 
 **Distribution Primitives**:
-  - mcp-stdio: AVAILABLE (upstream: officialMcpRegistry)
+  - mcp-stdio: AUDIT_REQUIRED (upstream: officialMcpRegistry)
 
 
 ### Windsurf (Codeium)
@@ -89,7 +89,7 @@ Platforms that consume the Official MCP Registry can discover CallLint automatic
 - **Canonical URL**: https://calllint.com/harnesses/windsurf
 
 **Distribution Primitives**:
-  - mcp-stdio: AVAILABLE (upstream: officialMcpRegistry)
+  - mcp-stdio: AUDIT_REQUIRED (upstream: officialMcpRegistry)
   - windsurf-mcp-marketplace: AUDIT_REQUIRED
 
 
@@ -103,7 +103,7 @@ Platforms that consume the Official MCP Registry can discover CallLint automatic
 - **Canonical URL**: https://calllint.com/harnesses/workbuddy
 
 **Distribution Primitives**:
-  - mcp-stdio: AVAILABLE (upstream: officialMcpRegistry)
+  - mcp-stdio: AUDIT_REQUIRED (upstream: officialMcpRegistry)
   - tencent-mcp-market: READY_NOT_SUBMITTED — https://cloud.tencent.com/document/product/1729
 
 
@@ -117,7 +117,7 @@ Platforms that consume the Official MCP Registry can discover CallLint automatic
 - **Canonical URL**: https://calllint.com/harnesses/qwen-code
 
 **Distribution Primitives**:
-  - mcp-stdio: AVAILABLE (upstream: officialMcpRegistry)
+  - mcp-stdio: AUDIT_REQUIRED (upstream: officialMcpRegistry)
   - qwen-extension-conversion: AUDIT_REQUIRED — https://qwenlm.github.io/qwen-code-docs/en/users/extension/introduction/
 
 
@@ -131,7 +131,7 @@ Platforms that consume the Official MCP Registry can discover CallLint automatic
 - **Canonical URL**: https://calllint.com/harnesses/openclaw
 
 **Distribution Primitives**:
-  - mcp-stdio: AVAILABLE (upstream: officialMcpRegistry)
+  - mcp-stdio: AUDIT_REQUIRED (upstream: officialMcpRegistry)
   - openclaw-clawhub: AUDIT_REQUIRED
 
 **Coverage Boundary**: CallLint scans MCP configuration only. Skills and exec permissions are not covered.
@@ -146,7 +146,7 @@ Platforms that consume the Official MCP Registry can discover CallLint automatic
 - **Canonical URL**: https://calllint.com/harnesses/codex
 
 **Distribution Primitives**:
-  - mcp-stdio: AVAILABLE (upstream: officialMcpRegistry)
+  - mcp-stdio: AUDIT_REQUIRED (upstream: officialMcpRegistry)
   - openai-plugin: AUDIT_REQUIRED
 
 **Coverage Boundary**: CallLint does not yet auto-discover Codex configuration.
@@ -191,7 +191,7 @@ Platforms that consume the Official MCP Registry can discover CallLint automatic
 - **Canonical URL**: https://calllint.com/harnesses/gemini-cli
 
 **Distribution Primitives**:
-  - mcp-stdio: AVAILABLE (upstream: officialMcpRegistry)
+  - mcp-stdio: AUDIT_REQUIRED (upstream: officialMcpRegistry)
   - gemini-extension-gallery: AUDIT_REQUIRED — https://geminicli.com/docs/extensions/
 
 **Coverage Boundary**: CallLint does not yet support Gemini CLI native discovery.
@@ -206,7 +206,7 @@ Platforms that consume the Official MCP Registry can discover CallLint automatic
 - **Canonical URL**: https://calllint.com/harnesses/codebuddy
 
 **Distribution Primitives**:
-  - mcp-stdio: AVAILABLE (upstream: officialMcpRegistry)
+  - mcp-stdio: AUDIT_REQUIRED (upstream: officialMcpRegistry)
   - tencent-mcp-market: READY_NOT_SUBMITTED
 
 **Coverage Boundary**: CallLint does not yet support CodeBuddy native discovery.
@@ -221,7 +221,7 @@ Platforms that consume the Official MCP Registry can discover CallLint automatic
 - **Canonical URL**: https://calllint.com/harnesses/opencode
 
 **Distribution Primitives**:
-  - mcp-stdio: AVAILABLE (upstream: officialMcpRegistry)
+  - mcp-stdio: AUDIT_REQUIRED (upstream: officialMcpRegistry)
 
 **Coverage Boundary**: Config path auto-discovery not yet supported. Schema generation ambiguity must be handled deterministically.
 
