@@ -1,0 +1,61 @@
+# Monitors CallLint's distribution health across all surfaces.
+#
+# Checks:
+# 1. Official MCP Registry presence (io.github.calllint/calllint)
+# 2. mcp-v* tag protection (supply chain gate)
+# 3. SSOT → projection consistency
+#
+# Runs: Daily at 09:00 UTC, on-demand via workflow_dispatch
+#
+# Exit: Fails if any check fails → maintainers notified
+name: distribution-watch
+
+on:
+  schedule:
+    - cron: '0 9 * * *' # Daily at 09:00 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  watch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: pnpm/action-setup@v6
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Check Registry presence
+        run: node scripts/verify-registry-presence.mjs
+
+      - name: Check mcp-v* tag protection
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: node scripts/verify-mcp-tag-protection.mjs
+
+      - name: Regenerate projections and check diff
+        run: |
+          node scripts/generate-distribution-surfaces.mjs
+          git diff --exit-code apps/web/public/.well-known/calllint.json \
+            apps/web/public/harnesses/ \
+            apps/web/public/agent-surfaces.json \
+            apps/web/public/llms.txt \
+            apps/web/public/llms-full.txt \
+            apps/web/public/agent-instructions.md
+
+      - name: Report status
+        if: success()
+        run: |
+          echo "✅ Distribution health: OK"
+          echo "   - Registry: LIVE"
+          echo "   - Tag protection: enabled"
+          echo "   - Projections: in sync"
