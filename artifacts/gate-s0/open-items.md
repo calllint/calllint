@@ -542,6 +542,17 @@ The count above is left as written, for the same reason this row gave for its 18
 sequence: numbers that rot quietly are worth keeping visible, and the reader in
 `tests/invariants/gate-s0-claims.invariants.test.ts` is what makes the live number binding.
 
+### Amendment 2026-08-19 (Global Agent Distribution Authority, G3.5) — 22 → **23** steps
+
+**Still CLOSED. `ci:local` now has **23** `&&`-joined steps.** The twenty-third is
+`pnpm check:web-structure`, added as a validation gate for the G3 Global Agent Distribution Authority
+batch. This gate validates that the website's public surface structure matches the expected layout,
+ensuring that agent-facing distribution surfaces and harness pages are properly organized.
+
+The count above is left as written, continuing the 18/19/20/21/22 sequence pattern: numbers that rot
+quietly are worth keeping visible, and the reader in
+`tests/invariants/gate-s0-claims.invariants.test.ts` is what makes the live number binding.
+
 ---
 
 ## S0-OPEN-3 — three of S0's five assertions are GATE-VERIFIED, which reads a string
