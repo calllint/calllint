@@ -296,6 +296,59 @@
 
 ---
 
+## 7. Platform Upstream Audit (G3.5)
+
+**审计日期**: 2026-08-19
+**目标**: 识别哪些平台消费 Official MCP Registry，哪些需要独立提交
+
+### 7.1 Tier-0: Official MCP Registry
+
+**状态**: ✅ LIVE
+**证据**: https://registry.modelcontextprotocol.io/?q=calllint
+**消费者**: 所有集成 Official MCP Registry 的平台都会自动发现 CallLint
+
+### 7.2 平台消费 Registry 状态
+
+| Platform | Consumes Registry? | Distribution Approach | Evidence |
+|----------|-------------------|----------------------|----------|
+| Claude Code | ✅ YES (MCP stdio) | Reuse Registry | MCP Registry is Anthropic-created |
+| Claude Desktop | ✅ YES (MCP stdio) | Reuse Registry | MCP Registry is Anthropic-created |
+| Cursor | ⏳ UNKNOWN | Evaluate native + Registry | Need to verify if Cursor consumes Registry |
+| VS Code | ⏳ UNKNOWN | Evaluate native + Registry | Need marketplace + Registry verification |
+| Windsurf | ⏳ UNKNOWN | Evaluate native + Registry | Need marketplace verification |
+| WorkBuddy | ⏳ UNKNOWN | Evaluate native + Registry | Tencent MCP Market relationship unclear |
+| Qwen Code | ⏳ UNKNOWN | Evaluate native + Registry | Alibaba Cloud integration path unclear |
+| OpenClaw | ⏳ UNKNOWN | Evaluate ClawHub | Registry consumption unclear |
+| Codex | ⏳ UNKNOWN | Evaluate native | OpenAI MCP support unclear |
+| Copilot CLI | ⏳ UNKNOWN | Evaluate GitHub integration | GitHub MCP approach unclear |
+| Cline | ❌ NO | DEFERRED (PR exists) | VS Code extension, no Registry consumption |
+| Gemini CLI | ⏳ UNKNOWN | Evaluate extension system | Google MCP approach unclear |
+| CodeBuddy | ⏳ UNKNOWN | Evaluate Tencent path | Related to WorkBuddy |
+| OpenCode | ⏳ UNKNOWN | Evaluate schema generation | Open source path unclear |
+| Kiro | ⏳ UNKNOWN | Evaluate config system | Kiro MCP approach unclear |
+
+### 7.3 Strategic Implications
+
+**Reuse Principle**: If a platform consumes the Official MCP Registry, CallLint is
+automatically available there. Do NOT create platform-specific submissions when
+Registry consumption provides the same result.
+
+**Evaluation Strategy**:
+1. Query: "Does platform X consume Official MCP Registry?"
+2. If YES → Document as "Available via Registry", no additional work
+3. If NO → Evaluate native distribution primitive (plugin, marketplace, etc.)
+4. If UNKNOWN → Document as audit required, add to distribution watch
+
+**Current Action Items**:
+- [ ] Verify Cursor Registry consumption
+- [ ] Verify VS Code Registry consumption
+- [ ] Verify Windsurf Registry consumption
+- [ ] Verify WorkBuddy/Tencent MCP Market relationship
+- [ ] Verify Qwen Code/Alibaba Cloud integration
+- [ ] Document findings in distribution-surfaces.json
+
+---
+
 ## 附录：待验证命令
 
 ```bash
