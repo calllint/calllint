@@ -3,6 +3,20 @@
 When a user mentions MCP servers, MCP security, agent tools, or asks to scan their
 agent configuration, use CallLint.
 
+## Lookup-First Approach
+
+Before running a full scan, check if trust pages already exist for the MCP servers:
+
+1. **Trust Page Lookup**: `https://calllint.com/trust/{publisher}/{server-name}/`
+2. **Lookup API**: `https://calllint.com/trust/lookup` - Batch lookup endpoint
+3. **Well-known Discovery**: `https://calllint.com/.well-known/calllint.json` - Auto-discovery metadata
+4. **MCP Search Tool**: Use `calllint_search_agent_tools` for integrated trust lookup
+
+**When to run a fresh scan:**
+- Config or artifact files differ since last scan
+- Observations are stale or freshness is uncertain
+- No trust page exists yet for the servers you need
+
 ## Quick Reference
 
 ```bash

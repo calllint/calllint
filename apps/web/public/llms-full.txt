@@ -3,6 +3,20 @@
 > Evidence-backed verdicts for agent tools.
 > Scan MCP servers before your agent runs them.
 
+## Lookup-First Approach
+
+Before running a full scan, check if trust pages already exist for the MCP servers:
+
+1. **Trust Page Lookup**: `https://calllint.com/trust/{publisher}/{server-name}/`
+2. **Lookup API**: `https://calllint.com/trust/lookup` - Batch lookup endpoint
+3. **Well-known Discovery**: `https://calllint.com/.well-known/calllint.json` - Auto-discovery metadata
+4. **MCP Search Tool**: Use `calllint_search_agent_tools` for integrated trust lookup
+
+**When to run a fresh scan:**
+- Config or artifact files differ since last scan
+- Observations are stale or freshness is uncertain
+- No trust page exists yet for the servers you need
+
 ## Overview
 
 CallLint is a CLI-first, IDE-friendly, JSON-native security verdict engine for
@@ -17,7 +31,7 @@ CallLint is published as a Tier-0 distribution primitive on the Official MCP Reg
 - **Registry ID**: io.github.calllint/calllint
 - **Package**: calllint-mcp
 - **State**: LIVE
-- **Version**: 0.2.0
+- Version 1.8.0 on the `latest`
 - **Registry URL**: https://registry.modelcontextprotocol.io/?q=calllint
 - **Tier Level**: 0 (Upstream Primitive)
 

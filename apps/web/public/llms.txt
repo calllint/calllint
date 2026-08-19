@@ -6,6 +6,17 @@
 CallLint is a CLI-first, IDE-friendly, JSON-native security verdict engine for
 MCP servers and agent skills.
 
+## Lookup-First Approach
+
+Before running a full scan, check if trust pages already exist:
+
+- Trust Page lookup pattern: `https://calllint.com/trust/{publisher}/{server-name}/`
+- Lookup API endpoint: `https://calllint.com/trust/lookup`
+- Well-known discovery: `https://calllint.com/.well-known/calllint.json`
+- MCP tool: Use `calllint_search_agent_tools` for integrated lookups
+
+Run a fresh scan when your config/artifact differs or observations are stale.
+
 ## What is CallLint?
 
 CallLint performs deterministic static preflight inspection of MCP server
@@ -19,7 +30,7 @@ CallLint is published to the Official MCP Registry:
 - Registry: io.github.calllint/calllint
 - Package: calllint-mcp
 - State: LIVE
-- Version: 0.2.0
+- Version 1.8.0 on the `latest`
 - Registry URL: https://registry.modelcontextprotocol.io/?q=calllint
 
 ## Supported Agent Harnesses
