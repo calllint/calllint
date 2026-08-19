@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Windsurf — CallLint Support</title>
+    <meta
+      name="description"
+      content="CallLint support for Windsurf (Codeium). Full MCP configuration discovery and scanning."
+    />
+    <link rel="icon" href="/favicon.png" type="image/png" />
+    <link rel="apple-touch-icon" href="/logo-mark-256.png" />
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <header class="site-header">
+      <a class="brand-lockup" href="/" aria-label="CallLint home">
+        <img class="brand-mark" src="/logo-mark-128.png" width="40" height="40" alt="" />
+        <span class="brand-name">CallLint</span>
+      </a>
+      <nav class="nav-links" aria-label="Primary">
+        <a href="/">Home</a>
+        <a href="/harnesses/">Harnesses</a>
+        <a href="https://github.com/calllint/calllint">GitHub</a>
+        <a href="https://www.npmjs.com/package/calllint">npm</a>
+      </nav>
+    </header>
+
+    <main class="doc-content">
+      <nav class="breadcrumb" aria-label="Breadcrumb">
+        <a href="/">CallLint</a>
+        <span aria-hidden="true">›</span>
+        <a href="/harnesses/">Harnesses</a>
+        <span aria-hidden="true">›</span>
+        <span>Windsurf</span>
+      </nav>
+
+      <article>
+        <header class="doc-header">
+          <h1>Windsurf</h1>
+          <p class="doc-lede">
+            CallLint support for <strong>Windsurf</strong> by Codeium.
+          </p>
+          <div class="host-meta">
+            <span class="badge badge-P1">P1</span>
+            <span class="badge badge-NATIVE">NATIVE</span>
+          </div>
+        </header>
+
+        <section id="usage" class="doc-section">
+          <h2>Usage</h2>
+          <p>CallLint can auto-discover and scan Windsurf configurations:</p>
+          <pre><code>calllint scan --agent windsurf</code></pre>
+        </section>
+
+        <section id="config" class="doc-section">
+          <h2>Configuration Paths</h2>
+          <p>CallLint looks for Windsurf configurations in:</p>
+          <ul>
+            <li><code>~/.windsurf/mcp.json</code></li>
+            <li><code>&lt;project&gt;/.windsurf/mcp.json</code></li>
+          </ul>
+        </section>
+
+        <section id="authority" class="doc-section">
+          <h2>Authority Surfaces</h2>
+          <p>Windsurf can grant tools the following authority surfaces:</p>
+          <ul class="authority-list">
+            <li><code>mcp</code></li>
+            <li><code>filesystem</code></li>
+          </ul>
+        </section>
+
+        <section id="distribution" class="doc-section">
+          <h2>Distribution</h2>
+          <p>CallLint is available for Windsurf through:</p>
+          <ul class="distribution-list">
+            <li>
+              <strong>mcp-stdio</strong>
+              <span class="upstream-note">(via <a href="https://registry.modelcontextprotocol.io/?q=calllint">officialMcpRegistry</a>)</span>
+              — <span class="state-AVAILABLE">AVAILABLE</span>
+            </li>
+            <li>
+              <strong>windsurf-mcp-marketplace</strong>
+              — <span class="state-AUDIT_REQUIRED">AUDIT_REQUIRED</span>
+            </li>
+          </ul>
+        </section>
+
+        <section id="sources" class="doc-section">
+          <h2>Official Sources</h2>
+          <ul>
+            <li><a href="https://codeium.com/windsurf" target="_blank" rel="noopener">https://codeium.com/windsurf</a></li>
+          </ul>
+        </section>
+
+      </article>
+
+      <footer class="doc-footer">
+        <p>
+          Generated from <a href="https://github.com/calllint/calllint/blob/main/apps/web/data/distribution-surfaces.json">distribution-surfaces.json</a>
+          — canonical source of truth for CallLint's global agent distribution authority.
+        </p>
+        <p>
+          <a href="/harnesses/">← Back to Harnesses</a> |
+          <a href="/">CallLint Home</a>
+        </p>
+      </footer>
+    </main>
+  </body>
+</html>
+

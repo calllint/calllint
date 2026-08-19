@@ -40,11 +40,13 @@
 
         <p class="prose">DeepSeek can be used through multiple agent harnesses. Replacing Claude with DeepSeek does not itself change the MCP servers, filesystem access, shell commands, API calls, or other authority the harness grants. CallLint inspects supported MCP and agent-tool configuration before execution.</p>
 
+        <p class="prose"><strong>Note:</strong> This page is a model-intent landing page. For canonical documentation on each harness, see the <a href="/harnesses/">Harnesses Hub</a>.</p>
+
         <h2>Agent Harnesses</h2>
 
         <div class="harness-grid">
           <div class="harness-card">
-            <h3><a href="/harnesses/deepseek/workbuddy">WorkBuddy</a></h3>
+            <h3><a href="/harnesses/workbuddy">WorkBuddy</a></h3>
             <p class="small">Tencent Cloud Code Assistant</p>
             <p class="small"><strong>Authority:</strong> MCP servers, extensions</p>
             <p class="small"><strong>CallLint support:</strong> Native auto-discovery</p>
@@ -52,7 +54,7 @@
           </div>
 
           <div class="harness-card">
-            <h3><a href="/harnesses/deepseek/claude-code">Claude Code</a></h3>
+            <h3><a href="/harnesses/claude-code">Claude Code</a></h3>
             <p class="small">Anthropic</p>
             <p class="small"><strong>Authority:</strong> MCP, filesystem, shell</p>
             <p class="small"><strong>CallLint support:</strong> Native auto-discovery</p>
@@ -60,7 +62,7 @@
           </div>
 
           <div class="harness-card">
-            <h3><a href="/harnesses/deepseek/qwen-code">Qwen Code</a></h3>
+            <h3><a href="/harnesses/qwen-code">Qwen Code</a></h3>
             <p class="small">Alibaba Cloud</p>
             <p class="small"><strong>Authority:</strong> MCP servers, tools</p>
             <p class="small"><strong>CallLint support:</strong> Native auto-discovery</p>
@@ -68,15 +70,15 @@
           </div>
 
           <div class="harness-card">
-            <h3><a href="/harnesses/deepseek/openclaw">OpenClaw</a></h3>
+            <h3><a href="/harnesses/openclaw">OpenClaw</a></h3>
             <p class="small">Open Source</p>
             <p class="small"><strong>Authority:</strong> MCP, skills, exec</p>
             <p class="small"><strong>CallLint support:</strong> MCP config only</p>
-            <code class="small">calllint scan --config ~/.openclaw/openclaw.json</code>
+            <code class="small">calllint scan --agent openclaw</code>
           </div>
 
           <div class="harness-card">
-            <h3><a href="/harnesses/deepseek/opencode">OpenCode</a></h3>
+            <h3><a href="/harnesses/opencode">OpenCode</a></h3>
             <p class="small">Open Source</p>
             <p class="small"><strong>Authority:</strong> MCP, tools</p>
             <p class="small"><strong>CallLint support:</strong> Config path scan</p>
@@ -84,15 +86,15 @@
           </div>
 
           <div class="harness-card">
-            <h3><a href="/harnesses/deepseek/codex">Codex</a></h3>
-            <p class="small">GitHub</p>
+            <h3><a href="/harnesses/codex">Codex</a></h3>
+            <p class="small">OpenAI</p>
             <p class="small"><strong>Authority:</strong> Code generation, API</p>
             <p class="small"><strong>CallLint support:</strong> Not yet supported</p>
             <p class="small">See <a href="/trust/">Trust lookup</a> for published servers</p>
           </div>
 
           <div class="harness-card">
-            <h3><a href="/harnesses/deepseek/copilot-cli">Copilot CLI</a></h3>
+            <h3><a href="/harnesses/copilot-cli">Copilot CLI</a></h3>
             <p class="small">GitHub</p>
             <p class="small"><strong>Authority:</strong> Shell, CLI</p>
             <p class="small"><strong>CallLint support:</strong> Not yet supported</p>
@@ -100,7 +102,7 @@
           </div>
 
           <div class="harness-card">
-            <h3><a href="/harnesses/deepseek/cline">Cline</a></h3>
+            <h3><a href="/harnesses/cline">Cline</a></h3>
             <p class="small">Open Source (VS Code)</p>
             <p class="small"><strong>Authority:</strong> VS Code extensions, tools</p>
             <p class="small"><strong>CallLint support:</strong> Not yet supported</p>
@@ -124,6 +126,13 @@
           <li>Does not prove runtime behavior</li>
           <li>Does not replace code review or security audit</li>
           <li>UNKNOWN is not SAFE — it means the surface could not be verified statically</li>
+        </ul>
+
+        <h2>See Also</h2>
+        <ul>
+          <li><a href="/harnesses/">Harnesses Hub</a> — Canonical documentation for all supported harnesses</li>
+          <li><a href="/trust/">Trust lookup</a> — Query published MCP server safety data</li>
+          <li><a href="/trust/app-created.html">App Creator safety</a> — Evaluate agent-created apps</li>
         </ul>
 
         <div class="callout">CallLint is model-independent and harness-independent. It inspects authority surfaces, not model identity.</div>

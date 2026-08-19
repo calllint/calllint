@@ -1,0 +1,146 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{{displayName}} — CallLint Support</title>
+    <meta
+      name="description"
+      content="CallLint support for {{displayName}} ({{vendor}}). {{#if coverageBoundary}}{{coverageBoundary}}{{else}}Full MCP configuration discovery and scanning.{{/if}}"
+    />
+    <link rel="icon" href="/favicon.png" type="image/png" />
+    <link rel="apple-touch-icon" href="/logo-mark-256.png" />
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <header class="site-header">
+      <a class="brand-lockup" href="/" aria-label="CallLint home">
+        <img class="brand-mark" src="/logo-mark-128.png" width="40" height="40" alt="" />
+        <span class="brand-name">CallLint</span>
+      </a>
+      <nav class="nav-links" aria-label="Primary">
+        <a href="/">Home</a>
+        <a href="/harnesses/">Harnesses</a>
+        <a href="https://github.com/calllint/calllint">GitHub</a>
+        <a href="https://www.npmjs.com/package/calllint">npm</a>
+      </nav>
+    </header>
+
+    <main class="doc-content">
+      <nav class="breadcrumb" aria-label="Breadcrumb">
+        <a href="/">CallLint</a>
+        <span aria-hidden="true">›</span>
+        <a href="/harnesses/">Harnesses</a>
+        <span aria-hidden="true">›</span>
+        <span>{{displayName}}</span>
+      </nav>
+
+      <article>
+        <header class="doc-header">
+          <h1>{{displayName}}</h1>
+          <p class="doc-lede">
+            CallLint support for <strong>{{displayName}}</strong> by {{vendor}}.
+            {{#if coverageBoundary}}
+            <span class="coverage-note">{{coverageBoundary}}</span>
+            {{/if}}
+          </p>
+          <div class="host-meta">
+            <span class="badge badge-{{priority}}">{{priority}}</span>
+            <span class="badge badge-{{supportClass}}">{{supportClass}}</span>
+          </div>
+        </header>
+
+        <section id="usage" class="doc-section">
+          <h2>Usage</h2>
+          {{#if truthfulCommands}}
+          <p>CallLint can auto-discover and scan {{displayName}} configurations:</p>
+          {{#each truthfulCommands}}
+          <pre><code>{{this}}</code></pre>
+          {{/each}}
+          {{else}}
+          <p>
+            CallLint does not yet support native auto-discovery for {{displayName}}.
+            {{#if supportClass}}
+            <strong>Support class:</strong> {{supportClass}}
+            {{/if}}
+          </p>
+          {{/if}}
+        </section>
+
+        <section id="config" class="doc-section">
+          <h2>Configuration Paths</h2>
+          {{#if configEvidence}}
+          <p>CallLint looks for {{displayName}} configurations in:</p>
+          <ul>
+            {{#each configEvidence}}
+            <li><code>{{this}}</code></li>
+            {{/each}}
+          </ul>
+          {{else}}
+          <p>Configuration discovery requires verification.</p>
+          {{/if}}
+        </section>
+
+        <section id="authority" class="doc-section">
+          <h2>Authority Surfaces</h2>
+          <p>{{displayName}} can grant tools the following authority surfaces:</p>
+          <ul class="authority-list">
+            {{#each authoritySurfaces}}
+            <li><code>{{this}}</code></li>
+            {{/each}}
+          </ul>
+        </section>
+
+        <section id="distribution" class="doc-section">
+          <h2>Distribution</h2>
+          <p>CallLint is available for {{displayName}} through:</p>
+          <ul class="distribution-list">
+            {{#each distributionPrimitives}}
+            <li>
+              <strong>{{kind}}</strong>
+              {{#if upstream}}
+              <span class="upstream-note">(via <a href="https://registry.modelcontextprotocol.io/?q=calllint">{{upstream}}</a>)</span>
+              {{/if}}
+              — <span class="state-{{state}}">{{state}}</span>
+              {{#if note}}
+              <div class="dist-note">{{note}}</div>
+              {{/if}}
+              {{#if blocker}}
+              <div class="dist-blocker">⚠️ {{blocker}}</div>
+              {{/if}}
+            </li>
+            {{/each}}
+          </ul>
+        </section>
+
+        <section id="sources" class="doc-section">
+          <h2>Official Sources</h2>
+          <ul>
+            {{#each officialSources}}
+            <li><a href="{{this}}" target="_blank" rel="noopener">{{this}}</a></li>
+            {{/each}}
+          </ul>
+        </section>
+
+        {{#if coverageBoundary}}
+        <section id="coverage" class="doc-section coverage-boundary">
+          <h2>Coverage Boundary</h2>
+          <p class="boundary-text">{{coverageBoundary}}</p>
+        </section>
+        {{/if}}
+      </article>
+
+      <footer class="doc-footer">
+        <p>
+          Generated from <a href="https://github.com/calllint/calllint/blob/main/apps/web/data/distribution-surfaces.json">distribution-surfaces.json</a>
+          — canonical source of truth for CallLint's global agent distribution authority.
+        </p>
+        <p>
+          <a href="/harnesses/">← Back to Harnesses</a> |
+          <a href="/">CallLint Home</a>
+        </p>
+      </footer>
+    </main>
+  </body>
+</html>
+

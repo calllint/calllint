@@ -1,0 +1,149 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Agent Harnesses — CallLint</title>
+    <meta
+      name="description"
+      content="CallLint support for agent hosts and development environments"
+    />
+    <link rel="icon" href="/favicon.png" type="image/png" />
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <header class="site-header">
+      <a class="brand-lockup" href="/" aria-label="CallLint home">
+        <img class="brand-mark" src="/logo-mark-128.png" width="40" height="40" alt="" />
+        <span class="brand-name">CallLint</span>
+      </a>
+      <nav class="nav-links" aria-label="Primary">
+        <a href="/">Home</a>
+        <a href="https://github.com/calllint/calllint">GitHub</a>
+        <a href="https://www.npmjs.com/package/calllint">npm</a>
+      </nav>
+    </header>
+
+    <main class="doc-content">
+      <article>
+        <header class="doc-header">
+          <h1>Agent Harnesses</h1>
+          <p class="doc-lede">
+            CallLint provides deterministic static preflight inspection for agent hosts
+            and development environments that can execute MCP servers and agent tools.
+          </p>
+        </header>
+
+        <section class="doc-section">
+          <h2>Supported Hosts</h2>
+          <p>CallLint offers native auto-discovery and scanning for:</p>
+
+          <h3>Native Support (P0)</h3>
+          <ul class="host-list">
+            <li>
+              <a href="/harnesses/claude-code/">Claude Code</a>
+              <span class="vendor">by Anthropic</span>
+              
+            </li>
+            <li>
+              <a href="/harnesses/claude-desktop/">Claude Desktop</a>
+              <span class="vendor">by Anthropic</span>
+              
+            </li>
+            <li>
+              <a href="/harnesses/cursor/">Cursor</a>
+              <span class="vendor">by Anysphere</span>
+              
+            </li>
+            <li>
+              <a href="/harnesses/workbuddy/">WorkBuddy</a>
+              <span class="vendor">by Tencent Cloud</span>
+              
+            </li>
+          </ul>
+
+          <h3>Additional Support (P1)</h3>
+          <ul class="host-list">
+            <li>
+              <a href="/harnesses/vscode/">VS Code</a>
+              <span class="vendor">by Microsoft</span>
+            </li>
+            <li>
+              <a href="/harnesses/windsurf/">Windsurf</a>
+              <span class="vendor">by Codeium</span>
+            </li>
+            <li>
+              <a href="/harnesses/qwen-code/">Qwen Code</a>
+              <span class="vendor">by Alibaba Cloud</span>
+            </li>
+          </ul>
+
+          <h3>Config-Scan or Discovery-Only (P2-P3)</h3>
+          <ul class="host-list">
+            <li>
+              <a href="/harnesses/openclaw/">OpenClaw</a>
+              <span class="vendor">by Open Source</span>
+              <span class="support-class">NATIVE</span>
+            </li>
+            <li>
+              <a href="/harnesses/codex/">OpenAI Codex</a>
+              <span class="vendor">by OpenAI</span>
+              <span class="support-class">DISCOVERY_ONLY</span>
+            </li>
+            <li>
+              <a href="/harnesses/copilot-cli/">GitHub Copilot CLI</a>
+              <span class="vendor">by GitHub</span>
+              <span class="support-class">DISCOVERY_ONLY</span>
+            </li>
+            <li>
+              <a href="/harnesses/cline/">Cline</a>
+              <span class="vendor">by Open Source</span>
+              <span class="support-class">DISCOVERY_ONLY</span>
+            </li>
+            <li>
+              <a href="/harnesses/gemini-cli/">Gemini CLI</a>
+              <span class="vendor">by Google</span>
+              <span class="support-class">DEFERRED</span>
+            </li>
+            <li>
+              <a href="/harnesses/codebuddy/">CodeBuddy</a>
+              <span class="vendor">by Tencent</span>
+              <span class="support-class">DEFERRED</span>
+            </li>
+            <li>
+              <a href="/harnesses/opencode/">OpenCode</a>
+              <span class="vendor">by Open Source</span>
+              <span class="support-class">CONFIG_SCAN</span>
+            </li>
+            <li>
+              <a href="/harnesses/kiro/">Kiro</a>
+              <span class="vendor">by Anthropic</span>
+              <span class="support-class">DEFERRED</span>
+            </li>
+          </ul>
+        </section>
+
+        <section class="doc-section">
+          <h2>Official MCP Registry</h2>
+          <p>
+            CallLint is published to the
+            <a href="https://registry.modelcontextprotocol.io/?q=calllint" target="_blank" rel="noopener">
+              Official MCP Registry
+            </a>
+            as <strong>io.github.calllint/calllint</strong> (package: calllint-mcp).
+          </p>
+          <p>
+            Platforms that consume the Official MCP Registry can discover CallLint automatically.
+          </p>
+        </section>
+      </article>
+
+      <footer class="doc-footer">
+        <p>
+          Generated from <a href="https://github.com/calllint/calllint/blob/main/apps/web/data/distribution-surfaces.json">distribution-surfaces.json</a>
+        </p>
+        <p><a href="/">← CallLint Home</a></p>
+      </footer>
+    </main>
+  </body>
+</html>
