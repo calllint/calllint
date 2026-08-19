@@ -47,6 +47,13 @@ PROJECT_STATUS.md
 # local Playwright/MCP verification artifacts (not published)
 .playwright-mcp/
 
+# Cloudflare local state. `.dev.vars` holds real secrets (e.g. USAGE_HASH_KEY) for
+# `wrangler dev`; it must never be committed. `.wrangler/` is local build/state cache.
+.dev.vars
+.dev.vars.*
+!.dev.vars.example
+.wrangler/
+
 # The Canonical Adoption Index's ENTIRE persistence (new15 R-1; ADR 0061 INV-R7):
 # the SQLite database, its -wal/-shm sidecars, the content-addressed blob store, work
 # and dead-letter dirs, and run reports. This lands in the SAME commit as the store that

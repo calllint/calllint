@@ -443,23 +443,6 @@ npx calllint scan .cursor/mcp.json --html &gt; report.html</code></pre>
         </p>
       </section>
 
-      <!-- 8b. Adoption Signals -->
-      <section class="section section-narrow" id="adoption">
-        <div class="section-head">
-          <h2>Adoption Signals</h2>
-          <p>Privacy-first telemetry showing aggregate usage trends. Opt-in, anonymous, milestone-thresholded counts only.</p>
-        </div>
-        <div id="adoption-content" class="adoption-loading">
-          <p style="text-align: center; color: var(--muted);">Loading adoption data...</p>
-        </div>
-        <div class="adoption-note">
-          <strong>Privacy guarantee:</strong> All metrics are aggregate-only and
-          milestone-thresholded (1K+, 2.5K+). Individual installations are never
-          identified. Telemetry is opt-in via <code>calllint telemetry enable</code>
-          and can be disabled at any time.
-        </div>
-      </section>
-
       <!-- 8c. Release Integrity -->
       <section class="band" id="release">
         <div class="band-inner">
@@ -502,51 +485,6 @@ npx calllint scan .cursor/mcp.json --html &gt; report.html</code></pre>
         </div>
       </section>
     </main>
-
-    <script>
-      // Load adoption signals
-      function formatNumber(num) {
-        if (num >= 1000000) return (num / 1000000).toFixed(1) + 'M'
-        if (num >= 1000) return (num / 1000).toFixed(1) + 'K'
-        return num.toString()
-      }
-
-      function renderAdoption(data) {
-        const content = document.getElementById('adoption-content')
-        if (!content) return
-
-        // Only show metrics we actually have backend support for
-        content.innerHTML = `
-          <div class="adoption-grid">
-            <div class="adoption-card">
-              <span class="adoption-value">${data.totalScans || '—'}</span>
-              <span class="adoption-label">Total scans</span>
-            </div>
-            <div class="adoption-card">
-              <span class="adoption-value">${data.activeInstallations || '—'}</span>
-              <span class="adoption-label">Active installations</span>
-            </div>
-          </div>
-          <p style="margin-top: 1rem; text-align: center; color: var(--muted); font-size: 0.875rem;">
-            Last updated: ${new Date(data.lastUpdated).toLocaleString('en-US', {
-              month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', timeZone: 'UTC', timeZoneName: 'short'
-            })}
-          </p>
-        `
-      }
-
-      // Load data from API or use fallback
-      fetch('/v1/public/adoption-signals')
-        .then(r => r.json())
-        .then(renderAdoption)
-        .catch(() => {
-          // Fallback: show placeholder
-          const content = document.getElementById('adoption-content')
-          if (content) {
-            content.innerHTML = '<p style="text-align: center; color: var(--muted);">Adoption metrics coming soon</p>'
-          }
-        })
-    </script>
 
     <footer class="site-footer">
       <div class="footer-brand">
