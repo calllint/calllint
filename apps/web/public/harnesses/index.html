@@ -140,20 +140,21 @@
         <section class="doc-section">
           <h2>Registry Consumption Audit (G3.5)</h2>
           <p>
-            <strong>Confirmed Registry Consumers (2/15):</strong>
+            Supporting MCP stdio is not the same as consuming the Official Registry. A
+            platform's distribution primitive is marked
+            <code>AVAILABLE</code> only where Registry consumption has been confirmed;
+            everything still unverified carries <code>AUDIT_REQUIRED</code>.
+          </p>
+          <p>
+            Audit state across the 15 tracked hosts, counted from the
+            distribution source of truth:
           </p>
           <ul>
-            <li><strong>Claude Code</strong> — AVAILABLE via Registry (Anthropic is Registry creator)</li>
-            <li><strong>Claude Desktop</strong> — AVAILABLE via Registry (Anthropic is Registry creator)</li>
+            <li><code>AUDIT_REQUIRED</code> — 1 primitive(s)</li>
           </ul>
           <p>
-            <strong>Audit Required (13/15):</strong> The remaining platforms support MCP, but their Registry consumption has not been independently verified. Distribution primitive states marked as <code>AUDIT_REQUIRED</code> reflect this uncertainty.
-          </p>
-          <p>
-            <em>Principle</em>: We only claim <code>AVAILABLE</code> when we have confirmed evidence. Supporting MCP stdio ≠ automatically consuming the Official Registry.
-          </p>
-          <p>
-            <strong>View full audit</strong>: <a href="https://github.com/calllint/calllint/blob/main/artifacts/global-distribution/platform-audit-G3.md" target="_blank" rel="noopener">platform-audit-G3.md</a>
+            <strong>View full audit</strong>:
+            <a href="https://github.com/calllint/calllint/blob/main/artifacts/global-distribution/platform-audit-G3.md" target="_blank" rel="noopener">platform-audit-G3.md</a>
           </p>
         </section>
       </article>

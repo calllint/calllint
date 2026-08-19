@@ -7,13 +7,13 @@
 
 Before running a full scan, check if trust pages already exist for the MCP servers:
 
-1. **Trust Page Lookup**: `https://calllint.com/trust/{publisher}/{server-name}/`
+1. **Trust Page Lookup**: `https://calllint.com/trust/{publisher}/{server-name}/` - Per-server published verdict
 2. **Lookup API**: `https://calllint.com/trust/lookup` - Batch lookup endpoint
 3. **Well-known Discovery**: `https://calllint.com/.well-known/calllint.json` - Auto-discovery metadata
-4. **MCP Search Tool**: Use `calllint_search_agent_tools` for integrated trust lookup
+4. **MCP Search Tool**: `calllint_search_agent_tools` - Integrated trust lookup from inside an agent
 
 **When to run a fresh scan:**
-- Config or artifact files differ since last scan
+- Config or artifact files differ since the last scan
 - Observations are stale or freshness is uncertain
 - No trust page exists yet for the servers you need
 
@@ -24,6 +24,8 @@ MCP servers and agent skills. It performs deterministic static preflight
 inspection and returns SAFE, REVIEW, BLOCK, or UNKNOWN verdicts with evidence
 before execution — never executes the server it judges.
 
+The current stable release is 1.8.0 on the `latest` tag.
+
 ## Official MCP Registry
 
 CallLint is published as a Tier-0 distribution primitive on the Official MCP Registry:
@@ -31,7 +33,7 @@ CallLint is published as a Tier-0 distribution primitive on the Official MCP Reg
 - **Registry ID**: io.github.calllint/calllint
 - **Package**: calllint-mcp
 - **State**: LIVE
-- Version 1.8.0 on the `latest`
+- **Version**: 0.2.0
 - **Registry URL**: https://registry.modelcontextprotocol.io/?q=calllint
 - **Tier Level**: 0 (Upstream Primitive)
 
@@ -264,8 +266,11 @@ npm install -g calllint
 ## Basic Usage
 
 ```bash
-# Auto-detect agent configuration
-calllint scan --auto
+# Auto-detect agent configuration (no install required)
+npx calllint scan --auto
+
+# Non-interactive / CI form
+npx calllint scan .cursor/mcp.json --ci --no-emoji
 
 # Scan specific agent
 calllint scan --agent claude-code
@@ -278,6 +283,20 @@ calllint scan --auto --json
 
 # Explain a specific verdict
 calllint scan --auto --explain
+```
+
+## Running CallLint as an MCP Server
+
+CallLint ships an MCP server so an agent can request verdicts as tool calls:
+
+```bash
+npx -y calllint-mcp
+```
+
+## Integrating into an Agent Host
+
+```bash
+npx calllint integrate
 ```
 
 ## Verdict Semantics

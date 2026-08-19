@@ -6,14 +6,18 @@
 CallLint is a CLI-first, IDE-friendly, JSON-native security verdict engine for
 MCP servers and agent skills.
 
+## Current Release
+
+The current stable release is 1.8.0 on the `latest` tag.
+
 ## Lookup-First Approach
 
 Before running a full scan, check if trust pages already exist:
 
-- Trust Page lookup pattern: `https://calllint.com/trust/{publisher}/{server-name}/`
-- Lookup API endpoint: `https://calllint.com/trust/lookup`
-- Well-known discovery: `https://calllint.com/.well-known/calllint.json`
-- MCP tool: Use `calllint_search_agent_tools` for integrated lookups
+- Trust Page Lookup: `https://calllint.com/trust/{publisher}/{server-name}/`
+- Lookup API: `https://calllint.com/trust/lookup`
+- Well-known Discovery: `https://calllint.com/.well-known/calllint.json`
+- MCP Search Tool: `calllint_search_agent_tools`
 
 Run a fresh scan when your config/artifact differs or observations are stale.
 
@@ -30,7 +34,7 @@ CallLint is published to the Official MCP Registry:
 - Registry: io.github.calllint/calllint
 - Package: calllint-mcp
 - State: LIVE
-- Version 1.8.0 on the `latest`
+- Version: 0.2.0
 - Registry URL: https://registry.modelcontextprotocol.io/?q=calllint
 
 ## Supported Agent Harnesses
@@ -70,8 +74,17 @@ npm install -g calllint
 
 ## Basic Usage
 
-# Auto-detect agent configuration
-calllint scan --auto
+# Auto-detect agent configuration (no install required)
+npx calllint scan --auto
+
+# Non-interactive / CI form
+npx calllint scan .cursor/mcp.json --ci --no-emoji
+
+# Run CallLint as an MCP server
+npx -y calllint-mcp
+
+# Write CallLint into an agent host's config
+npx calllint integrate
 
 # Scan specific agent
 calllint scan --agent claude-code

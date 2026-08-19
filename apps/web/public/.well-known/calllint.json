@@ -1,133 +1,603 @@
 {
-  "version": "1.0.0",
-  "name": "CallLint",
-  "description": "Deterministic static preflight inspection for MCP and agent-tool configurations",
-  "homepage": "https://calllint.com",
-  "repository": "https://github.com/calllint/calllint",
-  "mcp": {
-    "registry": {
-      "name": "io.github.calllint/calllint",
-      "package": "calllint-mcp",
-      "state": "LIVE",
-      "registryUrl": "https://registry.modelcontextprotocol.io/?q=calllint",
-      "description": "Deterministic static preflight inspection for MCP and agent-tool configurations. Shows authority and evidence before execution; never executes the server it judges."
+  "schema": "calllint.discovery.v1",
+  "installUrlTemplate": "/install/{canonicalSlug}/",
+  "contractUrlTemplate": "/install/{canonicalSlug}/index.json",
+  "contractMediaType": "application/vnd.calllint.agent-adoption+json;version=1",
+  "mcpResourceTemplate": "calllint://adoption/{slug}[/{version}]",
+  "resources": [
+    {
+      "canonicalName": "mcp-registry/ac.inference.sh-mcp",
+      "canonicalSlug": "mcp-registry/ac.inference.sh-mcp",
+      "installUrl": "/install/mcp-registry/ac.inference.sh-mcp/",
+      "contractUrl": "/install/mcp-registry/ac.inference.sh-mcp/index.json"
+    },
+    {
+      "canonicalName": "mcp-registry/ac.tandem-docs-mcp",
+      "canonicalSlug": "mcp-registry/ac.tandem-docs-mcp",
+      "installUrl": "/install/mcp-registry/ac.tandem-docs-mcp/",
+      "contractUrl": "/install/mcp-registry/ac.tandem-docs-mcp/index.json"
+    },
+    {
+      "canonicalName": "mcp-registry/ag.hood-name-service",
+      "canonicalSlug": "mcp-registry/ag.hood-name-service",
+      "installUrl": "/install/mcp-registry/ag.hood-name-service/",
+      "contractUrl": "/install/mcp-registry/ag.hood-name-service/index.json"
+    },
+    {
+      "canonicalName": "mcp-registry/agency.goji-goji",
+      "canonicalSlug": "mcp-registry/agency.goji-goji",
+      "installUrl": "/install/mcp-registry/agency.goji-goji/",
+      "contractUrl": "/install/mcp-registry/agency.goji-goji/index.json"
+    },
+    {
+      "canonicalName": "mcp-registry/agency.kesey-pretrip",
+      "canonicalSlug": "mcp-registry/agency.kesey-pretrip",
+      "installUrl": "/install/mcp-registry/agency.kesey-pretrip/",
+      "contractUrl": "/install/mcp-registry/agency.kesey-pretrip/index.json"
+    },
+    {
+      "canonicalName": "mcp-registry/agency.lona-trading",
+      "canonicalSlug": "mcp-registry/agency.lona-trading",
+      "installUrl": "/install/mcp-registry/agency.lona-trading/",
+      "contractUrl": "/install/mcp-registry/agency.lona-trading/index.json"
+    },
+    {
+      "canonicalName": "mcp-registry/ai.1325-mcp",
+      "canonicalSlug": "mcp-registry/ai.1325-mcp",
+      "installUrl": "/install/mcp-registry/ai.1325-mcp/",
+      "contractUrl": "/install/mcp-registry/ai.1325-mcp/index.json"
+    },
+    {
+      "canonicalName": "mcp-registry/ai.aarna-atars-mcp",
+      "canonicalSlug": "mcp-registry/ai.aarna-atars-mcp",
+      "installUrl": "/install/mcp-registry/ai.aarna-atars-mcp/",
+      "contractUrl": "/install/mcp-registry/ai.aarna-atars-mcp/index.json"
+    },
+    {
+      "canonicalName": "mcp-registry/ai.abmeter-abmeter",
+      "canonicalSlug": "mcp-registry/ai.abmeter-abmeter",
+      "installUrl": "/install/mcp-registry/ai.abmeter-abmeter/",
+      "contractUrl": "/install/mcp-registry/ai.abmeter-abmeter/index.json"
+    },
+    {
+      "canonicalName": "mcp-registry/ai.actwise-ideation",
+      "canonicalSlug": "mcp-registry/ai.actwise-ideation",
+      "installUrl": "/install/mcp-registry/ai.actwise-ideation/",
+      "contractUrl": "/install/mcp-registry/ai.actwise-ideation/index.json"
+    },
+    {
+      "canonicalName": "mcp-registry/ai.adadvisor-mcp-server",
+      "canonicalSlug": "mcp-registry/ai.adadvisor-mcp-server",
+      "installUrl": "/install/mcp-registry/ai.adadvisor-mcp-server/",
+      "contractUrl": "/install/mcp-registry/ai.adadvisor-mcp-server/index.json"
+    },
+    {
+      "canonicalName": "mcp-registry/ai.adeu-adeu",
+      "canonicalSlug": "mcp-registry/ai.adeu-adeu",
+      "installUrl": "/install/mcp-registry/ai.adeu-adeu/",
+      "contractUrl": "/install/mcp-registry/ai.adeu-adeu/index.json"
+    },
+    {
+      "canonicalName": "mcp-registry/ai.adoraads-beauty",
+      "canonicalSlug": "mcp-registry/ai.adoraads-beauty",
+      "installUrl": "/install/mcp-registry/ai.adoraads-beauty/",
+      "contractUrl": "/install/mcp-registry/ai.adoraads-beauty/index.json"
+    },
+    {
+      "canonicalName": "mcp-registry/ai.adplane-google-ads",
+      "canonicalSlug": "mcp-registry/ai.adplane-google-ads",
+      "installUrl": "/install/mcp-registry/ai.adplane-google-ads/",
+      "contractUrl": "/install/mcp-registry/ai.adplane-google-ads/index.json"
+    },
+    {
+      "canonicalName": "mcp-registry/ai.adramp-google-ads",
+      "canonicalSlug": "mcp-registry/ai.adramp-google-ads",
+      "installUrl": "/install/mcp-registry/ai.adramp-google-ads/",
+      "contractUrl": "/install/mcp-registry/ai.adramp-google-ads/index.json"
+    },
+    {
+      "canonicalName": "mcp-registry/ai.adside-adside",
+      "canonicalSlug": "mcp-registry/ai.adside-adside",
+      "installUrl": "/install/mcp-registry/ai.adside-adside/",
+      "contractUrl": "/install/mcp-registry/ai.adside-adside/index.json"
+    },
+    {
+      "canonicalName": "mcp-registry/ai.adweave-meta-ads-mcp",
+      "canonicalSlug": "mcp-registry/ai.adweave-meta-ads-mcp",
+      "installUrl": "/install/mcp-registry/ai.adweave-meta-ads-mcp/",
+      "contractUrl": "/install/mcp-registry/ai.adweave-meta-ads-mcp/index.json"
+    },
+    {
+      "canonicalName": "mcp-registry/ai.aetherwealth-mcp",
+      "canonicalSlug": "mcp-registry/ai.aetherwealth-mcp",
+      "installUrl": "/install/mcp-registry/ai.aetherwealth-mcp/",
+      "contractUrl": "/install/mcp-registry/ai.aetherwealth-mcp/index.json"
+    },
+    {
+      "canonicalName": "mcp-registry/ai.afmr-discovery",
+      "canonicalSlug": "mcp-registry/ai.afmr-discovery",
+      "installUrl": "/install/mcp-registry/ai.afmr-discovery/",
+      "contractUrl": "/install/mcp-registry/ai.afmr-discovery/index.json"
+    },
+    {
+      "canonicalName": "mcp-registry/ai.agentberg-agentberg",
+      "canonicalSlug": "mcp-registry/ai.agentberg-agentberg",
+      "installUrl": "/install/mcp-registry/ai.agentberg-agentberg/",
+      "contractUrl": "/install/mcp-registry/ai.agentberg-agentberg/index.json"
+    },
+    {
+      "canonicalName": "mcp-registry/ai.agentdm-agentdm",
+      "canonicalSlug": "mcp-registry/ai.agentdm-agentdm",
+      "installUrl": "/install/mcp-registry/ai.agentdm-agentdm/",
+      "contractUrl": "/install/mcp-registry/ai.agentdm-agentdm/index.json"
+    },
+    {
+      "canonicalName": "mcp-registry/ai.agentic-news-mcp",
+      "canonicalSlug": "mcp-registry/ai.agentic-news-mcp",
+      "installUrl": "/install/mcp-registry/ai.agentic-news-mcp/",
+      "contractUrl": "/install/mcp-registry/ai.agentic-news-mcp/index.json"
+    },
+    {
+      "canonicalName": "mcp-registry/ai.agenticaffiliate-affiliate-networks-mcp",
+      "canonicalSlug": "mcp-registry/ai.agenticaffiliate-affiliate-networks-mcp",
+      "installUrl": "/install/mcp-registry/ai.agenticaffiliate-affiliate-networks-mcp/",
+      "contractUrl": "/install/mcp-registry/ai.agenticaffiliate-affiliate-networks-mcp/index.json"
+    },
+    {
+      "canonicalName": "mcp-registry/ai.agenticfabricationnetwork-ufp",
+      "canonicalSlug": "mcp-registry/ai.agenticfabricationnetwork-ufp",
+      "installUrl": "/install/mcp-registry/ai.agenticfabricationnetwork-ufp/",
+      "contractUrl": "/install/mcp-registry/ai.agenticfabricationnetwork-ufp/index.json"
+    },
+    {
+      "canonicalName": "mcp-registry/ai.agenticshelf-graffeo",
+      "canonicalSlug": "mcp-registry/ai.agenticshelf-graffeo",
+      "installUrl": "/install/mcp-registry/ai.agenticshelf-graffeo/",
+      "contractUrl": "/install/mcp-registry/ai.agenticshelf-graffeo/index.json"
+    },
+    {
+      "canonicalName": "mcp-registry/ai.agenticshelf-mcp",
+      "canonicalSlug": "mcp-registry/ai.agenticshelf-mcp",
+      "installUrl": "/install/mcp-registry/ai.agenticshelf-mcp/",
+      "contractUrl": "/install/mcp-registry/ai.agenticshelf-mcp/index.json"
+    },
+    {
+      "canonicalName": "mcp-registry/ai.agenticshelf-puroair",
+      "canonicalSlug": "mcp-registry/ai.agenticshelf-puroair",
+      "installUrl": "/install/mcp-registry/ai.agenticshelf-puroair/",
+      "contractUrl": "/install/mcp-registry/ai.agenticshelf-puroair/index.json"
+    },
+    {
+      "canonicalName": "mcp-registry/ai.agenticterminal-directory",
+      "canonicalSlug": "mcp-registry/ai.agenticterminal-directory",
+      "installUrl": "/install/mcp-registry/ai.agenticterminal-directory/",
+      "contractUrl": "/install/mcp-registry/ai.agenticterminal-directory/index.json"
+    },
+    {
+      "canonicalName": "mcp-registry/ai.agentlookups-counterscript",
+      "canonicalSlug": "mcp-registry/ai.agentlookups-counterscript",
+      "installUrl": "/install/mcp-registry/ai.agentlookups-counterscript/",
+      "contractUrl": "/install/mcp-registry/ai.agentlookups-counterscript/index.json"
+    },
+    {
+      "canonicalName": "mcp-registry/ai.agentlookups-groundtruth",
+      "canonicalSlug": "mcp-registry/ai.agentlookups-groundtruth",
+      "installUrl": "/install/mcp-registry/ai.agentlookups-groundtruth/",
+      "contractUrl": "/install/mcp-registry/ai.agentlookups-groundtruth/index.json"
+    },
+    {
+      "canonicalName": "mcp-registry/ai.agentlookups-overassessed",
+      "canonicalSlug": "mcp-registry/ai.agentlookups-overassessed",
+      "installUrl": "/install/mcp-registry/ai.agentlookups-overassessed/",
+      "contractUrl": "/install/mcp-registry/ai.agentlookups-overassessed/index.json"
+    },
+    {
+      "canonicalName": "mcp-registry/ai.agentlookups-plumbline",
+      "canonicalSlug": "mcp-registry/ai.agentlookups-plumbline",
+      "installUrl": "/install/mcp-registry/ai.agentlookups-plumbline/",
+      "contractUrl": "/install/mcp-registry/ai.agentlookups-plumbline/index.json"
+    },
+    {
+      "canonicalName": "mcp-registry/ai.agentrapay-agentra",
+      "canonicalSlug": "mcp-registry/ai.agentrapay-agentra",
+      "installUrl": "/install/mcp-registry/ai.agentrapay-agentra/",
+      "contractUrl": "/install/mcp-registry/ai.agentrapay-agentra/index.json"
+    },
+    {
+      "canonicalName": "mcp-registry/ai.agenttrust-mcp-server",
+      "canonicalSlug": "mcp-registry/ai.agenttrust-mcp-server",
+      "installUrl": "/install/mcp-registry/ai.agenttrust-mcp-server/",
+      "contractUrl": "/install/mcp-registry/ai.agenttrust-mcp-server/index.json"
+    },
+    {
+      "canonicalName": "mcp-registry/ai.agentutility-mcp-agentops",
+      "canonicalSlug": "mcp-registry/ai.agentutility-mcp-agentops",
+      "installUrl": "/install/mcp-registry/ai.agentutility-mcp-agentops/",
+      "contractUrl": "/install/mcp-registry/ai.agentutility-mcp-agentops/index.json"
+    },
+    {
+      "canonicalName": "mcp-registry/ai.agentutility-mcp-bestiary",
+      "canonicalSlug": "mcp-registry/ai.agentutility-mcp-bestiary",
+      "installUrl": "/install/mcp-registry/ai.agentutility-mcp-bestiary/",
+      "contractUrl": "/install/mcp-registry/ai.agentutility-mcp-bestiary/index.json"
+    },
+    {
+      "canonicalName": "mcp-registry/ai.agentutility-mcp-browser-workflow",
+      "canonicalSlug": "mcp-registry/ai.agentutility-mcp-browser-workflow",
+      "installUrl": "/install/mcp-registry/ai.agentutility-mcp-browser-workflow/",
+      "contractUrl": "/install/mcp-registry/ai.agentutility-mcp-browser-workflow/index.json"
+    },
+    {
+      "canonicalName": "mcp-registry/ai.agentutility-mcp-compose",
+      "canonicalSlug": "mcp-registry/ai.agentutility-mcp-compose",
+      "installUrl": "/install/mcp-registry/ai.agentutility-mcp-compose/",
+      "contractUrl": "/install/mcp-registry/ai.agentutility-mcp-compose/index.json"
+    },
+    {
+      "canonicalName": "mcp-registry/ai.agentutility-mcp-edge-finance",
+      "canonicalSlug": "mcp-registry/ai.agentutility-mcp-edge-finance",
+      "installUrl": "/install/mcp-registry/ai.agentutility-mcp-edge-finance/",
+      "contractUrl": "/install/mcp-registry/ai.agentutility-mcp-edge-finance/index.json"
+    },
+    {
+      "canonicalName": "mcp-registry/ai.agentutility-mcp-edge-market",
+      "canonicalSlug": "mcp-registry/ai.agentutility-mcp-edge-market",
+      "installUrl": "/install/mcp-registry/ai.agentutility-mcp-edge-market/",
+      "contractUrl": "/install/mcp-registry/ai.agentutility-mcp-edge-market/index.json"
+    },
+    {
+      "canonicalName": "mcp-registry/ai.agentutility-mcp-locale",
+      "canonicalSlug": "mcp-registry/ai.agentutility-mcp-locale",
+      "installUrl": "/install/mcp-registry/ai.agentutility-mcp-locale/",
+      "contractUrl": "/install/mcp-registry/ai.agentutility-mcp-locale/index.json"
+    },
+    {
+      "canonicalName": "mcp-registry/ai.agentutility-mcp-matchpoint",
+      "canonicalSlug": "mcp-registry/ai.agentutility-mcp-matchpoint",
+      "installUrl": "/install/mcp-registry/ai.agentutility-mcp-matchpoint/",
+      "contractUrl": "/install/mcp-registry/ai.agentutility-mcp-matchpoint/index.json"
+    },
+    {
+      "canonicalName": "mcp-registry/ai.agentutility-mcp-mediakit",
+      "canonicalSlug": "mcp-registry/ai.agentutility-mcp-mediakit",
+      "installUrl": "/install/mcp-registry/ai.agentutility-mcp-mediakit/",
+      "contractUrl": "/install/mcp-registry/ai.agentutility-mcp-mediakit/index.json"
+    },
+    {
+      "canonicalName": "mcp-registry/ai.agentutility-mcp-model-router",
+      "canonicalSlug": "mcp-registry/ai.agentutility-mcp-model-router",
+      "installUrl": "/install/mcp-registry/ai.agentutility-mcp-model-router/",
+      "contractUrl": "/install/mcp-registry/ai.agentutility-mcp-model-router/index.json"
+    },
+    {
+      "canonicalName": "mcp-registry/ai.agentutility-mcp-prooflayer",
+      "canonicalSlug": "mcp-registry/ai.agentutility-mcp-prooflayer",
+      "installUrl": "/install/mcp-registry/ai.agentutility-mcp-prooflayer/",
+      "contractUrl": "/install/mcp-registry/ai.agentutility-mcp-prooflayer/index.json"
+    },
+    {
+      "canonicalName": "mcp-registry/ai.agentutility-mcp-retail",
+      "canonicalSlug": "mcp-registry/ai.agentutility-mcp-retail",
+      "installUrl": "/install/mcp-registry/ai.agentutility-mcp-retail/",
+      "contractUrl": "/install/mcp-registry/ai.agentutility-mcp-retail/index.json"
+    },
+    {
+      "canonicalName": "mcp-registry/ai.agentutility-mcp-rollforge",
+      "canonicalSlug": "mcp-registry/ai.agentutility-mcp-rollforge",
+      "installUrl": "/install/mcp-registry/ai.agentutility-mcp-rollforge/",
+      "contractUrl": "/install/mcp-registry/ai.agentutility-mcp-rollforge/index.json"
+    },
+    {
+      "canonicalName": "mcp-registry/ai.agentutility-mcp-statline",
+      "canonicalSlug": "mcp-registry/ai.agentutility-mcp-statline",
+      "installUrl": "/install/mcp-registry/ai.agentutility-mcp-statline/",
+      "contractUrl": "/install/mcp-registry/ai.agentutility-mcp-statline/index.json"
+    },
+    {
+      "canonicalName": "mcp-registry/ai.agentutility-mcp-synthforge",
+      "canonicalSlug": "mcp-registry/ai.agentutility-mcp-synthforge",
+      "installUrl": "/install/mcp-registry/ai.agentutility-mcp-synthforge/",
+      "contractUrl": "/install/mcp-registry/ai.agentutility-mcp-synthforge/index.json"
+    },
+    {
+      "canonicalName": "mcp-registry/ai.agentutility-mcp-web-probe",
+      "canonicalSlug": "mcp-registry/ai.agentutility-mcp-web-probe",
+      "installUrl": "/install/mcp-registry/ai.agentutility-mcp-web-probe/",
+      "contractUrl": "/install/mcp-registry/ai.agentutility-mcp-web-probe/index.json"
+    },
+    {
+      "canonicalName": "mcp-registry/ai.agentutility-mcp-wordmint",
+      "canonicalSlug": "mcp-registry/ai.agentutility-mcp-wordmint",
+      "installUrl": "/install/mcp-registry/ai.agentutility-mcp-wordmint/",
+      "contractUrl": "/install/mcp-registry/ai.agentutility-mcp-wordmint/index.json"
+    },
+    {
+      "canonicalName": "mcp-registry/ai.ai-advisors-mcp",
+      "canonicalSlug": "mcp-registry/ai.ai-advisors-mcp",
+      "installUrl": "/install/mcp-registry/ai.ai-advisors-mcp/",
+      "contractUrl": "/install/mcp-registry/ai.ai-advisors-mcp/index.json"
+    },
+    {
+      "canonicalName": "mcp-registry/ai.ai-akari-agent-trust-receipt",
+      "canonicalSlug": "mcp-registry/ai.ai-akari-agent-trust-receipt",
+      "installUrl": "/install/mcp-registry/ai.ai-akari-agent-trust-receipt/",
+      "contractUrl": "/install/mcp-registry/ai.ai-akari-agent-trust-receipt/index.json"
+    },
+    {
+      "canonicalName": "mcp-registry/ai.ai-akari-one-minute-akari",
+      "canonicalSlug": "mcp-registry/ai.ai-akari-one-minute-akari",
+      "installUrl": "/install/mcp-registry/ai.ai-akari-one-minute-akari/",
+      "contractUrl": "/install/mcp-registry/ai.ai-akari-one-minute-akari/index.json"
+    },
+    {
+      "canonicalName": "mcp-registry/ai.ai-portal-ai-portal",
+      "canonicalSlug": "mcp-registry/ai.ai-portal-ai-portal",
+      "installUrl": "/install/mcp-registry/ai.ai-portal-ai-portal/",
+      "contractUrl": "/install/mcp-registry/ai.ai-portal-ai-portal/index.json"
+    },
+    {
+      "canonicalName": "mcp-registry/ai.aient-mcp",
+      "canonicalSlug": "mcp-registry/ai.aient-mcp",
+      "installUrl": "/install/mcp-registry/ai.aient-mcp/",
+      "contractUrl": "/install/mcp-registry/ai.aient-mcp/index.json"
+    },
+    {
+      "canonicalName": "mcp-registry/ai.airshelf-catalog",
+      "canonicalSlug": "mcp-registry/ai.airshelf-catalog",
+      "installUrl": "/install/mcp-registry/ai.airshelf-catalog/",
+      "contractUrl": "/install/mcp-registry/ai.airshelf-catalog/index.json"
+    },
+    {
+      "canonicalName": "mcp-registry/ai.aivonic-mcp",
+      "canonicalSlug": "mcp-registry/ai.aivonic-mcp",
+      "installUrl": "/install/mcp-registry/ai.aivonic-mcp/",
+      "contractUrl": "/install/mcp-registry/ai.aivonic-mcp/index.json"
+    },
+    {
+      "canonicalName": "mcp-registry/ai.aliengiraffe-spotdb",
+      "canonicalSlug": "mcp-registry/ai.aliengiraffe-spotdb",
+      "installUrl": "/install/mcp-registry/ai.aliengiraffe-spotdb/",
+      "contractUrl": "/install/mcp-registry/ai.aliengiraffe-spotdb/index.json"
+    },
+    {
+      "canonicalName": "mcp-registry/ai.alphacreek-alphacreek-mcp",
+      "canonicalSlug": "mcp-registry/ai.alphacreek-alphacreek-mcp",
+      "installUrl": "/install/mcp-registry/ai.alphacreek-alphacreek-mcp/",
+      "contractUrl": "/install/mcp-registry/ai.alphacreek-alphacreek-mcp/index.json"
+    },
+    {
+      "canonicalName": "mcp-registry/ai.alpic.mcp-alpic-mcp",
+      "canonicalSlug": "mcp-registry/ai.alpic.mcp-alpic-mcp",
+      "installUrl": "/install/mcp-registry/ai.alpic.mcp-alpic-mcp/",
+      "contractUrl": "/install/mcp-registry/ai.alpic.mcp-alpic-mcp/index.json"
+    },
+    {
+      "canonicalName": "mcp-registry/ai.alpic.test-test-mcp-server",
+      "canonicalSlug": "mcp-registry/ai.alpic.test-test-mcp-server",
+      "installUrl": "/install/mcp-registry/ai.alpic.test-test-mcp-server/",
+      "contractUrl": "/install/mcp-registry/ai.alpic.test-test-mcp-server/index.json"
+    },
+    {
+      "canonicalName": "mcp-registry/ai.ambix-ambix",
+      "canonicalSlug": "mcp-registry/ai.ambix-ambix",
+      "installUrl": "/install/mcp-registry/ai.ambix-ambix/",
+      "contractUrl": "/install/mcp-registry/ai.ambix-ambix/index.json"
+    },
+    {
+      "canonicalName": "mcp-registry/ai.analyticslegends-sap-analytics",
+      "canonicalSlug": "mcp-registry/ai.analyticslegends-sap-analytics",
+      "installUrl": "/install/mcp-registry/ai.analyticslegends-sap-analytics/",
+      "contractUrl": "/install/mcp-registry/ai.analyticslegends-sap-analytics/index.json"
+    },
+    {
+      "canonicalName": "mcp-registry/ai.ankimcp-anki-mcp-server",
+      "canonicalSlug": "mcp-registry/ai.ankimcp-anki-mcp-server",
+      "installUrl": "/install/mcp-registry/ai.ankimcp-anki-mcp-server/",
+      "contractUrl": "/install/mcp-registry/ai.ankimcp-anki-mcp-server/index.json"
+    },
+    {
+      "canonicalName": "mcp-registry/ai.anomalyarmor-armor-mcp",
+      "canonicalSlug": "mcp-registry/ai.anomalyarmor-armor-mcp",
+      "installUrl": "/install/mcp-registry/ai.anomalyarmor-armor-mcp/",
+      "contractUrl": "/install/mcp-registry/ai.anomalyarmor-armor-mcp/index.json"
+    },
+    {
+      "canonicalName": "mcp-registry/ai.anzenna-anzenna",
+      "canonicalSlug": "mcp-registry/ai.anzenna-anzenna",
+      "installUrl": "/install/mcp-registry/ai.anzenna-anzenna/",
+      "contractUrl": "/install/mcp-registry/ai.anzenna-anzenna/index.json"
+    },
+    {
+      "canonicalName": "mcp-registry/ai.apithreshold-apithreshold",
+      "canonicalSlug": "mcp-registry/ai.apithreshold-apithreshold",
+      "installUrl": "/install/mcp-registry/ai.apithreshold-apithreshold/",
+      "contractUrl": "/install/mcp-registry/ai.apithreshold-apithreshold/index.json"
+    },
+    {
+      "canonicalName": "mcp-registry/ai.appdeploy-deploy-app",
+      "canonicalSlug": "mcp-registry/ai.appdeploy-deploy-app",
+      "installUrl": "/install/mcp-registry/ai.appdeploy-deploy-app/",
+      "contractUrl": "/install/mcp-registry/ai.appdeploy-deploy-app/index.json"
+    },
+    {
+      "canonicalName": "mcp-registry/ai.arclan-registry",
+      "canonicalSlug": "mcp-registry/ai.arclan-registry",
+      "installUrl": "/install/mcp-registry/ai.arclan-registry/",
+      "contractUrl": "/install/mcp-registry/ai.arclan-registry/index.json"
+    },
+    {
+      "canonicalName": "mcp-registry/ai.argushq-enforcement-database",
+      "canonicalSlug": "mcp-registry/ai.argushq-enforcement-database",
+      "installUrl": "/install/mcp-registry/ai.argushq-enforcement-database/",
+      "contractUrl": "/install/mcp-registry/ai.argushq-enforcement-database/index.json"
+    },
+    {
+      "canonicalName": "mcp-registry/ai.arketo-arketo",
+      "canonicalSlug": "mcp-registry/ai.arketo-arketo",
+      "installUrl": "/install/mcp-registry/ai.arketo-arketo/",
+      "contractUrl": "/install/mcp-registry/ai.arketo-arketo/index.json"
+    },
+    {
+      "canonicalName": "mcp-registry/ai.arpi-arpi-mcp",
+      "canonicalSlug": "mcp-registry/ai.arpi-arpi-mcp",
+      "installUrl": "/install/mcp-registry/ai.arpi-arpi-mcp/",
+      "contractUrl": "/install/mcp-registry/ai.arpi-arpi-mcp/index.json"
+    },
+    {
+      "canonicalName": "mcp-registry/ai.artidrop-artidrop",
+      "canonicalSlug": "mcp-registry/ai.artidrop-artidrop",
+      "installUrl": "/install/mcp-registry/ai.artidrop-artidrop/",
+      "contractUrl": "/install/mcp-registry/ai.artidrop-artidrop/index.json"
+    },
+    {
+      "canonicalName": "mcp-registry/ai.assetlog-assetlog",
+      "canonicalSlug": "mcp-registry/ai.assetlog-assetlog",
+      "installUrl": "/install/mcp-registry/ai.assetlog-assetlog/",
+      "contractUrl": "/install/mcp-registry/ai.assetlog-assetlog/index.json"
+    },
+    {
+      "canonicalName": "mcp-registry/ai.atdev-supershopping",
+      "canonicalSlug": "mcp-registry/ai.atdev-supershopping",
+      "installUrl": "/install/mcp-registry/ai.atdev-supershopping/",
+      "contractUrl": "/install/mcp-registry/ai.atdev-supershopping/index.json"
+    },
+    {
+      "canonicalName": "mcp-registry/ai.atlaso-mcp",
+      "canonicalSlug": "mcp-registry/ai.atlaso-mcp",
+      "installUrl": "/install/mcp-registry/ai.atlaso-mcp/",
+      "contractUrl": "/install/mcp-registry/ai.atlaso-mcp/index.json"
+    },
+    {
+      "canonicalName": "mcp-registry/ai.atlasverified-atlas-mcp",
+      "canonicalSlug": "mcp-registry/ai.atlasverified-atlas-mcp",
+      "installUrl": "/install/mcp-registry/ai.atlasverified-atlas-mcp/",
+      "contractUrl": "/install/mcp-registry/ai.atlasverified-atlas-mcp/index.json"
+    },
+    {
+      "canonicalName": "mcp-registry/ai.augmentev-paseo",
+      "canonicalSlug": "mcp-registry/ai.augmentev-paseo",
+      "installUrl": "/install/mcp-registry/ai.augmentev-paseo/",
+      "contractUrl": "/install/mcp-registry/ai.augmentev-paseo/index.json"
+    },
+    {
+      "canonicalName": "mcp-registry/ai.augworlds-travel-world",
+      "canonicalSlug": "mcp-registry/ai.augworlds-travel-world",
+      "installUrl": "/install/mcp-registry/ai.augworlds-travel-world/",
+      "contractUrl": "/install/mcp-registry/ai.augworlds-travel-world/index.json"
+    },
+    {
+      "canonicalName": "mcp-registry/ai.auralogs-auralogs",
+      "canonicalSlug": "mcp-registry/ai.auralogs-auralogs",
+      "installUrl": "/install/mcp-registry/ai.auralogs-auralogs/",
+      "contractUrl": "/install/mcp-registry/ai.auralogs-auralogs/index.json"
+    },
+    {
+      "canonicalName": "mcp-registry/ai.auteng-docs",
+      "canonicalSlug": "mcp-registry/ai.auteng-docs",
+      "installUrl": "/install/mcp-registry/ai.auteng-docs/",
+      "contractUrl": "/install/mcp-registry/ai.auteng-docs/index.json"
+    },
+    {
+      "canonicalName": "mcp-registry/ai.auteng-mcp",
+      "canonicalSlug": "mcp-registry/ai.auteng-mcp",
+      "installUrl": "/install/mcp-registry/ai.auteng-mcp/",
+      "contractUrl": "/install/mcp-registry/ai.auteng-mcp/index.json"
+    },
+    {
+      "canonicalName": "mcp-registry/ai.authoryze-authoryze",
+      "canonicalSlug": "mcp-registry/ai.authoryze-authoryze",
+      "installUrl": "/install/mcp-registry/ai.authoryze-authoryze/",
+      "contractUrl": "/install/mcp-registry/ai.authoryze-authoryze/index.json"
+    },
+    {
+      "canonicalName": "mcp-registry/ai.autoblocks-contextlayer-mcp",
+      "canonicalSlug": "mcp-registry/ai.autoblocks-contextlayer-mcp",
+      "installUrl": "/install/mcp-registry/ai.autoblocks-contextlayer-mcp/",
+      "contractUrl": "/install/mcp-registry/ai.autoblocks-contextlayer-mcp/index.json"
+    },
+    {
+      "canonicalName": "mcp-registry/ai.autoblocks-ctxl",
+      "canonicalSlug": "mcp-registry/ai.autoblocks-ctxl",
+      "installUrl": "/install/mcp-registry/ai.autoblocks-ctxl/",
+      "contractUrl": "/install/mcp-registry/ai.autoblocks-ctxl/index.json"
+    },
+    {
+      "canonicalName": "mcp-registry/ai.autoblocks-ctxl-mcp",
+      "canonicalSlug": "mcp-registry/ai.autoblocks-ctxl-mcp",
+      "installUrl": "/install/mcp-registry/ai.autoblocks-ctxl-mcp/",
+      "contractUrl": "/install/mcp-registry/ai.autoblocks-ctxl-mcp/index.json"
+    },
+    {
+      "canonicalName": "mcp-registry/ai.autonomad-computeback",
+      "canonicalSlug": "mcp-registry/ai.autonomad-computeback",
+      "installUrl": "/install/mcp-registry/ai.autonomad-computeback/",
+      "contractUrl": "/install/mcp-registry/ai.autonomad-computeback/index.json"
+    },
+    {
+      "canonicalName": "mcp-registry/ai.autonomad-travel",
+      "canonicalSlug": "mcp-registry/ai.autonomad-travel",
+      "installUrl": "/install/mcp-registry/ai.autonomad-travel/",
+      "contractUrl": "/install/mcp-registry/ai.autonomad-travel/index.json"
+    },
+    {
+      "canonicalName": "mcp-registry/ai.autoposting-autoposting",
+      "canonicalSlug": "mcp-registry/ai.autoposting-autoposting",
+      "installUrl": "/install/mcp-registry/ai.autoposting-autoposting/",
+      "contractUrl": "/install/mcp-registry/ai.autoposting-autoposting/index.json"
+    },
+    {
+      "canonicalName": "mcp-registry/ai.autorfp-mcp",
+      "canonicalSlug": "mcp-registry/ai.autorfp-mcp",
+      "installUrl": "/install/mcp-registry/ai.autorfp-mcp/",
+      "contractUrl": "/install/mcp-registry/ai.autorfp-mcp/index.json"
+    },
+    {
+      "canonicalName": "mcp-registry/ai.auxen-auxen",
+      "canonicalSlug": "mcp-registry/ai.auxen-auxen",
+      "installUrl": "/install/mcp-registry/ai.auxen-auxen/",
+      "contractUrl": "/install/mcp-registry/ai.auxen-auxen/index.json"
+    },
+    {
+      "canonicalName": "mcp-registry/ai.aviado-health",
+      "canonicalSlug": "mcp-registry/ai.aviado-health",
+      "installUrl": "/install/mcp-registry/ai.aviado-health/",
+      "contractUrl": "/install/mcp-registry/ai.aviado-health/index.json"
+    },
+    {
+      "canonicalName": "mcp-registry/ai.awardcast-federal-contracts",
+      "canonicalSlug": "mcp-registry/ai.awardcast-federal-contracts",
+      "installUrl": "/install/mcp-registry/ai.awardcast-federal-contracts/",
+      "contractUrl": "/install/mcp-registry/ai.awardcast-federal-contracts/index.json"
+    },
+    {
+      "canonicalName": "mcp-registry/ai.axonagentic-neuroautomata",
+      "canonicalSlug": "mcp-registry/ai.axonagentic-neuroautomata",
+      "installUrl": "/install/mcp-registry/ai.axonagentic-neuroautomata/",
+      "contractUrl": "/install/mcp-registry/ai.axonagentic-neuroautomata/index.json"
+    },
+    {
+      "canonicalName": "mcp-registry/ai.b77-ai-media-studio",
+      "canonicalSlug": "mcp-registry/ai.b77-ai-media-studio",
+      "installUrl": "/install/mcp-registry/ai.b77-ai-media-studio/",
+      "contractUrl": "/install/mcp-registry/ai.b77-ai-media-studio/index.json"
+    },
+    {
+      "canonicalName": "mcp-registry/ai.b77-apple-search-ads",
+      "canonicalSlug": "mcp-registry/ai.b77-apple-search-ads",
+      "installUrl": "/install/mcp-registry/ai.b77-apple-search-ads/",
+      "contractUrl": "/install/mcp-registry/ai.b77-apple-search-ads/index.json"
+    },
+    {
+      "canonicalName": "mcp-registry/ai.b77-chess-results",
+      "canonicalSlug": "mcp-registry/ai.b77-chess-results",
+      "installUrl": "/install/mcp-registry/ai.b77-chess-results/",
+      "contractUrl": "/install/mcp-registry/ai.b77-chess-results/index.json"
+    },
+    {
+      "canonicalName": "mcp-registry/io.github.calllint-calllint",
+      "canonicalSlug": "mcp-registry/io.github.calllint-calllint",
+      "installUrl": "/install/mcp-registry/io.github.calllint-calllint/",
+      "contractUrl": "/install/mcp-registry/io.github.calllint-calllint/index.json"
     }
-  },
-  "discovery": {
-    "agentSurfaces": "https://calllint.com/agent-surfaces.json",
-    "llmsTxt": "https://calllint.com/llms.txt",
-    "llmsFull": "https://calllint.com/llms-full.txt",
-    "agentInstructions": "https://calllint.com/agent-instructions.md",
-    "harnessHub": "https://calllint.com/harnesses/",
-    "sitemap": "https://calllint.com/harnesses/sitemap.xml"
-  },
-  "hosts": [
-    {
-      "id": "claude-code",
-      "displayName": "Claude Code",
-      "vendor": "Anthropic",
-      "supportClass": "NATIVE",
-      "canonicalUrl": "https://calllint.com/harnesses/claude-code"
-    },
-    {
-      "id": "claude-desktop",
-      "displayName": "Claude Desktop",
-      "vendor": "Anthropic",
-      "supportClass": "NATIVE",
-      "canonicalUrl": "https://calllint.com/harnesses/claude-desktop"
-    },
-    {
-      "id": "cursor",
-      "displayName": "Cursor",
-      "vendor": "Anysphere",
-      "supportClass": "NATIVE",
-      "canonicalUrl": "https://calllint.com/harnesses/cursor"
-    },
-    {
-      "id": "vscode",
-      "displayName": "VS Code",
-      "vendor": "Microsoft",
-      "supportClass": "NATIVE",
-      "canonicalUrl": "https://calllint.com/harnesses/vscode"
-    },
-    {
-      "id": "windsurf",
-      "displayName": "Windsurf",
-      "vendor": "Codeium",
-      "supportClass": "NATIVE",
-      "canonicalUrl": "https://calllint.com/harnesses/windsurf"
-    },
-    {
-      "id": "workbuddy",
-      "displayName": "WorkBuddy",
-      "vendor": "Tencent Cloud",
-      "supportClass": "NATIVE",
-      "canonicalUrl": "https://calllint.com/harnesses/workbuddy"
-    },
-    {
-      "id": "qwen-code",
-      "displayName": "Qwen Code",
-      "vendor": "Alibaba Cloud",
-      "supportClass": "NATIVE",
-      "canonicalUrl": "https://calllint.com/harnesses/qwen-code"
-    },
-    {
-      "id": "openclaw",
-      "displayName": "OpenClaw",
-      "vendor": "Open Source",
-      "supportClass": "NATIVE",
-      "canonicalUrl": "https://calllint.com/harnesses/openclaw"
-    },
-    {
-      "id": "codex",
-      "displayName": "OpenAI Codex",
-      "vendor": "OpenAI",
-      "supportClass": "DISCOVERY_ONLY",
-      "canonicalUrl": "https://calllint.com/harnesses/codex"
-    },
-    {
-      "id": "copilot-cli",
-      "displayName": "GitHub Copilot CLI",
-      "vendor": "GitHub",
-      "supportClass": "DISCOVERY_ONLY",
-      "canonicalUrl": "https://calllint.com/harnesses/copilot-cli"
-    },
-    {
-      "id": "cline",
-      "displayName": "Cline",
-      "vendor": "Open Source",
-      "supportClass": "DISCOVERY_ONLY",
-      "canonicalUrl": "https://calllint.com/harnesses/cline"
-    },
-    {
-      "id": "gemini-cli",
-      "displayName": "Gemini CLI",
-      "vendor": "Google",
-      "supportClass": "DEFERRED",
-      "canonicalUrl": "https://calllint.com/harnesses/gemini-cli"
-    },
-    {
-      "id": "codebuddy",
-      "displayName": "CodeBuddy",
-      "vendor": "Tencent",
-      "supportClass": "DEFERRED",
-      "canonicalUrl": "https://calllint.com/harnesses/codebuddy"
-    },
-    {
-      "id": "opencode",
-      "displayName": "OpenCode",
-      "vendor": "Open Source",
-      "supportClass": "CONFIG_SCAN",
-      "canonicalUrl": "https://calllint.com/harnesses/opencode"
-    },
-    {
-      "id": "kiro",
-      "displayName": "Kiro",
-      "vendor": "Anthropic",
-      "supportClass": "DEFERRED",
-      "canonicalUrl": "https://calllint.com/harnesses/kiro"
-    }
-  ],
-  "generatedAt": "2026-08-19T05:52:51.238Z",
-  "generatedFrom": "distribution-surfaces.json"
+  ]
 }

@@ -1,7 +1,9 @@
 {
   "$schema": "https://calllint.com/schemas/agent-surfaces.v1.json",
   "version": "1.0.0",
-  "generatedAt": "2026-08-19T05:52:51.293Z",
+  "describes": {
+    "release": "1.8.0"
+  },
   "description": "Machine-readable agent harness authority surfaces and CallLint support",
   "mcp": {
     "registry": "io.github.calllint/calllint",
