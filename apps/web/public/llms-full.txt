@@ -248,17 +248,17 @@ Platforms that consume the Official MCP Registry can discover CallLint automatic
 
 **Coverage Boundary**: Config path auto-discovery not yet supported. Schema generation ambiguity must be handled deterministically.
 
-### Kiro (Anthropic)
+### Kiro (AWS)
 
 - **Priority**: P2
 - **Support Class**: DEFERRED
 - **Authority Surfaces**: mcp, filesystem, shell
-- **Config Paths**: Workspace/user MCP config requires verification
+- **Config Paths**: .kiro/settings/mcp.json, ~/.kiro/settings/mcp.json
 - **Scan Commands**: N/A
 - **Canonical URL**: https://calllint.com/harnesses/kiro
 
 **Distribution Primitives**:
-  - mcp-stdio: AVAILABLE (upstream: officialMcpRegistry)
+  - mcp-stdio: AUDIT_REQUIRED (upstream: officialMcpRegistry)
   - kiro-workspace-config: AUDIT_REQUIRED
 
 **Coverage Boundary**: CallLint does not yet support Kiro native discovery.

@@ -431,7 +431,7 @@
     {
       "id": "kiro",
       "displayName": "Kiro",
-      "vendor": "Anthropic",
+      "vendor": "AWS",
       "priority": "P2",
       "supportClass": "DEFERRED",
       "authoritySurfaces": [
@@ -440,14 +440,15 @@
         "shell"
       ],
       "configPaths": [
-        "Workspace/user MCP config requires verification"
+        ".kiro/settings/mcp.json",
+        "~/.kiro/settings/mcp.json"
       ],
       "scanCommands": [],
       "canonicalUrl": "https://calllint.com/harnesses/kiro",
       "distributionPrimitives": [
         {
           "kind": "mcp-stdio",
-          "state": "AVAILABLE",
+          "state": "AUDIT_REQUIRED",
           "upstream": "officialMcpRegistry"
         },
         {

@@ -5,14 +5,25 @@
 # 2. mcp-v* tag protection (supply chain gate)
 # 3. SSOT → projection consistency
 #
-# Runs: Daily at 09:00 UTC, on-demand via workflow_dispatch
+# READ-ONLY toward the outside world. `scripts/distribution-sources.json` (generated from
+# the SSOT) names the primary vendor surfaces this job may consult. Nothing here may open
+# an external pull request or issue, submit a form, or contact a maintainer; a fact change
+# is reported by failing the job, and any correction lands as an internal change.
+#
+# Runs: Weekly (Mondays 09:00 UTC), on-demand via workflow_dispatch
+#
+# Weekly, not daily. Every check here observes a fact that changes on the order of
+# weeks — a Registry entry, a tag ruleset, a generator's output for unchanged input.
+# Running it daily bought no earlier detection of anything and spent 7x the Actions
+# minutes to re-assert the same measurement. `workflow_dispatch` covers the case where
+# someone needs an answer now.
 #
 # Exit: Fails if any check fails → maintainers notified
 name: distribution-watch
 
 on:
   schedule:
-    - cron: '0 9 * * *' # Daily at 09:00 UTC
+    - cron: '0 9 * * 1' # Weekly, Mondays at 09:00 UTC
   workflow_dispatch:
 
 permissions:
@@ -42,20 +53,41 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: node scripts/verify-mcp-tag-protection.mjs
 
+      # The diff set must be exactly what `generate-distribution-surfaces.mjs` writes —
+      # no more, no less. Listing a path the generator does NOT write makes a vacuous
+      # assertion: `git diff` on an untouched path always exits 0, so the check reads
+      # green while observing nothing.
+      #
+      # `.well-known/calllint.json` was listed here and is NOT one of them. That path is
+      # owned by the Safe-install bake (`packages/trust-index/src/renderDiscoveryManifest.ts`,
+      # emitting `calllint.discovery.v1`), which this workflow never runs. The distribution
+      # generator used to write it too; that collision silently dropped `resources[]` and is
+      # why the generator now carries an explicit "deliberately does NOT write" note. Do not
+      # add it back — its schema publishes `additionalProperties: false`, and its drift is
+      # covered by the bake's own reproducibility gate.
       - name: Regenerate projections and check diff
         run: |
           node scripts/generate-distribution-surfaces.mjs
-          git diff --exit-code apps/web/public/.well-known/calllint.json \
-            apps/web/public/harnesses/ \
+          git diff --exit-code apps/web/public/harnesses/ \
             apps/web/public/agent-surfaces.json \
             apps/web/public/llms.txt \
             apps/web/public/llms-full.txt \
-            apps/web/public/agent-instructions.md
+            apps/web/public/agent-instructions.md \
+            scripts/distribution-sources.json
 
+      # The sitemap is now generated too, so the diff above covers it (it lives under
+      # apps/web/public/harnesses/). This step additionally asserts the promise itself:
+      # every advertised URL resolves, and every SSOT host is advertised. The two are
+      # different questions — a sitemap can be perfectly in sync with a generator that
+      # emits a dead URL.
+      - name: Check agent, human + crawler surface contract
+        run: node scripts/check-agent-surface-contract.mjs
+
+      # Deliberately terse, and deliberately free of restated verdicts. The previous
+      # version printed "Registry: LIVE" as a string literal, which is the same defect the
+      # readback script had: a claim that costs nothing to print and is true whether or not
+      # anything was measured. Each step above prints its own measured assertions, and a
+      # failing step fails the job. This step adds no facts.
       - name: Report status
         if: success()
-        run: |
-          echo "✅ Distribution health: OK"
-          echo "   - Registry: LIVE"
-          echo "   - Tag protection: enabled"
-          echo "   - Projections: in sync"
+        run: echo "Distribution health -- all checks above passed."

@@ -91,9 +91,30 @@ jobs:
         run: |
           curl -L "https://github.com/modelcontextprotocol/registry/releases/latest/download/mcp-publisher_$(uname -s | tr '[:upper:]' '[:lower:]')_$(uname -m | sed 's/x86_64/amd64/;s/aarch64/arm64/').tar.gz" | tar xz mcp-publisher
 
+      - name: Validate server.json (mcp-publisher integration gate)
+        working-directory: packages/calllint-mcp
+        run: $GITHUB_WORKSPACE/mcp-publisher validate server.json
+
       - name: Authenticate to the MCP Registry (GitHub OIDC, no stored secret)
         run: ./mcp-publisher login github-oidc
 
       - name: Publish calllint-mcp to the MCP Registry
         working-directory: packages/calllint-mcp
         run: $GITHUB_WORKSPACE/mcp-publisher publish
+
+      # `mcp-publisher publish` exiting 0 is not evidence that the entry is live: it reports
+      # that the request was accepted, not that the registry serves the identity we intended.
+      # This step reads the published entry back and asserts, field by field, that the name,
+      # package identifier, package version, transport, repository and lifecycle status match
+      # — with the version pinned to the tag being released rather than to the committed SSOT,
+      # which may legitimately advance in a later commit.
+      #
+      # Retries cover index propagation only; a genuine mismatch fails immediately.
+      #
+      # Read-only by construction. It never republishes and never opens an issue or PR.
+      - name: Read back the published entry (publish exit 0 is not sufficient)
+        run: |
+          node scripts/verify-registry-presence.mjs \
+            --expect-version "${{ steps.meta.outputs.version }}" \
+            --retries 6 \
+            --retry-delay-ms 20000

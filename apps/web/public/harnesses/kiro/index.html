@@ -6,7 +6,7 @@
     <title>Kiro — CallLint Support</title>
     <meta
       name="description"
-      content="CallLint support for Kiro (Anthropic). CallLint does not yet support Kiro native discovery."
+      content="CallLint support for Kiro (AWS). CallLint does not yet support Kiro native discovery."
     />
     <link rel="icon" href="/favicon.png" type="image/png" />
     <link rel="apple-touch-icon" href="/logo-mark-256.png" />
@@ -39,7 +39,7 @@
         <header class="doc-header">
           <h1>Kiro</h1>
           <p class="doc-lede">
-            CallLint support for <strong>Kiro</strong> by Anthropic.
+            CallLint support for <strong>Kiro</strong> by AWS.
             <span class="coverage-note">CallLint does not yet support Kiro native discovery.</span>
           </p>
           <div class="host-meta">
@@ -60,7 +60,8 @@
           <h2>Configuration Paths</h2>
           <p>CallLint looks for Kiro configurations in:</p>
           <ul>
-            <li><code>Workspace/user MCP config requires verification</code></li>
+            <li><code>.kiro/settings/mcp.json</code></li>
+            <li><code>~/.kiro/settings/mcp.json</code></li>
           </ul>
         </section>
 
@@ -81,12 +82,12 @@
             <li>
               <strong>mcp-stdio</strong>
               <span class="upstream-note">(via <a href="https://registry.modelcontextprotocol.io/?q=calllint">officialMcpRegistry</a>)</span>
-              — <span class="state-AVAILABLE">AVAILABLE</span>
+              — <span class="state-AUDIT_REQUIRED">AUDIT_REQUIRED</span>
             </li>
             <li>
               <strong>kiro-workspace-config</strong>
               — <span class="state-AUDIT_REQUIRED">AUDIT_REQUIRED</span>
-              <div class="dist-note">Evaluate thin adapter for mcpServers JSON</div>
+              <div class="dist-note">Config paths are now documented by the vendor; a thin adapter for the mcpServers JSON is evaluable but unbuilt. Support stays unimplemented until a discovery adapter exists and is fixture-covered.</div>
             </li>
           </ul>
         </section>
@@ -94,7 +95,8 @@
         <section id="sources" class="doc-section">
           <h2>Official Sources</h2>
           <ul>
-            <li><a href="Internal Anthropic documentation" target="_blank" rel="noopener">Internal Anthropic documentation</a></li>
+            <li><a href="https://kiro.dev/docs/mcp/configuration/" target="_blank" rel="noopener">https://kiro.dev/docs/mcp/configuration/</a></li>
+            <li><a href="https://github.com/kirodotdev/Kiro" target="_blank" rel="noopener">https://github.com/kirodotdev/Kiro</a></li>
           </ul>
         </section>
 

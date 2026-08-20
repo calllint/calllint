@@ -501,7 +501,7 @@
     {
       "id": "kiro",
       "displayName": "Kiro",
-      "vendor": "Anthropic",
+      "vendor": "AWS",
       "priority": "P2",
       "authoritySurfaces": [
         "mcp",
@@ -509,25 +509,27 @@
         "shell"
       ],
       "configEvidence": [
-        "Workspace/user MCP config requires verification"
+        ".kiro/settings/mcp.json",
+        "~/.kiro/settings/mcp.json"
       ],
       "supportClass": "DEFERRED",
       "truthfulCommands": [],
       "canonicalPath": "/harnesses/kiro",
       "officialSources": [
-        "Internal Anthropic documentation"
+        "https://kiro.dev/docs/mcp/configuration/",
+        "https://github.com/kirodotdev/Kiro"
       ],
       "distributionPrimitives": [
         {
           "kind": "mcp-stdio",
           "upstream": "officialMcpRegistry",
-          "state": "AVAILABLE",
-          "auditNote": "Anthropic product, likely consumes Registry but not externally confirmed"
+          "state": "AUDIT_REQUIRED",
+          "auditNote": "Kiro documents stdio MCP support and an mcpServers config key, but consumption of the Official MCP Registry is not confirmed by a primary source. Supporting MCP is not the same fact as consuming the Registry."
         },
         {
           "kind": "kiro-workspace-config",
           "state": "AUDIT_REQUIRED",
-          "note": "Evaluate thin adapter for mcpServers JSON"
+          "note": "Config paths are now documented by the vendor; a thin adapter for the mcpServers JSON is evaluable but unbuilt. Support stays unimplemented until a discovery adapter exists and is fixture-covered."
         }
       ],
       "coverageBoundary": "CallLint does not yet support Kiro native discovery."
