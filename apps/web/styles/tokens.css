@@ -38,9 +38,10 @@
  *      <link> to a sheet with no baseline delivers the mechanism and none of
  *      the outcome: the install surface's boxes would be styled while the page
  *      rendered in browser-default Times at full window width. `body` sets the
- *      page's ink/background/font, `main` sets the reading measure. The set is
- *      CLOSED — the lock asserts these three heads (with `:root`) exactly, so
- *      the plane cannot grow an element rule no measure looks at.
+ *      page's ink/background/font, `main` sets the reading measure and the wrap
+ *      policy that keeps a long identifier from setting a floor on page width.
+ *      The set is CLOSED — the lock asserts these three heads (with `:root`)
+ *      exactly, so the plane cannot grow an element rule no measure looks at.
  *   3. Install-surface rules, written ONLY in terms of those tokens. No new
  *      colour literals, no `@import`, no `url()`, no `!important`, no remote
  *      font. The selector set is not invented: it is exactly the nine classes
@@ -101,6 +102,31 @@ body {
 main {
   max-width: 720px;
   margin: 0 auto;
+  /* Long single tokens are the NORM on this surface — a registry name, an obligation
+   * key, a digest — and an unbreakable token sets a min-content FLOOR on page width.
+   * At a 305px viewport the widest name measured 577px and made the whole page 597px
+   * wide, so every one of the 99 served install pages scrolled sideways. Letting those
+   * tokens break removes the floor.
+   *
+   * `anywhere`, not `break-word`: only `anywhere` participates in min-content sizing,
+   * and the floor IS a min-content effect. `break-word` measured as no change at all.
+   *
+   * NO MEDIA QUERY, and not as a workaround. This plane's parsers are a flat rule walk
+   * (`resolveDeclarations`), `gradeVisualRegression` fails on any media at-rule here for
+   * that reason, and `nonClassRuleHeads` pins this file's non-class heads to exactly
+   * :root/body/main. Nor can the at-rule's NAME be written in this file even inside a
+   * comment: that grader counts the literal token with a plain regex and does not strip
+   * comments, so it fails on a mention. That over-breadth is deliberate-by-consequence
+   * and fail-CLOSED — it cannot let a real one through — so it was left alone rather
+   * than loosened. A breakpoint would also be the weaker fix: `anywhere` only breaks a
+   * token that cannot fit its line, so at every width where it fits this declaration does
+   * nothing — measured, page width 1265px at 1280px viewport with and without it. That
+   * covers a narrow window, a zoomed page and an embed, which a 320px query would not.
+   *
+   * The two COMMAND rules opt back OUT of it (`.install-fallback code`,
+   * `.install-command-full code`). Everything on this page may break to fit; a command a
+   * human is asked to copy and run may not. */
+  overflow-wrap: anywhere;
 }
 
 /* --- Part 3: the install surface ----------------------------------------- */
@@ -136,7 +162,25 @@ main {
 /* Dual equal CTAs: Open in CallLint | I don't have CallLint yet */
 .install-cta-row {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  /* `min(220px, 100%)`, not a bare `220px`. A bare minimum is a FLOOR, not a
+   * preference: `auto-fit` stops shrinking a track at it, so once the container is
+   * narrower than 220px the row — and with it the page — stops fitting. Measured at a
+   * 240px viewport (225px real, 185px of content): both CTAs rendered 220px wide with
+   * their right edge at 259px, i.e. 34px of sideways scroll, and page width stayed
+   * pinned at exactly 259px for EVERY viewport below 280 regardless of content. With
+   * `min()` the same widths give scrollWidth === viewport exactly, at 200/220/240/260.
+   *
+   * Provably inert where it is not needed: `min(220px, 100%)` differs from `220px`
+   * only when the container is under 220px, i.e. a viewport under ~260px. Column count
+   * was measured identical with and without it at 240/480/491/492/493/540/768/1280.
+   *
+   * That last check is not ceremony. `predictCtaColumns` models this rule with the
+   * NAMED CONSTANT `CTA_REFLOW_RULES.ctaMinTrack = 220`; it does not parse this file.
+   * An edit here that moved the column count would silently desynchronize an
+   * arithmetic model from the stylesheet it claims to describe, and the model would
+   * keep grading — wrongly — without failing. So the constant stays readable as `220`
+   * and the change is confined to the sub-260px region the model already gets right. */
+  grid-template-columns: repeat(auto-fit, minmax(min(220px, 100%), 1fr));
   gap: 12px;
   margin-top: 14px;
 }
@@ -275,6 +319,12 @@ main {
   color: var(--ink);
   overflow-x: auto;
   white-space: pre-wrap;
+  /* Opts out of the `main` safety net, for the reason spelled out at
+   * `.install-fallback code`: this is the SAME command, in full, and a command broken
+   * mid-token cannot be checked before it is run. Under the net it re-fractured — the
+   * 531px digest run was chopped into 224/224/142 — so this declaration is load-bearing
+   * rather than defensive symmetry. `overflow-x: auto` above already lets it scroll. */
+  overflow-wrap: normal;
 }
 
 .install-consequence-lead {

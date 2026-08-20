@@ -29,6 +29,9 @@ body {
   background: var(--bg);
   line-height: 1.55;
   -webkit-font-smoothing: antialiased;
+  /* tokens with no break opportunity — sha256 digests, raw URLs, claude_desktop_config.json —
+     must wrap rather than widen the page. Inert unless a token cannot fit its own line. */
+  overflow-wrap: break-word;
 }
 
 a {
@@ -260,7 +263,9 @@ pre {
   margin: 0 auto;
   padding: 0 clamp(20px, 4vw, 48px) 80px;
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  /* min(N, 100%), not a bare N: an auto-fit track stops shrinking at its own minimum, so a
+     bare min wider than the container becomes a hard floor on page width. Inert above N. */
+  grid-template-columns: repeat(auto-fit, minmax(min(220px, 100%), 1fr));
   gap: 16px;
 }
 
@@ -483,7 +488,7 @@ pre {
 /* verdict cards */
 .verdict-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(180px, 100%), 1fr));
   gap: 14px;
   margin-bottom: 28px;
 }
@@ -530,7 +535,7 @@ pre {
 /* demo proof block */
 .demo-proof-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(320px, 100%), 1fr));
   gap: 24px;
   margin-top: 12px;
 }
@@ -587,7 +592,7 @@ pre {
   margin: 0 0 18px;
   padding: 0;
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(280px, 100%), 1fr));
   gap: 8px 24px;
   counter-reset: ladder;
 }
@@ -626,7 +631,7 @@ pre {
 }
 .detector-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(200px, 100%), 1fr));
   gap: 14px;
 }
 
@@ -669,7 +674,7 @@ pre {
 /* trust grid */
 .trust-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(220px, 100%), 1fr));
   gap: 16px;
 }
 
@@ -697,6 +702,12 @@ pre {
   grid-template-columns: 1fr 1fr;
   gap: clamp(24px, 4vw, 48px);
   align-items: center;
+}
+
+/* grid items default to min-width:auto, so the code block's longest line pinned the column
+   at 401px and widened the whole page below 400px. Shrink the item; let the pre scroll. */
+.ci-inner > * {
+  min-width: 0;
 }
 
 .exit-codes {
@@ -1058,6 +1069,9 @@ pre {
   padding: 22px 20px 18px;
   display: flex;
   flex-direction: column;
+  /* as a grid item this defaults to min-width:auto, which floored the single column at
+     372px and widened the page below 392px. The pre already scrolls; let the card shrink. */
+  min-width: 0;
 }
 .scenario-step {
   display: inline-grid;

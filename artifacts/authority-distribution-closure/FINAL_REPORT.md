@@ -570,7 +570,10 @@ All six were re-run against `865f9c6` for this revision, and `ci:local` was re-r
 `fda2bd5` after section O landed — still **exit 0** (25
 `&&`-joined steps; the two `✗` lines in its log are inside `tests/facts/deriveFacts.test.ts` and a
 receipt test that *assert failure closes* — both files pass). `pnpm test`: **236 files, 4387
-passed, 1 skipped**. `gen:distribution` idempotency was verified by md5 over `sitemap.xml`,
+passed, 1 skipped** at that run, and **237 files, 4393 passed, 1 skipped** after section P added
+one invariant file with six tests — the delta is exactly that file, and nothing counts
+`tests/invariants/`, so `ci:local` stays at 25 steps.
+`gen:distribution` idempotency was verified by md5 over `sitemap.xml`,
 `agent-surfaces.json`, `llms.txt`, and `agent-instructions.md` across two consecutive runs:
 identical. `_redirects` did not exist at that run; its idempotency was verified separately during
 section O's negative controls — after each of the nine controls the tree was restored and
@@ -872,7 +875,171 @@ location is not beside the pages it describes.
 
 ---
 
-## P. §106 conformance
+## P. Responsive QA — the audit that had been scoped to the wrong stylesheet
+
+An earlier draft of this report recorded §106 L as `PARTIAL` with the evidence "`styles.css`
+brace-balanced, 6 `@media` blocks; responsive QA **not performed**". The honest part of that was
+"not performed". The misleading part was the evidence line: it named *one* stylesheet, and the
+install surface — 99 of the 245 served pages, the surface this whole branch exists to ship — is
+not styled by it. It is styled by `apps/web/styles/tokens.css`, which contains **zero** media
+blocks. Counting media blocks in the sheet that does not style the pages at issue is the
+repository's dominant fault class (§M) applied to itself: an audit that could not observe its
+subject.
+
+This pass performed the QA. Below is the method, because the numbers mean nothing without it.
+
+### Method
+
+A throwaway static server (`d:\tmp\`, deliberately not repository content) serves
+`apps/web/public/` with the same directory→`index.html` resolution Cloudflare Pages uses, so the
+bytes measured are the bytes a visitor receives. Each page is loaded in a sized iframe and probed:
+
+* **Viewport** is `documentElement.clientWidth`, not the iframe width. A vertical scrollbar
+  consumes 15px, so comparing against the iframe would make every check 15px lenient — it would
+  hide a real 14px overflow.
+* **Overflow** is `scrollWidth > clientWidth` at the document element, reported with the exact
+  slack in pixels rather than as a boolean.
+* **Offending text runs** are located with `document.createRange()` + `range.getClientRects()`
+  over a `TreeWalker(SHOW_TEXT)`. An element's box can fit while the text inside it does not;
+  element-level rects cannot see that, and the defect found here was exactly that shape.
+* **Scroll containers are excluded.** A `pre` with `overflow-x: auto` is *supposed* to be wider
+  than its box. Counting it would have produced 99 false positives and buried the real one.
+* **A/B is non-destructive**: inject a `<style>`, measure, `.remove()`, measure again. No file is
+  edited to take a measurement.
+* **Every sweep prints `checked` and `total` and refuses to report clean when they disagree.**
+
+That last rule is not defensive writing. The first sweep in this pass reported `overflows: 0`
+having examined `checked: 0` pages — a slug-harvest regex over the index page matched nothing, so
+the sweep was vacuous and its green was indistinguishable from a real pass. It was caught only
+because the counts were printed. Slugs were re-harvested from disk afterwards, and every
+subsequent sweep carries a hard non-vacuity gate (`if (slugs.length !== 99) return FATAL`) plus a
+check that the probe returns a measurable number at all.
+
+### Inventory and coverage
+
+All 245 served HTML pages, no sampling:
+
+| cohort | pages | viewports | checks |
+| --- | --- | --- | --- |
+| install (`/install/mcp-registry/*`) | 99 | 240 | 99 |
+| Trust registry (`/trust/mcp-registry/*`) | 99 | 240 / 320 / 390 | 297 |
+| remaining styled (21 other Trust, 17 harness, 7 root) | 45 | 240 / 320 / 390 / 1280 | 180 |
+| no external stylesheet (`/embed/example.html`, `/functions/v1/admin/dashboard.html`) | 2 | 240 / 320 / 390 / 1280 | 8 |
+| **sweep total** | **245** | | **584** |
+| ladder — 4 representative pages × 23 widths, 200→1440 | 4 | 23 | 92 |
+
+**676 measured checks.** Result: **244 of 245 pages clean across the swept range, with slack
+exactly 0 at every width** — not "within tolerance"; `scrollWidth === clientWidth` exactly.
+
+### What was actually wrong
+
+Three distinct mechanisms, all of them *floors* on page width rather than oversized content:
+
+1. **A fixed `auto-fit` track minimum.** `repeat(auto-fit, minmax(220px, 1fr))` stops shrinking a
+   track at 220px, so below that the track — and the page — stops fitting. At a 240px viewport
+   (225px real, 185px of content) both install CTAs rendered 220px wide with their right edge at
+   259px: **34px of sideways scroll on all 99 install pages, and page width pinned at exactly
+   259px for every viewport below 280 regardless of content.** Fix: `minmax(min(220px, 100%), 1fr)`,
+   which differs from the original only when the container is under 220px.
+2. **An unbreakable token setting a min-content floor.** Long single tokens are the norm on this
+   surface — a registry name, an obligation key, a digest. At a 305px viewport the widest served
+   name measured 577px and made the page 597px wide. Fix: `main { overflow-wrap: anywhere }`.
+   `anywhere` and not `break-word`: only `anywhere` participates in min-content sizing, and
+   `break-word` measured as **no change at all** on this plane.
+3. **`min-width: auto` on grid items.** A grid item's automatic minimum is its min-content size, so
+   a code block's longest line floored its column at 401px (`.ci-inner > *`) and 372px
+   (`.scenario-card`), widening the page below 400px and 392px respectively. Fix: `min-width: 0` on
+   the item, leaving the `pre` to scroll as it already did.
+
+Nine declarations changed across the two stylesheets: six `min()` wrappings and two `min-width: 0`
+rules plus a `body` wrap policy in `styles.css`; one `min()` wrapping and the `main` wrap policy in
+the token plane. `.install-fallback code { overflow-wrap: normal }` and `.install-provenance code`
+predate this pass; `.install-command-full code { overflow-wrap: normal }` was added by it.
+
+The token plane exists in two copies — `apps/web/styles/tokens.css` is the source, deliberately
+outside `public/`, and `sync-assets.mjs` projects it to `apps/web/public/styles/tokens.css`, the
+byte a visitor receives. **Only the source was edited**, the projection regenerated, and `cmp`
+confirms the two are byte-identical.
+
+### The command rules are load-bearing, and that is measured, not asserted
+
+Everything on an install page may break to fit. A command a human is asked to copy and run may
+not: a command that cannot be read cannot be checked before it is run. Under the `main` net the
+full command re-fractured. Measured text-run widths, same command, same viewport:
+
+```
+with    overflow-wrap: normal   [179, 135, 7, 247, 127, 179, 112, 7, 531, 7, 52]
+without overflow-wrap: normal   [179, 135, 7, 224, 150, 179, 112, 7, 224, 224, 142]
+```
+
+The 531px digest run is chopped into 224/224/142, and `--contract` had already been observed
+splitting as `- -contract`. So the two opt-outs are a correctness requirement, not defensive
+symmetry — which is why a test now fails by name if a future tidy-up deletes them as redundant.
+
+### The one exception, recorded rather than fixed
+
+`/functions/v1/admin/dashboard.html` overflows by 57px at a 240px viewport only, from a fixed
+250px `.metric-card`; it is clean at 320 and above. It is pre-existing, internal, unlinked from any
+navigation, carries no external stylesheet, and belongs to the Usage Observatory that §106 D
+reports as `NOT_READY`. Fixing it here would be scope creep into a surface this pass is not
+closing; it is recorded so the 244/245 figure is not read as 245/245.
+
+### A bounded model/reality divergence, found and not papered over
+
+`predictCtaColumns` grades CTA reflow from an *arithmetic* model over `CTA_REFLOW_RULES`; it does
+not parse the stylesheet. The browser flips the install CTA row to one column at viewport 530; the
+model flips at 492. The unseen chrome is `section.install-disposition`'s `padX 36 + bordX 1.6 =
+37.6px` — the model computes from `vp − 40`, reality is `vp − 77.6`. **Divergence window: `vp ∈
+[492, 529]`, 38px wide.** All three graded viewports (390 / 768 / 1280) agree between model and
+browser, so `reflow/crosses-boundary` remains correct, and column count measured *identical*
+before and after this pass's edit at 240/480/491/492/493/540/768/1280 — proving the edit neither
+caused nor widened it. The constant is left at a readable `220`: re-deriving a resolved 0.8px
+border width would relocate the error rather than remove it. Recorded, bounded, not fixed.
+
+### What could observe the change, and what could not
+
+Both preview artifacts were regenerated. `presentation-lock.json` moved by exactly one line — its
+`visualDigest` — and `preview-snapshot.json` diffed **zero bytes**, because it records check
+results and constant-derived predictions with no CSS digest. `visualDigest` is therefore the
+*only* committed observer of a stylesheet change on this plane. That the lock can observe it was
+confirmed by negative control: run without `--write`, it correctly reported drift.
+
+### A gate that failed on a comment, and was left fail-closed
+
+`audit:preview:gate` failed on this pass's own work: `gradeVisualRegression`'s
+`no-media-queries` check counts the literal at-rule token with a plain regex and does not strip
+comments, so it fired on a *prose mention* of the name inside a CSS comment explaining why the
+plane has no media queries. The grader was **not** loosened. Its over-breadth cannot let a real
+at-rule through — it is fail-closed, and `nonClassRuleHeads` set-equality already forbids one
+structurally — so the comment was reworded and a note added recording that the token can never
+appear in that file, even in prose. Both copies now contain zero occurrences and the gate passes.
+
+### The guard, and what it does not claim
+
+The class had already been fixed seven times by hand across two stylesheets. Nothing forbade the
+eighth, which is the only reason there was a seventh, so
+`tests/invariants/responsive-width-floors.invariants.test.ts` (6 tests) now pins all three
+mechanisms: no bare `auto-fit` floor in either sheet or the projection, the `main`/`body` wrap
+policy present, and both command opt-outs present. Writing it immediately surfaced one instance the
+by-hand pass had missed. All three layers were negative-controlled: baseline green → reintroduce a
+bare floor → red; weaken the `main` policy → red; delete a command opt-out → red; restore → green,
+with `cmp` proving byte-identical restoration.
+
+Its non-claims are written into the file, because a guard trusted for more than it measures is
+worse than no guard. **It is not responsive QA**: it opens no browser, renders nothing, and measures
+no width — it asserts the presence of two CSS constructs and the absence of one. It therefore
+cannot catch a *new* blowout mechanism (a fixed `width`, a `white-space: nowrap`, a new
+`min-width` floor outside `main`); those are found by rendering. And `.hero-inner`'s
+`minmax(120px, 180px) 1fr` is deliberately **not** covered: it is an explicit two-track grid rather
+than `auto-fit`, and it measured clean at 240px. Forbidding it would forbid a construct with no
+measured defect — which is how a guard starts costing more than it catches.
+
+`pnpm test` is 237 files / 4393 passed / 1 skipped, up from 236 / 4387 by exactly this file's one
+file and six tests. Nothing counts `tests/invariants/`, so `ci:local` stays at 25 steps.
+
+---
+
+## Q. §106 conformance
 
 new18 §106 mandates sections A–P by topic. This report's own sections are lettered independently
 and predate that mapping, so renumbering them would churn every cross-reference in the document
@@ -892,9 +1059,9 @@ A topic with no definite state is listed as such rather than being inferred from
 | I | Human discovery — hub, canonical pages, **legacy URL handling** | **CLOSED** | §O — the last of the three; hub and canonical pages closed earlier in §D |
 | J | Agent discovery — agent-surfaces, llms, llms-full, well-known, sitemap, drift = 0 | **CLOSED** | all six present; drift gate green; `.well-known/` carries `calllint.json` + `security.txt` |
 | K | Public reality — Team / pricing / free-forever / roadmap removed, governance | **CLOSED** | §K: 0 hits across 45 tool descriptions and 23 public files; the 4 "pricing" hits are third-party registry descriptions |
-| L | Visual — malformed CSS, card alignment, scenarios, **responsive QA** | **PARTIAL** | `styles.css` brace-balanced, 6 `@media` blocks; responsive QA **not performed** — no browser run in this pass |
+| L | Visual — malformed CSS, card alignment, scenarios, **responsive QA** | **CLOSED** | §P: all 245 served pages rendered, 676 checks, 244/245 clean at slack 0; 1 recorded exception (`/functions/…/dashboard.html`, 240px only) |
 | M | Continuous watch — schedule, sources, no-change behavior, no spam | **READY, NOT SCHEDULED** | §H: weekly `0 9 * * 1`, read-only, 15 hosts / 20 https sources; GitHub reports the workflow as 404 until it lands on `main` |
-| N | Tests — targeted, typecheck, test, ci:local | **GREEN** | §K: 236 files / 4387 passed / 1 skipped; `ci:local` 25 steps, exit 0 |
+| N | Tests — targeted, typecheck, test, ci:local | **GREEN** | §K: 237 files / 4393 passed / 1 skipped; `ci:local` 25 steps, exit 0 |
 | O | External writes — exact list, at or under the maximum, no duplicates | **ONE** | the npm publish of `calllint-mcp@0.2.0`, already reflected in the live Registry. No new external write in this pass |
 | P | Operator actions — only the unavoidable | **TWO** | (1) create the `mcp-v*` tag ruleset — repository admin; (2) Cloudflare Access and `USAGE_HASH_KEY` — required only when §106 D is taken up |
 
@@ -907,7 +1074,7 @@ Against §107's vocabulary, and claiming no state the evidence above does not ca
 ```
 SECURITY_SEMANTICS            = UNCHANGED
 PUBLIC_WEBSITE_REALITY        = CLOSED
-WEBSITE_VISUAL_SYSTEM         = PARTIAL          (responsive QA not performed)
+WEBSITE_VISUAL_SYSTEM         = CLOSED          (245 pages rendered, 676 checks, 1 exception)
 PRIVATE_USAGE_OBSERVATORY     = NOT_READY        (written, unrouted, 3 defects)
 PUBLIC_ADOPTION_SIGNALS       = DEFERRED
 GLOBAL_DISTRIBUTION_AUTHORITY = READY
@@ -915,10 +1082,15 @@ HUMAN_DISCOVERY               = READY
 AGENT_DISCOVERY               = READY
 ```
 
-Two of these sit below the state §107 anticipates. `WEBSITE_VISUAL_SYSTEM` is `PARTIAL` rather
-than `CLOSED` because responsive QA requires rendering the pages at several viewports and that was
-not done in this pass; the CSS being well-formed is a different claim.
-`PRIVATE_USAGE_OBSERVATORY` is `NOT_READY` rather than `READY_NOT_DEPLOYED` because
-`READY_NOT_DEPLOYED` means the code is correct and merely unshipped, and §L item 1 shows the
-ordinary multi-event batch returns 500. Reporting it as `READY_NOT_DEPLOYED` would be the exact
-error this report exists to stop making.
+One of these sits below the state §107 anticipates. `PRIVATE_USAGE_OBSERVATORY` is `NOT_READY`
+rather than `READY_NOT_DEPLOYED` because `READY_NOT_DEPLOYED` means the code is correct and merely
+unshipped, and §L item 1 shows the ordinary multi-event batch returns 500. Reporting it as
+`READY_NOT_DEPLOYED` would be the exact error this report exists to stop making.
+
+`WEBSITE_VISUAL_SYSTEM` moved from `PARTIAL` to `CLOSED` in this pass, and the earlier `PARTIAL`
+is worth keeping visible rather than editing away: its stated evidence counted media blocks in
+`styles.css`, which does not style the 99 install pages at all. The claim was not merely
+incomplete, it was scoped to the wrong file — the §M fault class turned on this report. `CLOSED`
+here means what §P measured and no more: every served page rendered at 240/320/390/1280 with
+`scrollWidth === clientWidth` exactly, one recorded exception, and a guard that pins the three
+fixed mechanisms while explicitly not claiming to be responsive QA itself.
