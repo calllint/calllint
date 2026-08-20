@@ -867,6 +867,15 @@ closing:
   (section L′). It is **unpublished**: `wrangler.toml` carries a placeholder `database_id`, and the
   daily report stops at `upload-artifact` because §29 is fail-closed on Cloudflare Access. Code
   state is `READY_NOT_DEPLOYED`; deployment is an operator action, not unwritten code.
+
+  On the `database_id` specifically: a candidate value (`98626b00-…`) is recoverable from the root
+  `wrangler.toml` this Worker's config replaced, and it is recorded in a comment there with its
+  provenance. It is deliberately **not** substituted for the placeholder. That root config was a
+  *Pages* config, and `wrangler pages deploy` never applies `wrangler.toml` bindings — so the id
+  names a binding that has never been exercised, and no credential available here can check it
+  (the account API answers `code: 9106`). Pasting an unobserved value into the live field would
+  make the file read as verified on evidence nobody has, which is the fault class section L′
+  exists to correct. The placeholder is what forces the operator to confirm it deliberately.
 - **Deployment** — nothing on this branch has been pushed. Production serves `main` (section F).
 - **The `mcp-v*` tag ruleset** — an admin write on the shared repository (section H, J item 2).
 

@@ -27,6 +27,21 @@ crons = ["17 3 * * *"]
 # Reuses the existing database (new18 §21: do not create a second one).
 # database_id is filled in by the operator; it is an account-scoped identifier,
 # not a secret, but it is environment-specific.
+#
+# CANDIDATE VALUE, UNVERIFIED: 98626b00-5c93-48c4-98b2-6632105b97df
+#
+# Recovered from the root wrangler.toml this file replaced (`git show 4671854^:wrangler.toml`).
+# It is left in a comment rather than substituted below, on purpose. That config was a
+# **Pages** config, and `wrangler pages deploy` does not apply `wrangler.toml` bindings at
+# all — so this id names a binding that has never once been exercised. Nothing in this
+# repository can check it either: confirming it needs Cloudflare credentials, and the
+# account API here answers `Authentication failed (status: 400) [code: 9106]`.
+#
+# So it is a recorded id, not an observed one. Substituting it would make this file read as
+# a verified binding on the strength of a value nobody has seen work — the same mistake this
+# branch spent its length correcting elsewhere. Confirm it with
+# `wrangler d1 list` (or the Dashboard) and paste it in as a deliberate act; the placeholder
+# is here so that act cannot be skipped by accident.
 [[d1_databases]]
 binding = "USAGE_DB"
 database_name = "calllint-usage"
