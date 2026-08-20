@@ -1,7 +1,11 @@
 # Usage Observatory — Deployment Status
 
-**Last updated**: 2026-08-19
-**State**: backend NOT deployed; homepage surface WITHDRAWN (deliberate, not blocked)
+**Last updated**: 2026-08-20
+**State**: SUPERSEDED as a plan; kept as the record of why the Pages-Functions
+approach was abandoned. The work was resumed on 2026-08-20 along exactly the line
+this file recommended — a separate Worker — see
+[artifacts/authority-distribution-closure/CLOUDFLARE_ACCESS_ACTION.md](../authority-distribution-closure/CLOUDFLARE_ACCESS_ACTION.md)
+and [apps/usage-worker/](../../apps/usage-worker/).
 
 It records the decision so the next person does not re-run the same investigation. Its
 siblings in this directory are the U0-U6 build records; this file is the one that says
@@ -14,9 +18,10 @@ where the effort actually stopped and why.
 | Layer | State |
 | --- | --- |
 | CLI telemetry (consent, queue, transport, flush, `telemetry` commands) | Merged, shipped. Default-OFF. |
-| Pages Functions source (`apps/web/public/functions/**`, `schema.sql`, admin dashboard) | Merged as source. Never executed in production. |
-| D1 database `calllint-usage` | Created, schema applied, bound as `USAGE_DB` in the Pages project. Permanently empty. |
-| Homepage "Adoption Signals" section | **Removed** (this cleanup). |
+| Pages Functions source (`apps/web/public/functions/**`, `schema.sql`, admin dashboard) | **Deleted** 2026-08-20. Was never executed in production; superseded by `apps/usage-worker/`. |
+| D1 database `calllint-usage` | Created, schema applied, bound as `USAGE_DB` in the Pages project. Empty. The Worker's own migrations in `apps/usage-worker/migrations/` are now the schema of record. |
+| Homepage "Adoption Signals" section | **Removed** (this cleanup). Public usage is DEFERRED by new18 §30. |
+| Private operator report | Built daily as a **workflow artifact only** (new18 §29 fail-closed). Not deployed. |
 
 ## Why the backend is not deployed
 
@@ -49,21 +54,40 @@ architecture.
 
 ## If this is resumed later
 
+**This was resumed on 2026-08-20 and the advice below was followed as written.** It is
+kept in the imperative because it is still the correct instruction for anyone tempted to
+undo it.
+
 Do **not** rebuild the `calllint-www` Pages project and do **not** touch `deploy-web.yml`.
 Deploy the ingress as a **separate Worker** with its own D1 binding, then point
 `apps/cli/src/transport.ts` `DEFAULT_ENDPOINT` at it. The website deploy stays static and
 untouched.
 
+What now exists: [apps/usage-worker/](../../apps/usage-worker/) is that Worker, and
+`DEFAULT_ENDPOINT` points at `https://telemetry.calllint.com/v1/events/usage`. Neither is
+deployed yet — the Worker is unpublished and its `wrangler.toml` still carries a
+placeholder `database_id`.
+
 ## Left in place on purpose
 
 - CLI telemetry code — default-OFF, and the transport fails silently when the endpoint
   404s. Harmless.
-- `apps/web/public/functions/**` — source only; landed by PR #316, unrelated to this
-  cleanup.
 - Tracked artifacts in this directory (`FINAL_REPORT.md`, `PROGRESS.md`,
   `homepage-adoption-preview.html`, …) — historical records of the U0-U6 PRs. They
   describe what was built at that time, and `homepage-adoption-preview.html` still shows
   the old 4-card preview. Read them as history, not as current site state.
+
+## Removed since
+
+- `apps/web/public/functions/**` and the duplicate root `functions/**` — deleted
+  2026-08-20. They were source-only, never executed, and describing a Pages-Functions
+  ingress that the project had already abandoned made them actively misleading.
+- `scripts/deploy-usage-observatory.sh` — deleted 2026-08-20. Every step targeted
+  something that no longer exists: the deleted `functions/schema.sql`, a Pages project
+  never created, the `/v1/public/adoption-signals` endpoint (DEFERRED by §30), a
+  `"status":"ok"` body the Worker never returns (it answers 204 with no body), and a
+  `batchId` of `test-deployment-<epoch>` that the ingress validator rejects for not being
+  a 64-hex digest. It would have reported failure against a correct deployment.
 
 ## Privacy properties (implemented, unchanged)
 
