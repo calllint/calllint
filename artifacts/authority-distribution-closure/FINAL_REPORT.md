@@ -1,6 +1,7 @@
 # Global Agent Distribution Authority — Final Report
 
-**Branch:** `feat/global-agent-distribution-authority` (measured at `fda2bd5`, 18 commits over `main`)
+**Branch:** `feat/global-agent-distribution-authority` (measured at `4671854`, the 20th commit over
+`origin/main`; the tree carrying this file is `0c3f2c0`, the 21st)
 **Date:** 2026-08-20 (re-measured; first drafted 2026-08-19 at `d5f12df`)
 **Scope:** stages G0–G9 of the A0 execution package, the Official MCP Registry Tier-0
 closure items, and the telemetry-correctness work that landed alongside them.
@@ -13,18 +14,21 @@ Sections A, F, H, I and J were **corrected after first drafting** against measur
 contradicted them. The corrections are marked in place rather than silently applied, because
 three of them turned a ✅ into an open item.
 
-**Measurement point: `fda2bd5`.** The first draft was written at `d5f12df` and re-measured at
-`865f9c6`; every number was re-taken at each move rather than carried forward — which is the
-point, because several commits on this branch exist precisely because a carried-forward claim
-turned out to be false. New material at `865f9c6`: section L (telemetry), section M (the three
-gates that could not observe their subject), and the `distribution-sources.json` projection in
-section D. New since: section O (legacy URL handling) and this section P.
+**Measurement point: `4671854`.** The first draft was written at `d5f12df` and re-measured at
+`865f9c6` and `fda2bd5`; every number was re-taken at each move rather than carried forward —
+which is the point, because several commits on this branch exist precisely because a
+carried-forward claim turned out to be false. New material at `865f9c6`: section L (telemetry),
+section M (the three gates that could not observe their subject), and the
+`distribution-sources.json` projection in section D. Then section O (legacy URL handling) and
+section P (responsive QA). New at `4671854`: section L′ (the usage observatory as a Worker), and
+the re-measurement that falsified section L's own evidence for "not static-only".
 
 A report that records its own HEAD invalidates itself the moment it is committed, so this file
 names the last commit that changes a **measured surface**, not the commit that carries the file.
-`fda2bd5` is that commit. The two that follow it move an artifact directory and add this
-document; neither touches code, a generated projection, or a gate, so no measurement below moves
-with them. Anything that did would have to be re-taken, not adjusted.
+`4671854` is that commit: it adds the Worker's failure diagnostic, extends the telemetry boundary
+guard, and changes the generator. `0c3f2c0`, which follows it, deletes a dead script and rewrites
+three documents — no code, no generated projection, no gate — so no measurement below moves with
+it. Anything that did would have to be re-taken, not adjusted.
 
 ---
 
@@ -492,9 +496,10 @@ exists to name. All three are local changes and need no admin action or deploy.
 4. **The dangling `$schema` pointers — CLOSED.** Two different fixes, because the two pointers
    answer to different consumers:
    - The **published** one now resolves. `apps/web/public/schemas/agent-surfaces.v1.json` is a
-     real draft-07 schema, and because the Pages project is static-only, a file under `public/`
-     *is* its URL (`_routes.json` routes Functions paths only and deliberately does not list
-     it). The schema also encodes the invariant: `additionalProperties: false` plus an explicit
+     real draft-07 schema, and a file under `public/` *is* its URL because `_routes.json` lists
+     only Functions paths and deliberately does not include it — so the request is served as a
+     static asset. (An earlier wording gave the reason as "the Pages project is static-only";
+     that premise is false — see §L — but the routing fact that carries this claim is not.) The schema also encodes the invariant: `additionalProperties: false` plus an explicit
      note that no risk, popularity, demand or SEO score for any harness, model, platform or
      marketplace may appear, so the forbidden-field list is now structural for this surface.
    - The **SSOT** one now points at a relative path (`./distribution-surfaces.schema.json`)
@@ -675,55 +680,135 @@ while appearing careful about the old value. It now prints only `Installation id
 An earlier draft of this section said "**The ingress service does not exist.** There is no
 `apps/usage-worker/`, no D1 schema, no `POST /v1/events/usage` …". That was wrong, and wrong in
 the direction this report is least entitled to be wrong in: I asserted an absence after checking
-one path. `apps/usage-worker/` indeed does not exist — but the ingress was never going to be
-there. It is on `main`, as **Pages Functions under `apps/web/public/functions/`**, and has been
-since `e72f837`:
+one path.
 
-| path (under `apps/web/public/`) | bytes | live |
-| --- | ---: | --- |
-| `functions/v1/events/usage.ts` | 3882 | `/v1/events/usage` → **404** |
-| `functions/v1/events/trust` (routed) | — | `/v1/events/trust` → **405** on GET |
-| `functions/v1/public/adoption-signals.ts` | 2084 | `/v1/public/adoption-signals` → **404** |
-| `functions/v1/admin/usage.ts` | 2466 | not routed |
-| `functions/v1/admin/dashboard.{ts,html}` | 618 / 4416 | not routed |
-| `functions/_middleware/hmac.ts` | 1292 | — |
-| `functions/schema.sql` | 1444 | — |
+A second draft then corrected it in the other direction and got the *evidence* wrong. It claimed
+"the 405 is the load-bearing measurement: a Function is running and rejecting `GET`". That
+inference does not hold, and the control is what shows it. Measured 2026-08-20, each path
+cachebusted, against a path that certainly has no handler:
 
-The 405 is the load-bearing measurement: a Function is running and rejecting `GET`, so this Pages
-project is **not** static-only. I had carried "static-only, no Functions" forward as a premise and
-it is false. What is true is narrower: `_routes.json` includes only `/v1/public/*`,
-`/v1/events/trust` and `/trust/*`, so `/v1/events/usage` is **written but unrouted**, which is why
-it 404s. `8acf297` added that file to withdraw the Adoption Signals surface; the usage endpoint
-was left out of the include list.
+| request | status | content-type | bytes |
+| --- | --- | --- | ---: |
+| `POST /v1/events/trust` | **204** | — | 0 |
+| `POST /v1/definitely-not-a-route-<rand>` (control) | 405 | — | 0 |
+| `GET /v1/definitely-not-a-route-<rand>` (control) | 404 | text/html | 6067 |
+| `POST /v1/events/usage` | 405 | — | 0 |
+| `GET /v1/events/usage` | 404 | text/html | 6067 |
 
-So the honest statement is not "unbuilt" but **built, unrouted, and incorrect where it matters**.
-Three defects, read from the source rather than inferred:
+`POST → 405` and `GET → 404` with a 6067-byte HTML body are what a **nonexistent** route returns
+on this project. Every 405 the earlier draft cited is therefore consistent with no Function at
+all, and proves nothing. The load-bearing measurement is the one that **differs from the
+control**: `POST /v1/events/trust` → `204` with an empty body. That is
+[apps/web/functions/v1/events/trust.ts](../../apps/web/functions/v1/events/trust.ts) executing —
+its `onRequest` answers 405 to non-POST and 204 on every POST outcome, and `/v1/events/trust` is
+the one events path in the `_routes.json` include list (`/v1/public/*`, `/v1/events/trust`,
+`/trust/*`).
 
-1. **`batch_id TEXT UNIQUE` is on the events table.** `usage.ts` binds the same `batch.batchId` to
-   every event in a batch and submits them through one `D1Database.batch()`, which is
-   transactional. Any batch carrying two or more events violates the constraint and aborts the
-   whole insert — the endpoint returns 500 for its ordinary case and succeeds only for
+So the conclusion of the second draft survives while its reasoning does not: this Pages project
+**does** execute Functions, and "static-only, no Functions" — carried forward as a premise from
+the U0-U6 investigation — is false as stated. What is true is narrower, and is a routing fact
+rather than a runtime one: `/v1/events/usage` was never in the include list, so it is **unrouted**,
+which is why it returns the static 404. `8acf297` added `_routes.json` to withdraw the Adoption
+Signals surface and left the usage endpoint out.
+
+The ingress that now exists is nonetheless a **separate Worker**, [apps/usage-worker/](../../apps/usage-worker/),
+not a Pages Function — see section L′ below. That choice no longer rests on "Functions cannot run
+here"; it rests on the reasons in
+[artifacts/usage-observatory/DEPLOYMENT_STATUS.md](../usage-observatory/DEPLOYMENT_STATUS.md):
+the static site deploy stays untouched, and the ingress carries its own D1 binding and its own
+deploy lifecycle.
+
+The Pages-Functions sources this table described (`apps/web/public/functions/**`, including
+`schema.sql` and the admin dashboard) were **deleted on 2026-08-20**. They were source-only and
+never executed. Confirmed not served, same measurement run: `/functions/v1/events/usage.ts`,
+`/functions/schema.sql`, `/v1/admin/dashboard` and `/v1/admin/usage` each return the 6067-byte
+static 404 — byte-identical to the control, so no source or admin surface is exposed.
+
+So the honest statement about that code is not "unbuilt" but **built, unrouted, incorrect where it
+mattered, and now deleted**. Four defects, read from the source at the time rather than inferred.
+They are kept here because each one is the reason the replacement is shaped the way it is:
+
+1. **`batch_id TEXT UNIQUE` was on the events table.** `usage.ts` bound the same `batch.batchId` to
+   every event in a batch and submitted them through one `D1Database.batch()`, which is
+   transactional. Any batch carrying two or more events violated the constraint and aborted the
+   whole insert — the endpoint returned 500 for its ordinary case and succeeded only for
    single-event batches. This is precisely why new18 specifies idempotency in a separate
    `usage_ingested_batches` table rather than as a column constraint on the events.
-2. **`hashed_installation_id TEXT NOT NULL`, but the code can bind `null`.** `hashedId` stays
-   `null` when an event carries no `anonymousInstallationId`, so such an event fails the same
-   transaction and takes its batch with it.
-3. **Two guarantees in the file header have no mechanism.** "Rate limited per IP" — `ip` is read
-   into a variable that is never used again, and `RATE_LIMIT_PER_MINUTE = 100` is never
-   referenced. "No sensitive fields allowed (enforced by sanitizer at client)" states the trust
-   boundary backwards: a server that trusts a client-side sanitizer is not enforcing anything.
-   new18 requires server-side re-sanitization for exactly this reason.
+2. **`hashed_installation_id TEXT NOT NULL`, but the code could bind `null`.** `hashedId` stayed
+   `null` when an event carried no `anonymousInstallationId`, so such an event failed the same
+   transaction and took its batch with it.
+3. **Two guarantees in the file header had no mechanism.** "Rate limited per IP" — `ip` was read
+   into a variable never used again, and `RATE_LIMIT_PER_MINUTE = 100` was never referenced. "No
+   sensitive fields allowed (enforced by sanitizer at client)" states the trust boundary backwards:
+   a server that trusts a client-side sanitizer is not enforcing anything. new18 requires
+   server-side re-sanitization for exactly this reason.
+4. **Retention was a view, not a deletion.** `usage_events` kept raw event rows forever. The
+   `usage_aggregates` and `active_installations` **views** filtered to 90 and 30 days, but a view
+   that filters reads is not retention — the rows were still there, and no deletion job existed.
 
-A fourth gap is design, not defect: `usage_events` retains raw event rows forever. The
-`usage_aggregates` and `active_installations` **views** filter to 90 and 30 days, but a view that
-filters reads is not retention — the rows are still there. No deletion job exists.
-
-None of this has ever run in production, because the route was never opened. That is the only
-reason these are defects and not incidents.
+None of this ever ran in production, because the route was never opened. That is the only reason
+these are defects and not incidents.
 
 The client-side boundary that *is* enforced: `check-telemetry-boundary.mjs` asserts the telemetry
 packages import no filesystem or network module, which is why the queue sink lives in
-`apps/cli/src/queueSink.ts` rather than inside `packages/telemetry-emit`.
+`apps/cli/src/queueSink.ts` rather than inside `packages/telemetry-emit`. That guard was extended
+on 2026-08-20 — see L′.
+
+---
+
+## L′. The observatory as it now stands — a Worker, and an artifact that is not published
+
+Commit `4671854`, with the documentation retirement in `0c3f2c0`. This is the resumption of the
+work section L left as "unbuilt", and it answers each defect above in the schema rather than in
+review comments.
+
+| L defect | how the Worker forecloses it |
+| --- | --- |
+| `batch_id UNIQUE` on events | idempotency moved to its own `usage_ingested_batches` table (new18 §21) |
+| `NOT NULL` column bound `null` | events with no installation id are counted without one; nothing binds `null` to a `NOT NULL` column |
+| rate limit named but absent | no unreferenced constant claims a control that does not exist |
+| retention as a view | `enforceRetention` issues real `DELETE`s (installation hashes 90 days, batch ids 30), and `002_drop_usage_events.sql` removes the raw-events table outright |
+| client-side sanitizer trusted | `validate.ts` re-validates server-side and rejects a `batchId` that is not a 64-hex digest |
+
+**The report is deliberately not deployed.** new18 §29 is fail-closed: Cloudflare Access cannot be
+programmatically verified from CI, so [.github/workflows/usage-report.yml](../../.github/workflows/usage-report.yml)
+builds the HTML daily and stops at `upload-artifact`. A workflow artifact is readable only by
+someone who can already read this repository's Actions, so it needs no Access policy of its own. A
+green cron means "the artifact built", never "the host is protected". The one unavoidable operator
+action is recorded in [CLOUDFLARE_ACCESS_ACTION.md](CLOUDFLARE_ACCESS_ACTION.md), and reading the
+artifact from Actions indefinitely is a legitimate permanent end state rather than a deferral.
+
+**Absent data renders as an em dash, never as zero** (§25). A zero is a claim about the world and
+an unread source cannot support one. Measured at `4671854` on a deliberately degraded run — no D1
+credentials — the report emits **9 em dashes, 0 occurrences of `<td>0</td>`, 0 `NaN` and 0
+`undefined`**, while npm's real figures survive intact (4,544 and 743 downloads over 64 days) and
+the registry count is read from disk (99 audited servers). The degradation is reported on stderr
+and in the run summary, never silently. The generator validates before writing and exits non-zero
+rather than emit a report that carries `noindex` incorrectly, contains a `<script>`, or references
+an off-host resource.
+
+**Two guards were extended so they can observe their subject** — the fault class section M is
+about, found again here:
+
+- `check-telemetry-boundary.mjs` had no rule covering `apps/usage-worker/src`, which is the only
+  place in the repository that writes telemetry to a database. It now scans that directory under a
+  scoped rule forbidding outbound `fetch()` in the ingress and forbidding `USAGE_HASH_KEY` from
+  reaching a log line. Both rules were negative-controlled: an injected
+  `fetch("https://example.com/exfil")` in `retention.ts` and an injected
+  `console.log("dbg", env.USAGE_HASH_KEY)` in `hash.ts` were each flagged with file and line, and
+  the guard exited 1. Both injections were reverted.
+- The D1 failure diagnostic printed `execFileSync`'s `"Command failed: <the whole argv>"`, which
+  names no cause and echoes the interpolated SQL into a CI log. wrangler reports failures as a JSON
+  envelope on **stdout**, so a line scan of stderr found nothing.
+  [wrangler-failure.ts](../../apps/usage-worker/src/wrangler-failure.ts) parses that envelope and
+  now yields `A request to the Cloudflare API (/memberships) failed. — Authentication failed
+  (status: 400) [code: 9106]`. It lives in the Worker package, not inline in the untested `.mjs`,
+  so it is unit-tested: 16 tests, negative-controlled by deleting the two envelope-parsing lines
+  (5 failed, 11 passed) and restoring them (16 passed).
+
+Nothing is deployed. The Worker is unpublished and its `wrangler.toml` carries a placeholder
+`database_id`. Worker suite 131/131 across 6 files; `tsc -p apps/usage-worker/tsconfig.json
+--noEmit` exit 0.
 
 ---
 
@@ -777,10 +862,11 @@ for writing the strict version first.
 This report closes **distribution authority**. It does not close, and must not be read as
 closing:
 
-- **Usage ingress** — written, unrouted, and defective in three specific ways (section L). It is
-  Pages Functions on `main`, not the `apps/usage-worker/` this report once looked for and did not
-  find. The root `wrangler.toml` is a Pages config (`pages_build_output_dir`), naming the
-  *observatory* project rather than the website.
+- **Usage ingress deployment** — the ingress is now [apps/usage-worker/](../../apps/usage-worker/),
+  a separate Worker whose schema forecloses the four defects the old Pages-Functions version had
+  (section L′). It is **unpublished**: `wrangler.toml` carries a placeholder `database_id`, and the
+  daily report stops at `upload-artifact` because §29 is fail-closed on Cloudflare Access. Code
+  state is `READY_NOT_DEPLOYED`; deployment is an operator action, not unwritten code.
 - **Deployment** — nothing on this branch has been pushed. Production serves `main` (section F).
 - **The `mcp-v*` tag ruleset** — an admin write on the shared repository (section H, J item 2).
 
@@ -976,13 +1062,20 @@ The 531px digest run is chopped into 224/224/142, and `--contract` had already b
 splitting as `- -contract`. So the two opt-outs are a correctness requirement, not defensive
 symmetry — which is why a test now fails by name if a future tidy-up deletes them as redundant.
 
-### The one exception, recorded rather than fixed
+### The one exception — recorded, then removed by deletion
 
-`/functions/v1/admin/dashboard.html` overflows by 57px at a 240px viewport only, from a fixed
-250px `.metric-card`; it is clean at 320 and above. It is pre-existing, internal, unlinked from any
-navigation, carries no external stylesheet, and belongs to the Usage Observatory that §106 D
-reports as `NOT_READY`. Fixing it here would be scope creep into a surface this pass is not
-closing; it is recorded so the 244/245 figure is not read as 245/245.
+`/functions/v1/admin/dashboard.html` overflowed by 57px at a 240px viewport only, from a fixed
+250px `.metric-card`; it was clean at 320 and above. It was pre-existing, internal, unlinked from
+any navigation, carried no external stylesheet, and belonged to the abandoned Pages-Functions
+observatory. Fixing it would have been scope creep into a surface that pass was not closing, so it
+was recorded rather than fixed — which is why the figure above is 244/245 and not 245/245.
+
+It was then **deleted on 2026-08-20** along with the rest of `apps/web/public/functions/**` (section
+L′), for reasons unrelated to the overflow: the sources were never executed and described an
+architecture the project had abandoned. `find apps/web/public -name '*.html' | wc -l` now returns
+**244**, so the served set carries no recorded exception. The measurement above is left at its
+original 245/244-clean rather than restated as 244/244, because that is what was actually measured;
+the exception is closed by removal of its subject, not by a re-run.
 
 ### A bounded model/reality divergence, found and not papered over
 
@@ -1048,10 +1141,10 @@ A topic with no definite state is listed as such rather than being inferred from
 
 | §106 | topic | state | evidence |
 | --- | --- | --- | --- |
-| A | Git — base/main/branch SHA, commits | **PRESENT** | header; measured at `fda2bd5`, 18 commits over `main` |
+| A | Git — base/main/branch SHA, commits | **PRESENT** | header; measured at `4671854` (20th over `origin/main`), carried by `0c3f2c0` (21st) |
 | B | Security — semantic changed? expected NO | **UNCHANGED** | §A table: 0 added / 0 removed / 0 changed, 6 verdict packages |
 | C | Private telemetry — consent, one pipeline, lossless, retry, privacy | **CLOSED (client side)** | §L: consent flag now read; 4 queue defects fixed; rotate no longer prints the new id |
-| D | Private usage — Worker, D1, retention, Access, refresh | **NOT READY** | §L: written as Pages Functions, unrouted, 3 defects + no retention job |
+| D | Private usage — Worker, D1, retention, Access, refresh | **READY_NOT_DEPLOYED** | §L′: Worker + D1 migrations + real `DELETE` retention; 131/131; artifact-only by §29 fail-closed |
 | E | Distribution SSOT — one SSOT, migration, generator, drift gate | **CLOSED** | §D, §O; generator + drift gate + SSOT schema, all negative-controlled |
 | F | Registry — identity, live, OIDC, validate, readback, watcher | **LIVE, watcher not scheduled** | §H: 7/7 field readback PASS; watcher 404s until merge to `main` |
 | G | Platform coverage — complete matrix | **PRESENT** | 15 hosts, 4 support classes; `platform-audit-G3.md` |
@@ -1059,11 +1152,11 @@ A topic with no definite state is listed as such rather than being inferred from
 | I | Human discovery — hub, canonical pages, **legacy URL handling** | **CLOSED** | §O — the last of the three; hub and canonical pages closed earlier in §D |
 | J | Agent discovery — agent-surfaces, llms, llms-full, well-known, sitemap, drift = 0 | **CLOSED** | all six present; drift gate green; `.well-known/` carries `calllint.json` + `security.txt` |
 | K | Public reality — Team / pricing / free-forever / roadmap removed, governance | **CLOSED** | §K: 0 hits across 45 tool descriptions and 23 public files; the 4 "pricing" hits are third-party registry descriptions |
-| L | Visual — malformed CSS, card alignment, scenarios, **responsive QA** | **CLOSED** | §P: all 245 served pages rendered, 676 checks, 244/245 clean at slack 0; 1 recorded exception (`/functions/…/dashboard.html`, 240px only) |
+| L | Visual — malformed CSS, card alignment, scenarios, **responsive QA** | **CLOSED** | §P: measured over 245 served pages, 676 checks, 244/245 clean at slack 0. The single exception was `/functions/…/dashboard.html` (240px only), deleted 2026-08-20 with the Pages-Functions sources — the served set is now **244 pages with no exception** |
 | M | Continuous watch — schedule, sources, no-change behavior, no spam | **READY, NOT SCHEDULED** | §H: weekly `0 9 * * 1`, read-only, 15 hosts / 20 https sources; GitHub reports the workflow as 404 until it lands on `main` |
 | N | Tests — targeted, typecheck, test, ci:local | **GREEN** | §K: 237 files / 4393 passed / 1 skipped; `ci:local` 25 steps, exit 0 |
 | O | External writes — exact list, at or under the maximum, no duplicates | **ONE** | the npm publish of `calllint-mcp@0.2.0`, already reflected in the live Registry. No new external write in this pass |
-| P | Operator actions — only the unavoidable | **TWO** | (1) create the `mcp-v*` tag ruleset — repository admin; (2) Cloudflare Access and `USAGE_HASH_KEY` — required only when §106 D is taken up |
+| P | Operator actions — only the unavoidable | **TWO** | (1) create the `mcp-v*` tag ruleset — repository admin; (2) Cloudflare Access + `USAGE_HASH_KEY` + the real `database_id` — needed only to *deploy* the observatory; the artifact-only pipeline in §L′ needs none of them, per [CLOUDFLARE_ACCESS_ACTION.md](CLOUDFLARE_ACCESS_ACTION.md) |
 
 `OPERATOR_ACTION_REQUIRED = 2`, both in the unavoidable categories §106 P allows (protected GitHub
 ruleset; credential/environment setting). Neither is in the working tree, and neither blocks the
@@ -1075,17 +1168,27 @@ Against §107's vocabulary, and claiming no state the evidence above does not ca
 SECURITY_SEMANTICS            = UNCHANGED
 PUBLIC_WEBSITE_REALITY        = CLOSED
 WEBSITE_VISUAL_SYSTEM         = CLOSED          (245 pages rendered, 676 checks, 1 exception)
-PRIVATE_USAGE_OBSERVATORY     = NOT_READY        (written, unrouted, 3 defects)
+PRIVATE_USAGE_OBSERVATORY     = READY_NOT_DEPLOYED (Worker unpublished; placeholder database_id)
 PUBLIC_ADOPTION_SIGNALS       = DEFERRED
 GLOBAL_DISTRIBUTION_AUTHORITY = READY
 HUMAN_DISCOVERY               = READY
 AGENT_DISCOVERY               = READY
 ```
 
-One of these sits below the state §107 anticipates. `PRIVATE_USAGE_OBSERVATORY` is `NOT_READY`
-rather than `READY_NOT_DEPLOYED` because `READY_NOT_DEPLOYED` means the code is correct and merely
-unshipped, and §L item 1 shows the ordinary multi-event batch returns 500. Reporting it as
-`READY_NOT_DEPLOYED` would be the exact error this report exists to stop making.
+`PRIVATE_USAGE_OBSERVATORY` was `NOT_READY` in the earlier pass, and the reason is worth keeping
+visible rather than editing away: `READY_NOT_DEPLOYED` means the code is correct and merely
+unshipped, and §L item 1 showed the ordinary multi-event batch returning 500. Reporting that as
+`READY_NOT_DEPLOYED` would have been the exact error this report exists to stop making.
+
+It is `READY_NOT_DEPLOYED` now because the subject changed rather than the standard: the defective
+Pages-Functions ingress was deleted and replaced by [apps/usage-worker/](../../apps/usage-worker/),
+whose schema forecloses each of those four defects (§L′ table), with 131/131 tests and `tsc` exit 0.
+`READY_NOT_DEPLOYED` is the correct terminal state here rather than a way-station: the Worker is
+unpublished, its `wrangler.toml` carries a placeholder `database_id`, and §29 keeps the report an
+artifact until an operator verifies Cloudflare Access. Neither the operator action nor the
+deployment is something this repository can perform.
+
+Both remaining operator actions are unchanged in kind: `OPERATOR_ACTION_REQUIRED` is still 2.
 
 `WEBSITE_VISUAL_SYSTEM` moved from `PARTIAL` to `CLOSED` in this pass, and the earlier `PARTIAL`
 is worth keeping visible rather than editing away: its stated evidence counted media blocks in

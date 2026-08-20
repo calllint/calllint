@@ -137,3 +137,32 @@ Counting brace-openers after the offending line instead gave 14. Recorded becaus
 same fault class as the rest of this file — a measurement whose result was determined by
 its own framing rather than by its subject.
 
+
+**F4 — the "static-only host" premise this audit rests on is FALSE, re-measured 2026-08-20.**
+Rows C8, D1 and D4 each state, as measured fact, that `calllint.com` is "a static Pages host
+that runs no Functions". It runs Functions: `POST /v1/events/trust` returns **204 with an
+empty body**, which is `apps/web/functions/v1/events/trust.ts` executing. The narrower true
+statement is a **routing** one — `_routes.json` includes only `/v1/public/*`,
+`/v1/events/trust` and `/trust/*`, so `/v1/events/usage` was *unrouted*, not unsupported.
+
+The rows' *conclusions* survive on the corrected premise: an unrouted POST still receives
+`404.html`, so C8's trap (a dead endpoint answering in the shape of a live
+`partner-api.error.v0` response) is real and unchanged, and D1/D4's dead sources were still
+never executed.
+
+Why the premise held for a day: it was inferred from status codes measured **without a
+control**. On this project a `POST` to a path that certainly has no handler returns **405**,
+and a `GET` returns **404** with a 6067-byte HTML body — identical to what the "dead"
+Function routes returned. Every observation was consistent with both "no runtime" and
+"unrouted" and could distinguish neither. This is the same fault class as F3 above and as the
+rest of this file: a measurement whose result was fixed by its framing rather than by its
+subject. Only a reply that *differs* from a known-nonexistent sibling is evidence.
+
+Row states as of 2026-08-20: **C8 CLOSED in code, blocked on deploy** —
+`transport.ts` `TELEMETRY_ENDPOINT` now points at `https://telemetry.calllint.com/v1/events/usage`,
+a separate Worker host, which is the target this row asked for; the Worker is unpublished, so
+the POST still fails, but it now fails against a host with no static 404 page to mimic an API
+error. **D1 and D4 are CLOSED by deletion**: both `functions/**` and
+`apps/web/public/functions/**` were removed on 2026-08-20 (0 tracked files remain under
+either), so the two byte-identical dead trees and the `adoption-signals.ts` source are gone.
+`PUBLIC_USAGE_SIGNALS = DEFERRED` now holds in source as well as in behaviour.

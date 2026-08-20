@@ -25,15 +25,29 @@ where the effort actually stopped and why.
 
 ## Why the backend is not deployed
 
-The Cloudflare Pages project `calllint-www` was created as a **pure static site**.
-Static-mode Pages projects do not support Pages Functions at all: every Function route
-is served the static `apps/web/public/404.html` instead of executing. That 404 page
-contains example JSON (`"code":"not_found"`), which is why the failure looked like an API
-error rather than a missing runtime.
+**Corrected 2026-08-20.** This section previously said `calllint-www` was created as a
+**pure static site** which "does not support Pages Functions at all". That is false, and
+the correction matters more than the original claim: `POST /v1/events/trust` returns **204
+with an empty body**, which is `apps/web/functions/v1/events/trust.ts` executing.
 
-Confirmed by deploying a zero-dependency `/health` Function — it also returned the static
-404. The D1 binding and `_routes.json` being present made no difference; neither is read
-in static mode.
+The real cause is narrower, and is a **routing** fact rather than a runtime one:
+`_routes.json` includes only `/v1/public/*`, `/v1/events/trust` and `/trust/*`.
+`/v1/events/usage` was never in that list, so it was **unrouted** and served the static
+`apps/web/public/404.html`. D1 stayed empty because the ingress was never reachable — not
+because a runtime was absent.
+
+Why the wrong conclusion survived four hypotheses: the diagnosis rested on status codes
+measured without a control. On this project `POST` to a path that certainly has no handler
+returns **405**, and `GET` returns **404** with a 6067-byte HTML body — the same answers
+the "dead" Function routes gave. Every observation was therefore consistent with "no
+runtime" *and* with "unrouted", and could not distinguish them. Only a response that
+differs from a known-nonexistent sibling is evidence; the 204 above is that response. The
+zero-dependency `/health` Function returned the static 404 for the same reason the usage
+endpoint did — it was not in the include list either.
+
+The 404 page compounds the confusion by containing example JSON (`"code":"not_found"`) as
+documentation, so a dead route answers in the shape of a live API error. Check
+`content-type` and byte count, not just status.
 
 Four hypotheses were tried and were all wrong: `wrangler.toml` location, `_routes.json`
 contents, wrangler `name` mismatch, `pages_build_output_dir`. None of them was the cause.
@@ -43,10 +57,10 @@ from the Dashboard or CLI flags.
 ## Why the surface was withdrawn rather than fixed
 
 The homepage was the tail of the chain, not the load-bearing part. The load-bearing part
-is the `/v1/events/usage` **ingress** Function. With no Functions there is no ingress, so
-D1 stays empty no matter what the homepage renders. A permanent "Adoption metrics coming
-soon" placeholder also conflicts with the project's own honesty principles (§ product
-principle: evidence is mandatory; UNKNOWN is not SAFE).
+is the `/v1/events/usage` **ingress**. With no reachable ingress there is nothing to
+ingest, so D1 stays empty no matter what the homepage renders. A permanent "Adoption
+metrics coming soon" placeholder also conflicts with the project's own honesty principles
+(§ product principle: evidence is mandatory; UNKNOWN is not SAFE).
 
 Additionally, "adoption signals" is semantically *third-party* data. For self-only usage
 it degrades to a local counter, which needs none of the D1 / HMAC / milestone-threshold
@@ -64,7 +78,7 @@ Deploy the ingress as a **separate Worker** with its own D1 binding, then point
 untouched.
 
 What now exists: [apps/usage-worker/](../../apps/usage-worker/) is that Worker, and
-`DEFAULT_ENDPOINT` points at `https://telemetry.calllint.com/v1/events/usage`. Neither is
+`TELEMETRY_ENDPOINT` points at `https://telemetry.calllint.com/v1/events/usage`. Neither is
 deployed yet — the Worker is unpublished and its `wrangler.toml` still carries a
 placeholder `database_id`.
 

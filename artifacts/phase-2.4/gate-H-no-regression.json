@@ -76,7 +76,7 @@
     },
     {
       "id": "typecheck",
-      "script": "tsc -p tsconfig.json && pnpm typecheck:functions",
+      "script": "tsc -p tsconfig.json && pnpm typecheck:functions && pnpm typecheck:worker",
       "inLocalChain": true,
       "workflowBinding": "ci.yml#test",
       "bindingFault": null,

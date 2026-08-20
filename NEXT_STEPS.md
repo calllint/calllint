@@ -7,9 +7,12 @@
 > `/v1/public/adoption-signals` endpoint for the homepage. All three premises are
 > now false:
 >
-> - The Pages-Functions approach does not work. `calllint-www` is a **static-only**
->   project, and static-mode Pages serves `404.html` for every Function route rather
->   than executing it. The investigation is recorded in
+> - The Pages-Functions ingress it described was never routed and has been deleted.
+>   `/v1/events/usage` was left out of the `_routes.json` include list, so it returned
+>   the static 404 and D1 stayed empty. (An earlier version of this note blamed a
+>   "static-only" project; that was measured false on 2026-08-20 — `POST
+>   /v1/events/trust` returns 204, so Functions do run here. The endpoint was
+>   unrouted, not unsupported.) Background:
 >   [artifacts/usage-observatory/DEPLOYMENT_STATUS.md](artifacts/usage-observatory/DEPLOYMENT_STATUS.md).
 > - `calllint-usage-observatory.pages.dev` was never created. Every URL in the old
 >   file pointed at a host that does not exist.
