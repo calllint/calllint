@@ -43,6 +43,27 @@ export interface TelemetrySignal {
   inputKind?: string
 }
 
+/**
+ * Flatten the per-config telemetry signals out of an aggregate command's child results.
+ *
+ * The aggregate scan paths (`--auto` / `--changed` / `--agent` / `scan-all`) build an
+ * array of single-config results, each already carrying its own signal, and then return
+ * one combined result. Without this, every child signal is discarded and a 5-config
+ * `--auto` run reports zero events — so observed usage would systematically under-count
+ * exactly the multi-config runs the private usage page is meant to measure.
+ */
+export function collectSignals(
+  results: readonly { telemetry?: TelemetrySignal | readonly TelemetrySignal[] }[],
+): TelemetrySignal[] {
+  const out: TelemetrySignal[] = []
+  for (const r of results) {
+    if (!r.telemetry) continue
+    if (Array.isArray(r.telemetry)) out.push(...r.telemetry)
+    else out.push(r.telemetry as TelemetrySignal)
+  }
+  return out
+}
+
 const VERDICT_EVENT: Record<TelemetryResult, TelemetryEventName> = {
   SAFE: "decision_safe",
   REVIEW: "decision_review",
@@ -65,9 +86,34 @@ function eventFor(signal: TelemetrySignal): TelemetryEventName | null {
  */
 export function buildCliEmitter(
   env: Record<string, string | undefined>,
-  opts: { sink?: Parameters<typeof createEmitter>[0]["sink"]; consented?: boolean } = {},
+  opts: {
+    sink?: Parameters<typeof createEmitter>[0]["sink"]
+    consented?: boolean
+    /**
+     * The stored anonymous installation ID, stamped onto every event this emitter emits.
+     * Read from state by the caller — never generated here, so scanning cannot mint an
+     * identity as a side effect. Absent ⇒ events carry no id (the sanitizer allows that).
+     */
+    installationId?: string
+  } = {},
 ): Emitter {
-  return createEmitter({ source: "cli", env, sink: opts.sink, consented: opts.consented })
+  const base = createEmitter({
+    source: "cli",
+    env,
+    sink: opts.sink,
+    consented: opts.consented,
+  })
+  if (!opts.installationId) return base
+  // Wrap rather than thread the id through every call site: one place decides identity,
+  // and a new emit site cannot forget to attach it. An explicit id on the input still
+  // wins, so a test can override.
+  const id = opts.installationId
+  return {
+    source: base.source,
+    emit(input) {
+      return base.emit({ anonymousInstallationId: id, ...input })
+    },
+  }
 }
 
 /**
@@ -77,23 +123,34 @@ export function buildCliEmitter(
  */
 export function emitCommandSignal(
   emitter: Emitter | undefined,
-  signal: TelemetrySignal | undefined,
+  signal: TelemetrySignal | readonly TelemetrySignal[] | undefined,
   productVersion: string | undefined,
 ): void {
   if (!emitter || !signal) return
-  try {
-    const eventName = eventFor(signal)
-    if (!eventName) return
-    const input: RawEmitInput = {
-      eventName,
-      ...(signal.verdict ? { result: signal.verdict } : {}),
-      ...(signal.hostFamily ? { hostFamily: signal.hostFamily } : {}),
-      ...(signal.inputKind ? { inputKind: signal.inputKind } : {}),
-      ...(productVersion ? { productVersion } : {}),
+  // One signal or many, emitted through the SAME path. A multi-config scan
+  // (`--auto` / `--changed` / `--agent` / `scan-all`) reaches N verdicts, and the
+  // aggregate commands previously returned none of them: their per-config results each
+  // carried a `telemetry` field that the aggregate return dropped on the floor. Widening
+  // the signal here (rather than adding a second emit site) keeps `run()`'s single
+  // central emit point intact.
+  const signals = Array.isArray(signal) ? signal : [signal as TelemetrySignal]
+  for (const one of signals) {
+    try {
+      if (!one) continue
+      const eventName = eventFor(one)
+      if (!eventName) continue
+      const input: RawEmitInput = {
+        eventName,
+        ...(one.verdict ? { result: one.verdict } : {}),
+        ...(one.hostFamily ? { hostFamily: one.hostFamily } : {}),
+        ...(one.inputKind ? { inputKind: one.inputKind } : {}),
+        ...(productVersion ? { productVersion } : {}),
+      }
+      emitter.emit(input)
+    } catch {
+      // Telemetry is a side-channel: any fault here must never change CLI behavior.
+      // Scoped INSIDE the loop on purpose — one bad signal must not silence the rest.
     }
-    emitter.emit(input)
-  } catch {
-    // Telemetry is a side-channel: any fault here must never change CLI behavior.
   }
 }
 

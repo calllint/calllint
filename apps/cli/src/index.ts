@@ -12,6 +12,7 @@ import { resolveClock } from "./clock.js"
 import { breathe } from "./breathe.js"
 import { resolveToolVersion } from "./version.js"
 import { buildCliEmitter } from "./telemetry.js"
+import { queueSink } from "./queueSink.js"
 
 /**
  * The first locally-present host a deep link can actually reach.
@@ -145,11 +146,37 @@ async function main(): Promise<void> {
     // ignore: branding is cosmetic
   }
 
-  // Telemetry emitter (new11 §3.5 / M1) — wired but DARK: local `cli` tier, no
-  // consent, default noopSink. `shouldEmit` returns false, so nothing is emitted
-  // and CLI output is byte-identical. This is the only place with process env; the
-  // universal CALLLINT_TELEMETRY kill-switch is honored via the injected env.
-  const emitter = buildCliEmitter(process.env)
+  // Telemetry emitter (new11 §3.5 / M1) — wired to STORED consent, still default-OFF.
+  //
+  // Previously this passed only `process.env`, so `consented` was always undefined and
+  // `shouldEmit` returned false for the `cli` tier unconditionally: `telemetry enable`
+  // wrote consent to disk that nothing ever read, and the queue the flush drains was
+  // never filled by anything. Consent now comes from the state file, and events go to a
+  // queue-backed sink instead of `noopSink`.
+  //
+  // The gate is UNCHANGED and still fails closed: the local tier emits only when
+  // `consented === true`, and `CALLLINT_TELEMETRY=0` overrides consent via the injected
+  // env. Absent an explicit `telemetry enable`, `telemetryEnabled` is false and this is
+  // byte-for-byte the previous dark behavior.
+  //
+  // The installation ID rides on every event as `anonymousInstallationId`. It is read
+  // here (not generated) — `enableTelemetry()` owns creation, so a run cannot mint an
+  // identity as a side effect of scanning.
+  let telemetryState: { telemetryEnabled: boolean; anonymousInstallationId?: string } = {
+    telemetryEnabled: false,
+  }
+  try {
+    const { loadState } = await import("./state.js")
+    telemetryState = await loadState()
+  } catch {
+    // Unreadable state ⇒ stay off. Failing closed is the only safe direction here.
+  }
+  const sink = queueSink()
+  const emitter = buildCliEmitter(process.env, {
+    sink,
+    consented: telemetryState.telemetryEnabled === true,
+    installationId: telemetryState.anonymousInstallationId,
+  })
 
   const result = run(argv, {
     cwd: process.cwd(),
@@ -181,8 +208,19 @@ async function main(): Promise<void> {
   if (result.stderr) process.stderr.write(result.stderr + "\n")
   process.exitCode = result.exitCode
 
-  // Best-effort telemetry flush: runs AFTER command completion, never affects output or exit code
+  // Best-effort telemetry flush: runs AFTER command completion, never affects output or
+  // exit code. Two steps, in order: persist this run's buffered events into the on-disk
+  // queue, then attempt delivery. Persisting first means an event survives even if the
+  // network leg fails or the process is killed before delivery.
+  //
+  // Both are inside the same `try` and both swallow their own errors, so telemetry cannot
+  // change stdout/stderr/exitCode — all three are already written above.
   try {
+    if (sink.pending > 0) {
+      const { TelemetryQueue } = await import("./queue.js")
+      const { getQueuePath } = await import("./paths.js")
+      await sink.drainTo(new TelemetryQueue(getQueuePath()))
+    }
     const { flushTelemetry } = await import("./flush.js")
     await flushTelemetry()
   } catch {

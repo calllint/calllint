@@ -97,18 +97,28 @@ describe("telemetry wiring — gated off by default (cli tier, no consent)", () 
 
 describe("telemetry wiring — mapping (consent + injected sink, test-only)", () => {
   for (const { file, verdict } of VERDICT_FIXTURES) {
-    it(`${file}: emits decision_${verdict.toLowerCase()} with result=${verdict}`, () => {
+    it(`${file}: emits preflight_completed + decision_${verdict.toLowerCase()} with result=${verdict}`, () => {
       const dir = mkdtempSync(join(tmpdir(), "cl-tel-"))
       try {
         const text = readFileSync(goldenPath(file), "utf8")
         const sink = memorySink()
         const emitter = buildCliEmitter({}, { sink, consented: true })
         run(["scan", "--stdin", "--no-emoji"], deps(dir, text, { writeCacheFile: false, emitter }))
-        expect(sink.events).toHaveLength(1)
-        const ev = sink.events[0]!
+        // TWO events per scanned config, in order: that a preflight ran, then what it
+        // decided. Asserted as a pair rather than loosened to `length >= 1`: counting only
+        // `decision_*` cannot tell "no scans ran" from "all scans were SAFE", so the
+        // preflight event is load-bearing for the usage measurement and must not silently
+        // disappear.
+        expect(sink.events.map((e) => e.eventName)).toEqual([
+          "preflight_completed",
+          _VERDICT_EVENT[verdict],
+        ])
+        const ev = sink.events[1]!
         expect(ev.eventName).toBe(_VERDICT_EVENT[verdict])
         expect(ev.result).toBe(verdict)
         expect(ev.source).toBe("cli")
+        // The preflight event carries no verdict — it reports occurrence, not outcome.
+        expect(sink.events[0]!.result).toBeUndefined()
       } finally {
         rmSync(dir, { recursive: true, force: true })
       }
