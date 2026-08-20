@@ -121,6 +121,54 @@ console.log(`   - Official MCP Registry: ${ssot.officialMcpRegistry.name}`)
 console.log(`   - Hosts: ${ssot.hosts.length}`)
 console.log(`   - Model Intent Pages: ${ssot.modelIntentLandingPages.length}`)
 
+/*
+ * Public labels for the four internal support classes.
+ *
+ * The machine surface (`agent-surfaces.json`) keeps `supportClass` verbatim — an agent
+ * consuming a contract wants the enum, and the four classes ARE the contract. The human
+ * surface must not: a page that renders `DISCOVERY_ONLY` in a badge has told the reader
+ * which enum the codebase uses and nothing about what CallLint will actually do for them.
+ * The acceptance criterion is that a human understands platform + support + one truthful
+ * action at a glance, so the visible text is a plain-language label.
+ *
+ * The mapping is total by construction: `publicSupport()` throws on an unmapped class
+ * rather than falling back to printing the raw enum, because a silent fallback would
+ * reintroduce exactly the leak this table exists to prevent — and it would do so only for
+ * whichever class was added last, which is the one nobody is looking at.
+ *
+ * Wording is deliberately about CallLint's behaviour, never about the host's quality.
+ * "Guide only" is not a judgement of Kiro; it is a statement of what we can observe.
+ */
+const PUBLIC_SUPPORT_LABELS = {
+  NATIVE: {
+    label: 'Auto-detects',
+    hint: 'CallLint finds this host’s config on its own.',
+  },
+  CONFIG_SCAN: {
+    label: 'Scan config',
+    hint: 'CallLint scans this host’s config when you point it at the file.',
+  },
+  DISCOVERY_ONLY: {
+    label: 'Guide only',
+    hint: 'No automatic detection yet — this page documents where the config lives.',
+  },
+  DEFERRED: {
+    label: 'Guide only',
+    hint: 'Support is not implemented yet — this page documents what we can observe today.',
+  },
+}
+
+function publicSupport(supportClass) {
+  const entry = PUBLIC_SUPPORT_LABELS[supportClass]
+  if (!entry) {
+    throw new Error(
+      `No public label for supportClass "${supportClass}". Add it to PUBLIC_SUPPORT_LABELS — ` +
+        `do not fall back to printing the internal enum on a human page.`,
+    )
+  }
+  return entry
+}
+
 // Load template
 const TEMPLATE_PATH = join(__dirname, 'templates/host-page.hbs')
 const templateSource = readFileSync(TEMPLATE_PATH, 'utf8')
@@ -164,7 +212,8 @@ function generateHostPages() {
     const hostDir = join(outputDir, host.id)
     mkdirSync(hostDir, { recursive: true })
 
-    const html = hostPageTemplate(host)
+    const { label: supportLabel, hint: supportLabelHint } = publicSupport(host.supportClass)
+    const html = hostPageTemplate({ ...host, supportLabel, supportLabelHint })
     const outPath = join(hostDir, 'index.html')
 
     writeFileSync(outPath, html, 'utf8')
@@ -254,7 +303,7 @@ ${ssot.hosts
     h => `            <li>
               <a href="/harnesses/${h.id}/">${h.displayName}</a>
               <span class="vendor">by ${h.vendor}</span>
-              <span class="support-class">${h.supportClass}</span>
+              <span class="support-class" title="${publicSupport(h.supportClass).hint}">${publicSupport(h.supportClass).label}</span>
             </li>`
   )
   .join('\n')}
@@ -376,6 +425,58 @@ function generateAgentSurfaces() {
   const outPath = join(ROOT, 'apps/web/public/agent-surfaces.json')
   writeFileSync(outPath, JSON.stringify(agentSurfaces, null, 2) + '\n', 'utf8')
   console.log(`✅ Generated agent-surfaces.json (${agentSurfaces.agents.length} agents)`)
+}
+
+/**
+ * Generate apps/web/public/harnesses/sitemap.xml
+ *
+ * WHY THIS IS GENERATED AND NOT HAND-WRITTEN. It was hand-written, and it drifted into the
+ * worst state a sitemap can reach: all 9 of its URLs pointed under `/harnesses/deepseek/`,
+ * and 8 of those were the model × harness cartesian pages that commit 79f3cb8 deliberately
+ * DELETED. So `robots.txt` was advertising a sitemap that actively submitted 8 dead URLs to
+ * crawlers — and the surface it submitted was precisely the cartesian SEO plane the
+ * distribution contract forbids. Meanwhile not one of the 15 canonical host pages was
+ * listed. A sitemap is a promise about what exists; a hand-maintained one makes that promise
+ * go stale the moment the cohort changes, silently, because nothing compares the two.
+ *
+ * Deriving it from the SSOT makes the promise structurally true: a host that leaves the SSOT
+ * leaves the sitemap in the same run that deletes its page.
+ *
+ * The intent landing page (`/harnesses/deepseek/`) is listed deliberately — §6 preserves it
+ * and it is a real page. Its 8 former children are not, and cannot come back, because
+ * nothing here can invent a URL the SSOT does not name.
+ */
+function generateSitemap() {
+  const urls = [
+    { loc: `https://calllint.com/harnesses/`, priority: '0.8' },
+    // §6: preserved as a model-intent landing page, not a host page.
+    { loc: `https://calllint.com/harnesses/deepseek/`, priority: '0.5' },
+    ...ssot.hosts.map((h) => ({
+      loc: `https://calllint.com${h.canonicalPath.endsWith('/') ? h.canonicalPath : h.canonicalPath + '/'}`,
+      priority: h.priority === 'P0' ? '0.7' : '0.6',
+    })),
+  ]
+
+  /* No <lastmod>. Same reasoning as `describes` above: a wall-clock stamp would make every
+   * run produce a diff even when the cohort did not move, which is what lets real drift
+   * hide in the noise. */
+  const xml = `<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  GENERATED by scripts/generate-distribution-surfaces.mjs from
+  apps/web/data/distribution-surfaces.json. Do not hand-edit: a hand-maintained sitemap
+  drifted into advertising 8 deleted cartesian pages while listing none of the canonical
+  host pages. Add or remove a host in the SSOT instead.
+-->
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+${urls
+  .map((u) => `  <url>\n    <loc>${u.loc}</loc>\n    <priority>${u.priority}</priority>\n  </url>`)
+  .join('\n')}
+</urlset>
+`
+
+  const outPath = join(ROOT, 'apps/web/public/harnesses/sitemap.xml')
+  writeFileSync(outPath, xml, 'utf8')
+  console.log(`✅ Generated harnesses/sitemap.xml (${urls.length} URLs)`)
 }
 
 /**
@@ -716,9 +817,19 @@ ${p0p1.map(h => `- **${h.displayName}**: \`calllint scan --agent ${h.id}\``).joi
 npm install -g calllint
 \`\`\`
 
+## Machine-Readable Surface
+
+Do not scrape these pages. Every fact above is published as structured data:
+
+- **https://calllint.com/agent-surfaces.json** — the host cohort (ids, support class,
+  config paths, scan commands, authority surfaces, coverage boundaries)
+
+An agent should read that file rather than parsing \`/harnesses/\` HTML.
+
 ## Learn More
 
 - Website: https://calllint.com
+- Agent surfaces: https://calllint.com/agent-surfaces.json
 - Harnesses: https://calllint.com/harnesses/
 - Trust Lookup: https://calllint.com/trust/
 - GitHub: https://github.com/calllint/calllint
@@ -743,6 +854,7 @@ function main() {
   // G5: Machine-readable surfaces
   console.log('\n📄 Generating machine-readable surfaces...')
   generateAgentSurfaces()
+  generateSitemap()
   generateLlmsTxt()
   generateLlmsFullTxt()
   generateAgentInstructions()
@@ -753,6 +865,7 @@ function main() {
   console.log(`  - ${hosts.length} host pages:`)
   hosts.forEach(h => console.log(`    - /harnesses/${h}/`))
   console.log('  - agent-surfaces.json')
+  console.log('  - harnesses/sitemap.xml')
   console.log('  - llms.txt')
   console.log('  - llms-full.txt')
   console.log('  - agent-instructions.md')

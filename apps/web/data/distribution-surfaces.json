@@ -1,5 +1,5 @@
 {
-  "$schema": "https://calllint.com/schemas/distribution-surfaces.v1.json",
+  "$schema": "./distribution-surfaces.schema.json",
   "version": "1.0.0",
   "generatedAt": "2026-08-19T00:00:00.000Z",
   "officialMcpRegistry": {
@@ -21,7 +21,12 @@
       "displayName": "Claude Code",
       "vendor": "Anthropic",
       "priority": "P0",
-      "authoritySurfaces": ["mcp", "filesystem", "shell", "plugins"],
+      "authoritySurfaces": [
+        "mcp",
+        "filesystem",
+        "shell",
+        "plugins"
+      ],
       "configEvidence": [
         "~/.claude/settings.json",
         "<project>/.claude/settings.json"
@@ -47,14 +52,17 @@
           "officialSource": "https://code.claude.com/docs/en/plugin-marketplaces"
         }
       ],
-      "coverageBoundary": null
+      "coverageBoundary": "CallLint scans MCP server entries only. Skills, hooks and permission settings in the same file are not covered."
     },
     {
       "id": "claude-desktop",
       "displayName": "Claude Desktop",
       "vendor": "Anthropic",
       "priority": "P0",
-      "authoritySurfaces": ["mcp", "filesystem"],
+      "authoritySurfaces": [
+        "mcp",
+        "filesystem"
+      ],
       "configEvidence": [
         "~/Library/Application Support/Claude/claude_desktop_config.json",
         "%APPDATA%/Claude/claude_desktop_config.json"
@@ -75,14 +83,18 @@
           "state": "AVAILABLE"
         }
       ],
-      "coverageBoundary": null
+      "coverageBoundary": "CallLint scans MCP server entries only. Other Claude Desktop settings in the same file are not covered."
     },
     {
       "id": "cursor",
       "displayName": "Cursor",
       "vendor": "Anysphere",
       "priority": "P0",
-      "authoritySurfaces": ["mcp", "filesystem", "shell"],
+      "authoritySurfaces": [
+        "mcp",
+        "filesystem",
+        "shell"
+      ],
       "configEvidence": [
         "~/.cursor/mcp.json",
         "<project>/.cursor/mcp.json"
@@ -109,14 +121,17 @@
           "officialSource": "https://cursor.com/marketplace"
         }
       ],
-      "coverageBoundary": null
+      "coverageBoundary": "CallLint scans MCP server entries only. Cursor rules and editor settings are not covered."
     },
     {
       "id": "vscode",
       "displayName": "VS Code",
       "vendor": "Microsoft",
       "priority": "P1",
-      "authoritySurfaces": ["extensions", "mcp"],
+      "authoritySurfaces": [
+        "extensions",
+        "mcp"
+      ],
       "configEvidence": [
         "~/.vscode/mcp.json",
         "<project>/.vscode/mcp.json"
@@ -137,14 +152,17 @@
           "auditNote": "MCP support via extensions, core VS Code Registry consumption unclear"
         }
       ],
-      "coverageBoundary": null
+      "coverageBoundary": "CallLint scans MCP server entries only. VS Code extensions and workspace settings are not covered."
     },
     {
       "id": "windsurf",
       "displayName": "Windsurf",
       "vendor": "Codeium",
       "priority": "P1",
-      "authoritySurfaces": ["mcp", "filesystem"],
+      "authoritySurfaces": [
+        "mcp",
+        "filesystem"
+      ],
       "configEvidence": [
         "~/.windsurf/mcp.json",
         "<project>/.windsurf/mcp.json"
@@ -169,14 +187,17 @@
           "state": "AUDIT_REQUIRED"
         }
       ],
-      "coverageBoundary": null
+      "coverageBoundary": "CallLint scans MCP server entries only. Windsurf rules and workflow settings are not covered."
     },
     {
       "id": "workbuddy",
       "displayName": "WorkBuddy",
       "vendor": "Tencent Cloud",
       "priority": "P0",
-      "authoritySurfaces": ["mcp", "extensions"],
+      "authoritySurfaces": [
+        "mcp",
+        "extensions"
+      ],
       "configEvidence": [
         "~/.workbuddy/mcp.json",
         "<project>/.workbuddy/mcp.json"
@@ -203,14 +224,17 @@
           "officialSource": "https://cloud.tencent.com/document/product/1729"
         }
       ],
-      "coverageBoundary": null
+      "coverageBoundary": "CallLint scans MCP server entries only. Other WorkBuddy settings in the same file are not covered."
     },
     {
       "id": "qwen-code",
       "displayName": "Qwen Code",
       "vendor": "Alibaba Cloud",
       "priority": "P1",
-      "authoritySurfaces": ["mcp", "tools"],
+      "authoritySurfaces": [
+        "mcp",
+        "tools"
+      ],
       "configEvidence": [
         "~/.qwen/settings.json",
         "<project>/.qwen/settings.json"
@@ -238,14 +262,18 @@
           "officialSource": "https://qwenlm.github.io/qwen-code-docs/en/users/extension/introduction/"
         }
       ],
-      "coverageBoundary": null
+      "coverageBoundary": "CallLint scans MCP server entries only. Other Qwen Code settings in the same file are not covered."
     },
     {
       "id": "openclaw",
       "displayName": "OpenClaw",
       "vendor": "Open Source",
       "priority": "P3",
-      "authoritySurfaces": ["mcp", "skills", "exec"],
+      "authoritySurfaces": [
+        "mcp",
+        "skills",
+        "exec"
+      ],
       "configEvidence": [
         "~/.openclaw/openclaw.json"
       ],
@@ -276,7 +304,11 @@
       "displayName": "OpenAI Codex",
       "vendor": "OpenAI",
       "priority": "P2",
-      "authoritySurfaces": ["code-generation", "api", "mcp"],
+      "authoritySurfaces": [
+        "code-generation",
+        "api",
+        "mcp"
+      ],
       "configEvidence": [
         "Config mechanism requires verification"
       ],
@@ -306,7 +338,11 @@
       "displayName": "GitHub Copilot CLI",
       "vendor": "GitHub",
       "priority": "P2",
-      "authoritySurfaces": ["shell", "cli", "mcp"],
+      "authoritySurfaces": [
+        "shell",
+        "cli",
+        "mcp"
+      ],
       "configEvidence": [
         "Config mechanism requires verification"
       ],
@@ -335,7 +371,11 @@
       "displayName": "Cline",
       "vendor": "Open Source",
       "priority": "P2",
-      "authoritySurfaces": ["vscode-extensions", "tools", "mcp"],
+      "authoritySurfaces": [
+        "vscode-extensions",
+        "tools",
+        "mcp"
+      ],
       "configEvidence": [
         "VS Code extension, config mechanism TBD"
       ],
@@ -366,7 +406,10 @@
       "displayName": "Gemini CLI",
       "vendor": "Google",
       "priority": "P2",
-      "authoritySurfaces": ["mcp", "tools"],
+      "authoritySurfaces": [
+        "mcp",
+        "tools"
+      ],
       "configEvidence": [
         "~/.gemini/config.json or similar"
       ],
@@ -397,7 +440,10 @@
       "displayName": "CodeBuddy",
       "vendor": "Tencent",
       "priority": "P2",
-      "authoritySurfaces": ["mcp", "extensions"],
+      "authoritySurfaces": [
+        "mcp",
+        "extensions"
+      ],
       "configEvidence": [
         "Config path requires verification"
       ],
@@ -427,7 +473,10 @@
       "displayName": "OpenCode",
       "vendor": "Open Source",
       "priority": "P3",
-      "authoritySurfaces": ["mcp", "tools"],
+      "authoritySurfaces": [
+        "mcp",
+        "tools"
+      ],
       "configEvidence": [
         "Documented config paths require verification"
       ],
@@ -454,7 +503,11 @@
       "displayName": "Kiro",
       "vendor": "Anthropic",
       "priority": "P2",
-      "authoritySurfaces": ["mcp", "filesystem", "shell"],
+      "authoritySurfaces": [
+        "mcp",
+        "filesystem",
+        "shell"
+      ],
       "configEvidence": [
         "Workspace/user MCP config requires verification"
       ],

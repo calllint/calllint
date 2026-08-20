@@ -46,7 +46,10 @@
           </p>
           <div class="host-meta">
             <span class="badge badge-{{priority}}">{{priority}}</span>
-            <span class="badge badge-{{supportClass}}">{{supportClass}}</span>
+            {{!-- The CSS hook keeps the internal class so stylesheets need no change; the
+                  VISIBLE text is the public label. A human should learn what CallLint does
+                  for this host, not which enum the codebase files it under. --}}
+            <span class="badge badge-{{supportClass}}" title="{{supportLabelHint}}">{{supportLabel}}</span>
           </div>
         </header>
 
@@ -60,8 +63,8 @@
           {{else}}
           <p>
             CallLint does not yet support native auto-discovery for {{displayName}}.
-            {{#if supportClass}}
-            <strong>Support class:</strong> {{supportClass}}
+            {{#if supportLabelHint}}
+            {{supportLabelHint}}
             {{/if}}
           </p>
           {{/if}}

@@ -54,6 +54,7 @@ Platforms that consume the Official MCP Registry can discover CallLint automatic
   - mcp-stdio: AVAILABLE (upstream: officialMcpRegistry)
   - claude-plugin: AUDIT_REQUIRED — https://code.claude.com/docs/en/plugin-marketplaces
 
+**Coverage Boundary**: CallLint scans MCP server entries only. Skills, hooks and permission settings in the same file are not covered.
 
 ### Claude Desktop (Anthropic)
 
@@ -67,6 +68,7 @@ Platforms that consume the Official MCP Registry can discover CallLint automatic
 **Distribution Primitives**:
   - mcp-stdio: AVAILABLE (upstream: officialMcpRegistry)
 
+**Coverage Boundary**: CallLint scans MCP server entries only. Other Claude Desktop settings in the same file are not covered.
 
 ### Cursor (Anysphere)
 
@@ -81,6 +83,7 @@ Platforms that consume the Official MCP Registry can discover CallLint automatic
   - mcp-stdio: AUDIT_REQUIRED (upstream: officialMcpRegistry)
   - cursor-plugin: AUDIT_REQUIRED — https://cursor.com/marketplace
 
+**Coverage Boundary**: CallLint scans MCP server entries only. Cursor rules and editor settings are not covered.
 
 ### VS Code (Microsoft)
 
@@ -94,6 +97,7 @@ Platforms that consume the Official MCP Registry can discover CallLint automatic
 **Distribution Primitives**:
   - mcp-stdio: AUDIT_REQUIRED (upstream: officialMcpRegistry)
 
+**Coverage Boundary**: CallLint scans MCP server entries only. VS Code extensions and workspace settings are not covered.
 
 ### Windsurf (Codeium)
 
@@ -108,6 +112,7 @@ Platforms that consume the Official MCP Registry can discover CallLint automatic
   - mcp-stdio: AUDIT_REQUIRED (upstream: officialMcpRegistry)
   - windsurf-mcp-marketplace: AUDIT_REQUIRED
 
+**Coverage Boundary**: CallLint scans MCP server entries only. Windsurf rules and workflow settings are not covered.
 
 ### WorkBuddy (Tencent Cloud)
 
@@ -122,6 +127,7 @@ Platforms that consume the Official MCP Registry can discover CallLint automatic
   - mcp-stdio: AUDIT_REQUIRED (upstream: officialMcpRegistry)
   - tencent-mcp-market: READY_NOT_SUBMITTED — https://cloud.tencent.com/document/product/1729
 
+**Coverage Boundary**: CallLint scans MCP server entries only. Other WorkBuddy settings in the same file are not covered.
 
 ### Qwen Code (Alibaba Cloud)
 
@@ -136,6 +142,7 @@ Platforms that consume the Official MCP Registry can discover CallLint automatic
   - mcp-stdio: AUDIT_REQUIRED (upstream: officialMcpRegistry)
   - qwen-extension-conversion: AUDIT_REQUIRED — https://qwenlm.github.io/qwen-code-docs/en/users/extension/introduction/
 
+**Coverage Boundary**: CallLint scans MCP server entries only. Other Qwen Code settings in the same file are not covered.
 
 ### OpenClaw (Open Source)
 

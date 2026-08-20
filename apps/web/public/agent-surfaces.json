@@ -43,7 +43,7 @@
           "officialSource": "https://code.claude.com/docs/en/plugin-marketplaces"
         }
       ],
-      "coverageBoundary": null
+      "coverageBoundary": "CallLint scans MCP server entries only. Skills, hooks and permission settings in the same file are not covered."
     },
     {
       "id": "claude-desktop",
@@ -70,7 +70,7 @@
           "upstream": "officialMcpRegistry"
         }
       ],
-      "coverageBoundary": null
+      "coverageBoundary": "CallLint scans MCP server entries only. Other Claude Desktop settings in the same file are not covered."
     },
     {
       "id": "cursor",
@@ -103,7 +103,7 @@
           "officialSource": "https://cursor.com/marketplace"
         }
       ],
-      "coverageBoundary": null
+      "coverageBoundary": "CallLint scans MCP server entries only. Cursor rules and editor settings are not covered."
     },
     {
       "id": "vscode",
@@ -130,7 +130,7 @@
           "upstream": "officialMcpRegistry"
         }
       ],
-      "coverageBoundary": null
+      "coverageBoundary": "CallLint scans MCP server entries only. VS Code extensions and workspace settings are not covered."
     },
     {
       "id": "windsurf",
@@ -161,7 +161,7 @@
           "state": "AUDIT_REQUIRED"
         }
       ],
-      "coverageBoundary": null
+      "coverageBoundary": "CallLint scans MCP server entries only. Windsurf rules and workflow settings are not covered."
     },
     {
       "id": "workbuddy",
@@ -193,7 +193,7 @@
           "officialSource": "https://cloud.tencent.com/document/product/1729"
         }
       ],
-      "coverageBoundary": null
+      "coverageBoundary": "CallLint scans MCP server entries only. Other WorkBuddy settings in the same file are not covered."
     },
     {
       "id": "qwen-code",
@@ -225,7 +225,7 @@
           "officialSource": "https://qwenlm.github.io/qwen-code-docs/en/users/extension/introduction/"
         }
       ],
-      "coverageBoundary": null
+      "coverageBoundary": "CallLint scans MCP server entries only. Other Qwen Code settings in the same file are not covered."
     },
     {
       "id": "openclaw",

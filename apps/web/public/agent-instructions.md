@@ -74,9 +74,19 @@ calllint scan --auto --json
 npm install -g calllint
 ```
 
+## Machine-Readable Surface
+
+Do not scrape these pages. Every fact above is published as structured data:
+
+- **https://calllint.com/agent-surfaces.json** — the host cohort (ids, support class,
+  config paths, scan commands, authority surfaces, coverage boundaries)
+
+An agent should read that file rather than parsing `/harnesses/` HTML.
+
 ## Learn More
 
 - Website: https://calllint.com
+- Agent surfaces: https://calllint.com/agent-surfaces.json
 - Harnesses: https://calllint.com/harnesses/
 - Trust Lookup: https://calllint.com/trust/
 - GitHub: https://github.com/calllint/calllint

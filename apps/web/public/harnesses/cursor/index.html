@@ -6,7 +6,7 @@
     <title>Cursor — CallLint Support</title>
     <meta
       name="description"
-      content="CallLint support for Cursor (Anysphere). Full MCP configuration discovery and scanning."
+      content="CallLint support for Cursor (Anysphere). CallLint scans MCP server entries only. Cursor rules and editor settings are not covered."
     />
     <link rel="icon" href="/favicon.png" type="image/png" />
     <link rel="apple-touch-icon" href="/logo-mark-256.png" />
@@ -40,10 +40,11 @@
           <h1>Cursor</h1>
           <p class="doc-lede">
             CallLint support for <strong>Cursor</strong> by Anysphere.
+            <span class="coverage-note">CallLint scans MCP server entries only. Cursor rules and editor settings are not covered.</span>
           </p>
           <div class="host-meta">
             <span class="badge badge-P0">P0</span>
-            <span class="badge badge-NATIVE">NATIVE</span>
+            <span class="badge badge-NATIVE" title="CallLint finds this host’s config on its own.">Auto-detects</span>
           </div>
         </header>
 
@@ -96,6 +97,10 @@
           </ul>
         </section>
 
+        <section id="coverage" class="doc-section coverage-boundary">
+          <h2>Coverage Boundary</h2>
+          <p class="boundary-text">CallLint scans MCP server entries only. Cursor rules and editor settings are not covered.</p>
+        </section>
       </article>
 
       <footer class="doc-footer">

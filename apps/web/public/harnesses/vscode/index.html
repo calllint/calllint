@@ -6,7 +6,7 @@
     <title>VS Code — CallLint Support</title>
     <meta
       name="description"
-      content="CallLint support for VS Code (Microsoft). Full MCP configuration discovery and scanning."
+      content="CallLint support for VS Code (Microsoft). CallLint scans MCP server entries only. VS Code extensions and workspace settings are not covered."
     />
     <link rel="icon" href="/favicon.png" type="image/png" />
     <link rel="apple-touch-icon" href="/logo-mark-256.png" />
@@ -40,10 +40,11 @@
           <h1>VS Code</h1>
           <p class="doc-lede">
             CallLint support for <strong>VS Code</strong> by Microsoft.
+            <span class="coverage-note">CallLint scans MCP server entries only. VS Code extensions and workspace settings are not covered.</span>
           </p>
           <div class="host-meta">
             <span class="badge badge-P1">P1</span>
-            <span class="badge badge-NATIVE">NATIVE</span>
+            <span class="badge badge-NATIVE" title="CallLint finds this host’s config on its own.">Auto-detects</span>
           </div>
         </header>
 
@@ -90,6 +91,10 @@
           </ul>
         </section>
 
+        <section id="coverage" class="doc-section coverage-boundary">
+          <h2>Coverage Boundary</h2>
+          <p class="boundary-text">CallLint scans MCP server entries only. VS Code extensions and workspace settings are not covered.</p>
+        </section>
       </article>
 
       <footer class="doc-footer">

@@ -6,7 +6,7 @@
     <title>Qwen Code — CallLint Support</title>
     <meta
       name="description"
-      content="CallLint support for Qwen Code (Alibaba Cloud). Full MCP configuration discovery and scanning."
+      content="CallLint support for Qwen Code (Alibaba Cloud). CallLint scans MCP server entries only. Other Qwen Code settings in the same file are not covered."
     />
     <link rel="icon" href="/favicon.png" type="image/png" />
     <link rel="apple-touch-icon" href="/logo-mark-256.png" />
@@ -40,10 +40,11 @@
           <h1>Qwen Code</h1>
           <p class="doc-lede">
             CallLint support for <strong>Qwen Code</strong> by Alibaba Cloud.
+            <span class="coverage-note">CallLint scans MCP server entries only. Other Qwen Code settings in the same file are not covered.</span>
           </p>
           <div class="host-meta">
             <span class="badge badge-P1">P1</span>
-            <span class="badge badge-NATIVE">NATIVE</span>
+            <span class="badge badge-NATIVE" title="CallLint finds this host’s config on its own.">Auto-detects</span>
           </div>
         </header>
 
@@ -96,6 +97,10 @@
           </ul>
         </section>
 
+        <section id="coverage" class="doc-section coverage-boundary">
+          <h2>Coverage Boundary</h2>
+          <p class="boundary-text">CallLint scans MCP server entries only. Other Qwen Code settings in the same file are not covered.</p>
+        </section>
       </article>
 
       <footer class="doc-footer">
