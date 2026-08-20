@@ -36,6 +36,9 @@
         "calllint scan --agent claude-code"
       ],
       "canonicalPath": "/harnesses/claude-code",
+      "legacyPaths": [
+        "/harnesses/deepseek/claude-code"
+      ],
       "officialSources": [
         "https://code.claude.com/",
         "https://github.com/anthropics/anthropic-claude-code"
@@ -207,6 +210,9 @@
         "calllint scan --agent workbuddy"
       ],
       "canonicalPath": "/harnesses/workbuddy",
+      "legacyPaths": [
+        "/harnesses/deepseek/workbuddy"
+      ],
       "officialSources": [
         "https://github.com/TencentCloud/workbuddy"
       ],
@@ -244,6 +250,9 @@
         "calllint scan --agent qwen-code"
       ],
       "canonicalPath": "/harnesses/qwen-code",
+      "legacyPaths": [
+        "/harnesses/deepseek/qwen-code"
+      ],
       "officialSources": [
         "https://qwenlm.github.io/qwen-code-docs/",
         "https://github.com/QwenLM/Qwen-Code"
@@ -282,6 +291,9 @@
         "calllint scan --agent openclaw"
       ],
       "canonicalPath": "/harnesses/openclaw",
+      "legacyPaths": [
+        "/harnesses/deepseek/openclaw"
+      ],
       "officialSources": [
         "https://github.com/openclaw/openclaw"
       ],
@@ -315,6 +327,9 @@
       "supportClass": "DISCOVERY_ONLY",
       "truthfulCommands": [],
       "canonicalPath": "/harnesses/codex",
+      "legacyPaths": [
+        "/harnesses/deepseek/codex"
+      ],
       "officialSources": [
         "https://developers.openai.com/codex/extend/mcp"
       ],
@@ -349,6 +364,9 @@
       "supportClass": "DISCOVERY_ONLY",
       "truthfulCommands": [],
       "canonicalPath": "/harnesses/copilot-cli",
+      "legacyPaths": [
+        "/harnesses/deepseek/copilot-cli"
+      ],
       "officialSources": [
         "https://github.com/github/gh-copilot"
       ],
@@ -382,6 +400,9 @@
       "supportClass": "DISCOVERY_ONLY",
       "truthfulCommands": [],
       "canonicalPath": "/harnesses/cline",
+      "legacyPaths": [
+        "/harnesses/deepseek/cline"
+      ],
       "officialSources": [
         "https://github.com/cline/cline"
       ],
@@ -485,6 +506,9 @@
         "calllint scan --config <path>"
       ],
       "canonicalPath": "/harnesses/opencode",
+      "legacyPaths": [
+        "/harnesses/deepseek/opencode"
+      ],
       "officialSources": [
         "https://github.com/opencode/opencode"
       ],

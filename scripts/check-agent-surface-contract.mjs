@@ -119,11 +119,10 @@ function visibleText(html) {
  * The leak check (§20) still covers it: an intent page must not print the internal
  * ontology either. Only the label REQUIREMENT is host-scoped.
  */
-const ssotHostIds = new Set(
-  JSON.parse(readFileSync(join(repoRoot, 'apps/web/data/distribution-surfaces.json'), 'utf8')).hosts.map(
-    (h) => h.id,
-  ),
+const ssot = JSON.parse(
+  readFileSync(join(repoRoot, 'apps/web/data/distribution-surfaces.json'), 'utf8'),
 )
+const ssotHostIds = new Set(ssot.hosts.map((h) => h.id))
 
 const harnessDir = join(PUBLIC, 'harnesses')
 const humanPages = []
@@ -233,6 +232,141 @@ if (!existsSync(sitemapPath)) {
     fail(`${absent.length} SSOT host(s) are absent from the sitemap: ${absent.join(', ')}`)
   } else {
     pass(`all ${ssotHostIds.size} SSOT host(s) appear in the sitemap`)
+  }
+}
+
+/* ---------- legacy URLs must be forwarded, not merely deleted ----------
+ *
+ * The sitemap gate above stops us advertising pages we deleted. This is the other half of the
+ * same promise, and it points the other way: eight `/harnesses/deepseek/<host>` URLs are live
+ * and indexed today, and this cohort replaces them. Deleting a page and retiring the inbound
+ * links to it are two obligations; the sitemap covers only the first.
+ *
+ * PLACEMENT IS AN ASSERTION, NOT A DETAIL. Cloudflare Pages parses `_redirects` only at the
+ * output root. A copy under `harnesses/` is not a rule set — it is a text file served at
+ * /harnesses/_redirects, i.e. a guard that cannot observe its subject. So this checks both
+ * that the real file is present and that the plausible-but-inert one is not.
+ */
+{
+  const redirectsPath = join(PUBLIC, '_redirects')
+  const misplaced = join(PUBLIC, 'harnesses/_redirects')
+
+  if (existsSync(misplaced)) {
+    fail('apps/web/public/harnesses/_redirects exists — Pages only parses _redirects at the output root, so that file redirects nothing')
+  } else {
+    pass('no inert _redirects copy outside the output root')
+  }
+
+  if (!existsSync(redirectsPath)) {
+    fail('apps/web/public/_redirects does not exist — the legacy /harnesses/deepseek/* URLs would 404 with no forwarding')
+  } else {
+    const rules = readFileSync(redirectsPath, 'utf8')
+      .split('\n')
+      .filter((l) => l.trim() && !l.startsWith('#'))
+      .map((l) => {
+        const [from, to, code] = l.trim().split(/\s+/)
+        return { from, to, code }
+      })
+
+    /* Totality in the direction that matters: every legacy path the SSOT records must be
+     * forwarded. The reverse direction is not asserted, because the generator emits a second
+     * `.html` rule per entry — Pages served each page under both spellings. */
+    const declared = ssot.hosts.flatMap((h) => h.legacyPaths ?? [])
+    const unforwarded = declared.filter((p) => !rules.some((r) => r.from === p))
+    if (unforwarded.length > 0) {
+      fail(`${unforwarded.length} SSOT legacyPath(s) have no redirect: ${unforwarded.join(', ')}`)
+    } else if (declared.length === 0) {
+      fail('no host declares legacyPaths, yet /harnesses/deepseek/* is live in production — the SSOT has lost the history')
+    } else {
+      pass(`all ${declared.length} SSOT legacyPath(s) are forwarded (${rules.length} rules incl. .html spellings)`)
+    }
+
+    /* A redirect into a 404 is worse than the 404 it replaced: it costs a round trip and
+     * launders the failure into a page that looks intentional. */
+    const intoNothing = rules.filter(
+      (r) => !existsSync(join(PUBLIC, r.to.replace(/\/$/, ''), 'index.html')),
+    )
+    if (intoNothing.length > 0) {
+      fail(
+        `${intoNothing.length} redirect(s) target a page that is not served:\n` +
+          intoNothing.map((r) => `     - ${r.from} → ${r.to}`).join('\n'),
+      )
+    } else {
+      pass(`all ${rules.length} redirect target(s) resolve to a served page`)
+    }
+
+    /* A rule whose source is also a live page makes that page unreachable. Pages applies
+     * redirects before serving static assets, so this shadows rather than falls through. */
+    const shadowing = rules.filter((r) =>
+      [join(PUBLIC, r.from), join(PUBLIC, r.from, 'index.html')].some((c) => existsSync(c)),
+    )
+    if (shadowing.length > 0) {
+      fail(
+        `${shadowing.length} redirect(s) shadow a page that is still served:\n` +
+          shadowing.map((r) => `     - ${r.from}`).join('\n'),
+      )
+    } else {
+      pass('no redirect shadows a live page')
+    }
+
+    /* 302 is the Pages default when no code is given, and a temporary redirect leaves the
+     * search index pointing at the dead URL indefinitely. */
+    const notPermanent = rules.filter((r) => r.code !== '301')
+    if (notPermanent.length > 0) {
+      fail(`${notPermanent.length} redirect(s) are not 301: ${notPermanent.map((r) => r.from).join(', ')}`)
+    } else {
+      pass(`all ${rules.length} redirect(s) are 301 (permanent)`)
+    }
+
+    /* A model-intent landing page is a preserved surface, not legacy. Redirecting one would
+     * delete a page the contract keeps — and would do it invisibly, since the file stays. */
+    const preserved = (ssot.modelIntentLandingPages ?? []).map((p) => p.path.replace(/\/$/, ''))
+    const clobbered = rules.filter((r) => preserved.includes(r.from.replace(/\/$/, '')))
+    if (clobbered.length > 0) {
+      fail(`${clobbered.length} redirect(s) clobber a preserved landing page: ${clobbered.map((r) => r.from).join(', ')}`)
+    } else {
+      pass(`all ${preserved.length} preserved landing page(s) remain directly reachable`)
+    }
+  }
+}
+
+/* ---------- the SSOT's own $schema pointer must resolve, and must validate ----------
+ *
+ * The same defect as `agent-surfaces.json` below, one layer up and easier to miss: the SSOT
+ * declared `"$schema": "./distribution-surfaces.schema.json"` and that file did not exist.
+ * Relative pointers do not 404 loudly — nothing fetches them — so the file read as
+ * schema-governed while being governed by nothing, and a prior report recorded it as closed.
+ *
+ * This is the gate that makes the schema load-bearing. Writing the schema is what caught that
+ * `priority` is `"P0"` and not an integer, and that `authoritySurfaces` has 12 members rather
+ * than the 6 anyone would guess.
+ */
+{
+  const pointer = ssot.$schema
+  if (typeof pointer !== 'string') {
+    fail('the SSOT declares no $schema — its shape is then whatever the last edit made it')
+  } else if (/^https?:\/\//.test(pointer)) {
+    fail(`the SSOT $schema is absolute (${pointer}); it must be a repo-relative path that a checkout can resolve offline`)
+  } else {
+    const schemaFile = join(repoRoot, 'apps/web/data', pointer)
+    if (!existsSync(schemaFile)) {
+      fail(`the SSOT $schema points at ${pointer}, but ${relative(repoRoot, schemaFile)} does not exist`)
+    } else {
+      pass(`the SSOT $schema ${pointer} resolves on disk`)
+
+      const { default: Ajv } = await import('ajv')
+      const ajv = new Ajv({ allErrors: true, strict: false, logger: false })
+      const validate = ajv.compile(JSON.parse(readFileSync(schemaFile, 'utf8')))
+      if (validate(ssot)) {
+        pass('distribution-surfaces.json validates against its own schema')
+      } else {
+        const errs = (validate.errors ?? [])
+          .slice(0, 8)
+          .map((e) => `     - ${e.instancePath || '/'} ${e.message}`)
+          .join('\n')
+        fail(`distribution-surfaces.json violates its own schema:\n${errs}`)
+      }
+    }
   }
 }
 

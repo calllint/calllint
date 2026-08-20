@@ -70,16 +70,20 @@ jobs:
           node scripts/generate-distribution-surfaces.mjs
           git diff --exit-code apps/web/public/harnesses/ \
             apps/web/public/agent-surfaces.json \
+            apps/web/public/_redirects \
             apps/web/public/llms.txt \
             apps/web/public/llms-full.txt \
             apps/web/public/agent-instructions.md \
             scripts/distribution-sources.json
 
       # The sitemap is now generated too, so the diff above covers it (it lives under
-      # apps/web/public/harnesses/). This step additionally asserts the promise itself:
-      # every advertised URL resolves, and every SSOT host is advertised. The two are
-      # different questions — a sitemap can be perfectly in sync with a generator that
-      # emits a dead URL.
+      # apps/web/public/harnesses/). `_redirects` is listed separately because Pages parses it
+      # only at the output root, so it sits outside that directory — the one projection whose
+      # correct location is not next to the pages it describes.
+      #
+      # This step additionally asserts the promise itself: every advertised URL resolves,
+      # every SSOT host is advertised, and every legacy URL is forwarded. Those are different
+      # questions — a sitemap can be perfectly in sync with a generator that emits a dead URL.
       - name: Check agent, human + crawler surface contract
         run: node scripts/check-agent-surface-contract.mjs
 
