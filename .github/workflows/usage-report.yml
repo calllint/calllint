@@ -1,0 +1,112 @@
+# Private usage report build (new18 §28, §29).
+#
+# Generates the operator-facing usage report and uploads it as a WORKFLOW
+# ARTIFACT. It deliberately does not deploy and does not commit:
+#
+#   §28 — the repository holds the generator, template, tests and this workflow.
+#         Daily values stay artifacts, so no metric is ever committed to git.
+#   §29 — fail-closed. Cloudflare Access on the private host cannot be verified
+#         from CI, so until an operator confirms it (see
+#         artifacts/authority-distribution-closure/CLOUDFLARE_ACCESS_ACTION.md)
+#         the HTML must not be published anywhere. An artifact is reachable only
+#         by someone who can already read this repository's Actions.
+#
+# The report is intentionally allowed to be INCOMPLETE. When npm or D1 cannot be
+# read, the generator emits em dashes rather than zeros (§25: a zero is a claim
+# about the world, and an unread source cannot support one) and this job still
+# succeeds — with the degradation printed in the run summary. A hard failure here
+# would teach the operator to ignore a red cron, which is worse than a report
+# that says plainly which source was unavailable.
+name: usage-report
+
+on:
+  schedule:
+    # Daily 06:31 UTC. npm's range API lags a day, so the generator asks for
+    # yesterday and any time after ~06:00 UTC has that day complete. Off the hour
+    # to dodge the cron stampede, and well clear of the ingress Worker's own
+    # 03:17 retention sweep so a long delete never overlaps this read.
+    - cron: "31 6 * * *"
+  workflow_dispatch:
+
+# Least privilege: this job reads the repo and writes an artifact. It has no
+# repo write (nothing is committed) and no Pages scope (nothing is deployed).
+permissions:
+  contents: read
+
+# One report build at a time; let an in-flight one finish rather than racing two
+# writers against the same D1 read.
+concurrency:
+  group: usage-report
+  cancel-in-progress: false
+
+jobs:
+  report:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: pnpm/action-setup@v6
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          cache: pnpm
+
+      # wrangler comes from apps/usage-worker's devDependencies, not from npx.
+      # The generator resolves it from node_modules by path (it runs the resolved
+      # JS entry on `node` to avoid the Windows .cmd shim and any shell quoting of
+      # the SQL it passes), so an npx-cached copy would be invisible to it and the
+      # D1 half would degrade even with credentials present.
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      # The renderer is pure and unit-tested; run those tests before trusting
+      # today's output. A renderer that started emitting zeros for absent data
+      # would otherwise ship a misleading report on a green cron.
+      - name: Test the renderer and the npm chunk arithmetic
+        run: pnpm vitest run apps/usage-worker
+
+      # Reported, not enforced. Absent D1 credentials the usage rows degrade to
+      # "not observed" and the distribution half is still worth having, so this
+      # states what the run can see instead of gating on it.
+      - name: Report which sources this run can read
+        env:
+          TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          ACCOUNT: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          if [ -n "$TOKEN" ] && [ -n "$ACCOUNT" ]; then
+            echo "D1: credentials present — observed-usage rows will be populated."
+          else
+            echo "::warning::CLOUDFLARE_API_TOKEN / CLOUDFLARE_ACCOUNT_ID absent — observed-usage rows will render as not-yet-observed (em dashes), never as zeros (new18 §25)."
+          fi
+
+      - name: Generate the private usage report
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        # The generator validates before it writes (noindex present, no <script>,
+        # no off-host reference, no NaN) and exits non-zero writing nothing if any
+        # check fails. So a corrupt report cannot become an artifact.
+        run: pnpm usage:report --out dist/usage
+
+      # §29: an artifact, never a deploy. Retained 14 days — long enough to
+      # compare a fortnight of runs, short enough that operator-visible figures
+      # do not accumulate indefinitely in Actions storage.
+      - name: Upload the report as a private artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: usage-report
+          path: dist/usage
+          retention-days: 14
+          if-no-files-found: error
+
+      - name: Summarize the run
+        run: |
+          {
+            echo "### Private usage report"
+            echo
+            echo "Built as an artifact (\`usage-report\`). **Not deployed, not committed** — new18 §28/§29."
+            echo
+            echo "Download it from this run's Artifacts section. Any metric shown as an em dash means"
+            echo "that source could not be read; it does **not** mean the figure is zero (§25)."
+          } >> "$GITHUB_STEP_SUMMARY"

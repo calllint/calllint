@@ -14,12 +14,26 @@ import path from "node:path"
 import { fileURLToPath } from "node:url"
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..")
-// Both telemetry packages are in scope: the contract (definition + sanitizer) and the
-// emit layer (gate + sink + emitter). The emit layer is where a network egress could be
-// hand-added, so the no-network assertion below matters most there.
-const pkgSrcDirs = [
-  path.join(repoRoot, "packages/telemetry-contract/src"),
-  path.join(repoRoot, "packages/telemetry-emit/src"),
+
+/**
+ * Scan scopes. The forbidden-field rule applies everywhere telemetry data is
+ * shaped; the no-network rule applies only to the client-side packages.
+ *
+ * `apps/usage-worker/src` is the SERVER ingress. It is in scope for the
+ * forbidden-field rule because that is where a field could be hand-added to a
+ * persisted row — and without it this guard could not observe the one place that
+ * actually writes telemetry to a database.
+ *
+ * The no-network rule deliberately does NOT apply there: a Cloudflare Worker's
+ * inbound entrypoint is *named* `fetch`, so the `fetch(` token would fire on the
+ * handler declaration. That is an inbound request handler, not an egress. The
+ * Worker makes no outbound calls (the npm fetch lives in the report generator,
+ * outside this scope), and `noOutboundFetch` below asserts that directly.
+ */
+const SCOPES = [
+  { dir: "packages/telemetry-contract/src", network: true, outbound: false },
+  { dir: "packages/telemetry-emit/src", network: true, outbound: false },
+  { dir: "apps/usage-worker/src", network: false, outbound: true },
 ]
 
 const FORBIDDEN = [
@@ -57,15 +71,15 @@ const NETWORK_TOKENS = [
 console.log("Telemetry boundary guard")
 let violations = 0
 
-function walk(dir) {
+function walk(dir, options) {
   for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
     const p = path.join(dir, entry.name)
-    if (entry.isDirectory()) walk(p)
-    else if (entry.name.endsWith(".ts")) scan(p)
+    if (entry.isDirectory()) walk(p, options)
+    else if (entry.name.endsWith(".ts")) scan(p, options)
   }
 }
 
-function scan(file) {
+function scan(file, options) {
   const rel = path.relative(repoRoot, file)
   const lines = fs.readFileSync(file, "utf8").split("\n")
   lines.forEach((line, i) => {
@@ -83,7 +97,7 @@ function scan(file) {
       }
     }
     // No-network assertion: telemetry emits to an injected sink, never over the wire.
-    if (!isComment) {
+    if (!isComment && options.network) {
       for (const tok of NETWORK_TOKENS) {
         if (line.includes(tok)) {
           console.log(`  ✗ ${rel}:${i + 1} — network token "${tok}" is forbidden in telemetry`)
@@ -91,11 +105,26 @@ function scan(file) {
         }
       }
     }
+    // Outbound-egress assertion for the Worker: it answers requests and writes to
+    // D1, and must never call out. `fetch(` cannot be used as the token here (the
+    // Worker's inbound handler is named `fetch`), so match a CALL to global fetch.
+    if (!isComment && options.outbound) {
+      if (/(^|[^.\w])fetch\s*\(/.test(line) && !/async\s+fetch\s*\(/.test(line)) {
+        console.log(`  ✗ ${rel}:${i + 1} — outbound fetch() is forbidden in the ingress`)
+        violations++
+      }
+      // The hash secret must never be logged or echoed.
+      if (/console\.(log|warn|error|info|debug)/.test(line) && line.includes("USAGE_HASH_KEY")) {
+        console.log(`  ✗ ${rel}:${i + 1} — USAGE_HASH_KEY must never be logged`)
+        violations++
+      }
+    }
   })
 }
 
-for (const dir of pkgSrcDirs) {
-  if (fs.existsSync(dir)) walk(dir)
+for (const scope of SCOPES) {
+  const dir = path.join(repoRoot, scope.dir)
+  if (fs.existsSync(dir)) walk(dir, scope)
 }
 
 if (violations > 0) {
@@ -104,4 +133,5 @@ if (violations > 0) {
 }
 console.log("  ✓ no forbidden field appears as an event key")
 console.log("  ✓ no network module/API appears in the telemetry packages")
+console.log("  ✓ the usage ingress makes no outbound call and never logs its secret")
 console.log("\nTelemetry boundary guard: PASS")
