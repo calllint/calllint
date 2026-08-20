@@ -572,7 +572,7 @@ measure were TRUE and UNENFORCEABLE. Neither was a new feature.
   crawlers, on precisely the SEO plane the distribution contract forbids, while listing none of
   the 15 canonical host pages. The sitemap is now generated from the SSOT.
 - `check:security-semantics` runs `verify-security-semantic-diff.mjs --check`, which asserts the
-  committed `artifacts/global-distribution/security-semantic-diff.json` still agrees with a live
+  committed `artifacts/authority-distribution-closure/security-semantic-diff.json` still agrees with a live
   three-channel measurement (verdict-package diff, forbidden risk fields, host-identity coupling
   into the risk engine). A committed `"changed": false` is otherwise an unfalsifiable claim.
 

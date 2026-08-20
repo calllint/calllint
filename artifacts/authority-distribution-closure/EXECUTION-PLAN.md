@@ -173,7 +173,7 @@ gh api repos/calllint/calllint/tags/protection
 Query official docs + live testing where possible
 
 **Output**:
-- `artifacts/global-distribution/platform-audit-G3.md`
+- `artifacts/authority-distribution-closure/platform-audit-G3.md`
 - Updated `distribution-surfaces.json` states
 
 **Gate**:
@@ -201,7 +201,7 @@ never executes the server it judges.
 ```
 
 **Output**:
-- `artifacts/global-distribution/next-release-registry-description.txt`
+- `artifacts/authority-distribution-closure/next-release-registry-description.txt`
 
 **Gate**:
 - [ ] Description aligns with claim boundary

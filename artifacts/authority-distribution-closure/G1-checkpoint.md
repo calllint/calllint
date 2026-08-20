@@ -96,9 +96,9 @@ platforms not consuming → evaluate native
 ## 文件清单
 
 - ✅ `apps/web/data/distribution-surfaces.json` - 单一真源 (379 lines, valid JSON)
-- ✅ `artifacts/global-distribution/reality-audit.md` - 审计报告（含 Registry Tier-0 定位）
-- ✅ `artifacts/global-distribution/G0-checkpoint.md` - G0 checkpoint
-- ✅ `artifacts/global-distribution/G1-checkpoint.md` - 本文件
+- ✅ `artifacts/authority-distribution-closure/reality-audit.md` - 审计报告（含 Registry Tier-0 定位）
+- ✅ `artifacts/authority-distribution-closure/G0-checkpoint.md` - G0 checkpoint
+- ✅ `artifacts/authority-distribution-closure/G1-checkpoint.md` - 本文件
 
 ---
 

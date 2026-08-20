@@ -4,7 +4,7 @@
  *
  * The distribution work is allowed to change how CallLint is FOUND. It is not allowed to
  * change what CallLint DECIDES. This script measures that separation and writes the
- * result to `artifacts/global-distribution/security-semantic-diff.json`.
+ * result to `artifacts/authority-distribution-closure/security-semantic-diff.json`.
  *
  * Why a script and not a hand-written artifact: a committed JSON file saying
  * `"changed": false` is a claim that costs nothing to write and nothing to keep true. The
@@ -39,7 +39,7 @@ import { fileURLToPath } from 'node:url'
 
 const here = dirname(fileURLToPath(import.meta.url))
 const repoRoot = resolve(here, '..')
-const OUT_PATH = resolve(repoRoot, 'artifacts', 'global-distribution', 'security-semantic-diff.json')
+const OUT_PATH = resolve(repoRoot, 'artifacts', 'authority-distribution-closure', 'security-semantic-diff.json')
 
 /*
  * The packages that decide a verdict. Sourced from CLAUDE.md's architecture section:
