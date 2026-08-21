@@ -13,7 +13,7 @@ COMMANDS
   Advanced:
   scan [target]      Full ScanReport for an MCP config / npm:<pkg> / github:<repo>
   scan --auto        Discover and scan all agent configs (auto-discovery)
-  scan --agent <type>  Discover and scan a specific agent (cursor, claude-code, claude-desktop, vscode, windsurf)
+  scan --agent <type>  Discover and scan a specific agent (cursor, claude-code, claude-desktop, vscode, windsurf, workbuddy, qwen-code, openclaw)
   action inspect <f>    Preflight a planned external action (calllint.action.v0)
   inbox inspect <f>     Preflight a normalized agent inbox event
   evidence import <f>   Import a third-party scanner report as evidence (no re-scoring)
@@ -49,7 +49,7 @@ TARGETS
   github:<owner/repo>[@ref]   A GitHub repo (requires --online)
 
 SCAN OPTIONS
-  --auto             Discover and scan all agent configs (P0+P1: Cursor, Claude Code, Claude Desktop, VS Code, Windsurf)
+  --auto             Discover and scan all agent configs (P0+P1: Cursor, Claude Code, Claude Desktop, VS Code, Windsurf, WorkBuddy, Qwen Code, OpenClaw)
   --agent <type>     Discover and scan a specific agent type
   --changed          Scan only the agent-tool configs changed in the git diff
   --json             Emit the ScanReport JSON (stable, emoji-free)

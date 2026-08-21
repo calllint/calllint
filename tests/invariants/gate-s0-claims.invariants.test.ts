@@ -469,10 +469,15 @@ describe("Gate S0 — every number the record states is derived from the file it
     // pinned rather than derived on purpose — a step LEAVING `ci:local` is exactly as much of an
     // event as one arriving, and only a literal reds on the departure.
     // 21 → 22 in Harness Distribution Surface (H0-H8): `pnpm check:harness-distribution`
+    // 22 → 23 in Global Agent Distribution Authority (G3.5): `pnpm check:web-structure`
+    // 23 → 25 in Global Agent Distribution Authority (G7 closure): `pnpm check:agent-surface`
+    //   (§19/§20/GD-15 — the sitemap, the machine-surface pointers, and the public support
+    //   labels had no guard at all) and `pnpm check:security-semantics` (§18 — verifies the
+    //   committed zero-diff artifact still agrees with a live measurement).
     expect(
       steps.length,
-      `S0-OPEN-2's amendment states 22 &&-joined steps; ci:local now has ${steps.length}`,
-    ).toBe(22)
+      `S0-OPEN-2's amendment states 25 &&-joined steps; ci:local now has ${steps.length}`,
+    ).toBe(25)
     // Asserted against the row's LATEST amendment, not the whole row: the 2026-08-09 text says
     // **19** and the first closure says **20**, both left verbatim by this artifact's
     // append-never-edit convention. A `toContain` over the full row would therefore be satisfied by

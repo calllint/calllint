@@ -26,7 +26,7 @@ import { resolveConfigInput, isInputError } from "./resolveInput.js"
 import { changedConfigPaths } from "./changedConfigs.js"
 import { readDocumentSurfaces } from "./surfaces.js"
 import type { OnlineEnrichment } from "../run.js"
-import type { TelemetrySignal } from "../telemetry.js"
+import { collectSignals, type TelemetrySignal } from "../telemetry.js"
 import { readFileSync, writeFileSync } from "node:fs"
 import type { ConfigSummaryReport } from "@calllint/types"
 import { discoverConfigs, discoverAgent, type AgentType } from "@calllint/discovery"
@@ -41,8 +41,12 @@ export interface CommandResult {
    * emit in `run()`; carries only telemetry-safe, allowlisted dimensions (never a
    * config/path/command/evidence value). The exit code is NOT a proxy for this — a
    * plain `scan` exits 0 regardless of verdict — so the command sets it explicitly.
+   *
+   * An ARRAY for the aggregate commands: `--auto`, `--changed`, `--agent` and `scan-all`
+   * each reach one verdict PER config, and one signal cannot represent N of them. A
+   * single-config scan still sets a lone object; `run()` handles both.
    */
-  telemetry?: TelemetrySignal
+  telemetry?: TelemetrySignal | readonly TelemetrySignal[]
 }
 
 export interface ScanDeps {
@@ -189,9 +193,16 @@ function scanOneConfig(
 
   // Exit code: only fail the process under --ci.
   const exitCode = flagBool(args.flags, "ci") ? exitCodeFor(summary, policy) : EXIT.OK
-  // Telemetry (dark by default): report the aggregate verdict only. The signal is
-  // the accurate source (the exit code above is 0 for a non-CI scan regardless).
-  return { stdout, exitCode, telemetry: { verdict: summary.verdict } }
+  // Telemetry (dark by default): TWO signals per scanned config — that a preflight ran,
+  // and what it decided. Both are needed and neither implies the other: counting only
+  // `decision_*` cannot distinguish "no scans ran" from "scans ran and all were SAFE",
+  // and counting only `preflight_completed` loses the outcome. The signal is the accurate
+  // source (the exit code above is 0 for a non-CI scan regardless of verdict).
+  return {
+    stdout,
+    exitCode,
+    telemetry: [{ event: "preflight_completed" }, { verdict: summary.verdict }],
+  }
 }
 
 /**
@@ -353,7 +364,8 @@ function scanChangedCommand(args: ParsedArgs, deps: ScanDeps): CommandResult {
     .filter(Boolean)
     .join("\n")
 
-  return { stdout, exitCode, ...(stderr ? { stderr } : {}) }
+  // Carry every child's verdict signal, not none of them (`--changed`, N configs).
+  return { stdout, exitCode, ...(stderr ? { stderr } : {}), telemetry: collectSignals(results) }
 }
 
 /**
@@ -421,7 +433,8 @@ function scanAutoCommand(args: ParsedArgs, deps: ScanDeps): CommandResult {
     .filter(Boolean)
     .join("\n")
 
-  return { stdout, exitCode, ...(stderr ? { stderr } : {}) }
+  // Carry every discovered config's verdict signal (`--auto`, N configs).
+  return { stdout, exitCode, ...(stderr ? { stderr } : {}), telemetry: collectSignals(results) }
 }
 
 /**
@@ -500,5 +513,6 @@ function scanAgentCommand(
     .filter(Boolean)
     .join("\n")
 
-  return { stdout, exitCode, ...(stderr ? { stderr } : {}) }
+  // Carry every scanned config's verdict signal (`--agent <type>`, typically one).
+  return { stdout, exitCode, ...(stderr ? { stderr } : {}), telemetry: collectSignals(results) }
 }

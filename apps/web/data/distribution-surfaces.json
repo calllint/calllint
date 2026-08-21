@@ -1,0 +1,586 @@
+{
+  "$schema": "./distribution-surfaces.schema.json",
+  "version": "1.0.0",
+  "generatedAt": "2026-08-19T00:00:00.000Z",
+  "officialMcpRegistry": {
+    "name": "io.github.calllint/calllint",
+    "package": "calllint-mcp",
+    "state": "LIVE",
+    "version": "0.2.0",
+    "publishedAt": "2026-07-13",
+    "transport": "stdio",
+    "repositoryUrl": "https://github.com/calllint/calllint",
+    "registryUrl": "https://registry.modelcontextprotocol.io/?q=calllint",
+    "tierLevel": 0,
+    "upstreamPrimitive": true,
+    "description": "Deterministic static preflight inspection for MCP and agent-tool configurations. Shows authority and evidence before execution; never executes the server it judges."
+  },
+  "hosts": [
+    {
+      "id": "claude-code",
+      "displayName": "Claude Code",
+      "vendor": "Anthropic",
+      "priority": "P0",
+      "authoritySurfaces": [
+        "mcp",
+        "filesystem",
+        "shell",
+        "plugins"
+      ],
+      "configEvidence": [
+        "~/.claude/settings.json",
+        "<project>/.claude/settings.json"
+      ],
+      "supportClass": "NATIVE",
+      "truthfulCommands": [
+        "calllint scan --agent claude-code"
+      ],
+      "canonicalPath": "/harnesses/claude-code",
+      "legacyPaths": [
+        "/harnesses/deepseek/claude-code"
+      ],
+      "officialSources": [
+        "https://code.claude.com/",
+        "https://github.com/anthropics/anthropic-claude-code"
+      ],
+      "distributionPrimitives": [
+        {
+          "kind": "mcp-stdio",
+          "upstream": "officialMcpRegistry",
+          "state": "AVAILABLE"
+        },
+        {
+          "kind": "claude-plugin",
+          "state": "AUDIT_REQUIRED",
+          "officialSource": "https://code.claude.com/docs/en/plugin-marketplaces"
+        }
+      ],
+      "coverageBoundary": "CallLint scans MCP server entries only. Skills, hooks and permission settings in the same file are not covered."
+    },
+    {
+      "id": "claude-desktop",
+      "displayName": "Claude Desktop",
+      "vendor": "Anthropic",
+      "priority": "P0",
+      "authoritySurfaces": [
+        "mcp",
+        "filesystem"
+      ],
+      "configEvidence": [
+        "~/Library/Application Support/Claude/claude_desktop_config.json",
+        "%APPDATA%/Claude/claude_desktop_config.json"
+      ],
+      "supportClass": "NATIVE",
+      "truthfulCommands": [
+        "calllint scan --agent claude-desktop"
+      ],
+      "canonicalPath": "/harnesses/claude-desktop",
+      "officialSources": [
+        "https://claude.ai/",
+        "https://modelcontextprotocol.io/quickstart"
+      ],
+      "distributionPrimitives": [
+        {
+          "kind": "mcp-stdio",
+          "upstream": "officialMcpRegistry",
+          "state": "AVAILABLE"
+        }
+      ],
+      "coverageBoundary": "CallLint scans MCP server entries only. Other Claude Desktop settings in the same file are not covered."
+    },
+    {
+      "id": "cursor",
+      "displayName": "Cursor",
+      "vendor": "Anysphere",
+      "priority": "P0",
+      "authoritySurfaces": [
+        "mcp",
+        "filesystem",
+        "shell"
+      ],
+      "configEvidence": [
+        "~/.cursor/mcp.json",
+        "<project>/.cursor/mcp.json"
+      ],
+      "supportClass": "NATIVE",
+      "truthfulCommands": [
+        "calllint scan --agent cursor"
+      ],
+      "canonicalPath": "/harnesses/cursor",
+      "officialSources": [
+        "https://www.cursor.com/",
+        "https://cursor.com/marketplace"
+      ],
+      "distributionPrimitives": [
+        {
+          "kind": "mcp-stdio",
+          "upstream": "officialMcpRegistry",
+          "state": "AUDIT_REQUIRED",
+          "auditNote": "Cursor supports MCP stdio, but Registry auto-discovery not confirmed"
+        },
+        {
+          "kind": "cursor-plugin",
+          "state": "AUDIT_REQUIRED",
+          "officialSource": "https://cursor.com/marketplace"
+        }
+      ],
+      "coverageBoundary": "CallLint scans MCP server entries only. Cursor rules and editor settings are not covered."
+    },
+    {
+      "id": "vscode",
+      "displayName": "VS Code",
+      "vendor": "Microsoft",
+      "priority": "P1",
+      "authoritySurfaces": [
+        "extensions",
+        "mcp"
+      ],
+      "configEvidence": [
+        "~/.vscode/mcp.json",
+        "<project>/.vscode/mcp.json"
+      ],
+      "supportClass": "NATIVE",
+      "truthfulCommands": [
+        "calllint scan --agent vscode"
+      ],
+      "canonicalPath": "/harnesses/vscode",
+      "officialSources": [
+        "https://code.visualstudio.com/"
+      ],
+      "distributionPrimitives": [
+        {
+          "kind": "mcp-stdio",
+          "upstream": "officialMcpRegistry",
+          "state": "AUDIT_REQUIRED",
+          "auditNote": "MCP support via extensions, core VS Code Registry consumption unclear"
+        }
+      ],
+      "coverageBoundary": "CallLint scans MCP server entries only. VS Code extensions and workspace settings are not covered."
+    },
+    {
+      "id": "windsurf",
+      "displayName": "Windsurf",
+      "vendor": "Codeium",
+      "priority": "P1",
+      "authoritySurfaces": [
+        "mcp",
+        "filesystem"
+      ],
+      "configEvidence": [
+        "~/.windsurf/mcp.json",
+        "<project>/.windsurf/mcp.json"
+      ],
+      "supportClass": "NATIVE",
+      "truthfulCommands": [
+        "calllint scan --agent windsurf"
+      ],
+      "canonicalPath": "/harnesses/windsurf",
+      "officialSources": [
+        "https://codeium.com/windsurf"
+      ],
+      "distributionPrimitives": [
+        {
+          "kind": "mcp-stdio",
+          "upstream": "officialMcpRegistry",
+          "state": "AUDIT_REQUIRED",
+          "auditNote": "Windsurf supports MCP, has marketplace, Registry consumption not confirmed"
+        },
+        {
+          "kind": "windsurf-mcp-marketplace",
+          "state": "AUDIT_REQUIRED"
+        }
+      ],
+      "coverageBoundary": "CallLint scans MCP server entries only. Windsurf rules and workflow settings are not covered."
+    },
+    {
+      "id": "workbuddy",
+      "displayName": "WorkBuddy",
+      "vendor": "Tencent Cloud",
+      "priority": "P0",
+      "authoritySurfaces": [
+        "mcp",
+        "extensions"
+      ],
+      "configEvidence": [
+        "~/.workbuddy/mcp.json",
+        "<project>/.workbuddy/mcp.json"
+      ],
+      "supportClass": "NATIVE",
+      "truthfulCommands": [
+        "calllint scan --agent workbuddy"
+      ],
+      "canonicalPath": "/harnesses/workbuddy",
+      "legacyPaths": [
+        "/harnesses/deepseek/workbuddy"
+      ],
+      "officialSources": [
+        "https://github.com/TencentCloud/workbuddy"
+      ],
+      "distributionPrimitives": [
+        {
+          "kind": "mcp-stdio",
+          "upstream": "officialMcpRegistry",
+          "state": "AUDIT_REQUIRED",
+          "auditNote": "China-region product, Registry consumption relationship unclear"
+        },
+        {
+          "kind": "tencent-mcp-market",
+          "state": "READY_NOT_SUBMITTED",
+          "blocker": "Third-party MCP submissions not currently accepted",
+          "officialSource": "https://cloud.tencent.com/document/product/1729"
+        }
+      ],
+      "coverageBoundary": "CallLint scans MCP server entries only. Other WorkBuddy settings in the same file are not covered."
+    },
+    {
+      "id": "qwen-code",
+      "displayName": "Qwen Code",
+      "vendor": "Alibaba Cloud",
+      "priority": "P1",
+      "authoritySurfaces": [
+        "mcp",
+        "tools"
+      ],
+      "configEvidence": [
+        "~/.qwen/settings.json",
+        "<project>/.qwen/settings.json"
+      ],
+      "supportClass": "NATIVE",
+      "truthfulCommands": [
+        "calllint scan --agent qwen-code"
+      ],
+      "canonicalPath": "/harnesses/qwen-code",
+      "legacyPaths": [
+        "/harnesses/deepseek/qwen-code"
+      ],
+      "officialSources": [
+        "https://qwenlm.github.io/qwen-code-docs/",
+        "https://github.com/QwenLM/Qwen-Code"
+      ],
+      "distributionPrimitives": [
+        {
+          "kind": "mcp-stdio",
+          "upstream": "officialMcpRegistry",
+          "state": "AUDIT_REQUIRED",
+          "auditNote": "China-region product, Registry consumption unclear, may have independent extension system"
+        },
+        {
+          "kind": "qwen-extension-conversion",
+          "state": "AUDIT_REQUIRED",
+          "note": "Qwen Code can convert Claude/Gemini extensions",
+          "officialSource": "https://qwenlm.github.io/qwen-code-docs/en/users/extension/introduction/"
+        }
+      ],
+      "coverageBoundary": "CallLint scans MCP server entries only. Other Qwen Code settings in the same file are not covered."
+    },
+    {
+      "id": "openclaw",
+      "displayName": "OpenClaw",
+      "vendor": "Open Source",
+      "priority": "P3",
+      "authoritySurfaces": [
+        "mcp",
+        "skills",
+        "exec"
+      ],
+      "configEvidence": [
+        "~/.openclaw/openclaw.json"
+      ],
+      "supportClass": "NATIVE",
+      "truthfulCommands": [
+        "calllint scan --agent openclaw"
+      ],
+      "canonicalPath": "/harnesses/openclaw",
+      "legacyPaths": [
+        "/harnesses/deepseek/openclaw"
+      ],
+      "officialSources": [
+        "https://github.com/openclaw/openclaw"
+      ],
+      "distributionPrimitives": [
+        {
+          "kind": "mcp-stdio",
+          "upstream": "officialMcpRegistry",
+          "state": "AUDIT_REQUIRED",
+          "auditNote": "Open source project, Registry consumption not verified"
+        },
+        {
+          "kind": "openclaw-clawhub",
+          "state": "AUDIT_REQUIRED"
+        }
+      ],
+      "coverageBoundary": "CallLint scans MCP configuration only. Skills and exec permissions are not covered."
+    },
+    {
+      "id": "codex",
+      "displayName": "OpenAI Codex",
+      "vendor": "OpenAI",
+      "priority": "P2",
+      "authoritySurfaces": [
+        "code-generation",
+        "api",
+        "mcp"
+      ],
+      "configEvidence": [
+        "Config mechanism requires verification"
+      ],
+      "supportClass": "DISCOVERY_ONLY",
+      "truthfulCommands": [],
+      "canonicalPath": "/harnesses/codex",
+      "legacyPaths": [
+        "/harnesses/deepseek/codex"
+      ],
+      "officialSources": [
+        "https://developers.openai.com/codex/extend/mcp"
+      ],
+      "distributionPrimitives": [
+        {
+          "kind": "mcp-stdio",
+          "upstream": "officialMcpRegistry",
+          "state": "AUDIT_REQUIRED",
+          "auditNote": "Codex supports local STDIO MCP, Registry auto-discovery not confirmed"
+        },
+        {
+          "kind": "openai-plugin",
+          "state": "AUDIT_REQUIRED",
+          "blocker": "Do not create remote MCP just for public listing eligibility"
+        }
+      ],
+      "coverageBoundary": "CallLint does not yet auto-discover Codex configuration."
+    },
+    {
+      "id": "copilot-cli",
+      "displayName": "GitHub Copilot CLI",
+      "vendor": "GitHub",
+      "priority": "P2",
+      "authoritySurfaces": [
+        "shell",
+        "cli",
+        "mcp"
+      ],
+      "configEvidence": [
+        "Config mechanism requires verification"
+      ],
+      "supportClass": "DISCOVERY_ONLY",
+      "truthfulCommands": [],
+      "canonicalPath": "/harnesses/copilot-cli",
+      "legacyPaths": [
+        "/harnesses/deepseek/copilot-cli"
+      ],
+      "officialSources": [
+        "https://github.com/github/gh-copilot"
+      ],
+      "distributionPrimitives": [
+        {
+          "kind": "mcp-registry-discovery",
+          "upstream": "officialMcpRegistry",
+          "state": "AUDIT_REQUIRED",
+          "auditNote": "GitHub Copilot CLI MCP and Registry integration unclear"
+        },
+        {
+          "kind": "github-copilot-plugin",
+          "state": "AUDIT_REQUIRED"
+        }
+      ],
+      "coverageBoundary": "CallLint does not yet auto-discover Copilot CLI configuration."
+    },
+    {
+      "id": "cline",
+      "displayName": "Cline",
+      "vendor": "Open Source",
+      "priority": "P2",
+      "authoritySurfaces": [
+        "vscode-extensions",
+        "tools",
+        "mcp"
+      ],
+      "configEvidence": [
+        "VS Code extension, config mechanism TBD"
+      ],
+      "supportClass": "DISCOVERY_ONLY",
+      "truthfulCommands": [],
+      "canonicalPath": "/harnesses/cline",
+      "legacyPaths": [
+        "/harnesses/deepseek/cline"
+      ],
+      "officialSources": [
+        "https://github.com/cline/cline"
+      ],
+      "distributionPrimitives": [
+        {
+          "kind": "mcp-stdio",
+          "upstream": "officialMcpRegistry",
+          "state": "AVAILABLE"
+        },
+        {
+          "kind": "cline-marketplace-pr",
+          "state": "PENDING_UPSTREAM",
+          "liveUrl": null,
+          "submissionUrl": "https://github.com/cline/cline/pull/49",
+          "note": "Existing PR #49, do not create duplicate"
+        }
+      ],
+      "coverageBoundary": "CallLint does not yet auto-discover Cline configuration."
+    },
+    {
+      "id": "gemini-cli",
+      "displayName": "Gemini CLI",
+      "vendor": "Google",
+      "priority": "P2",
+      "authoritySurfaces": [
+        "mcp",
+        "tools"
+      ],
+      "configEvidence": [
+        "~/.gemini/config.json or similar"
+      ],
+      "supportClass": "DEFERRED",
+      "truthfulCommands": [],
+      "canonicalPath": "/harnesses/gemini-cli",
+      "officialSources": [
+        "https://geminicli.com/docs/extensions/"
+      ],
+      "distributionPrimitives": [
+        {
+          "kind": "mcp-stdio",
+          "upstream": "officialMcpRegistry",
+          "state": "AUDIT_REQUIRED",
+          "auditNote": "Gemini CLI MCP support and Registry consumption not confirmed"
+        },
+        {
+          "kind": "gemini-extension-gallery",
+          "state": "AUDIT_REQUIRED",
+          "officialSource": "https://geminicli.com/docs/extensions/",
+          "note": "Auto-discovery via GitHub topic + manifest"
+        }
+      ],
+      "coverageBoundary": "CallLint does not yet support Gemini CLI native discovery."
+    },
+    {
+      "id": "codebuddy",
+      "displayName": "CodeBuddy",
+      "vendor": "Tencent",
+      "priority": "P2",
+      "authoritySurfaces": [
+        "mcp",
+        "extensions"
+      ],
+      "configEvidence": [
+        "Config path requires verification"
+      ],
+      "supportClass": "DEFERRED",
+      "truthfulCommands": [],
+      "canonicalPath": "/harnesses/codebuddy",
+      "officialSources": [
+        "https://cloud.tencent.com/product/codebuddy"
+      ],
+      "distributionPrimitives": [
+        {
+          "kind": "mcp-stdio",
+          "upstream": "officialMcpRegistry",
+          "state": "AUDIT_REQUIRED",
+          "auditNote": "Tencent product, Registry consumption relationship unclear"
+        },
+        {
+          "kind": "tencent-mcp-market",
+          "state": "READY_NOT_SUBMITTED",
+          "blocker": "Third-party MCP submissions not currently accepted"
+        }
+      ],
+      "coverageBoundary": "CallLint does not yet support CodeBuddy native discovery."
+    },
+    {
+      "id": "opencode",
+      "displayName": "OpenCode",
+      "vendor": "Open Source",
+      "priority": "P3",
+      "authoritySurfaces": [
+        "mcp",
+        "tools"
+      ],
+      "configEvidence": [
+        "Documented config paths require verification"
+      ],
+      "supportClass": "CONFIG_SCAN",
+      "truthfulCommands": [
+        "calllint scan --config <path>"
+      ],
+      "canonicalPath": "/harnesses/opencode",
+      "legacyPaths": [
+        "/harnesses/deepseek/opencode"
+      ],
+      "officialSources": [
+        "https://github.com/opencode/opencode"
+      ],
+      "distributionPrimitives": [
+        {
+          "kind": "mcp-stdio",
+          "upstream": "officialMcpRegistry",
+          "state": "AUDIT_REQUIRED",
+          "auditNote": "Open source project, Registry consumption not verified"
+        }
+      ],
+      "coverageBoundary": "Config path auto-discovery not yet supported. Schema generation ambiguity must be handled deterministically."
+    },
+    {
+      "id": "kiro",
+      "displayName": "Kiro",
+      "vendor": "AWS",
+      "priority": "P2",
+      "authoritySurfaces": [
+        "mcp",
+        "filesystem",
+        "shell"
+      ],
+      "configEvidence": [
+        ".kiro/settings/mcp.json",
+        "~/.kiro/settings/mcp.json"
+      ],
+      "supportClass": "DEFERRED",
+      "truthfulCommands": [],
+      "canonicalPath": "/harnesses/kiro",
+      "officialSources": [
+        "https://kiro.dev/docs/mcp/configuration/",
+        "https://github.com/kirodotdev/Kiro"
+      ],
+      "distributionPrimitives": [
+        {
+          "kind": "mcp-stdio",
+          "upstream": "officialMcpRegistry",
+          "state": "AUDIT_REQUIRED",
+          "auditNote": "Kiro documents stdio MCP support and an mcpServers config key, but consumption of the Official MCP Registry is not confirmed by a primary source. Supporting MCP is not the same fact as consuming the Registry."
+        },
+        {
+          "kind": "kiro-workspace-config",
+          "state": "AUDIT_REQUIRED",
+          "note": "Config paths are now documented by the vendor; a thin adapter for the mcpServers JSON is evaluable but unbuilt. Support stays unimplemented until a discovery adapter exists and is fixture-covered."
+        }
+      ],
+      "coverageBoundary": "CallLint does not yet support Kiro native discovery."
+    }
+  ],
+  "modelIntentLandingPages": [
+    {
+      "id": "deepseek-hub",
+      "displayName": "DeepSeek with Agent Hosts",
+      "path": "/harnesses/deepseek/",
+      "purpose": "Model-intent landing page that links to canonical host pages",
+      "note": "Preserved for DeepSeek users; not canonical truth root"
+    }
+  ],
+  "candidateFeeds": [
+    {
+      "id": "deepseek-curated-agents",
+      "displayName": "DeepSeek official curated agent lists",
+      "vendor": "DeepSeek",
+      "officialSources": [
+        "https://github.com/deepseek-ai/awesome-deepseek-agent"
+      ],
+      "role": "NEW_CANDIDATE_FEED_ONLY",
+      "note": "§85 lists this as NEW-CANDIDATE FEED ONLY. Watched to notice a harness CallLint does not yet track; it is never evidence about an existing host's support class. Prior evaluation (artifacts/harness-distribution/native/manifest.json) found the list collects harness integration guides rather than MCP tools, so CallLint does not fit its scope -- recorded as candidate evidence per §86, with no submission made."
+    }
+  ],
+  "maintainedBy": "CallLint Project",
+  "repository": "https://github.com/calllint/calllint",
+  "licenseNote": "This distribution metadata is part of CallLint's public documentation and may be consumed by agents, marketplaces, and aggregators."
+}

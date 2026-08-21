@@ -1,0 +1,231 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://calllint.com/schemas/distribution-surfaces.v1.json",
+  "title": "CallLint distribution surfaces (SSOT)",
+  "description": "The single source of truth for CallLint's agent-host distribution surfaces. Every generated projection -- the 15 canonical host pages, the harness hub, agent-surfaces.json, llms.txt, llms-full.txt, agent-instructions.md, harnesses/sitemap.xml, _redirects and scripts/distribution-sources.json -- is derived from this file by scripts/generate-distribution-surfaces.mjs. Hand-editing a projection is a defect; edit this file and regenerate.",
+  "$comment": "ORTHOGONALITY IS STRUCTURAL HERE, NOT ADVISORY. additionalProperties is false at every level so that a risk-, popularity-, demand- or SEO-bearing field cannot be added to a host without failing validation. DISTRIBUTION CHANNEL is orthogonal to SECURITY VERDICT: nothing in this file may influence what a scan concludes. `priority` orders CallLint's own implementation work and is NOT a signal about the host.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "$schema",
+    "version",
+    "generatedAt",
+    "officialMcpRegistry",
+    "hosts",
+    "modelIntentLandingPages",
+    "candidateFeeds",
+    "maintainedBy",
+    "repository",
+    "licenseNote"
+  ],
+  "properties": {
+    "$schema": { "const": "./distribution-surfaces.schema.json" },
+    "version": { "type": "string", "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$" },
+    "generatedAt": { "type": "string", "format": "date" },
+    "maintainedBy": { "type": "string", "minLength": 1 },
+    "repository": { "type": "string", "pattern": "^https://" },
+    "licenseNote": { "type": "string", "minLength": 1 },
+
+    "officialMcpRegistry": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Tier-0 identity in the Official MCP Registry. Read back field-by-field against the live API by scripts/verify-registry-presence.mjs -- these values are assertions, not documentation.",
+      "required": [
+        "name",
+        "package",
+        "state",
+        "version",
+        "publishedAt",
+        "transport",
+        "repositoryUrl",
+        "registryUrl",
+        "tierLevel",
+        "upstreamPrimitive",
+        "description"
+      ],
+      "properties": {
+        "name": { "const": "io.github.calllint/calllint" },
+        "package": { "const": "calllint-mcp" },
+        "state": { "enum": ["LIVE", "PENDING", "WITHDRAWN"] },
+        "version": { "type": "string", "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$" },
+        "publishedAt": { "type": "string", "format": "date" },
+        "transport": { "enum": ["stdio", "http", "sse"] },
+        "repositoryUrl": { "type": "string", "pattern": "^https://" },
+        "registryUrl": { "type": "string", "pattern": "^https://" },
+        "tierLevel": { "type": "integer", "minimum": 0, "maximum": 0 },
+        "upstreamPrimitive": { "type": "boolean" },
+        "description": { "type": "string", "minLength": 1 }
+      }
+    },
+
+    "hosts": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/definitions/host" }
+    },
+
+    "modelIntentLandingPages": {
+      "type": "array",
+      "description": "Model-intent pages such as /harnesses/deepseek/. These are NOT hosts: a model drivable through several harnesses has no single support class and must not be made to fake one. They are excluded from the public-support-label requirement and included in the internal-ontology leak check.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "displayName", "path", "purpose", "note"],
+        "properties": {
+          "id": { "type": "string", "pattern": "^[a-z0-9-]+$" },
+          "displayName": { "type": "string", "minLength": 1 },
+          "path": { "type": "string", "pattern": "^/" },
+          "purpose": { "type": "string", "minLength": 1 },
+          "note": { "type": "string", "minLength": 1 }
+        }
+      }
+    },
+
+    "candidateFeeds": {
+      "type": "array",
+      "description": "§85 NEW-CANDIDATE FEED ONLY sources. A feed is watched for NEW PLATFORM CANDIDATES and may never promote a host, add an extractor, or claim support -- §86 permits recording candidate evidence and nothing more. Modelled separately from `hosts` for exactly that reason: a feed carried as a host would inherit a supportClass, and a curated third-party list is not an authority over CallLint's support surface. Projected into scripts/distribution-sources.json under `candidateFeeds`, never under `sources`.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "displayName", "vendor", "officialSources", "role", "note"],
+        "properties": {
+          "id": { "type": "string", "pattern": "^[a-z0-9-]+$" },
+          "displayName": { "type": "string", "minLength": 1 },
+          "vendor": { "type": "string", "minLength": 1 },
+          "officialSources": {
+            "type": "array",
+            "minItems": 1,
+            "items": { "type": "string", "pattern": "^https://" }
+          },
+          "role": {
+            "const": "NEW_CANDIDATE_FEED_ONLY",
+            "description": "A const, not an enum. There is exactly one permitted role, so a second one cannot be introduced by editing data -- it would require editing this schema deliberately."
+          },
+          "note": { "type": "string", "minLength": 1 }
+        }
+      }
+    }
+  },
+
+  "definitions": {
+    "host": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "displayName",
+        "vendor",
+        "priority",
+        "authoritySurfaces",
+        "configEvidence",
+        "supportClass",
+        "truthfulCommands",
+        "canonicalPath",
+        "officialSources",
+        "distributionPrimitives",
+        "coverageBoundary"
+      ],
+      "properties": {
+        "id": { "type": "string", "pattern": "^[a-z0-9-]+$" },
+        "displayName": { "type": "string", "minLength": 1 },
+        "vendor": { "type": "string", "minLength": 1 },
+
+        "priority": {
+          "type": "string",
+          "pattern": "^P[0-9]$",
+          "description": "Orders CallLint's own implementation work. NOT a signal about the host -- not popularity, not demand, not risk. Named P* rather than a number so it cannot be read as a score."
+        },
+
+        "authoritySurfaces": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "enum": [
+              "api",
+              "cli",
+              "code-generation",
+              "exec",
+              "extensions",
+              "filesystem",
+              "mcp",
+              "plugins",
+              "shell",
+              "skills",
+              "tools",
+              "vscode-extensions"
+            ]
+          },
+          "description": "What the host can grant an agent. Describes the host's capability surface, not a verdict about it. Closed enum on purpose: a free-form string here would let a new host introduce an authority the risk model has never seen, and silently. Extend the list deliberately."
+        },
+
+        "configEvidence": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "type": "string", "minLength": 1 },
+          "description": "Literal documented config paths. Must be paths the vendor documents, not paths inferred from a sibling product -- an inferred path is an UNKNOWN, and UNKNOWN is not SAFE."
+        },
+
+        "supportClass": {
+          "enum": ["NATIVE", "CONFIG_SCAN", "DISCOVERY_ONLY", "DEFERRED"],
+          "description": "Exactly four classes. An internal ontology token: it may be a CSS hook, and must never appear in visible page text. scripts/check-agent-surface-contract.mjs enforces that, and PUBLIC_SUPPORT_LABELS in the generator is total by construction -- publicSupport() throws on an unmapped class rather than falling back to printing the raw enum."
+        },
+
+        "truthfulCommands": {
+          "type": "array",
+          "items": { "type": "string", "pattern": "^calllint " },
+          "description": "Only commands CallLint can actually honor for this host today. A DEFERRED or DISCOVERY_ONLY host must NOT carry a `--agent` form; check-harness-distribution.mjs fails on that."
+        },
+
+        "canonicalPath": { "type": "string", "pattern": "^/harnesses/[a-z0-9-]+$" },
+
+        "legacyPaths": {
+          "type": "array",
+          "description": "URLs this host's page previously occupied and that must now 301 to canonicalPath. Optional, and historical: the set is frozen by what a past release actually served, so it does not grow with new hosts. Projected into the output-root _redirects (Cloudflare Pages parses that file only at the root) so that deleting a page updates the promise about it in the same run.",
+          "items": { "type": "string", "pattern": "^/harnesses/[a-z0-9-]+/[a-z0-9-]+$" }
+        },
+
+        "officialSources": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "type": "string", "pattern": "^https://" },
+          "description": "Primary vendor surfaces only. https is required and enforced at generation time, not merely here: this list is projected into scripts/distribution-sources.json, which a scheduled job fetches unattended, so a downgraded scheme is a supply-chain question. Duplicates across hosts are also rejected -- one owner per source."
+        },
+
+        "distributionPrimitives": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/definitions/primitive" }
+        },
+
+        "coverageBoundary": {
+          "type": "string",
+          "minLength": 1,
+          "description": "What CallLint does NOT cover for this host. Required, so a new host cannot ship without naming its own limits -- the honest counterpart to the support label."
+        }
+      }
+    },
+
+    "primitive": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "state"],
+      "properties": {
+        "kind": { "type": "string", "pattern": "^[a-z0-9-]+$" },
+        "state": {
+          "enum": ["AVAILABLE", "AUDIT_REQUIRED", "READY_NOT_SUBMITTED", "PENDING_UPSTREAM"],
+          "description": "AVAILABLE means CallLint ships through this channel today. AUDIT_REQUIRED means the channel exists and the claim is unverified -- notably, that a host documents stdio MCP support is NOT the same fact as that host consuming the Official MCP Registry."
+        },
+        "upstream": { "const": "officialMcpRegistry" },
+        "officialSource": { "type": "string", "pattern": "^https://" },
+        "liveUrl": {
+          "$comment": "Nullable by design: `null` states positively that this primitive has no live URL yet, which a missing key cannot distinguish from an oversight. PENDING_UPSTREAM carries liveUrl: null alongside a submissionUrl.",
+          "anyOf": [{ "type": "string", "pattern": "^https://" }, { "type": "null" }]
+        },
+        "submissionUrl": { "type": "string", "pattern": "^https://" },
+        "auditNote": { "type": "string", "minLength": 1 },
+        "blocker": { "type": "string", "minLength": 1 },
+        "note": { "type": "string", "minLength": 1 }
+      }
+    }
+  }
+}

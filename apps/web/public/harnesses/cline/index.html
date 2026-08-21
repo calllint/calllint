@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Cline — CallLint Support</title>
+    <meta
+      name="description"
+      content="CallLint support for Cline (Open Source). CallLint does not yet auto-discover Cline configuration."
+    />
+    <link rel="icon" href="/favicon.png" type="image/png" />
+    <link rel="apple-touch-icon" href="/logo-mark-256.png" />
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <header class="site-header">
+      <a class="brand-lockup" href="/" aria-label="CallLint home">
+        <img class="brand-mark" src="/logo-mark-128.png" width="40" height="40" alt="" />
+        <span class="brand-name">CallLint</span>
+      </a>
+      <nav class="nav-links" aria-label="Primary">
+        <a href="/">Home</a>
+        <a href="/harnesses/">Harnesses</a>
+        <a href="https://github.com/calllint/calllint">GitHub</a>
+        <a href="https://www.npmjs.com/package/calllint">npm</a>
+      </nav>
+    </header>
+
+    <main class="doc-content">
+      <nav class="breadcrumb" aria-label="Breadcrumb">
+        <a href="/">CallLint</a>
+        <span aria-hidden="true">›</span>
+        <a href="/harnesses/">Harnesses</a>
+        <span aria-hidden="true">›</span>
+        <span>Cline</span>
+      </nav>
+
+      <article>
+        <header class="doc-header">
+          <h1>Cline</h1>
+          <p class="doc-lede">
+            CallLint support for <strong>Cline</strong> by Open Source.
+            <span class="coverage-note">CallLint does not yet auto-discover Cline configuration.</span>
+          </p>
+          <div class="host-meta">
+            <span class="badge badge-P2">P2</span>
+            <span class="badge badge-DISCOVERY_ONLY" title="No automatic detection yet — this page documents where the config lives.">Guide only</span>
+          </div>
+        </header>
+
+        <section id="usage" class="doc-section">
+          <h2>Usage</h2>
+          <p>
+            CallLint does not yet support native auto-discovery for Cline.
+            No automatic detection yet — this page documents where the config lives.
+          </p>
+        </section>
+
+        <section id="config" class="doc-section">
+          <h2>Configuration Paths</h2>
+          <p>CallLint looks for Cline configurations in:</p>
+          <ul>
+            <li><code>VS Code extension, config mechanism TBD</code></li>
+          </ul>
+        </section>
+
+        <section id="authority" class="doc-section">
+          <h2>Authority Surfaces</h2>
+          <p>Cline can grant tools the following authority surfaces:</p>
+          <ul class="authority-list">
+            <li><code>vscode-extensions</code></li>
+            <li><code>tools</code></li>
+            <li><code>mcp</code></li>
+          </ul>
+        </section>
+
+        <section id="distribution" class="doc-section">
+          <h2>Distribution</h2>
+          <p>CallLint is available for Cline through:</p>
+          <ul class="distribution-list">
+            <li>
+              <strong>mcp-stdio</strong>
+              <span class="upstream-note">(via <a href="https://registry.modelcontextprotocol.io/?q=calllint">officialMcpRegistry</a>)</span>
+              — <span class="state-AVAILABLE">AVAILABLE</span>
+            </li>
+            <li>
+              <strong>cline-marketplace-pr</strong>
+              — <span class="state-PENDING_UPSTREAM">PENDING_UPSTREAM</span>
+              <div class="dist-note">Existing PR #49, do not create duplicate</div>
+            </li>
+          </ul>
+        </section>
+
+        <section id="sources" class="doc-section">
+          <h2>Official Sources</h2>
+          <ul>
+            <li><a href="https://github.com/cline/cline" target="_blank" rel="noopener">https://github.com/cline/cline</a></li>
+          </ul>
+        </section>
+
+        <section id="coverage" class="doc-section coverage-boundary">
+          <h2>Coverage Boundary</h2>
+          <p class="boundary-text">CallLint does not yet auto-discover Cline configuration.</p>
+        </section>
+      </article>
+
+      <footer class="doc-footer">
+        <p>
+          Generated from <a href="https://github.com/calllint/calllint/blob/main/apps/web/data/distribution-surfaces.json">distribution-surfaces.json</a>
+          — canonical source of truth for CallLint's global agent distribution authority.
+        </p>
+        <p>
+          <a href="/harnesses/">← Back to Harnesses</a> |
+          <a href="/">CallLint Home</a>
+        </p>
+      </footer>
+    </main>
+  </body>
+</html>
+

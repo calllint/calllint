@@ -5,10 +5,17 @@
 
 import type { TelemetryBatch } from "./queue.js"
 
-/** Endpoint URL for telemetry ingestion. */
+/**
+ * Endpoint URL for telemetry ingestion.
+ *
+ * `telemetry.calllint.com` is a dedicated Worker (apps/usage-worker), not the
+ * static website. The previous default — `calllint.com/v1/events/usage` — was
+ * never routed: `apps/web/public/_routes.json` does not include that path, so
+ * requests were served the static site instead of reaching a handler.
+ */
 const TELEMETRY_ENDPOINT =
   process.env.CALLLINT_TELEMETRY_ENDPOINT ??
-  "https://calllint.com/v1/events/usage"
+  "https://telemetry.calllint.com/v1/events/usage"
 
 /** Network timeout (milliseconds). */
 const TIMEOUT_MS = 5000

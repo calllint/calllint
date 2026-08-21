@@ -62,3 +62,14 @@ PROJECT_STATUS.md
 # commits. A boundary no gate reads is not a boundary, so R-1 also asserts
 # `git status --porcelain` is empty after a real run.
 .var/
+
+# A local scratch clone of a FORK of cline/marketplace, used once to open upstream PR #49
+# (`marketplace/` → saintl1022/marketplace, upstream cline/marketplace). Commit ec9d27c
+# (PR #314) committed it as a bare `160000` gitlink with no `.gitmodules` entry — an
+# unregistered submodule, which is the one submodule state git cannot restore: a fresh
+# clone gets an empty directory and `git submodule update` has nothing to read. It is
+# referenced by no script, build, gate or workflow, so registering it as a real submodule
+# would force every CallLint clone to fetch a fork of someone else's marketplace to build
+# nothing. Untracked instead; the submission it produced lives in the upstream PR, and the
+# SSOT records that as `cline` / `PENDING_UPSTREAM`.
+/marketplace/

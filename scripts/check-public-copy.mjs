@@ -68,25 +68,50 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const repoRoot = path.resolve(__dirname, "..")
 
 const factsPath = path.join(repoRoot, "project-facts.json")
-const publicFiles = [
-  "apps/web/public/index.html",
-  "apps/web/public/agents.html",
-  "apps/web/public/mcp-security.html",
-  "apps/web/public/cursor-mcp-security.html",
-  "apps/web/public/claude-desktop-mcp-security.html",
-  "apps/web/public/agent-tool-risk.html",
-  // ADR 0085 D3.1 — the absence page. Governed copy: it carries verdict semantics and, by
-  // construction, discusses a named subject we have NOT assessed, which is exactly where an
-  // absence could be worded as a denial (ADR 0058 §3). Unscanned, it was the one public page
-  // free to overclaim. Subject to the exclusion checks (overclaim, stale commands, stale
-  // status); it is deliberately not a quickstart surface, and those checks are offender-filters
-  // rather than per-file requirements, so it is not asked to carry copy it should not have.
-  "apps/web/public/404.html",
-  "apps/web/public/agent-instructions.md",
-  "apps/web/public/llms.txt",
-  "apps/web/public/llms-full.txt",
-  "README.md",
-]
+
+/**
+ * The served web root whose top-level pages are governed copy. DISCOVERED, not enumerated.
+ *
+ * A hand-written list makes governance opt-in: a new top-level public page is ungoverned by
+ * DEFAULT, and the guard reports green because it never looked. That is not hypothetical —
+ * `team.html` shipped a price for an unlaunched product and was never scanned by any copy
+ * gate, because adding a file to `public/` and adding a line to this script are two different
+ * actions and only one of them is required to ship. Four further pages (`agent-use-cases.md`,
+ * `report-schema.md`, `robots.txt`, `security-boundaries.md`) were silently unscanned for the
+ * same reason. Discovery inverts the default: a page is governed because it is SERVED, and
+ * removing it from the scan now requires deleting it from the web root.
+ *
+ * Depth 1 only: `trust/**` is generated and has its own stricter corpus (checks 15-19), and
+ * `functions/**` is not copy.
+ */
+const PUBLIC_WEB_ROOT = "apps/web/public"
+const PUBLIC_EXTENSIONS = [".html", ".md", ".txt"]
+/** Governed copy outside the web root: the repo's own public front door. */
+const EXTRA_PUBLIC_FILES = ["README.md"]
+/** Public GitHub surfaces — the issue chooser is public product copy (see check 23). */
+const ISSUE_TEMPLATE_DIR = ".github/ISSUE_TEMPLATE"
+
+const discoverPublicFiles = () => {
+  const root = path.join(repoRoot, PUBLIC_WEB_ROOT)
+  const served = fs.existsSync(root)
+    ? fs
+        .readdirSync(root, { withFileTypes: true })
+        .filter((e) => e.isFile() && PUBLIC_EXTENSIONS.includes(path.extname(e.name)))
+        .map((e) => `${PUBLIC_WEB_ROOT}/${e.name}`)
+        .sort()
+    : []
+  const templateDir = path.join(repoRoot, ISSUE_TEMPLATE_DIR)
+  const templates = fs.existsSync(templateDir)
+    ? fs
+        .readdirSync(templateDir, { withFileTypes: true })
+        .filter((e) => e.isFile() && /\.ya?ml$/.test(e.name))
+        .map((e) => `${ISSUE_TEMPLATE_DIR}/${e.name}`)
+        .sort()
+    : []
+  return [...served, ...EXTRA_PUBLIC_FILES, ...templates]
+}
+
+const publicFiles = discoverPublicFiles()
 
 const primaryPathRegex = /npx calllint@preview scan/i
 /** Stale release-channel commands that must not appear in public quickstart copy. */
@@ -684,6 +709,79 @@ console.log("")
       const injected = injectionPhrases.filter((p) => joined.includes(p))
       if (injected.length === 0) ok("no MCP tool description is an injected instruction (honest presence only)")
       else for (const p of injected) fail(`MCP tool description carries an injection imperative: "${p}"`)
+    }
+  }
+}
+
+// 23. Commercial boundary. While `facts.commercial.paidOfferLive === false`, no public
+//   current-product surface may present a price, a paid tier, a purchase path, or a
+//   permanence commitment about what is free. This is keyed on a FACT, not on a list of
+//   banned pages: the offending page is not special, the claim is. `team.html` sold
+//   "$99 / org / month" for a product with no checkout, no billing, and no launch, and the
+//   design-partner issue template repeated the figure through the public issue chooser —
+//   both invisible to this guard because neither was in its file list (now discovered).
+//
+//   Two distinct claim families, separated because they fail for different reasons:
+//     (a) PRICE / PURCHASE — states a cost or a way to pay for something not for sale.
+//     (b) PERMANENCE — "free forever" / "stays free" is an unbounded future commitment.
+//         It reads as generous and is the harder one to walk back: it binds a pricing
+//         decision that has not been made. Describing what the CLI does today is fine;
+//         promising what it will cost in perpetuity is not.
+//
+//   Scoped to public copy (the discovered set). `docs/**` internal planning notes are not
+//   a current-product surface and are deliberately out of scope. CHANGELOG is not scanned
+//   anywhere in this guard, so a historical entry naming a withdrawn experiment is safe.
+{
+  const commercial = facts.commercial
+  if (!commercial || typeof commercial.paidOfferLive !== "boolean") {
+    fail(
+      "check 23: project-facts.json has no `commercial.paidOfferLive` boolean — the commercial " +
+        "boundary cannot be enforced without an authoritative fact stating whether a paid offer is live",
+    )
+  } else if (commercial.paidOfferLive) {
+    // A paid offer IS live: pricing copy is legitimate, but it must agree with the fact.
+    ok("commercial.paidOfferLive = true — price copy permitted (amount consistency not asserted here)")
+  } else {
+    if (commercial.publicPrice !== null) {
+      fail(
+        `check 23: commercial.paidOfferLive = false but publicPrice = ${JSON.stringify(commercial.publicPrice)} — ` +
+          "a price with no live offer is the exact inconsistency this check exists to prevent",
+      )
+    }
+    // (a) Price / purchase claims.
+    const pricePatterns = [
+      [/\$\s?\d[\d,]*(?:\.\d{2})?\s*(?:\/|\bper\b)?\s*(?:org|seat|user|month|mo\b|year|yr\b)/i, "price amount with a billing unit"],
+      [/\b\d+\s*(?:usd|eur|gbp)\b\s*(?:\/|\bper\b)\s*(?:month|org|seat|user|year)/i, "price amount with a billing unit"],
+      [/\bper\s+(?:org|seat|user)\s*\/\s*month\b/i, "per-unit monthly billing"],
+      [/\b(?:start|begin|upgrade to|subscribe to)\s+(?:a\s+)?(?:paid|pro|team|enterprise)\s+(?:plan|tier|subscription)\b/i, "purchase path for a paid tier"],
+      // NOTE: bare "checkout" is NOT a payment signal in developer copy — `actions/checkout@v4`
+      // appears in the homepage's CI sample. Match the payment sense only.
+      [/\b(?:buy now|billing portal|enter your card|payment method|credit card|start (?:your )?free trial)\b/i, "checkout / payment surface"],
+      [/\b(?:checkout|payment)\s+(?:page|flow|link|session)\b/i, "checkout / payment surface"],
+    ]
+    // (b) Permanence commitments about price.
+    const permanencePatterns = [
+      [/\bfree\s+forever\b/i, "unbounded permanence commitment"],
+      [/\bforever\s+free\b/i, "unbounded permanence commitment"],
+      [/\bstays?\s+free\b/i, "unbounded permanence commitment"],
+      [/\bwill\s+(?:always\s+)?(?:remain|stay|be)\s+free\b/i, "unbounded permanence commitment"],
+      [/\balways\s+(?:be\s+)?free\b/i, "unbounded permanence commitment"],
+    ]
+    let commercialClean = true
+    for (const f of files) {
+      for (const [re, label] of [...pricePatterns, ...permanencePatterns]) {
+        const m = re.exec(f.text)
+        if (m) {
+          fail(
+            `commercial claim in ${f.rel}: ${label} — matched "${m[0].trim()}". ` +
+              "No paid offer is live (commercial.paidOfferLive = false).",
+          )
+          commercialClean = false
+        }
+      }
+    }
+    if (commercialClean) {
+      ok(`no price, purchase path, or permanence commitment across ${files.length} public file(s) (no paid offer live)`)
     }
   }
 }

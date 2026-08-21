@@ -1,0 +1,26 @@
+{
+  "//": "SEPARATE tsconfig project, for the same reason apps/web/functions has one: this is Workers-runtime code, not Node. The root tsconfig's include is `apps/*/src/**/*.ts`, which WOULD match apps/usage-worker/src/**, so without excluding it there the Worker would be typechecked with @types/node present and DOM absent — exactly backwards. That combination type-errors on crypto.subtle/Request/Response while silently ACCEPTING process.env and Buffer, which do not exist in the Workers runtime.",
+  "//lib": "DOM supplies Request/Response/URL/crypto.subtle/TextEncoder. D1Database, KVNamespace and ScheduledController come from a hand-written ambient declaration in src/env.d.ts rather than from @cloudflare/workers-types.",
+  "//types": "types is EMPTY, and that is load-bearing. Setting types to [\"@cloudflare/workers-types\"] made `process.env.HOME` and `Buffer.from()` typecheck CLEANLY in this project — measured, not assumed — because that package ships Node compat globals. Neither exists in the deployed runtime, so the guard would have been blind to exactly the mistake it is here to catch. apps/web/functions/tsconfig.json uses types: [] for the same reason and correctly reports TS2591 for `process`.",
+  "//run": "Checked by `pnpm typecheck:worker`, which `pnpm typecheck` chains — the guard must be wired into the aggregate command or it is a guard that never runs.",
+  "compilerOptions": {
+    "noEmit": true,
+    "strict": true,
+    "target": "ES2022",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "lib": ["ES2022", "DOM"],
+    "types": [],
+    "skipLibCheck": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noUncheckedIndexedAccess": true,
+    "noFallthroughCasesInSwitch": true,
+    "verbatimModuleSyntax": true,
+    "baseUrl": "../..",
+    "paths": {
+      "@calllint/telemetry-contract": ["packages/telemetry-contract/src/index.ts"]
+    }
+  },
+  "include": ["src/**/*.ts"]
+}

@@ -1,0 +1,59 @@
+#:schema node_modules/wrangler/config-schema.json
+# CallLint private telemetry ingress — dedicated Worker (new18 §17, §18).
+#
+# This is app-local config. It replaces the ambiguous root wrangler.toml, which
+# named "calllint-usage-observatory" while also setting
+# pages_build_output_dir = "public", so it read as configuration for the static
+# website and was referenced by nothing in the repo (new18 §18: "Prefer explicit
+# app-local Worker configuration over a root config that appears to configure the
+# website").
+#
+# The static site is deployed by .github/workflows/deploy-web.yml to the
+# `calllint-www` Pages project and is unaffected by this file.
+#
+# USAGE_HASH_KEY is a SECRET and is deliberately absent here. Set it with:
+#   wrangler secret put USAGE_HASH_KEY --config apps/usage-worker/wrangler.toml
+
+name = "calllint-usage-ingress"
+main = "src/index.ts"
+compatibility_date = "2024-09-23"
+workers_dev = false
+
+# Retention sweep (new18 §21). 03:17 UTC — off the hour, away from the 06:30
+# report build so a long delete never overlaps a read.
+[triggers]
+crons = ["17 3 * * *"]
+
+# Reuses the existing database (new18 §21: do not create a second one).
+# database_id is filled in by the operator; it is an account-scoped identifier,
+# not a secret, but it is environment-specific.
+#
+# CANDIDATE VALUE, UNVERIFIED: 98626b00-5c93-48c4-98b2-6632105b97df
+#
+# Recovered from the root wrangler.toml this file replaced (`git show 4671854^:wrangler.toml`).
+# It is left in a comment rather than substituted below, on purpose. That config was a
+# **Pages** config, and `wrangler pages deploy` does not apply `wrangler.toml` bindings at
+# all — so this id names a binding that has never once been exercised. Nothing in this
+# repository can check it either: confirming it needs Cloudflare credentials, and the
+# account API here answers `Authentication failed (status: 400) [code: 9106]`.
+#
+# So it is a recorded id, not an observed one. Substituting it would make this file read as
+# a verified binding on the strength of a value nobody has seen work — the same mistake this
+# branch spent its length correcting elsewhere. Confirm it with
+# `wrangler d1 list` (or the Dashboard) and paste it in as a deliberate act; the placeholder
+# is here so that act cannot be skipped by accident.
+[[d1_databases]]
+binding = "USAGE_DB"
+database_name = "calllint-usage"
+database_id = "REPLACE_WITH_D1_DATABASE_ID"
+
+# Optional rate-limit counter. The Worker fails open when this is unbound, so
+# the binding can be added after first deploy without a code change.
+# [[kv_namespaces]]
+# binding = "USAGE_RATE_LIMIT"
+# id = "REPLACE_WITH_KV_NAMESPACE_ID"
+
+# Custom domain (new18 §17). Added by the operator once the route is claimed:
+# [[routes]]
+# pattern = "telemetry.calllint.com"
+# custom_domain = true

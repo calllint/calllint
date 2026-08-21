@@ -27,30 +27,26 @@ export async function flushTelemetry(): Promise<void> {
     const state = await loadState()
     if (!state.telemetryEnabled) return
 
-    // Load queue
     const queuePath = getQueuePath()
     const queue = new TelemetryQueue(queuePath)
-    await queue.load()
 
-    const size = await queue.size()
-    if (size === 0) return
-
-    // Take up to MAX_BATCH_SIZE events
-    const events = await queue.take(MAX_BATCH_SIZE)
+    // PEEK, do not take: the events stay on disk until the server confirms receipt.
+    // `peek` re-loads internally, so no separate load()/size() round-trip is needed.
+    const events = await queue.peek(MAX_BATCH_SIZE)
     if (events.length === 0) return
 
-    // Create batch and deliver
+    // The batch id is derived from these events, so a retry after an ambiguous failure
+    // (timeout AFTER the server committed) presents the same id and can be de-duplicated
+    // server-side instead of double-counted.
     const batch = createBatch(events)
     const success = await deliverBatch(batch)
 
+    // Remove ONLY on a confirmed 2xx. On any failure — network error, timeout, 5xx — the
+    // queue is untouched, so the events survive for the next run to retry. The previous
+    // code removed them before delivery and its "restore" path re-read the file it had
+    // already truncated, destroying the batch it claimed to be putting back.
     if (success) {
-      // Events already removed by queue.take()
-      // Save the queue to persist removal
-      await queue.save()
-    } else {
-      // Delivery failed — put events back at the front
-      // (They were already removed by take(), so we reload to restore)
-      await queue.load()
+      await queue.removeDelivered(events.length)
     }
   } catch {
     // Any error in flush path is swallowed

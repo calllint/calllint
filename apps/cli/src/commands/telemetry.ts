@@ -98,9 +98,15 @@ async function telemetryReset(): Promise<number> {
     console.log("Installation ID cleared.")
     console.log("Telemetry remains: OFF")
   }
+  // Deliberately NOT printed: the installation ID itself, in full or truncated. It is a
+  // pseudonymous identifier, and a terminal is a logged, screen-shared, CI-captured
+  // surface. Printing a 16-char prefix also contradicted the "Old ID: (removed)" line
+  // directly above it — it disclosed the NEW id while claiming discretion about the old
+  // one. The rotation is the fact worth reporting; the value is not. This restores the
+  // invariant every OTHER surface already held: `telemetry status` describes the identity
+  // ("anonymous, local, resettable") and never prints it, so this was the only leak.
   if (stateBefore.anonymousInstallationId && stateAfter.anonymousInstallationId) {
-    console.log("\nOld ID: (removed)")
-    console.log(`New ID: ${stateAfter.anonymousInstallationId.slice(0, 16)}...`)
+    console.log("\nInstallation identity rotated.")
   }
   return 0
 }

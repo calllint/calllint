@@ -542,6 +542,48 @@ The count above is left as written, for the same reason this row gave for its 18
 sequence: numbers that rot quietly are worth keeping visible, and the reader in
 `tests/invariants/gate-s0-claims.invariants.test.ts` is what makes the live number binding.
 
+### Amendment 2026-08-19 (Global Agent Distribution Authority, G3.5) — 22 → **23** steps
+
+**Still CLOSED. `ci:local` now has **23** `&&`-joined steps.** The twenty-third is
+`pnpm check:web-structure`, added as a validation gate for the G3 Global Agent Distribution Authority
+batch. This gate validates that the website's public surface structure matches the expected layout,
+ensuring that agent-facing distribution surfaces and harness pages are properly organized.
+
+The count above is left as written, continuing the 18/19/20/21/22 sequence pattern: numbers that rot
+quietly are worth keeping visible, and the reader in
+`tests/invariants/gate-s0-claims.invariants.test.ts` is what makes the live number binding.
+
+### Amendment 2026-08-19 (Global Agent Distribution Authority, G7 closure) — 23 → **25** steps
+
+**Still CLOSED. `ci:local` now has **25** `&&`-joined steps.** The two added are
+`pnpm check:agent-surface` and `pnpm check:security-semantics`.
+
+Both were added for the same reason, and it is the reason this row exists: the properties they
+measure were TRUE and UNENFORCEABLE. Neither was a new feature.
+
+- `check:agent-surface` covers §19 (every agent-facing document must point at
+  `agent-surfaces.json`, so an agent never has to scrape `/harnesses/` HTML), §20 (a human page
+  must render the public support label — Auto-detects / Scan config / Guide only — never the
+  internal `NATIVE`/`CONFIG_SCAN`/`DISCOVERY_ONLY`/`DEFERRED` enum), and GD-15 (the sitemap must
+  promise exactly the pages that exist). GD-15 was not merely unguarded, it was VIOLATED:
+  `harnesses/sitemap.xml` was hand-maintained and had drifted to 9 URLs, all under
+  `/harnesses/deepseek/`, 8 of them the model × harness cartesian pages that `79f3cb8`
+  deliberately deleted — so `robots.txt` was advertising a sitemap that submitted 8 dead URLs to
+  crawlers, on precisely the SEO plane the distribution contract forbids, while listing none of
+  the 15 canonical host pages. The sitemap is now generated from the SSOT.
+- `check:security-semantics` runs `verify-security-semantic-diff.mjs --check`, which asserts the
+  committed `artifacts/authority-distribution-closure/security-semantic-diff.json` still agrees with a live
+  three-channel measurement (verdict-package diff, forbidden risk fields, host-identity coupling
+  into the risk engine). A committed `"changed": false` is otherwise an unfalsifiable claim.
+
+`check:registry-presence` was deliberately NOT added: it queries the live Official MCP Registry
+API, so wiring it here would red `ci:local` on any offline machine for a reason no local change
+can clear. It belongs to `distribution-watch.yml`, which already runs it.
+
+The count above is left as written, continuing the 18/19/20/21/22/23 sequence pattern: numbers that
+rot quietly are worth keeping visible, and the reader in
+`tests/invariants/gate-s0-claims.invariants.test.ts` is what makes the live number binding.
+
 ---
 
 ## S0-OPEN-3 — three of S0's five assertions are GATE-VERIFIED, which reads a string
