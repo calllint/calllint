@@ -72,6 +72,8 @@
     "check:security-semantics": "node scripts/verify-security-semantic-diff.mjs --check",
     "write:security-semantics": "node scripts/verify-security-semantic-diff.mjs",
     "check:registry-presence": "node scripts/verify-registry-presence.mjs",
+    "check:release-ancestry": "node scripts/verify-release-ancestry.mjs",
+    "check:mcp-tag-protection": "node scripts/verify-mcp-tag-protection.mjs",
     "gen:distribution": "node scripts/generate-distribution-surfaces.mjs",
     "facts:check": "node scripts/derive-facts.mjs",
     "facts:write": "node scripts/derive-facts.mjs --write",

@@ -29,6 +29,19 @@ jobs:
     steps:
       - uses: actions/checkout@v6
 
+      # AC-32. A tag ruleset restricts WHO may create `mcp-v*`; it does not constrain WHICH
+      # commit the tag points at, and an actor with a bypass can still tag a side branch.
+      # Both publishes below are irreversible (npm versions are immutable, a registry entry
+      # is public), so this runs before any build work and fails closed.
+      #
+      # It asks the GitHub compare API rather than `git merge-base`, because the checkout
+      # above is depth-1: `main` is not in the local history, and an authentic commit would
+      # look unreachable.
+      - name: Release ancestry gate (tag must point at a commit reachable from main)
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: node scripts/verify-release-ancestry.mjs
+
       - uses: pnpm/action-setup@v6
 
       - uses: actions/setup-node@v6

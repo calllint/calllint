@@ -34,13 +34,22 @@ it. Anything that did would have to be re-taken, not adjusted.
 
 ## A. Verdict
 
-**NOT fully closed — one item remains, and it is blocked on an action outside the working tree,
-not on unwritten code.** All local gates are green. Of the three items open when this section was
+**NOT fully closed — one item remains, and it is blocked on a repository-settings write, not on
+unwritten code.** All local gates are green. Of the three items open when this section was
 first written (section J), **two closed when PR #325 squash-merged as `a0076ff` on 2026-08-21**:
-the watcher's cron is now armed on the default branch (`state: active`, measured) and the GD-15
-site fix is live. The one still open requires an **admin write on the repository** — the `mcp-v*`
-tag ruleset — and cannot be closed from this tree by anyone without that permission. Nothing in
-the distribution scope is waiting on further implementation.
+the watcher's cron is now armed on the default branch (`state: active`, re-measured at `4bcedb5`
+on 2026-08-21 — still `active`, still `gh run list` → `[]`) and the GD-15 site fix is live.
+
+The third item was **narrowed, not closed, by a scope correction on 2026-08-21.** It had been
+recorded as one thing — "create the `mcp-v*` tag ruleset" — but `new18.md` §45 asks for two
+independent controls, and AC-32's RED condition (`mcp-v tag from unrelated unreviewed branch can
+publish`) is the *second* one: which commit ships, not who may tag. That half was missing from
+`publish-mcp.yml` entirely and was code, not an operator action; it is now
+`scripts/verify-release-ancestry.mjs`, step 2 of the publish job, negative-controlled over all
+three reachability states (section H item 10b). What remains is the **tag ruleset** — a write to
+repository settings. With the ancestry gate in place, its absence no longer means unreviewed code
+can reach npm; it means a rogue tag can still start a run and reach the `environment: npm`
+reviewer. Nothing in the distribution scope is waiting on further implementation.
 
 Confirmed at `865f9c6` on 2026-08-20, not carried forward:
 
@@ -443,6 +452,55 @@ Creating the ruleset is an admin write on the shared repository and is left to t
 `--explain` prints the UI path and the equivalent `gh api` call. Still OPEN in section J — but
 open on an admin action, not on code.
 
+**Item 10b — the ruleset was never the whole of AC-32, and the other half is now code.**
+Re-reading `new18.md` §45 against this item exposed a scope error in the sentences above. §45
+audits `mcp-v*` tag protection *and* asks, separately and unconditionally, for a code-level
+control:
+
+```
+Implement a code-level release ancestry gate regardless:
+
+    tagged commit must be reachable from current protected main
+```
+
+AC-32's RED condition is `mcp-v tag from unrelated unreviewed branch can publish` — a claim
+about **which commit** the tag points at. A tag ruleset governs **who** may create the tag.
+These are different properties, and the ruleset does not imply the other: an admin, or any
+actor holding a ruleset bypass, can still tag an arbitrary side-branch commit. Measured on
+`publish-mcp.yml` before this pass: **no ancestry check of any kind** (grep for
+`merge-base|is-ancestor|reachable|ancestry` → 0 hits), so `git tag mcp-v9.9.9 <any-sha>` would
+have published unreviewed code to npm (immutable) and to the Official MCP Registry (public).
+
+`scripts/verify-release-ancestry.mjs` now closes that half, wired as **step 2** of
+`publish-mcp.yml` — before install, before build, before either publish. It asks the GitHub
+compare API rather than `git merge-base`, because `actions/checkout` is depth-1: `main` is not
+in the runner's local history, and an authentic commit would look unreachable. That precise
+shape has produced false forgery accusations in this repository before.
+
+Negative control run before the green was trusted, over all three reachability states:
+
+```
+$ node scripts/verify-release-ancestry.mjs --sha 4bcedb5…   # main tip
+  compare main...4bcedb56b21d → status=identical   ahead_by=0  behind_by=0
+  PASS                                                          → exit 0
+
+$ node scripts/verify-release-ancestry.mjs --sha a0076ff     # an already-merged commit
+  compare main...a0076ff → status=behind
+  PASS                                                          → exit 0
+
+$ node scripts/verify-release-ancestry.mjs --sha 3abb3dfe…   # PR #268 head, never merged
+  compare main...3abb3dfe54a0 → status=diverged   ahead_by=1  behind_by=2
+  FAIL: NOT reachable from main                                 → exit 1
+```
+
+The `behind` case matters as much as the red one: a release tag is normally cut at or before
+the current tip, so a gate that only accepted `identical` would be unusable and would be
+weakened at the first real release. All three verdicts were taken by redirecting to a file and
+reading `$?` unpiped.
+
+AC-32 is therefore **no longer `NO CONTROL`**. The code-level half §45 asks for exists and is
+enforced in the publish path; the account-level half — the ruleset — remains an operator action.
+
 **Item 11** — the next-release description in
 `next-release-registry-description.txt` is byte-identical to the SSOT's current description.
 **Item 12** — registry presence changes no verdict; measured directly: 0 occurrences of
@@ -576,7 +634,7 @@ this pass did not inject it. `NO CONTROL` means exactly that — no gate would c
 | AC-29 | publish runs without official validation | STANDING | `mcp-publisher validate server.json` at `publish-mcp.yml:94-96` |
 | AC-30 | successful publish assumed without readback | INJECTED (NC-1..3) | §H 7/7 field readback; `publish-mcp.yml:115-120` |
 | AC-31 | watcher republishes a Registry version | STANDING | GD-11/GD-17, same 0-match scan |
-| AC-32 | `mcp-v*` tag from an unreviewed branch can publish | **NO CONTROL** | the ruleset does not exist — operator action §106 P (1). `environment: npm` requires 1 reviewer, which mitigates but does not close it |
+| AC-32 | `mcp-v*` tag from an unreviewed branch can publish | **CODE CONTROL, account-level OPEN** | `verify-release-ancestry.mjs` at `publish-mcp.yml` step 2 rejects a tag whose commit is not reachable from `main` (`diverged` → exit 1, negative-controlled over `identical`/`behind`/`diverged`) — this is the code-level gate §45 asks for "regardless". The `mcp-v*` **tag ruleset** (who may create the tag) is still absent: operator action §106 P (1). `environment: npm` adds 1 reviewer |
 | AC-33 | `/team` remains publicly linked | STANDING | `check:public-copy` — 0 hits across 45 tool descriptions and 23 public files |
 | AC-34 | unlaunched $99 pricing remains public copy | STANDING | same gate; the 4 residual `pricing` hits are third-party registry descriptions |
 | AC-35 | "free forever" promise remains | STANDING | same gate |
@@ -586,11 +644,20 @@ this pass did not inject it. `NO CONTROL` means exactly that — no gate would c
 | AC-39 | cards align only because copy was artificially shortened | STANDING | §P "the command rules are load-bearing, and that is measured, not asserted" |
 | AC-40 | tablet cards remain cramped/overflowing | INJECTED | §P — 245 pages × 240/320/390/1280, `scrollWidth === clientWidth` at slack 0 |
 
-**39 of 40 have a control; 1 does not.** AC-32 is the honest miss and it is not closable from
-inside this repository: creating a `mcp-v*` tag ruleset needs repo-admin write, already carried as
-operator action §106 P (1). It is listed as `NO CONTROL` rather than folded into the `environment:
-npm` reviewer requirement, because a required reviewer stops an *unreviewed publish*, not a tag
-pushed from an unrelated branch.
+**40 of 40 now have a control; 1 of them is partial.** AC-32 was previously recorded here as
+`NO CONTROL` on the reasoning that a `mcp-v*` tag ruleset needs repo-admin write. That reasoning
+conflated two properties. AC-32's RED condition is a tag *from an unreviewed branch* publishing —
+a claim about **which commit** ships. A ruleset governs **who** may create a tag. `new18.md` §45
+asks for both, and asks for the ancestry half "regardless" of account configuration; that half was
+missing and is code, not an operator action. It now exists (`verify-release-ancestry.mjs`, step 2
+of `publish-mcp.yml`, negative-controlled — item 10b in section H).
+
+What remains open on AC-32 is narrower than the earlier text claimed: with the ancestry gate in
+place, a rogue `mcp-v*` tag on a side branch **fails the publish job**, so the unreviewed-code
+path is closed. The absent ruleset means such a tag can still be *created* and can still start a
+run — it reaches the `environment: npm` reviewer, burns Actions minutes, and appears in the run
+history. That is a real gap and it is still operator action §106 P (1); it is no longer the
+difference between reviewed and unreviewed code reaching npm.
 
 Two further limits on this table, stated rather than left for a reader to find. First, `STANDING`
 is weaker evidence than `INJECTED`: it means a gate exists and passes, not that it has been seen
@@ -1020,12 +1087,17 @@ closing:
   (the account API answers `code: 9106`). Pasting an unobserved value into the live field would
   make the file read as verified on evidence nobody has, which is the fault class section L′
   exists to correct. The placeholder is what forces the operator to confirm it deliberately.
-- **Deployment** — nothing on this branch has been pushed. Production serves `main` (section F).
-- **The `mcp-v*` tag ruleset** — an admin write on the shared repository (section H, J item 2).
+- **Deployment** — **closed 2026-08-21.** This was written pre-merge; PR #325 landed as `a0076ff`
+  and production now serves the generated tree (section F carries the before/after measurement).
+- **The `mcp-v*` tag ruleset** — a write to repository settings (section H item 10, J item 2).
+  Narrowed on 2026-08-21: the *code-level* half of AC-32 that §45 asks for "regardless" is no
+  longer missing (`verify-release-ancestry.mjs`, section H item 10b), so this is now the
+  who-may-create-a-tag half alone.
 
-The first is written code that does not run. The second and third are not code at all. Keeping the
-three apart is the reason this section exists: a report that lists them together under "remaining
-work" invites the reading that they are all one push away, and only two of them are.
+The first is written code that does not run. The third is not code at all, and the second is now
+history rather than a pending item. Keeping them apart is the reason this section exists: a report
+that lists them together under "remaining work" invites the reading that they are all one push
+away, and that was never true of all of them.
 
 ---
 
@@ -1309,7 +1381,7 @@ A topic with no definite state is listed as such rather than being inferred from
 | M | Continuous watch — schedule, sources, no-change behavior, no spam | **SCHEDULED, NEVER RUN** | §H: weekly `0 9 * * 1`, read-only, 15 hosts / 20 https sources. GitHub reported the workflow 404 on `main` until PR #325 merged as `a0076ff`; re-measured after: `state: active`, so the cron exists. `gh run list` returns `[]` — the first firing is up to 7 days out, and step 3 exits 1 today (§J item 2), so expect it red |
 | N | Tests — targeted, typecheck, test, ci:local | **GREEN** | re-measured 2026-08-21 at the closing pass: **243 files / 4524 passed / 1 skipped**; `ci:local` 25 steps, **exit 0**. (§K records 237 / 4393 at `fda2bd5`; the delta is other work landing on the branch, not this pass) |
 | O | External writes — exact list, at or under the maximum, no duplicates | **ONE** | the npm publish of `calllint-mcp@0.2.0`, already reflected in the live Registry. No new external write in this pass |
-| P | Operator actions — only the unavoidable | **TWO** | (1) create the `mcp-v*` tag ruleset — repository admin; (2) Cloudflare Access + `USAGE_HASH_KEY` + the real `database_id` — needed only to *deploy* the observatory; the artifact-only pipeline in §L′ needs none of them, per [CLOUDFLARE_ACCESS_ACTION.md](CLOUDFLARE_ACCESS_ACTION.md) |
+| P | Operator actions — only the unavoidable | **TWO** | (1) create the `mcp-v*` tag ruleset — a repository-settings write. Narrowed 2026-08-21: the code-level ancestry half of AC-32 is now enforced in `publish-mcp.yml` step 2 (§H item 10b), so this is the who-may-tag half only; (2) Cloudflare Access + `USAGE_HASH_KEY` + the real `database_id` — needed only to *deploy* the observatory; the artifact-only pipeline in §L′ needs none of them, per [CLOUDFLARE_ACCESS_ACTION.md](CLOUDFLARE_ACCESS_ACTION.md) |
 
 `OPERATOR_ACTION_REQUIRED = 2`, both in the unavoidable categories §106 P allows (protected GitHub
 ruleset; credential/environment setting). Neither is in the working tree, and neither blocks the
