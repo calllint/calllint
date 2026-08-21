@@ -34,10 +34,13 @@ it. Anything that did would have to be re-taken, not adjusted.
 
 ## A. Verdict
 
-**NOT fully closed — but every remaining item is now blocked on an action outside the working
-tree, not on unwritten code.** All local gates are green. Three items remain open (section J):
-two require a merge to `main`, one requires an admin write on the repository. Nothing in the
-distribution scope is waiting on further implementation.
+**NOT fully closed — one item remains, and it is blocked on an action outside the working tree,
+not on unwritten code.** All local gates are green. Of the three items open when this section was
+first written (section J), **two closed when PR #325 squash-merged as `a0076ff` on 2026-08-21**:
+the watcher's cron is now armed on the default branch (`state: active`, measured) and the GD-15
+site fix is live. The one still open requires an **admin write on the repository** — the `mcp-v*`
+tag ruleset — and cannot be closed from this tree by anyone without that permission. Nothing in
+the distribution scope is waiting on further implementation.
 
 Confirmed at `865f9c6` on 2026-08-20, not carried forward:
 
@@ -62,12 +65,13 @@ would produce a new timestamp and no new information. They are dated `865f9c6` f
 not upgraded to the later SHA.
 
 Nine properties were closed *this pass* by finding them broken or unenforceable, not by
-documenting them as done. One of the nine — GD-15 — was a real defect **this branch created**,
-and the fix exists only locally: nothing has been pushed, so the live site still serves the
-broken state (section F).
+documenting them as done. One of the nine — GD-15 — was a real defect **this branch created**;
+its fix was local when this line was written and is now live on production (section F, re-measured
+2026-08-21 after PR #325 merged as `a0076ff`).
 
 Two acceptance claims that earlier drafts of this report asserted do **not** hold under
-measurement and are corrected here: `REGISTRY_WATCH` is not READY (section H), and
+measurement and are corrected here: `REGISTRY_WATCH` was not READY (section H — **this one closed
+when PR #325 merged as `a0076ff`; see the post-merge note below**), and
 Registry item 10 was not verified (section H). Item 10's *guard* has since been rewritten so it
 can observe its subject; the underlying tag ruleset still does not exist.
 
@@ -276,24 +280,25 @@ same run that deletes its page. Nothing in the generator can invent a URL the SS
 name. Measured in the working tree after the fix: **17 URLs, 0 dead, 15/15 hosts present**
 (`grep -c "<loc>"` → 17; `pnpm check:agent-surface` resolves each one against the served tree).
 
-**The fix is local only.** Re-measured against production on 2026-08-20 (unchanged from the
-2026-08-19 reading, because nothing has been pushed):
+**The fix was local only when this section was written. It is now live.** The table below records
+both readings, because the before-state is the evidence that GD-15 was real. Left column measured
+2026-08-20 (pre-merge, unchanged from the 2026-08-19 reading because nothing had been pushed);
+right column re-measured 2026-08-21 after PR #325 merged as `a0076ff` and `deploy-web` succeeded
+for that SHA, each URL fetched with `?cachebust=a0076ff`:
 
-| URL | Live status |
-| --- | --- |
-| `https://calllint.com/harnesses/sitemap.xml` | 200 — still the 9-URL `main` version |
-| `https://calllint.com/harnesses/deepseek/claude-code` | 200 — `main`'s cartesian page, still served |
-| `https://calllint.com/harnesses/claude-code/` | **404** — no canonical host page is live |
-| `https://calllint.com/agent-surfaces.json` | **404** — the machine surface §19 points at is not live |
-| `https://calllint.com/schemas/agent-surfaces.v1.json` | **404** — the schema written this pass is not live either |
+| URL | Pre-merge (2026-08-20) | Live now (2026-08-21) |
+| --- | --- | --- |
+| `https://calllint.com/harnesses/sitemap.xml` | 200 — still the 9-URL `main` version | **200 — 17 `<loc>` entries**, the generated version |
+| `https://calllint.com/harnesses/deepseek/claude-code` | 200 — `main`'s cartesian page, still served | **301 → `/harnesses/claude-code/`**, the legacy forward from `fda2bd5` |
+| `https://calllint.com/harnesses/claude-code/` | **404** — no canonical host page is live | **200** |
+| `https://calllint.com/agent-surfaces.json` | **404** — the machine surface §19 points at is not live | **200** — `agents[]` holds **15**, matching the SSOT's 15 hosts |
+| `https://calllint.com/schemas/agent-surfaces.v1.json` | **404** — the schema written this pass is not live either | **200** |
 
-Production is therefore self-consistent (it serves `main`), and none of this branch's surfaces
-exist there yet. The GD-15 violation is real in the branch and is fixed in the branch; it
-reaches production only when this work is pushed and deployed, which has not happened.
-
-The last row is worth stating rather than omitting: section J item 4 reports the `$schema`
-pointer as CLOSED, and it is — *in the branch*. On the live site that pointer still 404s. Both
-statements are true and neither substitutes for the other.
+Production was self-consistent before the merge (it served `main`) and is self-consistent after
+it. The GD-15 violation was real in the branch, was fixed at the root cause in the branch, and
+has now reached production. The `$schema` pointer in the served `agent-surfaces.json` resolves to
+a 200 rather than dangling, which is the property section J item 4 claimed and could not
+demonstrate off `main`.
 
 ---
 
@@ -342,18 +347,27 @@ Reproduce: `pnpm check:agent-surface`
 | `REGISTRY_PUBLISH = OIDC` | ✅ | `publish-mcp.yml` job permissions `{contents: read, id-token: write}`; `environment: npm` requires 1 reviewer (`GET /repos/.../environments/npm` → `required_reviewers: 1`) |
 | `REGISTRY_VALIDATE = PASS` | ✅ | `mcp-publisher validate server.json` runs before publish (`publish-mcp.yml:94-96`) |
 | `REGISTRY_READBACK = PASS` | ✅ | post-publish step at `publish-mcp.yml:115-120`, below |
-| `REGISTRY_WATCH = READY` | ❌ **OPEN** | `distribution-watch.yml` exists **only on this branch**. Re-measured 2026-08-20: `gh api .../workflows/distribution-watch.yml` → **404 — not found on the default branch**, and `gh run list` reports the same 404. A scheduled workflow does not schedule until it is on the default branch. |
+| `REGISTRY_WATCH = READY` | ✅ **CLOSED by the merge** | `distribution-watch.yml` existed only on the feature branch, and was measured **404 on the default branch** on 2026-08-20 (0 runs). PR #325 squash-merged as `a0076ff` on 2026-08-21; re-measured immediately after: `gh api .../workflows/distribution-watch.yml` → `{"name":"distribution-watch","state":"active"}`. The cron is now armed. **It has still never executed** — `gh run list --workflow=distribution-watch.yml` returns `[]`, because the first weekly trigger (Mondays 09:00 UTC) has not arrived. |
+
+`state: active` is the strongest fact available before Monday, and it is the fact §107 asks for
+(a schedule that exists). It is **not** evidence the job passes. Reading `active` as "the monitor
+runs" would repeat, one step removed, the very error corrected below — the first draft read
+`schedule: cron` that way. What changed at merge is that the workflow became *capable* of running;
+whether its four steps go green is unmeasured, and step 3 is `verify-mcp-tag-protection.mjs`,
+which exits 1 today (item 2 of section J). **The first scheduled run is therefore expected to
+fail**, for that reason and no other.
 
 `REGISTRY_WATCH` was asserted READY in an earlier draft of this report on the strength of the
-file's `schedule: cron` block. That is the same defect this pass was written to catch: the
-existence of a monitor's source is not evidence the monitor runs. It has never executed once.
+file's `schedule: cron` block. That was the defect this pass was written to catch: the
+existence of a monitor's source is not evidence the monitor runs.
 
 The cron itself moved from daily to **weekly (Mondays 09:00 UTC)** in `b6c0f2b`. Every fact this
 job observes — a Registry entry, a tag ruleset, a generator's output for unchanged input —
 changes on the order of weeks, so a daily schedule bought no earlier detection of anything and
 spent 7× the Actions minutes re-asserting the same measurement. `workflow_dispatch` covers
-"answer now". This changes nothing about the row above: a workflow that is not on the default
-branch runs neither daily nor weekly.
+"answer now". Now that the file is on `main` this cron is armed (`state: active`), so the row
+above reads ✅ — but it has not fired yet, and a weekly schedule means the first firing is up to
+seven days out.
 
 **Items 5 and 6 — publish exit-0 is not sufficient.** `scripts/verify-registry-presence.mjs`
 was found to be **structurally incapable of failing**: every control path ended in
@@ -590,9 +604,12 @@ is computed) rather than an injected control, so it is the weakest row here.
 
 ### Open — must close before this can be called closed
 
-1. **`REGISTRY_WATCH` is not READY.** `distribution-watch.yml` is not on the default branch, so
-   its `schedule` has never fired: `gh api .../workflows/distribution-watch.yml` → 404, 0 runs.
-   Closes on merge to `main`, not before. Section H.
+1. ~~**`REGISTRY_WATCH` is not READY.**~~ **CLOSED 2026-08-21 by the merge itself.** It was open
+   because `distribution-watch.yml` was not on the default branch, so its `schedule` had never
+   fired (404, 0 runs). PR #325 merged as `a0076ff` and the workflow now reports
+   `state: active` — measured, not inferred from the merge succeeding. Two things stay true and
+   are not this item: the job has **0 runs** until Monday 09:00 UTC, and its step 3 exits 1
+   (item 2), so its first run is expected red. Section H.
 2. **`mcp-v*` tag protection is absent. The verifier now proves it instead of 404-ing.**
    The measurement is unchanged — the repository has exactly one ruleset,
    `17728504 "Protect main" target=branch`, and no tag ruleset — but the *guard* is fixed:
@@ -1282,14 +1299,14 @@ A topic with no definite state is listed as such rather than being inferred from
 | C | Private telemetry — consent, one pipeline, lossless, retry, privacy | **CLOSED (client side)** | §L: consent flag now read; 4 queue defects fixed; rotate no longer prints the new id |
 | D | Private usage — Worker, D1, retention, Access, refresh | **READY_NOT_DEPLOYED** | §L′: Worker + D1 migrations + real `DELETE` retention; 131/131; artifact-only by §29 fail-closed |
 | E | Distribution SSOT — one SSOT, migration, generator, drift gate | **CLOSED** | §D, §O; generator + drift gate + SSOT schema, all negative-controlled. Per-claim external provenance (§104) in [EXTERNAL_DISTRIBUTION_MATRIX.md](EXTERNAL_DISTRIBUTION_MATRIX.md) — 27 claims, source + checked-at each, with the 5 that carry no recorded conclusion marked as such rather than papered over |
-| F | Registry — identity, live, OIDC, validate, readback, watcher | **LIVE, watcher not scheduled** | §H: 7/7 field readback PASS; watcher 404s until merge to `main` |
+| F | Registry — identity, live, OIDC, validate, readback, watcher | **LIVE, watcher armed, never run** | §H: 7/7 field readback PASS; watcher was 404 on `main` until PR #325 merged as `a0076ff` and now reports `state: active` — 0 runs until Mon 09:00 UTC |
 | G | Platform coverage — complete matrix | **PRESENT** | [FINAL_PLATFORM_MATRIX.md](FINAL_PLATFORM_MATRIX.md) — 15 hosts × all 14 §105 columns, generated from the SSOT so no cell is typed; `platform-audit-G3.md` carries the prose analysis |
 | H | Native presence — PRESENT / SUBMITTED / READY_NOT_SUBMITTED / … | **PARTIAL** | SSOT `distributionPrimitives`, 4 states across 13 kinds. §107 admits `PARTIAL \| READY \| LIVE` here, and `PARTIAL` is the only one the evidence carries: 3 of 15 primitives are `AVAILABLE` (all `mcp-stdio`), 0 of the 13 non-stdio kinds are, 2 are `READY_NOT_SUBMITTED` behind a vendor that does not accept third-party submissions, and 1 is `PENDING_UPSTREAM`. An earlier draft said `PRESENT`, which is not in the §107 vocabulary at all |
 | I | Human discovery — hub, canonical pages, **legacy URL handling** | **CLOSED** | §O — the last of the three; hub and canonical pages closed earlier in §D |
 | J | Agent discovery — agent-surfaces, llms, llms-full, well-known, sitemap, drift = 0 | **CLOSED** | all six present; drift gate green; `.well-known/` carries `calllint.json` + `security.txt` |
 | K | Public reality — Team / pricing / free-forever / roadmap removed, governance | **CLOSED** | §K: 0 hits across 45 tool descriptions and 23 public files; the 4 "pricing" hits are third-party registry descriptions |
 | L | Visual — malformed CSS, card alignment, scenarios, **responsive QA** | **CLOSED** | §P: measured over 245 served pages, 676 checks, 244/245 clean at slack 0. The single exception was `/functions/…/dashboard.html` (240px only), deleted 2026-08-20 with the Pages-Functions sources — the served set is now **244 pages with no exception** |
-| M | Continuous watch — schedule, sources, no-change behavior, no spam | **READY, NOT SCHEDULED** | §H: weekly `0 9 * * 1`, read-only, 15 hosts / 20 https sources; GitHub reports the workflow as 404 until it lands on `main` |
+| M | Continuous watch — schedule, sources, no-change behavior, no spam | **SCHEDULED, NEVER RUN** | §H: weekly `0 9 * * 1`, read-only, 15 hosts / 20 https sources. GitHub reported the workflow 404 on `main` until PR #325 merged as `a0076ff`; re-measured after: `state: active`, so the cron exists. `gh run list` returns `[]` — the first firing is up to 7 days out, and step 3 exits 1 today (§J item 2), so expect it red |
 | N | Tests — targeted, typecheck, test, ci:local | **GREEN** | re-measured 2026-08-21 at the closing pass: **243 files / 4524 passed / 1 skipped**; `ci:local` 25 steps, **exit 0**. (§K records 237 / 4393 at `fda2bd5`; the delta is other work landing on the branch, not this pass) |
 | O | External writes — exact list, at or under the maximum, no duplicates | **ONE** | the npm publish of `calllint-mcp@0.2.0`, already reflected in the live Registry. No new external write in this pass |
 | P | Operator actions — only the unavoidable | **TWO** | (1) create the `mcp-v*` tag ruleset — repository admin; (2) Cloudflare Access + `USAGE_HASH_KEY` + the real `database_id` — needed only to *deploy* the observatory; the artifact-only pipeline in §L′ needs none of them, per [CLOUDFLARE_ACCESS_ACTION.md](CLOUDFLARE_ACCESS_ACTION.md) |
@@ -1309,7 +1326,7 @@ PUBLIC_ADOPTION_SIGNALS       = DEFERRED
 GLOBAL_DISTRIBUTION_AUTHORITY = READY
 HUMAN_DISCOVERY               = READY
 AGENT_DISCOVERY               = READY
-CONTINUOUS_COVERAGE_WATCH     = NOT_READY       (§107 admits only READY; see below)
+CONTINUOUS_COVERAGE_WATCH     = READY           (cron armed on `main`; 0 runs until Mon 09:00 UTC)
 REGISTRY_IDENTITY             = CANONICAL
 REGISTRY_PRESENCE             = LIVE
 REGISTRY_PUBLISH              = OIDC
@@ -1318,17 +1335,25 @@ REGISTRY_READBACK             = PASS
 NATIVE_PRESENCE               = PARTIAL         (3 of 15 primitives AVAILABLE; 0 of 13 non-stdio)
 ```
 
-All fifteen §107 names now appear, and two of them do not carry the value §107 expects. Listing
-them anyway is the point: a vocabulary block that silently omits the states the evidence cannot
+All fifteen §107 names now appear, and one of them does not carry the value §107 expects. Listing
+it anyway is the point: a vocabulary block that silently omits the states the evidence cannot
 support is the same unfalsifiable claim this report was written to stop making. An earlier draft
 printed eight of the fifteen, which read as full coverage.
 
-`CONTINUOUS_COVERAGE_WATCH = NOT_READY` is the one outright miss against §107, which admits only
-`READY`. The workflow file is correct — weekly `0 9 * * 1`, read-only, 15 hosts and 21 https
-sources, and it now also drift-gates the two new §104/§105 matrices — but `gh api` reports it
-**404 on the default branch** (§H line 285, re-measured 2026-08-20), and GitHub does not schedule
-a cron that is not on the default branch. It becomes `READY` on merge, by that merge alone, with
-no further edit. Reporting it `READY` before then would assert a schedule that does not exist.
+`CONTINUOUS_COVERAGE_WATCH` was the one outright miss against §107 at the time this section was
+written, and it **closed when PR #325 merged as `a0076ff`** — by that merge alone, with no further
+edit, exactly as this paragraph predicted before the fact. The workflow is correct (weekly
+`0 9 * * 1`, read-only, 15 hosts and 21 https sources, and it drift-gates the two new §104/§105
+matrices), and `gh api` now reports `state: active` where it reported **404 on the default branch**
+on 2026-08-20. The claim is `READY` in the §107 sense — a schedule that exists — and deliberately
+not stronger: `gh run list` returns `[]`, so the job has never executed, and step 3
+(`verify-mcp-tag-protection.mjs`) exits 1 today, so its first run should be expected to fail. That
+is item 2 of §J, not a defect in the watcher.
+
+**This correction is itself an instance of the class.** The sentences above previously asserted a
+404 that the merge had already falsified. A report on `main` describing a state its own subject no
+longer has cannot observe that subject — the same fault the report catalogues elsewhere, committed
+by the report about itself. It is corrected here rather than left to be read as current.
 
 `NATIVE_PRESENCE = PARTIAL` is a legal §107 value, not a miss.
 
