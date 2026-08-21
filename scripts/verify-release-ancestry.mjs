@@ -11,11 +11,16 @@
  * still tag an arbitrary side-branch commit, and `new18.md` §45 asks for the code-level
  * ancestry gate "regardless" of the account-level configuration.
  *
- * WHAT IT GUARDS. `.github/workflows/publish-mcp.yml` fires on `mcp-v*` and publishes to
- * npm (trusted publishing) and to the Official MCP Registry. Both are irreversible: npm
- * versions are immutable and a registry entry is public. Without this gate, `git tag
- * mcp-v9.9.9 <any-sha> && git push origin mcp-v9.9.9` publishes code that never passed
- * review on `main`.
+ * WHAT IT GUARDS — BOTH publish workflows, not just the MCP one:
+ *   - `.github/workflows/publish-mcp.yml` fires on `mcp-v*` and publishes `calllint-mcp`
+ *     to npm (trusted publishing) and to the Official MCP Registry.
+ *   - `.github/workflows/release.yml` fires on `release: published` and publishes the
+ *     flagship `calllint` CLI to npm. A GitHub Release can be created against ANY target
+ *     (`gh release create v9.9.9 --target <side-branch-sha>`), so the same property is
+ *     needed there — on the more widely installed package. AC-32's own text names only
+ *     `mcp-v*` tags, which is why that workflow sat uncovered.
+ * All of these are irreversible: npm versions are immutable and a registry entry is
+ * public. Without this gate, tagging any SHA publishes code that never passed review.
  *
  * WHY THE COMPARE API AND NOT `git merge-base --is-ancestor`. `actions/checkout` clones at
  * `fetch-depth: 1` by default, so the local history does not contain `main` and a perfectly
@@ -121,8 +126,8 @@ console.error(`FAIL: ${sha.slice(0, 12)} is NOT reachable from ${base} (status=$
 console.error('')
 console.error(`Supply chain risk: this commit carries ${cmp.ahead_by} commit(s) that ${base}`)
 console.error('does not contain, so it has not passed the reviewed-PR path. Publishing it')
-console.error('would put unreviewed code on npm (immutable) and in the Official MCP Registry')
-console.error('(public) under the calllint identity.')
+console.error('would release unreviewed code under the calllint identity through an')
+console.error('irreversible channel (npm versions are immutable; a registry entry is public).')
 console.error('')
 console.error('If this release is legitimate, merge it to')
 console.error(`  ${base}`)

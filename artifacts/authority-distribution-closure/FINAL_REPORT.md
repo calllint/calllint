@@ -254,14 +254,16 @@ that recreates a forbidden surface is a landmine, not dead code. Deleted.
 `harnesses/deepseek/index.html` survives as the single model-intent landing page, which §6
 preserves. It is hand-maintained and is not one of the SSOT's hosts.
 
-Note the scope: the cartesian pages are gone from **this branch's** tree, not from production.
-`main` still contains all 8 `.html` files and still serves them (section F). GD-06 is closed in
-the sense the contract asks — no generator can recreate the plane — but the plane itself is
-removed from the public site only on deploy.
+Note the scope: the cartesian pages were gone from **this branch's** tree before the merge, not
+from production. At the time of writing `main` still contained all 8 `.html` files and served
+them (section F). **This has since changed by merge:** `main` now ships only
+`harnesses/deepseek/index.html` — measured 2026-08-21, `git ls-tree -r main -- .../deepseek/`
+returns exactly one path. GD-06 is closed in the sense the contract asks — no generator can
+recreate the plane — and the plane is now removed from the tree that deploys.
 
 ---
 
-## F. GD-15 — this branch broke the sitemap, and the fix is not deployed
+## F. GD-15 — this branch broke the sitemap; the fix has since landed on `main`
 
 This is the most serious finding of the pass, and it was found by writing a guard for a
 property assumed to hold. The first draft of this report described it backwards, so the
@@ -448,9 +450,12 @@ back out, and a `creation` rule — tags are created, not pushed to, so a rulese
 `update`/`deletion` would leave the release trigger open. `mcp-v1.*` is deliberately **rejected**
 as partial coverage. Pattern predicate unit-checked over 10 inputs, all correct.
 
-Creating the ruleset is an admin write on the shared repository and is left to the maintainer;
+Creating the ruleset is a write to shared repository settings and is left to the maintainer;
 `--explain` prints the UI path and the equivalent `gh api` call. Still OPEN in section J — but
-open on an admin action, not on code.
+open on an unattended-write policy, not on code, and **not** on a missing permission: the
+account has `admin: true`, so "I lack the permission" was an unqueried guess and is false. The
+runnable form is recorded at `mcp-tag-ruleset.json`, field-checked against the verifier's own
+`coversMcpTags` predicate.
 
 **Item 10b — the ruleset was never the whole of AC-32, and the other half is now code.**
 Re-reading `new18.md` §45 against this item exposed a scope error in the sentences above. §45
@@ -500,6 +505,74 @@ reading `$?` unpiped.
 
 AC-32 is therefore **no longer `NO CONTROL`**. The code-level half §45 asks for exists and is
 enforced in the publish path; the account-level half — the ruleset — remains an operator action.
+
+**Item 10c — the same gap existed on the bigger package, and AC-32's own wording hid it.**
+AC-32 names `mcp-v*` tags, so closing it left the question "which *other* workflows publish
+without an ancestry check?" unasked. Deriving the guarded class from the enforcer instead of
+from AC-32's filename — the method §M argues for — meant measuring all 17 workflows for
+publish operations against ancestry checks:
+
+```
+deploy-web.yml    publish_ops=1  ancestry=1   ← the 1 hit is a COMMENT, and the workflow is
+                                                 workflow_dispatch-able → REAL GAP (see below)
+publish-mcp.yml   publish_ops=5  ancestry=4   ← closed above
+release.yml       publish_ops=4  ancestry=0   ← REAL GAP
+```
+
+`release.yml` publishes the flagship `calllint` CLI — the far more widely installed of the two
+packages — to npm with provenance, on `release: published`. A GitHub Release can be created
+against **any** target, so `gh release create v9.9.9 --target <side-branch-sha>` published
+unreviewed code under the calllint identity, irreversibly. Same property, same script, larger
+blast radius, and outside AC-32's literal scope.
+
+`deploy-web.yml` deserves its own note, because the first version of this section got it
+wrong. It scored `ancestry=1` and was written up as "safe by construction, the hit is only a
+comment." The comment part is true — line 100 matches `merge-base --is-ancestor` in prose, and
+a text-keyed scan would have read it as covered while it ran no gate. **The "safe by
+construction" half was false.** Its triggers are `push: branches: [main]` *and*
+`workflow_dispatch`, and the deploy step passes `--branch=main`, so a manual dispatch from any
+ref publishes that ref's tree to the **production** Pages deployment. That was caught by the
+guard below, not by re-reading — the assertion asserting the exemption failed. Gated on the
+same script; on a `push` run it is a no-op costing one API call (`identical`).
+
+Closed by wiring the **same** `scripts/verify-release-ancestry.mjs`, unchanged, as step 2 of
+`release.yml` and of `deploy-web.yml` — before the full gate, before the version check, before
+the publish. Re-measured after the edit: `release.yml  publish_ops=4  ancestry=4`. Both
+controls re-run against the live compare API on 2026-08-21, unpiped, reading `$?`:
+
+```
+$ node scripts/verify-release-ancestry.mjs --sha 6ef7b12…   # main tip
+  compare main...6ef7b12fe4db → status=identical  ahead_by=0  behind_by=0   → exit 0
+$ node scripts/verify-release-ancestry.mjs --sha 3abb3dfe…  # PR #268 head, never merged
+  compare main...3abb3dfe54a0 → status=diverged   ahead_by=1  behind_by=3   → exit 1
+```
+
+Two corrections the reuse forced, both in the script rather than left to rot: its failure text
+asserted every rejected publish would have hit "npm and the Official MCP Registry," which is
+false on the `release.yml` and Pages paths, and its docblock named `publish-mcp.yml` as its
+sole subject. A guard's scope claim is part of its claim.
+
+The floating alias tags (`v1`, `v2`) that refresh the Marketplace listing are deliberately
+covered too. They publish nothing to npm — the version guard skips them green — but a
+Marketplace refresh pointing at a side branch would still advertise unreviewed code, and the
+gate runs before that branch of the logic is reached. Verified by parsing the workflow and
+asserting step order: ancestry at index 1, full gate at 5, publish at 7.
+
+**And the finding itself is now guarded, because it was found by hand.**
+`tests/invariants/release-ancestry-coverage.invariants.test.ts` derives the publishing set from
+the workflows — any step whose `run:` performs `npm publish`, `mcp-publisher publish` or a
+Pages deploy — and requires each to run the gate before its first publish, or to be
+push-to-main-only. A sixth publish workflow cannot be added ungated. Per ADR 0089 D2 the set is
+never a list of filenames: a guard that names its subjects is the fault class it guards.
+Coverage is keyed on an executed `run:` step, so prose cannot satisfy it, and the exemption
+predicate is mutation-tested over five trigger shapes. Three negative controls, each reverted:
+
+```
+strip the gate from release.yml      → RED  "publish irreversibly with no ancestry gate"
+strip the gate from deploy-web.yml   → RED  same assertion
+move publish-mcp.yml's gate AFTER the publish → RED  "a gate after the irreversible act is not a gate"
+restored                             → GREEN 8/8
+```
 
 **Item 11** — the next-release description in
 `next-release-registry-description.txt` is byte-identical to the SSOT's current description.
@@ -689,14 +762,21 @@ is computed) rather than an injected control, so it is the weakest row here.
    some release tags and leaves `mcp-v2.0.0` open, and a partial guard reported as green is the
    failure mode this file exists to prevent. The pattern predicate was unit-checked over 10
    inputs, all correct.
-   **What remains is not a code change.** Creating the tag ruleset is an admin write on the
-   shared repository; `--explain` prints the exact UI steps and the equivalent `gh api` call.
-   Until it exists, any collaborator with write access can trigger a release, with the
-   `environment: npm` single-reviewer gate as the only remaining barrier — and both the npm and
-   Registry publishes sit in the same job behind it. Section H.
-3. **Nothing is deployed.** GD-15's fix, all 15 host pages, and the machine surface exist only
-   in this branch. Production still serves `main`: the 9-URL sitemap, the 8 cartesian pages, and
-   404 on both `/harnesses/claude-code/` and `/agent-surfaces.json`. Section F.
+   **What remains is not a code change.** Creating the tag ruleset is a write to shared
+   repository settings; `--explain` prints the exact UI steps and the equivalent `gh api` call.
+   (An earlier wording called this "an admin write" and read it as a *permission* blocker. That
+   was never measured and is false — `gh api repos/calllint/calllint --jq .permissions` returns
+   `admin: true`. What this project does not do unattended is the write itself, which is a
+   different fact with a different remedy; see §H.) Until it exists, any collaborator with write
+   access can trigger a release. **The `environment: npm` single-reviewer gate is no longer the
+   only remaining barrier:** since #327 an ancestry gate runs before the publishes and rejects a
+   tag that does not point at a commit reachable from `main`. Section H.
+3. **Nothing is deployed — no longer true; superseded by merge.** When written, GD-15's fix, all
+   15 host pages, and the machine surface existed only in this branch. All three have since
+   landed on `main` — measured 2026-08-21: `harnesses/sitemap.xml` carries **17** `<loc>`
+   entries, `harnesses/` holds **18** files including `claude-code/index.html`, and both
+   `agent-surfaces.json` and `_redirects` are tracked. What remains unmeasured is the *deploy*,
+   not the tree. Section F.
 
 ### Closed after the first draft
 
@@ -764,7 +844,10 @@ exists to name. All three are local changes and need no admin action or deploy.
 
 - **`check:registry-presence` is not in `ci:local`.** It queries the live Registry API, so
   wiring it locally would red `ci:local` on any offline machine for a reason no local change
-  can clear. It belongs to the watcher, which runs it weekly — once the watcher is on `main`.
+  can clear. It belongs to the watcher, which runs it weekly. The watcher is now on `main` and
+  `state: active` (measured 2026-08-21); `gh run list` returns `[]`, because a weekly cron is
+  up to 7 days out — `active` is not evidence it has run. Its first run is expected **red** at
+  the tag-protection step for as long as no `mcp-v*` ruleset exists.
 - **No model × harness pages.** Section E.
 - **No new external submissions.** Section I, GD-09.
 - **Cline PR #49 is not duplicated.**
@@ -1115,6 +1198,18 @@ Measured against production on 2026-08-20, before any change:
 | `/harnesses/deepseek/claude-code.html` | **308** → clean form | Pages normalizes; the 308 exists only while the asset does |
 | `/harnesses/deepseek/` | **200** | preserved model-intent landing page |
 | `/harnesses/claude-code/` | **404** | the replacement is not deployed yet |
+
+**Re-measured against production 2026-08-21, after the merge and deploy** (`curl -sSL` + browser
+UA + `?cachebust`, against a known-nonexistent control that returned **404**, so these 200s are
+not the static default):
+
+| URL | live status | note |
+| --- | --- | --- |
+| `/harnesses/claude-code/` | **200** | the replacement is deployed; the row above is now historical |
+| `/agent-surfaces.json` | **200** | machine surface live |
+| `/harnesses/sitemap.xml` | **200**, 17 `<loc>` | the 9-URL sitemap is gone |
+| `/harnesses/deepseek/gemini-cli.html` | **404** | cartesian plane removed, as intended |
+| `/harnesses/__nope__/` | **404** | negative control |
 
 Read together those four rows are the whole problem. The replacement 404s and the thing it
 replaces returns 200, so the deploy flips both at once: 8 URLs that work today stop working, with

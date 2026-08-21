@@ -30,6 +30,27 @@ jobs:
     steps:
       - uses: actions/checkout@v6
 
+      # A GitHub Release can be published against ANY target — `gh release create v9.9.9
+      # --target <side-branch-sha>` would publish unreviewed code to `calllint`, which is
+      # the more widely installed of the two packages. npm versions are immutable, so
+      # there is no retraction path; this runs before any build work and fails closed.
+      #
+      # Same property, same script, as the `mcp-v*` gate in publish-mcp.yml (AC-32 /
+      # new18 §45). AC-32's own wording names only `mcp-v*` tags, so this workflow was
+      # outside its literal scope while carrying the larger blast radius.
+      #
+      # It asks the GitHub compare API rather than `git merge-base`, because the checkout
+      # above is depth-1: `main` is not in the local history, and an authentic commit
+      # would look unreachable.
+      #
+      # This deliberately also covers the floating alias tags (`v1`, `v2`) handled below:
+      # a Marketplace refresh pointing at a side branch would advertise unreviewed code
+      # even though it publishes nothing to npm.
+      - name: Release ancestry gate (release must target a commit reachable from main)
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: node scripts/verify-release-ancestry.mjs
+
       - uses: pnpm/action-setup@v6
 
       - uses: actions/setup-node@v6
