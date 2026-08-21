@@ -438,12 +438,46 @@ function generateDistributionSources() {
       state: ssot.officialMcpRegistry.state,
     },
     sources,
+    /*
+     * §85's last entry is a CANDIDATE FEED, not a host source, and the distinction is
+     * load-bearing rather than cosmetic. A curated third-party list may reveal a harness
+     * CallLint does not track yet; it is never authority over an existing host's support
+     * class. Carried in `sources` it would have acquired a `supportClass` and a `watchFor`
+     * naming SSOT fields it has no standing to move — so it lives in its own array, with
+     * `watchFor` fixed to the one thing §86 permits: recording candidate evidence.
+     *
+     * This was the last unwatched §85 source. Thirteen of fourteen were covered by
+     * `sources` because each maps to a host; this one maps to no host by construction,
+     * which is exactly why deriving the watch list from `hosts` alone could never reach it.
+     */
+    candidateFeeds: (ssot.candidateFeeds ?? []).map((feed) => {
+      for (const url of feed.officialSources ?? []) {
+        if (!url.startsWith('https://')) {
+          throw new Error(
+            `${feed.id}: candidate feed officialSources must be https://, got ${url}`,
+          )
+        }
+        if (seen.has(url)) {
+          throw new Error(`${feed.id}: duplicate officialSource ${url} — one owner per source`)
+        }
+        seen.add(url)
+      }
+      return {
+        feedId: feed.id,
+        displayName: feed.displayName,
+        vendor: feed.vendor,
+        role: feed.role,
+        watchFor: 'new platform candidates only — never support class, never a submission',
+        primarySources: feed.officialSources ?? [],
+      }
+    }),
   }
 
   const outPath = join(__dirname, 'distribution-sources.json')
   writeFileSync(outPath, JSON.stringify(doc, null, 2) + '\n', 'utf8')
   console.log(
-    `✅ Generated distribution-sources.json (${sources.length} hosts, ${seen.size} primary sources)`,
+    `✅ Generated distribution-sources.json (${sources.length} hosts, ` +
+      `${doc.candidateFeeds.length} candidate feed(s), ${seen.size} primary sources)`,
   )
 }
 
@@ -995,6 +1029,278 @@ An agent should read that file rather than parsing \`/harnesses/\` HTML.
   console.log('✅ Generated agent-instructions.md')
 }
 
+/**
+ * Generate the §104 external-fact matrix and the §105 final platform matrix.
+ *
+ * WHY THIS IS GENERATED AND NOT WRITTEN BY HAND.
+ *
+ * §105 asks the final report to carry fourteen columns for every tracked surface, and
+ * §104 asks for source + checked-at + factual conclusion for every externally mutable
+ * claim. Both were absent, and the conformance table claimed §105 PRESENT while citing
+ * `platform-audit-G3.md` — a prose audit, not that matrix. That citation is the repo's
+ * dominant fault class in report form: a claim whose evidence does not contain the thing
+ * claimed.
+ *
+ * A hand-typed table would reproduce it. Fifteen hosts × fourteen columns is 210 cells
+ * that must agree with the SSOT, with no reader if they drift — and this repo has already
+ * paid for that shape twice: a hand-maintained sitemap that advertised 8 deleted pages,
+ * and three generated artifacts hand-edited green at one commit and erased by the next
+ * generator run. So every cell here is derived, and the drift gate that already covers
+ * the other projections covers these two files by the same `git diff --exit-code`.
+ *
+ * All fourteen §105 columns come from the SSOT:
+ *
+ *   platform/vendor/support class/authority surfaces/coverage boundary  — host fields
+ *   exact current command      — truthfulCommands, EMPTY when the host has none
+ *   Registry reuse?            — a primitive carrying `upstream: officialMcpRegistry`
+ *   native primitive + state   — the non-mcp-stdio primitive, or the stdio one alone
+ *   live/submission URL        — liveUrl / submissionUrl, `null` distinguished from absent
+ *   blocker                    — primitive.blocker
+ *   canonical human URL        — canonicalPath
+ *   machine-readable presence  — presence in the generated agent-surfaces.json cohort
+ *   watch source               — officialSources, which IS what the watcher fetches
+ *
+ * `checkedAt` is deliberately the SSOT's own `generatedAt` and NOT `new Date()`. A wall
+ * clock here would make every run produce a diff, which is what broke the reproducibility
+ * of the other projections and what made PR #268 read as +401/-401 of content when all of
+ * it was clock. The date a fact was checked is a property of the fact, so it belongs to
+ * the SSOT edit that recorded it.
+ */
+function generateDistributionMatrix() {
+  const registryReuse = (host) =>
+    host.distributionPrimitives.some((p) => p.upstream === 'officialMcpRegistry')
+
+  /* The "native distribution primitive" §105 asks about is the host's own channel — a
+   * plugin, a marketplace, an extension gallery. `mcp-stdio` is the shared upstream
+   * primitive, so it is only reported here when it is the ONLY one: naming it as the
+   * native channel for a host that also has a marketplace would hide the marketplace. */
+  const nativePrimitive = (host) => {
+    const own = host.distributionPrimitives.filter((p) => p.kind !== 'mcp-stdio')
+    return own.length > 0 ? own : host.distributionPrimitives
+  }
+
+  /* `liveUrl: null` is a positive statement — this primitive has no live URL yet — and
+   * must not read the same as a key that was never set. §107: do not call something LIVE
+   * unless it is externally publicly discoverable. */
+  const urlCell = (p) => {
+    if (typeof p.liveUrl === 'string') return `live: ${p.liveUrl}`
+    if (p.submissionUrl) return `submission: ${p.submissionUrl}`
+    if (p.liveUrl === null) return 'none yet (explicit `null`)'
+    if (p.officialSource) return `channel: ${p.officialSource}`
+    return '—'
+  }
+
+  const esc = (s) => String(s).replace(/\|/g, '\\|')
+
+  /* Read back the machine surface this generator just wrote, rather than assuming the
+   * cohort. If agent-surfaces.json ever stops carrying a host, this column says so. */
+  const machinePath = join(ROOT, 'apps/web/public/agent-surfaces.json')
+  const machineIds = new Set(
+    JSON.parse(readFileSync(machinePath, 'utf8')).agents.map((a) => a.id),
+  )
+
+  const rows = ssot.hosts.map((host) => {
+    const prims = nativePrimitive(host)
+    return {
+      host,
+      cells: [
+        host.displayName,
+        host.vendor,
+        host.authoritySurfaces.join(', '),
+        host.supportClass,
+        host.truthfulCommands.length > 0
+          ? host.truthfulCommands.map((c) => `\`${c}\``).join('<br>')
+          : '**none** — no truthful command today',
+        host.coverageBoundary,
+        registryReuse(host) ? 'yes' : 'no',
+        prims.map((p) => `\`${p.kind}\``).join('<br>'),
+        prims.map((p) => p.state).join('<br>'),
+        prims.map((p) => urlCell(p)).join('<br>'),
+        prims.map((p) => p.blocker ?? '—').join('<br>'),
+        `https://calllint.com${host.canonicalPath}`,
+        machineIds.has(host.id) ? '`agent-surfaces.json`' : '**ABSENT**',
+        host.officialSources.join('<br>'),
+      ],
+    }
+  })
+
+  const HEAD = [
+    'platform',
+    'vendor',
+    'authority surfaces',
+    'support class',
+    'exact current command',
+    'coverage boundary',
+    'Registry reuse?',
+    'native primitive',
+    'native state',
+    'live/submission URL',
+    'blocker',
+    'canonical human URL',
+    'machine-readable presence',
+    'watch source',
+  ]
+
+  const classCounts = ssot.hosts.reduce((acc, h) => {
+    acc[h.supportClass] = (acc[h.supportClass] ?? 0) + 1
+    return acc
+  }, {})
+
+  const GENERATED_NOTE =
+    '<!-- GENERATED by scripts/generate-distribution-surfaces.mjs from\n' +
+    '     apps/web/data/distribution-surfaces.json. Do not hand-edit: a hand-typed cell has no\n' +
+    '     reader when it drifts, and the next generator run erases it. Edit the SSOT and\n' +
+    '     re-run `pnpm gen:distribution`. Drift is gated by `git diff --exit-code` in\n' +
+    '     distribution-watch.yml. -->\n'
+
+  /* ---------- §105 FINAL PLATFORM MATRIX ---------- */
+  const matrix = [
+    GENERATED_NOTE,
+    '# Final platform matrix (new18 §105)',
+    '',
+    `Every tracked surface, all fourteen §105 columns, derived from the SSOT at release ${STABLE_VERSION}.`,
+    `Facts checked at **${ssot.generatedAt.slice(0, 10)}** (the SSOT's own \`generatedAt\`; see §104 matrix for per-claim provenance).`,
+    '',
+    `**${ssot.hosts.length} hosts** — ` +
+      Object.entries(classCounts)
+        .sort()
+        .map(([k, v]) => `${v} ${k}`)
+        .join(', ') +
+      '.',
+    '',
+    'This matrix reflects CURRENT reality, not the state assumed by the prompt that asked for it.',
+    'Two consequences of that are visible below and are not defects: most `mcp-stdio` primitives are',
+    '`AUDIT_REQUIRED` rather than `AVAILABLE` (a host documenting stdio MCP is not the same fact as',
+    'that host consuming the Official MCP Registry), and every `DEFERRED` / `DISCOVERY_ONLY` host',
+    'carries **no** truthful command — an advertised `--agent` form for one of them would be a lie',
+    'the harness gate reds on.',
+    '',
+    `| ${HEAD.join(' | ')} |`,
+    `| ${HEAD.map(() => '---').join(' | ')} |`,
+    ...rows.map((r) => `| ${r.cells.map(esc).join(' | ')} |`),
+    '',
+    '## Column provenance',
+    '',
+    'No cell above is typed. Each column is projected from a named SSOT field, so a claim here',
+    'cannot outlive the fact it describes:',
+    '',
+    '| column | SSOT source |',
+    '| --- | --- |',
+    '| platform, vendor, support class | `displayName`, `vendor`, `supportClass` |',
+    '| authority surfaces | `authoritySurfaces` (closed 12-member enum) |',
+    '| exact current command | `truthfulCommands` — empty renders as an explicit "none" |',
+    '| coverage boundary | `coverageBoundary` (schema-required, so a host cannot ship without naming its limits) |',
+    '| Registry reuse? | whether any primitive carries `upstream: officialMcpRegistry` |',
+    '| native primitive, native state | the non-`mcp-stdio` primitives, else the stdio one alone |',
+    '| live/submission URL | `liveUrl` / `submissionUrl`; explicit `null` is rendered, not blanked |',
+    '| blocker | `primitive.blocker` |',
+    '| canonical human URL | `canonicalPath` |',
+    '| machine-readable presence | read back from the generated `agent-surfaces.json` cohort |',
+    '| watch source | `officialSources` — the same URLs `scripts/distribution-sources.json` gives the watcher |',
+    '',
+  ].join('\n')
+
+  const matrixPath = join(ROOT, 'artifacts/authority-distribution-closure/FINAL_PLATFORM_MATRIX.md')
+  mkdirSync(dirname(matrixPath), { recursive: true })
+  writeFileSync(matrixPath, matrix + '\n', 'utf8')
+  console.log(`✅ Generated FINAL_PLATFORM_MATRIX.md (${rows.length} hosts × ${HEAD.length} columns)`)
+
+  /* ---------- §104 EXTERNAL CURRENT-FACT EVIDENCE ---------- */
+
+  /* An externally mutable claim is one whose truth lives on somebody else's server: a
+   * support class, a primitive's state, a submission's status. Each needs source +
+   * checked-at + conclusion. Concise factual summaries only — §104 forbids copying
+   * large blocks of vendor documentation. */
+  const extRows = []
+  let unrecorded = 0
+  for (const host of ssot.hosts) {
+    for (const p of host.distributionPrimitives) {
+      const source = p.officialSource ?? p.submissionUrl ?? host.officialSources[0]
+      /* The absent case must read as absent. A primitive with no auditNote/note/blocker has
+       * no recorded conclusion, and a cell saying "state recorded from the primary source
+       * above" would assert one exists — restating that the state column is populated while
+       * looking like evidence. That is this repo's dominant fault class (a claim with no
+       * reader when it drifts), so render the gap and count it below. */
+      const recorded = p.auditNote ?? p.note ?? p.blocker ?? null
+      let conclusion
+      if (recorded) {
+        conclusion = recorded
+      } else if (p.state === 'AVAILABLE') {
+        conclusion = 'Ships through this channel today via the Official MCP Registry stdio package.'
+      } else {
+        unrecorded += 1
+        conclusion = '**no conclusion recorded** — state asserted, evidence not yet summarised'
+      }
+      extRows.push(
+        `| ${esc(host.displayName)} | \`${p.kind}\` | ${p.state} | ${esc(source)} | ${ssot.generatedAt.slice(0, 10)} | ${esc(conclusion)} |`,
+      )
+    }
+  }
+
+  const external = [
+    GENERATED_NOTE,
+    '# External current-fact evidence (new18 §104)',
+    '',
+    'Every externally mutable platform claim, with its primary source, the date it was checked,',
+    'and the factual conclusion drawn. Primary sources only; concise summaries only — no vendor',
+    'documentation is reproduced here.',
+    '',
+    '**What makes a claim externally mutable:** its truth lives on somebody else\'s server. A',
+    'support class, a primitive\'s state, and a submission\'s status can all become false without',
+    'anything in this repository changing. That is why `distribution-watch.yml` fetches the',
+    '`watch source` column weekly and fails the job when a fact moves, and why the',
+    '`checked-at` date below is the date of the SSOT edit that recorded the fact rather than the',
+    'date this file was generated.',
+    '',
+    `Release ${STABLE_VERSION}. ${extRows.length} claims across ${ssot.hosts.length} hosts.`,
+    '',
+    unrecorded === 0
+      ? 'Every claim below carries a recorded factual conclusion.'
+      : `**${unrecorded} of ${extRows.length} claims carry no recorded conclusion.** Those rows say so ` +
+        'explicitly rather than restating the state column back at you. They are the honest ' +
+        'residue of §104: the state is asserted from the primary source, but no one has yet ' +
+        'written down what the source said. Adding an `auditNote` to the primitive in the SSOT ' +
+        'closes a row; editing this file does not.',
+    '',
+    '| platform | primitive | state | primary source | checked-at | factual conclusion |',
+    '| --- | --- | --- | --- | --- | --- |',
+    ...extRows,
+    '',
+    '## Registry identity',
+    '',
+    'The one claim that is not per-host. Read back field-by-field against the live API by',
+    '`scripts/verify-registry-presence.mjs`, so it is an assertion rather than documentation:',
+    '',
+    '| claim | value | primary source | checked-at |',
+    '| --- | --- | --- | --- |',
+    `| Registry name | \`${ssot.officialMcpRegistry.name}\` | ${ssot.officialMcpRegistry.registryUrl} | ${ssot.generatedAt.slice(0, 10)} |`,
+    `| Package | \`${ssot.officialMcpRegistry.package}\` | ${ssot.officialMcpRegistry.registryUrl} | ${ssot.generatedAt.slice(0, 10)} |`,
+    `| State | ${ssot.officialMcpRegistry.state} | ${ssot.officialMcpRegistry.registryUrl} | ${ssot.generatedAt.slice(0, 10)} |`,
+    `| Version | ${ssot.officialMcpRegistry.version} (published ${ssot.officialMcpRegistry.publishedAt}) | ${ssot.officialMcpRegistry.registryUrl} | ${ssot.generatedAt.slice(0, 10)} |`,
+    `| Transport | ${ssot.officialMcpRegistry.transport} | ${ssot.officialMcpRegistry.repositoryUrl} | ${ssot.generatedAt.slice(0, 10)} |`,
+    '',
+    '## Candidate feeds',
+    '',
+    '§85 watches these for NEW PLATFORM CANDIDATES only. A feed may never promote a host, add an',
+    'extractor, or claim support — §86 permits recording candidate evidence and nothing more.',
+    '',
+    '| feed | vendor | role | primary source | conclusion |',
+    '| --- | --- | --- | --- | --- |',
+    ...(ssot.candidateFeeds ?? []).map(
+      (f) =>
+        `| ${esc(f.displayName)} | ${esc(f.vendor)} | ${f.role} | ${esc(f.officialSources.join(', '))} | ${esc(f.note)} |`,
+    ),
+    '',
+  ].join('\n')
+
+  const extPath = join(
+    ROOT,
+    'artifacts/authority-distribution-closure/EXTERNAL_DISTRIBUTION_MATRIX.md',
+  )
+  writeFileSync(extPath, external + '\n', 'utf8')
+  console.log(`✅ Generated EXTERNAL_DISTRIBUTION_MATRIX.md (${extRows.length} external claims)`)
+}
+
 function main() {
   console.log('🚀 Generating distribution surface projections...\n')
 
@@ -1016,6 +1322,11 @@ function main() {
   generateAgentInstructions()
   generateDistributionSources()
 
+  /* Last: it reads back the agent-surfaces.json written above to measure the
+   * machine-readable-presence column, so it must run after that file exists. */
+  console.log('\n📄 Generating §104/§105 matrices...')
+  generateDistributionMatrix()
+
   console.log('\n✨ Generation complete!')
   console.log('\nGenerated:')
   console.log('  - /harnesses/index.html')
@@ -1028,6 +1339,8 @@ function main() {
   console.log('  - llms-full.txt')
   console.log('  - agent-instructions.md')
   console.log('  - scripts/distribution-sources.json')
+  console.log('  - artifacts/authority-distribution-closure/FINAL_PLATFORM_MATRIX.md')
+  console.log('  - artifacts/authority-distribution-closure/EXTERNAL_DISTRIBUTION_MATRIX.md')
 }
 
 main()

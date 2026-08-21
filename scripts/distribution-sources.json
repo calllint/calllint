@@ -164,5 +164,17 @@
         "https://github.com/kirodotdev/Kiro"
       ]
     }
+  ],
+  "candidateFeeds": [
+    {
+      "feedId": "deepseek-curated-agents",
+      "displayName": "DeepSeek official curated agent lists",
+      "vendor": "DeepSeek",
+      "role": "NEW_CANDIDATE_FEED_ONLY",
+      "watchFor": "new platform candidates only — never support class, never a submission",
+      "primarySources": [
+        "https://github.com/deepseek-ai/awesome-deepseek-agent"
+      ]
+    }
   ]
 }

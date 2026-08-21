@@ -74,7 +74,9 @@ jobs:
             apps/web/public/llms.txt \
             apps/web/public/llms-full.txt \
             apps/web/public/agent-instructions.md \
-            scripts/distribution-sources.json
+            scripts/distribution-sources.json \
+            artifacts/authority-distribution-closure/FINAL_PLATFORM_MATRIX.md \
+            artifacts/authority-distribution-closure/EXTERNAL_DISTRIBUTION_MATRIX.md
 
       # The sitemap is now generated too, so the diff above covers it (it lives under
       # apps/web/public/harnesses/). `_redirects` is listed separately because Pages parses it

@@ -52,8 +52,10 @@ Confirmed at `865f9c6` on 2026-08-20, not carried forward:
 The two exit-1 / 404 rows are the two open items, and both are *outside* the tree. They are
 reported here as failures rather than as "pending" because that is what the commands return.
 
-Rows 1 and 5 were re-taken at `fda2bd5` after section O landed and are unchanged (`ci:local`
-still exit 0 at 25 steps; `check:security-semantics` runs inside it). Rows 2–4 were **not**
+Rows 1 and 5 were re-taken at `fda2bd5` after section O landed and are unchanged, and re-taken
+again on **2026-08-21** in the closing pass: `ci:local` **exit 0** at 25 steps, now **243 files /
+4524 passed / 1 skipped** (up from 237 / 4393 as other work landed on the branch), and
+`check:security-semantics` still `UNCHANGED` — it runs inside the chain. Rows 2–4 were **not**
 re-taken: each observes state on a remote — the Registry API, the repository's rulesets, the
 default branch's workflow list — that no commit on this branch can move, so re-running them
 would produce a new timestamp and no new information. They are dated `865f9c6` for that reason,
@@ -77,6 +79,48 @@ immediately caught a typing error in the schema itself, which is the argument fo
 so this report is not read as a closure claim over it: the usage-ingress service (`apps/usage-worker`,
 D1 schema, the private report surface). Section L covers what landed and what did not; section N
 states the boundary.
+
+**Added in the closing pass (2026-08-21), after a re-read of new18 found four items asserted
+nowhere.** All four were traceability or vocabulary gaps rather than missing implementation, and
+two of them were defects in this report itself:
+
+| new18 | gap | closed by |
+| --- | --- | --- |
+| §85 | the DeepSeek candidate feed had **no watcher** — 13 of 14 sources were watched, and the 14th was unreachable by construction (the watch list derives from `hosts`, and a feed is not a host) | new `candidateFeeds` array in the SSOT + schema + generator projection; `role` is a schema `const`, so a second role cannot be introduced by editing data |
+| §104 | no per-claim external provenance file | [EXTERNAL_DISTRIBUTION_MATRIX.md](EXTERNAL_DISTRIBUTION_MATRIX.md) — generated; 27 claims × source + checked-at + conclusion |
+| §105 | the 14-column matrix was cited to a prose file that is not that matrix | [FINAL_PLATFORM_MATRIX.md](FINAL_PLATFORM_MATRIX.md) — generated; 15 hosts × 14 columns, 210 cells, none typed |
+| §93 | AC-01..AC-40 appeared **only** in `new18.md`; the controls here were numbered NC-1..NC-15, so no reader could route between them | the AC traceability table in section I — 39 of 40 mapped, AC-32 recorded as `NO CONTROL` |
+| §107 | the vocabulary block printed **8 of 15** states, which reads as full coverage | all 15 now listed, including the two that do not carry the value §107 expects |
+| §7 | `security-semantic-before.json` does not exist and nothing said so | section B — stated as a deliberate deviation, with the merge-base rationale |
+
+Both matrices are generator output, not hand-typed, for the reason section M is about: a hand-typed
+cell has no reader when it drifts and is erased by the next `pnpm gen:distribution`. Byte-identical
+across two consecutive runs (`checkedAt` reads the SSOT's `generatedAt`, never `new Date()`), so
+they cannot produce the clock-churn diff that made PR #268 read as +401/−401 of content that was
+all timestamp.
+
+Adding them to the drift gate in [distribution-watch.yml](../../.github/workflows/distribution-watch.yml)
+reproduced the same fault class inside the gate extension itself.
+**NC-16/NC-17, measured:** with the two paths listed but the files still **untracked**, an injected
+SSOT change that visibly moved a matrix cell left the gate at **exit 0** — `git diff` cannot observe
+a file git is not tracking, so the newly added paths asserted nothing. That is precisely the rule
+already written into that workflow's comment (listing a path the generator does not write makes a
+vacuous assertion) reappearing in a form the comment did not cover: a path the generator *does*
+write, that git does not track. After `git add`, the same injection went **exit 1 = RED**, and the
+revert left both files byte-clean. The gate is load-bearing only because the control was run; the
+YAML edit alone would have shipped a green that meant nothing.
+
+Writing the §104 matrix immediately caught a defect in my own generator, which is the argument for
+generating it: 5 of 27 rows had rendered *"State recorded from the primary source above."* — a
+sentence that asserts a conclusion exists where the SSOT records none. Those rows now read **"no
+conclusion recorded — state asserted, evidence not yet summarised"**, and the count is stated in
+the file body.
+
+That makes two more instances of this repository's dominant fault class, both authored in this
+closing pass by the person writing the gates: the §104 filler cell, and the vacuous drift-gate
+extension above. Counting the three guards in section M and the two live catches in section I,
+that is **seven** recorded instances of a claim that could not observe its subject — five found in
+existing work, two written and then caught here.
 
 ---
 
@@ -105,6 +149,22 @@ the change this gate must permit.
 The artifact `security-semantic-diff.json` is the script's *output*, not a hand-written file,
 and `--check` re-measures and compares. A committed `"changed": false` costs nothing to write
 and nothing to keep true; this one is falsifiable by construction.
+
+**On §7's `security-semantic-before.json` — it does not exist, deliberately.** §7 asks for a
+before-snapshot (verdict, findings, reason codes, authority, policy, evidence, digests) captured
+ahead of the functional changes, to be compared against the final state later. What was built
+instead measures the same invariant a different way: `verify-security-semantic-diff.mjs` diffs the
+six verdict packages against the **merge-base** (`8acf297460d560b0e07e5667d82e40ae5b57e1ce`), which
+*is* the before-state, read from git rather than from a committed copy of it.
+
+The substitution is not a shortcut, and the reason is the one this report keeps running into. A
+committed `before.json` is a hand-made copy of a state git already holds exactly; once committed it
+can drift from, or be quietly reconciled with, the tree it claims to describe, and nothing would
+red. The merge-base diff cannot be reconciled — NC-10 injected an unresolvable `--base` and the
+gate went **RED** rather than silently skipping the measurement, which is the property a snapshot
+file does not have. §7's stated goal ("later be compared byte/semantically against the final
+state") is therefore met; the named file is not produced. Flagging it as a deliberate deviation
+rather than leaving the absence to be discovered.
 
 Reproduce: `pnpm check:security-semantics`
 
@@ -394,6 +454,8 @@ not a gate.
 | NC-12 | `agent-surfaces.json` pointer removed from `agent-instructions.md` | RED |
 | NC-13 | Public label stripped from a host page | RED — silent removal is caught |
 | NC-14 | Sitemap URL pointed at a deleted cartesian page | RED on two channels (dead URL + host absent) |
+| NC-16 | Two generated matrices added to the drift gate while still **untracked**; SSOT change injected | **exit 0 — gate was vacuous.** `git diff` cannot observe an untracked file |
+| NC-17 | Same injection after `git add` | RED (exit 1); revert left both files byte-clean |
 
 After every control the tree was verified byte-identical to generator output — no residue.
 
@@ -456,6 +518,71 @@ inherited, not introduced here: the same gitlink is present on `main`, added by 
 CallLint-authored marketplace package, so it does not violate GD-20. The dirty worktree marker
 on it is a single untracked `package-lock.json` inside the fork; its HEAD matches the recorded
 gitlink exactly.
+
+### §93 AC-01..AC-40 — the prompt's own control ids, mapped
+
+The controls above were numbered NC-1..NC-15 as they were run, which left §93's forty AC ids
+with no route into this report: a reader holding new18 could not tell which of them had a gate.
+That is a traceability gap, not necessarily a coverage gap, and the two are separated here.
+
+Each AC is a defect that must go **RED**. `INJECTED` means the defect was applied to a green tree
+and observed red. `STANDING` means a gate in `ci:local` (25 steps) or the schema forecloses it, but
+this pass did not inject it. `NO CONTROL` means exactly that — no gate would catch it today.
+
+| AC | defect that must go RED | control | where |
+| --- | --- | --- | --- |
+| AC-01 | model/vendor identity changes verdict | INJECTED (NC-9) | `check:security-semantics`; 8 forbidden fields × 5 identity tokens over 6 verdict packages |
+| AC-02 | marketplace/Registry presence changes verdict | INJECTED (NC-9) | same gate — `marketplace` is one of the 5 `IDENTITY_TOKENS` |
+| AC-03 | telemetry changes verdict/output/exit | STANDING | §L counting semantics; emitter is post-verdict. Not injected — see the residue note below |
+| AC-04 | default local CLI phones home | STANDING | §L: consent flag now actually read (`telemetryEnabled` was written and never consumed) |
+| AC-05 | raw installation ID persisted server-side | STANDING | `USAGE_HASH_KEY` hashing in [apps/usage-worker/](../../apps/usage-worker/); §L′ schema |
+| AC-06 | failed POST loses events | INJECTED | §L "four queue defects, each one a silent loss" — all four were live defects, found and fixed |
+| AC-07 | retry changes batchId / double-counts | INJECTED | §L, same four; batchId now stable across retry |
+| AC-08 | one scan recorded by duplicate telemetry paths | STANDING | §L one-pipeline invariant |
+| AC-09 | `scan --auto` scans N configs, records 0 or 1 | STANDING | §L counting semantics |
+| AC-10 | queue overflow empties the queue | INJECTED | §L, same four |
+| AC-11 | config/path/command/prompt/evidence enters telemetry | STANDING | §L telemetry boundary, extended at `4671854` |
+| AC-12 | npm download called a user | STANDING | §N scope boundary; `PUBLIC_ADOPTION_SIGNALS = DEFERRED` |
+| AC-13 | old historical preflight usage inferred | STANDING | §L′ — retention is a real `DELETE` |
+| AC-14 | private usage in public nav/sitemap/llms | STANDING | `check:agent-surface` — 17 sitemap URLs all resolve; no usage route among them |
+| AC-15 | usage site publishes without Access | STANDING | §29 fail-closed: artifact-only until an operator verifies Access ([CLOUDFLARE_ACCESS_ACTION.md](CLOUDFLARE_ACCESS_ACTION.md)) |
+| AC-16 | daily metrics committed into git | STANDING | §L′ — D1, not a committed file |
+| AC-17 | unsupported `--agent` appears publicly | INJECTED (NC-5..8) | `check:harness-distribution`; GD-02 measured 45 occurrences → exactly the 8 NATIVE ids |
+| AC-18 | nonexistent `--config` option appears publicly | INJECTED (NC-7) | CONFIG_SCAN advertising `--agent` went red |
+| AC-19 | CLI help differs from extractor reality | INJECTED (NC-8) | unregistered `--agent` id vs the 14-member `AgentType` union |
+| AC-20 | two manually maintained distribution SSOTs | INJECTED (NC-5) | §D — renaming `supportClass` reds; §D.2 records the file that was *about* to become the second SSOT |
+| AC-21 | llms / machine JSON drifts from SSOT | INJECTED (NC-12) | `git diff --exit-code` in [distribution-watch.yml](../../.github/workflows/distribution-watch.yml) |
+| AC-22 | model × harness canonical page explosion | INJECTED (NC-14) | §E — sitemap + host-presence, red on two channels |
+| AC-23 | marketplace SUBMITTED represented as PRESENT | STANDING | schema `state` enum + GD-09 histogram; §Q row H now reads `PARTIAL`, not `PRESENT` |
+| AC-24 | watcher opens external PR/issue | STANDING | GD-11/GD-17 — 0 matches for `gh pr create` / `gh issue create` / `git push` / `npm publish` / `mcp-publisher publish` |
+| AC-25 | duplicate per-platform package where a primitive works | STANDING | GD-20 — 0 of 13 non-stdio primitives `AVAILABLE`; no such package under `packages/` |
+| AC-26 | OpenAI remote MCP invented for listing eligibility | STANDING | recorded as the `openai-plugin` blocker verbatim; nothing built |
+| AC-27 | Tencent submission fabricated while blocked | STANDING | GD-09 — exactly 1 `submissionUrl` repo-wide; both Tencent entries `READY_NOT_SUBMITTED` |
+| AC-28 | duplicate Registry publication identity | INJECTED (NC-1..3) | §H — SSOT version mismatch / package rename / simulated outage all red |
+| AC-29 | publish runs without official validation | STANDING | `mcp-publisher validate server.json` at `publish-mcp.yml:94-96` |
+| AC-30 | successful publish assumed without readback | INJECTED (NC-1..3) | §H 7/7 field readback; `publish-mcp.yml:115-120` |
+| AC-31 | watcher republishes a Registry version | STANDING | GD-11/GD-17, same 0-match scan |
+| AC-32 | `mcp-v*` tag from an unreviewed branch can publish | **NO CONTROL** | the ruleset does not exist — operator action §106 P (1). `environment: npm` requires 1 reviewer, which mitigates but does not close it |
+| AC-33 | `/team` remains publicly linked | STANDING | `check:public-copy` — 0 hits across 45 tool descriptions and 23 public files |
+| AC-34 | unlaunched $99 pricing remains public copy | STANDING | same gate; the 4 residual `pricing` hits are third-party registry descriptions |
+| AC-35 | "free forever" promise remains | STANDING | same gate |
+| AC-36 | removal replaced by "Coming soon" | STANDING | same gate |
+| AC-37 | a new top-level page escapes copy governance | STANDING | `check:public-copy` + `check:web-structure` enumerate the served set rather than a hand list |
+| AC-38 | malformed CSS brace survives | INJECTED | §P — the brace was a live defect; §M records that the original guard counted media blocks in the wrong stylesheet |
+| AC-39 | cards align only because copy was artificially shortened | STANDING | §P "the command rules are load-bearing, and that is measured, not asserted" |
+| AC-40 | tablet cards remain cramped/overflowing | INJECTED | §P — 245 pages × 240/320/390/1280, `scrollWidth === clientWidth` at slack 0 |
+
+**39 of 40 have a control; 1 does not.** AC-32 is the honest miss and it is not closable from
+inside this repository: creating a `mcp-v*` tag ruleset needs repo-admin write, already carried as
+operator action §106 P (1). It is listed as `NO CONTROL` rather than folded into the `environment:
+npm` reviewer requirement, because a required reviewer stops an *unreviewed publish*, not a tag
+pushed from an unrelated branch.
+
+Two further limits on this table, stated rather than left for a reader to find. First, `STANDING`
+is weaker evidence than `INJECTED`: it means a gate exists and passes, not that it has been seen
+to fail — and §M of this report is three cases of a gate that passed while unable to observe its
+subject. Second, AC-03 is `STANDING` on a structural argument (the emitter runs after the verdict
+is computed) rather than an injected control, so it is the weakest row here.
 
 ---
 
@@ -1154,16 +1281,16 @@ A topic with no definite state is listed as such rather than being inferred from
 | B | Security — semantic changed? expected NO | **UNCHANGED** | §A table: 0 added / 0 removed / 0 changed, 6 verdict packages |
 | C | Private telemetry — consent, one pipeline, lossless, retry, privacy | **CLOSED (client side)** | §L: consent flag now read; 4 queue defects fixed; rotate no longer prints the new id |
 | D | Private usage — Worker, D1, retention, Access, refresh | **READY_NOT_DEPLOYED** | §L′: Worker + D1 migrations + real `DELETE` retention; 131/131; artifact-only by §29 fail-closed |
-| E | Distribution SSOT — one SSOT, migration, generator, drift gate | **CLOSED** | §D, §O; generator + drift gate + SSOT schema, all negative-controlled |
+| E | Distribution SSOT — one SSOT, migration, generator, drift gate | **CLOSED** | §D, §O; generator + drift gate + SSOT schema, all negative-controlled. Per-claim external provenance (§104) in [EXTERNAL_DISTRIBUTION_MATRIX.md](EXTERNAL_DISTRIBUTION_MATRIX.md) — 27 claims, source + checked-at each, with the 5 that carry no recorded conclusion marked as such rather than papered over |
 | F | Registry — identity, live, OIDC, validate, readback, watcher | **LIVE, watcher not scheduled** | §H: 7/7 field readback PASS; watcher 404s until merge to `main` |
-| G | Platform coverage — complete matrix | **PRESENT** | 15 hosts, 4 support classes; `platform-audit-G3.md` |
-| H | Native presence — PRESENT / SUBMITTED / READY_NOT_SUBMITTED / … | **PRESENT** | SSOT `distributionPrimitives`, 4 states across 13 kinds |
+| G | Platform coverage — complete matrix | **PRESENT** | [FINAL_PLATFORM_MATRIX.md](FINAL_PLATFORM_MATRIX.md) — 15 hosts × all 14 §105 columns, generated from the SSOT so no cell is typed; `platform-audit-G3.md` carries the prose analysis |
+| H | Native presence — PRESENT / SUBMITTED / READY_NOT_SUBMITTED / … | **PARTIAL** | SSOT `distributionPrimitives`, 4 states across 13 kinds. §107 admits `PARTIAL \| READY \| LIVE` here, and `PARTIAL` is the only one the evidence carries: 3 of 15 primitives are `AVAILABLE` (all `mcp-stdio`), 0 of the 13 non-stdio kinds are, 2 are `READY_NOT_SUBMITTED` behind a vendor that does not accept third-party submissions, and 1 is `PENDING_UPSTREAM`. An earlier draft said `PRESENT`, which is not in the §107 vocabulary at all |
 | I | Human discovery — hub, canonical pages, **legacy URL handling** | **CLOSED** | §O — the last of the three; hub and canonical pages closed earlier in §D |
 | J | Agent discovery — agent-surfaces, llms, llms-full, well-known, sitemap, drift = 0 | **CLOSED** | all six present; drift gate green; `.well-known/` carries `calllint.json` + `security.txt` |
 | K | Public reality — Team / pricing / free-forever / roadmap removed, governance | **CLOSED** | §K: 0 hits across 45 tool descriptions and 23 public files; the 4 "pricing" hits are third-party registry descriptions |
 | L | Visual — malformed CSS, card alignment, scenarios, **responsive QA** | **CLOSED** | §P: measured over 245 served pages, 676 checks, 244/245 clean at slack 0. The single exception was `/functions/…/dashboard.html` (240px only), deleted 2026-08-20 with the Pages-Functions sources — the served set is now **244 pages with no exception** |
 | M | Continuous watch — schedule, sources, no-change behavior, no spam | **READY, NOT SCHEDULED** | §H: weekly `0 9 * * 1`, read-only, 15 hosts / 20 https sources; GitHub reports the workflow as 404 until it lands on `main` |
-| N | Tests — targeted, typecheck, test, ci:local | **GREEN** | §K: 237 files / 4393 passed / 1 skipped; `ci:local` 25 steps, exit 0 |
+| N | Tests — targeted, typecheck, test, ci:local | **GREEN** | re-measured 2026-08-21 at the closing pass: **243 files / 4524 passed / 1 skipped**; `ci:local` 25 steps, **exit 0**. (§K records 237 / 4393 at `fda2bd5`; the delta is other work landing on the branch, not this pass) |
 | O | External writes — exact list, at or under the maximum, no duplicates | **ONE** | the npm publish of `calllint-mcp@0.2.0`, already reflected in the live Registry. No new external write in this pass |
 | P | Operator actions — only the unavoidable | **TWO** | (1) create the `mcp-v*` tag ruleset — repository admin; (2) Cloudflare Access + `USAGE_HASH_KEY` + the real `database_id` — needed only to *deploy* the observatory; the artifact-only pipeline in §L′ needs none of them, per [CLOUDFLARE_ACCESS_ACTION.md](CLOUDFLARE_ACCESS_ACTION.md) |
 
@@ -1182,7 +1309,28 @@ PUBLIC_ADOPTION_SIGNALS       = DEFERRED
 GLOBAL_DISTRIBUTION_AUTHORITY = READY
 HUMAN_DISCOVERY               = READY
 AGENT_DISCOVERY               = READY
+CONTINUOUS_COVERAGE_WATCH     = NOT_READY       (§107 admits only READY; see below)
+REGISTRY_IDENTITY             = CANONICAL
+REGISTRY_PRESENCE             = LIVE
+REGISTRY_PUBLISH              = OIDC
+REGISTRY_VALIDATE             = PASS
+REGISTRY_READBACK             = PASS
+NATIVE_PRESENCE               = PARTIAL         (3 of 15 primitives AVAILABLE; 0 of 13 non-stdio)
 ```
+
+All fifteen §107 names now appear, and two of them do not carry the value §107 expects. Listing
+them anyway is the point: a vocabulary block that silently omits the states the evidence cannot
+support is the same unfalsifiable claim this report was written to stop making. An earlier draft
+printed eight of the fifteen, which read as full coverage.
+
+`CONTINUOUS_COVERAGE_WATCH = NOT_READY` is the one outright miss against §107, which admits only
+`READY`. The workflow file is correct — weekly `0 9 * * 1`, read-only, 15 hosts and 21 https
+sources, and it now also drift-gates the two new §104/§105 matrices — but `gh api` reports it
+**404 on the default branch** (§H line 285, re-measured 2026-08-20), and GitHub does not schedule
+a cron that is not on the default branch. It becomes `READY` on merge, by that merge alone, with
+no further edit. Reporting it `READY` before then would assert a schedule that does not exist.
+
+`NATIVE_PRESENCE = PARTIAL` is a legal §107 value, not a miss.
 
 `PRIVATE_USAGE_OBSERVATORY` was `NOT_READY` in the earlier pass, and the reason is worth keeping
 visible rather than editing away: `READY_NOT_DEPLOYED` means the code is correct and merely

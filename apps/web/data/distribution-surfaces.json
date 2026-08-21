@@ -568,6 +568,18 @@
       "note": "Preserved for DeepSeek users; not canonical truth root"
     }
   ],
+  "candidateFeeds": [
+    {
+      "id": "deepseek-curated-agents",
+      "displayName": "DeepSeek official curated agent lists",
+      "vendor": "DeepSeek",
+      "officialSources": [
+        "https://github.com/deepseek-ai/awesome-deepseek-agent"
+      ],
+      "role": "NEW_CANDIDATE_FEED_ONLY",
+      "note": "§85 lists this as NEW-CANDIDATE FEED ONLY. Watched to notice a harness CallLint does not yet track; it is never evidence about an existing host's support class. Prior evaluation (artifacts/harness-distribution/native/manifest.json) found the list collects harness integration guides rather than MCP tools, so CallLint does not fit its scope -- recorded as candidate evidence per §86, with no submission made."
+    }
+  ],
   "maintainedBy": "CallLint Project",
   "repository": "https://github.com/calllint/calllint",
   "licenseNote": "This distribution metadata is part of CallLint's public documentation and may be consumed by agents, marketplaces, and aggregators."
