@@ -39,6 +39,21 @@ jobs:
     steps:
       - uses: actions/checkout@v6
 
+      # The `push: branches: [main]` trigger cannot fire on an unmerged commit, but
+      # `workflow_dispatch` CAN be run against any ref — and the deploy below passes
+      # `--branch=main`, so a dispatch from a side branch publishes that branch's tree to
+      # the PRODUCTION Pages deployment. Overwriting the live site is irreversible in the
+      # sense that matters (the previous content is no longer what visitors get), so the
+      # same ancestry gate the publish workflows use applies here.
+      #
+      # On a `push` run this is a no-op that costs one API call: HEAD is already on main,
+      # so the compare returns `identical`. On a dispatch it is the only thing standing
+      # between an arbitrary ref and calllint.com.
+      - name: Release ancestry gate (deploy must run from a commit reachable from main)
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: node scripts/verify-release-ancestry.mjs
+
       - uses: pnpm/action-setup@v6
 
       - uses: actions/setup-node@v6
