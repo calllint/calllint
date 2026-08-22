@@ -786,6 +786,139 @@ console.log("")
   }
 }
 
+// 24. new18 §29 — the private usage surface must not leak into any public surface.
+//
+//   §29 is fail-closed: Cloudflare Access on `usage.calllint.com` cannot be verified from CI,
+//   so the report ships as a workflow artifact and the host is not published. §29 then names
+//   nine surfaces private usage "must never appear in": calllint.com nav, footer, README,
+//   llms.txt, llms-full.txt, sitemap, robots, agent instructions, harness pages.
+//
+//   That prohibition held before this check existed — and nothing enforced it. An unguarded
+//   true statement is one careless edit from being a false one, and the failure is silent:
+//   a link in a footer is exactly what turns a private host into an indexed one.
+//
+//   TWO DESIGN DECISIONS, both learned from this guard's own history:
+//
+//   (a) The cohort is BUILT HERE, not inherited. `discoverPublicFiles()` takes depth-1
+//       `.html/.md/.txt` under the web root, which misses two of the nine surfaces outright:
+//       sitemaps are `.xml`, and harness pages live in per-host SUBDIRECTORIES. Reusing
+//       `files` would have scanned neither while printing a checkmark — the repo's dominant
+//       fault class. So the sitemap and harness sets are globbed separately and their sizes
+//       are asserted BEFORE any claim is made about their contents.
+//
+//   (b) The needle is the HOST, not the word "usage". `## Basic Usage` appears in llms.txt
+//       and llms-full.txt as CLI documentation, and a naive /usage/i would red on both. What
+//       §29 forbids is a reference to the private surface, so the tokens are the things that
+//       can only mean that surface: the hostname, a public /usage path, and the artifact name.
+{
+  /* Tokens that can only denote the private usage surface. Deliberately NOT the bare word
+   * "usage" — see (b). `dist/usage` is the generator's out dir, which would only appear on a
+   * public surface if someone pasted a build path into copy. */
+  const PRIVATE_USAGE_TOKENS = [
+    "usage.calllint.com",
+    "calllint.com/usage",
+    "/usage/",
+    "dist/usage",
+    "usage-report",
+  ]
+
+  /** Recursive glob by extension, relative POSIX paths. */
+  const walk = (absDir, exts) => {
+    if (!fs.existsSync(absDir)) return []
+    const out = []
+    for (const e of fs.readdirSync(absDir, { withFileTypes: true })) {
+      const full = path.join(absDir, e.name)
+      if (e.isDirectory()) out.push(...walk(full, exts))
+      else if (exts.includes(path.extname(e.name))) out.push(path.relative(repoRoot, full).split(path.sep).join("/"))
+    }
+    return out
+  }
+
+  const webRoot = path.join(repoRoot, PUBLIC_WEB_ROOT)
+  const sitemaps = walk(webRoot, [".xml"]).filter((r) => r.endsWith("sitemap.xml"))
+  const harnessPages = walk(path.join(webRoot, "harnesses"), [".html"])
+  /* nav + footer live in the served HTML; robots/llms/agent-instructions are depth-1 text
+   * files already in `files`; README is in EXTRA_PUBLIC_FILES. */
+  const depthOne = files.map((f) => f.rel)
+
+  /* ANTI-VACUITY, asserted before any prohibition. Each floor is below the measured count
+   * (2 sitemaps, 20 harness pages) so ordinary growth does not red it, while a collapse to
+   * an empty scan does. Without these three, deleting the web root would make §29 "pass". */
+  let cohortSound = true
+  if (sitemaps.length < 2) {
+    fail(`check 24: found ${sitemaps.length} sitemap(s) under ${PUBLIC_WEB_ROOT}; §29 names "sitemap" and this scan would be vacuous`)
+    cohortSound = false
+  }
+  if (harnessPages.length < 10) {
+    fail(`check 24: found ${harnessPages.length} harness page(s); §29 names "harness pages" and this scan would be vacuous`)
+    cohortSound = false
+  }
+  /* The named text surfaces must actually be in the inherited set — if one is renamed away,
+   * this check must red rather than silently stop covering it. */
+  const NAMED = [
+    `${PUBLIC_WEB_ROOT}/llms.txt`,
+    `${PUBLIC_WEB_ROOT}/llms-full.txt`,
+    `${PUBLIC_WEB_ROOT}/robots.txt`,
+    `${PUBLIC_WEB_ROOT}/agent-instructions.md`,
+    `${PUBLIC_WEB_ROOT}/index.html`,
+    "README.md",
+  ]
+  const missingNamed = NAMED.filter((rel) => !depthOne.includes(rel))
+  if (missingNamed.length > 0) {
+    fail(`check 24: §29 names surfaces absent from the scanned set: ${missingNamed.join(", ")}`)
+    cohortSound = false
+  }
+
+  if (cohortSound) {
+    const cohort = [...new Set([...depthOne, ...sitemaps, ...harnessPages])]
+    const offenders = []
+    for (const rel of cohort) {
+      const abs = path.join(repoRoot, rel)
+      if (!fs.existsSync(abs)) continue
+      const text = fs.readFileSync(abs, "utf8")
+      const hits = PRIVATE_USAGE_TOKENS.filter((t) => text.toLowerCase().includes(t.toLowerCase()))
+      if (hits.length > 0) offenders.push(`${rel}: ${hits.join(", ")}`)
+    }
+    if (offenders.length === 0) {
+      ok(
+        `no private-usage reference on any of ${cohort.length} public surface(s) ` +
+          `(${sitemaps.length} sitemap, ${harnessPages.length} harness, nav/footer/README/llms/robots/agent-instructions) — new18 §29`,
+      )
+    } else {
+      for (const o of offenders) fail(`private usage surface leaked into public copy (new18 §29): ${o}`)
+    }
+  }
+
+  /* §29's other half: the report is "a workflow artifact only". A guard on the nine surfaces
+   * says nothing about the workflow that could publish a tenth. This asserts the workflow
+   * uploads and does not deploy or commit — the fail-closed posture itself. */
+  const wfRel = ".github/workflows/usage-report.yml"
+  const wfAbs = path.join(repoRoot, wfRel)
+  if (!fs.existsSync(wfAbs)) {
+    fail(`check 24: ${wfRel} not found — §28 requires the workflow to exist in-repo`)
+  } else {
+    const wf = fs.readFileSync(wfAbs, "utf8")
+    const PUBLISH_STEPS = [
+      ["actions/deploy-pages", "deploys to GitHub Pages"],
+      ["cloudflare/wrangler-action", "deploys via wrangler"],
+      ["wrangler pages deploy", "deploys via wrangler pages"],
+      ["peaceiris/actions-gh-pages", "pushes to a Pages branch"],
+      ["git push", "commits back to the repo"],
+      ["git commit", "commits back to the repo"],
+    ]
+    const found = PUBLISH_STEPS.filter(([t]) => wf.includes(t))
+    if (found.length > 0) {
+      for (const [t, why] of found) {
+        fail(`private usage report ${why} via "${t}" in ${wfRel} — new18 §29 permits an artifact only`)
+      }
+    } else if (!wf.includes("actions/upload-artifact")) {
+      fail(`${wfRel} has no upload-artifact step; §29 requires the report to exist as a private artifact`)
+    } else {
+      ok(`private usage report is artifact-only (upload-artifact present, no deploy or commit path) — new18 §29`)
+    }
+  }
+}
+
 console.log("")
 if (exitCode === 0) {
   console.log("Public-copy guard: PASS")
