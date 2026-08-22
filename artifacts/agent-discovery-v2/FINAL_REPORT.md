@@ -1,9 +1,10 @@
 # Agent Discovery v2 — Final Report
 
-**Scope:** new19 §25. **Measured at:** commit `HEAD` of `feat/global-agent-distribution-authority`,
-2026-08-22. Every figure below was read from the tree or from a gate's exit code at that commit;
-none is carried over from an earlier document. Where a requirement was already satisfied before
-this work, that is stated rather than re-claimed as new — new19 §0 forbids rebuilding what exists.
+**Scope:** new19 §25. **Measured at:** commit `abfb44a` on branch `fix/explain-command-runnable`
+(the head branch of PR #329, which is `OPEN`), 2026-08-22. Every figure below was read from the tree
+or from a gate's exit code at that commit; none is carried over from an earlier document. Where a
+requirement was already satisfied before this work, that is stated rather than re-claimed as new —
+new19 §0 forbids rebuilding what exists.
 
 The audit that preceded this report is [REALITY_AUDIT.md](REALITY_AUDIT.md); it measured 10 of the
 17 requirements as **already satisfied**, and this report covers the 7 that were not.
@@ -301,7 +302,9 @@ Counting mentions instead of writes is how the earlier two-writer collision was 
 Nothing in this list is blocked on code; each is an operator decision or an external event.
 
 1. **Merge and publish are NOT authorised.** The standing instruction for this work is 「确保但是暂时
-   不合并也不publish」. The branch is local and complete; PR #329 stays open.
+   不合并也不publish」. PR #329 is `OPEN` and stays open. Measured: the branch is **3 commits ahead
+   of `origin`** — `cd0837c`, `abfb44a` and this report are local only, so the PR currently shows
+   the work up to `eabd580`. Pushing is a separate, metered act and was not performed.
 2. **Cloudflare Access, `USAGE_HASH_KEY`, and the real `database_id`** remain unauthorised
    (new18 §106 P (2)). No code here depends on them.
 3. **Observe the watcher's first run** when the weekly cron fires, and confirm the first clean
