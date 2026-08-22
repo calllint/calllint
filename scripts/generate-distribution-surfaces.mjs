@@ -228,6 +228,59 @@ function publicSupport(supportClass) {
   return entry
 }
 
+/*
+ * Public labels for a distribution primitive's `state`, same contract as
+ * PUBLIC_SUPPORT_LABELS above and for the same reason.
+ *
+ * `state` is an INTERNAL pipeline primitive: it records where a distribution channel sits
+ * in our own submission workflow. `AUDIT_REQUIRED` does not mean the reader must audit
+ * anything, and `PENDING_UPSTREAM` names a queue only we can see. Both were being printed
+ * verbatim as the human-readable text of a `<span>` on 15 published host pages, where a
+ * visitor reads "AUDIT_REQUIRED" next to a channel and can only guess whether that is a
+ * warning about the channel, about CallLint, or about them.
+ *
+ * §20 did not catch it: these tokens are not in INTERNAL_ONTOLOGY, so no gate objected.
+ * That is a gap in the token list, not a licence — the reason §20 forbids leaking
+ * `supportClass` applies identically here.
+ *
+ * `stateClass` is a stable kebab slug for styling. The template previously interpolated
+ * the raw enum into `class="state-{{state}}"`, which no stylesheet matched (there is no
+ * `.state-*` rule anywhere in the served CSS), so the class was inert AND leaked the enum
+ * a second time. Keeping a slug means a future stylesheet can key off it without the
+ * markup carrying the internal vocabulary.
+ *
+ * Total by construction: `publicState()` throws rather than falling back to the raw enum.
+ */
+const PUBLIC_STATE_LABELS = {
+  AVAILABLE: {
+    label: 'Available now',
+    slug: 'available',
+  },
+  AUDIT_REQUIRED: {
+    label: 'Listing not yet verified',
+    slug: 'unverified',
+  },
+  READY_NOT_SUBMITTED: {
+    label: 'Not yet submitted',
+    slug: 'not-submitted',
+  },
+  PENDING_UPSTREAM: {
+    label: 'Awaiting the upstream registry',
+    slug: 'awaiting-upstream',
+  },
+}
+
+function publicState(state) {
+  const entry = PUBLIC_STATE_LABELS[state]
+  if (!entry) {
+    throw new Error(
+      `No public label for distribution state "${state}". Add it to PUBLIC_STATE_LABELS — ` +
+        `do not fall back to printing the internal enum on a human page.`,
+    )
+  }
+  return entry
+}
+
 // Load template
 const TEMPLATE_PATH = join(__dirname, 'templates/host-page.hbs')
 const templateSource = readFileSync(TEMPLATE_PATH, 'utf8')
@@ -271,7 +324,19 @@ function generateHostPages() {
     const hostDir = join(outputDir, host.id)
 
     const { label: supportLabel, hint: supportLabelHint } = publicSupport(host.supportClass)
-    const html = hostPageTemplate({ ...host, supportLabel, supportLabelHint })
+    /* Same treatment for each primitive's `state`: the page carries the public label and a
+     * styling slug, never the internal enum. Mapped here rather than in the template
+     * because a Handlebars helper would make the fallback silent again. */
+    const distributionPrimitives = (host.distributionPrimitives ?? []).map((p) => {
+      const { label: stateLabel, slug: stateClass } = publicState(p.state)
+      return { ...p, stateLabel, stateClass }
+    })
+    const html = hostPageTemplate({
+      ...host,
+      distributionPrimitives,
+      supportLabel,
+      supportLabelHint,
+    })
     const outPath = join(hostDir, 'index.html')
 
     emit(outPath, html)

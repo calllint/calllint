@@ -48,6 +48,24 @@ const PUBLIC = join(repoRoot, 'apps/web/public')
  * check-harness-distribution.mjs and PUBLIC_SUPPORT_LABELS in the generator. */
 const INTERNAL_ONTOLOGY = ['NATIVE', 'CONFIG_SCAN', 'DISCOVERY_ONLY', 'DEFERRED']
 
+/*
+ * The distribution-primitive `state` ontology, held to the same rule for the same reason
+ * and kept in sync with PUBLIC_STATE_LABELS in the generator.
+ *
+ * These were NOT on the list, and their absence is how `host-page.hbs` came to print
+ * `AUDIT_REQUIRED` and `PENDING_UPSTREAM` as the visible text of a `<span>` on 15
+ * published host pages while this check reported §20 satisfied. §20's principle was never
+ * "these four strings"; it is that internal vocabulary does not reach a human. A list that
+ * enumerates one enum and not the other encodes the letter and loses the rule.
+ *
+ * Scoped to hostPages, not humanPages: the harness hub deliberately DOCUMENTS this
+ * vocabulary — it prints `AVAILABLE` and `AUDIT_REQUIRED` inside `<code>` next to a
+ * sentence defining them, which teaches the reader the term instead of leaving them to
+ * guess at a bare badge. Applying the host-page rule there would force the hub to stop
+ * explaining the words the machine surface uses.
+ */
+const INTERNAL_STATE_ONTOLOGY = ['AVAILABLE', 'AUDIT_REQUIRED', 'READY_NOT_SUBMITTED', 'PENDING_UPSTREAM']
+
 /* Every agent-facing document. All three, not two: the pointer was present in llms.txt
  * and llms-full.txt but missing from agent-instructions.md, which is the one an agent is
  * most likely to be handed directly. */
@@ -182,6 +200,48 @@ if (humanPages.length === 0) {
     )
   } else {
     pass(`every one of ${hostPages.length} host page(s) shows a public support label`)
+  }
+
+  /*
+   * The same two directions for the `state` ontology: no internal enum in visible text,
+   * and a public label actually present. Host pages only, per the scoping note on
+   * INTERNAL_STATE_ONTOLOGY.
+   */
+  const stateLeaks = []
+  for (const page of hostPages) {
+    const text = visibleText(readFileSync(page, 'utf8'))
+    const hits = INTERNAL_STATE_ONTOLOGY.filter((t) => new RegExp(`\\b${t}\\b`).test(text))
+    if (hits.length > 0) stateLeaks.push(`${relative(repoRoot, page)}: ${hits.join(', ')}`)
+  }
+  if (stateLeaks.length > 0) {
+    fail(
+      `internal distribution-state ontology is visible to humans on ${stateLeaks.length}/${hostPages.length} host page(s):\n` +
+        stateLeaks.map((l) => `     - ${l}`).join('\n') +
+        `\n   Render the public label from PUBLIC_STATE_LABELS instead of the raw state.`,
+    )
+  } else {
+    pass(`no internal distribution-state ontology in visible text across ${hostPages.length} host page(s)`)
+  }
+
+  // And the labels must be there. Without this half, deleting the state indicator from the
+  // template would satisfy the leak check while telling a reader less than before.
+  const PUBLIC_STATE_LABEL_TEXT = [
+    'Available now',
+    'Listing not yet verified',
+    'Not yet submitted',
+    'Awaiting the upstream registry',
+  ]
+  const stateless = hostPages.filter((p) => {
+    const text = visibleText(readFileSync(p, 'utf8'))
+    return !PUBLIC_STATE_LABEL_TEXT.some((l) => text.includes(l))
+  })
+  if (stateless.length > 0) {
+    fail(
+      `${stateless.length}/${hostPages.length} host page(s) show no public distribution-state label: ` +
+        stateless.map((p) => relative(repoRoot, p)).join(', '),
+    )
+  } else {
+    pass(`every one of ${hostPages.length} host page(s) shows a public distribution-state label`)
   }
 }
 

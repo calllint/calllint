@@ -104,7 +104,11 @@
               {{#if upstream}}
               <span class="upstream-note">(via <a href="https://registry.modelcontextprotocol.io/?q=calllint">{{upstream}}</a>)</span>
               {{/if}}
-              — <span class="state-{{state}}">{{state}}</span>
+              {{!-- Public label + styling slug, both derived by `publicState()` in the
+                    generator. Never `{{state}}`: that enum is an internal pipeline
+                    primitive, and printing it made a visitor read "AUDIT_REQUIRED" with no
+                    way to tell what it was a warning about. --}}
+              — <span class="state-{{stateClass}}">{{stateLabel}}</span>
               {{#if note}}
               <div class="dist-note">{{note}}</div>
               {{/if}}
