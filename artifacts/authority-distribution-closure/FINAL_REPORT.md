@@ -57,21 +57,35 @@ Confirmed at `865f9c6` on 2026-08-20, not carried forward:
 | --- | --- | --- |
 | Full local suite | `pnpm ci:local` | **exit 0**, 25 `&&`-joined steps |
 | Registry readback | `node scripts/verify-registry-presence.mjs` | **exit 0**, 7/7 fields agree |
-| Tag ruleset | `node scripts/verify-mcp-tag-protection.mjs` | **exit 1** — 1 ruleset, 0 targeting tags |
+| Tag ruleset | `node scripts/verify-mcp-tag-protection.mjs` | **exit 0** (2026-08-22) — 2 rulesets, 1 targeting tags; ruleset `21177039` covers `refs/tags/mcp-v*`, rules `creation`+`deletion`. **Was exit 1** (1 ruleset, 0 targeting tags) as this table was first written |
 | Watcher on default branch | `gh api .../workflows/distribution-watch.yml` | **404** — never scheduled |
 | Security semantics | `pnpm check:security-semantics` | UNCHANGED — 0 / 0 / 0 |
 
-The two exit-1 / 404 rows are the two open items, and both are *outside* the tree. They are
-reported here as failures rather than as "pending" because that is what the commands return.
+The two exit-1 / 404 rows were the two open items when this table was written, and both were
+*outside* the tree. They were reported as failures rather than as "pending" because that is what
+the commands returned. **Both have since closed, and neither closed by being re-described**: the
+watcher row went 404 → `state: active` when PR #325 merged as `a0076ff`, and the tag-ruleset row
+went exit 1 → exit 0 on 2026-08-22 when the ruleset was created (section H, Item 10d).
+
+The claim that the ruleset row was "outside the tree" deserves the correction it got rather than a
+quiet edit. It was outside the *tree* — a settings write, not a commit — but it was not outside
+*reach*, which is what the sentence was used to mean for several sessions. See Item 10d: the
+permission was never queried until it was, and it was `admin: true`.
 
 Rows 1 and 5 were re-taken at `fda2bd5` after section O landed and are unchanged, and re-taken
 again on **2026-08-21** in the closing pass: `ci:local` **exit 0** at 25 steps, now **243 files /
 4524 passed / 1 skipped** (up from 237 / 4393 as other work landed on the branch), and
 `check:security-semantics` still `UNCHANGED` — it runs inside the chain. Rows 2–4 were **not**
-re-taken: each observes state on a remote — the Registry API, the repository's rulesets, the
-default branch's workflow list — that no commit on this branch can move, so re-running them
-would produce a new timestamp and no new information. They are dated `865f9c6` for that reason,
-not upgraded to the later SHA.
+re-taken at that point: each observes state on a remote — the Registry API, the repository's
+rulesets, the default branch's workflow list — that no commit on this branch could move, so
+re-running them would have produced a new timestamp and no new information. They are dated
+`865f9c6` for that reason, not upgraded to the later SHA.
+
+**That reasoning was sound and still produced a stale row, which is worth stating plainly.** "No
+commit on this branch can move it" is true and does not imply "it will not move": rows 3 and 4
+were both moved by actions taken *outside* the tree — a merge for the watcher, an API write for the
+ruleset. A remote-state row is not stable because commits cannot reach it; it is stable only until
+someone acts on the remote. Rows 3 and 4 now carry their own dates.
 
 Nine properties were closed *this pass* by finding them broken or unenforceable, not by
 documenting them as done. One of the nine — GD-15 — was a real defect **this branch created**;
@@ -82,7 +96,9 @@ Two acceptance claims that earlier drafts of this report asserted do **not** hol
 measurement and are corrected here: `REGISTRY_WATCH` was not READY (section H — **this one closed
 when PR #325 merged as `a0076ff`; see the post-merge note below**), and
 Registry item 10 was not verified (section H). Item 10's *guard* has since been rewritten so it
-can observe its subject; the underlying tag ruleset still does not exist.
+can observe its subject, and the underlying tag ruleset **now exists** — created 2026-08-22 as
+ruleset `21177039`, verifier exit 0 (Item 10d). The sentence that stood here until then, "the
+underlying tag ruleset still does not exist", was true when written and is now false.
 
 The three items filed as "minor, disclosed, not blocking" in the first draft were not carried
 forward as disclosures — they were fixed (section J, items 4–6). Writing the schema for item 4
@@ -414,10 +430,15 @@ GitHub replaced it with rulesets. Queried directly, the repo has exactly one rul
 17728504  "Protect main"  target=branch  enforcement=active  include=[~DEFAULT_BRANCH]
 ```
 
-`target=branch`. There is **no tag ruleset**, so `mcp-v*` is unprotected: any collaborator with
-write access can create the tag that triggers `publish-mcp.yml`. The `environment: npm`
-reviewer gate still stands between a rogue tag and an npm publish, but the MCP Registry publish
-step is in the same job, so that gate is the only thing holding.
+`target=branch`. There was **no tag ruleset** when this was measured, so `mcp-v*` was
+unprotected: any actor with plain write access could create the tag that triggers
+`publish-mcp.yml`. (Measured later, that population was empty — see Item 10d; the sole
+collaborator is an admin. The exposure was to non-admin and automated actors, not to a roster of
+people who existed.) The `environment: npm` reviewer gate still stood between a rogue tag and an
+npm publish, but the MCP Registry publish step is in the same job, so that gate was the only thing
+holding. **This is the finding as measured on 2026-08-20 and it is left in the past tense it now
+belongs in — the ruleset was created on 2026-08-22 (Item 10d), and the two-ruleset inventory is
+recorded there rather than by editing these numbers.**
 
 That 404 is worth naming precisely, because it is this repo's dominant fault class in its purest
 form: **"endpoint removed" and "tag unprotected" produced the identical failure.** A guard whose
@@ -450,12 +471,110 @@ back out, and a `creation` rule — tags are created, not pushed to, so a rulese
 `update`/`deletion` would leave the release trigger open. `mcp-v1.*` is deliberately **rejected**
 as partial coverage. Pattern predicate unit-checked over 10 inputs, all correct.
 
-Creating the ruleset is a write to shared repository settings and is left to the maintainer;
-`--explain` prints the UI path and the equivalent `gh api` call. Still OPEN in section J — but
-open on an unattended-write policy, not on code, and **not** on a missing permission: the
-account has `admin: true`, so "I lack the permission" was an unqueried guess and is false. The
-runnable form is recorded at `mcp-tag-ruleset.json`, field-checked against the verifier's own
-`coversMcpTags` predicate.
+**Item 10d — the ruleset now exists, and the reason it sat open was an unmeasured assumption.**
+
+Created 2026-08-22 with the user's explicit authorization:
+
+```
+21177039  "Protect mcp-v* release tags"  target=tag  enforcement=active
+          include=[refs/tags/mcp-v*]  exclude=[]  rules=[creation, deletion]
+          bypass_actors=[RepositoryRole 5 (admin), bypass_mode: always]
+
+$ node scripts/verify-mcp-tag-protection.mjs   # exit 0
+Rulesets on calllint/calllint: 2 total, 1 targeting tags
+PASS: mcp-v* tag creation is restricted.
+    covers: refs/tags/mcp-v*
+    rules:  creation, deletion
+```
+
+Verified twice by different means: the verifier's own predicate (all five conditions above), and an
+independent `gh api .../rulesets/21177039` read, because a script asserting the thing it just
+created is a single point of failure for the claim.
+
+**Why it stayed open for several sessions.** This report recorded it as operator item §106 P (1) on
+the ground that it "needs repository admin write, which I cannot do from the tree". Nobody had run
+`gh api repos/calllint/calllint --jq .permissions` → `admin: true`. Section H above had *already*
+noted `admin: true` in a different context (ruling out permissions as the cause of the 404), and
+the two statements sat in the same document contradicting each other. An assumption about
+capability was written in the same voice as a measurement, and it survived because it was never
+the subject of a check.
+
+**What the ruleset does not do.** `bypass_actors` grants the admin role `always`, so an admin can
+still create an `mcp-v*` tag pointing anywhere. That is deliberate and it is why AC-32 needs both
+halves: the ruleset answers *who may create the tag*, and `verify-release-ancestry.mjs` answers
+*which commit it may point at*. The ruleset adds no human approval step — the only approval in the
+publish path remains `environment: npm`. Reading "restrict creations" as "every release is
+reviewed" would credit it with a control it does not implement.
+
+**And a sharper limit, found by finishing §45's audit list rather than stopping at its first
+item.** §45 asks for four things to be audited: the tag ruleset, npm environment protection, the
+release environment reviewer policy, and repository permissions. Measuring the fourth:
+
+```
+$ gh api repos/calllint/calllint/collaborators --jq '[.[] | {login, admin, push}]'
+[{"admin": true, "login": "saintl1022", "push": true}]
+
+$ gh api repos/calllint/calllint/environments   # subjects 2 and 3
+github-pages : branch_policy, 0 reviewers
+npm          : required_reviewers (1), branch_policy
+```
+
+There is exactly **one** collaborator and they are an admin — who holds `bypass_mode: always` on
+the ruleset just created. So the sentence this report has repeated for several sessions, "any
+collaborator with write access can trigger a release", described a population of **zero** people:
+there are no non-admin collaborators, and the one account that exists bypasses the new ruleset.
+The ruleset therefore restricts nobody who can currently act on this repository.
+
+That is not an argument that it is worthless, and the distinction matters for what gets claimed.
+It binds three actors that are not on that list: a future non-admin collaborator, a
+`GITHUB_TOKEN`/deploy key with `contents: write` (an Actions token is not the admin role, so a
+workflow cannot create an `mcp-v*` tag), and any compromised credential below admin. It is a
+control against *future and automated* tag creation, not against the present human roster. Stating
+it the other way — "protected, so no unauthorized release is possible" — would be the same kind of
+overclaim as counting a comment as a gate, and the honest version is that today the ancestry gate
+and `environment: npm` are what actually stand in the path.
+
+**Reversibility.** `gh api --method DELETE repos/calllint/calllint/rulesets/21177039` removes it,
+which is why this was a settings write I was willing to make on authorization: it fails toward
+*more* restriction and is undone by one command.
+
+**One incident during verification, recorded because the cleanup is part of the claim.** Testing
+whether the `--explain` heredoc form actually reads stdin, I sent a body I expected the API to
+reject on content. It accepted it and created ruleset `21177273`
+(`__stdin-transport-probe-do-not-create__`, `enforcement: disabled`, no rules, no conditions). I
+deleted it immediately; the inventory is back to 2 rulesets and a filter on `name | test("probe")`
+returns 0. A `disabled` ruleset with no rules enforced nothing while it existed, so the window was
+harmless, but the probe was badly designed: I chose a body whose *rejection* was the signal, on an
+endpoint whose job is to create things. The right probe against a mutating endpoint asserts the
+transport without a valid payload — a malformed body, or `--method GET`. Recorded rather than
+omitted because "I verified the printed command is runnable" is only worth what the verification
+was, and this one created and destroyed a real object on the repository.
+
+Creating the ruleset was a write to shared repository settings, so it waited for authorization
+rather than for capability; it was performed on 2026-08-22 (Item 10d below). `--explain` prints
+the UI path and the equivalent `gh api` call. The runnable form is recorded at
+`mcp-tag-ruleset.json`, field-checked against the verifier's own `coversMcpTags` predicate.
+
+**The `--explain` command it printed was not runnable, and that was found only by using it.** The
+form in this report and in the script used `-f` flags, which fail twice for two independent
+reasons: `-f 'bypass_actors[][actor_id]=5'` sends a string where the API requires an integer
+(`"5" is not of type "integer"`), and switching to `-F` fixes the typing but then no flag form can
+express `exclude: []` — `-f 'conditions[ref_name][exclude][]='` sends `[""]`, and omitting the key
+trips `Missing required parameter "exclude"`. Both were real 422s from the live endpoint. §45 says
+"do not fabricate success. **Record exact operator step**", and a command that 422s twice is not an
+exact one. Fixed by printing the JSON body — read from `mcp-tag-ruleset.json` at run time, so the
+printed step and the checked-in file cannot drift — over `--input`. Guarded by
+[`tests/invariants/explain-command-runnable.invariants.test.ts`](../../tests/invariants/explain-command-runnable.invariants.test.ts),
+which drives the script's FAIL branch through a stub `gh` (the explain text prints *only* on FAIL,
+so pointing it at the now-passing real repo would have been a vacuous green) and asserts the
+printed body is byte-identical to the file, that both 422 shapes are absent, and that the heredoc
+terminator is unindented and therefore actually closes. Four negative controls: restoring the
+original `-f` form → RED (4 tests); `actor_id` as a string → RED; `exclude: [""]` → RED; a
+narrowed `include` → RED. Restored → 8/8 green.
+
+This is the same fault class as the rest of this section, one level up: the *guard* could observe
+its subject, but the *instructions the guard printed on failure* were never themselves executed by
+anything. Prose inside a script is still prose.
 
 **Item 10b — the ruleset was never the whole of AC-32, and the other half is now code.**
 Re-reading `new18.md` §45 against this item exposed a scope error in the sentences above. §45
@@ -504,7 +623,8 @@ weakened at the first real release. All three verdicts were taken by redirecting
 reading `$?` unpiped.
 
 AC-32 is therefore **no longer `NO CONTROL`**. The code-level half §45 asks for exists and is
-enforced in the publish path; the account-level half — the ruleset — remains an operator action.
+enforced in the publish path; the account-level half — the ruleset — was an operator action when
+this was written and **was completed on 2026-08-22** (Item 10d). Both halves are now closed.
 
 **Item 10c — the same gap existed on the bigger package, and AC-32's own wording hid it.**
 AC-32 names `mcp-v*` tags, so closing it left the question "which *other* workflows publish
@@ -707,7 +827,7 @@ this pass did not inject it. `NO CONTROL` means exactly that — no gate would c
 | AC-29 | publish runs without official validation | STANDING | `mcp-publisher validate server.json` at `publish-mcp.yml:94-96` |
 | AC-30 | successful publish assumed without readback | INJECTED (NC-1..3) | §H 7/7 field readback; `publish-mcp.yml:115-120` |
 | AC-31 | watcher republishes a Registry version | STANDING | GD-11/GD-17, same 0-match scan |
-| AC-32 | `mcp-v*` tag from an unreviewed branch can publish | **CODE CONTROL, account-level OPEN** | `verify-release-ancestry.mjs` at `publish-mcp.yml` step 2 rejects a tag whose commit is not reachable from `main` (`diverged` → exit 1, negative-controlled over `identical`/`behind`/`diverged`) — this is the code-level gate §45 asks for "regardless". The `mcp-v*` **tag ruleset** (who may create the tag) is still absent: operator action §106 P (1). `environment: npm` adds 1 reviewer |
+| AC-32 | `mcp-v*` tag from an unreviewed branch can publish | **CLOSED — both halves** | Code half: `verify-release-ancestry.mjs` rejects a tag whose commit is not reachable from `main` (`diverged` → exit 1, negative-controlled over `identical`/`behind`/`diverged`), now at step 2 of **all three** publish paths — `publish-mcp.yml`, `release.yml`, `deploy-web.yml` (`d446d34`), coverage guarded by `release-ancestry-coverage.invariants.test.ts` so a fourth is caught by shape. Account half: tag ruleset `21177039` (`target=tag`, `active`, `refs/tags/mcp-v*`, rules `creation`+`deletion`) created 2026-08-22, verifier **exit 0** (Item 10d). The admin role holds `bypass_mode: always`, which is exactly why both halves are needed. `environment: npm` adds 1 reviewer |
 | AC-33 | `/team` remains publicly linked | STANDING | `check:public-copy` — 0 hits across 45 tool descriptions and 23 public files |
 | AC-34 | unlaunched $99 pricing remains public copy | STANDING | same gate; the 4 residual `pricing` hits are third-party registry descriptions |
 | AC-35 | "free forever" promise remains | STANDING | same gate |
@@ -725,12 +845,13 @@ asks for both, and asks for the ancestry half "regardless" of account configurat
 missing and is code, not an operator action. It now exists (`verify-release-ancestry.mjs`, step 2
 of `publish-mcp.yml`, negative-controlled — item 10b in section H).
 
-What remains open on AC-32 is narrower than the earlier text claimed: with the ancestry gate in
-place, a rogue `mcp-v*` tag on a side branch **fails the publish job**, so the unreviewed-code
-path is closed. The absent ruleset means such a tag can still be *created* and can still start a
-run — it reaches the `environment: npm` reviewer, burns Actions minutes, and appears in the run
-history. That is a real gap and it is still operator action §106 P (1); it is no longer the
-difference between reviewed and unreviewed code reaching npm.
+What remained open on AC-32 was narrower than the earlier text claimed, and is now closed. With
+the ancestry gate in place, a rogue `mcp-v*` tag on a side branch **fails the publish job**, so the
+unreviewed-code path was already closed. The absent ruleset meant such a tag could still be
+*created* and could still start a run — reaching the `environment: npm` reviewer, burning Actions
+minutes, and appearing in the run history. That gap was real, and it was operator action
+§106 P (1) until 2026-08-22, when ruleset `21177039` was created (Item 10d in section H): the
+verifier now exits 0, and a non-admin can no longer create the tag at all.
 
 Two further limits on this table, stated rather than left for a reader to find. First, `STANDING`
 is weaker evidence than `INJECTED`: it means a gate exists and passes, not that it has been seen
@@ -744,33 +865,49 @@ is computed) rather than an injected control, so it is the weakest row here.
 
 ### Open — must close before this can be called closed
 
+**All three items below are now closed** (2026-08-21 and 2026-08-22), so this list is a record of
+what was open and how each closed, not a list of outstanding work. The heading is kept because the
+items are cross-referenced from elsewhere in this report and from `new18.md` §106. What is *still*
+open sits under "Deliberate exclusions" below and in §106 P (2) — Cloudflare Access, the real
+`USAGE_HASH_KEY`, the real `database_id`, and any npm publish — none of which is an AC-32 concern
+and none of which is authorized.
+
 1. ~~**`REGISTRY_WATCH` is not READY.**~~ **CLOSED 2026-08-21 by the merge itself.** It was open
    because `distribution-watch.yml` was not on the default branch, so its `schedule` had never
    fired (404, 0 runs). PR #325 merged as `a0076ff` and the workflow now reports
-   `state: active` — measured, not inferred from the merge succeeding. Two things stay true and
-   are not this item: the job has **0 runs** until Monday 09:00 UTC, and its step 3 exits 1
-   (item 2), so its first run is expected red. Section H.
-2. **`mcp-v*` tag protection is absent. The verifier now proves it instead of 404-ing.**
-   The measurement is unchanged — the repository has exactly one ruleset,
-   `17728504 "Protect main" target=branch`, and no tag ruleset — but the *guard* is fixed:
-   `scripts/verify-mcp-tag-protection.mjs` was rewritten against `/repos/{o}/{r}/rulesets`, and
-   `mcp-tag-protection.md` was rewritten with it. It now prints the real ruleset inventory and
-   exits 1 for the true reason. Five conditions must all hold before it reports PASS
+   `state: active` — measured, not inferred from the merge succeeding. One thing stays true and is
+   not this item: the job still has **0 runs** (re-measured 2026-08-22 at `d446d34`;
+   `gh run list --workflow=distribution-watch.yml` → `[]`), so its first result is unobserved.
+   The "its first run is expected red" note that stood here is **withdrawn**: it rested on step 3
+   exiting 1, and step 3 now exits 0 (item 2). Replacing a predicted red with a predicted green
+   would be the same mistake, so nothing is claimed about that run until it exists. Section H.
+2. ~~**`mcp-v*` tag protection is absent.**~~ **CLOSED 2026-08-22.** Ruleset `21177039`
+   (`"Protect mcp-v* release tags"`, `target=tag`, `enforcement=active`, `refs/tags/mcp-v*`,
+   rules `creation`+`deletion`) was created with explicit authorization;
+   `node scripts/verify-mcp-tag-protection.mjs` → **exit 0**, confirmed by an independent
+   `gh api .../rulesets/21177039` read. Item 10d in section H records the body, the reversal
+   command, and the probe ruleset I created by accident and deleted.
+   The guard work that preceded it stands and is what made the close checkable:
+   `scripts/verify-mcp-tag-protection.mjs` was rewritten against `/repos/{o}/{r}/rulesets` (the
+   old endpoint 404s, so its red was indistinguishable from the unprotected condition), and
+   `mcp-tag-protection.md` with it. Five conditions must all hold before it reports PASS
    (`target: tag`, `enforcement: active`, an `include` covering the whole `mcp-v*` space, no
    `exclude` carving it back out, and a `creation` rule) — each one a way the old check could
    have read green while the tag stayed open. Notably `mcp-v1.*` is **rejected**: it protects
    some release tags and leaves `mcp-v2.0.0` open, and a partial guard reported as green is the
    failure mode this file exists to prevent. The pattern predicate was unit-checked over 10
    inputs, all correct.
-   **What remains is not a code change.** Creating the tag ruleset is a write to shared
-   repository settings; `--explain` prints the exact UI steps and the equivalent `gh api` call.
-   (An earlier wording called this "an admin write" and read it as a *permission* blocker. That
-   was never measured and is false — `gh api repos/calllint/calllint --jq .permissions` returns
-   `admin: true`. What this project does not do unattended is the write itself, which is a
-   different fact with a different remedy; see §H.) Until it exists, any collaborator with write
-   access can trigger a release. **The `environment: npm` single-reviewer gate is no longer the
-   only remaining barrier:** since #327 an ancestry gate runs before the publishes and rejects a
-   tag that does not point at a commit reachable from `main`. Section H.
+   **Why this sat open across sessions, since that is the more useful record.** It was filed as
+   "not a code change — a write to shared repository settings", which was true, alongside the
+   claim that it needed admin permission I did not have, which was never measured and was false
+   (`gh api repos/calllint/calllint --jq .permissions` → `admin: true`). The permission claim and
+   the policy claim are different facts with different remedies, and collapsing them kept the item
+   open long after only the second one applied. What it actually needed was authorization, which
+   was then given. The `--explain` command this item advertised turned out not to be runnable
+   either — two distinct 422s — now fixed and guarded; see §H.
+   Note also that the ruleset grants the admin role `bypass_mode: always`, so it restricts
+   *everyone else*: it is not a review step, and `environment: npm` remains the only human
+   approval in the publish path. Section H.
 3. **Nothing is deployed — no longer true; superseded by merge.** When written, GD-15's fix, all
    15 host pages, and the machine surface existed only in this branch. All three have since
    landed on `main` — measured 2026-08-21: `harnesses/sitemap.xml` carries **17** `<loc>`
