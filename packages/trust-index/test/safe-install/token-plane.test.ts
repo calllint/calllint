@@ -577,11 +577,48 @@ describe("L0 token plane — hygiene (styling is permitted; hiding and fetching 
   })
 
   it("declares no @media, @supports, or attribute selector on a decision hook", () => {
-    // `data-observed` and `data-primary-action` are what agents read. A stylesheet must not
-    // be able to select on them: styling keyed to a verdict is how a theme starts asserting
-    // one, and it would also let a rule target exactly the row it wants to suppress.
     const body = planeCss.replace(/\/\*[\s\S]*?\*\//g, "")
+
+    /*
+     * `data-observed` and `data-primary-action` are what agents read. A stylesheet must not
+     * be able to select on them: styling keyed to a verdict is how a theme starts asserting
+     * one, and it would also let a rule target exactly the row it wants to suppress.
+     */
     expect(body).not.toMatch(/\[data-observed/)
     expect(body).not.toMatch(/\[data-primary-action/)
+
+    /*
+     * The two at-rules the name has always claimed, which for a while it did not check.
+     *
+     * `@media` is not unmeasured — `gradeVisualRegression` counts it and fails on a
+     * non-zero result. But it counts only the sheets handed to that grader, so the plane's
+     * own zero depended on a caller passing it in. `@supports` was enforced by nothing at
+     * all. Both belong here, against the authored bytes, for the same reason the rest of
+     * this file reads the source: this is where the plane's shape is fixed.
+     *
+     * Why they are forbidden rather than merely absent: `resolveDeclarations` is a flat
+     * rule walk with no nesting support, so declarations inside either block are silently
+     * mis-parsed. The reflow arithmetic in `predictCtaColumns` makes the same assumption —
+     * it computes one layout from constants, which is only sound while no query can
+     * substitute a different one at some width.
+     */
+    expect(body).not.toMatch(/@media\b/)
+    expect(body).not.toMatch(/@supports\b/)
+  })
+
+  it("POSITIVE CONTROL — the at-rule and decision-hook scans both fire, and comments do not", () => {
+    // Each half of the assertion above, exercised against bytes that violate it. Without
+    // this, a regex typo would leave all four `not.toMatch` calls passing vacuously.
+    const stripped = (css: string) => css.replace(/\/\*[\s\S]*?\*\//g, "")
+    expect(stripped("@media (min-width: 40em) { .install-cta { display: none } }")).toMatch(/@media\b/)
+    expect(stripped("@supports (display: grid) { .install-cta-row { gap: 0 } }")).toMatch(/@supports\b/)
+    expect(stripped('[data-observed="false"] { opacity: .4 }')).toMatch(/\[data-observed/)
+    expect(stripped("[data-primary-action] { display: none }")).toMatch(/\[data-primary-action/)
+
+    // And the comment strip is what keeps this file's own prose legal: the plane documents
+    // `@import` in a header comment, so a scan over raw bytes would red on documentation.
+    expect(stripped("/* never write @media or [data-observed] here */\n.a{color:red}")).not.toMatch(
+      /@media\b|\[data-observed/,
+    )
   })
 })

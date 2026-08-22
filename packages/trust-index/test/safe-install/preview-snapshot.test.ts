@@ -18,9 +18,12 @@
 //     satisfy "identical within a partition" perfectly while measuring nothing. The
 //     inequality is the only assertion that separates a real signature from one that
 //     agrees with itself.
-//   • THE 452 px BOUNDARY. `predictCtaColumns` is the WHOLE of the viewport dependency in
+//   • THE 530 px BOUNDARY. `predictCtaColumns` is the WHOLE of the viewport dependency in
 //     a stylesheet with zero `@media`, so the reflow transition is crossed in BOTH
-//     directions rather than sampled on one side.
+//     directions rather than sampled on one side. 452 px of content + 40 px body padding
+//     + 38 px of `.install-disposition` chrome. That last term was missing until the model
+//     was corrected, which put the predicted flip at 492 against a browser-observed 530;
+//     a regression test now pins the whole [492, 529] window that used to be wrong.
 //
 // The corpus is the five canonical fixtures, not the served tree: measured, the 19 served
 // pages carry exactly ONE structural signature and two verdicts, so grading route
@@ -141,10 +144,22 @@ describe("preview harness — corpus preconditions", () => {
 
 describe("视觉回归 — predictCtaColumns", () => {
   const twoColumnFloor = 2 * CTA_REFLOW_RULES.ctaMinTrack + CTA_REFLOW_RULES.ctaGap
-  const viewportFloor = twoColumnFloor + CTA_REFLOW_RULES.bodyHorizontalPadding
+  /* The viewport at which that content floor is first met. Derived from the constants, not
+   * typed as a literal, so a stylesheet edit moves the assertion with the rule instead of
+   * reding a test that is still describing the shipped page correctly. The chrome term is
+   * the one that was missing: the row lives inside `section.install-disposition`, so the
+   * viewport must also pay for that section's padding and border. */
+  const viewportFloor =
+    twoColumnFloor +
+    CTA_REFLOW_RULES.bodyHorizontalPadding +
+    CTA_REFLOW_RULES.dispositionHorizontalChrome
 
-  it("crosses the 452 px boundary in BOTH directions", () => {
+  it("crosses the 530 px boundary in BOTH directions", () => {
     expect(twoColumnFloor).toBe(452)
+    /* 452 of content + 40 body padding + 38 disposition chrome. Independently observed in a
+     * real browser at 530, which is the check on the arithmetic — the 38 is READ from
+     * `.install-disposition { padding: 18px; border: 1px }`, not fitted to this number. */
+    expect(viewportFloor).toBe(530)
     expect(predictCtaColumns(390, 2)).toBe(1)
     expect(predictCtaColumns(768, 2)).toBe(2)
     expect(predictCtaColumns(1280, 2)).toBe(2)
@@ -154,20 +169,63 @@ describe("视觉回归 — predictCtaColumns", () => {
     expect(predictCtaColumns(viewportFloor - 1, 2)).toBe(1)
   })
 
+  /*
+   * REGRESSION LOCK on the divergence this pass closed.
+   *
+   * The model used to compute from `vp − 40`, ignoring the 38 px of chrome on the section
+   * that wraps the row. It therefore reported two columns from viewport 492 while the
+   * browser flipped at 530 — a 38 px window in which every graded artifact recorded a
+   * column count the page never had. The failure was silent: the three graded viewports
+   * (390/768/1280) all sit outside the window and agreed either way.
+   *
+   * These assertions are inside the window, which is the only place the two models differ.
+   */
+  it("reports one column across the whole [492, 529] window the old model got wrong", () => {
+    for (const vp of [492, 493, 500, 515, 529]) {
+      expect(predictCtaColumns(vp, 2), `viewport ${vp} must be 1 column`).toBe(1)
+    }
+    expect(predictCtaColumns(530, 2)).toBe(2)
+  })
+
   it("is bounded by the item count — a grid cannot make columns out of nothing", () => {
+    // At 1280 the width admits two tracks, so 0/1 items are bounded by the item count and
+    // not by the width. That is the direction this test exists to pin.
     expect(predictCtaColumns(1280, 0)).toBe(0)
     expect(predictCtaColumns(1280, 1)).toBe(1)
     expect(predictCtaColumns(1280, 2)).toBe(2)
-    expect(predictCtaColumns(1280, 3)).toBe(3)
   })
 
-  it("is capped by main's max-width, not by the viewport", () => {
-    // 4 tracks + 3 gaps = 916 > 720, so a 4-item row still resolves to 3 however wide the
-    // window gets. The cap is `main`, not the screen.
-    expect(predictCtaColumns(4000, 4)).toBe(3)
-    expect(
-      predictCtaColumns(CTA_REFLOW_RULES.mainMaxWidth + CTA_REFLOW_RULES.bodyHorizontalPadding, 4),
-    ).toBe(3)
+  /*
+   * The usable measure inside `main` is 720 − 38 = 682, and three tracks need
+   * 3 × 220 + 2 × 12 = 684. It misses by two pixels, so `main` tops out at TWO columns
+   * however many items are supplied and however wide the window is.
+   *
+   * This is a consequence of the chrome correction, not an independent claim: before it,
+   * the model measured against 720 and reported three. Two pixels is uncomfortably close,
+   * so the boundary is asserted from the constants rather than the literal 682/684 — a
+   * future gap or track change moves both sides together.
+   */
+  it("tops out at two columns inside main — the cap is main's width, not the viewport", () => {
+    const threeTrackFloor = 3 * CTA_REFLOW_RULES.ctaMinTrack + 2 * CTA_REFLOW_RULES.ctaGap
+    const usableInsideMain =
+      CTA_REFLOW_RULES.mainMaxWidth - CTA_REFLOW_RULES.dispositionHorizontalChrome
+    expect(threeTrackFloor).toBe(684)
+    expect(usableInsideMain).toBe(682)
+    expect(usableInsideMain).toBeLessThan(threeTrackFloor)
+
+    // Same answer at 760 (exactly main + body padding) and at 4000: past the cap the
+    // viewport stops being an input at all. A predictor that measured the screen instead
+    // of `main` would diverge between these two.
+    for (const items of [3, 4, 12]) {
+      expect(predictCtaColumns(4000, items), `${items} items at 4000`).toBe(2)
+      expect(
+        predictCtaColumns(
+          CTA_REFLOW_RULES.mainMaxWidth + CTA_REFLOW_RULES.bodyHorizontalPadding,
+          items,
+        ),
+        `${items} items at the cap`,
+      ).toBe(2)
+    }
   })
 })
 
