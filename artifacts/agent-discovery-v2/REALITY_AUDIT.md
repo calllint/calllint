@@ -425,11 +425,35 @@ questions for 16 directories. Building `/agents/*` as real pages would create tw
 subject — the §26 violation D1 avoids in the data layer. The genuine gap is question 5, fixed by
 adding one status section to the existing template.
 
+> **Correction (2026-08-22).** As written above, the first clause described an outcome that did not
+> exist. At `abfb44a` no `/agents/<id>` redirect was present in any form — not in `_redirects`, not
+> in `_routes.json`, not in `functions/`, and not in the generator. The decision was recorded as
+> though implemented; only the "no second page set" half was ever true, and it was true by default
+> rather than by construction.
+>
+> This is now implemented. `generateRedirects()` emits one 301 per host plus `/agents` →
+> `/harnesses/`, as a block kept deliberately separate from the frozen per-host `legacyPaths` — an
+> alias invented for documentation must not be conflated with a URL that really was served.
+> `check-agent-surface-contract.mjs` asserts totality over the host cohort (not over the rule count,
+> which legacy rules and `.html` spellings would satisfy on their own), and the invariant suite
+> covers the same property plus the no-collision requirement.
+>
+> Recorded rather than silently corrected, because the failure mode is the one this document exists
+> to catch: a decision log is itself an unverified claim unless a gate reads it.
+
 ### D5 — `--check` compares **bytes in memory against disk**, not `git diff`
 
 Forced by M8 + M10: `git diff` cannot see an untracked file, which has already produced one vacuous
 green on this workstream. A `--check` that renders all 11 outputs and byte-compares is strictly
 stronger, and independent of git state. Both gates are kept: they fail for different reasons.
+
+> **Amended (2026-08-22).** Byte-comparison being independent of git state is exactly why it could
+> not, on its own, close M10: a file can match its projection perfectly and still be absent from the
+> index, which is the shape that produced the original vacuous green. `--check` now also asserts
+> index membership for every `emit()` target, over the same denominator its anti-vacuity floor pins,
+> and degrades to an explicit "unverified" line outside a work tree rather than failing where its
+> subject is absent. The byte comparison remains git-independent; the run as a whole now reports on
+> both properties instead of leaving the second to a gate that structurally cannot see it.
 
 ### D6 — the discovery index is published under `apps/web/public/`, not `distribution/`
 

@@ -4,7 +4,7 @@
   "title": "CallLint agent discovery index (v1)",
   "description": "The single entry point an agent fetches to enumerate every distribution surface CallLint tracks. Generated from apps/web/data/distribution-surfaces.json by scripts/generate-distribution-surfaces.mjs; never hand-edited.\n\nEach surface's `type` is DERIVED from which SSOT container holds the record, so it cannot disagree with the SSOT's own shape. `status` is the human-facing public label; the internal support enum travels separately in `supportClass` and only for records that have one.\n\nThis surface carries distribution facts only. It deliberately contains no risk, popularity, demand or SEO score: distribution channel is orthogonal to a security verdict, and a consumer must not be able to derive a verdict from where a server was found.",
   "type": "object",
-  "required": ["schemaVersion", "describes", "surfaceTypes", "counts", "surfaces"],
+  "required": ["schemaVersion", "canonical", "describes", "surfaceTypes", "counts", "surfaces"],
   "additionalProperties": false,
   "properties": {
     "$schema": { "type": "string", "format": "uri" },
@@ -12,6 +12,11 @@
       "type": "string",
       "const": "agent.discovery.v1",
       "description": "Contract identifier. Distinct from the Safe-install bake's `calllint.discovery.v1` in .well-known/calllint.json, which is a different document with a different owner — do not merge the two."
+    },
+    "canonical": {
+      "type": "boolean",
+      "const": true,
+      "description": "This document is the canonical discovery root (§4's ONE layer). Published as a field rather than left implicit because two machine surfaces exist — this one and `agent-surfaces.json` — and a consumer that finds either first must be able to tell which is the root. Both are generated projections of the same SSOT, so they cannot disagree on a shared fact; `agent-surfaces.json` carries the reciprocal `canonicalIndex` pointer back to this file. Neither is a second source of truth."
     },
     "describes": {
       "type": "object",
@@ -78,8 +83,27 @@
   "definitions": {
     "surface": {
       "type": "object",
-      "required": ["id", "type", "displayName", "vendor", "status", "canonicalUrl"],
+      "required": ["id", "type", "displayName", "vendor", "status", "canonicalUrl", "officialSources"],
       "additionalProperties": false,
+      "allOf": [
+        {
+          "description": "§5's richer fields are REQUIRED for an agent-harness and absent elsewhere, rather than emitted empty for every surface. An mcp-registry has no `capabilities` and a search-surface has no `discovery` config path; writing `[]` there would state a measured emptiness that was never measured. Same precedent as `supportClass`, which this schema already scopes to records that have one. A harness is exactly where §5's contract has to hold, so for that type it is enforced, not optional.",
+          "if": { "properties": { "type": { "const": "agent-harness" } } },
+          "then": {
+            "required": ["capabilities", "calllintSupport", "distribution", "discovery", "supportClass"]
+          },
+          "else": {
+            "not": {
+              "anyOf": [
+                { "required": ["capabilities"] },
+                { "required": ["calllintSupport"] },
+                { "required": ["distribution"] },
+                { "required": ["discovery"] }
+              ]
+            }
+          }
+        }
+      ],
       "properties": {
         "id": { "type": "string", "minLength": 1 },
         "type": {
@@ -105,7 +129,74 @@
           "enum": ["NATIVE", "CONFIG_SCAN", "DISCOVERY_ONLY", "DEFERRED"],
           "description": "The internal support ontology, present only on records that have one (today: agent-harness). An agent consuming a contract wants the enum; the four classes ARE the contract."
         },
-        "canonicalUrl": { "type": "string", "format": "uri", "minLength": 1 }
+        "canonicalUrl": { "type": "string", "format": "uri", "minLength": 1 },
+        "describedBy": {
+          "type": "string",
+          "format": "uri",
+          "description": "Where the per-surface detail lives. Deliberately the same canonical host page rather than a second `/agents/<id>` page set: commit 79f3cb8 deleted the model x harness cartesian plane, and a second page per surface would rebuild it. `/agents/<id>` exists only as a 301 alias into this URL."
+        },
+        "capabilities": {
+          "type": "array",
+          "description": "The authority surfaces this harness exposes to an agent — what it can reach, not what CallLint supports. Projected from the SSOT's `authoritySurfaces`; this is the field §5 names `capabilities`.",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": { "type": "string", "minLength": 1 }
+        },
+        "calllintSupport": {
+          "type": "object",
+          "description": "What CallLint can actually do here, kept structurally separate from `capabilities` so a reader can never mistake the host's authority for CallLint's coverage. `commands` is empty exactly when no truthful command exists (§7: never claim an implementation that is absent) — an empty array here is a measured emptiness, unlike an absent field.",
+          "required": ["supportClass", "label", "commands", "coverageBoundary"],
+          "additionalProperties": false,
+          "properties": {
+            "supportClass": {
+              "type": "string",
+              "enum": ["NATIVE", "CONFIG_SCAN", "DISCOVERY_ONLY", "DEFERRED"]
+            },
+            "label": { "type": "string", "minLength": 1 },
+            "commands": {
+              "type": "array",
+              "uniqueItems": true,
+              "items": { "type": "string", "minLength": 1 }
+            },
+            "coverageBoundary": { "type": "string", "minLength": 1 }
+          }
+        },
+        "distribution": {
+          "type": "array",
+          "description": "How CallLint reaches this harness. `state` carries the public label, never the internal pipeline enum, for the same §20 reason `status` does.",
+          "items": {
+            "type": "object",
+            "required": ["kind", "state"],
+            "additionalProperties": false,
+            "properties": {
+              "kind": { "type": "string", "minLength": 1 },
+              "state": { "type": "string", "minLength": 1 },
+              "upstream": { "type": "string", "minLength": 1 },
+              "officialSource": { "type": "string", "format": "uri" }
+            }
+          }
+        },
+        "discovery": {
+          "type": "object",
+          "description": "How an agent or CallLint finds this harness's configuration. `configPaths` is the evidence CallLint reads; `autoDetected` is true only for NATIVE, so a consumer can branch without re-deriving the support ontology.",
+          "required": ["autoDetected", "configPaths"],
+          "additionalProperties": false,
+          "properties": {
+            "autoDetected": { "type": "boolean" },
+            "configPaths": {
+              "type": "array",
+              "uniqueItems": true,
+              "items": { "type": "string", "minLength": 1 }
+            }
+          }
+        },
+        "officialSources": {
+          "type": "array",
+          "description": "First-party vendor URLs. Required on EVERY surface type: §7 forbids upgrading a state without evidence, and this is where the evidence for a surface's existence is cited. Measured present on 18/18 hosts before being made required.",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": { "type": "string", "format": "uri" }
+        }
       }
     }
   }

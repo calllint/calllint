@@ -64,13 +64,42 @@ interface Ssot {
 const SSOT = JSON.parse(read("apps/web/data/distribution-surfaces.json")) as Ssot
 const INDEX = JSON.parse(read("apps/web/public/agent-discovery-index.json")) as {
   schemaVersion: string
+  canonical?: boolean
   surfaceTypes: string[]
   counts: { total: number; byType: Record<string, number> }
-  surfaces: { id: string; type: string; status: string; supportClass?: string }[]
+  surfaces: {
+    id: string
+    type: string
+    status: string
+    supportClass?: string
+    displayName?: string
+    vendor?: string
+    canonicalUrl?: string
+    describedBy?: string
+    capabilities?: string[]
+    calllintSupport?: {
+      supportClass: string
+      label: string
+      commands: string[]
+      coverageBoundary: string
+    }
+    distribution?: { kind: string; state: string }[]
+    discovery?: { autoDetected: boolean; configPaths: string[] }
+    officialSources?: string[]
+  }[]
 }
 const SURFACES = JSON.parse(read("apps/web/public/agent-surfaces.json")) as {
+  canonicalIndex?: string
   mcp: { registry: string; package: string; state: string }
-  agents: { id: string; supportClass: string; scanCommands: string[] }[]
+  agents: {
+    id: string
+    supportClass: string
+    scanCommands: string[]
+    displayName?: string
+    vendor?: string
+    canonicalUrl?: string
+    coverageBoundary?: string
+  }[]
 }
 
 const AGENT_TYPES = read("packages/discovery/src/types.ts")
@@ -734,5 +763,175 @@ describe("§22 growth — a 19th host changes denominators, never semantics", ()
     const illegal = { ...fixtureHost, supportClass: "NATIVE" }
     const wouldFail = illegal.supportClass === "NATIVE" && !registeredTypes.has(illegal.id)
     expect(wouldFail, "a NATIVE claim without an AgentType must be rejectable").toBe(true)
+  })
+})
+
+/*
+ * §4/§5 — the two machine surfaces are ONE layered contract, not two authorities.
+ *
+ * The defect these cover was not a wrong value; it was an ABSENT relationship. Two machine
+ * surfaces existed, both generated from this SSOT, with nothing declaring which was the root
+ * — so the canonical index went uncited by every agent document while the projection was
+ * cited everywhere, and no gate could notice, because the reachability guard's subject was a
+ * single hardcoded filename.
+ *
+ * Each assertion below pins a DENOMINATOR as well as a predicate. A comparison that paired
+ * zero records would otherwise print the same green as full agreement.
+ */
+describe("§4 — the machine surfaces declare their layer relationship", () => {
+  it("marks the discovery index as the canonical root", () => {
+    expect(INDEX.canonical, "the root does not identify itself as §4's ONE layer").toBe(true)
+  })
+
+  it("has the projection cite the root, so the pointer holds in both directions", () => {
+    /* One direction is not enough: the root could claim primacy with nothing corroborating
+     * it, which is indistinguishable from the state this repair started in. */
+    expect(SURFACES.canonicalIndex).toBeTypeOf("string")
+    expect(String(SURFACES.canonicalIndex)).toContain("agent-discovery-index.json")
+  })
+
+  it("agrees with the projection on every overlapping host field", () => {
+    const idxHosts = new Map(
+      INDEX.surfaces.filter((s) => s.type === "agent-harness").map((s) => [s.id, s]),
+    )
+    const projAgents = new Map(SURFACES.agents.map((a) => [a.id, a]))
+
+    /* Denominator pinned to the real cohort. 18 is written out so that adding a host is
+     * forced to touch this line — a `> 0` here would let a shrunken pairing pass. */
+    expect(SSOT.hosts.length).toBe(18)
+    const paired = SSOT.hosts
+      .map((h) => ({ id: h.id, a: idxHosts.get(h.id), b: projAgents.get(h.id) }))
+      .filter((r) => r.a && r.b)
+    expect(paired.length, "a host is missing from one of the two surfaces").toBe(18)
+
+    for (const { id, a, b } of paired) {
+      expect(a?.supportClass, `${id}: supportClass disagrees`).toBe(b?.supportClass)
+      expect(a?.displayName, `${id}: displayName disagrees`).toBe(b?.displayName)
+      expect(a?.vendor, `${id}: vendor disagrees`).toBe(b?.vendor)
+      expect(a?.canonicalUrl, `${id}: canonicalUrl disagrees`).toBe(b?.canonicalUrl)
+      expect(a?.calllintSupport?.commands, `${id}: commands disagree`).toEqual(b?.scanCommands)
+      expect(a?.calllintSupport?.coverageBoundary, `${id}: coverageBoundary disagrees`).toBe(
+        b?.coverageBoundary,
+      )
+    }
+  })
+})
+
+describe("§5 — a harness surface carries the fields an agent needs to act", () => {
+  const harnesses = INDEX.surfaces.filter((s) => s.type === "agent-harness")
+  const others = INDEX.surfaces.filter((s) => s.type !== "agent-harness")
+
+  it("covers the whole host cohort, and only it", () => {
+    expect(harnesses.length).toBe(SSOT.hosts.length)
+    expect(
+      others.length,
+      "the non-harness denominator went to zero, so the omission test below is vacuous",
+    ).toBeGreaterThan(0)
+  })
+
+  it("populates all five §5 fields on every harness, from real SSOT values", () => {
+    for (const s of harnesses) {
+      const host = SSOT.hosts.find((h) => h.id === s.id)
+      expect(host, `${s.id} is published but absent from the SSOT`).toBeTruthy()
+      if (!host) continue
+      /* Projected, not authored: each field is compared to its SSOT origin, so a generator
+       * that invented plausible content would fail rather than merely look complete. */
+      expect(s.capabilities, `${s.id}: capabilities`).toEqual(host.authoritySurfaces)
+      expect(s.calllintSupport?.supportClass, `${s.id}: supportClass`).toBe(host.supportClass)
+      expect(s.calllintSupport?.commands, `${s.id}: commands`).toEqual(host.truthfulCommands)
+      expect(s.calllintSupport?.coverageBoundary, `${s.id}: boundary`).toBe(host.coverageBoundary)
+      expect(s.discovery?.configPaths, `${s.id}: configPaths`).toEqual(host.configEvidence)
+      expect(s.discovery?.autoDetected, `${s.id}: autoDetected`).toBe(
+        host.supportClass === "NATIVE",
+      )
+      expect(s.distribution?.length, `${s.id}: distribution`).toBe(
+        host.distributionPrimitives.length,
+      )
+      expect(s.officialSources, `${s.id}: officialSources`).toEqual(host.officialSources)
+      expect(s.describedBy, `${s.id}: describedBy`).toBe(s.canonicalUrl)
+    }
+  })
+
+  it("omits the harness-only fields elsewhere rather than emitting empty ones", () => {
+    /* `capabilities: []` on a registry would state a measured emptiness that was never
+     * measured. Absence is the honest encoding, so absence is what is asserted. */
+    for (const s of others) {
+      expect(s.capabilities, `${s.id} carries capabilities`).toBeUndefined()
+      expect(s.calllintSupport, `${s.id} carries calllintSupport`).toBeUndefined()
+      expect(s.distribution, `${s.id} carries distribution`).toBeUndefined()
+      expect(s.discovery, `${s.id} carries discovery`).toBeUndefined()
+      /* officialSources is universal, though — every surface must be attributable. */
+      expect(s.officialSources?.length, `${s.id} has no officialSources`).toBeGreaterThan(0)
+    }
+  })
+
+  it("publishes no internal ontology outside the one field allowed to carry a token", () => {
+    /* The §20 human-page guard reads HTML only, so the machine plane needed its own. */
+    const INTERNAL = ["NATIVE", "CONFIG_SCAN", "DISCOVERY_ONLY", "DEFERRED"]
+    const INTERNAL_STATE = [
+      "AVAILABLE",
+      "AUDIT_REQUIRED",
+      "READY_NOT_SUBMITTED",
+      "PENDING_UPSTREAM",
+    ]
+    const leaks: string[] = []
+    for (const s of INDEX.surfaces) {
+      if (INTERNAL.includes(s.status)) leaks.push(`${s.id}: status=${s.status}`)
+      for (const d of s.distribution ?? []) {
+        if (INTERNAL_STATE.includes(d.state)) leaks.push(`${s.id}: ${d.kind}.state=${d.state}`)
+      }
+    }
+    expect(leaks, `internal ontology published to consumers:\n${leaks.join("\n")}`).toEqual([])
+  })
+
+  it("does not invent a command for a host that has none", () => {
+    /* Codex is the live instance: DISCOVERY_ONLY, zero truthful commands. §7 says a command
+     * must not appear before it works, and this is where that would first be violated. */
+    const codex = harnesses.find((s) => s.id === "codex")
+    expect(codex, "codex is no longer published — repoint this test").toBeTruthy()
+    expect(codex?.calllintSupport?.commands).toEqual([])
+    expect(codex?.discovery?.autoDetected).toBe(false)
+  })
+})
+
+describe("§4 — the documented /agents/<id> address resolves", () => {
+  const rules = read("apps/web/public/_redirects")
+    .split("\n")
+    .filter((l) => l.trim() && !l.startsWith("#"))
+    .map((l) => {
+      const [from = "", to = "", code = ""] = l.trim().split(/\s+/)
+      return { from, to, code }
+    })
+
+  it("aliases every host, not merely some", () => {
+    /* Published artifacts describe /agents/<id> as the address; until this commit no such
+     * rule existed in any form. Totality is the point — 17 of 18 is the failure mode. */
+    const missing = SSOT.hosts.filter((h) => !rules.some((r) => r.from === `/agents/${h.id}`))
+    expect(missing.map((h) => h.id)).toEqual([])
+    expect(SSOT.hosts.length).toBe(18)
+  })
+
+  it("aliases the cohort root, and permanently", () => {
+    expect(
+      rules.find((r) => r.from === "/agents"),
+      "/agents 404s for an agent that trims the id off a documented URL",
+    ).toBeTruthy()
+    const aliases = rules.filter((r) => r.from.startsWith("/agents"))
+    expect(aliases.length).toBe(SSOT.hosts.length + 1)
+    for (const a of aliases) {
+      expect(a.code, `${a.from} is not a 301`).toBe("301")
+    }
+  })
+
+  it("keeps the alias block distinct from frozen legacy history", () => {
+    /* legacyPaths are URLs that really were served, and must never be conflated with an
+     * alias invented for documentation. A collision would silently rewrite that history. */
+    const legacy = new Set(
+      SSOT.hosts.flatMap((h) => (h as unknown as { legacyPaths?: string[] }).legacyPaths ?? []),
+    )
+    expect(legacy.size, "the SSOT has lost its legacy history").toBeGreaterThan(0)
+    for (const h of SSOT.hosts) {
+      expect(legacy.has(`/agents/${h.id}`), `${h.id}: alias collides with a legacyPath`).toBe(false)
+    }
   })
 })

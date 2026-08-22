@@ -8,6 +8,7 @@
  */
 
 import { readFileSync, writeFileSync, mkdirSync, existsSync } from 'node:fs'
+import { execFileSync } from 'node:child_process'
 import { fileURLToPath } from 'node:url'
 import { dirname, join, relative } from 'node:path'
 import Handlebars from 'handlebars'
@@ -626,6 +627,11 @@ function generateAgentSurfaces() {
      */
     describes: { release: STABLE_VERSION },
     description: 'Machine-readable agent harness authority surfaces and CallLint support',
+    /* §4: this file is a PROJECTION, not the discovery root. A consumer that reaches it
+     * first (it is the one llms.txt has cited since before the index existed) must be able
+     * to find the canonical layer without guessing. Reciprocal of `canonical: true` in
+     * agent-discovery-index.json. */
+    canonicalIndex: 'https://calllint.com/agent-discovery-index.json',
     mcp: {
       registry: ssot.officialMcpRegistry.name,
       package: ssot.officialMcpRegistry.package,
@@ -687,6 +693,8 @@ function generateAgentDiscoveryIndex() {
   const surfaces = []
 
   for (const host of ssot.hosts) {
+    const support = publicSupport(host.supportClass)
+    const canonicalUrl = `https://calllint.com${host.canonicalPath}`
     surfaces.push({
       id: host.id,
       type: SURFACE_TYPE_BY_CONTAINER.hosts,
@@ -696,9 +704,39 @@ function generateAgentDiscoveryIndex() {
        * `supportClass` for agents that want the contract, exactly as agent-surfaces.json
        * does — but `status` must never be the token, because this file is also read by
        * humans and quoted into docs. */
-      status: publicSupport(host.supportClass).label,
+      status: support.label,
       supportClass: host.supportClass,
-      canonicalUrl: `https://calllint.com${host.canonicalPath}`,
+      canonicalUrl,
+      /* Same URL as `canonicalUrl`, deliberately. §16's five questions are answered by the
+       * existing host page; a second `/agents/<id>` page set would rebuild the cartesian
+       * plane 79f3cb8 deleted. `/agents/<id>` is a 301 alias, generated into _redirects. */
+      describedBy: canonicalUrl,
+      /* §5's `capabilities` is the HOST's authority, not CallLint's coverage. Keeping the
+       * two in separate fields is what stops a reader inferring support from reach. */
+      capabilities: host.authoritySurfaces,
+      calllintSupport: {
+        supportClass: host.supportClass,
+        label: support.label,
+        /* §7: empty exactly when no truthful command exists. Codex today has none, and an
+         * invented `calllint scan --agent codex` would be the precise failure §9 forbids. */
+        commands: host.truthfulCommands ?? [],
+        coverageBoundary: host.coverageBoundary,
+      },
+      distribution: (host.distributionPrimitives ?? []).map((p) => ({
+        kind: p.kind,
+        /* Public label, never the internal pipeline enum — same §20 rule as `status`.
+         * publicState() throws rather than falling back to the raw token. */
+        state: publicState(p.state).label,
+        ...(p.upstream ? { upstream: p.upstream } : {}),
+        ...(p.officialSource ? { officialSource: p.officialSource } : {}),
+      })),
+      discovery: {
+        /* Derived from the ontology, not restated: a consumer branching on "can CallLint
+         * find this by itself" must not have to re-implement the support enum. */
+        autoDetected: host.supportClass === 'NATIVE',
+        configPaths: host.configEvidence ?? [],
+      },
+      officialSources: host.officialSources,
     })
   }
 
@@ -709,16 +747,26 @@ function generateAgentDiscoveryIndex() {
     vendor: 'Model Context Protocol',
     status: ssot.officialMcpRegistry.state,
     canonicalUrl: ssot.officialMcpRegistry.registryUrl,
+    describedBy: ssot.officialMcpRegistry.registryUrl,
+    /* No `capabilities`/`calllintSupport`/`discovery`/`distribution` here, and the schema
+     * forbids them on a non-harness: a registry is where CallLint is PUBLISHED, it is not a
+     * host whose config we scan. Emitting empty arrays would assert a measured emptiness
+     * that was never measured. */
+    officialSources: [ssot.officialMcpRegistry.registryUrl, ssot.officialMcpRegistry.repositoryUrl],
   })
 
   for (const page of ssot.modelIntentLandingPages ?? []) {
+    const url = `https://calllint.com${page.path}`
     surfaces.push({
       id: page.id,
       type: SURFACE_TYPE_BY_CONTAINER.modelIntentLandingPages,
       displayName: page.displayName,
       vendor: 'CallLint',
       status: 'Guide only',
-      canonicalUrl: `https://calllint.com${page.path}`,
+      canonicalUrl: url,
+      describedBy: url,
+      /* A first-party page's official source is the page itself — CallLint is the vendor. */
+      officialSources: [url],
     })
   }
 
@@ -731,12 +779,19 @@ function generateAgentDiscoveryIndex() {
       /* §86: a feed may never promote a host or claim support. Its role IS its status. */
       status: feed.role,
       canonicalUrl: feed.officialSources[0],
+      describedBy: feed.officialSources[0],
+      officialSources: feed.officialSources,
     })
   }
 
   const index = {
     $schema: 'https://calllint.com/schemas/agent-discovery-index.v1.json',
     schemaVersion: 'agent.discovery.v1',
+    /* §4's ONE canonical layer, stated rather than implied. Two machine surfaces exist and
+     * an agent may reach either first; this field plus agent-surfaces.json's reciprocal
+     * `canonicalIndex` pointer let it tell the root from the projection. Both are generated
+     * from the same SSOT by this file, so neither is a second source of truth. */
+    canonical: true,
     /* Same no-wall-clock rule as agent-surfaces.json: a timestamp would make every run a
      * diff and destroy `--check`'s ability to mean anything. */
     describes: { release: STABLE_VERSION },
@@ -874,6 +929,42 @@ function generateRedirects() {
   }
 
   const body = rules.map((r) => `${r.from} ${r.to} 301`).join('\n')
+
+  /*
+   * §16's `/agents/<id>` namespace, as a 301 ALIAS into the canonical host page.
+   *
+   * Kept in a separate block from the legacy rules above because the two have opposite
+   * provenance and must not be conflated: `legacyPaths` is FROZEN history (URLs a past release
+   * actually served, which is why it cannot grow with the cohort), whereas `/agents/<id>` is a
+   * CURRENT alias that must cover every host in the cohort. Merging them would either freeze
+   * the alias set or unfreeze history.
+   *
+   * WHY AN ALIAS AND NOT A SECOND PAGE SET. §16 asks that `/agents/<id>` answer five questions;
+   * `/harnesses/<id>/` already answers all five (host-page.hbs carries Usage, Configuration
+   * Paths, Authority Surfaces, Distribution, Support Status, Official Sources and Coverage
+   * Boundary). Generating a parallel page per host would rebuild precisely the cartesian page
+   * plane commit 79f3cb8 deleted, and would put two pages in competition for one canonical URL.
+   *
+   * This also makes true a claim that was already published: artifacts/agent-discovery-v2/
+   * FINAL_REPORT.md D4 stated `/agents/<id>` 301s to `/harnesses/<id>`, and it did not — the
+   * namespace appeared in no _redirects rule, no _routes.json entry, no function and no
+   * generator. A sealed record asserting a redirect that does not exist is worse than a missing
+   * feature, because it is a claim no reader can distinguish from a verified one.
+   *
+   * Enumerated per host rather than written as `/agents/* /harnesses/:splat` — a splat would
+   * forward `/agents/anything`, inventing a canonical page for an id the SSOT never named.
+   */
+  const aliasRules = ssot.hosts.map((host) => {
+    if (seen.has(`/agents/${host.id}`)) {
+      throw new Error(`${host.id}: /agents/${host.id} collides with a frozen legacyPath`)
+    }
+    return { from: `/agents/${host.id}`, to: host.canonicalPath + '/' }
+  })
+  /* The namespace root goes to the hub, so `/agents` is not a 404 next to 18 live children. */
+  aliasRules.push({ from: '/agents', to: '/harnesses/' })
+
+  const aliasBody = aliasRules.map((r) => `${r.from} ${r.to} 301`).join('\n')
+
   const content = `# GENERATED by scripts/generate-distribution-surfaces.mjs from
 # apps/web/data/distribution-surfaces.json. Do not hand-edit.
 #
@@ -888,11 +979,19 @@ function generateRedirects() {
 # /harnesses/deepseek/ is deliberately absent: it is a preserved model-intent landing page,
 # not a legacy URL.
 ${body}
+
+# §16 /agents/<id> aliases. NOT legacy history: this set is derived from the CURRENT cohort and
+# grows with it, which is why it is generated separately from the frozen block above. Each
+# forwards to the canonical host page rather than duplicating it as a second page.
+${aliasBody}
 `
 
   const outPath = join(ROOT, 'apps/web/public/_redirects')
   emit(outPath, content)
-  console.log(`✅ Generated _redirects (${rules.length} legacy URLs → canonical)`)
+  console.log(
+    `✅ Generated _redirects (${rules.length} legacy URLs → canonical, ` +
+      `${aliasRules.length} /agents alias(es))`,
+  )
 }
 
 /**
@@ -954,6 +1053,7 @@ ${p2p3.map(h => `- ${h.displayName} (${h.vendor}) — ${h.supportClass}`).join('
 
 ## Machine-Readable Surfaces
 
+- Discovery index (start here): https://calllint.com/agent-discovery-index.json
 - Agent surfaces: https://calllint.com/agent-surfaces.json
 - Full documentation: https://calllint.com/llms-full.txt
 - Harness details: https://calllint.com/harnesses/
@@ -1144,6 +1244,7 @@ invoke it with filesystem access, shell commands, network calls, or API tokens.
 
 ## Machine-Readable Surfaces
 
+- **Discovery index (canonical root)**: https://calllint.com/agent-discovery-index.json
 - **Agent surfaces JSON**: https://calllint.com/agent-surfaces.json
 - **Compact LLM doc**: https://calllint.com/llms.txt
 - **Harness hub**: https://calllint.com/harnesses/
@@ -1237,14 +1338,20 @@ npm install -g calllint
 
 Do not scrape these pages. Every fact above is published as structured data:
 
+- **https://calllint.com/agent-discovery-index.json** — the canonical discovery root. Start
+  here: it enumerates every distribution surface CallLint tracks (agent harnesses, the
+  official MCP registry, documentation and candidate feeds), and for each harness carries its
+  capabilities, CallLint support level, distribution channels, config discovery paths and
+  first-party sources. Carries \`canonical: true\`.
 - **https://calllint.com/agent-surfaces.json** — the host cohort (ids, support class,
   config paths, scan commands, authority surfaces, coverage boundaries)
 
-An agent should read that file rather than parsing \`/harnesses/\` HTML.
+An agent should read those files rather than parsing \`/harnesses/\` HTML.
 
 ## Learn More
 
 - Website: https://calllint.com
+- Discovery index: https://calllint.com/agent-discovery-index.json
 - Agent surfaces: https://calllint.com/agent-surfaces.json
 - Harnesses: https://calllint.com/harnesses/
 - Trust Lookup: https://calllint.com/trust/
@@ -1578,6 +1685,48 @@ function main() {
     }
 
     console.log(`\n🔍 Compared ${emitted.size} projection(s) against the working tree.`)
+
+    /*
+     * Byte-equality is not the same as being committed. `git diff --exit-code` — the shape
+     * every CI drift check uses — compares the index against the tree, so a generated file
+     * that was never `git add`ed is invisible to it: the generator writes it, the diff sees
+     * nothing to report, and the gate prints green while the file never ships. That is not
+     * hypothetical; it is how 4 of 11 write targets stayed unnoticed.
+     *
+     * So assert membership in the index directly, over the same `emitted` denominator the
+     * floor above just pinned. One batched `git ls-files` rather than N `--error-unmatch`
+     * calls: same answer, and it reports the whole offending set instead of the first miss.
+     */
+    const relPaths = [...emitted.keys()].map((p) => relative(ROOT, p).replace(/\\/g, '/')).sort()
+    let tracked = null
+    try {
+      const out = execFileSync('git', ['ls-files', '-z', '--', ...relPaths], {
+        cwd: ROOT,
+        encoding: 'utf8',
+        maxBuffer: 32 * 1024 * 1024,
+      })
+      tracked = new Set(out.split('\0').filter(Boolean))
+    } catch (err) {
+      /* No git, or not a work tree (a published tarball, a vendored copy). Unprovable is not
+       * the same as violated — say so and leave the byte verdict standing, rather than
+       * failing a check whose subject is absent. */
+      console.log(`⚠️  could not consult git, so index membership is unverified: ${err.message}`)
+    }
+    if (tracked) {
+      const untracked = relPaths.filter((p) => !tracked.has(p))
+      if (untracked.length > 0) {
+        console.error(
+          `\n❌ ${untracked.length}/${relPaths.length} generated file(s) are not tracked by git:\n`,
+        )
+        for (const p of untracked) console.error(`   - ${p}`)
+        console.error(
+          '\nA drift check that diffs the index cannot see these, so it would report green ' +
+            'while they never ship. Run `git add` on them and commit.',
+        )
+        process.exit(1)
+      }
+      console.log(`✅ all ${relPaths.length} generated file(s) are tracked by git`)
+    }
 
     if (drift.length > 0) {
       console.error(`\n❌ ${drift.length} generated file(s) drifted from the SSOT:\n`)

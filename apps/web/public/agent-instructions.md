@@ -78,14 +78,20 @@ npm install -g calllint
 
 Do not scrape these pages. Every fact above is published as structured data:
 
+- **https://calllint.com/agent-discovery-index.json** — the canonical discovery root. Start
+  here: it enumerates every distribution surface CallLint tracks (agent harnesses, the
+  official MCP registry, documentation and candidate feeds), and for each harness carries its
+  capabilities, CallLint support level, distribution channels, config discovery paths and
+  first-party sources. Carries `canonical: true`.
 - **https://calllint.com/agent-surfaces.json** — the host cohort (ids, support class,
   config paths, scan commands, authority surfaces, coverage boundaries)
 
-An agent should read that file rather than parsing `/harnesses/` HTML.
+An agent should read those files rather than parsing `/harnesses/` HTML.
 
 ## Learn More
 
 - Website: https://calllint.com
+- Discovery index: https://calllint.com/agent-discovery-index.json
 - Agent surfaces: https://calllint.com/agent-surfaces.json
 - Harnesses: https://calllint.com/harnesses/
 - Trust Lookup: https://calllint.com/trust/

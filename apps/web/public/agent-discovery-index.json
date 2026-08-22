@@ -1,6 +1,7 @@
 {
   "$schema": "https://calllint.com/schemas/agent-discovery-index.v1.json",
   "schemaVersion": "agent.discovery.v1",
+  "canonical": true,
   "describes": {
     "release": "1.8.0"
   },
@@ -31,7 +32,45 @@
       "vendor": "Anthropic",
       "status": "Auto-detects",
       "supportClass": "NATIVE",
-      "canonicalUrl": "https://calllint.com/harnesses/claude-code"
+      "canonicalUrl": "https://calllint.com/harnesses/claude-code",
+      "describedBy": "https://calllint.com/harnesses/claude-code",
+      "capabilities": [
+        "mcp",
+        "filesystem",
+        "shell",
+        "plugins"
+      ],
+      "calllintSupport": {
+        "supportClass": "NATIVE",
+        "label": "Auto-detects",
+        "commands": [
+          "calllint scan --agent claude-code"
+        ],
+        "coverageBoundary": "CallLint scans MCP server entries only. Skills, hooks and permission settings in the same file are not covered."
+      },
+      "distribution": [
+        {
+          "kind": "mcp-stdio",
+          "state": "Available now",
+          "upstream": "officialMcpRegistry"
+        },
+        {
+          "kind": "claude-plugin",
+          "state": "Listing not yet verified",
+          "officialSource": "https://code.claude.com/docs/en/plugin-marketplaces"
+        }
+      ],
+      "discovery": {
+        "autoDetected": true,
+        "configPaths": [
+          "~/.claude/settings.json",
+          "<project>/.claude/settings.json"
+        ]
+      },
+      "officialSources": [
+        "https://code.claude.com/",
+        "https://github.com/anthropics/anthropic-claude-code"
+      ]
     },
     {
       "id": "claude-desktop",
@@ -40,7 +79,38 @@
       "vendor": "Anthropic",
       "status": "Auto-detects",
       "supportClass": "NATIVE",
-      "canonicalUrl": "https://calllint.com/harnesses/claude-desktop"
+      "canonicalUrl": "https://calllint.com/harnesses/claude-desktop",
+      "describedBy": "https://calllint.com/harnesses/claude-desktop",
+      "capabilities": [
+        "mcp",
+        "filesystem"
+      ],
+      "calllintSupport": {
+        "supportClass": "NATIVE",
+        "label": "Auto-detects",
+        "commands": [
+          "calllint scan --agent claude-desktop"
+        ],
+        "coverageBoundary": "CallLint scans MCP server entries only. Other Claude Desktop settings in the same file are not covered."
+      },
+      "distribution": [
+        {
+          "kind": "mcp-stdio",
+          "state": "Available now",
+          "upstream": "officialMcpRegistry"
+        }
+      ],
+      "discovery": {
+        "autoDetected": true,
+        "configPaths": [
+          "~/Library/Application Support/Claude/claude_desktop_config.json",
+          "%APPDATA%/Claude/claude_desktop_config.json"
+        ]
+      },
+      "officialSources": [
+        "https://claude.ai/",
+        "https://modelcontextprotocol.io/quickstart"
+      ]
     },
     {
       "id": "cursor",
@@ -49,7 +119,44 @@
       "vendor": "Anysphere",
       "status": "Auto-detects",
       "supportClass": "NATIVE",
-      "canonicalUrl": "https://calllint.com/harnesses/cursor"
+      "canonicalUrl": "https://calllint.com/harnesses/cursor",
+      "describedBy": "https://calllint.com/harnesses/cursor",
+      "capabilities": [
+        "mcp",
+        "filesystem",
+        "shell"
+      ],
+      "calllintSupport": {
+        "supportClass": "NATIVE",
+        "label": "Auto-detects",
+        "commands": [
+          "calllint scan --agent cursor"
+        ],
+        "coverageBoundary": "CallLint scans MCP server entries only. Cursor rules and editor settings are not covered."
+      },
+      "distribution": [
+        {
+          "kind": "mcp-stdio",
+          "state": "Listing not yet verified",
+          "upstream": "officialMcpRegistry"
+        },
+        {
+          "kind": "cursor-plugin",
+          "state": "Listing not yet verified",
+          "officialSource": "https://cursor.com/marketplace"
+        }
+      ],
+      "discovery": {
+        "autoDetected": true,
+        "configPaths": [
+          "~/.cursor/mcp.json",
+          "<project>/.cursor/mcp.json"
+        ]
+      },
+      "officialSources": [
+        "https://www.cursor.com/",
+        "https://cursor.com/marketplace"
+      ]
     },
     {
       "id": "vscode",
@@ -58,7 +165,37 @@
       "vendor": "Microsoft",
       "status": "Auto-detects",
       "supportClass": "NATIVE",
-      "canonicalUrl": "https://calllint.com/harnesses/vscode"
+      "canonicalUrl": "https://calllint.com/harnesses/vscode",
+      "describedBy": "https://calllint.com/harnesses/vscode",
+      "capabilities": [
+        "extensions",
+        "mcp"
+      ],
+      "calllintSupport": {
+        "supportClass": "NATIVE",
+        "label": "Auto-detects",
+        "commands": [
+          "calllint scan --agent vscode"
+        ],
+        "coverageBoundary": "CallLint scans MCP server entries only. VS Code extensions and workspace settings are not covered."
+      },
+      "distribution": [
+        {
+          "kind": "mcp-stdio",
+          "state": "Listing not yet verified",
+          "upstream": "officialMcpRegistry"
+        }
+      ],
+      "discovery": {
+        "autoDetected": true,
+        "configPaths": [
+          "~/.vscode/mcp.json",
+          "<project>/.vscode/mcp.json"
+        ]
+      },
+      "officialSources": [
+        "https://code.visualstudio.com/"
+      ]
     },
     {
       "id": "windsurf",
@@ -67,7 +204,41 @@
       "vendor": "Codeium",
       "status": "Auto-detects",
       "supportClass": "NATIVE",
-      "canonicalUrl": "https://calllint.com/harnesses/windsurf"
+      "canonicalUrl": "https://calllint.com/harnesses/windsurf",
+      "describedBy": "https://calllint.com/harnesses/windsurf",
+      "capabilities": [
+        "mcp",
+        "filesystem"
+      ],
+      "calllintSupport": {
+        "supportClass": "NATIVE",
+        "label": "Auto-detects",
+        "commands": [
+          "calllint scan --agent windsurf"
+        ],
+        "coverageBoundary": "CallLint scans MCP server entries only. Windsurf rules and workflow settings are not covered."
+      },
+      "distribution": [
+        {
+          "kind": "mcp-stdio",
+          "state": "Listing not yet verified",
+          "upstream": "officialMcpRegistry"
+        },
+        {
+          "kind": "windsurf-mcp-marketplace",
+          "state": "Listing not yet verified"
+        }
+      ],
+      "discovery": {
+        "autoDetected": true,
+        "configPaths": [
+          "~/.windsurf/mcp.json",
+          "<project>/.windsurf/mcp.json"
+        ]
+      },
+      "officialSources": [
+        "https://codeium.com/windsurf"
+      ]
     },
     {
       "id": "workbuddy",
@@ -76,7 +247,42 @@
       "vendor": "Tencent Cloud",
       "status": "Auto-detects",
       "supportClass": "NATIVE",
-      "canonicalUrl": "https://calllint.com/harnesses/workbuddy"
+      "canonicalUrl": "https://calllint.com/harnesses/workbuddy",
+      "describedBy": "https://calllint.com/harnesses/workbuddy",
+      "capabilities": [
+        "mcp",
+        "extensions"
+      ],
+      "calllintSupport": {
+        "supportClass": "NATIVE",
+        "label": "Auto-detects",
+        "commands": [
+          "calllint scan --agent workbuddy"
+        ],
+        "coverageBoundary": "CallLint scans MCP server entries only. Other WorkBuddy settings in the same file are not covered."
+      },
+      "distribution": [
+        {
+          "kind": "mcp-stdio",
+          "state": "Listing not yet verified",
+          "upstream": "officialMcpRegistry"
+        },
+        {
+          "kind": "tencent-mcp-market",
+          "state": "Not yet submitted",
+          "officialSource": "https://cloud.tencent.com/document/product/1729"
+        }
+      ],
+      "discovery": {
+        "autoDetected": true,
+        "configPaths": [
+          "~/.workbuddy/mcp.json",
+          "<project>/.workbuddy/mcp.json"
+        ]
+      },
+      "officialSources": [
+        "https://github.com/TencentCloud/workbuddy"
+      ]
     },
     {
       "id": "qwen-code",
@@ -85,7 +291,43 @@
       "vendor": "Alibaba Cloud",
       "status": "Auto-detects",
       "supportClass": "NATIVE",
-      "canonicalUrl": "https://calllint.com/harnesses/qwen-code"
+      "canonicalUrl": "https://calllint.com/harnesses/qwen-code",
+      "describedBy": "https://calllint.com/harnesses/qwen-code",
+      "capabilities": [
+        "mcp",
+        "tools"
+      ],
+      "calllintSupport": {
+        "supportClass": "NATIVE",
+        "label": "Auto-detects",
+        "commands": [
+          "calllint scan --agent qwen-code"
+        ],
+        "coverageBoundary": "CallLint scans MCP server entries only. Other Qwen Code settings in the same file are not covered."
+      },
+      "distribution": [
+        {
+          "kind": "mcp-stdio",
+          "state": "Listing not yet verified",
+          "upstream": "officialMcpRegistry"
+        },
+        {
+          "kind": "qwen-extension-conversion",
+          "state": "Listing not yet verified",
+          "officialSource": "https://qwenlm.github.io/qwen-code-docs/en/users/extension/introduction/"
+        }
+      ],
+      "discovery": {
+        "autoDetected": true,
+        "configPaths": [
+          "~/.qwen/settings.json",
+          "<project>/.qwen/settings.json"
+        ]
+      },
+      "officialSources": [
+        "https://qwenlm.github.io/qwen-code-docs/",
+        "https://github.com/QwenLM/Qwen-Code"
+      ]
     },
     {
       "id": "openclaw",
@@ -94,7 +336,41 @@
       "vendor": "Open Source",
       "status": "Auto-detects",
       "supportClass": "NATIVE",
-      "canonicalUrl": "https://calllint.com/harnesses/openclaw"
+      "canonicalUrl": "https://calllint.com/harnesses/openclaw",
+      "describedBy": "https://calllint.com/harnesses/openclaw",
+      "capabilities": [
+        "mcp",
+        "skills",
+        "exec"
+      ],
+      "calllintSupport": {
+        "supportClass": "NATIVE",
+        "label": "Auto-detects",
+        "commands": [
+          "calllint scan --agent openclaw"
+        ],
+        "coverageBoundary": "CallLint scans MCP configuration only. Skills and exec permissions are not covered."
+      },
+      "distribution": [
+        {
+          "kind": "mcp-stdio",
+          "state": "Listing not yet verified",
+          "upstream": "officialMcpRegistry"
+        },
+        {
+          "kind": "openclaw-clawhub",
+          "state": "Listing not yet verified"
+        }
+      ],
+      "discovery": {
+        "autoDetected": true,
+        "configPaths": [
+          "~/.openclaw/openclaw.json"
+        ]
+      },
+      "officialSources": [
+        "https://github.com/openclaw/openclaw"
+      ]
     },
     {
       "id": "codex",
@@ -103,7 +379,39 @@
       "vendor": "OpenAI",
       "status": "Guide only",
       "supportClass": "DISCOVERY_ONLY",
-      "canonicalUrl": "https://calllint.com/harnesses/codex"
+      "canonicalUrl": "https://calllint.com/harnesses/codex",
+      "describedBy": "https://calllint.com/harnesses/codex",
+      "capabilities": [
+        "code-generation",
+        "api",
+        "mcp"
+      ],
+      "calllintSupport": {
+        "supportClass": "DISCOVERY_ONLY",
+        "label": "Guide only",
+        "commands": [],
+        "coverageBoundary": "CallLint does not yet auto-discover Codex configuration."
+      },
+      "distribution": [
+        {
+          "kind": "mcp-stdio",
+          "state": "Listing not yet verified",
+          "upstream": "officialMcpRegistry"
+        },
+        {
+          "kind": "openai-plugin",
+          "state": "Listing not yet verified"
+        }
+      ],
+      "discovery": {
+        "autoDetected": false,
+        "configPaths": [
+          "Config mechanism requires verification"
+        ]
+      },
+      "officialSources": [
+        "https://developers.openai.com/codex/extend/mcp"
+      ]
     },
     {
       "id": "copilot-cli",
@@ -112,7 +420,39 @@
       "vendor": "GitHub",
       "status": "Guide only",
       "supportClass": "DISCOVERY_ONLY",
-      "canonicalUrl": "https://calllint.com/harnesses/copilot-cli"
+      "canonicalUrl": "https://calllint.com/harnesses/copilot-cli",
+      "describedBy": "https://calllint.com/harnesses/copilot-cli",
+      "capabilities": [
+        "shell",
+        "cli",
+        "mcp"
+      ],
+      "calllintSupport": {
+        "supportClass": "DISCOVERY_ONLY",
+        "label": "Guide only",
+        "commands": [],
+        "coverageBoundary": "CallLint does not yet auto-discover Copilot CLI configuration."
+      },
+      "distribution": [
+        {
+          "kind": "mcp-registry-discovery",
+          "state": "Listing not yet verified",
+          "upstream": "officialMcpRegistry"
+        },
+        {
+          "kind": "github-copilot-plugin",
+          "state": "Listing not yet verified"
+        }
+      ],
+      "discovery": {
+        "autoDetected": false,
+        "configPaths": [
+          "Config mechanism requires verification"
+        ]
+      },
+      "officialSources": [
+        "https://github.com/github/gh-copilot"
+      ]
     },
     {
       "id": "cline",
@@ -121,7 +461,39 @@
       "vendor": "Open Source",
       "status": "Guide only",
       "supportClass": "DISCOVERY_ONLY",
-      "canonicalUrl": "https://calllint.com/harnesses/cline"
+      "canonicalUrl": "https://calllint.com/harnesses/cline",
+      "describedBy": "https://calllint.com/harnesses/cline",
+      "capabilities": [
+        "vscode-extensions",
+        "tools",
+        "mcp"
+      ],
+      "calllintSupport": {
+        "supportClass": "DISCOVERY_ONLY",
+        "label": "Guide only",
+        "commands": [],
+        "coverageBoundary": "CallLint does not yet auto-discover Cline configuration."
+      },
+      "distribution": [
+        {
+          "kind": "mcp-stdio",
+          "state": "Available now",
+          "upstream": "officialMcpRegistry"
+        },
+        {
+          "kind": "cline-marketplace-pr",
+          "state": "Awaiting the upstream registry"
+        }
+      ],
+      "discovery": {
+        "autoDetected": false,
+        "configPaths": [
+          "VS Code extension, config mechanism TBD"
+        ]
+      },
+      "officialSources": [
+        "https://github.com/cline/cline"
+      ]
     },
     {
       "id": "gemini-cli",
@@ -130,7 +502,39 @@
       "vendor": "Google",
       "status": "Guide only",
       "supportClass": "DEFERRED",
-      "canonicalUrl": "https://calllint.com/harnesses/gemini-cli"
+      "canonicalUrl": "https://calllint.com/harnesses/gemini-cli",
+      "describedBy": "https://calllint.com/harnesses/gemini-cli",
+      "capabilities": [
+        "mcp",
+        "tools"
+      ],
+      "calllintSupport": {
+        "supportClass": "DEFERRED",
+        "label": "Guide only",
+        "commands": [],
+        "coverageBoundary": "CallLint does not yet support Gemini CLI native discovery."
+      },
+      "distribution": [
+        {
+          "kind": "mcp-stdio",
+          "state": "Listing not yet verified",
+          "upstream": "officialMcpRegistry"
+        },
+        {
+          "kind": "gemini-extension-gallery",
+          "state": "Listing not yet verified",
+          "officialSource": "https://geminicli.com/docs/extensions/"
+        }
+      ],
+      "discovery": {
+        "autoDetected": false,
+        "configPaths": [
+          "~/.gemini/config.json or similar"
+        ]
+      },
+      "officialSources": [
+        "https://geminicli.com/docs/extensions/"
+      ]
     },
     {
       "id": "codebuddy",
@@ -139,7 +543,38 @@
       "vendor": "Tencent",
       "status": "Guide only",
       "supportClass": "DEFERRED",
-      "canonicalUrl": "https://calllint.com/harnesses/codebuddy"
+      "canonicalUrl": "https://calllint.com/harnesses/codebuddy",
+      "describedBy": "https://calllint.com/harnesses/codebuddy",
+      "capabilities": [
+        "mcp",
+        "extensions"
+      ],
+      "calllintSupport": {
+        "supportClass": "DEFERRED",
+        "label": "Guide only",
+        "commands": [],
+        "coverageBoundary": "CallLint does not yet support CodeBuddy native discovery."
+      },
+      "distribution": [
+        {
+          "kind": "mcp-stdio",
+          "state": "Listing not yet verified",
+          "upstream": "officialMcpRegistry"
+        },
+        {
+          "kind": "tencent-mcp-market",
+          "state": "Not yet submitted"
+        }
+      ],
+      "discovery": {
+        "autoDetected": false,
+        "configPaths": [
+          "Config path requires verification"
+        ]
+      },
+      "officialSources": [
+        "https://cloud.tencent.com/product/codebuddy"
+      ]
     },
     {
       "id": "opencode",
@@ -148,7 +583,36 @@
       "vendor": "Open Source",
       "status": "Scan config",
       "supportClass": "CONFIG_SCAN",
-      "canonicalUrl": "https://calllint.com/harnesses/opencode"
+      "canonicalUrl": "https://calllint.com/harnesses/opencode",
+      "describedBy": "https://calllint.com/harnesses/opencode",
+      "capabilities": [
+        "mcp",
+        "tools"
+      ],
+      "calllintSupport": {
+        "supportClass": "CONFIG_SCAN",
+        "label": "Scan config",
+        "commands": [
+          "calllint scan --config <path>"
+        ],
+        "coverageBoundary": "Config path auto-discovery not yet supported. Schema generation ambiguity must be handled deterministically."
+      },
+      "distribution": [
+        {
+          "kind": "mcp-stdio",
+          "state": "Listing not yet verified",
+          "upstream": "officialMcpRegistry"
+        }
+      ],
+      "discovery": {
+        "autoDetected": false,
+        "configPaths": [
+          "Documented config paths require verification"
+        ]
+      },
+      "officialSources": [
+        "https://github.com/opencode/opencode"
+      ]
     },
     {
       "id": "kiro",
@@ -157,7 +621,41 @@
       "vendor": "AWS",
       "status": "Guide only",
       "supportClass": "DEFERRED",
-      "canonicalUrl": "https://calllint.com/harnesses/kiro"
+      "canonicalUrl": "https://calllint.com/harnesses/kiro",
+      "describedBy": "https://calllint.com/harnesses/kiro",
+      "capabilities": [
+        "mcp",
+        "filesystem",
+        "shell"
+      ],
+      "calllintSupport": {
+        "supportClass": "DEFERRED",
+        "label": "Guide only",
+        "commands": [],
+        "coverageBoundary": "CallLint does not yet support Kiro native discovery."
+      },
+      "distribution": [
+        {
+          "kind": "mcp-stdio",
+          "state": "Listing not yet verified",
+          "upstream": "officialMcpRegistry"
+        },
+        {
+          "kind": "kiro-workspace-config",
+          "state": "Listing not yet verified"
+        }
+      ],
+      "discovery": {
+        "autoDetected": false,
+        "configPaths": [
+          ".kiro/settings/mcp.json",
+          "~/.kiro/settings/mcp.json"
+        ]
+      },
+      "officialSources": [
+        "https://kiro.dev/docs/mcp/configuration/",
+        "https://github.com/kirodotdev/Kiro"
+      ]
     },
     {
       "id": "continue",
@@ -166,7 +664,38 @@
       "vendor": "Continue",
       "status": "Guide only",
       "supportClass": "DISCOVERY_ONLY",
-      "canonicalUrl": "https://calllint.com/harnesses/continue"
+      "canonicalUrl": "https://calllint.com/harnesses/continue",
+      "describedBy": "https://calllint.com/harnesses/continue",
+      "capabilities": [
+        "mcp",
+        "tools",
+        "vscode-extensions"
+      ],
+      "calllintSupport": {
+        "supportClass": "DISCOVERY_ONLY",
+        "label": "Guide only",
+        "commands": [],
+        "coverageBoundary": "CallLint does not auto-discover Continue configuration. A block file may live in .continue/mcpServers as YAML or as JSON copied from another host, so a deterministic extractor must read both shapes before this page can promise more than where the config lives."
+      },
+      "distribution": [
+        {
+          "kind": "mcp-stdio",
+          "state": "Listing not yet verified",
+          "upstream": "officialMcpRegistry"
+        }
+      ],
+      "discovery": {
+        "autoDetected": false,
+        "configPaths": [
+          "<project>/.continue/mcpServers/*.yaml",
+          "<project>/.continue/mcpServers/*.json",
+          "config.yaml mcpServers block"
+        ]
+      },
+      "officialSources": [
+        "https://docs.continue.dev/customize/deep-dives/mcp",
+        "https://github.com/continuedev/continue"
+      ]
     },
     {
       "id": "roo-code",
@@ -175,7 +704,36 @@
       "vendor": "Roo Code Inc",
       "status": "Guide only",
       "supportClass": "DEFERRED",
-      "canonicalUrl": "https://calllint.com/harnesses/roo-code"
+      "canonicalUrl": "https://calllint.com/harnesses/roo-code",
+      "describedBy": "https://calllint.com/harnesses/roo-code",
+      "capabilities": [
+        "mcp",
+        "tools",
+        "vscode-extensions"
+      ],
+      "calllintSupport": {
+        "supportClass": "DEFERRED",
+        "label": "Guide only",
+        "commands": [],
+        "coverageBoundary": "CallLint does not support Roo Code discovery. Its upstream repository is archived, so config evidence was not collected: recording a config path from a possibly-discontinued product would assert a state nobody has verified."
+      },
+      "distribution": [
+        {
+          "kind": "mcp-stdio",
+          "state": "Awaiting the upstream registry",
+          "upstream": "officialMcpRegistry"
+        }
+      ],
+      "discovery": {
+        "autoDetected": false,
+        "configPaths": [
+          "Config mechanism requires verification"
+        ]
+      },
+      "officialSources": [
+        "https://roocode.com",
+        "https://github.com/RooCodeInc/Roo-Code"
+      ]
     },
     {
       "id": "deepseek-harness",
@@ -184,7 +742,40 @@
       "vendor": "DeepSeek",
       "status": "Guide only",
       "supportClass": "DISCOVERY_ONLY",
-      "canonicalUrl": "https://calllint.com/harnesses/deepseek-harness"
+      "canonicalUrl": "https://calllint.com/harnesses/deepseek-harness",
+      "describedBy": "https://calllint.com/harnesses/deepseek-harness",
+      "capabilities": [
+        "mcp",
+        "tools",
+        "plugins"
+      ],
+      "calllintSupport": {
+        "supportClass": "DISCOVERY_ONLY",
+        "label": "Guide only",
+        "commands": [],
+        "coverageBoundary": "CallLint does not auto-discover DeepSeek Harness configuration. Its MCP servers are plugin instances in cordis.yml rather than an mcpServers map, so no existing extractor reads that shape. This record exists for discovery routing only: DeepSeek is a model vendor here, not a security-relevant distinction."
+      },
+      "distribution": [
+        {
+          "kind": "mcp-stdio",
+          "state": "Listing not yet verified",
+          "upstream": "officialMcpRegistry"
+        },
+        {
+          "kind": "dsh-plugin",
+          "state": "Listing not yet verified"
+        }
+      ],
+      "discovery": {
+        "autoDetected": false,
+        "configPaths": [
+          "cordis.yml @deepseek-ai/dsh-mcp-client plugin instances"
+        ]
+      },
+      "officialSources": [
+        "https://deepseek.com/harness",
+        "https://github.com/deepseek-ai/deepseek-harness"
+      ]
     },
     {
       "id": "io.github.calllint/calllint",
@@ -192,7 +783,12 @@
       "displayName": "io.github.calllint/calllint",
       "vendor": "Model Context Protocol",
       "status": "LIVE",
-      "canonicalUrl": "https://registry.modelcontextprotocol.io/?q=calllint"
+      "canonicalUrl": "https://registry.modelcontextprotocol.io/?q=calllint",
+      "describedBy": "https://registry.modelcontextprotocol.io/?q=calllint",
+      "officialSources": [
+        "https://registry.modelcontextprotocol.io/?q=calllint",
+        "https://github.com/calllint/calllint"
+      ]
     },
     {
       "id": "deepseek-hub",
@@ -200,7 +796,11 @@
       "displayName": "DeepSeek with Agent Hosts",
       "vendor": "CallLint",
       "status": "Guide only",
-      "canonicalUrl": "https://calllint.com/harnesses/deepseek/"
+      "canonicalUrl": "https://calllint.com/harnesses/deepseek/",
+      "describedBy": "https://calllint.com/harnesses/deepseek/",
+      "officialSources": [
+        "https://calllint.com/harnesses/deepseek/"
+      ]
     },
     {
       "id": "deepseek-curated-agents",
@@ -208,7 +808,11 @@
       "displayName": "DeepSeek official curated agent lists",
       "vendor": "DeepSeek",
       "status": "NEW_CANDIDATE_FEED_ONLY",
-      "canonicalUrl": "https://github.com/deepseek-ai/awesome-deepseek-agent"
+      "canonicalUrl": "https://github.com/deepseek-ai/awesome-deepseek-agent",
+      "describedBy": "https://github.com/deepseek-ai/awesome-deepseek-agent",
+      "officialSources": [
+        "https://github.com/deepseek-ai/awesome-deepseek-agent"
+      ]
     }
   ]
 }

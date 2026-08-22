@@ -73,9 +73,38 @@ const AGENT_DOCS = ['llms.txt', 'llms-full.txt', 'agent-instructions.md']
 
 const MACHINE_SURFACE = 'agent-surfaces.json'
 
+/*
+ * EVERY published machine surface, not just the one this file was originally written around.
+ *
+ * WHY THIS IS A SET AND NOT A CONSTANT. `MACHINE_SURFACE` was a single hardcoded string, so
+ * this gate could only observe the reachability of one file. When `agent-discovery-index.json`
+ * was added as §4's canonical root, it landed OUTSIDE the guard's field of view: it was
+ * generated, served, and schema-valid, while being referenced by ZERO agent-facing document —
+ * and this gate reported green the whole time. Measured before the fix: 0 mentions across
+ * llms.txt, llms-full.txt, agent-instructions.md, robots.txt and .well-known/calllint.json,
+ * versus 1-2 for agent-surfaces.json.
+ *
+ * That is this repo's dominant fault class exactly — a guard that cannot observe its subject —
+ * and the fix is not "add the second filename". It is to make the guard's subject the CLASS of
+ * published machine surfaces, so the next one added is covered on the day it is added rather
+ * than the day someone remembers this list. A surface that no advertised entry point mentions
+ * is undiscoverable in practice, which defeats the entire point of publishing it.
+ */
+const MACHINE_SURFACES = ['agent-surfaces.json', 'agent-discovery-index.json']
+
+/* The canonical discovery root within that set — the one that must carry `canonical: true`. */
+const CANONICAL_SURFACE = 'agent-discovery-index.json'
+
 let failed = false
 const fail = (m) => (console.error(`❌ ${m}`), (failed = true))
 const pass = (m) => console.log(`✅ ${m}`)
+
+/* The SSOT every assertion below measures against. Loaded once, up here, because the §4
+ * consistency check needs the host cohort as its denominator and runs before the §20 human
+ * page checks that also read it. */
+const ssot = JSON.parse(
+  readFileSync(join(repoRoot, 'apps/web/data/distribution-surfaces.json'), 'utf8'),
+)
 
 console.log('\n=== Agent, Human + Crawler Surface Contract (§19/§20/GD-15) ===\n')
 
@@ -108,10 +137,147 @@ for (const doc of AGENT_DOCS) {
     fail(`${doc} does not exist`)
     continue
   }
-  if (!readFileSync(p, 'utf8').includes(MACHINE_SURFACE)) {
-    fail(`${doc} does not point at ${MACHINE_SURFACE} — an agent reading it would have to scrape HTML`)
-  } else {
-    pass(`${doc} points at ${MACHINE_SURFACE}`)
+  const text = readFileSync(p, 'utf8')
+  /* Every published machine surface must be reachable from every agent document, not just
+   * the one this gate was born checking. See MACHINE_SURFACES above for why this is a set. */
+  for (const surface of MACHINE_SURFACES) {
+    if (!text.includes(surface)) {
+      fail(`${doc} does not point at ${surface} — an agent reading it would have to scrape HTML`)
+    } else {
+      pass(`${doc} points at ${surface}`)
+    }
+  }
+}
+
+/* ---------- §4: the two machine surfaces must declare their layer relationship ---------- */
+
+/*
+ * Two machine surfaces exist, and an agent may reach either one first. Without an explicit
+ * pointer, a consumer landing on the projection cannot tell it is not the root — which is how
+ * the canonical index came to be unreferenced while the projection was cited everywhere.
+ *
+ * This asserts the pointers in BOTH directions. A single direction would let the pair drift
+ * into the state where the root claims primacy and nothing corroborates it.
+ */
+{
+  const idxPath = join(PUBLIC, CANONICAL_SURFACE)
+  const projPath = join(PUBLIC, MACHINE_SURFACE)
+  if (existsSync(idxPath) && existsSync(projPath)) {
+    const idx = JSON.parse(readFileSync(idxPath, 'utf8'))
+    const proj = JSON.parse(readFileSync(projPath, 'utf8'))
+    if (idx.canonical !== true) {
+      fail(`${CANONICAL_SURFACE} does not declare canonical:true — §4's ONE layer is not identified`)
+    } else {
+      pass(`${CANONICAL_SURFACE} declares itself canonical`)
+    }
+    if (typeof proj.canonicalIndex !== 'string' || !proj.canonicalIndex.includes(CANONICAL_SURFACE)) {
+      fail(`${MACHINE_SURFACE} does not point back at ${CANONICAL_SURFACE} — the layer relationship is one-way`)
+    } else {
+      pass(`${MACHINE_SURFACE} points back at the canonical index`)
+    }
+
+    /*
+     * A declared layer relationship is not agreement. Both documents describe the same 18
+     * hosts from the same SSOT, so where they overlap they must say the same thing — and
+     * pointing at each other while disagreeing is strictly worse than not pointing at all,
+     * because a consumer then has two authorities and a reason to trust both.
+     *
+     * Only the fields BOTH publish are compared; the index is deliberately richer, and
+     * requiring parity of the whole record would forbid that.
+     *
+     * The denominator is pinned to the SSOT host count, not to `> 0`. A comparison that
+     * silently paired zero records — different id spellings, a renamed container — would
+     * print the same green as full agreement.
+     */
+    const idxHosts = new Map(
+      (idx.surfaces ?? [])
+        .filter((s) => s.type === 'agent-harness')
+        .map((s) => [s.id, s]),
+    )
+    const projAgents = new Map((proj.agents ?? []).map((a) => [a.id, a]))
+    const expectedHostCount = ssot.hosts.length
+    const paired = ssot.hosts
+      .map((h) => ({ id: h.id, a: idxHosts.get(h.id), b: projAgents.get(h.id) }))
+      .filter((r) => r.a && r.b)
+
+    if (paired.length !== expectedHostCount) {
+      const missing = ssot.hosts
+        .filter((h) => !idxHosts.has(h.id) || !projAgents.has(h.id))
+        .map((h) => `${h.id}${idxHosts.has(h.id) ? '' : ' (absent from index)'}${projAgents.has(h.id) ? '' : ' (absent from projection)'}`)
+      fail(
+        `only ${paired.length}/${expectedHostCount} SSOT host(s) appear in BOTH machine ` +
+          `surfaces, so a consistency comparison here would be vacuous:\n` +
+          missing.map((m) => `     - ${m}`).join('\n'),
+      )
+    } else {
+      /* `status` vs `supportClass`: the index publishes the public label in `status` and the
+       * internal token in `supportClass`; the projection publishes only the token. Compare
+       * each to its counterpart, so a mismatch cannot hide behind the two vocabularies. */
+      const disagreements = []
+      for (const { id, a, b } of paired) {
+        if (a.supportClass !== b.supportClass) {
+          disagreements.push(`${id}: supportClass ${a.supportClass} vs ${b.supportClass}`)
+        }
+        if (a.displayName !== b.displayName) {
+          disagreements.push(`${id}: displayName "${a.displayName}" vs "${b.displayName}"`)
+        }
+        if (a.vendor !== b.vendor) {
+          disagreements.push(`${id}: vendor "${a.vendor}" vs "${b.vendor}"`)
+        }
+        if (a.canonicalUrl !== b.canonicalUrl) {
+          disagreements.push(`${id}: canonicalUrl ${a.canonicalUrl} vs ${b.canonicalUrl}`)
+        }
+        const aCmds = JSON.stringify(a.calllintSupport?.commands ?? [])
+        const bCmds = JSON.stringify(b.scanCommands ?? [])
+        if (aCmds !== bCmds) {
+          disagreements.push(`${id}: commands ${aCmds} vs ${bCmds}`)
+        }
+        const aBoundary = a.calllintSupport?.coverageBoundary
+        if (aBoundary !== b.coverageBoundary) {
+          disagreements.push(`${id}: coverageBoundary differs`)
+        }
+      }
+      if (disagreements.length > 0) {
+        fail(
+          `the two machine surfaces disagree about ${disagreements.length} overlapping ` +
+            `field(s), while each cites the other as authoritative:\n` +
+            disagreements.map((d) => `     - ${d}`).join('\n'),
+        )
+      } else {
+        pass(
+          `all ${expectedHostCount} host(s) agree across both machine surfaces on every ` +
+            `overlapping field`,
+        )
+      }
+    }
+
+    /*
+     * §20 in the machine plane. The human-facing leak guard reads HTML only, so nothing
+     * stopped an internal state token from being published in the index's `distribution[]`.
+     * The generator routes those through publicState(), which throws rather than falling
+     * back — but "the current writer happens to be correct" is not a guard, and the schema
+     * types the field as a bare string.
+     */
+    const stateLeaks = []
+    for (const s of idx.surfaces ?? []) {
+      for (const d of s.distribution ?? []) {
+        if (INTERNAL_STATE_ONTOLOGY.includes(d.state)) {
+          stateLeaks.push(`${s.id}: distribution[${d.kind}].state = ${d.state}`)
+        }
+      }
+      if (INTERNAL_ONTOLOGY.includes(s.status)) {
+        stateLeaks.push(`${s.id}: status = ${s.status}`)
+      }
+    }
+    if (stateLeaks.length > 0) {
+      fail(
+        `internal ontology is published in ${CANONICAL_SURFACE}:\n` +
+          stateLeaks.map((l) => `     - ${l}`).join('\n') +
+          `\n   Emit the public label; \`supportClass\` is the one field allowed to carry a token.`,
+      )
+    } else {
+      pass(`no internal ontology in the published state/status fields of ${CANONICAL_SURFACE}`)
+    }
   }
 }
 
@@ -137,9 +303,6 @@ function visibleText(html) {
  * The leak check (§20) still covers it: an intent page must not print the internal
  * ontology either. Only the label REQUIREMENT is host-scoped.
  */
-const ssot = JSON.parse(
-  readFileSync(join(repoRoot, 'apps/web/data/distribution-surfaces.json'), 'utf8'),
-)
 const ssotHostIds = new Set(ssot.hosts.map((h) => h.id))
 
 const harnessDir = join(PUBLIC, 'harnesses')
@@ -386,6 +549,37 @@ if (!existsSync(sitemapPath)) {
       fail(`${clobbered.length} redirect(s) clobber a preserved landing page: ${clobbered.map((r) => r.from).join(', ')}`)
     } else {
       pass(`all ${preserved.length} preserved landing page(s) remain directly reachable`)
+    }
+
+    /*
+     * `/agents/<id>` alias totality.
+     *
+     * These are not frozen history like `legacyPaths` — no such URL was ever served. They
+     * exist because published artifacts and agent-facing documents describe `/agents/<id>`
+     * as the address, and an agent that follows a documented URL into a 404 has been lied
+     * to by the documentation. That obligation is per-host and total: aliasing 17 of 18 is
+     * the failure mode this catches, since the checks above only ask that whatever rules
+     * exist are well-formed, never that the set is complete.
+     *
+     * Denominator pinned to the host cohort. `rules` is not a valid denominator here — it
+     * counts legacy rules and `.html` spellings too, so it would be satisfied by a file
+     * containing no alias at all.
+     */
+    const missingAlias = ssot.hosts.filter((h) => !rules.some((r) => r.from === `/agents/${h.id}`))
+    if (missingAlias.length > 0) {
+      fail(
+        `${missingAlias.length}/${ssot.hosts.length} host(s) have no /agents/<id> alias, ` +
+          `while published artifacts cite that path: ${missingAlias.map((h) => h.id).join(', ')}`,
+      )
+    } else {
+      pass(`all ${ssot.hosts.length} host(s) have a /agents/<id> alias`)
+    }
+
+    /* And the cohort root, which is the one an agent guesses when it has no id in hand. */
+    if (!rules.some((r) => r.from === '/agents')) {
+      fail('/agents has no redirect — an agent that trims the id off a documented URL 404s')
+    } else {
+      pass('/agents forwards to the harness hub')
     }
   }
 }
