@@ -52,11 +52,37 @@ new19 §5 organises coverage as Tier 0 / 1 / 2. **The SSOT carries no `tier` fie
 measured: the 13 host fields are `id, displayName, vendor, priority, authoritySurfaces,
 configEvidence, supportClass, truthfulCommands, canonicalPath, legacyPaths, officialSources,
 distributionPrimitives, coverageBoundary`. Tiering exists only on `officialMcpRegistry.tierLevel`
-(0). This is recorded as a divergence from §5's vocabulary rather than closed, because
-`supportClass` already answers the question a tier would answer — what CallLint claims — and it
-answers it in the terms the gates enforce. Adding a parallel `tier` field would create a second
-classification that no gate reads, which is the duplicate-truth failure this workstream exists to
-remove.
+(0).
+
+**This was first recorded here as a justified divergence. That judgment was wrong, and the
+obligation is now implemented — as an assertion, not as a field.** The original objection was that
+a `tier` column would be a second classification no gate reads, duplicating `supportClass`. That
+objection still holds against a *field*, but it answered the wrong question: §9 ("REQUIRED INITIAL
+HARNESS COVERAGE") names fourteen hosts across the three tiers, and §3040's validation list
+requires literally `all Tier 0 entries exist`. That is a **membership obligation over the host
+set** — checkable with no per-record attribute at all. Reading it as a request for a column is what
+made it look optional.
+
+`tests/invariants/agent-discovery-v2.invariants.test.ts` now carries a §9/§3040 block: a reviewed
+`REQUIRED_COVERAGE` constant (5 / 6 / 3 members) anchored on SSOT `id`, plus
+`BEYOND_SECTION_9 = [claude-desktop, vscode, windsurf, openclaw]` making the partition total in
+both directions — an unaccounted host reds, and so does an exemption naming a host that no longer
+exists.
+
+Two things that block cannot do, deliberately:
+
+- **It never asserts a host is supported.** §9 says "Do not claim implementation where none
+  exists. The record may honestly say: DISCOVERY_ONLY." So the assertion is only that a record
+  exists, its `supportClass` is a known value, and its `coverageBoundary` is non-empty. Six of the
+  fourteen are `DISCOVERY_ONLY` or `DEFERRED` and stay that way.
+- **It does not anchor on `displayName`.** §9 spells its members as display names and two do not
+  match this repo — "Codex" is `OpenAI Codex`, "GitHub Copilot" is `GitHub Copilot CLI`. Exact-name
+  matching fails today; loose matching would let a rename silently dissolve a coverage obligation.
+
+`priority` was measured and is **not** the same axis: `codex` and `cline` are §9 Tier 0 yet carry
+`P2`, and `claude-desktop` carries `P0` while appearing in no §9 tier. `priority` orders CallLint's
+own work; the tier records an obligation new19 imposed. That disagreement is pinned by test so a
+future edit cannot quietly conflate them.
 
 Three hosts were added by this work: **continue**, **roo-code**, **deepseek-harness**.
 
@@ -119,14 +145,16 @@ and reds after it.
 
 ## 5. Tests
 
-**30 tests** in `tests/invariants/agent-discovery-v2.invariants.test.ts`, all passing (count read
-from the runner, not from a `grep` — a `grep` for `it(` returns 37 here because it also matches
+**37 tests** in `tests/invariants/agent-discovery-v2.invariants.test.ts`, all passing (count read
+from the runner, not from a `grep` — a `grep` for `it(` over-counts here because it also matches
 prose inside comments). They encode §22's propositions and the §23 controls the file names
 explicitly: `NC-01` (Codex), `NC-02` (DeepSeek model identity), `NC-03` (marketplace presence),
 `NC-05` (unsupported agent command), `NC-06` (500 manual pages), `NC-07` (new platform → new
 detector) and `NC-08` (discovery metadata in the security engine). `NC-04` is deliberately **not**
 in this file, and the file says why: "generated page manually edited → FAIL" is a property of the
 generator, not of the SSOT.
+
+The last seven are the §9/§3040 tier-coverage block described in §2 above.
 
 Five of those eight are one invariant under five projections rather than five tests — if a
 distribution fact cannot reach the verdict path, then adding Codex cannot change a verdict, nor can
@@ -171,6 +199,23 @@ the suite exists to catch:
 
 Both were repaired by anchoring on a verified string and asserting the mutation actually landed
 before reading the exit code.
+
+The two guards added last carried their controls in both directions, and every mutation printed a
+confirmation that it landed before the guard was run:
+
+| Control | Mutation | Result |
+|---|---|---|
+| §9 tier — false positive | added a nonexistent `ghost-harness` to Tier 0 | 3 red, incl. the length lock (5) |
+| §9 tier — silent shrink | dropped `cline` from the Tier 0 obligation | 3 red — the partition reports it unaccounted |
+| §29 — harness subdirectory | linked `usage.calllint.com` from `harnesses/cursor/index.html` | red, names the file |
+| §29 — sitemap (`.xml`) | added the private host as a `<loc>` in `trust/sitemap.xml` | red, names the file |
+| §29 — workflow | added `cloudflare/wrangler-action` to `usage-report.yml` | red, names the step |
+| §29 — anti-vacuity | removed `apps/web/public/harnesses/` entirely | red (`0 harness pages … would be vacuous`) |
+
+The shrink control is the one that matters most for the tier block: without the total partition, a
+maintainer could quietly delete a member from `REQUIRED_COVERAGE` and every remaining assertion
+would still pass. The subdirectory and `.xml` controls matter for §29 for the same structural
+reason — both are surfaces the inherited file-discovery cannot see.
 
 **Suite-wide at this commit:** 246/246 test files pass.
 
@@ -317,9 +362,32 @@ Nothing in this list is blocked on code; each is an operator decision or an exte
    already covers it would create a second unread label — the duplicate-truth failure this
    workstream removed. `OPERATOR_ACTION_REQUIRED` stays **1** (§106 P's credential/environment
    item); this work adds no operator action, which is what "stays 1" had to mean.
-5. **§5's tier vocabulary** is deliberately not implemented (§2 above). If tiering is wanted as a
-   first-class field, it needs a gate that reads it, or it will become the duplicate truth this
-   work removed.
+5. **§5's tier vocabulary is now implemented** as a §9/§3040 membership assertion (§2 above),
+   reversing what this report first recorded. It is deliberately **not** a `hosts[]` field: the
+   obligation §9 states is "a record exists for each of these fourteen", which needs no column, and
+   a column no gate reads is the duplicate truth this work removed. Nothing here is owed.
+6. **new18 §29 stays fail-closed, and that is the terminal state — not debt.** Clearing it means
+   verifying an account-level Cloudflare Access policy from CI, which requires a token carrying
+   `Access: Organizations, Identity Providers, and Groups — Read`. That is strictly larger authority
+   than this pipeline needs to read a D1 table, and a private usage report does not justify minting
+   it (the reasoning is recorded in
+   [CLOUDFLARE_ACCESS_ACTION.md](../authority-distribution-closure/CLOUDFLARE_ACCESS_ACTION.md)).
+   `OPERATOR_ACTION_REQUIRED` therefore stays **1** by design.
+
+   What *was* owed there is now closed: §29's nine-surface prohibition held but **nothing enforced
+   it**. `scripts/check-public-copy.mjs` check 24 now locks it over 45 surfaces (2 sitemaps, 20
+   harness pages, 23 depth-1 files including nav/footer, README, both llms files, robots and agent
+   instructions), plus an assertion that `usage-report.yml` uploads an artifact and carries no
+   deploy or commit path. Two details worth keeping:
+
+   - The cohort is **built by the check, not inherited**. The guard's own `discoverPublicFiles()`
+     takes depth-1 `.html/.md/.txt`, which misses two of the nine surfaces outright — sitemaps are
+     `.xml`, and harness pages live in per-host subdirectories. Reusing it would have scanned
+     neither while printing a checkmark.
+   - The needle is the **host**, not the word "usage". `## Basic Usage` appears in `llms.txt` and
+     `llms-full.txt` as CLI documentation; a naive `/usage/i` reds on both. The tokens are the ones
+     that can only mean the private surface (`usage.calllint.com`, `calllint.com/usage`, `/usage/`,
+     `dist/usage`, `usage-report`).
 
 ### Recorded, deliberately not fixed — out of scope
 

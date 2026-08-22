@@ -311,6 +311,129 @@ describe("§22 coverage — Tier 0 present, ids unique across the whole index", 
 })
 
 /*
+ * §9 REQUIRED INITIAL HARNESS COVERAGE — the tier obligation, asserted at last.
+ *
+ * WHY THIS BLOCK EXISTS, AND WHAT AN EARLIER REPORT GOT WRONG. The final report first
+ * recorded §5's Tier 0/1/2 vocabulary as a deliberate divergence, on the reasoning that
+ * `supportClass` already answers "what does CallLint claim" and a parallel `tier` field
+ * would be a second classification no gate reads. The first half of that is still true.
+ * The second half was a category error: §9 does not ask for a FIELD, it names fourteen
+ * hosts and §3040 asks for one assertion over them — "all Tier 0 entries exist". A
+ * membership obligation is not a per-record attribute, so it needs no field, and the
+ * absence of a field was never a reason not to assert the obligation.
+ *
+ * WHY THE LISTS ARE ANCHORED ON `id`, NOT `displayName`. §9 writes its members as display
+ * names, and two of them do NOT match this repo's strings exactly: "Codex" is
+ * `OpenAI Codex` and "GitHub Copilot" is `GitHub Copilot CLI`. Matching on the §9 spelling
+ * would fail today; matching loosely (substring, case-folded) would let a rename silently
+ * dissolve a coverage obligation, which is the failure this assertion exists to prevent.
+ * So the mapping from §9 name to SSOT id is made ONCE, here, in a reviewed constant.
+ *
+ * WHY `priority` IS NOT REUSED AS THE TIER. Measured: they disagree. `codex` and `cline`
+ * are §9 Tier 0 but carry `P2`, and `claude-desktop` carries `P0` while appearing in no §9
+ * tier at all. `priority` orders CallLint's own work; a tier records an obligation new19
+ * imposed. Collapsing them would silently redefine one of the two.
+ */
+const REQUIRED_COVERAGE: Readonly<Record<"tier0" | "tier1" | "tier2", readonly string[]>> = {
+  // §9 "Tier 0" — spelled there as: Claude Code, Codex, Cursor, GitHub Copilot, Cline.
+  tier0: ["claude-code", "codex", "cursor", "copilot-cli", "cline"],
+  // §9 "Tier 1" — Gemini CLI, OpenCode, Continue, Roo Code, WorkBuddy, CodeBuddy.
+  tier1: ["gemini-cli", "opencode", "continue", "roo-code", "workbuddy", "codebuddy"],
+  // §9 "Tier 2" — DeepSeek Harness, Qwen Code, Kiro.
+  tier2: ["deepseek-harness", "qwen-code", "kiro"],
+} as const
+
+/*
+ * Hosts CallLint covers that §9 does not name. Recorded explicitly rather than left as
+ * "whatever is left over", because both directions are meaningful: a host leaving this set
+ * means §9 grew, and a host arriving means CallLint covered something new19 never asked
+ * for. Either is a deliberate edit; neither should be silent.
+ */
+const BEYOND_SECTION_9 = ["claude-desktop", "vscode", "windsurf", "openclaw"] as const
+
+describe("§9 / §3040 — every required harness tier is covered", () => {
+  const ids = new Set(SSOT.hosts.map((h) => h.id))
+
+  it("reads a non-empty host cohort and a non-empty obligation (anti-vacuity premise)", () => {
+    /* Both denominators, because either being empty would make every claim below pass while
+     * observing nothing — a tier list that lost its members is exactly as vacuous as an
+     * SSOT that lost its hosts. */
+    expect(SSOT.hosts.length).toBeGreaterThan(10)
+    expect(REQUIRED_COVERAGE.tier0.length).toBe(5)
+    expect(REQUIRED_COVERAGE.tier1.length).toBe(6)
+    expect(REQUIRED_COVERAGE.tier2.length).toBe(3)
+  })
+
+  it("has a record for every §9 Tier 0 entry (§3040's literal requirement)", () => {
+    const missing = REQUIRED_COVERAGE.tier0.filter((id) => !ids.has(id))
+    expect(
+      missing,
+      `§9 Tier 0 names these hosts and the SSOT has no record for: ${missing.join(", ")}`,
+    ).toEqual([])
+  })
+
+  it("has a record for every §9 Tier 1 and Tier 2 entry", () => {
+    const missing = [...REQUIRED_COVERAGE.tier1, ...REQUIRED_COVERAGE.tier2].filter((id) => !ids.has(id))
+    expect(missing, `§9 Tier 1/2 entries with no SSOT record: ${missing.join(", ")}`).toEqual([])
+  })
+
+  it("assigns each §9 entry to exactly one tier", () => {
+    /* A host in two tiers would make "which tier is this" unanswerable, and the answer is
+     * what the obligation is stated in terms of. */
+    const all = [...REQUIRED_COVERAGE.tier0, ...REQUIRED_COVERAGE.tier1, ...REQUIRED_COVERAGE.tier2]
+    const dupes = all.filter((id, i) => all.indexOf(id) !== i)
+    expect(dupes, `host(s) claimed by more than one §9 tier: ${dupes.join(", ")}`).toEqual([])
+  })
+
+  it("accounts for every SSOT host as either §9-required or explicitly beyond it", () => {
+    /* The partition is total. An unaccounted host is not an error in itself — CallLint may
+     * cover more than new19 asked — but it must be NAMED, so that growth is a reviewed edit
+     * rather than a silent drift in what "required coverage" means. */
+    const tiered = new Set([
+      ...REQUIRED_COVERAGE.tier0,
+      ...REQUIRED_COVERAGE.tier1,
+      ...REQUIRED_COVERAGE.tier2,
+    ])
+    const unaccounted = [...ids].filter((id) => !tiered.has(id) && !BEYOND_SECTION_9.includes(id as never))
+    expect(
+      unaccounted,
+      `host(s) neither in a §9 tier nor in BEYOND_SECTION_9 — add to whichever is true: ${unaccounted.join(", ")}`,
+    ).toEqual([])
+    /* And the reverse: a name in BEYOND_SECTION_9 that no longer exists would leave a stale
+     * exemption behind, quietly widening the set of hosts allowed to skip §9. */
+    const stale = BEYOND_SECTION_9.filter((id) => !ids.has(id))
+    expect(stale, `BEYOND_SECTION_9 names host(s) that no longer exist: ${stale.join(", ")}`).toEqual([])
+  })
+
+  it("does not conflate the §9 tier with `priority`, which measures something else", () => {
+    /* Pinned as a MEASURED disagreement, not as a preference. If a future edit made these
+     * agree, this test should be deleted deliberately — not satisfied by accident. */
+    const byId = new Map(SSOT.hosts.map((h) => [h.id, h.priority]))
+    expect(byId.get("codex")).toBe("P2")
+    expect(byId.get("cline")).toBe("P2")
+    expect(byId.get("claude-desktop")).toBe("P0")
+    expect(REQUIRED_COVERAGE.tier0).toContain("codex")
+    expect(REQUIRED_COVERAGE.tier0).toContain("cline")
+    expect(BEYOND_SECTION_9).toContain("claude-desktop")
+  })
+
+  it("keeps every §9-required host truthful about what it claims", () => {
+    /* §9's closing line: "Do not claim implementation where none exists. The record may
+     * honestly say: DISCOVERY_ONLY." So coverage means A RECORD EXISTS, never that the host
+     * is supported — and this asserts the weaker, correct thing. A tier list that implied
+     * NATIVE would be a support claim manufactured by a coverage requirement. */
+    const required = [...REQUIRED_COVERAGE.tier0, ...REQUIRED_COVERAGE.tier1, ...REQUIRED_COVERAGE.tier2]
+    const known = new Set(["NATIVE", "DISCOVERY_ONLY", "DEFERRED", "CONFIG_SCAN"])
+    for (const id of required) {
+      const host = SSOT.hosts.find((h) => h.id === id)
+      expect(host, `§9 requires a record for ${id}`).toBeDefined()
+      expect(known.has(host!.supportClass), `${id} has an unknown supportClass ${host!.supportClass}`).toBe(true)
+      expect(host!.coverageBoundary, `${id} must state its coverage boundary`).toBeTruthy()
+    }
+  })
+})
+
+/*
  * §22 "Truth: unsupported command rejected / unsupported native claim rejected"
  * §23 NC-05 "Unsupported agent command appears → FAIL"
  *
