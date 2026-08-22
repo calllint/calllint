@@ -415,6 +415,111 @@ if (!existsSync(sitemapPath)) {
   }
 }
 
+/* ---------- the discovery index: served schema, valid document, no §20 leak ----------
+ *
+ * §1's entry point is a THIRD surface, and it needed its own assertions rather than an
+ * extension of the two above: it is the only generated file that carries both a machine
+ * enum (`supportClass`, legitimate — an agent consuming a contract wants it) and a field
+ * quoted verbatim into human-readable docs (`status`). Its schema deliberately does NOT
+ * constrain `status` to the public labels, because a registry's status is a listing state
+ * and a feed's is its §86 role, so the type is open by design. That makes the §20 rule
+ * unenforceable at the schema layer, which is exactly why it is enforced here.
+ *
+ * Every assertion below pins its denominator first. An index that shipped zero surfaces
+ * would otherwise satisfy "no surface leaks a token" by having nothing to leak. */
+{
+  const indexPath = join(PUBLIC, 'agent-discovery-index.json')
+
+  if (!existsSync(indexPath)) {
+    fail(
+      `${relative(repoRoot, indexPath)} is absent — §1's discovery entry point is not served. ` +
+        `Run \`pnpm gen:distribution\`.`,
+    )
+  } else {
+    const index = JSON.parse(readFileSync(indexPath, 'utf8'))
+    const surfaces = Array.isArray(index.surfaces) ? index.surfaces : []
+
+    if (surfaces.length === 0) {
+      fail('agent-discovery-index.json publishes 0 surfaces — every assertion below would be vacuous')
+    } else {
+      pass(`agent-discovery-index.json publishes ${surfaces.length} surface(s)`)
+
+      /* The index must cover every host the SSOT declares. A partial index is worse than
+       * an absent one: an agent that fetches it has no way to know it saw a subset. */
+      const indexedHostIds = new Set(
+        surfaces.filter((s) => s.type === 'agent-harness').map((s) => s.id),
+      )
+      const missingHosts = [...ssotHostIds].filter((id) => !indexedHostIds.has(id))
+      if (missingHosts.length > 0) {
+        fail(
+          `${missingHosts.length} SSOT host(s) are absent from the discovery index: ` +
+            missingHosts.join(', '),
+        )
+      } else {
+        pass(
+          `all ${ssotHostIds.size} SSOT host(s) appear in the discovery index ` +
+            `(${indexedHostIds.size} agent-harness surface(s))`,
+        )
+      }
+
+      /* §20 at the index layer. `status` is quoted into human-readable copy, so it must
+       * carry the public label; `supportClass` alongside it may hold the enum. */
+      const statusLeaks = surfaces.filter((s) => INTERNAL_ONTOLOGY.includes(String(s.status)))
+      if (statusLeaks.length > 0) {
+        fail(
+          `${statusLeaks.length}/${surfaces.length} discovery-index surface(s) publish an internal ` +
+            `ontology token as \`status\`:\n` +
+            statusLeaks.map((s) => `     - ${s.id}: ${s.status}`).join('\n') +
+            `\n   \`status\` is the human-facing label; the enum belongs in \`supportClass\`.`,
+        )
+      } else {
+        pass(`no internal ontology in \`status\` across ${surfaces.length} discovery surface(s)`)
+      }
+
+      /* Every counts.byType entry must equal a recount of `surfaces`. A published
+       * denominator that nobody recomputes is just another hand-maintained number. */
+      const miscounts = Object.entries(index.counts?.byType ?? {}).filter(
+        ([type, n]) => surfaces.filter((s) => s.type === type).length !== n,
+      )
+      if (miscounts.length > 0) {
+        fail(
+          `${miscounts.length} discovery-index type count(s) disagree with a recount: ` +
+            miscounts.map(([t, n]) => `${t} claims ${n}`).join(', '),
+        )
+      } else if (index.counts?.total !== surfaces.length) {
+        fail(
+          `discovery index claims counts.total ${index.counts?.total} but publishes ` +
+            `${surfaces.length} surface(s)`,
+        )
+      } else {
+        pass(`all ${Object.keys(index.counts.byType).length} discovery-index type count(s) recount correctly`)
+      }
+
+      const schemaUrl = index.$schema
+      const schemaPath = String(schemaUrl ?? '').replace(/^https?:\/\/[^/]+/, '')
+      const schemaFile = join(PUBLIC, schemaPath)
+      if (!schemaPath || !existsSync(schemaFile)) {
+        fail(`discovery index $schema points at ${schemaUrl}, which is not served`)
+      } else {
+        pass(`discovery index $schema ${schemaPath} resolves to a served file`)
+
+        const { default: Ajv } = await import('ajv')
+        const ajv = new Ajv({ allErrors: true, strict: false, logger: false })
+        const validate = ajv.compile(JSON.parse(readFileSync(schemaFile, 'utf8')))
+        if (validate(index)) {
+          pass('agent-discovery-index.json validates against its own published schema')
+        } else {
+          const errs = (validate.errors ?? [])
+            .slice(0, 8)
+            .map((e) => `     - ${e.instancePath || '/'} ${e.message}`)
+            .join('\n')
+          fail(`agent-discovery-index.json violates its own published schema:\n${errs}`)
+        }
+      }
+    }
+  }
+}
+
 console.log('')
 if (failed) {
   console.error('❌ Agent + human surface contract FAILED')

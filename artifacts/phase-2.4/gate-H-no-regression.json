@@ -67,7 +67,7 @@
   "regressionChecks": [
     {
       "id": "ci:local",
-      "script": "pnpm typecheck && pnpm test && pnpm build && pnpm corpus:test && pnpm bench:test && pnpm check:public-copy && pnpm check:web-structure && pnpm check:harness-distribution && pnpm check:agent-surface && pnpm check:security-semantics && pnpm audit:evidence && pnpm audit:coverage && pnpm audit:calibration && pnpm eval:phase-2.4 && pnpm eval:phase-2.4:dogfood && pnpm eval:phase-2.4:gates && pnpm eval:phase-2.4:panel:validate && pnpm audit:presentation && pnpm audit:presentation:gate && pnpm audit:presentation:lock && pnpm audit:presentation:lock:gate && pnpm audit:preview && pnpm audit:preview:gate && pnpm ledger:presentation:validate && pnpm gate:s0:regression",
+      "script": "pnpm typecheck && pnpm test && pnpm build && pnpm corpus:test && pnpm bench:test && pnpm check:public-copy && pnpm check:web-structure && pnpm check:published-schema && pnpm check:distribution-drift && pnpm check:harness-distribution && pnpm check:agent-surface && pnpm check:security-semantics && pnpm audit:evidence && pnpm audit:coverage && pnpm audit:calibration && pnpm eval:phase-2.4 && pnpm eval:phase-2.4:dogfood && pnpm eval:phase-2.4:gates && pnpm eval:phase-2.4:panel:validate && pnpm audit:presentation && pnpm audit:presentation:gate && pnpm audit:presentation:lock && pnpm audit:presentation:lock:gate && pnpm audit:preview && pnpm audit:preview:gate && pnpm ledger:presentation:validate && pnpm gate:s0:regression",
       "inLocalChain": true,
       "workflowBinding": null,
       "bindingFault": "no step in ci.yml#test runs `pnpm ci:local`",

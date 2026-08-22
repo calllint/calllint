@@ -9,7 +9,7 @@
 Every tracked surface, all fourteen §105 columns, derived from the SSOT at release 1.8.0.
 Facts checked at **2026-08-19** (the SSOT's own `generatedAt`; see §104 matrix for per-claim provenance).
 
-**15 hosts** — 1 CONFIG_SCAN, 3 DEFERRED, 3 DISCOVERY_ONLY, 8 NATIVE.
+**18 hosts** — 1 CONFIG_SCAN, 4 DEFERRED, 5 DISCOVERY_ONLY, 8 NATIVE.
 
 This matrix reflects CURRENT reality, not the state assumed by the prompt that asked for it.
 Two consequences of that are visible below and are not defects: most `mcp-stdio` primitives are
@@ -35,6 +35,9 @@ the harness gate reds on.
 | CodeBuddy | Tencent | mcp, extensions | DEFERRED | **none** — no truthful command today | CallLint does not yet support CodeBuddy native discovery. | yes | `tencent-mcp-market` | READY_NOT_SUBMITTED | — | Third-party MCP submissions not currently accepted | https://calllint.com/harnesses/codebuddy | `agent-surfaces.json` | https://cloud.tencent.com/product/codebuddy |
 | OpenCode | Open Source | mcp, tools | CONFIG_SCAN | `calllint scan --config <path>` | Config path auto-discovery not yet supported. Schema generation ambiguity must be handled deterministically. | yes | `mcp-stdio` | AUDIT_REQUIRED | — | — | https://calllint.com/harnesses/opencode | `agent-surfaces.json` | https://github.com/opencode/opencode |
 | Kiro | AWS | mcp, filesystem, shell | DEFERRED | **none** — no truthful command today | CallLint does not yet support Kiro native discovery. | yes | `kiro-workspace-config` | AUDIT_REQUIRED | — | — | https://calllint.com/harnesses/kiro | `agent-surfaces.json` | https://kiro.dev/docs/mcp/configuration/<br>https://github.com/kirodotdev/Kiro |
+| Continue | Continue | mcp, tools, vscode-extensions | DISCOVERY_ONLY | **none** — no truthful command today | CallLint does not auto-discover Continue configuration. A block file may live in .continue/mcpServers as YAML or as JSON copied from another host, so a deterministic extractor must read both shapes before this page can promise more than where the config lives. | yes | `mcp-stdio` | AUDIT_REQUIRED | — | — | https://calllint.com/harnesses/continue | `agent-surfaces.json` | https://docs.continue.dev/customize/deep-dives/mcp<br>https://github.com/continuedev/continue |
+| Roo Code | Roo Code Inc | mcp, tools, vscode-extensions | DEFERRED | **none** — no truthful command today | CallLint does not support Roo Code discovery. Its upstream repository is archived, so config evidence was not collected: recording a config path from a possibly-discontinued product would assert a state nobody has verified. | yes | `mcp-stdio` | PENDING_UPSTREAM | — | — | https://calllint.com/harnesses/roo-code | `agent-surfaces.json` | https://roocode.com<br>https://github.com/RooCodeInc/Roo-Code |
+| DeepSeek Harness | DeepSeek | mcp, tools, plugins | DISCOVERY_ONLY | **none** — no truthful command today | CallLint does not auto-discover DeepSeek Harness configuration. Its MCP servers are plugin instances in cordis.yml rather than an mcpServers map, so no existing extractor reads that shape. This record exists for discovery routing only: DeepSeek is a model vendor here, not a security-relevant distinction. | yes | `dsh-plugin` | AUDIT_REQUIRED | — | The harness is in vendor-declared developer preview with breaking changes expected. Do not build a plugin against an unstable interface for listing eligibility alone. | https://calllint.com/harnesses/deepseek-harness | `agent-surfaces.json` | https://deepseek.com/harness<br>https://github.com/deepseek-ai/deepseek-harness |
 
 ## Column provenance
 

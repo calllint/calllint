@@ -89,6 +89,58 @@ jobs:
       - name: Check agent, human + crawler surface contract
         run: node scripts/check-agent-surface-contract.mjs
 
+      # new19 §19 names five weekly checks. Three were already covered above; the two below
+      # close the rest. Measured, rather than assumed, on 2026-08-22:
+      #
+      #   Registry presence  → the first step, against the live Registry.
+      #   harness changes    → the regenerate-and-diff step, over all 11 generator writes.
+      #   marketplace status → PARTIALLY, and the limit is worth stating precisely. There is no
+      #                        `marketplaces[]` container in the SSOT and `counts.byType.marketplace`
+      #                        is 0; marketplace state lives as `distributionPrimitives[].state` on
+      #                        each host (14 kinds today: windsurf-mcp-marketplace, tencent-mcp-market,
+      #                        cline-marketplace-pr, …). The diff step therefore guards that those
+      #                        recorded states still project correctly — NOT that they still match
+      #                        what the vendor's marketplace actually says. That second question is
+      #                        what the source observation below samples, and it is why the step is
+      #                        described as an observation and not as a gate.
+      #
+      # The two new steps sit on OPPOSITE sides of the fail/report line, deliberately:
+      #
+      #   schema changes  → FAILS the job. A schema under our own apps/web/public/ is our
+      #                     artifact; changing the $id, un-pinning schemaVersion.const, or
+      #                     opening additionalProperties silently breaks every external
+      #                     consumer, and it is a CallLint act every time.
+      #   source changes  → REPORTS ONLY. A vendor moving their own documentation page is not
+      #                     a CallLint defect. Failing on it would train maintainers to ignore
+      #                     a red run, and what that habit would mask is the internal drift
+      #                     check above — which is a real bug whenever it reds.
+      #
+      # §19's handling is implemented literally: "No change: silent. Change: generate internal
+      # artifact." Neither step opens an external PR or issue, submits a form, or contacts a
+      # maintainer; the source check issues anonymous GETs and nothing else.
+      - name: Check published schema contract
+        run: node scripts/check-published-schema-contract.mjs
+
+      # `continue-on-error` is belt-and-braces, not the mechanism: the script already exits 0
+      # on an unreachable source by design. It is here for the case the script itself dies on
+      # an unforeseen runtime fault — an observation step must not be able to fail a run whose
+      # other checks are the load-bearing ones.
+      - name: Observe official vendor sources
+        continue-on-error: true
+        run: node scripts/check-official-sources.mjs
+
+      # The observation is only useful if a human can read it, and the artifact is ALSO the
+      # baseline the next run compares against. Uploading it is what makes week-over-week
+      # change detection possible without committing a file that churns weekly.
+      - name: Upload official-source observation
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: official-sources-snapshot
+          path: artifacts/distribution-watch/official-sources.json
+          if-no-files-found: warn
+          retention-days: 90
+
       # Deliberately terse, and deliberately free of restated verdicts. The previous
       # version printed "Registry: LIVE" as a string literal, which is the same defect the
       # readback script had: a claim that costs nothing to print and is true whether or not

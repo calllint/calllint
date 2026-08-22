@@ -3,10 +3,10 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Claude Code — CallLint Support</title>
+    <title>Roo Code — CallLint Support</title>
     <meta
       name="description"
-      content="CallLint support for Claude Code (Anthropic). CallLint scans MCP server entries only. Skills, hooks and permission settings in the same file are not covered."
+      content="CallLint support for Roo Code (Roo Code Inc). CallLint does not support Roo Code discovery. Its upstream repository is archived, so config evidence was not collected: recording a config path from a possibly-discontinued product would assert a state nobody has verified."
     />
     <link rel="icon" href="/favicon.png" type="image/png" />
     <link rel="apple-touch-icon" href="/logo-mark-256.png" />
@@ -32,60 +32,56 @@
         <span aria-hidden="true">›</span>
         <a href="/harnesses/">Harnesses</a>
         <span aria-hidden="true">›</span>
-        <span>Claude Code</span>
+        <span>Roo Code</span>
       </nav>
 
       <article>
         <header class="doc-header">
-          <h1>Claude Code</h1>
+          <h1>Roo Code</h1>
           <p class="doc-lede">
-            CallLint support for <strong>Claude Code</strong> by Anthropic.
-            <span class="coverage-note">CallLint scans MCP server entries only. Skills, hooks and permission settings in the same file are not covered.</span>
+            CallLint support for <strong>Roo Code</strong> by Roo Code Inc.
+            <span class="coverage-note">CallLint does not support Roo Code discovery. Its upstream repository is archived, so config evidence was not collected: recording a config path from a possibly-discontinued product would assert a state nobody has verified.</span>
           </p>
           <div class="host-meta">
-            <span class="badge badge-P0">P0</span>
-            <span class="badge badge-NATIVE" title="CallLint finds this host’s config on its own.">Auto-detects</span>
+            <span class="badge badge-P3">P3</span>
+            <span class="badge badge-DEFERRED" title="Support is not implemented yet — this page documents what we can observe today.">Guide only</span>
           </div>
         </header>
 
         <section id="usage" class="doc-section">
           <h2>Usage</h2>
-          <p>CallLint can auto-discover and scan Claude Code configurations:</p>
-          <pre><code>calllint scan --agent claude-code</code></pre>
+          <p>
+            CallLint does not yet support native auto-discovery for Roo Code.
+            Support is not implemented yet — this page documents what we can observe today.
+          </p>
         </section>
 
         <section id="config" class="doc-section">
           <h2>Configuration Paths</h2>
-          <p>CallLint looks for Claude Code configurations in:</p>
+          <p>CallLint looks for Roo Code configurations in:</p>
           <ul>
-            <li><code>~/.claude/settings.json</code></li>
-            <li><code>&lt;project&gt;/.claude/settings.json</code></li>
+            <li><code>Config mechanism requires verification</code></li>
           </ul>
         </section>
 
         <section id="authority" class="doc-section">
           <h2>Authority Surfaces</h2>
-          <p>Claude Code can grant tools the following authority surfaces:</p>
+          <p>Roo Code can grant tools the following authority surfaces:</p>
           <ul class="authority-list">
             <li><code>mcp</code></li>
-            <li><code>filesystem</code></li>
-            <li><code>shell</code></li>
-            <li><code>plugins</code></li>
+            <li><code>tools</code></li>
+            <li><code>vscode-extensions</code></li>
           </ul>
         </section>
 
         <section id="distribution" class="doc-section">
           <h2>Distribution</h2>
-          <p>CallLint is available for Claude Code through:</p>
+          <p>CallLint is available for Roo Code through:</p>
           <ul class="distribution-list">
             <li>
               <strong>mcp-stdio</strong>
               <span class="upstream-note">(via <a href="https://registry.modelcontextprotocol.io/?q=calllint">officialMcpRegistry</a>)</span>
-              — <span class="state-AVAILABLE">AVAILABLE</span>
-            </li>
-            <li>
-              <strong>claude-plugin</strong>
-              — <span class="state-AUDIT_REQUIRED">AUDIT_REQUIRED</span>
+              — <span class="state-PENDING_UPSTREAM">PENDING_UPSTREAM</span>
             </li>
           </ul>
         </section>
@@ -93,25 +89,26 @@
         <section id="status" class="doc-section">
           <h2>Support Status</h2>
           <p>
-            <strong>Auto-detects</strong> — CallLint finds this host’s config on its own.
+            <strong>Guide only</strong> — Support is not implemented yet — this page documents what we can observe today.
           </p>
           <p>
-            The commands under <a href="#usage">Usage</a> are the ones CallLint actually
-            supports for Claude Code today. Anything not listed there is not claimed.
+            CallLint publishes no scan command for Roo Code yet. That is a statement
+            about CallLint's coverage, not about Roo Code: see
+            <a href="#coverage">Coverage Boundary</a> for what would have to be built first.
           </p>
         </section>
 
         <section id="sources" class="doc-section">
           <h2>Official Sources</h2>
           <ul>
-            <li><a href="https://code.claude.com/" target="_blank" rel="noopener">https://code.claude.com/</a></li>
-            <li><a href="https://github.com/anthropics/anthropic-claude-code" target="_blank" rel="noopener">https://github.com/anthropics/anthropic-claude-code</a></li>
+            <li><a href="https://roocode.com" target="_blank" rel="noopener">https://roocode.com</a></li>
+            <li><a href="https://github.com/RooCodeInc/Roo-Code" target="_blank" rel="noopener">https://github.com/RooCodeInc/Roo-Code</a></li>
           </ul>
         </section>
 
         <section id="coverage" class="doc-section coverage-boundary">
           <h2>Coverage Boundary</h2>
-          <p class="boundary-text">CallLint scans MCP server entries only. Skills, hooks and permission settings in the same file are not covered.</p>
+          <p class="boundary-text">CallLint does not support Roo Code discovery. Its upstream repository is archived, so config evidence was not collected: recording a config path from a possibly-discontinued product would assert a state nobody has verified.</p>
         </section>
       </article>
 

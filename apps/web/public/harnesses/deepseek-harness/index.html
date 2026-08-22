@@ -3,10 +3,10 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Claude Code — CallLint Support</title>
+    <title>DeepSeek Harness — CallLint Support</title>
     <meta
       name="description"
-      content="CallLint support for Claude Code (Anthropic). CallLint scans MCP server entries only. Skills, hooks and permission settings in the same file are not covered."
+      content="CallLint support for DeepSeek Harness (DeepSeek). CallLint does not auto-discover DeepSeek Harness configuration. Its MCP servers are plugin instances in cordis.yml rather than an mcpServers map, so no existing extractor reads that shape. This record exists for discovery routing only: DeepSeek is a model vendor here, not a security-relevant distinction."
     />
     <link rel="icon" href="/favicon.png" type="image/png" />
     <link rel="apple-touch-icon" href="/logo-mark-256.png" />
@@ -32,60 +32,61 @@
         <span aria-hidden="true">›</span>
         <a href="/harnesses/">Harnesses</a>
         <span aria-hidden="true">›</span>
-        <span>Claude Code</span>
+        <span>DeepSeek Harness</span>
       </nav>
 
       <article>
         <header class="doc-header">
-          <h1>Claude Code</h1>
+          <h1>DeepSeek Harness</h1>
           <p class="doc-lede">
-            CallLint support for <strong>Claude Code</strong> by Anthropic.
-            <span class="coverage-note">CallLint scans MCP server entries only. Skills, hooks and permission settings in the same file are not covered.</span>
+            CallLint support for <strong>DeepSeek Harness</strong> by DeepSeek.
+            <span class="coverage-note">CallLint does not auto-discover DeepSeek Harness configuration. Its MCP servers are plugin instances in cordis.yml rather than an mcpServers map, so no existing extractor reads that shape. This record exists for discovery routing only: DeepSeek is a model vendor here, not a security-relevant distinction.</span>
           </p>
           <div class="host-meta">
-            <span class="badge badge-P0">P0</span>
-            <span class="badge badge-NATIVE" title="CallLint finds this host’s config on its own.">Auto-detects</span>
+            <span class="badge badge-P2">P2</span>
+            <span class="badge badge-DISCOVERY_ONLY" title="No automatic detection yet — this page documents where the config lives.">Guide only</span>
           </div>
         </header>
 
         <section id="usage" class="doc-section">
           <h2>Usage</h2>
-          <p>CallLint can auto-discover and scan Claude Code configurations:</p>
-          <pre><code>calllint scan --agent claude-code</code></pre>
+          <p>
+            CallLint does not yet support native auto-discovery for DeepSeek Harness.
+            No automatic detection yet — this page documents where the config lives.
+          </p>
         </section>
 
         <section id="config" class="doc-section">
           <h2>Configuration Paths</h2>
-          <p>CallLint looks for Claude Code configurations in:</p>
+          <p>CallLint looks for DeepSeek Harness configurations in:</p>
           <ul>
-            <li><code>~/.claude/settings.json</code></li>
-            <li><code>&lt;project&gt;/.claude/settings.json</code></li>
+            <li><code>cordis.yml @deepseek-ai/dsh-mcp-client plugin instances</code></li>
           </ul>
         </section>
 
         <section id="authority" class="doc-section">
           <h2>Authority Surfaces</h2>
-          <p>Claude Code can grant tools the following authority surfaces:</p>
+          <p>DeepSeek Harness can grant tools the following authority surfaces:</p>
           <ul class="authority-list">
             <li><code>mcp</code></li>
-            <li><code>filesystem</code></li>
-            <li><code>shell</code></li>
+            <li><code>tools</code></li>
             <li><code>plugins</code></li>
           </ul>
         </section>
 
         <section id="distribution" class="doc-section">
           <h2>Distribution</h2>
-          <p>CallLint is available for Claude Code through:</p>
+          <p>CallLint is available for DeepSeek Harness through:</p>
           <ul class="distribution-list">
             <li>
               <strong>mcp-stdio</strong>
               <span class="upstream-note">(via <a href="https://registry.modelcontextprotocol.io/?q=calllint">officialMcpRegistry</a>)</span>
-              — <span class="state-AVAILABLE">AVAILABLE</span>
+              — <span class="state-AUDIT_REQUIRED">AUDIT_REQUIRED</span>
             </li>
             <li>
-              <strong>claude-plugin</strong>
+              <strong>dsh-plugin</strong>
               — <span class="state-AUDIT_REQUIRED">AUDIT_REQUIRED</span>
+              <div class="dist-blocker">⚠️ The harness is in vendor-declared developer preview with breaking changes expected. Do not build a plugin against an unstable interface for listing eligibility alone.</div>
             </li>
           </ul>
         </section>
@@ -93,25 +94,26 @@
         <section id="status" class="doc-section">
           <h2>Support Status</h2>
           <p>
-            <strong>Auto-detects</strong> — CallLint finds this host’s config on its own.
+            <strong>Guide only</strong> — No automatic detection yet — this page documents where the config lives.
           </p>
           <p>
-            The commands under <a href="#usage">Usage</a> are the ones CallLint actually
-            supports for Claude Code today. Anything not listed there is not claimed.
+            CallLint publishes no scan command for DeepSeek Harness yet. That is a statement
+            about CallLint's coverage, not about DeepSeek Harness: see
+            <a href="#coverage">Coverage Boundary</a> for what would have to be built first.
           </p>
         </section>
 
         <section id="sources" class="doc-section">
           <h2>Official Sources</h2>
           <ul>
-            <li><a href="https://code.claude.com/" target="_blank" rel="noopener">https://code.claude.com/</a></li>
-            <li><a href="https://github.com/anthropics/anthropic-claude-code" target="_blank" rel="noopener">https://github.com/anthropics/anthropic-claude-code</a></li>
+            <li><a href="https://deepseek.com/harness" target="_blank" rel="noopener">https://deepseek.com/harness</a></li>
+            <li><a href="https://github.com/deepseek-ai/deepseek-harness" target="_blank" rel="noopener">https://github.com/deepseek-ai/deepseek-harness</a></li>
           </ul>
         </section>
 
         <section id="coverage" class="doc-section coverage-boundary">
           <h2>Coverage Boundary</h2>
-          <p class="boundary-text">CallLint scans MCP server entries only. Skills, hooks and permission settings in the same file are not covered.</p>
+          <p class="boundary-text">CallLint does not auto-discover DeepSeek Harness configuration. Its MCP servers are plugin instances in cordis.yml rather than an mcpServers map, so no existing extractor reads that shape. This record exists for discovery routing only: DeepSeek is a model vendor here, not a security-relevant distinction.</p>
         </section>
       </article>
 

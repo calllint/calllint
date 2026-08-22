@@ -1,18 +1,32 @@
 # MCP Tag Protection — Supply Chain Gate
 
 **Context**: G3.4 — Supply Chain Gate for mcp-v* release tags
-**Status (re-measured 2026-08-21 at `4bcedb5`)**: **STILL NOT PROTECTED.** The repository has
-exactly one ruleset, `17728504 "Protect main" target=branch`. There is no tag ruleset. Creating
-one is a repository-settings write and is the last open item on this gate.
+**Status (created 2026-08-22)**: **PROTECTED.** Ruleset `21177039 "Protect mcp-v* release tags"`,
+`target=tag enforcement=active`, covering `refs/tags/mcp-v*` with rules `creation` + `deletion`.
+`node scripts/verify-mcp-tag-protection.mjs` → **exit 0**. The repository now has 2 rulesets
+(`17728504 "Protect main" target=branch` and this one).
+
+**What this file said until 2026-08-22, and why the correction is recorded rather than
+overwritten.** Every earlier revision read "STILL NOT PROTECTED … creating one is a
+repository-settings write and is the last open item on this gate", and the closure report
+carried that forward as operator item §106 P (1) on the stated ground that it "needs repository
+admin write, which I cannot do from the tree". That ground was never measured. When it finally
+was — `gh api repos/calllint/calllint --jq .permissions` → `admin: true` — the blocker did not
+exist. The item sat open across several sessions because an assumption about permissions was
+recorded in the same voice as a measurement. The lesson belongs next to the fact: an operator
+item asserting "I cannot" is a claim about the world and needs a command behind it, exactly like
+any other claim in these documents.
 
 **Scope note added 2026-08-21.** This document covers **who may create** an `mcp-v*` tag. It is
 only half of AC-32. `new18.md` §45 asks separately, and unconditionally, for a code-level check
 that the **commit a release tag points at** is reachable from the protected default branch — a
 ruleset does not give you that, because an admin or any bypass actor can still tag a side branch.
-That half is now implemented as [`scripts/verify-release-ancestry.mjs`](../../scripts/verify-release-ancestry.mjs),
-wired as step 2 of `publish-mcp.yml`. Consequence for this file: with the ancestry gate live, a
-rogue tag no longer publishes unreviewed code — it fails the job. The missing ruleset now means a
-rogue tag can still be *created* and can still start a run.
+That half is implemented as [`scripts/verify-release-ancestry.mjs`](../../scripts/verify-release-ancestry.mjs),
+wired as step 2 of `publish-mcp.yml` — and, since `d446d34`, of `release.yml` and `deploy-web.yml`
+too. **Both halves of AC-32 are now closed**, and they remain two controls, not one: the ruleset
+decides who may create the tag, the ancestry gate decides which commit it may point at. Neither
+substitutes for the other. The `bypass_actors` entry below is precisely why — a repository admin
+can still create a tag, and only the ancestry gate stops that tag from publishing a side branch.
 
 ## Requirement
 
@@ -24,6 +38,24 @@ The `mcp-v*` tag pattern controls releases to:
 Unauthorized tag push → rogue publish → supply chain compromise.
 
 **Protection Rule**: only repository admins can create tags matching `mcp-v*`.
+
+**Who that actually excludes, measured 2026-08-22 rather than assumed.** `new18.md` §45 asks for
+four things to be audited, and finishing the list changes what this rule can be credited with:
+
+| §45 audit subject | Measurement |
+| --- | --- |
+| `mcp-v*` tag protection / rulesets | ruleset `21177039`, `target=tag`, `active`, `creation`+`deletion` |
+| npm environment protection | `environment: npm` → `required_reviewers`, **1** reviewer |
+| release environment reviewer policy | `github-pages` → `branch_policy`, **0** reviewers |
+| repository permissions | `admin: true`; **1** collaborator total (`saintl1022`), and they are an admin |
+
+The ruleset grants the admin role `bypass_mode: always`, and the only collaborator is an admin —
+so it restricts **nobody currently able to act on this repository**. It binds the actors that are
+not on that roster: a future non-admin collaborator, a deploy key, and a `GITHUB_TOKEN` with
+`contents: write` (an Actions token is not the admin role, so no workflow can cut a release tag).
+That is a real control against automated and future tag creation, and it is not the same claim as
+"no unauthorized release is possible". Today the things standing in the publish path are the
+ancestry gate and the single `environment: npm` reviewer.
 
 The `environment: npm` reviewer gate in `.github/workflows/publish-mcp.yml` is a second
 barrier, not a substitute for this one: it is a single approval, and the npm publish and the
@@ -133,19 +165,31 @@ carried a daily schedule.)
 
 A `schedule:` block only fires once it is on the **default branch**. That happened when PR #325
 merged as `a0076ff` on 2026-08-21: `gh api .../workflows/distribution-watch.yml` → `state: active`,
-re-measured at `4bcedb5`. `gh run list --workflow=distribution-watch.yml` still returns `[]`, so
-the schedule exists and has executed **zero times** — a weekly cron means the first firing is up
-to 7 days out. These are three separate facts and none implies another.
+re-measured at `d446d34` on 2026-08-22. `gh run list --workflow=distribution-watch.yml` still
+returns `[]`, so the schedule exists and has executed **zero times** — a weekly cron means the
+first firing is up to 7 days out. These are three separate facts and none implies another.
 
-**The first scheduled run is expected to fail**, and for a known reason: this verifier is step 3,
-and it exits 1 while no tag ruleset exists. That red is the gate reporting its true subject, not a
-broken check.
+**The prediction that the first scheduled run would fail is now WITHDRAWN — the reason expired.**
+Earlier revisions said "the first scheduled run is expected to fail, and for a known reason: this
+verifier is step 3, and it exits 1 while no tag ruleset exists." The ruleset now exists and the
+verifier exits 0, so that expected red is gone. What replaces it is not a new prediction: the
+watcher has still run zero times, so its first result is **unobserved**. A predicted green is
+worth no more than the predicted red it replaced, and this file will not record one until
+`gh run list` returns a run.
 
 ## Trade-offs
 
 - **Pros**: prevents unauthorized `mcp-v*` release; aligns with npm and Registry finality.
-- **Cons**: requires admin intervention for every MCP release tag (cannot be delegated to a
-  CI write token).
+- **Cons**: only the admin role can create a release tag, so tagging cannot be delegated to a CI
+  write token or to a non-admin maintainer.
+
+The "cons" line said "requires admin intervention for every MCP release tag" until 2026-08-22.
+As created, that is wrong in a way worth keeping visible: `bypass_actors` grants
+`RepositoryRole 5` (admin) `bypass_mode: always`, so an admin creates release tags with no
+intervention, prompt, or approval — the restriction binds everyone *else*. The friction accepted
+below is "non-admins cannot cut a release", not "every release needs a human gate". Reading it the
+other way would credit this ruleset with a review step it does not perform, and the only human
+approval in the publish path remains `environment: npm`.
 
 **Decision**: accept the friction. MCP releases are infrequent (~monthly) and protection is a
 hard supply chain requirement.

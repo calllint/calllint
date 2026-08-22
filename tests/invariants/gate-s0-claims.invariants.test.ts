@@ -474,10 +474,19 @@ describe("Gate S0 — every number the record states is derived from the file it
     //   (§19/§20/GD-15 — the sitemap, the machine-surface pointers, and the public support
     //   labels had no guard at all) and `pnpm check:security-semantics` (§18 — verifies the
     //   committed zero-diff artifact still agrees with a live measurement).
+    // 25 → 26 in Agent Discovery v2 (new19 Phase 1): `pnpm check:distribution-drift`. Ordered
+    //   BEFORE `check:harness-distribution` and `check:agent-surface` deliberately — both read
+    //   the generated tree, so a stale projection had to be caught before either could pass on
+    //   the wrong bytes. The 25 recorded above stays as the measurement at cd0837c rather than
+    //   being overwritten: two dated figures coexisting is what makes this list a history.
+    // 26 → 27 in Agent Discovery v2 (new19 §19 watcher): `pnpm check:published-schema`. Ordered
+    //   ahead of the drift gate for the same reason one level up — drift compares regenerated
+    //   bytes against disk, and the schema contract ($id, schemaVersion.const,
+    //   additionalProperties: false) decides what those bytes are allowed to be.
     expect(
       steps.length,
-      `S0-OPEN-2's amendment states 25 &&-joined steps; ci:local now has ${steps.length}`,
-    ).toBe(25)
+      `S0-OPEN-2's amendment states 27 &&-joined steps; ci:local now has ${steps.length}`,
+    ).toBe(27)
     // Asserted against the row's LATEST amendment, not the whole row: the 2026-08-09 text says
     // **19** and the first closure says **20**, both left verbatim by this artifact's
     // append-never-edit convention. A `toContain` over the full row would therefore be satisfied by
@@ -485,10 +494,20 @@ describe("Gate S0 — every number the record states is derived from the file it
     // added. Slicing to the last amendment is what keeps the assertion about the CURRENT claim.
     const row2 = row(2)
     const lastAmendment = row2.slice(row2.lastIndexOf("### Amendment"))
+    // Bound to the SENTENCE that makes the measurement, not to the figure appearing anywhere in the
+    // amendment. A negative control (NC-2) proved the looser `toContain("**26**")` form green while
+    // the body claimed **25**: the heading `25 → **26** steps` satisfied it on its own. A heading is
+    // a label, and the reader who needs the live count reads the sentence — so a body that states a
+    // stale figure has to red even though the heading is still correct.
+    const claim = lastAmendment.match(/`ci:local` now has \*\*(\d+)\*\* `&&`-joined steps/)
     expect(
-      lastAmendment,
-      "S0-OPEN-2's newest amendment must state the live step count, since adding a step is what changed it",
-    ).toContain(`**${steps.length}**`)
+      claim?.[1],
+      "S0-OPEN-2's newest amendment must carry the `ci:local` now has **N** `&&`-joined steps sentence",
+    ).not.toBeUndefined()
+    expect(
+      Number(claim?.[1]),
+      "S0-OPEN-2's newest amendment must state the live step count in that sentence, since adding a step is what changed it",
+    ).toBe(steps.length)
     // All four scripts must exist, or S0-OPEN-2's closure describes a gate that is gone. `gate:s0:identity`
     // joined at ADR 0084: a third ENFORCING mode, deliberately absent from `ci:local` and from the `test`
     // matrix because it needs full git history — the assertion above already pins that `ci:local` runs

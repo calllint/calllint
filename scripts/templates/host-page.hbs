@@ -116,6 +116,30 @@
           </ul>
         </section>
 
+        <section id="status" class="doc-section">
+          <h2>Support Status</h2>
+          {{!-- §16 question 5. The badge above states the label; this section states what
+                the label MEANS for a reader's next action, which is the part a badge cannot
+                carry. VISIBLE text is the public label and its hint only — never
+                supportClass. §20 is enforced by check:agent-surface over this page's
+                rendered text, so a token pasted here reds the build. --}}
+          <p>
+            <strong>{{supportLabel}}</strong>{{#if supportLabelHint}} — {{supportLabelHint}}{{/if}}
+          </p>
+          {{#if truthfulCommands}}
+          <p>
+            The commands under <a href="#usage">Usage</a> are the ones CallLint actually
+            supports for {{displayName}} today. Anything not listed there is not claimed.
+          </p>
+          {{else}}
+          <p>
+            CallLint publishes no scan command for {{displayName}} yet. That is a statement
+            about CallLint's coverage, not about {{displayName}}: see
+            <a href="#coverage">Coverage Boundary</a> for what would have to be built first.
+          </p>
+          {{/if}}
+        </section>
+
         <section id="sources" class="doc-section">
           <h2>Official Sources</h2>
           <ul>

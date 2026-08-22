@@ -557,6 +557,103 @@
         }
       ],
       "coverageBoundary": "CallLint does not yet support Kiro native discovery."
+    },
+    {
+      "id": "continue",
+      "displayName": "Continue",
+      "vendor": "Continue",
+      "priority": "P2",
+      "authoritySurfaces": [
+        "mcp",
+        "tools",
+        "vscode-extensions"
+      ],
+      "configEvidence": [
+        "<project>/.continue/mcpServers/*.yaml",
+        "<project>/.continue/mcpServers/*.json",
+        "config.yaml mcpServers block"
+      ],
+      "supportClass": "DISCOVERY_ONLY",
+      "truthfulCommands": [],
+      "canonicalPath": "/harnesses/continue",
+      "officialSources": [
+        "https://docs.continue.dev/customize/deep-dives/mcp",
+        "https://github.com/continuedev/continue"
+      ],
+      "distributionPrimitives": [
+        {
+          "kind": "mcp-stdio",
+          "upstream": "officialMcpRegistry",
+          "state": "AUDIT_REQUIRED",
+          "auditNote": "Vendor docs describe stdio/sse/streamable-http MCP servers with command, args and env fields, which map onto NormalizedMcpServer without new concepts. Registry consumption is a separate fact and is not confirmed by a primary source."
+        }
+      ],
+      "coverageBoundary": "CallLint does not auto-discover Continue configuration. A block file may live in .continue/mcpServers as YAML or as JSON copied from another host, so a deterministic extractor must read both shapes before this page can promise more than where the config lives."
+    },
+    {
+      "id": "roo-code",
+      "displayName": "Roo Code",
+      "vendor": "Roo Code Inc",
+      "priority": "P3",
+      "authoritySurfaces": [
+        "mcp",
+        "tools",
+        "vscode-extensions"
+      ],
+      "configEvidence": [
+        "Config mechanism requires verification"
+      ],
+      "supportClass": "DEFERRED",
+      "truthfulCommands": [],
+      "canonicalPath": "/harnesses/roo-code",
+      "officialSources": [
+        "https://roocode.com",
+        "https://github.com/RooCodeInc/Roo-Code"
+      ],
+      "distributionPrimitives": [
+        {
+          "kind": "mcp-stdio",
+          "upstream": "officialMcpRegistry",
+          "state": "PENDING_UPSTREAM",
+          "auditNote": "The upstream repository (id 881506708) reads archived: true with last push 2026-05-15, while roocode.com still serves. Product continuity is unresolved, so no distribution work is planned against it."
+        }
+      ],
+      "coverageBoundary": "CallLint does not support Roo Code discovery. Its upstream repository is archived, so config evidence was not collected: recording a config path from a possibly-discontinued product would assert a state nobody has verified."
+    },
+    {
+      "id": "deepseek-harness",
+      "displayName": "DeepSeek Harness",
+      "vendor": "DeepSeek",
+      "priority": "P2",
+      "authoritySurfaces": [
+        "mcp",
+        "tools",
+        "plugins"
+      ],
+      "configEvidence": [
+        "cordis.yml @deepseek-ai/dsh-mcp-client plugin instances"
+      ],
+      "supportClass": "DISCOVERY_ONLY",
+      "truthfulCommands": [],
+      "canonicalPath": "/harnesses/deepseek-harness",
+      "officialSources": [
+        "https://deepseek.com/harness",
+        "https://github.com/deepseek-ai/deepseek-harness"
+      ],
+      "distributionPrimitives": [
+        {
+          "kind": "mcp-stdio",
+          "upstream": "officialMcpRegistry",
+          "state": "AUDIT_REQUIRED",
+          "auditNote": "packages/mcp/mcp-client documents one plugin instance per server in cordis.yml with transport, serverName, command, args, env and cwd fields; the stdio form maps onto NormalizedMcpServer. Registry consumption is not confirmed by a primary source."
+        },
+        {
+          "kind": "dsh-plugin",
+          "state": "AUDIT_REQUIRED",
+          "blocker": "The harness is in vendor-declared developer preview with breaking changes expected. Do not build a plugin against an unstable interface for listing eligibility alone."
+        }
+      ],
+      "coverageBoundary": "CallLint does not auto-discover DeepSeek Harness configuration. Its MCP servers are plugin instances in cordis.yml rather than an mcpServers map, so no existing extractor reads that shape. This record exists for discovery routing only: DeepSeek is a model vendor here, not a security-relevant distinction."
     }
   ],
   "modelIntentLandingPages": [
