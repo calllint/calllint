@@ -4,7 +4,7 @@
  * produce it, because an attacker posts directly and never runs that sanitizer.
  */
 import { describe, expect, it } from "vitest"
-import { ALLOWED_EVENTS, FORBIDDEN_FIELDS } from "@calllint/telemetry-contract"
+import { ALLOWED_EVENTS, DISCOVERY_SURFACES, FORBIDDEN_FIELDS } from "@calllint/telemetry-contract"
 import {
   BATCH_SCHEMA,
   MAX_EVENTS_PER_BATCH,
@@ -195,6 +195,9 @@ describe("validateBatch — timestamps and dimensions", () => {
       expect(first?.hostFamily).toBe("")
       expect(first?.inputKind).toBe("")
       expect(first?.productVersion).toBe("")
+      // SQLite treats NULLs as distinct in a PK comparison, so a null here would make
+      // every unattributed row its own key and defeat the counter upsert.
+      expect(first?.discoverySurface).toBe("")
     }
   })
 
@@ -214,6 +217,71 @@ describe("validateBatch — timestamps and dimensions", () => {
       }),
     )
     expect(result.ok).toBe(true)
+  })
+})
+
+/*
+ * ───────────────────────────────────────────────────────────────────────────────────
+ * `discoverySurface` at the trust boundary (new19 §21).
+ * ───────────────────────────────────────────────────────────────────────────────────
+ * The client sanitizer runs on the reporter's machine and an attacker controls it
+ * completely, so these are the only checks that actually hold. The distinguishing
+ * property versus the other dimensions: this one is ENUM-checked, not token-checked,
+ * because its value space is closed and every distinct value is a new PRIMARY KEY in
+ * `usage_daily_counts`.
+ */
+describe("validateBatch — discoverySurface", () => {
+  it("accepts every vocabulary member", () => {
+    for (const surface of DISCOVERY_SURFACES) {
+      const result = validateBatch(batch({ events: [event({ discoverySurface: surface })] }))
+      expect(result.ok, `rejected the legitimate surface "${surface}"`).toBe(true)
+      if (result.ok) expect(result.batch.events[0]?.discoverySurface).toBe(surface)
+    }
+  })
+
+  it.each([
+    ["an off-vocabulary value", "registry"],
+    ["wrong case", "MCP-Registry"],
+    ["a trailing space", "agent-harness "],
+    ["a surface ID rather than a type", "io.github.calllint/calllint"],
+    ["a path", "/Users/alice/project/.cursor/mcp.json"],
+    ["a non-string", { nested: true }],
+    ["an overlong value", "x".repeat(65)],
+  ])("rejects %s", (_label, discoverySurface) =>
+    expectRejected(batch({ events: [event({ discoverySurface })] }), "unknown_discovery_surface"),
+  )
+
+  it("REJECTS a safe token that is not in the vocabulary — this is the row-amplification guard", () => {
+    // `harmless-looking` passes SAFE_TOKEN_PATTERN, so a token-checked dimension would
+    // have accepted it. Accepting arbitrary tokens here would let one 100-event batch
+    // mint 100 distinct primary keys, turning an aggregate table into something close
+    // to a per-event log — which new18 §21 forbids outright.
+    expectRejected(
+      batch({ events: [event({ discoverySurface: "harmless-looking" })] }),
+      "unknown_discovery_surface",
+    )
+  })
+
+  it("treats an absent and an empty value identically, and neither is a rejection", () => {
+    for (const value of [undefined, ""]) {
+      const result = validateBatch(batch({ events: [event({ discoverySurface: value })] }))
+      expect(result.ok).toBe(true)
+      if (result.ok) expect(result.batch.events[0]?.discoverySurface).toBe("")
+    }
+  })
+
+  it("rejects the whole batch when only ONE event carries a bad surface", () => {
+    // All-or-nothing matters here: a partially-accepted batch is acknowledged, the
+    // client clears its queue, and the dropped events vanish with no signal.
+    expectRejected(
+      batch({
+        events: [
+          event({ discoverySurface: "mcp-registry" }),
+          event({ discoverySurface: "not-a-surface" }),
+        ],
+      }),
+      "unknown_discovery_surface",
+    )
   })
 })
 

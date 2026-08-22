@@ -54,6 +54,8 @@ export interface RawEmitInput {
   inputKind?: string
   anonymousInstallationId?: string
   productVersion?: string
+  /** Optional discovery provenance — a surface TYPE from DISCOVERY_SURFACES, never an id. */
+  discoverySurface?: string
   [k: string]: unknown
 }
 

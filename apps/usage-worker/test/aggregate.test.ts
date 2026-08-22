@@ -15,6 +15,7 @@ const ev = (over: Partial<ValidatedEvent> = {}): ValidatedEvent => ({
   hostFamily: "claude-desktop",
   inputKind: "config",
   productVersion: "1.8.0",
+  discoverySurface: "",
   ...over,
 })
 
@@ -44,6 +45,12 @@ describe("aggregate — counts", () => {
     ["hostFamily", { hostFamily: "cursor" }],
     ["inputKind", { inputKind: "inline" }],
     ["productVersion", { productVersion: "1.7.1" }],
+    // new19 §21. This case is the reason `discoverySurface` joined the grouping key
+    // AND the D1 primary key: without it, a run discovered through the MCP registry
+    // and one discovered through a harness would land on the same counter, and the
+    // whole point of the dimension — telling those two apart — would read as a single
+    // undifferentiated number that looks perfectly healthy.
+    ["discoverySurface", { discoverySurface: "mcp-registry" }],
   ])("does not merge rows that differ in %s", (_label, over) => {
     // If the grouping key omitted any stored dimension, two distinct
     // combinations would collapse and the report would understate cardinality.

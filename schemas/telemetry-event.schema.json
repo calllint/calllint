@@ -37,6 +37,17 @@
       "type": "string",
       "pattern": "^cli-anon-[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
     },
-    "productVersion": { "type": "string" }
+    "productVersion": { "type": "string" },
+    "discoverySurface": {
+      "description": "Which KIND of discovery surface a run arrived through. A surface TYPE from agent-discovery-index.json's surfaceTypes, never a surface id: ids like io.github.calllint/calllint are not safe tokens, and 23 ids would make a daily row near-single-install. Optional and additive to `source`, which stays the four-tier gate vocabulary.",
+      "enum": [
+        "agent-harness",
+        "mcp-registry",
+        "marketplace",
+        "documentation",
+        "search-surface",
+        "mirror"
+      ]
+    }
   }
 }

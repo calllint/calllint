@@ -623,6 +623,73 @@ clients (46×`client`, 26×`cursor`, 24×`Claude`), and the directory enumerates
 
 ---
 
+### D13 — `discoverySurface` carries surface **types**, enum-checked at the ingress, conduit-only
+
+§21 asks the usage signal to distinguish *how* a run was discovered. Four decisions, each forced by
+a measurement rather than chosen by taste.
+
+**1. Types, not ids — and not a widened `source`.** The published index carries 23 surface *ids* and
+6 surface *types*. Ids were ruled out twice over: `io.github.calllint/calllint` contains `/`, which
+the ingress's own `SAFE_TOKEN_PATTERN` excludes on purpose so a filesystem path can never be stored
+as a dimension — a vocabulary whose members fail the server's validator is rejected on arrival; and
+23 per-host ids against the existing key dimensions pushes a daily row toward one-install
+granularity, which is what §20's never-persist stance is actually about. Widening `SOURCES` was also
+rejected: `source` (cli/ci/server/install) is wired to the gate defaults in `tiers.ts`, so carrying
+discovery provenance there would have changed *which privacy tier a run is gated under* in order to
+record an analytics fact. `discoverySurface` is therefore additive — a CLI run reached via the
+registry stays `source: "cli"` and gains `discoverySurface: "mcp-registry"`. A test asserts the two
+enums do not overlap, so neither can be passed for the other.
+
+**2. The ingress uses an enum check, not `normalizeDimension`.** Every other dimension is
+open-ended by nature (`hostFamily`, `productVersion`), so a bounded safe token is the strongest
+check available. This one's value space is closed, and every distinct value is a **new PRIMARY KEY**
+in `usage_daily_counts`. A token check would accept `harmless-looking`, and one 100-event batch could
+mint 100 one-count rows — turning an aggregate table into something close to a per-event log. That
+bound is held by a named test (`this is the row-amplification guard`), not by a comment.
+
+**3. Off-vocabulary values are REJECTED, never dropped.** Both the client sanitizer (throws) and the
+ingress (`unknown_discovery_surface`, all-or-nothing for the batch) refuse rather than strip. A
+silently dropped optional dimension is invisible downstream: the counter still increments under a
+narrower key, so a stale or typo'd value reads as *"that surface sent no traffic"* — a number that
+looks healthy and means nothing. Same fault class as a guard that cannot observe its subject.
+
+**4. The denominator is pinned, and it had to move to be pinned legally.** The contract enum must
+equal the published `surfaceTypes`, or a seventh upstream type arrives as off-vocabulary, is rejected
+at the boundary, and the aggregate calmly shows zero for it. The assertion was first written inside
+`packages/telemetry-contract/test/`, where it read `agent-discovery-index.json` — and **D10's §23
+guard caught it**: nothing under `packages/` may name a distribution artifact, because the engine
+lives there. The guard was right, so the test moved to
+`tests/invariants/telemetry-surface-vocabulary.invariants.test.ts` (outside that scan root, this
+repo's established home for cross-boundary invariants). It survives at full strength — both drift
+directions are reported by name — without drilling a hole in a security boundary for convenience.
+This is D10 earning its keep on a change written after it.
+
+**Mutation-tested, not merely green.** Four mutations were each confirmed to red the suite before
+being reverted, since a guard that cannot fail proves nothing: dropping the sanitizer's throw (2
+failures), swapping the ingress enum for a token check (4 failures, including the row-amplification
+guard), removing `discoverySurface` from the aggregate grouping key (1), and adding a 7th type to the
+contract only (2). The relocated invariant was then mutated in both directions independently. The
+three touched sources were sha256-pinned beforehand and verified byte-identical after.
+
+**Incidental finding — `aggregate.ts` was binary to git.** It used two **raw NUL bytes** as key
+separators (pre-existing since `a0076ff`), so `git diff --stat` reported `Bin 2867 -> 2894 bytes,
+0 insertions(+), 0 deletions(-)` and `grep` called it a binary file: diffs on a security-relevant
+source were unreviewable. Rewritten as `\u0000` escapes — byte-identical runtime string, textual
+file. The separator choice itself is sound and was kept.
+
+**No report change was needed** — verified by reading the SQL rather than assuming:
+`generate-usage-report.mjs` does `SUM(count) ... GROUP BY day, event_name`, which is
+dimension-agnostic.
+
+**Conduit-only; §21 stays OPEN.** `migrations/003_add_discovery_surface.sql` is written and
+**not applied** (rebuild-and-copy, because SQLite cannot add a column to an existing PK in place;
+`DEFAULT ''` not NULL, since SQLite compares NULLs as distinct in a PK and would give every
+unattributed row its own key). The Worker is not deployed. Until an operator runs
+`wrangler d1 migrations apply calllint-usage --remote`, no `discoverySurface` is stored anywhere, and
+§21 must not be reported as closed.
+
+---
+
 ## 3. Boundaries this work does not cross
 
 From §2 and §12, verified absent from the plan's change set:
