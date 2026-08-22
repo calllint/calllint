@@ -380,9 +380,14 @@ Reproduce: `pnpm check:agent-surface`
 (a schedule that exists). It is **not** evidence the job passes. Reading `active` as "the monitor
 runs" would repeat, one step removed, the very error corrected below — the first draft read
 `schedule: cron` that way. What changed at merge is that the workflow became *capable* of running;
-whether its four steps go green is unmeasured, and step 3 is `verify-mcp-tag-protection.mjs`,
-which exits 1 today (item 2 of section J). **The first scheduled run is therefore expected to
-fail**, for that reason and no other.
+whether its four steps go green is unmeasured.
+
+An earlier revision of this paragraph predicted that first run **red**, because step 3
+(`verify-mcp-tag-protection.mjs`) exited 1 for want of an `mcp-v*` ruleset. That prediction is
+**withdrawn, not inverted**: the ruleset exists (item 2 of section J), step 3 exits 0, and so the
+*reason* expired rather than reversing. A predicted green is worth exactly what the predicted red
+was worth — `gh run list --workflow=distribution-watch.yml` still returns `[]`, so the correct
+state of that run is **unobserved**, and this report records no colour for it.
 
 `REGISTRY_WATCH` was asserted READY in an earlier draft of this report on the strength of the
 file's `schedule: cron` block. That was the defect this pass was written to catch: the
@@ -983,8 +988,10 @@ exists to name. All three are local changes and need no admin action or deploy.
   wiring it locally would red `ci:local` on any offline machine for a reason no local change
   can clear. It belongs to the watcher, which runs it weekly. The watcher is now on `main` and
   `state: active` (measured 2026-08-21); `gh run list` returns `[]`, because a weekly cron is
-  up to 7 days out — `active` is not evidence it has run. Its first run is expected **red** at
-  the tag-protection step for as long as no `mcp-v*` ruleset exists.
+  up to 7 days out — `active` is not evidence it has run. No colour is predicted for that first
+  run: the "expected **red** at the tag-protection step" note that stood here rested on there
+  being no `mcp-v*` ruleset, and there now is one (item 2 above), so the reason expired rather
+  than reversing. Unobserved is the state, not a colour.
 - **No model × harness pages.** Section E.
 - **No new external submissions.** Section I, GD-09.
 - **Cline PR #49 is not duplicated.**
@@ -1610,21 +1617,24 @@ A topic with no definite state is listed as such rather than being inferred from
 | J | Agent discovery — agent-surfaces, llms, llms-full, well-known, sitemap, drift = 0 | **CLOSED** | all six present; drift gate green; `.well-known/` carries `calllint.json` + `security.txt` |
 | K | Public reality — Team / pricing / free-forever / roadmap removed, governance | **CLOSED** | §K: 0 hits across 45 tool descriptions and 23 public files; the 4 "pricing" hits are third-party registry descriptions |
 | L | Visual — malformed CSS, card alignment, scenarios, **responsive QA** | **CLOSED** | §P: measured over 245 served pages, 676 checks, 244/245 clean at slack 0. The single exception was `/functions/…/dashboard.html` (240px only), deleted 2026-08-20 with the Pages-Functions sources — the served set is now **244 pages with no exception** |
-| M | Continuous watch — schedule, sources, no-change behavior, no spam | **SCHEDULED, NEVER RUN** | §H: weekly `0 9 * * 1`, read-only, 15 hosts / 20 https sources. GitHub reported the workflow 404 on `main` until PR #325 merged as `a0076ff`; re-measured after: `state: active`, so the cron exists. `gh run list` returns `[]` — the first firing is up to 7 days out, and step 3 exits 1 today (§J item 2), so expect it red |
-| N | Tests — targeted, typecheck, test, ci:local | **GREEN** | re-measured 2026-08-21 at the closing pass: **243 files / 4524 passed / 1 skipped**; `ci:local` 25 steps, **exit 0**. (§K records 237 / 4393 at `fda2bd5`; the delta is other work landing on the branch, not this pass) |
+| M | Continuous watch — schedule, sources, no-change behavior, no spam | **SCHEDULED, NEVER RUN** | §H: weekly `0 9 * * 1`, read-only, 15 hosts / 20 https sources. GitHub reported the workflow 404 on `main` until PR #325 merged as `a0076ff`; re-measured after: `state: active`, so the cron exists. `gh run list` returns `[]` — the first firing is up to 7 days out. No colour predicted: the earlier "expect it red" rested on step 3 exiting 1, which it no longer does (§J item 2), and a predicted green is worth what that predicted red was worth |
+| N | Tests — targeted, typecheck, test, ci:local | **GREEN** | re-measured 2026-08-22 at `eabd580`: **245 files / 4540 passed / 1 skipped**, `pnpm test` exit 0; `ci:local` 25 steps, **exit 0**; `pnpm typecheck` exit 0. (Earlier passes recorded 243 / 4524 on 2026-08-21 and 237 / 4393 at `fda2bd5`; each delta is other work landing on the branch, not a change in this pass) |
 | O | External writes — exact list, at or under the maximum, no duplicates | **ONE** | the npm publish of `calllint-mcp@0.2.0`, already reflected in the live Registry. No new external write in this pass |
-| P | Operator actions — only the unavoidable | **TWO** | (1) create the `mcp-v*` tag ruleset — a repository-settings write. Narrowed 2026-08-21: the code-level ancestry half of AC-32 is now enforced in `publish-mcp.yml` step 2 (§H item 10b), so this is the who-may-tag half only; (2) Cloudflare Access + `USAGE_HASH_KEY` + the real `database_id` — needed only to *deploy* the observatory; the artifact-only pipeline in §L′ needs none of them, per [CLOUDFLARE_ACCESS_ACTION.md](CLOUDFLARE_ACCESS_ACTION.md) |
+| P | Operator actions — only the unavoidable | **ONE** | (1) ~~create the `mcp-v*` tag ruleset~~ — **DONE 2026-08-22**, ruleset `21177039`, verifier exit 0 (§H item 10d). It was narrowed on 2026-08-21 when the code-level ancestry half of AC-32 landed in `publish-mcp.yml` step 2 (§H item 10b), leaving the who-may-tag half, and that half is now performed rather than pending; (2) Cloudflare Access + `USAGE_HASH_KEY` + the real `database_id` — needed only to *deploy* the observatory; the artifact-only pipeline in §L′ needs none of them, per [CLOUDFLARE_ACCESS_ACTION.md](CLOUDFLARE_ACCESS_ACTION.md). **This is the sole remaining operator action** |
 
-`OPERATOR_ACTION_REQUIRED = 2`, both in the unavoidable categories §106 P allows (protected GitHub
-ruleset; credential/environment setting). Neither is in the working tree, and neither blocks the
-distribution closure this report covers.
+`OPERATOR_ACTION_REQUIRED = 1` — the credential/environment setting of §106 P. It was **2** until
+2026-08-22, when the `mcp-v*` tag ruleset was created rather than prepared; the protected-GitHub-
+ruleset category is now empty. The remaining one is in the unavoidable category §106 P allows,
+is not in the working tree, and does not block the distribution closure this report covers.
 
 Against §107's vocabulary, and claiming no state the evidence above does not carry:
 
 ```
 SECURITY_SEMANTICS            = UNCHANGED
 PUBLIC_WEBSITE_REALITY        = CLOSED
-WEBSITE_VISUAL_SYSTEM         = CLOSED          (245 pages rendered, 676 checks, 1 exception)
+WEBSITE_VISUAL_SYSTEM         = CLOSED          (audited over 245 pages / 676 checks, 1 exception;
+                                                 that page was then deleted — the served set now
+                                                 measures 244 .html files with no exception)
 PRIVATE_USAGE_OBSERVATORY     = READY_NOT_DEPLOYED (Worker unpublished; placeholder database_id)
 PUBLIC_ADOPTION_SIGNALS       = DEFERRED
 GLOBAL_DISTRIBUTION_AUTHORITY = READY
@@ -1650,9 +1660,10 @@ edit, exactly as this paragraph predicted before the fact. The workflow is corre
 `0 9 * * 1`, read-only, 15 hosts and 21 https sources, and it drift-gates the two new §104/§105
 matrices), and `gh api` now reports `state: active` where it reported **404 on the default branch**
 on 2026-08-20. The claim is `READY` in the §107 sense — a schedule that exists — and deliberately
-not stronger: `gh run list` returns `[]`, so the job has never executed, and step 3
-(`verify-mcp-tag-protection.mjs`) exits 1 today, so its first run should be expected to fail. That
-is item 2 of §J, not a defect in the watcher.
+not stronger: `gh run list` returns `[]`, so the job has never executed. Its first run carries no
+predicted colour — the earlier "expected to fail" rested on step 3 (`verify-mcp-tag-protection.mjs`)
+exiting 1, and it now exits 0 (§J item 2), so that prediction is **withdrawn rather than inverted**.
+That is item 2 of §J, not a defect in the watcher.
 
 **This correction is itself an instance of the class.** The sentences above previously asserted a
 404 that the merge had already falsified. A report on `main` describing a state its own subject no
@@ -1674,7 +1685,8 @@ unpublished, its `wrangler.toml` carries a placeholder `database_id`, and §29 k
 artifact until an operator verifies Cloudflare Access. Neither the operator action nor the
 deployment is something this repository can perform.
 
-Both remaining operator actions are unchanged in kind: `OPERATOR_ACTION_REQUIRED` is still 2.
+The one remaining operator action is unchanged in kind: `OPERATOR_ACTION_REQUIRED` is **1**, down
+from 2 on 2026-08-22 because the tag ruleset was created rather than merely prepared.
 
 `WEBSITE_VISUAL_SYSTEM` moved from `PARTIAL` to `CLOSED` in this pass, and the earlier `PARTIAL`
 is worth keeping visible rather than editing away: its stated evidence counted media blocks in
