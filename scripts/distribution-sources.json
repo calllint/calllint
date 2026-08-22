@@ -163,6 +163,39 @@
         "https://kiro.dev/docs/mcp/configuration/",
         "https://github.com/kirodotdev/Kiro"
       ]
+    },
+    {
+      "hostId": "continue",
+      "displayName": "Continue",
+      "vendor": "Continue",
+      "supportClass": "DISCOVERY_ONLY",
+      "watchFor": "supportClass, truthfulCommands, configEvidence, distributionPrimitives",
+      "primarySources": [
+        "https://docs.continue.dev/customize/deep-dives/mcp",
+        "https://github.com/continuedev/continue"
+      ]
+    },
+    {
+      "hostId": "roo-code",
+      "displayName": "Roo Code",
+      "vendor": "Roo Code Inc",
+      "supportClass": "DEFERRED",
+      "watchFor": "supportClass, truthfulCommands, configEvidence, distributionPrimitives",
+      "primarySources": [
+        "https://roocode.com",
+        "https://github.com/RooCodeInc/Roo-Code"
+      ]
+    },
+    {
+      "hostId": "deepseek-harness",
+      "displayName": "DeepSeek Harness",
+      "vendor": "DeepSeek",
+      "supportClass": "DISCOVERY_ONLY",
+      "watchFor": "supportClass, truthfulCommands, configEvidence, distributionPrimitives",
+      "primarySources": [
+        "https://deepseek.com/harness",
+        "https://github.com/deepseek-ai/deepseek-harness"
+      ]
     }
   ],
   "candidateFeeds": [

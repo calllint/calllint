@@ -1,0 +1,214 @@
+{
+  "$schema": "https://calllint.com/schemas/agent-discovery-index.v1.json",
+  "schemaVersion": "agent.discovery.v1",
+  "describes": {
+    "release": "1.8.0"
+  },
+  "surfaceTypes": [
+    "agent-harness",
+    "mcp-registry",
+    "marketplace",
+    "documentation",
+    "search-surface",
+    "mirror"
+  ],
+  "counts": {
+    "total": 21,
+    "byType": {
+      "agent-harness": 18,
+      "mcp-registry": 1,
+      "marketplace": 0,
+      "documentation": 1,
+      "search-surface": 1,
+      "mirror": 0
+    }
+  },
+  "surfaces": [
+    {
+      "id": "claude-code",
+      "type": "agent-harness",
+      "displayName": "Claude Code",
+      "vendor": "Anthropic",
+      "status": "Auto-detects",
+      "supportClass": "NATIVE",
+      "canonicalUrl": "https://calllint.com/harnesses/claude-code"
+    },
+    {
+      "id": "claude-desktop",
+      "type": "agent-harness",
+      "displayName": "Claude Desktop",
+      "vendor": "Anthropic",
+      "status": "Auto-detects",
+      "supportClass": "NATIVE",
+      "canonicalUrl": "https://calllint.com/harnesses/claude-desktop"
+    },
+    {
+      "id": "cursor",
+      "type": "agent-harness",
+      "displayName": "Cursor",
+      "vendor": "Anysphere",
+      "status": "Auto-detects",
+      "supportClass": "NATIVE",
+      "canonicalUrl": "https://calllint.com/harnesses/cursor"
+    },
+    {
+      "id": "vscode",
+      "type": "agent-harness",
+      "displayName": "VS Code",
+      "vendor": "Microsoft",
+      "status": "Auto-detects",
+      "supportClass": "NATIVE",
+      "canonicalUrl": "https://calllint.com/harnesses/vscode"
+    },
+    {
+      "id": "windsurf",
+      "type": "agent-harness",
+      "displayName": "Windsurf",
+      "vendor": "Codeium",
+      "status": "Auto-detects",
+      "supportClass": "NATIVE",
+      "canonicalUrl": "https://calllint.com/harnesses/windsurf"
+    },
+    {
+      "id": "workbuddy",
+      "type": "agent-harness",
+      "displayName": "WorkBuddy",
+      "vendor": "Tencent Cloud",
+      "status": "Auto-detects",
+      "supportClass": "NATIVE",
+      "canonicalUrl": "https://calllint.com/harnesses/workbuddy"
+    },
+    {
+      "id": "qwen-code",
+      "type": "agent-harness",
+      "displayName": "Qwen Code",
+      "vendor": "Alibaba Cloud",
+      "status": "Auto-detects",
+      "supportClass": "NATIVE",
+      "canonicalUrl": "https://calllint.com/harnesses/qwen-code"
+    },
+    {
+      "id": "openclaw",
+      "type": "agent-harness",
+      "displayName": "OpenClaw",
+      "vendor": "Open Source",
+      "status": "Auto-detects",
+      "supportClass": "NATIVE",
+      "canonicalUrl": "https://calllint.com/harnesses/openclaw"
+    },
+    {
+      "id": "codex",
+      "type": "agent-harness",
+      "displayName": "OpenAI Codex",
+      "vendor": "OpenAI",
+      "status": "Guide only",
+      "supportClass": "DISCOVERY_ONLY",
+      "canonicalUrl": "https://calllint.com/harnesses/codex"
+    },
+    {
+      "id": "copilot-cli",
+      "type": "agent-harness",
+      "displayName": "GitHub Copilot CLI",
+      "vendor": "GitHub",
+      "status": "Guide only",
+      "supportClass": "DISCOVERY_ONLY",
+      "canonicalUrl": "https://calllint.com/harnesses/copilot-cli"
+    },
+    {
+      "id": "cline",
+      "type": "agent-harness",
+      "displayName": "Cline",
+      "vendor": "Open Source",
+      "status": "Guide only",
+      "supportClass": "DISCOVERY_ONLY",
+      "canonicalUrl": "https://calllint.com/harnesses/cline"
+    },
+    {
+      "id": "gemini-cli",
+      "type": "agent-harness",
+      "displayName": "Gemini CLI",
+      "vendor": "Google",
+      "status": "Guide only",
+      "supportClass": "DEFERRED",
+      "canonicalUrl": "https://calllint.com/harnesses/gemini-cli"
+    },
+    {
+      "id": "codebuddy",
+      "type": "agent-harness",
+      "displayName": "CodeBuddy",
+      "vendor": "Tencent",
+      "status": "Guide only",
+      "supportClass": "DEFERRED",
+      "canonicalUrl": "https://calllint.com/harnesses/codebuddy"
+    },
+    {
+      "id": "opencode",
+      "type": "agent-harness",
+      "displayName": "OpenCode",
+      "vendor": "Open Source",
+      "status": "Scan config",
+      "supportClass": "CONFIG_SCAN",
+      "canonicalUrl": "https://calllint.com/harnesses/opencode"
+    },
+    {
+      "id": "kiro",
+      "type": "agent-harness",
+      "displayName": "Kiro",
+      "vendor": "AWS",
+      "status": "Guide only",
+      "supportClass": "DEFERRED",
+      "canonicalUrl": "https://calllint.com/harnesses/kiro"
+    },
+    {
+      "id": "continue",
+      "type": "agent-harness",
+      "displayName": "Continue",
+      "vendor": "Continue",
+      "status": "Guide only",
+      "supportClass": "DISCOVERY_ONLY",
+      "canonicalUrl": "https://calllint.com/harnesses/continue"
+    },
+    {
+      "id": "roo-code",
+      "type": "agent-harness",
+      "displayName": "Roo Code",
+      "vendor": "Roo Code Inc",
+      "status": "Guide only",
+      "supportClass": "DEFERRED",
+      "canonicalUrl": "https://calllint.com/harnesses/roo-code"
+    },
+    {
+      "id": "deepseek-harness",
+      "type": "agent-harness",
+      "displayName": "DeepSeek Harness",
+      "vendor": "DeepSeek",
+      "status": "Guide only",
+      "supportClass": "DISCOVERY_ONLY",
+      "canonicalUrl": "https://calllint.com/harnesses/deepseek-harness"
+    },
+    {
+      "id": "io.github.calllint/calllint",
+      "type": "mcp-registry",
+      "displayName": "io.github.calllint/calllint",
+      "vendor": "Model Context Protocol",
+      "status": "LIVE",
+      "canonicalUrl": "https://registry.modelcontextprotocol.io/?q=calllint"
+    },
+    {
+      "id": "deepseek-hub",
+      "type": "documentation",
+      "displayName": "DeepSeek with Agent Hosts",
+      "vendor": "CallLint",
+      "status": "Guide only",
+      "canonicalUrl": "https://calllint.com/harnesses/deepseek/"
+    },
+    {
+      "id": "deepseek-curated-agents",
+      "type": "search-surface",
+      "displayName": "DeepSeek official curated agent lists",
+      "vendor": "DeepSeek",
+      "status": "NEW_CANDIDATE_FEED_ONLY",
+      "canonicalUrl": "https://github.com/deepseek-ai/awesome-deepseek-agent"
+    }
+  ]
+}

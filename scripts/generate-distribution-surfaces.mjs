@@ -7,14 +7,73 @@
  * This generator is idempotent: re-run produces identical output.
  */
 
-import { readFileSync, writeFileSync, mkdirSync } from 'node:fs'
+import { readFileSync, writeFileSync, mkdirSync, existsSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
-import { dirname, join } from 'node:path'
+import { dirname, join, relative } from 'node:path'
 import Handlebars from 'handlebars'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
 const ROOT = join(__dirname, '..')
+
+/*
+ * Two modes, ONE code path. `--check` must not be a second pipeline that merely resembles
+ * the first: if it computed its expected bytes differently, a green would mean "the two
+ * generators agree", not "the tree is current".
+ *
+ * So every write goes through `emit()`. In write mode it hits the disk; in check mode it
+ * compares bytes and records drift. Nothing else differs — same templates, same order,
+ * same content strings.
+ *
+ * The one hazard is read-back: generateDistributionMatrix() reads the agent-surfaces.json
+ * that an earlier step wrote. In check mode that file is never written, so a naive read
+ * would measure the STALE on-disk cohort and the matrix comparison would be built on an
+ * input the write mode never used. `readBack()` serves emitted content from memory first,
+ * which keeps the two modes byte-identical by construction.
+ */
+const CHECK_MODE = process.argv.includes('--check')
+const emitted = new Map()
+const drift = []
+
+function emit(outPath, content) {
+  const bytes = Buffer.from(content, 'utf8')
+  emitted.set(outPath, content)
+
+  if (!CHECK_MODE) {
+    mkdirSync(dirname(outPath), { recursive: true })
+    writeFileSync(outPath, bytes)
+    return
+  }
+
+  const rel = relative(ROOT, outPath).replace(/\\/g, '/')
+  if (!existsSync(outPath)) {
+    drift.push({ rel, reason: 'absent from the working tree' })
+    return
+  }
+  const actual = readFileSync(outPath)
+  if (Buffer.compare(actual, bytes) !== 0) {
+    drift.push({
+      rel,
+      reason: `differs from the SSOT projection (${actual.length} bytes on disk, ${bytes.length} expected)`,
+    })
+  }
+}
+
+/* Read a path this generator emits, preferring the in-memory projection. See emit(). */
+function readBack(outPath) {
+  if (emitted.has(outPath)) return emitted.get(outPath)
+  return readFileSync(outPath, 'utf8')
+}
+
+/*
+ * The eleven fixed projections, i.e. every emit() target that is not a per-host page:
+ * harnesses/index.html, agent-surfaces.json, agent-discovery-index.json,
+ * harnesses/sitemap.xml, _redirects, llms.txt, llms-full.txt, agent-instructions.md,
+ * scripts/distribution-sources.json and the two matrices. Derived, not guessed: `--check`'s
+ * anti-vacuity floor is `hosts.length + FIXED_PROJECTION_COUNT`, so adding a host raises the
+ * floor automatically and a dropped write site cannot hide inside a hardcoded total.
+ */
+const FIXED_PROJECTION_COUNT = 11
 
 // Load SSOT
 const SSOT_PATH = join(ROOT, 'apps/web/data/distribution-surfaces.json')
@@ -210,13 +269,12 @@ function generateHostPages() {
 
   for (const host of ssot.hosts) {
     const hostDir = join(outputDir, host.id)
-    mkdirSync(hostDir, { recursive: true })
 
     const { label: supportLabel, hint: supportLabelHint } = publicSupport(host.supportClass)
     const html = hostPageTemplate({ ...host, supportLabel, supportLabelHint })
     const outPath = join(hostDir, 'index.html')
 
-    writeFileSync(outPath, html, 'utf8')
+    emit(outPath, html)
     generated.push(host.id)
     console.log(`✅ Generated: /harnesses/${host.id}/index.html`)
   }
@@ -371,7 +429,7 @@ ${(() => {
 `
 
   const outPath = join(ROOT, 'apps/web/public/harnesses/index.html')
-  writeFileSync(outPath, hubHtml, 'utf8')
+  emit(outPath, hubHtml)
   console.log(`✅ Generated: /harnesses/index.html`)
 }
 
@@ -474,7 +532,7 @@ function generateDistributionSources() {
   }
 
   const outPath = join(__dirname, 'distribution-sources.json')
-  writeFileSync(outPath, JSON.stringify(doc, null, 2) + '\n', 'utf8')
+  emit(outPath, JSON.stringify(doc, null, 2) + '\n')
   console.log(
     `✅ Generated distribution-sources.json (${sources.length} hosts, ` +
       `${doc.candidateFeeds.length} candidate feed(s), ${seen.size} primary sources)`,
@@ -529,8 +587,112 @@ function generateAgentSurfaces() {
   }
 
   const outPath = join(ROOT, 'apps/web/public/agent-surfaces.json')
-  writeFileSync(outPath, JSON.stringify(agentSurfaces, null, 2) + '\n', 'utf8')
+  emit(outPath, JSON.stringify(agentSurfaces, null, 2) + '\n')
   console.log(`✅ Generated agent-surfaces.json (${agentSurfaces.agents.length} agents)`)
+}
+
+/*
+ * §6's surface `type` is DERIVED FROM CONTAINER MEMBERSHIP, never hand-written.
+ *
+ * A per-record `type` field would be a second place to state something the SSOT's own shape
+ * already fixes: a record under `hosts[]` IS an agent harness. Two writers, one fact — and
+ * the hand-written one would be the wrong one on the first copy-paste.
+ *
+ * `marketplace` and `mirror` stay in the vocabulary with zero members. That is a truthful
+ * empty set, not an omission: CallLint distributes through no marketplace and operates no
+ * mirror today, and a vocabulary that cannot express the absence cannot record its arrival.
+ */
+const SURFACE_TYPE_BY_CONTAINER = {
+  hosts: 'agent-harness',
+  officialMcpRegistry: 'mcp-registry',
+  modelIntentLandingPages: 'documentation',
+  candidateFeeds: 'search-surface',
+}
+
+/**
+ * Generate apps/web/public/agent-discovery-index.json (§1/§4 discovery root)
+ *
+ * §4's example names `distribution/agent-discovery-index.json`. This writes it under
+ * `apps/web/public/` instead — a DELIBERATE, FLAGGED deviation recorded as D6 in
+ * artifacts/agent-discovery-v2/REALITY_AUDIT.md: only `apps/web/public/` is served, and an
+ * index no agent can fetch defeats §1's stated purpose. One-line reversal if §4's literal
+ * path is later required.
+ */
+function generateAgentDiscoveryIndex() {
+  const surfaces = []
+
+  for (const host of ssot.hosts) {
+    surfaces.push({
+      id: host.id,
+      type: SURFACE_TYPE_BY_CONTAINER.hosts,
+      displayName: host.displayName,
+      vendor: host.vendor,
+      /* §20: the human-facing STATUS is the public label. The internal enum travels in
+       * `supportClass` for agents that want the contract, exactly as agent-surfaces.json
+       * does — but `status` must never be the token, because this file is also read by
+       * humans and quoted into docs. */
+      status: publicSupport(host.supportClass).label,
+      supportClass: host.supportClass,
+      canonicalUrl: `https://calllint.com${host.canonicalPath}`,
+    })
+  }
+
+  surfaces.push({
+    id: ssot.officialMcpRegistry.name,
+    type: SURFACE_TYPE_BY_CONTAINER.officialMcpRegistry,
+    displayName: ssot.officialMcpRegistry.name,
+    vendor: 'Model Context Protocol',
+    status: ssot.officialMcpRegistry.state,
+    canonicalUrl: ssot.officialMcpRegistry.registryUrl,
+  })
+
+  for (const page of ssot.modelIntentLandingPages ?? []) {
+    surfaces.push({
+      id: page.id,
+      type: SURFACE_TYPE_BY_CONTAINER.modelIntentLandingPages,
+      displayName: page.displayName,
+      vendor: 'CallLint',
+      status: 'Guide only',
+      canonicalUrl: `https://calllint.com${page.path}`,
+    })
+  }
+
+  for (const feed of ssot.candidateFeeds ?? []) {
+    surfaces.push({
+      id: feed.id,
+      type: SURFACE_TYPE_BY_CONTAINER.candidateFeeds,
+      displayName: feed.displayName,
+      vendor: feed.vendor,
+      /* §86: a feed may never promote a host or claim support. Its role IS its status. */
+      status: feed.role,
+      canonicalUrl: feed.officialSources[0],
+    })
+  }
+
+  const index = {
+    $schema: 'https://calllint.com/schemas/agent-discovery-index.v1.json',
+    schemaVersion: 'agent.discovery.v1',
+    /* Same no-wall-clock rule as agent-surfaces.json: a timestamp would make every run a
+     * diff and destroy `--check`'s ability to mean anything. */
+    describes: { release: STABLE_VERSION },
+    surfaceTypes: ['agent-harness', 'mcp-registry', 'marketplace', 'documentation', 'search-surface', 'mirror'],
+    counts: {
+      total: surfaces.length,
+      byType: Object.fromEntries(
+        ['agent-harness', 'mcp-registry', 'marketplace', 'documentation', 'search-surface', 'mirror'].map(
+          (t) => [t, surfaces.filter((s) => s.type === t).length],
+        ),
+      ),
+    },
+    surfaces,
+  }
+
+  const outPath = join(ROOT, 'apps/web/public/agent-discovery-index.json')
+  emit(outPath, JSON.stringify(index, null, 2) + '\n')
+  console.log(
+    `✅ Generated agent-discovery-index.json (${surfaces.length} surfaces across ` +
+      `${Object.values(index.counts.byType).filter((n) => n > 0).length} populated type(s))`,
+  )
 }
 
 /**
@@ -581,7 +743,7 @@ ${urls
 `
 
   const outPath = join(ROOT, 'apps/web/public/harnesses/sitemap.xml')
-  writeFileSync(outPath, xml, 'utf8')
+  emit(outPath, xml)
   console.log(`✅ Generated harnesses/sitemap.xml (${urls.length} URLs)`)
 }
 
@@ -664,7 +826,7 @@ ${body}
 `
 
   const outPath = join(ROOT, 'apps/web/public/_redirects')
-  writeFileSync(outPath, content, 'utf8')
+  emit(outPath, content)
   console.log(`✅ Generated _redirects (${rules.length} legacy URLs → canonical)`)
 }
 
@@ -774,7 +936,7 @@ calllint scan --auto --json
 `
 
   const outPath = join(ROOT, 'apps/web/public/llms.txt')
-  writeFileSync(outPath, content, 'utf8')
+  emit(outPath, content)
   console.log('✅ Generated llms.txt')
 }
 
@@ -931,7 +1093,7 @@ invoke it with filesystem access, shell commands, network calls, or API tokens.
 `
 
   const outPath = join(ROOT, 'apps/web/public/llms-full.txt')
-  writeFileSync(outPath, content, 'utf8')
+  emit(outPath, content)
   console.log('✅ Generated llms-full.txt')
 }
 
@@ -1025,7 +1187,7 @@ An agent should read that file rather than parsing \`/harnesses/\` HTML.
 `
 
   const outPath = join(ROOT, 'apps/web/public/agent-instructions.md')
-  writeFileSync(outPath, content, 'utf8')
+  emit(outPath, content)
   console.log('✅ Generated agent-instructions.md')
 }
 
@@ -1093,10 +1255,12 @@ function generateDistributionMatrix() {
   const esc = (s) => String(s).replace(/\|/g, '\\|')
 
   /* Read back the machine surface this generator just wrote, rather than assuming the
-   * cohort. If agent-surfaces.json ever stops carrying a host, this column says so. */
+   * cohort. If agent-surfaces.json ever stops carrying a host, this column says so.
+   * readBack() prefers the in-memory projection so `--check` measures the same input the
+   * write mode used, not the stale copy on disk. */
   const machinePath = join(ROOT, 'apps/web/public/agent-surfaces.json')
   const machineIds = new Set(
-    JSON.parse(readFileSync(machinePath, 'utf8')).agents.map((a) => a.id),
+    JSON.parse(readBack(machinePath)).agents.map((a) => a.id),
   )
 
   const rows = ssot.hosts.map((host) => {
@@ -1201,8 +1365,7 @@ function generateDistributionMatrix() {
   ].join('\n')
 
   const matrixPath = join(ROOT, 'artifacts/authority-distribution-closure/FINAL_PLATFORM_MATRIX.md')
-  mkdirSync(dirname(matrixPath), { recursive: true })
-  writeFileSync(matrixPath, matrix + '\n', 'utf8')
+  emit(matrixPath, matrix + '\n')
   console.log(`✅ Generated FINAL_PLATFORM_MATRIX.md (${rows.length} hosts × ${HEAD.length} columns)`)
 
   /* ---------- §104 EXTERNAL CURRENT-FACT EVIDENCE ---------- */
@@ -1297,12 +1460,16 @@ function generateDistributionMatrix() {
     ROOT,
     'artifacts/authority-distribution-closure/EXTERNAL_DISTRIBUTION_MATRIX.md',
   )
-  writeFileSync(extPath, external + '\n', 'utf8')
+  emit(extPath, external + '\n')
   console.log(`✅ Generated EXTERNAL_DISTRIBUTION_MATRIX.md (${extRows.length} external claims)`)
 }
 
 function main() {
-  console.log('🚀 Generating distribution surface projections...\n')
+  console.log(
+    CHECK_MODE
+      ? '🔍 Checking distribution surface projections against the SSOT...\n'
+      : '🚀 Generating distribution surface projections...\n',
+  )
 
   // G4.1-G4.2: Generate all host pages
   console.log('\n📄 Generating host pages...')
@@ -1315,6 +1482,7 @@ function main() {
   // G5: Machine-readable surfaces
   console.log('\n📄 Generating machine-readable surfaces...')
   generateAgentSurfaces()
+  generateAgentDiscoveryIndex()
   generateSitemap()
   generateRedirects()
   generateLlmsTxt()
@@ -1326,6 +1494,39 @@ function main() {
    * machine-readable-presence column, so it must run after that file exists. */
   console.log('\n📄 Generating §104/§105 matrices...')
   generateDistributionMatrix()
+
+  if (CHECK_MODE) {
+    /*
+     * Anti-vacuity premise. A checker that compared zero files would print this same
+     * "no drift" line, so the count is asserted BEFORE the verdict: if a refactor ever
+     * stops routing writes through emit(), this reds instead of going quietly green.
+     */
+    const EXPECTED_EMIT_FLOOR = ssot.hosts.length + FIXED_PROJECTION_COUNT
+    if (emitted.size < EXPECTED_EMIT_FLOOR) {
+      console.error(
+        `\n❌ only ${emitted.size} projection(s) were compared, below the floor of ` +
+          `${EXPECTED_EMIT_FLOOR} (${ssot.hosts.length} host pages + ${FIXED_PROJECTION_COUNT} ` +
+          `fixed surfaces). A write site is bypassing emit(), so this check cannot see the ` +
+          `whole tree — treat its result as meaningless until fixed.`,
+      )
+      process.exit(2)
+    }
+
+    console.log(`\n🔍 Compared ${emitted.size} projection(s) against the working tree.`)
+
+    if (drift.length > 0) {
+      console.error(`\n❌ ${drift.length} generated file(s) drifted from the SSOT:\n`)
+      for (const d of drift) console.error(`   - ${d.rel}: ${d.reason}`)
+      console.error(
+        '\nThe working tree is not the projection of apps/web/data/distribution-surfaces.json.',
+      )
+      console.error('Run `pnpm gen:distribution` and commit the result.')
+      process.exit(1)
+    }
+
+    console.log('✅ every generated surface matches the SSOT projection byte-for-byte')
+    return
+  }
 
   console.log('\n✨ Generation complete!')
   console.log('\nGenerated:')

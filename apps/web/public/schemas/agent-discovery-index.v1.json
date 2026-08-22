@@ -1,0 +1,112 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://calllint.com/schemas/agent-discovery-index.v1.json",
+  "title": "CallLint agent discovery index (v1)",
+  "description": "The single entry point an agent fetches to enumerate every distribution surface CallLint tracks. Generated from apps/web/data/distribution-surfaces.json by scripts/generate-distribution-surfaces.mjs; never hand-edited.\n\nEach surface's `type` is DERIVED from which SSOT container holds the record, so it cannot disagree with the SSOT's own shape. `status` is the human-facing public label; the internal support enum travels separately in `supportClass` and only for records that have one.\n\nThis surface carries distribution facts only. It deliberately contains no risk, popularity, demand or SEO score: distribution channel is orthogonal to a security verdict, and a consumer must not be able to derive a verdict from where a server was found.",
+  "type": "object",
+  "required": ["schemaVersion", "describes", "surfaceTypes", "counts", "surfaces"],
+  "additionalProperties": false,
+  "properties": {
+    "$schema": { "type": "string", "format": "uri" },
+    "schemaVersion": {
+      "type": "string",
+      "const": "agent.discovery.v1",
+      "description": "Contract identifier. Distinct from the Safe-install bake's `calllint.discovery.v1` in .well-known/calllint.json, which is a different document with a different owner — do not merge the two."
+    },
+    "describes": {
+      "type": "object",
+      "description": "What release this index describes. Deliberately not a wall-clock stamp — a timestamp makes every generator run produce a diff even when no fact changed, which would destroy `--check`'s ability to distinguish drift from noise.",
+      "required": ["release"],
+      "additionalProperties": false,
+      "properties": {
+        "release": { "type": "string", "minLength": 1 }
+      }
+    },
+    "surfaceTypes": {
+      "type": "array",
+      "description": "The closed §6 vocabulary, published so a consumer can tell an unpopulated type from an unknown one. `marketplace` and `mirror` are expected to have zero members today: CallLint distributes through no marketplace and operates no mirror. A truthful empty set, not an omission.",
+      "minItems": 6,
+      "maxItems": 6,
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "enum": [
+          "agent-harness",
+          "mcp-registry",
+          "marketplace",
+          "documentation",
+          "search-surface",
+          "mirror"
+        ]
+      }
+    },
+    "counts": {
+      "type": "object",
+      "description": "Denominators, published so a consumer that reads zero surfaces can tell an empty index from a failed fetch.",
+      "required": ["total", "byType"],
+      "additionalProperties": false,
+      "properties": {
+        "total": { "type": "integer", "minimum": 1 },
+        "byType": {
+          "type": "object",
+          "required": [
+            "agent-harness",
+            "mcp-registry",
+            "marketplace",
+            "documentation",
+            "search-surface",
+            "mirror"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "agent-harness": { "type": "integer", "minimum": 0 },
+            "mcp-registry": { "type": "integer", "minimum": 0 },
+            "marketplace": { "type": "integer", "minimum": 0 },
+            "documentation": { "type": "integer", "minimum": 0 },
+            "search-surface": { "type": "integer", "minimum": 0 },
+            "mirror": { "type": "integer", "minimum": 0 }
+          }
+        }
+      }
+    },
+    "surfaces": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/definitions/surface" }
+    }
+  },
+  "definitions": {
+    "surface": {
+      "type": "object",
+      "required": ["id", "type", "displayName", "vendor", "status", "canonicalUrl"],
+      "additionalProperties": false,
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "type": {
+          "type": "string",
+          "enum": [
+            "agent-harness",
+            "mcp-registry",
+            "marketplace",
+            "documentation",
+            "search-surface",
+            "mirror"
+          ]
+        },
+        "displayName": { "type": "string", "minLength": 1 },
+        "vendor": { "type": "string", "minLength": 1 },
+        "status": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Human-facing state. For an agent-harness this is the public support label (Auto-detects / Scan config / Guide only) and never the internal enum, which §20 keeps off human-readable surfaces. For a registry it is the listing state; for a candidate feed it is the feed's role, since §86 forbids a feed from implying support."
+        },
+        "supportClass": {
+          "type": "string",
+          "enum": ["NATIVE", "CONFIG_SCAN", "DISCOVERY_ONLY", "DEFERRED"],
+          "description": "The internal support ontology, present only on records that have one (today: agent-harness). An agent consuming a contract wants the enum; the four classes ARE the contract."
+        },
+        "canonicalUrl": { "type": "string", "format": "uri", "minLength": 1 }
+      }
+    }
+  }
+}

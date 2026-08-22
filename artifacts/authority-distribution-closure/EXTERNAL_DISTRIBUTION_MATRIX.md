@@ -17,9 +17,9 @@ anything in this repository changing. That is why `distribution-watch.yml` fetch
 `checked-at` date below is the date of the SSOT edit that recorded the fact rather than the
 date this file was generated.
 
-Release 1.8.0. 27 claims across 15 hosts.
+Release 1.8.0. 31 claims across 18 hosts.
 
-**5 of 27 claims carry no recorded conclusion.** Those rows say so explicitly rather than restating the state column back at you. They are the honest residue of §104: the state is asserted from the primary source, but no one has yet written down what the source said. Adding an `auditNote` to the primitive in the SSOT closes a row; editing this file does not.
+**5 of 31 claims carry no recorded conclusion.** Those rows say so explicitly rather than restating the state column back at you. They are the honest residue of §104: the state is asserted from the primary source, but no one has yet written down what the source said. Adding an `auditNote` to the primitive in the SSOT closes a row; editing this file does not.
 
 | platform | primitive | state | primary source | checked-at | factual conclusion |
 | --- | --- | --- | --- | --- | --- |
@@ -50,6 +50,10 @@ Release 1.8.0. 27 claims across 15 hosts.
 | OpenCode | `mcp-stdio` | AUDIT_REQUIRED | https://github.com/opencode/opencode | 2026-08-19 | Open source project, Registry consumption not verified |
 | Kiro | `mcp-stdio` | AUDIT_REQUIRED | https://kiro.dev/docs/mcp/configuration/ | 2026-08-19 | Kiro documents stdio MCP support and an mcpServers config key, but consumption of the Official MCP Registry is not confirmed by a primary source. Supporting MCP is not the same fact as consuming the Registry. |
 | Kiro | `kiro-workspace-config` | AUDIT_REQUIRED | https://kiro.dev/docs/mcp/configuration/ | 2026-08-19 | Config paths are now documented by the vendor; a thin adapter for the mcpServers JSON is evaluable but unbuilt. Support stays unimplemented until a discovery adapter exists and is fixture-covered. |
+| Continue | `mcp-stdio` | AUDIT_REQUIRED | https://docs.continue.dev/customize/deep-dives/mcp | 2026-08-19 | Vendor docs describe stdio/sse/streamable-http MCP servers with command, args and env fields, which map onto NormalizedMcpServer without new concepts. Registry consumption is a separate fact and is not confirmed by a primary source. |
+| Roo Code | `mcp-stdio` | PENDING_UPSTREAM | https://roocode.com | 2026-08-19 | The upstream repository (id 881506708) reads archived: true with last push 2026-05-15, while roocode.com still serves. Product continuity is unresolved, so no distribution work is planned against it. |
+| DeepSeek Harness | `mcp-stdio` | AUDIT_REQUIRED | https://deepseek.com/harness | 2026-08-19 | packages/mcp/mcp-client documents one plugin instance per server in cordis.yml with transport, serverName, command, args, env and cwd fields; the stdio form maps onto NormalizedMcpServer. Registry consumption is not confirmed by a primary source. |
+| DeepSeek Harness | `dsh-plugin` | AUDIT_REQUIRED | https://deepseek.com/harness | 2026-08-19 | The harness is in vendor-declared developer preview with breaking changes expected. Do not build a plugin against an unstable interface for listing eligibility alone. |
 
 ## Registry identity
 
