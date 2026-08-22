@@ -45,6 +45,7 @@ interface Host {
   displayName: string
   vendor: string
   priority: string
+  coverageTier: string
   supportClass: string
   authoritySurfaces: string[]
   configEvidence: string[]
@@ -67,6 +68,19 @@ const INDEX = JSON.parse(read("apps/web/public/agent-discovery-index.json")) as 
   canonical?: boolean
   surfaceTypes: string[]
   counts: { total: number; byType: Record<string, number> }
+  coverage?: {
+    unit: string
+    basis: string
+    byTier: Record<
+      string,
+      {
+        required: number
+        present: number
+        hosts: string[]
+        bySupportClass: Record<string, number>
+      }
+    >
+  }
   surfaces: {
     id: string
     type: string
@@ -463,6 +477,119 @@ describe("§9 / §3040 — every required harness tier is covered", () => {
 })
 
 /*
+ * §6 "Agent Adoption Coverage Index" — the published `coverage` block.
+ *
+ * WHY `REQUIRED_COVERAGE` ABOVE STAYS HARDCODED NOW THAT THE SSOT CARRIES `coverageTier`.
+ * It would be shorter to read the tier from the SSOT and compare the index against it, and
+ * that is exactly the guard this repo keeps getting wrong: both sides would then descend
+ * from one editable value, and an edit to a host's tier would silently redefine the
+ * obligation it is supposed to be measured against. The constant above is a transcription
+ * of new19 §5 reviewed once by a human; it is the ORACLE. These tests check the SSOT field
+ * against it, and the published block against the SSOT — two independent comparisons, so a
+ * wrong tier fails at the oracle and a wrong projection fails at the block.
+ */
+describe("§6 — the coverage index publishes the obligation, not just the count", () => {
+  const cov = INDEX.coverage
+  const ORACLE: Record<string, readonly string[]> = {
+    tier0: REQUIRED_COVERAGE.tier0,
+    tier1: REQUIRED_COVERAGE.tier1,
+    tier2: REQUIRED_COVERAGE.tier2,
+    "beyond-section-9": BEYOND_SECTION_9,
+  }
+
+  it("publishes a coverage block at all (premise for every assertion below)", () => {
+    expect(cov, "agent-discovery-index.json has no `coverage` block").toBeDefined()
+    expect(Object.keys(cov!.byTier).sort()).toEqual([
+      "beyond-section-9",
+      "tier0",
+      "tier1",
+      "tier2",
+    ])
+    /* Denominators pinned: an empty cohort or an empty tier set would let the comparisons
+     * below pass while observing nothing. */
+    expect(SSOT.hosts.length).toBe(18)
+    expect(Object.keys(cov!.byTier).length).toBe(4)
+  })
+
+  it("assigns every SSOT host the tier the reviewed §9 mapping says it has", () => {
+    /* The SSOT field vs. the hardcoded oracle. This is what catches a tier edited in the
+     * data file — the case where reading the tier from the SSOT would have agreed with
+     * itself and reported nothing. */
+    const wrong: string[] = []
+    for (const [tier, ids] of Object.entries(ORACLE)) {
+      for (const id of ids) {
+        const host = SSOT.hosts.find((h) => h.id === id)
+        expect(host, `the oracle names ${id} but the SSOT has no such host`).toBeDefined()
+        if (host!.coverageTier !== tier) {
+          wrong.push(`${id} is ${host!.coverageTier} in the SSOT but ${tier} in §9`)
+        }
+      }
+    }
+    expect(wrong, `host(s) whose SSOT tier contradicts the reviewed §9 mapping: ${wrong.join("; ")}`).toEqual([])
+  })
+
+  it("partitions the cohort totally — every host in exactly one published tier", () => {
+    const slots = Object.values(cov!.byTier).flatMap((t) => t.hosts)
+    expect(slots.length, "a host is unclassified or double-counted").toBe(SSOT.hosts.length)
+    expect([...new Set(slots)].length, "a host appears in two tiers").toBe(slots.length)
+    const ssotIds = new Set(SSOT.hosts.map((h) => h.id))
+    const alien = slots.filter((id) => !ssotIds.has(id))
+    expect(alien, `the coverage block names host(s) the SSOT does not have: ${alien.join(", ")}`).toEqual([])
+  })
+
+  it("states `required` as the obligation and `present` as what actually shipped", () => {
+    /* The whole point of the block: `counts.byType` says 18 exist, which cannot distinguish
+     * a complete cohort from one that quietly lost a host. These two numbers can disagree. */
+    const harnessIds = new Set(
+      INDEX.surfaces.filter((s) => s.type === "agent-harness").map((s) => s.id),
+    )
+    for (const [tier, t] of Object.entries(cov!.byTier)) {
+      expect(t.required, `${tier} required must match the oracle`).toBe(ORACLE[tier]!.length)
+      const reached = ORACLE[tier]!.filter((id) => harnessIds.has(id))
+      expect(t.present, `${tier} present must equal what reached the index`).toBe(reached.length)
+      expect(t.present, `${tier} is short of its obligation`).toBe(t.required)
+      expect([...t.hosts].sort(), `${tier} must name its hosts`).toEqual([...ORACLE[tier]!].sort())
+    }
+  })
+
+  it("does NOT publish coverage as a support claim (§9's closing constraint)", () => {
+    /* The failure this exists to prevent: a coverage requirement manufacturing a support
+     * claim. tier0 is fully covered AND mostly not NATIVE, and both halves must be visible.
+     * Pinned as measured values so that "fully covered" can never come to imply "supported". */
+    const t0 = cov!.byTier.tier0!
+    expect(t0.present).toBe(t0.required)
+    expect(t0.bySupportClass.NATIVE).toBe(2)
+    expect(t0.bySupportClass.DISCOVERY_ONLY).toBe(3)
+    /* No boolean anywhere in the block that a consumer could read as "verified". */
+    const json = JSON.stringify(cov)
+    expect(json).not.toMatch(/"verified"|"unverified"|"supported":/)
+  })
+
+  it("recounts each histogram from the SSOT rather than trusting it", () => {
+    for (const [tier, t] of Object.entries(cov!.byTier)) {
+      const hist: Record<string, number> = {}
+      for (const h of SSOT.hosts.filter((x) => x.coverageTier === tier)) {
+        hist[h.supportClass] = (hist[h.supportClass] ?? 0) + 1
+      }
+      expect(t.bySupportClass, `${tier} histogram disagrees with a recount`).toEqual(hist)
+      const summed = Object.values(t.bySupportClass).reduce((a, b) => a + b, 0)
+      expect(summed, `${tier} histogram must sum to its host count`).toBe(t.hosts.length)
+    }
+  })
+
+  it("keeps the tier distinct from `priority`, which measures something else", () => {
+    /* Same measured disagreement as above, now asserted on the PUBLISHED block: if these
+     * ever collapse into one field, one of the two meanings has been silently discarded. */
+    const byId = new Map(SSOT.hosts.map((h) => [h.id, h]))
+    expect(byId.get("codex")!.coverageTier).toBe("tier0")
+    expect(byId.get("codex")!.priority).toBe("P2")
+    expect(byId.get("claude-desktop")!.coverageTier).toBe("beyond-section-9")
+    expect(byId.get("claude-desktop")!.priority).toBe("P0")
+    expect(cov!.byTier["beyond-section-9"]!.hosts).toContain("claude-desktop")
+  })
+})
+
+/*
  * §22 "Truth: unsupported command rejected / unsupported native claim rejected"
  * §23 NC-05 "Unsupported agent command appears → FAIL"
  *
@@ -676,6 +803,11 @@ describe("§22 growth — a 19th host changes denominators, never semantics", ()
     displayName: "Fixture Harness",
     vendor: "Fixture Vendor",
     priority: "P3",
+    /* A new host must declare a tier — the SSOT schema makes `coverageTier` required with a
+     * closed enum precisely so host 19 cannot enter unclassified. `beyond-section-9` is the
+     * truthful value for a host new19 never named, and it is a real tier rather than a
+     * fallback, so arriving here costs nothing and claims nothing. */
+    coverageTier: "beyond-section-9",
     supportClass: "DEFERRED",
     authoritySurfaces: ["filesystem"],
     configEvidence: ["Config mechanism requires verification"],

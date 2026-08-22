@@ -116,6 +116,7 @@
         "displayName",
         "vendor",
         "priority",
+        "coverageTier",
         "authoritySurfaces",
         "configEvidence",
         "supportClass",
@@ -134,6 +135,12 @@
           "type": "string",
           "pattern": "^P[0-9]$",
           "description": "Orders CallLint's own implementation work. NOT a signal about the host -- not popularity, not demand, not risk. Named P* rather than a number so it cannot be read as a score."
+        },
+
+        "coverageTier": {
+          "type": "string",
+          "enum": ["tier0", "tier1", "tier2", "beyond-section-9"],
+          "description": "Which new19 §5 coverage tier obliges CallLint to hold a record for this host. An OBLIGATION on CallLint, not a property of the host: it says new19 required a record, never that the host is supported or that its support is good. Support travels in `supportClass`, which may honestly read DISCOVERY_ONLY or DEFERRED for a tier0 entry -- and does.\n\nDistinct from `priority`, and measurably so: `codex` and `cline` are tier0 yet carry P2, while `claude-desktop` carries P0 and is beyond-section-9. `priority` orders work; `coverageTier` records a promise. Collapsing them would silently redefine one of the two.\n\n`beyond-section-9` is a first-class member, not a fallback: CallLint covers hosts new19 never named, and that must be stated rather than inferred from absence. Making the field required with a closed enum keeps the partition total -- a new host cannot enter unclassified, and 'unclassified' cannot become a silent fourth state."
         },
 
         "authoritySurfaces": {

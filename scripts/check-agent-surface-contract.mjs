@@ -749,6 +749,99 @@ if (!existsSync(sitemapPath)) {
         pass(`all ${Object.keys(index.counts.byType).length} discovery-index type count(s) recount correctly`)
       }
 
+      /*
+       * §6's coverage block, recounted against the SSOT rather than trusted.
+       *
+       * Schema validation proves the block has the right SHAPE; it cannot prove the numbers
+       * are true. `required: 5` is a claim about the SSOT, `present: 5` a claim about this
+       * document, and both are written by the same generator run — so a bug that miscounted
+       * one would very likely miscount the other identically and stay invisible. This
+       * recomputes both from their independent origins.
+       *
+       * The tier partition is also checked for TOTALITY here. A host carrying no tier, or a
+       * tier naming a host the SSOT dropped, would leave a coverage obligation that no
+       * number in this document accounts for.
+       */
+      const cov = index.coverage?.byTier ?? {}
+      const covTiers = Object.keys(cov)
+      const harnessIds = new Set(
+        surfaces.filter((s) => s.type === 'agent-harness').map((s) => s.id),
+      )
+      /* The denominator, pinned before any verdict: an empty host cohort or an empty
+       * coverage block would satisfy every comparison below while observing nothing. */
+      if (ssot.hosts.length === 0 || covTiers.length === 0) {
+        fail(
+          `coverage cannot be checked: ${ssot.hosts.length} SSOT host(s), ` +
+            `${covTiers.length} published tier(s)`,
+        )
+      } else {
+        const covProblems = []
+        let covHostTotal = 0
+        for (const [tier, t] of Object.entries(cov)) {
+          const inTier = ssot.hosts.filter((h) => h.coverageTier === tier)
+          covHostTotal += t.hosts?.length ?? 0
+          if (t.required !== inTier.length) {
+            covProblems.push(
+              `${tier} claims required ${t.required} but the SSOT assigns ${inTier.length} host(s)`,
+            )
+          }
+          const reached = inTier.filter((h) => harnessIds.has(h.id))
+          if (t.present !== reached.length) {
+            covProblems.push(
+              `${tier} claims present ${t.present} but ${reached.length} of its host(s) reached the index`,
+            )
+          }
+          if (t.present !== t.required) {
+            covProblems.push(`${tier} is short: ${t.present}/${t.required}`)
+          }
+          const named = [...(t.hosts ?? [])].sort().join(',')
+          const actual = inTier
+            .map((h) => h.id)
+            .sort()
+            .join(',')
+          if (named !== actual) {
+            covProblems.push(`${tier} names [${named}] but the SSOT assigns [${actual}]`)
+          }
+          /* The histogram must recount too, or it becomes a second hand-maintained number
+           * that can drift into flattering the tier. */
+          const hist = {}
+          for (const h of inTier) hist[h.supportClass] = (hist[h.supportClass] ?? 0) + 1
+          if (JSON.stringify(hist) !== JSON.stringify(t.bySupportClass ?? {})) {
+            covProblems.push(
+              `${tier} bySupportClass ${JSON.stringify(t.bySupportClass)} disagrees with a ` +
+                `recount ${JSON.stringify(hist)}`,
+            )
+          }
+        }
+        /* Totality: every host lands in exactly one published tier. Checked by SUM rather
+         * than per-host, so a host counted twice fails just as loudly as one counted never. */
+        if (covHostTotal !== ssot.hosts.length) {
+          covProblems.push(
+            `the tier partition covers ${covHostTotal} host slot(s) but the SSOT has ` +
+              `${ssot.hosts.length} host(s) — a host is unclassified or double-counted`,
+          )
+        }
+        const untiered = ssot.hosts.filter((h) => !covTiers.includes(h.coverageTier))
+        if (untiered.length > 0) {
+          covProblems.push(
+            `${untiered.length} host(s) carry a tier this index never publishes: ` +
+              untiered.map((h) => `${h.id}=${h.coverageTier}`).join(', '),
+          )
+        }
+
+        if (covProblems.length > 0) {
+          fail(`coverage index disagrees with the SSOT:\n     - ${covProblems.join('\n     - ')}`)
+        } else {
+          pass(
+            `coverage recounts against the SSOT across ${covTiers.length} tier(s) / ` +
+              `${ssot.hosts.length} host(s): ` +
+              Object.entries(cov)
+                .map(([tier, t]) => `${tier} ${t.present}/${t.required}`)
+                .join(', '),
+          )
+        }
+      }
+
       const schemaUrl = index.$schema
       const schemaPath = String(schemaUrl ?? '').replace(/^https?:\/\/[^/]+/, '')
       const schemaFile = join(PUBLIC, schemaPath)

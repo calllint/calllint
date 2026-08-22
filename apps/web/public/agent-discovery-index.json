@@ -24,6 +24,72 @@
       "mirror": 0
     }
   },
+  "coverage": {
+    "unit": "agent-harness record in the CallLint distribution SSOT",
+    "basis": "A tier records an obligation on CallLint to hold a record, not a claim that the host is supported. Support travels in supportClass and may honestly read DISCOVERY_ONLY or DEFERRED.",
+    "byTier": {
+      "tier0": {
+        "required": 5,
+        "present": 5,
+        "hosts": [
+          "claude-code",
+          "cursor",
+          "codex",
+          "copilot-cli",
+          "cline"
+        ],
+        "bySupportClass": {
+          "NATIVE": 2,
+          "DISCOVERY_ONLY": 3
+        }
+      },
+      "tier1": {
+        "required": 6,
+        "present": 6,
+        "hosts": [
+          "workbuddy",
+          "gemini-cli",
+          "codebuddy",
+          "opencode",
+          "continue",
+          "roo-code"
+        ],
+        "bySupportClass": {
+          "NATIVE": 1,
+          "DEFERRED": 3,
+          "CONFIG_SCAN": 1,
+          "DISCOVERY_ONLY": 1
+        }
+      },
+      "tier2": {
+        "required": 3,
+        "present": 3,
+        "hosts": [
+          "qwen-code",
+          "kiro",
+          "deepseek-harness"
+        ],
+        "bySupportClass": {
+          "NATIVE": 1,
+          "DEFERRED": 1,
+          "DISCOVERY_ONLY": 1
+        }
+      },
+      "beyond-section-9": {
+        "required": 4,
+        "present": 4,
+        "hosts": [
+          "claude-desktop",
+          "vscode",
+          "windsurf",
+          "openclaw"
+        ],
+        "bySupportClass": {
+          "NATIVE": 4
+        }
+      }
+    }
+  },
   "surfaces": [
     {
       "id": "claude-code",

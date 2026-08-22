@@ -21,6 +21,7 @@
       "displayName": "Claude Code",
       "vendor": "Anthropic",
       "priority": "P0",
+      "coverageTier": "tier0",
       "authoritySurfaces": [
         "mcp",
         "filesystem",
@@ -62,6 +63,7 @@
       "displayName": "Claude Desktop",
       "vendor": "Anthropic",
       "priority": "P0",
+      "coverageTier": "beyond-section-9",
       "authoritySurfaces": [
         "mcp",
         "filesystem"
@@ -93,6 +95,7 @@
       "displayName": "Cursor",
       "vendor": "Anysphere",
       "priority": "P0",
+      "coverageTier": "tier0",
       "authoritySurfaces": [
         "mcp",
         "filesystem",
@@ -131,6 +134,7 @@
       "displayName": "VS Code",
       "vendor": "Microsoft",
       "priority": "P1",
+      "coverageTier": "beyond-section-9",
       "authoritySurfaces": [
         "extensions",
         "mcp"
@@ -162,6 +166,7 @@
       "displayName": "Windsurf",
       "vendor": "Codeium",
       "priority": "P1",
+      "coverageTier": "beyond-section-9",
       "authoritySurfaces": [
         "mcp",
         "filesystem"
@@ -197,6 +202,7 @@
       "displayName": "WorkBuddy",
       "vendor": "Tencent Cloud",
       "priority": "P0",
+      "coverageTier": "tier1",
       "authoritySurfaces": [
         "mcp",
         "extensions"
@@ -237,6 +243,7 @@
       "displayName": "Qwen Code",
       "vendor": "Alibaba Cloud",
       "priority": "P1",
+      "coverageTier": "tier2",
       "authoritySurfaces": [
         "mcp",
         "tools"
@@ -278,6 +285,7 @@
       "displayName": "OpenClaw",
       "vendor": "Open Source",
       "priority": "P3",
+      "coverageTier": "beyond-section-9",
       "authoritySurfaces": [
         "mcp",
         "skills",
@@ -316,6 +324,7 @@
       "displayName": "OpenAI Codex",
       "vendor": "OpenAI",
       "priority": "P2",
+      "coverageTier": "tier0",
       "authoritySurfaces": [
         "code-generation",
         "api",
@@ -353,6 +362,7 @@
       "displayName": "GitHub Copilot CLI",
       "vendor": "GitHub",
       "priority": "P2",
+      "coverageTier": "tier0",
       "authoritySurfaces": [
         "shell",
         "cli",
@@ -389,6 +399,7 @@
       "displayName": "Cline",
       "vendor": "Open Source",
       "priority": "P2",
+      "coverageTier": "tier0",
       "authoritySurfaces": [
         "vscode-extensions",
         "tools",
@@ -427,6 +438,7 @@
       "displayName": "Gemini CLI",
       "vendor": "Google",
       "priority": "P2",
+      "coverageTier": "tier1",
       "authoritySurfaces": [
         "mcp",
         "tools"
@@ -461,6 +473,7 @@
       "displayName": "CodeBuddy",
       "vendor": "Tencent",
       "priority": "P2",
+      "coverageTier": "tier1",
       "authoritySurfaces": [
         "mcp",
         "extensions"
@@ -494,6 +507,7 @@
       "displayName": "OpenCode",
       "vendor": "Open Source",
       "priority": "P3",
+      "coverageTier": "tier1",
       "authoritySurfaces": [
         "mcp",
         "tools"
@@ -527,6 +541,7 @@
       "displayName": "Kiro",
       "vendor": "AWS",
       "priority": "P2",
+      "coverageTier": "tier2",
       "authoritySurfaces": [
         "mcp",
         "filesystem",
@@ -563,6 +578,7 @@
       "displayName": "Continue",
       "vendor": "Continue",
       "priority": "P2",
+      "coverageTier": "tier1",
       "authoritySurfaces": [
         "mcp",
         "tools",
@@ -595,6 +611,7 @@
       "displayName": "Roo Code",
       "vendor": "Roo Code Inc",
       "priority": "P3",
+      "coverageTier": "tier1",
       "authoritySurfaces": [
         "mcp",
         "tools",
@@ -625,6 +642,7 @@
       "displayName": "DeepSeek Harness",
       "vendor": "DeepSeek",
       "priority": "P2",
+      "coverageTier": "tier2",
       "authoritySurfaces": [
         "mcp",
         "tools",

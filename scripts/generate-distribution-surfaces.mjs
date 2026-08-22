@@ -784,6 +784,64 @@ function generateAgentDiscoveryIndex() {
     })
   }
 
+  /*
+   * §6's "Agent Adoption Coverage Index", as a CHANGE OF DENOMINATOR rather than a rename.
+   *
+   * `counts` below already partitions by §6's six surface types, so the taxonomy was never
+   * the gap. What was missing is the denominator: `counts.byType['agent-harness'] = 18`
+   * says how many records EXIST, and a consumer reading it cannot distinguish a complete
+   * cohort from one that silently lost a host. "18 surfaces" is only meaningful against
+   * "18 required".
+   *
+   * So each tier publishes `required` (the obligation, counted from the SSOT's own
+   * `coverageTier` field) beside `present`. A dropped host moves the two apart instead of
+   * shrinking one number that nothing compares against.
+   *
+   * WHAT `covered` DELIBERATELY DOES NOT MEAN. new19 §9 closes with "Do not claim
+   * implementation where none exists. The record may honestly say: DISCOVERY_ONLY." So
+   * coverage here means A RECORD EXISTS — never that the host is supported, never that its
+   * support is good. Publishing a per-tier `bySupportClass` breakdown instead of a
+   * verified/unverified boolean keeps that honest: tier0 reads 2 NATIVE + 3 DISCOVERY_ONLY,
+   * which is the true and unflattering shape. A boolean would have to round that to
+   * something, and every rounding of it would be a support claim manufactured by a coverage
+   * requirement.
+   *
+   * `beyond-section-9` is carried as a tier so the partition is total and its members are
+   * NAMED. CallLint covers 4 hosts new19 never asked for; that is growth, not error, but it
+   * must be visible rather than inferred from absence.
+   */
+  const COVERAGE_TIERS = ['tier0', 'tier1', 'tier2', 'beyond-section-9']
+  const coverage = {
+    /* Stated so a consumer never has to guess whether `required` counts hosts or surfaces,
+     * nor infer what a tier is from its name. */
+    unit: 'agent-harness record in the CallLint distribution SSOT',
+    basis:
+      'A tier records an obligation on CallLint to hold a record, not a claim that the host is supported. Support travels in supportClass and may honestly read DISCOVERY_ONLY or DEFERRED.',
+    byTier: Object.fromEntries(
+      COVERAGE_TIERS.map((tier) => {
+        const inTier = ssot.hosts.filter((h) => h.coverageTier === tier)
+        const bySupportClass = {}
+        for (const h of inTier) {
+          bySupportClass[h.supportClass] = (bySupportClass[h.supportClass] ?? 0) + 1
+        }
+        return [
+          tier,
+          {
+            required: inTier.length,
+            /* Counted from the published surfaces, not from `inTier`, so the two are
+             * independent measurements. Deriving both from one array would make them
+             * agree by construction and measure nothing. */
+            present: surfaces.filter(
+              (s) => s.type === 'agent-harness' && inTier.some((h) => h.id === s.id),
+            ).length,
+            hosts: inTier.map((h) => h.id),
+            bySupportClass,
+          },
+        ]
+      }),
+    ),
+  }
+
   const index = {
     $schema: 'https://calllint.com/schemas/agent-discovery-index.v1.json',
     schemaVersion: 'agent.discovery.v1',
@@ -804,14 +862,32 @@ function generateAgentDiscoveryIndex() {
         ),
       ),
     },
+    coverage,
     surfaces,
   }
 
   const outPath = join(ROOT, 'apps/web/public/agent-discovery-index.json')
   emit(outPath, JSON.stringify(index, null, 2) + '\n')
+  const shortfall = Object.entries(coverage.byTier).filter(([, t]) => t.present !== t.required)
+  if (shortfall.length > 0) {
+    /* Not a warning to be scrolled past: the generator refuses to publish a coverage claim
+     * it cannot substantiate from its own output. A tier whose `present` trails `required`
+     * means a host the SSOT obliges CallLint to carry did not reach the index. */
+    console.error(
+      `❌ coverage shortfall — ${shortfall
+        .map(([tier, t]) => `${tier} ${t.present}/${t.required}`)
+        .join(', ')}`,
+    )
+    process.exit(1)
+  }
   console.log(
     `✅ Generated agent-discovery-index.json (${surfaces.length} surfaces across ` +
       `${Object.values(index.counts.byType).filter((n) => n > 0).length} populated type(s))`,
+  )
+  console.log(
+    `✅ Coverage ${Object.entries(coverage.byTier)
+      .map(([tier, t]) => `${tier} ${t.present}/${t.required}`)
+      .join(', ')}`,
   )
 }
 

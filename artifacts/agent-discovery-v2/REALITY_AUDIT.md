@@ -492,6 +492,49 @@ negative control is adding such an import. It carries a mandatory anti-vacuity p
 scanned file set is non-empty (M6's denominator is 333), because a mistyped glob would otherwise
 scan nothing and print a checkmark.
 
+### D11 — §6's coverage index is a change of **denominator**, not a rename
+
+Added 2026-08-22, closing gap #4.
+
+The obvious reading of §6 ("10 → 100 → 500 Registry Cohort → Agent Adoption Coverage Index") is a
+taxonomy change: partition the index by surface type. **Measured: that already existed.**
+`counts.byType` has published §6's six buckets — `agent-harness`, `mcp-registry`, `marketplace`,
+`documentation`, `search-surface`, `mirror` — since the index was first generated, with `marketplace`
+and `mirror` truthfully at zero. Renaming the cohort would have produced a diff and closed nothing.
+
+What was actually missing is the denominator. `counts` states how many records **exist**; a consumer
+reading `agent-harness: 18` cannot distinguish a complete cohort from one that silently lost a host.
+"18 surfaces" only means something against "18 required". So each tier now publishes `required`
+(counted from the SSOT's `coverageTier`) beside `present` (counted from the index's own `surfaces`),
+and the generator refuses to publish when they disagree.
+
+**`coverageTier` became a published SSOT field rather than staying a test constant.** A generator
+cannot read a test fixture. The field is required with a closed enum (`tier0`/`tier1`/`tier2`/
+`beyond-section-9`) so host 19 cannot enter unclassified and "unclassified" cannot become a silent
+fifth state. `beyond-section-9` is a first-class member, not a leftover bucket: CallLint covers 4
+hosts new19 never named, and that growth must be named rather than inferred from absence.
+
+**`REQUIRED_COVERAGE` in the invariant suite deliberately stays hardcoded.** Reading the tier from
+the SSOT would have been shorter and would have made the guard blind in the repo's dominant fault
+class: both sides would descend from one editable value, so editing a host's tier would silently
+redefine the obligation it is measured against. The constant is a human-reviewed transcription of
+new19 §5 and serves as the ORACLE — the suite checks the SSOT field against it, and the published
+block against the SSOT. Negative control M2 confirms the difference: moving `cline` from tier0 to
+tier2 in the data file alone reds with "cline is tier2 in the SSOT but tier0 in §9", which the
+self-referential form would have reported as healthy.
+
+**Coverage is not published as a support claim.** §9 closes with "Do not claim implementation where
+none exists. The record may honestly say: DISCOVERY_ONLY." So each tier carries a `bySupportClass`
+histogram rather than a verified/unverified flag. tier0 reads 5/5 covered and 2 NATIVE + 3
+DISCOVERY_ONLY — fully covered and mostly not implemented, both halves visible. Any boolean would
+have to round that, and every rounding is a support claim manufactured by a coverage requirement.
+One invariant asserts the block contains no `verified`/`supported` key at all; NC-3 confirms that
+flattening tier0's histogram to `{NATIVE: 5}` reds.
+
+The recount is done twice from independent origins — `required` against the SSOT, `present` against
+the published surfaces — because a single generator run writes both, so a miscount would very likely
+corrupt them identically and stay invisible to a comparison between them.
+
 ---
 
 ## 3. Boundaries this work does not cross

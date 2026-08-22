@@ -4,7 +4,7 @@
   "title": "CallLint agent discovery index (v1)",
   "description": "The single entry point an agent fetches to enumerate every distribution surface CallLint tracks. Generated from apps/web/data/distribution-surfaces.json by scripts/generate-distribution-surfaces.mjs; never hand-edited.\n\nEach surface's `type` is DERIVED from which SSOT container holds the record, so it cannot disagree with the SSOT's own shape. `status` is the human-facing public label; the internal support enum travels separately in `supportClass` and only for records that have one.\n\nThis surface carries distribution facts only. It deliberately contains no risk, popularity, demand or SEO score: distribution channel is orthogonal to a security verdict, and a consumer must not be able to derive a verdict from where a server was found.",
   "type": "object",
-  "required": ["schemaVersion", "canonical", "describes", "surfaceTypes", "counts", "surfaces"],
+  "required": ["schemaVersion", "canonical", "describes", "surfaceTypes", "counts", "coverage", "surfaces"],
   "additionalProperties": false,
   "properties": {
     "$schema": { "type": "string", "format": "uri" },
@@ -74,6 +74,28 @@
         }
       }
     },
+    "coverage": {
+      "type": "object",
+      "description": "§6's Agent Adoption Coverage Index: the OBLIGATION beside the fact. `counts` above says how many records exist; a consumer reading `agent-harness: 18` cannot tell a complete cohort from one that silently lost a host. Each tier therefore publishes `required` (counted from the SSOT's `coverageTier` field) next to `present` (counted from this document's own surfaces), so a dropped host moves the two apart instead of shrinking one unchecked number.\n\nCOVERAGE MEANS A RECORD EXISTS. It never means the host is supported, and never that its support is good. new19 §9: \"Do not claim implementation where none exists. The record may honestly say: DISCOVERY_ONLY.\" That is why each tier carries a `bySupportClass` histogram rather than a verified/unverified flag — tier0 is fully covered while only 2 of its 5 entries are NATIVE, and any boolean would have to round that into a support claim manufactured by a coverage requirement.",
+      "required": ["unit", "basis", "byTier"],
+      "additionalProperties": false,
+      "properties": {
+        "unit": { "type": "string", "minLength": 1 },
+        "basis": { "type": "string", "minLength": 1 },
+        "byTier": {
+          "type": "object",
+          "description": "A total partition of the host cohort. `beyond-section-9` is a first-class tier, not a leftover bucket: CallLint covers hosts new19 never named, and that growth must be named rather than inferred from absence.",
+          "required": ["tier0", "tier1", "tier2", "beyond-section-9"],
+          "additionalProperties": false,
+          "properties": {
+            "tier0": { "$ref": "#/definitions/coverageTier" },
+            "tier1": { "$ref": "#/definitions/coverageTier" },
+            "tier2": { "$ref": "#/definitions/coverageTier" },
+            "beyond-section-9": { "$ref": "#/definitions/coverageTier" }
+          }
+        }
+      }
+    },
     "surfaces": {
       "type": "array",
       "minItems": 1,
@@ -81,6 +103,42 @@
     }
   },
   "definitions": {
+    "coverageTier": {
+      "type": "object",
+      "required": ["required", "present", "hosts", "bySupportClass"],
+      "additionalProperties": false,
+      "properties": {
+        "required": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "How many host records this tier obliges CallLint to hold. `minimum: 1` because an empty tier would make its coverage claim vacuously true — 0/0 is not evidence of coverage."
+        },
+        "present": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "How many of them actually reached this document's `surfaces` array. Counted independently of `required` so the two can disagree; the generator refuses to publish when they do."
+        },
+        "hosts": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "description": "Named, not just counted. A count alone cannot tell a reviewer WHICH host left a tier, and that is the edit worth reviewing.",
+          "items": { "type": "string", "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$" }
+        },
+        "bySupportClass": {
+          "type": "object",
+          "description": "The honest shape of the tier: how its records split across the support ontology. Deliberately a histogram and not a verified/unverified boolean — see this schema's `coverage` description. Keys are the internal support enum, which this document already publishes in the `supportClass` field; §20's ban on internal tokens scopes to the human-facing `status` label, not to explicitly-named enum fields.",
+          "minProperties": 1,
+          "additionalProperties": false,
+          "properties": {
+            "NATIVE": { "type": "integer", "minimum": 1 },
+            "CONFIG_SCAN": { "type": "integer", "minimum": 1 },
+            "DISCOVERY_ONLY": { "type": "integer", "minimum": 1 },
+            "DEFERRED": { "type": "integer", "minimum": 1 }
+          }
+        }
+      }
+    },
     "surface": {
       "type": "object",
       "required": ["id", "type", "displayName", "vendor", "status", "canonicalUrl", "officialSources"],
