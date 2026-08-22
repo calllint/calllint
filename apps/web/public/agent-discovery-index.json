@@ -14,13 +14,13 @@
     "mirror"
   ],
   "counts": {
-    "total": 21,
+    "total": 23,
     "byType": {
       "agent-harness": 18,
       "mcp-registry": 1,
       "marketplace": 0,
       "documentation": 1,
-      "search-surface": 1,
+      "search-surface": 3,
       "mirror": 0
     }
   },
@@ -878,6 +878,30 @@
       "describedBy": "https://github.com/deepseek-ai/awesome-deepseek-agent",
       "officialSources": [
         "https://github.com/deepseek-ai/awesome-deepseek-agent"
+      ]
+    },
+    {
+      "id": "mcp-spec-client-examples",
+      "type": "search-surface",
+      "displayName": "Model Context Protocol -- example clients",
+      "vendor": "Model Context Protocol",
+      "status": "NEW_CANDIDATE_FEED_ONLY",
+      "canonicalUrl": "https://modelcontextprotocol.io/examples",
+      "describedBy": "https://modelcontextprotocol.io/examples",
+      "officialSources": [
+        "https://modelcontextprotocol.io/examples"
+      ]
+    },
+    {
+      "id": "pulsemcp-client-directory",
+      "type": "search-surface",
+      "displayName": "PulseMCP client directory",
+      "vendor": "PulseMCP",
+      "status": "NEW_CANDIDATE_FEED_ONLY",
+      "canonicalUrl": "https://www.pulsemcp.com/clients",
+      "describedBy": "https://www.pulsemcp.com/clients",
+      "officialSources": [
+        "https://www.pulsemcp.com/clients"
       ]
     }
   ]

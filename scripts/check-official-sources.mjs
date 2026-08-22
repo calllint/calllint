@@ -78,14 +78,67 @@ if (sources.length === 0) {
   die(`${MANIFEST} names zero sources`, 'This checker would observe nothing and still exit 0.')
 }
 
+/*
+ * ─────────────────────────────────────────────────────────────────────────────────────────
+ * WHY `candidateFeeds` IS READ HERE, AND WHY IT IS A SEPARATE `kind`
+ * ─────────────────────────────────────────────────────────────────────────────────────────
+ * Measured 2026-08-22: this loop used to read `manifest.sources` alone, so the candidate
+ * feeds were fetched ZERO times. The generator projected them, the schema constrained them,
+ * an invariant asserted the one feed's `role` — and no job ever opened the URL. §84's weekly
+ * discovery step ("Weekly discovery job → 发现新的 Agent Surface → Generate candidate record
+ * → Human approval") therefore had no observation stage at all. That is the repo's dominant
+ * fault class in its purest form: a watcher that cannot observe its subject, kept green by an
+ * anti-vacuity floor (`sources.length === 0`) whose denominator did not include the thing
+ * being missed.
+ *
+ * `kind` is carried per-URL rather than inferred from `hostId` because the two kinds license
+ * different reactions, and the artifact is read by a human who must not have to remember
+ * which is which:
+ *
+ *   HOST_SOURCE     — authority over an EXISTING host's recorded facts. A change here can
+ *                     justify editing `supportClass`, `truthfulCommands`, `configEvidence`.
+ *   CANDIDATE_FEED  — evidence that a harness CallLint does not track may exist. §86 and
+ *                     new18 §35 permit recording candidate evidence and NOTHING else: no
+ *                     extractor, no support page, no support claim, no external submission.
+ *                     It is never authority over an existing host's support class.
+ *
+ * Conflating them is the specific way this feature would turn dangerous: a curated
+ * third-party list asserting "supports X" would become a support claim about CallLint.
+ * The separate `kind`, plus `watchFor` already fixed by the generator, keeps the artifact
+ * unable to express that.
+ */
+const candidateFeeds = Array.isArray(manifest.candidateFeeds) ? manifest.candidateFeeds : []
+
 const urls = []
 for (const source of sources) {
   for (const url of source.primarySources ?? []) {
-    urls.push({ hostId: source.hostId, url, watchFor: source.watchFor ?? null })
+    urls.push({ kind: 'HOST_SOURCE', hostId: source.hostId, url, watchFor: source.watchFor ?? null })
   }
 }
 if (urls.length === 0) {
   die(`${MANIFEST} has sources but zero primarySources URLs`, 'Nothing is observable.')
+}
+
+const hostUrlCount = urls.length
+for (const feed of candidateFeeds) {
+  for (const url of feed.primarySources ?? []) {
+    urls.push({ kind: 'CANDIDATE_FEED', hostId: feed.feedId, url, watchFor: feed.watchFor ?? null })
+  }
+}
+
+/*
+ * Anti-vacuity for the half just added, with its own denominator. `sources.length === 0`
+ * above cannot detect this: it stayed green through the entire period in which candidate
+ * discovery observed nothing. A feed declared in the SSOT but contributing no URL means the
+ * discovery stage is again unable to see its subject, so it fails rather than reporting a
+ * silent 0.
+ */
+const feedUrlCount = urls.length - hostUrlCount
+if (candidateFeeds.length > 0 && feedUrlCount === 0) {
+  die(
+    `${MANIFEST} declares ${candidateFeeds.length} candidate feed(s) but zero of them contribute a URL`,
+    'Candidate discovery would observe nothing while the job still exited 0.',
+  )
 }
 
 const sha256 = (input) => createHash('sha256').update(input).digest('hex')
@@ -95,7 +148,7 @@ const sha256 = (input) => createHash('sha256').update(input).digest('hex')
  * is followed because a vendor moving a doc to a new path is the ordinary case and the final
  * URL is itself worth recording.
  */
-const observe = async ({ hostId, url, watchFor }) => {
+const observe = async ({ kind, hostId, url, watchFor }) => {
   const controller = new AbortController()
   const timer = setTimeout(() => controller.abort(), TIMEOUT_MS)
   try {
@@ -106,6 +159,7 @@ const observe = async ({ hostId, url, watchFor }) => {
     })
     const body = await response.text()
     return {
+      kind,
       hostId,
       url,
       watchFor,
@@ -120,6 +174,7 @@ const observe = async ({ hostId, url, watchFor }) => {
   } catch (error) {
     // Deliberately an observation, not a failure. See the header comment.
     return {
+      kind,
       hostId,
       url,
       watchFor,
@@ -141,54 +196,97 @@ const artifactAbs = path.join(repoRoot, ARTIFACT)
 const previous = existsSync(artifactAbs) ? JSON.parse(readFileSync(artifactAbs, 'utf8')) : null
 const previousByUrl = new Map((previous?.observations ?? []).map((o) => [o.url, o]))
 
+/*
+ * ─────────────────────────────────────────────────────────────────────────────────────────
+ * WHY THE BASELINE'S PRESENCE IS REPORTED OUT LOUD
+ * ─────────────────────────────────────────────────────────────────────────────────────────
+ * Measured 2026-08-22: on CI there had never been a baseline. `distribution-watch.yml`
+ * UPLOADS this artifact and nothing ever downloaded it, and the path is untracked — so
+ * `previous` was always null, every URL reported `NEW`, and the change detection below had
+ * never once executed. The workflow's own comment asserted that uploading "is what makes
+ * week-over-week change detection possible." It was not.
+ *
+ * The failure was invisible because a missing baseline and a quiet week are both spelled
+ * "no interesting output": `NEW` on everything reads like a healthy first run, forever. So
+ * the state is now printed unconditionally. A run that compared against nothing says so.
+ */
+if (previous) {
+  console.log(`Baseline: ${previousByUrl.size} URL(s) from a previous snapshot at ${ARTIFACT}.`)
+} else {
+  console.log(`Baseline: ABSENT (${ARTIFACT} not present).`)
+  console.log('  Every URL will report NEW and no change can be detected this run. That is correct')
+  console.log('  for a first-ever run and a defect on any later one — the workflow restores the')
+  console.log("  previous run's artifact before this step.")
+}
+
 if (offline) {
   console.log(`• --offline: ${urls.length} URL(s) from ${MANIFEST} were NOT fetched.`)
-  console.log(`  Manifest shape verified (${sources.length} source(s)); no observation was made or written.`)
+  console.log(
+    `  Manifest shape verified (${sources.length} host source(s) → ${hostUrlCount} URL(s), ` +
+      `${candidateFeeds.length} candidate feed(s) → ${feedUrlCount} URL(s)); ` +
+      'no observation was made or written.',
+  )
   process.exit(0)
 }
 
-console.log(`Observing ${urls.length} vendor source(s) named in ${MANIFEST} …`)
+console.log(
+  `Observing ${urls.length} vendor source(s) named in ${MANIFEST} ` +
+    `(${hostUrlCount} host, ${feedUrlCount} candidate-feed) …`,
+)
 const observations = await Promise.all(urls.map(observe))
 
 /**
  * Change classification. `NEW` is separated from `CHANGED` because a URL appearing for the
  * first time has no previous state to differ from — reporting it as a change would be a
  * false positive on every SSOT addition, and this workstream just added three hosts.
+ *
+ * `kind` here is the CHANGE kind (NEW / STATUS / BODY / …); `sourceKind` is the observed
+ * URL's kind (HOST_SOURCE / CANDIDATE_FEED). Both are carried because they answer different
+ * questions and a human reading the artifact needs both: `kind` says what moved,
+ * `sourceKind` says what a maintainer is permitted to do about it. A BODY change on a host
+ * source may justify editing that host's recorded facts; the identical BODY change on a
+ * candidate feed licenses recording candidate evidence and nothing more.
  */
 const changes = []
 for (const now of observations) {
   const before = previousByUrl.get(now.url)
+  const at = { url: now.url, hostId: now.hostId, sourceKind: now.kind }
   if (!before) {
-    changes.push({ url: now.url, hostId: now.hostId, kind: 'NEW', detail: 'first observation; no baseline' })
+    changes.push({ ...at, kind: 'NEW', detail: 'first observation; no baseline' })
     continue
   }
   if (before.status !== now.status) {
-    changes.push({ url: now.url, hostId: now.hostId, kind: 'STATUS', detail: `${before.status} → ${now.status}` })
+    changes.push({ ...at, kind: 'STATUS', detail: `${before.status} → ${now.status}` })
   }
   if (before.reachable !== now.reachable) {
     changes.push({
-      url: now.url,
-      hostId: now.hostId,
+      ...at,
       kind: 'REACHABILITY',
       detail: now.reachable ? 'was unreachable, now reachable' : `now unreachable: ${now.unreachableReason}`,
     })
   }
   if (before.bodySha256 && now.bodySha256 && before.bodySha256 !== now.bodySha256) {
     changes.push({
-      url: now.url,
-      hostId: now.hostId,
+      ...at,
       kind: 'BODY',
       detail: `sha256 ${before.bodySha256.slice(0, 12)} → ${now.bodySha256.slice(0, 12)}`,
     })
   }
   if (now.finalUrl && before.finalUrl !== now.finalUrl) {
-    changes.push({ url: now.url, hostId: now.hostId, kind: 'REDIRECT', detail: `now resolves to ${now.finalUrl}` })
+    changes.push({ ...at, kind: 'REDIRECT', detail: `now resolves to ${now.finalUrl}` })
   }
 }
 
 const gone = [...previousByUrl.keys()].filter((url) => !observations.some((o) => o.url === url))
 for (const url of gone) {
-  changes.push({ url, hostId: previousByUrl.get(url)?.hostId ?? null, kind: 'DROPPED', detail: 'no longer named in the SSOT' })
+  const before = previousByUrl.get(url)
+  changes.push({
+    url,
+    hostId: before?.hostId ?? null,
+    sourceKind: before?.kind ?? null,
+    kind: 'DROPPED',
+    detail: 'no longer named in the SSOT',
+  })
 }
 
 mkdirSync(path.dirname(artifactAbs), { recursive: true })
@@ -200,7 +298,23 @@ writeFileSync(
         'GENERATED by scripts/check-official-sources.mjs. Observation only: an entry here records what a vendor URL returned, ' +
         'not a judgement about CallLint support. A body hash change is usually a rotated banner, not a product change — a human ' +
         'decides whether it matters. This file is the baseline for the next run, so it must be committed for change detection to work.',
+      /*
+       * `kind: "CANDIDATE_FEED"` entries are the §84 discovery stage's ONLY output. Reading
+       * one licenses recording candidate evidence and nothing else — no extractor, no
+       * support page, no support claim, no external submission (new18 §35, new19 §86). A
+       * candidate that clears human review enters the SSOT as DEFERRED or DISCOVERY_ONLY;
+       * NATIVE requires a bootstrapped extractor, which HD-01 enforces independently.
+       */
+      candidateEvidencePolicy:
+        'CANDIDATE_FEED observations are evidence that an untracked harness may exist. They are never authority ' +
+        'over an existing host support class, and never a support claim. Human review decides; admission is ' +
+        'DEFERRED or DISCOVERY_ONLY only.',
       describes: { manifest: MANIFEST, release: manifest.describes?.release ?? null },
+      counts: {
+        hostSourceUrls: hostUrlCount,
+        candidateFeedUrls: feedUrlCount,
+        candidateFeeds: candidateFeeds.length,
+      },
       observations: observations.sort((a, b) => a.url.localeCompare(b.url)),
     },
     null,
@@ -216,6 +330,19 @@ console.log(`Observed ${observations.length} URL(s): ${observations.length - unr
 for (const o of unreachable) console.log(`    unreachable  ${o.hostId}  ${o.url} — ${o.unreachableReason}`)
 for (const o of nonOk) console.log(`    HTTP ${o.status}     ${o.hostId}  ${o.url}`)
 
+/*
+ * The candidate half is reported on its own line even when nothing changed. Suppressing it
+ * would make "candidate discovery observed 0 feeds" and "candidate discovery observed 2 feeds
+ * with no change" print identically — which is how this stage went unnoticed for its whole
+ * existence. The count is cheap; a silent stage is not.
+ */
+const feedObs = observations.filter((o) => o.kind === 'CANDIDATE_FEED')
+const feedReachable = feedObs.filter((o) => o.reachable).length
+console.log(
+  `    candidate feeds: ${feedObs.length} URL(s) observed, ${feedReachable} reachable ` +
+    '— evidence only; §86 permits no support claim, no submission',
+)
+
 if (changes.length === 0) {
   // §19: "No change: silent."
   console.log('')
@@ -225,9 +352,17 @@ if (changes.length === 0) {
 
 console.log('')
 console.log(`• ${changes.length} change(s) against the previous snapshot:`)
-for (const c of changes) console.log(`    [${c.kind}] ${c.hostId ?? '—'}  ${c.url}  ${c.detail}`)
+for (const c of changes) {
+  const tag = c.sourceKind === 'CANDIDATE_FEED' ? 'candidate' : 'host'
+  console.log(`    [${c.kind}] (${tag}) ${c.hostId ?? '—'}  ${c.url}  ${c.detail}`)
+}
 console.log('')
 console.log(`  Recorded in ${ARTIFACT}. §19 forbids acting on this automatically: no external PR, no`)
 console.log('  issue, no form, no maintainer contact. A human reads the artifact and decides whether the')
 console.log('  SSOT needs an edit. Exit 0 — a vendor changing their own page is not a CallLint failure.')
+if (changes.some((c) => c.sourceKind === 'CANDIDATE_FEED')) {
+  console.log('')
+  console.log('  A candidate-feed entry moved. §84: generate candidate record → human approval → publish.')
+  console.log('  Admission is DEFERRED or DISCOVERY_ONLY only; NATIVE needs a bootstrapped extractor (HD-01).')
+}
 process.exit(0)

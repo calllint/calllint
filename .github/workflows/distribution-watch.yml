@@ -28,6 +28,10 @@ on:
 
 permissions:
   contents: read
+  # Least scope that lets the baseline-restore step see an artifact from a PREVIOUS run of
+  # this workflow. `contents: read` alone cannot list run artifacts. Read-only: nothing in
+  # this workflow writes to the Actions API.
+  actions: read
 
 jobs:
   watch:
@@ -58,34 +62,36 @@ jobs:
       # assertion: `git diff` on an untouched path always exits 0, so the check reads
       # green while observing nothing.
       #
-      # `.well-known/calllint.json` was listed here and is NOT one of them. That path is
+      # THIS STEP USED TO HAND-LIST 9 PATHS, AND THAT LIST WENT STALE. Measured 2026-08-22:
+      # the generator emits 29 projections, so 20 were unguarded here — including
+      # `agent-discovery-index.json`, the canonical discovery root, and every published
+      # JSON Schema. The failure was structural, not clerical: a hand-maintained mirror of
+      # a generator's output drifts every time a projection is added, silently and in the
+      # safe-looking direction, which is precisely the vacuity the paragraph above warns
+      # about.
+      #
+      # `--check` is the fix because it cannot go stale: it renders every `emit()` target
+      # and byte-compares, so its denominator IS the generator's write set. It also asserts
+      # that each target is tracked by git — `git diff` compares the index against the tree
+      # and is structurally blind to a never-added file, which has already produced one
+      # vacuous green on this workstream.
+      #
+      # `.well-known/calllint.json` is deliberately NOT a generator target. That path is
       # owned by the Safe-install bake (`packages/trust-index/src/renderDiscoveryManifest.ts`,
       # emitting `calllint.discovery.v1`), which this workflow never runs. The distribution
       # generator used to write it too; that collision silently dropped `resources[]` and is
       # why the generator now carries an explicit "deliberately does NOT write" note. Do not
       # add it back — its schema publishes `additionalProperties: false`, and its drift is
       # covered by the bake's own reproducibility gate.
-      - name: Regenerate projections and check diff
-        run: |
-          node scripts/generate-distribution-surfaces.mjs
-          git diff --exit-code apps/web/public/harnesses/ \
-            apps/web/public/agent-surfaces.json \
-            apps/web/public/_redirects \
-            apps/web/public/llms.txt \
-            apps/web/public/llms-full.txt \
-            apps/web/public/agent-instructions.md \
-            scripts/distribution-sources.json \
-            artifacts/authority-distribution-closure/FINAL_PLATFORM_MATRIX.md \
-            artifacts/authority-distribution-closure/EXTERNAL_DISTRIBUTION_MATRIX.md
+      - name: Check projections against the SSOT
+        run: node scripts/generate-distribution-surfaces.mjs --check
 
-      # The sitemap is now generated too, so the diff above covers it (it lives under
-      # apps/web/public/harnesses/). `_redirects` is listed separately because Pages parses it
-      # only at the output root, so it sits outside that directory — the one projection whose
-      # correct location is not next to the pages it describes.
-      #
-      # This step additionally asserts the promise itself: every advertised URL resolves,
-      # every SSOT host is advertised, and every legacy URL is forwarded. Those are different
-      # questions — a sitemap can be perfectly in sync with a generator that emits a dead URL.
+      # The sitemap is generated too, so the `--check` step above covers it along with every
+      # other projection. This step asserts a DIFFERENT question: the promise itself. Every
+      # advertised URL resolves, every SSOT host is advertised, every legacy URL is forwarded,
+      # and the published coverage block recounts against the SSOT. A sitemap can be perfectly
+      # in sync with a generator that emits a dead URL, and a coverage claim can be perfectly
+      # reproducible while overstating what shipped.
       - name: Check agent, human + crawler surface contract
         run: node scripts/check-agent-surface-contract.mjs
 
@@ -121,17 +127,79 @@ jobs:
       - name: Check published schema contract
         run: node scripts/check-published-schema-contract.mjs
 
+      # ── Restore last week's observation so change detection has something to compare to ──
+      #
+      # WITHOUT THIS STEP THE OBSERVATION BELOW WAS STRUCTURALLY INCAPABLE OF DETECTING
+      # CHANGE, and had been since it was written. Measured 2026-08-22: the upload step
+      # existed, no download step did, and `artifacts/distribution-watch/` is untracked — so
+      # every run started with no baseline, reported `NEW` for all 27 URLs, and never once
+      # executed a single STATUS / BODY / REDIRECT comparison. The upload step's own comment
+      # claimed it "is what makes week-over-week change detection possible"; uploading is
+      # necessary and was not sufficient.
+      #
+      # It stayed invisible because a missing baseline and a quiet week both print as nothing
+      # alarming: `NEW` on everything looks like a healthy first run, every week forever.
+      #
+      # WHY THIS IS NOT `actions/download-artifact` WITH JUST A NAME. That action defaults to
+      # `run-id: ${{ github.run_id }}` — the CURRENT run, which has uploaded nothing at this
+      # point. A bare `with: {name: official-sources-snapshot}` therefore downloads nothing
+      # and, because the step must tolerate a legitimately absent baseline, would fail
+      # quietly and reproduce the exact vacuity this step exists to remove. Reaching a
+      # PREVIOUS run's artifact requires resolving that run's id, which is what the API call
+      # below does. Ordering is explicit: the repository-level artifact list documents no sort
+      # order, so `created_at` is sorted here rather than trusting the response sequence.
+      #
+      # Two no-baseline cases are legitimate and neither is a defect: the first-ever run, and
+      # a gap wider than the 90-day retention window. Both are reported, never inferred — the
+      # observation step prints whether it had a baseline, so "compared against nothing" can
+      # no longer read as "nothing changed".
+      #
+      # Reads a CallLint-produced artifact from this repository only. Not a vendor fetch, not
+      # a write of any kind. `actions: read` is the least scope that can see a sibling run.
+      - name: Restore previous official-source observation
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SNAPSHOT_NAME: official-sources-snapshot
+        run: |
+          set -euo pipefail
+          mkdir -p artifacts/distribution-watch
+          run_id=$(gh api \
+            "repos/${GITHUB_REPOSITORY}/actions/artifacts?name=${SNAPSHOT_NAME}&per_page=100" \
+            --jq '[.artifacts[] | select(.expired == false)]
+                  | sort_by(.created_at) | reverse | .[0].workflow_run.id // empty')
+          if [ -z "$run_id" ]; then
+            echo "No unexpired '${SNAPSHOT_NAME}' artifact exists yet — first run, or the"
+            echo "90-day retention window lapsed. The observation step will report an absent"
+            echo "baseline explicitly; it does not silently treat that as 'no change'."
+            exit 0
+          fi
+          echo "Restoring baseline from run ${run_id}."
+          gh run download "$run_id" --name "${SNAPSHOT_NAME}" --dir artifacts/distribution-watch
+          ls -la artifacts/distribution-watch
+
       # `continue-on-error` is belt-and-braces, not the mechanism: the script already exits 0
       # on an unreachable source by design. It is here for the case the script itself dies on
       # an unforeseen runtime fault — an observation step must not be able to fail a run whose
       # other checks are the load-bearing ones.
-      - name: Observe official vendor sources
+      #
+      # This step is also the §84 weekly DISCOVERY stage, not only the fact-change watch. It
+      # observes `candidateFeeds` as well as host sources (27 URLs, of which 1 is a candidate
+      # feed) and labels every observation with its kind. Until 2026-08-22 the script read
+      # `sources` alone, so the discovery stage fetched nothing at all while the job stayed
+      # green — the feed was generated, schema-constrained, invariant-asserted, and never
+      # opened. §86 caps what a candidate observation may license: evidence only, human
+      # review, and admission as DEFERRED / DISCOVERY_ONLY. Never an extractor, a support
+      # page, a support claim, or any external submission.
+      - name: Observe official vendor sources and candidate feeds
         continue-on-error: true
         run: node scripts/check-official-sources.mjs
 
       # The observation is only useful if a human can read it, and the artifact is ALSO the
-      # baseline the next run compares against. Uploading it is what makes week-over-week
-      # change detection possible without committing a file that churns weekly.
+      # baseline the next run compares against — which is why the restore step above exists.
+      # Together they give week-over-week detection without committing a file that churns
+      # weekly. Retention is the real limit: a gap wider than 90 days loses the baseline, and
+      # the observation step reports that state rather than hiding it.
       - name: Upload official-source observation
         if: always()
         uses: actions/upload-artifact@v4
@@ -140,6 +208,7 @@ jobs:
           path: artifacts/distribution-watch/official-sources.json
           if-no-files-found: warn
           retention-days: 90
+          overwrite: true
 
       # Deliberately terse, and deliberately free of restated verdicts. The previous
       # version printed "Registry: LIVE" as a string literal, which is the same defect the

@@ -537,6 +537,92 @@ corrupt them identically and stay invisible to a comparison between them.
 
 ---
 
+### D12 — the weekly watcher was doubly vacuous; both halves are fixed, and the *test* has a fixture
+
+Added 2026-08-22, closing gap #5 (§84's weekly discovery stage had no observation stage).
+
+Two independent failures, both green for their entire existence, both in `check-official-sources.mjs`
+and `distribution-watch.yml`. They are recorded together because they share one shape: **a watcher
+that cannot observe its subject, kept green by an anti-vacuity floor whose denominator excluded the
+thing being missed.**
+
+**Vacuity 1 — candidate discovery fetched nothing.** The URL loop read `manifest.sources` alone. So
+`manifest.candidateFeeds` was projected by the generator, constrained by a published schema, and
+asserted by an invariant on its `role` — and no job ever opened the URL. The floor that should have
+caught it (`sources.length === 0`) counted host sources only, so the observer's own denominator was
+blind to the half that was missing. Fixed: feeds are read, each URL carries a `kind`
+(`HOST_SOURCE` / `CANDIDATE_FEED`), and a **second floor with its own denominator** fails when feeds
+are declared but contribute zero URLs. Observer denominator measured 26 → 27.
+
+`kind` is per-URL rather than inferred from the id because the two license different reactions, and a
+human reading the artifact must not have to remember which is which. A `HOST_SOURCE` change can
+justify editing that host's `supportClass` or `truthfulCommands`. The identical change on a
+`CANDIDATE_FEED` licenses recording candidate evidence and nothing else. Conflating them is the
+specific way this feature turns dangerous: a third-party directory asserting "supports X" would
+become a CallLint support claim. The artifact now carries `candidateEvidencePolicy` stating the
+ceiling, and one invariant asserts that string survives.
+
+**Vacuity 2 — change detection had never once run.** The workflow **uploaded** the artifact and
+nothing ever downloaded it, and the path is untracked. So `previous` was always `null`, all 27 URLs
+reported `NEW`, and every STATUS / BODY / REACHABILITY / REDIRECT comparison was dead code, weekly,
+forever. The workflow's own comment claimed uploading "is what makes week-over-week change detection
+possible" — uploading was necessary and not sufficient. It stayed invisible because **a missing
+baseline and a quiet week are both spelled "no interesting output"**: `NEW` on everything reads like
+a healthy first run, every week. Fixed with a restore step, and the baseline's presence is now
+printed unconditionally, so a run that compared against nothing says so.
+
+**The restore is `gh api` + `gh run download`, not `actions/download-artifact` with a name.** This
+correction is worth recording because the first draft made the error and it would have been
+undetectable. That action defaults to `run-id: ${{ github.run_id }}` — the **current** run, which has
+uploaded nothing at that point in the job. A name-only download therefore fetches nothing, and
+because the step must tolerate a legitimately absent baseline, it would have failed quietly and
+reproduced the exact vacuity it was added to remove. Reaching a *previous* run needs that run's id,
+which is what the API call resolves. Ordering is explicit (`sort_by(.created_at) | reverse`) because
+the repository-level artifact list documents no sort order; `expired == false` is filtered because a
+lapsed 90-day artifact is unreachable, not a baseline. `actions: read` was added — `contents: read`
+alone cannot list a sibling run's artifacts. The jq path was verified against the live API rather
+than assumed: `name=usage-report` resolved run `32558865164`; `name=official-sources-snapshot`
+returned empty, exercising the no-baseline branch.
+
+**Two no-baseline states are legitimate and neither is a defect:** the first-ever run, and a gap
+wider than the 90-day retention window. Both are reported, never inferred.
+
+**The test uses a loopback server, not only `--offline`.** `--offline` exits before fetching, so it
+can prove the denominator and both floors but cannot execute one line of the comparison code — which
+is precisely the half that had never run. A test that stopped there would re-create the original
+defect at the test layer: full coverage of the cheap half, zero coverage of the broken half. So
+`tests/invariants/official-source-observation.invariants.test.ts` copies the script into a temp tree
+(its `repoRoot` derives from `import.meta.url`, so the copy redirects both the manifest read and the
+artifact write) and serves synthetic sources from `127.0.0.1` on an ephemeral port. No egress, no
+vendor contact, and **no env-var seam added to production code for a test's benefit**.
+
+Four chained live runs cover NEW → BODY → STATUS → DROPPED, because each run's artifact *is* the next
+run's baseline and that chaining is the behaviour under test. The positive control — a candidate-feed
+BODY change detected and tagged `(candidate)` — fails if the feed stops being fetched, if the baseline
+stops being read, or if `sourceKind` stops being carried, so that one assertion covers both original
+vacuities.
+
+**Mutation-tested, because a test that cannot fail proves nothing.** Three reverts against a
+hash-pinned copy, each producing a distinct red set: removing the `candidateFeeds` read → 10 failures
+(including the production-denominator assertion that would have caught vacuity 1); forcing
+`previous = null` → 3; dropping `sourceKind` → 5. The script was restored and re-verified
+byte-identical (`sha256 283175ca…ad37`) before the suite was re-run green.
+
+Also measured on the same pass: the workflow's projection step had hand-listed **9** paths while the
+generator writes **29**, so 20 were unguarded — including `agent-discovery-index.json`, the canonical
+discovery root. `git diff` on an untouched path always exits 0, so the check read green while
+observing nothing. Replaced with the generator's own `--check`, whose denominator *is* the write set,
+and which additionally asserts each target is tracked by git — `git diff` is structurally blind to a
+never-added file, which had already produced one vacuous green on this workstream.
+
+`candidateFeeds` went 1 → 3 (`mcp-spec-client-examples`, `pulsemcp-client-directory`), purely
+additive. Both were **content-verified rather than name-checked**: the protocol page body names
+clients (46×`client`, 26×`cursor`, 24×`Claude`), and the directory enumerates VS Code / Cursor / Cline.
+`modelcontextprotocol.io/clients` was rejected — it returns 200 but redirects to
+`/getting-started/intro`, so it would have been a live-looking dead source.
+
+---
+
 ## 3. Boundaries this work does not cross
 
 From §2 and §12, verified absent from the plan's change set:

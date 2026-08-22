@@ -693,6 +693,26 @@
       ],
       "role": "NEW_CANDIDATE_FEED_ONLY",
       "note": "§85 lists this as NEW-CANDIDATE FEED ONLY. Watched to notice a harness CallLint does not yet track; it is never evidence about an existing host's support class. Prior evaluation (artifacts/harness-distribution/native/manifest.json) found the list collects harness integration guides rather than MCP tools, so CallLint does not fit its scope -- recorded as candidate evidence per §86, with no submission made."
+    },
+    {
+      "id": "mcp-spec-client-examples",
+      "displayName": "Model Context Protocol -- example clients",
+      "vendor": "Model Context Protocol",
+      "officialSources": [
+        "https://modelcontextprotocol.io/examples"
+      ],
+      "role": "NEW_CANDIDATE_FEED_ONLY",
+      "note": "The protocol's own enumeration of MCP clients, and the highest-authority place a harness CallLint does not track would first appear. Verified 2026-08-22: HTTP 200, and the page body names clients (46 'client', 26 'cursor', 24 'Claude', 14 'host') rather than only tools -- the reason it qualifies as a harness feed at all. A FEED, not a host source: it is authority over what MCP clients EXIST, never over CallLint's support class for one, so it cannot live in `hosts`. Distinct from `officialMcpRegistry`, which is where CallLint's own server is PUBLISHED; this is where other people's harnesses are listed."
+    },
+    {
+      "id": "pulsemcp-client-directory",
+      "displayName": "PulseMCP client directory",
+      "vendor": "PulseMCP",
+      "officialSources": [
+        "https://www.pulsemcp.com/clients"
+      ],
+      "role": "NEW_CANDIDATE_FEED_ONLY",
+      "note": "A third-party directory, included because breadth is the point of a candidate feed: it lists harnesses before a vendor documents MCP support, which is the window in which a candidate is worth noticing. Verified 2026-08-22: HTTP 200, body enumerates clients including VS Code, Cursor and Cline. NOT AN AUTHORITY, and the boundary matters more here than for a first-party feed -- if this directory claims a harness supports something, that claim has zero standing over `supportClass`, and §86 permits recording the candidate's existence and nothing else. Admission still requires human review and enters as DEFERRED or DISCOVERY_ONLY; NATIVE additionally requires a bootstrapped extractor, which HD-01 enforces independently of anything a directory says."
     }
   ],
   "maintainedBy": "CallLint Project",
