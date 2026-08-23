@@ -42,7 +42,7 @@ Release 1.8.0. 31 claims across 18 hosts.
 | GitHub Copilot CLI | `mcp-registry-discovery` | AUDIT_REQUIRED | https://github.com/github/gh-copilot | 2026-08-19 | GitHub Copilot CLI MCP and Registry integration unclear |
 | GitHub Copilot CLI | `github-copilot-plugin` | AUDIT_REQUIRED | https://github.com/github/gh-copilot | 2026-08-19 | **no conclusion recorded** — state asserted, evidence not yet summarised |
 | Cline | `mcp-stdio` | AVAILABLE | https://github.com/cline/cline | 2026-08-19 | Ships through this channel today via the Official MCP Registry stdio package. |
-| Cline | `cline-marketplace-pr` | PENDING_UPSTREAM | https://github.com/cline/cline/pull/49 | 2026-08-19 | Existing PR #49, do not create duplicate |
+| Cline | `cline-marketplace-pr` | PENDING_UPSTREAM | https://github.com/cline/marketplace/pull/49 | 2026-08-19 | Existing PR #49 (open, verified 2026-08-23), do not create duplicate |
 | Gemini CLI | `mcp-stdio` | AUDIT_REQUIRED | https://geminicli.com/docs/extensions/ | 2026-08-19 | Gemini CLI MCP support and Registry consumption not confirmed |
 | Gemini CLI | `gemini-extension-gallery` | AUDIT_REQUIRED | https://geminicli.com/docs/extensions/ | 2026-08-19 | Auto-discovery via GitHub topic + manifest |
 | CodeBuddy | `mcp-stdio` | AUDIT_REQUIRED | https://cloud.tencent.com/product/codebuddy | 2026-08-19 | Tencent product, Registry consumption relationship unclear |
