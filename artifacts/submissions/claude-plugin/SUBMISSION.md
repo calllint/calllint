@@ -1,8 +1,8 @@
 # `claude-code` → `claude-plugin` (ROI #1, P0)
 
-Highest reach of the nine. The plugin itself was finished for months; what was missing was
-the shelf manifest, so there was no way for anyone to install it. That gap closed on
-2026-08-23.
+Highest reach of the actionable rows. The plugin itself was finished for months; what was
+missing was the shelf manifest, so there was no way for anyone to install it. That gap closed
+on 2026-08-23.
 
 Identity, copy, and assets: [MATERIALS.md](../MATERIALS.md). Do not retype them here.
 

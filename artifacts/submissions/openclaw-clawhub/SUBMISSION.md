@@ -1,6 +1,6 @@
 # `openclaw` → `openclaw-clawhub` (ROI #8, P3)
 
-Lowest tier of the nine actionable rows. No material gap; the intake route is unrecorded.
+Lowest tier of the actionable rows. No material gap; the intake route is unrecorded.
 
 Identity, copy, and assets: [MATERIALS.md](../MATERIALS.md). Do not retype them here.
 

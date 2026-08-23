@@ -852,11 +852,22 @@ describe("§22 growth — a 19th host changes denominators, never semantics", ()
   })
 
   it("raises the generator's derived emit floor by exactly one", () => {
-    /* The floor is `hosts.length + FIXED_PROJECTION_COUNT`, so a new host raises it
-     * automatically. A hardcoded total would let a dropped write site hide inside a
-     * literal — this asserts the derivation is really in the source, not the number. */
+    /* The floor derives from `hosts.length`, so a new host raises it automatically. A
+     * hardcoded total would let a dropped write site hide inside a literal — this asserts the
+     * derivation is really in the source, not the number.
+     *
+     * Asserted as `ssot.hosts.length` PLUS a `FIXED_PROJECTION_COUNT` term, rather than as one
+     * exact expression: the floor gained a `modelIntentLandingPages` term when the DeepSeek
+     * landing page came under the generator, which is the derivation growing as intended. A
+     * test pinned to the old spelling failed for that correct change, which would push someone
+     * toward reverting the generator to satisfy the string. What must not change is that both
+     * operands are present and derived. */
     const gen = read("scripts/generate-distribution-surfaces.mjs")
-    expect(gen).toContain("ssot.hosts.length + FIXED_PROJECTION_COUNT")
+    const floor = gen.match(/const EXPECTED_EMIT_FLOOR\s*=\s*([\s\S]*?)\n\s*if /)?.[1]
+    expect(floor, "EXPECTED_EMIT_FLOOR is no longer computed in the generator").toBeTypeOf("string")
+    expect(floor, "the floor no longer scales with the host count").toContain("ssot.hosts.length")
+    expect(floor, "the floor no longer counts the fixed surfaces").toContain("FIXED_PROJECTION_COUNT")
+    expect(floor, "the floor is not a sum — a term could be silently dropped").toContain("+")
     const raw = gen.match(/const FIXED_PROJECTION_COUNT = (\d+)/)?.[1]
     expect(raw, "FIXED_PROJECTION_COUNT is not a literal in the generator").toBeTypeOf("string")
     const fixed = Number(raw)

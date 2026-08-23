@@ -1,8 +1,9 @@
 # What to do next, and why in that order
 
-Nine actionable shelf channels. ROI = (host reach × priority tier) ÷ (material gap + review
-latency). Ranking is a judgment call; the **material gap** column is not — it is checked
-against the tree.
+The actionable shelf channels, in priority order. ROI = (host reach × priority tier) ÷
+(material gap + review latency). Ranking is a judgment call; the **material gap** column is
+not — it is checked against the tree. How many rows there are is counted from the SSOT in
+[`CHANNEL-COUNTS.md`](CHANNEL-COUNTS.md), not typed here.
 
 Ordered 2026-08-23. Every row is a human action (new18 §22).
 
@@ -53,5 +54,8 @@ console.log(`--- ${rows.length} actionable`);
 '
 ```
 
-If that count is not 9, this file is stale — fix it here, and check whether
+Compare that count against the `actionable` row in
+[`CHANNEL-COUNTS.md`](CHANNEL-COUNTS.md) — which the generator writes from the same SSOT, so
+the two can only disagree if this snippet has drifted from the generator's partition. If the
+rows below do not match what it prints, this table is stale: fix it here, and check whether
 [BLOCKED.md](BLOCKED.md) needs the same edit.

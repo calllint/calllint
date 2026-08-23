@@ -1,8 +1,9 @@
 # Do not attempt these
 
-Five shelf channels must not be submitted to. Four carry a recorded blocker in the SSOT;
-one has an open PR upstream. This file exists so the reason survives in version control
-rather than being rediscovered by someone who tries anyway.
+These shelf channels must not be submitted to. Most carry a recorded blocker in the SSOT;
+one has an open PR upstream. Counts are in [`CHANNEL-COUNTS.md`](CHANNEL-COUNTS.md); this
+file exists so the *reason* survives in version control rather than being rediscovered by
+someone who tries anyway.
 
 ## `BLOCKED` — a recorded blocker makes it impossible or explicitly rejected
 
@@ -21,7 +22,7 @@ standing up a remote MCP server purely to become listable, or building against a
 interface expected to break, are costs we declined. Re-verifying an upstream policy is
 cheap; reversing a decision needs a reason, not a re-check.
 
-## Why these four were previously mis-stated
+## Why these were previously mis-stated
 
 Until 2026-08-23 these channels were recorded as `READY_NOT_SUBMITTED` / `AUDIT_REQUIRED`,
 which the projections print as "Not yet submitted" / "Listing not yet verified" — both of

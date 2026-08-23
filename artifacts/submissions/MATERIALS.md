@@ -1,7 +1,8 @@
 # Shared submission materials
 
 Every shelf asks the same questions. The answers live here once; per-platform files cite
-this file rather than restating it, so a copy edit lands in one place instead of nine.
+this file rather than restating it, so a copy edit lands in one place instead of once per
+shelf.
 
 Verified against the tree on 2026-08-23.
 

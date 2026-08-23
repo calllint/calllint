@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>DeepSeek Agent Harness Authority — CallLint</title>
+    <title>DeepSeek with Agent Hosts — CallLint</title>
     <meta
       name="description"
       content="Review MCP and agent-tool authority when using DeepSeek through coding agent harnesses. The model can change. The permissions do not."
@@ -13,7 +13,7 @@
     <link rel="apple-touch-icon" href="/logo-mark-256.png" />
     <meta property="og:type" content="article" />
     <meta property="og:url" content="https://calllint.com/harnesses/deepseek/" />
-    <meta property="og:title" content="DeepSeek Agent Harness Authority — CallLint" />
+    <meta property="og:title" content="DeepSeek with Agent Hosts — CallLint" />
     <meta property="og:description" content="The model can change. The permissions do not. Review MCP and agent-tool configuration before enabling them." />
     <meta property="og:image" content="https://calllint.com/og-image.png" />
     <link rel="stylesheet" href="/styles.css" />
@@ -35,86 +35,167 @@
     </header>
     <main>
       <section class="section section-narrow topic">
-        <p class="lede">DeepSeek Agent Harness Authority</p>
+        <p class="lede">DeepSeek with Agent Hosts</p>
         <h1>The model can change. The permissions do not.</h1>
 
-        <p class="prose">DeepSeek can be used through multiple agent harnesses. Replacing Claude with DeepSeek does not itself change the MCP servers, filesystem access, shell commands, API calls, or other authority the harness grants. CallLint inspects supported MCP and agent-tool configuration before execution.</p>
+        <p class="prose">DeepSeek can be used through multiple agent harnesses. Replacing one model with another does not itself change the MCP servers, filesystem access, shell commands, API calls, or other authority the harness grants. CallLint inspects supported MCP and agent-tool configuration before execution.</p>
 
-        <p class="prose"><strong>Note:</strong> This page is a model-intent landing page. For canonical documentation on each harness, see the <a href="/harnesses/">Harnesses Hub</a>.</p>
+        <p class="prose"><strong>Note:</strong> Model-intent landing page that links to canonical host pages. Preserved for DeepSeek users; not canonical truth root. For canonical documentation on each harness, see the <a href="/harnesses/">Harnesses Hub</a>.</p>
 
         <h2>Agent Harnesses</h2>
 
-        <div class="harness-grid">
-          <div class="harness-card">
-            <h3><a href="/harnesses/workbuddy">WorkBuddy</a></h3>
-            <p class="small">Tencent Cloud Code Assistant</p>
-            <p class="small"><strong>Authority:</strong> MCP servers, extensions</p>
-            <p class="small"><strong>CallLint support:</strong> Native auto-discovery</p>
-            <code class="small">calllint scan --agent workbuddy</code>
-          </div>
+        <p class="prose">CallLint tracks 18 agent harnesses: 8 with native auto-discovery (<code>--agent &lt;id&gt;</code>), 1 scanned by explicit path (<code>calllint scan &lt;path&gt;</code>), 9 documented only, with no detection yet.</p>
 
+        <div class="harness-grid">
           <div class="harness-card">
             <h3><a href="/harnesses/claude-code">Claude Code</a></h3>
             <p class="small">Anthropic</p>
-            <p class="small"><strong>Authority:</strong> MCP, filesystem, shell</p>
-            <p class="small"><strong>CallLint support:</strong> Native auto-discovery</p>
+            <p class="small"><strong>Authority:</strong> mcp, filesystem, shell (+1 more)</p>
+            <p class="small"><strong>CallLint support:</strong> Auto-detects — CallLint finds this host’s config on its own.</p>
             <code class="small">calllint scan --agent claude-code</code>
+          </div>
+
+          <div class="harness-card">
+            <h3><a href="/harnesses/claude-desktop">Claude Desktop</a></h3>
+            <p class="small">Anthropic</p>
+            <p class="small"><strong>Authority:</strong> mcp, filesystem</p>
+            <p class="small"><strong>CallLint support:</strong> Auto-detects — CallLint finds this host’s config on its own.</p>
+            <code class="small">calllint scan --agent claude-desktop</code>
+          </div>
+
+          <div class="harness-card">
+            <h3><a href="/harnesses/cursor">Cursor</a></h3>
+            <p class="small">Anysphere</p>
+            <p class="small"><strong>Authority:</strong> mcp, filesystem, shell</p>
+            <p class="small"><strong>CallLint support:</strong> Auto-detects — CallLint finds this host’s config on its own.</p>
+            <code class="small">calllint scan --agent cursor</code>
+          </div>
+
+          <div class="harness-card">
+            <h3><a href="/harnesses/vscode">VS Code</a></h3>
+            <p class="small">Microsoft</p>
+            <p class="small"><strong>Authority:</strong> extensions, mcp</p>
+            <p class="small"><strong>CallLint support:</strong> Auto-detects — CallLint finds this host’s config on its own.</p>
+            <code class="small">calllint scan --agent vscode</code>
+          </div>
+
+          <div class="harness-card">
+            <h3><a href="/harnesses/windsurf">Windsurf</a></h3>
+            <p class="small">Codeium</p>
+            <p class="small"><strong>Authority:</strong> mcp, filesystem</p>
+            <p class="small"><strong>CallLint support:</strong> Auto-detects — CallLint finds this host’s config on its own.</p>
+            <code class="small">calllint scan --agent windsurf</code>
+          </div>
+
+          <div class="harness-card">
+            <h3><a href="/harnesses/workbuddy">WorkBuddy</a></h3>
+            <p class="small">Tencent Cloud</p>
+            <p class="small"><strong>Authority:</strong> mcp, extensions</p>
+            <p class="small"><strong>CallLint support:</strong> Auto-detects — CallLint finds this host’s config on its own.</p>
+            <code class="small">calllint scan --agent workbuddy</code>
           </div>
 
           <div class="harness-card">
             <h3><a href="/harnesses/qwen-code">Qwen Code</a></h3>
             <p class="small">Alibaba Cloud</p>
-            <p class="small"><strong>Authority:</strong> MCP servers, tools</p>
-            <p class="small"><strong>CallLint support:</strong> Native auto-discovery</p>
+            <p class="small"><strong>Authority:</strong> mcp, tools</p>
+            <p class="small"><strong>CallLint support:</strong> Auto-detects — CallLint finds this host’s config on its own.</p>
             <code class="small">calllint scan --agent qwen-code</code>
           </div>
 
           <div class="harness-card">
             <h3><a href="/harnesses/openclaw">OpenClaw</a></h3>
             <p class="small">Open Source</p>
-            <p class="small"><strong>Authority:</strong> MCP, skills, exec</p>
-            <p class="small"><strong>CallLint support:</strong> Native auto-discovery</p>
-            <p class="small"><strong>Coverage:</strong> MCP configuration only — skills and exec permissions are not covered</p>
+            <p class="small"><strong>Authority:</strong> mcp, skills, exec</p>
+            <p class="small"><strong>CallLint support:</strong> Auto-detects — CallLint finds this host’s config on its own.</p>
             <code class="small">calllint scan --agent openclaw</code>
+          </div>
+
+          <div class="harness-card">
+            <h3><a href="/harnesses/codex">OpenAI Codex</a></h3>
+            <p class="small">OpenAI</p>
+            <p class="small"><strong>Authority:</strong> code-generation, api, mcp</p>
+            <p class="small"><strong>CallLint support:</strong> Guide only — No automatic detection yet — this page documents where the config lives.</p>
+            <code class="small">no scan command yet (Guide only) — https://calllint.com/harnesses/codex</code>
+          </div>
+
+          <div class="harness-card">
+            <h3><a href="/harnesses/copilot-cli">GitHub Copilot CLI</a></h3>
+            <p class="small">GitHub</p>
+            <p class="small"><strong>Authority:</strong> shell, cli, mcp</p>
+            <p class="small"><strong>CallLint support:</strong> Guide only — No automatic detection yet — this page documents where the config lives.</p>
+            <code class="small">no scan command yet (Guide only) — https://calllint.com/harnesses/copilot-cli</code>
+          </div>
+
+          <div class="harness-card">
+            <h3><a href="/harnesses/cline">Cline</a></h3>
+            <p class="small">Open Source</p>
+            <p class="small"><strong>Authority:</strong> vscode-extensions, tools, mcp</p>
+            <p class="small"><strong>CallLint support:</strong> Guide only — No automatic detection yet — this page documents where the config lives.</p>
+            <code class="small">no scan command yet (Guide only) — https://calllint.com/harnesses/cline</code>
+          </div>
+
+          <div class="harness-card">
+            <h3><a href="/harnesses/gemini-cli">Gemini CLI</a></h3>
+            <p class="small">Google</p>
+            <p class="small"><strong>Authority:</strong> mcp, tools</p>
+            <p class="small"><strong>CallLint support:</strong> Guide only — Support is not implemented yet — this page documents what we can observe today.</p>
+            <code class="small">no scan command yet (Guide only) — https://calllint.com/harnesses/gemini-cli</code>
+          </div>
+
+          <div class="harness-card">
+            <h3><a href="/harnesses/codebuddy">CodeBuddy</a></h3>
+            <p class="small">Tencent</p>
+            <p class="small"><strong>Authority:</strong> mcp, extensions</p>
+            <p class="small"><strong>CallLint support:</strong> Guide only — Support is not implemented yet — this page documents what we can observe today.</p>
+            <code class="small">no scan command yet (Guide only) — https://calllint.com/harnesses/codebuddy</code>
           </div>
 
           <div class="harness-card">
             <h3><a href="/harnesses/opencode">OpenCode</a></h3>
             <p class="small">Open Source</p>
-            <p class="small"><strong>Authority:</strong> MCP, tools</p>
-            <p class="small"><strong>CallLint support:</strong> Config path scan</p>
+            <p class="small"><strong>Authority:</strong> mcp, tools</p>
+            <p class="small"><strong>CallLint support:</strong> Scan config — CallLint scans this host’s config when you point it at the file.</p>
             <code class="small">calllint scan --config &lt;path&gt;</code>
           </div>
 
           <div class="harness-card">
-            <h3><a href="/harnesses/codex">Codex</a></h3>
-            <p class="small">OpenAI</p>
-            <p class="small"><strong>Authority:</strong> Code generation, API</p>
-            <p class="small"><strong>CallLint support:</strong> Not yet supported</p>
-            <p class="small">See <a href="/trust/">Trust lookup</a> for published servers</p>
+            <h3><a href="/harnesses/kiro">Kiro</a></h3>
+            <p class="small">AWS</p>
+            <p class="small"><strong>Authority:</strong> mcp, filesystem, shell</p>
+            <p class="small"><strong>CallLint support:</strong> Guide only — Support is not implemented yet — this page documents what we can observe today.</p>
+            <code class="small">no scan command yet (Guide only) — https://calllint.com/harnesses/kiro</code>
           </div>
 
           <div class="harness-card">
-            <h3><a href="/harnesses/copilot-cli">Copilot CLI</a></h3>
-            <p class="small">GitHub</p>
-            <p class="small"><strong>Authority:</strong> Shell, CLI</p>
-            <p class="small"><strong>CallLint support:</strong> Not yet supported</p>
-            <p class="small">See <a href="/trust/">Trust lookup</a> for published servers</p>
+            <h3><a href="/harnesses/continue">Continue</a></h3>
+            <p class="small">Continue</p>
+            <p class="small"><strong>Authority:</strong> mcp, tools, vscode-extensions</p>
+            <p class="small"><strong>CallLint support:</strong> Guide only — No automatic detection yet — this page documents where the config lives.</p>
+            <code class="small">no scan command yet (Guide only) — https://calllint.com/harnesses/continue</code>
           </div>
 
           <div class="harness-card">
-            <h3><a href="/harnesses/cline">Cline</a></h3>
-            <p class="small">Open Source (VS Code)</p>
-            <p class="small"><strong>Authority:</strong> VS Code extensions, tools</p>
-            <p class="small"><strong>CallLint support:</strong> Not yet supported</p>
-            <p class="small">See <a href="/trust/">Trust lookup</a> for published servers</p>
+            <h3><a href="/harnesses/roo-code">Roo Code</a></h3>
+            <p class="small">Roo Code Inc</p>
+            <p class="small"><strong>Authority:</strong> mcp, tools, vscode-extensions</p>
+            <p class="small"><strong>CallLint support:</strong> Guide only — Support is not implemented yet — this page documents what we can observe today.</p>
+            <code class="small">no scan command yet (Guide only) — https://calllint.com/harnesses/roo-code</code>
+          </div>
+
+          <div class="harness-card">
+            <h3><a href="/harnesses/deepseek-harness">DeepSeek Harness</a></h3>
+            <p class="small">DeepSeek</p>
+            <p class="small"><strong>Authority:</strong> mcp, tools, plugins</p>
+            <p class="small"><strong>CallLint support:</strong> Guide only — No automatic detection yet — this page documents where the config lives.</p>
+            <code class="small">no scan command yet (Guide only) — https://calllint.com/harnesses/deepseek-harness</code>
           </div>
         </div>
 
         <h2>What CallLint Does</h2>
         <ul>
           <li>Statically scans MCP and agent-tool configuration</li>
-          <li>Returns SAFE, REVIEW, BLOCK, or UNKNOWN with evidence</li>
+          <li>Returns a verdict with evidence for every finding</li>
           <li>Identifies filesystem, shell, network, and API authority</li>
           <li>Does not execute, install, or connect to servers</li>
           <li>Works offline by default</li>
@@ -126,7 +207,7 @@
           <li>Does not certify harnesses as "safe" or "secure"</li>
           <li>Does not prove runtime behavior</li>
           <li>Does not replace code review or security audit</li>
-          <li>UNKNOWN is not SAFE — it means the surface could not be verified statically</li>
+          <li><strong>Insufficient evidence</strong> is not <strong>No blockers observed</strong> — it means the surface could not be verified statically, and it never becomes a pass on its own</li>
         </ul>
 
         <h2>See Also</h2>

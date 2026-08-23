@@ -17,23 +17,31 @@ fresh clone, and lost on any machine but one. This directory is tracked.
 
 ## The two cost classes, which must not be conflated
 
-The SSOT holds 31 channels. They divide by what a human actually has to do:
+Channels divide by what a human actually has to do:
 
-| Class | Count | Cost | Who |
-|---|---|---|---|
-| **Verify-only** (`mcp-stdio`) | 17 | Read-only confirmation that the host consumes the Official MCP Registry. The registry entry is **already live** — nothing is submitted. | Agent-safe (GET only) |
-| **Shelf action** (a distinct listing surface) | 14 | An actual submission to a separate marketplace. | **Human only** |
+| Class | Cost | Who |
+|---|---|---|
+| **Verify-only** (`mcp-stdio`) | Read-only confirmation that the host consumes the Official MCP Registry. The registry entry is **already live** — nothing is submitted. | Agent-safe (GET only) |
+| **Shelf action** (a distinct listing surface) | An actual submission to a separate marketplace. | **Human only** |
+
+**The counts live in [`CHANNEL-COUNTS.md`](CHANNEL-COUNTS.md)**, which is generated from the
+SSOT. They are deliberately not repeated here: every count in this directory used to be
+hand-typed, and a hand-typed count cannot fail when a channel is added — it just quietly
+under-reports the work left, since nobody revisits a paragraph when appending a row.
 
 A host documenting stdio MCP support is **not** the same fact as that host consuming the
 Official MCP Registry. That distinction is why `mcp-stdio` channels sit at
 `AUDIT_REQUIRED` rather than `AVAILABLE`: the claim is unverified, not the support absent.
 
-## Of the 14 shelf actions
+## Of the shelf actions
 
-- **4 are `BLOCKED`** — a recorded blocker makes them impossible or explicitly rejected.
+[`CHANNEL-COUNTS.md`](CHANNEL-COUNTS.md) partitions them and lists each row by host and
+channel:
+
+- **`BLOCKED`** — a recorded blocker makes them impossible or explicitly rejected.
   They are not a to-do and have no package here. See [`BLOCKED.md`](BLOCKED.md).
-- **1 is `PENDING_UPSTREAM`** — `cline` has an open PR; a second would be a duplicate.
-- **9 are actionable**, ordered by ROI in [`ROI.md`](ROI.md).
+- **`PENDING_UPSTREAM`** — `cline` has an open PR; a second would be a duplicate.
+- **actionable** — ordered by ROI in [`ROI.md`](ROI.md).
 
 ## Layout
 
@@ -47,20 +55,22 @@ artifacts/submissions/
     └── SUBMISSION.md   # where to go, what to paste, how to record the outcome
 ```
 
-Six directories, not nine. Three of the nine actionable rows take no submission package:
-`mcp-registry-discovery` is verify-only, `kiro-workspace-config` is engineering work, and
-`qwen-extension-conversion` converts an artifact that must land upstream first. [`ROI.md`](ROI.md)
-says which is which.
+One directory per shelf that actually takes a submission — which is fewer than the
+actionable row count in [`CHANNEL-COUNTS.md`](CHANNEL-COUNTS.md), because three actionable
+rows take no package at all: `mcp-registry-discovery` is verify-only,
+`kiro-workspace-config` is engineering work, and `qwen-extension-conversion` converts an
+artifact that must land upstream first. [`ROI.md`](ROI.md) says which is which.
 
 ## Recording an outcome
 
-Edit **only** the SSOT, then regenerate. Never hand-edit a projection — there are 29 of
-them and `check:distribution-drift` compares every one byte-for-byte.
+Edit **only** the SSOT, then regenerate. Never hand-edit a projection —
+`check:distribution-drift` compares every one byte-for-byte and reports the total itself,
+so the count is not repeated here either.
 
 ```bash
 # 1. edit apps/web/data/distribution-surfaces.json  (state, and liveUrl if it went live)
-node scripts/generate-distribution-surfaces.mjs   # rewrites all 29 projections
-pnpm check:distribution-drift                     # must report 29/29
+node scripts/generate-distribution-surfaces.mjs   # rewrites every projection
+pnpm check:distribution-drift                     # must report N/N, none missing
 pnpm check:harness-distribution                   # HD-05: blocker <=> BLOCKED
 ```
 

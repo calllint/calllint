@@ -67,14 +67,21 @@ function readBack(outPath) {
 }
 
 /*
- * The eleven fixed projections, i.e. every emit() target that is not a per-host page:
- * harnesses/index.html, agent-surfaces.json, agent-discovery-index.json,
- * harnesses/sitemap.xml, _redirects, llms.txt, llms-full.txt, agent-instructions.md,
- * scripts/distribution-sources.json and the two matrices. Derived, not guessed: `--check`'s
- * anti-vacuity floor is `hosts.length + FIXED_PROJECTION_COUNT`, so adding a host raises the
- * floor automatically and a dropped write site cannot hide inside a hardcoded total.
+ * The twelve fixed projections, i.e. every emit() target that is neither a per-host page nor
+ * a model-intent landing page: harnesses/index.html, agent-surfaces.json,
+ * agent-discovery-index.json, harnesses/sitemap.xml, _redirects, llms.txt, llms-full.txt,
+ * agent-instructions.md, scripts/distribution-sources.json, the two matrices, and
+ * artifacts/submissions/CHANNEL-COUNTS.md. Derived, not guessed: `--check`'s anti-vacuity
+ * floor is `hosts.length + modelIntentLandingPages.length + FIXED_PROJECTION_COUNT`, so
+ * adding a host OR a landing page raises the floor automatically and a dropped write site
+ * cannot hide inside a hardcoded total.
+ *
+ * Landing pages are counted off the SSOT array rather than folded into this constant for that
+ * reason: `/harnesses/deepseek/` spent its life hand-written and OUTSIDE this denominator, so
+ * the check reported "29 projections match" while saying nothing about a 158-line published
+ * page that restated 8 hosts' commands. A count that grows with the SSOT cannot repeat that.
  */
-const FIXED_PROJECTION_COUNT = 11
+const FIXED_PROJECTION_COUNT = 12
 
 // Load SSOT
 const SSOT_PATH = join(ROOT, 'apps/web/data/distribution-surfaces.json')
@@ -663,7 +670,315 @@ ${(() => {
 }
 
 /**
+ * Generate the model-intent landing pages declared in `ssot.modelIntentLandingPages`.
+ *
+ * WHY THIS IS GENERATED AND WAS NOT.
+ * `/harnesses/deepseek/` was hand-written and tracked, and it restated SSOT facts for 8 of
+ * the 18 hosts: each card carried a support label, an authority summary, AND a command
+ * literal. That put it outside two denominators at once — `--check` never compared it (it
+ * was not an emit() target, so the "29 projections match byte-for-byte" green was true and
+ * silent about this file), and every HD command gate reads `truthfulCommands` in the SSOT,
+ * never a literal in a published page. Eight advertised commands with no auditing writer.
+ * Measured 2026-08-23: all 8 still AGREED with the SSOT. That is the point — the facts were
+ * correct and nothing kept them correct, which is the same shape as the `--config` flag
+ * that stayed published for months while nothing read it.
+ *
+ * THE COHORT IS ALL HOSTS, DERIVED. The old page carded 8 hosts by no rule this generator
+ * can reconstruct: not priority (it had P0/P1/P2/P3 and omitted two P0s), not support class
+ * (it mixed all four), not vendor. It also omitted `deepseek-harness` — the one host that
+ * actually is DeepSeek. A hand-picked subset on a page whose declared purpose is "links to
+ * canonical host pages" means the 10 omitted hosts were unreachable from the page built to
+ * reach them, and nothing could notice a new host being left out. Carding every host makes
+ * the omission impossible rather than merely fixed.
+ *
+ * NO COMMAND LITERALS. Each card's command comes from `hostSupportCell(host)`, which
+ * returns `truthfulCommands[0]` or — for a host with no command — says so and links the
+ * canonical page. Never a `|| 'calllint scan --auto'` fallback: `--auto` is real and exits
+ * 0, so for a host CallLint cannot see it would read as "supported and clean" while having
+ * discovered nothing. `hostSupportCell` records that defect at its definition; this reuses
+ * the fix instead of restating the risk.
+ *
+ * ESCAPING IS LOAD-BEARING. `opencode`'s command contains `<path>` and the NATIVE commands
+ * contain `--agent <id>`; emitted raw into HTML the browser swallows the angle-bracketed
+ * argument as an unknown tag, which is how a page can silently print `--agent ` with the
+ * argument gone. Same hazard `describeSupportMix`'s `format` parameter exists for.
+ */
+function generateModelIntentPages() {
+  /* A page whose id this generator has no builder for must FAIL, not be skipped. A skipped
+   * entry is a declared surface with no file: `check:agent-surface` asserts the path is not
+   * redirected and the sitemap lists it, so a missing page would pass both and 404. */
+  const BUILDERS = { 'deepseek-hub': buildDeepSeekLanding }
+
+  for (const page of ssot.modelIntentLandingPages ?? []) {
+    const build = BUILDERS[page.id]
+    if (!build) {
+      throw new Error(
+        `modelIntentLandingPages declares "${page.id}" (${page.path}) but this generator has ` +
+          `no builder for it. Add one — do not skip, or the SSOT will declare a surface that ` +
+          `the sitemap advertises and the tree does not contain.`,
+      )
+    }
+    /* `path` is the SSOT's, so the file location cannot disagree with what the sitemap and
+     * the redirect guard read. Directory form -> index.html, matching the host pages. */
+    const rel = page.path.replace(/^\//, '').replace(/\/$/, '')
+    const outPath = join(ROOT, 'apps/web/public', rel, 'index.html')
+    emit(outPath, build(page))
+    console.log(`✅ Generated: ${page.path}`)
+  }
+}
+
+/** HTML-escape a value that may contain `<`, `>` or `&` — see the escaping note above. */
+function escapeHtml(s) {
+  return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+}
+
+function buildDeepSeekLanding(page) {
+  const hosts = ssot.hosts
+  const cards = hosts
+    .map((host) => {
+      const support = publicSupport(host.supportClass)
+      /* Authority comes from the host's own declared surfaces, not a written-once summary.
+       * Capped at three with a count, so a host that gains a surface changes this line. */
+      const surfaces = Array.isArray(host.authoritySurfaces) ? host.authoritySurfaces : []
+      const shown = surfaces.slice(0, 3).join(', ')
+      const more = surfaces.length > 3 ? ` (+${surfaces.length - 3} more)` : ''
+      return `          <div class="harness-card">
+            <h3><a href="${host.canonicalPath}">${escapeHtml(host.displayName)}</a></h3>
+            <p class="small">${escapeHtml(host.vendor)}</p>
+            <p class="small"><strong>Authority:</strong> ${escapeHtml(shown || 'not yet documented')}${more}</p>
+            <p class="small"><strong>CallLint support:</strong> ${escapeHtml(support.label)} — ${escapeHtml(support.hint)}</p>
+            <code class="small">${escapeHtml(hostSupportCell(host))}</code>
+          </div>`
+    })
+    .join('\n\n')
+
+  return `<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>${escapeHtml(page.displayName)} — CallLint</title>
+    <meta
+      name="description"
+      content="Review MCP and agent-tool authority when using DeepSeek through coding agent harnesses. The model can change. The permissions do not."
+    />
+    <link rel="canonical" href="https://calllint.com${page.path}" />
+    <link rel="icon" href="/favicon.png" type="image/png" />
+    <link rel="apple-touch-icon" href="/logo-mark-256.png" />
+    <meta property="og:type" content="article" />
+    <meta property="og:url" content="https://calllint.com${page.path}" />
+    <meta property="og:title" content="${escapeHtml(page.displayName)} — CallLint" />
+    <meta property="og:description" content="The model can change. The permissions do not. Review MCP and agent-tool configuration before enabling them." />
+    <meta property="og:image" content="https://calllint.com/og-image.png" />
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <header class="site-header">
+      <a class="brand-lockup" href="/" aria-label="CallLint home">
+        <img class="brand-mark" src="/logo-mark-128.png" width="40" height="40" alt="" />
+        <span class="brand-name">CallLint</span>
+      </a>
+      <nav class="nav-links" aria-label="Primary">
+        <a href="/#how">How</a>
+        <a href="/#checks">Checks</a>
+        <a href="/#trust">Trust</a>
+        <a href="/agents">For agents</a>
+        <a href="/mcp-security">MCP security</a>
+        <a href="https://github.com/calllint/calllint">GitHub</a>
+      </nav>
+    </header>
+    <main>
+      <section class="section section-narrow topic">
+        <p class="lede">${escapeHtml(page.displayName)}</p>
+        <h1>The model can change. The permissions do not.</h1>
+
+        <p class="prose">DeepSeek can be used through multiple agent harnesses. Replacing one model with another does not itself change the MCP servers, filesystem access, shell commands, API calls, or other authority the harness grants. CallLint inspects supported MCP and agent-tool configuration before execution.</p>
+
+        <p class="prose"><strong>Note:</strong> ${escapeHtml(page.purpose)}. ${escapeHtml(page.note)}. For canonical documentation on each harness, see the <a href="/harnesses/">Harnesses Hub</a>.</p>
+
+        <h2>Agent Harnesses</h2>
+
+        <p class="prose">${describeSupportMix(hosts, 'html')}</p>
+
+        <div class="harness-grid">
+${cards}
+        </div>
+
+        <h2>What CallLint Does</h2>
+        <ul>
+          <li>Statically scans MCP and agent-tool configuration</li>
+          <li>Returns a verdict with evidence for every finding</li>
+          <li>Identifies filesystem, shell, network, and API authority</li>
+          <li>Does not execute, install, or connect to servers</li>
+          <li>Works offline by default</li>
+        </ul>
+
+        <h2>What CallLint Does Not Do</h2>
+        <ul>
+          <li>Does not evaluate model safety or capabilities</li>
+          <li>Does not certify harnesses as "safe" or "secure"</li>
+          <li>Does not prove runtime behavior</li>
+          <li>Does not replace code review or security audit</li>
+          <li><strong>Insufficient evidence</strong> is not <strong>No blockers observed</strong> — it means the surface could not be verified statically, and it never becomes a pass on its own</li>
+        </ul>
+
+        <h2>See Also</h2>
+        <ul>
+          <li><a href="/harnesses/">Harnesses Hub</a> — Canonical documentation for all supported harnesses</li>
+          <li><a href="/trust/">Trust lookup</a> — Query published MCP server safety data</li>
+          <li><a href="/trust/app-created.html">App Creator safety</a> — Evaluate agent-created apps</li>
+        </ul>
+
+        <div class="callout">CallLint is model-independent and harness-independent. It inspects authority surfaces, not model identity.</div>
+
+        <p class="prose"><a href="/">Learn more about CallLint</a> · <a href="https://github.com/calllint/calllint">GitHub</a> · <a href="/mcp-security">MCP security</a></p>
+      </section>
+    </main>
+    <footer class="site-footer">
+      <div class="footer-brand">
+        <img src="/logo-mark-128.png" width="28" height="28" alt="" />
+        <span>CallLint · evidence-backed verdicts for agent tools</span>
+      </div>
+      <div class="footer-links">
+        <a href="/">Home</a> ·
+        <a href="/mcp-security">MCP security</a> ·
+        <a href="/agent-tool-risk">Agent tool risk</a> ·
+        <a href="/agents">For agents</a> ·
+        <a href="https://github.com/calllint/calllint">GitHub</a>
+      </div>
+    </footer>
+  </body>
+</html>
+`
+}
+
+/**
+ * Generate artifacts/submissions/CHANNEL-COUNTS.md — the channel partition, counted.
+ *
+ * WHY THIS FILE EXISTS. artifacts/submissions/README.md and ROI.md quantify the work: "the
+ * SSOT holds 31 channels", "17 verify-only", "14 shelf actions", "4 BLOCKED", "1
+ * PENDING_UPSTREAM", "9 actionable". Measured 2026-08-23, all six were CORRECT — and each was
+ * hand-typed, with nothing to make it stay correct. Adding one channel to the SSOT falsifies
+ * up to four of them silently, and the direction of the error is always the same: a
+ * to-do list that under-reports what is left, because nobody revisits a paragraph when
+ * appending a row. `ROI.md` already saw the problem and shipped a re-derivation snippet with
+ * "if that count is not 9, this file is stale" — an instruction to a human to run a check by
+ * hand is the honest version of a guard, and this is the mechanical one.
+ *
+ * WHY A SEPARATE FILE RATHER THAN GENERATING THE READMEs. Those two documents are mostly
+ * editorial: the cost-class argument, the ROI judgement, why six directories serve nine rows.
+ * Generating them whole would put prose under a script that has no opinion about prose, and
+ * generating them PARTLY would need a marked-block mechanism this repo has nowhere else —
+ * every other projection is generated end to end. So the numbers move OUT into a file that is
+ * wholly derived, and the prose cites it. That is the same "cite, don't restate" rule
+ * MATERIALS.md already applies to identity facts.
+ *
+ * THE PARTITION IS ASSERTED, NOT ASSUMED. The four shelf states must sum to the shelf total.
+ * A `state` added to the schema enum would otherwise land in no bucket and quietly shrink the
+ * reported total — the same way `describeSupportMix` would have under-reported a new
+ * supportClass. It throws instead.
+ */
+function generateSubmissionCounts() {
+  const channels = []
+  for (const host of ssot.hosts) {
+    for (const p of host.distributionPrimitives ?? []) {
+      channels.push({ host: host.id, priority: host.priority, ...p })
+    }
+  }
+
+  /* `mcp-stdio` is the verify-only class: the Registry entry is already live, so the open
+   * question is whether the host CONSUMES the Registry — a GET, hence agent-safe. Every
+   * other kind is a distinct listing surface and a human action per new18 §22. */
+  const verifyOnly = channels.filter((c) => c.kind === 'mcp-stdio')
+  const shelf = channels.filter((c) => c.kind !== 'mcp-stdio')
+
+  const blocked = shelf.filter((c) => c.state === 'BLOCKED')
+  const pending = shelf.filter((c) => c.state === 'PENDING_UPSTREAM')
+  const live = shelf.filter((c) => c.state === 'AVAILABLE')
+  /* Actionable = what is left. `!c.blocker` is redundant with state==='BLOCKED' while HD-05
+   * holds (blocker <=> BLOCKED), and it is kept because this count is the to-do list: if
+   * that invariant ever broke, this must under-promise rather than over-promise. */
+  const actionable = shelf.filter(
+    (c) =>
+      c.state !== 'BLOCKED' && c.state !== 'PENDING_UPSTREAM' && c.state !== 'AVAILABLE' && !c.blocker,
+  )
+
+  const partition = blocked.length + pending.length + live.length + actionable.length
+  if (partition !== shelf.length) {
+    throw new Error(
+      `submission counts partition ${partition}/${shelf.length} shelf channels — a \`state\` ` +
+        `value falls in no bucket, so the reported total would silently under-report the work. ` +
+        `Add it to generateSubmissionCounts() rather than letting the sum drift.`,
+    )
+  }
+
+  const rows = (list) =>
+    list
+      .map((c) => `| \`${c.host}\` | \`${c.kind}\` | ${c.priority} | \`${c.state}\` |`)
+      .sort()
+      .join('\n')
+
+  const content = `<!-- GENERATED by scripts/generate-distribution-surfaces.mjs from
+     apps/web/data/distribution-surfaces.json. Do not hand-edit: run
+     \`node scripts/generate-distribution-surfaces.mjs\` and commit the result.
+     \`pnpm check:distribution-drift\` compares this file byte-for-byte. -->
+
+# Channel counts
+
+Every number [README.md](README.md) and [ROI.md](ROI.md) quote about "how many channels"
+comes from here, and here is counted from the SSOT. Cite this file; do not retype a number
+into prose, because a hand-typed count cannot fail when the SSOT grows.
+
+## The two cost classes
+
+| Class | Count | Who |
+|---|---|---|
+| Verify-only (\`mcp-stdio\`) | ${verifyOnly.length} | Agent-safe — GET only |
+| Shelf action (a distinct listing surface) | ${shelf.length} | **Human only** (new18 §22) |
+| **Total channels** | **${channels.length}** | |
+
+A host documenting stdio MCP support is **not** the same fact as that host consuming the
+Official MCP Registry. That is why \`mcp-stdio\` channels can sit at \`AUDIT_REQUIRED\`: the
+claim is unverified, not the support absent.
+
+## The ${shelf.length} shelf actions, partitioned
+
+| State | Count | Meaning |
+|---|---|---|
+| \`BLOCKED\` | ${blocked.length} | A recorded blocker makes it impossible or explicitly rejected — not a to-do. See [BLOCKED.md](BLOCKED.md). |
+| \`PENDING_UPSTREAM\` | ${pending.length} | Waiting on someone else; a second submission would duplicate. |
+| \`AVAILABLE\` | ${live.length} | Already listed. |
+| actionable | ${actionable.length} | Ordered by ROI in [ROI.md](ROI.md). |
+
+The four buckets sum to ${shelf.length}; generation fails if they ever do not.
+
+### Actionable
+
+| Host | Channel | Tier | State |
+|---|---|---|---|
+${rows(actionable)}
+
+### Blocked
+
+| Host | Channel | Tier | State |
+|---|---|---|---|
+${rows(blocked)}
+
+### Pending upstream
+
+| Host | Channel | Tier | State |
+|---|---|---|---|
+${rows(pending)}
+`
+
+  const outPath = join(ROOT, 'artifacts/submissions/CHANNEL-COUNTS.md')
+  emit(outPath, content)
+  console.log(`✅ Generated: artifacts/submissions/CHANNEL-COUNTS.md`)
+}
+
+/**
  * Generate scripts/distribution-sources.json — the watcher's read-only source list.
+
  *
  * `distribution-watch.yml` must consult PRIMARY sources only: a vendor's own docs or its
  * own repository. A hand-maintained list is the wrong shape for that promise twice over.
@@ -1907,6 +2222,12 @@ function main() {
   console.log('\n📄 Generating harness hub...')
   generateHarnessHub()
 
+  /* Model-intent landing pages. Declared in the SSOT, so they were already advertised by the
+   * sitemap and protected from redirection — but their CONTENT was hand-written and outside
+   * the drift denominator until now. See generateModelIntentPages(). */
+  console.log('\n📄 Generating model-intent landing pages...')
+  generateModelIntentPages()
+
   // G5: Machine-readable surfaces
   console.log('\n📄 Generating machine-readable surfaces...')
   generateAgentSurfaces()
@@ -1917,6 +2238,7 @@ function main() {
   generateLlmsFullTxt()
   generateAgentInstructions()
   generateDistributionSources()
+  generateSubmissionCounts()
 
   /* Last: it reads back the agent-surfaces.json written above to measure the
    * machine-readable-presence column, so it must run after that file exists. */
@@ -1929,13 +2251,15 @@ function main() {
      * "no drift" line, so the count is asserted BEFORE the verdict: if a refactor ever
      * stops routing writes through emit(), this reds instead of going quietly green.
      */
-    const EXPECTED_EMIT_FLOOR = ssot.hosts.length + FIXED_PROJECTION_COUNT
+    const EXPECTED_EMIT_FLOOR =
+      ssot.hosts.length + (ssot.modelIntentLandingPages?.length ?? 0) + FIXED_PROJECTION_COUNT
     if (emitted.size < EXPECTED_EMIT_FLOOR) {
       console.error(
         `\n❌ only ${emitted.size} projection(s) were compared, below the floor of ` +
-          `${EXPECTED_EMIT_FLOOR} (${ssot.hosts.length} host pages + ${FIXED_PROJECTION_COUNT} ` +
-          `fixed surfaces). A write site is bypassing emit(), so this check cannot see the ` +
-          `whole tree — treat its result as meaningless until fixed.`,
+          `${EXPECTED_EMIT_FLOOR} (${ssot.hosts.length} host pages + ` +
+          `${ssot.modelIntentLandingPages?.length ?? 0} landing page(s) + ` +
+          `${FIXED_PROJECTION_COUNT} fixed surfaces). A write site is bypassing emit(), so this ` +
+          `check cannot see the whole tree — treat its result as meaningless until fixed.`,
       )
       process.exit(2)
     }
