@@ -83,6 +83,13 @@ jobs:
       # why the generator now carries an explicit "deliberately does NOT write" note. Do not
       # add it back — its schema publishes `additionalProperties: false`, and its drift is
       # covered by the bake's own reproducibility gate.
+      # ALSO IN `ci.yml` ON EVERY PR, AND THAT DUPLICATION IS DELIBERATE. Until 2026-08-23
+      # this was the only plane that ran it, which meant a PR could break the projections and
+      # every status a reviewer saw stayed green until the next Monday — by then the change is
+      # on `main` and the red run names a commit nobody is reviewing. PR coverage is the gate;
+      # this run is the weekly re-assertion that §19 names, and it is what reports a harness
+      # change on a schedule rather than only when someone happens to open a PR. Removing
+      # either one loses a distinct guarantee.
       - name: Check projections against the SSOT
         run: node scripts/generate-distribution-surfaces.mjs --check
 
@@ -92,6 +99,7 @@ jobs:
       # and the published coverage block recounts against the SSOT. A sitemap can be perfectly
       # in sync with a generator that emits a dead URL, and a coverage claim can be perfectly
       # reproducible while overstating what shipped.
+      # Also in `ci.yml` on every PR as of 2026-08-23 — same reasoning as the step above.
       - name: Check agent, human + crawler surface contract
         run: node scripts/check-agent-surface-contract.mjs
 
@@ -124,6 +132,9 @@ jobs:
       # §19's handling is implemented literally: "No change: silent. Change: generate internal
       # artifact." Neither step opens an external PR or issue, submits a form, or contacts a
       # maintainer; the source check issues anonymous GETs and nothing else.
+      # Also in `ci.yml` on every PR as of 2026-08-23. This one is the clearest case for PR
+      # coverage: the schemas live under our own `apps/web/public/`, so every change to them is
+      # a CallLint act made in a diff, and the consumers it breaks are external.
       - name: Check published schema contract
         run: node scripts/check-published-schema-contract.mjs
 

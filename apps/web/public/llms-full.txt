@@ -39,7 +39,7 @@ CallLint is published as a Tier-0 distribution primitive on the Official MCP Reg
 
 Platforms that consume the Official MCP Registry can discover CallLint automatically.
 
-## Supported Agent Harnesses
+## Agent Harnesses CallLint Tracks
 
 ### Claude Code (Anthropic)
 
@@ -325,8 +325,8 @@ npx calllint scan .cursor/mcp.json --ci --no-emoji
 # Scan specific agent
 calllint scan --agent claude-code
 
-# Scan MCP config file
-calllint scan --config ~/.claude/settings.json
+# Scan a specific MCP config file (the target is positional)
+calllint scan ~/.claude/settings.json
 
 # JSON output for machine consumption
 calllint scan --auto --json

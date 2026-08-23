@@ -894,6 +894,232 @@ if (!existsSync(sitemapPath)) {
   }
 }
 
+/* ---------- every generated host page declares a correct self-referential canonical -------
+ *
+ * Truth Gate v2 clause: "canonical URL → correct". Measured 2026-08-23: 100 of the 120
+ * served index.html files carried `rel="canonical"`, and the 20 that did not were exactly
+ * the generator's own output — the 18 host pages plus the harness hub. Every hand-written
+ * page had one. The generator emitted `canonicalUrl` into the JSON surfaces
+ * (agent-surfaces.json, the discovery index) and never into the HTML `<head>`, so the
+ * machine surfaces named a canonical URL that the corresponding page declined to claim.
+ *
+ * WHY THE SITEMAP COMPARISON IS THE ASSERTION, not just tag presence. A canonical tag is
+ * only meaningful relative to the other thing that names the same URL. `harnesses/sitemap.xml`
+ * emits `<loc>` in the directory form (with the trailing slash, since pages are served as
+ * `<path>/index.html`); a canonical naming the extensionless path would resolve through a
+ * 301 and quietly disagree with the sitemap about which URL is authoritative. Nothing
+ * previously compared the two, so they could drift with no failing mode. Presence alone
+ * would have passed a tag pointing anywhere, including at another host's page.
+ *
+ * ANTI-VACUITY: the host cohort is pinned non-empty before any per-page claim, and the
+ * sitemap is required to parse into at least as many `<loc>`s as there are hosts. A gate
+ * that read zero pages, or an empty sitemap, would otherwise report agreement having
+ * compared nothing — the failure mode this repo keeps rediscovering.
+ */
+{
+  const hosts = Array.isArray(ssot.hosts) ? ssot.hosts : []
+  const sitemapPath = join(PUBLIC, 'harnesses/sitemap.xml')
+
+  if (hosts.length === 0) {
+    fail('the SSOT carries no hosts — the canonical-URL check has no denominator')
+  } else if (!existsSync(sitemapPath)) {
+    fail('harnesses/sitemap.xml is not served; canonical tags have nothing to agree with')
+  } else {
+    const sitemap = readFileSync(sitemapPath, 'utf8')
+    const locs = new Set([...sitemap.matchAll(/<loc>([^<]+)<\/loc>/g)].map((m) => m[1]))
+
+    if (locs.size < hosts.length) {
+      fail(
+        `harnesses/sitemap.xml lists ${locs.size} URL(s) for ${hosts.length} host(s) — ` +
+          `too few to be the authority this check compares canonical tags against`,
+      )
+    } else {
+      const problems = []
+      for (const host of hosts) {
+        const pagePath = join(PUBLIC, host.canonicalPath.replace(/^\//, ''), 'index.html')
+        if (!existsSync(pagePath)) {
+          problems.push(`${host.id}: ${host.canonicalPath}/index.html is not served`)
+          continue
+        }
+        const html = readFileSync(pagePath, 'utf8')
+        const declared = html.match(/<link\s+rel="canonical"\s+href="([^"]+)"/)?.[1]
+        const expected = `https://calllint.com${host.canonicalPath}/`
+
+        if (!declared) {
+          problems.push(
+            `${host.id}: declares no rel="canonical" — the machine surfaces name ` +
+              `${expected} as its canonical URL while the page itself claims nothing`,
+          )
+        } else if (declared !== expected) {
+          problems.push(`${host.id}: declares canonical ${declared}, expected ${expected}`)
+        } else if (!locs.has(expected)) {
+          problems.push(
+            `${host.id}: canonical ${expected} is absent from harnesses/sitemap.xml — ` +
+              `the page and the sitemap disagree about which URL is authoritative`,
+          )
+        }
+      }
+
+      if (problems.length > 0) {
+        fail(`canonical URLs are wrong or unbacked:\n     - ${problems.join('\n     - ')}`)
+      } else {
+        pass(
+          `${hosts.length} host pages declare a self-referential canonical matching their ` +
+            `sitemap <loc> (of ${locs.size} URLs listed)`,
+        )
+      }
+    }
+  }
+}
+
+/* ---------- every SSOT host is reachable from the agent-facing machine surface -----------
+ *
+ * Truth Gate v2 clause: "host → agent-surfaces exists". A host recorded in the SSOT, given a
+ * generated page and a sitemap entry, but ABSENT from `agent-surfaces.json`, is invisible to
+ * the consumer the surface exists to serve: an agent reads the machine surface, not the HTML.
+ * The failure is silent in the dangerous direction — the human-facing projections all look
+ * complete, so nothing about the site suggests an agent cannot see one of its hosts.
+ *
+ * Both directions, for the reason HD-05 checks blocker/state both ways. Missing means an
+ * agent cannot discover a host CallLint supports. EXTRA means the surface advertises a host
+ * the SSOT does not record, which is an unbacked claim carried on the surface most likely to
+ * be consumed without review.
+ *
+ * The cohort is compared by id set rather than by count: equal counts with one substitution
+ * is precisely the drift a count check reports as agreement.
+ */
+{
+  const hosts = Array.isArray(ssot.hosts) ? ssot.hosts : []
+  // Re-read rather than reuse: the §19 block above parses the surface inside its own
+  // existsSync branch, so `surface` is not in scope here. The absence of the file is
+  // already failed by §19; this block declines to double-report it.
+  const parsed = existsSync(surfacePath)
+    ? JSON.parse(readFileSync(surfacePath, 'utf8'))
+    : { agents: [] }
+  const listed = Array.isArray(parsed.agents) ? parsed.agents : []
+
+  if (hosts.length === 0) {
+    fail('the SSOT carries no hosts — the agent-surface coverage check has no denominator')
+  } else if (!existsSync(surfacePath)) {
+    // §19 already said this out loud; saying it twice would inflate the failure count.
+  } else if (listed.length === 0) {
+    fail(
+      `${MACHINE_SURFACE} lists no agents, so every SSOT host is unreachable from the ` +
+        `surface agents actually read`,
+    )
+  } else {
+    const ssotIds = new Set(hosts.map((h) => h.id))
+    const surfaceIds = new Set(listed.map((a) => a.id).filter(Boolean))
+
+    const missing = [...ssotIds].filter((id) => !surfaceIds.has(id))
+    const extra = [...surfaceIds].filter((id) => !ssotIds.has(id))
+
+    if (missing.length > 0) {
+      fail(
+        `${MACHINE_SURFACE} omits ${missing.length} SSOT host(s): ${missing.join(', ')} — ` +
+          `each has a page and a sitemap entry but is invisible to an agent reading the ` +
+          `machine surface`,
+      )
+    }
+    if (extra.length > 0) {
+      fail(
+        `${MACHINE_SURFACE} advertises ${extra.length} host(s) the SSOT does not record: ` +
+          `${extra.join(', ')} — an unbacked claim on a surface consumed without review`,
+      )
+    }
+    if (missing.length === 0 && extra.length === 0) {
+      pass(
+        `${MACHINE_SURFACE} lists exactly the ${ssotIds.size} SSOT hosts, by id (no ` +
+          `substitution: sets compared, not counts)`,
+      )
+    }
+  }
+}
+
+/* ---------- no agent surface files a documented-only host under a "supported" heading ----
+ *
+ * Truth Gate v2 clause ⑤ — the semantic one. new20's framing: "不是 token 泄漏。而是语义."
+ * §20's existing leak guards catch an internal *token* reaching a human page. They cannot
+ * catch this, because every word here is already public vocabulary: the defect is a true
+ * heading over the wrong cohort.
+ *
+ * MEASURED 2026-08-23. `## Supported Agent Harnesses` in llms.txt and llms-full.txt sat over
+ * all 18 hosts, 9 of which are documented-only (5 DISCOVERY_ONLY + 4 DEFERRED) and print
+ * `Scan Commands: N/A` two lines below the heading that called them supported. The sentence
+ * one level down had ALREADY been corrected for this exact over-claim — see
+ * `describeSupportMix`, whose docblock records replacing a flat "CallLint provides native
+ * auto-discovery for:" with a computed mix. The heading above it was never revisited. That
+ * asymmetry is the whole lesson: a cohort grows, a row is appended, and the sentence that
+ * quantifies the cohort is not re-read, always failing toward over-claiming.
+ *
+ * WHY HEADINGS AND NOT PROSE GENERALLY. These two files are heading-indexed surfaces written
+ * for agents. A consumer that slices by section takes the heading as the claim for everything
+ * inside it and never reaches the per-host `Support Class`. So a heading is a stronger
+ * assertion than a sentence, and is the thing worth constraining.
+ *
+ * WHAT THIS DELIBERATELY DOES NOT DO: it does not object to `Support Class: DEFERRED` in the
+ * body. llms-full.txt is an agent surface and carries the enum verbatim by design, for the
+ * same documented reason `agent-surfaces.json` does — an agent wants the contract, not a
+ * label. Only the *heading* is constrained.
+ *
+ * ANTI-VACUITY: both files must exist and the documented-only cohort must be non-empty,
+ * otherwise "no supported heading spans a documented-only host" is satisfiable by having no
+ * such hosts — which was never the failing condition.
+ */
+{
+  const hosts = Array.isArray(ssot.hosts) ? ssot.hosts : []
+  const guideOnly = hosts.filter(
+    (h) => h.supportClass === 'DISCOVERY_ONLY' || h.supportClass === 'DEFERRED',
+  )
+  const LLM_SURFACES = ['llms.txt', 'llms-full.txt']
+
+  if (guideOnly.length === 0) {
+    fail(
+      'no DISCOVERY_ONLY/DEFERRED hosts in the SSOT — this check would pass without ' +
+        'constraining anything. If every host is genuinely supported, delete the check.',
+    )
+  } else {
+    const problems = []
+    for (const name of LLM_SURFACES) {
+      const p = join(PUBLIC, name)
+      if (!existsSync(p)) {
+        problems.push(`${name}: not served, so its claims cannot be audited`)
+        continue
+      }
+      const text = readFileSync(p, 'utf8')
+      // The host cohort is emitted as one flat run of hosts under a single heading, so any
+      // heading whose section contains a documented-only host must not claim support.
+      const sections = [...text.matchAll(/^(#{1,3})\s+(.+)$/gm)].map((m) => ({
+        heading: m[2].trim(),
+        start: m.index,
+      }))
+      for (const [i, sec] of sections.entries()) {
+        const body = text.slice(sec.start, sections[i + 1]?.start ?? text.length)
+        // "supported" as a capability verb. `Support Class:` is the per-host contract line
+        // and is explicitly permitted, so the heading text alone is tested.
+        if (!/\bsupported\b/i.test(sec.heading)) continue
+        const named = guideOnly.filter((h) => body.includes(h.displayName))
+        if (named.length > 0) {
+          problems.push(
+            `${name}: heading "${sec.heading}" spans ${named.length} documented-only host(s) ` +
+              `(${named.map((h) => `${h.displayName}/${h.supportClass}`).join(', ')}) — an ` +
+              `agent slicing by section reads them as supported`,
+          )
+        }
+      }
+    }
+
+    if (problems.length > 0) {
+      fail(`a "supported" heading over-claims:\n     - ${problems.join('\n     - ')}`)
+    } else {
+      pass(
+        `no "supported" heading in ${LLM_SURFACES.join(' / ')} spans any of the ` +
+          `${guideOnly.length} documented-only host(s)`,
+      )
+    }
+  }
+}
+
 console.log('')
 if (failed) {
   console.error('❌ Agent + human surface contract FAILED')

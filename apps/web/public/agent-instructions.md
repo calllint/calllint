@@ -26,8 +26,8 @@ calllint scan --auto
 # Scan specific agent
 calllint scan --agent <agent-id>
 
-# Scan config file
-calllint scan --config <path>
+# Scan a specific config file (the target is positional)
+calllint scan <path>
 
 # JSON output
 calllint scan --auto --json

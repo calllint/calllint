@@ -49,6 +49,7 @@ TARGETS
   github:<owner/repo>[@ref]   A GitHub repo (requires --online)
 
 SCAN OPTIONS
+  --config <path>    Scan this config file (same as passing it positionally)
   --auto             Discover and scan all agent configs (P0+P1: Cursor, Claude Code, Claude Desktop, VS Code, Windsurf, WorkBuddy, Qwen Code, OpenClaw)
   --agent <type>     Discover and scan a specific agent type
   --changed          Scan only the agent-tool configs changed in the git diff

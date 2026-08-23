@@ -230,6 +230,78 @@ function publicSupport(supportClass) {
 }
 
 /*
+ * What a host's support column says on the terse agent surface (llms.txt).
+ *
+ * This exists because the column used to be `truthfulCommands[0] || 'calllint scan --auto'`.
+ * The fallback is the defect: a host with NO advertised command is precisely a host for
+ * which no command is true, and `|| <a command>` turns that absence into a fabricated
+ * instruction. `--auto` is real and does run, so the fabrication is undetectable by any
+ * flag-existence gate (HD-06 audits SSOT `truthfulCommands`, never generator literals) —
+ * it would simply auto-discover nothing for that host and exit 0, which reads as "your
+ * host is supported and clean" when the truth is "CallLint cannot see this host at all".
+ *
+ * Measured 2026-08-23: it does not fire today, because all 7 P0/P1 hosts carry exactly one
+ * command. It was armed for the 11 hosts in the tier where 10 of 11 have zero commands —
+ * i.e. it would have fired the moment any DISCOVERY_ONLY or DEFERRED host was promoted to
+ * P1, which is the ordinary way this table changes.
+ *
+ * Absence is rendered as the public support label plus the host's canonical page, so a host
+ * with no command still says something true and actionable. The label vocabulary is shared
+ * with the human pages via `publicSupport()`; its `hint` is NOT reused here, because that
+ * text is written for a host page ("this page documents…") and would be false in a bullet
+ * list. `publicSupport()` throws on an unknown class rather than falling back, and that
+ * property is inherited here deliberately: a new support class must red the generator, not
+ * quietly print a command.
+ */
+function hostSupportCell(host) {
+  const commands = Array.isArray(host.truthfulCommands) ? host.truthfulCommands : []
+  if (commands.length > 0) return commands[0]
+  return `no scan command yet (${publicSupport(host.supportClass).label}) — https://calllint.com${host.canonicalPath}`
+}
+
+/*
+ * The heading over the host table, counted from the SSOT instead of asserted.
+ *
+ * The old text was a flat claim: "CallLint provides native auto-discovery for:" — sitting
+ * above ALL 18 hosts, of which 10 are not NATIVE (3 DISCOVERY_ONLY + 4 DEFERRED +
+ * 1 CONFIG_SCAN + 2 more DISCOVERY_ONLY; measured 2026-08-23). For a DEFERRED host the
+ * heading claimed auto-discovery that does not exist in the shipped product.
+ *
+ * This is the SSOT-projection rule applied to prose: a sentence that quantifies a cohort
+ * must be COMPUTED from that cohort, or it is a second source of truth that drifts on the
+ * next host added — silently, and always in the over-claiming direction, since nobody
+ * revisits a heading when appending a row.
+ *
+ * `format` is not cosmetic. The same sentence goes to a Markdown-ish agent surface and to
+ * raw HTML, and the command examples contain both backticks and `<id>`. Emitting the
+ * Markdown form into HTML printed literal backticks and let the browser swallow `<id>` as
+ * an unknown tag, so the human page silently read "--agent " with the argument gone.
+ */
+function describeSupportMix(hosts, format = 'text') {
+  const n = (cls) => hosts.filter((h) => h.supportClass === cls).length
+  const native = n('NATIVE')
+  const configScan = n('CONFIG_SCAN')
+  const guideOnly = n('DISCOVERY_ONLY') + n('DEFERRED')
+  const counted = native + configScan + guideOnly
+  if (counted !== hosts.length) {
+    throw new Error(
+      `describeSupportMix covered ${counted}/${hosts.length} hosts — a supportClass was added ` +
+        `without a sentence. Fix this rather than letting the heading under-report.`,
+    )
+  }
+  const code =
+    format === 'html'
+      ? (s) => `<code>${s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')}</code>`
+      : (s) => `\`${s}\``
+  const parts = [
+    `${native} with native auto-discovery (${code('--agent <id>')})`,
+    configScan > 0 ? `${configScan} scanned by explicit path (${code('calllint scan <path>')})` : null,
+    guideOnly > 0 ? `${guideOnly} documented only, with no detection yet` : null,
+  ].filter(Boolean)
+  return `CallLint tracks ${hosts.length} agent harnesses: ${parts.join(', ')}.`
+}
+
+/*
  * Public labels for a distribution primitive's `state`, same contract as
  * PUBLIC_SUPPORT_LABELS above and for the same reason.
  *
@@ -350,6 +422,17 @@ function generateHostPages() {
       distributionPrimitives,
       supportLabel,
       supportLabelHint,
+      /* Absolute canonical URL, computed here rather than assembled in the template.
+       *
+       * The trailing slash is the load-bearing part: these pages are served as
+       * `<canonicalPath>/index.html`, so the URL a crawler resolves is the directory form.
+       * A canonical tag pointing at the extensionless path would name a URL that 301s,
+       * which is a self-referential canonical that disagrees with the sitemap — and
+       * `harnesses/sitemap.xml` already emits the slash form (see the `loc` builder). One
+       * expression, one convention; a `{{canonicalPath}}/` in Handlebars would be a second
+       * place for that slash to be got wrong, and the two surfaces would drift silently
+       * because nothing compares a canonical tag to a sitemap entry. */
+      canonicalUrl: `https://calllint.com${host.canonicalPath}/`,
     })
     const outPath = join(hostDir, 'index.html')
 
@@ -375,6 +458,7 @@ function generateHarnessHub() {
       name="description"
       content="CallLint support for agent hosts and development environments"
     />
+    <link rel="canonical" href="https://calllint.com/harnesses/" />
     <link rel="icon" href="/favicon.png" type="image/png" />
     <link rel="stylesheet" href="/styles.css" />
   </head>
@@ -403,7 +487,11 @@ function generateHarnessHub() {
 
         <section class="doc-section">
           <h2>Supported Hosts</h2>
-          <p>CallLint offers native auto-discovery and scanning for:</p>
+          <p>${describeSupportMix(ssot.hosts, 'html')}</p>
+          <p class="small">
+            P0/P1/P2-P3 order these hosts by how commonly they are used, not by how well
+            CallLint supports them. Each host below carries its own support label.
+          </p>
 
           <h3>Native Support (P0)</h3>
           <ul class="host-list">
@@ -413,6 +501,7 @@ ${ssot.hosts
     h => `            <li>
               <a href="/harnesses/${h.id}/">${h.displayName}</a>
               <span class="vendor">by ${h.vendor}</span>
+              <span class="support-class" title="${publicSupport(h.supportClass).hint}">${publicSupport(h.supportClass).label}</span>
               ${h.coverageBoundary ? `<div class="coverage-note">${h.coverageBoundary}</div>` : ''}
             </li>`
   )
@@ -427,6 +516,7 @@ ${ssot.hosts
     h => `            <li>
               <a href="/harnesses/${h.id}/">${h.displayName}</a>
               <span class="vendor">by ${h.vendor}</span>
+              <span class="support-class" title="${publicSupport(h.supportClass).hint}">${publicSupport(h.supportClass).label}</span>
             </li>`
   )
   .join('\n')}
@@ -1141,18 +1231,21 @@ CallLint is published to the Official MCP Registry:
 - Version: ${ssot.officialMcpRegistry.version}
 - Registry URL: ${ssot.officialMcpRegistry.registryUrl}
 
-## Supported Agent Harnesses
+## Agent Harnesses CallLint Tracks
 
-CallLint provides native auto-discovery for:
+${describeSupportMix(ssot.hosts)}
+
+The P0/P1/P2-P3 tiers below order hosts by how commonly they are used. They are NOT a
+capability claim: read each host's own command or support class.
 
 **P0 (Most Common):**
-${p0.map(h => `- ${h.displayName} (${h.vendor}) — ${h.truthfulCommands[0] || 'calllint scan --auto'}`).join('\n')}
+${p0.map(h => `- ${h.displayName} (${h.vendor}) — ${hostSupportCell(h)}`).join('\n')}
 
 **P1 (Additional Major):**
-${p1.map(h => `- ${h.displayName} (${h.vendor}) — ${h.truthfulCommands[0] || 'calllint scan --auto'}`).join('\n')}
+${p1.map(h => `- ${h.displayName} (${h.vendor}) — ${hostSupportCell(h)}`).join('\n')}
 
 **P2-P3 (Less Common):**
-${p2p3.map(h => `- ${h.displayName} (${h.vendor}) — ${h.supportClass}`).join('\n')}
+${p2p3.map(h => `- ${h.displayName} (${h.vendor}) — ${hostSupportCell(h)}`).join('\n')}
 
 ## Machine-Readable Surfaces
 
@@ -1182,8 +1275,8 @@ ${INSTALL.integrate}
 # Scan specific agent
 calllint scan --agent claude-code
 
-# Scan MCP config file
-calllint scan --config ~/.claude/settings.json
+# Scan a specific MCP config file (the target is positional)
+calllint scan ~/.claude/settings.json
 
 # JSON output
 calllint scan --auto --json
@@ -1248,7 +1341,7 @@ CallLint is published as a Tier-0 distribution primitive on the Official MCP Reg
 
 Platforms that consume the Official MCP Registry can discover CallLint automatically.
 
-## Supported Agent Harnesses
+## Agent Harnesses CallLint Tracks
 
 ${ssot.hosts
   .map(
@@ -1291,8 +1384,8 @@ ${INSTALL.scanCi}
 # Scan specific agent
 calllint scan --agent claude-code
 
-# Scan MCP config file
-calllint scan --config ~/.claude/settings.json
+# Scan a specific MCP config file (the target is positional)
+calllint scan ~/.claude/settings.json
 
 # JSON output for machine consumption
 calllint scan --auto --json
@@ -1395,8 +1488,8 @@ calllint scan --auto
 # Scan specific agent
 calllint scan --agent <agent-id>
 
-# Scan config file
-calllint scan --config <path>
+# Scan a specific config file (the target is positional)
+calllint scan <path>
 
 # JSON output
 calllint scan --auto --json

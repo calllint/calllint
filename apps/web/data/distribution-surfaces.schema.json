@@ -216,6 +216,23 @@
       "type": "object",
       "additionalProperties": false,
       "required": ["kind", "state"],
+      "allOf": [
+        {
+          "$comment": "AVAILABLE REQUIRES EVIDENCE, IN BOTH DIRECTIONS. Until this existed, `required` was only [kind, state] and no keyword conditioned an evidence field on `state`, so any channel could be flipped to AVAILABLE with nothing to back it. Measured 2026-08-23: flipping cursor/cursor-plugin from AUDIT_REQUIRED to AVAILABLE with no evidence passed check:distribution-drift, check:agent-surface, check:harness-distribution and check:published-schema, all four green. AVAILABLE is the one state that makes a public claim CallLint ships through a channel today, so it is the one state that must not be assertable for free.\n\nTWO EVIDENCE ARMS, because the two channel families differ structurally and neither arm can serve the other. `upstream: officialMcpRegistry` is carried by all 17 mcp-stdio channels and is transitively verified against the live registry API by scripts/verify-registry-presence.mjs, which fails when the API is unreachable rather than falling back. `liveUrl` is the only arm available to the 14 shelf channels, which carry `upstream` on none of them by construction -- requiring `upstream` of them would be unsatisfiable, and requiring `liveUrl` of the mcp-stdio channels would red the three true AVAILABLE records, since 0 of 31 channels carry a non-null liveUrl today. A single-arm rule is therefore either vacuous or wrong; that is why there are two.\n\nWHAT THIS DOES NOT CLAIM. The upstream arm proves the registry record is live, not that a given host consumes the registry -- that remains an editorial judgement no gate can make. The arm this closes completely is the shelf arm, where AVAILABLE previously required nothing at all.",
+          "if": { "required": ["state"], "properties": { "state": { "const": "AVAILABLE" } } },
+          "then": {
+            "anyOf": [
+              { "required": ["upstream"] },
+              { "required": ["liveUrl"], "properties": { "liveUrl": { "type": "string" } } }
+            ]
+          }
+        },
+        {
+          "$comment": "THE CONVERSE ARM: a recorded live URL may not sit under a state that reads as pending. This is new20's `pending != LIVE` clause. Both directions are load-bearing for the same reason HD-05 checks blocker/state both ways: AVAILABLE-without-evidence is an over-claim, and evidence-under-a-pending-label is the same contradiction written the other way round, where the public projection prints 'not yet submitted' about a channel whose own record names where it is listed. Vacuously satisfied today -- 0 of 31 channels carry a non-null liveUrl -- and that is the point: it constrains the first one written.",
+          "if": { "required": ["liveUrl"], "properties": { "liveUrl": { "type": "string" } } },
+          "then": { "properties": { "state": { "const": "AVAILABLE" } } }
+        }
+      ],
       "properties": {
         "kind": { "type": "string", "pattern": "^[a-z0-9-]+$" },
         "state": {
