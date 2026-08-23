@@ -229,6 +229,11 @@
             "properties": {
               "kind": { "type": "string", "minLength": 1 },
               "state": { "type": "string", "minLength": 1 },
+              "blocker": {
+                "type": "string",
+                "minLength": 1,
+                "description": "Why this channel is unavailable, present only when the SSOT records one. The public label says whether to queue work; it cannot say whether the channel is rejected, unstable, or gated on something CallLint declined to build. Host pages have always carried this text, so omitting it here left the one consumer that cannot ask a follow-up question as the one told least."
+              },
               "upstream": { "type": "string", "minLength": 1 },
               "officialSource": { "type": "string", "format": "uri" }
             }

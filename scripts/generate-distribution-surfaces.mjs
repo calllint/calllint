@@ -740,6 +740,20 @@ function generateAgentDiscoveryIndex() {
         /* Public label, never the internal pipeline enum — same §20 rule as `status`.
          * publicState() throws rather than falling back to the raw token. */
         state: publicState(p.state).label,
+        /*
+         * The blocker travels with the state, because the label alone cannot carry a reason.
+         *
+         * "Not available here" tells an agent not to queue work; it does not say whether the
+         * channel is rejected, unstable, or gated on something CallLint chose not to build.
+         * Host pages have always shown the blocker text, so a human reading the whole row got
+         * the reason — but this file is the machine plane, and dropping the field here meant
+         * the only consumer that cannot ask a follow-up question was the one told least.
+         *
+         * Not gated on state: HD-05 already enforces blocker ⇔ BLOCKED, so this stays a
+         * faithful projection of the SSOT rather than a second place that decides which
+         * states are allowed to explain themselves.
+         */
+        ...(p.blocker ? { blocker: p.blocker } : {}),
         ...(p.upstream ? { upstream: p.upstream } : {}),
         ...(p.officialSource ? { officialSource: p.officialSource } : {}),
       })),
