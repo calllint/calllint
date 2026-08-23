@@ -1,0 +1,21 @@
+{
+  "name": "calllint",
+  "owner": {
+    "name": "saintL",
+    "url": "https://calllint.com"
+  },
+  "metadata": {
+    "description": "Evidence-backed verdicts for agent tools. Scan MCP servers before your agent runs them.",
+    "version": "1.0.0"
+  },
+  "plugins": [
+    {
+      "name": "calllint",
+      "source": "./plugins/calllint",
+      "description": "Preflight risk linting for MCP & agent tools. Before you add or edit an agent-tool config, CallLint recommends scanning the blast radius — SAFE / REVIEW / BLOCK / UNKNOWN with evidence. Advisory and non-blocking; never executes the server it judges.",
+      "category": "security",
+      "keywords": ["mcp", "security", "audit", "preflight", "agent-tools"],
+      "strict": false
+    }
+  ]
+}
