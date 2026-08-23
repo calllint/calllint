@@ -49,10 +49,34 @@
           </div>
         </header>
 
+        <section id="why" class="doc-section">
+          <h2>Why scan Qwen Code?</h2>
+          <p>Qwen Code exposes MCP servers as callable tools, so a server registered once becomes something the model may invoke on its own initiative in any later session.</p>
+        </section>
+
         <section id="usage" class="doc-section">
           <h2>Usage</h2>
           <p>CallLint can auto-discover and scan Qwen Code configurations:</p>
           <pre><code>calllint scan --agent qwen-code</code></pre>
+        </section>
+
+        <section id="start" class="doc-section">
+          <h2>How to start</h2>
+          <p>Install nothing globally — run CallLint straight from npm:</p>
+          <pre><code>npx calllint scan --auto</code></pre>
+          <p>Then scan Qwen Code specifically:</p>
+          <pre><code>calllint scan --agent qwen-code</code></pre>
+        </section>
+
+        <section id="verify" class="doc-section">
+          <h2>How to verify it worked</h2>
+          <p>Read the tool-facing description of each server as the model sees it. A tool the agent can choose for itself is the one whose authority needs to be narrowest.</p>
+          <p>
+            A <strong>No blockers observed</strong> verdict means exactly that — no blocker under
+            the evidence CallLint could collect. It is not a guarantee, and
+            <strong>Insufficient evidence</strong> never becomes it on its own. See
+            <a href="#coverage">Coverage Boundary</a> for what this scan does not look at.
+          </p>
         </section>
 
         <section id="config" class="doc-section">

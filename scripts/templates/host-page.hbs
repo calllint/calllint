@@ -54,6 +54,22 @@
           </div>
         </header>
 
+        {{!-- The activation contract (new20 Sprint 2). These three sections answer "why here?",
+              "how do I start?" and "how do I verify?" — the questions a page that stated only a
+              support level left a visitor holding. Order is deliberate: the reason to care comes
+              before the instruction, and the instruction before the proof.
+
+              EVERY STRING HERE IS DERIVED. `whyHere` and `firstSuccessAction` come from the
+              SSOT's `activation` block; `installCommand` is resolved from project-facts.json
+              through `activation.installRef`; `verifyCommand` is read off `truthfulCommands`,
+              the field HD-01..HD-04 and HD-06 already audit. No command text is written in this
+              template, and none is carried as prose in the SSOT — a command string in either
+              place would be a second, unaudited advertiser of what CallLint can do. --}}
+        <section id="why" class="doc-section">
+          <h2>Why scan {{displayName}}?</h2>
+          <p>{{activation.whyHere}}</p>
+        </section>
+
         <section id="usage" class="doc-section">
           <h2>Usage</h2>
           {{#if truthfulCommands}}
@@ -70,6 +86,32 @@
           </p>
           {{/if}}
         </section>
+
+        {{!-- Guarded on `installCommand`, which the SSOT schema permits only for NATIVE and
+              CONFIG_SCAN hosts. A guide-only page therefore prints no start path at all rather
+              than a plausible one — the honest counterpart to its "Guide only" label. --}}
+        {{#if activation.installCommand}}
+        <section id="start" class="doc-section">
+          <h2>How to start</h2>
+          <p>Install nothing globally — run CallLint straight from npm:</p>
+          <pre><code>{{activation.installCommand}}</code></pre>
+          {{#if activation.verifyCommand}}
+          <p>Then scan {{displayName}} specifically:</p>
+          <pre><code>{{activation.verifyCommand}}</code></pre>
+          {{/if}}
+        </section>
+
+        <section id="verify" class="doc-section">
+          <h2>How to verify it worked</h2>
+          <p>{{activation.firstSuccessAction}}</p>
+          <p>
+            A <strong>No blockers observed</strong> verdict means exactly that — no blocker under
+            the evidence CallLint could collect. It is not a guarantee, and
+            <strong>Insufficient evidence</strong> never becomes it on its own. See
+            <a href="#coverage">Coverage Boundary</a> for what this scan does not look at.
+          </p>
+        </section>
+        {{/if}}
 
         <section id="config" class="doc-section">
           <h2>Configuration Paths</h2>

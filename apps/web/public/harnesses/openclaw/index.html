@@ -49,10 +49,34 @@
           </div>
         </header>
 
+        <section id="why" class="doc-section">
+          <h2>Why scan OpenClaw?</h2>
+          <p>OpenClaw combines MCP servers with skills and an exec surface in one config, so a server that can start a process sits beside skills that decide when to start one.</p>
+        </section>
+
         <section id="usage" class="doc-section">
           <h2>Usage</h2>
           <p>CallLint can auto-discover and scan OpenClaw configurations:</p>
           <pre><code>calllint scan --agent openclaw</code></pre>
+        </section>
+
+        <section id="start" class="doc-section">
+          <h2>How to start</h2>
+          <p>Install nothing globally — run CallLint straight from npm:</p>
+          <pre><code>npx calllint scan --auto</code></pre>
+          <p>Then scan OpenClaw specifically:</p>
+          <pre><code>calllint scan --agent openclaw</code></pre>
+        </section>
+
+        <section id="verify" class="doc-section">
+          <h2>How to verify it worked</h2>
+          <p>Treat any exec-capable server as REVIEW regardless of its verdict, then check what CallLint recorded as evidence — the exec surface is outside what a config scan can prove safe.</p>
+          <p>
+            A <strong>No blockers observed</strong> verdict means exactly that — no blocker under
+            the evidence CallLint could collect. It is not a guarantee, and
+            <strong>Insufficient evidence</strong> never becomes it on its own. See
+            <a href="#coverage">Coverage Boundary</a> for what this scan does not look at.
+          </p>
         </section>
 
         <section id="config" class="doc-section">

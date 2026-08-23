@@ -367,6 +367,62 @@ function publicState(state) {
   return entry
 }
 
+/*
+ * Resolve a host's activation contract into the strings a page prints.
+ *
+ * WHY THE COMMAND IS RESOLVED HERE AND NOT CARRIED IN THE SSOT. `activation.installRef` is a
+ * KEY into project-facts.json's `install` block, never command text. That block is already the
+ * single source for CallLint's own invocation copy — `check:public-copy` audits the site
+ * against it — so a literal command in the SSOT would be a second source, and the two would
+ * drift in the silent direction: a page would keep advertising an invocation the product had
+ * renamed, and no gate whose subject is project-facts.json would see it.
+ *
+ * It is also a truthfulness boundary. Every command-truthfulness gate in
+ * check-harness-distribution.mjs (HD-01..HD-04, HD-06) has `truthfulCommands` as its subject.
+ * A free-form command string inside `activation` would be a second, UNAUDITED place to
+ * advertise one: HD-03 forbids a DEFERRED host from carrying a command and would not see it
+ * there, and HD-06 enters flags from `truthfulCommands` into its denominator and would not
+ * enter these. So the verify command below is READ OFF `truthfulCommands` — the field the
+ * gates already audit — rather than restated.
+ *
+ * THROWS RATHER THAN FALLING BACK, for the reason `publicSupport()` records: an unmapped key
+ * emitting `undefined` into a published page is the failure mode a fallback creates. The
+ * schema pins `installRef` to a closed enum, but JSON Schema cannot read another document, so
+ * the cross-file half of that contract is enforced exactly here.
+ */
+function resolveActivation(host) {
+  const activation = host.activation
+  if (!activation) {
+    throw new Error(
+      `${host.id} carries no \`activation\` block. It is required by the SSOT schema, so this ` +
+        `is a generator reading a file that never validated — run check:agent-surface.`,
+    )
+  }
+
+  const { whyHere, installRef, firstSuccessAction } = activation
+
+  let installCommand = null
+  if (installRef !== undefined) {
+    installCommand = INSTALL[installRef]
+    if (!installCommand) {
+      throw new Error(
+        `${host.id}: activation.installRef "${installRef}" is not a key of project-facts.json's ` +
+          `\`install\` block (has: ${Object.keys(INSTALL).filter((k) => k !== 'description').join(', ')}). ` +
+          `Do not fall back — that publishes "undefined" as an install command.`,
+      )
+    }
+  }
+
+  /* The verify command is the host's FIRST truthful command, or nothing. Never a fallback to
+   * a generic invocation: a host with no truthful command is precisely a host for which no
+   * command is true, and `|| <some command>` turns that absence into a fabricated instruction
+   * that exits 0 having discovered nothing. Same defect `hostSupportCell()` records. */
+  const commands = Array.isArray(host.truthfulCommands) ? host.truthfulCommands : []
+  const verifyCommand = commands.length > 0 ? commands[0] : null
+
+  return { whyHere, installCommand, verifyCommand, firstSuccessAction: firstSuccessAction ?? null }
+}
+
 // Load template
 const TEMPLATE_PATH = join(__dirname, 'templates/host-page.hbs')
 const templateSource = readFileSync(TEMPLATE_PATH, 'utf8')
@@ -422,6 +478,10 @@ function generateHostPages() {
       distributionPrimitives,
       supportLabel,
       supportLabelHint,
+      /* The activation contract, resolved to printable strings. `installRef` becomes a real
+       * command via project-facts.json and the verify command comes off `truthfulCommands`;
+       * see `resolveActivation()` for why neither is carried as text in the SSOT. */
+      activation: resolveActivation(host),
       /* Absolute canonical URL, computed here rather than assembled in the template.
        *
        * The trailing slash is the load-bearing part: these pages are served as

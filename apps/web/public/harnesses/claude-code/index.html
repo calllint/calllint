@@ -49,10 +49,34 @@
           </div>
         </header>
 
+        <section id="why" class="doc-section">
+          <h2>Why scan Claude Code?</h2>
+          <p>Claude Code grants an MCP server the same shell, filesystem and plugin reach the agent itself has, and its settings file is shared with skills and hooks — so one unreviewed server entry inherits the whole working directory.</p>
+        </section>
+
         <section id="usage" class="doc-section">
           <h2>Usage</h2>
           <p>CallLint can auto-discover and scan Claude Code configurations:</p>
           <pre><code>calllint scan --agent claude-code</code></pre>
+        </section>
+
+        <section id="start" class="doc-section">
+          <h2>How to start</h2>
+          <p>Install nothing globally — run CallLint straight from npm:</p>
+          <pre><code>npx calllint scan --auto</code></pre>
+          <p>Then scan Claude Code specifically:</p>
+          <pre><code>calllint scan --agent claude-code</code></pre>
+        </section>
+
+        <section id="verify" class="doc-section">
+          <h2>How to verify it worked</h2>
+          <p>Read the verdict line for each server. Anything not SAFE names the evidence that produced it, so the next step is to open that server’s command and confirm the authority it asks for is authority you meant to grant.</p>
+          <p>
+            A <strong>No blockers observed</strong> verdict means exactly that — no blocker under
+            the evidence CallLint could collect. It is not a guarantee, and
+            <strong>Insufficient evidence</strong> never becomes it on its own. See
+            <a href="#coverage">Coverage Boundary</a> for what this scan does not look at.
+          </p>
         </section>
 
         <section id="config" class="doc-section">

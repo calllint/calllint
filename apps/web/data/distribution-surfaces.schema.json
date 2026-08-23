@@ -124,7 +124,8 @@
         "canonicalPath",
         "officialSources",
         "distributionPrimitives",
-        "coverageBoundary"
+        "coverageBoundary",
+        "activation"
       ],
       "properties": {
         "id": { "type": "string", "pattern": "^[a-z0-9-]+$" },
@@ -208,6 +209,62 @@
           "type": "string",
           "minLength": 1,
           "description": "What CallLint does NOT cover for this host. Required, so a new host cannot ship without naming its own limits -- the honest counterpart to the support label."
+        },
+
+        "activation": { "$ref": "#/definitions/activation" }
+      },
+
+      "allOf": [
+        {
+          "$comment": "ACTIVATION MAY NOT OUT-CLAIM supportClass, AND MUST NOT UNDER-CLAIM IT. Two arms, for the same reason definitions.primitive has two: an activation block on a host CallLint cannot yet scan is an over-claim, and a missing one on a host it CAN scan is the same contradiction written the other way round -- a supported host whose page cannot tell a visitor how to start.\n\nTHE FIRST ARM IS THE LOAD-BEARING ONE. Every existing truthfulness gate in check-harness-distribution.mjs (HD-01..HD-04, HD-06) has `truthfulCommands` as its subject. A free-form command string anywhere else in a host record is therefore a SECOND, UNAUDITED place to advertise a command: HD-03 forbids a DEFERRED host from carrying a command and would not see one here, and HD-06 audits flags found in `truthfulCommands` and would not enter this field's flags into its denominator. That is this repo's dominant fault class -- a guard whose subject moved out from under it -- so `activation` carries NO command text at all. `installRef` is a key into project-facts.json's `install` block (resolved by the generator, which throws on an unknown key) and the verify command is read straight off `truthfulCommands`, which every HD gate already audits. One writer per fact.",
+          "if": {
+            "required": ["supportClass"],
+            "properties": { "supportClass": { "enum": ["DISCOVERY_ONLY", "DEFERRED"] } }
+          },
+          "then": {
+            "properties": {
+              "activation": {
+                "not": {
+                  "anyOf": [{ "required": ["installRef"] }, { "required": ["firstSuccessAction"] }]
+                }
+              }
+            }
+          }
+        },
+        {
+          "$comment": "THE CONVERSE ARM. A NATIVE or CONFIG_SCAN host is one CallLint can actually act on today, so its record must carry the full activation path -- why this host, which install command, and what first success looks like. Without this arm `activation` would be satisfiable by `whyHere` alone on all 18 hosts, which is the vacuous case: the field would exist, validate, and tell a visitor nothing about how to start.",
+          "if": {
+            "required": ["supportClass"],
+            "properties": { "supportClass": { "enum": ["NATIVE", "CONFIG_SCAN"] } }
+          },
+          "then": {
+            "properties": {
+              "activation": { "required": ["whyHere", "installRef", "firstSuccessAction"] }
+            }
+          }
+        }
+      ]
+    },
+
+    "activation": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "The activation contract: what a visitor who lands on this host's page needs in order to get from reading to a verified first result. Required of every host, because a page that states a support level without stating a next action is where CallLint's discovery funnel has always ended.\n\nPROSE FIELDS ARE FREE-FORM; COMMAND FIELDS ARE NOT. See the first $comment under definitions.host.allOf for why: a command string here would be invisible to every gate whose subject is `truthfulCommands`.",
+      "required": ["whyHere"],
+      "properties": {
+        "whyHere": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Why an agent running in THIS host is worth scanning -- grounded in the host's own authoritySurfaces, not in generic MCP risk. Every host carries this, including DISCOVERY_ONLY and DEFERRED ones: the reason to care does not depend on whether CallLint has shipped detection yet, and it is the one honest thing a guide-only page can say."
+        },
+        "installRef": {
+          "enum": ["scan", "scanCi", "mcpServer", "integrate"],
+          "description": "WHICH of CallLint's own invocations activates this host. A KEY into project-facts.json's `install` block, never the command text: that file is already the single source for CallLint's install/invocation copy and check:public-copy audits the site against it, so a literal here would be a second source that drifts silently.\n\nThe enum members are the keys that block holds. They are restated here because JSON Schema cannot read another document -- so the cross-file half is enforced where it can be: the generator resolves this through `INSTALL[ref]` and throws on a key that block does not carry, rather than emitting `undefined` into a published page."
+        },
+        "firstSuccessAction": {
+          "type": "string",
+          "minLength": 1,
+          "description": "What the visitor should see, and do, on a first successful scan -- the step that turns a green exit code into a decision. Absent on DISCOVERY_ONLY/DEFERRED hosts by schema, since there is no first success to describe yet."
         }
       }
     },

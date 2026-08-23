@@ -49,10 +49,34 @@
           </div>
         </header>
 
+        <section id="why" class="doc-section">
+          <h2>Why scan Windsurf?</h2>
+          <p>Windsurf drives multi-step edits with filesystem authority, so an MCP server it can call is reachable from an autonomous run rather than only from a prompt you type.</p>
+        </section>
+
         <section id="usage" class="doc-section">
           <h2>Usage</h2>
           <p>CallLint can auto-discover and scan Windsurf configurations:</p>
           <pre><code>calllint scan --agent windsurf</code></pre>
+        </section>
+
+        <section id="start" class="doc-section">
+          <h2>How to start</h2>
+          <p>Install nothing globally — run CallLint straight from npm:</p>
+          <pre><code>npx calllint scan --auto</code></pre>
+          <p>Then scan Windsurf specifically:</p>
+          <pre><code>calllint scan --agent windsurf</code></pre>
+        </section>
+
+        <section id="verify" class="doc-section">
+          <h2>How to verify it worked</h2>
+          <p>Look at what each server can write. Under an agent that edits without a per-step confirmation, write authority is the finding that matters most.</p>
+          <p>
+            A <strong>No blockers observed</strong> verdict means exactly that — no blocker under
+            the evidence CallLint could collect. It is not a guarantee, and
+            <strong>Insufficient evidence</strong> never becomes it on its own. See
+            <a href="#coverage">Coverage Boundary</a> for what this scan does not look at.
+          </p>
         </section>
 
         <section id="config" class="doc-section">
