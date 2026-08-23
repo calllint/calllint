@@ -288,6 +288,16 @@
           "$comment": "THE CONVERSE ARM: a recorded live URL may not sit under a state that reads as pending. This is new20's `pending != LIVE` clause. Both directions are load-bearing for the same reason HD-05 checks blocker/state both ways: AVAILABLE-without-evidence is an over-claim, and evidence-under-a-pending-label is the same contradiction written the other way round, where the public projection prints 'not yet submitted' about a channel whose own record names where it is listed. Vacuously satisfied today -- 0 of 31 channels carry a non-null liveUrl -- and that is the point: it constrains the first one written.",
           "if": { "required": ["liveUrl"], "properties": { "liveUrl": { "type": "string" } } },
           "then": { "properties": { "state": { "const": "AVAILABLE" } } }
+        },
+        {
+          "$comment": "A RECORDED SUBMISSION URL MEANS A HUMAN ACTED, SO THE DATE MUST HAVE A HOME. Exactly one channel carries `submissionUrl` today (cline/cline-marketplace-pr, PR #49) and it violated this arm when the arm was written -- the date of the act was prose inside `note`. That is why this is not vacuous: it had a subject on the commit that introduced it. The converse is deliberately NOT asserted, because most shelf channels are web forms with no URL to point at, so requiring `submissionUrl` of every submission would be unsatisfiable rather than strict.",
+          "if": { "required": ["submissionUrl"] },
+          "then": { "required": ["submission"] }
+        },
+        {
+          "$comment": "THE ORTHOGONALITY, MADE UNREPRESENTABLE IN ITS ONE CONTRADICTORY CORNER. `submission` and `state` are independent axes, with one pair that cannot both be true: `READY_NOT_SUBMITTED` asserts in its own name that nobody has acted. Same shape as HD-05's blocker/state contradiction, and the same reason it matters -- `state` is the field machines consume, so a channel that had been submitted while labelled not-submitted would tell every projection to queue the work again.\n\nThis also gives that enum member a checkable job. ADR 0001 left it with zero records, defensible but unguarded; it is now constrained even while unpopulated, which is the most a rule can do for a state no record exercises yet.",
+          "if": { "required": ["submission"] },
+          "then": { "properties": { "state": { "not": { "const": "READY_NOT_SUBMITTED" } } } }
         }
       ],
       "properties": {
@@ -305,7 +315,20 @@
         "submissionUrl": { "type": "string", "pattern": "^https://" },
         "auditNote": { "type": "string", "minLength": 1 },
         "blocker": { "type": "string", "minLength": 1 },
-        "note": { "type": "string", "minLength": 1 }
+        "note": { "type": "string", "minLength": 1 },
+        "submission": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["date"],
+          "description": "WHEN A HUMAN ACTED ON THIS CHANNEL. A different axis from `state`, which records where the LISTING sits. Until this existed the two were conflated, so a channel a human had submitted to was indistinguishable from one nobody had touched: both read AUDIT_REQUIRED, and the only trace of the act was a date typed into `note` prose (cline/cline-marketplace-pr said \"verified 2026-08-23\"), which no gate reads and nothing keeps true.\n\nWHY THERE IS NO `status` HERE. new20 §4 asks for a submission status alongside the date. Every value it would carry is already representable, and by a field a gate already checks: submitted-at-all is this block existing; accepted is `state: AVAILABLE` with `liveUrl`, which HD-07 requires evidence for; rejected is `state: BLOCKED` with `blocker`, which HD-05 requires a reason for; withdrawn has no record and no consumer. A `status` enum would therefore be one redundant member, two restating `state`, and one unpopulated -- the second lifecycle definitions/§3 forbids and ADR 0001 already rejected in the same shape. See artifacts/adr/0002-submission-records-the-act.md.\n\nA BLOCK RATHER THAN A FLAT `submittedOn`, so that anything else on the human-action axis attaches here instead of accreting sibling date keys on the primitive, where it would sit indistinguishable from the listing fields.",
+          "properties": {
+            "date": {
+              "type": "string",
+              "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$",
+              "description": "ISO calendar date the submission was made. Pattern-checked here; HD-08 additionally rejects a date that is not a real calendar day (2026-02-31 matches this pattern) and one in the future, neither of which JSON Schema can express."
+            }
+          }
+        }
       }
     }
   }

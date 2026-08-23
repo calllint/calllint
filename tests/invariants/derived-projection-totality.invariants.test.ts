@@ -19,14 +19,21 @@
  * denominator pinned before every claim.
  *
  * WHAT EACH LAYER CATCHES, for the counts file:
- *   generator (`generateSubmissionCounts`)  throws if the four state buckets stop partitioning
- *                                           the shelf channels — a `state` value in no bucket
+ *   generator (`generateSubmissionCounts`)  throws if the five buckets stop partitioning the
+ *                                           shelf channels — a `state` value in no bucket
  *                                           would under-report the to-do list.
  *   drift check                             the emitted bytes are committed and current.
  *   this file                               the numbers in the file equal the SSOT's, and the
  *                                           prose files cite them instead of restating them.
  *                                           Only this layer notices a number typed BACK into
  *                                           README.md, which is how all six got there.
+ *
+ * THE FIFTH BUCKET AND THE SUBMITTED COLUMN (ADR 0002) arrived after this file did. Both are
+ * asserted below, and one of the two clauses involved — `!c.submission` excluding a submitted
+ * channel from the to-do list — has NO subject in the shipped SSOT, because every recorded
+ * submission currently sits at `PENDING_UPSTREAM`. Dropping the clause changes no byte today.
+ * That is precisely the condition this repo's dominant fault class hides in, so the subject is
+ * manufactured on a clone rather than waited for.
  *
  * ANTI-VACUITY. Every `for` loop below is preceded by an assertion that its cohort is
  * non-empty, and every regex extraction asserts it matched before comparing. A test that
@@ -50,6 +57,7 @@ interface Primitive {
   kind: string
   state: string
   blocker?: string
+  submission?: { date: string }
 }
 interface Host {
   id: string
@@ -113,34 +121,182 @@ describe("CHANNEL-COUNTS.md is the SSOT's arithmetic, not a transcription", () =
     const blocked = countRow("BLOCKED")
     const pending = countRow("PENDING_UPSTREAM")
     const live = countRow("AVAILABLE")
+    const submitted = countRow("submitted, not yet listed")
     const actionable = countRow("actionable")
 
     // The claim the file makes out loud. If a new `state` were added and bucketed nowhere,
     // the generator throws — but only when it next runs, and only if someone runs it. This
     // asserts the shipped file's own sum, which is what a reader trusts.
     expect(
-      blocked + pending + live + actionable,
-      "the four buckets do not sum to the shelf cohort — the to-do count under-reports the work",
+      blocked + pending + live + submitted + actionable,
+      "the buckets do not sum to the shelf cohort — the to-do count under-reports the work",
     ).toBe(shelf.length)
 
     expect(blocked).toBe(shelf.filter((c) => c.state === "BLOCKED").length)
     expect(pending).toBe(shelf.filter((c) => c.state === "PENDING_UPSTREAM").length)
     expect(live).toBe(shelf.filter((c) => c.state === "AVAILABLE").length)
+
+    // The file states its own bucket count in prose; a reader comparing that sentence to the
+    // table must not find five rows described as four.
+    const declared = counts.match(/The (\d+) buckets sum to (\d+)/)
+    expect(declared, "the counts file no longer states how many buckets it partitions into").not.toBeNull()
+    expect(Number(declared![1]), "the prose bucket count disagrees with the table").toBe(5)
+    expect(Number(declared![2]), "the prose shelf total disagrees with the SSOT").toBe(shelf.length)
   })
 
   it("lists every actionable row, so the tables cannot go stale against the counts", () => {
     const shelf = allChannels().filter((c) => c.kind !== "mcp-stdio")
+    /* `!c.submission` mirrors the generator, and it is the clause with no subject in the
+     * shipped SSOT: every recorded submission is currently PENDING_UPSTREAM, so dropping it
+     * changes nothing today. It is asserted anyway, and the next test manufactures the
+     * subject the data does not supply. */
     const actionable = shelf.filter(
       (c) =>
         c.state !== "BLOCKED" &&
         c.state !== "PENDING_UPSTREAM" &&
         c.state !== "AVAILABLE" &&
-        !c.blocker,
+        !c.blocker &&
+        !c.submission,
     )
     expect(actionable.length, "no actionable rows — this control has no denominator").toBeGreaterThan(0)
 
     const missing = actionable.filter((c) => !counts.includes(`| \`${c.host}\` | \`${c.kind}\` |`))
     expect(missing.map((c) => `${c.host}/${c.kind}`), "actionable rows absent from the table").toEqual([])
+  })
+
+  it("prints the submission date in the row, and an em-dash where nobody acted", () => {
+    /* The column exists so the human-action axis reaches a human (ADR 0002). Asserting the
+     * COLUMN alone would pass over an all-`—` table, so the cohort is pinned first: at least
+     * one channel records a date, and that date must appear on that channel's own row. */
+    const shelf = allChannels().filter((c) => c.kind !== "mcp-stdio")
+    const dated = shelf.filter((c) => c.submission?.date)
+    expect(dated.length, "no shelf channel records a submission — the column is untested").toBeGreaterThan(0)
+
+    expect(counts, "the counts tables lost the Submitted column").toContain("| Submitted |")
+
+    for (const c of dated) {
+      const row = counts.split("\n").find((l) => l.includes(`| \`${c.host}\` | \`${c.kind}\` |`))
+      expect(row, `${c.host}/${c.kind} has no row in CHANNEL-COUNTS.md`).toBeDefined()
+      expect(row, `${c.host}/${c.kind}: the row does not carry its submission date`).toContain(
+        c.submission!.date,
+      )
+    }
+
+    // And the untouched channels must say so explicitly rather than leaving a blank cell.
+    const untouched = shelf.filter((c) => !c.submission)
+    expect(untouched.length, "every shelf channel is submitted — the em-dash case is untested").toBeGreaterThan(0)
+    const blankCelled = untouched
+      .filter((c) => {
+        const row = counts.split("\n").find((l) => l.includes(`| \`${c.host}\` | \`${c.kind}\` |`))
+        return row !== undefined && !row.trimEnd().endsWith("| — |")
+      })
+      .map((c) => `${c.host}/${c.kind}`)
+    expect(blankCelled, "these unsubmitted rows do not end in an em-dash cell").toEqual([])
+  })
+
+  it("keeps a submitted channel out of the to-do list, on a manufactured subject", () => {
+    /* THE CLAUSE WITH NO SUBJECT. Schema arm 4 forbids a submission only under
+     * `READY_NOT_SUBMITTED`, so a submitted channel whose listing is still unverified is
+     * legally `AUDIT_REQUIRED` — and would land in Actionable, telling a human to submit what
+     * is already submitted. That is the duplicate `cline-marketplace-pr`'s note exists to
+     * prevent. No shipped record exercises it, so the partition is recomputed here over a
+     * cloned SSOT with the subject manufactured, mirroring the generator's own filters.
+     *
+     * This reimplements those filters rather than importing them, which is the usual
+     * objection to a test like this. The alternative is worse: the generator is a 2000-line
+     * ESM script with side effects at import. What keeps the two in step is the shell control
+     * that runs the real generator over this same mutation (nc-counts, NC-1: actionable 9→8),
+     * plus the count assertions above, which read the REAL emitted file. */
+    const shelf = allChannels().filter((c) => c.kind !== "mcp-stdio")
+    const isActionable = (c: Primitive) =>
+      c.state !== "BLOCKED" &&
+      c.state !== "PENDING_UPSTREAM" &&
+      c.state !== "AVAILABLE" &&
+      !c.blocker &&
+      !c.submission
+
+    const before = shelf.filter(isActionable)
+    expect(before.length, "no actionable channel to manufacture a submission onto").toBeGreaterThan(0)
+
+    const subject = structuredClone(before[0]!)
+    expect(isActionable(subject), "the cloned subject is not actionable — the probe is inverted").toBe(true)
+    subject.submission = { date: "2026-08-18" }
+    expect(
+      isActionable(subject),
+      "an already-submitted channel still counts as actionable work — the to-do list would " +
+        "ask for a duplicate submission",
+    ).toBe(false)
+
+    // And it must land in the fifth bucket rather than vanishing from the partition entirely.
+    const inFifth =
+      subject.state !== "BLOCKED" &&
+      subject.state !== "PENDING_UPSTREAM" &&
+      subject.state !== "AVAILABLE" &&
+      !subject.blocker &&
+      Boolean(subject.submission)
+    expect(inFifth, "the channel left Actionable and landed in no bucket — the sum would shrink").toBe(true)
+  })
+
+  it("keeps the generator's own actionable filter on both axes", () => {
+    /* WHY READ THE SOURCE. The test above mirrors the generator's filter, and a mirror cannot
+     * notice the original changing: deleting `!c.submission` from the generator emits an
+     * IDENTICAL projection today, because every recorded submission is `PENDING_UPSTREAM` and
+     * so is excluded by an earlier clause anyway. Measured, not assumed — that mutation was
+     * run against this suite and it stayed green, which is the whole reason this test exists.
+     * The clause only starts mattering on the first submission recorded against a channel
+     * whose listing is unverified, and by then the guard needs to already be in place. Same
+     * technique `submission-axis.invariants.test.ts` uses on HD-08, for the same reason the
+     * docblock above gives: the drift check answers "do the bytes match?", never "does the
+     * generator still write it?". */
+    const gen = read(GENERATOR_PATH)
+    const start = gen.indexOf("function generateSubmissionCounts")
+    expect(start, "generateSubmissionCounts is gone from the generator").toBeGreaterThan(-1)
+    const body = gen.slice(start, gen.indexOf("\n}\n", start))
+
+    /* COMMENTS MUST COME OFF FIRST, and this is not hypothetical tidiness. The first draft of
+     * this test asserted `body` contained "!c.submission" and stayed GREEN when the clause was
+     * deleted from the generator — because the comment explaining the clause also contains the
+     * string. It was grepping its own rationale. Any source-reading assertion has to look at
+     * code, or it passes on the strength of the prose describing what the code used to do. */
+    const code = body
+      .replace(/\/\*[\s\S]*?\*\//g, "")
+      .split("\n")
+      .filter((l) => !l.trim().startsWith("//") && !l.trim().startsWith("*"))
+      .join("\n")
+    // Self-check: the rationale that fooled the first draft must still be in the comments, or
+    // this test has gone vacuous by the explanation being deleted rather than the code fixed.
+    expect(
+      body.length - code.length,
+      "generateSubmissionCounts lost its explanatory comments — the code may be right but the " +
+        "reason is gone, and the next reader will delete the clause again",
+    ).toBeGreaterThan(200)
+
+    // The actionable filter must exclude a submitted channel...
+    expect(
+      code,
+      "the generator's actionable filter no longer excludes submitted channels — the to-do " +
+        "list will ask for a duplicate submission as soon as one is recorded against an " +
+        "unverified listing (ADR 0002)",
+    ).toContain("!c.submission")
+    // ...and the fifth bucket must exist to receive it. Note the partition assertion CANNOT
+    // catch this while the bucket is empty: dropping it from the sum still totals the shelf.
+    // Measured — that mutation emitted a projection without complaint.
+    expect(
+      code,
+      "the submitted-not-yet-listed bucket is gone from the partition — a submitted channel " +
+        "would leave Actionable and land nowhere. The generator's own sum cannot notice while " +
+        "the bucket is empty, which is why this is asserted at the source",
+    ).toMatch(/buckets = \[[^\]]*submittedElsewhere[^\]]*\]/)
+    // The partition must be asserted, not merely computed.
+    expect(code, "the generator no longer throws when the buckets stop covering the shelf").toMatch(
+      /partition !== shelf\.length/,
+    )
+    // And no wall clock may reach a byte-compared projection.
+    expect(
+      code,
+      "a wall clock reached generateSubmissionCounts — check:distribution-drift would fail " +
+        "every morning on content nobody edited",
+    ).not.toMatch(/new Date\(\)|Date\.now\(\)/)
   })
 
   it("carries the do-not-hand-edit header, so a reader knows where to make the change", () => {

@@ -873,10 +873,18 @@ ${cards}
  * wholly derived, and the prose cites it. That is the same "cite, don't restate" rule
  * MATERIALS.md already applies to identity facts.
  *
- * THE PARTITION IS ASSERTED, NOT ASSUMED. The four shelf states must sum to the shelf total.
+ * THE PARTITION IS ASSERTED, NOT ASSUMED. The shelf buckets must sum to the shelf total.
  * A `state` added to the schema enum would otherwise land in no bucket and quietly shrink the
  * reported total — the same way `describeSupportMix` would have under-reported a new
  * supportClass. It throws instead.
+ *
+ * THE FIFTH BUCKET EXISTS FOR THE SECOND AXIS. `submission` (ADR 0002) records that a human
+ * ACTED, which is independent of where the listing sits: schema arm 4 forbids a submission
+ * only under `READY_NOT_SUBMITTED`, so a submitted channel whose listing is still unverified
+ * is legally `AUDIT_REQUIRED`. Such a channel must not be counted actionable — the to-do list
+ * would be telling someone to submit what is already submitted, the duplicate that
+ * `cline-marketplace-pr`'s note exists to prevent. The bucket is empty today and is defined
+ * anyway, because the alternative is the partition assertion firing on the first one written.
  */
 function generateSubmissionCounts() {
   const channels = []
@@ -897,13 +905,41 @@ function generateSubmissionCounts() {
   const live = shelf.filter((c) => c.state === 'AVAILABLE')
   /* Actionable = what is left. `!c.blocker` is redundant with state==='BLOCKED' while HD-05
    * holds (blocker <=> BLOCKED), and it is kept because this count is the to-do list: if
-   * that invariant ever broke, this must under-promise rather than over-promise. */
+   * that invariant ever broke, this must under-promise rather than over-promise.
+   *
+   * `!c.submission` is the same instinct applied to the OTHER axis, and it is not redundant.
+   * Schema arm 4 only forbids a submission under `READY_NOT_SUBMITTED`; a channel someone
+   * submitted to whose listing is still unverified sits at `AUDIT_REQUIRED` quite legally
+   * (ADR 0002). Without this clause such a channel would appear in the Actionable table
+   * below, telling a human to submit something already submitted — which is the exact
+   * duplicate `cline-marketplace-pr`'s note exists to warn against. A submitted channel is
+   * not actionable work, whatever its listing state, so it is counted as awaiting instead.
+   */
   const actionable = shelf.filter(
     (c) =>
-      c.state !== 'BLOCKED' && c.state !== 'PENDING_UPSTREAM' && c.state !== 'AVAILABLE' && !c.blocker,
+      c.state !== 'BLOCKED' &&
+      c.state !== 'PENDING_UPSTREAM' &&
+      c.state !== 'AVAILABLE' &&
+      !c.blocker &&
+      !c.submission,
+  )
+  /* The bucket that clause creates: submitted, but neither live nor formally with upstream.
+   * Empty today — every recorded submission is `PENDING_UPSTREAM` — and it must exist anyway,
+   * or the partition assertion below would fail the moment the first one appears, which is
+   * the wrong way to learn about it. */
+  const submittedElsewhere = shelf.filter(
+    (c) =>
+      c.state !== 'BLOCKED' &&
+      c.state !== 'PENDING_UPSTREAM' &&
+      c.state !== 'AVAILABLE' &&
+      !c.blocker &&
+      c.submission,
   )
 
-  const partition = blocked.length + pending.length + live.length + actionable.length
+  /* The partition is asserted, not assumed, and the buckets are listed once so the prose
+   * below cannot claim a different number of them than the sum actually checks. */
+  const buckets = [blocked, pending, live, submittedElsewhere, actionable]
+  const partition = buckets.reduce((n, b) => n + b.length, 0)
   if (partition !== shelf.length) {
     throw new Error(
       `submission counts partition ${partition}/${shelf.length} shelf channels — a \`state\` ` +
@@ -912,9 +948,29 @@ function generateSubmissionCounts() {
     )
   }
 
+  /* The `submitted` column is the human-action axis reaching a human, which is the point of
+   * recording it (ADR 0002). `—` where nobody has acted: an em-dash reads as "no such fact",
+   * whereas a blank cell reads as an oversight.
+   *
+   * THE AGE OF THE WAIT IS DELIBERATELY NOT COMPUTED, and this is the second time this file
+   * has had to refuse a clock. `new Date()` is out for the reason generateDistributionMatrix()
+   * records about `checkedAt`: a wall clock makes every run produce a diff, so
+   * `check:distribution-drift` would fail every morning on content nobody edited. The obvious
+   * fix — measure against the SSOT's own `generatedAt` — is WORSE than printing nothing,
+   * because that stamp is pinned: it has read 2026-08-19 across every SSOT edit since,
+   * including three on 2026-08-23. An age derived from it would have printed "1d" for a wait
+   * that was already 5 days old, and would keep printing "1d" while the real wait grew to
+   * months. The only reason to show an age is to notice a submission going stale, and a
+   * frozen reference point cannot ever do that — it fails at its one job, in the direction
+   * that under-reports. So the column carries the date, which is a fact, and the reader
+   * subtracts against today, which only the reader knows. */
   const rows = (list) =>
     list
-      .map((c) => `| \`${c.host}\` | \`${c.kind}\` | ${c.priority} | \`${c.state}\` |`)
+      .map(
+        (c) =>
+          `| \`${c.host}\` | \`${c.kind}\` | ${c.priority} | \`${c.state}\` | ` +
+          `${c.submission ? c.submission.date : '—'} |`,
+      )
       .sort()
       .join('\n')
 
@@ -948,28 +1004,46 @@ claim is unverified, not the support absent.
 | \`BLOCKED\` | ${blocked.length} | A recorded blocker makes it impossible or explicitly rejected — not a to-do. See [BLOCKED.md](BLOCKED.md). |
 | \`PENDING_UPSTREAM\` | ${pending.length} | Waiting on someone else; a second submission would duplicate. |
 | \`AVAILABLE\` | ${live.length} | Already listed. |
+| submitted, not yet listed | ${submittedElsewhere.length} | A recorded submission whose listing is not yet verified. Not a to-do either. |
 | actionable | ${actionable.length} | Ordered by ROI in [ROI.md](ROI.md). |
 
-The four buckets sum to ${shelf.length}; generation fails if they ever do not.
+The ${buckets.length} buckets sum to ${shelf.length}; generation fails if they ever do not.
+
+The **submitted** column below records the day a human acted on that channel; \`—\` means
+nobody has yet. Deliberately no "days waiting": the only clock this file may use is the
+SSOT's own \`generatedAt\`, which is pinned, so a computed age would freeze while the real
+wait grew — subtract against today instead. A channel with a date is not actionable work no
+matter what its \`state\` says, because submitting again would duplicate; see
+[ADR 0002](../adr/0002-submission-records-the-act.md).
 
 ### Actionable
 
-| Host | Channel | Tier | State |
-|---|---|---|---|
+| Host | Channel | Tier | State | Submitted |
+|---|---|---|---|---|
 ${rows(actionable)}
 
 ### Blocked
 
-| Host | Channel | Tier | State |
-|---|---|---|---|
+| Host | Channel | Tier | State | Submitted |
+|---|---|---|---|---|
 ${rows(blocked)}
 
 ### Pending upstream
 
-| Host | Channel | Tier | State |
-|---|---|---|---|
+| Host | Channel | Tier | State | Submitted |
+|---|---|---|---|---|
 ${rows(pending)}
+${
+  submittedElsewhere.length > 0
+    ? `
+### Submitted, listing not yet verified
+
+| Host | Channel | Tier | State | Submitted |
+|---|---|---|---|---|
+${rows(submittedElsewhere)}
 `
+    : ''
+}`
 
   const outPath = join(ROOT, 'artifacts/submissions/CHANNEL-COUNTS.md')
   emit(outPath, content)

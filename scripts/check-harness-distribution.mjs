@@ -564,6 +564,114 @@ assertCohortShape(hosts)
   }
 }
 
+/*
+ * HD-08: a recorded submission date must be a real day in the past, and must not sit under a
+ * state that says nobody has submitted.
+ *
+ * WHY THIS IS NOT ONLY A SCHEMA RULE. `submission.date` carries a `pattern` of
+ * ^\d{4}-\d{2}-\d{2}$, which is the most a JSON Schema regex can say. Two wrong values pass
+ * it. `2026-02-31` is well-formed and is not a day — `new Date()` rolls it silently to March 3
+ * rather than throwing, so nothing downstream would object either. And a date in the FUTURE
+ * passes every structural check while asserting an act that has not happened: the whole point
+ * of this field is to distinguish "a human submitted this" from "nobody has touched it", and a
+ * future date makes the claim in the wrong tense. Neither is expressible in the schema
+ * (`format: date` is advisory, and ajv is compiled here with `strict: false` and no formats
+ * package, so it is not even checked), which is exactly the schema/gate split HD-05 and HD-07
+ * already follow.
+ *
+ * THE THIRD ARM IS THE ORTHOGONALITY, restated with a readable message. The schema forbids
+ * `submission` under `READY_NOT_SUBMITTED`; ajv reports it as `must NOT be valid` against a
+ * JSON Pointer, which names neither the host nor the contradiction. Same argument HD-07's
+ * docblock makes about the AVAILABLE arms: the schema makes it unrepresentable, this gate says
+ * the sentence out loud.
+ *
+ * ANTI-VACUITY, AND WHY THE FLOOR IS 1 RATHER THAN 0. Exactly one channel carries a
+ * `submission` today. A gate over an empty cohort would print a checkmark having compared
+ * nothing, which is this repo's dominant fault class; but a floor is also a claim that can go
+ * stale in the other direction, so it is derived, not typed: the cohort must be non-empty
+ * BECAUSE the schema requires `submission` wherever `submissionUrl` appears, and at least one
+ * channel carries `submissionUrl`. If that stops being true the gate fails and says which
+ * premise broke, rather than shrinking to nothing.
+ */
+{
+  console.log("\nChecking: recorded submission dates [HD-08]")
+
+  const channels = hosts.flatMap((h) =>
+    (Array.isArray(h.distributionPrimitives) ? h.distributionPrimitives : []).map((p) => ({
+      host: h.id,
+      ...p,
+    })),
+  )
+  const withSubmission = channels.filter((c) => c.submission)
+  const withUrl = channels.filter((c) => typeof c.submissionUrl === "string" && c.submissionUrl)
+
+  if (channels.length === 0) {
+    fail(
+      `${path.basename(DATA_FILE)}: no distributionPrimitives across ${hosts.length} hosts — ` +
+        `HD-08 would report agreement having examined nothing`,
+    )
+  } else if (withUrl.length > 0 && withSubmission.length === 0) {
+    fail(
+      `${withUrl.length} channel(s) record a submissionUrl but none records a submission date ` +
+        `(${withUrl.map((c) => `${c.host}/${c.kind}`).join(", ")}). The schema requires ` +
+        `\`submission\` wherever \`submissionUrl\` appears, so either that arm was removed from ` +
+        `definitions.primitive.allOf or the SSOT is not being validated — HD-08 has no cohort ` +
+        `left to check either way.`,
+    )
+  } else {
+    let bad = 0
+
+    for (const c of withSubmission) {
+      const raw = c.submission?.date
+      if (typeof raw !== "string") {
+        bad++
+        fail(`${c.host}/${c.kind}: submission records no date — the act has no time`)
+        continue
+      }
+
+      /* Real-day check by round-trip, not by `new Date(raw)` alone: that constructor accepts
+       * 2026-02-31 and rolls it to 2026-03-03 without complaint, so the only way to learn the
+       * input was not a day is to re-serialise and compare. */
+      const parsed = new Date(`${raw}T00:00:00Z`)
+      if (Number.isNaN(parsed.getTime()) || parsed.toISOString().slice(0, 10) !== raw) {
+        bad++
+        fail(
+          `${c.host}/${c.kind}: submission.date "${raw}" is not a real calendar day ` +
+            `(it round-trips to "${Number.isNaN(parsed.getTime()) ? "Invalid Date" : parsed.toISOString().slice(0, 10)}"). ` +
+            `The schema pattern accepts it; a day that does not exist cannot be when someone acted.`,
+        )
+        continue
+      }
+
+      const today = new Date().toISOString().slice(0, 10)
+      if (raw > today) {
+        bad++
+        fail(
+          `${c.host}/${c.kind}: submission.date "${raw}" is in the future (today is ${today}). ` +
+            `This field records an act that HAS happened; a future date claims one that has not.`,
+        )
+      }
+
+      if (c.state === "READY_NOT_SUBMITTED") {
+        bad++
+        fail(
+          `${c.host}/${c.kind}: records a submission on ${raw} but state is READY_NOT_SUBMITTED, ` +
+            `which asserts nobody has acted. \`state\` is the field machines consume, so the ` +
+            `projections would queue this work again.`,
+        )
+      }
+    }
+
+    if (bad === 0) {
+      pass(
+        `${withSubmission.length}/${channels.length} channels record a submission date, each a ` +
+          `real past day and none under READY_NOT_SUBMITTED; ${withUrl.length} channel(s) carry ` +
+          `a submissionUrl and all of them record a date`,
+      )
+    }
+  }
+}
+
 console.log("\n=== Summary ===\n")
 
 if (failed) {
