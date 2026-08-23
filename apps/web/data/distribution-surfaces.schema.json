@@ -219,8 +219,8 @@
       "properties": {
         "kind": { "type": "string", "pattern": "^[a-z0-9-]+$" },
         "state": {
-          "enum": ["AVAILABLE", "AUDIT_REQUIRED", "READY_NOT_SUBMITTED", "PENDING_UPSTREAM"],
-          "description": "AVAILABLE means CallLint ships through this channel today. AUDIT_REQUIRED means the channel exists and the claim is unverified -- notably, that a host documents stdio MCP support is NOT the same fact as that host consuming the Official MCP Registry."
+          "enum": ["AVAILABLE", "AUDIT_REQUIRED", "READY_NOT_SUBMITTED", "PENDING_UPSTREAM", "BLOCKED"],
+          "description": "AVAILABLE means CallLint ships through this channel today. AUDIT_REQUIRED means the channel exists and the claim is unverified -- notably, that a host documents stdio MCP support is NOT the same fact as that host consuming the Official MCP Registry. BLOCKED means a recorded blocker makes submission impossible or explicitly rejected; it is NOT a to-do. This enum is the vocabulary's single source of truth: the leak guards in check-agent-surface-contract.mjs and the agent-discovery-v2 invariants read it rather than restating it, so adding a member here cannot leave a stale hand-copied list behind."
         },
         "upstream": { "const": "officialMcpRegistry" },
         "officialSource": { "type": "string", "pattern": "^https://" },

@@ -1000,12 +1000,22 @@ describe("§5 — a harness surface carries the fields an agent needs to act", (
   it("publishes no internal ontology outside the one field allowed to carry a token", () => {
     /* The §20 human-page guard reads HTML only, so the machine plane needed its own. */
     const INTERNAL = ["NATIVE", "CONFIG_SCAN", "DISCOVERY_ONLY", "DEFERRED"]
-    const INTERNAL_STATE = [
-      "AVAILABLE",
-      "AUDIT_REQUIRED",
-      "READY_NOT_SUBMITTED",
-      "PENDING_UPSTREAM",
-    ]
+    /*
+     * Derived from the schema, not restated — the same reason check-agent-surface-contract.mjs
+     * now derives it. A hardcoded copy of an enum cannot fail loudly when the enum grows: add
+     * a state, and this list quietly stops covering the newest token, which is precisely the
+     * one no downstream code has rendered before. This file's own rule is that every assertion
+     * pins its denominator first; a hand-copied vocabulary is an unpinned denominator.
+     */
+    const INTERNAL_STATE: string[] = (() => {
+      const schema = JSON.parse(read("apps/web/data/distribution-surfaces.schema.json"))
+      const states = schema?.definitions?.primitive?.properties?.state?.enum
+      expect(
+        Array.isArray(states) && states.length > 0,
+        "state enum missing from the SSOT schema — the leak assertion below would be vacuous",
+      ).toBe(true)
+      return states as string[]
+    })()
     const leaks: string[] = []
     for (const s of INDEX.surfaces) {
       if (INTERNAL.includes(s.status)) leaks.push(`${s.id}: status=${s.status}`)

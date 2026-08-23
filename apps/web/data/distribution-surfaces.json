@@ -231,7 +231,7 @@
         },
         {
           "kind": "tencent-mcp-market",
-          "state": "READY_NOT_SUBMITTED",
+          "state": "BLOCKED",
           "blocker": "Third-party MCP submissions not currently accepted",
           "officialSource": "https://cloud.tencent.com/document/product/1729"
         }
@@ -351,7 +351,7 @@
         },
         {
           "kind": "openai-plugin",
-          "state": "AUDIT_REQUIRED",
+          "state": "BLOCKED",
           "blocker": "Do not create remote MCP just for public listing eligibility"
         }
       ],
@@ -496,7 +496,7 @@
         },
         {
           "kind": "tencent-mcp-market",
-          "state": "READY_NOT_SUBMITTED",
+          "state": "BLOCKED",
           "blocker": "Third-party MCP submissions not currently accepted"
         }
       ],
@@ -667,7 +667,7 @@
         },
         {
           "kind": "dsh-plugin",
-          "state": "AUDIT_REQUIRED",
+          "state": "BLOCKED",
           "blocker": "The harness is in vendor-declared developer preview with breaking changes expected. Do not build a plugin against an unstable interface for listing eligibility alone."
         }
       ],

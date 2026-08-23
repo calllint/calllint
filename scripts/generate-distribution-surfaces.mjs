@@ -269,6 +269,19 @@ const PUBLIC_STATE_LABELS = {
     label: 'Awaiting the upstream registry',
     slug: 'awaiting-upstream',
   },
+  /*
+   * BLOCKED is NOT a to-do. It says: a recorded blocker makes this channel impossible or
+   * explicitly rejected, so nobody should queue work against it.
+   *
+   * It exists because the four channels that carry a `blocker` used to be recorded as
+   * READY_NOT_SUBMITTED / AUDIT_REQUIRED, which printed "Not yet submitted" and "Listing
+   * not yet verified" — both of which read as pending. The blocker TEXT was on the page,
+   * but the state LABEL contradicted it, and the label is the field machines read.
+   */
+  BLOCKED: {
+    label: 'Not available here',
+    slug: 'blocked',
+  },
 }
 
 function publicState(state) {

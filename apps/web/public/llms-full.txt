@@ -125,7 +125,7 @@ Platforms that consume the Official MCP Registry can discover CallLint automatic
 
 **Distribution Primitives**:
   - mcp-stdio: AUDIT_REQUIRED (upstream: officialMcpRegistry)
-  - tencent-mcp-market: READY_NOT_SUBMITTED — https://cloud.tencent.com/document/product/1729
+  - tencent-mcp-market: BLOCKED — https://cloud.tencent.com/document/product/1729
 
 **Coverage Boundary**: CallLint scans MCP server entries only. Other WorkBuddy settings in the same file are not covered.
 
@@ -170,7 +170,7 @@ Platforms that consume the Official MCP Registry can discover CallLint automatic
 
 **Distribution Primitives**:
   - mcp-stdio: AUDIT_REQUIRED (upstream: officialMcpRegistry)
-  - openai-plugin: AUDIT_REQUIRED
+  - openai-plugin: BLOCKED
 
 **Coverage Boundary**: CallLint does not yet auto-discover Codex configuration.
 
@@ -230,7 +230,7 @@ Platforms that consume the Official MCP Registry can discover CallLint automatic
 
 **Distribution Primitives**:
   - mcp-stdio: AUDIT_REQUIRED (upstream: officialMcpRegistry)
-  - tencent-mcp-market: READY_NOT_SUBMITTED
+  - tencent-mcp-market: BLOCKED
 
 **Coverage Boundary**: CallLint does not yet support CodeBuddy native discovery.
 
@@ -302,7 +302,7 @@ Platforms that consume the Official MCP Registry can discover CallLint automatic
 
 **Distribution Primitives**:
   - mcp-stdio: AUDIT_REQUIRED (upstream: officialMcpRegistry)
-  - dsh-plugin: AUDIT_REQUIRED
+  - dsh-plugin: BLOCKED
 
 **Coverage Boundary**: CallLint does not auto-discover DeepSeek Harness configuration. Its MCP servers are plugin instances in cordis.yml rather than an mcpServers map, so no existing extractor reads that shape. This record exists for discovery routing only: DeepSeek is a model vendor here, not a security-relevant distinction.
 

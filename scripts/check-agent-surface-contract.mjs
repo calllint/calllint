@@ -64,7 +64,34 @@ const INTERNAL_ONTOLOGY = ['NATIVE', 'CONFIG_SCAN', 'DISCOVERY_ONLY', 'DEFERRED'
  * guess at a bare badge. Applying the host-page rule there would force the hub to stop
  * explaining the words the machine surface uses.
  */
-const INTERNAL_STATE_ONTOLOGY = ['AVAILABLE', 'AUDIT_REQUIRED', 'READY_NOT_SUBMITTED', 'PENDING_UPSTREAM']
+/*
+ * READ FROM THE SCHEMA, NOT RESTATED HERE.
+ *
+ * The history above is the argument. This list was hand-maintained, fell one enum behind the
+ * vocabulary, and the gate went green while 15 pages leaked the missing tokens. Adding
+ * `BLOCKED` would have reproduced that failure exactly: a new member enters the vocabulary,
+ * this list does not learn about it, and the guard silently stops covering the newest token —
+ * the one most likely to be mis-rendered, because nothing downstream has seen it before.
+ *
+ * A hand-copied allowlist of an enum cannot fail loudly when the enum grows; it can only
+ * under-report. So the enum's definition is now its only home, and this reads it. Adding a
+ * state to the schema extends this guard on the same commit, with no second edit to forget.
+ */
+const SSOT_SCHEMA_PATH = join(here, '..', 'apps', 'web', 'data', 'distribution-surfaces.schema.json')
+const INTERNAL_STATE_ONTOLOGY = (() => {
+  const schema = JSON.parse(readFileSync(SSOT_SCHEMA_PATH, 'utf8'))
+  const states = schema?.definitions?.primitive?.properties?.state?.enum
+  /* Anti-vacuity: an empty or moved enum would make every leak assertion below vacuously
+   * pass. A guard that cannot locate its own vocabulary must fail, not shrink to nothing. */
+  if (!Array.isArray(states) || states.length === 0) {
+    throw new Error(
+      `Could not read definitions.primitive.properties.state.enum from ${SSOT_SCHEMA_PATH}. ` +
+        `The state-leak guards below derive their vocabulary from it; without it they would ` +
+        `assert nothing while still printing a checkmark.`,
+    )
+  }
+  return states
+})()
 
 /* Every agent-facing document. All three, not two: the pointer was present in llms.txt
  * and llms-full.txt but missing from agent-instructions.md, which is the one an agent is

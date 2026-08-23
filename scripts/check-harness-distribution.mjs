@@ -210,6 +210,64 @@ assertCohortShape(hosts)
   }
 }
 
+/*
+ * HD-05: a recorded blocker and the state label must agree, in BOTH directions.
+ *
+ * This exists because they once did not. Four channels carried a `blocker` saying
+ * submission is impossible or explicitly rejected, while their state said
+ * READY_NOT_SUBMITTED / AUDIT_REQUIRED — which the public projections print as
+ * "Not yet submitted" / "Listing not yet verified", i.e. as PENDING. The blocker text
+ * reached the HTML, so nothing was concealed from a human reading the whole row; but
+ * `state` is the field machines consume, and in agent-discovery-index.json the blocker
+ * is not carried at all, so an agent saw "unverified" with no way to learn "impossible".
+ *
+ * Both directions are load-bearing:
+ *   blocker ⇒ BLOCKED   stops a known-impossible channel from reading as pending work.
+ *   BLOCKED ⇒ blocker   stops BLOCKED from becoming a verdict with no recorded reason,
+ *                       which is the same evidence-free claim in the other direction.
+ *
+ * The denominator is pinned before the claim: this gate must not be able to report
+ * agreement because it found no channels to compare.
+ */
+{
+  console.log("\nChecking: distribution channel blocker/state agreement [HD-05]")
+
+  const channels = hosts.flatMap((h) =>
+    (Array.isArray(h.distributionPrimitives) ? h.distributionPrimitives : []).map((p) => ({
+      host: h.id,
+      ...p,
+    })),
+  )
+
+  if (channels.length === 0) {
+    fail(
+      `${path.basename(DATA_FILE)}: no distributionPrimitives found across ${hosts.length} hosts — ` +
+        `HD-05 compares blocker against state, so this would make it vacuous`,
+    )
+  } else {
+    const contradictions = channels.filter((c) => c.blocker && c.state !== "BLOCKED")
+    const unexplained = channels.filter((c) => c.state === "BLOCKED" && !c.blocker)
+
+    for (const c of contradictions) {
+      fail(
+        `${c.host}/${c.kind}: declares a blocker but state is ${c.state}, not BLOCKED — ` +
+          `the public label would read as pending while the blocker says otherwise`,
+      )
+    }
+    for (const c of unexplained) {
+      fail(`${c.host}/${c.kind}: state is BLOCKED but records no blocker explaining why`)
+    }
+
+    if (contradictions.length === 0 && unexplained.length === 0) {
+      const blocked = channels.filter((c) => c.state === "BLOCKED").length
+      pass(
+        `${channels.length} channels checked; ${blocked} BLOCKED, each with a recorded blocker, ` +
+          `and no blocker recorded outside BLOCKED`,
+      )
+    }
+  }
+}
+
 console.log("\n=== Summary ===\n")
 
 if (failed) {

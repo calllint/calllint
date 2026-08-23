@@ -110,11 +110,13 @@
         "kind": { "type": "string", "minLength": 1 },
         "state": {
           "type": "string",
+          "$comment": "Mirrors definitions.primitive.properties.state.enum in apps/web/data/distribution-surfaces.schema.json, which is the vocabulary's source of truth. NOT_APPLICABLE is a dead member: no generator emits it and no record carries it. It is left in place because removing a published member of a v1 schema narrows an already-shipped contract, which needs its own decision rather than a drive-by edit.",
           "enum": [
             "AVAILABLE",
             "READY_NOT_SUBMITTED",
             "PENDING_UPSTREAM",
             "AUDIT_REQUIRED",
+            "BLOCKED",
             "NOT_APPLICABLE"
           ]
         },
