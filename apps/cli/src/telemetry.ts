@@ -95,6 +95,13 @@ export function buildCliEmitter(
      * identity as a side effect. Absent ⇒ events carry no id (the sanitizer allows that).
      */
     installationId?: string
+    /**
+     * The stored discovery surface TYPE (new19 §21), stamped onto every event alongside
+     * the id. Read from state by the caller and already validated against the contract
+     * vocabulary there — this is the last hop, not a validation point. Absent ⇒ events
+     * carry no attribution, which is the common and honest case.
+     */
+    discoverySurface?: string
   } = {},
 ): Emitter {
   const base = createEmitter({
@@ -103,15 +110,20 @@ export function buildCliEmitter(
     sink: opts.sink,
     consented: opts.consented,
   })
-  if (!opts.installationId) return base
-  // Wrap rather than thread the id through every call site: one place decides identity,
-  // and a new emit site cannot forget to attach it. An explicit id on the input still
-  // wins, so a test can override.
+  if (!opts.installationId && !opts.discoverySurface) return base
+  // Wrap rather than thread these through every call site: one place decides identity and
+  // provenance, and a new emit site cannot forget to attach them. Explicit values on the
+  // input still win, so a test can override.
   const id = opts.installationId
+  const surface = opts.discoverySurface
   return {
     source: base.source,
     emit(input) {
-      return base.emit({ anonymousInstallationId: id, ...input })
+      return base.emit({
+        ...(id ? { anonymousInstallationId: id } : {}),
+        ...(surface ? { discoverySurface: surface } : {}),
+        ...input,
+      })
     },
   }
 }
