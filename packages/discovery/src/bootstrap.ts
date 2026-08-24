@@ -20,7 +20,10 @@ import { WindsurfExtractor } from "./extractors/windsurf.js"
 import { WorkBuddyExtractor } from "./extractors/workbuddy.js"
 import { QwenCodeExtractor } from "./extractors/qwen-code.js"
 import { ClineExtractor } from "./extractors/cline.js"
+import { KiroExtractor } from "./extractors/kiro.js"
+import { GeminiCliExtractor } from "./extractors/gemini-cli.js"
 import { OpenClawExtractor } from "./extractors/openclaw.js"
+import { OpencodeExtractor } from "./extractors/opencode.js"
 
 /**
  * Register P0 + P1 + P3 (harness distribution) agent extractors.
@@ -42,9 +45,12 @@ function bootstrapExtractors(): void {
 
   // P2: Harness distribution (Cline CLI + VS Code extension, two config paths)
   registry.register(new ClineExtractor())
+  registry.register(new KiroExtractor())
+  registry.register(new GeminiCliExtractor())
 
   // P3: Harness distribution (MCP coverage only)
   registry.register(new OpenClawExtractor())
+  registry.register(new OpencodeExtractor())
 }
 
 // Auto-register extractors on module load

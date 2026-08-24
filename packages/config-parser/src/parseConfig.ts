@@ -23,6 +23,11 @@ export function kindForPath(path: string): TargetKind {
   const base = basename(path).toLowerCase()
   const normalized = path.toLowerCase().replace(/\\/g, "/")
 
+  // OpenCode: opencode.json or opencode.jsonc in ~/.config/opencode/ or project root
+  if ((base === "opencode.json" || base === "opencode.jsonc") && normalized.includes("opencode")) {
+    return "opencode-mcp"
+  }
+
   // OpenClaw: ~/.openclaw/openclaw.json
   if (normalized.includes(".openclaw/openclaw.json")) return "openclaw-config"
 
@@ -31,6 +36,16 @@ export function kindForPath(path: string): TargetKind {
 
   // Qwen Code: .qwen/settings.json or ~/.qwen/settings.json
   if (normalized.includes(".qwen/settings.json")) return "mcp-servers"
+
+  // Kiro: .kiro/settings/mcp.json or ~/.kiro/settings/mcp.json
+  if (normalized.includes(".kiro/settings/mcp.json")) return "mcp-servers"
+
+  // Gemini CLI: .gemini/settings.json or ~/.gemini/settings.json
+  if (normalized.includes(".gemini/settings.json")) return "mcp-servers"
+
+  // Cline CLI: ~/.cline/data/settings/cline_mcp_settings.json
+  // Cline VS Code extension: <appData>/Code/User/globalStorage/saoudrizwan.claude-dev/settings/cline_mcp_settings.json
+  if (base === "cline_mcp_settings.json") return "mcp-servers"
 
   // Claude Code / Claude Desktop: settings.json with Claude in path
   if (base.includes("settings") && normalized.includes("claude")) return "claude-settings"

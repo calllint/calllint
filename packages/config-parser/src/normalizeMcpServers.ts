@@ -52,7 +52,8 @@ function extractInstructions(server: Record<string, unknown>): string | undefine
 
 /**
  * Find the server map inside a parsed config. Supports:
- * - { mcpServers: { ... } }   (Cursor, Claude settings, WorkBuddy, Qwen Code)
+ * - { mcpServers: { ... } }   (Cursor, Claude settings, WorkBuddy, Qwen Code, Kiro, Gemini CLI, Cline)
+ * - { mcp: { serverName: { ... } } }  (OpenCode — servers directly under mcp, not mcp.servers)
  * - { mcp: { servers: { ... } } }  (OpenClaw)
  * - { servers: { ... } }      (some variants)
  * - { ...serverEntries }      (a bare server map)
@@ -64,9 +65,24 @@ export function findServerMap(root: unknown): Record<string, unknown> {
   // Standard: { mcpServers: { ... } }
   if (isRecord(root.mcpServers)) return root.mcpServers
 
-  // OpenClaw: { mcp: { servers: { ... } } }
-  if (isRecord(root.mcp) && isRecord(root.mcp.servers)) {
-    return root.mcp.servers
+  // OpenCode: { mcp: { serverName: { ... } } } (servers directly under mcp)
+  // OpenClaw: { mcp: { servers: { ... } } } (servers under mcp.servers)
+  if (isRecord(root.mcp)) {
+    // OpenClaw path: check if mcp.servers exists
+    if (isRecord(root.mcp.servers)) {
+      return root.mcp.servers
+    }
+    // OpenCode path: mcp directly holds server entries
+    // Heuristic: if mcp has any values that look like server configs, treat mcp itself as the map
+    const mcpEntries = Object.entries(root.mcp)
+    if (
+      mcpEntries.length > 0 &&
+      mcpEntries.every(
+        ([, v]) => isRecord(v) && ("command" in v || "url" in v || "type" in v),
+      )
+    ) {
+      return root.mcp
+    }
   }
 
   // Generic: { servers: { ... } }

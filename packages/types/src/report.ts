@@ -15,8 +15,9 @@ export const TARGET_KINDS = [
   "claude-settings",
   "vscode-mcp-config",
   "windsurf-mcp-config",
-  "mcp-servers",        // WorkBuddy, Qwen Code (standard top-level mcpServers)
+  "mcp-servers",        // WorkBuddy, Qwen Code, Kiro, Gemini CLI, Cline (standard top-level mcpServers)
   "openclaw-config",    // OpenClaw (mcp.servers structure)
+  "opencode-mcp",       // OpenCode (root mcp key)
   "npm",
   "github",
   "inline",

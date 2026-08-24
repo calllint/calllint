@@ -16,6 +16,7 @@ export type AgentType =
   | "codex"              // P2
   | "amazon-q"           // P2
   | "gemini-cli"         // P2
+  | "kiro"               // P2
   | "openclaw"           // P3
   | "opencode"           // P3 (harness distribution)
   | "antigravity"        // P3
