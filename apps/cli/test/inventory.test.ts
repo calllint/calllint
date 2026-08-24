@@ -6,27 +6,52 @@ import { inventoryCommand } from "../src/commands/inventory.js"
 import { scanCommand } from "../src/commands/scan.js"
 import { parseArgs } from "../src/args.js"
 
+/**
+ * Point every path an extractor can resolve a user config from at `dir`, and return
+ * the undo.
+ *
+ * WHY APPDATA IS HERE. This helper previously overrode only HOME/USERPROFILE, so
+ * `BaseAgentExtractor.getAppDataDir()` — which reads `%APPDATA%` on Windows,
+ * `$XDG_CONFIG_HOME` on Linux — still resolved to the DEVELOPER'S OWN machine. The
+ * three tests asserting "no configs discovered" passed only because no host happened
+ * to have an appData-rooted config file on the machines that ran them. Adding the
+ * Cline extractor (whose VS Code extension config lives under globalStorage) walked
+ * straight through that hole and turned those tests red — correctly. The escape was
+ * real for the VS Code and Claude Desktop extractors too, and this closes it for all
+ * of them, not just Cline.
+ *
+ * DO NOT narrow this back to HOME. A test that reads the developer's real config is
+ * both non-deterministic and a privacy leak in CI logs.
+ */
+function isolateAgentHome(dir: string): () => void {
+  const keys = ["HOME", "USERPROFILE", "APPDATA", "XDG_CONFIG_HOME", "CLINE_DATA_DIR"] as const
+  const saved = new Map(keys.map(k => [k, process.env[k]]))
+
+  process.env.HOME = dir
+  process.env.USERPROFILE = dir
+  process.env.APPDATA = dir
+  process.env.XDG_CONFIG_HOME = dir
+  delete process.env.CLINE_DATA_DIR
+
+  return () => {
+    for (const [k, v] of saved) {
+      if (v !== undefined) process.env[k] = v
+      else delete process.env[k]
+    }
+  }
+}
+
 describe("inventory command", () => {
   let testDir: string
-  let originalHome: string | undefined
-  let originalUserProfile: string | undefined
+  let restoreEnv: () => void
 
   beforeEach(() => {
     testDir = mkdtempSync(join(tmpdir(), "calllint-test-"))
-    // Mock HOME/USERPROFILE to isolate from user's real configs
-    originalHome = process.env.HOME
-    originalUserProfile = process.env.USERPROFILE
-    process.env.HOME = testDir
-    process.env.USERPROFILE = testDir
+    restoreEnv = isolateAgentHome(testDir)
   })
 
   afterEach(() => {
-    // Restore original env vars
-    if (originalHome !== undefined) process.env.HOME = originalHome
-    else delete process.env.HOME
-    if (originalUserProfile !== undefined) process.env.USERPROFILE = originalUserProfile
-    else delete process.env.USERPROFILE
-
+    restoreEnv()
     rmSync(testDir, { recursive: true, force: true })
   })
 
@@ -58,23 +83,15 @@ describe("inventory command", () => {
 
 describe("scan --auto", () => {
   let testDir: string
-  let originalHome: string | undefined
-  let originalUserProfile: string | undefined
+  let restoreEnv: () => void
 
   beforeEach(() => {
     testDir = mkdtempSync(join(tmpdir(), "calllint-test-"))
-    originalHome = process.env.HOME
-    originalUserProfile = process.env.USERPROFILE
-    process.env.HOME = testDir
-    process.env.USERPROFILE = testDir
+    restoreEnv = isolateAgentHome(testDir)
   })
 
   afterEach(() => {
-    if (originalHome !== undefined) process.env.HOME = originalHome
-    else delete process.env.HOME
-    if (originalUserProfile !== undefined) process.env.USERPROFILE = originalUserProfile
-    else delete process.env.USERPROFILE
-
+    restoreEnv()
     rmSync(testDir, { recursive: true, force: true })
   })
 
@@ -138,23 +155,15 @@ describe("scan --auto", () => {
 
 describe("scan --agent", () => {
   let testDir: string
-  let originalHome: string | undefined
-  let originalUserProfile: string | undefined
+  let restoreEnv: () => void
 
   beforeEach(() => {
     testDir = mkdtempSync(join(tmpdir(), "calllint-test-"))
-    originalHome = process.env.HOME
-    originalUserProfile = process.env.USERPROFILE
-    process.env.HOME = testDir
-    process.env.USERPROFILE = testDir
+    restoreEnv = isolateAgentHome(testDir)
   })
 
   afterEach(() => {
-    if (originalHome !== undefined) process.env.HOME = originalHome
-    else delete process.env.HOME
-    if (originalUserProfile !== undefined) process.env.USERPROFILE = originalUserProfile
-    else delete process.env.USERPROFILE
-
+    restoreEnv()
     rmSync(testDir, { recursive: true, force: true })
   })
 

@@ -12,6 +12,7 @@ export type AgentType =
   | "vscode"             // P1
   | "windsurf"           // P1
   | "qwen-code"          // P1 (harness distribution)
+  | "cline"              // P2 (harness distribution)
   | "codex"              // P2
   | "amazon-q"           // P2
   | "gemini-cli"         // P2

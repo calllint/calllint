@@ -163,8 +163,8 @@ Platforms that consume the Official MCP Registry can discover CallLint automatic
 
 - **Priority**: P2
 - **Support Class**: DISCOVERY_ONLY
-- **Authority Surfaces**: code-generation, api, mcp
-- **Config Paths**: Config mechanism requires verification
+- **Authority Surfaces**: mcp, tools, filesystem, shell, plugins
+- **Config Paths**: ~/.codex/config.toml, $CODEX_HOME/config.toml
 - **Scan Commands**: N/A
 - **Canonical URL**: https://calllint.com/harnesses/codex
 
@@ -172,7 +172,7 @@ Platforms that consume the Official MCP Registry can discover CallLint automatic
   - mcp-stdio: AUDIT_REQUIRED (upstream: officialMcpRegistry)
   - openai-plugin: BLOCKED
 
-**Coverage Boundary**: CallLint does not yet auto-discover Codex configuration.
+**Coverage Boundary**: CallLint does not yet auto-discover Codex configuration. The config path is documented but no extractor reads TOML, so Codex servers must be passed explicitly.
 
 ### GitHub Copilot CLI (GitHub)
 
@@ -192,17 +192,17 @@ Platforms that consume the Official MCP Registry can discover CallLint automatic
 ### Cline (Open Source)
 
 - **Priority**: P2
-- **Support Class**: DISCOVERY_ONLY
-- **Authority Surfaces**: vscode-extensions, tools, mcp
-- **Config Paths**: VS Code extension, config mechanism TBD
-- **Scan Commands**: N/A
+- **Support Class**: NATIVE
+- **Authority Surfaces**: vscode-extensions, cli, tools, mcp
+- **Config Paths**: ~/.cline/data/settings/cline_mcp_settings.json, $CLINE_DATA_DIR/settings/cline_mcp_settings.json, <appData>/Code/User/globalStorage/saoudrizwan.claude-dev/settings/cline_mcp_settings.json
+- **Scan Commands**: calllint scan --agent cline
 - **Canonical URL**: https://calllint.com/harnesses/cline
 
 **Distribution Primitives**:
   - mcp-stdio: AVAILABLE (upstream: officialMcpRegistry)
   - cline-marketplace-pr: PENDING_UPSTREAM
 
-**Coverage Boundary**: CallLint does not yet auto-discover Cline configuration.
+**Coverage Boundary**: CallLint auto-discovers both Cline config files: the CLI's (~/.cline/data/settings/, relocatable via CLINE_DATA_DIR) and the VS Code extension's, which lives in per-extension globalStorage and is documented by no upstream page. Neither Cline's rules, hooks, skills, agents nor plugins directories are read, and ~/Documents/Cline/MCP/ holds installed server source rather than server registrations, so it is not a config path.
 
 ### Gemini CLI (Google)
 

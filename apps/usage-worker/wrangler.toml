@@ -25,27 +25,52 @@ workers_dev = false
 crons = ["17 3 * * *"]
 
 # Reuses the existing database (new18 §21: do not create a second one).
-# database_id is filled in by the operator; it is an account-scoped identifier,
-# not a secret, but it is environment-specific.
+# database_id is an account-scoped identifier, not a secret, but it is
+# environment-specific.
 #
-# CANDIDATE VALUE, UNVERIFIED: 98626b00-5c93-48c4-98b2-6632105b97df
+# VERIFIED 2026-08-24 — this id is now OBSERVED, not recovered. `wrangler d1 list`
+# returned exactly one database:
 #
-# Recovered from the root wrangler.toml this file replaced (`git show 4671854^:wrangler.toml`).
-# It is left in a comment rather than substituted below, on purpose. That config was a
-# **Pages** config, and `wrangler pages deploy` does not apply `wrangler.toml` bindings at
-# all — so this id names a binding that has never once been exercised. Nothing in this
-# repository can check it either: confirming it needs Cloudflare credentials, and the
-# account API here answers `Authentication failed (status: 400) [code: 9106]`.
+#   uuid       98626b00-5c93-48c4-98b2-6632105b97df
+#   name       calllint-usage
+#   created_at 2026-08-18T12:11:51.927Z
+#   version    production
+#   num_tables 0
 #
-# So it is a recorded id, not an observed one. Substituting it would make this file read as
-# a verified binding on the strength of a value nobody has seen work — the same mistake this
-# branch spent its length correcting elsewhere. Confirm it with
-# `wrangler d1 list` (or the Dashboard) and paste it in as a deliberate act; the placeholder
-# is here so that act cannot be skipped by accident.
+# The value matches the candidate this comment previously carried (recovered from the
+# root wrangler.toml at `git show 4671854^:wrangler.toml`), so the substitution below
+# is the deliberate act the placeholder was holding open — not a guess promoted to a
+# fact.
+#
+# WHY THE EARLIER CHECK FAILED, AND IT WAS NOT THE TOKEN. This comment used to record
+# `Authentication failed (status: 400) [code: 9106]` as evidence the account API was
+# unreachable. Re-measured: `wrangler whoami` succeeds, and only calls that must
+# resolve an account fail. With `CLOUDFLARE_ACCOUNT_ID` unset wrangler enumerates
+# `/memberships` to find one, and the token lacks that scope. Export the account id and
+# the same command succeeds:
+#
+#   CLOUDFLARE_ACCOUNT_ID=<account id> npx wrangler d1 list
+#
+# So 9106 meant "cannot enumerate accounts", not "cannot authenticate". Any future
+# wrangler call from this repo needs CLOUDFLARE_ACCOUNT_ID in the environment.
+#
+# `num_tables = 0` in that listing was TRUE AT THE TIME and has since been acted on:
+# all three migrations in ./migrations were applied to this database on 2026-08-24, and
+# `sqlite_master` now reports usage_daily_counts, usage_daily_installations and
+# usage_ingested_batches plus their three day-indexes.
+#
+# DO NOT TRUST `num_tables` FROM `wrangler d1 list`. It still reported 0 immediately
+# after the migrations succeeded, while `file_size` had grown 40960 -> 49152. The
+# authoritative check is a direct query:
+#
+#   wrangler d1 execute calllint-usage --remote \
+#     --command "SELECT name FROM sqlite_master WHERE type='table'"
+#
+# A gate that read `num_tables` would have called a migrated database empty.
 [[d1_databases]]
 binding = "USAGE_DB"
 database_name = "calllint-usage"
-database_id = "REPLACE_WITH_D1_DATABASE_ID"
+database_id = "98626b00-5c93-48c4-98b2-6632105b97df"
 
 # Optional rate-limit counter. The Worker fails open when this is unbound, so
 # the binding can be added after first deploy without a code change.
@@ -53,7 +78,37 @@ database_id = "REPLACE_WITH_D1_DATABASE_ID"
 # binding = "USAGE_RATE_LIMIT"
 # id = "REPLACE_WITH_KV_NAMESPACE_ID"
 
-# Custom domain (new18 §17). Added by the operator once the route is claimed:
+# Custom domain (new18 §17). NOT YET CLAIMED — blocked on one token permission.
+#
+# THIS IS THE ONLY ENDPOINT THAT WORKS. The CLI hardcodes
+# `https://telemetry.calllint.com/v1/events/usage` at apps/cli/src/transport.ts:18
+# (overridable only via CALLLINT_TELEMETRY_ENDPOINT, which no published build sets).
+# Enabling workers.dev instead would NOT make any shipped CLI reach this Worker.
+# So this block is the activation switch, not one option among several.
+#
+# ATTEMPTED 2026-08-24, two failures, both informative:
+#
+#  1. `pattern = "telemetry.calllint.com/*"` -> "Wildcard operators (*) are not
+#     allowed in Custom Domains / Paths are not allowed in Custom Domains".
+#     A custom_domain route is the bare hostname; the Worker itself routes /v1/*.
+#
+#  2. `pattern = "telemetry.calllint.com"` -> `Authentication error [code: 10000]`
+#     from the zone Workers Routes API. This is NOT the CLOUDFLARE_ACCOUNT_ID
+#     problem documented above: the account id was set, and the same token
+#     successfully ran `d1 list`, `d1 migrations apply`, `deploy` and `secret put`.
+#     Reading /zones?name=calllint.com also succeeds (zone
+#     492bfc900bfb87c440c24b5f71e0879c, active), so Zone:Read is present.
+#     Only the routes API refuses.
+#
+# MISSING PERMISSION: Zone -> Workers Routes -> Edit, scoped to calllint.com.
+# Add it at dash.cloudflare.com/<account>/api-tokens, then uncomment the block
+# below and redeploy. Nothing else is needed -- D1 is migrated, the Worker is
+# live, and USAGE_HASH_KEY is set.
+#
+# LEFT COMMENTED ON PURPOSE: with the block active, `wrangler deploy` fails
+# OUTRIGHT rather than deploying the code and skipping the route. An uncommented
+# block therefore breaks every redeploy until the permission exists.
+#
 # [[routes]]
 # pattern = "telemetry.calllint.com"
 # custom_domain = true

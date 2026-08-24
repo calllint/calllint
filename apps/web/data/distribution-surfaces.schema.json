@@ -149,9 +149,7 @@
           "minItems": 1,
           "items": {
             "enum": [
-              "api",
               "cli",
-              "code-generation",
               "exec",
               "extensions",
               "filesystem",
@@ -163,7 +161,7 @@
               "vscode-extensions"
             ]
           },
-          "description": "What the host can grant an agent. Describes the host's capability surface, not a verdict about it. Closed enum on purpose: a free-form string here would let a new host introduce an authority the risk model has never seen, and silently. Extend the list deliberately."
+          "description": "What authority the host can GRANT an agent. Describes the host's capability surface, not a verdict about it, and not what the host IS. Closed enum on purpose: a free-form string here would let a new host introduce an authority the risk model has never seen, and silently. Model attributes are deliberately absent -- `api` and `code-generation` were removed once `codex` stopped being modelled as a model (new19: a harness is not a model), and re-adding either would let a host describe what it produces instead of what it can reach. Extend the list deliberately, and only with an authority something can be granted."
         },
 
         "configEvidence": {

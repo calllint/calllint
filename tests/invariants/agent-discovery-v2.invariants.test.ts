@@ -554,12 +554,20 @@ describe("§6 — the coverage index publishes the obligation, not just the coun
 
   it("does NOT publish coverage as a support claim (§9's closing constraint)", () => {
     /* The failure this exists to prevent: a coverage requirement manufacturing a support
-     * claim. tier0 is fully covered AND mostly not NATIVE, and both halves must be visible.
-     * Pinned as measured values so that "fully covered" can never come to imply "supported". */
+     * claim. tier0 is fully covered AND not entirely NATIVE, and both halves must be
+     * visible. Pinned as measured values so that "fully covered" can never come to imply
+     * "supported".
+     *
+     * UPDATED 2026-08-24 (2/3 -> 3/2): Cline gained a registered extractor, so it moved
+     * DISCOVERY_ONLY -> NATIVE. The load-bearing half is the SECOND assertion, not the
+     * first — it is what keeps a fully-covered tier from reading as a fully-supported one.
+     * If a later change would take DISCOVERY_ONLY to 0, do NOT simply retune the number:
+     * at that point tier0 IS fully supported, and this test's premise has to be rewritten
+     * rather than rebalanced. */
     const t0 = cov!.byTier.tier0!
     expect(t0.present).toBe(t0.required)
-    expect(t0.bySupportClass.NATIVE).toBe(2)
-    expect(t0.bySupportClass.DISCOVERY_ONLY).toBe(3)
+    expect(t0.bySupportClass.NATIVE).toBe(3)
+    expect(t0.bySupportClass.DISCOVERY_ONLY).toBe(2)
     /* No boolean anywhere in the block that a consumer could read as "verified". */
     const json = JSON.stringify(cov)
     expect(json).not.toMatch(/"verified"|"unverified"|"supported":/)

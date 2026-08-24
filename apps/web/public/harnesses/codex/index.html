@@ -6,7 +6,7 @@
     <title>OpenAI Codex — CallLint Support</title>
     <meta
       name="description"
-      content="CallLint support for OpenAI Codex (OpenAI). CallLint does not yet auto-discover Codex configuration."
+      content="CallLint support for OpenAI Codex (OpenAI). CallLint does not yet auto-discover Codex configuration. The config path is documented but no extractor reads TOML, so Codex servers must be passed explicitly."
     />
     <link rel="canonical" href="https://calllint.com/harnesses/codex/" />
     <link rel="icon" href="/favicon.png" type="image/png" />
@@ -41,7 +41,7 @@
           <h1>OpenAI Codex</h1>
           <p class="doc-lede">
             CallLint support for <strong>OpenAI Codex</strong> by OpenAI.
-            <span class="coverage-note">CallLint does not yet auto-discover Codex configuration.</span>
+            <span class="coverage-note">CallLint does not yet auto-discover Codex configuration. The config path is documented but no extractor reads TOML, so Codex servers must be passed explicitly.</span>
           </p>
           <div class="host-meta">
             <span class="badge badge-P2">P2</span>
@@ -51,7 +51,7 @@
 
         <section id="why" class="doc-section">
           <h2>Why scan OpenAI Codex?</h2>
-          <p>Codex writes code and calls APIs on your behalf, so an MCP server it can reach is reachable from generated code as well as from a prompt.</p>
+          <p>Codex is a local coding agent holding shell, file-patching and plugin authority in the same session, so an MCP server registered in its config.toml is reachable from a process that can already edit your working tree and run commands in it.</p>
         </section>
 
         <section id="usage" class="doc-section">
@@ -78,7 +78,8 @@
           <h2>Configuration Paths</h2>
           <p>CallLint looks for OpenAI Codex configurations in:</p>
           <ul>
-            <li><code>Config mechanism requires verification</code></li>
+            <li><code>~/.codex/config.toml</code></li>
+            <li><code>$CODEX_HOME/config.toml</code></li>
           </ul>
         </section>
 
@@ -86,9 +87,11 @@
           <h2>Authority Surfaces</h2>
           <p>OpenAI Codex can grant tools the following authority surfaces:</p>
           <ul class="authority-list">
-            <li><code>code-generation</code></li>
-            <li><code>api</code></li>
             <li><code>mcp</code></li>
+            <li><code>tools</code></li>
+            <li><code>filesystem</code></li>
+            <li><code>shell</code></li>
+            <li><code>plugins</code></li>
           </ul>
         </section>
 
@@ -130,7 +133,7 @@
 
         <section id="coverage" class="doc-section coverage-boundary">
           <h2>Coverage Boundary</h2>
-          <p class="boundary-text">CallLint does not yet auto-discover Codex configuration.</p>
+          <p class="boundary-text">CallLint does not yet auto-discover Codex configuration. The config path is documented but no extractor reads TOML, so Codex servers must be passed explicitly.</p>
         </section>
       </article>
 
