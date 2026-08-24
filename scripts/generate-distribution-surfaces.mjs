@@ -120,6 +120,36 @@ const STABLE_VERSION = facts.stableVersion
 if (!STABLE_VERSION) throw new Error('project-facts.json is missing `stableVersion`')
 
 /*
+ * The governed trust sentence, and the SINGLE source for §13's trust leg on a host page.
+ *
+ * WHY IT IS READ HERE RATHER THAN WRITTEN IN THE TEMPLATE. It is the same single-source rule
+ * as `INSTALL` above, and it was violated in the more expensive direction: nothing read this
+ * field at all. `check:public-copy` governs `headlines.trustLine` and `requiredPhrases`
+ * includes two of its clauses verbatim, but repo-wide the string appeared in
+ * project-facts.json and NOWHERE else — a fact with no reader. Meanwhile the only trust copy
+ * on a host page sat inside the template's `{{#if activation.installCommand}}`, so the 9
+ * hosts without an install command carried no no-execution or determinism claim at all
+ * (measured: 0/18 for both concepts, correlation with `installRef` exact).
+ *
+ * THROWS RATHER THAN FALLING BACK, for the reason `resolveActivation()` records at length: a
+ * missing key emitting `undefined` into 18 published pages is what a fallback builds. An
+ * empty string would be worse than a throw here — the pages would render a blank trust
+ * section and every phrase gate reading them would go red with no indication why.
+ *
+ * Never rebuild this sentence from `facts.claims` (the same three properties as booleans).
+ * That would make this generator a second author of a governed claim, which is precisely
+ * what carrying command text in the SSOT would have done.
+ */
+const TRUST_LINE = facts.headlines?.trustLine
+if (!TRUST_LINE) {
+  throw new Error(
+    'project-facts.json is missing `headlines.trustLine`. It is the governed trust sentence ' +
+      'every host page renders verbatim (§13 trust leg) — do not fall back to a literal here, ' +
+      'that would make this generator a second, unaudited author of the claim.',
+  )
+}
+
+/*
  * The four lookup surfaces an agent should consult BEFORE running a full scan, plus the two
  * conditions that justify scanning anyway.
  *
@@ -489,6 +519,10 @@ function generateHostPages() {
        * command via project-facts.json and the verify command comes off `truthfulCommands`;
        * see `resolveActivation()` for why neither is carried as text in the SSOT. */
       activation: resolveActivation(host),
+      /* The governed trust sentence, verbatim from project-facts.json. Rendered OUTSIDE the
+       * template's install guard so all 18 hosts state it; see TRUST_LINE's definition for
+       * why it is not written in the template and not rebuilt from `facts.claims`. */
+      trustLine: TRUST_LINE,
       /* Absolute canonical URL, computed here rather than assembled in the template.
        *
        * The trailing slash is the load-bearing part: these pages are served as

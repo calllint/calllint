@@ -71,6 +71,11 @@
         <section id="verify" class="doc-section">
           <h2>How to verify it worked</h2>
           <p>Check the filesystem scope on each server that came back REVIEW. A desktop config has no project root to contain it, so a path argument is the whole grant.</p>
+        </section>
+
+        <section id="trust" class="doc-section">
+          <h2>What CallLint does to Claude Desktop</h2>
+          <p class="trust-line">Offline by default. Deterministic. Never executes the server it judges. SAFE means no blockers observed, not a proof of runtime safety.</p>
           <p>
             A <strong>No blockers observed</strong> verdict means exactly that — no blocker under
             the evidence CallLint could collect. It is not a guarantee, and

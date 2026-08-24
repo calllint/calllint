@@ -71,6 +71,11 @@
         <section id="verify" class="doc-section">
           <h2>How to verify it worked</h2>
           <p>Confirm the verdict header names the config file you meant to scan. OpenCode&#x27;s path is not auto-discovered, so the file is one you named — and a scan that silently read a different file is answering a question you did not ask.</p>
+        </section>
+
+        <section id="trust" class="doc-section">
+          <h2>What CallLint does to OpenCode</h2>
+          <p class="trust-line">Offline by default. Deterministic. Never executes the server it judges. SAFE means no blockers observed, not a proof of runtime safety.</p>
           <p>
             A <strong>No blockers observed</strong> verdict means exactly that — no blocker under
             the evidence CallLint could collect. It is not a guarantee, and

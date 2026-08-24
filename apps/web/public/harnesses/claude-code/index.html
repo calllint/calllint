@@ -71,6 +71,11 @@
         <section id="verify" class="doc-section">
           <h2>How to verify it worked</h2>
           <p>Read the verdict line for each server. Anything not SAFE names the evidence that produced it, so the next step is to open that server’s command and confirm the authority it asks for is authority you meant to grant.</p>
+        </section>
+
+        <section id="trust" class="doc-section">
+          <h2>What CallLint does to Claude Code</h2>
+          <p class="trust-line">Offline by default. Deterministic. Never executes the server it judges. SAFE means no blockers observed, not a proof of runtime safety.</p>
           <p>
             A <strong>No blockers observed</strong> verdict means exactly that — no blocker under
             the evidence CallLint could collect. It is not a guarantee, and

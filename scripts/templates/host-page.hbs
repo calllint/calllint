@@ -89,7 +89,17 @@
 
         {{!-- Guarded on `installCommand`, which the SSOT schema permits only for NATIVE and
               CONFIG_SCAN hosts. A guide-only page therefore prints no start path at all rather
-              than a plausible one — the honest counterpart to its "Guide only" label. --}}
+              than a plausible one — the honest counterpart to its "Guide only" label.
+
+              THE TRUST SECTION IS NOT IN HERE, AND THAT IS THE POINT. It used to be: the
+              verdict-semantics paragraph sat inside this `#if` alongside "How to verify it
+              worked", so the 9 hosts with no `installRef` lost the safety framing as a SIDE
+              EFFECT of having no start path. Measured across all 18 pages, the correlation was
+              exact with zero mismatches, and the concepts §13 asks about scored 0/18 for
+              no-execution and 0/18 for determinism. The hosts that most need to know CallLint
+              never runs what it judges were the ones not being told. Anything that is true of
+              CallLint regardless of the host belongs OUTSIDE this guard; only the start path
+              itself is conditional. --}}
         {{#if activation.installCommand}}
         <section id="start" class="doc-section">
           <h2>How to start</h2>
@@ -104,6 +114,29 @@
         <section id="verify" class="doc-section">
           <h2>How to verify it worked</h2>
           <p>{{activation.firstSuccessAction}}</p>
+        </section>
+        {{/if}}
+
+        {{!-- UNCONDITIONAL by construction: no `#if` may wrap this section. It answers §13's
+              trust leg — what CallLint does to a host, what a verdict means, and what it does
+              not mean — and every sentence is true of all 18 hosts, command or no command.
+
+              `trustLine` IS THE GOVERNED SENTENCE AND IS RENDERED VERBATIM. It comes from
+              project-facts.json's `headlines.trustLine`, which `check:public-copy` already
+              audits as the site's single source for this claim, and it carries two of the five
+              `requiredPhrases` ("Never executes the server it judges", "No blockers observed")
+              in their exact governed form. Before this template read it, the string appeared in
+              project-facts.json and NOWHERE else in the repo — a governed fact with no reader,
+              which is why the copy gate could stay green while 18 pages omitted it.
+
+              Do NOT rewrite it here, and do not rebuild it from `facts.claims` (which carries
+              the same three properties as booleans). Either would make this template a second
+              author of the trust claim, and the whole reason commands are resolved through
+              `installRef` rather than written in the SSOT is that a second, unaudited author
+              drifts in the silent direction. --}}
+        <section id="trust" class="doc-section">
+          <h2>What CallLint does to {{displayName}}</h2>
+          <p class="trust-line">{{trustLine}}</p>
           <p>
             A <strong>No blockers observed</strong> verdict means exactly that — no blocker under
             the evidence CallLint could collect. It is not a guarantee, and
@@ -111,7 +144,6 @@
             <a href="#coverage">Coverage Boundary</a> for what this scan does not look at.
           </p>
         </section>
-        {{/if}}
 
         <section id="config" class="doc-section">
           <h2>Configuration Paths</h2>

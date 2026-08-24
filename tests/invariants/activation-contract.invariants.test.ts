@@ -392,6 +392,11 @@ describe("the rendered pages carry the activation path, and only where it is hon
   })
 
   it("the SAFE label never appears unqualified on a host page", () => {
+    // NOTE (§13 trust leg): this test passed for all 18 pages BEFORE the trust paragraph was
+    // made unconditional, because the #verify section it describes carried the qualification —
+    // and #verify is guarded, so on the 9 guide-only pages the label was absent and the loop
+    // `continue`d. A test that skips the cohort at risk is not evidence about it. The
+    // unconditional arm is asserted below, over all hosts with no early exit.
     // `check:public-copy` rule 20 forbids a bare SAFE label, but its subject is
     // `apps/web/public/trust/**`, so harness pages are outside it. The REASON applies here
     // anyway: the #verify section prints the public SAFE label, and CLAUDE.md's verdict
@@ -407,5 +412,144 @@ describe("the rendered pages carry the activation path, and only where it is hon
       if (!qualified) unqualified.push(h.id)
     }
     expect(unqualified, "a host page shows SAFE without saying it is not a guarantee").toEqual([])
+  })
+})
+
+/**
+ * new20 §13 trust leg — the safety framing must not be a side effect of having an install path.
+ *
+ * WHAT WENT WRONG, MEASURED. The verdict-semantics paragraph used to sit INSIDE
+ * `{{#if activation.installCommand}}`, next to "How to verify it worked". So the 9 hosts with no
+ * `installRef` lost "CallLint never executes the server it judges" as a CONSEQUENCE of having no
+ * start path — two unrelated concerns fused by one conditional. Across the 18 pages the
+ * correlation was exact, zero mismatches: `never executes` 0/18, `determinist` 2/18 (both stray
+ * hits being SSOT coverage-boundary prose about the extractor, not the claim), `reproducib` 0/18.
+ * The hosts a visitor is least able to verify were the ones told least about what CallLint does.
+ *
+ * WHY A TEST AND NOT JUST THE COPY GATE. `check-public-copy.mjs` check 25 now asserts the clauses
+ * per host page, and it is the behavioural gate — it reads what shipped. But it reads the OUTPUT.
+ * Re-nesting the section inside any `{{#if}}` whose condition happens to hold for all 18 hosts
+ * today would keep every page green while restoring the exact fragility that produced the defect;
+ * the next host to enter with a falsy condition would ship bare, and the gate would first object
+ * at that point rather than at the change that caused it. So this block pins the STRUCTURE.
+ *
+ * ANTI-VACUITY, AND A CONTROL ON THE WALKER ITSELF. `depthOfSection` is the load-bearing helper
+ * here, and a helper that silently returned 0 for everything would make the structural claim pass
+ * unconditionally. It is therefore controlled in both directions against a section whose nesting
+ * is KNOWN and must stay known: `#start` is guarded by design, so it must measure > 0, while
+ * `#trust` must measure exactly 0. A single-direction assertion would have been satisfiable by a
+ * broken walker.
+ */
+describe("the trust framing is unconditional (new20 §13)", () => {
+  const pageOf = (id: string) => read(`apps/web/public/harnesses/${id}/index.html`)
+
+  /**
+   * How many unclosed `{{#if}}`/`{{#unless}}`/`{{#each}}` blocks enclose `id="<section>"`.
+   *
+   * Counts opens minus closes over the template text preceding the anchor. `{{/if}}` and friends
+   * all close one block, and handlebars has no way to close a block out of order, so the running
+   * balance at the anchor IS its nesting depth. `{{!-- … --}}` comments are stripped first: this
+   * file's own docblocks discuss `{{#if activation.installCommand}}` by name inside template
+   * comments, and counting those would report phantom depth.
+   */
+  function depthOfSection(src: string, section: string): number {
+    const withoutComments = src.replace(/\{\{!--[\s\S]*?--\}\}/g, "")
+    const anchor = withoutComments.indexOf(`id="${section}"`)
+    expect(anchor, `the template has no id="${section}" section`).toBeGreaterThan(-1)
+    const before = withoutComments.slice(0, anchor)
+    const opens = (before.match(/\{\{#(?:if|unless|each)\b/g) ?? []).length
+    const closes = (before.match(/\{\{\/(?:if|unless|each)\}\}/g) ?? []).length
+    return opens - closes
+  }
+
+  it("the walker measures a known-guarded section as nested — the control on the walker", () => {
+    // #start is inside `{{#if activation.installCommand}}` by design and must stay there: a
+    // guide-only host has no honest start path. If this ever reads 0, the helper is broken and
+    // the assertion below is worthless rather than reassuring.
+    expect(
+      depthOfSection(read(TEMPLATE), "start"),
+      "#start reads as unguarded — either the walker is broken or guide-only hosts now print an install path",
+    ).toBeGreaterThan(0)
+  })
+
+  it("the trust section is enclosed by no conditional at all", () => {
+    expect(
+      depthOfSection(read(TEMPLATE), "trust"),
+      "the trust section is nested inside a conditional — the §13 defect, where safety framing is " +
+        "collateral of some other condition holding",
+    ).toBe(0)
+  })
+
+  it("the template renders the governed sentence verbatim rather than restating it", () => {
+    // One writer per fact, the same rule `installRef` exists to enforce for commands. The trust
+    // claim's writer is project-facts.json's `headlines.trustLine`; the template must interpolate
+    // it. Rebuilding the sentence here — or from `facts.claims`'s booleans, which carry the same
+    // three properties — would make this template a second, unaudited author of governed copy.
+    const src = read(TEMPLATE)
+    expect(src, "the template does not interpolate trustLine").toContain("{{trustLine}}")
+
+    const trustLine = (readJson(FACTS_PATH) as { headlines: { trustLine?: string } }).headlines
+      .trustLine
+    expect(trustLine, "project-facts.json has no headlines.trustLine to render").toBeTruthy()
+
+    // Its distinctive clause must NOT be written out as a literal — but the subject is RENDERED
+    // text, so `{{!-- … --}}` is stripped first, exactly as `depthOfSection` does. The template's
+    // own docblock names this phrase while explaining that the template must not author it; the
+    // first version of this assertion read the raw source and failed on that comment, reporting a
+    // hardcoded claim on a template that hardcodes nothing. A comment is not a published string.
+    const rendered = src.replace(/\{\{!--[\s\S]*?--\}\}/g, "")
+    expect(
+      rendered.includes("Never executes the server it judges"),
+      "the template hardcodes the trust claim instead of interpolating trustLine",
+    ).toBe(false)
+  })
+
+  it("every host page carries every clause of the governed sentence", () => {
+    // The behavioural half, over ALL hosts with no `continue` and no cohort filter. Duplicates
+    // check 25's subject on purpose: this layer notices the copy gate's check being DELETED,
+    // which a gate reading its own green cannot.
+    const trustLine = (readJson(FACTS_PATH) as { headlines: { trustLine?: string } }).headlines
+      .trustLine
+    expect(trustLine, "no governed trust sentence — this claim would be vacuous").toBeTruthy()
+
+    const clauses = trustLine!
+      .split(/(?<=\.)\s+/)
+      .map((s) => s.trim())
+      .filter(Boolean)
+    expect(clauses.length, "trustLine did not split into clauses — the per-clause check is vacuous")
+      .toBeGreaterThanOrEqual(3)
+    expect(ssot.hosts.length, "no hosts — vacuous").toBeGreaterThan(0)
+
+    const offenders: string[] = []
+    for (const h of ssot.hosts) {
+      const page = pageOf(h.id)
+      if (!page.includes('id="trust"')) offenders.push(`${h.id}: no #trust section`)
+      const missing = clauses.filter((c) => !page.includes(c))
+      if (missing.length > 0) offenders.push(`${h.id}: missing ${JSON.stringify(missing)}`)
+    }
+    expect(offenders, "host page(s) omit the governed trust copy").toEqual([])
+  })
+
+  it("the guide-only hosts specifically carry it — the cohort the defect hit", () => {
+    // Named separately from the all-hosts assertion above. That one would still pass if the
+    // section became conditional on something true for 9 of 18 pages, provided the SSOT shrank to
+    // those 9; this one pins the cohort that had 0/9 coverage, so it cannot pass by attrition.
+    const guideOnly = ssot.hosts.filter((h) => GUIDE_ONLY.includes(h.supportClass as never))
+    expect(guideOnly.length, "no guide-only hosts — the regression cohort is empty").toBeGreaterThan(
+      0,
+    )
+    const bare: string[] = []
+    for (const h of guideOnly) {
+      const page = pageOf(h.id)
+      // These pages have NO #start and NO #verify, and must still say what CallLint does.
+      if (page.includes('id="start"')) bare.push(`${h.id}: unexpectedly has #start`)
+      if (!page.includes('id="trust"')) bare.push(`${h.id}: no #trust`)
+      if (!/Never executes the server it judges/.test(page)) {
+        bare.push(`${h.id}: does not state that CallLint never executes the server`)
+      }
+    }
+    expect(bare, "a host with no install path also has no safety framing — the §13 defect").toEqual(
+      [],
+    )
   })
 })

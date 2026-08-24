@@ -22,7 +22,7 @@
     "eyebrow": "Pre-flight risk linting for agent tools",
     "headline": "Before your agent acts, check the blast radius.",
     "subheadline": "CallLint statically scans MCP and agent-tool configs before they run, showing what each tool can read, write, execute, connect to, send, or mutate — with evidence-backed SAFE / REVIEW / BLOCK / UNKNOWN verdicts.",
-    "trustLine": "Offline by default. Deterministic. Never executes the server it judges. SAFE means no blockers observed, not guaranteed safe.",
+    "trustLine": "Offline by default. Deterministic. Never executes the server it judges. SAFE means no blockers observed, not a proof of runtime safety.",
     "oneLiner": "Pre-flight risk linting for MCP and agent tools — know the blast radius before your agent runs them."
   },
   "corpus": {
