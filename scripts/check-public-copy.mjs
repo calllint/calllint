@@ -54,6 +54,10 @@
  *      description carry no forbidden overclaim and are never an injected instruction
  *      to the host agent (no "you must…"/"ignore…"/"always call … before…" imperative
  *      — a §七 forbidden method).
+ *  25. new20 §13 trust leg: every clause of `headlines.trustLine` appears on EVERY
+ *      per-host harness page, checked PER FILE. Check 3 tests the same phrases against
+ *      the concatenated corpus, where one occurrence anywhere satisfies the whole site —
+ *      which is why 18 pages could omit all of them while this gate printed a checkmark.
  *
  * Exit codes:
  *   0  all checks pass
@@ -915,6 +919,104 @@ console.log("")
       fail(`${wfRel} has no upload-artifact step; §29 requires the report to exist as a private artifact`)
     } else {
       ok(`private usage report is artifact-only (upload-artifact present, no deploy or commit path) — new18 §29`)
+    }
+  }
+}
+
+// 25. new20 §13 trust leg — the safety phrases must hold PER HOST PAGE, not site-wide.
+//
+//   WHY THIS EXISTS WHEN CHECK 3 ALREADY CHECKS THE SAME PHRASES. Check 3 tests
+//   `allText` — every governed file concatenated — so ONE occurrence anywhere satisfies a
+//   phrase for the whole site. That is the right semantics for a phrase that only needs to
+//   be sayable somewhere, and the wrong semantics for a page a visitor lands on directly.
+//   Combined with `discoverPublicFiles()`'s depth-1 scan, which excludes
+//   `harnesses/<host>/index.html` entirely, 18 generated pages could omit every safety
+//   phrase while this gate printed a checkmark. Both properties are deliberate and neither
+//   is a bug on its own; together they left §13's trust leg unobserved.
+//
+//   MEASURED BEFORE THIS CHECK WAS WRITTEN (2026-08-23, on the tree at 185b8db): 0 of 18
+//   host pages asserted no-execution, 0 asserted determinism. The verdict-semantics
+//   paragraph sat inside the template's `{{#if activation.installCommand}}`, so the 9 hosts
+//   with no start path lost the safety framing as a side effect — correlation exact, zero
+//   mismatches. The negative control for check 3's blindness: replacing the sole "never
+//   executes" in llms.txt with a placeholder still printed `✓ all required safety phrases
+//   present` and exited 0, because the homepage satisfied it on the redacted file's behalf.
+//
+//   THE SUBJECT IS THE GOVERNED SENTENCE, NOT HAND-PICKED WORDING. `headlines.trustLine` is
+//   the single source every host page renders verbatim, and its clauses are what §13's three
+//   concepts map onto. Asserting the field rather than a literal here means editing the
+//   sentence updates the gate — the alternative is a second copy of governed wording inside
+//   its own guard, which is the defect this whole plane is built to avoid.
+{
+  /** Recursive glob by extension, relative POSIX paths. */
+  const walkExt = (absDir, exts) => {
+    if (!fs.existsSync(absDir)) return []
+    const out = []
+    for (const e of fs.readdirSync(absDir, { withFileTypes: true })) {
+      const full = path.join(absDir, e.name)
+      if (e.isDirectory()) out.push(...walkExt(full, exts))
+      else if (exts.includes(path.extname(e.name))) out.push(path.relative(repoRoot, full).split(path.sep).join("/"))
+    }
+    return out
+  }
+
+  const harnessRoot = path.join(repoRoot, PUBLIC_WEB_ROOT, "harnesses")
+  /* Per-HOST pages only. `harnesses/index.html` is the hub (a link list, not a host page)
+   * and `harnesses/deepseek/` is a model-intent landing page; neither carries a verdict for
+   * a specific host, so neither is in this cohort. Both are still governed by checks 2/3
+   * and by check 24. */
+  const HUB = `${PUBLIC_WEB_ROOT}/harnesses/index.html`
+  const LANDING_PREFIX = `${PUBLIC_WEB_ROOT}/harnesses/deepseek/`
+  const hostPages = walkExt(harnessRoot, [".html"])
+    .filter((r) => r !== HUB && !r.startsWith(LANDING_PREFIX))
+    .sort()
+
+  /* The trust sentence is the subject. Split into clauses so a failure names WHICH concept
+   * is missing rather than dumping a 130-character string — a page missing determinism and a
+   * page missing the whole section are different defects with different fixes. */
+  const trustLine = facts.headlines?.trustLine
+  /* ANTI-VACUITY, both halves asserted before any claim about the pages.
+   *
+   * The floor is 10 against a measured 18: ordinary growth must not red it, but a collapse
+   * to an empty or near-empty scan must. Without it, deleting the harness tree would make
+   * this check "pass" — the exact shape of the blindness it was written to close. The same
+   * floor and the same reason as check 24. */
+  let sound = true
+  if (!trustLine) {
+    fail("check 25: project-facts.json has no `headlines.trustLine`; the per-page trust assertion would be vacuous")
+    sound = false
+  }
+  if (hostPages.length < 10) {
+    fail(`check 25: found ${hostPages.length} host page(s) under harnesses/; §13's trust leg is about these pages and this scan would be vacuous`)
+    sound = false
+  }
+
+  if (sound) {
+    /* Sentence-split on ". " — trustLine is authored as independent sentences and each one
+     * is a separate claim. Empty fragments are dropped, and the clause count is asserted
+     * below so a reworded single-sentence trustLine cannot silently shrink the check to one
+     * assertion. */
+    const clauses = trustLine
+      .split(/(?<=\.)\s+/)
+      .map((s) => s.trim())
+      .filter(Boolean)
+    if (clauses.length < 3) {
+      fail(`check 25: trustLine split into ${clauses.length} clause(s); §13 names three concepts (no-execution, determinism, verdict semantics) and this check would under-assert`)
+    } else {
+      const offenders = []
+      for (const rel of hostPages) {
+        const text = fs.readFileSync(path.join(repoRoot, rel), "utf8")
+        const missing = clauses.filter((c) => !text.includes(c))
+        if (missing.length > 0) offenders.push(`${rel} is missing: ${missing.map((c) => JSON.stringify(c)).join(", ")}`)
+      }
+      if (offenders.length === 0) {
+        ok(
+          `all ${clauses.length} trustLine clause(s) present on each of ${hostPages.length} host page(s), ` +
+            `checked per-file — new20 §13 trust leg`,
+        )
+      } else {
+        for (const o of offenders) fail(`host page omits governed trust copy (new20 §13): ${o}`)
+      }
     }
   }
 }
