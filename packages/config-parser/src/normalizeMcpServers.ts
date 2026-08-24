@@ -62,8 +62,11 @@ function extractInstructions(server: Record<string, unknown>): string | undefine
 export function findServerMap(root: unknown): Record<string, unknown> {
   if (!isRecord(root)) return {}
 
-  // Standard: { mcpServers: { ... } }
+  // Standard JSON: { mcpServers: { ... } }
   if (isRecord(root.mcpServers)) return root.mcpServers
+
+  // Codex TOML: { mcp_servers: { ... } } (TOML uses underscores)
+  if (isRecord(root.mcp_servers)) return root.mcp_servers
 
   // OpenCode: { mcp: { serverName: { ... } } } (servers directly under mcp)
   // OpenClaw: { mcp: { servers: { ... } } } (servers under mcp.servers)

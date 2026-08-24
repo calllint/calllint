@@ -9,7 +9,8 @@
     ".": "./src/index.ts"
   },
   "dependencies": {
-    "@calllint/types": "workspace:*"
+    "@calllint/types": "workspace:*",
+    "smol-toml": "^1.8.0"
   },
   "devDependencies": {
     "@calllint/fixtures": "workspace:*"

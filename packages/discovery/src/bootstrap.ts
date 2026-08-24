@@ -22,6 +22,7 @@ import { QwenCodeExtractor } from "./extractors/qwen-code.js"
 import { ClineExtractor } from "./extractors/cline.js"
 import { KiroExtractor } from "./extractors/kiro.js"
 import { GeminiCliExtractor } from "./extractors/gemini-cli.js"
+import { CodexExtractor } from "./extractors/codex.js"
 import { OpenClawExtractor } from "./extractors/openclaw.js"
 import { OpencodeExtractor } from "./extractors/opencode.js"
 
@@ -47,6 +48,7 @@ function bootstrapExtractors(): void {
   registry.register(new ClineExtractor())
   registry.register(new KiroExtractor())
   registry.register(new GeminiCliExtractor())
+  registry.register(new CodexExtractor())
 
   // P3: Harness distribution (MCP coverage only)
   registry.register(new OpenClawExtractor())

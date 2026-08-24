@@ -18,6 +18,7 @@ export const TARGET_KINDS = [
   "mcp-servers",        // WorkBuddy, Qwen Code, Kiro, Gemini CLI, Cline (standard top-level mcpServers)
   "openclaw-config",    // OpenClaw (mcp.servers structure)
   "opencode-mcp",       // OpenCode (root mcp key)
+  "codex-mcp",          // Codex (TOML [mcp_servers.*])
   "npm",
   "github",
   "inline",

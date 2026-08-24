@@ -1,9 +1,10 @@
 import { readFileSync } from "node:fs"
-import { basename } from "node:path"
+import { basename, extname } from "node:path"
 import type { NormalizedMcpServer, TargetKind } from "@calllint/types"
 import { parseJsonText } from "./parseJsonFile.js"
 import { normalizeMcpServers } from "./normalizeMcpServers.js"
 import { buildPositionIndex, type PositionIndex } from "./positionIndex.js"
+import { parse as parseTOML } from "smol-toml"
 
 export interface ParsedConfig {
   configPath: string
@@ -27,6 +28,9 @@ export function kindForPath(path: string): TargetKind {
   if ((base === "opencode.json" || base === "opencode.jsonc") && normalized.includes("opencode")) {
     return "opencode-mcp"
   }
+
+  // Codex: .codex/config.toml (user or project level)
+  if (base === "config.toml" && normalized.includes(".codex")) return "codex-mcp"
 
   // OpenClaw: ~/.openclaw/openclaw.json
   if (normalized.includes(".openclaw/openclaw.json")) return "openclaw-config"
@@ -81,7 +85,17 @@ export function parseConfigText(text: string, configPath = "<inline>"): ParsedCo
 /** Parse a config from a file on disk. */
 export function parseConfigFile(path: string): ParsedConfig {
   const text = readFileSync(path, "utf8")
-  const root = parseJsonText(text, path)
+  const ext = extname(path).toLowerCase()
+
+  let root: unknown
+  if (ext === ".toml") {
+    // Codex config.toml
+    root = parseTOML(text)
+  } else {
+    // JSON / JSONC (all other harnesses)
+    root = parseJsonText(text, path)
+  }
+
   return {
     configPath: path,
     kind: kindForPath(path),
