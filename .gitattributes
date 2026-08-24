@@ -196,3 +196,30 @@ apps/web/public/_redirects text eol=lf
 scripts/distribution-sources.json text eol=lf
 artifacts/submissions/** text eol=lf
 artifacts/authority-distribution-closure/** text eol=lf
+
+# The generator's INPUTS, and the half of this pin that pinning the outputs alone made WORSE.
+#
+# MEASURED, in the clone built to verify the block above. With only the outputs pinned, the same
+# `core.autocrlf=true` clone went from 13 drifted files to EIGHTEEN — every harness page, each one
+# now SMALLER than expected by 135–156 bytes instead of larger. The generator writes
+# `Buffer.from(content, 'utf8')` and never touches os.EOL, so the \r could only come from what it
+# reads: `host-page.hbs` had been checked out with 220 CRLF, and Handlebars copies the template's
+# bytes into its output verbatim. Pinning the product and not the source means the EXPECTED bytes
+# carry \r while the on-disk bytes no longer do — the comparison inverts and fails wider.
+#
+# That is not a new hazard; it is the one the tokens.css pin above already records ("Pinning one
+# side and not the other is precisely how that trap gets built"), reached from the other direction.
+# Both sides of a byte-compare must be pinned or neither is.
+#
+# distribution-surfaces.json is the SSOT the whole plane projects from, and its schema sits beside
+# it; both are read, hashed, and diffed. `scripts/templates/**` is pinned as a directory because a
+# second template would inherit the same trap silently.
+#
+# `project-facts.json` is the generator's fourth input and is deliberately NOT pinned here. It is
+# consumed through `JSON.parse` and read field-by-field (`facts.install`, `facts.stableVersion`), so
+# CRLF is eaten as JSON whitespace and no \r can reach a projection's bytes — checked, not assumed.
+# It has its own byte-level reader in `check:public-copy` §11c; pinning it belongs to that gate's
+# scope, not to this failure's.
+scripts/templates/** text eol=lf
+apps/web/data/distribution-surfaces.json text eol=lf
+apps/web/data/distribution-surfaces.schema.json text eol=lf
