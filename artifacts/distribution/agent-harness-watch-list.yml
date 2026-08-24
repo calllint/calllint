@@ -1,0 +1,127 @@
+# Agent harness release watch list — bounded source #2 for Weekly Discovery Review
+#
+# This is a VERSION-CONTROLLED list of agent harness release pages to monitor for
+# new versions. Adding a watch target requires a commit to this file, not a config
+# flag and not a crawl. The reviewer polls exactly these URLs, once per week, and
+# never follows links out of them.
+#
+# new18 §22: read-only toward the outside world. GET only, no credentials, no form
+# posts, no issue/PR creation on the harness's repo.
+#
+# Contract: artifacts/contracts/weekly-discovery-review.md
+#
+# Every `url` below was probed on 2026-08-24 and returned HTTP 200 after redirects.
+# `kind: github-releases` targets were additionally confirmed to have >=1 published
+# release via the GitHub API — a releases page with no releases is not a signal.
+# Re-probe with: node scripts/check-watch-list.mjs
+#
+# Fields:
+#   name     agent harness id; MUST match an AgentType in packages/discovery/src/types.ts
+#   url      the ONE page to poll
+#   kind     github-releases | changelog  (github-releases is checkable via API)
+#   repo     owner/name, required when kind is github-releases
+#   notes    why this target, and what a change here would mean for CallLint
+
+watches:
+  - name: cursor
+    url: https://cursor.com/changelog
+    kind: changelog
+    notes: |
+      Cursor ships the desktop app, not GitHub releases — cursor/cursor exists but
+      publishes none, so the website changelog is the only version signal. Watch for
+      changes to .cursor/mcp.json schema or MCP transport support.
+
+  - name: claude-desktop
+    url: https://www.anthropic.com/news
+    kind: changelog
+    notes: |
+      Claude Desktop auto-updates and has no public release feed, so this tracks
+      product announcements (e.g. MCP capability changes) rather than versions.
+
+  - name: claude-code
+    url: https://github.com/anthropics/claude-code/releases
+    kind: github-releases
+    repo: anthropics/claude-code
+    notes: |
+      Ships a built-in /calllint command. New releases can change where settings
+      live or how skills are loaded, which affects both discovery and activation.
+
+  - name: vscode
+    url: https://code.visualstudio.com/updates
+    kind: changelog
+    notes: |
+      Monthly update notes. Watch for Extension API and native MCP changes that
+      affect the VS Code extractor's config paths.
+
+  - name: windsurf
+    url: https://docs.codeium.com/windsurf/changelog
+    kind: changelog
+    notes: |
+      Closed-source; the docs changelog is the only release signal. Watch for
+      mcp_config.json schema changes.
+
+  - name: cline
+    url: https://github.com/cline/cline/releases
+    kind: github-releases
+    repo: cline/cline
+    notes: |
+      Two config paths (CLI + VS Code extension). Watch for either path moving.
+
+  - name: kiro
+    url: https://kiro.dev/changelog
+    kind: changelog
+    notes: |
+      Kiro is AWS, not StackBlitz — there is no stackblitz-labs/kiro repo, and no
+      public GitHub releases. The website changelog is the only signal. Watch for
+      .kiro/settings/mcp.json path or schema changes.
+
+  - name: qwen-code
+    url: https://github.com/QwenLM/qwen-code/releases
+    kind: github-releases
+    repo: QwenLM/qwen-code
+    notes: |
+      The CLI repo, not the model repo — QwenLM/Qwen2.5-Coder redirects to
+      Qwen3-Coder and ships model weights, which is the wrong target. Publishes
+      nightlies, so expect frequent version churn.
+
+  - name: gemini-cli
+    url: https://github.com/google-gemini/gemini-cli/releases
+    kind: github-releases
+    repo: google-gemini/gemini-cli
+    notes: |
+      The CLI's own repo. Publishes nightlies. Watch for settings.json schema
+      changes under the mcpServers key.
+
+  - name: opencode
+    url: https://github.com/anomalyco/opencode/releases
+    kind: github-releases
+    repo: anomalyco/opencode
+    notes: |
+      Repo moved: sst/opencode now redirects here, and it is not an OpenAI project.
+      Watch for opencode.json schema changes.
+
+  - name: openclaw
+    url: https://github.com/openclaw/openclaw/releases
+    kind: github-releases
+    repo: openclaw/openclaw
+    notes: |
+      Independent, MCP-only harness. Small user base; low-priority signal.
+
+  - name: codex
+    url: https://github.com/openai/codex/releases
+    kind: github-releases
+    repo: openai/codex
+    notes: |
+      Tags are rust-v* prefixed. developers.openai.com/codex/changelog also resolves
+      but lags the repo. Watch for config.toml format changes — Codex is the only
+      TOML harness CallLint parses.
+
+# Deliberately NOT watched
+#
+# workbuddy   No public release feed. The previously listed workbuddy.com/changelog
+#             returns 404 and no GitHub repo is known. A watch entry that 404s every
+#             week is noise, not coverage — re-add only with a URL that resolves.
+#
+# amazon-q,   Extractors exist (or are planned) but no release page has been verified
+# antigravity,  yet. Absent from this list means "unwatched", not "unsupported".
+# amp

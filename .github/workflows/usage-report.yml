@@ -54,6 +54,26 @@ jobs:
           node-version: 24
           cache: pnpm
 
+      # ─────────────────────────────────────────────────────────────────────────────────────
+      # AC-32 supply-chain gate: this workflow publishes to Cloudflare Pages with credentials,
+      # so an unreviewed commit must not reach it. The gate asserts that HEAD descends from
+      # the protected `main` branch via the tag-protection contract (AC-32, verified by
+      # `verify-mcp-tag-protection.mjs`). Fails the run if the ancestry property is broken.
+      #
+      # INTERNAL-ONLY ARTIFACT. The usage report is behind Cloudflare Access, never seen by
+      # users, and doesn't ship code anyone executes — so the blast radius is "stale numbers
+      # on an operator dashboard", not "shipped an unreviewed MCP server". The gate still
+      # runs because:
+      #   1. Uniform discipline across all publish paths is simpler than a two-tier policy.
+      #   2. release-ancestry-coverage.invariants.test.ts enforces it, and exempting
+      #      internal-only deploys is follow-up work not yet scoped.
+      #   3. The runtime cost is ~2s and the script already exists.
+      # ─────────────────────────────────────────────────────────────────────────────────────
+      - name: Release ancestry gate
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: node scripts/verify-release-ancestry.mjs
+
       # wrangler comes from apps/usage-worker's devDependencies, not from npx.
       # The generator resolves it from node_modules by path (it runs the resolved
       # JS entry on `node` to avoid the Windows .cmd shim and any shell quoting of

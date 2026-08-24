@@ -14,18 +14,39 @@ describe("bootstrap", () => {
     bootstrapExtractors()
 
     const registered = registry.getAll()
-    expect(registered).toHaveLength(9)
 
-    const types = registered.map(e => e.agentType).sort()
-    expect(types).toEqual(["claude-code", "claude-desktop", "cline", "cursor", "openclaw", "qwen-code", "vscode", "windsurf", "workbuddy"])
+    // The NAME SET is the assertion; the length is derived from it. Asserting a hardcoded
+    // count alongside a hardcoded list makes the count redundant when they agree and
+    // ambiguous when they don't — and this test carried `9` while bootstrap registered 13,
+    // because kiro, gemini-cli and codex were added without updating either line.
+    const expected = [
+      "claude-code", "claude-desktop", "cline", "codex", "cursor", "gemini-cli",
+      "kiro", "openclaw", "opencode", "qwen-code", "vscode", "windsurf", "workbuddy",
+    ]
+    expect(registered.map(e => e.agentType).sort()).toEqual(expected)
+    expect(registered).toHaveLength(expected.length)
   })
 
-  it("should register the P2 extractor with correct priority", () => {
+  it("should register the P2 extractors with correct priority", () => {
     bootstrapExtractors()
 
     const p2Extractors = registry.getByPriority("P2")
-    expect(p2Extractors).toHaveLength(1) // cline
-    expect(p2Extractors[0]!.agentType).toBe("cline")
+    expect(p2Extractors.map(e => e.agentType).sort()).toEqual(["cline", "codex", "gemini-cli", "kiro"])
+
+    for (const extractor of p2Extractors) {
+      expect(extractor.priority).toBe("P2")
+    }
+  })
+
+  it("should register all P3 extractors with correct priority", () => {
+    bootstrapExtractors()
+
+    const p3Extractors = registry.getByPriority("P3")
+    expect(p3Extractors.map(e => e.agentType).sort()).toEqual(["opencode", "openclaw"].sort())
+
+    for (const extractor of p3Extractors) {
+      expect(extractor.priority).toBe("P3")
+    }
   })
 
   it("should register all P0 extractors with correct priority", () => {

@@ -49,7 +49,7 @@
  */
 import { describe, it, expect, beforeAll, afterAll } from "vitest"
 import { execFile, execFileSync } from "node:child_process"
-import { copyFileSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync, existsSync } from "node:fs"
+import { copyFileSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync, existsSync, symlinkSync } from "node:fs"
 import { createServer, type Server } from "node:http"
 import { tmpdir } from "node:os"
 import { dirname, join, resolve } from "node:path"
@@ -101,6 +101,28 @@ function writeManifest(manifest: unknown): void {
   writeFileSync(join(tmpRoot, "scripts", "distribution-sources.json"), JSON.stringify(manifest, null, 2))
 }
 
+const WATCH_LIST_REL = join("artifacts", "distribution", "agent-harness-watch-list.yml")
+
+/**
+ * Write the synthetic watch list, or remove it to exercise the absent case.
+ *
+ * Hand-rolled YAML rather than a serializer: the point is to feed the script the same shape a
+ * human commits, and a serializer would let a malformed-entry control silently become
+ * well-formed.
+ */
+function writeWatchList(watches: Array<Record<string, string>> | null): void {
+  const abs = join(tmpRoot, WATCH_LIST_REL)
+  if (watches === null) {
+    rmSync(abs, { force: true })
+    return
+  }
+  mkdirSync(dirname(abs), { recursive: true })
+  const body = watches.length === 0
+    ? "watches: []\n"
+    : `watches:\n${watches.map((w) => Object.entries(w).map(([k, v], i) => `  ${i === 0 ? "- " : "  "}${k}: ${v}`).join("\n")).join("\n")}\n`
+  writeFileSync(abs, body)
+}
+
 const ARTIFACT_REL = join("artifacts", "distribution-watch", "official-sources.json")
 const artifactPath = () => join(tmpRoot, ARTIFACT_REL)
 const readArtifact = () => JSON.parse(readFileSync(artifactPath(), "utf8"))
@@ -130,6 +152,19 @@ beforeAll(async () => {
   tmpRoot = mkdtempSync(join(tmpdir(), "official-sources-"))
   mkdirSync(join(tmpRoot, "scripts"), { recursive: true })
   copyFileSync(REAL_SCRIPT, join(tmpRoot, "scripts", "check-official-sources.mjs"))
+
+  /*
+   * The copied script imports `yaml` (added 2026-08-24 to read the harness watch list), and a
+   * bare temp tree has no `node_modules` — so every run in this file died with
+   * ERR_MODULE_NOT_FOUND the moment that import landed. Measured: 9 negative controls failed at
+   * once, all of them for a reason unrelated to what they assert.
+   *
+   * A junction to the real `node_modules` is the fix that keeps the copy behaving like
+   * production: same resolution, same package version, no env-var seam added to production code
+   * for a test's benefit, and no vendored copy of the parser to go stale. `junction` is the type
+   * that works on Windows without elevation; on POSIX it is accepted as a plain dir symlink.
+   */
+  symlinkSync(join(ROOT, "node_modules"), join(tmpRoot, "node_modules"), "junction")
 })
 
 afterAll(async () => {
@@ -152,6 +187,47 @@ describe("the production denominator: the real manifest gives the observer both 
     expect(hostUrls).toBeGreaterThan(0)
     expect(feeds, "the SSOT declares candidate feeds; a 0 here means the observer stopped reading them").toBeGreaterThan(0)
     expect(feedUrls, "candidate discovery would fetch nothing while the job still exited 0").toBeGreaterThan(0)
+  })
+
+  it("the REAL watch list contributes at least one release-feed URL", () => {
+    // Same denominator argument as the candidate half above, applied to the third kind. The
+    // watch list is committed, so unlike the untracked artifact its contents ARE a fact about
+    // the repo and can be asserted here.
+    const out = execFileSync(process.execPath, [REAL_SCRIPT, "--offline"], { encoding: "utf8", stdio: ["pipe", "pipe", "pipe"] })
+    const shape = out.match(/watch list (\d+) entr\(ies\) → (\d+) URL\(s\)/)
+    expect(shape, `the watch-list shape line is missing — got:\n${out}`).not.toBeNull()
+    const [, entries, urls] = shape!.map(Number) as unknown as number[]
+    expect(entries, "the committed watch list declares harnesses; a 0 means the observer stopped reading it").toBeGreaterThan(0)
+    expect(urls, "release-feed observation would fetch nothing while the job still exited 0").toBeGreaterThan(0)
+  })
+
+  it("every committed watch entry names a harness the discovery layer actually supports", () => {
+    // A watch target for a harness CallLint cannot extract is a page nobody can act on. This
+    // ties the list to `AgentType` so the two cannot drift apart silently.
+    const yml = readFileSync(resolve(ROOT, WATCH_LIST_REL), "utf8")
+    const names = [...yml.matchAll(/^\s*-\s+name:\s*(\S+)/gm)].map((m) => m[1])
+    expect(names.length, "no watch entries parsed out of the committed list").toBeGreaterThan(0)
+
+    const agentTypes = readFileSync(resolve(ROOT, "packages", "discovery", "src", "types.ts"), "utf8")
+    const declared = new Set([...agentTypes.matchAll(/^\s*\|\s*"([a-z0-9-]+)"/gm)].map((m) => m[1]))
+    expect(declared.size, "AgentType union did not parse — the assertion below would be vacuous").toBeGreaterThan(0)
+
+    const unknown = names.filter((n) => !declared.has(n))
+    expect(unknown, `watch entries name harnesses absent from AgentType: ${unknown.join(", ")}`).toEqual([])
+  })
+
+  it("every github-releases entry carries the repo it claims, so a silent rename is checkable", () => {
+    // The GitHub API follows renames, so a stale `owner/name` keeps returning 200 and reads as
+    // healthy. Four of twelve entries were wrong this way when the list was first written. The
+    // `repo:` field is what makes the claim verifiable against the API rather than by eye.
+    const yml = readFileSync(resolve(ROOT, WATCH_LIST_REL), "utf8")
+    const blocks = yml.split(/^\s*-\s+name:/m).slice(1)
+    expect(blocks.length, "no watch entries parsed — the loop below would assert nothing").toBeGreaterThan(0)
+
+    const missing = blocks
+      .filter((b) => /kind:\s*github-releases/.test(b) && !/repo:\s*[\w.-]+\/[\w.-]+/.test(b))
+      .map((b) => b.trim().split(/\s/)[0])
+    expect(missing, `github-releases entries without a parseable \`repo:\`: ${missing.join(", ")}`).toEqual([])
   })
 })
 
@@ -192,9 +268,47 @@ describe("anti-vacuity floors, each with its own denominator", () => {
 
   it("both kinds are counted separately, with the feed half visible", async () => {
     writeManifest(bothKinds())
+    writeWatchList(null)
     const run = await runCopy(["--offline"])
     expect(run.status).toBe(0)
     expect(run.out).toContain("1 host source(s) → 1 URL(s), 1 candidate feed(s) → 1 URL(s)")
+  })
+
+  it("NC-E: a watch list present but declaring zero watches FAILS", async () => {
+    // Present-but-empty is the shape that would make release-feed observation report a silent 0
+    // while the job exited 0 — the same fault the candidate half shipped with.
+    writeManifest(bothKinds())
+    writeWatchList([])
+    const run = await runCopy(["--offline"])
+    expect(run.status, "an empty watch list must red, not exit 0").toBe(1)
+    expect(run.out).toContain("exists but declares zero watches")
+  })
+
+  it("NC-F: a watch entry missing its url FAILS", async () => {
+    writeManifest(bothKinds())
+    writeWatchList([{ name: "nameless-feed" }])
+    const run = await runCopy(["--offline"])
+    expect(run.status).toBe(1)
+    expect(run.out).toContain("missing `name` or `url`")
+  })
+
+  it("NC-G: an ABSENT watch list is legitimate — exit 0, and the zero is REPORTED", async () => {
+    // Unlike the two floors above, absence is a valid state: the SSOT-backed kinds still run.
+    // The count still prints, so "no list" can never read as "list with nothing new".
+    writeManifest(bothKinds())
+    writeWatchList(null)
+    const run = await runCopy(["--offline"])
+    expect(run.status).toBe(0)
+    expect(run.out).toContain("watch list 0 entr(ies) → 0 URL(s)")
+  })
+
+  it("an unparseable watch list FAILS — reading its own input is this script's own job", () => {
+    // The asymmetry worth preserving: an unreachable SOURCE is data (exit 0), but an unreadable
+    // WATCH LIST is the script failing at its own job (exit 1). Conflating them would let a
+    // corrupted list silently shrink the denominator to zero.
+    const script = readFileSync(REAL_SCRIPT, "utf8")
+    expect(script).toMatch(/is not parseable YAML/)
+    expect(script).toMatch(/die\(`\$\{WATCH_LIST\} is not parseable YAML/)
   })
 })
 
@@ -218,6 +332,7 @@ describe("live comparison against a baseline (loopback only, no egress)", () => 
     rmSync(join(tmpRoot, "artifacts"), { recursive: true, force: true })
     served = { host: { status: 200, body: "host-v1" }, feed: { status: 200, body: "feed-v1" } }
     writeManifest(bothKinds())
+    writeWatchList(null)
 
     first = await runCopy() // no baseline: both URLs NEW
     firstArtifact = readArtifact()
@@ -311,6 +426,33 @@ describe("live comparison against a baseline (loopback only, no egress)", () => 
     expect(last.counts.candidateFeedUrls, "run 4 dropped the feed").toBe(0)
     expect(last.observations).toHaveLength(1)
   })
+
+  it("POSITIVE CONTROL: a release-feed URL is fetched and carries the third kind", async () => {
+    // The same denominator pattern as the candidate half, applied to the third kind.
+    rmSync(join(tmpRoot, "artifacts"), { recursive: true, force: true })
+    writeManifest(bothKinds())
+    writeWatchList([{ name: "loopback-release", url: `${origin}/release` }])
+    served = { host: { status: 200, body: "host-v1" }, feed: { status: 200, body: "feed-v1" } }
+    // Intercept /release separately so the fixture server can distinguish it from the other two.
+    server.removeAllListeners("request")
+    server.on("request", (req, res) => {
+      const which = req.url === "/feed" ? served.feed : req.url === "/release" ? { status: 200, body: "release-v1" } : served.host
+      res.writeHead(which.status, { "content-type": "text/plain" })
+      res.end(which.body)
+    })
+    const run = await runCopy()
+    expect(run.status).toBe(0)
+    expect(run.out).toContain("Observed 3 URL(s): 3 reachable")
+    expect(run.out).toContain("harness release feeds: 1 URL(s) observed, 1 returning 2xx")
+
+    const artifact = readArtifact()
+    expect(artifact.counts).toMatchObject({ hostSourceUrls: 1, candidateFeedUrls: 1, harnessReleaseFeedUrls: 1 })
+    const kinds = artifact.observations.map((o: { kind: string }) => o.kind).sort()
+    expect(kinds).toEqual(["CANDIDATE_FEED", "HARNESS_RELEASE_FEED", "HOST_SOURCE"])
+    const release = artifact.observations.find((o: { kind: string }) => o.kind === "HARNESS_RELEASE_FEED")
+    expect(release).toMatchObject({ hostId: "loopback-release", reachable: true, status: 200 })
+    expect(release.bodySha256, "no body hash means change detection cannot work on this URL").toMatch(/^[0-9a-f]{64}$/)
+  })
 })
 
 describe("the workflow restores a baseline before observing, and grants the scope to do it", () => {
@@ -330,7 +472,7 @@ describe("the workflow restores a baseline before observing, and grants the scop
 
   it("the restore is ordered BEFORE the observation, which is before the upload", () => {
     const restore = yml.indexOf("name: Restore previous official-source observation")
-    const observe = yml.indexOf("name: Observe official vendor sources and candidate feeds")
+    const observe = yml.indexOf("name: Observe vendor sources, candidate feeds and harness release feeds")
     const upload = yml.indexOf("name: Upload official-source observation")
     expect(restore).toBeGreaterThan(-1)
     expect(observe).toBeGreaterThan(restore)
