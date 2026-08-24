@@ -82,8 +82,14 @@ jobs:
       # all; they were `ci:local`-only, which is the local-green/remote-blind gap Gate 2.4-H
       # already flagged once for the calibration audits above.
       #
-      # WHY THESE FIVE AND NOT THE WHOLE WEEKLY JOB. The split is by what the check
-      # observes, not by convenience. Every gate here reads only committed files, is
+      # FIVE GATES MOVED OFF THE WEEKLY PLANE; FOUR OF THEM LIVE HERE. The fifth,
+      # `check:security-semantics`, is in `ledger-authenticity` instead — its diff arm needs a
+      # base ref to compute a merge-base against, and a depth-1 checkout has neither `main` nor
+      # `origin/main` (measured on real clones; see that job's comment). Wiring it here first
+      # was my error, and the gate caught it by failing closed rather than by skipping.
+      #
+      # WHY THESE FOUR AND NOT THE WHOLE WEEKLY JOB. The split is by what the check
+      # observes, not by convenience. Every gate here reads only committed files at HEAD, is
       # deterministic, and is offline — so a PR is the only thing that can turn one red, and
       # a red one is always a defect in the diff under review. The weekly job's other steps
       # observe the OUTSIDE world (`verify-registry-presence` hits the live Registry,
@@ -91,14 +97,14 @@ jobs:
       # `check-official-sources` GETs vendor pages) and they must STAY weekly: a vendor
       # moving a docs page or a Registry hiccup would fail PRs for a reason no author can
       # fix, which trains reviewers to ignore a red run. That habit is what would then mask
-      # these five, whose red always means a real bug. Same reasoning the weekly job already
+      # these four, whose red always means a real bug. Same reasoning the weekly job already
       # records for keeping its source-change step report-only.
       #
       # Placed with the static guards above (before `pnpm build`) because none of them needs
-      # the bundle. Measured on the current tree: 15s for all five combined.
+      # the bundle. Measured on the current tree: 15s for the five combined.
       #
       # Running them on all three OSes is not redundant. `check:distribution-drift`
-      # byte-compares 29 generated projections against the SSOT, so it is exactly the kind of
+      # byte-compares 31 generated projections against the SSOT, so it is exactly the kind of
       # check a CRLF checkout or a path-separator assumption breaks on Windows only.
       - name: Distribution SSOT → projection drift
         run: pnpm check:distribution-drift
@@ -111,9 +117,6 @@ jobs:
 
       - name: Published JSON Schema contract
         run: pnpm check:published-schema
-
-      - name: Security-semantic diff (committed artifact vs live measurement)
-        run: pnpm check:security-semantics
 
       - name: Build the CLI bundle
         run: pnpm build
@@ -233,7 +236,8 @@ jobs:
   # `fetch-depth: 0` lives HERE and not on the matrix deliberately: cloning full
   # history three times over would pay for it on every OS while the claim is
   # OS-independent, and the matrix's own reproducibility gates depend on the shallow
-  # checkout staying cheap. One job, one full clone, one obligation.
+  # checkout staying cheap. One job, one full clone, three obligations — every check whose
+  # subject is git history or a commit RANGE belongs here, and nowhere else.
   #
   # This job is in `build-and-test`'s `needs` — without that it would report a
   # status nothing blocks a merge on (`wired/aggregator-reachable`, ADR 0071).
@@ -288,6 +292,34 @@ jobs:
       # an ADR clears this step.
       - name: "Gate S0 (identity: no subject left the cohort — needs full history)"
         run: pnpm gate:s0:identity
+
+      # Third tenant, here for the same structural reason as the other two: its DIFF arm is
+      # range-scoped, so it needs a base ref to compute a merge-base against.
+      #
+      # WHY NOT ON THE MATRIX, where it was wired first (Sprint 1). Measured on real clones of
+      # this repo rather than reasoned about:
+      #
+      #   depth-1 (the matrix)  refs are `refs/heads/<branch>` + `refs/remotes/origin/<branch>`
+      #                         ONLY. No `main`, and no `origin/main` either — so every spelling
+      #                         of the base is unresolvable and the arm cannot run at all.
+      #   fetch-depth: 0        `refs/remotes/origin/main` exists; a local `main` still does NOT,
+      #                         because a clone checks out one branch.
+      #
+      # The gate was right to fail: its catch branch says a missing base ref must not silently
+      # skip the measurement, so it reported CHANGED over a diff touching zero verdict packages.
+      # That is fail-closed working as designed on a host that could not supply the evidence —
+      # the same defect ADR 0084 records for a history-reading check on a shallow checkout, and
+      # the reason `ledger-authenticity` exists at all.
+      #
+      # The script now tries `<base>` then `origin/<base>`, which is what makes THIS job green;
+      # the fallback alone would not have fixed the matrix, and moving the step alone would not
+      # have fixed this job. Both halves were needed, and each was measured on its own clone.
+      #
+      # Its other two arms (forbidden fields, identity coupling) are HEAD properties and would
+      # run fine on the matrix. They are not split off: one gate, one verdict, and a partial
+      # green reported for a security invariant is worse than a slower complete one.
+      - name: Security-semantic diff (committed artifact vs live measurement — needs a base ref)
+        run: pnpm check:security-semantics
 
   # Aggregator: the single required status check on `main`. It passes only when
   # every leg of the `test` matrix passed, so branch protection stays a stable,

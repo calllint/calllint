@@ -259,3 +259,78 @@ describe("the CI step label names the range it actually runs", () => {
     ).toContain(`${pad(ids[0]!)}..${pad(ids[ids.length - 1]!)}`)
   })
 })
+
+describe("a range-scoped gate runs only on a host that can resolve a base ref", () => {
+  /*
+   * MEASURED, NOT REASONED. `check:security-semantics` was wired onto the `test` matrix in
+   * Sprint 1. Its DIFF arm computes `git merge-base <base> HEAD`, and on real clones of this
+   * repo:
+   *
+   *   git clone --depth 1   refs are refs/heads/<branch> + refs/remotes/origin/<branch> only.
+   *                         NEITHER `main` NOR `origin/main` exists → exit 128, arm cannot run.
+   *   git clone (full)      refs/remotes/origin/main exists; a local `main` still does NOT.
+   *
+   * So on the matrix the gate reported SECURITY_SEMANTICS = CHANGED over a diff touching zero
+   * verdict packages — fail-closed working correctly on a host that could not supply the
+   * evidence. Exactly ADR 0084's class: an enforcement mode needs a host that can measure.
+   *
+   * This test exists because NOTHING asserted the wiring. Moving the step back onto the matrix
+   * would red the PR for a reason no author can fix, and the tempting repair is to weaken the
+   * gate rather than move it. Pinning the host is what makes that a test failure instead of a
+   * judgement call.
+   *
+   * Both halves of the fix are pinned: the step's job must have full history, AND the script
+   * must keep the `origin/` fallback — without it, this job is red too, since it has no local
+   * `main` either. Each half was verified on its own clone; neither alone is sufficient.
+   */
+  const RANGE_GATE = "check:security-semantics"
+  const GATE_SRC = "scripts/verify-security-semantic-diff.mjs"
+
+  const ci = () =>
+    parseYaml(read(".github/workflows/ci.yml")) as {
+      jobs: Record<
+        string,
+        { needs?: string[]; steps?: { name?: string; run?: string; with?: Record<string, unknown> }[] }
+      >
+    }
+
+  it("runs in a job checked out with full history", () => {
+    const doc = ci()
+    const owners = Object.entries(doc.jobs).filter(([, j]) =>
+      (j.steps ?? []).some((s) => (s.run ?? "").includes(RANGE_GATE)),
+    )
+    expect(owners.length, `no CI job runs ${RANGE_GATE} — the gate is off the PR path`).toBe(1)
+
+    const [jobName, job] = owners[0]!
+    const checkout = (job.steps ?? []).find((s) => typeof s.with?.["fetch-depth"] !== "undefined")
+    expect(
+      checkout?.with?.["fetch-depth"],
+      `${RANGE_GATE} runs in "${jobName}", which does not request full history — its merge-base cannot resolve`,
+    ).toBe(0)
+  })
+
+  it("runs in a job the required status check actually reads", () => {
+    // A job outside `build-and-test`'s `needs` reports a status nothing blocks a merge on.
+    const doc = ci()
+    const [jobName] = Object.entries(doc.jobs).find(([, j]) =>
+      (j.steps ?? []).some((s) => (s.run ?? "").includes(RANGE_GATE)),
+    )!
+    expect(doc.jobs["build-and-test"]?.needs ?? [], `"${jobName}" is not gated by build-and-test`).toContain(
+      jobName,
+    )
+  })
+
+  it("keeps the origin/ fallback the full-clone host depends on", () => {
+    // Strip comments first: this repo has already shipped two source-reading assertions that
+    // passed on the strength of the comment explaining the code they were checking.
+    const raw = read(GATE_SRC)
+    const code = raw.replace(/\/\*[\s\S]*?\*\//g, "").replace(/^\s*(\/\/|\*).*$/gm, "")
+    expect(
+      raw.length - code.length,
+      "no comments were stripped — the strip is broken, so the assertion below may be reading prose",
+    ).toBeGreaterThan(200)
+    expect(code, "the origin/ fallback is gone — the full-clone job has no local main").toMatch(
+      /origin\/\$\{base\}|origin\/' \+ base|`origin\/\$\{base\}`/,
+    )
+  })
+})

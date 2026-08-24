@@ -103,9 +103,29 @@ const violations = []
 function measureDiff(base) {
   const existing = VERDICT_PACKAGES.filter((p) => existsSync(resolve(repoRoot, p)))
   let mergeBase = null
-  try {
-    mergeBase = git(['merge-base', base, 'HEAD']).trim()
-  } catch {
+  let resolvedBase = null
+  /*
+   * Try the given ref, then its `origin/` form. A CI checkout has NO local `main`: measured on
+   * a real clone of this repo, `git merge-base main HEAD` exits 128 with "Not a valid object
+   * name main" even under `fetch-depth: 0`, because a clone brings remote-tracking refs and
+   * only checks out the one branch. So the historical arm below failed for a reason unrelated
+   * to its subject, and — correctly, per the fail-closed comment in the catch — reported
+   * SECURITY_SEMANTICS = CHANGED on a diff that touches no verdict package at all.
+   *
+   * Fixing the caller alone would not have been enough, which is why this loop exists rather
+   * than a `--base origin/main` in the workflow: the same green must be reachable locally,
+   * where `main` DOES resolve and `origin/main` may be stale.
+   */
+  for (const candidate of [base, base.startsWith('origin/') ? null : `origin/${base}`].filter(Boolean)) {
+    try {
+      mergeBase = git(['merge-base', candidate, 'HEAD']).trim()
+      resolvedBase = candidate
+      break
+    } catch {
+      // Try the next spelling; a genuine absence is reported after the loop.
+    }
+  }
+  if (mergeBase === null) {
     // A missing base ref must not silently skip the measurement.
     violations.push(`could not resolve merge-base against "${base}" — range measurement did not run`)
     return { base, mergeBase: null, committedChanges: null, worktreeChanges: null, measured: false }
@@ -130,6 +150,10 @@ function measureDiff(base) {
 
   return {
     base,
+    // Which spelling actually resolved. Without this the artifact cannot say whether the range
+    // was measured against a local branch or a remote-tracking ref — two different claims when
+    // `origin/main` is behind, and the reader has no other way to tell them apart.
+    resolvedBase,
     mergeBase,
     packagesMeasured: existing,
     committedChanges: committed,
