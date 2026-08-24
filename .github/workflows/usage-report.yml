@@ -1,15 +1,16 @@
 # Private usage report build (new18 §28, §29).
 #
-# Generates the operator-facing usage report and uploads it as a WORKFLOW
-# ARTIFACT. It deliberately does not deploy and does not commit:
+# Generates the operator-facing usage report, uploads it as a WORKFLOW ARTIFACT,
+# and deploys it to the Access-gated private host. It never commits:
 #
 #   §28 — the repository holds the generator, template, tests and this workflow.
 #         Daily values stay artifacts, so no metric is ever committed to git.
-#   §29 — fail-closed. Cloudflare Access on the private host cannot be verified
-#         from CI, so until an operator confirms it (see
-#         artifacts/authority-distribution-closure/CLOUDFLARE_ACCESS_ACTION.md)
-#         the HTML must not be published anywhere. An artifact is reachable only
-#         by someone who can already read this repository's Actions.
+#   §29 — was fail-closed until an operator confirmed Cloudflare Access on the
+#         private host. That confirmation happened 2026-08-24 (recorded in
+#         artifacts/authority-distribution-closure/CLOUDFLARE_ACCESS_ACTION.md:
+#         Access app + single-email allow policy, verified by an unauthenticated
+#         request landing on the Access sign-in gate). The deploy step below is
+#         gated on that fact, not on this comment.
 #
 # The report is intentionally allowed to be INCOMPLETE. When npm or D1 cannot be
 # read, the generator emits em dashes rather than zeros (§25: a zero is a claim
@@ -28,8 +29,9 @@ on:
     - cron: "31 6 * * *"
   workflow_dispatch:
 
-# Least privilege: this job reads the repo and writes an artifact. It has no
-# repo write (nothing is committed) and no Pages scope (nothing is deployed).
+# Least privilege: this job reads the repo, writes an artifact, and deploys to
+# Cloudflare Pages via API token. It has no repo write (nothing is committed) and
+# no GitHub Pages scope (deploys to Cloudflare, not GitHub Pages).
 permissions:
   contents: read
 
@@ -100,13 +102,32 @@ jobs:
           retention-days: 14
           if-no-files-found: error
 
+      # §29 now satisfied: Cloudflare Access is live (verified 2026-08-24), deploy
+      # the report to usage.calllint.com. The artifact upload stays (provides a
+      # downloadable copy for 14 days), and the deploy makes it reachable at the
+      # private host. Access gate confirmed by unauthenticated curl test.
+      - name: Deploy to usage.calllint.com (behind Cloudflare Access)
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          cd apps/usage-worker
+          npx wrangler pages deploy ../../dist/usage \
+            --project-name=calllint-usage-report \
+            --branch=main \
+            --commit-dirty=true
+
       - name: Summarize the run
         run: |
           {
             echo "### Private usage report"
             echo
-            echo "Built as an artifact (\`usage-report\`). **Not deployed, not committed** — new18 §28/§29."
+            echo "Built as an artifact (\`usage-report\`) and deployed to the Access-gated host."
+            echo "**Never committed** — new18 §28."
             echo
-            echo "Download it from this run's Artifacts section. Any metric shown as an em dash means"
-            echo "that source could not be read; it does **not** mean the figure is zero (§25)."
+            echo "- Artifact: this run's Artifacts section (14-day retention)"
+            echo "- Private host: https://usage.calllint.com (Cloudflare Access, single-email policy)"
+            echo
+            echo "Any metric shown as an em dash means that source could not be read; it does"
+            echo "**not** mean the figure is zero (§25)."
           } >> "$GITHUB_STEP_SUMMARY"
