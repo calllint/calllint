@@ -116,8 +116,16 @@ describe("ClaudeCodeExtractor", () => {
    * Mirrors ClaudeCodeExtractor.getUserConfigPath() + getAppDataDir().
    */
   function userConfigPath(): string {
-    const appData =
-      process.platform === "darwin" ? join(testDir, "Library", "Application Support") : testDir
+    const platform = process.platform
+    let appData: string
+    if (platform === "win32") {
+      appData = testDir // APPDATA is set to testDir
+    } else if (platform === "darwin") {
+      appData = join(testDir, "Library", "Application Support")
+    } else {
+      // Linux: XDG_CONFIG_HOME is set to testDir/.config by isolateAgentHome
+      appData = join(testDir, ".config")
+    }
     return join(appData, "Claude", "settings.json")
   }
 
