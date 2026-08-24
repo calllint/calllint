@@ -17,10 +17,23 @@ function isolateAgentHome(dir: string): () => void {
   const keys = ["HOME", "USERPROFILE", "APPDATA", "XDG_CONFIG_HOME"] as const
   const saved = new Map(keys.map(k => [k, process.env[k]]))
 
-  process.env.HOME = dir
-  process.env.USERPROFILE = dir
-  process.env.APPDATA = dir
-  process.env.XDG_CONFIG_HOME = dir
+  // Remove all four vars to prevent cross-platform leakage
+  for (const k of keys) {
+    delete process.env[k]
+  }
+
+  // Set only platform-relevant vars to avoid triggering wrong branches
+  const platform = process.platform
+  if (platform === "win32") {
+    process.env.APPDATA = dir
+    process.env.USERPROFILE = dir
+  } else if (platform === "darwin") {
+    process.env.HOME = dir
+  } else {
+    // Linux
+    process.env.HOME = dir
+    process.env.XDG_CONFIG_HOME = `${dir}/.config`
+  }
 
   return () => {
     for (const [k, v] of saved) {
