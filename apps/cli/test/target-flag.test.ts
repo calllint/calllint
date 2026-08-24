@@ -34,6 +34,7 @@
 import { mkdtempSync, mkdirSync, rmSync, writeFileSync } from "node:fs"
 import { tmpdir } from "node:os"
 import path from "node:path"
+import { fileURLToPath } from "node:url"
 import { afterEach, beforeEach, describe, expect, it } from "vitest"
 import { parseArgs } from "../src/args.js"
 import { TARGET_FLAG, TARGET_LOOKALIKE_FLAGS, resolveConfigInput, isInputError } from "../src/commands/resolveInput.js"
@@ -179,8 +180,13 @@ describe("the flag is implemented, not merely absent from the refusal list", () 
 
   it("is documented in help.ts — an implemented flag nobody can find is half-shipped", async () => {
     const { readFileSync } = await import("node:fs")
+    // `fileURLToPath`, not `new URL(...).pathname`: on POSIX the pathname IS the path, so the
+    // `.slice(1)` this once used to strip Windows' leading `/` from `/d:/...` turned
+    // `/home/runner/...` into a RELATIVE `home/runner/...` and the read failed with ENOENT.
+    // Green on Windows, red on the other two matrix legs — a platform assumption only a
+    // cross-OS run can see.
     const help = readFileSync(
-      path.join(path.dirname(new URL(import.meta.url).pathname.slice(1)), "..", "src", "commands", "help.ts"),
+      path.join(path.dirname(fileURLToPath(import.meta.url)), "..", "src", "commands", "help.ts"),
       "utf8",
     )
     expect(help).toContain(`--${TARGET_FLAG} <path>`)
