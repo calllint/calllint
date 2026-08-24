@@ -116,6 +116,7 @@
         "displayName",
         "vendor",
         "priority",
+        "coverageTier",
         "authoritySurfaces",
         "configEvidence",
         "supportClass",
@@ -123,7 +124,8 @@
         "canonicalPath",
         "officialSources",
         "distributionPrimitives",
-        "coverageBoundary"
+        "coverageBoundary",
+        "activation"
       ],
       "properties": {
         "id": { "type": "string", "pattern": "^[a-z0-9-]+$" },
@@ -134,6 +136,12 @@
           "type": "string",
           "pattern": "^P[0-9]$",
           "description": "Orders CallLint's own implementation work. NOT a signal about the host -- not popularity, not demand, not risk. Named P* rather than a number so it cannot be read as a score."
+        },
+
+        "coverageTier": {
+          "type": "string",
+          "enum": ["tier0", "tier1", "tier2", "beyond-section-9"],
+          "description": "Which new19 §5 coverage tier obliges CallLint to hold a record for this host. An OBLIGATION on CallLint, not a property of the host: it says new19 required a record, never that the host is supported or that its support is good. Support travels in `supportClass`, which may honestly read DISCOVERY_ONLY or DEFERRED for a tier0 entry -- and does.\n\nDistinct from `priority`, and measurably so: `codex` and `cline` are tier0 yet carry P2, while `claude-desktop` carries P0 and is beyond-section-9. `priority` orders work; `coverageTier` records a promise. Collapsing them would silently redefine one of the two.\n\n`beyond-section-9` is a first-class member, not a fallback: CallLint covers hosts new19 never named, and that must be stated rather than inferred from absence. Making the field required with a closed enum keeps the partition total -- a new host cannot enter unclassified, and 'unclassified' cannot become a silent fourth state."
         },
 
         "authoritySurfaces": {
@@ -201,6 +209,62 @@
           "type": "string",
           "minLength": 1,
           "description": "What CallLint does NOT cover for this host. Required, so a new host cannot ship without naming its own limits -- the honest counterpart to the support label."
+        },
+
+        "activation": { "$ref": "#/definitions/activation" }
+      },
+
+      "allOf": [
+        {
+          "$comment": "ACTIVATION MAY NOT OUT-CLAIM supportClass, AND MUST NOT UNDER-CLAIM IT. Two arms, for the same reason definitions.primitive has two: an activation block on a host CallLint cannot yet scan is an over-claim, and a missing one on a host it CAN scan is the same contradiction written the other way round -- a supported host whose page cannot tell a visitor how to start.\n\nTHE FIRST ARM IS THE LOAD-BEARING ONE. Every existing truthfulness gate in check-harness-distribution.mjs (HD-01..HD-04, HD-06) has `truthfulCommands` as its subject. A free-form command string anywhere else in a host record is therefore a SECOND, UNAUDITED place to advertise a command: HD-03 forbids a DEFERRED host from carrying a command and would not see one here, and HD-06 audits flags found in `truthfulCommands` and would not enter this field's flags into its denominator. That is this repo's dominant fault class -- a guard whose subject moved out from under it -- so `activation` carries NO command text at all. `installRef` is a key into project-facts.json's `install` block (resolved by the generator, which throws on an unknown key) and the verify command is read straight off `truthfulCommands`, which every HD gate already audits. One writer per fact.",
+          "if": {
+            "required": ["supportClass"],
+            "properties": { "supportClass": { "enum": ["DISCOVERY_ONLY", "DEFERRED"] } }
+          },
+          "then": {
+            "properties": {
+              "activation": {
+                "not": {
+                  "anyOf": [{ "required": ["installRef"] }, { "required": ["firstSuccessAction"] }]
+                }
+              }
+            }
+          }
+        },
+        {
+          "$comment": "THE CONVERSE ARM. A NATIVE or CONFIG_SCAN host is one CallLint can actually act on today, so its record must carry the full activation path -- why this host, which install command, and what first success looks like. Without this arm `activation` would be satisfiable by `whyHere` alone on all 18 hosts, which is the vacuous case: the field would exist, validate, and tell a visitor nothing about how to start.",
+          "if": {
+            "required": ["supportClass"],
+            "properties": { "supportClass": { "enum": ["NATIVE", "CONFIG_SCAN"] } }
+          },
+          "then": {
+            "properties": {
+              "activation": { "required": ["whyHere", "installRef", "firstSuccessAction"] }
+            }
+          }
+        }
+      ]
+    },
+
+    "activation": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "The activation contract: what a visitor who lands on this host's page needs in order to get from reading to a verified first result. Required of every host, because a page that states a support level without stating a next action is where CallLint's discovery funnel has always ended.\n\nPROSE FIELDS ARE FREE-FORM; COMMAND FIELDS ARE NOT. See the first $comment under definitions.host.allOf for why: a command string here would be invisible to every gate whose subject is `truthfulCommands`.",
+      "required": ["whyHere"],
+      "properties": {
+        "whyHere": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Why an agent running in THIS host is worth scanning -- grounded in the host's own authoritySurfaces, not in generic MCP risk. Every host carries this, including DISCOVERY_ONLY and DEFERRED ones: the reason to care does not depend on whether CallLint has shipped detection yet, and it is the one honest thing a guide-only page can say."
+        },
+        "installRef": {
+          "enum": ["scan", "scanCi", "mcpServer", "integrate"],
+          "description": "WHICH of CallLint's own invocations activates this host. A KEY into project-facts.json's `install` block, never the command text: that file is already the single source for CallLint's install/invocation copy and check:public-copy audits the site against it, so a literal here would be a second source that drifts silently.\n\nThe enum members are the keys that block holds. They are restated here because JSON Schema cannot read another document -- so the cross-file half is enforced where it can be: the generator resolves this through `INSTALL[ref]` and throws on a key that block does not carry, rather than emitting `undefined` into a published page."
+        },
+        "firstSuccessAction": {
+          "type": "string",
+          "minLength": 1,
+          "description": "What the visitor should see, and do, on a first successful scan -- the step that turns a green exit code into a decision. Absent on DISCOVERY_ONLY/DEFERRED hosts by schema, since there is no first success to describe yet."
         }
       }
     },
@@ -209,11 +273,38 @@
       "type": "object",
       "additionalProperties": false,
       "required": ["kind", "state"],
+      "allOf": [
+        {
+          "$comment": "AVAILABLE REQUIRES EVIDENCE, IN BOTH DIRECTIONS. Until this existed, `required` was only [kind, state] and no keyword conditioned an evidence field on `state`, so any channel could be flipped to AVAILABLE with nothing to back it. Measured 2026-08-23: flipping cursor/cursor-plugin from AUDIT_REQUIRED to AVAILABLE with no evidence passed check:distribution-drift, check:agent-surface, check:harness-distribution and check:published-schema, all four green. AVAILABLE is the one state that makes a public claim CallLint ships through a channel today, so it is the one state that must not be assertable for free.\n\nTWO EVIDENCE ARMS, because the two channel families differ structurally and neither arm can serve the other. `upstream: officialMcpRegistry` is carried by all 17 mcp-stdio channels and is transitively verified against the live registry API by scripts/verify-registry-presence.mjs, which fails when the API is unreachable rather than falling back. `liveUrl` is the only arm available to the 14 shelf channels, which carry `upstream` on none of them by construction -- requiring `upstream` of them would be unsatisfiable, and requiring `liveUrl` of the mcp-stdio channels would red the three true AVAILABLE records, since 0 of 31 channels carry a non-null liveUrl today. A single-arm rule is therefore either vacuous or wrong; that is why there are two.\n\nWHAT THIS DOES NOT CLAIM. The upstream arm proves the registry record is live, not that a given host consumes the registry -- that remains an editorial judgement no gate can make. The arm this closes completely is the shelf arm, where AVAILABLE previously required nothing at all.",
+          "if": { "required": ["state"], "properties": { "state": { "const": "AVAILABLE" } } },
+          "then": {
+            "anyOf": [
+              { "required": ["upstream"] },
+              { "required": ["liveUrl"], "properties": { "liveUrl": { "type": "string" } } }
+            ]
+          }
+        },
+        {
+          "$comment": "THE CONVERSE ARM: a recorded live URL may not sit under a state that reads as pending. This is new20's `pending != LIVE` clause. Both directions are load-bearing for the same reason HD-05 checks blocker/state both ways: AVAILABLE-without-evidence is an over-claim, and evidence-under-a-pending-label is the same contradiction written the other way round, where the public projection prints 'not yet submitted' about a channel whose own record names where it is listed. Vacuously satisfied today -- 0 of 31 channels carry a non-null liveUrl -- and that is the point: it constrains the first one written.",
+          "if": { "required": ["liveUrl"], "properties": { "liveUrl": { "type": "string" } } },
+          "then": { "properties": { "state": { "const": "AVAILABLE" } } }
+        },
+        {
+          "$comment": "A RECORDED SUBMISSION URL MEANS A HUMAN ACTED, SO THE DATE MUST HAVE A HOME. Exactly one channel carries `submissionUrl` today (cline/cline-marketplace-pr, PR #49) and it violated this arm when the arm was written -- the date of the act was prose inside `note`. That is why this is not vacuous: it had a subject on the commit that introduced it. The converse is deliberately NOT asserted, because most shelf channels are web forms with no URL to point at, so requiring `submissionUrl` of every submission would be unsatisfiable rather than strict.",
+          "if": { "required": ["submissionUrl"] },
+          "then": { "required": ["submission"] }
+        },
+        {
+          "$comment": "THE ORTHOGONALITY, MADE UNREPRESENTABLE IN ITS ONE CONTRADICTORY CORNER. `submission` and `state` are independent axes, with one pair that cannot both be true: `READY_NOT_SUBMITTED` asserts in its own name that nobody has acted. Same shape as HD-05's blocker/state contradiction, and the same reason it matters -- `state` is the field machines consume, so a channel that had been submitted while labelled not-submitted would tell every projection to queue the work again.\n\nThis also gives that enum member a checkable job. ADR 0001 left it with zero records, defensible but unguarded; it is now constrained even while unpopulated, which is the most a rule can do for a state no record exercises yet.",
+          "if": { "required": ["submission"] },
+          "then": { "properties": { "state": { "not": { "const": "READY_NOT_SUBMITTED" } } } }
+        }
+      ],
       "properties": {
         "kind": { "type": "string", "pattern": "^[a-z0-9-]+$" },
         "state": {
-          "enum": ["AVAILABLE", "AUDIT_REQUIRED", "READY_NOT_SUBMITTED", "PENDING_UPSTREAM"],
-          "description": "AVAILABLE means CallLint ships through this channel today. AUDIT_REQUIRED means the channel exists and the claim is unverified -- notably, that a host documents stdio MCP support is NOT the same fact as that host consuming the Official MCP Registry."
+          "enum": ["AVAILABLE", "AUDIT_REQUIRED", "READY_NOT_SUBMITTED", "PENDING_UPSTREAM", "BLOCKED"],
+          "description": "AVAILABLE means CallLint ships through this channel today. AUDIT_REQUIRED means the channel exists and the claim is unverified -- notably, that a host documents stdio MCP support is NOT the same fact as that host consuming the Official MCP Registry. BLOCKED means a recorded blocker makes submission impossible or explicitly rejected; it is NOT a to-do. This enum is the vocabulary's single source of truth: the leak guards in check-agent-surface-contract.mjs and the agent-discovery-v2 invariants read it rather than restating it, so adding a member here cannot leave a stale hand-copied list behind."
         },
         "upstream": { "const": "officialMcpRegistry" },
         "officialSource": { "type": "string", "pattern": "^https://" },
@@ -224,7 +315,20 @@
         "submissionUrl": { "type": "string", "pattern": "^https://" },
         "auditNote": { "type": "string", "minLength": 1 },
         "blocker": { "type": "string", "minLength": 1 },
-        "note": { "type": "string", "minLength": 1 }
+        "note": { "type": "string", "minLength": 1 },
+        "submission": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["date"],
+          "description": "WHEN A HUMAN ACTED ON THIS CHANNEL. A different axis from `state`, which records where the LISTING sits. Until this existed the two were conflated, so a channel a human had submitted to was indistinguishable from one nobody had touched: both read AUDIT_REQUIRED, and the only trace of the act was a date typed into `note` prose (cline/cline-marketplace-pr said \"verified 2026-08-23\"), which no gate reads and nothing keeps true.\n\nWHY THERE IS NO `status` HERE. new20 §4 asks for a submission status alongside the date. Every value it would carry is already representable, and by a field a gate already checks: submitted-at-all is this block existing; accepted is `state: AVAILABLE` with `liveUrl`, which HD-07 requires evidence for; rejected is `state: BLOCKED` with `blocker`, which HD-05 requires a reason for; withdrawn has no record and no consumer. A `status` enum would therefore be one redundant member, two restating `state`, and one unpopulated -- the second lifecycle definitions/§3 forbids and ADR 0001 already rejected in the same shape. See artifacts/adr/0002-submission-records-the-act.md.\n\nA BLOCK RATHER THAN A FLAT `submittedOn`, so that anything else on the human-action axis attaches here instead of accreting sibling date keys on the primitive, where it would sit indistinguishable from the listing fields.",
+          "properties": {
+            "date": {
+              "type": "string",
+              "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$",
+              "description": "ISO calendar date the submission was made. Pattern-checked here; HD-08 additionally rejects a date that is not a real calendar day (2026-02-31 matches this pattern) and one in the future, neither of which JSON Schema can express."
+            }
+          }
+        }
       }
     }
   }

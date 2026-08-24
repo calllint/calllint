@@ -8,6 +8,7 @@
       name="description"
       content="CallLint support for CodeBuddy (Tencent). CallLint does not yet support CodeBuddy native discovery."
     />
+    <link rel="canonical" href="https://calllint.com/harnesses/codebuddy/" />
     <link rel="icon" href="/favicon.png" type="image/png" />
     <link rel="apple-touch-icon" href="/logo-mark-256.png" />
     <link rel="stylesheet" href="/styles.css" />
@@ -48,6 +49,11 @@
           </div>
         </header>
 
+        <section id="why" class="doc-section">
+          <h2>Why scan CodeBuddy?</h2>
+          <p>CodeBuddy loads MCP servers alongside its extension surface, so a server entry can reach the workspace an extension already trusts.</p>
+        </section>
+
         <section id="usage" class="doc-section">
           <h2>Usage</h2>
           <p>
@@ -55,6 +61,7 @@
             Support is not implemented yet — this page documents what we can observe today.
           </p>
         </section>
+
 
         <section id="config" class="doc-section">
           <h2>Configuration Paths</h2>
@@ -80,11 +87,11 @@
             <li>
               <strong>mcp-stdio</strong>
               <span class="upstream-note">(via <a href="https://registry.modelcontextprotocol.io/?q=calllint">officialMcpRegistry</a>)</span>
-              — <span class="state-AUDIT_REQUIRED">AUDIT_REQUIRED</span>
+              — <span class="state-unverified">Listing not yet verified</span>
             </li>
             <li>
               <strong>tencent-mcp-market</strong>
-              — <span class="state-READY_NOT_SUBMITTED">READY_NOT_SUBMITTED</span>
+              — <span class="state-blocked">Not available here</span>
               <div class="dist-blocker">⚠️ Third-party MCP submissions not currently accepted</div>
             </li>
           </ul>

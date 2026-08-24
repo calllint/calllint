@@ -8,6 +8,7 @@
       name="description"
       content="CallLint support for Kiro (AWS). CallLint does not yet support Kiro native discovery."
     />
+    <link rel="canonical" href="https://calllint.com/harnesses/kiro/" />
     <link rel="icon" href="/favicon.png" type="image/png" />
     <link rel="apple-touch-icon" href="/logo-mark-256.png" />
     <link rel="stylesheet" href="/styles.css" />
@@ -48,6 +49,11 @@
           </div>
         </header>
 
+        <section id="why" class="doc-section">
+          <h2>Why scan Kiro?</h2>
+          <p>Kiro grants MCP servers filesystem and shell authority from a project-local config, so a server entry can arrive with a cloned repository.</p>
+        </section>
+
         <section id="usage" class="doc-section">
           <h2>Usage</h2>
           <p>
@@ -55,6 +61,7 @@
             Support is not implemented yet — this page documents what we can observe today.
           </p>
         </section>
+
 
         <section id="config" class="doc-section">
           <h2>Configuration Paths</h2>
@@ -82,11 +89,11 @@
             <li>
               <strong>mcp-stdio</strong>
               <span class="upstream-note">(via <a href="https://registry.modelcontextprotocol.io/?q=calllint">officialMcpRegistry</a>)</span>
-              — <span class="state-AUDIT_REQUIRED">AUDIT_REQUIRED</span>
+              — <span class="state-unverified">Listing not yet verified</span>
             </li>
             <li>
               <strong>kiro-workspace-config</strong>
-              — <span class="state-AUDIT_REQUIRED">AUDIT_REQUIRED</span>
+              — <span class="state-unverified">Listing not yet verified</span>
               <div class="dist-note">Config paths are now documented by the vendor; a thin adapter for the mcpServers JSON is evaluable but unbuilt. Support stays unimplemented until a discovery adapter exists and is fixture-covered.</div>
             </li>
           </ul>

@@ -21,6 +21,7 @@
       "displayName": "Claude Code",
       "vendor": "Anthropic",
       "priority": "P0",
+      "coverageTier": "tier0",
       "authoritySurfaces": [
         "mcp",
         "filesystem",
@@ -55,13 +56,19 @@
           "officialSource": "https://code.claude.com/docs/en/plugin-marketplaces"
         }
       ],
-      "coverageBoundary": "CallLint scans MCP server entries only. Skills, hooks and permission settings in the same file are not covered."
+      "coverageBoundary": "CallLint scans MCP server entries only. Skills, hooks and permission settings in the same file are not covered.",
+      "activation": {
+        "whyHere": "Claude Code grants an MCP server the same shell, filesystem and plugin reach the agent itself has, and its settings file is shared with skills and hooks — so one unreviewed server entry inherits the whole working directory.",
+        "installRef": "scan",
+        "firstSuccessAction": "Read the verdict line for each server. Anything not SAFE names the evidence that produced it, so the next step is to open that server’s command and confirm the authority it asks for is authority you meant to grant."
+      }
     },
     {
       "id": "claude-desktop",
       "displayName": "Claude Desktop",
       "vendor": "Anthropic",
       "priority": "P0",
+      "coverageTier": "beyond-section-9",
       "authoritySurfaces": [
         "mcp",
         "filesystem"
@@ -86,13 +93,19 @@
           "state": "AVAILABLE"
         }
       ],
-      "coverageBoundary": "CallLint scans MCP server entries only. Other Claude Desktop settings in the same file are not covered."
+      "coverageBoundary": "CallLint scans MCP server entries only. Other Claude Desktop settings in the same file are not covered.",
+      "activation": {
+        "whyHere": "Claude Desktop runs MCP servers with filesystem authority outside any project boundary, so a server added for one task keeps that reach for every later conversation.",
+        "installRef": "scan",
+        "firstSuccessAction": "Check the filesystem scope on each server that came back REVIEW. A desktop config has no project root to contain it, so a path argument is the whole grant."
+      }
     },
     {
       "id": "cursor",
       "displayName": "Cursor",
       "vendor": "Anysphere",
       "priority": "P0",
+      "coverageTier": "tier0",
       "authoritySurfaces": [
         "mcp",
         "filesystem",
@@ -124,13 +137,19 @@
           "officialSource": "https://cursor.com/marketplace"
         }
       ],
-      "coverageBoundary": "CallLint scans MCP server entries only. Cursor rules and editor settings are not covered."
+      "coverageBoundary": "CallLint scans MCP server entries only. Cursor rules and editor settings are not covered.",
+      "activation": {
+        "whyHere": "Cursor gives MCP servers shell and filesystem authority inside the repository you have open, and `.cursor/mcp.json` is commonly committed — so a server entry travels to every collaborator who opens the project.",
+        "installRef": "scan",
+        "firstSuccessAction": "Run it against the project config as well as the user one. A committed `.cursor/mcp.json` is a supply-chain surface: the verdict you want is the one your teammates will inherit."
+      }
     },
     {
       "id": "vscode",
       "displayName": "VS Code",
       "vendor": "Microsoft",
       "priority": "P1",
+      "coverageTier": "beyond-section-9",
       "authoritySurfaces": [
         "extensions",
         "mcp"
@@ -155,13 +174,19 @@
           "auditNote": "MCP support via extensions, core VS Code Registry consumption unclear"
         }
       ],
-      "coverageBoundary": "CallLint scans MCP server entries only. VS Code extensions and workspace settings are not covered."
+      "coverageBoundary": "CallLint scans MCP server entries only. VS Code extensions and workspace settings are not covered.",
+      "activation": {
+        "whyHere": "VS Code brokers MCP servers alongside its extension host, so an MCP entry sits next to extensions that already hold workspace trust — and the two are granted separately but run together.",
+        "installRef": "scan",
+        "firstSuccessAction": "Compare the servers CallLint found against the ones you expect. `.vscode/mcp.json` is workspace-scoped, so an unexpected entry arrived with the repository, not with your setup."
+      }
     },
     {
       "id": "windsurf",
       "displayName": "Windsurf",
       "vendor": "Codeium",
       "priority": "P1",
+      "coverageTier": "beyond-section-9",
       "authoritySurfaces": [
         "mcp",
         "filesystem"
@@ -190,13 +215,19 @@
           "state": "AUDIT_REQUIRED"
         }
       ],
-      "coverageBoundary": "CallLint scans MCP server entries only. Windsurf rules and workflow settings are not covered."
+      "coverageBoundary": "CallLint scans MCP server entries only. Windsurf rules and workflow settings are not covered.",
+      "activation": {
+        "whyHere": "Windsurf drives multi-step edits with filesystem authority, so an MCP server it can call is reachable from an autonomous run rather than only from a prompt you type.",
+        "installRef": "scan",
+        "firstSuccessAction": "Look at what each server can write. Under an agent that edits without a per-step confirmation, write authority is the finding that matters most."
+      }
     },
     {
       "id": "workbuddy",
       "displayName": "WorkBuddy",
       "vendor": "Tencent Cloud",
       "priority": "P0",
+      "coverageTier": "tier1",
       "authoritySurfaces": [
         "mcp",
         "extensions"
@@ -225,18 +256,24 @@
         },
         {
           "kind": "tencent-mcp-market",
-          "state": "READY_NOT_SUBMITTED",
+          "state": "BLOCKED",
           "blocker": "Third-party MCP submissions not currently accepted",
           "officialSource": "https://cloud.tencent.com/document/product/1729"
         }
       ],
-      "coverageBoundary": "CallLint scans MCP server entries only. Other WorkBuddy settings in the same file are not covered."
+      "coverageBoundary": "CallLint scans MCP server entries only. Other WorkBuddy settings in the same file are not covered.",
+      "activation": {
+        "whyHere": "WorkBuddy loads MCP servers next to its extension surface, so a server entry and an extension can reach the same workspace while being reviewed by different people.",
+        "installRef": "scan",
+        "firstSuccessAction": "Confirm each server’s origin before acting on a SAFE verdict — SAFE means no blocker was observed under current evidence, not that the publisher was verified."
+      }
     },
     {
       "id": "qwen-code",
       "displayName": "Qwen Code",
       "vendor": "Alibaba Cloud",
       "priority": "P1",
+      "coverageTier": "tier2",
       "authoritySurfaces": [
         "mcp",
         "tools"
@@ -271,13 +308,19 @@
           "officialSource": "https://qwenlm.github.io/qwen-code-docs/en/users/extension/introduction/"
         }
       ],
-      "coverageBoundary": "CallLint scans MCP server entries only. Other Qwen Code settings in the same file are not covered."
+      "coverageBoundary": "CallLint scans MCP server entries only. Other Qwen Code settings in the same file are not covered.",
+      "activation": {
+        "whyHere": "Qwen Code exposes MCP servers as callable tools, so a server registered once becomes something the model may invoke on its own initiative in any later session.",
+        "installRef": "scan",
+        "firstSuccessAction": "Read the tool-facing description of each server as the model sees it. A tool the agent can choose for itself is the one whose authority needs to be narrowest."
+      }
     },
     {
       "id": "openclaw",
       "displayName": "OpenClaw",
       "vendor": "Open Source",
       "priority": "P3",
+      "coverageTier": "beyond-section-9",
       "authoritySurfaces": [
         "mcp",
         "skills",
@@ -309,13 +352,19 @@
           "state": "AUDIT_REQUIRED"
         }
       ],
-      "coverageBoundary": "CallLint scans MCP configuration only. Skills and exec permissions are not covered."
+      "coverageBoundary": "CallLint scans MCP configuration only. Skills and exec permissions are not covered.",
+      "activation": {
+        "whyHere": "OpenClaw combines MCP servers with skills and an exec surface in one config, so a server that can start a process sits beside skills that decide when to start one.",
+        "installRef": "scan",
+        "firstSuccessAction": "Treat any exec-capable server as REVIEW regardless of its verdict, then check what CallLint recorded as evidence — the exec surface is outside what a config scan can prove safe."
+      }
     },
     {
       "id": "codex",
       "displayName": "OpenAI Codex",
       "vendor": "OpenAI",
       "priority": "P2",
+      "coverageTier": "tier0",
       "authoritySurfaces": [
         "code-generation",
         "api",
@@ -342,17 +391,21 @@
         },
         {
           "kind": "openai-plugin",
-          "state": "AUDIT_REQUIRED",
+          "state": "BLOCKED",
           "blocker": "Do not create remote MCP just for public listing eligibility"
         }
       ],
-      "coverageBoundary": "CallLint does not yet auto-discover Codex configuration."
+      "coverageBoundary": "CallLint does not yet auto-discover Codex configuration.",
+      "activation": {
+        "whyHere": "Codex writes code and calls APIs on your behalf, so an MCP server it can reach is reachable from generated code as well as from a prompt."
+      }
     },
     {
       "id": "copilot-cli",
       "displayName": "GitHub Copilot CLI",
       "vendor": "GitHub",
       "priority": "P2",
+      "coverageTier": "tier0",
       "authoritySurfaces": [
         "shell",
         "cli",
@@ -382,13 +435,17 @@
           "state": "AUDIT_REQUIRED"
         }
       ],
-      "coverageBoundary": "CallLint does not yet auto-discover Copilot CLI configuration."
+      "coverageBoundary": "CallLint does not yet auto-discover Copilot CLI configuration.",
+      "activation": {
+        "whyHere": "Copilot CLI runs in your shell with your credentials, so an MCP server it can call inherits the terminal session rather than a sandbox."
+      }
     },
     {
       "id": "cline",
       "displayName": "Cline",
       "vendor": "Open Source",
       "priority": "P2",
+      "coverageTier": "tier0",
       "authoritySurfaces": [
         "vscode-extensions",
         "tools",
@@ -416,17 +473,24 @@
           "kind": "cline-marketplace-pr",
           "state": "PENDING_UPSTREAM",
           "liveUrl": null,
-          "submissionUrl": "https://github.com/cline/cline/pull/49",
-          "note": "Existing PR #49, do not create duplicate"
+          "submissionUrl": "https://github.com/cline/marketplace/pull/49",
+          "submission": {
+            "date": "2026-08-18"
+          },
+          "note": "Existing PR #49 (open, verified 2026-08-23), do not create duplicate"
         }
       ],
-      "coverageBoundary": "CallLint does not yet auto-discover Cline configuration."
+      "coverageBoundary": "CallLint does not yet auto-discover Cline configuration.",
+      "activation": {
+        "whyHere": "Cline executes multi-step tasks from inside VS Code, so an MCP server it holds is callable across a whole task rather than for a single approved action."
+      }
     },
     {
       "id": "gemini-cli",
       "displayName": "Gemini CLI",
       "vendor": "Google",
       "priority": "P2",
+      "coverageTier": "tier1",
       "authoritySurfaces": [
         "mcp",
         "tools"
@@ -454,13 +518,17 @@
           "note": "Auto-discovery via GitHub topic + manifest"
         }
       ],
-      "coverageBoundary": "CallLint does not yet support Gemini CLI native discovery."
+      "coverageBoundary": "CallLint does not yet support Gemini CLI native discovery.",
+      "activation": {
+        "whyHere": "Gemini CLI exposes MCP servers as tools it may select autonomously, so registration and invocation are separated in time — the review has to happen at registration."
+      }
     },
     {
       "id": "codebuddy",
       "displayName": "CodeBuddy",
       "vendor": "Tencent",
       "priority": "P2",
+      "coverageTier": "tier1",
       "authoritySurfaces": [
         "mcp",
         "extensions"
@@ -483,17 +551,21 @@
         },
         {
           "kind": "tencent-mcp-market",
-          "state": "READY_NOT_SUBMITTED",
+          "state": "BLOCKED",
           "blocker": "Third-party MCP submissions not currently accepted"
         }
       ],
-      "coverageBoundary": "CallLint does not yet support CodeBuddy native discovery."
+      "coverageBoundary": "CallLint does not yet support CodeBuddy native discovery.",
+      "activation": {
+        "whyHere": "CodeBuddy loads MCP servers alongside its extension surface, so a server entry can reach the workspace an extension already trusts."
+      }
     },
     {
       "id": "opencode",
       "displayName": "OpenCode",
       "vendor": "Open Source",
       "priority": "P3",
+      "coverageTier": "tier1",
       "authoritySurfaces": [
         "mcp",
         "tools"
@@ -520,13 +592,19 @@
           "auditNote": "Open source project, Registry consumption not verified"
         }
       ],
-      "coverageBoundary": "Config path auto-discovery not yet supported. Schema generation ambiguity must be handled deterministically."
+      "coverageBoundary": "Config path auto-discovery not yet supported. Schema generation ambiguity must be handled deterministically.",
+      "activation": {
+        "whyHere": "OpenCode reaches MCP servers as tools, and its config path is not yet auto-discoverable, so the file that grants that authority is one you must name yourself.",
+        "installRef": "scan",
+        "firstSuccessAction": "Confirm the verdict header names the config file you meant to scan. OpenCode's path is not auto-discovered, so the file is one you named — and a scan that silently read a different file is answering a question you did not ask."
+      }
     },
     {
       "id": "kiro",
       "displayName": "Kiro",
       "vendor": "AWS",
       "priority": "P2",
+      "coverageTier": "tier2",
       "authoritySurfaces": [
         "mcp",
         "filesystem",
@@ -556,13 +634,17 @@
           "note": "Config paths are now documented by the vendor; a thin adapter for the mcpServers JSON is evaluable but unbuilt. Support stays unimplemented until a discovery adapter exists and is fixture-covered."
         }
       ],
-      "coverageBoundary": "CallLint does not yet support Kiro native discovery."
+      "coverageBoundary": "CallLint does not yet support Kiro native discovery.",
+      "activation": {
+        "whyHere": "Kiro grants MCP servers filesystem and shell authority from a project-local config, so a server entry can arrive with a cloned repository."
+      }
     },
     {
       "id": "continue",
       "displayName": "Continue",
       "vendor": "Continue",
       "priority": "P2",
+      "coverageTier": "tier1",
       "authoritySurfaces": [
         "mcp",
         "tools",
@@ -588,13 +670,17 @@
           "auditNote": "Vendor docs describe stdio/sse/streamable-http MCP servers with command, args and env fields, which map onto NormalizedMcpServer without new concepts. Registry consumption is a separate fact and is not confirmed by a primary source."
         }
       ],
-      "coverageBoundary": "CallLint does not auto-discover Continue configuration. A block file may live in .continue/mcpServers as YAML or as JSON copied from another host, so a deterministic extractor must read both shapes before this page can promise more than where the config lives."
+      "coverageBoundary": "CallLint does not auto-discover Continue configuration. A block file may live in .continue/mcpServers as YAML or as JSON copied from another host, so a deterministic extractor must read both shapes before this page can promise more than where the config lives.",
+      "activation": {
+        "whyHere": "Continue holds MCP servers as tools inside the editor, and a server block can arrive as YAML or as JSON copied from another host — two shapes, one authority grant."
+      }
     },
     {
       "id": "roo-code",
       "displayName": "Roo Code",
       "vendor": "Roo Code Inc",
       "priority": "P3",
+      "coverageTier": "tier1",
       "authoritySurfaces": [
         "mcp",
         "tools",
@@ -618,13 +704,17 @@
           "auditNote": "The upstream repository (id 881506708) reads archived: true with last push 2026-05-15, while roocode.com still serves. Product continuity is unresolved, so no distribution work is planned against it."
         }
       ],
-      "coverageBoundary": "CallLint does not support Roo Code discovery. Its upstream repository is archived, so config evidence was not collected: recording a config path from a possibly-discontinued product would assert a state nobody has verified."
+      "coverageBoundary": "CallLint does not support Roo Code discovery. Its upstream repository is archived, so config evidence was not collected: recording a config path from a possibly-discontinued product would assert a state nobody has verified.",
+      "activation": {
+        "whyHere": "Roo Code reaches MCP servers as tools from a VS Code extension, so a server entry is callable with whatever the extension can already reach."
+      }
     },
     {
       "id": "deepseek-harness",
       "displayName": "DeepSeek Harness",
       "vendor": "DeepSeek",
       "priority": "P2",
+      "coverageTier": "tier2",
       "authoritySurfaces": [
         "mcp",
         "tools",
@@ -649,11 +739,14 @@
         },
         {
           "kind": "dsh-plugin",
-          "state": "AUDIT_REQUIRED",
+          "state": "BLOCKED",
           "blocker": "The harness is in vendor-declared developer preview with breaking changes expected. Do not build a plugin against an unstable interface for listing eligibility alone."
         }
       ],
-      "coverageBoundary": "CallLint does not auto-discover DeepSeek Harness configuration. Its MCP servers are plugin instances in cordis.yml rather than an mcpServers map, so no existing extractor reads that shape. This record exists for discovery routing only: DeepSeek is a model vendor here, not a security-relevant distinction."
+      "coverageBoundary": "CallLint does not auto-discover DeepSeek Harness configuration. Its MCP servers are plugin instances in cordis.yml rather than an mcpServers map, so no existing extractor reads that shape. This record exists for discovery routing only: DeepSeek is a model vendor here, not a security-relevant distinction.",
+      "activation": {
+        "whyHere": "DeepSeek Harness carries MCP servers as plugin instances, so authority is granted through a plugin list rather than a server map — the grant is real, the shape is just less obvious."
+      }
     }
   ],
   "modelIntentLandingPages": [
@@ -675,6 +768,26 @@
       ],
       "role": "NEW_CANDIDATE_FEED_ONLY",
       "note": "§85 lists this as NEW-CANDIDATE FEED ONLY. Watched to notice a harness CallLint does not yet track; it is never evidence about an existing host's support class. Prior evaluation (artifacts/harness-distribution/native/manifest.json) found the list collects harness integration guides rather than MCP tools, so CallLint does not fit its scope -- recorded as candidate evidence per §86, with no submission made."
+    },
+    {
+      "id": "mcp-spec-client-examples",
+      "displayName": "Model Context Protocol -- example clients",
+      "vendor": "Model Context Protocol",
+      "officialSources": [
+        "https://modelcontextprotocol.io/examples"
+      ],
+      "role": "NEW_CANDIDATE_FEED_ONLY",
+      "note": "The protocol's own enumeration of MCP clients, and the highest-authority place a harness CallLint does not track would first appear. Verified 2026-08-22: HTTP 200, and the page body names clients (46 'client', 26 'cursor', 24 'Claude', 14 'host') rather than only tools -- the reason it qualifies as a harness feed at all. A FEED, not a host source: it is authority over what MCP clients EXIST, never over CallLint's support class for one, so it cannot live in `hosts`. Distinct from `officialMcpRegistry`, which is where CallLint's own server is PUBLISHED; this is where other people's harnesses are listed."
+    },
+    {
+      "id": "pulsemcp-client-directory",
+      "displayName": "PulseMCP client directory",
+      "vendor": "PulseMCP",
+      "officialSources": [
+        "https://www.pulsemcp.com/clients"
+      ],
+      "role": "NEW_CANDIDATE_FEED_ONLY",
+      "note": "A third-party directory, included because breadth is the point of a candidate feed: it lists harnesses before a vendor documents MCP support, which is the window in which a candidate is worth noticing. Verified 2026-08-22: HTTP 200, body enumerates clients including VS Code, Cursor and Cline. NOT AN AUTHORITY, and the boundary matters more here than for a first-party feed -- if this directory claims a harness supports something, that claim has zero standing over `supportClass`, and §86 permits recording the candidate's existence and nothing else. Admission still requires human review and enters as DEFERRED or DISCOVERY_ONLY; NATIVE additionally requires a bootstrapped extractor, which HD-01 enforces independently of anything a directory says."
     }
   ],
   "maintainedBy": "CallLint Project",

@@ -8,6 +8,7 @@
       name="description"
       content="CallLint support for GitHub Copilot CLI (GitHub). CallLint does not yet auto-discover Copilot CLI configuration."
     />
+    <link rel="canonical" href="https://calllint.com/harnesses/copilot-cli/" />
     <link rel="icon" href="/favicon.png" type="image/png" />
     <link rel="apple-touch-icon" href="/logo-mark-256.png" />
     <link rel="stylesheet" href="/styles.css" />
@@ -48,6 +49,11 @@
           </div>
         </header>
 
+        <section id="why" class="doc-section">
+          <h2>Why scan GitHub Copilot CLI?</h2>
+          <p>Copilot CLI runs in your shell with your credentials, so an MCP server it can call inherits the terminal session rather than a sandbox.</p>
+        </section>
+
         <section id="usage" class="doc-section">
           <h2>Usage</h2>
           <p>
@@ -55,6 +61,7 @@
             No automatic detection yet — this page documents where the config lives.
           </p>
         </section>
+
 
         <section id="config" class="doc-section">
           <h2>Configuration Paths</h2>
@@ -81,11 +88,11 @@
             <li>
               <strong>mcp-registry-discovery</strong>
               <span class="upstream-note">(via <a href="https://registry.modelcontextprotocol.io/?q=calllint">officialMcpRegistry</a>)</span>
-              — <span class="state-AUDIT_REQUIRED">AUDIT_REQUIRED</span>
+              — <span class="state-unverified">Listing not yet verified</span>
             </li>
             <li>
               <strong>github-copilot-plugin</strong>
-              — <span class="state-AUDIT_REQUIRED">AUDIT_REQUIRED</span>
+              — <span class="state-unverified">Listing not yet verified</span>
             </li>
           </ul>
         </section>

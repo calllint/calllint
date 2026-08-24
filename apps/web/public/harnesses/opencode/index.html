@@ -8,6 +8,7 @@
       name="description"
       content="CallLint support for OpenCode (Open Source). Config path auto-discovery not yet supported. Schema generation ambiguity must be handled deterministically."
     />
+    <link rel="canonical" href="https://calllint.com/harnesses/opencode/" />
     <link rel="icon" href="/favicon.png" type="image/png" />
     <link rel="apple-touch-icon" href="/logo-mark-256.png" />
     <link rel="stylesheet" href="/styles.css" />
@@ -48,10 +49,34 @@
           </div>
         </header>
 
+        <section id="why" class="doc-section">
+          <h2>Why scan OpenCode?</h2>
+          <p>OpenCode reaches MCP servers as tools, and its config path is not yet auto-discoverable, so the file that grants that authority is one you must name yourself.</p>
+        </section>
+
         <section id="usage" class="doc-section">
           <h2>Usage</h2>
           <p>CallLint can auto-discover and scan OpenCode configurations:</p>
           <pre><code>calllint scan --config &lt;path&gt;</code></pre>
+        </section>
+
+        <section id="start" class="doc-section">
+          <h2>How to start</h2>
+          <p>Install nothing globally — run CallLint straight from npm:</p>
+          <pre><code>npx calllint scan --auto</code></pre>
+          <p>Then scan OpenCode specifically:</p>
+          <pre><code>calllint scan --config &lt;path&gt;</code></pre>
+        </section>
+
+        <section id="verify" class="doc-section">
+          <h2>How to verify it worked</h2>
+          <p>Confirm the verdict header names the config file you meant to scan. OpenCode&#x27;s path is not auto-discovered, so the file is one you named — and a scan that silently read a different file is answering a question you did not ask.</p>
+          <p>
+            A <strong>No blockers observed</strong> verdict means exactly that — no blocker under
+            the evidence CallLint could collect. It is not a guarantee, and
+            <strong>Insufficient evidence</strong> never becomes it on its own. See
+            <a href="#coverage">Coverage Boundary</a> for what this scan does not look at.
+          </p>
         </section>
 
         <section id="config" class="doc-section">
@@ -78,7 +103,7 @@
             <li>
               <strong>mcp-stdio</strong>
               <span class="upstream-note">(via <a href="https://registry.modelcontextprotocol.io/?q=calllint">officialMcpRegistry</a>)</span>
-              — <span class="state-AUDIT_REQUIRED">AUDIT_REQUIRED</span>
+              — <span class="state-unverified">Listing not yet verified</span>
             </li>
           </ul>
         </section>

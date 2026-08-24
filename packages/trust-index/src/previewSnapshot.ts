@@ -84,11 +84,12 @@ function list(xs: readonly string[]): string {
 /**
  * The three viewports, chosen so the prediction has a real transition to get wrong.
  *
- * They straddle both shipped boundaries: the CTA row reflows from one column to two
- * at 452 px of available width (see {@link predictCtaColumns}), and `main`'s
- * `max-width: 720px` caps growth above 760 px of viewport. 390 sits below the
- * reflow, 768 just above it, 1280 above the cap — so a harness that always returned
- * the same column count would disagree with at least one of them.
+ * They straddle both shipped boundaries: the CTA row reflows from one column to two at
+ * viewport 530 (see {@link predictCtaColumns}), and `main`'s `max-width: 720px` caps
+ * growth above 760 px of viewport. 390 sits below the reflow, 768 above it, 1280 above
+ * the cap — so a harness that always returned the same column count would disagree with
+ * at least one of them. Re-measured after the chrome correction: 390 → 1 column, 768 → 2,
+ * 1280 → 2, so the transition is still exercised.
  */
 export const PREVIEW_VIEWPORTS: readonly number[] = Object.freeze([390, 768, 1280])
 
@@ -96,37 +97,57 @@ export const PREVIEW_VIEWPORTS: readonly number[] = Object.freeze([390, 768, 128
  * The shipped layout constants the reflow arithmetic is derived from, named rather
  * than inlined so a stylesheet edit shows up as a NUMBER that moved in the artifact.
  *
- * All four are read off the committed `tokens.css`:
+ * All five are read off the committed `apps/web/public/styles/tokens.css`:
  *   `body { padding: 32px 20px }`            → 40 px of horizontal padding
  *   `main { max-width: 720px; margin: 0 auto }` → the 720 px cap
- *   `.install-cta-row { grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px }`
+ *   `.install-cta-row { grid-template-columns: repeat(auto-fit, minmax(min(220px, 100%), 1fr)); gap: 12px }`
+ *   `.install-disposition { padding: 18px; border: 1px solid var(--line) }` → 38 px
+ *
+ * `dispositionHorizontalChrome` is the one that was MISSING, and its absence was a
+ * measured 38 px-wide lie. The CTA row is not a child of `main`; it is a child of
+ * `section.install-disposition`, which inserts `18px` of padding and `1px` of border on
+ * each side. Modelling from `vp − 40` therefore over-stated the available width by 38 px
+ * and flipped the row to two columns at viewport 492, where the browser flips at 530 —
+ * a divergence window of `vp ∈ [492, 529]` in which the artifact graded a column count
+ * the page never had.
+ *
+ * The correction is READ from the stylesheet, not fitted to the browser: 18 + 18 + 1 + 1.
+ * That it lands exactly on the independently observed 530 is the check, not the method.
+ * (An earlier report recorded the chrome as `37.6px` from a sub-pixel render measurement;
+ * the declared value in CSS is 38, and this models the declaration.)
  */
 export const CTA_REFLOW_RULES = Object.freeze({
   bodyHorizontalPadding: 40,
   mainMaxWidth: 720,
   ctaMinTrack: 220,
   ctaGap: 12,
+  dispositionHorizontalChrome: 38,
 })
 
 /**
  * How many columns `.install-cta-row` resolves to at a given viewport width.
  *
- * `repeat(auto-fit, minmax(220px, 1fr))` fits as many 220 px tracks as the available
- * width allows, with a 12 px gap between them; the available width is the viewport
- * minus `body`'s horizontal padding, capped by `main`'s max-width. With `items`
- * children the answer is bounded by `items` — a grid cannot produce more columns
- * than it has things to put in them, which is why the CTA row on a deep-link page
- * (2 children) never reaches 3 even at 1280 px.
+ * `repeat(auto-fit, minmax(min(220px, 100%), 1fr))` fits as many 220 px tracks as the
+ * available width allows, with a 12 px gap between them. The available width is the
+ * viewport minus `body`'s horizontal padding, capped by `main`'s max-width, MINUS the
+ * horizontal chrome of the `section.install-disposition` that wraps the row — see
+ * {@link CTA_REFLOW_RULES}. With `items` children the answer is bounded by `items` — a
+ * grid cannot produce more columns than it has things to put in them, which is why the
+ * CTA row on a deep-link page (2 children) never reaches 3 even at 1280 px.
+ *
+ * The `min(220px, 100%)` floor is deliberately NOT modelled: it differs from a bare
+ * `220px` only when the container is under 220 px (a viewport below ~260 px), and column
+ * count was measured identical with and without it at 240/480/491/492/493/540/768/1280.
+ * Modelling it would add a branch that changes no graded answer.
  *
  * This is the WHOLE of the viewport dependency in the shipped plane, because the
  * stylesheet contains no `@media`. That is asserted, not assumed.
  */
 export function predictCtaColumns(viewport: number, items: number): number {
   if (items <= 0) return 0
-  const available = Math.min(
-    CTA_REFLOW_RULES.mainMaxWidth,
-    viewport - CTA_REFLOW_RULES.bodyHorizontalPadding,
-  )
+  const available =
+    Math.min(CTA_REFLOW_RULES.mainMaxWidth, viewport - CTA_REFLOW_RULES.bodyHorizontalPadding) -
+    CTA_REFLOW_RULES.dispositionHorizontalChrome
   let columns = 1
   while (
     columns < items &&

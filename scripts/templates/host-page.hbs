@@ -8,6 +8,7 @@
       name="description"
       content="CallLint support for {{displayName}} ({{vendor}}). {{#if coverageBoundary}}{{coverageBoundary}}{{else}}Full MCP configuration discovery and scanning.{{/if}}"
     />
+    <link rel="canonical" href="{{canonicalUrl}}" />
     <link rel="icon" href="/favicon.png" type="image/png" />
     <link rel="apple-touch-icon" href="/logo-mark-256.png" />
     <link rel="stylesheet" href="/styles.css" />
@@ -53,6 +54,22 @@
           </div>
         </header>
 
+        {{!-- The activation contract (new20 Sprint 2). These three sections answer "why here?",
+              "how do I start?" and "how do I verify?" — the questions a page that stated only a
+              support level left a visitor holding. Order is deliberate: the reason to care comes
+              before the instruction, and the instruction before the proof.
+
+              EVERY STRING HERE IS DERIVED. `whyHere` and `firstSuccessAction` come from the
+              SSOT's `activation` block; `installCommand` is resolved from project-facts.json
+              through `activation.installRef`; `verifyCommand` is read off `truthfulCommands`,
+              the field HD-01..HD-04 and HD-06 already audit. No command text is written in this
+              template, and none is carried as prose in the SSOT — a command string in either
+              place would be a second, unaudited advertiser of what CallLint can do. --}}
+        <section id="why" class="doc-section">
+          <h2>Why scan {{displayName}}?</h2>
+          <p>{{activation.whyHere}}</p>
+        </section>
+
         <section id="usage" class="doc-section">
           <h2>Usage</h2>
           {{#if truthfulCommands}}
@@ -69,6 +86,32 @@
           </p>
           {{/if}}
         </section>
+
+        {{!-- Guarded on `installCommand`, which the SSOT schema permits only for NATIVE and
+              CONFIG_SCAN hosts. A guide-only page therefore prints no start path at all rather
+              than a plausible one — the honest counterpart to its "Guide only" label. --}}
+        {{#if activation.installCommand}}
+        <section id="start" class="doc-section">
+          <h2>How to start</h2>
+          <p>Install nothing globally — run CallLint straight from npm:</p>
+          <pre><code>{{activation.installCommand}}</code></pre>
+          {{#if activation.verifyCommand}}
+          <p>Then scan {{displayName}} specifically:</p>
+          <pre><code>{{activation.verifyCommand}}</code></pre>
+          {{/if}}
+        </section>
+
+        <section id="verify" class="doc-section">
+          <h2>How to verify it worked</h2>
+          <p>{{activation.firstSuccessAction}}</p>
+          <p>
+            A <strong>No blockers observed</strong> verdict means exactly that — no blocker under
+            the evidence CallLint could collect. It is not a guarantee, and
+            <strong>Insufficient evidence</strong> never becomes it on its own. See
+            <a href="#coverage">Coverage Boundary</a> for what this scan does not look at.
+          </p>
+        </section>
+        {{/if}}
 
         <section id="config" class="doc-section">
           <h2>Configuration Paths</h2>
@@ -104,7 +147,11 @@
               {{#if upstream}}
               <span class="upstream-note">(via <a href="https://registry.modelcontextprotocol.io/?q=calllint">{{upstream}}</a>)</span>
               {{/if}}
-              — <span class="state-{{state}}">{{state}}</span>
+              {{!-- Public label + styling slug, both derived by `publicState()` in the
+                    generator. Never `{{state}}`: that enum is an internal pipeline
+                    primitive, and printing it made a visitor read "AUDIT_REQUIRED" with no
+                    way to tell what it was a warning about. --}}
+              — <span class="state-{{stateClass}}">{{stateLabel}}</span>
               {{#if note}}
               <div class="dist-note">{{note}}</div>
               {{/if}}

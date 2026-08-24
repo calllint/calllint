@@ -5,6 +5,7 @@
     "release": "1.8.0"
   },
   "description": "Machine-readable agent harness authority surfaces and CallLint support",
+  "canonicalIndex": "https://calllint.com/agent-discovery-index.json",
   "mcp": {
     "registry": "io.github.calllint/calllint",
     "package": "calllint-mcp",
@@ -189,7 +190,7 @@
         },
         {
           "kind": "tencent-mcp-market",
-          "state": "READY_NOT_SUBMITTED",
+          "state": "BLOCKED",
           "officialSource": "https://cloud.tencent.com/document/product/1729"
         }
       ],
@@ -282,7 +283,7 @@
         },
         {
           "kind": "openai-plugin",
-          "state": "AUDIT_REQUIRED"
+          "state": "BLOCKED"
         }
       ],
       "coverageBoundary": "CallLint does not yet auto-discover Codex configuration."
@@ -397,7 +398,7 @@
         },
         {
           "kind": "tencent-mcp-market",
-          "state": "READY_NOT_SUBMITTED"
+          "state": "BLOCKED"
         }
       ],
       "coverageBoundary": "CallLint does not yet support CodeBuddy native discovery."
@@ -534,7 +535,7 @@
         },
         {
           "kind": "dsh-plugin",
-          "state": "AUDIT_REQUIRED"
+          "state": "BLOCKED"
         }
       ],
       "coverageBoundary": "CallLint does not auto-discover DeepSeek Harness configuration. Its MCP servers are plugin instances in cordis.yml rather than an mcpServers map, so no existing extractor reads that shape. This record exists for discovery routing only: DeepSeek is a model vendor here, not a security-relevant distinction."

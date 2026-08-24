@@ -27,3 +27,26 @@
 /harnesses/deepseek/cline.html /harnesses/cline/ 301
 /harnesses/deepseek/opencode /harnesses/opencode/ 301
 /harnesses/deepseek/opencode.html /harnesses/opencode/ 301
+
+# §16 /agents/<id> aliases. NOT legacy history: this set is derived from the CURRENT cohort and
+# grows with it, which is why it is generated separately from the frozen block above. Each
+# forwards to the canonical host page rather than duplicating it as a second page.
+/agents/claude-code /harnesses/claude-code/ 301
+/agents/claude-desktop /harnesses/claude-desktop/ 301
+/agents/cursor /harnesses/cursor/ 301
+/agents/vscode /harnesses/vscode/ 301
+/agents/windsurf /harnesses/windsurf/ 301
+/agents/workbuddy /harnesses/workbuddy/ 301
+/agents/qwen-code /harnesses/qwen-code/ 301
+/agents/openclaw /harnesses/openclaw/ 301
+/agents/codex /harnesses/codex/ 301
+/agents/copilot-cli /harnesses/copilot-cli/ 301
+/agents/cline /harnesses/cline/ 301
+/agents/gemini-cli /harnesses/gemini-cli/ 301
+/agents/codebuddy /harnesses/codebuddy/ 301
+/agents/opencode /harnesses/opencode/ 301
+/agents/kiro /harnesses/kiro/ 301
+/agents/continue /harnesses/continue/ 301
+/agents/roo-code /harnesses/roo-code/ 301
+/agents/deepseek-harness /harnesses/deepseek-harness/ 301
+/agents /harnesses/ 301

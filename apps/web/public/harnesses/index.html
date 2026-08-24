@@ -8,6 +8,7 @@
       name="description"
       content="CallLint support for agent hosts and development environments"
     />
+    <link rel="canonical" href="https://calllint.com/harnesses/" />
     <link rel="icon" href="/favicon.png" type="image/png" />
     <link rel="stylesheet" href="/styles.css" />
   </head>
@@ -36,28 +37,36 @@
 
         <section class="doc-section">
           <h2>Supported Hosts</h2>
-          <p>CallLint offers native auto-discovery and scanning for:</p>
+          <p>CallLint tracks 18 agent harnesses: 8 with native auto-discovery (<code>--agent &lt;id&gt;</code>), 1 scanned by explicit path (<code>calllint scan &lt;path&gt;</code>), 9 documented only, with no detection yet.</p>
+          <p class="small">
+            P0/P1/P2-P3 order these hosts by how commonly they are used, not by how well
+            CallLint supports them. Each host below carries its own support label.
+          </p>
 
           <h3>Native Support (P0)</h3>
           <ul class="host-list">
             <li>
               <a href="/harnesses/claude-code/">Claude Code</a>
               <span class="vendor">by Anthropic</span>
+              <span class="support-class" title="CallLint finds this host’s config on its own.">Auto-detects</span>
               <div class="coverage-note">CallLint scans MCP server entries only. Skills, hooks and permission settings in the same file are not covered.</div>
             </li>
             <li>
               <a href="/harnesses/claude-desktop/">Claude Desktop</a>
               <span class="vendor">by Anthropic</span>
+              <span class="support-class" title="CallLint finds this host’s config on its own.">Auto-detects</span>
               <div class="coverage-note">CallLint scans MCP server entries only. Other Claude Desktop settings in the same file are not covered.</div>
             </li>
             <li>
               <a href="/harnesses/cursor/">Cursor</a>
               <span class="vendor">by Anysphere</span>
+              <span class="support-class" title="CallLint finds this host’s config on its own.">Auto-detects</span>
               <div class="coverage-note">CallLint scans MCP server entries only. Cursor rules and editor settings are not covered.</div>
             </li>
             <li>
               <a href="/harnesses/workbuddy/">WorkBuddy</a>
               <span class="vendor">by Tencent Cloud</span>
+              <span class="support-class" title="CallLint finds this host’s config on its own.">Auto-detects</span>
               <div class="coverage-note">CallLint scans MCP server entries only. Other WorkBuddy settings in the same file are not covered.</div>
             </li>
           </ul>
@@ -67,14 +76,17 @@
             <li>
               <a href="/harnesses/vscode/">VS Code</a>
               <span class="vendor">by Microsoft</span>
+              <span class="support-class" title="CallLint finds this host’s config on its own.">Auto-detects</span>
             </li>
             <li>
               <a href="/harnesses/windsurf/">Windsurf</a>
               <span class="vendor">by Codeium</span>
+              <span class="support-class" title="CallLint finds this host’s config on its own.">Auto-detects</span>
             </li>
             <li>
               <a href="/harnesses/qwen-code/">Qwen Code</a>
               <span class="vendor">by Alibaba Cloud</span>
+              <span class="support-class" title="CallLint finds this host’s config on its own.">Auto-detects</span>
             </li>
           </ul>
 

@@ -8,6 +8,7 @@
       name="description"
       content="CallLint support for Cursor (Anysphere). CallLint scans MCP server entries only. Cursor rules and editor settings are not covered."
     />
+    <link rel="canonical" href="https://calllint.com/harnesses/cursor/" />
     <link rel="icon" href="/favicon.png" type="image/png" />
     <link rel="apple-touch-icon" href="/logo-mark-256.png" />
     <link rel="stylesheet" href="/styles.css" />
@@ -48,10 +49,34 @@
           </div>
         </header>
 
+        <section id="why" class="doc-section">
+          <h2>Why scan Cursor?</h2>
+          <p>Cursor gives MCP servers shell and filesystem authority inside the repository you have open, and &#x60;.cursor/mcp.json&#x60; is commonly committed — so a server entry travels to every collaborator who opens the project.</p>
+        </section>
+
         <section id="usage" class="doc-section">
           <h2>Usage</h2>
           <p>CallLint can auto-discover and scan Cursor configurations:</p>
           <pre><code>calllint scan --agent cursor</code></pre>
+        </section>
+
+        <section id="start" class="doc-section">
+          <h2>How to start</h2>
+          <p>Install nothing globally — run CallLint straight from npm:</p>
+          <pre><code>npx calllint scan --auto</code></pre>
+          <p>Then scan Cursor specifically:</p>
+          <pre><code>calllint scan --agent cursor</code></pre>
+        </section>
+
+        <section id="verify" class="doc-section">
+          <h2>How to verify it worked</h2>
+          <p>Run it against the project config as well as the user one. A committed &#x60;.cursor/mcp.json&#x60; is a supply-chain surface: the verdict you want is the one your teammates will inherit.</p>
+          <p>
+            A <strong>No blockers observed</strong> verdict means exactly that — no blocker under
+            the evidence CallLint could collect. It is not a guarantee, and
+            <strong>Insufficient evidence</strong> never becomes it on its own. See
+            <a href="#coverage">Coverage Boundary</a> for what this scan does not look at.
+          </p>
         </section>
 
         <section id="config" class="doc-section">
@@ -80,11 +105,11 @@
             <li>
               <strong>mcp-stdio</strong>
               <span class="upstream-note">(via <a href="https://registry.modelcontextprotocol.io/?q=calllint">officialMcpRegistry</a>)</span>
-              — <span class="state-AUDIT_REQUIRED">AUDIT_REQUIRED</span>
+              — <span class="state-unverified">Listing not yet verified</span>
             </li>
             <li>
               <strong>cursor-plugin</strong>
-              — <span class="state-AUDIT_REQUIRED">AUDIT_REQUIRED</span>
+              — <span class="state-unverified">Listing not yet verified</span>
             </li>
           </ul>
         </section>

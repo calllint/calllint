@@ -37,9 +37,12 @@ CallLint is published to the Official MCP Registry:
 - Version: 0.2.0
 - Registry URL: https://registry.modelcontextprotocol.io/?q=calllint
 
-## Supported Agent Harnesses
+## Agent Harnesses CallLint Tracks
 
-CallLint provides native auto-discovery for:
+CallLint tracks 18 agent harnesses: 8 with native auto-discovery (`--agent <id>`), 1 scanned by explicit path (`calllint scan <path>`), 9 documented only, with no detection yet.
+
+The P0/P1/P2-P3 tiers below order hosts by how commonly they are used. They are NOT a
+capability claim: read each host's own command or support class.
 
 **P0 (Most Common):**
 - Claude Code (Anthropic) — calllint scan --agent claude-code
@@ -53,20 +56,21 @@ CallLint provides native auto-discovery for:
 - Qwen Code (Alibaba Cloud) — calllint scan --agent qwen-code
 
 **P2-P3 (Less Common):**
-- OpenClaw (Open Source) — NATIVE
-- OpenAI Codex (OpenAI) — DISCOVERY_ONLY
-- GitHub Copilot CLI (GitHub) — DISCOVERY_ONLY
-- Cline (Open Source) — DISCOVERY_ONLY
-- Gemini CLI (Google) — DEFERRED
-- CodeBuddy (Tencent) — DEFERRED
-- OpenCode (Open Source) — CONFIG_SCAN
-- Kiro (AWS) — DEFERRED
-- Continue (Continue) — DISCOVERY_ONLY
-- Roo Code (Roo Code Inc) — DEFERRED
-- DeepSeek Harness (DeepSeek) — DISCOVERY_ONLY
+- OpenClaw (Open Source) — calllint scan --agent openclaw
+- OpenAI Codex (OpenAI) — no scan command yet (Guide only) — https://calllint.com/harnesses/codex
+- GitHub Copilot CLI (GitHub) — no scan command yet (Guide only) — https://calllint.com/harnesses/copilot-cli
+- Cline (Open Source) — no scan command yet (Guide only) — https://calllint.com/harnesses/cline
+- Gemini CLI (Google) — no scan command yet (Guide only) — https://calllint.com/harnesses/gemini-cli
+- CodeBuddy (Tencent) — no scan command yet (Guide only) — https://calllint.com/harnesses/codebuddy
+- OpenCode (Open Source) — calllint scan --config <path>
+- Kiro (AWS) — no scan command yet (Guide only) — https://calllint.com/harnesses/kiro
+- Continue (Continue) — no scan command yet (Guide only) — https://calllint.com/harnesses/continue
+- Roo Code (Roo Code Inc) — no scan command yet (Guide only) — https://calllint.com/harnesses/roo-code
+- DeepSeek Harness (DeepSeek) — no scan command yet (Guide only) — https://calllint.com/harnesses/deepseek-harness
 
 ## Machine-Readable Surfaces
 
+- Discovery index (start here): https://calllint.com/agent-discovery-index.json
 - Agent surfaces: https://calllint.com/agent-surfaces.json
 - Full documentation: https://calllint.com/llms-full.txt
 - Harness details: https://calllint.com/harnesses/
@@ -92,8 +96,8 @@ npx calllint integrate
 # Scan specific agent
 calllint scan --agent claude-code
 
-# Scan MCP config file
-calllint scan --config ~/.claude/settings.json
+# Scan a specific MCP config file (the target is positional)
+calllint scan ~/.claude/settings.json
 
 # JSON output
 calllint scan --auto --json

@@ -4,7 +4,7 @@
   "title": "CallLint agent surfaces (v1)",
   "description": "Machine-readable projection of CallLint's agent harness support. Generated from apps/web/data/distribution-surfaces.json by scripts/generate-distribution-surfaces.mjs; never hand-edited. This schema describes the PUBLISHED projection, not the SSOT.\n\nThis surface carries distribution facts only. It deliberately contains no risk, popularity, demand or SEO score for any harness, model, platform or marketplace: distribution channel and model identity are orthogonal to a security verdict, and a consumer must not be able to derive a verdict from where a server was found.",
   "type": "object",
-  "required": ["version", "describes", "description", "mcp", "agents"],
+  "required": ["version", "canonicalIndex", "describes", "description", "mcp", "agents"],
   "additionalProperties": false,
   "properties": {
     "$schema": { "type": "string", "format": "uri" },
@@ -12,6 +12,11 @@
       "type": "string",
       "description": "Schema contract version of this document.",
       "pattern": "^\\d+\\.\\d+\\.\\d+$"
+    },
+    "canonicalIndex": {
+      "type": "string",
+      "format": "uri",
+      "description": "The canonical discovery root (§4's ONE layer), which carries `canonical: true`. Required, not optional: this file is the one agent-facing documents have cited longest, so a consumer will often reach it first and must be able to find the root without guessing. Both documents are generated from the same SSOT by the same script, so this is a layer pointer, not a second source of truth."
     },
     "describes": {
       "type": "object",
@@ -105,11 +110,13 @@
         "kind": { "type": "string", "minLength": 1 },
         "state": {
           "type": "string",
+          "$comment": "Mirrors definitions.primitive.properties.state.enum in apps/web/data/distribution-surfaces.schema.json, which is the vocabulary's source of truth. NOT_APPLICABLE is a dead member: no generator emits it and no record carries it. It is left in place because removing a published member of a v1 schema narrows an already-shipped contract, which needs its own decision rather than a drive-by edit.",
           "enum": [
             "AVAILABLE",
             "READY_NOT_SUBMITTED",
             "PENDING_UPSTREAM",
             "AUDIT_REQUIRED",
+            "BLOCKED",
             "NOT_APPLICABLE"
           ]
         },

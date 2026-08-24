@@ -39,7 +39,7 @@ CallLint is published as a Tier-0 distribution primitive on the Official MCP Reg
 
 Platforms that consume the Official MCP Registry can discover CallLint automatically.
 
-## Supported Agent Harnesses
+## Agent Harnesses CallLint Tracks
 
 ### Claude Code (Anthropic)
 
@@ -125,7 +125,7 @@ Platforms that consume the Official MCP Registry can discover CallLint automatic
 
 **Distribution Primitives**:
   - mcp-stdio: AUDIT_REQUIRED (upstream: officialMcpRegistry)
-  - tencent-mcp-market: READY_NOT_SUBMITTED — https://cloud.tencent.com/document/product/1729
+  - tencent-mcp-market: BLOCKED — https://cloud.tencent.com/document/product/1729
 
 **Coverage Boundary**: CallLint scans MCP server entries only. Other WorkBuddy settings in the same file are not covered.
 
@@ -170,7 +170,7 @@ Platforms that consume the Official MCP Registry can discover CallLint automatic
 
 **Distribution Primitives**:
   - mcp-stdio: AUDIT_REQUIRED (upstream: officialMcpRegistry)
-  - openai-plugin: AUDIT_REQUIRED
+  - openai-plugin: BLOCKED
 
 **Coverage Boundary**: CallLint does not yet auto-discover Codex configuration.
 
@@ -230,7 +230,7 @@ Platforms that consume the Official MCP Registry can discover CallLint automatic
 
 **Distribution Primitives**:
   - mcp-stdio: AUDIT_REQUIRED (upstream: officialMcpRegistry)
-  - tencent-mcp-market: READY_NOT_SUBMITTED
+  - tencent-mcp-market: BLOCKED
 
 **Coverage Boundary**: CallLint does not yet support CodeBuddy native discovery.
 
@@ -302,7 +302,7 @@ Platforms that consume the Official MCP Registry can discover CallLint automatic
 
 **Distribution Primitives**:
   - mcp-stdio: AUDIT_REQUIRED (upstream: officialMcpRegistry)
-  - dsh-plugin: AUDIT_REQUIRED
+  - dsh-plugin: BLOCKED
 
 **Coverage Boundary**: CallLint does not auto-discover DeepSeek Harness configuration. Its MCP servers are plugin instances in cordis.yml rather than an mcpServers map, so no existing extractor reads that shape. This record exists for discovery routing only: DeepSeek is a model vendor here, not a security-relevant distinction.
 
@@ -325,8 +325,8 @@ npx calllint scan .cursor/mcp.json --ci --no-emoji
 # Scan specific agent
 calllint scan --agent claude-code
 
-# Scan MCP config file
-calllint scan --config ~/.claude/settings.json
+# Scan a specific MCP config file (the target is positional)
+calllint scan ~/.claude/settings.json
 
 # JSON output for machine consumption
 calllint scan --auto --json
@@ -381,6 +381,7 @@ invoke it with filesystem access, shell commands, network calls, or API tokens.
 
 ## Machine-Readable Surfaces
 
+- **Discovery index (canonical root)**: https://calllint.com/agent-discovery-index.json
 - **Agent surfaces JSON**: https://calllint.com/agent-surfaces.json
 - **Compact LLM doc**: https://calllint.com/llms.txt
 - **Harness hub**: https://calllint.com/harnesses/

@@ -13,6 +13,7 @@ import { breathe } from "./breathe.js"
 import { resolveToolVersion } from "./version.js"
 import { buildCliEmitter } from "./telemetry.js"
 import { queueSink } from "./queueSink.js"
+import type { CliState } from "./state.js"
 
 /**
  * The first locally-present host a deep link can actually reach.
@@ -162,7 +163,11 @@ async function main(): Promise<void> {
   // The installation ID rides on every event as `anonymousInstallationId`. It is read
   // here (not generated) — `enableTelemetry()` owns creation, so a run cannot mint an
   // identity as a side effect of scanning.
-  let telemetryState: { telemetryEnabled: boolean; anonymousInstallationId?: string } = {
+  // Typed as `CliState` (a type-only import, so no runtime cost and the lazy `import()`
+  // below still owns loading) rather than an inline literal. The inline shape had to be
+  // edited by hand every time state grew a field, and forgetting to would silently drop
+  // that field on this path with no error.
+  let telemetryState: CliState = {
     telemetryEnabled: false,
   }
   try {
@@ -176,6 +181,11 @@ async function main(): Promise<void> {
     sink,
     consented: telemetryState.telemetryEnabled === true,
     installationId: telemetryState.anonymousInstallationId,
+    // Read from state, never from the environment on this path (new19 §21): provenance is
+    // captured once at enable time. Re-reading the env here would attribute a run to
+    // whatever shelf happens to be set NOW, so a user who installed via the registry and
+    // later ran with a stray env var would be re-attributed on the fly.
+    discoverySurface: telemetryState.discoverySurface,
   })
 
   const result = run(argv, {

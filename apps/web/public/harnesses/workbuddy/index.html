@@ -8,6 +8,7 @@
       name="description"
       content="CallLint support for WorkBuddy (Tencent Cloud). CallLint scans MCP server entries only. Other WorkBuddy settings in the same file are not covered."
     />
+    <link rel="canonical" href="https://calllint.com/harnesses/workbuddy/" />
     <link rel="icon" href="/favicon.png" type="image/png" />
     <link rel="apple-touch-icon" href="/logo-mark-256.png" />
     <link rel="stylesheet" href="/styles.css" />
@@ -48,10 +49,34 @@
           </div>
         </header>
 
+        <section id="why" class="doc-section">
+          <h2>Why scan WorkBuddy?</h2>
+          <p>WorkBuddy loads MCP servers next to its extension surface, so a server entry and an extension can reach the same workspace while being reviewed by different people.</p>
+        </section>
+
         <section id="usage" class="doc-section">
           <h2>Usage</h2>
           <p>CallLint can auto-discover and scan WorkBuddy configurations:</p>
           <pre><code>calllint scan --agent workbuddy</code></pre>
+        </section>
+
+        <section id="start" class="doc-section">
+          <h2>How to start</h2>
+          <p>Install nothing globally — run CallLint straight from npm:</p>
+          <pre><code>npx calllint scan --auto</code></pre>
+          <p>Then scan WorkBuddy specifically:</p>
+          <pre><code>calllint scan --agent workbuddy</code></pre>
+        </section>
+
+        <section id="verify" class="doc-section">
+          <h2>How to verify it worked</h2>
+          <p>Confirm each server’s origin before acting on a SAFE verdict — SAFE means no blocker was observed under current evidence, not that the publisher was verified.</p>
+          <p>
+            A <strong>No blockers observed</strong> verdict means exactly that — no blocker under
+            the evidence CallLint could collect. It is not a guarantee, and
+            <strong>Insufficient evidence</strong> never becomes it on its own. See
+            <a href="#coverage">Coverage Boundary</a> for what this scan does not look at.
+          </p>
         </section>
 
         <section id="config" class="doc-section">
@@ -79,11 +104,11 @@
             <li>
               <strong>mcp-stdio</strong>
               <span class="upstream-note">(via <a href="https://registry.modelcontextprotocol.io/?q=calllint">officialMcpRegistry</a>)</span>
-              — <span class="state-AUDIT_REQUIRED">AUDIT_REQUIRED</span>
+              — <span class="state-unverified">Listing not yet verified</span>
             </li>
             <li>
               <strong>tencent-mcp-market</strong>
-              — <span class="state-READY_NOT_SUBMITTED">READY_NOT_SUBMITTED</span>
+              — <span class="state-blocked">Not available here</span>
               <div class="dist-blocker">⚠️ Third-party MCP submissions not currently accepted</div>
             </li>
           </ul>

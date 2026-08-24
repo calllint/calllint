@@ -8,6 +8,7 @@
       name="description"
       content="CallLint support for OpenAI Codex (OpenAI). CallLint does not yet auto-discover Codex configuration."
     />
+    <link rel="canonical" href="https://calllint.com/harnesses/codex/" />
     <link rel="icon" href="/favicon.png" type="image/png" />
     <link rel="apple-touch-icon" href="/logo-mark-256.png" />
     <link rel="stylesheet" href="/styles.css" />
@@ -48,6 +49,11 @@
           </div>
         </header>
 
+        <section id="why" class="doc-section">
+          <h2>Why scan OpenAI Codex?</h2>
+          <p>Codex writes code and calls APIs on your behalf, so an MCP server it can reach is reachable from generated code as well as from a prompt.</p>
+        </section>
+
         <section id="usage" class="doc-section">
           <h2>Usage</h2>
           <p>
@@ -55,6 +61,7 @@
             No automatic detection yet — this page documents where the config lives.
           </p>
         </section>
+
 
         <section id="config" class="doc-section">
           <h2>Configuration Paths</h2>
@@ -81,11 +88,11 @@
             <li>
               <strong>mcp-stdio</strong>
               <span class="upstream-note">(via <a href="https://registry.modelcontextprotocol.io/?q=calllint">officialMcpRegistry</a>)</span>
-              — <span class="state-AUDIT_REQUIRED">AUDIT_REQUIRED</span>
+              — <span class="state-unverified">Listing not yet verified</span>
             </li>
             <li>
               <strong>openai-plugin</strong>
-              — <span class="state-AUDIT_REQUIRED">AUDIT_REQUIRED</span>
+              — <span class="state-blocked">Not available here</span>
               <div class="dist-blocker">⚠️ Do not create remote MCP just for public listing eligibility</div>
             </li>
           </ul>

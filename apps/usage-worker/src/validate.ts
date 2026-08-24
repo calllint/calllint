@@ -13,6 +13,7 @@
  */
 import {
   ALLOWED_EVENTS,
+  DISCOVERY_SURFACES,
   FORBIDDEN_FIELDS,
   RESULTS,
   SOURCES,
@@ -65,6 +66,11 @@ export interface ValidatedEvent {
   hostFamily: string
   inputKind: string
   productVersion: string
+  /**
+   * Discovery provenance, "" when the client did not state one. A STORED dimension,
+   * so it is enum-checked rather than token-checked — see the rejection below.
+   */
+  discoverySurface: string
   result?: string
   /** Raw ID — hashed and discarded by the caller; never persisted (new18 §20). */
   anonymousInstallationId?: string
@@ -175,6 +181,30 @@ export function validateBatch(body: unknown): ValidationResult {
       return fail("invalid_dimension", `events[${index}] has an invalid dimension value.`)
     }
 
+    /*
+     * ENUM-CHECKED, NOT TOKEN-CHECKED, and that difference is the point.
+     *
+     * `hostFamily` / `inputKind` / `productVersion` are open-ended by nature — a new
+     * host or a new version string is legitimate and unknowable in advance — so a
+     * bounded safe token is the strongest available check. `discoverySurface` has a
+     * closed six-member vocabulary, so accepting any safe token would let a hostile
+     * client mint unbounded distinct values, and every distinct value is a NEW PRIMARY
+     * KEY in usage_daily_counts. That is row-count amplification on a table whose whole
+     * privacy argument is that a row is a coarse aggregate: 100 events per batch could
+     * become 100 one-count rows. Bounding the vocabulary bounds the key space.
+     */
+    const rawSurface = candidate.discoverySurface
+    let discoverySurface = ""
+    if (rawSurface != null && rawSurface !== "") {
+      if (
+        typeof rawSurface !== "string" ||
+        !(DISCOVERY_SURFACES as readonly string[]).includes(rawSurface)
+      ) {
+        return fail("unknown_discovery_surface", `events[${index}] has an off-vocabulary discoverySurface.`)
+      }
+      discoverySurface = rawSurface
+    }
+
     const rawId = candidate.anonymousInstallationId
     let installationId: string | undefined
     if (rawId != null && rawId !== "") {
@@ -191,6 +221,7 @@ export function validateBatch(body: unknown): ValidationResult {
       hostFamily,
       inputKind,
       productVersion,
+      discoverySurface,
       ...(result != null ? { result: result as string } : {}),
       ...(installationId ? { anonymousInstallationId: installationId } : {}),
     })

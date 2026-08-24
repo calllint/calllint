@@ -11,10 +11,12 @@
  */
 import {
   ALLOWED_EVENTS,
+  DISCOVERY_SURFACES,
   EVENT_VERSION,
   FORBIDDEN_FIELDS,
   RESULTS,
   SOURCES,
+  type DiscoverySurface,
   type TelemetryEventName,
   type TelemetryResult,
   type TelemetrySource,
@@ -30,6 +32,8 @@ export interface RawEventInput {
   inputKind?: string
   anonymousInstallationId?: string
   productVersion?: string
+  /** Optional discovery provenance (a surface TYPE, never an id). See DISCOVERY_SURFACES. */
+  discoverySurface?: string
   [k: string]: unknown
 }
 
@@ -44,6 +48,7 @@ export interface SanitizedEvent {
   inputKind?: string
   anonymousInstallationId?: string
   productVersion?: string
+  discoverySurface?: DiscoverySurface
 }
 
 /** Collapse a raw millisecond duration into a coarse, non-identifying bucket. */
@@ -78,6 +83,15 @@ export function sanitizeEvent(input: RawEventInput): SanitizedEvent {
   if (input.result != null && !(RESULTS as readonly string[]).includes(input.result)) {
     throw new Error(`telemetry: unknown result "${input.result}"`)
   }
+  // Throws rather than silently dropping, exactly like `result`. A dropped optional
+  // dimension is invisible downstream: the counter still increments, just under a
+  // narrower key, so the mistake reads as "that surface sent nothing".
+  if (
+    input.discoverySurface != null &&
+    !(DISCOVERY_SURFACES as readonly string[]).includes(input.discoverySurface)
+  ) {
+    throw new Error(`telemetry: unknown discoverySurface "${input.discoverySurface}"`)
+  }
 
   // Allowlist construction: ONLY these fields can ever appear in output.
   const out: SanitizedEvent = {
@@ -95,5 +109,6 @@ export function sanitizeEvent(input: RawEventInput): SanitizedEvent {
     out.anonymousInstallationId = input.anonymousInstallationId
   }
   if (isNonEmptyString(input.productVersion)) out.productVersion = input.productVersion
+  if (input.discoverySurface != null) out.discoverySurface = input.discoverySurface as DiscoverySurface
   return out
 }

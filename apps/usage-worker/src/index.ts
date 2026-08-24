@@ -186,9 +186,9 @@ async function handleUsagePost(request: Request, env: Env): Promise<Response> {
     ...counts.map((row) =>
       env.USAGE_DB.prepare(
         `INSERT INTO usage_daily_counts
-           (day, event_name, source, host_family, input_kind, product_version, count)
-         VALUES (?, ?, ?, ?, ?, ?, ?)
-         ON CONFLICT (day, event_name, source, host_family, input_kind, product_version)
+           (day, event_name, source, host_family, input_kind, product_version, discovery_surface, count)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+         ON CONFLICT (day, event_name, source, host_family, input_kind, product_version, discovery_surface)
          DO UPDATE SET count = count + excluded.count`,
       ).bind(
         row.day,
@@ -197,6 +197,7 @@ async function handleUsagePost(request: Request, env: Env): Promise<Response> {
         row.hostFamily,
         row.inputKind,
         row.productVersion,
+        row.discoverySurface,
         row.count,
       ),
     ),

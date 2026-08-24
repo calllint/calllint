@@ -8,6 +8,7 @@
       name="description"
       content="CallLint support for Cline (Open Source). CallLint does not yet auto-discover Cline configuration."
     />
+    <link rel="canonical" href="https://calllint.com/harnesses/cline/" />
     <link rel="icon" href="/favicon.png" type="image/png" />
     <link rel="apple-touch-icon" href="/logo-mark-256.png" />
     <link rel="stylesheet" href="/styles.css" />
@@ -48,6 +49,11 @@
           </div>
         </header>
 
+        <section id="why" class="doc-section">
+          <h2>Why scan Cline?</h2>
+          <p>Cline executes multi-step tasks from inside VS Code, so an MCP server it holds is callable across a whole task rather than for a single approved action.</p>
+        </section>
+
         <section id="usage" class="doc-section">
           <h2>Usage</h2>
           <p>
@@ -55,6 +61,7 @@
             No automatic detection yet — this page documents where the config lives.
           </p>
         </section>
+
 
         <section id="config" class="doc-section">
           <h2>Configuration Paths</h2>
@@ -81,12 +88,12 @@
             <li>
               <strong>mcp-stdio</strong>
               <span class="upstream-note">(via <a href="https://registry.modelcontextprotocol.io/?q=calllint">officialMcpRegistry</a>)</span>
-              — <span class="state-AVAILABLE">AVAILABLE</span>
+              — <span class="state-available">Available now</span>
             </li>
             <li>
               <strong>cline-marketplace-pr</strong>
-              — <span class="state-PENDING_UPSTREAM">PENDING_UPSTREAM</span>
-              <div class="dist-note">Existing PR #49, do not create duplicate</div>
+              — <span class="state-awaiting-upstream">Awaiting the upstream registry</span>
+              <div class="dist-note">Existing PR #49 (open, verified 2026-08-23), do not create duplicate</div>
             </li>
           </ul>
         </section>

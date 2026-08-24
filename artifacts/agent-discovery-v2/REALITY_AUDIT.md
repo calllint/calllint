@@ -425,11 +425,35 @@ questions for 16 directories. Building `/agents/*` as real pages would create tw
 subject — the §26 violation D1 avoids in the data layer. The genuine gap is question 5, fixed by
 adding one status section to the existing template.
 
+> **Correction (2026-08-22).** As written above, the first clause described an outcome that did not
+> exist. At `abfb44a` no `/agents/<id>` redirect was present in any form — not in `_redirects`, not
+> in `_routes.json`, not in `functions/`, and not in the generator. The decision was recorded as
+> though implemented; only the "no second page set" half was ever true, and it was true by default
+> rather than by construction.
+>
+> This is now implemented. `generateRedirects()` emits one 301 per host plus `/agents` →
+> `/harnesses/`, as a block kept deliberately separate from the frozen per-host `legacyPaths` — an
+> alias invented for documentation must not be conflated with a URL that really was served.
+> `check-agent-surface-contract.mjs` asserts totality over the host cohort (not over the rule count,
+> which legacy rules and `.html` spellings would satisfy on their own), and the invariant suite
+> covers the same property plus the no-collision requirement.
+>
+> Recorded rather than silently corrected, because the failure mode is the one this document exists
+> to catch: a decision log is itself an unverified claim unless a gate reads it.
+
 ### D5 — `--check` compares **bytes in memory against disk**, not `git diff`
 
 Forced by M8 + M10: `git diff` cannot see an untracked file, which has already produced one vacuous
 green on this workstream. A `--check` that renders all 11 outputs and byte-compares is strictly
 stronger, and independent of git state. Both gates are kept: they fail for different reasons.
+
+> **Amended (2026-08-22).** Byte-comparison being independent of git state is exactly why it could
+> not, on its own, close M10: a file can match its projection perfectly and still be absent from the
+> index, which is the shape that produced the original vacuous green. `--check` now also asserts
+> index membership for every `emit()` target, over the same denominator its anti-vacuity floor pins,
+> and degrades to an explicit "unverified" line outside a work tree rather than failing where its
+> subject is absent. The byte comparison remains git-independent; the run as a whole now reports on
+> both properties instead of leaving the second to a gate that structurally cannot see it.
 
 ### D6 — the discovery index is published under `apps/web/public/`, not `distribution/`
 
@@ -467,6 +491,202 @@ One assertion — no `packages/**` source reads distribution truth — covers al
 negative control is adding such an import. It carries a mandatory anti-vacuity premise asserting the
 scanned file set is non-empty (M6's denominator is 333), because a mistyped glob would otherwise
 scan nothing and print a checkmark.
+
+### D11 — §6's coverage index is a change of **denominator**, not a rename
+
+Added 2026-08-22, closing gap #4.
+
+The obvious reading of §6 ("10 → 100 → 500 Registry Cohort → Agent Adoption Coverage Index") is a
+taxonomy change: partition the index by surface type. **Measured: that already existed.**
+`counts.byType` has published §6's six buckets — `agent-harness`, `mcp-registry`, `marketplace`,
+`documentation`, `search-surface`, `mirror` — since the index was first generated, with `marketplace`
+and `mirror` truthfully at zero. Renaming the cohort would have produced a diff and closed nothing.
+
+What was actually missing is the denominator. `counts` states how many records **exist**; a consumer
+reading `agent-harness: 18` cannot distinguish a complete cohort from one that silently lost a host.
+"18 surfaces" only means something against "18 required". So each tier now publishes `required`
+(counted from the SSOT's `coverageTier`) beside `present` (counted from the index's own `surfaces`),
+and the generator refuses to publish when they disagree.
+
+**`coverageTier` became a published SSOT field rather than staying a test constant.** A generator
+cannot read a test fixture. The field is required with a closed enum (`tier0`/`tier1`/`tier2`/
+`beyond-section-9`) so host 19 cannot enter unclassified and "unclassified" cannot become a silent
+fifth state. `beyond-section-9` is a first-class member, not a leftover bucket: CallLint covers 4
+hosts new19 never named, and that growth must be named rather than inferred from absence.
+
+**`REQUIRED_COVERAGE` in the invariant suite deliberately stays hardcoded.** Reading the tier from
+the SSOT would have been shorter and would have made the guard blind in the repo's dominant fault
+class: both sides would descend from one editable value, so editing a host's tier would silently
+redefine the obligation it is measured against. The constant is a human-reviewed transcription of
+new19 §5 and serves as the ORACLE — the suite checks the SSOT field against it, and the published
+block against the SSOT. Negative control M2 confirms the difference: moving `cline` from tier0 to
+tier2 in the data file alone reds with "cline is tier2 in the SSOT but tier0 in §9", which the
+self-referential form would have reported as healthy.
+
+**Coverage is not published as a support claim.** §9 closes with "Do not claim implementation where
+none exists. The record may honestly say: DISCOVERY_ONLY." So each tier carries a `bySupportClass`
+histogram rather than a verified/unverified flag. tier0 reads 5/5 covered and 2 NATIVE + 3
+DISCOVERY_ONLY — fully covered and mostly not implemented, both halves visible. Any boolean would
+have to round that, and every rounding is a support claim manufactured by a coverage requirement.
+One invariant asserts the block contains no `verified`/`supported` key at all; NC-3 confirms that
+flattening tier0's histogram to `{NATIVE: 5}` reds.
+
+The recount is done twice from independent origins — `required` against the SSOT, `present` against
+the published surfaces — because a single generator run writes both, so a miscount would very likely
+corrupt them identically and stay invisible to a comparison between them.
+
+---
+
+### D12 — the weekly watcher was doubly vacuous; both halves are fixed, and the *test* has a fixture
+
+Added 2026-08-22, closing gap #5 (§84's weekly discovery stage had no observation stage).
+
+Two independent failures, both green for their entire existence, both in `check-official-sources.mjs`
+and `distribution-watch.yml`. They are recorded together because they share one shape: **a watcher
+that cannot observe its subject, kept green by an anti-vacuity floor whose denominator excluded the
+thing being missed.**
+
+**Vacuity 1 — candidate discovery fetched nothing.** The URL loop read `manifest.sources` alone. So
+`manifest.candidateFeeds` was projected by the generator, constrained by a published schema, and
+asserted by an invariant on its `role` — and no job ever opened the URL. The floor that should have
+caught it (`sources.length === 0`) counted host sources only, so the observer's own denominator was
+blind to the half that was missing. Fixed: feeds are read, each URL carries a `kind`
+(`HOST_SOURCE` / `CANDIDATE_FEED`), and a **second floor with its own denominator** fails when feeds
+are declared but contribute zero URLs. Observer denominator measured 26 → 27.
+
+`kind` is per-URL rather than inferred from the id because the two license different reactions, and a
+human reading the artifact must not have to remember which is which. A `HOST_SOURCE` change can
+justify editing that host's `supportClass` or `truthfulCommands`. The identical change on a
+`CANDIDATE_FEED` licenses recording candidate evidence and nothing else. Conflating them is the
+specific way this feature turns dangerous: a third-party directory asserting "supports X" would
+become a CallLint support claim. The artifact now carries `candidateEvidencePolicy` stating the
+ceiling, and one invariant asserts that string survives.
+
+**Vacuity 2 — change detection had never once run.** The workflow **uploaded** the artifact and
+nothing ever downloaded it, and the path is untracked. So `previous` was always `null`, all 27 URLs
+reported `NEW`, and every STATUS / BODY / REACHABILITY / REDIRECT comparison was dead code, weekly,
+forever. The workflow's own comment claimed uploading "is what makes week-over-week change detection
+possible" — uploading was necessary and not sufficient. It stayed invisible because **a missing
+baseline and a quiet week are both spelled "no interesting output"**: `NEW` on everything reads like
+a healthy first run, every week. Fixed with a restore step, and the baseline's presence is now
+printed unconditionally, so a run that compared against nothing says so.
+
+**The restore is `gh api` + `gh run download`, not `actions/download-artifact` with a name.** This
+correction is worth recording because the first draft made the error and it would have been
+undetectable. That action defaults to `run-id: ${{ github.run_id }}` — the **current** run, which has
+uploaded nothing at that point in the job. A name-only download therefore fetches nothing, and
+because the step must tolerate a legitimately absent baseline, it would have failed quietly and
+reproduced the exact vacuity it was added to remove. Reaching a *previous* run needs that run's id,
+which is what the API call resolves. Ordering is explicit (`sort_by(.created_at) | reverse`) because
+the repository-level artifact list documents no sort order; `expired == false` is filtered because a
+lapsed 90-day artifact is unreachable, not a baseline. `actions: read` was added — `contents: read`
+alone cannot list a sibling run's artifacts. The jq path was verified against the live API rather
+than assumed: `name=usage-report` resolved run `32558865164`; `name=official-sources-snapshot`
+returned empty, exercising the no-baseline branch.
+
+**Two no-baseline states are legitimate and neither is a defect:** the first-ever run, and a gap
+wider than the 90-day retention window. Both are reported, never inferred.
+
+**The test uses a loopback server, not only `--offline`.** `--offline` exits before fetching, so it
+can prove the denominator and both floors but cannot execute one line of the comparison code — which
+is precisely the half that had never run. A test that stopped there would re-create the original
+defect at the test layer: full coverage of the cheap half, zero coverage of the broken half. So
+`tests/invariants/official-source-observation.invariants.test.ts` copies the script into a temp tree
+(its `repoRoot` derives from `import.meta.url`, so the copy redirects both the manifest read and the
+artifact write) and serves synthetic sources from `127.0.0.1` on an ephemeral port. No egress, no
+vendor contact, and **no env-var seam added to production code for a test's benefit**.
+
+Four chained live runs cover NEW → BODY → STATUS → DROPPED, because each run's artifact *is* the next
+run's baseline and that chaining is the behaviour under test. The positive control — a candidate-feed
+BODY change detected and tagged `(candidate)` — fails if the feed stops being fetched, if the baseline
+stops being read, or if `sourceKind` stops being carried, so that one assertion covers both original
+vacuities.
+
+**Mutation-tested, because a test that cannot fail proves nothing.** Three reverts against a
+hash-pinned copy, each producing a distinct red set: removing the `candidateFeeds` read → 10 failures
+(including the production-denominator assertion that would have caught vacuity 1); forcing
+`previous = null` → 3; dropping `sourceKind` → 5. The script was restored and re-verified
+byte-identical (`sha256 283175ca…ad37`) before the suite was re-run green.
+
+Also measured on the same pass: the workflow's projection step had hand-listed **9** paths while the
+generator writes **29**, so 20 were unguarded — including `agent-discovery-index.json`, the canonical
+discovery root. `git diff` on an untouched path always exits 0, so the check read green while
+observing nothing. Replaced with the generator's own `--check`, whose denominator *is* the write set,
+and which additionally asserts each target is tracked by git — `git diff` is structurally blind to a
+never-added file, which had already produced one vacuous green on this workstream.
+
+`candidateFeeds` went 1 → 3 (`mcp-spec-client-examples`, `pulsemcp-client-directory`), purely
+additive. Both were **content-verified rather than name-checked**: the protocol page body names
+clients (46×`client`, 26×`cursor`, 24×`Claude`), and the directory enumerates VS Code / Cursor / Cline.
+`modelcontextprotocol.io/clients` was rejected — it returns 200 but redirects to
+`/getting-started/intro`, so it would have been a live-looking dead source.
+
+---
+
+### D13 — `discoverySurface` carries surface **types**, enum-checked at the ingress, conduit-only
+
+§21 asks the usage signal to distinguish *how* a run was discovered. Four decisions, each forced by
+a measurement rather than chosen by taste.
+
+**1. Types, not ids — and not a widened `source`.** The published index carries 23 surface *ids* and
+6 surface *types*. Ids were ruled out twice over: `io.github.calllint/calllint` contains `/`, which
+the ingress's own `SAFE_TOKEN_PATTERN` excludes on purpose so a filesystem path can never be stored
+as a dimension — a vocabulary whose members fail the server's validator is rejected on arrival; and
+23 per-host ids against the existing key dimensions pushes a daily row toward one-install
+granularity, which is what §20's never-persist stance is actually about. Widening `SOURCES` was also
+rejected: `source` (cli/ci/server/install) is wired to the gate defaults in `tiers.ts`, so carrying
+discovery provenance there would have changed *which privacy tier a run is gated under* in order to
+record an analytics fact. `discoverySurface` is therefore additive — a CLI run reached via the
+registry stays `source: "cli"` and gains `discoverySurface: "mcp-registry"`. A test asserts the two
+enums do not overlap, so neither can be passed for the other.
+
+**2. The ingress uses an enum check, not `normalizeDimension`.** Every other dimension is
+open-ended by nature (`hostFamily`, `productVersion`), so a bounded safe token is the strongest
+check available. This one's value space is closed, and every distinct value is a **new PRIMARY KEY**
+in `usage_daily_counts`. A token check would accept `harmless-looking`, and one 100-event batch could
+mint 100 one-count rows — turning an aggregate table into something close to a per-event log. That
+bound is held by a named test (`this is the row-amplification guard`), not by a comment.
+
+**3. Off-vocabulary values are REJECTED, never dropped.** Both the client sanitizer (throws) and the
+ingress (`unknown_discovery_surface`, all-or-nothing for the batch) refuse rather than strip. A
+silently dropped optional dimension is invisible downstream: the counter still increments under a
+narrower key, so a stale or typo'd value reads as *"that surface sent no traffic"* — a number that
+looks healthy and means nothing. Same fault class as a guard that cannot observe its subject.
+
+**4. The denominator is pinned, and it had to move to be pinned legally.** The contract enum must
+equal the published `surfaceTypes`, or a seventh upstream type arrives as off-vocabulary, is rejected
+at the boundary, and the aggregate calmly shows zero for it. The assertion was first written inside
+`packages/telemetry-contract/test/`, where it read `agent-discovery-index.json` — and **D10's §23
+guard caught it**: nothing under `packages/` may name a distribution artifact, because the engine
+lives there. The guard was right, so the test moved to
+`tests/invariants/telemetry-surface-vocabulary.invariants.test.ts` (outside that scan root, this
+repo's established home for cross-boundary invariants). It survives at full strength — both drift
+directions are reported by name — without drilling a hole in a security boundary for convenience.
+This is D10 earning its keep on a change written after it.
+
+**Mutation-tested, not merely green.** Four mutations were each confirmed to red the suite before
+being reverted, since a guard that cannot fail proves nothing: dropping the sanitizer's throw (2
+failures), swapping the ingress enum for a token check (4 failures, including the row-amplification
+guard), removing `discoverySurface` from the aggregate grouping key (1), and adding a 7th type to the
+contract only (2). The relocated invariant was then mutated in both directions independently. The
+three touched sources were sha256-pinned beforehand and verified byte-identical after.
+
+**Incidental finding — `aggregate.ts` was binary to git.** It used two **raw NUL bytes** as key
+separators (pre-existing since `a0076ff`), so `git diff --stat` reported `Bin 2867 -> 2894 bytes,
+0 insertions(+), 0 deletions(-)` and `grep` called it a binary file: diffs on a security-relevant
+source were unreviewable. Rewritten as `\u0000` escapes — byte-identical runtime string, textual
+file. The separator choice itself is sound and was kept.
+
+**No report change was needed** — verified by reading the SQL rather than assuming:
+`generate-usage-report.mjs` does `SUM(count) ... GROUP BY day, event_name`, which is
+dimension-agnostic.
+
+**Conduit-only; §21 stays OPEN.** `migrations/003_add_discovery_surface.sql` is written and
+**not applied** (rebuild-and-copy, because SQLite cannot add a column to an existing PK in place;
+`DEFAULT ''` not NULL, since SQLite compares NULLs as distinct in a PK and would give every
+unattributed row its own key). The Worker is not deployed. Until an operator runs
+`wrangler d1 migrations apply calllint-usage --remote`, no `discoverySurface` is stored anywhere, and
+§21 must not be reported as closed.
 
 ---
 

@@ -59,12 +59,21 @@ async function telemetryStatus(): Promise<number> {
 }
 
 async function telemetryEnable(): Promise<number> {
-  await enableTelemetry()
+  const state = await enableTelemetry(process.env)
   console.log("✓ Telemetry enabled\n")
   console.log("CallLint will record anonymous usage events:")
   console.log("  - Preflight completions")
   console.log("  - Verdict categories (SAFE/REVIEW/BLOCK/UNKNOWN)")
   console.log("  - Aggregate dimensions (host, input kind)\n")
+  /* DISCLOSED, NOT SILENT. If a surface was captured, an extra dimension is now stored and
+   * will ride on every event — the user must be able to see that from the command that
+   * turned it on, not by reading the state file. Printed only when non-empty: an
+   * "unattributed" line on every install would be noise about nothing. */
+  if (state.discoverySurface) {
+    console.log("Discovery attribution (how this install was reached):")
+    console.log(`  ${state.discoverySurface} — a surface category, not an identifier`)
+    console.log("  Cleared by: calllint telemetry reset\n")
+  }
   console.log("Never sent:")
   console.log("  - Config contents")
   console.log("  - File paths or commands")

@@ -8,6 +8,7 @@
       name="description"
       content="CallLint support for Claude Desktop (Anthropic). CallLint scans MCP server entries only. Other Claude Desktop settings in the same file are not covered."
     />
+    <link rel="canonical" href="https://calllint.com/harnesses/claude-desktop/" />
     <link rel="icon" href="/favicon.png" type="image/png" />
     <link rel="apple-touch-icon" href="/logo-mark-256.png" />
     <link rel="stylesheet" href="/styles.css" />
@@ -48,10 +49,34 @@
           </div>
         </header>
 
+        <section id="why" class="doc-section">
+          <h2>Why scan Claude Desktop?</h2>
+          <p>Claude Desktop runs MCP servers with filesystem authority outside any project boundary, so a server added for one task keeps that reach for every later conversation.</p>
+        </section>
+
         <section id="usage" class="doc-section">
           <h2>Usage</h2>
           <p>CallLint can auto-discover and scan Claude Desktop configurations:</p>
           <pre><code>calllint scan --agent claude-desktop</code></pre>
+        </section>
+
+        <section id="start" class="doc-section">
+          <h2>How to start</h2>
+          <p>Install nothing globally — run CallLint straight from npm:</p>
+          <pre><code>npx calllint scan --auto</code></pre>
+          <p>Then scan Claude Desktop specifically:</p>
+          <pre><code>calllint scan --agent claude-desktop</code></pre>
+        </section>
+
+        <section id="verify" class="doc-section">
+          <h2>How to verify it worked</h2>
+          <p>Check the filesystem scope on each server that came back REVIEW. A desktop config has no project root to contain it, so a path argument is the whole grant.</p>
+          <p>
+            A <strong>No blockers observed</strong> verdict means exactly that — no blocker under
+            the evidence CallLint could collect. It is not a guarantee, and
+            <strong>Insufficient evidence</strong> never becomes it on its own. See
+            <a href="#coverage">Coverage Boundary</a> for what this scan does not look at.
+          </p>
         </section>
 
         <section id="config" class="doc-section">
@@ -79,7 +104,7 @@
             <li>
               <strong>mcp-stdio</strong>
               <span class="upstream-note">(via <a href="https://registry.modelcontextprotocol.io/?q=calllint">officialMcpRegistry</a>)</span>
-              — <span class="state-AVAILABLE">AVAILABLE</span>
+              — <span class="state-available">Available now</span>
             </li>
           </ul>
         </section>
