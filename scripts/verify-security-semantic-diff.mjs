@@ -60,6 +60,151 @@ const VERDICT_PACKAGES = [
   'packages/core',
 ]
 
+/* ADR 0003: Additive TARGET_KINDS exemption. Adding a new file-format kind tells discovery
+ * "this format is a config", not verdict logic "this host is safe/risky". The gate permits
+ * additive changes ONLY: a removal or reordering still reds, and the parse is fail-closed. */
+const TARGET_KINDS_FILE = 'packages/types/src/report.ts'
+
+/**
+ * Parse TARGET_KINDS array from a ref. Returns null on parse failure or absent file — the
+ * exemption MUST NOT assume success and quietly permit a broken ref; fail-closed semantics.
+ */
+function parseTargetKinds(ref) {
+  let content
+  try {
+    content = execFileSync('git', ['show', `${ref}:${TARGET_KINDS_FILE}`], { cwd: repoRoot, encoding: 'utf8' })
+  } catch {
+    return null // file absent at this ref
+  }
+
+  const start = content.search(/export\s+const\s+TARGET_KINDS\s*=\s*\[/)
+  if (start === -1) return null
+  const open = content.indexOf('[', start)
+
+  /*
+   * Scan to the matching `]`, tracking depth and skipping `//` comments and string bodies.
+   *
+   * WHY NOT A REGEX. The obvious `\[([^\]]+)\]` was the first implementation and it was WRONG
+   * on the very entry that motivated this exemption: the comment `// Codex (TOML
+   * [mcp_servers.*])` contains a `]`, so the match ended early and returned 8 of 10 entries.
+   * `isAdditiveChange` then read the truncation as a REMOVAL and reported a violation — which
+   * is the correct fail-closed outcome for a broken parse, and therefore hid the bug behind a
+   * plausible red rather than a crash. A comment must not be able to move this gate's verdict.
+   */
+  let depth = 0
+  let end = -1
+  for (let i = open; i < content.length; i++) {
+    const ch = content[i]
+    if (ch === '/' && content[i + 1] === '/') {
+      const nl = content.indexOf('\n', i)
+      i = nl === -1 ? content.length : nl
+      continue
+    }
+    if (ch === '"' || ch === "'") {
+      const quote = ch
+      i++
+      while (i < content.length && content[i] !== quote) {
+        if (content[i] === '\\') i++
+        i++
+      }
+      continue
+    }
+    if (ch === '[') depth++
+    else if (ch === ']') {
+      depth--
+      if (depth === 0) { end = i; break }
+    }
+  }
+  if (end === -1) return null // unbalanced — fail closed rather than guess
+
+  const body = content.slice(open + 1, end).replace(/\/\/[^\n]*/g, '')
+  const entries = body.match(/"([^"]+)"/g)
+  return entries ? entries.map((e) => e.slice(1, -1)) : null
+}
+
+/**
+ * True when HEAD's kinds are a superset of the base's — i.e. every kind the base declared is
+ * still declared, and HEAD may have added more.
+ *
+ * WHY SET SEMANTICS AND NOT PREFIX SEMANTICS. The first implementation required the base to be
+ * a positional prefix of HEAD, on the assumption that a new kind is appended. It is not: the
+ * two kinds that motivated this exemption were inserted mid-array, next to the harnesses they
+ * relate to, so the prefix check reported `additive=false` on a change that removed nothing.
+ *
+ * Order is safe to ignore here for a checkable reason, not a stylistic one: `TARGET_KINDS` has
+ * exactly one consumer, `export type TargetKind = (typeof TARGET_KINDS)[number]`, and a union
+ * of string literals is order-independent. Nothing indexes the array. If a consumer ever does
+ * depend on position, this function is the wrong check and must be revisited.
+ *
+ * A REMOVAL still reds: dropping a kind narrows the union, which is a breaking schema change
+ * and not the discovery addition ADR 0003 exempts.
+ */
+function isAdditiveChange(baseKinds, headKinds) {
+  if (!baseKinds || !headKinds) return false // fail closed on an unreadable side
+  const head = new Set(headKinds)
+  return baseKinds.every((kind) => head.has(kind))
+}
+
+/**
+ * True when the ONLY difference in report.ts between `ref` and HEAD lies inside the
+ * TARGET_KINDS array — i.e. the file is byte-identical once the array is elided from both
+ * sides.
+ *
+ * This is the half that makes the exemption cover a const rather than a file. `packages/types`
+ * also declares `Verdict`, `RiskClass`, `PolicyAction` and `Finding`; without this check, an
+ * edit to any of them passes as long as the same commit also appends a kind.
+ *
+ * Fail-closed: an unreadable side, or an array that cannot be located on either side, returns
+ * false and the violation stands.
+ */
+function isOnlyTargetKindsChange(ref) {
+  const elide = (content) => {
+    if (content === null) return null
+    const start = content.search(/export\s+const\s+TARGET_KINDS\s*=\s*\[/)
+    if (start === -1) return null
+    const open = content.indexOf('[', start)
+    let depth = 0
+    let end = -1
+    for (let i = open; i < content.length; i++) {
+      const ch = content[i]
+      if (ch === '/' && content[i + 1] === '/') {
+        const nl = content.indexOf('\n', i)
+        i = nl === -1 ? content.length : nl
+        continue
+      }
+      if (ch === '"' || ch === "'") {
+        const quote = ch
+        i++
+        while (i < content.length && content[i] !== quote) {
+          if (content[i] === '\\') i++
+          i++
+        }
+        continue
+      }
+      if (ch === '[') depth++
+      else if (ch === ']') {
+        depth--
+        if (depth === 0) { end = i; break }
+      }
+    }
+    if (end === -1) return null
+    return content.slice(0, open + 1) + '/*ELIDED*/' + content.slice(end)
+  }
+
+  const read = (r) => {
+    try {
+      return execFileSync('git', ['show', `${r}:${TARGET_KINDS_FILE}`], { cwd: repoRoot, encoding: 'utf8' })
+    } catch {
+      return null
+    }
+  }
+
+  const baseElided = elide(read(ref))
+  const headElided = elide(read('HEAD'))
+  if (baseElided === null || headElided === null) return false
+  return baseElided === headElided
+}
+
 /* Forbidden by the distribution contract: each would make presence or popularity into a
  * security input. Searched as literals because that is how they would be introduced. */
 const FORBIDDEN_FIELDS = [
@@ -136,13 +281,42 @@ function measureDiff(base) {
     .map((s) => s.trim())
     .filter(Boolean)
 
+  /* ADR 0003: Apply the TARGET_KINDS exemption. If report.ts is in the diff and the change
+   * is ONLY an additive TARGET_KINDS modification, filter it out. Fail-closed: a parse error
+   * or non-additive change keeps it in violations. */
+  const filteredCommitted = committed.filter(file => {
+    if (file !== TARGET_KINDS_FILE) return true  // unrelated file, keep it
+
+    const baseKinds = parseTargetKinds(mergeBase)
+    const headKinds = parseTargetKinds('HEAD')
+    if (!isAdditiveChange(baseKinds, headKinds)) {
+      return true  // removal, rename, or unreadable — keep the violation
+    }
+
+    /*
+     * TWO conditions, not one. Additive kinds are necessary but NOT sufficient: the exemption
+     * covers the CONST, not the FILE. Checking only the kinds let a `Verdict` edit ride through
+     * on the same commit as a legitimate kind addition — caught by NC-C in
+     * tests/invariants/target-kinds-exemption.invariants.test.ts, which is why that test exists.
+     *
+     * So the rest of the file must be byte-identical with the array elided from both sides.
+     */
+    if (!isOnlyTargetKindsChange(mergeBase)) {
+      return true  // something else in report.ts moved too
+    }
+
+    // Exempted by ADR 0003. Logged so the run records why the file is absent from violations.
+    console.log(`  [ADR 0003] ${TARGET_KINDS_FILE} filtered: additive TARGET_KINDS (${headKinds.length - baseKinds.length} added), rest of file unchanged`)
+    return false
+  })
+
   const worktree = git(['status', '--porcelain', '--', ...existing])
     .split('\n')
     .map((s) => s.trim())
     .filter(Boolean)
 
-  if (committed.length > 0) {
-    violations.push(`${committed.length} verdict-deciding file(s) changed in ${mergeBase.slice(0, 7)}..HEAD: ${committed.join(', ')}`)
+  if (filteredCommitted.length > 0) {
+    violations.push(`${filteredCommitted.length} verdict-deciding file(s) changed in ${mergeBase.slice(0, 7)}..HEAD: ${filteredCommitted.join(', ')}`)
   }
   if (worktree.length > 0) {
     violations.push(`${worktree.length} verdict-deciding file(s) modified in the worktree: ${worktree.join(', ')}`)
@@ -156,7 +330,8 @@ function measureDiff(base) {
     resolvedBase,
     mergeBase,
     packagesMeasured: existing,
-    committedChanges: committed,
+    committedChanges: filteredCommitted,  // now holds the filtered list
+    committedChangesRaw: committed,      // preserve the unfiltered list for diagnostics
     worktreeChanges: worktree,
     measured: true,
   }

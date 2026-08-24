@@ -6,7 +6,8 @@
   "measurements": {
     "diff": {
       "base": "main",
-      "mergeBase": "8acf297460d560b0e07e5667d82e40ae5b57e1ce",
+      "resolvedBase": "main",
+      "mergeBase": "4a7e4efd87ecfe9b4370813858144202fc30a0cd",
       "packagesMeasured": [
         "packages/risk-engine",
         "packages/static-analyzer",
@@ -16,6 +17,9 @@
         "packages/core"
       ],
       "committedChanges": [],
+      "committedChangesRaw": [
+        "packages/types/src/report.ts"
+      ],
       "worktreeChanges": [],
       "measured": true
     },
