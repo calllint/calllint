@@ -21,7 +21,7 @@ where the effort actually stopped and why.
 | Pages Functions source (`apps/web/public/functions/**`, `schema.sql`, admin dashboard) | **Deleted** 2026-08-20. Was never executed in production; superseded by `apps/usage-worker/`. |
 | D1 database `calllint-usage` | Created, schema applied, bound as `USAGE_DB` in the Pages project. Empty. The Worker's own migrations in `apps/usage-worker/migrations/` are now the schema of record. |
 | Homepage "Adoption Signals" section | **Removed** (this cleanup). Public usage is DEFERRED by new18 §30. |
-| Private operator report | Built daily as a **workflow artifact only** (new18 §29 fail-closed). Not deployed. |
+| Private operator report | Built daily as a workflow artifact **and** deployed to `usage.calllint.com` behind Cloudflare Access (verified 2026-08-24). The deploy is permitted only while the workflow's unauthenticated gate probe is present — see [CLOUDFLARE_ACCESS_ACTION.md](../authority-distribution-closure/CLOUDFLARE_ACCESS_ACTION.md). |
 
 ## Why the backend is not deployed
 

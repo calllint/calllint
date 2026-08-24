@@ -1,0 +1,155 @@
+/**
+ * new18 §29 — the private usage report's DEPLOY POSTURE must stay observable.
+ *
+ * §29 was fail-closed until 2026-08-24: Cloudflare Access on `usage.calllint.com` could not
+ * be verified from CI, so the report shipped as a workflow artifact only. An operator then
+ * configured and verified Access (artifacts/authority-distribution-closure/CLOUDFLARE_ACCESS_ACTION.md),
+ * and the workflow gained a deploy step.
+ *
+ * WHAT THIS FILE EXISTS TO PREVENT. Permitting the deploy re-opened a hole the original
+ * fail-closed posture had shut: CI cannot read an Access policy object, so nothing in the
+ * pipeline observes whether the gate still exists. If the Access application were deleted
+ * tomorrow, the daily cron would keep publishing the operator's figures to a host that now
+ * serves them to anyone. The deploy would stay green the whole time.
+ *
+ * The resolution is NOT to trust the doc — a comment cannot observe a Cloudflare account.
+ * It is that the gate's EFFECT is observable with no credentials at all: an unauthenticated
+ * GET must land on the Access sign-in page and must not return report content. That is
+ * exactly the check the operator ran by hand, and it needs no token, so the workflow runs it
+ * on every deploy.
+ *
+ * So `check-public-copy.mjs` check 24 permits a Cloudflare deploy ONLY alongside that probe,
+ * and these tests hold that conditional in place. Without them, the clause is one edit from
+ * becoming an unconditional permit — the repo's dominant fault class, a guard that cannot
+ * observe its subject.
+ */
+import { describe, expect, it, beforeAll, afterAll } from "vitest"
+import { execFileSync } from "node:child_process"
+import { cpSync, existsSync, mkdtempSync, readFileSync, rmSync, symlinkSync, writeFileSync } from "node:fs"
+import { tmpdir } from "node:os"
+import path from "node:path"
+import { fileURLToPath } from "node:url"
+
+const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..", "..")
+const GUARD = "scripts/check-public-copy.mjs"
+const WORKFLOW = ".github/workflows/usage-report.yml"
+
+/** The real workflow, read once — the production denominator these tests reason about. */
+const realWorkflow = readFileSync(path.join(ROOT, WORKFLOW), "utf8")
+
+const VERIFY_STEP = "Verify Access gate is enforcing"
+const DEPLOY_TOKEN = "wrangler pages deploy"
+
+describe("private usage deploy gate — §29 stays fail-closed", () => {
+  let tmpRoot: string
+
+  beforeAll(() => {
+    tmpRoot = mkdtempSync(path.join(tmpdir(), "s29-guard-"))
+    cpSync(ROOT, tmpRoot, { recursive: true, filter: (src) => !src.includes("node_modules") })
+    // The guard imports from node_modules; a junction keeps resolution working in the copy.
+    symlinkSync(path.join(ROOT, "node_modules"), path.join(tmpRoot, "node_modules"), "junction")
+  })
+
+  afterAll(() => {
+    if (existsSync(tmpRoot)) rmSync(tmpRoot, { recursive: true, force: true })
+  })
+
+  /** Write a workflow variant into the temp tree, run the guard, capture stdout + exit. */
+  function runGuard(workflowContent: string): { stdout: string; exit: number } {
+    writeFileSync(path.join(tmpRoot, WORKFLOW), workflowContent, "utf8")
+    try {
+      const stdout = execFileSync("node", [path.join(tmpRoot, GUARD)], {
+        cwd: tmpRoot,
+        encoding: "utf8",
+      })
+      return { stdout, exit: 0 }
+    } catch (error: any) {
+      return { stdout: `${error.stdout ?? ""}${error.stderr ?? ""}`, exit: error.status ?? 1 }
+    }
+  }
+
+  /* ── Production denominator ─────────────────────────────────────────────────────────
+   * Asserted BEFORE any claim about the guard's behaviour. If the committed workflow
+   * stopped containing a deploy, every conditional below would still pass while testing
+   * nothing — the vacuous-green failure this repo keeps rediscovering. */
+
+  it("the REAL workflow both deploys and verifies, so the paired clause has a subject", () => {
+    expect(realWorkflow).toContain(DEPLOY_TOKEN)
+    expect(realWorkflow).toContain(VERIFY_STEP)
+  })
+
+  it("the REAL workflow still uploads the artifact — the deploy did not replace it", () => {
+    expect(realWorkflow).toContain("actions/upload-artifact")
+  })
+
+  /* ── Positive control ──────────────────────────────────────────────────────────────── */
+
+  it("PC: deploy paired with Access verification passes, and says so specifically", () => {
+    const { stdout, exit } = runGuard(realWorkflow)
+    expect(exit).toBe(0)
+    expect(stdout).toContain("Cloudflare deploy with gate verification")
+  })
+
+  /* ── Negative controls ─────────────────────────────────────────────────────────────
+   * Each removes exactly one property and asserts the guard reds. A guard that cannot
+   * fail cannot be trusted when it passes. */
+
+  it("NC-A: a deploy whose verification step was deleted is rejected", () => {
+    // Drop the step's name line only — the deploy survives, the observation does not.
+    const noVerify = realWorkflow
+      .split("\n")
+      .filter((line) => !line.includes(VERIFY_STEP))
+      .join("\n")
+    expect(noVerify).toContain(DEPLOY_TOKEN) // the mutation kept the subject
+    const { stdout, exit } = runGuard(noVerify)
+    expect(exit).not.toBe(0)
+    expect(stdout).toMatch(/no "Verify Access gate is enforcing" step/)
+  })
+
+  it("NC-B: a deploy with no verification does NOT also print a passing §29 line", () => {
+    const noVerify = realWorkflow
+      .split("\n")
+      .filter((line) => !line.includes(VERIFY_STEP))
+      .join("\n")
+    const { stdout } = runGuard(noVerify)
+    // The contradictory-checkmark bug: rejecting a state and blessing it in one run.
+    expect(stdout).not.toContain("private usage report follows §29")
+  })
+
+  it("NC-C: dropping upload-artifact is rejected — the operator must keep a local copy", () => {
+    const noArtifact = realWorkflow.replace("actions/upload-artifact@v4", "actions/nothing@v4")
+    const { stdout, exit } = runGuard(noArtifact)
+    expect(exit).not.toBe(0)
+    expect(stdout).toMatch(/no upload-artifact step/)
+  })
+
+  it("NC-D: GitHub Pages deploy stays forbidden even with the Access probe present", () => {
+    // Access protects the Cloudflare host. It says nothing about a GitHub Pages origin,
+    // which is public by construction — so the probe must not launder this path.
+    const viaPages = realWorkflow.replace(DEPLOY_TOKEN, "actions/deploy-pages@v4 #")
+    const { stdout, exit } = runGuard(viaPages)
+    expect(exit).not.toBe(0)
+    expect(stdout).toMatch(/deploys to GitHub Pages/)
+  })
+
+  it("NC-E: committing the report back to the repo stays forbidden", () => {
+    const viaCommit = realWorkflow.replace(DEPLOY_TOKEN, "git commit -m report #")
+    const { stdout, exit } = runGuard(viaCommit)
+    expect(exit).not.toBe(0)
+    expect(stdout).toMatch(/commits back to the repo/)
+  })
+
+  /* ── The probe must be able to fail ────────────────────────────────────────────────
+   * check 24 can only see that a step NAMED right exists. A step named right that always
+   * exits 0 would satisfy the guard and observe nothing, so the probe's own body is
+   * asserted here: it must exit non-zero, and it must key on leaked report content. */
+
+  it("the Access probe exits non-zero and keys on leaked report content, not just HTTP status", () => {
+    const probe = realWorkflow.slice(realWorkflow.indexOf(VERIFY_STEP))
+    const body = probe.slice(0, probe.indexOf("- name: Summarize"))
+    expect(body).toContain("exit 1")
+    expect(body).toMatch(/calllint usage report|installation hashes/i)
+    // A 200 from an Access gate is still a 200 — status alone cannot decide this.
+    expect(body).toMatch(/cloudflare access|sign in/i)
+  })
+})

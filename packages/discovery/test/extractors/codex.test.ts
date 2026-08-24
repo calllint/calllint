@@ -1,9 +1,24 @@
 import { describe, it, expect } from "vitest"
-import { CodexExtractor } from "../../extractors/codex.js"
+import { CodexExtractor } from "../../src/extractors/codex.js"
 import { existsSync, mkdirSync, rmSync, writeFileSync } from "node:fs"
 import { tmpdir } from "node:os"
 import { join } from "node:path"
 
+/**
+ * CodexExtractor — the repo's first TOML harness.
+ *
+ * Two properties make this extractor's negative controls different from the JSON ones:
+ *
+ *  1. `discover()` always returns BOTH candidate paths (user-level `~/.codex/config.toml`
+ *     and project-level `.codex/config.toml`). Absence is reported as `exists: false`, never
+ *     as an empty array — so "returns empty when the file is missing" would be the wrong
+ *     assertion, and a test written that way would pass for the wrong reason.
+ *
+ *  2. The TOML key is `mcp_servers` (snake_case), not the JSON harnesses' `mcpServers`.
+ *     A config carrying only the camelCase spelling is a Codex config that registers
+ *     nothing, and must read as `exists: false`. NC-C pins exactly that, because the
+ *     camelCase spelling is the plausible mistake here.
+ */
 describe("CodexExtractor", () => {
   const extractor = new CodexExtractor()
 
@@ -12,108 +27,95 @@ describe("CodexExtractor", () => {
     expect(extractor.priority).toBe("P2")
   })
 
-  it("discovers mcp_servers from OpenAI Codex config.toml", async () => {
-    // Positive fixture: codex TOML with mcpServers section
-    const fixture = join(tmpdir(), `codex-pos-${Date.now()}`)
-    mkdirSync(fixture, { recursive: true })
-    const configPath = join(fixture, ".codex", "config.toml")
-    mkdirSync(join(fixture, ".codex"), { recursive: true })
-    writeFileSync(
-      configPath,
-      `[mcpServers.calllint]
-command = "npx"
-args = ["-y", "@calllint/calllint-mcp"]
-enabled = true
-`,
-    )
+  it("discovers project-level config.toml when it has an mcp_servers table", () => {
+    const testDir = join(tmpdir(), `codex-test-${Date.now()}`)
+    const configPath = join(testDir, ".codex", "config.toml")
 
     try {
-      const configs = await extractor.discover(fixture)
-      expect(configs).toHaveLength(1)
-      expect(configs[0]).toMatchObject({
-        agentType: "codex",
-        filePath: configPath,
-        targetKind: "mcp_server",
-        targetName: "calllint",
-        command: "npx",
-        args: ["-y", "@calllint/calllint-mcp"],
-        autoApprove: true,
-      })
+      mkdirSync(join(testDir, ".codex"), { recursive: true })
+      writeFileSync(
+        configPath,
+        '[mcp_servers.doc-trace-hub]\ncommand = "node"\nargs = ["server.mjs"]\n',
+      )
+
+      const result = extractor.discover(testDir)
+      const projectConfig = result.find((c) => c.configPath === configPath)
+
+      expect(projectConfig).toBeDefined()
+      expect(projectConfig?.exists).toBe(true)
+      expect(projectConfig?.kind).toBe("codex-mcp")
     } finally {
-      rmSync(fixture, { recursive: true, force: true })
+      if (existsSync(testDir)) rmSync(testDir, { recursive: true, force: true })
     }
   })
 
-  it("discovers servers with no args array", async () => {
-    const fixture = join(tmpdir(), `codex-args-${Date.now()}`)
-    mkdirSync(fixture, { recursive: true })
-    const configPath = join(fixture, ".codex", "config.toml")
-    mkdirSync(join(fixture, ".codex"), { recursive: true })
-    writeFileSync(
-      configPath,
-      `[mcpServers.standalone]
-command = "/usr/bin/server"
-`,
-    )
+  it("marks project config as non-existent when the file is missing (NC-A)", () => {
+    const testDir = join(tmpdir(), `codex-test-${Date.now()}`)
+    mkdirSync(testDir, { recursive: true })
 
     try {
-      const configs = await extractor.discover(fixture)
-      expect(configs).toHaveLength(1)
-      expect(configs[0]!.args).toBeUndefined()
+      const result = extractor.discover(testDir)
+      const projectConfig = result.find((c) => c.configPath.includes(testDir))
+
+      expect(projectConfig).toBeDefined()
+      expect(projectConfig?.exists).toBe(false)
     } finally {
-      rmSync(fixture, { recursive: true, force: true })
+      if (existsSync(testDir)) rmSync(testDir, { recursive: true, force: true })
     }
   })
 
-  it("returns empty when config.toml is absent (NC-A)", async () => {
-    const fixture = join(tmpdir(), `codex-nc-a-${Date.now()}`)
-    mkdirSync(fixture, { recursive: true })
+  it("marks config as non-existent when mcp_servers section is absent (NC-B)", () => {
+    const testDir = join(tmpdir(), `codex-test-${Date.now()}`)
+    const configPath = join(testDir, ".codex", "config.toml")
 
     try {
-      const configs = await extractor.discover(fixture)
-      expect(configs).toEqual([])
+      mkdirSync(join(testDir, ".codex"), { recursive: true })
+      // Valid TOML, but a Codex config that has never registered a server.
+      writeFileSync(configPath, '[history]\npersistence = "save-all"\n')
+
+      const result = extractor.discover(testDir)
+      const projectConfig = result.find((c) => c.configPath === configPath)
+
+      expect(projectConfig).toBeDefined()
+      expect(projectConfig?.exists).toBe(false)
     } finally {
-      rmSync(fixture, { recursive: true, force: true })
+      if (existsSync(testDir)) rmSync(testDir, { recursive: true, force: true })
     }
   })
 
-  it("returns empty when mcpServers section is absent (NC-B)", async () => {
-    const fixture = join(tmpdir(), `codex-nc-b-${Date.now()}`)
-    mkdirSync(fixture, { recursive: true })
-    const configPath = join(fixture, ".codex", "config.toml")
-    mkdirSync(join(fixture, ".codex"), { recursive: true })
-    writeFileSync(
-      configPath,
-      `[otherSection]
-foo = "bar"
-`,
-    )
+  it("does NOT accept the JSON harnesses' camelCase mcpServers spelling (NC-C)", () => {
+    const testDir = join(tmpdir(), `codex-test-${Date.now()}`)
+    const configPath = join(testDir, ".codex", "config.toml")
 
     try {
-      const configs = await extractor.discover(fixture)
-      expect(configs).toEqual([])
+      mkdirSync(join(testDir, ".codex"), { recursive: true })
+      // Parses as TOML, but Codex reads `mcp_servers`. camelCase registers nothing,
+      // so treating this as a target would claim a server that Codex never loads.
+      writeFileSync(configPath, '[mcpServers.calllint]\ncommand = "npx"\n')
+
+      const result = extractor.discover(testDir)
+      const projectConfig = result.find((c) => c.configPath === configPath)
+
+      expect(projectConfig).toBeDefined()
+      expect(projectConfig?.exists).toBe(false)
     } finally {
-      rmSync(fixture, { recursive: true, force: true })
+      if (existsSync(testDir)) rmSync(testDir, { recursive: true, force: true })
     }
   })
 
-  it("returns empty when command is absent (NC-C)", async () => {
-    const fixture = join(tmpdir(), `codex-nc-c-${Date.now()}`)
-    mkdirSync(fixture, { recursive: true })
-    const configPath = join(fixture, ".codex", "config.toml")
-    mkdirSync(join(fixture, ".codex"), { recursive: true })
-    writeFileSync(
-      configPath,
-      `[mcpServers.broken]
-args = ["--flag"]
-`,
-    )
+  it("returns both the user-level and project-level candidate paths (NC-D)", () => {
+    // The shape assertion the other NCs depend on: if discover() ever returned only
+    // one path, `result.find(...)` above could pass while silently testing nothing.
+    const testDir = join(tmpdir(), `codex-test-${Date.now()}`)
+    mkdirSync(testDir, { recursive: true })
 
     try {
-      const configs = await extractor.discover(fixture)
-      expect(configs).toEqual([])
+      const result = extractor.discover(testDir)
+      expect(result).toHaveLength(2)
+      expect(result.some((c) => c.configPath.includes(testDir))).toBe(true)
+      expect(result.every((c) => c.configPath.endsWith("config.toml"))).toBe(true)
     } finally {
-      rmSync(fixture, { recursive: true, force: true })
+      if (existsSync(testDir)) rmSync(testDir, { recursive: true, force: true })
     }
   })
 })

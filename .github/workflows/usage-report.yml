@@ -137,6 +137,24 @@ jobs:
             --branch=main \
             --commit-dirty=true
 
+      # Verify that Access is actually enforcing — an unauthenticated request must
+      # land on the sign-in gate and must not leak report content. This guards
+      # against Access policy deletion or misconfiguration; without this step, the
+      # deploy would keep running even if the host became public.
+      - name: Verify Access gate is enforcing (unauthenticated probe)
+        run: |
+          response=$(curl -sSf https://usage.calllint.com/ 2>&1 || true)
+          if echo "$response" | grep -qi "calllint usage report\|server details\|installation hashes\|npm downloads"; then
+            echo "::error::Access gate failed — unauthenticated request returned report content"
+            exit 1
+          fi
+          if ! echo "$response" | grep -qi "cloudflare access\|sign in"; then
+            echo "::warning::Could not confirm Access gate presence (did not detect Cloudflare Access sign-in page)"
+            echo "Response: $response"
+            exit 1
+          fi
+          echo "✓ Access gate confirmed — unauthenticated request redirected to sign-in, no content leaked"
+
       - name: Summarize the run
         run: |
           {

@@ -32,15 +32,23 @@
 | Telemetry ingress (a **Worker**, not Pages Functions) | [apps/usage-worker/](apps/usage-worker/) |
 | Aggregate schema | [apps/usage-worker/migrations/](apps/usage-worker/migrations/) |
 | Private operator report generator | [scripts/generate-usage-report.mjs](scripts/generate-usage-report.mjs) |
-| Daily build (artifact only, never a deploy) | [.github/workflows/usage-report.yml](.github/workflows/usage-report.yml) |
-| The one remaining operator action | [artifacts/authority-distribution-closure/CLOUDFLARE_ACCESS_ACTION.md](artifacts/authority-distribution-closure/CLOUDFLARE_ACCESS_ACTION.md) |
+| Daily build (artifact + Access-gated deploy) | [.github/workflows/usage-report.yml](.github/workflows/usage-report.yml) |
+| The completed operator action | [artifacts/authority-distribution-closure/CLOUDFLARE_ACCESS_ACTION.md](artifacts/authority-distribution-closure/CLOUDFLARE_ACCESS_ACTION.md) |
 
 ## Current state
 
-Nothing is deployed. The Worker is unpublished and its `wrangler.toml` carries a
-placeholder `database_id`. The report is built daily as a **workflow artifact** and
-is deliberately not published anywhere — new18 §29 is fail-closed, because
-Cloudflare Access cannot be programmatically verified from CI.
+The Worker is still unpublished and its `wrangler.toml` carries a placeholder
+`database_id`. The **report** is no longer artifact-only: an operator configured and
+verified Cloudflare Access on 2026-08-24, so the daily workflow now uploads the
+artifact *and* deploys to `usage.calllint.com`.
+
+§29 stays fail-closed in the sense that matters. CI still cannot read an Access
+policy object — that would need a token able to enumerate the account's identity
+config. What CI *can* observe is the policy's effect, with no credentials at all: an
+unauthenticated `GET` must land on the sign-in gate and must not return report
+content. The workflow runs that probe on every deploy, and
+[check-public-copy.mjs](scripts/check-public-copy.mjs) check 24 permits the deploy
+**only** while that probe is present. Delete the probe and the gate reds.
 
 Run the report locally with `pnpm usage:report --out dist/usage`. Without Cloudflare
 credentials the observed-usage rows render as em dashes, never as zeros: a zero is a
