@@ -6,6 +6,8 @@
  *
  * P0 extractors (Cursor, Claude Code, Claude Desktop, WorkBuddy): Most common agents
  * P1 extractors (VS Code, Windsurf, Qwen Code): Added in Stage 4 + harness distribution
+ * P2 extractors (Cline): Harness distribution — closes the one DISCOVERY_ONLY host
+ *   whose page could name no first scan command
  * P3 extractors (OpenClaw): Harness distribution (MCP only)
  */
 
@@ -17,6 +19,7 @@ import { VSCodeExtractor } from "./extractors/vscode.js"
 import { WindsurfExtractor } from "./extractors/windsurf.js"
 import { WorkBuddyExtractor } from "./extractors/workbuddy.js"
 import { QwenCodeExtractor } from "./extractors/qwen-code.js"
+import { ClineExtractor } from "./extractors/cline.js"
 import { OpenClawExtractor } from "./extractors/openclaw.js"
 
 /**
@@ -36,6 +39,9 @@ function bootstrapExtractors(): void {
   registry.register(new VSCodeExtractor())
   registry.register(new WindsurfExtractor())
   registry.register(new QwenCodeExtractor())
+
+  // P2: Harness distribution (Cline CLI + VS Code extension, two config paths)
+  registry.register(new ClineExtractor())
 
   // P3: Harness distribution (MCP coverage only)
   registry.register(new OpenClawExtractor())

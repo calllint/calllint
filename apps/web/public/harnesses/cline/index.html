@@ -6,7 +6,7 @@
     <title>Cline — CallLint Support</title>
     <meta
       name="description"
-      content="CallLint support for Cline (Open Source). CallLint does not yet auto-discover Cline configuration."
+      content="CallLint support for Cline (Open Source). CallLint auto-discovers both Cline config files: the CLI&#x27;s (~/.cline/data/settings/, relocatable via CLINE_DATA_DIR) and the VS Code extension&#x27;s, which lives in per-extension globalStorage and is documented by no upstream page. Neither Cline&#x27;s rules, hooks, skills, agents nor plugins directories are read, and ~/Documents/Cline/MCP/ holds installed server source rather than server registrations, so it is not a config path."
     />
     <link rel="canonical" href="https://calllint.com/harnesses/cline/" />
     <link rel="icon" href="/favicon.png" type="image/png" />
@@ -41,11 +41,11 @@
           <h1>Cline</h1>
           <p class="doc-lede">
             CallLint support for <strong>Cline</strong> by Open Source.
-            <span class="coverage-note">CallLint does not yet auto-discover Cline configuration.</span>
+            <span class="coverage-note">CallLint auto-discovers both Cline config files: the CLI&#x27;s (~/.cline/data/settings/, relocatable via CLINE_DATA_DIR) and the VS Code extension&#x27;s, which lives in per-extension globalStorage and is documented by no upstream page. Neither Cline&#x27;s rules, hooks, skills, agents nor plugins directories are read, and ~/Documents/Cline/MCP/ holds installed server source rather than server registrations, so it is not a config path.</span>
           </p>
           <div class="host-meta">
             <span class="badge badge-P2">P2</span>
-            <span class="badge badge-DISCOVERY_ONLY" title="No automatic detection yet — this page documents where the config lives.">Guide only</span>
+            <span class="badge badge-NATIVE" title="CallLint finds this host’s config on its own.">Auto-detects</span>
           </div>
         </header>
 
@@ -56,12 +56,22 @@
 
         <section id="usage" class="doc-section">
           <h2>Usage</h2>
-          <p>
-            CallLint does not yet support native auto-discovery for Cline.
-            No automatic detection yet — this page documents where the config lives.
-          </p>
+          <p>CallLint can auto-discover and scan Cline configurations:</p>
+          <pre><code>calllint scan --agent cline</code></pre>
         </section>
 
+        <section id="start" class="doc-section">
+          <h2>How to start</h2>
+          <p>Install nothing globally — run CallLint straight from npm:</p>
+          <pre><code>npx calllint scan --auto</code></pre>
+          <p>Then scan Cline specifically:</p>
+          <pre><code>calllint scan --agent cline</code></pre>
+        </section>
+
+        <section id="verify" class="doc-section">
+          <h2>How to verify it worked</h2>
+          <p>Check which of the two config files the verdict header names. Cline&#x27;s CLI and its VS Code extension keep separate server lists, so a clean scan of one says nothing about the other -- if you registered a server through the extension UI, the CLI file is the one that will look empty.</p>
+        </section>
 
         <section id="trust" class="doc-section">
           <h2>What CallLint does to Cline</h2>
@@ -78,7 +88,9 @@
           <h2>Configuration Paths</h2>
           <p>CallLint looks for Cline configurations in:</p>
           <ul>
-            <li><code>VS Code extension, config mechanism TBD</code></li>
+            <li><code>~/.cline/data/settings/cline_mcp_settings.json</code></li>
+            <li><code>$CLINE_DATA_DIR/settings/cline_mcp_settings.json</code></li>
+            <li><code>&lt;appData&gt;/Code/User/globalStorage/saoudrizwan.claude-dev/settings/cline_mcp_settings.json</code></li>
           </ul>
         </section>
 
@@ -87,6 +99,7 @@
           <p>Cline can grant tools the following authority surfaces:</p>
           <ul class="authority-list">
             <li><code>vscode-extensions</code></li>
+            <li><code>cli</code></li>
             <li><code>tools</code></li>
             <li><code>mcp</code></li>
           </ul>
@@ -112,12 +125,11 @@
         <section id="status" class="doc-section">
           <h2>Support Status</h2>
           <p>
-            <strong>Guide only</strong> — No automatic detection yet — this page documents where the config lives.
+            <strong>Auto-detects</strong> — CallLint finds this host’s config on its own.
           </p>
           <p>
-            CallLint publishes no scan command for Cline yet. That is a statement
-            about CallLint's coverage, not about Cline: see
-            <a href="#coverage">Coverage Boundary</a> for what would have to be built first.
+            The commands under <a href="#usage">Usage</a> are the ones CallLint actually
+            supports for Cline today. Anything not listed there is not claimed.
           </p>
         </section>
 
@@ -130,7 +142,7 @@
 
         <section id="coverage" class="doc-section coverage-boundary">
           <h2>Coverage Boundary</h2>
-          <p class="boundary-text">CallLint does not yet auto-discover Cline configuration.</p>
+          <p class="boundary-text">CallLint auto-discovers both Cline config files: the CLI&#x27;s (~/.cline/data/settings/, relocatable via CLINE_DATA_DIR) and the VS Code extension&#x27;s, which lives in per-extension globalStorage and is documented by no upstream page. Neither Cline&#x27;s rules, hooks, skills, agents nor plugins directories are read, and ~/Documents/Cline/MCP/ holds installed server source rather than server registrations, so it is not a config path.</p>
         </section>
       </article>
 

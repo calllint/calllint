@@ -13,7 +13,7 @@ COMMANDS
   Advanced:
   scan [target]      Full ScanReport for an MCP config / npm:<pkg> / github:<repo>
   scan --auto        Discover and scan all agent configs (auto-discovery)
-  scan --agent <type>  Discover and scan a specific agent (cursor, claude-code, claude-desktop, vscode, windsurf, workbuddy, qwen-code, openclaw)
+  scan --agent <type>  Discover and scan a specific agent (cursor, claude-code, claude-desktop, vscode, windsurf, workbuddy, qwen-code, cline, openclaw)
   action inspect <f>    Preflight a planned external action (calllint.action.v0)
   inbox inspect <f>     Preflight a normalized agent inbox event
   evidence import <f>   Import a third-party scanner report as evidence (no re-scoring)

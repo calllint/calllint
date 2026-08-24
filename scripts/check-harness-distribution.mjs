@@ -83,6 +83,7 @@ const classToAgentType = {
   "VSCode": "vscode",
   "Windsurf": "windsurf",
   "QwenCode": "qwen-code",
+  "Cline": "cline",
   "OpenClaw": "openclaw",
   "OpenCode": "opencode",
 }

@@ -39,8 +39,8 @@
           "cline"
         ],
         "bySupportClass": {
-          "NATIVE": 2,
-          "DISCOVERY_ONLY": 3
+          "NATIVE": 3,
+          "DISCOVERY_ONLY": 2
         }
       },
       "tier1": {
@@ -449,15 +449,17 @@
       "canonicalUrl": "https://calllint.com/harnesses/codex",
       "describedBy": "https://calllint.com/harnesses/codex",
       "capabilities": [
-        "code-generation",
-        "api",
-        "mcp"
+        "mcp",
+        "tools",
+        "filesystem",
+        "shell",
+        "plugins"
       ],
       "calllintSupport": {
         "supportClass": "DISCOVERY_ONLY",
         "label": "Guide only",
         "commands": [],
-        "coverageBoundary": "CallLint does not yet auto-discover Codex configuration."
+        "coverageBoundary": "CallLint does not yet auto-discover Codex configuration. The config path is documented but no extractor reads TOML, so Codex servers must be passed explicitly."
       },
       "distribution": [
         {
@@ -474,7 +476,8 @@
       "discovery": {
         "autoDetected": false,
         "configPaths": [
-          "Config mechanism requires verification"
+          "~/.codex/config.toml",
+          "$CODEX_HOME/config.toml"
         ]
       },
       "officialSources": [
@@ -527,20 +530,23 @@
       "type": "agent-harness",
       "displayName": "Cline",
       "vendor": "Open Source",
-      "status": "Guide only",
-      "supportClass": "DISCOVERY_ONLY",
+      "status": "Auto-detects",
+      "supportClass": "NATIVE",
       "canonicalUrl": "https://calllint.com/harnesses/cline",
       "describedBy": "https://calllint.com/harnesses/cline",
       "capabilities": [
         "vscode-extensions",
+        "cli",
         "tools",
         "mcp"
       ],
       "calllintSupport": {
-        "supportClass": "DISCOVERY_ONLY",
-        "label": "Guide only",
-        "commands": [],
-        "coverageBoundary": "CallLint does not yet auto-discover Cline configuration."
+        "supportClass": "NATIVE",
+        "label": "Auto-detects",
+        "commands": [
+          "calllint scan --agent cline"
+        ],
+        "coverageBoundary": "CallLint auto-discovers both Cline config files: the CLI's (~/.cline/data/settings/, relocatable via CLINE_DATA_DIR) and the VS Code extension's, which lives in per-extension globalStorage and is documented by no upstream page. Neither Cline's rules, hooks, skills, agents nor plugins directories are read, and ~/Documents/Cline/MCP/ holds installed server source rather than server registrations, so it is not a config path."
       },
       "distribution": [
         {
@@ -554,9 +560,11 @@
         }
       ],
       "discovery": {
-        "autoDetected": false,
+        "autoDetected": true,
         "configPaths": [
-          "VS Code extension, config mechanism TBD"
+          "~/.cline/data/settings/cline_mcp_settings.json",
+          "$CLINE_DATA_DIR/settings/cline_mcp_settings.json",
+          "<appData>/Code/User/globalStorage/saoudrizwan.claude-dev/settings/cline_mcp_settings.json"
         ]
       },
       "officialSources": [

@@ -366,12 +366,15 @@
       "priority": "P2",
       "coverageTier": "tier0",
       "authoritySurfaces": [
-        "code-generation",
-        "api",
-        "mcp"
+        "mcp",
+        "tools",
+        "filesystem",
+        "shell",
+        "plugins"
       ],
       "configEvidence": [
-        "Config mechanism requires verification"
+        "~/.codex/config.toml",
+        "$CODEX_HOME/config.toml"
       ],
       "supportClass": "DISCOVERY_ONLY",
       "truthfulCommands": [],
@@ -395,9 +398,9 @@
           "blocker": "Do not create remote MCP just for public listing eligibility"
         }
       ],
-      "coverageBoundary": "CallLint does not yet auto-discover Codex configuration.",
+      "coverageBoundary": "CallLint does not yet auto-discover Codex configuration. The config path is documented but no extractor reads TOML, so Codex servers must be passed explicitly.",
       "activation": {
-        "whyHere": "Codex writes code and calls APIs on your behalf, so an MCP server it can reach is reachable from generated code as well as from a prompt."
+        "whyHere": "Codex is a local coding agent holding shell, file-patching and plugin authority in the same session, so an MCP server registered in its config.toml is reachable from a process that can already edit your working tree and run commands in it."
       }
     },
     {
@@ -448,14 +451,19 @@
       "coverageTier": "tier0",
       "authoritySurfaces": [
         "vscode-extensions",
+        "cli",
         "tools",
         "mcp"
       ],
       "configEvidence": [
-        "VS Code extension, config mechanism TBD"
+        "~/.cline/data/settings/cline_mcp_settings.json",
+        "$CLINE_DATA_DIR/settings/cline_mcp_settings.json",
+        "<appData>/Code/User/globalStorage/saoudrizwan.claude-dev/settings/cline_mcp_settings.json"
       ],
-      "supportClass": "DISCOVERY_ONLY",
-      "truthfulCommands": [],
+      "supportClass": "NATIVE",
+      "truthfulCommands": [
+        "calllint scan --agent cline"
+      ],
       "canonicalPath": "/harnesses/cline",
       "legacyPaths": [
         "/harnesses/deepseek/cline"
@@ -480,9 +488,11 @@
           "note": "Existing PR #49 (open, verified 2026-08-23), do not create duplicate"
         }
       ],
-      "coverageBoundary": "CallLint does not yet auto-discover Cline configuration.",
+      "coverageBoundary": "CallLint auto-discovers both Cline config files: the CLI's (~/.cline/data/settings/, relocatable via CLINE_DATA_DIR) and the VS Code extension's, which lives in per-extension globalStorage and is documented by no upstream page. Neither Cline's rules, hooks, skills, agents nor plugins directories are read, and ~/Documents/Cline/MCP/ holds installed server source rather than server registrations, so it is not a config path.",
       "activation": {
-        "whyHere": "Cline executes multi-step tasks from inside VS Code, so an MCP server it holds is callable across a whole task rather than for a single approved action."
+        "whyHere": "Cline executes multi-step tasks from inside VS Code, so an MCP server it holds is callable across a whole task rather than for a single approved action.",
+        "installRef": "scan",
+        "firstSuccessAction": "Check which of the two config files the verdict header names. Cline's CLI and its VS Code extension keep separate server lists, so a clean scan of one says nothing about the other -- if you registered a server through the extension UI, the CLI file is the one that will look empty."
       }
     },
     {
