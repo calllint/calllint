@@ -70,9 +70,41 @@ export function kindForPath(path: string): TargetKind {
   return "mcp-servers"
 }
 
+/**
+ * Parse config text in the syntax its PATH implies.
+ *
+ * WHY THIS IS ONE FUNCTION AND NOT A BRANCH IN EACH ENTRY POINT. `parseConfigFile` dispatched
+ * on `.toml` and `parseConfigText` did not, so which syntax a Codex config was read as
+ * depended on which entry point the caller happened to reach. Both are public and both are
+ * used: `scanConfigFile` → `parseConfigFile`, but `scan --agent <type>` and `scan --auto`
+ * read the file themselves and call `scanConfigText` → `parseConfigText`. So the same
+ * `~/.codex/config.toml` parsed as TOML through one command and as JSON through another.
+ *
+ * MEASURED 2026-08-25, against a real Codex install:
+ *
+ *   calllint scan --agent codex → Parse error ... Invalid JSON: Unexpected token a at position 0
+ *   calllint scan --auto        → same line, mid-run
+ *
+ * `--auto` is the blast radius that matters: it is the command `activation.firstSuccessAction`
+ * tells every Claude Code / Cursor / VS Code user to run, so ANY user who also has Codex
+ * installed met this error on CallLint's own recommended first step. The discovery layer was
+ * never wrong — `CodexExtractor` finds the file and `findServerMap()` already reads TOML's
+ * `mcp_servers` — the defect was one missing dispatch on the text path.
+ *
+ * Keyed on the path rather than sniffing content: a config's syntax is a property of where it
+ * lives, and TOML/JSON are not reliably distinguishable from a prefix (`{` is legal in
+ * neither's first column by convention alone). `<inline>` and `<stdin>` have no extension and
+ * stay JSON, which is what every caller passing them sends.
+ */
+function parseRootForPath(text: string, configPath: string): unknown {
+  return extname(configPath).toLowerCase() === ".toml"
+    ? parseTOML(text)
+    : parseJsonText(text, configPath)
+}
+
 /** Parse a config from raw text (used for inline input and tests). */
 export function parseConfigText(text: string, configPath = "<inline>"): ParsedConfig {
-  const root = parseJsonText(text, configPath)
+  const root = parseRootForPath(text, configPath)
   return {
     configPath,
     kind: configPath === "<inline>" ? "inline" : kindForPath(configPath),
@@ -85,17 +117,7 @@ export function parseConfigText(text: string, configPath = "<inline>"): ParsedCo
 /** Parse a config from a file on disk. */
 export function parseConfigFile(path: string): ParsedConfig {
   const text = readFileSync(path, "utf8")
-  const ext = extname(path).toLowerCase()
-
-  let root: unknown
-  if (ext === ".toml") {
-    // Codex config.toml
-    root = parseTOML(text)
-  } else {
-    // JSON / JSONC (all other harnesses)
-    root = parseJsonText(text, path)
-  }
-
+  const root = parseRootForPath(text, path)
   return {
     configPath: path,
     kind: kindForPath(path),
