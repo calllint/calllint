@@ -24,6 +24,51 @@ projection with no reader when it goes stale.
 `docs/` is gitignored repo-wide (`.gitignore:44`) as local-only planning notes, so every one
 of these lives under `artifacts/` — a review no reviewer can read is not an output.
 
+### §1, §6 and §10's three other filenames — carried, not skipped
+
+§17's table above is the one this report was written against, but §1, §6 and §10 each name a
+further document, and none of those three filenames exists on disk. Recorded here explicitly,
+because "never written" and "written under a better name" are indistinguishable from an
+absent file, and only one of them is a gap:
+
+| Named at | Filename asked for | Where the obligation is discharged |
+|---|---|---|
+| §1 | `docs/architecture/AGENT_DISCOVERY_ACTIVATION_AUDIT.md` | [`agent-discovery-v2/REALITY_AUDIT.md`](../agent-discovery-v2/REALITY_AUDIT.md) — the pre-work audit §1 describes (surfaces known / artifacts existing / missing activation steps), measured against a named commit. Written before new20 was, which is why it does not carry new20's filename. |
+| §6 | `docs/architecture/DISCOVERY_ACTIVATION_PRIORITY.md` | The ranking function is split across two shipped surfaces, deliberately: [`submissions/ROI.md`](../submissions/ROI.md) orders the *actionable channels* by return (9 rows, keyed on host × channel, because a submission acts on a channel and not on a host — `copilot-cli` appears twice), and the SSOT's `priority` field orders CallLint's own work per host — the axis the gates read. Neither is a copy of §6's host ranking. **All three orders differ; see below.** |
+| §10 | `DISCOVERY_STATUS_REPORT.md` | [`FINAL_PLATFORM_MATRIX.md`](../authority-distribution-closure/FINAL_PLATFORM_MATRIX.md) (generated, 18 × 14) for standing state, and `artifacts/distribution-watch/official-sources.json` for the observed-change stream the watcher emits weekly. |
+
+No further file is owed. The rule applied is the same one §17's table applies: a hand-typed
+copy under the asked-for name would be a second projection with no reader, and the repo's
+dominant fault class is exactly a surface nothing reads going stale unnoticed.
+
+### §6's ranking and the SSOT's `priority` disagree on 7 of 13 hosts — deliberately
+
+§6 ranks hosts by "highest user acquisition probability". The SSOT's `priority` orders
+**CallLint's own engineering work**. Those are different questions, and measured against
+each other they give different answers:
+
+| host | §6 rank | SSOT `priority` |
+|---|---|---|
+| cline | P0 (3rd) | `P2` |
+| copilot-cli | P0 (5th) | `P2` |
+| gemini-cli | P1 (6th) | `P2` |
+| opencode | P1 (7th) | `P3` |
+| continue | P1 (8th) | `P2` |
+| roo-code | P1 (9th) | `P3` |
+| workbuddy | P2 (12th) | `P0` |
+
+The disagreement is not drift. A host can be highly acquisitive and cheap to reach (so §6
+ranks it first) while needing no further CallLint work (so `priority` ranks it last), and
+`workbuddy` is the reverse: low acquisition, but it was the host whose extractor needed
+building. Collapsing the two into one field would silently discard whichever meaning lost.
+
+A third axis exists and must not be confused with either: `coverageTier`
+(`tier0|tier1|tier2|beyond-section-9`) records the *obligation* new19 §9 imposed — that a
+record exist — and says nothing about work order or about acquisition. All three are pinned
+apart by test: `agent-discovery-v2.invariants.test.ts` asserts `codex`/`cline` are tier0 while
+carrying `P2`, and `claude-desktop` carries `P0` while sitting outside §9's tiers entirely, so
+a future edit cannot quietly merge the axes.
+
 ## Completed
 
 **Infrastructure.** One SSOT (`apps/web/data/distribution-surfaces.json`: 18 hosts, 31

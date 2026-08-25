@@ -193,6 +193,15 @@ Measured after regeneration: `Never executes the server it judges` 18/18, `Deter
 `Not a proof of runtime safety` 18/18, `id="trust"` 18/18. `#start` still 9 — the conditional
 half is intact, so the coupling broke without collapsing the guard.
 
+> **`#start` is 13/18 as of 2026-08-25**, not 9. The four trust clauses are still 18/18. The rise
+> is not a regression in the conditional: `codex`, `gemini-cli`, `kiro` and `opencode` were
+> promoted to `NATIVE` in `c46de8f` after their extractors were measured, so each gained an honest
+> install path and with it a `#start` section. The property this document pins is that `#start`
+> stays **conditional** — enclosed by `{{#if activation.installCommand}}` at nesting depth > 0 —
+> and that is asserted structurally by `activation-contract.invariants.test.ts`, which does not
+> depend on the count. The 5 remaining pages are the guide-only cohort and correctly print no
+> start section.
+
 **Fix 2 — two gates, deliberately non-redundant.**
 
 - `check-public-copy.mjs` **check 25** walks `harnesses/**` recursively and asserts each clause of
