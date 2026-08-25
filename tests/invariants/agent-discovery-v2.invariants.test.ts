@@ -477,6 +477,129 @@ describe("§9 / §3040 — every required harness tier is covered", () => {
 })
 
 /*
+ * §14 "COVERAGE TARGETS" — the Cohort 10 membership obligation.
+ *
+ * WHY THIS IS A SEPARATE OBLIGATION FROM §9, AND NOT A RESTATEMENT OF IT. §9 names fourteen
+ * hosts across three tiers and asks that a *record* exist for each. §14 names ten and asks
+ * something different: that Cohort 10 be the set of "core agent harnesses" CallLint has
+ * actually *reached* — so the obligation is on the published discovery surface, not on the
+ * SSOT alone. Measured, the two lists are not the same set and neither contains the other:
+ * §14 includes `deepseek` (§9 Tier 2 as `deepseek-harness`) and `kiro`, and OMITS four hosts
+ * §9 requires (`continue`, `roo-code`, `codebuddy`, `qwen-code`). Deriving either from the
+ * other would silently discard one document's intent.
+ *
+ * WHY IT IS ASSERTED ON THE INDEX AND THE PAGE, NOT ONLY ON THE SSOT. §13 defines the unit as
+ * "verified discovery surface", not "number of pages" and not "row in a data file". A host
+ * present in `hosts[]` but absent from `agent-discovery-index.json` would satisfy a
+ * SSOT-only assertion while being undiscoverable — which is the precise failure §13's
+ * re-definition of the unit exists to name. So each member is checked at three places that
+ * can disagree: the SSOT record, the published index entry, and the served page.
+ *
+ * WHAT IT DELIBERATELY DOES NOT ASSERT. Not that any member is `NATIVE`, and not that any
+ * member has a command. §9's closing line governs §14 too — "Do not claim implementation
+ * where none exists" — and Cohort 10 contains `copilot-cli` (DISCOVERY_ONLY today). A
+ * membership obligation that implied support would manufacture a support claim out of a
+ * coverage requirement, so the assertion is the weaker, correct one: the surface exists and
+ * is honestly labelled.
+ *
+ * ANCHORED ON `id`, FOR THE SAME REASON AS §9. §14 spells its members as display names and
+ * three do not match this repo's strings: "Copilot" is `GitHub Copilot CLI`, "Codex" is
+ * `OpenAI Codex`, and "DeepSeek" is `DeepSeek Harness`. The name→id mapping is made once,
+ * here, in a reviewed constant.
+ */
+const COHORT_10: readonly string[] = [
+  // §14 spelling, in §14's order: Claude Code, Codex, Cursor, Copilot, Cline,
+  // Gemini CLI, OpenCode, DeepSeek, WorkBuddy, Kiro.
+  "claude-code",
+  "codex",
+  "cursor",
+  "copilot-cli",
+  "cline",
+  "gemini-cli",
+  "opencode",
+  "deepseek-harness",
+  "workbuddy",
+  "kiro",
+] as const
+
+describe("§14 / §13 — Cohort 10 is a reached discovery surface, not a page count", () => {
+  it("reads a non-empty cohort and a non-empty obligation (anti-vacuity premise)", () => {
+    /* Both denominators before any claim: an empty COHORT_10 would make every loop below
+     * pass while observing nothing, and so would an index that lost its surfaces. */
+    expect(COHORT_10.length, "§14 names exactly ten core harnesses").toBe(10)
+    expect(new Set(COHORT_10).size, "COHORT_10 has a duplicate member").toBe(10)
+    expect(SSOT.hosts.length).toBeGreaterThan(10)
+    expect(INDEX.surfaces.length).toBeGreaterThan(10)
+  })
+
+  it("is NOT derivable from §9's tiers — the two documents ask different things", () => {
+    /* Pinned as a MEASURED difference. If a future edit made §14 a subset of a single §9
+     * tier, this should be deleted deliberately rather than satisfied by accident. */
+    const tier0 = new Set(REQUIRED_COVERAGE.tier0)
+    expect(COHORT_10.some((id) => !tier0.has(id)), "§14 would collapse into §9 Tier 0").toBe(true)
+    const cohort = new Set(COHORT_10)
+    const requiredButNotCore = [
+      ...REQUIRED_COVERAGE.tier0,
+      ...REQUIRED_COVERAGE.tier1,
+      ...REQUIRED_COVERAGE.tier2,
+    ].filter((id) => !cohort.has(id))
+    expect(
+      requiredButNotCore.sort(),
+      "§9 requires records for hosts §14 does not call core; if this is now empty the two " +
+        "obligations have merged and this block's premise needs rewriting, not retuning",
+    ).toEqual(["codebuddy", "continue", "qwen-code", "roo-code"])
+  })
+
+  it("has an SSOT record for every Cohort 10 member", () => {
+    const ids = new Set(SSOT.hosts.map((h) => h.id))
+    const missing = COHORT_10.filter((id) => !ids.has(id))
+    expect(missing, `§14 Cohort 10 members with no SSOT record: ${missing.join(", ")}`).toEqual([])
+  })
+
+  it("publishes every Cohort 10 member as an agent-harness in the discovery index", () => {
+    /* §13's unit — "verified discovery surface". A host in `hosts[]` but not in the index is
+     * exactly the case a SSOT-only assertion cannot see. */
+    const byId = new Map(
+      INDEX.surfaces.filter((s) => s.type === "agent-harness").map((s) => [s.id, s]),
+    )
+    const missing = COHORT_10.filter((id) => !byId.has(id))
+    expect(
+      missing,
+      `§14 members absent from agent-discovery-index.json as agent-harness: ${missing.join(", ")}`,
+    ).toEqual([])
+  })
+
+  it("serves a page for every Cohort 10 member at its canonical path", () => {
+    const missing: string[] = []
+    for (const id of COHORT_10) {
+      const host = SSOT.hosts.find((h) => h.id === id)!
+      const page = path.join(repoRoot, "apps/web/public", host.canonicalPath, "index.html")
+      if (!existsSync(page)) missing.push(`${id} -> ${host.canonicalPath}`)
+    }
+    expect(missing, `§14 members with no served page: ${missing.join(", ")}`).toEqual([])
+  })
+
+  it("does NOT turn Cohort 10 membership into a support claim (§9's closing constraint)", () => {
+    /* The failure this exists to prevent, same shape as the §9 block: a coverage target
+     * manufacturing an implementation claim. Cohort 10 is fully reached AND not entirely
+     * NATIVE, and both halves must stay visible. */
+    const known = new Set(["NATIVE", "DISCOVERY_ONLY", "DEFERRED", "CONFIG_SCAN"])
+    const classes: Record<string, number> = {}
+    for (const id of COHORT_10) {
+      const host = SSOT.hosts.find((h) => h.id === id)!
+      expect(known.has(host.supportClass), `${id} has an unknown supportClass`).toBe(true)
+      expect(host.coverageBoundary, `${id} must state its coverage boundary`).toBeTruthy()
+      classes[host.supportClass] = (classes[host.supportClass] ?? 0) + 1
+    }
+    expect(
+      (classes.NATIVE ?? 0) < COHORT_10.length,
+      "every Cohort 10 member is now NATIVE, so 'reached' and 'supported' have collapsed into " +
+        "one claim — rewrite this test's premise, do not retune it",
+    ).toBe(true)
+  })
+})
+
+/*
  * §6 "Agent Adoption Coverage Index" — the published `coverage` block.
  *
  * WHY `REQUIRED_COVERAGE` ABOVE STAYS HARDCODED NOW THAT THE SSOT CARRIES `coverageTier`.
