@@ -11,7 +11,7 @@ Ordered 2026-08-23. Every row is a human action (new18 §22).
 |---|---|---|---|---|---|
 | 1 | `claude-code` | `claude-plugin` | P0 | **none** — `.claude-plugin/marketplace.json` now exists and passes `claude plugin validate . --strict` | [claude-plugin/](claude-plugin/SUBMISSION.md) |
 | 2 | `cursor` | `cursor-plugin` | P0 | **none** — `.cursor-plugin/` manifests, `mcp.json`, logo and Cursor hook wiring all added and validated 2026-08-25 | [cursor-plugin/](cursor-plugin/SUBMISSION.md) |
-| 3 | `copilot-cli` | `github-copilot-plugin` | P2 | `UNKNOWN` — see #3 below | [github-copilot-plugin/](github-copilot-plugin/SUBMISSION.md) |
+| 3 | `copilot-cli` | `github-copilot-plugin` | P2 | `UNKNOWN` — route unconfirmed, but the manifest cost is now **zero**; see #3 below | [github-copilot-plugin/](github-copilot-plugin/SUBMISSION.md) |
 | 4 | `copilot-cli` | `mcp-registry-discovery` | P2 | none — registry entry is live | verify-only; see below |
 | 5 | `windsurf` | `windsurf-mcp-marketplace` | P1 | none | [windsurf-mcp-marketplace/](windsurf-mcp-marketplace/SUBMISSION.md) |
 | 6 | `gemini-cli` | `gemini-extension-gallery` | P2 | a GitHub repo topic (auto-discovery) | [gemini-extension-gallery/](gemini-extension-gallery/SUBMISSION.md) |
@@ -30,6 +30,17 @@ external entries (`source: {source:"github", repo, path}`), but its `CONTRIBUTIN
 generic template with no intake process and its README still marks MCP servers *coming soon*.
 Two candidate routes, neither confirmed as *the* intake: that is `UNKNOWN`, and writing a
 plausible route here would be the evidence-free claim the verdict vocabulary forbids.
+
+What *did* resolve is the cost question. The open caveat was that Copilot's own bundled
+plugins keep `plugin.json` at the **plugin root** while ours is under `.claude-plugin/` —
+possibly a second manifest to write. The CLI's own `changelog.md` settles it: `.claude-plugin/
+plugin.json` is discovered (1.0.6), `.claude-plugin/` plugins load their MCP and LSP servers
+(1.0.9), hook files are accepted with **PascalCase event names alongside camelCase** (1.0.6),
+and hooks receive **`CLAUDE_PLUGIN_ROOT`** — the exact two things Cursor does *neither* of,
+which is why Cursor needed a second hooks file and a second script and Copilot needs neither.
+Candidate A therefore costs nothing to try. It stays `UNKNOWN` because a vendor changelog is
+the vendor asserting its own behavior, not the command running, and `copilot` is not installed
+here.
 
 **#4 `mcp-registry-discovery`** is verify-only, and now for a measured structural reason, not
 an assumption. The Official Registry's own `registry-aggregators.mdx` describes aggregators as
@@ -68,8 +79,11 @@ intake requirements and then measuring this repo against them:
   we review each update before publishing"). **All six files were then built and the tree now
   passes Cursor's own validator**, so the cell reads "none" again — this time measured. One
   non-file defect surfaced while doing it: Cursor's hook events are lowerCamel, so it would have
-  read our PascalCase `hooks/hooks.json` and silently never fired. Details in
-  [cursor-plugin/](cursor-plugin/SUBMISSION.md).
+  read our PascalCase `hooks/hooks.json` and silently never fired. The plugin was then
+  **installed and run locally** through `~/.cursor/plugins/local/` (Cursor 3.15.19 is on the
+  dev machine, so this was not the user-only step this file used to call it): every manifest
+  path resolves through the link, and the hook runs from Cursor's cwd with its relative command
+  and exits 0. Details in [cursor-plugin/](cursor-plugin/SUBMISSION.md).
 - **#3 `copilot-cli`** said "none", which read as *ready to submit*. There is no verified
   intake to submit to — see the row note above.
 

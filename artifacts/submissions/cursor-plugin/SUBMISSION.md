@@ -86,10 +86,41 @@ vocabulary, no second verdict path.
 A repo URL: https://github.com/calllint/calllint
 
 Everything else Cursor reads from the repo. Name, description, category, tags, license,
-homepage all live **in the manifest**, not in a form field. Cursor's checklist also asks that
-the plugin "has been tested locally" — route:
-`ln -s /path/to/plugins/calllint ~/.cursor/plugins/local/calllint`. That is a local install on
-your own machine, so it is yours to run, not something this repo can assert.
+homepage all live **in the manifest**, not in a form field.
+
+### The "tested locally" checkbox — DONE 2026-08-25
+
+Cursor's checklist also asks that the plugin "has been tested locally". This was previously
+recorded here as unverifiable from the repo ("a local install on your own machine, so it is
+yours to run"). That was wrong: Cursor 3.15.19 is installed on the dev machine and
+`~/.cursor/plugins/local/` exists, so the documented route was run.
+
+`ln -s` fails on Windows without elevation (`Operation not permitted`), so the link was made
+as an NTFS junction — `mklink /J calllint <repo>/plugins/calllint` — which Cursor's loader
+follows identically. Then, through the junction:
+
+- **Every path the manifest names resolves.** `logo` → `assets/logo-mark-128.png`,
+  `hooks` → `hooks/cursor-hooks.json`, and the root `mcp.json`. This is the check that
+  matters through a link: a manifest field pointing outside the plugin directory, or at a
+  file that only exists in the source tree's parent, resolves in the repo and breaks once
+  installed.
+- **The hook runs the way Cursor runs it** — cwd set to the plugin directory, invoked by the
+  relative `node ./hooks/preflight-cursor.mjs` from `cursor-hooks.json`, fed a real
+  `preToolUse` event. It emitted the Cursor envelope (`user_message` + `agent_message`) and
+  **exited 0**.
+
+Two controls on that measurement:
+
+- Running the same relative command from a **different cwd** exits **1** with ENOENT — so
+  Cursor's cwd convention is load-bearing, and the passing run above was not passing for an
+  unrelated reason. (First attempt at this control piped to `head` and read back `exit=0`:
+  that is `head`'s status, not node's. Re-measured with redirects.)
+- A **Claude-cased** `hook_event_name` still produces the recommendation, because the script
+  keys on the target **path**, not the event name — event-name filtering is
+  `cursor-hooks.json`'s job, one layer up, and is pinned by the wiring tests.
+
+The junction was removed afterwards and the source tree confirmed intact. Nothing about this
+install is committed; it is a measurement, not an artifact.
 
 ## Do not
 
