@@ -28,8 +28,8 @@ claim is unverified, not the support absent.
 | `BLOCKED` | 4 | A recorded blocker makes it impossible or explicitly rejected — not a to-do. See [BLOCKED.md](BLOCKED.md). |
 | `PENDING_UPSTREAM` | 1 | Waiting on someone else; a second submission would duplicate. |
 | `AVAILABLE` | 0 | Already listed. |
-| submitted, not yet listed | 0 | A recorded submission whose listing is not yet verified. Not a to-do either. |
-| actionable | 9 | Ordered by ROI in [ROI.md](ROI.md). |
+| submitted, not yet listed | 1 | A recorded submission whose listing is not yet verified. Not a to-do either. |
+| actionable | 8 | Ordered by ROI in [ROI.md](ROI.md). |
 
 The 5 buckets sum to 14; generation fails if they ever do not.
 
@@ -44,7 +44,6 @@ matter what its `state` says, because submitting again would duplicate; see
 
 | Host | Channel | Tier | State | Submitted |
 |---|---|---|---|---|
-| `claude-code` | `claude-plugin` | P0 | `AUDIT_REQUIRED` | — |
 | `copilot-cli` | `github-copilot-plugin` | P2 | `AUDIT_REQUIRED` | — |
 | `copilot-cli` | `mcp-registry-discovery` | P2 | `AUDIT_REQUIRED` | — |
 | `cursor` | `cursor-plugin` | P0 | `AUDIT_REQUIRED` | — |
@@ -68,3 +67,9 @@ matter what its `state` says, because submitting again would duplicate; see
 | Host | Channel | Tier | State | Submitted |
 |---|---|---|---|---|
 | `cline` | `cline-marketplace-pr` | P2 | `PENDING_UPSTREAM` | 2026-08-18 |
+
+### Submitted, listing not yet verified
+
+| Host | Channel | Tier | State | Submitted |
+|---|---|---|---|---|
+| `claude-code` | `claude-plugin` | P0 | `AUDIT_REQUIRED` | 2026-07-20 |
