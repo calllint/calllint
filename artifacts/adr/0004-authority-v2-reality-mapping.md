@@ -59,10 +59,21 @@ here rather than acted on.
 as a 5-value enum is additive and harmless. `AuthorityObservation` overlaps
 `AuthorityCapability` heavily — same evidence discipline, same confidence field, same
 completeness field. Adding it as a *second* record type risks two inventories of the same
-facts. The smaller change that satisfies §5's stated purpose ("represent observable facts,
-not risks") is a `layer` field on the existing `AuthorityCapability`, derived
-deterministically from `(action, resource)`, plus the enum. No new record type, no schema
-break, no second inventory.
+facts.
+
+> **Correction, same day.** This section first proposed the smaller change as "a `layer`
+> field on the existing `AuthorityCapability`, derived deterministically from
+> `(action, resource)`". That does not work, and the check that killed it was working five
+> concrete rows by hand: `read × secret`, `execute × process`, `delegate × agent`,
+> `send × message`, `spend × financial` — **all five derive `tool`**. They must, because the
+> table above already found that `AuthorityCapability` *is* the Tool layer. A field that is
+> always `"tool"` carries no information, which makes it the very defect the next section
+> warns about. The other four layers are aspects *of* a capability that neighbouring fields
+> already carry (`trustSource` = Identity, `scope` = Execution) or that nothing carries
+> (Effect). So Phase A reduces to **the exported enum and nothing else** — no field, no
+> record, no schema change. Sequenced in
+> [NEW21_SEQUENCING_PLAN.md](../architecture/NEW21_SEQUENCING_PLAN.md) Step 1.
+
 
 **Phase B — mapping tests.** Real work, low risk, and the highest-value part of the
 proposal: it pins the mapping table above so it cannot silently drift. Acceptance criterion
