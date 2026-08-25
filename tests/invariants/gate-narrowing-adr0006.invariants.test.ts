@@ -130,10 +130,16 @@ describe("ADR 0006 — the gate's two new exemptions stay narrow", () => {
   it("the test-path pattern is anchored to a path SEGMENT, not a substring", () => {
     // The widening failure for narrowing 1: `/test/` as a substring would exempt a product
     // file named `src/testUtils.ts`. Assert the shipped regex against both forms directly.
-    const src = gate.match(/const TEST_PATH_SEGMENT = (\/.*\/)\n/)
-    expect(src).not.toBeNull()
+    //
+    // Split on lines FIRST rather than matching a trailing `\n`: a checkout with CRLF endings
+    // puts `\r` between the literal and the newline, so an `...\/)\n/` match returns null and
+    // the test reds for a reason unrelated to its subject. Measured — that is exactly how this
+    // test failed on windows-latest while passing on ubuntu and macos.
+    const line = gate.split(/\r?\n/).find((l) => l.startsWith("const TEST_PATH_SEGMENT ="))
+    expect(line, "the gate must declare TEST_PATH_SEGMENT on a single line").toBeDefined()
+    const literal = (line ?? "").slice((line ?? "").indexOf("=") + 1).trim()
     // eslint-disable-next-line no-eval -- reading the gate's own literal, not external input
-    const pattern: RegExp = eval(src?.[1] ?? "/$^/")
+    const pattern: RegExp = eval(literal)
 
     expect(pattern.test("packages/types/test/authority-layers.test.ts")).toBe(true)
     expect(pattern.test("packages/core/tests/x.test.ts")).toBe(true)
