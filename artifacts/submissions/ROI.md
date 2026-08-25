@@ -10,7 +10,7 @@ Ordered 2026-08-23. Every row is a human action (new18 §22).
 | # | Host | Channel | Tier | Material gap | Next step |
 |---|---|---|---|---|---|
 | 1 | `claude-code` | `claude-plugin` | P0 | **none** — `.claude-plugin/marketplace.json` now exists and passes `claude plugin validate . --strict` | [claude-plugin/](claude-plugin/SUBMISSION.md) |
-| 2 | `cursor` | `cursor-plugin` | P0 | **a `.cursor-plugin/plugin.json` + a plugin-root `mcp.json` — neither is in the tree** (measured 2026-08-25) | [cursor-plugin/](cursor-plugin/SUBMISSION.md) |
+| 2 | `cursor` | `cursor-plugin` | P0 | **none** — `.cursor-plugin/` manifests, `mcp.json`, logo and Cursor hook wiring all added and validated 2026-08-25 | [cursor-plugin/](cursor-plugin/SUBMISSION.md) |
 | 3 | `copilot-cli` | `github-copilot-plugin` | P2 | `UNKNOWN` — see #3 below | [github-copilot-plugin/](github-copilot-plugin/SUBMISSION.md) |
 | 4 | `copilot-cli` | `mcp-registry-discovery` | P2 | none — registry entry is live | verify-only; see below |
 | 5 | `windsurf` | `windsurf-mcp-marketplace` | P1 | none | [windsurf-mcp-marketplace/](windsurf-mcp-marketplace/SUBMISSION.md) |
@@ -58,19 +58,24 @@ Two **material gap** cells were wrong, and this is the column the header promise
 against the tree rather than judged. Both were corrected by reading the vendor's current
 intake requirements and then measuring this repo against them:
 
-- **#2 `cursor`** said "none". Cursor's published checklist requires a plugin directory
-  carrying `.cursor-plugin/plugin.json` (or an Agent-Plugin root `plugin.json`) plus an
-  `mcp.json` at the plugin root with a top-level `mcpServers` map. This repo has neither —
-  only the Claude layout, `plugins/calllint/.claude-plugin/plugin.json`, and no `mcp.json`
-  anywhere in `plugins/`. The `server.json` + README + logo the old cell counted are real, but
-  they are not what Cursor reads. `cursor.com/marketplace` is a browse page; intake is
+- **#2 `cursor`** said "none". Cursor's published requirements call for a plugin directory
+  carrying `.cursor-plugin/plugin.json` plus an `mcp.json` at the plugin root with a top-level
+  `mcpServers` map, registered in a repo-root `.cursor-plugin/marketplace.json`. This repo had
+  none of it — only the Claude layout, `plugins/calllint/.claude-plugin/plugin.json`, and no
+  `mcp.json` anywhere in `plugins/`. The `server.json` + README + logo the old cell counted are
+  real, but they are not what Cursor reads. `cursor.com/marketplace` is a browse page; intake is
   `cursor.com/marketplace/publish`, a public-repo review ("All plugins must be open source, and
-  we review each update before publishing").
+  we review each update before publishing"). **All six files were then built and the tree now
+  passes Cursor's own validator**, so the cell reads "none" again — this time measured. One
+  non-file defect surfaced while doing it: Cursor's hook events are lowerCamel, so it would have
+  read our PascalCase `hooks/hooks.json` and silently never fired. Details in
+  [cursor-plugin/](cursor-plugin/SUBMISSION.md).
 - **#3 `copilot-cli`** said "none", which read as *ready to submit*. There is no verified
   intake to submit to — see the row note above.
 
-Neither correction is a new task: #2 becomes engineering work like #9, and #3 becomes a verify
-step like #4. What changed is that the table no longer claims a readiness the tree does not
+Neither correction is a new task: #3 becomes a verify step like #4. #2 *was* engineering work
+like #9 — that work is now done, so #2 is a submission again, and the only actionable one at
+P0 alongside #1. What changed is that the table no longer claims a readiness the tree does not
 support.
 
 ## Re-deriving this list

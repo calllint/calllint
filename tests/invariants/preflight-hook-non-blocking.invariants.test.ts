@@ -15,7 +15,7 @@
 import { describe, it, expect } from "vitest"
 import { spawnSync } from "node:child_process"
 import { fileURLToPath } from "node:url"
-import { mkdtempSync, readdirSync, rmSync } from "node:fs"
+import { mkdtempSync, readdirSync, readFileSync, rmSync } from "node:fs"
 import { tmpdir } from "node:os"
 import { join } from "node:path"
 // The plugin ships plain .mjs (no build step); import the pure core directly.
@@ -178,3 +178,181 @@ describe("ADR 0051 — the real hook script exits 0 and never denies", () => {
     expect(r.status).toBe(0)
   })
 })
+
+/* ────────────────────────────────────────────────────────────────────────────────
+ * The CURSOR edge. Same ADR 0051 floor, restated in Cursor's blocking vocabulary,
+ * because the levers are different: on Cursor `preToolUse` is the one hook that can
+ * veto a write, and it does so with a `permission: "deny"` field or exit code 2.
+ * `permissionDecision` — the field the Claude layer above forbids — is not a thing
+ * here, so asserting its absence would be a control that cannot fail.
+ * ──────────────────────────────────────────────────────────────────────────────── */
+const CURSOR_HOOK = fileURLToPath(
+  new URL("../../plugins/calllint/hooks/preflight-cursor.mjs", import.meta.url),
+)
+
+function runCursorHook(stdin: string): { status: number; stdout: string; stderr: string } {
+  const r = spawnSync(process.execPath, [CURSOR_HOOK], { input: stdin, encoding: "utf8" })
+  return { status: r.status ?? -1, stdout: r.stdout ?? "", stderr: r.stderr ?? "" }
+}
+
+describe("ADR 0051 — the Cursor edge exits 0 and never denies", () => {
+  it("a config edit → exit 0, Cursor's envelope, and NO permission field", () => {
+    const event = {
+      hook_event_name: "preToolUse",
+      tool_name: "Write",
+      tool_input: { file_path: ".cursor/mcp.json" },
+    }
+    const r = runCursorHook(JSON.stringify(event))
+    expect(r.status).toBe(0) // NOT 2 — Cursor equates 2 with a deny
+    const out = JSON.parse(r.stdout)
+    expect(out.user_message).toMatch(/CallLint/)
+    expect(out.agent_message).toMatch(/calllint trust prepare/)
+    // The two blocking levers, and the silent-mutation lever, must all be absent.
+    expect(out.permission, "the Cursor edge emitted a permission verdict").toBeUndefined()
+    expect(out.updated_input, "the Cursor edge rewrote the agent's input").toBeUndefined()
+    // Exhaustive, not just spot-checked: a field added later cannot slip past the
+    // three assertions above by having a name none of them mention.
+    expect(Object.keys(out).sort()).toEqual(["agent_message", "user_message"])
+  })
+
+  it("emits Cursor's field names, not Claude's — a wrong envelope is silently dropped", () => {
+    /* THE FAULT THIS PINS is not a crash. Cursor ignores unknown top-level fields,
+     * so shipping Claude's `systemMessage` / `hookSpecificOutput` here would compute
+     * the whole recommendation and then say NOTHING to the user, on every edit,
+     * forever — with exit 0 and empty stderr, so no test that only checks "did it
+     * run" would notice. That is the repo's dominant fault class (a guard that
+     * cannot observe its subject) reached through a wiring detail. */
+    const event = {
+      hook_event_name: "preToolUse",
+      tool_name: "Write",
+      tool_input: { file_path: ".cursor/mcp.json" },
+    }
+    const out = JSON.parse(runCursorHook(JSON.stringify(event)).stdout)
+    expect(out.systemMessage, "Claude's envelope leaked into the Cursor edge").toBeUndefined()
+    expect(out.hookSpecificOutput, "Claude's envelope leaked into the Cursor edge").toBeUndefined()
+  })
+
+  it("never asserts SAFE, and says UNKNOWN is never SAFE", () => {
+    const event = {
+      hook_event_name: "preToolUse",
+      tool_name: "Write",
+      tool_input: { file_path: ".cursor/mcp.json" },
+    }
+    const out = JSON.parse(runCursorHook(JSON.stringify(event)).stdout)
+    expect(out.user_message).toMatch(/UNKNOWN is never SAFE/)
+    expect(out.agent_message).toMatch(/Do not treat UNKNOWN as SAFE/)
+  })
+
+  it("writes NO file when run — captures, never applies", () => {
+    const dir = mkdtempSync(join(tmpdir(), "preflight-cursor-hook-"))
+    try {
+      const before = readdirSync(dir)
+      const event = {
+        hook_event_name: "preToolUse",
+        tool_name: "Write",
+        tool_input: { file_path: ".cursor/mcp.json" },
+      }
+      const r = spawnSync(process.execPath, [CURSOR_HOOK], {
+        input: JSON.stringify(event),
+        encoding: "utf8",
+        cwd: dir,
+      })
+      expect(r.status).toBe(0)
+      expect(readdirSync(dir)).toEqual(before)
+    } finally {
+      rmSync(dir, { recursive: true, force: true })
+    }
+  })
+
+  it("a non-config edit → exit 0, no output (silent)", () => {
+    const event = {
+      hook_event_name: "preToolUse",
+      tool_name: "Write",
+      tool_input: { file_path: "src/index.ts" },
+    }
+    const r = runCursorHook(JSON.stringify(event))
+    expect(r.status).toBe(0)
+    expect(r.stdout.trim()).toBe("")
+  })
+
+  it("malformed and empty stdin → exit 0, no output (never breaks the agent loop)", () => {
+    for (const bad of ["{ not json", ""]) {
+      const r = runCursorHook(bad)
+      expect(r.status, `stdin ${JSON.stringify(bad)} did not exit 0`).toBe(0)
+      expect(r.stdout.trim()).toBe("")
+    }
+  })
+})
+
+/* ────────────────────────────────────────────────────────────────────────────────
+ * The WIRING. Both edges are reached through a hooks file, and a correct script that
+ * no host invokes is indistinguishable from no script at all.
+ *
+ * WHY TWO FILES AND NOT ONE. A single hooks.json carrying both `PreToolUse` (Claude)
+ * and `preToolUse` (Cursor) was the obvious shape and it is REJECTED: measured
+ * 2026-08-25, `claude plugin tag` fails with `hooks.preToolUse: Invalid key in
+ * record` — Claude validates the hook-event keys against an enum, so Cursor's
+ * spelling is not an ignorable extra. Hence Claude keeps `hooks/hooks.json` (the
+ * path it discovers by default) and Cursor is pointed at `hooks/cursor-hooks.json`
+ * through its manifest's `hooks` field. Neither host can see the other's file.
+ *
+ * The fault this whole block guards against is silent: Cursor's own template
+ * validator only checks that a hooks file EXISTS and never validates event names, so
+ * a Claude-only key would ship a plugin whose hook never fires on Cursor and no tool
+ * anywhere would report it.
+ * ──────────────────────────────────────────────────────────────────────────────── */
+describe("hooks wiring — each host reaches its own edge, and neither sees the other's", () => {
+  const readJson = (rel: string) =>
+    JSON.parse(readFileSync(fileURLToPath(new URL(rel, import.meta.url)), "utf8"))
+
+  const claudeHooks = readJson("../../plugins/calllint/hooks/hooks.json") as {
+    hooks: Record<string, unknown[]>
+  }
+  const cursorHooks = readJson("../../plugins/calllint/hooks/cursor-hooks.json") as {
+    hooks: Record<string, unknown[]>
+  }
+  const cursorManifest = readJson("../../plugins/calllint/.cursor-plugin/plugin.json") as {
+    hooks?: string
+  }
+
+  it("Claude's file declares ONLY PreToolUse — Cursor's spelling fails `claude plugin tag`", () => {
+    expect(Object.keys(claudeHooks.hooks)).toEqual(["PreToolUse"])
+  })
+
+  it("Cursor's file declares ONLY preToolUse", () => {
+    expect(Object.keys(cursorHooks.hooks)).toEqual(["preToolUse"])
+  })
+
+  it("Cursor's manifest points at Cursor's file (without it, nothing is discovered)", () => {
+    expect(cursorManifest.hooks).toBe("hooks/cursor-hooks.json")
+  })
+
+  it("points each host at the edge built for it", () => {
+    const claude = JSON.stringify(claudeHooks.hooks.PreToolUse)
+    const cursor = JSON.stringify(cursorHooks.hooks.preToolUse)
+    expect(claude).toContain("preflight.mjs")
+    expect(claude).not.toContain("preflight-cursor.mjs")
+    expect(cursor).toContain("preflight-cursor.mjs")
+  })
+
+  it("uses each host's own path convention, so neither resolves to nothing", () => {
+    /* Claude interpolates ${CLAUDE_PLUGIN_ROOT}; Cursor does not, and resolves a
+     * relative command against the plugin directory. Each spelling is inert on the
+     * other host — which is why they cannot share one entry. */
+    expect(JSON.stringify(claudeHooks.hooks.PreToolUse)).toContain("${CLAUDE_PLUGIN_ROOT}")
+    expect(
+      JSON.stringify(cursorHooks.hooks.preToolUse),
+      "a Claude-only variable in Cursor's entry expands to nothing and the hook never runs",
+    ).not.toContain("CLAUDE_PLUGIN_ROOT")
+  })
+
+  it("does not set failClosed on Cursor's entry (a recommender fails OPEN)", () => {
+    /* Cursor's default is false; setting it true would make a crash or timeout in a
+     * display-only hook block the user's write — the exact posture ADR 0051 forbids,
+     * reachable through config rather than code. */
+    for (const entry of cursorHooks.hooks.preToolUse as Record<string, unknown>[]) {
+      expect(entry.failClosed, "failClosed:true turns the recommender into a blocker").toBeFalsy()
+    }
+  })
+})
+

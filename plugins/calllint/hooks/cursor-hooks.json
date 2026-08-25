@@ -1,0 +1,12 @@
+{
+  "version": 1,
+  "hooks": {
+    "preToolUse": [
+      {
+        "matcher": "Write",
+        "type": "command",
+        "command": "node ./hooks/preflight-cursor.mjs"
+      }
+    ]
+  }
+}
