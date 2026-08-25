@@ -112,7 +112,7 @@ jobs:
       - name: Agent, human + crawler surface contract
         run: pnpm check:agent-surface
 
-      - name: Harness distribution invariants (HD-01..HD-08)
+      - name: Harness distribution invariants (HD-01..HD-09)
         run: pnpm check:harness-distribution
 
       - name: Published JSON Schema contract
