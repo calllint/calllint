@@ -48,6 +48,21 @@ seven remain **ABSENT** by decision, each recorded in the audit with its reason.
 | `DEFERRED` | 4 | gemini-cli, codebuddy, kiro, roo-code |
 | `CONFIG_SCAN` | 1 | opencode |
 
+> **This histogram is the state at `abfb44a` (2026-08-22) and is no longer current.** Re-measured
+> on branch `feat/authority-v2-vocabulary` 2026-08-25: **`NATIVE` 13, `DISCOVERY_ONLY` 3,
+> `DEFERRED` 2, `CONFIG_SCAN` 0.** Five hosts were promoted after their extractors were measured
+> rather than assumed — `codex`, `gemini-cli`, `kiro`, `opencode` in `c46de8f` (the label had been
+> wrong: `parseConfigText` could not dispatch TOML, so `--agent codex` died on the real
+> `~/.codex/config.toml`) and `cline` in the preceding sprint. `CONFIG_SCAN` emptied because
+> `opencode` became `NATIVE`.
+>
+> The table above is kept rather than overwritten because this report is a dated measurement, and
+> a report that silently reprints today's numbers under a 2026-08-22 heading is a worse artifact
+> than one that shows its own age. The live figure is generated: `coverage.byTier[*]
+> .bySupportClass` in `apps/web/public/agent-discovery-index.json`, recounted from the SSOT by
+> `agent-discovery-v2.invariants.test.ts` — which is why a stale number here cannot mislead a
+> gate, only a reader.
+
 new19 §5 organises coverage as Tier 0 / 1 / 2. **The SSOT carries no `tier` field on `hosts[]`** —
 measured: the 13 host fields are `id, displayName, vendor, priority, authoritySurfaces,
 configEvidence, supportClass, truthfulCommands, canonicalPath, legacyPaths, officialSources,
@@ -128,6 +143,22 @@ One write path is the load-bearing property: `--check` and write mode are the sa
 endorsed `deepseek/` landing page. Pages are template-driven (`scripts/templates/host-page.hbs`);
 none is hand-authored, and a hand-authored one reds the endorsement test.
 
+> **Both counts in this section are superseded as of 2026-08-25; the paragraph is kept as the
+> measurement it was at `0dacf8a`.** The index now carries **23** surfaces, not 21: the two extra
+> are `search-surface` entries (`mcp-spec-client-examples`, `pulsemcp-client-directory`), added in
+> `185b8db` alongside the pre-existing `deepseek-curated-agents`, so that column reads **3**. The
+> other four columns are unchanged (18 / 1 / 1 / 0 / 0), and the "19 host page directories" claim
+> still holds exactly — 18 hosts + 1 landing page, re-counted on disk.
+>
+> `emit()` now has **21 call sites writing 31 projections**, not 11 targets. The load-bearing
+> property is unchanged and is the reason this correction is a number and not a redesign: there is
+> still exactly one write path, and `--check` still runs the same code as write mode. That is now
+> guarded rather than asserted — `FIXED_PROJECTION_COUNT = 12` plus
+> `hosts.length + modelIntentLandingPages.length` gives a floor the generator checks its own
+> emission count against, so a write site that bypasses `emit()` reds instead of shrinking the
+> comparison set. This is the fault this section's own "blindness found" note is about, closed one
+> level further up.
+
 `.well-known/calllint.json` is **excluded** by decision (D7). §15 lists it as a generated surface;
 this report records, as the audit did, that §15 must not be followed literally there — the path is
 owned by the Safe-install bake, and two writers on it already dropped `resources[]` once.
@@ -141,7 +172,27 @@ REALITY_AUDIT M10 recorded this exact property as a risk; it had already happene
 verified by control: a 1-byte edit to `harnesses/roo-code/index.html` was invisible before the fix
 and reds after it.
 
+### §13 and §16's literal names were not adopted — deliberate, and recorded here rather than aliased
+
+Two of new19's clauses name a *string*, and in both cases the shipped repo uses a different one.
+Recorded as deviations because an unrecorded rename is indistinguishable from an unread clause,
+and only one of those is acceptable:
+
+| clause | the name it asks for | what ships | why not renamed |
+|---|---|---|---|
+| §13 | "Agent Discovery Coverage Index" (renaming "Registry Cohort") | `coverage.unit` + `coverage.byTier` inside `agent-discovery-index.json` | §13's actual content is a **change of unit**, not of title: *"the unit is not number of pages, the unit is verified discovery surface."* That is shipped literally — `coverage.unit` reads `"agent-harness record in the CallLint distribution SSOT"`, and `coverage.byTier` publishes `required`/`present`/`hosts`/`bySupportClass` per tier. A top-level key spelled `agentDiscoveryCoverageIndex` would rename the container while leaving the unit identical; the unit is the part a reader can be misled by. |
+| §16 | `/agents/<id>` | `/harnesses/<id>` | The path is load-bearing in 31 generated projections, the sitemap, `llms.txt`, `_redirects`, and external links already published to hosts. **§16's address is not broken, though:** `_redirects` carries a 301 for all 18 hosts plus bare `/agents` → `/harnesses/` — 19 rows, generated from the same SSOT, and asserted by `agent-discovery-v2.invariants.test.ts`'s `§4 — the documented /agents/<id> address resolves`. So the documented URL resolves; it is not the canonical one. |
+
+The rejected alternative in both rows is the same, and it is the repo's dominant fault class: a
+second name for one fact. An `agents/` directory duplicating 18 pages, or a `coverageIndex` alias
+beside `coverage`, would create two spellings a future edit can update singly. A 301 has no such
+failure mode — it cannot disagree with its target, because it has no content.
+
+What is *not* claimed: that §13's rename was performed. It was not. The obligation §13 imposes
+was met on the axis §13 gives a reason for, and the title was left alone.
+
 ---
+
 
 ## 5. Tests
 
@@ -309,6 +360,19 @@ distinctly) and 13 were unreachable with `UND_ERR_CONNECT_TIMEOUT`. That unreach
 was therefore **deleted rather than committed** — committing it would have made the first CI run
 report 13 false REACHABILITY changes. The first clean baseline will be built by CI.
 
+> **Superseded 2026-08-25 — the watcher has now run.** `gh run list --workflow=distribution-watch.yml`
+> reports **2 completed runs, both `success`**: `32586047180` (`workflow_dispatch`, 2026-08-22) and
+> `32712484978` (`schedule`, 2026-08-24) — so the weekly cron has fired on its own at least once,
+> which is the thing "ready, not yet observed" was waiting on. The paragraph above is left in place
+> as the dated record of why the local baseline was discarded; only its "0 runs" claim is stale.
+>
+> What is still **not** observed is the interesting half: neither run has yet produced a
+> REACHABILITY *change* against a prior baseline, because the first run had no baseline to diff
+> and the second is the first with one. A clean diff on run 2 is consistent with both "nothing
+> changed upstream" and "the diff step cannot see a change", and this report will not claim the
+> stronger reading without a control. §19's remaining owed item is therefore narrower than it was:
+> not "observe the first run", but "observe a run that reds for a real upstream change".
+
 ---
 
 ## 9. §26 stop conditions
@@ -323,7 +387,7 @@ report 13 false REACHABILITY changes. The first clean baseline will be built by 
 | Registry remains Tier-0 | **MET** | `tierLevel: 0`, `upstreamPrimitive: true`, unchanged |
 | Pages generated, not handcrafted | **MET** | 1 template → 19 dirs; a served page with no SSOT container reds (`NC-06`) |
 | llms surfaces synchronised | **MET** | `llms.txt` + `llms-full.txt` in the drift diff set; `ci:local` exit 0 |
-| Watcher ready | **MET (ready, not yet observed)** | 5 checks wired; 0 scheduled runs so far |
+| Watcher ready | **MET (ready, and since 2026-08-25 observed running)** | 5 checks wired; 2 successful runs, one of them on the weekly `schedule` trigger — see §8's superseding note. No run has yet reported a real upstream change, so the diff step's *reaction* stays unobserved. |
 | Security semantics unchanged | **MET** | gate exit 0 + zero diff across 5 engine packages |
 
 **On "one writer", and why the naive measurement is wrong.** A `grep -l` for the path returns ten
@@ -353,7 +417,10 @@ Nothing in this list is blocked on code; each is an operator decision or an exte
 2. **Cloudflare Access, `USAGE_HASH_KEY`, and the real `database_id`** remain unauthorised
    (new18 §106 P (2)). No code here depends on them.
 3. **Observe the watcher's first run** when the weekly cron fires, and confirm the first clean
-   source baseline. Measure it; do not predict it.
+   source baseline. Measure it; do not predict it. — **Done 2026-08-25, and narrowed.** Two runs
+   completed successfully, one on the `schedule` trigger. What remains owed is the reaction, not
+   the run: no run has yet diffed a real upstream change, so the change-detection path is still
+   unobserved. See §8's superseding note.
 4. **new18 unification** — measured, and it needs **no edit**. §107's vocabulary already carries
    `AGENT_DISCOVERY = READY`, which is the name this work would have added. It is also, measured,
    **read by no gate**: nothing under `tests/`, `scripts/`, `packages/` or `apps/` mentions

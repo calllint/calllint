@@ -53,7 +53,12 @@
         {
           "kind": "claude-plugin",
           "state": "AUDIT_REQUIRED",
-          "officialSource": "https://code.claude.com/docs/en/plugin-marketplaces"
+          "officialSource": "https://code.claude.com/docs/en/plugin-marketplaces",
+          "liveUrl": null,
+          "submission": {
+            "date": "2026-07-20"
+          },
+          "note": "Claude Code has no marketplace to submit to: distribution is users adding this repo as a marketplace, so the act is publishing the install line. Published in README (owner/repo form, per the docs) on 2026-07-20 in 5bed4b6, alongside the 1.7.1 docs — measured from git log, not from this file's own claim. No shelf page exists to record as liveUrl, so the accepted arm of ADR 0002 is structurally unreachable here; a README anchor would be self-endorsement, which is the 2026-08-23 cursor-plugin defect."
         }
       ],
       "coverageBoundary": "CallLint scans MCP server entries only. Skills, hooks and permission settings in the same file are not covered.",
@@ -137,7 +142,7 @@
           "officialSource": "https://cursor.com/marketplace"
         }
       ],
-      "coverageBoundary": "CallLint scans MCP server entries only. Cursor rules and editor settings are not covered.",
+      "coverageBoundary": "CallLint scans MCP server entries only. Cursor rules and editor settings are not covered. Cloud Agents, background agents and event or timer wakeups (GitHub, Slack, Linear, cron) are not statically observable at all: what starts such an agent is decided in Cursor's cloud, not in a file on disk, so CallLint reports that authority as UNSUPPORTED rather than reading it as SAFE.",
       "activation": {
         "whyHere": "Cursor gives MCP servers shell and filesystem authority inside the repository you have open, and `.cursor/mcp.json` is commonly committed — so a server entry travels to every collaborator who opens the project.",
         "installRef": "scan",

@@ -27,7 +27,28 @@ introducing a second vocabulary beside a shipped one.
 | Trigger | **Name collision — see below** | [`packages/agent-triggers/`](../packages/agent-triggers/src/taxonomy.ts), 10 `TRIGGER_IDS`, wired into `apps/cli/src/commands/integrate.ts` |
 | Execution | **Ships, as resources** | `AUTHORITY_RESOURCES` includes `process`, `filesystem`, `configuration`; `AuthorityCapability.scope` carries the where |
 | Tool | **Ships, and is the mature layer** | `AuthorityCapability` = `action × resource`; 9 `AUTHORITY_ACTIONS` × 10 `AUTHORITY_RESOURCES` |
-| Effect | **Absent, correctly** | Nothing normalizes "different tools, same consequence". §5 marks it `RESERVED` / `DEFERRED`; it is the one layer where the proposal and the tree agree. |
+| Effect | ~~**Absent, correctly**~~ → **Ships, under another name** ([correction](#correction-2026-08-25-the-effect-row-was-wrong)) | `FP_EFFECTS` (`packages/types/src/fingerprint.ts`), populated by `deriveEffects()` in `packages/core/src/extract/fingerprint.ts:109` |
+
+### Correction (2026-08-25): the Effect row was wrong
+
+The table above originally read *"Effect — Absent, correctly. Nothing normalizes 'different
+tools, same consequence'"*, on the strength of a grep for `AuthorityEffect` / `EffectClass` /
+`normalizedEffect` returning zero hits.
+
+**The grep searched for names nothing in this repo uses.** `FP_EFFECTS` is a closed 9-member
+normalized effect vocabulary (`local_execution`, `network_egress`, `payment`, `messaging`, …),
+and `deriveEffects()` populates it by mapping `RiskSymbol` findings onto coarse consequences
+(`MONEY → payment`). That *is* §Layer 5's stated purpose, and it is load-bearing: `effects`
+participates in the L1 `fingerprintHash()` (ADR 0019).
+
+So **four of the five layers ship**, not three. What is genuinely deferred is narrower than
+"Effect": it is the *binding* from `AuthorityCapability` to an effect — `FP_EFFECTS` hangs off
+findings in the fingerprint, not off the authority manifest.
+
+Full reasoning, and a real gap found while measuring (`messaging` has no producer), in
+[ADR 0005](0005-authority-layers-vocabulary.md) Decision 3. Left in place rather than
+rewritten, because this is the repo's dominant fault class — an instrument that cannot observe
+its subject reports absence — and the record is worth more than a clean page.
 
 ## The finding that changes the freeze: `Trigger` already means something else
 
@@ -50,8 +71,11 @@ an error, they get a wrong mental model that survives review.
 
 **Recommendation, if this freeze proceeds:** new21's Layer 2 is named `Entrypoint`, and
 `Trigger` keeps its shipped meaning. This costs one word in a doc and preserves an
-ADR-protected contract. It is a naming decision, so it is the user's to make — recorded
-here rather than acted on.
+ADR-protected contract.
+
+> **Decided 2026-08-25** ([ADR 0005](0005-authority-layers-vocabulary.md) Decision 1): taken as
+> recommended. The layer is `entrypoint`; `TRIGGER_IDS` is untouched, and the two vocabularies
+> are asserted disjoint in `packages/types/test/authority-layers.test.ts`.
 
 ## What §9's three phases actually cost
 

@@ -65,6 +65,27 @@ const VERDICT_PACKAGES = [
  * additive changes ONLY: a removal or reordering still reds, and the parse is fail-closed. */
 const TARGET_KINDS_FILE = 'packages/types/src/report.ts'
 
+/* ADR 0006, narrowing 1: a test file cannot change what the product decides.
+ *
+ * Measured before adding this, not assumed: NO file under any `src/` in this repo imports from
+ * a `test/` directory, so a test has no path into the shipped product. A test can only ASSERT
+ * behaviour; changing one changes what is CLAIMED about a verdict, never the verdict itself.
+ *
+ * Without this, the gate reds on merely ADDING a test to a verdict package — i.e. it penalises
+ * exactly the act that strengthens it. That is a defect, not conservatism.
+ *
+ * The pattern is anchored to a path SEGMENT (`/test/`), not a substring: a product file named
+ * `src/testUtils.ts` must stay protected, and does. */
+const TEST_PATH_SEGMENT = /(^|\/)(test|tests|__tests__)\//
+
+/* ADR 0006, narrowing 2: append-only additive-vocabulary exemption.
+ *
+ * Files where a purely APPENDED block is exempt. `authority.ts` is verdict-deciding and stays
+ * protected for every other kind of edit: `policy/src/decideOverAuthority.ts` imports it for
+ * `baseVerdict(): Verdict`. What is exempt is narrower than the file — see the safety argument
+ * on `isAppendOnlyChange`. */
+const APPEND_ONLY_VOCAB_FILES = ['packages/types/src/authority.ts']
+
 /**
  * Parse TARGET_KINDS array from a ref. Returns null on parse failure or absent file — the
  * exemption MUST NOT assume success and quietly permit a broken ref; fail-closed semantics.
@@ -205,6 +226,40 @@ function isOnlyTargetKindsChange(ref) {
   return baseElided === headElided
 }
 
+/**
+ * Append-only exemption (ADR 0006, narrowing 2). True when HEAD's blob for `file` starts with
+ * the base blob verbatim — i.e. the change appends a block at the end and leaves the rest
+ * untouched. Fail-closed: an unreadable blob, or a blob that does not exist at base, returns
+ * false (the file stays in violations).
+ *
+ * Security argument: an appended unreferenced block cannot change existing behaviour unless
+ * something calls it. For a caller to invoke it, the caller must itself change — and if that
+ * caller lives in a verdict package, it appears as a SEPARATE file in the diff and the gate
+ * catches it. The only hole would be if a function already present in the file starts calling
+ * the new code; but that requires modifying the existing function's body, which breaks the
+ * "HEAD starts with base" check. Therefore append-only to a whitelisted file is safe given the
+ * rest of the gate.
+ *
+ * This check is simpler and more robust than parsing: it verifies the invariant directly in
+ * bytes, with no truncation risk and no parser. ADR 0003's bracket-tracking parser was correct,
+ * but the exemption was still ONE byte away from silently widening — a stray `]` in a comment
+ * caused it to truncate and fail closed, as intended. Append-only needs no parser at all.
+ */
+function isAppendOnlyChange(file, mergeBase) {
+  const read = (ref) => {
+    try {
+      return execFileSync('git', ['show', `${ref}:${file}`], { cwd: repoRoot, encoding: 'utf8' })
+    } catch {
+      return null
+    }
+  }
+
+  const base = read(mergeBase)
+  const head = read('HEAD')
+  if (base === null || head === null) return false
+  return head.startsWith(base)
+}
+
 /* Forbidden by the distribution contract: each would make presence or popularity into a
  * security input. Searched as literals because that is how they would be introduced. */
 const FORBIDDEN_FIELDS = [
@@ -285,6 +340,21 @@ function measureDiff(base) {
    * is ONLY an additive TARGET_KINDS modification, filter it out. Fail-closed: a parse error
    * or non-additive change keeps it in violations. */
   const filteredCommitted = committed.filter(file => {
+    /* ADR 0006 narrowing 1: a test file is not shipped and cannot move a verdict. */
+    if (TEST_PATH_SEGMENT.test(file)) {
+      console.log(`  [ADR 0006] ${file} filtered: test file, not reachable from src`)
+      return false
+    }
+
+    /* ADR 0006 narrowing 2: purely appended vocabulary in a whitelisted file. */
+    if (APPEND_ONLY_VOCAB_FILES.includes(file)) {
+      if (isAppendOnlyChange(file, mergeBase)) {
+        console.log(`  [ADR 0006] ${file} filtered: append-only (existing content byte-identical)`)
+        return false
+      }
+      return true  // an existing line moved, or a blob was unreadable — keep the violation
+    }
+
     if (file !== TARGET_KINDS_FILE) return true  // unrelated file, keep it
 
     const baseKinds = parseTargetKinds(mergeBase)

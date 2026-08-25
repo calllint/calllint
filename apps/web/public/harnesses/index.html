@@ -61,7 +61,7 @@
               <a href="/harnesses/cursor/">Cursor</a>
               <span class="vendor">by Anysphere</span>
               <span class="support-class" title="CallLint finds this host’s config on its own.">Auto-detects</span>
-              <div class="coverage-note">CallLint scans MCP server entries only. Cursor rules and editor settings are not covered.</div>
+              <div class="coverage-note">CallLint scans MCP server entries only. Cursor rules and editor settings are not covered. Cloud Agents, background agents and event or timer wakeups (GitHub, Slack, Linear, cron) are not statically observable at all: what starts such an agent is decided in Cursor's cloud, not in a file on disk, so CallLint reports that authority as UNSUPPORTED rather than reading it as SAFE.</div>
             </li>
             <li>
               <a href="/harnesses/workbuddy/">WorkBuddy</a>
