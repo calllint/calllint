@@ -6,7 +6,7 @@
     <title>Cursor — CallLint Support</title>
     <meta
       name="description"
-      content="CallLint support for Cursor (Anysphere). CallLint scans MCP server entries only. Cursor rules and editor settings are not covered."
+      content="CallLint support for Cursor (Anysphere). CallLint scans MCP server entries only. Cursor rules and editor settings are not covered. Cloud Agents, background agents and event or timer wakeups (GitHub, Slack, Linear, cron) are not statically observable at all: what starts such an agent is decided in Cursor&#x27;s cloud, not in a file on disk, so CallLint reports that authority as UNSUPPORTED rather than reading it as SAFE."
     />
     <link rel="canonical" href="https://calllint.com/harnesses/cursor/" />
     <link rel="icon" href="/favicon.png" type="image/png" />
@@ -41,7 +41,7 @@
           <h1>Cursor</h1>
           <p class="doc-lede">
             CallLint support for <strong>Cursor</strong> by Anysphere.
-            <span class="coverage-note">CallLint scans MCP server entries only. Cursor rules and editor settings are not covered.</span>
+            <span class="coverage-note">CallLint scans MCP server entries only. Cursor rules and editor settings are not covered. Cloud Agents, background agents and event or timer wakeups (GitHub, Slack, Linear, cron) are not statically observable at all: what starts such an agent is decided in Cursor&#x27;s cloud, not in a file on disk, so CallLint reports that authority as UNSUPPORTED rather than reading it as SAFE.</span>
           </p>
           <div class="host-meta">
             <span class="badge badge-P0">P0</span>
@@ -140,7 +140,7 @@
 
         <section id="coverage" class="doc-section coverage-boundary">
           <h2>Coverage Boundary</h2>
-          <p class="boundary-text">CallLint scans MCP server entries only. Cursor rules and editor settings are not covered.</p>
+          <p class="boundary-text">CallLint scans MCP server entries only. Cursor rules and editor settings are not covered. Cloud Agents, background agents and event or timer wakeups (GitHub, Slack, Linear, cron) are not statically observable at all: what starts such an agent is decided in Cursor&#x27;s cloud, not in a file on disk, so CallLint reports that authority as UNSUPPORTED rather than reading it as SAFE.</p>
         </section>
       </article>
 

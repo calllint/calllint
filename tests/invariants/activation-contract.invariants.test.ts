@@ -89,6 +89,9 @@ interface Host {
   supportClass: string
   truthfulCommands: string[]
   activation?: Activation
+  /* Schema-required (`minLength: 1`), so not optional here — the §7 block reads it directly
+   * and a `?` would let a missing boundary typecheck as an ordinary absent value. */
+  coverageBoundary: string
 }
 interface Ssot {
   hosts: Host[]
@@ -603,5 +606,114 @@ describe("the trust framing is unconditional (new20 §13)", () => {
     expect(bare, "a host with no install path also has no safety framing — the §13 defect").toEqual(
       [],
     )
+  })
+})
+
+/*
+ * new21 §7 / §10.D — the cloud-entrypoint boundary reaches a reader.
+ *
+ * WHY THIS EXISTS AS A SEPARATE GUARD. new21's Layer 2 boundary — Cloud Agents and event or
+ * timer wakeups are authority CallLint cannot statically observe — was asserted in
+ * `packages/types/test/authority-layers.test.ts` over the *vocabulary*, and that test passes
+ * whether or not any user is ever told. §10.D asks that the boundary be "accurately
+ * represented", and a boundary nobody reads is represented nowhere. So this asserts the
+ * published surface, and it is deliberately placed beside the §13 trust-framing block: the
+ * fault class is identical — an honest statement that exists in the tree but not on the page.
+ *
+ * WHY IT IS PINNED TO `cursor` AND NOT WRITTEN GENERICALLY. §7 names Cursor's cloud runtime
+ * specifically, and today it is the one host in the cohort that ships one. A loop over "every
+ * host with a cloud runtime" would need a SSOT field marking which hosts those are — a second
+ * classification no other gate reads, which is the duplicate-truth defect this repo keeps
+ * removing. When a second such host lands, the honest edit is to add it to `HOSTS` below.
+ *
+ * WHAT IT DOES NOT ASSERT. Not the exact sentence. The prose lives in the SSOT's
+ * `coverageBoundary` and may be rewritten; what may not vanish is the *subject* — that the
+ * cloud entrypoints are named, and that they are named as unobservable rather than as absent.
+ * §6's rule is that UNKNOWN is not SAFE; the page-level counterpart is that silence about a
+ * layer must not read as coverage of it.
+ */
+describe("new21 §7/§10.D — the cloud-entrypoint boundary is published, not only tested", () => {
+  const pageOf = (id: string) => read(`apps/web/public/harnesses/${id}/index.html`)
+  const HOSTS = ["cursor"] as const
+
+  /* Each subject §7 lists, with the spellings a reader would actually meet. A boundary that
+   * mentioned only "cloud" would leave the timer and event wakeups unrepresented. */
+  const SUBJECTS: ReadonlyArray<[string, RegExp]> = [
+    ["cloud agents", /cloud agents?/i],
+    ["background agents", /background agents?/i],
+    ["event wakeups", /\bwakeups?\b/i],
+    ["timer or cron execution", /\btimers?\b|\bcron\b/i],
+  ]
+
+  it("the hosts it names still exist, and carry a boundary at all (anti-vacuity premise)", () => {
+    expect(HOSTS.length).toBeGreaterThan(0)
+    for (const id of HOSTS) {
+      const host = ssot.hosts.find((h) => h.id === id)
+      expect(host, `new21 §7 names ${id} but the SSOT has no such host`).toBeDefined()
+      expect(host!.coverageBoundary, `${id} has no coverageBoundary to check`).toBeTruthy()
+    }
+  })
+
+  it("names every §7 cloud entrypoint in the SSOT boundary", () => {
+    const missing: string[] = []
+    for (const id of HOSTS) {
+      const boundary = ssot.hosts.find((h) => h.id === id)!.coverageBoundary
+      for (const [label, re] of SUBJECTS) {
+        if (!re.test(boundary)) missing.push(`${id}: ${label}`)
+      }
+    }
+    expect(
+      missing,
+      `§7 entrypoint(s) absent from the published coverage boundary: ${missing.join(", ")}`,
+    ).toEqual([])
+  })
+
+  it("states them as unobservable, not merely as out of scope", () => {
+    /* The load-bearing distinction, and the one §6 turns on. "Not covered" reads as a scope
+     * choice CallLint could reverse; UNSUPPORTED says the evidence does not exist to be read.
+     * Conflating them is how an unobservable layer comes to look like an unfinished feature. */
+    for (const id of HOSTS) {
+      const boundary = ssot.hosts.find((h) => h.id === id)!.coverageBoundary
+      expect(
+        /unsupported/i.test(boundary),
+        `${id}: the boundary does not name the UNSUPPORTED state, so a reader cannot tell an ` +
+          `unobservable layer from an unimplemented one`,
+      ).toBe(true)
+      expect(
+        /not statically observable|no deterministic static evidence/i.test(boundary),
+        `${id}: the boundary does not say why the layer is unobservable`,
+      ).toBe(true)
+    }
+  })
+
+  it("does not let the boundary read as SAFE (§6's rule, on the published surface)", () => {
+    for (const id of HOSTS) {
+      const boundary = ssot.hosts.find((h) => h.id === id)!.coverageBoundary
+      /* If SAFE appears at all it must be negated — the page-level form of UNKNOWN != SAFE. */
+      if (/\bSAFE\b/.test(boundary)) {
+        expect(
+          /(never|not|rather than)[^.]{0,40}\bSAFE\b/i.test(boundary),
+          `${id}: the boundary uses SAFE without negating it`,
+        ).toBe(true)
+      }
+    }
+  })
+
+  it("reaches the served page, not just the data file", () => {
+    /* The whole point. The SSOT is an input; a reader meets the rendered page. Asserted
+     * per-page rather than over a joined corpus, so one host regressing cannot hide behind
+     * another host's copy. */
+    const offenders: string[] = []
+    for (const id of HOSTS) {
+      const page = pageOf(id)
+      for (const [label, re] of SUBJECTS) {
+        if (!re.test(page)) offenders.push(`${id}: page omits ${label}`)
+      }
+      if (!/unsupported/i.test(page)) offenders.push(`${id}: page omits the UNSUPPORTED state`)
+    }
+    expect(
+      offenders,
+      `the §7 boundary did not reach the served page(s): ${offenders.join(", ")}`,
+    ).toEqual([])
   })
 })
