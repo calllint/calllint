@@ -1,7 +1,8 @@
+import { readFileSync } from "node:fs"
 import { describe, it, expect } from "vitest"
 import { resolveRuntimeBinding } from "@calllint/resolver"
 import { analyzeServerConfig } from "@calllint/static-analyzer"
-import type { NormalizedMcpServer } from "@calllint/types"
+import { FP_EFFECTS, type NormalizedMcpServer } from "@calllint/types"
 import { buildFingerprint, fingerprintHash } from "../src/extract/fingerprint.js"
 
 // ---------------------------------------------------------------------------
@@ -98,5 +99,42 @@ describe("fingerprint identity (ADR 0019)", () => {
     const known = fingerprintFor(server({ sourceConfigPath: ".cursor/mcp.json" }))
     expect(["known", "unknown"]).toContain(known.identity)
     expect(known.identity).not.toBe("verified")
+  })
+})
+
+// ---------------------------------------------------------------------------
+// FP_EFFECTS reachability (ADR 0005). FP_EFFECTS is the Effect layer of the
+// Authority Model v2 — it normalizes "different tools, same consequence". One of
+// its 9 members has no producer, and this pins that gap so it cannot be closed
+// silently: `effects` feeds fingerprintHash(), so emitting `messaging` would
+// change the L1 hash of every messaging server. That needs its own ADR.
+// ---------------------------------------------------------------------------
+describe("FP_EFFECTS reachability (ADR 0005)", () => {
+  /** The members `deriveEffects()` can actually emit, read from its source. */
+  const reachable = (): Set<string> => {
+    const src = readFileSync(new URL("../src/extract/fingerprint.ts", import.meta.url), "utf8")
+    const fn = src.slice(src.indexOf("function deriveEffects"))
+    const body = fn.slice(0, fn.indexOf("\n}"))
+    return new Set([...body.matchAll(/effects\.add\("([a-z_]+)"\)/g)].map((m) => m[1] ?? ""))
+  }
+
+  it("the reader observes its subject — it finds known emitters", () => {
+    const got = reachable()
+    expect(got.has("payment")).toBe(true)
+    expect(got.has("network_egress")).toBe(true)
+    expect(got.size).toBeGreaterThan(1)
+  })
+
+  it("8 of the 9 members are reachable; `messaging` is a KNOWN GAP, not correct", () => {
+    const got = reachable()
+    const unreachable = FP_EFFECTS.filter((e) => !got.has(e))
+    // Not an endorsement. If you add the emitter, this test SHOULD fail — read
+    // ADR 0005 first: closing it changes shipped L1 fingerprints.
+    expect(unreachable).toEqual(["messaging"])
+    expect(got.size).toBe(FP_EFFECTS.length - 1)
+  })
+
+  it("every reachable member is a declared FP_EFFECTS value (no invented effect)", () => {
+    for (const e of reachable()) expect(FP_EFFECTS).toContain(e)
   })
 })

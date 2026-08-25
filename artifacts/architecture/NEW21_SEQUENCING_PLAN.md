@@ -5,9 +5,13 @@
   `docs/` is gitignored (`.gitignore:44`), so the proposal is not in version control; this
   file and [ADR 0004](../adr/0004-authority-v2-reality-mapping.md) are its tracked record.
 - **Reality mapping:** [ADR 0004](../adr/0004-authority-v2-reality-mapping.md) — read it
-  first. It measures which layers already ship.
-- **Status: not started, and deliberately not urgent.** §10.A requires that existing scans
-  produce identical verdicts, so nothing shipped is wrong today.
+  first. It measures which layers already ship. **Its Effect row is corrected by
+  [ADR 0005](../adr/0005-authority-layers-vocabulary.md):** Effect is not absent, it ships as
+  `FP_EFFECTS`. Four of five layers ship, not three.
+- **Status: LANDED** (2026-08-25, branch `feat/authority-v2-vocabulary`). Steps 0–4 are all
+  closed; the decision each one needed is recorded in
+  [ADR 0005](../adr/0005-authority-layers-vocabulary.md). §10.A held — full suite 4869 pass,
+  no golden fixture moved, no verdict changed.
 
 ## Why this is a plan and not a phase
 
@@ -42,11 +46,17 @@ member is this name.
 
 ## Sequence
 
-### Step 0 — settle the name
+### Step 0 — settle the name — **DONE: `entrypoint`**
 
-The table above, decided. No code.
+Option 1 taken (ADR 0005, Decision 1). The shipped `TRIGGER_IDS` are untouched, and the two
+vocabularies are now asserted disjoint in `packages/types/test/authority-layers.test.ts`, so
+Option 3 (coexistence) is closed off executably rather than by convention.
 
-### Step 1 — `AuthorityLayer` as vocabulary only, with no field to hang it on yet
+### Step 1 — `AuthorityLayer` as vocabulary only, with no field to hang it on yet — **DONE**
+
+Landed in `packages/types/src/authority.ts`: `AUTHORITY_LAYERS` / `AuthorityLayer`,
+`AUTHORITY_LAYER_STATES` / `AuthorityLayerState`, and `authorityLayerVerdictFloor()`. No
+field, no record, no schema change — as the analysis below concluded.
 
 new21 §5 correctly forbids `TriggerFinding` / `IdentityFinding` / etc. as premature detector
 taxonomy. It then proposes `AuthorityObservation` as a new record. ADR 0004's measurement says
@@ -90,7 +100,20 @@ to.
 Acceptance: §10.A and §10.B — identical verdicts, no detector count increase. A type-only
 export cannot change either, so this step is verified by `pnpm test` passing unchanged.
 
-### Step 2 — the mapping test (new21 Phase B)
+### Step 2 — the mapping test (new21 Phase B) — **DONE, with one row corrected**
+
+`packages/types/test/authority-layers.test.ts`, 18 tests. Every row below landed **except**
+the `effect` row, which was written wrong here: it said Effect has no producer. It does —
+`FP_EFFECTS`. See ADR 0005 Decision 3; the shipped test asserts the vocabulary exists and that
+no `effect` field has been bound to `AuthorityCapability`.
+
+Four negative controls were run against the shipped test (each broke the tree, went red, and
+was reverted): a 6th layer member, `process` renamed, an `effect` field added to
+`AuthorityCapability`, and a `TRIGGER_IDS` id renamed. A fifth control covers the
+`FP_EFFECTS` gap test in `packages/core`. The first draft of the "layer states and verdicts
+are disjoint" row **failed on the real tree** — `unknown` is deliberately shared with the
+`UNKNOWN` verdict, and that shared name *is* the floor rule — so the assertion was narrowed to
+what it should always have said: `unsupported` must not become a verdict.
 
 Pin ADR 0004's mapping table so it cannot drift silently. This is the highest-value part of
 the proposal and the cheapest: it is a pure unit test over closed vocabularies that already
@@ -131,7 +154,12 @@ a negative control (injecting a fake `"smuggled"` resource into a *copy* of `aut
 turned the grid assertion red as it should. A vocabulary count that agrees with the doc is not
 evidence the counter works.
 
-### Step 3 — `UNSUPPORTED`, the only new state (new21 Phase C)
+### Step 3 — `UNSUPPORTED`, the only new state (new21 Phase C) — **DONE**
+
+Landed as `unsupported` in `AUTHORITY_LAYER_STATES`, with `authorityLayerVerdictFloor()`
+giving §6 an executable home. Both guardrails below are asserted: `VERDICTS` still has exactly
+four members, and the floor is tested through `VERDICT_SEVERITY` composition (including that it
+can only *raise* severity — `BLOCK` stays `BLOCK`), not against a hard-coded constant.
 
 `UNSUPPORTED` appears **0 times** in `packages/types/src` (measured). It is genuinely new,
 and it is the part of new21 worth having: Cursor's cloud triggers, GitHub-event wakeups, cron
@@ -152,12 +180,30 @@ Regression shape, per §6: an unsupported runtime authority must not read as SAF
 existing `VERDICT_SEVERITY` already puts `UNKNOWN` (2) above `REVIEW` (1) for exactly this
 reason, so the test asserts the composition, not the constant.
 
-### Step 4 — Effect stays deferred
+### Step 4 — Effect — **this step's premise was false**
 
-The one layer where the proposal and the tree already agree: §5 marks Effect `RESERVED` and
-its inference `DEFERRED`, and nothing in the repo normalizes "different tools, same
-consequence" (0 hits for `AuthorityEffect` / `EffectClass` / `normalizedEffect`). No work.
-Recorded so a later reader does not mistake the absence for an oversight.
+This step said: nothing normalizes "different tools, same consequence" (0 hits for
+`AuthorityEffect` / `EffectClass` / `normalizedEffect`), so no work.
+
+**The grep searched for names nothing uses.** `FP_EFFECTS`
+(`packages/types/src/fingerprint.ts`) is a closed 9-member normalized effect vocabulary, and
+`deriveEffects()` (`packages/core/src/extract/fingerprint.ts:109`) populates it by mapping
+`RiskSymbol` findings onto coarse consequences — `MONEY → payment`, `NETWORK →
+network_egress`. That is exactly §Layer 5's purpose, and it is load-bearing: `effects` feeds
+the L1 `fingerprintHash()`.
+
+So the same fault this plan warns about two sections up (an instrument that cannot see its
+subject reports absence) was present in the plan itself. Corrected in ADR 0005 Decision 3.
+
+What is actually deferred is narrower: the **binding** from `AuthorityCapability` to an
+effect. `FP_EFFECTS` hangs off findings in the fingerprint, not off the authority manifest.
+That stays `RESERVED`/`DEFERRED` and the mapping test asserts no `effect` field has appeared.
+
+**One real gap found while measuring, deliberately not fixed:** `FP_EFFECTS` member
+`"messaging"` has no producer — `ACTION` maps to `external_mutation_unknown`, and the string
+occurs once in the tree, at its own declaration. Adding the emitter would change the L1
+fingerprint of every messaging server, which is ADR-gated. Pinned at 8-of-9 reachable in
+`packages/core/test/extract-fingerprint.test.ts` so it cannot be closed silently.
 
 ## What this plan refuses to do
 
@@ -172,7 +218,7 @@ and need no restatement. The addition measured here:
 
 ## Where this sits against current work
 
-Not on the critical path of anything open. PR #333 (`feat/distribution-discovery-closure`) is
-distribution work; folding an authority-model change into it would mix a semantic-model
-evolution with a shelf-manifest batch. This lands as its own branch and its own ADR, after
-Step 0.
+Landed as its own branch (`feat/authority-v2-vocabulary`) and its own ADR, as planned —
+**stacked on** `feat/distribution-discovery-closure` rather than branched from `main`, because
+ADR 0004 and this plan are both still unmerged in PR #333. It touches no file that PR touches.
+Once #333 merges, this rebases onto `main` cleanly.

@@ -173,3 +173,74 @@ export interface AuthorityManifest {
 }
 
 export const AUTHORITY_SCHEMA_VERSION = "calllint.authority.v0" as const
+
+/* ------------------------------------------------------------------------- *
+ * Authority Model v2 — semantic overlay (ADR 0005)
+ * ------------------------------------------------------------------------- */
+
+/**
+ * The five layers of the authority chain: *someone* (identity) can *start
+ * something* (entrypoint) that *runs somewhere* (execution) using *capabilities*
+ * (tool) creating *consequences* (effect).
+ *
+ * This is **vocabulary only** — a semantic overlay over shipped constructs, not a
+ * new record type and not a detector taxonomy. The legacy
+ * `host/server/tool/action/inbox` model remains the implementation source.
+ * Nothing in this enum changes a verdict; no field carries it.
+ *
+ * Which shipped construct realizes each layer (measured against `HEAD`
+ * 2026-08-25 — ADR 0005 corrects ADR 0004's Effect row):
+ *
+ * | layer        | realized by                                                    |
+ * | ------------ | -------------------------------------------------------------- |
+ * | `identity`   | {@link TRUST_SOURCES} — provenance of the authority (ADR 0041)  |
+ * | `entrypoint` | **nothing** — cloud/event wakeups are not statically observable |
+ * | `execution`  | {@link AUTHORITY_RESOURCES} `process`/`filesystem`/`configuration` + {@link AuthorityCapability.scope} |
+ * | `tool`       | {@link AuthorityCapability} itself (`action × resource`)        |
+ * | `effect`     | `FP_EFFECTS` (./fingerprint.ts), derived from finding symbols   |
+ *
+ * `entrypoint` is deliberately NOT named `trigger`: `TRIGGER_IDS` in
+ * `@calllint/agent-triggers` is a shipped, ADR-protected term for an
+ * authority-*expanding operation* that should preflight (`grant-shell-exec`), a
+ * different subject from *what event started the agent* (a GitHub PR, cron). The
+ * two vocabularies are disjoint and must stay so — see ADR 0005.
+ *
+ * Extending this enum is an ADR-gated change, as with its sibling vocabularies.
+ */
+export const AUTHORITY_LAYERS = ["identity", "entrypoint", "execution", "tool", "effect"] as const
+export type AuthorityLayer = (typeof AUTHORITY_LAYERS)[number]
+
+/**
+ * How well a given layer is *observable* for a subject. This is NOT a verdict and
+ * NOT `supportClass` (`NATIVE`/`CONFIG_SCAN`/`DISCOVERY_ONLY`/`DEFERRED`, which
+ * describes host *distribution* support — same English word, different subject).
+ *
+ * - `observed`    → deterministic static evidence exists.
+ * - `unknown`     → could not be established from the shipped signals.
+ * - `unsupported` → **not statically observable in principle**, by anything this
+ *   product does: cloud-managed authority (a Cursor Cloud Agent subscription, a
+ *   GitHub-event wakeup, a Slack trigger, a platform cron). Naming it is more
+ *   honest than silence — CallLint is a static analyzer, not a control plane.
+ *
+ * Both non-`observed` states are fail-safe: neither may read as SAFE
+ * (Product Principle 2 / new21 §6). See {@link authorityLayerVerdictFloor}.
+ */
+export const AUTHORITY_LAYER_STATES = ["observed", "unknown", "unsupported"] as const
+export type AuthorityLayerState = (typeof AUTHORITY_LAYER_STATES)[number]
+
+/**
+ * The floor a layer's observability puts under a verdict: an unobservable layer
+ * can never read as SAFE, it reads as UNKNOWN — which `VERDICT_SEVERITY` already
+ * ranks above REVIEW so "insufficient evidence" is not softened into "have a look".
+ *
+ * `observed` contributes **no** floor (`SAFE`): observing a layer says only that we
+ * could see it, never that it is safe. The deterministic policy decides that.
+ *
+ * Composes with `mostSevereVerdict` — it can only raise severity, never lower it.
+ * Nothing in the scan pipeline calls this yet (no producer emits layer states), so
+ * it changes no shipped verdict; it exists so that when a producer lands it binds
+ * to this rule instead of reinventing it.
+ */
+export function authorityLayerVerdictFloor(state: AuthorityLayerState): "SAFE" | "UNKNOWN" {
+  return state === "observed" ? "SAFE" : "UNKNOWN"
+}
