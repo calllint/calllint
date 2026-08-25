@@ -422,28 +422,52 @@ describe("the DeepSeek landing page cards every host, from the SSOT", () => {
     /* The counterpart to the decoding above, and not redundant with it: a page that emitted
      * `<path>` raw would let the browser swallow it as an unknown tag, so the visitor reads
      * `calllint scan --config` — a command that is missing its argument and would fail. This is
-     * the same defect `describeSupportMix`'s `format` parameter exists to prevent. */
-    const withPlaceholder = ssot.hosts.flatMap((h) =>
-      (h.truthfulCommands ?? []).filter((c) => c.includes("<")),
-    )
+     * the same defect `describeSupportMix`'s `format` parameter exists to prevent.
+     *
+     * THE SUBJECT MOVED, THE HAZARD DID NOT. This test used to read the placeholder out of
+     * `truthfulCommands`, where `opencode`'s `calllint scan --config <path>` was the only
+     * instance. Opencode became NATIVE on 2026-08-25 and its command became `--agent opencode`,
+     * so that cohort is now EMPTY and the assertion went vacuous — it reported a checkmark over
+     * zero placeholders while both writers that can emit one were still unguarded. Waiting for
+     * the next placeholder-carrying command to re-arm it is the dominant fault class in this
+     * repo, so the subject is taken where it lives today and manufactured where it does not:
+     *
+     *   arm 1  the cohort sentence's `--agent <id>` — a real placeholder, really rendered,
+     *          from `describeSupportMix(hosts, 'html')`. Cannot go empty: the sentence is
+     *          asserted present first, and `native > 0` on any shipped SSOT.
+     *   arm 2  the card writer, read as source. No SSOT command carries a placeholder today,
+     *          so no emitted byte can witness this; what is asserted instead is that
+     *          `hostSupportCell`'s output is still passed through `escapeHtml` on its way into
+     *          the card. That is the "does the generator still write it?" layer the docblock
+     *          above says the drift check cannot answer. */
+    const sentence = page.match(/CallLint tracks \d+ agent harnesses:[^.]*\./)
+    expect(sentence, "the cohort sentence is gone — arm 1 has no subject").not.toBeNull()
     expect(
-      withPlaceholder.length,
-      "no command carries a placeholder — this control is vacuous",
-    ).toBeGreaterThan(0)
+      sentence![0],
+      "the cohort sentence's `--agent <id>` is printed with raw angle brackets — the browser " +
+        "will eat the argument and the reader sees `--agent `",
+    ).toContain("<code>--agent &lt;id&gt;</code>")
+    expect(sentence![0], "a raw `<id>` survived into the cohort sentence").not.toContain("<id>")
 
-    for (const cmd of withPlaceholder) {
-      const escaped = cmd.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
-      // Asserted inside the card element specifically. A page-wide `not.toContain(cmd)` was
-      // satisfied by an unrelated occurrence in the cohort sentence, so the mutation that
-      // un-escaped this very command left the test green — the guard could not see its subject.
-      expect(page, `${cmd} has no card — this assertion has no subject`).toContain(
-        `<code class="small">${escaped}</code>`,
-      )
-      expect(
-        page,
-        `${cmd} is printed with raw angle brackets — the browser will eat the argument`,
-      ).not.toContain(`<code class="small">${cmd}</code>`)
-    }
+    const gen = read(GENERATOR_PATH)
+    const start = gen.indexOf("function buildDeepSeekLanding")
+    expect(start, "buildDeepSeekLanding is gone from the generator").toBeGreaterThan(-1)
+    const body = gen.slice(start, gen.indexOf("\n}\n", start))
+    // Comments off first, for the reason the counts test above records: an assertion that
+    // greps its own rationale stays green when the code it describes is deleted.
+    const code = body
+      .replace(/\/\*[\s\S]*?\*\//g, "")
+      .split("\n")
+      .map((line) => {
+        const i = line.indexOf("//")
+        return i === -1 ? line : line.slice(0, i)
+      })
+      .join("\n")
+    expect(
+      code,
+      "the card writer no longer escapes `hostSupportCell`'s output — the next command with a " +
+        "placeholder in it will be printed raw and lose its argument in the browser",
+    ).toContain("escapeHtml(hostSupportCell(host))")
   })
 
   it("renders the cohort sentence in its HTML form, not its Markdown form", () => {

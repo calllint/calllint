@@ -6,7 +6,7 @@
     <title>Gemini CLI — CallLint Support</title>
     <meta
       name="description"
-      content="CallLint support for Gemini CLI (Google). CallLint does not yet support Gemini CLI native discovery."
+      content="CallLint support for Gemini CLI (Google). CallLint scans the mcpServers map in Gemini CLI settings. OAuth token and server-enablement files are read for neither discovery nor verdicts."
     />
     <link rel="canonical" href="https://calllint.com/harnesses/gemini-cli/" />
     <link rel="icon" href="/favicon.png" type="image/png" />
@@ -41,11 +41,11 @@
           <h1>Gemini CLI</h1>
           <p class="doc-lede">
             CallLint support for <strong>Gemini CLI</strong> by Google.
-            <span class="coverage-note">CallLint does not yet support Gemini CLI native discovery.</span>
+            <span class="coverage-note">CallLint scans the mcpServers map in Gemini CLI settings. OAuth token and server-enablement files are read for neither discovery nor verdicts.</span>
           </p>
           <div class="host-meta">
             <span class="badge badge-P2">P2</span>
-            <span class="badge badge-DEFERRED" title="Support is not implemented yet — this page documents what we can observe today.">Guide only</span>
+            <span class="badge badge-NATIVE" title="CallLint finds this host’s config on its own.">Auto-detects</span>
           </div>
         </header>
 
@@ -56,12 +56,22 @@
 
         <section id="usage" class="doc-section">
           <h2>Usage</h2>
-          <p>
-            CallLint does not yet support native auto-discovery for Gemini CLI.
-            Support is not implemented yet — this page documents what we can observe today.
-          </p>
+          <p>CallLint can auto-discover and scan Gemini CLI configurations:</p>
+          <pre><code>calllint scan --agent gemini-cli</code></pre>
         </section>
 
+        <section id="start" class="doc-section">
+          <h2>How to start</h2>
+          <p>Install nothing globally — run CallLint straight from npm:</p>
+          <pre><code>npx calllint scan --auto</code></pre>
+          <p>Then scan Gemini CLI specifically:</p>
+          <pre><code>calllint scan --agent gemini-cli</code></pre>
+        </section>
+
+        <section id="verify" class="doc-section">
+          <h2>How to verify it worked</h2>
+          <p>Read the credential findings first. Gemini CLI keeps server registration in the same settings file as its own auth, so an entry that carries env keys is asking for authority the agent can spend later without asking again.</p>
+        </section>
 
         <section id="trust" class="doc-section">
           <h2>What CallLint does to Gemini CLI</h2>
@@ -78,7 +88,8 @@
           <h2>Configuration Paths</h2>
           <p>CallLint looks for Gemini CLI configurations in:</p>
           <ul>
-            <li><code>~/.gemini/config.json or similar</code></li>
+            <li><code>~/.gemini/settings.json</code></li>
+            <li><code>&lt;project&gt;/.gemini/settings.json</code></li>
           </ul>
         </section>
 
@@ -111,12 +122,11 @@
         <section id="status" class="doc-section">
           <h2>Support Status</h2>
           <p>
-            <strong>Guide only</strong> — Support is not implemented yet — this page documents what we can observe today.
+            <strong>Auto-detects</strong> — CallLint finds this host’s config on its own.
           </p>
           <p>
-            CallLint publishes no scan command for Gemini CLI yet. That is a statement
-            about CallLint's coverage, not about Gemini CLI: see
-            <a href="#coverage">Coverage Boundary</a> for what would have to be built first.
+            The commands under <a href="#usage">Usage</a> are the ones CallLint actually
+            supports for Gemini CLI today. Anything not listed there is not claimed.
           </p>
         </section>
 
@@ -129,7 +139,7 @@
 
         <section id="coverage" class="doc-section coverage-boundary">
           <h2>Coverage Boundary</h2>
-          <p class="boundary-text">CallLint does not yet support Gemini CLI native discovery.</p>
+          <p class="boundary-text">CallLint scans the mcpServers map in Gemini CLI settings. OAuth token and server-enablement files are read for neither discovery nor verdicts.</p>
         </section>
       </article>
 

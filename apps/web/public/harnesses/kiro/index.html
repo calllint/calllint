@@ -6,7 +6,7 @@
     <title>Kiro — CallLint Support</title>
     <meta
       name="description"
-      content="CallLint support for Kiro (AWS). CallLint does not yet support Kiro native discovery."
+      content="CallLint support for Kiro (AWS). CallLint scans MCP server entries in Kiro settings. Kiro steering files and hooks are not covered."
     />
     <link rel="canonical" href="https://calllint.com/harnesses/kiro/" />
     <link rel="icon" href="/favicon.png" type="image/png" />
@@ -41,11 +41,11 @@
           <h1>Kiro</h1>
           <p class="doc-lede">
             CallLint support for <strong>Kiro</strong> by AWS.
-            <span class="coverage-note">CallLint does not yet support Kiro native discovery.</span>
+            <span class="coverage-note">CallLint scans MCP server entries in Kiro settings. Kiro steering files and hooks are not covered.</span>
           </p>
           <div class="host-meta">
             <span class="badge badge-P2">P2</span>
-            <span class="badge badge-DEFERRED" title="Support is not implemented yet — this page documents what we can observe today.">Guide only</span>
+            <span class="badge badge-NATIVE" title="CallLint finds this host’s config on its own.">Auto-detects</span>
           </div>
         </header>
 
@@ -56,12 +56,22 @@
 
         <section id="usage" class="doc-section">
           <h2>Usage</h2>
-          <p>
-            CallLint does not yet support native auto-discovery for Kiro.
-            Support is not implemented yet — this page documents what we can observe today.
-          </p>
+          <p>CallLint can auto-discover and scan Kiro configurations:</p>
+          <pre><code>calllint scan --agent kiro</code></pre>
         </section>
 
+        <section id="start" class="doc-section">
+          <h2>How to start</h2>
+          <p>Install nothing globally — run CallLint straight from npm:</p>
+          <pre><code>npx calllint scan --auto</code></pre>
+          <p>Then scan Kiro specifically:</p>
+          <pre><code>calllint scan --agent kiro</code></pre>
+        </section>
+
+        <section id="verify" class="doc-section">
+          <h2>How to verify it worked</h2>
+          <p>Scan the project config as well as the user one. &#x60;.kiro/settings/mcp.json&#x60; travels with the repository, so a server entry there was authored by whoever last pushed — not necessarily by you.</p>
+        </section>
 
         <section id="trust" class="doc-section">
           <h2>What CallLint does to Kiro</h2>
@@ -78,7 +88,7 @@
           <h2>Configuration Paths</h2>
           <p>CallLint looks for Kiro configurations in:</p>
           <ul>
-            <li><code>.kiro/settings/mcp.json</code></li>
+            <li><code>&lt;project&gt;/.kiro/settings/mcp.json</code></li>
             <li><code>~/.kiro/settings/mcp.json</code></li>
           </ul>
         </section>
@@ -113,12 +123,11 @@
         <section id="status" class="doc-section">
           <h2>Support Status</h2>
           <p>
-            <strong>Guide only</strong> — Support is not implemented yet — this page documents what we can observe today.
+            <strong>Auto-detects</strong> — CallLint finds this host’s config on its own.
           </p>
           <p>
-            CallLint publishes no scan command for Kiro yet. That is a statement
-            about CallLint's coverage, not about Kiro: see
-            <a href="#coverage">Coverage Boundary</a> for what would have to be built first.
+            The commands under <a href="#usage">Usage</a> are the ones CallLint actually
+            supports for Kiro today. Anything not listed there is not claimed.
           </p>
         </section>
 
@@ -132,7 +141,7 @@
 
         <section id="coverage" class="doc-section coverage-boundary">
           <h2>Coverage Boundary</h2>
-          <p class="boundary-text">CallLint does not yet support Kiro native discovery.</p>
+          <p class="boundary-text">CallLint scans MCP server entries in Kiro settings. Kiro steering files and hooks are not covered.</p>
         </section>
       </article>
 

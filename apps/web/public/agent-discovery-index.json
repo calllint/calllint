@@ -39,8 +39,8 @@
           "cline"
         ],
         "bySupportClass": {
-          "NATIVE": 3,
-          "DISCOVERY_ONLY": 2
+          "NATIVE": 4,
+          "DISCOVERY_ONLY": 1
         }
       },
       "tier1": {
@@ -55,9 +55,8 @@
           "roo-code"
         ],
         "bySupportClass": {
-          "NATIVE": 1,
-          "DEFERRED": 3,
-          "CONFIG_SCAN": 1,
+          "NATIVE": 3,
+          "DEFERRED": 2,
           "DISCOVERY_ONLY": 1
         }
       },
@@ -70,8 +69,7 @@
           "deepseek-harness"
         ],
         "bySupportClass": {
-          "NATIVE": 1,
-          "DEFERRED": 1,
+          "NATIVE": 2,
           "DISCOVERY_ONLY": 1
         }
       },
@@ -444,8 +442,8 @@
       "type": "agent-harness",
       "displayName": "OpenAI Codex",
       "vendor": "OpenAI",
-      "status": "Guide only",
-      "supportClass": "DISCOVERY_ONLY",
+      "status": "Auto-detects",
+      "supportClass": "NATIVE",
       "canonicalUrl": "https://calllint.com/harnesses/codex",
       "describedBy": "https://calllint.com/harnesses/codex",
       "capabilities": [
@@ -456,10 +454,12 @@
         "plugins"
       ],
       "calllintSupport": {
-        "supportClass": "DISCOVERY_ONLY",
-        "label": "Guide only",
-        "commands": [],
-        "coverageBoundary": "CallLint does not yet auto-discover Codex configuration. The config path is documented but no extractor reads TOML, so Codex servers must be passed explicitly."
+        "supportClass": "NATIVE",
+        "label": "Auto-detects",
+        "commands": [
+          "calllint scan --agent codex"
+        ],
+        "coverageBoundary": "CallLint reads the mcp_servers table from Codex TOML config. Other Codex settings in the same file are not interpreted."
       },
       "distribution": [
         {
@@ -474,10 +474,10 @@
         }
       ],
       "discovery": {
-        "autoDetected": false,
+        "autoDetected": true,
         "configPaths": [
           "~/.codex/config.toml",
-          "$CODEX_HOME/config.toml"
+          "<project>/.codex/config.toml"
         ]
       },
       "officialSources": [
@@ -576,8 +576,8 @@
       "type": "agent-harness",
       "displayName": "Gemini CLI",
       "vendor": "Google",
-      "status": "Guide only",
-      "supportClass": "DEFERRED",
+      "status": "Auto-detects",
+      "supportClass": "NATIVE",
       "canonicalUrl": "https://calllint.com/harnesses/gemini-cli",
       "describedBy": "https://calllint.com/harnesses/gemini-cli",
       "capabilities": [
@@ -585,10 +585,12 @@
         "tools"
       ],
       "calllintSupport": {
-        "supportClass": "DEFERRED",
-        "label": "Guide only",
-        "commands": [],
-        "coverageBoundary": "CallLint does not yet support Gemini CLI native discovery."
+        "supportClass": "NATIVE",
+        "label": "Auto-detects",
+        "commands": [
+          "calllint scan --agent gemini-cli"
+        ],
+        "coverageBoundary": "CallLint scans the mcpServers map in Gemini CLI settings. OAuth token and server-enablement files are read for neither discovery nor verdicts."
       },
       "distribution": [
         {
@@ -603,9 +605,10 @@
         }
       ],
       "discovery": {
-        "autoDetected": false,
+        "autoDetected": true,
         "configPaths": [
-          "~/.gemini/config.json or similar"
+          "~/.gemini/settings.json",
+          "<project>/.gemini/settings.json"
         ]
       },
       "officialSources": [
@@ -658,8 +661,8 @@
       "type": "agent-harness",
       "displayName": "OpenCode",
       "vendor": "Open Source",
-      "status": "Scan config",
-      "supportClass": "CONFIG_SCAN",
+      "status": "Auto-detects",
+      "supportClass": "NATIVE",
       "canonicalUrl": "https://calllint.com/harnesses/opencode",
       "describedBy": "https://calllint.com/harnesses/opencode",
       "capabilities": [
@@ -667,12 +670,12 @@
         "tools"
       ],
       "calllintSupport": {
-        "supportClass": "CONFIG_SCAN",
-        "label": "Scan config",
+        "supportClass": "NATIVE",
+        "label": "Auto-detects",
         "commands": [
-          "calllint scan --config <path>"
+          "calllint scan --agent opencode"
         ],
-        "coverageBoundary": "Config path auto-discovery not yet supported. Schema generation ambiguity must be handled deterministically."
+        "coverageBoundary": "CallLint scans local and remote servers under the root mcp key. {env:VAR} placeholders are recorded unresolved, never expanded against the host environment."
       },
       "distribution": [
         {
@@ -682,9 +685,11 @@
         }
       ],
       "discovery": {
-        "autoDetected": false,
+        "autoDetected": true,
         "configPaths": [
-          "Documented config paths require verification"
+          "~/.config/opencode/opencode.json",
+          "<project>/opencode.json",
+          "<project>/opencode.jsonc"
         ]
       },
       "officialSources": [
@@ -696,8 +701,8 @@
       "type": "agent-harness",
       "displayName": "Kiro",
       "vendor": "AWS",
-      "status": "Guide only",
-      "supportClass": "DEFERRED",
+      "status": "Auto-detects",
+      "supportClass": "NATIVE",
       "canonicalUrl": "https://calllint.com/harnesses/kiro",
       "describedBy": "https://calllint.com/harnesses/kiro",
       "capabilities": [
@@ -706,10 +711,12 @@
         "shell"
       ],
       "calllintSupport": {
-        "supportClass": "DEFERRED",
-        "label": "Guide only",
-        "commands": [],
-        "coverageBoundary": "CallLint does not yet support Kiro native discovery."
+        "supportClass": "NATIVE",
+        "label": "Auto-detects",
+        "commands": [
+          "calllint scan --agent kiro"
+        ],
+        "coverageBoundary": "CallLint scans MCP server entries in Kiro settings. Kiro steering files and hooks are not covered."
       },
       "distribution": [
         {
@@ -723,9 +730,9 @@
         }
       ],
       "discovery": {
-        "autoDetected": false,
+        "autoDetected": true,
         "configPaths": [
-          ".kiro/settings/mcp.json",
+          "<project>/.kiro/settings/mcp.json",
           "~/.kiro/settings/mcp.json"
         ]
       },

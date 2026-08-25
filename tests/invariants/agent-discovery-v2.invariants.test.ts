@@ -563,11 +563,24 @@ describe("§6 — the coverage index publishes the obligation, not just the coun
      * first — it is what keeps a fully-covered tier from reading as a fully-supported one.
      * If a later change would take DISCOVERY_ONLY to 0, do NOT simply retune the number:
      * at that point tier0 IS fully supported, and this test's premise has to be rewritten
-     * rather than rebalanced. */
+     * rather than rebalanced.
+     *
+     * UPDATED 2026-08-25 (3/2 -> 4/1): codex became NATIVE once `parseConfigText` learned
+     * to dispatch TOML — before that `--agent codex` and `--auto` both died on the real
+     * `~/.codex/config.toml`. Checked against the instruction above rather than around it:
+     * DISCOVERY_ONLY is 1, not 0 (`copilot-cli`), so tier0 is still NOT fully supported and
+     * the premise holds. The remaining margin is one host, so the second assertion is now
+     * ALSO written as a > 0 claim: if the next promotion empties the class, that reds with
+     * the reason attached instead of inviting another retune. */
     const t0 = cov!.byTier.tier0!
     expect(t0.present).toBe(t0.required)
-    expect(t0.bySupportClass.NATIVE).toBe(3)
-    expect(t0.bySupportClass.DISCOVERY_ONLY).toBe(2)
+    expect(t0.bySupportClass.NATIVE).toBe(4)
+    expect(t0.bySupportClass.DISCOVERY_ONLY).toBe(1)
+    expect(
+      t0.bySupportClass.DISCOVERY_ONLY ?? 0,
+      "tier0 is now entirely NATIVE, so 'fully covered' and 'fully supported' have collapsed " +
+        "into the same claim — rewrite this test's premise (see the note above), do not retune",
+    ).toBeGreaterThan(0)
     /* No boolean anywhere in the block that a consumer could read as "verified". */
     const json = JSON.stringify(cov)
     expect(json).not.toMatch(/"verified"|"unverified"|"supported":/)
@@ -705,22 +718,54 @@ describe("§22 truth / §23 NC-05 — a support claim requires a shipped mechani
 describe("§22 harness representation", () => {
   it("represents Codex truthfully — present, first-class, and not overclaimed", () => {
     /* §22 asks that Codex be "represented correctly", which is NOT the same as NATIVE.
-     * Measured: codex is DISCOVERY_ONLY with zero commands, while ALSO being an AgentType
-     * member. That asymmetry is the interesting fact and is pinned deliberately: having a
-     * registered type does not license a support claim, so a future edit cannot quietly
-     * promote codex to NATIVE by pointing at types.ts. Promotion requires a bootstrapped
-     * extractor and a `--agent codex` command, which HD-01 then enforces. */
+     *
+     * This pinned DISCOVERY_ONLY until 2026-08-25, when codex became genuinely NATIVE:
+     * `CodexExtractor` is bootstrapped, `parseConfigText` now dispatches TOML (it did not,
+     * so `--agent codex` and `--auto` both died on `Invalid JSON: Unexpected token a`), and
+     * `--agent codex` was measured reading a real `~/.codex/config.toml`. The old comment
+     * named exactly that bar — "promotion requires a bootstrapped extractor and a `--agent
+     * codex` command, which HD-01 then enforces" — so this updates the label the fact
+     * changed under, and keeps the claim the test exists to make.
+     *
+     * THE INVARIANT IS UNCHANGED AND IS ASSERTED BELOW, not deleted: AgentType membership
+     * still does not license a support claim. It is now pinned on a host that HAS a
+     * registered type and is deliberately NOT NATIVE, which is a live example rather than
+     * codex's former one — so a future edit still cannot promote a host by pointing at
+     * types.ts alone. */
     const codex = SSOT.hosts.find((h) => h.id === "codex")
     expect(codex, "codex is absent from the host cohort").toBeDefined()
     expect(codex!.vendor).toBe("OpenAI")
-    expect(codex!.supportClass).toBe("DISCOVERY_ONLY")
-    expect(codex!.truthfulCommands, "codex advertises a command it cannot honour").toEqual([])
+    expect(codex!.supportClass).toBe("NATIVE")
+    expect(
+      codex!.truthfulCommands,
+      "codex is NATIVE, so it must advertise the command HD-01 requires",
+    ).toEqual(["calllint scan --agent codex"])
     expect(registeredTypes.has("codex"), "codex is not an AgentType member").toBe(true)
+
+    /* The asymmetry codex used to carry, re-pinned where it is still true. Measured
+     * 2026-08-25: all 13 bootstrapped extractors are NATIVE hosts, one-to-one — so "a host
+     * with a type but no support" no longer exists. The asymmetry survives in a different
+     * shape: `amazon-q`, `antigravity` and `amp` are AgentType members with NO host record
+     * and no extractor at all. Membership in that union is therefore still not a support
+     * claim, and a future edit that promotes one on type membership alone reds here. */
+    const typeOnly = [...registeredTypes].filter((t) => !SSOT.hosts.some((h) => h.id === t))
+    expect(
+      typeOnly.length,
+      "every AgentType member now has a host record, so this test can no longer show that " +
+        "membership alone does not license a support claim — re-pin it on a real case",
+    ).toBeGreaterThan(0)
+    for (const id of typeOnly) {
+      expect(
+        SSOT.hosts.some((h) => h.truthfulCommands.includes(`calllint scan --agent ${id}`)),
+        `${id} is an AgentType member with no host record, yet some host advertises ` +
+          `\`--agent ${id}\` — a command for a harness CallLint does not claim to support`,
+      ).toBe(false)
+    }
 
     const surface = INDEX.surfaces.find((s) => s.id === "codex")
     expect(surface?.type).toBe("agent-harness")
-    expect(surface?.status, "the public label leaked the internal enum").toBe("Guide only")
-    expect(surface?.supportClass).toBe("DISCOVERY_ONLY")
+    expect(surface?.status, "the public label leaked the internal enum").toBe("Auto-detects")
+    expect(surface?.supportClass).toBe("NATIVE")
   })
 
   it("treats DeepSeek as distribution surfaces only, never a security distinction", () => {
@@ -1046,12 +1091,33 @@ describe("§5 — a harness surface carries the fields an agent needs to act", (
   })
 
   it("does not invent a command for a host that has none", () => {
-    /* Codex is the live instance: DISCOVERY_ONLY, zero truthful commands. §7 says a command
-     * must not appear before it works, and this is where that would first be violated. */
-    const codex = harnesses.find((s) => s.id === "codex")
-    expect(codex, "codex is no longer published — repoint this test").toBeTruthy()
-    expect(codex?.calllintSupport?.commands).toEqual([])
-    expect(codex?.discovery?.autoDetected).toBe(false)
+    /* §7 says a command must not appear before it works, and this is where that would first
+     * be violated.
+     *
+     * Codex was the live instance until 2026-08-25, when it became NATIVE with a real
+     * `--agent codex` command. Rather than pin the next single host by name — which would
+     * make this test a queue of hosts awaiting promotion — the claim is now made over EVERY
+     * published harness that declares no support: none of them may carry a command, and the
+     * cohort is asserted non-empty first so an all-NATIVE surface cannot pass this
+     * vacuously. */
+    const unsupported = harnesses.filter(
+      (s) => s.calllintSupport?.supportClass !== "NATIVE",
+    )
+    expect(
+      unsupported.length,
+      "every published harness now claims NATIVE support, so this control has nothing to " +
+        "check — re-pin it on a real case or rewrite the premise",
+    ).toBeGreaterThan(0)
+
+    for (const s of unsupported) {
+      expect(
+        s.calllintSupport?.commands,
+        `${s.id}: ${s.calllintSupport?.supportClass} yet publishes a command`,
+      ).toEqual([])
+      expect(s.discovery?.autoDetected, `${s.id}: not NATIVE yet claims auto-detection`).toBe(
+        false,
+      )
+    }
   })
 })
 

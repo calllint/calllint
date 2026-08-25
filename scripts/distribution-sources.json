@@ -97,7 +97,7 @@
       "hostId": "codex",
       "displayName": "OpenAI Codex",
       "vendor": "OpenAI",
-      "supportClass": "DISCOVERY_ONLY",
+      "supportClass": "NATIVE",
       "watchFor": "supportClass, truthfulCommands, configEvidence, distributionPrimitives",
       "primarySources": [
         "https://developers.openai.com/codex/extend/mcp"
@@ -127,7 +127,7 @@
       "hostId": "gemini-cli",
       "displayName": "Gemini CLI",
       "vendor": "Google",
-      "supportClass": "DEFERRED",
+      "supportClass": "NATIVE",
       "watchFor": "supportClass, truthfulCommands, configEvidence, distributionPrimitives",
       "primarySources": [
         "https://geminicli.com/docs/extensions/"
@@ -147,7 +147,7 @@
       "hostId": "opencode",
       "displayName": "OpenCode",
       "vendor": "Open Source",
-      "supportClass": "CONFIG_SCAN",
+      "supportClass": "NATIVE",
       "watchFor": "supportClass, truthfulCommands, configEvidence, distributionPrimitives",
       "primarySources": [
         "https://github.com/opencode/opencode"
@@ -157,7 +157,7 @@
       "hostId": "kiro",
       "displayName": "Kiro",
       "vendor": "AWS",
-      "supportClass": "DEFERRED",
+      "supportClass": "NATIVE",
       "watchFor": "supportClass, truthfulCommands, configEvidence, distributionPrimitives",
       "primarySources": [
         "https://kiro.dev/docs/mcp/configuration/",

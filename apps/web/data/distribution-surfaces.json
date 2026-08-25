@@ -374,10 +374,12 @@
       ],
       "configEvidence": [
         "~/.codex/config.toml",
-        "$CODEX_HOME/config.toml"
+        "<project>/.codex/config.toml"
       ],
-      "supportClass": "DISCOVERY_ONLY",
-      "truthfulCommands": [],
+      "supportClass": "NATIVE",
+      "truthfulCommands": [
+        "calllint scan --agent codex"
+      ],
       "canonicalPath": "/harnesses/codex",
       "legacyPaths": [
         "/harnesses/deepseek/codex"
@@ -398,9 +400,11 @@
           "blocker": "Do not create remote MCP just for public listing eligibility"
         }
       ],
-      "coverageBoundary": "CallLint does not yet auto-discover Codex configuration. The config path is documented but no extractor reads TOML, so Codex servers must be passed explicitly.",
+      "coverageBoundary": "CallLint reads the mcp_servers table from Codex TOML config. Other Codex settings in the same file are not interpreted.",
       "activation": {
-        "whyHere": "Codex is a local coding agent holding shell, file-patching and plugin authority in the same session, so an MCP server registered in its config.toml is reachable from a process that can already edit your working tree and run commands in it."
+        "whyHere": "Codex is a local coding agent holding shell, file-patching and plugin authority in the same session, so an MCP server registered in its config.toml is reachable from a process that can already edit your working tree and run commands in it.",
+        "installRef": "scan",
+        "firstSuccessAction": "Check that the report names each server from the `mcp_servers` table. Codex config is TOML, not JSON — if a server you expected is missing, the table was not read, and absence of a finding is not absence of risk."
       }
     },
     {
@@ -506,10 +510,13 @@
         "tools"
       ],
       "configEvidence": [
-        "~/.gemini/config.json or similar"
+        "~/.gemini/settings.json",
+        "<project>/.gemini/settings.json"
       ],
-      "supportClass": "DEFERRED",
-      "truthfulCommands": [],
+      "supportClass": "NATIVE",
+      "truthfulCommands": [
+        "calllint scan --agent gemini-cli"
+      ],
       "canonicalPath": "/harnesses/gemini-cli",
       "officialSources": [
         "https://geminicli.com/docs/extensions/"
@@ -528,9 +535,11 @@
           "note": "Auto-discovery via GitHub topic + manifest"
         }
       ],
-      "coverageBoundary": "CallLint does not yet support Gemini CLI native discovery.",
+      "coverageBoundary": "CallLint scans the mcpServers map in Gemini CLI settings. OAuth token and server-enablement files are read for neither discovery nor verdicts.",
       "activation": {
-        "whyHere": "Gemini CLI exposes MCP servers as tools it may select autonomously, so registration and invocation are separated in time — the review has to happen at registration."
+        "whyHere": "Gemini CLI exposes MCP servers as tools it may select autonomously, so registration and invocation are separated in time — the review has to happen at registration.",
+        "installRef": "scan",
+        "firstSuccessAction": "Read the credential findings first. Gemini CLI keeps server registration in the same settings file as its own auth, so an entry that carries env keys is asking for authority the agent can spend later without asking again."
       }
     },
     {
@@ -581,11 +590,13 @@
         "tools"
       ],
       "configEvidence": [
-        "Documented config paths require verification"
+        "~/.config/opencode/opencode.json",
+        "<project>/opencode.json",
+        "<project>/opencode.jsonc"
       ],
-      "supportClass": "CONFIG_SCAN",
+      "supportClass": "NATIVE",
       "truthfulCommands": [
-        "calllint scan --config <path>"
+        "calllint scan --agent opencode"
       ],
       "canonicalPath": "/harnesses/opencode",
       "legacyPaths": [
@@ -602,11 +613,11 @@
           "auditNote": "Open source project, Registry consumption not verified"
         }
       ],
-      "coverageBoundary": "Config path auto-discovery not yet supported. Schema generation ambiguity must be handled deterministically.",
+      "coverageBoundary": "CallLint scans local and remote servers under the root mcp key. {env:VAR} placeholders are recorded unresolved, never expanded against the host environment.",
       "activation": {
-        "whyHere": "OpenCode reaches MCP servers as tools, and its config path is not yet auto-discoverable, so the file that grants that authority is one you must name yourself.",
+        "whyHere": "OpenCode reaches MCP servers as tools, and its launch spec is a single command array under the root `mcp` key — one entry grants local execution authority with its own environment.",
         "installRef": "scan",
-        "firstSuccessAction": "Confirm the verdict header names the config file you meant to scan. OpenCode's path is not auto-discovered, so the file is one you named — and a scan that silently read a different file is answering a question you did not ask."
+        "firstSuccessAction": "Look at what the command array resolves to. OpenCode writes the executable and its arguments as one list, so a local script and a pinned package look alike until the verdict separates them."
       }
     },
     {
@@ -621,11 +632,13 @@
         "shell"
       ],
       "configEvidence": [
-        ".kiro/settings/mcp.json",
+        "<project>/.kiro/settings/mcp.json",
         "~/.kiro/settings/mcp.json"
       ],
-      "supportClass": "DEFERRED",
-      "truthfulCommands": [],
+      "supportClass": "NATIVE",
+      "truthfulCommands": [
+        "calllint scan --agent kiro"
+      ],
       "canonicalPath": "/harnesses/kiro",
       "officialSources": [
         "https://kiro.dev/docs/mcp/configuration/",
@@ -644,9 +657,11 @@
           "note": "Config paths are now documented by the vendor; a thin adapter for the mcpServers JSON is evaluable but unbuilt. Support stays unimplemented until a discovery adapter exists and is fixture-covered."
         }
       ],
-      "coverageBoundary": "CallLint does not yet support Kiro native discovery.",
+      "coverageBoundary": "CallLint scans MCP server entries in Kiro settings. Kiro steering files and hooks are not covered.",
       "activation": {
-        "whyHere": "Kiro grants MCP servers filesystem and shell authority from a project-local config, so a server entry can arrive with a cloned repository."
+        "whyHere": "Kiro grants MCP servers filesystem and shell authority from a project-local config, so a server entry can arrive with a cloned repository.",
+        "installRef": "scan",
+        "firstSuccessAction": "Scan the project config as well as the user one. `.kiro/settings/mcp.json` travels with the repository, so a server entry there was authored by whoever last pushed — not necessarily by you."
       }
     },
     {

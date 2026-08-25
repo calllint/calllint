@@ -162,17 +162,17 @@ Platforms that consume the Official MCP Registry can discover CallLint automatic
 ### OpenAI Codex (OpenAI)
 
 - **Priority**: P2
-- **Support Class**: DISCOVERY_ONLY
+- **Support Class**: NATIVE
 - **Authority Surfaces**: mcp, tools, filesystem, shell, plugins
-- **Config Paths**: ~/.codex/config.toml, $CODEX_HOME/config.toml
-- **Scan Commands**: N/A
+- **Config Paths**: ~/.codex/config.toml, <project>/.codex/config.toml
+- **Scan Commands**: calllint scan --agent codex
 - **Canonical URL**: https://calllint.com/harnesses/codex
 
 **Distribution Primitives**:
   - mcp-stdio: AUDIT_REQUIRED (upstream: officialMcpRegistry)
   - openai-plugin: BLOCKED
 
-**Coverage Boundary**: CallLint does not yet auto-discover Codex configuration. The config path is documented but no extractor reads TOML, so Codex servers must be passed explicitly.
+**Coverage Boundary**: CallLint reads the mcp_servers table from Codex TOML config. Other Codex settings in the same file are not interpreted.
 
 ### GitHub Copilot CLI (GitHub)
 
@@ -207,17 +207,17 @@ Platforms that consume the Official MCP Registry can discover CallLint automatic
 ### Gemini CLI (Google)
 
 - **Priority**: P2
-- **Support Class**: DEFERRED
+- **Support Class**: NATIVE
 - **Authority Surfaces**: mcp, tools
-- **Config Paths**: ~/.gemini/config.json or similar
-- **Scan Commands**: N/A
+- **Config Paths**: ~/.gemini/settings.json, <project>/.gemini/settings.json
+- **Scan Commands**: calllint scan --agent gemini-cli
 - **Canonical URL**: https://calllint.com/harnesses/gemini-cli
 
 **Distribution Primitives**:
   - mcp-stdio: AUDIT_REQUIRED (upstream: officialMcpRegistry)
   - gemini-extension-gallery: AUDIT_REQUIRED — https://geminicli.com/docs/extensions/
 
-**Coverage Boundary**: CallLint does not yet support Gemini CLI native discovery.
+**Coverage Boundary**: CallLint scans the mcpServers map in Gemini CLI settings. OAuth token and server-enablement files are read for neither discovery nor verdicts.
 
 ### CodeBuddy (Tencent)
 
@@ -237,31 +237,31 @@ Platforms that consume the Official MCP Registry can discover CallLint automatic
 ### OpenCode (Open Source)
 
 - **Priority**: P3
-- **Support Class**: CONFIG_SCAN
+- **Support Class**: NATIVE
 - **Authority Surfaces**: mcp, tools
-- **Config Paths**: Documented config paths require verification
-- **Scan Commands**: calllint scan --config <path>
+- **Config Paths**: ~/.config/opencode/opencode.json, <project>/opencode.json, <project>/opencode.jsonc
+- **Scan Commands**: calllint scan --agent opencode
 - **Canonical URL**: https://calllint.com/harnesses/opencode
 
 **Distribution Primitives**:
   - mcp-stdio: AUDIT_REQUIRED (upstream: officialMcpRegistry)
 
-**Coverage Boundary**: Config path auto-discovery not yet supported. Schema generation ambiguity must be handled deterministically.
+**Coverage Boundary**: CallLint scans local and remote servers under the root mcp key. {env:VAR} placeholders are recorded unresolved, never expanded against the host environment.
 
 ### Kiro (AWS)
 
 - **Priority**: P2
-- **Support Class**: DEFERRED
+- **Support Class**: NATIVE
 - **Authority Surfaces**: mcp, filesystem, shell
-- **Config Paths**: .kiro/settings/mcp.json, ~/.kiro/settings/mcp.json
-- **Scan Commands**: N/A
+- **Config Paths**: <project>/.kiro/settings/mcp.json, ~/.kiro/settings/mcp.json
+- **Scan Commands**: calllint scan --agent kiro
 - **Canonical URL**: https://calllint.com/harnesses/kiro
 
 **Distribution Primitives**:
   - mcp-stdio: AUDIT_REQUIRED (upstream: officialMcpRegistry)
   - kiro-workspace-config: AUDIT_REQUIRED
 
-**Coverage Boundary**: CallLint does not yet support Kiro native discovery.
+**Coverage Boundary**: CallLint scans MCP server entries in Kiro settings. Kiro steering files and hooks are not covered.
 
 ### Continue (Continue)
 

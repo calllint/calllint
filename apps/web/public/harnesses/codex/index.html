@@ -6,7 +6,7 @@
     <title>OpenAI Codex — CallLint Support</title>
     <meta
       name="description"
-      content="CallLint support for OpenAI Codex (OpenAI). CallLint does not yet auto-discover Codex configuration. The config path is documented but no extractor reads TOML, so Codex servers must be passed explicitly."
+      content="CallLint support for OpenAI Codex (OpenAI). CallLint reads the mcp_servers table from Codex TOML config. Other Codex settings in the same file are not interpreted."
     />
     <link rel="canonical" href="https://calllint.com/harnesses/codex/" />
     <link rel="icon" href="/favicon.png" type="image/png" />
@@ -41,11 +41,11 @@
           <h1>OpenAI Codex</h1>
           <p class="doc-lede">
             CallLint support for <strong>OpenAI Codex</strong> by OpenAI.
-            <span class="coverage-note">CallLint does not yet auto-discover Codex configuration. The config path is documented but no extractor reads TOML, so Codex servers must be passed explicitly.</span>
+            <span class="coverage-note">CallLint reads the mcp_servers table from Codex TOML config. Other Codex settings in the same file are not interpreted.</span>
           </p>
           <div class="host-meta">
             <span class="badge badge-P2">P2</span>
-            <span class="badge badge-DISCOVERY_ONLY" title="No automatic detection yet — this page documents where the config lives.">Guide only</span>
+            <span class="badge badge-NATIVE" title="CallLint finds this host’s config on its own.">Auto-detects</span>
           </div>
         </header>
 
@@ -56,12 +56,22 @@
 
         <section id="usage" class="doc-section">
           <h2>Usage</h2>
-          <p>
-            CallLint does not yet support native auto-discovery for OpenAI Codex.
-            No automatic detection yet — this page documents where the config lives.
-          </p>
+          <p>CallLint can auto-discover and scan OpenAI Codex configurations:</p>
+          <pre><code>calllint scan --agent codex</code></pre>
         </section>
 
+        <section id="start" class="doc-section">
+          <h2>How to start</h2>
+          <p>Install nothing globally — run CallLint straight from npm:</p>
+          <pre><code>npx calllint scan --auto</code></pre>
+          <p>Then scan OpenAI Codex specifically:</p>
+          <pre><code>calllint scan --agent codex</code></pre>
+        </section>
+
+        <section id="verify" class="doc-section">
+          <h2>How to verify it worked</h2>
+          <p>Check that the report names each server from the &#x60;mcp_servers&#x60; table. Codex config is TOML, not JSON — if a server you expected is missing, the table was not read, and absence of a finding is not absence of risk.</p>
+        </section>
 
         <section id="trust" class="doc-section">
           <h2>What CallLint does to OpenAI Codex</h2>
@@ -79,7 +89,7 @@
           <p>CallLint looks for OpenAI Codex configurations in:</p>
           <ul>
             <li><code>~/.codex/config.toml</code></li>
-            <li><code>$CODEX_HOME/config.toml</code></li>
+            <li><code>&lt;project&gt;/.codex/config.toml</code></li>
           </ul>
         </section>
 
@@ -115,12 +125,11 @@
         <section id="status" class="doc-section">
           <h2>Support Status</h2>
           <p>
-            <strong>Guide only</strong> — No automatic detection yet — this page documents where the config lives.
+            <strong>Auto-detects</strong> — CallLint finds this host’s config on its own.
           </p>
           <p>
-            CallLint publishes no scan command for OpenAI Codex yet. That is a statement
-            about CallLint's coverage, not about OpenAI Codex: see
-            <a href="#coverage">Coverage Boundary</a> for what would have to be built first.
+            The commands under <a href="#usage">Usage</a> are the ones CallLint actually
+            supports for OpenAI Codex today. Anything not listed there is not claimed.
           </p>
         </section>
 
@@ -133,7 +142,7 @@
 
         <section id="coverage" class="doc-section coverage-boundary">
           <h2>Coverage Boundary</h2>
-          <p class="boundary-text">CallLint does not yet auto-discover Codex configuration. The config path is documented but no extractor reads TOML, so Codex servers must be passed explicitly.</p>
+          <p class="boundary-text">CallLint reads the mcp_servers table from Codex TOML config. Other Codex settings in the same file are not interpreted.</p>
         </section>
       </article>
 

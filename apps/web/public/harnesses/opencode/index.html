@@ -6,7 +6,7 @@
     <title>OpenCode — CallLint Support</title>
     <meta
       name="description"
-      content="CallLint support for OpenCode (Open Source). Config path auto-discovery not yet supported. Schema generation ambiguity must be handled deterministically."
+      content="CallLint support for OpenCode (Open Source). CallLint scans local and remote servers under the root mcp key. {env:VAR} placeholders are recorded unresolved, never expanded against the host environment."
     />
     <link rel="canonical" href="https://calllint.com/harnesses/opencode/" />
     <link rel="icon" href="/favicon.png" type="image/png" />
@@ -41,23 +41,23 @@
           <h1>OpenCode</h1>
           <p class="doc-lede">
             CallLint support for <strong>OpenCode</strong> by Open Source.
-            <span class="coverage-note">Config path auto-discovery not yet supported. Schema generation ambiguity must be handled deterministically.</span>
+            <span class="coverage-note">CallLint scans local and remote servers under the root mcp key. {env:VAR} placeholders are recorded unresolved, never expanded against the host environment.</span>
           </p>
           <div class="host-meta">
             <span class="badge badge-P3">P3</span>
-            <span class="badge badge-CONFIG_SCAN" title="CallLint scans this host’s config when you point it at the file.">Scan config</span>
+            <span class="badge badge-NATIVE" title="CallLint finds this host’s config on its own.">Auto-detects</span>
           </div>
         </header>
 
         <section id="why" class="doc-section">
           <h2>Why scan OpenCode?</h2>
-          <p>OpenCode reaches MCP servers as tools, and its config path is not yet auto-discoverable, so the file that grants that authority is one you must name yourself.</p>
+          <p>OpenCode reaches MCP servers as tools, and its launch spec is a single command array under the root &#x60;mcp&#x60; key — one entry grants local execution authority with its own environment.</p>
         </section>
 
         <section id="usage" class="doc-section">
           <h2>Usage</h2>
           <p>CallLint can auto-discover and scan OpenCode configurations:</p>
-          <pre><code>calllint scan --config &lt;path&gt;</code></pre>
+          <pre><code>calllint scan --agent opencode</code></pre>
         </section>
 
         <section id="start" class="doc-section">
@@ -65,12 +65,12 @@
           <p>Install nothing globally — run CallLint straight from npm:</p>
           <pre><code>npx calllint scan --auto</code></pre>
           <p>Then scan OpenCode specifically:</p>
-          <pre><code>calllint scan --config &lt;path&gt;</code></pre>
+          <pre><code>calllint scan --agent opencode</code></pre>
         </section>
 
         <section id="verify" class="doc-section">
           <h2>How to verify it worked</h2>
-          <p>Confirm the verdict header names the config file you meant to scan. OpenCode&#x27;s path is not auto-discovered, so the file is one you named — and a scan that silently read a different file is answering a question you did not ask.</p>
+          <p>Look at what the command array resolves to. OpenCode writes the executable and its arguments as one list, so a local script and a pinned package look alike until the verdict separates them.</p>
         </section>
 
         <section id="trust" class="doc-section">
@@ -88,7 +88,9 @@
           <h2>Configuration Paths</h2>
           <p>CallLint looks for OpenCode configurations in:</p>
           <ul>
-            <li><code>Documented config paths require verification</code></li>
+            <li><code>~/.config/opencode/opencode.json</code></li>
+            <li><code>&lt;project&gt;/opencode.json</code></li>
+            <li><code>&lt;project&gt;/opencode.jsonc</code></li>
           </ul>
         </section>
 
@@ -116,7 +118,7 @@
         <section id="status" class="doc-section">
           <h2>Support Status</h2>
           <p>
-            <strong>Scan config</strong> — CallLint scans this host’s config when you point it at the file.
+            <strong>Auto-detects</strong> — CallLint finds this host’s config on its own.
           </p>
           <p>
             The commands under <a href="#usage">Usage</a> are the ones CallLint actually
@@ -133,7 +135,7 @@
 
         <section id="coverage" class="doc-section coverage-boundary">
           <h2>Coverage Boundary</h2>
-          <p class="boundary-text">Config path auto-discovery not yet supported. Schema generation ambiguity must be handled deterministically.</p>
+          <p class="boundary-text">CallLint scans local and remote servers under the root mcp key. {env:VAR} placeholders are recorded unresolved, never expanded against the host environment.</p>
         </section>
       </article>
 
