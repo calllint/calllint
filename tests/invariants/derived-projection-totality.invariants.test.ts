@@ -311,6 +311,11 @@ describe("the prose files cite the counts rather than restating them", () => {
     "artifacts/submissions/README.md",
     "artifacts/submissions/ROI.md",
     "artifacts/submissions/BLOCKED.md",
+    /* HUMAN-STEPS.md is the newest prose file in this directory and the one most likely to
+     * restate a total, since it walks a reader through the actionable rows one at a time.
+     * Added here on creation rather than after it drifted: a guard whose file list is
+     * hand-maintained silently stops covering the tree the moment a file is added. */
+    "artifacts/submissions/HUMAN-STEPS.md",
   ]
 
   it("links to CHANNEL-COUNTS.md from each file that used to hold a count", () => {

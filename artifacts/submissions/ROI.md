@@ -5,7 +5,9 @@ The actionable shelf channels, in priority order. ROI = (host reach × priority 
 not — it is checked against the tree. How many rows there are is counted from the SSOT in
 [`CHANNEL-COUNTS.md`](CHANNEL-COUNTS.md), not typed here.
 
-Ordered 2026-08-23. Every row is a human action (new18 §22).
+Ordered 2026-08-23. Every row is a human action (new18 §22). The numbered steps for the
+first four, with every agent-safe pre-flight already run and its result recorded, are in
+[`HUMAN-STEPS.md`](HUMAN-STEPS.md).
 
 | # | Host | Channel | Tier | Material gap | Next step |
 |---|---|---|---|---|---|
@@ -51,6 +53,16 @@ registry documents no submission route anywhere. Nothing to submit; the open que
 whether Copilot CLI *consumes* the Registry. That is a GET, so an agent may do it. A host
 documenting stdio MCP support is not the same fact as that host consuming the Registry — which
 is exactly why this sits at `AUDIT_REQUIRED` rather than `AVAILABLE`.
+
+Re-measured 2026-08-25: both halves still hold — the Registry entry is live (0.2.0,
+`isLatest: true`) and `github.com/mcp` still returns zero `calllint` rows. The consumption
+question got a **partial** answer from the CLI's cached changelog: it ships `/mcp registry`
+installation, `/mcp search`, guided registry installs (1.0.25), registry lookups with
+retries, and one entry naming "**external registries**" — so it consumes *a* registry and at
+least one external one, but the changelog never names an endpoint, so whether
+`registry.modelcontextprotocol.io` is among them is unresolved. The Registry-side check for
+GitHub as a named aggregator could not be completed: the network returned `http=000` on every
+retry. Recorded as an incomplete measurement rather than left silent.
 
 **#9 `kiro`** needs a discovery adapter and fixtures written, not a form filled in. It is
 engineering work that happens to unlock a channel, and it is deliberately unbuilt. Do not
