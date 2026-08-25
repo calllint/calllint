@@ -358,8 +358,9 @@ assertCohortShape(hosts)
  *
  * It also covers a gap the schema structurally cannot. A schema can require that `liveUrl`
  * is PRESENT and well-formed; it cannot require that the URL is the channel's own listing,
- * and nothing here fetches it (new18 §22 keeps this repo's watchers GET-only and this gate
- * offline entirely). So the `liveUrl` arm is checked for shape and for pointing at the
+ * and nothing here fetches it (new18 §86/§87 keep this repo's watchers from writing outward
+ * and this gate offline entirely; §22 was a miscitation, corrected 2026-08-25). So the
+ * `liveUrl` arm is checked for shape and for pointing at the
  * channel's own official host, which is the strongest offline statement available.
  *
  * MEASURED HOLE THIS CLOSES (2026-08-23). Flipping cursor/cursor-plugin from AUDIT_REQUIRED
@@ -744,6 +745,144 @@ assertCohortShape(hosts)
         `${withSubmission.length}/${channels.length} channels record a submission date, each a ` +
           `real past day and none under READY_NOT_SUBMITTED; ${withUrl.length} channel(s) carry ` +
           `a submissionUrl and all of them record a date`,
+      )
+    }
+  }
+}
+
+/*
+ * HD-10: a channel with a recorded submission must not be presented as an action to take.
+ *
+ * WHAT THIS CAUGHT, AND WHY HD-08 DID NOT. `claude-code/claude-plugin` carries
+ * `submission.date: 2026-07-20` and the install lines have been live in the README since
+ * `5bed4b6`. HD-08 checked that date's shape and tense and passed — correctly, it is a real
+ * past day under a legal state. `CHANNEL-COUNTS.md`, generated from the same SSOT, filed the
+ * row under "submitted, listing not yet verified" and excluded it from the actionable set —
+ * also correct. And `ROI.md` still ranked it **#1**, with `HUMAN-STEPS.md` heading it "the one
+ * to do first".
+ *
+ * So every machine-checked surface agreed, and the two pages a human actually opens told them
+ * to redo a completed external submission. ADR 0002's rule ("a recorded submission date ends
+ * actionability regardless of `state`") was written down and enforced on the generated
+ * projection only. The hand-maintained pages were outside every gate.
+ *
+ * WHY A GATE RATHER THAN A GENERATED PAGE. These two files are judgment — an ROI ordering and
+ * per-channel prose no generator can write. They should stay hand-maintained. What must not
+ * stay hand-maintained is the *actionability* claim inside them, because that is derivable and
+ * it is the claim that costs a human a duplicate external write — the one act new18 §87 treats
+ * as the real harm.
+ *
+ * HOW IT READS THE PAGES. Not by parsing the ROI table as data: a scraped rank would break on a
+ * reordering, which is legitimate. It polices only **directive lines** — the `## ` heading that
+ * introduces a channel's section, and the `|`-delimited table row that ranks it. Those are the
+ * two places these pages order someone to act. Body prose is left free, because both pages must
+ * be able to narrate the history ("this row said *ready to submit*, and it was already done")
+ * without the gate reading the quoted mistake as a fresh instruction.
+ *
+ * WHY NOT "QUEUEING PHRASE AND NO RETIREMENT PHRASE ANYWHERE". That was the first
+ * implementation and its negative control **did not red it**: restoring the stale heading
+ * `(P0, the one to do first)` still passed, because the correction blockquote three lines below
+ * contains "already been done" and satisfied the exemption. A page can narrate a retirement and
+ * still issue the instruction — that is precisely the defect — so a document-scoped exemption
+ * cannot see it. Scoping both claims to the directive line is what makes the control fail.
+ *
+ * Both directions matter: a directive line that still queues a submitted channel re-queues an
+ * external write, and one that never says the act is made lets a reader infer it is still owed.
+ *
+ * ANTI-VACUITY. The cohort is the channels carrying `submission`, derived from the SSOT, and the
+ * gate fails if it is empty, if either page is missing, or if no directive line was found for any
+ * submitted channel across either page — a checkmark over zero lines compared is this repo's
+ * dominant fault class.
+ */
+{
+  console.log("\nChecking: submitted channels are not queued as actions [HD-10]")
+
+  const PAGES = ["artifacts/submissions/ROI.md", "artifacts/submissions/HUMAN-STEPS.md"]
+
+  /* Phrases that QUEUE work. About priority-to-act, not mere mention. */
+  const QUEUEING = [
+    /the one to do first/i,
+    /the first unmade action/i,
+    /start at step 1/i,
+    /ready to submit/i,
+    /do this first/i,
+  ]
+
+  /* Phrases that RETIRE it. One must appear on the directive line itself. */
+  const RETIRING = [/already (?:done|made|submitted|published)/i, /not actionable/i, /do not redo/i]
+
+  const submitted = hosts.flatMap((h) =>
+    (Array.isArray(h.distributionPrimitives) ? h.distributionPrimitives : [])
+      .filter((p) => p.submission)
+      .map((p) => ({ host: h.id, kind: p.kind, date: p.submission?.date })),
+  )
+
+  const missingPages = PAGES.filter((p) => !fs.existsSync(path.join(repoRoot, p)))
+
+  if (submitted.length === 0) {
+    fail(
+      `${path.basename(DATA_FILE)}: no channel records a \`submission\`, so HD-10 has no cohort. ` +
+        `At least one is expected (ADR 0002 exists because submissions get recorded); either the ` +
+        `field was renamed or the records were dropped.`,
+    )
+  } else if (missingPages.length > 0) {
+    fail(
+      `HD-10 audits ${missingPages.join(", ")} and ${missingPages.length === 1 ? "it does" : "they do"} not exist. ` +
+        `A gate that skips a missing page reports agreement having read nothing.`,
+    )
+  } else {
+    let bad = 0
+    let directivesChecked = 0
+
+    for (const page of PAGES) {
+      const lines = fs.readFileSync(path.join(repoRoot, page), "utf8").split("\n")
+
+      for (const c of submitted) {
+        /* A directive line names the channel AND is structurally an instruction: a section
+         * heading, or a ranked table row. Blockquotes and paragraphs are narration. */
+        const directives = lines.filter(
+          (l) => l.includes(c.kind) && (/^#{2,4}\s/.test(l) || /^\s*\|/.test(l)),
+        )
+        if (directives.length === 0) continue // this page does not rank or head this channel
+
+        for (const line of directives) {
+          directivesChecked++
+          const queued = QUEUEING.filter((re) => re.test(line))
+          const retired = RETIRING.some((re) => re.test(line))
+
+          if (queued.length > 0) {
+            bad++
+            fail(
+              `${page}: ${c.host}/${c.kind} records a submission on ${c.date}, but a directive ` +
+                `line still orders the work (matched ${queued.map((re) => re.source).join(", ")}):\n` +
+                `      ${line.trim().slice(0, 160)}\n` +
+                `    Per ADR 0002 a recorded submission date ends actionability regardless of ` +
+                `\`state\` — this is how a human gets sent to duplicate an external write.`,
+            )
+          } else if (!retired) {
+            bad++
+            fail(
+              `${page}: ${c.host}/${c.kind} records a submission on ${c.date}, but its directive ` +
+                `line does not say so:\n      ${line.trim().slice(0, 160)}\n` +
+                `    State it on the line itself (e.g. "already made", "not actionable", ` +
+                `"do not redo") — a reader scanning headings and table rows never reaches the prose.`,
+            )
+          }
+        }
+      }
+    }
+
+    if (directivesChecked === 0) {
+      fail(
+        `HD-10 found no heading or table row naming any of ${submitted.length} submitted channel(s) ` +
+          `(${submitted.map((c) => c.kind).join(", ")}) across ${PAGES.join(", ")}. Either the pages ` +
+          `stopped listing them or the directive-line shapes changed; the check compared nothing.`,
+      )
+    } else if (bad === 0) {
+      pass(
+        `${directivesChecked} directive line(s) naming ${submitted.length} submitted channel(s) ` +
+          `(${submitted.map((c) => `${c.host}/${c.kind}`).join(", ")}) each mark the act already made, ` +
+          `and none queues it as work`,
       )
     }
   }

@@ -229,3 +229,18 @@ Landed as its own branch (`feat/authority-v2-vocabulary`) and its own ADR, as pl
 **stacked on** `feat/distribution-discovery-closure` rather than branched from `main`, because
 ADR 0004 and this plan are both still unmerged in PR #333. It touches no file that PR touches.
 Once #333 merges, this rebases onto `main` cleanly.
+
+> **Both merged, 2026-08-25.** #333 is `65eb719`, #334 is `3b64404`; `main` carries Steps 0–3
+> and Step 4's correction. The paragraph above is kept as written because it records *why* the
+> branch was stacked, but its prediction is spent — and it was wrong in one respect worth
+> keeping: the rebase was **not** clean. #333 landed as a squash, so this branch's 20 originals
+> re-applied changes `main` already held (12 conflict hunks, every one the same edit expressed
+> twice). Resolved by `git merge` rather than rebase, since replaying 20 already-squashed
+> commits buys nothing. A stacked branch's "rebases cleanly" is a claim about the base's
+> **merge strategy**, not about file overlap — and "touches no file that PR touches" does not
+> imply it.
+>
+> The `security-semantic-diff.json` snapshot conflicted too, and was **re-measured** from the
+> merged HEAD rather than reconciled by hand: the merge invalidated both sides, so neither was
+> a measurement of the tree that now exists. Result: 4 ADR exemptions each fired, `0 committed,
+> 0 worktree` across 6 verdict packages, `SECURITY_SEMANTICS = UNCHANGED`, `--check` agreement.

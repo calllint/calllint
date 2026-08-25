@@ -1,6 +1,6 @@
 # Registry-consumption audit — the 13 `mcp-stdio` channels awaiting judgement
 
-- **Measured:** 2026-08-25, read-only GET only (new18 §22).
+- **Measured:** 2026-08-25, read-only GET only (new18 §86).
 - **Subject:** the 13 `mcp-stdio` primitives in `AUDIT_REQUIRED`. Evidence gathered by me;
   **the judgement is the user's** — see [ADR 0001](../adr/0001-one-distribution-state-not-six.md)
   and the `state` description in `distribution-surfaces.schema.json`.

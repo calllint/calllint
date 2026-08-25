@@ -79,6 +79,31 @@ external_mutation_unknown`, and nothing emits `messaging`; the string appears ex
 the tree, at its own declaration. A "send an email" tool fingerprints as
 `external_mutation_unknown`, never `messaging`.
 
+> **Corrected 2026-08-25: the sentence above is true of `deriveEffects()` but wrong about the
+> system.** It reads as though nothing detects messaging at all. Something does:
+> `packages/static-analyzer/src/detectors/messagingSend.ts` (ADR 0021 #8,
+> `MESSAGING_OR_EMAIL_SEND`) emits finding `action.messaging-send` from 16 package-name hints
+> (`slack`, `twilio`, `sendgrid`, `nodemailer`, …) and 5 send-verb patterns, with
+> OBSERVED/INFERRED split on whether a tool descriptor or only the package name matched.
+>
+> So the real defect is a **lost distinction, not a missing capability.** That finding carries
+> `symbol: "ACTION"`, and `deriveEffects()` keys *only* on `symbol` — so a Slack send tool and a
+> generic "mutates something external" tool collapse into the same effect. The information exists
+> one layer up and is discarded on the way down.
+>
+> That also changes what closing it costs. There is no `MESSAGING` member of `RISK_SYMBOLS` (9
+> members: SECRETS, FILES, NETWORK, PROMPT, EXEC, ACTION, MONEY, SUPPLY, RUGPULL), so the fix is
+> **not** "add a symbol" — it is to key on the finding `id`, which `deriveEffects()` already
+> receives on every `Finding`. Still ADR-gated for the original reason: `effects` feeds
+> `fingerprintHash()`, so it moves shipped L1 hashes and needs a fixture review.
+>
+> Pinned by a test that fails if either half stops being true — `a messaging server IS detected,
+> and its effect collapses to external_mutation_unknown` in
+> `packages/core/test/extract-fingerprint.test.ts`. Negative control: deleting the `"slack"` hint
+> from the detector reds it at `expect(messaging).toBeDefined()`, so the assertion cannot pass
+> vacuously by the detector quietly ceasing to fire — which is exactly how a `not.toContain`
+> guard normally rots. Restored, md5-verified.
+
 Adding the emitter is out of scope for a vocabulary ADR: `effects` feeds `fingerprintHash()`,
 so emitting `messaging` would **change the L1 fingerprint of every messaging server**, which
 is a reproducibility-contract change requiring its own ADR (and a fixture review). Left as a

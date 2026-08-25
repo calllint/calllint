@@ -137,4 +137,37 @@ describe("FP_EFFECTS reachability (ADR 0005)", () => {
   it("every reachable member is a declared FP_EFFECTS value (no invented effect)", () => {
     for (const e of reachable()) expect(FP_EFFECTS).toContain(e)
   })
+
+  /*
+   * The gap is a LOST DISTINCTION, not a missing detector. ADR 0005 says `messaging` "has no
+   * producer", which is true of `deriveEffects()` but reads as if nothing detects messaging at
+   * all. `packages/static-analyzer/src/detectors/messagingSend.ts` (ADR 0021 #8) does — it
+   * emits `action.messaging-send` off 16 package hints and 5 send-verb patterns. It carries
+   * `symbol: "ACTION"`, and `deriveEffects()` keys only on `symbol`, so a Slack send tool and a
+   * generic "mutates something external" tool collapse to the same effect.
+   *
+   * Pinned so ADR 0005's account cannot stay half-right: the finding exists, its symbol is
+   * ACTION, and the effect that comes out is `external_mutation_unknown`. Closing the gap means
+   * keying on the finding `id` (available on Finding) rather than adding a RiskSymbol — there is
+   * no MESSAGING symbol and adding one would be a far larger change. Still ADR-gated either way:
+   * `effects` feeds fingerprintHash().
+   */
+  it("a messaging server IS detected, and its effect collapses to external_mutation_unknown", () => {
+    const fp = fingerprintFor(
+      server({ sourceConfigPath: ".cursor/mcp.json", args: ["-y", "slack-mcp@1.0.0"] }),
+    )
+    const findings = analyzeServerConfig(
+      server({ sourceConfigPath: ".cursor/mcp.json", args: ["-y", "slack-mcp@1.0.0"] }),
+    )
+    const messaging = findings.find((f) => f.id === "action.messaging-send")
+
+    // The detector fires — so "no producer" is about deriveEffects, not about detection.
+    expect(messaging).toBeDefined()
+    expect(messaging?.symbol).toBe("ACTION")
+
+    // ...and the distinction is lost at the effect layer. If this flips to `messaging`,
+    // shipped L1 hashes changed: read ADR 0005 before making it pass.
+    expect(fp.effects).toContain("external_mutation_unknown")
+    expect(fp.effects).not.toContain("messaging")
+  })
 })

@@ -14,7 +14,7 @@ into prose, because a hand-typed count cannot fail when the SSOT grows.
 | Class | Count | Who |
 |---|---|---|
 | Verify-only (`mcp-stdio`) | 17 | Agent-safe — GET only |
-| Shelf action (a distinct listing surface) | 14 | **Human only** (new18 §22) |
+| Shelf action (a distinct listing surface) | 14 | **Human only** (new18 §87) |
 | **Total channels** | **31** | |
 
 A host documenting stdio MCP support is **not** the same fact as that host consuming the

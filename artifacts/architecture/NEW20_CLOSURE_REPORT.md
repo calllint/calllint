@@ -98,11 +98,20 @@ distribution state, not six) and [0002](../adr/0002-submission-records-the-act.m
 
 ## Remaining
 
-**Human submissions — 9 actionable shelf rows.** Not blocked and not startable by an agent:
-new18 §22 makes the distribution watcher read-only toward the outside world (GET only, no
-credentials, no form posts, no external PR or issue creation, no maintainer contact). The
-packages are prepared; submitting them is a human action. Ordered by ROI in
-[`ROI.md`](../submissions/ROI.md).
+**Human submissions — 9 actionable shelf rows.** Not blocked, and not startable by *this* agent:
+new18 **§87** (`NO CONTINUOUS EXTERNAL SPAM`) forbids the weekly **watcher** from opening external
+PRs or issues, submitting forms, emailing or tagging maintainers, requesting reviewers, or
+retrying rejected contributions. The packages are prepared; submitting them is a human action.
+Ordered by ROI in [`ROI.md`](../submissions/ROI.md).
+
+> **Corrected 2026-08-25.** This paragraph cited "§22" and said the rule makes the repo
+> "read-only toward the outside world (GET only, no credentials, no form posts…)". Both wrong.
+> §22 is `PRIVATE USAGE FACT SEMANTICS` — npm downloads ≠ users — and has nothing to do with
+> external writes. And §87 binds the **watcher**, not the repository: §89 sets
+> `MAX_NEW_EXTERNAL_SUBMISSIONS = 3` and §90 lists the eight conditions under which a bounded
+> external write is *permitted*. So these rows are human actions because they need a browser
+> session, an account, or an install absent from this machine — not because a rule bans them.
+> A wrong § number is worse than none: it reads as governed while nobody has opened the text.
 
 **External approvals.** 1 `PENDING_UPSTREAM` shelf channel — `cline`'s
 [marketplace#49](https://github.com/cline/marketplace/pull/49), submitted 2026-08-18, still

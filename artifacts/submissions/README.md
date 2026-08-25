@@ -2,10 +2,15 @@
 
 What a human needs in front of them to list CallLint on a shelf, and nothing more.
 
-Every submission here is a **human action**. new18 §22 makes the distribution watcher
-read-only toward the outside world: GET only, no credentials, no form posts, no external PR
-or issue creation, no maintainer contact. An agent may prepare these packages and verify
-what a shelf already says; it may not submit them.
+Every submission here is a **human action**. new18 §87 (`NO CONTINUOUS EXTERNAL SPAM`) bars the
+weekly **watcher** from opening an external PR or issue, submitting a form, emailing or tagging a
+maintainer, requesting a reviewer, or retrying a rejected contribution. An agent may prepare these
+packages and verify what a shelf already says; the automated watcher may not submit them.
+
+Note the scope: §87 binds the watcher, not the repository. §89 sets
+`MAX_NEW_EXTERNAL_SUBMISSIONS = 3` and §90 lists the eight conditions under which one bounded
+external write is permitted. These rows stay human because each needs a browser session, an
+account, or an install this machine does not have.
 
 ## Why this directory exists
 

@@ -5,7 +5,7 @@
 # flag and not a crawl. The reviewer polls exactly these URLs, once per week, and
 # never follows links out of them.
 #
-# new18 §22: read-only toward the outside world. GET only, no credentials, no form
+# new18 §86/§87: the watcher never writes outward. GET only, no credentials, no form
 # posts, no issue/PR creation on the harness's repo.
 #
 # Contract: artifacts/contracts/weekly-discovery-review.md
