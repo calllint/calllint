@@ -11,8 +11,8 @@ first four, with every agent-safe pre-flight already run and its result recorded
 
 | # | Host | Channel | Tier | Material gap | Next step |
 |---|---|---|---|---|---|
-| 1 | `claude-code` | `claude-plugin` | P0 | **none** — `.claude-plugin/marketplace.json` now exists and passes `claude plugin validate . --strict` | [claude-plugin/](claude-plugin/SUBMISSION.md) |
-| 2 | `cursor` | `cursor-plugin` | P0 | **none** — `.cursor-plugin/` manifests, `mcp.json`, logo and Cursor hook wiring all added and validated 2026-08-25 | [cursor-plugin/](cursor-plugin/SUBMISSION.md) |
+| 1 | `claude-code` | `claude-plugin` | P0 | **none, and the act is already made** — published 2026-07-20 (`5bed4b6`), `README.md:289-290`. Not actionable; see below | [claude-plugin/](claude-plugin/SUBMISSION.md) |
+| 2 | `cursor` | `cursor-plugin` | P0 | **none** — `.cursor-plugin/` manifests, `mcp.json`, logo and Cursor hook wiring all added and validated 2026-08-25. **The first unmade action** | [cursor-plugin/](cursor-plugin/SUBMISSION.md) |
 | 3 | `copilot-cli` | `github-copilot-plugin` | P2 | `UNKNOWN` — route unconfirmed, but the manifest cost is now **zero**; see #3 below | [github-copilot-plugin/](github-copilot-plugin/SUBMISSION.md) |
 | 4 | `copilot-cli` | `mcp-registry-discovery` | P2 | none — registry entry is live | verify-only; see below |
 | 5 | `windsurf` | `windsurf-mcp-marketplace` | P1 | none | [windsurf-mcp-marketplace/](windsurf-mcp-marketplace/SUBMISSION.md) |
@@ -22,6 +22,17 @@ first four, with every agent-safe pre-flight already run and its result recorded
 | 9 | `kiro` | `kiro-workspace-config` | P2 | **a discovery adapter + fixtures — unbuilt by choice** | code, not a submission |
 
 ## Three rows that are not submissions
+
+**#1 `claude-plugin`** was listed as rank 1 with a "none" material gap, which read as *ready
+to submit*. The submission was already made on **2026-07-20** in `5bed4b6` (#189): the two
+install lines are live at `README.md:289-290`, and the SSOT carries
+`submission.date: 2026-07-20`. `CHANNEL-COUNTS.md`, generated from the same SSOT, files it
+under *submitted, listing not yet verified* and excludes it from the actionable 8 — so this
+hand-maintained table disagreed with the generated projection and pointed a human at a
+completed external action. Per [ADR 0002](../adr/0002-submission-records-the-act.md) a
+recorded submission date ends actionability regardless of `state`. It stays `AUDIT_REQUIRED`
+because there is no shelf page to record as `liveUrl` — ADR 0002's accepted arm is
+structurally unreachable here, and a README anchor would be self-endorsement.
 
 **#3 `github-copilot-plugin`** has no verified intake. Measured 2026-08-25: Copilot CLI does
 have a real plugin system, and users add a marketplace themselves with

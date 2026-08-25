@@ -3,6 +3,11 @@
 ROI #1–#4 in [ROI.md](ROI.md). Everything an agent is permitted to do has been done and is
 recorded below with its result; what remains is listed as numbered steps for you.
 
+> **#1 is already done** (2026-07-20, `5bed4b6`) — see its section. Of the four rows here,
+> exactly **one** is an unmade submission you can make today: **#2 `cursor`**. #3 and #4 are
+> a local install and a read-only query, both gated on a 357 MB CLI that is not on this
+> machine.
+
 Why the split: new18 **§87** (`NO CONTINUOUS EXTERNAL SPAM`) says the weekly watcher must never
 open an external PR or issue, submit a form, email or tag a maintainer, request a reviewer, or
 retry a rejected contribution. So the *automated* watcher publishes nothing; pre-flight
@@ -46,29 +51,40 @@ is a ~13 KB loader that fetches a 357 MB platform binary, so #3's run stays your
 
 ---
 
-## #1 — `claude-code` → `claude-plugin` (P0, the one to do first)
+## #1 — `claude-code` → `claude-plugin` (P0) — **ALREADY DONE, do not redo**
 
 **There is no marketplace to submit to.** Claude Code distribution is users adding this
 repo as a marketplace, so "submitting" means publishing the install line where people see
 it. No form, no review queue, no waiting.
 
-Both pre-flight checks above already pass, so start at step 1.
+> **Corrected 2026-08-25: this row was listed as "the one to do first" and it had already
+> been done.** The SSOT records `submission.date: 2026-07-20`, and the act is verifiable
+> independently of that claim: the two install lines are live at `README.md:289-290`,
+> published in `5bed4b6` (#189). `CHANNEL-COUNTS.md` — generated from the same SSOT — had it
+> right the whole time, filed under *submitted, listing not yet verified* and excluded from
+> the actionable 8. This file and `ROI.md` disagreed with the generated projection, which is
+> the direction of error that matters: a hand-maintained page told you to redo a completed
+> external action. Per [ADR 0002](../adr/0002-submission-records-the-act.md), a channel with
+> a recorded submission date is not actionable work no matter what its `state` says.
+>
+> It stays `AUDIT_REQUIRED` rather than `AVAILABLE` for a structural reason, not a missing
+> step: there is no shelf page to record as `liveUrl`, so ADR 0002's accepted arm is
+> unreachable here. A README anchor would be self-endorsement — the exact defect found in
+> `cursor-plugin` on 2026-08-23.
 
-1. Publish the two-line install block somewhere users will find it — README section,
-   release note, a marketplace directory:
+Steps 1–2 below are kept as the **record of what was published**, not as a to-do:
+
+1. The two-line install block, published in the README:
 
    ```
    /plugin marketplace add calllint/calllint
    /plugin install calllint@calllint
    ```
 
-2. **Publish the `owner/repo` form, not a raw URL to `marketplace.json`.** A relative
+2. Published in the `owner/repo` form, not a raw URL to `marketplace.json`. A relative
    `source` resolves against the marketplace root, which works when the whole repo is
    fetched. Point someone at the bare JSON file and only that file is fetched — the plugin
    source will not resolve.
-
-3. Record the outcome: edit `apps/web/data/distribution-surfaces.json` only, then
-   `node scripts/generate-distribution-surfaces.mjs` and `pnpm check:distribution-drift`.
 
 Trap worth knowing: `--strict` does **not** look inside the `source` object, so a passing
 validation is not evidence the source resolves. And never add a `version` field to the
@@ -78,7 +94,7 @@ Detail: [claude-plugin/SUBMISSION.md](claude-plugin/SUBMISSION.md)
 
 ---
 
-## #2 — `cursor` → `cursor-plugin` (P0, now genuinely ready)
+## #2 — `cursor` → `cursor-plugin` (P0, now genuinely ready) — **the actual first action**
 
 The material gap is closed and the "tested locally" checkbox is genuinely ticked, not
 assumed. Cursor's intake is a **public repo reviewed by the Cursor team** — you submit a
