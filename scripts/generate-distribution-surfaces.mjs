@@ -930,7 +930,13 @@ function generateSubmissionCounts() {
 
   /* `mcp-stdio` is the verify-only class: the Registry entry is already live, so the open
    * question is whether the host CONSUMES the Registry — a GET, hence agent-safe. Every
-   * other kind is a distinct listing surface and a human action per new18 §22. */
+   * other kind is a distinct listing surface and a human action per new18 §87.
+   *
+   * §87 (`NO CONTINUOUS EXTERNAL SPAM`), not §22 — §22 is `PRIVATE USAGE FACT SEMANTICS` and
+   * has nothing to do with external writes. Corrected 2026-08-25. §87 binds the weekly
+   * WATCHER, and §89/§90 permit a bounded external submission (`MAX_NEW_EXTERNAL_SUBMISSIONS
+   * = 3`) once §90's conditions hold — so "human only" here means these need a browser
+   * session, an account, or an install this machine lacks, not that a rule forbids them. */
   const verifyOnly = channels.filter((c) => c.kind === 'mcp-stdio')
   const shelf = channels.filter((c) => c.kind !== 'mcp-stdio')
 
@@ -1024,7 +1030,7 @@ into prose, because a hand-typed count cannot fail when the SSOT grows.
 | Class | Count | Who |
 |---|---|---|
 | Verify-only (\`mcp-stdio\`) | ${verifyOnly.length} | Agent-safe — GET only |
-| Shelf action (a distinct listing surface) | ${shelf.length} | **Human only** (new18 §22) |
+| Shelf action (a distinct listing surface) | ${shelf.length} | **Human only** (new18 §87) |
 | **Total channels** | **${channels.length}** | |
 
 A host documenting stdio MCP support is **not** the same fact as that host consuming the

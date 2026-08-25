@@ -17,7 +17,7 @@ that can change, and neither is recorded here on purpose.
 ## The one action
 
 Adding a topic to `calllint/calllint` is a **repository settings change on a public repo**,
-not a file edit. It is outward-facing and it is a human action; new18 §22 puts it outside
+not a file edit. It is outward-facing and it is a human action; new18 §87 puts it outside
 what an agent may do. Nothing in this repo needs to change for it.
 
 Whether the extension manifest Gemini expects is satisfied by an existing file or needs a new

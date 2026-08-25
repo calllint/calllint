@@ -3,10 +3,27 @@
 ROI #1–#4 in [ROI.md](ROI.md). Everything an agent is permitted to do has been done and is
 recorded below with its result; what remains is listed as numbered steps for you.
 
-Why the split: new18 §22 makes the distribution watcher read-only toward the outside world
-— GET only, no credentials, no form posts, no external PR or issue creation, no maintainer
-contact. So pre-flight validation, local installs, and read-only registry checks are mine;
-anything that publishes is yours.
+Why the split: new18 **§87** (`NO CONTINUOUS EXTERNAL SPAM`) says the weekly watcher must never
+open an external PR or issue, submit a form, email or tag a maintainer, request a reviewer, or
+retry a rejected contribution. So the *automated* watcher publishes nothing; pre-flight
+validation, local installs, and read-only registry checks are mine.
+
+> **Two corrections to an earlier version of this line, 2026-08-25.**
+>
+> 1. **It cited "§22", which is the wrong section.** new18 §22 is `PRIVATE USAGE FACT SEMANTICS`
+>    (npm downloads ≠ users). The rule is §87, with §90 `EXTERNAL WRITE RULE` giving the
+>    eligibility test. A wrong citation is worse than none: it reads as governed when nobody has
+>    checked the governing text.
+> 2. **"Read-only toward the outside world" overstated it.** §87 binds the *watcher*, not the
+>    repository. §89 `A9 — BOUNDED EXTERNAL NATIVE PRESENCE` sets
+>    `MAX_NEW_EXTERNAL_SUBMISSIONS = 3` and §5 diagrams "一次 bounded external write" as the
+>    intended endpoint, so bounded external submission is **permitted** once §90's eight
+>    conditions are all true (official public channel exists, CallLint is a legitimate primitive,
+>    install command proven, schema/validation passes, no duplicate, no invented
+>    personal/legal/company assertion, minimal diff, no promotional issue). The steps below stay
+>    human actions — but because they need a browser session, an account, or a 357 MB install that
+>    is not on this machine, not because a rule forbids automating them. §89 also records that
+>    Cline PR #49 is **not** a new submission and does not consume the quota.
 
 Measured 2026-08-25. Identity, copy and assets for every field below:
 [MATERIALS.md](MATERIALS.md) — cite it, do not retype it.

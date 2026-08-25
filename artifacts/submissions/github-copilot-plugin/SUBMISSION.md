@@ -97,7 +97,7 @@ submissions of this kind is a guess, not a submission.
 ## What to submit
 
 Nothing, until a route is confirmed. Candidate A is a verification (agent-safe: it is a local
-install, no credentials, no form post). Candidate B is a PR — a human action under new18 §22,
+install, no credentials, no form post). Candidate B is a PR — a human action under new18 §87,
 and one worth an issue asking whether external MCP plugins are accepted *before* opening it.
 
 If a route is confirmed and asks for fields: name, description (short), category, tags all

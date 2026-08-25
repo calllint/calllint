@@ -1,10 +1,13 @@
 # Weekly Discovery Review
 
-**Replaces**: "weekly discovery job" (implied continuous crawling, contradicted new18 §22 read-only stance)
+**Replaces**: "weekly discovery job" (implied continuous crawling, contradicted new18 §86/§87 watcher-behavior stance)
 
 **What this is**: A scheduled workflow that checks BOUNDED sources for change, records what
 it saw as an internal artifact, and stops. No crawler, no scraper, no dynamic expansion.
-Read-only by contract (new18 §22).
+Read-only by contract (new18 §86 `WATCHER BEHAVIOR`, §87 `NO CONTINUOUS EXTERNAL SPAM`).
+
+> The three "§22" citations in this file were wrong and were corrected 2026-08-25: §22 is
+> `PRIVATE USAGE FACT SEMANTICS`. The governing sections are §86 and §87.
 
 ---
 
@@ -75,7 +78,7 @@ The review reads from EXACTLY THREE source classes, and no others.
 - **NOT a social listener**: does not monitor Twitter, Reddit, Hacker News, or Discord.
 - **NOT a package registry poller**: does not enumerate npm / PyPI / crates.io.
 
-All of those would violate new18 §22's passive-collection constraint.
+All of those would violate new18 §86's bounded-source constraint.
 
 ---
 

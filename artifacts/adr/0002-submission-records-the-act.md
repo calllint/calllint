@@ -43,7 +43,8 @@ Add one optional field, `submission`, on a new axis. Do **not** add a status.
 4. **HD-08** — the two things a JSON Schema regex structurally cannot say: that `2026-02-31`
    is not a calendar day, and that a date is not in the future.
 5. `cline`/`cline-marketplace-pr` records `submission.date: "2026-08-18"`, measured from the
-   PR's own `createdAt` via a read-only `gh pr view` (new18 §22: GET only).
+   PR's own `createdAt` via a read-only `gh pr view` (new18 §87: the watcher never writes
+   outward — §22 was a miscitation, corrected 2026-08-25).
 
 ### Why there is no `status`, though §4 asks for one
 

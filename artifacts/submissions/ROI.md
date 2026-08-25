@@ -5,7 +5,7 @@ The actionable shelf channels, in priority order. ROI = (host reach × priority 
 not — it is checked against the tree. How many rows there are is counted from the SSOT in
 [`CHANNEL-COUNTS.md`](CHANNEL-COUNTS.md), not typed here.
 
-Ordered 2026-08-23. Every row is a human action (new18 §22). The numbered steps for the
+Ordered 2026-08-23. Every row is a human action (new18 §87). The numbered steps for the
 first four, with every agent-safe pre-flight already run and its result recorded, are in
 [`HUMAN-STEPS.md`](HUMAN-STEPS.md).
 

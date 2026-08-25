@@ -358,8 +358,9 @@ assertCohortShape(hosts)
  *
  * It also covers a gap the schema structurally cannot. A schema can require that `liveUrl`
  * is PRESENT and well-formed; it cannot require that the URL is the channel's own listing,
- * and nothing here fetches it (new18 §22 keeps this repo's watchers GET-only and this gate
- * offline entirely). So the `liveUrl` arm is checked for shape and for pointing at the
+ * and nothing here fetches it (new18 §86/§87 keep this repo's watchers from writing outward
+ * and this gate offline entirely; §22 was a miscitation, corrected 2026-08-25). So the
+ * `liveUrl` arm is checked for shape and for pointing at the
  * channel's own official host, which is the strongest offline statement available.
  *
  * MEASURED HOLE THIS CLOSES (2026-08-23). Flipping cursor/cursor-plugin from AUDIT_REQUIRED

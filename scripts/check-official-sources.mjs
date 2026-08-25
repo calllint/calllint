@@ -148,7 +148,7 @@ for (const feed of candidateFeeds) {
  * SSOT. Keeping them in a committed YAML makes adding a watch target a reviewable commit
  * rather than a config flag, which is what bounds this stage: the job polls exactly the
  * listed URLs and never follows a link out of one. That is the same read-only stance
- * new18 §22 fixes for the two kinds above.
+ * new18 §86 fixes for the two kinds above (§22 was a miscitation, corrected 2026-08-25).
  *
  * The list is OPTIONAL by design. If the file is absent the two SSOT-backed kinds still run
  * — but an unparseable or empty-when-present list fails, because "I could not read my own

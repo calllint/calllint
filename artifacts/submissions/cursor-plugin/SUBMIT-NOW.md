@@ -1,7 +1,8 @@
 # cursor-plugin — the one real form, ready to submit
 
 Everything verifiable from this machine is verified. What remains is one URL paste, which
-requires a browser session and an account — the two things new18 §22 keeps out of my hands.
+requires a browser session and an account — the two things that keep this out of my hands
+(new18 §87 bars the *watcher* from submitting; §89/§90 permit a bounded human submission).
 
 **Verified 2026-08-25.** Do not redo any of it.
 
