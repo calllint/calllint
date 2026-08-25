@@ -75,6 +75,23 @@ let tmpRoot: string
 type Run = { status: number; out: string }
 
 /**
+ * Budget for the live sequence's `beforeAll`, which spawns FOUR node child processes in series.
+ *
+ * WHY THIS IS NOT A FLAKE-SUPPRESSING TIMEOUT BUMP. Measured: the sequence takes ~2.4s when the
+ * file runs alone, and vitest's default 10s hook budget is generous against that. But this suite
+ * runs inside a 263-file project, and under that concurrency four serial `execFile` spawns —
+ * which contend for the SAME cores as every other worker — exceeded 10s and reported
+ * `Hook timed out in 10000ms`. The work is not slow or racy; the default budget was set for hooks
+ * that do not fork processes at all.
+ *
+ * A global `hookTimeout` was rejected: it would relax the budget for the other 88 hook call sites
+ * in this project, most of which do no I/O and genuinely should fail fast, hiding real hangs
+ * elsewhere. The cost of this being wrong is bounded — an actually-hung sequence takes 60s to
+ * report instead of 10s, on one file.
+ */
+const LIVE_SEQUENCE_TIMEOUT_MS = 60_000
+
+/**
  * Run the COPIED script against the temp tree. Never touches the real repo.
  *
  * ASYNC ON PURPOSE. The fixture server runs on THIS process's event loop, so a blocking
@@ -345,7 +362,7 @@ describe("live comparison against a baseline (loopback only, no egress)", () => 
 
     writeManifest({ sources: bothKinds().sources }) // feed removed from the SSOT
     fourth = await runCopy() // DROPPED
-  })
+  }, LIVE_SEQUENCE_TIMEOUT_MS)
 
   it("run 1 reports an ABSENT baseline out loud, and says so unambiguously", () => {
     // A run that compared against nothing must say it. Printing this unconditionally is what
