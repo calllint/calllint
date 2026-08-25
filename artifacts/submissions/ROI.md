@@ -10,8 +10,8 @@ Ordered 2026-08-23. Every row is a human action (new18 §22).
 | # | Host | Channel | Tier | Material gap | Next step |
 |---|---|---|---|---|---|
 | 1 | `claude-code` | `claude-plugin` | P0 | **none** — `.claude-plugin/marketplace.json` now exists and passes `claude plugin validate . --strict` | [claude-plugin/](claude-plugin/SUBMISSION.md) |
-| 2 | `cursor` | `cursor-plugin` | P0 | none — `server.json` + README + logo all present | [cursor-plugin/](cursor-plugin/SUBMISSION.md) |
-| 3 | `copilot-cli` | `github-copilot-plugin` | P2 | none | [github-copilot-plugin/](github-copilot-plugin/SUBMISSION.md) |
+| 2 | `cursor` | `cursor-plugin` | P0 | **a `.cursor-plugin/plugin.json` + a plugin-root `mcp.json` — neither is in the tree** (measured 2026-08-25) | [cursor-plugin/](cursor-plugin/SUBMISSION.md) |
+| 3 | `copilot-cli` | `github-copilot-plugin` | P2 | `UNKNOWN` — see #3 below | [github-copilot-plugin/](github-copilot-plugin/SUBMISSION.md) |
 | 4 | `copilot-cli` | `mcp-registry-discovery` | P2 | none — registry entry is live | verify-only; see below |
 | 5 | `windsurf` | `windsurf-mcp-marketplace` | P1 | none | [windsurf-mcp-marketplace/](windsurf-mcp-marketplace/SUBMISSION.md) |
 | 6 | `gemini-cli` | `gemini-extension-gallery` | P2 | a GitHub repo topic (auto-discovery) | [gemini-extension-gallery/](gemini-extension-gallery/SUBMISSION.md) |
@@ -19,13 +19,27 @@ Ordered 2026-08-23. Every row is a human action (new18 §22).
 | 8 | `openclaw` | `openclaw-clawhub` | P3 | none | [openclaw-clawhub/](openclaw-clawhub/SUBMISSION.md) |
 | 9 | `kiro` | `kiro-workspace-config` | P2 | **a discovery adapter + fixtures — unbuilt by choice** | code, not a submission |
 
-## Two rows that are not submissions
+## Three rows that are not submissions
 
-**#4 `mcp-registry-discovery`** is verify-only. Nothing is submitted: the registry entry is
-already live, and the open question is whether Copilot CLI *consumes* the Official MCP
-Registry. That is a GET, so an agent may do it. A host documenting stdio MCP support is not
-the same fact as that host consuming the Registry — which is exactly why this sits at
-`AUDIT_REQUIRED` rather than `AVAILABLE`.
+**#3 `github-copilot-plugin`** has no verified intake. Measured 2026-08-25: Copilot CLI does
+have a real plugin system, and users add a marketplace themselves with
+`copilot plugin marketplace add <owner>/<repo>` — the CLI reads `.github/plugin/marketplace.json`
+*and also* `.claude-plugin/marketplace.json`, which this repo already ships, so that route
+needs no submission at all. The other candidate, a PR to `github/copilot-plugins`, does carry
+external entries (`source: {source:"github", repo, path}`), but its `CONTRIBUTING.md` is the
+generic template with no intake process and its README still marks MCP servers *coming soon*.
+Two candidate routes, neither confirmed as *the* intake: that is `UNKNOWN`, and writing a
+plausible route here would be the evidence-free claim the verdict vocabulary forbids.
+
+**#4 `mcp-registry-discovery`** is verify-only, and now for a measured structural reason, not
+an assumption. The Official Registry's own `registry-aggregators.mdx` describes aggregators as
+downstream consumers that **scrape** its read-only REST API (~hourly); there is no push path a
+publisher could take. `io.github.calllint/calllint` 0.2.0 is live there (`status: "active"`,
+`isLatest: true`, published 2026-07-13) and absent from github.com/mcp, whose 219-server
+registry documents no submission route anywhere. Nothing to submit; the open question is
+whether Copilot CLI *consumes* the Registry. That is a GET, so an agent may do it. A host
+documenting stdio MCP support is not the same fact as that host consuming the Registry — which
+is exactly why this sits at `AUDIT_REQUIRED` rather than `AVAILABLE`.
 
 **#9 `kiro`** needs a discovery adapter and fixtures written, not a form filled in. It is
 engineering work that happens to unlock a channel, and it is deliberately unbuilt. Do not
@@ -37,6 +51,27 @@ Rank 1 was the only row with a missing artifact: the plugin was complete — hoo
 secure-agent-install skill, three host guides — and had no shelf manifest, so nobody could
 install it. `.claude-plugin/marketplace.json` now exists. The gap is closed; the submission
 itself is still a human action and has not been made.
+
+## What changed on 2026-08-25
+
+Two **material gap** cells were wrong, and this is the column the header promises is checked
+against the tree rather than judged. Both were corrected by reading the vendor's current
+intake requirements and then measuring this repo against them:
+
+- **#2 `cursor`** said "none". Cursor's published checklist requires a plugin directory
+  carrying `.cursor-plugin/plugin.json` (or an Agent-Plugin root `plugin.json`) plus an
+  `mcp.json` at the plugin root with a top-level `mcpServers` map. This repo has neither —
+  only the Claude layout, `plugins/calllint/.claude-plugin/plugin.json`, and no `mcp.json`
+  anywhere in `plugins/`. The `server.json` + README + logo the old cell counted are real, but
+  they are not what Cursor reads. `cursor.com/marketplace` is a browse page; intake is
+  `cursor.com/marketplace/publish`, a public-repo review ("All plugins must be open source, and
+  we review each update before publishing").
+- **#3 `copilot-cli`** said "none", which read as *ready to submit*. There is no verified
+  intake to submit to — see the row note above.
+
+Neither correction is a new task: #2 becomes engineering work like #9, and #3 becomes a verify
+step like #4. What changed is that the table no longer claims a readiness the tree does not
+support.
 
 ## Re-deriving this list
 
