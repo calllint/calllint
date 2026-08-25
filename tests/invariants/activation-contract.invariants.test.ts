@@ -109,11 +109,41 @@ beforeAll(() => {
 
 const clone = (): Ssot => structuredClone(ssot)
 
-/** The first host of a given support class, or a throw — a missing cohort is a fixture defect. */
+/**
+ * A host of the given support class, synthesizing one if the SSOT holds none.
+ *
+ * WHY SYNTHESIS AND NOT A THROW. This used to throw, on the reasoning that a missing cohort
+ * is a fixture defect. That was right while every class was populated, and became wrong on
+ * 2026-08-25: opencode was the SSOT's ONLY CONFIG_SCAN host, and once its normalization was
+ * fixed it became genuinely NATIVE, emptying the class. The two `ACTIONABLE` controls then
+ * failed for a reason that had nothing to do with the rule they audit — the schema's
+ * requirement on CONFIG_SCAN was untouched and still correct.
+ *
+ * The subject of these controls is the SCHEMA RULE, not the census. Both classes are held
+ * to the identical `activation` requirement (one `then` branch covers the pair), so a
+ * relabelled clone exercises the rule faithfully while surviving an empty class. The
+ * denominator that still matters — that the actionable and guide-only cohorts are both
+ * non-empty in the SHIPPED SSOT — is asserted separately in "cohort denominators", against
+ * `ssot` rather than a clone, so this helper cannot mask a real cohort collapse.
+ */
 function hostOfClass(doc: Ssot, supportClass: string): Host {
-  const h = doc.hosts.find((x) => x.supportClass === supportClass)
-  if (!h) throw new Error(`no ${supportClass} host in the SSOT — this control cannot be built`)
-  return h
+  const existing = doc.hosts.find((x) => x.supportClass === supportClass)
+  if (existing) return existing
+
+  const template = doc.hosts.find((x) => ACTIONABLE.includes(x.supportClass as never))
+  if (!template) {
+    throw new Error(
+      `no actionable host to clone for ${supportClass} — every host lost its activation ` +
+        `block, so this control cannot be built`,
+    )
+  }
+  const synthesized: Host = structuredClone(template)
+  // `id` is pinned to ^[a-z0-9-]+$ — an underscore here would make the clone schema-invalid
+  // on its own, and every control built from it would red without testing activation at all.
+  synthesized.id = `${template.id}-as-${supportClass.toLowerCase().replace(/_/g, "-")}`
+  synthesized.supportClass = supportClass as Host["supportClass"]
+  doc.hosts.push(synthesized)
+  return synthesized
 }
 
 describe("cohort denominators (asserted before any claim about them)", () => {
@@ -142,6 +172,28 @@ describe("cohort denominators (asserted before any claim about them)", () => {
       hostDef?.required,
       "activation is not required of a host — a new host could enter with no next action",
     ).toContain("activation")
+  })
+
+  /*
+   * `hostOfClass` synthesizes a host when a class is empty (CONFIG_SCAN is, as of
+   * 2026-08-25). A synthesized host must be schema-VALID before any control mutates it —
+   * otherwise every control built on it reds for its own malformedness rather than for the
+   * rule under test, which is the failure mode this file exists to avoid.
+   *
+   * Caught by measurement, not by reading: the first version built ids like
+   * `cursor-as-config_scan`, and `id` is pinned to ^[a-z0-9-]+$. Both CONFIG_SCAN controls
+   * "passed" while their error lists carried an `id pattern` violation — they would have
+   * kept passing with the activation rule deleted.
+   */
+  it.each(ACTIONABLE)("synthesizes a schema-valid %s host before any mutation", (supportClass) => {
+    const doc = clone()
+    const h = hostOfClass(doc, supportClass)
+    expect(h.supportClass).toBe(supportClass)
+    expect(
+      validate(doc),
+      `the ${supportClass} control subject is itself invalid, so controls built on it prove ` +
+        `nothing: ${JSON.stringify(validate.errors?.slice(0, 3) ?? [])}`,
+    ).toBe(true)
   })
 })
 

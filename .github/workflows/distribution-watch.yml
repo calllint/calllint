@@ -202,7 +202,24 @@ jobs:
       # opened. §86 caps what a candidate observation may license: evidence only, human
       # review, and admission as DEFERRED / DISCOVERY_ONLY. Never an extractor, a support
       # page, a support claim, or any external submission.
-      - name: Observe official vendor sources and candidate feeds
+      #
+      # A THIRD KIND was added 2026-08-24: `HARNESS_RELEASE_FEED`, read from the checked-in
+      # `artifacts/distribution/agent-harness-watch-list.yml` (12 entries) rather than from the
+      # generated manifest. 41 URLs total now — 26 host + 3 candidate-feed + 12 release-feed.
+      # It answers a different question from the two above: not "did a vendor change what they
+      # SAY" but "did a harness SHIP". On that kind, STATUS and REDIRECT are the load-bearing
+      # signals and BODY is not — Codex, gemini-cli and qwen-code publish nightlies, so a body
+      # hash change there is expected traffic, while a 404 or a new final URL means the repo
+      # moved and an extractor's config-path assumptions may have moved with it. Four of the
+      # twelve entries were already stale when the list was written, and the GitHub API follows
+      # renames silently, so a wrong `owner/name` returns 200 and reads as healthy.
+      #
+      # The watch list is deliberately NOT in the SSOT: release feeds are not a published
+      # distribution fact, and `distribution-sources.json` carries a "do not hand-edit" banner
+      # because it is a generated projection. Keeping the list separate and committed is what
+      # bounds this stage — a watch target arrives by reviewable commit, and the job polls
+      # exactly what is listed without ever following a link out of it.
+      - name: Observe vendor sources, candidate feeds and harness release feeds
         continue-on-error: true
         run: node scripts/check-official-sources.mjs
 

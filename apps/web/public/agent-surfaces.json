@@ -264,7 +264,7 @@
       "displayName": "OpenAI Codex",
       "vendor": "OpenAI",
       "priority": "P2",
-      "supportClass": "DISCOVERY_ONLY",
+      "supportClass": "NATIVE",
       "authoritySurfaces": [
         "mcp",
         "tools",
@@ -274,9 +274,11 @@
       ],
       "configPaths": [
         "~/.codex/config.toml",
-        "$CODEX_HOME/config.toml"
+        "<project>/.codex/config.toml"
       ],
-      "scanCommands": [],
+      "scanCommands": [
+        "calllint scan --agent codex"
+      ],
       "canonicalUrl": "https://calllint.com/harnesses/codex",
       "distributionPrimitives": [
         {
@@ -289,7 +291,7 @@
           "state": "BLOCKED"
         }
       ],
-      "coverageBoundary": "CallLint does not yet auto-discover Codex configuration. The config path is documented but no extractor reads TOML, so Codex servers must be passed explicitly."
+      "coverageBoundary": "CallLint reads the mcp_servers table from Codex TOML config. Other Codex settings in the same file are not interpreted."
     },
     {
       "id": "copilot-cli",
@@ -359,15 +361,18 @@
       "displayName": "Gemini CLI",
       "vendor": "Google",
       "priority": "P2",
-      "supportClass": "DEFERRED",
+      "supportClass": "NATIVE",
       "authoritySurfaces": [
         "mcp",
         "tools"
       ],
       "configPaths": [
-        "~/.gemini/config.json or similar"
+        "~/.gemini/settings.json",
+        "<project>/.gemini/settings.json"
       ],
-      "scanCommands": [],
+      "scanCommands": [
+        "calllint scan --agent gemini-cli"
+      ],
       "canonicalUrl": "https://calllint.com/harnesses/gemini-cli",
       "distributionPrimitives": [
         {
@@ -381,7 +386,7 @@
           "officialSource": "https://geminicli.com/docs/extensions/"
         }
       ],
-      "coverageBoundary": "CallLint does not yet support Gemini CLI native discovery."
+      "coverageBoundary": "CallLint scans the mcpServers map in Gemini CLI settings. OAuth token and server-enablement files are read for neither discovery nor verdicts."
     },
     {
       "id": "codebuddy",
@@ -416,16 +421,18 @@
       "displayName": "OpenCode",
       "vendor": "Open Source",
       "priority": "P3",
-      "supportClass": "CONFIG_SCAN",
+      "supportClass": "NATIVE",
       "authoritySurfaces": [
         "mcp",
         "tools"
       ],
       "configPaths": [
-        "Documented config paths require verification"
+        "~/.config/opencode/opencode.json",
+        "<project>/opencode.json",
+        "<project>/opencode.jsonc"
       ],
       "scanCommands": [
-        "calllint scan --config <path>"
+        "calllint scan --agent opencode"
       ],
       "canonicalUrl": "https://calllint.com/harnesses/opencode",
       "distributionPrimitives": [
@@ -435,24 +442,26 @@
           "upstream": "officialMcpRegistry"
         }
       ],
-      "coverageBoundary": "Config path auto-discovery not yet supported. Schema generation ambiguity must be handled deterministically."
+      "coverageBoundary": "CallLint scans local and remote servers under the root mcp key. {env:VAR} placeholders are recorded unresolved, never expanded against the host environment."
     },
     {
       "id": "kiro",
       "displayName": "Kiro",
       "vendor": "AWS",
       "priority": "P2",
-      "supportClass": "DEFERRED",
+      "supportClass": "NATIVE",
       "authoritySurfaces": [
         "mcp",
         "filesystem",
         "shell"
       ],
       "configPaths": [
-        ".kiro/settings/mcp.json",
+        "<project>/.kiro/settings/mcp.json",
         "~/.kiro/settings/mcp.json"
       ],
-      "scanCommands": [],
+      "scanCommands": [
+        "calllint scan --agent kiro"
+      ],
       "canonicalUrl": "https://calllint.com/harnesses/kiro",
       "distributionPrimitives": [
         {
@@ -465,7 +474,7 @@
           "state": "AUDIT_REQUIRED"
         }
       ],
-      "coverageBoundary": "CallLint does not yet support Kiro native discovery."
+      "coverageBoundary": "CallLint scans MCP server entries in Kiro settings. Kiro steering files and hooks are not covered."
     },
     {
       "id": "continue",

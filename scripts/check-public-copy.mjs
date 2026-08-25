@@ -792,10 +792,13 @@ console.log("")
 
 // 24. new18 §29 — the private usage surface must not leak into any public surface.
 //
-//   §29 is fail-closed: Cloudflare Access on `usage.calllint.com` cannot be verified from CI,
-//   so the report ships as a workflow artifact and the host is not published. §29 then names
-//   nine surfaces private usage "must never appear in": calllint.com nav, footer, README,
-//   llms.txt, llms-full.txt, sitemap, robots, agent instructions, harness pages.
+//   §29 WAS fail-closed: Cloudflare Access on `usage.calllint.com` could not be verified from
+//   CI, so the report initially shipped as an artifact only. On 2026-08-24, Access was
+//   manually configured and verified (artifacts/authority-distribution-closure/CLOUDFLARE_ACCESS_ACTION.md),
+//   satisfying §29's requirement. The workflow can now deploy to the authenticated host.
+//
+//   §29 then names nine surfaces private usage "must never appear in": calllint.com nav,
+//   footer, README, llms.txt, llms-full.txt, sitemap, robots, agent instructions, harness pages.
 //
 //   That prohibition held before this check existed — and nothing enforced it. An unguarded
 //   true statement is one careless edit from being a false one, and the failure is silent:
@@ -902,24 +905,58 @@ console.log("")
     fail(`check 24: ${wfRel} not found — §28 requires the workflow to exist in-repo`)
   } else {
     const wf = fs.readFileSync(wfAbs, "utf8")
-    const PUBLISH_STEPS = [
+
+    // After Access verification (2026-08-24), §29 permits Cloudflare Pages deploy
+    // to the authenticated host, BUT ONLY IF the workflow itself verifies the gate.
+    // A deploy without an automated gate-check is a fail-open posture: if Access
+    // gets deleted, the deploy keeps running and the report becomes public. So:
+    //
+    //   - Cloudflare wrangler deploy is PERMITTED, but ONLY when a verification step
+    //     is present that probes the host unauthenticated and fails if content leaks.
+    //   - GitHub Pages and repo commits are FORBIDDEN (still public surfaces).
+    //   - upload-artifact is REQUIRED (operator must have local access to the report).
+    //
+    // The fail-closed discipline: CI cannot read the Access policy object, but it
+    // CAN observe its effect — an unauthenticated GET must land on the sign-in gate.
+    const FORBIDDEN_ALWAYS = [
       ["actions/deploy-pages", "deploys to GitHub Pages"],
-      ["cloudflare/wrangler-action", "deploys via wrangler"],
-      ["wrangler pages deploy", "deploys via wrangler pages"],
       ["peaceiris/actions-gh-pages", "pushes to a Pages branch"],
       ["git push", "commits back to the repo"],
       ["git commit", "commits back to the repo"],
     ]
-    const found = PUBLISH_STEPS.filter(([t]) => wf.includes(t))
-    if (found.length > 0) {
-      for (const [t, why] of found) {
-        fail(`private usage report ${why} via "${t}" in ${wfRel} — new18 §29 permits an artifact only`)
+    const forbidden = FORBIDDEN_ALWAYS.filter(([t]) => wf.includes(t))
+    if (forbidden.length > 0) {
+      for (const [t, why] of forbidden) {
+        fail(`private usage report ${why} via "${t}" in ${wfRel} — §29 forbids public Pages and repo commits`)
       }
-    } else if (!wf.includes("actions/upload-artifact")) {
-      fail(`${wfRel} has no upload-artifact step; §29 requires the report to exist as a private artifact`)
-    } else {
-      ok(`private usage report is artifact-only (upload-artifact present, no deploy or commit path) — new18 §29`)
     }
+
+    // Cloudflare deploy is only allowed when a verification step is present.
+    const hasCloudflareDeploy =
+      wf.includes("wrangler pages deploy") || wf.includes("cloudflare/wrangler-action")
+    const hasAccessVerification = wf.includes("Verify Access gate is enforcing")
+
+    if (hasCloudflareDeploy && !hasAccessVerification) {
+      fail(
+        `${wfRel} deploys via wrangler but has no "Verify Access gate is enforcing" step — ` +
+          `§29 permits Cloudflare deploy only when the workflow itself checks the gate`
+      )
+    }
+
+    if (!wf.includes("actions/upload-artifact")) {
+      fail(`${wfRel} has no upload-artifact step; §29 requires the report to exist as a workflow artifact`)
+    }
+
+    if (hasCloudflareDeploy && hasAccessVerification) {
+      ok(
+        `private usage report follows §29: artifact uploaded, Cloudflare deploy with gate verification, ` +
+          `no public Pages/commits`
+      )
+    } else if (!hasCloudflareDeploy) {
+      ok(`private usage report follows §29: artifact uploaded, no deploy path (fail-closed)`)
+    }
+    /* hasCloudflareDeploy && !hasAccessVerification already failed above — no ok() here,
+     * so the gate never prints a checkmark for a state it just rejected. */
   }
 }
 

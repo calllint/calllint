@@ -49,6 +49,8 @@ channel:
 artifacts/submissions/
 ├── README.md          # this file
 ├── MATERIALS.md        # the shared package: identity, copy, assets. Cite, don't retype.
+├── HUMAN-STEPS.md      # the numbered steps only a human can take, with every agent-safe
+│                       #   pre-flight already run and its result recorded
 ├── ROI.md              # what to do next, and why in that order
 ├── BLOCKED.md          # what NOT to attempt, with the reason
 └── <platform>/         # one directory per shelf that takes a submission

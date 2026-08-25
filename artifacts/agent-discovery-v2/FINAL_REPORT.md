@@ -366,13 +366,18 @@ Nothing in this list is blocked on code; each is an operator decision or an exte
    reversing what this report first recorded. It is deliberately **not** a `hosts[]` field: the
    obligation §9 states is "a record exists for each of these fourteen", which needs no column, and
    a column no gate reads is the duplicate truth this work removed. Nothing here is owed.
-6. **new18 §29 stays fail-closed, and that is the terminal state — not debt.** Clearing it means
-   verifying an account-level Cloudflare Access policy from CI, which requires a token carrying
-   `Access: Organizations, Identity Providers, and Groups — Read`. That is strictly larger authority
-   than this pipeline needs to read a D1 table, and a private usage report does not justify minting
-   it (the reasoning is recorded in
-   [CLOUDFLARE_ACCESS_ACTION.md](../authority-distribution-closure/CLOUDFLARE_ACCESS_ACTION.md)).
-   `OPERATOR_ACTION_REQUIRED` therefore stays **1** by design.
+6. **new18 §29 stayed fail-closed until an operator closed it by hand — now closed (2026-08-24).**
+   Reading an account-level Cloudflare Access *policy* from CI still requires a token carrying
+   `Access: Organizations, Identity Providers, and Groups — Read`, which is strictly larger authority
+   than this pipeline needs to read a D1 table, and a private usage report still does not justify
+   minting it. So that never became automated. What changed is narrower and sufficient: an operator
+   configured Access, and the pipeline now observes the policy's **effect** rather than its
+   definition — an unauthenticated `GET` of the host must land on the sign-in gate and must not
+   return report content, which needs no credential at all. The workflow runs that probe on every
+   deploy and `check-public-copy.mjs` check 24 permits the deploy only while the probe is present.
+   The one-time human step is recorded in
+   [CLOUDFLARE_ACCESS_ACTION.md](../authority-distribution-closure/CLOUDFLARE_ACCESS_ACTION.md);
+   `OPERATOR_ACTION_REQUIRED` is now **0**.
 
    What *was* owed there is now closed: §29's nine-surface prohibition held but **nothing enforced
    it**. `scripts/check-public-copy.mjs` check 24 now locks it over 45 surfaces (2 sitemaps, 20

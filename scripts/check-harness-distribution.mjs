@@ -70,30 +70,106 @@ for (const line of agentTypeLines) {
   }
 }
 
-// Extract bootstrapped extractors from bootstrap.ts
-const extractorMatches = bootstrapContent.matchAll(/registry\.register\(new (\w+)Extractor\(\)\)/g)
+/*
+ * Extract bootstrapped extractors from bootstrap.ts.
+ *
+ * WHY THE CLASS NAME IS NOT READ AS THE AGENT TYPE. Class name and agent type do not
+ * share one rule: `WorkBuddyExtractor` is `workbuddy` (no hyphen) while
+ * `ClaudeCodeExtractor` is `claude-code` (hyphenated), so no mechanical de-camel-casing
+ * derives both. This used to be bridged by a hand-written `classToAgentType` table, which
+ * failed in the two ways a hand-copied list always fails:
+ *
+ *   - It omitted `Kiro`, `GeminiCli` and `Codex`. All three ARE registered in bootstrap,
+ *     but absent from the table they never entered `bootstrappedExtractors`, so HD-01's
+ *     "extractor registered" arm silently could not see them.
+ *   - It spelled one key `OpenCode` while the class is `OpencodeExtractor` (lowercase c).
+ *     That entry could never match anything. It went unnoticed only because opencode was
+ *     not NATIVE at the time, so the arm it disabled was never reached.
+ *
+ * Both are the same fault as the defect this gate exists to catch: a hand-maintained list
+ * standing in for a fact. So the type is now read from where the product itself declares
+ * it — the `agentType` field on each extractor class — and the class-name → file mapping
+ * comes from bootstrap's own import statements. Nothing is transcribed.
+ */
 const bootstrappedExtractors = new Set()
 
-// Manual mapping for multi-word class names
-const classToAgentType = {
-  "Cursor": "cursor",
-  "ClaudeCode": "claude-code",
-  "ClaudeDesktop": "claude-desktop",
-  "WorkBuddy": "workbuddy",
-  "VSCode": "vscode",
-  "Windsurf": "windsurf",
-  "QwenCode": "qwen-code",
-  "Cline": "cline",
-  "OpenClaw": "openclaw",
-  "OpenCode": "opencode",
+/*
+ * Scan CODE ONLY — comments are not registrations.
+ *
+ * Found by negative control: commenting out `registry.register(new KiroExtractor())` left
+ * this gate green, because a bare `matchAll` over the raw file text matches the call
+ * inside `// registry.register(...)` just as happily. A disabled extractor would have kept
+ * satisfying HD-01 for a host still marked NATIVE — the gate would have been blind to
+ * exactly the removal it exists to catch.
+ *
+ * Block comments go first (docblocks here contain `https://` URLs, which would otherwise
+ * be truncated mid-comment and leave a stray close-comment fragment), then line comments.
+ * No import path or string literal in this file contains a double slash, so cutting at it
+ * is safe for both scans below.
+ */
+const bootstrapCode = bootstrapContent
+  .replace(/\/\*[\s\S]*?\*\//g, "")
+  .split("\n")
+  .map((line) => {
+    const i = line.indexOf("//")
+    return i === -1 ? line : line.slice(0, i)
+  })
+  .join("\n")
+
+const importedFrom = new Map()
+for (const m of bootstrapCode.matchAll(
+  /import\s*\{\s*(\w+Extractor)\s*\}\s*from\s*"\.\/extractors\/([\w.-]+)\.js"/g,
+)) {
+  importedFrom.set(m[1], m[2])
 }
 
-for (const match of extractorMatches) {
-  const className = match[1]
-  const agentType = classToAgentType[className]
-  if (agentType) {
-    bootstrappedExtractors.add(agentType)
+const registeredClasses = [
+  ...bootstrapCode.matchAll(/registry\.register\(new (\w+Extractor)\(\)\)/g),
+].map((m) => m[1])
+
+if (registeredClasses.length === 0) {
+  fail(
+    "Could not parse any registry.register(new XExtractor()) call out of bootstrap.ts. " +
+      "HD-01's extractor arm compares against this set, so an empty parse would make it vacuous.",
+  )
+  process.exit(1)
+}
+
+for (const className of registeredClasses) {
+  const file = importedFrom.get(className)
+  if (!file) {
+    fail(
+      `${className} is registered in bootstrap.ts but has no matching import there, so its ` +
+        `agentType cannot be read. HD-01 would silently stop checking this extractor.`,
+    )
+    continue
   }
+  const srcPath = path.join(repoRoot, "packages/discovery/src/extractors", `${file}.ts`)
+  if (!fs.existsSync(srcPath)) {
+    fail(`${className} imports ./extractors/${file}.js but ${file}.ts does not exist`)
+    continue
+  }
+  const src = fs.readFileSync(srcPath, "utf8")
+  const declared = src.match(/readonly\s+agentType\s*:\s*AgentType\s*=\s*"([^"]+)"/)
+  if (!declared) {
+    fail(
+      `${file}.ts declares no \`readonly agentType: AgentType = "..."\`, so the gate cannot ` +
+        `tell which agent it serves. HD-01 needs this to be readable, not inferred.`,
+    )
+    continue
+  }
+  bootstrappedExtractors.add(declared[1])
+}
+
+/*
+ * Anti-vacuity floor. Every extractor above must have yielded a type; if parsing silently
+ * degraded, the set shrinks and HD-01 stops failing rather than starts.
+ */
+if (bootstrappedExtractors.size !== registeredClasses.length) {
+  fail(
+    `Parsed ${bootstrappedExtractors.size} agent types from ${registeredClasses.length} ` +
+      `registered extractors. Every registration must resolve to exactly one declared type.`,
+  )
 }
 
 console.log("\n=== Harness Distribution Truth Gate ===\n")
@@ -669,6 +745,101 @@ assertCohortShape(hosts)
           `real past day and none under READY_NOT_SUBMITTED; ${withUrl.length} channel(s) carry ` +
           `a submissionUrl and all of them record a date`,
       )
+    }
+  }
+}
+
+/*
+ * HD-09: `--agent` in CLI help must name exactly the extractors that exist.
+ *
+ * THE THIRD PARTY. HD-01 ties SSOT ↔ types.ts ↔ bootstrap, so a public page cannot
+ * advertise `--agent x` without an extractor. Nothing tied the CLI's OWN help text to that
+ * same set, and help.ts carries a hand-typed list of agent names. It drifted exactly as a
+ * hand-typed list does: it named 9 while bootstrap registered 13, and the `--auto`
+ * description named 8 display names while `--auto` iterates all 13 via
+ * `getAllSortedByPriority()`. A user reading `--help` saw a shorter product than shipped.
+ *
+ * WHY BOTH DIRECTIONS. Missing names understate the product; extra names are worse — they
+ * promise a command that exits "No config found for agent 'x'" no matter what the user
+ * installs, which reads as CallLint failing to find a config rather than never having
+ * supported it. Set equality is the only claim that catches both.
+ *
+ * The denominator is `bootstrappedExtractors`, derived above from each extractor's own
+ * `agentType` declaration — not from help.ts. A gate that read its expectation out of the
+ * text it audits would pass for any text.
+ */
+{
+  console.log("\nChecking: CLI help --agent list matches registered extractors [HD-09]")
+
+  const HELP_SRC = path.join(repoRoot, "apps/cli/src/commands/help.ts")
+  if (!fs.existsSync(HELP_SRC)) {
+    fail(`HD-09 cannot find ${path.relative(repoRoot, HELP_SRC)} — the gate has no subject`)
+  } else {
+    const helpText = fs.readFileSync(HELP_SRC, "utf8")
+
+    // The `--agent <type>` line enumerates the supported types in parentheses.
+    const agentLine = helpText.match(/--agent <type>[^\n(]*\(([^)]*)\)/)
+    if (!agentLine) {
+      fail(
+        `HD-09 could not find a "--agent <type> ... (a, b, c)" enumeration in help.ts. ` +
+          `Without it the gate has nothing to compare and would pass vacuously.`,
+      )
+    } else {
+      const listed = new Set(
+        agentLine[1]
+          .split(",")
+          .map((s) => s.trim())
+          .filter(Boolean),
+      )
+
+      if (listed.size === 0) {
+        fail(`HD-09 parsed an EMPTY --agent list out of help.ts — comparing against nothing`)
+      }
+
+      const missing = [...bootstrappedExtractors].filter((t) => !listed.has(t)).sort()
+      const extra = [...listed].filter((t) => !bootstrappedExtractors.has(t)).sort()
+
+      if (missing.length > 0) {
+        fail(
+          `HD-09: help.ts omits ${missing.length} registered extractor(s) from its --agent ` +
+            `list: ${missing.join(", ")}. Users cannot discover a command the help does not name.`,
+        )
+      }
+      if (extra.length > 0) {
+        fail(
+          `HD-09: help.ts advertises ${extra.length} --agent value(s) with no registered ` +
+            `extractor: ${extra.join(", ")}. Each would exit "No config found for agent", ` +
+            `which reads as a failed lookup rather than an unsupported host.`,
+        )
+      }
+      if (missing.length === 0 && extra.length === 0) {
+        pass(
+          `help.ts --agent list matches all ${bootstrappedExtractors.size} registered ` +
+            `extractors exactly (no omissions, no phantoms)`,
+        )
+      }
+    }
+
+    /*
+     * The `--auto` blurb must not carry its own copy of the roster. It ran all 13 while
+     * naming 8, and a second list is a second thing to drift; deferring to `--agent` is
+     * the only spelling that cannot disagree with it.
+     */
+    const autoLine = helpText.match(/^\s*--auto\s+(.*)$/m)
+    if (!autoLine) {
+      fail(`HD-09 could not find the --auto line in help.ts`)
+    } else {
+      const named = [...bootstrappedExtractors].filter((t) => autoLine[1].includes(t))
+      if (named.length > 0 && named.length < bootstrappedExtractors.size) {
+        fail(
+          `HD-09: the --auto description names ${named.length} of ` +
+            `${bootstrappedExtractors.size} agents (${named.sort().join(", ")}), but --auto ` +
+            `runs every registered extractor. Either name all of them or refer to --agent's ` +
+            `list; a partial roster understates what --auto scans.`,
+        )
+      } else {
+        pass(`--auto description carries no partial agent roster`)
+      }
     }
   }
 }

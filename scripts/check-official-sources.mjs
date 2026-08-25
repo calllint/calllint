@@ -44,9 +44,11 @@ import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'node:fs'
 import { createHash } from 'node:crypto'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { parse as parseYAML } from 'yaml'
 
 const repoRoot = fileURLToPath(new URL('..', import.meta.url))
 const MANIFEST = 'scripts/distribution-sources.json'
+const WATCH_LIST = 'artifacts/distribution/agent-harness-watch-list.yml'
 const ARTIFACT = 'artifacts/distribution-watch/official-sources.json'
 const TIMEOUT_MS = 15000
 
@@ -127,19 +129,76 @@ for (const feed of candidateFeeds) {
 }
 
 /*
+ * ─────────────────────────────────────────────────────────────────────────────────────────
+ * THE THIRD KIND: `HARNESS_RELEASE_FEED`, FROM A HAND-MAINTAINED YAML RATHER THAN THE SSOT
+ * ─────────────────────────────────────────────────────────────────────────────────────────
+ * The two kinds above answer "did a vendor change what they SAY". This one answers "did a
+ * harness SHIP" — a different question with a different signal. A release feed moves every
+ * few days on the active harnesses (Codex, gemini-cli and qwen-code publish nightlies), so
+ * a BODY change here is expected traffic, not news; what is worth a human's attention is a
+ * feed going 404 or redirecting, which means a repo moved and an extractor's assumptions
+ * may have moved with it. Four of the twelve entries were already wrong when the list was
+ * written — `sst/opencode` had moved to `anomalyco/opencode`, `getcursor/cursor` to
+ * `cursor/cursor`, `stackblitz-labs/kiro` never existed, and the Qwen URL pointed at the
+ * model weights instead of the CLI.
+ *
+ * WHY A SEPARATE FILE, AND WHY NOT GENERATED. `scripts/distribution-sources.json` is a
+ * projection of `apps/web/data/distribution-surfaces.json` and carries the banner "Do not
+ * hand-edit"; release feeds are not a published distribution fact and have no place in the
+ * SSOT. Keeping them in a committed YAML makes adding a watch target a reviewable commit
+ * rather than a config flag, which is what bounds this stage: the job polls exactly the
+ * listed URLs and never follows a link out of one. That is the same read-only stance
+ * new18 §22 fixes for the two kinds above.
+ *
+ * The list is OPTIONAL by design. If the file is absent the two SSOT-backed kinds still run
+ * — but an unparseable or empty-when-present list fails, because "I could not read my own
+ * watch list" is this script's own job failing, not a vendor being down.
+ */
+const watchListAbs = path.join(repoRoot, WATCH_LIST)
+let watches = []
+if (existsSync(watchListAbs)) {
+  let watchDoc
+  try {
+    watchDoc = parseYAML(readFileSync(watchListAbs, 'utf8'))
+  } catch (error) {
+    die(`${WATCH_LIST} is not parseable YAML`, error.message)
+  }
+  watches = Array.isArray(watchDoc?.watches) ? watchDoc.watches : []
+  if (watches.length === 0) {
+    die(
+      `${WATCH_LIST} exists but declares zero watches`,
+      'Release-feed observation would report a silent 0 while the job still exited 0.',
+    )
+  }
+  for (const watch of watches) {
+    if (!watch?.url || !watch?.name) {
+      die(`${WATCH_LIST} has an entry missing \`name\` or \`url\``, JSON.stringify(watch))
+    }
+    urls.push({
+      kind: 'HARNESS_RELEASE_FEED',
+      hostId: watch.name,
+      url: watch.url,
+      watchFor: 'new harness release; a 404 or redirect means the feed moved',
+    })
+  }
+}
+
+/*
  * Anti-vacuity for the half just added, with its own denominator. `sources.length === 0`
  * above cannot detect this: it stayed green through the entire period in which candidate
  * discovery observed nothing. A feed declared in the SSOT but contributing no URL means the
  * discovery stage is again unable to see its subject, so it fails rather than reporting a
  * silent 0.
  */
-const feedUrlCount = urls.length - hostUrlCount
+const feedUrlCount = urls.filter((u) => u.kind === 'CANDIDATE_FEED').length
 if (candidateFeeds.length > 0 && feedUrlCount === 0) {
   die(
     `${MANIFEST} declares ${candidateFeeds.length} candidate feed(s) but zero of them contribute a URL`,
     'Candidate discovery would observe nothing while the job still exited 0.',
   )
 }
+
+const releaseFeedUrlCount = urls.filter((u) => u.kind === 'HARNESS_RELEASE_FEED').length
 
 const sha256 = (input) => createHash('sha256').update(input).digest('hex')
 
@@ -220,18 +279,19 @@ if (previous) {
 }
 
 if (offline) {
-  console.log(`• --offline: ${urls.length} URL(s) from ${MANIFEST} were NOT fetched.`)
+  console.log(`• --offline: ${urls.length} URL(s) were NOT fetched.`)
   console.log(
     `  Manifest shape verified (${sources.length} host source(s) → ${hostUrlCount} URL(s), ` +
       `${candidateFeeds.length} candidate feed(s) → ${feedUrlCount} URL(s)); ` +
+      `watch list ${watches.length} entr(ies) → ${releaseFeedUrlCount} URL(s); ` +
       'no observation was made or written.',
   )
   process.exit(0)
 }
 
 console.log(
-  `Observing ${urls.length} vendor source(s) named in ${MANIFEST} ` +
-    `(${hostUrlCount} host, ${feedUrlCount} candidate-feed) …`,
+  `Observing ${urls.length} source(s) — ${hostUrlCount} host + ${feedUrlCount} candidate-feed ` +
+    `from ${MANIFEST}, ${releaseFeedUrlCount} release-feed from ${WATCH_LIST} …`,
 )
 const observations = await Promise.all(urls.map(observe))
 
@@ -309,11 +369,24 @@ writeFileSync(
         'CANDIDATE_FEED observations are evidence that an untracked harness may exist. They are never authority ' +
         'over an existing host support class, and never a support claim. Human review decides; admission is ' +
         'DEFERRED or DISCOVERY_ONLY only.',
-      describes: { manifest: MANIFEST, release: manifest.describes?.release ?? null },
+      /*
+       * `kind: "HARNESS_RELEASE_FEED"` entries answer "did a harness ship", not "did a vendor
+       * change what they say". A BODY change is ordinary traffic on a nightly publisher and
+       * licenses nothing on its own; a STATUS or REDIRECT change is the load-bearing signal,
+       * because it means the feed moved and an extractor's config-path assumptions may have
+       * moved too. Verifying that is a human's job — this file only records what returned.
+       */
+      releaseFeedPolicy:
+        'HARNESS_RELEASE_FEED observations record that a harness release page moved. A BODY change on a nightly ' +
+        'publisher is expected and licenses no edit. A STATUS or REDIRECT change means the feed relocated: a human ' +
+        'checks whether the harness config path changed, and updates the extractor and the watch list by commit.',
+      describes: { manifest: MANIFEST, watchList: WATCH_LIST, release: manifest.describes?.release ?? null },
       counts: {
         hostSourceUrls: hostUrlCount,
         candidateFeedUrls: feedUrlCount,
         candidateFeeds: candidateFeeds.length,
+        harnessReleaseFeedUrls: releaseFeedUrlCount,
+        harnessWatches: watches.length,
       },
       observations: observations.sort((a, b) => a.url.localeCompare(b.url)),
     },
@@ -343,6 +416,22 @@ console.log(
     '— evidence only; §86 permits no support claim, no submission',
 )
 
+/*
+ * Printed unconditionally for the same reason as the candidate line above: a silent stage and
+ * an absent stage read identically, and that is how the candidate half went unobserved for its
+ * whole existence. An unreachable release feed is called out by name — that is the signal this
+ * kind exists for, and it is the one case here where a human has something to do.
+ */
+const releaseObs = observations.filter((o) => o.kind === 'HARNESS_RELEASE_FEED')
+const releaseReachable = releaseObs.filter((o) => o.reachable && o.status >= 200 && o.status < 300).length
+console.log(
+  `    harness release feeds: ${releaseObs.length} URL(s) observed, ${releaseReachable} returning 2xx ` +
+    `— from ${WATCH_LIST}; polled as listed, never crawled beyond`,
+)
+if (releaseObs.length === 0) {
+  console.log(`      none listed — ${WATCH_LIST} is absent, so no harness ship signal was observed`)
+}
+
 if (changes.length === 0) {
   // §19: "No change: silent."
   console.log('')
@@ -353,8 +442,12 @@ if (changes.length === 0) {
 console.log('')
 console.log(`• ${changes.length} change(s) against the previous snapshot:`)
 for (const c of changes) {
-  const tag = c.sourceKind === 'CANDIDATE_FEED' ? 'candidate' : 'host'
-  console.log(`    [${c.kind}] (${tag}) ${c.hostId ?? '—'}  ${c.url}  ${c.detail}`)
+  const label = {
+    HOST_SOURCE: 'host',
+    CANDIDATE_FEED: 'candidate',
+    HARNESS_RELEASE_FEED: 'release',
+  }[c.sourceKind]
+  console.log(`    [${c.kind}] (${label || c.sourceKind}) ${c.hostId ?? '—'}  ${c.url}  ${c.detail}`)
 }
 console.log('')
 console.log(`  Recorded in ${ARTIFACT}. §19 forbids acting on this automatically: no external PR, no`)

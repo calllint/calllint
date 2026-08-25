@@ -44,7 +44,7 @@
 
         <h2>Agent Harnesses</h2>
 
-        <p class="prose">CallLint tracks 18 agent harnesses: 9 with native auto-discovery (<code>--agent &lt;id&gt;</code>), 1 scanned by explicit path (<code>calllint scan &lt;path&gt;</code>), 8 documented only, with no detection yet.</p>
+        <p class="prose">CallLint tracks 18 agent harnesses: 13 with native auto-discovery (<code>--agent &lt;id&gt;</code>), 5 documented only, with no detection yet.</p>
 
         <div class="harness-grid">
           <div class="harness-card">
@@ -115,8 +115,8 @@
             <h3><a href="/harnesses/codex">OpenAI Codex</a></h3>
             <p class="small">OpenAI</p>
             <p class="small"><strong>Authority:</strong> mcp, tools, filesystem (+2 more)</p>
-            <p class="small"><strong>CallLint support:</strong> Guide only — No automatic detection yet — this page documents where the config lives.</p>
-            <code class="small">no scan command yet (Guide only) — https://calllint.com/harnesses/codex</code>
+            <p class="small"><strong>CallLint support:</strong> Auto-detects — CallLint finds this host’s config on its own.</p>
+            <code class="small">calllint scan --agent codex</code>
           </div>
 
           <div class="harness-card">
@@ -139,8 +139,8 @@
             <h3><a href="/harnesses/gemini-cli">Gemini CLI</a></h3>
             <p class="small">Google</p>
             <p class="small"><strong>Authority:</strong> mcp, tools</p>
-            <p class="small"><strong>CallLint support:</strong> Guide only — Support is not implemented yet — this page documents what we can observe today.</p>
-            <code class="small">no scan command yet (Guide only) — https://calllint.com/harnesses/gemini-cli</code>
+            <p class="small"><strong>CallLint support:</strong> Auto-detects — CallLint finds this host’s config on its own.</p>
+            <code class="small">calllint scan --agent gemini-cli</code>
           </div>
 
           <div class="harness-card">
@@ -155,16 +155,16 @@
             <h3><a href="/harnesses/opencode">OpenCode</a></h3>
             <p class="small">Open Source</p>
             <p class="small"><strong>Authority:</strong> mcp, tools</p>
-            <p class="small"><strong>CallLint support:</strong> Scan config — CallLint scans this host’s config when you point it at the file.</p>
-            <code class="small">calllint scan --config &lt;path&gt;</code>
+            <p class="small"><strong>CallLint support:</strong> Auto-detects — CallLint finds this host’s config on its own.</p>
+            <code class="small">calllint scan --agent opencode</code>
           </div>
 
           <div class="harness-card">
             <h3><a href="/harnesses/kiro">Kiro</a></h3>
             <p class="small">AWS</p>
             <p class="small"><strong>Authority:</strong> mcp, filesystem, shell</p>
-            <p class="small"><strong>CallLint support:</strong> Guide only — Support is not implemented yet — this page documents what we can observe today.</p>
-            <code class="small">no scan command yet (Guide only) — https://calllint.com/harnesses/kiro</code>
+            <p class="small"><strong>CallLint support:</strong> Auto-detects — CallLint finds this host’s config on its own.</p>
+            <code class="small">calllint scan --agent kiro</code>
           </div>
 
           <div class="harness-card">

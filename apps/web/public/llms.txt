@@ -39,7 +39,7 @@ CallLint is published to the Official MCP Registry:
 
 ## Agent Harnesses CallLint Tracks
 
-CallLint tracks 18 agent harnesses: 9 with native auto-discovery (`--agent <id>`), 1 scanned by explicit path (`calllint scan <path>`), 8 documented only, with no detection yet.
+CallLint tracks 18 agent harnesses: 13 with native auto-discovery (`--agent <id>`), 5 documented only, with no detection yet.
 
 The P0/P1/P2-P3 tiers below order hosts by how commonly they are used. They are NOT a
 capability claim: read each host's own command or support class.
@@ -57,13 +57,13 @@ capability claim: read each host's own command or support class.
 
 **P2-P3 (Less Common):**
 - OpenClaw (Open Source) — calllint scan --agent openclaw
-- OpenAI Codex (OpenAI) — no scan command yet (Guide only) — https://calllint.com/harnesses/codex
+- OpenAI Codex (OpenAI) — calllint scan --agent codex
 - GitHub Copilot CLI (GitHub) — no scan command yet (Guide only) — https://calllint.com/harnesses/copilot-cli
 - Cline (Open Source) — calllint scan --agent cline
-- Gemini CLI (Google) — no scan command yet (Guide only) — https://calllint.com/harnesses/gemini-cli
+- Gemini CLI (Google) — calllint scan --agent gemini-cli
 - CodeBuddy (Tencent) — no scan command yet (Guide only) — https://calllint.com/harnesses/codebuddy
-- OpenCode (Open Source) — calllint scan --config <path>
-- Kiro (AWS) — no scan command yet (Guide only) — https://calllint.com/harnesses/kiro
+- OpenCode (Open Source) — calllint scan --agent opencode
+- Kiro (AWS) — calllint scan --agent kiro
 - Continue (Continue) — no scan command yet (Guide only) — https://calllint.com/harnesses/continue
 - Roo Code (Roo Code Inc) — no scan command yet (Guide only) — https://calllint.com/harnesses/roo-code
 - DeepSeek Harness (DeepSeek) — no scan command yet (Guide only) — https://calllint.com/harnesses/deepseek-harness

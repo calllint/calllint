@@ -1622,10 +1622,14 @@ A topic with no definite state is listed as such rather than being inferred from
 | O | External writes — exact list, at or under the maximum, no duplicates | **ONE** | the npm publish of `calllint-mcp@0.2.0`, already reflected in the live Registry. No new external write in this pass |
 | P | Operator actions — only the unavoidable | **ONE** | (1) ~~create the `mcp-v*` tag ruleset~~ — **DONE 2026-08-22**, ruleset `21177039`, verifier exit 0 (§H item 10d). It was narrowed on 2026-08-21 when the code-level ancestry half of AC-32 landed in `publish-mcp.yml` step 2 (§H item 10b), leaving the who-may-tag half, and that half is now performed rather than pending; (2) Cloudflare Access + `USAGE_HASH_KEY` + the real `database_id` — needed only to *deploy* the observatory; the artifact-only pipeline in §L′ needs none of them, per [CLOUDFLARE_ACCESS_ACTION.md](CLOUDFLARE_ACCESS_ACTION.md). **This is the sole remaining operator action** |
 
-`OPERATOR_ACTION_REQUIRED = 1` — the credential/environment setting of §106 P. It was **2** until
-2026-08-22, when the `mcp-v*` tag ruleset was created rather than prepared; the protected-GitHub-
-ruleset category is now empty. The remaining one is in the unavoidable category §106 P allows,
-is not in the working tree, and does not block the distribution closure this report covers.
+`OPERATOR_ACTION_REQUIRED = 0` as of **2026-08-24** — the credential/environment setting of §106 P.
+It was **2** until 2026-08-22, when the `mcp-v*` tag ruleset was created rather than prepared
+(emptying the protected-GitHub-ruleset category), and **1** until 2026-08-24, when the operator
+configured Cloudflare Access on `usage.calllint.com` and the report's deploy path opened. Row P's
+item (2) above is superseded to that extent: the Access half is done, and the remaining
+`USAGE_HASH_KEY` / real `database_id` settings bear on deploying the **Worker backend**, which is
+tracked separately and was never part of the report's publish path. No operator action blocks the
+distribution closure this report covers.
 
 Against §107's vocabulary, and claiming no state the evidence above does not carry:
 
@@ -1681,12 +1685,14 @@ It is `READY_NOT_DEPLOYED` now because the subject changed rather than the stand
 Pages-Functions ingress was deleted and replaced by [apps/usage-worker/](../../apps/usage-worker/),
 whose schema forecloses each of those four defects (§L′ table), with 131/131 tests and `tsc` exit 0.
 `READY_NOT_DEPLOYED` is the correct terminal state here rather than a way-station: the Worker is
-unpublished, its `wrangler.toml` carries a placeholder `database_id`, and §29 keeps the report an
-artifact until an operator verifies Cloudflare Access. Neither the operator action nor the
-deployment is something this repository can perform.
+unpublished and its `wrangler.toml` carries a placeholder `database_id`, so the *backend* remains
+undeployed and this repository cannot deploy it.
 
-The one remaining operator action is unchanged in kind: `OPERATOR_ACTION_REQUIRED` is **1**, down
-from 2 on 2026-08-22 because the tag ruleset was created rather than merely prepared.
+**Superseded 2026-08-24 for the report itself.** §29 no longer keeps the report an artifact: the
+operator verified Cloudflare Access, and the workflow now deploys to `usage.calllint.com` while
+probing the gate unauthenticated on every run (a deploy without that probe is rejected by
+`check-public-copy.mjs` check 24). `OPERATOR_ACTION_REQUIRED` is therefore **0**, down from 1 —
+which was itself down from 2 on 2026-08-22 when the tag ruleset was created rather than prepared.
 
 `WEBSITE_VISUAL_SYSTEM` moved from `PARTIAL` to `CLOSED` in this pass, and the earlier `PARTIAL`
 is worth keeping visible rather than editing away: its stated evidence counted media blocks in
