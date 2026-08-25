@@ -10,8 +10,15 @@
   `FP_EFFECTS`. Four of five layers ship, not three.
 - **Status: LANDED** (2026-08-25, branch `feat/authority-v2-vocabulary`). Steps 0–4 are all
   closed; the decision each one needed is recorded in
-  [ADR 0005](../adr/0005-authority-layers-vocabulary.md). §10.A held — full suite 4869 pass,
+  [ADR 0005](../adr/0005-authority-layers-vocabulary.md). §10.A held — full suite 4885 pass,
   no golden fixture moved, no verdict changed.
+- **One gate had to move first.** The §18 security-semantic gate reddened on all three files,
+  because PR #334 was its **first** legitimate verdict-package change since it landed in #325 —
+  it had never been exercised against one. Two of the three reds were merely *adding a test*,
+  which is a defect in the gate, not in this work. Narrowed under
+  [ADR 0006](../adr/0006-narrow-gate-for-additive-vocab.md), with 13 control tests. The
+  alternative — moving the vocabulary out of `packages/types` to dodge the gate — was rejected:
+  `authority.ts` genuinely participates in `baseVerdict()`, so the file belongs where it is.
 
 ## Why this is a plan and not a phase
 
