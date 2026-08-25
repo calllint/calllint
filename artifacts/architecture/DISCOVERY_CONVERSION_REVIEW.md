@@ -19,7 +19,7 @@
 |---|---|---|---|---|
 | `claude-code` | `mcp-stdio` | `NATIVE` | `upstream: officialMcpRegistry` | 1 |
 | `claude-desktop` | `mcp-stdio` | `NATIVE` | `upstream: officialMcpRegistry` | 1 |
-| `cline` | `mcp-stdio` | `DISCOVERY_ONLY` | `upstream: officialMcpRegistry` | 0 |
+| `cline` | `mcp-stdio` | `DISCOVERY_ONLY` → **`NATIVE`** (`4a7e4ef`) | `upstream: officialMcpRegistry` | 0 → **1** |
 
 All three satisfy HD-07 through the Registry arm; none carries a `liveUrl`. That matters for
 reading the rest of this document: `AVAILABLE` here is a claim about **the Registry listing**,
@@ -43,7 +43,10 @@ number of unique surface ids.
 `scripts/verify-registry-presence.mjs`, which fails closed. This leg is the one whose evidence
 comes from outside the repository, which is why it is checked weekly rather than per-PR.
 
-## Leg 3 — First action: **passes 2/3. `cline` publishes no command.**
+## Leg 3 — First action: **passes 2/3 as measured. `cline` publishes no command.**
+
+> **Superseded 2026-08-24 by `4a7e4ef`: this leg is now 3/3.** The whole section below is kept as
+> the measurement that motivated the fix. See **Still open** at the end for what changed.
 
 `claude-code` and `claude-desktop` each publish an install command and a host-specific verify
 command, resolved at generation time from `activation.installRef` against
@@ -140,7 +143,7 @@ this leg is about.
 |---|---|---|---|
 | Discovery | pass | pass | pass |
 | Installation | pass | pass | pass |
-| First action | pass | pass | **no command published** (disclosed) |
+| First action | pass | pass | ~~no command published~~ → **pass** (`4a7e4ef`) |
 | Trust | ~~fails~~ → pass | ~~fails~~ → pass | ~~fails~~ → pass |
 
 Three of four legs hold for two of three surfaces. The chain new20 closes with —
@@ -171,7 +174,8 @@ on an AVAILABLE surface, and today the answer is no on every one of them.
 
 `cline`'s missing first-scan command is **not** on that list. It is a real gap with an honest
 disclosure, and the fix is implementing Cline config discovery — a scanner change, outside
-this review's plane.
+this review's plane. *(It was implemented in `4a7e4ef`, four days after this line was written;
+see **Still open**.)*
 
 ## Resolution (2026-08-24)
 
@@ -244,5 +248,31 @@ author it. A comment is not a published string; the assertion now strips comment
 
 ### Still open
 
-`cline`'s missing first-scan command, unchanged and still honestly disclosed — it needs Cline
-config discovery, a scanner change outside this plane.
+~~`cline`'s missing first-scan command~~ — **closed 2026-08-24 in `4a7e4ef` (PR #332), which is
+in this same sprint chain.** The fix was the one this document named: implement Cline config
+discovery. `packages/discovery/src/extractors/cline.ts` now resolves **two** config paths, both
+measured on disk — the CLI's (`~/.cline/data/settings/cline_mcp_settings.json`, relocatable via
+`CLINE_DATA_DIR`) and the VS Code extension's, under
+`globalStorage/saoudrizwan.claude-dev/settings/`, which no upstream page documents. It is
+registered in `bootstrap.ts`, and the SSOT moved `cline` to `supportClass: NATIVE` with
+`truthfulCommands: ["calllint scan --agent cline"]` and `installRef: "scan"`, so the host page now
+renders `id="start"` and publishes the command. Leg 3 is **3/3**.
+
+Two things this correction makes explicit, because both were wrong in the text above:
+
+1. **The document dated itself but not its claim.** Everything above was measured at
+   `generatedAt: 2026-08-19`, and the Resolution section was appended 2026-08-24 — the same day
+   `4a7e4ef` landed — yet it re-asserted the `cline` gap as still open in three places. A dated
+   measurement protects the *finding* from looking current; it does not protect a **"still open"**
+   line, which is a claim about the present tense and expires without any edit to the file.
+2. **Upstream review is a different axis from a missing command.** `cline`'s
+   `cline-marketplace-pr` primitive is still `PENDING_UPSTREAM`
+   ([marketplace#49](https://github.com/cline/marketplace/pull/49), submitted 2026-08-18). That is
+   a channel awaiting someone else's merge, not a coverage gap on our side, and conflating the two
+   is what let "cline is the host with no command" survive past the commit that gave it one. Per
+   [ADR 0002](../adr/0002-submission-records-the-act.md), `submission` sits on its own axis for
+   exactly this reason.
+
+The claim that `cline` is *"the only host in the repository that is simultaneously `AVAILABLE` and
+command-less"* is therefore false as of `4a7e4ef`: measured against the current SSOT, **no host is**
+— all 3 `AVAILABLE` hosts publish a command, and 13 of 18 hosts are `NATIVE`.
