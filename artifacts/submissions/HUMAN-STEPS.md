@@ -3,10 +3,11 @@
 ROI #1–#4 in [ROI.md](ROI.md). Everything an agent is permitted to do has been done and is
 recorded below with its result; what remains is listed as numbered steps for you.
 
-> **#1 is already done** (2026-07-20, `5bed4b6`) — see its section. Of the four rows here,
-> exactly **one** is an unmade submission you can make today: **#2 `cursor`**. #3 and #4 are
+> **#1 and #2 are both already done.** #1 was published 2026-07-20 (`5bed4b6`); #2 was
+> submitted at `cursor.com/marketplace/publish` and is **awaiting Cursor's review** (reported
+> 2026-08-26). Of the four rows here, **none is an unmade submission** today: #3 and #4 are
 > a local install and a read-only query, both gated on a 357 MB CLI that is not on this
-> machine.
+> machine. Do not resubmit #1 or #2 — a duplicate external write is the harm §87 names.
 
 Why the split: new18 **§87** (`NO CONTINUOUS EXTERNAL SPAM`) says the weekly watcher must never
 open an external PR or issue, submit a form, email or tag a maintainer, request a reviewer, or
@@ -94,21 +95,37 @@ Detail: [claude-plugin/SUBMISSION.md](claude-plugin/SUBMISSION.md)
 
 ---
 
-## #2 — `cursor` → `cursor-plugin` (P0, now genuinely ready) — **the actual first action**
+## #2 — `cursor` → `cursor-plugin` (P0) — **ALREADY SUBMITTED, awaiting review, do not redo**
+
+> **Corrected 2026-08-26.** This section used to head "the actual first action". The
+> submission has been made: the maintainer reported submitting the repo URL at
+> `cursor.com/marketplace/publish`, and it is with Cursor's reviewers. The SSOT now records
+> `submission.date: 2026-08-25` at `state: PENDING_UPSTREAM`, so per
+> [ADR 0002](../adr/0002-submission-records-the-act.md) this channel is **not actionable
+> work**. The date is the day the manifests Cursor reads landed (`65eb719`) — the earliest the
+> act could have succeeded, so a lower bound, not an observed timestamp. There is no
+> `submissionUrl` because the intake is a private form review rather than a PR, which is the
+> one structural difference from `cline-marketplace-pr`.
+>
+> The steps below are kept as the record of *what was done*, not as a queue. The only thing
+> still owed here is step 5: when the listing appears, set `liveUrl` and flip to `AVAILABLE`
+> in the same edit.
 
 The material gap is closed and the "tested locally" checkbox is genuinely ticked, not
 assumed. Cursor's intake is a **public repo reviewed by the Cursor team** — you submit a
 URL, not a pasted manifest.
 
-1. Go to https://cursor.com/marketplace/publish (the `/marketplace` URL is the browse page).
-2. Submit the repo URL: `https://github.com/calllint/calllint`
-3. That is the whole submission. Name, description, category, tags, license and homepage
-   are read from `plugins/calllint/.cursor-plugin/plugin.json` — there are no form fields
+1. ~~Go to https://cursor.com/marketplace/publish~~ — done (the `/marketplace` URL is the
+   browse page; `/publish` is intake).
+2. ~~Submit the repo URL: `https://github.com/calllint/calllint`~~ — done.
+3. That was the whole submission. Name, description, category, tags, license and homepage
+   are read from `plugins/calllint/.cursor-plugin/plugin.json` — there were no form fields
    to fill from MATERIALS.md.
-4. Expect a review, not an instant listing: "All plugins must be open source, and we review
-   each update before publishing."
-5. Record the outcome in the SSOT. If it goes live, set `liveUrl` **in the same edit** —
-   presence and verification are separate facts.
+4. A review, not an instant listing: "All plugins must be open source, and we review
+   each update before publishing." **This is the state it is in now.**
+5. **Still owed.** Record the outcome in the SSOT when review completes. If it goes live, set
+   `liveUrl` **in the same edit** — presence and verification are separate facts, and
+   schema arm 1 refuses a `liveUrl` under any state but `AVAILABLE`.
 
 Detail: [cursor-plugin/SUBMISSION.md](cursor-plugin/SUBMISSION.md)
 
