@@ -19,7 +19,7 @@ date this file was generated.
 
 Release 1.8.0. 31 claims across 18 hosts.
 
-**4 of 31 claims carry no recorded conclusion.** Those rows say so explicitly rather than restating the state column back at you. They are the honest residue of §104: the state is asserted from the primary source, but no one has yet written down what the source said. Adding an `auditNote` to the primitive in the SSOT closes a row; editing this file does not.
+**3 of 31 claims carry no recorded conclusion.** Those rows say so explicitly rather than restating the state column back at you. They are the honest residue of §104: the state is asserted from the primary source, but no one has yet written down what the source said. Adding an `auditNote` to the primitive in the SSOT closes a row; editing this file does not.
 
 | platform | primitive | state | primary source | checked-at | factual conclusion |
 | --- | --- | --- | --- | --- | --- |
@@ -27,7 +27,7 @@ Release 1.8.0. 31 claims across 18 hosts.
 | Claude Code | `claude-plugin` | AUDIT_REQUIRED | https://code.claude.com/docs/en/plugin-marketplaces | 2026-08-19 | Claude Code has no marketplace to submit to: distribution is users adding this repo as a marketplace, so the act is publishing the install line. Published in README (owner/repo form, per the docs) on 2026-07-20 in 5bed4b6, alongside the 1.7.1 docs — measured from git log, not from this file's own claim. No shelf page exists to record as liveUrl, so the accepted arm of ADR 0002 is structurally unreachable here; a README anchor would be self-endorsement, which is the 2026-08-23 cursor-plugin defect. |
 | Claude Desktop | `mcp-stdio` | AVAILABLE | https://claude.ai/ | 2026-08-19 | Ships through this channel today via the Official MCP Registry stdio package. |
 | Cursor | `mcp-stdio` | AUDIT_REQUIRED | https://www.cursor.com/ | 2026-08-19 | Cursor supports MCP stdio, but Registry auto-discovery not confirmed |
-| Cursor | `cursor-plugin` | AUDIT_REQUIRED | https://cursor.com/marketplace | 2026-08-19 | **no conclusion recorded** — state asserted, evidence not yet summarised |
+| Cursor | `cursor-plugin` | PENDING_UPSTREAM | https://cursor.com/marketplace | 2026-08-19 | Submitted at cursor.com/marketplace/publish and awaiting Cursor's review (reported by the maintainer 2026-08-26). Cursor's intake is a private form review rather than a PR, so no submissionUrl exists to record — the one structural difference from cline/cline-marketplace-pr. The date is the day the manifests Cursor reads landed (65eb719, 2026-08-25), which is the earliest the act could have succeeded: a lower bound on an act reported the next day, not an observed timestamp. Do not resubmit; a duplicate submission is the harm this record exists to prevent. |
 | VS Code | `mcp-stdio` | AUDIT_REQUIRED | https://code.visualstudio.com/ | 2026-08-19 | MCP support via extensions, core VS Code Registry consumption unclear |
 | Windsurf | `mcp-stdio` | AUDIT_REQUIRED | https://codeium.com/windsurf | 2026-08-19 | Windsurf supports MCP, has marketplace, Registry consumption not confirmed |
 | Windsurf | `windsurf-mcp-marketplace` | AUDIT_REQUIRED | https://codeium.com/windsurf | 2026-08-19 | **no conclusion recorded** — state asserted, evidence not yet summarised |

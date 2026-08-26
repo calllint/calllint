@@ -12,7 +12,7 @@ first four, with every agent-safe pre-flight already run and its result recorded
 | # | Host | Channel | Tier | Material gap | Next step |
 |---|---|---|---|---|---|
 | 1 | `claude-code` | `claude-plugin` | P0 | **none, and the act is already made** — published 2026-07-20 (`5bed4b6`), `README.md:289-290`. Not actionable; see below | [claude-plugin/](claude-plugin/SUBMISSION.md) |
-| 2 | `cursor` | `cursor-plugin` | P0 | **none** — `.cursor-plugin/` manifests, `mcp.json`, logo and Cursor hook wiring all added and validated 2026-08-25. **The first unmade action** | [cursor-plugin/](cursor-plugin/SUBMISSION.md) |
+| 2 | `cursor` | `cursor-plugin` | P0 | **none, and the act is already made** — manifests validated 2026-08-25, submitted at `/marketplace/publish` and awaiting review. Not actionable; see below | [cursor-plugin/](cursor-plugin/SUBMISSION.md) |
 | 3 | `copilot-cli` | `github-copilot-plugin` | P2 | `UNKNOWN` — route unconfirmed, but the manifest cost is now **zero**; see #3 below | [github-copilot-plugin/](github-copilot-plugin/SUBMISSION.md) |
 | 4 | `copilot-cli` | `mcp-registry-discovery` | P2 | none — registry entry is live | verify-only; see below |
 | 5 | `windsurf` | `windsurf-mcp-marketplace` | P1 | none | [windsurf-mcp-marketplace/](windsurf-mcp-marketplace/SUBMISSION.md) |
@@ -21,7 +21,7 @@ first four, with every agent-safe pre-flight already run and its result recorded
 | 8 | `openclaw` | `openclaw-clawhub` | P3 | none | [openclaw-clawhub/](openclaw-clawhub/SUBMISSION.md) |
 | 9 | `kiro` | `kiro-workspace-config` | P2 | **a discovery adapter + fixtures — unbuilt by choice** | code, not a submission |
 
-## Three rows that are not submissions
+## Four rows that are not submissions
 
 **#1 `claude-plugin`** was listed as rank 1 with a "none" material gap, which read as *ready
 to submit*. The submission was already made on **2026-07-20** in `5bed4b6` (#189): the two
@@ -33,6 +33,19 @@ completed external action. Per [ADR 0002](../adr/0002-submission-records-the-act
 recorded submission date ends actionability regardless of `state`. It stays `AUDIT_REQUIRED`
 because there is no shelf page to record as `liveUrl` — ADR 0002's accepted arm is
 structurally unreachable here, and a README anchor would be self-endorsement.
+
+**#2 `cursor-plugin`** was submitted and is **awaiting Cursor's review**. This row said "**The
+first unmade action**" for one day, and it was wrong on the day it was written: the maintainer
+had already submitted the repo URL at `cursor.com/marketplace/publish`. Reported 2026-08-26 and
+recorded in the SSOT as `submission.date: 2026-08-25` at `state: PENDING_UPSTREAM`, so ADR 0002
+ends its actionability. Two things about this record are weaker than `cline`'s and are stated
+rather than smoothed over: the date is a **lower bound** — the day `65eb719` landed the manifests
+Cursor reads, hence the earliest the act could have succeeded, not an observed timestamp — and
+there is **no `submissionUrl`**, because Cursor's intake is a private form review rather than a
+PR, so no artifact of the act exists anywhere in or outside this repo. The schema permits that
+asymmetry deliberately: arm 3 forces a date wherever a URL appears, and does **not** assert the
+converse. What is still owed is the listing: when review completes, `liveUrl` and `AVAILABLE` go
+in one edit.
 
 **#3 `github-copilot-plugin`** has no verified intake. Measured 2026-08-25: Copilot CLI does
 have a real plugin system, and users add a marketplace themselves with

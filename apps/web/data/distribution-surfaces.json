@@ -138,8 +138,13 @@
         },
         {
           "kind": "cursor-plugin",
-          "state": "AUDIT_REQUIRED",
-          "officialSource": "https://cursor.com/marketplace"
+          "state": "PENDING_UPSTREAM",
+          "liveUrl": null,
+          "officialSource": "https://cursor.com/marketplace",
+          "submission": {
+            "date": "2026-08-25"
+          },
+          "note": "Submitted at cursor.com/marketplace/publish and awaiting Cursor's review (reported by the maintainer 2026-08-26). Cursor's intake is a private form review rather than a PR, so no submissionUrl exists to record — the one structural difference from cline/cline-marketplace-pr. The date is the day the manifests Cursor reads landed (65eb719, 2026-08-25), which is the earliest the act could have succeeded: a lower bound on an act reported the next day, not an observed timestamp. Do not resubmit; a duplicate submission is the harm this record exists to prevent."
         }
       ],
       "coverageBoundary": "CallLint scans MCP server entries only. Cursor rules and editor settings are not covered. Cloud Agents, background agents and event or timer wakeups (GitHub, Slack, Linear, cron) are not statically observable at all: what starts such an agent is decided in Cursor's cloud, not in a file on disk, so CallLint reports that authority as UNSUPPORTED rather than reading it as SAFE.",
