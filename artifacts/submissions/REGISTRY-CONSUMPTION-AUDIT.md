@@ -39,8 +39,8 @@ records that it "remains an editorial judgement no gate can make."
 | `qwen-code` | `NO_EVIDENCE` | `QwenLM/Qwen-Code@main/README.md` (9.8 KB, 2× "mcp") | 0 occurrences of "registry" |
 | `deepseek-harness` | `NO_EVIDENCE` | `deepseek-ai/deepseek-harness@master/README.md` (2 KB) | 0 occurrences of "mcp" or "registry" |
 | `codebuddy` | `NO_EVIDENCE` | `cloud.tencent.com/product/codebuddy` (29 KB) | 0 occurrences of "mcp" or "registry" |
-| `opencode` | `NO_EVIDENCE` | — | **`github.com/opencode/opencode` returns 404** (see defects below) |
-| `workbuddy` | `NO_EVIDENCE` | — | **`github.com/TencentCloud/workbuddy` returns 404** (see defects below) |
+| `opencode` | `NO_EVIDENCE` | `opencode.ai/docs/mcp-servers/` (127 KB, 247× "mcp") | 0 occurrences of "registry" — re-measured 2026-08-26 on the corrected URL |
+| `workbuddy` | `NO_EVIDENCE` | `cloud.tencent.com/product/workbuddy` (40 KB) | 0 occurrences of "mcp" or "registry" — re-measured 2026-08-26 on the corrected URL |
 
 **0 of 13 reach `CONSUMES`.** Nothing here supports moving any channel to `AVAILABLE`.
 
@@ -56,11 +56,18 @@ term that must appear if the page is real:
 - Three fetches initially returned 404 and were **not** recorded as zero-evidence until the cause was
   established: `deepseek-harness` was a branch-name error (`master`, not `main`) and re-fetched
   successfully; the other two are genuinely dead URLs, recorded as defects rather than as findings.
+- `opencode` and `workbuddy` were re-measured on 2026-08-26 after their URLs were fixed (below).
+  `opencode`: 127 KB, title `MCP servers | OpenCode`, **247× "mcp"** → the page is not merely
+  real, it is *about* MCP, which makes 0× "registry" a strong absence rather than a weak one.
+  `workbuddy`: 40 KB, title `WorkBuddy` → fetch succeeded; 0× "mcp" is a fact about a Chinese
+  product landing page that does not discuss MCP at all. Both were controlled against a
+  known-nonexistent sibling on the same host (`opencode.ai/docs/nonexistent-control-sibling/`
+  → 404 / 117 bytes), so a 200 with a real title is distinguishable from a catch-all.
 
-## Two defects found while measuring, not fixed
+## Two defects found while measuring — FIXED 2026-08-26, after this audit
 
-Both are in `officialSources`, i.e. the watch list `check-official-sources.mjs` reads. Neither
-is in scope for a registry-consumption audit, so neither was touched:
+Both were in `officialSources`, i.e. the watch list `check-official-sources.mjs` reads. Neither
+was in scope for a registry-consumption audit, so neither was touched *at the time*:
 
 1. **`opencode`** — `https://github.com/opencode/opencode` is 404 at the repo API level. The
    SSOT names a repository that does not exist, so the watcher has been polling a dead URL.
@@ -68,6 +75,18 @@ is in scope for a registry-consumption audit, so neither was touched:
 
 A source that 404s cannot fail loudly in a watcher that only looks for *changes*, which is why
 this surfaced from an unrelated audit rather than from the gate that owns those URLs.
+
+**Both are now repaired in the SSOT** (2026-08-26), along with two more of the same kind that
+this audit did not reach — `claude-code` and `codebuddy`. The verdict table above is left as
+measured for the rows whose pages were real; the two rows that rested on a 404 have been
+**re-measured on the corrected URLs** and now carry real evidence (see the row notes and the
+instrument-validation entry above). `codebuddy`'s original row stands on its own terms: its
+29 KB page was real and 0× "mcp" is a fact about it, but the URL that served it has since gone
+404, so the row's source column names a page that no longer answers; the replacement
+(`product/acc`, 56 KB, 2× "mcp", 0× "registry") does not change the verdict.
+
+**All four corrections are link repairs, not verdict changes.** No channel moves out of
+`AUDIT_REQUIRED` as a result, and `0 of 13 reach CONSUMES` still holds.
 
 ## What the user decides
 

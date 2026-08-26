@@ -31,7 +31,7 @@ Release 1.8.0. 31 claims across 18 hosts.
 | VS Code | `mcp-stdio` | AUDIT_REQUIRED | https://code.visualstudio.com/ | 2026-08-19 | MCP support via extensions, core VS Code Registry consumption unclear |
 | Windsurf | `mcp-stdio` | AUDIT_REQUIRED | https://codeium.com/windsurf | 2026-08-19 | Windsurf supports MCP, has marketplace, Registry consumption not confirmed |
 | Windsurf | `windsurf-mcp-marketplace` | AUDIT_REQUIRED | https://codeium.com/windsurf | 2026-08-19 | **no conclusion recorded** — state asserted, evidence not yet summarised |
-| WorkBuddy | `mcp-stdio` | AUDIT_REQUIRED | https://github.com/TencentCloud/workbuddy | 2026-08-19 | China-region product, Registry consumption relationship unclear |
+| WorkBuddy | `mcp-stdio` | AUDIT_REQUIRED | https://cloud.tencent.com/product/workbuddy | 2026-08-19 | China-region product, Registry consumption relationship unclear |
 | WorkBuddy | `tencent-mcp-market` | BLOCKED | https://cloud.tencent.com/document/product/1729 | 2026-08-19 | Third-party MCP submissions not currently accepted |
 | Qwen Code | `mcp-stdio` | AUDIT_REQUIRED | https://qwenlm.github.io/qwen-code-docs/ | 2026-08-19 | China-region product, Registry consumption unclear, may have independent extension system |
 | Qwen Code | `qwen-extension-conversion` | AUDIT_REQUIRED | https://qwenlm.github.io/qwen-code-docs/en/users/extension/introduction/ | 2026-08-19 | Qwen Code can convert Claude/Gemini extensions |
@@ -45,9 +45,9 @@ Release 1.8.0. 31 claims across 18 hosts.
 | Cline | `cline-marketplace-pr` | PENDING_UPSTREAM | https://github.com/cline/marketplace/pull/49 | 2026-08-19 | Existing PR #49 (open, verified 2026-08-23), do not create duplicate |
 | Gemini CLI | `mcp-stdio` | AUDIT_REQUIRED | https://geminicli.com/docs/extensions/ | 2026-08-19 | Gemini CLI MCP support and Registry consumption not confirmed |
 | Gemini CLI | `gemini-extension-gallery` | AUDIT_REQUIRED | https://geminicli.com/docs/extensions/ | 2026-08-19 | Auto-discovery via GitHub topic + manifest |
-| CodeBuddy | `mcp-stdio` | AUDIT_REQUIRED | https://cloud.tencent.com/product/codebuddy | 2026-08-19 | Tencent product, Registry consumption relationship unclear |
-| CodeBuddy | `tencent-mcp-market` | BLOCKED | https://cloud.tencent.com/product/codebuddy | 2026-08-19 | Third-party MCP submissions not currently accepted |
-| OpenCode | `mcp-stdio` | AUDIT_REQUIRED | https://github.com/opencode/opencode | 2026-08-19 | Open source project, Registry consumption not verified |
+| CodeBuddy | `mcp-stdio` | AUDIT_REQUIRED | https://cloud.tencent.com/product/acc | 2026-08-19 | Tencent product, Registry consumption relationship unclear |
+| CodeBuddy | `tencent-mcp-market` | BLOCKED | https://cloud.tencent.com/product/acc | 2026-08-19 | Third-party MCP submissions not currently accepted |
+| OpenCode | `mcp-stdio` | AUDIT_REQUIRED | https://opencode.ai/docs/mcp-servers/ | 2026-08-19 | Open source project, Registry consumption not verified |
 | Kiro | `mcp-stdio` | AUDIT_REQUIRED | https://kiro.dev/docs/mcp/configuration/ | 2026-08-19 | Kiro documents stdio MCP support and an mcpServers config key, but consumption of the Official MCP Registry is not confirmed by a primary source. Supporting MCP is not the same fact as consuming the Registry. |
 | Kiro | `kiro-workspace-config` | AUDIT_REQUIRED | https://kiro.dev/docs/mcp/configuration/ | 2026-08-19 | Config paths are now documented by the vendor; a thin adapter for the mcpServers JSON is evaluable but unbuilt. Support stays unimplemented until a discovery adapter exists and is fixture-covered. |
 | Continue | `mcp-stdio` | AUDIT_REQUIRED | https://docs.continue.dev/customize/deep-dives/mcp | 2026-08-19 | Vendor docs describe stdio/sse/streamable-http MCP servers with command, args and env fields, which map onto NormalizedMcpServer without new concepts. Registry consumption is a separate fact and is not confirmed by a primary source. |

@@ -50,7 +50,7 @@
 import { describe, it, expect, beforeAll, afterAll } from "vitest"
 import { execFile, execFileSync } from "node:child_process"
 import { copyFileSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync, existsSync, symlinkSync } from "node:fs"
-import { createServer, type Server } from "node:http"
+import { createServer, type IncomingMessage, type Server, type ServerResponse } from "node:http"
 import { tmpdir } from "node:os"
 import { dirname, join, resolve } from "node:path"
 import { fileURLToPath } from "node:url"
@@ -68,6 +68,14 @@ let origin = ""
 let server: Server
 /** Mutated between live runs to simulate a vendor changing their page. */
 let served = { host: { status: 200, body: "host-v1" }, feed: { status: 200, body: "feed-v1" } }
+/** How many more times `/flaky` drops the connection before answering 200. */
+let flakyFailsLeft = 0
+/**
+ * How many connections `/flaky` actually dropped. Counted rather than inferred from the
+ * budget above: `flakyFailsLeft === 0` is also true of a fixture that was never asked to drop
+ * anything, so asserting on the remaining budget is not a floor at all.
+ */
+let flakyDrops = 0
 
 /** A temp tree whose root becomes the copied script's `repoRoot`. */
 let tmpRoot: string
@@ -153,12 +161,53 @@ function bothKinds() {
   }
 }
 
+/**
+ * Two hosts exercising the retry: `/flaky` drops its first `flakyFailsLeft` connections then
+ * serves 200, `/dead` never answers. Written because a single TCP flake was making the real
+ * watcher record 19 live vendor pages as `reachable: false` — the observer reporting its own
+ * blindness as a fact about the vendor.
+ */
+function flakyAndDead() {
+  return {
+    describes: { release: "test" },
+    sources: [
+      { hostId: "flaky-host", primarySources: [`${origin}/flaky`], watchFor: ["config path"] },
+      { hostId: "dead-host", primarySources: [`${origin}/dead`], watchFor: ["config path"] },
+    ],
+    candidateFeeds: [],
+  }
+}
+
+/**
+ * THE ONLY route table. A test that needs to reinstall the handler must reinstall *this*, not
+ * an inline subset: an earlier version of this file replaced the handler with a two-route
+ * version mid-file, which silently deleted the /dead and /flaky routes for every block that
+ * ran afterwards. The symptom was a retry fixture that reported success while never dropping
+ * a connection — a fixture that could not observe its own subject.
+ */
+const routeFixture = (req: IncomingMessage, res: ServerResponse): void => {
+  // Network-level failures, so they reach the script's catch block the way a TCP flake does.
+  if (req.url === "/dead") return void req.socket.destroy()
+  if (req.url === "/flaky") {
+    if (flakyFailsLeft > 0) {
+      flakyFailsLeft--
+      flakyDrops++
+      return void req.socket.destroy()
+    }
+    res.writeHead(200, { "content-type": "text/plain" })
+    return void res.end("flaky-recovered")
+  }
+  if (req.url === "/release") {
+    res.writeHead(200, { "content-type": "text/plain" })
+    return void res.end("release-v1")
+  }
+  const which = req.url === "/feed" ? served.feed : served.host
+  res.writeHead(which.status, { "content-type": "text/plain" })
+  res.end(which.body)
+}
+
 beforeAll(async () => {
-  server = createServer((req, res) => {
-    const which = req.url === "/feed" ? served.feed : served.host
-    res.writeHead(which.status, { "content-type": "text/plain" })
-    res.end(which.body)
-  })
+  server = createServer(routeFixture)
   await new Promise<void>((ok, fail) => {
     server.once("error", fail)
     server.listen(0, "127.0.0.1", ok)
@@ -169,6 +218,24 @@ beforeAll(async () => {
   tmpRoot = mkdtempSync(join(tmpdir(), "official-sources-"))
   mkdirSync(join(tmpRoot, "scripts"), { recursive: true })
   copyFileSync(REAL_SCRIPT, join(tmpRoot, "scripts", "check-official-sources.mjs"))
+
+  /*
+   * The script's own LOCAL imports must come along too. When `./lib/normalize-body.mjs` was
+   * added (2026-08-26), every run in this file died with ERR_MODULE_NOT_FOUND — the same
+   * failure the `node_modules` junction below was written for, and for the same reason: the
+   * copy is only production-like if the whole import graph is present.
+   *
+   * DERIVED, not hardcoded. Listing the file here would drift the next time the script gains
+   * an import, and the symptom would again be "every negative control fails for an unrelated
+   * reason". Reading the specifiers out of the source means a new local import is copied
+   * automatically.
+   */
+  for (const m of readFileSync(REAL_SCRIPT, "utf8").matchAll(/from\s+'(\.\/[^']+)'/g)) {
+    const rel = m[1]!.replace(/^\.\//, "")
+    const dest = join(tmpRoot, "scripts", rel)
+    mkdirSync(dirname(dest), { recursive: true })
+    copyFileSync(resolve(ROOT, "scripts", rel), dest)
+  }
 
   /*
    * The copied script imports `yaml` (added 2026-08-24 to read the harness watch list), and a
@@ -343,7 +410,22 @@ describe("live comparison against a baseline (loopback only, no egress)", () => 
   let second: Run
   let third: Run
   let fourth: Run
+  let fifth: Run
+  let sixth: Run
   let firstArtifact: ReturnType<typeof readArtifact>
+  let fourthArtifact: ReturnType<typeof readArtifact>
+  let fifthArtifact: ReturnType<typeof readArtifact>
+
+  /**
+   * A body carrying the token classes normalize-body.mjs strips. `n` varies ONLY inside those
+   * tokens, so two calls with different `n` differ in raw bytes and agree once normalized —
+   * which is exactly the production situation (11 of 14 measured churning URLs were GitHub
+   * pages rotating a request-id and a CSP nonce on every response).
+   */
+  const withChurn = (n: number, prose = "stable prose") =>
+    `<html><head><meta name="request-id" content="AAAA:${n}:BBBB:CCCC:${n}0"` +
+    `<meta name="html-safe-nonce" content="nonce${n}deadbeefcafe"` +
+    `</head><body>${prose}</body></html>`
 
   beforeAll(async () => {
     rmSync(join(tmpRoot, "artifacts"), { recursive: true, force: true })
@@ -362,6 +444,22 @@ describe("live comparison against a baseline (loopback only, no egress)", () => 
 
     writeManifest({ sources: bothKinds().sources }) // feed removed from the SSOT
     fourth = await runCopy() // DROPPED
+    fourthArtifact = readArtifact()
+
+    /*
+     * Runs 5-6 are the normalization pair, and they must run in this order against the same
+     * baseline. 5 changes ONLY per-request tokens; 6 changes the prose as well. If a filter
+     * were muting BODY wholesale rather than normalizing, 5 would still pass and 6 would fail
+     * — which is why the negative control is a REAL change, not a second noise case.
+     */
+    writeManifest(bothKinds())
+    served.feed = { status: 200, body: withChurn(1) }
+    await runCopy() // re-establish a baseline that HAS the normalized field
+    served.feed = { status: 200, body: withChurn(2) }
+    fifth = await runCopy() // raw differs, normalized identical → suppressed, no [BODY]
+    fifthArtifact = readArtifact()
+    served.feed = { status: 200, body: withChurn(3, "the vendor rewrote this sentence") }
+    sixth = await runCopy() // prose moved → [BODY] must still fire
   }, LIVE_SEQUENCE_TIMEOUT_MS)
 
   it("run 1 reports an ABSENT baseline out loud, and says so unambiguously", () => {
@@ -437,11 +535,57 @@ describe("live comparison against a baseline (loopback only, no egress)", () => 
     expect(fourth.out).toContain("no longer named in the SSOT")
   })
 
+  /* ── Normalization: the pair that proves it filters rather than mutes ────────────────
+   * Measured 2026-08-26: 14 of 26 watched URLs changed body hash between two fetches 1.5s
+   * apart, so [BODY] was firing weekly on rotated request-ids. These two runs differ ONLY in
+   * whether the prose moved, so a filter that suppressed BODY wholesale passes the first and
+   * fails the second. */
+
+  it("run 5: a body differing ONLY in per-request tokens does NOT report BODY", () => {
+    expect(fifth.status).toBe(0)
+    expect(fifth.out).not.toMatch(/\[BODY\]/)
+  })
+
+  it("run 5 SAYS it suppressed something — a quiet week and a filtered one differ", () => {
+    // Without this line, normalization would recreate the defect run 1 exists to prevent:
+    // two different facts printed identically.
+    expect(fifth.out).toMatch(/\[BODY:noise\]/)
+    expect(fifth.out).toContain("suppressed as measured per-request churn")
+    expect(fifth.out).toMatch(/github-request-id|github-nonce/)
+  })
+
+  it("run 5 keeps the RAW hash, so the suppression is auditable and no signal was destroyed", () => {
+    const feed = fifthArtifact.observations.find((o: { kind: string }) => o.kind === "CANDIDATE_FEED")
+    expect(feed.bodySha256).toMatch(/^[0-9a-f]{64}$/)
+    expect(feed.bodyNormalizedSha256).toMatch(/^[0-9a-f]{64}$/)
+    expect(feed.bodySha256).not.toBe(feed.bodyNormalizedSha256) // the tokens really were stripped
+    expect(fifthArtifact.suppressedBodyChurn.length).toBeGreaterThan(0)
+  })
+
+  it("NEGATIVE CONTROL — run 6: a real prose change STILL reports BODY", () => {
+    // The assertion that separates "normalized" from "muted". If this ever passes while run 5
+    // also passes, the filter has stopped observing its subject.
+    expect(sixth.status).toBe(0)
+    expect(sixth.out).toMatch(/\[BODY\] \(candidate\)\s+loopback-feed/)
+    expect(sixth.out).toContain("(normalized)")
+  })
+
+  it("the artifact declares the churn it CANNOT normalize instead of hiding it", () => {
+    // codeium.com/windsurf regenerates an obfuscated inline script; normalizing it would need
+    // a guess about what a long opaque string means, which the watcher's header forbids.
+    expect(fifthArtifact.uncoveredChurn).toEqual(
+      expect.arrayContaining([expect.objectContaining({ hostId: "windsurf" })]),
+    )
+    expect(fifthArtifact.normalizationPolicy).toMatch(/1\.5s|measured/i)
+  })
+
   it("the artifact is rewritten each run, so it is a usable baseline for the next one", () => {
+    // Pinned to the artifact AS OF run 4, not to whatever the last run in this block happens
+    // to be. Reading "the current file" made this assertion depend on run 4 being last, so
+    // appending runs 5-6 broke it for a reason unrelated to what it asserts.
     expect(existsSync(artifactPath())).toBe(true)
-    const last = readArtifact()
-    expect(last.counts.candidateFeedUrls, "run 4 dropped the feed").toBe(0)
-    expect(last.observations).toHaveLength(1)
+    expect(fourthArtifact.counts.candidateFeedUrls, "run 4 dropped the feed").toBe(0)
+    expect(fourthArtifact.observations).toHaveLength(1)
   })
 
   it("POSITIVE CONTROL: a release-feed URL is fetched and carries the third kind", async () => {
@@ -450,13 +594,7 @@ describe("live comparison against a baseline (loopback only, no egress)", () => 
     writeManifest(bothKinds())
     writeWatchList([{ name: "loopback-release", url: `${origin}/release` }])
     served = { host: { status: 200, body: "host-v1" }, feed: { status: 200, body: "feed-v1" } }
-    // Intercept /release separately so the fixture server can distinguish it from the other two.
-    server.removeAllListeners("request")
-    server.on("request", (req, res) => {
-      const which = req.url === "/feed" ? served.feed : req.url === "/release" ? { status: 200, body: "release-v1" } : served.host
-      res.writeHead(which.status, { "content-type": "text/plain" })
-      res.end(which.body)
-    })
+    // /release is served by routeFixture, so this block no longer replaces the handler.
     const run = await runCopy()
     expect(run.status).toBe(0)
     expect(run.out).toContain("Observed 3 URL(s): 3 reachable")
@@ -469,6 +607,61 @@ describe("live comparison against a baseline (loopback only, no egress)", () => 
     const release = artifact.observations.find((o: { kind: string }) => o.kind === "HARNESS_RELEASE_FEED")
     expect(release).toMatchObject({ hostId: "loopback-release", reachable: true, status: 200 })
     expect(release.bodySha256, "no body hash means change detection cannot work on this URL").toMatch(/^[0-9a-f]{64}$/)
+  })
+})
+
+/**
+ * A transient connect failure must not be recorded as a fact about the vendor.
+ *
+ * Measured 2026-08-26: a single watcher run reported all 19 github.com URLs as
+ * `reachable: false, status: null, unreachableReason: "fetch failed"` while a direct fetch of
+ * one of them, seconds later, returned 403016 bytes. With no retry, the artifact stated that
+ * 19 vendor pages were unreachable when they were up — the observer's own blindness written
+ * down as the subject's condition, which is this repo's dominant fault class.
+ *
+ * The pair below is a real fixture pair: `/flaky` recovers, `/dead` does not. Without both,
+ * a retry that never gives up and a retry that never fires would look the same.
+ */
+describe("a transient connect failure is retried; a sustained one is still recorded", () => {
+  let run: Run
+  let artifact: ReturnType<typeof readArtifact>
+
+  beforeAll(async () => {
+    rmSync(join(tmpRoot, "artifacts"), { recursive: true, force: true })
+    writeManifest(flakyAndDead())
+    writeWatchList(null)
+    flakyFailsLeft = 2 // fails twice, then answers 200 — recoverable only if retried
+    flakyDrops = 0
+    run = await runCopy()
+    artifact = readArtifact()
+  }, LIVE_SEQUENCE_TIMEOUT_MS)
+
+  const obs = (hostId: string) =>
+    artifact.observations.find((o: { hostId: string }) => o.hostId === hostId)
+
+  it("POSITIVE: a URL that fails twice then answers is recorded reachable, not unreachable", () => {
+    expect(flakyDrops, "the fixture must really have dropped connections").toBe(2)
+    const o = obs("flaky-host")
+    expect(o.reachable).toBe(true)
+    expect(o.status).toBe(200)
+    expect(o.observeAttempts).toBe(3)
+  })
+
+  it("NEGATIVE: a URL that never answers is still unreachable, with the effort recorded", () => {
+    const o = obs("dead-host")
+    expect(o.reachable).toBe(false)
+    expect(o.status).toBe(null)
+    expect(o.observeAttempts).toBeGreaterThan(1)
+    expect(o.unreachableReason).toBeTruthy()
+  })
+
+  it("the retry is bounded — it does not loop forever on a dead host", () => {
+    expect(obs("dead-host").observeAttempts).toBeLessThanOrEqual(3)
+  })
+
+  it("the run still exits 0 and reports the reachable/unreachable split out loud", () => {
+    expect(run.status).toBe(0)
+    expect(run.out).toContain("Observed 2 URL(s): 1 reachable, 1 unreachable")
   })
 })
 

@@ -73,3 +73,11 @@ PROJECT_STATUS.md
 # nothing. Untracked instead; the submission it produced lives in the upstream PR, and the
 # SSOT records that as `cline` / `PENDING_UPSTREAM`.
 /marketplace/
+
+# The distribution watcher's snapshot. Produced by running scripts/check-official-sources.mjs
+# locally, and NEVER a repo file: usage-report.yml restores the previous snapshot from an
+# Actions artifact, and check-public-copy forbids a `git commit` in that workflow. Left
+# untracked-but-unignored it was one `git add -A` away from being committed, at which point
+# the baseline would come from the working tree instead of the artifact and every run would
+# diff against a stale, hand-editable snapshot.
+/artifacts/distribution-watch/
