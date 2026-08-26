@@ -38,10 +38,29 @@ byte-for-byte.
 
 ### U-1. `usage.calllint.com` is served UNGATED at its `pages.dev` hostname
 
-**Who can move it: the user only** (Cloudflare dashboard).
+**Who can move it: the user only** (Cloudflare dashboard). **Decision made 2026-08-26: disable
+the `pages.dev` subdomain**, since the custom domain already works and an unused hostname is
+pure exposure. Disabling removes the exposed surface; extending the Access policy would only
+move a gate in front of it.
 
-The 502 is fixed — see [U-2](#u-2-the-502-is-resolved-and-why-it-was-invisible-for-so-long) —
-but fixing it exposed the next fault. Measured 2026-08-26 from an unauthenticated machine:
+> Pages project `calllint-usage-report` → Settings → Build & deployments → pages.dev domain →
+> Disable.
+
+CI deliberately cannot do this. An Access policy — and the project's domain configuration — are
+account-level objects, and per
+[`CLOUDFLARE_ACCESS_ACTION.md`](../authority-distribution-closure/CLOUDFLARE_ACCESS_ACTION.md)
+the token this pipeline holds is scoped below that on purpose: *"the report is not worth that
+token."* Granting the workflow authority to enumerate or edit account identity configuration so
+it could self-heal would be a worse trade than the exposure it fixes. The local
+`CLOUDFLARE_API_TOKEN` on the maintainer's machine was checked and is invalid
+(`code: 1000`), so there is no side door either.
+
+**The probe had to be fixed first, and was** (`c5fb5af`) — see
+[T-2](#t-2-the-access-probe-measured-a-hostname-that-is-about-to-stop-existing). Disabling the
+subdomain before that commit would have turned the daily cron red *because the configuration
+became correct*.
+
+The measurement that opened this item:
 
 ```
 200  https://calllint-usage-report.pages.dev/   2666 bytes
@@ -51,22 +70,23 @@ but fixing it exposed the next fault. Measured 2026-08-26 from an unauthenticate
 302  https://usage.calllint.com/                → cloudflareaccess.com/cdn-cgi/access/login
 ```
 
-Cloudflare Access binds to a **hostname**, and the policy covers only the custom domain. So
-the report that new18 §29 requires to be private is world-readable at the `pages.dev` address
-the moment a deploy lands — which is now, for the first time.
+Cloudflare Access binds to a **hostname**, and the policy covers only the custom domain. So the
+report that new18 §29 requires to be private became world-readable at the `pages.dev` address
+the moment a deploy landed — which was 2026-08-26, for the first time ever.
 
 **Severity: privacy, not secrets.** No credentials and no raw identifiers are in the artifact
-(those never leave the Worker). What leaks is operator-facing figures. §29 nonetheless makes
-"public" the violation, which is why this is an error rather than a note.
+(those never leave the Worker). What is exposed is operator-facing figures. §29 nonetheless
+makes "public" the violation, which is why this is an error rather than a note.
 
-Remediate either way:
-- add the `usage.calllint.com` Access policy to `*.pages.dev`, **or**
-- disable the `pages.dev` subdomain on the Pages project (Settings → Build & deployments →
-  pages.dev domain).
+**The §29 backstops are holding, which bounds the urgency.** Measured on the exposed hostname:
 
-The `usage-report.yml` probe already checks for exactly this and calls it out with both
-remediations (`usage-report.yml:198-205`). It did not fire on the run that produced the
-measurement above for the reason in T-2 below.
+```
+robots.txt → User-agent: *   Disallow: /
+<meta name="robots" content="noindex, nofollow, noarchive" />
+```
+
+So the exposure is to someone who knows the exact URL, not to search. Those two backstops were
+written for "the day Access is misconfigured"; this is that day, and they worked.
 
 ### U-2. The 502 is resolved — and why it was invisible for so long
 
@@ -113,11 +133,14 @@ automatic verification is Monday.
 Earlier status notes described the cohort-100 blockage as fixed. The precise claim is: **the
 fix is committed, not yet demonstrated.**
 
-### T-2. The Access probe races the Pages alias
+### T-2. The Access probe measured a hostname that is about to stop existing
 
-**Who can move it: me** (small, safe, not yet done).
+**Status: FIXED 2026-08-26 (`c5fb5af`).** Kept here because the fix had to land *before* U-1's
+dashboard action, and because the fault is instructive.
 
-On run `32975124276` the deploy succeeded and the probe still failed:
+Two defects, one root cause — the probe inferred liveness from a hostname it does not control.
+
+**a) It raced the alias.** On run `32975124276` the deploy succeeded and the probe still failed:
 
 ```
 13:36:19.16  ✨ Deployment complete! → https://197a21a9.calllint-usage-report.pages.dev
@@ -125,15 +148,37 @@ On run `32975124276` the deploy succeeded and the probe still failed:
 ```
 
 Half a second apart. The deployment-specific hostname was live; the production alias had not
-finished routing. Re-measured minutes later from an unauthenticated machine: **200, 2666
-bytes, both hostnames**. So the 522 was a propagation artifact, and the probe currently reports
-a transient as a permanent fault — the *opposite* of the defect `c9553a2` fixed, and equally a
-guard that cannot observe its subject.
+finished routing. Re-measured minutes later: **200, both hostnames.** So it reported a transient
+as a permanent fault — the inverse of the defect `c9553a2` fixed, and equally a guard that
+cannot observe its subject.
 
-Worth fixing with a bounded retry (the probe should distinguish "not yet routed" from "nothing
-deployed"). Left open rather than patched blind, because the fix must not become a sleep that
-hides a genuinely empty origin. Note that this same race is why U-1's ungated-content check did
-not fire on that run: the leak branch is evaluated against a body the probe never received.
+**b) It would have gone red when the configuration became CORRECT.** Once the `pages.dev`
+subdomain is disabled per U-1, that hostname is NXDOMAIN, `curl` returns `000`, and the old
+check 3 read `000` as "no live deployment" — reporting the intended end state as the very 502 it
+existed to catch.
+
+**Why the fix is not a retry.** Two facts, both measured 2026-08-26, rule out probing a hostname
+at all. The gated host cannot testify about its own origin: Access 302s to the login endpoint
+*before* authenticating, and returns an identical 302 for a path that cannot exist. And a
+bounded retry on the alias would only trade a false red for a sleep that also hides a genuinely
+empty origin.
+
+So liveness now comes from the deploy step itself: it tees `wrangler`'s output, asserts
+`Deployment complete` is **present** (positively — an empty log satisfies "no error appeared",
+which is how guards here have failed before), publishes the immutable deployment URL as a step
+output, and check 3 fetches that URL. It is created by the deploy, so it is immune to alias
+propagation, and it survives the subdomain being disabled. Check 4 keeps the §29 exposure test
+but no longer infers liveness from it — NXDOMAIN is now recorded as the correct end state.
+
+Verified before being trusted: the extracted decision logic was driven through 6 controlled
+cases. Both expected-PASS land `fail=0`, **including the post-disable state the old logic would
+have failed**; all 4 expected-FAIL land `fail=1`, **including the original empty-origin 502** —
+so this does not buy green by forgiving the fault it exists to catch. Marker detection and URL
+parsing were replayed against the real logs of both runs: `32975124276` (success) parses to the
+right URL; `32972641297` (bad token) and an empty log are both rejected.
+
+**Not verified:** behaviour on the actual post-disable state, which cannot exist until the
+subdomain is disabled. The 6-case matrix covers it in logic, not in the world.
 
 ### D-1. `claude-plugin` → `AVAILABLE` needs a product judgement
 
@@ -172,7 +217,7 @@ it. Until then `AUDIT_REQUIRED` is the honest state.
 | `cursor` / `cursor-plugin` | `PENDING_UPSTREAM` | 2026-08-25 | private form review, so no `submissionUrl` exists to record |
 | `roo-code` / `mcp-stdio` | `PENDING_UPSTREAM` | — | |
 
-**`cline` / `cline-marketplace-pr` does NOT belong in this table — it is waiting on US.**
+**`cline` / `cline-marketplace-pr` was NOT waiting on upstream — it was waiting on us.**
 Measured 2026-08-26 against `cline/marketplace` (the `submissionUrl` in the SSOT; an earlier
 check used `cline/mcp-marketplace`, which does not exist):
 
@@ -181,16 +226,17 @@ state=OPEN  draft=true  created=2026-08-18T10:42:30Z  updated=2026-08-18T10:42:3
 title=Add CallLint MCP server
 ```
 
-**The PR is a draft, and has not been touched since it was opened.** A draft PR is not in
-any maintainer's review queue — GitHub excludes it from review requests by default. So the
-8 days of silence are not upstream latency; nobody has been asked yet. The SSOT note ("open,
-verified 2026-08-23") is literally true and materially incomplete: `open` and
-`awaiting-review` are not the same state, and `PENDING_UPSTREAM` asserts the second.
+**It was a draft, untouched since it was opened.** A draft PR is excluded from review requests
+by default, so the 8 days of silence were not upstream latency — nobody had been asked yet. The
+SSOT note ("open, verified 2026-08-23") was literally true and materially incomplete: `open`
+and `awaiting-review` are different states, and `PENDING_UPSTREAM` asserts the second.
 
-**Who can move it: the user** — marking a PR ready for review is an outward-facing act on a
-third party's repository, so it needs explicit authorization (`gh pr ready 49 --repo
-cline/marketplace`). The SSOT note should also be corrected to say `draft`. Still true, and
-still worth keeping: **do not create a duplicate.**
+**RESOLVED 2026-08-26** with the user's explicit authorization (marking a PR ready is an
+outward-facing act on a third party's repository): `gh pr ready 49 --repo cline/marketplace` →
+`state=OPEN draft=false updated=2026-08-26T13:55:51Z`. The SSOT note now records the draft
+period, so the row's `PENDING_UPSTREAM` is honest from that date rather than from 08-18. That
+note renders on the public host page, so it names the delay as ours rather than implying an
+upstream queue. Still true: **do not create a duplicate.**
 
 ### E-2. Copilot CLI needs the user's machine
 

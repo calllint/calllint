@@ -499,7 +499,7 @@
           "submission": {
             "date": "2026-08-18"
           },
-          "note": "Existing PR #49 (open, verified 2026-08-23), do not create duplicate"
+          "note": "Existing PR #49 at cline/marketplace, do not create duplicate. Opened as a draft 2026-08-18 and marked ready for review 2026-08-26; it was ours to send, so it entered review only on the later date."
         }
       ],
       "coverageBoundary": "CallLint auto-discovers both Cline config files: the CLI's (~/.cline/data/settings/, relocatable via CLINE_DATA_DIR) and the VS Code extension's, which lives in per-extension globalStorage and is documented by no upstream page. Neither Cline's rules, hooks, skills, agents nor plugins directories are read, and ~/Documents/Cline/MCP/ holds installed server source rather than server registrations, so it is not a config path.",
