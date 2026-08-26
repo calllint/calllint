@@ -103,6 +103,39 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Build — `eval:phase-2.4:gates:write` below drives the real binary
+        # THE STEP WHOSE ABSENCE KILLED TWO CONSECUTIVE SCHEDULED INGESTS.
+        #
+        # Runs 32004879519 (2026-08-17) and 32700871694 (2026-08-24) both failed here-but-one-step-later,
+        # at "Refresh the derived phase-2.4 artifacts", with:
+        #
+        #   missing apps/cli/dist/index.js — run `pnpm build` first (Gates 2.4-D/E drive the real binary)
+        #   ELIFECYCLE  Command failed with exit code 2.
+        #
+        # `phase-2.4-gates.ts:84` resolves `apps/cli/dist/index.js` and exits 2 when it is absent
+        # (:1045). `dist/` is gitignored, so a fresh runner never has it — this workflow had NO `pnpm
+        # build` at all (measured: `grep -c "pnpm build"` = 0). ADR 0089 added the refresh step and its
+        # invariant test asserted the writers were INVOKED; neither asserted they could RUN. That is
+        # this repo's dominant fault class one level up: a guard that cannot observe its subject, here a
+        # guard observing invocation while the thing that fails is the precondition.
+        #
+        # The cost was not the red run, it was the SILENCE after it: the failing step sits BEFORE "Open
+        # a PR with the refreshed snapshot + pages", so two weeks of scheduled ingests mirrored the
+        # registry, baked the tree, and threw all of it away without opening a PR. The cohort stayed
+        # frozen at 100 entries and the 100→150 growth in `refreshSnapshot.ts` never got a chance to
+        # apply. A pipeline that fails after its expensive half and before its only output is
+        # indistinguishable from a quiet week.
+        #
+        # PLACED HERE, NOT NEXT TO THE STEP THAT NEEDS IT, for two reasons:
+        #   1. It is `ci.yml`'s order (build at :122, phase-2.4 checks from :154), and the refresh step
+        #      exists precisely to reproduce what `ci.yml` will check on the resulting PR.
+        #   2. It fails in ~2 minutes instead of after a ~2-hour registry mirror. A broken build
+        #      discovered at minute 130 costs the whole ingest; discovered here it costs nothing.
+        #
+        # Writes only into gitignored `dist/` (measured: tree stays clean after `pnpm build`), so it
+        # cannot contribute bytes to the PR this workflow opens.
+        run: pnpm build
+
       - name: Ingest — mirror the registry, project + retain the snapshot, report the change
         # The caps are LEFT TO THE DEFAULTS on purpose. `DEFAULT_MIRROR_MAX_ENTRIES` (100_000) and
         # `DEFAULT_MAX_PAGES` (1000) are argued from a walk of the live source that ran to
