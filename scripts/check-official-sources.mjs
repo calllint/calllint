@@ -45,6 +45,7 @@ import { createHash } from 'node:crypto'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { parse as parseYAML } from 'yaml'
+import { normalizeBody, UNCOVERED_CHURN } from './lib/normalize-body.mjs'
 
 const repoRoot = fileURLToPath(new URL('..', import.meta.url))
 const MANIFEST = 'scripts/distribution-sources.json'
@@ -206,48 +207,72 @@ const sha256 = (input) => createHash('sha256').update(input).digest('hex')
  * One GET, with every failure mode mapped to an observation rather than a throw. `redirect`
  * is followed because a vendor moving a doc to a new path is the ordinary case and the final
  * URL is itself worth recording.
+ *
+ * Network-level connect failures are retried twice with 1.5s/3s backoff, since a vendor page
+ * being intermittently reachable is different from being down. HTTP-level errors (404, 500)
+ * are data and are NOT retried. The attempt count is recorded so a reader can see the effort.
  */
 const observe = async ({ kind, hostId, url, watchFor }) => {
-  const controller = new AbortController()
-  const timer = setTimeout(() => controller.abort(), TIMEOUT_MS)
-  try {
-    const response = await fetch(url, {
-      redirect: 'follow',
-      signal: controller.signal,
-      headers: { 'user-agent': 'calllint-distribution-watch (+https://calllint.com)' },
-    })
-    const body = await response.text()
-    return {
-      kind,
-      hostId,
-      url,
-      watchFor,
-      reachable: true,
-      status: response.status,
-      finalUrl: response.url === url ? null : response.url,
-      etag: response.headers.get('etag'),
-      lastModified: response.headers.get('last-modified'),
-      bodySha256: sha256(body),
-      bodyBytes: body.length,
+  const backoff = [0, 1500, 3000] // first attempt + 2 retries
+  for (let attempt = 0; attempt < backoff.length; attempt++) {
+    if (attempt > 0) await new Promise((r) => setTimeout(r, backoff[attempt]))
+    const controller = new AbortController()
+    const timer = setTimeout(() => controller.abort(), TIMEOUT_MS)
+    try {
+      const response = await fetch(url, {
+        redirect: 'follow',
+        signal: controller.signal,
+        headers: { 'user-agent': 'calllint-distribution-watch (+https://calllint.com)' },
+      })
+      const body = await response.text()
+      const normalized = normalizeBody(body)
+      return {
+        kind,
+        hostId,
+        url,
+        watchFor,
+        reachable: true,
+        status: response.status,
+        finalUrl: response.url === url ? null : response.url,
+        etag: response.headers.get('etag'),
+        lastModified: response.headers.get('last-modified'),
+        bodySha256: sha256(body),
+        // The raw hash above is NEVER dropped — a reader must always be able to see that the
+        // bytes moved. This second hash is what the BODY comparison uses, so a per-request
+        // token cannot masquerade as a product change. See scripts/lib/normalize-body.mjs for
+        // the measurement that licenses each rule.
+        bodyNormalizedSha256: sha256(normalized.text),
+        normalizationApplied: normalized.applied,
+        bodyBytes: body.length,
+        observeAttempts: attempt + 1,
+      }
+    } catch (error) {
+      // A connect-level error may be transient. An HTTP status (404, 500) is data and the
+      // catch block never sees it. So we retry here only for network flakes (DNS, TCP, TLS).
+      if (attempt === backoff.length - 1) {
+        // Final attempt failed — record it as unreachable.
+        return {
+          kind,
+          hostId,
+          url,
+          watchFor,
+          reachable: false,
+          status: null,
+          finalUrl: null,
+          etag: null,
+          lastModified: null,
+          bodySha256: null,
+          bodyNormalizedSha256: null,
+          normalizationApplied: [],
+          bodyBytes: null,
+          unreachableReason: error.name === 'AbortError' ? `timeout after ${TIMEOUT_MS}ms` : error.message,
+          observeAttempts: attempt + 1,
+        }
+      }
+      // else: transient failure, will retry after backoff
+    } finally {
+      clearTimeout(timer)
     }
-  } catch (error) {
-    // Deliberately an observation, not a failure. See the header comment.
-    return {
-      kind,
-      hostId,
-      url,
-      watchFor,
-      reachable: false,
-      status: null,
-      finalUrl: null,
-      etag: null,
-      lastModified: null,
-      bodySha256: null,
-      bodyBytes: null,
-      unreachableReason: error.name === 'AbortError' ? `timeout after ${TIMEOUT_MS}ms` : error.message,
-    }
-  } finally {
-    clearTimeout(timer)
   }
 }
 
@@ -308,6 +333,8 @@ const observations = await Promise.all(urls.map(observe))
  * candidate feed licenses recording candidate evidence and nothing more.
  */
 const changes = []
+/** Raw-byte differences that normalization explained away. Recorded, never reported as change. */
+const suppressed = []
 for (const now of observations) {
   const before = previousByUrl.get(now.url)
   const at = { url: now.url, hostId: now.hostId, sourceKind: now.kind }
@@ -326,11 +353,34 @@ for (const now of observations) {
     })
   }
   if (before.bodySha256 && now.bodySha256 && before.bodySha256 !== now.bodySha256) {
-    changes.push({
-      ...at,
-      kind: 'BODY',
-      detail: `sha256 ${before.bodySha256.slice(0, 12)} → ${now.bodySha256.slice(0, 12)}`,
-    })
+    // The raw bytes moved. Whether that is REPORTABLE is decided on the normalized hash, so
+    // a rotated request-id does not read as a product change. Three cases, all explicit:
+    if (before.bodyNormalizedSha256 == null) {
+      // A baseline written before this field existed (or restored from an old Actions
+      // artifact) cannot be compared normalized. Reporting "no change" here would recreate
+      // the defect this watcher's own tests document — a missing baseline and a quiet week
+      // spelled identically. So it degrades LOUDLY and falls back to the raw comparison.
+      changes.push({
+        ...at,
+        kind: 'BODY',
+        detail:
+          `sha256 ${before.bodySha256.slice(0, 12)} → ${now.bodySha256.slice(0, 12)} ` +
+          `(baseline predates normalization — compared RAW, so this may be per-request noise)`,
+      })
+    } else if (before.bodyNormalizedSha256 !== now.bodyNormalizedSha256) {
+      changes.push({
+        ...at,
+        kind: 'BODY',
+        detail: `sha256 ${before.bodyNormalizedSha256.slice(0, 12)} → ${now.bodyNormalizedSha256.slice(0, 12)} (normalized)`,
+      })
+    } else {
+      // Raw differs, normalized does not: measured per-request churn. Recorded so the
+      // suppression is auditable, but NOT a reportable change.
+      suppressed.push({
+        ...at,
+        detail: `raw sha256 moved, normalized identical; stripped: ${now.normalizationApplied.join(', ') || 'none'}`,
+      })
+    }
   }
   if (now.finalUrl && before.finalUrl !== now.finalUrl) {
     changes.push({ ...at, kind: 'REDIRECT', detail: `now resolves to ${now.finalUrl}` })
@@ -380,6 +430,18 @@ writeFileSync(
         'HARNESS_RELEASE_FEED observations record that a harness release page moved. A BODY change on a nightly ' +
         'publisher is expected and licenses no edit. A STATUS or REDIRECT change means the feed relocated: a human ' +
         'checks whether the harness config path changed, and updates the extractor and the watch list by commit.',
+      /*
+       * BODY is decided on `bodyNormalizedSha256`, not `bodySha256`. Both are recorded, so a
+       * suppression is always auditable: `suppressedBodyChurn` lists every URL whose raw bytes
+       * moved while the normalized bytes did not, naming the rules that fired.
+       */
+      normalizationPolicy:
+        'Each stripped token class was measured to differ between two fetches of the same URL 1.5s apart, an ' +
+        'interval in which no product change can occur — so removing it is a fact about the transport, not a ' +
+        'judgement about content. The raw hash is never dropped. Churn that cannot be normalized without ' +
+        'executing JavaScript is declared in uncoveredChurn, not hidden.',
+      uncoveredChurn: UNCOVERED_CHURN,
+      suppressedBodyChurn: suppressed,
       describes: { manifest: MANIFEST, watchList: WATCH_LIST, release: manifest.describes?.release ?? null },
       counts: {
         hostSourceUrls: hostUrlCount,
@@ -430,6 +492,18 @@ console.log(
 )
 if (releaseObs.length === 0) {
   console.log(`      none listed — ${WATCH_LIST} is absent, so no harness ship signal was observed`)
+}
+
+/*
+ * Printed in BOTH branches below, before the change list and before the silent exit. A run
+ * that suppressed 11 churning URLs and a run that fetched 11 byte-identical pages are
+ * different facts, and "no change" alone spells them the same way. One line, always.
+ */
+if (suppressed.length > 0) {
+  console.log('')
+  console.log(`  ${suppressed.length} raw body change(s) suppressed as measured per-request churn:`)
+  for (const s of suppressed) console.log(`    [BODY:noise] ${s.hostId ?? '—'}  ${s.url}  ${s.detail}`)
+  console.log(`  Raw hashes are still recorded in ${ARTIFACT} under suppressedBodyChurn.`)
 }
 
 if (changes.length === 0) {
