@@ -39,6 +39,28 @@ const realWorkflow = readFileSync(path.join(ROOT, WORKFLOW), "utf8")
 
 const VERIFY_STEP = "Verify Access gate is enforcing"
 const DEPLOY_TOKEN = "wrangler pages deploy"
+const REPORT_TEMPLATE = "apps/usage-worker/src/report.ts"
+
+/** The probe step's shell body — everything between its name and the next step. */
+const probeBody = (() => {
+  const from = realWorkflow.slice(realWorkflow.indexOf(VERIFY_STEP))
+  return from.slice(0, from.indexOf("- name: Summarize"))
+})()
+
+/**
+ * Row labels the report ACTUALLY renders. This is the ground truth for "leaked content",
+ * and it is read from the template rather than restated here, so a renamed row breaks the
+ * assertion instead of silently un-pinning the probe.
+ */
+const reportLabels = [
+  ...readFileSync(path.join(ROOT, REPORT_TEMPLATE), "utf8").matchAll(/label:\s*"([^"]+)"/g),
+].map((m) => m[1]!)
+
+/** The alternation the probe greps for, e.g. `CLI package downloads|MCP servers observed`. */
+function probeLeakMarkers(): string[] {
+  const m = probeBody.match(/grep -qiE '([^']+)'/)
+  return m ? m[1]!.split("|") : []
+}
 
 describe("private usage deploy gate — §29 stays fail-closed", () => {
   let tmpRoot: string
@@ -144,12 +166,54 @@ describe("private usage deploy gate — §29 stays fail-closed", () => {
    * exits 0 would satisfy the guard and observe nothing, so the probe's own body is
    * asserted here: it must exit non-zero, and it must key on leaked report content. */
 
-  it("the Access probe exits non-zero and keys on leaked report content, not just HTTP status", () => {
-    const probe = realWorkflow.slice(realWorkflow.indexOf(VERIFY_STEP))
-    const body = probe.slice(0, probe.indexOf("- name: Summarize"))
-    expect(body).toContain("exit 1")
-    expect(body).toMatch(/calllint usage report|installation hashes/i)
-    // A 200 from an Access gate is still a 200 — status alone cannot decide this.
-    expect(body).toMatch(/cloudflare access|sign in/i)
+  it("the Access probe exits non-zero and keys on the gate's redirect, not just HTTP status", () => {
+    expect(probeBody).toContain("exit 1")
+    // A 200 from an Access gate is still a 200 — status alone cannot decide this. The gate
+    // is identified by its redirect TARGET, which is structural: the 302's own body is a
+    // 7-line stub containing neither "sign in" nor the app name.
+    expect(probeBody).toContain("cloudflareaccess.com/cdn-cgi/access/login")
+  })
+
+  /* ── The leak markers must be real report content ──────────────────────────────────
+   * WHAT THIS REPLACED. The old assertion accepted the literals "calllint usage report"
+   * or "installation hashes". Measured 2026-08-26: NEITHER appears in a generated report
+   * (its title is "CallLint Usage — private"; its rows read "CLI package downloads"),
+   * while "calllint usage report" DOES appear on the Access login page as the application
+   * name. So the leak check was blind to a real leak and false-positive on the safe case,
+   * and the test blessed exactly that. Asserting against the template makes the markers
+   * verifiable instead of merely present. */
+
+  it("every leak marker the probe greps for is a row label the report really renders", () => {
+    const markers = probeLeakMarkers()
+    expect(markers.length).toBeGreaterThan(0) // anti-vacuity: the grep must be found at all
+    expect(reportLabels).toContain("CLI package downloads") // the template still has labels
+    for (const marker of markers) expect(reportLabels).toContain(marker)
+  })
+
+  it("the probe does not key on the Access application name, which is not report content", () => {
+    // "CallLint Usage Report (Private)" is rendered by Cloudflare on the sign-in page. A
+    // marker matching it fires when the gate is WORKING.
+    for (const marker of probeLeakMarkers()) {
+      expect(marker.toLowerCase()).not.toBe("calllint usage report")
+    }
+  })
+
+  /* ── Gated must not be indistinguishable from dead ─────────────────────────────────
+   * The 502 an operator hit on 2026-08-26 was invisible to CI because both prior checks
+   * pass when Access fronts a project with ZERO deployments: the redirect happens, and no
+   * content leaks because there is no content. The probe must therefore also observe that
+   * something is served. */
+
+  it("the probe checks the origin has a live deployment, so a 502-behind-the-gate reds", () => {
+    expect(probeBody).toContain("calllint-usage-report.pages.dev")
+    expect(probeBody).toMatch(/522/)
+    expect(probeBody).toMatch(/no live deployment/i)
+  })
+
+  it("the probe treats an ungated pages.dev origin as an error, not a warning", () => {
+    // Access binds to a hostname; it does not follow the project to its pages.dev name.
+    const ungated = probeBody.slice(probeBody.indexOf("serves report content UNGATED"))
+    expect(ungated).toContain("::error::")
+    expect(probeBody).not.toMatch(/::warning::[^\n]*UNGATED/)
   })
 })
