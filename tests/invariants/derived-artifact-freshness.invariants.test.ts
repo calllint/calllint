@@ -88,6 +88,34 @@ function bakeDerivedDriftScripts(): string[] {
   return [...found].sort()
 }
 
+/**
+ * Where a command actually RUNS in a workflow, ignoring prose.
+ *
+ * WHY NOT `INGEST.indexOf(script)`, WHICH IS WHAT THE ORDERING ASSERTIONS USED. That searches the raw
+ * YAML, where a comment mentioning a script name is indistinguishable from the step invoking it. It was
+ * not a hypothetical: adding the `pnpm build` step below — whose comment names
+ * `eval:phase-2.4:gates:write` while explaining why the build must precede it — made two ordering
+ * assertions red by resolving that writer to an offset ~7kB before its real `run:` line. The tests were
+ * measuring documentation.
+ *
+ * The failure direction is what makes it worth fixing rather than working around: a comment placed
+ * ABOVE a step pulls its apparent position EARLIER, so the assertion `writer runs after the bake` can be
+ * satisfied — or broken — by prose. A guard a comment can move is not observing its subject.
+ */
+function runsAt(workflow: string, needle: string): number {
+  for (const m of workflow.matchAll(/^[ \t]*run:[ \t]*(.+)$/gm)) {
+    const command = m[1]!
+    const within = command.indexOf(needle)
+    // Returns the needle's position INSIDE the command, not the line's start offset. Five of these
+    // writers share ONE `run:` line (`… :write && … :write && …`), so a line-granular answer would make
+    // `eval:phase-2.4:write` and `audit:preview:write` compare EQUAL and the ordering assertion below
+    // — the one real data dependency in the class — could never fail. Intra-line order is the order
+    // they execute in.
+    if (within !== -1) return m.index! + (m[0]!.length - command.length) + within
+  }
+  return -1
+}
+
 /** The `--write` counterpart of a drift script, if the repo defines one. */
 function writerFor(script: string): string | null {
   const candidate = `${script}:write`
@@ -216,20 +244,68 @@ describe("the ingest workflow rebuilds every artifact its own bake invalidates (
       preview.includes("human-five-second-test.json"),
       "preview-snapshot no longer reads the eval artifact — this ordering constraint may be obsolete",
     ).toBe(true)
-    const evalAt = INGEST.indexOf("eval:phase-2.4:write")
-    const previewAt = INGEST.indexOf("audit:preview:write")
+    const evalAt = runsAt(INGEST, "eval:phase-2.4:write")
+    const previewAt = runsAt(INGEST, "audit:preview:write")
     expect(evalAt, "eval:phase-2.4:write absent from the ingest").toBeGreaterThan(-1)
     expect(previewAt, "audit:preview:write absent from the ingest").toBeGreaterThan(-1)
     expect(evalAt, "the preview snapshot runs before the eval whose artifact it reads").toBeLessThan(previewAt)
   })
 
+  it("builds the CLI before the writers that drive it (the 2026-08-17 → 08-24 double failure)", () => {
+    // WHAT THIS FILE ASSERTED, AND WHAT IT DID NOT. Everything above checks that the ingest INVOKES
+    // each writer. Two consecutive scheduled runs (32004879519, 32700871694) still died in the step
+    // those assertions cover, because invocation is not the same as being able to run:
+    //
+    //   missing apps/cli/dist/index.js — run `pnpm build` first (Gates 2.4-D/E drive the real binary)
+    //
+    // `trust-ingest.yml` held no `pnpm build` at all, and `dist/` is gitignored so a runner never has
+    // one. The failing step precedes the PR-opening step, so the cohort silently stayed frozen at 100
+    // for two weeks. Same class as the rest of this file, one level up: a guard watching invocation
+    // while the precondition is what breaks.
+    const needsBinary = (script: string): boolean => {
+      const src = sourceOf(script)
+      if (!src) return false
+      let body: string
+      try {
+        body = read(src)
+      } catch {
+        return false
+      }
+      // BOTH spellings, for the reason the comment on `bakeDerivedDriftScripts` gives: the scripts use
+      // `path.join(repoRoot, "apps", "cli", "dist", "index.js")` (gates.ts:84) as segments and
+      // `apps/cli/dist/index.js` as a literal. A cue written for only one silently drops the other and
+      // this assertion loses its subject — which is how the defect above survived a guard in the first
+      // place.
+      return /"cli",\s*"dist"|apps\/cli\/dist/.test(body)
+    }
+
+    const drivers = bakeDerivedDriftScripts().filter(needsBinary)
+    // Anti-vacuity with its own denominator. If the cue stops matching, `drivers` empties and the loop
+    // below asserts nothing while still passing green.
+    expect(
+      drivers,
+      "no bake-derived drift script appears to need apps/cli/dist — the cue stopped matching and the ordering assertion below is vacuous",
+    ).toContain("eval:phase-2.4:gates")
+
+    const buildAt = runsAt(INGEST, "pnpm build")
+    expect(buildAt, "trust-ingest.yml never runs `pnpm build`, so every writer that drives the built binary exits 2").toBeGreaterThan(-1)
+    for (const s of drivers) {
+      const w = writerFor(s)
+      if (w === null) continue
+      expect(
+        runsAt(INGEST, w),
+        `${w} drives apps/cli/dist but runs before \`pnpm build\` — it will exit 2 and the ingest opens no PR`,
+      ).toBeGreaterThan(buildAt)
+    }
+  })
+
   it("rebuilds AFTER the bake, not before", () => {
-    const bakeAt = INGEST.indexOf("pnpm bake:trust-index")
+    const bakeAt = runsAt(INGEST, "pnpm bake:trust-index")
     expect(bakeAt, "bake step absent").toBeGreaterThan(-1)
     for (const s of bakeDerivedDriftScripts()) {
       const w = writerFor(s)
       if (w === null) continue
-      expect(INGEST.indexOf(w), `${w} runs before the bake, so it would derive from the OLD tree`).toBeGreaterThan(bakeAt)
+      expect(runsAt(INGEST, w), `${w} runs before the bake, so it would derive from the OLD tree`).toBeGreaterThan(bakeAt)
     }
   })
 })

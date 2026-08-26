@@ -143,17 +143,76 @@ jobs:
       # deploy would keep running even if the host became public.
       - name: Verify Access gate is enforcing (unauthenticated probe)
         run: |
-          response=$(curl -sSf https://usage.calllint.com/ 2>&1 || true)
-          if echo "$response" | grep -qi "calllint usage report\|server details\|installation hashes\|npm downloads"; then
+          set -uo pipefail
+          HOST=https://usage.calllint.com/
+          ORIGIN=https://calllint-usage-report.pages.dev/
+          fail=0
+
+          # ── Why this probe was rewritten (2026-08-26) ───────────────────────────────────
+          # The original could not pass on a CORRECTLY configured host, in either spelling:
+          #   · without -L it read the 302's body — a 7-line stub whose only word is
+          #     "cloudflare" — and required "sign in", so the gate check always failed;
+          #   · with -L it landed on the Access login page, whose <title> renders the
+          #     APPLICATION NAME "CallLint Usage Report (Private)", tripping the leak check.
+          # And its four leak markers ("calllint usage report", "server details",
+          # "installation hashes", "npm downloads") match NOTHING in the real report, whose
+          # title is "CallLint Usage — private" and whose rows read "CLI package downloads".
+          # Measured 2026-08-26: 0/4 matched the generated report; 1/4 matched the Access
+          # page. The check was blind to a real leak and loud on the safe case — inverted.
+          # So: gate presence is now a REDIRECT fact (structural), and the leak markers are
+          # pinned to real report strings by report-leak-markers.invariants.test.ts.
+
+          # 1. Gate present? An unauthenticated GET must 302 to the Access login endpoint.
+          loc=$(curl -sSI --max-time 25 "$HOST" | tr -d '\r' | awk 'tolower($1)=="location:"{print $2; exit}')
+          case "$loc" in
+            *cloudflareaccess.com/cdn-cgi/access/login*)
+              echo "✓ gate: unauthenticated GET redirects to the Cloudflare Access sign-in endpoint" ;;
+            *)
+              echo "::error::Access gate NOT observed — no redirect to cloudflareaccess.com (got: ${loc:-<none>})"
+              fail=1 ;;
+          esac
+
+          # 2. No leak? The un-redirected response must carry no real report content. Markers
+          #    are report row labels, absent from any Access page.
+          curl -sS -o /tmp/gate-body.html --max-time 25 "$HOST" || true
+          if grep -qiE 'CLI package downloads|MCP servers observed|Recorded preflights' /tmp/gate-body.html; then
             echo "::error::Access gate failed — unauthenticated request returned report content"
-            exit 1
+            fail=1
+          else
+            echo "✓ leak: no report row labels in the unauthenticated response"
           fi
-          if ! echo "$response" | grep -qi "cloudflare access\|sign in"; then
-            echo "::warning::Could not confirm Access gate presence (did not detect Cloudflare Access sign-in page)"
-            echo "Response: $response"
-            exit 1
+
+          # 3. Is anything actually SERVED behind the gate? THE CHECK WHOSE ABSENCE HID A
+          #    USER-VISIBLE 502 FOR AS LONG AS THE DEPLOY HAS EXISTED. Checks 1-2 are both
+          #    satisfied by a gate in front of NOTHING: Access authenticates, proxies to a
+          #    Pages project with zero deployments, and the operator gets 502 *after* signing
+          #    in — while this workflow stays green. "Gated" and "dead" must not look alike.
+          #    The origin is checked directly, since the gated host cannot be read without
+          #    credentials and this job holds none for Access.
+          #    Measured 2026-08-26: a nonexistent project's *.pages.dev does NOT resolve
+          #    (NXDOMAIN), so a 522 here means the project EXISTS with no live deployment —
+          #    exactly the state that produced the 502. That distinction is why this keys on
+          #    the status code and not on reachability alone.
+          ocode=$(curl -sS -o /tmp/origin-body.html -w '%{http_code}' --max-time 25 "$ORIGIN" || echo 000)
+          oloc=$(curl -sSI --max-time 25 "$ORIGIN" | tr -d '\r' | awk 'tolower($1)=="location:"{print $2; exit}')
+          if grep -qiE 'CLI package downloads|MCP servers observed|Recorded preflights' /tmp/origin-body.html; then
+            # Access binds to a hostname. If it covers only the custom domain, the report is
+            # world-readable at the pages.dev hostname the moment a deploy lands. Not a
+            # secret leak (no credentials, no raw IDs — those never leave the Worker), but
+            # §29 makes "public" the violation, so this is an error, not a warning.
+            echo "::error::$ORIGIN serves report content UNGATED — Access covers the custom domain only."
+            echo "::error::Remediate: add usage.calllint.com's Access policy to *.pages.dev, or disable the pages.dev subdomain in the Pages project (Settings → Build & deployments → pages.dev domain)."
+            fail=1
+          elif [ "$ocode" = "522" ] || [ "$ocode" = "404" ] || [ "$ocode" = "000" ]; then
+            echo "::error::Origin has no live deployment (HTTP $ocode at $ORIGIN)."
+            echo "::error::Access will authenticate and then 502, because it proxies to an empty project. This is the failure an operator sees AFTER verifying their email."
+            fail=1
+          else
+            echo "✓ origin: deployment live (HTTP $ocode${oloc:+, redirects to $oloc})"
           fi
-          echo "✓ Access gate confirmed — unauthenticated request redirected to sign-in, no content leaked"
+
+          [ "$fail" = 0 ] || exit 1
+          echo "✓ Access gate confirmed — gated, no content leaked, and a live deployment behind it"
 
       - name: Summarize the run
         run: |
