@@ -226,24 +226,55 @@ jobs:
           #    does. Cloudflare offers no way to observe the gated custom domain without a
           #    credential the pipeline deliberately does not hold
           #    (artifacts/authority-distribution-closure/CLOUDFLARE_ACCESS_ACTION.md), so that
-          #    gap is accepted, not closed. Note also that per-deployment hostnames fall under
-          #    the `*.{project}.pages.dev` PREVIEW wildcard: if the preview Access policy is
-          #    ever enabled (Pages → Settings → General → "Enable access policy"), this check
-          #    will read a 302 and must be revisited — it is not covered today.
+          #    gap is accepted, not closed.
+          #
+          #    SINCE apps/usage-worker/src/pages-entry.js SHIPS (§29/U-1), this hostname 301s
+          #    instead of serving: it is a `*.pages.dev` name, and leaving the preview wildcard
+          #    open would have closed U-1 only on the production alias. A redirect alone proves
+          #    only that code RAN, so the entry attaches `x-calllint-report: present|absent`,
+          #    derived by asking the asset server for the document. Both are required below —
+          #    which makes this check STRONGER than the HTTP 200 it replaces, because a 301
+          #    with `absent` is exactly the gated-but-dead state that hid a user-visible 502.
+          #    A plain 200 here now means the entry did NOT run, i.e. U-1 is reopened on the
+          #    preview wildcard, so it is an error rather than the pass it used to be.
+          #
+          #    THE OLD `*)` BRANCH WAS A ::warning THAT TREATED ANY UNKNOWN CODE AS LIVE. It is
+          #    an error now, because "unknown" is the shape a real fault arrives in. Concretely:
+          #    enabling Pages → Settings → General → "Enable access policy" puts Access in front
+          #    of this preview hostname, so this read becomes a 302 and this step reds. That is
+          #    the intended outcome — a red saying "come look" beats a green that hides the fact
+          #    that liveness is no longer observable from here.
           if [ -z "${DEPLOYMENT_URL:-}" ]; then
             echo "::error::the deploy step published no deployment URL — nothing is known to be live."
             fail=1
           else
-            dcode=$(curl -sS -o /tmp/deployment-body.html -w '%{http_code}' --max-time 25 "$DEPLOYMENT_URL" || echo 000)
+            dcode=$(curl -sS -D /tmp/deployment-head.txt -o /tmp/deployment-body.html \
+              -w '%{http_code}' --max-time 25 "$DEPLOYMENT_URL" || echo 000)
+            report=$(tr -d '\r' < /tmp/deployment-head.txt \
+              | awk 'tolower($1)=="x-calllint-report:"{print tolower($2); exit}')
             case "$dcode" in
-              200) echo "✓ origin: deployment live at the immutable deployment URL (HTTP 200)" ;;
+              301)
+                if [ "$report" = "present" ]; then
+                  echo "✓ origin: deployment live behind the canonical-host redirect (301, report present)"
+                elif [ "$report" = "absent" ]; then
+                  echo "::error::the canonical-host redirect is serving but NOTHING is behind it (301, report absent) — this is the gated-but-dead 502 state."
+                  fail=1
+                else
+                  echo "::error::301 from the deployment URL with no x-calllint-report header (got: ${report:-<none>}) — liveness is unobservable, so it is not assumed."
+                  fail=1
+                fi ;;
+              200)
+                echo "::error::the deployment URL served HTTP 200 — apps/usage-worker/src/pages-entry.js did not run, so §29/U-1 is reopened on the *.pages.dev preview wildcard."
+                fail=1 ;;
               000|404|522)
                 # The deployment-specific hostname is created by the deploy itself, so unlike
                 # the alias it is not subject to alias propagation. A failure here after
                 # "Deployment complete" is a real fault, not a race.
                 echo "::error::the deployment URL from this run is not serving (HTTP $dcode). wrangler reported success, so this is a genuine origin fault."
                 fail=1 ;;
-              *) echo "::warning::deployment URL returned HTTP $dcode — not a known-bad code, treating as live." ;;
+              *)
+                echo "::error::deployment URL returned HTTP $dcode — expected a 301 from the canonical-host entry. Not assumed live."
+                fail=1 ;;
             esac
           fi
 
@@ -253,10 +284,17 @@ jobs:
           #    labels present, and NO x-robots-tag (that header ships on preview hostnames
           #    only), so the in-page noindex meta is the sole crawler backstop there.
           #
+          #    REMEDIATED IN-REPO since apps/usage-worker/src/pages-entry.js ships as the
+          #    deployment's `_worker.js`: this hostname now 301s to the gated custom domain and
+          #    serves the report to nobody. That was chosen over the two dashboard options
+          #    (an account-level Bulk Redirect, or a second Access application on *.pages.dev)
+          #    because both are ACCOUNT-level objects and this pipeline deliberately holds no
+          #    account-level credential. Either can still be added at the edge; they short-
+          #    circuit ahead of this and make the entry a second layer.
+          #
           #    THIS CHECK OBJECTS ONLY TO CONTENT, never to absence. Cloudflare provides no
           #    way to delete a project's pages.dev hostname (verified against the Pages docs
-          #    2026-08-26 — the documented options are a Bulk Redirect or a second Access
-          #    application), so whatever remediation lands, this hostname keeps resolving and
+          #    2026-08-26), so this hostname keeps resolving under every remediation and
           #    answers with a redirect or a challenge rather than the report. Reading any of
           #    that as "no live deployment" — which this probe did until 2026-08-26 — reports a
           #    CORRECT configuration as the very 502 it exists to catch. Hence liveness moved
@@ -266,7 +304,7 @@ jobs:
             # Not a secret leak (no credentials, no raw IDs — those never leave the Worker),
             # but §29 makes "public" the violation, so this is an error, not a warning.
             echo "::error::$ORIGIN serves report content UNGATED (HTTP $ocode) — Access covers the custom domain only."
-            echo "::error::Remediate: Cloudflare has NO switch to delete this hostname (verified against the Pages docs 2026-08-26). Use an account-level Bulk Redirect from $ORIGIN to https://usage.calllint.com/, or add a second Access application covering *.pages.dev. Note that Pages → Settings → General → 'Enable access policy' does NOT cover this hostname — it protects preview deployments only."
+            echo "::error::This should be closed by apps/usage-worker/src/pages-entry.js shipping as _worker.js — content here means the entry did not run. Check that dist/usage/_worker.js was in the deploy (the generator validates it before writing) and that the project is in Pages ADVANCED mode. Cloudflare has NO switch to delete this hostname (verified against the Pages docs 2026-08-26); the edge alternatives are an account-level Bulk Redirect to https://usage.calllint.com/ or a second Access application on *.pages.dev. Pages → Settings → General → 'Enable access policy' does NOT cover this hostname — it protects preview deployments only."
             fail=1
           elif [ "$ocode" = "000" ]; then
             echo "✓ §29: $ORIGIN does not resolve or refused the connection — no content exposed"
