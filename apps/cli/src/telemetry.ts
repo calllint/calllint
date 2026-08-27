@@ -21,11 +21,19 @@
  * Either way, scan/integrate/guard/trust output is **byte-for-byte identical** whether
  * or not telemetry is wired — the privacy/verdict-decoupling invariant (new11 §1.5).
  *
- * Turning the local tier on for real is a PRODUCT decision that is still open and is
- * deliberately NOT made here: new11 §2.6 fixes `local CLI = opt-in default-off`, and
- * the Blueprint's non-goal #15 forbids "collecting private local CLI telemetry by
- * default". A first-run consent prompt is compatible with both; a default-ON posture is
- * not, and would need an ADR reversing that non-goal.
+ * POLICY, DECIDED 2026-08-27: first-run consent on an interactive TTY (`consent.ts`).
+ * The prompt runs after the command's output is written, asks once, and persists the
+ * answer either way; only an explicit affirmative turns collection on. It is silent in
+ * CI, when piped, under `CALLLINT_TELEMETRY=<disable>`, and in `--json`/`--sarif`.
+ *
+ * That keeps both constraints intact rather than trading one away: new11 §2.6 fixes
+ * `local CLI = opt-in default-off`, and the Blueprint's non-goal #15 forbids "collecting
+ * private local CLI telemetry by default". Silence is never consent here, so neither is
+ * violated. A default-ON posture still is, and would need an ADR reversing that non-goal.
+ *
+ * Consent takes effect from the NEXT invocation: the emitter is built from the state file
+ * before the prompt exists, so the run that asks emits nothing. Retroactively sending
+ * events the user had not yet agreed to is the posture #15 names.
  *
  * Accuracy note: a command's process exit code does not carry its verdict outside
  * `--ci` (a plain `scan` exits 0 regardless of SAFE/REVIEW/BLOCK/UNKNOWN). So the
