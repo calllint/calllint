@@ -434,7 +434,12 @@ assertCohortShape(hosts)
     for (const c of available) {
       const hasUpstream = typeof c.upstream === "string" && c.upstream.length > 0
       const hasLive = typeof c.liveUrl === "string" && c.liveUrl.startsWith("https://")
-      if (!hasUpstream && !hasLive) {
+      // The third arm (ADR 0007): a reproducible local install, for a channel with no shelf to
+      // point liveUrl at and the wrong subject for the upstream arm. Presence of the block is
+      // NOT the check — the probe file must exist on disk, below. Accepting the block alone
+      // would make this arm the one thing the other two are not: assertable for free.
+      const hasEvidence = c.evidence?.class === "localReproducibleInstall"
+      if (!hasUpstream && !hasLive && !hasEvidence) {
         unbacked++
         fail(
           `${c.host}/${c.kind}: state is AVAILABLE but records no evidence. AVAILABLE means ` +
@@ -444,6 +449,30 @@ assertCohortShape(hosts)
             `AUDIT_REQUIRED is the honest state; if submission is impossible, BLOCKED with a blocker.`,
         )
         continue
+      }
+      // What makes the evidence arm falsifiable: the named probe must be on disk. The record
+      // says "a third party can re-run this"; if the script is gone, that sentence is false and
+      // the AVAILABLE behind it is unbacked. Without this, the arm would be satisfied by prose
+      // — the guard-blind-to-its-subject shape this repo keeps re-finding.
+      if (hasEvidence) {
+        const probeRel = typeof c.evidence.probe === "string" ? c.evidence.probe : ""
+        if (!probeRel || !fs.existsSync(path.join(repoRoot, probeRel))) {
+          unbacked++
+          fail(
+            `${c.host}/${c.kind}: evidence names probe "${probeRel || "(missing)"}" which is not ` +
+              `on disk. ADR 0007's whole claim is that the install is REPRODUCIBLE, which is ` +
+              `false the moment the script is gone — so this is an unbacked AVAILABLE, not a ` +
+              `stale path. Restore the probe, or move the channel back to AUDIT_REQUIRED.`,
+          )
+        }
+        if (hasLive) {
+          unbacked++
+          fail(
+            `${c.host}/${c.kind}: carries BOTH evidence and liveUrl. ADR 0007 admits the local-act ` +
+              `arm only where no shelf exists; where one does, a missing liveUrl is a missing ` +
+              `submission and the local act must not stand in for it.`,
+          )
+        }
       }
       // The liveUrl arm, tightened as far as an offline gate can: a listing URL that points
       // at neither the channel's officialSource nor the host's own vendor surfaces is not
@@ -480,10 +509,12 @@ assertCohortShape(hosts)
       const byArm = {
         upstream: available.filter((c) => typeof c.upstream === "string").length,
         liveUrl: available.filter((c) => typeof c.liveUrl === "string" && c.liveUrl).length,
+        evidence: available.filter((c) => c.evidence?.class === "localReproducibleInstall").length,
       }
       pass(
         `${available.length}/${channels.length} channels are AVAILABLE, each with evidence ` +
-          `(${byArm.upstream} via upstream registry record, ${byArm.liveUrl} via liveUrl); ` +
+          `(${byArm.upstream} via upstream registry record, ${byArm.liveUrl} via liveUrl, ` +
+          `${byArm.evidence} via reproducible local install [ADR 0007]); ` +
           `no liveUrl recorded outside AVAILABLE`,
       )
     }

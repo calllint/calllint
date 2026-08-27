@@ -1083,6 +1083,20 @@ ${
 ${rows(submittedElsewhere)}
 `
     : ''
+}${
+  live.length > 0
+    ? `
+### Already available
+
+Listed and reachable by users. Here for completeness: the summary above counts these, so
+omitting the table made the five detail tables cover ${shelf.length - live.length} of ${shelf.length} rows while the
+heading claimed all ${shelf.length}. Not a to-do — no row here is work.
+
+| Host | Channel | Tier | State | Submitted |
+|---|---|---|---|---|
+${rows(live)}
+`
+    : ''
 }`
 
   const outPath = join(ROOT, 'artifacts/submissions/CHANNEL-COUNTS.md')

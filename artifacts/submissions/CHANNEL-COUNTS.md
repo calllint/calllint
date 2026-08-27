@@ -25,11 +25,11 @@ claim is unverified, not the support absent.
 
 | State | Count | Meaning |
 |---|---|---|
-| `BLOCKED` | 4 | A recorded blocker makes it impossible or explicitly rejected — not a to-do. See [BLOCKED.md](BLOCKED.md). |
+| `BLOCKED` | 8 | A recorded blocker makes it impossible or explicitly rejected — not a to-do. See [BLOCKED.md](BLOCKED.md). |
 | `PENDING_UPSTREAM` | 2 | Waiting on someone else; a second submission would duplicate. |
-| `AVAILABLE` | 0 | Already listed. |
-| submitted, not yet listed | 1 | A recorded submission whose listing is not yet verified. Not a to-do either. |
-| actionable | 7 | Ordered by ROI in [ROI.md](ROI.md). |
+| `AVAILABLE` | 1 | Already listed. |
+| submitted, not yet listed | 0 | A recorded submission whose listing is not yet verified. Not a to-do either. |
+| actionable | 3 | Ordered by ROI in [ROI.md](ROI.md). |
 
 The 5 buckets sum to 14; generation fails if they ever do not.
 
@@ -44,13 +44,9 @@ matter what its `state` says, because submitting again would duplicate; see
 
 | Host | Channel | Tier | State | Submitted |
 |---|---|---|---|---|
-| `copilot-cli` | `github-copilot-plugin` | P2 | `AUDIT_REQUIRED` | — |
-| `copilot-cli` | `mcp-registry-discovery` | P2 | `AUDIT_REQUIRED` | — |
+| `copilot-cli` | `github-copilot-plugin` | P2 | `READY_NOT_SUBMITTED` | — |
 | `gemini-cli` | `gemini-extension-gallery` | P2 | `AUDIT_REQUIRED` | — |
 | `kiro` | `kiro-workspace-config` | P2 | `AUDIT_REQUIRED` | — |
-| `openclaw` | `openclaw-clawhub` | P3 | `AUDIT_REQUIRED` | — |
-| `qwen-code` | `qwen-extension-conversion` | P1 | `AUDIT_REQUIRED` | — |
-| `windsurf` | `windsurf-mcp-marketplace` | P1 | `AUDIT_REQUIRED` | — |
 
 ### Blocked
 
@@ -58,7 +54,11 @@ matter what its `state` says, because submitting again would duplicate; see
 |---|---|---|---|---|
 | `codebuddy` | `tencent-mcp-market` | P2 | `BLOCKED` | — |
 | `codex` | `openai-plugin` | P2 | `BLOCKED` | — |
+| `copilot-cli` | `mcp-registry-discovery` | P2 | `BLOCKED` | — |
 | `deepseek-harness` | `dsh-plugin` | P2 | `BLOCKED` | — |
+| `openclaw` | `openclaw-clawhub` | P3 | `BLOCKED` | — |
+| `qwen-code` | `qwen-extension-conversion` | P1 | `BLOCKED` | — |
+| `windsurf` | `windsurf-mcp-marketplace` | P1 | `BLOCKED` | — |
 | `workbuddy` | `tencent-mcp-market` | P0 | `BLOCKED` | — |
 
 ### Pending upstream
@@ -68,8 +68,12 @@ matter what its `state` says, because submitting again would duplicate; see
 | `cline` | `cline-marketplace-pr` | P2 | `PENDING_UPSTREAM` | 2026-08-18 |
 | `cursor` | `cursor-plugin` | P0 | `PENDING_UPSTREAM` | 2026-08-25 |
 
-### Submitted, listing not yet verified
+### Already available
+
+Listed and reachable by users. Here for completeness: the summary above counts these, so
+omitting the table made the five detail tables cover 13 of 14 rows while the
+heading claimed all 14. Not a to-do — no row here is work.
 
 | Host | Channel | Tier | State | Submitted |
 |---|---|---|---|---|
-| `claude-code` | `claude-plugin` | P0 | `AUDIT_REQUIRED` | 2026-07-20 |
+| `claude-code` | `claude-plugin` | P0 | `AVAILABLE` | 2026-07-20 |

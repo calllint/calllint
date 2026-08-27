@@ -78,7 +78,9 @@
           <h2>Configuration Paths</h2>
           <p>CallLint looks for GitHub Copilot CLI configurations in:</p>
           <ul>
-            <li><code>Config mechanism requires verification</code></li>
+            <li><code>~/.copilot/mcp-config.json</code></li>
+            <li><code>.mcp.json</code></li>
+            <li><code>.github/mcp.json</code></li>
           </ul>
         </section>
 
@@ -98,12 +100,13 @@
           <ul class="distribution-list">
             <li>
               <strong>mcp-registry-discovery</strong>
-              <span class="upstream-note">(via <a href="https://registry.modelcontextprotocol.io/?q=calllint">officialMcpRegistry</a>)</span>
-              — <span class="state-unverified">Listing not yet verified</span>
+              — <span class="state-blocked">Not available here</span>
+              <div class="dist-blocker">⚠️ GitHub Copilot CLI does not consume the Official MCP Registry, so there is no registry-discovery channel to submit to. Measured 2026-08-27 on copilot 1.0.80: &#x60;copilot mcp add&#x60; takes a command or URL with no registry lookup and no name resolution, &#x60;copilot mcp list/get&#x60; expose no search or discovery flag, and the string &#x60;registry.modelcontextprotocol.io&#x60; does not appear anywhere in the shipped platform binary — against a positive control on the same search, which finds &#x60;mcp-config.json&#x60; in that same app.js. Config is loaded only from the user file, the workspace file, or an installed plugin. This row previously carried &#x60;upstream: officialMcpRegistry&#x60;, which was a claim about a mechanism that does not exist; it is removed rather than left under a pending label, because &#x60;upstream&#x60; is the evidence arm HD-07 accepts from a channel claiming to be available to users.</div>
             </li>
             <li>
               <strong>github-copilot-plugin</strong>
-              — <span class="state-unverified">Listing not yet verified</span>
+              — <span class="state-not-submitted">Not yet submitted</span>
+              <div class="dist-note">PR target is github/copilot-plugins — deliberately NOT recorded as &#x60;submissionUrl&#x60;, which the schema defines as evidence a human acted (it requires a &#x60;submission&#x60; date). Nobody has submitted yet, so the URL belongs here as a target. Audit resolved 2026-08-27 on copilot 1.0.80 (E-2), which required the 357 MB platform binary and so could not run in CI. Copilot CLI has a real plugin system — &#x60;copilot plugin install/list/uninstall&#x60;, plus &#x60;plugin marketplace add/browse&#x60; — and two marketplaces ship by default: &#x60;github/copilot-plugins&#x60; and &#x60;github/awesome-copilot&#x60;. A marketplace is a GitHub repo carrying &#x60;.claude-plugin/marketplace.json&#x60;, the same manifest format this repo already publishes for Claude Code, so the submission is a PR adding one entry, not a new artifact. Measured, not inferred: our plugin installs from a local path and &#x60;copilot plugin list&#x60; reports &#x60;calllint (v0.1.0)&#x60;, and after the &#x60;.mcp.json&#x60; fix &#x60;copilot mcp list&#x60; reports &#x60;calllint (local)&#x60; under Plugin servers. Direct path/repo/URL installs are deprecated with a warning that only &#x60;plugin@marketplace&#x60; installs will be supported, which makes this PR the eventual only supported route rather than a nicety. Ready but not yet submitted is therefore the accurate state, and this is that state&#x27;s first real record.</div>
             </li>
           </ul>
         </section>
@@ -124,6 +127,7 @@
           <h2>Official Sources</h2>
           <ul>
             <li><a href="https://github.com/github/gh-copilot" target="_blank" rel="noopener">https://github.com/github/gh-copilot</a></li>
+            <li><a href="https://docs.github.com/copilot/concepts/agents/copilot-cli/about-cli-plugins" target="_blank" rel="noopener">https://docs.github.com/copilot/concepts/agents/copilot-cli/about-cli-plugins</a></li>
           </ul>
         </section>
 

@@ -40,7 +40,7 @@
         },
         {
           "kind": "claude-plugin",
-          "state": "AUDIT_REQUIRED",
+          "state": "AVAILABLE",
           "officialSource": "https://code.claude.com/docs/en/plugin-marketplaces"
         }
       ],
@@ -159,7 +159,8 @@
         },
         {
           "kind": "windsurf-mcp-marketplace",
-          "state": "AUDIT_REQUIRED"
+          "state": "BLOCKED",
+          "officialSource": "https://docs.devin.ai/desktop/cascade/mcp"
         }
       ],
       "coverageBoundary": "CallLint scans MCP server entries only. Windsurf rules and workflow settings are not covered."
@@ -222,7 +223,7 @@
         },
         {
           "kind": "qwen-extension-conversion",
-          "state": "AUDIT_REQUIRED",
+          "state": "BLOCKED",
           "officialSource": "https://qwenlm.github.io/qwen-code-docs/en/users/extension/introduction/"
         }
       ],
@@ -254,7 +255,8 @@
         },
         {
           "kind": "openclaw-clawhub",
-          "state": "AUDIT_REQUIRED"
+          "state": "BLOCKED",
+          "officialSource": "https://docs.openclaw.ai/clawhub"
         }
       ],
       "coverageBoundary": "CallLint scans MCP configuration only. Skills and exec permissions are not covered."
@@ -305,19 +307,21 @@
         "mcp"
       ],
       "configPaths": [
-        "Config mechanism requires verification"
+        "~/.copilot/mcp-config.json",
+        ".mcp.json",
+        ".github/mcp.json"
       ],
       "scanCommands": [],
       "canonicalUrl": "https://calllint.com/harnesses/copilot-cli",
       "distributionPrimitives": [
         {
           "kind": "mcp-registry-discovery",
-          "state": "AUDIT_REQUIRED",
-          "upstream": "officialMcpRegistry"
+          "state": "BLOCKED"
         },
         {
           "kind": "github-copilot-plugin",
-          "state": "AUDIT_REQUIRED"
+          "state": "READY_NOT_SUBMITTED",
+          "officialSource": "https://docs.github.com/copilot/how-tos/copilot-cli/customize-copilot/plugins-marketplace"
         }
       ],
       "coverageBoundary": "CallLint does not yet auto-discover Copilot CLI configuration."

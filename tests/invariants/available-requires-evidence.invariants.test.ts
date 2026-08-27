@@ -52,7 +52,7 @@
  * would print checkmarks having asserted nothing — the dominant fault class in this repo, and
  * the exact reason the hole above survived four gates.
  */
-import { readFileSync } from "node:fs"
+import { existsSync, readFileSync } from "node:fs"
 import path from "node:path"
 import { fileURLToPath } from "node:url"
 import Ajv, { type ValidateFunction } from "ajv"
@@ -70,6 +70,7 @@ interface Primitive {
   upstream?: string
   liveUrl?: string | null
   officialSource?: string
+  evidence?: { class?: string; probe?: string; hostVersion?: string; noShelf?: boolean }
 }
 interface Host {
   id: string
@@ -135,10 +136,26 @@ describe("new20 §15 — the schema conditions evidence on AVAILABLE", () => {
     const availableArm = allOf?.find((c) => c.if?.properties?.state?.const === "AVAILABLE")
     expect(availableArm, "no conditional arm keyed on state === AVAILABLE").toBeDefined()
     const arms = availableArm?.then?.anyOf
+    // Was `=== 2` until 2026-08-27, when ADR 0007 added the third arm (a reproducible local
+    // install) for the one channel both existing arms are structurally unreachable for. The
+    // count is pinned rather than bounded BECAUSE each arm redefines what AVAILABLE means to
+    // every consumer of the 31 projections: an arm appearing without an ADR is the bypass this
+    // number exists to catch, so a `>= 3` here would silently admit a fourth.
     expect(
-      Array.isArray(arms) && arms.length === 2,
-      "the AVAILABLE arm must offer exactly two evidence alternatives (upstream, liveUrl)",
+      Array.isArray(arms) && arms.length === 3,
+      "the AVAILABLE arm must offer exactly three evidence alternatives (upstream, liveUrl, " +
+        "evidence). A fourth needs an ADR before it needs a passing test — see ADR 0007.",
     ).toBe(true)
+  })
+
+  it("the evidence arm cannot be satisfied by a bare block — every member is required", () => {
+    // A partial `evidence` object is the failure mode this arm invites: `{class}` alone reads as
+    // evidence to a human and is unfalsifiable to a machine. Asserted on the schema rather than
+    // via a fixture so it holds even if no channel currently carries the block.
+    const evidenceDef = (primitiveDefinition().properties as Record<string, { required?: string[] }>)
+      ?.evidence
+    expect(evidenceDef, "definitions.primitive.properties.evidence must exist (ADR 0007 step 2)").toBeDefined()
+    expect(evidenceDef?.required).toEqual(["class", "probe", "hostVersion", "noShelf"])
   })
 
   it("still requires kind and state — the new arm did not replace the base contract", () => {
@@ -172,7 +189,17 @@ describe("positive fixture — the shipped SSOT is evidence-complete", () => {
     for (const c of available) {
       const hasUpstream = typeof c.upstream === "string" && c.upstream.length > 0
       const hasLive = typeof c.liveUrl === "string" && c.liveUrl.startsWith("https://")
-      expect(hasUpstream || hasLive, `${c.kind} is AVAILABLE with no evidence arm`).toBe(true)
+      // ADR 0007's arm, checked the way HD-07 checks it: the named probe must be ON DISK. A
+      // present `evidence` block whose script is gone is a claim of reproducibility that is
+      // false, so accepting the block alone would make this the one arm satisfiable by prose.
+      const hasEvidence =
+        c.evidence?.class === "localReproducibleInstall" &&
+        typeof c.evidence.probe === "string" &&
+        existsSync(path.join(repoRoot, c.evidence.probe))
+      expect(
+        hasUpstream || hasLive || hasEvidence,
+        `${c.kind} is AVAILABLE with no evidence arm (or names a probe that is not on disk)`,
+      ).toBe(true)
     }
   })
 
@@ -222,6 +249,60 @@ describe("negative fixture — an unbacked AVAILABLE claim is unrepresentable", 
     expect(
       validate(doc),
       "a channel can name where it is listed while its public label reads as not yet shipping",
+    ).toBe(false)
+  })
+
+  // ADR 0007's arm, proven able to fail — three ways, because a new evidence arm is exactly the
+  // place a "guard that cannot observe its subject" gets introduced. Each control is the shape
+  // somebody would actually write while trying to make a channel look shipped.
+  it("rejects an evidence block missing a member", () => {
+    const doc = clone()
+    const p = primitive(doc, "windsurf", "windsurf-mcp-marketplace")
+    p.state = "AVAILABLE"
+    // The unfalsifiable shape: a class with no probe, no version, no shelf assertion.
+    p.evidence = { class: "localReproducibleInstall" }
+    expect(
+      validate(doc),
+      "a bare evidence class was accepted — the arm is satisfiable by prose, which makes it " +
+        "strictly weaker than the liveUrl arm it sits beside",
+    ).toBe(false)
+  })
+
+  it("rejects an invented second evidence class", () => {
+    const doc = clone()
+    const p = primitive(doc, "windsurf", "windsurf-mcp-marketplace")
+    p.state = "AVAILABLE"
+    p.evidence = {
+      class: "vendorDocumentedSupport",
+      probe: "scripts/probe-claude-plugin-install.mjs",
+      hostVersion: "windsurf 1.0.0",
+      noShelf: true,
+    }
+    expect(
+      validate(doc),
+      "a new evidence class was accepted by editing data. Each class redefines AVAILABLE for " +
+        "every consumer of the projections, so `class` is a const: a second one needs an ADR",
+    ).toBe(false)
+  })
+
+  it("rejects evidence recorded alongside a liveUrl", () => {
+    const doc = clone()
+    const p = primitive(doc, "claude-code", "claude-plugin")
+    p.liveUrl = "https://code.claude.com/marketplace/calllint"
+    expect(
+      validate(doc),
+      "a channel claimed both a shelf listing and a no-shelf local act. Where a shelf exists, " +
+        "a missing liveUrl is a missing submission and the local act must not stand in for it",
+    ).toBe(false)
+  })
+
+  it("rejects evidence under a non-AVAILABLE state", () => {
+    const doc = clone()
+    primitive(doc, "claude-code", "claude-plugin").state = "AUDIT_REQUIRED"
+    expect(
+      validate(doc),
+      "evidence sat under a pending label — the same contradiction as liveUrl-under-pending, " +
+        "written the other way round",
     ).toBe(false)
   })
 })
