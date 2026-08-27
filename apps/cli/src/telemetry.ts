@@ -21,6 +21,20 @@
  *   explanation. Re-measure against the tarball before trusting this paragraph again —
  *   the previous version of it expired silently, which is why the split exists.
  *
+ *   THE FINDING ARRIVED IMMEDIATELY (2026-08-27, hours after 1.9.0). Measured against the
+ *   published tarball: the delivery path ships and the endpoint is reachable, but the
+ *   ingest worker refused every batch, for two independent reasons.
+ *     1. `createBatch` truncated the digest to 32 hex; the worker requires 64
+ *        (`invalid_batch_id`).
+ *     2. This file's central emit site never stamped a timestamp, so `sanitizeEvent`
+ *        defaulted it to `""` and the worker refused it (`invalid_timestamp`).
+ *   Either alone discards the whole batch, so no published version has ever delivered an
+ *   ingestible event. Both are fixed at HEAD and pinned by
+ *   `tests/invariants/telemetry-wire-contract.invariants.test.ts` — the first test that
+ *   runs the real producer through the real validator. That fix is NOT yet published, so
+ *   on 1.9.0 the seam is still dark: zero rows remains a statement about this bug, not
+ *   about users, until a release carries the fix.
+ *
  * Do not read either state off the other. "No network sink ships" is true of the
  * published artifact and false of this file's own directory at HEAD.
  *
@@ -131,6 +145,16 @@ export function buildCliEmitter(
      * carry no attribution, which is the common and honest case.
      */
     discoverySurface?: string
+    /**
+     * The run clock's ISO instant, stamped onto every event that does not carry its own.
+     *
+     * Required in practice, optional in the type only so tests may omit it. `sanitizeEvent`
+     * defaults a missing timestamp to `""`, and the ingest worker rejects the whole batch
+     * on the first unparseable one (`invalid_timestamp`) — so an unstamped event is not a
+     * degraded event, it is a discarded batch. Taken from the run clock rather than
+     * `new Date()` here so `--generated-at` keeps output deterministic.
+     */
+    generatedAt?: string
   } = {},
 ): Emitter {
   const base = createEmitter({
@@ -139,18 +163,20 @@ export function buildCliEmitter(
     sink: opts.sink,
     consented: opts.consented,
   })
-  if (!opts.installationId && !opts.discoverySurface) return base
+  if (!opts.installationId && !opts.discoverySurface && !opts.generatedAt) return base
   // Wrap rather than thread these through every call site: one place decides identity and
   // provenance, and a new emit site cannot forget to attach them. Explicit values on the
   // input still win, so a test can override.
   const id = opts.installationId
   const surface = opts.discoverySurface
+  const at = opts.generatedAt
   return {
     source: base.source,
     emit(input) {
       return base.emit({
         ...(id ? { anonymousInstallationId: id } : {}),
         ...(surface ? { discoverySurface: surface } : {}),
+        ...(at ? { timestamp: at } : {}),
         ...input,
       })
     },

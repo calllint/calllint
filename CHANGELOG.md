@@ -13,7 +13,31 @@ because the sentence needs no citation to be true.)
 
 ## [Unreleased]
 
-Nothing yet. Everything previously staged here shipped in 1.9.0 below.
+### Fixed
+
+- **Telemetry was never ingestible — two independent contract breaks, neither
+  visible to any existing test.** 1.9.0 shipped the delivery path and the endpoint
+  answers, but the ingest worker refused every batch the CLI sent:
+  `createBatch` truncated the batch digest to 32 hex chars while
+  `apps/usage-worker` requires 64 (`invalid_batch_id`), and the CLI's central emit
+  site never stamped a timestamp, so `sanitizeEvent` defaulted it to `""` and the
+  worker refused that too (`invalid_timestamp`). Either alone discards the whole
+  batch. Measured against the published `calllint@1.9.0` tarball by capturing its
+  real POST body and replaying it through the worker's own validator.
+
+  Both halves had full, green test coverage the entire time. `apps/cli/test`
+  asserted `/^[0-9a-f]{32}$/` and used `timestamp: ""` as its fixture;
+  `apps/usage-worker/test` required `/^[0-9a-f]{64}$/` and a real ISO instant.
+  Each suite pinned its own belief and nothing imported both, which is this
+  project's dominant fault class — a guard that cannot observe its subject. The
+  crossing check now exists as
+  `tests/invariants/telemetry-wire-contract.invariants.test.ts`, running the real
+  producer through the real validator, with negative controls for both legs.
+
+  Consequence for the record: **no published version of CallLint has ever
+  delivered an ingestible telemetry event.** "No telemetry ingested yet" was
+  therefore never evidence about users, and does not become evidence until a
+  release carries this fix.
 
 ## [1.9.0] — 2026-08-27
 
@@ -25,6 +49,11 @@ yet` read as a correct description of the world rather than a defect: until this
 release, the published artifact carried no delivery path at all. With 1.9.0 it
 does, so that reading stops being free — a continued absence of ingest now means
 something and is tracked as O-1 rather than explained away.
+
+> Measured hours later, and it meant something immediately: the delivery path
+> 1.9.0 ships is rejected by the ingest worker on every batch. See the `Fixed`
+> entry under Unreleased. The sentence above is left standing because it was the
+> reasoning at the time and it is what prompted the measurement that falsified it.
 
 ### Added
 
