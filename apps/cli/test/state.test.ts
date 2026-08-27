@@ -19,13 +19,27 @@ import { isValidInstallationId } from "@calllint/telemetry-contract"
 describe("CLI state", () => {
   let testDir: string
 
+  const savedEnv: Record<string, string | undefined> = {}
+
   beforeEach(async () => {
     testDir = await mkdtemp(join(tmpdir(), "calllint-state-test-"))
-    // Override getStateDir for tests
+    // BOTH, because `getConfigDir()` reads LOCALAPPDATA on win32 and XDG_CONFIG_HOME
+    // elsewhere. Setting only LOCALAPPDATA (as this did) left ubuntu and macos — two of
+    // the three CI legs — resolving to the runner's REAL ~/.config/calllint, so these
+    // tests were reading and WRITING actual user state. On a developer's Linux machine
+    // that meant `pnpm test` enabled their telemetry and minted a real installation id.
+    for (const k of ["LOCALAPPDATA", "XDG_CONFIG_HOME"]) savedEnv[k] = process.env[k]
     process.env.LOCALAPPDATA = testDir
+    process.env.XDG_CONFIG_HOME = testDir
   })
 
   afterEach(async () => {
+    // Restored, not just overwritten: the previous version left the temp path in
+    // process.env for every later test file sharing this worker.
+    for (const [k, v] of Object.entries(savedEnv)) {
+      if (v === undefined) delete process.env[k]
+      else process.env[k] = v
+    }
     await rm(testDir, { recursive: true, force: true })
   })
 

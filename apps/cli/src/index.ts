@@ -218,6 +218,33 @@ async function main(): Promise<void> {
   if (result.stderr) process.stderr.write(result.stderr + "\n")
   process.exitCode = result.exitCode
 
+  // First-run telemetry consent (policy option B), deliberately placed HERE — after
+  // stdout/stderr/exitCode are all written, and before the flush below.
+  //
+  // That position is what keeps the verdict-decoupling invariant (new11 §1.5) structural
+  // rather than conventional: the report has already left the process, so no answer to
+  // this prompt can alter a single byte of it. Asking BEFORE `run()` would have put a
+  // blocking read in front of every first scan and made the report wait on a human.
+  //
+  // It also cannot fire for `calllint telemetry` itself — that command returns at the top
+  // of main(). And it emits nothing for THIS run: the emitter above was built with the
+  // consent read from disk before the answer existed, so consent takes effect from the
+  // next invocation. Retroactively emitting events the user had not yet agreed to would
+  // be exactly the posture the Blueprint's non-goal #15 forbids.
+  //
+  // Off in CI, off when piped, off under the env kill-switch, off in --json — see
+  // shouldPromptConsent. Best-effort and never throws.
+  const { maybePromptConsent } = await import("./consent.js")
+  await maybePromptConsent({
+    stdinIsTty: process.stdin.isTTY === true,
+    env: process.env,
+    // A machine-readable run must not be interrupted for an answer. Matched on argv
+    // rather than a parsed flag because this is a presentation decision, and `run()`'s
+    // parsed flags are per-command while this is one question about the whole process.
+    jsonMode: argv.includes("--json") || argv.includes("--sarif"),
+    out: (text: string) => process.stderr.write(text),
+  })
+
   // Best-effort telemetry flush: runs AFTER command completion, never affects output or
   // exit code. Two steps, in order: persist this run's buffered events into the on-disk
   // queue, then attempt delivery. Persisting first means an event survives even if the

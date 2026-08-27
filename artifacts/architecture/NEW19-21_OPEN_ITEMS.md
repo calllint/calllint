@@ -584,10 +584,37 @@ account access. Recorded because the first version of this item listed it as unv
 alongside the genuinely account-gated facts. It was neither; it was one `npm view` away.
 
 **Sequencing.** Gates in dependency order: published-artifact reality (**done**) → consent policy
-freeze (**user**) → release (**user**) → controlled end-to-end test under an isolated `HOME`
+freeze (**done 2026-08-27** — first-run prompt on an interactive TTY; see O-2) → release
+(**user; deferred 2026-08-27** to ship with other features, so the prompt reaches nobody until
+then) → controlled end-to-end test under an isolated `HOME`
 (`telemetry enable` → run → queue → POST → 204 → D1 row) → layered latency from ≥2 networks → 3k
 service attribution → RUM beacon check, and **only if a beacon is found**, a `disable_rum` rule.
 The last two are independent sub-gates and do not block the chain above.
+
+### O-2. The consent prompt has no published copy — and cannot have one from `docs/`
+
+**Who can move it: me. Due at release, not now.** The consent policy was frozen 2026-08-27 as a
+first-run prompt on an interactive TTY (`apps/cli/src/consent.ts`). That is the first
+**user-visible** telemetry behaviour this product will have. Its written explanation currently
+lives at `docs/privacy/telemetry.md`, which `.gitignore:44` excludes — `docs/` is deliberately
+local-only (ADRs, roadmap, threat model, plans). So the explanation is real, reviewed, and
+**unreachable**: not in the repo, not in CI, not in the tarball.
+
+Measured 2026-08-27: `git grep -lin telemetry -- '*.md' '*.html' '*.astro' '*.mdx' '*.json'`
+returns **zero tracked files**. There is no published telemetry copy on any surface —
+`README.md`, `apps/cli/README.md`, and `apps/web` all omit it. `pnpm check:public-copy` passes,
+which places this outside what that gate observes; the gate is not wrong, the surface is absent.
+
+Why this is registered rather than fixed now: nothing is owed while nothing ships. Collection is
+opt-in and default-off, and the published `calllint@1.8.0` has no delivery path at all (O-1), so
+today there is no user to inform. Inventing a published privacy surface ahead of the release that
+needs it would be speculative architecture. **The debt falls due the moment a build carrying
+`consent.ts` is published** — at that point a user can see the prompt, and a prompt whose only
+explanation is a gitignored file is a prompt with no explanation.
+
+Precedent for why this is written down instead of remembered: `scan --config` was advertised on
+eight surfaces while nothing read it. The mirror-image failure — shipping behaviour that no
+surface describes — is the same defect with the arrow reversed.
 
 ## Two records that were checked and found accurate
 
