@@ -13,7 +13,7 @@ first four, with every agent-safe pre-flight already run and its result recorded
 |---|---|---|---|---|---|
 | 1 | `claude-code` | `claude-plugin` | P0 | **none, and the act is already made** — published 2026-07-20 (`5bed4b6`), `README.md:289-290`. Not actionable; see below | [claude-plugin/](claude-plugin/SUBMISSION.md) |
 | 2 | `cursor` | `cursor-plugin` | P0 | **none, and the act is already made** — manifests validated 2026-08-25, submitted at `/marketplace/publish` and awaiting review. Not actionable; see below | [cursor-plugin/](cursor-plugin/SUBMISSION.md) |
-| 3 | `copilot-cli` | `github-copilot-plugin` | P2 | `UNKNOWN` — route unconfirmed, but the manifest cost is now **zero**; see #3 below | [github-copilot-plugin/](github-copilot-plugin/SUBMISSION.md) |
+| 3 | `copilot-cli` | `github-copilot-plugin` | P2 | **Already made 2026-08-27 — do not redo.** Submitted as [github/copilot-plugins#80](https://github.com/github/copilot-plugins/pull/80); awaiting upstream review | [github-copilot-plugin/](github-copilot-plugin/SUBMISSION.md) |
 | 4 | `copilot-cli` | `mcp-registry-discovery` | P2 | none — registry entry is live | verify-only; see below |
 | 5 | `windsurf` | `windsurf-mcp-marketplace` | P1 | none | [windsurf-mcp-marketplace/](windsurf-mcp-marketplace/SUBMISSION.md) |
 | 6 | `gemini-cli` | `gemini-extension-gallery` | P2 | a GitHub repo topic (auto-discovery) | [gemini-extension-gallery/](gemini-extension-gallery/SUBMISSION.md) |

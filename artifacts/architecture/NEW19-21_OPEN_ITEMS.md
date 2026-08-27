@@ -53,6 +53,35 @@ Verification for #339: `pnpm test` 4926 passed / 1 skipped (264 files, up from 4
 CI 11/11 green. 10 negative controls, each redding exactly its target and reverted
 byte-for-byte.
 
+## Decided 2026-08-27 — `openclaw` / `openclaw-clawhub`: declined, not pending
+
+**The owner declined the licence change. This is settled, and it is not a queue.** Recorded here
+because the row reads `BLOCKED`, and a `BLOCKED` row invites a re-audit that would reach this same
+conclusion at the cost of the audit.
+
+The mechanism was never the obstacle. ClawHub hosts Skills — a directory carrying `SKILL.md` —
+and `skills/secure-agent-install/SKILL.md` already ships, so `clawhub skill publish <path>` needs
+no new artifact. **The cost is the licence:** publishing releases that artifact under `MIT-0`,
+while this repository is Apache-2.0. MIT-0 drops the attribution requirement and grants no
+patents, so the act would relicense a shipped artifact on strictly weaker terms than the repo it
+came from. That is an intellectual-property decision, not an engineering step, and it does not
+follow from an instruction to submit to shelves — which is why it was recorded as a blocker rather
+than executed.
+
+**The alternative was checked before recording, not assumed away.** `docs.openclaw.ai/clawhub`
+skill format documents no `license` field and states that ClawHub *"does not support per-skill
+license overrides"*, with *"All skills published on ClawHub are licensed under `MIT-0`"*. So no
+Apache-2.0 route exists, and the conditional in the authorization ("if there is no other way")
+resolves to *there is none*.
+
+Reopens only on someone else's change: ClawHub adds a per-skill licence field, or gains a surface
+that accepts what we already ship. One route was left deliberately unexplored rather than silently
+dismissed — ClawHub also hosts **code plugins**, licensed separately from skills, but reaching it
+means building an OpenClaw plugin against their SDK (`openclaw.compat.pluginApi`,
+`openclaw.build.openclawVersion`): a new artifact and a new maintenance surface, not a submission.
+If that is ever wanted it should be decided on its own merits, never adopted as a workaround for a
+licence term.
+
 ## Open items
 
 ### U-1. `usage.calllint.com` is served UNGATED at its `pages.dev` hostname
@@ -362,6 +391,10 @@ it. Until then `AUDIT_REQUIRED` is the honest state.
 |---|---|---|---|
 | `cursor` / `cursor-plugin` | `PENDING_UPSTREAM` | 2026-08-25 | private form review, so no `submissionUrl` exists to record |
 | `roo-code` / `mcp-stdio` | `PENDING_UPSTREAM` | — | |
+| `copilot-cli` / `github-copilot-plugin` | `PENDING_UPSTREAM` | 2026-08-27 | [copilot-plugins#80](https://github.com/github/copilot-plugins/pull/80), opened on the user's behalf; **do not duplicate**. Expect no merge: 29 merged PRs there and every `Add …` among them is first-party, while ~7 third-party plugin-adds sit open and the oldest open PR dates to 2026-01-24 |
+
+§89's `MAX_NEW_EXTERNAL_SUBMISSIONS = 3` is now **spent** — cline 2026-08-18, cursor 2026-08-25,
+copilot 2026-08-27. A fourth external submission needs a fresh authorization, not a fresh audit.
 
 **`cline` / `cline-marketplace-pr` was NOT waiting on upstream — it was waiting on us.**
 Measured 2026-08-26 against `cline/marketplace` (the `submissionUrl` in the SSOT; an earlier
@@ -707,7 +740,13 @@ landed in `3b64404` (#334). That file is local memory, not a tracked artifact.
 
 ## Current distribution totals
 
-31 primitives across 18 hosts; **28 non-`AVAILABLE`**. Derived from
+31 primitives across 18 hosts; **27 non-`AVAILABLE`**. Measured 2026-08-27, and the five buckets
+sum to 31: 15 `AUDIT_REQUIRED`, 8 `BLOCKED`, 4 `PENDING_UPSTREAM`, 4 `AVAILABLE`,
+0 `READY_NOT_SUBMITTED`. The last two changed today — copilot's row moved
+`READY_NOT_SUBMITTED` → `PENDING_UPSTREAM` when #80 was opened, emptying that state again, which
+is a permitted state of the world rather than a defect (see the vacuity note in
+`tests/invariants/submission-axis.invariants.test.ts`). **Human submissions outstanding: zero.**
+Derived from
 `apps/web/data/distribution-surfaces.json` (the SSOT — `scripts/distribution-sources.json` and
 30 other surfaces are *generated* from it by `pnpm gen:distribution` and byte-compared by
 `pnpm check:distribution-drift`). Do not hand-count from a projection; derive from the SSOT, or

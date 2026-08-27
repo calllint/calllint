@@ -7,15 +7,20 @@ recorded below with its result; what remains is listed as numbered steps for you
 > submitted at `cursor.com/marketplace/publish` and is **awaiting Cursor's review** (reported
 > 2026-08-26). Do not resubmit either — a duplicate external write is the harm §87 names.
 >
-> **Updated 2026-08-27.** That 357 MB CLI is now installed and the audits it gated are
-> resolved, which changed the shape of this file rather than adding to it. There is exactly
-> **one** submission left for a human: #3, a PR to `github/copilot-plugins`, with the entry to
-> paste written out below. Everything else that looked like a submission was audited and is
-> not one — `windsurf` documents no public path, `qwen-code` has no shelf and installs from
-> ours, `openclaw` is one command that costs a relicence and so is your decision, and
-> `gemini-cli` and `kiro` are engineering on our side. The count fell from six actionable rows
-> to three, and two of those three are mine. Derived in [CHANNEL-COUNTS.md](CHANNEL-COUNTS.md),
-> not typed here.
+> **Updated 2026-08-27, and the count is now zero.** That 357 MB CLI is installed, the audits it
+> gated are resolved, and the one submission that remained — #3, the PR to
+> `github/copilot-plugins` — **has been opened on your behalf** as
+> [#80](https://github.com/github/copilot-plugins/pull/80). **Nothing on this page is a human
+> to-do any more.** What is left everywhere else is either upstream's queue or our own
+> engineering. Everything that looked like a submission was audited and is not one: `windsurf`
+> documents no public path (its docs 307-redirect to `docs.devin.ai`, so the host ships as Devin
+> Desktop), `qwen-code` has no shelf at all and installs from ours, `openclaw` cost a relicence
+> and **you declined it — settled, not pending**, and `gemini-cli` and `kiro` are engineering on
+> our side. The count fell 29 → 7 → 3 → 0 human acts, every step derived from the SSOT in
+> [CHANNEL-COUNTS.md](CHANNEL-COUNTS.md) rather than typed here.
+>
+> §89's quota (`MAX_NEW_EXTERNAL_SUBMISSIONS = 3`) is now **spent**: cline 2026-08-18, cursor
+> 2026-08-25, copilot 2026-08-27. A fourth needs a new authorization, not a new audit.
 
 Why the split: new18 **§87** (`NO CONTINUOUS EXTERNAL SPAM`) says the weekly watcher must never
 open an external PR or issue, submit a form, email or tag a maintainer, request a reviewer, or
@@ -139,7 +144,25 @@ Detail: [cursor-plugin/SUBMISSION.md](cursor-plugin/SUBMISSION.md)
 
 ---
 
-## #3 — `copilot-cli` → `github-copilot-plugin` (P2, **the one submission left**)
+## #3 — `copilot-cli` → `github-copilot-plugin` — ✅ **SUBMITTED 2026-08-27, do not redo**
+
+**Opened on the user's behalf as [github/copilot-plugins#80](https://github.com/github/copilot-plugins/pull/80)** —
+`+24/−0`, one file, `.github/plugin/marketplace.json`. Nothing is left for a human here; it is
+upstream's queue now. The steps below are kept as the record of what was done and why, not as a
+to-do. **Two things measured during the submission that the plan below got only half right:**
+
+1. `.claude-plugin/marketplace.json` is a **git symlink** (mode `120000` → `../.github/plugin/marketplace.json`,
+   added upstream in PR #24). On Windows Git checks it out as a literal one-line text file
+   containing that path, which is exactly the trap described below — confirmed, not theorised.
+   The near-miss worth recording: GitHub's contents API *resolves* the symlink and serves the
+   target's bytes, so comparing the two API responses reports them byte-identical and the symlink
+   invisible. Only the tree mode or a real checkout shows it.
+2. The odds are worse than "zero precedent, no evidence either way," which is what this page said.
+   Measured on the live PR list: **29 merged PRs, and every `Add …` among them is first-party**
+   (GitHub or Microsoft). Meanwhile ~7 third-party plugin-add PRs sit open, and the oldest open PR
+   dates to **2026-01-24**. The queue demonstrably does not move for outsiders. Opening was still
+   correct — direct installs are deprecated in favour of `plugin@marketplace`, so this is the
+   eventual only supported route — but nobody should expect a merge.
 
 **Audit resolved 2026-08-27 (E-2), and it inverted this section's advice.** The previous
 version said *do not open a PR yet* on the grounds that route A (a local install) might mean
@@ -310,10 +333,19 @@ Apache-2.0. MIT-0 drops the attribution requirement and carries no patent grant,
 relicenses a shipped artifact on strictly weaker terms than the repo it came from. It also
 needs `clawhub login` (browser OAuth, `--device`, or a `clh_` token), which is your account.
 
-This is not written up as a step because it is not one. Accepting weaker licence terms for a
-shipped artifact is an owner's decision about intellectual property, and it cannot be inferred
-from an instruction to submit to shelves. Say the word and it is one command. The row stays
-`BLOCKED` with the unblocking condition recorded, so nobody re-audits it.
+**DECIDED 2026-08-27: declined.** The owner will not relicense, and asked whether any other
+route existed before settling it. There is none, and this was checked rather than assumed:
+ClawHub's skill format documents no `license` field and states that it *"does not support
+per-skill license overrides"*, with *"All skills published on ClawHub are licensed under
+`MIT-0`"*. So the channel is closed on a term we decline, which is a finished answer, not a
+queue — nobody upstream is reviewing anything and re-auditing reaches this same sentence.
+
+One route stays deliberately unexplored rather than quietly dismissed: ClawHub also hosts
+**code plugins**, licensed separately from skills, so an OpenClaw plugin built against their
+SDK (`openclaw.compat.pluginApi`, `openclaw.build.openclawVersion`) might preserve Apache-2.0.
+That is a new artifact and a new maintenance surface, not a submission, and it should be
+decided on its own merits if it is ever wanted — adopting it as a workaround for a licence
+term would be how a channel quietly becomes a product commitment.
 
 How many channels exist in total, and how the shelf actions partition across
 `BLOCKED` / `PENDING_UPSTREAM` / actionable, is counted from the SSOT in
