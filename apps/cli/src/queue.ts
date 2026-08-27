@@ -181,14 +181,18 @@ export class TelemetryQueue {
  * prevent. Hashing the event content instead makes the id a function of the payload, so
  * the same events always present the same id and a duplicate delivery is recognizable.
  *
- * Truncated to 32 hex chars (128 bits) to match the previous id width, which is far
- * beyond collision risk for a per-installation queue.
+ * Sent as the FULL 64-char digest, because that is what the receiving end requires:
+ * `apps/usage-worker/src/validate.ts` matches `/^[0-9a-f]{64}$/` and rejects the whole
+ * batch with `invalid_batch_id` otherwise. This previously truncated to 32 chars "to
+ * match the previous id width" — a width nothing on the wire had ever accepted, so every
+ * batch any published CLI ever sent was refused before a single event was read. Collision
+ * risk was never the constraint; the server's contract is.
  */
 export function createBatch(events: SanitizedEvent[]): TelemetryBatch {
   const digest = createHash("sha256").update(serialize(events), "utf8").digest("hex")
   return {
     schema: "calllint.telemetry-batch.v0",
-    batchId: digest.slice(0, 32),
+    batchId: digest,
     events,
   }
 }

@@ -186,6 +186,10 @@ async function main(): Promise<void> {
     // whatever shelf happens to be set NOW, so a user who installed via the registry and
     // later ran with a stray env var would be re-attributed on the fly.
     discoverySurface: telemetryState.discoverySurface,
+    // The run clock, not a fresh Date: an event's instant belongs to the run that produced
+    // it, and `--generated-at` must keep it deterministic. Without this every event carried
+    // `timestamp: ""` and the ingest worker refused the batch.
+    generatedAt: clock.generatedAt,
   })
 
   const result = run(argv, {

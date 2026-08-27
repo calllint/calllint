@@ -239,10 +239,15 @@ describe("createBatch — content-derived idempotency key", () => {
     expect(createBatch([x, y]).batchId).not.toBe(createBatch([y, x]).batchId)
   })
 
-  it("carries the schema tag and a 32-hex id", () => {
+  // Was `/^[0-9a-f]{32}$/`. That assertion was green for the entire life of the feature
+  // while the ingest worker required 64 and refused every batch. A width is not a local
+  // choice — it is half of a contract, and this suite can only see its own half. The
+  // crossing check lives in tests/invariants/telemetry-wire-contract.invariants.test.ts;
+  // this one now at least agrees with the wire.
+  it("carries the schema tag and a full 64-hex id", () => {
     const batch = createBatch([event()])
     expect(batch.schema).toBe("calllint.telemetry-batch.v0")
-    expect(batch.batchId).toMatch(/^[0-9a-f]{32}$/)
+    expect(batch.batchId).toMatch(/^[0-9a-f]{64}$/)
     expect(batch.events).toHaveLength(1)
   })
 })
