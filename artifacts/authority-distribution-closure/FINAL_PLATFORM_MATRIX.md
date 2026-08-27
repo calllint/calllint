@@ -6,7 +6,7 @@
 
 # Final platform matrix (new18 §105)
 
-Every tracked surface, all fourteen §105 columns, derived from the SSOT at release 1.9.0.
+Every tracked surface, all fourteen §105 columns, derived from the SSOT at release 1.9.1.
 Facts checked at **2026-08-19** (the SSOT's own `generatedAt`; see §104 matrix for per-claim provenance).
 
 **18 hosts** — 2 DEFERRED, 3 DISCOVERY_ONLY, 13 NATIVE.
