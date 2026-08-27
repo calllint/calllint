@@ -28,12 +28,15 @@
  *        (`invalid_batch_id`).
  *     2. This file's central emit site never stamped a timestamp, so `sanitizeEvent`
  *        defaulted it to `""` and the worker refused it (`invalid_timestamp`).
- *   Either alone discards the whole batch, so no published version has ever delivered an
- *   ingestible event. Both are fixed at HEAD and pinned by
+ *   Either alone discards the whole batch, so no version up to and including 1.9.0 ever
+ *   delivered an ingestible event. Both are fixed in **1.9.1** and pinned by
  *   `tests/invariants/telemetry-wire-contract.invariants.test.ts` — the first test that
- *   runs the real producer through the real validator. That fix is NOT yet published, so
- *   on 1.9.0 the seam is still dark: zero rows remains a statement about this bug, not
- *   about users, until a release carries the fix.
+ *   runs the real producer through the real validator.
+ *
+ *   So the earliest release from which zero rows could mean anything about users is
+ *   **1.9.1**, not 1.9.0, and only for the population that has upgraded to it. Anyone on
+ *   1.9.0 or below still cannot deliver. Do not read adoption off an empty table without
+ *   first checking which versions the field is actually running.
  *
  * Do not read either state off the other. "No network sink ships" is true of the
  * published artifact and false of this file's own directory at HEAD.

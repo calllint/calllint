@@ -17,7 +17,7 @@ anything in this repository changing. That is why `distribution-watch.yml` fetch
 `checked-at` date below is the date of the SSOT edit that recorded the fact rather than the
 date this file was generated.
 
-Release 1.9.0. 31 claims across 18 hosts.
+Release 1.9.1. 31 claims across 18 hosts.
 
 Every claim below carries a recorded factual conclusion.
 

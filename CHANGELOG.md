@@ -13,6 +13,16 @@ because the sentence needs no citation to be true.)
 
 ## [Unreleased]
 
+Nothing yet.
+
+## [1.9.1] — 2026-08-27
+
+A same-day patch on 1.9.0, and the reason is uncomfortable enough to state plainly:
+1.9.0's own release note claimed that from then on, a continued absence of telemetry
+ingest would be a finding rather than an explanation. Measuring that claim against
+the published tarball — hours later — showed the delivery path it shipped could
+never have worked. This release is what makes 1.9.0's sentence true.
+
 ### Fixed
 
 - **Telemetry was never ingestible — two independent contract breaks, neither
