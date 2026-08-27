@@ -38,13 +38,41 @@ byte-for-byte.
 
 ### U-1. `usage.calllint.com` is served UNGATED at its `pages.dev` hostname
 
-**Who can move it: the user only** (Cloudflare dashboard). **Decision made 2026-08-26: disable
-the `pages.dev` subdomain**, since the custom domain already works and an unused hostname is
-pure exposure. Disabling removes the exposed surface; extending the Access policy would only
-move a gate in front of it.
+**Who can move it: the user only** (Cloudflare dashboard). The decision on 2026-08-26 was to
+*disable* the `pages.dev` subdomain — the custom domain already works, so an unused hostname is
+pure exposure. **That instruction was wrong and is corrected here: Cloudflare has no switch to
+disable or delete a Pages project's `pages.dev` hostname.** Verified against the Pages docs the
+same day; the `Settings → Build & deployments → pages.dev domain → Disable` path this file
+previously named does not exist. The
+[Custom domains](https://developers.cloudflare.com/pages/configuration/custom-domains/#disable-access-to-pagesdev-subdomain)
+page frames the whole task as two *workarounds*, and after a custom domain is removed a project
+"will only be accessible through the `*.pages.dev` subdomain" — that hostname persists by
+construction.
 
-> Pages project `calllint-usage-report` → Settings → Build & deployments → pages.dev domain →
-> Disable.
+So the intent stands and the mechanism changes. Two options, both the user's:
+
+| Option | What it does | Cost |
+| --- | --- | --- |
+| **Bulk Redirect** (recommended) | Account-level redirect `calllint-usage-report.pages.dev/*` → `https://usage.calllint.com/`, so the only way in is the gated domain | Account-level feature; one rule |
+| Second Access application | Covers `*.pages.dev` with the same single-email policy | A second app to keep in sync with the first; the docs warn a policy on one hostname without a match on the other yields a login page that renders but does not work |
+
+One trap, from the same docs: `Pages → Settings → General → "Enable access policy"` looks like
+the answer and is not. It protects **preview** deployments (`<hash>.<project>.pages.dev`) and
+explicitly "not your `*.pages.dev` domain or custom domain." Enabling it would leave this finding
+open *and* break the probe's liveness check, which reads a per-deployment hostname inside that
+same preview wildcard.
+
+Measured 2026-08-26, all three hostnames:
+
+| Hostname | Result |
+| --- | --- |
+| `calllint-usage-report.pages.dev` | **200, no `x-robots-tag`** — the finding |
+| `197a21a9.calllint-usage-report.pages.dev` | 200 + `x-robots-tag: noindex` (preview wildcard) |
+| `usage.calllint.com` | 302 → `cloudflareaccess.com/cdn-cgi/access/login` — correct |
+
+The missing `x-robots-tag` on the production hostname is worth noting: that header ships on
+preview hostnames only, so on the exposed one the in-page `noindex` meta is the *sole* crawler
+backstop, not a second layer.
 
 CI deliberately cannot do this. An Access policy — and the project's domain configuration — are
 account-level objects, and per
@@ -56,9 +84,10 @@ it could self-heal would be a worse trade than the exposure it fixes. The local
 (`code: 1000`), so there is no side door either.
 
 **The probe had to be fixed first, and was** (`c5fb5af`) — see
-[T-2](#t-2-the-access-probe-measured-a-hostname-that-is-about-to-stop-existing). Disabling the
-subdomain before that commit would have turned the daily cron red *because the configuration
-became correct*.
+[T-2](#t-2-the-access-probe-measured-a-hostname-that-is-about-to-stop-existing). Remediating
+before that commit would have turned the daily cron red *because the configuration became
+correct*: the old check read a redirect or a non-answer on this hostname as "no live deployment".
+That ordering hazard is now gone either way, since check 4 objects only to content.
 
 The measurement that opened this item:
 
@@ -133,10 +162,10 @@ automatic verification is Monday.
 Earlier status notes described the cohort-100 blockage as fixed. The precise claim is: **the
 fix is committed, not yet demonstrated.**
 
-### T-2. The Access probe measured a hostname that is about to stop existing
+### T-2. The Access probe inferred liveness from a hostname it does not control
 
-**Status: FIXED 2026-08-26 (`c5fb5af`).** Kept here because the fix had to land *before* U-1's
-dashboard action, and because the fault is instructive.
+**Status: FIXED 2026-08-26 (`c5fb5af`, hardened in the same PR).** Kept here because the fix had
+to land *before* U-1's dashboard action, and because the fault is instructive.
 
 Two defects, one root cause — the probe inferred liveness from a hostname it does not control.
 
@@ -152,10 +181,12 @@ finished routing. Re-measured minutes later: **200, both hostnames.** So it repo
 as a permanent fault — the inverse of the defect `c9553a2` fixed, and equally a guard that
 cannot observe its subject.
 
-**b) It would have gone red when the configuration became CORRECT.** Once the `pages.dev`
-subdomain is disabled per U-1, that hostname is NXDOMAIN, `curl` returns `000`, and the old
-check 3 read `000` as "no live deployment" — reporting the intended end state as the very 502 it
-existed to catch.
+**b) It would have gone red when the configuration became CORRECT.** Whichever U-1 remediation
+lands, this hostname stops answering with the report — a Bulk Redirect makes it a 301, an Access
+app makes it a 302 — and the old check 3 read any of `000`/`404`/`522` as "no live deployment",
+reporting the intended end state as the very 502 it existed to catch. (The first draft of this
+item assumed the hostname would become NXDOMAIN; it cannot, per U-1. The hazard was the same
+either way, which is why the fix does not depend on which remediation is chosen.)
 
 **Why the fix is not a retry.** Two facts, both measured 2026-08-26, rule out probing a hostname
 at all. The gated host cannot testify about its own origin: Access 302s to the login endpoint
@@ -167,18 +198,38 @@ So liveness now comes from the deploy step itself: it tees `wrangler`'s output, 
 `Deployment complete` is **present** (positively — an empty log satisfies "no error appeared",
 which is how guards here have failed before), publishes the immutable deployment URL as a step
 output, and check 3 fetches that URL. It is created by the deploy, so it is immune to alias
-propagation, and it survives the subdomain being disabled. Check 4 keeps the §29 exposure test
-but no longer infers liveness from it — NXDOMAIN is now recorded as the correct end state.
+propagation. Check 4 keeps the §29 exposure test but no longer infers liveness from it — it
+objects to **content** and to nothing else, so every non-content response is a pass.
 
-Verified before being trusted: the extracted decision logic was driven through 6 controlled
-cases. Both expected-PASS land `fail=0`, **including the post-disable state the old logic would
-have failed**; all 4 expected-FAIL land `fail=1`, **including the original empty-origin 502** —
-so this does not buy green by forgiving the fault it exists to catch. Marker detection and URL
-parsing were replayed against the real logs of both runs: `32975124276` (success) parses to the
-right URL; `32972641297` (bad token) and an empty log are both rejected.
+**Two limits, stated rather than hidden.** The deployment URL proves *this deployment* serves, not
+that the production alias does; observing the gated custom domain would need a credential the
+pipeline deliberately does not hold, so that gap is accepted, not closed. And the per-deployment
+hostname sits inside the `*.{project}.pages.dev` preview wildcard, so enabling the preview Access
+policy would make check 3 read a 302. That policy is off today and U-1 must not use it.
 
-**Not verified:** behaviour on the actual post-disable state, which cannot exist until the
-subdomain is disabled. The 6-case matrix covers it in logic, not in the world.
+Verified before being trusted: the extracted decision logic was driven through 9 controlled
+cases, 9/9 landing as intended. All 4 expected-PASS land `fail=0` — including **both real U-1 end
+states** (301 from a Bulk Redirect, 302 from a second Access app), each of which the old logic
+would have failed. All 5 expected-FAIL land `fail=1`, including the original empty-origin 502 and
+the case that matters most: *redirect in place but content still served* → `ERR:UNGATED`. So the
+probe does not buy green by forgiving the fault it exists to catch, and it does not stop looking
+once a remediation appears to be in place. Marker detection and URL parsing were replayed against
+the real logs of both runs: `32975124276` (success) parses to the right URL; `32972641297` (bad
+token) and an empty log are both rejected.
+
+The matrix was rebuilt on 2026-08-26: its predecessor's headline case was NXDOMAIN, a state that
+cannot occur, so it was verifying the wrong end state — correct logic, wrong world.
+
+**Not verified:** behaviour on a real post-remediation run, which cannot exist until U-1 lands.
+The matrix covers both end states in logic, not in the world.
+
+Four assertions in
+[`private-usage-deploy-gate.invariants.test.ts`](../../tests/invariants/private-usage-deploy-gate.invariants.test.ts)
+now hold this shape in place, each with a negative control that reds exactly its target: the
+deploy must publish the URL, the probe must fetch *that* URL, `Deployment complete` must be
+asserted positively, and check 4 must not treat a non-answer as a fault. The predecessor pinned
+the literal string `no live deployment` and broke on a reworded diagnostic while the property was
+intact — a test measuring prose, not behaviour.
 
 ### D-1. `claude-plugin` → `AVAILABLE` needs a product judgement
 
