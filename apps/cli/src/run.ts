@@ -58,9 +58,12 @@ export interface RunDeps {
   toolVersion?: string
   /**
    * Optional telemetry emitter (new11 §3.5 / M1). When present, the central emit
-   * site below reports each command's `telemetry` signal through it. Built gated-off
-   * (local `cli` tier, no consent, noopSink) in `index.ts`, so it is a no-op in
-   * production; tests inject a memory sink to assert the mapping. Absent ⇒ no emit.
+   * site below reports each command's `telemetry` signal through it. `index.ts` builds
+   * it with a `queueSink()` and consent read from the state file — NOT the `noopSink`
+   * this comment used to claim — so it is a no-op only because the local `cli` tier
+   * fails closed without an explicit `telemetry enable`. Tests inject a memory sink to
+   * assert the mapping. Absent ⇒ no emit. See src/telemetry.ts for the released-vs-HEAD
+   * distinction: no published build carries the sink at all.
    */
   emitter?: Emitter
   /**
@@ -82,10 +85,13 @@ export interface RunDeps {
  * Dispatch a parsed argv to a command. Pure given deps — used directly in tests.
  *
  * Telemetry (new11 §3.5 / M1): after the command computes its result, its optional
- * `telemetry` signal is emitted through `deps.emitter` at ONE central site. With the
- * production emitter (gated-off, noopSink) this is a no-op and the returned result —
- * stdout/stderr/exitCode — is byte-identical. The `telemetry` field is stripped from
- * nothing and read by nobody else; it never reaches the process output.
+ * `telemetry` signal is emitted through `deps.emitter` at ONE central site. The
+ * production emitter is gated-off by CONSENT (not by a `noopSink`, which is what this
+ * comment used to say), so with telemetry disabled this is a no-op and the returned
+ * result — stdout/stderr/exitCode — is byte-identical. That byte-identity is the
+ * invariant, and it holds whether the sink is noop, queue-backed, or enabled. The
+ * `telemetry` field is stripped from nothing and read by nobody else; it never reaches
+ * the process output.
  */
 export function run(argv: string[], deps: RunDeps): CommandResult {
   const result = dispatch(argv, deps)

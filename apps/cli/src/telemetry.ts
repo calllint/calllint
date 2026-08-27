@@ -1,16 +1,31 @@
 /**
- * CLI telemetry seam (new11 §3.5 / M1) — wired, DARK by default.
+ * CLI telemetry seam (new11 §3.5 / M1) — consent-gated, and NOT YET RELEASED.
  *
- * This is the one place the CLI touches telemetry. It is deliberately gated OFF
- * for the local `cli` tier: the emitter is built with `consented: false` and the
- * default `noopSink`, so `emit()` returns `gated` and writes nothing. The result is
- * that scan/integrate/guard/trust output is **byte-for-byte identical** whether or
- * not telemetry is wired — the privacy/verdict-decoupling invariant (new11 §1.5).
+ * This is the one place the CLI touches telemetry. Two states must be held apart here,
+ * because this header previously described only the first and had silently expired:
  *
- * "Wired, dark" means: the plumbing exists and is exercised by tests (with an
- * injected sink), but no real local emission and NO network sink ships. Turning the
- * local tier on requires an explicit first-run consent decision, which is a separate
- * product change deliberately NOT made here.
+ *   AT HEAD: `index.ts` builds the emitter with `consented` read from the state file
+ *   and a `queueSink()`, and `flushTelemetry()` POSTs to telemetry.calllint.com. The
+ *   plumbing is real. It still fails closed — absent an explicit `telemetry enable`,
+ *   `telemetryEnabled` is false, `emit()` returns `gated`, and nothing is written.
+ *
+ *   AS PUBLISHED: `calllint@1.8.0` (npm, 2026-08-18) contains NO network sink, no
+ *   `telemetry` command, and no `telemetryEnabled` — measured against the real tarball
+ *   on 2026-08-27 (0 hits for each, control `calllint` 312 hits). The wiring landed in
+ *   a0076ff (#325, 2026-08-21), three days after that publish, and no release has been
+ *   cut since. So for every user today this seam is still "wired, dark".
+ *
+ * Do not read either state off the other. "No network sink ships" is true of the
+ * published artifact and false of this file's own directory at HEAD.
+ *
+ * Either way, scan/integrate/guard/trust output is **byte-for-byte identical** whether
+ * or not telemetry is wired — the privacy/verdict-decoupling invariant (new11 §1.5).
+ *
+ * Turning the local tier on for real is a PRODUCT decision that is still open and is
+ * deliberately NOT made here: new11 §2.6 fixes `local CLI = opt-in default-off`, and
+ * the Blueprint's non-goal #15 forbids "collecting private local CLI telemetry by
+ * default". A first-run consent prompt is compatible with both; a default-ON posture is
+ * not, and would need an ADR reversing that non-goal.
  *
  * Accuracy note: a command's process exit code does not carry its verdict outside
  * `--ci` (a plain `scan` exits 0 regardless of SAFE/REVIEW/BLOCK/UNKNOWN). So the

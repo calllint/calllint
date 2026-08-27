@@ -1,22 +1,28 @@
 # new19–21 open items — what is left, and who can move it
 
-- **Date:** 2026-08-26, updated 2026-08-27 (U-1 closed in-repo — see [U-1](#u-1-usagecalllintcom-is-served-ungated-at-its-pagesdev-hostname)).
+- **Date:** 2026-08-26, updated 2026-08-27 (U-1 closed in-repo — see [U-1](#u-1-usagecalllintcom-is-served-ungated-at-its-pagesdev-hostname); [O-1](#o-1-usage-observability-closure--distribution--observed-usage-has-no-fact-chain) registered).
 - **Source plans:** `docs/new19.md`, `docs/new20.md`, `docs/new21.md`. `docs/` is gitignored
   (`.gitignore:44`) as local-only planning notes, so this file is the tracked record of what
   those plans still owe. Same reason [`NEW21_SEQUENCING_PLAN.md`](NEW21_SEQUENCING_PLAN.md)
   and [`NEW20_CLOSURE_REPORT.md`](NEW20_CLOSURE_REPORT.md) live here.
 - **Scope:** the six-row blocker table from the 2026-08-26 audit, plus two items that surfaced
-  while closing it. This is a *tracker*, not a plan: every row names its blocker and who can
-  act, so a later reader can tell "nobody has done this" from "nobody can do this yet".
+  while closing it, plus **O-1** (usage observability closure, handed over 2026-08-27). This is a
+  *tracker*, not a plan: every row names its blocker and who can act, so a later reader can tell
+  "nobody has done this" from "nobody can do this yet".
 
 ## Why a tracker and not a phase document
 
-Four of the six rows were engineering work and are closed. What remains is almost entirely
-**not** engineering: one row waits on a third party's review queue, one needs a 357 MB install
-on a machine that is not CI, one needs a product judgement that no amount of code can
+Four of the six original rows were engineering work and are closed. Of what the six left behind,
+almost none is engineering: one row waits on a third party's review queue, one needs a 357 MB
+install on a machine that is not CI, one needs a product judgement that no amount of code can
 substitute for, and one turned out to be waiting on *us* (E-1). Recording those as "TODO" in a
 plan would misrepresent them — a TODO implies someone could pick it up. The columns below say
 who actually can.
+
+**O-1 is the exception and does not change that rule.** It is mostly engineering, it is mostly
+mine to do, and it is here anyway — because it arrived as an execution plan whose first two
+premises were false, and a tracker's job is to hold the corrected facts until the work is
+scheduled. It is registered, not started.
 
 **One caution this tracker earned the hard way.** U-1 sat here for a day as "the user only,
 Cloudflare dashboard" and was then closed in-repo with no dashboard action at all. The
@@ -399,6 +405,189 @@ a confirmed one. **No verdict changed.** The honest outcome is that these 13 rem
 maintainer's machine, and `docs.claude.com` resolves into Meta's range (31.13.94.41). That is
 DNS interference on one network, not a fact about Anthropic — editing the SSOT on that basis
 would write the observer's blindness down as a vendor fact.
+
+### O-1. Usage observability closure — `Distribution → Observed Usage` has no fact chain
+
+**Who can move it: mostly me; a subset is the user's.** Handed over 2026-08-27 as a 22-section
+execution plan. **Registered rather than executed**: it asks for production mutation (Worker
+deploy, a zone Configuration Rule) and its first two premises are falsified below, so
+transcribing it as a task list would write two wrong facts into the backlog.
+
+Reduced to the four questions it actually asks:
+
+1. what are the ~3k Worker invocations/24h?
+2. why does the report read `no telemetry ingested yet`, `Recorded preflights = 0`,
+   `Active installations = 0`?
+3. can product usage be observed without polluting the marketing site's Web Analytics?
+4. all of it at **zero new Cloudflare recurring cost**.
+
+#### Two premises were falsified before this item was written
+
+**(a) `telemetry.calllint.com` is LIVE and is serving the ingress Worker.** Measured 2026-08-27
+from the maintainer's machine:
+
+```
+GET https://telemetry.calllint.com/                 → 404, content-type: application/json,
+                                                       cache-control: no-store
+GET https://telemetry.calllint.com/v1/events/usage  → 405
+    {"schema":"calllint.usage-api.error.v0","code":"method_not_allowed",
+     "message":"This endpoint accepts POST only."}
+```
+
+Those two headers are exactly what the Worker's `json()` helper sets, and that `schema` string
+exists **only** in `apps/usage-worker/src/index.ts` — so the responder is our Worker, not a
+Cloudflare edge default. Control: `calllint.com` → 200, `usage.calllint.com` → 302, so the
+instrument was working.
+
+Therefore [`apps/usage-worker/wrangler.toml`](../../apps/usage-worker/wrangler.toml) is **stale**
+at its custom-domain block: it states `NOT YET CLAIMED — blocked on one token permission` and
+leaves `[[routes]]` commented, under a heading claiming this is the only endpoint that works and
+that enabling it is "the activation switch". The route exists in the world regardless of that
+file. **Correcting that comment belongs to this item, not to a drive-by edit** — the same comment
+warns that an uncommented block makes `wrangler deploy` fail *outright* when the permission is
+absent, and whether the live route was bound by dashboard or by token is unmeasured. Guessing
+there risks breaking every redeploy.
+
+**(b) The plan conflates two deployments.** `usage.calllint.com` is the *static gated report*
+(Pages `calllint-usage-report`; 302 → Access login). `telemetry.calllint.com` is the *ingress*
+(Worker `calllint-usage-ingress`, `workers_dev = false`). No invocation count on the report host
+can be telemetry ingestion. The 3k figure came from the dashboard and **is not verified here**;
+it must be attributed per host before it carries meaning.
+
+#### Root cause of `no telemetry ingested yet`: THE FEATURE WAS NEVER PUBLISHED
+
+Measured 2026-08-27 against the real npm tarball (`calllint@1.8.0`, 446 KB `dist/index.js`):
+
+| probe | hits | | control | hits |
+|---|---:|---|---|---:|
+| `"telemetry"` (command name) | **0** | | `calllint` | 312 |
+| `enableTelemetry` | **0** | | `UNKNOWN` | 102 |
+| `flushTelemetry` | **0** | | `"scan"` | 4 |
+| `queueSink` | **0** | | `"integrate"` | 1 |
+| `telemetry.calllint.com` | **0** | | `"trust"` | 2 |
+| `v1/events/usage`, `telemetryEnabled` | **0** | | | |
+
+The controls are there so the zeros are not confused with a bad path — the classic fault in this
+repo. And the decisive one is a **positive** control: the *same* strings grepped with the *same*
+command against a `pnpm build` of HEAD (`apps/cli/dist/index.js`, 506.8 KB) return
+`telemetry.calllint.com` **1**, `telemetryEnabled` **13**, `v1/events/usage` **1**,
+`flushTelemetry` **6**, `queueSink` **3**. So the instrument detects these strings when they are
+present, and the published zeros are not minification, mangling or a wrong path — they are a
+missing feature. The 60 KB size gap is that feature.
+
+The timeline closes it:
+
+```
+calllint@1.8.0 published   2026-08-18 03:26Z
+consent wiring + endpoint  2026-08-21 13:08   a0076ff (#325) — three days LATER
+latest tag                 v1.8.0             — no release since
+```
+
+`a0076ff` is an ancestor of HEAD, so **the whole `emit → queue → POST → D1` chain exists only in
+the repository.** The 16 `telemetry` strings that *do* ship are contract/emit/sanitize/gate — the
+"wired, dark" skeleton, with no network end.
+
+**So `no telemetry ingested yet` is not a defect. It is a correct reading of the world**, and it
+needs no further explanation. Ranked candidates, corrected:
+
+1. **The published artifact carries no delivery path** — necessary *and* sufficient. No Cloudflare
+   access was needed to establish this.
+2. **`telemetryEnabled` defaults to false** ([`state.ts`](../../apps/cli/src/state.ts),
+   `consented: telemetryState.telemetryEnabled === true`) — true at HEAD, and it becomes the
+   operative constraint only *after* a release ships the field.
+3. **The 5s transport timeout** — inapplicable to 1.8.0, which has no transport.
+
+An earlier version of this item ranked (3) first and called it "the best free lead". That was
+wrong twice over: the probe hit the `405` method gate, which returns *before* validation, HMAC or
+any D1 access, so it cannot implicate the ingest path at all; and it was three samples from one
+network. Kept as an open reliability question, not as a root cause:
+
+> `6.7s`, `11.6s`, and once no answer at all (curl `000` at a 23s ceiling) for a constant JSON
+> error. Worth layered re-measurement (DNS / connect / TLS / TTFB) from at least two networks.
+
+**Why latency cannot explain a zero, independent of any measurement.**
+[`flush.ts`](../../apps/cli/src/flush.ts) removes events **only** on a confirmed 2xx and otherwise
+leaves the queue intact, and `createBatch` derives a stable id so a retry after an ambiguous
+failure can be de-duplicated server-side. Delivery therefore retries on every subsequent run. To
+produce *exactly zero* ingestion, latency would have to be both persistent and universal — one
+successful flush by one consented user makes it non-zero. Only (1) or "nobody opted in" yields a
+true zero.
+
+#### The RUM sub-item is smaller than the plan assumes
+
+The plan's remedy — a free-tier Configuration Rule setting `disable_rum = true` on
+`usage.calllint.com` instead of buying Web Analytics Rules — is sound on Cloudflare's published
+limits, and is the user's to create (account/zone scope; per U-1 and
+[`CLOUDFLARE_ACCESS_ACTION.md`](../authority-distribution-closure/CLOUDFLARE_ACCESS_ACTION.md)
+this pipeline deliberately holds no such credential). But **the premise that beacon injection is
+happening here is unverified**: no Web Analytics or RUM snippet is referenced anywhere in this
+repo, and automatic injection is a zone setting nobody has read. Measure before rule-writing —
+otherwise this buys a rule against a beacon that may not exist. Note also that since U-1 shipped,
+`usage.calllint.com` *does* run a Worker on every request (`_worker.js`, Pages advanced mode), so
+that host now contributes Worker invocations by construction.
+
+#### What is left is a release decision and a policy decision — both the user's
+
+The engineering root-cause search mostly dissolves with the finding above. Two acts remain, and
+neither is a bug fix:
+
+1. **A release.** The telemetry chain reaches users only when a version ships. This is the single
+   gating action and it needs no Cloudflare permission.
+2. **A telemetry-policy freeze.** Three options were put forward: (A) keep the hidden opt-in,
+   (B) first-run explicit consent, (C) privacy-safe default ON with disclosure and easy opt-out.
+
+**(C) is not a free product choice — it is a documented non-goal of this project.** The Blueprint's
+numbered prohibition list (items 8–17: pay-to-improve verdicts, public shaming, …) contains:
+
+```
+15. Collecting private local CLI telemetry by default.
+```
+
+Reinforced by two more standing constraints: new11 §2.6 fixes the four-tier model at
+`local CLI = opt-in default-off`, and `docs/privacy/telemetry.md` is a published privacy document.
+`security-boundary.yml` also carries a `telemetry-boundary` job. Choosing (C) means reversing a
+recorded non-goal and needs an **ADR first**, per CLAUDE.md.
+
+**(B) is compatible with all of it**, because an explicit user choice is not "by default" — and it
+fixes the real defect in (A), which is not conservatism but that *the opt-in channel does not exist
+in any published build*, so the command cannot be discovered at all. The selection-bias concern
+about (A) is real; its cause is one layer deeper than "users don't find the command".
+
+Recommended shape if (B) is chosen, which also answers the CI-friction objection:
+
+```
+non-TTY / CI / CALLLINT_TELEMETRY=0  → OFF, no prompt
+interactive TTY, first run           → prompt once, persist the answer
+```
+
+**Not decided here.** This tracker records the constraint, not the choice.
+
+#### Constraints this item inherits
+
+- **Zero new recurring Cloudflare cost is a gate, not a preference.** Storage is the one variable
+  that cannot be pre-declared free: D1 is already bound and migrated, so reuse it — the plan's own
+  warning against `1 event = 1 KV write` applies, since the KV free tier allows 1k writes/day
+  against a claimed ~3k events/day. Stop at `COST_GATE_BLOCKED` rather than upgrade.
+- **No historical backfill.** npm downloads stay `Distribution Signals`; usage chronology starts at
+  the first credible event. This is already the shipped page's contract.
+- **No new truth source.** D1 + the existing aggregation path, not a second pipeline.
+- Privacy posture is already strong in code (IP/UA never persisted, installation IDs HMAC'd at
+  ingestion, no raw event log) — the closure must not weaken it to gain a metric.
+
+**Still not verified:** the 3k figure and its composition (needs the Cloudflare *service name* that
+produced it before it can be split by path/method/status/trigger), the plan/quota baseline, whether
+any RUM beacon is injected at all, and whether D1 currently holds rows. `3k` currently supports
+none of "3k telemetry events", "3k report pageviews", or "3k users".
+
+**Answered since registration:** whether a shipped build emits — it does not, and that needed no
+account access. Recorded because the first version of this item listed it as unverifiable-for-now
+alongside the genuinely account-gated facts. It was neither; it was one `npm view` away.
+
+**Sequencing.** Gates in dependency order: published-artifact reality (**done**) → consent policy
+freeze (**user**) → release (**user**) → controlled end-to-end test under an isolated `HOME`
+(`telemetry enable` → run → queue → POST → 204 → D1 row) → layered latency from ≥2 networks → 3k
+service attribution → RUM beacon check, and **only if a beacon is found**, a `disable_rum` rule.
+The last two are independent sub-gates and do not block the chain above.
 
 ## Two records that were checked and found accurate
 
