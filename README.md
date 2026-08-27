@@ -409,6 +409,35 @@ Full statement: [SECURITY.md](SECURITY.md) ·
 trust boundaries: [LIMITATIONS.md](LIMITATIONS.md). Report issues to
 security@calllint.com.
 
+## Anonymous usage telemetry — opt-in, off by default
+
+CallLint collects nothing unless you say yes. Scanning works fully offline with
+telemetry off, and no verdict ever depends on it.
+
+- **Off by default.** On the first run in an interactive terminal, CallLint asks
+  once. Only an explicit `y`/`yes` enables it; a bare Enter, a timeout, `n`, or
+  EOF all leave it off, and the answer is remembered so you are asked at most
+  once.
+- **Never prompts non-interactively.** In CI, when piped, under `--json`/`--sarif`,
+  or with the kill-switch set, there is no prompt and no collection.
+- **Kill-switch.** `CALLLINT_TELEMETRY=0` (also `false`/`off`) disables every
+  tier regardless of stored state.
+- **Check or change it any time:** `calllint telemetry status` · `enable` ·
+  `disable` · `reset` (rotates the installation ID).
+
+What an event may carry: event name, host family (e.g. `cursor`), result
+category (e.g. `BLOCK`), duration, input kind, discovery surface, CallLint
+version, and a random installation ID. The payload is built by an **allowlist**
+— an unlisted field is dropped, not forwarded.
+
+**Never sent:** config contents · file paths · commands · arguments · secret
+values · prompts · finding evidence · server names · anything identifying you or
+your machine.
+
+Server side, the request IP and User-Agent are used only for rate limiting and
+are never persisted; installation IDs are HMAC'd at ingestion and the raw value
+is discarded. There is no raw event log.
+
 ## Limitations
 
 CallLint sees configuration, not behavior. It can miss risks a server only

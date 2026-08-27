@@ -10,11 +10,87 @@ onward. While pre-1.0, minor versions may include breaking changes.
 
 ## [Unreleased]
 
+Everything below has been on `main` since `v1.8.0` (2026-08-18) and **is not yet
+published** — `calllint@1.8.0` remains the latest npm release, so no user has any
+of it. That gap is deliberate (the release is batched), but it is also why
+`no telemetry ingested yet` is a correct reading of the world rather than a
+defect: the published artifact carries no delivery path at all.
+
 ### Added
+
+- **Global Agent Distribution Authority (new19–new20).** One source of truth,
+  `apps/web/data/distribution-surfaces.json`, describing 31 distribution
+  primitives across 18 agent hosts. Every other distribution surface — 31
+  projections including per-host pages, `scripts/distribution-sources.json`, and
+  the agent-readable manifests — is **generated** from it (`pnpm gen:distribution`)
+  and byte-compared in CI (`pnpm check:distribution-drift`), so a hand edit to a
+  projection fails rather than silently diverging. Channel state is explicit
+  (`AVAILABLE` / `AUDIT_REQUIRED` / `BLOCKED` / `PENDING_UPSTREAM`) — an
+  unverified channel is never presented as available.
+- **Harness Distribution Surface (H0–H8)** — three new host extractors, eight
+  public per-host pages, and a truth gate that checks the claims those pages make.
+- **Authority Model v2 vocabulary** (`packages/types/src/authority.ts`) — a
+  five-layer model, append-only, no schema change and no verdict movement.
+  `Entrypoint` is the name for "what starts the agent"; the pre-existing
+  `TRIGGER_IDS` keep their distinct meaning ("when should CallLint preflight").
+- **First-run telemetry consent on an interactive TTY** — CallLint asks once,
+  and only an explicit `y`/`yes` enables anything. Silent in CI, when piped,
+  under `--json`/`--sarif`, and under `CALLLINT_TELEMETRY=0`; a refusal is
+  persisted so the question is asked at most once. Collection stays opt-in and
+  off by default.
+- **Published telemetry disclosure.** `README.md` and `apps/cli/README.md` now
+  state what an event may carry, what is never sent, and how to turn it off.
+  Previously the only written explanation lived in `docs/`, which is gitignored —
+  real, reviewed, and unreachable by CI, by the npm tarball, and by any reader.
+  `pnpm check:public-copy` check 26 holds this in place, and derives the
+  requirement from whether `apps/cli/src/consent.ts` actually ships.
+- **Trust Index Cumulative Coverage Amendment v1 (G1–G5)** — sticky retention so
+  a page already served is not evicted by a later cohort selection.
+- **Release ancestry gates (AC-32).** Every publish path — not just `mcp-v*` — is
+  gated on the released commit descending from `main`, asked of the GitHub compare
+  API rather than `git merge-base` (the release checkout is depth-1, so an
+  authentic commit looks unreachable locally). npm versions are immutable, so
+  this fails closed.
+- **Cline config discovery** and a `kiro` discovery test suite (15 tests; the
+  extractor already worked — the gap was coverage, not function).
 
 ### Fixed
 
+- **The private usage report was world-readable at its `pages.dev` hostname**
+  (new18 §29). Cloudflare Access binds to a hostname, and the policy covered only
+  the custom domain. Closed inside the deployment — `apps/usage-worker/src/pages-entry.js`
+  ships as `_worker.js` (Pages advanced mode) and 301s every non-canonical host,
+  which also covers the preview wildcard that both account-level options miss.
+  `robots.txt` is deliberately still served there, so the hostname keeps a
+  `Disallow`.
+- **Two workflows whose green meant nothing.** `trust-ingest` was missing
+  `pnpm build`, so the cohort-100 expansion sat unapplied for two weeks while the
+  run reported success; and the Access probe could not distinguish "gated" from
+  "dead", so a gate in front of an empty origin looked healthy. Liveness now comes
+  from the deploy's own output, and `Deployment complete` is asserted *positively*
+  — an empty log satisfies "no error appeared".
+- **`apps/cli/README.md` was outside the public-copy gate** — the copy npm renders
+  on the package page was the least-governed public surface this project has.
+  Adding it to the governed set immediately surfaced a latent overclaim
+  (`guaranteed safe`), now reworded.
+- **An `APPDATA` isolation leak in three config extractors**, which let a test
+  read the developer's real machine state.
+- **Watcher body churn** — per-request tokens were being read as upstream product
+  changes. 12 normalization rules, each derived from a byte diff of two fetches
+  of the same URL seconds apart.
+- **Four dead `officialSources` URLs**, measured per URL rather than in bulk.
+- **Every host page now says what CallLint does**, not just the nine that shipped
+  a command.
+
 ### Changed
+
+- **The Adoption Signals homepage surface was withdrawn.** It was integrated (U7)
+  and then removed in the same release window; net effect is that it does not
+  ship. *(The reason recorded at the time — that the Pages project cannot run
+  Functions at all — was falsified on 2026-08-20: `calllint-www` does run
+  Functions for the routes in `_routes.json`. The withdrawal stands; its original
+  explanation does not.)*
+- `pnpm check:public-copy` governs two more files and one more property (above).
 
 ## [1.8.0] — 2026-08-18 — Phase 2.4-B gate closure + Trust Index D1-D3 + R-9 backup
 

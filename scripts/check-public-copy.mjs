@@ -91,7 +91,12 @@ const factsPath = path.join(repoRoot, "project-facts.json")
 const PUBLIC_WEB_ROOT = "apps/web/public"
 const PUBLIC_EXTENSIONS = [".html", ".md", ".txt"]
 /** Governed copy outside the web root: the repo's own public front door. */
-const EXTRA_PUBLIC_FILES = ["README.md"]
+// `apps/cli/README.md` is the copy npm RENDERS on the package page — the most-read
+// surface this project has, and it was outside this gate until 2026-08-27. It is
+// public copy by every definition the gate already uses, so it joins the governed
+// set rather than getting a carve-out (check 26 needs it, and so does every
+// overclaim/safety-phrase check that was silently skipping it).
+const EXTRA_PUBLIC_FILES = ["README.md", "apps/cli/README.md"]
 /** Public GitHub surfaces — the issue chooser is public product copy (see check 23). */
 const ISSUE_TEMPLATE_DIR = ".github/ISSUE_TEMPLATE"
 
@@ -1054,6 +1059,48 @@ console.log("")
       } else {
         for (const o of offenders) fail(`host page omits governed trust copy (new20 §13): ${o}`)
       }
+    }
+  }
+}
+
+// 26. O-2 — shipped telemetry behaviour must be described on a PUBLISHED surface.
+//
+// The subject is DERIVED, not hardcoded: the requirement exists only while the CLI
+// actually ships a consent prompt. `apps/cli/src/consent.ts` is the behaviour; the
+// two READMEs are the only copy that reaches a user (the website is a separate
+// surface, and `docs/` is gitignored, so a privacy note written there is
+// unreachable by CI, by the tarball, and by any reader).
+//
+// Why this gate exists: consent is the first user-visible telemetry behaviour this
+// product has, and it landed (#343) while ZERO published surface mentioned
+// telemetry. `apps/cli/README.md` is the load-bearing one — it is the file npm
+// renders on the package page.
+//
+// The mirror-image of `scan --config`, which was advertised on eight surfaces while
+// nothing read it. Here the behaviour ships and nothing describes it.
+{
+  const consentPath = path.join(repoRoot, "apps/cli/src/consent.ts")
+  if (!fs.existsSync(consentPath)) {
+    ok("check 26: no consent prompt ships (apps/cli/src/consent.ts absent) — no disclosure owed")
+  } else {
+    // Each required concept is a LIST of accepted spellings: the gate must assert
+    // the disclosure, not dictate one sentence, or it becomes a prose test that
+    // reds on a rewording while the property holds.
+    const required = [
+      ["opt-in / off by default", [/opt-in/i, /off by default/i]],
+      ["the kill-switch env var", [/CALLLINT_TELEMETRY/]],
+      ["how to turn it off", [/telemetry disable/i, /telemetry status/i]],
+      ["what is never sent", [/never sent/i, /never (?:be )?(?:sent|collected|transmitted)/i]],
+    ]
+    for (const rel of ["README.md", "apps/cli/README.md"]) {
+      const f = files.find((x) => x.rel === rel)
+      if (!f) {
+        fail(`check 26: ${rel} not in the guarded set, so shipped consent behaviour cannot be verified as disclosed`)
+        continue
+      }
+      const missing = required.filter(([, alts]) => !alts.some((re) => re.test(f.text))).map(([label]) => label)
+      if (missing.length === 0) ok(`check 26: ${rel} discloses opt-in telemetry (O-2)`)
+      else fail(`check 26: ${rel} ships a consent prompt but omits: ${missing.join(", ")} (O-2)`)
     }
   }
 }
