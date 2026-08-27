@@ -1,6 +1,6 @@
 # new19–21 open items — what is left, and who can move it
 
-- **Date:** 2026-08-26, updated 2026-08-27 (U-1 closed in-repo — see [U-1](#u-1-usagecalllintcom-is-served-ungated-at-its-pagesdev-hostname); [O-1](#o-1-usage-observability-closure--distribution--observed-usage-has-no-fact-chain) registered).
+- **Date:** 2026-08-26, updated 2026-08-27 (U-1 closed in-repo — see [U-1](#u-1-usagecalllintcom-is-served-ungated-at-its-pagesdev-hostname); [O-1](#o-1-usage-observability-closure--distribution--observed-usage-has-no-fact-chain) registered; [O-2](#o-2-the-consent-prompt-has-no-published-copy--and-cannot-have-one-from-docs) closed ahead of the release, and its own measurement corrected).
 - **Source plans:** `docs/new19.md`, `docs/new20.md`, `docs/new21.md`. `docs/` is gitignored
   (`.gitignore:44`) as local-only planning notes, so this file is the tracked record of what
   those plans still owe. Same reason [`NEW21_SEQUENCING_PLAN.md`](NEW21_SEQUENCING_PLAN.md)
@@ -584,16 +584,60 @@ account access. Recorded because the first version of this item listed it as unv
 alongside the genuinely account-gated facts. It was neither; it was one `npm view` away.
 
 **Sequencing.** Gates in dependency order: published-artifact reality (**done**) → consent policy
-freeze (**done 2026-08-27** — first-run prompt on an interactive TTY; see O-2) → release
-(**user; deferred 2026-08-27** to ship with other features, so the prompt reaches nobody until
-then) → controlled end-to-end test under an isolated `HOME`
+freeze (**done 2026-08-27** — first-run prompt on an interactive TTY; see O-2) → published
+disclosure for that prompt (**done 2026-08-27**, O-2 closed early so the release does not carry
+it) → `CHANGELOG` entry for the 33 unreleased commits (**done 2026-08-27**, under `[Unreleased]`;
+the version bump and the dated heading are part of the release act, not a prerequisite of it) →
+release (**user; deferred 2026-08-27** to ship with other features, so the prompt reaches nobody
+until then) → controlled end-to-end test under an isolated `HOME`
 (`telemetry enable` → run → queue → POST → 204 → D1 row) → layered latency from ≥2 networks → 3k
 service attribution → RUM beacon check, and **only if a beacon is found**, a `disable_rum` rule.
 The last two are independent sub-gates and do not block the chain above.
 
 ### O-2. The consent prompt has no published copy — and cannot have one from `docs/`
 
-**Who can move it: me. Due at release, not now.** The consent policy was frozen 2026-08-27 as a
+> **CLOSED 2026-08-27, ahead of the release rather than at it.** `README.md` and
+> `apps/cli/README.md` now carry the disclosure (opt-in / off by default, the
+> `CALLLINT_TELEMETRY` kill-switch, `telemetry status|disable`, the allowlisted field
+> list, and the never-sent list), and `pnpm check:public-copy` **check 26** holds it
+> there. The requirement is *derived*, not hardcoded: with `apps/cli/src/consent.ts`
+> absent the check reports "no disclosure owed", so the gate tracks the behaviour
+> instead of asserting a fixed sentence. Each concept accepts several spellings, so a
+> rewording does not red it while the property holds — the predecessor failure mode
+> was a test measuring prose.
+>
+> **Closed early on purpose.** This item said "due at release, not now". That framing
+> made the debt fall due at exactly the moment it would be most expensive — a release
+> is already the step with the most irreversible parts (immutable npm versions), and
+> a *published* behaviour with no published explanation cannot be fixed after the
+> fact for the users who already have it. Writing the copy first removes the debt
+> from the release's critical path.
+>
+> **Two things this turned up, neither of them the item's subject:**
+>
+> 1. **The measurement in this item was produced by a command that never ran.**
+>    `git grep -lin telemetry -- '*.md' …` exits **129** on this machine (`-lin` is
+>    parsed as an unknown option), so "returns **zero** tracked files" was read off a
+>    usage error. Re-measured correctly: **33** tracked `.md` files mention telemetry.
+>    **The conclusion survives** — `README.md` 0, `apps/cli/README.md` 0,
+>    `apps/web/**` 1 (a test file) — so all 33 are ADRs, artifacts and governance
+>    docs, and the user-visible surface really was empty. Right answer, broken
+>    instrument: the repo's dominant fault class, this time in a measurement rather
+>    than a guard.
+> 2. **`apps/cli/README.md` was not in the public-copy gate's governed set at all**
+>    (`EXTRA_PUBLIC_FILES = ["README.md"]`). That is the file npm renders on the
+>    package page — the most-read surface this project has, and the least governed.
+>    It is in the set now, which immediately failed check 2 on a pre-existing
+>    overclaim (`guaranteed safe`, in a negated sentence the substring check cannot
+>    see). Fixed by rewording *our copy*, not by narrowing the rule.
+>
+> Verified before being trusted: 3 negative controls, each redding exactly its target
+> and reverted byte-for-byte — removing the kill-switch mention, removing the
+> never-sent disclosure, and moving `consent.ts` aside (which correctly flips the
+> check to "nothing owed"). Full suite 4973 passed / 1 skipped (266 files) at the
+> baseline; typecheck, `check:public-copy` and `check:web-structure` green after.
+
+**Who could move it: me. Originally scoped as due at release.** The consent policy was frozen 2026-08-27 as a
 first-run prompt on an interactive TTY (`apps/cli/src/consent.ts`). That is the first
 **user-visible** telemetry behaviour this product will have. Its written explanation currently
 lives at `docs/privacy/telemetry.md`, which `.gitignore:44` excludes — `docs/` is deliberately

@@ -69,8 +69,34 @@ will do, it says so and never silently upgrades to `SAFE`.
 - Claude Code plugin: a `PreToolUse` hook that *recommends* scanning before an agent-tool config edit — advisory, non-blocking, always exits 0, runs no scan itself
 
 CallLint is a heuristic, evidence-backed pre-flight check, **not a proof of
-safety**. `No blockers observed` ≠ guaranteed safe. Full docs, security model,
+safety**. `No blockers observed` is not a proof of runtime safety. Full docs, security model,
 and limitations: https://github.com/calllint/calllint
+
+## Anonymous usage telemetry — opt-in, off by default
+
+CallLint collects nothing unless you say yes. Scanning is fully offline with
+telemetry off, and no verdict ever depends on it.
+
+On the first run in an interactive terminal, CallLint asks once. Only an explicit
+`y`/`yes` enables it — a bare Enter, a timeout, `n`, or EOF leave it off, and the
+answer is remembered. It never prompts in CI, when piped, or under
+`--json`/`--sarif`. `CALLLINT_TELEMETRY=0` disables every tier regardless of
+stored state.
+
+```bash
+calllint telemetry status     # what is on, and what would be sent
+calllint telemetry disable    # opt out (or `enable` / `reset`)
+```
+
+An event may carry: event name, host family, result category, duration, input
+kind, discovery surface, CallLint version, and a random installation ID —
+assembled by an allowlist, so an unlisted field is dropped rather than
+forwarded.
+
+**Never sent:** config contents · file paths · commands · arguments · secret
+values · prompts · finding evidence · server names · anything identifying you or
+your machine. Server side, IP and User-Agent are used only for rate limiting and
+never persisted; installation IDs are HMAC'd at ingestion.
 
 ## License
 
