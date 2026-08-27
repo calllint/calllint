@@ -340,7 +340,28 @@ const html = renderReport(data)
 
 // ── validate before writing (§28: generate → validate → deploy) ─────────────
 
+// §29 / U-1: Access binds to a HOSTNAME, so without this entry the same deployment is
+// world-readable at calllint-usage-report.pages.dev. Read here and written below
+// verbatim (the same pattern as usage.css) so the file that ships is the file the tests
+// drive — apps/usage-worker/test/pages-entry.test.ts. Pages advanced mode requires the
+// name `_worker.js` at the deploy root.
+const workerJs = fs.readFileSync(
+  path.join(repoRoot, "apps/usage-worker/src/pages-entry.js"),
+  "utf8",
+)
+
 const failures = []
+// Checked BEFORE the write, like every other check here: a truncated or wrong copy
+// silently reopens U-1, and the deploy would report success either way.
+if (!workerJs.includes('CANONICAL_HOST = "usage.calllint.com"')) {
+  failures.push("_worker.js does not name the canonical host (§29/U-1)")
+}
+if (!/status:\s*301/.test(workerJs)) {
+  failures.push("_worker.js emits no 301 — the pages.dev host would serve the report")
+}
+if (!/export default/.test(workerJs)) {
+  failures.push("_worker.js has no default export — Pages would not invoke it")
+}
 if (!html.includes('content="noindex, nofollow, noarchive"')) {
   failures.push("missing robots noindex directive (§29)")
 }
@@ -374,10 +395,13 @@ fs.writeFileSync(
   "# Private operator report (new18 §29). Never public.\nUser-agent: *\nDisallow: /\n",
 )
 
+fs.writeFileSync(path.join(OUT_DIR, "_worker.js"), workerJs)
+
 const relOut = path.relative(repoRoot, OUT_DIR)
 console.log(`\n  → ${relOut}/index.html`)
 console.log(`  → ${relOut}/usage.css`)
 console.log(`  → ${relOut}/robots.txt`)
+console.log(`  → ${relOut}/_worker.js  (§29: pages.dev → ${"usage.calllint.com"}, 301)`)
 
 if (degradations.length > 0) {
   console.log("\nDegraded sources (report written, figures incomplete):")
