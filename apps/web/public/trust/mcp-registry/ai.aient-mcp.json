@@ -2,18 +2,18 @@
   "schema": "calllint.trust-page.v0",
   "canonicalName": "mcp-registry/ai.aient-mcp",
   "artifactDigest": "sha256:c2c942e0ee23b7f324fb8b73006ab3de8e4086c3d41487a48f4247d68fb46ee0",
-  "pageDigest": "sha256:9b160f52f44b19b485b993aabab614d8e1e9abcd59ab537168eb961be5e09b34",
-  "verdict": "REVIEW",
-  "verdictLabel": "Review required",
-  "observedAt": "2026-08-17T01:39:50.172Z",
+  "pageDigest": "sha256:726a63a493e6cedb266111c5f53e3674c10f3eb97bedfb0459f778f6d381f27c",
+  "verdict": "UNKNOWN",
+  "verdictLabel": "Insufficient evidence",
+  "observedAt": "2026-08-27T11:02:09.000Z",
   "completeness": "complete",
   "status": {
-    "verdict": "REVIEW",
+    "verdict": "UNKNOWN",
     "completeness": "complete",
     "authorityClaimed": false,
     "reproducibility": {
-      "pageDigest": "sha256:9b160f52f44b19b485b993aabab614d8e1e9abcd59ab537168eb961be5e09b34",
-      "observedAt": "2026-08-17T01:39:50.172Z"
+      "pageDigest": "sha256:726a63a493e6cedb266111c5f53e3674c10f3eb97bedfb0459f778f6d381f27c",
+      "observedAt": "2026-08-27T11:02:09.000Z"
     },
     "evidenceLevel": "E2",
     "evidenceRationale": "install config observed → static blast radius normalized into an authority inventory. Higher levels (E3 tool schema, E4 maintainer receipt, E5 sandbox) are not carried by a static page."
@@ -26,8 +26,8 @@
   },
   "scanHistory": [
     {
-      "observedAt": "2026-08-17T01:39:50.172Z",
-      "pageDigest": "sha256:9b160f52f44b19b485b993aabab614d8e1e9abcd59ab537168eb961be5e09b34",
+      "observedAt": "2026-08-27T11:02:09.000Z",
+      "pageDigest": "sha256:726a63a493e6cedb266111c5f53e3674c10f3eb97bedfb0459f778f6d381f27c",
       "artifactDigest": "sha256:c2c942e0ee23b7f324fb8b73006ab3de8e4086c3d41487a48f4247d68fb46ee0"
     }
   ],
@@ -40,7 +40,7 @@
       "requestedRef": null,
       "resolvedRef": "sha256:c2c942e0ee23b7f324fb8b73006ab3de8e4086c3d41487a48f4247d68fb46ee0",
       "digest": "sha256:c2c942e0ee23b7f324fb8b73006ab3de8e4086c3d41487a48f4247d68fb46ee0",
-      "resolvedAt": "2026-08-17T01:39:50.172Z",
+      "resolvedAt": "2026-08-27T11:02:09.000Z",
       "resolution": "resolved"
     },
     "evidence": null,
@@ -84,19 +84,19 @@
       "no external evidence attached (optional); decision will rely on CallLint's own analysis",
       "authority normalized: 1 capability, approvals required: external-network-access"
     ],
-    "preparedAt": "2026-08-17T01:39:50.172Z"
+    "preparedAt": "2026-08-27T11:02:09.000Z"
   },
   "scan": {
     "schemaVersion": "calllint.report.v0",
     "reportKind": "config-summary",
     "configPath": "official-mcp-registry:ai.aient/mcp",
-    "verdict": "REVIEW",
-    "publicVerdictLabel": "Review required",
+    "verdict": "UNKNOWN",
+    "publicVerdictLabel": "Insufficient evidence",
     "counts": {
       "SAFE": 0,
-      "REVIEW": 1,
+      "REVIEW": 0,
       "BLOCK": 0,
-      "UNKNOWN": 0
+      "UNKNOWN": 1
     },
     "reports": [
       {
@@ -108,8 +108,8 @@
           "source": "https://aient.ai/mcp",
           "configPath": "official-mcp-registry:ai.aient/mcp"
         },
-        "verdict": "REVIEW",
-        "publicVerdictLabel": "Review required",
+        "verdict": "UNKNOWN",
+        "publicVerdictLabel": "Insufficient evidence",
         "policyApplied": false,
         "riskClass": "S1",
         "symbols": [
@@ -117,10 +117,9 @@
         ],
         "confidence": "high",
         "reproducibility": {
-          "level": "LOW",
+          "level": "MEDIUM",
           "reasons": [
-            "Remote endpoint domain ownership not verified",
-            "Remote endpoint identity verified; tool surface not analyzed"
+            "Remote endpoint could not be verified"
           ]
         },
         "summary": "\"remote\" could not be verified (insufficient evidence). Risk: Network (S1 Read-only utility).",
@@ -213,17 +212,11 @@
           "targetSpecHash": "sha256:e13540a079b895e7eaff154ae4914e50debb28c12b60d31bfe477213092af3dc",
           "riskSurfaceHash": "sha256:47e9d20255a346b95323c2cb9e092621521638b987bbcd036e68e4aee12dcaf3"
         },
-        "diagnostics": [
-          {
-            "level": "info",
-            "code": "evidence.remote-identity-verified",
-            "message": "Remote endpoint identity verified; tool surface not analyzed (evidence: https://aient.ai/mcp)"
-          }
-        ],
-        "generatedAt": "2026-08-17T01:39:50.172Z"
+        "diagnostics": [],
+        "generatedAt": "2026-08-27T11:02:09.000Z"
       }
     ],
     "diagnostics": [],
-    "generatedAt": "2026-08-17T01:39:50.172Z"
+    "generatedAt": "2026-08-27T11:02:09.000Z"
   }
 }

@@ -2,7 +2,7 @@
   "schema": "calllint.evidence-manifest.v1",
   "subject": {
     "canonicalName": "mcp-registry/ai.afmr-discovery",
-    "artifactDigest": "sha256:25a1fd89acf93f9f7cff8030370e8bc829b7fc0aeac55298d41d4e554bcdd7e0"
+    "artifactDigest": "sha256:bc8d888a6062468acc2a70f201ed9d4f7f804dc0dec54f174b7258cd47776a4c"
   },
   "verdict": "REVIEW",
   "verdictLabel": "Review required",
@@ -14,19 +14,26 @@
     "completeness": "complete",
     "authorityClaimed": false,
     "reproducibility": {
-      "pageDigest": "sha256:418c26230f89032d9ac214b35f829beaa61c30fe64c4face1ca6542ddef90a1b",
-      "observedAt": "2026-08-17T01:39:50.172Z"
+      "pageDigest": "sha256:115f96e70de8cefd365cfaf94f55480b344e1a9ae54360d31dee321524f128c6",
+      "observedAt": "2026-08-27T11:02:09.000Z"
     },
     "evidenceLevel": "E2"
   },
   "authority": {
-    "digest": "sha256:bcf5b932f0283bafc28b0b57d8fcd8188943657b74e836ddc3a0c8978da927ad",
+    "digest": "sha256:c749ef995e279ccc327345b788f0cfdc763e45d5c974a99ad206162537c7ea17",
     "completeness": "complete",
-    "capabilityCount": 1,
+    "capabilityCount": 2,
     "approvalRequired": [
       "external-network-access"
     ],
     "capabilities": [
+      {
+        "action": "connect",
+        "resource": "network",
+        "mutability": "mutating",
+        "reversibility": "irreversible",
+        "approvalRequirement": "review"
+      },
       {
         "action": "connect",
         "resource": "network",
@@ -38,13 +45,13 @@
   },
   "policyDigest": null,
   "reproducibility": {
-    "pageDigest": "sha256:418c26230f89032d9ac214b35f829beaa61c30fe64c4face1ca6542ddef90a1b",
-    "observedAt": "2026-08-17T01:39:50.172Z"
+    "pageDigest": "sha256:115f96e70de8cefd365cfaf94f55480b344e1a9ae54360d31dee321524f128c6",
+    "observedAt": "2026-08-27T11:02:09.000Z"
   },
   "engine": {
     "name": "calllint"
   },
   "correctionUrl": "https://github.com/calllint/calllint/issues/new?labels=trust-page-correction",
-  "generatedAt": "2026-08-17T01:39:50.172Z",
+  "generatedAt": "2026-08-27T11:02:09.000Z",
   "signature": null
 }

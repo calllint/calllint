@@ -1,0 +1,50 @@
+{
+  "schema": "calllint.evidence-manifest.v1",
+  "subject": {
+    "canonicalName": "mcp-registry/ai.astrofabric-mcp",
+    "artifactDigest": "sha256:8e431a47cacee2b18786149439ce8d12482aa7cd0c269e2875b123cdf10eab80"
+  },
+  "verdict": "REVIEW",
+  "verdictLabel": "Review required",
+  "completeness": "complete",
+  "evidenceLevel": "E2",
+  "evidenceRationale": "install config observed → static blast radius normalized into an authority inventory. Higher levels (E3 tool schema, E4 maintainer receipt, E5 sandbox) are not carried by a static page.",
+  "status": {
+    "verdict": "REVIEW",
+    "completeness": "complete",
+    "authorityClaimed": false,
+    "reproducibility": {
+      "pageDigest": "sha256:e9c4d9f3c0261d5669ef111f5b3f94081ab72ed17ce407dc1fdf5f18054da810",
+      "observedAt": "2026-08-27T11:02:09.000Z"
+    },
+    "evidenceLevel": "E2"
+  },
+  "authority": {
+    "digest": "sha256:c98f3466a7a9b0cec4e835f61e6a8f107250f9af5f64af9d91a3b0d53b2c4165",
+    "completeness": "complete",
+    "capabilityCount": 1,
+    "approvalRequired": [
+      "external-network-access"
+    ],
+    "capabilities": [
+      {
+        "action": "connect",
+        "resource": "network",
+        "mutability": "mutating",
+        "reversibility": "irreversible",
+        "approvalRequirement": "review"
+      }
+    ]
+  },
+  "policyDigest": null,
+  "reproducibility": {
+    "pageDigest": "sha256:e9c4d9f3c0261d5669ef111f5b3f94081ab72ed17ce407dc1fdf5f18054da810",
+    "observedAt": "2026-08-27T11:02:09.000Z"
+  },
+  "engine": {
+    "name": "calllint"
+  },
+  "correctionUrl": "https://github.com/calllint/calllint/issues/new?labels=trust-page-correction",
+  "generatedAt": "2026-08-27T11:02:09.000Z",
+  "signature": null
+}

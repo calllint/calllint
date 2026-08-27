@@ -1,11 +1,11 @@
 {
   "schema": "calllint.agent-adoption-contract.v1",
   "contract": {
-    "contractDigest": "sha256:7186ec5f26ba5f5bfe693fa3d8c78d1fb9996ba25367f57ed57badca5575d2e3",
-    "generatedAt": "2026-08-17T01:39:50.172Z",
+    "contractDigest": "sha256:cbeda4ef043381d151f8b29c0bc9875b5fc3a6dff6f98ae3f5b780b9f0710f76",
+    "generatedAt": "2026-08-27T11:02:09.000Z",
     "expiresAt": null,
     "generatorVersion": "0.1.0",
-    "snapshotDigest": "sha256:dd2a7d61fe610f3e1563a61d15b2b01a3a5d0f2fb8ed2d44a35d6ac1e427942a"
+    "snapshotDigest": "sha256:b1c68cc75cf1f3b311c93811d27f61db842ad6449d0cbfd3d69431090f253179"
   },
   "subject": {
     "canonicalName": "mcp-registry/ai.aient-mcp",
@@ -17,13 +17,13 @@
     "sourceLocator": "https://aient.ai/mcp"
   },
   "publicObservation": {
-    "verdict": "REVIEW",
-    "publicLabel": "Review required",
+    "verdict": "UNKNOWN",
+    "publicLabel": "Insufficient evidence",
     "reasonCodes": [
       "UNKNOWN_REMOTE"
     ],
     "evidenceLevel": "E2",
-    "evidenceDigest": "sha256:38cec50881ca48787407d5f0e2cff956864214bc497e8eb7bb48ba44d593b63b",
+    "evidenceDigest": "sha256:460ddb574210599ba30bf0b039498df296047e343223282d5575e6c256378c3d",
     "completeness": "complete"
   },
   "authorityDelta": {
@@ -44,8 +44,8 @@
     ]
   },
   "trustedSources": {
-    "registrySnapshotDigest": "sha256:dd2a7d61fe610f3e1563a61d15b2b01a3a5d0f2fb8ed2d44a35d6ac1e427942a",
-    "evidenceDigest": "sha256:38cec50881ca48787407d5f0e2cff956864214bc497e8eb7bb48ba44d593b63b",
+    "registrySnapshotDigest": "sha256:b1c68cc75cf1f3b311c93811d27f61db842ad6449d0cbfd3d69431090f253179",
+    "evidenceDigest": "sha256:460ddb574210599ba30bf0b039498df296047e343223282d5575e6c256378c3d",
     "engineVersion": "0.1.0"
   },
   "untrustedPublisherContent": {
@@ -53,15 +53,8 @@
     "usedForSafetyDecision": false
   },
   "recommendedNextAction": {
-    "kind": "PREPARE_LOCALLY",
-    "tool": "calllint_prepare_safe_install",
-    "arguments": {
-      "canonicalName": "mcp-registry/ai.aient-mcp",
-      "expectedVersion": "0.1.0",
-      "expectedArtifactDigest": "sha256:c2c942e0ee23b7f324fb8b73006ab3de8e4086c3d41487a48f4247d68fb46ee0",
-      "expectedContractDigest": "sha256:7186ec5f26ba5f5bfe693fa3d8c78d1fb9996ba25367f57ed57badca5575d2e3",
-      "host": null
-    }
+    "kind": "LOCAL_PREFLIGHT_REQUIRED",
+    "tool": "calllint_prepare_safe_install"
   },
   "agentGuidance": {
     "goal": "Add the requested Agent Tool with only locally approved authority.",

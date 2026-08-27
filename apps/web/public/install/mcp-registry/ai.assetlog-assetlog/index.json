@@ -1,18 +1,18 @@
 {
   "schema": "calllint.agent-adoption-contract.v1",
   "contract": {
-    "contractDigest": "sha256:f824d0f1b240acee036b0224a4ded45280ef9e8ecc0ccfe83c22cdf0d9b9d489",
-    "generatedAt": "2026-08-17T01:39:50.172Z",
+    "contractDigest": "sha256:313ea0e684a7200c6ef05db6e8081ddfebc9ab088e814976d7448343dd0d4f39",
+    "generatedAt": "2026-08-27T11:02:09.000Z",
     "expiresAt": null,
     "generatorVersion": "0.1.0",
-    "snapshotDigest": "sha256:dd2a7d61fe610f3e1563a61d15b2b01a3a5d0f2fb8ed2d44a35d6ac1e427942a"
+    "snapshotDigest": "sha256:b1c68cc75cf1f3b311c93811d27f61db842ad6449d0cbfd3d69431090f253179"
   },
   "subject": {
     "canonicalName": "mcp-registry/ai.assetlog-assetlog",
     "canonicalSlug": "mcp-registry/ai.assetlog-assetlog",
     "packageType": null,
     "packageName": null,
-    "version": "1.1.0",
+    "version": "1.4.0",
     "artifactDigest": "sha256:a4235f977e30bb7bf59d59ffff54c0f431a65e64a757128d227f69c04c3ba8ff",
     "sourceLocator": "https://api.assetlog.ai/mcp"
   },
@@ -23,7 +23,7 @@
       "UNKNOWN_REMOTE"
     ],
     "evidenceLevel": "E2",
-    "evidenceDigest": "sha256:38cec50881ca48787407d5f0e2cff956864214bc497e8eb7bb48ba44d593b63b",
+    "evidenceDigest": "sha256:460ddb574210599ba30bf0b039498df296047e343223282d5575e6c256378c3d",
     "completeness": "complete"
   },
   "authorityDelta": {
@@ -44,12 +44,12 @@
     ]
   },
   "trustedSources": {
-    "registrySnapshotDigest": "sha256:dd2a7d61fe610f3e1563a61d15b2b01a3a5d0f2fb8ed2d44a35d6ac1e427942a",
-    "evidenceDigest": "sha256:38cec50881ca48787407d5f0e2cff956864214bc497e8eb7bb48ba44d593b63b",
+    "registrySnapshotDigest": "sha256:b1c68cc75cf1f3b311c93811d27f61db842ad6449d0cbfd3d69431090f253179",
+    "evidenceDigest": "sha256:460ddb574210599ba30bf0b039498df296047e343223282d5575e6c256378c3d",
     "engineVersion": "0.1.0"
   },
   "untrustedPublisherContent": {
-    "description": "Search AssetLog listings and find agents, dealers or recruiters by location (service areas).",
+    "description": "Search vehicles, real estate and jobs; manage your listings, alerts, enquiries and viewings.",
     "usedForSafetyDecision": false
   },
   "recommendedNextAction": {
@@ -57,9 +57,9 @@
     "tool": "calllint_prepare_safe_install",
     "arguments": {
       "canonicalName": "mcp-registry/ai.assetlog-assetlog",
-      "expectedVersion": "1.1.0",
+      "expectedVersion": "1.4.0",
       "expectedArtifactDigest": "sha256:a4235f977e30bb7bf59d59ffff54c0f431a65e64a757128d227f69c04c3ba8ff",
-      "expectedContractDigest": "sha256:f824d0f1b240acee036b0224a4ded45280ef9e8ecc0ccfe83c22cdf0d9b9d489",
+      "expectedContractDigest": "sha256:313ea0e684a7200c6ef05db6e8081ddfebc9ab088e814976d7448343dd0d4f39",
       "host": null
     }
   },

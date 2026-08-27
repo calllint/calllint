@@ -2,18 +2,18 @@
   "schema": "calllint.trust-page.v0",
   "canonicalName": "mcp-registry/ai.agenticfabricationnetwork-ufp",
   "artifactDigest": "sha256:68aa642d2cd1eefc7ea8794cca6f808cf15ffa908a3cfea8b6bcd9f6bbb7ec67",
-  "pageDigest": "sha256:a2a4ffd2aade30f7cdc5e0af3fc9a14273d66568dcc53b2c07ed9106f4d2689d",
+  "pageDigest": "sha256:1f67c93473192797e753a8d0f52ed833010e8e5cc5d9576ab1aec3108500d1d1",
   "verdict": "REVIEW",
   "verdictLabel": "Review required",
-  "observedAt": "2026-08-17T01:39:50.172Z",
+  "observedAt": "2026-08-27T11:02:09.000Z",
   "completeness": "complete",
   "status": {
     "verdict": "REVIEW",
     "completeness": "complete",
     "authorityClaimed": false,
     "reproducibility": {
-      "pageDigest": "sha256:a2a4ffd2aade30f7cdc5e0af3fc9a14273d66568dcc53b2c07ed9106f4d2689d",
-      "observedAt": "2026-08-17T01:39:50.172Z"
+      "pageDigest": "sha256:1f67c93473192797e753a8d0f52ed833010e8e5cc5d9576ab1aec3108500d1d1",
+      "observedAt": "2026-08-27T11:02:09.000Z"
     },
     "evidenceLevel": "E2",
     "evidenceRationale": "install config observed → static blast radius normalized into an authority inventory. Higher levels (E3 tool schema, E4 maintainer receipt, E5 sandbox) are not carried by a static page."
@@ -26,8 +26,8 @@
   },
   "scanHistory": [
     {
-      "observedAt": "2026-08-17T01:39:50.172Z",
-      "pageDigest": "sha256:a2a4ffd2aade30f7cdc5e0af3fc9a14273d66568dcc53b2c07ed9106f4d2689d",
+      "observedAt": "2026-08-27T11:02:09.000Z",
+      "pageDigest": "sha256:1f67c93473192797e753a8d0f52ed833010e8e5cc5d9576ab1aec3108500d1d1",
       "artifactDigest": "sha256:68aa642d2cd1eefc7ea8794cca6f808cf15ffa908a3cfea8b6bcd9f6bbb7ec67"
     }
   ],
@@ -40,7 +40,7 @@
       "requestedRef": null,
       "resolvedRef": "sha256:68aa642d2cd1eefc7ea8794cca6f808cf15ffa908a3cfea8b6bcd9f6bbb7ec67",
       "digest": "sha256:68aa642d2cd1eefc7ea8794cca6f808cf15ffa908a3cfea8b6bcd9f6bbb7ec67",
-      "resolvedAt": "2026-08-17T01:39:50.172Z",
+      "resolvedAt": "2026-08-27T11:02:09.000Z",
       "resolution": "resolved"
     },
     "evidence": null,
@@ -84,7 +84,7 @@
       "no external evidence attached (optional); decision will rely on CallLint's own analysis",
       "authority normalized: 1 capability, approvals required: external-network-access"
     ],
-    "preparedAt": "2026-08-17T01:39:50.172Z"
+    "preparedAt": "2026-08-27T11:02:09.000Z"
   },
   "scan": {
     "schemaVersion": "calllint.report.v0",
@@ -220,10 +220,10 @@
             "message": "Remote endpoint identity verified; tool surface not analyzed (evidence: https://agenticfabricationnetwork.ai/mcp)"
           }
         ],
-        "generatedAt": "2026-08-17T01:39:50.172Z"
+        "generatedAt": "2026-08-27T11:02:09.000Z"
       }
     ],
     "diagnostics": [],
-    "generatedAt": "2026-08-17T01:39:50.172Z"
+    "generatedAt": "2026-08-27T11:02:09.000Z"
   }
 }

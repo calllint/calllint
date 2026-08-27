@@ -2,18 +2,18 @@
   "schema": "calllint.trust-page.v0",
   "canonicalName": "mcp-registry/ai.argushq-enforcement-database",
   "artifactDigest": "sha256:85553aa65f1586ce26269f0c89a104bb83799eba8e602e0846b867271c7dd5d0",
-  "pageDigest": "sha256:c66dfc70931078ddfc74710de2c0cb169113f8a9514ef9538a885acd1ed6648e",
+  "pageDigest": "sha256:12b05e0680ef8a7bd4a4fbf0328318e811c4cf4ef2fb86c2250a2b8fd0ada7a5",
   "verdict": "REVIEW",
   "verdictLabel": "Review required",
-  "observedAt": "2026-08-17T01:39:50.172Z",
+  "observedAt": "2026-08-27T11:02:09.000Z",
   "completeness": "complete",
   "status": {
     "verdict": "REVIEW",
     "completeness": "complete",
     "authorityClaimed": false,
     "reproducibility": {
-      "pageDigest": "sha256:c66dfc70931078ddfc74710de2c0cb169113f8a9514ef9538a885acd1ed6648e",
-      "observedAt": "2026-08-17T01:39:50.172Z"
+      "pageDigest": "sha256:12b05e0680ef8a7bd4a4fbf0328318e811c4cf4ef2fb86c2250a2b8fd0ada7a5",
+      "observedAt": "2026-08-27T11:02:09.000Z"
     },
     "evidenceLevel": "E2",
     "evidenceRationale": "install config observed → static blast radius normalized into an authority inventory. Higher levels (E3 tool schema, E4 maintainer receipt, E5 sandbox) are not carried by a static page."
@@ -26,8 +26,8 @@
   },
   "scanHistory": [
     {
-      "observedAt": "2026-08-17T01:39:50.172Z",
-      "pageDigest": "sha256:c66dfc70931078ddfc74710de2c0cb169113f8a9514ef9538a885acd1ed6648e",
+      "observedAt": "2026-08-27T11:02:09.000Z",
+      "pageDigest": "sha256:12b05e0680ef8a7bd4a4fbf0328318e811c4cf4ef2fb86c2250a2b8fd0ada7a5",
       "artifactDigest": "sha256:85553aa65f1586ce26269f0c89a104bb83799eba8e602e0846b867271c7dd5d0"
     }
   ],
@@ -40,7 +40,7 @@
       "requestedRef": null,
       "resolvedRef": "sha256:85553aa65f1586ce26269f0c89a104bb83799eba8e602e0846b867271c7dd5d0",
       "digest": "sha256:85553aa65f1586ce26269f0c89a104bb83799eba8e602e0846b867271c7dd5d0",
-      "resolvedAt": "2026-08-17T01:39:50.172Z",
+      "resolvedAt": "2026-08-27T11:02:09.000Z",
       "resolution": "resolved"
     },
     "evidence": null,
@@ -84,7 +84,7 @@
       "no external evidence attached (optional); decision will rely on CallLint's own analysis",
       "authority normalized: 1 capability, approvals required: external-network-access"
     ],
-    "preparedAt": "2026-08-17T01:39:50.172Z"
+    "preparedAt": "2026-08-27T11:02:09.000Z"
   },
   "scan": {
     "schemaVersion": "calllint.report.v0",
@@ -220,10 +220,10 @@
             "message": "Remote endpoint identity verified; tool surface not analyzed (evidence: https://argushq.ai/api/mcp)"
           }
         ],
-        "generatedAt": "2026-08-17T01:39:50.172Z"
+        "generatedAt": "2026-08-27T11:02:09.000Z"
       }
     ],
     "diagnostics": [],
-    "generatedAt": "2026-08-17T01:39:50.172Z"
+    "generatedAt": "2026-08-27T11:02:09.000Z"
   }
 }

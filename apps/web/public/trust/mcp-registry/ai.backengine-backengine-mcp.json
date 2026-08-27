@@ -1,0 +1,229 @@
+{
+  "schema": "calllint.trust-page.v0",
+  "canonicalName": "mcp-registry/ai.backengine-backengine-mcp",
+  "artifactDigest": "sha256:c49ab427316b892ae6882269f6e800dcde3fea436358405e5361f4b339ccfe90",
+  "pageDigest": "sha256:304dcfad5c5d85e7d8a8ab83079744ce07fd005f0d26d78ea4fd21eee959a52d",
+  "verdict": "REVIEW",
+  "verdictLabel": "Review required",
+  "observedAt": "2026-08-27T11:02:09.000Z",
+  "completeness": "complete",
+  "status": {
+    "verdict": "REVIEW",
+    "completeness": "complete",
+    "authorityClaimed": false,
+    "reproducibility": {
+      "pageDigest": "sha256:304dcfad5c5d85e7d8a8ab83079744ce07fd005f0d26d78ea4fd21eee959a52d",
+      "observedAt": "2026-08-27T11:02:09.000Z"
+    },
+    "evidenceLevel": "E2",
+    "evidenceRationale": "install config observed → static blast radius normalized into an authority inventory. Higher levels (E3 tool schema, E4 maintainer receipt, E5 sandbox) are not carried by a static page."
+  },
+  "correctionUrl": "https://github.com/calllint/calllint/issues/new?labels=trust-page-correction",
+  "reproduction": {
+    "command": "npx calllint scan official-mcp-registry:ai.backengine/backengine-mcp",
+    "artifactDigest": "sha256:c49ab427316b892ae6882269f6e800dcde3fea436358405e5361f4b339ccfe90",
+    "note": "Re-running this scan reproduces the verdict observed at the pinned artifact digest. It is a point-in-time observation, not a guarantee of future behavior."
+  },
+  "scanHistory": [
+    {
+      "observedAt": "2026-08-27T11:02:09.000Z",
+      "pageDigest": "sha256:304dcfad5c5d85e7d8a8ab83079744ce07fd005f0d26d78ea4fd21eee959a52d",
+      "artifactDigest": "sha256:c49ab427316b892ae6882269f6e800dcde3fea436358405e5361f4b339ccfe90"
+    }
+  ],
+  "preparation": {
+    "schema": "calllint.trust-preparation.v0",
+    "artifact": {
+      "schema": "calllint.artifact.v1",
+      "sourceType": "mcp-config",
+      "source": "official-mcp-registry:ai.backengine/backengine-mcp",
+      "requestedRef": null,
+      "resolvedRef": "sha256:c49ab427316b892ae6882269f6e800dcde3fea436358405e5361f4b339ccfe90",
+      "digest": "sha256:c49ab427316b892ae6882269f6e800dcde3fea436358405e5361f4b339ccfe90",
+      "resolvedAt": "2026-08-27T11:02:09.000Z",
+      "resolution": "resolved"
+    },
+    "evidence": null,
+    "authority": {
+      "schema": "calllint.authority.v0",
+      "subject": {
+        "artifactDigest": "sha256:c49ab427316b892ae6882269f6e800dcde3fea436358405e5361f4b339ccfe90"
+      },
+      "capabilities": [
+        {
+          "action": "connect",
+          "resource": "network",
+          "scope": "backengine-prod.backengine.ai",
+          "destination": "backengine-prod.backengine.ai",
+          "mutability": "mutating",
+          "reversibility": "irreversible",
+          "monetaryLimit": null,
+          "approvalRequirement": "review",
+          "evidenceSource": "server.url",
+          "confidence": "high",
+          "completeness": "complete"
+        }
+      ],
+      "limits": {
+        "spendPerCall": null,
+        "spendTotal": null
+      },
+      "approval": {
+        "required": [
+          "external-network-access"
+        ]
+      },
+      "unknowns": [],
+      "completeness": "complete",
+      "digest": "sha256:378ae018afcf7636da31a21afc826d0f8b66062c8c5cb7d8ec1ece5ae2f9dff6"
+    },
+    "decision": null,
+    "plan": null,
+    "state": "AUTHORITY_NORMALIZED",
+    "notes": [
+      "no external evidence attached (optional); decision will rely on CallLint's own analysis",
+      "authority normalized: 1 capability, approvals required: external-network-access"
+    ],
+    "preparedAt": "2026-08-27T11:02:09.000Z"
+  },
+  "scan": {
+    "schemaVersion": "calllint.report.v0",
+    "reportKind": "config-summary",
+    "configPath": "official-mcp-registry:ai.backengine/backengine-mcp",
+    "verdict": "REVIEW",
+    "publicVerdictLabel": "Review required",
+    "counts": {
+      "SAFE": 0,
+      "REVIEW": 1,
+      "BLOCK": 0,
+      "UNKNOWN": 0
+    },
+    "reports": [
+      {
+        "schemaVersion": "calllint.report.v0",
+        "reportKind": "single-target",
+        "target": {
+          "name": "remote",
+          "kind": "mcp-servers",
+          "source": "https://backengine-prod.backengine.ai/mcp",
+          "configPath": "official-mcp-registry:ai.backengine/backengine-mcp"
+        },
+        "verdict": "REVIEW",
+        "publicVerdictLabel": "Review required",
+        "policyApplied": false,
+        "riskClass": "S1",
+        "symbols": [
+          "NETWORK"
+        ],
+        "confidence": "high",
+        "reproducibility": {
+          "level": "LOW",
+          "reasons": [
+            "Remote endpoint domain ownership not verified",
+            "Remote endpoint identity verified; tool surface not analyzed"
+          ]
+        },
+        "summary": "\"remote\" could not be verified (insufficient evidence). Risk: Network (S1 Read-only utility).",
+        "observed": [
+          {
+            "id": "supply.unknown-remote",
+            "title": "Remote server source cannot be verified",
+            "severity": "high",
+            "blocker": false,
+            "symbol": "NETWORK",
+            "riskClass": "S1",
+            "mode": "OBSERVED",
+            "confidence": "high",
+            "detectionMethod": "runtime-binding",
+            "evidence": [
+              {
+                "type": "runtime-binding",
+                "path": "official-mcp-registry:ai.backengine/backengine-mcp",
+                "key": "url",
+                "value": "https://backengine-prod.backengine.ai/mcp",
+                "line": 5,
+                "column": 7
+              }
+            ],
+            "impact": "The server runs on an unverified remote endpoint. Its tools, permissions, and behavior cannot be inspected statically and may change at any time.",
+            "fix": "Use a verified first-party endpoint, or run the server from a pinned, inspectable package.",
+            "falsePositiveNote": "A trusted internal endpoint may be fine; add it to the policy allowlist to verify it."
+          }
+        ],
+        "inferred": [],
+        "findings": [
+          {
+            "id": "supply.unknown-remote",
+            "title": "Remote server source cannot be verified",
+            "severity": "high",
+            "blocker": false,
+            "symbol": "NETWORK",
+            "riskClass": "S1",
+            "mode": "OBSERVED",
+            "confidence": "high",
+            "detectionMethod": "runtime-binding",
+            "evidence": [
+              {
+                "type": "runtime-binding",
+                "path": "official-mcp-registry:ai.backengine/backengine-mcp",
+                "key": "url",
+                "value": "https://backengine-prod.backengine.ai/mcp",
+                "line": 5,
+                "column": 7
+              }
+            ],
+            "impact": "The server runs on an unverified remote endpoint. Its tools, permissions, and behavior cannot be inspected statically and may change at any time.",
+            "fix": "Use a verified first-party endpoint, or run the server from a pinned, inspectable package.",
+            "falsePositiveNote": "A trusted internal endpoint may be fine; add it to the policy allowlist to verify it."
+          }
+        ],
+        "topFindings": [
+          {
+            "id": "supply.unknown-remote",
+            "title": "Remote server source cannot be verified",
+            "severity": "high",
+            "blocker": false,
+            "symbol": "NETWORK",
+            "riskClass": "S1",
+            "mode": "OBSERVED",
+            "confidence": "high",
+            "detectionMethod": "runtime-binding",
+            "evidence": [
+              {
+                "type": "runtime-binding",
+                "path": "official-mcp-registry:ai.backengine/backengine-mcp",
+                "key": "url",
+                "value": "https://backengine-prod.backengine.ai/mcp",
+                "line": 5,
+                "column": 7
+              }
+            ],
+            "impact": "The server runs on an unverified remote endpoint. Its tools, permissions, and behavior cannot be inspected statically and may change at any time.",
+            "fix": "Use a verified first-party endpoint, or run the server from a pinned, inspectable package.",
+            "falsePositiveNote": "A trusted internal endpoint may be fine; add it to the policy allowlist to verify it."
+          }
+        ],
+        "policy": {
+          "autonomousUse": "deny",
+          "manualApproval": "required",
+          "sandbox": "required"
+        },
+        "fingerprints": {
+          "configHash": "sha256:bcaacaf428ac9ced11f34a0f39f600f6ece407dd24ff6bb630afc40ca0f9118f",
+          "targetSpecHash": "sha256:1bf8f615a9126afc5938b7e8f654419b58578bf8b460558b8df5636fa1379712",
+          "riskSurfaceHash": "sha256:47e9d20255a346b95323c2cb9e092621521638b987bbcd036e68e4aee12dcaf3"
+        },
+        "diagnostics": [
+          {
+            "level": "info",
+            "code": "evidence.remote-identity-verified",
+            "message": "Remote endpoint identity verified; tool surface not analyzed (evidence: https://backengine-prod.backengine.ai/mcp)"
+          }
+        ],
+        "generatedAt": "2026-08-27T11:02:09.000Z"
+      }
+    ],
+    "diagnostics": [],
+    "generatedAt": "2026-08-27T11:02:09.000Z"
+  }
+}
