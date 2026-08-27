@@ -127,21 +127,43 @@ jobs:
       # downloadable copy for 14 days), and the deploy makes it reachable at the
       # private host. Access gate confirmed by unauthenticated curl test.
       - name: Deploy to usage.calllint.com (behind Cloudflare Access)
+        id: deploy
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
         run: |
+          set -uo pipefail
           cd apps/usage-worker
+          # Tee, so the deployment URL can be read by the verification step below. That URL
+          # is the ONLY authoritative liveness signal available once the pages.dev subdomain
+          # is disabled: Access 302s before authenticating (measured 2026-08-26 — even a
+          # path that cannot exist gets the same 302), so the gated host cannot testify
+          # about its own origin, and a disabled subdomain leaves nothing else to ask.
           npx wrangler pages deploy ../../dist/usage \
             --project-name=calllint-usage-report \
             --branch=main \
-            --commit-dirty=true
+            --commit-dirty=true 2>&1 | tee /tmp/deploy.log
+          status=${PIPESTATUS[0]}
+
+          # Judge the OUTPUT, not just the exit code. Asserted POSITIVELY: the success
+          # marker must be PRESENT. "no error appeared" is satisfied by empty output, which
+          # is exactly how this repo's guards have failed before.
+          if ! grep -q "Deployment complete" /tmp/deploy.log; then
+            echo "::error::wrangler did not report 'Deployment complete' — no deployment landed."
+            exit 1
+          fi
+          url=$(grep -oE 'https://[a-z0-9]+\.calllint-usage-report\.pages\.dev' /tmp/deploy.log | head -1)
+          echo "deployment_url=$url" >> "$GITHUB_OUTPUT"
+          echo "✓ deployed: ${url:-<url not parsed, but 'Deployment complete' was reported>}"
+          exit "$status"
 
       # Verify that Access is actually enforcing — an unauthenticated request must
       # land on the sign-in gate and must not leak report content. This guards
       # against Access policy deletion or misconfiguration; without this step, the
       # deploy would keep running even if the host became public.
       - name: Verify Access gate is enforcing (unauthenticated probe)
+        env:
+          DEPLOYMENT_URL: ${{ steps.deploy.outputs.deployment_url }}
         run: |
           set -uo pipefail
           HOST=https://usage.calllint.com/
@@ -187,28 +209,69 @@ jobs:
           #    satisfied by a gate in front of NOTHING: Access authenticates, proxies to a
           #    Pages project with zero deployments, and the operator gets 502 *after* signing
           #    in — while this workflow stays green. "Gated" and "dead" must not look alike.
-          #    The origin is checked directly, since the gated host cannot be read without
-          #    credentials and this job holds none for Access.
-          #    Measured 2026-08-26: a nonexistent project's *.pages.dev does NOT resolve
-          #    (NXDOMAIN), so a 522 here means the project EXISTS with no live deployment —
-          #    exactly the state that produced the 502. That distinction is why this keys on
-          #    the status code and not on reachability alone.
-          ocode=$(curl -sS -o /tmp/origin-body.html -w '%{http_code}' --max-time 25 "$ORIGIN" || echo 000)
-          oloc=$(curl -sSI --max-time 25 "$ORIGIN" | tr -d '\r' | awk 'tolower($1)=="location:"{print $2; exit}')
-          if grep -qiE 'CLI package downloads|MCP servers observed|Recorded preflights' /tmp/origin-body.html; then
-            # Access binds to a hostname. If it covers only the custom domain, the report is
-            # world-readable at the pages.dev hostname the moment a deploy lands. Not a
-            # secret leak (no credentials, no raw IDs — those never leave the Worker), but
-            # §29 makes "public" the violation, so this is an error, not a warning.
-            echo "::error::$ORIGIN serves report content UNGATED — Access covers the custom domain only."
-            echo "::error::Remediate: add usage.calllint.com's Access policy to *.pages.dev, or disable the pages.dev subdomain in the Pages project (Settings → Build & deployments → pages.dev domain)."
-            fail=1
-          elif [ "$ocode" = "522" ] || [ "$ocode" = "404" ] || [ "$ocode" = "000" ]; then
-            echo "::error::Origin has no live deployment (HTTP $ocode at $ORIGIN)."
-            echo "::error::Access will authenticate and then 502, because it proxies to an empty project. This is the failure an operator sees AFTER verifying their email."
+          #
+          #    LIVENESS COMES FROM THE DEPLOY STEP, NOT FROM PROBING A HOSTNAME. Two measured
+          #    facts forced that (both 2026-08-26):
+          #      a) The gated host cannot testify about its own origin — Access 302s BEFORE
+          #         authenticating, identically for a path that cannot exist.
+          #      b) Probing $ORIGIN raced the alias: the deploy reported complete at
+          #         13:36:19.16 and this step read 522 half a second later, then 200 minutes
+          #         on. A retry would only trade a false red for a sleep that hides a truly
+          #         empty origin.
+          #    So `wrangler`'s own "Deployment complete" + deployment URL is the signal. It is
+          #    authoritative and immune to alias propagation.
+          #
+          #    ONE KNOWN LIMIT, stated rather than hidden: $DEPLOYMENT_URL is a per-deployment
+          #    hostname, so this proves THIS deployment serves — not that the production alias
+          #    does. Cloudflare offers no way to observe the gated custom domain without a
+          #    credential the pipeline deliberately does not hold
+          #    (artifacts/authority-distribution-closure/CLOUDFLARE_ACCESS_ACTION.md), so that
+          #    gap is accepted, not closed. Note also that per-deployment hostnames fall under
+          #    the `*.{project}.pages.dev` PREVIEW wildcard: if the preview Access policy is
+          #    ever enabled (Pages → Settings → General → "Enable access policy"), this check
+          #    will read a 302 and must be revisited — it is not covered today.
+          if [ -z "${DEPLOYMENT_URL:-}" ]; then
+            echo "::error::the deploy step published no deployment URL — nothing is known to be live."
             fail=1
           else
-            echo "✓ origin: deployment live (HTTP $ocode${oloc:+, redirects to $oloc})"
+            dcode=$(curl -sS -o /tmp/deployment-body.html -w '%{http_code}' --max-time 25 "$DEPLOYMENT_URL" || echo 000)
+            case "$dcode" in
+              200) echo "✓ origin: deployment live at the immutable deployment URL (HTTP 200)" ;;
+              000|404|522)
+                # The deployment-specific hostname is created by the deploy itself, so unlike
+                # the alias it is not subject to alias propagation. A failure here after
+                # "Deployment complete" is a real fault, not a race.
+                echo "::error::the deployment URL from this run is not serving (HTTP $dcode). wrangler reported success, so this is a genuine origin fault."
+                fail=1 ;;
+              *) echo "::warning::deployment URL returned HTTP $dcode — not a known-bad code, treating as live." ;;
+            esac
+          fi
+
+          # 4. §29: the report must not be world-readable. Access binds to a HOSTNAME, so a
+          #    policy on the custom domain alone leaves the report public at pages.dev the
+          #    moment a deploy lands — measured 2026-08-26: 200, 2666 bytes, all three row
+          #    labels present, and NO x-robots-tag (that header ships on preview hostnames
+          #    only), so the in-page noindex meta is the sole crawler backstop there.
+          #
+          #    THIS CHECK OBJECTS ONLY TO CONTENT, never to absence. Cloudflare provides no
+          #    way to delete a project's pages.dev hostname (verified against the Pages docs
+          #    2026-08-26 — the documented options are a Bulk Redirect or a second Access
+          #    application), so whatever remediation lands, this hostname keeps resolving and
+          #    answers with a redirect or a challenge rather than the report. Reading any of
+          #    that as "no live deployment" — which this probe did until 2026-08-26 — reports a
+          #    CORRECT configuration as the very 502 it exists to catch. Hence liveness moved
+          #    to check 3, and every non-content response below is a pass.
+          ocode=$(curl -sS -o /tmp/origin-body.html -w '%{http_code}' --max-time 25 "$ORIGIN" || echo 000)
+          if grep -qiE 'CLI package downloads|MCP servers observed|Recorded preflights' /tmp/origin-body.html; then
+            # Not a secret leak (no credentials, no raw IDs — those never leave the Worker),
+            # but §29 makes "public" the violation, so this is an error, not a warning.
+            echo "::error::$ORIGIN serves report content UNGATED (HTTP $ocode) — Access covers the custom domain only."
+            echo "::error::Remediate: Cloudflare has NO switch to delete this hostname (verified against the Pages docs 2026-08-26). Use an account-level Bulk Redirect from $ORIGIN to https://usage.calllint.com/, or add a second Access application covering *.pages.dev. Note that Pages → Settings → General → 'Enable access policy' does NOT cover this hostname — it protects preview deployments only."
+            fail=1
+          elif [ "$ocode" = "000" ]; then
+            echo "✓ §29: $ORIGIN does not resolve or refused the connection — no content exposed"
+          else
+            echo "✓ §29: $ORIGIN serves no report content (HTTP $ocode)"
           fi
 
           [ "$fail" = 0 ] || exit 1

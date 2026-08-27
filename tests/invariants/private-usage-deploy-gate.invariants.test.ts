@@ -48,6 +48,15 @@ const probeBody = (() => {
 })()
 
 /**
+ * The deploy step's shell body. Liveness is established HERE, not by probing a hostname, so
+ * the deploy's own assertions are part of §29's observability and are pinned below.
+ */
+const deployBody = (() => {
+  const from = realWorkflow.slice(realWorkflow.indexOf("- name: Deploy to usage.calllint.com"))
+  return from.slice(0, from.indexOf(`- name: ${VERIFY_STEP}`))
+})()
+
+/**
  * Row labels the report ACTUALLY renders. This is the ground truth for "leaked content",
  * and it is read from the template rather than restated here, so a renamed row breaks the
  * assertion instead of silently un-pinning the probe.
@@ -202,12 +211,51 @@ describe("private usage deploy gate — §29 stays fail-closed", () => {
    * The 502 an operator hit on 2026-08-26 was invisible to CI because both prior checks
    * pass when Access fronts a project with ZERO deployments: the redirect happens, and no
    * content leaks because there is no content. The probe must therefore also observe that
-   * something is served. */
+   * something is served.
+   *
+   * These three tests assert PROPERTIES of that observation, not the wording of its
+   * diagnostics. The predecessor pinned the literal string "no live deployment" and broke
+   * when the message was reworded, which taught nothing about whether liveness was still
+   * observed. */
 
-  it("the probe checks the origin has a live deployment, so a 502-behind-the-gate reds", () => {
-    expect(probeBody).toContain("calllint-usage-report.pages.dev")
-    expect(probeBody).toMatch(/522/)
-    expect(probeBody).toMatch(/no live deployment/i)
+  it("the probe checks something is really served, so a 502-behind-the-gate reds", () => {
+    // Asserted as a PROPERTY, not as a sentence. The first version of this test pinned the
+    // literal "no live deployment" — the exact wording of one error message — so rewording
+    // the diagnostic broke it while the property it protects was intact. A test that fails
+    // on a synonym is measuring the author's prose, not the guard's behaviour.
+    //
+    // The property: the probe must fetch the deployment URL that the deploy step published,
+    // and must red when that fetch does not serve. Liveness deliberately comes from the
+    // deploy's own output rather than from probing a hostname — see the step's comment for
+    // the two measurements (Access 302s before authenticating; probing the alias raced it).
+    expect(deployBody).toMatch(/deployment_url=.*>>.*GITHUB_OUTPUT/)
+    expect(probeBody).toContain("DEPLOYMENT_URL")
+    expect(probeBody).toMatch(/curl[^\n]*"\$DEPLOYMENT_URL"/)
+    // A dead deployment URL must set fail, not merely print. Both the empty-URL branch and
+    // the bad-status branch are asserted, since either alone would let the other pass mute.
+    const noUrl = probeBody.slice(probeBody.indexOf("published no deployment URL"))
+    expect(noUrl.slice(0, 200)).toMatch(/fail=1/)
+    const badStatus = probeBody.slice(probeBody.indexOf("is not serving"))
+    expect(badStatus.slice(0, 200)).toMatch(/fail=1/)
+  })
+
+  it("the deploy step asserts wrangler's success marker POSITIVELY, not by absence of error", () => {
+    // An empty log satisfies "no error appeared" — the vacuous-green shape this repo keeps
+    // rediscovering. So the marker must be required present, and its absence must exit.
+    expect(deployBody).toMatch(/if ! grep -q "Deployment complete"/)
+    expect(deployBody.slice(deployBody.indexOf("Deployment complete"))).toMatch(/exit 1/)
+  })
+
+  it("the §29 exposure check reds on CONTENT, and does not infer liveness from the alias", () => {
+    // Once the production pages.dev hostname stops serving this report, absence there is the
+    // intended end state — not a fault. Reading it as "no live deployment" (which the probe
+    // did until 2026-08-26) reports a CORRECT configuration as the 502 it exists to catch.
+    // So the ungated check may only ever object to content being served.
+    const s29 = probeBody.slice(probeBody.indexOf("ocode="))
+    expect(s29).toContain("serves report content UNGATED")
+    // The known-absent codes must be treated as a pass by this check, not as an error.
+    expect(s29).toMatch(/elif \[ "\$ocode" = "000" \]/)
+    expect(s29.slice(s29.indexOf('elif [ "$ocode" = "000" ]'))).not.toMatch(/fail=1/)
   })
 
   it("the probe treats an ungated pages.dev origin as an error, not a warning", () => {
