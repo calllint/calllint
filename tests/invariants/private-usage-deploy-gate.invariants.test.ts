@@ -230,13 +230,58 @@ describe("private usage deploy gate — §29 stays fail-closed", () => {
     // the two measurements (Access 302s before authenticating; probing the alias raced it).
     expect(deployBody).toMatch(/deployment_url=.*>>.*GITHUB_OUTPUT/)
     expect(probeBody).toContain("DEPLOYMENT_URL")
-    expect(probeBody).toMatch(/curl[^\n]*"\$DEPLOYMENT_URL"/)
+    // Not anchored to one line: the curl grew a `-D` header dump when the canonical-host
+    // entry landed, and a line break is not a weakening. The property is that this URL is
+    // what gets fetched.
+    expect(probeBody).toMatch(/curl[\s\S]{0,200}?"\$DEPLOYMENT_URL"/)
     // A dead deployment URL must set fail, not merely print. Both the empty-URL branch and
     // the bad-status branch are asserted, since either alone would let the other pass mute.
     const noUrl = probeBody.slice(probeBody.indexOf("published no deployment URL"))
     expect(noUrl.slice(0, 200)).toMatch(/fail=1/)
     const badStatus = probeBody.slice(probeBody.indexOf("is not serving"))
     expect(badStatus.slice(0, 200)).toMatch(/fail=1/)
+  })
+
+  it("liveness requires BOTH the redirect and the report header — a 301 alone is not live", () => {
+    // apps/usage-worker/src/pages-entry.js makes the deployment URL 301 instead of serve.
+    // A redirect proves only that code RAN. The gated-but-dead 502 state is precisely a
+    // redirect with nothing behind it, so `absent` must red.
+    const c3 = probeBody.slice(probeBody.indexOf('case "$dcode"'))
+    const scoped = c3.slice(0, c3.indexOf("esac"))
+    expect(scoped).toMatch(/x-calllint-report/i)
+    const absent = scoped.slice(scoped.indexOf('"$report" = "absent"'))
+    expect(absent.slice(0, 300)).toMatch(/fail=1/)
+    // A missing header must not be read as live either — unobservable is not a pass.
+    expect(scoped).toMatch(/liveness is unobservable/)
+  })
+
+  it("a plain 200 on the deployment URL is an ERROR — that is U-1 reopened on the wildcard", () => {
+    // The check's old pass condition. Per-deployment hostnames sit under the
+    // `*.{project}.pages.dev` wildcard and serve the same report, so a 200 here means the
+    // canonical-host entry did not run. Accepting it would close U-1 only on the alias.
+    const c3 = probeBody.slice(probeBody.indexOf('case "$dcode"'))
+    const scoped = c3.slice(0, c3.indexOf("esac"))
+    const twoHundred = scoped.slice(scoped.indexOf("200)"))
+    expect(twoHundred.slice(0, 400)).toMatch(/fail=1/)
+    // And no branch may fall through to a warning-shaped pass, which is what the wildcard
+    // relied on before: `*)` previously printed ::warning and treated the host as live.
+    expect(scoped).not.toMatch(/::warning::[^\n]*treating as live/)
+  })
+
+  it("the shipped canonical-host entry exists, is wired into the build, and is tested", () => {
+    // A guard that cannot observe its subject is this repo's dominant fault class. The
+    // probe's check 3 and check 4 both now assume this file ships; assert that it does.
+    const entry = readFileSync(path.join(ROOT, "apps/usage-worker/src/pages-entry.js"), "utf8")
+    expect(entry).toContain('CANONICAL_HOST = "usage.calllint.com"')
+    expect(entry).toMatch(/status:\s*301/)
+    // Copied into the deploy root under the name Pages advanced mode requires, and
+    // validated BEFORE the write so a bad copy cannot reach a deployment.
+    const gen = readFileSync(path.join(ROOT, "scripts/generate-usage-report.mjs"), "utf8")
+    expect(gen).toMatch(/_worker\.js/)
+    expect(gen).toMatch(/pages-entry\.js/)
+    expect(gen.indexOf("pages-entry.js")).toBeLessThan(gen.indexOf("const failures = []"))
+    // Driven by real tests, not by inspection of a dashboard.
+    expect(existsSync(path.join(ROOT, "apps/usage-worker/test/pages-entry.test.ts"))).toBe(true)
   })
 
   it("the deploy step asserts wrangler's success marker POSITIVELY, not by absence of error", () => {

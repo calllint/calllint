@@ -1,6 +1,6 @@
 # new19–21 open items — what is left, and who can move it
 
-- **Date:** 2026-08-26.
+- **Date:** 2026-08-26, updated 2026-08-27 (U-1 closed in-repo — see [U-1](#u-1-usagecalllintcom-is-served-ungated-at-its-pagesdev-hostname)).
 - **Source plans:** `docs/new19.md`, `docs/new20.md`, `docs/new21.md`. `docs/` is gitignored
   (`.gitignore:44`) as local-only planning notes, so this file is the tracked record of what
   those plans still owe. Same reason [`NEW21_SEQUENCING_PLAN.md`](NEW21_SEQUENCING_PLAN.md)
@@ -18,6 +18,13 @@ substitute for, and one turned out to be waiting on *us* (E-1). Recording those 
 plan would misrepresent them — a TODO implies someone could pick it up. The columns below say
 who actually can.
 
+**One caution this tracker earned the hard way.** U-1 sat here for a day as "the user only,
+Cloudflare dashboard" and was then closed in-repo with no dashboard action at all. The
+classification was wrong because the *mechanisms surveyed* were both account-level, and no one
+asked whether a third mechanism existed inside the deploy. "Who can move it" is a claim about
+the world, not a property of the item — when it says *the user only*, that is the sentence to
+attack first.
+
 ## Closed 2026-08-26
 
 All four landed and are merged; each was verified able to fail before being trusted.
@@ -29,6 +36,12 @@ All four landed and are merged; each was verified able to fail before being trus
 | four dead `officialSources` URLs | `f85bb50` (#339) | separate commit to the SSOT; per-URL measurement recorded in [`REGISTRY-CONSUMPTION-AUDIT.md`](../submissions/REGISTRY-CONSUMPTION-AUDIT.md) |
 | `kiro` discovery tests | `f85bb50` (#339) | 15 tests. The extractor already shipped working — **the gap was coverage, not function** |
 
+## Closed 2026-08-27
+
+| item | how | evidence |
+|---|---|---|
+| **U-1** — the report served ungated at `calllint-usage-report.pages.dev` | `apps/usage-worker/src/pages-entry.js` ships as the deployment's `_worker.js`; every non-canonical host 301s to the gated domain | 10 tests drive the shipped file (4/4 mutations red), 3 new invariants (3/3 red), generator validates before writing and was proven to exit 1 writing nothing, emitted file `cmp`-identical to source, check-3 matrix 10/10. **Not yet exercised by a real deploy** — weekly cron |
+
 Verification for #339: `pnpm test` 4926 passed / 1 skipped (264 files, up from 4911/263),
 `pnpm typecheck` and `pnpm build` clean, invariants 559 passed, all 7 gates PASS locally,
 CI 11/11 green. 10 negative controls, each redding exactly its target and reverted
@@ -38,7 +51,17 @@ byte-for-byte.
 
 ### U-1. `usage.calllint.com` is served UNGATED at its `pages.dev` hostname
 
-**Who can move it: the user only** (Cloudflare dashboard). The decision on 2026-08-26 was to
+> **CLOSED 2026-08-27, in-repo.** `apps/usage-worker/src/pages-entry.js` now ships as the
+> deployment's `_worker.js` (Pages advanced mode): every hostname other than
+> `usage.calllint.com` gets a 301 to it and no report bytes, and `robots.txt` alone is still
+> served so the hostname keeps a `Disallow`. This needed **no dashboard action and no
+> account-level token** — it rides the `Pages:Edit` scope CI already has. The two options
+> below remain available at the edge and now act as a redundant first layer, not as the fix.
+> Covered by 10 tests driving the shipped file (`apps/usage-worker/test/pages-entry.test.ts`)
+> plus 3 invariants; the generator validates the bytes *before* writing them, so a bad copy
+> cannot reach a deployment. See the "How it was closed" section at the end of this item.
+
+**Who could move it, before the in-repo fix: the user only** (Cloudflare dashboard). The decision on 2026-08-26 was to
 *disable* the `pages.dev` subdomain — the custom domain already works, so an unused hostname is
 pure exposure. **That instruction was wrong and is corrected here: Cloudflare has no switch to
 disable or delete a Pages project's `pages.dev` hostname.** Verified against the Pages docs the
@@ -49,7 +72,8 @@ page frames the whole task as two *workarounds*, and after a custom domain is re
 "will only be accessible through the `*.pages.dev` subdomain" — that hostname persists by
 construction.
 
-So the intent stands and the mechanism changes. Two options, both the user's:
+So the intent stands and the mechanism changes. Two options were put to the user, both
+account-level and both theirs — **and a third was missed, which is the one that shipped**:
 
 | Option | What it does | Cost |
 | --- | --- | --- |
@@ -117,6 +141,60 @@ robots.txt → User-agent: *   Disallow: /
 So the exposure is to someone who knows the exact URL, not to search. Those two backstops were
 written for "the day Access is misconfigured"; this is that day, and they worked.
 
+#### How it was closed (2026-08-27)
+
+**The missed third option.** Both options above are account-level objects, so both were blocked
+on a credential the pipeline deliberately does not hold — and the maintainer's local token was
+invalid (`code: 1000`). Presenting only those two framed a fixable defect as permanently
+user-blocked. The redirect can instead ship *inside the deployment*, where `Pages:Edit` — the
+scope CI already has — is sufficient.
+
+`apps/usage-worker/src/pages-entry.js` is copied byte-for-byte to `dist/usage/_worker.js`
+(the same pattern `usage.css` already used), putting the project in Pages **advanced mode** so
+the platform routes every request through it.
+
+| Request | Answer |
+| --- | --- |
+| `usage.calllint.com/*` | served unchanged, via `env.ASSETS.fetch` |
+| `calllint-usage-report.pages.dev/*` | **301** → `https://usage.calllint.com/*`, empty body |
+| `<hash>.calllint-usage-report.pages.dev/*` | **301**, same — the preview wildcard is covered too |
+| any non-canonical `/robots.txt` | served, **not** redirected |
+
+Four decisions worth their reasons:
+
+- **`_worker.js`, not `_redirects`** — `_redirects` rules match *paths*; the subject here is the
+  *host*, so there is no rule to write. Advanced mode also guarantees no request bypasses it.
+- **301, not 403** — permanent, so it is browser-cached hard, and an old bookmark still lands
+  somewhere useful (the Access sign-in) rather than on an error.
+- **`robots.txt` exempt** — redirecting it would leave this hostname with *no* `Disallow` at
+  all, and per the measurement above there is no `x-robots-tag` here to fall back on. Serving
+  it replaces the `noindex` meta the redirect removes.
+- **The redirect carries `x-calllint-report: present|absent`** — because it broke check 3. That
+  check fetched `$DEPLOYMENT_URL`, itself a `*.pages.dev` name, and read HTTP 200 as "something
+  is live"; after this change it reads a 301, and a redirect alone proves only that code *ran*.
+  The header is derived by asking the asset server for the document, so check 3 now
+  distinguishes gated-from-dead on the redirect path — **stronger than the 200 it replaced**,
+  since "301 + absent" is exactly the 502 state U-2 records. A plain 200 there is now an
+  **error**: it means the entry did not run, i.e. this finding is reopened on the wildcard.
+
+**Verification.** 10 tests drive the shipped file itself (not a re-implementation) —
+`apps/usage-worker/test/pages-entry.test.ts`; 4/4 mutations of it turn those tests red. 3 new
+invariants pin check 3's new shape and that the entry is wired into the build; 3/3 mutations red.
+The generator validates the bytes **before** writing, and was proven to exit 1 leaving the output
+directory empty. Emitted `_worker.js` is `cmp`-identical to the source. Check 3's branch logic ran
+as a 10-case matrix, 10/10 as intended. Full suite 4941 passed / 1 skipped (265 files); typecheck
+clean, including the entry — `allowJs`/`checkJs` were turned on for the worker project precisely
+so this file is not the one Workers-runtime file nothing typechecks.
+
+**One behaviour change to know about.** Check 3's old `*)` branch printed a `::warning` and
+treated any unknown code as live. It is an error now. Concretely: switching on
+`Pages → Settings → General → "Enable access policy"` makes that read a 302 and turns this step
+red — intended, because a red saying "come look" beats a green that hides that liveness is no
+longer observable from there.
+
+**Not verified:** behaviour on a real deploy. The workflow is a weekly cron plus
+`workflow_dispatch`, so the first live exercise of the entry is the next run.
+
 ### U-2. The 502 is resolved — and why it was invisible for so long
 
 **Status: CLOSED as of run `32975124276`, 2026-08-26 13:36Z.** `✨ Success! Uploaded 3 files`
@@ -165,7 +243,10 @@ fix is committed, not yet demonstrated.**
 ### T-2. The Access probe inferred liveness from a hostname it does not control
 
 **Status: FIXED 2026-08-26 (`c5fb5af`, hardened in the same PR).** Kept here because the fix had
-to land *before* U-1's dashboard action, and because the fault is instructive.
+to land *before* U-1's remediation, and because the fault is instructive. Extended again on
+2026-08-27 when U-1 shipped in-repo: the entry made `$DEPLOYMENT_URL` a 301, so check 3 was
+re-cut to require the redirect **and** a `x-calllint-report: present` header. Same root cause,
+one layer further in — a redirect is evidence that code ran, not that anything is behind it.
 
 Two defects, one root cause — the probe inferred liveness from a hostname it does not control.
 
@@ -205,7 +286,9 @@ objects to **content** and to nothing else, so every non-content response is a p
 that the production alias does; observing the gated custom domain would need a credential the
 pipeline deliberately does not hold, so that gap is accepted, not closed. And the per-deployment
 hostname sits inside the `*.{project}.pages.dev` preview wildcard, so enabling the preview Access
-policy would make check 3 read a 302. That policy is off today and U-1 must not use it.
+policy would make check 3 read a 302. That policy is off today, and U-1 did not need it — the
+in-repo entry covers the wildcard directly. Since 2026-08-27 that 302 is an **error** rather than
+a warning-shaped pass, so the limit is now announced by CI instead of living only in this file.
 
 Verified before being trusted: the extracted decision logic was driven through 9 controlled
 cases, 9/9 landing as intended. All 4 expected-PASS land `fail=0` — including **both real U-1 end
@@ -220,14 +303,20 @@ token) and an empty log are both rejected.
 The matrix was rebuilt on 2026-08-26: its predecessor's headline case was NXDOMAIN, a state that
 cannot occur, so it was verifying the wrong end state — correct logic, wrong world.
 
-**Not verified:** behaviour on a real post-remediation run, which cannot exist until U-1 lands.
-The matrix covers both end states in logic, not in the world.
+Re-run on 2026-08-27 for check 3's new shape: a 10-case matrix, 10/10 as intended, with "301 +
+absent" (gated but dead) and "200" (the entry did not run) both landing `fail=1`.
 
-Four assertions in
+**Not verified:** behaviour on a real run. U-1's remediation has landed in the repo, but the
+workflow is a weekly cron plus `workflow_dispatch`, so the entry has not yet been exercised
+against Cloudflare. The matrix covers the end states in logic, not in the world.
+
+Seven assertions in
 [`private-usage-deploy-gate.invariants.test.ts`](../../tests/invariants/private-usage-deploy-gate.invariants.test.ts)
 now hold this shape in place, each with a negative control that reds exactly its target: the
 deploy must publish the URL, the probe must fetch *that* URL, `Deployment complete` must be
-asserted positively, and check 4 must not treat a non-answer as a fault. The predecessor pinned
+asserted positively, check 4 must not treat a non-answer as a fault, liveness must require both
+the 301 and the report header, a plain 200 must be an error, and the shipped entry must exist and
+be wired into the generator ahead of its validation block. The predecessor pinned
 the literal string `no live deployment` and broke on a reworded diagnostic while the property was
 intact — a test measuring prose, not behaviour.
 

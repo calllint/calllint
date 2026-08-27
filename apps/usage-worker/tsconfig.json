@@ -17,10 +17,13 @@
     "noUncheckedIndexedAccess": true,
     "noFallthroughCasesInSwitch": true,
     "verbatimModuleSyntax": true,
+    "allowJs": true,
+    "checkJs": true,
     "baseUrl": "../..",
     "paths": {
       "@calllint/telemetry-contract": ["packages/telemetry-contract/src/index.ts"]
     }
   },
-  "include": ["src/**/*.ts"]
+  "//js": "allowJs+checkJs and the .js glob exist for ONE file: src/pages-entry.js, which is copied byte-for-byte into the deployed dist/usage as `_worker.js` (Pages advanced mode expects JavaScript, and adding a bundler to this workflow for 40 lines is not worth the dependency). Without the glob it would be the one Workers-runtime file in the repo that nothing typechecks — and it is the file that decides whether the private report is world-readable.",
+  "include": ["src/**/*.ts", "src/**/*.js"]
 }
