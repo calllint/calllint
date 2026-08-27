@@ -6,15 +6,25 @@ to follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html) from 1.0.0
 onward. While pre-1.0, minor versions may include breaking changes.
 
 `MCPGuard` was the internal codename for this project; the public product is
-**CallLint** (see ADR 0008).
+**CallLint**. (The "see ADR 0008" citation that stood here was stale: no ADR 0008
+records the rename in either series — `artifacts/adr/` runs 0001–0010 and its 0008
+is about de-listing, `docs/adr/` starts at 0018. Removed rather than re-pointed,
+because the sentence needs no citation to be true.)
 
 ## [Unreleased]
 
-Everything below has been on `main` since `v1.8.0` (2026-08-18) and **is not yet
-published** — `calllint@1.8.0` remains the latest npm release, so no user has any
-of it. That gap is deliberate (the release is batched), but it is also why
-`no telemetry ingested yet` is a correct reading of the world rather than a
-defect: the published artifact carries no delivery path at all.
+Nothing yet. Everything previously staged here shipped in 1.9.0 below.
+
+## [1.9.0] — 2026-08-27
+
+Closes the gap this section spent nine days describing. Everything below had been
+on `main` since `v1.8.0` (2026-08-18) while `calllint@1.8.0` remained the latest
+npm release, so **no user had any of it** — 35 commits' worth. That gap was
+deliberate (the release is batched), and it was also why `no telemetry ingested
+yet` read as a correct description of the world rather than a defect: until this
+release, the published artifact carried no delivery path at all. With 1.9.0 it
+does, so that reading stops being free — a continued absence of ingest now means
+something and is tracked as O-1 rather than explained away.
 
 ### Added
 
@@ -81,6 +91,16 @@ defect: the published artifact carries no delivery path at all.
 - **Four dead `officialSources` URLs**, measured per URL rather than in bulk.
 - **Every host page now says what CallLint does**, not just the nine that shipped
   a command.
+- **The bundled plugin's MCP server was silently absent on Claude Code and Copilot
+  CLI.** `plugins/calllint/` shipped its manifest as `mcp.json` — Cursor's filename —
+  with no `.mcp.json`, so both hosts loaded the plugin, reported it enabled, and
+  registered no server: `claude mcp list` answered *No MCP servers configured* for a
+  plugin that said it was installed. Fixed additively (`.mcp.json` added, `mcp.json`
+  retained for Cursor). The install probe was itself blind to this — its four steps
+  were all passing while the product was unreachable — so it gained a fifth step that
+  asserts `✔ Connected` rather than inferring it from a successful install.
+- **The telemetry disclosure the consent prompt depends on was unpublished** (O-2),
+  and CallLint asked for consent to something a reader could not look up.
 
 ### Changed
 

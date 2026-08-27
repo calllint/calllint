@@ -3,7 +3,7 @@
   "schemaVersion": "agent.discovery.v1",
   "canonical": true,
   "describes": {
-    "release": "1.8.0"
+    "release": "1.9.0"
   },
   "surfaceTypes": [
     "agent-harness",
@@ -428,7 +428,7 @@
         {
           "kind": "openclaw-clawhub",
           "state": "Not available here",
-          "blocker": "Blocked on a licence term, not on a missing channel — and the distinction is the point, because the mechanism here is real and one command long. Audited 2026-08-27. ClawHub hosts exactly three surfaces: Skills (a folder carrying `SKILL.md`), code plugins, and bundle plugins. It hosts no MCP servers, so the obvious reading of this row — publish the MCP server — has no target. But we already ship `skills/secure-agent-install/SKILL.md`, and `clawhub skill publish <path>` takes precisely that, with `--dry-run` first, so no new artifact would be needed. What stops it: publishing a skill to ClawHub releases it under `MIT-0`, and this repository is Apache-2.0. MIT-0 drops the attribution requirement and carries no patent grant, so the act would relicense a shipped artifact on strictly weaker terms than the repo it came from. That is an owner's decision about intellectual property, not an engineering step, and it cannot be inferred from the instruction to submit to shelves — so it is recorded here rather than performed. It also needs `clawhub login` (browser OAuth, `--device`, or a `clh_` token), which is an account only the owner has. Unblocking condition, stated so nobody re-audits: the owner accepts MIT-0 for that one skill directory, or ClawHub gains a per-skill licence field.",
+          "blocker": "Blocked on a licence term, not on a missing channel — and the distinction is the point, because the mechanism here is real and one command long. Audited 2026-08-27. ClawHub hosts exactly three surfaces: Skills (a folder carrying `SKILL.md`), code plugins, and bundle plugins. It hosts no MCP servers, so the obvious reading of this row — publish the MCP server — has no target. But we already ship `skills/secure-agent-install/SKILL.md`, and `clawhub skill publish <path>` takes precisely that, with `--dry-run` first, so no new artifact would be needed. What stops it: publishing a skill to ClawHub releases it under `MIT-0`, and this repository is Apache-2.0. MIT-0 drops the attribution requirement and carries no patent grant, so the act would relicense a shipped artifact on strictly weaker terms than the repo it came from. That is an owner's decision about intellectual property, not an engineering step, and it cannot be inferred from the instruction to submit to shelves — so it is recorded here rather than performed. It also needs `clawhub login` (browser OAuth, `--device`, or a `clh_` token), which is an account only the owner has. DECIDED 2026-08-27: the owner declined, so this is settled rather than pending a decision. The alternative was checked before recording rather than assumed away, and it does not exist — ClawHub's skill format documents no `license` field and states in as many words that it `does not support per-skill license overrides`, with `All skills published on ClawHub are licensed under MIT-0`. So there is no way to list the skill on Apache-2.0 terms, and the channel is closed on a term we will not accept. Not a to-do and not a queue: nobody is reviewing anything, and re-running the audit will reach this same sentence. Two things that would reopen it, neither of which is work we can do: ClawHub adds a per-skill licence field, or it gains a surface that accepts what we actually ship. One route was deliberately left unexplored rather than silently dismissed — ClawHub also hosts code plugins, whose licence terms are documented separately from skills, but reaching it would mean building an OpenClaw plugin against their SDK with `openclaw.compat.pluginApi` and `openclaw.build.openclawVersion`, which is a new artifact and a new maintenance surface, not a submission. If that is ever wanted it should be decided on its own merits, not adopted as a workaround for a licence term.",
           "officialSource": "https://docs.openclaw.ai/clawhub"
         }
       ],
@@ -517,7 +517,7 @@
         },
         {
           "kind": "github-copilot-plugin",
-          "state": "Not yet submitted",
+          "state": "Awaiting the upstream registry",
           "officialSource": "https://docs.github.com/copilot/how-tos/copilot-cli/customize-copilot/plugins-marketplace"
         }
       ],

@@ -24,7 +24,7 @@ MCP servers and agent skills. It performs deterministic static preflight
 inspection and returns SAFE, REVIEW, BLOCK, or UNKNOWN verdicts with evidence
 before execution — never executes the server it judges.
 
-The current stable release is 1.8.0 on the `latest` tag.
+The current stable release is 1.9.0 on the `latest` tag.
 
 ## Official MCP Registry
 
@@ -185,7 +185,7 @@ Platforms that consume the Official MCP Registry can discover CallLint automatic
 
 **Distribution Primitives**:
   - mcp-registry-discovery: BLOCKED
-  - github-copilot-plugin: READY_NOT_SUBMITTED — https://docs.github.com/copilot/how-tos/copilot-cli/customize-copilot/plugins-marketplace
+  - github-copilot-plugin: PENDING_UPSTREAM — https://docs.github.com/copilot/how-tos/copilot-cli/customize-copilot/plugins-marketplace
 
 **Coverage Boundary**: CallLint does not yet auto-discover Copilot CLI configuration.
 

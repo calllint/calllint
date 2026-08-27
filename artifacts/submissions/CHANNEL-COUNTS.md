@@ -26,10 +26,10 @@ claim is unverified, not the support absent.
 | State | Count | Meaning |
 |---|---|---|
 | `BLOCKED` | 8 | A recorded blocker makes it impossible or explicitly rejected — not a to-do. See [BLOCKED.md](BLOCKED.md). |
-| `PENDING_UPSTREAM` | 2 | Waiting on someone else; a second submission would duplicate. |
+| `PENDING_UPSTREAM` | 3 | Waiting on someone else; a second submission would duplicate. |
 | `AVAILABLE` | 1 | Already listed. |
 | submitted, not yet listed | 0 | A recorded submission whose listing is not yet verified. Not a to-do either. |
-| actionable | 3 | Ordered by ROI in [ROI.md](ROI.md). |
+| actionable | 2 | Ordered by ROI in [ROI.md](ROI.md). |
 
 The 5 buckets sum to 14; generation fails if they ever do not.
 
@@ -44,7 +44,6 @@ matter what its `state` says, because submitting again would duplicate; see
 
 | Host | Channel | Tier | State | Submitted |
 |---|---|---|---|---|
-| `copilot-cli` | `github-copilot-plugin` | P2 | `READY_NOT_SUBMITTED` | — |
 | `gemini-cli` | `gemini-extension-gallery` | P2 | `AUDIT_REQUIRED` | — |
 | `kiro` | `kiro-workspace-config` | P2 | `AUDIT_REQUIRED` | — |
 
@@ -66,6 +65,7 @@ matter what its `state` says, because submitting again would duplicate; see
 | Host | Channel | Tier | State | Submitted |
 |---|---|---|---|---|
 | `cline` | `cline-marketplace-pr` | P2 | `PENDING_UPSTREAM` | 2026-08-18 |
+| `copilot-cli` | `github-copilot-plugin` | P2 | `PENDING_UPSTREAM` | 2026-08-27 |
 | `cursor` | `cursor-plugin` | P0 | `PENDING_UPSTREAM` | 2026-08-25 |
 
 ### Already available

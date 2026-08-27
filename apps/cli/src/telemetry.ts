@@ -9,11 +9,17 @@
  *   plumbing is real. It still fails closed — absent an explicit `telemetry enable`,
  *   `telemetryEnabled` is false, `emit()` returns `gated`, and nothing is written.
  *
- *   AS PUBLISHED: `calllint@1.8.0` (npm, 2026-08-18) contains NO network sink, no
- *   `telemetry` command, and no `telemetryEnabled` — measured against the real tarball
- *   on 2026-08-27 (0 hits for each, control `calllint` 312 hits). The wiring landed in
- *   a0076ff (#325, 2026-08-21), three days after that publish, and no release has been
- *   cut since. So for every user today this seam is still "wired, dark".
+ *   AS PUBLISHED: this converged with HEAD in **1.9.0** (2026-08-27). Until then it did
+ *   not, and the gap is kept here because it is the reason O-1 exists: `calllint@1.8.0`
+ *   (npm, 2026-08-18) contained NO network sink, no `telemetry` command, and no
+ *   `telemetryEnabled` — measured against the real tarball on 2026-08-27 (0 hits for
+ *   each, control `calllint` 312 hits). The wiring landed in a0076ff (#325, 2026-08-21),
+ *   three days after that publish, and for nine days no release was cut, so for every
+ *   user the seam was "wired, dark" and `no telemetry ingested yet` described the world
+ *   correctly rather than reporting a fault. From 1.9.0 onward it no longer does: the
+ *   delivery path ships, so a continued absence of ingest is a finding, not an
+ *   explanation. Re-measure against the tarball before trusting this paragraph again —
+ *   the previous version of it expired silently, which is why the split exists.
  *
  * Do not read either state off the other. "No network sink ships" is true of the
  * published artifact and false of this file's own directory at HEAD.

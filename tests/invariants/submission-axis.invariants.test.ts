@@ -259,9 +259,18 @@ describe("positive fixture — the shipped SSOT records the one act that happene
      * channel asserting in its own name that nobody acted must carry no evidence that anyone did.
      * That is strictly stronger than counting rows — it is checked per record, so it also binds
      * every future one. `submissionUrl` is included because the schema requires a date alongside it,
-     * so carrying one here is the same contradiction reached one step earlier. */
+     * so carrying one here is the same contradiction reached one step earlier.
+     *
+     * THIS LOOP IS ALLOWED TO BE VACUOUS, and that is a deliberate second correction. The first
+     * version of this test also asserted `users.length > 0`, which failed within the hour: the
+     * copilot PR was opened the same day, the row moved to PENDING_UPSTREAM, and the state emptied
+     * again. That assertion was the original mistake wearing the opposite sign — requiring the state
+     * to be *populated* is no more a rule than requiring it to be empty, and the SSOT is free to
+     * hold zero, one, or many ready-but-unsubmitted channels. Nothing is lost by dropping it: arm 4's
+     * ability to fail does not rest on live data at all. The `negative fixture` block below proves it
+     * three times, once per channel in the file, on synthetic documents. So this loop binds whatever
+     * records exist, and the fixtures below carry the proof that it would bite. */
     const users = allChannels().filter((c) => c.state === "READY_NOT_SUBMITTED")
-    expect(users.length, "the state has no record, so this is vacuous again — see the ADR").toBeGreaterThan(0)
 
     for (const c of users) {
       expect(c.submission, `${c.host}/${c.kind}: labelled not-submitted while recording an act`).toBeUndefined()
