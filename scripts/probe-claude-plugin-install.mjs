@@ -209,6 +209,26 @@ function main() {
       enabled ? "claude plugin list reports enabled" : pluginList.trim().slice(0, 200),
     )
 
+    // STEP 5, added 2026-08-27 because the first four were all true while the product was
+    // NOT reachable. Measured that day: the plugin installed and reported `enabled`, and
+    // `claude mcp list` said "No MCP servers configured" — the MCP server, which is the
+    // actual product, was silently absent. Cause: the manifest was `mcp.json` (Cursor's
+    // shape) with no `.mcp.json` (the name Claude Code and Copilot CLI read).
+    //
+    // So "installed and enabled" is NOT evidence that the channel delivers CallLint, and a
+    // probe that stopped at step 4 would have backed an AVAILABLE claim about a plugin that
+    // shipped a skill and nothing else. Asserted positively on `✔ Connected`: a server that
+    // is listed but unhealthy is not a working channel, and an empty output must not pass.
+    const mcpList = claude(["mcp", "list"])
+    const serverLive = /plugin:calllint:calllint\b/.test(mcpList) && mcpList.includes("✔ Connected")
+    record(
+      "the plugin's MCP server registers and connects",
+      serverLive,
+      serverLive
+        ? "claude mcp list reports plugin:calllint:calllint ✔ Connected"
+        : `NOT reachable — this is the 2026-08-27 defect recurring. ${mcpList.trim().slice(0, 200)}`,
+    )
+
     if (selfCheck) runControls()
   } finally {
     // Always revert, including on an early return above.

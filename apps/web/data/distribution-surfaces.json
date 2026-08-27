@@ -52,13 +52,19 @@
         },
         {
           "kind": "claude-plugin",
-          "state": "AUDIT_REQUIRED",
+          "state": "AVAILABLE",
           "officialSource": "https://code.claude.com/docs/en/plugin-marketplaces",
           "liveUrl": null,
           "submission": {
             "date": "2026-07-20"
           },
-          "note": "Claude Code has no marketplace to submit to: distribution is users adding this repo as a marketplace, so the act is publishing the install line. Published in README (owner/repo form, per the docs) on 2026-07-20 in 5bed4b6, alongside the 1.7.1 docs — measured from git log, not from this file's own claim. No shelf page exists to record as liveUrl, so the accepted arm of ADR 0002 is structurally unreachable here; a README anchor would be self-endorsement, which is the 2026-08-23 cursor-plugin defect."
+          "evidence": {
+            "class": "localReproducibleInstall",
+            "probe": "scripts/probe-claude-plugin-install.mjs",
+            "hostVersion": "claude 2.1.195",
+            "noShelf": true
+          },
+          "note": "Claude Code has no marketplace to submit to: distribution is users adding this repo as a marketplace, so the act is publishing the install line. Published in README (owner/repo form, per the docs) on 2026-07-20 in 5bed4b6, alongside the 1.7.1 docs — measured from git log, not from this file's own claim. No shelf page exists to record as liveUrl, so ADR 0002's accepted arm is structurally unreachable here; a README anchor would be self-endorsement, the 2026-08-23 cursor-plugin defect. Available to users since 2026-08-27 on ADR 0007's third arm: the install is observed end to end by the named probe on claude 2.1.195 (marketplace add → appears in list → install → plugin list reports enabled), each step judged on output because `claude plugin` exits 0 on failure."
         }
       ],
       "coverageBoundary": "CallLint scans MCP server entries only. Skills, hooks and permission settings in the same file are not covered.",
@@ -222,7 +228,9 @@
         },
         {
           "kind": "windsurf-mcp-marketplace",
-          "state": "AUDIT_REQUIRED"
+          "state": "BLOCKED",
+          "officialSource": "https://docs.devin.ai/desktop/cascade/mcp",
+          "blocker": "No public submission path exists. Audited 2026-08-27: the MCP documentation describes installing from the marketplace, adding anything missing by hand-editing `mcp_config.json`, and deep-linking an existing listing via `windsurf://windsurf-mcp-registry?serverName=`, but it documents no form, PR target, or intake URL by which a third party gets listed. Listings carrying a blue check are described as made by the parent service company, with no path given to obtain one. Blocked on the absence of a channel, not on a queue — so this is not a to-do, and there is nothing to wait for either. Two adjacent facts worth keeping: the windsurf.com docs now 307-redirect to `docs.devin.ai/desktop/...`, so this host ships as Devin Desktop and the old `codeium.com/windsurf` source is stale; and enterprise teams may point Cascade at a custom registry that must follow the official MCP registry schema, which CallLint is already published to. That makes this host reachable per-team through a registry we already satisfy, which is a different mechanism from a public listing and is why the row stays blocked rather than pending."
         }
       ],
       "coverageBoundary": "CallLint scans MCP server entries only. Windsurf rules and workflow settings are not covered.",
@@ -313,7 +321,8 @@
         },
         {
           "kind": "qwen-extension-conversion",
-          "state": "AUDIT_REQUIRED",
+          "state": "BLOCKED",
+          "blocker": "There is nothing to submit, and that is the audit's finding rather than an obstacle. Audited 2026-08-27. Qwen Code publishes no gallery or catalogue of its own; it installs FROM other hosts' shelves and converts on the way in — `qwen extensions install <marketplace>:<plugin>` reads a Claude Code marketplace and converts the Claude manifest to `qwen-extension.json`, translating agents, skills and tool mappings, while `qwen extensions install <owner>/<repo>` does the same for a Gemini extension, carrying MCP servers and context files across. `/extensions explore` browses the Gemini CLI and Claude Code galleries. So this row is derivative of shelves we already publish or are working toward, and submitting to it is not a thing a person can do. Deliberately NOT marked available: no probe has installed CallLint through Qwen, so reachability is inferred from the documented conversion rather than observed, and ADR 0007 admits only observed acts as evidence. What would settle it is one command on a machine with Qwen Code — `qwen extensions install calllint/calllint` — after which this becomes an evidence-backed availability claim rather than a blocked row. Kept out of the to-do list because the to-do list is for acts a human can perform on a channel, and this channel accepts none.",
           "note": "Qwen Code can convert Claude/Gemini extensions",
           "officialSource": "https://qwenlm.github.io/qwen-code-docs/en/users/extension/introduction/"
         }
@@ -359,7 +368,9 @@
         },
         {
           "kind": "openclaw-clawhub",
-          "state": "AUDIT_REQUIRED"
+          "state": "BLOCKED",
+          "officialSource": "https://docs.openclaw.ai/clawhub",
+          "blocker": "Blocked on a licence term, not on a missing channel — and the distinction is the point, because the mechanism here is real and one command long. Audited 2026-08-27. ClawHub hosts exactly three surfaces: Skills (a folder carrying `SKILL.md`), code plugins, and bundle plugins. It hosts no MCP servers, so the obvious reading of this row — publish the MCP server — has no target. But we already ship `skills/secure-agent-install/SKILL.md`, and `clawhub skill publish <path>` takes precisely that, with `--dry-run` first, so no new artifact would be needed. What stops it: publishing a skill to ClawHub releases it under `MIT-0`, and this repository is Apache-2.0. MIT-0 drops the attribution requirement and carries no patent grant, so the act would relicense a shipped artifact on strictly weaker terms than the repo it came from. That is an owner's decision about intellectual property, not an engineering step, and it cannot be inferred from the instruction to submit to shelves — so it is recorded here rather than performed. It also needs `clawhub login` (browser OAuth, `--device`, or a `clh_` token), which is an account only the owner has. Unblocking condition, stated so nobody re-audits: the owner accepts MIT-0 for that one skill directory, or ClawHub gains a per-skill licence field."
         }
       ],
       "coverageBoundary": "CallLint scans MCP configuration only. Skills and exec permissions are not covered.",
@@ -429,7 +440,9 @@
         "mcp"
       ],
       "configEvidence": [
-        "Config mechanism requires verification"
+        "~/.copilot/mcp-config.json",
+        ".mcp.json",
+        ".github/mcp.json"
       ],
       "supportClass": "DISCOVERY_ONLY",
       "truthfulCommands": [],
@@ -438,18 +451,20 @@
         "/harnesses/deepseek/copilot-cli"
       ],
       "officialSources": [
-        "https://github.com/github/gh-copilot"
+        "https://github.com/github/gh-copilot",
+        "https://docs.github.com/copilot/concepts/agents/copilot-cli/about-cli-plugins"
       ],
       "distributionPrimitives": [
         {
           "kind": "mcp-registry-discovery",
-          "upstream": "officialMcpRegistry",
-          "state": "AUDIT_REQUIRED",
-          "auditNote": "GitHub Copilot CLI MCP and Registry integration unclear"
+          "state": "BLOCKED",
+          "blocker": "GitHub Copilot CLI does not consume the Official MCP Registry, so there is no registry-discovery channel to submit to. Measured 2026-08-27 on copilot 1.0.80: `copilot mcp add` takes a command or URL with no registry lookup and no name resolution, `copilot mcp list/get` expose no search or discovery flag, and the string `registry.modelcontextprotocol.io` does not appear anywhere in the shipped platform binary — against a positive control on the same search, which finds `mcp-config.json` in that same app.js. Config is loaded only from the user file, the workspace file, or an installed plugin. This row previously carried `upstream: officialMcpRegistry`, which was a claim about a mechanism that does not exist; it is removed rather than left under a pending label, because `upstream` is the evidence arm HD-07 accepts from a channel claiming to be available to users."
         },
         {
           "kind": "github-copilot-plugin",
-          "state": "AUDIT_REQUIRED"
+          "state": "READY_NOT_SUBMITTED",
+          "officialSource": "https://docs.github.com/copilot/how-tos/copilot-cli/customize-copilot/plugins-marketplace",
+          "note": "PR target is github/copilot-plugins — deliberately NOT recorded as `submissionUrl`, which the schema defines as evidence a human acted (it requires a `submission` date). Nobody has submitted yet, so the URL belongs here as a target. Audit resolved 2026-08-27 on copilot 1.0.80 (E-2), which required the 357 MB platform binary and so could not run in CI. Copilot CLI has a real plugin system — `copilot plugin install/list/uninstall`, plus `plugin marketplace add/browse` — and two marketplaces ship by default: `github/copilot-plugins` and `github/awesome-copilot`. A marketplace is a GitHub repo carrying `.claude-plugin/marketplace.json`, the same manifest format this repo already publishes for Claude Code, so the submission is a PR adding one entry, not a new artifact. Measured, not inferred: our plugin installs from a local path and `copilot plugin list` reports `calllint (v0.1.0)`, and after the `.mcp.json` fix `copilot mcp list` reports `calllint (local)` under Plugin servers. Direct path/repo/URL installs are deprecated with a warning that only `plugin@marketplace` installs will be supported, which makes this PR the eventual only supported route rather than a nicety. Ready but not yet submitted is therefore the accurate state, and this is that state's first real record."
         }
       ],
       "coverageBoundary": "CallLint does not yet auto-discover Copilot CLI configuration.",
@@ -542,7 +557,7 @@
           "kind": "gemini-extension-gallery",
           "state": "AUDIT_REQUIRED",
           "officialSource": "https://geminicli.com/docs/extensions/",
-          "note": "Auto-discovery via GitHub topic + manifest"
+          "note": "Audit resolved 2026-08-27; the state stays unverified because what remains is our own work, not a queue. There is no submission here at all: the gallery automatically indexes public repositories and the docs say in as many words that you need not submit an issue or email anyone. Three conditions, quoted from the releasing guide: the extension is hosted in a public GitHub repository; the repository carries the `gemini-cli-extension` topic, which is what the crawler uses to find new extensions; and `gemini-extension.json` sits in the absolute root of the repository or the release archive. Crawling is daily and listing is conditional on passing validation. No git tag or release is required — `migratedTo` is the only transition that needs one. So the first condition already holds, the third is an artifact this repository does not yet have, and the second is a one-call metadata change. Ordering matters and is the reason this is not done: adding the topic first invites a daily crawler to validate a repository with no manifest in it, and a listing that depends on passing validation should not first be observed failing it. Manifest before topic."
         }
       ],
       "coverageBoundary": "CallLint scans the mcpServers map in Gemini CLI settings. OAuth token and server-enablement files are read for neither discovery nor verdicts.",

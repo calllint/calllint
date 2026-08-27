@@ -52,7 +52,7 @@ Platforms that consume the Official MCP Registry can discover CallLint automatic
 
 **Distribution Primitives**:
   - mcp-stdio: AVAILABLE (upstream: officialMcpRegistry)
-  - claude-plugin: AUDIT_REQUIRED — https://code.claude.com/docs/en/plugin-marketplaces
+  - claude-plugin: AVAILABLE — https://code.claude.com/docs/en/plugin-marketplaces
 
 **Coverage Boundary**: CallLint scans MCP server entries only. Skills, hooks and permission settings in the same file are not covered.
 
@@ -110,7 +110,7 @@ Platforms that consume the Official MCP Registry can discover CallLint automatic
 
 **Distribution Primitives**:
   - mcp-stdio: AUDIT_REQUIRED (upstream: officialMcpRegistry)
-  - windsurf-mcp-marketplace: AUDIT_REQUIRED
+  - windsurf-mcp-marketplace: BLOCKED — https://docs.devin.ai/desktop/cascade/mcp
 
 **Coverage Boundary**: CallLint scans MCP server entries only. Windsurf rules and workflow settings are not covered.
 
@@ -140,7 +140,7 @@ Platforms that consume the Official MCP Registry can discover CallLint automatic
 
 **Distribution Primitives**:
   - mcp-stdio: AUDIT_REQUIRED (upstream: officialMcpRegistry)
-  - qwen-extension-conversion: AUDIT_REQUIRED — https://qwenlm.github.io/qwen-code-docs/en/users/extension/introduction/
+  - qwen-extension-conversion: BLOCKED — https://qwenlm.github.io/qwen-code-docs/en/users/extension/introduction/
 
 **Coverage Boundary**: CallLint scans MCP server entries only. Other Qwen Code settings in the same file are not covered.
 
@@ -155,7 +155,7 @@ Platforms that consume the Official MCP Registry can discover CallLint automatic
 
 **Distribution Primitives**:
   - mcp-stdio: AUDIT_REQUIRED (upstream: officialMcpRegistry)
-  - openclaw-clawhub: AUDIT_REQUIRED
+  - openclaw-clawhub: BLOCKED — https://docs.openclaw.ai/clawhub
 
 **Coverage Boundary**: CallLint scans MCP configuration only. Skills and exec permissions are not covered.
 
@@ -179,13 +179,13 @@ Platforms that consume the Official MCP Registry can discover CallLint automatic
 - **Priority**: P2
 - **Support Class**: DISCOVERY_ONLY
 - **Authority Surfaces**: shell, cli, mcp
-- **Config Paths**: Config mechanism requires verification
+- **Config Paths**: ~/.copilot/mcp-config.json, .mcp.json, .github/mcp.json
 - **Scan Commands**: N/A
 - **Canonical URL**: https://calllint.com/harnesses/copilot-cli
 
 **Distribution Primitives**:
-  - mcp-registry-discovery: AUDIT_REQUIRED (upstream: officialMcpRegistry)
-  - github-copilot-plugin: AUDIT_REQUIRED
+  - mcp-registry-discovery: BLOCKED
+  - github-copilot-plugin: READY_NOT_SUBMITTED — https://docs.github.com/copilot/how-tos/copilot-cli/customize-copilot/plugins-marketplace
 
 **Coverage Boundary**: CallLint does not yet auto-discover Copilot CLI configuration.
 

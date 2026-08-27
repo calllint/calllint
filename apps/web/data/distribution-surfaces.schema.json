@@ -278,8 +278,19 @@
           "then": {
             "anyOf": [
               { "required": ["upstream"] },
-              { "required": ["liveUrl"], "properties": { "liveUrl": { "type": "string" } } }
+              { "required": ["liveUrl"], "properties": { "liveUrl": { "type": "string" } } },
+              { "required": ["evidence"] }
             ]
+          }
+        },
+        {
+          "$comment": "THE THIRD ARM (artifacts/adr/0007-a-reproducible-local-act-as-public-evidence.md): a reproducible local install. Added because the ONE channel whose install has been observed end to end was the ONE channel that could not be marked AVAILABLE -- both existing arms are structurally unreachable for claude-code/claude-plugin. `upstream: officialMcpRegistry` attests our MCP SERVER; that channel ships a PLUGIN, so the arm would go green about a different artifact. `liveUrl` has no subject: Claude Code distribution is users adding this repo as a marketplace, so no gallery page exists, and the only URL available is our own README -- the self-endorsement defect of 2026-08-23 that HD-07 exists to catch.\n\nNOT A WEAKENING. This arm demands MORE than `liveUrl` does: a committed runnable probe, a named host version observed, and `noShelf` asserted positively so a reader never mistakes a missing liveUrl for an oversight. HD-07's third arm additionally reds if the named probe file stops existing, so the evidence cannot outlive its instrument.\n\nTHE CONVERSE, asserted here: evidence and liveUrl are mutually exclusive. Where a shelf EXISTS, its absence is a missing submission, and this arm must not paper over it -- so a primitive carrying both is rejected rather than treated as doubly-evidenced.",
+          "if": { "required": ["evidence"] },
+          "then": {
+            "properties": {
+              "state": { "const": "AVAILABLE" },
+              "liveUrl": { "type": "null" }
+            }
           }
         },
         {
@@ -311,6 +322,32 @@
           "anyOf": [{ "type": "string", "pattern": "^https://" }, { "type": "null" }]
         },
         "submissionUrl": { "type": "string", "pattern": "^https://" },
+        "evidence": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["class", "probe", "hostVersion", "noShelf"],
+          "description": "A REPRODUCIBLE LOCAL ACT, standing in for a shelf listing. See artifacts/adr/0007-a-reproducible-local-act-as-public-evidence.md for the four conditions and why the ADR precedes the field. Every member is required, because a partial record here is exactly the unfalsifiable claim the block exists to prevent: a class with no probe is prose, a probe with no hostVersion cannot be re-run, and a silent absence of noShelf is indistinguishable from forgetting to look for the shelf.",
+          "properties": {
+            "class": {
+              "const": "localReproducibleInstall",
+              "description": "A `const`, not an enum, so a second evidence class cannot be introduced by editing data. Each class changes what AVAILABLE means to every consumer of the generated projections, so a new one needs its own ADR and its own HD-07 arm."
+            },
+            "probe": {
+              "type": "string",
+              "pattern": "^scripts/",
+              "description": "Repo-relative path to the committed script that reproduces the install. HD-07's third arm asserts this file EXISTS, so deleting the probe reds the gate rather than silently leaving an unbacked AVAILABLE behind."
+            },
+            "hostVersion": {
+              "type": "string",
+              "minLength": 1,
+              "description": "The host binary and version the probe was observed against, e.g. `claude 2.1.195`. An install verified against an unnamed version cannot be re-run, which would make the record a transcript rather than evidence."
+            },
+            "noShelf": {
+              "const": true,
+              "description": "Asserts POSITIVELY that this channel has no third-party gallery page. Required and const-true because the whole arm is only legitimate where `liveUrl` has no possible subject; a channel that does have a shelf must use the liveUrl arm, and its missing liveUrl is a missing submission."
+            }
+          }
+        },
         "auditNote": { "type": "string", "minLength": 1 },
         "blocker": { "type": "string", "minLength": 1 },
         "note": { "type": "string", "minLength": 1 },

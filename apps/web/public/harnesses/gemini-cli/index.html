@@ -114,7 +114,7 @@
             <li>
               <strong>gemini-extension-gallery</strong>
               — <span class="state-unverified">Listing not yet verified</span>
-              <div class="dist-note">Auto-discovery via GitHub topic + manifest</div>
+              <div class="dist-note">Audit resolved 2026-08-27; the state stays unverified because what remains is our own work, not a queue. There is no submission here at all: the gallery automatically indexes public repositories and the docs say in as many words that you need not submit an issue or email anyone. Three conditions, quoted from the releasing guide: the extension is hosted in a public GitHub repository; the repository carries the &#x60;gemini-cli-extension&#x60; topic, which is what the crawler uses to find new extensions; and &#x60;gemini-extension.json&#x60; sits in the absolute root of the repository or the release archive. Crawling is daily and listing is conditional on passing validation. No git tag or release is required — &#x60;migratedTo&#x60; is the only transition that needs one. So the first condition already holds, the third is an artifact this repository does not yet have, and the second is a one-call metadata change. Ordering matters and is the reason this is not done: adding the topic first invites a daily crawler to validate a repository with no manifest in it, and a listing that depends on passing validation should not first be observed failing it. Manifest before topic.</div>
             </li>
           </ul>
         </section>

@@ -384,12 +384,43 @@ period, so the row's `PENDING_UPSTREAM` is honest from that date rather than fro
 note renders on the public host page, so it names the delay as ours rather than implying an
 upstream queue. Still true: **do not create a duplicate.**
 
-### E-2. Copilot CLI needs the user's machine
+### E-2. Copilot CLI — ✅ **RESOLVED 2026-08-27**, and it found a shipped defect
 
-**Who can move it: the user only.**
+Was: both `copilot-cli` rows sat at `AUDIT_REQUIRED` behind a 357 MB install that cannot run on
+an Actions runner. The user authorized the install; it ran on `copilot` 1.0.80. Four results,
+each measured rather than inferred:
 
-`copilot-cli` / `mcp-registry-discovery` and `copilot-cli` / `github-copilot-plugin` both sit
-at `AUDIT_REQUIRED` behind a 357 MB install that cannot run on an Actions runner.
+1. **`mcp-registry-discovery` → `BLOCKED`.** Copilot CLI does not consume the Official MCP
+   Registry: `copilot mcp add` takes a command or URL with no registry lookup, `mcp list/get`
+   expose no search flag, and `registry.modelcontextprotocol.io` appears nowhere in the shipped
+   `app.js` — against a positive control on the same search that finds `mcp-config.json` in that
+   same file. The row previously carried `upstream: officialMcpRegistry`, a claim about a
+   mechanism that does not exist; it is **removed** rather than relabelled, because `upstream` is
+   an evidence arm HD-07 accepts and a false arm is worse than none.
+2. **`github-copilot-plugin` → `READY_NOT_SUBMITTED`**, the first record ever to use that state.
+   A real PR target exists and was not previously documented: `github/copilot-plugins`, whose
+   marketplace is a GitHub repo carrying `.claude-plugin/marketplace.json` — the same format this
+   repo already publishes. The entry to paste is written out in
+   [HUMAN-STEPS.md](../submissions/HUMAN-STEPS.md) #3. Two cautions recorded there: the real file
+   is `.github/plugin/marketplace.json` (the `.claude-plugin` path is a one-line pointer to it),
+   and all 20 live entries are Microsoft/GitHub first-party, so third-party acceptance odds are
+   *unknown*, not good.
+3. **Route A works but is deprecated.** `copilot plugin install ./plugins/calllint` succeeds and
+   `copilot plugin list` reports `calllint (v0.1.0)`, but direct path/repo/URL installs warn that
+   only `plugin@marketplace` installs will be supported. So the local install is a test of the
+   artifact, not an alternative to the PR, and the PR is the eventual only route.
+4. **A shipped defect, found by accident and fixed.** Our plugin installed and reported `enabled`
+   on Claude Code while `claude mcp list` said *No MCP servers configured* — the MCP server, the
+   whole product, was silently absent on both Claude Code and Copilot CLI. Cause: the manifest was
+   `mcp.json`, which is **Cursor's** filename; Claude Code and Copilot CLI read `.mcp.json`. Fixed
+   additively (`plugins/calllint/.mcp.json`, byte-identical, Cursor's copy untouched), and
+   `scripts/probe-claude-plugin-install.mjs` gained a fifth step asserting `✔ Connected`, so the
+   availability claim now rests on the product being reachable rather than installed. The first
+   four probe steps were all true while the product was unreachable — which is the
+   guard-blind-to-its-subject fault class, in the probe that was supposed to be the evidence.
+
+On disk the server records `type: "local"` despite the `--transport stdio` flag, worth knowing
+before anyone greps the config for `stdio`.
 
 ### A-1. The 13-channel registry-consumption audit stays closed-negative
 

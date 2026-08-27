@@ -113,7 +113,8 @@
             </li>
             <li>
               <strong>openclaw-clawhub</strong>
-              — <span class="state-unverified">Listing not yet verified</span>
+              — <span class="state-blocked">Not available here</span>
+              <div class="dist-blocker">⚠️ Blocked on a licence term, not on a missing channel — and the distinction is the point, because the mechanism here is real and one command long. Audited 2026-08-27. ClawHub hosts exactly three surfaces: Skills (a folder carrying &#x60;SKILL.md&#x60;), code plugins, and bundle plugins. It hosts no MCP servers, so the obvious reading of this row — publish the MCP server — has no target. But we already ship &#x60;skills/secure-agent-install/SKILL.md&#x60;, and &#x60;clawhub skill publish &lt;path&gt;&#x60; takes precisely that, with &#x60;--dry-run&#x60; first, so no new artifact would be needed. What stops it: publishing a skill to ClawHub releases it under &#x60;MIT-0&#x60;, and this repository is Apache-2.0. MIT-0 drops the attribution requirement and carries no patent grant, so the act would relicense a shipped artifact on strictly weaker terms than the repo it came from. That is an owner&#x27;s decision about intellectual property, not an engineering step, and it cannot be inferred from the instruction to submit to shelves — so it is recorded here rather than performed. It also needs &#x60;clawhub login&#x60; (browser OAuth, &#x60;--device&#x60;, or a &#x60;clh_&#x60; token), which is an account only the owner has. Unblocking condition, stated so nobody re-audits: the owner accepts MIT-0 for that one skill directory, or ClawHub gains a per-skill licence field.</div>
             </li>
           </ul>
         </section>

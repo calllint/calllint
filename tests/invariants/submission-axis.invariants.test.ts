@@ -246,11 +246,31 @@ describe("positive fixture — the shipped SSOT records the one act that happene
     expect(p.state, "the listing axis must still say the PR is with upstream").toBe("PENDING_UPSTREAM")
   })
 
-  it("leaves READY_NOT_SUBMITTED unpopulated, as ADR 0001 recorded", () => {
-    // Not a rule, an observation with a purpose: arm 4 constrains a state no record uses, so if
-    // that ever changes the arm stops being vacuous and this test is where someone will read why.
+  it("holds every READY_NOT_SUBMITTED record to the claim its own name makes", () => {
+    /* This replaced an emptiness assertion on 2026-08-27, and the reason is recorded because the
+     * diff looks like a guard being relaxed. The old test said arm 4 constrains a state no record
+     * uses — true under ADR 0001, and it said in its own comment that it was an observation rather
+     * than a rule, and that whoever populated the state would come here to read why. That happened:
+     * the E-2 audit resolved `copilot-cli/github-copilot-plugin`, whose PR target is real and whose
+     * PR nobody has opened. Asserting emptiness again would mean the SSOT may never record a
+     * ready-but-unsubmitted channel, which is a state the world can be in.
+     *
+     * So the emptiness claim is replaced by the claim arm 4 exists to make, now with a subject: a
+     * channel asserting in its own name that nobody acted must carry no evidence that anyone did.
+     * That is strictly stronger than counting rows — it is checked per record, so it also binds
+     * every future one. `submissionUrl` is included because the schema requires a date alongside it,
+     * so carrying one here is the same contradiction reached one step earlier. */
     const users = allChannels().filter((c) => c.state === "READY_NOT_SUBMITTED")
-    expect(users.map((c) => `${c.host}/${c.kind}`)).toEqual([])
+    expect(users.length, "the state has no record, so this is vacuous again — see the ADR").toBeGreaterThan(0)
+
+    for (const c of users) {
+      expect(c.submission, `${c.host}/${c.kind}: labelled not-submitted while recording an act`).toBeUndefined()
+      expect(
+        c.submissionUrl,
+        `${c.host}/${c.kind}: carries a submissionUrl, which the schema reads as evidence a human ` +
+          `acted (it forces a date). A PR target that nobody has opened belongs in \`note\`.`,
+      ).toBeUndefined()
+    }
   })
 })
 
