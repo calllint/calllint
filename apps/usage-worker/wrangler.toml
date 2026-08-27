@@ -78,15 +78,41 @@ database_id = "98626b00-5c93-48c4-98b2-6632105b97df"
 # binding = "USAGE_RATE_LIMIT"
 # id = "REPLACE_WITH_KV_NAMESPACE_ID"
 
-# Custom domain (new18 §17). NOT YET CLAIMED — blocked on one token permission.
+# Custom domain (new18 §17). OBSERVED LIVE 2026-08-27 — this block is NOT the switch.
 #
-# THIS IS THE ONLY ENDPOINT THAT WORKS. The CLI hardcodes
-# `https://telemetry.calllint.com/v1/events/usage` at apps/cli/src/transport.ts:18
-# (overridable only via CALLLINT_TELEMETRY_ENDPOINT, which no published build sets).
-# Enabling workers.dev instead would NOT make any shipped CLI reach this Worker.
-# So this block is the activation switch, not one option among several.
+# `telemetry.calllint.com` currently RESOLVES TO THIS WORKER. Measured:
 #
-# ATTEMPTED 2026-08-24, two failures, both informative:
+#   GET /                 -> 404, content-type: application/json, cache-control: no-store
+#   GET /v1/events/usage  -> 405 {"schema":"calllint.usage-api.error.v0",
+#                                 "code":"method_not_allowed", ...}
+#
+# That schema string exists only in src/index.ts, so the responder is this Worker and
+# not a Cloudflare edge default (control: calllint.com -> 200, usage.calllint.com -> 302).
+#
+# The route therefore EXISTS IN PRODUCTION while the block below is commented out. Its
+# authority is unreconciled: whether it was bound via dashboard or by a token is not
+# established. DO NOT INFER FROM THIS FILE THAT THE HOSTNAME IS UNCLAIMED — that is the
+# error this comment used to make, in the words "NOT YET CLAIMED / blocked on one token
+# permission / this block is the activation switch". All three were false by 2026-08-27.
+#
+# KEEP [[routes]] COMMENTED until that authority is reconciled. Reason unchanged and
+# still verified: with the block active, `wrangler deploy` fails OUTRIGHT rather than
+# deploying the code and skipping the route, so an uncommented block breaks every
+# redeploy whenever the permission is absent. Nothing here needs to change for the
+# Worker to serve — D1 is migrated, the Worker is live, USAGE_HASH_KEY is set.
+#
+# SEPARATE AND MORE IMPORTANT: no published CLI reaches this endpoint anyway. Measured
+# against the real npm tarball on 2026-08-27, `calllint@1.8.0` (published 2026-08-18)
+# contains ZERO occurrences of `telemetry.calllint.com`, `v1/events/usage`,
+# `telemetryEnabled`, `flushTelemetry`, `queueSink` or a `telemetry` command, against a
+# working control (`calllint` 312 hits in the same 446 KB dist). The consent wiring and
+# this endpoint landed in a0076ff (#325, 2026-08-21) — three days AFTER that publish, and
+# no release has been cut since. So the ingress being reachable is necessary and not
+# sufficient: the shipped client has no code path that posts here. See O-1 in
+# artifacts/architecture/NEW19-21_OPEN_ITEMS.md.
+#
+# ATTEMPTED 2026-08-24, two failures, both informative — kept as a dated record of the
+# token's scope, NOT as evidence about the route's present state:
 #
 #  1. `pattern = "telemetry.calllint.com/*"` -> "Wildcard operators (*) are not
 #     allowed in Custom Domains / Paths are not allowed in Custom Domains".
@@ -100,14 +126,10 @@ database_id = "98626b00-5c93-48c4-98b2-6632105b97df"
 #     492bfc900bfb87c440c24b5f71e0879c, active), so Zone:Read is present.
 #     Only the routes API refuses.
 #
-# MISSING PERMISSION: Zone -> Workers Routes -> Edit, scoped to calllint.com.
-# Add it at dash.cloudflare.com/<account>/api-tokens, then uncomment the block
-# below and redeploy. Nothing else is needed -- D1 is migrated, the Worker is
-# live, and USAGE_HASH_KEY is set.
-#
-# LEFT COMMENTED ON PURPOSE: with the block active, `wrangler deploy` fails
-# OUTRIGHT rather than deploying the code and skipping the route. An uncommented
-# block therefore breaks every redeploy until the permission exists.
+# MISSING PERMISSION, as of that 2026-08-24 attempt: Zone -> Workers Routes -> Edit,
+# scoped to calllint.com. Whether it is still missing is UNMEASURED — and per the header
+# above the route is live regardless, so this is now a question about who owns the route,
+# not about whether the hostname answers.
 #
 # [[routes]]
 # pattern = "telemetry.calllint.com"
