@@ -4,14 +4,16 @@
  *
  * S0 is the gate that unlocks registry expansion (19 → 25 → 100 → 500 → all).
  *
- * `--gate` is NOT a per-PR gate and is still NOT wired into `ci:local`: the cohort is short today,
- * so a `--gate` run is expected to fail, and a permanently-red gate in `ci:local` teaches a team to
- * ignore it. That reasoning was correct about `--gate` and was over-generalised to the whole script
- * — it concluded "this harness stays out of CI", which left every assertion S0 measures unread by
- * anything (S0-OPEN-2: `grep -rn "gate:s0"` returned two hits, both script definitions). The
- * distinction the original comment missed: the 25-record REQUIREMENT is what cannot pass today; the
- * five ASSERTIONS all pass on `main` right now, and a passing assertion nothing runs is not a
- * measurement. Hence `--regression`, which is wired in.
+ * `--gate` is NOT a per-PR gate and is still NOT wired into `ci:local` — but the ORIGINAL reason
+ * expired, and the amendment at the foot of this block is where the current one lives. What follows
+ * is the 2026-08-10 reasoning, kept because the over-generalisation it records is the interesting
+ * part: the cohort was short then, so a `--gate` run was expected to fail, and a permanently-red
+ * gate in `ci:local` teaches a team to ignore it. That was correct about `--gate` and was
+ * over-generalised to the whole script — it concluded "this harness stays out of CI", which left
+ * every assertion S0 measures unread by anything (S0-OPEN-2: `grep -rn "gate:s0"` returned two hits,
+ * both script definitions). The distinction the original comment missed: the 25-record REQUIREMENT
+ * was what could not pass; the five ASSERTIONS all passed on `main` already, and a passing assertion
+ * nothing runs is not a measurement. Hence `--regression`, which is wired in.
  *
  * WHAT THIS HARNESS REFUSES TO DO. S0's five assertions do not all live in the served bytes, and a
  * harness that reported five green ticks from one JSON file would be measuring two things and
@@ -41,7 +43,8 @@
  *   (default) report — print the five assertions + the cohort census. Exit 0 even when short,
  *                      because measuring a shortfall IS a successful measurement.
  *   --gate           — ENFORCEMENT of the full S0 claim. Exit 2 if any assertion fails OR the
- *                      cohort is under 25. Red on `main` today, correctly (S0-OPEN-1).
+ *                      cohort is under 25. Was red on `main` (S0-OPEN-1); measured 2026-08-28 it
+ *                      exits **0** — see the amendment at the foot of this block.
  *   --regression     — ENFORCEMENT of what is true TODAY. Exit 2 if any of the five assertions
  *                      fails, or if the cohort SHRINKS below the floor derived from the served
  *                      bytes at HEAD. The 25-record requirement is reported as census, not
@@ -56,9 +59,11 @@
  * exits 0 unconditionally — with DEP-8's flag scan pointed at a token that does not exist, it still
  * printed `✗` beside DEP-8 and exited **0**. Scheduling it would have added a CI step with no
  * failing mode, which is this harness's own §2 defect wearing a workflow file: a green that cannot
- * observe its subject. And `--gate` cannot be scheduled either, for the opposite reason — it is red
- * on `main` for the cohort shortfall, which is a real finding that only merging the registry
- * expansion can clear, so wiring it would pin CI red for a reason no PR under review can fix.
+ * observe its subject. And `--gate` could not be scheduled either, for the opposite reason — it was
+ * red on `main` for the cohort shortfall, which was a real finding that only merging the registry
+ * expansion could clear, so wiring it would have pinned CI red for a reason no PR under review could
+ * fix. (That second reason has since expired; see the amendment below. The mode separation it
+ * produced is still right, for the reason the amendment gives.)
  *
  * The two failing modes are therefore SEPARATED rather than blended. `--regression` enforces the
  * four assertion tiers plus a monotonic cohort floor; `--gate` keeps the whole claim including the
@@ -73,6 +78,33 @@
  * cohort passed the requirement (100 vs 25) the two rules became unsatisfiable together, and holding
  * the floor at 25 meant 75 committed records could be lost with `--regression` still green. The
  * ordering that remains is against the COHORT, never against the requirement.
+ *
+ * AMENDMENT 2026-08-28 — `--gate` PASSES, and two sentences above were stale for two weeks.
+ *
+ * Measured, not argued: `pnpm gate:s0:gate` exits **0** on `main` — five assertions ✓, cohort 150
+ * against a requirement of 25. S0-OPEN-1 was already recorded CLOSED 2026-08-13 (`1115639` put
+ * `count: 25` on main), so the blocker had been gone a fortnight while this docblock still told every
+ * reader the enforcing mode was expected to fail. The two claims are struck above rather than
+ * deleted, because "the reason a mode stayed out of CI expired and nobody noticed" is the same fault
+ * this file's own §2 is about, aimed at prose instead of a probe.
+ *
+ * THE MODE SEPARATION STANDS ANYWAY, and the reason has changed rather than weakened. `--gate` still
+ * does not belong in `ci:local`: it enforces a REQUIREMENT (25 records), and a requirement that the
+ * cohort currently exceeds is not a per-PR regression check — it is a milestone, green for as long as
+ * the milestone holds and therefore silent about the thing CI needs to watch. `--regression` watches
+ * that: the assertions plus a floor derived from the served bytes. Wiring `--gate` would add a second
+ * step that can only fail together with the first, minus the ratchet.
+ *
+ * WHAT THE STALENESS COST, stated because it is the only thing that makes this amendment worth more
+ * than an edit. While these sentences read "the cohort is short today", the cohort went 25 → 100 →
+ * 150 under ADR 0086's auto-growth and crossed **Gate S1's own 100-record threshold**. Gate S1 did
+ * not exist — no script, no npm script, no CI step; its spec lived only in gitignored
+ * `docs/new15-execution-status.md`. So nothing red at the crossing, because there was no guard to
+ * red, and the seven measures new15 says to take at 100 were never taken. `S0_REGRESSION_FLOOR = 150`
+ * is the proof the crossing happened: the ratchet followed the growth while the gate meant to grade
+ * it was absent. `scripts/gate-s1.ts` is the answer, and it REFUSES the four measures whose data
+ * source is empty rather than computing them as 0/0 — which would render as a perfect score, exactly
+ * as this file's own first INV-R4 did.
  *
  * Exit codes: 0 ok · 2 gate failed (--gate / --regression) / unexpected error.
  */
