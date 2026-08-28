@@ -265,7 +265,18 @@ was the evidence, not the assumption.
 
 ### T-1. The `trust-ingest` fix is unverified by any run
 
-**Who can move it: me, on request** (`gh workflow run trust-ingest.yml`).
+> **CLOSED 2026-08-27 — the run happened, and its value was the reds.** `gh workflow run
+> trust-ingest.yml` was dispatched (run at 2026-08-27 11:01:59Z, `success`) and the PR it
+> opened came back **7 checks red with three independent causes** — so the fix below was
+> necessary but nowhere near sufficient, which is precisely what an unexercised repair hides.
+> Landed as #349 (`899fbe8`): registry snapshot + Trust Pages refresh. One of the three causes
+> is why `trust-ingest.yml` now carries a **scope-assertion step**: the ingest edits a *gate*
+> (the ADR 0083 ratchet floor in `scripts/gate-s0.ts`), and the only visibility for that had
+> been a PR-body sentence asking a human to confirm by eye that the floor rises. See ADR 0092
+> D4, and ADR 0091 D4 for the correction that a hand-lowered floor has **exactly one** reader,
+> not the two that ADR claimed.
+
+**Who could move it, before the run: me, on request** (`gh workflow run trust-ingest.yml`).
 
 `c9553a2` added the missing `pnpm build`. But `trust-ingest` is **weekly**
 (`cron: "17 6 * * 1"`, Monday 06:17 UTC), and its last run was 2026-08-24 07:17Z — two days
@@ -357,7 +368,20 @@ intact — a test measuring prose, not behaviour.
 
 ### D-1. `claude-plugin` → `AVAILABLE` needs a product judgement
 
-**Who can move it: the user** (an ADR decision, not code).
+> **CLOSED 2026-08-27 — all four steps landed, in the order this item demanded.** (1) **ADR
+> 0007** `artifacts/adr/0007-a-reproducible-local-act-as-public-evidence.md`, Status *Decided*,
+> establishing `localReproducibleInstall` as a third evidence class under four conditions;
+> (2) the **schema field** — `evidence` is now representable in
+> `apps/web/data/distribution-surfaces.schema.json`; (3) the **HD-07 third arm** in
+> `scripts/check-harness-distribution.mjs`; (4) the **SSOT state flip** —
+> `claude-code` / `claude-plugin` now reads `AVAILABLE` carrying
+> `evidence.class: localReproducibleInstall`, the probe path, and `hostVersion: claude 2.1.195`.
+> Held in place by `tests/invariants/available-requires-evidence.invariants.test.ts` (16 tests,
+> green on 2026-08-28), so an `AVAILABLE` without evidence now reds rather than shipping.
+> The measured distribution split is unchanged at 4 `AVAILABLE` — this flip is *included* in
+> that 4, not additive to it.
+
+**Who could move it, before ADR 0007: the user** (an ADR decision, not code).
 
 The instrument is done and measured: `scripts/probe-claude-plugin-install.mjs` reproduces the
 install and observes all four steps on `claude` 2.1.195 (marketplace add → appears in list →
@@ -471,6 +495,25 @@ DNS interference on one network, not a fact about Anthropic — editing the SSOT
 would write the observer's blindness down as a vendor fact.
 
 ### O-1. Usage observability closure — `Distribution → Observed Usage` has no fact chain
+
+> **Question 2 is CLOSED as of 2026-08-27, and closed by observation rather than by an edit.**
+> Both gating acts named at the end of this item are spent: 1.9.1 is published (`npm view
+> calllint version` → `1.9.1`) and the policy is frozen as **(B)**, first-run explicit consent
+> on an interactive TTY (#343). The drain is confirmed **against production** by a four-leg
+> differential rather than by an empty queue: closed port → retained, sink **500** → retained,
+> sink 204 → empty, production → **empty**. The 500 leg is the load-bearing one — it proves
+> clearing requires a **2xx specifically**, which is what makes the production empty mean
+> ingest. Server side agrees independently: the report moved to **4 recorded preflights, 1
+> active installation**, with cumulative *equal* to 30d, i.e. the table was empty until then.
+> **Those 4 rows are a self-test, not adoption** — subtract them as the floor before ever
+> quoting a usage number. Getting here cost two contract bugs that a fully green suite could
+> not see (client asserted a 32-hex `batchId` where the worker required 64; `timestamp: ""`
+> shipped as ordinary fixture setup), each of which alone discards the whole batch, because
+> **nothing imported both sides**. Fixed in #347, published as 1.9.1 (#348).
+>
+> **Questions 1, 3 and 4 remain open** and are unchanged: the ~3k invocation figure is still
+> dashboard-sourced and unattributed per host, the RUM premise is still unverified (see below),
+> and both are still bounded by the zero-new-cost constraint.
 
 **Who can move it: mostly me; a subset is the user's.** Handed over 2026-08-27 as a 22-section
 execution plan. **Registered rather than executed**: it asks for production mutation (Worker
@@ -590,7 +633,12 @@ otherwise this buys a rule against a beacon that may not exist. Note also that s
 `usage.calllint.com` *does* run a Worker on every request (`_worker.js`, Pages advanced mode), so
 that host now contributes Worker invocations by construction.
 
-#### What is left is a release decision and a policy decision — both the user's
+#### What was left was a release decision and a policy decision — both SPENT 2026-08-27
+
+**Both acts below are now done; kept for the reasoning, which still governs.** The release
+shipped (1.9.0, then **1.9.1** once the wire contract was fixed) and the policy froze on **(B)**.
+Read the rest of this subsection as the record of *why* (C) was never available, not as pending
+work.
 
 The engineering root-cause search mostly dissolves with the finding above. Two acts remain, and
 neither is a bug fix:
