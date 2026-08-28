@@ -36,7 +36,7 @@ with the growth while the gate meant to grade that growth was absent.
 | page quality | MEASURED | ✓ 149/149 baked subjects carry html+json+manifest and agree with the index on both digests |
 | adapter failure rate | REFUSED | ✗ 0 attempts recorded |
 | mean/p95 processing time | REFUSED | ✗ no job has a recorded start/finish |
-| CAS dedup rate | REFUSED | ✗ `cas/blobs` = 0, `cas/manifests` = 0 |
+| CAS dedup rate | REFUSED | ✗ 45 blobs exist, `cas/manifests` = 0 — no denominator (corrected 2026-08-28; first stated as `cas/blobs` = 0) |
 | disk growth | REFUSED | ✗ no baseline; needs two measurements over time |
 
 Cohort census: source **150 / 100 required** (met); served **150 registry pages / 150
@@ -44,21 +44,50 @@ committed** (held).
 
 ### Why four measures are REFUSED and not computed
 
-`.var/calllint-adoption-index/` is empty: all ten data tables hold **0 rows**
+> **CORRECTED 2026-08-28 — the refusals were right and this paragraph's reason was false.** See
+> S1-OPEN-4 below for the measurement and the three defects it exposed. The struck text is the
+> original claim, kept because a silently corrected paragraph teaches nobody which assumption failed.
+
+~~`.var/calllint-adoption-index/` is empty: all ten data tables hold **0 rows**
 (`adoption_records`, `artifact_versions`, `canonical_subjects`, `compiler_jobs`,
 `compiler_runs`, `evidence_records`, `identity_conflicts`, `source_checkpoints`,
 `source_records`, `subject_aliases`; only `schema_migrations` has rows), and `cas/blobs`,
 `cas/manifests`, `cas/expanded`, `dead-letter/`, `reports/` are empty directories. The rolling
-compiler has never run against this checkout.
+compiler has never run against this checkout.~~
 
-The four measures are therefore printed as `✗ REFUSED` with the reason and the remedy, never as
-a number. This is the load-bearing design decision in the script, and it is not a stylistic
-preference — **a rate over an empty denominator renders as a perfect score.** That is not
-hypothetical. It is verbatim the defect Gate S0's own first INV-R4 shipped: it read a
-nonexistent sidecar path, `existsSync` returned false on all 39 iterations, the loop `continue`d
-every time, and it printed *"0 dangerous false-SAFE"* as PASS from **zero observations**. A
-`0/0` here would have printed a flawless S1 — a gate reporting excellence about a subsystem that
-has never executed.
+**What is actually true.** `.var/` lands wherever `cwd` points, and the ingest worker's `cwd` is
+*not* the repo root — `pnpm --filter @calllint/trust-index …` makes it the **package** directory.
+So two stores exist, and the one the gate read is the empty one:
+
+| | `.var/…` (repo root, what the gate read) | `packages/trust-index/.var/…` (what the worker writes) |
+|---|---|---|
+| `db/adoption-index.sqlite` | 131072 B | **2551808 B** |
+| `canonical_subjects` | 0 | **298** |
+| `source_records` | 0 | **1200** |
+| `subject_aliases` | 0 | **839** |
+| `artifact_versions` | 0 | **78** (FETCHED 45 / RESOLVED 25 / UNAVAILABLE 8) |
+| `source_checkpoints` | 0 | **1** (`status: RUNNING`) |
+| `cas/blobs` | 0 | **45** (mtimes 2026-08-04 — three weeks before this gate existed) |
+| `compiler_jobs` / `compiler_runs` | 0 | **0** ← the only two that were genuinely empty |
+| `schema_migrations` | 2 | 3 |
+
+The four measures remain `✗ REFUSED`, and the load-bearing reason is unchanged — **a rate over an
+empty denominator renders as a perfect score.** That is not hypothetical. It is verbatim the defect
+Gate S0's own first INV-R4 shipped: it read a nonexistent sidecar path, `existsSync` returned false
+on all 39 iterations, the loop `continue`d every time, and it printed *"0 dangerous false-SAFE"* as
+PASS from **zero observations**. A `0/0` here would have printed a flawless S1.
+
+What changed is *which* emptiness justifies each refusal. `compiler_jobs` / `compiler_runs` are
+empty in **every** candidate store, and not by accident: `enqueueJobs` / `beginCompilerRun` /
+`withCompilerRun` (`packages/adoption-index/src/operations/compilerQueue.ts:94,343,438`) have **no
+non-test caller** anywhere in `packages/*/src`, `apps/*/src`, `scripts/`, or `.github/workflows/`.
+The queue is a library with no driver, so the two job-shaped measures cannot acquire a source by
+running the worker that exists.
+
+CAS dedup is refused for a **different** reason than first stated, and the corrected one is sharper:
+45 blobs exist, `cas/manifests` holds 0, and the rate is blobs ÷ manifest references. Reporting
+`45/0` as 100% would be the same empty-denominator defect **with a non-zero numerator** — the harder
+version to spot, because the numerator looks like evidence.
 
 REFUSED is a first-class outcome in the script's type, not a boolean with a comment:
 
@@ -188,10 +217,19 @@ throughput, failure rate, dedup efficiency, disk growth — so what is currently
 the served tree is **complete and self-consistent at 150 records**, not that the pipeline
 *performs* at 150. Those are different claims and S1 asks the second one.
 
-**What would close this row:** a real R-9 controller/worker run against this checkout, populating
-`compiler_runs` / `compiler_jobs` and the CAS, followed by a re-measurement in which the four
-REFUSED lines become MEASURED. At that point `gate:s1:gate` becomes runnable, and the question of
-whether it belongs in CI can be asked on evidence instead of predicted.
+**What would close this row:** ~~a real R-9 controller/worker run against this checkout~~ — **struck
+2026-08-28: that remedy named an executable that does not exist.** The R-9 worker unit runs three
+steps (`ingest:trust-index` → `project-adoption-index:trust-index` → `prune:cas`) and **not one of
+them touches the queue**; `enqueueJobs` / `beginCompilerRun` have no non-test caller anywhere. So
+this row cannot be closed by *running* anything. It requires **writing a queue driver first** — a
+controller that enqueues subjects and a worker that leases, settles, and concludes a run — then a
+re-measurement in which the two job-shaped measures become MEASURED. At that point `gate:s1:gate`
+becomes runnable, and whether it belongs in CI can be asked on evidence instead of predicted.
+
+A refusal whose remedy is unreachable is worse than one that says "not yet": it sends the next
+reader to run a command that will report success while changing nothing the gate can see. That is
+the same shape as the defect this whole artifact exists to record, aimed at an instruction instead
+of at a measurement.
 
 **What must NOT close this row:** computing any of the four from an empty store. A `0/0` dedup
 rate, a `0` failure rate over zero attempts, or a `0ms` mean over an empty set would each close
@@ -199,7 +237,9 @@ this row on paper while asserting something nobody measured. The script refuses 
 level; this row is the prose reason that refusal must survive review.
 
 **Falsification:** if `gate:s1` ever prints a MEASURED tier for any of the four while
-`.var/calllint-adoption-index/` is still empty, this row's refusal has been circumvented.
+`compiler_jobs` / `compiler_runs` are still empty in every candidate store, this row's refusal has
+been circumvented. (Stated against the two queue tables, not against "`.var/` is empty" — the
+original wording would have been *satisfied* by the mis-rooted read S1-OPEN-4 records.)
 
 ---
 
@@ -247,3 +287,89 @@ in both source and served. S0's literal covers exactly that case, which is why b
 
 **Falsification:** if `gate:s1`'s floor is ever replaced by a hand-written literal, or if
 `gate:s0:regression` leaves `ci:local`, the pair stops covering the case each was kept for.
+
+---
+
+## S1-OPEN-4 — this gate read the wrong store, and told every reader the compiler had never run
+
+**Status:** **CLOSED (the mis-rooted read); OPEN (the adapter-attempt source it exposed).**
+
+Split deliberately: one half was a defect and is fixed, the other is a measurement that is now
+known to be *possible* and is still not taken. Merging them would let the fix's green stand in for
+work nobody did.
+
+### What was wrong
+
+The gate hardcoded `repoRoot/.var/calllint-adoption-index` and reported, four times per run, *"the
+rolling compiler has not run against this checkout"* with `cas/blobs=0, db=131072B`. Measured on
+2026-08-28: the store the ingest worker actually writes, `packages/trust-index/.var/…`, held a
+**2551808-byte** database — 298 canonical subjects, 1200 source records, 839 subject aliases, 78
+artifact versions, **45 CAS blobs** whose mtimes are **2026-08-04**, i.e. three weeks *before* this
+gate was written. The refusals were right. Their stated reason was false.
+
+**The seam.** `resolveIndexPaths(cwd)` (`packages/adoption-index/src/storage/paths.ts:50`) resolves
+`.var/` relative to whatever `cwd` it is handed, and `refreshSnapshot.ts:367` hands it
+`process.cwd()`. Under `pnpm --filter @calllint/trust-index …` — how every store-writing script is
+invoked — that is the **package** directory. Under the systemd unit it is `WorkingDirectory=/opt/
+calllint`. One seam, two stores, and `.gitignore:64`'s unanchored `.var/` hides both from `git
+status`, which is why three weeks passed unnoticed.
+
+**This was already written down.** `paths.ts:115` warns that a mis-rooted sweep "would simply sweep
+a directory nothing writes to and report `inspected 0` forever" — in the tree *before* this gate
+existed, aimed at a CAS sweep. The gate reproduced it anyway, while its own docblock was naming this
+repo's dominant fault class. A prose warning at the definition site did not prevent the same defect
+one directory away; only an executed observation found it.
+
+**Where "the repo root" came from.** The gate did not invent it. `refreshSnapshot.ts:324` stated, in
+its own docblock, that `cwd` decides where `.var/` lands *"(the repo root, when this runs from the
+workflow)"* — and the workflow runs `pnpm ingest:trust-index`, i.e. `--filter`, i.e. the package
+directory. So the upstream comment was false about the very invocation it named, and the gate
+inherited a wrong path from a source that read as authoritative. That sentence is now struck in place
+(2026-08-28), which is why the strike is asserted in **three** files rather than two: leaving the
+origin intact would let the next reader re-derive the same wrong root from the same sentence.
+
+### Three defects, not one
+
+| # | defect | evidence |
+|---|---|---|
+| 1 | wrong store root | `db=131072B` reported; real store 2551808 B |
+| 2 | "directory listing establishes it" reasoning | the listing established *that directory* was empty, never that no run happened |
+| 3 | `dirPopulated` counted the wrong unit | `readdirSync("cas/blobs").length` = **42** two-char shards for **45** blobs — and `paths.ts:117-118` explicitly warns callers "must not assume a shared traversal shape" |
+
+Defect 2 is the load-bearing one. Defects 1 and 3 are a wrong path and a wrong unit; defect 2 is the
+*argument* that made reading the database unnecessary, and it is what let a wrong path go unchecked.
+The gate's comment said opening SQLite would "establish something the directory listing already
+establishes." It did not. Skipping the read is still the right call (`better-sqlite3` is pinned
+12.9.0 for an ABI cliff, and a gate that cannot start is worse than one that reports less) — but for
+the cost, not because the filesystem is a substitute for the store.
+
+### What changed
+
+- `storeCandidates` **discovers** rather than assumes: `ADOPTION_INDEX_CWD` (the seam `pruneCas.ts:59`
+  and `backupAdoptionIndex.ts:52` already use — this gate must not invent a second convention), then
+  the repo root, then the package directory. A single corrected hardcoded path would only move the
+  blind spot to the next invocation style.
+- `countFiles` recurses, so the fan-out tree and the flat tree both count files.
+- The store census prints **in every mode, unconditionally** — including the passing ones. A census
+  shown only on failure leaves exactly the runs nobody inspects carrying the unverifiable claim.
+- The refusal text no longer names an unreachable remedy (see S1-OPEN-1).
+
+**All four modes still exit 0 / 2 / 0 / 2**, measured after the change. The behavioural contract did
+not move; only the stated reasons became true.
+
+### The half still open
+
+`artifact_versions.artifact_status` carries a real distribution — **FETCHED 45 / RESOLVED 25 /
+UNAVAILABLE 8** of 78 — and `UNAVAILABLE` is adapter-shaped. It is deliberately **not** reported as
+"adapter failure rate": that column grades an **artifact's** resolution state, not one **attempt's**
+outcome, so 8/78 would answer a different question than §342 asks while wearing the name of the one
+it asks. §342 wants attempts, which live in `compiler_jobs`, which needs the driver S1-OPEN-1 owes.
+
+**What would close this half:** either a queue driver (then attempts are the source, and this column
+is irrelevant), or an ADR deciding that artifact status is an acceptable proxy — with the
+substitution stated in the measure's own name, not hidden behind it.
+
+**Falsification:** if a future edit reports 8/78 as "adapter failure rate" without either of those,
+S1 will be publishing a number whose name misdescribes what it counted — the failure this row was
+opened to prevent, in the one place where a number *is* available.
+
