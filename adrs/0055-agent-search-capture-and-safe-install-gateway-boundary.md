@@ -170,6 +170,26 @@ identity is the `const` tag** (not the filename, not the `$id`):
 
 ### 6. The four other Phase-2.6 tools are deferred
 
+> **Amended 2026-08-28 — two of the four have shipped; this deferral is now HALF stale.**
+> Measured against `packages/calllint-mcp/src/tools.ts` (13 tools in `TOOLS`, 7 of them
+> `calllint_*`-prefixed and 6 pre-existing):
+>
+> | tool | §6 said | actually |
+> |---|---|---|
+> | `prepare_safe_install` | deferred | **ships** as `calllint_prepare_safe_install` |
+> | `verify_tool_install` | deferred | **ships** as `calllint_verify_tool_install` |
+> | `compare_tool_authority` | deferred | still absent — 0 hits repo-wide outside `docs/` |
+> | `check_tool_update` | deferred | still absent — 0 hits repo-wide outside `docs/` |
+>
+> The two that shipped arrived with Workstream R (adoption/safe-install surface) alongside
+> `calllint_get_adoption_contract`, `calllint_apply_prepared_install` and
+> `calllint_enable_continuous_guard` — none of which §6 anticipated at all. So the deferral was
+> not *reversed by decision*; it was **outrun by a different workstream**, which is the failure
+> mode worth naming: a defer recorded in an ADR has no reader, so nothing reds when code
+> overtakes it. The remaining two stay deferred on the original reasoning below. **Where code
+> and this section disagree, the code is authoritative** — and the amendment, not the code, was
+> the thing owed.
+
 `compare_tool_authority`, `prepare_safe_install`, `verify_tool_install`, `check_tool_update`
 are recorded as **deferred** (new13 Round 5). Sentinel + Search + Hook ship first; the four
 are revisited only after a real interception is exercised.
