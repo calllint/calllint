@@ -221,6 +221,28 @@ jobs:
           #    So `wrangler`'s own "Deployment complete" + deployment URL is the signal. It is
           #    authoritative and immune to alias propagation.
           #
+          #    THE DEPLOYMENT HOSTNAME PROPAGATES TOO (measured 2026-08-28, ADR 0092). This
+          #    block used to assert the opposite — "created by the deploy itself, so unlike the
+          #    alias it is not subject to alias propagation; a failure here is a real fault, not
+          #    a race" — and that claim is false. Run 33100499211 read HTTP 404 from
+          #    https://ceb7e7a0.calllint-usage-report.pages.dev 0.14s after wrangler printed
+          #    "Deployment complete", and reded. That exact URL was re-probed by hand the next
+          #    day: 301, x-calllint-report: present — identical to a passing run. The deployment
+          #    was live; the probe was early. 5 of the last 20 runs died this way, across BOTH
+          #    schedule and workflow_dispatch, so the trigger was never the variable.
+          #
+          #    SO: bounded retry, on the NOT-YET-THERE codes ONLY (000/404/522). This is not the
+          #    sleep (b) rejects. (b) is about $ORIGIN, where a retry can hide a permanently
+          #    empty project. Here the retry cannot hide anything:
+          #      · a deployment that never serves 404s for all 6 attempts and still sets fail=1
+          #        with the same message, so the guard's teeth are unchanged;
+          #      · the EXISTS-BUT-WRONG codes are excluded by construction and still red on the
+          #        FIRST read — 200 (entry did not run, U-1 reopened) and 301+absent
+          #        (gated-but-dead). Retrying those is what "a sleep that hides" means, and it
+          #        is exactly what this loop must never do.
+          #    The attempt count is printed on success: propagation getting slower is a fact the
+          #    log should carry, not smooth away.
+          #
           #    ONE KNOWN LIMIT, stated rather than hidden: $DEPLOYMENT_URL is a per-deployment
           #    hostname, so this proves THIS deployment serves — not that the production alias
           #    does. Cloudflare offers no way to observe the gated custom domain without a
@@ -248,10 +270,40 @@ jobs:
             echo "::error::the deploy step published no deployment URL — nothing is known to be live."
             fail=1
           else
-            dcode=$(curl -sS -D /tmp/deployment-head.txt -o /tmp/deployment-body.html \
-              -w '%{http_code}' --max-time 25 "$DEPLOYMENT_URL" || echo 000)
+            # Bounded retry on the not-yet-there codes only. `attempt` is reported so a
+            # propagation delay that is creeping upward stays visible in the log.
+            attempts=6
+            delay=5
+            attempt=1
+            while : ; do
+              dcode=$(curl -sS -D /tmp/deployment-head.txt -o /tmp/deployment-body.html \
+                -w '%{http_code}' --max-time 25 "$DEPLOYMENT_URL" || echo 000)
+              # Deliberately an if-chain, NOT a second dcode case-statement. The verdict block
+              # below is anchored by tests/invariants/private-usage-deploy-gate.invariants.test.ts,
+              # which locates it by the FIRST occurrence of that construct in this file. A second
+              # one here captures the anchor and leaves three assertions reading THIS loop
+              # instead of the verdict — measured 2026-08-28, when the first draft of this retry
+              # did exactly that and turned two guards red. It is the same read-the-wrong-subject
+              # defect this change exists to fix, so: exactly one such construct in this file,
+              # and no spelling of it in prose either, since the anchor is a byte match.
+              #
+              # Not there YET, or not there AT ALL — indistinguishable on a single read, which
+              # is the whole defect. Give propagation a bounded window to prove which.
+              if [ "$dcode" != "000" ] && [ "$dcode" != "404" ] && [ "$dcode" != "522" ]; then
+                break
+              fi
+              if [ "$attempt" -ge "$attempts" ]; then
+                break
+              fi
+              echo "  … deployment URL not serving yet (HTTP $dcode), attempt $attempt/$attempts — retrying in ${delay}s"
+              attempt=$((attempt + 1))
+              sleep "$delay"
+            done
             report=$(tr -d '\r' < /tmp/deployment-head.txt \
               | awk 'tolower($1)=="x-calllint-report:"{print tolower($2); exit}')
+            if [ "$attempt" -gt 1 ]; then
+              echo "  (deployment URL answered on attempt $attempt of $attempts — propagation took ~$(( (attempt - 1) * delay ))s)"
+            fi
             case "$dcode" in
               301)
                 if [ "$report" = "present" ]; then
@@ -267,10 +319,10 @@ jobs:
                 echo "::error::the deployment URL served HTTP 200 — apps/usage-worker/src/pages-entry.js did not run, so §29/U-1 is reopened on the *.pages.dev preview wildcard."
                 fail=1 ;;
               000|404|522)
-                # The deployment-specific hostname is created by the deploy itself, so unlike
-                # the alias it is not subject to alias propagation. A failure here after
-                # "Deployment complete" is a real fault, not a race.
-                echo "::error::the deployment URL from this run is not serving (HTTP $dcode). wrangler reported success, so this is a genuine origin fault."
+                # Reached only after the retry window above is exhausted, so propagation has
+                # been given its chance and this is the residue: wrangler said complete, and
+                # ~30s later the hostname it published still serves nothing.
+                echo "::error::the deployment URL from this run is not serving (HTTP $dcode) after $attempts attempts over ~$(( (attempts - 1) * delay ))s. wrangler reported success, so this is a genuine origin fault, not propagation."
                 fail=1 ;;
               *)
                 echo "::error::deployment URL returned HTTP $dcode — expected a 301 from the canonical-host entry. Not assumed live."

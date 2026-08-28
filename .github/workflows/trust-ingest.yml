@@ -252,6 +252,66 @@ jobs:
       - name: Guard the regenerated pages (no overclaim / PII; completeness)
         run: pnpm check:public-copy
 
+      # ── What this bot is allowed to have touched ────────────────────────────────────────────
+      # Until ADR 0091 this job wrote only DATA: snapshots, baked pages, derived artifacts. The
+      # ratchet advance made it write SOURCE for the first time — `scripts/gate-s0.ts`, which is a
+      # GATE. `create-pull-request` commits whatever is dirty, with no `add-paths`, so the commit's
+      # scope is decided by "what happened to be dirty" rather than by anything declared. That was
+      # tolerable while every writer produced generated output; it is not tolerable now that one
+      # writer edits a gate.
+      #
+      # `add-paths` is not the answer: a legitimate run dirties hundreds of generated files across
+      # four trees, so enumerating them would be a second copy of the generator's output contract,
+      # wrong the first time a page is added. Instead this asserts the ONE boundary that matters —
+      # inside scripts/, only gate-s0.ts may change, and only its floor, and only upward.
+      - name: Assert the ingest touched no source but the ratchet floor
+        run: |
+          set -uo pipefail
+          fail=0
+
+          # `git status --porcelain`, NOT `git diff --name-only`: diff compares the working tree to
+          # the INDEX, so a file already `git add`ed is invisible to it, and an untracked file is
+          # invisible twice over. create-pull-request commits staged, unstaged AND untracked, so a
+          # guard reading `git diff` would be watching a smaller set than the one that ships —
+          # measured 2026-08-28, when a staged scripts/sneaky.ts passed this step exit-0.
+          stray=$(git status --porcelain -- scripts/ | awk '{print $NF}' | grep -v '^scripts/gate-s0\.ts$' || true)
+          if [ -n "$stray" ]; then
+            echo "::error::the ingest modified source files it has no business touching:"
+            printf '  %s\n' $stray
+            fail=1
+          fi
+
+          # Same reason, and `git diff HEAD` throughout below so a STAGED edit is still read.
+          if [ -z "$(git status --porcelain -- scripts/gate-s0.ts)" ]; then
+            echo "✓ scope: the ratchet held this run — gate-s0.ts untouched"
+          else
+            # Only the floor's digits may move. Any other hunk in a gate is a red, whatever it says.
+            other=$(git diff HEAD -U0 -- scripts/gate-s0.ts \
+              | grep -E '^[+-][^+-]' \
+              | grep -vE '^[+-]const S0_REGRESSION_FLOOR = [0-9]+$' || true)
+            if [ -n "$other" ]; then
+              echo "::error::gate-s0.ts changed OUTSIDE the ratchet floor declaration — a bot may not edit gate logic:"
+              printf '  %s\n' "$other"
+              fail=1
+            fi
+            before=$(git diff HEAD -U0 -- scripts/gate-s0.ts | sed -nE 's/^-const S0_REGRESSION_FLOOR = ([0-9]+)$/\1/p' | head -1)
+            after=$(git diff HEAD -U0 -- scripts/gate-s0.ts | sed -nE 's/^\+const S0_REGRESSION_FLOOR = ([0-9]+)$/\1/p' | head -1)
+            if [ -z "$before" ] || [ -z "$after" ]; then
+              echo "::error::gate-s0.ts is dirty but the floor's before/after could not be read (got '${before:-<none>}' -> '${after:-<none>}') — scope is unobservable, so it is not assumed safe."
+              fail=1
+            elif [ "$after" -le "$before" ]; then
+              # advanceRatchetFloor is Math.max, so this is unreachable by that code path. It is
+              # asserted anyway: the point is that NOTHING reaches the branch, not that one caller
+              # promises not to. A ratchet that can fall is not a ratchet.
+              echo "::error::the ratchet floor did not RISE ($before -> $after). A ratchet may only ever advance (ADR 0083 D1, ADR 0091 D3)."
+              fail=1
+            else
+              echo "✓ scope: gate-s0.ts changed in exactly one place — ratchet floor $before -> $after (rising)"
+            fi
+          fi
+
+          [ "$fail" = 0 ] || exit 1
+
       - name: Open a PR with the refreshed snapshot + pages
         # peter-evans/create-pull-request: widely used, actively maintained. It
         # commits the working-tree changes to a branch and opens/updates one PR.
@@ -279,8 +339,15 @@ jobs:
               This edits a GATE, so it is called out separately: the advance is
               `max(floor, cohort)` and is structurally incapable of lowering the
               floor, so a shrunken cohort leaves it at its high-water mark and CI
-              reds. Check the diff shows the floor RISING to the new entry count —
-              a falling floor is not something this workflow can produce.
+              reds. A falling floor is not something this workflow can produce.
+
+              You do not have to take that on trust, or check it by eye: the
+              **"Assert the ingest touched no source but the ratchet floor"** step
+              above ran before this PR was opened. It fails the run if anything under
+              `scripts/` changed other than `gate-s0.ts`, if `gate-s0.ts` changed
+              anywhere other than the floor declaration, or if the floor did not
+              rise. It reads `git status`, so a staged or untracked file cannot slip
+              past it either. This is the only source file the ingest may write.
 
             CI re-bakes from the committed snapshots and diffs (reproducibility gate),
             and the public-copy guard enforces the ADR 0038 language/PII/completeness

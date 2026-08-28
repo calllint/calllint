@@ -309,4 +309,57 @@ describe("private usage deploy gate — §29 stays fail-closed", () => {
     expect(ungated).toContain("::error::")
     expect(probeBody).not.toMatch(/::warning::[^\n]*UNGATED/)
   })
+
+  // ─── the deployment hostname propagates, and the retry must not become a blindfold ───
+  //
+  // ADR 0092. The probe read HTTP 404 from the URL wrangler had just published, 0.14s after
+  // "Deployment complete", and called it "a genuine origin fault". Re-probed by hand a day
+  // later, that same URL served 301 + report present: the deployment was live, the probe was
+  // early. 5 of 20 runs died this way. The fix is a bounded retry — and a bounded retry is
+  // one edit away from being the thing the old comment (correctly) warned against, so the
+  // shape is pinned here rather than trusted to prose.
+
+  it("retries ONLY the not-yet-there codes, and never the exists-but-wrong ones", () => {
+    // Sliced to the loop's own `done`, not to the verdict block: the header extraction sits
+    // between them and is legitimately outside the retry gate.
+    const fromAttempts = probeBody.slice(probeBody.indexOf("attempts=6"))
+    const loop = fromAttempts.slice(0, fromAttempts.indexOf("done"))
+    expect(loop, "the retry window must exist").toContain("sleep")
+    // The gate condition: retry is entered for absence only.
+    for (const code of ["000", "404", "522"]) {
+      expect(loop, `HTTP ${code} means "not there" and is retryable`).toContain(`"$dcode" != "${code}"`)
+    }
+    // 200 (entry did not run → U-1 reopened) and 301-with-absent (gated-but-dead) are the
+    // states a sleep would hide. They must not appear as retry conditions at all.
+    expect(loop, "a 200 must red on the FIRST read — retrying it is the blindfold").not.toMatch(/\$dcode.{0,12}200/)
+    expect(loop, "and the report header must not be consulted inside the retry gate").not.toMatch(/x-calllint-report/i)
+  })
+
+  it("an exhausted retry still fails, so the guard keeps its teeth", () => {
+    const c3 = probeBody.slice(probeBody.indexOf('case "$dcode"'))
+    const scoped = c3.slice(0, c3.indexOf("esac"))
+    // Bounded by the branch's own `;;` rather than a character count, so the assertion does
+    // not weaken or break when the comment above the echo is reworded.
+    const fromAbsent = scoped.slice(scoped.indexOf("000|404|522)"))
+    const absent = fromAbsent.slice(0, fromAbsent.indexOf(";;"))
+    expect(
+      absent,
+      "a deployment that never serves must still set fail=1 after the window closes — the retry bounds the wait, it does not forgive the outcome",
+    ).toMatch(/fail=1/)
+    // Bounded, not unbounded: an infinite retry is a hang, which reads as a green that never arrives.
+    expect(probeBody, "the attempt count must be a finite literal").toMatch(/attempts=\d+/)
+    expect(probeBody, "and the delay too").toMatch(/delay=\d+/)
+  })
+
+  it("exactly one dcode case-statement exists, because a second one steals this file's anchor", () => {
+    // Three assertions above locate the verdict block by the FIRST occurrence of that
+    // construct. The first draft of the retry loop added a second one; the anchor moved, and
+    // those assertions silently began reading the retry loop instead of the verdict. Same
+    // read-the-wrong-subject class as the defect being fixed, so it gets a guard, not a note.
+    const occurrences = realWorkflow.match(/case "\$dcode"/g) ?? []
+    expect(
+      occurrences.length,
+      'exactly one `case "$dcode"` may appear in usage-report.yml — including inside comments, since the anchor is a byte match and a comment sits ABOVE the code it describes (ADR 0092)',
+    ).toBe(1)
+  })
 })
