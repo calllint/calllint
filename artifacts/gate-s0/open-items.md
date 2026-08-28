@@ -1,9 +1,17 @@
 # Gate S0 — carried open items, in committed bytes
 
-Gate S0 is `scripts/gate-s0.ts`, wired as `gate:s0` (report) and `gate:s0:gate` (enforcing).
-It is **deliberately outside `ci:local`**, argued at `scripts/gate-s0.ts:5-7`: the cohort is
-short today, a `--gate` run is expected to fail, and a permanently-red gate in `ci:local`
-teaches a team to ignore it.
+Gate S0 is `scripts/gate-s0.ts`, wired as `gate:s0` (report), `gate:s0:gate` (enforcing),
+`gate:s0:regression` (the mode `ci:local` and `ci.yml` run) and `gate:s0:identity`.
+`--gate` is **deliberately outside `ci:local`**, and the reason CHANGED on 2026-08-28 rather
+than merely being restated. The original argument (`scripts/gate-s0.ts:7-16`, kept verbatim
+there as a record) was that the cohort was short, so a `--gate` run was *expected to fail* and
+a permanently-red gate teaches a team to ignore it. Measured 2026-08-28: `pnpm gate:s0:gate`
+exits **0** — five assertions ✓, cohort 150 against a requirement of 25. S0-OPEN-1 closed
+2026-08-13, so that reason had been expired for a fortnight while the docblock still asserted
+it. The current reason is the opposite one: `--gate` enforces a REQUIREMENT the cohort now
+exceeds, which makes it a milestone rather than a per-PR regression check — green for as long as
+the milestone holds, and therefore silent about the thing CI needs to watch. `--regression`
+watches that.
 
 Until this file existed, **S0's status lived only in `docs/gate-s0-next.md`**, which is
 gitignored. So the status of a gate that decides whether the registry-expansion axis can
@@ -639,6 +647,48 @@ properties above red.
 The 25 and the 26 above both stay. Three dated figures now coexist in this row, which is what
 makes the sequence readable as a history of when CI grew and why, rather than as a single current
 claim with its provenance discarded.
+
+### Amendment 2026-08-28 (Gate S1) — 27 → **28** steps, and the step is the gate one level up
+
+**Still CLOSED. `ci:local` now has **28** `&&`-joined steps.** The one added is
+`pnpm gate:s1:regression`.
+
+Every previous amendment in this row added a *check*. This one adds a *gate*, and it is here
+because of what closing S0-OPEN-1 did not do. That row's blocker was the 25-record shortfall; it
+closed 2026-08-13 when the cohort reached 25. The cohort then kept going — 100, then 150, driven by
+ADR 0086's auto-growth — and crossed **Gate S1's own 100-record threshold** with nothing on the
+other side. `docs/new15-execution-status.md` still lists S1 as ⬜ and names its seven measures, but
+that file is gitignored (`.gitignore:44`), so S1's entire status lived on one machine. No script, no
+`gate:s1` npm script, no CI step. The seven measures new15 says to take at 100 were never taken.
+
+The fault class is the one this artifact exists to make visible, one rung purer than usual. The
+repo's recurring defect is *a guard that cannot observe its subject*; S1 was **a threshold with no
+guard at all**. Nothing red when the cohort crossed it, because there was nothing to red — and the
+proof the crossing really happened is `S0_REGRESSION_FLOOR = 150`, a ratchet that followed the
+growth up while the gate meant to grade it did not exist.
+
+`--regression`, not `--gate`, for a reason measured rather than assumed: four of the seven measures
+(adapter-failure-rate, processing-time mean/p95, cas-dedup-rate, disk-growth) have **no data source
+today** — `.var/calllint-adoption-index/` is empty in all ten data tables, and CAS and dead-letter
+are empty directories. So `--gate` REFUSES those four and exits 2 by design. Wiring it here would
+pin the required check red for a reason no PR under review can clear, which is verbatim the hazard
+the 2026-08-10 closure refused report mode over — the opposite failure, but the same rule.
+
+The four are REFUSED rather than computed. That distinction is the whole reason this gate is worth
+having: a rate over an empty denominator renders as **a perfect score**, and that is not
+hypothetical — it is the defect `gate-s0.ts`'s own first INV-R4 shipped, reading a nonexistent
+sidecar path, `continue`-ing 39 times, and printing "0 dangerous false-SAFE" as PASS from zero
+observations. A `0/0` here would have printed a flawless S1.
+
+The 25, 26 and 27 above all stay. Four dated figures now coexist.
+
+**One pointer inside this row's 2026-08-09 text is now stale, and is left stale deliberately.**
+That text cites `scripts/gate-s0.ts:5-7` for the exclusion argument. Those three lines still
+hold the argument's *opening*, but the argument itself now spans `:7-16` and is explicitly
+marked as expired prose kept for the record — the live reason is the amendment at the foot of
+that docblock. Renumbering the citation inside verbatim 2026-08-09 text would make the row read
+as though it always pointed at a corrected argument. The file header carries the current
+pointer and the current reason; this row keeps what it said when it said it.
 
 ---
 

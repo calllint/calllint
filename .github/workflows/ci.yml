@@ -208,6 +208,21 @@ jobs:
       - name: "Gate S0 (regression: assertions + cohort ratchet)"
         run: pnpm gate:s0:regression
 
+      # Gate S1's regression mode, and the reason it exists at all is that the cohort
+      # crossed S1's 100-record threshold (19 → 100 → 150, ADR 0086 auto-growth) with no
+      # gate on the other side. Nothing red, because there was nothing to red — the seven
+      # measures new15 says to take at 100 were never taken.
+      #
+      # NOT `--gate`: four of the seven measures have no data source today (the compiler
+      # store is empty in all ten tables), so that mode REFUSES and exits 2 by design.
+      # Wiring it would pin CI red for a reason no PR under review can clear — the same
+      # hazard the Gate S0 comment above names. `--regression` enforces the three
+      # measures that have committed bytes to read, plus a served-vs-committed floor.
+      # Quoted for the same reason as the step above: an unquoted `: ` in this scalar
+      # makes the whole file unparseable.
+      - name: "Gate S1 (regression: served-cohort completeness + page trio)"
+        run: pnpm gate:s1:regression
+
       - name: Package smoke (shipped artifact)
         run: pnpm smoke
 

@@ -237,14 +237,22 @@ describe("Gate S0 — every path:line the record cites still points at what it c
     // Keeping the value here would instead have made this pointer red on every scheduled ingest, since
     // the floor now advances weekly with the cohort — the same recurring-red defect this batch exists
     // to remove, reintroduced by a second reader that only ever checked that a literal had not moved.
-    assertPointer(GATE, 102, "S0_REQUIRED_RECORDS = 25", "S0_REQUIRED_RECORDS")
-    assertPointer(GATE, 130, "S0_REGRESSION_FLOOR", "S0_REGRESSION_FLOOR")
-    assertPointer(GATE, 170, "FIXTURE_PREFIX", "FIXTURE_PREFIX")
+    //
+    // A TENTH TIME, in the Gate S1 batch (102→134, 130→162, 170→202, 695→727): `gate-s0.ts`'s docblock
+    // took the 2026-08-28 amendment recording that `--gate` now exits **0** — two of its sentences had
+    // told every reader the enforcing mode was expected to fail for a fortnight after S0-OPEN-1 closed.
+    // Tenth consecutive drift, tenth harmless one, and reported the same way: the failure quoted
+    // ` * \`docs/new15-execution-status.md\`. So nothing red at the crossing…` sitting at :102, prose for
+    // the fifth consecutive time. Worth one more line because of WHAT the amendment says: the staleness
+    // it corrects is the same fault class as a pointer that resolves to a line which merely exists.
+    assertPointer(GATE, 134, "S0_REQUIRED_RECORDS = 25", "S0_REQUIRED_RECORDS")
+    assertPointer(GATE, 162, "S0_REGRESSION_FLOOR", "S0_REGRESSION_FLOOR")
+    assertPointer(GATE, 202, "FIXTURE_PREFIX", "FIXTURE_PREFIX")
     // Drifted a SECOND time inside S batch 1, 401 → 498, when `stripComments` became string-aware; then
-    // 568, then 607, then 650, then 664, now 695. Worth noting because it is the argument for
-    // content-addressed pointers rather than line numbers: this one number has moved seven times, and
+    // 568, then 607, then 650, then 664, then 695, now 727. Worth noting because it is the argument for
+    // content-addressed pointers rather than line numbers: this one number has moved eight times, and
     // every time the failure named what it found.
-    assertPointer(GATE, 695, "registryShort", "the shortfall computation")
+    assertPointer(GATE, 727, "registryShort", "the shortfall computation")
   })
 
   it("the cap the record exonerates, and the un-paginated GET that exonerates it", () => {
@@ -524,10 +532,18 @@ describe("Gate S0 — every number the record states is derived from the file it
     //   ahead of the drift gate for the same reason one level up — drift compares regenerated
     //   bytes against disk, and the schema contract ($id, schemaVersion.const,
     //   additionalProperties: false) decides what those bytes are allowed to be.
+    // 27 → 28 at Gate S1: `pnpm gate:s1:regression`. The first amendment to this row that adds a
+    //   GATE rather than a check, and it is here because the cohort crossed S1's own 100-record
+    //   threshold (19 → 100 → 150, ADR 0086 auto-growth) while Gate S1 did not exist — no script,
+    //   no npm script, no step. S1's status lived only in gitignored `docs/`, which is why nothing
+    //   observed the crossing. `--regression` and not `--gate`, for the same reason the exclusion
+    //   below pins for S0: four of S1's seven measures have no data source (the compiler store is
+    //   empty in all ten tables), so `--gate` REFUSES and exits 2 by design, and wiring it would
+    //   pin the required check red for a reason no PR under review can clear.
     expect(
       steps.length,
-      `S0-OPEN-2's amendment states 27 &&-joined steps; ci:local now has ${steps.length}`,
-    ).toBe(27)
+      `S0-OPEN-2's amendment states 28 &&-joined steps; ci:local now has ${steps.length}`,
+    ).toBe(28)
     // Asserted against the row's LATEST amendment, not the whole row: the 2026-08-09 text says
     // **19** and the first closure says **20**, both left verbatim by this artifact's
     // append-never-edit convention. A `toContain` over the full row would therefore be satisfied by

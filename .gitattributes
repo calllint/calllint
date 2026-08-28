@@ -152,6 +152,20 @@ artifacts/trajectory-v0/** text eol=lf
 # `ci:local` structurally cannot see it (the #240 trap).
 artifacts/gate-s0/** text eol=lf
 
+# The Gate S1 carried open items (`artifacts/gate-s1/open-items.md`).
+#
+# Same reasoning as the Gate S0 pin directly above, and added in the same batch as its reader
+# (`tests/invariants/gate-s1-claims.invariants.test.ts`) for the same reason: a consumer from day
+# one, so the pin is not deferred to whichever later batch introduces a byte-comparing reader and
+# discovers the missing pin only on windows-latest.
+#
+# One difference worth naming, because it is why this artifact exists at all: S1's status previously
+# lived ONLY in `docs/new15-execution-status.md`, which is gitignored — so unlike S0, whose record
+# was merely unread, S1's threshold had no tracked record and no guard whatsoever while the cohort
+# crossed it (19 → 100 → 150). A pin on bytes that exist is the cheap half of the fix; the reader is
+# the other half.
+artifacts/gate-s1/** text eol=lf
+
 # The vendored MCP 2026-07-28 specification bytes (M26-5; third_party/mcp-spec/2026-07-28/).
 #
 # This pin differs from every other one above in that it is NOT unguarded. The digest lock in
