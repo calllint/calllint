@@ -5,6 +5,10 @@ import { parse as parseYaml } from "yaml"
 // The real evaluator, not a re-implementation. A control that re-derives the gate's logic proves the
 // control's logic (S0-OPEN-5's "not merely a comment claiming the parse happens").
 import { evaluateNoRegression, type AggregatorReach, type ToolNameSources } from "@calllint/trust-index"
+// Today's served cohort cap, imported for the same reason as the evaluator above: the cap is a
+// FUNCTION of the committed count since the Cumulative Coverage Amendment, and a test that
+// re-derived that curve would agree with its own copy rather than with the shipped one (ADR 0091).
+import { servedCohortCap } from "../../packages/trust-index/src/fetchRegistry.js"
 
 // The FIRST machine reader of `artifacts/gate-s0/**`, and the first machine reader of ANY Gate S0
 // status record.
@@ -224,8 +228,17 @@ describe("Gate S0 — every path:line the record cites still points at what it c
     // to be committed."` at :100 — docblock prose for the FOURTH consecutive drift. Eight batches, and
     // every single one was reported by the content anchor rather than by a line number that happened
     // to still exist. The pointers are the fragile part; the anchors are why the fragility is harmless.
+    // THE FLOOR ANCHOR DROPS ITS VALUE (ADR 0091), joining `DEFAULT_MAX_ENTRIES` below. The reason it
+    // kept one — "a ratchet's whole failure mode is being edited DOWNWARD quietly" — is now served by
+    // two stronger readers: the derived equality further down, which pins the floor to the committed
+    // cohort exactly, and the gate's own load-time coherence check, which exits 2 on a floor above the
+    // cohort. Neither can be satisfied by a quiet downward edit.
+    //
+    // Keeping the value here would instead have made this pointer red on every scheduled ingest, since
+    // the floor now advances weekly with the cohort — the same recurring-red defect this batch exists
+    // to remove, reintroduced by a second reader that only ever checked that a literal had not moved.
     assertPointer(GATE, 102, "S0_REQUIRED_RECORDS = 25", "S0_REQUIRED_RECORDS")
-    assertPointer(GATE, 130, "S0_REGRESSION_FLOOR = 100", "S0_REGRESSION_FLOOR")
+    assertPointer(GATE, 130, "S0_REGRESSION_FLOOR", "S0_REGRESSION_FLOOR")
     assertPointer(GATE, 170, "FIXTURE_PREFIX", "FIXTURE_PREFIX")
     // Drifted a SECOND time inside S batch 1, 401 → 498, when `stripComments` became string-aware; then
     // 568, then 607, then 650, then 664, now 695. Worth noting because it is the argument for
@@ -252,10 +265,16 @@ describe("Gate S0 — every path:line the record cites still points at what it c
     // anchor retired for "the string vanished" would be falsifiable by grep; retired because the
     // CLAIM it carried is no longer what that line says is the accurate reason, and it is why a
     // content-matching pointer catches this: it red with `"      }"` quoted, not on a live line.
-    assertPointer(f, 81, "RESERVED_COHORT_NAMES", "the names the cap may not evict")
-    assertPointer(f, 103, "export function selectCohortEntries", "the reserved-first cap")
+    // DRIFTED A NINTH TIME, in the ADR 0091 batch (81→120, 103→142, 229→268, 224→263): `servedCohortCap`
+    // and its docblock were added directly below `CUMULATIVE_COVERAGE_CEILING`, pushing everything after
+    // it down by 39 lines. `DEFAULT_MAX_ENTRIES` at :34 sits ABOVE the insertion and did not move —
+    // which is the ninth consecutive time the content anchors, not the line numbers, are what made a
+    // drift harmless. Note this drift was caused by the batch that FIXED a recurring-red defect: even a
+    // change whose whole purpose is removing brittleness moves lines, so the anchors earn their keep.
+    assertPointer(f, 120, "RESERVED_COHORT_NAMES", "the names the cap may not evict")
+    assertPointer(f, 142, "export function selectCohortEntries", "the reserved-first cap")
     // Moved 226 → 229 by Cumulative Coverage Amendment: added retainedNames parameter + logic (+3 lines).
-    assertPointer(f, 229, "selectCohortEntries(", "the cap applied after the sort, at the ingest edge")
+    assertPointer(f, 268, "selectCohortEntries(", "the cap applied after the sort, at the ingest edge")
     // The load-bearing one: a SINGLE GET with no cursor. This is why the 25 cap cannot be the
     // constraint that produced 19 — it is not even on the production path. Drifted 115 → 177 → 183
     // in S batch 6, the FIFTH consecutive batch to move a pointer in this test — and it moved TWICE
@@ -266,7 +285,7 @@ describe("Gate S0 — every path:line the record cites still points at what it c
     // currently editing the file, not some future one, and content matching is what turned that into
     // a red line quoting `""` instead of a pointer that still resolved to a plausible-looking line.
     // Moved 183 → 224 by Cumulative Coverage Amendment: added retainedNames three-tier logic (+41 lines).
-    assertPointer(f, 224, "doFetch(endpoint)", "the single un-paginated GET")
+    assertPointer(f, 263, "doFetch(endpoint)", "the single un-paginated GET")
   })
 
   it("the measured upstream size, which is what falsifies the recorded reason", () => {
@@ -297,7 +316,7 @@ describe("Gate S0 — every path:line the record cites still points at what it c
     // predicts. This guard catching a one-line import is the guard working, not a nuisance.
     // Moved 170 → 172 by Cumulative Coverage Amendment: added 2 lines to resolveMaxEntries docblock
     // for the gate's expected claim strings (workflow_dispatch input, ONLY knob).
-    assertPointer("packages/trust-index/src/refreshSnapshot.ts", 172, "resolveMaxEntries", "the knob")
+    assertPointer("packages/trust-index/src/refreshSnapshot.ts", 181, "resolveMaxEntries", "the knob")
     assertPointer(WORKFLOW, 20, "workflow_dispatch:", "the dispatch trigger")
     // Moved 73 → 112 by the `inputs:` block this row's remedy called for, then 112 → 127 by ADR 0087's
     // batch: the job gained the `TRUST_INGEST_NOW` pin after checkout and the `:store` → pure-variant
@@ -414,10 +433,27 @@ describe("Gate S0 — every number the record states is derived from the file it
     // Read from `fetchRegistry.ts` rather than pinned: this is the number ADR 0074 expects to move
     // again (100 → 500), and a literal would red on a legitimate expansion while saying nothing
     // about the property — that a cohort landing EXACTLY on the cap means the tail was cut.
-    const cap = Number(
-      /DEFAULT_MAX_ENTRIES\s*=\s*(\d+)/.exec(readText("packages/trust-index/src/fetchRegistry.ts"))?.[1],
-    )
-    expect(cap, "fetchRegistry.ts must declare DEFAULT_MAX_ENTRIES").not.toBeNaN()
+    //
+    // AMENDED BY ADR 0091. This read `DEFAULT_MAX_ENTRIES` directly, which WAS the cap until the
+    // Cumulative Coverage Amendment made the cap a function of the previous run and demoted that
+    // constant to the growth curve's starting point. At cohort 150 this handed the assertion 100 and
+    // it red — correctly, reporting that a 100-cap cannot produce 150 entries. The subject was never
+    // the constant; it is TODAY'S CAP, so today's cap is what is read now. `servedCohortCap` is
+    // imported rather than re-derived here because a second copy of the curve arithmetic would agree
+    // with itself instead of measuring the shipped one.
+    const cap = servedCohortCap(snap.count)
+    expect(cap, "the served cohort cap must be derivable from the committed count").not.toBeNaN()
+    // WHAT THIS PROVES, AND WHAT IT NO LONGER PROVES. `servedCohortCap` returns the smallest curve
+    // point at or above the count, so this equality now says: THE COHORT LANDS EXACTLY ON A GROWTH
+    // CURVE POINT. That is still the truncation claim — a cap binding over thousands of live entries
+    // fills to the cap exactly — and it still reds for a cohort that fell OFF the curve (a partial
+    // fill from upstream running dry, which is a real event this must not absorb silently).
+    //
+    // It is weaker in one direction, stated rather than hidden: before the Amendment there was ONE
+    // legal count (100), and now there are nine (100, 150 … 500). A cohort at 200 when the previous
+    // run committed 100 would satisfy this while having skipped a step. That gap is closed elsewhere,
+    // by the monotone advance in `advanceRatchet.ts` and its guard — not by this line pretending to a
+    // precision it lost when the cap became a function.
     expect(
       snap.count,
       `this snapshot is the cap's OUTPUT: a ${cap}-cap over thousands of live entries yields exactly ${cap}, and the tail was truncated`,
@@ -849,6 +885,25 @@ describe("Gate S0 — the regression mode CI runs enforces something, and the ra
     )
     const upstreamRegistry = snapshot.entries.length
 
+    // STILL THE EQUALITY, and ADR 0091 changed only WHO SATISFIES IT. ADR 0083 named the route by
+    // which the floor moves — "ingest, then the test's derived pin reds until the floor follows" —
+    // and assumed the follower was a human performing an authorized expansion. The Cumulative
+    // Coverage Amendment made ingest automatic and weekly, so that keystroke became a chore that
+    // recurred every Sunday and red the bot's own PR until someone did it by hand. A guard whose
+    // green depends on a weekly manual edit gets satisfied the cheap way eventually — by editing the
+    // floor DOWN, which is the one thing this assertion exists to catch.
+    //
+    // So ingest now advances the floor itself, in the same act that writes the snapshot
+    // (`refreshSnapshot.ts`, via `advanceRatchetFloor`), and this assertion is UNCHANGED: it still
+    // demands exact equality, so a floor edited downward still reds here, and a floor raised above a
+    // cohort that has not grown still reds here. What no longer happens is a red for the ONE case
+    // that was never a defect — growth that did occur, followed by a human who had not yet typed it
+    // in.
+    //
+    // The advance cannot lower a floor (`Math.max`, argued in `advanceRatchet.ts` and asserted in
+    // `cohort-cap-derivation.invariants.test.ts`), so a SHRUNKEN cohort still leaves the floor at its
+    // high-water mark — this assertion reds, and the gate's own load-time coherence check exits 2.
+    // Both halves of ADR 0083's protection are intact; only the manual step is gone.
     expect(
       { floor, upstreamRegistry },
       "the ratchet floor must equal the registry cohort at HEAD — a lower floor is slack that hides a lost record, a higher one reds CI for growth that has not happened",
