@@ -321,8 +321,19 @@ export function resolveEvidenceEnabled(env: Record<string, string | undefined>):
  *
  * Resolved from THIS module's URL rather than from `process.cwd()`, because the store's
  * `cwd` option and its migrations source are two independent things: `cwd` decides where
- * `.var/` lands (the repo root, when this runs from the workflow), while the migrations
- * ship inside the package and must be found wherever it is installed from.
+ * `.var/` lands, while the migrations ship inside the package and must be found wherever
+ * it is installed from.
+ *
+ * ~~(the repo root, when this runs from the workflow)~~ **STRUCK 2026-08-28: measured false.** The
+ * workflow runs `pnpm ingest:trust-index`, which is `pnpm --filter @calllint/trust-index ingest`, and
+ * `--filter` sets `cwd` to the PACKAGE directory — so `.var/` lands in `packages/trust-index/`, not at
+ * the repo root. That is not a hypothetical: `packages/trust-index/.var/calllint-adoption-index/` holds
+ * a 2551808-byte database with 298 canonical subjects, while the repo-root path this comment described
+ * holds an empty 131072-byte one. `scripts/gate-s1.ts` believed this sentence and spent three weeks
+ * measuring the empty store; see `artifacts/gate-s1/open-items.md` S1-OPEN-4. Left struck rather than
+ * corrected in place because the wrong location is the interesting part — the systemd unit
+ * (`deploy/adoption-index/calllint-adoption-worker.service`) sets `WorkingDirectory=/opt/calllint`, so
+ * `cwd` genuinely differs per caller and any future reader needs to know it is a seam, not a constant.
  */
 function migrationsDir(): string {
   return resolve(fileURLToPath(import.meta.url), "..", "..", "..", "adoption-index", MIGRATIONS_DIRNAME)

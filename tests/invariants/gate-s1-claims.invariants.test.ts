@@ -113,22 +113,27 @@ describe("Gate S1 — the record parses, and it is not degenerate", () => {
   // VACUITY GUARD, running before any absence is asserted below. Every "the record does not say X"
   // assertion is vacuously true against an empty or missing file, so size and row count are pinned
   // first. [[absence-makes-a-gate-skip-itself]].
-  it("the artifact parses, carries all three rows, and is substantial", () => {
+  it("the artifact parses, carries all four rows, and is substantial", () => {
     const text = readText(ARTIFACT)
     expect(
       text.length,
       "a record short enough to be a stub cannot carry the reasoning the rows below assert",
     ).toBeGreaterThan(4000)
-    for (const n of [1, 2, 3]) {
+    for (const n of [1, 2, 3, 4]) {
       expect(text, `${ARTIFACT} must carry a "## S1-OPEN-${n}" heading`).toContain(`## S1-OPEN-${n}`)
     }
-    // Pinned as a count so a fourth row cannot be added without this suite gaining assertions for
+    // Pinned as a count so a fifth row cannot be added without this suite gaining assertions for
     // it — the shape S0-OPEN-5 grew into when a 20th REGRESSION_CHECKS row arrived unread.
+    //
+    // Raised 3→4 on 2026-08-28 for S1-OPEN-4, and the raise was EARNED rather than typed: this
+    // assertion redded first with "a fourth needs its own assertions rather than inheriting these",
+    // and the S1-OPEN-4 block below is those assertions. Bumping the literal alone would have been
+    // the exact evasion the message names.
     const rows = [...text.matchAll(/^## S1-OPEN-\d+/gm)]
     expect(
       rows.length,
-      "three rows are asserted here; a fourth needs its own assertions rather than inheriting these",
-    ).toBe(3)
+      "four rows are asserted here; a fifth needs its own assertions rather than inheriting these",
+    ).toBe(4)
   })
 
   // The ONLY assertion that fails when the `eol=lf` pin is removed. The normalization at the reader
@@ -152,9 +157,14 @@ describe("Gate S1 — every path:line the record cites still points at what it c
     // Content-anchored, not existence-anchored, and the S0 suite's history is the argument: those
     // pointers have drifted TEN times across ten batches, and every drift was harmless only because
     // the anchor matched content. Five of the ten reds quoted docblock prose — a line that existed.
-    assertPointer(GATE, 93, "S1_REQUIRED_RECORDS = 100", "S1_REQUIRED_RECORDS")
-    assertPointer(GATE, 108, "function committedRegistryCohort", "the derived ratchet floor")
-    assertPointer(GATE, 155, "type Outcome", "the outcome union that makes refusal first-class")
+    //
+    // Drifted 93→106 / 108→121 / 155→203 on 2026-08-28, when the mis-rooted-store correction lengthened
+    // the gate's docblock. Worth recording as the eleventh drift and the first on THIS suite: the red
+    // named what it actually read (`"  registryCanonicalName,"`), which is the entire difference between
+    // this and an `existsSync`-style check that a blank line satisfies.
+    assertPointer(GATE, 106, "S1_REQUIRED_RECORDS = 100", "S1_REQUIRED_RECORDS")
+    assertPointer(GATE, 121, "function committedRegistryCohort", "the derived ratchet floor")
+    assertPointer(GATE, 203, "type Outcome", "the outcome union that makes refusal first-class")
   })
 
   it("the committed snapshot and the served index are where the gate reads them", () => {
@@ -284,7 +294,10 @@ describe("Gate S1 — the refusal is enforced by the source, not by the prose th
       const refusedCall = new RegExp(`refused\\(\\s*"${id}"`)
       expect(
         src,
-        `"${id}" has no data source in this checkout (the compiler store is empty in all ten tables), so it must be REFUSED — computing it as 0/0 renders as a perfect score`,
+        // The reason names the QUEUE tables, not "the store", and that wording is load-bearing: the
+        // store is NOT empty (298 subjects, 45 blobs — see S1-OPEN-4), and a failure message repeating
+        // the struck claim would teach the next reader the same false thing the gate's docblock did.
+        `"${id}" has no data source in this checkout (\`compiler_jobs\` / \`compiler_runs\` are empty in every candidate store, because the queue has no driver), so it must be REFUSED — computing it as 0/0 renders as a perfect score`,
       ).toMatch(refusedCall)
       const measuredCall = new RegExp(`measured\\(\\s*"${id}"`)
       expect(
@@ -399,35 +412,34 @@ describe("Gate S1 — the mode CI runs is the one that can pass, and it is actua
 
 describe("Gate S1 — the rows say OPEN, and what would make each false", () => {
   it("every row states its own falsification condition, so none can be closed silently", () => {
-    for (const n of [1, 2, 3]) {
+    for (const n of [1, 2, 3, 4]) {
       const r = row(n).replace(/\s+/g, " ")
       expect(
         r,
         `S1-OPEN-${n} must name what would falsify it — a row without one can be closed by assertion`,
       ).toMatch(/\*\*Falsification:\*\*/)
-      expect(r, `S1-OPEN-${n} must carry an explicit status`).toMatch(/\*\*Status:\*\* \*\*OPEN/)
+      expect(r, `S1-OPEN-${n} must carry an explicit status`).toMatch(/\*\*Status:\*\* \*\*(OPEN|CLOSED)/)
     }
   })
 
-  it("S1-OPEN-1 names the empty store as its blocker, and the store is in fact empty", () => {
+  it("S1-OPEN-1's blocker is the QUEUE being undriven, not a directory being empty", () => {
     const r = row(1).replace(/\s+/g, " ")
     expect(r, "the row must name the four refused measures as its subject").toContain(
       "four refused ones are precisely the *scale* measures",
     )
-    // MEASURED, not trusted: the row's premise is that the store has no data. If a compiler run ever
-    // populates it, this reds — which is the correct moment to re-measure and close the row, and the
-    // reason the assertion is written against the filesystem rather than against the prose.
-    const storeRoot = fileURLToPath(new URL(".var/calllint-adoption-index", repoRoot))
-    if (existsSync(storeRoot)) {
-      for (const sub of ["cas/blobs", "cas/manifests", "dead-letter", "reports"]) {
-        const p = fileURLToPath(new URL(`.var/calllint-adoption-index/${sub}`, repoRoot))
-        if (!existsSync(p)) continue
-        expect(
-          readdirSync(p).length,
-          `S1-OPEN-1's premise is that ${sub} is empty; it now holds entries, so the four REFUSED measures may be measurable — re-measure and amend the row`,
-        ).toBe(0)
-      }
-    }
+    // The row's premise is now stated against the two queue tables rather than against "`.var/` is
+    // empty", and the reason is S1-OPEN-4: the original premise was SATISFIED by a mis-rooted read, so
+    // a filesystem-emptiness assertion here was green for the wrong reason while 45 blobs sat in the
+    // other store. What actually blocks the row is that nothing enqueues — asserted against source.
+    expect(
+      r,
+      "S1-OPEN-1 must name the missing queue driver as the blocker; 'run the worker' is not a remedy",
+    ).toMatch(/no non-test caller|queue driver/)
+    const queue = readText("packages/adoption-index/src/operations/compilerQueue.ts")
+    expect(queue, "the queue functions the row names must still exist").toMatch(/export function enqueueJobs/)
+    expect(queue, "the queue functions the row names must still exist").toMatch(
+      /export function beginCompilerRun/,
+    )
   })
 
   it("S1-OPEN-2 names S2 as the same shape one rung up, and S2 indeed has no gate yet", () => {
@@ -472,5 +484,113 @@ describe("Gate S1 — the rows say OPEN, and what would make each false", () => 
       "pnpm gate:s0:regression",
     )
     expect(chain, "S1's regression mode must be wired").toContain("pnpm gate:s1:regression")
+  })
+
+  // S1-OPEN-4's own assertions — the ones the row-count guard demanded rather than a bumped literal.
+  //
+  // Every assertion here is against the GATE'S SOURCE, not against the row's description of it. The
+  // defect S1-OPEN-4 records is precisely a truthful-sounding sentence about the wrong subject, so a
+  // suite that checked the prose would reproduce it one level up.
+  it("S1-OPEN-4: the gate DISCOVERS its store rather than hardcoding one root", () => {
+    const src = readText(GATE)
+    // The three candidates, in the order the row states. The package-directory one is the whole fix:
+    // it is where `pnpm --filter` actually writes, and its absence was the defect.
+    expect(
+      src,
+      "the gate must consider the package-directory store — that is where `pnpm --filter` writes",
+    ).toContain('path.join(repoRoot, "packages/trust-index", STORE_DIRNAME)')
+    expect(
+      src,
+      "the gate must honour ADOPTION_INDEX_CWD — the seam pruneCas.ts/backupAdoptionIndex.ts already use",
+    ).toContain("ADOPTION_INDEX_CWD")
+    // The single-root form must be GONE, not merely supplemented. A gate that kept the old constant
+    // alongside the new list would still read the empty store wherever the constant was used.
+    expect(
+      src,
+      "the single hardcoded storeRoot must be gone — a leftover constant is a second, silent definition",
+    ).not.toMatch(/const storeRoot = path\.join\(repoRoot, "\.var/)
+  })
+
+  it("S1-OPEN-4: blob counting recurses, because cas/blobs is a two-character fan-out", () => {
+    const src = readText(GATE)
+    expect(src, "the gate must count files recursively").toMatch(/function countFiles/)
+    expect(
+      src,
+      "countFiles must recurse into subdirectories — measured: 42 shards for 45 blobs",
+    ).toMatch(/isDirectory\(\)/)
+    // The exact shape that produced the undercount, asserted absent. `paths.ts` warns that the blob
+    // tree is a fan-out while `work/` is flat and that callers "must not assume a shared traversal
+    // shape"; the first version assumed it anyway.
+    expect(
+      src,
+      "the shard-counting form (`readdirSync(dir).length` on a fan-out) must not return",
+    ).not.toMatch(/readdirSync\(full\)\.length/)
+    const paths = readText("packages/adoption-index/src/storage/paths.ts")
+    expect(
+      paths,
+      "the warning this defect ignored must still be at the definition site",
+    ).toContain("must not assume a shared traversal shape")
+  })
+
+  it("S1-OPEN-4: the store census prints in every mode, including the passing ones", () => {
+    const src = readText(GATE)
+    expect(src, "the census must be built").toMatch(/const storeCensus/)
+    // Printed OUTSIDE any mode branch. A census shown only on failure leaves exactly the runs nobody
+    // inspects — the green ones — carrying the unverifiable claim that produced this row.
+    const printIdx = src.indexOf("console.log(storeCensus)")
+    expect(printIdx, "the census must actually be printed, not merely computed").toBeGreaterThan(-1)
+    const gateBranch = src.indexOf("if (isGate)")
+    if (gateBranch > -1) {
+      expect(
+        printIdx,
+        "the census must print before any mode-specific branch, so every mode shows it",
+      ).toBeLessThan(gateBranch)
+    }
+  })
+
+  it("S1-OPEN-4: the false claim is struck in all three places it lived, not deleted", () => {
+    // Struck rather than removed, for the reason gate-s0.ts states about its own expired prose: a
+    // silently corrected claim teaches nobody which assumption failed. Asserted in BOTH files because
+    // the sentence appeared in both, and correcting one would leave the other lying.
+    const src = readText(GATE)
+    expect(
+      src,
+      "the gate's docblock must keep its false store claim struck, with the correction beside it",
+    ).toMatch(/~~and the compiler's local store is empty/)
+    // THE THIRD SITE, and the one that came first. The gate did not invent "the repo root" — it
+    // inherited it from refreshSnapshot.ts's own docblock, which asserted `.var/` lands at the repo
+    // root "when this runs from the workflow". Striking the two downstream copies while leaving the
+    // upstream claim intact would let the next reader re-derive the same wrong path from the same
+    // sentence, which is how this defect survived three weeks in the first place.
+    const upstream = readText("packages/trust-index/src/refreshSnapshot.ts")
+    expect(
+      upstream,
+      "the ORIGIN of the wrong root must be struck too — otherwise the next reader re-derives it",
+    ).toMatch(/~~\(the repo root, when this runs from the workflow\)~~/)
+    expect(upstream, "and must name the mechanism, not just retract the claim").toMatch(/--filter/)
+    const r = row(4).replace(/\s+/g, " ")
+    expect(r, "the row must name the cwd seam that produced two stores").toMatch(
+      /resolveIndexPaths|pnpm --filter/,
+    )
+    expect(r, "the row must record that the warning already existed at paths.ts").toContain("paths.ts:115")
+    // The measured numbers, so the row cannot drift into a vaguer story than the one that was taken.
+    for (const n of ["2551808", "45", "298"]) {
+      expect(r, `S1-OPEN-4 must keep the measured figure ${n} — a row without numbers is an anecdote`).toContain(n)
+    }
+  })
+
+  it("S1-OPEN-4: artifact_status is NOT reported as adapter failure rate", () => {
+    const src = readText(GATE)
+    // The open half. 8/78 UNAVAILABLE is available and adapter-shaped, which is exactly why the
+    // refusal has to be explicit: the cheapest way to close S1-OPEN-1 on paper is to rename this
+    // column into the measure §342 asks for.
+    expect(
+      src,
+      "adapter-failure-rate must stay REFUSED while its only source grades artifacts, not attempts",
+    ).toMatch(/refused\(\s*"adapter-failure-rate"/)
+    expect(
+      src,
+      "the refusal must say why artifact_status is not a substitute",
+    ).toContain("grades an artifact's state, not an attempt's outcome")
   })
 })

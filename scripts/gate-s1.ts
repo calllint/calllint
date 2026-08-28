@@ -26,10 +26,23 @@
  *     mean/p95 processing time · CAS dedup rate · disk growth · page quality
  *
  * Three of them are computable from committed bytes. Four of them are properties of a COMPILER RUN,
- * and the compiler's local store is empty: `.var/calllint-adoption-index/db/adoption-index.sqlite`
+ * and the two queue tables those measures need — `compiler_jobs`, `compiler_runs` — are empty
+ * everywhere, because `enqueueJobs` / `beginCompilerRun` have NO non-test caller in the repository:
+ * the queue is a library with no driver. Computing "adapter failure rate" over zero attempts yields
+ * `0 failures / 0 attempts`, which renders as a perfect score.
+ *
+ * ~~and the compiler's local store is empty: `.var/calllint-adoption-index/db/adoption-index.sqlite`
  * holds 0 rows in all ten data tables (only `schema_migrations` has 2), and `cas/blobs`, `cas/
- * manifests` and `dead-letter/` are empty directories. Computing "adapter failure rate" over zero
- * runs yields `0 failures / 0 attempts`, which renders as a perfect score.
+ * manifests` and `dead-letter/` are empty directories.~~ **STRUCK 2026-08-28, AND THE REASON MATTERS
+ * MORE THAN THE CORRECTION.** That sentence was false when it was written. It described the store at
+ * the REPO ROOT, while the ingest worker — run through `pnpm --filter`, whose `cwd` is the package
+ * directory — writes `packages/trust-index/.var/`, which held a 2551808-byte database with 298
+ * canonical subjects, 1200 source records, 78 artifact versions and 45 CAS blobs dated three weeks
+ * before this file existed. The refusals were right; their stated reason was not. A guard that reports
+ * truthfully about the wrong directory is this repo's dominant fault class, and this file shipped it
+ * while its own docblock was busy naming that fault class. Left struck rather than deleted for the
+ * reason `gate-s0.ts` states about its own expired prose: a silently corrected claim teaches nobody
+ * which assumption failed. See `storeCandidates` for the seam and S1-OPEN-4 for what is still owed.
  *
  * That exact defect has already been shipped in this repo once and caught: `gate-s0.ts`'s first
  * INV-R4 read a sidecar path that does not exist, so `existsSync` was false 39/39, the loop
@@ -137,7 +150,42 @@ if (isGate && isRegression) {
 const snapshotPath = path.join(repoRoot, "packages/trust-index/snapshots/official-mcp-registry.json")
 const indexPath = path.join(repoRoot, "apps/web/public/trust/index.json")
 const pagesDir = path.join(repoRoot, "apps/web/public/trust", REGISTRY_NAMESPACE)
-const storeRoot = path.join(repoRoot, ".var/calllint-adoption-index")
+
+/**
+ * Every directory a store can land in — because `.var/` LOCATION IS DECIDED BY `cwd`, AND THE WORKER'S
+ * `cwd` IS NOT THE REPO ROOT.
+ *
+ * `resolveIndexPaths(cwd)` (`packages/adoption-index/src/storage/paths.ts:50`) resolves
+ * `.var/calllint-adoption-index` relative to whatever `cwd` it is handed, and the ingest step reads
+ * `process.cwd()` (`packages/trust-index/src/refreshSnapshot.ts:367`). Under
+ * `pnpm --filter @calllint/trust-index …` — which is exactly how `pnpm ingest:trust-index` and
+ * `pnpm project-adoption-index:trust-index:store` invoke it — `cwd` is the PACKAGE directory. Under
+ * the systemd unit it is `WorkingDirectory=/opt/calllint`. So one seam yields two different stores
+ * depending on how the worker was started.
+ *
+ * THIS GATE'S FIRST VERSION READ ONLY THE REPO ROOT, AND WAS WRONG ABOUT ITS SUBJECT. It printed
+ * `cas/blobs=0, db=131072B` and the sentence "the rolling compiler has not run against this
+ * checkout" while `packages/trust-index/.var/` held a 2551808-byte database with 298
+ * `canonical_subjects`, 1200 `source_records`, 839 `subject_aliases`, 78 `artifact_versions` and 45
+ * CAS blobs whose mtimes (2026-08-04) predate this gate by three weeks. The refusals were right and
+ * their stated reason was false — a guard reporting truthfully about the wrong directory.
+ *
+ * `paths.ts:115` had already recorded this exact failure for a mis-rooted CAS sweep: it "would simply
+ * sweep a directory nothing writes to and report `inspected 0` forever". That warning was in the tree
+ * before this gate was written, aimed at a sweep, and this gate reproduced it anyway.
+ *
+ * So the location is DISCOVERED rather than assumed, and every candidate is reported. A single
+ * hardcoded path — even the correct one — would just move the blind spot to whichever store the next
+ * invocation style creates. `ADOPTION_INDEX_CWD` is honoured first because `pruneCas.ts:59` and
+ * `backupAdoptionIndex.ts:52` already treat it as the store's override seam; this gate must not
+ * invent a second convention.
+ */
+const STORE_DIRNAME = ".var/calllint-adoption-index"
+const storeCandidates: readonly string[] = [
+  ...((process.env.ADOPTION_INDEX_CWD ?? "").trim() ? [path.join((process.env.ADOPTION_INDEX_CWD ?? "").trim(), STORE_DIRNAME)] : []),
+  path.join(repoRoot, STORE_DIRNAME),
+  path.join(repoRoot, "packages/trust-index", STORE_DIRNAME),
+]
 
 interface ServedEntry {
   readonly canonicalName: string
@@ -310,38 +358,121 @@ if (served === null) {
 //---------------------------------------------------------------------------------------------------
 // Measures 4–7 — the runtime measures, REFUSED.
 //
-// Each names the store it needs and what would populate it, so the refusal is an instruction rather
-// than a complaint. `countRows` is deliberately NOT implemented against SQLite here: opening the
-// database would require `better-sqlite3` in this script's graph (pinned 12.9.0 for an ABI cliff)
-// to establish something the directory listing already establishes — that no compiler run has left
-// anything behind. If a run ever does, the refusal messages below name the tables to read.
+// THE REFUSALS STAND; THE REASON THE FIRST VERSION GAVE DID NOT. It asserted "the rolling compiler has
+// not run against this checkout" from a directory listing of the repo root alone. Measured: a store
+// under `packages/trust-index/.var/` holds 298 canonical subjects, 1200 source records, 78 artifact
+// versions and 45 CAS blobs. The compiler HAS run; the gate was looking somewhere else
+// (see `storeCandidates`).
+//
+// What survives that correction, and why these four are still REFUSED rather than computed:
+//
+//   - `compiler_jobs` and `compiler_runs` are empty in EVERY candidate store, and that is not an
+//     accident of this checkout — `enqueueJobs` / `beginCompilerRun` / `withCompilerRun`
+//     (`packages/adoption-index/src/operations/compilerQueue.ts:94,343,438`) have NO non-test caller
+//     anywhere in `packages/*/src`, `apps/*/src`, `scripts/` or `.github/workflows/`. The queue is a
+//     library with no driver. So "processing time" and any per-job failure rate have no source, and
+//     cannot acquire one by running the existing worker.
+//   - The worker unit's three steps (`ingest:trust-index`, `project-adoption-index:trust-index`,
+//     `prune:cas`) never touch the queue. The first version's remedy — "Populate via the R-9
+//     worker/controller" — therefore named an executable that does not exist. A refusal whose remedy
+//     is unreachable is not an instruction; it is a dead end with a confident tone.
+//
+// `artifact_versions.artifact_status` DOES carry a real distribution (measured: FETCHED 45 /
+// RESOLVED 25 / UNAVAILABLE 8), which is adapter-shaped evidence. It is deliberately NOT reported as
+// "adapter failure rate": that column records the ARTIFACT's resolution state, not one adapter
+// ATTEMPT's outcome, so a rate over it would answer a different question than §342 asks while wearing
+// the name of the one it asks. Turning it into the measure is a decision that needs the queue's
+// attempt records, not a cast. S1-OPEN-4 carries it.
+//
+// Reading SQLite is still declined here, and now for a narrower reason than the first version gave:
+// `better-sqlite3` is pinned to 12.9.0 for an ABI cliff, and a gate that cannot start on a mismatched
+// Node is worse than one that reports less. The counts above were obtained out-of-band and are
+// recorded in `artifacts/gate-s1/open-items.md`; what this script reads is the filesystem.
 //---------------------------------------------------------------------------------------------------
-function dirPopulated(p: string): { readonly exists: boolean; readonly count: number } {
-  const full = path.join(storeRoot, p)
-  if (!existsSync(full)) return { exists: false, count: 0 }
+
+/** One store's observable footprint, with the path that produced it so a number can never float free. */
+interface StoreFootprint {
+  readonly root: string
+  readonly exists: boolean
+  readonly casBlobs: number
+  readonly casManifests: number
+  readonly deadLetter: number
+  readonly reports: number
+  readonly dbBytes: number
+}
+
+/**
+ * Count FILES beneath `p`, recursively — not top-level entries.
+ *
+ * The first version used `readdirSync(dir).length`, which for `cas/blobs` counts the two-character
+ * fan-out SHARDS, not blobs: measured 42 shards for 45 blobs, an undercount that grows as shards
+ * collide. `paths.ts:117-118` explicitly warns that the blob tree is a fan-out while `work/` is flat
+ * and that "callers must not assume a shared traversal shape" — the first version assumed exactly
+ * that. Recursing is correct for both shapes, so one function serves every directory here.
+ */
+function countFiles(p: string): number {
+  if (!existsSync(p)) return 0
+  let total = 0
+  let entries: ReturnType<typeof readdirSync>
   try {
-    return { exists: true, count: readdirSync(full).length }
+    entries = readdirSync(p, { withFileTypes: true })
   } catch {
-    return { exists: false, count: 0 }
+    return 0
+  }
+  for (const e of entries) {
+    const child = path.join(p, e.name)
+    if (e.isDirectory()) total += countFiles(child)
+    else total += 1
+  }
+  return total
+}
+
+function footprint(root: string): StoreFootprint {
+  const dbFile = path.join(root, "db/adoption-index.sqlite")
+  return {
+    root,
+    exists: existsSync(root),
+    casBlobs: countFiles(path.join(root, "cas/blobs")),
+    casManifests: countFiles(path.join(root, "cas/manifests")),
+    deadLetter: countFiles(path.join(root, "dead-letter")),
+    reports: countFiles(path.join(root, "reports")),
+    dbBytes: existsSync(dbFile) ? statSync(dbFile).size : 0,
   }
 }
 
-const casBlobs = dirPopulated("cas/blobs")
-const casManifests = dirPopulated("cas/manifests")
-const deadLetter = dirPopulated("dead-letter")
-const reports = dirPopulated("reports")
-const dbFile = path.join(storeRoot, "db/adoption-index.sqlite")
-const dbBytes = existsSync(dbFile) ? statSync(dbFile).size : 0
+const footprints = storeCandidates.map(footprint)
+/** The candidate with the most bytes on disk — the one a reader would actually want reported. */
+const primary = footprints.reduce((a, b) => (b.dbBytes > a.dbBytes ? b : a), footprints[0]!)
+const casBlobsTotal = footprints.reduce((n, f) => n + f.casBlobs, 0)
+const casManifestsTotal = footprints.reduce((n, f) => n + f.casManifests, 0)
 
-const storeHint =
-  `the rolling compiler has not run against this checkout — ` +
-  `${rel(storeRoot)}: cas/blobs=${casBlobs.count}, cas/manifests=${casManifests.count}, ` +
-  `dead-letter=${deadLetter.count}, reports=${reports.count}, db=${dbBytes}B. ` +
-  `Populate via the R-9 worker/controller, then read \`compiler_runs\` / \`compiler_jobs\``
+/**
+ * The store census, EVERY candidate listed — because naming only the winner would hide the very
+ * divergence that made the first version wrong.
+ *
+ * Printed ONCE, below the measure list, rather than interpolated into each of the four refusals. The
+ * first version repeated its hint verbatim four times; at two candidate stores that is eight paths of
+ * identical text per run, and a refusal nobody finishes reading is a refusal that cannot instruct.
+ */
+const storeCensus =
+  footprints
+    .map((f) => `    ${rel(f.root)}: cas/blobs=${f.casBlobs}, cas/manifests=${f.casManifests}, dead-letter=${f.deadLetter}, reports=${f.reports}, db=${f.dbBytes}B${f.exists ? "" : " (absent)"}`)
+    .join("\n")
+
+/**
+ * The one sentence every refusal needs: the remedy is not "run the worker".
+ *
+ * Kept short deliberately. The full argument lives in the section docblock above and in
+ * `artifacts/gate-s1/open-items.md`; what a refusal line owes the reader is the fact that the obvious
+ * remedy is unavailable, not the whole case for why.
+ */
+const storeHint = `no queue driver exists (S1-OPEN-1); see the store census below`
 
 refused(
   "adapter-failure-rate",
-  `no adapter attempt has been recorded, so a rate would read 0 failures / 0 attempts — ${storeHint}`,
+  `no adapter ATTEMPT is recorded — \`compiler_jobs\` is empty in all ${footprints.length} candidate store(s), ` +
+    `so a rate would read 0 failures / 0 attempts. (\`artifact_versions.artifact_status\` carries a ` +
+    `real distribution, but it grades an artifact's state, not an attempt's outcome — S1-OPEN-4) — ${storeHint}`,
 )
 refused(
   "processing-time-mean-p95",
@@ -349,11 +480,15 @@ refused(
 )
 refused(
   "cas-dedup-rate",
-  `cas/blobs holds ${casBlobs.count} blob(s) and cas/manifests ${casManifests.count} manifest(s), so a dedup rate has no denominator — ${storeHint}`,
+  `${casBlobsTotal} blob(s) exist across all candidate stores but cas/manifests holds ${casManifestsTotal}, ` +
+    `so dedup has no DENOMINATOR: the rate is distinct blobs ÷ manifest references, and with zero ` +
+    `manifests there is nothing the blobs were deduplicated against. Reporting ${casBlobsTotal}/0 as ` +
+    `100% would be the empty-denominator defect with a non-zero numerator — the harder version to spot — ${storeHint}`,
 )
 refused(
   "disk-growth",
-  `disk growth needs two measurements over time and there is no baseline recorded — ${storeHint}`,
+  `disk growth needs two measurements over time and there is no baseline recorded ` +
+    `(largest store today: ${rel(primary.root)} at ${primary.dbBytes}B) — ${storeHint}`,
 )
 
 //---------------------------------------------------------------------------------------------------
@@ -383,6 +518,13 @@ for (const m of measures) {
   const mark = m.outcome.kind === "refused" ? "✗" : m.outcome.ok ? "✓" : "✗"
   console.log(`  [${m.tier.padEnd(8)}] ${m.id.padEnd(26)} ${mark}  ${m.outcome.message}`)
 }
+console.log(``)
+
+// Printed unconditionally, in EVERY mode, and that is deliberate: the first version's whole defect was
+// a claim about a store it never named the location of. A census that only appears on failure would
+// leave the passing runs — the ones nobody inspects — carrying the same unverifiable claim.
+console.log(`Compiler store candidates (location follows \`cwd\`, so there is more than one):`)
+console.log(storeCensus)
 console.log(``)
 
 //---------------------------------------------------------------------------------------------------
