@@ -4,6 +4,9 @@ import { fileURLToPath } from "node:url"
 import path from "node:path"
 
 import { projectSnapshot, RESERVED_COHORT_NAMES } from "@calllint/adoption-index"
+// Today's cap, which is a FUNCTION of the committed count since the Cumulative Coverage Amendment.
+// Imported, not re-derived: a local copy of the growth curve would agree with itself (ADR 0091).
+import { servedCohortCap } from "../../packages/trust-index/src/fetchRegistry.js"
 import type { SourceRecordV1 } from "@calllint/adoption-index"
 
 /**
@@ -401,6 +404,17 @@ describe("the registry cohort slice retains the claimed subject", () => {
       cap,
       `the served cap (${cap}) must stay STRICTLY ABOVE S0's requirement (${required}). At equality the size that satisfies the gate is the size that evicts the claimed subject — S0-OPEN-4's arithmetic. Re-read ADR 0074 before changing either number`,
     ).toBeGreaterThan(required)
+    // AND THE SAME INEQUALITY AT THE CURVE'S STARTING POINT (ADR 0091). `cap` above is now TODAY'S
+    // cap, derived from the committed cohort, which is the right subject for every other assertion
+    // in this file — but it opened a hole exactly here: with the cohort at 150 the line above passes
+    // on 150 > 25 even if `DEFAULT_MAX_ENTRIES` were edited back down to 25, and a bootstrap run
+    // (no previous snapshot) would then rebuild the cohort AT the requirement and re-arm
+    // S0-OPEN-4's eviction. The constant is therefore asserted directly, as itself, rather than
+    // being left implied by a number that no longer depends on it.
+    expect(
+      readBootstrapCap(),
+      `the BOOTSTRAP cap (${readBootstrapCap()}) must also stay strictly above S0's requirement (${required}) — a bootstrap run with no previous snapshot builds the cohort at exactly this size, and at equality it rebuilds S0-OPEN-4's eviction`,
+    ).toBeGreaterThan(required)
 
     // The overlap interval. Scanned to a bound DERIVED FROM THE CAP, never a literal: the old
     // `extra <= 12` was accidentally correct at cap == required (exactly one satisfying size, and
@@ -595,8 +609,29 @@ function readNumericConstant(file: string, decl: RegExp, label: string): number 
   return Number(captured.replace(/_/g, ""))
 }
 
-/** The cap that selects the cohort, read from `fetchRegistry.ts`. */
+/**
+ * The cap that selects TODAY'S cohort.
+ *
+ * AMENDED BY ADR 0091. This read `DEFAULT_MAX_ENTRIES` out of `fetchRegistry.ts`, which was correct
+ * while that constant was the cap. The Cumulative Coverage Amendment made the cap a function of the
+ * previous run (`min(CEILING, max(DEFAULT, prev + STEP))`) and left the constant as the curve's
+ * starting point — so at cohort 150 this returned 100 and every caller was handed a cap that could
+ * not have produced the cohort it was measuring. Three of this file's assertions failed on it, and
+ * two of those were failing SAFELY: `headroom` went to -50, and its own comment says a negative
+ * headroom makes the filler-based probes construct cohorts smaller than today's and "silently test
+ * nothing"; the overlap scan's bound went to -48 and its loop stopped executing. They were not wrong
+ * about their arithmetic — they were handed the wrong cap.
+ *
+ * `DEFAULT_MAX_ENTRIES` is still read, one line below, by the assertion whose subject IS that
+ * constant (the `cap > required` inequality of ADR 0074). The two are different questions and now
+ * have different readers.
+ */
 function readCap(): number {
+  return servedCohortCap(names.length)
+}
+
+/** The growth curve's starting point — the subject of ADR 0074's inequality, not today's cap. */
+function readBootstrapCap(): number {
   return readNumericConstant(FETCH_REGISTRY, /export const DEFAULT_MAX_ENTRIES\s*=\s*(\d[\d_]*)/, "DEFAULT_MAX_ENTRIES")
 }
 

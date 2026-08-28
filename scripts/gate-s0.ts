@@ -127,7 +127,7 @@ const S0_REQUIRED_RECORDS = 25
  *      first, the derived test then reds until the floor follows. The floor may never LEAD the
  *      cohort, which is what keeps it a record of achievement rather than a target.
  */
-const S0_REGRESSION_FLOOR = 100
+const S0_REGRESSION_FLOOR = 150
 
 /**
  * The committed upstream cohort, read from the snapshot the gate reconciles against under INV-R5.

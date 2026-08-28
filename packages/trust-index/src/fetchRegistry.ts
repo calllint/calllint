@@ -47,6 +47,45 @@ export const CUMULATIVE_COVERAGE_STEP = 50
 export const CUMULATIVE_COVERAGE_CEILING = 500
 
 /**
+ * The cap that produced a COMMITTED cohort of `count` entries — the served cohort cap at HEAD.
+ *
+ * WHY THIS EXISTS. Before the Cumulative Coverage Amendment, `DEFAULT_MAX_ENTRIES` *was* the cap:
+ * one constant, and every guard that needed "today's cap" read it. The Amendment made the cap a
+ * FUNCTION of the previous run (`resolveMaxEntries`: `min(CEILING, max(DEFAULT, prev + STEP))`) and
+ * demoted this constant to the curve's STARTING POINT. Four assertions kept reading the constant,
+ * so at cohort 150 they were handed 100 — and each failed honestly, reporting that the cap it was
+ * given could not have produced the cohort it was measuring. `headroom` went to -50 and the probes
+ * it feeds would have silently constructed cohorts SMALLER than the committed one; the overlap
+ * scan's bound went negative and its loop stopped executing. A guard reading a number that is no
+ * longer its subject is this repo's dominant fault class, not a cosmetic drift (ADR 0091).
+ *
+ * WHAT IT RETURNS. The smallest growth-curve point at or above `count`. The curve is
+ * `DEFAULT_MAX_ENTRIES + k * CUMULATIVE_COVERAGE_STEP`, clamped at the ceiling. Since ingestion
+ * only ever commits a cohort produced by exactly such a cap, the point at or above `count` IS the
+ * cap that produced it — no snapshot field required, which is why this is a derivation and not a
+ * schema change (a new `maxEntries` key would move the snapshot bytes, and those bytes feed
+ * `artifactDigest`/`pageDigest`).
+ *
+ * NOT A LOOSENING. `servedCohortCap(DEFAULT_MAX_ENTRIES) === DEFAULT_MAX_ENTRIES`, so in the
+ * pre-Amendment regime every caller reads exactly what it read before: this generalizes the READER
+ * and leaves all four assertions at full strength. Asserted directly, at that boundary, in
+ * `tests/invariants/cohort-cap-derivation.invariants.test.ts`.
+ *
+ * ABOVE THE CEILING it returns `count` unchanged. A manual override may commit more than 500
+ * (Amendment Case 4), and clamping to 500 there would hand a guard a cap BELOW the cohort — the
+ * exact failure this function exists to remove, reintroduced at the one boundary an operator
+ * reaches by hand.
+ */
+export function servedCohortCap(count: number): number {
+  if (!Number.isInteger(count) || count < 0) {
+    throw new RangeError(`servedCohortCap needs a non-negative integer cohort count, got ${count}`)
+  }
+  if (count >= CUMULATIVE_COVERAGE_CEILING) return count
+  const steps = Math.max(0, Math.ceil((count - DEFAULT_MAX_ENTRIES) / CUMULATIVE_COVERAGE_STEP))
+  return Math.min(CUMULATIVE_COVERAGE_CEILING, DEFAULT_MAX_ENTRIES + steps * CUMULATIVE_COVERAGE_STEP)
+}
+
+/**
  * Names the cohort slice must never evict, in the REGISTRY'S OWN KEY SPACE (reverse-DNS,
  * with the `/`). ADR 0075.
  *

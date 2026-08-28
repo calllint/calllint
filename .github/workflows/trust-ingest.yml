@@ -274,6 +274,13 @@ jobs:
               `computeVerdict` stays the only verdict engine (ADR 0061 §4).
             - Re-baked all cohorts into `apps/web/public/trust/`, refining remote
               UNKNOWN → REVIEW where identity resolved cleanly (never SAFE).
+            - **Advanced Gate S0's regression ratchet** (`scripts/gate-s0.ts`,
+              `S0_REGRESSION_FLOOR`) to the cohort this run committed (ADR 0091).
+              This edits a GATE, so it is called out separately: the advance is
+              `max(floor, cohort)` and is structurally incapable of lowering the
+              floor, so a shrunken cohort leaves it at its high-water mark and CI
+              reds. Check the diff shows the floor RISING to the new entry count —
+              a falling floor is not something this workflow can produce.
 
             CI re-bakes from the committed snapshots and diffs (reproducibility gate),
             and the public-copy guard enforces the ADR 0038 language/PII/completeness

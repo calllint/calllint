@@ -2,8 +2,8 @@
   "schema": "calllint.trust-snapshot.v0",
   "source": "official-mcp-registry",
   "endpoint": "https://registry.modelcontextprotocol.io/v0/servers",
-  "fetchedAt": "2026-08-17T01:39:50.172Z",
-  "count": 100,
+  "fetchedAt": "2026-08-27T11:02:09.000Z",
+  "count": 150,
   "entries": [
     {
       "name": "ac.inference.sh/mcp",
@@ -34,6 +34,36 @@
       ],
       "status": "active",
       "publishedAt": "2026-04-22T21:06:34.500049Z"
+    },
+    {
+      "name": "ad.inside/inside-ads",
+      "description": "Telegram ad exchange: estimate reach and cost with no account, then create and run campaigns.",
+      "version": "1.0.0",
+      "repositoryUrl": null,
+      "packages": [],
+      "remotes": [
+        {
+          "type": "streamable-http",
+          "url": "https://app.inside.ad/api/mcp"
+        }
+      ],
+      "status": "active",
+      "publishedAt": "2026-08-18T20:55:46.452926Z"
+    },
+    {
+      "name": "ae.propick/propick",
+      "description": "Manage your real-estate stock on Propick (Dubai): bulk listing sync, lookups and run reports.",
+      "version": "1.0.0",
+      "repositoryUrl": null,
+      "packages": [],
+      "remotes": [
+        {
+          "type": "streamable-http",
+          "url": "https://propick.ae/mcp"
+        }
+      ],
+      "status": "active",
+      "publishedAt": "2026-08-25T11:16:56.879334Z"
     },
     {
       "name": "ag.hood/name-service",
@@ -250,6 +280,21 @@
       "publishedAt": "2026-07-16T19:48:48.148514Z"
     },
     {
+      "name": "ai.advisorsai/store-readiness",
+      "description": "Ten machine-readable signals on one public page: the top miss if any, and a receipt we re-verify.",
+      "version": "1.0.5",
+      "repositoryUrl": null,
+      "packages": [],
+      "remotes": [
+        {
+          "type": "streamable-http",
+          "url": "https://advisorsai.ai/store-readiness-mcp"
+        }
+      ],
+      "status": "active",
+      "publishedAt": "2026-08-24T10:04:58.096851Z"
+    },
+    {
       "name": "ai.adweave/meta-ads-mcp",
       "description": "Meta Ads MCP server with 47 tools for campaigns, creatives, audiences, and insights.",
       "version": "1.0.0",
@@ -267,34 +312,38 @@
     {
       "name": "ai.aetherwealth/mcp",
       "description": "Aether Wealth MCP for AI assistants: trades, alerts, market data, macro calendar & indicators.",
-      "version": "0.2.14",
+      "version": "0.2.15",
       "repositoryUrl": null,
       "packages": [
         {
           "registryType": "npm",
           "identifier": "@aetherwealth/mcp",
-          "version": "0.2.14",
+          "version": "0.2.15",
           "transport": null
         }
       ],
       "remotes": [],
       "status": "active",
-      "publishedAt": "2026-08-08T11:13:36.874775Z"
+      "publishedAt": "2026-08-26T23:23:37.052507Z"
     },
     {
       "name": "ai.afmr/discovery",
       "description": "Read AFMR failure modes and discover scoped attestation and lift-evidence contracts.",
-      "version": "1.0.0",
+      "version": "1.0.1",
       "repositoryUrl": null,
       "packages": [],
       "remotes": [
+        {
+          "type": "streamable-http",
+          "url": "https://afmr.ai/mcp"
+        },
         {
           "type": "streamable-http",
           "url": "https://afmr.ai/api/rpc"
         }
       ],
       "status": "active",
-      "publishedAt": "2026-07-30T18:14:19.797129Z"
+      "publishedAt": "2026-08-22T16:29:05.632026Z"
     },
     {
       "name": "ai.agentberg/agentberg",
@@ -325,6 +374,21 @@
       ],
       "status": "active",
       "publishedAt": "2026-05-10T02:12:16.907792Z"
+    },
+    {
+      "name": "ai.agentgates/mcp",
+      "description": "Confidential compute and inference sold to agents over x402 USDC, plus an agent wallet over MCP.",
+      "version": "1.0.0",
+      "repositoryUrl": null,
+      "packages": [],
+      "remotes": [
+        {
+          "type": "streamable-http",
+          "url": "https://agentgates.ai/mcp"
+        }
+      ],
+      "status": "active",
+      "publishedAt": "2026-08-25T05:32:02.617195Z"
     },
     {
       "name": "ai.agentic-news/mcp",
@@ -440,8 +504,8 @@
     },
     {
       "name": "ai.agentlookups/counterscript",
-      "description": "What pharmacies actually pay for prescriptions (CMS NADAC) plus fair-cash-price estimates.",
-      "version": "1.0.0",
+      "description": "Free US drug-price benchmarks from federal data (CMS NADAC): a benchmark, not a price anyone owes.",
+      "version": "1.0.1",
       "repositoryUrl": null,
       "packages": [],
       "remotes": [
@@ -451,12 +515,27 @@
         }
       ],
       "status": "active",
-      "publishedAt": "2026-08-05T00:13:29.161664Z"
+      "publishedAt": "2026-08-26T18:02:49.773179Z"
+    },
+    {
+      "name": "ai.agentlookups/greenlight",
+      "description": "US plug-in solar (balcony solar) law registry with a daily UL 3700 certification watch.",
+      "version": "1.0.0",
+      "repositoryUrl": null,
+      "packages": [],
+      "remotes": [
+        {
+          "type": "streamable-http",
+          "url": "https://solar.agentlookups.ai/mcp"
+        }
+      ],
+      "status": "active",
+      "publishedAt": "2026-08-26T18:02:50.186676Z"
     },
     {
       "name": "ai.agentlookups/groundtruth",
-      "description": "Federal environmental records + address due-diligence layers near any US location. Tools",
-      "version": "1.0.0",
+      "description": "Federal environmental records near any US location, with dates and provenance; never a safety score.",
+      "version": "1.0.1",
       "repositoryUrl": null,
       "packages": [],
       "remotes": [
@@ -466,7 +545,7 @@
         }
       ],
       "status": "active",
-      "publishedAt": "2026-08-05T00:12:30.451036Z"
+      "publishedAt": "2026-08-26T18:02:49.994915Z"
     },
     {
       "name": "ai.agentlookups/overassessed",
@@ -485,8 +564,8 @@
     },
     {
       "name": "ai.agentlookups/plumbline",
-      "description": "Free public-record contractor license checks across 34 US jurisdictions (2.7M records). Tool",
-      "version": "1.0.0",
+      "description": "Free contractor-license checks from official state records; a no-match never proves unlicensed.",
+      "version": "1.0.1",
       "repositoryUrl": null,
       "packages": [],
       "remotes": [
@@ -496,7 +575,22 @@
         }
       ],
       "status": "active",
-      "publishedAt": "2026-08-05T00:11:53.761275Z"
+      "publishedAt": "2026-08-26T18:02:49.501969Z"
+    },
+    {
+      "name": "ai.agentmesh/mesh",
+      "description": "Be an agent on the AgentMesh network: find agents, hire them, be hired, and read your mesh inbox.",
+      "version": "1.0.0",
+      "repositoryUrl": null,
+      "packages": [],
+      "remotes": [
+        {
+          "type": "streamable-http",
+          "url": "https://api.agentmesh.ai/v1/mcp"
+        }
+      ],
+      "status": "active",
+      "publishedAt": "2026-08-23T19:33:28.656602Z"
     },
     {
       "name": "ai.agentrapay/agentra",
@@ -512,6 +606,21 @@
       ],
       "status": "active",
       "publishedAt": "2026-03-22T18:16:07.628131Z"
+    },
+    {
+      "name": "ai.agentroam/agentroam",
+      "description": "Buy travel eSIMs, gift cards and mobile top-ups with crypto — user confirms before any order.",
+      "version": "1.0.0",
+      "repositoryUrl": "https://github.com/adiny/nomad-crypto-travel",
+      "packages": [],
+      "remotes": [
+        {
+          "type": "streamable-http",
+          "url": "https://agentroam.ai/api/mcp"
+        }
+      ],
+      "status": "active",
+      "publishedAt": "2026-08-22T05:50:30.033913Z"
     },
     {
       "name": "ai.agenttrust/mcp-server",
@@ -910,6 +1019,21 @@
       "publishedAt": "2026-06-16T09:32:12.311101Z"
     },
     {
+      "name": "ai.aislabs/gateway",
+      "description": "Daily CVE priorities (KEV+EPSS) + Agent Flight Recorder: dead-man alerts & resume for AI agents",
+      "version": "0.3.0",
+      "repositoryUrl": null,
+      "packages": [],
+      "remotes": [
+        {
+          "type": "streamable-http",
+          "url": "https://api.aislabs.ai/mcp"
+        }
+      ],
+      "status": "active",
+      "publishedAt": "2026-08-26T23:21:38.541211Z"
+    },
+    {
       "name": "ai.aivonic/mcp",
       "description": "Do business with Aivonic: pricing, products, check availability, book a demo, request a quote.",
       "version": "1.0.0",
@@ -957,9 +1081,28 @@
       "publishedAt": "2026-06-12T13:01:13.227147Z"
     },
     {
-      "name": "ai.alpic.mcp/alpic-mcp",
-      "description": "Manage your projects, debug deployment, and check analytics for any MCP server you host with Alpic",
+      "name": "ai.alpic.alpix/Alpix",
+      "description": "A pixel wars MCP server: ask your agent to collaboratively draw pixels in a huge square",
       "version": "0.0.1",
+      "repositoryUrl": null,
+      "packages": [],
+      "remotes": [
+        {
+          "type": "streamable-http",
+          "url": "https://alpix.alpic.ai"
+        },
+        {
+          "type": "sse",
+          "url": "https://alpix.alpic.ai"
+        }
+      ],
+      "status": "active",
+      "publishedAt": "2026-08-27T08:20:57.475155Z"
+    },
+    {
+      "name": "ai.alpic.mcp/alpic-mcp",
+      "description": "Manage your projects, debug deployments, and check analytics for any MCP server you host with Alpic.",
+      "version": "0.0.2",
       "repositoryUrl": null,
       "packages": [],
       "remotes": [
@@ -973,7 +1116,7 @@
         }
       ],
       "status": "active",
-      "publishedAt": "2026-02-18T15:32:32.672631Z"
+      "publishedAt": "2026-08-27T08:15:31.692348Z"
     },
     {
       "name": "ai.alpic.test/test-mcp-server",
@@ -1008,7 +1151,7 @@
     {
       "name": "ai.analyticslegends/sap-analytics",
       "description": "AI agent for SAP analytics: firms, day rates, contract radar, news, concepts, studies",
-      "version": "1.0.4",
+      "version": "1.0.6",
       "repositoryUrl": "https://github.com/analyticslegends/analytics-legends-mcp",
       "packages": [],
       "remotes": [
@@ -1018,24 +1161,24 @@
         }
       ],
       "status": "active",
-      "publishedAt": "2026-08-11T23:02:10.427575Z"
+      "publishedAt": "2026-08-18T19:33:29.605357Z"
     },
     {
       "name": "ai.ankimcp/anki-mcp-server",
       "description": "MCP server for Anki flashcards: adaptive review, notes, media, and deck management via AnkiConnect.",
-      "version": "0.24.1",
+      "version": "0.24.2",
       "repositoryUrl": "https://github.com/ankimcp/anki-mcp-server",
       "packages": [
         {
           "registryType": "npm",
           "identifier": "@ankimcp/anki-mcp-server",
-          "version": "0.24.1",
+          "version": "0.24.2",
           "transport": null
         }
       ],
       "remotes": [],
       "status": "active",
-      "publishedAt": "2026-08-16T07:16:16.672192Z"
+      "publishedAt": "2026-08-26T08:48:06.679181Z"
     },
     {
       "name": "ai.ankimcp/anki-mcp-server-addon",
@@ -1117,6 +1260,21 @@
       "publishedAt": "2026-07-13T12:28:46.556669Z"
     },
     {
+      "name": "ai.aqta/seal",
+      "description": "Verify Seal AI decision receipts: signed evidence anyone can check, no account needed.",
+      "version": "1.0.0",
+      "repositoryUrl": null,
+      "packages": [],
+      "remotes": [
+        {
+          "type": "streamable-http",
+          "url": "https://app.aqta.ai/api/mcp"
+        }
+      ],
+      "status": "active",
+      "publishedAt": "2026-08-17T22:32:58.036357Z"
+    },
+    {
       "name": "ai.arclan/registry",
       "description": "MCP server registry — validated by live handshake, scored on reliability, monitored continuously.",
       "version": "0.1.0",
@@ -1192,9 +1350,24 @@
       "publishedAt": "2026-04-17T04:01:26.724763Z"
     },
     {
+      "name": "ai.askmiles/catalog",
+      "description": "Miles' public credit-card catalog: facts, transfer partners, valuations. Keyless, read-only.",
+      "version": "1.0.0",
+      "repositoryUrl": null,
+      "packages": [],
+      "remotes": [
+        {
+          "type": "streamable-http",
+          "url": "https://api.askmiles.ai/mcp"
+        }
+      ],
+      "status": "active",
+      "publishedAt": "2026-08-26T19:46:38.007401Z"
+    },
+    {
       "name": "ai.assetlog/assetlog",
-      "description": "Search AssetLog listings and find agents, dealers or recruiters by location (service areas).",
-      "version": "1.1.0",
+      "description": "Search vehicles, real estate and jobs; manage your listings, alerts, enquiries and viewings.",
+      "version": "1.4.0",
       "repositoryUrl": null,
       "packages": [],
       "remotes": [
@@ -1204,7 +1377,22 @@
         }
       ],
       "status": "active",
-      "publishedAt": "2026-08-12T20:29:50.777319Z"
+      "publishedAt": "2026-08-21T14:35:21.440936Z"
+    },
+    {
+      "name": "ai.astrofabric/mcp",
+      "description": "Agentic growth platform: a mission agent plus metered SEO, ads, outbound and CRM ops tools.",
+      "version": "1.0.1",
+      "repositoryUrl": null,
+      "packages": [],
+      "remotes": [
+        {
+          "type": "streamable-http",
+          "url": "https://www.astrofabric.ai/api/mcp"
+        }
+      ],
+      "status": "active",
+      "publishedAt": "2026-08-20T01:19:51.769467Z"
     },
     {
       "name": "ai.atdev/supershopping",
@@ -1250,6 +1438,21 @@
       ],
       "status": "active",
       "publishedAt": "2026-07-21T23:43:13.692003Z"
+    },
+    {
+      "name": "ai.atlier/project-desk",
+      "description": "Agent-updated work tracker for builders directing AI across multiple projects.",
+      "version": "4.7.0",
+      "repositoryUrl": "https://github.com/Wildsdesign/Atlier",
+      "packages": [],
+      "remotes": [
+        {
+          "type": "streamable-http",
+          "url": "https://atlier.ai/mcp"
+        }
+      ],
+      "status": "active",
+      "publishedAt": "2026-08-23T16:34:50.678485Z"
     },
     {
       "name": "ai.augmentev/paseo",
@@ -1328,9 +1531,9 @@
     },
     {
       "name": "ai.authoryze/authoryze",
-      "description": "Payment infrastructure for AI agents: spending rules, approval flows, single-use virtual cards.",
-      "version": "1.0.0",
-      "repositoryUrl": null,
+      "description": "Give your AI agent a spending limit: approval controls and single-use virtual cards.",
+      "version": "1.0.1",
+      "repositoryUrl": "https://github.com/kevinfee3/authoryze-mcp",
       "packages": [],
       "remotes": [
         {
@@ -1339,7 +1542,7 @@
         }
       ],
       "status": "active",
-      "publishedAt": "2026-07-15T01:01:52.175208Z"
+      "publishedAt": "2026-08-21T21:03:07.846629Z"
     },
     {
       "name": "ai.autoblocks/contextlayer-mcp",
@@ -1507,6 +1710,21 @@
       "publishedAt": "2026-08-16T22:32:23.963785Z"
     },
     {
+      "name": "ai.awraiter/telegram",
+      "description": "Telegram channels you administer: analytics, content plans, scheduled publishing. No userbot",
+      "version": "1.0.0",
+      "repositoryUrl": "https://github.com/MediaZione/AwrAiter",
+      "packages": [],
+      "remotes": [
+        {
+          "type": "streamable-http",
+          "url": "https://awraiter.ai/mcp"
+        }
+      ],
+      "status": "active",
+      "publishedAt": "2026-08-21T08:05:34.245331Z"
+    },
+    {
       "name": "ai.axonagentic/neuroautomata",
       "description": "Protein analysis: ESM-2/ESMC embeddings, mutation scoring, landscape scans, ESMFold structure.",
       "version": "0.29.0",
@@ -1565,6 +1783,552 @@
       ],
       "status": "active",
       "publishedAt": "2026-08-14T20:37:56.825933Z"
+    },
+    {
+      "name": "ai.b77/feedback",
+      "description": "Capture feature requests and bug reports from chat into a searchable, AI-categorized backlog.",
+      "version": "1.0.0",
+      "repositoryUrl": null,
+      "packages": [],
+      "remotes": [
+        {
+          "type": "streamable-http",
+          "url": "https://feedback.b77.ai/mcp"
+        }
+      ],
+      "status": "active",
+      "publishedAt": "2026-08-14T20:38:13.573877Z"
+    },
+    {
+      "name": "ai.b77/fibalo",
+      "description": "Query and add to your Fibalo bookkeeping: documents, bank transactions, suppliers, access.",
+      "version": "1.0.0",
+      "repositoryUrl": null,
+      "packages": [],
+      "remotes": [
+        {
+          "type": "streamable-http",
+          "url": "https://fibalo.b77.ai/mcp"
+        }
+      ],
+      "status": "active",
+      "publishedAt": "2026-08-14T20:37:07.451898Z"
+    },
+    {
+      "name": "ai.b77/file-storage",
+      "description": "Upload files and get public CDN links in chat.",
+      "version": "1.0.0",
+      "repositoryUrl": null,
+      "packages": [],
+      "remotes": [
+        {
+          "type": "streamable-http",
+          "url": "https://file-storage.b77.ai/mcp"
+        }
+      ],
+      "status": "active",
+      "publishedAt": "2026-08-14T20:37:53.160486Z"
+    },
+    {
+      "name": "ai.b77/google-ads",
+      "description": "Read and manage your Google Ads account in chat.",
+      "version": "1.0.0",
+      "repositoryUrl": null,
+      "packages": [],
+      "remotes": [
+        {
+          "type": "streamable-http",
+          "url": "https://google-ads.b77.ai/mcp"
+        }
+      ],
+      "status": "active",
+      "publishedAt": "2026-08-14T20:37:59.684281Z"
+    },
+    {
+      "name": "ai.b77/google-news",
+      "description": "Search and read the latest news in chat.",
+      "version": "1.0.0",
+      "repositoryUrl": null,
+      "packages": [],
+      "remotes": [
+        {
+          "type": "streamable-http",
+          "url": "https://google-news.b77.ai/mcp"
+        }
+      ],
+      "status": "active",
+      "publishedAt": "2026-08-14T20:37:54.813976Z"
+    },
+    {
+      "name": "ai.b77/google-search-console",
+      "description": "Search rankings, clicks, and indexing for your site — in chat.",
+      "version": "1.0.0",
+      "repositoryUrl": null,
+      "packages": [],
+      "remotes": [
+        {
+          "type": "streamable-http",
+          "url": "https://google-search-console.b77.ai/mcp"
+        }
+      ],
+      "status": "active",
+      "publishedAt": "2026-08-14T20:38:00.295202Z"
+    },
+    {
+      "name": "ai.b77/kinnovis-storage",
+      "description": "Manage Kinnovis self-storage tariffs from chat.",
+      "version": "1.0.0",
+      "repositoryUrl": null,
+      "packages": [],
+      "remotes": [
+        {
+          "type": "streamable-http",
+          "url": "https://kinnovis-storage.b77.ai/mcp"
+        }
+      ],
+      "status": "active",
+      "publishedAt": "2026-08-14T20:37:55.315141Z"
+    },
+    {
+      "name": "ai.b77/knowledge-base",
+      "description": "A searchable knowledge base your assistant reads and writes.",
+      "version": "1.0.0",
+      "repositoryUrl": null,
+      "packages": [],
+      "remotes": [
+        {
+          "type": "streamable-http",
+          "url": "https://knowledge-base.b77.ai/mcp"
+        }
+      ],
+      "status": "active",
+      "publishedAt": "2026-08-14T20:37:58.420833Z"
+    },
+    {
+      "name": "ai.b77/nightscout",
+      "description": "Your Nightscout glucose data, conversational.",
+      "version": "1.0.0",
+      "repositoryUrl": null,
+      "packages": [],
+      "remotes": [
+        {
+          "type": "streamable-http",
+          "url": "https://nightscout.b77.ai/mcp"
+        }
+      ],
+      "status": "active",
+      "publishedAt": "2026-08-14T20:37:57.32213Z"
+    },
+    {
+      "name": "ai.b77/seo-content-factory",
+      "description": "Draft SEO blog articles from topic to ready-to-review post.",
+      "version": "1.0.0",
+      "repositoryUrl": null,
+      "packages": [],
+      "remotes": [
+        {
+          "type": "streamable-http",
+          "url": "https://seo-content-factory.b77.ai/mcp"
+        }
+      ],
+      "status": "active",
+      "publishedAt": "2026-08-14T20:38:00.81901Z"
+    },
+    {
+      "name": "ai.b77/teamwork",
+      "description": "AI-first project management: plan epics, assign prioritized tasks, track team time.",
+      "version": "1.0.0",
+      "repositoryUrl": null,
+      "packages": [],
+      "remotes": [
+        {
+          "type": "streamable-http",
+          "url": "https://teamwork.b77.ai/mcp"
+        }
+      ],
+      "status": "active",
+      "publishedAt": "2026-08-14T20:37:55.811457Z"
+    },
+    {
+      "name": "ai.b77/time",
+      "description": "A live clock for your assistant.",
+      "version": "1.0.0",
+      "repositoryUrl": null,
+      "packages": [],
+      "remotes": [
+        {
+          "type": "streamable-http",
+          "url": "https://time.b77.ai/mcp"
+        }
+      ],
+      "status": "active",
+      "publishedAt": "2026-08-14T20:37:57.849395Z"
+    },
+    {
+      "name": "ai.b77/web-analytics",
+      "description": "Ask about your website traffic in chat.",
+      "version": "1.0.0",
+      "repositoryUrl": null,
+      "packages": [],
+      "remotes": [
+        {
+          "type": "streamable-http",
+          "url": "https://web-analytics.b77.ai/mcp"
+        }
+      ],
+      "status": "active",
+      "publishedAt": "2026-08-14T20:37:56.317987Z"
+    },
+    {
+      "name": "ai.backengine/backengine-mcp",
+      "description": "Surface customer & prospect context from Slack, email, transcripts and tickets in any MCP client.",
+      "version": "8.1.1",
+      "repositoryUrl": "https://github.com/BackEngine-ai/backengine-mcp",
+      "packages": [],
+      "remotes": [
+        {
+          "type": "streamable-http",
+          "url": "https://backengine-prod.backengine.ai/mcp"
+        }
+      ],
+      "status": "active",
+      "publishedAt": "2026-07-10T10:04:00.694928Z"
+    },
+    {
+      "name": "ai.bankee/inferventis-mcp",
+      "description": "Loan & mortgage calculator, compound interest, ROI, crypto prices, FX conversion for AI agents.",
+      "version": "1.0.2",
+      "repositoryUrl": "https://github.com/Bankee-ai/inferventis",
+      "packages": [],
+      "remotes": [
+        {
+          "type": "streamable-http",
+          "url": "https://mcp-server-295985738387.europe-west1.run.app/mcp"
+        }
+      ],
+      "status": "active",
+      "publishedAt": "2026-04-28T09:24:20.898632Z"
+    },
+    {
+      "name": "ai.bareun/bareun",
+      "description": "Korean NLP MCP server: morphological analysis, tokenization, spell & grammar checking (Bareun)",
+      "version": "3.0.0",
+      "repositoryUrl": "https://github.com/gih2yun/bareun-mcp",
+      "packages": [],
+      "remotes": [
+        {
+          "type": "streamable-http",
+          "url": "https://api.bareun.ai/mcp"
+        }
+      ],
+      "status": "active",
+      "publishedAt": "2026-06-09T06:04:45.980117Z"
+    },
+    {
+      "name": "ai.baselight/baselight",
+      "description": "Query Baselight's public catalog of 70,000+ datasets — finance, demographics, sports, and more.",
+      "version": "1.0.0",
+      "repositoryUrl": null,
+      "packages": [],
+      "remotes": [
+        {
+          "type": "streamable-http",
+          "url": "https://api.baselight.app/mcp"
+        }
+      ],
+      "status": "active",
+      "publishedAt": "2026-04-30T15:33:16.859356Z"
+    },
+    {
+      "name": "ai.basethread/basethread",
+      "description": "One shared context your team's AI tools read & write over MCP. No re-explaining. Free.",
+      "version": "1.0.0",
+      "repositoryUrl": "https://github.com/navbuildz/basethread-mcp",
+      "packages": [],
+      "remotes": [
+        {
+          "type": "streamable-http",
+          "url": "https://mcp.basethread.ai/mcp"
+        }
+      ],
+      "status": "active",
+      "publishedAt": "2026-07-08T17:57:42.454703Z"
+    },
+    {
+      "name": "ai.bassethound/bassethound",
+      "description": "Company intelligence for AI agents: a five-layer domain dossier in one sniff_domain call.",
+      "version": "0.7.0",
+      "repositoryUrl": null,
+      "packages": [],
+      "remotes": [
+        {
+          "type": "streamable-http",
+          "url": "https://mcp.bassethound.ai/mcp"
+        }
+      ],
+      "status": "active",
+      "publishedAt": "2026-08-10T16:59:48.68861Z"
+    },
+    {
+      "name": "ai.beatbandit/beatbandit",
+      "description": "AI story development, screenplay editing, review, media, and export tools for BeatBandit projects.",
+      "version": "1.0.0",
+      "repositoryUrl": null,
+      "packages": [],
+      "remotes": [
+        {
+          "type": "streamable-http",
+          "url": "https://beatbandit.ai/api/mcp"
+        }
+      ],
+      "status": "active",
+      "publishedAt": "2026-07-13T15:54:48.389416Z"
+    },
+    {
+      "name": "ai.beket/audit",
+      "description": "See how AI assistants answer about your brand",
+      "version": "1.0.0",
+      "repositoryUrl": null,
+      "packages": [],
+      "remotes": [
+        {
+          "type": "streamable-http",
+          "url": "https://mcp.beket.ai/registry/mcp"
+        }
+      ],
+      "status": "active",
+      "publishedAt": "2026-08-06T01:11:42.174388Z"
+    },
+    {
+      "name": "ai.benroberts/b4-index",
+      "description": "Independent build-vs-buy index: score software categories BUILD/BUY/BRIDGE/BEWARE.",
+      "version": "3.3.0",
+      "repositoryUrl": null,
+      "packages": [],
+      "remotes": [
+        {
+          "type": "streamable-http",
+          "url": "https://b4-index.vercel.app/mcp"
+        }
+      ],
+      "status": "active",
+      "publishedAt": "2026-07-03T23:52:40.30259Z"
+    },
+    {
+      "name": "ai.betslipdoctor/mcp",
+      "description": "Read, grade, and track a subscriber's betslips with preserved truth and no wager placement.",
+      "version": "1.1.0",
+      "repositoryUrl": "https://github.com/opspot-ai/betslipdoctor",
+      "packages": [],
+      "remotes": [
+        {
+          "type": "streamable-http",
+          "url": "https://api.betslipdoctor.ai/api/mcp"
+        }
+      ],
+      "status": "active",
+      "publishedAt": "2026-08-19T06:10:02.724773Z"
+    },
+    {
+      "name": "ai.betterpost/server",
+      "description": "Finds timely sources across news, social, and the web and writes posts worth publishing.",
+      "version": "2.0.0",
+      "repositoryUrl": "https://github.com/betterpost/betterpost-plugin",
+      "packages": [],
+      "remotes": [
+        {
+          "type": "streamable-http",
+          "url": "https://betterpost.ai/mcp"
+        }
+      ],
+      "status": "active",
+      "publishedAt": "2026-07-08T13:48:32.941236Z"
+    },
+    {
+      "name": "ai.bezal/local-commerce",
+      "description": "Search 7,000+ local service businesses across America by category, location, or keyword.",
+      "version": "1.0.0",
+      "repositoryUrl": null,
+      "packages": [],
+      "remotes": [
+        {
+          "type": "streamable-http",
+          "url": "https://app.bezal.ai/api/mcp"
+        }
+      ],
+      "status": "active",
+      "publishedAt": "2026-03-03T01:28:17.439049Z"
+    },
+    {
+      "name": "ai.bidclub/bidclub",
+      "description": "Search 45+ investor podcasts and read transcripts, TL;DRs, digests — bilingual EN/中文, keyless.",
+      "version": "1.0.0",
+      "repositoryUrl": null,
+      "packages": [],
+      "remotes": [
+        {
+          "type": "streamable-http",
+          "url": "https://bidclub.ai/api/mcp"
+        }
+      ],
+      "status": "active",
+      "publishedAt": "2026-08-17T10:06:31.712458Z"
+    },
+    {
+      "name": "ai.biddeed/biddeed-mcp",
+      "description": "AI-powered foreclosure auction intelligence for Florida counties via MCP tools.",
+      "version": "1.0.1",
+      "repositoryUrl": "https://github.com/breverdbidder/cli-anything-biddeed",
+      "packages": [],
+      "remotes": [
+        {
+          "type": "streamable-http",
+          "url": "https://mcp.biddeed.ai/api/mcp"
+        }
+      ],
+      "status": "active",
+      "publishedAt": "2026-07-03T13:00:32.732972Z"
+    },
+    {
+      "name": "ai.biel/biel-ai",
+      "description": "Query your product docs from AI tools. Source-cited answers from your indexed documentation.",
+      "version": "2.0.0",
+      "repositoryUrl": "https://github.com/TechDocsStudio/biel-mcp",
+      "packages": [],
+      "remotes": [
+        {
+          "type": "streamable-http",
+          "url": "https://mcp.biel.ai/v2/{project_slug}/mcp"
+        },
+        {
+          "type": "sse",
+          "url": "https://mcp.biel.ai/sse?project_slug={project_slug}&domain={domain}"
+        }
+      ],
+      "status": "active",
+      "publishedAt": "2026-07-05T15:36:24.193043Z"
+    },
+    {
+      "name": "ai.bitroad/bitroad",
+      "description": "Marketplace for AI agents: buy goods and services under spending caps, with returns and disputes.",
+      "version": "1.0.0",
+      "repositoryUrl": "https://github.com/bitroadai/bitroad-mcp",
+      "packages": [],
+      "remotes": [
+        {
+          "type": "streamable-http",
+          "url": "https://app.bitroad.ai/api/v1/mcp"
+        }
+      ],
+      "status": "active",
+      "publishedAt": "2026-08-17T19:06:22.088057Z"
+    },
+    {
+      "name": "ai.bittlebits/bittlebits",
+      "description": "GEO scores and content-rewrite suggestions for any web page, as MCP tools.",
+      "version": "1.0.0",
+      "repositoryUrl": "https://github.com/bittlebitsai/bittlebits-plugin",
+      "packages": [],
+      "remotes": [
+        {
+          "type": "streamable-http",
+          "url": "https://bittlebits.ai/mcp"
+        }
+      ],
+      "status": "active",
+      "publishedAt": "2026-06-02T16:24:51.181889Z"
+    },
+    {
+      "name": "ai.bizmuse/bizmuse",
+      "description": "Official BizMuse MCP for complete AI music videos from audio and 1-7 reference images.",
+      "version": "0.1.6",
+      "repositoryUrl": null,
+      "packages": [
+        {
+          "registryType": "npm",
+          "identifier": "bizmuse-mcp",
+          "version": "0.1.6",
+          "transport": null
+        }
+      ],
+      "remotes": [],
+      "status": "active",
+      "publishedAt": "2026-07-20T13:46:35.915847Z"
+    },
+    {
+      "name": "ai.blast-radius/blast-radius",
+      "description": "Blast Radius tools for AI strategy, diligence, and market updates.",
+      "version": "0.1.0",
+      "repositoryUrl": "https://github.com/kipmcc/blast-radius-live",
+      "packages": [],
+      "remotes": [
+        {
+          "type": "streamable-http",
+          "url": "https://blast-radius.ai/mcp"
+        }
+      ],
+      "status": "active",
+      "publishedAt": "2026-06-30T16:00:12.196014Z"
+    },
+    {
+      "name": "ai.bloopo/bloopo",
+      "description": "Turn one sentence into finished ads: video ads, UGC, product photos, voiceover, brand kits, A/B.",
+      "version": "0.1.1",
+      "repositoryUrl": "https://github.com/BloopodotAI/bloopo-marketplace",
+      "packages": [],
+      "remotes": [
+        {
+          "type": "streamable-http",
+          "url": "https://mcp.bloopo.ai/mcp"
+        }
+      ],
+      "status": "active",
+      "publishedAt": "2026-07-28T12:16:01.625722Z"
+    },
+    {
+      "name": "ai.blopus/search",
+      "description": "Live web search, image search, topic filters and full-text fetch over our own crawled index.",
+      "version": "1.28.1",
+      "repositoryUrl": null,
+      "packages": [],
+      "remotes": [
+        {
+          "type": "streamable-http",
+          "url": "https://mcp.blopus.ai/mcp/"
+        }
+      ],
+      "status": "active",
+      "publishedAt": "2026-08-27T01:31:40.856338Z"
+    },
+    {
+      "name": "ai.bluenexus/universal-mcp",
+      "description": "Connect your AI to all your data - 200+ sources, intelligently filtered, compliance-ready.",
+      "version": "1.18.0",
+      "repositoryUrl": null,
+      "packages": [],
+      "remotes": [
+        {
+          "type": "streamable-http",
+          "url": "https://api.bluenexus.ai/mcp"
+        }
+      ],
+      "status": "active",
+      "publishedAt": "2026-08-27T08:08:53.407996Z"
+    },
+    {
+      "name": "ai.bodenrichtwert/mcp",
+      "description": "German land values (Bodenrichtwerte) by address, with mandatory dl-de/by-2-0 attribution.",
+      "version": "1.2.0",
+      "repositoryUrl": null,
+      "packages": [],
+      "remotes": [
+        {
+          "type": "streamable-http",
+          "url": "https://mcp.bodenrichtwert.ai/mcp"
+        }
+      ],
+      "status": "active",
+      "publishedAt": "2026-08-03T06:19:03.560017Z"
     },
     {
       "name": "io.github.calllint/calllint",

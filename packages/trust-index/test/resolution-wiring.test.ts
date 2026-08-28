@@ -24,7 +24,31 @@ const EVIDENCE = resolve(HERE, "..", "snapshots", "evidence-snapshot.json")
 
 const snapshot = parseSnapshot(readFileSync(SNAP, "utf8"))
 const evidence = parseEvidenceSnapshot(readFileSync(EVIDENCE, "utf8"))
-const NOW = "2026-08-31T00:00:00.000Z"
+/**
+ * The bake clock, DERIVED FROM THE SNAPSHOT'S OWN INSTANTS (ADR 0091).
+ *
+ * This was `"2026-08-31T00:00:00.000Z"` — a literal chosen because it sat more than one cadence past
+ * the instants committed at the time, which is what makes the status below AGING. The irony is that
+ * the test's other derivations already carry the reason this had to change (":67 — a snapshot refresh
+ * moves `fetchedAt` and would red this test over arithmetic it is not about"), and the clock was the
+ * one input that stayed pinned. A scheduled refresh then moved `fetchedAt` FORWARD to within 3.54
+ * days of this literal — the snapshot caught up with the clock, not the reverse — the age fell under
+ * `CADENCE_DAYS`, and the status became FRESH. Two assertions red on a snapshot refresh that was
+ * entirely correct.
+ *
+ * ANCHORED TO THE OLDER AXIS, because that is the axis the status is a function of: `nextRequired`
+ * is `older + CADENCE_DAYS`, so the age that decides FRESH/AGING/STALE is measured from the older of
+ * the two instants and never from the newer one.
+ *
+ * TWO CADENCES, NOT ONE PLUS A DAY. The AGING band is `(CADENCE_DAYS, CADENCE_DAYS * AGING_MULTIPLE]`
+ * = (7, 21] days, and `2 × CADENCE` lands at 14 — the band's midpoint, a full cadence from either
+ * edge. A `+ 1 day` offset would also be AGING today and would sit one day from the FRESH boundary,
+ * where any future change to rounding or to `AGING_MULTIPLE` flips it. Choosing the midpoint means
+ * the clock stays in the band it is chosen for rather than merely entering it.
+ */
+const NOW = new Date(
+  Math.min(Date.parse(evidence.resolvedAt), Date.parse(snapshot.fetchedAt)) + CADENCE_DAYS * 2 * 86_400_000,
+).toISOString()
 
 interface Entry {
   canonicalName: string

@@ -1,27 +1,27 @@
 {
   "schema": "calllint.agent-adoption-contract.v1",
   "contract": {
-    "contractDigest": "sha256:a47b44c3e0ae1c65b15ee6a9141dfa71317b6625eba1b23a5c01715611f8ea87",
-    "generatedAt": "2026-08-17T01:39:50.172Z",
+    "contractDigest": "sha256:8269c6fd2f2443ee33dcf5c7879e4ccc75d719b2f86c9a222ff514bddd850412",
+    "generatedAt": "2026-08-27T11:02:09.000Z",
     "expiresAt": null,
     "generatorVersion": "0.1.0",
-    "snapshotDigest": "sha256:dd2a7d61fe610f3e1563a61d15b2b01a3a5d0f2fb8ed2d44a35d6ac1e427942a"
+    "snapshotDigest": "sha256:b1c68cc75cf1f3b311c93811d27f61db842ad6449d0cbfd3d69431090f253179"
   },
   "subject": {
     "canonicalName": "mcp-registry/ai.aetherwealth-mcp",
     "canonicalSlug": "mcp-registry/ai.aetherwealth-mcp",
     "packageType": "npm",
     "packageName": "@aetherwealth/mcp",
-    "version": "0.2.14",
-    "artifactDigest": "sha256:69c248fcb802a6a4dd67f467c0951800ddcc190ea7a97abdb956e29498f39426",
-    "sourceLocator": "npm:@aetherwealth/mcp@0.2.14"
+    "version": "0.2.15",
+    "artifactDigest": "sha256:cad2d2a71acb2855513d3ae5c4f6784ba02f9be456a8379e0bf01d051f43c025",
+    "sourceLocator": "npm:@aetherwealth/mcp@0.2.15"
   },
   "publicObservation": {
     "verdict": "SAFE",
     "publicLabel": "No blockers observed",
     "reasonCodes": [],
     "evidenceLevel": "E2",
-    "evidenceDigest": "sha256:38cec50881ca48787407d5f0e2cff956864214bc497e8eb7bb48ba44d593b63b",
+    "evidenceDigest": "sha256:460ddb574210599ba30bf0b039498df296047e343223282d5575e6c256378c3d",
     "completeness": "complete"
   },
   "authorityDelta": {
@@ -39,8 +39,8 @@
     ]
   },
   "trustedSources": {
-    "registrySnapshotDigest": "sha256:dd2a7d61fe610f3e1563a61d15b2b01a3a5d0f2fb8ed2d44a35d6ac1e427942a",
-    "evidenceDigest": "sha256:38cec50881ca48787407d5f0e2cff956864214bc497e8eb7bb48ba44d593b63b",
+    "registrySnapshotDigest": "sha256:b1c68cc75cf1f3b311c93811d27f61db842ad6449d0cbfd3d69431090f253179",
+    "evidenceDigest": "sha256:460ddb574210599ba30bf0b039498df296047e343223282d5575e6c256378c3d",
     "engineVersion": "0.1.0"
   },
   "untrustedPublisherContent": {
@@ -52,9 +52,9 @@
     "tool": "calllint_prepare_safe_install",
     "arguments": {
       "canonicalName": "mcp-registry/ai.aetherwealth-mcp",
-      "expectedVersion": "0.2.14",
-      "expectedArtifactDigest": "sha256:69c248fcb802a6a4dd67f467c0951800ddcc190ea7a97abdb956e29498f39426",
-      "expectedContractDigest": "sha256:a47b44c3e0ae1c65b15ee6a9141dfa71317b6625eba1b23a5c01715611f8ea87",
+      "expectedVersion": "0.2.15",
+      "expectedArtifactDigest": "sha256:cad2d2a71acb2855513d3ae5c4f6784ba02f9be456a8379e0bf01d051f43c025",
+      "expectedContractDigest": "sha256:8269c6fd2f2443ee33dcf5c7879e4ccc75d719b2f86c9a222ff514bddd850412",
       "host": null
     }
   },

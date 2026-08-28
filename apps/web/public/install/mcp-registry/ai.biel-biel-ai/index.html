@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Add mcp-registry/ai.biel-biel-ai with CallLint</title>
+    <meta name="robots" content="index,follow" />
+    <link rel="canonical" href="https://calllint.com/install/mcp-registry/ai.biel-biel-ai/" />
+    <link rel="alternate" type="application/vnd.calllint.agent-adoption+json;version=1" href="./index.json" />
+    <link rel="stylesheet" href="/styles/tokens.css" />
+  </head>
+  <body>
+    <main>
+      <section class="install-identity" aria-label="Identity">
+        <h1>mcp-registry/ai.biel-biel-ai <code>2.0.0</code></h1>
+      </section>
+      <section class="install-disposition" aria-label="Disposition">
+        <p class="install-headline"><strong>Review required</strong></p>
+        <p class="install-value-line">Scanned by CallLint — one config entry can expand what your agent is allowed to do, so the blast radius is stated here before you approve it, not after. No server was executed to produce this page.</p>
+        <p class="install-badge"><img class="install-badge-mark" src="/logo-mark-256.png" width="28" height="28" alt="" /> Use CallLint's approval gate</p>
+        <div class="install-cta-row" role="group" aria-label="Choose how to continue">
+          <a class="install-cta" data-primary-action="REVIEW_REQUIRED"
+              data-deep-link="true"
+              href="calllint://adoption/mcp-registry/ai.biel-biel-ai@2.0.0?artifact=sha256:5117708bd8613be1dcd8bd5f496591c5dfa0feb0757dc6dc589edabbf6eaea2e&amp;contract=sha256:5ee0d1a3f94d99221d237f4406d72786284b28e3d53e6116cb21e8f280202aba">Review in CallLint mcp-registry/ai.biel-biel-ai</a>
+          <button type="button" class="install-cta-alt install-copy"
+              data-copy-text="npm i -g calllint@1.9.1"
+              data-copy-done="Copied — install, then click Open on the left"
+              data-copy-label="I don't have CallLint yet"
+              aria-label="Copy CallLint install command">I don't have CallLint yet</button>
+        </div>
+        <p class="install-cta-pair-note">Left opens CallLint if it is already installed. Right copies a one-line CLI install; when that finishes, return here and click Open on the left.</p>
+        <div class="install-primary-path">
+        <p class="install-fallback" id="install-command"><span class="install-command-label">Or add this MCP now (no prior install)</span><span class="install-command-row" id="install-command-text"><code>npx calllint@1.9.1 safe-install --contract https://calllint.com/install/mcp-registry/ai.biel-biel-ai/index.json --apply</code><button type="button" class="install-copy" data-copy-from="install-command-full" aria-label="Copy full command">Copy</button></span><span id="install-command-full" hidden>npx calllint@1.9.1 safe-install --contract https://calllint.com/install/mcp-registry/ai.biel-biel-ai/index.json --expect-artifact-digest sha256:5117708bd8613be1dcd8bd5f496591c5dfa0feb0757dc6dc589edabbf6eaea2e --apply</span><details class="install-command-full"><summary>Full command with artifact digest</summary><code>npx calllint@1.9.1 safe-install --contract https://calllint.com/install/mcp-registry/ai.biel-biel-ai/index.json --expect-artifact-digest sha256:5117708bd8613be1dcd8bd5f496591c5dfa0feb0757dc6dc589edabbf6eaea2e --apply</code></details></p>
+        <p class="install-cta-note">Paste into a terminal and type yes when asked. The Copy button includes the artifact digest so CallLint verifies this exact page.</p>
+        </div>
+        <p class="install-alt-route"><a href="https://mcp.biel.ai/v2/{project_slug}/mcp" rel="nofollow noopener"
+              >Install this MCP only (without CallLint)</a></p>
+      </section>
+      <section class="install-consequence" aria-label="Consequence">
+        <h2>What happens if you install it</h2>
+        <p>Your agent could send data to an unverified remote endpoint — CallLint could not inspect what that endpoint does.</p>
+        <p class="install-consequence-lead">This is the top consequence CallLint observed from a static scan of the install config — not a product pitch. Capability rows and hit reason codes follow; the full Trust Page holds every finding.</p>
+      </section>
+      <section class="install-authority" aria-label="Authority facts">
+      <h2>What it can do</h2>
+      <ul>
+        <li data-observed="true"><span class="install-authority-mark is-observed" aria-hidden="true">!</span> <code>network_egress</code> — Your agent could send data to an unverified remote endpoint — CallLint could not inspect what that endpoint does.</li>
+        <li data-observed="false"><span class="install-authority-mark is-absent" aria-hidden="true">✓</span> <code>financial_action</code> — No financial or payment capability was observed.</li>
+        <li data-observed="false"><span class="install-authority-mark is-absent" aria-hidden="true">✓</span> <code>secret_access</code> — No secret access was observed.</li>
+        <li data-observed="false"><span class="install-authority-mark is-absent" aria-hidden="true">✓</span> <code>shell_execution</code> — No shell or command execution was observed.</li>
+        <li data-observed="false"><span class="install-authority-mark is-absent" aria-hidden="true">✓</span> <code>broad_filesystem_access</code> — No broad filesystem access was observed.</li>
+      </ul>
+      <h3 class="install-reason-heading">What this scan hit</h3>
+      <ul class="install-reason-codes">
+        <li><code>UNKNOWN_REMOTE</code> — Unknown remote endpoint</li>
+      </ul>
+    </section>
+      <section class="install-secondary" aria-label="More">
+        <p>
+          <a href="https://calllint.com/trust/mcp-registry/ai.biel-biel-ai">View the full Trust Page</a> ·
+          <a href="https://github.com/calllint/calllint/issues/new?labels=trust-page-correction">Report a correction</a>
+        </p>
+      </section>
+      <section class="install-agent-reads" aria-label="Agent obligations">
+      <h2>What your agent must ask you about first</h2>
+      <p>Your agent reads this page's machine contract. It is instructed to stop and ask you:</p>
+      <ul>
+        <li><code>new_secret_access</code> — before it reads a new secret or credential</li>
+        <li><code>external_mutation</code> — before it changes anything outside this machine</li>
+        <li><code>shell_execution</code> — before it runs a shell command</li>
+        <li><code>broad_filesystem_access</code> — before it reads or writes broadly across your filesystem</li>
+        <li><code>financial_action</code> — before it takes any action that spends money</li>
+        <li><code>persistent_calllint_components</code> — before it leaves any CallLint component running</li>
+      </ul>
+    </section>
+      <section class="install-publisher" aria-label="Publisher description">
+      <h2>Publisher-provided description — not used for CallLint's safety decision.</h2>
+      <p>Query your product docs from AI tools. Source-cited answers from your indexed documentation.</p>
+    </section>
+      <section class="install-provenance" aria-label="Provenance">
+        <h2>Provenance</h2>
+        <ul>
+          <li>Verdict: <strong>Review required</strong></li>
+          <li>Artifact digest: <code>sha256:5117708bd8613be1dcd8bd5f496591c5dfa0feb0757dc6dc589edabbf6eaea2e</code></li>
+          <li>Contract digest: <code>sha256:5ee0d1a3f94d99221d237f4406d72786284b28e3d53e6116cb21e8f280202aba</code></li>
+        </ul>
+        <p>This page is an observation at a specific artifact digest and time under the stated completeness. It is not a certification, an endorsement, or a guarantee of safety.</p>
+      </section>
+    </main>
+    <script src="/scripts/install-copy.js" defer></script>
+  </body>
+</html>

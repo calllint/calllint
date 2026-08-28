@@ -1,18 +1,18 @@
 {
   "schema": "calllint.agent-adoption-contract.v1",
   "contract": {
-    "contractDigest": "sha256:5d108da8b097717cefb2c22a6351e5d1efaab1eff4807798f4709a6ee65b4421",
-    "generatedAt": "2026-08-17T01:39:50.172Z",
+    "contractDigest": "sha256:c3707eee903952d051afbfab3ee0032ed9e88da3ce667423db2a180e810d0546",
+    "generatedAt": "2026-08-27T11:02:09.000Z",
     "expiresAt": null,
     "generatorVersion": "0.1.0",
-    "snapshotDigest": "sha256:dd2a7d61fe610f3e1563a61d15b2b01a3a5d0f2fb8ed2d44a35d6ac1e427942a"
+    "snapshotDigest": "sha256:b1c68cc75cf1f3b311c93811d27f61db842ad6449d0cbfd3d69431090f253179"
   },
   "subject": {
     "canonicalName": "mcp-registry/ai.agentlookups-plumbline",
     "canonicalSlug": "mcp-registry/ai.agentlookups-plumbline",
     "packageType": null,
     "packageName": null,
-    "version": "1.0.0",
+    "version": "1.0.1",
     "artifactDigest": "sha256:dd545706150eee89e3cca7c0cc41dd6ca1aaf99962d20709b9692917c21a6beb",
     "sourceLocator": "https://contractors.agentlookups.ai/mcp"
   },
@@ -23,7 +23,7 @@
       "UNKNOWN_REMOTE"
     ],
     "evidenceLevel": "E2",
-    "evidenceDigest": "sha256:38cec50881ca48787407d5f0e2cff956864214bc497e8eb7bb48ba44d593b63b",
+    "evidenceDigest": "sha256:460ddb574210599ba30bf0b039498df296047e343223282d5575e6c256378c3d",
     "completeness": "complete"
   },
   "authorityDelta": {
@@ -44,12 +44,12 @@
     ]
   },
   "trustedSources": {
-    "registrySnapshotDigest": "sha256:dd2a7d61fe610f3e1563a61d15b2b01a3a5d0f2fb8ed2d44a35d6ac1e427942a",
-    "evidenceDigest": "sha256:38cec50881ca48787407d5f0e2cff956864214bc497e8eb7bb48ba44d593b63b",
+    "registrySnapshotDigest": "sha256:b1c68cc75cf1f3b311c93811d27f61db842ad6449d0cbfd3d69431090f253179",
+    "evidenceDigest": "sha256:460ddb574210599ba30bf0b039498df296047e343223282d5575e6c256378c3d",
     "engineVersion": "0.1.0"
   },
   "untrustedPublisherContent": {
-    "description": "Free public-record contractor license checks across 34 US jurisdictions (2.7M records). Tool",
+    "description": "Free contractor-license checks from official state records; a no-match never proves unlicensed.",
     "usedForSafetyDecision": false
   },
   "recommendedNextAction": {
@@ -57,9 +57,9 @@
     "tool": "calllint_prepare_safe_install",
     "arguments": {
       "canonicalName": "mcp-registry/ai.agentlookups-plumbline",
-      "expectedVersion": "1.0.0",
+      "expectedVersion": "1.0.1",
       "expectedArtifactDigest": "sha256:dd545706150eee89e3cca7c0cc41dd6ca1aaf99962d20709b9692917c21a6beb",
-      "expectedContractDigest": "sha256:5d108da8b097717cefb2c22a6351e5d1efaab1eff4807798f4709a6ee65b4421",
+      "expectedContractDigest": "sha256:c3707eee903952d051afbfab3ee0032ed9e88da3ce667423db2a180e810d0546",
       "host": null
     }
   },

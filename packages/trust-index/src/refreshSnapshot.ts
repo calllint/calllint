@@ -138,6 +138,15 @@ import {
 } from "./fetchRegistry.js"
 import { parseSnapshot } from "./snapshot.js"
 import { SNAPSHOT_PATH, engineVersion } from "./bake.js"
+import { advanceRatchetFloor } from "./advanceRatchet.js"
+
+/**
+ * Gate S0's source, whose regression ratchet this bin advances (ADR 0091).
+ *
+ * Derived from this module's own location rather than `process.cwd()`, so a scheduled run, a local
+ * `pnpm ingest:trust-index` from any directory, and a test all write the same file.
+ */
+const GATE_S0_PATH = resolve(dirname(fileURLToPath(import.meta.url)), "..", "..", "..", "scripts", "gate-s0.ts")
 
 /**
  * Resolve the ingestion cap with cumulative coverage auto-growth (Amendment v1, Section E).
@@ -434,12 +443,31 @@ async function main(): Promise<void> {
   writeFileSync(SNAPSHOT_PATH, snapshotText, "utf8")
   const committed = parseSnapshot(snapshotText)
 
+  // 2b. Advance Gate S0's regression ratchet to the cohort just committed (ADR 0091).
+  //
+  //     Done HERE, in the same act that writes the snapshot, because the floor and the cohort are
+  //     a COHERENT PAIR: `gate-s0.ts` exits 2 at load time when the floor exceeds the committed
+  //     cohort, so a run that wrote one without the other would leave the repo in a state its own
+  //     gate refuses. A separate workflow step could be skipped, reordered, or omitted from a local
+  //     `pnpm ingest:trust-index`; a call on this line cannot.
+  //
+  //     It can only ever RAISE the floor (`Math.max`, argued in `advanceRatchet.ts`). A shrunken
+  //     cohort leaves the floor at its high-water mark and reds, which is the ratchet doing its job.
+  const ratchet = advanceRatchetFloor(GATE_S0_PATH, committed.count)
+
   // Cumulative coverage observability (Amendment v1, §M)
   const currentRetainedCount = retainedNames.filter((name) =>
     committed.entries.some((e) => e.name === name),
   ).length
   const newlyAdmittedCount = committed.count - currentRetainedCount
   const atCeiling = committed.count >= CUMULATIVE_COVERAGE_CEILING
+  // A run that rewrites a GATE says so. The hold case is printed too, not omitted: "the ratchet did
+  // not move" and "the ratchet was not considered" are different facts about a run, and an operator
+  // reading a shrink needs to see that the floor deliberately stayed above the cohort.
+  const ratchetClause = ratchet.advanced
+    ? `ratchet: S0_REGRESSION_FLOOR ${ratchet.from} -> ${ratchet.to}; `
+    : `ratchet: S0_REGRESSION_FLOOR held at ${ratchet.from}; `
+
   const coverageClause = atCeiling
     ? `coverage: ${currentRetainedCount} retained, target ${maxEntries}, ${newlyAdmittedCount} newly admitted, ceiling reached; `
     : `coverage: ${currentRetainedCount} retained, target ${maxEntries}, ${newlyAdmittedCount} newly admitted, ${committed.count} served; `
@@ -488,6 +516,7 @@ async function main(): Promise<void> {
       `${mirrored.currentSubjects} current subject(s); ` +
       conservationClause +
       coverageClause +
+      ratchetClause +
       `snapshot: ${committed.count} entry(ies) @ ${committed.fetchedAt}; ` +
       `cohort digest ${mirrored.snapshotDigest}; ` +
       artifactClause +

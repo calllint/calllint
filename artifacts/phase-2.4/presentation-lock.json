@@ -240,7 +240,7 @@
     "sharedTokensDrifted": [],
     "servedTokensNotMirrored": [],
     "cssRuleCount": 56,
-    "installPagesMeasured": 99,
+    "installPagesMeasured": 149,
     "emittedInstallClasses": [
       "install-agent-reads",
       "install-alt-route",
@@ -373,17 +373,17 @@
         "rationale": "One distinct value across all 19 served sidecars. A constant carries no per-subject information; the protocol steps/mustAsk/mustStop/prohibitedShortcuts that DO carry semantics all remain bound."
       }
     ],
-    "resourcesMeasured": 99,
-    "distinctContractDigests": 99,
-    "distinctSemanticContractDigests": 99,
+    "resourcesMeasured": 149,
+    "distinctContractDigests": 149,
+    "distinctSemanticContractDigests": 149,
     "noProseLeaves": true,
     "bindingUnchanged": true,
     "bindingFaults": [],
     "resources": [
       {
         "canonicalSlug": "mcp-registry/ac.inference.sh-mcp",
-        "contractDigest": "sha256:43f2c6594baa9977f07542b5b46303c1c25e885a6229956695a5c775aa4912a2",
-        "semanticContractDigest": "sha256:93a0a83c9a4ebc3b91f4faa662da0e7be329bba367999fdb3392976819047f04",
+        "contractDigest": "sha256:f468887480e5eda8242b48f7383358ab5ee3063396b454f725fe5477da846aba",
+        "semanticContractDigest": "sha256:749d7a63c7a4be2f434212efc0b3b731da43f4b42cc23f321f45d15c7197d1ea",
         "omissionsApplied": [
           "contract.contractDigest",
           "recommendedNextAction.arguments.expectedContractDigest",
@@ -397,8 +397,38 @@
       },
       {
         "canonicalSlug": "mcp-registry/ac.tandem-docs-mcp",
-        "contractDigest": "sha256:86ab44d2868990d83cc1b0a17a5f881fddebaf1bccff77b18428d47a02089c50",
-        "semanticContractDigest": "sha256:417b40d0df08021f747f07fc1c9ca33eea4159e6349b281fcc9f47153d660810",
+        "contractDigest": "sha256:5d375d244fcf1d41252061b1549be6413c42bbc133fd28c32b28cff41bdd797f",
+        "semanticContractDigest": "sha256:297c6ef67f5e5bdb306ae91bc6b15b12ad71b4e69bbe1eb9814f690ff1354650",
+        "omissionsApplied": [
+          "contract.contractDigest",
+          "recommendedNextAction.arguments.expectedContractDigest",
+          "untrustedPublisherContent.description",
+          "publicObservation.publicLabel",
+          "agentGuidance.goal"
+        ],
+        "omissionsNotPresent": [],
+        "proseLeaves": [],
+        "bindingFaults": []
+      },
+      {
+        "canonicalSlug": "mcp-registry/ad.inside-inside-ads",
+        "contractDigest": "sha256:0380fbf41c7fa5d3409c0053ca19efceb1eb7fbb420594d751e8bc6ca8ca5737",
+        "semanticContractDigest": "sha256:decc2716d81fdb07a1047e6e9d788b20685aad65afc9b5f83aa7cf32f17461d9",
+        "omissionsApplied": [
+          "contract.contractDigest",
+          "recommendedNextAction.arguments.expectedContractDigest",
+          "untrustedPublisherContent.description",
+          "publicObservation.publicLabel",
+          "agentGuidance.goal"
+        ],
+        "omissionsNotPresent": [],
+        "proseLeaves": [],
+        "bindingFaults": []
+      },
+      {
+        "canonicalSlug": "mcp-registry/ae.propick-propick",
+        "contractDigest": "sha256:9fbd020c2cfce893568b9dbd9d3c2dafb43375f6693e6395827c7ac48ca6b86e",
+        "semanticContractDigest": "sha256:a54422d6edfe50782c879e2924cb2185de878b8cd2ff70521370da66db1c2e80",
         "omissionsApplied": [
           "contract.contractDigest",
           "recommendedNextAction.arguments.expectedContractDigest",
@@ -412,8 +442,8 @@
       },
       {
         "canonicalSlug": "mcp-registry/ag.hood-name-service",
-        "contractDigest": "sha256:74a6091fbe72c2a3b4c4dba29ba5b28ad56faff8e08826105910305d38e420d7",
-        "semanticContractDigest": "sha256:3e79c7963a29be18f333e0475561f030fa6e8ef69ea61e351a8be4f2e3b96a65",
+        "contractDigest": "sha256:48e15c0295b399a1acab01f59d9ad6ef8480ff2af3b2f8a82255f43946e8ca60",
+        "semanticContractDigest": "sha256:814b0f5cc747a66b59db605a20fc263af94e2c5163160cf8848f3fcfbe7eefe3",
         "omissionsApplied": [
           "contract.contractDigest",
           "recommendedNextAction.arguments.expectedContractDigest",
@@ -427,8 +457,8 @@
       },
       {
         "canonicalSlug": "mcp-registry/agency.goji-goji",
-        "contractDigest": "sha256:1fb075e61efa853c716e8e297357a6f5fcbbfca913410c790dcc23e192ce39a0",
-        "semanticContractDigest": "sha256:babfe67e4f3cca6a2296c60e1faa3d72f44b357f52cd72f02afdeb82b0ef63c8",
+        "contractDigest": "sha256:38d17672a45eac5fd29d2c72abc64fa123322dad90e008b36bfe1bf26c888a6a",
+        "semanticContractDigest": "sha256:d63fdc8f0dc0673bb0358cdeff03f57f880e755aafbba336c9f179dea02cfeeb",
         "omissionsApplied": [
           "contract.contractDigest",
           "recommendedNextAction.arguments.expectedContractDigest",
@@ -442,8 +472,8 @@
       },
       {
         "canonicalSlug": "mcp-registry/agency.kesey-pretrip",
-        "contractDigest": "sha256:f5ae2cc7ae364bdeae2e6cb806dda6b917355a0ad1bf993aa8baab71faef559f",
-        "semanticContractDigest": "sha256:bb6afd1cac043da7151d1d2aa5d0ce72ffa920c8caff0c6021840ed519ddcc9b",
+        "contractDigest": "sha256:48f73f78d3cf43b366e58576fd5cb43a47d099207f011d2c426172fe55af20d2",
+        "semanticContractDigest": "sha256:df4a98895a7c58b8a849177eca2782e4e63009240a671798f7a87d288c9f1a91",
         "omissionsApplied": [
           "contract.contractDigest",
           "recommendedNextAction.arguments.expectedContractDigest",
@@ -457,8 +487,8 @@
       },
       {
         "canonicalSlug": "mcp-registry/agency.lona-trading",
-        "contractDigest": "sha256:d42dfd862da6152a153dba986c5c871bda881153e44917e16448724ca3776ac7",
-        "semanticContractDigest": "sha256:fbd070941e11d15ca4d3ac553404f2b2868d3717f8b0123ace8be92f23264e68",
+        "contractDigest": "sha256:62c25e01936f9ba9b936598b81858eea9d7fd130e48735d4b7fd2e3d65cb4502",
+        "semanticContractDigest": "sha256:65dc482cc6efd7b493b8592e5aa4c95643de1ccf2554a4d2f3f10a22b567d07b",
         "omissionsApplied": [
           "contract.contractDigest",
           "recommendedNextAction.arguments.expectedContractDigest",
@@ -472,8 +502,8 @@
       },
       {
         "canonicalSlug": "mcp-registry/ai.1325-mcp",
-        "contractDigest": "sha256:7b4527b840df3d7f2c238e178f0acadefec93b04bc8a43ed8d0bc7eaef503f86",
-        "semanticContractDigest": "sha256:6ca4ac9f218f18142e61f2212b0c63e0046820da860220a0b375783427460fe3",
+        "contractDigest": "sha256:0b7028d1e9dbd6576790ed11c4e1637e249618e6be6b7e04ba89fc26dff10285",
+        "semanticContractDigest": "sha256:b2844b252d213ef6264a5eee72261f83ae0253bd4b59b0e81a06ccbb261d6f93",
         "omissionsApplied": [
           "contract.contractDigest",
           "recommendedNextAction.arguments.expectedContractDigest",
@@ -487,8 +517,8 @@
       },
       {
         "canonicalSlug": "mcp-registry/ai.aarna-atars-mcp",
-        "contractDigest": "sha256:03d4760ca289cff2743916525c85f41785a11a41677d45689aeec60378e14c7f",
-        "semanticContractDigest": "sha256:64a5a27e462a97439045368a51ac547d23f0f26ac95537df92ded5d0e4c4f1e6",
+        "contractDigest": "sha256:a8580af931e7a34415dd8e45736fe0561165bcf080fecb8836ecb47da095d5d5",
+        "semanticContractDigest": "sha256:a0290a77ee82d4235277bf5749bb6e659edd9af12b377b4a1d643a78ca339875",
         "omissionsApplied": [
           "contract.contractDigest",
           "recommendedNextAction.arguments.expectedContractDigest",
@@ -502,8 +532,8 @@
       },
       {
         "canonicalSlug": "mcp-registry/ai.abmeter-abmeter",
-        "contractDigest": "sha256:db269e6244e47733b2519cbf3af7288b19de3e76ae3c69cea434a43f27f99020",
-        "semanticContractDigest": "sha256:d484c5b94d6b7d4fe2f44d1b952a41e83fcda9aa67afa78e3e4be63e5900839e",
+        "contractDigest": "sha256:ac93af04d8569ff20995ffec9be0d3da4c75d52d55c9a092efc6b3488ed491fe",
+        "semanticContractDigest": "sha256:2b5634fe0b16deae21d571ae03673927716d895c191582c106de9a9dbde18309",
         "omissionsApplied": [
           "contract.contractDigest",
           "recommendedNextAction.arguments.expectedContractDigest",
@@ -517,8 +547,8 @@
       },
       {
         "canonicalSlug": "mcp-registry/ai.actwise-ideation",
-        "contractDigest": "sha256:885c34859e04a9ffd64963f23a90c5d68f58711e54da546c2eca2d12df2a0425",
-        "semanticContractDigest": "sha256:8c189d6d94154dee57f2452b662ed738690f26f11e4aa90605e94c12273ccbc9",
+        "contractDigest": "sha256:fd76c807143378728640a0fa7f78e32847aeb189e7f91e915edface8369a7093",
+        "semanticContractDigest": "sha256:4d1258fe78135d35468614ba14102aa95e347bdf1514644865c7b6365a938d61",
         "omissionsApplied": [
           "contract.contractDigest",
           "recommendedNextAction.arguments.expectedContractDigest",
@@ -532,8 +562,8 @@
       },
       {
         "canonicalSlug": "mcp-registry/ai.adadvisor-mcp-server",
-        "contractDigest": "sha256:9b35d80b45806cdfd747f08c36c823359b167145a87c772ba85b102701775f10",
-        "semanticContractDigest": "sha256:adffbe796ddd2f39f59bbc063adb6d0222636394d7945c36e36ac7c7c9ae69d1",
+        "contractDigest": "sha256:e1540d0949ff9fe5623f99c0263989199885c5fe84ad37a950b8ccb14599e3b4",
+        "semanticContractDigest": "sha256:387fc1452de68576493fd44d95f18b86818a26805ca9c201e14056fd0f6109d1",
         "omissionsApplied": [
           "contract.contractDigest",
           "recommendedNextAction.arguments.expectedContractDigest",
@@ -547,8 +577,8 @@
       },
       {
         "canonicalSlug": "mcp-registry/ai.adeu-adeu",
-        "contractDigest": "sha256:93178db05d4a514fca4e7c1694b5988f4d8afdd1f00f6439dd5804bdbd9232fa",
-        "semanticContractDigest": "sha256:41e57f11065a84e4fd7e91494dcad065bd1787638cc7c3c9a52e2ce52b65e350",
+        "contractDigest": "sha256:0528a995ae32e352ba8fb60433ca1911857d739077c474032e9b8d07ab8365d9",
+        "semanticContractDigest": "sha256:7bb31ca1ca597db4f8588024e1f9131e36135a4766d30faaf8232e3b3c3f2eea",
         "omissionsApplied": [
           "contract.contractDigest",
           "recommendedNextAction.arguments.expectedContractDigest",
@@ -562,8 +592,8 @@
       },
       {
         "canonicalSlug": "mcp-registry/ai.adoraads-beauty",
-        "contractDigest": "sha256:4ffaa86a15484356681ef7f4f23c18393ad225a3dbe5b34ae20e5434cd125694",
-        "semanticContractDigest": "sha256:e9f7df25aa5b1673a557ba122014dfa3d157b0be743ba5f07ed06fee26ec0ff3",
+        "contractDigest": "sha256:d862818a7faa2c26112b6b811365f393e2e6c6615319cfd76583573d63a61c4f",
+        "semanticContractDigest": "sha256:a664726ccbe0d9cc60a1c6a44ec7d7f2ab70ccbd37650cf747df1c2e0f6fb677",
         "omissionsApplied": [
           "contract.contractDigest",
           "recommendedNextAction.arguments.expectedContractDigest",
@@ -577,8 +607,8 @@
       },
       {
         "canonicalSlug": "mcp-registry/ai.adplane-google-ads",
-        "contractDigest": "sha256:d2db4dac5c97e6d51f7ea365027e9026ee5ead98677ff352be974b144a238b73",
-        "semanticContractDigest": "sha256:e53d4542344835afebe664e17cb32c9aa0d5fb2bb217c7e2875b46a846b20cbf",
+        "contractDigest": "sha256:ea9ed235488e77b4f0720310547e76a5899d801e4487bf6349f3639ff19bbb07",
+        "semanticContractDigest": "sha256:b89ecc19e8d00f97a78dc79ab5e4de039d627d4f2664e5f398587c68bffcac80",
         "omissionsApplied": [
           "contract.contractDigest",
           "recommendedNextAction.arguments.expectedContractDigest",
@@ -592,8 +622,8 @@
       },
       {
         "canonicalSlug": "mcp-registry/ai.adramp-google-ads",
-        "contractDigest": "sha256:941a00a8432d567b2159a80e25915fcb0788eb244631bfe29dc71dbb623450f1",
-        "semanticContractDigest": "sha256:d62053b248284101628529628cdacb6001d208f13ef6653a0d6d79817624c962",
+        "contractDigest": "sha256:da57c4a6e17915df8a0540d93e72c6955cc604c4c567f9250c01481ce0dfeb11",
+        "semanticContractDigest": "sha256:c2a89963268f2c29ea0864c051c6cef33daf00dbc58e7ea5f3be0df080e66fd0",
         "omissionsApplied": [
           "contract.contractDigest",
           "recommendedNextAction.arguments.expectedContractDigest",
@@ -607,8 +637,23 @@
       },
       {
         "canonicalSlug": "mcp-registry/ai.adside-adside",
-        "contractDigest": "sha256:ea683af48442082452abdfe5024d99e4d720f544f178856fa5acc6794f9a1351",
-        "semanticContractDigest": "sha256:5cf93d3f1c56a92570878056ee3442794287c267ee99304726dd217d0aa6a6fc",
+        "contractDigest": "sha256:d1de75f862c4a3575e66d63fc174b304b5861c1adf3e1e8bbb4fed1f4acdf384",
+        "semanticContractDigest": "sha256:abb5f80927314d38662232bec5c6564337be31b1750922f1dfa86e2fc0bc715c",
+        "omissionsApplied": [
+          "contract.contractDigest",
+          "recommendedNextAction.arguments.expectedContractDigest",
+          "untrustedPublisherContent.description",
+          "publicObservation.publicLabel",
+          "agentGuidance.goal"
+        ],
+        "omissionsNotPresent": [],
+        "proseLeaves": [],
+        "bindingFaults": []
+      },
+      {
+        "canonicalSlug": "mcp-registry/ai.advisorsai-store-readiness",
+        "contractDigest": "sha256:4c2e44a5e690b307f1e2b8d4ce4bbaa0da6f1a660218fd5635c4b3dbff7c0f4d",
+        "semanticContractDigest": "sha256:bd7b5d0286be7f459c878757171c6054e2bf78ca7b322b98fd043992a250734a",
         "omissionsApplied": [
           "contract.contractDigest",
           "recommendedNextAction.arguments.expectedContractDigest",
@@ -622,8 +667,8 @@
       },
       {
         "canonicalSlug": "mcp-registry/ai.adweave-meta-ads-mcp",
-        "contractDigest": "sha256:7b72f3131b74b1442bef73e6065cf4b28a271b48004454e94ba6babd9bb82495",
-        "semanticContractDigest": "sha256:a98c6e67aef52a92a4e98d2070c7b338d7b5101eda38f427de5b65548b512c38",
+        "contractDigest": "sha256:ab80b2b39f0939a5ff8d39bcc29ae5f395c15e4be4daaffb8a3217f2129e00bf",
+        "semanticContractDigest": "sha256:3c872ff2eb770a2b0049dc0280169f0c1ddf3ae86d7315aa75ca4429c4f5a005",
         "omissionsApplied": [
           "contract.contractDigest",
           "recommendedNextAction.arguments.expectedContractDigest",
@@ -637,8 +682,8 @@
       },
       {
         "canonicalSlug": "mcp-registry/ai.aetherwealth-mcp",
-        "contractDigest": "sha256:a47b44c3e0ae1c65b15ee6a9141dfa71317b6625eba1b23a5c01715611f8ea87",
-        "semanticContractDigest": "sha256:3968d777997d5ba493282088abe078e378caa2edb06a8b74be40f4898c4147a8",
+        "contractDigest": "sha256:8269c6fd2f2443ee33dcf5c7879e4ccc75d719b2f86c9a222ff514bddd850412",
+        "semanticContractDigest": "sha256:562e1b27c324c926db00dad3ea7e4dc7a92462b238d6b0dc1c3276c83ef04eb9",
         "omissionsApplied": [
           "contract.contractDigest",
           "recommendedNextAction.arguments.expectedContractDigest",
@@ -652,8 +697,8 @@
       },
       {
         "canonicalSlug": "mcp-registry/ai.afmr-discovery",
-        "contractDigest": "sha256:a5ad1b255b7def5852b2921783bdf7976fc14509e31d72bc4f2ee5a9f66ed917",
-        "semanticContractDigest": "sha256:a377cbfd3c3f159b074dad8942997755e38fe8b7fe911f8326f220763d98efb2",
+        "contractDigest": "sha256:87cd16b5d00f447619623d810fe2dbc9c4ed16e7bea66efc43f7b5cdb5bff5b8",
+        "semanticContractDigest": "sha256:e874825ea23ccde50a9b7f956c972da1775512abaf9f961f5b319f66fee52968",
         "omissionsApplied": [
           "contract.contractDigest",
           "recommendedNextAction.arguments.expectedContractDigest",
@@ -667,8 +712,8 @@
       },
       {
         "canonicalSlug": "mcp-registry/ai.agentberg-agentberg",
-        "contractDigest": "sha256:4406d67db524ffc27a5d620191e2ecf28dc924b633bb882ae67ee5ea01e6346a",
-        "semanticContractDigest": "sha256:6bdfe0e3826ed2bbcbc2695e7dbfe574502052335fe79ddd35375a7d6802a7be",
+        "contractDigest": "sha256:6e6a22d9be4b771e20c025873b624c902416d70f5ee2bc3a037b3a1531ad1ab0",
+        "semanticContractDigest": "sha256:749591c75f2f3a0212aecb04c84ac4da07a96e6403fef8c17d12d79b2fb7c39c",
         "omissionsApplied": [
           "contract.contractDigest",
           "recommendedNextAction.arguments.expectedContractDigest",
@@ -682,8 +727,23 @@
       },
       {
         "canonicalSlug": "mcp-registry/ai.agentdm-agentdm",
-        "contractDigest": "sha256:a4ab29f41dc6fe052e4f75c3e31d30a0a66233f4074844cf527ca23237bbd8bf",
-        "semanticContractDigest": "sha256:db773f014a5fa9f3645461c644fa464915a91b6b0575f5b9abaebaccf2213726",
+        "contractDigest": "sha256:fe9f726aaf9bf1ddf53141f22e006a0dfa28191e9214b3b81b43c0baa8f1351d",
+        "semanticContractDigest": "sha256:22509f0dbd15d1a940bbdfe8eb2fb49ded18f0f4b205c8d21c5e72d2de4c9c83",
+        "omissionsApplied": [
+          "contract.contractDigest",
+          "recommendedNextAction.arguments.expectedContractDigest",
+          "untrustedPublisherContent.description",
+          "publicObservation.publicLabel",
+          "agentGuidance.goal"
+        ],
+        "omissionsNotPresent": [],
+        "proseLeaves": [],
+        "bindingFaults": []
+      },
+      {
+        "canonicalSlug": "mcp-registry/ai.agentgates-mcp",
+        "contractDigest": "sha256:536c9d29dfbf4332b327eed4dd24116e303f27492941385028275cf499c13650",
+        "semanticContractDigest": "sha256:37c4501e5393296fc44206e1449c084d3acb315831e693942fd65ec13d63d9ed",
         "omissionsApplied": [
           "contract.contractDigest",
           "recommendedNextAction.arguments.expectedContractDigest",
@@ -697,8 +757,8 @@
       },
       {
         "canonicalSlug": "mcp-registry/ai.agentic-news-mcp",
-        "contractDigest": "sha256:671f0a9e4733944e25b334c01ee69bf66b1a74d40ae52f14625d569eed09ac6c",
-        "semanticContractDigest": "sha256:89e60e6ab74d0c3edc6904c920269c4bdd64cd7c9c3a5d1c0acd1cc16b14ef80",
+        "contractDigest": "sha256:7a0b90421b846f95dcf72c4b3af9b9dba8e22c26b8ba1318f44ccf912aed6f87",
+        "semanticContractDigest": "sha256:bf1588f6308f523625a32349ae6e96850da1e4019dd38c911a8e187442266000",
         "omissionsApplied": [
           "contract.contractDigest",
           "recommendedNextAction.arguments.expectedContractDigest",
@@ -712,8 +772,8 @@
       },
       {
         "canonicalSlug": "mcp-registry/ai.agenticaffiliate-affiliate-networks-mcp",
-        "contractDigest": "sha256:988b46195db6b6477edfc3c9d0697fac0b7df33f1042822f5037848cfe9da4e9",
-        "semanticContractDigest": "sha256:ce27ddae53b9341dceae623c86353eed46d792b79851f817211c7275a5f9f71e",
+        "contractDigest": "sha256:5cc270497e86771a023b2780461e97ab6cc576a05778fad1165b5d24a4ff0752",
+        "semanticContractDigest": "sha256:5db5d2c23967fae3fe4371b4553b2e6b773b30fa182a0701f8387de676e14fd4",
         "omissionsApplied": [
           "contract.contractDigest",
           "recommendedNextAction.arguments.expectedContractDigest",
@@ -727,8 +787,8 @@
       },
       {
         "canonicalSlug": "mcp-registry/ai.agenticfabricationnetwork-ufp",
-        "contractDigest": "sha256:bb3f13f6145614317e1830e35c71f8c088b790fb92e9b479577d31e39b224467",
-        "semanticContractDigest": "sha256:092d18c488c45cc94a7354bdb5cc950e6ab34d73ec039e39fd4405d252437f77",
+        "contractDigest": "sha256:300b65b2a52aefef3b85856978e4a791c2d5bb0e489afb2677965f37d2c5378f",
+        "semanticContractDigest": "sha256:230583e47f23f90cb254cfd23a24cb64541eceeb9e0d40c41a229734992ff76e",
         "omissionsApplied": [
           "contract.contractDigest",
           "recommendedNextAction.arguments.expectedContractDigest",
@@ -742,8 +802,8 @@
       },
       {
         "canonicalSlug": "mcp-registry/ai.agenticshelf-graffeo",
-        "contractDigest": "sha256:96465bd3cd2274a0aae95a98db843ce2e671c468b65f47da23a6cf3453a569e8",
-        "semanticContractDigest": "sha256:a5a100b116ac35419c1fc596cb1a4ad9d5a3da6b66b537a7b9363658b1b6c935",
+        "contractDigest": "sha256:41b318d81f64e2a95eb574857854df8d16d1800d69767aa30ce373fc21b2af33",
+        "semanticContractDigest": "sha256:53525735c8a8ec145b8913d5b131b00e91f80886693b30b5b91e6eb5ce5ccaf1",
         "omissionsApplied": [
           "contract.contractDigest",
           "recommendedNextAction.arguments.expectedContractDigest",
@@ -757,8 +817,8 @@
       },
       {
         "canonicalSlug": "mcp-registry/ai.agenticshelf-mcp",
-        "contractDigest": "sha256:c5fffc6273a86c7e4b372cf928064b61f0a2f882c1d5640470848b26c74aad79",
-        "semanticContractDigest": "sha256:94ff22a194addbff03d8abf5c441284044104b1465ca9ab58c1f33f0f2d90d16",
+        "contractDigest": "sha256:b15167a513c6129214719b751f79bede357c805cb872a4065e82b3e69bdce142",
+        "semanticContractDigest": "sha256:e1dda37846b2adec08023531b6cc02c0a7dd8e29fa0ab90a29a3a2b3883caf31",
         "omissionsApplied": [
           "contract.contractDigest",
           "recommendedNextAction.arguments.expectedContractDigest",
@@ -772,8 +832,8 @@
       },
       {
         "canonicalSlug": "mcp-registry/ai.agenticshelf-puroair",
-        "contractDigest": "sha256:79f9f6aa5abfe7c7c39868c2292925409f967a65e1cf322d684287817d52cdd2",
-        "semanticContractDigest": "sha256:1fe3a866e30ab7596c066389838e3bc0fe871432fe026c2bde685248eb5060ac",
+        "contractDigest": "sha256:2367dc43d1c950f2619f278479533c940fd917a32d39c9b9fd0b1d8b8f155aa1",
+        "semanticContractDigest": "sha256:e3a51336357a9558f1c4aee010a784ae886003f557c2a470858ba84932c33888",
         "omissionsApplied": [
           "contract.contractDigest",
           "recommendedNextAction.arguments.expectedContractDigest",
@@ -787,8 +847,8 @@
       },
       {
         "canonicalSlug": "mcp-registry/ai.agenticterminal-directory",
-        "contractDigest": "sha256:867566396b4df57f1bd5320b731b7b2303ca9196df985244e9d0ca9cb9aaa562",
-        "semanticContractDigest": "sha256:aec68499fa291c331e7de279e28e671fa8be4586fa6d4b792bfada56c5f8269b",
+        "contractDigest": "sha256:98d2fd60723701e156c16f5646be885510b821d1990e4461fbaa8dce5b64555e",
+        "semanticContractDigest": "sha256:6646ccccdb3d2b7e96417be5fc439ddf328d19fbe1fbb57f23e157748aae65a4",
         "omissionsApplied": [
           "contract.contractDigest",
           "recommendedNextAction.arguments.expectedContractDigest",
@@ -802,8 +862,23 @@
       },
       {
         "canonicalSlug": "mcp-registry/ai.agentlookups-counterscript",
-        "contractDigest": "sha256:482bb443df0600128d1d72769f1a1aab806cf472befc3aada3141207cfe8182e",
-        "semanticContractDigest": "sha256:a156195a752cc60c721d6d827624cbe58fa3bd1fce3a2214c94bac18ad443f00",
+        "contractDigest": "sha256:a34e3d48c280699ecf62300055ec53539ac2308c6d3f8ca410f5a76da1e03c6d",
+        "semanticContractDigest": "sha256:0ce3b11826fe788db26535174a5540242c02fe1f7ae692a98bdd573bf387a971",
+        "omissionsApplied": [
+          "contract.contractDigest",
+          "recommendedNextAction.arguments.expectedContractDigest",
+          "untrustedPublisherContent.description",
+          "publicObservation.publicLabel",
+          "agentGuidance.goal"
+        ],
+        "omissionsNotPresent": [],
+        "proseLeaves": [],
+        "bindingFaults": []
+      },
+      {
+        "canonicalSlug": "mcp-registry/ai.agentlookups-greenlight",
+        "contractDigest": "sha256:71518418c3b736ee7f5ec17d3fd7df47414b0fc1605185e404896fe3bbb4a93f",
+        "semanticContractDigest": "sha256:5131fb0f4d6bed9a02df7701cd48902140c5d2978b0b248f9a54a15d60428610",
         "omissionsApplied": [
           "contract.contractDigest",
           "recommendedNextAction.arguments.expectedContractDigest",
@@ -817,8 +892,8 @@
       },
       {
         "canonicalSlug": "mcp-registry/ai.agentlookups-groundtruth",
-        "contractDigest": "sha256:fb3dee4c8eb3459d1f888946397141a2b016ebf6de85f98ffb51ee13eabeae40",
-        "semanticContractDigest": "sha256:c3d061d0b107fac61a0f7c167970e94134ceafaac7fa41c23a662927b7d5b957",
+        "contractDigest": "sha256:803931708204e7426be17d6858a0e943097bcdebd5f9cd46ad103c9b73edb148",
+        "semanticContractDigest": "sha256:20f528c40506948de82d731b9a5fc6913c4c33934ba7828c2202fd0a8a214b1a",
         "omissionsApplied": [
           "contract.contractDigest",
           "recommendedNextAction.arguments.expectedContractDigest",
@@ -832,8 +907,8 @@
       },
       {
         "canonicalSlug": "mcp-registry/ai.agentlookups-overassessed",
-        "contractDigest": "sha256:0b3775186274e4b5e736d032cf7b5ba13ecffa3504958cda9db74f84d483ee5b",
-        "semanticContractDigest": "sha256:b0377ad6b3da0d773aaedf74618e702117abdb38cd877c6d8d14e79cf18a6c2c",
+        "contractDigest": "sha256:0dca81ea4b4385cb517395fc4a07a366f27df2e1d3f5feebf5244794b190023a",
+        "semanticContractDigest": "sha256:67e659375574cd632ee2638327b1ac468fdebd0a1f5980c7469091fbb234f550",
         "omissionsApplied": [
           "contract.contractDigest",
           "recommendedNextAction.arguments.expectedContractDigest",
@@ -847,8 +922,23 @@
       },
       {
         "canonicalSlug": "mcp-registry/ai.agentlookups-plumbline",
-        "contractDigest": "sha256:5d108da8b097717cefb2c22a6351e5d1efaab1eff4807798f4709a6ee65b4421",
-        "semanticContractDigest": "sha256:3b6e27cfb18344c6f92fd46f0ac7bd934d26b8d509786c8f30db13870824ea2a",
+        "contractDigest": "sha256:c3707eee903952d051afbfab3ee0032ed9e88da3ce667423db2a180e810d0546",
+        "semanticContractDigest": "sha256:2232636bac3702ac268698a9ec1b773670e31492900fbc793d38677275155e04",
+        "omissionsApplied": [
+          "contract.contractDigest",
+          "recommendedNextAction.arguments.expectedContractDigest",
+          "untrustedPublisherContent.description",
+          "publicObservation.publicLabel",
+          "agentGuidance.goal"
+        ],
+        "omissionsNotPresent": [],
+        "proseLeaves": [],
+        "bindingFaults": []
+      },
+      {
+        "canonicalSlug": "mcp-registry/ai.agentmesh-mesh",
+        "contractDigest": "sha256:81eada9fe33b6c2295104fc63ea08321ef1bd0254a2fd2e43d69ccb8ed724c6e",
+        "semanticContractDigest": "sha256:6c545aefdfe7d6e9c297bc244308ca4a89984e91a436a08ba46bba14d0a6e1e9",
         "omissionsApplied": [
           "contract.contractDigest",
           "recommendedNextAction.arguments.expectedContractDigest",
@@ -862,8 +952,23 @@
       },
       {
         "canonicalSlug": "mcp-registry/ai.agentrapay-agentra",
-        "contractDigest": "sha256:18f895a2989435c917c768728d7b81f1bf39c951d009a12ddffc893c5a52f9dd",
-        "semanticContractDigest": "sha256:03311e6a6db94cd8ae7e421f7a49c63148e2e3eb72109d6ab2ea893c674bbc35",
+        "contractDigest": "sha256:497f359388fa8876d4830ed26daf5fa2aa1f02eda263ba221886bcd5aff90863",
+        "semanticContractDigest": "sha256:b24e4202f3692f6fa67189d76308daeccc09e634379f6653d99d83b9013ea882",
+        "omissionsApplied": [
+          "contract.contractDigest",
+          "recommendedNextAction.arguments.expectedContractDigest",
+          "untrustedPublisherContent.description",
+          "publicObservation.publicLabel",
+          "agentGuidance.goal"
+        ],
+        "omissionsNotPresent": [],
+        "proseLeaves": [],
+        "bindingFaults": []
+      },
+      {
+        "canonicalSlug": "mcp-registry/ai.agentroam-agentroam",
+        "contractDigest": "sha256:b04719ba01aad6f8da77ecb2224e3f47d373a832166df63d80eed95da9a663de",
+        "semanticContractDigest": "sha256:d4d95964da49b0bf18ac092744bf627cb67a5965caa79b7ee2680923e84c36a0",
         "omissionsApplied": [
           "contract.contractDigest",
           "recommendedNextAction.arguments.expectedContractDigest",
@@ -877,8 +982,8 @@
       },
       {
         "canonicalSlug": "mcp-registry/ai.agenttrust-mcp-server",
-        "contractDigest": "sha256:39d7bc22929854c263bd2f2d24217b1e48ab2fd2a72a3d1cd37a2220e9d41ff6",
-        "semanticContractDigest": "sha256:ca61b3549c839972930eb761260b96a3bca2ab3998cdf6f0bb68832025398b9d",
+        "contractDigest": "sha256:52f29ed280b1f331ded138059a87f7366c76d8e26c943a347897ce7f87199d4e",
+        "semanticContractDigest": "sha256:fdf14846daf6f11b5d4b35be8611f2d85e7afb16ea45ca58fba01b70bc2ec619",
         "omissionsApplied": [
           "contract.contractDigest",
           "recommendedNextAction.arguments.expectedContractDigest",
@@ -892,8 +997,8 @@
       },
       {
         "canonicalSlug": "mcp-registry/ai.agentutility-mcp-agentops",
-        "contractDigest": "sha256:c51b4865423c447a23d67af7c61934d26f74381e9b181e80d0a92e9318a7214c",
-        "semanticContractDigest": "sha256:4281e92908696c2ce01f1fbaef6d7090ca9f2f5f2a065cd5ca1f13440d23f9cd",
+        "contractDigest": "sha256:80c438fc670fa67dcb4a676f27486e390760c0675958b5decbaba77e7039911b",
+        "semanticContractDigest": "sha256:7b6648d5b0f07ca9a2c2365e86fc28b1bdf26450df7275be2aa240f75eeff3ef",
         "omissionsApplied": [
           "contract.contractDigest",
           "recommendedNextAction.arguments.expectedContractDigest",
@@ -907,8 +1012,8 @@
       },
       {
         "canonicalSlug": "mcp-registry/ai.agentutility-mcp-bestiary",
-        "contractDigest": "sha256:3e25c29649813b1489ee6551a8b70334eb67d1d5aaabf6132e3f71196f58f80c",
-        "semanticContractDigest": "sha256:f6410c6c0343127c9859ceb039474ff06dba0f121b523e7974feb044d2aab82a",
+        "contractDigest": "sha256:1f994976cf5a5e0effd604a0f147667ffdd1f71dc393e67831a0e7b55b10a82e",
+        "semanticContractDigest": "sha256:d0db1f0640fc072ef1a17606573f72a8bdc0cf59348850e401f4ffd158c7523d",
         "omissionsApplied": [
           "contract.contractDigest",
           "recommendedNextAction.arguments.expectedContractDigest",
@@ -922,8 +1027,8 @@
       },
       {
         "canonicalSlug": "mcp-registry/ai.agentutility-mcp-browser-workflow",
-        "contractDigest": "sha256:e9c309cdfb1b36250ed588e1dbcb72c16e5c6c1d497bd322b9928798b123a7fa",
-        "semanticContractDigest": "sha256:fe336222c3d07d850ba74e4fb4a8c6f8244d9d07d3f7913bbe6e985b40051a44",
+        "contractDigest": "sha256:fe31d481a242f8ae08be13491d87dde86450cee83bc912308bb8972269383dd2",
+        "semanticContractDigest": "sha256:d4cfb938c6c8438166c309deaafd4d801d93c795146a2278fcf29e91e3812b28",
         "omissionsApplied": [
           "contract.contractDigest",
           "recommendedNextAction.arguments.expectedContractDigest",
@@ -937,8 +1042,8 @@
       },
       {
         "canonicalSlug": "mcp-registry/ai.agentutility-mcp-compose",
-        "contractDigest": "sha256:a9ba92a236eb9a1ccdb791ef68d0f0d43ab56d9522e1f9d887fd45342cd2d14f",
-        "semanticContractDigest": "sha256:edefbf7d1b47bbfe5a6b7df249edce1639b2d733e715d1bb31d0b2ae8f5e550a",
+        "contractDigest": "sha256:9238243e1e4fd19642eb89637aeda018aa7971c4eed5813be94a2c1fb1a7aa8e",
+        "semanticContractDigest": "sha256:667f7a0b4021d58702c6fd88b4a89b5031bdc40fc96a0e3461aa76a97edff38e",
         "omissionsApplied": [
           "contract.contractDigest",
           "recommendedNextAction.arguments.expectedContractDigest",
@@ -952,8 +1057,8 @@
       },
       {
         "canonicalSlug": "mcp-registry/ai.agentutility-mcp-edge-finance",
-        "contractDigest": "sha256:9e6d8f50731f4e256b68c15e04b298c9fba1a63d73193e90076a7c19b6b53510",
-        "semanticContractDigest": "sha256:9e695863e7e37e84a2a91e55db0ec9415369c8182b8cdbe42e455068e8fb7176",
+        "contractDigest": "sha256:8568d6bfd78ddd0346d92cadf790d356dc767831da29798f8faf13b775ab9168",
+        "semanticContractDigest": "sha256:536b65cf1312bbed34864d898aa1785dafa239168216a1939af03d955727a339",
         "omissionsApplied": [
           "contract.contractDigest",
           "recommendedNextAction.arguments.expectedContractDigest",
@@ -967,8 +1072,8 @@
       },
       {
         "canonicalSlug": "mcp-registry/ai.agentutility-mcp-edge-market",
-        "contractDigest": "sha256:5e2a85633207c6854b8bbd315787623daefe8707e6ca1c801641db3f29b261da",
-        "semanticContractDigest": "sha256:2fd73c770f5e242c829108c543e2a15d49fe2af2e9995bb44131567c2b811bb3",
+        "contractDigest": "sha256:a82b85a22a2d0d2902ffa3e737bf572b43bec6a78ab05eae1ace82ae48a91108",
+        "semanticContractDigest": "sha256:e72ab04d7d676e3dae83c315189f32eded25cede897c592d069e52faf15e4d37",
         "omissionsApplied": [
           "contract.contractDigest",
           "recommendedNextAction.arguments.expectedContractDigest",
@@ -982,8 +1087,8 @@
       },
       {
         "canonicalSlug": "mcp-registry/ai.agentutility-mcp-locale",
-        "contractDigest": "sha256:38a1edc283eaa8a1d7143b4600a681e78c975656e4a3abe441b72ac374c7d3d9",
-        "semanticContractDigest": "sha256:ee37dc406058c2c101f6074174b37f41e1f87ba40348b03ecb905dfb5c72f8a2",
+        "contractDigest": "sha256:51a9d921efc45ce5d336378f69d51c3c67eadff1483a8f4e943b8854cd72c060",
+        "semanticContractDigest": "sha256:cea3e73d6d72b777fd46d84a4ced7b9f0ece316884a67ef7882ed3be7054266d",
         "omissionsApplied": [
           "contract.contractDigest",
           "recommendedNextAction.arguments.expectedContractDigest",
@@ -997,8 +1102,8 @@
       },
       {
         "canonicalSlug": "mcp-registry/ai.agentutility-mcp-matchpoint",
-        "contractDigest": "sha256:3bff02c5c3fb0fdec7eb60b78557ca847a0cdecd69f03eaa088f10e7cc036e5a",
-        "semanticContractDigest": "sha256:52767cfa8c78d39997a2b0d0bcd92086b61ff59432d4a22b39ba0631d2699962",
+        "contractDigest": "sha256:bfab61f1cb6d4ae0e14befb8b29c0f1d6cf364a4b06fb8b41cdf24b0f2fa81cd",
+        "semanticContractDigest": "sha256:98fdd3f23215c62d375a9910e070dc7dd34e3f7419371d80579979747132e4c1",
         "omissionsApplied": [
           "contract.contractDigest",
           "recommendedNextAction.arguments.expectedContractDigest",
@@ -1012,8 +1117,8 @@
       },
       {
         "canonicalSlug": "mcp-registry/ai.agentutility-mcp-mediakit",
-        "contractDigest": "sha256:bf41a7ed2b3657cd145a604e49883741b2b449d53e37247ad7a8e59b9c5b5a14",
-        "semanticContractDigest": "sha256:7fd47313b1295dcc57d1bdeb53df95a32747b6f8a60b5d1533b76c2b562bb3b1",
+        "contractDigest": "sha256:94aa8612f0f1242780c205b3c9c1c0f17c5aed97a33a46a92cbca84a173e5da3",
+        "semanticContractDigest": "sha256:d61b67d4a584309109d4925c803d3ff8c038856f1263d6347b05cd64977cd883",
         "omissionsApplied": [
           "contract.contractDigest",
           "recommendedNextAction.arguments.expectedContractDigest",
@@ -1027,8 +1132,8 @@
       },
       {
         "canonicalSlug": "mcp-registry/ai.agentutility-mcp-model-router",
-        "contractDigest": "sha256:9b4b6c98629c7524feb9dfdfbe6cc86e3b6d3048e51c139598fe0183042cc0f4",
-        "semanticContractDigest": "sha256:ee832d865399cfe6cbb850172364a6b98a05f20eeadfd8789649b4ae8b6a488e",
+        "contractDigest": "sha256:7ef57135f652ce67a3587b1188b8c5488553f4b24c9d1bda90eddbb0be21baa0",
+        "semanticContractDigest": "sha256:ed37d3b55aae451c17e2658fcc42c7aa4c089a4b767e619092ec0e7078805ecd",
         "omissionsApplied": [
           "contract.contractDigest",
           "recommendedNextAction.arguments.expectedContractDigest",
@@ -1042,8 +1147,8 @@
       },
       {
         "canonicalSlug": "mcp-registry/ai.agentutility-mcp-prooflayer",
-        "contractDigest": "sha256:a7c81aed3b5c6b1bc26db1a621f820037576bebedcedb129367aa2f9e19224cd",
-        "semanticContractDigest": "sha256:5d3c4c21954b4049d85494ada4bb485628be6803dbcd660cb7dd94922a4ca916",
+        "contractDigest": "sha256:1bbca1d7380d827cc562b7de38f3315d0278e9cd684082aed02dda852d06f71b",
+        "semanticContractDigest": "sha256:fdcd456d130401342a5cf5be0c48b8edde1f0353c409cf9448d6261231153729",
         "omissionsApplied": [
           "contract.contractDigest",
           "recommendedNextAction.arguments.expectedContractDigest",
@@ -1057,8 +1162,8 @@
       },
       {
         "canonicalSlug": "mcp-registry/ai.agentutility-mcp-retail",
-        "contractDigest": "sha256:125edb8bca3277db10dcf546d31387aef7701cdd87295d213b33febf078eeb65",
-        "semanticContractDigest": "sha256:0ba25a05ca91b6e1479e2efdce3efb3c05441916b752ef8f8df9b465f0b22c72",
+        "contractDigest": "sha256:6b39c26114602698c9d708e136eb266f85e862bf444f26d827931ff547213bcf",
+        "semanticContractDigest": "sha256:f58787cd4cb4685f4d95420eb0902fb8c3c83fa82a3e7375f91cbdb69f4aab82",
         "omissionsApplied": [
           "contract.contractDigest",
           "recommendedNextAction.arguments.expectedContractDigest",
@@ -1072,8 +1177,8 @@
       },
       {
         "canonicalSlug": "mcp-registry/ai.agentutility-mcp-rollforge",
-        "contractDigest": "sha256:01baf2320af8fd0841d8c58e2266042d1d49bdf1ad3e97d3d128a8630d5799f4",
-        "semanticContractDigest": "sha256:35ca7eb562fe7567e314f0a2e93a06c2f82fc5d30cc40c86c8fee7b918d47fb4",
+        "contractDigest": "sha256:8e86f1223c6afc564f283746dc5b6f698ca93d03a8591bc55cefea4481b41af2",
+        "semanticContractDigest": "sha256:199a43c45cd61178c844d4a4ef031ddf8128daf2734eb2cbab3049541febfbee",
         "omissionsApplied": [
           "contract.contractDigest",
           "recommendedNextAction.arguments.expectedContractDigest",
@@ -1087,8 +1192,8 @@
       },
       {
         "canonicalSlug": "mcp-registry/ai.agentutility-mcp-statline",
-        "contractDigest": "sha256:2b82e458375066a5558b609f9ec16111b0177d3bcd0482ea6fce402842bd0f03",
-        "semanticContractDigest": "sha256:bb444b0505c92a680d1c45363c1b3b0ca9972d353ae96d47e93b6ca2d3410424",
+        "contractDigest": "sha256:3be63e3061fab980420f7e9566690c0dc65c8b1f6f40876463380b1326f1efb0",
+        "semanticContractDigest": "sha256:7dedb80c0155cc65292b8a52ac34b0ff41dcf87e0582498d0370ae43de6f8e5b",
         "omissionsApplied": [
           "contract.contractDigest",
           "recommendedNextAction.arguments.expectedContractDigest",
@@ -1102,8 +1207,8 @@
       },
       {
         "canonicalSlug": "mcp-registry/ai.agentutility-mcp-synthforge",
-        "contractDigest": "sha256:6a434f7ce95296005413758c9600b2736b7d545829f62a04814fba1c7855d267",
-        "semanticContractDigest": "sha256:946eeedb6af5f4c3b2f073fe75fa466feb4716bd35aaef66e6456bb0dfc0de9e",
+        "contractDigest": "sha256:d2f9e2b8ecacb6b6dae1807b8f80f9889b9ddf6237ca66a56c2784ddf9305253",
+        "semanticContractDigest": "sha256:84c2d0f0084db76084c2f32ff9b69c675dae1a0a473b5bc1b04f0f93abf4dbe2",
         "omissionsApplied": [
           "contract.contractDigest",
           "recommendedNextAction.arguments.expectedContractDigest",
@@ -1117,8 +1222,8 @@
       },
       {
         "canonicalSlug": "mcp-registry/ai.agentutility-mcp-web-probe",
-        "contractDigest": "sha256:03e830c75798704abfc262018d88490b125b2dab1e86faeeb30e9f7d31b759dc",
-        "semanticContractDigest": "sha256:ed600a597b1b9b569a61ca8245f1ad6876c295956068692117621ea7065f8c4e",
+        "contractDigest": "sha256:9fb6053235777d7122480f38d7b6f165811c8462b992827f8cde65f530468c2d",
+        "semanticContractDigest": "sha256:c4dafd0c899dad623437ad0803adb4bd6ee02a4df3895875e086a6bb8b3dd520",
         "omissionsApplied": [
           "contract.contractDigest",
           "recommendedNextAction.arguments.expectedContractDigest",
@@ -1132,8 +1237,8 @@
       },
       {
         "canonicalSlug": "mcp-registry/ai.agentutility-mcp-wordmint",
-        "contractDigest": "sha256:b0e31e87da7d5a0e99f530173e7de0791cdb073b0797086e15a6889c80daa943",
-        "semanticContractDigest": "sha256:094fee593455ce79423887bd5efeb86be5026bc3c4604508af7d2ead33e3ab32",
+        "contractDigest": "sha256:5973a99d47ce9f0a2b842eb26d9f45e105159a85d4e4292691d903b594105708",
+        "semanticContractDigest": "sha256:e67d813d6256543fe38980a64ae9589a9f4eb21b6c2e0308b787f174375444cc",
         "omissionsApplied": [
           "contract.contractDigest",
           "recommendedNextAction.arguments.expectedContractDigest",
@@ -1147,8 +1252,8 @@
       },
       {
         "canonicalSlug": "mcp-registry/ai.ai-advisors-mcp",
-        "contractDigest": "sha256:16088a2966daad3931770301cfc4e8baccd7e029f89c0b5967c1fc7ee09ab817",
-        "semanticContractDigest": "sha256:ddab79683dde02a828776d4bb17709f830d23690f8bba10958740bb968a74d3d",
+        "contractDigest": "sha256:fb34ca8a21161740b2d3b5bad5ba6e5ed9c12e35001d65f7ce0a1e3f51273dcf",
+        "semanticContractDigest": "sha256:a58c3c8c4370c685b704e8e96eb2ba70f5e2f48fa190d64884d7416e616079f6",
         "omissionsApplied": [
           "contract.contractDigest",
           "untrustedPublisherContent.description",
@@ -1163,8 +1268,8 @@
       },
       {
         "canonicalSlug": "mcp-registry/ai.ai-akari-agent-trust-receipt",
-        "contractDigest": "sha256:096494b47dc11956fdfe4a2e32378a7bed12297ee3de67c774c05b618a2c8567",
-        "semanticContractDigest": "sha256:b05997c4f4e880638484b7826edfd75dc8077ede122517d19585b0ac7e6250c4",
+        "contractDigest": "sha256:eaced5e26ae7b75e9be21b15f234013ae97239ba65e121bc8dca7fbfa3014728",
+        "semanticContractDigest": "sha256:9f0d58bbd6e301392a7cb257000ba37cb8ac0ff2d31b5289b0c601eb145513cc",
         "omissionsApplied": [
           "contract.contractDigest",
           "recommendedNextAction.arguments.expectedContractDigest",
@@ -1178,8 +1283,8 @@
       },
       {
         "canonicalSlug": "mcp-registry/ai.ai-akari-one-minute-akari",
-        "contractDigest": "sha256:0057e5d6b2d33eb7c3fb51dc32af93586ad2d5a8d2faea73d634b4cde3cde3b6",
-        "semanticContractDigest": "sha256:ce86d42a1b172c3ec5493eaebcd2731449934fe2068f7d74c8c5cbec571048a8",
+        "contractDigest": "sha256:cb4b269fa269a84ab76f4b01bf0ec50140bd073baaf59d1f1b47b94715efb983",
+        "semanticContractDigest": "sha256:5c7effcf0226c9c352c9db6d22060f78c6cdc1d41a1f848ba9c65ee4197c0771",
         "omissionsApplied": [
           "contract.contractDigest",
           "recommendedNextAction.arguments.expectedContractDigest",
@@ -1193,8 +1298,8 @@
       },
       {
         "canonicalSlug": "mcp-registry/ai.ai-portal-ai-portal",
-        "contractDigest": "sha256:ae8311884c815d68aae8ce5dfb2739bd98ed7b65da9a355e432d3da4e860c8b2",
-        "semanticContractDigest": "sha256:190b1d2ea2d9c555b3f4d5393efa9a5f964d10c5f381fdc734b7ce4e8c9990b4",
+        "contractDigest": "sha256:de535da3eab048378923de36867d63daafc48cecdadd63ae7f5770b87112d9e1",
+        "semanticContractDigest": "sha256:e612be1fdb3d392343674b830b708a48454f4df6af4303c809c25d619a49b6ac",
         "omissionsApplied": [
           "contract.contractDigest",
           "recommendedNextAction.arguments.expectedContractDigest",
@@ -1208,8 +1313,24 @@
       },
       {
         "canonicalSlug": "mcp-registry/ai.aient-mcp",
-        "contractDigest": "sha256:7186ec5f26ba5f5bfe693fa3d8c78d1fb9996ba25367f57ed57badca5575d2e3",
-        "semanticContractDigest": "sha256:4ab72b391be4d3ff4e89f4374b68e7b2a436f200764acbd515034611be3707c1",
+        "contractDigest": "sha256:cbeda4ef043381d151f8b29c0bc9875b5fc3a6dff6f98ae3f5b780b9f0710f76",
+        "semanticContractDigest": "sha256:03c79a9707912f6ad7fb018626590cbaf295e2b611140bc01bfa225ecfe240d6",
+        "omissionsApplied": [
+          "contract.contractDigest",
+          "untrustedPublisherContent.description",
+          "publicObservation.publicLabel",
+          "agentGuidance.goal"
+        ],
+        "omissionsNotPresent": [
+          "recommendedNextAction.arguments.expectedContractDigest"
+        ],
+        "proseLeaves": [],
+        "bindingFaults": []
+      },
+      {
+        "canonicalSlug": "mcp-registry/ai.airshelf-catalog",
+        "contractDigest": "sha256:44b8994ba70fafa089d5a08585541081c46c75a28120ff4870ca9071b6499dab",
+        "semanticContractDigest": "sha256:38e33b0f89e4f3b54fe30fa2bea89eca794f9df8aec79fe57cdd1955cb49407f",
         "omissionsApplied": [
           "contract.contractDigest",
           "recommendedNextAction.arguments.expectedContractDigest",
@@ -1222,9 +1343,9 @@
         "bindingFaults": []
       },
       {
-        "canonicalSlug": "mcp-registry/ai.airshelf-catalog",
-        "contractDigest": "sha256:b6192f1dede119f88e9efb90ff70d3ca91e5dc75743b66cd7b397edc4f616cbb",
-        "semanticContractDigest": "sha256:561efc6332db01cd7b45ec0106f79e1f0e0166b793a5e8258954ce4e92bf46f3",
+        "canonicalSlug": "mcp-registry/ai.aislabs-gateway",
+        "contractDigest": "sha256:aa1f1b238357809ad0a14cabb33911af61ab2508392ccd7dc0a84d6379d51410",
+        "semanticContractDigest": "sha256:ddad1af6ce77137b836dcd6c349564eb717252a93d756d431e920b5b87fda215",
         "omissionsApplied": [
           "contract.contractDigest",
           "recommendedNextAction.arguments.expectedContractDigest",
@@ -1238,8 +1359,8 @@
       },
       {
         "canonicalSlug": "mcp-registry/ai.aivonic-mcp",
-        "contractDigest": "sha256:a98c248e4c1b2dba34305766b926344f512942e4888c6a28bc15b80d6d6f2ec1",
-        "semanticContractDigest": "sha256:169158400a299416a113c05b0c3c96a6b2e8a4969eb82607f6ae84effd1fa372",
+        "contractDigest": "sha256:dd91ec2b79463e99ab23e11662557ae0ac8cbb84822fdf1ae6a7fac021645622",
+        "semanticContractDigest": "sha256:330fe13017365adde08f4d13b458ccdbedb388f1088d275d9ef1072b60d63439",
         "omissionsApplied": [
           "contract.contractDigest",
           "recommendedNextAction.arguments.expectedContractDigest",
@@ -1253,8 +1374,8 @@
       },
       {
         "canonicalSlug": "mcp-registry/ai.aliengiraffe-spotdb",
-        "contractDigest": "sha256:647d55ca914495ede20e20e2e39a2a3776a5c4a2bdf0bef0a0babe9275fd2b5b",
-        "semanticContractDigest": "sha256:637e9ddc95dc4b6c4b023ede2c236106f9bdb0e45c3f5a6d4150ed2706585836",
+        "contractDigest": "sha256:43ef2afa33a03f3f4af5bc2d10f68b43ccd4e376aa7c9ae1a42d1aafccdf7a5c",
+        "semanticContractDigest": "sha256:34145af826b0df7b65caa0368720c734e302d47646e6929f7ab542db2e8f8a8e",
         "omissionsApplied": [
           "contract.contractDigest",
           "recommendedNextAction.arguments.expectedContractDigest",
@@ -1268,8 +1389,23 @@
       },
       {
         "canonicalSlug": "mcp-registry/ai.alphacreek-alphacreek-mcp",
-        "contractDigest": "sha256:974b7efef532a9d4e46f0024482765abe5eb9e1fa5ebd8232d5f8c79f96efb42",
-        "semanticContractDigest": "sha256:9a03eeadf94d81cc8f7d5703efd54b5f465ece6028823b7494a2e0063da75f73",
+        "contractDigest": "sha256:6eda4dd194cc17d44a262374cf735f544cdf66702aa8633fcf2b311428e4b346",
+        "semanticContractDigest": "sha256:ace5e9efd61ef9c5a906b03f45cb590339a668a056b001041ff4e27ca89ff00e",
+        "omissionsApplied": [
+          "contract.contractDigest",
+          "recommendedNextAction.arguments.expectedContractDigest",
+          "untrustedPublisherContent.description",
+          "publicObservation.publicLabel",
+          "agentGuidance.goal"
+        ],
+        "omissionsNotPresent": [],
+        "proseLeaves": [],
+        "bindingFaults": []
+      },
+      {
+        "canonicalSlug": "mcp-registry/ai.alpic.alpix-alpix",
+        "contractDigest": "sha256:ff7ad398e0abf86360b815000fef49cd30253f4914161a9f6447526479053bc2",
+        "semanticContractDigest": "sha256:a951ebc37f26ca73ac1958291f4cd43f2ecc5db1d93193e2d7127448cedaafda",
         "omissionsApplied": [
           "contract.contractDigest",
           "recommendedNextAction.arguments.expectedContractDigest",
@@ -1283,8 +1419,8 @@
       },
       {
         "canonicalSlug": "mcp-registry/ai.alpic.mcp-alpic-mcp",
-        "contractDigest": "sha256:dd1916e022aeca1a1d0f6ddbbab13e5ae5d507f10c39245a132adb8e29073bde",
-        "semanticContractDigest": "sha256:fa6645d818125a8b91db166ccc0d7c97d6c189a97457e27e0ad1df10da7b66fe",
+        "contractDigest": "sha256:7a3940b61edd95ad3b198b69fea95f5c296d4efa9f4add00907822b5e7e777c6",
+        "semanticContractDigest": "sha256:ab1cb6994f1ae0df588a5a24ae9134f26b74cd686c8c756e032a066acd3058f6",
         "omissionsApplied": [
           "contract.contractDigest",
           "recommendedNextAction.arguments.expectedContractDigest",
@@ -1298,8 +1434,8 @@
       },
       {
         "canonicalSlug": "mcp-registry/ai.alpic.test-test-mcp-server",
-        "contractDigest": "sha256:4dde94a7287e9d8ec4223e0e40fb20c106be0d0afcabae84defc03cf79ca5a2c",
-        "semanticContractDigest": "sha256:ea594acd7ee88a9d0ccd39ca3807a75a235ad8cda9a99e6eff14b5edd4194d2c",
+        "contractDigest": "sha256:4f64d2be8da6588f43f4549144df8d8a0528305ea0a63c0f2dd060aeaa445ccf",
+        "semanticContractDigest": "sha256:94d4d9d6025977cf31f8601e9e37a5aaa28350c538ee0b0d06b3736c31105ef1",
         "omissionsApplied": [
           "contract.contractDigest",
           "untrustedPublisherContent.description",
@@ -1314,8 +1450,8 @@
       },
       {
         "canonicalSlug": "mcp-registry/ai.ambix-ambix",
-        "contractDigest": "sha256:deda78af686f91310c9561965354b2a530627c99e8fb20bd0d11df6b56ffa407",
-        "semanticContractDigest": "sha256:5a4a337e68c97d13c43e5aa34a253938a816684ca76b491796a69b1139a43c92",
+        "contractDigest": "sha256:500a56a9308b67edd2093ff7299b57af3daa4a1fab452b4ee911f4eab58759d0",
+        "semanticContractDigest": "sha256:dd79ed3b5e9dc1b706189a08b86bac9a2ff3a3f5af034a2870ed79e5d682334c",
         "omissionsApplied": [
           "contract.contractDigest",
           "recommendedNextAction.arguments.expectedContractDigest",
@@ -1329,8 +1465,8 @@
       },
       {
         "canonicalSlug": "mcp-registry/ai.analyticslegends-sap-analytics",
-        "contractDigest": "sha256:c561a151367e3fa72537fd1cdeed4419d178c42b986b8b5c355804fba5661454",
-        "semanticContractDigest": "sha256:6b64a1f79f08311bbf02a7517799e9dc5d3ddd721a47b47ca14fe6aabcbc5947",
+        "contractDigest": "sha256:c1de106ccc306e4f08cc58ed25ad9712d23e65b87f499b5c7018b639abadd37b",
+        "semanticContractDigest": "sha256:c83be442ab1002ae084307635f3a5e3e1d113d799b2e8aee2c77f0526fe7ef78",
         "omissionsApplied": [
           "contract.contractDigest",
           "recommendedNextAction.arguments.expectedContractDigest",
@@ -1344,8 +1480,8 @@
       },
       {
         "canonicalSlug": "mcp-registry/ai.ankimcp-anki-mcp-server",
-        "contractDigest": "sha256:31b103afdf4dd3f65fc33b3cc3b5601e56951aa2deb2fdd933048a3c48c3efb2",
-        "semanticContractDigest": "sha256:f9f0ebcca1c08f499cafb4748aa566578518a31178135cd3865a8f5bfa922f07",
+        "contractDigest": "sha256:31f55d71a7e76036af9a349312a0e89a0c1594e6210cffd56a3b25ec2ec42b3a",
+        "semanticContractDigest": "sha256:7a71f1a23024969dbdbb4b352735c6370b00571359d3eff72b744a6b7099630d",
         "omissionsApplied": [
           "contract.contractDigest",
           "recommendedNextAction.arguments.expectedContractDigest",
@@ -1359,8 +1495,8 @@
       },
       {
         "canonicalSlug": "mcp-registry/ai.anomalyarmor-armor-mcp",
-        "contractDigest": "sha256:222282ffd9201f05697bbc870c0028bd99f624c21694ce8dab0c2b8301b0e56a",
-        "semanticContractDigest": "sha256:f61bf0a8b16bd6d350a88ca3b328dd74eabdcd660545759d29e29968aef02a0c",
+        "contractDigest": "sha256:3fbf8f68c4a042aa795efe46fa1347ddf5d84f56c4184c533e7b45e9a22b04b7",
+        "semanticContractDigest": "sha256:9beb57d5dac720c7ecd4aaec104a80177c50ea7d9747fedfb52f1d5c6d9a5d25",
         "omissionsApplied": [
           "contract.contractDigest",
           "recommendedNextAction.arguments.expectedContractDigest",
@@ -1374,8 +1510,8 @@
       },
       {
         "canonicalSlug": "mcp-registry/ai.anzenna-anzenna",
-        "contractDigest": "sha256:e60403b9697bb070bbe3840fb78659cd344ae588df8694c735bcf1b9cfc92311",
-        "semanticContractDigest": "sha256:d804aac8bd42586448aba89d38b6ff506189f15b6e28647bd54f225b44a66086",
+        "contractDigest": "sha256:26d3812baff664c577be501cf573079a6ccd49be8ced9c0ef06e678d2885e954",
+        "semanticContractDigest": "sha256:6f12fd8a506d5d70be8e4af9decbab3eb848be10ef9e913f2c1a1df7228b14f6",
         "omissionsApplied": [
           "contract.contractDigest",
           "recommendedNextAction.arguments.expectedContractDigest",
@@ -1389,8 +1525,8 @@
       },
       {
         "canonicalSlug": "mcp-registry/ai.apithreshold-apithreshold",
-        "contractDigest": "sha256:f84d57d07a8fa15aa7604c613b61338acf2c5c709d182b1a9494eafd126690b9",
-        "semanticContractDigest": "sha256:a0f41bf30e44bfb585dbb4fc000008bece0ded4c52c9cabc6b1fe95f094bc382",
+        "contractDigest": "sha256:274ed320374807a7f9bc1dc595c3c8caf936022b758850df4cd243cf8463ff73",
+        "semanticContractDigest": "sha256:4a33b0b19b190cd7bc5767ffc655be1287ba889390e4e99d4b2eb54bcbaf2458",
         "omissionsApplied": [
           "contract.contractDigest",
           "recommendedNextAction.arguments.expectedContractDigest",
@@ -1404,8 +1540,23 @@
       },
       {
         "canonicalSlug": "mcp-registry/ai.appdeploy-deploy-app",
-        "contractDigest": "sha256:fcf21cb0d569c32cc888e32d4fb891114df3a355e4912ab97acfac0678da924b",
-        "semanticContractDigest": "sha256:fe4b5ed50cffc1b99a1a08b07ac03f7c3286c14d0cac385f9c0fe4be688666ea",
+        "contractDigest": "sha256:e0917af301fa745f0a4be261078351d4ff035ff2069889949a0923bc08f04204",
+        "semanticContractDigest": "sha256:bc8b8f3d7d0bb337acabd2f594aa6f7e350918bf1784d68425643c096e03cec0",
+        "omissionsApplied": [
+          "contract.contractDigest",
+          "recommendedNextAction.arguments.expectedContractDigest",
+          "untrustedPublisherContent.description",
+          "publicObservation.publicLabel",
+          "agentGuidance.goal"
+        ],
+        "omissionsNotPresent": [],
+        "proseLeaves": [],
+        "bindingFaults": []
+      },
+      {
+        "canonicalSlug": "mcp-registry/ai.aqta-seal",
+        "contractDigest": "sha256:8d65bd179caa33053fc62f31ffd9ba800cc874a54bb035bfd4cdcd118a3ad256",
+        "semanticContractDigest": "sha256:a9194bbe6b4b746e482f4eda633b789fa59aba539de9c59b96de21ba3353a113",
         "omissionsApplied": [
           "contract.contractDigest",
           "recommendedNextAction.arguments.expectedContractDigest",
@@ -1419,8 +1570,8 @@
       },
       {
         "canonicalSlug": "mcp-registry/ai.arclan-registry",
-        "contractDigest": "sha256:02c7e9f46bee94b7ac1d11e8411e8feda39528b4701a917eec786b173a7d74bc",
-        "semanticContractDigest": "sha256:60ee18d304ab2bf04e9c394d48cf02895ff6796801589829b28aee33410ccf62",
+        "contractDigest": "sha256:4a1ad30f6f4906080f5dccbc04648d6104b61715c1d126a03c36cf8d312ae361",
+        "semanticContractDigest": "sha256:1e452f989d42b4cfae1312515740c920bd6182c07ff9156fd8a5ad44f27a8356",
         "omissionsApplied": [
           "contract.contractDigest",
           "recommendedNextAction.arguments.expectedContractDigest",
@@ -1434,8 +1585,8 @@
       },
       {
         "canonicalSlug": "mcp-registry/ai.argushq-enforcement-database",
-        "contractDigest": "sha256:9ad70dae6f76de819321d5169f694b9472aaa68d4867eab386d27f3d0d1bd554",
-        "semanticContractDigest": "sha256:6f8a2cea7e0883fa3532d8c28b5260eb6f49fda796f097890aabd5108b625cb0",
+        "contractDigest": "sha256:42b77b64be74441dec7832d169c0a9aaf36915cdc38d9410451e5bc1efcb867b",
+        "semanticContractDigest": "sha256:584d2400af442f813a56d7915e0edbc544528677f5db39ddce90e49ff3634c56",
         "omissionsApplied": [
           "contract.contractDigest",
           "recommendedNextAction.arguments.expectedContractDigest",
@@ -1449,8 +1600,8 @@
       },
       {
         "canonicalSlug": "mcp-registry/ai.arketo-arketo",
-        "contractDigest": "sha256:9bbb7972d83c74f201aec5906e9a6bbd4d47df38c0d06150a27ab0586d4bfd02",
-        "semanticContractDigest": "sha256:f9f9fdf23fe01db36270e824fbf2c478e783d76776649a4c668a7338eaadfbcf",
+        "contractDigest": "sha256:46543599537ab339f58d58de1ac6bdaac5e41bd888b4a88e6bebd4de3e1a7ad7",
+        "semanticContractDigest": "sha256:cf6b6633eacc9e4ef665b9977eae19e960aef8a1e73967100ed9468f4305be0a",
         "omissionsApplied": [
           "contract.contractDigest",
           "recommendedNextAction.arguments.expectedContractDigest",
@@ -1464,8 +1615,8 @@
       },
       {
         "canonicalSlug": "mcp-registry/ai.arpi-arpi-mcp",
-        "contractDigest": "sha256:6dc4b689a65da7e28fdcc9b8e44234ee52687ac2a60d25c2756b520820cce3a7",
-        "semanticContractDigest": "sha256:e484d54b0c75249a41ccb158996656eb1e308bd30e4336126abc1ac5c6cdbda6",
+        "contractDigest": "sha256:f7e41fe6ccf4c248f75b9b2c421812322b6c2f4694f66de3ba2ee2862b27d3a8",
+        "semanticContractDigest": "sha256:a0076c4124683578a3138408343b0b5d2dfa87334bfb624954752f5f05497c3f",
         "omissionsApplied": [
           "contract.contractDigest",
           "recommendedNextAction.arguments.expectedContractDigest",
@@ -1479,8 +1630,23 @@
       },
       {
         "canonicalSlug": "mcp-registry/ai.artidrop-artidrop",
-        "contractDigest": "sha256:e9a3b291b5be29d10d3a67c6e28f32a68064d84a4896db9544dbe044fa92e6b3",
-        "semanticContractDigest": "sha256:b4eeb48151466185d7ee930746c4924ca21c2768b592562d380da733bcbb7a97",
+        "contractDigest": "sha256:c9f149ab0d01745d87772d561630cd08343d68530d513fdb344ac70bd11d3829",
+        "semanticContractDigest": "sha256:26c7282b671fb61fba7b78cdc3694a039e968f8a4be19b9ec6472d43a162316c",
+        "omissionsApplied": [
+          "contract.contractDigest",
+          "recommendedNextAction.arguments.expectedContractDigest",
+          "untrustedPublisherContent.description",
+          "publicObservation.publicLabel",
+          "agentGuidance.goal"
+        ],
+        "omissionsNotPresent": [],
+        "proseLeaves": [],
+        "bindingFaults": []
+      },
+      {
+        "canonicalSlug": "mcp-registry/ai.askmiles-catalog",
+        "contractDigest": "sha256:5ef329765465172b6e78adeed3dea08c9b82772398919054f1b05d8d7bf21174",
+        "semanticContractDigest": "sha256:ae5a10ec813cfd9f38fe521fdc806dc3b969c990f8205db0bf1cf65d3bbde328",
         "omissionsApplied": [
           "contract.contractDigest",
           "recommendedNextAction.arguments.expectedContractDigest",
@@ -1494,8 +1660,23 @@
       },
       {
         "canonicalSlug": "mcp-registry/ai.assetlog-assetlog",
-        "contractDigest": "sha256:f824d0f1b240acee036b0224a4ded45280ef9e8ecc0ccfe83c22cdf0d9b9d489",
-        "semanticContractDigest": "sha256:0e1882e7f998ec0b032404094b87c9331921f7622cbb31e4ed56216de89714bf",
+        "contractDigest": "sha256:313ea0e684a7200c6ef05db6e8081ddfebc9ab088e814976d7448343dd0d4f39",
+        "semanticContractDigest": "sha256:45848ee789914de54b56323c18eee8a778988fd3acc8e405db367b5af65067e5",
+        "omissionsApplied": [
+          "contract.contractDigest",
+          "recommendedNextAction.arguments.expectedContractDigest",
+          "untrustedPublisherContent.description",
+          "publicObservation.publicLabel",
+          "agentGuidance.goal"
+        ],
+        "omissionsNotPresent": [],
+        "proseLeaves": [],
+        "bindingFaults": []
+      },
+      {
+        "canonicalSlug": "mcp-registry/ai.astrofabric-mcp",
+        "contractDigest": "sha256:eb34c3c61d7cb6b8aa4fa200bacfe0b1abffed33eea1c6d699443d040c796dc1",
+        "semanticContractDigest": "sha256:5ff857d40675f962f04fa8c76bb25264207812a508c995d0f04ef7930bd32889",
         "omissionsApplied": [
           "contract.contractDigest",
           "recommendedNextAction.arguments.expectedContractDigest",
@@ -1509,8 +1690,8 @@
       },
       {
         "canonicalSlug": "mcp-registry/ai.atdev-supershopping",
-        "contractDigest": "sha256:b0706cb22e4ff78ebf4b0a4417882950c21ae42e9b66ea35005551aec5c466c3",
-        "semanticContractDigest": "sha256:dc8fa42f7fd6cbd3813bf4c5b9a6a0c66815e0b1b081b82f97064a3a3219a58f",
+        "contractDigest": "sha256:67875d38a842452535cdf11e6a0d9cb19e715441887804f5b22debca7f9949e5",
+        "semanticContractDigest": "sha256:86689e0fad7851c8ac50a0b50cb1769977cb3315b53fdf84a4b6619798031ba3",
         "omissionsApplied": [
           "contract.contractDigest",
           "recommendedNextAction.arguments.expectedContractDigest",
@@ -1524,8 +1705,8 @@
       },
       {
         "canonicalSlug": "mcp-registry/ai.atlaso-mcp",
-        "contractDigest": "sha256:b6530449614f15051ea77e8e4ee37f089c677bc4adfb7f6521e57d495ec43043",
-        "semanticContractDigest": "sha256:6c3c53d40c039a981fd104005ad506d8290c8d55ef9003556863964b340b8b77",
+        "contractDigest": "sha256:18dfd91eabb543713085626a09054df8310c90728199dc60ff103a63db588a7c",
+        "semanticContractDigest": "sha256:e2d9b6cde8a9502527e414c6a9ab82f4cf858cca2e9d193e8cdffd4cb767e720",
         "omissionsApplied": [
           "contract.contractDigest",
           "recommendedNextAction.arguments.expectedContractDigest",
@@ -1539,8 +1720,23 @@
       },
       {
         "canonicalSlug": "mcp-registry/ai.atlasverified-atlas-mcp",
-        "contractDigest": "sha256:8b403a17b3b3e153e6967d15f2a2665548bbafc797006980eb822bfe5f0d1fe3",
-        "semanticContractDigest": "sha256:060a6f5bb010dd3afa468481b2a13c0068602da2f30793852bf975533220019b",
+        "contractDigest": "sha256:7980b648997d522634a83edf29bf4080bd05225c96497738353a10d6a0f656d6",
+        "semanticContractDigest": "sha256:9f6bef029a53cbe07c42ebe6024534cb60bde4581c9bc2fbb4bbcfe2091839d2",
+        "omissionsApplied": [
+          "contract.contractDigest",
+          "recommendedNextAction.arguments.expectedContractDigest",
+          "untrustedPublisherContent.description",
+          "publicObservation.publicLabel",
+          "agentGuidance.goal"
+        ],
+        "omissionsNotPresent": [],
+        "proseLeaves": [],
+        "bindingFaults": []
+      },
+      {
+        "canonicalSlug": "mcp-registry/ai.atlier-project-desk",
+        "contractDigest": "sha256:6f7b8bbbfa373f64bdb6b721a3e4484d0a85c4042a0aafc3a649a544d5513814",
+        "semanticContractDigest": "sha256:4416c1f586e281c430142181a6283201a6ddcc005a5f8851bd4e1c1bab676370",
         "omissionsApplied": [
           "contract.contractDigest",
           "recommendedNextAction.arguments.expectedContractDigest",
@@ -1554,8 +1750,8 @@
       },
       {
         "canonicalSlug": "mcp-registry/ai.augmentev-paseo",
-        "contractDigest": "sha256:bc95e80f230130eece45c070e07edd2c49e9a0077434640a77f31eec06de75d1",
-        "semanticContractDigest": "sha256:aacaec09b0b7338b875fafb67e63e9367bcb143e8035a555aa1df9ceefdde9aa",
+        "contractDigest": "sha256:5f20099cf5877bcaddbca18ddbe0f15c75f181cbc10ef374b058c95dff5a4f8e",
+        "semanticContractDigest": "sha256:b16b79b20c08f66b65b1b93a37cc610df0e5a9b77de7283745fc0ec11c2da845",
         "omissionsApplied": [
           "contract.contractDigest",
           "recommendedNextAction.arguments.expectedContractDigest",
@@ -1569,8 +1765,8 @@
       },
       {
         "canonicalSlug": "mcp-registry/ai.augworlds-travel-world",
-        "contractDigest": "sha256:7451ad5151cf2d80c50e4b8fe3622ee718c206677e90efc555d4a817109df588",
-        "semanticContractDigest": "sha256:c8f6255852133696337a3b007cf5a3437536d7b9125c2a66c21cc8c2bbc01428",
+        "contractDigest": "sha256:a2924e1d7214b9fe8b8308f3a8ea1caff43eb6336740b236155804b6acb55ea8",
+        "semanticContractDigest": "sha256:2e9e726c7f8ae4b5a352f1044195deb9bbaf36e1cbf739ee1f9ed6c0b75b5a80",
         "omissionsApplied": [
           "contract.contractDigest",
           "recommendedNextAction.arguments.expectedContractDigest",
@@ -1584,8 +1780,8 @@
       },
       {
         "canonicalSlug": "mcp-registry/ai.auralogs-auralogs",
-        "contractDigest": "sha256:74796754ddb9cb7520354121656787825a1e0b6a94dd6eb3fdaa6b708f1da5c2",
-        "semanticContractDigest": "sha256:f31013ff6a174e3e6673b4b64f54e3506176e63c85106f5abda5de01372c7d77",
+        "contractDigest": "sha256:54bbe6a71141631e947a5d25a31034efd8e9118bb36c471587ec339ddf74a0d1",
+        "semanticContractDigest": "sha256:1aafb96da2cb7e75a41d1e77eaa5f3d6021c9a1511dfd1002d2b6a44cd91ab01",
         "omissionsApplied": [
           "contract.contractDigest",
           "recommendedNextAction.arguments.expectedContractDigest",
@@ -1599,8 +1795,8 @@
       },
       {
         "canonicalSlug": "mcp-registry/ai.auteng-docs",
-        "contractDigest": "sha256:f0a75f283495d1d94c7affac13c41b3780bc18397bcff3c4d0db1b8f9517553d",
-        "semanticContractDigest": "sha256:d9f1fd4143865b6c07ab3ba7e63a8c0702bd660c552ebb9721138b81a12f82d8",
+        "contractDigest": "sha256:8953f84d0159103c78377ae9a7b39d063731c804ba6beb1ade94166c272ce923",
+        "semanticContractDigest": "sha256:9c6877d33c6d18a3e22325a3facfe2d11a134b4d6e835b70280d6aaff9ea286a",
         "omissionsApplied": [
           "contract.contractDigest",
           "recommendedNextAction.arguments.expectedContractDigest",
@@ -1614,8 +1810,8 @@
       },
       {
         "canonicalSlug": "mcp-registry/ai.auteng-mcp",
-        "contractDigest": "sha256:0234bbfc471bd156db112a9e703a60548f3f2d7234afbdeabf5161606aeff890",
-        "semanticContractDigest": "sha256:ba2bfc34678eb55341b231fd6675357d6bed2583a8417493c6e2198c4a92751c",
+        "contractDigest": "sha256:258eeb8c15a80308a7ae0be23ecd41f9bb09d53793b93e46147d9959026472f0",
+        "semanticContractDigest": "sha256:112c9ad2e4d272e849e138f6aeae98a7a636865a57d960024c0da8674cb20374",
         "omissionsApplied": [
           "contract.contractDigest",
           "recommendedNextAction.arguments.expectedContractDigest",
@@ -1629,8 +1825,8 @@
       },
       {
         "canonicalSlug": "mcp-registry/ai.authoryze-authoryze",
-        "contractDigest": "sha256:fa21c3e8e8115c0a7bbff3317431263026485a3db850244d31dd96ddb1e8773f",
-        "semanticContractDigest": "sha256:026f88e727ef97ecd3147bc95c3bde98113cd397b45ca21d30eee5a6221caab1",
+        "contractDigest": "sha256:404d668ed24f781e383cc62e25a2b4ee41ad450bce1cf170805df8834487c73b",
+        "semanticContractDigest": "sha256:0c6d23be021ffbc079b0d0586290a008154fe7446f31ea4c09be205afe1245a5",
         "omissionsApplied": [
           "contract.contractDigest",
           "recommendedNextAction.arguments.expectedContractDigest",
@@ -1644,8 +1840,8 @@
       },
       {
         "canonicalSlug": "mcp-registry/ai.autoblocks-contextlayer-mcp",
-        "contractDigest": "sha256:c2e664b48d48ab1181c446a51e29848ff1eba788d3cfd5dd7ddfc40642e4b446",
-        "semanticContractDigest": "sha256:cadae4091d6fb628b192c0ef2e4d9d0f4986021ac6de464f08d738b951c4a02c",
+        "contractDigest": "sha256:908eb14e849a2a6e1996632595adc29ee90feaf9f29aa14d3251c288baac2d8f",
+        "semanticContractDigest": "sha256:44b1be2470bb3665ba9c2ba51cdb1e5d9627c7ee4c8e4c73031d0c55c78424b3",
         "omissionsApplied": [
           "contract.contractDigest",
           "recommendedNextAction.arguments.expectedContractDigest",
@@ -1659,8 +1855,8 @@
       },
       {
         "canonicalSlug": "mcp-registry/ai.autoblocks-ctxl",
-        "contractDigest": "sha256:674b29cbeae89f5a0af9917a090b0af79f9ef51a770b91ac3469a1892331cc75",
-        "semanticContractDigest": "sha256:8b127c19f10b79c4ebbb03dbf68f85dc0e0f360dec30d5d12bdf81de16d14444",
+        "contractDigest": "sha256:5e77c65d466f99c41e21bfe08190402f1ad9cf6dce14eef12788d2ecd3f2160b",
+        "semanticContractDigest": "sha256:b5ec492c518681b17b6b7d45b22345d03d941bce991e2f898b33b15e0ab2dc83",
         "omissionsApplied": [
           "contract.contractDigest",
           "recommendedNextAction.arguments.expectedContractDigest",
@@ -1674,8 +1870,8 @@
       },
       {
         "canonicalSlug": "mcp-registry/ai.autoblocks-ctxl-mcp",
-        "contractDigest": "sha256:d12dcc4670dfd4b4360cb21697838e4387955adc7e2f26dbb4981bc09a5b7323",
-        "semanticContractDigest": "sha256:8b6cd71901bbfcfa4c4fec6231e95d6584be59d3b1552af8f2d98240269d36b8",
+        "contractDigest": "sha256:aeb902f6466df45f2956f378ddcc09f1e198394e46872cb3df4384e10e58c46b",
+        "semanticContractDigest": "sha256:ec3619b70a036c560acc9b424673eefad1089f67067f727c1834aa3a66042eb3",
         "omissionsApplied": [
           "contract.contractDigest",
           "recommendedNextAction.arguments.expectedContractDigest",
@@ -1689,8 +1885,8 @@
       },
       {
         "canonicalSlug": "mcp-registry/ai.autonomad-computeback",
-        "contractDigest": "sha256:9a23ffbbccca777dcba26031d996b569766f04457631973fbbe37867326c88b9",
-        "semanticContractDigest": "sha256:3735156a8eb11fd04f191cb39d0b021b375e350ca157d7ee7c6c61b5744a0854",
+        "contractDigest": "sha256:f770f5e63916cdd325dcf87be65560acbb50a13bc0597ad468283407825aeaa5",
+        "semanticContractDigest": "sha256:b9b624d52ade3f7c305a1a8c239bd68d287ad6a67940c63828c609d30baf278c",
         "omissionsApplied": [
           "contract.contractDigest",
           "recommendedNextAction.arguments.expectedContractDigest",
@@ -1704,8 +1900,8 @@
       },
       {
         "canonicalSlug": "mcp-registry/ai.autonomad-travel",
-        "contractDigest": "sha256:1a11bc4eb93fd3e3c2045a17169831c9710a371c0b8d1ad1a16d80e40ef021ed",
-        "semanticContractDigest": "sha256:da8918451d214b7dbe7b38732e2e29e7da7047c85f7450b54701a6cbb07f14f2",
+        "contractDigest": "sha256:f34366ab528649648cbc93ac5175eb816cd1b4797df91388169d06d6dcd7fef8",
+        "semanticContractDigest": "sha256:dcc18b0b86c44d925eea95e79cb5c6372a972ff37fdcab472e9ca0df6a4ad9a7",
         "omissionsApplied": [
           "contract.contractDigest",
           "recommendedNextAction.arguments.expectedContractDigest",
@@ -1719,8 +1915,8 @@
       },
       {
         "canonicalSlug": "mcp-registry/ai.autoposting-autoposting",
-        "contractDigest": "sha256:ea6b68337d1709624f7fd65949cf5966658096cc947a5d368ab8bfd715443042",
-        "semanticContractDigest": "sha256:92c0a176c5a5e9bc7d6f27cf78beb727070ada696c62576e550e074c7172e3da",
+        "contractDigest": "sha256:e0134853f4d074ee0c63852248ce653613746ee48a5ac585a18a149a932caf2a",
+        "semanticContractDigest": "sha256:70089860a8044e46d095c76c90d48500be2d2b3ce79cea265a11d25c75297d8f",
         "omissionsApplied": [
           "contract.contractDigest",
           "recommendedNextAction.arguments.expectedContractDigest",
@@ -1734,8 +1930,8 @@
       },
       {
         "canonicalSlug": "mcp-registry/ai.autorfp-mcp",
-        "contractDigest": "sha256:d986a5c149f3cb675b38a538daeb7fc76294b016324f923b3af3a63a502dbb38",
-        "semanticContractDigest": "sha256:9b904014d49d23c7a082d2bb4800291736bf07e0637e4cc6dd2dea0205b46e5d",
+        "contractDigest": "sha256:4200551fbe6d0397e8c82b3c01eb803af60d5c89a23f487297e6611df68dc94e",
+        "semanticContractDigest": "sha256:96a11f89aa34ebc80eafb8e6cf658c2d5e9e88aa6740ad35155f4a9ebdd8be9e",
         "omissionsApplied": [
           "contract.contractDigest",
           "untrustedPublisherContent.description",
@@ -1750,8 +1946,8 @@
       },
       {
         "canonicalSlug": "mcp-registry/ai.auxen-auxen",
-        "contractDigest": "sha256:58b88e001d111429048250160d0b8c36ada8395c55639af3b892c61225e5c315",
-        "semanticContractDigest": "sha256:26cd36cfc4f5def47254005fcb0c2cfd7e2bb4c576df50952204ed63c67c71c1",
+        "contractDigest": "sha256:1dc125e4a9c516c01753d948dea6da9f840157d9ce123be42cf7617b96b9daa1",
+        "semanticContractDigest": "sha256:09f7803ba1c131bc12fab5014d6d600feb15886e0c97e43ef47c6ab497222bbb",
         "omissionsApplied": [
           "contract.contractDigest",
           "recommendedNextAction.arguments.expectedContractDigest",
@@ -1765,8 +1961,8 @@
       },
       {
         "canonicalSlug": "mcp-registry/ai.aviado-health",
-        "contractDigest": "sha256:46b5cb9c342d3f39f745bd05acbc1537ded299d3ae87c07569f647d235502465",
-        "semanticContractDigest": "sha256:60970d6ec2562dd7d008d40b8de0437ae4ae766c9dfabe56fcf7ff34f8ec1e33",
+        "contractDigest": "sha256:238955390c45d6338231c2832f7077578d833168b7d4872905975679913f1fa3",
+        "semanticContractDigest": "sha256:8827c21ed243237e71ad1096599d86ed516e9b30cae927ecea0770840889fc48",
         "omissionsApplied": [
           "contract.contractDigest",
           "recommendedNextAction.arguments.expectedContractDigest",
@@ -1780,8 +1976,8 @@
       },
       {
         "canonicalSlug": "mcp-registry/ai.awardcast-federal-contracts",
-        "contractDigest": "sha256:3b59c1cc41fd1b811643fe6523d06dc008ff608b44f399b884f75333027e5bd4",
-        "semanticContractDigest": "sha256:6e9b9a28880b1d24f1b9234b5ff2408450a4c3e8da852486ac10b6ada503613b",
+        "contractDigest": "sha256:85b687d6ad3b13f32969236cd570037fdc58e483edc93fd92cb3bae11ec18017",
+        "semanticContractDigest": "sha256:b5842d083ca7da02475b1f3d100a73a4d6abcd036c945ee64a8bafc6dc8ae632",
         "omissionsApplied": [
           "contract.contractDigest",
           "recommendedNextAction.arguments.expectedContractDigest",
@@ -1794,9 +1990,25 @@
         "bindingFaults": []
       },
       {
+        "canonicalSlug": "mcp-registry/ai.awraiter-telegram",
+        "contractDigest": "sha256:1e65200057477b58ba07d6fd77f716b1c0ce6aaea2f9957b9787affae6d163dc",
+        "semanticContractDigest": "sha256:4b48b1529a19c2907a48d2ee498c9ef0ee183bf067f03c0e8275609071717133",
+        "omissionsApplied": [
+          "contract.contractDigest",
+          "untrustedPublisherContent.description",
+          "publicObservation.publicLabel",
+          "agentGuidance.goal"
+        ],
+        "omissionsNotPresent": [
+          "recommendedNextAction.arguments.expectedContractDigest"
+        ],
+        "proseLeaves": [],
+        "bindingFaults": []
+      },
+      {
         "canonicalSlug": "mcp-registry/ai.axonagentic-neuroautomata",
-        "contractDigest": "sha256:eb6298666a75c15df6140e71a9f95475b9f6861e0f711ac61e08a9de9eacd2a8",
-        "semanticContractDigest": "sha256:8c2f00f0eb499218c6586662232244194e036854bd65dbcf4c45b433d32ec8cc",
+        "contractDigest": "sha256:24676025dc9ee3e422dd8061e198b92a9ff9b17461614ad513b04167bb0a184e",
+        "semanticContractDigest": "sha256:3b16a69283fb0797f689a4eb92719151cdbb0a845393ced5b172244b2d2a39cd",
         "omissionsApplied": [
           "contract.contractDigest",
           "recommendedNextAction.arguments.expectedContractDigest",
@@ -1810,8 +2022,8 @@
       },
       {
         "canonicalSlug": "mcp-registry/ai.b77-ai-media-studio",
-        "contractDigest": "sha256:7f2af62342d5a592e9bbcffc0f3d347bb0989933c3651ff1cbcb6bdb0fd4105a",
-        "semanticContractDigest": "sha256:d8d625037d78a0abd3d20dccb76a4930024a3d57fb5c14e34869cd8d734ddeaa",
+        "contractDigest": "sha256:2fe96fb9e654851ea849a039ff8bc0399178a2a1f2292c02c47f142636ddc468",
+        "semanticContractDigest": "sha256:8f502073a607023fbb89b0c71a9503e18da45532d6762094520fe5ff182fb39c",
         "omissionsApplied": [
           "contract.contractDigest",
           "recommendedNextAction.arguments.expectedContractDigest",
@@ -1825,8 +2037,8 @@
       },
       {
         "canonicalSlug": "mcp-registry/ai.b77-apple-search-ads",
-        "contractDigest": "sha256:1a85f4db3fc5ebf29b746c013fb88f2820528d4929f1db35caf2282c8dc0a014",
-        "semanticContractDigest": "sha256:aaf0c5350ef13e38d7843eddba92ae1c516267b56ebe912f26f472528948a372",
+        "contractDigest": "sha256:3b83f8fe86640228bbe63d97895e85140877730e943bf63f31606fc3a3057d28",
+        "semanticContractDigest": "sha256:fcca4cfe17e1669737314bd7a6decb206e87856edc2478b0c7bd664853599094",
         "omissionsApplied": [
           "contract.contractDigest",
           "recommendedNextAction.arguments.expectedContractDigest",
@@ -1840,8 +2052,549 @@
       },
       {
         "canonicalSlug": "mcp-registry/ai.b77-chess-results",
-        "contractDigest": "sha256:ed448da9ff4b25c903aea9d9b0a36920caad5e062cd527205f3be96a2098f6cb",
-        "semanticContractDigest": "sha256:a241b8b52ff3d5dc3a85b147610662645218b9b9c34148c166904452f04dc8c8",
+        "contractDigest": "sha256:6f1fa08dd3fe772be87a4ff64f8d925056be08f7aa6399a36b18dcbdf431a982",
+        "semanticContractDigest": "sha256:83b9ca28ef7c3f8a025b3ddc04b954e17ee60c125ad53cb93e9e0d8081825f4f",
+        "omissionsApplied": [
+          "contract.contractDigest",
+          "recommendedNextAction.arguments.expectedContractDigest",
+          "untrustedPublisherContent.description",
+          "publicObservation.publicLabel",
+          "agentGuidance.goal"
+        ],
+        "omissionsNotPresent": [],
+        "proseLeaves": [],
+        "bindingFaults": []
+      },
+      {
+        "canonicalSlug": "mcp-registry/ai.b77-feedback",
+        "contractDigest": "sha256:5e0acbada79e1c28347ff3755f27c61246f3e1163e14c2efbe8a924756f3d5d9",
+        "semanticContractDigest": "sha256:4ecacaea00c463ccf3c9b81c268d9262d841d5f6c4ba912645754fcb53d9c914",
+        "omissionsApplied": [
+          "contract.contractDigest",
+          "recommendedNextAction.arguments.expectedContractDigest",
+          "untrustedPublisherContent.description",
+          "publicObservation.publicLabel",
+          "agentGuidance.goal"
+        ],
+        "omissionsNotPresent": [],
+        "proseLeaves": [],
+        "bindingFaults": []
+      },
+      {
+        "canonicalSlug": "mcp-registry/ai.b77-fibalo",
+        "contractDigest": "sha256:0e781e98f8cc0eb123e538ac1150d9e4752f8ebe0ede55f1259e0ff7c28b9bfe",
+        "semanticContractDigest": "sha256:cba2b90de291339a18251a090a54c62ed4a0e2875cd6ef18e8d36d7b93aff691",
+        "omissionsApplied": [
+          "contract.contractDigest",
+          "recommendedNextAction.arguments.expectedContractDigest",
+          "untrustedPublisherContent.description",
+          "publicObservation.publicLabel",
+          "agentGuidance.goal"
+        ],
+        "omissionsNotPresent": [],
+        "proseLeaves": [],
+        "bindingFaults": []
+      },
+      {
+        "canonicalSlug": "mcp-registry/ai.b77-file-storage",
+        "contractDigest": "sha256:17ed0a3be83c23f1b9d39b02df11cc7a227b57f6efe65e24e5727d7814cf8cdb",
+        "semanticContractDigest": "sha256:9d5749e3e5ba5ac9a919a3ea56ce533890ef78d1a7eaf8c732234fbd0cf69c11",
+        "omissionsApplied": [
+          "contract.contractDigest",
+          "recommendedNextAction.arguments.expectedContractDigest",
+          "untrustedPublisherContent.description",
+          "publicObservation.publicLabel",
+          "agentGuidance.goal"
+        ],
+        "omissionsNotPresent": [],
+        "proseLeaves": [],
+        "bindingFaults": []
+      },
+      {
+        "canonicalSlug": "mcp-registry/ai.b77-google-ads",
+        "contractDigest": "sha256:7bb497960447e4a95527d7736e5f0e592473a1a35a2937c694444d17cb3d6530",
+        "semanticContractDigest": "sha256:3a55e2fc870284933654103def422b22a99d8f46940f59fa700fa0016fbf2ab9",
+        "omissionsApplied": [
+          "contract.contractDigest",
+          "recommendedNextAction.arguments.expectedContractDigest",
+          "untrustedPublisherContent.description",
+          "publicObservation.publicLabel",
+          "agentGuidance.goal"
+        ],
+        "omissionsNotPresent": [],
+        "proseLeaves": [],
+        "bindingFaults": []
+      },
+      {
+        "canonicalSlug": "mcp-registry/ai.b77-google-news",
+        "contractDigest": "sha256:dad5800397c4d0b17946d765e784e0a447a9356943124dbffc75278f2258024d",
+        "semanticContractDigest": "sha256:0c671b1d15de9415c844466758b9405bcbc5d9c0a38d1cb003f42b61e59a89e2",
+        "omissionsApplied": [
+          "contract.contractDigest",
+          "recommendedNextAction.arguments.expectedContractDigest",
+          "untrustedPublisherContent.description",
+          "publicObservation.publicLabel",
+          "agentGuidance.goal"
+        ],
+        "omissionsNotPresent": [],
+        "proseLeaves": [],
+        "bindingFaults": []
+      },
+      {
+        "canonicalSlug": "mcp-registry/ai.b77-google-search-console",
+        "contractDigest": "sha256:5cd07c18c14be7b7ae6240fbea671b48bf525a8530ffbd587501bad817b02a6a",
+        "semanticContractDigest": "sha256:29ab27cfe70ff812a1ae7e3d9c3e10d172ecbe4d2ff2538aad2b9ebaad20c3cd",
+        "omissionsApplied": [
+          "contract.contractDigest",
+          "recommendedNextAction.arguments.expectedContractDigest",
+          "untrustedPublisherContent.description",
+          "publicObservation.publicLabel",
+          "agentGuidance.goal"
+        ],
+        "omissionsNotPresent": [],
+        "proseLeaves": [],
+        "bindingFaults": []
+      },
+      {
+        "canonicalSlug": "mcp-registry/ai.b77-kinnovis-storage",
+        "contractDigest": "sha256:83eba2565110d525ebd7ed1a0a0583997e7ecff51007d676225cfc0f8ea4d7d3",
+        "semanticContractDigest": "sha256:31dd6f9091631f7a793b86d165104bae162d5a5db3026a40cea63685c1e836e1",
+        "omissionsApplied": [
+          "contract.contractDigest",
+          "recommendedNextAction.arguments.expectedContractDigest",
+          "untrustedPublisherContent.description",
+          "publicObservation.publicLabel",
+          "agentGuidance.goal"
+        ],
+        "omissionsNotPresent": [],
+        "proseLeaves": [],
+        "bindingFaults": []
+      },
+      {
+        "canonicalSlug": "mcp-registry/ai.b77-knowledge-base",
+        "contractDigest": "sha256:6bf2d59ce2ff1d5b0a470a4a9baa879d2e90112be67ee38f9d7560d8bd276fe3",
+        "semanticContractDigest": "sha256:0ae8566b09876c071b7e414f7ec526f268471aa70f4f5278ed1b75ba1ac883af",
+        "omissionsApplied": [
+          "contract.contractDigest",
+          "recommendedNextAction.arguments.expectedContractDigest",
+          "untrustedPublisherContent.description",
+          "publicObservation.publicLabel",
+          "agentGuidance.goal"
+        ],
+        "omissionsNotPresent": [],
+        "proseLeaves": [],
+        "bindingFaults": []
+      },
+      {
+        "canonicalSlug": "mcp-registry/ai.b77-nightscout",
+        "contractDigest": "sha256:ea90cc93b15486282eb9e65065539894a7a36619a0d04cf4399cd6565c64f4c5",
+        "semanticContractDigest": "sha256:bc7ca3cc700f66c4073f158166369bf9ca3acfd7ad343a44d6a57353712e40ed",
+        "omissionsApplied": [
+          "contract.contractDigest",
+          "recommendedNextAction.arguments.expectedContractDigest",
+          "untrustedPublisherContent.description",
+          "publicObservation.publicLabel",
+          "agentGuidance.goal"
+        ],
+        "omissionsNotPresent": [],
+        "proseLeaves": [],
+        "bindingFaults": []
+      },
+      {
+        "canonicalSlug": "mcp-registry/ai.b77-seo-content-factory",
+        "contractDigest": "sha256:fdfcbd0bc99fd54994f46cf0b0b1e15baf08d424e4b2fa861ed6ebe6db709410",
+        "semanticContractDigest": "sha256:79e719b3f8488e85065530d366c52af4a042031ffce9d4f41dc84559969d7d7a",
+        "omissionsApplied": [
+          "contract.contractDigest",
+          "recommendedNextAction.arguments.expectedContractDigest",
+          "untrustedPublisherContent.description",
+          "publicObservation.publicLabel",
+          "agentGuidance.goal"
+        ],
+        "omissionsNotPresent": [],
+        "proseLeaves": [],
+        "bindingFaults": []
+      },
+      {
+        "canonicalSlug": "mcp-registry/ai.b77-teamwork",
+        "contractDigest": "sha256:0041495147967001c5b1643b754f8f224847ac7797702ef65e2c31587d0693fa",
+        "semanticContractDigest": "sha256:3f91ee9248e4877feab2b4608eadf1f2ef174e1be19bc1db2062b4cd61215718",
+        "omissionsApplied": [
+          "contract.contractDigest",
+          "recommendedNextAction.arguments.expectedContractDigest",
+          "untrustedPublisherContent.description",
+          "publicObservation.publicLabel",
+          "agentGuidance.goal"
+        ],
+        "omissionsNotPresent": [],
+        "proseLeaves": [],
+        "bindingFaults": []
+      },
+      {
+        "canonicalSlug": "mcp-registry/ai.b77-time",
+        "contractDigest": "sha256:ac762c7848b0ed80d8c524e0c0234c533d04927e1b769f84bf42c993fb5f7ad6",
+        "semanticContractDigest": "sha256:50476baf86691ccc2690d924beca33910c41eafbf55a8bae30b0360a784a24e8",
+        "omissionsApplied": [
+          "contract.contractDigest",
+          "recommendedNextAction.arguments.expectedContractDigest",
+          "untrustedPublisherContent.description",
+          "publicObservation.publicLabel",
+          "agentGuidance.goal"
+        ],
+        "omissionsNotPresent": [],
+        "proseLeaves": [],
+        "bindingFaults": []
+      },
+      {
+        "canonicalSlug": "mcp-registry/ai.b77-web-analytics",
+        "contractDigest": "sha256:25e48385fb016d8c3f2603be9c78790717558ec32b1595fd56b4ce59a6f1544f",
+        "semanticContractDigest": "sha256:19fbfd0971bae96b589ea020b4a0cc0a2581839c198dd71b3d7877b7c6e926fc",
+        "omissionsApplied": [
+          "contract.contractDigest",
+          "recommendedNextAction.arguments.expectedContractDigest",
+          "untrustedPublisherContent.description",
+          "publicObservation.publicLabel",
+          "agentGuidance.goal"
+        ],
+        "omissionsNotPresent": [],
+        "proseLeaves": [],
+        "bindingFaults": []
+      },
+      {
+        "canonicalSlug": "mcp-registry/ai.backengine-backengine-mcp",
+        "contractDigest": "sha256:2b9c70a3deec4dbbd575008c15a3d1151995050004f5bd0101ea0e185340178a",
+        "semanticContractDigest": "sha256:4ad48e50a7213983eef7c6442a25cfac816aa1a6f691c6d2a5d6fce9e6938bfb",
+        "omissionsApplied": [
+          "contract.contractDigest",
+          "recommendedNextAction.arguments.expectedContractDigest",
+          "untrustedPublisherContent.description",
+          "publicObservation.publicLabel",
+          "agentGuidance.goal"
+        ],
+        "omissionsNotPresent": [],
+        "proseLeaves": [],
+        "bindingFaults": []
+      },
+      {
+        "canonicalSlug": "mcp-registry/ai.bankee-inferventis-mcp",
+        "contractDigest": "sha256:bf7ccd90048dfabc7055c69efee0e11001ddaceded630dd1039492bca8246f91",
+        "semanticContractDigest": "sha256:f2a022320bac448f24d7d6a2aaa1a179a24233519d4cf943b53728e588c8a387",
+        "omissionsApplied": [
+          "contract.contractDigest",
+          "recommendedNextAction.arguments.expectedContractDigest",
+          "untrustedPublisherContent.description",
+          "publicObservation.publicLabel",
+          "agentGuidance.goal"
+        ],
+        "omissionsNotPresent": [],
+        "proseLeaves": [],
+        "bindingFaults": []
+      },
+      {
+        "canonicalSlug": "mcp-registry/ai.bareun-bareun",
+        "contractDigest": "sha256:689866f16ba06e0902ba692f566739c27d27132fd8f131fe6fc8e04a3308dbb8",
+        "semanticContractDigest": "sha256:3b781e18c140a64185d9f96c14a4e55a3d1c991e1e0ea6fb9e12597d9af86176",
+        "omissionsApplied": [
+          "contract.contractDigest",
+          "recommendedNextAction.arguments.expectedContractDigest",
+          "untrustedPublisherContent.description",
+          "publicObservation.publicLabel",
+          "agentGuidance.goal"
+        ],
+        "omissionsNotPresent": [],
+        "proseLeaves": [],
+        "bindingFaults": []
+      },
+      {
+        "canonicalSlug": "mcp-registry/ai.baselight-baselight",
+        "contractDigest": "sha256:1f5315924cc718afe2c00074279f5eaa1c7de7fb01f866030aa77ce2e28095c6",
+        "semanticContractDigest": "sha256:462713995ea48a9313ca55cc6034aae7b3c4f9a02045535b2817b6c4eac3b3ba",
+        "omissionsApplied": [
+          "contract.contractDigest",
+          "untrustedPublisherContent.description",
+          "publicObservation.publicLabel",
+          "agentGuidance.goal"
+        ],
+        "omissionsNotPresent": [
+          "recommendedNextAction.arguments.expectedContractDigest"
+        ],
+        "proseLeaves": [],
+        "bindingFaults": []
+      },
+      {
+        "canonicalSlug": "mcp-registry/ai.basethread-basethread",
+        "contractDigest": "sha256:08f854edd19a0033405b67a144d7383029117592a5e8e983e98757645652defd",
+        "semanticContractDigest": "sha256:487dd90a034ee8e5c264dd718e64dbce0345de02acda7cc31faba6403b0e3347",
+        "omissionsApplied": [
+          "contract.contractDigest",
+          "recommendedNextAction.arguments.expectedContractDigest",
+          "untrustedPublisherContent.description",
+          "publicObservation.publicLabel",
+          "agentGuidance.goal"
+        ],
+        "omissionsNotPresent": [],
+        "proseLeaves": [],
+        "bindingFaults": []
+      },
+      {
+        "canonicalSlug": "mcp-registry/ai.bassethound-bassethound",
+        "contractDigest": "sha256:d24ab96800b6ed6a19161b799996bfca888c36f7b31010ec683d159b0e25af48",
+        "semanticContractDigest": "sha256:abd5b816cd2e29368f4f09729c5c601e309056276c0197245cdf1056f50a0dd6",
+        "omissionsApplied": [
+          "contract.contractDigest",
+          "recommendedNextAction.arguments.expectedContractDigest",
+          "untrustedPublisherContent.description",
+          "publicObservation.publicLabel",
+          "agentGuidance.goal"
+        ],
+        "omissionsNotPresent": [],
+        "proseLeaves": [],
+        "bindingFaults": []
+      },
+      {
+        "canonicalSlug": "mcp-registry/ai.beatbandit-beatbandit",
+        "contractDigest": "sha256:77c74e6ff8430dfada8fe4fb8475b31b557b289fbba2170ffe3d239ff7e56c3d",
+        "semanticContractDigest": "sha256:5db5bf6c59be46ba2e95cf6b8e556cadf31fc1ce882287df76857c77a5b846a7",
+        "omissionsApplied": [
+          "contract.contractDigest",
+          "recommendedNextAction.arguments.expectedContractDigest",
+          "untrustedPublisherContent.description",
+          "publicObservation.publicLabel",
+          "agentGuidance.goal"
+        ],
+        "omissionsNotPresent": [],
+        "proseLeaves": [],
+        "bindingFaults": []
+      },
+      {
+        "canonicalSlug": "mcp-registry/ai.beket-audit",
+        "contractDigest": "sha256:a4ecdab4fb6ff5feefb4697334db7933fe939d6cf0ee961668566b491062a323",
+        "semanticContractDigest": "sha256:ea7d2bb2a57468d533a25eef26172e6a34543a49dc519940855a7b359a0dad1f",
+        "omissionsApplied": [
+          "contract.contractDigest",
+          "recommendedNextAction.arguments.expectedContractDigest",
+          "untrustedPublisherContent.description",
+          "publicObservation.publicLabel",
+          "agentGuidance.goal"
+        ],
+        "omissionsNotPresent": [],
+        "proseLeaves": [],
+        "bindingFaults": []
+      },
+      {
+        "canonicalSlug": "mcp-registry/ai.benroberts-b4-index",
+        "contractDigest": "sha256:664bfa3afaa26027b2505e9f2a68adb3a674c127e07753bd6f9c58e809d79945",
+        "semanticContractDigest": "sha256:baf59a336b08c17381d5d4bb8bd96c3d56d6e2f03d678776b35f0b11780545cf",
+        "omissionsApplied": [
+          "contract.contractDigest",
+          "recommendedNextAction.arguments.expectedContractDigest",
+          "untrustedPublisherContent.description",
+          "publicObservation.publicLabel",
+          "agentGuidance.goal"
+        ],
+        "omissionsNotPresent": [],
+        "proseLeaves": [],
+        "bindingFaults": []
+      },
+      {
+        "canonicalSlug": "mcp-registry/ai.betslipdoctor-mcp",
+        "contractDigest": "sha256:f07edc4232329fed263a5127f24b0cd43f0b24b48880ff11c765b72f8535b4dd",
+        "semanticContractDigest": "sha256:7a6d793a8d900c48221e0f3ceb872a68efe4eb9a82b0189cceccdfbb83c08528",
+        "omissionsApplied": [
+          "contract.contractDigest",
+          "recommendedNextAction.arguments.expectedContractDigest",
+          "untrustedPublisherContent.description",
+          "publicObservation.publicLabel",
+          "agentGuidance.goal"
+        ],
+        "omissionsNotPresent": [],
+        "proseLeaves": [],
+        "bindingFaults": []
+      },
+      {
+        "canonicalSlug": "mcp-registry/ai.betterpost-server",
+        "contractDigest": "sha256:f06f493d7b04b471b06ed698b4b8243384cd94980a11f8ebac6a104eff8384b0",
+        "semanticContractDigest": "sha256:a76d01503f0acbf3d4e7d353cf32a2a7b10d0363a12c147a1244627c5c6cbdbb",
+        "omissionsApplied": [
+          "contract.contractDigest",
+          "recommendedNextAction.arguments.expectedContractDigest",
+          "untrustedPublisherContent.description",
+          "publicObservation.publicLabel",
+          "agentGuidance.goal"
+        ],
+        "omissionsNotPresent": [],
+        "proseLeaves": [],
+        "bindingFaults": []
+      },
+      {
+        "canonicalSlug": "mcp-registry/ai.bezal-local-commerce",
+        "contractDigest": "sha256:d808e8a8fb5b5799d780bb56a113b3c1e07137249c30e69925b3014ed651dc1a",
+        "semanticContractDigest": "sha256:929746d70a5630fa96afbcaf6b0d94cf747eb5e11136039703c7b9e8fcb1c6f6",
+        "omissionsApplied": [
+          "contract.contractDigest",
+          "recommendedNextAction.arguments.expectedContractDigest",
+          "untrustedPublisherContent.description",
+          "publicObservation.publicLabel",
+          "agentGuidance.goal"
+        ],
+        "omissionsNotPresent": [],
+        "proseLeaves": [],
+        "bindingFaults": []
+      },
+      {
+        "canonicalSlug": "mcp-registry/ai.bidclub-bidclub",
+        "contractDigest": "sha256:c4f7a8f42ae366a1e80b061edc24ce36d2bfa7557fad0f1083a74562f59ef7f8",
+        "semanticContractDigest": "sha256:ce4253267fcca39ea0cdc1ee6ecff5779a5fe363556eb92199ee1a4d5e33858f",
+        "omissionsApplied": [
+          "contract.contractDigest",
+          "recommendedNextAction.arguments.expectedContractDigest",
+          "untrustedPublisherContent.description",
+          "publicObservation.publicLabel",
+          "agentGuidance.goal"
+        ],
+        "omissionsNotPresent": [],
+        "proseLeaves": [],
+        "bindingFaults": []
+      },
+      {
+        "canonicalSlug": "mcp-registry/ai.biddeed-biddeed-mcp",
+        "contractDigest": "sha256:fd830fc2d939a4bb246b57bb497e3402596e881dcdee36fa9e9e522a1b5cd0c8",
+        "semanticContractDigest": "sha256:27cd21319d468f9b33b1311c6ebe21346d1369c173c3f79d6abf6c76f168908c",
+        "omissionsApplied": [
+          "contract.contractDigest",
+          "recommendedNextAction.arguments.expectedContractDigest",
+          "untrustedPublisherContent.description",
+          "publicObservation.publicLabel",
+          "agentGuidance.goal"
+        ],
+        "omissionsNotPresent": [],
+        "proseLeaves": [],
+        "bindingFaults": []
+      },
+      {
+        "canonicalSlug": "mcp-registry/ai.biel-biel-ai",
+        "contractDigest": "sha256:5ee0d1a3f94d99221d237f4406d72786284b28e3d53e6116cb21e8f280202aba",
+        "semanticContractDigest": "sha256:2e68b4460bd9bd5fadb0f580327774d0c80d34bc60631d25354f030fa0a47771",
+        "omissionsApplied": [
+          "contract.contractDigest",
+          "recommendedNextAction.arguments.expectedContractDigest",
+          "untrustedPublisherContent.description",
+          "publicObservation.publicLabel",
+          "agentGuidance.goal"
+        ],
+        "omissionsNotPresent": [],
+        "proseLeaves": [],
+        "bindingFaults": []
+      },
+      {
+        "canonicalSlug": "mcp-registry/ai.bitroad-bitroad",
+        "contractDigest": "sha256:30e823ea9b95bc4211a40120e71a97a9ef899a5f8a3956d92294be08d90a0b17",
+        "semanticContractDigest": "sha256:ca42a3db18b290741c3cd1d3f9259ae015158b49918bec2ba7ca499437477986",
+        "omissionsApplied": [
+          "contract.contractDigest",
+          "recommendedNextAction.arguments.expectedContractDigest",
+          "untrustedPublisherContent.description",
+          "publicObservation.publicLabel",
+          "agentGuidance.goal"
+        ],
+        "omissionsNotPresent": [],
+        "proseLeaves": [],
+        "bindingFaults": []
+      },
+      {
+        "canonicalSlug": "mcp-registry/ai.bittlebits-bittlebits",
+        "contractDigest": "sha256:f318489f3fb29346429dc05f1f9816f8f27841c3198871172d2907663bb5efe0",
+        "semanticContractDigest": "sha256:19b4f3dc8f89e91f7241881f534ef6acc101ae8c318f771c967980e9c15d901f",
+        "omissionsApplied": [
+          "contract.contractDigest",
+          "recommendedNextAction.arguments.expectedContractDigest",
+          "untrustedPublisherContent.description",
+          "publicObservation.publicLabel",
+          "agentGuidance.goal"
+        ],
+        "omissionsNotPresent": [],
+        "proseLeaves": [],
+        "bindingFaults": []
+      },
+      {
+        "canonicalSlug": "mcp-registry/ai.bizmuse-bizmuse",
+        "contractDigest": "sha256:5db1a7c37f137241ef333a2f59417afb9d6bf5f71e0e5cf8e22a24103879c8a2",
+        "semanticContractDigest": "sha256:e56d6537165eef5906267e51464716d08c7e2900e26c30048da6bfd7da3fe8e2",
+        "omissionsApplied": [
+          "contract.contractDigest",
+          "recommendedNextAction.arguments.expectedContractDigest",
+          "untrustedPublisherContent.description",
+          "publicObservation.publicLabel",
+          "agentGuidance.goal"
+        ],
+        "omissionsNotPresent": [],
+        "proseLeaves": [],
+        "bindingFaults": []
+      },
+      {
+        "canonicalSlug": "mcp-registry/ai.blast-radius-blast-radius",
+        "contractDigest": "sha256:4ee45f993d1c7c23394861ce8d47e93d79390b5213baad545fad3e9ea549030d",
+        "semanticContractDigest": "sha256:e37a0a346d2bcb7c5f511b9e2c3b43f22ef1556ff9c426339b6783fbbf1d8f4f",
+        "omissionsApplied": [
+          "contract.contractDigest",
+          "recommendedNextAction.arguments.expectedContractDigest",
+          "untrustedPublisherContent.description",
+          "publicObservation.publicLabel",
+          "agentGuidance.goal"
+        ],
+        "omissionsNotPresent": [],
+        "proseLeaves": [],
+        "bindingFaults": []
+      },
+      {
+        "canonicalSlug": "mcp-registry/ai.bloopo-bloopo",
+        "contractDigest": "sha256:e1da3de219c384b45f72eecf1f06ce619d19c62796bc47ba42bc80a8fd878ad2",
+        "semanticContractDigest": "sha256:e5a37432e2efe0a6a05c66dbc5e2e44fa148284d3aabd538892f3aeb8396490b",
+        "omissionsApplied": [
+          "contract.contractDigest",
+          "recommendedNextAction.arguments.expectedContractDigest",
+          "untrustedPublisherContent.description",
+          "publicObservation.publicLabel",
+          "agentGuidance.goal"
+        ],
+        "omissionsNotPresent": [],
+        "proseLeaves": [],
+        "bindingFaults": []
+      },
+      {
+        "canonicalSlug": "mcp-registry/ai.blopus-search",
+        "contractDigest": "sha256:d2bb4497386268b1a3a677fa43b568d447959838e92479cf71ad8bc3a564d563",
+        "semanticContractDigest": "sha256:123a1494789c729d5d3f8a4f95e0d9f45d123069c34fb0c54c878312ba3c69d8",
+        "omissionsApplied": [
+          "contract.contractDigest",
+          "recommendedNextAction.arguments.expectedContractDigest",
+          "untrustedPublisherContent.description",
+          "publicObservation.publicLabel",
+          "agentGuidance.goal"
+        ],
+        "omissionsNotPresent": [],
+        "proseLeaves": [],
+        "bindingFaults": []
+      },
+      {
+        "canonicalSlug": "mcp-registry/ai.bluenexus-universal-mcp",
+        "contractDigest": "sha256:f8d057bb294d121d8ac049315e6c64ec94c35893e6dfd32d78409a7aa5c0946d",
+        "semanticContractDigest": "sha256:210ca90f18ceef08a369f24cfec04d958191f5836c280a77f98bbd604c71f52a",
+        "omissionsApplied": [
+          "contract.contractDigest",
+          "recommendedNextAction.arguments.expectedContractDigest",
+          "untrustedPublisherContent.description",
+          "publicObservation.publicLabel",
+          "agentGuidance.goal"
+        ],
+        "omissionsNotPresent": [],
+        "proseLeaves": [],
+        "bindingFaults": []
+      },
+      {
+        "canonicalSlug": "mcp-registry/ai.bodenrichtwert-mcp",
+        "contractDigest": "sha256:4818bd1f399f2f7ff331b1ff73831d1d96401aa7ab260f57296501eb8d9e9d5a",
+        "semanticContractDigest": "sha256:f2d0fa57ae72424705d3b8a1d18245a277277a51e5d955374a650a803dc56da1",
         "omissionsApplied": [
           "contract.contractDigest",
           "recommendedNextAction.arguments.expectedContractDigest",
@@ -1855,8 +2608,8 @@
       },
       {
         "canonicalSlug": "mcp-registry/io.github.calllint-calllint",
-        "contractDigest": "sha256:93f0f46276ca7b346d1077205d18796e532818b7035181c067cc232b2cda4b0e",
-        "semanticContractDigest": "sha256:2a037d00a4b40b0995eb88b6bed7cfe85f79b00aacebcef17cedeef12d20a1fa",
+        "contractDigest": "sha256:d4c5a56fe65fa5b3f547d863c2817d94de3bc33045301f503ac5d2cdc0d81608",
+        "semanticContractDigest": "sha256:1a6d53a67588e1d419e4e28b9d1046cf6e5966d7a0d9b21b762d5ee9abc8cfb5",
         "omissionsApplied": [
           "contract.contractDigest",
           "recommendedNextAction.arguments.expectedContractDigest",
@@ -1894,8 +2647,8 @@
       "agentRelay.approvalQuestion",
       "agentRelay.guardOffer"
     ],
-    "pagesSearched": 99,
-    "contractsSearched": 99,
+    "pagesSearched": 149,
+    "contractsSearched": 149,
     "hits": []
   },
   "failures": []
