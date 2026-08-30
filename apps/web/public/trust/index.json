@@ -4,7 +4,7 @@
     "fixtures",
     "mcp-registry"
   ],
-  "bakedAt": "2026-08-27T11:02:09.000Z",
+  "bakedAt": "2026-08-30T09:58:17.726Z",
   "resolutionPolicy": {
     "cadenceDays": 7,
     "agingMultiple": 3,
@@ -524,7 +524,7 @@
         "identityStatus": "PROVISIONAL"
       },
       "freshness": {
-        "ageDays": 0,
+        "ageDays": 2,
         "state": "FRESH",
         "cadenceDays": 7,
         "basis": "snapshot-fetchedAt"
@@ -535,12 +535,12 @@
           {
             "axis": "evidence-resolution",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           },
           {
             "axis": "source-observation",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           }
         ],
         "lastSuccessfulResolution": "2026-08-27T11:02:09.000Z",
@@ -548,7 +548,7 @@
         "blockingUnknowns": [],
         "cadenceDays": 7
       },
-      "upstreamAgeDays": 31
+      "upstreamAgeDays": 33
     },
     {
       "canonicalName": "mcp-registry/ac.tandem-docs-mcp",
@@ -563,7 +563,7 @@
         "identityStatus": "PROVISIONAL"
       },
       "freshness": {
-        "ageDays": 0,
+        "ageDays": 2,
         "state": "FRESH",
         "cadenceDays": 7,
         "basis": "snapshot-fetchedAt"
@@ -574,12 +574,12 @@
           {
             "axis": "evidence-resolution",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           },
           {
             "axis": "source-observation",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           }
         ],
         "lastSuccessfulResolution": "2026-08-27T11:02:09.000Z",
@@ -587,7 +587,7 @@
         "blockingUnknowns": [],
         "cadenceDays": 7
       },
-      "upstreamAgeDays": 126
+      "upstreamAgeDays": 129
     },
     {
       "canonicalName": "mcp-registry/ad.inside-inside-ads",
@@ -602,7 +602,7 @@
         "identityStatus": "PROVISIONAL"
       },
       "freshness": {
-        "ageDays": 0,
+        "ageDays": 2,
         "state": "FRESH",
         "cadenceDays": 7,
         "basis": "snapshot-fetchedAt"
@@ -613,12 +613,12 @@
           {
             "axis": "evidence-resolution",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           },
           {
             "axis": "source-observation",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           }
         ],
         "lastSuccessfulResolution": "2026-08-27T11:02:09.000Z",
@@ -626,7 +626,7 @@
         "blockingUnknowns": [],
         "cadenceDays": 7
       },
-      "upstreamAgeDays": 8
+      "upstreamAgeDays": 11
     },
     {
       "canonicalName": "mcp-registry/ae.propick-propick",
@@ -641,7 +641,7 @@
         "identityStatus": "PROVISIONAL"
       },
       "freshness": {
-        "ageDays": 0,
+        "ageDays": 2,
         "state": "FRESH",
         "cadenceDays": 7,
         "basis": "snapshot-fetchedAt"
@@ -652,12 +652,12 @@
           {
             "axis": "evidence-resolution",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           },
           {
             "axis": "source-observation",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           }
         ],
         "lastSuccessfulResolution": "2026-08-27T11:02:09.000Z",
@@ -665,7 +665,7 @@
         "blockingUnknowns": [],
         "cadenceDays": 7
       },
-      "upstreamAgeDays": 1
+      "upstreamAgeDays": 4
     },
     {
       "canonicalName": "mcp-registry/ag.hood-name-service",
@@ -680,7 +680,7 @@
         "identityStatus": "PROVISIONAL"
       },
       "freshness": {
-        "ageDays": 0,
+        "ageDays": 2,
         "state": "FRESH",
         "cadenceDays": 7,
         "basis": "snapshot-fetchedAt"
@@ -691,12 +691,12 @@
           {
             "axis": "evidence-resolution",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           },
           {
             "axis": "source-observation",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           }
         ],
         "lastSuccessfulResolution": "2026-08-27T11:02:09.000Z",
@@ -704,7 +704,7 @@
         "blockingUnknowns": [],
         "cadenceDays": 7
       },
-      "upstreamAgeDays": 48
+      "upstreamAgeDays": 51
     },
     {
       "canonicalName": "mcp-registry/agency.goji-goji",
@@ -719,7 +719,7 @@
         "identityStatus": "PROVISIONAL"
       },
       "freshness": {
-        "ageDays": 0,
+        "ageDays": 2,
         "state": "FRESH",
         "cadenceDays": 7,
         "basis": "snapshot-fetchedAt"
@@ -730,12 +730,12 @@
           {
             "axis": "evidence-resolution",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           },
           {
             "axis": "source-observation",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           }
         ],
         "lastSuccessfulResolution": "2026-08-27T11:02:09.000Z",
@@ -743,7 +743,7 @@
         "blockingUnknowns": [],
         "cadenceDays": 7
       },
-      "upstreamAgeDays": 13
+      "upstreamAgeDays": 16
     },
     {
       "canonicalName": "mcp-registry/agency.kesey-pretrip",
@@ -758,7 +758,7 @@
         "identityStatus": "PROVISIONAL"
       },
       "freshness": {
-        "ageDays": 0,
+        "ageDays": 2,
         "state": "FRESH",
         "cadenceDays": 7,
         "basis": "snapshot-fetchedAt"
@@ -769,12 +769,12 @@
           {
             "axis": "evidence-resolution",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           },
           {
             "axis": "source-observation",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           }
         ],
         "lastSuccessfulResolution": "2026-08-27T11:02:09.000Z",
@@ -782,7 +782,7 @@
         "blockingUnknowns": [],
         "cadenceDays": 7
       },
-      "upstreamAgeDays": 31
+      "upstreamAgeDays": 34
     },
     {
       "canonicalName": "mcp-registry/agency.lona-trading",
@@ -797,7 +797,7 @@
         "identityStatus": "PROVISIONAL"
       },
       "freshness": {
-        "ageDays": 0,
+        "ageDays": 2,
         "state": "FRESH",
         "cadenceDays": 7,
         "basis": "snapshot-fetchedAt"
@@ -808,12 +808,12 @@
           {
             "axis": "evidence-resolution",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           },
           {
             "axis": "source-observation",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           }
         ],
         "lastSuccessfulResolution": "2026-08-27T11:02:09.000Z",
@@ -821,7 +821,7 @@
         "blockingUnknowns": [],
         "cadenceDays": 7
       },
-      "upstreamAgeDays": 184
+      "upstreamAgeDays": 187
     },
     {
       "canonicalName": "mcp-registry/ai.1325-mcp",
@@ -836,7 +836,7 @@
         "identityStatus": "PROVISIONAL"
       },
       "freshness": {
-        "ageDays": 0,
+        "ageDays": 2,
         "state": "FRESH",
         "cadenceDays": 7,
         "basis": "snapshot-fetchedAt"
@@ -847,12 +847,12 @@
           {
             "axis": "evidence-resolution",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           },
           {
             "axis": "source-observation",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           }
         ],
         "lastSuccessfulResolution": "2026-08-27T11:02:09.000Z",
@@ -860,7 +860,7 @@
         "blockingUnknowns": [],
         "cadenceDays": 7
       },
-      "upstreamAgeDays": 48
+      "upstreamAgeDays": 51
     },
     {
       "canonicalName": "mcp-registry/ai.aarna-atars-mcp",
@@ -875,7 +875,7 @@
         "identityStatus": "PROVISIONAL"
       },
       "freshness": {
-        "ageDays": 0,
+        "ageDays": 2,
         "state": "FRESH",
         "cadenceDays": 7,
         "basis": "snapshot-fetchedAt"
@@ -886,12 +886,12 @@
           {
             "axis": "evidence-resolution",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           },
           {
             "axis": "source-observation",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           }
         ],
         "lastSuccessfulResolution": "2026-08-27T11:02:09.000Z",
@@ -899,7 +899,7 @@
         "blockingUnknowns": [],
         "cadenceDays": 7
       },
-      "upstreamAgeDays": 169
+      "upstreamAgeDays": 172
     },
     {
       "canonicalName": "mcp-registry/ai.abmeter-abmeter",
@@ -914,7 +914,7 @@
         "identityStatus": "PROVISIONAL"
       },
       "freshness": {
-        "ageDays": 0,
+        "ageDays": 2,
         "state": "FRESH",
         "cadenceDays": 7,
         "basis": "snapshot-fetchedAt"
@@ -925,12 +925,12 @@
           {
             "axis": "evidence-resolution",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           },
           {
             "axis": "source-observation",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           }
         ],
         "lastSuccessfulResolution": "2026-08-27T11:02:09.000Z",
@@ -938,7 +938,7 @@
         "blockingUnknowns": [],
         "cadenceDays": 7
       },
-      "upstreamAgeDays": 129
+      "upstreamAgeDays": 132
     },
     {
       "canonicalName": "mcp-registry/ai.actwise-ideation",
@@ -953,7 +953,7 @@
         "identityStatus": "PROVISIONAL"
       },
       "freshness": {
-        "ageDays": 0,
+        "ageDays": 2,
         "state": "FRESH",
         "cadenceDays": 7,
         "basis": "snapshot-fetchedAt"
@@ -964,12 +964,12 @@
           {
             "axis": "evidence-resolution",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           },
           {
             "axis": "source-observation",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           }
         ],
         "lastSuccessfulResolution": "2026-08-27T11:02:09.000Z",
@@ -977,7 +977,7 @@
         "blockingUnknowns": [],
         "cadenceDays": 7
       },
-      "upstreamAgeDays": 13
+      "upstreamAgeDays": 16
     },
     {
       "canonicalName": "mcp-registry/ai.adadvisor-mcp-server",
@@ -992,7 +992,7 @@
         "identityStatus": "PROVISIONAL"
       },
       "freshness": {
-        "ageDays": 0,
+        "ageDays": 2,
         "state": "FRESH",
         "cadenceDays": 7,
         "basis": "snapshot-fetchedAt"
@@ -1003,12 +1003,12 @@
           {
             "axis": "evidence-resolution",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           },
           {
             "axis": "source-observation",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           }
         ],
         "lastSuccessfulResolution": "2026-08-27T11:02:09.000Z",
@@ -1016,7 +1016,7 @@
         "blockingUnknowns": [],
         "cadenceDays": 7
       },
-      "upstreamAgeDays": 179
+      "upstreamAgeDays": 182
     },
     {
       "canonicalName": "mcp-registry/ai.adeu-adeu",
@@ -1031,7 +1031,7 @@
         "identityStatus": "PROVISIONAL"
       },
       "freshness": {
-        "ageDays": 0,
+        "ageDays": 2,
         "state": "FRESH",
         "cadenceDays": 7,
         "basis": "snapshot-fetchedAt"
@@ -1042,12 +1042,12 @@
           {
             "axis": "evidence-resolution",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           },
           {
             "axis": "source-observation",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           }
         ],
         "lastSuccessfulResolution": "2026-08-27T11:02:09.000Z",
@@ -1055,7 +1055,7 @@
         "blockingUnknowns": [],
         "cadenceDays": 7
       },
-      "upstreamAgeDays": 102
+      "upstreamAgeDays": 105
     },
     {
       "canonicalName": "mcp-registry/ai.adoraads-beauty",
@@ -1070,7 +1070,7 @@
         "identityStatus": "PROVISIONAL"
       },
       "freshness": {
-        "ageDays": 0,
+        "ageDays": 2,
         "state": "FRESH",
         "cadenceDays": 7,
         "basis": "snapshot-fetchedAt"
@@ -1081,12 +1081,12 @@
           {
             "axis": "evidence-resolution",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           },
           {
             "axis": "source-observation",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           }
         ],
         "lastSuccessfulResolution": "2026-08-27T11:02:09.000Z",
@@ -1094,7 +1094,7 @@
         "blockingUnknowns": [],
         "cadenceDays": 7
       },
-      "upstreamAgeDays": 18
+      "upstreamAgeDays": 21
     },
     {
       "canonicalName": "mcp-registry/ai.adplane-google-ads",
@@ -1109,7 +1109,7 @@
         "identityStatus": "PROVISIONAL"
       },
       "freshness": {
-        "ageDays": 0,
+        "ageDays": 2,
         "state": "FRESH",
         "cadenceDays": 7,
         "basis": "snapshot-fetchedAt"
@@ -1120,12 +1120,12 @@
           {
             "axis": "evidence-resolution",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           },
           {
             "axis": "source-observation",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           }
         ],
         "lastSuccessfulResolution": "2026-08-27T11:02:09.000Z",
@@ -1133,7 +1133,7 @@
         "blockingUnknowns": [],
         "cadenceDays": 7
       },
-      "upstreamAgeDays": 18
+      "upstreamAgeDays": 21
     },
     {
       "canonicalName": "mcp-registry/ai.adramp-google-ads",
@@ -1148,7 +1148,7 @@
         "identityStatus": "PROVISIONAL"
       },
       "freshness": {
-        "ageDays": 0,
+        "ageDays": 2,
         "state": "FRESH",
         "cadenceDays": 7,
         "basis": "snapshot-fetchedAt"
@@ -1159,12 +1159,12 @@
           {
             "axis": "evidence-resolution",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           },
           {
             "axis": "source-observation",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           }
         ],
         "lastSuccessfulResolution": "2026-08-27T11:02:09.000Z",
@@ -1172,7 +1172,7 @@
         "blockingUnknowns": [],
         "cadenceDays": 7
       },
-      "upstreamAgeDays": 159
+      "upstreamAgeDays": 162
     },
     {
       "canonicalName": "mcp-registry/ai.adside-adside",
@@ -1187,7 +1187,7 @@
         "identityStatus": "PROVISIONAL"
       },
       "freshness": {
-        "ageDays": 0,
+        "ageDays": 2,
         "state": "FRESH",
         "cadenceDays": 7,
         "basis": "snapshot-fetchedAt"
@@ -1198,12 +1198,12 @@
           {
             "axis": "evidence-resolution",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           },
           {
             "axis": "source-observation",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           }
         ],
         "lastSuccessfulResolution": "2026-08-27T11:02:09.000Z",
@@ -1211,7 +1211,7 @@
         "blockingUnknowns": [],
         "cadenceDays": 7
       },
-      "upstreamAgeDays": 41
+      "upstreamAgeDays": 44
     },
     {
       "canonicalName": "mcp-registry/ai.advisorsai-store-readiness",
@@ -1226,7 +1226,7 @@
         "identityStatus": "PROVISIONAL"
       },
       "freshness": {
-        "ageDays": 0,
+        "ageDays": 2,
         "state": "FRESH",
         "cadenceDays": 7,
         "basis": "snapshot-fetchedAt"
@@ -1237,12 +1237,12 @@
           {
             "axis": "evidence-resolution",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           },
           {
             "axis": "source-observation",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           }
         ],
         "lastSuccessfulResolution": "2026-08-27T11:02:09.000Z",
@@ -1250,7 +1250,7 @@
         "blockingUnknowns": [],
         "cadenceDays": 7
       },
-      "upstreamAgeDays": 3
+      "upstreamAgeDays": 5
     },
     {
       "canonicalName": "mcp-registry/ai.adweave-meta-ads-mcp",
@@ -1265,7 +1265,7 @@
         "identityStatus": "PROVISIONAL"
       },
       "freshness": {
-        "ageDays": 0,
+        "ageDays": 2,
         "state": "FRESH",
         "cadenceDays": 7,
         "basis": "snapshot-fetchedAt"
@@ -1276,12 +1276,12 @@
           {
             "axis": "evidence-resolution",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           },
           {
             "axis": "source-observation",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           }
         ],
         "lastSuccessfulResolution": "2026-08-27T11:02:09.000Z",
@@ -1289,7 +1289,7 @@
         "blockingUnknowns": [],
         "cadenceDays": 7
       },
-      "upstreamAgeDays": 138
+      "upstreamAgeDays": 141
     },
     {
       "canonicalName": "mcp-registry/ai.aetherwealth-mcp",
@@ -1304,7 +1304,7 @@
         "identityStatus": "PROVISIONAL"
       },
       "freshness": {
-        "ageDays": 0,
+        "ageDays": 2,
         "state": "FRESH",
         "cadenceDays": 7,
         "basis": "snapshot-fetchedAt"
@@ -1315,12 +1315,12 @@
           {
             "axis": "evidence-resolution",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           },
           {
             "axis": "source-observation",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           }
         ],
         "lastSuccessfulResolution": "2026-08-27T11:02:09.000Z",
@@ -1328,7 +1328,7 @@
         "blockingUnknowns": [],
         "cadenceDays": 7
       },
-      "upstreamAgeDays": 0
+      "upstreamAgeDays": 3
     },
     {
       "canonicalName": "mcp-registry/ai.afmr-discovery",
@@ -1343,7 +1343,7 @@
         "identityStatus": "PROVISIONAL"
       },
       "freshness": {
-        "ageDays": 0,
+        "ageDays": 2,
         "state": "FRESH",
         "cadenceDays": 7,
         "basis": "snapshot-fetchedAt"
@@ -1354,12 +1354,12 @@
           {
             "axis": "evidence-resolution",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           },
           {
             "axis": "source-observation",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           }
         ],
         "lastSuccessfulResolution": "2026-08-27T11:02:09.000Z",
@@ -1367,7 +1367,7 @@
         "blockingUnknowns": [],
         "cadenceDays": 7
       },
-      "upstreamAgeDays": 4
+      "upstreamAgeDays": 7
     },
     {
       "canonicalName": "mcp-registry/ai.agentberg-agentberg",
@@ -1382,7 +1382,7 @@
         "identityStatus": "PROVISIONAL"
       },
       "freshness": {
-        "ageDays": 0,
+        "ageDays": 2,
         "state": "FRESH",
         "cadenceDays": 7,
         "basis": "snapshot-fetchedAt"
@@ -1393,12 +1393,12 @@
           {
             "axis": "evidence-resolution",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           },
           {
             "axis": "source-observation",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           }
         ],
         "lastSuccessfulResolution": "2026-08-27T11:02:09.000Z",
@@ -1406,7 +1406,7 @@
         "blockingUnknowns": [],
         "cadenceDays": 7
       },
-      "upstreamAgeDays": 70
+      "upstreamAgeDays": 73
     },
     {
       "canonicalName": "mcp-registry/ai.agentdm-agentdm",
@@ -1421,7 +1421,7 @@
         "identityStatus": "PROVISIONAL"
       },
       "freshness": {
-        "ageDays": 0,
+        "ageDays": 2,
         "state": "FRESH",
         "cadenceDays": 7,
         "basis": "snapshot-fetchedAt"
@@ -1432,12 +1432,12 @@
           {
             "axis": "evidence-resolution",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           },
           {
             "axis": "source-observation",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           }
         ],
         "lastSuccessfulResolution": "2026-08-27T11:02:09.000Z",
@@ -1445,7 +1445,7 @@
         "blockingUnknowns": [],
         "cadenceDays": 7
       },
-      "upstreamAgeDays": 109
+      "upstreamAgeDays": 112
     },
     {
       "canonicalName": "mcp-registry/ai.agentgates-mcp",
@@ -1460,7 +1460,7 @@
         "identityStatus": "PROVISIONAL"
       },
       "freshness": {
-        "ageDays": 0,
+        "ageDays": 2,
         "state": "FRESH",
         "cadenceDays": 7,
         "basis": "snapshot-fetchedAt"
@@ -1471,12 +1471,12 @@
           {
             "axis": "evidence-resolution",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           },
           {
             "axis": "source-observation",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           }
         ],
         "lastSuccessfulResolution": "2026-08-27T11:02:09.000Z",
@@ -1484,7 +1484,7 @@
         "blockingUnknowns": [],
         "cadenceDays": 7
       },
-      "upstreamAgeDays": 2
+      "upstreamAgeDays": 5
     },
     {
       "canonicalName": "mcp-registry/ai.agentic-news-mcp",
@@ -1499,7 +1499,7 @@
         "identityStatus": "PROVISIONAL"
       },
       "freshness": {
-        "ageDays": 0,
+        "ageDays": 2,
         "state": "FRESH",
         "cadenceDays": 7,
         "basis": "snapshot-fetchedAt"
@@ -1510,12 +1510,12 @@
           {
             "axis": "evidence-resolution",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           },
           {
             "axis": "source-observation",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           }
         ],
         "lastSuccessfulResolution": "2026-08-27T11:02:09.000Z",
@@ -1523,7 +1523,7 @@
         "blockingUnknowns": [],
         "cadenceDays": 7
       },
-      "upstreamAgeDays": 142
+      "upstreamAgeDays": 145
     },
     {
       "canonicalName": "mcp-registry/ai.agenticaffiliate-affiliate-networks-mcp",
@@ -1538,7 +1538,7 @@
         "identityStatus": "PROVISIONAL"
       },
       "freshness": {
-        "ageDays": 0,
+        "ageDays": 2,
         "state": "FRESH",
         "cadenceDays": 7,
         "basis": "snapshot-fetchedAt"
@@ -1549,12 +1549,12 @@
           {
             "axis": "evidence-resolution",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           },
           {
             "axis": "source-observation",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           }
         ],
         "lastSuccessfulResolution": "2026-08-27T11:02:09.000Z",
@@ -1562,7 +1562,7 @@
         "blockingUnknowns": [],
         "cadenceDays": 7
       },
-      "upstreamAgeDays": 29
+      "upstreamAgeDays": 32
     },
     {
       "canonicalName": "mcp-registry/ai.agenticfabricationnetwork-ufp",
@@ -1577,7 +1577,7 @@
         "identityStatus": "PROVISIONAL"
       },
       "freshness": {
-        "ageDays": 0,
+        "ageDays": 2,
         "state": "FRESH",
         "cadenceDays": 7,
         "basis": "snapshot-fetchedAt"
@@ -1588,12 +1588,12 @@
           {
             "axis": "evidence-resolution",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           },
           {
             "axis": "source-observation",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           }
         ],
         "lastSuccessfulResolution": "2026-08-27T11:02:09.000Z",
@@ -1601,7 +1601,7 @@
         "blockingUnknowns": [],
         "cadenceDays": 7
       },
-      "upstreamAgeDays": 19
+      "upstreamAgeDays": 22
     },
     {
       "canonicalName": "mcp-registry/ai.agenticshelf-graffeo",
@@ -1616,7 +1616,7 @@
         "identityStatus": "PROVISIONAL"
       },
       "freshness": {
-        "ageDays": 0,
+        "ageDays": 2,
         "state": "FRESH",
         "cadenceDays": 7,
         "basis": "snapshot-fetchedAt"
@@ -1627,12 +1627,12 @@
           {
             "axis": "evidence-resolution",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           },
           {
             "axis": "source-observation",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           }
         ],
         "lastSuccessfulResolution": "2026-08-27T11:02:09.000Z",
@@ -1640,7 +1640,7 @@
         "blockingUnknowns": [],
         "cadenceDays": 7
       },
-      "upstreamAgeDays": 104
+      "upstreamAgeDays": 107
     },
     {
       "canonicalName": "mcp-registry/ai.agenticshelf-mcp",
@@ -1655,7 +1655,7 @@
         "identityStatus": "PROVISIONAL"
       },
       "freshness": {
-        "ageDays": 0,
+        "ageDays": 2,
         "state": "FRESH",
         "cadenceDays": 7,
         "basis": "snapshot-fetchedAt"
@@ -1666,12 +1666,12 @@
           {
             "axis": "evidence-resolution",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           },
           {
             "axis": "source-observation",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           }
         ],
         "lastSuccessfulResolution": "2026-08-27T11:02:09.000Z",
@@ -1679,7 +1679,7 @@
         "blockingUnknowns": [],
         "cadenceDays": 7
       },
-      "upstreamAgeDays": 112
+      "upstreamAgeDays": 115
     },
     {
       "canonicalName": "mcp-registry/ai.agenticshelf-puroair",
@@ -1694,7 +1694,7 @@
         "identityStatus": "PROVISIONAL"
       },
       "freshness": {
-        "ageDays": 0,
+        "ageDays": 2,
         "state": "FRESH",
         "cadenceDays": 7,
         "basis": "snapshot-fetchedAt"
@@ -1705,12 +1705,12 @@
           {
             "axis": "evidence-resolution",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           },
           {
             "axis": "source-observation",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           }
         ],
         "lastSuccessfulResolution": "2026-08-27T11:02:09.000Z",
@@ -1718,7 +1718,7 @@
         "blockingUnknowns": [],
         "cadenceDays": 7
       },
-      "upstreamAgeDays": 55
+      "upstreamAgeDays": 58
     },
     {
       "canonicalName": "mcp-registry/ai.agenticterminal-directory",
@@ -1733,7 +1733,7 @@
         "identityStatus": "PROVISIONAL"
       },
       "freshness": {
-        "ageDays": 0,
+        "ageDays": 2,
         "state": "FRESH",
         "cadenceDays": 7,
         "basis": "snapshot-fetchedAt"
@@ -1744,12 +1744,12 @@
           {
             "axis": "evidence-resolution",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           },
           {
             "axis": "source-observation",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           }
         ],
         "lastSuccessfulResolution": "2026-08-27T11:02:09.000Z",
@@ -1757,7 +1757,7 @@
         "blockingUnknowns": [],
         "cadenceDays": 7
       },
-      "upstreamAgeDays": 99
+      "upstreamAgeDays": 102
     },
     {
       "canonicalName": "mcp-registry/ai.agentlookups-counterscript",
@@ -1772,7 +1772,7 @@
         "identityStatus": "PROVISIONAL"
       },
       "freshness": {
-        "ageDays": 0,
+        "ageDays": 2,
         "state": "FRESH",
         "cadenceDays": 7,
         "basis": "snapshot-fetchedAt"
@@ -1783,12 +1783,12 @@
           {
             "axis": "evidence-resolution",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           },
           {
             "axis": "source-observation",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           }
         ],
         "lastSuccessfulResolution": "2026-08-27T11:02:09.000Z",
@@ -1796,7 +1796,7 @@
         "blockingUnknowns": [],
         "cadenceDays": 7
       },
-      "upstreamAgeDays": 0
+      "upstreamAgeDays": 3
     },
     {
       "canonicalName": "mcp-registry/ai.agentlookups-greenlight",
@@ -1811,7 +1811,7 @@
         "identityStatus": "PROVISIONAL"
       },
       "freshness": {
-        "ageDays": 0,
+        "ageDays": 2,
         "state": "FRESH",
         "cadenceDays": 7,
         "basis": "snapshot-fetchedAt"
@@ -1822,12 +1822,12 @@
           {
             "axis": "evidence-resolution",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           },
           {
             "axis": "source-observation",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           }
         ],
         "lastSuccessfulResolution": "2026-08-27T11:02:09.000Z",
@@ -1835,7 +1835,7 @@
         "blockingUnknowns": [],
         "cadenceDays": 7
       },
-      "upstreamAgeDays": 0
+      "upstreamAgeDays": 3
     },
     {
       "canonicalName": "mcp-registry/ai.agentlookups-groundtruth",
@@ -1850,7 +1850,7 @@
         "identityStatus": "PROVISIONAL"
       },
       "freshness": {
-        "ageDays": 0,
+        "ageDays": 2,
         "state": "FRESH",
         "cadenceDays": 7,
         "basis": "snapshot-fetchedAt"
@@ -1861,12 +1861,12 @@
           {
             "axis": "evidence-resolution",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           },
           {
             "axis": "source-observation",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           }
         ],
         "lastSuccessfulResolution": "2026-08-27T11:02:09.000Z",
@@ -1874,7 +1874,7 @@
         "blockingUnknowns": [],
         "cadenceDays": 7
       },
-      "upstreamAgeDays": 0
+      "upstreamAgeDays": 3
     },
     {
       "canonicalName": "mcp-registry/ai.agentlookups-overassessed",
@@ -1889,7 +1889,7 @@
         "identityStatus": "PROVISIONAL"
       },
       "freshness": {
-        "ageDays": 0,
+        "ageDays": 2,
         "state": "FRESH",
         "cadenceDays": 7,
         "basis": "snapshot-fetchedAt"
@@ -1900,12 +1900,12 @@
           {
             "axis": "evidence-resolution",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           },
           {
             "axis": "source-observation",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           }
         ],
         "lastSuccessfulResolution": "2026-08-27T11:02:09.000Z",
@@ -1913,7 +1913,7 @@
         "blockingUnknowns": [],
         "cadenceDays": 7
       },
-      "upstreamAgeDays": 22
+      "upstreamAgeDays": 25
     },
     {
       "canonicalName": "mcp-registry/ai.agentlookups-plumbline",
@@ -1928,7 +1928,7 @@
         "identityStatus": "PROVISIONAL"
       },
       "freshness": {
-        "ageDays": 0,
+        "ageDays": 2,
         "state": "FRESH",
         "cadenceDays": 7,
         "basis": "snapshot-fetchedAt"
@@ -1939,12 +1939,12 @@
           {
             "axis": "evidence-resolution",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           },
           {
             "axis": "source-observation",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           }
         ],
         "lastSuccessfulResolution": "2026-08-27T11:02:09.000Z",
@@ -1952,7 +1952,7 @@
         "blockingUnknowns": [],
         "cadenceDays": 7
       },
-      "upstreamAgeDays": 0
+      "upstreamAgeDays": 3
     },
     {
       "canonicalName": "mcp-registry/ai.agentmesh-mesh",
@@ -1967,7 +1967,7 @@
         "identityStatus": "PROVISIONAL"
       },
       "freshness": {
-        "ageDays": 0,
+        "ageDays": 2,
         "state": "FRESH",
         "cadenceDays": 7,
         "basis": "snapshot-fetchedAt"
@@ -1978,12 +1978,12 @@
           {
             "axis": "evidence-resolution",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           },
           {
             "axis": "source-observation",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           }
         ],
         "lastSuccessfulResolution": "2026-08-27T11:02:09.000Z",
@@ -1991,7 +1991,7 @@
         "blockingUnknowns": [],
         "cadenceDays": 7
       },
-      "upstreamAgeDays": 3
+      "upstreamAgeDays": 6
     },
     {
       "canonicalName": "mcp-registry/ai.agentrapay-agentra",
@@ -2006,7 +2006,7 @@
         "identityStatus": "PROVISIONAL"
       },
       "freshness": {
-        "ageDays": 0,
+        "ageDays": 2,
         "state": "FRESH",
         "cadenceDays": 7,
         "basis": "snapshot-fetchedAt"
@@ -2017,12 +2017,12 @@
           {
             "axis": "evidence-resolution",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           },
           {
             "axis": "source-observation",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           }
         ],
         "lastSuccessfulResolution": "2026-08-27T11:02:09.000Z",
@@ -2030,7 +2030,7 @@
         "blockingUnknowns": [],
         "cadenceDays": 7
       },
-      "upstreamAgeDays": 157
+      "upstreamAgeDays": 160
     },
     {
       "canonicalName": "mcp-registry/ai.agentroam-agentroam",
@@ -2045,7 +2045,7 @@
         "identityStatus": "PROVISIONAL"
       },
       "freshness": {
-        "ageDays": 0,
+        "ageDays": 2,
         "state": "FRESH",
         "cadenceDays": 7,
         "basis": "snapshot-fetchedAt"
@@ -2056,12 +2056,12 @@
           {
             "axis": "evidence-resolution",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           },
           {
             "axis": "source-observation",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           }
         ],
         "lastSuccessfulResolution": "2026-08-27T11:02:09.000Z",
@@ -2069,7 +2069,7 @@
         "blockingUnknowns": [],
         "cadenceDays": 7
       },
-      "upstreamAgeDays": 5
+      "upstreamAgeDays": 8
     },
     {
       "canonicalName": "mcp-registry/ai.agenttrust-mcp-server",
@@ -2084,7 +2084,7 @@
         "identityStatus": "PROVISIONAL"
       },
       "freshness": {
-        "ageDays": 0,
+        "ageDays": 2,
         "state": "FRESH",
         "cadenceDays": 7,
         "basis": "snapshot-fetchedAt"
@@ -2095,12 +2095,12 @@
           {
             "axis": "evidence-resolution",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           },
           {
             "axis": "source-observation",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           }
         ],
         "lastSuccessfulResolution": "2026-08-27T11:02:09.000Z",
@@ -2108,7 +2108,7 @@
         "blockingUnknowns": [],
         "cadenceDays": 7
       },
-      "upstreamAgeDays": 173
+      "upstreamAgeDays": 176
     },
     {
       "canonicalName": "mcp-registry/ai.agentutility-mcp-agentops",
@@ -2123,7 +2123,7 @@
         "identityStatus": "PROVISIONAL"
       },
       "freshness": {
-        "ageDays": 0,
+        "ageDays": 2,
         "state": "FRESH",
         "cadenceDays": 7,
         "basis": "snapshot-fetchedAt"
@@ -2134,12 +2134,12 @@
           {
             "axis": "evidence-resolution",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           },
           {
             "axis": "source-observation",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           }
         ],
         "lastSuccessfulResolution": "2026-08-27T11:02:09.000Z",
@@ -2147,7 +2147,7 @@
         "blockingUnknowns": [],
         "cadenceDays": 7
       },
-      "upstreamAgeDays": 43
+      "upstreamAgeDays": 46
     },
     {
       "canonicalName": "mcp-registry/ai.agentutility-mcp-bestiary",
@@ -2162,7 +2162,7 @@
         "identityStatus": "PROVISIONAL"
       },
       "freshness": {
-        "ageDays": 0,
+        "ageDays": 2,
         "state": "FRESH",
         "cadenceDays": 7,
         "basis": "snapshot-fetchedAt"
@@ -2173,12 +2173,12 @@
           {
             "axis": "evidence-resolution",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           },
           {
             "axis": "source-observation",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           }
         ],
         "lastSuccessfulResolution": "2026-08-27T11:02:09.000Z",
@@ -2186,7 +2186,7 @@
         "blockingUnknowns": [],
         "cadenceDays": 7
       },
-      "upstreamAgeDays": 43
+      "upstreamAgeDays": 46
     },
     {
       "canonicalName": "mcp-registry/ai.agentutility-mcp-browser-workflow",
@@ -2201,7 +2201,7 @@
         "identityStatus": "PROVISIONAL"
       },
       "freshness": {
-        "ageDays": 0,
+        "ageDays": 2,
         "state": "FRESH",
         "cadenceDays": 7,
         "basis": "snapshot-fetchedAt"
@@ -2212,12 +2212,12 @@
           {
             "axis": "evidence-resolution",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           },
           {
             "axis": "source-observation",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           }
         ],
         "lastSuccessfulResolution": "2026-08-27T11:02:09.000Z",
@@ -2225,7 +2225,7 @@
         "blockingUnknowns": [],
         "cadenceDays": 7
       },
-      "upstreamAgeDays": 43
+      "upstreamAgeDays": 46
     },
     {
       "canonicalName": "mcp-registry/ai.agentutility-mcp-compose",
@@ -2240,7 +2240,7 @@
         "identityStatus": "PROVISIONAL"
       },
       "freshness": {
-        "ageDays": 0,
+        "ageDays": 2,
         "state": "FRESH",
         "cadenceDays": 7,
         "basis": "snapshot-fetchedAt"
@@ -2251,12 +2251,12 @@
           {
             "axis": "evidence-resolution",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           },
           {
             "axis": "source-observation",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           }
         ],
         "lastSuccessfulResolution": "2026-08-27T11:02:09.000Z",
@@ -2264,7 +2264,7 @@
         "blockingUnknowns": [],
         "cadenceDays": 7
       },
-      "upstreamAgeDays": 43
+      "upstreamAgeDays": 46
     },
     {
       "canonicalName": "mcp-registry/ai.agentutility-mcp-edge-finance",
@@ -2279,7 +2279,7 @@
         "identityStatus": "PROVISIONAL"
       },
       "freshness": {
-        "ageDays": 0,
+        "ageDays": 2,
         "state": "FRESH",
         "cadenceDays": 7,
         "basis": "snapshot-fetchedAt"
@@ -2290,12 +2290,12 @@
           {
             "axis": "evidence-resolution",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           },
           {
             "axis": "source-observation",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           }
         ],
         "lastSuccessfulResolution": "2026-08-27T11:02:09.000Z",
@@ -2303,7 +2303,7 @@
         "blockingUnknowns": [],
         "cadenceDays": 7
       },
-      "upstreamAgeDays": 43
+      "upstreamAgeDays": 46
     },
     {
       "canonicalName": "mcp-registry/ai.agentutility-mcp-edge-market",
@@ -2318,7 +2318,7 @@
         "identityStatus": "PROVISIONAL"
       },
       "freshness": {
-        "ageDays": 0,
+        "ageDays": 2,
         "state": "FRESH",
         "cadenceDays": 7,
         "basis": "snapshot-fetchedAt"
@@ -2329,12 +2329,12 @@
           {
             "axis": "evidence-resolution",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           },
           {
             "axis": "source-observation",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           }
         ],
         "lastSuccessfulResolution": "2026-08-27T11:02:09.000Z",
@@ -2342,7 +2342,7 @@
         "blockingUnknowns": [],
         "cadenceDays": 7
       },
-      "upstreamAgeDays": 43
+      "upstreamAgeDays": 46
     },
     {
       "canonicalName": "mcp-registry/ai.agentutility-mcp-locale",
@@ -2357,7 +2357,7 @@
         "identityStatus": "PROVISIONAL"
       },
       "freshness": {
-        "ageDays": 0,
+        "ageDays": 2,
         "state": "FRESH",
         "cadenceDays": 7,
         "basis": "snapshot-fetchedAt"
@@ -2368,12 +2368,12 @@
           {
             "axis": "evidence-resolution",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           },
           {
             "axis": "source-observation",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           }
         ],
         "lastSuccessfulResolution": "2026-08-27T11:02:09.000Z",
@@ -2381,7 +2381,7 @@
         "blockingUnknowns": [],
         "cadenceDays": 7
       },
-      "upstreamAgeDays": 43
+      "upstreamAgeDays": 46
     },
     {
       "canonicalName": "mcp-registry/ai.agentutility-mcp-matchpoint",
@@ -2396,7 +2396,7 @@
         "identityStatus": "PROVISIONAL"
       },
       "freshness": {
-        "ageDays": 0,
+        "ageDays": 2,
         "state": "FRESH",
         "cadenceDays": 7,
         "basis": "snapshot-fetchedAt"
@@ -2407,12 +2407,12 @@
           {
             "axis": "evidence-resolution",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           },
           {
             "axis": "source-observation",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           }
         ],
         "lastSuccessfulResolution": "2026-08-27T11:02:09.000Z",
@@ -2420,7 +2420,7 @@
         "blockingUnknowns": [],
         "cadenceDays": 7
       },
-      "upstreamAgeDays": 43
+      "upstreamAgeDays": 46
     },
     {
       "canonicalName": "mcp-registry/ai.agentutility-mcp-mediakit",
@@ -2435,7 +2435,7 @@
         "identityStatus": "PROVISIONAL"
       },
       "freshness": {
-        "ageDays": 0,
+        "ageDays": 2,
         "state": "FRESH",
         "cadenceDays": 7,
         "basis": "snapshot-fetchedAt"
@@ -2446,12 +2446,12 @@
           {
             "axis": "evidence-resolution",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           },
           {
             "axis": "source-observation",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           }
         ],
         "lastSuccessfulResolution": "2026-08-27T11:02:09.000Z",
@@ -2459,7 +2459,7 @@
         "blockingUnknowns": [],
         "cadenceDays": 7
       },
-      "upstreamAgeDays": 43
+      "upstreamAgeDays": 46
     },
     {
       "canonicalName": "mcp-registry/ai.agentutility-mcp-model-router",
@@ -2474,7 +2474,7 @@
         "identityStatus": "PROVISIONAL"
       },
       "freshness": {
-        "ageDays": 0,
+        "ageDays": 2,
         "state": "FRESH",
         "cadenceDays": 7,
         "basis": "snapshot-fetchedAt"
@@ -2485,12 +2485,12 @@
           {
             "axis": "evidence-resolution",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           },
           {
             "axis": "source-observation",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           }
         ],
         "lastSuccessfulResolution": "2026-08-27T11:02:09.000Z",
@@ -2498,7 +2498,7 @@
         "blockingUnknowns": [],
         "cadenceDays": 7
       },
-      "upstreamAgeDays": 43
+      "upstreamAgeDays": 46
     },
     {
       "canonicalName": "mcp-registry/ai.agentutility-mcp-prooflayer",
@@ -2513,7 +2513,7 @@
         "identityStatus": "PROVISIONAL"
       },
       "freshness": {
-        "ageDays": 0,
+        "ageDays": 2,
         "state": "FRESH",
         "cadenceDays": 7,
         "basis": "snapshot-fetchedAt"
@@ -2524,12 +2524,12 @@
           {
             "axis": "evidence-resolution",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           },
           {
             "axis": "source-observation",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           }
         ],
         "lastSuccessfulResolution": "2026-08-27T11:02:09.000Z",
@@ -2537,7 +2537,7 @@
         "blockingUnknowns": [],
         "cadenceDays": 7
       },
-      "upstreamAgeDays": 43
+      "upstreamAgeDays": 46
     },
     {
       "canonicalName": "mcp-registry/ai.agentutility-mcp-retail",
@@ -2552,7 +2552,7 @@
         "identityStatus": "PROVISIONAL"
       },
       "freshness": {
-        "ageDays": 0,
+        "ageDays": 2,
         "state": "FRESH",
         "cadenceDays": 7,
         "basis": "snapshot-fetchedAt"
@@ -2563,12 +2563,12 @@
           {
             "axis": "evidence-resolution",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           },
           {
             "axis": "source-observation",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           }
         ],
         "lastSuccessfulResolution": "2026-08-27T11:02:09.000Z",
@@ -2576,7 +2576,7 @@
         "blockingUnknowns": [],
         "cadenceDays": 7
       },
-      "upstreamAgeDays": 43
+      "upstreamAgeDays": 46
     },
     {
       "canonicalName": "mcp-registry/ai.agentutility-mcp-rollforge",
@@ -2591,7 +2591,7 @@
         "identityStatus": "PROVISIONAL"
       },
       "freshness": {
-        "ageDays": 0,
+        "ageDays": 2,
         "state": "FRESH",
         "cadenceDays": 7,
         "basis": "snapshot-fetchedAt"
@@ -2602,12 +2602,12 @@
           {
             "axis": "evidence-resolution",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           },
           {
             "axis": "source-observation",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           }
         ],
         "lastSuccessfulResolution": "2026-08-27T11:02:09.000Z",
@@ -2615,7 +2615,7 @@
         "blockingUnknowns": [],
         "cadenceDays": 7
       },
-      "upstreamAgeDays": 43
+      "upstreamAgeDays": 46
     },
     {
       "canonicalName": "mcp-registry/ai.agentutility-mcp-statline",
@@ -2630,7 +2630,7 @@
         "identityStatus": "PROVISIONAL"
       },
       "freshness": {
-        "ageDays": 0,
+        "ageDays": 2,
         "state": "FRESH",
         "cadenceDays": 7,
         "basis": "snapshot-fetchedAt"
@@ -2641,12 +2641,12 @@
           {
             "axis": "evidence-resolution",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           },
           {
             "axis": "source-observation",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           }
         ],
         "lastSuccessfulResolution": "2026-08-27T11:02:09.000Z",
@@ -2654,7 +2654,7 @@
         "blockingUnknowns": [],
         "cadenceDays": 7
       },
-      "upstreamAgeDays": 43
+      "upstreamAgeDays": 46
     },
     {
       "canonicalName": "mcp-registry/ai.agentutility-mcp-synthforge",
@@ -2669,7 +2669,7 @@
         "identityStatus": "PROVISIONAL"
       },
       "freshness": {
-        "ageDays": 0,
+        "ageDays": 2,
         "state": "FRESH",
         "cadenceDays": 7,
         "basis": "snapshot-fetchedAt"
@@ -2680,12 +2680,12 @@
           {
             "axis": "evidence-resolution",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           },
           {
             "axis": "source-observation",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           }
         ],
         "lastSuccessfulResolution": "2026-08-27T11:02:09.000Z",
@@ -2693,7 +2693,7 @@
         "blockingUnknowns": [],
         "cadenceDays": 7
       },
-      "upstreamAgeDays": 43
+      "upstreamAgeDays": 46
     },
     {
       "canonicalName": "mcp-registry/ai.agentutility-mcp-web-probe",
@@ -2708,7 +2708,7 @@
         "identityStatus": "PROVISIONAL"
       },
       "freshness": {
-        "ageDays": 0,
+        "ageDays": 2,
         "state": "FRESH",
         "cadenceDays": 7,
         "basis": "snapshot-fetchedAt"
@@ -2719,12 +2719,12 @@
           {
             "axis": "evidence-resolution",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           },
           {
             "axis": "source-observation",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           }
         ],
         "lastSuccessfulResolution": "2026-08-27T11:02:09.000Z",
@@ -2732,7 +2732,7 @@
         "blockingUnknowns": [],
         "cadenceDays": 7
       },
-      "upstreamAgeDays": 43
+      "upstreamAgeDays": 46
     },
     {
       "canonicalName": "mcp-registry/ai.agentutility-mcp-wordmint",
@@ -2747,7 +2747,7 @@
         "identityStatus": "PROVISIONAL"
       },
       "freshness": {
-        "ageDays": 0,
+        "ageDays": 2,
         "state": "FRESH",
         "cadenceDays": 7,
         "basis": "snapshot-fetchedAt"
@@ -2758,12 +2758,12 @@
           {
             "axis": "evidence-resolution",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           },
           {
             "axis": "source-observation",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           }
         ],
         "lastSuccessfulResolution": "2026-08-27T11:02:09.000Z",
@@ -2771,7 +2771,7 @@
         "blockingUnknowns": [],
         "cadenceDays": 7
       },
-      "upstreamAgeDays": 43
+      "upstreamAgeDays": 46
     },
     {
       "canonicalName": "mcp-registry/ai.ai-advisors-mcp",
@@ -2786,7 +2786,7 @@
         "identityStatus": "PROVISIONAL"
       },
       "freshness": {
-        "ageDays": 0,
+        "ageDays": 2,
         "state": "FRESH",
         "cadenceDays": 7,
         "basis": "snapshot-fetchedAt"
@@ -2797,12 +2797,12 @@
           {
             "axis": "evidence-resolution",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           },
           {
             "axis": "source-observation",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           }
         ],
         "lastSuccessfulResolution": "2026-08-27T11:02:09.000Z",
@@ -2810,7 +2810,7 @@
         "blockingUnknowns": [],
         "cadenceDays": 7
       },
-      "upstreamAgeDays": 24
+      "upstreamAgeDays": 27
     },
     {
       "canonicalName": "mcp-registry/ai.ai-akari-agent-trust-receipt",
@@ -2825,7 +2825,7 @@
         "identityStatus": "PROVISIONAL"
       },
       "freshness": {
-        "ageDays": 0,
+        "ageDays": 2,
         "state": "FRESH",
         "cadenceDays": 7,
         "basis": "snapshot-fetchedAt"
@@ -2836,12 +2836,12 @@
           {
             "axis": "evidence-resolution",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           },
           {
             "axis": "source-observation",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           }
         ],
         "lastSuccessfulResolution": "2026-08-27T11:02:09.000Z",
@@ -2849,7 +2849,7 @@
         "blockingUnknowns": [],
         "cadenceDays": 7
       },
-      "upstreamAgeDays": 33
+      "upstreamAgeDays": 36
     },
     {
       "canonicalName": "mcp-registry/ai.ai-akari-one-minute-akari",
@@ -2864,7 +2864,7 @@
         "identityStatus": "PROVISIONAL"
       },
       "freshness": {
-        "ageDays": 0,
+        "ageDays": 2,
         "state": "FRESH",
         "cadenceDays": 7,
         "basis": "snapshot-fetchedAt"
@@ -2875,12 +2875,12 @@
           {
             "axis": "evidence-resolution",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           },
           {
             "axis": "source-observation",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           }
         ],
         "lastSuccessfulResolution": "2026-08-27T11:02:09.000Z",
@@ -2888,7 +2888,7 @@
         "blockingUnknowns": [],
         "cadenceDays": 7
       },
-      "upstreamAgeDays": 40
+      "upstreamAgeDays": 43
     },
     {
       "canonicalName": "mcp-registry/ai.ai-portal-ai-portal",
@@ -2903,7 +2903,7 @@
         "identityStatus": "PROVISIONAL"
       },
       "freshness": {
-        "ageDays": 0,
+        "ageDays": 2,
         "state": "FRESH",
         "cadenceDays": 7,
         "basis": "snapshot-fetchedAt"
@@ -2914,12 +2914,12 @@
           {
             "axis": "evidence-resolution",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           },
           {
             "axis": "source-observation",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           }
         ],
         "lastSuccessfulResolution": "2026-08-27T11:02:09.000Z",
@@ -2927,7 +2927,7 @@
         "blockingUnknowns": [],
         "cadenceDays": 7
       },
-      "upstreamAgeDays": 44
+      "upstreamAgeDays": 47
     },
     {
       "canonicalName": "mcp-registry/ai.aient-mcp",
@@ -2942,7 +2942,7 @@
         "identityStatus": "PROVISIONAL"
       },
       "freshness": {
-        "ageDays": 0,
+        "ageDays": 2,
         "state": "FRESH",
         "cadenceDays": 7,
         "basis": "snapshot-fetchedAt"
@@ -2953,12 +2953,12 @@
           {
             "axis": "evidence-resolution",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           },
           {
             "axis": "source-observation",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           }
         ],
         "lastSuccessfulResolution": "2026-08-27T11:02:09.000Z",
@@ -2966,7 +2966,7 @@
         "blockingUnknowns": [],
         "cadenceDays": 7
       },
-      "upstreamAgeDays": 77
+      "upstreamAgeDays": 79
     },
     {
       "canonicalName": "mcp-registry/ai.airshelf-catalog",
@@ -2981,7 +2981,7 @@
         "identityStatus": "PROVISIONAL"
       },
       "freshness": {
-        "ageDays": 0,
+        "ageDays": 2,
         "state": "FRESH",
         "cadenceDays": 7,
         "basis": "snapshot-fetchedAt"
@@ -2992,12 +2992,12 @@
           {
             "axis": "evidence-resolution",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           },
           {
             "axis": "source-observation",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           }
         ],
         "lastSuccessfulResolution": "2026-08-27T11:02:09.000Z",
@@ -3005,7 +3005,7 @@
         "blockingUnknowns": [],
         "cadenceDays": 7
       },
-      "upstreamAgeDays": 72
+      "upstreamAgeDays": 75
     },
     {
       "canonicalName": "mcp-registry/ai.aislabs-gateway",
@@ -3020,7 +3020,7 @@
         "identityStatus": "PROVISIONAL"
       },
       "freshness": {
-        "ageDays": 0,
+        "ageDays": 2,
         "state": "FRESH",
         "cadenceDays": 7,
         "basis": "snapshot-fetchedAt"
@@ -3031,12 +3031,12 @@
           {
             "axis": "evidence-resolution",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           },
           {
             "axis": "source-observation",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           }
         ],
         "lastSuccessfulResolution": "2026-08-27T11:02:09.000Z",
@@ -3044,7 +3044,7 @@
         "blockingUnknowns": [],
         "cadenceDays": 7
       },
-      "upstreamAgeDays": 0
+      "upstreamAgeDays": 3
     },
     {
       "canonicalName": "mcp-registry/ai.aivonic-mcp",
@@ -3059,7 +3059,7 @@
         "identityStatus": "PROVISIONAL"
       },
       "freshness": {
-        "ageDays": 0,
+        "ageDays": 2,
         "state": "FRESH",
         "cadenceDays": 7,
         "basis": "snapshot-fetchedAt"
@@ -3070,12 +3070,12 @@
           {
             "axis": "evidence-resolution",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           },
           {
             "axis": "source-observation",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           }
         ],
         "lastSuccessfulResolution": "2026-08-27T11:02:09.000Z",
@@ -3083,7 +3083,7 @@
         "blockingUnknowns": [],
         "cadenceDays": 7
       },
-      "upstreamAgeDays": 21
+      "upstreamAgeDays": 24
     },
     {
       "canonicalName": "mcp-registry/ai.aliengiraffe-spotdb",
@@ -3098,7 +3098,7 @@
         "identityStatus": "PROVISIONAL"
       },
       "freshness": {
-        "ageDays": 0,
+        "ageDays": 2,
         "state": "FRESH",
         "cadenceDays": 7,
         "basis": "snapshot-fetchedAt"
@@ -3109,12 +3109,12 @@
           {
             "axis": "evidence-resolution",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           },
           {
             "axis": "source-observation",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           }
         ],
         "lastSuccessfulResolution": "2026-08-27T11:02:09.000Z",
@@ -3122,7 +3122,7 @@
         "blockingUnknowns": [],
         "cadenceDays": 7
       },
-      "upstreamAgeDays": 321
+      "upstreamAgeDays": 324
     },
     {
       "canonicalName": "mcp-registry/ai.alphacreek-alphacreek-mcp",
@@ -3137,7 +3137,7 @@
         "identityStatus": "PROVISIONAL"
       },
       "freshness": {
-        "ageDays": 0,
+        "ageDays": 2,
         "state": "FRESH",
         "cadenceDays": 7,
         "basis": "snapshot-fetchedAt"
@@ -3148,12 +3148,12 @@
           {
             "axis": "evidence-resolution",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           },
           {
             "axis": "source-observation",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           }
         ],
         "lastSuccessfulResolution": "2026-08-27T11:02:09.000Z",
@@ -3161,7 +3161,7 @@
         "blockingUnknowns": [],
         "cadenceDays": 7
       },
-      "upstreamAgeDays": 75
+      "upstreamAgeDays": 78
     },
     {
       "canonicalName": "mcp-registry/ai.alpic.alpix-alpix",
@@ -3176,7 +3176,7 @@
         "identityStatus": "PROVISIONAL"
       },
       "freshness": {
-        "ageDays": 0,
+        "ageDays": 2,
         "state": "FRESH",
         "cadenceDays": 7,
         "basis": "snapshot-fetchedAt"
@@ -3187,12 +3187,12 @@
           {
             "axis": "evidence-resolution",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           },
           {
             "axis": "source-observation",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           }
         ],
         "lastSuccessfulResolution": "2026-08-27T11:02:09.000Z",
@@ -3200,7 +3200,7 @@
         "blockingUnknowns": [],
         "cadenceDays": 7
       },
-      "upstreamAgeDays": 0
+      "upstreamAgeDays": 3
     },
     {
       "canonicalName": "mcp-registry/ai.alpic.mcp-alpic-mcp",
@@ -3215,7 +3215,7 @@
         "identityStatus": "PROVISIONAL"
       },
       "freshness": {
-        "ageDays": 0,
+        "ageDays": 2,
         "state": "FRESH",
         "cadenceDays": 7,
         "basis": "snapshot-fetchedAt"
@@ -3226,12 +3226,12 @@
           {
             "axis": "evidence-resolution",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           },
           {
             "axis": "source-observation",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           }
         ],
         "lastSuccessfulResolution": "2026-08-27T11:02:09.000Z",
@@ -3239,7 +3239,7 @@
         "blockingUnknowns": [],
         "cadenceDays": 7
       },
-      "upstreamAgeDays": 0
+      "upstreamAgeDays": 3
     },
     {
       "canonicalName": "mcp-registry/ai.alpic.test-test-mcp-server",
@@ -3254,7 +3254,7 @@
         "identityStatus": "PROVISIONAL"
       },
       "freshness": {
-        "ageDays": 0,
+        "ageDays": 2,
         "state": "FRESH",
         "cadenceDays": 7,
         "basis": "snapshot-fetchedAt"
@@ -3265,12 +3265,12 @@
           {
             "axis": "evidence-resolution",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           },
           {
             "axis": "source-observation",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           }
         ],
         "lastSuccessfulResolution": "2026-08-27T11:02:09.000Z",
@@ -3278,7 +3278,7 @@
         "blockingUnknowns": [],
         "cadenceDays": 7
       },
-      "upstreamAgeDays": 350
+      "upstreamAgeDays": 353
     },
     {
       "canonicalName": "mcp-registry/ai.ambix-ambix",
@@ -3293,7 +3293,7 @@
         "identityStatus": "PROVISIONAL"
       },
       "freshness": {
-        "ageDays": 0,
+        "ageDays": 2,
         "state": "FRESH",
         "cadenceDays": 7,
         "basis": "snapshot-fetchedAt"
@@ -3304,12 +3304,12 @@
           {
             "axis": "evidence-resolution",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           },
           {
             "axis": "source-observation",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           }
         ],
         "lastSuccessfulResolution": "2026-08-27T11:02:09.000Z",
@@ -3317,7 +3317,7 @@
         "blockingUnknowns": [],
         "cadenceDays": 7
       },
-      "upstreamAgeDays": 69
+      "upstreamAgeDays": 72
     },
     {
       "canonicalName": "mcp-registry/ai.analyticslegends-sap-analytics",
@@ -3332,7 +3332,7 @@
         "identityStatus": "PROVISIONAL"
       },
       "freshness": {
-        "ageDays": 0,
+        "ageDays": 2,
         "state": "FRESH",
         "cadenceDays": 7,
         "basis": "snapshot-fetchedAt"
@@ -3343,12 +3343,12 @@
           {
             "axis": "evidence-resolution",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           },
           {
             "axis": "source-observation",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           }
         ],
         "lastSuccessfulResolution": "2026-08-27T11:02:09.000Z",
@@ -3356,7 +3356,7 @@
         "blockingUnknowns": [],
         "cadenceDays": 7
       },
-      "upstreamAgeDays": 8
+      "upstreamAgeDays": 11
     },
     {
       "canonicalName": "mcp-registry/ai.ankimcp-anki-mcp-server",
@@ -3371,7 +3371,7 @@
         "identityStatus": "PROVISIONAL"
       },
       "freshness": {
-        "ageDays": 0,
+        "ageDays": 2,
         "state": "FRESH",
         "cadenceDays": 7,
         "basis": "snapshot-fetchedAt"
@@ -3382,12 +3382,12 @@
           {
             "axis": "evidence-resolution",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           },
           {
             "axis": "source-observation",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           }
         ],
         "lastSuccessfulResolution": "2026-08-27T11:02:09.000Z",
@@ -3395,7 +3395,7 @@
         "blockingUnknowns": [],
         "cadenceDays": 7
       },
-      "upstreamAgeDays": 1
+      "upstreamAgeDays": 4
     },
     {
       "canonicalName": "mcp-registry/ai.ankimcp-anki-mcp-server-addon",
@@ -3419,7 +3419,7 @@
         "identityStatus": "PROVISIONAL"
       },
       "freshness": {
-        "ageDays": 0,
+        "ageDays": 2,
         "state": "FRESH",
         "cadenceDays": 7,
         "basis": "snapshot-fetchedAt"
@@ -3430,12 +3430,12 @@
           {
             "axis": "evidence-resolution",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           },
           {
             "axis": "source-observation",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           }
         ],
         "lastSuccessfulResolution": "2026-08-27T11:02:09.000Z",
@@ -3443,7 +3443,7 @@
         "blockingUnknowns": [],
         "cadenceDays": 7
       },
-      "upstreamAgeDays": 131
+      "upstreamAgeDays": 134
     },
     {
       "canonicalName": "mcp-registry/ai.anzenna-anzenna",
@@ -3458,7 +3458,7 @@
         "identityStatus": "PROVISIONAL"
       },
       "freshness": {
-        "ageDays": 0,
+        "ageDays": 2,
         "state": "FRESH",
         "cadenceDays": 7,
         "basis": "snapshot-fetchedAt"
@@ -3469,12 +3469,12 @@
           {
             "axis": "evidence-resolution",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           },
           {
             "axis": "source-observation",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           }
         ],
         "lastSuccessfulResolution": "2026-08-27T11:02:09.000Z",
@@ -3482,7 +3482,7 @@
         "blockingUnknowns": [],
         "cadenceDays": 7
       },
-      "upstreamAgeDays": 186
+      "upstreamAgeDays": 189
     },
     {
       "canonicalName": "mcp-registry/ai.apithreshold-apithreshold",
@@ -3497,7 +3497,7 @@
         "identityStatus": "PROVISIONAL"
       },
       "freshness": {
-        "ageDays": 0,
+        "ageDays": 2,
         "state": "FRESH",
         "cadenceDays": 7,
         "basis": "snapshot-fetchedAt"
@@ -3508,12 +3508,12 @@
           {
             "axis": "evidence-resolution",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           },
           {
             "axis": "source-observation",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           }
         ],
         "lastSuccessfulResolution": "2026-08-27T11:02:09.000Z",
@@ -3521,7 +3521,7 @@
         "blockingUnknowns": [],
         "cadenceDays": 7
       },
-      "upstreamAgeDays": 55
+      "upstreamAgeDays": 58
     },
     {
       "canonicalName": "mcp-registry/ai.appdeploy-deploy-app",
@@ -3536,7 +3536,7 @@
         "identityStatus": "PROVISIONAL"
       },
       "freshness": {
-        "ageDays": 0,
+        "ageDays": 2,
         "state": "FRESH",
         "cadenceDays": 7,
         "basis": "snapshot-fetchedAt"
@@ -3547,12 +3547,12 @@
           {
             "axis": "evidence-resolution",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           },
           {
             "axis": "source-observation",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           }
         ],
         "lastSuccessfulResolution": "2026-08-27T11:02:09.000Z",
@@ -3560,7 +3560,7 @@
         "blockingUnknowns": [],
         "cadenceDays": 7
       },
-      "upstreamAgeDays": 44
+      "upstreamAgeDays": 47
     },
     {
       "canonicalName": "mcp-registry/ai.aqta-seal",
@@ -3575,7 +3575,7 @@
         "identityStatus": "PROVISIONAL"
       },
       "freshness": {
-        "ageDays": 0,
+        "ageDays": 2,
         "state": "FRESH",
         "cadenceDays": 7,
         "basis": "snapshot-fetchedAt"
@@ -3586,12 +3586,12 @@
           {
             "axis": "evidence-resolution",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           },
           {
             "axis": "source-observation",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           }
         ],
         "lastSuccessfulResolution": "2026-08-27T11:02:09.000Z",
@@ -3599,7 +3599,7 @@
         "blockingUnknowns": [],
         "cadenceDays": 7
       },
-      "upstreamAgeDays": 9
+      "upstreamAgeDays": 12
     },
     {
       "canonicalName": "mcp-registry/ai.arclan-registry",
@@ -3614,7 +3614,7 @@
         "identityStatus": "PROVISIONAL"
       },
       "freshness": {
-        "ageDays": 0,
+        "ageDays": 2,
         "state": "FRESH",
         "cadenceDays": 7,
         "basis": "snapshot-fetchedAt"
@@ -3625,12 +3625,12 @@
           {
             "axis": "evidence-resolution",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           },
           {
             "axis": "source-observation",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           }
         ],
         "lastSuccessfulResolution": "2026-08-27T11:02:09.000Z",
@@ -3638,7 +3638,7 @@
         "blockingUnknowns": [],
         "cadenceDays": 7
       },
-      "upstreamAgeDays": 99
+      "upstreamAgeDays": 102
     },
     {
       "canonicalName": "mcp-registry/ai.argushq-enforcement-database",
@@ -3653,7 +3653,7 @@
         "identityStatus": "PROVISIONAL"
       },
       "freshness": {
-        "ageDays": 0,
+        "ageDays": 2,
         "state": "FRESH",
         "cadenceDays": 7,
         "basis": "snapshot-fetchedAt"
@@ -3664,12 +3664,12 @@
           {
             "axis": "evidence-resolution",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           },
           {
             "axis": "source-observation",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           }
         ],
         "lastSuccessfulResolution": "2026-08-27T11:02:09.000Z",
@@ -3677,7 +3677,7 @@
         "blockingUnknowns": [],
         "cadenceDays": 7
       },
-      "upstreamAgeDays": 45
+      "upstreamAgeDays": 48
     },
     {
       "canonicalName": "mcp-registry/ai.arketo-arketo",
@@ -3692,7 +3692,7 @@
         "identityStatus": "PROVISIONAL"
       },
       "freshness": {
-        "ageDays": 0,
+        "ageDays": 2,
         "state": "FRESH",
         "cadenceDays": 7,
         "basis": "snapshot-fetchedAt"
@@ -3703,12 +3703,12 @@
           {
             "axis": "evidence-resolution",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           },
           {
             "axis": "source-observation",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           }
         ],
         "lastSuccessfulResolution": "2026-08-27T11:02:09.000Z",
@@ -3716,7 +3716,7 @@
         "blockingUnknowns": [],
         "cadenceDays": 7
       },
-      "upstreamAgeDays": 21
+      "upstreamAgeDays": 24
     },
     {
       "canonicalName": "mcp-registry/ai.arpi-arpi-mcp",
@@ -3731,7 +3731,7 @@
         "identityStatus": "PROVISIONAL"
       },
       "freshness": {
-        "ageDays": 0,
+        "ageDays": 2,
         "state": "FRESH",
         "cadenceDays": 7,
         "basis": "snapshot-fetchedAt"
@@ -3742,12 +3742,12 @@
           {
             "axis": "evidence-resolution",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           },
           {
             "axis": "source-observation",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           }
         ],
         "lastSuccessfulResolution": "2026-08-27T11:02:09.000Z",
@@ -3755,7 +3755,7 @@
         "blockingUnknowns": [],
         "cadenceDays": 7
       },
-      "upstreamAgeDays": 50
+      "upstreamAgeDays": 53
     },
     {
       "canonicalName": "mcp-registry/ai.artidrop-artidrop",
@@ -3770,7 +3770,7 @@
         "identityStatus": "PROVISIONAL"
       },
       "freshness": {
-        "ageDays": 0,
+        "ageDays": 2,
         "state": "FRESH",
         "cadenceDays": 7,
         "basis": "snapshot-fetchedAt"
@@ -3781,12 +3781,12 @@
           {
             "axis": "evidence-resolution",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           },
           {
             "axis": "source-observation",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           }
         ],
         "lastSuccessfulResolution": "2026-08-27T11:02:09.000Z",
@@ -3794,7 +3794,7 @@
         "blockingUnknowns": [],
         "cadenceDays": 7
       },
-      "upstreamAgeDays": 132
+      "upstreamAgeDays": 135
     },
     {
       "canonicalName": "mcp-registry/ai.askmiles-catalog",
@@ -3809,7 +3809,7 @@
         "identityStatus": "PROVISIONAL"
       },
       "freshness": {
-        "ageDays": 0,
+        "ageDays": 2,
         "state": "FRESH",
         "cadenceDays": 7,
         "basis": "snapshot-fetchedAt"
@@ -3820,12 +3820,12 @@
           {
             "axis": "evidence-resolution",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           },
           {
             "axis": "source-observation",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           }
         ],
         "lastSuccessfulResolution": "2026-08-27T11:02:09.000Z",
@@ -3833,7 +3833,7 @@
         "blockingUnknowns": [],
         "cadenceDays": 7
       },
-      "upstreamAgeDays": 0
+      "upstreamAgeDays": 3
     },
     {
       "canonicalName": "mcp-registry/ai.assetlog-assetlog",
@@ -3848,7 +3848,7 @@
         "identityStatus": "PROVISIONAL"
       },
       "freshness": {
-        "ageDays": 0,
+        "ageDays": 2,
         "state": "FRESH",
         "cadenceDays": 7,
         "basis": "snapshot-fetchedAt"
@@ -3859,12 +3859,12 @@
           {
             "axis": "evidence-resolution",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           },
           {
             "axis": "source-observation",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           }
         ],
         "lastSuccessfulResolution": "2026-08-27T11:02:09.000Z",
@@ -3872,7 +3872,7 @@
         "blockingUnknowns": [],
         "cadenceDays": 7
       },
-      "upstreamAgeDays": 5
+      "upstreamAgeDays": 8
     },
     {
       "canonicalName": "mcp-registry/ai.astrofabric-mcp",
@@ -3887,7 +3887,7 @@
         "identityStatus": "PROVISIONAL"
       },
       "freshness": {
-        "ageDays": 0,
+        "ageDays": 2,
         "state": "FRESH",
         "cadenceDays": 7,
         "basis": "snapshot-fetchedAt"
@@ -3898,12 +3898,12 @@
           {
             "axis": "evidence-resolution",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           },
           {
             "axis": "source-observation",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           }
         ],
         "lastSuccessfulResolution": "2026-08-27T11:02:09.000Z",
@@ -3911,7 +3911,7 @@
         "blockingUnknowns": [],
         "cadenceDays": 7
       },
-      "upstreamAgeDays": 7
+      "upstreamAgeDays": 10
     },
     {
       "canonicalName": "mcp-registry/ai.atdev-supershopping",
@@ -3926,7 +3926,7 @@
         "identityStatus": "PROVISIONAL"
       },
       "freshness": {
-        "ageDays": 0,
+        "ageDays": 2,
         "state": "FRESH",
         "cadenceDays": 7,
         "basis": "snapshot-fetchedAt"
@@ -3937,12 +3937,12 @@
           {
             "axis": "evidence-resolution",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           },
           {
             "axis": "source-observation",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           }
         ],
         "lastSuccessfulResolution": "2026-08-27T11:02:09.000Z",
@@ -3950,7 +3950,7 @@
         "blockingUnknowns": [],
         "cadenceDays": 7
       },
-      "upstreamAgeDays": 59
+      "upstreamAgeDays": 62
     },
     {
       "canonicalName": "mcp-registry/ai.atlaso-mcp",
@@ -3965,7 +3965,7 @@
         "identityStatus": "PROVISIONAL"
       },
       "freshness": {
-        "ageDays": 0,
+        "ageDays": 2,
         "state": "FRESH",
         "cadenceDays": 7,
         "basis": "snapshot-fetchedAt"
@@ -3976,12 +3976,12 @@
           {
             "axis": "evidence-resolution",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           },
           {
             "axis": "source-observation",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           }
         ],
         "lastSuccessfulResolution": "2026-08-27T11:02:09.000Z",
@@ -3989,7 +3989,7 @@
         "blockingUnknowns": [],
         "cadenceDays": 7
       },
-      "upstreamAgeDays": 24
+      "upstreamAgeDays": 27
     },
     {
       "canonicalName": "mcp-registry/ai.atlasverified-atlas-mcp",
@@ -4004,7 +4004,7 @@
         "identityStatus": "PROVISIONAL"
       },
       "freshness": {
-        "ageDays": 0,
+        "ageDays": 2,
         "state": "FRESH",
         "cadenceDays": 7,
         "basis": "snapshot-fetchedAt"
@@ -4015,12 +4015,12 @@
           {
             "axis": "evidence-resolution",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           },
           {
             "axis": "source-observation",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           }
         ],
         "lastSuccessfulResolution": "2026-08-27T11:02:09.000Z",
@@ -4028,7 +4028,7 @@
         "blockingUnknowns": [],
         "cadenceDays": 7
       },
-      "upstreamAgeDays": 36
+      "upstreamAgeDays": 39
     },
     {
       "canonicalName": "mcp-registry/ai.atlier-project-desk",
@@ -4043,7 +4043,7 @@
         "identityStatus": "PROVISIONAL"
       },
       "freshness": {
-        "ageDays": 0,
+        "ageDays": 2,
         "state": "FRESH",
         "cadenceDays": 7,
         "basis": "snapshot-fetchedAt"
@@ -4054,12 +4054,12 @@
           {
             "axis": "evidence-resolution",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           },
           {
             "axis": "source-observation",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           }
         ],
         "lastSuccessfulResolution": "2026-08-27T11:02:09.000Z",
@@ -4067,7 +4067,7 @@
         "blockingUnknowns": [],
         "cadenceDays": 7
       },
-      "upstreamAgeDays": 3
+      "upstreamAgeDays": 6
     },
     {
       "canonicalName": "mcp-registry/ai.augmentev-paseo",
@@ -4082,7 +4082,7 @@
         "identityStatus": "PROVISIONAL"
       },
       "freshness": {
-        "ageDays": 0,
+        "ageDays": 2,
         "state": "FRESH",
         "cadenceDays": 7,
         "basis": "snapshot-fetchedAt"
@@ -4093,12 +4093,12 @@
           {
             "axis": "evidence-resolution",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           },
           {
             "axis": "source-observation",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           }
         ],
         "lastSuccessfulResolution": "2026-08-27T11:02:09.000Z",
@@ -4106,7 +4106,7 @@
         "blockingUnknowns": [],
         "cadenceDays": 7
       },
-      "upstreamAgeDays": 30
+      "upstreamAgeDays": 33
     },
     {
       "canonicalName": "mcp-registry/ai.augworlds-travel-world",
@@ -4121,7 +4121,7 @@
         "identityStatus": "PROVISIONAL"
       },
       "freshness": {
-        "ageDays": 0,
+        "ageDays": 2,
         "state": "FRESH",
         "cadenceDays": 7,
         "basis": "snapshot-fetchedAt"
@@ -4132,12 +4132,12 @@
           {
             "axis": "evidence-resolution",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           },
           {
             "axis": "source-observation",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           }
         ],
         "lastSuccessfulResolution": "2026-08-27T11:02:09.000Z",
@@ -4145,7 +4145,7 @@
         "blockingUnknowns": [],
         "cadenceDays": 7
       },
-      "upstreamAgeDays": 31
+      "upstreamAgeDays": 34
     },
     {
       "canonicalName": "mcp-registry/ai.auralogs-auralogs",
@@ -4160,7 +4160,7 @@
         "identityStatus": "PROVISIONAL"
       },
       "freshness": {
-        "ageDays": 0,
+        "ageDays": 2,
         "state": "FRESH",
         "cadenceDays": 7,
         "basis": "snapshot-fetchedAt"
@@ -4171,12 +4171,12 @@
           {
             "axis": "evidence-resolution",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           },
           {
             "axis": "source-observation",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           }
         ],
         "lastSuccessfulResolution": "2026-08-27T11:02:09.000Z",
@@ -4184,7 +4184,7 @@
         "blockingUnknowns": [],
         "cadenceDays": 7
       },
-      "upstreamAgeDays": 78
+      "upstreamAgeDays": 81
     },
     {
       "canonicalName": "mcp-registry/ai.auteng-docs",
@@ -4199,7 +4199,7 @@
         "identityStatus": "PROVISIONAL"
       },
       "freshness": {
-        "ageDays": 0,
+        "ageDays": 2,
         "state": "FRESH",
         "cadenceDays": 7,
         "basis": "snapshot-fetchedAt"
@@ -4210,12 +4210,12 @@
           {
             "axis": "evidence-resolution",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           },
           {
             "axis": "source-observation",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           }
         ],
         "lastSuccessfulResolution": "2026-08-27T11:02:09.000Z",
@@ -4223,7 +4223,7 @@
         "blockingUnknowns": [],
         "cadenceDays": 7
       },
-      "upstreamAgeDays": 201
+      "upstreamAgeDays": 204
     },
     {
       "canonicalName": "mcp-registry/ai.auteng-mcp",
@@ -4238,7 +4238,7 @@
         "identityStatus": "PROVISIONAL"
       },
       "freshness": {
-        "ageDays": 0,
+        "ageDays": 2,
         "state": "FRESH",
         "cadenceDays": 7,
         "basis": "snapshot-fetchedAt"
@@ -4249,12 +4249,12 @@
           {
             "axis": "evidence-resolution",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           },
           {
             "axis": "source-observation",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           }
         ],
         "lastSuccessfulResolution": "2026-08-27T11:02:09.000Z",
@@ -4262,7 +4262,7 @@
         "blockingUnknowns": [],
         "cadenceDays": 7
       },
-      "upstreamAgeDays": 201
+      "upstreamAgeDays": 204
     },
     {
       "canonicalName": "mcp-registry/ai.authoryze-authoryze",
@@ -4277,7 +4277,7 @@
         "identityStatus": "PROVISIONAL"
       },
       "freshness": {
-        "ageDays": 0,
+        "ageDays": 2,
         "state": "FRESH",
         "cadenceDays": 7,
         "basis": "snapshot-fetchedAt"
@@ -4288,12 +4288,12 @@
           {
             "axis": "evidence-resolution",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           },
           {
             "axis": "source-observation",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           }
         ],
         "lastSuccessfulResolution": "2026-08-27T11:02:09.000Z",
@@ -4301,7 +4301,7 @@
         "blockingUnknowns": [],
         "cadenceDays": 7
       },
-      "upstreamAgeDays": 5
+      "upstreamAgeDays": 8
     },
     {
       "canonicalName": "mcp-registry/ai.autoblocks-contextlayer-mcp",
@@ -4316,7 +4316,7 @@
         "identityStatus": "PROVISIONAL"
       },
       "freshness": {
-        "ageDays": 0,
+        "ageDays": 2,
         "state": "FRESH",
         "cadenceDays": 7,
         "basis": "snapshot-fetchedAt"
@@ -4327,12 +4327,12 @@
           {
             "axis": "evidence-resolution",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           },
           {
             "axis": "source-observation",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           }
         ],
         "lastSuccessfulResolution": "2026-08-27T11:02:09.000Z",
@@ -4340,7 +4340,7 @@
         "blockingUnknowns": [],
         "cadenceDays": 7
       },
-      "upstreamAgeDays": 227
+      "upstreamAgeDays": 230
     },
     {
       "canonicalName": "mcp-registry/ai.autoblocks-ctxl",
@@ -4355,7 +4355,7 @@
         "identityStatus": "PROVISIONAL"
       },
       "freshness": {
-        "ageDays": 0,
+        "ageDays": 2,
         "state": "FRESH",
         "cadenceDays": 7,
         "basis": "snapshot-fetchedAt"
@@ -4366,12 +4366,12 @@
           {
             "axis": "evidence-resolution",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           },
           {
             "axis": "source-observation",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           }
         ],
         "lastSuccessfulResolution": "2026-08-27T11:02:09.000Z",
@@ -4379,7 +4379,7 @@
         "blockingUnknowns": [],
         "cadenceDays": 7
       },
-      "upstreamAgeDays": 227
+      "upstreamAgeDays": 230
     },
     {
       "canonicalName": "mcp-registry/ai.autoblocks-ctxl-mcp",
@@ -4394,7 +4394,7 @@
         "identityStatus": "PROVISIONAL"
       },
       "freshness": {
-        "ageDays": 0,
+        "ageDays": 2,
         "state": "FRESH",
         "cadenceDays": 7,
         "basis": "snapshot-fetchedAt"
@@ -4405,12 +4405,12 @@
           {
             "axis": "evidence-resolution",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           },
           {
             "axis": "source-observation",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           }
         ],
         "lastSuccessfulResolution": "2026-08-27T11:02:09.000Z",
@@ -4418,7 +4418,7 @@
         "blockingUnknowns": [],
         "cadenceDays": 7
       },
-      "upstreamAgeDays": 227
+      "upstreamAgeDays": 230
     },
     {
       "canonicalName": "mcp-registry/ai.autonomad-computeback",
@@ -4433,7 +4433,7 @@
         "identityStatus": "PROVISIONAL"
       },
       "freshness": {
-        "ageDays": 0,
+        "ageDays": 2,
         "state": "FRESH",
         "cadenceDays": 7,
         "basis": "snapshot-fetchedAt"
@@ -4444,12 +4444,12 @@
           {
             "axis": "evidence-resolution",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           },
           {
             "axis": "source-observation",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           }
         ],
         "lastSuccessfulResolution": "2026-08-27T11:02:09.000Z",
@@ -4457,7 +4457,7 @@
         "blockingUnknowns": [],
         "cadenceDays": 7
       },
-      "upstreamAgeDays": 107
+      "upstreamAgeDays": 110
     },
     {
       "canonicalName": "mcp-registry/ai.autonomad-travel",
@@ -4472,7 +4472,7 @@
         "identityStatus": "PROVISIONAL"
       },
       "freshness": {
-        "ageDays": 0,
+        "ageDays": 2,
         "state": "FRESH",
         "cadenceDays": 7,
         "basis": "snapshot-fetchedAt"
@@ -4483,12 +4483,12 @@
           {
             "axis": "evidence-resolution",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           },
           {
             "axis": "source-observation",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           }
         ],
         "lastSuccessfulResolution": "2026-08-27T11:02:09.000Z",
@@ -4496,7 +4496,7 @@
         "blockingUnknowns": [],
         "cadenceDays": 7
       },
-      "upstreamAgeDays": 108
+      "upstreamAgeDays": 111
     },
     {
       "canonicalName": "mcp-registry/ai.autoposting-autoposting",
@@ -4511,7 +4511,7 @@
         "identityStatus": "PROVISIONAL"
       },
       "freshness": {
-        "ageDays": 0,
+        "ageDays": 2,
         "state": "FRESH",
         "cadenceDays": 7,
         "basis": "snapshot-fetchedAt"
@@ -4522,12 +4522,12 @@
           {
             "axis": "evidence-resolution",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           },
           {
             "axis": "source-observation",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           }
         ],
         "lastSuccessfulResolution": "2026-08-27T11:02:09.000Z",
@@ -4535,7 +4535,7 @@
         "blockingUnknowns": [],
         "cadenceDays": 7
       },
-      "upstreamAgeDays": 20
+      "upstreamAgeDays": 23
     },
     {
       "canonicalName": "mcp-registry/ai.autorfp-mcp",
@@ -4550,7 +4550,7 @@
         "identityStatus": "PROVISIONAL"
       },
       "freshness": {
-        "ageDays": 0,
+        "ageDays": 2,
         "state": "FRESH",
         "cadenceDays": 7,
         "basis": "snapshot-fetchedAt"
@@ -4561,12 +4561,12 @@
           {
             "axis": "evidence-resolution",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           },
           {
             "axis": "source-observation",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           }
         ],
         "lastSuccessfulResolution": "2026-08-27T11:02:09.000Z",
@@ -4574,7 +4574,7 @@
         "blockingUnknowns": [],
         "cadenceDays": 7
       },
-      "upstreamAgeDays": 101
+      "upstreamAgeDays": 104
     },
     {
       "canonicalName": "mcp-registry/ai.auxen-auxen",
@@ -4589,7 +4589,7 @@
         "identityStatus": "PROVISIONAL"
       },
       "freshness": {
-        "ageDays": 0,
+        "ageDays": 2,
         "state": "FRESH",
         "cadenceDays": 7,
         "basis": "snapshot-fetchedAt"
@@ -4600,12 +4600,12 @@
           {
             "axis": "evidence-resolution",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           },
           {
             "axis": "source-observation",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           }
         ],
         "lastSuccessfulResolution": "2026-08-27T11:02:09.000Z",
@@ -4613,7 +4613,7 @@
         "blockingUnknowns": [],
         "cadenceDays": 7
       },
-      "upstreamAgeDays": 100
+      "upstreamAgeDays": 103
     },
     {
       "canonicalName": "mcp-registry/ai.aviado-health",
@@ -4628,7 +4628,7 @@
         "identityStatus": "PROVISIONAL"
       },
       "freshness": {
-        "ageDays": 0,
+        "ageDays": 2,
         "state": "FRESH",
         "cadenceDays": 7,
         "basis": "snapshot-fetchedAt"
@@ -4639,12 +4639,12 @@
           {
             "axis": "evidence-resolution",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           },
           {
             "axis": "source-observation",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           }
         ],
         "lastSuccessfulResolution": "2026-08-27T11:02:09.000Z",
@@ -4652,7 +4652,7 @@
         "blockingUnknowns": [],
         "cadenceDays": 7
       },
-      "upstreamAgeDays": 57
+      "upstreamAgeDays": 60
     },
     {
       "canonicalName": "mcp-registry/ai.awardcast-federal-contracts",
@@ -4667,7 +4667,7 @@
         "identityStatus": "PROVISIONAL"
       },
       "freshness": {
-        "ageDays": 0,
+        "ageDays": 2,
         "state": "FRESH",
         "cadenceDays": 7,
         "basis": "snapshot-fetchedAt"
@@ -4678,12 +4678,12 @@
           {
             "axis": "evidence-resolution",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           },
           {
             "axis": "source-observation",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           }
         ],
         "lastSuccessfulResolution": "2026-08-27T11:02:09.000Z",
@@ -4691,7 +4691,7 @@
         "blockingUnknowns": [],
         "cadenceDays": 7
       },
-      "upstreamAgeDays": 10
+      "upstreamAgeDays": 13
     },
     {
       "canonicalName": "mcp-registry/ai.awraiter-telegram",
@@ -4706,7 +4706,7 @@
         "identityStatus": "PROVISIONAL"
       },
       "freshness": {
-        "ageDays": 0,
+        "ageDays": 2,
         "state": "FRESH",
         "cadenceDays": 7,
         "basis": "snapshot-fetchedAt"
@@ -4717,12 +4717,12 @@
           {
             "axis": "evidence-resolution",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           },
           {
             "axis": "source-observation",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           }
         ],
         "lastSuccessfulResolution": "2026-08-27T11:02:09.000Z",
@@ -4730,7 +4730,7 @@
         "blockingUnknowns": [],
         "cadenceDays": 7
       },
-      "upstreamAgeDays": 6
+      "upstreamAgeDays": 9
     },
     {
       "canonicalName": "mcp-registry/ai.axonagentic-neuroautomata",
@@ -4745,7 +4745,7 @@
         "identityStatus": "PROVISIONAL"
       },
       "freshness": {
-        "ageDays": 0,
+        "ageDays": 2,
         "state": "FRESH",
         "cadenceDays": 7,
         "basis": "snapshot-fetchedAt"
@@ -4756,12 +4756,12 @@
           {
             "axis": "evidence-resolution",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           },
           {
             "axis": "source-observation",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           }
         ],
         "lastSuccessfulResolution": "2026-08-27T11:02:09.000Z",
@@ -4769,7 +4769,7 @@
         "blockingUnknowns": [],
         "cadenceDays": 7
       },
-      "upstreamAgeDays": 56
+      "upstreamAgeDays": 59
     },
     {
       "canonicalName": "mcp-registry/ai.b77-ai-media-studio",
@@ -4784,7 +4784,7 @@
         "identityStatus": "PROVISIONAL"
       },
       "freshness": {
-        "ageDays": 0,
+        "ageDays": 2,
         "state": "FRESH",
         "cadenceDays": 7,
         "basis": "snapshot-fetchedAt"
@@ -4795,12 +4795,12 @@
           {
             "axis": "evidence-resolution",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           },
           {
             "axis": "source-observation",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           }
         ],
         "lastSuccessfulResolution": "2026-08-27T11:02:09.000Z",
@@ -4808,7 +4808,7 @@
         "blockingUnknowns": [],
         "cadenceDays": 7
       },
-      "upstreamAgeDays": 12
+      "upstreamAgeDays": 15
     },
     {
       "canonicalName": "mcp-registry/ai.b77-apple-search-ads",
@@ -4823,7 +4823,7 @@
         "identityStatus": "PROVISIONAL"
       },
       "freshness": {
-        "ageDays": 0,
+        "ageDays": 2,
         "state": "FRESH",
         "cadenceDays": 7,
         "basis": "snapshot-fetchedAt"
@@ -4834,12 +4834,12 @@
           {
             "axis": "evidence-resolution",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           },
           {
             "axis": "source-observation",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           }
         ],
         "lastSuccessfulResolution": "2026-08-27T11:02:09.000Z",
@@ -4847,7 +4847,7 @@
         "blockingUnknowns": [],
         "cadenceDays": 7
       },
-      "upstreamAgeDays": 12
+      "upstreamAgeDays": 15
     },
     {
       "canonicalName": "mcp-registry/ai.b77-chess-results",
@@ -4862,7 +4862,7 @@
         "identityStatus": "PROVISIONAL"
       },
       "freshness": {
-        "ageDays": 0,
+        "ageDays": 2,
         "state": "FRESH",
         "cadenceDays": 7,
         "basis": "snapshot-fetchedAt"
@@ -4873,12 +4873,12 @@
           {
             "axis": "evidence-resolution",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           },
           {
             "axis": "source-observation",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           }
         ],
         "lastSuccessfulResolution": "2026-08-27T11:02:09.000Z",
@@ -4886,7 +4886,7 @@
         "blockingUnknowns": [],
         "cadenceDays": 7
       },
-      "upstreamAgeDays": 12
+      "upstreamAgeDays": 15
     },
     {
       "canonicalName": "mcp-registry/ai.b77-feedback",
@@ -4901,7 +4901,7 @@
         "identityStatus": "PROVISIONAL"
       },
       "freshness": {
-        "ageDays": 0,
+        "ageDays": 2,
         "state": "FRESH",
         "cadenceDays": 7,
         "basis": "snapshot-fetchedAt"
@@ -4912,12 +4912,12 @@
           {
             "axis": "evidence-resolution",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           },
           {
             "axis": "source-observation",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           }
         ],
         "lastSuccessfulResolution": "2026-08-27T11:02:09.000Z",
@@ -4925,7 +4925,7 @@
         "blockingUnknowns": [],
         "cadenceDays": 7
       },
-      "upstreamAgeDays": 12
+      "upstreamAgeDays": 15
     },
     {
       "canonicalName": "mcp-registry/ai.b77-fibalo",
@@ -4940,7 +4940,7 @@
         "identityStatus": "PROVISIONAL"
       },
       "freshness": {
-        "ageDays": 0,
+        "ageDays": 2,
         "state": "FRESH",
         "cadenceDays": 7,
         "basis": "snapshot-fetchedAt"
@@ -4951,12 +4951,12 @@
           {
             "axis": "evidence-resolution",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           },
           {
             "axis": "source-observation",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           }
         ],
         "lastSuccessfulResolution": "2026-08-27T11:02:09.000Z",
@@ -4964,7 +4964,7 @@
         "blockingUnknowns": [],
         "cadenceDays": 7
       },
-      "upstreamAgeDays": 12
+      "upstreamAgeDays": 15
     },
     {
       "canonicalName": "mcp-registry/ai.b77-file-storage",
@@ -4979,7 +4979,7 @@
         "identityStatus": "PROVISIONAL"
       },
       "freshness": {
-        "ageDays": 0,
+        "ageDays": 2,
         "state": "FRESH",
         "cadenceDays": 7,
         "basis": "snapshot-fetchedAt"
@@ -4990,12 +4990,12 @@
           {
             "axis": "evidence-resolution",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           },
           {
             "axis": "source-observation",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           }
         ],
         "lastSuccessfulResolution": "2026-08-27T11:02:09.000Z",
@@ -5003,7 +5003,7 @@
         "blockingUnknowns": [],
         "cadenceDays": 7
       },
-      "upstreamAgeDays": 12
+      "upstreamAgeDays": 15
     },
     {
       "canonicalName": "mcp-registry/ai.b77-google-ads",
@@ -5018,7 +5018,7 @@
         "identityStatus": "PROVISIONAL"
       },
       "freshness": {
-        "ageDays": 0,
+        "ageDays": 2,
         "state": "FRESH",
         "cadenceDays": 7,
         "basis": "snapshot-fetchedAt"
@@ -5029,12 +5029,12 @@
           {
             "axis": "evidence-resolution",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           },
           {
             "axis": "source-observation",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           }
         ],
         "lastSuccessfulResolution": "2026-08-27T11:02:09.000Z",
@@ -5042,7 +5042,7 @@
         "blockingUnknowns": [],
         "cadenceDays": 7
       },
-      "upstreamAgeDays": 12
+      "upstreamAgeDays": 15
     },
     {
       "canonicalName": "mcp-registry/ai.b77-google-news",
@@ -5057,7 +5057,7 @@
         "identityStatus": "PROVISIONAL"
       },
       "freshness": {
-        "ageDays": 0,
+        "ageDays": 2,
         "state": "FRESH",
         "cadenceDays": 7,
         "basis": "snapshot-fetchedAt"
@@ -5068,12 +5068,12 @@
           {
             "axis": "evidence-resolution",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           },
           {
             "axis": "source-observation",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           }
         ],
         "lastSuccessfulResolution": "2026-08-27T11:02:09.000Z",
@@ -5081,7 +5081,7 @@
         "blockingUnknowns": [],
         "cadenceDays": 7
       },
-      "upstreamAgeDays": 12
+      "upstreamAgeDays": 15
     },
     {
       "canonicalName": "mcp-registry/ai.b77-google-search-console",
@@ -5096,7 +5096,7 @@
         "identityStatus": "PROVISIONAL"
       },
       "freshness": {
-        "ageDays": 0,
+        "ageDays": 2,
         "state": "FRESH",
         "cadenceDays": 7,
         "basis": "snapshot-fetchedAt"
@@ -5107,12 +5107,12 @@
           {
             "axis": "evidence-resolution",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           },
           {
             "axis": "source-observation",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           }
         ],
         "lastSuccessfulResolution": "2026-08-27T11:02:09.000Z",
@@ -5120,7 +5120,7 @@
         "blockingUnknowns": [],
         "cadenceDays": 7
       },
-      "upstreamAgeDays": 12
+      "upstreamAgeDays": 15
     },
     {
       "canonicalName": "mcp-registry/ai.b77-kinnovis-storage",
@@ -5135,7 +5135,7 @@
         "identityStatus": "PROVISIONAL"
       },
       "freshness": {
-        "ageDays": 0,
+        "ageDays": 2,
         "state": "FRESH",
         "cadenceDays": 7,
         "basis": "snapshot-fetchedAt"
@@ -5146,12 +5146,12 @@
           {
             "axis": "evidence-resolution",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           },
           {
             "axis": "source-observation",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           }
         ],
         "lastSuccessfulResolution": "2026-08-27T11:02:09.000Z",
@@ -5159,7 +5159,7 @@
         "blockingUnknowns": [],
         "cadenceDays": 7
       },
-      "upstreamAgeDays": 12
+      "upstreamAgeDays": 15
     },
     {
       "canonicalName": "mcp-registry/ai.b77-knowledge-base",
@@ -5174,7 +5174,7 @@
         "identityStatus": "PROVISIONAL"
       },
       "freshness": {
-        "ageDays": 0,
+        "ageDays": 2,
         "state": "FRESH",
         "cadenceDays": 7,
         "basis": "snapshot-fetchedAt"
@@ -5185,12 +5185,12 @@
           {
             "axis": "evidence-resolution",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           },
           {
             "axis": "source-observation",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           }
         ],
         "lastSuccessfulResolution": "2026-08-27T11:02:09.000Z",
@@ -5198,7 +5198,7 @@
         "blockingUnknowns": [],
         "cadenceDays": 7
       },
-      "upstreamAgeDays": 12
+      "upstreamAgeDays": 15
     },
     {
       "canonicalName": "mcp-registry/ai.b77-nightscout",
@@ -5213,7 +5213,7 @@
         "identityStatus": "PROVISIONAL"
       },
       "freshness": {
-        "ageDays": 0,
+        "ageDays": 2,
         "state": "FRESH",
         "cadenceDays": 7,
         "basis": "snapshot-fetchedAt"
@@ -5224,12 +5224,12 @@
           {
             "axis": "evidence-resolution",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           },
           {
             "axis": "source-observation",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           }
         ],
         "lastSuccessfulResolution": "2026-08-27T11:02:09.000Z",
@@ -5237,7 +5237,7 @@
         "blockingUnknowns": [],
         "cadenceDays": 7
       },
-      "upstreamAgeDays": 12
+      "upstreamAgeDays": 15
     },
     {
       "canonicalName": "mcp-registry/ai.b77-seo-content-factory",
@@ -5252,7 +5252,7 @@
         "identityStatus": "PROVISIONAL"
       },
       "freshness": {
-        "ageDays": 0,
+        "ageDays": 2,
         "state": "FRESH",
         "cadenceDays": 7,
         "basis": "snapshot-fetchedAt"
@@ -5263,12 +5263,12 @@
           {
             "axis": "evidence-resolution",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           },
           {
             "axis": "source-observation",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           }
         ],
         "lastSuccessfulResolution": "2026-08-27T11:02:09.000Z",
@@ -5276,7 +5276,7 @@
         "blockingUnknowns": [],
         "cadenceDays": 7
       },
-      "upstreamAgeDays": 12
+      "upstreamAgeDays": 15
     },
     {
       "canonicalName": "mcp-registry/ai.b77-teamwork",
@@ -5291,7 +5291,7 @@
         "identityStatus": "PROVISIONAL"
       },
       "freshness": {
-        "ageDays": 0,
+        "ageDays": 2,
         "state": "FRESH",
         "cadenceDays": 7,
         "basis": "snapshot-fetchedAt"
@@ -5302,12 +5302,12 @@
           {
             "axis": "evidence-resolution",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           },
           {
             "axis": "source-observation",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           }
         ],
         "lastSuccessfulResolution": "2026-08-27T11:02:09.000Z",
@@ -5315,7 +5315,7 @@
         "blockingUnknowns": [],
         "cadenceDays": 7
       },
-      "upstreamAgeDays": 12
+      "upstreamAgeDays": 15
     },
     {
       "canonicalName": "mcp-registry/ai.b77-time",
@@ -5330,7 +5330,7 @@
         "identityStatus": "PROVISIONAL"
       },
       "freshness": {
-        "ageDays": 0,
+        "ageDays": 2,
         "state": "FRESH",
         "cadenceDays": 7,
         "basis": "snapshot-fetchedAt"
@@ -5341,12 +5341,12 @@
           {
             "axis": "evidence-resolution",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           },
           {
             "axis": "source-observation",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           }
         ],
         "lastSuccessfulResolution": "2026-08-27T11:02:09.000Z",
@@ -5354,7 +5354,7 @@
         "blockingUnknowns": [],
         "cadenceDays": 7
       },
-      "upstreamAgeDays": 12
+      "upstreamAgeDays": 15
     },
     {
       "canonicalName": "mcp-registry/ai.b77-web-analytics",
@@ -5369,7 +5369,7 @@
         "identityStatus": "PROVISIONAL"
       },
       "freshness": {
-        "ageDays": 0,
+        "ageDays": 2,
         "state": "FRESH",
         "cadenceDays": 7,
         "basis": "snapshot-fetchedAt"
@@ -5380,12 +5380,12 @@
           {
             "axis": "evidence-resolution",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           },
           {
             "axis": "source-observation",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           }
         ],
         "lastSuccessfulResolution": "2026-08-27T11:02:09.000Z",
@@ -5393,7 +5393,7 @@
         "blockingUnknowns": [],
         "cadenceDays": 7
       },
-      "upstreamAgeDays": 12
+      "upstreamAgeDays": 15
     },
     {
       "canonicalName": "mcp-registry/ai.backengine-backengine-mcp",
@@ -5408,7 +5408,7 @@
         "identityStatus": "PROVISIONAL"
       },
       "freshness": {
-        "ageDays": 0,
+        "ageDays": 2,
         "state": "FRESH",
         "cadenceDays": 7,
         "basis": "snapshot-fetchedAt"
@@ -5419,12 +5419,12 @@
           {
             "axis": "evidence-resolution",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           },
           {
             "axis": "source-observation",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           }
         ],
         "lastSuccessfulResolution": "2026-08-27T11:02:09.000Z",
@@ -5432,7 +5432,7 @@
         "blockingUnknowns": [],
         "cadenceDays": 7
       },
-      "upstreamAgeDays": 48
+      "upstreamAgeDays": 50
     },
     {
       "canonicalName": "mcp-registry/ai.bankee-inferventis-mcp",
@@ -5447,7 +5447,7 @@
         "identityStatus": "PROVISIONAL"
       },
       "freshness": {
-        "ageDays": 0,
+        "ageDays": 2,
         "state": "FRESH",
         "cadenceDays": 7,
         "basis": "snapshot-fetchedAt"
@@ -5458,12 +5458,12 @@
           {
             "axis": "evidence-resolution",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           },
           {
             "axis": "source-observation",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           }
         ],
         "lastSuccessfulResolution": "2026-08-27T11:02:09.000Z",
@@ -5471,7 +5471,7 @@
         "blockingUnknowns": [],
         "cadenceDays": 7
       },
-      "upstreamAgeDays": 121
+      "upstreamAgeDays": 124
     },
     {
       "canonicalName": "mcp-registry/ai.bareun-bareun",
@@ -5486,7 +5486,7 @@
         "identityStatus": "PROVISIONAL"
       },
       "freshness": {
-        "ageDays": 0,
+        "ageDays": 2,
         "state": "FRESH",
         "cadenceDays": 7,
         "basis": "snapshot-fetchedAt"
@@ -5497,12 +5497,12 @@
           {
             "axis": "evidence-resolution",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           },
           {
             "axis": "source-observation",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           }
         ],
         "lastSuccessfulResolution": "2026-08-27T11:02:09.000Z",
@@ -5510,7 +5510,7 @@
         "blockingUnknowns": [],
         "cadenceDays": 7
       },
-      "upstreamAgeDays": 79
+      "upstreamAgeDays": 82
     },
     {
       "canonicalName": "mcp-registry/ai.baselight-baselight",
@@ -5525,7 +5525,7 @@
         "identityStatus": "PROVISIONAL"
       },
       "freshness": {
-        "ageDays": 0,
+        "ageDays": 2,
         "state": "FRESH",
         "cadenceDays": 7,
         "basis": "snapshot-fetchedAt"
@@ -5536,12 +5536,12 @@
           {
             "axis": "evidence-resolution",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           },
           {
             "axis": "source-observation",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           }
         ],
         "lastSuccessfulResolution": "2026-08-27T11:02:09.000Z",
@@ -5549,7 +5549,7 @@
         "blockingUnknowns": [],
         "cadenceDays": 7
       },
-      "upstreamAgeDays": 118
+      "upstreamAgeDays": 121
     },
     {
       "canonicalName": "mcp-registry/ai.basethread-basethread",
@@ -5564,7 +5564,7 @@
         "identityStatus": "PROVISIONAL"
       },
       "freshness": {
-        "ageDays": 0,
+        "ageDays": 2,
         "state": "FRESH",
         "cadenceDays": 7,
         "basis": "snapshot-fetchedAt"
@@ -5575,12 +5575,12 @@
           {
             "axis": "evidence-resolution",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           },
           {
             "axis": "source-observation",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           }
         ],
         "lastSuccessfulResolution": "2026-08-27T11:02:09.000Z",
@@ -5588,7 +5588,7 @@
         "blockingUnknowns": [],
         "cadenceDays": 7
       },
-      "upstreamAgeDays": 49
+      "upstreamAgeDays": 52
     },
     {
       "canonicalName": "mcp-registry/ai.bassethound-bassethound",
@@ -5603,7 +5603,7 @@
         "identityStatus": "PROVISIONAL"
       },
       "freshness": {
-        "ageDays": 0,
+        "ageDays": 2,
         "state": "FRESH",
         "cadenceDays": 7,
         "basis": "snapshot-fetchedAt"
@@ -5614,12 +5614,12 @@
           {
             "axis": "evidence-resolution",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           },
           {
             "axis": "source-observation",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           }
         ],
         "lastSuccessfulResolution": "2026-08-27T11:02:09.000Z",
@@ -5627,7 +5627,7 @@
         "blockingUnknowns": [],
         "cadenceDays": 7
       },
-      "upstreamAgeDays": 16
+      "upstreamAgeDays": 19
     },
     {
       "canonicalName": "mcp-registry/ai.beatbandit-beatbandit",
@@ -5642,7 +5642,7 @@
         "identityStatus": "PROVISIONAL"
       },
       "freshness": {
-        "ageDays": 0,
+        "ageDays": 2,
         "state": "FRESH",
         "cadenceDays": 7,
         "basis": "snapshot-fetchedAt"
@@ -5653,12 +5653,12 @@
           {
             "axis": "evidence-resolution",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           },
           {
             "axis": "source-observation",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           }
         ],
         "lastSuccessfulResolution": "2026-08-27T11:02:09.000Z",
@@ -5666,7 +5666,7 @@
         "blockingUnknowns": [],
         "cadenceDays": 7
       },
-      "upstreamAgeDays": 44
+      "upstreamAgeDays": 47
     },
     {
       "canonicalName": "mcp-registry/ai.beket-audit",
@@ -5681,7 +5681,7 @@
         "identityStatus": "PROVISIONAL"
       },
       "freshness": {
-        "ageDays": 0,
+        "ageDays": 2,
         "state": "FRESH",
         "cadenceDays": 7,
         "basis": "snapshot-fetchedAt"
@@ -5692,12 +5692,12 @@
           {
             "axis": "evidence-resolution",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           },
           {
             "axis": "source-observation",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           }
         ],
         "lastSuccessfulResolution": "2026-08-27T11:02:09.000Z",
@@ -5705,7 +5705,7 @@
         "blockingUnknowns": [],
         "cadenceDays": 7
       },
-      "upstreamAgeDays": 21
+      "upstreamAgeDays": 24
     },
     {
       "canonicalName": "mcp-registry/ai.benroberts-b4-index",
@@ -5720,7 +5720,7 @@
         "identityStatus": "PROVISIONAL"
       },
       "freshness": {
-        "ageDays": 0,
+        "ageDays": 2,
         "state": "FRESH",
         "cadenceDays": 7,
         "basis": "snapshot-fetchedAt"
@@ -5731,12 +5731,12 @@
           {
             "axis": "evidence-resolution",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           },
           {
             "axis": "source-observation",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           }
         ],
         "lastSuccessfulResolution": "2026-08-27T11:02:09.000Z",
@@ -5744,7 +5744,7 @@
         "blockingUnknowns": [],
         "cadenceDays": 7
       },
-      "upstreamAgeDays": 54
+      "upstreamAgeDays": 57
     },
     {
       "canonicalName": "mcp-registry/ai.betslipdoctor-mcp",
@@ -5759,7 +5759,7 @@
         "identityStatus": "PROVISIONAL"
       },
       "freshness": {
-        "ageDays": 0,
+        "ageDays": 2,
         "state": "FRESH",
         "cadenceDays": 7,
         "basis": "snapshot-fetchedAt"
@@ -5770,12 +5770,12 @@
           {
             "axis": "evidence-resolution",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           },
           {
             "axis": "source-observation",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           }
         ],
         "lastSuccessfulResolution": "2026-08-27T11:02:09.000Z",
@@ -5783,7 +5783,7 @@
         "blockingUnknowns": [],
         "cadenceDays": 7
       },
-      "upstreamAgeDays": 8
+      "upstreamAgeDays": 11
     },
     {
       "canonicalName": "mcp-registry/ai.betterpost-server",
@@ -5798,7 +5798,7 @@
         "identityStatus": "PROVISIONAL"
       },
       "freshness": {
-        "ageDays": 0,
+        "ageDays": 2,
         "state": "FRESH",
         "cadenceDays": 7,
         "basis": "snapshot-fetchedAt"
@@ -5809,12 +5809,12 @@
           {
             "axis": "evidence-resolution",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           },
           {
             "axis": "source-observation",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           }
         ],
         "lastSuccessfulResolution": "2026-08-27T11:02:09.000Z",
@@ -5822,7 +5822,7 @@
         "blockingUnknowns": [],
         "cadenceDays": 7
       },
-      "upstreamAgeDays": 49
+      "upstreamAgeDays": 52
     },
     {
       "canonicalName": "mcp-registry/ai.bezal-local-commerce",
@@ -5837,7 +5837,7 @@
         "identityStatus": "PROVISIONAL"
       },
       "freshness": {
-        "ageDays": 0,
+        "ageDays": 2,
         "state": "FRESH",
         "cadenceDays": 7,
         "basis": "snapshot-fetchedAt"
@@ -5848,12 +5848,12 @@
           {
             "axis": "evidence-resolution",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           },
           {
             "axis": "source-observation",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           }
         ],
         "lastSuccessfulResolution": "2026-08-27T11:02:09.000Z",
@@ -5861,7 +5861,7 @@
         "blockingUnknowns": [],
         "cadenceDays": 7
       },
-      "upstreamAgeDays": 177
+      "upstreamAgeDays": 180
     },
     {
       "canonicalName": "mcp-registry/ai.bidclub-bidclub",
@@ -5876,7 +5876,7 @@
         "identityStatus": "PROVISIONAL"
       },
       "freshness": {
-        "ageDays": 0,
+        "ageDays": 2,
         "state": "FRESH",
         "cadenceDays": 7,
         "basis": "snapshot-fetchedAt"
@@ -5887,12 +5887,12 @@
           {
             "axis": "evidence-resolution",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           },
           {
             "axis": "source-observation",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           }
         ],
         "lastSuccessfulResolution": "2026-08-27T11:02:09.000Z",
@@ -5900,7 +5900,7 @@
         "blockingUnknowns": [],
         "cadenceDays": 7
       },
-      "upstreamAgeDays": 10
+      "upstreamAgeDays": 12
     },
     {
       "canonicalName": "mcp-registry/ai.biddeed-biddeed-mcp",
@@ -5915,7 +5915,7 @@
         "identityStatus": "PROVISIONAL"
       },
       "freshness": {
-        "ageDays": 0,
+        "ageDays": 2,
         "state": "FRESH",
         "cadenceDays": 7,
         "basis": "snapshot-fetchedAt"
@@ -5926,12 +5926,12 @@
           {
             "axis": "evidence-resolution",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           },
           {
             "axis": "source-observation",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           }
         ],
         "lastSuccessfulResolution": "2026-08-27T11:02:09.000Z",
@@ -5939,7 +5939,7 @@
         "blockingUnknowns": [],
         "cadenceDays": 7
       },
-      "upstreamAgeDays": 54
+      "upstreamAgeDays": 57
     },
     {
       "canonicalName": "mcp-registry/ai.biel-biel-ai",
@@ -5954,7 +5954,7 @@
         "identityStatus": "PROVISIONAL"
       },
       "freshness": {
-        "ageDays": 0,
+        "ageDays": 2,
         "state": "FRESH",
         "cadenceDays": 7,
         "basis": "snapshot-fetchedAt"
@@ -5965,12 +5965,12 @@
           {
             "axis": "evidence-resolution",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           },
           {
             "axis": "source-observation",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           }
         ],
         "lastSuccessfulResolution": "2026-08-27T11:02:09.000Z",
@@ -5978,7 +5978,7 @@
         "blockingUnknowns": [],
         "cadenceDays": 7
       },
-      "upstreamAgeDays": 52
+      "upstreamAgeDays": 55
     },
     {
       "canonicalName": "mcp-registry/ai.bitroad-bitroad",
@@ -5993,7 +5993,7 @@
         "identityStatus": "PROVISIONAL"
       },
       "freshness": {
-        "ageDays": 0,
+        "ageDays": 2,
         "state": "FRESH",
         "cadenceDays": 7,
         "basis": "snapshot-fetchedAt"
@@ -6004,12 +6004,12 @@
           {
             "axis": "evidence-resolution",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           },
           {
             "axis": "source-observation",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           }
         ],
         "lastSuccessfulResolution": "2026-08-27T11:02:09.000Z",
@@ -6017,7 +6017,7 @@
         "blockingUnknowns": [],
         "cadenceDays": 7
       },
-      "upstreamAgeDays": 9
+      "upstreamAgeDays": 12
     },
     {
       "canonicalName": "mcp-registry/ai.bittlebits-bittlebits",
@@ -6032,7 +6032,7 @@
         "identityStatus": "PROVISIONAL"
       },
       "freshness": {
-        "ageDays": 0,
+        "ageDays": 2,
         "state": "FRESH",
         "cadenceDays": 7,
         "basis": "snapshot-fetchedAt"
@@ -6043,12 +6043,12 @@
           {
             "axis": "evidence-resolution",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           },
           {
             "axis": "source-observation",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           }
         ],
         "lastSuccessfulResolution": "2026-08-27T11:02:09.000Z",
@@ -6056,7 +6056,7 @@
         "blockingUnknowns": [],
         "cadenceDays": 7
       },
-      "upstreamAgeDays": 85
+      "upstreamAgeDays": 88
     },
     {
       "canonicalName": "mcp-registry/ai.bizmuse-bizmuse",
@@ -6071,7 +6071,7 @@
         "identityStatus": "PROVISIONAL"
       },
       "freshness": {
-        "ageDays": 0,
+        "ageDays": 2,
         "state": "FRESH",
         "cadenceDays": 7,
         "basis": "snapshot-fetchedAt"
@@ -6082,12 +6082,12 @@
           {
             "axis": "evidence-resolution",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           },
           {
             "axis": "source-observation",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           }
         ],
         "lastSuccessfulResolution": "2026-08-27T11:02:09.000Z",
@@ -6095,7 +6095,7 @@
         "blockingUnknowns": [],
         "cadenceDays": 7
       },
-      "upstreamAgeDays": 37
+      "upstreamAgeDays": 40
     },
     {
       "canonicalName": "mcp-registry/ai.blast-radius-blast-radius",
@@ -6110,7 +6110,7 @@
         "identityStatus": "PROVISIONAL"
       },
       "freshness": {
-        "ageDays": 0,
+        "ageDays": 2,
         "state": "FRESH",
         "cadenceDays": 7,
         "basis": "snapshot-fetchedAt"
@@ -6121,12 +6121,12 @@
           {
             "axis": "evidence-resolution",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           },
           {
             "axis": "source-observation",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           }
         ],
         "lastSuccessfulResolution": "2026-08-27T11:02:09.000Z",
@@ -6134,7 +6134,7 @@
         "blockingUnknowns": [],
         "cadenceDays": 7
       },
-      "upstreamAgeDays": 57
+      "upstreamAgeDays": 60
     },
     {
       "canonicalName": "mcp-registry/ai.bloopo-bloopo",
@@ -6149,7 +6149,7 @@
         "identityStatus": "PROVISIONAL"
       },
       "freshness": {
-        "ageDays": 0,
+        "ageDays": 2,
         "state": "FRESH",
         "cadenceDays": 7,
         "basis": "snapshot-fetchedAt"
@@ -6160,12 +6160,12 @@
           {
             "axis": "evidence-resolution",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           },
           {
             "axis": "source-observation",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           }
         ],
         "lastSuccessfulResolution": "2026-08-27T11:02:09.000Z",
@@ -6173,7 +6173,7 @@
         "blockingUnknowns": [],
         "cadenceDays": 7
       },
-      "upstreamAgeDays": 29
+      "upstreamAgeDays": 32
     },
     {
       "canonicalName": "mcp-registry/ai.blopus-search",
@@ -6188,7 +6188,7 @@
         "identityStatus": "PROVISIONAL"
       },
       "freshness": {
-        "ageDays": 0,
+        "ageDays": 2,
         "state": "FRESH",
         "cadenceDays": 7,
         "basis": "snapshot-fetchedAt"
@@ -6199,12 +6199,12 @@
           {
             "axis": "evidence-resolution",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           },
           {
             "axis": "source-observation",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           }
         ],
         "lastSuccessfulResolution": "2026-08-27T11:02:09.000Z",
@@ -6212,7 +6212,7 @@
         "blockingUnknowns": [],
         "cadenceDays": 7
       },
-      "upstreamAgeDays": 0
+      "upstreamAgeDays": 3
     },
     {
       "canonicalName": "mcp-registry/ai.bluenexus-universal-mcp",
@@ -6227,7 +6227,7 @@
         "identityStatus": "PROVISIONAL"
       },
       "freshness": {
-        "ageDays": 0,
+        "ageDays": 2,
         "state": "FRESH",
         "cadenceDays": 7,
         "basis": "snapshot-fetchedAt"
@@ -6238,12 +6238,12 @@
           {
             "axis": "evidence-resolution",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           },
           {
             "axis": "source-observation",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           }
         ],
         "lastSuccessfulResolution": "2026-08-27T11:02:09.000Z",
@@ -6251,7 +6251,7 @@
         "blockingUnknowns": [],
         "cadenceDays": 7
       },
-      "upstreamAgeDays": 0
+      "upstreamAgeDays": 3
     },
     {
       "canonicalName": "mcp-registry/ai.bodenrichtwert-mcp",
@@ -6266,7 +6266,7 @@
         "identityStatus": "PROVISIONAL"
       },
       "freshness": {
-        "ageDays": 0,
+        "ageDays": 2,
         "state": "FRESH",
         "cadenceDays": 7,
         "basis": "snapshot-fetchedAt"
@@ -6277,12 +6277,12 @@
           {
             "axis": "evidence-resolution",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           },
           {
             "axis": "source-observation",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           }
         ],
         "lastSuccessfulResolution": "2026-08-27T11:02:09.000Z",
@@ -6290,7 +6290,7 @@
         "blockingUnknowns": [],
         "cadenceDays": 7
       },
-      "upstreamAgeDays": 24
+      "upstreamAgeDays": 27
     },
     {
       "canonicalName": "mcp-registry/io.github.calllint-calllint",
@@ -6305,7 +6305,7 @@
         "identityStatus": "PROVISIONAL"
       },
       "freshness": {
-        "ageDays": 0,
+        "ageDays": 2,
         "state": "FRESH",
         "cadenceDays": 7,
         "basis": "snapshot-fetchedAt"
@@ -6316,12 +6316,12 @@
           {
             "axis": "evidence-resolution",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           },
           {
             "axis": "source-observation",
             "at": "2026-08-27T11:02:09.000Z",
-            "ageDays": 0
+            "ageDays": 2
           }
         ],
         "lastSuccessfulResolution": "2026-08-27T11:02:09.000Z",
@@ -6329,7 +6329,7 @@
         "blockingUnknowns": [],
         "cadenceDays": 7
       },
-      "upstreamAgeDays": 45
+      "upstreamAgeDays": 48
     }
   ]
 }
