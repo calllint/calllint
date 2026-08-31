@@ -476,6 +476,13 @@ describe("Gate S2 — the refusal is asserted by RUNNING the gate, not by readin
    * A v2 report the gate ACCEPTS. Not asserted on directly — it exists so that each variant below
    * differs from an accepted fixture in exactly one field, which is what makes a refusal attributable to
    * that field rather than to a fixture the gate would have rejected anyway.
+   *
+   * `snapshotMaxEntries` IS AT THE THRESHOLD ON PURPOSE, and this is the correction that made the
+   * mirror-attribution tests below mean anything. It was 200 — under the 500 threshold — so every variant
+   * was intercepted by the cohort-cap branch before reaching the `capReached` branch it was written to
+   * exercise, and the suite was green because it asserted only that a message NAMED something, never that
+   * the branch under test was the one that ran. A fixture whose cohort cap already bounds the cohort
+   * cannot isolate a question about the mirror read.
    */
   const validV2 = {
     schema: "calllint.compiler-run-report.v2",
@@ -492,8 +499,8 @@ describe("Gate S2 — the refusal is asserted by RUNNING the gate, not by readin
       recordsRead: 150,
       capReached: false,
       truncationReason: null,
-      snapshotMaxEntries: 200,
-      mirrorMaxEntries: 400,
+      snapshotMaxEntries: 500,
+      mirrorMaxEntries: 100_000,
     },
   }
 
@@ -538,6 +545,70 @@ describe("Gate S2 — the refusal is asserted by RUNNING the gate, not by readin
       "THE SHORTFALL IS UPSTREAM'S",
     )
     expect(out, "and certainly not ours").not.toContain("THE SHORTFALL IS OURS")
+  })
+
+  // THE TEST THAT WAS MISSING, AND THE DEFECT IT PINS. Before this branch existed the gate attributed the
+  // shortfall by reading `capReached` alone — a fact about the MIRROR read (cap 100_000) — while the
+  // measure's subject is the SERVED COHORT (cap `snapshotMaxEntries`, auto-grown +50/run). Fed the values
+  // the next real ingest will write, it printed: "read the source TO ITS END — 65235 record(s) with caps
+  // snapshot=200 ... neither of which bound it. So upstream held fewer than 500 live records."
+  //
+  // Every clause false, and refuted by numbers in its own sentence: 65235 is not "fewer than 500", and
+  // snapshot=200 is a cap that bound the cohort printed beside the claim that none did. Not a wording
+  // slip — it sends an operator to accept a shortfall our own cap caused, which is exactly the
+  // confidently-wrong reason this measure was built to refuse.
+  it("a cohort cap under the threshold is attributed to US even when the mirror was exhausted", () => {
+    // Deliberately the strongest possible exhaustion evidence — a huge read, `capReached: false` — so the
+    // ONLY thing that can produce a correct answer here is reading the cohort cap. If the gate regresses to
+    // attributing by `capReached`, this fixture is the one it gets most confidently wrong.
+    const out = runGate(
+      "cohort-capped",
+      withSource({
+        recordsRead: 65_235,
+        capReached: false,
+        truncationReason: null,
+        snapshotMaxEntries: 200,
+        mirrorMaxEntries: 100_000,
+      }),
+    )
+    expect(out, "the cohort cap bound the emitted set, so the shortfall is ours").toContain(
+      "THE COHORT CAP BOUND IT, NOT UPSTREAM",
+    )
+    // The knob that actually governs the cohort. Naming a mirror knob here is the specific wrong advice:
+    // the mirror read already reached the end of the source, so raising either mirror cap changes nothing.
+    expect(out, "the cohort knob must be named").toContain("TRUST_INGEST_MAX_ENTRIES")
+    expect(out, "a mirror knob is useless when the mirror already exhausted the source").not.toContain(
+      "TRUST_INGEST_MIRROR_MAX_ENTRIES",
+    )
+    expect(out, "nor the page cap").not.toContain("TRUST_INGEST_MIRROR_MAX_PAGES")
+    // The false claim, asserted absent by its exact wording. This is the regression that shipped.
+    expect(out, "it must NOT claim upstream is short — 65235 records were just read").not.toContain(
+      "THE SHORTFALL IS UPSTREAM'S",
+    )
+    expect(out, "and must not deny that any cap bound it, with the binding cap printed alongside").not.toContain(
+      "neither of which bound it",
+    )
+    expect(out, "upstream exhaustion is unknowable from a cohort-capped run, and must be left unclaimed").toContain(
+      "Upstream exhaustion is UNKNOWN from this run",
+    )
+    expect(out, "and must still REFUSE rather than fail").toMatch(/\[REFUSED\s*\] cohort-completeness/)
+  })
+
+  // The fixture's own validity, asserted rather than assumed. Six tests below ask questions about the
+  // MIRROR read, and every one of them is silently void if the shared fixture's cohort cap is under the
+  // threshold — the cohort-cap branch intercepts first, and each test still passes because it only checks
+  // that a message names something. That is how the defect above survived a green suite: the assertions
+  // never established WHICH branch produced the text they matched.
+  it("the shared fixture cannot bound the cohort, or every mirror-attribution test below is void", () => {
+    expect(
+      validV2.source.snapshotMaxEntries,
+      "`snapshotMaxEntries` must be >= S2's threshold, else the cohort-cap branch answers first and the " +
+        "mirror-read tests below assert nothing about the branch they name",
+    ).toBeGreaterThanOrEqual(500)
+    expect(
+      validV2.source.mirrorMaxEntries,
+      "and the mirror cap must exceed the cohort cap, the invariant `resolveMirrorMaxEntries` enforces",
+    ).toBeGreaterThan(validV2.source.snapshotMaxEntries)
   })
 
   it("capReached:false attributes the shortfall UPSTREAM, and says no local change helps", () => {

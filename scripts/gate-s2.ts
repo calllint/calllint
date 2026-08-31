@@ -491,9 +491,23 @@ const TRUNCATION_REMEDY: Record<string, string | null> = {
 // shortfall).
 //
 // This is the measure S2 exists for, and the only one whose verdict is not a pass/fail. A cohort under
-// 500 has two causes needing opposite actions, and this gate has no standing to guess between them:
-// nothing in the repo records upstream's live total. So it refuses, and says which of three states it
-// is in — upstream exhausted, our cap bound the read, or ATTRIBUTION UNKNOWN.
+// 500 has several causes needing opposite actions, and this gate has no standing to guess between them:
+// nothing in the repo records upstream's live total. So it refuses, and says which of four states it
+// is in — OUR COHORT CAP bound it, our mirror read was truncated, upstream was exhausted, or
+// ATTRIBUTION UNKNOWN.
+//
+// THE COHORT CAP IS CHECKED FIRST, AND IT IS THE ONE THAT BINDS TODAY. `capReached` describes the
+// MIRROR READ — raw records in arrival order against `mirrorMaxEntries` (100_000) — while this measure's
+// subject is the SERVED COHORT, bounded by `snapshotMaxEntries`, which `resolveMaxEntries` auto-grows
+// +50 per run. Those are different quantities with different caps, and the mirror's is ~500x larger, so
+// it will read `capReached: false` on every run for years while the cohort sits at a cap that DID bind.
+//
+// Reading exhaustion off `capReached` alone therefore produced a message whose own printed numbers
+// refuted it. Measured against a report carrying the next run's real values (recordsRead=65235,
+// capReached=false, snapshotMaxEntries=200): "read the source TO ITS END — 65235 record(s) with caps
+// snapshot=200 ... neither of which bound it. So upstream held fewer than 500 live records". Upstream
+// had just been observed to hold 65235; the cap that bound the cohort was printed in the same clause
+// that denied any cap bound it. That is the confidently-wrong reason this measure exists to refuse.
 //
 // "Unknown" is a real outcome here, not a fallback. Reporting "upstream must hold fewer than 500"
 // without evidence would be the confidently-wrong reason: consumed and acted on, sending someone to
@@ -566,6 +580,34 @@ if (censusSource >= S2_REQUIRED_RECORDS) {
       `${growth}. UPSTREAM EXHAUSTION UNKNOWN — the newest report ${rel(sourceReport.path)} carries no ` +
         `\`source\` section`,
     )
+  } else if (sourceReport.report.source.snapshotMaxEntries < S2_REQUIRED_RECORDS) {
+    // OUR COHORT CAP BOUND IT, and this is checked BEFORE `capReached` because it is the cap that
+    // actually binds. `snapshotMaxEntries` is applied after the live filter and the name sort, so a cap
+    // of 200 emits 200 entries no matter how many records the mirror read — and the mirror can honestly
+    // report exhaustion in the same run, because its own ceiling is `mirrorMaxEntries` (~500x larger).
+    //
+    // The knob is `TRUST_INGEST_MAX_ENTRIES`, NOT either mirror knob. Raising a mirror cap here changes
+    // nothing: the read already reached the end of the source. This is the distinction that made the
+    // wrong message dangerous rather than merely imprecise — both remedies are "raise a cap", and only
+    // one of them is connected to the number in question.
+    //
+    // Stated as a CEILING rather than as a defect. Auto-growth is the designed path to 500
+    // (`resolveMaxEntries` case 2, +50/run), so a cohort at its current step is working as specified;
+    // what is wrong is calling that upstream's fault. The remedy names the override for an operator who
+    // wants to arrive sooner, and says plainly that waiting also works.
+    const capped = sourceReport.report.source.snapshotMaxEntries
+    refused(
+      "cohort-completeness",
+      `${growth}. THE COHORT CAP BOUND IT, NOT UPSTREAM: the newest run (${rel(sourceReport.path)}) read ` +
+        `${sourceReport.report.source.recordsRead} raw record(s) and emitted a cohort capped at ` +
+        `snapshot=${capped} (< ${S2_REQUIRED_RECORDS}), so this run COULD NOT have reached the threshold ` +
+        `whatever upstream held. \`capReached\` is ${JSON.stringify(sourceReport.report.source.capReached)} ` +
+        `here, but it measures the MIRROR read against mirror=${sourceReport.report.source.mirrorMaxEntries} ` +
+        `— a different quantity from the served cohort, so it says NOTHING about this shortfall. Remedy: ` +
+        `let auto-growth run (+${CUMULATIVE_COVERAGE_STEP}/run reaches ${S2_REQUIRED_RECORDS}), or set ` +
+        `\`TRUST_INGEST_MAX_ENTRIES\` — NOT a mirror knob, which would change nothing. Upstream exhaustion ` +
+        `is UNKNOWN from this run and is NOT claimed either way`,
+    )
   } else if (sourceReport.report.source.capReached) {
     const reason = sourceReport.report.source.truncationReason
     const knob = reason === null ? undefined : TRUNCATION_REMEDY[reason]
@@ -592,17 +634,22 @@ if (censusSource >= S2_REQUIRED_RECORDS) {
         `${S2_REQUIRED_RECORDS}+ records; this run never found out`,
     )
   } else {
-    // UPSTREAM WAS EXHAUSTED. The strong claim, and the report is entitled to it: `syncSource` reports the
-    // ambiguous case (a source holding EXACTLY `maxEntries`) as capped, so `false` means the read reached
-    // the end. Still REFUSED rather than failed — the threshold is genuinely unmet, and no local change
-    // will meet it.
+    // UPSTREAM WAS EXHAUSTED, and this branch is now entitled to say so because TWO conditions hold: the
+    // mirror read reached the end of the source (`capReached: false`, and `syncSource` reports the
+    // ambiguous exactly-at-cap case as capped, so `false` is strong evidence), AND the cohort cap was
+    // >= the threshold, so nothing of ours truncated the emitted set. Before the cohort-cap branch above
+    // existed this claim rested on the mirror alone and was reachable while our own cap was the binding
+    // limit — which is how it came to print "neither of which bound it" beside the cap that did.
+    //
+    // Still REFUSED rather than failed: the threshold is genuinely unmet and no local change will meet it.
     refused(
       "cohort-completeness",
       `${growth}. THE SHORTFALL IS UPSTREAM'S, NOT A DEFECT: the newest run (${rel(sourceReport.path)}) read ` +
         `the source TO ITS END — ${sourceReport.report.source.recordsRead} record(s) with caps ` +
         `snapshot=${sourceReport.report.source.snapshotMaxEntries}, ` +
-        `mirror=${sourceReport.report.source.mirrorMaxEntries}, neither of which bound it. So upstream held ` +
-        `fewer than ${S2_REQUIRED_RECORDS} live records at that time and NO LOCAL CHANGE RAISES THIS ` +
+        `mirror=${sourceReport.report.source.mirrorMaxEntries}, neither of which bound it (the cohort cap ` +
+        `was at or above ${S2_REQUIRED_RECORDS}, so it did not truncate the emitted set either). So upstream ` +
+        `held fewer than ${S2_REQUIRED_RECORDS} live records at that time and NO LOCAL CHANGE RAISES THIS ` +
         `COHORT. Remedy: none here — S2's threshold awaits upstream growth (S2-OPEN-1)`,
     )
   }

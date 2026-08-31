@@ -4,7 +4,7 @@
 **Threshold:** 500 served registry records (`CUMULATIVE_COVERAGE_CEILING`)
 **Cohort at creation:** **150** — the gate exists **350 records before its threshold**
 **Created:** 2026-08-31, closing S1-OPEN-2
-**Reader:** `tests/invariants/gate-s2-claims.invariants.test.ts` — **29 `it` blocks, three layers**
+**Reader:** `tests/invariants/gate-s2-claims.invariants.test.ts` — **31 `it` blocks, three layers**
 
 That count is **derived** by the suite itself (`^\s*it\(`), not typed here. The S1 record described its
 reader as 19 `it` blocks while the suite held 28 — stale by nine, in the flattering direction. A record
@@ -31,31 +31,70 @@ holds. That is the mode CI would run.
 
 ## The distinction this gate is built around
 
-A cohort under 500 has **two causes needing opposite actions**, and nothing in this repo records which:
+A cohort under 500 has **three causes needing different actions**, and nothing in this repo records which:
 
 | cause | is it a defect? | remedy |
 |---|---|---|
+| **our cohort cap bound the emitted set** | no — but it is **ours**, and it binds today | wait for auto-growth, or `TRUST_INGEST_MAX_ENTRIES` |
+| our mirror read was truncated | **yes** | raise the named mirror knob |
 | upstream holds fewer than 500 live records | **no** | none — no local change raises the cohort |
-| our own cap ended the read | **yes** | raise the named knob |
 
 The snapshot's `count` is what **we** emitted (150), never what upstream held. So a naive
 `served < 500 → FAIL` would pin CI red on a fact about the MCP registry's size, and a reader would
 "fix" it by raising a cap that was never binding.
 
-`cohort-completeness` therefore **REFUSES rather than fails**, and the refusal attributes the shortfall
-using `source.capReached` / `source.truncationReason` from the newest run report (schema v2). Three
-outcomes, and the third is a real answer rather than a fallback:
+**The middle row was originally missing, and its absence was a shipped defect — corrected 2026-08-31.**
+The gate attributed the shortfall from `source.capReached` alone. But `capReached` describes the
+**mirror read** — raw records in arrival order against `mirrorMaxEntries` (100,000) — while this measure's
+subject is the **served cohort**, bounded by `snapshotMaxEntries`, which `resolveMaxEntries` auto-grows
++50 per run. Two different quantities, two different caps, the mirror's ~500x larger. So `capReached`
+reads `false` on every run for years while the cohort sits at a cap that *did* bind.
 
-- `capReached: false` ⇒ **upstream's shortfall.** The read reached the end of the source. Conservative
-  by construction: `syncSource` reports a source holding *exactly* `maxEntries` as capped, so `false` is
-  strong evidence of exhaustion.
-- `capReached: true` ⇒ **ours.** The refusal names the binding cap and its environment knob per exit
-  (`record-cap` → `TRUST_INGEST_MIRROR_MAX_ENTRIES`, `page-cap` → `TRUST_INGEST_MIRROR_MAX_PAGES`,
-  `cursor-repeat` → **no local knob exists**).
+Fed the values the next real ingest will write (`recordsRead: 65235`, `capReached: false`,
+`snapshotMaxEntries: 200`), the gate printed:
+
+> read the source TO ITS END — 65235 record(s) with caps snapshot=200 … **neither of which bound it**.
+> So **upstream held fewer than 500 live records**
+
+Every clause false, and refuted by numbers in its own sentence: 65,235 is not "fewer than 500", and the
+cap that bound the cohort was printed beside the claim that no cap bound it. This is the fault class
+one level up — not a guard that cannot see its subject, but a guard reading **the wrong subject** and
+reporting confidently about it. `snapshotMaxEntries` was already validated and already printed; it was
+simply never branched on.
+
+The suite was green throughout, because its fixtures all carried `snapshotMaxEntries: 200` — under the
+threshold — so the cohort-cap branch (once added) intercepts every one, and each mirror-attribution test
+passed only by checking that a message *named* something, never that the branch under test had run. A
+fixture whose cohort cap already bounds the cohort cannot isolate a question about the mirror read; the
+suite now asserts its own fixture's validity so this cannot recur silently.
+
+`cohort-completeness` therefore **REFUSES rather than fails**, and the refusal attributes the shortfall
+from `source.snapshotMaxEntries` **first**, then `source.capReached` / `source.truncationReason`. Four
+outcomes, and the last is a real answer rather than a fallback:
+
+- `snapshotMaxEntries < 500` ⇒ **our cohort cap bound it**, whatever upstream held, and upstream
+  exhaustion is left explicitly unclaimed. Checked first because it is the cap that binds today. The knob
+  is `TRUST_INGEST_MAX_ENTRIES`; a mirror knob is *useless* here, and offering one is the wrong advice
+  that made the old message dangerous rather than merely imprecise.
+- `capReached: true` ⇒ **our mirror read was truncated.** The refusal names the binding cap and its
+  environment knob per exit (`record-cap` → `TRUST_INGEST_MIRROR_MAX_ENTRIES`, `page-cap` →
+  `TRUST_INGEST_MIRROR_MAX_PAGES`, `cursor-repeat` → **no local knob exists**).
+- `capReached: false` **and** the cohort cap ≥ 500 ⇒ **upstream's shortfall.** Both conditions, because
+  the mirror alone cannot support the claim. Conservative by construction: `syncSource` reports a source
+  holding *exactly* `maxEntries` as capped, so `false` is strong evidence of exhaustion.
 - no usable v2 report ⇒ **UNKNOWN, and it says so.** UNKNOWN is not SAFE — the product's own principle
   applied to its own gate. Claiming "upstream must be small" without evidence would be the
   confidently-wrong reason: consumed and acted on, sending someone to accept a shortfall our own cap
   in fact caused.
+
+**`capReached: true` is currently unreachable in a successful report, and that is worth knowing before
+trusting the second branch.** `assertMirrorComplete` throws inside `refreshFromMirror` (`:292`) *before*
+it returns, and `mirrored` is assigned only from a successful call — so a run whose mirror was truncated
+never reaches the report writer, and the crash path writes `source: null`. There is exactly one
+production writer (`refreshSnapshot.ts:511`) and one caller of `refreshFromMirror`. The branch is
+therefore reachable today only by a hand-written report, which is what the suite feeds it. Not a defect —
+fail-closed is correct — but it means the mirror-truncation branch is **untested against real output**,
+and a future caller that catches `MirrorIncompleteError` would be its first real exercise.
 
 ---
 
@@ -75,17 +114,32 @@ rather than performed as a side effect.
 
 **What would close this row** — either of:
 
-1. a v2 run report with `source.capReached: false`, which attributes the shortfall **upstream** and
-   turns S2's threshold into a wait rather than a task; or
+1. a v2 run report with `source.capReached: false` **and** `source.snapshotMaxEntries >= 500`, which
+   attributes the shortfall **upstream** and turns S2's threshold into a wait rather than a task; or
 2. the cohort reaching 500, at which point `cohort-completeness` becomes MEASURED and passes.
 
-**Falsification:** a v2 report with `capReached: true`. That would mean **our own cap** has
-been ending the read all along, and every "the cohort is just growing" reading of the last several runs
-was wrong. The remedy would be the named knob, not patience.
+Condition 1 was originally written as `capReached: false` alone — **which every run from here to the
+ceiling will satisfy while proving nothing**, because the mirror cap (100,000) cannot bind against
+upstream's ~65,000 records and the *cohort* cap is what holds the number down. Closing this row on that
+signal would have recorded "upstream is short" as an established fact about a registry observed to hold
+65,235 records. Both halves are required because the shortfall has two candidate owners and one signal
+cannot separate them.
+
+**Falsification:** a v2 report with `capReached: true`. That would mean **our mirror read** has been
+ending early all along, and every "the cohort is just growing" reading of the last several runs was wrong.
+The remedy would be the named mirror knob, not patience. Note this is currently unreachable in a
+successful report — `assertMirrorComplete` fails the run closed before the report is written — so its
+arrival would itself mean something changed about how truncation is handled.
 
 **Do NOT close this row by editing the threshold.** 500 is imported from
 `CUMULATIVE_COVERAGE_CEILING`, not written here, exactly so that lowering it to match reality requires
 touching the mechanism the pipeline actually uses.
+
+**Nor by raising `TRUST_INGEST_MAX_ENTRIES` to 500 in one jump.** That would make the cohort cap stop
+binding and let the gate reach its upstream verdict — a real answer, but obtained by overriding the
+auto-growth curve rather than by learning anything, and it discards the sticky-retention path the +50
+step exists to exercise (ADR 0086). If it is done deliberately, it is a decision that belongs in this
+row, not a side effect of wanting a green gate.
 
 ---
 
