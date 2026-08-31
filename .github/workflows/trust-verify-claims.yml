@@ -59,9 +59,156 @@ jobs:
       - name: Guard the regenerated pages (no overclaim / PII; completeness)
         run: pnpm check:public-copy
 
+      # ── Does this refresh carry anything a human must review? ──────────────────────────────
+      # Measured on PR #268 (2026-08-30): 1194 changed lines, and EVERY one was `ageDays`
+      # (894), `upstreamAgeDays` (298) or `bakedAt` (2) — zero non-temporal lines. Those three
+      # are pure functions of (stored instant, now): the bake recomputes "how long ago" on
+      # every run, so a day passing is sufficient to produce a full diff while the claim store
+      # is byte-identical (`verifiedAt` has not moved since 2026-07-24).
+      #
+      # A daily PR of that shape is not free. `GITHUB_TOKEN` cannot trigger workflows, so each
+      # one arrives with seven checks stuck in `action_required` — 98 such runs had queued up
+      # across 14 days (2026-08-08 → 08-30), which is a machine teaching its operator to
+      # rubber-stamp. The fix is to not open the PR, not to auto-approve the checks.
+      #
+      # So the PR below is gated on SUBSTANCE, asserted POSITIVELY: this step must FIND a
+      # changed line that is not one of the three clock-derived keys. Silence is never read as
+      # "pure churn" — an untracked file, a deletion, an unreadable diff, or a path outside the
+      # bake's own output all resolve to substantive=true, because an unreviewable diff is
+      # exactly what must reach a human (UNKNOWN is not SAFE).
+      #
+      # THIS SUPPRESSES A PR, NEVER A FACT. `trust-ingest` bakes the same pages every Monday,
+      # so `ageDays` still lands in git on that cadence; nothing goes stale that was not
+      # already refreshed weekly. And the suppression is printed, never silent — a quiet run
+      # must not look like a week with no claim activity.
+      - name: Decide whether this refresh carries substance
+        id: substance
+        run: |
+          set -uo pipefail
+
+          # `git status --porcelain`, NOT `git diff`: peter-evans/create-pull-request commits
+          # staged, unstaged AND untracked files alike, so a gate reading `git diff` would
+          # judge a smaller set than the one that ships. That is the defect trust-ingest's
+          # scope guard was rewritten for; it is not repeated here.
+          git status --porcelain > /tmp/dirty.txt
+
+          if [ ! -s /tmp/dirty.txt ]; then
+            echo "substantive=false" >> "$GITHUB_OUTPUT"
+            echo "✓ nothing dirty — the reconcile produced no diff at all, so there is nothing to open."
+            exit 0
+          fi
+
+          # The keys whose value is a pure function of (stored instant, now). Deliberately
+          # NARROW, and each exclusion is load-bearing: `at` / `observedAt` are stored
+          # instants, so if one moves a new observation happened and that IS substance;
+          # `cadenceDays` is policy; `pageDigest` is content. Only these three recompute from
+          # nothing but the wall clock.
+          TEMPORAL='"(ageDays|upstreamAgeDays|bakedAt)":'
+
+          substantive=false
+          reason=""
+
+          # Redirected from a file, not piped: a `while` on the right of a pipe runs in a
+          # subshell, where `substantive=true` would be set and then discarded at the loop's
+          # end — a gate that observes correctly and forgets the answer.
+          while IFS= read -r line; do
+            [ -n "$line" ] || continue
+            code=${line:0:2}
+            path=${line:3}
+            # A rename/copy reports "old -> new"; judge the destination.
+            case "$path" in *' -> '*) path=${path##* -> } ;; esac
+            # git quotes paths containing special characters.
+            path=$(printf '%s' "$path" | sed -e 's/^"//' -e 's/"$//')
+
+            case "$code" in
+              '??'*)
+                substantive=true
+                reason="a new file appeared ($path) — new content cannot be clock churn"
+                break ;;
+              *D*)
+                substantive=true
+                reason="a file was deleted ($path) — a removal is never clock churn"
+                break ;;
+            esac
+
+            case "$path" in
+              packages/trust-index/claims/claim-store.json)
+                substantive=true
+                reason="the claim store changed — this is the substance the job exists to detect"
+                break ;;
+              apps/web/public/trust/*) ;;
+              *)
+                substantive=true
+                reason="the run touched $path, outside the baked pages and the claim store"
+                break ;;
+            esac
+
+            # `git diff HEAD`, so a STAGED edit is still read.
+            changed=$(git diff HEAD -U0 -- "$path" | grep -E '^[+-][^+-]' || true)
+            if [ -z "$changed" ]; then
+              substantive=true
+              reason="$path is dirty but no changed line could be read — scope is unobservable, so it is not assumed inert"
+              break
+            fi
+            offclock=$(printf '%s\n' "$changed" | grep -vE "$TEMPORAL" || true)
+            if [ -n "$offclock" ]; then
+              substantive=true
+              reason="$path changed outside the clock-derived keys"
+              echo "  first non-temporal line(s) in $path:"
+              printf '%s\n' "$offclock" | head -5 | sed 's/^/    /'
+              break
+            fi
+          done < /tmp/dirty.txt
+
+          files=$(wc -l < /tmp/dirty.txt | tr -d ' ')
+          if [ "$substantive" = true ]; then
+            echo "substantive=true" >> "$GITHUB_OUTPUT"
+            echo "✓ substance found: $reason — opening a PR for review."
+            {
+              echo "### Claim verification — PR opened"
+              echo
+              echo "Substance: $reason"
+            } >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "substantive=false" >> "$GITHUB_OUTPUT"
+            echo "◇ suppressed: $files dirty file(s), every changed line one of ageDays / upstreamAgeDays / bakedAt."
+            echo "  These recompute from the wall clock alone, so this run carries no claim change."
+            git diff HEAD --stat | tail -3 | sed 's/^/  /'
+            {
+              echo "### Claim verification — no PR opened"
+              echo
+              echo "Reconciliation ran and the claim store is **unchanged**. The $files dirty"
+              echo "file(s) differ only in \`ageDays\` / \`upstreamAgeDays\` / \`bakedAt\`, which are"
+              echo "recomputed from the wall clock on every bake."
+              echo
+              echo "This suppresses a **PR**, not a fact: \`trust-ingest\` bakes the same pages"
+              echo "weekly, so these values still reach git on that cadence."
+            } >> "$GITHUB_STEP_SUMMARY"
+          fi
+
       - name: Open a PR with the reconciled claims + pages
+        # Gated on substance: a diff of nothing but recomputed clock values would arrive with
+        # seven checks stuck in `action_required` (GITHUB_TOKEN cannot trigger workflows) and
+        # nothing for a human to decide. See the step above for the measurement.
+        if: steps.substance.outputs.substantive == 'true'
         uses: peter-evans/create-pull-request@v7
         with:
+          # A PR opened with GITHUB_TOKEN cannot trigger workflows — by design, to stop
+          # recursive runs. The cost is that every such PR arrives with its checks parked in
+          # `action_required`, waiting on a human click that carries no judgement: 98 such runs
+          # queued up over 14 days (2026-08-08 → 08-30), which trains an operator to rubber-stamp.
+          #
+          # So prefer a fine-grained PAT scoped to THIS repo with contents+pull-requests write —
+          # no more than the `permissions:` block above already grants this job. It is deliberately
+          # NOT the GitHub App credential: that App holds `metadata: read` and only that
+          # (ADR 0048 §3, pinned by packages/trust-index/test/github-app.test.ts), and this
+          # convenience is not a reason to widen a security boundary. The PAT is independent and
+          # can be rolled at any time without touching the App.
+          #
+          # Falls back to GITHUB_TOKEN when the secret is absent. That degrades to "checks need a
+          # click", never to "the PR is not opened" — a claim change must reach a human even when
+          # the token is missing or has been rolled and not yet replaced.
+          token: ${{ secrets.TRUST_BOT_PAT || secrets.GITHUB_TOKEN }}
           branch: trust-verify/claim-refresh
           title: "chore(trust): reconcile maintainer claims + re-bake Trust Pages"
           commit-message: "chore(trust): scheduled claim verification (reconcile + bake)"

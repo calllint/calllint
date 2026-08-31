@@ -318,6 +318,13 @@ jobs:
         # No-ops cleanly when the bake produced no diff (registry unchanged).
         uses: peter-evans/create-pull-request@v7
         with:
+          # Fine-grained PAT (this repo only, contents+pull-requests write) so the PR's checks
+          # RUN instead of parking in `action_required`: a PR opened with GITHUB_TOKEN cannot
+          # trigger workflows. Not the GitHub App credential — that is `metadata: read` and stays
+          # that way (ADR 0048 §3). Absent secret falls back to GITHUB_TOKEN, so a missing or
+          # freshly-rolled PAT costs a click, never the PR itself. Same rationale as
+          # trust-verify-claims.yml, where it is written out in full.
+          token: ${{ secrets.TRUST_BOT_PAT || secrets.GITHUB_TOKEN }}
           branch: trust-ingest/registry-refresh
           title: "chore(trust): refresh Official MCP Registry snapshot + Trust Pages"
           commit-message: "chore(trust): scheduled registry ingestion (snapshot + bake)"
