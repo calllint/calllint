@@ -160,14 +160,32 @@ describe("Gate S0 — the status record is parsed, and it is not degenerate", ()
     // beyond drift detection — `**Status:**` is a per-row token, and an amendment that reuses it
     // makes the artifact claim a row it does not have. The fix was to the prose, not to this literal.
     // Index 0 flipped OPEN → CLOSED on 2026-08-13, and the positional form did its job a third
-    // time: it named row 1 rather than reporting "a status changed somewhere". S0-OPEN-4 is the
-    // ONLY row still open, which is the state to notice — the artifact is one row from empty, and
-    // that row's subject (the evicted self page) is the thing S0-OPEN-1's closure walked past.
+    // time: it named row 1 rather than reporting "a status changed somewhere".
+    //
+    // Index 3 flipped OPEN → CLOSED on 2026-08-31, a FOURTH deliberate edit, and it closed the last
+    // open row: this artifact is now all-CLOSED. That is worth stating rather than letting an
+    // all-`CLOSED` array look like a default. The self page is back on `main` at cohort 150 (both
+    // halves of S0-OPEN-4's own restated condition), the re-armed guards were negative-controlled
+    // rather than trusted for being green, and Gate 2.4-B's panel was re-run — the one remedy its
+    // 2026-08-13 amendment said no code change could supply.
+    //
+    // An ALL-CLOSED artifact is the state that most needs a positional literal, not the state that
+    // makes one redundant: `filter(s => s === "OPEN").length === 0` would pass here too, and would go
+    // on passing at every future length and every future status. The `.toEqual` pins arity and order.
+    //
+    // Measured, because the first draft of this comment credited it with more than it does: appending
+    // a sixth row reds the ROW-NUMBER assertion above (`['1'…'6']` vs `['1'…'5']`), not this line —
+    // a new row carrying `**Status:** **OPEN**` keeps this array's first five elements intact. Two
+    // assertions cover the append case and only one of them is this one. What THIS line uniquely
+    // refuses is a status flipped in place, which is what control #A exercised.
+    //
+    // S0-OPEN-4's own closure amendment records the matching gap one level up — nothing fires when a
+    // row's closing condition becomes TRUE, so the row waits rather than watches.
     const statuses = [...text.matchAll(/^\*\*Status:\*\* (?:\*\*)?(\w+)/gm)].map((m) => m[1])
     expect(
       statuses,
-      "each row states a status; only S0-OPEN-4 remains OPEN (1 closed 2026-08-13, 2/3/5 earlier)",
-    ).toEqual(["CLOSED", "CLOSED", "CLOSED", "OPEN", "CLOSED"])
+      "each row states a status; all five are CLOSED as of 2026-08-31 (4 closed last, 1 on 2026-08-13, 2/3/5 earlier) — a sixth element means a row was appended without one",
+    ).toEqual(["CLOSED", "CLOSED", "CLOSED", "CLOSED", "CLOSED"])
   })
 
   // THE ONLY ASSERTION HERE THAT READS THE `eol=lf` PIN, and it exists because control #181 proved
