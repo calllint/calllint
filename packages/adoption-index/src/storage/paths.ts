@@ -153,6 +153,53 @@ export function runReportPath(root: string, runId: string): string {
 }
 
 /**
+ * The root of the CAS manifest tree, `cas/manifests` — what one run REFERENCED in the blob store.
+ *
+ * The fourth directory in this file to get a helper, and the third to have been declared in
+ * `INDEX_SUBDIRS` from the first commit with no writer behind it. `reportsRoot`'s docblock names the
+ * fault class; this one is its next instance, and it was found by the guard the last one produced:
+ * `scripts/gate-s1.ts` has been counting files here since it was written, printing `cas/manifests=0`
+ * on every run, and its `cas-dedup-rate` measure REFUSED because a dedup rate is
+ * `distinct blobs ÷ manifest references` and the denominator had never been produced by anything.
+ *
+ * WHY A MANIFEST AND NOT A COUNTER. `verifyAndStore` already returns `deduplicated: boolean`, so a
+ * running total could have been carried in the run report — one number, no new directory. That was
+ * rejected: a count answers "how many hits" and cannot answer "against what", so a reader could not
+ * tell a genuine 90% reuse rate from a resolver that requested the same blob nine times. A manifest
+ * records WHICH digests a run referenced, so the denominator is a set of references that can be
+ * re-derived from disk and cross-checked against `cas/blobs` — the same reason the run report ships
+ * denominators beside numerators instead of rates. ADR 0093 §4.
+ *
+ * Flat, like `reports` and `work`, and unlike the two-character fan-out of `cas/blobs`: manifests are
+ * keyed by run, and a run count stays small enough that a listing is cheap. Callers must not assume a
+ * shared traversal shape across these roots — `gate-s1.ts:428` records that assuming one is what made
+ * its first blob census count 42 shards for 45 blobs.
+ */
+export function casManifestsRoot(root: string): string {
+  return resolve(root, "cas", "manifests")
+}
+
+/**
+ * The path of one run's CAS manifest, `cas/manifests/run-<id>.json`.
+ *
+ * The run id is validated because it becomes a path segment, for the same reason `casBlobPath`
+ * validates its hex and `runReportPath` validates its id. Run ids are internal (`beginCompilerRun`
+ * mints them), so a malformed one is a programming error rather than bad input, and this throws
+ * instead of returning a refusal.
+ *
+ * Deliberately the SAME `run-<id>.json` naming as `runReportPath`, so the two projections of one run
+ * join on their filename without a reader parsing either file. The regex is duplicated rather than
+ * shared: the two ids are the same value today, and a helper spanning them would make a future
+ * divergence a silent path change rather than a type error.
+ */
+export function casManifestPath(root: string, runId: string): string {
+  if (!/^[0-9a-zA-Z][0-9a-zA-Z._-]{0,127}$/.test(runId)) {
+    throw new Error(`casManifestPath: expected a filename-safe run id, received ${JSON.stringify(runId)}`)
+  }
+  return resolve(casManifestsRoot(root), `run-${runId}.json`)
+}
+
+/**
  * True when `candidate` is inside `root`. Used by the INV-R7 assertion, and written
  * with `resolve` on both sides so a `..` segment cannot smuggle a path past a plain
  * `startsWith` on unnormalized text.

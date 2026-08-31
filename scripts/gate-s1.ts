@@ -388,10 +388,21 @@ if (served === null) {
 //     `available_at` and NO `started_at` / `finished_at`. There is nowhere to record a duration.
 //     Adding the columns breaks the 14-column ↔ 14-property equality `domain/job.ts:13` documents,
 //     so it needs a migration and an ADR. It cannot be unblocked by running anything.
-//   - cas-dedup-rate: blocked on a MISSING WRITER, and a different one. `cas/manifests` is declared
-//     in `INDEX_SUBDIRS` and has zero writers anywhere in the repo — there is no `casManifestsRoot()`
-//     even as a path helper, unlike `casBlobsRoot()` / `casWorkRoot()`. The denominator has never
-//     been produced by anything, so this measure has never been computable by any run, past or future.
+//   - cas-dedup-rate: was blocked on a MISSING WRITER, and a different one from the others.
+//     `cas/manifests` was declared in `INDEX_SUBDIRS` with zero writers anywhere in the repo — no
+//     `casManifestsRoot()` even as a path helper, unlike `casBlobsRoot()` / `casWorkRoot()` — so the
+//     denominator had never been produced by anything and the measure was uncomputable by any run,
+//     past or future. **CLOSED 2026-08-31 (ADR 0093):** `artifacts/casManifest.ts` writes
+//     `cas/manifests/run-<id>.json` from the references `resolveArtifacts` already returns, and this
+//     gate reads it below. The blocker is now the same one `adapter-failure-rate` has — no run has
+//     executed against THIS checkout — which is closed by running an ingest rather than by building
+//     anything. The refusal says which of those two states it is in.
+//
+//     Note what the fix did NOT do: it did not sum `verifyAndStore`'s `deduplicated` booleans into a
+//     counter, which would have closed the measure with one integer and no new directory. A count
+//     answers "how many hits" and cannot answer "against what", so nine requests for one blob and
+//     nine distinct blobs sharing one prior both report "8 deduplicated" while meaning opposite
+//     things. ADR 0093 §4.
 //   - disk-growth: blocked on TIME. It needs two measurements separated by real runs. Today's
 //     number is recorded below as the baseline; one measurement cannot be a growth rate.
 //
@@ -659,6 +670,164 @@ function checkRunReport(v: unknown): RunReportCheck {
 
 const { best: runReport, rejected: rejectedReports } = newestRunReport()
 
+//---------------------------------------------------------------------------------------------------
+// CAS manifests — the denominator `cas-dedup-rate` never had
+//---------------------------------------------------------------------------------------------------
+
+/**
+ * The schema ids this gate can read for a CAS manifest. Exact membership, never a prefix — the same
+ * rule and the same reason as `READABLE_SCHEMAS` above: a prefix accepts every future version sight
+ * unseen, and this gate divides by the counts inside.
+ */
+const READABLE_MANIFEST_SCHEMAS = ["calllint.cas-manifest.v1"] as const
+const READABLE_MANIFEST_SCHEMAS_LIST = READABLE_MANIFEST_SCHEMAS.map((s) => `\`${s}\``).join(" or ")
+
+/** Only the fields this gate reads. Narrower than the writer's shape, on purpose. */
+interface CasManifestShape {
+  readonly schema: string
+  readonly runId: string
+  readonly completedAt: string
+  readonly references: readonly { readonly digest: string; readonly deduplicated: boolean }[]
+  readonly totals: {
+    readonly references: number
+    readonly distinctDigests: number
+    readonly deduplicated: number
+  }
+}
+
+type CasManifestCheck = { ok: true; manifest: CasManifestShape } | { ok: false; reason: string }
+
+/**
+ * Validate a manifest and RE-DERIVE its totals from its own list.
+ *
+ * The re-derivation is the point, not a formality. A manifest ships both the references and the counts
+ * over them, and a reader that trusted `totals` would be trusting the one number a buggy writer would
+ * get wrong — while the evidence to check it sits in the same file. So the counts are recomputed here
+ * and a disagreement is a REFUSAL naming both sides, which is the only way a projection can be caught
+ * lying about itself. This is `summarizeReferences`'s logic restated in a script that cannot import the
+ * package (`gate-s1.ts` links nothing, for the ABI reason the run-report docblock gives), and the
+ * duplication is deliberate: an independent recount is worth nothing if it calls the same function.
+ *
+ * Returns a REASON rather than a boolean for the reason `checkRunReport` records at length — a message
+ * assembled by a second reader of the value drifts from what the check rejected.
+ */
+function checkCasManifest(v: unknown): CasManifestCheck {
+  if (typeof v !== "object" || v === null) return { ok: false, reason: "not a JSON object" }
+  const r = v as Record<string, unknown>
+  if (typeof r.schema !== "string" || !(READABLE_MANIFEST_SCHEMAS as readonly string[]).includes(r.schema)) {
+    return {
+      ok: false,
+      reason:
+        typeof r.schema === "string"
+          ? `schema \`${r.schema}\`, not ${READABLE_MANIFEST_SCHEMAS_LIST}`
+          : "no readable `schema` field",
+    }
+  }
+  const found = r.schema
+  for (const k of ["runId", "completedAt"] as const) {
+    if (typeof r[k] !== "string") {
+      return { ok: false, reason: `schema \`${found}\` but \`${k}\` is missing or not a string` }
+    }
+  }
+  if (!Array.isArray(r.references)) {
+    return { ok: false, reason: `schema \`${found}\` but \`references\` is missing or not an array` }
+  }
+  const digests = new Set<string>()
+  let dedup = 0
+  for (const [i, raw] of r.references.entries()) {
+    if (typeof raw !== "object" || raw === null) {
+      return { ok: false, reason: `schema \`${found}\` but \`references[${i}]\` is not an object` }
+    }
+    const ref = raw as Record<string, unknown>
+    if (typeof ref.digest !== "string" || !/^sha256:[0-9a-f]{64}$/.test(ref.digest)) {
+      return {
+        ok: false,
+        reason:
+          `schema \`${found}\` but \`references[${i}].digest\` is ` +
+          `${ref.digest === undefined ? "missing" : `${JSON.stringify(ref.digest)}, not a \`sha256:<64 hex>\` digest`}`,
+      }
+    }
+    if (typeof ref.deduplicated !== "boolean") {
+      return { ok: false, reason: `schema \`${found}\` but \`references[${i}].deduplicated\` is not a boolean` }
+    }
+    digests.add(ref.digest)
+    if (ref.deduplicated) dedup += 1
+  }
+  const totals = r.totals
+  if (typeof totals !== "object" || totals === null) {
+    return { ok: false, reason: `schema \`${found}\` but \`totals\` is missing or not an object` }
+  }
+  const t = totals as Record<string, unknown>
+  for (const k of ["references", "distinctDigests", "deduplicated"] as const) {
+    if (!Number.isInteger(t[k]) || (t[k] as number) < 0) {
+      return {
+        ok: false,
+        reason:
+          `schema \`${found}\` but \`totals.${k}\` is ` +
+          `${t[k] === undefined ? "missing" : `${JSON.stringify(t[k])}, not a non-negative integer`}`,
+      }
+    }
+  }
+  // The recount. A manifest that disagrees with itself is refused, naming both sides — never quietly
+  // preferred one way, because which side is right is exactly what a reader here cannot know.
+  const derived = { references: r.references.length, distinctDigests: digests.size, deduplicated: dedup }
+  for (const k of ["references", "distinctDigests", "deduplicated"] as const) {
+    if (t[k] !== derived[k]) {
+      return {
+        ok: false,
+        reason:
+          `schema \`${found}\` but \`totals.${k}\` states ${String(t[k])} while its own \`references\` ` +
+          `list yields ${derived[k]} — the projection disagrees with itself`,
+      }
+    }
+  }
+  return { ok: true, manifest: v as CasManifestShape }
+}
+
+/**
+ * The newest CAS manifest across all candidate stores, plus the ones that could not be read.
+ *
+ * Same tolerant-in / strict-out contract as `newestRunReport`, and the `rejected` list is returned for
+ * the same reason: "no manifest" and "a manifest this gate cannot read" demand opposite actions from a
+ * human, and collapsing them is a refusal that misdirects.
+ */
+function newestCasManifest(): {
+  best: { manifest: CasManifestShape; path: string } | null
+  rejected: string[]
+} {
+  let best: { manifest: CasManifestShape; path: string } | null = null
+  const rejected: string[] = []
+  for (const f of footprints) {
+    const dir = path.join(f.root, "cas/manifests")
+    let entries: string[]
+    try {
+      entries = readdirSync(dir).filter((e) => e.startsWith("run-") && e.endsWith(".json"))
+    } catch {
+      continue
+    }
+    for (const e of entries) {
+      const p = path.join(dir, e)
+      let parsed: unknown
+      try {
+        parsed = JSON.parse(readFileSync(p, "utf8"))
+      } catch {
+        rejected.push(`${rel(p)} (not parseable as JSON)`)
+        continue
+      }
+      const checked = checkCasManifest(parsed)
+      if (!checked.ok) {
+        rejected.push(`${rel(p)} (${checked.reason})`)
+        continue
+      }
+      const m = checked.manifest
+      if (best === null || m.completedAt > best.manifest.completedAt) best = { manifest: m, path: p }
+    }
+  }
+  return { best, rejected }
+}
+
+const { best: casManifest, rejected: rejectedManifests } = newestCasManifest()
+
 /**
  * Measure 4 — adapter failure rate. The one measure this batch gave a source.
  *
@@ -742,16 +911,102 @@ refused(
     `columns breaks the 14-column ↔ 14-property equality \`domain/job.ts:13\` documents, so it needs a ` +
     `migration and an ADR — running the compiler cannot unblock this (S1-OPEN-1)`,
 )
-refused(
-  "cas-dedup-rate",
-  `${casBlobsTotal} blob(s) exist across all candidate stores but cas/manifests holds ${casManifestsTotal}, ` +
-    `so dedup has no DENOMINATOR: the rate is distinct blobs ÷ manifest references, and with zero ` +
-    `manifests there is nothing the blobs were deduplicated against. Reporting ${casBlobsTotal}/0 as ` +
-    `100% would be the empty-denominator defect with a non-zero numerator — the harder version to spot. ` +
-    `The blocker is a MISSING WRITER: \`cas/manifests\` is declared in \`INDEX_SUBDIRS\` but has no writer ` +
-    `and not even a \`casManifestsRoot()\` path helper, unlike \`casBlobsRoot()\`/\`casWorkRoot()\`, so no ` +
-    `run past or future can produce the denominator (S1-OPEN-1)`,
-)
+/**
+ * Measure 5 — CAS dedup rate. The second measure this ladder gave a source, and the fourth instance
+ * of one fault class to be closed by building the writer its reader had always assumed.
+ *
+ * WHAT CHANGED. `cas/manifests` was declared in `INDEX_SUBDIRS` from the first commit and censused by
+ * this gate from its own first commit, with no writer anywhere in the repo — so the census printed
+ * `cas/manifests=0` forever and this measure refused for a reason it stated exactly: a dedup rate is
+ * `distinct blobs ÷ manifest references`, and the denominator had never been produced by anything.
+ * `artifacts/casManifest.ts` now writes it (ADR 0093), so the denominator exists.
+ *
+ * WHY THE NUMERATOR IS NOT `deduplicated`. Two different reuse facts live in one manifest and they are
+ * NOT the same number:
+ *
+ *   references − distinctDigests   reuse WITHIN this run: references that resolved to a digest another
+ *                                  reference in the same run also resolved to.
+ *   deduplicated                   references whose bytes were ALREADY on disk when the run reached
+ *                                  them — which includes every blob a previous run stored.
+ *
+ * A run that fetched 40 unique artifacts into a warm store reports `deduplicated: 40` and within-run
+ * reuse 0. A run that requested one blob 40 times reports within-run reuse 39. Both are "high dedup"
+ * and they mean opposite things about the store, so BOTH are printed and neither is called "the" rate.
+ * That is the same discipline the run report follows in shipping denominators beside numerators.
+ *
+ * THE ZERO-DENOMINATOR BRANCH STILL REFUSES, and that is the point of having built this rather than a
+ * counter: `45 blobs / 0 manifests → 100%` was the original defect, a non-zero numerator over a zero
+ * denominator, and a manifest with zero references reproduces it exactly. A manifest that exists and
+ * references nothing is a real fact about a real run, and it is still not a rate.
+ *
+ * The blob census is cross-checked against the manifest rather than divided into it. `casBlobsTotal`
+ * counts files across ALL candidate stores while a manifest belongs to ONE run in ONE store, so a
+ * ratio between them would be two populations wearing one fraction — the mis-rooted-store defect this
+ * gate's own census exists to prevent. Distinct digests come from the manifest, whose references are
+ * what the run actually asked for.
+ */
+if (casManifest === null && rejectedManifests.length > 0) {
+  // A manifest EXISTS and this gate cannot read it. Do not tell the reader to run an ingest — one ran.
+  refused(
+    "cas-dedup-rate",
+    `${rejectedManifests.length} CAS manifest file(s) found and NONE readable, so the denominator is ` +
+      `present-but-uninterpretable rather than absent — an ingest HAS run and this gate cannot read what ` +
+      `it wrote. Running another will not help. Each reason is the specific clause that rejected it: ` +
+      `${rejectedManifests.join("; ")}`,
+  )
+} else if (casManifest === null) {
+  // The census counts every FILE under `cas/manifests`; `newestCasManifest` only opens the ones named
+  // `run-<id>.json`. When those two disagree, a file exists that neither `best` nor `rejected` can
+  // see — invisible to this measure while sitting in its own directory, which is this gate's own fault
+  // class one level down. So the count is stated rather than left out of the refusal: an unexplained
+  // difference here is the tell that a writer is using a name this reader does not know.
+  const unscanned =
+    casManifestsTotal > 0
+      ? ` The census counts ${casManifestsTotal} file(s) under \`cas/manifests\` that this reader did ` +
+        `not open, because it opens only \`run-<id>.json\` — a manifest under any other name is ` +
+        `invisible here and that difference is the finding, not a rounding detail.`
+      : ``
+  refused(
+    "cas-dedup-rate",
+    `no CAS manifest exists in any candidate store, so dedup has no DENOMINATOR: the rate is distinct ` +
+      `blobs ÷ manifest references, and with no manifest there is nothing the ${casBlobsTotal} blob(s) ` +
+      `were deduplicated against. Reporting ${casBlobsTotal}/0 as 100% would be the empty-denominator ` +
+      `defect with a non-zero numerator — the harder version to spot. The writer now EXISTS ` +
+      `(\`artifacts/casManifest.ts\`, ADR 0093), unlike when this refusal was permanent, so this is ` +
+      `"no run yet in this checkout" and is closed by running \`pnpm ingest:trust-index\` with ` +
+      `artifact resolution enabled — not by building anything (S1-OPEN-1).${unscanned}`,
+  )
+} else if (casManifest.manifest.totals.references === 0) {
+  refused(
+    "cas-dedup-rate",
+    `run ${casManifest.manifest.runId} wrote a manifest that references NO blobs, so the denominator is ` +
+      `zero: the artifact stage ran and resolved nothing to the CAS. REFUSED rather than reported as ` +
+      `0% or 100% — the empty-denominator defect, which a present manifest reproduces exactly as an ` +
+      `absent one did. \`${rel(casManifest.path)}\``,
+  )
+} else {
+  const t = casManifest.manifest.totals
+  const withinRun = t.references - t.distinctDigests
+  const withinPct = ((withinRun / t.references) * 100).toFixed(1)
+  const alreadyPct = ((t.deduplicated / t.references) * 100).toFixed(1)
+  measured(
+    "cas-dedup-rate",
+    // Both must hold, and each catches a different impossibility: more distinct digests than
+    // references means the recount in `checkCasManifest` is wrong, and more deduplicated than
+    // references means the writer counted a reference twice. Neither can fire today; a green
+    // assertion that cannot fire is why the negative controls run.
+    t.distinctDigests <= t.references && t.deduplicated <= t.references,
+    `${withinPct}% within-run reuse (${withinRun}/${t.references} references resolved to a digest ` +
+      `another reference in the same run also resolved to, over ${t.distinctDigests} distinct blob(s)), ` +
+      `and ${alreadyPct}% already-on-disk (${t.deduplicated}/${t.references} references whose bytes were ` +
+      `in the CAS before this run reached them, including blobs earlier runs stored). Reported as TWO ` +
+      `counts, not one "dedup rate": they answer different questions and a single number would be read ` +
+      `as whichever one the reader had in mind. Store census holds ${casBlobsTotal} blob file(s) across ` +
+      `ALL candidates, cross-checked rather than divided into — a manifest is one run in one store. ` +
+      `Source: run ${casManifest.manifest.runId}, \`${rel(casManifest.path)}\``,
+  )
+}
+
 refused(
   "disk-growth",
   `blocked on TIME: growth needs two measurements separated by real runs, and only one exists. ` +

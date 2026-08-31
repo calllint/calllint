@@ -81,6 +81,8 @@ export {
   isInsideRoot,
   casBlobPath,
   casBlobsRoot,
+  casManifestPath,
+  casManifestsRoot,
   casStagingPath,
   casWorkRoot,
   reportsRoot,
@@ -208,6 +210,13 @@ export type { TarEntry, TarInspectCaps, TarInspection, TarRefusal } from "./arti
 export { inspectTarball, normalizeEntryPath, DEFAULT_TAR_CAPS } from "./artifacts/tarInspect.js"
 export type { CasWriteAccepted, CasWriteRefused, CasWriteResult } from "./artifacts/cas.js"
 export { verifyAndStore, existsAsFile } from "./artifacts/cas.js"
+export type { CasManifest, CasManifestReference } from "./artifacts/casManifest.js"
+export {
+  CAS_MANIFEST_SCHEMA,
+  buildCasManifest,
+  summarizeReferences,
+  writeCasManifest,
+} from "./artifacts/casManifest.js"
 export type { ArtifactDownload } from "./artifacts/npmArtifactAdapter.js"
 export { npmArtifactAdapter, downloadArtifact, NPM_REGISTRY } from "./artifacts/npmArtifactAdapter.js"
 export type {

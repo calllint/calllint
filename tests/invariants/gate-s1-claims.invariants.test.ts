@@ -73,23 +73,36 @@ const SEVEN_MEASURES = [
 ] as const
 
 /**
- * The three that still have no data source in this checkout. Asserted as REFUSED, never as a number.
+ * The two that still have no data source in this checkout. Asserted as REFUSED, never as a number.
  *
- * NARROWED FROM FOUR by the compiler-run bookkeeping batch, and the narrowing is the thing to check
- * rather than accept: `adapter-failure-rate` acquired a real source (`reports/run-<id>.json`, written
- * by `refreshSnapshot.ts` around every ingest), so pinning it as permanently-REFUSED would now pin a
- * false claim. It moved to `ATTEMPT_SOURCED_MEASURES` below, where the assertions on it are STRICTER,
- * not absent — a measure with a source has more ways to go wrong than one with none.
+ * NARROWED TWICE, and each narrowing is the thing to check rather than accept.
  *
- * The other three did NOT acquire a source, and each is blocked differently — schema, missing writer,
- * elapsed time. That per-measure divergence is asserted in its own test below, because the batch that
- * narrowed this list found all four sharing one hint that was true of only one of them.
+ * FOUR → THREE (compiler-run bookkeeping): `adapter-failure-rate` acquired a real source
+ * (`reports/run-<id>.json`, written by `refreshSnapshot.ts` around every ingest), so pinning it as
+ * permanently-REFUSED would have pinned a false claim.
+ *
+ * THREE → TWO (ADR 0093, 2026-08-31): `cas-dedup-rate` acquired one the same way — `cas/manifests`
+ * was the one blocker on this row that named a MISSING WRITER, and the writer now exists
+ * (`packages/adoption-index/src/artifacts/casManifest.ts`). Its blocker is now the SAME as
+ * `adapter-failure-rate`'s: no run has executed against this checkout. Both moved to
+ * `ATTEMPT_SOURCED_MEASURES` below, where the assertions on them are STRICTER, not absent — a measure
+ * with a source has more ways to go wrong than one with none.
+ *
+ * The two that remain did NOT acquire a source, and are blocked differently — schema, elapsed time.
+ * That per-measure divergence is asserted in its own test below, because the batch that first narrowed
+ * this list found all four sharing one hint that was true of only one of them.
  */
-const REFUSED_MEASURES = [
-  "processing-time-mean-p95",
-  "cas-dedup-rate",
-  "disk-growth",
-] as const
+const REFUSED_MEASURES = ["processing-time-mean-p95", "disk-growth"] as const
+
+/**
+ * The measures that HAVE a source and may therefore reach `measured(...)` — where the assertions get
+ * stricter rather than disappearing.
+ *
+ * Both are blocked on the same thing today (no run in this checkout) and neither may be pinned as
+ * permanently-refused: an assertion that reds because a claim became TRUE is pinning the wrong
+ * property, which is what the three → two narrowing above was forced by.
+ */
+const ATTEMPT_SOURCED_MEASURES = ["adapter-failure-rate", "cas-dedup-rate"] as const
 
 /**
  * Slice one `## S1-OPEN-N` row, asserting BOTH boundaries.
@@ -410,7 +423,7 @@ describe("Gate S1 — the refusal is enforced by the source, not by the prose th
     }
   })
 
-  it("the three measures with no data source are REFUSED, and cannot be reported as a rate", () => {
+  it("the two measures with no data source are REFUSED, and cannot be reported as a rate", () => {
     const src = gateCode()
     // THE ASSERTION THIS FILE EXISTS FOR. Each of the three must be passed to `refused(...)` — not to
     // `measured(...)`. A future batch computing any of them over the empty store would print a
@@ -432,7 +445,7 @@ describe("Gate S1 — the refusal is enforced by the source, not by the prose th
     }
   })
 
-  it("each of the three names its OWN blocker, not one shared hint", () => {
+  it("each remaining refusal names its OWN blocker, not one shared hint", () => {
     const src = gateCode()
     // The defect this test is the measurement for. All four runtime measures once shared one refusal
     // hint — "no queue driver exists (S1-OPEN-1)" — which was true of none of them exactly. Attempts
@@ -450,12 +463,18 @@ describe("Gate S1 — the refusal is enforced by the source, not by the prose th
     expect(src, "processing-time is blocked on the schema, not on a driver").toMatch(
       /blocked on SCHEMA[\s\S]{0,400}started_at/,
     )
-    expect(src, "cas-dedup is blocked on a writer that has never existed").toMatch(
-      /MISSING WRITER[\s\S]{0,300}cas\/manifests/,
-    )
     expect(src, "disk-growth is blocked on elapsed time, and nothing else").toMatch(
       /blocked on TIME[\s\S]{0,300}two measurements/,
     )
+    // `cas-dedup-rate` is deliberately ABSENT from the list above, and its absence is asserted rather
+    // than left implicit: `MISSING WRITER` was this row's own blocker until ADR 0093 built the writer,
+    // and a stale copy of that phrase is exactly the claim that outlives its subject. The gate must no
+    // longer say it — anywhere, comments included, since the phrase's only remaining purpose would be
+    // to describe a blocker that no longer exists.
+    expect(
+      readText(GATE),
+      "the MISSING WRITER blocker was closed by ADR 0093 and must not survive as a live claim",
+    ).not.toMatch(/^(?![^\n]*was blocked on)[^\n]*MISSING WRITER/m)
     // Each blocker must reach the reader through its OWN measure's refusal, not merely exist somewhere
     // in the file: the regexes above span up to 400 characters and would still match if two of these
     // phrases migrated into one message. Sliced per measure, so the pairing is what is asserted.
@@ -467,7 +486,6 @@ describe("Gate S1 — the refusal is enforced by the source, not by the prose th
     expect(messageFor("processing-time-mean-p95"), "the schema blocker belongs to processing-time").toContain(
       "blocked on SCHEMA",
     )
-    expect(messageFor("cas-dedup-rate"), "the missing writer belongs to cas-dedup").toContain("MISSING WRITER")
     expect(messageFor("disk-growth"), "elapsed time belongs to disk-growth").toContain("blocked on TIME")
     // And the struck hint must not come back.
     expect(
@@ -660,7 +678,6 @@ describe("Gate S1 — the rows say OPEN, and what would make each false", () => 
     // reader just as effectively.
     for (const [measure, blocker] of [
       ["processing-time-mean-p95", /SCHEMA/],
-      ["cas-dedup-rate", /MISSING WRITER/],
       ["disk-growth", /TIME/],
     ] as const) {
       const at = r.indexOf(`\`${measure}\``)
@@ -670,10 +687,13 @@ describe("Gate S1 — the rows say OPEN, and what would make each false", () => 
       const cell = r.slice(at, r.indexOf("|", r.indexOf("|", at + measure.length + 2) + 1))
       expect(cell, `${measure}'s own cell must name its own blocker`).toMatch(blocker)
     }
-    // And the measure that ACQUIRED a source must be recorded as resolved rather than quietly dropped.
-    // Deleting it would leave the row truthful and the history unreadable — this artifact's own rule.
-    expect(r, "the resolved measure must be struck, not deleted").toMatch(
+    // And each measure that ACQUIRED a source must be recorded as resolved rather than quietly dropped.
+    // Deleting one would leave the row truthful and the history unreadable — this artifact's own rule.
+    expect(r, "the first resolved measure must be struck, not deleted").toMatch(
       /`adapter-failure-rate` \| ~~no source~~ \*\*RESOLVED\*\*/,
+    )
+    expect(r, "the second resolved measure must be struck, not deleted").toMatch(
+      /`cas-dedup-rate` \| ~~MISSING WRITER~~ \*\*RESOLVED\*\*/,
     )
     // The struck remedy must survive too: it is the second one struck on this row, and both were
     // struck for naming an unreachable action.
@@ -684,12 +704,16 @@ describe("Gate S1 — the rows say OPEN, and what would make each false", () => 
     expect(gate, "the gate must still refuse processing-time on the schema blocker").toMatch(
       /"processing-time-mean-p95"[\s\S]{0,400}blocked on SCHEMA/,
     )
-    expect(gate, "the gate must still refuse dedup on the missing writer").toMatch(
-      /"cas-dedup-rate"[\s\S]{0,900}MISSING WRITER/,
-    )
     expect(gate, "the gate must still refuse disk-growth on elapsed time").toMatch(
       /"disk-growth"[\s\S]{0,400}blocked on TIME/,
     )
+    // The CAS manifest writer this row's strike credits must EXIST — the strike is about nothing
+    // otherwise, which is the failure mode the row itself was opened to record one rung down. Asserted
+    // against the writer's own exports, not against a filename: a file present and empty would satisfy
+    // a path check while producing no denominator at all.
+    const manifest = readText("packages/adoption-index/src/artifacts/casManifest.ts")
+    expect(manifest, "the writer the strike credits must exist").toMatch(/export function writeCasManifest/)
+    expect(manifest, "and it must build what the gate reads").toMatch(/export function buildCasManifest/)
     // The queue functions the row's struck history names must still exist, or the strike is about
     // nothing.
     const queue = readText("packages/adoption-index/src/operations/compilerQueue.ts")
@@ -933,6 +957,115 @@ describe("Gate S1 — the rows say OPEN, and what would make each false", () => 
         expect(out, `${label} must not produce a percentage`).not.toMatch(
           /\[MEASURED\] adapter-failure-rate/,
         )
+      }
+    } finally {
+      rmSync(dir, { recursive: true, force: true })
+    }
+  }, 120_000)
+
+  it("cas-dedup-rate is computed from a manifest, refuses an empty denominator, and catches a manifest that disagrees with itself", () => {
+    // THE SECOND EXECUTING TEST, and for the same reason as the first: what ADR 0093 closed was a
+    // measure whose entire content is a MESSAGE carrying two counts, and this suite has already been
+    // burned once by grepping for a message's pieces (see `stripComments` — `blocked on SCHEMA` matched
+    // a docblock, so collapsing the runtime refusal stayed green). The pieces are present in every
+    // wrong version too. Only running it shows which branch it took and what it printed.
+    //
+    // Four fixtures, each isolating one branch. `ADOPTION_INDEX_CWD` points the gate at a store this
+    // test creates, so the only input is the fixture.
+    const dir = mkdtempSync(join(tmpdir(), "gate-s1-dedup-"))
+    const manifests = join(dir, ".var", "calllint-adoption-index", "cas", "manifests")
+    mkdirSync(manifests, { recursive: true })
+
+    const digest = (c: string): string => `sha256:${c.repeat(64)}`
+    /** Two references to one blob and one to another: within-run reuse 1 of 3, already-on-disk 2 of 3. */
+    const references = [
+      { artifactVersionId: "av-1", digest: digest("a"), deduplicated: false },
+      { artifactVersionId: "av-2", digest: digest("a"), deduplicated: true },
+      { artifactVersionId: "av-3", digest: digest("b"), deduplicated: true },
+    ]
+    const valid = {
+      schema: "calllint.cas-manifest.v1",
+      runId: "fixture",
+      completedAt: "2026-08-31T00:01:00.000Z",
+      references,
+      totals: { references: 3, distinctDigests: 2, deduplicated: 2 },
+    }
+
+    const runGate = (name: string, body: string): string => {
+      for (const e of readdirSync(manifests)) rmSync(join(manifests, e), { force: true })
+      writeFileSync(join(manifests, `run-${name}.json`), body)
+      // Report mode, not `--gate`: this is about the TEXT of a measure, and `--gate` exits non-zero on
+      // the other refusals that are still outstanding in any checkout.
+      return execFileSync("pnpm", ["gate:s1"], {
+        cwd: fileURLToPath(repoRoot),
+        encoding: "utf8",
+        env: { ...process.env, ADOPTION_INDEX_CWD: dir },
+        stdio: ["ignore", "pipe", "pipe"],
+        shell: process.platform === "win32",
+      })
+    }
+
+    try {
+      // CASE 1 — the MEASURED branch, which no checkout of this repo has ever exercised: the measure
+      // had refused on every run since it was written, so "it can produce a number at all" was
+      // unproven until this fixture. Both counts are asserted, with their denominators, because the
+      // whole design decision ADR 0093 §4 records is that these are TWO facts and neither is "the"
+      // dedup rate.
+      const ok = runGate("ok", JSON.stringify(valid))
+      expect(ok, "a readable manifest must be MEASURED, not refused").toMatch(/\[MEASURED\] cas-dedup-rate/)
+      expect(ok, "within-run reuse is references minus distinct digests, over references").toContain("1/3")
+      expect(ok, "already-on-disk is the deduplicated count, over the same denominator").toContain("2/3")
+      expect(ok, "and the distinct-blob count must be stated, since it is the other denominator").toContain(
+        "2 distinct blob(s)",
+      )
+      // The two counts must not be collapsed into one number. A single "dedup rate" is the defect the
+      // ADR names: 40 unique artifacts into a warm store and one blob requested 40 times both read as
+      // "high dedup" and mean opposite things.
+      expect(ok, "the two reuse facts must be labelled distinctly, not merged").toContain("within-run reuse")
+      expect(ok, "the two reuse facts must be labelled distinctly, not merged").toContain("already-on-disk")
+
+      // CASE 2 — a manifest that exists and references NOTHING. The empty-denominator defect
+      // reproduced by a PRESENT manifest, which is why building the writer did not retire the refusal:
+      // `45 blobs / 0 references` would render as 100% exactly as `45 blobs / 0 manifests` did.
+      const empty = runGate(
+        "empty",
+        JSON.stringify({ ...valid, references: [], totals: { references: 0, distinctDigests: 0, deduplicated: 0 } }),
+      )
+      expect(empty, "a zero denominator must REFUSE, never print 0% or 100%").toMatch(
+        /\[REFUSED \] cas-dedup-rate/,
+      )
+      expect(empty, "and must say the stage ran and resolved nothing — not that no manifest exists").toContain(
+        "references NO blobs",
+      )
+
+      // CASE 3 — totals that disagree with the references they summarize. The reason the gate recounts
+      // instead of trusting `totals`: the evidence to check the number sits in the same file, so a
+      // reader that trusted it would be trusting the one field a buggy writer gets wrong.
+      const lying = runGate(
+        "lying",
+        JSON.stringify({ ...valid, totals: { references: 3, distinctDigests: 3, deduplicated: 2 } }),
+      )
+      expect(lying, "a self-contradicting projection must be REFUSED").toMatch(/\[REFUSED \] cas-dedup-rate/)
+      expect(lying, "and the refusal must name BOTH sides, since which one is right is unknowable here").toContain(
+        "the projection disagrees with itself",
+      )
+      expect(lying, "naming the field that disagrees").toContain("`totals.distinctDigests` states 3")
+
+      // CASE 4 — a schema the gate does not know. Exact membership, never a prefix: a `.v2` that
+      // renamed `deduplicated` would otherwise be read with v1 semantics and produce a confident wrong
+      // pair of counts. Asserted for the same reason the run report's v3 case is.
+      const v2 = runGate("v2", JSON.stringify({ ...valid, schema: "calllint.cas-manifest.v2" }))
+      expect(v2, "an unknown manifest schema must refuse").toMatch(/\[REFUSED \] cas-dedup-rate/)
+      expect(v2, "naming the version it found and the set it would have taken").toContain(
+        "schema `calllint.cas-manifest.v2`, not `calllint.cas-manifest.v1`",
+      )
+      // A present-but-unreadable manifest must NOT be reported as an absent one: one says "run an
+      // ingest", the other says "an ingest ran and wrote something this gate cannot read", and sending
+      // a reader to repeat an act that already happened is the misdirection `newestRunReport` records.
+      expect(v2, "an unreadable manifest is not a missing one").not.toContain("no CAS manifest exists")
+
+      for (const [label, out] of [["empty", empty], ["lying", lying], ["v2", v2]] as const) {
+        expect(out, `${label} must not produce a rate`).not.toMatch(/\[MEASURED\] cas-dedup-rate/)
       }
     } finally {
       rmSync(dir, { recursive: true, force: true })

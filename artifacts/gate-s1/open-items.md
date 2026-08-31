@@ -152,10 +152,16 @@ kept `gate:s0:gate` out of CI, and the mirror image of the reason report mode wa
 step with no failing mode). The two enforcing modes are separated rather than blended, because a
 single mode covering both would have had to soften one.
 
-Note the count is **four refusals over three missing sources**, and the gap is deliberate rather than
-sloppy: `adapter-failure-rate` has a source and still refuses, because no ingest has run against this
-checkout since the writer landed. "Has a source" and "has a measurement" are different states, and
-collapsing them is how a gate comes to report a number it never took.
+Note the count is **four refusals over ~~three~~ two missing sources**, and the gap is deliberate
+rather than sloppy: `adapter-failure-rate` and `cas-dedup-rate` both have sources and still refuse,
+because no ingest has run against this checkout since either writer landed. "Has a source" and "has a
+measurement" are different states, and collapsing them is how a gate comes to report a number it never
+took.
+
+The gap widened from one measure to two on 2026-08-31 (ADR 0093), and that is the direction to expect:
+building a writer moves a measure from *unbuildable* to *unrun*, which is progress that a
+refusal-count alone cannot show. A reader watching only "4 refused" would see this batch as having
+changed nothing.
 
 Report mode exits **0 unconditionally, by design**: a report mode that could fail would be a
 third enforcing mode by accident.
@@ -163,7 +169,7 @@ third enforcing mode by accident.
 ### The record has a machine reader, and it was proven able to red
 
 Everything above is a claim in prose, and prose does not fail. `tests/invariants/gate-s1-claims.invariants.test.ts`
-is the reader — **30 `it` blocks, three layers**, modelled on the Gate S0 suite because the failure
+is the reader — **31 `it` blocks, three layers**, modelled on the Gate S0 suite because the failure
 modes are the same ones:
 
 1. **POINTER TRUTH** — every `path:line` this file cites must resolve to a line *containing* what it
@@ -213,17 +219,17 @@ Workstream R measured for raw names. The tell was the shape of the failure: a jo
 
 ---
 
-## S1-OPEN-1 — three of seven measures have no data source, so S1 cannot be CLAIMED passed
+## S1-OPEN-1 — two of seven measures have no data source, so S1 cannot be CLAIMED passed
 
-**Status:** **OPEN (narrowed from four measures to three, 2026-08-31).**
+**Status:** **OPEN (narrowed twice: ~~four measures~~ → ~~three~~ → two, 2026-08-31).**
 
 Three green measures are not Gate S1. The refused ones are precisely the *scale* measures —
 throughput, dedup efficiency, disk growth — so what is currently proven is that the served tree is
 **complete and self-consistent at 150 records**, not that the pipeline *performs* at 150. Those are
 different claims and S1 asks the second one.
 
-**NARROWED 2026-08-31, and the narrowing is the part to check rather than accept.** This row said
-"four", and said all four were blocked by the same thing: no queue driver. Both halves were wrong.
+**NARROWED TWICE 2026-08-31, and each narrowing is the part to check rather than accept.** This row
+said "four", and said all four were blocked by the same thing: no queue driver. Both halves were wrong.
 `adapter-failure-rate` acquired a real source — `refreshSnapshot.ts` now brackets every ingest in
 `beginCompilerRun`/`concludeCompilerRun` and writes `reports/run-<id>.json`, which the gate reads —
 and the other three are each blocked by something *different*, which the single shared remedy hid.
@@ -233,8 +239,20 @@ Splitting them is what makes each remaining blocker actionable:
 | --- | --- | --- |
 | `adapter-failure-rate` | ~~no source~~ **RESOLVED** | a run report exists and is read; MEASURED once an ingest runs against the checkout |
 | `processing-time-mean-p95` | **SCHEMA** | `compiler_jobs` has `created_at`/`updated_at`/`available_at` and no `started_at`/`finished_at` (`migrations/001-canonical-adoption-graph.sql`), so no duration is recorded anywhere. Adding the columns breaks the 14-column ↔ 14-property equality `domain/job.ts:13` documents → needs a migration **and an ADR**. Running the compiler cannot unblock this. |
-| `cas-dedup-rate` | **MISSING WRITER** | `cas/manifests` is declared in `INDEX_SUBDIRS` but has no writer and not even a `casManifestsRoot()` helper, unlike `casBlobsRoot()`/`casWorkRoot()`. No run, past or future, can produce the denominator. |
+| `cas-dedup-rate` | ~~MISSING WRITER~~ **RESOLVED** | `artifacts/casManifest.ts` now writes `cas/manifests/run-<id>.json` and `refreshSnapshot.ts` calls it on both the success and the crash path (ADR 0093). MEASURED once an ingest runs with artifact resolution enabled. |
 | `disk-growth` | **TIME** | two measurements separated by real runs. A baseline is recorded (below); the second one cannot be willed into existence. |
+
+**The second narrowing was a DESIGN gap, not an implementation one, and the distinction is why it
+needed an ADR.** `cas/manifests` had been declared in `INDEX_SUBDIRS` and censused by this gate since
+the first commit, and nothing ever wrote one — the fourth instance in this store of the fault class
+`storage/paths.ts:reportsRoot` names: a reader whose subject does not exist reads a benign value
+forever and never says so. What made it *not* a missing function is that no manifest format existed
+anywhere in the repo or the blueprint, so "write the writer" had no schema to write against. ADR 0093
+§4 records the fork that was actually taken and the cheaper option that was rejected: summing
+`verifyAndStore`'s `deduplicated` booleans into one counter would have closed the measure with one
+integer and no new directory, and it cannot answer *against what* — nine requests for one blob and
+nine distinct blobs sharing one prior both report "8 deduplicated" while meaning opposite things about
+the store.
 
 **Why the collapsed version was a defect and not just imprecision:** it named *one* remedy — "write
 a queue driver" — for four blockers, three of which a queue driver does not touch. A reader who
@@ -254,11 +272,25 @@ row on paper while asserting something nobody measured. The script refuses them 
 (`refused` carries no `ok` field, so it cannot be summed into a pass rate); this row is the prose
 reason that refusal must survive review.
 
-**Falsification:** if `gate:s1` ever prints a MEASURED tier for `processing-time-mean-p95` or
-`cas-dedup-rate` while `compiler_jobs` is without duration columns or `cas/manifests` is without a
-writer, this row's refusal has been circumvented. For `adapter-failure-rate`, which now *may*
-legitimately be MEASURED: if it prints a rate whose denominator includes `skippedNoAdapter`, or
-prints `0%` where zero attempts were made, the measure has been circumvented instead of the row.
+**Falsification:** stated per measure, because a shared clause is what let the collapsed version
+survive — and because two of the four now have sources, so the ways they can be circumvented have
+changed and are no longer the ways they can be blocked.
+
+- `processing-time-mean-p95` — if `gate:s1` prints a MEASURED tier while `compiler_jobs` carries no
+  duration columns, the refusal has been circumvented.
+- `cas-dedup-rate` — the blocked-on-a-writer half of this clause is now **impossible**, and a
+  falsification condition that cannot fire is the exact defect this row exists to record, so it is
+  re-aimed at what can now go wrong instead of deleted: if the gate prints a rate whose denominator is
+  a manifest's zero `references`, or collapses within-run reuse (`references − distinctDigests`) and
+  already-on-disk (`deduplicated`) into a single "dedup rate", or reports totals a manifest states
+  without recounting its own `references` list, the measure has been circumvented. ~~or while
+  `cas/manifests` is without a writer~~ — struck 2026-08-31, unreachable since ADR 0093.
+- `disk-growth` — if it prints growth from one measurement, or from two taken without an intervening
+  run.
+- `adapter-failure-rate`, which now *may* legitimately be MEASURED: if it prints a rate whose
+  denominator includes `skippedNoAdapter`, or prints `0%` where zero attempts were made, the measure
+  has been circumvented instead of the row.
+
 (Stated against the specific missing artefacts, not against "`.var/` is empty" — the original
 wording would have been *satisfied* by the mis-rooted read S1-OPEN-4 records.)
 
@@ -443,7 +475,7 @@ changed is *why* one of the four refuses.
 | page quality | MEASURED | ✓ 149/149 baked subjects carry html+json+manifest and agree with the index on both digests | — |
 | adapter failure rate | REFUSED | ✗ `no run report exists yet` | **source acquired.** Was "0 attempts recorded" (no source at all) |
 | mean/p95 processing time | REFUSED | ✗ blocked on SCHEMA — no `started_at`/`finished_at` columns | reason sharpened; blocker unchanged |
-| CAS dedup rate | REFUSED | ✗ 45 blobs, `cas/manifests` = 0 — MISSING WRITER | reason sharpened; blocker unchanged |
+| CAS dedup rate | REFUSED | ✗ 45 blobs, `cas/manifests` = 0 — `no CAS manifest exists` | **source acquired (ADR 0093).** Was MISSING WRITER: no format existed to write |
 | disk growth | REFUSED | ✗ baseline only | **baseline now recorded:** `packages/trust-index/.var/…` at 2551808 B, 45 blobs, 0 reports |
 
 Store census, both candidates (the S1-OPEN-4 seam, printed unconditionally):
@@ -461,6 +493,13 @@ the gate now says which one it is in:
 - *No source* → nothing could ever produce the number. That was the 2026-08-28 state.
 - *Source, no data* → the writer exists, and no run has executed against this checkout since it
   landed. `reports=0` in both stores is the evidence.
+
+**`cas-dedup-rate` joined it in the second state on 2026-08-31**, and its move is the sharper
+illustration, because the first state was *permanent* for that measure rather than merely current:
+`cas/manifests=0` was not "no run yet", it was "no run, past or future, could produce this", since no
+writer and no format existed. Both stores still print `cas/manifests=0` — the same number as before —
+which is exactly why the refusal text and not the census is where the change is legible. A gate whose
+census is unchanged can still have moved.
 
 The refusal names the second and points at `pnpm ingest:trust-index`, which is a **reachable** remedy —
 unlike the one struck from S1-OPEN-1 twice. That the number is still absent is therefore not a defect

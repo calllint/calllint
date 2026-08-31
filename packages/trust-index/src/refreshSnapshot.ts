@@ -101,6 +101,7 @@ import { fileURLToPath } from "node:url"
 import {
   AdoptionIndexStore,
   beginCompilerRun,
+  buildCasManifest,
   compileEvidence,
   concludeCompilerRun,
   createAdapterRegistry,
@@ -115,6 +116,7 @@ import {
   refreshFromMirror,
   resolveArtifacts,
   resolveIndexPaths,
+  writeCasManifest,
   writeRunReport,
   RUN_REPORT_SCHEMA,
   describeSourceChange,
@@ -574,6 +576,61 @@ async function main(): Promise<void> {
       }
     }
 
+    /**
+     * Project the run's CAS references onto `cas/manifests/run-<id>.json`.
+     *
+     * The second projection of one run, and the same argument as `projectRunReport` above:
+     * `gate-s1.ts` counts files in `cas/manifests` and has printed `0` on every run since it was
+     * written, because that directory was declared in `INDEX_SUBDIRS` from the first commit and
+     * nothing ever wrote it. Its `cas-dedup-rate` measure refused for a reason it stated exactly —
+     * a dedup rate is `distinct blobs ÷ manifest references`, and the denominator did not exist.
+     *
+     * WRITTEN ONLY WHEN THE ARTIFACT STAGE ACTUALLY RAN. `mirrored.artifacts` is `null` when no
+     * artifact port was passed (`TRUST_INGEST_ARTIFACTS=0`), and an empty manifest in that case
+     * would assert "this run referenced no blobs" about a run that was never asked to look. That is
+     * precisely the not-run-vs-ran-and-counted-zero distinction `attempts.artifacts` keeps one
+     * function up, and collapsing it here would hand the gate a zero denominator wearing a
+     * measurement's clothes — the defect that kept the measure refused in the first place.
+     *
+     * A run that resolved artifacts and referenced none DOES write a manifest, with zero
+     * references. That is a fact about the store, and the gate is built to refuse a zero
+     * denominator loudly rather than divide by it.
+     *
+     * References come from `records`, which `resolveArtifacts` already returns — `digest` and
+     * `deduplicated` are `verifyAndStore`'s own values, carried through untouched. No second
+     * derivation, for the reason the six counters above give: that is how two numbers about one run
+     * start to disagree. `FETCHED` is the only outcome with a digest, so it is the only one that
+     * yields a reference; the others are attempt outcomes and the run report already counts them.
+     *
+     * Failure to write must NOT fail the run, matching `projectRunReport`: this is a projection, the
+     * CAS itself is the record of truth, and losing the readable copy is strictly less bad than
+     * discarding a completed compile. Logged loudly, because a silent write failure would recreate
+     * the exact blindness this exists to remove.
+     */
+    const projectCasManifest = (): void => {
+      const artifacts = mirrored?.artifacts
+      if (artifacts === undefined || artifacts === null) return
+      try {
+        const written = writeCasManifest(
+          paths.root,
+          buildCasManifest({
+            runId,
+            completedAt: now,
+            references: artifacts.records
+              .filter((r) => r.outcome === "FETCHED" && r.immutableDigest !== null)
+              .map((r) => ({
+                artifactVersionId: r.artifactVersionId,
+                digest: r.immutableDigest as string,
+                deduplicated: r.deduplicated,
+              })),
+          }),
+        )
+        console.log(`cas manifest: ${written}`)
+      } catch (manifestErr) {
+        console.error(`cas manifest NOT written for ${runId}: ${String(manifestErr)}`)
+      }
+    }
+
     try {
       mirrored = await refreshFromMirror({
         store,
@@ -621,6 +678,7 @@ async function main(): Promise<void> {
         metrics: runMetrics,
       })
       projectRunReport(mirrored.snapshotDigest)
+      projectCasManifest()
     } catch (err) {
       // A null manifest is what makes `gradeRun` record FAILED — the store refuses any other grade
       // without a digest, so the two cannot disagree. Re-thrown: the run is recorded, not absorbed.
@@ -632,6 +690,12 @@ async function main(): Promise<void> {
         metrics: runMetrics,
       })
       projectRunReport(null)
+      // Called on the failure path too, and it self-suppresses when the artifact stage did not run
+      // (`mirrored` unassigned on a crash, so `mirrored?.artifacts` is `undefined`). A run that
+      // crashed AFTER resolving artifacts really did reference those blobs, and dropping the
+      // manifest would make the CAS hold bytes no manifest accounts for — an orphan the gate would
+      // report against the wrong side.
+      projectCasManifest()
       throw err
     }
   } finally {
