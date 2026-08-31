@@ -356,7 +356,7 @@ if (served === null) {
 }
 
 //---------------------------------------------------------------------------------------------------
-// Measures 4–7 — the runtime measures, REFUSED.
+// Measures 4–7 — the runtime measures. THREE ARE STILL REFUSED; ONE NOW HAS A SOURCE.
 //
 // THE REFUSALS STAND; THE REASON THE FIRST VERSION GAVE DID NOT. It asserted "the rolling compiler has
 // not run against this checkout" from a directory listing of the repo root alone. Measured: a store
@@ -364,30 +364,50 @@ if (served === null) {
 // versions and 45 CAS blobs. The compiler HAS run; the gate was looking somewhere else
 // (see `storeCandidates`).
 //
-// What survives that correction, and why these four are still REFUSED rather than computed:
+// THE SECOND VERSION'S SHARED REASON HAS ALSO NOW EXPIRED, and it is worth recording why, because the
+// error was the same shape twice. All four refusals carried one hint — "no queue driver exists
+// (S1-OPEN-1)" — which treated a single missing component as the sole blocker for four independent
+// measures. That was half wrong. `compiler_jobs` is indeed empty, but the four compile stages
+// (`syncSource`, `resolveIdentity`, `resolveArtifacts`, `compileEvidence`) are ALL wired and default-ON
+// in `packages/trust-index/src/refreshSnapshot.ts` — the first two inside `refreshFromMirror`, the
+// other two through its `artifactPort` / `evidencePort` seams. Attempts were happening on every ingest
+// run. They were simply never RECORDED. So the blocker was never "no execution"; it was "no
+// bookkeeping", and pinning it on a missing driver hid three genuinely different blockers behind one
+// sentence.
 //
-//   - `compiler_jobs` and `compiler_runs` are empty in EVERY candidate store, and that is not an
-//     accident of this checkout — `enqueueJobs` / `beginCompilerRun` / `withCompilerRun`
-//     (`packages/adoption-index/src/operations/compilerQueue.ts:94,343,438`) have NO non-test caller
-//     anywhere in `packages/*/src`, `apps/*/src`, `scripts/` or `.github/workflows/`. The queue is a
-//     library with no driver. So "processing time" and any per-job failure rate have no source, and
-//     cannot acquire one by running the existing worker.
-//   - The worker unit's three steps (`ingest:trust-index`, `project-adoption-index:trust-index`,
-//     `prune:cas`) never touch the queue. The first version's remedy — "Populate via the R-9
-//     worker/controller" — therefore named an executable that does not exist. A refusal whose remedy
-//     is unreachable is not an instruction; it is a dead end with a confident tone.
+// Each measure now states its OWN blocker, because they are not the same blocker:
+//
+//   - adapter-failure-rate: HAS A SOURCE NOW. `refreshSnapshot.ts` brackets the ingest in
+//     `beginCompilerRun` / `concludeCompilerRun` and projects the result to
+//     `reports/run-<id>.json`, carrying `considered` / `unavailable` / `rejected` /
+//     `skippedNoAdapter` as separate counts. This gate reads that JSON rather than the database,
+//     for the ABI reason below. Until a run has been executed against this checkout the file is
+//     absent, and an absent report is REFUSED — never 0/0.
+//   - processing-time-mean-p95: blocked on SCHEMA, not on a driver. `compiler_jobs`
+//     (`migrations/001-canonical-adoption-graph.sql`) has `created_at` / `updated_at` /
+//     `available_at` and NO `started_at` / `finished_at`. There is nowhere to record a duration.
+//     Adding the columns breaks the 14-column ↔ 14-property equality `domain/job.ts:13` documents,
+//     so it needs a migration and an ADR. It cannot be unblocked by running anything.
+//   - cas-dedup-rate: blocked on a MISSING WRITER, and a different one. `cas/manifests` is declared
+//     in `INDEX_SUBDIRS` and has zero writers anywhere in the repo — there is no `casManifestsRoot()`
+//     even as a path helper, unlike `casBlobsRoot()` / `casWorkRoot()`. The denominator has never
+//     been produced by anything, so this measure has never been computable by any run, past or future.
+//   - disk-growth: blocked on TIME. It needs two measurements separated by real runs. Today's
+//     number is recorded below as the baseline; one measurement cannot be a growth rate.
 //
 // `artifact_versions.artifact_status` DOES carry a real distribution (measured: FETCHED 45 /
 // RESOLVED 25 / UNAVAILABLE 8), which is adapter-shaped evidence. It is deliberately NOT reported as
-// "adapter failure rate": that column records the ARTIFACT's resolution state, not one adapter
-// ATTEMPT's outcome, so a rate over it would answer a different question than §342 asks while wearing
-// the name of the one it asks. Turning it into the measure is a decision that needs the queue's
-// attempt records, not a cast. S1-OPEN-4 carries it.
+// "adapter failure rate": that column grades an artifact's state, not an attempt's outcome, so a rate
+// over it would answer a different question than §342 asks while wearing the name of the one it asks.
+// The run report answers the question actually asked, because it counts ATTEMPTS. S1-OPEN-4 carries
+// the distinction, and it stays open: the cheapest way to close this measure on paper is still to
+// rename that column into it.
 //
 // Reading SQLite is still declined here, and now for a narrower reason than the first version gave:
 // `better-sqlite3` is pinned to 12.9.0 for an ABI cliff, and a gate that cannot start on a mismatched
-// Node is worse than one that reports less. The counts above were obtained out-of-band and are
-// recorded in `artifacts/gate-s1/open-items.md`; what this script reads is the filesystem.
+// Node is worse than one that reports less. That constraint is precisely why the run report is a JSON
+// file: a projection with no ABI. The row in `compiler_runs` remains the record of truth; if the two
+// ever disagree, the row wins and the report is the bug.
 //---------------------------------------------------------------------------------------------------
 
 /** One store's observable footprint, with the path that produced it so a number can never float free. */
@@ -460,35 +480,255 @@ const storeCensus =
     .join("\n")
 
 /**
- * The one sentence every refusal needs: the remedy is not "run the worker".
+ * The newest run report across all candidate stores, plus a count of files that LOOKED like reports
+ * and could not be read.
  *
- * Kept short deliberately. The full argument lives in the section docblock above and in
- * `artifacts/gate-s1/open-items.md`; what a refusal line owes the reader is the fact that the obvious
- * remedy is unavailable, not the whole case for why.
+ * Deliberately tolerant on the way in and strict on the way out. Any file that is missing, unreadable,
+ * not JSON, of an unknown schema, or missing the `attempts.artifacts` section is skipped rather than
+ * crashed on — a gate that dies on one malformed report tells the reader nothing about the other six
+ * measures. But a skipped report is NOT downgraded to zeros: no report means REFUSED, and the whole
+ * point of this function is that "no report" and "a report saying zero" stay distinguishable.
+ *
+ * `rejected` is returned rather than discarded because the two refusals read identically to a human
+ * and demand opposite actions. A missing report means "run an ingest"; a present-but-unreadable one
+ * means "an ingest ran and wrote something this gate cannot interpret" — most likely a schema bump —
+ * and telling that reader to run another ingest would send them to repeat an act that already
+ * happened. An earlier version of this function collapsed both into "no run report exists yet", which
+ * is a refusal that misdirects: the same defect class as a wrong measurement, just wearing a refusal's
+ * clothes.
+ *
+ * "Newest" is by `completedAt` string compare, which is correct for the ISO-8601-Z timestamps the
+ * writer emits and requires no clock read here.
  */
-const storeHint = `no queue driver exists (S1-OPEN-1); see the store census below`
+function newestRunReport(): {
+  best: { report: RunReportShape; path: string } | null
+  rejected: string[]
+} {
+  let best: { report: RunReportShape; path: string } | null = null
+  const rejected: string[] = []
+  for (const f of footprints) {
+    const dir = path.join(f.root, "reports")
+    let entries: string[]
+    try {
+      entries = readdirSync(dir).filter((e) => e.startsWith("run-") && e.endsWith(".json"))
+    } catch {
+      continue
+    }
+    for (const e of entries) {
+      const p = path.join(dir, e)
+      let parsed: unknown
+      try {
+        parsed = JSON.parse(readFileSync(p, "utf8"))
+      } catch {
+        rejected.push(`${rel(p)} (not parseable as JSON)`)
+        continue
+      }
+      const checked = checkRunReport(parsed)
+      if (!checked.ok) {
+        rejected.push(`${rel(p)} (${checked.reason})`)
+        continue
+      }
+      const report = checked.report
+      if (best === null || report.completedAt > best.report.completedAt) best = { report, path: p }
+    }
+  }
+  return { best, rejected }
+}
+
+/**
+ * The exact schema id this gate can read, written ONCE.
+ *
+ * It appears in the shape check and in every refusal reason that check produces. Two copies of a schema
+ * id is how a gate comes to reject a file for not being a version it is in fact looking at.
+ */
+const SCHEMA_ID = "calllint.compiler-run-report.v1"
+
+/** Only the fields this gate reads. A narrower shape than the writer's, on purpose. */
+interface RunReportShape {
+  readonly schema: string
+  readonly runId: string
+  readonly outcome: string
+  readonly completedAt: string
+  readonly attempts: {
+    readonly artifacts: {
+      readonly considered: number
+      readonly fetched: number
+      readonly unavailable: number
+      readonly rejected: number
+      readonly skippedNoAdapter: number
+      readonly cached: number
+    } | null
+  }
+}
+
+/**
+ * Validate the shape before trusting a number out of it, and return WHY when it refuses.
+ *
+ * The schema id is checked exactly, not by prefix: a `.v2` that renamed a counter would otherwise be
+ * read with v1 semantics and produce a confident wrong rate. An unknown version must refuse, which is
+ * the same rule the product applies to its own inputs — UNKNOWN is not SAFE.
+ *
+ * It returns a REASON rather than a boolean because the caller cannot reconstruct one. The first
+ * version was a type guard, and its caller had to re-derive the cause from the outside; the only thing
+ * it could still see was `schema`, so it printed both candidate causes joined by "or". On a report whose
+ * schema was right and whose FIELDS had drifted that rendered as
+ *
+ *     schema `calllint.compiler-run-report.v1`, not `calllint.compiler-run-report.v1`, or missing
+ *     required fields
+ *
+ * — a sentence that denies its own first clause. The refusal was correct; its reason misdirected, which
+ * is the defect class the `newestRunReport` docblock above already describes for "no report" vs
+ * "unreadable report", reappearing one level down. A message assembled by a second reader of the same
+ * value drifts from what the check actually rejected; a message produced BY the check cannot.
+ *
+ * So each `return` below carries the specific clause for the branch it is in, and the field-drift branch
+ * names the offending key. `checkRunReport` is the only place that decides both.
+ */
+type RunReportCheck = { ok: true; report: RunReportShape } | { ok: false; reason: string }
+
+function checkRunReport(v: unknown): RunReportCheck {
+  if (typeof v !== "object" || v === null) return { ok: false, reason: "not a JSON object" }
+  const r = v as Record<string, unknown>
+  if (r.schema !== SCHEMA_ID) {
+    return {
+      ok: false,
+      reason:
+        typeof r.schema === "string"
+          ? `schema \`${r.schema}\`, not \`${SCHEMA_ID}\``
+          : "no readable `schema` field",
+    }
+  }
+  for (const k of ["runId", "outcome", "completedAt"] as const) {
+    if (typeof r[k] !== "string") {
+      return { ok: false, reason: `schema \`${SCHEMA_ID}\` but \`${k}\` is missing or not a string` }
+    }
+  }
+  const attempts = r.attempts
+  if (typeof attempts !== "object" || attempts === null) {
+    return { ok: false, reason: `schema \`${SCHEMA_ID}\` but \`attempts\` is missing or not an object` }
+  }
+  const artifacts = (attempts as Record<string, unknown>).artifacts
+  // `null` is a MEANINGFUL value here, not an absence: it is how the writer records a run that ran with
+  // artifact resolution disabled. Accepting it is what lets the caller refuse with "stage DISABLED"
+  // instead of lumping a deliberate skip in with a malformed file.
+  if (artifacts === null) return { ok: true, report: v as RunReportShape }
+  if (typeof artifacts !== "object") {
+    return { ok: false, reason: `schema \`${SCHEMA_ID}\` but \`attempts.artifacts\` is neither an object nor null` }
+  }
+  const a = artifacts as Record<string, unknown>
+  for (const k of ["considered", "fetched", "unavailable", "rejected", "skippedNoAdapter", "cached"] as const) {
+    if (!Number.isInteger(a[k]) || (a[k] as number) < 0) {
+      return {
+        ok: false,
+        reason:
+          `schema \`${SCHEMA_ID}\` but \`attempts.artifacts.${k}\` is ` +
+          `${a[k] === undefined ? "missing" : `${JSON.stringify(a[k])}, not a non-negative integer`}`,
+      }
+    }
+  }
+  return { ok: true, report: v as RunReportShape }
+}
+
+const { best: runReport, rejected: rejectedReports } = newestRunReport()
+
+/**
+ * Measure 4 — adapter failure rate. The one measure this batch gave a source.
+ *
+ * The rate is `(unavailable + rejected) / (unavailable + rejected + fetched + cached)`: attempts that
+ * were TRIED and failed, over attempts that were tried at all. `skippedNoAdapter` is excluded from
+ * both halves — `resolveArtifacts.ts:33` is explicit that not-tried is not tried-and-failed, and
+ * folding it into the denominator would silently dilute the rate toward zero on a cohort where most
+ * subjects have no adapter, which is exactly today's cohort. It is printed alongside so the reader can
+ * see how much of `considered` was never attempted.
+ *
+ * The zero-denominator branch REFUSES instead of reporting 0%. That is the whole lesson of
+ * `gate-s0.ts`'s first INV-R4, which printed "0 dangerous false-SAFE" as a PASS from 39 reads of a
+ * path that did not exist. A rate over zero attempts is not a good result; it is no result.
+ */
+if (runReport === null && rejectedReports.length > 0) {
+  // A report EXISTS and this gate cannot read it. Do not tell the reader to run an ingest — one ran.
+  //
+  // The generic half of this message used to assert a cause: "An unknown schema is REFUSED rather than
+  // read with v1 semantics". That is true of a schema bump and FALSE of the field-drift case, where the
+  // schema matched exactly and a counter had been renamed — so on that input the sentence contradicted
+  // the per-file reason printed two clauses earlier. A wrapper that names a cause its own detail lines
+  // may disagree with is the `newestRunReport` defect at one level up, so this one names the RULE
+  // (refuse rather than guess) and leaves the cause to `checkRunReport`, which is the only thing that
+  // knows it.
+  refused(
+    "adapter-failure-rate",
+    `${rejectedReports.length} run report file(s) exist but NONE is readable by this gate, so no rate ` +
+      `can be computed and none is guessed: ${rejectedReports.join("; ")}. A report this gate cannot ` +
+      `validate is REFUSED rather than read with v1 semantics — a renamed or missing counter would ` +
+      `otherwise produce a confident wrong rate. Remedy: reconcile \`checkRunReport\` in this script ` +
+      `with the writer in \`packages/adoption-index/src/storage/runReport.ts\` — do NOT re-run the ` +
+      `ingest, one already ran`,
+  )
+} else if (runReport === null) {
+  refused(
+    "adapter-failure-rate",
+    `no run report exists yet. \`refreshSnapshot.ts\` now brackets every ingest in ` +
+      `\`beginCompilerRun\`/\`concludeCompilerRun\` and writes \`reports/run-<id>.json\`, but no run has ` +
+      `been executed against this checkout since that landed, so there is nothing to read. Remedy: run ` +
+      `\`pnpm ingest:trust-index\`. An absent report is REFUSED and never 0/0`,
+  )
+} else if (runReport.report.attempts.artifacts === null) {
+  refused(
+    "adapter-failure-rate",
+    `run ${runReport.report.runId} ran with artifact resolution DISABLED ` +
+      `(\`TRUST_INGEST_ARTIFACTS=0\`), so it made no adapter attempts. This is reported as REFUSED and ` +
+      `not as 0% because a stage that did not run is a different fact from a stage that ran cleanly — ` +
+      `\`${rel(runReport.path)}\``,
+  )
+} else {
+  const a = runReport.report.attempts.artifacts
+  const failed = a.unavailable + a.rejected
+  const attempted = failed + a.fetched + a.cached
+  if (attempted === 0) {
+    refused(
+      "adapter-failure-rate",
+      `run ${runReport.report.runId} attempted 0 artifact resolutions (considered ${a.considered}, ` +
+        `all ${a.skippedNoAdapter} skipped for want of an adapter), so a failure rate would be 0/0. ` +
+        `REFUSED rather than reported as 0% — the empty-denominator defect — \`${rel(runReport.path)}\``,
+    )
+  } else {
+    const pct = ((failed / attempted) * 100).toFixed(1)
+    measured(
+      "adapter-failure-rate",
+      failed <= attempted,
+      `${pct}% of ATTEMPTED adapter resolutions failed (${failed}/${attempted} = ` +
+        `${a.unavailable} unavailable + ${a.rejected} rejected, over ${a.fetched} fetched + ` +
+        `${a.cached} cached + those failures). ${a.skippedNoAdapter} of ${a.considered} considered were ` +
+        `never attempted (no adapter) and are excluded from BOTH halves. Source: run ` +
+        `${runReport.report.runId} (${runReport.report.outcome}), \`${rel(runReport.path)}\``,
+    )
+  }
+}
 
 refused(
-  "adapter-failure-rate",
-  `no adapter ATTEMPT is recorded — \`compiler_jobs\` is empty in all ${footprints.length} candidate store(s), ` +
-    `so a rate would read 0 failures / 0 attempts. (\`artifact_versions.artifact_status\` carries a ` +
-    `real distribution, but it grades an artifact's state, not an attempt's outcome — S1-OPEN-4) — ${storeHint}`,
-)
-refused(
   "processing-time-mean-p95",
-  `no job has a recorded start/finish, so mean and p95 would be computed over an empty set — ${storeHint}`,
+  `blocked on SCHEMA, not on a missing driver: \`compiler_jobs\` has \`created_at\`/\`updated_at\`/` +
+    `\`available_at\` and no \`started_at\`/\`finished_at\` ` +
+    `(\`migrations/001-canonical-adoption-graph.sql\`), so no duration is recorded anywhere. Adding the ` +
+    `columns breaks the 14-column ↔ 14-property equality \`domain/job.ts:13\` documents, so it needs a ` +
+    `migration and an ADR — running the compiler cannot unblock this (S1-OPEN-1)`,
 )
 refused(
   "cas-dedup-rate",
   `${casBlobsTotal} blob(s) exist across all candidate stores but cas/manifests holds ${casManifestsTotal}, ` +
     `so dedup has no DENOMINATOR: the rate is distinct blobs ÷ manifest references, and with zero ` +
     `manifests there is nothing the blobs were deduplicated against. Reporting ${casBlobsTotal}/0 as ` +
-    `100% would be the empty-denominator defect with a non-zero numerator — the harder version to spot — ${storeHint}`,
+    `100% would be the empty-denominator defect with a non-zero numerator — the harder version to spot. ` +
+    `The blocker is a MISSING WRITER: \`cas/manifests\` is declared in \`INDEX_SUBDIRS\` but has no writer ` +
+    `and not even a \`casManifestsRoot()\` path helper, unlike \`casBlobsRoot()\`/\`casWorkRoot()\`, so no ` +
+    `run past or future can produce the denominator (S1-OPEN-1)`,
 )
 refused(
   "disk-growth",
-  `disk growth needs two measurements over time and there is no baseline recorded ` +
-    `(largest store today: ${rel(primary.root)} at ${primary.dbBytes}B) — ${storeHint}`,
+  `blocked on TIME: growth needs two measurements separated by real runs, and only one exists. ` +
+    `Baseline recorded today — largest store ${rel(primary.root)} at ${primary.dbBytes}B, ` +
+    `${casBlobsTotal} CAS blob(s), ${runReport === null ? 0 : 1}+ run report(s). A single measurement ` +
+    `is not a rate (S1-OPEN-1)`,
 )
 
 //---------------------------------------------------------------------------------------------------

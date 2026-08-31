@@ -100,21 +100,28 @@ import { dirname, resolve } from "node:path"
 import { fileURLToPath } from "node:url"
 import {
   AdoptionIndexStore,
+  beginCompilerRun,
   compileEvidence,
+  concludeCompilerRun,
   createAdapterRegistry,
   createOfficialRegistryAdapter,
   describeArtifactResolution,
   describeCohortConservation,
   describeEvidenceCompilation,
+  emptyRunMetrics,
+  gradeRun,
   npmArtifactAdapter,
   openBetterSqlite3,
   refreshFromMirror,
   resolveArtifacts,
   resolveIndexPaths,
+  writeRunReport,
+  RUN_REPORT_SCHEMA,
   describeSourceChange,
   DEFAULT_MIRROR_MAX_ENTRIES,
   DEFAULT_MAX_PAGES,
   MIGRATIONS_DIRNAME,
+  type CompilerRunMetrics,
 } from "@calllint/adoption-index"
 import { hashJson } from "@calllint/fingerprint"
 // A POLICY NAME, in the INGESTION plane. Not a decision: `hashJson(policy)` is a FINGERPRINT,
@@ -429,20 +436,180 @@ async function main(): Promise<void> {
           )
       : undefined
 
-    mirrored = await refreshFromMirror({
+    // 1d. THE RUN BRACKET (R-6, wired here for the first time). Until this line `compiler_runs`
+    //     had no non-test writer anywhere in the repository, and `artifacts/gate-s1/open-items.md`
+    //     S1-OPEN-1 recorded the consequence: four of Gate S1's seven measures print `✗ REFUSED`
+    //     because they are properties of a compiler RUN and no run was ever recorded.
+    //
+    //     WHY HERE AND NOT IN A NEW BIN. The obvious reading of "the queue is a library with no
+    //     driver" is that a driver must be written. Measured, that reading is wrong: all four
+    //     stages `domain/job.ts:52` names ALREADY run in production — `syncSource` and
+    //     `resolveIdentity` inside `refreshFromMirror`, `resolveArtifacts` and `compileEvidence`
+    //     through the two ports above, both defaulted ON. The 78 artifact versions and 45 CAS
+    //     blobs in `packages/trust-index/.var/` are that pipeline's output. So a separate driver
+    //     would not give the queue its first real work; it would run a SECOND copy of work that
+    //     already happens, and the two would disagree. What was missing is not execution — it is
+    //     BOOKKEEPING over the execution that already occurs, which is exactly what
+    //     `domain/job.ts:57` means by "wiring the stages to consume from it is later work".
+    //
+    //     WHY NOT `withCompilerRun`, WHICH EXISTS FOR PRECISELY THIS. Because it CANNOT bracket
+    //     this body, and the reason is a real defect rather than a preference. It is a synchronous
+    //     `try/catch` (`compilerQueue.ts:438`); `refreshFromMirror` is `async`. A synchronous
+    //     `try` around a call that returns a promise completes the instant the promise is
+    //     CONSTRUCTED, so the rejection surfaces after the `catch` has gone out of scope: the
+    //     handler never runs, no `FAILED` row is written, and the run sits in `RUNNING` forever —
+    //     the exact state its docblock says it exists to prevent, since `jobStates.ts` gives
+    //     `RUNNING` no self-edge. Every existing test drives it with a synchronous body
+    //     (`job-lease.test.ts:759,860`), so nothing in the suite could have caught this. It is
+    //     recorded as S1-OPEN-5 rather than fixed here: making the bracket generic over
+    //     `T | Promise<T>` changes a shipped R-6 signature, which is not this batch's business.
+    //
+    //     So the bracket is open-coded with `try/catch/await`, which is what the async shape
+    //     requires, and it keeps `withCompilerRun`'s two load-bearing properties verbatim:
+    //     `metricsOf` is read AFTER the body (so a crash records the work that really happened
+    //     instead of six zeros), and the success path concludes the run explicitly because only
+    //     the body knows its output manifest.
+    const runMetrics: CompilerRunMetrics = emptyRunMetrics()
+    const runInputDigest = hashJson({ retainedNames, maxEntries, mirrorMaxEntries, maxPages })
+    const runId = beginCompilerRun({
       store,
-      adapter: createOfficialRegistryAdapter(DEFAULT_ENDPOINT),
-      fetchImpl: fetch,
-      now,
-      endpoint: DEFAULT_ENDPOINT,
-      snapshotMaxEntries: maxEntries,
-      mirrorMaxEntries,
-      maxPages,
-      mode: "full",
-      retainedNames,
-      ...(artifactPort === undefined ? {} : { artifactPort }),
-      ...(evidencePort === undefined ? {} : { evidencePort }),
+      runType: "full",
+      // The digest over what this pass CONSUMES. `retainedNames` plus the three caps are the
+      // inputs that decide which cohort the run reads; `now` is deliberately excluded, since a
+      // replay with the same inputs is the same run and a clock read would make every run unique.
+      inputManifestDigest: runInputDigest,
+      startedAt: now,
     })
+
+    /**
+     * Project the run onto `reports/run-<id>.json`, so a reader that cannot open SQLite can still
+     * see what happened.
+     *
+     * `scripts/gate-s1.ts` counts files in `reports/` but deliberately never opens the database
+     * (`better-sqlite3` is pinned against an ABI cliff, and a gate that cannot load a native module
+     * reports nothing). Until now nothing wrote that directory, so the gate read `reports=0`
+     * forever and could not tell "no run yet" from "no writer was ever built".
+     *
+     * Declared ONCE and called on both the success and the failure path, because the failure path
+     * is the one that matters most to a gate and is the one a second hand-written copy would get
+     * wrong. It takes the manifest as a parameter for the same reason `concludeCompilerRun` does:
+     * only the body knows whether there is one.
+     *
+     * `gradeRun` is reused rather than re-derived — the report must not be able to disagree with
+     * the `compiler_runs` row about the outcome, and the only way to guarantee that is to call the
+     * same function on the same inputs.
+     *
+     * Failure to write a report must NOT fail the run: this is a projection, the row is the record
+     * of truth, and losing the readable copy is strictly less bad than discarding a completed
+     * compile. It is logged loudly instead, because a silent write failure would recreate the exact
+     * blindness this file exists to remove.
+     */
+    const projectRunReport = (outputManifestDigest: string | null): void => {
+      try {
+        const written = writeRunReport(paths.root, {
+          schema: RUN_REPORT_SCHEMA,
+          runId,
+          runType: "full",
+          outcome: gradeRun(runMetrics, outputManifestDigest),
+          startedAt: now,
+          completedAt: now,
+          outputManifestDigest,
+          inputManifestDigest: runInputDigest,
+          metrics: runMetrics,
+          attempts: {
+            // Raw counts, denominators included, never rates — see `runReport.ts`. `null` when the
+            // stage did not run at all, which a reader must not confuse with a stage that ran and
+            // counted zero.
+            artifacts:
+              mirrored?.artifacts === undefined || mirrored?.artifacts === null
+                ? null
+                : {
+                    considered: mirrored.artifacts.considered,
+                    fetched: mirrored.artifacts.fetched,
+                    unavailable: mirrored.artifacts.unavailable,
+                    rejected: mirrored.artifacts.rejected,
+                    skippedNoAdapter: mirrored.artifacts.skippedNoAdapter,
+                    cached: mirrored.artifacts.cached,
+                  },
+            evidence:
+              mirrored?.evidence === undefined || mirrored?.evidence === null
+                ? null
+                : {
+                    considered: mirrored.evidence.considered,
+                    compiled: mirrored.evidence.compiled,
+                    unchanged: mirrored.evidence.unchanged,
+                    noDigest: mirrored.evidence.noDigest,
+                    blobUnreadable: mirrored.evidence.blobUnreadable,
+                    archiveRefused: mirrored.evidence.archiveRefused,
+                  },
+          },
+        })
+        console.log(`run report: ${written}`)
+      } catch (reportErr) {
+        console.error(`run report NOT written for ${runId}: ${String(reportErr)}`)
+      }
+    }
+
+    try {
+      mirrored = await refreshFromMirror({
+        store,
+        adapter: createOfficialRegistryAdapter(DEFAULT_ENDPOINT),
+        fetchImpl: fetch,
+        now,
+        endpoint: DEFAULT_ENDPOINT,
+        snapshotMaxEntries: maxEntries,
+        mirrorMaxEntries,
+        maxPages,
+        mode: "full",
+        retainedNames,
+        ...(artifactPort === undefined ? {} : { artifactPort }),
+        ...(evidencePort === undefined ? {} : { evidencePort }),
+      })
+
+      // The six counters, each from the ONE place that already reports it — never recomputed here,
+      // because a second derivation is how two numbers about one run start to disagree.
+      //
+      // `failures` is the load-bearing one: it is what `gradeRun` reads to decide SUCCEEDED vs
+      // PARTIAL, and it counts artifact resolution ATTEMPTS THAT FAILED (`unavailable` + `rejected`)
+      // plus evidence compilations that could not read their blob. `skippedNoAdapter` is NOT
+      // included — `resolveArtifacts.ts:33` states that not-tried is not the same as tried-and-
+      // failed, and folding it in would make a run with no npm adapter read as a run that failed.
+      runMetrics.sourceRecordsRead = mirrored.mirroredRecords
+      runMetrics.subjectsCompiled = mirrored.identity.subjects
+      runMetrics.artifactsResolved = mirrored.artifacts?.fetched ?? 0
+      runMetrics.evidenceCompiled = mirrored.evidence?.compiled ?? 0
+      runMetrics.recordsEmitted = mirrored.snapshot.count
+      runMetrics.failures =
+        (mirrored.artifacts?.unavailable ?? 0) +
+        (mirrored.artifacts?.rejected ?? 0) +
+        (mirrored.evidence?.blobUnreadable ?? 0) +
+        (mirrored.evidence?.archiveRefused ?? 0)
+
+      // `snapshotDigest` is the output manifest: it is `hashJson` over the projected cohort's
+      // entries, i.e. over exactly what this pass produced, and it is already persisted to
+      // `source_checkpoints.snapshot_digest` for the next run to compare. Reusing it keeps one
+      // definition of "what this run emitted" rather than inventing a second.
+      concludeCompilerRun({
+        store,
+        runId,
+        outputManifestDigest: mirrored.snapshotDigest,
+        completedAt: now,
+        metrics: runMetrics,
+      })
+      projectRunReport(mirrored.snapshotDigest)
+    } catch (err) {
+      // A null manifest is what makes `gradeRun` record FAILED — the store refuses any other grade
+      // without a digest, so the two cannot disagree. Re-thrown: the run is recorded, not absorbed.
+      concludeCompilerRun({
+        store,
+        runId,
+        outputManifestDigest: null,
+        completedAt: now,
+        metrics: runMetrics,
+      })
+      projectRunReport(null)
+      throw err
+    }
   } finally {
     store.close()
   }

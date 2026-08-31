@@ -146,11 +146,16 @@ The index was restored after each and byte-identity confirmed with an empty `git
 ### `--regression`, not `--gate`, in CI — and the reason is measured
 
 `ci:local` and `ci.yml`'s `test` job run `gate:s1:regression`. `--gate` is deliberately excluded:
-four of its seven measures have no data source, so it exits **2** by design. Wiring it would pin
-the required check red for a reason no PR under review can clear — verbatim the hazard that kept
-`gate:s0:gate` out of CI, and the mirror image of the reason report mode was refused there (a
+four of its seven measures still refuse in this checkout, so it exits **2** by design. Wiring it
+would pin the required check red for a reason no PR under review can clear — verbatim the hazard that
+kept `gate:s0:gate` out of CI, and the mirror image of the reason report mode was refused there (a
 step with no failing mode). The two enforcing modes are separated rather than blended, because a
 single mode covering both would have had to soften one.
+
+Note the count is **four refusals over three missing sources**, and the gap is deliberate rather than
+sloppy: `adapter-failure-rate` has a source and still refuses, because no ingest has run against this
+checkout since the writer landed. "Has a source" and "has a measurement" are different states, and
+collapsing them is how a gate comes to report a number it never took.
 
 Report mode exits **0 unconditionally, by design**: a report mode that could fail would be a
 third enforcing mode by accident.
@@ -158,7 +163,7 @@ third enforcing mode by accident.
 ### The record has a machine reader, and it was proven able to red
 
 Everything above is a claim in prose, and prose does not fail. `tests/invariants/gate-s1-claims.invariants.test.ts`
-is the reader — **19 assertions, three layers**, modelled on the Gate S0 suite because the failure
+is the reader — **30 `it` blocks, three layers**, modelled on the Gate S0 suite because the failure
 modes are the same ones:
 
 1. **POINTER TRUTH** — every `path:line` this file cites must resolve to a line *containing* what it
@@ -208,38 +213,54 @@ Workstream R measured for raw names. The tell was the shape of the failure: a jo
 
 ---
 
-## S1-OPEN-1 — four of seven measures have no data source, so S1 cannot be CLAIMED passed
+## S1-OPEN-1 — three of seven measures have no data source, so S1 cannot be CLAIMED passed
 
-**Status:** **OPEN.**
+**Status:** **OPEN (narrowed from four measures to three, 2026-08-31).**
 
-Three green measures are not Gate S1. The four refused ones are precisely the *scale* measures —
-throughput, failure rate, dedup efficiency, disk growth — so what is currently proven is that
-the served tree is **complete and self-consistent at 150 records**, not that the pipeline
-*performs* at 150. Those are different claims and S1 asks the second one.
+Three green measures are not Gate S1. The refused ones are precisely the *scale* measures —
+throughput, dedup efficiency, disk growth — so what is currently proven is that the served tree is
+**complete and self-consistent at 150 records**, not that the pipeline *performs* at 150. Those are
+different claims and S1 asks the second one.
 
-**What would close this row:** ~~a real R-9 controller/worker run against this checkout~~ — **struck
-2026-08-28: that remedy named an executable that does not exist.** The R-9 worker unit runs three
-steps (`ingest:trust-index` → `project-adoption-index:trust-index` → `prune:cas`) and **not one of
-them touches the queue**; `enqueueJobs` / `beginCompilerRun` have no non-test caller anywhere. So
-this row cannot be closed by *running* anything. It requires **writing a queue driver first** — a
-controller that enqueues subjects and a worker that leases, settles, and concludes a run — then a
-re-measurement in which the two job-shaped measures become MEASURED. At that point `gate:s1:gate`
-becomes runnable, and whether it belongs in CI can be asked on evidence instead of predicted.
+**NARROWED 2026-08-31, and the narrowing is the part to check rather than accept.** This row said
+"four", and said all four were blocked by the same thing: no queue driver. Both halves were wrong.
+`adapter-failure-rate` acquired a real source — `refreshSnapshot.ts` now brackets every ingest in
+`beginCompilerRun`/`concludeCompilerRun` and writes `reports/run-<id>.json`, which the gate reads —
+and the other three are each blocked by something *different*, which the single shared remedy hid.
+Splitting them is what makes each remaining blocker actionable:
 
-A refusal whose remedy is unreachable is worse than one that says "not yet": it sends the next
-reader to run a command that will report success while changing nothing the gate can see. That is
-the same shape as the defect this whole artifact exists to record, aimed at an instruction instead
-of at a measurement.
+| measure | blocker | what would actually unblock it |
+| --- | --- | --- |
+| `adapter-failure-rate` | ~~no source~~ **RESOLVED** | a run report exists and is read; MEASURED once an ingest runs against the checkout |
+| `processing-time-mean-p95` | **SCHEMA** | `compiler_jobs` has `created_at`/`updated_at`/`available_at` and no `started_at`/`finished_at` (`migrations/001-canonical-adoption-graph.sql`), so no duration is recorded anywhere. Adding the columns breaks the 14-column ↔ 14-property equality `domain/job.ts:13` documents → needs a migration **and an ADR**. Running the compiler cannot unblock this. |
+| `cas-dedup-rate` | **MISSING WRITER** | `cas/manifests` is declared in `INDEX_SUBDIRS` but has no writer and not even a `casManifestsRoot()` helper, unlike `casBlobsRoot()`/`casWorkRoot()`. No run, past or future, can produce the denominator. |
+| `disk-growth` | **TIME** | two measurements separated by real runs. A baseline is recorded (below); the second one cannot be willed into existence. |
 
-**What must NOT close this row:** computing any of the four from an empty store. A `0/0` dedup
-rate, a `0` failure rate over zero attempts, or a `0ms` mean over an empty set would each close
-this row on paper while asserting something nobody measured. The script refuses them at the type
-level; this row is the prose reason that refusal must survive review.
+**Why the collapsed version was a defect and not just imprecision:** it named *one* remedy — "write
+a queue driver" — for four blockers, three of which a queue driver does not touch. A reader who
+built the driver would have found three measures still refusing and no statement of why. That is a
+refusal whose remedy is unreachable, which is worse than one that says "not yet": it sends the next
+reader to do work that will report success while changing nothing the gate can see. The same shape
+as the defect this artifact exists to record, aimed at an instruction instead of a measurement.
 
-**Falsification:** if `gate:s1` ever prints a MEASURED tier for any of the four while
-`compiler_jobs` / `compiler_runs` are still empty in every candidate store, this row's refusal has
-been circumvented. (Stated against the two queue tables, not against "`.var/` is empty" — the
-original wording would have been *satisfied* by the mis-rooted read S1-OPEN-4 records.)
+(This is the second time this row's remedy was struck for that reason. The first: ~~a real R-9
+controller/worker run against this checkout~~ — struck 2026-08-28, because the R-9 worker unit runs
+three steps (`ingest:trust-index` → `project-adoption-index:trust-index` → `prune:cas`) and not one
+of them touched the queue. Left struck rather than deleted, per this artifact's own rule.)
+
+**What must NOT close this row:** computing any remaining measure from an empty store. A `0/0` dedup
+rate, a `0` failure rate over zero attempts, or a `0ms` mean over an empty set would each close this
+row on paper while asserting something nobody measured. The script refuses them at the type level
+(`refused` carries no `ok` field, so it cannot be summed into a pass rate); this row is the prose
+reason that refusal must survive review.
+
+**Falsification:** if `gate:s1` ever prints a MEASURED tier for `processing-time-mean-p95` or
+`cas-dedup-rate` while `compiler_jobs` is without duration columns or `cas/manifests` is without a
+writer, this row's refusal has been circumvented. For `adapter-failure-rate`, which now *may*
+legitimately be MEASURED: if it prints a rate whose denominator includes `skippedNoAdapter`, or
+prints `0%` where zero attempts were made, the measure has been circumvented instead of the row.
+(Stated against the specific missing artefacts, not against "`.var/` is empty" — the original
+wording would have been *satisfied* by the mis-rooted read S1-OPEN-4 records.)
 
 ---
 
@@ -365,11 +386,105 @@ UNAVAILABLE 8** of 78 — and `UNAVAILABLE` is adapter-shaped. It is deliberatel
 outcome, so 8/78 would answer a different question than §342 asks while wearing the name of the one
 it asks. §342 wants attempts, which live in `compiler_jobs`, which needs the driver S1-OPEN-1 owes.
 
-**What would close this half:** either a queue driver (then attempts are the source, and this column
-is irrelevant), or an ADR deciding that artifact status is an acceptable proxy — with the
-substitution stated in the measure's own name, not hidden behind it.
+**What would close this half:** ~~either a queue driver (then attempts are the source, and this column
+is irrelevant), or an ADR deciding that artifact status is an acceptable proxy~~ — **CLOSED 2026-08-31
+by the first branch, reached by a route this text did not anticipate.** Attempts are now the source,
+and no queue driver was written: `refreshSnapshot.ts` brackets each ingest with
+`beginCompilerRun`/`concludeCompilerRun` and writes `reports/run-<id>.json`, and the gate reads the
+attempt counters out of that. The prediction "needs the driver S1-OPEN-1 owes" was wrong about the
+mechanism while right about the requirement — recorded rather than corrected, because a remedy that
+turned out to be one of several is a different lesson from a remedy that was simply mistaken.
+
+The second branch (an ADR blessing `artifact_status` as a proxy) is now **moot and must stay closed**:
+with real attempt counts available, substituting a state distribution for them would be a downgrade
+disguised as a convenience.
 
 **Falsification:** if a future edit reports 8/78 as "adapter failure rate" without either of those,
 S1 will be publishing a number whose name misdescribes what it counted — the failure this row was
-opened to prevent, in the one place where a number *is* available.
+opened to prevent, in the one place where a number *is* available. Still live, and now cheaper to
+violate rather than harder: a real source existing next to a convenient wrong one is exactly when a
+name gets attached to the wrong column.
+
+---
+
+## Second measurement — 2026-08-31, at `e40f9e3`
+
+`pnpm gate:s1` on `fix/daily-approval-burden`. **Three MEASURED and green; four REFUSED — the same
+counts as the first measurement, and that stability is the finding, not a lack of progress.** What
+changed is *why* one of the four refuses.
+
+| measure (new15 §342 order) | tier | result | change since 2026-08-28 |
+|---|---|---|---|
+| source completeness | MEASURED | ✓ 150/150 source records reached the served tree | — |
+| artifact resolution rate | MEASURED | ✓ 149/150 resolvable; the 1 unresolvable is exactly the 1 the index marks `incomplete` | — |
+| page quality | MEASURED | ✓ 149/149 baked subjects carry html+json+manifest and agree with the index on both digests | — |
+| adapter failure rate | REFUSED | ✗ `no run report exists yet` | **source acquired.** Was "0 attempts recorded" (no source at all) |
+| mean/p95 processing time | REFUSED | ✗ blocked on SCHEMA — no `started_at`/`finished_at` columns | reason sharpened; blocker unchanged |
+| CAS dedup rate | REFUSED | ✗ 45 blobs, `cas/manifests` = 0 — MISSING WRITER | reason sharpened; blocker unchanged |
+| disk growth | REFUSED | ✗ baseline only | **baseline now recorded:** `packages/trust-index/.var/…` at 2551808 B, 45 blobs, 0 reports |
+
+Store census, both candidates (the S1-OPEN-4 seam, printed unconditionally):
+
+```
+.var/calllint-adoption-index:                    cas/blobs=0,  cas/manifests=0, dead-letter=0, reports=0, db=131072B
+packages/trust-index/.var/calllint-adoption-index: cas/blobs=45, cas/manifests=0, dead-letter=0, reports=0, db=2551808B
+```
+
+### The distinction this measurement exists to record
+
+`adapter-failure-rate` **has a data source and still refuses.** Those are two different states, and
+the gate now says which one it is in:
+
+- *No source* → nothing could ever produce the number. That was the 2026-08-28 state.
+- *Source, no data* → the writer exists, and no run has executed against this checkout since it
+  landed. `reports=0` in both stores is the evidence.
+
+The refusal names the second and points at `pnpm ingest:trust-index`, which is a **reachable** remedy —
+unlike the one struck from S1-OPEN-1 twice. That the number is still absent is therefore not a defect
+to fix but a run to perform, and the ingest was deliberately **not** performed here: it opens network
+connections and rewrites tracked bytes (including advancing Gate S0's ratchet), which is not a thing a
+measurement pass should do as a side effect.
+
+**Verified through the real writer and the real gate, not by inspection.** The writer → JSON → gate
+path was exercised end-to-end against a temp store via `ADOPTION_INDEX_CWD`, covering: a measured rate
+(**18.2% = 10/55**, with 23 excluded from *both* halves), a zero-denominator refusal, a
+stage-disabled refusal, a truncated-JSON refusal, a `v2`-schema refusal, and `--gate` exiting **2**.
+
+---
+
+## S1-OPEN-5 — `withCompilerRun` cannot record a crash in an async body, so a failed run stays RUNNING forever
+
+**Status:** **OPEN (characterised and pinned by an executable test; not fixed).**
+
+`withCompilerRun` (`packages/adoption-index/src/operations/compilerQueue.ts:438`) brackets a run in
+`beginCompilerRun` / `concludeCompilerRun` and grades it from its own counters. Its `catch` is
+**synchronous**: for a body returning a promise, the function returns that promise *before* it can
+reject, so the `catch` never runs. The consequences are not cosmetic:
+
+- `concludeCompilerRun` is never called, so the run keeps `state: RUNNING` and `completedAt: null`.
+- `jobStates.ts` gives `RUNNING` **no self-edge and no path out except through conclude**, so the row
+  is unreachable forever — not stale, *stranded*.
+- Every measure that reads run outcomes silently loses that run. A crashed run becomes an absent run,
+  which is the empty-denominator defect arriving through the back door: the gate would compute a clean
+  rate over the runs that happened to succeed.
+
+**Why it has never fired.** Both existing call sites (`compilerQueue.ts:759`, `:860`) pass synchronous
+bodies, and `refreshSnapshot.ts` **open-codes the bracket** rather than calling this helper — precisely
+because of this limitation. So the defect is latent, and the next async caller inherits it.
+
+**Not fixed here, deliberately.** Making the helper generic over `T | Promise<T>` changes a shipped R-6
+signature, which is a wider change than this batch's scope and wants its own review. Instead it now
+**costs something**: `packages/adoption-index/test/job-lease.test.ts` characterises the behaviour as it
+actually is — asserting `metricsRead === 0`, `state: "RUNNING"`, `completedAt: null` — with a comment
+stating that these are the *wrong* values. A real fix reds the test, which is how a latent defect stops
+being invisible without being silently tolerated. That red-on-fix property was itself verified (control
+#R6) rather than assumed; a characterisation test that cannot detect its own fix is decoration.
+
+**What would close this row:** an overload or a sibling (`withCompilerRunAsync`) that awaits the body
+and concludes on rejection, plus the characterisation test inverted to assert the *correct* values —
+`FAILED`, a non-null `completedAt`, metrics read once.
+
+**Falsification:** if any caller passes an async body to `withCompilerRun` while it remains
+synchronous, a crash in that body will write no run row at all, and the gate will report on a
+population it cannot see. Grepping for `withCompilerRun(` with an `async` callback is the check.
 

@@ -122,6 +122,37 @@ export function casWorkRoot(root: string): string {
 }
 
 /**
+ * The root of the run-report tree, `reports` — where a completed compile run records what it did.
+ *
+ * Same single-owner argument as `casBlobsRoot` and `casWorkRoot` (INV-R7), but this one is worth
+ * spelling out because the directory was declared in `INDEX_SUBDIRS` from the first commit and had
+ * **no writer and no path helper** until now, while `scripts/gate-s1.ts:438` was already counting
+ * files in it. A reader over an unwritten directory is the repo's dominant fault class: it reads 0
+ * forever and nothing distinguishes a quiet run from a writer that was never built.
+ *
+ * Flat, like `work` and unlike the two-character fan-out of `cas/blobs`: reports are keyed by run,
+ * and a run count stays small enough that a listing is cheap. Callers must not assume a shared
+ * traversal shape across these three roots.
+ */
+export function reportsRoot(root: string): string {
+  return resolve(root, "reports")
+}
+
+/**
+ * The path of one run's report, `reports/run-<id>.json`.
+ *
+ * The run id is validated because it becomes a path segment — the same reason `casBlobPath`
+ * validates its hex. Run ids are internal (`beginCompilerRun` mints them), so a malformed one is a
+ * programming error rather than bad input, and this throws instead of returning a refusal.
+ */
+export function runReportPath(root: string, runId: string): string {
+  if (!/^[0-9a-zA-Z][0-9a-zA-Z._-]{0,127}$/.test(runId)) {
+    throw new Error(`runReportPath: expected a filename-safe run id, received ${JSON.stringify(runId)}`)
+  }
+  return resolve(reportsRoot(root), `run-${runId}.json`)
+}
+
+/**
  * True when `candidate` is inside `root`. Used by the INV-R7 assertion, and written
  * with `resolve` on both sides so a `..` segment cannot smuggle a path past a plain
  * `startsWith` on unnormalized text.

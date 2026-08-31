@@ -83,7 +83,11 @@ export {
   casBlobsRoot,
   casStagingPath,
   casWorkRoot,
+  reportsRoot,
+  runReportPath,
 } from "./storage/paths.js"
+export type { RunReport, RunReportAttempts } from "./storage/runReport.js"
+export { RUN_REPORT_SCHEMA, writeRunReport } from "./storage/runReport.js"
 export type { Migration, AppliedMigration } from "./storage/migrate.js"
 export { loadMigrations, applyMigrations, readAppliedMigrations } from "./storage/migrate.js"
 export type {

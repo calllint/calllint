@@ -802,6 +802,70 @@ describe("a run is bracketed and graded from its own counters (controls #79, #86
     expect(store.listCompilerRuns()[0]?.state).toBe("RUNNING")
   })
 
+  it("does NOT record a rejected async body — the bracket is synchronous (S1-OPEN-5, control #R6)", async () => {
+    // A FAILING-BY-DESIGN CHARACTERISATION of a real defect, asserted as the WRONG behaviour it
+    // currently has. Read the expectations below as "this is what it does today", not "this is what
+    // it should do".
+    //
+    // `withCompilerRun` is typed `body: (runId: string) => T` and brackets it in a SYNCHRONOUS
+    // `try/catch` (`compilerQueue.ts:438`). When `T` is a promise, the `try` block completes the
+    // instant the promise is CONSTRUCTED — the rejection surfaces a tick later, after the `catch` has
+    // gone out of scope. So the handler never runs, no FAILED row is written, and the run sits in
+    // `RUNNING` forever. `jobStates.ts` gives `RUNNING` no self-edge, so nothing can conclude it
+    // afterwards either: the row is unreachable for the rest of the database's life.
+    //
+    // That is verbatim the state the function's own docblock says it exists to prevent ("a pass that
+    // crashes mid-way leaves a row stuck in RUNNING forever"). It holds for the synchronous case it
+    // was written for and silently inverts for the async one.
+    //
+    // WHY NOTHING CAUGHT IT: both existing call sites in this file (:759, :860) drive it with a
+    // synchronous body, and `refreshSnapshot.ts` — the only production caller-shaped code, whose
+    // `refreshFromMirror` is `async` — open-codes the bracket instead of using this one, precisely
+    // because of this defect. So the async path had no test and no user. A guard that cannot observe
+    // its subject is this repo's dominant fault class (`memory/maps/guards.md`); this is the variant
+    // where the subject exists but no caller ever reaches it.
+    //
+    // NOT FIXED HERE, deliberately: making the bracket generic over `T | Promise<T>` changes a shipped
+    // R-6 signature, which needs its own batch. This test is what makes the defect cost something —
+    // it fails loudly the moment someone fixes it, and the fix is to invert these assertions.
+    //
+    // Verified to do that (control #R6): teaching the bracket to recognise a thenable and attach a
+    // `.catch` reds this test at the `metricsRead` assertion — "expected 1 to be +0" — so the fixer
+    // is told exactly which claim went stale rather than being left to guess.
+    const store = await openStore()
+    const boom = new Error("async compiler crashed mid-pass")
+    let metricsRead = 0
+
+    // The rejection escapes the bracket unhandled, so it is awaited here rather than at the call.
+    const returned = withCompilerRun(
+      {
+        store,
+        runType: "full",
+        inputManifestDigest: MANIFEST,
+        startedAt: T0,
+        completedAt: T1,
+        metricsOf: () => {
+          metricsRead += 1
+          return metrics({ sourceRecordsRead: 7, failures: 1 })
+        },
+      },
+      // eslint-disable-next-line @typescript-eslint/require-await
+      async () => {
+        throw boom
+      },
+    )
+
+    // The promise still rejects — the error is not swallowed, it simply arrives unbracketed.
+    await expect(returned).rejects.toBe(boom)
+
+    // THE DEFECT, in two observations. `metricsOf` is never called, because the `catch` never ran...
+    expect(metricsRead, "today the crash handler does not run for an async body").toBe(0)
+    // ...and the row is stranded in RUNNING with no completedAt, which is the state the bracket
+    // exists to make impossible.
+    expect(store.listCompilerRuns()).toHaveLength(1)
+    expect(store.listCompilerRuns()[0]).toMatchObject({ state: "RUNNING", completedAt: null })
+  })
+
   it("refuses a concluded run with no manifest", async () => {
     const store = await openStore()
     const runId = beginCompilerRun({ store, runType: "full", inputManifestDigest: MANIFEST, startedAt: T0 })

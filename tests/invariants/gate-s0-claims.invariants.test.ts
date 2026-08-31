@@ -324,7 +324,13 @@ describe("Gate S0 — every path:line the record cites still points at what it c
     // predicts. This guard catching a one-line import is the guard working, not a nuisance.
     // Moved 170 → 172 by Cumulative Coverage Amendment: added 2 lines to resolveMaxEntries docblock
     // for the gate's expected claim strings (workflow_dispatch input, ONLY knob).
-    assertPointer("packages/trust-index/src/refreshSnapshot.ts", 181, "resolveMaxEntries", "the knob")
+    // Moved 181 → 188 by the compiler-run bookkeeping batch: `refreshSnapshot.ts` gained seven lines
+    // above this anchor — the `beginCompilerRun` / `concludeCompilerRun` / `emptyRunMetrics` /
+    // `gradeRun` / `writeRunReport` / `RUN_REPORT_SCHEMA` imports and the `CompilerRunMetrics` type.
+    // Re-pinned, not loosened to a search, for the reason the rows above record; and the mover is once
+    // again the batch editing the file, which is what [[a-pointer-rots-faster-than-its-claim]]
+    // predicts. A guard that catches six added imports is the guard working.
+    assertPointer("packages/trust-index/src/refreshSnapshot.ts", 188, "resolveMaxEntries", "the knob")
     assertPointer(WORKFLOW, 20, "workflow_dispatch:", "the dispatch trigger")
     // Moved 73 → 112 by the `inputs:` block this row's remedy called for, then 112 → 127 by ADR 0087's
     // batch: the job gained the `TRUST_INGEST_NOW` pin after checkout and the `:store` → pure-variant
