@@ -35,14 +35,30 @@
  * percentage computed over one. That is deliberate: the empty-denominator defect this repo keeps
  * finding (`gate-s0.ts`'s first INV-R4 printed "0 dangerous false-SAFE" as a PASS from 39 reads of
  * a nonexistent path) can only be caught downstream if the counts arrive unaggregated.
+ *
+ * ## The two sections, and why they are not one
+ *
+ * `attempts` records what the run DID with what it read. `source` (added in v2) records whether it
+ * read all there was. A run can succeed at everything it attempted and still have seen a third of
+ * the source; with only `attempts`, a reader cannot tell the difference, and a gate measuring cohort
+ * size would have to guess whether a shortfall was upstream's or ours. See `RunReportSource`.
  */
 import { mkdirSync, renameSync, rmSync, writeFileSync } from "node:fs"
 import { dirname } from "node:path"
 import { isInsideRoot, runReportPath } from "./paths.js"
 import type { CompilerRunMetrics } from "../domain/job.js"
 
-/** The schema id, versioned so a reader can refuse a shape it does not know. */
-export const RUN_REPORT_SCHEMA = "calllint.compiler-run-report.v1"
+/**
+ * The schema id, versioned so a reader can refuse a shape it does not know.
+ *
+ * **v1 → v2 (2026-08-31)** added the `source` section below. A reader that knows only v1 must
+ * REFUSE a v2 file rather than read it, because v2 is a superset only by luck — the guarantee a
+ * version gives is that its fields mean what that version says, and nothing stops v3 from
+ * renaming one. `scripts/gate-s1.ts` enumerates the versions it can read and matches each
+ * EXACTLY; it does not prefix-match `calllint.compiler-run-report.`, which would accept every
+ * future version sight unseen and is the defect the exact check exists to prevent.
+ */
+export const RUN_REPORT_SCHEMA = "calllint.compiler-run-report.v2"
 
 export interface RunReportAttempts {
   /**
@@ -70,6 +86,56 @@ export interface RunReportAttempts {
   } | null
 }
 
+/**
+ * What the run SAW OF ITS SOURCE — added in v2, and a different question from `attempts`.
+ *
+ * `attempts` records what the run DID with the records it read. This records whether it read all
+ * there were. The two are independent: a run can resolve every artifact it was given and still have
+ * seen a third of the source, and a reader with only `attempts` cannot tell.
+ *
+ * WHY A GATE NEEDS IT. Gate S2's threshold is 500 served records, and the cohort is at 150 growing
+ * +50/run. A shortfall has two causes that need OPPOSITE actions: upstream may hold fewer than 500
+ * live records (not a defect, and no local change fixes it), or our own cap may have ended the read
+ * (a defect, fixed by raising the named knob). Nothing in the repo recorded which — the snapshot's
+ * `count` is what WE emitted, never what upstream held — so a gate reading only the cohort size
+ * would have to guess, and a guess in that direction sends an operator to raise a cap that was
+ * never binding.
+ *
+ * `capReached` and `truncationReason` are `syncSource`'s own values, copied not recomputed. They are
+ * deliberately kept as two fields rather than folded into one: `capReached` answers "may I project
+ * this?" — the boolean every existing caller asks — while `truncationReason` answers "what should
+ * the operator change?", which differs per exit and has no answer at all for `cursor-repeat`
+ * (`syncSource.ts:78-88`).
+ */
+export interface RunReportSource {
+  /** Rows the mirror holds for this source after the read, history included. */
+  readonly recordsRead: number
+  /**
+   * True when the read ended at a limit rather than at the end of the source.
+   *
+   * Conservative by construction upstream: a source holding EXACTLY `maxEntries` records is
+   * indistinguishable from a truncated one without one more request, and `syncSource` reports that
+   * ambiguous case as capped. So `false` is strong evidence of exhaustion and `true` is weaker
+   * evidence of truncation — which is the right way round, since over-reporting a cap costs a raised
+   * limit while under-reporting silently ships a partial cohort.
+   */
+  readonly capReached: boolean
+  /**
+   * Which exit ended the read — `record-cap` | `page-cap` | `cursor-repeat` — or `null` when the
+   * source was exhausted.
+   *
+   * Typed as `string | null` rather than importing `SyncTruncationReason`, because this is a
+   * PROJECTION written to disk and read back by a script that does not link this package. A reader
+   * must handle a value it does not recognise (a future exit kind) without a type error, and a
+   * narrow union here would promise the file can only contain today's three.
+   */
+  readonly truncationReason: string | null
+  /** The served-cohort cap in force. `resolveMaxEntries`'s output for this run. */
+  readonly snapshotMaxEntries: number
+  /** The raw-read cap in force — always strictly greater than the above (`resolveMirrorMaxEntries`). */
+  readonly mirrorMaxEntries: number
+}
+
 export interface RunReport {
   readonly schema: typeof RUN_REPORT_SCHEMA
   /** The `compiler_runs.run_id` this projects. The join key back to the record of truth. */
@@ -84,6 +150,15 @@ export interface RunReport {
   readonly inputManifestDigest: string
   readonly metrics: CompilerRunMetrics
   readonly attempts: RunReportAttempts
+  /**
+   * What the run saw of its source, or `null` when the read did not complete far enough to say.
+   *
+   * `null` rather than zeros, for the third time in this file and the same reason each time: a run
+   * that crashed before its mirror returned has not measured its source coverage, and
+   * `capReached: false` would assert it saw everything — the strongest possible claim, from the run
+   * least entitled to make one.
+   */
+  readonly source: RunReportSource | null
 }
 
 /**

@@ -536,12 +536,31 @@ function newestRunReport(): {
 }
 
 /**
- * The exact schema id this gate can read, written ONCE.
+ * The schema ids this gate can read, ENUMERATED — written once, and matched exactly.
  *
- * It appears in the shape check and in every refusal reason that check produces. Two copies of a schema
- * id is how a gate comes to reject a file for not being a version it is in fact looking at.
+ * Each id appears in the shape check and in every refusal reason that check produces. Two copies of a
+ * schema id is how a gate comes to reject a file for not being a version it is in fact looking at.
+ *
+ * **Why a set and not a prefix test.** `calllint.compiler-run-report.` + `startsWith` would accept every
+ * future version sight unseen, including one that renamed `attempts.artifacts.unavailable` — and this
+ * gate divides by those counters. A prefix match is how a schema version stops being a guarantee: the
+ * only thing a version number buys you is the right to refuse a shape you have not read. So membership
+ * is exact, per version, and a version absent from this list refuses while NAMING the version it found.
+ *
+ * **Why v1 is still here after the v2 bump.** v2 added a `source` section and changed nothing this gate
+ * reads (`attempts.artifacts` is byte-identical). Dropping v1 would make every report written before
+ * 2026-08-31 unreadable — a gate that refuses the entire history to signal that a newer writer exists.
+ * v1 reports remain valid readings of the four counters they contain; they simply cannot answer the
+ * source-coverage question, which is Gate S2's, not this gate's.
  */
-const SCHEMA_ID = "calllint.compiler-run-report.v1"
+const READABLE_SCHEMAS = ["calllint.compiler-run-report.v1", "calllint.compiler-run-report.v2"] as const
+
+/** The set rendered for a refusal message, so the reader sees what WOULD have been accepted. */
+const READABLE_SCHEMAS_LIST = READABLE_SCHEMAS.map((s) => `\`${s}\``).join(" or ")
+
+function isReadableSchema(v: unknown): v is (typeof READABLE_SCHEMAS)[number] {
+  return typeof v === "string" && (READABLE_SCHEMAS as readonly string[]).includes(v)
+}
 
 /** Only the fields this gate reads. A narrower shape than the writer's, on purpose. */
 interface RunReportShape {
@@ -564,9 +583,10 @@ interface RunReportShape {
 /**
  * Validate the shape before trusting a number out of it, and return WHY when it refuses.
  *
- * The schema id is checked exactly, not by prefix: a `.v2` that renamed a counter would otherwise be
- * read with v1 semantics and produce a confident wrong rate. An unknown version must refuse, which is
- * the same rule the product applies to its own inputs — UNKNOWN is not SAFE.
+ * The schema id is checked against an enumerated set, exactly, never by prefix: a `.v3` that renamed a
+ * counter would otherwise be read with v2 semantics and produce a confident wrong rate. An unknown
+ * version must refuse, which is the same rule the product applies to its own inputs — UNKNOWN is not
+ * SAFE. v2 is in the set because it added a section this gate does not read and changed nothing it does.
  *
  * It returns a REASON rather than a boolean because the caller cannot reconstruct one. The first
  * version was a type guard, and its caller had to re-derive the cause from the outside; the only thing
@@ -589,23 +609,31 @@ type RunReportCheck = { ok: true; report: RunReportShape } | { ok: false; reason
 function checkRunReport(v: unknown): RunReportCheck {
   if (typeof v !== "object" || v === null) return { ok: false, reason: "not a JSON object" }
   const r = v as Record<string, unknown>
-  if (r.schema !== SCHEMA_ID) {
+  if (!isReadableSchema(r.schema)) {
     return {
       ok: false,
+      // The " or " in `READABLE_SCHEMAS_LIST` enumerates the ACCEPTED SET, and is not the
+      // or-of-two-candidate-causes this function's docblock describes. The cause here is singular and
+      // known — the id is not in the readable set — and the disjunction is the answer to "what would
+      // you have taken?", which a reader fixing a version mismatch needs.
       reason:
         typeof r.schema === "string"
-          ? `schema \`${r.schema}\`, not \`${SCHEMA_ID}\``
+          ? `schema \`${r.schema}\`, not ${READABLE_SCHEMAS_LIST}`
           : "no readable `schema` field",
     }
   }
+  // Past this point the version is known-readable, so every reason below names the version IN THE FILE
+  // rather than a constant. On a v2 report with a drifted counter the message says v2 — which is the
+  // version whose contract was broken, and the one a reader must go and compare against the writer.
+  const found = r.schema
   for (const k of ["runId", "outcome", "completedAt"] as const) {
     if (typeof r[k] !== "string") {
-      return { ok: false, reason: `schema \`${SCHEMA_ID}\` but \`${k}\` is missing or not a string` }
+      return { ok: false, reason: `schema \`${found}\` but \`${k}\` is missing or not a string` }
     }
   }
   const attempts = r.attempts
   if (typeof attempts !== "object" || attempts === null) {
-    return { ok: false, reason: `schema \`${SCHEMA_ID}\` but \`attempts\` is missing or not an object` }
+    return { ok: false, reason: `schema \`${found}\` but \`attempts\` is missing or not an object` }
   }
   const artifacts = (attempts as Record<string, unknown>).artifacts
   // `null` is a MEANINGFUL value here, not an absence: it is how the writer records a run that ran with
@@ -613,7 +641,7 @@ function checkRunReport(v: unknown): RunReportCheck {
   // instead of lumping a deliberate skip in with a malformed file.
   if (artifacts === null) return { ok: true, report: v as RunReportShape }
   if (typeof artifacts !== "object") {
-    return { ok: false, reason: `schema \`${SCHEMA_ID}\` but \`attempts.artifacts\` is neither an object nor null` }
+    return { ok: false, reason: `schema \`${found}\` but \`attempts.artifacts\` is neither an object nor null` }
   }
   const a = artifacts as Record<string, unknown>
   for (const k of ["considered", "fetched", "unavailable", "rejected", "skippedNoAdapter", "cached"] as const) {
@@ -621,7 +649,7 @@ function checkRunReport(v: unknown): RunReportCheck {
       return {
         ok: false,
         reason:
-          `schema \`${SCHEMA_ID}\` but \`attempts.artifacts.${k}\` is ` +
+          `schema \`${found}\` but \`attempts.artifacts.${k}\` is ` +
           `${a[k] === undefined ? "missing" : `${JSON.stringify(a[k])}, not a non-negative integer`}`,
       }
     }
@@ -659,8 +687,9 @@ if (runReport === null && rejectedReports.length > 0) {
     "adapter-failure-rate",
     `${rejectedReports.length} run report file(s) exist but NONE is readable by this gate, so no rate ` +
       `can be computed and none is guessed: ${rejectedReports.join("; ")}. A report this gate cannot ` +
-      `validate is REFUSED rather than read with v1 semantics — a renamed or missing counter would ` +
-      `otherwise produce a confident wrong rate. Remedy: reconcile \`checkRunReport\` in this script ` +
+      `validate is REFUSED rather than read with a version's semantics it does not claim — a renamed ` +
+      `or missing counter would otherwise produce a confident wrong rate. Remedy: reconcile ` +
+      `\`checkRunReport\` in this script ` +
       `with the writer in \`packages/adoption-index/src/storage/runReport.ts\` — do NOT re-run the ` +
       `ingest, one already ran`,
   )

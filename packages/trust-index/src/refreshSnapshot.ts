@@ -543,6 +543,30 @@ async function main(): Promise<void> {
                     archiveRefused: mirrored.evidence.archiveRefused,
                   },
           },
+          // What the run SAW OF ITS SOURCE (v2) — a different question from `attempts`, which
+          // records what it did with what it saw. Gate S2's threshold is 500 served records, and a
+          // shortfall has two causes needing opposite actions: upstream holds fewer than 500 (no
+          // local fix), or our cap ended the read (raise the named knob). Nothing recorded which,
+          // because the snapshot's `count` is what WE emitted.
+          //
+          // COPIED FROM `mirrored.sync`, never recomputed. `syncSource` already decided both values
+          // and its own docblock explains why they are two fields rather than one; a second
+          // derivation here is how two numbers about one run start to disagree — the same rule the
+          // six counters above follow.
+          //
+          // `null` on the crash path, where `mirrored` is unassigned. Not zeros: a run that threw
+          // before its mirror returned has not measured its source coverage, and `capReached: false`
+          // would be the strongest possible claim made by the run least entitled to make it.
+          source:
+            mirrored === undefined
+              ? null
+              : {
+                  recordsRead: mirrored.mirroredRecords,
+                  capReached: mirrored.sync.capReached,
+                  truncationReason: mirrored.sync.truncationReason,
+                  snapshotMaxEntries: maxEntries,
+                  mirrorMaxEntries,
+                },
         })
         console.log(`run report: ${written}`)
       } catch (reportErr) {

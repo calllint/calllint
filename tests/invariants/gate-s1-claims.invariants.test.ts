@@ -699,20 +699,39 @@ describe("Gate S1 — the rows say OPEN, and what would make each false", () => 
     )
   })
 
-  it("S1-OPEN-2 names S2 as the same shape one rung up, and S2 indeed has no gate yet", () => {
+  it("S1-OPEN-2 is CLOSED: S2 arrived before its threshold, and the row says so", () => {
     const r = row(2).replace(/\s+/g, " ")
     expect(r, "the row must name the next threshold it is about").toContain("500")
+
+    // INVERTED 2026-08-31, NOT DELETED. This assertion required S2's ABSENCE and redded the moment
+    // `scripts/gate-s2.ts` was created — which is precisely the outcome S1-OPEN-2 asked for, and the row
+    // instructed the next reader to "close the row rather than deleting this assertion". So the subject
+    // stays and the polarity flips: what used to prove the row was still true now proves it was closed
+    // for the stated reason rather than by someone tired of a red test.
     const pkg = JSON.parse(readText("package.json")) as { scripts: Record<string, string | undefined> }
-    // The row's own falsification condition, asserted. If a `gate:s2` script appears, this reds and
-    // the row should close — which is the outcome the row asks for.
     expect(
-      Object.keys(pkg.scripts).filter((k) => k.startsWith("gate:s2")),
-      "S1-OPEN-2 claims S2 has no gate; if one now exists, close the row rather than deleting this assertion",
-    ).toEqual([])
+      Object.keys(pkg.scripts).filter((k) => k.startsWith("gate:s2")).sort(),
+      "S1-OPEN-2 is closed by S2 EXISTING; the three script modes are what make it runnable",
+    ).toEqual(["gate:s2", "gate:s2:gate", "gate:s2:regression"])
     expect(
       existsSync(fileURLToPath(new URL("scripts/gate-s2.ts", repoRoot))),
-      "S1-OPEN-2 claims there is no gate-s2.ts; if there is, the row is stale",
-    ).toBe(false)
+      "the row is CLOSED only while the gate it points at exists",
+    ).toBe(true)
+    // The tracked artifact is half the closing condition, and the half that made this row necessary:
+    // S1's own status lived in gitignored `docs/` on one machine. A gate with no tracked status is a
+    // gate that cannot be handed over, so its absence must red here too.
+    expect(
+      existsSync(fileURLToPath(new URL("artifacts/gate-s2/open-items.md", repoRoot))),
+      "S1-OPEN-2's closing condition names the ARTIFACT as well as the script — `docs/` is gitignored",
+    ).toBe(true)
+
+    // The row must not merely stop saying OPEN; it must say what happened. A status flipped to CLOSED
+    // with the old reasoning silently deleted is the failure mode `gate-s0.ts` records about its own
+    // expired prose — nobody learns which assumption failed.
+    // `CLOSED`, not `RESOLVED`: the row-status check above admits only OPEN|CLOSED, and S1-OPEN-4 already
+    // spends `CLOSED` on this exact sense. A third synonym would make the vocabulary unenforceable.
+    expect(r, "the row must record its own closure, with the cohort it closed at").toContain("CLOSED")
+    expect(r, "and must keep the superseded claims visible rather than deleted").toContain("STRUCK")
   })
 
   it("S1-OPEN-3's divergence from S0 is real: S0 keeps a literal, S1 derives", () => {
@@ -860,12 +879,39 @@ describe("Gate S1 — the rows say OPEN, and what would make each false", () => 
       // CASE 2 — a genuinely unknown schema. The cause CASE 1 was wrongly given, so it must still be
       // reachable: a fix that stopped naming schema mismatch at all would trade one wrong reason for
       // another, and only asserting both cases can tell those apart.
-      const v2Out = runGate("v2", JSON.stringify({ ...valid, schema: "calllint.compiler-run-report.v2" }))
-      expect(v2Out, "a real schema mismatch must still say so, exactly").toContain(
-        "schema `calllint.compiler-run-report.v2`, not `calllint.compiler-run-report.v1`",
+      //
+      // The example is `v3`, not `v2`. It was v2 until the 2026-08-31 bump made v2 a version this gate
+      // reads, at which point this assertion redded — correctly, because its premise had become false.
+      // An unknown-version control must name a version that is genuinely unknown, so it moves one ahead
+      // of the writer rather than being deleted. The accepted set is enumerated, so v3 is refused by
+      // construction and not by a prefix test that would have swallowed it.
+      const v3Out = runGate("v3", JSON.stringify({ ...valid, schema: "calllint.compiler-run-report.v3" }))
+      expect(v3Out, "a real schema mismatch must still say so, exactly").toContain(
+        "schema `calllint.compiler-run-report.v3`, not `calllint.compiler-run-report.v1` or `calllint.compiler-run-report.v2`",
       )
-      expect(v2Out, "and must NOT be described as a field problem it does not have").not.toContain(
+      expect(v3Out, "and must NOT be described as a field problem it does not have").not.toContain(
         "attempts.artifacts",
+      )
+
+      // CASE 2b — v2 is READ, not refused. The other half of an enumerated accepted set, and the half a
+      // set can silently lose: dropping v1 or fumbling the membership test would leave the gate refusing
+      // the very reports its own writer now emits, and CASE 2 alone cannot see that (everything refuses
+      // there, so "refuses correctly" and "refuses everything" look identical).
+      //
+      // v2 adds a `source` section this gate does not read and leaves `attempts.artifacts` byte-identical,
+      // so the SAME fixture with only the version changed must still produce a rate.
+      const v2Out = runGate("v2", JSON.stringify({ ...valid, schema: "calllint.compiler-run-report.v2" }))
+      expect(v2Out, "v2 changed nothing this gate reads, so it must be MEASURED, not refused").toMatch(
+        /\[MEASURED\] adapter-failure-rate/,
+      )
+      expect(v2Out, "and the rate must come from the v2 file's own counters").toContain("10/32")
+
+      // CASE 2c — v1 still reads after the bump. The reports written before 2026-08-31 are the repo's
+      // entire history; a gate that refused them to signal that a newer writer exists would report
+      // nothing for the period it can still measure.
+      const v1Out = runGate("v1", JSON.stringify(valid))
+      expect(v1Out, "v1 must remain readable — dropping it discards every report already on disk").toMatch(
+        /\[MEASURED\] adapter-failure-rate/,
       )
 
       // CASE 3 — not JSON at all. The third distinguishable cause, and the one whose remedy differs
@@ -877,7 +923,10 @@ describe("Gate S1 — the rows say OPEN, and what would make each false", () => 
       // ALL THREE must still refuse. The point of the fix is a truthful reason, never a readable file:
       // a message change that accidentally let one of these through would be a far worse defect than
       // the one being fixed, and nothing above would notice, since each case only asserts on wording.
-      for (const [label, out] of [["drift", driftOut], ["v2", v2Out], ["junk", junkOut]] as const) {
+      //
+      // `v2`/`v1` are deliberately NOT in this loop — they are the accepted cases, asserted MEASURED
+      // above. Only the three refusals belong here.
+      for (const [label, out] of [["drift", driftOut], ["v3", v3Out], ["junk", junkOut]] as const) {
         expect(out, `${label} must be REFUSED, never measured — an unvalidated report is not a rate`).toMatch(
           /\[REFUSED \] adapter-failure-rate/,
         )

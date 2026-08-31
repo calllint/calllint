@@ -266,25 +266,48 @@ wording would have been *satisfied* by the mis-rooted read S1-OPEN-4 records.)
 
 ## S1-OPEN-2 — S2 (500 records) has the same shape, one rung up, and no guard yet either
 
-**Status:** **OPEN.**
+**Status:** **CLOSED 2026-08-31 — the guard arrived before its threshold.**
+
+`scripts/gate-s2.ts`, `gate:s2*` in `package.json`, and `artifacts/gate-s2/open-items.md` now
+exist, with the served cohort at **150 of 500**. That is this row's closing condition met in the
+only way that counts: *before* the threshold, not after it.
 
 The finding that produced Gate S1 is not specific to S1. `docs/new15-execution-status.md` lists
 Gates S1–S4 as ⬜, all in a gitignored file, and the cohort grows automatically under ADR 0086.
 `S0_REGRESSION_FLOOR` is already **150**; the auto-growth adds +50/run toward a 500 ceiling. So
 the cohort is on a path to cross **S2's 500-record threshold** the same way it crossed S1's —
-and today there is no `scripts/gate-s2.ts`, no `gate:s2` script, and no tracked artifact.
+~~and today there is no `scripts/gate-s2.ts`, no `gate:s2` script, and no tracked artifact.~~
+**STRUCK: all three now exist.**
 
-Recorded rather than pre-built, deliberately: writing S2 now would mean writing four more
+~~Recorded rather than pre-built, deliberately: writing S2 now would mean writing four more
 REFUSED measures against the same empty store, which produces a second gate that cannot pass for
 the same reason as this one. The useful sequence is S1-OPEN-1 first (give the measures a data
-source), then S2.
+source), then S2.~~
 
-**What would close this row:** `artifacts/gate-s2/open-items.md` plus `scripts/gate-s2.ts`
+**STRUCK, AND THE REASON IT WAS WRONG IS THE USEFUL PART.** The premise was that S2 could only be
+built by duplicating S1's REFUSED runtime measures. It was not: S2 measures **only scale-specific
+properties** and deliberately does *not* repeat the four runtime measures, precisely because they
+are blocked on the same store for the same reasons this row cites. Two gates refusing one measure
+for one reason is not twice the coverage — it is one finding printed twice, and whoever fixes it
+must then find both. So the sequencing argument ("S1-OPEN-1 first, then S2") dissolved once the
+overlap was removed, and waiting would have cost the thing the row existed to protect: arriving
+first. S1-OPEN-1 remains open on its own merits and is *not* a prerequisite.
+
+Left struck rather than deleted for the reason `gate-s0.ts` states about its own expired prose: a
+silently corrected claim teaches nobody which assumption failed.
+
+**What would close this row:** ~~`artifacts/gate-s2/open-items.md` plus `scripts/gate-s2.ts`
 existing before the served cohort reaches 500 — i.e. the guard arriving *before* its threshold,
-which is exactly what did not happen for S1.
+which is exactly what did not happen for S1.~~ **MET.** Both exist at cohort 150.
 
-**Falsification:** if the served registry cohort reaches 500 with no `gate:s2` in `package.json`,
-this row failed at the one thing it was written to prevent.
+**Falsification:** the original read *if the served registry cohort reaches 500 with no `gate:s2` in
+`package.json`, this row failed at the one thing it was written to prevent* — and that can no longer
+happen. What replaces it is the risk that S2 exists but **cannot red**: a gate present and blind is
+worse than a gate absent, because its green is consumed. So this row is falsified if `scripts/gate-s2.ts`
+or `artifacts/gate-s2/open-items.md` is deleted, or if `cohort-completeness` stops being able to refuse.
+The assertions above that used to require S2's *absence* were **inverted, not deleted**, and
+`gate-s2-claims.invariants.test.ts` carries the executable proof of the refusal. See S2-OPEN-1..3 for
+what S2 itself still owes.
 
 ---
 
