@@ -690,6 +690,41 @@ that docblock. Renumbering the citation inside verbatim 2026-08-09 text would ma
 as though it always pointed at a corrected argument. The file header carries the current
 pointer and the current reason; this row keeps what it said when it said it.
 
+### Amendment 2026-09-01 (Gate S1) — the "four with no data source" is now **one**, and one of the three fell for a reason worth recording
+
+**Still CLOSED, and `--regression` is still the right wiring** — but the count above is dated, and the
+sentence that carries it is anchored to a word ("today") that has since expired. Left verbatim, per this
+row's own rule, and corrected here.
+
+Of the four named as sourceless, three now have sources, and they did not arrive the same way:
+
+- `adapter-failure-rate` — a run report writer was wired into every ingest.
+- `cas-dedup-rate` — the manifest writer its denominator needed was built (ADR 0093).
+- `processing-time-mean-p95` — **nothing was built. The blocker was false** (ADR 0097). It was recorded
+  as needing `started_at`/`finished_at` columns on `compiler_jobs` plus a migration; that table holds
+  zero rows and has no non-test writer, the duration fields it was said to lack have existed on
+  `compiler_runs` since the same DDL, and the durations they yield are `0 ms` by construction because
+  one pinned `TRUST_INGEST_NOW` is passed as both endpoints. The measure now reads a monotonic
+  per-attempt clock.
+
+Only `disk-growth` remains, and it is the one member of the original four that **no writer can close**:
+growth needs two measurements separated by real elapsed time. So the argument in the verbatim text above
+still holds and its arithmetic no longer does — `--gate` would still exit 2, but for one measure rather
+than four, and pinning a required check red on it would still be the hazard this row refused.
+
+**Why this belongs in an S0 row at all.** The paragraph above justifies `--regression` by *counting*
+refusals, and a count is the weakest form the argument can take: it went stale three times in four
+weeks while the reason it encodes never changed. The durable statement is "at least one measure is
+blocked on something no PR under review can clear." Recorded here rather than fixed above, because the
+count's decay is itself the evidence — the same reason the 25/26/27/28 sequence in this row is kept
+rather than collapsed to its current value.
+
+One further correction, and it was already contradicted when written: the verbatim text says
+`.var/calllint-adoption-index/` "is empty in all ten data tables." S1-OPEN-4 records 298 subjects and 45
+blobs in that store. The store's *location follows `cwd`*, so "empty" was true of the path the reader
+was standing in and false of the store — which is S1-OPEN-4's whole subject, and the reason a census
+must print the path it censused.
+
 ---
 
 ## S0-OPEN-3 — three of S0's five assertions are GATE-VERIFIED, which reads a string
@@ -833,7 +868,15 @@ correct verdict and unrelated to this row.
 
 ## S0-OPEN-4 — closing S0's shortfall evicts CallLint's own claimed page, and the gate goes green as it happens
 
-**Status:** **OPEN, and its subject changed on 2026-08-13 from a future hazard to a PRESENT absence**
+**Status:** **CLOSED 2026-08-31 — both halves of the closing condition hold on `main`, measured.** See the
+2026-08-31 amendment at the very end, which measures the return, records that this row's *observation*
+clause was satisfied by an action taken elsewhere, and names what nothing here would have noticed.
+Everything below is the original text and its two 2026-08-13 amendments, left verbatim — including the
+`ABSENT` table and the "EXPECTED RED … cannot go green by any code change" paragraph, both of which the
+2026-08-31 amendment measures as **no longer true**.
+
+The status this row carried until then, kept because the shape of the wait is the finding:
+~~**OPEN, and its subject changed on 2026-08-13 from a future hazard to a PRESENT absence**~~
 (filed 2026-08-10, S batch 1, ADR 0069). Both authorizable remedies have landed: the cap raise
 (2026-08-11, ADR 0074) and the reserved-retention selection rule (2026-08-12, ADR 0075) — the eviction
 is gone from the *rule* at every cohort size, which is what those two amendments measured and still
@@ -1218,6 +1261,74 @@ makes **unconditional**: the outcome no longer depends on where the cap sits rel
 > gate-strength change and needs its own ADR — and the honest red is more useful than a silent
 > reclassification while this row is open. Recorded so a future batch fixes the **classification** rather
 > than deleting the human data, and so nobody reads the green half as proof the absence was handled.
+
+> **CLOSED 2026-08-31 — the page is back on `main`, and this row was never going to be the thing that
+> noticed.**
+>
+> **Both halves of the closing condition, measured on `origin/main` rather than on the working branch**
+> (the 2026-08-13 amendment set the condition as *"the served tree carries
+> `mcp-registry/io.github.calllint-calllint.json` again, on `main`, at a cohort ≥26"*):
+>
+> | half of the condition | required | measured on `origin/main` |
+> |---|---|---|
+> | cohort past the cap-equality size | **≥26** | **150** |
+> | snapshot carries the self name | yes | **yes** |
+> | served sidecar present | yes | **present** |
+> | `trust/index.json` rows for the self slug | ≥1 | **1** of 170 |
+>
+> So the row is closed **by its own restated condition**, not by a reading of it. The re-ingest the
+> 2026-08-13 amendment described as *"one authorization, not a decision"* happened — via the scheduled
+> Monday job or an authorized manual run, either way not from this checkout — and `selectCohortEntries`
+> retained the reserved name exactly as ADR 0075 promised. The remedy needed no code change, which is what
+> that amendment predicted.
+>
+> **The two guards can observe the subject again, proven by negative control rather than by their green.**
+> Both were `it.skipIf(!claimedInSnapshot)`-gated, so "15 passed, 0 skipped" is consistent with a gate that
+> is open AND with assertions that stopped asserting. Removing the self entry from the committed snapshot
+> reds **both** files, and each names the right direction — *"the served tree must not carry a page for a
+> subject the snapshot does not hold"* (an orphan page, 1 found) and *"nothing may serve a page for a
+> subject absent from the snapshot it is projected from"*. Restored `cmp`-identical. That is the
+> distinction the 2026-08-13 re-arm encoded, now shown to work in the direction it was built for.
+>
+> **Amendment (b)'s two consequences are both gone, and its strongest sentence is the one that expired.**
+> It stated that `pnpm eval:phase-2.4:panel:validate` was *"EXPECTED RED on `main` and on this branch"* and
+> that it *"cannot go green by any code change: it asserts that recorded sessions point at pages we
+> actually publish, and three of them do not"* — closable only by re-running the human sessions. Measured
+> today:
+>
+> | measure | 2026-08-13 | 2026-08-31 |
+> |---|---|---|
+> | `panel:validate` | **EXIT 1**, 3 subjects unserved | **EXIT 0** — 11 responses, 11 fresh, 0 stale |
+> | panel responses | 10, all stale | **11**, all fresh |
+> | Gate 2.4-B | `PENDING_HUMAN_PANEL` | **PASSED** (`humanPanel.status: RECORDED`) |
+> | Gate 2.4-H `releaseBoundary` | `closed: false`, `openGates: [2.4-B]` | **`closed: true`, `openGates: []`**, 8/8 PASSED |
+> | `pnpm eval:phase-2.4` drift | red on all three legs | **exit 0**, artifacts in sync |
+>
+> The sessions were re-run against the current pages, which is precisely the remedy that amendment said was
+> the only one available. Eleven rather than ten, and all eleven subjects resolve to a served install page.
+>
+> **What this row would NOT have caught, and it is the reason to write this down rather than just flip the
+> status.** Nothing in this artifact, in `gate-s0-claims.invariants.test.ts`, or in `gate:s0` fires when the
+> closing condition becomes TRUE. The row waits; it does not watch. It was already burned once by that
+> shape — its `≥26` trigger could not see a loss that happened at 25 — and the mirror-image gap is still
+> here: the page returned, the panel was re-run, the release boundary closed, and this record went on
+> saying `OPEN, and its subject changed … to a PRESENT absence` until a human happened to re-measure. **An
+> open row is not a guard.** S1-OPEN-2 is the same lesson from the other side, and Gate S2 exists because
+> of it. The generalisation — a *record* whose closure nothing observes — is the pattern S2-OPEN-3 files
+> for the S3/S4 rungs, and it applies to open-item rows themselves.
+>
+> **Deliberately still unfixed, and NOT re-scoped into this closure:** the classification defect the
+> `existsSync` paragraph above describes. `partitionPanelFreshness` treats a removed page as *evidence
+> expiring* (a state) while `validate()` treats it as *the record being malformed* (a break), and the
+> record is not malformed. It is invisible today only because every subject is served — the condition that
+> just changed once and can change again on the next cohort step. Moving a rule out of a validator CI runs
+> is a gate-strength change and still needs its own ADR. Closing this row does not close that, and the
+> paragraph above is left in place rather than struck.
+>
+> **What would make THIS closure false:** the self page absent from the served tree on `main` at any
+> cohort, or `RESERVED_COHORT_NAMES` no longer naming the subject, or either re-armed guard returning to a
+> blanket `it.skip`. The first is what ADR 0075 makes structurally unreachable while the name is in the
+> input; the third is how this row's guards were weakened the last time.
 
 ---
 

@@ -1,0 +1,100 @@
+{
+  "schema": "calllint.agent-adoption-contract.v1",
+  "contract": {
+    "contractDigest": "sha256:5386d35fee72d147565be1ed9a0a2a169ce9c2c8ded3b40a8a83af3928d24651",
+    "generatedAt": "2026-09-01T01:15:00.000Z",
+    "expiresAt": null,
+    "generatorVersion": "0.1.0",
+    "snapshotDigest": "sha256:aaa8f092d2a2cc700baf6290fd1f0025c2444d475efd5935ae131c17b581fd75"
+  },
+  "subject": {
+    "canonicalName": "mcp-registry/ai.aislabs-cve",
+    "canonicalSlug": "mcp-registry/ai.aislabs-cve",
+    "packageType": null,
+    "packageName": null,
+    "version": "0.1.0",
+    "artifactDigest": "sha256:89f23086c9792198b8453e8b6cbcca61703a8cce619032860b6c5b022d8a430f",
+    "sourceLocator": "https://api.aislabs.ai/cve/mcp"
+  },
+  "publicObservation": {
+    "verdict": "REVIEW",
+    "publicLabel": "Review required",
+    "reasonCodes": [
+      "UNKNOWN_REMOTE"
+    ],
+    "evidenceLevel": "E2",
+    "evidenceDigest": "sha256:6b51cc3f1664ab2f044cf76cb55b8fb4070e46aa0c85209975ad7e49f1450957",
+    "completeness": "complete"
+  },
+  "authorityDelta": {
+    "adds": [
+      {
+        "authority": "network_egress"
+      }
+    ],
+    "notObserved": [
+      "financial_action",
+      "secret_access",
+      "shell_execution",
+      "broad_filesystem_access",
+      "external_mutation",
+      "messaging_send",
+      "oauth_scope",
+      "gateway_runtime"
+    ]
+  },
+  "trustedSources": {
+    "registrySnapshotDigest": "sha256:aaa8f092d2a2cc700baf6290fd1f0025c2444d475efd5935ae131c17b581fd75",
+    "evidenceDigest": "sha256:6b51cc3f1664ab2f044cf76cb55b8fb4070e46aa0c85209975ad7e49f1450957",
+    "engineVersion": "0.1.0"
+  },
+  "untrustedPublisherContent": {
+    "description": "Daily CVE priorities ranked by real exploitation (KEV+EPSS) for AI agents; free teaser, paid full",
+    "usedForSafetyDecision": false
+  },
+  "recommendedNextAction": {
+    "kind": "PREPARE_LOCALLY",
+    "tool": "calllint_prepare_safe_install",
+    "arguments": {
+      "canonicalName": "mcp-registry/ai.aislabs-cve",
+      "expectedVersion": "0.1.0",
+      "expectedArtifactDigest": "sha256:89f23086c9792198b8453e8b6cbcca61703a8cce619032860b6c5b022d8a430f",
+      "expectedContractDigest": "sha256:5386d35fee72d147565be1ed9a0a2a169ce9c2c8ded3b40a8a83af3928d24651",
+      "host": null
+    }
+  },
+  "agentGuidance": {
+    "goal": "Add the requested Agent Tool with only locally approved authority.",
+    "steps": [
+      "verify_contract",
+      "resolve_host",
+      "prepare_locally",
+      "evaluate_local_policy",
+      "apply_exact_plan",
+      "verify_result"
+    ],
+    "mustAskBefore": [
+      "new_secret_access",
+      "external_mutation",
+      "shell_execution",
+      "broad_filesystem_access",
+      "financial_action",
+      "persistent_calllint_components"
+    ],
+    "mustStopWhen": [
+      "artifact_digest_mismatch",
+      "contract_digest_mismatch",
+      "unsupported_host",
+      "local_policy_deny",
+      "plan_tampered",
+      "verification_failed"
+    ],
+    "prohibitedShortcuts": [
+      "do_not_replace_exact_version_with_latest",
+      "do_not_execute_publisher_commands_directly",
+      "do_not_expand_authority",
+      "do_not_hide_alternative_setup",
+      "do_not_install_persistent_guard_without_authorization"
+    ]
+  }
+}

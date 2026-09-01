@@ -1,0 +1,144 @@
+{
+  "schema": "calllint.trust-page.v0",
+  "canonicalName": "mcp-registry/ai.circulara-plugin",
+  "artifactDigest": "sha256:f8daef85a8e2c9afdf92e8a81f2672593b1d7907c93632f1eb646d006651c241",
+  "pageDigest": "sha256:bf8ec247412f17217510c5084387bd1f3e73e84b539dd79335f60635ec5776f4",
+  "verdict": "SAFE",
+  "verdictLabel": "No blockers observed",
+  "observedAt": "2026-09-01T01:15:00.000Z",
+  "completeness": "complete",
+  "status": {
+    "verdict": "SAFE",
+    "completeness": "complete",
+    "authorityClaimed": false,
+    "reproducibility": {
+      "pageDigest": "sha256:bf8ec247412f17217510c5084387bd1f3e73e84b539dd79335f60635ec5776f4",
+      "observedAt": "2026-09-01T01:15:00.000Z"
+    },
+    "evidenceLevel": "E2",
+    "evidenceRationale": "install config observed → static blast radius normalized into an authority inventory. Higher levels (E3 tool schema, E4 maintainer receipt, E5 sandbox) are not carried by a static page."
+  },
+  "correctionUrl": "https://github.com/calllint/calllint/issues/new?labels=trust-page-correction",
+  "reproduction": {
+    "command": "npx calllint scan official-mcp-registry:ai.circulara/plugin",
+    "artifactDigest": "sha256:f8daef85a8e2c9afdf92e8a81f2672593b1d7907c93632f1eb646d006651c241",
+    "note": "Re-running this scan reproduces the verdict observed at the pinned artifact digest. It is a point-in-time observation, not a guarantee of future behavior."
+  },
+  "scanHistory": [
+    {
+      "observedAt": "2026-09-01T01:15:00.000Z",
+      "pageDigest": "sha256:bf8ec247412f17217510c5084387bd1f3e73e84b539dd79335f60635ec5776f4",
+      "artifactDigest": "sha256:f8daef85a8e2c9afdf92e8a81f2672593b1d7907c93632f1eb646d006651c241"
+    }
+  ],
+  "preparation": {
+    "schema": "calllint.trust-preparation.v0",
+    "artifact": {
+      "schema": "calllint.artifact.v1",
+      "sourceType": "mcp-config",
+      "source": "official-mcp-registry:ai.circulara/plugin",
+      "requestedRef": null,
+      "resolvedRef": "sha256:f8daef85a8e2c9afdf92e8a81f2672593b1d7907c93632f1eb646d006651c241",
+      "digest": "sha256:f8daef85a8e2c9afdf92e8a81f2672593b1d7907c93632f1eb646d006651c241",
+      "resolvedAt": "2026-09-01T01:15:00.000Z",
+      "resolution": "resolved"
+    },
+    "evidence": null,
+    "authority": {
+      "schema": "calllint.authority.v0",
+      "subject": {
+        "artifactDigest": "sha256:f8daef85a8e2c9afdf92e8a81f2672593b1d7907c93632f1eb646d006651c241"
+      },
+      "capabilities": [
+        {
+          "action": "execute",
+          "resource": "process",
+          "scope": "npx",
+          "destination": null,
+          "mutability": "mutating",
+          "reversibility": "irreversible",
+          "monetaryLimit": null,
+          "approvalRequirement": "none",
+          "evidenceSource": "server.command",
+          "confidence": "high",
+          "completeness": "complete",
+          "trustSource": "trusted.local_project"
+        }
+      ],
+      "limits": {
+        "spendPerCall": null,
+        "spendTotal": null
+      },
+      "approval": {
+        "required": []
+      },
+      "unknowns": [],
+      "completeness": "complete",
+      "digest": "sha256:538d4d8a47fbeffe587e87963d8ee77cc237e25cb5bc34a061fd227521438e4a"
+    },
+    "decision": null,
+    "plan": null,
+    "state": "AUTHORITY_NORMALIZED",
+    "notes": [
+      "no external evidence attached (optional); decision will rely on CallLint's own analysis",
+      "authority normalized: 1 capability"
+    ],
+    "preparedAt": "2026-09-01T01:15:00.000Z"
+  },
+  "scan": {
+    "schemaVersion": "calllint.report.v0",
+    "reportKind": "config-summary",
+    "configPath": "official-mcp-registry:ai.circulara/plugin",
+    "verdict": "SAFE",
+    "publicVerdictLabel": "No blockers observed",
+    "counts": {
+      "SAFE": 1,
+      "REVIEW": 0,
+      "BLOCK": 0,
+      "UNKNOWN": 0
+    },
+    "reports": [
+      {
+        "schemaVersion": "calllint.report.v0",
+        "reportKind": "single-target",
+        "target": {
+          "name": "package",
+          "kind": "mcp-servers",
+          "source": "@circulara/plugin",
+          "version": "0.1.2",
+          "configPath": "official-mcp-registry:ai.circulara/plugin"
+        },
+        "verdict": "SAFE",
+        "publicVerdictLabel": "No blockers observed",
+        "policyApplied": false,
+        "riskClass": "S1",
+        "symbols": [],
+        "confidence": "high",
+        "reproducibility": {
+          "level": "HIGH",
+          "reasons": []
+        },
+        "summary": "\"package\" has no blockers observed (S1 Read-only utility).",
+        "observed": [],
+        "inferred": [],
+        "findings": [],
+        "topFindings": [],
+        "policy": {
+          "autonomousUse": "allow",
+          "manualApproval": "none",
+          "sandbox": "none"
+        },
+        "fingerprints": {
+          "configHash": "sha256:b6662b47167a174017aead95bad464c9eb4782080185948f624a47b0f33e7a74",
+          "targetSpecHash": "sha256:2766d054066a6919e2a5ac145cba6f53b51156cf35f8a5f4b32999adbe49106d",
+          "riskSurfaceHash": "sha256:69aae84c996fe93d537b08d906cb339866bd43f10876be403a0f4793915bef33",
+          "packageSpecHash": "sha256:db4a8a1c85592fceb44e36a1de3f7550ef335f24c879418e3878c6df9d0608f0"
+        },
+        "diagnostics": [],
+        "generatedAt": "2026-09-01T01:15:00.000Z"
+      }
+    ],
+    "diagnostics": [],
+    "generatedAt": "2026-09-01T01:15:00.000Z"
+  }
+}

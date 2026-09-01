@@ -1,0 +1,335 @@
+{
+  "schema": "calllint.trust-page.v0",
+  "canonicalName": "mcp-registry/ai.bowmark-bowmark",
+  "artifactDigest": "sha256:b3e0d0aef65f70fd020a05e9e16a5973fe8d46477611c95bbfaff39deb096e90",
+  "pageDigest": "sha256:fd6f72f4d63137f622b875d1a4a6eca018515dc633dfce87f80e0205ae108205",
+  "verdict": "REVIEW",
+  "verdictLabel": "Review required",
+  "observedAt": "2026-09-01T01:15:00.000Z",
+  "completeness": "complete",
+  "status": {
+    "verdict": "REVIEW",
+    "completeness": "complete",
+    "authorityClaimed": false,
+    "reproducibility": {
+      "pageDigest": "sha256:fd6f72f4d63137f622b875d1a4a6eca018515dc633dfce87f80e0205ae108205",
+      "observedAt": "2026-09-01T01:15:00.000Z"
+    },
+    "evidenceLevel": "E2",
+    "evidenceRationale": "install config observed → static blast radius normalized into an authority inventory. Higher levels (E3 tool schema, E4 maintainer receipt, E5 sandbox) are not carried by a static page."
+  },
+  "correctionUrl": "https://github.com/calllint/calllint/issues/new?labels=trust-page-correction",
+  "reproduction": {
+    "command": "npx calllint scan official-mcp-registry:ai.bowmark/bowmark",
+    "artifactDigest": "sha256:b3e0d0aef65f70fd020a05e9e16a5973fe8d46477611c95bbfaff39deb096e90",
+    "note": "Re-running this scan reproduces the verdict observed at the pinned artifact digest. It is a point-in-time observation, not a guarantee of future behavior."
+  },
+  "scanHistory": [
+    {
+      "observedAt": "2026-09-01T01:15:00.000Z",
+      "pageDigest": "sha256:fd6f72f4d63137f622b875d1a4a6eca018515dc633dfce87f80e0205ae108205",
+      "artifactDigest": "sha256:b3e0d0aef65f70fd020a05e9e16a5973fe8d46477611c95bbfaff39deb096e90"
+    }
+  ],
+  "preparation": {
+    "schema": "calllint.trust-preparation.v0",
+    "artifact": {
+      "schema": "calllint.artifact.v1",
+      "sourceType": "mcp-config",
+      "source": "official-mcp-registry:ai.bowmark/bowmark",
+      "requestedRef": null,
+      "resolvedRef": "sha256:b3e0d0aef65f70fd020a05e9e16a5973fe8d46477611c95bbfaff39deb096e90",
+      "digest": "sha256:b3e0d0aef65f70fd020a05e9e16a5973fe8d46477611c95bbfaff39deb096e90",
+      "resolvedAt": "2026-09-01T01:15:00.000Z",
+      "resolution": "resolved"
+    },
+    "evidence": null,
+    "authority": {
+      "schema": "calllint.authority.v0",
+      "subject": {
+        "artifactDigest": "sha256:b3e0d0aef65f70fd020a05e9e16a5973fe8d46477611c95bbfaff39deb096e90"
+      },
+      "capabilities": [
+        {
+          "action": "execute",
+          "resource": "process",
+          "scope": "uvx",
+          "destination": null,
+          "mutability": "mutating",
+          "reversibility": "irreversible",
+          "monetaryLimit": null,
+          "approvalRequirement": "none",
+          "evidenceSource": "server.command",
+          "confidence": "high",
+          "completeness": "complete",
+          "trustSource": "trusted.local_project"
+        },
+        {
+          "action": "execute",
+          "resource": "process",
+          "scope": "npx",
+          "destination": null,
+          "mutability": "mutating",
+          "reversibility": "irreversible",
+          "monetaryLimit": null,
+          "approvalRequirement": "none",
+          "evidenceSource": "server.command",
+          "confidence": "high",
+          "completeness": "complete",
+          "trustSource": "trusted.local_project"
+        },
+        {
+          "action": "connect",
+          "resource": "network",
+          "scope": "api.bowmark.ai",
+          "destination": "api.bowmark.ai",
+          "mutability": "mutating",
+          "reversibility": "irreversible",
+          "monetaryLimit": null,
+          "approvalRequirement": "review",
+          "evidenceSource": "server.url",
+          "confidence": "high",
+          "completeness": "complete"
+        }
+      ],
+      "limits": {
+        "spendPerCall": null,
+        "spendTotal": null
+      },
+      "approval": {
+        "required": [
+          "external-network-access"
+        ]
+      },
+      "unknowns": [],
+      "completeness": "complete",
+      "digest": "sha256:68f13b9f511d0756653c39125b9f4c8a2e63918cb9f47d7ef5a73ee5b6d4315d"
+    },
+    "decision": null,
+    "plan": null,
+    "state": "AUTHORITY_NORMALIZED",
+    "notes": [
+      "no external evidence attached (optional); decision will rely on CallLint's own analysis",
+      "authority normalized: 3 capabilities, approvals required: external-network-access"
+    ],
+    "preparedAt": "2026-09-01T01:15:00.000Z"
+  },
+  "scan": {
+    "schemaVersion": "calllint.report.v0",
+    "reportKind": "config-summary",
+    "configPath": "official-mcp-registry:ai.bowmark/bowmark",
+    "verdict": "REVIEW",
+    "publicVerdictLabel": "Review required",
+    "counts": {
+      "SAFE": 2,
+      "REVIEW": 1,
+      "BLOCK": 0,
+      "UNKNOWN": 0
+    },
+    "reports": [
+      {
+        "schemaVersion": "calllint.report.v0",
+        "reportKind": "single-target",
+        "target": {
+          "name": "package-1",
+          "kind": "mcp-servers",
+          "source": "bowmark-mcp",
+          "version": "2.1.0",
+          "configPath": "official-mcp-registry:ai.bowmark/bowmark"
+        },
+        "verdict": "SAFE",
+        "publicVerdictLabel": "No blockers observed",
+        "policyApplied": false,
+        "riskClass": "S1",
+        "symbols": [],
+        "confidence": "high",
+        "reproducibility": {
+          "level": "HIGH",
+          "reasons": []
+        },
+        "summary": "\"package-1\" has no blockers observed (S1 Read-only utility).",
+        "observed": [],
+        "inferred": [],
+        "findings": [],
+        "topFindings": [],
+        "policy": {
+          "autonomousUse": "allow",
+          "manualApproval": "none",
+          "sandbox": "none"
+        },
+        "fingerprints": {
+          "configHash": "sha256:d9e4e29c61f1796aeb605a336ac9f68d1a8d83c96e7092ec50a2f29e51c5f8d6",
+          "targetSpecHash": "sha256:5481711f55374ff1134a7c234ec0b0dceece30ecb24954226ee499fa7cae4e6a",
+          "riskSurfaceHash": "sha256:69aae84c996fe93d537b08d906cb339866bd43f10876be403a0f4793915bef33",
+          "packageSpecHash": "sha256:c5f9d8ef8697aae674b470983d339f3319049d6285517d6a6be3038366934cec"
+        },
+        "diagnostics": [],
+        "generatedAt": "2026-09-01T01:15:00.000Z"
+      },
+      {
+        "schemaVersion": "calllint.report.v0",
+        "reportKind": "single-target",
+        "target": {
+          "name": "package-2",
+          "kind": "mcp-servers",
+          "source": "@bowmark/mcp",
+          "version": "2.1.0",
+          "configPath": "official-mcp-registry:ai.bowmark/bowmark"
+        },
+        "verdict": "SAFE",
+        "publicVerdictLabel": "No blockers observed",
+        "policyApplied": false,
+        "riskClass": "S1",
+        "symbols": [],
+        "confidence": "high",
+        "reproducibility": {
+          "level": "HIGH",
+          "reasons": []
+        },
+        "summary": "\"package-2\" has no blockers observed (S1 Read-only utility).",
+        "observed": [],
+        "inferred": [],
+        "findings": [],
+        "topFindings": [],
+        "policy": {
+          "autonomousUse": "allow",
+          "manualApproval": "none",
+          "sandbox": "none"
+        },
+        "fingerprints": {
+          "configHash": "sha256:42252ad638fd3a0e10c86df5159f9a05d6beb9298047876b38b5e865e77bb831",
+          "targetSpecHash": "sha256:20b050e3fa01a4878815f1dcfbf58bb66a161cc30b76199d9b04ba221bfb2d16",
+          "riskSurfaceHash": "sha256:69aae84c996fe93d537b08d906cb339866bd43f10876be403a0f4793915bef33",
+          "packageSpecHash": "sha256:18d032767562487e9c34d8c73ee456e47d70ae7e79f1429a3eec75d5fdeabe9d"
+        },
+        "diagnostics": [],
+        "generatedAt": "2026-09-01T01:15:00.000Z"
+      },
+      {
+        "schemaVersion": "calllint.report.v0",
+        "reportKind": "single-target",
+        "target": {
+          "name": "remote",
+          "kind": "mcp-servers",
+          "source": "https://api.bowmark.ai/mcp/registry",
+          "configPath": "official-mcp-registry:ai.bowmark/bowmark"
+        },
+        "verdict": "REVIEW",
+        "publicVerdictLabel": "Review required",
+        "policyApplied": false,
+        "riskClass": "S1",
+        "symbols": [
+          "NETWORK"
+        ],
+        "confidence": "high",
+        "reproducibility": {
+          "level": "LOW",
+          "reasons": [
+            "Remote endpoint domain ownership not verified",
+            "Remote endpoint identity verified; tool surface not analyzed"
+          ]
+        },
+        "summary": "\"remote\" could not be verified (insufficient evidence). Risk: Network (S1 Read-only utility).",
+        "observed": [
+          {
+            "id": "supply.unknown-remote",
+            "title": "Remote server source cannot be verified",
+            "severity": "high",
+            "blocker": false,
+            "symbol": "NETWORK",
+            "riskClass": "S1",
+            "mode": "OBSERVED",
+            "confidence": "high",
+            "detectionMethod": "runtime-binding",
+            "evidence": [
+              {
+                "type": "runtime-binding",
+                "path": "official-mcp-registry:ai.bowmark/bowmark",
+                "key": "url",
+                "value": "https://api.bowmark.ai/mcp/registry",
+                "line": 18,
+                "column": 7
+              }
+            ],
+            "impact": "The server runs on an unverified remote endpoint. Its tools, permissions, and behavior cannot be inspected statically and may change at any time.",
+            "fix": "Use a verified first-party endpoint, or run the server from a pinned, inspectable package.",
+            "falsePositiveNote": "A trusted internal endpoint may be fine; add it to the policy allowlist to verify it."
+          }
+        ],
+        "inferred": [],
+        "findings": [
+          {
+            "id": "supply.unknown-remote",
+            "title": "Remote server source cannot be verified",
+            "severity": "high",
+            "blocker": false,
+            "symbol": "NETWORK",
+            "riskClass": "S1",
+            "mode": "OBSERVED",
+            "confidence": "high",
+            "detectionMethod": "runtime-binding",
+            "evidence": [
+              {
+                "type": "runtime-binding",
+                "path": "official-mcp-registry:ai.bowmark/bowmark",
+                "key": "url",
+                "value": "https://api.bowmark.ai/mcp/registry",
+                "line": 18,
+                "column": 7
+              }
+            ],
+            "impact": "The server runs on an unverified remote endpoint. Its tools, permissions, and behavior cannot be inspected statically and may change at any time.",
+            "fix": "Use a verified first-party endpoint, or run the server from a pinned, inspectable package.",
+            "falsePositiveNote": "A trusted internal endpoint may be fine; add it to the policy allowlist to verify it."
+          }
+        ],
+        "topFindings": [
+          {
+            "id": "supply.unknown-remote",
+            "title": "Remote server source cannot be verified",
+            "severity": "high",
+            "blocker": false,
+            "symbol": "NETWORK",
+            "riskClass": "S1",
+            "mode": "OBSERVED",
+            "confidence": "high",
+            "detectionMethod": "runtime-binding",
+            "evidence": [
+              {
+                "type": "runtime-binding",
+                "path": "official-mcp-registry:ai.bowmark/bowmark",
+                "key": "url",
+                "value": "https://api.bowmark.ai/mcp/registry",
+                "line": 18,
+                "column": 7
+              }
+            ],
+            "impact": "The server runs on an unverified remote endpoint. Its tools, permissions, and behavior cannot be inspected statically and may change at any time.",
+            "fix": "Use a verified first-party endpoint, or run the server from a pinned, inspectable package.",
+            "falsePositiveNote": "A trusted internal endpoint may be fine; add it to the policy allowlist to verify it."
+          }
+        ],
+        "policy": {
+          "autonomousUse": "deny",
+          "manualApproval": "required",
+          "sandbox": "required"
+        },
+        "fingerprints": {
+          "configHash": "sha256:cddae52b76033caa76e66813136dc92a2d0d8b1d6201c0aadf0e0698229dfabb",
+          "targetSpecHash": "sha256:ca51134a283408790e2b6d15902d3aa45430f142504b715a0b6fbbe24aa6c53f",
+          "riskSurfaceHash": "sha256:47e9d20255a346b95323c2cb9e092621521638b987bbcd036e68e4aee12dcaf3"
+        },
+        "diagnostics": [
+          {
+            "level": "info",
+            "code": "evidence.remote-identity-verified",
+            "message": "Remote endpoint identity verified; tool surface not analyzed (evidence: https://api.bowmark.ai/mcp/registry)"
+          }
+        ],
+        "generatedAt": "2026-09-01T01:15:00.000Z"
+      }
+    ],
+    "diagnostics": [],
+    "generatedAt": "2026-09-01T01:15:00.000Z"
+  }
+}

@@ -122,4 +122,32 @@ describe("fetchRegistrySnapshot (stubbed network)", () => {
     expect(snap.entries).toHaveLength(1)
     expect(snap.entries[0]!.name).toBe("io.a/keep")
   })
+
+  // ADR 0096. Selecting a PII-free FIELD SET is not producing PII-free VALUES: `description` is
+  // upstream free text and was copied verbatim while the function's docblock claimed "the PII-free
+  // subset". `ai.byteray/byteray-mcp` shipped "… invite: hi@byteray.ai" and only `check:public-copy`
+  // #17 — the last guard before publication — could still see it. Both fixtures are required by the
+  // contract, and the negative is the load-bearing one: a redactor that eats ordinary text would
+  // silently damage 199 clean descriptions to defend against a rare one.
+  const piiBody = {
+    servers: [
+      // POSITIVE: an email in upstream free text must not survive the boundary.
+      { server: { name: "io.pos/leak", description: "Hosted, OAuth + SSO, invite: hi@byteray.ai" }, _meta: { "io.modelcontextprotocol.registry/official": { status: "active", isLatest: true } } },
+      // NEGATIVE: `@` that is not an address — a scope, a handle, a version — must pass untouched.
+      { server: { name: "io.neg/clean", description: "Installs @scope/pkg@1.2.3 — ask @maintainer on GitHub" }, _meta: { "io.modelcontextprotocol.registry/official": { status: "active", isLatest: true } } },
+    ],
+  }
+  const piiFetch = (async () => ({ ok: true, status: 200, json: async () => piiBody })) as unknown as typeof fetch
+
+  it("redacts an email in an upstream description, and leaves non-address `@` alone", async () => {
+    const snap = await fetchRegistrySnapshot({ now: "t", fetchImpl: piiFetch, maxEntries: 10 })
+    const pos = snap.entries.find((e) => e.name === "io.pos/leak")!
+    expect(pos.description).toBe("Hosted, OAuth + SSO, invite: [contact redacted]")
+    expect(pos.description).not.toContain("hi@byteray.ai")
+    // The guard's own regex, applied to the value the snapshot would serve.
+    expect(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/.test(pos.description)).toBe(false)
+
+    const neg = snap.entries.find((e) => e.name === "io.neg/clean")!
+    expect(neg.description).toBe("Installs @scope/pkg@1.2.3 — ask @maintainer on GitHub")
+  })
 })

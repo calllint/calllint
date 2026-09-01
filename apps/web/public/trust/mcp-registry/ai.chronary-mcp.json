@@ -1,0 +1,282 @@
+{
+  "schema": "calllint.trust-page.v0",
+  "canonicalName": "mcp-registry/ai.chronary-mcp",
+  "artifactDigest": "sha256:47f39c700c33d8740aa1ba41491a8d7e00a3586267ea3881dc2dd8d5c387b89c",
+  "pageDigest": "sha256:3a40acb80e66a8924b193944aaaff843ce9ed1ec4a4e7d967621658594277e2b",
+  "verdict": "REVIEW",
+  "verdictLabel": "Review required",
+  "observedAt": "2026-09-01T01:15:00.000Z",
+  "completeness": "complete",
+  "status": {
+    "verdict": "REVIEW",
+    "completeness": "complete",
+    "authorityClaimed": false,
+    "reproducibility": {
+      "pageDigest": "sha256:3a40acb80e66a8924b193944aaaff843ce9ed1ec4a4e7d967621658594277e2b",
+      "observedAt": "2026-09-01T01:15:00.000Z"
+    },
+    "evidenceLevel": "E2",
+    "evidenceRationale": "install config observed → static blast radius normalized into an authority inventory. Higher levels (E3 tool schema, E4 maintainer receipt, E5 sandbox) are not carried by a static page."
+  },
+  "correctionUrl": "https://github.com/calllint/calllint/issues/new?labels=trust-page-correction",
+  "reproduction": {
+    "command": "npx calllint scan official-mcp-registry:ai.chronary/mcp",
+    "artifactDigest": "sha256:47f39c700c33d8740aa1ba41491a8d7e00a3586267ea3881dc2dd8d5c387b89c",
+    "note": "Re-running this scan reproduces the verdict observed at the pinned artifact digest. It is a point-in-time observation, not a guarantee of future behavior."
+  },
+  "scanHistory": [
+    {
+      "observedAt": "2026-09-01T01:15:00.000Z",
+      "pageDigest": "sha256:3a40acb80e66a8924b193944aaaff843ce9ed1ec4a4e7d967621658594277e2b",
+      "artifactDigest": "sha256:47f39c700c33d8740aa1ba41491a8d7e00a3586267ea3881dc2dd8d5c387b89c"
+    }
+  ],
+  "preparation": {
+    "schema": "calllint.trust-preparation.v0",
+    "artifact": {
+      "schema": "calllint.artifact.v1",
+      "sourceType": "mcp-config",
+      "source": "official-mcp-registry:ai.chronary/mcp",
+      "requestedRef": null,
+      "resolvedRef": "sha256:47f39c700c33d8740aa1ba41491a8d7e00a3586267ea3881dc2dd8d5c387b89c",
+      "digest": "sha256:47f39c700c33d8740aa1ba41491a8d7e00a3586267ea3881dc2dd8d5c387b89c",
+      "resolvedAt": "2026-09-01T01:15:00.000Z",
+      "resolution": "resolved"
+    },
+    "evidence": null,
+    "authority": {
+      "schema": "calllint.authority.v0",
+      "subject": {
+        "artifactDigest": "sha256:47f39c700c33d8740aa1ba41491a8d7e00a3586267ea3881dc2dd8d5c387b89c"
+      },
+      "capabilities": [
+        {
+          "action": "execute",
+          "resource": "process",
+          "scope": "npx",
+          "destination": null,
+          "mutability": "mutating",
+          "reversibility": "irreversible",
+          "monetaryLimit": null,
+          "approvalRequirement": "none",
+          "evidenceSource": "server.command",
+          "confidence": "high",
+          "completeness": "complete",
+          "trustSource": "trusted.local_project"
+        },
+        {
+          "action": "connect",
+          "resource": "network",
+          "scope": "api.chronary.ai",
+          "destination": "api.chronary.ai",
+          "mutability": "mutating",
+          "reversibility": "irreversible",
+          "monetaryLimit": null,
+          "approvalRequirement": "review",
+          "evidenceSource": "server.url",
+          "confidence": "high",
+          "completeness": "complete"
+        }
+      ],
+      "limits": {
+        "spendPerCall": null,
+        "spendTotal": null
+      },
+      "approval": {
+        "required": [
+          "external-network-access"
+        ]
+      },
+      "unknowns": [],
+      "completeness": "complete",
+      "digest": "sha256:ac6511e2f72414a6b3cf6d40c0ea25c388a4bd2762e93776649dc1f709cca92d"
+    },
+    "decision": null,
+    "plan": null,
+    "state": "AUTHORITY_NORMALIZED",
+    "notes": [
+      "no external evidence attached (optional); decision will rely on CallLint's own analysis",
+      "authority normalized: 2 capabilities, approvals required: external-network-access"
+    ],
+    "preparedAt": "2026-09-01T01:15:00.000Z"
+  },
+  "scan": {
+    "schemaVersion": "calllint.report.v0",
+    "reportKind": "config-summary",
+    "configPath": "official-mcp-registry:ai.chronary/mcp",
+    "verdict": "REVIEW",
+    "publicVerdictLabel": "Review required",
+    "counts": {
+      "SAFE": 1,
+      "REVIEW": 1,
+      "BLOCK": 0,
+      "UNKNOWN": 0
+    },
+    "reports": [
+      {
+        "schemaVersion": "calllint.report.v0",
+        "reportKind": "single-target",
+        "target": {
+          "name": "package",
+          "kind": "mcp-servers",
+          "source": "@chronary/mcp",
+          "version": "1.5.2",
+          "configPath": "official-mcp-registry:ai.chronary/mcp"
+        },
+        "verdict": "SAFE",
+        "publicVerdictLabel": "No blockers observed",
+        "policyApplied": false,
+        "riskClass": "S1",
+        "symbols": [],
+        "confidence": "high",
+        "reproducibility": {
+          "level": "HIGH",
+          "reasons": []
+        },
+        "summary": "\"package\" has no blockers observed (S1 Read-only utility).",
+        "observed": [],
+        "inferred": [],
+        "findings": [],
+        "topFindings": [],
+        "policy": {
+          "autonomousUse": "allow",
+          "manualApproval": "none",
+          "sandbox": "none"
+        },
+        "fingerprints": {
+          "configHash": "sha256:c669bd6f09621f82c3a070ff8434f901d392daf51f921ef41fb5d486a208075b",
+          "targetSpecHash": "sha256:2bf6d749fdf39be980ebd2acd730608125cbd6983366ea294faf40ed70fcd4b3",
+          "riskSurfaceHash": "sha256:69aae84c996fe93d537b08d906cb339866bd43f10876be403a0f4793915bef33",
+          "packageSpecHash": "sha256:94d64c60a6e571781d0bad5ab9c3466882158a5bafcdcb92246f1c5f2b609e48"
+        },
+        "diagnostics": [],
+        "generatedAt": "2026-09-01T01:15:00.000Z"
+      },
+      {
+        "schemaVersion": "calllint.report.v0",
+        "reportKind": "single-target",
+        "target": {
+          "name": "remote",
+          "kind": "mcp-servers",
+          "source": "https://api.chronary.ai/mcp",
+          "configPath": "official-mcp-registry:ai.chronary/mcp"
+        },
+        "verdict": "REVIEW",
+        "publicVerdictLabel": "Review required",
+        "policyApplied": false,
+        "riskClass": "S1",
+        "symbols": [
+          "NETWORK"
+        ],
+        "confidence": "high",
+        "reproducibility": {
+          "level": "LOW",
+          "reasons": [
+            "Remote endpoint domain ownership not verified",
+            "Remote endpoint identity verified; tool surface not analyzed"
+          ]
+        },
+        "summary": "\"remote\" could not be verified (insufficient evidence). Risk: Network (S1 Read-only utility).",
+        "observed": [
+          {
+            "id": "supply.unknown-remote",
+            "title": "Remote server source cannot be verified",
+            "severity": "high",
+            "blocker": false,
+            "symbol": "NETWORK",
+            "riskClass": "S1",
+            "mode": "OBSERVED",
+            "confidence": "high",
+            "detectionMethod": "runtime-binding",
+            "evidence": [
+              {
+                "type": "runtime-binding",
+                "path": "official-mcp-registry:ai.chronary/mcp",
+                "key": "url",
+                "value": "https://api.chronary.ai/mcp",
+                "line": 12,
+                "column": 7
+              }
+            ],
+            "impact": "The server runs on an unverified remote endpoint. Its tools, permissions, and behavior cannot be inspected statically and may change at any time.",
+            "fix": "Use a verified first-party endpoint, or run the server from a pinned, inspectable package.",
+            "falsePositiveNote": "A trusted internal endpoint may be fine; add it to the policy allowlist to verify it."
+          }
+        ],
+        "inferred": [],
+        "findings": [
+          {
+            "id": "supply.unknown-remote",
+            "title": "Remote server source cannot be verified",
+            "severity": "high",
+            "blocker": false,
+            "symbol": "NETWORK",
+            "riskClass": "S1",
+            "mode": "OBSERVED",
+            "confidence": "high",
+            "detectionMethod": "runtime-binding",
+            "evidence": [
+              {
+                "type": "runtime-binding",
+                "path": "official-mcp-registry:ai.chronary/mcp",
+                "key": "url",
+                "value": "https://api.chronary.ai/mcp",
+                "line": 12,
+                "column": 7
+              }
+            ],
+            "impact": "The server runs on an unverified remote endpoint. Its tools, permissions, and behavior cannot be inspected statically and may change at any time.",
+            "fix": "Use a verified first-party endpoint, or run the server from a pinned, inspectable package.",
+            "falsePositiveNote": "A trusted internal endpoint may be fine; add it to the policy allowlist to verify it."
+          }
+        ],
+        "topFindings": [
+          {
+            "id": "supply.unknown-remote",
+            "title": "Remote server source cannot be verified",
+            "severity": "high",
+            "blocker": false,
+            "symbol": "NETWORK",
+            "riskClass": "S1",
+            "mode": "OBSERVED",
+            "confidence": "high",
+            "detectionMethod": "runtime-binding",
+            "evidence": [
+              {
+                "type": "runtime-binding",
+                "path": "official-mcp-registry:ai.chronary/mcp",
+                "key": "url",
+                "value": "https://api.chronary.ai/mcp",
+                "line": 12,
+                "column": 7
+              }
+            ],
+            "impact": "The server runs on an unverified remote endpoint. Its tools, permissions, and behavior cannot be inspected statically and may change at any time.",
+            "fix": "Use a verified first-party endpoint, or run the server from a pinned, inspectable package.",
+            "falsePositiveNote": "A trusted internal endpoint may be fine; add it to the policy allowlist to verify it."
+          }
+        ],
+        "policy": {
+          "autonomousUse": "deny",
+          "manualApproval": "required",
+          "sandbox": "required"
+        },
+        "fingerprints": {
+          "configHash": "sha256:d8f807337afca4045fd83389679fdcb28daf5af59ccd10ed2153c5289f5ad55b",
+          "targetSpecHash": "sha256:891fa72575ce3be6aaee7e5bbce4db3c728b588e7e903d6c8d7178c9508f818d",
+          "riskSurfaceHash": "sha256:47e9d20255a346b95323c2cb9e092621521638b987bbcd036e68e4aee12dcaf3"
+        },
+        "diagnostics": [
+          {
+            "level": "info",
+            "code": "evidence.remote-identity-verified",
+            "message": "Remote endpoint identity verified; tool surface not analyzed (evidence: https://api.chronary.ai/mcp)"
+          }
+        ],
+        "generatedAt": "2026-09-01T01:15:00.000Z"
+      }
+    ],
+    "diagnostics": [],
+    "generatedAt": "2026-09-01T01:15:00.000Z"
+  }
+}

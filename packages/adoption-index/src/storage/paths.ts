@@ -122,6 +122,104 @@ export function casWorkRoot(root: string): string {
 }
 
 /**
+ * The root of the run-report tree, `reports` — where a completed compile run records what it did.
+ *
+ * Same single-owner argument as `casBlobsRoot` and `casWorkRoot` (INV-R7), but this one is worth
+ * spelling out because the directory was declared in `INDEX_SUBDIRS` from the first commit and had
+ * **no writer and no path helper** until now, while `scripts/gate-s1.ts:438` was already counting
+ * files in it. A reader over an unwritten directory is the repo's dominant fault class: it reads 0
+ * forever and nothing distinguishes a quiet run from a writer that was never built.
+ *
+ * Flat, like `work` and unlike the two-character fan-out of `cas/blobs`: reports are keyed by run,
+ * and a run count stays small enough that a listing is cheap. Callers must not assume a shared
+ * traversal shape across these three roots.
+ */
+export function reportsRoot(root: string): string {
+  return resolve(root, "reports")
+}
+
+/**
+ * Encode a run id into ONE filename-safe path segment, shared by both projections of a run.
+ *
+ * IT ACCEPTS WHAT THE MINTER ACTUALLY MINTS, which the first version did not. `compilerRunId` is
+ * `hashJson(...)` (`domain/job.ts:266`), so every real run id is `sha256:<64 hex>` — and the regex
+ * here forbade `:`. Both callers below therefore threw on EVERY production run; their writers catch
+ * and log, so `reports/` and `cas/manifests/` stayed EMPTY while `scripts/gate-s1.ts` censused them
+ * and `scripts/gate-s2.ts` globbed them for its newest report. `runReportPath`'s docblock named
+ * `beginCompilerRun` as the authority on the shape, and the regex never asked it.
+ *
+ * The colon becomes `-`: legal in a POSIX filename but NOT on Windows (drive / ADS separator), where
+ * this repo also runs. `sha256` is kept rather than stripped so the algorithm stays legible if a
+ * later digest is not sha256, and the mapping is injective, so one filename still names one run.
+ *
+ * SHARED, where the two validators were duplicated on purpose. That comment argued a shared helper
+ * would turn a future divergence into a silent path change — but the reason the two names must match
+ * is that the two projections of one run JOIN on their filename, so a divergence in the ENCODING
+ * breaks that join silently, which is the worse of the two failures. Duplicating a validator is
+ * cheap; duplicating an encoder makes the join hold by coincidence.
+ */
+function runIdSegment(runId: string, caller: string): string {
+  if (/^sha256:[0-9a-f]{64}$/.test(runId)) return runId.replace(":", "-")
+  if (/^[0-9a-zA-Z][0-9a-zA-Z._-]{0,127}$/.test(runId)) return runId
+  throw new Error(`${caller}: expected a filename-safe run id, received ${JSON.stringify(runId)}`)
+}
+
+/**
+ * The path of one run's report, `reports/run-<id>.json`.
+ *
+ * The run id is validated because it becomes a path segment — the same reason `casBlobPath`
+ * validates its hex. Run ids are internal (`beginCompilerRun` mints them), so a malformed one is a
+ * programming error rather than bad input, and this throws instead of returning a refusal.
+ */
+export function runReportPath(root: string, runId: string): string {
+  return resolve(reportsRoot(root), `run-${runIdSegment(runId, "runReportPath")}.json`)
+}
+
+/**
+ * The root of the CAS manifest tree, `cas/manifests` — what one run REFERENCED in the blob store.
+ *
+ * The fourth directory in this file to get a helper, and the third to have been declared in
+ * `INDEX_SUBDIRS` from the first commit with no writer behind it. `reportsRoot`'s docblock names the
+ * fault class; this one is its next instance, and it was found by the guard the last one produced:
+ * `scripts/gate-s1.ts` has been counting files here since it was written, printing `cas/manifests=0`
+ * on every run, and its `cas-dedup-rate` measure REFUSED because a dedup rate is
+ * `distinct blobs ÷ manifest references` and the denominator had never been produced by anything.
+ *
+ * WHY A MANIFEST AND NOT A COUNTER. `verifyAndStore` already returns `deduplicated: boolean`, so a
+ * running total could have been carried in the run report — one number, no new directory. That was
+ * rejected: a count answers "how many hits" and cannot answer "against what", so a reader could not
+ * tell a genuine 90% reuse rate from a resolver that requested the same blob nine times. A manifest
+ * records WHICH digests a run referenced, so the denominator is a set of references that can be
+ * re-derived from disk and cross-checked against `cas/blobs` — the same reason the run report ships
+ * denominators beside numerators instead of rates. ADR 0093 §4.
+ *
+ * Flat, like `reports` and `work`, and unlike the two-character fan-out of `cas/blobs`: manifests are
+ * keyed by run, and a run count stays small enough that a listing is cheap. Callers must not assume a
+ * shared traversal shape across these roots — `gate-s1.ts:428` records that assuming one is what made
+ * its first blob census count 42 shards for 45 blobs.
+ */
+export function casManifestsRoot(root: string): string {
+  return resolve(root, "cas", "manifests")
+}
+
+/**
+ * The path of one run's CAS manifest, `cas/manifests/run-<id>.json`.
+ *
+ * The run id is validated because it becomes a path segment, for the same reason `casBlobPath`
+ * validates its hex and `runReportPath` validates its id. Run ids are internal (`beginCompilerRun`
+ * mints them), so a malformed one is a programming error rather than bad input, and this throws
+ * instead of returning a refusal.
+ *
+ * Deliberately the SAME `run-<id>.json` naming as `runReportPath`, so the two projections of one run
+ * join on their filename without a reader parsing either file. That join is why both now go through
+ * the SAME `runIdSegment` encoder rather than each carrying its own copy of the rule — see its
+ * docblock, which records why the duplication argued for here was the wrong trade.
+ */
+export function casManifestPath(root: string, runId: string): string {
+  return resolve(casManifestsRoot(root), `run-${runIdSegment(runId, "casManifestPath")}.json`)
+}
+
+/**
  * True when `candidate` is inside `root`. Used by the INV-R7 assertion, and written
  * with `resolve` on both sides so a `..` segment cannot smuggle a path past a plain
  * `startsWith` on unnormalized text.

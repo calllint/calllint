@@ -1,0 +1,144 @@
+{
+  "schema": "calllint.trust-page.v0",
+  "canonicalName": "mcp-registry/ai.callmcp-server",
+  "artifactDigest": "sha256:503628fdfb09400549bd705198c687a10c2aaf0153014fb58291556e7c4f58de",
+  "pageDigest": "sha256:9f996634f8b4c52dcbca5d7a1c25c633d96377f3ab3c5e55b27b7b921f479795",
+  "verdict": "SAFE",
+  "verdictLabel": "No blockers observed",
+  "observedAt": "2026-09-01T01:15:00.000Z",
+  "completeness": "complete",
+  "status": {
+    "verdict": "SAFE",
+    "completeness": "complete",
+    "authorityClaimed": false,
+    "reproducibility": {
+      "pageDigest": "sha256:9f996634f8b4c52dcbca5d7a1c25c633d96377f3ab3c5e55b27b7b921f479795",
+      "observedAt": "2026-09-01T01:15:00.000Z"
+    },
+    "evidenceLevel": "E2",
+    "evidenceRationale": "install config observed → static blast radius normalized into an authority inventory. Higher levels (E3 tool schema, E4 maintainer receipt, E5 sandbox) are not carried by a static page."
+  },
+  "correctionUrl": "https://github.com/calllint/calllint/issues/new?labels=trust-page-correction",
+  "reproduction": {
+    "command": "npx calllint scan official-mcp-registry:ai.callmcp/server",
+    "artifactDigest": "sha256:503628fdfb09400549bd705198c687a10c2aaf0153014fb58291556e7c4f58de",
+    "note": "Re-running this scan reproduces the verdict observed at the pinned artifact digest. It is a point-in-time observation, not a guarantee of future behavior."
+  },
+  "scanHistory": [
+    {
+      "observedAt": "2026-09-01T01:15:00.000Z",
+      "pageDigest": "sha256:9f996634f8b4c52dcbca5d7a1c25c633d96377f3ab3c5e55b27b7b921f479795",
+      "artifactDigest": "sha256:503628fdfb09400549bd705198c687a10c2aaf0153014fb58291556e7c4f58de"
+    }
+  ],
+  "preparation": {
+    "schema": "calllint.trust-preparation.v0",
+    "artifact": {
+      "schema": "calllint.artifact.v1",
+      "sourceType": "mcp-config",
+      "source": "official-mcp-registry:ai.callmcp/server",
+      "requestedRef": null,
+      "resolvedRef": "sha256:503628fdfb09400549bd705198c687a10c2aaf0153014fb58291556e7c4f58de",
+      "digest": "sha256:503628fdfb09400549bd705198c687a10c2aaf0153014fb58291556e7c4f58de",
+      "resolvedAt": "2026-09-01T01:15:00.000Z",
+      "resolution": "resolved"
+    },
+    "evidence": null,
+    "authority": {
+      "schema": "calllint.authority.v0",
+      "subject": {
+        "artifactDigest": "sha256:503628fdfb09400549bd705198c687a10c2aaf0153014fb58291556e7c4f58de"
+      },
+      "capabilities": [
+        {
+          "action": "execute",
+          "resource": "process",
+          "scope": "npx",
+          "destination": null,
+          "mutability": "mutating",
+          "reversibility": "irreversible",
+          "monetaryLimit": null,
+          "approvalRequirement": "none",
+          "evidenceSource": "server.command",
+          "confidence": "high",
+          "completeness": "complete",
+          "trustSource": "trusted.local_project"
+        }
+      ],
+      "limits": {
+        "spendPerCall": null,
+        "spendTotal": null
+      },
+      "approval": {
+        "required": []
+      },
+      "unknowns": [],
+      "completeness": "complete",
+      "digest": "sha256:89596b25b65d85c44cd301a479fa3816cfcbc4a3766803fcd37aa57b43fb8daa"
+    },
+    "decision": null,
+    "plan": null,
+    "state": "AUTHORITY_NORMALIZED",
+    "notes": [
+      "no external evidence attached (optional); decision will rely on CallLint's own analysis",
+      "authority normalized: 1 capability"
+    ],
+    "preparedAt": "2026-09-01T01:15:00.000Z"
+  },
+  "scan": {
+    "schemaVersion": "calllint.report.v0",
+    "reportKind": "config-summary",
+    "configPath": "official-mcp-registry:ai.callmcp/server",
+    "verdict": "SAFE",
+    "publicVerdictLabel": "No blockers observed",
+    "counts": {
+      "SAFE": 1,
+      "REVIEW": 0,
+      "BLOCK": 0,
+      "UNKNOWN": 0
+    },
+    "reports": [
+      {
+        "schemaVersion": "calllint.report.v0",
+        "reportKind": "single-target",
+        "target": {
+          "name": "package",
+          "kind": "mcp-servers",
+          "source": "@callmcp/server",
+          "version": "0.1.2",
+          "configPath": "official-mcp-registry:ai.callmcp/server"
+        },
+        "verdict": "SAFE",
+        "publicVerdictLabel": "No blockers observed",
+        "policyApplied": false,
+        "riskClass": "S1",
+        "symbols": [],
+        "confidence": "high",
+        "reproducibility": {
+          "level": "HIGH",
+          "reasons": []
+        },
+        "summary": "\"package\" has no blockers observed (S1 Read-only utility).",
+        "observed": [],
+        "inferred": [],
+        "findings": [],
+        "topFindings": [],
+        "policy": {
+          "autonomousUse": "allow",
+          "manualApproval": "none",
+          "sandbox": "none"
+        },
+        "fingerprints": {
+          "configHash": "sha256:9512c287a07685f54963191fa603d070faf3c609438119e0034e1c15698c2b70",
+          "targetSpecHash": "sha256:3dc5b6228cc4b07cd0d3fc142498c09dee1c95d9bc1a1e8451df1e20875a9013",
+          "riskSurfaceHash": "sha256:69aae84c996fe93d537b08d906cb339866bd43f10876be403a0f4793915bef33",
+          "packageSpecHash": "sha256:0bbaa2a3702c062cc1de797f4691c41c803f70eae63e8a9bca3d92d199097606"
+        },
+        "diagnostics": [],
+        "generatedAt": "2026-09-01T01:15:00.000Z"
+      }
+    ],
+    "diagnostics": [],
+    "generatedAt": "2026-09-01T01:15:00.000Z"
+  }
+}

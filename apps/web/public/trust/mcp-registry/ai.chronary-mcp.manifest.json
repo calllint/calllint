@@ -1,0 +1,57 @@
+{
+  "schema": "calllint.evidence-manifest.v1",
+  "subject": {
+    "canonicalName": "mcp-registry/ai.chronary-mcp",
+    "artifactDigest": "sha256:47f39c700c33d8740aa1ba41491a8d7e00a3586267ea3881dc2dd8d5c387b89c"
+  },
+  "verdict": "REVIEW",
+  "verdictLabel": "Review required",
+  "completeness": "complete",
+  "evidenceLevel": "E2",
+  "evidenceRationale": "install config observed → static blast radius normalized into an authority inventory. Higher levels (E3 tool schema, E4 maintainer receipt, E5 sandbox) are not carried by a static page.",
+  "status": {
+    "verdict": "REVIEW",
+    "completeness": "complete",
+    "authorityClaimed": false,
+    "reproducibility": {
+      "pageDigest": "sha256:3a40acb80e66a8924b193944aaaff843ce9ed1ec4a4e7d967621658594277e2b",
+      "observedAt": "2026-09-01T01:15:00.000Z"
+    },
+    "evidenceLevel": "E2"
+  },
+  "authority": {
+    "digest": "sha256:ac6511e2f72414a6b3cf6d40c0ea25c388a4bd2762e93776649dc1f709cca92d",
+    "completeness": "complete",
+    "capabilityCount": 2,
+    "approvalRequired": [
+      "external-network-access"
+    ],
+    "capabilities": [
+      {
+        "action": "execute",
+        "resource": "process",
+        "mutability": "mutating",
+        "reversibility": "irreversible",
+        "approvalRequirement": "none"
+      },
+      {
+        "action": "connect",
+        "resource": "network",
+        "mutability": "mutating",
+        "reversibility": "irreversible",
+        "approvalRequirement": "review"
+      }
+    ]
+  },
+  "policyDigest": null,
+  "reproducibility": {
+    "pageDigest": "sha256:3a40acb80e66a8924b193944aaaff843ce9ed1ec4a4e7d967621658594277e2b",
+    "observedAt": "2026-09-01T01:15:00.000Z"
+  },
+  "engine": {
+    "name": "calllint"
+  },
+  "correctionUrl": "https://github.com/calllint/calllint/issues/new?labels=trust-page-correction",
+  "generatedAt": "2026-09-01T01:15:00.000Z",
+  "signature": null
+}

@@ -160,14 +160,32 @@ describe("Gate S0 — the status record is parsed, and it is not degenerate", ()
     // beyond drift detection — `**Status:**` is a per-row token, and an amendment that reuses it
     // makes the artifact claim a row it does not have. The fix was to the prose, not to this literal.
     // Index 0 flipped OPEN → CLOSED on 2026-08-13, and the positional form did its job a third
-    // time: it named row 1 rather than reporting "a status changed somewhere". S0-OPEN-4 is the
-    // ONLY row still open, which is the state to notice — the artifact is one row from empty, and
-    // that row's subject (the evicted self page) is the thing S0-OPEN-1's closure walked past.
+    // time: it named row 1 rather than reporting "a status changed somewhere".
+    //
+    // Index 3 flipped OPEN → CLOSED on 2026-08-31, a FOURTH deliberate edit, and it closed the last
+    // open row: this artifact is now all-CLOSED. That is worth stating rather than letting an
+    // all-`CLOSED` array look like a default. The self page is back on `main` at cohort 150 (both
+    // halves of S0-OPEN-4's own restated condition), the re-armed guards were negative-controlled
+    // rather than trusted for being green, and Gate 2.4-B's panel was re-run — the one remedy its
+    // 2026-08-13 amendment said no code change could supply.
+    //
+    // An ALL-CLOSED artifact is the state that most needs a positional literal, not the state that
+    // makes one redundant: `filter(s => s === "OPEN").length === 0` would pass here too, and would go
+    // on passing at every future length and every future status. The `.toEqual` pins arity and order.
+    //
+    // Measured, because the first draft of this comment credited it with more than it does: appending
+    // a sixth row reds the ROW-NUMBER assertion above (`['1'…'6']` vs `['1'…'5']`), not this line —
+    // a new row carrying `**Status:** **OPEN**` keeps this array's first five elements intact. Two
+    // assertions cover the append case and only one of them is this one. What THIS line uniquely
+    // refuses is a status flipped in place, which is what control #A exercised.
+    //
+    // S0-OPEN-4's own closure amendment records the matching gap one level up — nothing fires when a
+    // row's closing condition becomes TRUE, so the row waits rather than watches.
     const statuses = [...text.matchAll(/^\*\*Status:\*\* (?:\*\*)?(\w+)/gm)].map((m) => m[1])
     expect(
       statuses,
-      "each row states a status; only S0-OPEN-4 remains OPEN (1 closed 2026-08-13, 2/3/5 earlier)",
-    ).toEqual(["CLOSED", "CLOSED", "CLOSED", "OPEN", "CLOSED"])
+      "each row states a status; all five are CLOSED as of 2026-08-31 (4 closed last, 1 on 2026-08-13, 2/3/5 earlier) — a sixth element means a row was appended without one",
+    ).toEqual(["CLOSED", "CLOSED", "CLOSED", "CLOSED", "CLOSED"])
   })
 
   // THE ONLY ASSERTION HERE THAT READS THE `eol=lf` PIN, and it exists because control #181 proved
@@ -282,7 +300,11 @@ describe("Gate S0 — every path:line the record cites still points at what it c
     assertPointer(f, 120, "RESERVED_COHORT_NAMES", "the names the cap may not evict")
     assertPointer(f, 142, "export function selectCohortEntries", "the reserved-first cap")
     // Moved 226 → 229 by Cumulative Coverage Amendment: added retainedNames parameter + logic (+3 lines).
-    assertPointer(f, 268, "selectCohortEntries(", "the cap applied after the sort, at the ingest edge")
+    // DRIFTED A TENTH TIME 268 → 297 on 2026-09-01 (ADR 0096): `redactPii` and its docblock were inserted
+    // above `toSnapshotEntry` to strip email-like tokens out of upstream descriptions, +29 lines. The two
+    // pins above sit ABOVE the insertion and did not move — the tenth consecutive time the anchors, not
+    // the numbers, are what kept a drift harmless.
+    assertPointer(f, 297, "selectCohortEntries(", "the cap applied after the sort, at the ingest edge")
     // The load-bearing one: a SINGLE GET with no cursor. This is why the 25 cap cannot be the
     // constraint that produced 19 — it is not even on the production path. Drifted 115 → 177 → 183
     // in S batch 6, the FIFTH consecutive batch to move a pointer in this test — and it moved TWICE
@@ -293,7 +315,8 @@ describe("Gate S0 — every path:line the record cites still points at what it c
     // currently editing the file, not some future one, and content matching is what turned that into
     // a red line quoting `""` instead of a pointer that still resolved to a plausible-looking line.
     // Moved 183 → 224 by Cumulative Coverage Amendment: added retainedNames three-tier logic (+41 lines).
-    assertPointer(f, 263, "doFetch(endpoint)", "the single un-paginated GET")
+    // Also moved 263 → 292 by ADR 0096's `redactPii` insertion (+29 lines), same cause as the pin above.
+    assertPointer(f, 292, "doFetch(endpoint)", "the single un-paginated GET")
   })
 
   it("the measured upstream size, which is what falsifies the recorded reason", () => {
@@ -324,7 +347,17 @@ describe("Gate S0 — every path:line the record cites still points at what it c
     // predicts. This guard catching a one-line import is the guard working, not a nuisance.
     // Moved 170 → 172 by Cumulative Coverage Amendment: added 2 lines to resolveMaxEntries docblock
     // for the gate's expected claim strings (workflow_dispatch input, ONLY knob).
-    assertPointer("packages/trust-index/src/refreshSnapshot.ts", 181, "resolveMaxEntries", "the knob")
+    // Moved 181 → 188 by the compiler-run bookkeeping batch: `refreshSnapshot.ts` gained seven lines
+    // above this anchor — the `beginCompilerRun` / `concludeCompilerRun` / `emptyRunMetrics` /
+    // `gradeRun` / `writeRunReport` / `RUN_REPORT_SCHEMA` imports and the `CompilerRunMetrics` type.
+    // Then 188 → 190 by ADR 0093's batch: two more imports from the same package
+    // (`buildCasManifest` / `writeCasManifest`) for the CAS manifest writer.
+    // Re-pinned each time, not loosened to a search, for the reason the rows above record; and the
+    // mover is once again the batch editing the file, which is what
+    // [[a-pointer-rots-faster-than-its-claim]] predicts. A guard that catches two added imports is the
+    // guard working — this is the third consecutive batch it has caught, and every catch has been a
+    // real edit to the pinned file rather than a false alarm.
+    assertPointer("packages/trust-index/src/refreshSnapshot.ts", 190, "resolveMaxEntries", "the knob")
     assertPointer(WORKFLOW, 20, "workflow_dispatch:", "the dispatch trigger")
     // Moved 73 → 112 by the `inputs:` block this row's remedy called for, then 112 → 127 by ADR 0087's
     // batch: the job gained the `TRUST_INGEST_NOW` pin after checkout and the `:store` → pure-variant
@@ -544,13 +577,41 @@ describe("Gate S0 — every number the record states is derived from the file it
       steps.length,
       `S0-OPEN-2's amendment states 28 &&-joined steps; ci:local now has ${steps.length}`,
     ).toBe(28)
-    // Asserted against the row's LATEST amendment, not the whole row: the 2026-08-09 text says
+    // Asserted against the row's NEWEST step-count claim, not the whole row: the 2026-08-09 text says
     // **19** and the first closure says **20**, both left verbatim by this artifact's
     // append-never-edit convention. A `toContain` over the full row would therefore be satisfied by
     // the stale figures forever — it would pass today, and would have passed before the step was
-    // added. Slicing to the last amendment is what keeps the assertion about the CURRENT claim.
+    // added. Slicing forward from the newest claim is what keeps the assertion about the CURRENT one.
     const row2 = row(2)
-    const lastAmendment = row2.slice(row2.lastIndexOf("### Amendment"))
+    // THE NEWEST AMENDMENT THAT MAKES THIS CLAIM, not simply the newest amendment. The original form
+    // sliced at `lastIndexOf("### Amendment")` and assumed the two were the same thing — true of every
+    // amendment this row had when it was written, because each one existed *because* a step was added.
+    //
+    // That assumption broke on 2026-09-01, when an amendment was appended to correct a different number
+    // in this row (S1's measure count, ADR 0097) without touching `ci:local` at all. The old slice then
+    // demanded a step-count sentence from an amendment that had no business making one, and the only
+    // ways to satisfy it were both wrong: restate an unrelated measurement to appease a regex, or file
+    // the correction somewhere other than the text it corrects.
+    //
+    // So the search is for the last amendment CONTAINING the claim, which keeps every property the
+    // original had. A stale figure in an older amendment still cannot satisfy it (later matches win). A
+    // step added without any amendment still reds, because the newest claim is then behind the live
+    // count. What is no longer required is that the newest amendment be *about* the step count.
+    const claimRe = /`ci:local` now has \*\*(\d+)\*\* `&&`-joined steps/g
+    const heads = [...row2.matchAll(/### Amendment/g)].map((m) => m.index ?? 0)
+    const claiming = heads.filter((h) => {
+      const next = heads.find((o) => o > h) ?? row2.length
+      return new RegExp(claimRe.source).test(row2.slice(h, next))
+    })
+    expect(
+      claiming.length,
+      "at least one amendment in S0-OPEN-2 must state the live `ci:local` step count — the claim cannot live only in the pre-amendment text",
+    ).toBeGreaterThan(0)
+    const lastClaimingHead = claiming[claiming.length - 1]!
+    const lastAmendment = row2.slice(
+      lastClaimingHead,
+      heads.find((o) => o > lastClaimingHead) ?? row2.length,
+    )
     // Bound to the SENTENCE that makes the measurement, not to the figure appearing anywhere in the
     // amendment. A negative control (NC-2) proved the looser `toContain("**26**")` form green while
     // the body claimed **25**: the heading `25 → **26** steps` satisfied it on its own. A heading is

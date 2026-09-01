@@ -1,11 +1,11 @@
 {
   "schema": "calllint.agent-adoption-contract.v1",
   "contract": {
-    "contractDigest": "sha256:664bfa3afaa26027b2505e9f2a68adb3a674c127e07753bd6f9c58e809d79945",
-    "generatedAt": "2026-08-27T11:02:09.000Z",
+    "contractDigest": "sha256:42824e2c8c386e0ac7ca9adceb169f3e5e39535625c3bc5623fbc0b118a3cb63",
+    "generatedAt": "2026-09-01T01:15:00.000Z",
     "expiresAt": null,
     "generatorVersion": "0.1.0",
-    "snapshotDigest": "sha256:b1c68cc75cf1f3b311c93811d27f61db842ad6449d0cbfd3d69431090f253179"
+    "snapshotDigest": "sha256:aaa8f092d2a2cc700baf6290fd1f0025c2444d475efd5935ae131c17b581fd75"
   },
   "subject": {
     "canonicalName": "mcp-registry/ai.benroberts-b4-index",
@@ -17,13 +17,13 @@
     "sourceLocator": "https://b4-index.vercel.app/mcp"
   },
   "publicObservation": {
-    "verdict": "REVIEW",
-    "publicLabel": "Review required",
+    "verdict": "UNKNOWN",
+    "publicLabel": "Insufficient evidence",
     "reasonCodes": [
       "UNKNOWN_REMOTE"
     ],
     "evidenceLevel": "E2",
-    "evidenceDigest": "sha256:460ddb574210599ba30bf0b039498df296047e343223282d5575e6c256378c3d",
+    "evidenceDigest": "sha256:6b51cc3f1664ab2f044cf76cb55b8fb4070e46aa0c85209975ad7e49f1450957",
     "completeness": "complete"
   },
   "authorityDelta": {
@@ -44,8 +44,8 @@
     ]
   },
   "trustedSources": {
-    "registrySnapshotDigest": "sha256:b1c68cc75cf1f3b311c93811d27f61db842ad6449d0cbfd3d69431090f253179",
-    "evidenceDigest": "sha256:460ddb574210599ba30bf0b039498df296047e343223282d5575e6c256378c3d",
+    "registrySnapshotDigest": "sha256:aaa8f092d2a2cc700baf6290fd1f0025c2444d475efd5935ae131c17b581fd75",
+    "evidenceDigest": "sha256:6b51cc3f1664ab2f044cf76cb55b8fb4070e46aa0c85209975ad7e49f1450957",
     "engineVersion": "0.1.0"
   },
   "untrustedPublisherContent": {
@@ -53,15 +53,8 @@
     "usedForSafetyDecision": false
   },
   "recommendedNextAction": {
-    "kind": "PREPARE_LOCALLY",
-    "tool": "calllint_prepare_safe_install",
-    "arguments": {
-      "canonicalName": "mcp-registry/ai.benroberts-b4-index",
-      "expectedVersion": "3.3.0",
-      "expectedArtifactDigest": "sha256:86b6eb0e1ba4ea7f2475b72e2bf17e799519e2310c42b77944028c60be216385",
-      "expectedContractDigest": "sha256:664bfa3afaa26027b2505e9f2a68adb3a674c127e07753bd6f9c58e809d79945",
-      "host": null
-    }
+    "kind": "LOCAL_PREFLIGHT_REQUIRED",
+    "tool": "calllint_prepare_safe_install"
   },
   "agentGuidance": {
     "goal": "Add the requested Agent Tool with only locally approved authority.",

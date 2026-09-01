@@ -2,18 +2,18 @@
   "schema": "calllint.trust-page.v0",
   "canonicalName": "mcp-registry/ai.askmiles-catalog",
   "artifactDigest": "sha256:29905a10f57d635181f1c35271ff7c1525745375b04cf2d5e83a7999912c4ff7",
-  "pageDigest": "sha256:a9727258c61b4400cb3da30276be74e9300a162cf6f12645d447581364a46c53",
+  "pageDigest": "sha256:afdd0d1ee3479ba128f94f6f9fdcf6bb46f4712fe74fa8c28946b8e827f0687b",
   "verdict": "REVIEW",
   "verdictLabel": "Review required",
-  "observedAt": "2026-08-27T11:02:09.000Z",
+  "observedAt": "2026-09-01T01:15:00.000Z",
   "completeness": "complete",
   "status": {
     "verdict": "REVIEW",
     "completeness": "complete",
     "authorityClaimed": false,
     "reproducibility": {
-      "pageDigest": "sha256:a9727258c61b4400cb3da30276be74e9300a162cf6f12645d447581364a46c53",
-      "observedAt": "2026-08-27T11:02:09.000Z"
+      "pageDigest": "sha256:afdd0d1ee3479ba128f94f6f9fdcf6bb46f4712fe74fa8c28946b8e827f0687b",
+      "observedAt": "2026-09-01T01:15:00.000Z"
     },
     "evidenceLevel": "E2",
     "evidenceRationale": "install config observed → static blast radius normalized into an authority inventory. Higher levels (E3 tool schema, E4 maintainer receipt, E5 sandbox) are not carried by a static page."
@@ -26,8 +26,8 @@
   },
   "scanHistory": [
     {
-      "observedAt": "2026-08-27T11:02:09.000Z",
-      "pageDigest": "sha256:a9727258c61b4400cb3da30276be74e9300a162cf6f12645d447581364a46c53",
+      "observedAt": "2026-09-01T01:15:00.000Z",
+      "pageDigest": "sha256:afdd0d1ee3479ba128f94f6f9fdcf6bb46f4712fe74fa8c28946b8e827f0687b",
       "artifactDigest": "sha256:29905a10f57d635181f1c35271ff7c1525745375b04cf2d5e83a7999912c4ff7"
     }
   ],
@@ -40,7 +40,7 @@
       "requestedRef": null,
       "resolvedRef": "sha256:29905a10f57d635181f1c35271ff7c1525745375b04cf2d5e83a7999912c4ff7",
       "digest": "sha256:29905a10f57d635181f1c35271ff7c1525745375b04cf2d5e83a7999912c4ff7",
-      "resolvedAt": "2026-08-27T11:02:09.000Z",
+      "resolvedAt": "2026-09-01T01:15:00.000Z",
       "resolution": "resolved"
     },
     "evidence": null,
@@ -84,7 +84,7 @@
       "no external evidence attached (optional); decision will rely on CallLint's own analysis",
       "authority normalized: 1 capability, approvals required: external-network-access"
     ],
-    "preparedAt": "2026-08-27T11:02:09.000Z"
+    "preparedAt": "2026-09-01T01:15:00.000Z"
   },
   "scan": {
     "schemaVersion": "calllint.report.v0",
@@ -220,10 +220,10 @@
             "message": "Remote endpoint identity verified; tool surface not analyzed (evidence: https://api.askmiles.ai/mcp)"
           }
         ],
-        "generatedAt": "2026-08-27T11:02:09.000Z"
+        "generatedAt": "2026-09-01T01:15:00.000Z"
       }
     ],
     "diagnostics": [],
-    "generatedAt": "2026-08-27T11:02:09.000Z"
+    "generatedAt": "2026-09-01T01:15:00.000Z"
   }
 }

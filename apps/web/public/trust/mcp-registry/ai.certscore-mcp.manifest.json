@@ -1,0 +1,48 @@
+{
+  "schema": "calllint.evidence-manifest.v1",
+  "subject": {
+    "canonicalName": "mcp-registry/ai.certscore-mcp",
+    "artifactDigest": "sha256:5d9b4b261877ad13a473b0f8b5412bcc8fc6cbb3e30dee0a1a0b79ef35f656a3"
+  },
+  "verdict": "SAFE",
+  "verdictLabel": "No blockers observed",
+  "completeness": "complete",
+  "evidenceLevel": "E2",
+  "evidenceRationale": "install config observed → static blast radius normalized into an authority inventory. Higher levels (E3 tool schema, E4 maintainer receipt, E5 sandbox) are not carried by a static page.",
+  "status": {
+    "verdict": "SAFE",
+    "completeness": "complete",
+    "authorityClaimed": false,
+    "reproducibility": {
+      "pageDigest": "sha256:1552f5ede408c47c75c338e4f82f401ab793ae4f99627c8839c1273b0350751e",
+      "observedAt": "2026-09-01T01:15:00.000Z"
+    },
+    "evidenceLevel": "E2"
+  },
+  "authority": {
+    "digest": "sha256:1e4b57ad9de536a4de958d2c0505bd5ddeac7efa802b29c907dc4ffe238cf726",
+    "completeness": "complete",
+    "capabilityCount": 1,
+    "approvalRequired": [],
+    "capabilities": [
+      {
+        "action": "execute",
+        "resource": "process",
+        "mutability": "mutating",
+        "reversibility": "irreversible",
+        "approvalRequirement": "none"
+      }
+    ]
+  },
+  "policyDigest": null,
+  "reproducibility": {
+    "pageDigest": "sha256:1552f5ede408c47c75c338e4f82f401ab793ae4f99627c8839c1273b0350751e",
+    "observedAt": "2026-09-01T01:15:00.000Z"
+  },
+  "engine": {
+    "name": "calllint"
+  },
+  "correctionUrl": "https://github.com/calllint/calllint/issues/new?labels=trust-page-correction",
+  "generatedAt": "2026-09-01T01:15:00.000Z",
+  "signature": null
+}

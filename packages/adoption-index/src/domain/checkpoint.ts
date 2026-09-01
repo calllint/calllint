@@ -50,9 +50,18 @@ export interface SourceCheckpoint {
 export function assertUsableCheckpoint(cp: SourceCheckpoint): void {
   if (cp.sourceId.length === 0) throw new Error("checkpoint has an empty sourceId")
   if (cp.status === "RUNNING") {
+    // THE REMEDY IS NAMED, because for months there was none to name. `RUNNING` is not terminal and
+    // nothing cleared it, so one hard kill wedged a persistent store permanently: every later run
+    // died here, and the message said only what was wrong. Measured 2026-09-01 on a store wedged
+    // weeks earlier. A refusal that states no way out is a refusal an operator cannot act on — the
+    // same standard ADR 0087 set for `sync:mcp-bundle` ("the remedy for a guard has to be
+    // runnable"). `pnpm recover-checkpoint:trust-index` performs the one transition this state
+    // needs, `RUNNING` → `FAILED`, and touches neither cursor nor watermark.
     throw new Error(
       `checkpoint for ${cp.sourceId} is RUNNING — a previous run did not reach a terminal state; ` +
-        "resume would skip records that run fetched but may not have persisted",
+        "resume would skip records that run fetched but may not have persisted. " +
+        "Remedy: `pnpm recover-checkpoint:trust-index` (marks it FAILED, which is terminal, " +
+        "leaving cursor and updatedSince untouched so the next run re-reads its window)",
     )
   }
   for (const [field, value] of [

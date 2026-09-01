@@ -26,6 +26,7 @@ import { verifyAndStore } from "../artifacts/cas.js"
 import { downloadArtifact } from "../artifacts/npmArtifactAdapter.js"
 import type { ArtifactAdapterRegistry, ArtifactFetchContext } from "../artifacts/artifactAdapter.js"
 import type { AdoptionIndexStore, StoredArtifactVersion } from "../storage/store.js"
+import { processingTimeStats, type ProcessingTimeStats } from "../domain/processingTime.js"
 
 /** Why one artifact was not resolved. Every value maps to exactly one status. */
 export type ArtifactResolutionOutcome =
@@ -53,6 +54,22 @@ export interface ArtifactResolutionRecord {
   entryCount: number | null
   /** True when the blob was already in the CAS, so no bytes were written. */
   deduplicated: boolean
+  /**
+   * Wall time this ONE attempt took, from a monotonic clock, or `null` on `NO_ADAPTER`.
+   *
+   * NULL RATHER THAN 0 IS THE WHOLE POINT (ADR 0097 §D4). A `NO_ADAPTER` artifact was never
+   * tried, so it has no processing time — and `0` would be indistinguishable from an attempt
+   * that completed instantly, dragging a mean toward zero with samples representing no work.
+   * That is the same category error as counting an unattempted artifact as a success, which
+   * `skippedNoAdapter` exists to prevent one field over.
+   *
+   * MONOTONIC, NOT `input.now`. `now` is one clock read shared by every artifact in the run
+   * (INV-R6), so `now - now === 0` for every attempt; ADR 0097 §D3 records three production
+   * rows that read exactly that. A duration is not a timestamp, and the two need different
+   * clocks: `now` must be pinned for reproducibility, this must not be pinned to be a
+   * measurement at all.
+   */
+  durationMs: number | null
 }
 
 export interface ArtifactResolutionSummary {
@@ -67,7 +84,24 @@ export interface ArtifactResolutionSummary {
   cached: number
   /** Every artifact's record, in `artifact_version_id` order. */
   records: ArtifactResolutionRecord[]
+  /**
+   * Processing-time distribution over ATTEMPTED artifacts (ADR 0097). `null` when none was
+   * attempted — never a zeroed object, because "0 ms over 0 samples" is the perfect score this
+   * repository has mistaken for a measurement four times.
+   */
+  processing: ProcessingTimeStats | null
 }
+
+/**
+ * One outcome, before the loop times it — what `resolveOne` and `persist` can actually produce.
+ *
+ * THE TYPE CARRIES THE IGNORANCE. `resolveOne` cannot know its own duration: it is measured
+ * around the call, by the caller that also catches its throws. Expressing that as an `Omit`
+ * rather than as an optional field means a future return site cannot forget `durationMs` — it is
+ * not in scope to forget — and the loop's single assignment stays the only place a duration is
+ * decided. ADR 0097 §D4.
+ */
+export type UntimedArtifactResolutionRecord = Omit<ArtifactResolutionRecord, "durationMs">
 
 export interface ResolveArtifactsInput {
   store: AdoptionIndexStore
@@ -84,6 +118,20 @@ export interface ResolveArtifactsInput {
   maxArtifacts?: number
   /** Static-inspection caps. */
   tarCaps?: TarInspectCaps
+  /**
+   * Monotonic millisecond source, injected. Defaults to `performance.now`.
+   *
+   * A SEAM, NOT A CONVENIENCE. This is the first monotonic clock in the repository (ADR 0097),
+   * and an ambient one would make every duration assertion a tolerance check — the shape that
+   * turns a real measurement into `expect(d).toBeGreaterThanOrEqual(0)`, which is true of
+   * anything. With the seam a test supplies a fake and asserts the exact millisecond count, so
+   * the arithmetic is measured rather than tolerated.
+   *
+   * It is deliberately NOT named `now`: `input.now` is a wall-clock ISO instant that must stay
+   * pinned, this is an unpinned relative counter, and conflating them is the defect ADR 0097
+   * exists to record.
+   */
+  monotonicMs?: () => number
 }
 
 /** 30s per request, 32 MiB per artifact, 64 artifacts per run — sized in the plan's terms. */
@@ -100,6 +148,7 @@ export async function resolveArtifacts(input: ResolveArtifactsInput): Promise<Ar
   }
   const tarCaps = input.tarCaps ?? DEFAULT_TAR_CAPS
   const maxArtifacts = input.maxArtifacts ?? DEFAULT_MAX_ARTIFACTS
+  const monotonicMs = input.monotonicMs ?? (() => performance.now())
 
   const all = input.store.listArtifactVersions()
   const pending = all.filter((a) => ARTIFACT_RESOLUTION_INPUT_STATUSES.includes(a.artifactStatus))
@@ -115,6 +164,9 @@ export async function resolveArtifacts(input: ResolveArtifactsInput): Promise<Ar
     skippedNoAdapter: 0,
     cached: 0,
     records: [],
+    // Filled after the loop. Left `null` here so an early `return` — none today, but the file is
+    // 400 lines and grows — cannot ship a zeroed statistic by omission.
+    processing: null,
   }
 
   for (const artifact of considered) {
@@ -125,6 +177,10 @@ export async function resolveArtifacts(input: ResolveArtifactsInput): Promise<Ar
     // outcome it had not yet reached, which is the exact failure the per-artifact transaction
     // exists to prevent. `artifact-store.test.ts`'s "a throwing artifact does not roll back its
     // neighbours" is the measurement; it failed against the first version of this file.
+    // Started BEFORE the `try`, so a thrown attempt is timed too. A crash that took 30s of
+    // request timeout is exactly the sample a p95 exists to surface; timing only the happy path
+    // would make the tail invisible in the statistic whose entire job is to show the tail.
+    const startedMs = monotonicMs()
     const record = await resolveOne(artifact, input, ctx, tarCaps).catch((err: unknown) =>
       // UNAVAILABLE, not REJECTED: the adapter was CALLED, so this is tried-and-failed, and no
       // bytes were ever in hand to refuse. Same reason a 404 is `UNAVAILABLE`.
@@ -140,7 +196,15 @@ export async function resolveArtifacts(input: ResolveArtifactsInput): Promise<Ar
         reason: `ADAPTER_THREW: ${errorMessage(err)}`,
       }),
     )
-    summary.records.push(record)
+    // Stamped here rather than inside `resolveOne`/`persist` on purpose: those two have SIX return
+    // sites between them, and a duration assigned at each would be six chances to forget one — and
+    // a forgotten one reads as `null`, i.e. as "not attempted", which is a wrong sample rather than
+    // a missing one. One assignment, at the one place that sees every outcome.
+    const elapsed = monotonicMs() - startedMs
+    summary.records.push({
+      ...record,
+      durationMs: record.outcome === "NO_ADAPTER" ? null : elapsed,
+    })
 
     switch (record.outcome) {
       case "FETCHED":
@@ -159,6 +223,14 @@ export async function resolveArtifacts(input: ResolveArtifactsInput): Promise<Ar
     }
   }
 
+  // Derived from `records` rather than accumulated in the loop, so the statistic and the evidence
+  // it summarises cannot disagree: the samples ship in the same object, and a reader (or the gate)
+  // can recount `processing` from `records` and get the same numbers.
+  summary.processing = processingTimeStats(
+    summary.records.flatMap((r) => (r.durationMs === null ? [] : [r.durationMs])),
+    summary.skippedNoAdapter,
+  )
+
   return summary
 }
 
@@ -167,7 +239,7 @@ async function resolveOne(
   input: ResolveArtifactsInput,
   ctx: ArtifactFetchContext,
   tarCaps: TarInspectCaps,
-): Promise<ArtifactResolutionRecord> {
+): Promise<UntimedArtifactResolutionRecord> {
   const base = {
     artifactVersionId: artifact.artifactVersionId,
     packageType: artifact.packageType,
@@ -288,11 +360,11 @@ async function resolveOne(
 function persist(
   input: ResolveArtifactsInput,
   artifact: StoredArtifactVersion,
-  record: Omit<ArtifactResolutionRecord, "status"> & {
+  record: Omit<UntimedArtifactResolutionRecord, "status"> & {
     status: ArtifactStatus
     registryIntegrity?: string
   },
-): ArtifactResolutionRecord {
+): UntimedArtifactResolutionRecord {
   const fetched = record.status === "FETCHED"
   input.store.transaction((tx) => {
     tx.updateArtifactResolution({

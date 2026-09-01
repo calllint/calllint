@@ -205,15 +205,15 @@ describe("the assertion fails CLOSED on an unexplained drop (ADR 0085)", () => {
     expect(() => assertCohortConserved(conservation)).toThrow(/dropped before the cap was applied/)
   })
 
-  it("reds on the ADR 0085 shape the fix did not remove: a NEWER deprecated latest row", () => {
-    // Measured on the real 1200-row store: 0 subjects are in this state today, and 4
-    // `deprecated`/`isLatest=true` rows exist, so the shape is REACHABLE and the guard must not be
-    // written as if it were impossible. D1 orders `isLatest` first, so a subject holding an active
-    // latest row AND a newer deprecated latest row resolves to the deprecated one.
+  it("does NOT red on a newer deprecated latest row — that is a withdrawal (ADR 0095)", () => {
+    // This test used to assert a refusal, and the refusal was a PLACEHOLDER: whether a subject
+    // whose latest version upstream is deprecated belongs in a trust cohort was an unanswered
+    // product question, and the guard held it open rather than guessing (ADR 0085's lesson).
     //
-    // Whether such a subject belongs in a trust cohort is a product judgement, and this system was
-    // just shown answering a product question by accident and getting it backwards (ADR 0085). So
-    // it refuses rather than deciding.
+    // ADR 0095 answers it: the subject leaves the cohort. So the shape is now measured as a
+    // withdrawal and named, not refused. What must NOT change is that it is still counted and
+    // still reported — a withdrawal that vanished from the partition would be indistinguishable
+    // from the 58-subject drop this whole file exists to catch.
     const active = record(item("io.example/twolatest", { version: "1.0.0" }, { publishedAt: T0 }))
     const deprecatedNewer = record(
       item("io.example/twolatest", { version: "2.0.0" }, { status: "deprecated", publishedAt: T1 }),
@@ -226,7 +226,37 @@ describe("the assertion fails CLOSED on an unexplained drop (ADR 0085)", () => {
 
     expect(conservation.liveInMirror).toBe(1)
     expect(conservation.served).toBe(0)
-    expect(() => assertCohortConserved(conservation)).toThrow(/io\.example\/twolatest/)
+    expect(conservation.droppedByUpstreamWithdrawal).toEqual(["io.example/twolatest"])
+    expect(conservation.droppedByStaleCurrentRow).toEqual([])
+    expect(() => assertCohortConserved(conservation)).not.toThrow()
+    // Named in the run log, because this is the delta direction most easily misread as a defect.
+    expect(describeCohortConservation(conservation)).toContain("1 withdrawn upstream")
+    expect(describeCohortConservation(conservation)).toContain("io.example/twolatest")
+  })
+
+  it("keeps the two apart when one subject withdraws and another has a stale row", () => {
+    // The discriminator is the source's own `isLatest` on the chosen row, so the two classes must
+    // separate in ONE measurement. If withdrawal were implemented as "any non-live chosen row",
+    // this would report 2 withdrawals and refuse nothing — the ADR 0085 defect back, wearing the
+    // exemption ADR 0095 just granted.
+    const wActive = record(item("io.example/withdrawn", { version: "1.0.0" }, { publishedAt: T0 }))
+    const wDeprecated = record(
+      item("io.example/withdrawn", { version: "2.0.0" }, { status: "deprecated", publishedAt: T1 }),
+    )
+    const sStale = record(item("io.example/stale", { version: "1.0.0" }, { isLatest: false, publishedAt: T0 }))
+    const sLive = record(item("io.example/stale", { version: "1.0.1" }, { isLatest: true, publishedAt: T1 }))
+
+    const conservation = measureCohortConservation({
+      allRecords: [wActive, wDeprecated, sStale, sLive],
+      currentRecords: [wDeprecated, sStale],
+      snapshot: snapshotOf([wDeprecated, sStale], 100),
+    })
+
+    expect(conservation.droppedByUpstreamWithdrawal).toEqual(["io.example/withdrawn"])
+    expect(conservation.droppedByStaleCurrentRow).toEqual(["io.example/stale"])
+    // Still refuses, and names only the subject the projection cannot account for.
+    expect(() => assertCohortConserved(conservation)).toThrow(/io\.example\/stale/)
+    expect(() => assertCohortConserved(conservation)).not.toThrow(/io\.example\/withdrawn/)
   })
 
   it("reds when a live subject is dropped and the cap is NOT binding — the two are distinguished", () => {
@@ -255,6 +285,7 @@ describe("the assertion fails CLOSED on an unexplained drop (ADR 0085)", () => {
       currentLive: 2,
       served: 2,
       droppedByCap: [],
+      droppedByUpstreamWithdrawal: [],
       droppedByStaleCurrentRow: [],
     }
     expect(() => assertCohortConserved(impossible)).toThrow(/cannot happen/)
@@ -270,9 +301,17 @@ describe("the assertion fails CLOSED on an unexplained drop (ADR 0085)", () => {
       currentLive: 10,
       served: 7,
       droppedByCap: [],
+      droppedByUpstreamWithdrawal: [],
       droppedByStaleCurrentRow: [],
     }
     expect(() => assertCohortConserved(miscounted)).toThrow(/partition does not add up/)
+
+    // A withdrawal COUNTS toward the identity. Same numbers, the 3 missing subjects now
+    // explained: this must pass, or `assertCohortConserved` would refuse every run that
+    // observed an upstream deprecation — the ADR 0095 case arriving through branch 3 instead.
+    expect(() =>
+      assertCohortConserved({ ...miscounted, droppedByUpstreamWithdrawal: ["a", "b", "c"] }),
+    ).not.toThrow()
   })
 })
 
@@ -350,23 +389,69 @@ describe("the guard runs inside the operation, before anything is written (ADR 0
     // checkpoint advance and the identity commit; a guard placed after would still throw, but the
     // digest would be on disk and the NEXT run would read "no change" against a cohort this run
     // refused to certify.
+    //
+    // THE REGRESSION IS INJECTED, because with D1's ordering intact the refusal is UNREACHABLE
+    // through the real reads and this test would otherwise have no way to observe placement.
+    // `isLatest DESC` seats an `isLatest` row whenever the subject has one, and a subject with no
+    // `isLatest` row is not live in the mirror either — so no well-formed store can produce a
+    // stale chosen row. (This test previously used a newer-deprecated-latest subject, which DID
+    // refuse and no longer does: ADR 0095 made that a withdrawal.)
+    //
+    // So the current-row read is regressed to what ADR 0085 measured — the stale row seated while
+    // a live one exists — by overriding exactly that read and leaving every other store method
+    // real. That is the defect this guard exists for, so it is the right input for its placement.
     const store = await freshStore()
-    // A subject whose current row resolves to a newer deprecated latest row. Reachable per the
-    // real store's 4 `deprecated`/`isLatest=true` rows, and the guard's own refusal class.
     const poisoned = {
       servers: [
-        item("io.example/twolatest", { version: "1.0.0" }, { publishedAt: T0 }),
-        item("io.example/twolatest", { version: "2.0.0" }, { status: "deprecated", publishedAt: T1 }),
+        item("io.example/bumped", { version: "1.0.0" }, { isLatest: false, publishedAt: T0 }),
+        item("io.example/bumped", { version: "1.0.1" }, { isLatest: true, publishedAt: T1 }),
       ],
     }
+    const regressed: AdoptionIndexStore = Object.create(store, {
+      listLatestSourceRecordPayloads: {
+        value(this: AdoptionIndexStore, sourceId: string): SourceRecordV1[] {
+          const all = store.listSourceRecordPayloads(sourceId)
+          // Pre-D1 behaviour: one row per subject, and the WRONG one.
+          const stale = all.filter((r) => r.lifecycle.isLatest !== true)
+          return stale.length > 0 ? stale : all
+        },
+      },
+    })
 
-    await expect(refresh(store, { fetchImpl: stubFetch(poisoned) })).rejects.toThrow(CohortConservationError)
+    await expect(refresh(regressed, { fetchImpl: stubFetch(poisoned) })).rejects.toThrow(
+      CohortConservationError,
+    )
 
     // The rows ARE mirrored — `syncSource` commits before the projection, and refusing to project
     // is not a reason to lose the evidence. What must not have advanced is the cohort's key.
     expect(store.listSourceRecords("official-mcp-registry")).toHaveLength(2)
     expect(store.readCheckpoint("official-mcp-registry").snapshotDigest).toBeNull()
     expect(store.listSubjects()).toHaveLength(0)
+  })
+
+  it("completes, and advances, when the drop is an upstream withdrawal (ADR 0095)", async () => {
+    // The other half of the placement claim, and the one the old test could not make: a run whose
+    // cohort SHRANK for a legitimate reason must commit. A guard that refused here would wedge
+    // every ingest that observed a deprecation — measured on the real store as 1 subject on the
+    // day ADR 0095 was written, and monotonically more as the mirror ages.
+    const store = await freshStore()
+    const withdrawn = {
+      servers: [
+        item("io.example/alpha", { version: "1.0.0" }, { publishedAt: T0 }),
+        item("io.example/twolatest", { version: "1.0.0" }, { publishedAt: T0 }),
+        item("io.example/twolatest", { version: "2.0.0" }, { status: "deprecated", publishedAt: T1 }),
+      ],
+    }
+
+    const result = await refresh(store, { fetchImpl: stubFetch(withdrawn) })
+
+    expect(result.conservation.droppedByUpstreamWithdrawal).toEqual(["io.example/twolatest"])
+    expect(result.conservation.droppedByStaleCurrentRow).toEqual([])
+    expect(result.snapshot.entries.map((e) => e.name)).toEqual(["io.example/alpha"])
+    // Committed: the checkpoint carries a digest and identity persisted. This is the assertion
+    // that would have failed under the old placeholder refusal.
+    expect(store.readCheckpoint("official-mcp-registry").snapshotDigest).not.toBeNull()
+    expect(result.identity.persisted.subjects).toBeGreaterThan(0)
   })
 })
 

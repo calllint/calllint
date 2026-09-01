@@ -166,6 +166,18 @@ artifacts/gate-s0/** text eol=lf
 # the other half.
 artifacts/gate-s1/** text eol=lf
 
+# The Gate S2 carried open items (`artifacts/gate-s2/open-items.md`).
+#
+# Same reasoning as the two pins above, added in the same batch as its reader
+# (`tests/invariants/gate-s2-claims.invariants.test.ts`), which asserts a zero CR-byte count and names
+# this pin — so unlike `deploy/**`, this one is not an unguarded declaration.
+#
+# The difference from S1's pin is the one S2 exists to demonstrate: S1's record was written AFTER its
+# threshold was crossed, so its pin arrived late too. This artifact and its pin exist at cohort 150
+# against a 500-record threshold — 350 records early. That is the whole claim of the gate, applied to
+# its own bytes.
+artifacts/gate-s2/** text eol=lf
+
 # The vendored MCP 2026-07-28 specification bytes (M26-5; third_party/mcp-spec/2026-07-28/).
 #
 # This pin differs from every other one above in that it is NOT unguarded. The digest lock in

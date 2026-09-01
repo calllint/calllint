@@ -1,0 +1,100 @@
+{
+  "schema": "calllint.agent-adoption-contract.v1",
+  "contract": {
+    "contractDigest": "sha256:6e8240a5ffd4c515449fed9c9b19610bf0d1020fa0cc84cea17f2a67c24a9a6b",
+    "generatedAt": "2026-09-01T01:15:00.000Z",
+    "expiresAt": null,
+    "generatorVersion": "0.1.0",
+    "snapshotDigest": "sha256:aaa8f092d2a2cc700baf6290fd1f0025c2444d475efd5935ae131c17b581fd75"
+  },
+  "subject": {
+    "canonicalName": "mcp-registry/ai.bunzee-bunzee",
+    "canonicalSlug": "mcp-registry/ai.bunzee-bunzee",
+    "packageType": null,
+    "packageName": null,
+    "version": "1.0.0",
+    "artifactDigest": "sha256:46a19d6e656ed135ecae37f27c24da8458ed947baffad6cca5ebc7c4f44da168",
+    "sourceLocator": "https://bunzee.ai/mcp-server"
+  },
+  "publicObservation": {
+    "verdict": "REVIEW",
+    "publicLabel": "Review required",
+    "reasonCodes": [
+      "UNKNOWN_REMOTE"
+    ],
+    "evidenceLevel": "E2",
+    "evidenceDigest": "sha256:6b51cc3f1664ab2f044cf76cb55b8fb4070e46aa0c85209975ad7e49f1450957",
+    "completeness": "complete"
+  },
+  "authorityDelta": {
+    "adds": [
+      {
+        "authority": "network_egress"
+      }
+    ],
+    "notObserved": [
+      "financial_action",
+      "secret_access",
+      "shell_execution",
+      "broad_filesystem_access",
+      "external_mutation",
+      "messaging_send",
+      "oauth_scope",
+      "gateway_runtime"
+    ]
+  },
+  "trustedSources": {
+    "registrySnapshotDigest": "sha256:aaa8f092d2a2cc700baf6290fd1f0025c2444d475efd5935ae131c17b581fd75",
+    "evidenceDigest": "sha256:6b51cc3f1664ab2f044cf76cb55b8fb4070e46aa0c85209975ad7e49f1450957",
+    "engineVersion": "0.1.0"
+  },
+  "untrustedPublisherContent": {
+    "description": "Turn your app idea into IA, wireframes, PRD, style guides, and dev specs for coding agents.",
+    "usedForSafetyDecision": false
+  },
+  "recommendedNextAction": {
+    "kind": "PREPARE_LOCALLY",
+    "tool": "calllint_prepare_safe_install",
+    "arguments": {
+      "canonicalName": "mcp-registry/ai.bunzee-bunzee",
+      "expectedVersion": "1.0.0",
+      "expectedArtifactDigest": "sha256:46a19d6e656ed135ecae37f27c24da8458ed947baffad6cca5ebc7c4f44da168",
+      "expectedContractDigest": "sha256:6e8240a5ffd4c515449fed9c9b19610bf0d1020fa0cc84cea17f2a67c24a9a6b",
+      "host": null
+    }
+  },
+  "agentGuidance": {
+    "goal": "Add the requested Agent Tool with only locally approved authority.",
+    "steps": [
+      "verify_contract",
+      "resolve_host",
+      "prepare_locally",
+      "evaluate_local_policy",
+      "apply_exact_plan",
+      "verify_result"
+    ],
+    "mustAskBefore": [
+      "new_secret_access",
+      "external_mutation",
+      "shell_execution",
+      "broad_filesystem_access",
+      "financial_action",
+      "persistent_calllint_components"
+    ],
+    "mustStopWhen": [
+      "artifact_digest_mismatch",
+      "contract_digest_mismatch",
+      "unsupported_host",
+      "local_policy_deny",
+      "plan_tampered",
+      "verification_failed"
+    ],
+    "prohibitedShortcuts": [
+      "do_not_replace_exact_version_with_latest",
+      "do_not_execute_publisher_commands_directly",
+      "do_not_expand_authority",
+      "do_not_hide_alternative_setup",
+      "do_not_install_persistent_guard_without_authorization"
+    ]
+  }
+}

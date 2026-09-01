@@ -1,11 +1,11 @@
 {
   "schema": "calllint.agent-adoption-contract.v1",
   "contract": {
-    "contractDigest": "sha256:8568d6bfd78ddd0346d92cadf790d356dc767831da29798f8faf13b775ab9168",
-    "generatedAt": "2026-08-27T11:02:09.000Z",
+    "contractDigest": "sha256:833f617057c195f33cbc4ca49db882951d37c9e227c4c196b80c6bd7a576c0d4",
+    "generatedAt": "2026-09-01T01:15:00.000Z",
     "expiresAt": null,
     "generatorVersion": "0.1.0",
-    "snapshotDigest": "sha256:b1c68cc75cf1f3b311c93811d27f61db842ad6449d0cbfd3d69431090f253179"
+    "snapshotDigest": "sha256:aaa8f092d2a2cc700baf6290fd1f0025c2444d475efd5935ae131c17b581fd75"
   },
   "subject": {
     "canonicalName": "mcp-registry/ai.agentutility-mcp-edge-finance",
@@ -21,7 +21,7 @@
     "publicLabel": "No blockers observed",
     "reasonCodes": [],
     "evidenceLevel": "E2",
-    "evidenceDigest": "sha256:460ddb574210599ba30bf0b039498df296047e343223282d5575e6c256378c3d",
+    "evidenceDigest": "sha256:6b51cc3f1664ab2f044cf76cb55b8fb4070e46aa0c85209975ad7e49f1450957",
     "completeness": "complete"
   },
   "authorityDelta": {
@@ -39,8 +39,8 @@
     ]
   },
   "trustedSources": {
-    "registrySnapshotDigest": "sha256:b1c68cc75cf1f3b311c93811d27f61db842ad6449d0cbfd3d69431090f253179",
-    "evidenceDigest": "sha256:460ddb574210599ba30bf0b039498df296047e343223282d5575e6c256378c3d",
+    "registrySnapshotDigest": "sha256:aaa8f092d2a2cc700baf6290fd1f0025c2444d475efd5935ae131c17b581fd75",
+    "evidenceDigest": "sha256:6b51cc3f1664ab2f044cf76cb55b8fb4070e46aa0c85209975ad7e49f1450957",
     "engineVersion": "0.1.0"
   },
   "untrustedPublisherContent": {
@@ -54,7 +54,7 @@
       "canonicalName": "mcp-registry/ai.agentutility-mcp-edge-finance",
       "expectedVersion": "0.18.8",
       "expectedArtifactDigest": "sha256:d5a1d85272187b753aa092bee3cc8ad7c3ac2be7d7cdbc268f1ae4b40f78b985",
-      "expectedContractDigest": "sha256:8568d6bfd78ddd0346d92cadf790d356dc767831da29798f8faf13b775ab9168",
+      "expectedContractDigest": "sha256:833f617057c195f33cbc4ca49db882951d37c9e227c4c196b80c6bd7a576c0d4",
       "host": null
     }
   },

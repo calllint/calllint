@@ -222,6 +222,35 @@ function normalizeRemotes(raw: unknown): SnapshotRemote[] {
 
 const OFFICIAL_META = "io.modelcontextprotocol.registry/official"
 
+/**
+ * An email-like token in upstream free text. Byte-identical to `claim.ts:79` and to
+ * `check-public-copy.mjs:439` — the guard this redaction exists to satisfy. Three copies of one
+ * regex is deliberate: each is a defense at a different plane (store, boundary, served bytes), and
+ * a shared import would let one edit silently retire all three.
+ */
+const EMAIL_LIKE = /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g
+
+/**
+ * Strip email-like tokens from upstream free text.
+ *
+ * WHY THIS EXISTS (2026-09-01, ADR 0096). `toSnapshotEntry` has claimed "the PII-free subset" since
+ * commit one, and the module docblock says it drops "publisher contact" — true of the FIELDS it
+ * selects, and false of their CONTENTS. `description` is upstream free text and was copied verbatim,
+ * so a publisher who writes their address into the description walked it straight onto a served page.
+ *
+ * `ai.byteray/byteray-mcp` did exactly that ("… invite: hi@byteray.ai") and `check:public-copy` #17
+ * caught it on the served bytes — the last guard before publication, and the only one that could
+ * still see it. Selecting a PII-free field set is not the same as producing PII-free values; the
+ * docblock asserted the second while implementing the first.
+ *
+ * Redacted rather than dropped: the description is the page's only human-readable summary, and
+ * discarding it to remove one token would degrade 199 clean pages' worth of surface to defend
+ * against a rare one. The marker is visible so the redaction is auditable rather than silent.
+ */
+function redactPii(text: string): string {
+  return text.replace(EMAIL_LIKE, "[contact redacted]")
+}
+
 /** Keep only active + isLatest entries; normalize to the PII-free subset. */
 function toSnapshotEntry(item: RawItem): SnapshotEntry | null {
   const s = item.server
@@ -231,7 +260,7 @@ function toSnapshotEntry(item: RawItem): SnapshotEntry | null {
   if (str(meta?.status) !== "active" || meta?.isLatest !== true) return null
   return {
     name,
-    description: str(s?.description) ?? "",
+    description: redactPii(str(s?.description) ?? ""),
     version: str(s?.version),
     repositoryUrl: str(s?.repository?.url),
     packages: normalizePackages(s?.packages),
