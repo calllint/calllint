@@ -300,7 +300,11 @@ describe("Gate S0 — every path:line the record cites still points at what it c
     assertPointer(f, 120, "RESERVED_COHORT_NAMES", "the names the cap may not evict")
     assertPointer(f, 142, "export function selectCohortEntries", "the reserved-first cap")
     // Moved 226 → 229 by Cumulative Coverage Amendment: added retainedNames parameter + logic (+3 lines).
-    assertPointer(f, 268, "selectCohortEntries(", "the cap applied after the sort, at the ingest edge")
+    // DRIFTED A TENTH TIME 268 → 297 on 2026-09-01 (ADR 0096): `redactPii` and its docblock were inserted
+    // above `toSnapshotEntry` to strip email-like tokens out of upstream descriptions, +29 lines. The two
+    // pins above sit ABOVE the insertion and did not move — the tenth consecutive time the anchors, not
+    // the numbers, are what kept a drift harmless.
+    assertPointer(f, 297, "selectCohortEntries(", "the cap applied after the sort, at the ingest edge")
     // The load-bearing one: a SINGLE GET with no cursor. This is why the 25 cap cannot be the
     // constraint that produced 19 — it is not even on the production path. Drifted 115 → 177 → 183
     // in S batch 6, the FIFTH consecutive batch to move a pointer in this test — and it moved TWICE
@@ -311,7 +315,8 @@ describe("Gate S0 — every path:line the record cites still points at what it c
     // currently editing the file, not some future one, and content matching is what turned that into
     // a red line quoting `""` instead of a pointer that still resolved to a plausible-looking line.
     // Moved 183 → 224 by Cumulative Coverage Amendment: added retainedNames three-tier logic (+41 lines).
-    assertPointer(f, 263, "doFetch(endpoint)", "the single un-paginated GET")
+    // Also moved 263 → 292 by ADR 0096's `redactPii` insertion (+29 lines), same cause as the pin above.
+    assertPointer(f, 292, "doFetch(endpoint)", "the single un-paginated GET")
   })
 
   it("the measured upstream size, which is what falsifies the recorded reason", () => {

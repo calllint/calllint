@@ -1,11 +1,11 @@
 {
   "schema": "calllint.agent-adoption-contract.v1",
   "contract": {
-    "contractDigest": "sha256:43ef2afa33a03f3f4af5bc2d10f68b43ccd4e376aa7c9ae1a42d1aafccdf7a5c",
-    "generatedAt": "2026-08-27T11:02:09.000Z",
+    "contractDigest": "sha256:273385df6ae9335b2b26e7aa6282ddf0ab72b6a2ace2559f9c60fba69781d5ba",
+    "generatedAt": "2026-09-01T01:15:00.000Z",
     "expiresAt": null,
     "generatorVersion": "0.1.0",
-    "snapshotDigest": "sha256:b1c68cc75cf1f3b311c93811d27f61db842ad6449d0cbfd3d69431090f253179"
+    "snapshotDigest": "sha256:aaa8f092d2a2cc700baf6290fd1f0025c2444d475efd5935ae131c17b581fd75"
   },
   "subject": {
     "canonicalName": "mcp-registry/ai.aliengiraffe-spotdb",
@@ -23,7 +23,7 @@
       "SHELL_OR_DOCKER_EXECUTION"
     ],
     "evidenceLevel": "E2",
-    "evidenceDigest": "sha256:460ddb574210599ba30bf0b039498df296047e343223282d5575e6c256378c3d",
+    "evidenceDigest": "sha256:6b51cc3f1664ab2f044cf76cb55b8fb4070e46aa0c85209975ad7e49f1450957",
     "completeness": "complete"
   },
   "authorityDelta": {
@@ -44,8 +44,8 @@
     ]
   },
   "trustedSources": {
-    "registrySnapshotDigest": "sha256:b1c68cc75cf1f3b311c93811d27f61db842ad6449d0cbfd3d69431090f253179",
-    "evidenceDigest": "sha256:460ddb574210599ba30bf0b039498df296047e343223282d5575e6c256378c3d",
+    "registrySnapshotDigest": "sha256:aaa8f092d2a2cc700baf6290fd1f0025c2444d475efd5935ae131c17b581fd75",
+    "evidenceDigest": "sha256:6b51cc3f1664ab2f044cf76cb55b8fb4070e46aa0c85209975ad7e49f1450957",
     "engineVersion": "0.1.0"
   },
   "untrustedPublisherContent": {
@@ -59,7 +59,7 @@
       "canonicalName": "mcp-registry/ai.aliengiraffe-spotdb",
       "expectedVersion": "0.1.0",
       "expectedArtifactDigest": "sha256:f82ac460627fa7063ca9eb0e43279f40ad29e2b7e2d9b6bec92b3e2c13ce2448",
-      "expectedContractDigest": "sha256:43ef2afa33a03f3f4af5bc2d10f68b43ccd4e376aa7c9ae1a42d1aafccdf7a5c",
+      "expectedContractDigest": "sha256:273385df6ae9335b2b26e7aa6282ddf0ab72b6a2ace2559f9c60fba69781d5ba",
       "host": null
     }
   },

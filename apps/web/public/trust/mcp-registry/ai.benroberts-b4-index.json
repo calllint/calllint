@@ -2,18 +2,18 @@
   "schema": "calllint.trust-page.v0",
   "canonicalName": "mcp-registry/ai.benroberts-b4-index",
   "artifactDigest": "sha256:86b6eb0e1ba4ea7f2475b72e2bf17e799519e2310c42b77944028c60be216385",
-  "pageDigest": "sha256:6a633f1a52730913d04b3e6c4cbebd1ae1a1b9bd78d436c8389d011123d2ecdf",
-  "verdict": "REVIEW",
-  "verdictLabel": "Review required",
-  "observedAt": "2026-08-27T11:02:09.000Z",
+  "pageDigest": "sha256:914292da519f59b21221fa6afc24f8f8e1d4b0ae7351355dc7e7237b71af598e",
+  "verdict": "UNKNOWN",
+  "verdictLabel": "Insufficient evidence",
+  "observedAt": "2026-09-01T01:15:00.000Z",
   "completeness": "complete",
   "status": {
-    "verdict": "REVIEW",
+    "verdict": "UNKNOWN",
     "completeness": "complete",
     "authorityClaimed": false,
     "reproducibility": {
-      "pageDigest": "sha256:6a633f1a52730913d04b3e6c4cbebd1ae1a1b9bd78d436c8389d011123d2ecdf",
-      "observedAt": "2026-08-27T11:02:09.000Z"
+      "pageDigest": "sha256:914292da519f59b21221fa6afc24f8f8e1d4b0ae7351355dc7e7237b71af598e",
+      "observedAt": "2026-09-01T01:15:00.000Z"
     },
     "evidenceLevel": "E2",
     "evidenceRationale": "install config observed → static blast radius normalized into an authority inventory. Higher levels (E3 tool schema, E4 maintainer receipt, E5 sandbox) are not carried by a static page."
@@ -26,8 +26,8 @@
   },
   "scanHistory": [
     {
-      "observedAt": "2026-08-27T11:02:09.000Z",
-      "pageDigest": "sha256:6a633f1a52730913d04b3e6c4cbebd1ae1a1b9bd78d436c8389d011123d2ecdf",
+      "observedAt": "2026-09-01T01:15:00.000Z",
+      "pageDigest": "sha256:914292da519f59b21221fa6afc24f8f8e1d4b0ae7351355dc7e7237b71af598e",
       "artifactDigest": "sha256:86b6eb0e1ba4ea7f2475b72e2bf17e799519e2310c42b77944028c60be216385"
     }
   ],
@@ -40,7 +40,7 @@
       "requestedRef": null,
       "resolvedRef": "sha256:86b6eb0e1ba4ea7f2475b72e2bf17e799519e2310c42b77944028c60be216385",
       "digest": "sha256:86b6eb0e1ba4ea7f2475b72e2bf17e799519e2310c42b77944028c60be216385",
-      "resolvedAt": "2026-08-27T11:02:09.000Z",
+      "resolvedAt": "2026-09-01T01:15:00.000Z",
       "resolution": "resolved"
     },
     "evidence": null,
@@ -84,19 +84,19 @@
       "no external evidence attached (optional); decision will rely on CallLint's own analysis",
       "authority normalized: 1 capability, approvals required: external-network-access"
     ],
-    "preparedAt": "2026-08-27T11:02:09.000Z"
+    "preparedAt": "2026-09-01T01:15:00.000Z"
   },
   "scan": {
     "schemaVersion": "calllint.report.v0",
     "reportKind": "config-summary",
     "configPath": "official-mcp-registry:ai.benroberts/b4-index",
-    "verdict": "REVIEW",
-    "publicVerdictLabel": "Review required",
+    "verdict": "UNKNOWN",
+    "publicVerdictLabel": "Insufficient evidence",
     "counts": {
       "SAFE": 0,
-      "REVIEW": 1,
+      "REVIEW": 0,
       "BLOCK": 0,
-      "UNKNOWN": 0
+      "UNKNOWN": 1
     },
     "reports": [
       {
@@ -108,8 +108,8 @@
           "source": "https://b4-index.vercel.app/mcp",
           "configPath": "official-mcp-registry:ai.benroberts/b4-index"
         },
-        "verdict": "REVIEW",
-        "publicVerdictLabel": "Review required",
+        "verdict": "UNKNOWN",
+        "publicVerdictLabel": "Insufficient evidence",
         "policyApplied": false,
         "riskClass": "S1",
         "symbols": [
@@ -117,10 +117,9 @@
         ],
         "confidence": "high",
         "reproducibility": {
-          "level": "LOW",
+          "level": "MEDIUM",
           "reasons": [
-            "Remote endpoint domain ownership not verified",
-            "Remote endpoint identity verified; tool surface not analyzed"
+            "Remote endpoint could not be verified"
           ]
         },
         "summary": "\"remote\" could not be verified (insufficient evidence). Risk: Network (S1 Read-only utility).",
@@ -213,17 +212,11 @@
           "targetSpecHash": "sha256:c51db7cc679336a96cf396d1db1751a79bf6a91fef1e7b8f9e0a46606b9509db",
           "riskSurfaceHash": "sha256:47e9d20255a346b95323c2cb9e092621521638b987bbcd036e68e4aee12dcaf3"
         },
-        "diagnostics": [
-          {
-            "level": "info",
-            "code": "evidence.remote-identity-verified",
-            "message": "Remote endpoint identity verified; tool surface not analyzed (evidence: https://b4-index.vercel.app/mcp)"
-          }
-        ],
-        "generatedAt": "2026-08-27T11:02:09.000Z"
+        "diagnostics": [],
+        "generatedAt": "2026-09-01T01:15:00.000Z"
       }
     ],
     "diagnostics": [],
-    "generatedAt": "2026-08-27T11:02:09.000Z"
+    "generatedAt": "2026-09-01T01:15:00.000Z"
   }
 }

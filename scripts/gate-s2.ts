@@ -157,18 +157,19 @@ const pagesDir = path.join(repoRoot, "apps/web/public/trust", REGISTRY_NAMESPACE
  * This is `gate-s1.ts`'s `storeCandidates` seam, deliberately reproduced rather than narrowed. S1's
  * first version read only the repo root and printed "the rolling compiler has not run against this
  * checkout" while `packages/trust-index/.var/` held a 2.5 MB database with 298 canonical subjects —
- * a guard reporting truthfully about the wrong directory. `ADOPTION_INDEX_CWD` is honoured FIRST
- * because `pruneCas.ts:59` and `backupAdoptionIndex.ts:52` already treat it as the store's override
- * seam; a second convention here would split the seam in two.
+ * a guard reporting truthfully about the wrong directory. `ADOPTION_INDEX_CWD` is honoured because
+ * `pruneCas.ts:59` and `backupAdoptionIndex.ts:52` already treat it as the store's override seam; a
+ * second convention here would split the seam in two.
+ *
+ * It is an EXCLUSIVE override, not a preferred candidate — see `gate-s1.ts`'s copy of this docblock and
+ * ADR 0096. Reproducing S1's seam means reproducing this too: prepending the override while still
+ * scanning the default roots let a caller that named one store be answered by another.
  */
 const STORE_DIRNAME = ".var/calllint-adoption-index"
-const storeCandidates: readonly string[] = [
-  ...((process.env.ADOPTION_INDEX_CWD ?? "").trim()
-    ? [path.join((process.env.ADOPTION_INDEX_CWD ?? "").trim(), STORE_DIRNAME)]
-    : []),
-  path.join(repoRoot, STORE_DIRNAME),
-  path.join(repoRoot, "packages/trust-index", STORE_DIRNAME),
-]
+const overrideCwd = (process.env.ADOPTION_INDEX_CWD ?? "").trim()
+const storeCandidates: readonly string[] = overrideCwd
+  ? [path.join(overrideCwd, STORE_DIRNAME)]
+  : [path.join(repoRoot, STORE_DIRNAME), path.join(repoRoot, "packages/trust-index", STORE_DIRNAME)]
 
 interface ServedEntry {
   readonly canonicalName: string

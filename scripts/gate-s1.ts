@@ -176,16 +176,27 @@ const pagesDir = path.join(repoRoot, "apps/web/public/trust", REGISTRY_NAMESPACE
  *
  * So the location is DISCOVERED rather than assumed, and every candidate is reported. A single
  * hardcoded path — even the correct one — would just move the blind spot to whichever store the next
- * invocation style creates. `ADOPTION_INDEX_CWD` is honoured first because `pruneCas.ts:59` and
+ * invocation style creates. `ADOPTION_INDEX_CWD` is honoured because `pruneCas.ts:59` and
  * `backupAdoptionIndex.ts:52` already treat it as the store's override seam; this gate must not
  * invent a second convention.
+ *
+ * IT IS AN EXCLUSIVE OVERRIDE, NOT A PREFERRED CANDIDATE (fixed 2026-09-01, ADR 0096). Until now this
+ * PREPENDED the override and still searched both default roots, then picked the newest report across
+ * all of them. That is not the cited convention: `pruneCas.ts:59` reads `env || process.cwd()`, sweeps
+ * ONE directory, and cannot be redirected by a second store existing elsewhere. Prepending inverted
+ * the seam's purpose — a caller naming a store got the *other* store whenever the other store's report
+ * was newer, which is exactly the mis-rooted read this docblock was written about, one level up.
+ *
+ * This was unobservable until 2026-09-01. Every `reports/` on every machine was empty, because both
+ * artifact writers refused every write for the whole life of the project (ADR 0094). Two invariant
+ * tests asserted isolation through this seam and passed; they passed because there was nothing to
+ * leak, not because the seam held. Writing the project's first run report redded both.
  */
 const STORE_DIRNAME = ".var/calllint-adoption-index"
-const storeCandidates: readonly string[] = [
-  ...((process.env.ADOPTION_INDEX_CWD ?? "").trim() ? [path.join((process.env.ADOPTION_INDEX_CWD ?? "").trim(), STORE_DIRNAME)] : []),
-  path.join(repoRoot, STORE_DIRNAME),
-  path.join(repoRoot, "packages/trust-index", STORE_DIRNAME),
-]
+const overrideCwd = (process.env.ADOPTION_INDEX_CWD ?? "").trim()
+const storeCandidates: readonly string[] = overrideCwd
+  ? [path.join(overrideCwd, STORE_DIRNAME)]
+  : [path.join(repoRoot, STORE_DIRNAME), path.join(repoRoot, "packages/trust-index", STORE_DIRNAME)]
 
 interface ServedEntry {
   readonly canonicalName: string

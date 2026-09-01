@@ -550,3 +550,56 @@ and concludes on rejection, plus the characterisation test inverted to assert th
 synchronous, a crash in that body will write no run row at all, and the gate will report on a
 population it cannot see. Grepping for `withCompilerRun(` with an `async` callback is the check.
 
+
+---
+
+## Third measurement — 2026-09-01, at `7117aaa`+ (the first with a run report on disk)
+
+`pnpm gate:s1` on `fix/daily-approval-burden`, after a real `pnpm ingest:trust-index`. **Five
+MEASURED and green; two REFUSED.** The first change in the counts across three measurements, and it
+came from performing the run the previous section declined to perform — plus fixing the defect that
+would have made the run produce nothing anyway (ADR 0094).
+
+| measure (new15 §342 order) | tier | result | change since 2026-08-31 |
+|---|---|---|---|
+| source completeness | MEASURED | ✓ 200/200 source records reached the served tree | cohort 150 → 200 |
+| artifact resolution rate | MEASURED | ✓ 199/200 resolvable; the 1 unresolvable is exactly the 1 the index marks `incomplete` | scaled with the cohort |
+| page quality | MEASURED | ✓ 199/199 baked subjects carry html+json+manifest and agree with the index on both digests | scaled with the cohort |
+| adapter failure rate | **MEASURED** | ✓ 0.0% — 0/36 failed (0 unavailable + 0 rejected) over 36 fetched; 28 of 64 considered had no adapter and are excluded from BOTH halves | **REFUSED → MEASURED** |
+| mean/p95 processing time | REFUSED | ✗ blocked on SCHEMA — `compiler_jobs` has no `started_at`/`finished_at` | unchanged; needs a migration + an ADR |
+| CAS dedup rate | **MEASURED** | ✓ 0.0% within-run reuse (0/36) and 0.0% already-on-disk (0/36), reported as two counts | **REFUSED → MEASURED** |
+| disk growth | REFUSED | ✗ baseline only, re-recorded at 185106432 B / 81 blobs / 1+ report | still one measurement; a rate needs two |
+
+Store census, all candidates:
+
+```
+.var/calllint-adoption-index:                      cas/blobs=0,  cas/manifests=0, dead-letter=0, reports=0, db=131072B
+packages/trust-index/.var/calllint-adoption-index: cas/blobs=81, cas/manifests=1, dead-letter=0, reports=2, db=185106432B
+```
+
+### What actually moved, and why it took a defect fix rather than a run
+
+The second measurement said the two refusals were in the *source, no data* state and named
+`pnpm ingest:trust-index` as a reachable remedy. **That was wrong, and reachably so.** Both writers
+had been called on every ingest since commit one and had **refused on every one**: `runReportPath`
+and `casManifestPath` validate their segment against a pattern that forbids `:`, while
+`beginCompilerRun` mints ids shaped `sha256:<64 hex>`. Every run rejected its own id. ADR 0094 has
+the detail; the correction that matters here is that "a run to perform" was really "a writer to
+repair", and the record could not tell the difference because a refused write and an unattempted
+write leave the same empty directory.
+
+So `reports=2` and `cas/manifests=1` above are the **first such files in the project's history** —
+one FAILED report from the run that tripped a cohort refusal, one SUCCEEDED report with its manifest.
+`adapter-failure-rate` and `cas-dedup-rate` are measured here for the first time ever.
+
+**`disk-growth` still refuses, and that refusal is the honest one.** The baseline moved 2551808 →
+185106432 B, which looks exactly like growth and is not: the earlier figure was read from a store
+this gate was mis-rooted against (S1-OPEN-4), and 45 → 81 blobs spans a full mirror walk. Two numbers
+measured under different conditions are not a rate, so the gate declines to divide them.
+
+**The two remaining refusals are structural, not procedural.** No number of ingests closes either:
+one needs a schema migration plus an ADR, the other needs a second measurement separated by real
+elapsed time. That is the same distinction the second measurement drew, now applied to what is left.
+
+Cohort census: source **200 / 100 required** (met); served **200 registry pages / 200
+committed** (held).

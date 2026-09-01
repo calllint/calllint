@@ -247,9 +247,13 @@ describe("Gate S1 — every path:line the record cites still points at what it c
     // the gate's docblock. Worth recording as the eleventh drift and the first on THIS suite: the red
     // named what it actually read (`"  registryCanonicalName,"`), which is the entire difference between
     // this and an `existsSync`-style check that a blank line satisfies.
+    //
+    // Drifted 203→214 on 2026-09-01 (ADR 0096), when that same docblock grew again to record that its
+    // `ADOPTION_INDEX_CWD` override was a PREFERRED candidate rather than an exclusive one. Twelfth
+    // drift, and the red again quoted the line it read (`"  readonly status: string"`).
     assertPointer(GATE, 106, "S1_REQUIRED_RECORDS = 100", "S1_REQUIRED_RECORDS")
     assertPointer(GATE, 121, "function committedRegistryCohort", "the derived ratchet floor")
-    assertPointer(GATE, 203, "type Outcome", "the outcome union that makes refusal first-class")
+    assertPointer(GATE, 214, "type Outcome", "the outcome union that makes refusal first-class")
   })
 
   it("the committed snapshot and the served index are where the gate reads them", () => {

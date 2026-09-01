@@ -119,8 +119,41 @@ describe("discovery manifest — calllint.discovery.v1 acceptance", () => {
   })
 
   it("carries no score / free-text / auto-install field (closed projection)", () => {
-    expect(manifest.content).not.toContain("score")
-    expect(manifest.content).not.toContain("autoInstall")
-    expect(manifest.content).not.toContain("description")
+    // Asserted over KEYS, not over raw text. This was three `not.toContain` substring scans until
+    // 2026-09-01 (ADR 0096), when the cohort grew to 200 and admitted `ai.certscore/mcp` — a vendor
+    // whose NAME contains "score". The substring form redded on a legitimate canonical name while the
+    // projection was in fact closed, i.e. it failed for a reason it was never about.
+    //
+    // The rule is "no score/free-text/auto-install FIELD reaches the discovery manifest" — a closed
+    // projection. Recursing over keys states exactly that, and is strictly STRONGER than the substring
+    // form for the case that matters: it still reds on a nested `score` field that a `toContain` over
+    // pretty-printed JSON would also catch, and it additionally cannot be satisfied by a field whose
+    // name merely differs in case or surrounding punctuation.
+    const keys = new Set<string>()
+    const walk = (v: unknown): void => {
+      if (Array.isArray(v)) return void v.forEach(walk)
+      if (v && typeof v === "object") {
+        for (const [k, child] of Object.entries(v)) {
+          keys.add(k.toLowerCase())
+          walk(child)
+        }
+      }
+    }
+    walk(doc)
+    for (const forbidden of ["score", "autoinstall", "description"]) {
+      expect([...keys], `the discovery manifest must carry no \`${forbidden}\` field`).not.toContain(
+        forbidden,
+      )
+    }
+    // The values are a closed set too: a free-text field smuggled in under an allowed key would not
+    // show up above. Every resource entry carries exactly the four advertised keys and nothing else.
+    for (const r of doc.resources as Record<string, unknown>[]) {
+      expect(Object.keys(r).sort()).toEqual([
+        "canonicalName",
+        "canonicalSlug",
+        "contractUrl",
+        "installUrl",
+      ])
+    }
   })
 })

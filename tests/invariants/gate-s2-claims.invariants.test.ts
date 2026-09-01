@@ -217,10 +217,14 @@ describe("Gate S2 — every path:line the record cites still points at what it c
     // Content-anchored, not existence-anchored. The S0 suite's pointers drifted ten times across ten
     // batches and every drift was harmless only because the anchor matched content; five of the ten reds
     // quoted docblock prose — a line that existed.
+    //
+    // Drifted 186→187 on 2026-09-01 (ADR 0096), when the store-candidate docblock grew to record that
+    // `ADOPTION_INDEX_CWD` is an exclusive override, not a preferred candidate. One line, and the red
+    // still named what it read (`" */"`) — which is why a one-line drift is a red and not a silent pass.
     assertPointer(GATE, 111, "S2_REQUIRED_RECORDS = CUMULATIVE_COVERAGE_CEILING", "the imported threshold")
-    assertPointer(GATE, 186, "type Outcome", "the outcome union that makes refusal first-class")
-    assertPointer(GATE, 483, "const TRUNCATION_REMEDY", "the per-reason knob table")
-    assertPointer(GATE, 348, "function checkSourceReport", "the check that returns its own reason")
+    assertPointer(GATE, 187, "type Outcome", "the outcome union that makes refusal first-class")
+    assertPointer(GATE, 484, "const TRUNCATION_REMEDY", "the per-reason knob table")
+    assertPointer(GATE, 349, "function checkSourceReport", "the check that returns its own reason")
   })
 
   it("the record's own pointers resolve, and the gate reads the inputs it names", () => {
@@ -325,10 +329,23 @@ describe("Gate S2 — every number the record states is derived from the file it
       "committed and served registry cohorts must agree in SIZE as well as membership",
     ).toBe(cohort)
     const text = readText(ARTIFACT)
+
+    // TWO FIGURES, AND THEY ARE NOT THE SAME QUANTITY (split 2026-09-01, ADR 0096). This assertion
+    // read the CURRENT cohort out of the snapshot and required the record's **at creation** line to
+    // equal it. That held for exactly as long as the cohort did not move, and the two were never the
+    // same thing: 150 is a dated historical fact, and the day the ingest advanced the cohort to 200 the
+    // only way to satisfy the old assertion was to make the record's history false.
+    //
+    // A number the gate re-derives must track the bytes; a number the record dates must not move. So
+    // the creation figure is pinned as a LITERAL — if it ever changes, someone has edited history and
+    // that should red — and the live figure is the one derived from the snapshot.
+    expect(text, "the cohort at creation is dated history and must not be rewritten").toContain(
+      "**Cohort at creation:** **150**",
+    )
     expect(
       text,
-      `the record must state the real cohort at creation (${cohort}), derived rather than typed`,
-    ).toContain(`**Cohort at creation:** **${cohort}**`)
+      `the record must state the real CURRENT cohort (${cohort}), derived rather than typed`,
+    ).toContain(`**Cohort now:** **${cohort}**`)
     expect(
       text,
       `and the real distance to the threshold (${500 - cohort} records early)`,

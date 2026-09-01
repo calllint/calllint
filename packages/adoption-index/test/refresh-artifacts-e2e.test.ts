@@ -349,6 +349,28 @@ const CORPUS_PACKAGES = corpusPackages().length
 const CORPUS_FETCHABLE = corpusPackages().filter((p) => p.registryType === "npm" && p.version !== null).length
 /** The remainder: declared, typed, and NOT TRIED — `NO_ADAPTER`, never `UNAVAILABLE`. */
 const CORPUS_NO_ADAPTER = CORPUS_PACKAGES - CORPUS_FETCHABLE
+/**
+ * A FOURTH NUMBER, and the docblock above predicted its shape without predicting it (added 2026-09-01,
+ * ADR 0096). The three above all count PACKAGES. The record layer publishes one record per SUBJECT and
+ * selects ONE artifact for it — `persistAll` does `artifacts.find((a) => a.subjectId === …)`, the FIRST
+ * stored row, and `artifact_versions` holds a row per DECLARED package in declaration order.
+ *
+ * So a subject's record gets bytes only if its FIRST declared package is one an adapter ships for. That
+ * is not "has a fetchable package anywhere in its list", and the two coincided for the whole life of
+ * this corpus: until cohort 200 no subject declared a non-npm package AHEAD of an npm one. At 200 two
+ * do — `ai.bourdon/bourdon` and `ai.bowmark/bowmark`, both `pypi` first, `npm` second — so
+ * `CORPUS_FETCHABLE` (37 packages) and the with-bytes record population (35 subjects) separated.
+ *
+ * `CORPUS_FETCHABLE` remains correct for every artifact-plane assertion (37 tarball calls, 37 CAS
+ * blobs, 37 FETCHED rows) — those really are per-package, and all ~30 of them stayed green. Only the
+ * per-subject partition was wrong, and it was wrong in the direction that matters: it would have gone
+ * on agreeing forever on a corpus where declaration order never varied.
+ */
+const CORPUS_SUBJECTS_WITH_SELECTED_BYTES = parseSnapshot(readFileSync(SNAPSHOT_PATH, "utf8"))
+  .entries.filter((e) => {
+    const first = e.packages[0]
+    return first !== undefined && first.registryType === "npm" && (first.version ?? null) !== null
+  }).length
 
 describe("the corpus's own shape, graded before anything is asserted about it", () => {
   it("declares entries, strictly fewer packages, and splits them into fetchable and not", () => {
@@ -953,8 +975,18 @@ describe("R-7's adoption records, compiled over the committed corpus (plan step 
     // at all. Derived as the COMPLEMENT rather than pinned, because the two halves have to sum to
     // the compiled population — a subject that fell out of both buckets is the failure this
     // partition exists to catch, and a pair of literals cannot see it.
-    expect(withBytes).toHaveLength(CORPUS_FETCHABLE)
-    expect(withoutBytes).toHaveLength(compiled.length - CORPUS_FETCHABLE)
+    // Per-SUBJECT, not per-package — see `CORPUS_SUBJECTS_WITH_SELECTED_BYTES`. This read
+    // `CORPUS_FETCHABLE` until 2026-09-01, which counts packages and happened to equal the subject
+    // population until a subject declared a non-npm package ahead of an npm one.
+    expect(withBytes).toHaveLength(CORPUS_SUBJECTS_WITH_SELECTED_BYTES)
+    expect(withoutBytes).toHaveLength(compiled.length - CORPUS_SUBJECTS_WITH_SELECTED_BYTES)
+    // The two constants must now DIFFER, or this fix is untested: if a future corpus goes back to
+    // one-package-per-subject they coincide again and the assertion above stops discriminating. Stated
+    // as an inequality on the quantities themselves rather than on literals.
+    expect(
+      CORPUS_SUBJECTS_WITH_SELECTED_BYTES,
+      "a subject's selected artifact is its FIRST declared package, so this cannot exceed the fetchable packages",
+    ).toBeLessThanOrEqual(CORPUS_FETCHABLE)
     // Non-vacuity for the loop below: the without-bytes half must be non-empty, or control (d)'s
     // "no bytes ⇒ no evidence" claim is asserted over nothing.
     expect(withoutBytes.length, "no bytes-less subject makes control (d) vacuous").toBeGreaterThan(0)

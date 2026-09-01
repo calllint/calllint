@@ -1,18 +1,18 @@
 {
   "schema": "calllint.agent-adoption-contract.v1",
   "contract": {
-    "contractDigest": "sha256:4c2e44a5e690b307f1e2b8d4ce4bbaa0da6f1a660218fd5635c4b3dbff7c0f4d",
-    "generatedAt": "2026-08-27T11:02:09.000Z",
+    "contractDigest": "sha256:56d71d559369d35cd4bb731743247f71256703c7e10cca1ffc3fba5035eb02f3",
+    "generatedAt": "2026-09-01T01:15:00.000Z",
     "expiresAt": null,
     "generatorVersion": "0.1.0",
-    "snapshotDigest": "sha256:b1c68cc75cf1f3b311c93811d27f61db842ad6449d0cbfd3d69431090f253179"
+    "snapshotDigest": "sha256:aaa8f092d2a2cc700baf6290fd1f0025c2444d475efd5935ae131c17b581fd75"
   },
   "subject": {
     "canonicalName": "mcp-registry/ai.advisorsai-store-readiness",
     "canonicalSlug": "mcp-registry/ai.advisorsai-store-readiness",
     "packageType": null,
     "packageName": null,
-    "version": "1.0.5",
+    "version": "1.0.6",
     "artifactDigest": "sha256:750ae61348969aef68c6c439488a4ab5681820f82396d46199d8e97844c1b7c7",
     "sourceLocator": "https://advisorsai.ai/store-readiness-mcp"
   },
@@ -23,7 +23,7 @@
       "UNKNOWN_REMOTE"
     ],
     "evidenceLevel": "E2",
-    "evidenceDigest": "sha256:460ddb574210599ba30bf0b039498df296047e343223282d5575e6c256378c3d",
+    "evidenceDigest": "sha256:6b51cc3f1664ab2f044cf76cb55b8fb4070e46aa0c85209975ad7e49f1450957",
     "completeness": "complete"
   },
   "authorityDelta": {
@@ -44,8 +44,8 @@
     ]
   },
   "trustedSources": {
-    "registrySnapshotDigest": "sha256:b1c68cc75cf1f3b311c93811d27f61db842ad6449d0cbfd3d69431090f253179",
-    "evidenceDigest": "sha256:460ddb574210599ba30bf0b039498df296047e343223282d5575e6c256378c3d",
+    "registrySnapshotDigest": "sha256:aaa8f092d2a2cc700baf6290fd1f0025c2444d475efd5935ae131c17b581fd75",
+    "evidenceDigest": "sha256:6b51cc3f1664ab2f044cf76cb55b8fb4070e46aa0c85209975ad7e49f1450957",
     "engineVersion": "0.1.0"
   },
   "untrustedPublisherContent": {
@@ -57,9 +57,9 @@
     "tool": "calllint_prepare_safe_install",
     "arguments": {
       "canonicalName": "mcp-registry/ai.advisorsai-store-readiness",
-      "expectedVersion": "1.0.5",
+      "expectedVersion": "1.0.6",
       "expectedArtifactDigest": "sha256:750ae61348969aef68c6c439488a4ab5681820f82396d46199d8e97844c1b7c7",
-      "expectedContractDigest": "sha256:4c2e44a5e690b307f1e2b8d4ce4bbaa0da6f1a660218fd5635c4b3dbff7c0f4d",
+      "expectedContractDigest": "sha256:56d71d559369d35cd4bb731743247f71256703c7e10cca1ffc3fba5035eb02f3",
       "host": null
     }
   },

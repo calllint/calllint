@@ -2,7 +2,8 @@
 
 **Gate:** `scripts/gate-s2.ts` · `pnpm gate:s2` / `gate:s2:gate` / `gate:s2:regression`
 **Threshold:** 500 served registry records (`CUMULATIVE_COVERAGE_CEILING`)
-**Cohort at creation:** **150** — the gate exists **350 records before its threshold**
+**Cohort at creation:** **150** — the gate existed **350 records before its threshold**
+**Cohort now:** **200** — **300 records before its threshold**
 **Created:** 2026-08-31, closing S1-OPEN-2
 **Reader:** `tests/invariants/gate-s2-claims.invariants.test.ts` — **31 `it` blocks, three layers**
 

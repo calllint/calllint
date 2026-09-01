@@ -2,18 +2,18 @@
   "schema": "calllint.trust-page.v0",
   "canonicalName": "mcp-registry/ai.adoraads-beauty",
   "artifactDigest": "sha256:6a3cb413304c94adec850c54429773aebc77b9715d08d2399358818160426a15",
-  "pageDigest": "sha256:993f3429a51f392c56b0ca734d5a5dc7849fccbf29fd83ca9801bff04e612b73",
+  "pageDigest": "sha256:de7e06ba50878926e69e77d494112600af50b29472492befd3608498a10837ca",
   "verdict": "REVIEW",
   "verdictLabel": "Review required",
-  "observedAt": "2026-08-27T11:02:09.000Z",
+  "observedAt": "2026-09-01T01:15:00.000Z",
   "completeness": "complete",
   "status": {
     "verdict": "REVIEW",
     "completeness": "complete",
     "authorityClaimed": false,
     "reproducibility": {
-      "pageDigest": "sha256:993f3429a51f392c56b0ca734d5a5dc7849fccbf29fd83ca9801bff04e612b73",
-      "observedAt": "2026-08-27T11:02:09.000Z"
+      "pageDigest": "sha256:de7e06ba50878926e69e77d494112600af50b29472492befd3608498a10837ca",
+      "observedAt": "2026-09-01T01:15:00.000Z"
     },
     "evidenceLevel": "E2",
     "evidenceRationale": "install config observed → static blast radius normalized into an authority inventory. Higher levels (E3 tool schema, E4 maintainer receipt, E5 sandbox) are not carried by a static page."
@@ -26,8 +26,8 @@
   },
   "scanHistory": [
     {
-      "observedAt": "2026-08-27T11:02:09.000Z",
-      "pageDigest": "sha256:993f3429a51f392c56b0ca734d5a5dc7849fccbf29fd83ca9801bff04e612b73",
+      "observedAt": "2026-09-01T01:15:00.000Z",
+      "pageDigest": "sha256:de7e06ba50878926e69e77d494112600af50b29472492befd3608498a10837ca",
       "artifactDigest": "sha256:6a3cb413304c94adec850c54429773aebc77b9715d08d2399358818160426a15"
     }
   ],
@@ -40,7 +40,7 @@
       "requestedRef": null,
       "resolvedRef": "sha256:6a3cb413304c94adec850c54429773aebc77b9715d08d2399358818160426a15",
       "digest": "sha256:6a3cb413304c94adec850c54429773aebc77b9715d08d2399358818160426a15",
-      "resolvedAt": "2026-08-27T11:02:09.000Z",
+      "resolvedAt": "2026-09-01T01:15:00.000Z",
       "resolution": "resolved"
     },
     "evidence": null,
@@ -84,7 +84,7 @@
       "no external evidence attached (optional); decision will rely on CallLint's own analysis",
       "authority normalized: 1 capability, approvals required: external-network-access"
     ],
-    "preparedAt": "2026-08-27T11:02:09.000Z"
+    "preparedAt": "2026-09-01T01:15:00.000Z"
   },
   "scan": {
     "schemaVersion": "calllint.report.v0",
@@ -220,10 +220,10 @@
             "message": "Remote endpoint identity verified; tool surface not analyzed (evidence: https://mcp.adoraads.ai/beauty)"
           }
         ],
-        "generatedAt": "2026-08-27T11:02:09.000Z"
+        "generatedAt": "2026-09-01T01:15:00.000Z"
       }
     ],
     "diagnostics": [],
-    "generatedAt": "2026-08-27T11:02:09.000Z"
+    "generatedAt": "2026-09-01T01:15:00.000Z"
   }
 }
