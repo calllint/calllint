@@ -25,23 +25,44 @@
  *   - `droppedByCap` — live, current, and outside ADR 0074's alphabetical ceiling. EXPECTED.
  *     Reported with a count so a log line can state it, never thrown on. At cohort 100 of 293
  *     live subjects this is 193, and a guard that treated it as a fault would refuse every run.
- *   - `droppedByStaleCurrentRow` — live SOMEWHERE in the mirror, but the row chosen to
- *     represent the subject is not live. This is the 58-subject class exactly, stated without
- *     reference to what chose the row. FAILS CLOSED.
+ *   - `droppedByUpstreamWithdrawal` — the chosen row IS the source's latest, and the source
+ *     marks it deprecated. EXPECTED, as of ADR 0095. Reported with a count, never thrown on.
+ *   - `droppedByStaleCurrentRow` — live SOMEWHERE in the mirror, and the row chosen to
+ *     represent the subject is neither live NOR the source's latest. This is the 58-subject
+ *     class exactly, stated without reference to what chose the row. FAILS CLOSED.
  *
- * WHY FAIL CLOSED ON THE SECOND CLASS. After ADR 0085 D1 it is zero on real data — measured
- * over the 1200-row store: 298 subjects, 293 live in the mirror, 293 emitted, 0 unaccounted.
- * But it stays REACHABLE: D1 orders `isLatest` first, so a subject holding both an
- * `active`/`isLatest` row and a *newer* `deprecated`/`isLatest` row resolves to the deprecated
- * one and drops. The real store holds 4 `deprecated`/`isLatest=true` rows today, so the shape
- * exists upstream even though no subject currently combines them.
+ * THE THIRD AND SECOND CLASSES ARE SPLIT BY THE SOURCE'S OWN `isLatest`, and that split is
+ * total over the subjects that reach it. A subject only enters this partition by holding an
+ * `active`/`isLatest` row somewhere, so its chosen row is one of exactly two things: also
+ * `isLatest` — the source states this version is current, and states it is deprecated, which is
+ * a withdrawal — or not `isLatest`, meaning the ordering seated a non-current row while a
+ * current one existed, which is ADR 0085's defect and nothing else. A subject with no
+ * `isLatest` row anywhere never reaches here, because such a subject is not live in the mirror
+ * either.
  *
- * That is precisely the state this system must not resolve on its own. Whether a subject with
- * two latest-marked versions — one active, one deprecated — belongs in a trust cohort is a
- * product judgement, and ADR 0085 was written because this code answered a product question
- * (withdrawal vs version bump) by accident and got it backwards. Refusing to project is
- * recoverable in one run; shipping a snapshot short by a fifth was invisible for two
- * releases. Same argument `assertMirrorComplete` already makes about a truncated read.
+ * `isLatest` is the discriminator rather than a recomputed "which row is most current" because
+ * ADR 0085 D1 made it the PRIMARY sort key: a guard that re-derived currency would be a second
+ * copy of the ordering, and `a-guard-importing-one-of-two-copies` is how the two drift.
+ *
+ * WHAT THIS USED TO DO, AND WHY IT CHANGED. Both classes refused, on the grounds that "whether
+ * a subject with two latest-marked versions — one active, one deprecated — belongs in a trust
+ * cohort is a product judgement" and ADR 0085 was written because this code answered a product
+ * question (withdrawal vs version bump) by accident and got it backwards. The refusal was
+ * right: it held the question open instead of guessing. The question is now ANSWERED (ADR 0095
+ * — upstream deprecation of the latest version removes the subject from the cohort), so the
+ * placeholder retires and the guard keeps only the branch that indicts the projection.
+ *
+ * The refusal was also never a defence of a different policy. Measured on the real store the
+ * day it first fired: 291 subjects had a `deprecated`/`isLatest` chosen row and 290 of them
+ * were ALREADY leaving the cohort silently, having been first mirrored after the deprecation so
+ * that no live row was in their history. Only the 1 subject mirrored while active and deprecated
+ * later could trip the guard. It fired on the one case it could see, not on a distinct policy.
+ *
+ * WHY THE REMAINING BRANCH STILL FAILS CLOSED. After ADR 0085 D1 it is zero on real data —
+ * measured over the 1200-row store: 298 subjects, 293 live in the mirror, 293 emitted, 0
+ * unaccounted, and over the 25,766-subject store: 0. Refusing to project is recoverable in one
+ * run; shipping a snapshot short by a fifth was invisible for two releases. Same argument
+ * `assertMirrorComplete` already makes about a truncated read.
  *
  * The error NAMES the subjects. A guard that reports "3 dropped" without saying which three
  * hands the operator a number they cannot act on, and the count is the part they can already
@@ -66,7 +87,17 @@ export interface CohortConservation {
    */
   droppedByCap: readonly string[]
   /**
-   * Live somewhere in the mirror, yet the row representing the subject is not live.
+   * Was live in the mirror; the source now marks its latest version deprecated. Expected.
+   *
+   * Reported rather than merely subtracted. A withdrawal is the one exclusion that shrinks the
+   * cohort for a reason outside this system, so the run that shrinks must be able to say which
+   * subject left — otherwise a real withdrawal and a projection defect present as the same
+   * smaller number, which is ADR 0084's subject.
+   */
+  droppedByUpstreamWithdrawal: readonly string[]
+  /**
+   * Live somewhere in the mirror, yet the row representing the subject is neither live nor the
+   * source's own latest — so nothing outside this system explains the drop.
    *
    * Native ids, because no entry was ever projected for these subjects — they have no name in
    * the cohort's key space. That asymmetry with `droppedByCap` is the point: these two sets are
@@ -140,13 +171,29 @@ export function measureCohortConservation(opts: MeasureCohortConservationOptions
   const servedNames = new Set(opts.snapshot.entries.map((e) => e.name))
   const droppedByCap = uncapped.entries.map((e) => e.name).filter((n) => !servedNames.has(n))
 
-  const droppedByStaleCurrentRow = [...liveInMirror].filter((id) => !currentLiveIds.has(id)).sort()
+  // Split by the source's own statement of currency, not by a recomputation of it. A subject
+  // reaches here only by holding a live row in history, so a chosen row that is ALSO `isLatest`
+  // can only mean the source has since marked its current version deprecated — a withdrawal
+  // (ADR 0095). Anything else seated a non-current row while a current one existed: ADR 0085.
+  //
+  // A subject with NO chosen row at all lands in `stale` rather than `withdrawn`. That is
+  // unreachable through the real reads — the current row is one of the rows — and the fail-closed
+  // side is the right home for a state that means the two reads disagree.
+  const chosenById = new Map(opts.currentRecords.map((r) => [r.source.sourceRecordId, r]))
+  const droppedByUpstreamWithdrawal: string[] = []
+  const droppedByStaleCurrentRow: string[] = []
+  for (const id of [...liveInMirror].sort()) {
+    if (currentLiveIds.has(id)) continue
+    if (chosenById.get(id)?.lifecycle.isLatest === true) droppedByUpstreamWithdrawal.push(id)
+    else droppedByStaleCurrentRow.push(id)
+  }
 
   return {
     liveInMirror: liveInMirror.size,
     currentLive: currentLive.length,
     served: opts.snapshot.count,
     droppedByCap,
+    droppedByUpstreamWithdrawal,
     droppedByStaleCurrentRow,
   }
 }
@@ -160,9 +207,11 @@ export function measureCohortConservation(opts: MeasureCohortConservationOptions
  *   1. a current row is live but no row in the mirror is — arithmetically impossible, since a
  *      current row IS a row. Reachable only if the two reads disagree about which rows exist,
  *      so it is checked rather than assumed. This is the one branch that indicts the STORE.
- *   2. a live subject dropped with no cap to explain it — the ADR 0085 class.
+ *   2. a live subject dropped with neither the cap NOR an upstream withdrawal to explain it —
+ *      the ADR 0085 class. Withdrawal is excluded here rather than at the measurement, so the
+ *      run still reports which subjects left and why (ADR 0095).
  *   3. the partition does not add up — every subject is accounted for individually and the
- *      totals still disagree, which means one of the three populations was miscounted. A guard
+ *      totals still disagree, which means one of the four populations was miscounted. A guard
  *      that checked only the sets could pass here while reporting a number the artifact
  *      contradicts.
  */
@@ -180,18 +229,22 @@ export function assertCohortConserved(conservation: CohortConservation): void {
     throw new CohortConservationError(
       conservation,
       `${conservation.droppedByStaleCurrentRow.length} subject(s) are live in the mirror but the ` +
-        `row chosen to represent them is not, so they were dropped before the cap was applied: ` +
-        `${conservation.droppedByStaleCurrentRow.join(", ")}`,
+        `row chosen to represent them is neither live nor the source's latest, so they were ` +
+        `dropped before the cap was applied: ${conservation.droppedByStaleCurrentRow.join(", ")}`,
     )
   }
 
   const accounted =
-    conservation.served + conservation.droppedByCap.length + conservation.droppedByStaleCurrentRow.length
+    conservation.served +
+    conservation.droppedByCap.length +
+    conservation.droppedByUpstreamWithdrawal.length +
+    conservation.droppedByStaleCurrentRow.length
   if (accounted !== conservation.liveInMirror) {
     throw new CohortConservationError(
       conservation,
       `the partition does not add up: ${conservation.served} served + ` +
         `${conservation.droppedByCap.length} capped + ` +
+        `${conservation.droppedByUpstreamWithdrawal.length} withdrawn + ` +
         `${conservation.droppedByStaleCurrentRow.length} stale = ${accounted}, against ` +
         `${conservation.liveInMirror} live in the mirror`,
     )
@@ -208,10 +261,14 @@ export function assertCohortConserved(conservation: CohortConservation): void {
  * already refuses the unexplained case, but a guard that speaks only when it throws leaves the
  * successful run unmeasured — and the run that matters here SUCCEEDS while the number jumps.
  *
- * So the identity is printed: `live = served + capped + stale`. An operator reading a large
- * positive delta against a stated `served` and a stated `capped` can tell a correction from
+ * So the identity is printed: `live = served + capped + withdrawn + stale`. An operator reading a
+ * large positive delta against a stated `served` and a stated `capped` can tell a correction from
  * adoption without querying the store, which is the whole point — ADR 0083's ratchet measures
  * magnitude and will see the jump, and magnitude is not a cause.
+ *
+ * `withdrawn` earns its clause for the opposite reason to `capped`: it moves the cohort DOWN, and
+ * a shrink is the delta most easily misread as a defect. Naming the subjects at the point the
+ * cohort loses them is what makes an upstream deprecation legible as such (ADR 0095).
  *
  * The `capped` clause is OMITTED when nothing was capped, following `describeArtifactResolution`:
  * "0 excluded by the cap" and "the ceiling did not bind on this run" are different facts, and a
@@ -219,10 +276,18 @@ export function assertCohortConserved(conservation: CohortConservation): void {
  */
 export function describeCohortConservation(c: CohortConservation): string {
   const capped = c.droppedByCap.length > 0 ? `, ${c.droppedByCap.length} capped` : ""
+  // Named, not just counted, and capped at a handful so one mass deprecation cannot bury the
+  // rest of the line. The names are the actionable part: `1 withdrawn` tells an operator the
+  // cohort shrank, and only the subject tells them whether that is news.
+  const w = c.droppedByUpstreamWithdrawal
+  const withdrawn =
+    w.length > 0
+      ? `, ${w.length} withdrawn upstream (${w.slice(0, 5).join(", ")}${w.length > 5 ? ", …" : ""})`
+      : ""
   // `stale` is normally absent: `assertCohortConserved` throws on a non-empty set, so a caller
   // that printed this after asserting can only ever see 0. Kept for the pre-assert caller and
   // because a silent 0 here would be the one number worth seeing if that ordering ever changes.
   const stale =
     c.droppedByStaleCurrentRow.length > 0 ? `, ${c.droppedByStaleCurrentRow.length} stale` : ""
-  return `cohort: ${c.liveInMirror} live in mirror = ${c.served} served${capped}${stale}`
+  return `cohort: ${c.liveInMirror} live in mirror = ${c.served} served${capped}${withdrawn}${stale}`
 }
