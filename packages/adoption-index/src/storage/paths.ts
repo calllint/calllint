@@ -139,6 +139,32 @@ export function reportsRoot(root: string): string {
 }
 
 /**
+ * Encode a run id into ONE filename-safe path segment, shared by both projections of a run.
+ *
+ * IT ACCEPTS WHAT THE MINTER ACTUALLY MINTS, which the first version did not. `compilerRunId` is
+ * `hashJson(...)` (`domain/job.ts:266`), so every real run id is `sha256:<64 hex>` — and the regex
+ * here forbade `:`. Both callers below therefore threw on EVERY production run; their writers catch
+ * and log, so `reports/` and `cas/manifests/` stayed EMPTY while `scripts/gate-s1.ts` censused them
+ * and `scripts/gate-s2.ts` globbed them for its newest report. `runReportPath`'s docblock named
+ * `beginCompilerRun` as the authority on the shape, and the regex never asked it.
+ *
+ * The colon becomes `-`: legal in a POSIX filename but NOT on Windows (drive / ADS separator), where
+ * this repo also runs. `sha256` is kept rather than stripped so the algorithm stays legible if a
+ * later digest is not sha256, and the mapping is injective, so one filename still names one run.
+ *
+ * SHARED, where the two validators were duplicated on purpose. That comment argued a shared helper
+ * would turn a future divergence into a silent path change — but the reason the two names must match
+ * is that the two projections of one run JOIN on their filename, so a divergence in the ENCODING
+ * breaks that join silently, which is the worse of the two failures. Duplicating a validator is
+ * cheap; duplicating an encoder makes the join hold by coincidence.
+ */
+function runIdSegment(runId: string, caller: string): string {
+  if (/^sha256:[0-9a-f]{64}$/.test(runId)) return runId.replace(":", "-")
+  if (/^[0-9a-zA-Z][0-9a-zA-Z._-]{0,127}$/.test(runId)) return runId
+  throw new Error(`${caller}: expected a filename-safe run id, received ${JSON.stringify(runId)}`)
+}
+
+/**
  * The path of one run's report, `reports/run-<id>.json`.
  *
  * The run id is validated because it becomes a path segment — the same reason `casBlobPath`
@@ -146,10 +172,7 @@ export function reportsRoot(root: string): string {
  * programming error rather than bad input, and this throws instead of returning a refusal.
  */
 export function runReportPath(root: string, runId: string): string {
-  if (!/^[0-9a-zA-Z][0-9a-zA-Z._-]{0,127}$/.test(runId)) {
-    throw new Error(`runReportPath: expected a filename-safe run id, received ${JSON.stringify(runId)}`)
-  }
-  return resolve(reportsRoot(root), `run-${runId}.json`)
+  return resolve(reportsRoot(root), `run-${runIdSegment(runId, "runReportPath")}.json`)
 }
 
 /**
@@ -188,15 +211,12 @@ export function casManifestsRoot(root: string): string {
  * instead of returning a refusal.
  *
  * Deliberately the SAME `run-<id>.json` naming as `runReportPath`, so the two projections of one run
- * join on their filename without a reader parsing either file. The regex is duplicated rather than
- * shared: the two ids are the same value today, and a helper spanning them would make a future
- * divergence a silent path change rather than a type error.
+ * join on their filename without a reader parsing either file. That join is why both now go through
+ * the SAME `runIdSegment` encoder rather than each carrying its own copy of the rule — see its
+ * docblock, which records why the duplication argued for here was the wrong trade.
  */
 export function casManifestPath(root: string, runId: string): string {
-  if (!/^[0-9a-zA-Z][0-9a-zA-Z._-]{0,127}$/.test(runId)) {
-    throw new Error(`casManifestPath: expected a filename-safe run id, received ${JSON.stringify(runId)}`)
-  }
-  return resolve(casManifestsRoot(root), `run-${runId}.json`)
+  return resolve(casManifestsRoot(root), `run-${runIdSegment(runId, "casManifestPath")}.json`)
 }
 
 /**

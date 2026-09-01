@@ -19,6 +19,7 @@
     "resolve-evidence": "tsx src/resolveEvidence.ts",
     "project-adoption-index": "tsx src/projectAdoptionIndex.ts --from-snapshot",
     "prune-cas": "tsx src/pruneCas.ts",
+    "recover-checkpoint": "tsx src/recoverCheckpoint.ts",
     "backup-adoption-index": "tsx src/backupAdoptionIndex.ts",
     "backup-adoption-index:prune-staging": "tsx src/backupAdoptionIndex.ts --prune-staging",
     "restore-adoption-index": "tsx src/restoreAdoptionIndex.ts",

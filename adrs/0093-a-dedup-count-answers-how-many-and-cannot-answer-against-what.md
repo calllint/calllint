@@ -91,8 +91,14 @@ otherwise be read with v1 semantics and produce a confident wrong number.
 ## Consequences
 
 **The refusal does not retire.** A present manifest with zero references still REFUSES, because a
-zero denominator is not a rate. Building the writer moved `cas-dedup-rate` from *unbuildable* to
-*unrun*; both stores still print `cas/manifests=0`, and will until an ingest runs. That the census is
+zero denominator is not a rate. ~~Building the writer moved `cas-dedup-rate` from *unbuildable* to
+*unrun*; both stores still print `cas/manifests=0`, and will until an ingest runs.~~ **Corrected
+2026-09-01 (ADR 0094): it moved it to *unrunnable*.** Ingests had already run, repeatedly — the write
+was refused every time, because `casManifestPath` rejected `sha256:<hex>`, the only id shape
+`beginCompilerRun` mints. `cas/manifests=0` was not *awaiting a run*; it was a writer that could not
+write. The claim above was derived from this ADR's own intent rather than from a run, and the decision
+two paragraphs down — write failure never fails the run, it logs loudly — is what kept the difference
+invisible. That decision stands; see ADR 0094 for why it is not the defect. That the census is
 unchanged while the blocker changed is why S1-OPEN-1 records the move in the refusal text rather than
 in a number.
 

@@ -91,6 +91,7 @@
     "bake:trust-index": "pnpm --filter @calllint/trust-index bake",
     "ingest:trust-index": "pnpm --filter @calllint/trust-index ingest",
     "prune:cas": "pnpm --filter @calllint/trust-index prune-cas",
+    "recover-checkpoint:trust-index": "pnpm --filter @calllint/trust-index recover-checkpoint",
     "backup:adoption-index": "pnpm --filter @calllint/trust-index backup-adoption-index",
     "backup:adoption-index:prune-staging": "pnpm --filter @calllint/trust-index backup-adoption-index:prune-staging",
     "restore:adoption-index": "pnpm --filter @calllint/trust-index restore-adoption-index",

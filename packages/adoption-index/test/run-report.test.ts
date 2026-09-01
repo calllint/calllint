@@ -36,12 +36,14 @@
 import { describe, it, expect, afterEach } from "vitest"
 import { mkdtempSync, readFileSync, readdirSync, rmSync, existsSync, mkdirSync } from "node:fs"
 import { tmpdir } from "node:os"
-import { join, resolve, sep } from "node:path"
+import { basename, join, resolve, sep } from "node:path"
+import { compilerRunId } from "../src/domain/job.js"
 import {
   RUN_REPORT_SCHEMA,
   writeRunReport,
   reportsRoot,
   runReportPath,
+  casManifestPath,
   resolveIndexPaths,
   isInsideRoot,
   gradeRun,
@@ -349,12 +351,49 @@ describe("a malformed run id is refused, not written (control #R4)", () => {
     })
   }
 
-  it("accepts the shapes `beginCompilerRun` actually mints", () => {
+  it("accepts these filename-safe shapes", () => {
     const root = tempRoot()
     for (const ok of ["r-0001", "abc123", "run_2026-08-31T00.00.00.000Z", "A1"]) {
       expect(() => writeRunReport(root, report({ runId: ok }))).not.toThrow()
       expect(existsSync(runReportPath(root, ok))).toBe(true)
     }
+  })
+
+  /**
+   * THE ONE THAT WAS MISSING, AND THE ONLY ONE THAT MATTERED.
+   *
+   * This block's previous test was titled "accepts the shapes `beginCompilerRun` actually mints" and
+   * asserted over four hand-written strings — none of which `beginCompilerRun` has ever produced. It
+   * never called the minter. `compilerRunId` is `hashJson(...)`, so every real id is
+   * `sha256:<64 hex>`, and the writer threw on ALL of them: `reports/` was empty on every machine
+   * while two gates read it. The title made a claim about a function the body could not observe, so
+   * renaming it was not enough — the subject has to be CALLED.
+   */
+  it("accepts what the minter actually mints — the real `compilerRunId`, not a stand-in", () => {
+    const root = tempRoot()
+    const minted = compilerRunId("full", `sha256:${"a".repeat(64)}`, "2026-09-01T00:16:06.000Z")
+
+    // Fails loudly if `compilerRunId` ever stops being a digest: this test would otherwise keep
+    // passing while silently no longer covering the shape that broke.
+    expect(minted, "the minter is expected to mint a digest; if not, this test's premise moved").toMatch(
+      /^sha256:[0-9a-f]{64}$/,
+    )
+
+    const written = writeRunReport(root, report({ runId: minted }))
+    expect(existsSync(written)).toBe(true)
+    expect(readdirSync(reportsRoot(root))).toEqual([`run-${minted.replace(":", "-")}.json`])
+
+    // The colon must not survive into the filename: legal on POSIX, illegal on Windows, and this
+    // repo runs on both.
+    expect(basename(written)).not.toContain(":")
+  })
+
+  it("both projections of one run join on their filename", () => {
+    const minted = compilerRunId("full", `sha256:${"b".repeat(64)}`, "2026-09-01T00:16:06.000Z")
+
+    // The reason `runIdSegment` is shared rather than duplicated. A divergence in the ENCODING
+    // (not the validation) would break this join silently.
+    expect(basename(runReportPath("/r", minted))).toBe(basename(casManifestPath("/r", minted)))
   })
 })
 
