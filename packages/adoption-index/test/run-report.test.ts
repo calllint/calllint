@@ -96,6 +96,11 @@ function report(over: Partial<RunReport> = {}): RunReport {
     // so the field is REQUIRED on `RunReport` — an optional `source?` would let a writer omit it and
     // reintroduce the exact ambiguity v2 exists to remove.
     source: null,
+    // Same reasoning as `source`, one version later (v3, ADR 0097): spelled out so `processing` is
+    // REQUIRED on `RunReport`. An optional `processing?` would let a writer omit the field, and an
+    // absent duration is indistinguishable from a measured zero to every downstream reader — which
+    // is precisely the ambiguity this field was added to remove.
+    processing: null,
     ...over,
   }
 }
@@ -144,9 +149,20 @@ describe("the report lands where the gate already looks", () => {
     const root = tempRoot()
     const parsed = JSON.parse(readFileSync(writeRunReport(root, report()), "utf8"))
 
-    expect(parsed.schema).toBe("calllint.compiler-run-report.v2")
+    // The literal is HARDCODED, not read from `RUN_REPORT_SCHEMA`, and that is the test's whole premise:
+    // a reader parsing this file knows nothing about this module, so the version has to be pinned from
+    // the outside. `toBe(RUN_REPORT_SCHEMA)` would pass for any value the constant took, including a
+    // typo, which is the one thing an on-disk contract cannot afford. Bumped by hand at each version —
+    // v2 → v3 on 2026-09-01 (ADR 0097, per-attempt processing durations) — and the hand-edit is the point.
+    expect(parsed.schema).toBe("calllint.compiler-run-report.v3")
     expect(parsed.runId).toBe("r-0001")
     expect(parsed.metrics).toEqual(distinctMetrics())
+    // v3's field must actually REACH the file. `report()` builds it as `null`, so this asserts the key
+    // is present and null — not absent. A reader distinguishes "ran and attempted nothing" (null) from
+    // "written before the observable existed" (key absent) by the schema version, and both the gate's
+    // three refusal states and ADR 0097 depend on that being a real on-disk difference.
+    expect(Object.hasOwn(parsed, "processing"), "the v3 field must be written, not omitted when null").toBe(true)
+    expect(parsed.processing).toBeNull()
   })
 })
 

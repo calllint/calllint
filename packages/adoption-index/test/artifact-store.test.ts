@@ -788,6 +788,14 @@ describe("resolveArtifacts — one transaction per artifact", () => {
       // Byte-for-byte unchanged: a skip writes NOTHING, not even a status rewrite to itself.
       expect(store.listArtifactVersions()).toEqual(before)
       expect(summary.records.map((r) => r.outcome)).toEqual(["NO_ADAPTER", "NO_ADAPTER"])
+      // ADR 0097's NEGATIVE FIXTURE for the processing-time distribution. Two considered artifacts,
+      // both skipped, so there is no distribution — and `null` rather than `{ n: 0, meanMs: 0 }`,
+      // which the gate would print as an instantaneous compiler from zero observations.
+      expect(summary.records.map((r) => r.durationMs)).toEqual([null, null])
+      expect(
+        summary.processing,
+        "a run that attempted nothing has NO processing time, not a processing time of zero",
+      ).toBeNull()
     } finally {
       store.close()
     }
@@ -923,6 +931,115 @@ describe("resolveArtifacts — one transaction per artifact", () => {
   })
 })
 
+describe("processing time — the observable Gate S1's blocker said did not exist (ADR 0097)", () => {
+  it("times each attempt from the INJECTED monotonic clock, and excludes the unattempted", async () => {
+    const store = await openStore()
+    try {
+      seed(store, [
+        // Two npm artifacts (an adapter exists) and one `pypi` (none does). So: 3 considered, 2
+        // attempted, 1 skipped — the real run's 64/36/28 shape in miniature.
+        record("ai.adeu/mcp-server", [{ registryType: "npm", identifier: "@adeu/mcp-server", version: "1.7.1" }]),
+        record("com.calllint/calllint", [{ registryType: "npm", identifier: "calllint-mcp", version: "0.2.0" }]),
+        record("io.test/pyonly", [{ registryType: "pypi", identifier: "pyonly", version: "3.0.0" }]),
+      ])
+
+      const scoped = tgz("index.js", "scoped\n")
+      const plain = tgz("index.js", "plain\n")
+      const { fetchImpl } = stubFetch({
+        [`${NPM_REGISTRY}/@adeu%2fmcp-server`]: { json: packument("@adeu/mcp-server", "1.7.1", scoped) },
+        [tarballUrl("@adeu/mcp-server", "1.7.1")]: { bytes: scoped },
+        [`${NPM_REGISTRY}/calllint-mcp`]: { json: packument("calllint-mcp", "0.2.0", plain) },
+        [tarballUrl("calllint-mcp", "0.2.0")]: { bytes: plain },
+      })
+
+      // A FAKE CLOCK, WHICH IS THE WHOLE REASON `monotonicMs` IS A SEAM. With `performance.now` the
+      // only available assertion is `toBeGreaterThanOrEqual(0)`, which is true of anything and
+      // measures nothing.
+      //
+      // UNIFORM 50 ms PER ATTEMPT, deliberately, because the loop walks `listArtifactVersions()` in
+      // `artifact_version_id` order — a DIGEST order, not the seed order. A tick array indexed by
+      // position would encode an assumption about digest ordering that is neither guaranteed nor
+      // meaningful, and the first version of this test did exactly that. The mean/p95 ARITHMETIC is
+      // covered over distinct samples in `processing-time.test.ts`; what this test measures is which
+      // artifacts get into the distribution at all.
+      //
+      // The clock IS read for the skipped artifact — nothing can know an outcome is `NO_ADAPTER`
+      // until `resolveOne` has returned — so the claim under test is that its elapsed time is
+      // DISCARDED, not that it was never taken. That shows up twice below: as `null` on the record,
+      // and as `n: 2` on the statistic.
+      let reads = 0
+      const monotonicMs = (): number => {
+        const t = reads * 50
+        reads += 1
+        return t
+      }
+
+      const summary = await resolveArtifacts({
+        store,
+        adapters: NPM_ADAPTERS,
+        fetchImpl,
+        now: NOW,
+        monotonicMs,
+      })
+
+      expect(summary).toMatchObject({ considered: 3, fetched: 2, skippedNoAdapter: 1 })
+
+      // THE POSITIVE FIXTURE: each attempt is timed off the injected clock — 50 ms, exactly, not
+      // "some non-negative number" — and the skipped one is `null` rather than 0.
+      const byId = new Map(summary.records.map((r) => [r.packageIdentifier, r.durationMs]))
+      expect(byId.get("@adeu/mcp-server")).toBe(50)
+      expect(byId.get("calllint-mcp")).toBe(50)
+      expect(byId.get("pyonly"), "NOT TRIED means no duration, and `null` is how that is said").toBeNull()
+
+      // Two reads per CONSIDERED artifact, the skip included. Asserted because it pins where the
+      // timing sits: were it moved inside `resolveOne`, past the `NO_ADAPTER` return, this would drop
+      // to 4 — and the measure would then be timing a decision instead of an attempt.
+      expect(reads, "the clock is read around every artifact, including the one with no adapter").toBe(6)
+
+      // The statistic is over the two attempts only. `n: 2` with a 1-row skip is what proves the
+      // third elapsed time was discarded: if it leaked in, this reads `n: 3`.
+      expect(summary.processing).toEqual({
+        n: 2,
+        skipped: 1,
+        meanMs: 50,
+        p95Ms: 50, // ceil(0.95 * 2) - 1 = 1 → the slower of two equal samples
+        minMs: 50,
+        maxMs: 50,
+      })
+    } finally {
+      store.close()
+    }
+  })
+
+  it("times an attempt that THREW, because the tail is what a p95 exists to show", async () => {
+    const store = await openStore()
+    try {
+      seed(store, [record("ai.adeu/mcp-server", [{ registryType: "npm", identifier: "@adeu/mcp-server", version: "1.7.1" }])])
+
+      // No routes, so the adapter's fetch rejects and the loop's `.catch` produces UNAVAILABLE.
+      const { fetchImpl } = stubFetch({})
+      const ticks = [0, 3000]
+      let i = 0
+      const summary = await resolveArtifacts({
+        store,
+        adapters: NPM_ADAPTERS,
+        fetchImpl,
+        now: NOW,
+        monotonicMs: () => ticks[i++] ?? -1,
+      })
+
+      // A 3-second failure is a real sample. Timing only the happy path would hide exactly the
+      // durations a p95 is for — a slow timeout would be invisible in the statistic whose entire
+      // job is to surface the tail.
+      expect(summary.records[0]?.outcome).not.toBe("NO_ADAPTER")
+      expect(summary.records[0]?.durationMs).toBe(3000)
+      expect(summary.processing).toMatchObject({ n: 1, maxMs: 3000, p95Ms: 3000 })
+    } finally {
+      store.close()
+    }
+  })
+})
+
 describe("describeArtifactResolution — the operator's one line", () => {
   it("omits the cache clause when nothing was deduplicated", () => {
     const line = describeArtifactResolution({
@@ -933,6 +1050,7 @@ describe("describeArtifactResolution — the operator's one line", () => {
       skippedNoAdapter: 0,
       cached: 0,
       records: [],
+      processing: null,
     })
     expect(line).toBe("artifacts: 2 considered, 2 fetched, 0 unavailable, 0 rejected, 0 skipped (no adapter)")
   })
@@ -946,6 +1064,7 @@ describe("describeArtifactResolution — the operator's one line", () => {
       skippedNoAdapter: 0,
       cached: 1,
       records: [],
+      processing: null,
     })
     expect(line).toContain("2 fetched (1 already in CAS)")
   })

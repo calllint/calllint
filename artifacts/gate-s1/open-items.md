@@ -169,7 +169,7 @@ third enforcing mode by accident.
 ### The record has a machine reader, and it was proven able to red
 
 Everything above is a claim in prose, and prose does not fail. `tests/invariants/gate-s1-claims.invariants.test.ts`
-is the reader — **31 `it` blocks, three layers**, modelled on the Gate S0 suite because the failure
+is the reader — **32 `it` blocks, three layers**, modelled on the Gate S0 suite because the failure
 modes are the same ones:
 
 1. **POINTER TRUTH** — every `path:line` this file cites must resolve to a line *containing* what it
@@ -219,26 +219,42 @@ Workstream R measured for raw names. The tell was the shape of the failure: a jo
 
 ---
 
-## S1-OPEN-1 — two of seven measures have no data source, so S1 cannot be CLAIMED passed
+## S1-OPEN-1 — one of seven measures has no data source, so S1 cannot be CLAIMED passed
 
-**Status:** **OPEN (narrowed twice: ~~four measures~~ → ~~three~~ → two, 2026-08-31).**
+**Status:** **OPEN (narrowed three times: ~~four measures~~ → ~~three~~ → ~~two~~ → one, 2026-09-01).**
 
-Three green measures are not Gate S1. The refused ones are precisely the *scale* measures —
-throughput, dedup efficiency, disk growth — so what is currently proven is that the served tree is
-**complete and self-consistent at 150 records**, not that the pipeline *performs* at 150. Those are
-different claims and S1 asks the second one.
+Three green measures are not Gate S1. ~~The refused ones are precisely the *scale* measures —
+throughput, dedup efficiency, disk growth —~~ **re-aimed 2026-09-01:** that clause described the
+refusals as a coherent *category*, and the category has since been dismantled from the inside —
+throughput (ADR 0097) and dedup efficiency (ADR 0093) are now measurable, and what remains is one
+measure blocked on something no code can produce. Struck rather than deleted because the framing was
+load-bearing: it is *why* three green measures do not add up to S1. What is proven is still that the
+served tree is **complete and self-consistent** at cohort scale, not that the pipeline *performs* at
+that scale. Those are different claims and S1 asks the second one — but the gap is now one measure
+wide, not three, and the honest statement of the remainder is narrower than the original prose.
 
-**NARROWED TWICE 2026-08-31, and each narrowing is the part to check rather than accept.** This row
+**NARROWED THREE TIMES, and each narrowing is the part to check rather than accept.** This row
 said "four", and said all four were blocked by the same thing: no queue driver. Both halves were wrong.
 `adapter-failure-rate` acquired a real source — `refreshSnapshot.ts` now brackets every ingest in
 `beginCompilerRun`/`concludeCompilerRun` and writes `reports/run-<id>.json`, which the gate reads —
 and the other three are each blocked by something *different*, which the single shared remedy hid.
-Splitting them is what makes each remaining blocker actionable:
+Splitting them is what makes each remaining blocker actionable.
+
+**The third narrowing (ADR 0097, 2026-09-01) was of a kind the first two were not, and the difference
+is the part worth carrying forward.** The first two closed because somebody *built the writer* the
+reader had always assumed. The third closed because **the recorded blocker was false** — and it had
+been false since before it was written down. Nothing was built for the sake of the row; a wrong reason
+was retracted, and the observable it claimed to need turned out to be the wrong observable. The reason
+it survived review for its whole life is that the **verdict it produced was correct**: the measure
+genuinely could not be reported, so REFUSED was right every single day, and a correct verdict gives
+nobody an occasion to re-derive the reason underneath it. That is the ADR 0096 fault class — two
+consecutive ADRs now — and it is the argument for reading a blocker's evidence when the row is
+*narrowed*, since that is the only moment anyone looks:
 
 | measure | blocker | what would actually unblock it |
 | --- | --- | --- |
 | `adapter-failure-rate` | ~~no source~~ **RESOLVED** | a run report exists and is read; MEASURED once an ingest runs against the checkout |
-| `processing-time-mean-p95` | **SCHEMA** | `compiler_jobs` has `created_at`/`updated_at`/`available_at` and no `started_at`/`finished_at` (`migrations/001-canonical-adoption-graph.sql`), so no duration is recorded anywhere. Adding the columns breaks the 14-column ↔ 14-property equality `domain/job.ts:13` documents → needs a migration **and an ADR**. Running the compiler cannot unblock this. |
+| `processing-time-mean-p95` | ~~**SCHEMA**~~ **RETRACTED — the blocker was false (ADR 0097)** | ~~`compiler_jobs` has `created_at`/`updated_at`/`available_at` and no `started_at`/`finished_at` (`migrations/001-canonical-adoption-graph.sql`), so no duration is recorded anywhere. Adding the columns breaks the 14-column ↔ 14-property equality `domain/job.ts:13` documents → needs a migration **and an ADR**. Running the compiler cannot unblock this.~~ **Every clause after the first was wrong.** `compiler_runs` has carried `started_at`/`completed_at` since the same canonical DDL, with a real writer — so "no duration is recorded anywhere" was false of the schema this row cites. `compiler_jobs` holds **0 rows** and `enqueueJobs` has no non-test caller, so the two proposed columns would have been NULL forever and the measure would have computed mean/p95 over an empty set: the empty-denominator defect, bought at the price of breaking a documented equality. And reading the columns that *do* exist closes nothing — all 3 rows have `completed_at − started_at = 0 ms`, because `refreshSnapshot.ts` passes one pinned `TRUST_INGEST_NOW` as both endpoints. **Now MEASURED** from a monotonic per-attempt clock in `resolveArtifacts.ts`, reported in `calllint.compiler-run-report.v3`. No migration was needed. |
 | `cas-dedup-rate` | ~~MISSING WRITER~~ **RESOLVED** | `artifacts/casManifest.ts` now writes `cas/manifests/run-<id>.json` and `refreshSnapshot.ts` calls it on both the success and the crash path (ADR 0093). MEASURED once an ingest runs with artifact resolution enabled. |
 | `disk-growth` | **TIME** | two measurements separated by real runs. A baseline is recorded (below); the second one cannot be willed into existence. |
 
@@ -268,16 +284,33 @@ of them touched the queue. Left struck rather than deleted, per this artifact's 
 
 **What must NOT close this row:** computing any remaining measure from an empty store. A `0/0` dedup
 rate, a `0` failure rate over zero attempts, or a `0ms` mean over an empty set would each close this
-row on paper while asserting something nobody measured. The script refuses them at the type level
+row on paper while asserting something nobody measured. (The `0ms` example stopped being hypothetical
+on 2026-09-01: it is precisely what this row's own recorded remedy would have produced, and ADR 0097 §D1
+is the arithmetic. The clause was written as a guard against a future reader and turned out to describe
+the row itself.) The script refuses them at the type level
 (`refused` carries no `ok` field, so it cannot be summed into a pass rate); this row is the prose
 reason that refusal must survive review.
 
 **Falsification:** stated per measure, because a shared clause is what let the collapsed version
-survive — and because two of the four now have sources, so the ways they can be circumvented have
-changed and are no longer the ways they can be blocked.
+survive — and because **three of the four** now have sources, so the ways they can be circumvented have
+changed and are no longer the ways they can be blocked. Three of these four clauses have now been
+re-aimed at least once. A falsification condition is not a fixed asset: when its subject acquires a
+source, or when the blocker it names is retracted, the clause either fires on correct behaviour or on
+nothing at all, and both failures are silent.
 
-- `processing-time-mean-p95` — if `gate:s1` prints a MEASURED tier while `compiler_jobs` carries no
-  duration columns, the refusal has been circumvented.
+- `processing-time-mean-p95`, which now *may* legitimately be MEASURED — and this clause is the
+  second on this row to be **re-aimed rather than deleted**, for a different reason than the first.
+  `cas-dedup-rate`'s became unreachable because someone built the missing writer; this one became
+  unreachable because **the condition it named was never the right one**. ~~if `gate:s1` prints a
+  MEASURED tier while `compiler_jobs` carries no duration columns, the refusal has been circumvented~~
+  — struck 2026-09-01: `compiler_jobs` still carries no duration columns and never will, so as written
+  this clause fires on every correct run and is satisfied by no incorrect one. It is inverted, not
+  merely stale, which is worse than the unreachable kind: it would have been read as forbidding the
+  fix. Re-aimed at what can now actually go wrong — if the gate prints a duration derived from
+  `completedAt − startedAt` (0 ms by construction, since both are one pinned `TRUST_INGEST_NOW`), or
+  reports a mean over `n = 0`, or counts `NO_ADAPTER` artifacts as 0 ms samples instead of excluding
+  them, or presents a v1/v2 report's *absence* of a distribution as a fast run rather than as a report
+  predating the observable, the measure has been circumvented.
 - `cas-dedup-rate` — the blocked-on-a-writer half of this clause is now **impossible**, and a
   falsification condition that cannot fire is the exact defect this row exists to record, so it is
   re-aimed at what can now go wrong instead of deleted: if the gate prints a rate whose denominator is
@@ -597,9 +630,22 @@ one FAILED report from the run that tripped a cohort refusal, one SUCCEEDED repo
 this gate was mis-rooted against (S1-OPEN-4), and 45 → 81 blobs spans a full mirror walk. Two numbers
 measured under different conditions are not a rate, so the gate declines to divide them.
 
-**The two remaining refusals are structural, not procedural.** No number of ingests closes either:
+~~**The two remaining refusals are structural, not procedural.** No number of ingests closes either:
 one needs a schema migration plus an ADR, the other needs a second measurement separated by real
-elapsed time. That is the same distinction the second measurement drew, now applied to what is left.
+elapsed time.~~ That is the same distinction the second measurement drew, now applied to what is left.
+
+**Correction 2026-09-01 (ADR 0097): half of that was wrong, and it was the half that sounded most
+certain.** "Structural, not procedural" was true of `disk-growth` and false of
+`processing-time-mean-p95` — the migration it named was for a table holding zero rows with no writer,
+and the columns it said were missing had existed on `compiler_runs` all along, yielding `0 ms` because
+one pinned instant is passed as both endpoints. The measure needed neither a migration nor an ADR-gated
+schema change; it needed a second observable, which is a monotonic clock at the artifact-attempt seam.
+
+Worth noting *where* the error sat: this paragraph is the third consecutive dated section on this row
+to repeat the claim, each one inheriting it from the last, and none re-deriving it. Three restatements
+made it read as settled. It is struck rather than deleted for exactly that reason — the sequence of
+repetitions is the evidence for how a false blocker hardens, and deleting them would leave only the
+correction, which reads as though the mistake were caught the first time.
 
 Cohort census: source **200 / 100 required** (met); served **200 registry pages / 200
 committed** (held).

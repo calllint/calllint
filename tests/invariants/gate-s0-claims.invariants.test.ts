@@ -577,13 +577,41 @@ describe("Gate S0 — every number the record states is derived from the file it
       steps.length,
       `S0-OPEN-2's amendment states 28 &&-joined steps; ci:local now has ${steps.length}`,
     ).toBe(28)
-    // Asserted against the row's LATEST amendment, not the whole row: the 2026-08-09 text says
+    // Asserted against the row's NEWEST step-count claim, not the whole row: the 2026-08-09 text says
     // **19** and the first closure says **20**, both left verbatim by this artifact's
     // append-never-edit convention. A `toContain` over the full row would therefore be satisfied by
     // the stale figures forever — it would pass today, and would have passed before the step was
-    // added. Slicing to the last amendment is what keeps the assertion about the CURRENT claim.
+    // added. Slicing forward from the newest claim is what keeps the assertion about the CURRENT one.
     const row2 = row(2)
-    const lastAmendment = row2.slice(row2.lastIndexOf("### Amendment"))
+    // THE NEWEST AMENDMENT THAT MAKES THIS CLAIM, not simply the newest amendment. The original form
+    // sliced at `lastIndexOf("### Amendment")` and assumed the two were the same thing — true of every
+    // amendment this row had when it was written, because each one existed *because* a step was added.
+    //
+    // That assumption broke on 2026-09-01, when an amendment was appended to correct a different number
+    // in this row (S1's measure count, ADR 0097) without touching `ci:local` at all. The old slice then
+    // demanded a step-count sentence from an amendment that had no business making one, and the only
+    // ways to satisfy it were both wrong: restate an unrelated measurement to appease a regex, or file
+    // the correction somewhere other than the text it corrects.
+    //
+    // So the search is for the last amendment CONTAINING the claim, which keeps every property the
+    // original had. A stale figure in an older amendment still cannot satisfy it (later matches win). A
+    // step added without any amendment still reds, because the newest claim is then behind the live
+    // count. What is no longer required is that the newest amendment be *about* the step count.
+    const claimRe = /`ci:local` now has \*\*(\d+)\*\* `&&`-joined steps/g
+    const heads = [...row2.matchAll(/### Amendment/g)].map((m) => m.index ?? 0)
+    const claiming = heads.filter((h) => {
+      const next = heads.find((o) => o > h) ?? row2.length
+      return new RegExp(claimRe.source).test(row2.slice(h, next))
+    })
+    expect(
+      claiming.length,
+      "at least one amendment in S0-OPEN-2 must state the live `ci:local` step count — the claim cannot live only in the pre-amendment text",
+    ).toBeGreaterThan(0)
+    const lastClaimingHead = claiming[claiming.length - 1]!
+    const lastAmendment = row2.slice(
+      lastClaimingHead,
+      heads.find((o) => o > lastClaimingHead) ?? row2.length,
+    )
     // Bound to the SENTENCE that makes the measurement, not to the figure appearing anywhere in the
     // amendment. A negative control (NC-2) proved the looser `toContain("**26**")` form green while
     // the body claimed **25**: the heading `25 → **26** steps` satisfied it on its own. A heading is

@@ -88,11 +88,21 @@ const SEVEN_MEASURES = [
  * `ATTEMPT_SOURCED_MEASURES` below, where the assertions on them are STRICTER, not absent — a measure
  * with a source has more ways to go wrong than one with none.
  *
- * The two that remain did NOT acquire a source, and are blocked differently — schema, elapsed time.
- * That per-measure divergence is asserted in its own test below, because the batch that first narrowed
- * this list found all four sharing one hint that was true of only one of them.
+ * TWO → ONE (ADR 0097, 2026-09-01): `processing-time-mean-p95` acquired one, and this narrowing is
+ * unlike the two above — no writer was built. Its recorded blocker was WRONG. The row said the measure
+ * needed `started_at`/`finished_at` columns on `compiler_jobs` plus a migration; in fact `compiler_runs`
+ * has carried both fields since the canonical DDL, the table the row named holds zero rows and has no
+ * non-test writer, and the durations those columns would have yielded are 0 ms by construction. So the
+ * measure was refusing for a reason that had stopped being true, behind a verdict that stayed correct
+ * — which is why nobody re-derived it (the ADR 0096 fault class, twice in a row). It now reads a
+ * monotonic per-attempt duration and moves to `ATTEMPT_SOURCED_MEASURES`.
+ *
+ * The one that remains did NOT acquire a source: `disk-growth` is blocked on elapsed time, which no
+ * amount of building can produce. That per-measure divergence is asserted in its own test below,
+ * because the batch that first narrowed this list found all four sharing one hint that was true of
+ * only one of them.
  */
-const REFUSED_MEASURES = ["processing-time-mean-p95", "disk-growth"] as const
+const REFUSED_MEASURES = ["disk-growth"] as const
 
 /**
  * The measures that HAVE a source and may therefore reach `measured(...)` — where the assertions get
@@ -102,7 +112,11 @@ const REFUSED_MEASURES = ["processing-time-mean-p95", "disk-growth"] as const
  * permanently-refused: an assertion that reds because a claim became TRUE is pinning the wrong
  * property, which is what the three → two narrowing above was forced by.
  */
-const ATTEMPT_SOURCED_MEASURES = ["adapter-failure-rate", "cas-dedup-rate"] as const
+const ATTEMPT_SOURCED_MEASURES = [
+  "adapter-failure-rate",
+  "cas-dedup-rate",
+  "processing-time-mean-p95",
+] as const
 
 /**
  * Slice one `## S1-OPEN-N` row, asserting BOTH boundaries.
@@ -126,10 +140,15 @@ function row(n: number): string {
  * Strip comments so an assertion about a REFUSAL MESSAGE reads the message, not a docblock above it.
  *
  * This suite shipped the defect it was written to prevent, and the negative control is what found it.
- * `blocked on SCHEMA` appears TWICE in `gate-s1.ts`: once in the runtime refusal (:654) and once in
- * the docblock that describes it (:386). Rewriting only the refusal — collapsing three distinct
- * blockers back into one shared "no data source" hint, which is the exact regression the test below
- * names — left the suite GREEN, because the regex still matched the comment. The test was vouched for
+ * `blocked on SCHEMA` appeared TWICE in `gate-s1.ts`: once in the runtime refusal and once in the
+ * docblock that describes it. Rewriting only the refusal — collapsing three distinct blockers back into
+ * one shared "no data source" hint, which is the exact regression the test below names — left the suite
+ * GREEN, because the regex still matched the comment.
+ *
+ * (That example is now HISTORICAL: ADR 0097 retracted the SCHEMA blocker, so the phrase survives in
+ * `gate-s1.ts` only as struck prose, and the test below asserts it is absent from the CODE. The
+ * stripper is not historical — `blocked on TIME` still appears in both a refusal and its docblock, and
+ * every future blocker will too, because a refusal worth making is a refusal worth explaining.) The test was vouched for
  * by prose ARGUING FOR the rule while the enforced string no longer said it, which is this describe
  * block's own title read backwards, and one rung past the dominant fault class in
  * `memory/maps/guards.md`: not a guard that cannot observe its subject, but a guard observing the
@@ -427,9 +446,9 @@ describe("Gate S1 — the refusal is enforced by the source, not by the prose th
     }
   })
 
-  it("the two measures with no data source are REFUSED, and cannot be reported as a rate", () => {
+  it("the measure with no data source is REFUSED, and cannot be reported as a rate", () => {
     const src = gateCode()
-    // THE ASSERTION THIS FILE EXISTS FOR. Each of the three must be passed to `refused(...)` — not to
+    // THE ASSERTION THIS FILE EXISTS FOR. Each must be passed to `refused(...)` — not to
     // `measured(...)`. A future batch computing any of them over the empty store would print a
     // perfect score, which is the exact defect gate-s0.ts's first INV-R4 shipped.
     for (const id of REFUSED_MEASURES) {
@@ -449,6 +468,31 @@ describe("Gate S1 — the refusal is enforced by the source, not by the prose th
     }
   })
 
+  it("a measure WITH a source keeps both paths — it may report, and it must still be able to refuse", () => {
+    const src = gateCode()
+    // THE OTHER HALF, and the one the list above cannot state. `REFUSED_MEASURES` has shrunk three times
+    // (four → three → two → one), each time because a measure acquired a source, and each time the
+    // protection that measure had — "must never reach `measured(...)`" — was correctly deleted. Deleted
+    // and not replaced is how a measure ends up with no guard at all: it is now ALLOWED to print a
+    // number, and nothing here would notice if that became the only thing it could do.
+    //
+    // So the property asserted is the PAIR. A sourced measure must retain a reachable `refused(...)`,
+    // because every one of these reads a file that may be absent, unreadable, or empty, and the repo's
+    // dominant fault is a rate computed over an empty denominator rendering as a perfect score. A batch
+    // that "simplified" any of these by defaulting the missing case to zero would delete the refusal
+    // call, and this is the assertion that reds.
+    for (const id of ATTEMPT_SOURCED_MEASURES) {
+      expect(
+        src,
+        `"${id}" has a source, so it must be able to report a number`,
+      ).toMatch(new RegExp(`measured\\(\\s*"${id}"`))
+      expect(
+        src,
+        `"${id}" must ALSO keep a refusal path — its source can be absent or empty, and 0/0 renders as a perfect score`,
+      ).toMatch(new RegExp(`refused\\(\\s*"${id}"`))
+    }
+  })
+
   it("each remaining refusal names its OWN blocker, not one shared hint", () => {
     const src = gateCode()
     // The defect this test is the measurement for. All four runtime measures once shared one refusal
@@ -464,12 +508,22 @@ describe("Gate S1 — the refusal is enforced by the source, not by the prose th
     // first version read raw text, and each of these three phrases appears twice — once in the refusal
     // and once in the docblock describing it. A negative control that collapsed the refusals back to a
     // shared hint left this GREEN off the comments alone. What a reader sees is the MESSAGE.
-    expect(src, "processing-time is blocked on the schema, not on a driver").toMatch(
-      /blocked on SCHEMA[\s\S]{0,400}started_at/,
-    )
+    // `processing-time-mean-p95` USED TO BE ASSERTED HERE, as `blocked on SCHEMA … started_at`. It was
+    // removed rather than rewritten, and the distinction matters: it is no longer refused for a blocker
+    // at all, so there is no per-measure blocker left to pair. ADR 0097 retracted the one it had (the
+    // named columns were the wrong table, and the recorded remedy would have produced 0 ms). Its three
+    // refusal states are asserted BY EXECUTION in CASE 2d below, which is the only instrument that can
+    // tell three branches of one template apart — the lesson `stripComments` is here to record.
     expect(src, "disk-growth is blocked on elapsed time, and nothing else").toMatch(
       /blocked on TIME[\s\S]{0,300}two measurements/,
     )
+    // And the retracted blocker must not come back as a live claim. The gate may still DESCRIBE it —
+    // ADR 0097 requires it to, struck, at :397 — but no refusal message may assert it again, which is
+    // why this reads `gateCode()`: the struck prose is a comment and correctly invisible here.
+    expect(
+      src,
+      "the `blocked on SCHEMA` blocker was retracted by ADR 0097 and must not survive as a live refusal",
+    ).not.toContain("blocked on SCHEMA")
     // `cas-dedup-rate` is deliberately ABSENT from the list above, and its absence is asserted rather
     // than left implicit: `MISSING WRITER` was this row's own blocker until ADR 0093 built the writer,
     // and a stale copy of that phrase is exactly the claim that outlives its subject. The gate must no
@@ -487,9 +541,6 @@ describe("Gate S1 — the refusal is enforced by the source, not by the prose th
       expect(at, `"${id}" must be refused with a message of its own`).toBeGreaterThan(-1)
       return src.slice(at, src.indexOf("\n)", at))
     }
-    expect(messageFor("processing-time-mean-p95"), "the schema blocker belongs to processing-time").toContain(
-      "blocked on SCHEMA",
-    )
     expect(messageFor("disk-growth"), "elapsed time belongs to disk-growth").toContain("blocked on TIME")
     // And the struck hint must not come back.
     expect(
@@ -680,10 +731,13 @@ describe("Gate S1 — the rows say OPEN, and what would make each false", () => 
     // against `gate-s1.ts` — the row and the refusal it documents must not drift apart. A row that
     // named the right three blockers in the wrong order would pass a presence check and misdirect a
     // reader just as effectively.
-    for (const [measure, blocker] of [
-      ["processing-time-mean-p95", /SCHEMA/],
-      ["disk-growth", /TIME/],
-    ] as const) {
+    //
+    // `processing-time-mean-p95` LEFT THIS LOOP on 2026-09-01 (ADR 0097), and it is the third measure
+    // to leave — but the first to leave without anything being built. The other two acquired sources;
+    // this one's blocker was retracted as false. Its cell is now asserted below as a RETRACTION rather
+    // than paired with a blocker, because there is no blocker left to pair and a loop demanding one
+    // would force the row to keep asserting the thing the ADR withdrew.
+    for (const [measure, blocker] of [["disk-growth", /TIME/]] as const) {
       const at = r.indexOf(`\`${measure}\``)
       expect(at, `the row must name ${measure} as one of its subjects`).toBeGreaterThan(-1)
       // The table cell, not the whole row: a blocker mentioned anywhere would otherwise vouch for
@@ -699,18 +753,39 @@ describe("Gate S1 — the rows say OPEN, and what would make each false", () => 
     expect(r, "the second resolved measure must be struck, not deleted").toMatch(
       /`cas-dedup-rate` \| ~~MISSING WRITER~~ \*\*RESOLVED\*\*/,
     )
+    // THE THIRD, and it must be distinguishable from the other two IN THE ROW'S OWN WORDS. `RESOLVED`
+    // would be the wrong label: nothing was built and no blocker was cleared, so a reader scanning this
+    // table for "what did we have to construct" must not be told this one joined that set. The row has
+    // to say the blocker was WRONG, which is a different fact with a different lesson — and the one
+    // that generalises, since the next false blocker will also be sitting behind a correct verdict.
+    expect(r, "the retracted blocker must be struck AND labelled as a retraction, not as a build").toMatch(
+      /`processing-time-mean-p95` \| ~~\*\*SCHEMA\*\*~~ \*\*RETRACTED/,
+    )
+    expect(r, "and it must name the ADR that retracted it, so the evidence is one hop away").toMatch(
+      /RETRACTED[^|]*ADR 0097/,
+    )
+    expect(
+      r,
+      "a retraction is not a resolution — labelling it RESOLVED would file a false blocker alongside two real ones",
+    ).not.toMatch(/`processing-time-mean-p95` \| ~~[^|]*~~ \*\*RESOLVED\*\*/)
     // The struck remedy must survive too: it is the second one struck on this row, and both were
     // struck for naming an unreachable action.
     expect(r, "the earlier struck remedy must remain").toMatch(/~~a real R-9 controller\/worker run/)
     // The blockers are asserted against the GATE's refusal text, so the row cannot describe a blocker
     // the gate does not enforce. Read through `gateCode()`, for the reason `stripComments` records.
     const gate = gateCode()
-    expect(gate, "the gate must still refuse processing-time on the schema blocker").toMatch(
-      /"processing-time-mean-p95"[\s\S]{0,400}blocked on SCHEMA/,
-    )
     expect(gate, "the gate must still refuse disk-growth on elapsed time").toMatch(
       /"disk-growth"[\s\S]{0,400}blocked on TIME/,
     )
+    // THE PAIRING FOR THE RETRACTED ONE runs in the opposite direction: the row claims the blocker is
+    // gone, so what the gate must NOT contain is the refusal the row used to document. Asserted here
+    // and not only where the ADR is discussed, because this is the test that reads the ROW — a row
+    // announcing a retraction while the gate still enforced the blocker would be the same row/code
+    // drift this block exists to catch, just with the two sides swapped.
+    expect(
+      gate,
+      "the row says the SCHEMA blocker was retracted, so the gate must no longer refuse on it",
+    ).not.toContain("blocked on SCHEMA")
     // The CAS manifest writer this row's strike credits must EXIST — the strike is about nothing
     // otherwise, which is the failure mode the row itself was opened to record one rung down. Asserted
     // against the writer's own exports, not against a filename: a file present and empty would satisfy
@@ -908,16 +983,18 @@ describe("Gate S1 — the rows say OPEN, and what would make each false", () => 
       // reachable: a fix that stopped naming schema mismatch at all would trade one wrong reason for
       // another, and only asserting both cases can tell those apart.
       //
-      // The example is `v3`, not `v2`. It was v2 until the 2026-08-31 bump made v2 a version this gate
-      // reads, at which point this assertion redded — correctly, because its premise had become false.
-      // An unknown-version control must name a version that is genuinely unknown, so it moves one ahead
-      // of the writer rather than being deleted. The accepted set is enumerated, so v3 is refused by
-      // construction and not by a prefix test that would have swallowed it.
-      const v3Out = runGate("v3", JSON.stringify({ ...valid, schema: "calllint.compiler-run-report.v3" }))
-      expect(v3Out, "a real schema mismatch must still say so, exactly").toContain(
-        "schema `calllint.compiler-run-report.v3`, not `calllint.compiler-run-report.v1` or `calllint.compiler-run-report.v2`",
+      // The example is `v4`, not `v3`, and not `v2` before that. Each bump makes the previous control's
+      // premise FALSE — v2 became readable on 2026-08-31, v3 on 2026-09-01 (ADR 0097) — and each time
+      // this assertion redded for the right reason: an unknown-version control had come to name a known
+      // version. It moves one ahead of the writer rather than being deleted, which is the only edit that
+      // preserves what it measures. The accepted set is enumerated, so v4 is refused by construction and
+      // not by a prefix test that would have swallowed it.
+      const v4Out = runGate("v4", JSON.stringify({ ...valid, schema: "calllint.compiler-run-report.v4" }))
+      expect(v4Out, "a real schema mismatch must still say so, exactly").toContain(
+        "schema `calllint.compiler-run-report.v4`, not `calllint.compiler-run-report.v1` or " +
+          "`calllint.compiler-run-report.v2` or `calllint.compiler-run-report.v3`",
       )
-      expect(v3Out, "and must NOT be described as a field problem it does not have").not.toContain(
+      expect(v4Out, "and must NOT be described as a field problem it does not have").not.toContain(
         "attempts.artifacts",
       )
 
@@ -942,6 +1019,71 @@ describe("Gate S1 — the rows say OPEN, and what would make each false", () => 
         /\[MEASURED\] adapter-failure-rate/,
       )
 
+      // CASE 2d — processing-time's THREE states, and the invariant ADR 0097 §Consequences promises.
+      //
+      // THE NEGATIVE CONTROL IS ALREADY IN THE FIXTURE, which is why this case can be asserted at all:
+      // `valid.startedAt` and `valid.completedAt` are sixty seconds apart. So a gate that derived a
+      // duration the cheap way — `completedAt - startedAt`, the next reader's obvious "fix" — would
+      // print `60000 ms` off these fixtures, from a run that timed nothing. That number must appear in
+      // no output, for any of the three states. In the real store those two fields are two copies of one
+      // pinned `TRUST_INGEST_NOW` and their difference is 0 ms, which renders as an instantaneous
+      // compiler; here the same wrong arithmetic renders as a minute. Both are fabrications, and this
+      // fixture is the one that can SEE it, because 60000 cannot arise from anything else.
+      //
+      // Asserted by EXECUTION, not by grep, for this file's usual reason: all three states are messages
+      // assembled from one template, and every wrong version contains the pieces.
+      const withProcessing = {
+        ...valid,
+        schema: "calllint.compiler-run-report.v3",
+        processing: { n: 4, skipped: 23, meanMs: 812, p95Ms: 1500, minMs: 300, maxMs: 1500 },
+      }
+      const p3Out = runGate("p3", JSON.stringify(withProcessing))
+      expect(p3Out, "a v3 report carrying a distribution must be MEASURED").toMatch(
+        /\[MEASURED\] processing-time-mean-p95/,
+      )
+      expect(p3Out, "and it must print the file's own numbers, not a recomputation of its own").toContain(
+        "mean **812 ms**",
+      )
+      expect(p3Out, "the p95 too").toContain("p95 **1500 ms**")
+      expect(p3Out, "with the sample count, because a mean without an n is not a measurement").toContain("n=4")
+      expect(p3Out, "and the excluded skips named, so the denominator is auditable").toContain("23 considered")
+
+      // State 2 — v3 that attempted nothing. `processing: null` is a RUN THAT HAPPENED, not a missing
+      // observable, and the two have different remedies (nothing to do vs. re-run), so the messages must
+      // differ. Asserted as a pair: if either collapsed into the other's wording, one of these reds.
+      const pNullOut = runGate("pnull", JSON.stringify({ ...withProcessing, processing: null }))
+      expect(pNullOut, "a v3 run that attempted nothing is REFUSED, never 0 ms").toMatch(
+        /\[REFUSED \] processing-time-mean-p95/,
+      )
+      expect(pNullOut, "and it must say the run HAPPENED and attempted nothing").toContain(
+        "produced a v3 report with NO distribution",
+      )
+      expect(pNullOut, "which is NOT the pre-v3 state, and must not borrow its wording").not.toContain(
+        "PREDATES THE OBSERVABLE",
+      )
+
+      // State 3 — pre-v3. The state every report already on disk is in, and the one whose refusal must
+      // not read as "the run was fast".
+      expect(v1Out, "a v1 report predates the observable and must say so").toContain("PREDATES THE OBSERVABLE")
+      expect(v2Out, "as must v2 — the bump that added `source` did not add a duration").toContain(
+        "PREDATES THE OBSERVABLE",
+      )
+      expect(v1Out, "a pre-v3 report must never be MEASURED for processing time").not.toMatch(
+        /\[MEASURED\] processing-time-mean-p95/,
+      )
+
+      // THE INVARIANT ITSELF, over every output this test produced. 60000 is the fixture's
+      // `completedAt - startedAt`; no state may ever print it.
+      for (const [label, out] of [
+        ["v1", v1Out], ["v2", v2Out], ["v3+dist", p3Out], ["v3+null", pNullOut],
+      ] as const) {
+        expect(
+          out,
+          `${label}: a duration derived from \`completedAt - startedAt\` (60000 ms here, 0 ms in the ` +
+            `real store) must never reach the reader — ADR 0097`,
+        ).not.toContain("60000")
+      }
+
       // CASE 3 — not JSON at all. The third distinguishable cause, and the one whose remedy differs
       // most: nothing to reconcile, the file is truncated.
       const junkOut = runGate("junk", '{"schema": "calllint.compiler-run-report.v1", "runId"')
@@ -954,7 +1096,7 @@ describe("Gate S1 — the rows say OPEN, and what would make each false", () => 
       //
       // `v2`/`v1` are deliberately NOT in this loop — they are the accepted cases, asserted MEASURED
       // above. Only the three refusals belong here.
-      for (const [label, out] of [["drift", driftOut], ["v3", v3Out], ["junk", junkOut]] as const) {
+      for (const [label, out] of [["drift", driftOut], ["v4", v4Out], ["junk", junkOut]] as const) {
         expect(out, `${label} must be REFUSED, never measured — an unvalidated report is not a rate`).toMatch(
           /\[REFUSED \] adapter-failure-rate/,
         )

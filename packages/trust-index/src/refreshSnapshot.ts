@@ -545,6 +545,16 @@ async function main(): Promise<void> {
                     archiveRefused: mirrored.evidence.archiveRefused,
                   },
           },
+          // Mean/p95 artifact-attempt duration (v3, ADR 0097). COPIED from what `resolveArtifacts`
+          // measured, never recomputed here, for the same reason the six counters above are copied:
+          // a second derivation is how two numbers about one run start to disagree.
+          //
+          // `null` on three distinct paths, all of which mean "no distribution exists" rather than
+          // "the distribution is zero": the crash path (`mirrored` unassigned), a run with the
+          // artifact port disabled (`artifacts === null`), and a run whose every considered artifact
+          // was `NO_ADAPTER` (`processing === null`, decided by `processingTimeStats`). A `0 ms`
+          // here would claim an instantaneous compiler on the strength of no observations.
+          processing: mirrored?.artifacts?.processing ?? null,
           // What the run SAW OF ITS SOURCE (v2) — a different question from `attempts`, which
           // records what it did with what it saw. Gate S2's threshold is 500 served records, and a
           // shortfall has two causes needing opposite actions: upstream holds fewer than 500 (no

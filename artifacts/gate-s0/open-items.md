@@ -690,6 +690,41 @@ that docblock. Renumbering the citation inside verbatim 2026-08-09 text would ma
 as though it always pointed at a corrected argument. The file header carries the current
 pointer and the current reason; this row keeps what it said when it said it.
 
+### Amendment 2026-09-01 (Gate S1) — the "four with no data source" is now **one**, and one of the three fell for a reason worth recording
+
+**Still CLOSED, and `--regression` is still the right wiring** — but the count above is dated, and the
+sentence that carries it is anchored to a word ("today") that has since expired. Left verbatim, per this
+row's own rule, and corrected here.
+
+Of the four named as sourceless, three now have sources, and they did not arrive the same way:
+
+- `adapter-failure-rate` — a run report writer was wired into every ingest.
+- `cas-dedup-rate` — the manifest writer its denominator needed was built (ADR 0093).
+- `processing-time-mean-p95` — **nothing was built. The blocker was false** (ADR 0097). It was recorded
+  as needing `started_at`/`finished_at` columns on `compiler_jobs` plus a migration; that table holds
+  zero rows and has no non-test writer, the duration fields it was said to lack have existed on
+  `compiler_runs` since the same DDL, and the durations they yield are `0 ms` by construction because
+  one pinned `TRUST_INGEST_NOW` is passed as both endpoints. The measure now reads a monotonic
+  per-attempt clock.
+
+Only `disk-growth` remains, and it is the one member of the original four that **no writer can close**:
+growth needs two measurements separated by real elapsed time. So the argument in the verbatim text above
+still holds and its arithmetic no longer does — `--gate` would still exit 2, but for one measure rather
+than four, and pinning a required check red on it would still be the hazard this row refused.
+
+**Why this belongs in an S0 row at all.** The paragraph above justifies `--regression` by *counting*
+refusals, and a count is the weakest form the argument can take: it went stale three times in four
+weeks while the reason it encodes never changed. The durable statement is "at least one measure is
+blocked on something no PR under review can clear." Recorded here rather than fixed above, because the
+count's decay is itself the evidence — the same reason the 25/26/27/28 sequence in this row is kept
+rather than collapsed to its current value.
+
+One further correction, and it was already contradicted when written: the verbatim text says
+`.var/calllint-adoption-index/` "is empty in all ten data tables." S1-OPEN-4 records 298 subjects and 45
+blobs in that store. The store's *location follows `cwd`*, so "empty" was true of the path the reader
+was standing in and false of the store — which is S1-OPEN-4's whole subject, and the reason a census
+must print the path it censused.
+
 ---
 
 ## S0-OPEN-3 — three of S0's five assertions are GATE-VERIFIED, which reads a string

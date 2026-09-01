@@ -47,6 +47,7 @@ import { mkdirSync, renameSync, rmSync, writeFileSync } from "node:fs"
 import { dirname } from "node:path"
 import { isInsideRoot, runReportPath } from "./paths.js"
 import type { CompilerRunMetrics } from "../domain/job.js"
+import type { ProcessingTimeStats } from "../domain/processingTime.js"
 
 /**
  * The schema id, versioned so a reader can refuse a shape it does not know.
@@ -57,8 +58,16 @@ import type { CompilerRunMetrics } from "../domain/job.js"
  * renaming one. `scripts/gate-s1.ts` enumerates the versions it can read and matches each
  * EXACTLY; it does not prefix-match `calllint.compiler-run-report.`, which would accept every
  * future version sight unseen and is the defect the exact check exists to prevent.
+ *
+ * **v2 → v3 (2026-09-01, ADR 0097)** added `processing`, the mean/p95 artifact-attempt duration
+ * measured from a monotonic clock. It is a NEW OBSERVABLE, not a new derivation: the durations
+ * could not be computed from any v2 field, because a v2 report's `startedAt` and `completedAt` are
+ * two copies of ONE pinned `TRUST_INGEST_NOW` and their difference is `0` on every row ever
+ * written. That is why the field had to be added rather than derived, and why the gate must be
+ * able to tell a v2 report ("this run predates the observable") from a v3 one whose `processing`
+ * is `null` ("this run attempted nothing") — two different facts that a prefix match would merge.
  */
-export const RUN_REPORT_SCHEMA = "calllint.compiler-run-report.v2"
+export const RUN_REPORT_SCHEMA = "calllint.compiler-run-report.v3"
 
 export interface RunReportAttempts {
   /**
@@ -159,6 +168,20 @@ export interface RunReport {
    * least entitled to make one.
    */
   readonly source: RunReportSource | null
+  /**
+   * Mean/p95 processing time over this run's artifact attempts (v3, ADR 0097), or `null` when
+   * nothing was attempted — a run with no adapter-backed artifact, or one that crashed first.
+   *
+   * NOT DERIVABLE FROM `startedAt`/`completedAt`, and that is the reason this field exists. Those
+   * two are the same pinned instant, so their difference is `0 ms` on every report ever written;
+   * `0 ms` is not a fast compiler, it is the absence of a measurement. The durations here come from
+   * a monotonic clock around each attempt, which is a second, independent observable.
+   *
+   * `null` rather than a zeroed object, for the fourth time in this file and the same reason: a
+   * zeroed statistic is a perfect score, and a perfect score from zero samples is the fault this
+   * whole file was written to make impossible.
+   */
+  readonly processing: ProcessingTimeStats | null
 }
 
 /**

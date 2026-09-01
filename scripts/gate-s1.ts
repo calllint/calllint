@@ -394,11 +394,19 @@ if (served === null) {
 //     `skippedNoAdapter` as separate counts. This gate reads that JSON rather than the database,
 //     for the ABI reason below. Until a run has been executed against this checkout the file is
 //     absent, and an absent report is REFUSED — never 0/0.
-//   - processing-time-mean-p95: blocked on SCHEMA, not on a driver. `compiler_jobs`
-//     (`migrations/001-canonical-adoption-graph.sql`) has `created_at` / `updated_at` /
-//     `available_at` and NO `started_at` / `finished_at`. There is nowhere to record a duration.
-//     Adding the columns breaks the 14-column ↔ 14-property equality `domain/job.ts:13` documents,
-//     so it needs a migration and an ADR. It cannot be unblocked by running anything.
+//   - processing-time-mean-p95: ~~blocked on SCHEMA, not on a driver. `compiler_jobs` has no
+//     `started_at`/`finished_at`, so there is nowhere to record a duration; adding the columns
+//     breaks the 14-column ↔ 14-property equality `domain/job.ts:13` documents, so it needs a
+//     migration and an ADR, and it cannot be unblocked by running anything.~~ **RETRACTED
+//     2026-09-01, ADR 0097 — and left struck rather than deleted, because the wrong reason is more
+//     instructive than the right one.** Three failures in one blocker: `compiler_jobs` holds 0 rows
+//     and `enqueueJobs` has no non-test caller, so the columns would be NULL forever and the
+//     measure would compute over an empty denominator — the fault this file exists to catch;
+//     "no duration is recorded anywhere" was false, since `compiler_runs.started_at`/`completed_at`
+//     have shipped since the canonical DDL with a real writer; and reading them closes nothing,
+//     because every row has `completed_at - started_at = 0 ms` — one pinned `TRUST_INGEST_NOW`,
+//     and A PINNED PARAMETER CANNOT MEASURE ELAPSED TIME. The missing thing was a monotonic clock,
+//     now injected at `resolveArtifacts`; the measure reads v3's `processing` block.
 //   - cas-dedup-rate: was blocked on a MISSING WRITER, and a different one from the others.
 //     `cas/manifests` was declared in `INDEX_SUBDIRS` with zero writers anywhere in the repo — no
 //     `casManifestsRoot()` even as a path helper, unlike `casBlobsRoot()` / `casWorkRoot()` — so the
@@ -574,8 +582,30 @@ function newestRunReport(): {
  * 2026-08-31 unreadable — a gate that refuses the entire history to signal that a newer writer exists.
  * v1 reports remain valid readings of the four counters they contain; they simply cannot answer the
  * source-coverage question, which is Gate S2's, not this gate's.
+ *
+ * **Why v1 and v2 are still here after the v3 bump (ADR 0097).** Same argument, one version later:
+ * v3 added `processing` and changed nothing the four counters mean. But v3 introduces an asymmetry
+ * the earlier bumps did not, and it is load-bearing for `processing-time-mean-p95`: a v1/v2 report
+ * **cannot** carry a duration, because the observable did not exist when it was written. So that
+ * measure must distinguish THREE states which every other measure here collapses into one —
+ * "no report at all", "a report from before the observable" (v1/v2), and "a v3 report whose run
+ * attempted nothing" (`processing: null`). A prefix match would have merged the last two, reporting
+ * a pre-v3 run as a run that measured zero work.
  */
-const READABLE_SCHEMAS = ["calllint.compiler-run-report.v1", "calllint.compiler-run-report.v2"] as const
+const READABLE_SCHEMAS = [
+  "calllint.compiler-run-report.v1",
+  "calllint.compiler-run-report.v2",
+  "calllint.compiler-run-report.v3",
+] as const
+
+/**
+ * The first schema version that can carry a processing-time distribution (ADR 0097).
+ *
+ * Named rather than inlined because two readers need it — the measure and its refusal message —
+ * and a hand-typed second copy is how a gate comes to refuse a version it is in fact looking at,
+ * which the docblock above records as this file's own past defect.
+ */
+const PROCESSING_SCHEMA = "calllint.compiler-run-report.v3"
 
 /** The set rendered for a refusal message, so the reader sees what WOULD have been accepted. */
 const READABLE_SCHEMAS_LIST = READABLE_SCHEMAS.map((s) => `\`${s}\``).join(" or ")
@@ -600,6 +630,21 @@ interface RunReportShape {
       readonly cached: number
     } | null
   }
+  /**
+   * v3's processing-time distribution (ADR 0097). OPTIONAL ON THIS SHAPE, and `?` here means
+   * something narrower than "may be absent": it is absent **exactly when** the report predates v3.
+   * The measure therefore reads the SCHEMA to decide which state it is in and never infers it from
+   * the field's absence — `undefined` and `null` would otherwise both read as "no distribution",
+   * merging "written before the observable existed" with "ran and attempted nothing".
+   */
+  readonly processing?: {
+    readonly n: number
+    readonly skipped: number
+    readonly meanMs: number
+    readonly p95Ms: number
+    readonly minMs: number
+    readonly maxMs: number
+  } | null
 }
 
 /**
@@ -914,14 +959,107 @@ if (runReport === null && rejectedReports.length > 0) {
   }
 }
 
-refused(
-  "processing-time-mean-p95",
-  `blocked on SCHEMA, not on a missing driver: \`compiler_jobs\` has \`created_at\`/\`updated_at\`/` +
-    `\`available_at\` and no \`started_at\`/\`finished_at\` ` +
-    `(\`migrations/001-canonical-adoption-graph.sql\`), so no duration is recorded anywhere. Adding the ` +
-    `columns breaks the 14-column ↔ 14-property equality \`domain/job.ts:13\` documents, so it needs a ` +
-    `migration and an ADR — running the compiler cannot unblock this (S1-OPEN-1)`,
-)
+/**
+ * Measure 4 — mean/p95 processing time. **The blocker this measure carried for its whole life was
+ * wrong, and it named a remedy that would have built a fifth instance of this repo's worst fault.**
+ *
+ * WHAT IT USED TO SAY, verbatim, and why each clause failed (ADR 0097):
+ *
+ *   "blocked on SCHEMA … `compiler_jobs` has no `started_at`/`finished_at` … so no duration is
+ *    recorded anywhere. Adding the columns breaks the 14-column ↔ 14-property equality … it needs a
+ *    migration and an ADR — running the compiler cannot unblock this."
+ *
+ *   1. `compiler_jobs` holds **0 rows** and always has: `enqueueJobs` (`store.ts:573`, the table's
+ *      only writer) has NO non-test caller in the repository. Two new columns would be NULL in
+ *      every row of an empty table, and the measure would compute a mean and a p95 over ZERO
+ *      samples — the empty-denominator-renders-as-a-perfect-score fault this file's own docblock
+ *      names, and which this repo has now closed four times. The remedy would have broken a
+ *      documented equality in order to build a fifth instance of it.
+ *   2. "no duration is recorded anywhere" was simply **false**. `compiler_runs` has carried
+ *      `started_at` and `completed_at` since the canonical DDL (`migrations/001:136-137`), with a
+ *      real writer (`refreshSnapshot.ts:476`/`:673`) and rows on disk. The blocker searched the
+ *      wrong table and reported about the right measure with total confidence — ADR 0096's fault
+ *      class, twice in two days. A correct verdict (REFUSED *was* right) immunises a wrong reason
+ *      from review, because nobody re-derives the reason behind an outcome they agree with.
+ *   3. And reading those columns closes nothing: all three rows have
+ *      `completed_at - started_at = 0 ms`, by construction. `refreshSnapshot.ts` passes
+ *      `startedAt: now, completedAt: now` — ONE `TRUST_INGEST_NOW`, pinned once for the whole chain
+ *      because four modules would otherwise stamp four instants and break the
+ *      `projectedAt == fetchedAt` invariant. **A pinned parameter cannot measure elapsed time.**
+ *      `0 ms` is not a fast compiler; it is the absence of a measurement wearing a fast one's
+ *      clothes.
+ *
+ * So the missing thing was never a column. It was a SECOND, INDEPENDENT OBSERVABLE — a monotonic
+ * clock, which this repository did not use anywhere. `resolveArtifacts` now times each attempt
+ * around `resolveOne` and reports `mean/p95/min/max` with `n`; the report carries it in v3.
+ *
+ * WHY THE ARTIFACT ATTEMPT IS THE UNIT. `mean/p95` needs a distribution, and the three candidates
+ * are not close: per `compiler_jobs` row gives n=0 (no rows, ever); per `compiler_runs` row gives
+ * n=3, and a p95 over 3 samples is not a p95; per artifact attempt gives n=36 attempted of 64
+ * considered. `resolveArtifacts.ts`'s `for (const artifact of considered) { await resolveOne(…) }`
+ * is one unit of compiler work — metadata fetch, download, digest verify, tar inspect, CAS write —
+ * and it is already the loop every other attempt-shaped measure here counts.
+ *
+ * THREE REFUSAL STATES, NOT ONE, and this is the only measure in the file that needs them. A v1/v2
+ * report cannot carry a duration because the observable did not exist when it was written; a v3
+ * report with `processing: null` ran and attempted nothing. Those are different facts with
+ * different remedies (re-run vs. nothing to do), and collapsing them is what an `?? null` would do.
+ * `PROCESSING_SCHEMA` is read from the SCHEMA field, never inferred from the field's absence.
+ */
+if (rejectedReports.length > 0 && runReport === null) {
+  refused(
+    "processing-time-mean-p95",
+    `${rejectedReports.length} run report file(s) exist but NONE is readable by this gate, so no ` +
+      `duration distribution can be read and none is guessed: ${rejectedReports.join("; ")}`,
+  )
+} else if (runReport === null) {
+  refused(
+    "processing-time-mean-p95",
+    `no run report exists yet, so no attempt has been timed. Remedy: run ` +
+      `\`pnpm ingest:trust-index\`. An absent distribution is REFUSED and never reported as 0 ms`,
+  )
+} else if (runReport.report.schema !== PROCESSING_SCHEMA) {
+  refused(
+    "processing-time-mean-p95",
+    `run ${runReport.report.runId} PREDATES THE OBSERVABLE: its report is ` +
+      `\`${runReport.report.schema}\`, and per-attempt durations were added in ` +
+      `\`${PROCESSING_SCHEMA}\` (ADR 0097). This is not "the run was fast" and not "the run ` +
+      `attempted nothing" — the measurement did not exist when this report was written, and its ` +
+      `\`startedAt\`/\`completedAt\` are two copies of one pinned \`TRUST_INGEST_NOW\` whose ` +
+      `difference is 0 ms by construction. Remedy: run \`pnpm ingest:trust-index\` once more; the ` +
+      `writer now records it — \`${rel(runReport.path)}\``,
+  )
+} else if (runReport.report.processing === null || runReport.report.processing === undefined) {
+  refused(
+    "processing-time-mean-p95",
+    `run ${runReport.report.runId} produced a v3 report with NO distribution: every considered ` +
+      `artifact was skipped for want of an adapter, or artifact resolution was disabled ` +
+      `(\`TRUST_INGEST_ARTIFACTS=0\`), so nothing was attempted and nothing was timed. REFUSED ` +
+      `rather than reported as 0 ms, for the same reason \`adapter-failure-rate\` refuses 0/0 — ` +
+      `\`${rel(runReport.path)}\``,
+  )
+} else {
+  const p = runReport.report.processing
+  // RECOUNTED, not trusted. `processingTimeStats` is imported from the same module the writer used,
+  // so the gate re-derives `mean`/`p95` from `n` samples it can see rather than printing the
+  // writer's arithmetic back — ADR 0093's rule for the CAS manifest's `totals`, and the reason a
+  // statistic and its evidence ship in one file. The recount here is a consistency check on the
+  // fields available in the report (`n` > 0, ordering, mean within [min,max]); the raw samples live
+  // in the store, so this is bounded to what a report reader can independently verify.
+  const coherent = p.n > 0 && p.minMs <= p.meanMs && p.meanMs <= p.maxMs && p.p95Ms <= p.maxMs && p.minMs <= p.p95Ms
+  measured(
+    "processing-time-mean-p95",
+    coherent,
+    `artifact-attempt processing time: mean **${p.meanMs} ms**, p95 **${p.p95Ms} ms** ` +
+      `(min ${p.minMs}, max ${p.maxMs}) over **n=${p.n}** attempts; ${p.skipped} considered ` +
+      `artifact(s) were skipped for want of an adapter and are excluded from the distribution — ` +
+      `an unattempted unit has no processing time, and a 0 would drag the mean with samples ` +
+      `representing no work. p95 is NEAREST-RANK (index \`ceil(0.95n)-1\`), so it is an actual ` +
+      `observed duration rather than an interpolation between two of them. Monotonic clock, not ` +
+      `\`completedAt - startedAt\` (which is 0 ms by construction — ADR 0097). Source: run ` +
+      `${runReport.report.runId} (${runReport.report.outcome}), \`${rel(runReport.path)}\``,
+  )
+}
 /**
  * Measure 5 — CAS dedup rate. The second measure this ladder gave a source, and the fourth instance
  * of one fault class to be closed by building the writer its reader had always assumed.

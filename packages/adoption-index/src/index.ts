@@ -90,6 +90,11 @@ export {
 } from "./storage/paths.js"
 export type { RunReport, RunReportAttempts, RunReportSource } from "./storage/runReport.js"
 export { RUN_REPORT_SCHEMA, writeRunReport } from "./storage/runReport.js"
+export type { ProcessingTimeStats } from "./domain/processingTime.js"
+// Exported so a reader can RECOUNT a report's statistic from its own samples instead of trusting
+// the writer's arithmetic — ADR 0093's discipline for the CAS manifest's `totals`, applied to
+// ADR 0097's durations.
+export { processingTimeStats } from "./domain/processingTime.js"
 export type { Migration, AppliedMigration } from "./storage/migrate.js"
 export { loadMigrations, applyMigrations, readAppliedMigrations } from "./storage/migrate.js"
 export type {
