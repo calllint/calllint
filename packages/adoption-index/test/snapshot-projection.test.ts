@@ -106,6 +106,20 @@ const FIXTURE: ItemSpec[] = [
   },
   // No description, no version, no repository: the "" vs null divergence lives here.
   { name: "io.example/mike", publishedAt: "2026-04-04T00:00:00.000Z" },
+  // THE SUBJECT THIS CONTROL COULD NOT SEE UNTIL 2026-09-08. Every description above is clean,
+  // so for the whole life of this file the two paths agreed on descriptions *vacuously* — they
+  // would have agreed with no redaction on either side, or with redaction on one side only.
+  // ADR 0096 then added `redactPii` to the shipped emitter alone; the bytes should have diverged
+  // here that day and did not, because no fixture had ever carried an address. The real cohort
+  // supplied one (`ai.byteray/byteray-mcp`, "… invite: hi@byteray.ai") and two scheduled ingests
+  // failed at the last guard before publication instead. The verbatim upstream string is used so
+  // the control's subject is the one production met.
+  {
+    name: "io.example/november",
+    description: "Hosted, OAuth + SSO, invite: hi@byteray.ai",
+    version: "2.0.0",
+    publishedAt: "2026-07-01T00:00:00.000Z",
+  },
   // Filtered by the shipped emitter at ingestion; must also be filtered by the projection.
   { name: "io.example/deprecated", status: "deprecated", publishedAt: "2026-05-05T00:00:00.000Z" },
   { name: "io.example/superseded", isLatest: false, publishedAt: "2026-06-06T00:00:00.000Z" },
@@ -182,11 +196,11 @@ describe("projection equivalence (control #8)", () => {
     // The mirror is a superset: it holds the deprecated, the superseded and the flagless
     // rows that the shipped emitter discarded at ingestion. This is the asymmetry the
     // projection exists to absorb, so it is measured rather than assumed.
-    expect(records).toHaveLength(6)
-    expect(records.filter(isLiveCohort)).toHaveLength(3)
+    expect(records).toHaveLength(7)
+    expect(records.filter(isLiveCohort)).toHaveLength(4)
 
     const shipped = await shippedBytes(payload)
-    expect(JSON.parse(shipped).count).toBe(3)
+    expect(JSON.parse(shipped).count).toBe(4)
     expect(
       serializeSnapshot(
         projectSnapshot({ records, endpoint: ENDPOINT, fetchedAt: NOW, maxEntries: DEFAULT_MAX_ENTRIES }),
@@ -343,6 +357,59 @@ describe("projection equivalence (control #8)", () => {
     // `null` and `""` serialize differently and the bytes are compared, so this is a
     // byte-level requirement, not a style preference.
     expect(projected.entries[0]?.description).toBe("")
+    expect(serializeSnapshot(projected)).toBe(await shippedBytes(payload))
+  })
+
+  /**
+   * The PII arm, stated over the path production actually runs.
+   *
+   * The byte-equivalence cases above are necessary and NOT sufficient for this: they compare the
+   * two implementations against each other, so they red when one redacts and the other does not —
+   * but they stay green when NEITHER does. That is exactly the state the pipeline shipped in
+   * before 2026-09-08, and it is why an assertion against `fetchRegistrySnapshot` alone
+   * (`trust-index/test/registry.test.ts:130`) was green through two failed scheduled ingests: that
+   * function has no production callers, so its guard was mounted on a retired path.
+   *
+   * So this asserts the absolute property — no address in the projected bytes — on the projection,
+   * which is what `refreshSnapshot.ts:717` writes.
+   */
+  it("redacts an email-like token from the PROJECTED bytes, the ones production commits", async () => {
+    const payload = body([
+      { name: "io.example/alpha", description: "Hosted, OAuth + SSO, invite: hi@byteray.ai" },
+    ])
+    const records = await throughStore(payload)
+    const projected = projectSnapshot({
+      records,
+      endpoint: ENDPOINT,
+      fetchedAt: NOW,
+      maxEntries: DEFAULT_MAX_ENTRIES,
+    })
+
+    expect(projected.entries[0]?.description).toBe("Hosted, OAuth + SSO, invite: [contact redacted]")
+    // The rule `check:public-copy` #17/#17b enforces on the served bytes, asserted here on the
+    // bytes those pages are baked from — the guard that could still have refused it was the LAST
+    // one, four stages downstream, and it refused by failing the whole ingest.
+    expect(serializeSnapshot(projected)).not.toContain("hi@byteray.ai")
+    // Still byte-equal to the shipped emitter, so the redaction did not buy PII-safety by
+    // diverging from the reproducibility contract.
+    expect(serializeSnapshot(projected)).toBe(await shippedBytes(payload))
+  })
+
+  it("leaves non-address `@` text intact — the load-bearing negative", async () => {
+    // ADR 0096 §D2: the negative is the load-bearing one. A redactor that ate `@scope/pkg@1.2.3`
+    // or `@maintainer` would quietly damage ordinary text on every clean page, which is a worse
+    // outcome than the rare leak it defends against.
+    const clean = "Install @scope/pkg@1.2.3 — maintained by @maintainer, see docs.example.com"
+    const payload = body([{ name: "io.example/alpha", description: clean }])
+    const records = await throughStore(payload)
+    const projected = projectSnapshot({
+      records,
+      endpoint: ENDPOINT,
+      fetchedAt: NOW,
+      maxEntries: DEFAULT_MAX_ENTRIES,
+    })
+
+    expect(projected.entries[0]?.description).toBe(clean)
     expect(serializeSnapshot(projected)).toBe(await shippedBytes(payload))
   })
 })

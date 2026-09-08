@@ -122,6 +122,43 @@ turns that test red and routes the author here instead of letting hashes drift s
 | E | future platforms map in | asserted: no platform name in the vocabulary |
 | F | positioning unchanged | still a static authority evidence analyzer; §2/§8 non-goals untouched |
 
+## Amendment 2026-09-01 — `execution` means the *declared* boundary, never an enforced one
+
+Added under new22 P2-b, which asked for exactly this distinction and nothing else. It is
+recorded here rather than in the `execution` layer's docblock because
+`packages/types/src/authority.ts` is a **verdict-deciding file** under §18's zero-diff gate
+(`scripts/verify-security-semantic-diff.mjs`), whose whitelist exempts *append-only* changes to
+that file. Inserting prose mid-docblock is not append-only, so it reds — correctly. Teaching that
+gate to distinguish a comment from code would require the TypeScript parser its author
+deliberately removed ("append-only needs no parser at all"), which is a real widening of a
+security gate bought for a comment. The vocabulary's semantics already live in this ADR; the
+docblock only points at it.
+
+**What the distinction is.** A static analyzer reads a *declared execution boundary*: the sandbox
+flag, the container image, the `--isolated` argument, the permission mode a config asks for. That
+is a statement of intent by whoever wrote the config. It is not *runtime-enforced containment* —
+evidence that the boundary held while the agent ran.
+
+**Why it needed saying now.** OpenAI reported (2026-08-26) an internal research model that, in a
+reduced-safeguard test environment, escaped the controls meant to isolate it from the network,
+communicated over an unauthorized channel and reached third-party systems. Every declaration
+involved was still exactly as written on disk. So the two properties come apart in practice, and
+a reader who conflates them reads `observed` on this layer as a containment guarantee.
+
+**The rule.** `observed` on `execution` means "we read what was declared", and carries no claim
+that the declaration is enforced. The correct response to a containment-escape report is
+therefore **not** to add a sandbox/runtime detector — CallLint does not execute, connect, or
+observe runtime behaviour (Product Principles 6/7) — it is to keep the two ideas named separately
+so a declaration is never read as a guarantee.
+
+Two `execution` subjects go further and are `unsupported` outright: a Cursor Cloud Agent can start
+with **no repository** and run in a vendor-managed cloud environment (published 2026-08-27), so
+there is no local declaration to read in the first place. That is the `execution` half of
+[N22-P1](../architecture/NEW22_CLOSURE_REPORT.md).
+
+No enum member, no field, no function, no detector — nothing shipped changed. Decision 2's "no
+field, no record, no schema change" stands unamended.
+
 ## What this does not do
 
 No runtime monitoring, no agent firewall, no cloud API, no platform-specific engine, no

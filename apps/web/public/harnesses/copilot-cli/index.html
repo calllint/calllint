@@ -6,7 +6,7 @@
     <title>GitHub Copilot CLI — CallLint Support</title>
     <meta
       name="description"
-      content="CallLint support for GitHub Copilot CLI (GitHub). CallLint does not yet auto-discover Copilot CLI configuration."
+      content="CallLint support for GitHub Copilot CLI (GitHub). CallLint does not yet auto-discover Copilot CLI configuration. Copilot&#x27;s review approval authority is a separate matter, and it is not covered either. Whether a Copilot review can satisfy a repository&#x27;s required-approval rule is decided by enterprise, organization and repository administrator policy together with branch protection settings, and none of that is statically observable from this machine, so CallLint reports that authority as UNSUPPORTED rather than reading it as SAFE. The permission mode a session starts in, and the authority a session restores when it resumes after an unclean exit, are not statically observable either; and a declared permission posture is a declaration, never proof of what a runtime enforced. Review feedback and approval authority are two different things: a review comment carries information, while an approval can change whether code is allowed to merge. The GitHub Actions workflow CallLint can install for you is a pull-request check and never an approval — it cannot satisfy a required-approval rule, and it does not inspect one. Reading a Copilot MCP config tells you what one layer of Copilot&#x27;s authority declares, and never that an unreadable layer is SAFE."
     />
     <link rel="canonical" href="https://calllint.com/harnesses/copilot-cli/" />
     <link rel="icon" href="/favicon.png" type="image/png" />
@@ -41,7 +41,7 @@
           <h1>GitHub Copilot CLI</h1>
           <p class="doc-lede">
             CallLint support for <strong>GitHub Copilot CLI</strong> by GitHub.
-            <span class="coverage-note">CallLint does not yet auto-discover Copilot CLI configuration.</span>
+            <span class="coverage-note">CallLint does not yet auto-discover Copilot CLI configuration. Copilot&#x27;s review approval authority is a separate matter, and it is not covered either. Whether a Copilot review can satisfy a repository&#x27;s required-approval rule is decided by enterprise, organization and repository administrator policy together with branch protection settings, and none of that is statically observable from this machine, so CallLint reports that authority as UNSUPPORTED rather than reading it as SAFE. The permission mode a session starts in, and the authority a session restores when it resumes after an unclean exit, are not statically observable either; and a declared permission posture is a declaration, never proof of what a runtime enforced. Review feedback and approval authority are two different things: a review comment carries information, while an approval can change whether code is allowed to merge. The GitHub Actions workflow CallLint can install for you is a pull-request check and never an approval — it cannot satisfy a required-approval rule, and it does not inspect one. Reading a Copilot MCP config tells you what one layer of Copilot&#x27;s authority declares, and never that an unreadable layer is SAFE.</span>
           </p>
           <div class="host-meta">
             <span class="badge badge-P2">P2</span>
@@ -133,7 +133,7 @@
 
         <section id="coverage" class="doc-section coverage-boundary">
           <h2>Coverage Boundary</h2>
-          <p class="boundary-text">CallLint does not yet auto-discover Copilot CLI configuration.</p>
+          <p class="boundary-text">CallLint does not yet auto-discover Copilot CLI configuration. Copilot&#x27;s review approval authority is a separate matter, and it is not covered either. Whether a Copilot review can satisfy a repository&#x27;s required-approval rule is decided by enterprise, organization and repository administrator policy together with branch protection settings, and none of that is statically observable from this machine, so CallLint reports that authority as UNSUPPORTED rather than reading it as SAFE. The permission mode a session starts in, and the authority a session restores when it resumes after an unclean exit, are not statically observable either; and a declared permission posture is a declaration, never proof of what a runtime enforced. Review feedback and approval authority are two different things: a review comment carries information, while an approval can change whether code is allowed to merge. The GitHub Actions workflow CallLint can install for you is a pull-request check and never an approval — it cannot satisfy a required-approval rule, and it does not inspect one. Reading a Copilot MCP config tells you what one layer of Copilot&#x27;s authority declares, and never that an unreadable layer is SAFE.</p>
         </section>
       </article>
 
