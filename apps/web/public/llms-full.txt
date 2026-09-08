@@ -83,7 +83,7 @@ Platforms that consume the Official MCP Registry can discover CallLint automatic
   - mcp-stdio: AUDIT_REQUIRED (upstream: officialMcpRegistry)
   - cursor-plugin: PENDING_UPSTREAM — https://cursor.com/marketplace
 
-**Coverage Boundary**: CallLint scans MCP server entries only. Cursor rules and editor settings are not covered. Cloud Agents, background agents and event or timer wakeups (GitHub, Slack, Linear, cron) are not statically observable at all: what starts such an agent is decided in Cursor's cloud, not in a file on disk, so CallLint reports that authority as UNSUPPORTED rather than reading it as SAFE.
+**Coverage Boundary**: CallLint scans MCP server entries only. Cursor rules and editor settings are not covered. Cloud Agents, background agents, cloud subscriptions and event or timer wakeups (GitHub, Slack, Linear, cron) are not statically observable at all: what starts such an agent is decided in Cursor's cloud, not in a file on disk, so CallLint reports that authority as UNSUPPORTED rather than reading it as SAFE. The same holds for where a Cloud Agent runs and for what it changes when it is done. A Cloud Agent can start with no repository at all and run in a Cursor-managed cloud environment, so there is no config file to read the run out of; and its results can create or change a Cursor Origin repository, expose the live environment to a browser through port forwarding, or publish through a connected Vercel account. None of that leaves deterministic static evidence on this machine, so all of it is UNSUPPORTED too. Reading Cursor's MCP config tells you what one layer of Cursor's authority declares, never that the layers CallLint cannot see are safe.
 
 ### VS Code (Microsoft)
 
@@ -187,7 +187,7 @@ Platforms that consume the Official MCP Registry can discover CallLint automatic
   - mcp-registry-discovery: BLOCKED
   - github-copilot-plugin: PENDING_UPSTREAM — https://docs.github.com/copilot/how-tos/copilot-cli/customize-copilot/plugins-marketplace
 
-**Coverage Boundary**: CallLint does not yet auto-discover Copilot CLI configuration.
+**Coverage Boundary**: CallLint does not yet auto-discover Copilot CLI configuration. Copilot's review approval authority is a separate matter, and it is not covered either. Whether a Copilot review can satisfy a repository's required-approval rule is decided by enterprise, organization and repository administrator policy together with branch protection settings, and none of that is statically observable from this machine, so CallLint reports that authority as UNSUPPORTED rather than reading it as SAFE. The permission mode a session starts in, and the authority a session restores when it resumes after an unclean exit, are not statically observable either; and a declared permission posture is a declaration, never proof of what a runtime enforced. Review feedback and approval authority are two different things: a review comment carries information, while an approval can change whether code is allowed to merge. The GitHub Actions workflow CallLint can install for you is a pull-request check and never an approval — it cannot satisfy a required-approval rule, and it does not inspect one. Reading a Copilot MCP config tells you what one layer of Copilot's authority declares, and never that an unreadable layer is SAFE.
 
 ### Cline (Open Source)
 

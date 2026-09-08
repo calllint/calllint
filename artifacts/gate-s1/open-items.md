@@ -169,13 +169,23 @@ third enforcing mode by accident.
 ### The record has a machine reader, and it was proven able to red
 
 Everything above is a claim in prose, and prose does not fail. `tests/invariants/gate-s1-claims.invariants.test.ts`
-is the reader — **32 `it` blocks, three layers**, modelled on the Gate S0 suite because the failure
+is the reader — **33 `it` blocks, three layers**, modelled on the Gate S0 suite because the failure
 modes are the same ones:
 
 1. **POINTER TRUTH** — every `path:line` this file cites must resolve to a line *containing* what it
    claims. Content-anchored, not existence-anchored: an existence check is satisfied by a blank line
    (M26-3's pointer at `:61` was blank), and the S0 suite's pointers have drifted **ten** times, five
    of those onto docblock prose — a line that existed.
+
+   > **THE POINTER LIST IS AN ENROLMENT, NOT A SCAN — measured 2026-09-01, and read this before adding
+   > a section.** `assertPointer` is called on a hand-written list, so this layer checks the pointers
+   > somebody enrolled, *not* the pointers this file contains. Proven rather than suspected: when the
+   > fourth measurement was first written, a negative control aimed one of its six new pointers at
+   > `runReport.ts:9999` — past the end of that file — and the suite stayed **32/32 green**. So a whole
+   > section of unread citations can be added while the reader reports full coverage. Closed for that
+   > section by enrolling all six (`the ADR 0097 clock path …`); **not** closed in general, because
+   > doing so means parsing every `path:line` out of this file. If you add a section with pointers and
+   > do not enrol them, nothing will tell you.
 2. **DERIVED-NOT-RESTATED** — every number here is recomputed from the file it describes. The census
    (`150 / 100 required`, `150 registry pages`) is re-joined from
    `packages/trust-index/snapshots/official-mcp-registry.json` against
@@ -223,6 +233,15 @@ Workstream R measured for raw names. The tell was the shape of the failure: a jo
 
 **Status:** **OPEN (narrowed three times: ~~four measures~~ → ~~three~~ → ~~two~~ → one, 2026-09-01).**
 
+> **READ THE COUNT CAREFULLY — "one" here counts BLOCKERS, and `gate:s1` prints TWO refusals
+> (fourth measurement, 2026-09-01).** Both statements are true and they count different things:
+> `disk-growth` is the one measure whose blocker no code and no run can clear, and
+> `processing-time-mean-p95` refuses with a blocker that is already cleared in code and awaits a
+> single `pnpm ingest:trust-index`. The row headline is kept as-is rather than edited to "two",
+> because renaming it would lose the distinction that took ADR 0097 to establish — but a reader
+> comparing this heading against the gate's output will see 1 vs 2 and must not conclude the gate
+> regressed.
+
 Three green measures are not Gate S1. ~~The refused ones are precisely the *scale* measures —
 throughput, dedup efficiency, disk growth —~~ **re-aimed 2026-09-01:** that clause described the
 refusals as a coherent *category*, and the category has since been dismantled from the inside —
@@ -254,7 +273,7 @@ consecutive ADRs now — and it is the argument for reading a blocker's evidence
 | measure | blocker | what would actually unblock it |
 | --- | --- | --- |
 | `adapter-failure-rate` | ~~no source~~ **RESOLVED** | a run report exists and is read; MEASURED once an ingest runs against the checkout |
-| `processing-time-mean-p95` | ~~**SCHEMA**~~ **RETRACTED — the blocker was false (ADR 0097)** | ~~`compiler_jobs` has `created_at`/`updated_at`/`available_at` and no `started_at`/`finished_at` (`migrations/001-canonical-adoption-graph.sql`), so no duration is recorded anywhere. Adding the columns breaks the 14-column ↔ 14-property equality `domain/job.ts:13` documents → needs a migration **and an ADR**. Running the compiler cannot unblock this.~~ **Every clause after the first was wrong.** `compiler_runs` has carried `started_at`/`completed_at` since the same canonical DDL, with a real writer — so "no duration is recorded anywhere" was false of the schema this row cites. `compiler_jobs` holds **0 rows** and `enqueueJobs` has no non-test caller, so the two proposed columns would have been NULL forever and the measure would have computed mean/p95 over an empty set: the empty-denominator defect, bought at the price of breaking a documented equality. And reading the columns that *do* exist closes nothing — all 3 rows have `completed_at − started_at = 0 ms`, because `refreshSnapshot.ts` passes one pinned `TRUST_INGEST_NOW` as both endpoints. **Now MEASURED** from a monotonic per-attempt clock in `resolveArtifacts.ts`, reported in `calllint.compiler-run-report.v3`. No migration was needed. |
+| `processing-time-mean-p95` | ~~**SCHEMA**~~ **RETRACTED — the blocker was false (ADR 0097)** | ~~`compiler_jobs` has `created_at`/`updated_at`/`available_at` and no `started_at`/`finished_at` (`migrations/001-canonical-adoption-graph.sql`), so no duration is recorded anywhere. Adding the columns breaks the 14-column ↔ 14-property equality `domain/job.ts:13` documents → needs a migration **and an ADR**. Running the compiler cannot unblock this.~~ **Every clause after the first was wrong.** `compiler_runs` has carried `started_at`/`completed_at` since the same canonical DDL, with a real writer — so "no duration is recorded anywhere" was false of the schema this row cites. `compiler_jobs` holds **0 rows** and `enqueueJobs` has no non-test caller, so the two proposed columns would have been NULL forever and the measure would have computed mean/p95 over an empty set: the empty-denominator defect, bought at the price of breaking a documented equality. And reading the columns that *do* exist closes nothing — all 3 rows have `completed_at − started_at = 0 ms`, because `refreshSnapshot.ts` passes one pinned `TRUST_INGEST_NOW` as both endpoints. **Now MEASURABLE** from a monotonic per-attempt clock in `resolveArtifacts.ts`, reported in `calllint.compiler-run-report.v3`. No migration was needed. **Read "MEASURABLE", not "MEASURED" — corrected 2026-09-01 in the fourth measurement, and the one-word difference is the whole of this row's remaining debt.** The writer ships and the whole path was re-read link by link, but the newest report on disk is still `v2`, so the gate REFUSES with `PREDATES THE OBSERVABLE`. This row said "Now MEASURED" while the gate printed `[REFUSED ]` — the same collapse of *has a source* into *has a measurement* that the second measurement was written to separate, reappearing one line above its own warning. |
 | `cas-dedup-rate` | ~~MISSING WRITER~~ **RESOLVED** | `artifacts/casManifest.ts` now writes `cas/manifests/run-<id>.json` and `refreshSnapshot.ts` calls it on both the success and the crash path (ADR 0093). MEASURED once an ingest runs with artifact resolution enabled. |
 | `disk-growth` | **TIME** | two measurements separated by real runs. A baseline is recorded (below); the second one cannot be willed into existence. |
 
@@ -649,3 +668,93 @@ correction, which reads as though the mistake were caught the first time.
 
 Cohort census: source **200 / 100 required** (met); served **200 registry pages / 200
 committed** (held).
+
+---
+
+## Fourth measurement — 2026-09-01, at `c4c388b`+ (the ADR 0097 writer, not yet exercised)
+
+`pnpm gate:s1` on `feat/new22-cursor-authority-boundary-v2`, EXIT **0**. **Five MEASURED and green;
+two REFUSED** — the same counts as the third measurement. The change is again in a refusal's *reason*,
+and this time it is the reason moving from **structural to procedural**, which is the direction the
+third measurement's correction predicted but could not yet demonstrate.
+
+| measure (new15 §342 order) | tier | result | change since third measurement |
+|---|---|---|---|
+| source completeness | MEASURED | ✓ 200/200 | — |
+| artifact resolution rate | MEASURED | ✓ 199/200; the 1 unresolvable is exactly the 1 the index marks `incomplete` | — |
+| page quality | MEASURED | ✓ 199/199 agree on both digests | — |
+| adapter failure rate | MEASURED | ✓ 0.0% — 0/36 over 36 fetched; 28 of 64 considered excluded from BOTH halves | — |
+| mean/p95 processing time | REFUSED | ✗ **`PREDATES THE OBSERVABLE`** — the newest report on disk is `calllint.compiler-run-report.v2` | **reason changed; blocker is now a run, not a schema** |
+| CAS dedup rate | MEASURED | ✓ 0.0% within-run reuse (0/36) and 0.0% already-on-disk (0/36), as two counts | — |
+| disk growth | REFUSED | ✗ baseline only — 185106432 B, 81 blobs, 1+ report | unchanged: still one measurement |
+
+### The refusal that changed category, and why that is the finding
+
+The third measurement's correction retracted "blocked on SCHEMA" and said the measure needed a
+monotonic clock rather than a migration. **This measurement is the first evidence that the clock
+actually shipped and is wired end to end**, and it comes from the refusal text rather than from a
+number: the gate no longer says *blocked on SCHEMA*, it says the report it found **predates the
+observable** and names `pnpm ingest:trust-index` as the remedy. Those are different refusals. One
+cannot be closed by running anything; the other closes on the next run.
+
+Verified as a path, not inferred from the message — each link read at this commit:
+
+| link | evidence |
+|---|---|
+| monotonic clock is injected, defaulting to `performance.now` | `packages/adoption-index/src/operations/resolveArtifacts.ts:134,151` |
+| every attempt is timed, and `NO_ADAPTER` yields `null` rather than `0` | `resolveArtifacts.ts:183,203,206` |
+| the distribution is computed from non-null samples only | `resolveArtifacts.ts:229-230` |
+| the writer emits v3 and carries `processing` | `packages/adoption-index/src/storage/runReport.ts:70,184` |
+| the ingest passes it through, `null` when the stage did not run | `packages/trust-index/src/refreshSnapshot.ts:557` |
+| the gate distinguishes THREE states rather than prefix-matching the schema | `scripts/gate-s1.ts:595-608` |
+
+So the blocker is now **one ingest**, and this measurement deliberately did not perform it — the same
+call the second measurement made, for the same reason, and it is worth restating because the reason is
+narrower than "it touches the network". A run writes two *kinds* of bytes: the run report and CAS under
+`packages/trust-index/.var/`, which is gitignored (`.gitignore:64`, and `git ls-files` returns **0**
+tracked files beneath it), and the committed `packages/trust-index/snapshots/official-mcp-registry.json`,
+which is **tracked** (sha256 `6aa729c3…` at this commit). Only the first kind is what this measure needs.
+A measurement pass that rewrote a committed snapshot and advanced Gate S0's ratchet as a side effect
+would be trading a tracked artifact for a number — so the run is left as an explicit act, not a side
+effect of reading a gate.
+
+**`disk-growth` is unchanged and remains the one refusal no run closes.** Its baseline is re-read here
+(185106432 B / 81 blobs), identical to the third measurement's, because nothing has run in between —
+which is itself the demonstration: two readings of one state are not two measurements, and the gate
+declines to divide them. It needs calendar time between two real runs, and the third measurement's
+"structural, not procedural" verdict was **correct about this measure** even though it was wrong about
+the one above it.
+
+### Gate S2, measured in the same pass
+
+`pnpm gate:s2` EXIT **0** — 4 MEASURED / 1 REFUSED, cohort **200 / 500**. The refusal is worth quoting
+against a claim this repo's planning notes have carried, that S2 is "6 more ingests, a cadence matter":
+
+> THE COHORT CAP BOUND IT, NOT UPSTREAM: the newest run read **86984** raw record(s) and emitted a
+> cohort capped at `snapshot=200` (< 500), so this run COULD NOT have reached the threshold whatever
+> upstream held.
+
+Upstream is not the constraint — 86984 records were read. The constraint is the **snapshot cap**, and
+the gate names two distinct remedies: let auto-growth run (+50/run ⇒ ~6 ingests), or raise
+`TRUST_INGEST_MAX_ENTRIES`. It also names the knob that would change *nothing* (`capReached` measures
+the mirror read against `mirror=100000`, a different quantity from the served cohort).
+
+**Both of those remedies are gated by ADR 0009, which the gate's message does not mention** — checked
+rather than assumed, because a refusal naming two remedies otherwise reads as two available choices.
+`artifacts/adr/0009-instrumentation-precedes-the-cohort-cap.md` (Decided 2026-08-27) holds the cap
+until three quantities are measured **at 100 and at one larger cohort, with the numbers committed**:
+ingest wall-clock + request count, mirror read volume (bytes and requests), and bake time + projection
+output size. Its argument is a distinction this file's own measures keep running into — *"a single-shot
+fetch that works at 100 may exceed a platform timeout at 500; that is a cliff, not a slope, and it
+cannot be extrapolated from one data point"* — and it flags mirror read volume as the quantity that
+*"turns into someone else's rate limit — an external harm, not a local slowdown."* Auto-growth is
+gated **separately and more strictly**, needing a hard ceiling plus a stop condition on the measured
+quantities, on the grounds that a measured static cap says "500 is affordable once" while auto-growth
+claims every future value is affordable.
+
+So S2's blocker is **absent instrumentation**, not elapsed time and not a missing env var — and the
+instrumentation is a measurement task (two cohort sizes × three quantities) that nothing in this repo
+currently performs. `open-judgements.invariants.test.ts` reads `DEFAULT_MAX_ENTRIES` from source, so a
+cap that moves without its artifact reds. Left untaken here: it is a batch of its own, and taking it
+inside a Gate S1 measurement pass is how an unmeasured 5× expansion of someone else's rate limit gets
+shipped as a side effect.

@@ -63,6 +63,8 @@ import path from "node:path"
 import { fileURLToPath } from "node:url"
 import Ajv, { type ValidateFunction } from "ajv"
 import { beforeAll, describe, expect, it } from "vitest"
+/* new22 NC-06 pins the published boundary to the shipped rule instead of restating it. */
+import { AUTHORITY_LAYER_STATES, authorityLayerVerdictFloor } from "@calllint/types"
 
 const repoRoot = fileURLToPath(new URL("../../", import.meta.url))
 const read = (rel: string) => readFileSync(path.join(repoRoot, rel), "utf8")
@@ -92,6 +94,11 @@ interface Host {
   /* Schema-required (`minLength: 1`), so not optional here — the §7 block reads it directly
    * and a `?` would let a missing boundary typecheck as an ordinary absent value. */
   coverageBoundary: string
+  /* Also schema-required. new22 NC-08 asserts these are untouched by a boundary edit; typed
+   * loosely on purpose — this file audits that the states did not MOVE, not what they mean. */
+  authoritySurfaces: string[]
+  configEvidence: string[]
+  distributionPrimitives: Array<{ kind: string; state: string }>
 }
 interface Ssot {
   hosts: Host[]
@@ -717,3 +724,489 @@ describe("new21 §7/§10.D — the cloud-entrypoint boundary is published, not o
     ).toEqual([])
   })
 })
+
+/*
+ * new22 §NC-CURSOR-V2 — the boundary covers all five authority layers, not only the entrypoint.
+ *
+ * WHY THE BLOCK ABOVE WAS NOT ENOUGH. new21 §7 mapped Cursor's cloud risk onto ONE layer:
+ * what *starts* an agent (subscription, PR, Slack, cron). Cursor's 2026-08-27 release falsified
+ * that as a complete boundary. A Cloud Agent can now start with **no repository at all**, run in
+ * a Cursor-managed cloud environment, and then create a Cursor Origin repository, expose the live
+ * environment to a browser through port forwarding, or publish through a connected Vercel
+ * account. So `execution` and `effect` are ALSO cloud-resident — and the shipped boundary named
+ * neither. A reader met "Cloud Agents … are not statically observable" and could reasonably
+ * conclude only the *launch* was invisible while the run and its consequences were covered.
+ *
+ * THE CLAIM THIS PINS, in one line: `host = cursor` must never imply "all of Cursor's authority
+ * is observed". Each of the five layers is either named as observed or named as unobservable;
+ * silence about a layer is the defect.
+ *
+ * WHY THE SUBJECT LISTS ARE SPLIT BY LAYER rather than concatenated into the block above's
+ * `SUBJECTS`. The layer is the unit that can regress independently — a rewrite that keeps
+ * "Cloud Agents" and drops "Vercel" leaves a truthful-looking sentence with one layer silently
+ * re-broadened. Splitting them means the failure message names the LAYER whose coverage claim
+ * grew, which is the fact a maintainer needs, and NC-02 exists specifically so that appending
+ * the new layers cannot evict the old ones.
+ *
+ * WHAT THIS DOES NOT DO — new22 §FORBIDDEN, and worth stating where the next reader looks.
+ * No Cursor cloud API is called, no credential is read, no runtime is monitored, no
+ * Cursor-specific detector or domain entity (`CursorCloudAgent`, `CursorOrigin`, `CursorVercel`,
+ * `CursorPortForward`) exists. This block reads two committed files. The coverage claim is the
+ * subject; Cursor's cloud is not.
+ *
+ * NO FAKE FIXTURE. There is deliberately no fabricated `~/.cursor/subscription.json` here.
+ * Cursor exposes no such artifact, and inventing one to "test" the boundary would assert that
+ * CallLint can parse something that does not exist — the inverse of the honesty this guards.
+ * The negative control is the removal of a SUBJECT from the boundary prose, nothing more.
+ */
+describe("new22 §NC-CURSOR-V2 — Cursor support does not imply five-layer coverage", () => {
+  const pageOf = (id: string) => read(`apps/web/public/harnesses/${id}/index.html`)
+  const CURSOR = "cursor"
+
+  /** Machine surfaces that restate the boundary, and how to reach it in each. NC-07's readers. */
+  const MACHINE_SURFACES: ReadonlyArray<[string, (doc: never) => string | undefined]> = [
+    [
+      "apps/web/public/agent-surfaces.json",
+      (doc: never) =>
+        (doc as { agents: Array<{ id: string; coverageBoundary?: string }> }).agents.find(
+          (a) => a.id === CURSOR,
+        )?.coverageBoundary,
+    ],
+    [
+      "apps/web/public/agent-discovery-index.json",
+      (doc: never) =>
+        (
+          doc as {
+            surfaces: Array<{ id: string; calllintSupport?: { coverageBoundary?: string } }>
+          }
+        ).surfaces.find((s) => s.id === CURSOR)?.calllintSupport?.coverageBoundary,
+    ],
+  ]
+
+  /*
+   * The subjects, grouped by the Authority Model v2 layer each belongs to. Spellings are the
+   * ones a reader would meet, not internal enum values — new22 §PUBLIC COPY RULE forbids
+   * exposing the enums, so the regexes must survive ordinary prose being rewritten around them.
+   */
+  const LAYER_SUBJECTS: ReadonlyArray<[string, ReadonlyArray<[string, RegExp]>]> = [
+    /* NC-01 — execution: the layer Cursor moved out of the repository on 2026-08-27. */
+    [
+      "execution",
+      [
+        ["repo-less start", /no repository at all|without a repositor|repo-less/i],
+        ["Cursor-managed cloud environment", /cloud environment/i],
+      ],
+    ],
+    /* NC-02 — entrypoint: pure REGRESSION protection. These four shipped under new21 §7 and
+     * are re-asserted here because 1.1 rewrote the sentence that carried them; an append that
+     * displaced one would otherwise trade a known-truthful claim for a new one. */
+    [
+      "entrypoint",
+      [
+        ["cloud agents", /cloud agents?/i],
+        ["cloud subscriptions", /subscriptions?/i],
+        ["event wakeups", /\bwakeups?\b/i],
+        ["timer or cron execution", /\btimers?\b|\bcron\b/i],
+      ],
+    ],
+    /* NC-03/04/05 — effect: three distinct external consequences, each cloud-mediated. */
+    ["effect: Origin repository", [["Cursor Origin repository", /Origin repositor/i]]],
+    ["effect: port forwarding", [["browser-facing port forwarding", /port forwarding/i]]],
+    ["effect: Vercel publication", [["Vercel publication", /\bVercel\b/i]]],
+  ]
+
+  it("the premise holds: cursor exists, is NATIVE, and carries a boundary (anti-vacuity)", () => {
+    /* Without this, every assertion below passes on a missing host — the fault class this
+     * repo keeps finding. `NATIVE` is asserted because the whole claim is about a host
+     * CallLint *does* support: on a DEFERRED host "support implies coverage" is not a risk. */
+    const host = ssot.hosts.find((h) => h.id === CURSOR)
+    expect(host, "new22's entire subject is the cursor host, and the SSOT has none").toBeDefined()
+    expect(
+      host!.supportClass,
+      "cursor is no longer NATIVE — re-derive whether the over-claim risk still applies",
+    ).toBe("NATIVE")
+    expect(host!.coverageBoundary, "cursor has no coverageBoundary to check").toBeTruthy()
+    expect(LAYER_SUBJECTS.length, "no layers listed — every claim below is vacuous").toBe(5)
+  })
+
+  it("NC-01..05 — names every cloud-resident layer in the SSOT boundary", () => {
+    const boundary = ssot.hosts.find((h) => h.id === CURSOR)!.coverageBoundary
+    const missing: string[] = []
+    for (const [layer, subjects] of LAYER_SUBJECTS) {
+      for (const [label, re] of subjects) {
+        if (!re.test(boundary)) missing.push(`${layer}: ${label}`)
+      }
+    }
+    expect(
+      missing,
+      `Cursor authority absent from the coverage boundary, so "supports Cursor" reads as ` +
+        `covering it: ${missing.join(", ")}`,
+    ).toEqual([])
+  })
+
+  it("NC-01..05 — reaches the served page, not just the data file", () => {
+    /* Same reason as §7's page assertion: a boundary only a test reads is published nowhere.
+     * Handlebars HTML-escapes the prose, so regexes must not straddle an apostrophe or
+     * ampersand — none above do, and this assertion is what would catch it if one did. */
+    const page = pageOf(CURSOR)
+    const offenders: string[] = []
+    for (const [layer, subjects] of LAYER_SUBJECTS) {
+      for (const [label, re] of subjects) {
+        if (!re.test(page)) offenders.push(`${layer}: page omits ${label}`)
+      }
+    }
+    expect(offenders, `the new22 boundary did not reach the served page: ${offenders.join(", ")}`)
+      .toEqual([])
+  })
+
+  it("NC-06 — none of it may read as SAFE, and the rule it defers to still says so", () => {
+    const boundary = ssot.hosts.find((h) => h.id === CURSOR)!.coverageBoundary
+    /* Arm 1: the prose. Every occurrence of SAFE must be negated, checked per-occurrence —
+     * a single `.test()` over the whole string passes when ONE of two mentions is negated. */
+    const unnegated = [...boundary.matchAll(/\bSAFE\b/gi)]
+      .filter((m) => !/(never|not|rather than)[^.]{0,40}$/i.test(boundary.slice(0, m.index)))
+      .map((m) => boundary.slice(Math.max(0, m.index - 45), m.index + 4))
+    expect(unnegated, `the boundary uses SAFE without negating it: ${unnegated.join(" | ")}`)
+      .toEqual([])
+
+    /* Arm 2: pin the prose to the SHIPPED CODE RULE rather than restating it. If
+     * `authorityLayerVerdictFloor` ever returned SAFE for an unobservable layer, the copy
+     * above would be describing a rule the product no longer has. */
+    expect(
+      authorityLayerVerdictFloor("unsupported"),
+      "an unsupported layer now floors at SAFE — the boundary's promise is no longer code",
+    ).toBe("UNKNOWN")
+    expect(authorityLayerVerdictFloor("unknown")).toBe("UNKNOWN")
+    expect(
+      AUTHORITY_LAYER_STATES.includes("unsupported"),
+      "the `unsupported` state is gone from the vocabulary the boundary leans on",
+    ).toBe(true)
+  })
+
+  it("NC-07 — a broadened claim cannot be smuggled into a machine surface", () => {
+    /* The generator is the only writer. Byte-equality with the SSOT is therefore the whole
+     * check: any hand-edit that widened Cursor's coverage on a machine-facing surface — the
+     * one an agent reads without ever seeing the HTML — diverges here. `check-agent-surface-
+     * contract.mjs` cross-checks the two surfaces against EACH OTHER; nothing compared them
+     * to the SSOT, so a single edit applied to both would have agreed with itself. */
+    const boundary = ssot.hosts.find((h) => h.id === CURSOR)!.coverageBoundary
+    const divergent: string[] = []
+    for (const [rel, pick] of MACHINE_SURFACES) {
+      const got = pick(readJson(rel) as never)
+      if (got === undefined) divergent.push(`${rel}: no cursor coverageBoundary at all`)
+      else if (got !== boundary) divergent.push(`${rel}: diverges from the SSOT`)
+    }
+    expect(
+      divergent,
+      `machine surface(s) no longer restate the SSOT boundary verbatim: ${divergent.join(", ")}`,
+    ).toEqual([])
+  })
+
+  it("NC-08 — this boundary correction changed no evidence, and so no verdict", () => {
+    /* new22 §ACCEPTANCE A/B: the change is prose about what is NOT observed, so everything
+     * that decides what IS observed must be untouched. Pinned literally rather than by
+     * snapshot: a snapshot would have been re-recorded by the same edit it is meant to catch. */
+    const host = ssot.hosts.find((h) => h.id === CURSOR)!
+    expect(host.authoritySurfaces).toEqual(["mcp", "filesystem", "shell"])
+    expect(host.configEvidence).toEqual(["~/.cursor/mcp.json", "<project>/.cursor/mcp.json"])
+    expect(host.supportClass).toBe("NATIVE")
+    expect(host.truthfulCommands).toEqual(["calllint scan --agent cursor"])
+    expect(
+      host.distributionPrimitives.map((p) => [p.kind, p.state]),
+      "a Cursor primitive's state moved during a coverage-boundary change — that is a " +
+        "distribution claim, not a boundary correction",
+    ).toEqual([
+      ["mcp-stdio", "AUDIT_REQUIRED"],
+      ["cursor-plugin", "PENDING_UPSTREAM"],
+    ])
+  })
+})
+
+/*
+ * new22b §NC-COPILOT-APPROVAL — a Copilot review approval can change a merge boundary, and
+ * CallLint cannot see any of the state that decides whether it does.
+ *
+ * WHAT CHANGED IN THE WORLD. GitHub's Copilot Code Review used to produce review *comments* —
+ * information. After explicit administrator configuration, a Copilot review approval may now
+ * satisfy a repository's required-approval rule. That moves it from the `tool` layer (it can
+ * read code) to the `effect` layer (it can change whether code is allowed to merge), and the
+ * chain that decides it is: identity → enterprise/org/repo administrator policy → Copilot
+ * review execution → approval action → branch-protection state.
+ *
+ * WHY THIS IS A BOUNDARY GUARD AND NOT A DETECTOR. Every link in that chain is remote. CallLint
+ * has NO deterministic evidence source for enterprise Copilot approval settings, organization or
+ * repository policy, branch-protection configuration, or administrative authorization state — and
+ * §FORBIDDEN rules out acquiring one (no GitHub API call, no credential, no remote inspection).
+ * A `CopilotApprovalDetector` built on top of that absence would report silence as "nothing
+ * found", which is the `scan --config` defect this repo already shipped once and pinned: a flag
+ * advertised on eight surfaces while nothing read it. So the honest artifact is a coverage
+ * statement, and this block is its reader.
+ *
+ * THE DEFECT IN THE PRIOR BOUNDARY, which is why prose had to move at all. It read, in full:
+ * "CallLint does not yet auto-discover Copilot CLI configuration." That is true and it is not
+ * enough — it frames the entire gap as a *configuration-discovery backlog*, inviting a reader to
+ * infer that Copilot's authority surface IS its MCP config and that the gap closes when an
+ * extractor lands. Approval authority is not in any config file; no extractor would ever reach
+ * it. A boundary that names only the discoverable half implies the rest is covered.
+ *
+ * THE SHARPEST REASON THIS HOST NEEDS IT SPELLED OUT — and it is about CallLint, not GitHub.
+ * `calllint guard install --host github` WRITES `.github/workflows/calllint.yml`
+ * (`renderCiGate` in `packages/core/src/distribution/ciGate.ts`). So CallLint already writes into
+ * the very PR-gating surface approval authority acts on. Those two things land on the same merge
+ * decision and are categorically different: CallLint's workflow is a *check* that fails a PR, and
+ * a check is not an approval — it cannot satisfy a required-approval rule, and it does not inspect
+ * one. A user who installs our gate and then hears "Copilot approval is covered" would have every
+ * reason to conflate them. TEST-05 pins that distinction against the shipped YAML rather than
+ * against its description.
+ *
+ * WHAT THIS BLOCK MAY NOT BECOME. It reads committed files only. No workflow is executed, no
+ * network call is made, no `github`-host extractor is asserted into existence, and no verdict or
+ * risk score is touched — `ciGate.ts` lives under `packages/core`, which is a VERDICT_PACKAGE in
+ * `scripts/verify-security-semantic-diff.mjs`, so a guard that "fixed" the gate rather than
+ * describing it would trip §18 correctly.
+ *
+ * NO FAKE FIXTURE, for the same reason as the Cursor block above. There is deliberately no
+ * fabricated branch-protection JSON or enterprise-policy file here. GitHub exposes no such local
+ * artifact; inventing one to "test" the boundary would assert that CallLint parses something that
+ * does not exist. The negative control is removal of a SUBJECT from the boundary prose.
+ */
+describe("new22b §NC-COPILOT-APPROVAL — Copilot support does not imply approval-authority coverage", () => {
+  const pageOf = (id: string) => read(`apps/web/public/harnesses/${id}/index.html`)
+  const COPILOT = "copilot-cli"
+  const CI_GATE_WORKFLOW = ".github/workflows/calllint.yml"
+
+  /** Same two machine surfaces NC-07 reads, re-aimed at this host. */
+  const MACHINE_SURFACES: ReadonlyArray<[string, (doc: never) => string | undefined]> = [
+    [
+      "apps/web/public/agent-surfaces.json",
+      (doc: never) =>
+        (doc as { agents: Array<{ id: string; coverageBoundary?: string }> }).agents.find(
+          (a) => a.id === COPILOT,
+        )?.coverageBoundary,
+    ],
+    [
+      "apps/web/public/agent-discovery-index.json",
+      (doc: never) =>
+        (
+          doc as {
+            surfaces: Array<{ id: string; calllintSupport?: { coverageBoundary?: string } }>
+          }
+        ).surfaces.find((s) => s.id === COPILOT)?.calllintSupport?.coverageBoundary,
+    ],
+  ]
+
+  /*
+   * Subjects grouped by the Authority Model v2 layer each belongs to, in reader spellings —
+   * §PUBLIC COPY RULE forbids exposing the enum names, so these must survive the surrounding
+   * prose being rewritten. Split by layer for the reason the Cursor block records: the layer is
+   * the unit that regresses independently, so the failure message must name it.
+   */
+  const LAYER_SUBJECTS: ReadonlyArray<[string, ReadonlyArray<[string, RegExp]>]> = [
+    /* TEST-01 — effect: the layer the 2026 Copilot change actually moved. */
+    [
+      "effect: approval satisfies a required-approval rule",
+      [
+        ["required-approval rule", /required[- ]approval/i],
+        ["branch protection", /branch protection/i],
+      ],
+    ],
+    /* TEST-01 — identity/policy: the administrative state that decides whether it applies. */
+    [
+      "identity: administrator policy",
+      [["enterprise/org/repo administrator policy", /administrator policy|admin(istrator)?/i]],
+    ],
+    /* TEST-04 — execution: permission mode + resumed-session authority (P2-a Q1/Q4). */
+    [
+      "execution: declared permission posture and session resume",
+      [
+        ["permission mode", /permission mode/i],
+        ["resumed session authority", /resum/i],
+      ],
+    ],
+    /* TEST-05 — the review/approval distinction, stated as such. */
+    [
+      "review feedback is not approval authority",
+      [["review vs approval", /review (feedback|comment)/i]],
+    ],
+  ]
+
+  it("the premise holds: the host exists, is DISCOVERY_ONLY, and carries a boundary (anti-vacuity)", () => {
+    /* Without this every assertion below passes on a missing host — this repo's dominant fault
+     * class. DISCOVERY_ONLY is asserted because it is load-bearing twice over: HD-02/HD-03
+     * forbid this host from advertising a command, and if it ever became NATIVE the whole
+     * over-claim calculus changes and this block must be re-derived rather than kept green. */
+    const host = ssot.hosts.find((h) => h.id === COPILOT)
+    expect(host, "new22b's entire subject is the copilot-cli host, and the SSOT has none")
+      .toBeDefined()
+    expect(
+      host!.supportClass,
+      "copilot-cli is no longer DISCOVERY_ONLY — re-derive the coverage claim before trusting this",
+    ).toBe("DISCOVERY_ONLY")
+    expect(host!.coverageBoundary, "copilot-cli has no coverageBoundary to check").toBeTruthy()
+    expect(LAYER_SUBJECTS.length, "no layers listed — every claim below is vacuous").toBe(4)
+  })
+
+  it("TEST-01/04/05 — names the unobservable approval authority in the SSOT boundary", () => {
+    const boundary = ssot.hosts.find((h) => h.id === COPILOT)!.coverageBoundary
+    const missing: string[] = []
+    for (const [layer, subjects] of LAYER_SUBJECTS) {
+      for (const [label, re] of subjects) {
+        if (!re.test(boundary)) missing.push(`${layer}: ${label}`)
+      }
+    }
+    expect(
+      missing,
+      `Copilot authority absent from the coverage boundary, so "supports Copilot CLI" reads as ` +
+        `covering it: ${missing.join(", ")}`,
+    ).toEqual([])
+  })
+
+  it("TEST-02 — states it as unobservable, not merely as an unfinished feature", () => {
+    /* The load-bearing distinction, and the one the OLD sentence got wrong. "does not YET
+     * auto-discover" reads as a backlog item CallLint will close; UNSUPPORTED says the evidence
+     * does not exist on this machine to be read. Approval authority is the second kind, and
+     * conflating them is exactly how an unobservable layer comes to look shippable. */
+    const boundary = ssot.hosts.find((h) => h.id === COPILOT)!.coverageBoundary
+    expect(
+      /unsupported/i.test(boundary),
+      "the boundary does not name the UNSUPPORTED state, so a reader cannot tell an " +
+        "unobservable layer from an unimplemented one",
+    ).toBe(true)
+    expect(
+      /not statically observable|no deterministic static evidence/i.test(boundary),
+      "the boundary does not say WHY the approval layer is unobservable",
+    ).toBe(true)
+  })
+
+  it("TEST-02 — a generated support page cannot claim full Copilot authority analysis", () => {
+    /* new22 §TEST-02 asks that an over-broad claim red a truth gate. Asserted over the SSOT and
+     * every surface that restates it, because the generator is the only writer and a hand-edit
+     * is precisely what this catches. The patterns are the shapes an over-claim actually takes;
+     * `forbiddenPhrases` in project-facts.json covers the generic marketing overclaims and
+     * deliberately does not know about this host. */
+    const OVERCLAIMS: ReadonlyArray<[string, RegExp]> = [
+      ["fully analyzes Copilot authority", /fully analyz\w*[^.]{0,40}copilot/i],
+      ["complete Copilot coverage", /complete[^.]{0,30}copilot[^.]{0,30}(coverage|authority)/i],
+      ["covers approval authority", /(covers?|analyz\w*|inspects?)[^.]{0,40}approval authority/i],
+      ["detects branch protection", /(detects?|scans?|reads?)[^.]{0,30}branch protection/i],
+    ]
+    const boundary = ssot.hosts.find((h) => h.id === COPILOT)!.coverageBoundary
+    const page = pageOf(COPILOT)
+    const offenders: string[] = []
+    for (const [label, re] of OVERCLAIMS) {
+      if (re.test(boundary)) offenders.push(`SSOT boundary claims: ${label}`)
+      if (re.test(page)) offenders.push(`served page claims: ${label}`)
+    }
+    expect(
+      offenders,
+      `an unsupported Copilot approval-authority claim reached a published surface: ` +
+        `${offenders.join(", ")}`,
+    ).toEqual([])
+  })
+
+  it("TEST-01 — the boundary may not read as SAFE, and the shipped rule still agrees", () => {
+    const boundary = ssot.hosts.find((h) => h.id === COPILOT)!.coverageBoundary
+    /* Arm 1: per-occurrence, not one `.test()` over the string — a single check passes when one
+     * of two mentions is negated. */
+    const unnegated = [...boundary.matchAll(/\bSAFE\b/gi)]
+      .filter((m) => !/(never|not|rather than)[^.]{0,40}$/i.test(boundary.slice(0, m.index)))
+      .map((m) => boundary.slice(Math.max(0, m.index - 45), m.index + 4))
+    expect(unnegated, `the boundary uses SAFE without negating it: ${unnegated.join(" | ")}`)
+      .toEqual([])
+
+    /* Arm 2: pin the prose to the shipped rule rather than restating it. If the floor ever
+     * returned SAFE for an unobservable layer, this copy would describe a rule we no longer
+     * have — UNKNOWN must not auto-upgrade. */
+    expect(
+      authorityLayerVerdictFloor("unsupported"),
+      "an unsupported layer now floors at SAFE — the boundary's promise is no longer code",
+    ).toBe("UNKNOWN")
+    expect(
+      AUTHORITY_LAYER_STATES.includes("unsupported"),
+      "the `unsupported` state is gone from the vocabulary this boundary leans on",
+    ).toBe(true)
+  })
+
+  it("TEST-01 — reaches the served page and both machine surfaces, verbatim", () => {
+    /* A boundary only a test reads is published nowhere. Machine surfaces are byte-compared to
+     * the SSOT because `check-agent-surface-contract.mjs` cross-checks them against EACH OTHER
+     * — one edit applied to both would agree with itself and pass. */
+    const boundary = ssot.hosts.find((h) => h.id === COPILOT)!.coverageBoundary
+    const page = pageOf(COPILOT)
+    const offenders: string[] = []
+    for (const [layer, subjects] of LAYER_SUBJECTS) {
+      for (const [label, re] of subjects) {
+        if (!re.test(page)) offenders.push(`${layer}: page omits ${label}`)
+      }
+    }
+    for (const [rel, pick] of MACHINE_SURFACES) {
+      const got = pick(readJson(rel) as never)
+      if (got === undefined) offenders.push(`${rel}: no copilot-cli coverageBoundary at all`)
+      else if (got !== boundary) offenders.push(`${rel}: diverges from the SSOT`)
+    }
+    expect(
+      offenders,
+      `the Copilot approval boundary did not reach a published surface: ${offenders.join(", ")}`,
+    ).toEqual([])
+  })
+
+  it("TEST-05 — CallLint's own CI gate is a check, and structurally cannot approve", () => {
+    /* THE ASSERTION THIS BLOCK EXISTS FOR. `guard install --host github` writes this workflow,
+     * so CallLint already acts on the PR surface approval authority acts on. The distinction is
+     * pinned against the shipped YAML, not against prose about it: a workflow with no
+     * `pull-requests: write` scope cannot submit a review, hence cannot produce an approval,
+     * hence cannot satisfy a required-approval rule. If someone ever widens that scope, this
+     * reds — and it SHOULD, because at that point the boundary sentence below becomes false. */
+    const workflow = read(CI_GATE_WORKFLOW)
+    expect(
+      /permissions:/.test(workflow),
+      "the CI gate declares no `permissions` block, so it inherits the workflow default — the " +
+        "boundary's claim that it cannot approve is no longer structurally guaranteed",
+    ).toBe(true)
+    expect(
+      /pull-requests:\s*write/.test(workflow),
+      "CallLint's CI gate now requests `pull-requests: write`, so it could submit a review — " +
+        "the published boundary says it never approves, and that is now false",
+    ).toBe(false)
+    expect(
+      /pull_request_review/.test(workflow),
+      "the CI gate touches the review API — it is no longer only a check",
+    ).toBe(false)
+
+    /* And the published boundary must actually make the distinction, or the guard above is
+     * protecting a claim nobody was told. */
+    const boundary = ssot.hosts.find((h) => h.id === COPILOT)!.coverageBoundary
+    expect(
+      /never an approval|not an approval|cannot satisfy/i.test(boundary),
+      "the boundary does not distinguish CallLint's pull-request CHECK from an APPROVAL, the " +
+        "one conflation a user who installed our GitHub gate is most likely to make",
+    ).toBe(true)
+  })
+
+  it("TEST-03/04 — this correction changed no evidence, and so no verdict", () => {
+    /* §SUCCESS 3/5: the change is prose about what is NOT observed, so everything deciding what
+     * IS observed must be untouched. Pinned literally rather than by snapshot — a snapshot would
+     * be re-recorded by the same edit it is meant to catch. */
+    const host = ssot.hosts.find((h) => h.id === COPILOT)!
+    expect(host.authoritySurfaces).toEqual(["shell", "cli", "mcp"])
+    expect(host.configEvidence).toEqual([
+      "~/.copilot/mcp-config.json",
+      ".mcp.json",
+      ".github/mcp.json",
+    ])
+    expect(
+      host.truthfulCommands,
+      "a DISCOVERY_ONLY host gained a command during a boundary correction — HD-02/HD-03 forbid " +
+        "it, and a coverage statement must never be the thing that advertises a scan",
+    ).toEqual([])
+    expect(
+      host.distributionPrimitives.map((p) => [p.kind, p.state]),
+      "a Copilot primitive's state moved during a coverage-boundary change — that is a " +
+        "distribution claim, not a boundary correction",
+    ).toEqual([
+      ["mcp-registry-discovery", "BLOCKED"],
+      ["github-copilot-plugin", "PENDING_UPSTREAM"],
+    ])
+  })
+})
+

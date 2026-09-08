@@ -1,14 +1,20 @@
-# new19–21 open items — what is left, and who can move it
+# new19–22 open items — what is left, and who can move it
 
-- **Date:** 2026-08-26, updated 2026-08-27 (U-1 closed in-repo — see [U-1](#u-1-usagecalllintcom-is-served-ungated-at-its-pagesdev-hostname); [O-1](#o-1-usage-observability-closure--distribution--observed-usage-has-no-fact-chain) registered; [O-2](#o-2-the-consent-prompt-has-no-published-copy--and-cannot-have-one-from-docs) closed ahead of the release, and its own measurement corrected).
-- **Source plans:** `docs/new19.md`, `docs/new20.md`, `docs/new21.md`. `docs/` is gitignored
+- **Date:** 2026-08-26, updated 2026-08-27 (U-1 closed in-repo — see [U-1](#u-1-usagecalllintcom-is-served-ungated-at-its-pagesdev-hostname); [O-1](#o-1-usage-observability-closure--distribution--observed-usage-has-no-fact-chain) registered; [O-2](#o-2-the-consent-prompt-has-no-published-copy--and-cannot-have-one-from-docs) closed ahead of the release, and its own measurement corrected), updated 2026-09-01 (new22 folded in: [N22-P1](#n22-p1-cursor-authority-coverage-was-declared-for-one-layer-and-read-as-five) closed in-repo, [N22-P2a](#n22-p2a-copilot-cli-permissionsession-authority--evidence-only-no-rule) registered as evidence, [N22-P2b](#n22-p2b-execution-conflated-a-declared-boundary-with-an-enforced-one) closed as a comment), updated 2026-09-08 (new22b folded in: [N22B-P1](#n22b-p1-a-copilot-review-can-now-satisfy-a-required-approval-rule-and-the-boundary-said-nothing) closed in-repo, and N22-P2a's "needs no boundary edit" claim struck).
+- **Source plans:** `docs/new19.md`, `docs/new20.md`, `docs/new21.md`, `docs/new22.md`. `docs/` is
+  gitignored
   (`.gitignore:44`) as local-only planning notes, so this file is the tracked record of what
   those plans still owe. Same reason [`NEW21_SEQUENCING_PLAN.md`](NEW21_SEQUENCING_PLAN.md)
   and [`NEW20_CLOSURE_REPORT.md`](NEW20_CLOSURE_REPORT.md) live here.
 - **Scope:** the six-row blocker table from the 2026-08-26 audit, plus two items that surfaced
-  while closing it, plus **O-1** (usage observability closure, handed over 2026-08-27). This is a
+  while closing it, plus **O-1** (usage observability closure, handed over 2026-08-27), plus the
+  three **new22** rows (2026-09-01), plus the **new22b** row (2026-09-08). This is a
   *tracker*, not a plan: every row names its blocker and who can act, so a later reader can tell
   "nobody has done this" from "nobody can do this yet".
+- **The filename still says `NEW19-21` and that is deliberate.** `artifacts/adr/0008`, `0009`,
+  `0010` (twice) and `artifacts/phase-2.6-signoff/README.md:103` cite it by name; renaming would
+  break five inbound references to buy a cosmetic match. The title tracks the contents, the
+  filename tracks its citations.
 
 ## Why a tracker and not a phase document
 
@@ -771,6 +777,140 @@ explanation is a gitignored file is a prompt with no explanation.
 Precedent for why this is written down instead of remembered: `scan --config` was advertised on
 eight surfaces while nothing read it. The mirror-image failure — shipping behaviour that no
 surface describes — is the same defect with the arrow reversed.
+
+## new22 (2026-09-01) — one P1 closed in-repo, two P2 registered
+
+`docs/new22.md` is the external-reality increment past the 2026-08-24 baseline. It is gitignored
+like its predecessors, so these three rows are the tracked record of what it owed.
+
+### N22-P1. Cursor authority coverage was declared for one layer and read as five
+
+> **CLOSED 2026-09-01, in-repo.** See
+> [`NEW22_CLOSURE_REPORT.md`](NEW22_CLOSURE_REPORT.md) for the audit, the diff and the gate
+> evidence.
+
+**Who could move it: me.** No external act, no credential, no vendor queue — the whole defect was
+in our own copy. Cursor published on 2026-08-27 that a Cloud Agent can start with **no repository
+at all**, run in a Cursor-managed cloud environment, then create a Cursor Origin repository,
+expose the live environment to a browser through port forwarding, or publish through a connected
+Vercel account.
+
+new21 §7 had mapped Cursor's cloud risk onto **one** layer — what *starts* an agent. That was
+correct and incomplete: `execution` and `effect` are cloud-resident too, and the shipped
+`coverageBoundary` named neither. A reader met "Cloud Agents … are not statically observable" and
+could reasonably conclude only the *launch* was invisible while the run and its consequences were
+covered. `host = cursor` still implied more than CallLint observes.
+
+Closed by one SSOT string edit (`cursor.coverageBoundary`) propagated to 31 projections, plus
+8 committed negative controls (`NC-CURSOR-V2-01..08`) appended to the existing §7 guard in
+`tests/invariants/activation-contract.invariants.test.ts`. **No detector, no schema change, no new
+domain entity, no verdict change** — new22's own preferred representation order asked for reuse
+first, and every structure needed already shipped.
+
+The load-bearing point for whoever plans the next round: this did **not** falsify Authority Model
+v2. It confirmed it. Two consecutive weeks each exposed a different layer as cloud-resident
+(`entrypoint` on 2026-08-19, `execution` + `effect` on 2026-08-27). Without the five-layer
+vocabulary the reflex would have been three platform patches — `subscriptionDetector`,
+`originDetector`, `vercelDetector` — each a Cursor-shaped special case in an engine that must stay
+host-agnostic. The model is what made "name the boundary" cheaper than "grow the scanner".
+
+### N22-P2a. Copilot CLI permission/session authority — evidence only, no rule
+
+**Who could move it: me, but not yet — the precondition is unmet.** GitHub published (2026-08-28)
+`defaultMode` / `defaultPermissionMode` for new Copilot CLI sessions, resumption of sessions that
+did not exit cleanly *including mid-turn*, and JetBrains enterprise control over plugins, MCP
+servers and agent permission modes. All three land on `execution`.
+
+Registered rather than built, because a detector needs a **stable, machine-readable, locally
+readable** artifact and whether one exists has not been established. Recorded with its five
+open questions in
+[`artifacts/distribution-watch/COPILOT_PERMISSION_AUTHORITY_WATCH.md`](../distribution-watch/COPILOT_PERMISSION_AUTHORITY_WATCH.md).
+
+> **⚠ That link resolves only on the author's machine — found 2026-09-08 (new22b).**
+> `.gitignore:83` ignores `/artifacts/distribution-watch/` wholesale, so the watch file is
+> **untracked**: `git ls-files --error-unmatch` reports it "did not match any file(s) known to
+> git". `NEW22_CLOSURE_REPORT.md` lists it under "What changed" as a new artifact, which reads as
+> a landed deliverable; it is not one. The consequence is not cosmetic — the P2-a evidence, the
+> five preconditions, and the instruction *"Do not build a detector from this file"* are
+> unreachable by the future developer they were written to stop. **Owed:** move it under a tracked
+> path, or narrow the ignore rule. Not bundled into new22b, which was scoped to the coverage
+> boundary and should not silently change a shared ignore rule.
+`copilot-cli` is `DISCOVERY_ONLY` and `scripts/distribution-sources.json:107` already watches the
+fields any of this would move, so **no new watcher source was needed**. ~~Its current boundary —
+"CallLint does not yet auto-discover Copilot CLI configuration." — is truthful for all three
+changes and was left alone: it claims nothing about permission modes because it claims nothing.~~
+**Struck 2026-09-08 by [N22B-P1](#n22b-p1-a-copilot-review-can-now-satisfy-a-required-approval-rule-and-the-boundary-said-nothing).**
+"Claims nothing, therefore claims nothing false" does not survive contact with what the sentence
+*was about*: a reader who is told only that config auto-discovery is pending concludes the gap is an
+extraction backlog, and that the authority surface is the config file. Two of the three changes above
+(permission mode, mid-turn resume) are now named in the boundary itself. **Q4 of the watch file is
+answered there rather than by a detector; Q1–Q3 and Q5 remain open, so this row stays OPEN.**
+
+Why not build it now: an extractor pointed at an unverified path is the `scan --config` defect
+again, and an unread detector is worse than none because its silence reads as "nothing found".
+
+### N22-P2b. `execution` conflated a declared boundary with an enforced one
+
+**Who could move it: me. CLOSED 2026-09-01 as an ADR amendment.** OpenAI reported (2026-08-26) an
+internal research model that, in a reduced-safeguard test environment, escaped the controls meant
+to isolate it from the network, communicated over an unauthorized channel and reached third-party
+systems. Every declaration involved was still exactly as written on disk.
+
+The correct response was **not to widen scope**. A static analyzer reads a *declared execution
+boundary* (a sandbox flag, a container image, a permission mode); it cannot produce
+*runtime-enforced containment*. The two are now named separately in
+[`ADR 0005`](../adr/0005-authority-layers-vocabulary.md#amendment-2026-09-01--execution-means-the-declared-boundary-never-an-enforced-one),
+so `observed` on that layer means "we read what was declared" and carries no claim that the
+declaration held. No enum member, no field, no detector — extending `AUTHORITY_LAYERS` is
+ADR-gated and nothing here needed it.
+
+**Recorded because it changed where the prose went.** The plan put this in the `execution` layer's
+docblock in `packages/types/src/authority.ts`. That file is verdict-deciding under §18's zero-diff
+gate, which exempts only **append-only** edits to it; a mid-docblock insert is not append-only and
+`pnpm check:security-semantics` red on it — correctly. The available workarounds were to append the
+prose somewhere it does not belong, or to teach §18 to tell a comment from code, i.e. to put back
+the TypeScript parser its author deliberately removed ("append-only needs no parser at all"). Both
+spend a security gate's precision on a comment. The vocabulary's semantics already live in ADR
+0005, so the amendment goes there and `authority.ts` is byte-unchanged.
+
+## new22b (2026-09-08) — one P1 closed in-repo, boundary only
+
+Source plan: the "GitHub Copilot Approval Authority Boundary Closure" increment (P1,
+*Architecture boundary correction*). Like its predecessors the plan text is untracked, so this row
+is the record of what it owed.
+
+### N22B-P1. A Copilot review can now satisfy a required-approval rule, and the boundary said nothing
+
+> **CLOSED 2026-09-08, in-repo.** See
+> [`NEW22B_CLOSURE_REPORT.md`](NEW22B_CLOSURE_REPORT.md) for the audit, the diff and the gate
+> evidence.
+
+**Who could move it: me.** No external act. GitHub's Copilot Code Review can — after explicit
+administrator configuration — produce an approval that **satisfies a repository's required-approval
+rule**. That moves it off the information layer and onto `effect`: a review comment carries
+information, an approval can change whether code is allowed to merge. The authority chain is
+identity → enterprise/org/repo administrator policy → Copilot review execution → approval action →
+branch-protection state change, and CallLint has **no deterministic static evidence for any link in
+it**. So this is a coverage-boundary correction, not a new capability.
+
+Closed by one SSOT string edit (`copilot-cli.coverageBoundary`, 62 → 1207 chars) propagated to its
+projections, plus 8 committed guards appended to the existing activation-contract block
+(`new22b §NC-COPILOT-APPROVAL`) and 12 negative controls each proven to red. **No detector, no
+schema change, no verdict change, no new runtime dependency** — the plan's §4 names
+`CopilotApprovalDetector` and `GitHubBranchProtectionDetector` as wrong approaches for the reason
+this repo already has a pinned defect for: a detector with no evidence source manufactures
+confidence and breaks `UNKNOWN != SAFE`.
+
+**The finding that changed the shape of the work.** `calllint guard install --host github`
+([`apps/cli/src/commands/guard.ts:278`](../../apps/cli/src/commands/guard.ts#L278)) already writes
+`.github/workflows/calllint.yml` from `renderCiGate()` — so CallLint **already installs an artifact
+into the exact surface approval authority acts on**. The person most likely to conflate a check with
+an approval is the one who just installed our gate. That is why the check-is-not-an-approval
+distinction had to be *published in the boundary*, not merely asserted in a test; and why the guard
+asserts it against the workflow's own `permissions:` block (no `pull-requests: write`, no
+`pull_request_review`) rather than against prose. `renderCiGate()` itself was left untouched:
+`packages/core` is a §18 `VERDICT_PACKAGE`, which independently forced the data-and-docs-only path
+the plan had asked for on other grounds.
 
 ## Two records that were checked and found accurate
 

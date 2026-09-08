@@ -6,7 +6,7 @@
     <title>Cursor — CallLint Support</title>
     <meta
       name="description"
-      content="CallLint support for Cursor (Anysphere). CallLint scans MCP server entries only. Cursor rules and editor settings are not covered. Cloud Agents, background agents and event or timer wakeups (GitHub, Slack, Linear, cron) are not statically observable at all: what starts such an agent is decided in Cursor&#x27;s cloud, not in a file on disk, so CallLint reports that authority as UNSUPPORTED rather than reading it as SAFE."
+      content="CallLint support for Cursor (Anysphere). CallLint scans MCP server entries only. Cursor rules and editor settings are not covered. Cloud Agents, background agents, cloud subscriptions and event or timer wakeups (GitHub, Slack, Linear, cron) are not statically observable at all: what starts such an agent is decided in Cursor&#x27;s cloud, not in a file on disk, so CallLint reports that authority as UNSUPPORTED rather than reading it as SAFE. The same holds for where a Cloud Agent runs and for what it changes when it is done. A Cloud Agent can start with no repository at all and run in a Cursor-managed cloud environment, so there is no config file to read the run out of; and its results can create or change a Cursor Origin repository, expose the live environment to a browser through port forwarding, or publish through a connected Vercel account. None of that leaves deterministic static evidence on this machine, so all of it is UNSUPPORTED too. Reading Cursor&#x27;s MCP config tells you what one layer of Cursor&#x27;s authority declares, never that the layers CallLint cannot see are safe."
     />
     <link rel="canonical" href="https://calllint.com/harnesses/cursor/" />
     <link rel="icon" href="/favicon.png" type="image/png" />
@@ -41,7 +41,7 @@
           <h1>Cursor</h1>
           <p class="doc-lede">
             CallLint support for <strong>Cursor</strong> by Anysphere.
-            <span class="coverage-note">CallLint scans MCP server entries only. Cursor rules and editor settings are not covered. Cloud Agents, background agents and event or timer wakeups (GitHub, Slack, Linear, cron) are not statically observable at all: what starts such an agent is decided in Cursor&#x27;s cloud, not in a file on disk, so CallLint reports that authority as UNSUPPORTED rather than reading it as SAFE.</span>
+            <span class="coverage-note">CallLint scans MCP server entries only. Cursor rules and editor settings are not covered. Cloud Agents, background agents, cloud subscriptions and event or timer wakeups (GitHub, Slack, Linear, cron) are not statically observable at all: what starts such an agent is decided in Cursor&#x27;s cloud, not in a file on disk, so CallLint reports that authority as UNSUPPORTED rather than reading it as SAFE. The same holds for where a Cloud Agent runs and for what it changes when it is done. A Cloud Agent can start with no repository at all and run in a Cursor-managed cloud environment, so there is no config file to read the run out of; and its results can create or change a Cursor Origin repository, expose the live environment to a browser through port forwarding, or publish through a connected Vercel account. None of that leaves deterministic static evidence on this machine, so all of it is UNSUPPORTED too. Reading Cursor&#x27;s MCP config tells you what one layer of Cursor&#x27;s authority declares, never that the layers CallLint cannot see are safe.</span>
           </p>
           <div class="host-meta">
             <span class="badge badge-P0">P0</span>
@@ -141,7 +141,7 @@
 
         <section id="coverage" class="doc-section coverage-boundary">
           <h2>Coverage Boundary</h2>
-          <p class="boundary-text">CallLint scans MCP server entries only. Cursor rules and editor settings are not covered. Cloud Agents, background agents and event or timer wakeups (GitHub, Slack, Linear, cron) are not statically observable at all: what starts such an agent is decided in Cursor&#x27;s cloud, not in a file on disk, so CallLint reports that authority as UNSUPPORTED rather than reading it as SAFE.</p>
+          <p class="boundary-text">CallLint scans MCP server entries only. Cursor rules and editor settings are not covered. Cloud Agents, background agents, cloud subscriptions and event or timer wakeups (GitHub, Slack, Linear, cron) are not statically observable at all: what starts such an agent is decided in Cursor&#x27;s cloud, not in a file on disk, so CallLint reports that authority as UNSUPPORTED rather than reading it as SAFE. The same holds for where a Cloud Agent runs and for what it changes when it is done. A Cloud Agent can start with no repository at all and run in a Cursor-managed cloud environment, so there is no config file to read the run out of; and its results can create or change a Cursor Origin repository, expose the live environment to a browser through port forwarding, or publish through a connected Vercel account. None of that leaves deterministic static evidence on this machine, so all of it is UNSUPPORTED too. Reading Cursor&#x27;s MCP config tells you what one layer of Cursor&#x27;s authority declares, never that the layers CallLint cannot see are safe.</p>
         </section>
       </article>
 

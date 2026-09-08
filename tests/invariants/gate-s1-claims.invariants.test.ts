@@ -275,6 +275,74 @@ describe("Gate S1 — every path:line the record cites still points at what it c
     assertPointer(GATE, 214, "type Outcome", "the outcome union that makes refusal first-class")
   })
 
+  it("the ADR 0097 clock path the fourth measurement cites is real at every link", () => {
+    // ADDED 2026-09-01 (fourth measurement), and added because its ABSENCE was measured rather than
+    // suspected. That section cites six `path:line` pointers for the monotonic-clock path, and a
+    // negative control pointing one of them at `runReport.ts:9999` — past the end of the file — left
+    // this suite **32/32 GREEN**. Cause: `assertPointer` is called on a hand-written list, so the
+    // pointer layer covers the pointers somebody remembered to enrol, not the pointers the artifact
+    // contains. A record can therefore gain a whole section of unread citations while its reader
+    // reports full coverage.
+    //
+    // That is this repo's dominant fault class (a guard that cannot observe its subject) arriving
+    // through the enrolment list rather than through a wrong path — and the harder variant to notice,
+    // because nothing is broken: every enrolled pointer really is checked. The count in the layer-2
+    // block above ("N `it` blocks") is derived for exactly this reason; the pointer list is not, and
+    // closing that gap generally would mean parsing every `path:line` out of the artifact. Left as an
+    // enrolment for now, with the gap named in the artifact itself so the next section's author knows
+    // the list exists.
+    //
+    // Content-anchored per link, because the claim being protected is not "these files exist" — it is
+    // that the measure's blocker is ONE INGEST rather than a schema change, and every link is load-
+    // bearing for that. If any of them drifts, the fourth measurement's central correction (structural
+    // → procedural) is asserting a path that no longer connects.
+    assertPointer(
+      "packages/adoption-index/src/operations/resolveArtifacts.ts",
+      134,
+      "monotonicMs?: () => number",
+      "the injected clock seam",
+    )
+    assertPointer(
+      "packages/adoption-index/src/operations/resolveArtifacts.ts",
+      151,
+      "performance.now()",
+      "the clock's default",
+    )
+    assertPointer(
+      "packages/adoption-index/src/operations/resolveArtifacts.ts",
+      206,
+      'record.outcome === "NO_ADAPTER" ? null : elapsed',
+      "NO_ADAPTER yields null, never a 0 ms sample",
+    )
+    assertPointer(
+      "packages/adoption-index/src/storage/runReport.ts",
+      70,
+      'RUN_REPORT_SCHEMA = "calllint.compiler-run-report.v3"',
+      "the writer emits v3",
+    )
+    assertPointer(
+      "packages/adoption-index/src/storage/runReport.ts",
+      184,
+      "readonly processing: ProcessingTimeStats | null",
+      "v3 carries the distribution",
+    )
+    assertPointer(
+      "packages/trust-index/src/refreshSnapshot.ts",
+      557,
+      "processing: mirrored?.artifacts?.processing ?? null",
+      "the ingest passes the distribution through",
+    )
+    // The pairing that makes the six above mean what the artifact says they mean. Without this, all six
+    // could point at real lines while the gate had stopped distinguishing a v2 report from a v3 one
+    // whose run attempted nothing — the exact merge `gate-s1.ts:588-593` says a prefix match would
+    // have made, and the reason the fourth measurement's refusal text is evidence of anything.
+    const gate = readText(GATE)
+    expect(
+      gate,
+      "the gate must name v3 as the first schema carrying a distribution, or the refusal cannot distinguish 'predates the observable' from 'attempted nothing'",
+    ).toContain('PROCESSING_SCHEMA = "calllint.compiler-run-report.v3"')
+  })
+
   it("the committed snapshot and the served index are where the gate reads them", () => {
     // Both are the gate's inputs. A moved path would make the gate read nothing and — depending on
     // its error handling — either refuse everything or, worse, measure over an empty set.
