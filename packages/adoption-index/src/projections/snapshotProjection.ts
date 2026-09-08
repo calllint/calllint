@@ -33,6 +33,40 @@
  */
 import type { SourceRecordV1 } from "../domain/sourceRecord.js"
 
+/**
+ * An email-like token in upstream free text. Byte-identical to `fetchRegistry.ts:231`,
+ * `claim.ts:79` and `check-public-copy.mjs:439`. FOUR copies of one regex is deliberate, for
+ * the reason the third copy already records: each is a defense at a different plane, and a
+ * shared import would let one edit silently retire all of them. This file's header states the
+ * same rule for the cohort constants — this package has zero imports of the serving plane's
+ * package, and the import-boundary gate keeps it that way.
+ */
+const EMAIL_LIKE = /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g
+
+/**
+ * Strip email-like tokens from upstream free text.
+ *
+ * WHY THIS EXISTS HERE AND NOT ONLY IN `fetchRegistry.ts` (2026-09-08). ADR 0096 added
+ * `redactPii` to `toSnapshotEntry` on 2026-09-01 and recorded the consequence as *"No
+ * email-like token can reach a served page through an upstream description."* That sentence
+ * was false the day it was written, for a reason ADR 0096 itself names two paragraphs earlier:
+ * it was placed on `fetchRegistrySnapshot`, and **production has no callers of that function**.
+ * `refreshSnapshot.ts:717` writes `mirrored.snapshotText`, which comes through
+ * `refreshFromMirror` → this projection. The redaction was mounted on the retired path.
+ *
+ * The evidence is the pipeline itself: the scheduled `trust-ingest` runs of 2026-08-31 and
+ * 2026-09-07 both failed at `check:public-copy` on `"hi@byteray.ai"` reaching
+ * `install/mcp-registry/ai.byteray-byteray-mcp/`, with `redactPii` present in the tree at the
+ * failing commit. A guard on a dead path cannot refuse anything.
+ *
+ * Identical text and marker to the boundary copy, because `snapshot-projection.test.ts` requires
+ * the two implementations to emit the same bytes for the same upstream — so a redaction on one
+ * side only is now a byte divergence, which is the property that makes this pair self-checking.
+ */
+function redactPii(text: string): string {
+  return text.replace(EMAIL_LIKE, "[contact redacted]")
+}
+
 export interface ProjectedPackage {
   registryType: string
   identifier: string
@@ -80,7 +114,10 @@ function toEntry(record: SourceRecordV1): ProjectedEntry {
     name: id.canonicalName ?? record.source.sourceRecordId,
     // The shipped snapshot stores "" for a missing description, not null. Matching that
     // is not cosmetic: `null` and `""` serialize differently, and the bytes are compared.
-    description: record.untrustedPublisherContent?.description ?? "",
+    // Redacted here rather than at the store, so the mirror keeps the upstream bytes it was
+    // given (the payload digest is computed over the raw item) while nothing PII-bearing
+    // leaves the projection. Redacted, not dropped — ADR 0096's reasoning is unchanged.
+    description: redactPii(record.untrustedPublisherContent?.description ?? ""),
     version: id.version ?? null,
     repositoryUrl: id.repositoryUrl ?? null,
     packages: id.packages.map((p) => ({
