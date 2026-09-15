@@ -2,18 +2,18 @@
   "schema": "calllint.trust-page.v0",
   "canonicalName": "mcp-registry/ai.childanxiety-library",
   "artifactDigest": "sha256:3c2064c1da047072c1f364c6b6571ec3b1c2fdbb5c8cb7dda9b51b9ddd60b8cf",
-  "pageDigest": "sha256:90ba171cfeecea36fd8a2e051e754bd43f5f5149c52f2f709d7ef4e32a77314f",
+  "pageDigest": "sha256:86f7055db8f9093213519b94b0999208d43a9fdb884a903543d5af85ed89418e",
   "verdict": "REVIEW",
   "verdictLabel": "Review required",
-  "observedAt": "2026-09-01T01:15:00.000Z",
+  "observedAt": "2026-09-15T02:38:22.000Z",
   "completeness": "complete",
   "status": {
     "verdict": "REVIEW",
     "completeness": "complete",
     "authorityClaimed": false,
     "reproducibility": {
-      "pageDigest": "sha256:90ba171cfeecea36fd8a2e051e754bd43f5f5149c52f2f709d7ef4e32a77314f",
-      "observedAt": "2026-09-01T01:15:00.000Z"
+      "pageDigest": "sha256:86f7055db8f9093213519b94b0999208d43a9fdb884a903543d5af85ed89418e",
+      "observedAt": "2026-09-15T02:38:22.000Z"
     },
     "evidenceLevel": "E2",
     "evidenceRationale": "install config observed → static blast radius normalized into an authority inventory. Higher levels (E3 tool schema, E4 maintainer receipt, E5 sandbox) are not carried by a static page."
@@ -26,8 +26,8 @@
   },
   "scanHistory": [
     {
-      "observedAt": "2026-09-01T01:15:00.000Z",
-      "pageDigest": "sha256:90ba171cfeecea36fd8a2e051e754bd43f5f5149c52f2f709d7ef4e32a77314f",
+      "observedAt": "2026-09-15T02:38:22.000Z",
+      "pageDigest": "sha256:86f7055db8f9093213519b94b0999208d43a9fdb884a903543d5af85ed89418e",
       "artifactDigest": "sha256:3c2064c1da047072c1f364c6b6571ec3b1c2fdbb5c8cb7dda9b51b9ddd60b8cf"
     }
   ],
@@ -40,7 +40,7 @@
       "requestedRef": null,
       "resolvedRef": "sha256:3c2064c1da047072c1f364c6b6571ec3b1c2fdbb5c8cb7dda9b51b9ddd60b8cf",
       "digest": "sha256:3c2064c1da047072c1f364c6b6571ec3b1c2fdbb5c8cb7dda9b51b9ddd60b8cf",
-      "resolvedAt": "2026-09-01T01:15:00.000Z",
+      "resolvedAt": "2026-09-15T02:38:22.000Z",
       "resolution": "resolved"
     },
     "evidence": null,
@@ -84,7 +84,7 @@
       "no external evidence attached (optional); decision will rely on CallLint's own analysis",
       "authority normalized: 1 capability, approvals required: external-network-access"
     ],
-    "preparedAt": "2026-09-01T01:15:00.000Z"
+    "preparedAt": "2026-09-15T02:38:22.000Z"
   },
   "scan": {
     "schemaVersion": "calllint.report.v0",
@@ -220,10 +220,10 @@
             "message": "Remote endpoint identity verified; tool surface not analyzed (evidence: https://childanxiety.ai/api/mcp/v1)"
           }
         ],
-        "generatedAt": "2026-09-01T01:15:00.000Z"
+        "generatedAt": "2026-09-15T02:38:22.000Z"
       }
     ],
     "diagnostics": [],
-    "generatedAt": "2026-09-01T01:15:00.000Z"
+    "generatedAt": "2026-09-15T02:38:22.000Z"
   }
 }

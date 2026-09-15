@@ -758,3 +758,14 @@ currently performs. `open-judgements.invariants.test.ts` reads `DEFAULT_MAX_ENTR
 cap that moves without its artifact reds. Left untaken here: it is a batch of its own, and taking it
 inside a Gate S1 measurement pass is how an unmeasured 5× expansion of someone else's rate limit gets
 shipped as a side effect.
+
+<!-- generated-cohort-census:start -->
+## Current committed census (generated)
+
+Derived from the retained registry snapshot and served index; dated measurements above are preserved.
+
+250/250 source records reached the served tree.
+
+Cohort census: source **250 / 100 required**; served **250 registry pages / 250
+committed**.
+<!-- generated-cohort-census:end -->

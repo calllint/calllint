@@ -1,11 +1,11 @@
 {
   "schema": "calllint.agent-adoption-contract.v1",
   "contract": {
-    "contractDigest": "sha256:869d53d44139efcb934a1a735075e758e5ea1fdd9a6f6f0e40da36b610343251",
-    "generatedAt": "2026-09-01T01:15:00.000Z",
+    "contractDigest": "sha256:7482eb7f0bc5009124f744f0651c6a3f35a8a36bd35410ca1948fb7f2fe58038",
+    "generatedAt": "2026-09-15T02:38:22.000Z",
     "expiresAt": null,
     "generatorVersion": "0.1.0",
-    "snapshotDigest": "sha256:aaa8f092d2a2cc700baf6290fd1f0025c2444d475efd5935ae131c17b581fd75"
+    "snapshotDigest": "sha256:5a9a011bad0f83e348ba601df063d7164490636fedcfc1ec3673af6c3d8a02aa"
   },
   "subject": {
     "canonicalName": "mcp-registry/ai.bourdon-bourdon",
@@ -21,7 +21,7 @@
     "publicLabel": "No blockers observed",
     "reasonCodes": [],
     "evidenceLevel": "E2",
-    "evidenceDigest": "sha256:6b51cc3f1664ab2f044cf76cb55b8fb4070e46aa0c85209975ad7e49f1450957",
+    "evidenceDigest": "sha256:67dea7084db047d6a90698794e6c0cc40b859017abe22a5cf49b53d7bfbd2a41",
     "completeness": "complete"
   },
   "authorityDelta": {
@@ -39,8 +39,8 @@
     ]
   },
   "trustedSources": {
-    "registrySnapshotDigest": "sha256:aaa8f092d2a2cc700baf6290fd1f0025c2444d475efd5935ae131c17b581fd75",
-    "evidenceDigest": "sha256:6b51cc3f1664ab2f044cf76cb55b8fb4070e46aa0c85209975ad7e49f1450957",
+    "registrySnapshotDigest": "sha256:5a9a011bad0f83e348ba601df063d7164490636fedcfc1ec3673af6c3d8a02aa",
+    "evidenceDigest": "sha256:67dea7084db047d6a90698794e6c0cc40b859017abe22a5cf49b53d7bfbd2a41",
     "engineVersion": "0.1.0"
   },
   "untrustedPublisherContent": {
@@ -54,7 +54,7 @@
       "canonicalName": "mcp-registry/ai.bourdon-bourdon",
       "expectedVersion": "0.19.0",
       "expectedArtifactDigest": "sha256:2b8b11656c520aaf26e7a19709b14b7a1e5e12f5fd6c056b7bdd85e7a60fd63e",
-      "expectedContractDigest": "sha256:869d53d44139efcb934a1a735075e758e5ea1fdd9a6f6f0e40da36b610343251",
+      "expectedContractDigest": "sha256:7482eb7f0bc5009124f744f0651c6a3f35a8a36bd35410ca1948fb7f2fe58038",
       "host": null
     }
   },
