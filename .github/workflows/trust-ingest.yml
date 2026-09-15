@@ -248,7 +248,7 @@ jobs:
         # binary in a temp sandbox, reads no served page, and was measured still exit-0 after the bake
         # that staled the other five. Rebuilding it would be a false demand — and the invariant asserts
         # its absence, so this list and that test cannot drift apart.
-        run: pnpm eval:phase-2.4:write && pnpm eval:phase-2.4:gates:write && pnpm audit:presentation:write && pnpm audit:presentation:lock:write && pnpm audit:preview:write
+        run: pnpm eval:phase-2.4:write && pnpm eval:phase-2.4:gates:write && pnpm audit:presentation:write && pnpm audit:presentation:lock:write && pnpm audit:preview:write && pnpm exec tsx scripts/refresh-gate-census.ts
 
       - name: Guard the regenerated pages (no overclaim / PII; completeness)
         run: pnpm check:public-copy
