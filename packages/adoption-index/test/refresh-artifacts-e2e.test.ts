@@ -111,9 +111,13 @@ function corpusPayload(): { servers: Record<string, unknown>[] } {
 /** The packages the corpus DECLARES — the population artifact resolution may act on. */
 function corpusPackages(): CorpusPackage[] {
   const snapshot = parseSnapshot(readFileSync(SNAPSHOT_PATH, "utf8"))
-  return snapshot.entries.flatMap((e) =>
+  const packages = snapshot.entries.flatMap((e) =>
     e.packages.map((p) => ({ registryType: p.registryType, identifier: p.identifier, version: p.version ?? null })),
   )
+  // The served registry may contain repeated declarations for one package identifier. The
+  // adoption store intentionally keys artifact rows by that identity, so the replay population
+  // must use the same set semantics as production rather than a stale literal count.
+  return [...new Map(packages.map((p) => [`${p.registryType}:${p.identifier}`, p])).values()]
 }
 
 // ── in-memory npm fixtures (never a committed archive) ─────────────────────────────────────────
@@ -303,7 +307,10 @@ async function refresh(
     fetchImpl,
     now,
     endpoint: ENDPOINT,
-    snapshotMaxEntries: 25,
+    // Keep the replay fixture a single page even as the committed cohort grows. The old
+    // production-sized limit (25) made this stub return the same first page repeatedly once the
+    // cohort exceeded it, inflating mirrored counts and masking the real artifact population.
+    snapshotMaxEntries: CORPUS_ENTRIES,
     ...(artifactPort === undefined ? {} : { artifactPort }),
     ...(evidencePort === undefined ? {} : { evidencePort }),
   })
