@@ -797,7 +797,7 @@ describe("Gate S0 — every number the record states is derived from the file it
     // CURRENT values, since the record's claim is that the fix is in place and unexercised — not
     // that the old values are still there.
     const mirror = readText("packages/adoption-index/src/operations/refreshFromMirror.ts")
-    expect(mirror).toMatch(/DEFAULT_MIRROR_MAX_ENTRIES = \\d[\\d_]*/)
+    expect(mirror).toMatch(/DEFAULT_MIRROR_MAX_ENTRIES = \d[\d_]*/)
     expect(readText("packages/adoption-index/src/sources/officialRegistry.ts")).toContain(
       "DEFAULT_MAX_PAGES = 1000",
     )
