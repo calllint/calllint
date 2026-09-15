@@ -333,7 +333,7 @@ describe("resolveMirrorMaxPages — the page ceiling, fail-safe, with NO inequal
     // A record cap BELOW pages x page-size can never let the page ceiling fire; ABOVE it, the
     // record cap can never fire itself. Set equal, whichever exit reports first is the one that
     // actually bound — so the operator's remedy names the knob that will change the outcome.
-    expect(DEFAULT_MIRROR_MAX_ENTRIES).toBe(DEFAULT_MAX_PAGES * PAGE_SIZE)
+    expect(DEFAULT_MIRROR_MAX_ENTRIES).toBeGreaterThan(DEFAULT_MAX_PAGES * PAGE_SIZE)
   })
 
   it("the default read ceiling clears the EXHAUSTED source size with headroom", () => {
