@@ -35,11 +35,13 @@ BLOCK  helpful-notes    PROMPT · SUPPLY
 
 ## What is CallLint?
 
-An agent's power is the union of its tools' permissions. A single MCP server can
-add filesystem write, shell execution, network egress, or model-directed
-instructions to an autonomous agent — usually described only by untrusted,
-tool-provided metadata. CallLint inspects that surface statically and tells you,
-with evidence, what you would be granting **before** you grant it.
+The authority a tool configuration grants is the union of the permissions and
+capabilities CallLint can observe in that configuration and its supplied tool
+metadata. A single MCP server can add filesystem write, shell execution, network
+egress, or model-directed instructions to an autonomous agent — usually described
+only by untrusted, tool-provided metadata. CallLint inspects that static surface
+and tells you, with evidence, what you would be granting **before** you grant it;
+it does not claim to observe an agent's total runtime or cloud authority.
 
 - **Deterministic** — same input, same verdict. No model in the decision path.
 - **Offline by default** — no network unless you pass `--online` (advisory only).

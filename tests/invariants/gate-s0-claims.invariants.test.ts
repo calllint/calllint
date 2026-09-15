@@ -369,7 +369,7 @@ describe("Gate S0 — every path:line the record cites still points at what it c
     // (32004879519, 32700871694) had died at the phase-2.4 refresh on `missing apps/cli/dist/index.js`,
     // BEFORE the PR-opening step, so the cohort sat frozen at 100 for two weeks with no red PR to
     // notice. The mover is once again the batch editing the file — the pattern that row predicts.
-    assertPointer(WORKFLOW, 160, "ingest:trust-index", "the ingest step")
+    assertPointer(WORKFLOW, 161, "ingest:trust-index", "the ingest step")
   })
 })
 
