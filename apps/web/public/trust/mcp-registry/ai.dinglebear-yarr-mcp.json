@@ -1,0 +1,144 @@
+{
+  "schema": "calllint.trust-page.v0",
+  "canonicalName": "mcp-registry/ai.dinglebear-yarr-mcp",
+  "artifactDigest": "sha256:ae8477fc4c0f85d5105b11f312f7ec7de37cc98cc8ab1452fbc8d5820fe2359e",
+  "pageDigest": "sha256:db5adee7a1addecca9917f939e4dc0c8da74b5305ce45338fefe9c7e204aaee0",
+  "verdict": "SAFE",
+  "verdictLabel": "No blockers observed",
+  "observedAt": "2026-09-15T06:37:10.000Z",
+  "completeness": "complete",
+  "status": {
+    "verdict": "SAFE",
+    "completeness": "complete",
+    "authorityClaimed": false,
+    "reproducibility": {
+      "pageDigest": "sha256:db5adee7a1addecca9917f939e4dc0c8da74b5305ce45338fefe9c7e204aaee0",
+      "observedAt": "2026-09-15T06:37:10.000Z"
+    },
+    "evidenceLevel": "E2",
+    "evidenceRationale": "install config observed → static blast radius normalized into an authority inventory. Higher levels (E3 tool schema, E4 maintainer receipt, E5 sandbox) are not carried by a static page."
+  },
+  "correctionUrl": "https://github.com/calllint/calllint/issues/new?labels=trust-page-correction",
+  "reproduction": {
+    "command": "npx calllint scan official-mcp-registry:ai.dinglebear/yarr-mcp",
+    "artifactDigest": "sha256:ae8477fc4c0f85d5105b11f312f7ec7de37cc98cc8ab1452fbc8d5820fe2359e",
+    "note": "Re-running this scan reproduces the verdict observed at the pinned artifact digest. It is a point-in-time observation, not a guarantee of future behavior."
+  },
+  "scanHistory": [
+    {
+      "observedAt": "2026-09-15T06:37:10.000Z",
+      "pageDigest": "sha256:db5adee7a1addecca9917f939e4dc0c8da74b5305ce45338fefe9c7e204aaee0",
+      "artifactDigest": "sha256:ae8477fc4c0f85d5105b11f312f7ec7de37cc98cc8ab1452fbc8d5820fe2359e"
+    }
+  ],
+  "preparation": {
+    "schema": "calllint.trust-preparation.v0",
+    "artifact": {
+      "schema": "calllint.artifact.v1",
+      "sourceType": "mcp-config",
+      "source": "official-mcp-registry:ai.dinglebear/yarr-mcp",
+      "requestedRef": null,
+      "resolvedRef": "sha256:ae8477fc4c0f85d5105b11f312f7ec7de37cc98cc8ab1452fbc8d5820fe2359e",
+      "digest": "sha256:ae8477fc4c0f85d5105b11f312f7ec7de37cc98cc8ab1452fbc8d5820fe2359e",
+      "resolvedAt": "2026-09-15T06:37:10.000Z",
+      "resolution": "resolved"
+    },
+    "evidence": null,
+    "authority": {
+      "schema": "calllint.authority.v0",
+      "subject": {
+        "artifactDigest": "sha256:ae8477fc4c0f85d5105b11f312f7ec7de37cc98cc8ab1452fbc8d5820fe2359e"
+      },
+      "capabilities": [
+        {
+          "action": "execute",
+          "resource": "process",
+          "scope": "npx",
+          "destination": null,
+          "mutability": "mutating",
+          "reversibility": "irreversible",
+          "monetaryLimit": null,
+          "approvalRequirement": "none",
+          "evidenceSource": "server.command",
+          "confidence": "high",
+          "completeness": "complete",
+          "trustSource": "trusted.local_project"
+        }
+      ],
+      "limits": {
+        "spendPerCall": null,
+        "spendTotal": null
+      },
+      "approval": {
+        "required": []
+      },
+      "unknowns": [],
+      "completeness": "complete",
+      "digest": "sha256:e856802cfc10e1c06f79316d0aed7401b7d1819f203a50e6591c22034241e05c"
+    },
+    "decision": null,
+    "plan": null,
+    "state": "AUTHORITY_NORMALIZED",
+    "notes": [
+      "no external evidence attached (optional); decision will rely on CallLint's own analysis",
+      "authority normalized: 1 capability"
+    ],
+    "preparedAt": "2026-09-15T06:37:10.000Z"
+  },
+  "scan": {
+    "schemaVersion": "calllint.report.v0",
+    "reportKind": "config-summary",
+    "configPath": "official-mcp-registry:ai.dinglebear/yarr-mcp",
+    "verdict": "SAFE",
+    "publicVerdictLabel": "No blockers observed",
+    "counts": {
+      "SAFE": 1,
+      "REVIEW": 0,
+      "BLOCK": 0,
+      "UNKNOWN": 0
+    },
+    "reports": [
+      {
+        "schemaVersion": "calllint.report.v0",
+        "reportKind": "single-target",
+        "target": {
+          "name": "package",
+          "kind": "mcp-servers",
+          "source": "yarr-mcp",
+          "version": "1.1.1",
+          "configPath": "official-mcp-registry:ai.dinglebear/yarr-mcp"
+        },
+        "verdict": "SAFE",
+        "publicVerdictLabel": "No blockers observed",
+        "policyApplied": false,
+        "riskClass": "S1",
+        "symbols": [],
+        "confidence": "high",
+        "reproducibility": {
+          "level": "HIGH",
+          "reasons": []
+        },
+        "summary": "\"package\" has no blockers observed (S1 Read-only utility).",
+        "observed": [],
+        "inferred": [],
+        "findings": [],
+        "topFindings": [],
+        "policy": {
+          "autonomousUse": "allow",
+          "manualApproval": "none",
+          "sandbox": "none"
+        },
+        "fingerprints": {
+          "configHash": "sha256:e940b5a42ddbf3bf5af79f20de08425c3c1b62cb338d3dddb1800c76992e4097",
+          "targetSpecHash": "sha256:f751821ae75c230530cf7154ada60b7d44c3d71b92c6e3f1128fa2295a13f17c",
+          "riskSurfaceHash": "sha256:69aae84c996fe93d537b08d906cb339866bd43f10876be403a0f4793915bef33",
+          "packageSpecHash": "sha256:d7fa6527518003ea60aed5f99406aa24ad2a551fd26bb1db6da05e968db00519"
+        },
+        "diagnostics": [],
+        "generatedAt": "2026-09-15T06:37:10.000Z"
+      }
+    ],
+    "diagnostics": [],
+    "generatedAt": "2026-09-15T06:37:10.000Z"
+  }
+}

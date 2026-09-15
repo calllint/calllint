@@ -1,0 +1,144 @@
+{
+  "schema": "calllint.trust-page.v0",
+  "canonicalName": "mcp-registry/ai.clize-sites",
+  "artifactDigest": "sha256:5c27ba65d9d8113cff91f6ad7c8fd8b3d4d66ff5df45e558c17acdb85826a454",
+  "pageDigest": "sha256:71173ce1f3b9baf7d08a05e5fa7a63a96920b12efd878299a7beca7ee930c29d",
+  "verdict": "SAFE",
+  "verdictLabel": "No blockers observed",
+  "observedAt": "2026-09-15T06:37:10.000Z",
+  "completeness": "complete",
+  "status": {
+    "verdict": "SAFE",
+    "completeness": "complete",
+    "authorityClaimed": false,
+    "reproducibility": {
+      "pageDigest": "sha256:71173ce1f3b9baf7d08a05e5fa7a63a96920b12efd878299a7beca7ee930c29d",
+      "observedAt": "2026-09-15T06:37:10.000Z"
+    },
+    "evidenceLevel": "E2",
+    "evidenceRationale": "install config observed → static blast radius normalized into an authority inventory. Higher levels (E3 tool schema, E4 maintainer receipt, E5 sandbox) are not carried by a static page."
+  },
+  "correctionUrl": "https://github.com/calllint/calllint/issues/new?labels=trust-page-correction",
+  "reproduction": {
+    "command": "npx calllint scan official-mcp-registry:ai.clize/sites",
+    "artifactDigest": "sha256:5c27ba65d9d8113cff91f6ad7c8fd8b3d4d66ff5df45e558c17acdb85826a454",
+    "note": "Re-running this scan reproduces the verdict observed at the pinned artifact digest. It is a point-in-time observation, not a guarantee of future behavior."
+  },
+  "scanHistory": [
+    {
+      "observedAt": "2026-09-15T06:37:10.000Z",
+      "pageDigest": "sha256:71173ce1f3b9baf7d08a05e5fa7a63a96920b12efd878299a7beca7ee930c29d",
+      "artifactDigest": "sha256:5c27ba65d9d8113cff91f6ad7c8fd8b3d4d66ff5df45e558c17acdb85826a454"
+    }
+  ],
+  "preparation": {
+    "schema": "calllint.trust-preparation.v0",
+    "artifact": {
+      "schema": "calllint.artifact.v1",
+      "sourceType": "mcp-config",
+      "source": "official-mcp-registry:ai.clize/sites",
+      "requestedRef": null,
+      "resolvedRef": "sha256:5c27ba65d9d8113cff91f6ad7c8fd8b3d4d66ff5df45e558c17acdb85826a454",
+      "digest": "sha256:5c27ba65d9d8113cff91f6ad7c8fd8b3d4d66ff5df45e558c17acdb85826a454",
+      "resolvedAt": "2026-09-15T06:37:10.000Z",
+      "resolution": "resolved"
+    },
+    "evidence": null,
+    "authority": {
+      "schema": "calllint.authority.v0",
+      "subject": {
+        "artifactDigest": "sha256:5c27ba65d9d8113cff91f6ad7c8fd8b3d4d66ff5df45e558c17acdb85826a454"
+      },
+      "capabilities": [
+        {
+          "action": "execute",
+          "resource": "process",
+          "scope": "npx",
+          "destination": null,
+          "mutability": "mutating",
+          "reversibility": "irreversible",
+          "monetaryLimit": null,
+          "approvalRequirement": "none",
+          "evidenceSource": "server.command",
+          "confidence": "high",
+          "completeness": "complete",
+          "trustSource": "trusted.local_project"
+        }
+      ],
+      "limits": {
+        "spendPerCall": null,
+        "spendTotal": null
+      },
+      "approval": {
+        "required": []
+      },
+      "unknowns": [],
+      "completeness": "complete",
+      "digest": "sha256:422f4e0f8f8240efb8d7614272ea8dd058b8fda4af519373354a10b7040b9687"
+    },
+    "decision": null,
+    "plan": null,
+    "state": "AUTHORITY_NORMALIZED",
+    "notes": [
+      "no external evidence attached (optional); decision will rely on CallLint's own analysis",
+      "authority normalized: 1 capability"
+    ],
+    "preparedAt": "2026-09-15T06:37:10.000Z"
+  },
+  "scan": {
+    "schemaVersion": "calllint.report.v0",
+    "reportKind": "config-summary",
+    "configPath": "official-mcp-registry:ai.clize/sites",
+    "verdict": "SAFE",
+    "publicVerdictLabel": "No blockers observed",
+    "counts": {
+      "SAFE": 1,
+      "REVIEW": 0,
+      "BLOCK": 0,
+      "UNKNOWN": 0
+    },
+    "reports": [
+      {
+        "schemaVersion": "calllint.report.v0",
+        "reportKind": "single-target",
+        "target": {
+          "name": "package",
+          "kind": "mcp-servers",
+          "source": "@clize/sites",
+          "version": "0.35.5",
+          "configPath": "official-mcp-registry:ai.clize/sites"
+        },
+        "verdict": "SAFE",
+        "publicVerdictLabel": "No blockers observed",
+        "policyApplied": false,
+        "riskClass": "S1",
+        "symbols": [],
+        "confidence": "high",
+        "reproducibility": {
+          "level": "HIGH",
+          "reasons": []
+        },
+        "summary": "\"package\" has no blockers observed (S1 Read-only utility).",
+        "observed": [],
+        "inferred": [],
+        "findings": [],
+        "topFindings": [],
+        "policy": {
+          "autonomousUse": "allow",
+          "manualApproval": "none",
+          "sandbox": "none"
+        },
+        "fingerprints": {
+          "configHash": "sha256:50460ae28dc7870d667a3bbe294905ee07b5c025411d69507e26614ce4c9068f",
+          "targetSpecHash": "sha256:65f8367738d9ce6fd636cd36233d0784ec7a1468f77259e5e66b98d98ee5ca17",
+          "riskSurfaceHash": "sha256:69aae84c996fe93d537b08d906cb339866bd43f10876be403a0f4793915bef33",
+          "packageSpecHash": "sha256:d50bd52e3ad06dee41c45041990a77e72adad75db636002d335f7192a0d1eb4d"
+        },
+        "diagnostics": [],
+        "generatedAt": "2026-09-15T06:37:10.000Z"
+      }
+    ],
+    "diagnostics": [],
+    "generatedAt": "2026-09-15T06:37:10.000Z"
+  }
+}

@@ -2,18 +2,18 @@
   "schema": "calllint.trust-page.v0",
   "canonicalName": "mcp-registry/ai.arpi-arpi-mcp",
   "artifactDigest": "sha256:24188b7f32b356d41fded2fc3b8b738f01107f8444549941601baac73d868b38",
-  "pageDigest": "sha256:3f174fadc35aa6e4806fadd827ad07a62b2c77807991359201f08a9e1f4d105e",
-  "verdict": "REVIEW",
-  "verdictLabel": "Review required",
-  "observedAt": "2026-09-01T01:15:00.000Z",
+  "pageDigest": "sha256:9ed4d72b1da77425105eb8d09d41fdbe5a8894ddd702aade5e52a6f32dcaa6ae",
+  "verdict": "UNKNOWN",
+  "verdictLabel": "Insufficient evidence",
+  "observedAt": "2026-09-15T06:37:10.000Z",
   "completeness": "complete",
   "status": {
-    "verdict": "REVIEW",
+    "verdict": "UNKNOWN",
     "completeness": "complete",
     "authorityClaimed": false,
     "reproducibility": {
-      "pageDigest": "sha256:3f174fadc35aa6e4806fadd827ad07a62b2c77807991359201f08a9e1f4d105e",
-      "observedAt": "2026-09-01T01:15:00.000Z"
+      "pageDigest": "sha256:9ed4d72b1da77425105eb8d09d41fdbe5a8894ddd702aade5e52a6f32dcaa6ae",
+      "observedAt": "2026-09-15T06:37:10.000Z"
     },
     "evidenceLevel": "E2",
     "evidenceRationale": "install config observed → static blast radius normalized into an authority inventory. Higher levels (E3 tool schema, E4 maintainer receipt, E5 sandbox) are not carried by a static page."
@@ -26,8 +26,8 @@
   },
   "scanHistory": [
     {
-      "observedAt": "2026-09-01T01:15:00.000Z",
-      "pageDigest": "sha256:3f174fadc35aa6e4806fadd827ad07a62b2c77807991359201f08a9e1f4d105e",
+      "observedAt": "2026-09-15T06:37:10.000Z",
+      "pageDigest": "sha256:9ed4d72b1da77425105eb8d09d41fdbe5a8894ddd702aade5e52a6f32dcaa6ae",
       "artifactDigest": "sha256:24188b7f32b356d41fded2fc3b8b738f01107f8444549941601baac73d868b38"
     }
   ],
@@ -40,7 +40,7 @@
       "requestedRef": null,
       "resolvedRef": "sha256:24188b7f32b356d41fded2fc3b8b738f01107f8444549941601baac73d868b38",
       "digest": "sha256:24188b7f32b356d41fded2fc3b8b738f01107f8444549941601baac73d868b38",
-      "resolvedAt": "2026-09-01T01:15:00.000Z",
+      "resolvedAt": "2026-09-15T06:37:10.000Z",
       "resolution": "resolved"
     },
     "evidence": null,
@@ -84,19 +84,19 @@
       "no external evidence attached (optional); decision will rely on CallLint's own analysis",
       "authority normalized: 1 capability, approvals required: external-network-access"
     ],
-    "preparedAt": "2026-09-01T01:15:00.000Z"
+    "preparedAt": "2026-09-15T06:37:10.000Z"
   },
   "scan": {
     "schemaVersion": "calllint.report.v0",
     "reportKind": "config-summary",
     "configPath": "official-mcp-registry:ai.arpi/arpi-mcp",
-    "verdict": "REVIEW",
-    "publicVerdictLabel": "Review required",
+    "verdict": "UNKNOWN",
+    "publicVerdictLabel": "Insufficient evidence",
     "counts": {
       "SAFE": 0,
-      "REVIEW": 1,
+      "REVIEW": 0,
       "BLOCK": 0,
-      "UNKNOWN": 0
+      "UNKNOWN": 1
     },
     "reports": [
       {
@@ -108,8 +108,8 @@
           "source": "https://mcp.arpi.ai/mcp",
           "configPath": "official-mcp-registry:ai.arpi/arpi-mcp"
         },
-        "verdict": "REVIEW",
-        "publicVerdictLabel": "Review required",
+        "verdict": "UNKNOWN",
+        "publicVerdictLabel": "Insufficient evidence",
         "policyApplied": false,
         "riskClass": "S1",
         "symbols": [
@@ -117,10 +117,9 @@
         ],
         "confidence": "high",
         "reproducibility": {
-          "level": "LOW",
+          "level": "MEDIUM",
           "reasons": [
-            "Remote endpoint domain ownership not verified",
-            "Remote endpoint identity verified; tool surface not analyzed"
+            "Remote endpoint could not be verified"
           ]
         },
         "summary": "\"remote\" could not be verified (insufficient evidence). Risk: Network (S1 Read-only utility).",
@@ -213,17 +212,11 @@
           "targetSpecHash": "sha256:b435ee9a9999dd7cca14ca16951bb625ec1a57612b6227e2b1560b7d8685a1a8",
           "riskSurfaceHash": "sha256:47e9d20255a346b95323c2cb9e092621521638b987bbcd036e68e4aee12dcaf3"
         },
-        "diagnostics": [
-          {
-            "level": "info",
-            "code": "evidence.remote-identity-verified",
-            "message": "Remote endpoint identity verified; tool surface not analyzed (evidence: https://mcp.arpi.ai/mcp)"
-          }
-        ],
-        "generatedAt": "2026-09-01T01:15:00.000Z"
+        "diagnostics": [],
+        "generatedAt": "2026-09-15T06:37:10.000Z"
       }
     ],
     "diagnostics": [],
-    "generatedAt": "2026-09-01T01:15:00.000Z"
+    "generatedAt": "2026-09-15T06:37:10.000Z"
   }
 }

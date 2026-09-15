@@ -92,6 +92,9 @@ describe("committed artifacts are not scratch space", () => {
     try {
       const f = path.join(dir, "artifact.json")
       fs.writeFileSync(f, '{"n":1}\n')
+      // Separate the baseline from the real writes without depending on filesystem clock
+      // resolution. In particular, Windows can timestamp all three writes identically.
+      fs.utimesSync(f, new Date("2000-01-01T00:00:00Z"), new Date("2000-01-01T00:00:00Z"))
       const before = fs.statSync(f).mtimeMs
       const original = fs.readFileSync(f)
       fs.writeFileSync(f, '{"n":101}\n') // inject
@@ -121,6 +124,7 @@ describe("committed artifacts are not scratch space", () => {
       git("commit", "--quiet", "-m", "committed artifact")
       expect(git("ls-files").split("\n").filter(Boolean)).toContain(victimRel)
 
+      fs.utimesSync(victim, new Date("2000-01-01T00:00:00Z"), new Date("2000-01-01T00:00:00Z"))
       const mtimeBefore = fs.statSync(victim).mtimeMs
       const original = fs.readFileSync(victim)
       try {

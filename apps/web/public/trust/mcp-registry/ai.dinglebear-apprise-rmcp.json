@@ -1,0 +1,144 @@
+{
+  "schema": "calllint.trust-page.v0",
+  "canonicalName": "mcp-registry/ai.dinglebear-apprise-rmcp",
+  "artifactDigest": "sha256:81eaf40c4b1a7f7a4aa4c0ce3fbd63fa29402668a887b9641d78970053b90304",
+  "pageDigest": "sha256:afb6a30a0803c347d40184d00856304fc16bb2d4940f9bd5c4cfc25287e844dc",
+  "verdict": "SAFE",
+  "verdictLabel": "No blockers observed",
+  "observedAt": "2026-09-15T06:37:10.000Z",
+  "completeness": "complete",
+  "status": {
+    "verdict": "SAFE",
+    "completeness": "complete",
+    "authorityClaimed": false,
+    "reproducibility": {
+      "pageDigest": "sha256:afb6a30a0803c347d40184d00856304fc16bb2d4940f9bd5c4cfc25287e844dc",
+      "observedAt": "2026-09-15T06:37:10.000Z"
+    },
+    "evidenceLevel": "E2",
+    "evidenceRationale": "install config observed → static blast radius normalized into an authority inventory. Higher levels (E3 tool schema, E4 maintainer receipt, E5 sandbox) are not carried by a static page."
+  },
+  "correctionUrl": "https://github.com/calllint/calllint/issues/new?labels=trust-page-correction",
+  "reproduction": {
+    "command": "npx calllint scan official-mcp-registry:ai.dinglebear/apprise-rmcp",
+    "artifactDigest": "sha256:81eaf40c4b1a7f7a4aa4c0ce3fbd63fa29402668a887b9641d78970053b90304",
+    "note": "Re-running this scan reproduces the verdict observed at the pinned artifact digest. It is a point-in-time observation, not a guarantee of future behavior."
+  },
+  "scanHistory": [
+    {
+      "observedAt": "2026-09-15T06:37:10.000Z",
+      "pageDigest": "sha256:afb6a30a0803c347d40184d00856304fc16bb2d4940f9bd5c4cfc25287e844dc",
+      "artifactDigest": "sha256:81eaf40c4b1a7f7a4aa4c0ce3fbd63fa29402668a887b9641d78970053b90304"
+    }
+  ],
+  "preparation": {
+    "schema": "calllint.trust-preparation.v0",
+    "artifact": {
+      "schema": "calllint.artifact.v1",
+      "sourceType": "mcp-config",
+      "source": "official-mcp-registry:ai.dinglebear/apprise-rmcp",
+      "requestedRef": null,
+      "resolvedRef": "sha256:81eaf40c4b1a7f7a4aa4c0ce3fbd63fa29402668a887b9641d78970053b90304",
+      "digest": "sha256:81eaf40c4b1a7f7a4aa4c0ce3fbd63fa29402668a887b9641d78970053b90304",
+      "resolvedAt": "2026-09-15T06:37:10.000Z",
+      "resolution": "resolved"
+    },
+    "evidence": null,
+    "authority": {
+      "schema": "calllint.authority.v0",
+      "subject": {
+        "artifactDigest": "sha256:81eaf40c4b1a7f7a4aa4c0ce3fbd63fa29402668a887b9641d78970053b90304"
+      },
+      "capabilities": [
+        {
+          "action": "execute",
+          "resource": "process",
+          "scope": "npx",
+          "destination": null,
+          "mutability": "mutating",
+          "reversibility": "irreversible",
+          "monetaryLimit": null,
+          "approvalRequirement": "none",
+          "evidenceSource": "server.command",
+          "confidence": "high",
+          "completeness": "complete",
+          "trustSource": "trusted.local_project"
+        }
+      ],
+      "limits": {
+        "spendPerCall": null,
+        "spendTotal": null
+      },
+      "approval": {
+        "required": []
+      },
+      "unknowns": [],
+      "completeness": "complete",
+      "digest": "sha256:7d28636b91534d0763f0e304a967476ea36eda0f6dadad6c2d93c027759ec13b"
+    },
+    "decision": null,
+    "plan": null,
+    "state": "AUTHORITY_NORMALIZED",
+    "notes": [
+      "no external evidence attached (optional); decision will rely on CallLint's own analysis",
+      "authority normalized: 1 capability"
+    ],
+    "preparedAt": "2026-09-15T06:37:10.000Z"
+  },
+  "scan": {
+    "schemaVersion": "calllint.report.v0",
+    "reportKind": "config-summary",
+    "configPath": "official-mcp-registry:ai.dinglebear/apprise-rmcp",
+    "verdict": "SAFE",
+    "publicVerdictLabel": "No blockers observed",
+    "counts": {
+      "SAFE": 1,
+      "REVIEW": 0,
+      "BLOCK": 0,
+      "UNKNOWN": 0
+    },
+    "reports": [
+      {
+        "schemaVersion": "calllint.report.v0",
+        "reportKind": "single-target",
+        "target": {
+          "name": "package",
+          "kind": "mcp-servers",
+          "source": "apprise-rmcp",
+          "version": "0.1.3",
+          "configPath": "official-mcp-registry:ai.dinglebear/apprise-rmcp"
+        },
+        "verdict": "SAFE",
+        "publicVerdictLabel": "No blockers observed",
+        "policyApplied": false,
+        "riskClass": "S1",
+        "symbols": [],
+        "confidence": "high",
+        "reproducibility": {
+          "level": "HIGH",
+          "reasons": []
+        },
+        "summary": "\"package\" has no blockers observed (S1 Read-only utility).",
+        "observed": [],
+        "inferred": [],
+        "findings": [],
+        "topFindings": [],
+        "policy": {
+          "autonomousUse": "allow",
+          "manualApproval": "none",
+          "sandbox": "none"
+        },
+        "fingerprints": {
+          "configHash": "sha256:24e6c9fa51f4cfe4f77a3acc71c904b6150e2c849648a4904633a75cb19caf6e",
+          "targetSpecHash": "sha256:301f54f2417f8b3c6c1a5b788f516e700fcdd24ed8e3ebd4f4489e19c3b79c43",
+          "riskSurfaceHash": "sha256:69aae84c996fe93d537b08d906cb339866bd43f10876be403a0f4793915bef33",
+          "packageSpecHash": "sha256:a873a9f3fcb6b2db0aa65ee5910e9f2087356049925322718d0289410f52e5a9"
+        },
+        "diagnostics": [],
+        "generatedAt": "2026-09-15T06:37:10.000Z"
+      }
+    ],
+    "diagnostics": [],
+    "generatedAt": "2026-09-15T06:37:10.000Z"
+  }
+}

@@ -1,18 +1,18 @@
 {
   "schema": "calllint.agent-adoption-contract.v1",
   "contract": {
-    "contractDigest": "sha256:411c26e3faff6a6bc4cfb2480614127e2eff2cd12a25e333068a1b0d1a4907b6",
-    "generatedAt": "2026-09-01T01:15:00.000Z",
+    "contractDigest": "sha256:e223d5ebae3475c4db330ed34dcfb2512a584d02094531771c1ca035a25a8633",
+    "generatedAt": "2026-09-15T06:37:10.000Z",
     "expiresAt": null,
     "generatorVersion": "0.1.0",
-    "snapshotDigest": "sha256:aaa8f092d2a2cc700baf6290fd1f0025c2444d475efd5935ae131c17b581fd75"
+    "snapshotDigest": "sha256:0d7685adae8d8f501d520c5eb42746baee8e6f798ab6965b17f8c4253cd8180d"
   },
   "subject": {
     "canonicalName": "mcp-registry/ai.astrofabric-mcp",
     "canonicalSlug": "mcp-registry/ai.astrofabric-mcp",
     "packageType": null,
     "packageName": null,
-    "version": "1.0.1",
+    "version": "1.1.0",
     "artifactDigest": "sha256:8e431a47cacee2b18786149439ce8d12482aa7cd0c269e2875b123cdf10eab80",
     "sourceLocator": "https://www.astrofabric.ai/api/mcp"
   },
@@ -23,7 +23,7 @@
       "UNKNOWN_REMOTE"
     ],
     "evidenceLevel": "E2",
-    "evidenceDigest": "sha256:6b51cc3f1664ab2f044cf76cb55b8fb4070e46aa0c85209975ad7e49f1450957",
+    "evidenceDigest": "sha256:2579b184c2ed95daff8ca669622c89bd6f7d964fca3d01a0e356928b2253e33e",
     "completeness": "complete"
   },
   "authorityDelta": {
@@ -44,12 +44,12 @@
     ]
   },
   "trustedSources": {
-    "registrySnapshotDigest": "sha256:aaa8f092d2a2cc700baf6290fd1f0025c2444d475efd5935ae131c17b581fd75",
-    "evidenceDigest": "sha256:6b51cc3f1664ab2f044cf76cb55b8fb4070e46aa0c85209975ad7e49f1450957",
+    "registrySnapshotDigest": "sha256:0d7685adae8d8f501d520c5eb42746baee8e6f798ab6965b17f8c4253cd8180d",
+    "evidenceDigest": "sha256:2579b184c2ed95daff8ca669622c89bd6f7d964fca3d01a0e356928b2253e33e",
     "engineVersion": "0.1.0"
   },
   "untrustedPublisherContent": {
-    "description": "Agentic growth platform: a mission agent plus metered SEO, ads, outbound and CRM ops tools.",
+    "description": "Agentic AI for business intelligence: discover, verify and enrich company and contact data.",
     "usedForSafetyDecision": false
   },
   "recommendedNextAction": {
@@ -57,9 +57,9 @@
     "tool": "calllint_prepare_safe_install",
     "arguments": {
       "canonicalName": "mcp-registry/ai.astrofabric-mcp",
-      "expectedVersion": "1.0.1",
+      "expectedVersion": "1.1.0",
       "expectedArtifactDigest": "sha256:8e431a47cacee2b18786149439ce8d12482aa7cd0c269e2875b123cdf10eab80",
-      "expectedContractDigest": "sha256:411c26e3faff6a6bc4cfb2480614127e2eff2cd12a25e333068a1b0d1a4907b6",
+      "expectedContractDigest": "sha256:e223d5ebae3475c4db330ed34dcfb2512a584d02094531771c1ca035a25a8633",
       "host": null
     }
   },

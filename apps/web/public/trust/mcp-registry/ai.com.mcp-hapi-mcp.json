@@ -1,0 +1,349 @@
+{
+  "schema": "calllint.trust-page.v0",
+  "canonicalName": "mcp-registry/ai.com.mcp-hapi-mcp",
+  "artifactDigest": "sha256:a9c5635fa16ef62b36e71027657fd7b67166a957cd242663cdf639b818c095e7",
+  "pageDigest": "sha256:dddd211801587c19e92a71bc1a353061d5438ccbfc9b8f68c7099db1c06ce5d8",
+  "verdict": "UNKNOWN",
+  "verdictLabel": "Insufficient evidence",
+  "observedAt": "2026-09-15T06:37:10.000Z",
+  "completeness": "complete",
+  "status": {
+    "verdict": "UNKNOWN",
+    "completeness": "complete",
+    "authorityClaimed": false,
+    "reproducibility": {
+      "pageDigest": "sha256:dddd211801587c19e92a71bc1a353061d5438ccbfc9b8f68c7099db1c06ce5d8",
+      "observedAt": "2026-09-15T06:37:10.000Z"
+    },
+    "evidenceLevel": "E2",
+    "evidenceRationale": "install config observed → static blast radius normalized into an authority inventory. Higher levels (E3 tool schema, E4 maintainer receipt, E5 sandbox) are not carried by a static page."
+  },
+  "correctionUrl": "https://github.com/calllint/calllint/issues/new?labels=trust-page-correction",
+  "reproduction": {
+    "command": "npx calllint scan official-mcp-registry:ai.com.mcp/hapi-mcp",
+    "artifactDigest": "sha256:a9c5635fa16ef62b36e71027657fd7b67166a957cd242663cdf639b818c095e7",
+    "note": "Re-running this scan reproduces the verdict observed at the pinned artifact digest. It is a point-in-time observation, not a guarantee of future behavior."
+  },
+  "scanHistory": [
+    {
+      "observedAt": "2026-09-15T06:37:10.000Z",
+      "pageDigest": "sha256:dddd211801587c19e92a71bc1a353061d5438ccbfc9b8f68c7099db1c06ce5d8",
+      "artifactDigest": "sha256:a9c5635fa16ef62b36e71027657fd7b67166a957cd242663cdf639b818c095e7"
+    }
+  ],
+  "preparation": {
+    "schema": "calllint.trust-preparation.v0",
+    "artifact": {
+      "schema": "calllint.artifact.v1",
+      "sourceType": "mcp-config",
+      "source": "official-mcp-registry:ai.com.mcp/hapi-mcp",
+      "requestedRef": null,
+      "resolvedRef": "sha256:a9c5635fa16ef62b36e71027657fd7b67166a957cd242663cdf639b818c095e7",
+      "digest": "sha256:a9c5635fa16ef62b36e71027657fd7b67166a957cd242663cdf639b818c095e7",
+      "resolvedAt": "2026-09-15T06:37:10.000Z",
+      "resolution": "resolved"
+    },
+    "evidence": null,
+    "authority": {
+      "schema": "calllint.authority.v0",
+      "subject": {
+        "artifactDigest": "sha256:a9c5635fa16ef62b36e71027657fd7b67166a957cd242663cdf639b818c095e7"
+      },
+      "capabilities": [
+        {
+          "action": "execute",
+          "resource": "process",
+          "scope": "docker.io/hapimcp/hapi-cli:0.6.0",
+          "destination": null,
+          "mutability": "mutating",
+          "reversibility": "irreversible",
+          "monetaryLimit": null,
+          "approvalRequirement": "none",
+          "evidenceSource": "server.command",
+          "confidence": "high",
+          "completeness": "complete",
+          "trustSource": "trusted.local_project"
+        },
+        {
+          "action": "connect",
+          "resource": "network",
+          "scope": "https://{HAPI_FQDN}:{HAPI_PORT}/mcp",
+          "destination": "https://{HAPI_FQDN}:{HAPI_PORT}/mcp",
+          "mutability": "mutating",
+          "reversibility": "irreversible",
+          "monetaryLimit": null,
+          "approvalRequirement": "review",
+          "evidenceSource": "server.url",
+          "confidence": "high",
+          "completeness": "complete"
+        }
+      ],
+      "limits": {
+        "spendPerCall": null,
+        "spendTotal": null
+      },
+      "approval": {
+        "required": [
+          "external-network-access"
+        ]
+      },
+      "unknowns": [],
+      "completeness": "complete",
+      "digest": "sha256:6cb85e4f301d781cdffb855898948ee94e81a65d56eea83894fe4270818463bf"
+    },
+    "decision": null,
+    "plan": null,
+    "state": "AUTHORITY_NORMALIZED",
+    "notes": [
+      "no external evidence attached (optional); decision will rely on CallLint's own analysis",
+      "authority normalized: 2 capabilities, approvals required: external-network-access"
+    ],
+    "preparedAt": "2026-09-15T06:37:10.000Z"
+  },
+  "scan": {
+    "schemaVersion": "calllint.report.v0",
+    "reportKind": "config-summary",
+    "configPath": "official-mcp-registry:ai.com.mcp/hapi-mcp",
+    "verdict": "UNKNOWN",
+    "publicVerdictLabel": "Insufficient evidence",
+    "counts": {
+      "SAFE": 0,
+      "REVIEW": 1,
+      "BLOCK": 0,
+      "UNKNOWN": 1
+    },
+    "reports": [
+      {
+        "schemaVersion": "calllint.report.v0",
+        "reportKind": "single-target",
+        "target": {
+          "name": "package",
+          "kind": "mcp-servers",
+          "configPath": "official-mcp-registry:ai.com.mcp/hapi-mcp"
+        },
+        "verdict": "REVIEW",
+        "publicVerdictLabel": "Review required",
+        "policyApplied": false,
+        "riskClass": "S2",
+        "symbols": [
+          "EXEC"
+        ],
+        "confidence": "medium",
+        "reproducibility": {
+          "level": "HIGH",
+          "reasons": []
+        },
+        "summary": "\"package\" needs review. Risk: Exec (S2 Sensitive read).",
+        "observed": [
+          {
+            "id": "exec.unverified-local-source",
+            "title": "Runs an unverified local executable",
+            "severity": "medium",
+            "blocker": false,
+            "symbol": "EXEC",
+            "riskClass": "S2",
+            "mode": "OBSERVED",
+            "confidence": "medium",
+            "detectionMethod": "runtime-binding",
+            "evidence": [
+              {
+                "type": "runtime-binding",
+                "path": "official-mcp-registry:ai.com.mcp/hapi-mcp",
+                "key": "command",
+                "value": "docker.io/hapimcp/hapi-cli:0.6.0",
+                "line": 4,
+                "column": 7
+              }
+            ],
+            "impact": "The runtime executes a local script or binary whose contents CallLint never inspects. It is not a recognized package or pinned image, so what actually runs cannot be verified from the config alone.",
+            "fix": "Confirm you trust the local source, or run it from a pinned, recognized package (e.g. npx pkg@1.2.3 / a pinned docker image) so the runtime is independently verifiable.",
+            "falsePositiveNote": "A developer running their own local server (e.g. node ./dist/server.js) is normal; this flags that the source is not independently verifiable, not that it is malicious."
+          }
+        ],
+        "inferred": [],
+        "findings": [
+          {
+            "id": "exec.unverified-local-source",
+            "title": "Runs an unverified local executable",
+            "severity": "medium",
+            "blocker": false,
+            "symbol": "EXEC",
+            "riskClass": "S2",
+            "mode": "OBSERVED",
+            "confidence": "medium",
+            "detectionMethod": "runtime-binding",
+            "evidence": [
+              {
+                "type": "runtime-binding",
+                "path": "official-mcp-registry:ai.com.mcp/hapi-mcp",
+                "key": "command",
+                "value": "docker.io/hapimcp/hapi-cli:0.6.0",
+                "line": 4,
+                "column": 7
+              }
+            ],
+            "impact": "The runtime executes a local script or binary whose contents CallLint never inspects. It is not a recognized package or pinned image, so what actually runs cannot be verified from the config alone.",
+            "fix": "Confirm you trust the local source, or run it from a pinned, recognized package (e.g. npx pkg@1.2.3 / a pinned docker image) so the runtime is independently verifiable.",
+            "falsePositiveNote": "A developer running their own local server (e.g. node ./dist/server.js) is normal; this flags that the source is not independently verifiable, not that it is malicious."
+          }
+        ],
+        "topFindings": [
+          {
+            "id": "exec.unverified-local-source",
+            "title": "Runs an unverified local executable",
+            "severity": "medium",
+            "blocker": false,
+            "symbol": "EXEC",
+            "riskClass": "S2",
+            "mode": "OBSERVED",
+            "confidence": "medium",
+            "detectionMethod": "runtime-binding",
+            "evidence": [
+              {
+                "type": "runtime-binding",
+                "path": "official-mcp-registry:ai.com.mcp/hapi-mcp",
+                "key": "command",
+                "value": "docker.io/hapimcp/hapi-cli:0.6.0",
+                "line": 4,
+                "column": 7
+              }
+            ],
+            "impact": "The runtime executes a local script or binary whose contents CallLint never inspects. It is not a recognized package or pinned image, so what actually runs cannot be verified from the config alone.",
+            "fix": "Confirm you trust the local source, or run it from a pinned, recognized package (e.g. npx pkg@1.2.3 / a pinned docker image) so the runtime is independently verifiable.",
+            "falsePositiveNote": "A developer running their own local server (e.g. node ./dist/server.js) is normal; this flags that the source is not independently verifiable, not that it is malicious."
+          }
+        ],
+        "policy": {
+          "autonomousUse": "warn",
+          "manualApproval": "recommended",
+          "sandbox": "recommended"
+        },
+        "fingerprints": {
+          "configHash": "sha256:2a9c9e1655f16520677efc35a399bd4a7adc77c02decbf3ee4a2ec03f4714e84",
+          "targetSpecHash": "sha256:571b5a7301d3889122a67cf8d1a4b663fee62a5873f2b76f896914b86143c640",
+          "riskSurfaceHash": "sha256:89f49ea59b9805b51aab933fe7e81db3ff7eb3a3cb14bd71ca056ce387ce0ada"
+        },
+        "diagnostics": [],
+        "generatedAt": "2026-09-15T06:37:10.000Z"
+      },
+      {
+        "schemaVersion": "calllint.report.v0",
+        "reportKind": "single-target",
+        "target": {
+          "name": "remote",
+          "kind": "mcp-servers",
+          "source": "https://{HAPI_FQDN}:{HAPI_PORT}/mcp",
+          "configPath": "official-mcp-registry:ai.com.mcp/hapi-mcp"
+        },
+        "verdict": "UNKNOWN",
+        "publicVerdictLabel": "Insufficient evidence",
+        "policyApplied": false,
+        "riskClass": "S1",
+        "symbols": [
+          "NETWORK"
+        ],
+        "confidence": "high",
+        "reproducibility": {
+          "level": "MEDIUM",
+          "reasons": [
+            "Remote endpoint could not be verified"
+          ]
+        },
+        "summary": "\"remote\" could not be verified (insufficient evidence). Risk: Network (S1 Read-only utility).",
+        "observed": [
+          {
+            "id": "supply.unknown-remote",
+            "title": "Remote server source cannot be verified",
+            "severity": "high",
+            "blocker": false,
+            "symbol": "NETWORK",
+            "riskClass": "S1",
+            "mode": "OBSERVED",
+            "confidence": "high",
+            "detectionMethod": "runtime-binding",
+            "evidence": [
+              {
+                "type": "runtime-binding",
+                "path": "official-mcp-registry:ai.com.mcp/hapi-mcp",
+                "key": "url",
+                "value": "https://{HAPI_FQDN}:{HAPI_PORT}/mcp",
+                "line": 9,
+                "column": 7
+              }
+            ],
+            "impact": "The server runs on an unverified remote endpoint. Its tools, permissions, and behavior cannot be inspected statically and may change at any time.",
+            "fix": "Use a verified first-party endpoint, or run the server from a pinned, inspectable package.",
+            "falsePositiveNote": "A trusted internal endpoint may be fine; add it to the policy allowlist to verify it."
+          }
+        ],
+        "inferred": [],
+        "findings": [
+          {
+            "id": "supply.unknown-remote",
+            "title": "Remote server source cannot be verified",
+            "severity": "high",
+            "blocker": false,
+            "symbol": "NETWORK",
+            "riskClass": "S1",
+            "mode": "OBSERVED",
+            "confidence": "high",
+            "detectionMethod": "runtime-binding",
+            "evidence": [
+              {
+                "type": "runtime-binding",
+                "path": "official-mcp-registry:ai.com.mcp/hapi-mcp",
+                "key": "url",
+                "value": "https://{HAPI_FQDN}:{HAPI_PORT}/mcp",
+                "line": 9,
+                "column": 7
+              }
+            ],
+            "impact": "The server runs on an unverified remote endpoint. Its tools, permissions, and behavior cannot be inspected statically and may change at any time.",
+            "fix": "Use a verified first-party endpoint, or run the server from a pinned, inspectable package.",
+            "falsePositiveNote": "A trusted internal endpoint may be fine; add it to the policy allowlist to verify it."
+          }
+        ],
+        "topFindings": [
+          {
+            "id": "supply.unknown-remote",
+            "title": "Remote server source cannot be verified",
+            "severity": "high",
+            "blocker": false,
+            "symbol": "NETWORK",
+            "riskClass": "S1",
+            "mode": "OBSERVED",
+            "confidence": "high",
+            "detectionMethod": "runtime-binding",
+            "evidence": [
+              {
+                "type": "runtime-binding",
+                "path": "official-mcp-registry:ai.com.mcp/hapi-mcp",
+                "key": "url",
+                "value": "https://{HAPI_FQDN}:{HAPI_PORT}/mcp",
+                "line": 9,
+                "column": 7
+              }
+            ],
+            "impact": "The server runs on an unverified remote endpoint. Its tools, permissions, and behavior cannot be inspected statically and may change at any time.",
+            "fix": "Use a verified first-party endpoint, or run the server from a pinned, inspectable package.",
+            "falsePositiveNote": "A trusted internal endpoint may be fine; add it to the policy allowlist to verify it."
+          }
+        ],
+        "policy": {
+          "autonomousUse": "deny",
+          "manualApproval": "required",
+          "sandbox": "required"
+        },
+        "fingerprints": {
+          "configHash": "sha256:23211581e9105fbed864e30ad243f0541a9c137e2924459058847cda9d42115a",
+          "targetSpecHash": "sha256:747d20dbe98f42dd0ea431ba28d1625fff2797585836144a6254a4931a6a8eb2",
+          "riskSurfaceHash": "sha256:47e9d20255a346b95323c2cb9e092621521638b987bbcd036e68e4aee12dcaf3"
+        },
+        "diagnostics": [],
+        "generatedAt": "2026-09-15T06:37:10.000Z"
+      }
+    ],
+    "diagnostics": [],
+    "generatedAt": "2026-09-15T06:37:10.000Z"
+  }
+}
