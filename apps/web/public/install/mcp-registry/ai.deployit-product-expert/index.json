@@ -1,11 +1,11 @@
 {
   "schema": "calllint.agent-adoption-contract.v1",
   "contract": {
-    "contractDigest": "sha256:ef3422742c50a53e5ac8bca1d53625a864ed006eb0efff332c0b8d7d0660e7c8",
-    "generatedAt": "2026-09-15T04:43:56.000Z",
+    "contractDigest": "sha256:1243156d51100f2686c2f6f5062704263fd1429f6d89939861d82c47cd28aee5",
+    "generatedAt": "2026-09-15T06:37:10.000Z",
     "expiresAt": null,
     "generatorVersion": "0.1.0",
-    "snapshotDigest": "sha256:a17cc2296830ea649d39650ffaa9b6aa90a3ffd07deb5ea594ab80b8b0427d81"
+    "snapshotDigest": "sha256:0d7685adae8d8f501d520c5eb42746baee8e6f798ab6965b17f8c4253cd8180d"
   },
   "subject": {
     "canonicalName": "mcp-registry/ai.deployit-product-expert",
@@ -23,7 +23,7 @@
       "UNKNOWN_REMOTE"
     ],
     "evidenceLevel": "E2",
-    "evidenceDigest": "sha256:e5c3d450f2b92e7afb2b432cb996f2899916beb59748d482692a67adc89169cb",
+    "evidenceDigest": "sha256:2579b184c2ed95daff8ca669622c89bd6f7d964fca3d01a0e356928b2253e33e",
     "completeness": "complete"
   },
   "authorityDelta": {
@@ -44,8 +44,8 @@
     ]
   },
   "trustedSources": {
-    "registrySnapshotDigest": "sha256:a17cc2296830ea649d39650ffaa9b6aa90a3ffd07deb5ea594ab80b8b0427d81",
-    "evidenceDigest": "sha256:e5c3d450f2b92e7afb2b432cb996f2899916beb59748d482692a67adc89169cb",
+    "registrySnapshotDigest": "sha256:0d7685adae8d8f501d520c5eb42746baee8e6f798ab6965b17f8c4253cd8180d",
+    "evidenceDigest": "sha256:2579b184c2ed95daff8ca669622c89bd6f7d964fca3d01a0e356928b2253e33e",
     "engineVersion": "0.1.0"
   },
   "untrustedPublisherContent": {
@@ -59,7 +59,7 @@
       "canonicalName": "mcp-registry/ai.deployit-product-expert",
       "expectedVersion": "1.0.0",
       "expectedArtifactDigest": "sha256:1dd54b22ceaed1c2652bcbbdf1543707c6c70833033fc6060827847bc45c04e3",
-      "expectedContractDigest": "sha256:ef3422742c50a53e5ac8bca1d53625a864ed006eb0efff332c0b8d7d0660e7c8",
+      "expectedContractDigest": "sha256:1243156d51100f2686c2f6f5062704263fd1429f6d89939861d82c47cd28aee5",
       "host": null
     }
   },
