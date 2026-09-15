@@ -75,17 +75,16 @@ import { applyWithdrawal, type ApplyWithdrawalResult } from "./applyWithdrawal.j
  * (2026-08-04). At 40_000 the fail-closed guard would still have fired on every scheduled run —
  * the fix I first shipped for this defect did not clear it.
  *
- * 100_000 is `DEFAULT_MAX_PAGES` x `PAGE_SIZE`, and the two ceilings are deliberately EQUAL so
- * that neither is dead code: a record cap below pages x page-size can never let the page ceiling
- * fire, and above it can never fire itself. Equal, whichever exit reports first is the one that
- * actually bound, and the operator's remedy names the knob that will change the outcome.
+ * The live registry has now exceeded the former 100_000-record ceiling. Keep a generous raw-read
+ * margin above the served snapshot cap so growth fails closed before a truncated projection can
+ * be committed. The page ceiling remains an independent backstop for pathological pagination.
  *
  * Why not more headroom: `DEFAULT_MAX_PAGES` argues the upper bound in wall-clock — a ceiling
  * the job cannot reach before its timeout is not the limit that binds, and a timeout truncates
  * SILENTLY, bypassing this guard entirely. That argument caps this number too, since the two
  * move together.
  */
-export const DEFAULT_MIRROR_MAX_ENTRIES = 100_000
+export const DEFAULT_MIRROR_MAX_ENTRIES = 250_000
 
 export interface RefreshFromMirrorOptions {
   store: AdoptionIndexStore
