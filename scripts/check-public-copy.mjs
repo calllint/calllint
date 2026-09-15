@@ -346,6 +346,12 @@ console.log("")
   const readme = files.find((f) => f.rel === "README.md")
   if (!readme) ok("README.md not in guarded set (skipped)")
   else {
+    const oldAuthorityClaim = /an agent['’]s power is the union of its tools['’] permissions/i
+    const observableAuthorityClaim = /authority\s+a\s+tool\s+configuration\s+grants\s+is\s+the\s+union\s+of\s+the\s+permissions\s+and\s+capabilities\s+calllint\s+can\s+observe/i
+    const runtimeBoundary = /does not claim to observe an agent['’]s total runtime or cloud authority/i
+    if (oldAuthorityClaim.test(readme.text)) fail("README still equates total agent power with tool permissions")
+    else if (!observableAuthorityClaim.test(readme.text) || !runtimeBoundary.test(readme.text)) fail("README must state observable tool/config authority and the runtime/cloud boundary")
+    else ok("README distinguishes observable tool authority from total runtime authority")
     // Matches "stable `0.3.x` line" / "stable 0.3.x line" / "the 0.3.x line"
     // i.e. a specific minor segment declared as the stable line.
     const hardcodedStableLine = /stable\s*`?\d+\.\d+\.x`?\s+line/i

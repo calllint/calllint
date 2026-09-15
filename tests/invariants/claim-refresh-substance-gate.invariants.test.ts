@@ -312,11 +312,10 @@ describe("claim-refresh substance gate — a PR is opened only for something rev
     expect(block).toMatch(/if:\s*steps\.substance\.outputs\.substantive == 'true'/)
   })
 
-  it("every bot PR falls back to GITHUB_TOKEN when the PAT secret is absent", () => {
-    // The PAT exists to make the PR's checks RUN. But `token:` with an unset secret resolves to
-    // the empty string, and create-pull-request then fails the step — turning a missing
-    // credential into a claim change that never reaches a human. The `|| secrets.GITHUB_TOKEN`
-    // is what keeps that failure mode out, so it is pinned rather than left to a reviewer's eye.
+  it("every bot PR requires the workflow-triggering PAT", () => {
+    // GITHUB_TOKEN-created PRs suppress downstream workflows and leave required checks in
+    // action_required. Requiring the repository-scoped PAT is deliberate: a missing PAT fails
+    // closed instead of silently creating a PR that trains operators to rubber-stamp checks.
     //
     // Both refresh workflows, because they share the branch-and-PR shape and a PAT rolled for
     // one is rolled for both.
@@ -326,9 +325,7 @@ describe("claim-refresh substance gate — a PR is opened only for something rev
       expect(prAt, `${wf}: the PR step is gone`).toBeGreaterThan(-1)
       const token = yaml.slice(prAt).match(/token:\s*\$\{\{([^}]+)\}\}/)?.[1]
       expect(token, `${wf}: the PR step passes no token: — its checks will park unrun`).toBeTruthy()
-      expect(String(token).replace(/\s+/g, " ").trim()).toBe(
-        "secrets.TRUST_BOT_PAT || secrets.GITHUB_TOKEN",
-      )
+      expect(String(token).replace(/\s+/g, " ").trim()).toBe("secrets.TRUST_BOT_PAT")
     }
   })
 

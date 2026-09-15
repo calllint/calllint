@@ -39,7 +39,9 @@ jobs:
 
       - uses: actions/setup-node@v6
         with:
-          node-version: 24
+          # CallLint's native dependency and local/CI contract are Node 20.
+          # Node 24 can install but is not the supported verification runtime.
+          node-version: 20
           cache: pnpm
 
       - name: Install dependencies
@@ -205,10 +207,11 @@ jobs:
           # convenience is not a reason to widen a security boundary. The PAT is independent and
           # can be rolled at any time without touching the App.
           #
-          # Falls back to GITHUB_TOKEN when the secret is absent. That degrades to "checks need a
-          # click", never to "the PR is not opened" — a claim change must reach a human even when
-          # the token is missing or has been rolled and not yet replaced.
-          token: ${{ secrets.TRUST_BOT_PAT || secrets.GITHUB_TOKEN }}
+          # A PAT is required here. GITHUB_TOKEN-created PRs suppress downstream workflows,
+          # leaving every required check in action_required and teaching operators to click
+          # approvals that carry no judgement. TRUST_BOT_PAT must be a fine-grained token
+          # scoped to this repository with Contents: write and Pull requests: write.
+          token: ${{ secrets.TRUST_BOT_PAT }}
           branch: trust-verify/claim-refresh
           title: "chore(trust): reconcile maintainer claims + re-bake Trust Pages"
           commit-message: "chore(trust): scheduled claim verification (reconcile + bake)"
