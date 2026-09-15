@@ -614,7 +614,7 @@ would have made the run produce nothing anyway (ADR 0094).
 
 | measure (new15 §342 order) | tier | result | change since 2026-08-31 |
 |---|---|---|---|
-| source completeness | MEASURED | ✓ 200/200 source records reached the served tree | cohort 150 → 200 |
+| source completeness | MEASURED | ✓ 250/250 source records reached the served tree | cohort 200 → 250 |
 | artifact resolution rate | MEASURED | ✓ 199/200 resolvable; the 1 unresolvable is exactly the 1 the index marks `incomplete` | scaled with the cohort |
 | page quality | MEASURED | ✓ 199/199 baked subjects carry html+json+manifest and agree with the index on both digests | scaled with the cohort |
 | adapter failure rate | **MEASURED** | ✓ 0.0% — 0/36 failed (0 unavailable + 0 rejected) over 36 fetched; 28 of 64 considered had no adapter and are excluded from BOTH halves | **REFUSED → MEASURED** |
@@ -680,7 +680,7 @@ third measurement's correction predicted but could not yet demonstrate.
 
 | measure (new15 §342 order) | tier | result | change since third measurement |
 |---|---|---|---|
-| source completeness | MEASURED | ✓ 200/200 | — |
+| source completeness | MEASURED | ✓ 250/250 | — |
 | artifact resolution rate | MEASURED | ✓ 199/200; the 1 unresolvable is exactly the 1 the index marks `incomplete` | — |
 | page quality | MEASURED | ✓ 199/199 agree on both digests | — |
 | adapter failure rate | MEASURED | ✓ 0.0% — 0/36 over 36 fetched; 28 of 64 considered excluded from BOTH halves | — |
