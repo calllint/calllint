@@ -614,7 +614,7 @@ would have made the run produce nothing anyway (ADR 0094).
 
 | measure (new15 §342 order) | tier | result | change since 2026-08-31 |
 |---|---|---|---|
-| source completeness | MEASURED | ✓ 250/250 source records reached the served tree | cohort 200 → 250 |
+| source completeness | MEASURED | ✓ 200/200 source records reached the served tree | cohort 150 → 200 |
 | artifact resolution rate | MEASURED | ✓ 199/200 resolvable; the 1 unresolvable is exactly the 1 the index marks `incomplete` | scaled with the cohort |
 | page quality | MEASURED | ✓ 199/199 baked subjects carry html+json+manifest and agree with the index on both digests | scaled with the cohort |
 | adapter failure rate | **MEASURED** | ✓ 0.0% — 0/36 failed (0 unavailable + 0 rejected) over 36 fetched; 28 of 64 considered had no adapter and are excluded from BOTH halves | **REFUSED → MEASURED** |
@@ -666,7 +666,7 @@ made it read as settled. It is struck rather than deleted for exactly that reaso
 repetitions is the evidence for how a false blocker hardens, and deleting them would leave only the
 correction, which reads as though the mistake were caught the first time.
 
-Cohort census: source **250 / 100 required** (met); served **250 registry pages / 250
+Cohort census: source **200 / 100 required** (met); served **200 registry pages / 200
 committed** (held).
 
 ---
@@ -680,7 +680,7 @@ third measurement's correction predicted but could not yet demonstrate.
 
 | measure (new15 §342 order) | tier | result | change since third measurement |
 |---|---|---|---|
-| source completeness | MEASURED | ✓ 250/250 | — |
+| source completeness | MEASURED | ✓ 200/200 | — |
 | artifact resolution rate | MEASURED | ✓ 199/200; the 1 unresolvable is exactly the 1 the index marks `incomplete` | — |
 | page quality | MEASURED | ✓ 199/199 agree on both digests | — |
 | adapter failure rate | MEASURED | ✓ 0.0% — 0/36 over 36 fetched; 28 of 64 considered excluded from BOTH halves | — |
@@ -758,3 +758,14 @@ currently performs. `open-judgements.invariants.test.ts` reads `DEFAULT_MAX_ENTR
 cap that moves without its artifact reds. Left untaken here: it is a batch of its own, and taking it
 inside a Gate S1 measurement pass is how an unmeasured 5× expansion of someone else's rate limit gets
 shipped as a side effect.
+
+<!-- generated-cohort-census:start -->
+## Current committed census (generated)
+
+Derived from the retained registry snapshot and served index; dated measurements above are preserved.
+
+250/250 source records reached the served tree.
+
+Cohort census: source **250 / 100 required**; served **250 registry pages / 250
+committed**.
+<!-- generated-cohort-census:end -->

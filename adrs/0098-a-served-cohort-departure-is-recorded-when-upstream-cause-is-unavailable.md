@@ -1,4 +1,4 @@
-﻿# ADR 0098 - A served cohort departure is recorded when its upstream cause is unavailable
+# ADR 0098 - A served cohort departure is recorded when its upstream cause is unavailable
 
 - **Status**: Accepted
 - **Date**: 2026-09-15
@@ -10,7 +10,7 @@ The trust refresh advanced the served cohort from the previous revision `c4c388b
 current revision. The identity witness found one subject that was present in the previous
 cohort but absent from the current served window:
 
-- `ai.aisecuritygateway/mcp-gateway` — **de-listed from the served cohort** between the two
+- `ai.aisecuritygateway/mcp-gateway` — **departed from the served cohort** between the two
   revisions; the current offline run did not consult the upstream source, so the cause is
   **unknown**.
 
@@ -36,3 +36,19 @@ served cohort by prose.
   window and the source was not consulted.
 - The refresh completed its source walk and generated the snapshot; this ADR only records the
   identity event required by ADR 0084 D4.
+
+## Correction after consulting the source — 2026-09-15
+
+The initial acknowledgement above was insufficient: it described a departure whose cause
+was unknown using wording that the gate interpreted as a publisher withdrawal. That green
+result did not establish the cause. This section records the subsequent source check.
+
+- `ai.aisecuritygateway/mcp-gateway` is **de-listed from the Official MCP Registry** at this observation: the exact-name versions endpoint returns HTTP 404 with `Server not found`.
+- `https://registry.modelcontextprotocol.io/v0/servers/ai.aisecuritygateway%2Fmcp-gateway/versions` returned `{"title":"Not Found","status":404,"detail":"Server not found"}`.
+- `https://registry.modelcontextprotocol.io/v0/servers?search=aisecuritygateway&limit=100` returned HTTP 200 with `{"servers":[],"metadata":{"count":0}}` and no continuation cursor.
+
+These observations establish source absence under ADR 0085's classification, not the
+publisher's intent or the date of removal. They were checked independently of the selected
+250-record snapshot. Offline CI still reports its own source view as UNKNOWN; this ADR
+records the external observation it cannot make. A future active upstream version would
+require re-evaluation rather than an inference that this record proves continued absence.

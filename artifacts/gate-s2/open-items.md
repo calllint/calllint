@@ -3,7 +3,6 @@
 **Gate:** `scripts/gate-s2.ts` · `pnpm gate:s2` / `gate:s2:gate` / `gate:s2:regression`
 **Threshold:** 500 served registry records (`CUMULATIVE_COVERAGE_CEILING`)
 **Cohort at creation:** **150** — the gate existed **350 records before its threshold**
-**Cohort now:** **250** — **250 records before its threshold**
 **Created:** 2026-08-31, closing S1-OPEN-2
 **Reader:** `tests/invariants/gate-s2-claims.invariants.test.ts` — **31 `it` blocks, three layers**
 
@@ -209,3 +208,11 @@ the **other** direction: every *served* name is still in the committed snapshot,
 whose name has left the snapshot is one the next `selectCohortEntries` cannot retain — eviction in
 progress rather than eviction already shipped. Proven distinct: appending an orphan to the served index
 reds `scale-retention` while `source-completeness` stays green.
+
+<!-- generated-cohort-census:start -->
+## Current committed census (generated)
+
+Derived from the retained registry snapshot and served index; dated measurements above are preserved.
+
+**Cohort now:** **250** — **250 records before its threshold**
+<!-- generated-cohort-census:end -->
