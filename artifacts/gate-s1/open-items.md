@@ -754,9 +754,10 @@ shipped as a side effect.
 
 Derived from the retained registry snapshot and served index; dated measurements above are preserved.
 
-300/300 source records reached the served tree.
+350/350 source records reached the served tree.
 
-Cohort census: source **300 / 100 required**; served **300 registry pages / 300
+Cohort census: source **350 / 100 required**; served **350 registry pages / 350
 committed**.
 <!-- generated-cohort-census:end -->
+
 
