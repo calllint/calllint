@@ -281,8 +281,22 @@ async function* paginate(
     if (updatedSince !== null) params.updated_since = updatedSince
     const url = withParams(endpoint, params)
 
-    const res = await ctx.fetchImpl(url)
-    if (!res.ok) throw new Error(`registry fetch failed: HTTP ${res.status}`)
+    let res: Response | null = null
+    let lastError: Error | null = null
+    // Registry 5xx/429 responses are transient transport failures. Retry the same cursor
+    // with bounded exponential backoff; never advance or emit a partial page.
+    for (let attempt = 0; attempt < 4; attempt++) {
+      try {
+        res = await ctx.fetchImpl(url)
+        if (res.ok) break
+        if (res.status < 500 && res.status !== 429) break
+        lastError = new Error(`registry fetch failed: HTTP ${res.status}`)
+      } catch (error) {
+        lastError = error instanceof Error ? error : new Error(String(error))
+      }
+      if (attempt < 3) await new Promise((resolve) => setTimeout(resolve, 250 * 2 ** attempt))
+    }
+    if (res === null || !res.ok) throw lastError ?? new Error("registry fetch failed")
     const page = (await res.json()) as RawPage
     pages += 1
 
