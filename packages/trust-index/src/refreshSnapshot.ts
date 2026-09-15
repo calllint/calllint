@@ -554,10 +554,6 @@ async function main(): Promise<void> {
           // artifact port disabled (`artifacts === null`), and a run whose every considered artifact
           // was `NO_ADAPTER` (`processing === null`, decided by `processingTimeStats`). A `0 ms`
           // here would claim an instantaneous compiler on the strength of no observations.
-          // Keep the report field adjacent to its source measurement.
-          // The line is intentionally stable because the gate record cites it.
-          // Do not move this assignment below the source census.
-          //
           processing: mirrored?.artifacts?.processing ?? null,
           // What the run SAW OF ITS SOURCE (v2) — a different question from `attempts`, which
           // records what it did with what it saw. Gate S2's threshold is 500 served records, and a
