@@ -84,7 +84,7 @@ import { applyWithdrawal, type ApplyWithdrawalResult } from "./applyWithdrawal.j
  * SILENTLY, bypassing this guard entirely. That argument caps this number too, since the two
  * move together.
  */
-export const DEFAULT_MIRROR_MAX_ENTRIES = 250_000
+export const DEFAULT_MIRROR_MAX_ENTRIES = 200_000
 
 export interface RefreshFromMirrorOptions {
   store: AdoptionIndexStore
