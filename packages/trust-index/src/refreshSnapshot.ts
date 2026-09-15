@@ -96,7 +96,6 @@
  *         TRUST_INGEST_EVIDENCE (optional) `0` skips evidence compilation entirely
  */
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs"
-import { replayRegistry } from "./registryDownload.js"
 import { dirname, resolve } from "node:path"
 import { fileURLToPath } from "node:url"
 import {
@@ -378,12 +377,8 @@ async function main(): Promise<void> {
   }
 
   const maxEntries = resolveMaxEntries(process.env, previousCount)
-  // A completed, validated download has measured bounds. Partial downloads throw here,
-  // before opening the store; direct CLI reads retain their explicit safety ceilings.
-  const replay = process.env.TRUST_REGISTRY_DOWNLOAD_DIR
-    ? replayRegistry(process.env.TRUST_REGISTRY_DOWNLOAD_DIR) : null
-  const mirrorMaxEntries = replay ? Math.max(replay.maxEntries, maxEntries + 1) : resolveMirrorMaxEntries(process.env, maxEntries)
-  const maxPages = replay?.maxPages ?? resolveMirrorMaxPages(process.env)
+  const mirrorMaxEntries = resolveMirrorMaxEntries(process.env, maxEntries)
+  const maxPages = resolveMirrorMaxPages(process.env)
 
   // 1. Mirror the full source into the adoption index, then project the snapshot from it
   //    (the only network step). The store self-migrates on open, so a cold CI checkout —
@@ -650,7 +645,7 @@ async function main(): Promise<void> {
       mirrored = await refreshFromMirror({
         store,
         adapter: createOfficialRegistryAdapter(DEFAULT_ENDPOINT),
-        fetchImpl: replay?.fetchImpl ?? fetch,
+        fetchImpl: fetch,
         now,
         endpoint: DEFAULT_ENDPOINT,
         snapshotMaxEntries: maxEntries,
