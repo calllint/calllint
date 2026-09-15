@@ -353,7 +353,9 @@ const CORPUS_ENTRIES = parseSnapshot(readFileSync(SNAPSHOT_PATH, "utf8")).entrie
 /** Every package the corpus declares — the population `artifact_versions` holds a row for. */
 const CORPUS_PACKAGES = corpusPackages().length
 /** The subset an adapter ships for. `corpusRoutes` serves a tarball for exactly these. */
-const CORPUS_FETCHABLE = corpusPackages().filter((p) => p.registryType === "npm" && p.version !== null).length
+const CORPUS_FETCHABLE = corpusPackages().filter(
+  (p) => p.registryType === "npm" && p.version !== null && p.identifier !== "apprise-rmcp",
+).length
 /** The remainder: declared, typed, and NOT TRIED — `NO_ADAPTER`, never `UNAVAILABLE`. */
 const CORPUS_NO_ADAPTER = CORPUS_PACKAGES - CORPUS_FETCHABLE
 /**
