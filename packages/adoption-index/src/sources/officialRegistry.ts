@@ -70,7 +70,7 @@ const OFFICIAL_META = "io.modelcontextprotocol.registry/official"
  * It is still a CEILING and still fails closed — `assertMirrorComplete` refuses to project past
  * it rather than shipping a short snapshot.
  */
-export const DEFAULT_MAX_PAGES = 1000
+export const DEFAULT_MAX_PAGES = 1500
 
 /**
  * Records requested per page.

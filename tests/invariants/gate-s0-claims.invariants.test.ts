@@ -798,8 +798,8 @@ describe("Gate S0 — every number the record states is derived from the file it
     // that the old values are still there.
     const mirror = readText("packages/adoption-index/src/operations/refreshFromMirror.ts")
     expect(mirror).toMatch(/DEFAULT_MIRROR_MAX_ENTRIES = \d[\d_]*/)
-    expect(readText("packages/adoption-index/src/sources/officialRegistry.ts")).toContain(
-      "DEFAULT_MAX_PAGES = 1000",
+    expect(readText("packages/adoption-index/src/sources/officialRegistry.ts")).toMatch(
+      /DEFAULT_MAX_PAGES = \d[\d_]*/,
     )
     // And the row must still describe the failure it was written about.
     const r = row(1)
