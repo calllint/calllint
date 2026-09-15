@@ -2,8 +2,8 @@
   "schema": "calllint.trust-snapshot.v0",
   "source": "official-mcp-registry",
   "endpoint": "https://registry.modelcontextprotocol.io/v0/servers",
-  "fetchedAt": "2026-09-15T02:38:22.000Z",
-  "count": 250,
+  "fetchedAt": "2026-09-15T04:43:56.000Z",
+  "count": 300,
   "entries": [
     {
       "name": "ac.inference.sh/mcp",
@@ -201,6 +201,21 @@
       ],
       "status": "active",
       "publishedAt": "2026-07-10T05:01:17.106808Z"
+    },
+    {
+      "name": "ai.aard/aard",
+      "description": "Official statistics from 170+ publishers, resolved from natural language with provenance.",
+      "version": "0.1.0",
+      "repositoryUrl": null,
+      "packages": [],
+      "remotes": [
+        {
+          "type": "streamable-http",
+          "url": "https://api.aard.ai/mcp"
+        }
+      ],
+      "status": "active",
+      "publishedAt": "2026-09-15T02:38:30.780577Z"
     },
     {
       "name": "ai.aarna/atars-mcp",
@@ -2793,7 +2808,7 @@
     {
       "name": "ai.bowmark/bowmark",
       "description": "Do things on live websites: prices, availability, quotes, bookings, anything behind a form or login.",
-      "version": "8.126.5",
+      "version": "8.127.0",
       "repositoryUrl": "https://github.com/bowmark-ai/skill",
       "packages": [
         {
@@ -2816,7 +2831,7 @@
         }
       ],
       "status": "active",
-      "publishedAt": "2026-09-15T01:41:18.695571Z"
+      "publishedAt": "2026-09-15T04:41:13.921179Z"
     },
     {
       "name": "ai.brainattic/knowledge-base",
@@ -3905,6 +3920,777 @@
       ],
       "status": "active",
       "publishedAt": "2026-08-05T12:28:30.185334Z"
+    },
+    {
+      "name": "ai.contio/meetingos",
+      "description": "Contio MeetingOS: meetings, transcripts, action items, agendas, calendar, and project management.",
+      "version": "1.0.4",
+      "repositoryUrl": null,
+      "packages": [],
+      "remotes": [
+        {
+          "type": "streamable-http",
+          "url": "https://mcp.contio.ai/mcp"
+        }
+      ],
+      "status": "active",
+      "publishedAt": "2026-08-06T23:35:16.144113Z"
+    },
+    {
+      "name": "ai.contractorsnearme/contractors-near-me",
+      "description": "Search licensed US contractors by trade or location, fetch profiles and reviews, and submit leads.",
+      "version": "1.2.0",
+      "repositoryUrl": null,
+      "packages": [],
+      "remotes": [
+        {
+          "type": "streamable-http",
+          "url": "https://contractorsnearme.ai/api/mcp"
+        }
+      ],
+      "status": "active",
+      "publishedAt": "2026-08-30T14:33:26.647431Z"
+    },
+    {
+      "name": "ai.conveo/conveo",
+      "description": "Qualitative research platform. Design studies, analyze interviews, and generate insights.",
+      "version": "1.0.1",
+      "repositoryUrl": null,
+      "packages": [],
+      "remotes": [
+        {
+          "type": "streamable-http",
+          "url": "https://app.conveo.ai/api/mcp"
+        }
+      ],
+      "status": "active",
+      "publishedAt": "2026-05-06T11:05:24.104018Z"
+    },
+    {
+      "name": "ai.cookiy/cookiy",
+      "description": "AI user research via studies, interviews, recruitment, reports, and quantitative surveys.",
+      "version": "1.7.19",
+      "repositoryUrl": "https://github.com/cookiy-ai/cookiy-skill",
+      "packages": [],
+      "remotes": [
+        {
+          "type": "streamable-http",
+          "url": "https://s-api.cookiy.ai/mcp"
+        }
+      ],
+      "status": "active",
+      "publishedAt": "2026-03-28T05:28:52.028499Z"
+    },
+    {
+      "name": "ai.corduroy-labs/updates",
+      "description": "Corduroy Labs studio updates over MCP: list_updates and get_update, backed by the site's JSON Feed.",
+      "version": "0.1.1",
+      "repositoryUrl": null,
+      "packages": [],
+      "remotes": [
+        {
+          "type": "streamable-http",
+          "url": "https://corduroy-labs.ai/mcp"
+        }
+      ],
+      "status": "active",
+      "publishedAt": "2026-07-17T18:01:06.82434Z"
+    },
+    {
+      "name": "ai.cosmonote/notes",
+      "description": "Access your Cosmonote audio notes, transcriptions, summaries, and action items.",
+      "version": "1.0.0",
+      "repositoryUrl": "https://github.com/cosmonote/pocketbase",
+      "packages": [],
+      "remotes": [
+        {
+          "type": "streamable-http",
+          "url": "https://nebula.cosmonote.ai/mcp"
+        }
+      ],
+      "status": "active",
+      "publishedAt": "2026-05-05T08:30:35.974817Z"
+    },
+    {
+      "name": "ai.cotal/cotal",
+      "description": "cotal.ai actions: product overview, site search, build log, feedback, Cloud waitlist, updates, calls",
+      "version": "1.1.0",
+      "repositoryUrl": "https://github.com/Cotal-AI/Cotal",
+      "packages": [],
+      "remotes": [
+        {
+          "type": "streamable-http",
+          "url": "https://cotal.ai/mcp"
+        }
+      ],
+      "status": "active",
+      "publishedAt": "2026-09-08T01:10:30.100621Z"
+    },
+    {
+      "name": "ai.cralo/mcp",
+      "description": "Pay-per-use tool marketplace for AI agents. Search, price-check, and call APIs via MCP.",
+      "version": "0.4.4",
+      "repositoryUrl": "https://github.com/amrnth/opentooler",
+      "packages": [],
+      "remotes": [
+        {
+          "type": "streamable-http",
+          "url": "https://mcp.cralo.ai/mcp"
+        }
+      ],
+      "status": "active",
+      "publishedAt": "2026-08-30T19:23:02.391365Z"
+    },
+    {
+      "name": "ai.craneledger/crane-ledger",
+      "description": "Headless API-first double-entry accounting & bookkeeping engine. 84 MCP tools over HTTP.",
+      "version": "0.1.1",
+      "repositoryUrl": null,
+      "packages": [],
+      "remotes": [
+        {
+          "type": "streamable-http",
+          "url": "https://api.craneledger.ai/mcp"
+        }
+      ],
+      "status": "active",
+      "publishedAt": "2026-06-25T16:03:19.605397Z"
+    },
+    {
+      "name": "ai.crayonz/mcp",
+      "description": "Design custom apparel from chat: AI art on tees and hoodies, then a checkout link to buy.",
+      "version": "0.1.0",
+      "repositoryUrl": "https://github.com/iitian-vibes/AIDesign",
+      "packages": [],
+      "remotes": [
+        {
+          "type": "streamable-http",
+          "url": "https://mcp.crayonz.ai/mcp"
+        }
+      ],
+      "status": "active",
+      "publishedAt": "2026-08-30T10:15:28.617767Z"
+    },
+    {
+      "name": "ai.createprints/createprints",
+      "description": "Generate AI artwork and order physical wall-art prints through conversation.",
+      "version": "0.4.0",
+      "repositoryUrl": null,
+      "packages": [],
+      "remotes": [
+        {
+          "type": "streamable-http",
+          "url": "https://mcp.createprints.ai/mcp"
+        },
+        {
+          "type": "sse",
+          "url": "https://mcp.createprints.ai/sse"
+        }
+      ],
+      "status": "active",
+      "publishedAt": "2026-08-30T08:01:33.409348Z"
+    },
+    {
+      "name": "ai.creationloop/creationloop",
+      "description": "CreationLoop is your Marketing Agent. Read the overview, offer, and FAQ; apply as a design partner.",
+      "version": "0.1.0",
+      "repositoryUrl": "https://github.com/marino129/creationloop-mcp",
+      "packages": [],
+      "remotes": [
+        {
+          "type": "streamable-http",
+          "url": "https://creationloop.ai/api/mcp"
+        }
+      ],
+      "status": "active",
+      "publishedAt": "2026-07-09T00:13:17.622184Z"
+    },
+    {
+      "name": "ai.creativescope/creative-intelligence",
+      "description": "Mobile-game ad creative intelligence across SDK ad networks: search, rankings, AI hook analysis.",
+      "version": "1.0.0",
+      "repositoryUrl": "https://github.com/creativescope/creativescope-mcp",
+      "packages": [],
+      "remotes": [
+        {
+          "type": "streamable-http",
+          "url": "https://mcp.creativescope.ai/mcp"
+        }
+      ],
+      "status": "active",
+      "publishedAt": "2026-07-22T09:51:05.050177Z"
+    },
+    {
+      "name": "ai.creditpolicy/creditpolicy",
+      "description": "Search Australian lender credit policies, compare lenders and pre-vet deals, with citations.",
+      "version": "1.0.0",
+      "repositoryUrl": null,
+      "packages": [],
+      "remotes": [
+        {
+          "type": "streamable-http",
+          "url": "https://creditpolicy.ai/api/mcp"
+        }
+      ],
+      "status": "active",
+      "publishedAt": "2026-08-13T01:32:49.084207Z"
+    },
+    {
+      "name": "ai.cueapi/mcp",
+      "description": "Schedule agent work and report write-once outcomes via CueAPI from any MCP host.",
+      "version": "0.1.3",
+      "repositoryUrl": "https://github.com/cueapi/cueapi-mcp",
+      "packages": [
+        {
+          "registryType": "npm",
+          "identifier": "@cueapi/mcp",
+          "version": "0.1.3",
+          "transport": null
+        }
+      ],
+      "remotes": [],
+      "status": "active",
+      "publishedAt": "2026-04-15T19:01:06.819529Z"
+    },
+    {
+      "name": "ai.cueframe/cueframe",
+      "description": "Turn footage into finished video: content-aware reframing, captions behind the subject, graphics.",
+      "version": "1.1.0",
+      "repositoryUrl": null,
+      "packages": [],
+      "remotes": [
+        {
+          "type": "streamable-http",
+          "url": "https://api.cueframe.ai/v1/mcp"
+        }
+      ],
+      "status": "active",
+      "publishedAt": "2026-07-29T01:29:40.23313Z"
+    },
+    {
+      "name": "ai.customdomain/mcp",
+      "description": "Custom domains for SaaS and AI agents: search, register, connect DNS, and issue HTTPS over MCP.",
+      "version": "0.4.0",
+      "repositoryUrl": null,
+      "packages": [],
+      "remotes": [
+        {
+          "type": "streamable-http",
+          "url": "https://mcp.customdomain.ai/mcp"
+        }
+      ],
+      "status": "active",
+      "publishedAt": "2026-07-12T18:06:58.552306Z"
+    },
+    {
+      "name": "ai.d50/d50-platform",
+      "description": "246 tools to run sales, marketing & hiring: CRM, leads, AI calling, content, recruiting & SEO.",
+      "version": "1.0.0",
+      "repositoryUrl": null,
+      "packages": [],
+      "remotes": [
+        {
+          "type": "streamable-http",
+          "url": "https://app.d50.ai/api/mcp"
+        }
+      ],
+      "status": "active",
+      "publishedAt": "2026-06-14T08:27:04.313042Z"
+    },
+    {
+      "name": "ai.dablock/visibility-index",
+      "description": "Measured share of answer for 24 crypto and Web3 brands. An open dataset, not an audit of your site.",
+      "version": "1.0.1",
+      "repositoryUrl": "https://github.com/creanlab/ai-visibility-index",
+      "packages": [],
+      "remotes": [
+        {
+          "type": "streamable-http",
+          "url": "https://dablock.ai/mcp"
+        }
+      ],
+      "status": "active",
+      "publishedAt": "2026-08-05T22:21:48.342634Z"
+    },
+    {
+      "name": "ai.dabyte/visibility-index",
+      "description": "Measured share of answer for 20 SaaS brands. An open dataset, not an audit of your site.",
+      "version": "1.0.1",
+      "repositoryUrl": "https://github.com/creanlab/ai-visibility-index",
+      "packages": [],
+      "remotes": [
+        {
+          "type": "streamable-http",
+          "url": "https://dabyte.ai/mcp"
+        }
+      ],
+      "status": "active",
+      "publishedAt": "2026-08-05T22:21:21.607463Z"
+    },
+    {
+      "name": "ai.darkfunnels/docs",
+      "description": "Search and read the DarkFunnels docs: WhatsApp AI sales agents connected by QR, no Meta Cloud API.",
+      "version": "1.0.0",
+      "repositoryUrl": "https://github.com/darkfunnels-ai/darkfunnels-mcp",
+      "packages": [],
+      "remotes": [
+        {
+          "type": "streamable-http",
+          "url": "https://docs.darkfunnels.ai/mcp"
+        }
+      ],
+      "status": "active",
+      "publishedAt": "2026-09-04T20:50:58.601633Z"
+    },
+    {
+      "name": "ai.darkfunnels/whatsapp-sales-agent",
+      "description": "WhatsApp AI sales agent on your own number via QR, no Meta API: audit chats, edit playbook, orders.",
+      "version": "1.0.1",
+      "repositoryUrl": "https://github.com/darkfunnels-ai/darkfunnels-mcp",
+      "packages": [],
+      "remotes": [
+        {
+          "type": "streamable-http",
+          "url": "https://mcp.darkfunnels.ai/mcp?features=all"
+        }
+      ],
+      "status": "active",
+      "publishedAt": "2026-09-04T20:50:58.097516Z"
+    },
+    {
+      "name": "ai.datacenterindex/datacenterindex",
+      "description": "AI infrastructure tracker: data center campuses, power projects, MW and the companies behind them",
+      "version": "1.0.1",
+      "repositoryUrl": null,
+      "packages": [],
+      "remotes": [
+        {
+          "type": "streamable-http",
+          "url": "https://datacenterindex.ai/mcp"
+        }
+      ],
+      "status": "active",
+      "publishedAt": "2026-09-14T15:06:03.012788Z"
+    },
+    {
+      "name": "ai.dataecho/mcp",
+      "description": "Deploy files, sites, and Dockerfile apps to live URLs + private drives for agent memory.",
+      "version": "1.0.0",
+      "repositoryUrl": "https://github.com/mohocp/dataecho",
+      "packages": [],
+      "remotes": [
+        {
+          "type": "streamable-http",
+          "url": "https://dataecho.ai/mcp"
+        }
+      ],
+      "status": "active",
+      "publishedAt": "2026-07-04T19:46:27.691356Z"
+    },
+    {
+      "name": "ai.dataforb2b/dataforb2b",
+      "description": "Search and enrich B2B people & companies — 70+ filters (funding, linkedin, industry, country, ...).",
+      "version": "1.0.1",
+      "repositoryUrl": null,
+      "packages": [],
+      "remotes": [
+        {
+          "type": "streamable-http",
+          "url": "https://mcp.dataforb2b.ai/mcp"
+        }
+      ],
+      "status": "active",
+      "publishedAt": "2026-05-14T20:00:08.289344Z"
+    },
+    {
+      "name": "ai.datamerge/mcp",
+      "description": "B2B data enrichment for 375M+ companies: legal entities, corporate hierarchies, and contacts.",
+      "version": "1.0.0",
+      "repositoryUrl": null,
+      "packages": [],
+      "remotes": [
+        {
+          "type": "streamable-http",
+          "url": "https://mcp.datamerge.ai"
+        }
+      ],
+      "status": "active",
+      "publishedAt": "2026-02-27T11:50:11.005967Z"
+    },
+    {
+      "name": "ai.dataparrot/data-parrot",
+      "description": "Data Parrot brings AI revenue analysis of your HubSpot data into your AI tools.",
+      "version": "1.2.0",
+      "repositoryUrl": null,
+      "packages": [],
+      "remotes": [
+        {
+          "type": "streamable-http",
+          "url": "https://api-v3.dataparrot.ai/api/v3/data-parrot/mcp"
+        }
+      ],
+      "status": "active",
+      "publishedAt": "2026-09-14T03:19:13.181329Z"
+    },
+    {
+      "name": "ai.daystruct.api/daystruct",
+      "description": "Sourced software, security and AI evidence, plus scoped requests for specialist agent help.",
+      "version": "1.1.0",
+      "repositoryUrl": null,
+      "packages": [],
+      "remotes": [
+        {
+          "type": "streamable-http",
+          "url": "https://api.daystruct.ai/mcp"
+        }
+      ],
+      "status": "active",
+      "publishedAt": "2026-09-09T04:11:09.63503Z"
+    },
+    {
+      "name": "ai.dealfilter/mcp",
+      "description": "AI deal pipeline for IT freelancers in DACH: analyze, list and manage project inquiries.",
+      "version": "1.0.0",
+      "repositoryUrl": null,
+      "packages": [],
+      "remotes": [
+        {
+          "type": "streamable-http",
+          "url": "https://dealfilter.ai/api/mcp"
+        }
+      ],
+      "status": "active",
+      "publishedAt": "2026-07-13T07:59:13.738871Z"
+    },
+    {
+      "name": "ai.decimal/registry",
+      "description": "Search agent skills ranked by measured lift vs a no-skill baseline, with safety and rankings.",
+      "version": "0.1.3",
+      "repositoryUrl": "https://github.com/decimal-labs/decimalai-mcp",
+      "packages": [
+        {
+          "registryType": "pypi",
+          "identifier": "decimalai-mcp",
+          "version": "0.1.3",
+          "transport": null
+        }
+      ],
+      "remotes": [],
+      "status": "active",
+      "publishedAt": "2026-08-20T04:24:27.318985Z"
+    },
+    {
+      "name": "ai.decisionlog/mcp",
+      "description": "Append-only decisions with provenance, supersession, retrieval, and audited MCP actions.",
+      "version": "0.1.0",
+      "repositoryUrl": null,
+      "packages": [],
+      "remotes": [
+        {
+          "type": "streamable-http",
+          "url": "https://www.decisionlog.ai/api/mcp"
+        }
+      ],
+      "status": "active",
+      "publishedAt": "2026-07-17T04:19:14.368455Z"
+    },
+    {
+      "name": "ai.deepledger/mcp",
+      "description": "AI Accountant for Quickbooks- recording, reconcile, month-end close",
+      "version": "1.0.4",
+      "repositoryUrl": null,
+      "packages": [],
+      "remotes": [
+        {
+          "type": "streamable-http",
+          "url": "https://mcp.deepledger.ai/mcp"
+        }
+      ],
+      "status": "active",
+      "publishedAt": "2026-05-30T08:25:20.319133Z"
+    },
+    {
+      "name": "ai.deinai/creator-skill",
+      "description": "AI influencer search on TikTok, Instagram, YouTube. Deinai MCP token required; credits per result.",
+      "version": "1.0.2",
+      "repositoryUrl": "https://github.com/deinai/deinai_backend",
+      "packages": [
+        {
+          "registryType": "pypi",
+          "identifier": "deinai-mcp",
+          "version": "1.0.2",
+          "transport": null
+        }
+      ],
+      "remotes": [
+        {
+          "type": "streamable-http",
+          "url": "https://deinai.ai/mcp"
+        }
+      ],
+      "status": "active",
+      "publishedAt": "2026-06-05T10:16:43.633426Z"
+    },
+    {
+      "name": "ai.deinai/creator-skill-v2",
+      "description": "SKILL-02 (not SKILL-01): AI influencer search on TikTok, Instagram & YouTube. sk_live_ token.",
+      "version": "0.2.1",
+      "repositoryUrl": "https://github.com/deinai/skill-service",
+      "packages": [
+        {
+          "registryType": "pypi",
+          "identifier": "creator-skill-v2",
+          "version": "0.2.1",
+          "transport": null
+        }
+      ],
+      "remotes": [
+        {
+          "type": "streamable-http",
+          "url": "https://skill.deinai.ai/mcp"
+        }
+      ],
+      "status": "active",
+      "publishedAt": "2026-06-30T11:27:51.123362Z"
+    },
+    {
+      "name": "ai.delega/aws-pricing-calculator",
+      "description": "Create AWS cost estimates and shareable AWS Pricing Calculator URLs.",
+      "version": "1.0.0",
+      "repositoryUrl": null,
+      "packages": [],
+      "remotes": [
+        {
+          "type": "streamable-http",
+          "url": "https://calculator.delega.ai/mcp"
+        }
+      ],
+      "status": "active",
+      "publishedAt": "2026-05-25T16:42:25.074565Z"
+    },
+    {
+      "name": "ai.demanddiscovery/mcp",
+      "description": "Validate startup ideas with real people asking for them, each quote linked to its source.",
+      "version": "1.3.26",
+      "repositoryUrl": null,
+      "packages": [],
+      "remotes": [
+        {
+          "type": "streamable-http",
+          "url": "https://mcp.demanddiscovery.ai/api/mcp"
+        }
+      ],
+      "status": "active",
+      "publishedAt": "2026-08-30T02:33:28.857019Z"
+    },
+    {
+      "name": "ai.demomagic/interactive-video-guide",
+      "description": "Guides for making interactive videos & AI product demos that answer viewers' questions.",
+      "version": "0.1.0",
+      "repositoryUrl": null,
+      "packages": [
+        {
+          "registryType": "npm",
+          "identifier": "@demomagic/mcp",
+          "version": "0.1.0",
+          "transport": null
+        }
+      ],
+      "remotes": [],
+      "status": "active",
+      "publishedAt": "2026-06-18T00:38:53.356402Z"
+    },
+    {
+      "name": "ai.deployit/product-expert",
+      "description": "AI product expert answering from live source code, with sources and a verification status.",
+      "version": "1.0.0",
+      "repositoryUrl": null,
+      "packages": [],
+      "remotes": [
+        {
+          "type": "streamable-http",
+          "url": "https://mcp.deployit.ai/demo"
+        }
+      ],
+      "status": "active",
+      "publishedAt": "2026-08-31T09:01:19.717336Z"
+    },
+    {
+      "name": "ai.deskclone/deskclone",
+      "description": "Ask a company's DeskClone support agent from Claude, Cursor or any MCP client (API key needed).",
+      "version": "1.0.0",
+      "repositoryUrl": null,
+      "packages": [],
+      "remotes": [
+        {
+          "type": "streamable-http",
+          "url": "https://api.deskclone.ai/v1/mcp"
+        }
+      ],
+      "status": "active",
+      "publishedAt": "2026-09-03T10:24:40.420191Z"
+    },
+    {
+      "name": "ai.deskcrew/agentic",
+      "description": "Buy a managed AI phone agent for a business, paid keylessly via x402/RLUSD on the XRP Ledger.",
+      "version": "1.0.0",
+      "repositoryUrl": "https://github.com/papperkash/ttf-website-v3",
+      "packages": [],
+      "remotes": [
+        {
+          "type": "streamable-http",
+          "url": "https://deskcrew.ai/api/mcp"
+        }
+      ],
+      "status": "active",
+      "publishedAt": "2026-07-30T15:58:04.72826Z"
+    },
+    {
+      "name": "ai.diagramzu/mcp",
+      "description": "Let Claude, Cursor, or ChatGPT author Mermaid diagrams your team can read and share.",
+      "version": "0.0.3",
+      "repositoryUrl": "https://github.com/yenchieh/diagramzu-mcp",
+      "packages": [],
+      "remotes": [
+        {
+          "type": "streamable-http",
+          "url": "https://mcp.diagramzu.ai/mcp"
+        }
+      ],
+      "status": "active",
+      "publishedAt": "2026-06-16T02:21:03.832798Z"
+    },
+    {
+      "name": "ai.diezx/diezx",
+      "description": "Business Observability: process inventory, AP risk, sales temperature, savings. diezX customers only",
+      "version": "0.2.0",
+      "repositoryUrl": null,
+      "packages": [],
+      "remotes": [
+        {
+          "type": "streamable-http",
+          "url": "https://agents.diezx.ai/api/mcp"
+        }
+      ],
+      "status": "active",
+      "publishedAt": "2026-08-20T23:08:51.33854Z"
+    },
+    {
+      "name": "ai.dimetrics/dimetrics",
+      "description": "HPC lease economics, datacenter power, debt linkage, and political risk for miners and neoclouds.",
+      "version": "1.0.0",
+      "repositoryUrl": null,
+      "packages": [],
+      "remotes": [
+        {
+          "type": "streamable-http",
+          "url": "https://www.dimetrics.ai/api/mcp"
+        }
+      ],
+      "status": "active",
+      "publishedAt": "2026-06-12T23:38:11.024345Z"
+    },
+    {
+      "name": "ai.dinglebear/apprise-rmcp",
+      "description": "Rust MCP server and CLI for Apprise notification fan-out across dozens of delivery backends.",
+      "version": "0.1.3",
+      "repositoryUrl": "https://github.com/jmagar/apprise-rmcp",
+      "packages": [
+        {
+          "registryType": "npm",
+          "identifier": "apprise-rmcp",
+          "version": "0.1.3",
+          "transport": null
+        }
+      ],
+      "remotes": [],
+      "status": "active",
+      "publishedAt": "2026-07-12T11:58:27.866195Z"
+    },
+    {
+      "name": "ai.dinglebear/arcane-rmcp",
+      "description": "Rust MCP server and CLI for Arcane Docker and container management.",
+      "version": "0.4.2",
+      "repositoryUrl": "https://github.com/jmagar/arcane-rmcp",
+      "packages": [
+        {
+          "registryType": "npm",
+          "identifier": "arcane-rmcp",
+          "version": "0.4.2",
+          "transport": null
+        }
+      ],
+      "remotes": [],
+      "status": "active",
+      "publishedAt": "2026-07-12T11:58:28.276344Z"
+    },
+    {
+      "name": "ai.dinglebear/cortex",
+      "description": "Self-hosted homelab log intelligence over MCP, CLI, and REST with SQLite/FTS.",
+      "version": "3.13.2",
+      "repositoryUrl": "https://github.com/dinglebear-ai/cortex",
+      "packages": [
+        {
+          "registryType": "npm",
+          "identifier": "@dinglebear/cortex",
+          "version": "3.13.2",
+          "transport": null
+        }
+      ],
+      "remotes": [],
+      "status": "active",
+      "publishedAt": "2026-08-10T01:53:24.068345Z"
+    },
+    {
+      "name": "ai.dinglebear/cortex-rmcp",
+      "description": "Rust MCP server for homelab logs, syslog, Docker logs, FTS search, and AI transcript correlation.",
+      "version": "3.9.1",
+      "repositoryUrl": "https://github.com/jmagar/cortex",
+      "packages": [
+        {
+          "registryType": "npm",
+          "identifier": "cortex-rmcp",
+          "version": "3.9.1",
+          "transport": null
+        }
+      ],
+      "remotes": [],
+      "status": "active",
+      "publishedAt": "2026-07-12T11:58:28.58298Z"
+    },
+    {
+      "name": "ai.dinglebear/gotify-rmcp",
+      "description": "Rust MCP server and CLI for Gotify push notifications and message management.",
+      "version": "0.1.3",
+      "repositoryUrl": "https://github.com/jmagar/gotify-rmcp",
+      "packages": [
+        {
+          "registryType": "npm",
+          "identifier": "gotify-rmcp",
+          "version": "0.1.3",
+          "transport": null
+        }
+      ],
+      "remotes": [],
+      "status": "active",
+      "publishedAt": "2026-07-12T11:58:28.849931Z"
+    },
+    {
+      "name": "ai.dinglebear/labby",
+      "description": "Rust MCP gateway with Code Mode, authentication, setup, logs, CLI, HTTP API, and operator web UI.",
+      "version": "1.19.0",
+      "repositoryUrl": "https://github.com/dinglebear-ai/labby",
+      "packages": [
+        {
+          "registryType": "npm",
+          "identifier": "@dinglebear/labby",
+          "version": "1.19.0",
+          "transport": null
+        }
+      ],
+      "remotes": [],
+      "status": "active",
+      "publishedAt": "2026-09-14T08:55:06.337805Z"
     },
     {
       "name": "io.github.calllint/calllint",

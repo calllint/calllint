@@ -4,7 +4,7 @@
   "gate": "2.4-A",
   "status": "PASSED",
   "engine": "1.7.3",
-  "identitiesEvaluated": 248,
+  "identitiesEvaluated": 298,
   "surfacesPerIdentity": 6,
   "identities": [
     {
@@ -535,6 +535,47 @@
         {
           "surface": "apps/web/public/trust/lookup-index.json",
           "artifactDigest": "sha256:bdbac793efd6905e417d643ab1d4e5e9c8a879e05f5e271d137422c169973592",
+          "verdict": "REVIEW",
+          "verdictLabel": "Review required"
+        }
+      ]
+    },
+    {
+      "canonicalName": "mcp-registry/ai.aard-aard",
+      "surfaces": [
+        {
+          "surface": "apps/web/public/trust/mcp-registry/ai.aard-aard.json",
+          "artifactDigest": "sha256:cb5cbd64525827bd4b50d6a5350520bfb8c0ff5ddc25b4d17eb669784f810ba3",
+          "verdict": "REVIEW",
+          "verdictLabel": "Review required"
+        },
+        {
+          "surface": "apps/web/public/trust/mcp-registry/ai.aard-aard.manifest.json",
+          "artifactDigest": "sha256:cb5cbd64525827bd4b50d6a5350520bfb8c0ff5ddc25b4d17eb669784f810ba3",
+          "verdict": "REVIEW",
+          "verdictLabel": "Review required"
+        },
+        {
+          "surface": "apps/web/public/install/mcp-registry/ai.aard-aard/index.json",
+          "artifactDigest": "sha256:cb5cbd64525827bd4b50d6a5350520bfb8c0ff5ddc25b4d17eb669784f810ba3",
+          "verdict": "REVIEW",
+          "verdictLabel": "Review required"
+        },
+        {
+          "surface": "apps/web/public/trust/mcp-registry/ai.aard-aard.html",
+          "artifactDigest": "sha256:cb5cbd64525827bd4b50d6a5350520bfb8c0ff5ddc25b4d17eb669784f810ba3",
+          "verdict": null,
+          "verdictLabel": "Review required"
+        },
+        {
+          "surface": "apps/web/public/install/mcp-registry/ai.aard-aard/index.html",
+          "artifactDigest": "sha256:cb5cbd64525827bd4b50d6a5350520bfb8c0ff5ddc25b4d17eb669784f810ba3",
+          "verdict": null,
+          "verdictLabel": "Review required"
+        },
+        {
+          "surface": "apps/web/public/trust/lookup-index.json",
+          "artifactDigest": "sha256:cb5cbd64525827bd4b50d6a5350520bfb8c0ff5ddc25b4d17eb669784f810ba3",
           "verdict": "REVIEW",
           "verdictLabel": "Review required"
         }
@@ -8213,38 +8254,38 @@
         {
           "surface": "apps/web/public/trust/mcp-registry/ai.cdbx-mcp-server.json",
           "artifactDigest": "sha256:f0eb79d21cc428fe1200509f941906265630e2b139c4be5fcbd3ddde0732dc05",
-          "verdict": "REVIEW",
-          "verdictLabel": "Review required"
+          "verdict": "UNKNOWN",
+          "verdictLabel": "Insufficient evidence"
         },
         {
           "surface": "apps/web/public/trust/mcp-registry/ai.cdbx-mcp-server.manifest.json",
           "artifactDigest": "sha256:f0eb79d21cc428fe1200509f941906265630e2b139c4be5fcbd3ddde0732dc05",
-          "verdict": "REVIEW",
-          "verdictLabel": "Review required"
+          "verdict": "UNKNOWN",
+          "verdictLabel": "Insufficient evidence"
         },
         {
           "surface": "apps/web/public/install/mcp-registry/ai.cdbx-mcp-server/index.json",
           "artifactDigest": "sha256:f0eb79d21cc428fe1200509f941906265630e2b139c4be5fcbd3ddde0732dc05",
-          "verdict": "REVIEW",
-          "verdictLabel": "Review required"
+          "verdict": "UNKNOWN",
+          "verdictLabel": "Insufficient evidence"
         },
         {
           "surface": "apps/web/public/trust/mcp-registry/ai.cdbx-mcp-server.html",
           "artifactDigest": "sha256:f0eb79d21cc428fe1200509f941906265630e2b139c4be5fcbd3ddde0732dc05",
           "verdict": null,
-          "verdictLabel": "Review required"
+          "verdictLabel": "Insufficient evidence"
         },
         {
           "surface": "apps/web/public/install/mcp-registry/ai.cdbx-mcp-server/index.html",
           "artifactDigest": "sha256:f0eb79d21cc428fe1200509f941906265630e2b139c4be5fcbd3ddde0732dc05",
           "verdict": null,
-          "verdictLabel": "Review required"
+          "verdictLabel": "Insufficient evidence"
         },
         {
           "surface": "apps/web/public/trust/lookup-index.json",
           "artifactDigest": "sha256:f0eb79d21cc428fe1200509f941906265630e2b139c4be5fcbd3ddde0732dc05",
-          "verdict": "REVIEW",
-          "verdictLabel": "Review required"
+          "verdict": "UNKNOWN",
+          "verdictLabel": "Insufficient evidence"
         }
       ]
     },
@@ -10135,6 +10176,2015 @@
       ]
     },
     {
+      "canonicalName": "mcp-registry/ai.contio-meetingos",
+      "surfaces": [
+        {
+          "surface": "apps/web/public/trust/mcp-registry/ai.contio-meetingos.json",
+          "artifactDigest": "sha256:1f95bceac4ef861961ee4148cc451c874254d163846f7c9b886bd86cbf77d713",
+          "verdict": "REVIEW",
+          "verdictLabel": "Review required"
+        },
+        {
+          "surface": "apps/web/public/trust/mcp-registry/ai.contio-meetingos.manifest.json",
+          "artifactDigest": "sha256:1f95bceac4ef861961ee4148cc451c874254d163846f7c9b886bd86cbf77d713",
+          "verdict": "REVIEW",
+          "verdictLabel": "Review required"
+        },
+        {
+          "surface": "apps/web/public/install/mcp-registry/ai.contio-meetingos/index.json",
+          "artifactDigest": "sha256:1f95bceac4ef861961ee4148cc451c874254d163846f7c9b886bd86cbf77d713",
+          "verdict": "REVIEW",
+          "verdictLabel": "Review required"
+        },
+        {
+          "surface": "apps/web/public/trust/mcp-registry/ai.contio-meetingos.html",
+          "artifactDigest": "sha256:1f95bceac4ef861961ee4148cc451c874254d163846f7c9b886bd86cbf77d713",
+          "verdict": null,
+          "verdictLabel": "Review required"
+        },
+        {
+          "surface": "apps/web/public/install/mcp-registry/ai.contio-meetingos/index.html",
+          "artifactDigest": "sha256:1f95bceac4ef861961ee4148cc451c874254d163846f7c9b886bd86cbf77d713",
+          "verdict": null,
+          "verdictLabel": "Review required"
+        },
+        {
+          "surface": "apps/web/public/trust/lookup-index.json",
+          "artifactDigest": "sha256:1f95bceac4ef861961ee4148cc451c874254d163846f7c9b886bd86cbf77d713",
+          "verdict": "REVIEW",
+          "verdictLabel": "Review required"
+        }
+      ]
+    },
+    {
+      "canonicalName": "mcp-registry/ai.contractorsnearme-contractors-near-me",
+      "surfaces": [
+        {
+          "surface": "apps/web/public/trust/mcp-registry/ai.contractorsnearme-contractors-near-me.json",
+          "artifactDigest": "sha256:9ade01c2ca499c64dd789a1cc88e183bfe7773df4718881a0355a52b2bdf50b6",
+          "verdict": "REVIEW",
+          "verdictLabel": "Review required"
+        },
+        {
+          "surface": "apps/web/public/trust/mcp-registry/ai.contractorsnearme-contractors-near-me.manifest.json",
+          "artifactDigest": "sha256:9ade01c2ca499c64dd789a1cc88e183bfe7773df4718881a0355a52b2bdf50b6",
+          "verdict": "REVIEW",
+          "verdictLabel": "Review required"
+        },
+        {
+          "surface": "apps/web/public/install/mcp-registry/ai.contractorsnearme-contractors-near-me/index.json",
+          "artifactDigest": "sha256:9ade01c2ca499c64dd789a1cc88e183bfe7773df4718881a0355a52b2bdf50b6",
+          "verdict": "REVIEW",
+          "verdictLabel": "Review required"
+        },
+        {
+          "surface": "apps/web/public/trust/mcp-registry/ai.contractorsnearme-contractors-near-me.html",
+          "artifactDigest": "sha256:9ade01c2ca499c64dd789a1cc88e183bfe7773df4718881a0355a52b2bdf50b6",
+          "verdict": null,
+          "verdictLabel": "Review required"
+        },
+        {
+          "surface": "apps/web/public/install/mcp-registry/ai.contractorsnearme-contractors-near-me/index.html",
+          "artifactDigest": "sha256:9ade01c2ca499c64dd789a1cc88e183bfe7773df4718881a0355a52b2bdf50b6",
+          "verdict": null,
+          "verdictLabel": "Review required"
+        },
+        {
+          "surface": "apps/web/public/trust/lookup-index.json",
+          "artifactDigest": "sha256:9ade01c2ca499c64dd789a1cc88e183bfe7773df4718881a0355a52b2bdf50b6",
+          "verdict": "REVIEW",
+          "verdictLabel": "Review required"
+        }
+      ]
+    },
+    {
+      "canonicalName": "mcp-registry/ai.conveo-conveo",
+      "surfaces": [
+        {
+          "surface": "apps/web/public/trust/mcp-registry/ai.conveo-conveo.json",
+          "artifactDigest": "sha256:a2b8e70373eae9707a92bdbe175490080c44b3253788885db634f99ec7c997a3",
+          "verdict": "REVIEW",
+          "verdictLabel": "Review required"
+        },
+        {
+          "surface": "apps/web/public/trust/mcp-registry/ai.conveo-conveo.manifest.json",
+          "artifactDigest": "sha256:a2b8e70373eae9707a92bdbe175490080c44b3253788885db634f99ec7c997a3",
+          "verdict": "REVIEW",
+          "verdictLabel": "Review required"
+        },
+        {
+          "surface": "apps/web/public/install/mcp-registry/ai.conveo-conveo/index.json",
+          "artifactDigest": "sha256:a2b8e70373eae9707a92bdbe175490080c44b3253788885db634f99ec7c997a3",
+          "verdict": "REVIEW",
+          "verdictLabel": "Review required"
+        },
+        {
+          "surface": "apps/web/public/trust/mcp-registry/ai.conveo-conveo.html",
+          "artifactDigest": "sha256:a2b8e70373eae9707a92bdbe175490080c44b3253788885db634f99ec7c997a3",
+          "verdict": null,
+          "verdictLabel": "Review required"
+        },
+        {
+          "surface": "apps/web/public/install/mcp-registry/ai.conveo-conveo/index.html",
+          "artifactDigest": "sha256:a2b8e70373eae9707a92bdbe175490080c44b3253788885db634f99ec7c997a3",
+          "verdict": null,
+          "verdictLabel": "Review required"
+        },
+        {
+          "surface": "apps/web/public/trust/lookup-index.json",
+          "artifactDigest": "sha256:a2b8e70373eae9707a92bdbe175490080c44b3253788885db634f99ec7c997a3",
+          "verdict": "REVIEW",
+          "verdictLabel": "Review required"
+        }
+      ]
+    },
+    {
+      "canonicalName": "mcp-registry/ai.cookiy-cookiy",
+      "surfaces": [
+        {
+          "surface": "apps/web/public/trust/mcp-registry/ai.cookiy-cookiy.json",
+          "artifactDigest": "sha256:f1cd23fc32037830514422d24e049082b91f818951889ac083e9f84dc14c92d5",
+          "verdict": "REVIEW",
+          "verdictLabel": "Review required"
+        },
+        {
+          "surface": "apps/web/public/trust/mcp-registry/ai.cookiy-cookiy.manifest.json",
+          "artifactDigest": "sha256:f1cd23fc32037830514422d24e049082b91f818951889ac083e9f84dc14c92d5",
+          "verdict": "REVIEW",
+          "verdictLabel": "Review required"
+        },
+        {
+          "surface": "apps/web/public/install/mcp-registry/ai.cookiy-cookiy/index.json",
+          "artifactDigest": "sha256:f1cd23fc32037830514422d24e049082b91f818951889ac083e9f84dc14c92d5",
+          "verdict": "REVIEW",
+          "verdictLabel": "Review required"
+        },
+        {
+          "surface": "apps/web/public/trust/mcp-registry/ai.cookiy-cookiy.html",
+          "artifactDigest": "sha256:f1cd23fc32037830514422d24e049082b91f818951889ac083e9f84dc14c92d5",
+          "verdict": null,
+          "verdictLabel": "Review required"
+        },
+        {
+          "surface": "apps/web/public/install/mcp-registry/ai.cookiy-cookiy/index.html",
+          "artifactDigest": "sha256:f1cd23fc32037830514422d24e049082b91f818951889ac083e9f84dc14c92d5",
+          "verdict": null,
+          "verdictLabel": "Review required"
+        },
+        {
+          "surface": "apps/web/public/trust/lookup-index.json",
+          "artifactDigest": "sha256:f1cd23fc32037830514422d24e049082b91f818951889ac083e9f84dc14c92d5",
+          "verdict": "REVIEW",
+          "verdictLabel": "Review required"
+        }
+      ]
+    },
+    {
+      "canonicalName": "mcp-registry/ai.corduroy-labs-updates",
+      "surfaces": [
+        {
+          "surface": "apps/web/public/trust/mcp-registry/ai.corduroy-labs-updates.json",
+          "artifactDigest": "sha256:07580bba0b7f8bd93467b46b4bc0d0509c086c584f4a9611588078c353147354",
+          "verdict": "REVIEW",
+          "verdictLabel": "Review required"
+        },
+        {
+          "surface": "apps/web/public/trust/mcp-registry/ai.corduroy-labs-updates.manifest.json",
+          "artifactDigest": "sha256:07580bba0b7f8bd93467b46b4bc0d0509c086c584f4a9611588078c353147354",
+          "verdict": "REVIEW",
+          "verdictLabel": "Review required"
+        },
+        {
+          "surface": "apps/web/public/install/mcp-registry/ai.corduroy-labs-updates/index.json",
+          "artifactDigest": "sha256:07580bba0b7f8bd93467b46b4bc0d0509c086c584f4a9611588078c353147354",
+          "verdict": "REVIEW",
+          "verdictLabel": "Review required"
+        },
+        {
+          "surface": "apps/web/public/trust/mcp-registry/ai.corduroy-labs-updates.html",
+          "artifactDigest": "sha256:07580bba0b7f8bd93467b46b4bc0d0509c086c584f4a9611588078c353147354",
+          "verdict": null,
+          "verdictLabel": "Review required"
+        },
+        {
+          "surface": "apps/web/public/install/mcp-registry/ai.corduroy-labs-updates/index.html",
+          "artifactDigest": "sha256:07580bba0b7f8bd93467b46b4bc0d0509c086c584f4a9611588078c353147354",
+          "verdict": null,
+          "verdictLabel": "Review required"
+        },
+        {
+          "surface": "apps/web/public/trust/lookup-index.json",
+          "artifactDigest": "sha256:07580bba0b7f8bd93467b46b4bc0d0509c086c584f4a9611588078c353147354",
+          "verdict": "REVIEW",
+          "verdictLabel": "Review required"
+        }
+      ]
+    },
+    {
+      "canonicalName": "mcp-registry/ai.cosmonote-notes",
+      "surfaces": [
+        {
+          "surface": "apps/web/public/trust/mcp-registry/ai.cosmonote-notes.json",
+          "artifactDigest": "sha256:44360b5d2df2412379dea127830255824534be535b26b07469f9cd37fe91c42a",
+          "verdict": "REVIEW",
+          "verdictLabel": "Review required"
+        },
+        {
+          "surface": "apps/web/public/trust/mcp-registry/ai.cosmonote-notes.manifest.json",
+          "artifactDigest": "sha256:44360b5d2df2412379dea127830255824534be535b26b07469f9cd37fe91c42a",
+          "verdict": "REVIEW",
+          "verdictLabel": "Review required"
+        },
+        {
+          "surface": "apps/web/public/install/mcp-registry/ai.cosmonote-notes/index.json",
+          "artifactDigest": "sha256:44360b5d2df2412379dea127830255824534be535b26b07469f9cd37fe91c42a",
+          "verdict": "REVIEW",
+          "verdictLabel": "Review required"
+        },
+        {
+          "surface": "apps/web/public/trust/mcp-registry/ai.cosmonote-notes.html",
+          "artifactDigest": "sha256:44360b5d2df2412379dea127830255824534be535b26b07469f9cd37fe91c42a",
+          "verdict": null,
+          "verdictLabel": "Review required"
+        },
+        {
+          "surface": "apps/web/public/install/mcp-registry/ai.cosmonote-notes/index.html",
+          "artifactDigest": "sha256:44360b5d2df2412379dea127830255824534be535b26b07469f9cd37fe91c42a",
+          "verdict": null,
+          "verdictLabel": "Review required"
+        },
+        {
+          "surface": "apps/web/public/trust/lookup-index.json",
+          "artifactDigest": "sha256:44360b5d2df2412379dea127830255824534be535b26b07469f9cd37fe91c42a",
+          "verdict": "REVIEW",
+          "verdictLabel": "Review required"
+        }
+      ]
+    },
+    {
+      "canonicalName": "mcp-registry/ai.cotal-cotal",
+      "surfaces": [
+        {
+          "surface": "apps/web/public/trust/mcp-registry/ai.cotal-cotal.json",
+          "artifactDigest": "sha256:9c3996963fd442798501b1287e62dc862ab6e083d3b1a2ab78cbab74a75291e2",
+          "verdict": "REVIEW",
+          "verdictLabel": "Review required"
+        },
+        {
+          "surface": "apps/web/public/trust/mcp-registry/ai.cotal-cotal.manifest.json",
+          "artifactDigest": "sha256:9c3996963fd442798501b1287e62dc862ab6e083d3b1a2ab78cbab74a75291e2",
+          "verdict": "REVIEW",
+          "verdictLabel": "Review required"
+        },
+        {
+          "surface": "apps/web/public/install/mcp-registry/ai.cotal-cotal/index.json",
+          "artifactDigest": "sha256:9c3996963fd442798501b1287e62dc862ab6e083d3b1a2ab78cbab74a75291e2",
+          "verdict": "REVIEW",
+          "verdictLabel": "Review required"
+        },
+        {
+          "surface": "apps/web/public/trust/mcp-registry/ai.cotal-cotal.html",
+          "artifactDigest": "sha256:9c3996963fd442798501b1287e62dc862ab6e083d3b1a2ab78cbab74a75291e2",
+          "verdict": null,
+          "verdictLabel": "Review required"
+        },
+        {
+          "surface": "apps/web/public/install/mcp-registry/ai.cotal-cotal/index.html",
+          "artifactDigest": "sha256:9c3996963fd442798501b1287e62dc862ab6e083d3b1a2ab78cbab74a75291e2",
+          "verdict": null,
+          "verdictLabel": "Review required"
+        },
+        {
+          "surface": "apps/web/public/trust/lookup-index.json",
+          "artifactDigest": "sha256:9c3996963fd442798501b1287e62dc862ab6e083d3b1a2ab78cbab74a75291e2",
+          "verdict": "REVIEW",
+          "verdictLabel": "Review required"
+        }
+      ]
+    },
+    {
+      "canonicalName": "mcp-registry/ai.cralo-mcp",
+      "surfaces": [
+        {
+          "surface": "apps/web/public/trust/mcp-registry/ai.cralo-mcp.json",
+          "artifactDigest": "sha256:a97272dc57c4bfd02136fbdee539b211ff6332f9464625135bacbf45ecfdc8bd",
+          "verdict": "REVIEW",
+          "verdictLabel": "Review required"
+        },
+        {
+          "surface": "apps/web/public/trust/mcp-registry/ai.cralo-mcp.manifest.json",
+          "artifactDigest": "sha256:a97272dc57c4bfd02136fbdee539b211ff6332f9464625135bacbf45ecfdc8bd",
+          "verdict": "REVIEW",
+          "verdictLabel": "Review required"
+        },
+        {
+          "surface": "apps/web/public/install/mcp-registry/ai.cralo-mcp/index.json",
+          "artifactDigest": "sha256:a97272dc57c4bfd02136fbdee539b211ff6332f9464625135bacbf45ecfdc8bd",
+          "verdict": "REVIEW",
+          "verdictLabel": "Review required"
+        },
+        {
+          "surface": "apps/web/public/trust/mcp-registry/ai.cralo-mcp.html",
+          "artifactDigest": "sha256:a97272dc57c4bfd02136fbdee539b211ff6332f9464625135bacbf45ecfdc8bd",
+          "verdict": null,
+          "verdictLabel": "Review required"
+        },
+        {
+          "surface": "apps/web/public/install/mcp-registry/ai.cralo-mcp/index.html",
+          "artifactDigest": "sha256:a97272dc57c4bfd02136fbdee539b211ff6332f9464625135bacbf45ecfdc8bd",
+          "verdict": null,
+          "verdictLabel": "Review required"
+        },
+        {
+          "surface": "apps/web/public/trust/lookup-index.json",
+          "artifactDigest": "sha256:a97272dc57c4bfd02136fbdee539b211ff6332f9464625135bacbf45ecfdc8bd",
+          "verdict": "REVIEW",
+          "verdictLabel": "Review required"
+        }
+      ]
+    },
+    {
+      "canonicalName": "mcp-registry/ai.craneledger-crane-ledger",
+      "surfaces": [
+        {
+          "surface": "apps/web/public/trust/mcp-registry/ai.craneledger-crane-ledger.json",
+          "artifactDigest": "sha256:72c7ae4bff5cb338b1f971f94985a480b965d7125fb19b8921949b7ee5ebbcb4",
+          "verdict": "REVIEW",
+          "verdictLabel": "Review required"
+        },
+        {
+          "surface": "apps/web/public/trust/mcp-registry/ai.craneledger-crane-ledger.manifest.json",
+          "artifactDigest": "sha256:72c7ae4bff5cb338b1f971f94985a480b965d7125fb19b8921949b7ee5ebbcb4",
+          "verdict": "REVIEW",
+          "verdictLabel": "Review required"
+        },
+        {
+          "surface": "apps/web/public/install/mcp-registry/ai.craneledger-crane-ledger/index.json",
+          "artifactDigest": "sha256:72c7ae4bff5cb338b1f971f94985a480b965d7125fb19b8921949b7ee5ebbcb4",
+          "verdict": "REVIEW",
+          "verdictLabel": "Review required"
+        },
+        {
+          "surface": "apps/web/public/trust/mcp-registry/ai.craneledger-crane-ledger.html",
+          "artifactDigest": "sha256:72c7ae4bff5cb338b1f971f94985a480b965d7125fb19b8921949b7ee5ebbcb4",
+          "verdict": null,
+          "verdictLabel": "Review required"
+        },
+        {
+          "surface": "apps/web/public/install/mcp-registry/ai.craneledger-crane-ledger/index.html",
+          "artifactDigest": "sha256:72c7ae4bff5cb338b1f971f94985a480b965d7125fb19b8921949b7ee5ebbcb4",
+          "verdict": null,
+          "verdictLabel": "Review required"
+        },
+        {
+          "surface": "apps/web/public/trust/lookup-index.json",
+          "artifactDigest": "sha256:72c7ae4bff5cb338b1f971f94985a480b965d7125fb19b8921949b7ee5ebbcb4",
+          "verdict": "REVIEW",
+          "verdictLabel": "Review required"
+        }
+      ]
+    },
+    {
+      "canonicalName": "mcp-registry/ai.crayonz-mcp",
+      "surfaces": [
+        {
+          "surface": "apps/web/public/trust/mcp-registry/ai.crayonz-mcp.json",
+          "artifactDigest": "sha256:8f7feee2941b91cd2644d13566b8c37212114753a5da2c5eb02de2259f3bee56",
+          "verdict": "REVIEW",
+          "verdictLabel": "Review required"
+        },
+        {
+          "surface": "apps/web/public/trust/mcp-registry/ai.crayonz-mcp.manifest.json",
+          "artifactDigest": "sha256:8f7feee2941b91cd2644d13566b8c37212114753a5da2c5eb02de2259f3bee56",
+          "verdict": "REVIEW",
+          "verdictLabel": "Review required"
+        },
+        {
+          "surface": "apps/web/public/install/mcp-registry/ai.crayonz-mcp/index.json",
+          "artifactDigest": "sha256:8f7feee2941b91cd2644d13566b8c37212114753a5da2c5eb02de2259f3bee56",
+          "verdict": "REVIEW",
+          "verdictLabel": "Review required"
+        },
+        {
+          "surface": "apps/web/public/trust/mcp-registry/ai.crayonz-mcp.html",
+          "artifactDigest": "sha256:8f7feee2941b91cd2644d13566b8c37212114753a5da2c5eb02de2259f3bee56",
+          "verdict": null,
+          "verdictLabel": "Review required"
+        },
+        {
+          "surface": "apps/web/public/install/mcp-registry/ai.crayonz-mcp/index.html",
+          "artifactDigest": "sha256:8f7feee2941b91cd2644d13566b8c37212114753a5da2c5eb02de2259f3bee56",
+          "verdict": null,
+          "verdictLabel": "Review required"
+        },
+        {
+          "surface": "apps/web/public/trust/lookup-index.json",
+          "artifactDigest": "sha256:8f7feee2941b91cd2644d13566b8c37212114753a5da2c5eb02de2259f3bee56",
+          "verdict": "REVIEW",
+          "verdictLabel": "Review required"
+        }
+      ]
+    },
+    {
+      "canonicalName": "mcp-registry/ai.createprints-createprints",
+      "surfaces": [
+        {
+          "surface": "apps/web/public/trust/mcp-registry/ai.createprints-createprints.json",
+          "artifactDigest": "sha256:d7f3506b4ea5f5dfd1441756eabb93a2467c2460b93849a3f74260416dbc975d",
+          "verdict": "REVIEW",
+          "verdictLabel": "Review required"
+        },
+        {
+          "surface": "apps/web/public/trust/mcp-registry/ai.createprints-createprints.manifest.json",
+          "artifactDigest": "sha256:d7f3506b4ea5f5dfd1441756eabb93a2467c2460b93849a3f74260416dbc975d",
+          "verdict": "REVIEW",
+          "verdictLabel": "Review required"
+        },
+        {
+          "surface": "apps/web/public/install/mcp-registry/ai.createprints-createprints/index.json",
+          "artifactDigest": "sha256:d7f3506b4ea5f5dfd1441756eabb93a2467c2460b93849a3f74260416dbc975d",
+          "verdict": "REVIEW",
+          "verdictLabel": "Review required"
+        },
+        {
+          "surface": "apps/web/public/trust/mcp-registry/ai.createprints-createprints.html",
+          "artifactDigest": "sha256:d7f3506b4ea5f5dfd1441756eabb93a2467c2460b93849a3f74260416dbc975d",
+          "verdict": null,
+          "verdictLabel": "Review required"
+        },
+        {
+          "surface": "apps/web/public/install/mcp-registry/ai.createprints-createprints/index.html",
+          "artifactDigest": "sha256:d7f3506b4ea5f5dfd1441756eabb93a2467c2460b93849a3f74260416dbc975d",
+          "verdict": null,
+          "verdictLabel": "Review required"
+        },
+        {
+          "surface": "apps/web/public/trust/lookup-index.json",
+          "artifactDigest": "sha256:d7f3506b4ea5f5dfd1441756eabb93a2467c2460b93849a3f74260416dbc975d",
+          "verdict": "REVIEW",
+          "verdictLabel": "Review required"
+        }
+      ]
+    },
+    {
+      "canonicalName": "mcp-registry/ai.creationloop-creationloop",
+      "surfaces": [
+        {
+          "surface": "apps/web/public/trust/mcp-registry/ai.creationloop-creationloop.json",
+          "artifactDigest": "sha256:e96f8a7b82c6c12a103968fed134cad8d97e9b6048fb5b7e89980cbd8455d6b0",
+          "verdict": "REVIEW",
+          "verdictLabel": "Review required"
+        },
+        {
+          "surface": "apps/web/public/trust/mcp-registry/ai.creationloop-creationloop.manifest.json",
+          "artifactDigest": "sha256:e96f8a7b82c6c12a103968fed134cad8d97e9b6048fb5b7e89980cbd8455d6b0",
+          "verdict": "REVIEW",
+          "verdictLabel": "Review required"
+        },
+        {
+          "surface": "apps/web/public/install/mcp-registry/ai.creationloop-creationloop/index.json",
+          "artifactDigest": "sha256:e96f8a7b82c6c12a103968fed134cad8d97e9b6048fb5b7e89980cbd8455d6b0",
+          "verdict": "REVIEW",
+          "verdictLabel": "Review required"
+        },
+        {
+          "surface": "apps/web/public/trust/mcp-registry/ai.creationloop-creationloop.html",
+          "artifactDigest": "sha256:e96f8a7b82c6c12a103968fed134cad8d97e9b6048fb5b7e89980cbd8455d6b0",
+          "verdict": null,
+          "verdictLabel": "Review required"
+        },
+        {
+          "surface": "apps/web/public/install/mcp-registry/ai.creationloop-creationloop/index.html",
+          "artifactDigest": "sha256:e96f8a7b82c6c12a103968fed134cad8d97e9b6048fb5b7e89980cbd8455d6b0",
+          "verdict": null,
+          "verdictLabel": "Review required"
+        },
+        {
+          "surface": "apps/web/public/trust/lookup-index.json",
+          "artifactDigest": "sha256:e96f8a7b82c6c12a103968fed134cad8d97e9b6048fb5b7e89980cbd8455d6b0",
+          "verdict": "REVIEW",
+          "verdictLabel": "Review required"
+        }
+      ]
+    },
+    {
+      "canonicalName": "mcp-registry/ai.creativescope-creative-intelligence",
+      "surfaces": [
+        {
+          "surface": "apps/web/public/trust/mcp-registry/ai.creativescope-creative-intelligence.json",
+          "artifactDigest": "sha256:88e09963348abfebe4b8fd150e4e2c29b31e7b4b3d6954ea735b2c91818b86cc",
+          "verdict": "REVIEW",
+          "verdictLabel": "Review required"
+        },
+        {
+          "surface": "apps/web/public/trust/mcp-registry/ai.creativescope-creative-intelligence.manifest.json",
+          "artifactDigest": "sha256:88e09963348abfebe4b8fd150e4e2c29b31e7b4b3d6954ea735b2c91818b86cc",
+          "verdict": "REVIEW",
+          "verdictLabel": "Review required"
+        },
+        {
+          "surface": "apps/web/public/install/mcp-registry/ai.creativescope-creative-intelligence/index.json",
+          "artifactDigest": "sha256:88e09963348abfebe4b8fd150e4e2c29b31e7b4b3d6954ea735b2c91818b86cc",
+          "verdict": "REVIEW",
+          "verdictLabel": "Review required"
+        },
+        {
+          "surface": "apps/web/public/trust/mcp-registry/ai.creativescope-creative-intelligence.html",
+          "artifactDigest": "sha256:88e09963348abfebe4b8fd150e4e2c29b31e7b4b3d6954ea735b2c91818b86cc",
+          "verdict": null,
+          "verdictLabel": "Review required"
+        },
+        {
+          "surface": "apps/web/public/install/mcp-registry/ai.creativescope-creative-intelligence/index.html",
+          "artifactDigest": "sha256:88e09963348abfebe4b8fd150e4e2c29b31e7b4b3d6954ea735b2c91818b86cc",
+          "verdict": null,
+          "verdictLabel": "Review required"
+        },
+        {
+          "surface": "apps/web/public/trust/lookup-index.json",
+          "artifactDigest": "sha256:88e09963348abfebe4b8fd150e4e2c29b31e7b4b3d6954ea735b2c91818b86cc",
+          "verdict": "REVIEW",
+          "verdictLabel": "Review required"
+        }
+      ]
+    },
+    {
+      "canonicalName": "mcp-registry/ai.creditpolicy-creditpolicy",
+      "surfaces": [
+        {
+          "surface": "apps/web/public/trust/mcp-registry/ai.creditpolicy-creditpolicy.json",
+          "artifactDigest": "sha256:d5a0f9c5737b1145d9ad5c02e6cff95c2c39e0978eb54296f5eb09932d14cd1d",
+          "verdict": "REVIEW",
+          "verdictLabel": "Review required"
+        },
+        {
+          "surface": "apps/web/public/trust/mcp-registry/ai.creditpolicy-creditpolicy.manifest.json",
+          "artifactDigest": "sha256:d5a0f9c5737b1145d9ad5c02e6cff95c2c39e0978eb54296f5eb09932d14cd1d",
+          "verdict": "REVIEW",
+          "verdictLabel": "Review required"
+        },
+        {
+          "surface": "apps/web/public/install/mcp-registry/ai.creditpolicy-creditpolicy/index.json",
+          "artifactDigest": "sha256:d5a0f9c5737b1145d9ad5c02e6cff95c2c39e0978eb54296f5eb09932d14cd1d",
+          "verdict": "REVIEW",
+          "verdictLabel": "Review required"
+        },
+        {
+          "surface": "apps/web/public/trust/mcp-registry/ai.creditpolicy-creditpolicy.html",
+          "artifactDigest": "sha256:d5a0f9c5737b1145d9ad5c02e6cff95c2c39e0978eb54296f5eb09932d14cd1d",
+          "verdict": null,
+          "verdictLabel": "Review required"
+        },
+        {
+          "surface": "apps/web/public/install/mcp-registry/ai.creditpolicy-creditpolicy/index.html",
+          "artifactDigest": "sha256:d5a0f9c5737b1145d9ad5c02e6cff95c2c39e0978eb54296f5eb09932d14cd1d",
+          "verdict": null,
+          "verdictLabel": "Review required"
+        },
+        {
+          "surface": "apps/web/public/trust/lookup-index.json",
+          "artifactDigest": "sha256:d5a0f9c5737b1145d9ad5c02e6cff95c2c39e0978eb54296f5eb09932d14cd1d",
+          "verdict": "REVIEW",
+          "verdictLabel": "Review required"
+        }
+      ]
+    },
+    {
+      "canonicalName": "mcp-registry/ai.cueapi-mcp",
+      "surfaces": [
+        {
+          "surface": "apps/web/public/trust/mcp-registry/ai.cueapi-mcp.json",
+          "artifactDigest": "sha256:8fb6f48a61927df2832038543c812cded23004f629b813c94f9e3194ebf5df88",
+          "verdict": "SAFE",
+          "verdictLabel": "No blockers observed"
+        },
+        {
+          "surface": "apps/web/public/trust/mcp-registry/ai.cueapi-mcp.manifest.json",
+          "artifactDigest": "sha256:8fb6f48a61927df2832038543c812cded23004f629b813c94f9e3194ebf5df88",
+          "verdict": "SAFE",
+          "verdictLabel": "No blockers observed"
+        },
+        {
+          "surface": "apps/web/public/install/mcp-registry/ai.cueapi-mcp/index.json",
+          "artifactDigest": "sha256:8fb6f48a61927df2832038543c812cded23004f629b813c94f9e3194ebf5df88",
+          "verdict": "SAFE",
+          "verdictLabel": "No blockers observed"
+        },
+        {
+          "surface": "apps/web/public/trust/mcp-registry/ai.cueapi-mcp.html",
+          "artifactDigest": "sha256:8fb6f48a61927df2832038543c812cded23004f629b813c94f9e3194ebf5df88",
+          "verdict": null,
+          "verdictLabel": "No blockers observed"
+        },
+        {
+          "surface": "apps/web/public/install/mcp-registry/ai.cueapi-mcp/index.html",
+          "artifactDigest": "sha256:8fb6f48a61927df2832038543c812cded23004f629b813c94f9e3194ebf5df88",
+          "verdict": null,
+          "verdictLabel": "No blockers observed"
+        },
+        {
+          "surface": "apps/web/public/trust/lookup-index.json",
+          "artifactDigest": "sha256:8fb6f48a61927df2832038543c812cded23004f629b813c94f9e3194ebf5df88",
+          "verdict": "SAFE",
+          "verdictLabel": "No blockers observed"
+        }
+      ]
+    },
+    {
+      "canonicalName": "mcp-registry/ai.cueframe-cueframe",
+      "surfaces": [
+        {
+          "surface": "apps/web/public/trust/mcp-registry/ai.cueframe-cueframe.json",
+          "artifactDigest": "sha256:cb9c3fe2974946254bcfbe31bb9ae55d6e8a3d08df7a608cf15506b3de3743f9",
+          "verdict": "REVIEW",
+          "verdictLabel": "Review required"
+        },
+        {
+          "surface": "apps/web/public/trust/mcp-registry/ai.cueframe-cueframe.manifest.json",
+          "artifactDigest": "sha256:cb9c3fe2974946254bcfbe31bb9ae55d6e8a3d08df7a608cf15506b3de3743f9",
+          "verdict": "REVIEW",
+          "verdictLabel": "Review required"
+        },
+        {
+          "surface": "apps/web/public/install/mcp-registry/ai.cueframe-cueframe/index.json",
+          "artifactDigest": "sha256:cb9c3fe2974946254bcfbe31bb9ae55d6e8a3d08df7a608cf15506b3de3743f9",
+          "verdict": "REVIEW",
+          "verdictLabel": "Review required"
+        },
+        {
+          "surface": "apps/web/public/trust/mcp-registry/ai.cueframe-cueframe.html",
+          "artifactDigest": "sha256:cb9c3fe2974946254bcfbe31bb9ae55d6e8a3d08df7a608cf15506b3de3743f9",
+          "verdict": null,
+          "verdictLabel": "Review required"
+        },
+        {
+          "surface": "apps/web/public/install/mcp-registry/ai.cueframe-cueframe/index.html",
+          "artifactDigest": "sha256:cb9c3fe2974946254bcfbe31bb9ae55d6e8a3d08df7a608cf15506b3de3743f9",
+          "verdict": null,
+          "verdictLabel": "Review required"
+        },
+        {
+          "surface": "apps/web/public/trust/lookup-index.json",
+          "artifactDigest": "sha256:cb9c3fe2974946254bcfbe31bb9ae55d6e8a3d08df7a608cf15506b3de3743f9",
+          "verdict": "REVIEW",
+          "verdictLabel": "Review required"
+        }
+      ]
+    },
+    {
+      "canonicalName": "mcp-registry/ai.customdomain-mcp",
+      "surfaces": [
+        {
+          "surface": "apps/web/public/trust/mcp-registry/ai.customdomain-mcp.json",
+          "artifactDigest": "sha256:e46434966aa46b2b1aff016a67bccabcdbd1c23b4ac2edcabede3f1b659a8c1b",
+          "verdict": "REVIEW",
+          "verdictLabel": "Review required"
+        },
+        {
+          "surface": "apps/web/public/trust/mcp-registry/ai.customdomain-mcp.manifest.json",
+          "artifactDigest": "sha256:e46434966aa46b2b1aff016a67bccabcdbd1c23b4ac2edcabede3f1b659a8c1b",
+          "verdict": "REVIEW",
+          "verdictLabel": "Review required"
+        },
+        {
+          "surface": "apps/web/public/install/mcp-registry/ai.customdomain-mcp/index.json",
+          "artifactDigest": "sha256:e46434966aa46b2b1aff016a67bccabcdbd1c23b4ac2edcabede3f1b659a8c1b",
+          "verdict": "REVIEW",
+          "verdictLabel": "Review required"
+        },
+        {
+          "surface": "apps/web/public/trust/mcp-registry/ai.customdomain-mcp.html",
+          "artifactDigest": "sha256:e46434966aa46b2b1aff016a67bccabcdbd1c23b4ac2edcabede3f1b659a8c1b",
+          "verdict": null,
+          "verdictLabel": "Review required"
+        },
+        {
+          "surface": "apps/web/public/install/mcp-registry/ai.customdomain-mcp/index.html",
+          "artifactDigest": "sha256:e46434966aa46b2b1aff016a67bccabcdbd1c23b4ac2edcabede3f1b659a8c1b",
+          "verdict": null,
+          "verdictLabel": "Review required"
+        },
+        {
+          "surface": "apps/web/public/trust/lookup-index.json",
+          "artifactDigest": "sha256:e46434966aa46b2b1aff016a67bccabcdbd1c23b4ac2edcabede3f1b659a8c1b",
+          "verdict": "REVIEW",
+          "verdictLabel": "Review required"
+        }
+      ]
+    },
+    {
+      "canonicalName": "mcp-registry/ai.d50-d50-platform",
+      "surfaces": [
+        {
+          "surface": "apps/web/public/trust/mcp-registry/ai.d50-d50-platform.json",
+          "artifactDigest": "sha256:7cb0d7f232fc55e9e67f9d9978ac32151e74299ef549ff0c5bf680fb6498c127",
+          "verdict": "UNKNOWN",
+          "verdictLabel": "Insufficient evidence"
+        },
+        {
+          "surface": "apps/web/public/trust/mcp-registry/ai.d50-d50-platform.manifest.json",
+          "artifactDigest": "sha256:7cb0d7f232fc55e9e67f9d9978ac32151e74299ef549ff0c5bf680fb6498c127",
+          "verdict": "UNKNOWN",
+          "verdictLabel": "Insufficient evidence"
+        },
+        {
+          "surface": "apps/web/public/install/mcp-registry/ai.d50-d50-platform/index.json",
+          "artifactDigest": "sha256:7cb0d7f232fc55e9e67f9d9978ac32151e74299ef549ff0c5bf680fb6498c127",
+          "verdict": "UNKNOWN",
+          "verdictLabel": "Insufficient evidence"
+        },
+        {
+          "surface": "apps/web/public/trust/mcp-registry/ai.d50-d50-platform.html",
+          "artifactDigest": "sha256:7cb0d7f232fc55e9e67f9d9978ac32151e74299ef549ff0c5bf680fb6498c127",
+          "verdict": null,
+          "verdictLabel": "Insufficient evidence"
+        },
+        {
+          "surface": "apps/web/public/install/mcp-registry/ai.d50-d50-platform/index.html",
+          "artifactDigest": "sha256:7cb0d7f232fc55e9e67f9d9978ac32151e74299ef549ff0c5bf680fb6498c127",
+          "verdict": null,
+          "verdictLabel": "Insufficient evidence"
+        },
+        {
+          "surface": "apps/web/public/trust/lookup-index.json",
+          "artifactDigest": "sha256:7cb0d7f232fc55e9e67f9d9978ac32151e74299ef549ff0c5bf680fb6498c127",
+          "verdict": "UNKNOWN",
+          "verdictLabel": "Insufficient evidence"
+        }
+      ]
+    },
+    {
+      "canonicalName": "mcp-registry/ai.dablock-visibility-index",
+      "surfaces": [
+        {
+          "surface": "apps/web/public/trust/mcp-registry/ai.dablock-visibility-index.json",
+          "artifactDigest": "sha256:6b747184f9af4a49ad06d4d932c717b37bf32c3c71b489d73640648caf3fcb8d",
+          "verdict": "REVIEW",
+          "verdictLabel": "Review required"
+        },
+        {
+          "surface": "apps/web/public/trust/mcp-registry/ai.dablock-visibility-index.manifest.json",
+          "artifactDigest": "sha256:6b747184f9af4a49ad06d4d932c717b37bf32c3c71b489d73640648caf3fcb8d",
+          "verdict": "REVIEW",
+          "verdictLabel": "Review required"
+        },
+        {
+          "surface": "apps/web/public/install/mcp-registry/ai.dablock-visibility-index/index.json",
+          "artifactDigest": "sha256:6b747184f9af4a49ad06d4d932c717b37bf32c3c71b489d73640648caf3fcb8d",
+          "verdict": "REVIEW",
+          "verdictLabel": "Review required"
+        },
+        {
+          "surface": "apps/web/public/trust/mcp-registry/ai.dablock-visibility-index.html",
+          "artifactDigest": "sha256:6b747184f9af4a49ad06d4d932c717b37bf32c3c71b489d73640648caf3fcb8d",
+          "verdict": null,
+          "verdictLabel": "Review required"
+        },
+        {
+          "surface": "apps/web/public/install/mcp-registry/ai.dablock-visibility-index/index.html",
+          "artifactDigest": "sha256:6b747184f9af4a49ad06d4d932c717b37bf32c3c71b489d73640648caf3fcb8d",
+          "verdict": null,
+          "verdictLabel": "Review required"
+        },
+        {
+          "surface": "apps/web/public/trust/lookup-index.json",
+          "artifactDigest": "sha256:6b747184f9af4a49ad06d4d932c717b37bf32c3c71b489d73640648caf3fcb8d",
+          "verdict": "REVIEW",
+          "verdictLabel": "Review required"
+        }
+      ]
+    },
+    {
+      "canonicalName": "mcp-registry/ai.dabyte-visibility-index",
+      "surfaces": [
+        {
+          "surface": "apps/web/public/trust/mcp-registry/ai.dabyte-visibility-index.json",
+          "artifactDigest": "sha256:55adea8d193763e899a716bed6c2907990d362bb4c73bda69baca283e7892b2b",
+          "verdict": "REVIEW",
+          "verdictLabel": "Review required"
+        },
+        {
+          "surface": "apps/web/public/trust/mcp-registry/ai.dabyte-visibility-index.manifest.json",
+          "artifactDigest": "sha256:55adea8d193763e899a716bed6c2907990d362bb4c73bda69baca283e7892b2b",
+          "verdict": "REVIEW",
+          "verdictLabel": "Review required"
+        },
+        {
+          "surface": "apps/web/public/install/mcp-registry/ai.dabyte-visibility-index/index.json",
+          "artifactDigest": "sha256:55adea8d193763e899a716bed6c2907990d362bb4c73bda69baca283e7892b2b",
+          "verdict": "REVIEW",
+          "verdictLabel": "Review required"
+        },
+        {
+          "surface": "apps/web/public/trust/mcp-registry/ai.dabyte-visibility-index.html",
+          "artifactDigest": "sha256:55adea8d193763e899a716bed6c2907990d362bb4c73bda69baca283e7892b2b",
+          "verdict": null,
+          "verdictLabel": "Review required"
+        },
+        {
+          "surface": "apps/web/public/install/mcp-registry/ai.dabyte-visibility-index/index.html",
+          "artifactDigest": "sha256:55adea8d193763e899a716bed6c2907990d362bb4c73bda69baca283e7892b2b",
+          "verdict": null,
+          "verdictLabel": "Review required"
+        },
+        {
+          "surface": "apps/web/public/trust/lookup-index.json",
+          "artifactDigest": "sha256:55adea8d193763e899a716bed6c2907990d362bb4c73bda69baca283e7892b2b",
+          "verdict": "REVIEW",
+          "verdictLabel": "Review required"
+        }
+      ]
+    },
+    {
+      "canonicalName": "mcp-registry/ai.darkfunnels-docs",
+      "surfaces": [
+        {
+          "surface": "apps/web/public/trust/mcp-registry/ai.darkfunnels-docs.json",
+          "artifactDigest": "sha256:de7fbc6ba031d0e9de253b115cf781c39cbf5e7705b1b39387eecbbfb8a558dc",
+          "verdict": "REVIEW",
+          "verdictLabel": "Review required"
+        },
+        {
+          "surface": "apps/web/public/trust/mcp-registry/ai.darkfunnels-docs.manifest.json",
+          "artifactDigest": "sha256:de7fbc6ba031d0e9de253b115cf781c39cbf5e7705b1b39387eecbbfb8a558dc",
+          "verdict": "REVIEW",
+          "verdictLabel": "Review required"
+        },
+        {
+          "surface": "apps/web/public/install/mcp-registry/ai.darkfunnels-docs/index.json",
+          "artifactDigest": "sha256:de7fbc6ba031d0e9de253b115cf781c39cbf5e7705b1b39387eecbbfb8a558dc",
+          "verdict": "REVIEW",
+          "verdictLabel": "Review required"
+        },
+        {
+          "surface": "apps/web/public/trust/mcp-registry/ai.darkfunnels-docs.html",
+          "artifactDigest": "sha256:de7fbc6ba031d0e9de253b115cf781c39cbf5e7705b1b39387eecbbfb8a558dc",
+          "verdict": null,
+          "verdictLabel": "Review required"
+        },
+        {
+          "surface": "apps/web/public/install/mcp-registry/ai.darkfunnels-docs/index.html",
+          "artifactDigest": "sha256:de7fbc6ba031d0e9de253b115cf781c39cbf5e7705b1b39387eecbbfb8a558dc",
+          "verdict": null,
+          "verdictLabel": "Review required"
+        },
+        {
+          "surface": "apps/web/public/trust/lookup-index.json",
+          "artifactDigest": "sha256:de7fbc6ba031d0e9de253b115cf781c39cbf5e7705b1b39387eecbbfb8a558dc",
+          "verdict": "REVIEW",
+          "verdictLabel": "Review required"
+        }
+      ]
+    },
+    {
+      "canonicalName": "mcp-registry/ai.darkfunnels-whatsapp-sales-agent",
+      "surfaces": [
+        {
+          "surface": "apps/web/public/trust/mcp-registry/ai.darkfunnels-whatsapp-sales-agent.json",
+          "artifactDigest": "sha256:5a2107e75cee7b943ad6b7476f0c4b34d10adf617a52d3dc332263608c241e01",
+          "verdict": "REVIEW",
+          "verdictLabel": "Review required"
+        },
+        {
+          "surface": "apps/web/public/trust/mcp-registry/ai.darkfunnels-whatsapp-sales-agent.manifest.json",
+          "artifactDigest": "sha256:5a2107e75cee7b943ad6b7476f0c4b34d10adf617a52d3dc332263608c241e01",
+          "verdict": "REVIEW",
+          "verdictLabel": "Review required"
+        },
+        {
+          "surface": "apps/web/public/install/mcp-registry/ai.darkfunnels-whatsapp-sales-agent/index.json",
+          "artifactDigest": "sha256:5a2107e75cee7b943ad6b7476f0c4b34d10adf617a52d3dc332263608c241e01",
+          "verdict": "REVIEW",
+          "verdictLabel": "Review required"
+        },
+        {
+          "surface": "apps/web/public/trust/mcp-registry/ai.darkfunnels-whatsapp-sales-agent.html",
+          "artifactDigest": "sha256:5a2107e75cee7b943ad6b7476f0c4b34d10adf617a52d3dc332263608c241e01",
+          "verdict": null,
+          "verdictLabel": "Review required"
+        },
+        {
+          "surface": "apps/web/public/install/mcp-registry/ai.darkfunnels-whatsapp-sales-agent/index.html",
+          "artifactDigest": "sha256:5a2107e75cee7b943ad6b7476f0c4b34d10adf617a52d3dc332263608c241e01",
+          "verdict": null,
+          "verdictLabel": "Review required"
+        },
+        {
+          "surface": "apps/web/public/trust/lookup-index.json",
+          "artifactDigest": "sha256:5a2107e75cee7b943ad6b7476f0c4b34d10adf617a52d3dc332263608c241e01",
+          "verdict": "REVIEW",
+          "verdictLabel": "Review required"
+        }
+      ]
+    },
+    {
+      "canonicalName": "mcp-registry/ai.datacenterindex-datacenterindex",
+      "surfaces": [
+        {
+          "surface": "apps/web/public/trust/mcp-registry/ai.datacenterindex-datacenterindex.json",
+          "artifactDigest": "sha256:ad17c8886bfe0e3850a186bd1f50b1f4305ff86a22710185472100968ddea7b2",
+          "verdict": "REVIEW",
+          "verdictLabel": "Review required"
+        },
+        {
+          "surface": "apps/web/public/trust/mcp-registry/ai.datacenterindex-datacenterindex.manifest.json",
+          "artifactDigest": "sha256:ad17c8886bfe0e3850a186bd1f50b1f4305ff86a22710185472100968ddea7b2",
+          "verdict": "REVIEW",
+          "verdictLabel": "Review required"
+        },
+        {
+          "surface": "apps/web/public/install/mcp-registry/ai.datacenterindex-datacenterindex/index.json",
+          "artifactDigest": "sha256:ad17c8886bfe0e3850a186bd1f50b1f4305ff86a22710185472100968ddea7b2",
+          "verdict": "REVIEW",
+          "verdictLabel": "Review required"
+        },
+        {
+          "surface": "apps/web/public/trust/mcp-registry/ai.datacenterindex-datacenterindex.html",
+          "artifactDigest": "sha256:ad17c8886bfe0e3850a186bd1f50b1f4305ff86a22710185472100968ddea7b2",
+          "verdict": null,
+          "verdictLabel": "Review required"
+        },
+        {
+          "surface": "apps/web/public/install/mcp-registry/ai.datacenterindex-datacenterindex/index.html",
+          "artifactDigest": "sha256:ad17c8886bfe0e3850a186bd1f50b1f4305ff86a22710185472100968ddea7b2",
+          "verdict": null,
+          "verdictLabel": "Review required"
+        },
+        {
+          "surface": "apps/web/public/trust/lookup-index.json",
+          "artifactDigest": "sha256:ad17c8886bfe0e3850a186bd1f50b1f4305ff86a22710185472100968ddea7b2",
+          "verdict": "REVIEW",
+          "verdictLabel": "Review required"
+        }
+      ]
+    },
+    {
+      "canonicalName": "mcp-registry/ai.dataecho-mcp",
+      "surfaces": [
+        {
+          "surface": "apps/web/public/trust/mcp-registry/ai.dataecho-mcp.json",
+          "artifactDigest": "sha256:475c0b97f716afb680d434bd91840054783c45d3fa78a38269919d13a24acf36",
+          "verdict": "REVIEW",
+          "verdictLabel": "Review required"
+        },
+        {
+          "surface": "apps/web/public/trust/mcp-registry/ai.dataecho-mcp.manifest.json",
+          "artifactDigest": "sha256:475c0b97f716afb680d434bd91840054783c45d3fa78a38269919d13a24acf36",
+          "verdict": "REVIEW",
+          "verdictLabel": "Review required"
+        },
+        {
+          "surface": "apps/web/public/install/mcp-registry/ai.dataecho-mcp/index.json",
+          "artifactDigest": "sha256:475c0b97f716afb680d434bd91840054783c45d3fa78a38269919d13a24acf36",
+          "verdict": "REVIEW",
+          "verdictLabel": "Review required"
+        },
+        {
+          "surface": "apps/web/public/trust/mcp-registry/ai.dataecho-mcp.html",
+          "artifactDigest": "sha256:475c0b97f716afb680d434bd91840054783c45d3fa78a38269919d13a24acf36",
+          "verdict": null,
+          "verdictLabel": "Review required"
+        },
+        {
+          "surface": "apps/web/public/install/mcp-registry/ai.dataecho-mcp/index.html",
+          "artifactDigest": "sha256:475c0b97f716afb680d434bd91840054783c45d3fa78a38269919d13a24acf36",
+          "verdict": null,
+          "verdictLabel": "Review required"
+        },
+        {
+          "surface": "apps/web/public/trust/lookup-index.json",
+          "artifactDigest": "sha256:475c0b97f716afb680d434bd91840054783c45d3fa78a38269919d13a24acf36",
+          "verdict": "REVIEW",
+          "verdictLabel": "Review required"
+        }
+      ]
+    },
+    {
+      "canonicalName": "mcp-registry/ai.dataforb2b-dataforb2b",
+      "surfaces": [
+        {
+          "surface": "apps/web/public/trust/mcp-registry/ai.dataforb2b-dataforb2b.json",
+          "artifactDigest": "sha256:b41df88b8516aba0503fa21e00783abc434ad71ac56ee41b50850adbed731542",
+          "verdict": "REVIEW",
+          "verdictLabel": "Review required"
+        },
+        {
+          "surface": "apps/web/public/trust/mcp-registry/ai.dataforb2b-dataforb2b.manifest.json",
+          "artifactDigest": "sha256:b41df88b8516aba0503fa21e00783abc434ad71ac56ee41b50850adbed731542",
+          "verdict": "REVIEW",
+          "verdictLabel": "Review required"
+        },
+        {
+          "surface": "apps/web/public/install/mcp-registry/ai.dataforb2b-dataforb2b/index.json",
+          "artifactDigest": "sha256:b41df88b8516aba0503fa21e00783abc434ad71ac56ee41b50850adbed731542",
+          "verdict": "REVIEW",
+          "verdictLabel": "Review required"
+        },
+        {
+          "surface": "apps/web/public/trust/mcp-registry/ai.dataforb2b-dataforb2b.html",
+          "artifactDigest": "sha256:b41df88b8516aba0503fa21e00783abc434ad71ac56ee41b50850adbed731542",
+          "verdict": null,
+          "verdictLabel": "Review required"
+        },
+        {
+          "surface": "apps/web/public/install/mcp-registry/ai.dataforb2b-dataforb2b/index.html",
+          "artifactDigest": "sha256:b41df88b8516aba0503fa21e00783abc434ad71ac56ee41b50850adbed731542",
+          "verdict": null,
+          "verdictLabel": "Review required"
+        },
+        {
+          "surface": "apps/web/public/trust/lookup-index.json",
+          "artifactDigest": "sha256:b41df88b8516aba0503fa21e00783abc434ad71ac56ee41b50850adbed731542",
+          "verdict": "REVIEW",
+          "verdictLabel": "Review required"
+        }
+      ]
+    },
+    {
+      "canonicalName": "mcp-registry/ai.datamerge-mcp",
+      "surfaces": [
+        {
+          "surface": "apps/web/public/trust/mcp-registry/ai.datamerge-mcp.json",
+          "artifactDigest": "sha256:a6bee6c1055aa68ec1178767a65692526ef282694936036eb1834e1c11e7f840",
+          "verdict": "REVIEW",
+          "verdictLabel": "Review required"
+        },
+        {
+          "surface": "apps/web/public/trust/mcp-registry/ai.datamerge-mcp.manifest.json",
+          "artifactDigest": "sha256:a6bee6c1055aa68ec1178767a65692526ef282694936036eb1834e1c11e7f840",
+          "verdict": "REVIEW",
+          "verdictLabel": "Review required"
+        },
+        {
+          "surface": "apps/web/public/install/mcp-registry/ai.datamerge-mcp/index.json",
+          "artifactDigest": "sha256:a6bee6c1055aa68ec1178767a65692526ef282694936036eb1834e1c11e7f840",
+          "verdict": "REVIEW",
+          "verdictLabel": "Review required"
+        },
+        {
+          "surface": "apps/web/public/trust/mcp-registry/ai.datamerge-mcp.html",
+          "artifactDigest": "sha256:a6bee6c1055aa68ec1178767a65692526ef282694936036eb1834e1c11e7f840",
+          "verdict": null,
+          "verdictLabel": "Review required"
+        },
+        {
+          "surface": "apps/web/public/install/mcp-registry/ai.datamerge-mcp/index.html",
+          "artifactDigest": "sha256:a6bee6c1055aa68ec1178767a65692526ef282694936036eb1834e1c11e7f840",
+          "verdict": null,
+          "verdictLabel": "Review required"
+        },
+        {
+          "surface": "apps/web/public/trust/lookup-index.json",
+          "artifactDigest": "sha256:a6bee6c1055aa68ec1178767a65692526ef282694936036eb1834e1c11e7f840",
+          "verdict": "REVIEW",
+          "verdictLabel": "Review required"
+        }
+      ]
+    },
+    {
+      "canonicalName": "mcp-registry/ai.dataparrot-data-parrot",
+      "surfaces": [
+        {
+          "surface": "apps/web/public/trust/mcp-registry/ai.dataparrot-data-parrot.json",
+          "artifactDigest": "sha256:556b9b94e3f18e08b947a890dbb03592e57b4523b2299d9e1b7717c73fa3a321",
+          "verdict": "REVIEW",
+          "verdictLabel": "Review required"
+        },
+        {
+          "surface": "apps/web/public/trust/mcp-registry/ai.dataparrot-data-parrot.manifest.json",
+          "artifactDigest": "sha256:556b9b94e3f18e08b947a890dbb03592e57b4523b2299d9e1b7717c73fa3a321",
+          "verdict": "REVIEW",
+          "verdictLabel": "Review required"
+        },
+        {
+          "surface": "apps/web/public/install/mcp-registry/ai.dataparrot-data-parrot/index.json",
+          "artifactDigest": "sha256:556b9b94e3f18e08b947a890dbb03592e57b4523b2299d9e1b7717c73fa3a321",
+          "verdict": "REVIEW",
+          "verdictLabel": "Review required"
+        },
+        {
+          "surface": "apps/web/public/trust/mcp-registry/ai.dataparrot-data-parrot.html",
+          "artifactDigest": "sha256:556b9b94e3f18e08b947a890dbb03592e57b4523b2299d9e1b7717c73fa3a321",
+          "verdict": null,
+          "verdictLabel": "Review required"
+        },
+        {
+          "surface": "apps/web/public/install/mcp-registry/ai.dataparrot-data-parrot/index.html",
+          "artifactDigest": "sha256:556b9b94e3f18e08b947a890dbb03592e57b4523b2299d9e1b7717c73fa3a321",
+          "verdict": null,
+          "verdictLabel": "Review required"
+        },
+        {
+          "surface": "apps/web/public/trust/lookup-index.json",
+          "artifactDigest": "sha256:556b9b94e3f18e08b947a890dbb03592e57b4523b2299d9e1b7717c73fa3a321",
+          "verdict": "REVIEW",
+          "verdictLabel": "Review required"
+        }
+      ]
+    },
+    {
+      "canonicalName": "mcp-registry/ai.daystruct.api-daystruct",
+      "surfaces": [
+        {
+          "surface": "apps/web/public/trust/mcp-registry/ai.daystruct.api-daystruct.json",
+          "artifactDigest": "sha256:761560a611c21b1de82d834ccc3b10df09e0724653a7cb3eba3adbaaa82698a2",
+          "verdict": "REVIEW",
+          "verdictLabel": "Review required"
+        },
+        {
+          "surface": "apps/web/public/trust/mcp-registry/ai.daystruct.api-daystruct.manifest.json",
+          "artifactDigest": "sha256:761560a611c21b1de82d834ccc3b10df09e0724653a7cb3eba3adbaaa82698a2",
+          "verdict": "REVIEW",
+          "verdictLabel": "Review required"
+        },
+        {
+          "surface": "apps/web/public/install/mcp-registry/ai.daystruct.api-daystruct/index.json",
+          "artifactDigest": "sha256:761560a611c21b1de82d834ccc3b10df09e0724653a7cb3eba3adbaaa82698a2",
+          "verdict": "REVIEW",
+          "verdictLabel": "Review required"
+        },
+        {
+          "surface": "apps/web/public/trust/mcp-registry/ai.daystruct.api-daystruct.html",
+          "artifactDigest": "sha256:761560a611c21b1de82d834ccc3b10df09e0724653a7cb3eba3adbaaa82698a2",
+          "verdict": null,
+          "verdictLabel": "Review required"
+        },
+        {
+          "surface": "apps/web/public/install/mcp-registry/ai.daystruct.api-daystruct/index.html",
+          "artifactDigest": "sha256:761560a611c21b1de82d834ccc3b10df09e0724653a7cb3eba3adbaaa82698a2",
+          "verdict": null,
+          "verdictLabel": "Review required"
+        },
+        {
+          "surface": "apps/web/public/trust/lookup-index.json",
+          "artifactDigest": "sha256:761560a611c21b1de82d834ccc3b10df09e0724653a7cb3eba3adbaaa82698a2",
+          "verdict": "REVIEW",
+          "verdictLabel": "Review required"
+        }
+      ]
+    },
+    {
+      "canonicalName": "mcp-registry/ai.dealfilter-mcp",
+      "surfaces": [
+        {
+          "surface": "apps/web/public/trust/mcp-registry/ai.dealfilter-mcp.json",
+          "artifactDigest": "sha256:11404c45c1663ab5410f9c6a4683d2a1cb34d967e22d132e655b114be4ccc22a",
+          "verdict": "REVIEW",
+          "verdictLabel": "Review required"
+        },
+        {
+          "surface": "apps/web/public/trust/mcp-registry/ai.dealfilter-mcp.manifest.json",
+          "artifactDigest": "sha256:11404c45c1663ab5410f9c6a4683d2a1cb34d967e22d132e655b114be4ccc22a",
+          "verdict": "REVIEW",
+          "verdictLabel": "Review required"
+        },
+        {
+          "surface": "apps/web/public/install/mcp-registry/ai.dealfilter-mcp/index.json",
+          "artifactDigest": "sha256:11404c45c1663ab5410f9c6a4683d2a1cb34d967e22d132e655b114be4ccc22a",
+          "verdict": "REVIEW",
+          "verdictLabel": "Review required"
+        },
+        {
+          "surface": "apps/web/public/trust/mcp-registry/ai.dealfilter-mcp.html",
+          "artifactDigest": "sha256:11404c45c1663ab5410f9c6a4683d2a1cb34d967e22d132e655b114be4ccc22a",
+          "verdict": null,
+          "verdictLabel": "Review required"
+        },
+        {
+          "surface": "apps/web/public/install/mcp-registry/ai.dealfilter-mcp/index.html",
+          "artifactDigest": "sha256:11404c45c1663ab5410f9c6a4683d2a1cb34d967e22d132e655b114be4ccc22a",
+          "verdict": null,
+          "verdictLabel": "Review required"
+        },
+        {
+          "surface": "apps/web/public/trust/lookup-index.json",
+          "artifactDigest": "sha256:11404c45c1663ab5410f9c6a4683d2a1cb34d967e22d132e655b114be4ccc22a",
+          "verdict": "REVIEW",
+          "verdictLabel": "Review required"
+        }
+      ]
+    },
+    {
+      "canonicalName": "mcp-registry/ai.decimal-registry",
+      "surfaces": [
+        {
+          "surface": "apps/web/public/trust/mcp-registry/ai.decimal-registry.json",
+          "artifactDigest": "sha256:eeeb68ce4573b167e281f9cb493f68bfb36511279e195d898c0686342000f916",
+          "verdict": "SAFE",
+          "verdictLabel": "No blockers observed"
+        },
+        {
+          "surface": "apps/web/public/trust/mcp-registry/ai.decimal-registry.manifest.json",
+          "artifactDigest": "sha256:eeeb68ce4573b167e281f9cb493f68bfb36511279e195d898c0686342000f916",
+          "verdict": "SAFE",
+          "verdictLabel": "No blockers observed"
+        },
+        {
+          "surface": "apps/web/public/install/mcp-registry/ai.decimal-registry/index.json",
+          "artifactDigest": "sha256:eeeb68ce4573b167e281f9cb493f68bfb36511279e195d898c0686342000f916",
+          "verdict": "SAFE",
+          "verdictLabel": "No blockers observed"
+        },
+        {
+          "surface": "apps/web/public/trust/mcp-registry/ai.decimal-registry.html",
+          "artifactDigest": "sha256:eeeb68ce4573b167e281f9cb493f68bfb36511279e195d898c0686342000f916",
+          "verdict": null,
+          "verdictLabel": "No blockers observed"
+        },
+        {
+          "surface": "apps/web/public/install/mcp-registry/ai.decimal-registry/index.html",
+          "artifactDigest": "sha256:eeeb68ce4573b167e281f9cb493f68bfb36511279e195d898c0686342000f916",
+          "verdict": null,
+          "verdictLabel": "No blockers observed"
+        },
+        {
+          "surface": "apps/web/public/trust/lookup-index.json",
+          "artifactDigest": "sha256:eeeb68ce4573b167e281f9cb493f68bfb36511279e195d898c0686342000f916",
+          "verdict": "SAFE",
+          "verdictLabel": "No blockers observed"
+        }
+      ]
+    },
+    {
+      "canonicalName": "mcp-registry/ai.decisionlog-mcp",
+      "surfaces": [
+        {
+          "surface": "apps/web/public/trust/mcp-registry/ai.decisionlog-mcp.json",
+          "artifactDigest": "sha256:562648101787bd92d7998e0ebebcf7da05800ed561c0ea8b7cf246441c04cab8",
+          "verdict": "REVIEW",
+          "verdictLabel": "Review required"
+        },
+        {
+          "surface": "apps/web/public/trust/mcp-registry/ai.decisionlog-mcp.manifest.json",
+          "artifactDigest": "sha256:562648101787bd92d7998e0ebebcf7da05800ed561c0ea8b7cf246441c04cab8",
+          "verdict": "REVIEW",
+          "verdictLabel": "Review required"
+        },
+        {
+          "surface": "apps/web/public/install/mcp-registry/ai.decisionlog-mcp/index.json",
+          "artifactDigest": "sha256:562648101787bd92d7998e0ebebcf7da05800ed561c0ea8b7cf246441c04cab8",
+          "verdict": "REVIEW",
+          "verdictLabel": "Review required"
+        },
+        {
+          "surface": "apps/web/public/trust/mcp-registry/ai.decisionlog-mcp.html",
+          "artifactDigest": "sha256:562648101787bd92d7998e0ebebcf7da05800ed561c0ea8b7cf246441c04cab8",
+          "verdict": null,
+          "verdictLabel": "Review required"
+        },
+        {
+          "surface": "apps/web/public/install/mcp-registry/ai.decisionlog-mcp/index.html",
+          "artifactDigest": "sha256:562648101787bd92d7998e0ebebcf7da05800ed561c0ea8b7cf246441c04cab8",
+          "verdict": null,
+          "verdictLabel": "Review required"
+        },
+        {
+          "surface": "apps/web/public/trust/lookup-index.json",
+          "artifactDigest": "sha256:562648101787bd92d7998e0ebebcf7da05800ed561c0ea8b7cf246441c04cab8",
+          "verdict": "REVIEW",
+          "verdictLabel": "Review required"
+        }
+      ]
+    },
+    {
+      "canonicalName": "mcp-registry/ai.deepledger-mcp",
+      "surfaces": [
+        {
+          "surface": "apps/web/public/trust/mcp-registry/ai.deepledger-mcp.json",
+          "artifactDigest": "sha256:c2bd3ee057b240e7992449e321b4abaf77768ae7f7a208fb6c962048bfb0566a",
+          "verdict": "REVIEW",
+          "verdictLabel": "Review required"
+        },
+        {
+          "surface": "apps/web/public/trust/mcp-registry/ai.deepledger-mcp.manifest.json",
+          "artifactDigest": "sha256:c2bd3ee057b240e7992449e321b4abaf77768ae7f7a208fb6c962048bfb0566a",
+          "verdict": "REVIEW",
+          "verdictLabel": "Review required"
+        },
+        {
+          "surface": "apps/web/public/install/mcp-registry/ai.deepledger-mcp/index.json",
+          "artifactDigest": "sha256:c2bd3ee057b240e7992449e321b4abaf77768ae7f7a208fb6c962048bfb0566a",
+          "verdict": "REVIEW",
+          "verdictLabel": "Review required"
+        },
+        {
+          "surface": "apps/web/public/trust/mcp-registry/ai.deepledger-mcp.html",
+          "artifactDigest": "sha256:c2bd3ee057b240e7992449e321b4abaf77768ae7f7a208fb6c962048bfb0566a",
+          "verdict": null,
+          "verdictLabel": "Review required"
+        },
+        {
+          "surface": "apps/web/public/install/mcp-registry/ai.deepledger-mcp/index.html",
+          "artifactDigest": "sha256:c2bd3ee057b240e7992449e321b4abaf77768ae7f7a208fb6c962048bfb0566a",
+          "verdict": null,
+          "verdictLabel": "Review required"
+        },
+        {
+          "surface": "apps/web/public/trust/lookup-index.json",
+          "artifactDigest": "sha256:c2bd3ee057b240e7992449e321b4abaf77768ae7f7a208fb6c962048bfb0566a",
+          "verdict": "REVIEW",
+          "verdictLabel": "Review required"
+        }
+      ]
+    },
+    {
+      "canonicalName": "mcp-registry/ai.deinai-creator-skill",
+      "surfaces": [
+        {
+          "surface": "apps/web/public/trust/mcp-registry/ai.deinai-creator-skill.json",
+          "artifactDigest": "sha256:337dcd183b2eebce6297158ed6ebb0303f53b8ee63f1e68ac8e0e8a1b1989508",
+          "verdict": "UNKNOWN",
+          "verdictLabel": "Insufficient evidence"
+        },
+        {
+          "surface": "apps/web/public/trust/mcp-registry/ai.deinai-creator-skill.manifest.json",
+          "artifactDigest": "sha256:337dcd183b2eebce6297158ed6ebb0303f53b8ee63f1e68ac8e0e8a1b1989508",
+          "verdict": "UNKNOWN",
+          "verdictLabel": "Insufficient evidence"
+        },
+        {
+          "surface": "apps/web/public/install/mcp-registry/ai.deinai-creator-skill/index.json",
+          "artifactDigest": "sha256:337dcd183b2eebce6297158ed6ebb0303f53b8ee63f1e68ac8e0e8a1b1989508",
+          "verdict": "UNKNOWN",
+          "verdictLabel": "Insufficient evidence"
+        },
+        {
+          "surface": "apps/web/public/trust/mcp-registry/ai.deinai-creator-skill.html",
+          "artifactDigest": "sha256:337dcd183b2eebce6297158ed6ebb0303f53b8ee63f1e68ac8e0e8a1b1989508",
+          "verdict": null,
+          "verdictLabel": "Insufficient evidence"
+        },
+        {
+          "surface": "apps/web/public/install/mcp-registry/ai.deinai-creator-skill/index.html",
+          "artifactDigest": "sha256:337dcd183b2eebce6297158ed6ebb0303f53b8ee63f1e68ac8e0e8a1b1989508",
+          "verdict": null,
+          "verdictLabel": "Insufficient evidence"
+        },
+        {
+          "surface": "apps/web/public/trust/lookup-index.json",
+          "artifactDigest": "sha256:337dcd183b2eebce6297158ed6ebb0303f53b8ee63f1e68ac8e0e8a1b1989508",
+          "verdict": "UNKNOWN",
+          "verdictLabel": "Insufficient evidence"
+        }
+      ]
+    },
+    {
+      "canonicalName": "mcp-registry/ai.deinai-creator-skill-v2",
+      "surfaces": [
+        {
+          "surface": "apps/web/public/trust/mcp-registry/ai.deinai-creator-skill-v2.json",
+          "artifactDigest": "sha256:80af6c44812600d800493a90c6c1a70d883d4fea04326d74d998ea1c995038fb",
+          "verdict": "REVIEW",
+          "verdictLabel": "Review required"
+        },
+        {
+          "surface": "apps/web/public/trust/mcp-registry/ai.deinai-creator-skill-v2.manifest.json",
+          "artifactDigest": "sha256:80af6c44812600d800493a90c6c1a70d883d4fea04326d74d998ea1c995038fb",
+          "verdict": "REVIEW",
+          "verdictLabel": "Review required"
+        },
+        {
+          "surface": "apps/web/public/install/mcp-registry/ai.deinai-creator-skill-v2/index.json",
+          "artifactDigest": "sha256:80af6c44812600d800493a90c6c1a70d883d4fea04326d74d998ea1c995038fb",
+          "verdict": "REVIEW",
+          "verdictLabel": "Review required"
+        },
+        {
+          "surface": "apps/web/public/trust/mcp-registry/ai.deinai-creator-skill-v2.html",
+          "artifactDigest": "sha256:80af6c44812600d800493a90c6c1a70d883d4fea04326d74d998ea1c995038fb",
+          "verdict": null,
+          "verdictLabel": "Review required"
+        },
+        {
+          "surface": "apps/web/public/install/mcp-registry/ai.deinai-creator-skill-v2/index.html",
+          "artifactDigest": "sha256:80af6c44812600d800493a90c6c1a70d883d4fea04326d74d998ea1c995038fb",
+          "verdict": null,
+          "verdictLabel": "Review required"
+        },
+        {
+          "surface": "apps/web/public/trust/lookup-index.json",
+          "artifactDigest": "sha256:80af6c44812600d800493a90c6c1a70d883d4fea04326d74d998ea1c995038fb",
+          "verdict": "REVIEW",
+          "verdictLabel": "Review required"
+        }
+      ]
+    },
+    {
+      "canonicalName": "mcp-registry/ai.delega-aws-pricing-calculator",
+      "surfaces": [
+        {
+          "surface": "apps/web/public/trust/mcp-registry/ai.delega-aws-pricing-calculator.json",
+          "artifactDigest": "sha256:ddd7560376ef6988671d5f4e3bf70583a9362296afaa4ca674c2300b9856cdc4",
+          "verdict": "REVIEW",
+          "verdictLabel": "Review required"
+        },
+        {
+          "surface": "apps/web/public/trust/mcp-registry/ai.delega-aws-pricing-calculator.manifest.json",
+          "artifactDigest": "sha256:ddd7560376ef6988671d5f4e3bf70583a9362296afaa4ca674c2300b9856cdc4",
+          "verdict": "REVIEW",
+          "verdictLabel": "Review required"
+        },
+        {
+          "surface": "apps/web/public/install/mcp-registry/ai.delega-aws-pricing-calculator/index.json",
+          "artifactDigest": "sha256:ddd7560376ef6988671d5f4e3bf70583a9362296afaa4ca674c2300b9856cdc4",
+          "verdict": "REVIEW",
+          "verdictLabel": "Review required"
+        },
+        {
+          "surface": "apps/web/public/trust/mcp-registry/ai.delega-aws-pricing-calculator.html",
+          "artifactDigest": "sha256:ddd7560376ef6988671d5f4e3bf70583a9362296afaa4ca674c2300b9856cdc4",
+          "verdict": null,
+          "verdictLabel": "Review required"
+        },
+        {
+          "surface": "apps/web/public/install/mcp-registry/ai.delega-aws-pricing-calculator/index.html",
+          "artifactDigest": "sha256:ddd7560376ef6988671d5f4e3bf70583a9362296afaa4ca674c2300b9856cdc4",
+          "verdict": null,
+          "verdictLabel": "Review required"
+        },
+        {
+          "surface": "apps/web/public/trust/lookup-index.json",
+          "artifactDigest": "sha256:ddd7560376ef6988671d5f4e3bf70583a9362296afaa4ca674c2300b9856cdc4",
+          "verdict": "REVIEW",
+          "verdictLabel": "Review required"
+        }
+      ]
+    },
+    {
+      "canonicalName": "mcp-registry/ai.demanddiscovery-mcp",
+      "surfaces": [
+        {
+          "surface": "apps/web/public/trust/mcp-registry/ai.demanddiscovery-mcp.json",
+          "artifactDigest": "sha256:ef737c04864b94397d4b3a2506d92292ae7daa586686cdc707ec4c959065cbe6",
+          "verdict": "REVIEW",
+          "verdictLabel": "Review required"
+        },
+        {
+          "surface": "apps/web/public/trust/mcp-registry/ai.demanddiscovery-mcp.manifest.json",
+          "artifactDigest": "sha256:ef737c04864b94397d4b3a2506d92292ae7daa586686cdc707ec4c959065cbe6",
+          "verdict": "REVIEW",
+          "verdictLabel": "Review required"
+        },
+        {
+          "surface": "apps/web/public/install/mcp-registry/ai.demanddiscovery-mcp/index.json",
+          "artifactDigest": "sha256:ef737c04864b94397d4b3a2506d92292ae7daa586686cdc707ec4c959065cbe6",
+          "verdict": "REVIEW",
+          "verdictLabel": "Review required"
+        },
+        {
+          "surface": "apps/web/public/trust/mcp-registry/ai.demanddiscovery-mcp.html",
+          "artifactDigest": "sha256:ef737c04864b94397d4b3a2506d92292ae7daa586686cdc707ec4c959065cbe6",
+          "verdict": null,
+          "verdictLabel": "Review required"
+        },
+        {
+          "surface": "apps/web/public/install/mcp-registry/ai.demanddiscovery-mcp/index.html",
+          "artifactDigest": "sha256:ef737c04864b94397d4b3a2506d92292ae7daa586686cdc707ec4c959065cbe6",
+          "verdict": null,
+          "verdictLabel": "Review required"
+        },
+        {
+          "surface": "apps/web/public/trust/lookup-index.json",
+          "artifactDigest": "sha256:ef737c04864b94397d4b3a2506d92292ae7daa586686cdc707ec4c959065cbe6",
+          "verdict": "REVIEW",
+          "verdictLabel": "Review required"
+        }
+      ]
+    },
+    {
+      "canonicalName": "mcp-registry/ai.demomagic-interactive-video-guide",
+      "surfaces": [
+        {
+          "surface": "apps/web/public/trust/mcp-registry/ai.demomagic-interactive-video-guide.json",
+          "artifactDigest": "sha256:6853b3e238e5474bf75cb443e5cc8264bf72308d236e17ac0e616f8e62f954d6",
+          "verdict": "SAFE",
+          "verdictLabel": "No blockers observed"
+        },
+        {
+          "surface": "apps/web/public/trust/mcp-registry/ai.demomagic-interactive-video-guide.manifest.json",
+          "artifactDigest": "sha256:6853b3e238e5474bf75cb443e5cc8264bf72308d236e17ac0e616f8e62f954d6",
+          "verdict": "SAFE",
+          "verdictLabel": "No blockers observed"
+        },
+        {
+          "surface": "apps/web/public/install/mcp-registry/ai.demomagic-interactive-video-guide/index.json",
+          "artifactDigest": "sha256:6853b3e238e5474bf75cb443e5cc8264bf72308d236e17ac0e616f8e62f954d6",
+          "verdict": "SAFE",
+          "verdictLabel": "No blockers observed"
+        },
+        {
+          "surface": "apps/web/public/trust/mcp-registry/ai.demomagic-interactive-video-guide.html",
+          "artifactDigest": "sha256:6853b3e238e5474bf75cb443e5cc8264bf72308d236e17ac0e616f8e62f954d6",
+          "verdict": null,
+          "verdictLabel": "No blockers observed"
+        },
+        {
+          "surface": "apps/web/public/install/mcp-registry/ai.demomagic-interactive-video-guide/index.html",
+          "artifactDigest": "sha256:6853b3e238e5474bf75cb443e5cc8264bf72308d236e17ac0e616f8e62f954d6",
+          "verdict": null,
+          "verdictLabel": "No blockers observed"
+        },
+        {
+          "surface": "apps/web/public/trust/lookup-index.json",
+          "artifactDigest": "sha256:6853b3e238e5474bf75cb443e5cc8264bf72308d236e17ac0e616f8e62f954d6",
+          "verdict": "SAFE",
+          "verdictLabel": "No blockers observed"
+        }
+      ]
+    },
+    {
+      "canonicalName": "mcp-registry/ai.deployit-product-expert",
+      "surfaces": [
+        {
+          "surface": "apps/web/public/trust/mcp-registry/ai.deployit-product-expert.json",
+          "artifactDigest": "sha256:1dd54b22ceaed1c2652bcbbdf1543707c6c70833033fc6060827847bc45c04e3",
+          "verdict": "REVIEW",
+          "verdictLabel": "Review required"
+        },
+        {
+          "surface": "apps/web/public/trust/mcp-registry/ai.deployit-product-expert.manifest.json",
+          "artifactDigest": "sha256:1dd54b22ceaed1c2652bcbbdf1543707c6c70833033fc6060827847bc45c04e3",
+          "verdict": "REVIEW",
+          "verdictLabel": "Review required"
+        },
+        {
+          "surface": "apps/web/public/install/mcp-registry/ai.deployit-product-expert/index.json",
+          "artifactDigest": "sha256:1dd54b22ceaed1c2652bcbbdf1543707c6c70833033fc6060827847bc45c04e3",
+          "verdict": "REVIEW",
+          "verdictLabel": "Review required"
+        },
+        {
+          "surface": "apps/web/public/trust/mcp-registry/ai.deployit-product-expert.html",
+          "artifactDigest": "sha256:1dd54b22ceaed1c2652bcbbdf1543707c6c70833033fc6060827847bc45c04e3",
+          "verdict": null,
+          "verdictLabel": "Review required"
+        },
+        {
+          "surface": "apps/web/public/install/mcp-registry/ai.deployit-product-expert/index.html",
+          "artifactDigest": "sha256:1dd54b22ceaed1c2652bcbbdf1543707c6c70833033fc6060827847bc45c04e3",
+          "verdict": null,
+          "verdictLabel": "Review required"
+        },
+        {
+          "surface": "apps/web/public/trust/lookup-index.json",
+          "artifactDigest": "sha256:1dd54b22ceaed1c2652bcbbdf1543707c6c70833033fc6060827847bc45c04e3",
+          "verdict": "REVIEW",
+          "verdictLabel": "Review required"
+        }
+      ]
+    },
+    {
+      "canonicalName": "mcp-registry/ai.deskclone-deskclone",
+      "surfaces": [
+        {
+          "surface": "apps/web/public/trust/mcp-registry/ai.deskclone-deskclone.json",
+          "artifactDigest": "sha256:c07cee9636dce0da4e756c98b3a3139e0f47939612d40f47c93e386fb6cc3b58",
+          "verdict": "REVIEW",
+          "verdictLabel": "Review required"
+        },
+        {
+          "surface": "apps/web/public/trust/mcp-registry/ai.deskclone-deskclone.manifest.json",
+          "artifactDigest": "sha256:c07cee9636dce0da4e756c98b3a3139e0f47939612d40f47c93e386fb6cc3b58",
+          "verdict": "REVIEW",
+          "verdictLabel": "Review required"
+        },
+        {
+          "surface": "apps/web/public/install/mcp-registry/ai.deskclone-deskclone/index.json",
+          "artifactDigest": "sha256:c07cee9636dce0da4e756c98b3a3139e0f47939612d40f47c93e386fb6cc3b58",
+          "verdict": "REVIEW",
+          "verdictLabel": "Review required"
+        },
+        {
+          "surface": "apps/web/public/trust/mcp-registry/ai.deskclone-deskclone.html",
+          "artifactDigest": "sha256:c07cee9636dce0da4e756c98b3a3139e0f47939612d40f47c93e386fb6cc3b58",
+          "verdict": null,
+          "verdictLabel": "Review required"
+        },
+        {
+          "surface": "apps/web/public/install/mcp-registry/ai.deskclone-deskclone/index.html",
+          "artifactDigest": "sha256:c07cee9636dce0da4e756c98b3a3139e0f47939612d40f47c93e386fb6cc3b58",
+          "verdict": null,
+          "verdictLabel": "Review required"
+        },
+        {
+          "surface": "apps/web/public/trust/lookup-index.json",
+          "artifactDigest": "sha256:c07cee9636dce0da4e756c98b3a3139e0f47939612d40f47c93e386fb6cc3b58",
+          "verdict": "REVIEW",
+          "verdictLabel": "Review required"
+        }
+      ]
+    },
+    {
+      "canonicalName": "mcp-registry/ai.deskcrew-agentic",
+      "surfaces": [
+        {
+          "surface": "apps/web/public/trust/mcp-registry/ai.deskcrew-agentic.json",
+          "artifactDigest": "sha256:146739da84778227ada53a5db855ec35aff9fe374fceaac97d0ade947a3f1a3c",
+          "verdict": "REVIEW",
+          "verdictLabel": "Review required"
+        },
+        {
+          "surface": "apps/web/public/trust/mcp-registry/ai.deskcrew-agentic.manifest.json",
+          "artifactDigest": "sha256:146739da84778227ada53a5db855ec35aff9fe374fceaac97d0ade947a3f1a3c",
+          "verdict": "REVIEW",
+          "verdictLabel": "Review required"
+        },
+        {
+          "surface": "apps/web/public/install/mcp-registry/ai.deskcrew-agentic/index.json",
+          "artifactDigest": "sha256:146739da84778227ada53a5db855ec35aff9fe374fceaac97d0ade947a3f1a3c",
+          "verdict": "REVIEW",
+          "verdictLabel": "Review required"
+        },
+        {
+          "surface": "apps/web/public/trust/mcp-registry/ai.deskcrew-agentic.html",
+          "artifactDigest": "sha256:146739da84778227ada53a5db855ec35aff9fe374fceaac97d0ade947a3f1a3c",
+          "verdict": null,
+          "verdictLabel": "Review required"
+        },
+        {
+          "surface": "apps/web/public/install/mcp-registry/ai.deskcrew-agentic/index.html",
+          "artifactDigest": "sha256:146739da84778227ada53a5db855ec35aff9fe374fceaac97d0ade947a3f1a3c",
+          "verdict": null,
+          "verdictLabel": "Review required"
+        },
+        {
+          "surface": "apps/web/public/trust/lookup-index.json",
+          "artifactDigest": "sha256:146739da84778227ada53a5db855ec35aff9fe374fceaac97d0ade947a3f1a3c",
+          "verdict": "REVIEW",
+          "verdictLabel": "Review required"
+        }
+      ]
+    },
+    {
+      "canonicalName": "mcp-registry/ai.diagramzu-mcp",
+      "surfaces": [
+        {
+          "surface": "apps/web/public/trust/mcp-registry/ai.diagramzu-mcp.json",
+          "artifactDigest": "sha256:32cc14de6927752218b4aa1bec3ee18a3d8ae31a7b779778f1cc6afc14991d85",
+          "verdict": "REVIEW",
+          "verdictLabel": "Review required"
+        },
+        {
+          "surface": "apps/web/public/trust/mcp-registry/ai.diagramzu-mcp.manifest.json",
+          "artifactDigest": "sha256:32cc14de6927752218b4aa1bec3ee18a3d8ae31a7b779778f1cc6afc14991d85",
+          "verdict": "REVIEW",
+          "verdictLabel": "Review required"
+        },
+        {
+          "surface": "apps/web/public/install/mcp-registry/ai.diagramzu-mcp/index.json",
+          "artifactDigest": "sha256:32cc14de6927752218b4aa1bec3ee18a3d8ae31a7b779778f1cc6afc14991d85",
+          "verdict": "REVIEW",
+          "verdictLabel": "Review required"
+        },
+        {
+          "surface": "apps/web/public/trust/mcp-registry/ai.diagramzu-mcp.html",
+          "artifactDigest": "sha256:32cc14de6927752218b4aa1bec3ee18a3d8ae31a7b779778f1cc6afc14991d85",
+          "verdict": null,
+          "verdictLabel": "Review required"
+        },
+        {
+          "surface": "apps/web/public/install/mcp-registry/ai.diagramzu-mcp/index.html",
+          "artifactDigest": "sha256:32cc14de6927752218b4aa1bec3ee18a3d8ae31a7b779778f1cc6afc14991d85",
+          "verdict": null,
+          "verdictLabel": "Review required"
+        },
+        {
+          "surface": "apps/web/public/trust/lookup-index.json",
+          "artifactDigest": "sha256:32cc14de6927752218b4aa1bec3ee18a3d8ae31a7b779778f1cc6afc14991d85",
+          "verdict": "REVIEW",
+          "verdictLabel": "Review required"
+        }
+      ]
+    },
+    {
+      "canonicalName": "mcp-registry/ai.diezx-diezx",
+      "surfaces": [
+        {
+          "surface": "apps/web/public/trust/mcp-registry/ai.diezx-diezx.json",
+          "artifactDigest": "sha256:4a6338a06c1164d128630cbbbbe1aa0e8bef5cd478fd0ce9c59d1d9bfb116088",
+          "verdict": "UNKNOWN",
+          "verdictLabel": "Insufficient evidence"
+        },
+        {
+          "surface": "apps/web/public/trust/mcp-registry/ai.diezx-diezx.manifest.json",
+          "artifactDigest": "sha256:4a6338a06c1164d128630cbbbbe1aa0e8bef5cd478fd0ce9c59d1d9bfb116088",
+          "verdict": "UNKNOWN",
+          "verdictLabel": "Insufficient evidence"
+        },
+        {
+          "surface": "apps/web/public/install/mcp-registry/ai.diezx-diezx/index.json",
+          "artifactDigest": "sha256:4a6338a06c1164d128630cbbbbe1aa0e8bef5cd478fd0ce9c59d1d9bfb116088",
+          "verdict": "UNKNOWN",
+          "verdictLabel": "Insufficient evidence"
+        },
+        {
+          "surface": "apps/web/public/trust/mcp-registry/ai.diezx-diezx.html",
+          "artifactDigest": "sha256:4a6338a06c1164d128630cbbbbe1aa0e8bef5cd478fd0ce9c59d1d9bfb116088",
+          "verdict": null,
+          "verdictLabel": "Insufficient evidence"
+        },
+        {
+          "surface": "apps/web/public/install/mcp-registry/ai.diezx-diezx/index.html",
+          "artifactDigest": "sha256:4a6338a06c1164d128630cbbbbe1aa0e8bef5cd478fd0ce9c59d1d9bfb116088",
+          "verdict": null,
+          "verdictLabel": "Insufficient evidence"
+        },
+        {
+          "surface": "apps/web/public/trust/lookup-index.json",
+          "artifactDigest": "sha256:4a6338a06c1164d128630cbbbbe1aa0e8bef5cd478fd0ce9c59d1d9bfb116088",
+          "verdict": "UNKNOWN",
+          "verdictLabel": "Insufficient evidence"
+        }
+      ]
+    },
+    {
+      "canonicalName": "mcp-registry/ai.dimetrics-dimetrics",
+      "surfaces": [
+        {
+          "surface": "apps/web/public/trust/mcp-registry/ai.dimetrics-dimetrics.json",
+          "artifactDigest": "sha256:f300c76c5d8fded69d6700421ac5197233e568a2c32ea213b3c4b769a57e73bb",
+          "verdict": "REVIEW",
+          "verdictLabel": "Review required"
+        },
+        {
+          "surface": "apps/web/public/trust/mcp-registry/ai.dimetrics-dimetrics.manifest.json",
+          "artifactDigest": "sha256:f300c76c5d8fded69d6700421ac5197233e568a2c32ea213b3c4b769a57e73bb",
+          "verdict": "REVIEW",
+          "verdictLabel": "Review required"
+        },
+        {
+          "surface": "apps/web/public/install/mcp-registry/ai.dimetrics-dimetrics/index.json",
+          "artifactDigest": "sha256:f300c76c5d8fded69d6700421ac5197233e568a2c32ea213b3c4b769a57e73bb",
+          "verdict": "REVIEW",
+          "verdictLabel": "Review required"
+        },
+        {
+          "surface": "apps/web/public/trust/mcp-registry/ai.dimetrics-dimetrics.html",
+          "artifactDigest": "sha256:f300c76c5d8fded69d6700421ac5197233e568a2c32ea213b3c4b769a57e73bb",
+          "verdict": null,
+          "verdictLabel": "Review required"
+        },
+        {
+          "surface": "apps/web/public/install/mcp-registry/ai.dimetrics-dimetrics/index.html",
+          "artifactDigest": "sha256:f300c76c5d8fded69d6700421ac5197233e568a2c32ea213b3c4b769a57e73bb",
+          "verdict": null,
+          "verdictLabel": "Review required"
+        },
+        {
+          "surface": "apps/web/public/trust/lookup-index.json",
+          "artifactDigest": "sha256:f300c76c5d8fded69d6700421ac5197233e568a2c32ea213b3c4b769a57e73bb",
+          "verdict": "REVIEW",
+          "verdictLabel": "Review required"
+        }
+      ]
+    },
+    {
+      "canonicalName": "mcp-registry/ai.dinglebear-apprise-rmcp",
+      "surfaces": [
+        {
+          "surface": "apps/web/public/trust/mcp-registry/ai.dinglebear-apprise-rmcp.json",
+          "artifactDigest": "sha256:81eaf40c4b1a7f7a4aa4c0ce3fbd63fa29402668a887b9641d78970053b90304",
+          "verdict": "SAFE",
+          "verdictLabel": "No blockers observed"
+        },
+        {
+          "surface": "apps/web/public/trust/mcp-registry/ai.dinglebear-apprise-rmcp.manifest.json",
+          "artifactDigest": "sha256:81eaf40c4b1a7f7a4aa4c0ce3fbd63fa29402668a887b9641d78970053b90304",
+          "verdict": "SAFE",
+          "verdictLabel": "No blockers observed"
+        },
+        {
+          "surface": "apps/web/public/install/mcp-registry/ai.dinglebear-apprise-rmcp/index.json",
+          "artifactDigest": "sha256:81eaf40c4b1a7f7a4aa4c0ce3fbd63fa29402668a887b9641d78970053b90304",
+          "verdict": "SAFE",
+          "verdictLabel": "No blockers observed"
+        },
+        {
+          "surface": "apps/web/public/trust/mcp-registry/ai.dinglebear-apprise-rmcp.html",
+          "artifactDigest": "sha256:81eaf40c4b1a7f7a4aa4c0ce3fbd63fa29402668a887b9641d78970053b90304",
+          "verdict": null,
+          "verdictLabel": "No blockers observed"
+        },
+        {
+          "surface": "apps/web/public/install/mcp-registry/ai.dinglebear-apprise-rmcp/index.html",
+          "artifactDigest": "sha256:81eaf40c4b1a7f7a4aa4c0ce3fbd63fa29402668a887b9641d78970053b90304",
+          "verdict": null,
+          "verdictLabel": "No blockers observed"
+        },
+        {
+          "surface": "apps/web/public/trust/lookup-index.json",
+          "artifactDigest": "sha256:81eaf40c4b1a7f7a4aa4c0ce3fbd63fa29402668a887b9641d78970053b90304",
+          "verdict": "SAFE",
+          "verdictLabel": "No blockers observed"
+        }
+      ]
+    },
+    {
+      "canonicalName": "mcp-registry/ai.dinglebear-arcane-rmcp",
+      "surfaces": [
+        {
+          "surface": "apps/web/public/trust/mcp-registry/ai.dinglebear-arcane-rmcp.json",
+          "artifactDigest": "sha256:3ba1235d1b4c5379f828178522e7d61fe6e42b5575e43d5fdc5da9cc9b3e957e",
+          "verdict": "SAFE",
+          "verdictLabel": "No blockers observed"
+        },
+        {
+          "surface": "apps/web/public/trust/mcp-registry/ai.dinglebear-arcane-rmcp.manifest.json",
+          "artifactDigest": "sha256:3ba1235d1b4c5379f828178522e7d61fe6e42b5575e43d5fdc5da9cc9b3e957e",
+          "verdict": "SAFE",
+          "verdictLabel": "No blockers observed"
+        },
+        {
+          "surface": "apps/web/public/install/mcp-registry/ai.dinglebear-arcane-rmcp/index.json",
+          "artifactDigest": "sha256:3ba1235d1b4c5379f828178522e7d61fe6e42b5575e43d5fdc5da9cc9b3e957e",
+          "verdict": "SAFE",
+          "verdictLabel": "No blockers observed"
+        },
+        {
+          "surface": "apps/web/public/trust/mcp-registry/ai.dinglebear-arcane-rmcp.html",
+          "artifactDigest": "sha256:3ba1235d1b4c5379f828178522e7d61fe6e42b5575e43d5fdc5da9cc9b3e957e",
+          "verdict": null,
+          "verdictLabel": "No blockers observed"
+        },
+        {
+          "surface": "apps/web/public/install/mcp-registry/ai.dinglebear-arcane-rmcp/index.html",
+          "artifactDigest": "sha256:3ba1235d1b4c5379f828178522e7d61fe6e42b5575e43d5fdc5da9cc9b3e957e",
+          "verdict": null,
+          "verdictLabel": "No blockers observed"
+        },
+        {
+          "surface": "apps/web/public/trust/lookup-index.json",
+          "artifactDigest": "sha256:3ba1235d1b4c5379f828178522e7d61fe6e42b5575e43d5fdc5da9cc9b3e957e",
+          "verdict": "SAFE",
+          "verdictLabel": "No blockers observed"
+        }
+      ]
+    },
+    {
+      "canonicalName": "mcp-registry/ai.dinglebear-cortex",
+      "surfaces": [
+        {
+          "surface": "apps/web/public/trust/mcp-registry/ai.dinglebear-cortex.json",
+          "artifactDigest": "sha256:48b522bdf018b0f04c2d3b2513fe6b829efb270e28f5a1fd5f481e859f187051",
+          "verdict": "SAFE",
+          "verdictLabel": "No blockers observed"
+        },
+        {
+          "surface": "apps/web/public/trust/mcp-registry/ai.dinglebear-cortex.manifest.json",
+          "artifactDigest": "sha256:48b522bdf018b0f04c2d3b2513fe6b829efb270e28f5a1fd5f481e859f187051",
+          "verdict": "SAFE",
+          "verdictLabel": "No blockers observed"
+        },
+        {
+          "surface": "apps/web/public/install/mcp-registry/ai.dinglebear-cortex/index.json",
+          "artifactDigest": "sha256:48b522bdf018b0f04c2d3b2513fe6b829efb270e28f5a1fd5f481e859f187051",
+          "verdict": "SAFE",
+          "verdictLabel": "No blockers observed"
+        },
+        {
+          "surface": "apps/web/public/trust/mcp-registry/ai.dinglebear-cortex.html",
+          "artifactDigest": "sha256:48b522bdf018b0f04c2d3b2513fe6b829efb270e28f5a1fd5f481e859f187051",
+          "verdict": null,
+          "verdictLabel": "No blockers observed"
+        },
+        {
+          "surface": "apps/web/public/install/mcp-registry/ai.dinglebear-cortex/index.html",
+          "artifactDigest": "sha256:48b522bdf018b0f04c2d3b2513fe6b829efb270e28f5a1fd5f481e859f187051",
+          "verdict": null,
+          "verdictLabel": "No blockers observed"
+        },
+        {
+          "surface": "apps/web/public/trust/lookup-index.json",
+          "artifactDigest": "sha256:48b522bdf018b0f04c2d3b2513fe6b829efb270e28f5a1fd5f481e859f187051",
+          "verdict": "SAFE",
+          "verdictLabel": "No blockers observed"
+        }
+      ]
+    },
+    {
+      "canonicalName": "mcp-registry/ai.dinglebear-cortex-rmcp",
+      "surfaces": [
+        {
+          "surface": "apps/web/public/trust/mcp-registry/ai.dinglebear-cortex-rmcp.json",
+          "artifactDigest": "sha256:9e22105b72c4b161c9cb8dd932c1564e4afc7b9ff3e77bff829c5615517f9445",
+          "verdict": "SAFE",
+          "verdictLabel": "No blockers observed"
+        },
+        {
+          "surface": "apps/web/public/trust/mcp-registry/ai.dinglebear-cortex-rmcp.manifest.json",
+          "artifactDigest": "sha256:9e22105b72c4b161c9cb8dd932c1564e4afc7b9ff3e77bff829c5615517f9445",
+          "verdict": "SAFE",
+          "verdictLabel": "No blockers observed"
+        },
+        {
+          "surface": "apps/web/public/install/mcp-registry/ai.dinglebear-cortex-rmcp/index.json",
+          "artifactDigest": "sha256:9e22105b72c4b161c9cb8dd932c1564e4afc7b9ff3e77bff829c5615517f9445",
+          "verdict": "SAFE",
+          "verdictLabel": "No blockers observed"
+        },
+        {
+          "surface": "apps/web/public/trust/mcp-registry/ai.dinglebear-cortex-rmcp.html",
+          "artifactDigest": "sha256:9e22105b72c4b161c9cb8dd932c1564e4afc7b9ff3e77bff829c5615517f9445",
+          "verdict": null,
+          "verdictLabel": "No blockers observed"
+        },
+        {
+          "surface": "apps/web/public/install/mcp-registry/ai.dinglebear-cortex-rmcp/index.html",
+          "artifactDigest": "sha256:9e22105b72c4b161c9cb8dd932c1564e4afc7b9ff3e77bff829c5615517f9445",
+          "verdict": null,
+          "verdictLabel": "No blockers observed"
+        },
+        {
+          "surface": "apps/web/public/trust/lookup-index.json",
+          "artifactDigest": "sha256:9e22105b72c4b161c9cb8dd932c1564e4afc7b9ff3e77bff829c5615517f9445",
+          "verdict": "SAFE",
+          "verdictLabel": "No blockers observed"
+        }
+      ]
+    },
+    {
+      "canonicalName": "mcp-registry/ai.dinglebear-gotify-rmcp",
+      "surfaces": [
+        {
+          "surface": "apps/web/public/trust/mcp-registry/ai.dinglebear-gotify-rmcp.json",
+          "artifactDigest": "sha256:8579b28bc775d5d14c22cab7c29f26ede0946eaa32588c7b29db595f1ea2903b",
+          "verdict": "SAFE",
+          "verdictLabel": "No blockers observed"
+        },
+        {
+          "surface": "apps/web/public/trust/mcp-registry/ai.dinglebear-gotify-rmcp.manifest.json",
+          "artifactDigest": "sha256:8579b28bc775d5d14c22cab7c29f26ede0946eaa32588c7b29db595f1ea2903b",
+          "verdict": "SAFE",
+          "verdictLabel": "No blockers observed"
+        },
+        {
+          "surface": "apps/web/public/install/mcp-registry/ai.dinglebear-gotify-rmcp/index.json",
+          "artifactDigest": "sha256:8579b28bc775d5d14c22cab7c29f26ede0946eaa32588c7b29db595f1ea2903b",
+          "verdict": "SAFE",
+          "verdictLabel": "No blockers observed"
+        },
+        {
+          "surface": "apps/web/public/trust/mcp-registry/ai.dinglebear-gotify-rmcp.html",
+          "artifactDigest": "sha256:8579b28bc775d5d14c22cab7c29f26ede0946eaa32588c7b29db595f1ea2903b",
+          "verdict": null,
+          "verdictLabel": "No blockers observed"
+        },
+        {
+          "surface": "apps/web/public/install/mcp-registry/ai.dinglebear-gotify-rmcp/index.html",
+          "artifactDigest": "sha256:8579b28bc775d5d14c22cab7c29f26ede0946eaa32588c7b29db595f1ea2903b",
+          "verdict": null,
+          "verdictLabel": "No blockers observed"
+        },
+        {
+          "surface": "apps/web/public/trust/lookup-index.json",
+          "artifactDigest": "sha256:8579b28bc775d5d14c22cab7c29f26ede0946eaa32588c7b29db595f1ea2903b",
+          "verdict": "SAFE",
+          "verdictLabel": "No blockers observed"
+        }
+      ]
+    },
+    {
+      "canonicalName": "mcp-registry/ai.dinglebear-labby",
+      "surfaces": [
+        {
+          "surface": "apps/web/public/trust/mcp-registry/ai.dinglebear-labby.json",
+          "artifactDigest": "sha256:0a549ce10c9f8d71d151f9d0a3946658c82858b2f2a010d88ebed2eae1e3bb1c",
+          "verdict": "SAFE",
+          "verdictLabel": "No blockers observed"
+        },
+        {
+          "surface": "apps/web/public/trust/mcp-registry/ai.dinglebear-labby.manifest.json",
+          "artifactDigest": "sha256:0a549ce10c9f8d71d151f9d0a3946658c82858b2f2a010d88ebed2eae1e3bb1c",
+          "verdict": "SAFE",
+          "verdictLabel": "No blockers observed"
+        },
+        {
+          "surface": "apps/web/public/install/mcp-registry/ai.dinglebear-labby/index.json",
+          "artifactDigest": "sha256:0a549ce10c9f8d71d151f9d0a3946658c82858b2f2a010d88ebed2eae1e3bb1c",
+          "verdict": "SAFE",
+          "verdictLabel": "No blockers observed"
+        },
+        {
+          "surface": "apps/web/public/trust/mcp-registry/ai.dinglebear-labby.html",
+          "artifactDigest": "sha256:0a549ce10c9f8d71d151f9d0a3946658c82858b2f2a010d88ebed2eae1e3bb1c",
+          "verdict": null,
+          "verdictLabel": "No blockers observed"
+        },
+        {
+          "surface": "apps/web/public/install/mcp-registry/ai.dinglebear-labby/index.html",
+          "artifactDigest": "sha256:0a549ce10c9f8d71d151f9d0a3946658c82858b2f2a010d88ebed2eae1e3bb1c",
+          "verdict": null,
+          "verdictLabel": "No blockers observed"
+        },
+        {
+          "surface": "apps/web/public/trust/lookup-index.json",
+          "artifactDigest": "sha256:0a549ce10c9f8d71d151f9d0a3946658c82858b2f2a010d88ebed2eae1e3bb1c",
+          "verdict": "SAFE",
+          "verdictLabel": "No blockers observed"
+        }
+      ]
+    },
+    {
       "canonicalName": "mcp-registry/io.github.calllint-calllint",
       "surfaces": [
         {
@@ -10180,7 +12230,7 @@
     {
       "id": "cohort-size",
       "pass": true,
-      "observed": "248 identities (expected 248)"
+      "observed": "298 identities (expected 298)"
     },
     {
       "id": "mcp-registry/ac.inference.sh-mcp",
@@ -10244,6 +12294,11 @@
     },
     {
       "id": "mcp-registry/ai.1325-mcp",
+      "pass": true,
+      "observed": "6 surfaces agree"
+    },
+    {
+      "id": "mcp-registry/ai.aard-aard",
       "pass": true,
       "observed": "6 surfaces agree"
     },
@@ -11414,6 +13469,251 @@
     },
     {
       "id": "mcp-registry/ai.contextstudios-mcp",
+      "pass": true,
+      "observed": "6 surfaces agree"
+    },
+    {
+      "id": "mcp-registry/ai.contio-meetingos",
+      "pass": true,
+      "observed": "6 surfaces agree"
+    },
+    {
+      "id": "mcp-registry/ai.contractorsnearme-contractors-near-me",
+      "pass": true,
+      "observed": "6 surfaces agree"
+    },
+    {
+      "id": "mcp-registry/ai.conveo-conveo",
+      "pass": true,
+      "observed": "6 surfaces agree"
+    },
+    {
+      "id": "mcp-registry/ai.cookiy-cookiy",
+      "pass": true,
+      "observed": "6 surfaces agree"
+    },
+    {
+      "id": "mcp-registry/ai.corduroy-labs-updates",
+      "pass": true,
+      "observed": "6 surfaces agree"
+    },
+    {
+      "id": "mcp-registry/ai.cosmonote-notes",
+      "pass": true,
+      "observed": "6 surfaces agree"
+    },
+    {
+      "id": "mcp-registry/ai.cotal-cotal",
+      "pass": true,
+      "observed": "6 surfaces agree"
+    },
+    {
+      "id": "mcp-registry/ai.cralo-mcp",
+      "pass": true,
+      "observed": "6 surfaces agree"
+    },
+    {
+      "id": "mcp-registry/ai.craneledger-crane-ledger",
+      "pass": true,
+      "observed": "6 surfaces agree"
+    },
+    {
+      "id": "mcp-registry/ai.crayonz-mcp",
+      "pass": true,
+      "observed": "6 surfaces agree"
+    },
+    {
+      "id": "mcp-registry/ai.createprints-createprints",
+      "pass": true,
+      "observed": "6 surfaces agree"
+    },
+    {
+      "id": "mcp-registry/ai.creationloop-creationloop",
+      "pass": true,
+      "observed": "6 surfaces agree"
+    },
+    {
+      "id": "mcp-registry/ai.creativescope-creative-intelligence",
+      "pass": true,
+      "observed": "6 surfaces agree"
+    },
+    {
+      "id": "mcp-registry/ai.creditpolicy-creditpolicy",
+      "pass": true,
+      "observed": "6 surfaces agree"
+    },
+    {
+      "id": "mcp-registry/ai.cueapi-mcp",
+      "pass": true,
+      "observed": "6 surfaces agree"
+    },
+    {
+      "id": "mcp-registry/ai.cueframe-cueframe",
+      "pass": true,
+      "observed": "6 surfaces agree"
+    },
+    {
+      "id": "mcp-registry/ai.customdomain-mcp",
+      "pass": true,
+      "observed": "6 surfaces agree"
+    },
+    {
+      "id": "mcp-registry/ai.d50-d50-platform",
+      "pass": true,
+      "observed": "6 surfaces agree"
+    },
+    {
+      "id": "mcp-registry/ai.dablock-visibility-index",
+      "pass": true,
+      "observed": "6 surfaces agree"
+    },
+    {
+      "id": "mcp-registry/ai.dabyte-visibility-index",
+      "pass": true,
+      "observed": "6 surfaces agree"
+    },
+    {
+      "id": "mcp-registry/ai.darkfunnels-docs",
+      "pass": true,
+      "observed": "6 surfaces agree"
+    },
+    {
+      "id": "mcp-registry/ai.darkfunnels-whatsapp-sales-agent",
+      "pass": true,
+      "observed": "6 surfaces agree"
+    },
+    {
+      "id": "mcp-registry/ai.datacenterindex-datacenterindex",
+      "pass": true,
+      "observed": "6 surfaces agree"
+    },
+    {
+      "id": "mcp-registry/ai.dataecho-mcp",
+      "pass": true,
+      "observed": "6 surfaces agree"
+    },
+    {
+      "id": "mcp-registry/ai.dataforb2b-dataforb2b",
+      "pass": true,
+      "observed": "6 surfaces agree"
+    },
+    {
+      "id": "mcp-registry/ai.datamerge-mcp",
+      "pass": true,
+      "observed": "6 surfaces agree"
+    },
+    {
+      "id": "mcp-registry/ai.dataparrot-data-parrot",
+      "pass": true,
+      "observed": "6 surfaces agree"
+    },
+    {
+      "id": "mcp-registry/ai.daystruct.api-daystruct",
+      "pass": true,
+      "observed": "6 surfaces agree"
+    },
+    {
+      "id": "mcp-registry/ai.dealfilter-mcp",
+      "pass": true,
+      "observed": "6 surfaces agree"
+    },
+    {
+      "id": "mcp-registry/ai.decimal-registry",
+      "pass": true,
+      "observed": "6 surfaces agree"
+    },
+    {
+      "id": "mcp-registry/ai.decisionlog-mcp",
+      "pass": true,
+      "observed": "6 surfaces agree"
+    },
+    {
+      "id": "mcp-registry/ai.deepledger-mcp",
+      "pass": true,
+      "observed": "6 surfaces agree"
+    },
+    {
+      "id": "mcp-registry/ai.deinai-creator-skill",
+      "pass": true,
+      "observed": "6 surfaces agree"
+    },
+    {
+      "id": "mcp-registry/ai.deinai-creator-skill-v2",
+      "pass": true,
+      "observed": "6 surfaces agree"
+    },
+    {
+      "id": "mcp-registry/ai.delega-aws-pricing-calculator",
+      "pass": true,
+      "observed": "6 surfaces agree"
+    },
+    {
+      "id": "mcp-registry/ai.demanddiscovery-mcp",
+      "pass": true,
+      "observed": "6 surfaces agree"
+    },
+    {
+      "id": "mcp-registry/ai.demomagic-interactive-video-guide",
+      "pass": true,
+      "observed": "6 surfaces agree"
+    },
+    {
+      "id": "mcp-registry/ai.deployit-product-expert",
+      "pass": true,
+      "observed": "6 surfaces agree"
+    },
+    {
+      "id": "mcp-registry/ai.deskclone-deskclone",
+      "pass": true,
+      "observed": "6 surfaces agree"
+    },
+    {
+      "id": "mcp-registry/ai.deskcrew-agentic",
+      "pass": true,
+      "observed": "6 surfaces agree"
+    },
+    {
+      "id": "mcp-registry/ai.diagramzu-mcp",
+      "pass": true,
+      "observed": "6 surfaces agree"
+    },
+    {
+      "id": "mcp-registry/ai.diezx-diezx",
+      "pass": true,
+      "observed": "6 surfaces agree"
+    },
+    {
+      "id": "mcp-registry/ai.dimetrics-dimetrics",
+      "pass": true,
+      "observed": "6 surfaces agree"
+    },
+    {
+      "id": "mcp-registry/ai.dinglebear-apprise-rmcp",
+      "pass": true,
+      "observed": "6 surfaces agree"
+    },
+    {
+      "id": "mcp-registry/ai.dinglebear-arcane-rmcp",
+      "pass": true,
+      "observed": "6 surfaces agree"
+    },
+    {
+      "id": "mcp-registry/ai.dinglebear-cortex",
+      "pass": true,
+      "observed": "6 surfaces agree"
+    },
+    {
+      "id": "mcp-registry/ai.dinglebear-cortex-rmcp",
+      "pass": true,
+      "observed": "6 surfaces agree"
+    },
+    {
+      "id": "mcp-registry/ai.dinglebear-gotify-rmcp",
+      "pass": true,
+      "observed": "6 surfaces agree"
+    },
+    {
+      "id": "mcp-registry/ai.dinglebear-labby",
       "pass": true,
       "observed": "6 surfaces agree"
     },

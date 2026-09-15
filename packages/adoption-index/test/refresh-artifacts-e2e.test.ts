@@ -63,7 +63,7 @@ import {
 
 const PKG_ROOT = join(dirname(fileURLToPath(import.meta.url)), "..")
 const MIGRATIONS_DIR = join(PKG_ROOT, MIGRATIONS_DIRNAME)
-const SNAPSHOT_PATH = join(PKG_ROOT, "..", "trust-index", "snapshots", "official-mcp-registry.json")
+const SNAPSHOT_PATH = join(PKG_ROOT, "test", "fixtures", "official-mcp-registry.json")
 const ENDPOINT = "https://registry.modelcontextprotocol.io/v0/servers"
 const OFFICIAL_META = "io.modelcontextprotocol.registry/official"
 const T0 = "2026-08-01T00:00:00.000Z"

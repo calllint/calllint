@@ -1,11 +1,11 @@
 {
   "schema": "calllint.agent-adoption-contract.v1",
   "contract": {
-    "contractDigest": "sha256:9ae4f373a7c75afebd453a1f2ff4f965a9327295af28d9e9843c14b416c18138",
-    "generatedAt": "2026-09-15T02:38:22.000Z",
+    "contractDigest": "sha256:e9a1434572a8eae23408f9fa07f3c9c00bafb7f8d6762bf867d1bf24eb4d11fd",
+    "generatedAt": "2026-09-15T04:43:56.000Z",
     "expiresAt": null,
     "generatorVersion": "0.1.0",
-    "snapshotDigest": "sha256:5a9a011bad0f83e348ba601df063d7164490636fedcfc1ec3673af6c3d8a02aa"
+    "snapshotDigest": "sha256:a17cc2296830ea649d39650ffaa9b6aa90a3ffd07deb5ea594ab80b8b0427d81"
   },
   "subject": {
     "canonicalName": "mcp-registry/ai.chinamarketing-intelligence",
@@ -23,7 +23,7 @@
       "UNKNOWN_REMOTE"
     ],
     "evidenceLevel": "E2",
-    "evidenceDigest": "sha256:67dea7084db047d6a90698794e6c0cc40b859017abe22a5cf49b53d7bfbd2a41",
+    "evidenceDigest": "sha256:e5c3d450f2b92e7afb2b432cb996f2899916beb59748d482692a67adc89169cb",
     "completeness": "complete"
   },
   "authorityDelta": {
@@ -44,8 +44,8 @@
     ]
   },
   "trustedSources": {
-    "registrySnapshotDigest": "sha256:5a9a011bad0f83e348ba601df063d7164490636fedcfc1ec3673af6c3d8a02aa",
-    "evidenceDigest": "sha256:67dea7084db047d6a90698794e6c0cc40b859017abe22a5cf49b53d7bfbd2a41",
+    "registrySnapshotDigest": "sha256:a17cc2296830ea649d39650ffaa9b6aa90a3ffd07deb5ea594ab80b8b0427d81",
+    "evidenceDigest": "sha256:e5c3d450f2b92e7afb2b432cb996f2899916beb59748d482692a67adc89169cb",
     "engineVersion": "0.1.0"
   },
   "untrustedPublisherContent": {
@@ -59,7 +59,7 @@
       "canonicalName": "mcp-registry/ai.chinamarketing-intelligence",
       "expectedVersion": "1.0.1",
       "expectedArtifactDigest": "sha256:ebc16f1410be3a3d5bfa286f94688a87cd13729abeae7182c8cd8716c4321f2e",
-      "expectedContractDigest": "sha256:9ae4f373a7c75afebd453a1f2ff4f965a9327295af28d9e9843c14b416c18138",
+      "expectedContractDigest": "sha256:e9a1434572a8eae23408f9fa07f3c9c00bafb7f8d6762bf867d1bf24eb4d11fd",
       "host": null
     }
   },
