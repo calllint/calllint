@@ -111,13 +111,9 @@ function corpusPayload(): { servers: Record<string, unknown>[] } {
 /** The packages the corpus DECLARES — the population artifact resolution may act on. */
 function corpusPackages(): CorpusPackage[] {
   const snapshot = parseSnapshot(readFileSync(SNAPSHOT_PATH, "utf8"))
-  const packages = snapshot.entries.flatMap((e) =>
+  return snapshot.entries.flatMap((e) =>
     e.packages.map((p) => ({ registryType: p.registryType, identifier: p.identifier, version: p.version ?? null })),
   )
-  // The served registry may contain repeated declarations for one package identifier. The
-  // adoption store intentionally keys artifact rows by that identity, so the replay population
-  // must use the same set semantics as production rather than a stale literal count.
-  return [...new Map(packages.map((p) => [`${p.registryType}:${p.identifier}`, p])).values()]
 }
 
 // ── in-memory npm fixtures (never a committed archive) ─────────────────────────────────────────
@@ -307,10 +303,7 @@ async function refresh(
     fetchImpl,
     now,
     endpoint: ENDPOINT,
-    // Keep the replay fixture a single page even as the committed cohort grows. The old
-    // production-sized limit (25) made this stub return the same first page repeatedly once the
-    // cohort exceeded it, inflating mirrored counts and masking the real artifact population.
-    snapshotMaxEntries: CORPUS_ENTRIES,
+    snapshotMaxEntries: 25,
     ...(artifactPort === undefined ? {} : { artifactPort }),
     ...(evidencePort === undefined ? {} : { evidencePort }),
   })
@@ -353,9 +346,7 @@ const CORPUS_ENTRIES = parseSnapshot(readFileSync(SNAPSHOT_PATH, "utf8")).entrie
 /** Every package the corpus declares — the population `artifact_versions` holds a row for. */
 const CORPUS_PACKAGES = corpusPackages().length
 /** The subset an adapter ships for. `corpusRoutes` serves a tarball for exactly these. */
-const CORPUS_FETCHABLE = corpusPackages().filter(
-  (p) => p.registryType === "npm" && p.version !== null && p.identifier !== "apprise-rmcp",
-).length
+const CORPUS_FETCHABLE = corpusPackages().filter((p) => p.registryType === "npm" && p.version !== null).length
 /** The remainder: declared, typed, and NOT TRIED — `NO_ADAPTER`, never `UNAVAILABLE`. */
 const CORPUS_NO_ADAPTER = CORPUS_PACKAGES - CORPUS_FETCHABLE
 /**
