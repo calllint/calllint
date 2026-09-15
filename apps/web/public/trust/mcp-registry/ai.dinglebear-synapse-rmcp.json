@@ -1,0 +1,144 @@
+{
+  "schema": "calllint.trust-page.v0",
+  "canonicalName": "mcp-registry/ai.dinglebear-synapse-rmcp",
+  "artifactDigest": "sha256:5f31c17f76b3d9caced553abb018bbfd54e1c1d0a5b4912269c6ae59cf09000e",
+  "pageDigest": "sha256:1ce1e4e61d315dfce9d7f9b3f2cb4b43a99b56ca3d85af3071951317323d6e98",
+  "verdict": "SAFE",
+  "verdictLabel": "No blockers observed",
+  "observedAt": "2026-09-15T06:37:10.000Z",
+  "completeness": "complete",
+  "status": {
+    "verdict": "SAFE",
+    "completeness": "complete",
+    "authorityClaimed": false,
+    "reproducibility": {
+      "pageDigest": "sha256:1ce1e4e61d315dfce9d7f9b3f2cb4b43a99b56ca3d85af3071951317323d6e98",
+      "observedAt": "2026-09-15T06:37:10.000Z"
+    },
+    "evidenceLevel": "E2",
+    "evidenceRationale": "install config observed → static blast radius normalized into an authority inventory. Higher levels (E3 tool schema, E4 maintainer receipt, E5 sandbox) are not carried by a static page."
+  },
+  "correctionUrl": "https://github.com/calllint/calllint/issues/new?labels=trust-page-correction",
+  "reproduction": {
+    "command": "npx calllint scan official-mcp-registry:ai.dinglebear/synapse-rmcp",
+    "artifactDigest": "sha256:5f31c17f76b3d9caced553abb018bbfd54e1c1d0a5b4912269c6ae59cf09000e",
+    "note": "Re-running this scan reproduces the verdict observed at the pinned artifact digest. It is a point-in-time observation, not a guarantee of future behavior."
+  },
+  "scanHistory": [
+    {
+      "observedAt": "2026-09-15T06:37:10.000Z",
+      "pageDigest": "sha256:1ce1e4e61d315dfce9d7f9b3f2cb4b43a99b56ca3d85af3071951317323d6e98",
+      "artifactDigest": "sha256:5f31c17f76b3d9caced553abb018bbfd54e1c1d0a5b4912269c6ae59cf09000e"
+    }
+  ],
+  "preparation": {
+    "schema": "calllint.trust-preparation.v0",
+    "artifact": {
+      "schema": "calllint.artifact.v1",
+      "sourceType": "mcp-config",
+      "source": "official-mcp-registry:ai.dinglebear/synapse-rmcp",
+      "requestedRef": null,
+      "resolvedRef": "sha256:5f31c17f76b3d9caced553abb018bbfd54e1c1d0a5b4912269c6ae59cf09000e",
+      "digest": "sha256:5f31c17f76b3d9caced553abb018bbfd54e1c1d0a5b4912269c6ae59cf09000e",
+      "resolvedAt": "2026-09-15T06:37:10.000Z",
+      "resolution": "resolved"
+    },
+    "evidence": null,
+    "authority": {
+      "schema": "calllint.authority.v0",
+      "subject": {
+        "artifactDigest": "sha256:5f31c17f76b3d9caced553abb018bbfd54e1c1d0a5b4912269c6ae59cf09000e"
+      },
+      "capabilities": [
+        {
+          "action": "execute",
+          "resource": "process",
+          "scope": "npx",
+          "destination": null,
+          "mutability": "mutating",
+          "reversibility": "irreversible",
+          "monetaryLimit": null,
+          "approvalRequirement": "none",
+          "evidenceSource": "server.command",
+          "confidence": "high",
+          "completeness": "complete",
+          "trustSource": "trusted.local_project"
+        }
+      ],
+      "limits": {
+        "spendPerCall": null,
+        "spendTotal": null
+      },
+      "approval": {
+        "required": []
+      },
+      "unknowns": [],
+      "completeness": "complete",
+      "digest": "sha256:c1f678066de0993d2eedbe3c7a400f11c624d37e2c0739e83bd5f205eb142dfd"
+    },
+    "decision": null,
+    "plan": null,
+    "state": "AUTHORITY_NORMALIZED",
+    "notes": [
+      "no external evidence attached (optional); decision will rely on CallLint's own analysis",
+      "authority normalized: 1 capability"
+    ],
+    "preparedAt": "2026-09-15T06:37:10.000Z"
+  },
+  "scan": {
+    "schemaVersion": "calllint.report.v0",
+    "reportKind": "config-summary",
+    "configPath": "official-mcp-registry:ai.dinglebear/synapse-rmcp",
+    "verdict": "SAFE",
+    "publicVerdictLabel": "No blockers observed",
+    "counts": {
+      "SAFE": 1,
+      "REVIEW": 0,
+      "BLOCK": 0,
+      "UNKNOWN": 0
+    },
+    "reports": [
+      {
+        "schemaVersion": "calllint.report.v0",
+        "reportKind": "single-target",
+        "target": {
+          "name": "package",
+          "kind": "mcp-servers",
+          "source": "synapse-rmcp",
+          "version": "0.5.4",
+          "configPath": "official-mcp-registry:ai.dinglebear/synapse-rmcp"
+        },
+        "verdict": "SAFE",
+        "publicVerdictLabel": "No blockers observed",
+        "policyApplied": false,
+        "riskClass": "S1",
+        "symbols": [],
+        "confidence": "high",
+        "reproducibility": {
+          "level": "HIGH",
+          "reasons": []
+        },
+        "summary": "\"package\" has no blockers observed (S1 Read-only utility).",
+        "observed": [],
+        "inferred": [],
+        "findings": [],
+        "topFindings": [],
+        "policy": {
+          "autonomousUse": "allow",
+          "manualApproval": "none",
+          "sandbox": "none"
+        },
+        "fingerprints": {
+          "configHash": "sha256:d03fe3812727eebb1f219040f30b2b146a8d8beb3370d1ec71dcab50e46c735f",
+          "targetSpecHash": "sha256:acb0fb64c1ee6e0209244189457f0e9aaabcea1b9a7062a81263bce02bc8b6a0",
+          "riskSurfaceHash": "sha256:69aae84c996fe93d537b08d906cb339866bd43f10876be403a0f4793915bef33",
+          "packageSpecHash": "sha256:27abfa238ffecc366f7217673457760d4eefd0bf09f76bd880f74b39b5d0fc16"
+        },
+        "diagnostics": [],
+        "generatedAt": "2026-09-15T06:37:10.000Z"
+      }
+    ],
+    "diagnostics": [],
+    "generatedAt": "2026-09-15T06:37:10.000Z"
+  }
+}

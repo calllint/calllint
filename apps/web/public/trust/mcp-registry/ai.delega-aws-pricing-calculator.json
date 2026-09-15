@@ -2,18 +2,18 @@
   "schema": "calllint.trust-page.v0",
   "canonicalName": "mcp-registry/ai.delega-aws-pricing-calculator",
   "artifactDigest": "sha256:ddd7560376ef6988671d5f4e3bf70583a9362296afaa4ca674c2300b9856cdc4",
-  "pageDigest": "sha256:bbe50ad0a1f56e6eadc35140607bc9446a4d8a9d97df6be8182e58b423e52eba",
+  "pageDigest": "sha256:a37e88bfa4d928213e2857d193a47656ce73e6394b9d1552807b5b5c8bc68b5a",
   "verdict": "REVIEW",
   "verdictLabel": "Review required",
-  "observedAt": "2026-09-15T04:43:56.000Z",
+  "observedAt": "2026-09-15T06:37:10.000Z",
   "completeness": "complete",
   "status": {
     "verdict": "REVIEW",
     "completeness": "complete",
     "authorityClaimed": false,
     "reproducibility": {
-      "pageDigest": "sha256:bbe50ad0a1f56e6eadc35140607bc9446a4d8a9d97df6be8182e58b423e52eba",
-      "observedAt": "2026-09-15T04:43:56.000Z"
+      "pageDigest": "sha256:a37e88bfa4d928213e2857d193a47656ce73e6394b9d1552807b5b5c8bc68b5a",
+      "observedAt": "2026-09-15T06:37:10.000Z"
     },
     "evidenceLevel": "E2",
     "evidenceRationale": "install config observed → static blast radius normalized into an authority inventory. Higher levels (E3 tool schema, E4 maintainer receipt, E5 sandbox) are not carried by a static page."
@@ -26,8 +26,8 @@
   },
   "scanHistory": [
     {
-      "observedAt": "2026-09-15T04:43:56.000Z",
-      "pageDigest": "sha256:bbe50ad0a1f56e6eadc35140607bc9446a4d8a9d97df6be8182e58b423e52eba",
+      "observedAt": "2026-09-15T06:37:10.000Z",
+      "pageDigest": "sha256:a37e88bfa4d928213e2857d193a47656ce73e6394b9d1552807b5b5c8bc68b5a",
       "artifactDigest": "sha256:ddd7560376ef6988671d5f4e3bf70583a9362296afaa4ca674c2300b9856cdc4"
     }
   ],
@@ -40,7 +40,7 @@
       "requestedRef": null,
       "resolvedRef": "sha256:ddd7560376ef6988671d5f4e3bf70583a9362296afaa4ca674c2300b9856cdc4",
       "digest": "sha256:ddd7560376ef6988671d5f4e3bf70583a9362296afaa4ca674c2300b9856cdc4",
-      "resolvedAt": "2026-09-15T04:43:56.000Z",
+      "resolvedAt": "2026-09-15T06:37:10.000Z",
       "resolution": "resolved"
     },
     "evidence": null,
@@ -84,7 +84,7 @@
       "no external evidence attached (optional); decision will rely on CallLint's own analysis",
       "authority normalized: 1 capability, approvals required: external-network-access"
     ],
-    "preparedAt": "2026-09-15T04:43:56.000Z"
+    "preparedAt": "2026-09-15T06:37:10.000Z"
   },
   "scan": {
     "schemaVersion": "calllint.report.v0",
@@ -220,10 +220,10 @@
             "message": "Remote endpoint identity verified; tool surface not analyzed (evidence: https://calculator.delega.ai/mcp)"
           }
         ],
-        "generatedAt": "2026-09-15T04:43:56.000Z"
+        "generatedAt": "2026-09-15T06:37:10.000Z"
       }
     ],
     "diagnostics": [],
-    "generatedAt": "2026-09-15T04:43:56.000Z"
+    "generatedAt": "2026-09-15T06:37:10.000Z"
   }
 }

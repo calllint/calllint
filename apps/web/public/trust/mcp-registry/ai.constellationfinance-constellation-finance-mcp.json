@@ -2,18 +2,18 @@
   "schema": "calllint.trust-page.v0",
   "canonicalName": "mcp-registry/ai.constellationfinance-constellation-finance-mcp",
   "artifactDigest": "sha256:822cd77bf5b8961a92b107974ccff498571e27bbb0e8de5f9a77b5c7a89032f2",
-  "pageDigest": "sha256:ed704fba96c49abda74055f55575cfafb3aafa049cff64d91b26a68e595a3f1e",
+  "pageDigest": "sha256:1e599c072010da13d6e78ca8661e178d96d3208378127c203e8f7cf21aa74d57",
   "verdict": "REVIEW",
   "verdictLabel": "Review required",
-  "observedAt": "2026-09-15T04:43:56.000Z",
+  "observedAt": "2026-09-15T06:37:10.000Z",
   "completeness": "complete",
   "status": {
     "verdict": "REVIEW",
     "completeness": "complete",
     "authorityClaimed": false,
     "reproducibility": {
-      "pageDigest": "sha256:ed704fba96c49abda74055f55575cfafb3aafa049cff64d91b26a68e595a3f1e",
-      "observedAt": "2026-09-15T04:43:56.000Z"
+      "pageDigest": "sha256:1e599c072010da13d6e78ca8661e178d96d3208378127c203e8f7cf21aa74d57",
+      "observedAt": "2026-09-15T06:37:10.000Z"
     },
     "evidenceLevel": "E2",
     "evidenceRationale": "install config observed → static blast radius normalized into an authority inventory. Higher levels (E3 tool schema, E4 maintainer receipt, E5 sandbox) are not carried by a static page."
@@ -26,8 +26,8 @@
   },
   "scanHistory": [
     {
-      "observedAt": "2026-09-15T04:43:56.000Z",
-      "pageDigest": "sha256:ed704fba96c49abda74055f55575cfafb3aafa049cff64d91b26a68e595a3f1e",
+      "observedAt": "2026-09-15T06:37:10.000Z",
+      "pageDigest": "sha256:1e599c072010da13d6e78ca8661e178d96d3208378127c203e8f7cf21aa74d57",
       "artifactDigest": "sha256:822cd77bf5b8961a92b107974ccff498571e27bbb0e8de5f9a77b5c7a89032f2"
     }
   ],
@@ -40,7 +40,7 @@
       "requestedRef": null,
       "resolvedRef": "sha256:822cd77bf5b8961a92b107974ccff498571e27bbb0e8de5f9a77b5c7a89032f2",
       "digest": "sha256:822cd77bf5b8961a92b107974ccff498571e27bbb0e8de5f9a77b5c7a89032f2",
-      "resolvedAt": "2026-09-15T04:43:56.000Z",
+      "resolvedAt": "2026-09-15T06:37:10.000Z",
       "resolution": "resolved"
     },
     "evidence": null,
@@ -84,7 +84,7 @@
       "no external evidence attached (optional); decision will rely on CallLint's own analysis",
       "authority normalized: 1 capability, approvals required: external-network-access"
     ],
-    "preparedAt": "2026-09-15T04:43:56.000Z"
+    "preparedAt": "2026-09-15T06:37:10.000Z"
   },
   "scan": {
     "schemaVersion": "calllint.report.v0",
@@ -220,10 +220,10 @@
             "message": "Remote endpoint identity verified; tool surface not analyzed (evidence: https://mcp.constellationfinance.ai/mcp)"
           }
         ],
-        "generatedAt": "2026-09-15T04:43:56.000Z"
+        "generatedAt": "2026-09-15T06:37:10.000Z"
       }
     ],
     "diagnostics": [],
-    "generatedAt": "2026-09-15T04:43:56.000Z"
+    "generatedAt": "2026-09-15T06:37:10.000Z"
   }
 }

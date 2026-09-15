@@ -4,18 +4,18 @@
     "canonicalName": "mcp-registry/ai.aginera-preconstruction",
     "artifactDigest": "sha256:e85d9a432fde2bbfd1f8ab567a50cd812d407dfcc0b2a39c95eda12bc616b110"
   },
-  "verdict": "REVIEW",
-  "verdictLabel": "Review required",
+  "verdict": "UNKNOWN",
+  "verdictLabel": "Insufficient evidence",
   "completeness": "complete",
   "evidenceLevel": "E2",
   "evidenceRationale": "install config observed → static blast radius normalized into an authority inventory. Higher levels (E3 tool schema, E4 maintainer receipt, E5 sandbox) are not carried by a static page.",
   "status": {
-    "verdict": "REVIEW",
+    "verdict": "UNKNOWN",
     "completeness": "complete",
     "authorityClaimed": false,
     "reproducibility": {
-      "pageDigest": "sha256:064bc8a9a4f4e7d0bc24d55051f2514a4618a25541b02e9bc704199b5b39cf36",
-      "observedAt": "2026-09-15T04:43:56.000Z"
+      "pageDigest": "sha256:8e886e612f0d7f04ba91234cafbdaa7032b096bed8751b9ce4c4d6cc889b885c",
+      "observedAt": "2026-09-15T06:37:10.000Z"
     },
     "evidenceLevel": "E2"
   },
@@ -38,13 +38,13 @@
   },
   "policyDigest": null,
   "reproducibility": {
-    "pageDigest": "sha256:064bc8a9a4f4e7d0bc24d55051f2514a4618a25541b02e9bc704199b5b39cf36",
-    "observedAt": "2026-09-15T04:43:56.000Z"
+    "pageDigest": "sha256:8e886e612f0d7f04ba91234cafbdaa7032b096bed8751b9ce4c4d6cc889b885c",
+    "observedAt": "2026-09-15T06:37:10.000Z"
   },
   "engine": {
     "name": "calllint"
   },
   "correctionUrl": "https://github.com/calllint/calllint/issues/new?labels=trust-page-correction",
-  "generatedAt": "2026-09-15T04:43:56.000Z",
+  "generatedAt": "2026-09-15T06:37:10.000Z",
   "signature": null
 }

@@ -2,8 +2,8 @@
   "schema": "calllint.trust-snapshot.v0",
   "source": "official-mcp-registry",
   "endpoint": "https://registry.modelcontextprotocol.io/v0/servers",
-  "fetchedAt": "2026-09-15T04:43:56.000Z",
-  "count": 300,
+  "fetchedAt": "2026-09-15T06:37:10.000Z",
+  "count": 350,
   "entries": [
     {
       "name": "ac.inference.sh/mcp",
@@ -2808,7 +2808,7 @@
     {
       "name": "ai.bowmark/bowmark",
       "description": "Do things on live websites: prices, availability, quotes, bookings, anything behind a form or login.",
-      "version": "8.127.0",
+      "version": "8.128.0",
       "repositoryUrl": "https://github.com/bowmark-ai/skill",
       "packages": [
         {
@@ -2831,7 +2831,7 @@
         }
       ],
       "status": "active",
-      "publishedAt": "2026-09-15T04:41:13.921179Z"
+      "publishedAt": "2026-09-15T06:13:44.891634Z"
     },
     {
       "name": "ai.brainattic/knowledge-base",
@@ -4691,6 +4691,817 @@
       "remotes": [],
       "status": "active",
       "publishedAt": "2026-09-14T08:55:06.337805Z"
+    },
+    {
+      "name": "ai.dinglebear/rapprise",
+      "description": "Apprise notifications over MCP and CLI with authenticated stdio and HTTP transports.",
+      "version": "0.3.0",
+      "repositoryUrl": "https://github.com/dinglebear-ai/rapprise",
+      "packages": [
+        {
+          "registryType": "npm",
+          "identifier": "@dinglebear/rapprise",
+          "version": "0.3.0",
+          "transport": null
+        }
+      ],
+      "remotes": [],
+      "status": "active",
+      "publishedAt": "2026-08-04T19:27:05.76537Z"
+    },
+    {
+      "name": "ai.dinglebear/rarcane",
+      "description": "Arcane Docker and Compose management over MCP and CLI with authenticated stdio and HTTP.",
+      "version": "0.4.4",
+      "repositoryUrl": "https://github.com/dinglebear-ai/rarcane",
+      "packages": [
+        {
+          "registryType": "npm",
+          "identifier": "@dinglebear/rarcane",
+          "version": "0.4.4",
+          "transport": null
+        }
+      ],
+      "remotes": [],
+      "status": "active",
+      "publishedAt": "2026-08-04T21:50:32.821849Z"
+    },
+    {
+      "name": "ai.dinglebear/rgotify",
+      "description": "Gotify notifications and app, client, and message management over MCP and CLI.",
+      "version": "0.2.0",
+      "repositoryUrl": "https://github.com/dinglebear-ai/rgotify",
+      "packages": [
+        {
+          "registryType": "npm",
+          "identifier": "@dinglebear/rgotify",
+          "version": "0.2.0",
+          "transport": null
+        }
+      ],
+      "remotes": [],
+      "status": "active",
+      "publishedAt": "2026-08-05T17:12:43.48906Z"
+    },
+    {
+      "name": "ai.dinglebear/rtailscale",
+      "description": "Tailscale device, route, DNS, key, user, and ACL management over MCP and CLI.",
+      "version": "0.1.4",
+      "repositoryUrl": "https://github.com/dinglebear-ai/rtailscale",
+      "packages": [
+        {
+          "registryType": "npm",
+          "identifier": "@dinglebear/rtailscale",
+          "version": "0.1.4",
+          "transport": null
+        }
+      ],
+      "remotes": [
+        {
+          "type": "streamable-http",
+          "url": "https://ts.dinglebear.ai/mcp"
+        }
+      ],
+      "status": "active",
+      "publishedAt": "2026-08-04T14:20:42.446134Z"
+    },
+    {
+      "name": "ai.dinglebear/runifi",
+      "description": "Rust MCP server and CLI for UniFi Network controller operations.",
+      "version": "0.2.5",
+      "repositoryUrl": "https://github.com/dinglebear-ai/runifi",
+      "packages": [
+        {
+          "registryType": "npm",
+          "identifier": "@dinglebear/runifi",
+          "version": "0.2.5",
+          "transport": null
+        }
+      ],
+      "remotes": [],
+      "status": "active",
+      "publishedAt": "2026-08-03T03:17:11.386039Z"
+    },
+    {
+      "name": "ai.dinglebear/rytdl",
+      "description": "yt-dlp search, download, metadata, delivery, and Plex workflows over MCP and CLI.",
+      "version": "1.0.4",
+      "repositoryUrl": "https://github.com/dinglebear-ai/rytdl",
+      "packages": [
+        {
+          "registryType": "npm",
+          "identifier": "@dinglebear/rytdl",
+          "version": "1.0.4",
+          "transport": null
+        }
+      ],
+      "remotes": [],
+      "status": "active",
+      "publishedAt": "2026-08-04T21:50:43.461348Z"
+    },
+    {
+      "name": "ai.dinglebear/soma",
+      "description": "RMCP runtime for provider-backed agents with CLI, REST, HTTP MCP, plugins, and scaffold support.",
+      "version": "0.10.0",
+      "repositoryUrl": "https://github.com/dinglebear-ai/soma",
+      "packages": [
+        {
+          "registryType": "oci",
+          "identifier": "ghcr.io/dinglebear-ai/soma:0.10.0",
+          "version": null,
+          "transport": null
+        },
+        {
+          "registryType": "npm",
+          "identifier": "@dinglebear/soma",
+          "version": "0.10.0",
+          "transport": null
+        }
+      ],
+      "remotes": [],
+      "status": "active",
+      "publishedAt": "2026-08-05T18:15:44.491942Z"
+    },
+    {
+      "name": "ai.dinglebear/synapse",
+      "description": "Host, Docker, Compose, SSH, logs, ZFS, and file operations over MCP and CLI.",
+      "version": "1.0.0",
+      "repositoryUrl": "https://github.com/dinglebear-ai/synapse",
+      "packages": [
+        {
+          "registryType": "npm",
+          "identifier": "@dinglebear/synapse",
+          "version": "1.0.0",
+          "transport": null
+        }
+      ],
+      "remotes": [],
+      "status": "active",
+      "publishedAt": "2026-08-04T21:53:02.736003Z"
+    },
+    {
+      "name": "ai.dinglebear/synapse-rmcp",
+      "description": "Rust MCP and CLI server for Docker, host inspection, SSH, logs, ZFS, and safe file operations.",
+      "version": "0.5.4",
+      "repositoryUrl": "https://github.com/jmagar/synapse-rmcp",
+      "packages": [
+        {
+          "registryType": "npm",
+          "identifier": "synapse-rmcp",
+          "version": "0.5.4",
+          "transport": null
+        }
+      ],
+      "remotes": [],
+      "status": "active",
+      "publishedAt": "2026-07-12T12:00:37.079017Z"
+    },
+    {
+      "name": "ai.dinglebear/tailscale-rmcp",
+      "description": "Rust MCP server and CLI for Tailscale devices, users, keys, policies, and auth.",
+      "version": "0.1.3",
+      "repositoryUrl": "https://github.com/jmagar/tailscale-rmcp",
+      "packages": [
+        {
+          "registryType": "npm",
+          "identifier": "tailscale-rmcp",
+          "version": "0.1.3",
+          "transport": null
+        }
+      ],
+      "remotes": [],
+      "status": "active",
+      "publishedAt": "2026-07-12T12:00:37.314618Z"
+    },
+    {
+      "name": "ai.dinglebear/unifi-rmcp",
+      "description": "Rust MCP server and CLI for UniFi Network controller operations.",
+      "version": "0.2.4",
+      "repositoryUrl": "https://github.com/jmagar/unifi-rmcp",
+      "packages": [
+        {
+          "registryType": "npm",
+          "identifier": "unifi-rmcp",
+          "version": "0.2.4",
+          "transport": null
+        }
+      ],
+      "remotes": [],
+      "status": "active",
+      "publishedAt": "2026-07-12T12:00:37.570413Z"
+    },
+    {
+      "name": "ai.dinglebear/unraid",
+      "description": "Rust MCP server and CLI for Unraid GraphQL operations across NAS, Docker, VM, and storage workflows.",
+      "version": "0.3.0",
+      "repositoryUrl": "https://github.com/dinglebear-ai/unraid",
+      "packages": [
+        {
+          "registryType": "npm",
+          "identifier": "@dinglebear/unraid",
+          "version": "0.3.0",
+          "transport": null
+        }
+      ],
+      "remotes": [],
+      "status": "active",
+      "publishedAt": "2026-08-04T14:11:59.281461Z"
+    },
+    {
+      "name": "ai.dinglebear/unraid-mcp",
+      "description": "MCP server for Unraid API — provides tools to interact with an Unraid server's GraphQL API.",
+      "version": "2.10.1",
+      "repositoryUrl": "https://github.com/dinglebear-ai/unraid",
+      "packages": [
+        {
+          "registryType": "pypi",
+          "identifier": "unraid-mcp",
+          "version": "2.10.1",
+          "transport": null
+        }
+      ],
+      "remotes": [],
+      "status": "active",
+      "publishedAt": "2026-08-05T12:12:37.385376Z"
+    },
+    {
+      "name": "ai.dinglebear/unraid-rmcp",
+      "description": "Rust MCP server and CLI for Unraid GraphQL, NAS, Docker, VM, and storage workflows.",
+      "version": "0.2.3",
+      "repositoryUrl": "https://github.com/jmagar/unraid-rmcp",
+      "packages": [
+        {
+          "registryType": "npm",
+          "identifier": "unraid-rmcp",
+          "version": "0.2.3",
+          "transport": null
+        }
+      ],
+      "remotes": [],
+      "status": "active",
+      "publishedAt": "2026-07-12T12:00:37.970335Z"
+    },
+    {
+      "name": "ai.dinglebear/yarr",
+      "description": "Self-hosted media fleet operations across Sonarr, Radarr, Plex, and related apps over MCP and CLI.",
+      "version": "2.2.2",
+      "repositoryUrl": "https://github.com/dinglebear-ai/yarr",
+      "packages": [
+        {
+          "registryType": "npm",
+          "identifier": "@dinglebear/yarr",
+          "version": "2.2.2",
+          "transport": null
+        }
+      ],
+      "remotes": [],
+      "status": "active",
+      "publishedAt": "2026-08-04T21:57:22.884031Z"
+    },
+    {
+      "name": "ai.dinglebear/yarr-mcp",
+      "description": "Rust MCP and CLI server for Sonarr, Radarr, Prowlarr, Plex, Jellyfin, and download clients.",
+      "version": "1.1.1",
+      "repositoryUrl": "https://github.com/jmagar/yarr",
+      "packages": [
+        {
+          "registryType": "npm",
+          "identifier": "yarr-mcp",
+          "version": "1.1.1",
+          "transport": null
+        }
+      ],
+      "remotes": [],
+      "status": "active",
+      "publishedAt": "2026-07-12T12:00:38.673496Z"
+    },
+    {
+      "name": "ai.dinglebear/ytdl-rmcp",
+      "description": "Rust MCP server and CLI for yt-dlp search, downloads, metadata, transfers, and Plex playlists.",
+      "version": "1.0.2",
+      "repositoryUrl": "https://github.com/jmagar/ytdl-rmcp",
+      "packages": [
+        {
+          "registryType": "npm",
+          "identifier": "ytdl-rmcp",
+          "version": "1.0.2",
+          "transport": null
+        }
+      ],
+      "remotes": [],
+      "status": "active",
+      "publishedAt": "2026-07-12T12:00:38.93391Z"
+    },
+    {
+      "name": "ai.directcase/directcase",
+      "description": "Search national and EU case law, legislation and regulation, with citations you can verify.",
+      "version": "1.0.0",
+      "repositoryUrl": null,
+      "packages": [],
+      "remotes": [
+        {
+          "type": "streamable-http",
+          "url": "https://mcp.directcase.ai"
+        }
+      ],
+      "status": "active",
+      "publishedAt": "2026-08-21T13:30:31.014299Z"
+    },
+    {
+      "name": "ai.djwizard/tvwizard",
+      "description": "Control Android TV from any AI. 38 MCP tools: playback, recap, recommend, smart-home, schedules.",
+      "version": "0.7.0",
+      "repositoryUrl": "https://github.com/fizzious1/TVWizard-mcp",
+      "packages": [],
+      "remotes": [
+        {
+          "type": "streamable-http",
+          "url": "https://tv.djwizard.ai/mcp/"
+        }
+      ],
+      "status": "active",
+      "publishedAt": "2026-04-27T13:19:31.955204Z"
+    },
+    {
+      "name": "ai.djzs/trust-mcp",
+      "description": "Deterministic pre-execution audit for trading agents. PASS/WAIT/FAIL, reproducible verdict_hash.",
+      "version": "1.0.0",
+      "repositoryUrl": "https://github.com/SIFR0-dev/djzs-AI",
+      "packages": [],
+      "remotes": [
+        {
+          "type": "streamable-http",
+          "url": "https://mcp.djzs.ai/mcp"
+        }
+      ],
+      "status": "active",
+      "publishedAt": "2026-07-17T01:26:59.067995Z"
+    },
+    {
+      "name": "ai.docuguru/docuguru",
+      "description": "Journal-formatted PDFs for 18,000+ journals, real DOI citations, posters & slide decks.",
+      "version": "0.4.0",
+      "repositoryUrl": null,
+      "packages": [],
+      "remotes": [
+        {
+          "type": "streamable-http",
+          "url": "https://mcp.docuguru.ai/mcp"
+        }
+      ],
+      "status": "active",
+      "publishedAt": "2026-08-01T17:04:32.11906Z"
+    },
+    {
+      "name": "ai.docuwriter/docuwriter",
+      "description": "Generate, search, and manage codebase documentation on DocuWriter.ai. 72 tools incl. Autopilot.",
+      "version": "1.2.0",
+      "repositoryUrl": null,
+      "packages": [],
+      "remotes": [
+        {
+          "type": "streamable-http",
+          "url": "https://app.docuwriter.ai/mcp"
+        }
+      ],
+      "status": "active",
+      "publishedAt": "2026-07-03T13:45:25.00311Z"
+    },
+    {
+      "name": "ai.donethat/donethat",
+      "description": "Privacy-first work tracking with summaries, reports, coaching, and AI-ready long-term memory.",
+      "version": "1.0.0",
+      "repositoryUrl": null,
+      "packages": [],
+      "remotes": [
+        {
+          "type": "streamable-http",
+          "url": "https://mcp.donethat.ai/"
+        }
+      ],
+      "status": "active",
+      "publishedAt": "2026-04-08T10:14:41.080859Z"
+    },
+    {
+      "name": "ai.doublespeed/mcp",
+      "description": "Build, test and run iOS apps on a remote Mac from any machine. XcodeBuildMCP-compatible tools.",
+      "version": "0.1.1",
+      "repositoryUrl": "https://github.com/doublespeed-main/mcp",
+      "packages": [
+        {
+          "registryType": "npm",
+          "identifier": "@doublespeed/mcp",
+          "version": "0.1.1",
+          "transport": null
+        }
+      ],
+      "remotes": [],
+      "status": "active",
+      "publishedAt": "2026-08-28T01:07:27.88422Z"
+    },
+    {
+      "name": "ai.draconic/market-intelligence",
+      "description": "Live multi-signal market intelligence for supported instruments. Analysis only.",
+      "version": "1.0.0",
+      "repositoryUrl": null,
+      "packages": [],
+      "remotes": [
+        {
+          "type": "streamable-http",
+          "url": "https://mcp.draconic.ai/mcp"
+        }
+      ],
+      "status": "active",
+      "publishedAt": "2026-09-02T19:15:52.265035Z"
+    },
+    {
+      "name": "ai.dragoneye/mcp",
+      "description": "Build zero-shot video models for object detection, and category and attribute classification.",
+      "version": "1.0.0",
+      "repositoryUrl": null,
+      "packages": [],
+      "remotes": [
+        {
+          "type": "streamable-http",
+          "url": "https://nexus.api.dragoneye.ai/mcp"
+        }
+      ],
+      "status": "active",
+      "publishedAt": "2026-05-14T18:31:00.872003Z"
+    },
+    {
+      "name": "ai.dreamlit/mcp",
+      "description": "Create, test, publish, and manage Dreamlit notification workflows from AI clients.",
+      "version": "0.1.0",
+      "repositoryUrl": "https://github.com/dreamlit-ai/dreamlit-mcp",
+      "packages": [],
+      "remotes": [
+        {
+          "type": "streamable-http",
+          "url": "https://mcp.dreamlit.ai/mcp"
+        }
+      ],
+      "status": "active",
+      "publishedAt": "2026-05-07T04:59:39.740016Z"
+    },
+    {
+      "name": "ai.drillr/drillr",
+      "description": "Financial data and research MCP for US/CN/JP equities: filings, statements, ownership, signals.",
+      "version": "2.3.0",
+      "repositoryUrl": "https://github.com/Little-Grebe-Inc/drillr-mcp-server",
+      "packages": [],
+      "remotes": [
+        {
+          "type": "streamable-http",
+          "url": "https://gateway.drillr.ai/mcp/data"
+        }
+      ],
+      "status": "active",
+      "publishedAt": "2026-09-13T14:22:16.738525Z"
+    },
+    {
+      "name": "ai.dripmetrics/mcp",
+      "description": "Crypto market microstructure, options, and on-chain metrics. Free discovery; $0.05/call via x402.",
+      "version": "1.0.0",
+      "repositoryUrl": null,
+      "packages": [],
+      "remotes": [
+        {
+          "type": "streamable-http",
+          "url": "https://mcp.dripmetrics.ai/mcp"
+        }
+      ],
+      "status": "active",
+      "publishedAt": "2026-07-14T23:03:42.782423Z"
+    },
+    {
+      "name": "ai.droneintelligence/drone-intelligence",
+      "description": "Drone-sector market intelligence for AI agents: free briefings and profiles, licenced tracker data.",
+      "version": "1.0.0",
+      "repositoryUrl": null,
+      "packages": [],
+      "remotes": [
+        {
+          "type": "streamable-http",
+          "url": "https://droneintelligence.ai/api/mcp"
+        }
+      ],
+      "status": "active",
+      "publishedAt": "2026-08-17T10:06:02.825782Z"
+    },
+    {
+      "name": "ai.dsght/public",
+      "description": "Read-only MCP access to DSGHT.ai published foresight and country-grounded claim resolution.",
+      "version": "1.1.0",
+      "repositoryUrl": "https://github.com/michalstrnadel/dsght-landing",
+      "packages": [],
+      "remotes": [
+        {
+          "type": "streamable-http",
+          "url": "https://www.dsght.ai/mcp"
+        }
+      ],
+      "status": "active",
+      "publishedAt": "2026-07-08T20:46:36.890846Z"
+    },
+    {
+      "name": "ai.duami/intent-exchange",
+      "description": "Swiss intent exchange for AI agents: wants/offers, match, bid, confirm. Free. No escrow.",
+      "version": "0.1.0",
+      "repositoryUrl": "https://github.com/mjbf5g7y8m-byte/matrix",
+      "packages": [],
+      "remotes": [
+        {
+          "type": "streamable-http",
+          "url": "https://duami.ai/mcp"
+        }
+      ],
+      "status": "active",
+      "publishedAt": "2026-09-04T17:34:52.069707Z"
+    },
+    {
+      "name": "ai.duvera/gateway",
+      "description": "Governed AI actions with signed, verifiable receipts: free keyless reads, human-approved writes.",
+      "version": "1.0.0",
+      "repositoryUrl": null,
+      "packages": [],
+      "remotes": [
+        {
+          "type": "streamable-http",
+          "url": "https://app.duvera.ai/mcp"
+        }
+      ],
+      "status": "active",
+      "publishedAt": "2026-06-11T19:25:28.904765Z"
+    },
+    {
+      "name": "ai.dxpert/mcp",
+      "description": "Industrial AI-readiness diagnostics, UNS design, and UNS agents for MCP clients.",
+      "version": "0.1.1",
+      "repositoryUrl": "https://github.com/dxpert-ai/dxpert-mcp",
+      "packages": [
+        {
+          "registryType": "npm",
+          "identifier": "@dxpert/mcp",
+          "version": "0.1.1",
+          "transport": null
+        }
+      ],
+      "remotes": [],
+      "status": "active",
+      "publishedAt": "2026-08-27T01:05:26.487602Z"
+    },
+    {
+      "name": "ai.dxpert/uns-tools",
+      "description": "Free Sparkplug B topic linting, UNS naming checks and AI-readiness screening. No API key.",
+      "version": "0.1.0",
+      "repositoryUrl": "https://github.com/dxpert-ai/uns-tools",
+      "packages": [
+        {
+          "registryType": "npm",
+          "identifier": "@dxpert/uns-tools",
+          "version": "0.1.0",
+          "transport": null
+        }
+      ],
+      "remotes": [],
+      "status": "active",
+      "publishedAt": "2026-08-29T16:50:10.703063Z"
+    },
+    {
+      "name": "ai.dynamicfeed/dynamic-feed",
+      "description": "94 keyless tools of live, verifiable data for AI: weather, hazards, space, CVEs. Ed25519-signed.",
+      "version": "0.8.7",
+      "repositoryUrl": null,
+      "packages": [],
+      "remotes": [
+        {
+          "type": "streamable-http",
+          "url": "https://dynamicfeed.ai/mcp"
+        },
+        {
+          "type": "sse",
+          "url": "https://dynamicfeed.ai/sse"
+        }
+      ],
+      "status": "active",
+      "publishedAt": "2026-07-26T01:37:59.940833Z"
+    },
+    {
+      "name": "ai.dynsoft/sac",
+      "description": "Give your AI agent the ability to respond with live, interactive apps that evolve.",
+      "version": "0.1.2",
+      "repositoryUrl": "https://github.com/Software-As-Content/software-as-content-sdk",
+      "packages": [
+        {
+          "registryType": "pypi",
+          "identifier": "sac-sdk",
+          "version": "0.1.2",
+          "transport": null
+        }
+      ],
+      "remotes": [],
+      "status": "active",
+      "publishedAt": "2026-05-24T02:09:53.574937Z"
+    },
+    {
+      "name": "ai.dynt.api/dynt",
+      "description": "Company finances for agents: transactions, invoices, bills, expenses, subscriptions, receipts.",
+      "version": "1.0.0",
+      "repositoryUrl": "https://github.com/bpais88/dynt-server",
+      "packages": [],
+      "remotes": [
+        {
+          "type": "streamable-http",
+          "url": "https://api.dynt.ai/mcp"
+        }
+      ],
+      "status": "active",
+      "publishedAt": "2026-08-28T22:24:18.803204Z"
+    },
+    {
+      "name": "ai.echoloc/company-technographics",
+      "description": "Search 760K+ companies by technographics with direction of change: adopting, replacing, evaluating",
+      "version": "1.0.0",
+      "repositoryUrl": null,
+      "packages": [],
+      "remotes": [
+        {
+          "type": "streamable-http",
+          "url": "https://api.echoloc.ai/mcp"
+        }
+      ],
+      "status": "active",
+      "publishedAt": "2026-07-27T23:58:37.46546Z"
+    },
+    {
+      "name": "ai.edge-agents/intelligence",
+      "description": "Macro, market and decision intelligence over x402. Gaps are unavailable rather than estimated.",
+      "version": "1.7.1",
+      "repositoryUrl": null,
+      "packages": [],
+      "remotes": [
+        {
+          "type": "streamable-http",
+          "url": "https://pay.edge-agents.ai/mcp"
+        }
+      ],
+      "status": "active",
+      "publishedAt": "2026-09-13T21:48:22.507578Z"
+    },
+    {
+      "name": "ai.edusignal/districts",
+      "description": "K-12 school district data for all 50 US states. Enrollment, demographics, and academics.",
+      "version": "1.0.0",
+      "repositoryUrl": null,
+      "packages": [],
+      "remotes": [
+        {
+          "type": "streamable-http",
+          "url": "https://edusignal.ai/mcp"
+        }
+      ],
+      "status": "active",
+      "publishedAt": "2026-06-02T23:28:39.570503Z"
+    },
+    {
+      "name": "ai.eevy/mcp",
+      "description": "Shopify CRO platform via MCP: 100+ tools for analytics, experiments, authoring, proven lift.",
+      "version": "1.0.1",
+      "repositoryUrl": null,
+      "packages": [],
+      "remotes": [
+        {
+          "type": "streamable-http",
+          "url": "https://mcp.eevy.ai/api/mcp"
+        }
+      ],
+      "status": "active",
+      "publishedAt": "2026-07-10T04:31:42.484368Z"
+    },
+    {
+      "name": "ai.elfa/mcp",
+      "description": "Crypto social intelligence from X and Telegram, plus the Elfa Auto condition engine",
+      "version": "3.0.0",
+      "repositoryUrl": "https://github.com/elfa-ai/mcp",
+      "packages": [
+        {
+          "registryType": "npm",
+          "identifier": "@elfa-ai/mcp",
+          "version": "3.0.0",
+          "transport": null
+        }
+      ],
+      "remotes": [],
+      "status": "active",
+      "publishedAt": "2026-08-13T04:51:16.035153Z"
+    },
+    {
+      "name": "ai.elicitly/elicitly",
+      "description": "Human-in-the-loop for AI agents over MCP elicitation: confirm/form dialogs plus a capability doctor",
+      "version": "0.7.2",
+      "repositoryUrl": "https://github.com/elicitly/elicitly",
+      "packages": [
+        {
+          "registryType": "npm",
+          "identifier": "elicitly",
+          "version": "0.7.2",
+          "transport": null
+        }
+      ],
+      "remotes": [],
+      "status": "active",
+      "publishedAt": "2026-09-07T20:03:55.192277Z"
+    },
+    {
+      "name": "ai.elicitly/pro",
+      "description": "Human-in-the-loop for AI agents over MCP: durable approvals with a hosted review page & audit trail",
+      "version": "2026.8.19",
+      "repositoryUrl": null,
+      "packages": [],
+      "remotes": [
+        {
+          "type": "streamable-http",
+          "url": "https://mcp.elicitly.ai/mcp"
+        }
+      ],
+      "status": "active",
+      "publishedAt": "2026-08-17T23:44:40.582316Z"
+    },
+    {
+      "name": "ai.emberverse/emberverse",
+      "description": "A living knowledge graph to read, think against, and leave a deposit in that outlives you.",
+      "version": "3.0.0",
+      "repositoryUrl": "https://github.com/Palmerschallon/ember",
+      "packages": [],
+      "remotes": [
+        {
+          "type": "streamable-http",
+          "url": "https://emberverse.ai/mcp"
+        }
+      ],
+      "status": "active",
+      "publishedAt": "2026-09-13T09:41:39.061806Z"
+    },
+    {
+      "name": "ai.emisso/connect",
+      "description": "Connect AI agents to the legacy systems LATAM business runs on. Live in Chile: tax, banks, payroll.",
+      "version": "1.0.0",
+      "repositoryUrl": null,
+      "packages": [],
+      "remotes": [
+        {
+          "type": "streamable-http",
+          "url": "https://connect.emisso.ai/mcp"
+        }
+      ],
+      "status": "active",
+      "publishedAt": "2026-08-22T19:20:46.84633Z"
+    },
+    {
+      "name": "ai.empiriolabs/mcp",
+      "description": "Every EmpirioLabs model and platform feature as tools: chat, media, search, jobs, GPU Cloud, agents.",
+      "version": "1.2.0",
+      "repositoryUrl": "https://github.com/EmpirioLabs-AI/mcp",
+      "packages": [],
+      "remotes": [
+        {
+          "type": "streamable-http",
+          "url": "https://mcp.empiriolabs.ai/mcp"
+        }
+      ],
+      "status": "active",
+      "publishedAt": "2026-09-14T16:28:46.328134Z"
+    },
+    {
+      "name": "ai.enginy/mcp",
+      "description": "B2B prospecting from your Enginy workspace: find, enrich, and reach contacts and companies.",
+      "version": "1.0.0",
+      "repositoryUrl": null,
+      "packages": [],
+      "remotes": [
+        {
+          "type": "streamable-http",
+          "url": "https://openapi.enginy.ai/mcp"
+        }
+      ],
+      "status": "active",
+      "publishedAt": "2026-07-27T15:14:45.101301Z"
+    },
+    {
+      "name": "ai.entityenricher/enricher",
+      "description": "Multi-LLM entity enrichment: schemas, single/batch enrichment, fusion, model benchmarks.",
+      "version": "2.0.0",
+      "repositoryUrl": "https://github.com/TOT-Concept/mcp-server-entity-enricher",
+      "packages": [],
+      "remotes": [
+        {
+          "type": "streamable-http",
+          "url": "https://entityenricher.ai/api/mcp/"
+        }
+      ],
+      "status": "active",
+      "publishedAt": "2026-07-27T05:48:21.532292Z"
     },
     {
       "name": "io.github.calllint/calllint",

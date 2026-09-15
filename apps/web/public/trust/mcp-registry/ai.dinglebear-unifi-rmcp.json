@@ -1,0 +1,144 @@
+{
+  "schema": "calllint.trust-page.v0",
+  "canonicalName": "mcp-registry/ai.dinglebear-unifi-rmcp",
+  "artifactDigest": "sha256:80ad83cb6ceda5a374e3f900c968320dba2b46f7ef49c0b6be1188bd54612415",
+  "pageDigest": "sha256:35cfed5342fb70d4aa349337a9cd7da054b499dd322d3a23a3b8cddb7de314d8",
+  "verdict": "SAFE",
+  "verdictLabel": "No blockers observed",
+  "observedAt": "2026-09-15T06:37:10.000Z",
+  "completeness": "complete",
+  "status": {
+    "verdict": "SAFE",
+    "completeness": "complete",
+    "authorityClaimed": false,
+    "reproducibility": {
+      "pageDigest": "sha256:35cfed5342fb70d4aa349337a9cd7da054b499dd322d3a23a3b8cddb7de314d8",
+      "observedAt": "2026-09-15T06:37:10.000Z"
+    },
+    "evidenceLevel": "E2",
+    "evidenceRationale": "install config observed → static blast radius normalized into an authority inventory. Higher levels (E3 tool schema, E4 maintainer receipt, E5 sandbox) are not carried by a static page."
+  },
+  "correctionUrl": "https://github.com/calllint/calllint/issues/new?labels=trust-page-correction",
+  "reproduction": {
+    "command": "npx calllint scan official-mcp-registry:ai.dinglebear/unifi-rmcp",
+    "artifactDigest": "sha256:80ad83cb6ceda5a374e3f900c968320dba2b46f7ef49c0b6be1188bd54612415",
+    "note": "Re-running this scan reproduces the verdict observed at the pinned artifact digest. It is a point-in-time observation, not a guarantee of future behavior."
+  },
+  "scanHistory": [
+    {
+      "observedAt": "2026-09-15T06:37:10.000Z",
+      "pageDigest": "sha256:35cfed5342fb70d4aa349337a9cd7da054b499dd322d3a23a3b8cddb7de314d8",
+      "artifactDigest": "sha256:80ad83cb6ceda5a374e3f900c968320dba2b46f7ef49c0b6be1188bd54612415"
+    }
+  ],
+  "preparation": {
+    "schema": "calllint.trust-preparation.v0",
+    "artifact": {
+      "schema": "calllint.artifact.v1",
+      "sourceType": "mcp-config",
+      "source": "official-mcp-registry:ai.dinglebear/unifi-rmcp",
+      "requestedRef": null,
+      "resolvedRef": "sha256:80ad83cb6ceda5a374e3f900c968320dba2b46f7ef49c0b6be1188bd54612415",
+      "digest": "sha256:80ad83cb6ceda5a374e3f900c968320dba2b46f7ef49c0b6be1188bd54612415",
+      "resolvedAt": "2026-09-15T06:37:10.000Z",
+      "resolution": "resolved"
+    },
+    "evidence": null,
+    "authority": {
+      "schema": "calllint.authority.v0",
+      "subject": {
+        "artifactDigest": "sha256:80ad83cb6ceda5a374e3f900c968320dba2b46f7ef49c0b6be1188bd54612415"
+      },
+      "capabilities": [
+        {
+          "action": "execute",
+          "resource": "process",
+          "scope": "npx",
+          "destination": null,
+          "mutability": "mutating",
+          "reversibility": "irreversible",
+          "monetaryLimit": null,
+          "approvalRequirement": "none",
+          "evidenceSource": "server.command",
+          "confidence": "high",
+          "completeness": "complete",
+          "trustSource": "trusted.local_project"
+        }
+      ],
+      "limits": {
+        "spendPerCall": null,
+        "spendTotal": null
+      },
+      "approval": {
+        "required": []
+      },
+      "unknowns": [],
+      "completeness": "complete",
+      "digest": "sha256:e814ec93dba50466ec01d91b5156dbd838eaf7fc175c586fca240ba49cd9bd5c"
+    },
+    "decision": null,
+    "plan": null,
+    "state": "AUTHORITY_NORMALIZED",
+    "notes": [
+      "no external evidence attached (optional); decision will rely on CallLint's own analysis",
+      "authority normalized: 1 capability"
+    ],
+    "preparedAt": "2026-09-15T06:37:10.000Z"
+  },
+  "scan": {
+    "schemaVersion": "calllint.report.v0",
+    "reportKind": "config-summary",
+    "configPath": "official-mcp-registry:ai.dinglebear/unifi-rmcp",
+    "verdict": "SAFE",
+    "publicVerdictLabel": "No blockers observed",
+    "counts": {
+      "SAFE": 1,
+      "REVIEW": 0,
+      "BLOCK": 0,
+      "UNKNOWN": 0
+    },
+    "reports": [
+      {
+        "schemaVersion": "calllint.report.v0",
+        "reportKind": "single-target",
+        "target": {
+          "name": "package",
+          "kind": "mcp-servers",
+          "source": "unifi-rmcp",
+          "version": "0.2.4",
+          "configPath": "official-mcp-registry:ai.dinglebear/unifi-rmcp"
+        },
+        "verdict": "SAFE",
+        "publicVerdictLabel": "No blockers observed",
+        "policyApplied": false,
+        "riskClass": "S1",
+        "symbols": [],
+        "confidence": "high",
+        "reproducibility": {
+          "level": "HIGH",
+          "reasons": []
+        },
+        "summary": "\"package\" has no blockers observed (S1 Read-only utility).",
+        "observed": [],
+        "inferred": [],
+        "findings": [],
+        "topFindings": [],
+        "policy": {
+          "autonomousUse": "allow",
+          "manualApproval": "none",
+          "sandbox": "none"
+        },
+        "fingerprints": {
+          "configHash": "sha256:dfac9c8674e3ef58004e062e52b3ac2d7fc1c577505be1b546618895df621120",
+          "targetSpecHash": "sha256:cc452c1b4659cedb6fa252643237867e84bc0c5180c1c8f8734b04706b97eb32",
+          "riskSurfaceHash": "sha256:69aae84c996fe93d537b08d906cb339866bd43f10876be403a0f4793915bef33",
+          "packageSpecHash": "sha256:89eeddf4c0c86a5f9259f037f37be7a99d2b44f7763b012a6277780f9e472d3f"
+        },
+        "diagnostics": [],
+        "generatedAt": "2026-09-15T06:37:10.000Z"
+      }
+    ],
+    "diagnostics": [],
+    "generatedAt": "2026-09-15T06:37:10.000Z"
+  }
+}
