@@ -2,18 +2,18 @@
   "schema": "calllint.trust-page.v0",
   "canonicalName": "mcp-registry/ai.chipp-alchemist-cloud-tickets",
   "artifactDigest": "sha256:ea6e74e0b49d657f6a084505db925e0ff5a9145265a490d8eb2db22d5243edfa",
-  "pageDigest": "sha256:8df49c5e3ddab11673142bcc2701d0e06987e6d34985943a96af391b6d15473c",
+  "pageDigest": "sha256:7b2d084cc71977b798c10f1e89ff1d6d169ae1a5355ef7e2142c7fdadb7eac0a",
   "verdict": "REVIEW",
   "verdictLabel": "Review required",
-  "observedAt": "2026-09-15T02:38:22.000Z",
+  "observedAt": "2026-09-15T04:43:56.000Z",
   "completeness": "complete",
   "status": {
     "verdict": "REVIEW",
     "completeness": "complete",
     "authorityClaimed": false,
     "reproducibility": {
-      "pageDigest": "sha256:8df49c5e3ddab11673142bcc2701d0e06987e6d34985943a96af391b6d15473c",
-      "observedAt": "2026-09-15T02:38:22.000Z"
+      "pageDigest": "sha256:7b2d084cc71977b798c10f1e89ff1d6d169ae1a5355ef7e2142c7fdadb7eac0a",
+      "observedAt": "2026-09-15T04:43:56.000Z"
     },
     "evidenceLevel": "E2",
     "evidenceRationale": "install config observed → static blast radius normalized into an authority inventory. Higher levels (E3 tool schema, E4 maintainer receipt, E5 sandbox) are not carried by a static page."
@@ -26,8 +26,8 @@
   },
   "scanHistory": [
     {
-      "observedAt": "2026-09-15T02:38:22.000Z",
-      "pageDigest": "sha256:8df49c5e3ddab11673142bcc2701d0e06987e6d34985943a96af391b6d15473c",
+      "observedAt": "2026-09-15T04:43:56.000Z",
+      "pageDigest": "sha256:7b2d084cc71977b798c10f1e89ff1d6d169ae1a5355ef7e2142c7fdadb7eac0a",
       "artifactDigest": "sha256:ea6e74e0b49d657f6a084505db925e0ff5a9145265a490d8eb2db22d5243edfa"
     }
   ],
@@ -40,7 +40,7 @@
       "requestedRef": null,
       "resolvedRef": "sha256:ea6e74e0b49d657f6a084505db925e0ff5a9145265a490d8eb2db22d5243edfa",
       "digest": "sha256:ea6e74e0b49d657f6a084505db925e0ff5a9145265a490d8eb2db22d5243edfa",
-      "resolvedAt": "2026-09-15T02:38:22.000Z",
+      "resolvedAt": "2026-09-15T04:43:56.000Z",
       "resolution": "resolved"
     },
     "evidence": null,
@@ -84,7 +84,7 @@
       "no external evidence attached (optional); decision will rely on CallLint's own analysis",
       "authority normalized: 1 capability, approvals required: external-network-access"
     ],
-    "preparedAt": "2026-09-15T02:38:22.000Z"
+    "preparedAt": "2026-09-15T04:43:56.000Z"
   },
   "scan": {
     "schemaVersion": "calllint.report.v0",
@@ -220,10 +220,10 @@
             "message": "Remote endpoint identity verified; tool surface not analyzed (evidence: https://build.chipp.ai/alchemist-api/api/mcp)"
           }
         ],
-        "generatedAt": "2026-09-15T02:38:22.000Z"
+        "generatedAt": "2026-09-15T04:43:56.000Z"
       }
     ],
     "diagnostics": [],
-    "generatedAt": "2026-09-15T02:38:22.000Z"
+    "generatedAt": "2026-09-15T04:43:56.000Z"
   }
 }

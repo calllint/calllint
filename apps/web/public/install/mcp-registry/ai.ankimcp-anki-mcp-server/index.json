@@ -1,11 +1,11 @@
 {
   "schema": "calllint.agent-adoption-contract.v1",
   "contract": {
-    "contractDigest": "sha256:0933d3d0e1b37505737b6e757950176cf44cc35e156a118f03e1375e5b11940c",
-    "generatedAt": "2026-09-15T02:38:22.000Z",
+    "contractDigest": "sha256:6058f693ae3a37f7441f69a17767eb69123882b58dc8ad3710dbe8abd86edae8",
+    "generatedAt": "2026-09-15T04:43:56.000Z",
     "expiresAt": null,
     "generatorVersion": "0.1.0",
-    "snapshotDigest": "sha256:5a9a011bad0f83e348ba601df063d7164490636fedcfc1ec3673af6c3d8a02aa"
+    "snapshotDigest": "sha256:a17cc2296830ea649d39650ffaa9b6aa90a3ffd07deb5ea594ab80b8b0427d81"
   },
   "subject": {
     "canonicalName": "mcp-registry/ai.ankimcp-anki-mcp-server",
@@ -21,7 +21,7 @@
     "publicLabel": "No blockers observed",
     "reasonCodes": [],
     "evidenceLevel": "E2",
-    "evidenceDigest": "sha256:67dea7084db047d6a90698794e6c0cc40b859017abe22a5cf49b53d7bfbd2a41",
+    "evidenceDigest": "sha256:e5c3d450f2b92e7afb2b432cb996f2899916beb59748d482692a67adc89169cb",
     "completeness": "complete"
   },
   "authorityDelta": {
@@ -39,8 +39,8 @@
     ]
   },
   "trustedSources": {
-    "registrySnapshotDigest": "sha256:5a9a011bad0f83e348ba601df063d7164490636fedcfc1ec3673af6c3d8a02aa",
-    "evidenceDigest": "sha256:67dea7084db047d6a90698794e6c0cc40b859017abe22a5cf49b53d7bfbd2a41",
+    "registrySnapshotDigest": "sha256:a17cc2296830ea649d39650ffaa9b6aa90a3ffd07deb5ea594ab80b8b0427d81",
+    "evidenceDigest": "sha256:e5c3d450f2b92e7afb2b432cb996f2899916beb59748d482692a67adc89169cb",
     "engineVersion": "0.1.0"
   },
   "untrustedPublisherContent": {
@@ -54,7 +54,7 @@
       "canonicalName": "mcp-registry/ai.ankimcp-anki-mcp-server",
       "expectedVersion": "0.25.1",
       "expectedArtifactDigest": "sha256:85f5a46d1123b8b6282d19b1da562665102e77b44cddedfd26b1443585f5f28a",
-      "expectedContractDigest": "sha256:0933d3d0e1b37505737b6e757950176cf44cc35e156a118f03e1375e5b11940c",
+      "expectedContractDigest": "sha256:6058f693ae3a37f7441f69a17767eb69123882b58dc8ad3710dbe8abd86edae8",
       "host": null
     }
   },

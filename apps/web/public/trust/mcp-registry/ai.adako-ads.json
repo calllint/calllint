@@ -2,18 +2,18 @@
   "schema": "calllint.trust-page.v0",
   "canonicalName": "mcp-registry/ai.adako-ads",
   "artifactDigest": "sha256:6b78ce84abd83b24cd290e023f61e462273fb6664efb94974a86f8fcc779c686",
-  "pageDigest": "sha256:242bee898d7f29a6b17327d414f3d532f701a9a43ed4aacaee42843ab1b201dd",
+  "pageDigest": "sha256:1eaef13c8bd0612040418090fe0de1ed078ba691071dad75346d3c86fe3ea623",
   "verdict": "REVIEW",
   "verdictLabel": "Review required",
-  "observedAt": "2026-09-15T02:38:22.000Z",
+  "observedAt": "2026-09-15T04:43:56.000Z",
   "completeness": "complete",
   "status": {
     "verdict": "REVIEW",
     "completeness": "complete",
     "authorityClaimed": false,
     "reproducibility": {
-      "pageDigest": "sha256:242bee898d7f29a6b17327d414f3d532f701a9a43ed4aacaee42843ab1b201dd",
-      "observedAt": "2026-09-15T02:38:22.000Z"
+      "pageDigest": "sha256:1eaef13c8bd0612040418090fe0de1ed078ba691071dad75346d3c86fe3ea623",
+      "observedAt": "2026-09-15T04:43:56.000Z"
     },
     "evidenceLevel": "E2",
     "evidenceRationale": "install config observed → static blast radius normalized into an authority inventory. Higher levels (E3 tool schema, E4 maintainer receipt, E5 sandbox) are not carried by a static page."
@@ -26,8 +26,8 @@
   },
   "scanHistory": [
     {
-      "observedAt": "2026-09-15T02:38:22.000Z",
-      "pageDigest": "sha256:242bee898d7f29a6b17327d414f3d532f701a9a43ed4aacaee42843ab1b201dd",
+      "observedAt": "2026-09-15T04:43:56.000Z",
+      "pageDigest": "sha256:1eaef13c8bd0612040418090fe0de1ed078ba691071dad75346d3c86fe3ea623",
       "artifactDigest": "sha256:6b78ce84abd83b24cd290e023f61e462273fb6664efb94974a86f8fcc779c686"
     }
   ],
@@ -40,7 +40,7 @@
       "requestedRef": null,
       "resolvedRef": "sha256:6b78ce84abd83b24cd290e023f61e462273fb6664efb94974a86f8fcc779c686",
       "digest": "sha256:6b78ce84abd83b24cd290e023f61e462273fb6664efb94974a86f8fcc779c686",
-      "resolvedAt": "2026-09-15T02:38:22.000Z",
+      "resolvedAt": "2026-09-15T04:43:56.000Z",
       "resolution": "resolved"
     },
     "evidence": null,
@@ -84,7 +84,7 @@
       "no external evidence attached (optional); decision will rely on CallLint's own analysis",
       "authority normalized: 1 capability, approvals required: external-network-access"
     ],
-    "preparedAt": "2026-09-15T02:38:22.000Z"
+    "preparedAt": "2026-09-15T04:43:56.000Z"
   },
   "scan": {
     "schemaVersion": "calllint.report.v0",
@@ -220,10 +220,10 @@
             "message": "Remote endpoint identity verified; tool surface not analyzed (evidence: https://adako.ai/mcp)"
           }
         ],
-        "generatedAt": "2026-09-15T02:38:22.000Z"
+        "generatedAt": "2026-09-15T04:43:56.000Z"
       }
     ],
     "diagnostics": [],
-    "generatedAt": "2026-09-15T02:38:22.000Z"
+    "generatedAt": "2026-09-15T04:43:56.000Z"
   }
 }

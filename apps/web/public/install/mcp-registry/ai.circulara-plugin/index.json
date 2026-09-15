@@ -1,11 +1,11 @@
 {
   "schema": "calllint.agent-adoption-contract.v1",
   "contract": {
-    "contractDigest": "sha256:5f2a5b4ae4d89f6ebbe4923672aed03b7e8a05137938b4dedeb6ebdede6a6440",
-    "generatedAt": "2026-09-15T02:38:22.000Z",
+    "contractDigest": "sha256:008548467d6ea80a0abd6c33c797451321a4e966775796d1dcc2a3ec22eb2826",
+    "generatedAt": "2026-09-15T04:43:56.000Z",
     "expiresAt": null,
     "generatorVersion": "0.1.0",
-    "snapshotDigest": "sha256:5a9a011bad0f83e348ba601df063d7164490636fedcfc1ec3673af6c3d8a02aa"
+    "snapshotDigest": "sha256:a17cc2296830ea649d39650ffaa9b6aa90a3ffd07deb5ea594ab80b8b0427d81"
   },
   "subject": {
     "canonicalName": "mcp-registry/ai.circulara-plugin",
@@ -21,7 +21,7 @@
     "publicLabel": "No blockers observed",
     "reasonCodes": [],
     "evidenceLevel": "E2",
-    "evidenceDigest": "sha256:67dea7084db047d6a90698794e6c0cc40b859017abe22a5cf49b53d7bfbd2a41",
+    "evidenceDigest": "sha256:e5c3d450f2b92e7afb2b432cb996f2899916beb59748d482692a67adc89169cb",
     "completeness": "complete"
   },
   "authorityDelta": {
@@ -39,8 +39,8 @@
     ]
   },
   "trustedSources": {
-    "registrySnapshotDigest": "sha256:5a9a011bad0f83e348ba601df063d7164490636fedcfc1ec3673af6c3d8a02aa",
-    "evidenceDigest": "sha256:67dea7084db047d6a90698794e6c0cc40b859017abe22a5cf49b53d7bfbd2a41",
+    "registrySnapshotDigest": "sha256:a17cc2296830ea649d39650ffaa9b6aa90a3ffd07deb5ea594ab80b8b0427d81",
+    "evidenceDigest": "sha256:e5c3d450f2b92e7afb2b432cb996f2899916beb59748d482692a67adc89169cb",
     "engineVersion": "0.1.0"
   },
   "untrustedPublisherContent": {
@@ -54,7 +54,7 @@
       "canonicalName": "mcp-registry/ai.circulara-plugin",
       "expectedVersion": "0.1.2",
       "expectedArtifactDigest": "sha256:f8daef85a8e2c9afdf92e8a81f2672593b1d7907c93632f1eb646d006651c241",
-      "expectedContractDigest": "sha256:5f2a5b4ae4d89f6ebbe4923672aed03b7e8a05137938b4dedeb6ebdede6a6440",
+      "expectedContractDigest": "sha256:008548467d6ea80a0abd6c33c797451321a4e966775796d1dcc2a3ec22eb2826",
       "host": null
     }
   },

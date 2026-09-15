@@ -1,0 +1,222 @@
+{
+  "schema": "calllint.trust-page.v0",
+  "canonicalName": "mcp-registry/ai.d50-d50-platform",
+  "artifactDigest": "sha256:7cb0d7f232fc55e9e67f9d9978ac32151e74299ef549ff0c5bf680fb6498c127",
+  "pageDigest": "sha256:3d6c2de4d3761d5f44512bda7f7964c01ce906429e6e069e557a26f20ea4f7e7",
+  "verdict": "UNKNOWN",
+  "verdictLabel": "Insufficient evidence",
+  "observedAt": "2026-09-15T04:43:56.000Z",
+  "completeness": "complete",
+  "status": {
+    "verdict": "UNKNOWN",
+    "completeness": "complete",
+    "authorityClaimed": false,
+    "reproducibility": {
+      "pageDigest": "sha256:3d6c2de4d3761d5f44512bda7f7964c01ce906429e6e069e557a26f20ea4f7e7",
+      "observedAt": "2026-09-15T04:43:56.000Z"
+    },
+    "evidenceLevel": "E2",
+    "evidenceRationale": "install config observed → static blast radius normalized into an authority inventory. Higher levels (E3 tool schema, E4 maintainer receipt, E5 sandbox) are not carried by a static page."
+  },
+  "correctionUrl": "https://github.com/calllint/calllint/issues/new?labels=trust-page-correction",
+  "reproduction": {
+    "command": "npx calllint scan official-mcp-registry:ai.d50/d50-platform",
+    "artifactDigest": "sha256:7cb0d7f232fc55e9e67f9d9978ac32151e74299ef549ff0c5bf680fb6498c127",
+    "note": "Re-running this scan reproduces the verdict observed at the pinned artifact digest. It is a point-in-time observation, not a guarantee of future behavior."
+  },
+  "scanHistory": [
+    {
+      "observedAt": "2026-09-15T04:43:56.000Z",
+      "pageDigest": "sha256:3d6c2de4d3761d5f44512bda7f7964c01ce906429e6e069e557a26f20ea4f7e7",
+      "artifactDigest": "sha256:7cb0d7f232fc55e9e67f9d9978ac32151e74299ef549ff0c5bf680fb6498c127"
+    }
+  ],
+  "preparation": {
+    "schema": "calllint.trust-preparation.v0",
+    "artifact": {
+      "schema": "calllint.artifact.v1",
+      "sourceType": "mcp-config",
+      "source": "official-mcp-registry:ai.d50/d50-platform",
+      "requestedRef": null,
+      "resolvedRef": "sha256:7cb0d7f232fc55e9e67f9d9978ac32151e74299ef549ff0c5bf680fb6498c127",
+      "digest": "sha256:7cb0d7f232fc55e9e67f9d9978ac32151e74299ef549ff0c5bf680fb6498c127",
+      "resolvedAt": "2026-09-15T04:43:56.000Z",
+      "resolution": "resolved"
+    },
+    "evidence": null,
+    "authority": {
+      "schema": "calllint.authority.v0",
+      "subject": {
+        "artifactDigest": "sha256:7cb0d7f232fc55e9e67f9d9978ac32151e74299ef549ff0c5bf680fb6498c127"
+      },
+      "capabilities": [
+        {
+          "action": "connect",
+          "resource": "network",
+          "scope": "app.d50.ai",
+          "destination": "app.d50.ai",
+          "mutability": "mutating",
+          "reversibility": "irreversible",
+          "monetaryLimit": null,
+          "approvalRequirement": "review",
+          "evidenceSource": "server.url",
+          "confidence": "high",
+          "completeness": "complete"
+        }
+      ],
+      "limits": {
+        "spendPerCall": null,
+        "spendTotal": null
+      },
+      "approval": {
+        "required": [
+          "external-network-access"
+        ]
+      },
+      "unknowns": [],
+      "completeness": "complete",
+      "digest": "sha256:2707d81c23bae09c18e6266e28415f0ea90e2c0cf688a604aac07c2920a73236"
+    },
+    "decision": null,
+    "plan": null,
+    "state": "AUTHORITY_NORMALIZED",
+    "notes": [
+      "no external evidence attached (optional); decision will rely on CallLint's own analysis",
+      "authority normalized: 1 capability, approvals required: external-network-access"
+    ],
+    "preparedAt": "2026-09-15T04:43:56.000Z"
+  },
+  "scan": {
+    "schemaVersion": "calllint.report.v0",
+    "reportKind": "config-summary",
+    "configPath": "official-mcp-registry:ai.d50/d50-platform",
+    "verdict": "UNKNOWN",
+    "publicVerdictLabel": "Insufficient evidence",
+    "counts": {
+      "SAFE": 0,
+      "REVIEW": 0,
+      "BLOCK": 0,
+      "UNKNOWN": 1
+    },
+    "reports": [
+      {
+        "schemaVersion": "calllint.report.v0",
+        "reportKind": "single-target",
+        "target": {
+          "name": "remote",
+          "kind": "mcp-servers",
+          "source": "https://app.d50.ai/api/mcp",
+          "configPath": "official-mcp-registry:ai.d50/d50-platform"
+        },
+        "verdict": "UNKNOWN",
+        "publicVerdictLabel": "Insufficient evidence",
+        "policyApplied": false,
+        "riskClass": "S1",
+        "symbols": [
+          "NETWORK"
+        ],
+        "confidence": "high",
+        "reproducibility": {
+          "level": "MEDIUM",
+          "reasons": [
+            "Remote endpoint could not be verified"
+          ]
+        },
+        "summary": "\"remote\" could not be verified (insufficient evidence). Risk: Network (S1 Read-only utility).",
+        "observed": [
+          {
+            "id": "supply.unknown-remote",
+            "title": "Remote server source cannot be verified",
+            "severity": "high",
+            "blocker": false,
+            "symbol": "NETWORK",
+            "riskClass": "S1",
+            "mode": "OBSERVED",
+            "confidence": "high",
+            "detectionMethod": "runtime-binding",
+            "evidence": [
+              {
+                "type": "runtime-binding",
+                "path": "official-mcp-registry:ai.d50/d50-platform",
+                "key": "url",
+                "value": "https://app.d50.ai/api/mcp",
+                "line": 5,
+                "column": 7
+              }
+            ],
+            "impact": "The server runs on an unverified remote endpoint. Its tools, permissions, and behavior cannot be inspected statically and may change at any time.",
+            "fix": "Use a verified first-party endpoint, or run the server from a pinned, inspectable package.",
+            "falsePositiveNote": "A trusted internal endpoint may be fine; add it to the policy allowlist to verify it."
+          }
+        ],
+        "inferred": [],
+        "findings": [
+          {
+            "id": "supply.unknown-remote",
+            "title": "Remote server source cannot be verified",
+            "severity": "high",
+            "blocker": false,
+            "symbol": "NETWORK",
+            "riskClass": "S1",
+            "mode": "OBSERVED",
+            "confidence": "high",
+            "detectionMethod": "runtime-binding",
+            "evidence": [
+              {
+                "type": "runtime-binding",
+                "path": "official-mcp-registry:ai.d50/d50-platform",
+                "key": "url",
+                "value": "https://app.d50.ai/api/mcp",
+                "line": 5,
+                "column": 7
+              }
+            ],
+            "impact": "The server runs on an unverified remote endpoint. Its tools, permissions, and behavior cannot be inspected statically and may change at any time.",
+            "fix": "Use a verified first-party endpoint, or run the server from a pinned, inspectable package.",
+            "falsePositiveNote": "A trusted internal endpoint may be fine; add it to the policy allowlist to verify it."
+          }
+        ],
+        "topFindings": [
+          {
+            "id": "supply.unknown-remote",
+            "title": "Remote server source cannot be verified",
+            "severity": "high",
+            "blocker": false,
+            "symbol": "NETWORK",
+            "riskClass": "S1",
+            "mode": "OBSERVED",
+            "confidence": "high",
+            "detectionMethod": "runtime-binding",
+            "evidence": [
+              {
+                "type": "runtime-binding",
+                "path": "official-mcp-registry:ai.d50/d50-platform",
+                "key": "url",
+                "value": "https://app.d50.ai/api/mcp",
+                "line": 5,
+                "column": 7
+              }
+            ],
+            "impact": "The server runs on an unverified remote endpoint. Its tools, permissions, and behavior cannot be inspected statically and may change at any time.",
+            "fix": "Use a verified first-party endpoint, or run the server from a pinned, inspectable package.",
+            "falsePositiveNote": "A trusted internal endpoint may be fine; add it to the policy allowlist to verify it."
+          }
+        ],
+        "policy": {
+          "autonomousUse": "deny",
+          "manualApproval": "required",
+          "sandbox": "required"
+        },
+        "fingerprints": {
+          "configHash": "sha256:9c417edb58d3df6540527b43ca3f6842f2633b091cb823614c33701e88b0168b",
+          "targetSpecHash": "sha256:810f522151df0b63e0c395e211625fc7950b616c50cb16c9abfdefc7b736ea04",
+          "riskSurfaceHash": "sha256:47e9d20255a346b95323c2cb9e092621521638b987bbcd036e68e4aee12dcaf3"
+        },
+        "diagnostics": [],
+        "generatedAt": "2026-09-15T04:43:56.000Z"
+      }
+    ],
+    "diagnostics": [],
+    "generatedAt": "2026-09-15T04:43:56.000Z"
+  }
+}

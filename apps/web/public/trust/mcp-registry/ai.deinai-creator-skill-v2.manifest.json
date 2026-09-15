@@ -1,0 +1,57 @@
+{
+  "schema": "calllint.evidence-manifest.v1",
+  "subject": {
+    "canonicalName": "mcp-registry/ai.deinai-creator-skill-v2",
+    "artifactDigest": "sha256:80af6c44812600d800493a90c6c1a70d883d4fea04326d74d998ea1c995038fb"
+  },
+  "verdict": "REVIEW",
+  "verdictLabel": "Review required",
+  "completeness": "complete",
+  "evidenceLevel": "E2",
+  "evidenceRationale": "install config observed → static blast radius normalized into an authority inventory. Higher levels (E3 tool schema, E4 maintainer receipt, E5 sandbox) are not carried by a static page.",
+  "status": {
+    "verdict": "REVIEW",
+    "completeness": "complete",
+    "authorityClaimed": false,
+    "reproducibility": {
+      "pageDigest": "sha256:27975b9210151b6411ccbc1d5cbccb64c87b4571e52cb2340ecb7087bb0e92af",
+      "observedAt": "2026-09-15T04:43:56.000Z"
+    },
+    "evidenceLevel": "E2"
+  },
+  "authority": {
+    "digest": "sha256:6ec2d733656cd3d3767bac304457e68f03c0e8204618f7f27c140168b530a93b",
+    "completeness": "complete",
+    "capabilityCount": 2,
+    "approvalRequired": [
+      "external-network-access"
+    ],
+    "capabilities": [
+      {
+        "action": "execute",
+        "resource": "process",
+        "mutability": "mutating",
+        "reversibility": "irreversible",
+        "approvalRequirement": "none"
+      },
+      {
+        "action": "connect",
+        "resource": "network",
+        "mutability": "mutating",
+        "reversibility": "irreversible",
+        "approvalRequirement": "review"
+      }
+    ]
+  },
+  "policyDigest": null,
+  "reproducibility": {
+    "pageDigest": "sha256:27975b9210151b6411ccbc1d5cbccb64c87b4571e52cb2340ecb7087bb0e92af",
+    "observedAt": "2026-09-15T04:43:56.000Z"
+  },
+  "engine": {
+    "name": "calllint"
+  },
+  "correctionUrl": "https://github.com/calllint/calllint/issues/new?labels=trust-page-correction",
+  "generatedAt": "2026-09-15T04:43:56.000Z",
+  "signature": null
+}

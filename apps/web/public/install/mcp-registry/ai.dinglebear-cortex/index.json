@@ -1,0 +1,95 @@
+{
+  "schema": "calllint.agent-adoption-contract.v1",
+  "contract": {
+    "contractDigest": "sha256:31857b5add6447ed0cd5af3587cd76dc5bf2c4b44c2977f604eeb848e8626cb7",
+    "generatedAt": "2026-09-15T04:43:56.000Z",
+    "expiresAt": null,
+    "generatorVersion": "0.1.0",
+    "snapshotDigest": "sha256:a17cc2296830ea649d39650ffaa9b6aa90a3ffd07deb5ea594ab80b8b0427d81"
+  },
+  "subject": {
+    "canonicalName": "mcp-registry/ai.dinglebear-cortex",
+    "canonicalSlug": "mcp-registry/ai.dinglebear-cortex",
+    "packageType": "npm",
+    "packageName": "@dinglebear/cortex",
+    "version": "3.13.2",
+    "artifactDigest": "sha256:48b522bdf018b0f04c2d3b2513fe6b829efb270e28f5a1fd5f481e859f187051",
+    "sourceLocator": "npm:@dinglebear/cortex@3.13.2"
+  },
+  "publicObservation": {
+    "verdict": "SAFE",
+    "publicLabel": "No blockers observed",
+    "reasonCodes": [],
+    "evidenceLevel": "E2",
+    "evidenceDigest": "sha256:e5c3d450f2b92e7afb2b432cb996f2899916beb59748d482692a67adc89169cb",
+    "completeness": "complete"
+  },
+  "authorityDelta": {
+    "adds": [],
+    "notObserved": [
+      "financial_action",
+      "secret_access",
+      "shell_execution",
+      "broad_filesystem_access",
+      "external_mutation",
+      "messaging_send",
+      "oauth_scope",
+      "gateway_runtime",
+      "network_egress"
+    ]
+  },
+  "trustedSources": {
+    "registrySnapshotDigest": "sha256:a17cc2296830ea649d39650ffaa9b6aa90a3ffd07deb5ea594ab80b8b0427d81",
+    "evidenceDigest": "sha256:e5c3d450f2b92e7afb2b432cb996f2899916beb59748d482692a67adc89169cb",
+    "engineVersion": "0.1.0"
+  },
+  "untrustedPublisherContent": {
+    "description": "Self-hosted homelab log intelligence over MCP, CLI, and REST with SQLite/FTS.",
+    "usedForSafetyDecision": false
+  },
+  "recommendedNextAction": {
+    "kind": "PREPARE_LOCALLY",
+    "tool": "calllint_prepare_safe_install",
+    "arguments": {
+      "canonicalName": "mcp-registry/ai.dinglebear-cortex",
+      "expectedVersion": "3.13.2",
+      "expectedArtifactDigest": "sha256:48b522bdf018b0f04c2d3b2513fe6b829efb270e28f5a1fd5f481e859f187051",
+      "expectedContractDigest": "sha256:31857b5add6447ed0cd5af3587cd76dc5bf2c4b44c2977f604eeb848e8626cb7",
+      "host": null
+    }
+  },
+  "agentGuidance": {
+    "goal": "Add the requested Agent Tool with only locally approved authority.",
+    "steps": [
+      "verify_contract",
+      "resolve_host",
+      "prepare_locally",
+      "evaluate_local_policy",
+      "apply_exact_plan",
+      "verify_result"
+    ],
+    "mustAskBefore": [
+      "new_secret_access",
+      "external_mutation",
+      "shell_execution",
+      "broad_filesystem_access",
+      "financial_action",
+      "persistent_calllint_components"
+    ],
+    "mustStopWhen": [
+      "artifact_digest_mismatch",
+      "contract_digest_mismatch",
+      "unsupported_host",
+      "local_policy_deny",
+      "plan_tampered",
+      "verification_failed"
+    ],
+    "prohibitedShortcuts": [
+      "do_not_replace_exact_version_with_latest",
+      "do_not_execute_publisher_commands_directly",
+      "do_not_expand_authority",
+      "do_not_hide_alternative_setup",
+      "do_not_install_persistent_guard_without_authorization"
+    ]
+  }
+}

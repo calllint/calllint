@@ -2,18 +2,18 @@
   "schema": "calllint.trust-page.v0",
   "canonicalName": "mcp-registry/ai.artidrop-artidrop",
   "artifactDigest": "sha256:b90748ab8a986345b49b362e276b2065298c2b46c667b21512594eeab6b7dd1a",
-  "pageDigest": "sha256:43206805a6825472b8d1b37b81d84ff1a4e5cc791483142a4de4c423bd7b5568",
+  "pageDigest": "sha256:b7d2df8ca81532b09fd8ea7df7ea7503824ac8bd564941eccf533fe6eb65cb22",
   "verdict": "REVIEW",
   "verdictLabel": "Review required",
-  "observedAt": "2026-09-15T02:38:22.000Z",
+  "observedAt": "2026-09-15T04:43:56.000Z",
   "completeness": "complete",
   "status": {
     "verdict": "REVIEW",
     "completeness": "complete",
     "authorityClaimed": false,
     "reproducibility": {
-      "pageDigest": "sha256:43206805a6825472b8d1b37b81d84ff1a4e5cc791483142a4de4c423bd7b5568",
-      "observedAt": "2026-09-15T02:38:22.000Z"
+      "pageDigest": "sha256:b7d2df8ca81532b09fd8ea7df7ea7503824ac8bd564941eccf533fe6eb65cb22",
+      "observedAt": "2026-09-15T04:43:56.000Z"
     },
     "evidenceLevel": "E2",
     "evidenceRationale": "install config observed → static blast radius normalized into an authority inventory. Higher levels (E3 tool schema, E4 maintainer receipt, E5 sandbox) are not carried by a static page."
@@ -26,8 +26,8 @@
   },
   "scanHistory": [
     {
-      "observedAt": "2026-09-15T02:38:22.000Z",
-      "pageDigest": "sha256:43206805a6825472b8d1b37b81d84ff1a4e5cc791483142a4de4c423bd7b5568",
+      "observedAt": "2026-09-15T04:43:56.000Z",
+      "pageDigest": "sha256:b7d2df8ca81532b09fd8ea7df7ea7503824ac8bd564941eccf533fe6eb65cb22",
       "artifactDigest": "sha256:b90748ab8a986345b49b362e276b2065298c2b46c667b21512594eeab6b7dd1a"
     }
   ],
@@ -40,7 +40,7 @@
       "requestedRef": null,
       "resolvedRef": "sha256:b90748ab8a986345b49b362e276b2065298c2b46c667b21512594eeab6b7dd1a",
       "digest": "sha256:b90748ab8a986345b49b362e276b2065298c2b46c667b21512594eeab6b7dd1a",
-      "resolvedAt": "2026-09-15T02:38:22.000Z",
+      "resolvedAt": "2026-09-15T04:43:56.000Z",
       "resolution": "resolved"
     },
     "evidence": null,
@@ -84,7 +84,7 @@
       "no external evidence attached (optional); decision will rely on CallLint's own analysis",
       "authority normalized: 1 capability, approvals required: external-network-access"
     ],
-    "preparedAt": "2026-09-15T02:38:22.000Z"
+    "preparedAt": "2026-09-15T04:43:56.000Z"
   },
   "scan": {
     "schemaVersion": "calllint.report.v0",
@@ -220,10 +220,10 @@
             "message": "Remote endpoint identity verified; tool surface not analyzed (evidence: https://artidrop.ai/mcp)"
           }
         ],
-        "generatedAt": "2026-09-15T02:38:22.000Z"
+        "generatedAt": "2026-09-15T04:43:56.000Z"
       }
     ],
     "diagnostics": [],
-    "generatedAt": "2026-09-15T02:38:22.000Z"
+    "generatedAt": "2026-09-15T04:43:56.000Z"
   }
 }

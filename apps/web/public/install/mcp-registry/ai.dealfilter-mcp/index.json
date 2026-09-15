@@ -1,0 +1,100 @@
+{
+  "schema": "calllint.agent-adoption-contract.v1",
+  "contract": {
+    "contractDigest": "sha256:d9a22ab9cbcf9fcf520daa150b4bc8e0d8e29c296a2a5be5824c0ef972e0fd82",
+    "generatedAt": "2026-09-15T04:43:56.000Z",
+    "expiresAt": null,
+    "generatorVersion": "0.1.0",
+    "snapshotDigest": "sha256:a17cc2296830ea649d39650ffaa9b6aa90a3ffd07deb5ea594ab80b8b0427d81"
+  },
+  "subject": {
+    "canonicalName": "mcp-registry/ai.dealfilter-mcp",
+    "canonicalSlug": "mcp-registry/ai.dealfilter-mcp",
+    "packageType": null,
+    "packageName": null,
+    "version": "1.0.0",
+    "artifactDigest": "sha256:11404c45c1663ab5410f9c6a4683d2a1cb34d967e22d132e655b114be4ccc22a",
+    "sourceLocator": "https://dealfilter.ai/api/mcp"
+  },
+  "publicObservation": {
+    "verdict": "REVIEW",
+    "publicLabel": "Review required",
+    "reasonCodes": [
+      "UNKNOWN_REMOTE"
+    ],
+    "evidenceLevel": "E2",
+    "evidenceDigest": "sha256:e5c3d450f2b92e7afb2b432cb996f2899916beb59748d482692a67adc89169cb",
+    "completeness": "complete"
+  },
+  "authorityDelta": {
+    "adds": [
+      {
+        "authority": "network_egress"
+      }
+    ],
+    "notObserved": [
+      "financial_action",
+      "secret_access",
+      "shell_execution",
+      "broad_filesystem_access",
+      "external_mutation",
+      "messaging_send",
+      "oauth_scope",
+      "gateway_runtime"
+    ]
+  },
+  "trustedSources": {
+    "registrySnapshotDigest": "sha256:a17cc2296830ea649d39650ffaa9b6aa90a3ffd07deb5ea594ab80b8b0427d81",
+    "evidenceDigest": "sha256:e5c3d450f2b92e7afb2b432cb996f2899916beb59748d482692a67adc89169cb",
+    "engineVersion": "0.1.0"
+  },
+  "untrustedPublisherContent": {
+    "description": "AI deal pipeline for IT freelancers in DACH: analyze, list and manage project inquiries.",
+    "usedForSafetyDecision": false
+  },
+  "recommendedNextAction": {
+    "kind": "PREPARE_LOCALLY",
+    "tool": "calllint_prepare_safe_install",
+    "arguments": {
+      "canonicalName": "mcp-registry/ai.dealfilter-mcp",
+      "expectedVersion": "1.0.0",
+      "expectedArtifactDigest": "sha256:11404c45c1663ab5410f9c6a4683d2a1cb34d967e22d132e655b114be4ccc22a",
+      "expectedContractDigest": "sha256:d9a22ab9cbcf9fcf520daa150b4bc8e0d8e29c296a2a5be5824c0ef972e0fd82",
+      "host": null
+    }
+  },
+  "agentGuidance": {
+    "goal": "Add the requested Agent Tool with only locally approved authority.",
+    "steps": [
+      "verify_contract",
+      "resolve_host",
+      "prepare_locally",
+      "evaluate_local_policy",
+      "apply_exact_plan",
+      "verify_result"
+    ],
+    "mustAskBefore": [
+      "new_secret_access",
+      "external_mutation",
+      "shell_execution",
+      "broad_filesystem_access",
+      "financial_action",
+      "persistent_calllint_components"
+    ],
+    "mustStopWhen": [
+      "artifact_digest_mismatch",
+      "contract_digest_mismatch",
+      "unsupported_host",
+      "local_policy_deny",
+      "plan_tampered",
+      "verification_failed"
+    ],
+    "prohibitedShortcuts": [
+      "do_not_replace_exact_version_with_latest",
+      "do_not_execute_publisher_commands_directly",
+      "do_not_expand_authority",
+      "do_not_hide_alternative_setup",
+      "do_not_install_persistent_guard_without_authorization"
+    ]
+  }
+}

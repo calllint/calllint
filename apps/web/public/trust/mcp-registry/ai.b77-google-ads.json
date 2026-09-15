@@ -2,18 +2,18 @@
   "schema": "calllint.trust-page.v0",
   "canonicalName": "mcp-registry/ai.b77-google-ads",
   "artifactDigest": "sha256:7a8e47335b4b97c898c7871b5b4f16acfc2c361edfe6d64e615a01559fad44d4",
-  "pageDigest": "sha256:a786df5c1322a2754df701ddbcd9b83fee0a0e327697dedb58d4e8b1312de23e",
+  "pageDigest": "sha256:056b9509d26227a31ac7541d1e7e132b0a56e9564cb7e0a1a373e9b41b981929",
   "verdict": "REVIEW",
   "verdictLabel": "Review required",
-  "observedAt": "2026-09-15T02:38:22.000Z",
+  "observedAt": "2026-09-15T04:43:56.000Z",
   "completeness": "complete",
   "status": {
     "verdict": "REVIEW",
     "completeness": "complete",
     "authorityClaimed": false,
     "reproducibility": {
-      "pageDigest": "sha256:a786df5c1322a2754df701ddbcd9b83fee0a0e327697dedb58d4e8b1312de23e",
-      "observedAt": "2026-09-15T02:38:22.000Z"
+      "pageDigest": "sha256:056b9509d26227a31ac7541d1e7e132b0a56e9564cb7e0a1a373e9b41b981929",
+      "observedAt": "2026-09-15T04:43:56.000Z"
     },
     "evidenceLevel": "E2",
     "evidenceRationale": "install config observed → static blast radius normalized into an authority inventory. Higher levels (E3 tool schema, E4 maintainer receipt, E5 sandbox) are not carried by a static page."
@@ -26,8 +26,8 @@
   },
   "scanHistory": [
     {
-      "observedAt": "2026-09-15T02:38:22.000Z",
-      "pageDigest": "sha256:a786df5c1322a2754df701ddbcd9b83fee0a0e327697dedb58d4e8b1312de23e",
+      "observedAt": "2026-09-15T04:43:56.000Z",
+      "pageDigest": "sha256:056b9509d26227a31ac7541d1e7e132b0a56e9564cb7e0a1a373e9b41b981929",
       "artifactDigest": "sha256:7a8e47335b4b97c898c7871b5b4f16acfc2c361edfe6d64e615a01559fad44d4"
     }
   ],
@@ -40,7 +40,7 @@
       "requestedRef": null,
       "resolvedRef": "sha256:7a8e47335b4b97c898c7871b5b4f16acfc2c361edfe6d64e615a01559fad44d4",
       "digest": "sha256:7a8e47335b4b97c898c7871b5b4f16acfc2c361edfe6d64e615a01559fad44d4",
-      "resolvedAt": "2026-09-15T02:38:22.000Z",
+      "resolvedAt": "2026-09-15T04:43:56.000Z",
       "resolution": "resolved"
     },
     "evidence": null,
@@ -84,7 +84,7 @@
       "no external evidence attached (optional); decision will rely on CallLint's own analysis",
       "authority normalized: 1 capability, approvals required: external-network-access"
     ],
-    "preparedAt": "2026-09-15T02:38:22.000Z"
+    "preparedAt": "2026-09-15T04:43:56.000Z"
   },
   "scan": {
     "schemaVersion": "calllint.report.v0",
@@ -220,10 +220,10 @@
             "message": "Remote endpoint identity verified; tool surface not analyzed (evidence: https://google-ads.b77.ai/mcp)"
           }
         ],
-        "generatedAt": "2026-09-15T02:38:22.000Z"
+        "generatedAt": "2026-09-15T04:43:56.000Z"
       }
     ],
     "diagnostics": [],
-    "generatedAt": "2026-09-15T02:38:22.000Z"
+    "generatedAt": "2026-09-15T04:43:56.000Z"
   }
 }
