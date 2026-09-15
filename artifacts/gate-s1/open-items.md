@@ -666,7 +666,7 @@ made it read as settled. It is struck rather than deleted for exactly that reaso
 repetitions is the evidence for how a false blocker hardens, and deleting them would leave only the
 correction, which reads as though the mistake were caught the first time.
 
-Cohort census: source **200 / 100 required** (met); served **200 registry pages / 200
+Cohort census: source **250 / 100 required** (met); served **250 registry pages / 250
 committed** (held).
 
 ---
