@@ -2,18 +2,18 @@
   "schema": "calllint.trust-page.v0",
   "canonicalName": "mcp-registry/ai.dinglebear-rytdl",
   "artifactDigest": "sha256:5a4e31010b0053b815ecbed8d0c228c2fd40c5850f2350d5c6637b6393d29c44",
-  "pageDigest": "sha256:8c0b85c0eed46be176fc5dfb6c83211a582879c943456799e3a8e9e4b84aea77",
+  "pageDigest": "sha256:52d8bb05efc986d1ab629baac1a60af42adec0bc4033c60ab79211ceb226141a",
   "verdict": "SAFE",
   "verdictLabel": "No blockers observed",
-  "observedAt": "2026-09-15T06:37:10.000Z",
+  "observedAt": "2026-09-21T12:42:26.000Z",
   "completeness": "complete",
   "status": {
     "verdict": "SAFE",
     "completeness": "complete",
     "authorityClaimed": false,
     "reproducibility": {
-      "pageDigest": "sha256:8c0b85c0eed46be176fc5dfb6c83211a582879c943456799e3a8e9e4b84aea77",
-      "observedAt": "2026-09-15T06:37:10.000Z"
+      "pageDigest": "sha256:52d8bb05efc986d1ab629baac1a60af42adec0bc4033c60ab79211ceb226141a",
+      "observedAt": "2026-09-21T12:42:26.000Z"
     },
     "evidenceLevel": "E2",
     "evidenceRationale": "install config observed → static blast radius normalized into an authority inventory. Higher levels (E3 tool schema, E4 maintainer receipt, E5 sandbox) are not carried by a static page."
@@ -26,8 +26,8 @@
   },
   "scanHistory": [
     {
-      "observedAt": "2026-09-15T06:37:10.000Z",
-      "pageDigest": "sha256:8c0b85c0eed46be176fc5dfb6c83211a582879c943456799e3a8e9e4b84aea77",
+      "observedAt": "2026-09-21T12:42:26.000Z",
+      "pageDigest": "sha256:52d8bb05efc986d1ab629baac1a60af42adec0bc4033c60ab79211ceb226141a",
       "artifactDigest": "sha256:5a4e31010b0053b815ecbed8d0c228c2fd40c5850f2350d5c6637b6393d29c44"
     }
   ],
@@ -40,7 +40,7 @@
       "requestedRef": null,
       "resolvedRef": "sha256:5a4e31010b0053b815ecbed8d0c228c2fd40c5850f2350d5c6637b6393d29c44",
       "digest": "sha256:5a4e31010b0053b815ecbed8d0c228c2fd40c5850f2350d5c6637b6393d29c44",
-      "resolvedAt": "2026-09-15T06:37:10.000Z",
+      "resolvedAt": "2026-09-21T12:42:26.000Z",
       "resolution": "resolved"
     },
     "evidence": null,
@@ -83,7 +83,7 @@
       "no external evidence attached (optional); decision will rely on CallLint's own analysis",
       "authority normalized: 1 capability"
     ],
-    "preparedAt": "2026-09-15T06:37:10.000Z"
+    "preparedAt": "2026-09-21T12:42:26.000Z"
   },
   "scan": {
     "schemaVersion": "calllint.report.v0",
@@ -135,10 +135,10 @@
           "packageSpecHash": "sha256:24492e623d737c7ad6d07a62b729b2ee72120c06e407f652d5996d1093b28e32"
         },
         "diagnostics": [],
-        "generatedAt": "2026-09-15T06:37:10.000Z"
+        "generatedAt": "2026-09-21T12:42:26.000Z"
       }
     ],
     "diagnostics": [],
-    "generatedAt": "2026-09-15T06:37:10.000Z"
+    "generatedAt": "2026-09-21T12:42:26.000Z"
   }
 }

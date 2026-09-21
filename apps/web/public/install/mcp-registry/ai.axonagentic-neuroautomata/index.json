@@ -1,11 +1,11 @@
 {
   "schema": "calllint.agent-adoption-contract.v1",
   "contract": {
-    "contractDigest": "sha256:2b8ca4ea32998ff9ecccea329bb9600cdb62b8bee41dbb78ff11620d2e75c313",
-    "generatedAt": "2026-09-15T06:37:10.000Z",
+    "contractDigest": "sha256:c5eb88f57fd16c827fb6ab0b0ffda9db1ab3cb494bb6258dba0969fd382bf6b1",
+    "generatedAt": "2026-09-21T12:42:26.000Z",
     "expiresAt": null,
     "generatorVersion": "0.1.0",
-    "snapshotDigest": "sha256:0d7685adae8d8f501d520c5eb42746baee8e6f798ab6965b17f8c4253cd8180d"
+    "snapshotDigest": "sha256:ee3860146d28e049685299900442288c35f6364586e10e4f567b8a931c3398bb"
   },
   "subject": {
     "canonicalName": "mcp-registry/ai.axonagentic-neuroautomata",
@@ -23,7 +23,7 @@
       "UNKNOWN_REMOTE"
     ],
     "evidenceLevel": "E2",
-    "evidenceDigest": "sha256:2579b184c2ed95daff8ca669622c89bd6f7d964fca3d01a0e356928b2253e33e",
+    "evidenceDigest": "sha256:26257b0d0a71ab780bba33ac911a3291af1aa9d80cd2c96cc5104d2243fd94bc",
     "completeness": "complete"
   },
   "authorityDelta": {
@@ -44,8 +44,8 @@
     ]
   },
   "trustedSources": {
-    "registrySnapshotDigest": "sha256:0d7685adae8d8f501d520c5eb42746baee8e6f798ab6965b17f8c4253cd8180d",
-    "evidenceDigest": "sha256:2579b184c2ed95daff8ca669622c89bd6f7d964fca3d01a0e356928b2253e33e",
+    "registrySnapshotDigest": "sha256:ee3860146d28e049685299900442288c35f6364586e10e4f567b8a931c3398bb",
+    "evidenceDigest": "sha256:26257b0d0a71ab780bba33ac911a3291af1aa9d80cd2c96cc5104d2243fd94bc",
     "engineVersion": "0.1.0"
   },
   "untrustedPublisherContent": {
@@ -59,7 +59,7 @@
       "canonicalName": "mcp-registry/ai.axonagentic-neuroautomata",
       "expectedVersion": "0.29.0",
       "expectedArtifactDigest": "sha256:7b8cd4a72a383826e8d1ca035c11666448c8ef285c9f4f422986ba6292e250df",
-      "expectedContractDigest": "sha256:2b8ca4ea32998ff9ecccea329bb9600cdb62b8bee41dbb78ff11620d2e75c313",
+      "expectedContractDigest": "sha256:c5eb88f57fd16c827fb6ab0b0ffda9db1ab3cb494bb6258dba0969fd382bf6b1",
       "host": null
     }
   },

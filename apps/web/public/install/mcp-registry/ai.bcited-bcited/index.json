@@ -1,0 +1,100 @@
+{
+  "schema": "calllint.agent-adoption-contract.v1",
+  "contract": {
+    "contractDigest": "sha256:cf00c29d01e602a35c53b2cf9ff6ae4ae0ba1934e26a1f9a4dfc515ca6afb69b",
+    "generatedAt": "2026-09-21T12:42:26.000Z",
+    "expiresAt": null,
+    "generatorVersion": "0.1.0",
+    "snapshotDigest": "sha256:ee3860146d28e049685299900442288c35f6364586e10e4f567b8a931c3398bb"
+  },
+  "subject": {
+    "canonicalName": "mcp-registry/ai.bcited-bcited",
+    "canonicalSlug": "mcp-registry/ai.bcited-bcited",
+    "packageType": null,
+    "packageName": null,
+    "version": "0.6.0",
+    "artifactDigest": "sha256:68b581ae2ee28d52a4484534bce3555e6ac86eee20a518a9e263e46a6c662e43",
+    "sourceLocator": "https://mcp.bcited.ai/public"
+  },
+  "publicObservation": {
+    "verdict": "REVIEW",
+    "publicLabel": "Review required",
+    "reasonCodes": [
+      "UNKNOWN_REMOTE"
+    ],
+    "evidenceLevel": "E2",
+    "evidenceDigest": "sha256:26257b0d0a71ab780bba33ac911a3291af1aa9d80cd2c96cc5104d2243fd94bc",
+    "completeness": "complete"
+  },
+  "authorityDelta": {
+    "adds": [
+      {
+        "authority": "network_egress"
+      }
+    ],
+    "notObserved": [
+      "financial_action",
+      "secret_access",
+      "shell_execution",
+      "broad_filesystem_access",
+      "external_mutation",
+      "messaging_send",
+      "oauth_scope",
+      "gateway_runtime"
+    ]
+  },
+  "trustedSources": {
+    "registrySnapshotDigest": "sha256:ee3860146d28e049685299900442288c35f6364586e10e4f567b8a931c3398bb",
+    "evidenceDigest": "sha256:26257b0d0a71ab780bba33ac911a3291af1aa9d80cd2c96cc5104d2243fd94bc",
+    "engineVersion": "0.1.0"
+  },
+  "untrustedPublisherContent": {
+    "description": "AEO tools: scan any URL for AI-citation readiness, read the public leaderboard and citation panel.",
+    "usedForSafetyDecision": false
+  },
+  "recommendedNextAction": {
+    "kind": "PREPARE_LOCALLY",
+    "tool": "calllint_prepare_safe_install",
+    "arguments": {
+      "canonicalName": "mcp-registry/ai.bcited-bcited",
+      "expectedVersion": "0.6.0",
+      "expectedArtifactDigest": "sha256:68b581ae2ee28d52a4484534bce3555e6ac86eee20a518a9e263e46a6c662e43",
+      "expectedContractDigest": "sha256:cf00c29d01e602a35c53b2cf9ff6ae4ae0ba1934e26a1f9a4dfc515ca6afb69b",
+      "host": null
+    }
+  },
+  "agentGuidance": {
+    "goal": "Add the requested Agent Tool with only locally approved authority.",
+    "steps": [
+      "verify_contract",
+      "resolve_host",
+      "prepare_locally",
+      "evaluate_local_policy",
+      "apply_exact_plan",
+      "verify_result"
+    ],
+    "mustAskBefore": [
+      "new_secret_access",
+      "external_mutation",
+      "shell_execution",
+      "broad_filesystem_access",
+      "financial_action",
+      "persistent_calllint_components"
+    ],
+    "mustStopWhen": [
+      "artifact_digest_mismatch",
+      "contract_digest_mismatch",
+      "unsupported_host",
+      "local_policy_deny",
+      "plan_tampered",
+      "verification_failed"
+    ],
+    "prohibitedShortcuts": [
+      "do_not_replace_exact_version_with_latest",
+      "do_not_execute_publisher_commands_directly",
+      "do_not_expand_authority",
+      "do_not_hide_alternative_setup",
+      "do_not_install_persistent_guard_without_authorization"
+    ]
+  }
+}

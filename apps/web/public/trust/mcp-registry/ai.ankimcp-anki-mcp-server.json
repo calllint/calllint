@@ -1,19 +1,19 @@
 {
   "schema": "calllint.trust-page.v0",
   "canonicalName": "mcp-registry/ai.ankimcp-anki-mcp-server",
-  "artifactDigest": "sha256:85f5a46d1123b8b6282d19b1da562665102e77b44cddedfd26b1443585f5f28a",
-  "pageDigest": "sha256:223d46675c18f59613405dd7b7c24b3d3f9d0bec9b214c38cea9a25eb6eb5198",
+  "artifactDigest": "sha256:4835ad2e0b7858ae3216c43575e1f79778d61037378e430474648b23a680ef90",
+  "pageDigest": "sha256:437adc88e3cdb9b77de83d869f7727812a7d4cb1df302d6e3394c0b3ecf0ea2e",
   "verdict": "SAFE",
   "verdictLabel": "No blockers observed",
-  "observedAt": "2026-09-15T06:37:10.000Z",
+  "observedAt": "2026-09-21T12:42:26.000Z",
   "completeness": "complete",
   "status": {
     "verdict": "SAFE",
     "completeness": "complete",
     "authorityClaimed": false,
     "reproducibility": {
-      "pageDigest": "sha256:223d46675c18f59613405dd7b7c24b3d3f9d0bec9b214c38cea9a25eb6eb5198",
-      "observedAt": "2026-09-15T06:37:10.000Z"
+      "pageDigest": "sha256:437adc88e3cdb9b77de83d869f7727812a7d4cb1df302d6e3394c0b3ecf0ea2e",
+      "observedAt": "2026-09-21T12:42:26.000Z"
     },
     "evidenceLevel": "E2",
     "evidenceRationale": "install config observed → static blast radius normalized into an authority inventory. Higher levels (E3 tool schema, E4 maintainer receipt, E5 sandbox) are not carried by a static page."
@@ -21,14 +21,14 @@
   "correctionUrl": "https://github.com/calllint/calllint/issues/new?labels=trust-page-correction",
   "reproduction": {
     "command": "npx calllint scan official-mcp-registry:ai.ankimcp/anki-mcp-server",
-    "artifactDigest": "sha256:85f5a46d1123b8b6282d19b1da562665102e77b44cddedfd26b1443585f5f28a",
+    "artifactDigest": "sha256:4835ad2e0b7858ae3216c43575e1f79778d61037378e430474648b23a680ef90",
     "note": "Re-running this scan reproduces the verdict observed at the pinned artifact digest. It is a point-in-time observation, not a guarantee of future behavior."
   },
   "scanHistory": [
     {
-      "observedAt": "2026-09-15T06:37:10.000Z",
-      "pageDigest": "sha256:223d46675c18f59613405dd7b7c24b3d3f9d0bec9b214c38cea9a25eb6eb5198",
-      "artifactDigest": "sha256:85f5a46d1123b8b6282d19b1da562665102e77b44cddedfd26b1443585f5f28a"
+      "observedAt": "2026-09-21T12:42:26.000Z",
+      "pageDigest": "sha256:437adc88e3cdb9b77de83d869f7727812a7d4cb1df302d6e3394c0b3ecf0ea2e",
+      "artifactDigest": "sha256:4835ad2e0b7858ae3216c43575e1f79778d61037378e430474648b23a680ef90"
     }
   ],
   "preparation": {
@@ -38,16 +38,16 @@
       "sourceType": "mcp-config",
       "source": "official-mcp-registry:ai.ankimcp/anki-mcp-server",
       "requestedRef": null,
-      "resolvedRef": "sha256:85f5a46d1123b8b6282d19b1da562665102e77b44cddedfd26b1443585f5f28a",
-      "digest": "sha256:85f5a46d1123b8b6282d19b1da562665102e77b44cddedfd26b1443585f5f28a",
-      "resolvedAt": "2026-09-15T06:37:10.000Z",
+      "resolvedRef": "sha256:4835ad2e0b7858ae3216c43575e1f79778d61037378e430474648b23a680ef90",
+      "digest": "sha256:4835ad2e0b7858ae3216c43575e1f79778d61037378e430474648b23a680ef90",
+      "resolvedAt": "2026-09-21T12:42:26.000Z",
       "resolution": "resolved"
     },
     "evidence": null,
     "authority": {
       "schema": "calllint.authority.v0",
       "subject": {
-        "artifactDigest": "sha256:85f5a46d1123b8b6282d19b1da562665102e77b44cddedfd26b1443585f5f28a"
+        "artifactDigest": "sha256:4835ad2e0b7858ae3216c43575e1f79778d61037378e430474648b23a680ef90"
       },
       "capabilities": [
         {
@@ -74,7 +74,7 @@
       },
       "unknowns": [],
       "completeness": "complete",
-      "digest": "sha256:753dd6aeb1bd3c5b1e85889d30bdfa7cbaa1e56ab3e68b2dadb8270823114524"
+      "digest": "sha256:9bf1c22d03d4ed2661f2d3c182b92ec093375a77eac71e7885d03b465965e859"
     },
     "decision": null,
     "plan": null,
@@ -83,7 +83,7 @@
       "no external evidence attached (optional); decision will rely on CallLint's own analysis",
       "authority normalized: 1 capability"
     ],
-    "preparedAt": "2026-09-15T06:37:10.000Z"
+    "preparedAt": "2026-09-21T12:42:26.000Z"
   },
   "scan": {
     "schemaVersion": "calllint.report.v0",
@@ -105,7 +105,7 @@
           "name": "package",
           "kind": "mcp-servers",
           "source": "@ankimcp/anki-mcp-server",
-          "version": "0.25.1",
+          "version": "0.26.0",
           "configPath": "official-mcp-registry:ai.ankimcp/anki-mcp-server"
         },
         "verdict": "SAFE",
@@ -129,16 +129,16 @@
           "sandbox": "none"
         },
         "fingerprints": {
-          "configHash": "sha256:89afe57d13245307f90afcd497c4d5a73401a0869bfe2edb5e3f2e4bcf3ba007",
-          "targetSpecHash": "sha256:e4cc04d544967d9e88e58d4cbc681070facfc211aca93a8d2263da83c10fe8b3",
+          "configHash": "sha256:91f9337a50c1a68e59288d388aa4bddfb21da5ed32abe3b635e7632a35e27f43",
+          "targetSpecHash": "sha256:838064fb99e298fe0755f75830bb58afb56affebd676c9d2a68bca9bd03ddd7e",
           "riskSurfaceHash": "sha256:69aae84c996fe93d537b08d906cb339866bd43f10876be403a0f4793915bef33",
-          "packageSpecHash": "sha256:2760a2398ff7dccc789532243c89077aa19f93c90ad2356aab3385ccbfe45279"
+          "packageSpecHash": "sha256:a8424ed1785dbe941f8e8ea5cf195732f04cb67e463ddb5368ee2320ba345fee"
         },
         "diagnostics": [],
-        "generatedAt": "2026-09-15T06:37:10.000Z"
+        "generatedAt": "2026-09-21T12:42:26.000Z"
       }
     ],
     "diagnostics": [],
-    "generatedAt": "2026-09-15T06:37:10.000Z"
+    "generatedAt": "2026-09-21T12:42:26.000Z"
   }
 }

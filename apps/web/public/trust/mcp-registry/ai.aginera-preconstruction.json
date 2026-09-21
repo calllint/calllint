@@ -2,18 +2,18 @@
   "schema": "calllint.trust-page.v0",
   "canonicalName": "mcp-registry/ai.aginera-preconstruction",
   "artifactDigest": "sha256:e85d9a432fde2bbfd1f8ab567a50cd812d407dfcc0b2a39c95eda12bc616b110",
-  "pageDigest": "sha256:8e886e612f0d7f04ba91234cafbdaa7032b096bed8751b9ce4c4d6cc889b885c",
-  "verdict": "UNKNOWN",
-  "verdictLabel": "Insufficient evidence",
-  "observedAt": "2026-09-15T06:37:10.000Z",
+  "pageDigest": "sha256:dc8e5e0445997e4508cb213c280e634c138d114b7423f292e4e6c4bfb199eddb",
+  "verdict": "REVIEW",
+  "verdictLabel": "Review required",
+  "observedAt": "2026-09-21T12:42:26.000Z",
   "completeness": "complete",
   "status": {
-    "verdict": "UNKNOWN",
+    "verdict": "REVIEW",
     "completeness": "complete",
     "authorityClaimed": false,
     "reproducibility": {
-      "pageDigest": "sha256:8e886e612f0d7f04ba91234cafbdaa7032b096bed8751b9ce4c4d6cc889b885c",
-      "observedAt": "2026-09-15T06:37:10.000Z"
+      "pageDigest": "sha256:dc8e5e0445997e4508cb213c280e634c138d114b7423f292e4e6c4bfb199eddb",
+      "observedAt": "2026-09-21T12:42:26.000Z"
     },
     "evidenceLevel": "E2",
     "evidenceRationale": "install config observed → static blast radius normalized into an authority inventory. Higher levels (E3 tool schema, E4 maintainer receipt, E5 sandbox) are not carried by a static page."
@@ -26,8 +26,8 @@
   },
   "scanHistory": [
     {
-      "observedAt": "2026-09-15T06:37:10.000Z",
-      "pageDigest": "sha256:8e886e612f0d7f04ba91234cafbdaa7032b096bed8751b9ce4c4d6cc889b885c",
+      "observedAt": "2026-09-21T12:42:26.000Z",
+      "pageDigest": "sha256:dc8e5e0445997e4508cb213c280e634c138d114b7423f292e4e6c4bfb199eddb",
       "artifactDigest": "sha256:e85d9a432fde2bbfd1f8ab567a50cd812d407dfcc0b2a39c95eda12bc616b110"
     }
   ],
@@ -40,7 +40,7 @@
       "requestedRef": null,
       "resolvedRef": "sha256:e85d9a432fde2bbfd1f8ab567a50cd812d407dfcc0b2a39c95eda12bc616b110",
       "digest": "sha256:e85d9a432fde2bbfd1f8ab567a50cd812d407dfcc0b2a39c95eda12bc616b110",
-      "resolvedAt": "2026-09-15T06:37:10.000Z",
+      "resolvedAt": "2026-09-21T12:42:26.000Z",
       "resolution": "resolved"
     },
     "evidence": null,
@@ -84,19 +84,19 @@
       "no external evidence attached (optional); decision will rely on CallLint's own analysis",
       "authority normalized: 1 capability, approvals required: external-network-access"
     ],
-    "preparedAt": "2026-09-15T06:37:10.000Z"
+    "preparedAt": "2026-09-21T12:42:26.000Z"
   },
   "scan": {
     "schemaVersion": "calllint.report.v0",
     "reportKind": "config-summary",
     "configPath": "official-mcp-registry:ai.aginera/preconstruction",
-    "verdict": "UNKNOWN",
-    "publicVerdictLabel": "Insufficient evidence",
+    "verdict": "REVIEW",
+    "publicVerdictLabel": "Review required",
     "counts": {
       "SAFE": 0,
-      "REVIEW": 0,
+      "REVIEW": 1,
       "BLOCK": 0,
-      "UNKNOWN": 1
+      "UNKNOWN": 0
     },
     "reports": [
       {
@@ -108,8 +108,8 @@
           "source": "https://mcp.aginera.ai/mcp",
           "configPath": "official-mcp-registry:ai.aginera/preconstruction"
         },
-        "verdict": "UNKNOWN",
-        "publicVerdictLabel": "Insufficient evidence",
+        "verdict": "REVIEW",
+        "publicVerdictLabel": "Review required",
         "policyApplied": false,
         "riskClass": "S1",
         "symbols": [
@@ -117,9 +117,10 @@
         ],
         "confidence": "high",
         "reproducibility": {
-          "level": "MEDIUM",
+          "level": "LOW",
           "reasons": [
-            "Remote endpoint could not be verified"
+            "Remote endpoint domain ownership not verified",
+            "Remote endpoint identity verified; tool surface not analyzed"
           ]
         },
         "summary": "\"remote\" could not be verified (insufficient evidence). Risk: Network (S1 Read-only utility).",
@@ -212,11 +213,17 @@
           "targetSpecHash": "sha256:c0ad1f3fe6e1b2e2160aa27afd355c87a2fe766b76bd5c7c3ddee7ae989cd687",
           "riskSurfaceHash": "sha256:47e9d20255a346b95323c2cb9e092621521638b987bbcd036e68e4aee12dcaf3"
         },
-        "diagnostics": [],
-        "generatedAt": "2026-09-15T06:37:10.000Z"
+        "diagnostics": [
+          {
+            "level": "info",
+            "code": "evidence.remote-identity-verified",
+            "message": "Remote endpoint identity verified; tool surface not analyzed (evidence: https://mcp.aginera.ai/mcp)"
+          }
+        ],
+        "generatedAt": "2026-09-21T12:42:26.000Z"
       }
     ],
     "diagnostics": [],
-    "generatedAt": "2026-09-15T06:37:10.000Z"
+    "generatedAt": "2026-09-21T12:42:26.000Z"
   }
 }

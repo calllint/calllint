@@ -4,18 +4,18 @@
     "canonicalName": "mcp-registry/ai.bowmark-bowmark",
     "artifactDigest": "sha256:b3e0d0aef65f70fd020a05e9e16a5973fe8d46477611c95bbfaff39deb096e90"
   },
-  "verdict": "REVIEW",
-  "verdictLabel": "Review required",
+  "verdict": "UNKNOWN",
+  "verdictLabel": "Insufficient evidence",
   "completeness": "complete",
   "evidenceLevel": "E2",
   "evidenceRationale": "install config observed → static blast radius normalized into an authority inventory. Higher levels (E3 tool schema, E4 maintainer receipt, E5 sandbox) are not carried by a static page.",
   "status": {
-    "verdict": "REVIEW",
+    "verdict": "UNKNOWN",
     "completeness": "complete",
     "authorityClaimed": false,
     "reproducibility": {
-      "pageDigest": "sha256:cb85fcdf4b37842efdffdc8e54d3543156e87547d802856c040d09418e214090",
-      "observedAt": "2026-09-15T06:37:10.000Z"
+      "pageDigest": "sha256:e4b2e13b5feff7d9c257e447affc0cc2089a3614986b5860360d4ddfb2072630",
+      "observedAt": "2026-09-21T12:42:26.000Z"
     },
     "evidenceLevel": "E2"
   },
@@ -52,13 +52,13 @@
   },
   "policyDigest": null,
   "reproducibility": {
-    "pageDigest": "sha256:cb85fcdf4b37842efdffdc8e54d3543156e87547d802856c040d09418e214090",
-    "observedAt": "2026-09-15T06:37:10.000Z"
+    "pageDigest": "sha256:e4b2e13b5feff7d9c257e447affc0cc2089a3614986b5860360d4ddfb2072630",
+    "observedAt": "2026-09-21T12:42:26.000Z"
   },
   "engine": {
     "name": "calllint"
   },
   "correctionUrl": "https://github.com/calllint/calllint/issues/new?labels=trust-page-correction",
-  "generatedAt": "2026-09-15T06:37:10.000Z",
+  "generatedAt": "2026-09-21T12:42:26.000Z",
   "signature": null
 }

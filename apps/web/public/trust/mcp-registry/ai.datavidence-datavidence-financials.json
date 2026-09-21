@@ -1,0 +1,144 @@
+{
+  "schema": "calllint.trust-page.v0",
+  "canonicalName": "mcp-registry/ai.datavidence-datavidence-financials",
+  "artifactDigest": "sha256:66c044ebb9897c5cde9d62f64091822248ac8f49fb76a257ec203e43e2d7230d",
+  "pageDigest": "sha256:100e2629fd3fcd19c8db35e2aa35208feb08a1f17575fd8cea38cb03cd753730",
+  "verdict": "SAFE",
+  "verdictLabel": "No blockers observed",
+  "observedAt": "2026-09-21T12:42:26.000Z",
+  "completeness": "complete",
+  "status": {
+    "verdict": "SAFE",
+    "completeness": "complete",
+    "authorityClaimed": false,
+    "reproducibility": {
+      "pageDigest": "sha256:100e2629fd3fcd19c8db35e2aa35208feb08a1f17575fd8cea38cb03cd753730",
+      "observedAt": "2026-09-21T12:42:26.000Z"
+    },
+    "evidenceLevel": "E2",
+    "evidenceRationale": "install config observed → static blast radius normalized into an authority inventory. Higher levels (E3 tool schema, E4 maintainer receipt, E5 sandbox) are not carried by a static page."
+  },
+  "correctionUrl": "https://github.com/calllint/calllint/issues/new?labels=trust-page-correction",
+  "reproduction": {
+    "command": "npx calllint scan official-mcp-registry:ai.datavidence/datavidence-financials",
+    "artifactDigest": "sha256:66c044ebb9897c5cde9d62f64091822248ac8f49fb76a257ec203e43e2d7230d",
+    "note": "Re-running this scan reproduces the verdict observed at the pinned artifact digest. It is a point-in-time observation, not a guarantee of future behavior."
+  },
+  "scanHistory": [
+    {
+      "observedAt": "2026-09-21T12:42:26.000Z",
+      "pageDigest": "sha256:100e2629fd3fcd19c8db35e2aa35208feb08a1f17575fd8cea38cb03cd753730",
+      "artifactDigest": "sha256:66c044ebb9897c5cde9d62f64091822248ac8f49fb76a257ec203e43e2d7230d"
+    }
+  ],
+  "preparation": {
+    "schema": "calllint.trust-preparation.v0",
+    "artifact": {
+      "schema": "calllint.artifact.v1",
+      "sourceType": "mcp-config",
+      "source": "official-mcp-registry:ai.datavidence/datavidence-financials",
+      "requestedRef": null,
+      "resolvedRef": "sha256:66c044ebb9897c5cde9d62f64091822248ac8f49fb76a257ec203e43e2d7230d",
+      "digest": "sha256:66c044ebb9897c5cde9d62f64091822248ac8f49fb76a257ec203e43e2d7230d",
+      "resolvedAt": "2026-09-21T12:42:26.000Z",
+      "resolution": "resolved"
+    },
+    "evidence": null,
+    "authority": {
+      "schema": "calllint.authority.v0",
+      "subject": {
+        "artifactDigest": "sha256:66c044ebb9897c5cde9d62f64091822248ac8f49fb76a257ec203e43e2d7230d"
+      },
+      "capabilities": [
+        {
+          "action": "execute",
+          "resource": "process",
+          "scope": "uvx",
+          "destination": null,
+          "mutability": "mutating",
+          "reversibility": "irreversible",
+          "monetaryLimit": null,
+          "approvalRequirement": "none",
+          "evidenceSource": "server.command",
+          "confidence": "high",
+          "completeness": "complete",
+          "trustSource": "trusted.local_project"
+        }
+      ],
+      "limits": {
+        "spendPerCall": null,
+        "spendTotal": null
+      },
+      "approval": {
+        "required": []
+      },
+      "unknowns": [],
+      "completeness": "complete",
+      "digest": "sha256:86511d1ef0003ab48792a8ec98753586b199682af8b7f20526d67e93c86b8e87"
+    },
+    "decision": null,
+    "plan": null,
+    "state": "AUTHORITY_NORMALIZED",
+    "notes": [
+      "no external evidence attached (optional); decision will rely on CallLint's own analysis",
+      "authority normalized: 1 capability"
+    ],
+    "preparedAt": "2026-09-21T12:42:26.000Z"
+  },
+  "scan": {
+    "schemaVersion": "calllint.report.v0",
+    "reportKind": "config-summary",
+    "configPath": "official-mcp-registry:ai.datavidence/datavidence-financials",
+    "verdict": "SAFE",
+    "publicVerdictLabel": "No blockers observed",
+    "counts": {
+      "SAFE": 1,
+      "REVIEW": 0,
+      "BLOCK": 0,
+      "UNKNOWN": 0
+    },
+    "reports": [
+      {
+        "schemaVersion": "calllint.report.v0",
+        "reportKind": "single-target",
+        "target": {
+          "name": "package",
+          "kind": "mcp-servers",
+          "source": "datavidence-financials",
+          "version": "0.1.2",
+          "configPath": "official-mcp-registry:ai.datavidence/datavidence-financials"
+        },
+        "verdict": "SAFE",
+        "publicVerdictLabel": "No blockers observed",
+        "policyApplied": false,
+        "riskClass": "S1",
+        "symbols": [],
+        "confidence": "high",
+        "reproducibility": {
+          "level": "HIGH",
+          "reasons": []
+        },
+        "summary": "\"package\" has no blockers observed (S1 Read-only utility).",
+        "observed": [],
+        "inferred": [],
+        "findings": [],
+        "topFindings": [],
+        "policy": {
+          "autonomousUse": "allow",
+          "manualApproval": "none",
+          "sandbox": "none"
+        },
+        "fingerprints": {
+          "configHash": "sha256:3bf28119fe4702ce187a40d6b835fb9b6f4791a19e57c0746a3f4f232262e660",
+          "targetSpecHash": "sha256:91c77fe82c22d41ab45ec8f4d752a47bfdb707d1200b8c36b6fde0c0cd86e6c4",
+          "riskSurfaceHash": "sha256:69aae84c996fe93d537b08d906cb339866bd43f10876be403a0f4793915bef33",
+          "packageSpecHash": "sha256:c1e1da5494e217b1a78f0f85357e1bf4efe172ba1b6791ee259a12cebb858341"
+        },
+        "diagnostics": [],
+        "generatedAt": "2026-09-21T12:42:26.000Z"
+      }
+    ],
+    "diagnostics": [],
+    "generatedAt": "2026-09-21T12:42:26.000Z"
+  }
+}

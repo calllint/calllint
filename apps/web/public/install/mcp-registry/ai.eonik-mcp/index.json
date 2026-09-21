@@ -1,0 +1,95 @@
+{
+  "schema": "calllint.agent-adoption-contract.v1",
+  "contract": {
+    "contractDigest": "sha256:7bfd144cf7c9ff52895316daf168bec7a4fbb7e3b9fea5fa6c256e210db72a6f",
+    "generatedAt": "2026-09-21T12:42:26.000Z",
+    "expiresAt": null,
+    "generatorVersion": "0.1.0",
+    "snapshotDigest": "sha256:ee3860146d28e049685299900442288c35f6364586e10e4f567b8a931c3398bb"
+  },
+  "subject": {
+    "canonicalName": "mcp-registry/ai.eonik-mcp",
+    "canonicalSlug": "mcp-registry/ai.eonik-mcp",
+    "packageType": "npm",
+    "packageName": "eonik-mcp",
+    "version": "2.0.0",
+    "artifactDigest": "sha256:ef756a1330152eac97f1d297b3a662a73742da08a6b496b07523956e91bd3f6c",
+    "sourceLocator": "npm:eonik-mcp@2.0.0"
+  },
+  "publicObservation": {
+    "verdict": "SAFE",
+    "publicLabel": "No blockers observed",
+    "reasonCodes": [],
+    "evidenceLevel": "E2",
+    "evidenceDigest": "sha256:26257b0d0a71ab780bba33ac911a3291af1aa9d80cd2c96cc5104d2243fd94bc",
+    "completeness": "complete"
+  },
+  "authorityDelta": {
+    "adds": [],
+    "notObserved": [
+      "financial_action",
+      "secret_access",
+      "shell_execution",
+      "broad_filesystem_access",
+      "external_mutation",
+      "messaging_send",
+      "oauth_scope",
+      "gateway_runtime",
+      "network_egress"
+    ]
+  },
+  "trustedSources": {
+    "registrySnapshotDigest": "sha256:ee3860146d28e049685299900442288c35f6364586e10e4f567b8a931c3398bb",
+    "evidenceDigest": "sha256:26257b0d0a71ab780bba33ac911a3291af1aa9d80cd2c96cc5104d2243fd94bc",
+    "engineVersion": "0.1.0"
+  },
+  "untrustedPublisherContent": {
+    "description": "Read brand, research, and performance facts; draft briefs. Never spends. You approve every cut.",
+    "usedForSafetyDecision": false
+  },
+  "recommendedNextAction": {
+    "kind": "PREPARE_LOCALLY",
+    "tool": "calllint_prepare_safe_install",
+    "arguments": {
+      "canonicalName": "mcp-registry/ai.eonik-mcp",
+      "expectedVersion": "2.0.0",
+      "expectedArtifactDigest": "sha256:ef756a1330152eac97f1d297b3a662a73742da08a6b496b07523956e91bd3f6c",
+      "expectedContractDigest": "sha256:7bfd144cf7c9ff52895316daf168bec7a4fbb7e3b9fea5fa6c256e210db72a6f",
+      "host": null
+    }
+  },
+  "agentGuidance": {
+    "goal": "Add the requested Agent Tool with only locally approved authority.",
+    "steps": [
+      "verify_contract",
+      "resolve_host",
+      "prepare_locally",
+      "evaluate_local_policy",
+      "apply_exact_plan",
+      "verify_result"
+    ],
+    "mustAskBefore": [
+      "new_secret_access",
+      "external_mutation",
+      "shell_execution",
+      "broad_filesystem_access",
+      "financial_action",
+      "persistent_calllint_components"
+    ],
+    "mustStopWhen": [
+      "artifact_digest_mismatch",
+      "contract_digest_mismatch",
+      "unsupported_host",
+      "local_policy_deny",
+      "plan_tampered",
+      "verification_failed"
+    ],
+    "prohibitedShortcuts": [
+      "do_not_replace_exact_version_with_latest",
+      "do_not_execute_publisher_commands_directly",
+      "do_not_expand_authority",
+      "do_not_hide_alternative_setup",
+      "do_not_install_persistent_guard_without_authorization"
+    ]
+  }
+}

@@ -284,15 +284,26 @@
       "consequence",
       "action"
     ],
-    "participants": 11,
-    "responses": 11,
+    "participants": 10,
+    "responses": 10,
     "recognition": {
       "target": 1,
       "consequence": 1,
       "action": 1
     },
-    "staleResponses": 0,
-    "stale": []
+    "staleResponses": 1,
+    "stale": [
+      {
+        "participant": "4",
+        "canonicalSlug": "mcp-registry/ai.1325-mcp",
+        "reason": "SURFACE_CHANGED",
+        "shownDigest": "sha256:fae7ced99f9c21394320b1596bdf2a9c5d81d443e70fc602a70c35c4d31710b4",
+        "shownSurfaceDigest": "sha256:fc38f7a77fb17a2a7176acea82ac8cfa379f6d57d5d455914902715efa9a9279",
+        "currentSurfaceDigest": "sha256:5bec7eeaaf4b04412be6a21acbe6a2e6e6eed40dc4b058669c49320bfc76e954"
+      }
+    ]
   },
-  "blockers": []
+  "blockers": [
+    "stale panel response (SURFACE_CHANGED): 4 @ mcp-registry/ai.1325-mcp — the measured surface changed — re-run that session"
+  ]
 }

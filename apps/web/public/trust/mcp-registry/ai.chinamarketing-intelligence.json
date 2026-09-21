@@ -2,18 +2,18 @@
   "schema": "calllint.trust-page.v0",
   "canonicalName": "mcp-registry/ai.chinamarketing-intelligence",
   "artifactDigest": "sha256:ebc16f1410be3a3d5bfa286f94688a87cd13729abeae7182c8cd8716c4321f2e",
-  "pageDigest": "sha256:ebf767e9098de3ad33eb7b2d3dbb0ef1f54645e49d5e7471cf779be67bb44476",
+  "pageDigest": "sha256:0e94b0efd611d61cf2bc9e83a01ffd4912a257ec5e4b92a2e6670a3b4850c828",
   "verdict": "REVIEW",
   "verdictLabel": "Review required",
-  "observedAt": "2026-09-15T06:37:10.000Z",
+  "observedAt": "2026-09-21T12:42:26.000Z",
   "completeness": "complete",
   "status": {
     "verdict": "REVIEW",
     "completeness": "complete",
     "authorityClaimed": false,
     "reproducibility": {
-      "pageDigest": "sha256:ebf767e9098de3ad33eb7b2d3dbb0ef1f54645e49d5e7471cf779be67bb44476",
-      "observedAt": "2026-09-15T06:37:10.000Z"
+      "pageDigest": "sha256:0e94b0efd611d61cf2bc9e83a01ffd4912a257ec5e4b92a2e6670a3b4850c828",
+      "observedAt": "2026-09-21T12:42:26.000Z"
     },
     "evidenceLevel": "E2",
     "evidenceRationale": "install config observed → static blast radius normalized into an authority inventory. Higher levels (E3 tool schema, E4 maintainer receipt, E5 sandbox) are not carried by a static page."
@@ -26,8 +26,8 @@
   },
   "scanHistory": [
     {
-      "observedAt": "2026-09-15T06:37:10.000Z",
-      "pageDigest": "sha256:ebf767e9098de3ad33eb7b2d3dbb0ef1f54645e49d5e7471cf779be67bb44476",
+      "observedAt": "2026-09-21T12:42:26.000Z",
+      "pageDigest": "sha256:0e94b0efd611d61cf2bc9e83a01ffd4912a257ec5e4b92a2e6670a3b4850c828",
       "artifactDigest": "sha256:ebc16f1410be3a3d5bfa286f94688a87cd13729abeae7182c8cd8716c4321f2e"
     }
   ],
@@ -40,7 +40,7 @@
       "requestedRef": null,
       "resolvedRef": "sha256:ebc16f1410be3a3d5bfa286f94688a87cd13729abeae7182c8cd8716c4321f2e",
       "digest": "sha256:ebc16f1410be3a3d5bfa286f94688a87cd13729abeae7182c8cd8716c4321f2e",
-      "resolvedAt": "2026-09-15T06:37:10.000Z",
+      "resolvedAt": "2026-09-21T12:42:26.000Z",
       "resolution": "resolved"
     },
     "evidence": null,
@@ -84,7 +84,7 @@
       "no external evidence attached (optional); decision will rely on CallLint's own analysis",
       "authority normalized: 1 capability, approvals required: external-network-access"
     ],
-    "preparedAt": "2026-09-15T06:37:10.000Z"
+    "preparedAt": "2026-09-21T12:42:26.000Z"
   },
   "scan": {
     "schemaVersion": "calllint.report.v0",
@@ -220,10 +220,10 @@
             "message": "Remote endpoint identity verified; tool surface not analyzed (evidence: https://api.chinamarketing.ai/mcp)"
           }
         ],
-        "generatedAt": "2026-09-15T06:37:10.000Z"
+        "generatedAt": "2026-09-21T12:42:26.000Z"
       }
     ],
     "diagnostics": [],
-    "generatedAt": "2026-09-15T06:37:10.000Z"
+    "generatedAt": "2026-09-21T12:42:26.000Z"
   }
 }

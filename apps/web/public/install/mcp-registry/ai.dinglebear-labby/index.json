@@ -1,27 +1,27 @@
 {
   "schema": "calllint.agent-adoption-contract.v1",
   "contract": {
-    "contractDigest": "sha256:1ef3572930b647ab83734e83032bf24f794faf0d1bcd7d160aaa5a7c33edb358",
-    "generatedAt": "2026-09-15T06:37:10.000Z",
+    "contractDigest": "sha256:79de1aa289ff6351c83ce96f7af3f4ae305b0f6da77b440ea6c13ab0911e9a47",
+    "generatedAt": "2026-09-21T12:42:26.000Z",
     "expiresAt": null,
     "generatorVersion": "0.1.0",
-    "snapshotDigest": "sha256:0d7685adae8d8f501d520c5eb42746baee8e6f798ab6965b17f8c4253cd8180d"
+    "snapshotDigest": "sha256:ee3860146d28e049685299900442288c35f6364586e10e4f567b8a931c3398bb"
   },
   "subject": {
     "canonicalName": "mcp-registry/ai.dinglebear-labby",
     "canonicalSlug": "mcp-registry/ai.dinglebear-labby",
     "packageType": "npm",
     "packageName": "@dinglebear/labby",
-    "version": "1.19.0",
-    "artifactDigest": "sha256:0a549ce10c9f8d71d151f9d0a3946658c82858b2f2a010d88ebed2eae1e3bb1c",
-    "sourceLocator": "npm:@dinglebear/labby@1.19.0"
+    "version": "1.20.1",
+    "artifactDigest": "sha256:c43b8b02f1248eae4e52cea7d455d2d9a5af18f4534f307d25bab843fca4a480",
+    "sourceLocator": "npm:@dinglebear/labby@1.20.1"
   },
   "publicObservation": {
     "verdict": "SAFE",
     "publicLabel": "No blockers observed",
     "reasonCodes": [],
     "evidenceLevel": "E2",
-    "evidenceDigest": "sha256:2579b184c2ed95daff8ca669622c89bd6f7d964fca3d01a0e356928b2253e33e",
+    "evidenceDigest": "sha256:26257b0d0a71ab780bba33ac911a3291af1aa9d80cd2c96cc5104d2243fd94bc",
     "completeness": "complete"
   },
   "authorityDelta": {
@@ -39,8 +39,8 @@
     ]
   },
   "trustedSources": {
-    "registrySnapshotDigest": "sha256:0d7685adae8d8f501d520c5eb42746baee8e6f798ab6965b17f8c4253cd8180d",
-    "evidenceDigest": "sha256:2579b184c2ed95daff8ca669622c89bd6f7d964fca3d01a0e356928b2253e33e",
+    "registrySnapshotDigest": "sha256:ee3860146d28e049685299900442288c35f6364586e10e4f567b8a931c3398bb",
+    "evidenceDigest": "sha256:26257b0d0a71ab780bba33ac911a3291af1aa9d80cd2c96cc5104d2243fd94bc",
     "engineVersion": "0.1.0"
   },
   "untrustedPublisherContent": {
@@ -52,9 +52,9 @@
     "tool": "calllint_prepare_safe_install",
     "arguments": {
       "canonicalName": "mcp-registry/ai.dinglebear-labby",
-      "expectedVersion": "1.19.0",
-      "expectedArtifactDigest": "sha256:0a549ce10c9f8d71d151f9d0a3946658c82858b2f2a010d88ebed2eae1e3bb1c",
-      "expectedContractDigest": "sha256:1ef3572930b647ab83734e83032bf24f794faf0d1bcd7d160aaa5a7c33edb358",
+      "expectedVersion": "1.20.1",
+      "expectedArtifactDigest": "sha256:c43b8b02f1248eae4e52cea7d455d2d9a5af18f4534f307d25bab843fca4a480",
+      "expectedContractDigest": "sha256:79de1aa289ff6351c83ce96f7af3f4ae305b0f6da77b440ea6c13ab0911e9a47",
       "host": null
     }
   },

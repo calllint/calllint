@@ -1,19 +1,19 @@
 {
   "schema": "calllint.trust-page.v0",
   "canonicalName": "mcp-registry/ai.autonomad-travel",
-  "artifactDigest": "sha256:1d39cd3d3878d3b7c9f32f6c71e77ee13cf02e059af98eff27fc13a925c7f02c",
-  "pageDigest": "sha256:27ab12efdc56811dbaa66348b11b99ebdc9cd96a82853b04383991b63f40a37d",
+  "artifactDigest": "sha256:248ed373db653be6e447db25f627af65525fc9045d36792d2d3eb1d71df85c94",
+  "pageDigest": "sha256:9a386ff9f964a3bdcc4dfe2d2ceadd24040e271a22510b6340c6c76540f43cd6",
   "verdict": "REVIEW",
   "verdictLabel": "Review required",
-  "observedAt": "2026-09-15T06:37:10.000Z",
+  "observedAt": "2026-09-21T12:42:26.000Z",
   "completeness": "complete",
   "status": {
     "verdict": "REVIEW",
     "completeness": "complete",
     "authorityClaimed": false,
     "reproducibility": {
-      "pageDigest": "sha256:27ab12efdc56811dbaa66348b11b99ebdc9cd96a82853b04383991b63f40a37d",
-      "observedAt": "2026-09-15T06:37:10.000Z"
+      "pageDigest": "sha256:9a386ff9f964a3bdcc4dfe2d2ceadd24040e271a22510b6340c6c76540f43cd6",
+      "observedAt": "2026-09-21T12:42:26.000Z"
     },
     "evidenceLevel": "E2",
     "evidenceRationale": "install config observed → static blast radius normalized into an authority inventory. Higher levels (E3 tool schema, E4 maintainer receipt, E5 sandbox) are not carried by a static page."
@@ -21,14 +21,14 @@
   "correctionUrl": "https://github.com/calllint/calllint/issues/new?labels=trust-page-correction",
   "reproduction": {
     "command": "npx calllint scan official-mcp-registry:ai.autonomad/travel",
-    "artifactDigest": "sha256:1d39cd3d3878d3b7c9f32f6c71e77ee13cf02e059af98eff27fc13a925c7f02c",
+    "artifactDigest": "sha256:248ed373db653be6e447db25f627af65525fc9045d36792d2d3eb1d71df85c94",
     "note": "Re-running this scan reproduces the verdict observed at the pinned artifact digest. It is a point-in-time observation, not a guarantee of future behavior."
   },
   "scanHistory": [
     {
-      "observedAt": "2026-09-15T06:37:10.000Z",
-      "pageDigest": "sha256:27ab12efdc56811dbaa66348b11b99ebdc9cd96a82853b04383991b63f40a37d",
-      "artifactDigest": "sha256:1d39cd3d3878d3b7c9f32f6c71e77ee13cf02e059af98eff27fc13a925c7f02c"
+      "observedAt": "2026-09-21T12:42:26.000Z",
+      "pageDigest": "sha256:9a386ff9f964a3bdcc4dfe2d2ceadd24040e271a22510b6340c6c76540f43cd6",
+      "artifactDigest": "sha256:248ed373db653be6e447db25f627af65525fc9045d36792d2d3eb1d71df85c94"
     }
   ],
   "preparation": {
@@ -38,16 +38,16 @@
       "sourceType": "mcp-config",
       "source": "official-mcp-registry:ai.autonomad/travel",
       "requestedRef": null,
-      "resolvedRef": "sha256:1d39cd3d3878d3b7c9f32f6c71e77ee13cf02e059af98eff27fc13a925c7f02c",
-      "digest": "sha256:1d39cd3d3878d3b7c9f32f6c71e77ee13cf02e059af98eff27fc13a925c7f02c",
-      "resolvedAt": "2026-09-15T06:37:10.000Z",
+      "resolvedRef": "sha256:248ed373db653be6e447db25f627af65525fc9045d36792d2d3eb1d71df85c94",
+      "digest": "sha256:248ed373db653be6e447db25f627af65525fc9045d36792d2d3eb1d71df85c94",
+      "resolvedAt": "2026-09-21T12:42:26.000Z",
       "resolution": "resolved"
     },
     "evidence": null,
     "authority": {
       "schema": "calllint.authority.v0",
       "subject": {
-        "artifactDigest": "sha256:1d39cd3d3878d3b7c9f32f6c71e77ee13cf02e059af98eff27fc13a925c7f02c"
+        "artifactDigest": "sha256:248ed373db653be6e447db25f627af65525fc9045d36792d2d3eb1d71df85c94"
       },
       "capabilities": [
         {
@@ -89,7 +89,7 @@
       },
       "unknowns": [],
       "completeness": "complete",
-      "digest": "sha256:66a476eef5b40349ddd2b7a391483152223b1aa100043c85380d10052008a995"
+      "digest": "sha256:0304f37b102de400de1a300b734ed59ac9182352619caf7aa2bd8774880a06d6"
     },
     "decision": null,
     "plan": null,
@@ -98,7 +98,7 @@
       "no external evidence attached (optional); decision will rely on CallLint's own analysis",
       "authority normalized: 2 capabilities, approvals required: external-network-access"
     ],
-    "preparedAt": "2026-09-15T06:37:10.000Z"
+    "preparedAt": "2026-09-21T12:42:26.000Z"
   },
   "scan": {
     "schemaVersion": "calllint.report.v0",
@@ -120,7 +120,7 @@
           "name": "package",
           "kind": "mcp-servers",
           "source": "autonomad-travel",
-          "version": "1.4.0",
+          "version": "1.4.4",
           "configPath": "official-mcp-registry:ai.autonomad/travel"
         },
         "verdict": "SAFE",
@@ -144,13 +144,13 @@
           "sandbox": "none"
         },
         "fingerprints": {
-          "configHash": "sha256:71a6f4106655a8be680e889282c9e588b5a41773883d44af06f2660d5301dac7",
-          "targetSpecHash": "sha256:dcaac9467c31235d205b42f03756ef5e88de45b9878e663cf23c814cf2cf3ce0",
+          "configHash": "sha256:abd22fe744107a4ab38df73ab758b6980654d228c3f8bccd471d451c0a05e581",
+          "targetSpecHash": "sha256:e9aef910ba6c3ee05ebf3deaaa438d2edbb8cff1252dfe84e3a51e2e34262947",
           "riskSurfaceHash": "sha256:69aae84c996fe93d537b08d906cb339866bd43f10876be403a0f4793915bef33",
-          "packageSpecHash": "sha256:9e8a9fcf85eede67ecc320d757430d67aa86b0a54270786ac01daebe7cd7a001"
+          "packageSpecHash": "sha256:899eec3b369b984e6b9c85aa7bff3914959dee68a9c1eccb1ccc6c93535a9588"
         },
         "diagnostics": [],
-        "generatedAt": "2026-09-15T06:37:10.000Z"
+        "generatedAt": "2026-09-21T12:42:26.000Z"
       },
       {
         "schemaVersion": "calllint.report.v0",
@@ -273,10 +273,10 @@
             "message": "Remote endpoint identity verified; tool surface not analyzed (evidence: https://mcp.autonomad.ai/mcp)"
           }
         ],
-        "generatedAt": "2026-09-15T06:37:10.000Z"
+        "generatedAt": "2026-09-21T12:42:26.000Z"
       }
     ],
     "diagnostics": [],
-    "generatedAt": "2026-09-15T06:37:10.000Z"
+    "generatedAt": "2026-09-21T12:42:26.000Z"
   }
 }

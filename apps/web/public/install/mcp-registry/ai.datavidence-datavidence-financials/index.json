@@ -1,0 +1,95 @@
+{
+  "schema": "calllint.agent-adoption-contract.v1",
+  "contract": {
+    "contractDigest": "sha256:a7601402a91c79641bed234eec3e051435f32b7d3daa216718e4f3955a53f2ff",
+    "generatedAt": "2026-09-21T12:42:26.000Z",
+    "expiresAt": null,
+    "generatorVersion": "0.1.0",
+    "snapshotDigest": "sha256:ee3860146d28e049685299900442288c35f6364586e10e4f567b8a931c3398bb"
+  },
+  "subject": {
+    "canonicalName": "mcp-registry/ai.datavidence-datavidence-financials",
+    "canonicalSlug": "mcp-registry/ai.datavidence-datavidence-financials",
+    "packageType": "pypi",
+    "packageName": "datavidence-financials",
+    "version": "0.1.2",
+    "artifactDigest": "sha256:66c044ebb9897c5cde9d62f64091822248ac8f49fb76a257ec203e43e2d7230d",
+    "sourceLocator": "pypi:datavidence-financials@0.1.2"
+  },
+  "publicObservation": {
+    "verdict": "SAFE",
+    "publicLabel": "No blockers observed",
+    "reasonCodes": [],
+    "evidenceLevel": "E2",
+    "evidenceDigest": "sha256:26257b0d0a71ab780bba33ac911a3291af1aa9d80cd2c96cc5104d2243fd94bc",
+    "completeness": "complete"
+  },
+  "authorityDelta": {
+    "adds": [],
+    "notObserved": [
+      "financial_action",
+      "secret_access",
+      "shell_execution",
+      "broad_filesystem_access",
+      "external_mutation",
+      "messaging_send",
+      "oauth_scope",
+      "gateway_runtime",
+      "network_egress"
+    ]
+  },
+  "trustedSources": {
+    "registrySnapshotDigest": "sha256:ee3860146d28e049685299900442288c35f6364586e10e4f567b8a931c3398bb",
+    "evidenceDigest": "sha256:26257b0d0a71ab780bba33ac911a3291af1aa9d80cd2c96cc5104d2243fd94bc",
+    "engineVersion": "0.1.0"
+  },
+  "untrustedPublisherContent": {
+    "description": "Normalized US-GAAP financial statements & fundamentals from SEC EDGAR, as MCP tools for LLM agents.",
+    "usedForSafetyDecision": false
+  },
+  "recommendedNextAction": {
+    "kind": "PREPARE_LOCALLY",
+    "tool": "calllint_prepare_safe_install",
+    "arguments": {
+      "canonicalName": "mcp-registry/ai.datavidence-datavidence-financials",
+      "expectedVersion": "0.1.2",
+      "expectedArtifactDigest": "sha256:66c044ebb9897c5cde9d62f64091822248ac8f49fb76a257ec203e43e2d7230d",
+      "expectedContractDigest": "sha256:a7601402a91c79641bed234eec3e051435f32b7d3daa216718e4f3955a53f2ff",
+      "host": null
+    }
+  },
+  "agentGuidance": {
+    "goal": "Add the requested Agent Tool with only locally approved authority.",
+    "steps": [
+      "verify_contract",
+      "resolve_host",
+      "prepare_locally",
+      "evaluate_local_policy",
+      "apply_exact_plan",
+      "verify_result"
+    ],
+    "mustAskBefore": [
+      "new_secret_access",
+      "external_mutation",
+      "shell_execution",
+      "broad_filesystem_access",
+      "financial_action",
+      "persistent_calllint_components"
+    ],
+    "mustStopWhen": [
+      "artifact_digest_mismatch",
+      "contract_digest_mismatch",
+      "unsupported_host",
+      "local_policy_deny",
+      "plan_tampered",
+      "verification_failed"
+    ],
+    "prohibitedShortcuts": [
+      "do_not_replace_exact_version_with_latest",
+      "do_not_execute_publisher_commands_directly",
+      "do_not_expand_authority",
+      "do_not_hide_alternative_setup",
+      "do_not_install_persistent_guard_without_authorization"
+    ]
+  }
+}
