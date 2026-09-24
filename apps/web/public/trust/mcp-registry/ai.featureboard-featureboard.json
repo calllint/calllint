@@ -1,0 +1,218 @@
+{
+  "schema": "calllint.trust-page.v0",
+  "canonicalName": "mcp-registry/ai.featureboard-featureboard",
+  "artifactDigest": "sha256:3f9cb2adba81a14be1306567fe988d41e68a3e4c8750daf0b7e5ce712e5e9f82",
+  "pageDigest": "sha256:501ebbd6a38868f96bba6cd07cad661baf9e14ba60d7312ca5ec80c1b0dbd857",
+  "verdict": "REVIEW",
+  "verdictLabel": "Review required",
+  "observedAt": "2026-09-21T12:42:26.000Z",
+  "completeness": "complete",
+  "status": {
+    "verdict": "REVIEW",
+    "completeness": "complete",
+    "authorityClaimed": false,
+    "reproducibility": {
+      "pageDigest": "sha256:501ebbd6a38868f96bba6cd07cad661baf9e14ba60d7312ca5ec80c1b0dbd857",
+      "observedAt": "2026-09-21T12:42:26.000Z"
+    },
+    "evidenceLevel": "E2",
+    "evidenceRationale": "install config observed → static blast radius normalized into an authority inventory. Higher levels (E3 tool schema, E4 maintainer receipt, E5 sandbox) are not carried by a static page."
+  },
+  "correctionUrl": "https://github.com/calllint/calllint/issues/new?labels=trust-page-correction",
+  "reproduction": {
+    "command": "npx calllint scan official-mcp-registry:ai.featureboard/featureboard",
+    "artifactDigest": "sha256:3f9cb2adba81a14be1306567fe988d41e68a3e4c8750daf0b7e5ce712e5e9f82",
+    "note": "Re-running this scan reproduces the verdict observed at the pinned artifact digest. It is a point-in-time observation, not a guarantee of future behavior."
+  },
+  "scanHistory": [
+    {
+      "observedAt": "2026-09-21T12:42:26.000Z",
+      "pageDigest": "sha256:501ebbd6a38868f96bba6cd07cad661baf9e14ba60d7312ca5ec80c1b0dbd857",
+      "artifactDigest": "sha256:3f9cb2adba81a14be1306567fe988d41e68a3e4c8750daf0b7e5ce712e5e9f82"
+    }
+  ],
+  "preparation": {
+    "schema": "calllint.trust-preparation.v0",
+    "artifact": {
+      "schema": "calllint.artifact.v1",
+      "sourceType": "mcp-config",
+      "source": "official-mcp-registry:ai.featureboard/featureboard",
+      "requestedRef": null,
+      "resolvedRef": "sha256:3f9cb2adba81a14be1306567fe988d41e68a3e4c8750daf0b7e5ce712e5e9f82",
+      "digest": "sha256:3f9cb2adba81a14be1306567fe988d41e68a3e4c8750daf0b7e5ce712e5e9f82",
+      "resolvedAt": "2026-09-21T12:42:26.000Z",
+      "resolution": "resolved"
+    },
+    "evidence": null,
+    "authority": {
+      "schema": "calllint.authority.v0",
+      "subject": {
+        "artifactDigest": "sha256:3f9cb2adba81a14be1306567fe988d41e68a3e4c8750daf0b7e5ce712e5e9f82"
+      },
+      "capabilities": [
+        {
+          "action": "execute",
+          "resource": "process",
+          "scope": "https://github.com/valentil/featureboard-mcp/releases/download/v0.7/featureboard.plugin",
+          "destination": null,
+          "mutability": "mutating",
+          "reversibility": "irreversible",
+          "monetaryLimit": null,
+          "approvalRequirement": "none",
+          "evidenceSource": "server.command",
+          "confidence": "high",
+          "completeness": "complete",
+          "trustSource": "trusted.local_project"
+        }
+      ],
+      "limits": {
+        "spendPerCall": null,
+        "spendTotal": null
+      },
+      "approval": {
+        "required": []
+      },
+      "unknowns": [],
+      "completeness": "complete",
+      "digest": "sha256:b5effaa09abb72e38fd8672d34c2c022d11cd1ef74345e878f82175645a5ca8a"
+    },
+    "decision": null,
+    "plan": null,
+    "state": "AUTHORITY_NORMALIZED",
+    "notes": [
+      "no external evidence attached (optional); decision will rely on CallLint's own analysis",
+      "authority normalized: 1 capability"
+    ],
+    "preparedAt": "2026-09-21T12:42:26.000Z"
+  },
+  "scan": {
+    "schemaVersion": "calllint.report.v0",
+    "reportKind": "config-summary",
+    "configPath": "official-mcp-registry:ai.featureboard/featureboard",
+    "verdict": "REVIEW",
+    "publicVerdictLabel": "Review required",
+    "counts": {
+      "SAFE": 0,
+      "REVIEW": 1,
+      "BLOCK": 0,
+      "UNKNOWN": 0
+    },
+    "reports": [
+      {
+        "schemaVersion": "calllint.report.v0",
+        "reportKind": "single-target",
+        "target": {
+          "name": "package",
+          "kind": "mcp-servers",
+          "configPath": "official-mcp-registry:ai.featureboard/featureboard"
+        },
+        "verdict": "REVIEW",
+        "publicVerdictLabel": "Review required",
+        "policyApplied": false,
+        "riskClass": "S2",
+        "symbols": [
+          "EXEC"
+        ],
+        "confidence": "medium",
+        "reproducibility": {
+          "level": "HIGH",
+          "reasons": []
+        },
+        "summary": "\"package\" needs review. Risk: Exec (S2 Sensitive read).",
+        "observed": [
+          {
+            "id": "exec.unverified-local-source",
+            "title": "Runs an unverified local executable",
+            "severity": "medium",
+            "blocker": false,
+            "symbol": "EXEC",
+            "riskClass": "S2",
+            "mode": "OBSERVED",
+            "confidence": "medium",
+            "detectionMethod": "runtime-binding",
+            "evidence": [
+              {
+                "type": "runtime-binding",
+                "path": "official-mcp-registry:ai.featureboard/featureboard",
+                "key": "command",
+                "value": "https://github.com/valentil/featureboard-mcp/releases/download/v0.7/featureboard.plugin",
+                "line": 4,
+                "column": 7
+              }
+            ],
+            "impact": "The runtime executes a local script or binary whose contents CallLint never inspects. It is not a recognized package or pinned image, so what actually runs cannot be verified from the config alone.",
+            "fix": "Confirm you trust the local source, or run it from a pinned, recognized package (e.g. npx pkg@1.2.3 / a pinned docker image) so the runtime is independently verifiable.",
+            "falsePositiveNote": "A developer running their own local server (e.g. node ./dist/server.js) is normal; this flags that the source is not independently verifiable, not that it is malicious."
+          }
+        ],
+        "inferred": [],
+        "findings": [
+          {
+            "id": "exec.unverified-local-source",
+            "title": "Runs an unverified local executable",
+            "severity": "medium",
+            "blocker": false,
+            "symbol": "EXEC",
+            "riskClass": "S2",
+            "mode": "OBSERVED",
+            "confidence": "medium",
+            "detectionMethod": "runtime-binding",
+            "evidence": [
+              {
+                "type": "runtime-binding",
+                "path": "official-mcp-registry:ai.featureboard/featureboard",
+                "key": "command",
+                "value": "https://github.com/valentil/featureboard-mcp/releases/download/v0.7/featureboard.plugin",
+                "line": 4,
+                "column": 7
+              }
+            ],
+            "impact": "The runtime executes a local script or binary whose contents CallLint never inspects. It is not a recognized package or pinned image, so what actually runs cannot be verified from the config alone.",
+            "fix": "Confirm you trust the local source, or run it from a pinned, recognized package (e.g. npx pkg@1.2.3 / a pinned docker image) so the runtime is independently verifiable.",
+            "falsePositiveNote": "A developer running their own local server (e.g. node ./dist/server.js) is normal; this flags that the source is not independently verifiable, not that it is malicious."
+          }
+        ],
+        "topFindings": [
+          {
+            "id": "exec.unverified-local-source",
+            "title": "Runs an unverified local executable",
+            "severity": "medium",
+            "blocker": false,
+            "symbol": "EXEC",
+            "riskClass": "S2",
+            "mode": "OBSERVED",
+            "confidence": "medium",
+            "detectionMethod": "runtime-binding",
+            "evidence": [
+              {
+                "type": "runtime-binding",
+                "path": "official-mcp-registry:ai.featureboard/featureboard",
+                "key": "command",
+                "value": "https://github.com/valentil/featureboard-mcp/releases/download/v0.7/featureboard.plugin",
+                "line": 4,
+                "column": 7
+              }
+            ],
+            "impact": "The runtime executes a local script or binary whose contents CallLint never inspects. It is not a recognized package or pinned image, so what actually runs cannot be verified from the config alone.",
+            "fix": "Confirm you trust the local source, or run it from a pinned, recognized package (e.g. npx pkg@1.2.3 / a pinned docker image) so the runtime is independently verifiable.",
+            "falsePositiveNote": "A developer running their own local server (e.g. node ./dist/server.js) is normal; this flags that the source is not independently verifiable, not that it is malicious."
+          }
+        ],
+        "policy": {
+          "autonomousUse": "warn",
+          "manualApproval": "recommended",
+          "sandbox": "recommended"
+        },
+        "fingerprints": {
+          "configHash": "sha256:87c56dfe52d8c594fd33905c6c30f7cd5cae88c8bd4076fc54b4f71c26d9f6d1",
+          "targetSpecHash": "sha256:1c38761004d857a2c3a0d9ccc0f4f6df0eb8331c42c712941bdd21397833beef",
+          "riskSurfaceHash": "sha256:89f49ea59b9805b51aab933fe7e81db3ff7eb3a3cb14bd71ca056ce387ce0ada"
+        },
+        "diagnostics": [],
+        "generatedAt": "2026-09-21T12:42:26.000Z"
+      }
+    ],
+    "diagnostics": [],
+    "generatedAt": "2026-09-21T12:42:26.000Z"
+  }
+}

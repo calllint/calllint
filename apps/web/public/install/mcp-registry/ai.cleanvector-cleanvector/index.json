@@ -1,18 +1,18 @@
 {
   "schema": "calllint.agent-adoption-contract.v1",
   "contract": {
-    "contractDigest": "sha256:813010a9e4cce2ffb1c2d2a3e17eec54d94cf96e547678d38c2b3f2117ae1c74",
-    "generatedAt": "2026-09-15T06:37:10.000Z",
+    "contractDigest": "sha256:100c6d33409258d1d98c13903aa59acd35f4f288431a69750b5d7dd621749af0",
+    "generatedAt": "2026-09-21T12:42:26.000Z",
     "expiresAt": null,
     "generatorVersion": "0.1.0",
-    "snapshotDigest": "sha256:0d7685adae8d8f501d520c5eb42746baee8e6f798ab6965b17f8c4253cd8180d"
+    "snapshotDigest": "sha256:ee3860146d28e049685299900442288c35f6364586e10e4f567b8a931c3398bb"
   },
   "subject": {
     "canonicalName": "mcp-registry/ai.cleanvector-cleanvector",
     "canonicalSlug": "mcp-registry/ai.cleanvector-cleanvector",
     "packageType": null,
     "packageName": null,
-    "version": "1.0.0",
+    "version": "1.0.1",
     "artifactDigest": "sha256:d4fe903621a7d9533aad92dbc9f557607be7e5d76e632d4c623fc5033aa950f8",
     "sourceLocator": "https://cleanvector.ai/api/mcp"
   },
@@ -23,7 +23,7 @@
       "UNKNOWN_REMOTE"
     ],
     "evidenceLevel": "E2",
-    "evidenceDigest": "sha256:2579b184c2ed95daff8ca669622c89bd6f7d964fca3d01a0e356928b2253e33e",
+    "evidenceDigest": "sha256:26257b0d0a71ab780bba33ac911a3291af1aa9d80cd2c96cc5104d2243fd94bc",
     "completeness": "complete"
   },
   "authorityDelta": {
@@ -44,12 +44,12 @@
     ]
   },
   "trustedSources": {
-    "registrySnapshotDigest": "sha256:0d7685adae8d8f501d520c5eb42746baee8e6f798ab6965b17f8c4253cd8180d",
-    "evidenceDigest": "sha256:2579b184c2ed95daff8ca669622c89bd6f7d964fca3d01a0e356928b2253e33e",
+    "registrySnapshotDigest": "sha256:ee3860146d28e049685299900442288c35f6364586e10e4f567b8a931c3398bb",
+    "evidenceDigest": "sha256:26257b0d0a71ab780bba33ac911a3291af1aa9d80cd2c96cc5104d2243fd94bc",
     "engineVersion": "0.1.0"
   },
   "untrustedPublisherContent": {
-    "description": "Generate vector art, vectorize images, and return SVG, PNG, and logo kits to AI agents.",
+    "description": "Create professional SVG artwork, icons and vector logos from a prompt, or vectorize any image.",
     "usedForSafetyDecision": false
   },
   "recommendedNextAction": {
@@ -57,9 +57,9 @@
     "tool": "calllint_prepare_safe_install",
     "arguments": {
       "canonicalName": "mcp-registry/ai.cleanvector-cleanvector",
-      "expectedVersion": "1.0.0",
+      "expectedVersion": "1.0.1",
       "expectedArtifactDigest": "sha256:d4fe903621a7d9533aad92dbc9f557607be7e5d76e632d4c623fc5033aa950f8",
-      "expectedContractDigest": "sha256:813010a9e4cce2ffb1c2d2a3e17eec54d94cf96e547678d38c2b3f2117ae1c74",
+      "expectedContractDigest": "sha256:100c6d33409258d1d98c13903aa59acd35f4f288431a69750b5d7dd621749af0",
       "host": null
     }
   },

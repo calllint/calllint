@@ -1,18 +1,18 @@
 {
   "schema": "calllint.agent-adoption-contract.v1",
   "contract": {
-    "contractDigest": "sha256:9ac223d9fb7c07147e267f49ae70f67b2b551f3268afae10532d91c5026470a3",
-    "generatedAt": "2026-09-15T06:37:10.000Z",
+    "contractDigest": "sha256:d1f96e232f847fb7ad518a252343559028ebfcc0ab40e56e2f88c1f735e261fb",
+    "generatedAt": "2026-09-21T12:42:26.000Z",
     "expiresAt": null,
     "generatorVersion": "0.1.0",
-    "snapshotDigest": "sha256:0d7685adae8d8f501d520c5eb42746baee8e6f798ab6965b17f8c4253cd8180d"
+    "snapshotDigest": "sha256:ee3860146d28e049685299900442288c35f6364586e10e4f567b8a931c3398bb"
   },
   "subject": {
     "canonicalName": "mcp-registry/ai.balancos-mcp",
     "canonicalSlug": "mcp-registry/ai.balancos-mcp",
     "packageType": null,
     "packageName": null,
-    "version": "0.1.0",
+    "version": "0.5.0",
     "artifactDigest": "sha256:c0c10e32f04e06d7439d512a271779641ea4b37486fa576421b3f80bcd3e6e49",
     "sourceLocator": "https://mcp.balancos.ai/mcp"
   },
@@ -23,7 +23,7 @@
       "UNKNOWN_REMOTE"
     ],
     "evidenceLevel": "E2",
-    "evidenceDigest": "sha256:2579b184c2ed95daff8ca669622c89bd6f7d964fca3d01a0e356928b2253e33e",
+    "evidenceDigest": "sha256:26257b0d0a71ab780bba33ac911a3291af1aa9d80cd2c96cc5104d2243fd94bc",
     "completeness": "complete"
   },
   "authorityDelta": {
@@ -44,12 +44,12 @@
     ]
   },
   "trustedSources": {
-    "registrySnapshotDigest": "sha256:0d7685adae8d8f501d520c5eb42746baee8e6f798ab6965b17f8c4253cd8180d",
-    "evidenceDigest": "sha256:2579b184c2ed95daff8ca669622c89bd6f7d964fca3d01a0e356928b2253e33e",
+    "registrySnapshotDigest": "sha256:ee3860146d28e049685299900442288c35f6364586e10e4f567b8a931c3398bb",
+    "evidenceDigest": "sha256:26257b0d0a71ab780bba33ac911a3291af1aa9d80cd2c96cc5104d2243fd94bc",
     "engineVersion": "0.1.0"
   },
   "untrustedPublisherContent": {
-    "description": "Balanços e DRE de empresas brasileiras por CNPJ. Brazilian company financial statements.",
+    "description": "Balanços, DREs, DFPs e ITRs da CVM e IF.data do BCB. Brazilian companies' financial statements.",
     "usedForSafetyDecision": false
   },
   "recommendedNextAction": {
@@ -57,9 +57,9 @@
     "tool": "calllint_prepare_safe_install",
     "arguments": {
       "canonicalName": "mcp-registry/ai.balancos-mcp",
-      "expectedVersion": "0.1.0",
+      "expectedVersion": "0.5.0",
       "expectedArtifactDigest": "sha256:c0c10e32f04e06d7439d512a271779641ea4b37486fa576421b3f80bcd3e6e49",
-      "expectedContractDigest": "sha256:9ac223d9fb7c07147e267f49ae70f67b2b551f3268afae10532d91c5026470a3",
+      "expectedContractDigest": "sha256:d1f96e232f847fb7ad518a252343559028ebfcc0ab40e56e2f88c1f735e261fb",
       "host": null
     }
   },

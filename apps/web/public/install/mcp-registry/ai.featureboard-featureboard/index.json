@@ -1,0 +1,100 @@
+{
+  "schema": "calllint.agent-adoption-contract.v1",
+  "contract": {
+    "contractDigest": "sha256:f983fbca836d6c82424000007c7016e5bbe72f9e8f8810e6d34622521d7681e2",
+    "generatedAt": "2026-09-21T12:42:26.000Z",
+    "expiresAt": null,
+    "generatorVersion": "0.1.0",
+    "snapshotDigest": "sha256:ee3860146d28e049685299900442288c35f6364586e10e4f567b8a931c3398bb"
+  },
+  "subject": {
+    "canonicalName": "mcp-registry/ai.featureboard-featureboard",
+    "canonicalSlug": "mcp-registry/ai.featureboard-featureboard",
+    "packageType": "mcpb",
+    "packageName": "https://github.com/valentil/featureboard-mcp/releases/download/v0.7/featureboard.plugin",
+    "version": "0.7.0",
+    "artifactDigest": "sha256:3f9cb2adba81a14be1306567fe988d41e68a3e4c8750daf0b7e5ce712e5e9f82",
+    "sourceLocator": "mcpb:https://github.com/valentil/featureboard-mcp/releases/download/v0.7/featureboard.plugin"
+  },
+  "publicObservation": {
+    "verdict": "REVIEW",
+    "publicLabel": "Review required",
+    "reasonCodes": [
+      "SHELL_OR_DOCKER_EXECUTION"
+    ],
+    "evidenceLevel": "E2",
+    "evidenceDigest": "sha256:26257b0d0a71ab780bba33ac911a3291af1aa9d80cd2c96cc5104d2243fd94bc",
+    "completeness": "complete"
+  },
+  "authorityDelta": {
+    "adds": [
+      {
+        "authority": "shell_execution"
+      }
+    ],
+    "notObserved": [
+      "financial_action",
+      "secret_access",
+      "broad_filesystem_access",
+      "external_mutation",
+      "messaging_send",
+      "oauth_scope",
+      "gateway_runtime",
+      "network_egress"
+    ]
+  },
+  "trustedSources": {
+    "registrySnapshotDigest": "sha256:ee3860146d28e049685299900442288c35f6364586e10e4f567b8a931c3398bb",
+    "evidenceDigest": "sha256:26257b0d0a71ab780bba33ac911a3291af1aa9d80cd2c96cc5104d2243fd94bc",
+    "engineVersion": "0.1.0"
+  },
+  "untrustedPublisherContent": {
+    "description": "Local-first project board MCP: an AI agent plans, works, verifies, and ships tickets from markdown.",
+    "usedForSafetyDecision": false
+  },
+  "recommendedNextAction": {
+    "kind": "PREPARE_LOCALLY",
+    "tool": "calllint_prepare_safe_install",
+    "arguments": {
+      "canonicalName": "mcp-registry/ai.featureboard-featureboard",
+      "expectedVersion": "0.7.0",
+      "expectedArtifactDigest": "sha256:3f9cb2adba81a14be1306567fe988d41e68a3e4c8750daf0b7e5ce712e5e9f82",
+      "expectedContractDigest": "sha256:f983fbca836d6c82424000007c7016e5bbe72f9e8f8810e6d34622521d7681e2",
+      "host": null
+    }
+  },
+  "agentGuidance": {
+    "goal": "Add the requested Agent Tool with only locally approved authority.",
+    "steps": [
+      "verify_contract",
+      "resolve_host",
+      "prepare_locally",
+      "evaluate_local_policy",
+      "apply_exact_plan",
+      "verify_result"
+    ],
+    "mustAskBefore": [
+      "new_secret_access",
+      "external_mutation",
+      "shell_execution",
+      "broad_filesystem_access",
+      "financial_action",
+      "persistent_calllint_components"
+    ],
+    "mustStopWhen": [
+      "artifact_digest_mismatch",
+      "contract_digest_mismatch",
+      "unsupported_host",
+      "local_policy_deny",
+      "plan_tampered",
+      "verification_failed"
+    ],
+    "prohibitedShortcuts": [
+      "do_not_replace_exact_version_with_latest",
+      "do_not_execute_publisher_commands_directly",
+      "do_not_expand_authority",
+      "do_not_hide_alternative_setup",
+      "do_not_install_persistent_guard_without_authorization"
+    ]
+  }
+}

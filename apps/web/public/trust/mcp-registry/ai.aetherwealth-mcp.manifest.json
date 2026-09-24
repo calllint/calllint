@@ -2,7 +2,7 @@
   "schema": "calllint.evidence-manifest.v1",
   "subject": {
     "canonicalName": "mcp-registry/ai.aetherwealth-mcp",
-    "artifactDigest": "sha256:cad2d2a71acb2855513d3ae5c4f6784ba02f9be456a8379e0bf01d051f43c025"
+    "artifactDigest": "sha256:3e021e42e79cc36595d2aa51695cdc18d76e3849336eb980e2afbb635abf02aa"
   },
   "verdict": "SAFE",
   "verdictLabel": "No blockers observed",
@@ -14,13 +14,13 @@
     "completeness": "complete",
     "authorityClaimed": false,
     "reproducibility": {
-      "pageDigest": "sha256:669f332a4d2de231f3b5545dc4d0f132bc6028f4707c98acb373aacf4ca0362f",
-      "observedAt": "2026-09-15T06:37:10.000Z"
+      "pageDigest": "sha256:85fc44c388116c4b38ab51c5224bc4f3a3de86b2bd35fc7f302ba84d19fe07cb",
+      "observedAt": "2026-09-21T12:42:26.000Z"
     },
     "evidenceLevel": "E2"
   },
   "authority": {
-    "digest": "sha256:c6b0659d51c70d6dce64cb56e688412af9e05164dfe3eafb2f1602e36a87cf60",
+    "digest": "sha256:9a27b3af429e7b020557296dbd4b143ce63d1dab64210da858d5b1b7af23f2b1",
     "completeness": "complete",
     "capabilityCount": 1,
     "approvalRequired": [],
@@ -36,13 +36,13 @@
   },
   "policyDigest": null,
   "reproducibility": {
-    "pageDigest": "sha256:669f332a4d2de231f3b5545dc4d0f132bc6028f4707c98acb373aacf4ca0362f",
-    "observedAt": "2026-09-15T06:37:10.000Z"
+    "pageDigest": "sha256:85fc44c388116c4b38ab51c5224bc4f3a3de86b2bd35fc7f302ba84d19fe07cb",
+    "observedAt": "2026-09-21T12:42:26.000Z"
   },
   "engine": {
     "name": "calllint"
   },
   "correctionUrl": "https://github.com/calllint/calllint/issues/new?labels=trust-page-correction",
-  "generatedAt": "2026-09-15T06:37:10.000Z",
+  "generatedAt": "2026-09-21T12:42:26.000Z",
   "signature": null
 }
