@@ -70,6 +70,7 @@ const baked = (ageDays: number, bakedAt: string, extra: Record<string, unknown> 
           canonicalName: "mcp-registry/io.github.example-server",
           verdict: "REVIEW",
           freshness: { ageDays, state: "FRESH", cadenceDays: 7 },
+          resolution: { status: "FRESH" },
           upstreamAgeDays: ageDays + 30,
           ...extra,
         },
@@ -169,6 +170,30 @@ describe("claim-refresh substance gate — a PR is opened only for something rev
       })
       expect(r.substantive, "every changed line is recomputed from the wall clock").toBe(false)
       expect(r.out).toMatch(/suppressed/)
+    })
+
+    it("suppresses freshness state/status changes derived from the same clock", () => {
+      const r = runGate("freshness-state-only", (d) => {
+        const aged = baked(2, "2026-08-30T09:58:17.726Z")
+          .replace('"state": "FRESH"', '"state": "AGING"')
+          .replace('"status": "FRESH"', '"status": "AGING"')
+        writeFileSync(join(d, INDEX_JSON), aged)
+        apply(d)
+      })
+      expect(r.exit).toBe(0)
+      expect(r.substantive, "freshness enums are recomputed from the wall clock").toBe(false)
+    })
+
+    it("does not suppress the top-level baked status just because the key is named status", () => {
+      const r = runGate("top-level-status", (d) => {
+        const changed = baked(2, "2026-08-30T09:58:17.726Z").replace(
+          '"canonicalName": "mcp-registry/io.github.example-server",',
+          '"canonicalName": "mcp-registry/io.github.example-server",\n          "status": "baked",',
+        )
+        writeFileSync(join(d, INDEX_JSON), changed)
+        apply(d)
+      })
+      expect(r.substantive, "page status is claim-bearing, not clock churn").toBe(true)
     })
 
     it("suppression is PRINTED, so a quiet run cannot pass for no claim activity", () => {
@@ -296,9 +321,7 @@ describe("claim-refresh substance gate — a PR is opened only for something rev
   it("the temporal key set is NARROW — it must not grow into a wildcard", () => {
     // A gate whose suppression list grows can suppress anything. Pinned by name so widening
     // it is a deliberate, reviewed edit rather than a quiet one.
-    const keys = GATE.match(/TEMPORAL='"\(([^)]+)\)":'/)?.[1]
-    expect(keys, "the TEMPORAL declaration moved — re-anchor this assertion").toBeTruthy()
-    expect(String(keys).split("|").sort()).toEqual(["ageDays", "bakedAt", "upstreamAgeDays"])
+    expect(GATE).toContain('TEMPORAL=\'("(ageDays|upstreamAgeDays|bakedAt)":|"(state|status)": "(FRESH|AGING|STALE|TIMELESS)")\'')
   })
 
   it("the PR step is actually gated on this decision", () => {

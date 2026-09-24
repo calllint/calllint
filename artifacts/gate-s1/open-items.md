@@ -756,7 +756,7 @@ Derived from the retained registry snapshot and served index; dated measurements
 
 350/350 source records reached the served tree.
 
-Cohort census: source **350 / 100 required**; served **350 registry pages / 350
+Cohort census: source **350 / 100 required** (met); served **350 registry pages / 350
 committed**.
 <!-- generated-cohort-census:end -->
 

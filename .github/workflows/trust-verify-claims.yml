@@ -74,7 +74,7 @@ jobs:
       # rubber-stamp. The fix is to not open the PR, not to auto-approve the checks.
       #
       # So the PR below is gated on SUBSTANCE, asserted POSITIVELY: this step must FIND a
-      # changed line that is not one of the three clock-derived keys. Silence is never read as
+      # changed line that is not one of the clock-derived fields. Silence is never read as
       # "pure churn" — an untracked file, a deletion, an unreadable diff, or a path outside the
       # bake's own output all resolve to substantive=true, because an unreviewable diff is
       # exactly what must reach a human (UNKNOWN is not SAFE).
@@ -103,9 +103,11 @@ jobs:
           # The keys whose value is a pure function of (stored instant, now). Deliberately
           # NARROW, and each exclusion is load-bearing: `at` / `observedAt` are stored
           # instants, so if one moves a new observation happened and that IS substance;
-          # `cadenceDays` is policy; `pageDigest` is content. Only these three recompute from
-          # nothing but the wall clock.
-          TEMPORAL='"(ageDays|upstreamAgeDays|bakedAt)":'
+          # `cadenceDays` is policy; `pageDigest` is content. The freshness state and resolution
+          # status are also pure functions of the stored instants and now. Match their allowed
+          # enum values, rather than every `status` key, because the top-level `status: baked`
+          # is a claim-bearing page state and must still open a PR when it changes.
+          TEMPORAL='("(ageDays|upstreamAgeDays|bakedAt)":|"(state|status)": "(FRESH|AGING|STALE|TIMELESS)")'
 
           substantive=false
           reason=""
@@ -157,7 +159,9 @@ jobs:
               substantive=true
               reason="$path changed outside the clock-derived keys"
               echo "  first non-temporal line(s) in $path:"
-              printf '%s\n' "$offclock" | head -5 | sed 's/^/    /'
+              # Do not pipe into `head` under `pipefail`: head exits early and makes printf
+              # receive SIGPIPE, turning this diagnostic branch into a false workflow failure.
+              printf '%s\n' "$offclock" | sed -n '1,5{s/^/    /;p;}'
               break
             fi
           done < /tmp/dirty.txt
@@ -173,14 +177,14 @@ jobs:
             } >> "$GITHUB_STEP_SUMMARY"
           else
             echo "substantive=false" >> "$GITHUB_OUTPUT"
-            echo "◇ suppressed: $files dirty file(s), every changed line one of ageDays / upstreamAgeDays / bakedAt."
+            echo "◇ suppressed: $files dirty file(s), every changed line is a clock-derived age/freshness field (ageDays / upstreamAgeDays / bakedAt / state / status)."
             echo "  These recompute from the wall clock alone, so this run carries no claim change."
             git diff HEAD --stat | tail -3 | sed 's/^/  /'
             {
               echo "### Claim verification — no PR opened"
               echo
               echo "Reconciliation ran and the claim store is **unchanged**. The $files dirty"
-              echo "file(s) differ only in \`ageDays\` / \`upstreamAgeDays\` / \`bakedAt\`, which are"
+              echo "file(s) differ only in clock-derived age / freshness fields, which are"
               echo "recomputed from the wall clock on every bake."
               echo
               echo "This suppresses a **PR**, not a fact: \`trust-ingest\` bakes the same pages"
