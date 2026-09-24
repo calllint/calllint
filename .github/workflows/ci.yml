@@ -51,6 +51,11 @@ jobs:
       - name: Test
         run: pnpm test
 
+      # Gate S1/S2's current census is a generated claim. Keep the committed
+      # Markdown in lockstep with the retained snapshot and served index.
+      - name: Gate S1/S2 current census drift
+        run: pnpm gate:census
+
       - name: Evidence audit
         run: pnpm audit:evidence
 

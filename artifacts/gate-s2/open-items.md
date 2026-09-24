@@ -212,7 +212,7 @@ reds `scale-retention` while `source-completeness` stays green.
 
 Derived from the retained registry snapshot and served index; dated measurements above are preserved.
 
-**Cohort now:** **350** 鈥?**150 records before its threshold**
+**Cohort now:** **350** — **150 records before its threshold**
 <!-- generated-cohort-census:end -->
 
 

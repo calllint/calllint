@@ -250,8 +250,25 @@ jobs:
         # its absence, so this list and that test cannot drift apart.
         run: pnpm eval:phase-2.4:write && pnpm eval:phase-2.4:gates:write && pnpm audit:presentation:write && pnpm audit:presentation:lock:write && pnpm audit:preview:write
 
+      - name: Refresh the generated Gate S1/S2 current census
+        # These Markdown blocks are generated claims, not hand-maintained
+        # counters. The writer reads the retained snapshot and the freshly
+        # served index, preserving all dated historical measurements.
+        run: pnpm gate:census:write
+
       - name: Guard the regenerated pages (no overclaim / PII; completeness)
         run: pnpm check:public-copy
+
+      - name: Enforce the Phase 2.4 human-panel gate before opening the PR
+        # `eval:phase-2.4` is a drift check; only `--gate` turns a pending or
+        # SURFACE_CHANGED human panel into a non-zero result. Run it before the
+        # PR action so registry page changes require a real panel refresh.
+        run: pnpm eval:phase-2.4:gate
+
+      - name: Preflight deterministic PR checks
+        # Do this before create-pull-request. A refresh that leaves deterministic
+        # tests red must stop here instead of opening a known-red PR.
+        run: pnpm test
 
       # ── What this bot is allowed to have touched ────────────────────────────────────────────
       # Until ADR 0091 this job wrote only DATA: snapshots, baked pages, derived artifacts. The
