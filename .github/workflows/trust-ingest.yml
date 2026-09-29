@@ -256,8 +256,29 @@ jobs:
         # served index, preserving all dated historical measurements.
         run: pnpm gate:census:write
 
+      - name: Re-freeze page-derived artifacts after the census write
+        # The census writer is a generated-data boundary. Keep the final
+        # page-derived artifacts downstream of every writer that can touch the
+        # served tree, then verify the exact bytes that the PR will contain.
+        # Without this second freeze, a page change between the first write and
+        # `pnpm test` can invalidate human-panel surface digests at the end of
+        # a long ingest (the 2026-09-28 failure).
+        run: pnpm eval:phase-2.4:write && pnpm eval:phase-2.4:gates:write && pnpm audit:presentation:write && pnpm audit:presentation:lock:write && pnpm audit:preview:write
+
       - name: Guard the regenerated pages (no overclaim / PII; completeness)
         run: pnpm check:public-copy
+
+      - name: Verify generated artifacts are stable before preflight
+        # A writer must be idempotent over the final working tree. This catches
+        # any hidden page writer or clock-dependent output before the full test
+        # suite, instead of reporting a late, misleading test failure.
+        run: pnpm eval:phase-2.4 && pnpm eval:phase-2.4:gates && pnpm audit:presentation && pnpm audit:presentation:lock && pnpm audit:preview
+
+      - name: Preflight Phase 2.4 committed-tree tests in isolation
+        # This suite observes the shared committed install tree. Run it after
+        # the final freeze and outside Vitest's cross-file worker pool so another
+        # test cannot change the pages between its digest reads.
+        run: pnpm vitest run packages/trust-index/test/phase24-eval.test.ts --no-file-parallelism
 
       - name: Enforce the Phase 2.4 human-panel gate before opening the PR
         # `eval:phase-2.4` is a drift check; only `--gate` turns a pending or
@@ -268,7 +289,10 @@ jobs:
       - name: Preflight deterministic PR checks
         # Do this before create-pull-request. A refresh that leaves deterministic
         # tests red must stop here instead of opening a known-red PR.
-        run: pnpm test
+        # phase24-eval.test.ts already ran in the isolated step above; excluding
+        # it here prevents Vitest's parallel workers from racing its shared-tree
+        # digest observation.
+        run: pnpm exec vitest run --poolOptions.threads.minThreads 1 --poolOptions.threads.maxThreads 2 --exclude packages/trust-index/test/phase24-eval.test.ts
 
       # ── What this bot is allowed to have touched ────────────────────────────────────────────
       # Until ADR 0091 this job wrote only DATA: snapshots, baked pages, derived artifacts. The

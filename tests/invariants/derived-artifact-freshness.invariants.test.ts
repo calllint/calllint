@@ -251,6 +251,16 @@ describe("the ingest workflow rebuilds every artifact its own bake invalidates (
     expect(evalAt, "the preview snapshot runs before the eval whose artifact it reads").toBeLessThan(previewAt)
   })
 
+  it("re-freezes page-derived artifacts after the census writer", () => {
+    const censusAt = runsAt(INGEST, "gate:census:write")
+    expect(censusAt, "gate:census:write absent from the ingest").toBeGreaterThan(-1)
+    const afterCensus = INGEST.slice(censusAt)
+    expect(afterCensus).toMatch(/run:[ \t]*pnpm eval:phase-2\.4:write[ \t]*&&/)
+    expect(afterCensus).toMatch(/Verify generated artifacts are stable before preflight[\s\S]*pnpm eval:phase-2\.4 &&/)
+    expect(INGEST).toMatch(/Preflight Phase 2\.4 committed-tree tests in isolation[\s\S]*pnpm vitest run packages\/trust-index\/test\/phase24-eval\.test\.ts --no-file-parallelism/)
+    expect(INGEST).toMatch(/Preflight deterministic PR checks[\s\S]*pnpm exec vitest run --poolOptions\.threads\.minThreads 1 --poolOptions\.threads\.maxThreads 2 --exclude packages\/trust-index\/test\/phase24-eval\.test\.ts/)
+  })
+
   it("builds the CLI before the writers that drive it (the 2026-08-17 → 08-24 double failure)", () => {
     // WHAT THIS FILE ASSERTED, AND WHAT IT DID NOT. Everything above checks that the ingest INVOKES
     // each writer. Two consecutive scheduled runs (32004879519, 32700871694) still died in the step
