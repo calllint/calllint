@@ -466,6 +466,32 @@ describe("terminal run states (INV-R5, control #10)", () => {
     expect(store.listSourceRecords(OFFICIAL_REGISTRY_SOURCE_ID)).toHaveLength(1)
   })
 
+  it("aborts a stalled page request and leaves a terminal failed run", async () => {
+    const { store } = await freshStore()
+    const adapter = createOfficialRegistryAdapter(ENDPOINT)
+    let calls = 0
+    const stalled = (async (_url: string, init?: RequestInit) => {
+      calls += 1
+      return await new Promise<Response>((_resolve, reject) => {
+        init?.signal?.addEventListener("abort", () => reject(init.signal?.reason), { once: true })
+      })
+    }) as typeof fetch
+
+    await expect(
+      syncSource({
+        store,
+        adapter,
+        ctx: ctx(stalled, T0, { requestTimeoutMs: 5 }),
+        mode: "full",
+        completedAt: T1,
+      }),
+    ).rejects.toThrow()
+
+    expect(calls).toBe(4)
+    expect(store.readCheckpoint(OFFICIAL_REGISTRY_SOURCE_ID).status).toBe("FAILED")
+    expect(store.allRunsTerminal()).toBe(true)
+  })
+
   it("a mid-stream failure persists NOTHING — half a page is not a synced source", async () => {
     const { store } = await freshStore()
     let call = 0

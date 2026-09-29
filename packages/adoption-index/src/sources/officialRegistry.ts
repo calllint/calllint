@@ -90,6 +90,13 @@ export const DEFAULT_MAX_PAGES = 1500
 export const PAGE_SIZE = 100
 
 /**
+ * A registry page is one bounded unit of work. Keep the timeout short enough that a stalled
+ * upstream request cannot consume the ingest job's multi-hour wall-clock budget; transient
+ * failures still use the bounded retry loop below.
+ */
+export const DEFAULT_REGISTRY_REQUEST_TIMEOUT_MS = 15_000
+
+/**
  * The §9.4 safety overlap window: 24 hours subtracted from the stored watermark before
  * it is sent as `updated_since`.
  *
@@ -287,7 +294,9 @@ async function* paginate(
     // with bounded exponential backoff; never advance or emit a partial page.
     for (let attempt = 0; attempt < 4; attempt++) {
       try {
-        res = await ctx.fetchImpl(url)
+        res = await ctx.fetchImpl(url, {
+          signal: AbortSignal.timeout(ctx.requestTimeoutMs ?? DEFAULT_REGISTRY_REQUEST_TIMEOUT_MS),
+        })
         if (res.ok) break
         if (res.status < 500 && res.status !== 429) break
         lastError = new Error(`registry fetch failed: HTTP ${res.status}`)

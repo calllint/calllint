@@ -144,6 +144,7 @@ export {
   DEFAULT_ENDPOINT,
   DEFAULT_MAX_PAGES,
   PAGE_SIZE,
+  DEFAULT_REGISTRY_REQUEST_TIMEOUT_MS,
   OVERLAP_WINDOW_MS,
   createOfficialRegistryAdapter,
   toSourceRecord,

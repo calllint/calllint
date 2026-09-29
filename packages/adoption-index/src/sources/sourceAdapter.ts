@@ -22,6 +22,8 @@ export interface SourceSyncContext {
   maxEntries: number
   /** Hard cap on HTTP requests per run, so a cursor loop cannot spin forever. */
   maxPages?: number
+  /** Per-page network timeout. A source that stops responding must not hold a runner forever. */
+  requestTimeoutMs?: number
   /**
    * Called by the adapter when a read ends for any reason OTHER than the source running
    * out of records, so the caller can refuse to project from a truncated mirror.
