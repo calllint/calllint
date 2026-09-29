@@ -599,8 +599,8 @@ describe("the injected port resolves the committed corpus end to end (plan step 
     expect(tarballCalls(first.calls)).toHaveLength(CORPUS_FETCHABLE)
 
     // A SECOND stub, so the count starts at zero rather than being subtracted. Cache reuse can
-    // never be observed in CI — every scheduled run is a cold checkout — so this test over a warm
-    // temp store is the only place the property is measurable at all.
+    // scheduled ingest restores its checkpoint, but ordinary CI legs do not; this warm temp store
+    // keeps cache reuse measurable without depending on workflow state.
     const second = stubFetch(routes)
     const result = await refresh(opened, second.fetchImpl, { now: T1 })
 

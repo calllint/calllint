@@ -7,9 +7,8 @@
  * ExecStart after the mirror and the projection.
  *
  * IT MATTERS ONLY ON THE WORKER, and that asymmetry is measured rather than assumed. `.var/` is
- * gitignored and never cached between jobs, so a GitHub Actions runner starts every scheduled
- * ingest with an empty CAS and ends it with one run's worth of blobs. The worker's `.var/` persists,
- * so it is the only place where run N+1 inherits run N's bytes.
+ * gitignored and not committed. The scheduled workflow restores the completed `.var/` checkpoint
+ * and CAS cache, while ordinary CI jobs do not; the worker's `.var/` persists between its runs too.
  *
  * WHY THIS LIVES IN `trust-index` AND NOT IN `adoption-index`, where the CAS itself does. A sweep
  * has to know what "now" is, and `adoption-index` forbids exactly that: INV-R6 / control #11

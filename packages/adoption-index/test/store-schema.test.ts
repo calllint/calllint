@@ -159,7 +159,8 @@ describe("migration discipline (forward-only, digest-pinned)", () => {
    *
    * The drift guard itself is real — `applyMigrations` throws, and the test below proves it with
    * a synthetic tamper — but it can only fire against a store that was applied from the OLD
-   * bytes. No such store exists in CI: `.var/` is gitignored and every run is a cold checkout.
+   * bytes. Ordinary CI legs do not restore the scheduled workflow's `.var/` cache, so they still
+   * start without a persisted store.
    * So an edit to the canonical DDL is green on every leg here and throws on exactly the
    * machines that already hold a store — an operator's, days later, with the failure attributed
    * to whatever ran last.

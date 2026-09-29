@@ -671,6 +671,32 @@ describe("the change key is persisted, and read back from DURABLE state (control
 })
 
 describe("a withdrawal is detected, which a count cannot see (controls #1, #4)", () => {
+  it("does not infer withdrawal from records outside an incremental window", async () => {
+    const store = await freshStore()
+    await refresh(
+      store,
+      {
+        servers: [
+          item("io.a/one", {}, { publishedAt: T0 }),
+          item("io.b/unchanged", {}, { publishedAt: T0 }),
+        ],
+      },
+      { mode: "full", now: T0 },
+    )
+
+    // An incremental endpoint returns only the changed subject. The unchanged subject is still
+    // present in the durable mirror, so its absence from this response is not a withdrawal.
+    const incremental = await refresh(
+      store,
+      { servers: [item("io.a/one", { version: "2.0.0" }, { publishedAt: T1 })] },
+      { mode: "incremental", now: T1 },
+    )
+
+    expect(incremental.change.absentFromSource).toEqual([])
+    expect(incremental.lifecycle.withdrawn).toEqual([])
+    expect(store.listSubjects().find((s) => s.canonicalName === "io.b/unchanged")?.lifecycleStatus).toBe("ACTIVE")
+  })
+
   it("reports SOURCE_WITHDRAWAL when upstream stops serving a subject", async () => {
     const store = await freshStore()
     await refresh(store, { servers: [item("io.a/one"), item("io.b/gone")] }, { now: T0 })

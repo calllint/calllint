@@ -29,7 +29,7 @@ export interface SyncSourceOptions {
   ctx: SourceSyncContext
   /**
    * `full` ignores the watermark; `incremental` resumes from it. The caller owns the
-   * schedule — §9.4 wants a weekly full reconciliation alongside frequent incrementals,
+   * schedule — §9.4 wants periodic full reconciliation alongside frequent incrementals,
    * and that cadence is an operational decision, not a property of this function.
    */
   mode: "full" | "incremental"

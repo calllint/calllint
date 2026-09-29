@@ -253,7 +253,7 @@ describe("the transition table (control #25)", () => {
   it("the input statuses are exactly the retryable ones, and exclude FETCHED", () => {
     expect([...ARTIFACT_RESOLUTION_INPUT_STATUSES]).toEqual(["RESOLVED", "UNAVAILABLE"])
     // Excluding `FETCHED` is what makes "cache hit ⇒ no refetch" observable at all: every
-    // scheduled CI run is a cold checkout and can never demonstrate cache reuse.
+    // ordinary CI legs do not restore the scheduled workflow cache and cannot demonstrate reuse.
     expect(ARTIFACT_RESOLUTION_INPUT_STATUSES).not.toContain("FETCHED")
     for (const status of ARTIFACT_RESOLUTION_INPUT_STATUSES) {
       expect(isTerminalArtifactStatus(status), status).toBe(false)
@@ -522,8 +522,8 @@ describe("resolveArtifacts — one transaction per artifact", () => {
       expect(first.calls).toHaveLength(2)
       const afterFirst = artifactBy(store, "alpha")
 
-      // The warm-store path CI can never demonstrate, because every scheduled run is a cold
-      // checkout. Measured over `fetchImpl` call counts, which is the seam that exists for it.
+      // Ordinary CI legs do not restore the scheduled workflow cache; measure the warm-store path
+      // over `fetchImpl` call counts, which is the seam that exists for it.
       const second = stubFetch(routes)
       const two = await resolveArtifacts({ store, adapters: NPM_ADAPTERS, fetchImpl: second.fetchImpl, now: LATER })
       expect(two).toMatchObject({ considered: 0, fetched: 0, unavailable: 0, rejected: 0 })

@@ -84,8 +84,8 @@ export function assertArtifactTransition(from: ArtifactStatus, to: ArtifactStatu
  *
  * `RESOLVED` is the fresh work and `UNAVAILABLE` is the retryable failure. `FETCHED` is excluded
  * so a warm store does not re-download what it already holds — which is what makes "cache hit =>
- * no refetch" observable as a test over `fetchImpl` call counts, given that every scheduled CI
- * run is a cold checkout and can never demonstrate cache reuse.
+ * no refetch" observable as a test over `fetchImpl` call counts. Ordinary CI legs do not restore
+ * the scheduled workflow cache, so this library test still starts from a fresh temp store.
  */
 export const ARTIFACT_RESOLUTION_INPUT_STATUSES: readonly ArtifactStatus[] = Object.freeze([
   "RESOLVED",

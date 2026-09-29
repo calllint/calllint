@@ -61,8 +61,8 @@
  * alone), and the boundary scan asserts it rather than trusting it.
  *
  * ARTIFACT RESOLUTION (R-4) is step 1b, and it is DEFAULT ON. Safe to default on because it
- * writes only under `.var/calllint-adoption-index/` — gitignored, never cached — so a scheduled
- * run's PR DIFF IS UNCHANGED by it. What it adds to a run is public HTTP GETs whose bytes are
+ * writes only under `.var/calllint-adoption-index/` — gitignored, not committed; the scheduled
+ * workflow persists it in an Actions cache for the next incremental run. What it adds to a run is public HTTP GETs whose bytes are
  * hashed, statically inspected, and stored; never executed, extracted, or installed (ADR 0061 §2).
  * `TRUST_INGEST_ARTIFACTS=0` disables it, following the `resolveMaxEntries` fail-safe precedent.
  *
@@ -380,10 +380,9 @@ async function main(): Promise<void> {
   const mirrorMaxEntries = resolveMirrorMaxEntries(process.env, maxEntries)
   const maxPages = resolveMirrorMaxPages(process.env)
 
-  // 1. Mirror the full source into the adoption index, then project the snapshot from it
-  //    (the only network step). The store self-migrates on open, so a cold CI checkout —
-  //    which every scheduled run is, since `.var/` is gitignored and never cached — takes
-  //    the same path as a warm one.
+  // 1. Mirror the source into the adoption index, then project the snapshot from it
+  //    (the only network step). Scheduled runs restore the store cache and use incremental mode;
+  //    an empty cache has no watermark and naturally bootstraps from the source.
   const cwd = process.cwd()
   const paths = resolveIndexPaths(cwd)
   for (const dir of paths.dirs) mkdirSync(dir, { recursive: true })
@@ -651,7 +650,7 @@ async function main(): Promise<void> {
         snapshotMaxEntries: maxEntries,
         mirrorMaxEntries,
         maxPages,
-        mode: "full",
+        mode: resolveSyncMode(process.env),
         retainedNames,
         ...(artifactPort === undefined ? {} : { artifactPort }),
         ...(evidencePort === undefined ? {} : { evidencePort }),
@@ -818,4 +817,9 @@ if (invokedAsScript) {
     console.error(err)
     process.exit(1)
   })
+}
+
+/** Select the workflow's source reconciliation mode; unknown values fail closed to incremental. */
+export function resolveSyncMode(env: Record<string, string | undefined>): "full" | "incremental" {
+  return env.TRUST_INGEST_SYNC_MODE?.trim().toLowerCase() === "full" ? "full" : "incremental"
 }
