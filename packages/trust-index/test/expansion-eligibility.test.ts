@@ -76,21 +76,28 @@ describe("trust ingest synchronization mode", () => {
     expect(resolveSyncMode({ TRUST_INGEST_SYNC_MODE: "weekly" })).toBe("incremental")
   })
 
-  it("restores the checkpoint before ingest and saves it only after successful preflight", () => {
+  it("persists a completed checkpoint after ingest, before downstream preflight", () => {
     const workflow = readFileSync(
       resolve(dirname(fileURLToPath(import.meta.url)), "..", "..", "..", ".github", "workflows", "trust-ingest.yml"),
       "utf8",
     ).replace(/\r\n/g, "\n")
     const restoreAt = workflow.indexOf("uses: actions/cache/restore@v4")
     const ingestAt = workflow.indexOf("run: pnpm ingest:trust-index")
+    const saveStepAt = workflow.indexOf("- name: Save completed trust ingest state")
     const saveAt = workflow.indexOf("uses: actions/cache/save@v4")
+    const evidenceAt = workflow.indexOf("run: pnpm resolve-evidence:trust-index")
     const pullRequestAt = workflow.indexOf("uses: peter-evans/create-pull-request@v7")
+    const saveBlock = workflow.slice(saveStepAt, evidenceAt)
 
     expect(restoreAt).toBeGreaterThan(-1)
     expect(restoreAt).toBeLessThan(ingestAt)
+    expect(ingestAt).toBeLessThan(saveAt)
+    expect(saveStepAt).toBeGreaterThan(ingestAt)
+    expect(saveAt).toBeLessThan(evidenceAt)
     expect(ingestAt).toBeLessThan(pullRequestAt)
-    expect(pullRequestAt).toBeLessThan(saveAt)
-    expect(workflow).toContain("if: ${{ success() }}")
+    expect(evidenceAt).toBeLessThan(pullRequestAt)
+    expect(saveBlock).toContain("if: ${{ success() }}")
+    expect(workflow).toContain("A failed or cancelled ingest never reaches this step")
     expect(workflow).toContain("${{ steps.source-mode.outputs.mode }}")
     expect(workflow).toContain("trust-ingest-state-v2-${{ runner.os }}-${{ github.ref_name }}-")
     const modeAt = workflow.indexOf("id: source-mode")

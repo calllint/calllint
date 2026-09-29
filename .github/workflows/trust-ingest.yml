@@ -207,6 +207,16 @@ jobs:
           TRUST_INGEST_SYNC_MODE: ${{ steps.source-mode.outputs.mode }}
         run: pnpm ingest:trust-index
 
+      # Persist immediately after ingest commits a completed source checkpoint. Later bake,
+      # preflight, or PR failures must not make the next run repeat the full registry mirror.
+      # A failed or cancelled ingest never reaches this step; unique keys keep older good state.
+      - name: Save completed trust ingest state
+        if: ${{ success() }}
+        uses: actions/cache/save@v4
+        with:
+          path: packages/trust-index/.var/calllint-adoption-index
+          key: trust-ingest-state-v2-${{ runner.os }}-${{ github.ref_name }}-${{ hashFiles('pnpm-lock.yaml', 'packages/adoption-index/migrations/**') }}-${{ github.run_id }}
+
       - name: Resolve evidence — identity-only resolution of remote endpoints (ADR 0050)
         # The SECOND (and last) network step. Reads the retained registry snapshot,
         # runs the read-only P1 resolvers over each remote endpoint (INV1: no exec,
@@ -451,12 +461,3 @@ jobs:
             `deploy-web.yml`. This workflow never deploys on its own.
           labels: trust-ingest, automated
           delete-branch: true
-
-      # Save only after the complete job, including PR creation, succeeded. The key is unique per
-      # run, so a later failed/cancelled run cannot replace this known-good checkpoint.
-      - name: Save successful trust ingest state
-        if: ${{ success() }}
-        uses: actions/cache/save@v4
-        with:
-          path: packages/trust-index/.var/calllint-adoption-index
-          key: trust-ingest-state-v2-${{ runner.os }}-${{ github.ref_name }}-${{ hashFiles('pnpm-lock.yaml', 'packages/adoption-index/migrations/**') }}-${{ github.run_id }}
