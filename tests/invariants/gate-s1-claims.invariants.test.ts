@@ -328,7 +328,7 @@ describe("Gate S1 — every path:line the record cites still points at what it c
     )
     assertPointer(
       "packages/trust-index/src/refreshSnapshot.ts",
-      557,
+      556,
       "processing: mirrored?.artifacts?.processing ?? null",
       "the ingest passes the distribution through",
     )

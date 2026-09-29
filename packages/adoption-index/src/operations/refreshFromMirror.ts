@@ -327,7 +327,13 @@ export async function refreshFromMirror(opts: RefreshFromMirrorOptions): Promise
   // is append-only — there is no DELETE in this package — so its memory of a withdrawn
   // subject outlives the withdrawal, and nothing else in the run can notice the absence.
   // Sorted so the reported set (and any log line built from it) is deterministic.
-  const absentFromSource = [...subjectsBefore].filter((id) => !sync.observedNativeIds.has(id)).sort()
+  // An incremental read only contains the changed window. Treating every subject outside that
+  // window as absent would withdraw the entire mirror on an otherwise healthy weekly run. Only a
+  // complete reconciliation can make an absence claim.
+  const absentFromSource =
+    (opts.mode ?? "full") === "full"
+      ? [...subjectsBefore].filter((id) => !sync.observedNativeIds.has(id)).sort()
+      : []
 
   const snapshotDigest = cohortDigest(snapshot)
 

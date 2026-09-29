@@ -19,7 +19,7 @@
  *   incremental updated_since     → `incrementalSync`, watermark from the checkpoint
  *   safety overlap window         → `OVERLAP_WINDOW_MS`, subtracted from the watermark
  *   digest deduplication          → the store's UNIQUE(source, nativeId, payloadDigest)
- *   weekly full reconciliation    → the caller's schedule; `fullSync` is always available
+ *   periodic full reconciliation  → the caller's schedule; `fullSync` is always available
  *   checkpoint after durable commit → `syncSource`, one transaction
  */
 import { hashJson } from "@calllint/fingerprint"
@@ -107,7 +107,7 @@ export const DEFAULT_REGISTRY_REQUEST_TIMEOUT_MS = 60_000
  * "into the past" relative to a watermark already advanced past it. Re-reading a day of
  * overlap costs nothing — the store deduplicates by payload digest, so an already-seen
  * record refreshes `last_seen_at` and inserts no row — while a missed record is invisible
- * until a weekly full reconciliation catches it.
+ * until a periodic full reconciliation catches it.
  */
 export const OVERLAP_WINDOW_MS = 24 * 60 * 60 * 1000
 

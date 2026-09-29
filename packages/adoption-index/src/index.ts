@@ -441,8 +441,8 @@ export {
   serializeAdoptionIndex,
 } from "./projections/adoptionIndexProjection.js"
 // The PURE re-derivation of the identity plane from a committed snapshot. Exported because the
-// reproducibility gate needs it and cannot read the store: `.var/` is gitignored and never cached,
-// so the ordinary vitest suite has no database on any of the three CI legs.
+// reproducibility gate needs it and cannot read the store: `.var/` is gitignored and not committed,
+// and ordinary vitest legs do not restore the scheduled workflow's cache.
 export {
   OFFICIAL_META_KEY,
   deriveSourceRecords,

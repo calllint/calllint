@@ -357,8 +357,9 @@ describe("Gate S0 — every path:line the record cites still points at what it c
     // [[a-pointer-rots-faster-than-its-claim]] predicts. A guard that catches two added imports is the
     // guard working — this is the third consecutive batch it has caught, and every catch has been a
     // real edit to the pinned file rather than a false alarm.
+    // Re-pinned after the persistent checkpoint and monthly reconciliation schedule were added.
     assertPointer("packages/trust-index/src/refreshSnapshot.ts", 190, "resolveMaxEntries", "the knob")
-    assertPointer(WORKFLOW, 20, "workflow_dispatch:", "the dispatch trigger")
+    assertPointer(WORKFLOW, 21, "workflow_dispatch:", "the dispatch trigger")
     // Moved 73 → 112 by the `inputs:` block this row's remedy called for, then 112 → 127 by ADR 0087's
     // batch: the job gained the `TRUST_INGEST_NOW` pin after checkout and the `:store` → pure-variant
     // comment block. The pointer is re-pinned rather than loosened to a search: a `path:line` that
@@ -369,7 +370,8 @@ describe("Gate S0 — every path:line the record cites still points at what it c
     // (32004879519, 32700871694) had died at the phase-2.4 refresh on `missing apps/cli/dist/index.js`,
     // BEFORE the PR-opening step, so the cohort sat frozen at 100 for two weeks with no red PR to
     // notice. The mover is once again the batch editing the file — the pattern that row predicts.
-    assertPointer(WORKFLOW, 161, "ingest:trust-index", "the ingest step")
+    // The cache restore and mode selector are now part of this workflow.
+    assertPointer(WORKFLOW, 197, "ingest:trust-index", "the ingest step")
   })
 })
 

@@ -14,9 +14,10 @@ name: trust-ingest
 
 on:
   schedule:
-    # Weekly, Monday 06:17 UTC. Off the hour to avoid the cron stampede; weekly
-    # because the cohort is small and each run needs human review before it ships.
+    # Weekly incremental sync, Monday 06:17 UTC. Off the hour to avoid the cron stampede.
     - cron: "17 6 * * 1"
+    # Monthly full reconciliation. It catches records missed by the incremental overlap window.
+    - cron: "17 6 1 * *"
   workflow_dispatch:
     # The operator's knobs, wired to the three `resolve*` readers in `refreshSnapshot.ts`.
     #
@@ -48,6 +49,14 @@ on:
         required: false
         type: string
         default: ""
+      sync_mode:
+        description: "Source sync mode. Scheduled runs are incremental except for the monthly full reconciliation."
+        required: false
+        type: choice
+        options:
+          - incremental
+          - full
+        default: incremental
 
 # Least privilege: write a branch + open a PR. No broader scope; no deploy secrets.
 permissions:
@@ -78,6 +87,17 @@ jobs:
     steps:
       - uses: actions/checkout@v6
 
+      # The database is the incremental checkpoint. Restore only a completed run's cache;
+      # failed or cancelled jobs never reach the save step below and therefore cannot poison it.
+      - name: Restore trust ingest state
+        id: trust-ingest-state
+        uses: actions/cache/restore@v4
+        with:
+          path: packages/trust-index/.var/calllint-adoption-index
+          key: trust-ingest-state-v2-${{ runner.os }}-${{ github.ref_name }}-${{ hashFiles('pnpm-lock.yaml', 'packages/adoption-index/migrations/**') }}-${{ github.run_id }}
+          restore-keys: |
+            trust-ingest-state-v2-${{ runner.os }}-${{ github.ref_name }}-${{ hashFiles('pnpm-lock.yaml', 'packages/adoption-index/migrations/**') }}-
+
       # ONE instant for the whole ingest, computed once and shared by every step below.
       #
       # Four modules read `TRUST_INGEST_NOW` and each falls back to its own `new Date()`:
@@ -103,6 +123,21 @@ jobs:
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
+
+      - name: Select source reconciliation mode
+        id: source-mode
+        shell: bash
+        run: |
+          mode="${{ github.event.inputs.sync_mode || '' }}"
+          if [ -z "$mode" ]; then
+            if [ "${{ github.event.schedule }}" = "17 6 1 * *" ]; then
+              mode=full
+            else
+              mode=incremental
+            fi
+          fi
+          echo "mode=$mode" >> "$GITHUB_OUTPUT"
+          echo "source reconciliation mode: $mode"
 
       - name: Build — `eval:phase-2.4:gates:write` below drives the real binary
         # THE STEP WHOSE ABSENCE KILLED TWO CONSECUTIVE SCHEDULED INGESTS.
@@ -158,6 +193,7 @@ jobs:
           TRUST_INGEST_MAX_ENTRIES: ${{ github.event.inputs.max_entries || '' }}
           TRUST_INGEST_MIRROR_MAX_ENTRIES: ${{ github.event.inputs.mirror_max_entries || '' }}
           TRUST_INGEST_MIRROR_MAX_PAGES: ${{ github.event.inputs.mirror_max_pages || '' }}
+          TRUST_INGEST_SYNC_MODE: ${{ steps.source-mode.outputs.mode }}
         run: pnpm ingest:trust-index
 
       - name: Resolve evidence — identity-only resolution of remote endpoints (ADR 0050)
@@ -404,3 +440,12 @@ jobs:
             `deploy-web.yml`. This workflow never deploys on its own.
           labels: trust-ingest, automated
           delete-branch: true
+
+      # Save only after the complete job, including PR creation, succeeded. The key is unique per
+      # run, so a later failed/cancelled run cannot replace this known-good checkpoint.
+      - name: Save successful trust ingest state
+        if: ${{ success() }}
+        uses: actions/cache/save@v4
+        with:
+          path: packages/trust-index/.var/calllint-adoption-index
+          key: trust-ingest-state-v2-${{ runner.os }}-${{ github.ref_name }}-${{ hashFiles('pnpm-lock.yaml', 'packages/adoption-index/migrations/**') }}-${{ github.run_id }}

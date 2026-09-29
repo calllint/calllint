@@ -9,6 +9,7 @@ import {
   resolveMaxEntries,
   resolveMirrorMaxEntries,
   resolveMirrorMaxPages,
+  resolveSyncMode,
 } from "../src/refreshSnapshot.js"
 import { DEFAULT_MAX_ENTRIES } from "../src/fetchRegistry.js"
 import { DEFAULT_MIRROR_MAX_ENTRIES, DEFAULT_MAX_PAGES, PAGE_SIZE } from "@calllint/adoption-index"
@@ -63,6 +64,49 @@ function ineligibleBundle() {
 }
 
 const CONFIG = JSON.stringify({ mcpServers: { acme: { command: "npx", args: ["-y", "acme-mcp@2.0.0"] } } })
+
+describe("trust ingest synchronization mode", () => {
+  it("defaults to incremental and accepts an explicit full reconciliation", () => {
+    expect(resolveSyncMode({})).toBe("incremental")
+    expect(resolveSyncMode({ TRUST_INGEST_SYNC_MODE: "incremental" })).toBe("incremental")
+    expect(resolveSyncMode({ TRUST_INGEST_SYNC_MODE: "FULL" })).toBe("full")
+  })
+
+  it("fails closed to incremental for an unknown mode", () => {
+    expect(resolveSyncMode({ TRUST_INGEST_SYNC_MODE: "weekly" })).toBe("incremental")
+  })
+
+  it("restores the checkpoint before ingest and saves it only after successful preflight", () => {
+    const workflow = readFileSync(
+      resolve(dirname(fileURLToPath(import.meta.url)), "..", "..", "..", ".github", "workflows", "trust-ingest.yml"),
+      "utf8",
+    ).replace(/\r\n/g, "\n")
+    const restoreAt = workflow.indexOf("uses: actions/cache/restore@v4")
+    const ingestAt = workflow.indexOf("run: pnpm ingest:trust-index")
+    const saveAt = workflow.indexOf("uses: actions/cache/save@v4")
+    const pullRequestAt = workflow.indexOf("uses: peter-evans/create-pull-request@v7")
+
+    expect(restoreAt).toBeGreaterThan(-1)
+    expect(restoreAt).toBeLessThan(ingestAt)
+    expect(ingestAt).toBeLessThan(pullRequestAt)
+    expect(pullRequestAt).toBeLessThan(saveAt)
+    expect(workflow).toContain("if: ${{ success() }}")
+    expect(workflow).toContain("${{ steps.source-mode.outputs.mode }}")
+    expect(workflow).toContain("trust-ingest-state-v2-${{ runner.os }}-${{ github.ref_name }}-")
+  })
+
+  it("keeps weekly incremental runs and a monthly full reconciliation", () => {
+    const workflow = readFileSync(
+      resolve(dirname(fileURLToPath(import.meta.url)), "..", "..", "..", ".github", "workflows", "trust-ingest.yml"),
+      "utf8",
+    ).replace(/\r\n/g, "\n")
+
+    expect(workflow).toContain('- cron: "17 6 * * 1"')
+    expect(workflow).toContain('- cron: "17 6 1 * *"')
+    expect(workflow).toContain('mode=full')
+    expect(workflow).toContain('mode=incremental')
+  })
+})
 
 function candidate(bundle: ReturnType<typeof eligibleBundle>, verdictBound: boolean): ExpansionCandidate {
   return {

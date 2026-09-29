@@ -14,10 +14,9 @@
  *     `refreshSnapshot.ts`, whose `refreshFromMirror` calls `persistIdentity` — before this step,
  *     so `canonical_subjects` holds the mirrored cohort and reading it is reading the real thing,
  *     including a `firstSeenAt` history no derivation can reconstruct.
- *   - EVERYWHERE ELSE the store is empty, and MEASURED so rather than assumed: `.var/` is
- *     gitignored and never cached between jobs, so on a cold checkout all ten tables are at zero.
- *     A bin that only read the store would therefore emit nothing on every machine except the
- *     scheduled runner — green in the workflow, empty for every developer and every CI leg.
+ *   - EVERYWHERE ELSE the store may be empty, and that is MEASURED rather than assumed: `.var/` is
+ *     gitignored and not committed. The scheduled workflow restores it from a successful-run
+ *     cache, while developers and ordinary CI legs fall back to the committed snapshot.
  *
  * So the second path DERIVES the identity plane from the committed registry snapshot
  * (`deriveSubjectsFromSnapshot`, pure). The two paths are not two definitions of identity: the
@@ -186,8 +185,8 @@ async function readFromStore(now: string): Promise<Inputs | null> {
     store.close()
   }
   if (subjects.length > 0) return { subjects, records, origin: "store", projectedAt: now }
-  // An empty store is not an error — on a cold checkout it is the norm (`.var/` is gitignored and
-  // never cached between jobs). Fall through to the same derivation `--from-snapshot` uses, so the
+  // An empty store is not an error — a cold checkout has no `.var/` state. Fall through to the same
+  // derivation `--from-snapshot` uses, so the
   // two paths cannot drift into two definitions of identity.
   return fromSnapshot()
 }

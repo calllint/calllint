@@ -8,7 +8,7 @@
  * `committed-tree.test.ts` does for the 119 served files. A gate that only validated the
  * document's schema would pass a hand-edited `identityDigest` silently, which is the shape
  * [[negative-control-validity-checklist]] calls a no-op assertion (control #117). And it cannot
- * re-derive from the store: `.var/calllint-adoption-index/` is gitignored and never cached, so in
+ * re-derive from the store: `.var/calllint-adoption-index/` is gitignored and not committed, so in
  * the ordinary vitest suite — three OSes, cold checkout — there is no database to read.
  *
  * WHAT MAKES THE OUTPUT TRUSTWORTHY rather than a second, drifting definition of identity: every
