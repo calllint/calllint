@@ -91,11 +91,11 @@ export const PAGE_SIZE = 100
 
 /**
  * A registry page is one bounded unit of work. The source's measured throughput is about
- * 10.9s/page; 30s leaves room for a slow but valid long-tail response while ensuring a stalled
+ * 10.9s/page; 60s leaves room for a slow but valid long-tail response while ensuring a stalled
  * upstream request cannot consume the ingest job's multi-hour wall-clock budget. Transient
  * failures still use the bounded retry loop below.
  */
-export const DEFAULT_REGISTRY_REQUEST_TIMEOUT_MS = 30_000
+export const DEFAULT_REGISTRY_REQUEST_TIMEOUT_MS = 60_000
 
 /**
  * The §9.4 safety overlap window: 24 hours subtracted from the stored watermark before
