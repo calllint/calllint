@@ -40,15 +40,17 @@ const OFFICIAL_META = "io.modelcontextprotocol.registry/official"
 /**
  * Default page-count ceiling. A cursor that never terminates must not spin forever.
  *
- * BOUNDED FROM BOTH SIDES, and the upper bound is the part that is easy to miss. Below, the
- * ceiling must clear the source or every run truncates. Above, it must stay REACHABLE INSIDE
- * THE JOB'S WALL-CLOCK BUDGET — because a ceiling the run cannot reach in time is not the
- * limit that binds. The job timeout is, and a timeout is a SILENT truncation: the runner kills
- * the process, no `MirrorIncompleteError` is ever constructed, and the guard this file exists
- * to feed is simply bypassed. A number chosen only for headroom can therefore disable the
- * fail-closed path by being too large.
+ * BOUNDED FROM BOTH SIDES. The workflow downloads pages in bounded, durable windows and replays a
+ * complete checksum-verified cache locally. The page ceiling must clear the source or every run
+ * truncates. Completed pages are replayed locally after
+ * checksum verification, so this ceiling protects pagination completeness rather than network
+ * duration. The runner timeout separately bounds local replay, ingestion, and gates; the network
+ * downloader itself uses bounded durable windows and resumes from its manifest. A complete
+ * cache is required before projection, so a partial download cannot bypass the fail-closed path.
  *
- * All three inputs are MEASURED, none assumed:
+ * The page ceiling remains a fail-closed pagination guard. Historical throughput below documents
+ * source sizing only; it is no longer used as a single-run network budget. All three inputs are
+ * MEASURED, none assumed:
  *   - page size 100 — the source's hard maximum (`limit=101`/`200`/`500`/`999` all HTTP 422)
  *   - source size — walked TO EXHAUSTION 2026-08-04: `pages=653 total=65235 elapsed=7090s`
  *   - throughput — 7090s / 653 pages ≈ 10.9 s/page against this source
@@ -58,7 +60,8 @@ const OFFICIAL_META = "io.modelcontextprotocol.registry/official"
  * (`trust-ingest.yml`). Both inequalities hold with room: 65_235 < 100_000, and 181 min < 300 min.
  * 2000 pages would satisfy the first and BREAK the second — ≈362 min, past the budget and past
  * GitHub's own 360-min job maximum — which is precisely the failure mode where a bigger number
- * looks safer and is not.
+ * looks safer and is not. Those figures describe the historical single-run implementation only;
+ * the production workflow now uses the durable 25-minute download windows documented above.
  *
  * TWO PRIOR FIGURES HERE WERE WRONG, BOTH THE SAME WAY. This docblock said "well over 21_000
  * (a walk stopped at 210 pages was still not exhausted)" and before that reasoned from the

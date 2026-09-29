@@ -79,10 +79,9 @@ import { applyWithdrawal, type ApplyWithdrawalResult } from "./applyWithdrawal.j
  * margin above the served snapshot cap so growth fails closed before a truncated projection can
  * be committed. The page ceiling remains an independent backstop for pathological pagination.
  *
- * Why not more headroom: `DEFAULT_MAX_PAGES` argues the upper bound in wall-clock — a ceiling
- * the job cannot reach before its timeout is not the limit that binds, and a timeout truncates
- * SILENTLY, bypassing this guard entirely. That argument caps this number too, since the two
- * move together.
+ * The scheduled workflow now downloads the source in bounded, durable windows, then replays the
+ * verified pages locally. This raw-read ceiling protects completeness of that replay; the network
+ * download window is bounded independently in `registryDownload.ts`.
  */
 export const DEFAULT_MIRROR_MAX_ENTRIES = 200_000
 

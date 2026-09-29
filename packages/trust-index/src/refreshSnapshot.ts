@@ -378,7 +378,7 @@ async function main(): Promise<void> {
 
   const maxEntries = resolveMaxEntries(process.env, previousCount)
   const mirrorMaxEntries = resolveMirrorMaxEntries(process.env, maxEntries)
-  const maxPages = resolveMirrorMaxPages(process.env)
+  const maxPages = resolveMirrorMaxPages(process.env); const registryReplayDir = process.env.TRUST_REGISTRY_REPLAY_DIR?.trim() || null; const registryReplay = registryReplayDir === null ? null : (await import("./registryDownload.js")).replayRegistry(registryReplayDir)
 
   // 1. Mirror the source into the adoption index, then project the snapshot from it
   //    (the only network step). Scheduled runs restore the store cache and use incremental mode;
@@ -644,12 +644,12 @@ async function main(): Promise<void> {
       mirrored = await refreshFromMirror({
         store,
         adapter: createOfficialRegistryAdapter(DEFAULT_ENDPOINT),
-        fetchImpl: fetch,
+        fetchImpl: registryReplay?.fetchImpl ?? fetch,
         now,
         endpoint: DEFAULT_ENDPOINT,
         snapshotMaxEntries: maxEntries,
-        mirrorMaxEntries,
-        maxPages,
+        mirrorMaxEntries: registryReplay?.maxEntries ?? mirrorMaxEntries,
+        maxPages: registryReplay?.maxPages ?? maxPages,
         mode: resolveSyncMode(process.env),
         retainedNames,
         ...(artifactPort === undefined ? {} : { artifactPort }),

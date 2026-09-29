@@ -5,6 +5,7 @@ import { resolve } from "node:path"
 import { fileURLToPath } from "node:url"
 
 export const REGISTRY_URL = "https://registry.modelcontextprotocol.io/v0/servers"
+export const DEFAULT_REGISTRY_DOWNLOAD_BUDGET_MINUTES = 25
 type Page = { url: string; digest: string }
 type Manifest = { version: 1; startedAt: string; complete: boolean; pages: Page[] }
 const digest = (text: string) => createHash("sha256").update(text).digest("hex")
@@ -134,7 +135,9 @@ export function replayRegistry(dir: string): { fetchImpl: typeof fetch; maxPages
 if (process.argv[1] && fileURLToPath(import.meta.url) === resolve(process.argv[1])) {
   const dir = process.env.TRUST_REGISTRY_DOWNLOAD_DIR
   if (!dir) throw new Error("TRUST_REGISTRY_DOWNLOAD_DIR is required")
-  downloadRegistry({ dir, budgetMs: 210 * 60_000 }).then((result) => {
+  const budgetMinutes = Number(process.env.TRUST_REGISTRY_DOWNLOAD_BUDGET_MINUTES ?? DEFAULT_REGISTRY_DOWNLOAD_BUDGET_MINUTES)
+  if (!Number.isInteger(budgetMinutes) || budgetMinutes <= 0) throw new Error("Invalid TRUST_REGISTRY_DOWNLOAD_BUDGET_MINUTES")
+  downloadRegistry({ dir, budgetMs: budgetMinutes * 60_000 }).then((result) => {
     console.log(JSON.stringify(result))
     if (process.env.GITHUB_OUTPUT) writeFileSync(process.env.GITHUB_OUTPUT, `complete=${result.complete}\n`, { flag: "a" })
     if (process.env.GITHUB_STEP_SUMMARY) writeFileSync(process.env.GITHUB_STEP_SUMMARY,

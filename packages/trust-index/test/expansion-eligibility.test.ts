@@ -17,6 +17,7 @@ import { hashJson } from "@calllint/fingerprint"
 import { adoptionBasisPolicy, defaultPolicy } from "@calllint/policy"
 import { engineVersion } from "../src/bake.js"
 import { mergeResults, type EvidenceSubject, type ResolverResult } from "@calllint/evidence"
+import { DEFAULT_REGISTRY_DOWNLOAD_BUDGET_MINUTES } from "../src/registryDownload.js"
 
 /**
  * Phase C — Trust Index scale-out, CODE-READY (I1).
@@ -84,7 +85,7 @@ describe("trust ingest synchronization mode", () => {
     const restoreAt = workflow.indexOf("uses: actions/cache/restore@v4")
     const ingestAt = workflow.indexOf("run: pnpm ingest:trust-index")
     const saveStepAt = workflow.indexOf("- name: Save completed trust ingest state")
-    const saveAt = workflow.indexOf("uses: actions/cache/save@v4")
+    const saveAt = workflow.indexOf("uses: actions/cache/save@v4", saveStepAt)
     const evidenceAt = workflow.indexOf("run: pnpm resolve-evidence:trust-index")
     const pullRequestAt = workflow.indexOf("uses: peter-evans/create-pull-request@v7")
     const saveBlock = workflow.slice(saveStepAt, evidenceAt)
@@ -96,7 +97,7 @@ describe("trust ingest synchronization mode", () => {
     expect(saveAt).toBeLessThan(evidenceAt)
     expect(ingestAt).toBeLessThan(pullRequestAt)
     expect(evidenceAt).toBeLessThan(pullRequestAt)
-    expect(saveBlock).toContain("if: ${{ success() }}")
+    expect(saveBlock).toContain("if: ${{ success() && steps.registry-download.outputs.complete != 'false' }}")
     expect(workflow).toContain("A failed or cancelled ingest never reaches this step")
     expect(workflow).toContain("${{ steps.source-mode.outputs.mode }}")
     expect(workflow).toContain("trust-ingest-state-v2-${{ runner.os }}-${{ github.ref_name }}-")
@@ -120,6 +121,32 @@ describe("trust ingest synchronization mode", () => {
     expect(workflow).toContain('- cron: "17 6 1 * *"')
     expect(workflow).toContain('mode=full')
     expect(workflow).toContain('mode=incremental')
+  })
+
+  it("resumes full registry downloads and projects only a verified complete cache", () => {
+    const workflow = readFileSync(
+      resolve(dirname(fileURLToPath(import.meta.url)), "..", "..", "..", ".github", "workflows", "trust-ingest.yml"),
+      "utf8",
+    ).replace(/\r\n/g, "\n")
+    const source = readFileSync(resolve(dirname(fileURLToPath(import.meta.url)), "..", "src", "refreshSnapshot.ts"), "utf8")
+    const restoreAt = workflow.indexOf("id: registry-download-state")
+    const downloaderAt = workflow.indexOf("pnpm --filter @calllint/trust-index download-registry")
+    const saveAt = workflow.indexOf("- name: Save durable registry download progress")
+    const buildAt = workflow.indexOf("run: pnpm build")
+    const ingestAt = workflow.indexOf("run: pnpm ingest:trust-index")
+
+    expect(workflow).toContain("timeout-minutes: 120")
+    expect(workflow).toContain(`TRUST_REGISTRY_DOWNLOAD_BUDGET_MINUTES: ${DEFAULT_REGISTRY_DOWNLOAD_BUDGET_MINUTES}`)
+    expect(restoreAt).toBeGreaterThan(-1)
+    expect(restoreAt).toBeLessThan(downloaderAt)
+    expect(downloaderAt).toBeLessThan(saveAt)
+    expect(saveAt).toBeLessThan(buildAt)
+    expect(buildAt).toBeLessThan(ingestAt)
+    expect(workflow).toContain("steps.registry-download.outputs.complete != 'false'")
+    expect(workflow).toContain("TRUST_REGISTRY_REPLAY_DIR: ${{ steps.registry-download.outputs.complete == 'true'")
+    expect(source).toContain("replayRegistry(registryReplayDir)")
+    expect(source).toContain("fetchImpl: registryReplay?.fetchImpl ?? fetch")
+    expect(workflow).toContain("trust-registry-download-v1-${{ runner.os }}-${{ github.ref_name }}-")
   })
 })
 
@@ -416,7 +443,9 @@ describe("resolveMirrorMaxPages — the page ceiling, fail-safe, with NO inequal
     expect(PAGE_SIZE).toBe(100)
   })
 
-  it("the ceiling stays REACHABLE inside the ingest job's pinned wall-clock budget", () => {
+  it("pins a bounded download window below the ingest job timeout", () => {
+    // Full network pagination runs in resumable windows. This timeout bounds local replay,
+    // ingestion, and gates as well as the bounded download step.
     // The upper bound, and the one that had no control at all. Everything above this test bounds
     // the ceiling from BELOW — clear the source or every run truncates. Nothing bounded it from
     // above, and above is where the failure is silent: a ceiling the job cannot reach before the
@@ -429,11 +458,9 @@ describe("resolveMirrorMaxPages — the page ceiling, fail-safe, with NO inequal
     // 360-min job maximum, and no assertion in the repo would have noticed.
     //
     // Throughput is measured, not assumed: 7090s / 653 pages ≈ 10.9 s/page against this source.
-    const MEASURED_SECONDS_PER_PAGE = 7090 / 653
     const budgetMinutes = ingestJobTimeoutMinutes()
-    const worstCaseMinutes = (DEFAULT_MAX_PAGES * MEASURED_SECONDS_PER_PAGE) / 60
-
-    expect(worstCaseMinutes).toBeLessThan(budgetMinutes)
+    expect(budgetMinutes).toBe(120)
+    expect(budgetMinutes).toBeGreaterThan(DEFAULT_REGISTRY_DOWNLOAD_BUDGET_MINUTES)
     // And the pin itself must stay inside the platform's ceiling, or it is decorative: GitHub
     // kills the job at 360 whatever the file says.
     expect(budgetMinutes).toBeLessThanOrEqual(360)
