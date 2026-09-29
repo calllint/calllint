@@ -371,7 +371,7 @@ describe("Gate S0 — every path:line the record cites still points at what it c
     // BEFORE the PR-opening step, so the cohort sat frozen at 100 for two weeks with no red PR to
     // notice. The mover is once again the batch editing the file — the pattern that row predicts.
     // The cache restore and mode selector are now part of this workflow.
-    assertPointer(WORKFLOW, 197, "ingest:trust-index", "the ingest step")
+    assertPointer(WORKFLOW, 208, "ingest:trust-index", "the ingest step")
   })
 })
 

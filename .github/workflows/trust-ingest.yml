@@ -139,6 +139,17 @@ jobs:
           echo "mode=$mode" >> "$GITHUB_OUTPUT"
           echo "source reconciliation mode: $mode"
 
+      - name: Require a completed checkpoint for incremental sync
+        if: ${{ steps.source-mode.outputs.mode == 'incremental' }}
+        shell: bash
+        run: |
+          state_db="packages/trust-index/.var/calllint-adoption-index/db/adoption-index.sqlite"
+          if [ ! -f "$state_db" ]; then
+            echo "::error::Incremental trust ingest requires a completed checkpoint cache. Dispatch this workflow once with sync_mode=full to bootstrap it, then scheduled incremental runs will resume from that checkpoint."
+            exit 1
+          fi
+          echo "completed trust ingest checkpoint found: $state_db"
+
       - name: Build — `eval:phase-2.4:gates:write` below drives the real binary
         # THE STEP WHOSE ABSENCE KILLED TWO CONSECUTIVE SCHEDULED INGESTS.
         #

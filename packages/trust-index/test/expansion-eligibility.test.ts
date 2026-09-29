@@ -93,6 +93,14 @@ describe("trust ingest synchronization mode", () => {
     expect(workflow).toContain("if: ${{ success() }}")
     expect(workflow).toContain("${{ steps.source-mode.outputs.mode }}")
     expect(workflow).toContain("trust-ingest-state-v2-${{ runner.os }}-${{ github.ref_name }}-")
+    const modeAt = workflow.indexOf("id: source-mode")
+    const warmGuardAt = workflow.indexOf("Require a completed checkpoint for incremental sync")
+    const buildAt = workflow.indexOf("run: pnpm build")
+    expect(modeAt).toBeGreaterThan(-1)
+    expect(modeAt).toBeLessThan(warmGuardAt)
+    expect(warmGuardAt).toBeLessThan(buildAt)
+    expect(workflow).toContain("sync_mode=full to bootstrap it")
+    expect(workflow).toContain("state_db=\"packages/trust-index/.var/calllint-adoption-index/db/adoption-index.sqlite\"")
   })
 
   it("keeps weekly incremental runs and a monthly full reconciliation", () => {
