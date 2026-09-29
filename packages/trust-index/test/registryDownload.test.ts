@@ -2,7 +2,7 @@ import { describe, it, expect } from "vitest"
 import { mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs"
 import { tmpdir } from "node:os"
 import { join } from "node:path"
-import { downloadRegistry, replayRegistry } from "../src/registryDownload.js"
+import { DEFAULT_REGISTRY_DOWNLOAD_BUDGET_MINUTES, downloadRegistry, replayRegistry } from "../src/registryDownload.js"
 import { createOfficialRegistryAdapter } from "@calllint/adoption-index"
 
 function page(name: string, cursor?: string): Response {
@@ -15,6 +15,11 @@ async function sandbox(run: (dir: string) => Promise<void>) {
   try { await run(dir) } finally { rmSync(dir, { recursive: true, force: true }) }
 }
 describe("durable registry download", () => {
+  it("keeps each network batch below the workflow runner cap", () => {
+    expect(DEFAULT_REGISTRY_DOWNLOAD_BUDGET_MINUTES).toBe(25)
+    expect(DEFAULT_REGISTRY_DOWNLOAD_BUDGET_MINUTES).toBeLessThan(120)
+  })
+
   it("resumes a bounded chunk and replays the complete source through the real adapter", () => sandbox(async (dir) => {
     const urls: string[] = []
     const fetchImpl = (async (url: string) => {

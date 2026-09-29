@@ -16,6 +16,7 @@
     "test:watch": "vitest",
     "bake": "tsx src/bake.ts",
     "ingest": "tsx src/refreshSnapshot.ts",
+    "download-registry": "tsx src/registryDownload.ts",
     "resolve-evidence": "tsx src/resolveEvidence.ts",
     "project-adoption-index": "tsx src/projectAdoptionIndex.ts --from-snapshot",
     "prune-cas": "tsx src/pruneCas.ts",

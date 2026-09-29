@@ -79,11 +79,10 @@ jobs:
     # and `assertMirrorComplete` never runs. That is the one truncation this repo's fail-closed
     # guard cannot see, so the budget it is argued against must be EXPLICIT here and not inherited.
     #
-    # 300 min against a measured full walk of 7090s ≈ 118 min (653 pages, 65_235 records,
-    # 2026-08-04) — ~2.5x the measurement, and below GitHub's 360-min job maximum so the number is
-    # ours rather than the platform's. Left implicit, the job would inherit exactly that 360, i.e.
-    # the ceiling would be argued against a limit no line in this repo states.
-    timeout-minutes: 300
+    # The full source walk is split into durable 25-minute windows. This limit bounds each runner
+    # invocation, including local generation and gates, instead of allowing one registry read to
+    # occupy a runner for up to five hours.
+    timeout-minutes: 120
     steps:
       - uses: actions/checkout@v6
 
@@ -97,6 +96,15 @@ jobs:
           key: trust-ingest-state-v2-${{ runner.os }}-${{ github.ref_name }}-${{ hashFiles('pnpm-lock.yaml', 'packages/adoption-index/migrations/**') }}-${{ github.run_id }}
           restore-keys: |
             trust-ingest-state-v2-${{ runner.os }}-${{ github.ref_name }}-${{ hashFiles('pnpm-lock.yaml', 'packages/adoption-index/migrations/**') }}-
+
+      - name: Restore resumable registry download
+        id: registry-download-state
+        uses: actions/cache/restore@v4
+        with:
+          path: packages/trust-index/.var/registry-download
+          key: trust-registry-download-v1-${{ runner.os }}-${{ github.ref_name }}-${{ hashFiles('pnpm-lock.yaml') }}-${{ github.run_id }}
+          restore-keys: |
+            trust-registry-download-v1-${{ runner.os }}-${{ github.ref_name }}-${{ hashFiles('pnpm-lock.yaml') }}-
 
       # ONE instant for the whole ingest, computed once and shared by every step below.
       #
@@ -136,7 +144,17 @@ jobs:
               mode=incremental
             fi
           fi
+          state_db="packages/trust-index/.var/calllint-adoption-index/db/adoption-index.sqlite"
+          manifest="packages/trust-index/.var/registry-download/manifest.json"
+          if [ -f "$manifest" ] && [ "$(node -e 'const m=require("./packages/trust-index/.var/registry-download/manifest.json"); process.stdout.write(String(m.complete === false))')" = true ]; then
+            mode=full
+            echo "resuming an incomplete durable registry download"
+          elif [ ! -f "$state_db" ]; then
+            mode=full
+            echo "no completed trust checkpoint; starting resumable full bootstrap"
+          fi
           echo "mode=$mode" >> "$GITHUB_OUTPUT"
+          echo "download_needed=$([ "$mode" = full ] && echo true || echo false)" >> "$GITHUB_OUTPUT"
           echo "source reconciliation mode: $mode"
 
       - name: Require a completed checkpoint for incremental sync
@@ -150,7 +168,23 @@ jobs:
           fi
           echo "completed trust ingest checkpoint found: $state_db"
 
+      - name: Download full registry in a bounded resumable window
+        id: registry-download
+        if: ${{ steps.source-mode.outputs.download_needed == 'true' }}
+        env:
+          TRUST_REGISTRY_DOWNLOAD_DIR: packages/trust-index/.var/registry-download
+          TRUST_REGISTRY_DOWNLOAD_BUDGET_MINUTES: 25
+        run: pnpm --filter @calllint/trust-index download-registry
+
+      - name: Save durable registry download progress
+        if: ${{ always() && steps.source-mode.outputs.download_needed == 'true' && steps.registry-download.outcome != 'cancelled' }}
+        uses: actions/cache/save@v4
+        with:
+          path: packages/trust-index/.var/registry-download
+          key: trust-registry-download-v1-${{ runner.os }}-${{ github.ref_name }}-${{ hashFiles('pnpm-lock.yaml') }}-${{ github.run_id }}
+
       - name: Build — `eval:phase-2.4:gates:write` below drives the real binary
+        if: ${{ steps.registry-download.outputs.complete != 'false' }}
         # THE STEP WHOSE ABSENCE KILLED TWO CONSECUTIVE SCHEDULED INGESTS.
         #
         # Runs 32004879519 (2026-08-17) and 32700871694 (2026-08-24) both failed here-but-one-step-later,
@@ -184,6 +218,7 @@ jobs:
         run: pnpm build
 
       - name: Ingest — mirror the registry, project + retain the snapshot, report the change
+        if: ${{ steps.registry-download.outputs.complete != 'false' }}
         # The caps are LEFT TO THE DEFAULTS on purpose. `DEFAULT_MIRROR_MAX_ENTRIES` (100_000) and
         # `DEFAULT_MAX_PAGES` (1000) are argued from a walk of the live source that ran to
         # EXHAUSTION (653 pages / 65_235 records / 7090s, 2026-08-04) and against this job's
@@ -205,19 +240,21 @@ jobs:
           TRUST_INGEST_MIRROR_MAX_ENTRIES: ${{ github.event.inputs.mirror_max_entries || '' }}
           TRUST_INGEST_MIRROR_MAX_PAGES: ${{ github.event.inputs.mirror_max_pages || '' }}
           TRUST_INGEST_SYNC_MODE: ${{ steps.source-mode.outputs.mode }}
+          TRUST_REGISTRY_REPLAY_DIR: ${{ steps.registry-download.outputs.complete == 'true' && 'packages/trust-index/.var/registry-download' || '' }}
         run: pnpm ingest:trust-index
 
       # Persist immediately after ingest commits a completed source checkpoint. Later bake,
       # preflight, or PR failures must not make the next run repeat the full registry mirror.
       # A failed or cancelled ingest never reaches this step; unique keys keep older good state.
       - name: Save completed trust ingest state
-        if: ${{ success() }}
+        if: ${{ success() && steps.registry-download.outputs.complete != 'false' }}
         uses: actions/cache/save@v4
         with:
           path: packages/trust-index/.var/calllint-adoption-index
           key: trust-ingest-state-v2-${{ runner.os }}-${{ github.ref_name }}-${{ hashFiles('pnpm-lock.yaml', 'packages/adoption-index/migrations/**') }}-${{ github.run_id }}
 
       - name: Resolve evidence — identity-only resolution of remote endpoints (ADR 0050)
+        if: ${{ steps.registry-download.outputs.complete != 'false' }}
         # The SECOND (and last) network step. Reads the retained registry snapshot,
         # runs the read-only P1 resolvers over each remote endpoint (INV1: no exec,
         # no probe), and freezes the results into a retained evidence snapshot
@@ -225,6 +262,7 @@ jobs:
         run: pnpm resolve-evidence:trust-index
 
       - name: Project the adoption index — purely, from the committed snapshot (ADR 0061 §8.1)
+        if: ${{ steps.registry-download.outputs.complete != 'false' }}
         # NOT a network step, and it does NOT open the compiler's database. `--from-snapshot` makes
         # the committed artifact a pure function of committed bytes, stamped `snapshot.fetchedAt`,
         # so anyone can re-derive it and byte-compare. The bake below then reads that committed file
@@ -250,11 +288,13 @@ jobs:
         run: pnpm project-adoption-index:trust-index
 
       - name: Re-bake with evidence — refine remote UNKNOWN verdicts (ADR 0050)
+        if: ${{ steps.registry-download.outputs.complete != 'false' }}
         # Pure re-bake: reads BOTH committed snapshots and refines remote UNKNOWN
         # pages to REVIEW where identity resolved cleanly. No network, no clock.
         run: pnpm bake:trust-index
 
       - name: Sync the MCP server's bundled data from the freshly baked tree
+        if: ${{ steps.registry-download.outputs.complete != 'false' }}
         # THE STEP THAT DID NOT EXIST, AND WHOSE ABSENCE WAS PAID FOR BY HAND.
         #
         # Two committed files under `packages/calllint-mcp/src/data/` must be byte-identical to what
@@ -276,6 +316,7 @@ jobs:
         run: pnpm sync:mcp-bundle
 
       - name: Refresh the derived phase-2.4 artifacts from the freshly baked tree
+        if: ${{ steps.registry-download.outputs.complete != 'false' }}
         # THE SAME DEFECT AS THE STEP ABOVE, ONE CLASS WIDER — and the step above did not fix it.
         #
         # `sync:mcp-bundle` was added (ADR 0087) for the two files under `packages/calllint-mcp/src/data/`.
@@ -308,12 +349,14 @@ jobs:
         run: pnpm eval:phase-2.4:write && pnpm eval:phase-2.4:gates:write && pnpm audit:presentation:write && pnpm audit:presentation:lock:write && pnpm audit:preview:write
 
       - name: Refresh the generated Gate S1/S2 current census
+        if: ${{ steps.registry-download.outputs.complete != 'false' }}
         # These Markdown blocks are generated claims, not hand-maintained
         # counters. The writer reads the retained snapshot and the freshly
         # served index, preserving all dated historical measurements.
         run: pnpm gate:census:write
 
       - name: Re-freeze page-derived artifacts after the census write
+        if: ${{ steps.registry-download.outputs.complete != 'false' }}
         # The census writer is a generated-data boundary. Keep the final
         # page-derived artifacts downstream of every writer that can touch the
         # served tree, then verify the exact bytes that the PR will contain.
@@ -323,27 +366,32 @@ jobs:
         run: pnpm eval:phase-2.4:write && pnpm eval:phase-2.4:gates:write && pnpm audit:presentation:write && pnpm audit:presentation:lock:write && pnpm audit:preview:write
 
       - name: Guard the regenerated pages (no overclaim / PII; completeness)
+        if: ${{ steps.registry-download.outputs.complete != 'false' }}
         run: pnpm check:public-copy
 
       - name: Verify generated artifacts are stable before preflight
+        if: ${{ steps.registry-download.outputs.complete != 'false' }}
         # A writer must be idempotent over the final working tree. This catches
         # any hidden page writer or clock-dependent output before the full test
         # suite, instead of reporting a late, misleading test failure.
         run: pnpm eval:phase-2.4 && pnpm eval:phase-2.4:gates && pnpm audit:presentation && pnpm audit:presentation:lock && pnpm audit:preview
 
       - name: Preflight Phase 2.4 committed-tree tests in isolation
+        if: ${{ steps.registry-download.outputs.complete != 'false' }}
         # This suite observes the shared committed install tree. Run it after
         # the final freeze and outside Vitest's cross-file worker pool so another
         # test cannot change the pages between its digest reads.
         run: pnpm vitest run packages/trust-index/test/phase24-eval.test.ts --no-file-parallelism
 
       - name: Enforce the Phase 2.4 human-panel gate before opening the PR
+        if: ${{ steps.registry-download.outputs.complete != 'false' }}
         # `eval:phase-2.4` is a drift check; only `--gate` turns a pending or
         # SURFACE_CHANGED human panel into a non-zero result. Run it before the
         # PR action so registry page changes require a real panel refresh.
         run: pnpm eval:phase-2.4:gate
 
       - name: Preflight deterministic PR checks
+        if: ${{ steps.registry-download.outputs.complete != 'false' }}
         # Do this before create-pull-request. A refresh that leaves deterministic
         # tests red must stop here instead of opening a known-red PR.
         # phase24-eval.test.ts already ran in the isolated step above; excluding
@@ -364,6 +412,7 @@ jobs:
       # wrong the first time a page is added. Instead this asserts the ONE boundary that matters —
       # inside scripts/, only gate-s0.ts may change, and only its floor, and only upward.
       - name: Assert the ingest touched no source but the ratchet floor
+        if: ${{ steps.registry-download.outputs.complete != 'false' }}
         run: |
           set -uo pipefail
           fail=0
@@ -412,6 +461,7 @@ jobs:
           [ "$fail" = 0 ] || exit 1
 
       - name: Open a PR with the refreshed snapshot + pages
+        if: ${{ steps.registry-download.outputs.complete != 'false' }}
         # peter-evans/create-pull-request: widely used, actively maintained. It
         # commits the working-tree changes to a branch and opens/updates one PR.
         # No-ops cleanly when the bake produced no diff (registry unchanged).
