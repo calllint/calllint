@@ -176,8 +176,25 @@ jobs:
           TRUST_REGISTRY_DOWNLOAD_BUDGET_MINUTES: 25
         run: pnpm --filter @calllint/trust-index download-registry
 
-      - name: Save durable registry download progress
+      - name: Inspect durable registry download progress
         if: ${{ always() && steps.source-mode.outputs.download_needed == 'true' && steps.registry-download.outcome != 'cancelled' }}
+        id: registry-download-manifest
+        shell: bash
+        run: |
+          dir="packages/trust-index/.var/registry-download"
+          if [ ! -f "$dir/manifest.json" ]; then
+            echo "No durable registry manifest was written; nothing to cache."
+            echo "present=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          echo "present=true" >> "$GITHUB_OUTPUT"
+          if [ "${{ steps.registry-download.outputs.complete }}" = "true" ]; then
+            echo "Registry download completed; no resumable registry cache is needed."
+          else
+            echo "Registry download is incomplete; the next run can restore and resume it."
+          fi
+      - name: Save resumable registry cache
+        if: ${{ always() && steps.source-mode.outputs.download_needed == 'true' && steps.registry-download.outcome != 'cancelled' && steps.registry-download.outputs.complete != 'true' && steps.registry-download-manifest.outputs.present == 'true' }}
         uses: actions/cache/save@v4
         with:
           path: packages/trust-index/.var/registry-download
