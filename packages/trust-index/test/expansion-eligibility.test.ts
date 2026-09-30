@@ -131,7 +131,7 @@ describe("trust ingest synchronization mode", () => {
     const source = readFileSync(resolve(dirname(fileURLToPath(import.meta.url)), "..", "src", "refreshSnapshot.ts"), "utf8")
     const restoreAt = workflow.indexOf("id: registry-download-state")
     const downloaderAt = workflow.indexOf("pnpm --filter @calllint/trust-index download-registry")
-    const saveAt = workflow.indexOf("- name: Save durable registry download progress")
+    const saveAt = workflow.indexOf("- name: Save resumable registry cache")
     const buildAt = workflow.indexOf("run: pnpm build")
     const ingestAt = workflow.indexOf("run: pnpm ingest:trust-index")
 
@@ -143,6 +143,9 @@ describe("trust ingest synchronization mode", () => {
     expect(saveAt).toBeLessThan(buildAt)
     expect(buildAt).toBeLessThan(ingestAt)
     expect(workflow).toContain("steps.registry-download.outputs.complete != 'false'")
+    expect(workflow).toContain("steps.registry-download.outputs.complete != 'true'")
+    expect(workflow).toContain("steps.registry-download-manifest.outputs.present == 'true'")
+    expect(workflow).toContain("manifest.json")
     expect(workflow).toContain("TRUST_REGISTRY_REPLAY_DIR: ${{ steps.registry-download.outputs.complete == 'true'")
     expect(source).toContain("replayRegistry(registryReplayDir)")
     expect(source).toContain("fetchImpl: registryReplay?.fetchImpl ?? fetch")
