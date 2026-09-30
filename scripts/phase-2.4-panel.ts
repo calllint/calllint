@@ -38,6 +38,8 @@
  *   --base <origin>       show the page from this origin instead of an ephemeral
  *                         local server (e.g. https://calllint.com, which also
  *                         proves the deploy matches the committed bytes).
+ *   --replace-stale       with --record, replace an existing same-participant
+ *                         response only when the current page marks it stale.
  *
  * Exit codes: 0 ok · 1 invalid store / artifact mismatch · 2 refused (no TTY /
  * bad usage / page unreachable).
@@ -302,6 +304,36 @@ export function reseatResponses(store: FiveSecondPanelStore, lookup: HistoryLook
   return { responses, changed, refusals }
 }
 
+/**
+ * Replace one response only after the current served surface proves it stale.
+ * This preserves the one-participant/one-page invariant while giving the human
+ * operator an auditable way to re-run a session after a page change.
+ */
+export function replaceStalePanelResponse(
+  store: FiveSecondPanelStore,
+  replacement: FiveSecondResponse,
+  servedSurfaceDigests: ReadonlyMap<string, string>,
+): FiveSecondPanelStore {
+  const index = store.responses.findIndex(
+    (r) => r.participant === replacement.participant && r.canonicalSlug === replacement.canonicalSlug,
+  )
+  if (index === -1) throw new Error(`no existing response for ${replacement.participant} @ ${replacement.canonicalSlug}`)
+  const { stale } = partitionPanelFreshness(store, servedSurfaceDigests)
+  const target = stale.find(
+    (r) => r.participant === replacement.participant && r.canonicalSlug === replacement.canonicalSlug,
+  )
+  if (target === undefined) {
+    throw new Error(`existing response for ${replacement.participant} @ ${replacement.canonicalSlug} is fresh`)
+  }
+  const next: FiveSecondPanelStore = {
+    ...store,
+    responses: store.responses.map((r, i) => (i === index ? replacement : r)),
+  }
+  const errors = validate(next)
+  if (errors.length > 0) throw new Error(`replacement would be invalid:\n  ${errors.join("\n  ")}`)
+  return next
+}
+
 /** Every version of a page committed on HEAD's history, newest first. */
 function* gitHistory(canonicalSlug: string): Iterable<Buffer> {
   const rel = `apps/web/public/install/${canonicalSlug}/index.html`
@@ -402,7 +434,7 @@ async function askYesNo(rl: readline.Interface, q: string): Promise<boolean> {
   }
 }
 
-async function record(slug: string, baseOverride: string | null): Promise<number> {
+async function record(slug: string, baseOverride: string | null, replaceStale: boolean): Promise<number> {
   if (!process.stdin.isTTY) {
     console.error("refusing to record without an interactive terminal — Gate 2.4-B data must come from a human, not a pipe.")
     return 2
@@ -431,9 +463,18 @@ async function record(slug: string, baseOverride: string | null): Promise<number
       console.error("empty participant id — nothing recorded.")
       return 2
     }
-    if (store.responses.some((r) => r.participant === participant && r.canonicalSlug === slug)) {
+    const existingIndex = store.responses.findIndex((r) => r.participant === participant && r.canonicalSlug === slug)
+    if (existingIndex !== -1 && !replaceStale) {
       console.error(`${participant} already has a recorded session for ${slug} — nothing recorded.`)
       return 2
+    }
+    if (existingIndex !== -1) {
+      const { stale } = partitionPanelFreshness(store, servedPageDigests())
+      if (!stale.some((r) => r.participant === participant && r.canonicalSlug === slug)) {
+        console.error(`${participant} already has a fresh recorded session for ${slug} — nothing replaced.`)
+        return 2
+      }
+      console.log(`replacing the stale recorded session for ${participant} @ ${slug}`)
     }
     console.log(
       [
@@ -475,10 +516,14 @@ async function record(slug: string, baseOverride: string | null): Promise<number
       shownDigest: shown.shownDigest,
       shownSurfaceDigest: shown.shownSurfaceDigest,
     }
-    const next: FiveSecondPanelStore = { ...store, responses: [...store.responses, response] }
-    const errs = validate(next)
-    if (errs.length > 0) {
-      console.error(`refusing to write — the result would be invalid:\n  ${errs.join("\n  ")}`)
+    let next: FiveSecondPanelStore
+    try {
+      next =
+        existingIndex === -1
+          ? { ...store, responses: [...store.responses, response] }
+          : replaceStalePanelResponse(store, response, servedPageDigests())
+    } catch (e) {
+      console.error(`refusing to write — ${(e as Error).message}`)
       return 1
     }
     fs.writeFileSync(storePath, JSON.stringify(next, null, 2) + "\n", "utf8")
@@ -532,7 +577,7 @@ if (!invokedDirectly) {
     console.error("   e.g. pnpm eval:phase-2.4:panel:record mcp-registry/ai.adeu-adeu")
     process.exit(2)
   }
-  process.exit(await record(slug, base))
+  process.exit(await record(slug, base, argv.includes("--replace-stale")))
 } else {
   const store = readStore()
   const errs = validate(store)
