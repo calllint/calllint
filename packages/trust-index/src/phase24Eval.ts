@@ -504,8 +504,10 @@ export function partitionPanelFreshness(
 export function decideGateB(
   structures: readonly HumanCapsuleStructure[],
   panel: FiveSecondPanelMeasures,
+  staleResponses = 0,
 ): GateStatus {
   if (!structures.every((s) => s.pass)) return "FAILED"
+  if (staleResponses > 0) return "PENDING_HUMAN_PANEL"
   if (panel.responses < FIVE_SECOND_MIN_PANEL) return "PENDING_HUMAN_PANEL"
   const rates = FIVE_SECOND_QUESTIONS.map((q) => panel.recognition[q])
   if (rates.some((r) => r === null)) return "PENDING_HUMAN_PANEL"

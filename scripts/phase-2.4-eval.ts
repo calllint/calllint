@@ -100,7 +100,11 @@ function buildHumanReport(): { json: string; status: GateStatus; structures: Hum
   // (ADR 0079).
   const { fresh, stale } = partitionPanelFreshness(store, servedPageDigests())
   const panel = measureFiveSecondPanel({ ...store, responses: fresh })
-  const status = decideGateB(structures, panel)
+  // A stale response is evidence about a different rendered subject. Keep the
+  // response in the audit trail, but make the derived artifact pending until a
+  // human re-runs that session against the current page. This preserves the
+  // release gate without deadlocking the automated ingest before its PR exists.
+  const status = decideGateB(structures, panel, stale.length)
   const blockers: string[] = []
   for (const s of structures) {
     for (const c of s.checks) {

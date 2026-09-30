@@ -167,21 +167,31 @@ describe("Gate 2.4-B — the human panel is DATA, never simulated", () => {
     expect(decideGateB(structures, empty)) .toBe("PENDING_HUMAN_PANEL")
   })
 
+  it("a stale response keeps the derived human gate pending even when enough fresh responses remain", () => {
+    const measured = measureFiveSecondPanel(panel(FIVE_SECOND_MIN_PANEL))
+    expect(decideGateB(structures, measured, 1)).toBe("PENDING_HUMAN_PANEL")
+    expect(decideGateB(structures, measured, 0)).toBe("PASSED")
+  })
+
   it("the committed panel store, when recorded and fresh, has ≥10 responses and passes Gate 2.4-B", () => {
     const store = JSON.parse(
       fs.readFileSync(path.join(repoRoot, "artifacts/phase-2.4/five-second-panel-store.json"), "utf8"),
     ) as FiveSecondPanelStore
     expect(store.schema).toBe("calllint.five-second-panel.v0")
     const { fresh, stale } = partitionPanelFreshness(store, servedInstallSurfaceDigests())
-    // Honest empty or fully-stale store is PENDING — pages were rebuilt and humans must re-record.
-    if (fresh.length < FIVE_SECOND_MIN_PANEL) {
-      expect(decideGateB(structures, measureFiveSecondPanel({ ...store, responses: fresh }))).toBe(
-        "PENDING_HUMAN_PANEL",
-      )
+    const panel = measureFiveSecondPanel({ ...store, responses: fresh })
+    // Any stale response keeps the derived artifact pending until that session is
+    // re-run, even when the remaining fresh responses still meet the floor.
+    if (stale.length > 0) {
+      expect(decideGateB(structures, panel, stale.length)).toBe("PENDING_HUMAN_PANEL")
       return
     }
-    expect(stale).toEqual([])
-    const panel = measureFiveSecondPanel({ ...store, responses: fresh })
+    // Honest empty or undersized stores are also pending: pages were rebuilt and
+    // humans must record enough sessions before the gate can pass.
+    if (fresh.length < FIVE_SECOND_MIN_PANEL) {
+      expect(decideGateB(structures, panel)).toBe("PENDING_HUMAN_PANEL")
+      return
+    }
     expect(panel.recognition.target).toBe(1)
     expect(panel.recognition.consequence).toBe(1)
     expect(panel.recognition.action).toBe(1)
@@ -594,7 +604,12 @@ describe("committed Phase 2.4 evidence", () => {
     expect(["PASSED", "PENDING_HUMAN_PANEL"]).toContain(a.status)
     expect((a.structuralPrecondition as { pass: boolean }).pass).toBe(true)
     expect((a.structuralPrecondition as { pagesEvaluated: number }).pagesEvaluated).toBe(5)
-    const hp = a.humanPanel as { status: string; responses: number; recognition: Record<string, number> }
+    const hp = a.humanPanel as {
+      status: string
+      responses: number
+      staleResponses?: number
+      recognition: Record<string, number>
+    }
     if (a.status === "PASSED") {
       expect(hp.status).toBe("RECORDED")
       expect(hp.responses).toBeGreaterThanOrEqual(FIVE_SECOND_MIN_PANEL)
@@ -606,7 +621,7 @@ describe("committed Phase 2.4 evidence", () => {
       // `fresh` was always []; `responses === 0` passed for a reason the gate never
       // asserts. Assert the gate's own condition instead, and keep the honesty
       // property that a pending artifact must still say WHY.
-      expect(hp.responses).toBeLessThan(FIVE_SECOND_MIN_PANEL)
+      expect(hp.responses < FIVE_SECOND_MIN_PANEL || (hp.staleResponses ?? 0) > 0).toBe(true)
       expect(hp.status).toBe(hp.responses === 0 ? "NOT_RUN" : "RECORDED")
       expect((a.blockers as string[]) ?? []).not.toEqual([])
     }

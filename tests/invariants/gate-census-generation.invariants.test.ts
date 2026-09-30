@@ -66,10 +66,12 @@ describe("generated Gate S1/S2 cohort census", () => {
     expect(s2).toMatch(/<!-- generated-cohort-census:start -->[\s\S]*<!-- generated-cohort-census:end -->/)
     const workflow = read(".github/workflows/trust-ingest.yml")
     expect(workflow).toContain("pnpm gate:census:write")
-    expect(workflow).toContain("pnpm eval:phase-2.4:gate")
+    expect(workflow).toContain("Report Phase 2.4 human-panel status")
+    expect(workflow).toContain("release Gate 2.4-B is not closed")
     expect(read(".github/workflows/ci.yml")).toContain("run: pnpm gate:census")
     const packageJson = JSON.parse(read("package.json")) as { scripts: Record<string, string> }
     expect(packageJson.scripts["gate:census"]).toBe("tsx scripts/gate-census.ts --check")
     expect(packageJson.scripts["gate:census:write"]).toBe("tsx scripts/gate-census.ts --write")
+    expect(packageJson.scripts["eval:phase-2.4:gate"]).toBe("tsx scripts/phase-2.4-eval.ts --gate")
   })
 })
