@@ -1,29 +1,29 @@
 {
   "schema": "calllint.agent-adoption-contract.v1",
   "contract": {
-    "contractDigest": "sha256:41c3c4ec7c1d194126cf713bbec5d6d3ef4b41cf86cd2ce655c77b0c84e4c5c5",
-    "generatedAt": "2026-09-15T06:37:10.000Z",
+    "contractDigest": "sha256:c0539c5c26d596211cfa7e2e3659f1ecae087f58b3e313ee9c30f0ce2e9b6a0e",
+    "generatedAt": "2026-09-30T01:30:03.000Z",
     "expiresAt": null,
     "generatorVersion": "0.1.0",
-    "snapshotDigest": "sha256:0d7685adae8d8f501d520c5eb42746baee8e6f798ab6965b17f8c4253cd8180d"
+    "snapshotDigest": "sha256:2a2fdb4ac6789eae0bc4e05425b2b2a962ea0dc4471865f754030b6d55ce5446"
   },
   "subject": {
     "canonicalName": "mcp-registry/ai.aginera-preconstruction",
     "canonicalSlug": "mcp-registry/ai.aginera-preconstruction",
     "packageType": null,
     "packageName": null,
-    "version": "1.0.0",
+    "version": "1.1.0",
     "artifactDigest": "sha256:e85d9a432fde2bbfd1f8ab567a50cd812d407dfcc0b2a39c95eda12bc616b110",
     "sourceLocator": "https://mcp.aginera.ai/mcp"
   },
   "publicObservation": {
-    "verdict": "UNKNOWN",
-    "publicLabel": "Insufficient evidence",
+    "verdict": "REVIEW",
+    "publicLabel": "Review required",
     "reasonCodes": [
       "UNKNOWN_REMOTE"
     ],
     "evidenceLevel": "E2",
-    "evidenceDigest": "sha256:2579b184c2ed95daff8ca669622c89bd6f7d964fca3d01a0e356928b2253e33e",
+    "evidenceDigest": "sha256:3b2668dc36b1dbc0e510c12ed3742663f51601b55950fa3e33ba1802bb184769",
     "completeness": "complete"
   },
   "authorityDelta": {
@@ -44,17 +44,24 @@
     ]
   },
   "trustedSources": {
-    "registrySnapshotDigest": "sha256:0d7685adae8d8f501d520c5eb42746baee8e6f798ab6965b17f8c4253cd8180d",
-    "evidenceDigest": "sha256:2579b184c2ed95daff8ca669622c89bd6f7d964fca3d01a0e356928b2253e33e",
+    "registrySnapshotDigest": "sha256:2a2fdb4ac6789eae0bc4e05425b2b2a962ea0dc4471865f754030b6d55ce5446",
+    "evidenceDigest": "sha256:3b2668dc36b1dbc0e510c12ed3742663f51601b55950fa3e33ba1802bb184769",
     "engineVersion": "0.1.0"
   },
   "untrustedPublisherContent": {
-    "description": "Turn construction drawings into takeoffs, measured routes, schedules and estimates.",
+    "description": "Takeoffs, measured routes and schedules from construction drawings; PDF to CAD (DXF free, DWG $2).",
     "usedForSafetyDecision": false
   },
   "recommendedNextAction": {
-    "kind": "LOCAL_PREFLIGHT_REQUIRED",
-    "tool": "calllint_prepare_safe_install"
+    "kind": "PREPARE_LOCALLY",
+    "tool": "calllint_prepare_safe_install",
+    "arguments": {
+      "canonicalName": "mcp-registry/ai.aginera-preconstruction",
+      "expectedVersion": "1.1.0",
+      "expectedArtifactDigest": "sha256:e85d9a432fde2bbfd1f8ab567a50cd812d407dfcc0b2a39c95eda12bc616b110",
+      "expectedContractDigest": "sha256:c0539c5c26d596211cfa7e2e3659f1ecae087f58b3e313ee9c30f0ce2e9b6a0e",
+      "host": null
+    }
   },
   "agentGuidance": {
     "goal": "Add the requested Agent Tool with only locally approved authority.",

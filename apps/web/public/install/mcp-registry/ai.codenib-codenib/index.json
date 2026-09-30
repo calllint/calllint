@@ -1,27 +1,27 @@
 {
   "schema": "calllint.agent-adoption-contract.v1",
   "contract": {
-    "contractDigest": "sha256:6d020b9ab0e1229d5f41ab042a00a0e951721d3e7b613dc3650129fbca4f6f08",
-    "generatedAt": "2026-09-15T06:37:10.000Z",
+    "contractDigest": "sha256:46a0cd03b8c0145255087106304b15e6c5db24ba7b4c1e2cb2fe97255e3ee099",
+    "generatedAt": "2026-09-30T01:30:03.000Z",
     "expiresAt": null,
     "generatorVersion": "0.1.0",
-    "snapshotDigest": "sha256:0d7685adae8d8f501d520c5eb42746baee8e6f798ab6965b17f8c4253cd8180d"
+    "snapshotDigest": "sha256:2a2fdb4ac6789eae0bc4e05425b2b2a962ea0dc4471865f754030b6d55ce5446"
   },
   "subject": {
     "canonicalName": "mcp-registry/ai.codenib-codenib",
     "canonicalSlug": "mcp-registry/ai.codenib-codenib",
     "packageType": "pypi",
     "packageName": "codenib",
-    "version": "0.2.3",
-    "artifactDigest": "sha256:63e0fb8dd8a9094b38a73a7671ce97a5be05b977944d8052238574f601d348c2",
-    "sourceLocator": "pypi:codenib@0.2.3"
+    "version": "0.2.4",
+    "artifactDigest": "sha256:eff98685439d56b82d790a4f2fe087f04c5885088636d445cf8c04a7941ef5cf",
+    "sourceLocator": "pypi:codenib@0.2.4"
   },
   "publicObservation": {
     "verdict": "SAFE",
     "publicLabel": "No blockers observed",
     "reasonCodes": [],
     "evidenceLevel": "E2",
-    "evidenceDigest": "sha256:2579b184c2ed95daff8ca669622c89bd6f7d964fca3d01a0e356928b2253e33e",
+    "evidenceDigest": "sha256:3b2668dc36b1dbc0e510c12ed3742663f51601b55950fa3e33ba1802bb184769",
     "completeness": "complete"
   },
   "authorityDelta": {
@@ -39,8 +39,8 @@
     ]
   },
   "trustedSources": {
-    "registrySnapshotDigest": "sha256:0d7685adae8d8f501d520c5eb42746baee8e6f798ab6965b17f8c4253cd8180d",
-    "evidenceDigest": "sha256:2579b184c2ed95daff8ca669622c89bd6f7d964fca3d01a0e356928b2253e33e",
+    "registrySnapshotDigest": "sha256:2a2fdb4ac6789eae0bc4e05425b2b2a962ea0dc4471865f754030b6d55ce5446",
+    "evidenceDigest": "sha256:3b2668dc36b1dbc0e510c12ed3742663f51601b55950fa3e33ba1802bb184769",
     "engineVersion": "0.1.0"
   },
   "untrustedPublisherContent": {
@@ -52,9 +52,9 @@
     "tool": "calllint_prepare_safe_install",
     "arguments": {
       "canonicalName": "mcp-registry/ai.codenib-codenib",
-      "expectedVersion": "0.2.3",
-      "expectedArtifactDigest": "sha256:63e0fb8dd8a9094b38a73a7671ce97a5be05b977944d8052238574f601d348c2",
-      "expectedContractDigest": "sha256:6d020b9ab0e1229d5f41ab042a00a0e951721d3e7b613dc3650129fbca4f6f08",
+      "expectedVersion": "0.2.4",
+      "expectedArtifactDigest": "sha256:eff98685439d56b82d790a4f2fe087f04c5885088636d445cf8c04a7941ef5cf",
+      "expectedContractDigest": "sha256:46a0cd03b8c0145255087106304b15e6c5db24ba7b4c1e2cb2fe97255e3ee099",
       "host": null
     }
   },

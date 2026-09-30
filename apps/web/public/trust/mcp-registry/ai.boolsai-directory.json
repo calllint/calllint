@@ -2,18 +2,18 @@
   "schema": "calllint.trust-page.v0",
   "canonicalName": "mcp-registry/ai.boolsai-directory",
   "artifactDigest": "sha256:a48d1554987c3d074b5467f9caf76d4b3670951330b2016593726343fc580d88",
-  "pageDigest": "sha256:87b8520fd2ae77c81d5fc79ba899210a82db0a58d140f696e4b6a10951279f37",
-  "verdict": "REVIEW",
-  "verdictLabel": "Review required",
-  "observedAt": "2026-09-15T06:37:10.000Z",
+  "pageDigest": "sha256:21f6dc26355aed91fe2a067c5b3466db5cd49f76270d3186492c674c9e6ed9cc",
+  "verdict": "UNKNOWN",
+  "verdictLabel": "Insufficient evidence",
+  "observedAt": "2026-09-30T01:30:03.000Z",
   "completeness": "complete",
   "status": {
-    "verdict": "REVIEW",
+    "verdict": "UNKNOWN",
     "completeness": "complete",
     "authorityClaimed": false,
     "reproducibility": {
-      "pageDigest": "sha256:87b8520fd2ae77c81d5fc79ba899210a82db0a58d140f696e4b6a10951279f37",
-      "observedAt": "2026-09-15T06:37:10.000Z"
+      "pageDigest": "sha256:21f6dc26355aed91fe2a067c5b3466db5cd49f76270d3186492c674c9e6ed9cc",
+      "observedAt": "2026-09-30T01:30:03.000Z"
     },
     "evidenceLevel": "E2",
     "evidenceRationale": "install config observed → static blast radius normalized into an authority inventory. Higher levels (E3 tool schema, E4 maintainer receipt, E5 sandbox) are not carried by a static page."
@@ -26,8 +26,8 @@
   },
   "scanHistory": [
     {
-      "observedAt": "2026-09-15T06:37:10.000Z",
-      "pageDigest": "sha256:87b8520fd2ae77c81d5fc79ba899210a82db0a58d140f696e4b6a10951279f37",
+      "observedAt": "2026-09-30T01:30:03.000Z",
+      "pageDigest": "sha256:21f6dc26355aed91fe2a067c5b3466db5cd49f76270d3186492c674c9e6ed9cc",
       "artifactDigest": "sha256:a48d1554987c3d074b5467f9caf76d4b3670951330b2016593726343fc580d88"
     }
   ],
@@ -40,7 +40,7 @@
       "requestedRef": null,
       "resolvedRef": "sha256:a48d1554987c3d074b5467f9caf76d4b3670951330b2016593726343fc580d88",
       "digest": "sha256:a48d1554987c3d074b5467f9caf76d4b3670951330b2016593726343fc580d88",
-      "resolvedAt": "2026-09-15T06:37:10.000Z",
+      "resolvedAt": "2026-09-30T01:30:03.000Z",
       "resolution": "resolved"
     },
     "evidence": null,
@@ -84,19 +84,19 @@
       "no external evidence attached (optional); decision will rely on CallLint's own analysis",
       "authority normalized: 1 capability, approvals required: external-network-access"
     ],
-    "preparedAt": "2026-09-15T06:37:10.000Z"
+    "preparedAt": "2026-09-30T01:30:03.000Z"
   },
   "scan": {
     "schemaVersion": "calllint.report.v0",
     "reportKind": "config-summary",
     "configPath": "official-mcp-registry:ai.boolsai/directory",
-    "verdict": "REVIEW",
-    "publicVerdictLabel": "Review required",
+    "verdict": "UNKNOWN",
+    "publicVerdictLabel": "Insufficient evidence",
     "counts": {
       "SAFE": 0,
-      "REVIEW": 1,
+      "REVIEW": 0,
       "BLOCK": 0,
-      "UNKNOWN": 0
+      "UNKNOWN": 1
     },
     "reports": [
       {
@@ -108,8 +108,8 @@
           "source": "https://directory.boolsai.ai/mcp",
           "configPath": "official-mcp-registry:ai.boolsai/directory"
         },
-        "verdict": "REVIEW",
-        "publicVerdictLabel": "Review required",
+        "verdict": "UNKNOWN",
+        "publicVerdictLabel": "Insufficient evidence",
         "policyApplied": false,
         "riskClass": "S1",
         "symbols": [
@@ -117,10 +117,9 @@
         ],
         "confidence": "high",
         "reproducibility": {
-          "level": "LOW",
+          "level": "MEDIUM",
           "reasons": [
-            "Remote endpoint domain ownership not verified",
-            "Remote endpoint identity verified; tool surface not analyzed"
+            "Remote endpoint could not be verified"
           ]
         },
         "summary": "\"remote\" could not be verified (insufficient evidence). Risk: Network (S1 Read-only utility).",
@@ -213,17 +212,11 @@
           "targetSpecHash": "sha256:5bcc06b3a0510c0c7049d9fba4622e972214e126209ba4000e48b31a8191ef09",
           "riskSurfaceHash": "sha256:47e9d20255a346b95323c2cb9e092621521638b987bbcd036e68e4aee12dcaf3"
         },
-        "diagnostics": [
-          {
-            "level": "info",
-            "code": "evidence.remote-identity-verified",
-            "message": "Remote endpoint identity verified; tool surface not analyzed (evidence: https://directory.boolsai.ai/mcp)"
-          }
-        ],
-        "generatedAt": "2026-09-15T06:37:10.000Z"
+        "diagnostics": [],
+        "generatedAt": "2026-09-30T01:30:03.000Z"
       }
     ],
     "diagnostics": [],
-    "generatedAt": "2026-09-15T06:37:10.000Z"
+    "generatedAt": "2026-09-30T01:30:03.000Z"
   }
 }
