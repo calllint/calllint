@@ -36,7 +36,7 @@ import {
   type FiveSecondResponse,
   type HumanCapsuleStructure,
 } from "../src/index.js"
-import { reseatResponses } from "../../../scripts/phase-2.4-panel.js"
+import { replaceStalePanelResponse, reseatResponses } from "../../../scripts/phase-2.4-panel.js"
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..", "..", "..")
 
@@ -171,6 +171,32 @@ describe("Gate 2.4-B — the human panel is DATA, never simulated", () => {
     const measured = measureFiveSecondPanel(panel(FIVE_SECOND_MIN_PANEL))
     expect(decideGateB(structures, measured, 1)).toBe("PENDING_HUMAN_PANEL")
     expect(decideGateB(structures, measured, 0)).toBe("PASSED")
+  })
+
+  it("replaces an existing response only when its measured surface is stale", () => {
+    const original = panel(1).responses[0]!
+    const staleStore: FiveSecondPanelStore = {
+      schema: "calllint.five-second-panel.v0",
+      responses: [{ ...original, shownSurfaceDigest: `sha256:${"b".repeat(64)}` }],
+    }
+    const replacement: FiveSecondResponse = {
+      ...original,
+      shownSurfaceDigest: `sha256:${"a".repeat(64)}`,
+      shownDigest: `sha256:${"c".repeat(64)}`,
+    }
+    const next = replaceStalePanelResponse(
+      staleStore,
+      replacement,
+      new Map([[original.canonicalSlug, `sha256:${"a".repeat(64)}`]]),
+    )
+    expect(next.responses).toEqual([replacement])
+    expect(() =>
+      replaceStalePanelResponse(
+        next,
+        replacement,
+        new Map([[original.canonicalSlug, `sha256:${"a".repeat(64)}`]]),
+      ),
+    ).toThrow(/is fresh/)
   })
 
   it("the committed panel store, when recorded and fresh, has ≥10 responses and passes Gate 2.4-B", () => {
