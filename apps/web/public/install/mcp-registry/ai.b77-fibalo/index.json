@@ -1,18 +1,18 @@
 {
   "schema": "calllint.agent-adoption-contract.v1",
   "contract": {
-    "contractDigest": "sha256:f961614e193b604446be06207dc39e634f3c05f1e1f9ce9bb43978d9a5df230b",
-    "generatedAt": "2026-09-15T06:37:10.000Z",
+    "contractDigest": "sha256:57b0e2d1191bce2a9931a0c37256283efddf0a2a181483e1034865bfb3d54562",
+    "generatedAt": "2026-09-30T01:30:03.000Z",
     "expiresAt": null,
     "generatorVersion": "0.1.0",
-    "snapshotDigest": "sha256:0d7685adae8d8f501d520c5eb42746baee8e6f798ab6965b17f8c4253cd8180d"
+    "snapshotDigest": "sha256:2a2fdb4ac6789eae0bc4e05425b2b2a962ea0dc4471865f754030b6d55ce5446"
   },
   "subject": {
     "canonicalName": "mcp-registry/ai.b77-fibalo",
     "canonicalSlug": "mcp-registry/ai.b77-fibalo",
     "packageType": null,
     "packageName": null,
-    "version": "1.0.0",
+    "version": "1.1.0",
     "artifactDigest": "sha256:2a639143164b5e48958340a7656a9f63f4d8565b7176dce17c603b61e4f45c21",
     "sourceLocator": "https://fibalo.b77.ai/mcp"
   },
@@ -23,7 +23,7 @@
       "UNKNOWN_REMOTE"
     ],
     "evidenceLevel": "E2",
-    "evidenceDigest": "sha256:2579b184c2ed95daff8ca669622c89bd6f7d964fca3d01a0e356928b2253e33e",
+    "evidenceDigest": "sha256:3b2668dc36b1dbc0e510c12ed3742663f51601b55950fa3e33ba1802bb184769",
     "completeness": "complete"
   },
   "authorityDelta": {
@@ -44,12 +44,12 @@
     ]
   },
   "trustedSources": {
-    "registrySnapshotDigest": "sha256:0d7685adae8d8f501d520c5eb42746baee8e6f798ab6965b17f8c4253cd8180d",
-    "evidenceDigest": "sha256:2579b184c2ed95daff8ca669622c89bd6f7d964fca3d01a0e356928b2253e33e",
+    "registrySnapshotDigest": "sha256:2a2fdb4ac6789eae0bc4e05425b2b2a962ea0dc4471865f754030b6d55ce5446",
+    "evidenceDigest": "sha256:3b2668dc36b1dbc0e510c12ed3742663f51601b55950fa3e33ba1802bb184769",
     "engineVersion": "0.1.0"
   },
   "untrustedPublisherContent": {
-    "description": "Query and add to your Fibalo bookkeeping: documents, bank transactions, suppliers, access.",
+    "description": "Moved to de.fibalo/mcp. Connect to https://mcp.fibalo.de/mcp for Fibalo bookkeeping.",
     "usedForSafetyDecision": false
   },
   "recommendedNextAction": {
@@ -57,9 +57,9 @@
     "tool": "calllint_prepare_safe_install",
     "arguments": {
       "canonicalName": "mcp-registry/ai.b77-fibalo",
-      "expectedVersion": "1.0.0",
+      "expectedVersion": "1.1.0",
       "expectedArtifactDigest": "sha256:2a639143164b5e48958340a7656a9f63f4d8565b7176dce17c603b61e4f45c21",
-      "expectedContractDigest": "sha256:f961614e193b604446be06207dc39e634f3c05f1e1f9ce9bb43978d9a5df230b",
+      "expectedContractDigest": "sha256:57b0e2d1191bce2a9931a0c37256283efddf0a2a181483e1034865bfb3d54562",
       "host": null
     }
   },

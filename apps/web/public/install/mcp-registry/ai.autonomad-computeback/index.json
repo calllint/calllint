@@ -1,27 +1,27 @@
 {
   "schema": "calllint.agent-adoption-contract.v1",
   "contract": {
-    "contractDigest": "sha256:b54af472e56dbbb386e74ebd9605422e0d40e279481b7d67578332b40bf9b51d",
-    "generatedAt": "2026-09-15T06:37:10.000Z",
+    "contractDigest": "sha256:d295a6f3d8d39c3c32c32aceab30570e4c5c98f5ef0541acf7f37ff8b902c993",
+    "generatedAt": "2026-09-30T01:30:03.000Z",
     "expiresAt": null,
     "generatorVersion": "0.1.0",
-    "snapshotDigest": "sha256:0d7685adae8d8f501d520c5eb42746baee8e6f798ab6965b17f8c4253cd8180d"
+    "snapshotDigest": "sha256:2a2fdb4ac6789eae0bc4e05425b2b2a962ea0dc4471865f754030b6d55ce5446"
   },
   "subject": {
     "canonicalName": "mcp-registry/ai.autonomad-computeback",
     "canonicalSlug": "mcp-registry/ai.autonomad-computeback",
     "packageType": "npm",
     "packageName": "@autonomad1/computeback-mcp",
-    "version": "1.1.3",
-    "artifactDigest": "sha256:e1dd5ee3ee6d47a854afe8b92d1a6db5ff984943873c2e799417ebe2a6ab8580",
-    "sourceLocator": "npm:@autonomad1/computeback-mcp@1.1.3"
+    "version": "1.1.4",
+    "artifactDigest": "sha256:250a029ed6e512ca68c60646e4dd8d13c0da141e195f596576a227369359e6b5",
+    "sourceLocator": "npm:@autonomad1/computeback-mcp@1.1.4"
   },
   "publicObservation": {
     "verdict": "SAFE",
     "publicLabel": "No blockers observed",
     "reasonCodes": [],
     "evidenceLevel": "E2",
-    "evidenceDigest": "sha256:2579b184c2ed95daff8ca669622c89bd6f7d964fca3d01a0e356928b2253e33e",
+    "evidenceDigest": "sha256:3b2668dc36b1dbc0e510c12ed3742663f51601b55950fa3e33ba1802bb184769",
     "completeness": "complete"
   },
   "authorityDelta": {
@@ -39,8 +39,8 @@
     ]
   },
   "trustedSources": {
-    "registrySnapshotDigest": "sha256:0d7685adae8d8f501d520c5eb42746baee8e6f798ab6965b17f8c4253cd8180d",
-    "evidenceDigest": "sha256:2579b184c2ed95daff8ca669622c89bd6f7d964fca3d01a0e356928b2253e33e",
+    "registrySnapshotDigest": "sha256:2a2fdb4ac6789eae0bc4e05425b2b2a962ea0dc4471865f754030b6d55ce5446",
+    "evidenceDigest": "sha256:3b2668dc36b1dbc0e510c12ed3742663f51601b55950fa3e33ba1802bb184769",
     "engineVersion": "0.1.0"
   },
   "untrustedPublisherContent": {
@@ -52,9 +52,9 @@
     "tool": "calllint_prepare_safe_install",
     "arguments": {
       "canonicalName": "mcp-registry/ai.autonomad-computeback",
-      "expectedVersion": "1.1.3",
-      "expectedArtifactDigest": "sha256:e1dd5ee3ee6d47a854afe8b92d1a6db5ff984943873c2e799417ebe2a6ab8580",
-      "expectedContractDigest": "sha256:b54af472e56dbbb386e74ebd9605422e0d40e279481b7d67578332b40bf9b51d",
+      "expectedVersion": "1.1.4",
+      "expectedArtifactDigest": "sha256:250a029ed6e512ca68c60646e4dd8d13c0da141e195f596576a227369359e6b5",
+      "expectedContractDigest": "sha256:d295a6f3d8d39c3c32c32aceab30570e4c5c98f5ef0541acf7f37ff8b902c993",
       "host": null
     }
   },

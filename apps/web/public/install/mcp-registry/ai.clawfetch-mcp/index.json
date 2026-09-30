@@ -1,37 +1,31 @@
 {
   "schema": "calllint.agent-adoption-contract.v1",
   "contract": {
-    "contractDigest": "sha256:3e9f8267218a59132bce04031b8a2ab2f0a52f4fd7e9b29d9d6ef8a04ed367e1",
-    "generatedAt": "2026-09-15T06:37:10.000Z",
+    "contractDigest": "sha256:edae79da391a935a819a8f62983d10cd61b7586095e901a71ce1fa5b75b83899",
+    "generatedAt": "2026-09-30T01:30:03.000Z",
     "expiresAt": null,
     "generatorVersion": "0.1.0",
-    "snapshotDigest": "sha256:0d7685adae8d8f501d520c5eb42746baee8e6f798ab6965b17f8c4253cd8180d"
+    "snapshotDigest": "sha256:2a2fdb4ac6789eae0bc4e05425b2b2a962ea0dc4471865f754030b6d55ce5446"
   },
   "subject": {
     "canonicalName": "mcp-registry/ai.clawfetch-mcp",
     "canonicalSlug": "mcp-registry/ai.clawfetch-mcp",
     "packageType": "npm",
     "packageName": "@clawfetch/mcp",
-    "version": "0.2.2",
-    "artifactDigest": "sha256:282f40c4a900a07753e514452816e1ee973ea4ca09f4242b1f32f9ab4cee5aa9",
-    "sourceLocator": "npm:@clawfetch/mcp@0.2.2"
+    "version": "0.3.2",
+    "artifactDigest": "sha256:51ef933e0bfdcc33a3ffa41b9b01506b4fae83f53752be3b53bd56597a4270a6",
+    "sourceLocator": "npm:@clawfetch/mcp@0.3.2"
   },
   "publicObservation": {
-    "verdict": "REVIEW",
-    "publicLabel": "Review required",
-    "reasonCodes": [
-      "UNKNOWN_REMOTE"
-    ],
+    "verdict": "SAFE",
+    "publicLabel": "No blockers observed",
+    "reasonCodes": [],
     "evidenceLevel": "E2",
-    "evidenceDigest": "sha256:2579b184c2ed95daff8ca669622c89bd6f7d964fca3d01a0e356928b2253e33e",
+    "evidenceDigest": "sha256:3b2668dc36b1dbc0e510c12ed3742663f51601b55950fa3e33ba1802bb184769",
     "completeness": "complete"
   },
   "authorityDelta": {
-    "adds": [
-      {
-        "authority": "network_egress"
-      }
-    ],
+    "adds": [],
     "notObserved": [
       "financial_action",
       "secret_access",
@@ -40,12 +34,13 @@
       "external_mutation",
       "messaging_send",
       "oauth_scope",
-      "gateway_runtime"
+      "gateway_runtime",
+      "network_egress"
     ]
   },
   "trustedSources": {
-    "registrySnapshotDigest": "sha256:0d7685adae8d8f501d520c5eb42746baee8e6f798ab6965b17f8c4253cd8180d",
-    "evidenceDigest": "sha256:2579b184c2ed95daff8ca669622c89bd6f7d964fca3d01a0e356928b2253e33e",
+    "registrySnapshotDigest": "sha256:2a2fdb4ac6789eae0bc4e05425b2b2a962ea0dc4471865f754030b6d55ce5446",
+    "evidenceDigest": "sha256:3b2668dc36b1dbc0e510c12ed3742663f51601b55950fa3e33ba1802bb184769",
     "engineVersion": "0.1.0"
   },
   "untrustedPublisherContent": {
@@ -57,9 +52,9 @@
     "tool": "calllint_prepare_safe_install",
     "arguments": {
       "canonicalName": "mcp-registry/ai.clawfetch-mcp",
-      "expectedVersion": "0.2.2",
-      "expectedArtifactDigest": "sha256:282f40c4a900a07753e514452816e1ee973ea4ca09f4242b1f32f9ab4cee5aa9",
-      "expectedContractDigest": "sha256:3e9f8267218a59132bce04031b8a2ab2f0a52f4fd7e9b29d9d6ef8a04ed367e1",
+      "expectedVersion": "0.3.2",
+      "expectedArtifactDigest": "sha256:51ef933e0bfdcc33a3ffa41b9b01506b4fae83f53752be3b53bd56597a4270a6",
+      "expectedContractDigest": "sha256:edae79da391a935a819a8f62983d10cd61b7586095e901a71ce1fa5b75b83899",
       "host": null
     }
   },
