@@ -1,18 +1,18 @@
 {
   "schema": "calllint.agent-adoption-contract.v1",
   "contract": {
-    "contractDigest": "sha256:2ab6cccae40bfdb8ea687bd6d288546249c7fb1a68c6ddda212ae5c82a689a2c",
-    "generatedAt": "2026-09-30T01:30:03.000Z",
+    "contractDigest": "sha256:4a4db417cef890089ea3913dbef35edf006a137eaa9cfda549c99236b524a213",
+    "generatedAt": "2026-10-01T13:14:15.000Z",
     "expiresAt": null,
     "generatorVersion": "0.1.0",
-    "snapshotDigest": "sha256:2a2fdb4ac6789eae0bc4e05425b2b2a962ea0dc4471865f754030b6d55ce5446"
+    "snapshotDigest": "sha256:26a209215bb97288026afdb4dece5351321c366cc68223883b57099d98850ceb"
   },
   "subject": {
     "canonicalName": "mcp-registry/ai.bluenexus-universal-mcp",
     "canonicalSlug": "mcp-registry/ai.bluenexus-universal-mcp",
     "packageType": null,
     "packageName": null,
-    "version": "1.23.0",
+    "version": "1.24.0",
     "artifactDigest": "sha256:1eec21b6b89673a5d43bb982a6b43e26b7a33b40f40d7962216a6c87574de8a8",
     "sourceLocator": "https://api.bluenexus.ai/mcp"
   },
@@ -23,7 +23,7 @@
       "UNKNOWN_REMOTE"
     ],
     "evidenceLevel": "E2",
-    "evidenceDigest": "sha256:3b2668dc36b1dbc0e510c12ed3742663f51601b55950fa3e33ba1802bb184769",
+    "evidenceDigest": "sha256:9797bce65b13fc45350ff64e384f9244db5c419799e4d7975fdd5365d0b39873",
     "completeness": "complete"
   },
   "authorityDelta": {
@@ -44,8 +44,8 @@
     ]
   },
   "trustedSources": {
-    "registrySnapshotDigest": "sha256:2a2fdb4ac6789eae0bc4e05425b2b2a962ea0dc4471865f754030b6d55ce5446",
-    "evidenceDigest": "sha256:3b2668dc36b1dbc0e510c12ed3742663f51601b55950fa3e33ba1802bb184769",
+    "registrySnapshotDigest": "sha256:26a209215bb97288026afdb4dece5351321c366cc68223883b57099d98850ceb",
+    "evidenceDigest": "sha256:9797bce65b13fc45350ff64e384f9244db5c419799e4d7975fdd5365d0b39873",
     "engineVersion": "0.1.0"
   },
   "untrustedPublisherContent": {
@@ -57,9 +57,9 @@
     "tool": "calllint_prepare_safe_install",
     "arguments": {
       "canonicalName": "mcp-registry/ai.bluenexus-universal-mcp",
-      "expectedVersion": "1.23.0",
+      "expectedVersion": "1.24.0",
       "expectedArtifactDigest": "sha256:1eec21b6b89673a5d43bb982a6b43e26b7a33b40f40d7962216a6c87574de8a8",
-      "expectedContractDigest": "sha256:2ab6cccae40bfdb8ea687bd6d288546249c7fb1a68c6ddda212ae5c82a689a2c",
+      "expectedContractDigest": "sha256:4a4db417cef890089ea3913dbef35edf006a137eaa9cfda549c99236b524a213",
       "host": null
     }
   },

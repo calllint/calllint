@@ -1,11 +1,11 @@
 {
   "schema": "calllint.agent-adoption-contract.v1",
   "contract": {
-    "contractDigest": "sha256:68ac6b95e89d83f42b16ebffd2a71956c2c983b65d8b8bea03c04b4021734f69",
-    "generatedAt": "2026-09-30T01:30:03.000Z",
+    "contractDigest": "sha256:012bc7e41fa3684932827dd1178f182e36cad3844853d5e2c5301ecd2961784d",
+    "generatedAt": "2026-10-01T13:14:15.000Z",
     "expiresAt": null,
     "generatorVersion": "0.1.0",
-    "snapshotDigest": "sha256:2a2fdb4ac6789eae0bc4e05425b2b2a962ea0dc4471865f754030b6d55ce5446"
+    "snapshotDigest": "sha256:26a209215bb97288026afdb4dece5351321c366cc68223883b57099d98850ceb"
   },
   "subject": {
     "canonicalName": "mcp-registry/ai.dinglebear-arcane-rmcp",
@@ -21,7 +21,7 @@
     "publicLabel": "No blockers observed",
     "reasonCodes": [],
     "evidenceLevel": "E2",
-    "evidenceDigest": "sha256:3b2668dc36b1dbc0e510c12ed3742663f51601b55950fa3e33ba1802bb184769",
+    "evidenceDigest": "sha256:9797bce65b13fc45350ff64e384f9244db5c419799e4d7975fdd5365d0b39873",
     "completeness": "complete"
   },
   "authorityDelta": {
@@ -39,8 +39,8 @@
     ]
   },
   "trustedSources": {
-    "registrySnapshotDigest": "sha256:2a2fdb4ac6789eae0bc4e05425b2b2a962ea0dc4471865f754030b6d55ce5446",
-    "evidenceDigest": "sha256:3b2668dc36b1dbc0e510c12ed3742663f51601b55950fa3e33ba1802bb184769",
+    "registrySnapshotDigest": "sha256:26a209215bb97288026afdb4dece5351321c366cc68223883b57099d98850ceb",
+    "evidenceDigest": "sha256:9797bce65b13fc45350ff64e384f9244db5c419799e4d7975fdd5365d0b39873",
     "engineVersion": "0.1.0"
   },
   "untrustedPublisherContent": {
@@ -54,7 +54,7 @@
       "canonicalName": "mcp-registry/ai.dinglebear-arcane-rmcp",
       "expectedVersion": "0.4.2",
       "expectedArtifactDigest": "sha256:3ba1235d1b4c5379f828178522e7d61fe6e42b5575e43d5fdc5da9cc9b3e957e",
-      "expectedContractDigest": "sha256:68ac6b95e89d83f42b16ebffd2a71956c2c983b65d8b8bea03c04b4021734f69",
+      "expectedContractDigest": "sha256:012bc7e41fa3684932827dd1178f182e36cad3844853d5e2c5301ecd2961784d",
       "host": null
     }
   },
