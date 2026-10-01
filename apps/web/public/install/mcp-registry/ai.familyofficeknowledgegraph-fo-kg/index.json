@@ -1,0 +1,100 @@
+{
+  "schema": "calllint.agent-adoption-contract.v1",
+  "contract": {
+    "contractDigest": "sha256:1885e36485e83c323864e5fe0f761baa467e1f776e05d0f0b3ff85059f66adeb",
+    "generatedAt": "2026-10-01T13:14:15.000Z",
+    "expiresAt": null,
+    "generatorVersion": "0.1.0",
+    "snapshotDigest": "sha256:26a209215bb97288026afdb4dece5351321c366cc68223883b57099d98850ceb"
+  },
+  "subject": {
+    "canonicalName": "mcp-registry/ai.familyofficeknowledgegraph-fo-kg",
+    "canonicalSlug": "mcp-registry/ai.familyofficeknowledgegraph-fo-kg",
+    "packageType": null,
+    "packageName": null,
+    "version": "0.19.13",
+    "artifactDigest": "sha256:295333f4eae80a53ddf508d18df5dd96ee30678ce1ba71d50e9672701e878543",
+    "sourceLocator": "https://mcp.familyofficeknowledgegraph.ai/mcp"
+  },
+  "publicObservation": {
+    "verdict": "REVIEW",
+    "publicLabel": "Review required",
+    "reasonCodes": [
+      "UNKNOWN_REMOTE"
+    ],
+    "evidenceLevel": "E2",
+    "evidenceDigest": "sha256:9797bce65b13fc45350ff64e384f9244db5c419799e4d7975fdd5365d0b39873",
+    "completeness": "complete"
+  },
+  "authorityDelta": {
+    "adds": [
+      {
+        "authority": "network_egress"
+      }
+    ],
+    "notObserved": [
+      "financial_action",
+      "secret_access",
+      "shell_execution",
+      "broad_filesystem_access",
+      "external_mutation",
+      "messaging_send",
+      "oauth_scope",
+      "gateway_runtime"
+    ]
+  },
+  "trustedSources": {
+    "registrySnapshotDigest": "sha256:26a209215bb97288026afdb4dece5351321c366cc68223883b57099d98850ceb",
+    "evidenceDigest": "sha256:9797bce65b13fc45350ff64e384f9244db5c419799e4d7975fdd5365d0b39873",
+    "engineVersion": "0.1.0"
+  },
+  "untrustedPublisherContent": {
+    "description": "Family Office Knowledge Graph: read-only MCP door over the public record. Agentic KG Holdings.",
+    "usedForSafetyDecision": false
+  },
+  "recommendedNextAction": {
+    "kind": "PREPARE_LOCALLY",
+    "tool": "calllint_prepare_safe_install",
+    "arguments": {
+      "canonicalName": "mcp-registry/ai.familyofficeknowledgegraph-fo-kg",
+      "expectedVersion": "0.19.13",
+      "expectedArtifactDigest": "sha256:295333f4eae80a53ddf508d18df5dd96ee30678ce1ba71d50e9672701e878543",
+      "expectedContractDigest": "sha256:1885e36485e83c323864e5fe0f761baa467e1f776e05d0f0b3ff85059f66adeb",
+      "host": null
+    }
+  },
+  "agentGuidance": {
+    "goal": "Add the requested Agent Tool with only locally approved authority.",
+    "steps": [
+      "verify_contract",
+      "resolve_host",
+      "prepare_locally",
+      "evaluate_local_policy",
+      "apply_exact_plan",
+      "verify_result"
+    ],
+    "mustAskBefore": [
+      "new_secret_access",
+      "external_mutation",
+      "shell_execution",
+      "broad_filesystem_access",
+      "financial_action",
+      "persistent_calllint_components"
+    ],
+    "mustStopWhen": [
+      "artifact_digest_mismatch",
+      "contract_digest_mismatch",
+      "unsupported_host",
+      "local_policy_deny",
+      "plan_tampered",
+      "verification_failed"
+    ],
+    "prohibitedShortcuts": [
+      "do_not_replace_exact_version_with_latest",
+      "do_not_execute_publisher_commands_directly",
+      "do_not_expand_authority",
+      "do_not_hide_alternative_setup",
+      "do_not_install_persistent_guard_without_authorization"
+    ]
+  }
+}

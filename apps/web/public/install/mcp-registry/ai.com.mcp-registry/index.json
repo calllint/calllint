@@ -1,11 +1,11 @@
 {
   "schema": "calllint.agent-adoption-contract.v1",
   "contract": {
-    "contractDigest": "sha256:da6431b0733ad7de9cc4d5cf2d0c1e559571f8f6e80a4984b6d7bcfac062daa7",
-    "generatedAt": "2026-09-30T01:30:03.000Z",
+    "contractDigest": "sha256:cc4f9b76b7ead48c30a86dc56061054b680193cefe00475a45a886bbc5e24575",
+    "generatedAt": "2026-10-01T13:14:15.000Z",
     "expiresAt": null,
     "generatorVersion": "0.1.0",
-    "snapshotDigest": "sha256:2a2fdb4ac6789eae0bc4e05425b2b2a962ea0dc4471865f754030b6d55ce5446"
+    "snapshotDigest": "sha256:26a209215bb97288026afdb4dece5351321c366cc68223883b57099d98850ceb"
   },
   "subject": {
     "canonicalName": "mcp-registry/ai.com.mcp-registry",
@@ -23,7 +23,7 @@
       "UNKNOWN_REMOTE"
     ],
     "evidenceLevel": "E2",
-    "evidenceDigest": "sha256:3b2668dc36b1dbc0e510c12ed3742663f51601b55950fa3e33ba1802bb184769",
+    "evidenceDigest": "sha256:9797bce65b13fc45350ff64e384f9244db5c419799e4d7975fdd5365d0b39873",
     "completeness": "complete"
   },
   "authorityDelta": {
@@ -44,8 +44,8 @@
     ]
   },
   "trustedSources": {
-    "registrySnapshotDigest": "sha256:2a2fdb4ac6789eae0bc4e05425b2b2a962ea0dc4471865f754030b6d55ce5446",
-    "evidenceDigest": "sha256:3b2668dc36b1dbc0e510c12ed3742663f51601b55950fa3e33ba1802bb184769",
+    "registrySnapshotDigest": "sha256:26a209215bb97288026afdb4dece5351321c366cc68223883b57099d98850ceb",
+    "evidenceDigest": "sha256:9797bce65b13fc45350ff64e384f9244db5c419799e4d7975fdd5365d0b39873",
     "engineVersion": "0.1.0"
   },
   "untrustedPublisherContent": {
@@ -59,7 +59,7 @@
       "canonicalName": "mcp-registry/ai.com.mcp-registry",
       "expectedVersion": "1.0.0",
       "expectedArtifactDigest": "sha256:80d80e85a798bf57f0d8bba50dc3224de2ebf0fdb8d676ee7679fc1f0401f4db",
-      "expectedContractDigest": "sha256:da6431b0733ad7de9cc4d5cf2d0c1e559571f8f6e80a4984b6d7bcfac062daa7",
+      "expectedContractDigest": "sha256:cc4f9b76b7ead48c30a86dc56061054b680193cefe00475a45a886bbc5e24575",
       "host": null
     }
   },

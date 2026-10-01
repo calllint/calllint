@@ -2,18 +2,18 @@
   "schema": "calllint.trust-page.v0",
   "canonicalName": "mcp-registry/ai.docnexus.mcp-docnexus",
   "artifactDigest": "sha256:c6fb7dfcbde16c1b940fb23f9fc8697749aa408a76c35dd35eeeb21fe48f543d",
-  "pageDigest": "sha256:74e0b1fe15eaa93fe8ad2c574c45c893603ba16dc0c761898732f5c8787edeaa",
+  "pageDigest": "sha256:9f5abdfe473a22acd9e3881022ea7f8b627b01680d29b5813ddb82ac1ae0e9e4",
   "verdict": "REVIEW",
   "verdictLabel": "Review required",
-  "observedAt": "2026-09-30T01:30:03.000Z",
+  "observedAt": "2026-10-01T13:14:15.000Z",
   "completeness": "complete",
   "status": {
     "verdict": "REVIEW",
     "completeness": "complete",
     "authorityClaimed": false,
     "reproducibility": {
-      "pageDigest": "sha256:74e0b1fe15eaa93fe8ad2c574c45c893603ba16dc0c761898732f5c8787edeaa",
-      "observedAt": "2026-09-30T01:30:03.000Z"
+      "pageDigest": "sha256:9f5abdfe473a22acd9e3881022ea7f8b627b01680d29b5813ddb82ac1ae0e9e4",
+      "observedAt": "2026-10-01T13:14:15.000Z"
     },
     "evidenceLevel": "E2",
     "evidenceRationale": "install config observed → static blast radius normalized into an authority inventory. Higher levels (E3 tool schema, E4 maintainer receipt, E5 sandbox) are not carried by a static page."
@@ -26,8 +26,8 @@
   },
   "scanHistory": [
     {
-      "observedAt": "2026-09-30T01:30:03.000Z",
-      "pageDigest": "sha256:74e0b1fe15eaa93fe8ad2c574c45c893603ba16dc0c761898732f5c8787edeaa",
+      "observedAt": "2026-10-01T13:14:15.000Z",
+      "pageDigest": "sha256:9f5abdfe473a22acd9e3881022ea7f8b627b01680d29b5813ddb82ac1ae0e9e4",
       "artifactDigest": "sha256:c6fb7dfcbde16c1b940fb23f9fc8697749aa408a76c35dd35eeeb21fe48f543d"
     }
   ],
@@ -40,7 +40,7 @@
       "requestedRef": null,
       "resolvedRef": "sha256:c6fb7dfcbde16c1b940fb23f9fc8697749aa408a76c35dd35eeeb21fe48f543d",
       "digest": "sha256:c6fb7dfcbde16c1b940fb23f9fc8697749aa408a76c35dd35eeeb21fe48f543d",
-      "resolvedAt": "2026-09-30T01:30:03.000Z",
+      "resolvedAt": "2026-10-01T13:14:15.000Z",
       "resolution": "resolved"
     },
     "evidence": null,
@@ -84,7 +84,7 @@
       "no external evidence attached (optional); decision will rely on CallLint's own analysis",
       "authority normalized: 1 capability, approvals required: external-network-access"
     ],
-    "preparedAt": "2026-09-30T01:30:03.000Z"
+    "preparedAt": "2026-10-01T13:14:15.000Z"
   },
   "scan": {
     "schemaVersion": "calllint.report.v0",
@@ -220,10 +220,10 @@
             "message": "Remote endpoint identity verified; tool surface not analyzed (evidence: https://mcp.docnexus.ai/mcp)"
           }
         ],
-        "generatedAt": "2026-09-30T01:30:03.000Z"
+        "generatedAt": "2026-10-01T13:14:15.000Z"
       }
     ],
     "diagnostics": [],
-    "generatedAt": "2026-09-30T01:30:03.000Z"
+    "generatedAt": "2026-10-01T13:14:15.000Z"
   }
 }

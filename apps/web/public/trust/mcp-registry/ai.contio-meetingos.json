@@ -2,18 +2,18 @@
   "schema": "calllint.trust-page.v0",
   "canonicalName": "mcp-registry/ai.contio-meetingos",
   "artifactDigest": "sha256:1f95bceac4ef861961ee4148cc451c874254d163846f7c9b886bd86cbf77d713",
-  "pageDigest": "sha256:2191295760388c41c7ce363472209d57e6fdb37952a6058f97c802ae7e6ef501",
-  "verdict": "UNKNOWN",
-  "verdictLabel": "Insufficient evidence",
-  "observedAt": "2026-09-30T01:30:03.000Z",
+  "pageDigest": "sha256:6cba097bba48c6331e014b2e15678dcb816f8fd6caf9a285a9131ac280731da2",
+  "verdict": "REVIEW",
+  "verdictLabel": "Review required",
+  "observedAt": "2026-10-01T13:14:15.000Z",
   "completeness": "complete",
   "status": {
-    "verdict": "UNKNOWN",
+    "verdict": "REVIEW",
     "completeness": "complete",
     "authorityClaimed": false,
     "reproducibility": {
-      "pageDigest": "sha256:2191295760388c41c7ce363472209d57e6fdb37952a6058f97c802ae7e6ef501",
-      "observedAt": "2026-09-30T01:30:03.000Z"
+      "pageDigest": "sha256:6cba097bba48c6331e014b2e15678dcb816f8fd6caf9a285a9131ac280731da2",
+      "observedAt": "2026-10-01T13:14:15.000Z"
     },
     "evidenceLevel": "E2",
     "evidenceRationale": "install config observed → static blast radius normalized into an authority inventory. Higher levels (E3 tool schema, E4 maintainer receipt, E5 sandbox) are not carried by a static page."
@@ -26,8 +26,8 @@
   },
   "scanHistory": [
     {
-      "observedAt": "2026-09-30T01:30:03.000Z",
-      "pageDigest": "sha256:2191295760388c41c7ce363472209d57e6fdb37952a6058f97c802ae7e6ef501",
+      "observedAt": "2026-10-01T13:14:15.000Z",
+      "pageDigest": "sha256:6cba097bba48c6331e014b2e15678dcb816f8fd6caf9a285a9131ac280731da2",
       "artifactDigest": "sha256:1f95bceac4ef861961ee4148cc451c874254d163846f7c9b886bd86cbf77d713"
     }
   ],
@@ -40,7 +40,7 @@
       "requestedRef": null,
       "resolvedRef": "sha256:1f95bceac4ef861961ee4148cc451c874254d163846f7c9b886bd86cbf77d713",
       "digest": "sha256:1f95bceac4ef861961ee4148cc451c874254d163846f7c9b886bd86cbf77d713",
-      "resolvedAt": "2026-09-30T01:30:03.000Z",
+      "resolvedAt": "2026-10-01T13:14:15.000Z",
       "resolution": "resolved"
     },
     "evidence": null,
@@ -84,19 +84,19 @@
       "no external evidence attached (optional); decision will rely on CallLint's own analysis",
       "authority normalized: 1 capability, approvals required: external-network-access"
     ],
-    "preparedAt": "2026-09-30T01:30:03.000Z"
+    "preparedAt": "2026-10-01T13:14:15.000Z"
   },
   "scan": {
     "schemaVersion": "calllint.report.v0",
     "reportKind": "config-summary",
     "configPath": "official-mcp-registry:ai.contio/meetingos",
-    "verdict": "UNKNOWN",
-    "publicVerdictLabel": "Insufficient evidence",
+    "verdict": "REVIEW",
+    "publicVerdictLabel": "Review required",
     "counts": {
       "SAFE": 0,
-      "REVIEW": 0,
+      "REVIEW": 1,
       "BLOCK": 0,
-      "UNKNOWN": 1
+      "UNKNOWN": 0
     },
     "reports": [
       {
@@ -108,8 +108,8 @@
           "source": "https://mcp.contio.ai/mcp",
           "configPath": "official-mcp-registry:ai.contio/meetingos"
         },
-        "verdict": "UNKNOWN",
-        "publicVerdictLabel": "Insufficient evidence",
+        "verdict": "REVIEW",
+        "publicVerdictLabel": "Review required",
         "policyApplied": false,
         "riskClass": "S1",
         "symbols": [
@@ -117,9 +117,10 @@
         ],
         "confidence": "high",
         "reproducibility": {
-          "level": "MEDIUM",
+          "level": "LOW",
           "reasons": [
-            "Remote endpoint could not be verified"
+            "Remote endpoint domain ownership not verified",
+            "Remote endpoint identity verified; tool surface not analyzed"
           ]
         },
         "summary": "\"remote\" could not be verified (insufficient evidence). Risk: Network (S1 Read-only utility).",
@@ -212,11 +213,17 @@
           "targetSpecHash": "sha256:4cf9aa48846856b35e7ec5884dd6940c79ef78d6dec22deafca2e3a539156aa6",
           "riskSurfaceHash": "sha256:47e9d20255a346b95323c2cb9e092621521638b987bbcd036e68e4aee12dcaf3"
         },
-        "diagnostics": [],
-        "generatedAt": "2026-09-30T01:30:03.000Z"
+        "diagnostics": [
+          {
+            "level": "info",
+            "code": "evidence.remote-identity-verified",
+            "message": "Remote endpoint identity verified; tool surface not analyzed (evidence: https://mcp.contio.ai/mcp)"
+          }
+        ],
+        "generatedAt": "2026-10-01T13:14:15.000Z"
       }
     ],
     "diagnostics": [],
-    "generatedAt": "2026-09-30T01:30:03.000Z"
+    "generatedAt": "2026-10-01T13:14:15.000Z"
   }
 }

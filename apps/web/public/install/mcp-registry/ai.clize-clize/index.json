@@ -1,27 +1,27 @@
 {
   "schema": "calllint.agent-adoption-contract.v1",
   "contract": {
-    "contractDigest": "sha256:2154b2996ef3771f8dcdc6bae24abf6d110ea19d8f3275d6b0c1145a723fe424",
-    "generatedAt": "2026-09-30T01:30:03.000Z",
+    "contractDigest": "sha256:76bffa6a82e367b8b4bddd1d1973ae6d7102410f717e607457e013d6cedb2285",
+    "generatedAt": "2026-10-01T13:14:15.000Z",
     "expiresAt": null,
     "generatorVersion": "0.1.0",
-    "snapshotDigest": "sha256:2a2fdb4ac6789eae0bc4e05425b2b2a962ea0dc4471865f754030b6d55ce5446"
+    "snapshotDigest": "sha256:26a209215bb97288026afdb4dece5351321c366cc68223883b57099d98850ceb"
   },
   "subject": {
     "canonicalName": "mcp-registry/ai.clize-clize",
     "canonicalSlug": "mcp-registry/ai.clize-clize",
     "packageType": "npm",
     "packageName": "@clize/clize",
-    "version": "0.47.1",
-    "artifactDigest": "sha256:f186bf6436d1d1355df12dbca36e0abafb417499401cf830469f262f525e5d33",
-    "sourceLocator": "npm:@clize/clize@0.47.1"
+    "version": "0.47.3",
+    "artifactDigest": "sha256:2add541ed5c656246b1c1e349b3ad87f5521e0a10bfdec12f7244615648dbb60",
+    "sourceLocator": "npm:@clize/clize@0.47.3"
   },
   "publicObservation": {
     "verdict": "SAFE",
     "publicLabel": "No blockers observed",
     "reasonCodes": [],
     "evidenceLevel": "E2",
-    "evidenceDigest": "sha256:3b2668dc36b1dbc0e510c12ed3742663f51601b55950fa3e33ba1802bb184769",
+    "evidenceDigest": "sha256:9797bce65b13fc45350ff64e384f9244db5c419799e4d7975fdd5365d0b39873",
     "completeness": "complete"
   },
   "authorityDelta": {
@@ -39,8 +39,8 @@
     ]
   },
   "trustedSources": {
-    "registrySnapshotDigest": "sha256:2a2fdb4ac6789eae0bc4e05425b2b2a962ea0dc4471865f754030b6d55ce5446",
-    "evidenceDigest": "sha256:3b2668dc36b1dbc0e510c12ed3742663f51601b55950fa3e33ba1802bb184769",
+    "registrySnapshotDigest": "sha256:26a209215bb97288026afdb4dece5351321c366cc68223883b57099d98850ceb",
+    "evidenceDigest": "sha256:9797bce65b13fc45350ff64e384f9244db5c419799e4d7975fdd5365d0b39873",
     "engineVersion": "0.1.0"
   },
   "untrustedPublisherContent": {
@@ -52,9 +52,9 @@
     "tool": "calllint_prepare_safe_install",
     "arguments": {
       "canonicalName": "mcp-registry/ai.clize-clize",
-      "expectedVersion": "0.47.1",
-      "expectedArtifactDigest": "sha256:f186bf6436d1d1355df12dbca36e0abafb417499401cf830469f262f525e5d33",
-      "expectedContractDigest": "sha256:2154b2996ef3771f8dcdc6bae24abf6d110ea19d8f3275d6b0c1145a723fe424",
+      "expectedVersion": "0.47.3",
+      "expectedArtifactDigest": "sha256:2add541ed5c656246b1c1e349b3ad87f5521e0a10bfdec12f7244615648dbb60",
+      "expectedContractDigest": "sha256:76bffa6a82e367b8b4bddd1d1973ae6d7102410f717e607457e013d6cedb2285",
       "host": null
     }
   },

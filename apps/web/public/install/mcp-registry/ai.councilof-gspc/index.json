@@ -1,18 +1,18 @@
 {
   "schema": "calllint.agent-adoption-contract.v1",
   "contract": {
-    "contractDigest": "sha256:7e7aebf701aa386450d1f4d635be72fc9854cf9d8f80e9366e4bdfc2db318909",
-    "generatedAt": "2026-09-30T01:30:03.000Z",
+    "contractDigest": "sha256:96da641a16abaf678d21b508a4949d9b4c10fdb73bfbdf5ffc0348e444909e0e",
+    "generatedAt": "2026-10-01T13:14:15.000Z",
     "expiresAt": null,
     "generatorVersion": "0.1.0",
-    "snapshotDigest": "sha256:2a2fdb4ac6789eae0bc4e05425b2b2a962ea0dc4471865f754030b6d55ce5446"
+    "snapshotDigest": "sha256:26a209215bb97288026afdb4dece5351321c366cc68223883b57099d98850ceb"
   },
   "subject": {
     "canonicalName": "mcp-registry/ai.councilof-gspc",
     "canonicalSlug": "mcp-registry/ai.councilof-gspc",
     "packageType": null,
     "packageName": null,
-    "version": "1.4.3",
+    "version": "1.4.4",
     "artifactDigest": "sha256:287369251b75c0828419ef4fe279ce81ba8178040c6d3adbd3b33e5395d8eddf",
     "sourceLocator": "https://councilof.ai/mcp/"
   },
@@ -23,7 +23,7 @@
       "UNKNOWN_REMOTE"
     ],
     "evidenceLevel": "E2",
-    "evidenceDigest": "sha256:3b2668dc36b1dbc0e510c12ed3742663f51601b55950fa3e33ba1802bb184769",
+    "evidenceDigest": "sha256:9797bce65b13fc45350ff64e384f9244db5c419799e4d7975fdd5365d0b39873",
     "completeness": "complete"
   },
   "authorityDelta": {
@@ -44,12 +44,12 @@
     ]
   },
   "trustedSources": {
-    "registrySnapshotDigest": "sha256:2a2fdb4ac6789eae0bc4e05425b2b2a962ea0dc4471865f754030b6d55ce5446",
-    "evidenceDigest": "sha256:3b2668dc36b1dbc0e510c12ed3742663f51601b55950fa3e33ba1802bb184769",
+    "registrySnapshotDigest": "sha256:26a209215bb97288026afdb4dece5351321c366cc68223883b57099d98850ceb",
+    "evidenceDigest": "sha256:9797bce65b13fc45350ff64e384f9244db5c419799e4d7975fdd5365d0b39873",
     "engineVersion": "0.1.0"
   },
   "untrustedPublisherContent": {
-    "description": "Dated AI measurements and signed evidence over MCP. Free verification; never certification.",
+    "description": "19 tools (14 free, 5 x402-metered): GSPC board, evidence, Ed25519 card verify. Measurement only.",
     "usedForSafetyDecision": false
   },
   "recommendedNextAction": {
@@ -57,9 +57,9 @@
     "tool": "calllint_prepare_safe_install",
     "arguments": {
       "canonicalName": "mcp-registry/ai.councilof-gspc",
-      "expectedVersion": "1.4.3",
+      "expectedVersion": "1.4.4",
       "expectedArtifactDigest": "sha256:287369251b75c0828419ef4fe279ce81ba8178040c6d3adbd3b33e5395d8eddf",
-      "expectedContractDigest": "sha256:7e7aebf701aa386450d1f4d635be72fc9854cf9d8f80e9366e4bdfc2db318909",
+      "expectedContractDigest": "sha256:96da641a16abaf678d21b508a4949d9b4c10fdb73bfbdf5ffc0348e444909e0e",
       "host": null
     }
   },
