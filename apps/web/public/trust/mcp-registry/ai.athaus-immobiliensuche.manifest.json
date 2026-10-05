@@ -1,0 +1,50 @@
+{
+  "schema": "calllint.evidence-manifest.v1",
+  "subject": {
+    "canonicalName": "mcp-registry/ai.athaus-immobiliensuche",
+    "artifactDigest": "sha256:ae8419cf4f5bdf3c9b82eed6de940b9d8fad2fe771464d420878de0e9790c72b"
+  },
+  "verdict": "REVIEW",
+  "verdictLabel": "Review required",
+  "completeness": "complete",
+  "evidenceLevel": "E2",
+  "evidenceRationale": "install config observed → static blast radius normalized into an authority inventory. Higher levels (E3 tool schema, E4 maintainer receipt, E5 sandbox) are not carried by a static page.",
+  "status": {
+    "verdict": "REVIEW",
+    "completeness": "complete",
+    "authorityClaimed": false,
+    "reproducibility": {
+      "pageDigest": "sha256:c3dc59f8e0b6fab396cc1ff827d02c432e327e0c713a936c8221a4687deabc20",
+      "observedAt": "2026-10-05T14:29:42.000Z"
+    },
+    "evidenceLevel": "E2"
+  },
+  "authority": {
+    "digest": "sha256:247aee6fda6216ecc237cd2556a00ceebc863b598ce5fb1ad4b3d895c19ff5b5",
+    "completeness": "complete",
+    "capabilityCount": 1,
+    "approvalRequired": [
+      "external-network-access"
+    ],
+    "capabilities": [
+      {
+        "action": "connect",
+        "resource": "network",
+        "mutability": "mutating",
+        "reversibility": "irreversible",
+        "approvalRequirement": "review"
+      }
+    ]
+  },
+  "policyDigest": null,
+  "reproducibility": {
+    "pageDigest": "sha256:c3dc59f8e0b6fab396cc1ff827d02c432e327e0c713a936c8221a4687deabc20",
+    "observedAt": "2026-10-05T14:29:42.000Z"
+  },
+  "engine": {
+    "name": "calllint"
+  },
+  "correctionUrl": "https://github.com/calllint/calllint/issues/new?labels=trust-page-correction",
+  "generatedAt": "2026-10-05T14:29:42.000Z",
+  "signature": null
+}

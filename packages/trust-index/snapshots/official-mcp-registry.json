@@ -2,8 +2,8 @@
   "schema": "calllint.trust-snapshot.v0",
   "source": "official-mcp-registry",
   "endpoint": "https://registry.modelcontextprotocol.io/v0/servers",
-  "fetchedAt": "2026-09-30T01:30:03.000Z",
-  "count": 400,
+  "fetchedAt": "2026-10-05T14:29:42.000Z",
+  "count": 450,
   "entries": [
     {
       "name": "ac.inference.sh/mcp",
@@ -81,6 +81,51 @@
       "publishedAt": "2026-08-18T20:55:46.452926Z"
     },
     {
+      "name": "ae.brainy/grocery-prices",
+      "description": "Source-backed UAE costs: groceries, schools, housing, transport, utilities, telecom and relocation",
+      "version": "2.0.0",
+      "repositoryUrl": null,
+      "packages": [],
+      "remotes": [
+        {
+          "type": "streamable-http",
+          "url": "https://prices.brainy.ae/mcp/v2"
+        }
+      ],
+      "status": "active",
+      "publishedAt": "2026-10-04T02:29:51.000704Z"
+    },
+    {
+      "name": "ae.datadubai/dubai-real-estate",
+      "description": "Dubai property prices, AED/sqft, sales, rents, yields and projects from DLD registered transactions.",
+      "version": "1.1.0",
+      "repositoryUrl": "https://github.com/datadubai/dubai-real-estate-dld",
+      "packages": [],
+      "remotes": [
+        {
+          "type": "streamable-http",
+          "url": "https://mcp.datadubai.ae/mcp"
+        }
+      ],
+      "status": "active",
+      "publishedAt": "2026-09-30T08:30:47.911063Z"
+    },
+    {
+      "name": "ae.grovisor/grotax",
+      "description": "UAE Corporate Tax: CT computation, SBR, penalties, free zone test, TP and health-check.",
+      "version": "1.2.0",
+      "repositoryUrl": null,
+      "packages": [],
+      "remotes": [
+        {
+          "type": "streamable-http",
+          "url": "https://mcp.grovisor.ae/"
+        }
+      ],
+      "status": "active",
+      "publishedAt": "2026-10-02T03:01:23.583792Z"
+    },
+    {
       "name": "ae.projectory/mcp",
       "description": "Find UAE off-plan developments and registered residential sales.",
       "version": "0.6.0",
@@ -109,6 +154,21 @@
       ],
       "status": "active",
       "publishedAt": "2026-08-25T11:16:56.879334Z"
+    },
+    {
+      "name": "africa.ugc/ugc",
+      "description": "The Human Ad Network. Campaigns, clipping, and Clip Studio from chat.",
+      "version": "1.0.0",
+      "repositoryUrl": null,
+      "packages": [],
+      "remotes": [
+        {
+          "type": "streamable-http",
+          "url": "https://api.ugc.africa/mcp"
+        }
+      ],
+      "status": "active",
+      "publishedAt": "2026-10-03T16:28:09.054327Z"
     },
     {
       "name": "ag.hood/name-service",
@@ -142,8 +202,8 @@
     },
     {
       "name": "agency.justidea/justidea-agency",
-      "description": "Services, published prices, site search and sales inquiries of JustIdea, a Polish e-commerce agency.",
-      "version": "1.0.0",
+      "description": "Services, prices, inquiries and free analytics and AI visibility scans by JustIdea, a Polish agency.",
+      "version": "1.1.0",
       "repositoryUrl": null,
       "packages": [],
       "remotes": [
@@ -153,7 +213,7 @@
         }
       ],
       "status": "active",
-      "publishedAt": "2026-09-27T23:11:35.114076Z"
+      "publishedAt": "2026-10-04T01:59:27.439267Z"
     },
     {
       "name": "agency.kesey/pretrip",
@@ -261,6 +321,38 @@
       ],
       "status": "active",
       "publishedAt": "2026-09-16T01:24:05.807612Z"
+    },
+    {
+      "name": "ai.1clickwebsite/mcp",
+      "description": "Build and edit WordPress websites for local service businesses and run Lead Gen demo-site batches.",
+      "version": "1.0.0",
+      "repositoryUrl": null,
+      "packages": [],
+      "remotes": [
+        {
+          "type": "streamable-http",
+          "url": "https://www.1clickwebsite.ai/api/mcp"
+        }
+      ],
+      "status": "active",
+      "publishedAt": "2026-10-05T09:31:32.655518Z"
+    },
+    {
+      "name": "ai.2kw/mcp-server",
+      "description": "EU-hosted AI platform: OpenAI-compatible LLM gateway, document extraction, transcription, agents.",
+      "version": "6.3.0",
+      "repositoryUrl": null,
+      "packages": [
+        {
+          "registryType": "npm",
+          "identifier": "@2kw/ai-mcp-server",
+          "version": "6.3.0",
+          "transport": null
+        }
+      ],
+      "remotes": [],
+      "status": "active",
+      "publishedAt": "2026-10-03T09:22:27.183577Z"
     },
     {
       "name": "ai.69ai/69ai",
@@ -415,6 +507,21 @@
       "publishedAt": "2026-08-08T18:01:15.320148Z"
     },
     {
+      "name": "ai.adrails/adrails",
+      "description": "AI agents that build, test and monitor Meta Ads and Google Ads campaigns from your real data.",
+      "version": "1.0.2",
+      "repositoryUrl": "https://github.com/devthomy/adrails-mcp",
+      "packages": [],
+      "remotes": [
+        {
+          "type": "streamable-http",
+          "url": "https://adrails.ai/api/mcp"
+        }
+      ],
+      "status": "active",
+      "publishedAt": "2026-10-04T06:58:31.135506Z"
+    },
+    {
       "name": "ai.adramp/google-ads",
       "description": "Google Ads MCP server — manage campaigns, keywords, and metrics.",
       "version": "1.0.3",
@@ -428,6 +535,21 @@
       ],
       "status": "active",
       "publishedAt": "2026-03-20T11:16:36.853329Z"
+    },
+    {
+      "name": "ai.adrio/adrio",
+      "description": "Research competitor Meta ads, manage brand angles and audiences, and brief Spark to create ads.",
+      "version": "1.0.0",
+      "repositoryUrl": null,
+      "packages": [],
+      "remotes": [
+        {
+          "type": "streamable-http",
+          "url": "https://api.adrio.ai/mcp"
+        }
+      ],
+      "status": "active",
+      "publishedAt": "2026-10-03T12:20:35.801463Z"
     },
     {
       "name": "ai.adsap/adsap",
@@ -590,13 +712,13 @@
     {
       "name": "ai.agent-bev/bev-door",
       "description": "The world's largest agentic B2B hub for beer, wine and spirits. Powered by CUVEE. Trade only.",
-      "version": "0.2.4",
+      "version": "0.2.5",
       "repositoryUrl": "https://github.com/agent-bev/bev-door",
       "packages": [
         {
           "registryType": "npm",
           "identifier": "@agent-bev/mcp-server",
-          "version": "0.2.2",
+          "version": "0.2.5",
           "transport": null
         }
       ],
@@ -607,7 +729,7 @@
         }
       ],
       "status": "active",
-      "publishedAt": "2026-09-28T02:28:06.963429Z"
+      "publishedAt": "2026-09-30T02:38:24.149981Z"
     },
     {
       "name": "ai.agentberg/agentberg",
@@ -1248,6 +1370,21 @@
       "publishedAt": "2026-09-27T03:55:34.80127Z"
     },
     {
+      "name": "ai.agothe.mcp-chatgpt/agent-contract-preflight",
+      "description": "Deterministic MCP, JSON Schema, and SemVer preflight via Agothe's public MUV scope.",
+      "version": "0.2.0",
+      "repositoryUrl": null,
+      "packages": [],
+      "remotes": [
+        {
+          "type": "streamable-http",
+          "url": "https://mcp-chatgpt.agothe.ai/mcp"
+        }
+      ],
+      "status": "active",
+      "publishedAt": "2026-10-05T02:57:09.099626Z"
+    },
+    {
       "name": "ai.ai-advisors/mcp",
       "description": "Read-only AI search visibility data: citations, AEO audits, and advisor insights from AI-Advisors.",
       "version": "1.0.0",
@@ -1342,6 +1479,28 @@
       "publishedAt": "2026-06-11T10:40:20.47951Z"
     },
     {
+      "name": "ai.aimentiontracker/mcp",
+      "description": "How often ChatGPT, Claude, Gemini and Perplexity name and cite your brand, with the evidence.",
+      "version": "0.1.2",
+      "repositoryUrl": "https://github.com/aimentiontracker/mcp",
+      "packages": [
+        {
+          "registryType": "npm",
+          "identifier": "@aimentiontracker/mcp",
+          "version": "0.1.1",
+          "transport": null
+        }
+      ],
+      "remotes": [
+        {
+          "type": "streamable-http",
+          "url": "https://mcp.aimentiontracker.ai/mcp"
+        }
+      ],
+      "status": "active",
+      "publishedAt": "2026-09-30T22:12:41.984881Z"
+    },
+    {
       "name": "ai.airshelf/catalog",
       "description": "Cross-vendor B2B catalog for AI agents: search, compare, find equivalents, request a quote.",
       "version": "1.0.0",
@@ -1432,6 +1591,21 @@
       "publishedAt": "2026-09-08T20:43:00.297171Z"
     },
     {
+      "name": "ai.alcock/arena",
+      "description": "AI forecasting gym: markets, sports, policy and tech. Graded by reality, measured against markets.",
+      "version": "1.3.0",
+      "repositoryUrl": null,
+      "packages": [],
+      "remotes": [
+        {
+          "type": "streamable-http",
+          "url": "https://alcock.ai/api/mcp"
+        }
+      ],
+      "status": "active",
+      "publishedAt": "2026-10-05T10:43:43.674122Z"
+    },
+    {
       "name": "ai.aliengiraffe/spotdb",
       "description": "Ephemeral data sandbox for AI workflows with guardrails and security",
       "version": "0.1.0",
@@ -1465,8 +1639,8 @@
     },
     {
       "name": "ai.alphaquantlabs/propertycheck",
-      "description": "Gold Coast property due diligence for buyers and renters: everyday life, local risks and changes.",
-      "version": "1.6.4",
+      "description": "Gold Coast property intelligence and due diligence for AI agents, renters and buyers.",
+      "version": "1.6.7",
       "repositoryUrl": null,
       "packages": [],
       "remotes": [
@@ -1476,7 +1650,7 @@
         }
       ],
       "status": "active",
-      "publishedAt": "2026-09-29T13:33:41.826595Z"
+      "publishedAt": "2026-10-01T01:33:04.821367Z"
     },
     {
       "name": "ai.alpic.alpix/Alpix",
@@ -1549,7 +1723,7 @@
     {
       "name": "ai.analyticslegends/sap-analytics",
       "description": "AI agent for SAP analytics: firms, day rates, contract radar, news, concepts, studies",
-      "version": "1.0.6",
+      "version": "1.0.8",
       "repositoryUrl": "https://github.com/analyticslegends/analytics-legends-mcp",
       "packages": [],
       "remotes": [
@@ -1559,7 +1733,7 @@
         }
       ],
       "status": "active",
-      "publishedAt": "2026-08-18T19:33:29.605357Z"
+      "publishedAt": "2026-10-01T07:46:09.029192Z"
     },
     {
       "name": "ai.anha/resolver",
@@ -1579,29 +1753,29 @@
     {
       "name": "ai.ankimcp/anki-mcp-server",
       "description": "MCP server for Anki flashcards: adaptive review, notes, media, and deck management via AnkiConnect.",
-      "version": "0.26.0",
+      "version": "0.27.0",
       "repositoryUrl": "https://github.com/ankimcp/anki-mcp-server",
       "packages": [
         {
           "registryType": "npm",
           "identifier": "@ankimcp/anki-mcp-server",
-          "version": "0.26.0",
+          "version": "0.27.0",
           "transport": null
         }
       ],
       "remotes": [],
       "status": "active",
-      "publishedAt": "2026-09-18T15:07:12.087643Z"
+      "publishedAt": "2026-10-04T18:28:29.903104Z"
     },
     {
       "name": "ai.ankimcp/anki-mcp-server-addon",
       "description": "Anki addon that exposes your flashcard collection to AI assistants via a local MCP server.",
-      "version": "0.30.0",
+      "version": "0.32.0",
       "repositoryUrl": "https://github.com/ankimcp/anki-mcp-server-addon",
       "packages": [],
       "remotes": [],
       "status": "active",
-      "publishedAt": "2026-09-26T08:03:07.518871Z"
+      "publishedAt": "2026-10-04T16:10:41.879623Z"
     },
     {
       "name": "ai.anomalyarmor/armor-mcp",
@@ -1795,6 +1969,21 @@
       "publishedAt": "2026-04-17T04:01:26.724763Z"
     },
     {
+      "name": "ai.askatria/atria",
+      "description": "US site diligence for agents: parcels, power, flood, zoning rules and more, each with its source.",
+      "version": "1.2.0",
+      "repositoryUrl": null,
+      "packages": [],
+      "remotes": [
+        {
+          "type": "streamable-http",
+          "url": "https://askatria.ai/mcp"
+        }
+      ],
+      "status": "active",
+      "publishedAt": "2026-10-04T15:01:54.367203Z"
+    },
+    {
       "name": "ai.askline/askline",
       "description": "Askline shows what ChatGPT says about a brand, then the SEO that feeds it.",
       "version": "1.0.0",
@@ -1838,6 +2027,21 @@
       ],
       "status": "active",
       "publishedAt": "2026-09-22T17:02:07.800881Z"
+    },
+    {
+      "name": "ai.asrm/asrm",
+      "description": "Check a website's AI readiness and answer AI visibility and GEO questions from ASRM's guides.",
+      "version": "1.0.0",
+      "repositoryUrl": null,
+      "packages": [],
+      "remotes": [
+        {
+          "type": "streamable-http",
+          "url": "https://asrm.ai/mcp"
+        }
+      ],
+      "status": "active",
+      "publishedAt": "2026-10-01T22:03:27.105253Z"
     },
     {
       "name": "ai.assetlog/assetlog",
@@ -1889,6 +2093,21 @@
       "publishedAt": "2026-09-28T13:11:37.264268Z"
     },
     {
+      "name": "ai.atalay/mcp",
+      "description": "Your Atalay business data: sites, domains, mail, invoices, shop, B2B, AI and project requests.",
+      "version": "1.4.0",
+      "repositoryUrl": null,
+      "packages": [],
+      "remotes": [
+        {
+          "type": "streamable-http",
+          "url": "https://mcp.atalay.ai"
+        }
+      ],
+      "status": "active",
+      "publishedAt": "2026-10-04T13:51:28.595834Z"
+    },
+    {
       "name": "ai.atdev/supershopping",
       "description": "나만을 위한 AI 쇼핑 MCP — 상품을 자연어로 검색·비교·추천해 사용자의 효과적인 쇼핑을 돕습니다.",
       "version": "1.0.0",
@@ -1902,6 +2121,36 @@
       ],
       "status": "active",
       "publishedAt": "2026-06-29T05:36:58.413006Z"
+    },
+    {
+      "name": "ai.athaus/immobiliensuche",
+      "description": "Find a home in Germany: search athaus listings, save searches, send enquiries and book viewings.",
+      "version": "2026.10.1",
+      "repositoryUrl": null,
+      "packages": [],
+      "remotes": [
+        {
+          "type": "streamable-http",
+          "url": "https://suche.mcp.athaus.ai/mcp"
+        }
+      ],
+      "status": "active",
+      "publishedAt": "2026-10-03T18:34:25.43964Z"
+    },
+    {
+      "name": "ai.athaus/makler",
+      "description": "Real estate brokerage in Germany: listings, enquiries, viewings, valuations, drafts, social posts.",
+      "version": "2026.10.1",
+      "repositoryUrl": null,
+      "packages": [],
+      "remotes": [
+        {
+          "type": "streamable-http",
+          "url": "https://anbieter.mcp.athaus.ai/mcp"
+        }
+      ],
+      "status": "active",
+      "publishedAt": "2026-10-03T18:34:24.262183Z"
     },
     {
       "name": "ai.atlaso/mcp",
@@ -2025,8 +2274,8 @@
     },
     {
       "name": "ai.auteng/docs",
-      "description": "Publish markdown documents as public share links with mermaid diagram support. Built by AutEng.ai",
-      "version": "1.1.0",
+      "description": "Agent document workspace with wallet auth. Create, update and share markdown docs. By AutEng.ai",
+      "version": "1.2.1",
       "repositoryUrl": null,
       "packages": [],
       "remotes": [
@@ -2036,7 +2285,7 @@
         }
       ],
       "status": "active",
-      "publishedAt": "2026-02-06T20:56:39.150934Z"
+      "publishedAt": "2026-10-04T19:01:30.935975Z"
     },
     {
       "name": "ai.auteng/mcp",
@@ -2202,6 +2451,21 @@
       ],
       "status": "active",
       "publishedAt": "2026-05-18T23:32:19.610277Z"
+    },
+    {
+      "name": "ai.avaloncompany/web-content-url-tools",
+      "description": "26 tools: web pages to Markdown, metadata, tech stack, SSL, SEO, domains, email auth and SSO checks.",
+      "version": "1.0.0",
+      "repositoryUrl": "https://github.com/avaloncompany/web-content-mcp-server",
+      "packages": [],
+      "remotes": [
+        {
+          "type": "streamable-http",
+          "url": "https://avalonai--web-content-url-tools-mcp.apify.actor/mcp"
+        }
+      ],
+      "status": "active",
+      "publishedAt": "2026-10-03T14:09:40.783985Z"
     },
     {
       "name": "ai.avasis/quant-research",
@@ -2857,6 +3121,21 @@
       "publishedAt": "2026-09-22T20:34:30.591525Z"
     },
     {
+      "name": "ai.bithuman/docs",
+      "description": "The bitHuman docs over MCP: two read-only tools, search and fetch; it needs no account and no key.",
+      "version": "1.0.1",
+      "repositoryUrl": "https://gitlab.com/projects/87208064",
+      "packages": [],
+      "remotes": [
+        {
+          "type": "streamable-http",
+          "url": "https://docs.bithuman.ai/docs-mcp"
+        }
+      ],
+      "status": "active",
+      "publishedAt": "2026-10-05T10:40:24.646271Z"
+    },
+    {
       "name": "ai.bitroad/bitroad",
       "description": "Marketplace for AI agents: buy goods and services under spending caps, with returns and disputes.",
       "version": "1.0.0",
@@ -2934,6 +3213,21 @@
       "publishedAt": "2026-06-30T16:00:12.196014Z"
     },
     {
+      "name": "ai.blipsmith/sound-effects",
+      "description": "Game sound effects from a text prompt: game-ready WAVs with seamless loops and variations.",
+      "version": "1.0.0",
+      "repositoryUrl": null,
+      "packages": [],
+      "remotes": [
+        {
+          "type": "streamable-http",
+          "url": "https://blipsmith.ai/api/mcp"
+        }
+      ],
+      "status": "active",
+      "publishedAt": "2026-10-01T10:00:43.584444Z"
+    },
+    {
       "name": "ai.bloopo/bloopo",
       "description": "Turn one sentence into finished ads: video ads, UGC, product photos, voiceover, brand kits, A/B.",
       "version": "0.1.1",
@@ -2966,7 +3260,7 @@
     {
       "name": "ai.bluenexus/universal-mcp",
       "description": "Connect your AI to all your data - 200+ sources, intelligently filtered, compliance-ready.",
-      "version": "1.23.0",
+      "version": "1.24.0",
       "repositoryUrl": null,
       "packages": [],
       "remotes": [
@@ -2976,7 +3270,7 @@
         }
       ],
       "status": "active",
-      "publishedAt": "2026-09-28T08:43:13.346918Z"
+      "publishedAt": "2026-10-01T01:29:20.000919Z"
     },
     {
       "name": "ai.bodenrichtwert/mcp",
@@ -3125,30 +3419,30 @@
     {
       "name": "ai.bourdon/bourdon",
       "description": "Recognition-first cross-agent memory federation. One shared memory across all your agents.",
-      "version": "0.27.0",
+      "version": "0.28.2",
       "repositoryUrl": null,
       "packages": [
         {
           "registryType": "pypi",
           "identifier": "bourdon",
-          "version": "0.27.0",
+          "version": "0.28.2",
           "transport": null
         },
         {
           "registryType": "npm",
           "identifier": "@getbourdon/mcp-server",
-          "version": "0.9.0",
+          "version": "0.11.0",
           "transport": null
         }
       ],
       "remotes": [],
       "status": "active",
-      "publishedAt": "2026-09-29T06:58:05.835817Z"
+      "publishedAt": "2026-10-01T05:29:37.909172Z"
     },
     {
       "name": "ai.bowmark/bowmark",
       "description": "Do things on live websites: prices, availability, quotes, bookings, anything behind a form or login.",
-      "version": "8.152.0",
+      "version": "8.164.0",
       "repositoryUrl": "https://github.com/bowmark-ai/skill",
       "packages": [
         {
@@ -3171,12 +3465,12 @@
         }
       ],
       "status": "active",
-      "publishedAt": "2026-09-29T16:58:38.554523Z"
+      "publishedAt": "2026-10-05T03:56:17.444335Z"
     },
     {
       "name": "ai.brainattic/knowledge-base",
       "description": "The knowledge base your AI reads and writes, under your rules — over MCP, EU-hosted.",
-      "version": "3.1.0",
+      "version": "4.0.0",
       "repositoryUrl": null,
       "packages": [],
       "remotes": [
@@ -3186,7 +3480,7 @@
         }
       ],
       "status": "active",
-      "publishedAt": "2026-09-11T12:51:22.845631Z"
+      "publishedAt": "2026-10-02T13:05:00.101939Z"
     },
     {
       "name": "ai.bridgeapp/bridgeapp",
@@ -3219,6 +3513,21 @@
       "publishedAt": "2026-04-24T08:15:43.116321Z"
     },
     {
+      "name": "ai.buildersinfintech/fintech-data",
+      "description": "Fintech funding rounds, companies, investors and podcast knowledge. Free, keyless, CC BY 4.0.",
+      "version": "1.0.0",
+      "repositoryUrl": null,
+      "packages": [],
+      "remotes": [
+        {
+          "type": "streamable-http",
+          "url": "https://buildersinfintech.ai/mcp"
+        }
+      ],
+      "status": "active",
+      "publishedAt": "2026-10-01T09:59:23.641009Z"
+    },
+    {
       "name": "ai.buildwithorbit/orbit",
       "description": "Turn any task into the right API calls: discover, evaluate, and integrate public APIs.",
       "version": "1.0.0",
@@ -3232,6 +3541,21 @@
       ],
       "status": "active",
       "publishedAt": "2026-08-26T18:06:01.680914Z"
+    },
+    {
+      "name": "ai.bumit/verify-business",
+      "description": "Swiss business verification with per-check source provenance and evidence freshness.",
+      "version": "1.0.0-phase13.2",
+      "repositoryUrl": null,
+      "packages": [],
+      "remotes": [
+        {
+          "type": "streamable-http",
+          "url": "https://bumit.ai/mcp"
+        }
+      ],
+      "status": "active",
+      "publishedAt": "2026-10-05T10:48:58.569289Z"
     },
     {
       "name": "ai.bunzee/bunzee",
@@ -3292,6 +3616,21 @@
       ],
       "status": "active",
       "publishedAt": "2026-05-03T09:49:36.790849Z"
+    },
+    {
+      "name": "ai.buzzsearch/mcp",
+      "description": "Search Reddit, TikTok, YouTube, and Facebook comments for exact customer quotes for ad copy.",
+      "version": "1.0.0",
+      "repositoryUrl": null,
+      "packages": [],
+      "remotes": [
+        {
+          "type": "streamable-http",
+          "url": "https://buzzsearch.ai/api/mcp"
+        }
+      ],
+      "status": "active",
+      "publishedAt": "2026-10-05T03:08:07.499846Z"
     },
     {
       "name": "ai.byteask/embedded-docs",
@@ -3476,6 +3815,36 @@
       "publishedAt": "2026-07-20T00:14:46.676606Z"
     },
     {
+      "name": "ai.careercorner/careercorner",
+      "description": "Your personal career coach. Scanning jobs for you, daily.",
+      "version": "1.0.0",
+      "repositoryUrl": null,
+      "packages": [],
+      "remotes": [
+        {
+          "type": "streamable-http",
+          "url": "https://careercorner.ai/api/mcp"
+        }
+      ],
+      "status": "active",
+      "publishedAt": "2026-10-02T02:34:16.49193Z"
+    },
+    {
+      "name": "ai.catalystproject/evidence-graph",
+      "description": "Findings on what compounds and supplements do in the body, with evidence strength, quote and paper.",
+      "version": "0.2.0",
+      "repositoryUrl": "https://github.com/colorcatalyst/catalyst-mcp",
+      "packages": [],
+      "remotes": [
+        {
+          "type": "streamable-http",
+          "url": "https://catalystproject.ai/mcp"
+        }
+      ],
+      "status": "active",
+      "publishedAt": "2026-10-04T20:43:24.132127Z"
+    },
+    {
       "name": "ai.caulo/caulo",
       "description": "Social network for verified humans where your AI agent reads the feed, posts, DMs, and moderates.",
       "version": "1.0.0",
@@ -3534,6 +3903,25 @@
       ],
       "status": "active",
       "publishedAt": "2026-08-20T08:13:44.889307Z"
+    },
+    {
+      "name": "ai.centralcity/central-city",
+      "description": "Every AI. One room. The open hub where the world's AI agents meet, work together and exchange.",
+      "version": "0.8.0",
+      "repositoryUrl": "https://github.com/centralcity-ai-org/protocol",
+      "packages": [],
+      "remotes": [
+        {
+          "type": "streamable-http",
+          "url": "https://centralcity.ai/mcp/open"
+        },
+        {
+          "type": "streamable-http",
+          "url": "https://centralcity.ai/mcp"
+        }
+      ],
+      "status": "active",
+      "publishedAt": "2026-10-05T11:55:58.640762Z"
     },
     {
       "name": "ai.cerebrium/docs",
@@ -3708,6 +4096,21 @@
       ],
       "status": "active",
       "publishedAt": "2026-07-14T21:12:59.153451Z"
+    },
+    {
+      "name": "ai.ciphyr.agentmart/agentmart",
+      "description": "Shop for AI agents: always-on utilities and tested code kits, paid from a prepaid balance.",
+      "version": "1.0.0",
+      "repositoryUrl": null,
+      "packages": [],
+      "remotes": [
+        {
+          "type": "streamable-http",
+          "url": "https://agentmart.ciphyr.ai/mcp"
+        }
+      ],
+      "status": "active",
+      "publishedAt": "2026-10-04T17:27:21.582309Z"
     },
     {
       "name": "ai.circulara/plugin",
@@ -3918,20 +4321,20 @@
     },
     {
       "name": "ai.clize/clize",
-      "description": "Real-world actions for AI coding agents: domains, email, deploys, payments, media, and SEO/GEO.",
-      "version": "0.47.1",
+      "description": "Real-world actions for AI coding agents: an inbox with approval outbox, deploys, domains, payments.",
+      "version": "0.51.2",
       "repositoryUrl": "https://github.com/cooldk/clize-cli",
       "packages": [
         {
           "registryType": "npm",
           "identifier": "@clize/clize",
-          "version": "0.47.1",
+          "version": "0.51.2",
           "transport": null
         }
       ],
       "remotes": [],
       "status": "active",
-      "publishedAt": "2026-09-29T23:59:30.497581Z"
+      "publishedAt": "2026-10-02T00:30:53.989943Z"
     },
     {
       "name": "ai.clize/domains",
@@ -4000,6 +4403,21 @@
       "remotes": [],
       "status": "active",
       "publishedAt": "2026-09-03T11:43:36.821222Z"
+    },
+    {
+      "name": "ai.cloudcrane/workspace",
+      "description": "Read and build a CloudCrane workspace: datasets, field contracts, review queue, receipts, runs.",
+      "version": "1.0.0",
+      "repositoryUrl": "https://github.com/cloudcrane-dev/cloudcrane-mcp",
+      "packages": [],
+      "remotes": [
+        {
+          "type": "streamable-http",
+          "url": "https://cloudcrane.ai/api/build/mcp"
+        }
+      ],
+      "status": "active",
+      "publishedAt": "2026-10-04T16:43:57.990952Z"
     },
     {
       "name": "ai.cloudworldmodel/cloud-world-model",
@@ -4137,6 +4555,21 @@
       ],
       "status": "active",
       "publishedAt": "2026-09-26T18:23:10.941514Z"
+    },
+    {
+      "name": "ai.coldstate/knowledge",
+      "description": "Deterministic knowledge for AI agents: search, fetch, cite and verify a 48M-entry knowledge base.",
+      "version": "0.1.0",
+      "repositoryUrl": null,
+      "packages": [],
+      "remotes": [
+        {
+          "type": "streamable-http",
+          "url": "https://cold-api.coldstate.ai/mcp"
+        }
+      ],
+      "status": "active",
+      "publishedAt": "2026-09-30T18:52:07.272967Z"
     },
     {
       "name": "ai.com.mcp/contabo",
@@ -4381,6 +4814,21 @@
       "publishedAt": "2026-05-22T18:26:02.539221Z"
     },
     {
+      "name": "ai.contentmaschine/contentmaschine",
+      "description": "AI image, video, audio and text tools for creators. Pay per use with credits.",
+      "version": "1.1.0",
+      "repositoryUrl": null,
+      "packages": [],
+      "remotes": [
+        {
+          "type": "streamable-http",
+          "url": "https://contentmaschine.ai/api/mcp"
+        }
+      ],
+      "status": "active",
+      "publishedAt": "2026-10-01T12:20:34.719247Z"
+    },
+    {
       "name": "ai.contentsweep/agent-access",
       "description": "Prepaid copyright investigation and authorized enforcement, with a free agent sandbox.",
       "version": "1.0.0",
@@ -4547,8 +4995,8 @@
     },
     {
       "name": "ai.councilof/gspc",
-      "description": "Dated AI measurements and signed evidence over MCP. Free verification; never certification.",
-      "version": "1.4.3",
+      "description": "19 tools (14 free, 5 x402-metered): GSPC board, evidence, Ed25519 card verify. Measurement only.",
+      "version": "1.4.4",
       "repositoryUrl": null,
       "packages": [],
       "remotes": [
@@ -4558,12 +5006,12 @@
         }
       ],
       "status": "active",
-      "publishedAt": "2026-09-28T04:29:37.212219Z"
+      "publishedAt": "2026-09-30T17:17:57.036566Z"
     },
     {
       "name": "ai.councilof/gspc-free",
-      "description": "Free read-only GSPC tools: board totals, signed card verification, Merkle root, inclusion proofs.",
-      "version": "1.4.3",
+      "description": "14 free read-only tools: GSPC board, signed card and capsule verify, Merkle proofs, route.",
+      "version": "1.4.4",
       "repositoryUrl": null,
       "packages": [],
       "remotes": [
@@ -4573,7 +5021,7 @@
         }
       ],
       "status": "active",
-      "publishedAt": "2026-09-29T03:57:25.379626Z"
+      "publishedAt": "2026-09-30T17:17:58.080675Z"
     },
     {
       "name": "ai.cralo/mcp",
@@ -4671,8 +5119,8 @@
     },
     {
       "name": "ai.creditpolicy/creditpolicy",
-      "description": "Search Australian lender credit policies, compare lenders and pre-vet deals, with citations.",
-      "version": "1.0.0",
+      "description": "Australian lender credit policy library and client files for mortgage and finance brokers.",
+      "version": "1.1.0",
       "repositoryUrl": null,
       "packages": [],
       "remotes": [
@@ -4682,7 +5130,22 @@
         }
       ],
       "status": "active",
-      "publishedAt": "2026-08-13T01:32:49.084207Z"
+      "publishedAt": "2026-10-01T00:54:33.924541Z"
+    },
+    {
+      "name": "ai.crub/mcp",
+      "description": "Identify plants, mushrooms and insects, and keep your garden’s records and jobs, from your AI.",
+      "version": "1.0.0",
+      "repositoryUrl": null,
+      "packages": [],
+      "remotes": [
+        {
+          "type": "streamable-http",
+          "url": "https://mcp.crub.ai/mcp"
+        }
+      ],
+      "status": "active",
+      "publishedAt": "2026-10-03T14:28:07.245141Z"
     },
     {
       "name": "ai.cueapi/mcp",
@@ -4718,9 +5181,9 @@
     },
     {
       "name": "ai.customdomain/mcp",
-      "description": "Custom domains for SaaS and AI agents: search, register, connect DNS, and issue HTTPS over MCP.",
-      "version": "0.4.0",
-      "repositoryUrl": null,
+      "description": "Custom domains for SaaS and AI agents: search, buy, connect DNS, verify ownership and issue HTTPS.",
+      "version": "0.5.0",
+      "repositoryUrl": "https://github.com/CUSTOM-DOMAIN-APP/customdomain-mcp",
       "packages": [],
       "remotes": [
         {
@@ -4729,7 +5192,7 @@
         }
       ],
       "status": "active",
-      "publishedAt": "2026-07-12T18:06:58.552306Z"
+      "publishedAt": "2026-10-03T13:53:52.281043Z"
     },
     {
       "name": "ai.d50/d50-platform",
@@ -4775,6 +5238,36 @@
       ],
       "status": "active",
       "publishedAt": "2026-08-05T22:21:21.607463Z"
+    },
+    {
+      "name": "ai.daishi/studio",
+      "description": "Run AI agent evaluations on your own model keys, and publish runs others can review and re-run.",
+      "version": "1.0.0",
+      "repositoryUrl": null,
+      "packages": [],
+      "remotes": [
+        {
+          "type": "streamable-http",
+          "url": "https://daishi.ai/mcp/studio"
+        }
+      ],
+      "status": "active",
+      "publishedAt": "2026-09-30T18:28:39.748602Z"
+    },
+    {
+      "name": "ai.daishi/world",
+      "description": "A persistent multi-agent world any AI agent can join over MCP, with a public record of every match.",
+      "version": "1.0.0",
+      "repositoryUrl": null,
+      "packages": [],
+      "remotes": [
+        {
+          "type": "streamable-http",
+          "url": "https://daishi.ai/mcp"
+        }
+      ],
+      "status": "active",
+      "publishedAt": "2026-09-30T18:26:22.696978Z"
     },
     {
       "name": "ai.darkfunnels/docs",
@@ -4869,7 +5362,7 @@
     {
       "name": "ai.dataparrot/data-parrot",
       "description": "Data Parrot brings AI revenue analysis of your HubSpot data into your AI tools.",
-      "version": "1.3.2",
+      "version": "1.3.3",
       "repositoryUrl": null,
       "packages": [],
       "remotes": [
@@ -4879,7 +5372,7 @@
         }
       ],
       "status": "active",
-      "publishedAt": "2026-09-25T21:22:22.497276Z"
+      "publishedAt": "2026-10-01T20:39:54.171881Z"
     },
     {
       "name": "ai.datavidence/datavidence-financials",
@@ -4989,6 +5482,21 @@
       ],
       "status": "active",
       "publishedAt": "2026-09-22T03:09:52.170754Z"
+    },
+    {
+      "name": "ai.deepvalues/deepvalues",
+      "description": "Value investing for US stocks: SEC filings, 13F guru holdings, intrinsic value, AI briefings.",
+      "version": "1.1.1",
+      "repositoryUrl": null,
+      "packages": [],
+      "remotes": [
+        {
+          "type": "streamable-http",
+          "url": "https://app.deepvalues.ai/api/mcp"
+        }
+      ],
+      "status": "active",
+      "publishedAt": "2026-10-04T09:05:28.64207Z"
     },
     {
       "name": "ai.deinai/creator-skill",
@@ -5276,19 +5784,19 @@
     {
       "name": "ai.dinglebear/labby",
       "description": "Rust MCP gateway with Code Mode, authentication, setup, logs, CLI, HTTP API, and operator web UI.",
-      "version": "2.3.2",
+      "version": "2.6.0",
       "repositoryUrl": "https://github.com/dinglebear-ai/labby",
       "packages": [
         {
           "registryType": "npm",
           "identifier": "@dinglebear/labby",
-          "version": "2.3.2",
+          "version": "2.6.0",
           "transport": null
         }
       ],
       "remotes": [],
       "status": "active",
-      "publishedAt": "2026-09-24T22:23:19.51945Z"
+      "publishedAt": "2026-10-04T01:21:04.237608Z"
     },
     {
       "name": "ai.dinglebear/rapprise",
@@ -5604,6 +6112,21 @@
       ],
       "status": "active",
       "publishedAt": "2026-08-21T13:30:31.014299Z"
+    },
+    {
+      "name": "ai.distilla/mcp",
+      "description": "Grounded financial research for agents: filings, transcripts, news across US and Asia markets.",
+      "version": "1.0.2",
+      "repositoryUrl": null,
+      "packages": [],
+      "remotes": [
+        {
+          "type": "streamable-http",
+          "url": "https://api.distilla.ai/mcp"
+        }
+      ],
+      "status": "active",
+      "publishedAt": "2026-10-01T21:39:02.09774Z"
     },
     {
       "name": "ai.divinci/divinci",
@@ -5925,36 +6448,36 @@
     {
       "name": "ai.dxpert/mcp",
       "description": "Industrial AI-readiness diagnostics, UNS design, and UNS agents for MCP clients.",
-      "version": "0.1.1",
+      "version": "0.1.2",
       "repositoryUrl": "https://github.com/dxpert-ai/dxpert-mcp",
       "packages": [
         {
           "registryType": "npm",
           "identifier": "@dxpert/mcp",
-          "version": "0.1.1",
+          "version": "0.1.2",
           "transport": null
         }
       ],
       "remotes": [],
       "status": "active",
-      "publishedAt": "2026-08-27T01:05:26.487602Z"
+      "publishedAt": "2026-10-04T04:46:16.12528Z"
     },
     {
       "name": "ai.dxpert/uns-tools",
       "description": "Free Sparkplug B topic linting, UNS naming checks and AI-readiness screening. No API key.",
-      "version": "0.1.0",
+      "version": "0.1.2",
       "repositoryUrl": "https://github.com/dxpert-ai/uns-tools",
       "packages": [
         {
           "registryType": "npm",
           "identifier": "@dxpert/uns-tools",
-          "version": "0.1.0",
+          "version": "0.1.2",
           "transport": null
         }
       ],
       "remotes": [],
       "status": "active",
-      "publishedAt": "2026-08-29T16:50:10.703063Z"
+      "publishedAt": "2026-10-04T04:46:16.598051Z"
     },
     {
       "name": "ai.dynamicfeed/dynamic-feed",
@@ -6055,8 +6578,8 @@
     {
       "name": "ai.edgechat/edgepedia",
       "description": "Search and read Edgepedia, a free and growing encyclopedia with citations. No key.",
-      "version": "1.0.0",
-      "repositoryUrl": null,
+      "version": "1.0.1",
+      "repositoryUrl": "https://github.com/EdgePlat/edgepedia-mcp",
       "packages": [],
       "remotes": [
         {
@@ -6065,7 +6588,7 @@
         }
       ],
       "status": "active",
-      "publishedAt": "2026-09-20T22:38:10.409624Z"
+      "publishedAt": "2026-10-02T15:00:41.913247Z"
     },
     {
       "name": "ai.edusignal/districts",
@@ -6135,21 +6658,36 @@
       "publishedAt": "2026-09-18T07:30:26.058918Z"
     },
     {
+      "name": "ai.elav8.fala/fala",
+      "description": "Build and install a voice + chat AI receptionist for any business website.",
+      "version": "1.0.0",
+      "repositoryUrl": null,
+      "packages": [],
+      "remotes": [
+        {
+          "type": "streamable-http",
+          "url": "https://fala.elav8.ai/mcp"
+        }
+      ],
+      "status": "active",
+      "publishedAt": "2026-10-03T12:46:34.820449Z"
+    },
+    {
       "name": "ai.elfa/mcp",
       "description": "Crypto social intelligence from X and Telegram, plus the Elfa Auto condition engine",
-      "version": "4.3.0",
+      "version": "4.5.0",
       "repositoryUrl": "https://github.com/elfa-ai/mcp",
       "packages": [
         {
           "registryType": "npm",
           "identifier": "@elfa-ai/mcp",
-          "version": "4.3.0",
+          "version": "4.5.0",
           "transport": null
         }
       ],
       "remotes": [],
       "status": "active",
-      "publishedAt": "2026-09-23T09:26:07.263379Z"
+      "publishedAt": "2026-10-05T13:51:10.010282Z"
     },
     {
       "name": "ai.elicitly/elicitly",
@@ -6259,6 +6797,21 @@
       "publishedAt": "2026-07-27T15:14:45.101301Z"
     },
     {
+      "name": "ai.entervista/entervista",
+      "description": "Find and book local service businesses (plumbers, HVAC, detailers) at real prices, with approval.",
+      "version": "1.0.0",
+      "repositoryUrl": null,
+      "packages": [],
+      "remotes": [
+        {
+          "type": "streamable-http",
+          "url": "https://entervista.ai/mcp"
+        }
+      ],
+      "status": "active",
+      "publishedAt": "2026-09-29T23:29:36.03839Z"
+    },
+    {
       "name": "ai.entityenricher/enricher",
       "description": "Multi-LLM entity enrichment: schemas, single/batch enrichment, fusion, model benchmarks.",
       "version": "2.0.0",
@@ -6272,6 +6825,225 @@
       ],
       "status": "active",
       "publishedAt": "2026-07-27T05:48:21.532292Z"
+    },
+    {
+      "name": "ai.enyal/enyal",
+      "description": "ENYAL by Greenland AI — encrypted identity & memory for AI agents (query, recall, provenance)",
+      "version": "0.1.0",
+      "repositoryUrl": null,
+      "packages": [],
+      "remotes": [
+        {
+          "type": "streamable-http",
+          "url": "https://mcp.enyal.ai/mcp"
+        }
+      ],
+      "status": "active",
+      "publishedAt": "2026-06-28T17:07:13.623823Z"
+    },
+    {
+      "name": "ai.eonik/mcp",
+      "description": "Read brand, research, and performance facts; draft briefs. Never spends. You approve every cut.",
+      "version": "2.0.0",
+      "repositoryUrl": "https://github.com/eonik-ai/eonik-mcp",
+      "packages": [
+        {
+          "registryType": "npm",
+          "identifier": "eonik-mcp",
+          "version": "2.0.0",
+          "transport": null
+        }
+      ],
+      "remotes": [],
+      "status": "active",
+      "publishedAt": "2026-08-21T10:54:34.032487Z"
+    },
+    {
+      "name": "ai.eosl/eosl",
+      "description": "Hardware end-of-life dates by part number, each linked to the vendor's own bulletin.",
+      "version": "1.0.0",
+      "repositoryUrl": null,
+      "packages": [],
+      "remotes": [
+        {
+          "type": "streamable-http",
+          "url": "https://eosl.ai/mcp"
+        }
+      ],
+      "status": "active",
+      "publishedAt": "2026-08-05T02:20:39.680014Z"
+    },
+    {
+      "name": "ai.epinu/epinu",
+      "description": "Agent-first marketplace for real-world assets — agro and energy first; humans approve every write.",
+      "version": "1.0.4",
+      "repositoryUrl": "https://github.com/CMS87/epinu-mcp",
+      "packages": [],
+      "remotes": [
+        {
+          "type": "streamable-http",
+          "url": "https://api.epinu.ai/api/agent/mcp"
+        }
+      ],
+      "status": "active",
+      "publishedAt": "2026-08-14T16:22:26.921858Z"
+    },
+    {
+      "name": "ai.epox/mcp",
+      "description": "Read your Epox catalogue and credits; generate studio and lifestyle product images.",
+      "version": "1.2.0",
+      "repositoryUrl": null,
+      "packages": [],
+      "remotes": [
+        {
+          "type": "streamable-http",
+          "url": "https://app.epox.ai/api/mcp"
+        }
+      ],
+      "status": "active",
+      "publishedAt": "2026-10-01T10:35:45.510267Z"
+    },
+    {
+      "name": "ai.etincel/etincel-nonfiction",
+      "description": "Trainable non-fiction writing voice, presets, and an anti-AI-tells audit for Claude, via MCP.",
+      "version": "0.10.1",
+      "repositoryUrl": "https://github.com/AIStoryHub/etincel",
+      "packages": [
+        {
+          "registryType": "npm",
+          "identifier": "etincel",
+          "version": "0.10.1",
+          "transport": null
+        }
+      ],
+      "remotes": [
+        {
+          "type": "streamable-http",
+          "url": "https://etincel.ai/api/mcp"
+        }
+      ],
+      "status": "active",
+      "publishedAt": "2026-08-15T15:30:39.495584Z"
+    },
+    {
+      "name": "ai.everpod/everpod",
+      "description": "Your own always-on cloud computer for AI agents: managed OpenClaw, or Claude Code and Codex.",
+      "version": "0.2.0",
+      "repositoryUrl": "https://github.com/everpod-ai/mcp",
+      "packages": [],
+      "remotes": [
+        {
+          "type": "streamable-http",
+          "url": "https://everpod.ai/mcp"
+        }
+      ],
+      "status": "active",
+      "publishedAt": "2026-10-05T05:34:27.629036Z"
+    },
+    {
+      "name": "ai.everway/everway-mcp-server",
+      "description": "Read and update your Everway trips and itineraries from any MCP-compatible AI assistant.",
+      "version": "1.0.1",
+      "repositoryUrl": "https://github.com/everway-ai/everway-mcp-server",
+      "packages": [],
+      "remotes": [
+        {
+          "type": "streamable-http",
+          "url": "https://everway.ai/api/mcp"
+        }
+      ],
+      "status": "active",
+      "publishedAt": "2026-07-16T11:24:45.21724Z"
+    },
+    {
+      "name": "ai.everyn/everyn",
+      "description": "Use Everyn's hosted MCP server to turn datasets into reviewed, exportable results.",
+      "version": "1.0.0",
+      "repositoryUrl": null,
+      "packages": [],
+      "remotes": [
+        {
+          "type": "streamable-http",
+          "url": "https://mcp.everyn.ai/mcp"
+        }
+      ],
+      "status": "active",
+      "publishedAt": "2026-09-03T02:43:39.718728Z"
+    },
+    {
+      "name": "ai.exa/exa",
+      "description": "Connect AI agents to Exa for web search, content fetching, and multi-step research.",
+      "version": "3.4.1",
+      "repositoryUrl": "https://github.com/exa-labs/exa-mcp-server",
+      "packages": [],
+      "remotes": [
+        {
+          "type": "streamable-http",
+          "url": "https://mcp.exa.ai/mcp"
+        }
+      ],
+      "status": "active",
+      "publishedAt": "2026-09-23T00:29:56.602357Z"
+    },
+    {
+      "name": "ai.example4/xmp4",
+      "description": "OSS libs in your stack, really used: source, tests, callers. C#, Java, TS, Python, Rust, PHP+.",
+      "version": "1.2.6",
+      "repositoryUrl": "https://github.com/0ics-srls/lsai-xmp4.public",
+      "packages": [],
+      "remotes": [
+        {
+          "type": "streamable-http",
+          "url": "https://mcp.example4.ai/mcp"
+        }
+      ],
+      "status": "active",
+      "publishedAt": "2026-04-23T22:09:33.915723Z"
+    },
+    {
+      "name": "ai.explorium/mcp-explorium",
+      "description": "Access live company and contact data from Explorium's AgentSource B2B platform.",
+      "version": "1.0.1",
+      "repositoryUrl": "https://github.com/explorium-ai/mcp-explorium",
+      "packages": [],
+      "remotes": [
+        {
+          "type": "streamable-http",
+          "url": "https://mcp-github-registry.explorium.ai/mcp"
+        }
+      ],
+      "status": "active",
+      "publishedAt": "2025-11-03T13:21:46.054906Z"
+    },
+    {
+      "name": "ai.extend/extend",
+      "description": "Turn documents into structured data: parse, extract, classify, split, and fill PDF forms.",
+      "version": "1.0.0",
+      "repositoryUrl": "https://github.com/extend-hq/extend-agent-plugin",
+      "packages": [],
+      "remotes": [
+        {
+          "type": "streamable-http",
+          "url": "https://mcp.extend.ai/mcp"
+        }
+      ],
+      "status": "active",
+      "publishedAt": "2026-09-03T14:29:06.827609Z"
+    },
+    {
+      "name": "ai.eykon/intelligence",
+      "description": "Live geopolitical intelligence feeds, plus eYKON's own scored and published forecast record.",
+      "version": "1.0.0",
+      "repositoryUrl": null,
+      "packages": [],
+      "remotes": [
+        {
+          "type": "streamable-http",
+          "url": "https://eykon.ai/api/mcp"
+        }
+      ],
+      "status": "active",
+      "publishedAt": "2026-09-10T13:08:26.135511Z"
     },
     {
       "name": "io.github.calllint/calllint",

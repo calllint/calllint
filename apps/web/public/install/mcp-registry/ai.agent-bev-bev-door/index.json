@@ -1,20 +1,20 @@
 {
   "schema": "calllint.agent-adoption-contract.v1",
   "contract": {
-    "contractDigest": "sha256:1768f6d12f3884995bbb65c98ddd830d62d616843f7e5e669d373e3c06607e81",
-    "generatedAt": "2026-09-30T01:30:03.000Z",
+    "contractDigest": "sha256:725dc0b7cc174deb51642e6d0dda5d74def744bc7dc46e8bcd433e0055348ef7",
+    "generatedAt": "2026-10-05T14:29:42.000Z",
     "expiresAt": null,
     "generatorVersion": "0.1.0",
-    "snapshotDigest": "sha256:2a2fdb4ac6789eae0bc4e05425b2b2a962ea0dc4471865f754030b6d55ce5446"
+    "snapshotDigest": "sha256:45edf31e3a6cc622e468495762cc1efd65b57c41234de5834dbd555957eeef6f"
   },
   "subject": {
     "canonicalName": "mcp-registry/ai.agent-bev-bev-door",
     "canonicalSlug": "mcp-registry/ai.agent-bev-bev-door",
     "packageType": "npm",
     "packageName": "@agent-bev/mcp-server",
-    "version": "0.2.2",
-    "artifactDigest": "sha256:27ec8437c4584491264d8b05648445aa69b7b69cc86131b6b807eaec2b8134df",
-    "sourceLocator": "npm:@agent-bev/mcp-server@0.2.2"
+    "version": "0.2.5",
+    "artifactDigest": "sha256:2b890099961512884b0f6156faca8e255c26561769ad39c1a766295cf7e91ea0",
+    "sourceLocator": "npm:@agent-bev/mcp-server@0.2.5"
   },
   "publicObservation": {
     "verdict": "REVIEW",
@@ -23,7 +23,7 @@
       "UNKNOWN_REMOTE"
     ],
     "evidenceLevel": "E2",
-    "evidenceDigest": "sha256:3b2668dc36b1dbc0e510c12ed3742663f51601b55950fa3e33ba1802bb184769",
+    "evidenceDigest": "sha256:6bad148c320aa58625a7c8a0add596c378167f6e929604c04152042feb80ed97",
     "completeness": "complete"
   },
   "authorityDelta": {
@@ -44,8 +44,8 @@
     ]
   },
   "trustedSources": {
-    "registrySnapshotDigest": "sha256:2a2fdb4ac6789eae0bc4e05425b2b2a962ea0dc4471865f754030b6d55ce5446",
-    "evidenceDigest": "sha256:3b2668dc36b1dbc0e510c12ed3742663f51601b55950fa3e33ba1802bb184769",
+    "registrySnapshotDigest": "sha256:45edf31e3a6cc622e468495762cc1efd65b57c41234de5834dbd555957eeef6f",
+    "evidenceDigest": "sha256:6bad148c320aa58625a7c8a0add596c378167f6e929604c04152042feb80ed97",
     "engineVersion": "0.1.0"
   },
   "untrustedPublisherContent": {
@@ -57,9 +57,9 @@
     "tool": "calllint_prepare_safe_install",
     "arguments": {
       "canonicalName": "mcp-registry/ai.agent-bev-bev-door",
-      "expectedVersion": "0.2.2",
-      "expectedArtifactDigest": "sha256:27ec8437c4584491264d8b05648445aa69b7b69cc86131b6b807eaec2b8134df",
-      "expectedContractDigest": "sha256:1768f6d12f3884995bbb65c98ddd830d62d616843f7e5e669d373e3c06607e81",
+      "expectedVersion": "0.2.5",
+      "expectedArtifactDigest": "sha256:2b890099961512884b0f6156faca8e255c26561769ad39c1a766295cf7e91ea0",
+      "expectedContractDigest": "sha256:725dc0b7cc174deb51642e6d0dda5d74def744bc7dc46e8bcd433e0055348ef7",
       "host": null
     }
   },

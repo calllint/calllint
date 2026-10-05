@@ -1,0 +1,50 @@
+{
+  "schema": "calllint.evidence-manifest.v1",
+  "subject": {
+    "canonicalName": "mcp-registry/ai.buildersinfintech-fintech-data",
+    "artifactDigest": "sha256:ebf57b8e5bcfd4be1e807e62eabf1b2f01ed575dc3f3f5fdc3e7187d5d5e0566"
+  },
+  "verdict": "REVIEW",
+  "verdictLabel": "Review required",
+  "completeness": "complete",
+  "evidenceLevel": "E2",
+  "evidenceRationale": "install config observed → static blast radius normalized into an authority inventory. Higher levels (E3 tool schema, E4 maintainer receipt, E5 sandbox) are not carried by a static page.",
+  "status": {
+    "verdict": "REVIEW",
+    "completeness": "complete",
+    "authorityClaimed": false,
+    "reproducibility": {
+      "pageDigest": "sha256:f8538bf816edee31bf01a38922b3d9390d8d3dafd767f8a867dda81bc1959c2f",
+      "observedAt": "2026-10-05T14:29:42.000Z"
+    },
+    "evidenceLevel": "E2"
+  },
+  "authority": {
+    "digest": "sha256:68d2810393dcc8fab209abfaa453361c22060aa39f4f9a102dbb52b2462ee181",
+    "completeness": "complete",
+    "capabilityCount": 1,
+    "approvalRequired": [
+      "external-network-access"
+    ],
+    "capabilities": [
+      {
+        "action": "connect",
+        "resource": "network",
+        "mutability": "mutating",
+        "reversibility": "irreversible",
+        "approvalRequirement": "review"
+      }
+    ]
+  },
+  "policyDigest": null,
+  "reproducibility": {
+    "pageDigest": "sha256:f8538bf816edee31bf01a38922b3d9390d8d3dafd767f8a867dda81bc1959c2f",
+    "observedAt": "2026-10-05T14:29:42.000Z"
+  },
+  "engine": {
+    "name": "calllint"
+  },
+  "correctionUrl": "https://github.com/calllint/calllint/issues/new?labels=trust-page-correction",
+  "generatedAt": "2026-10-05T14:29:42.000Z",
+  "signature": null
+}

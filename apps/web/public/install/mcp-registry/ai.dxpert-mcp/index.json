@@ -1,27 +1,27 @@
 {
   "schema": "calllint.agent-adoption-contract.v1",
   "contract": {
-    "contractDigest": "sha256:4a49515a7b895f0a378f462df233c83b0a6db4ecc9e913276b0339c4567fce6c",
-    "generatedAt": "2026-09-30T01:30:03.000Z",
+    "contractDigest": "sha256:1c33be4aca20de638ece85fe1c716a2db9afd08261986754207ecb0a5ba3096a",
+    "generatedAt": "2026-10-05T14:29:42.000Z",
     "expiresAt": null,
     "generatorVersion": "0.1.0",
-    "snapshotDigest": "sha256:2a2fdb4ac6789eae0bc4e05425b2b2a962ea0dc4471865f754030b6d55ce5446"
+    "snapshotDigest": "sha256:45edf31e3a6cc622e468495762cc1efd65b57c41234de5834dbd555957eeef6f"
   },
   "subject": {
     "canonicalName": "mcp-registry/ai.dxpert-mcp",
     "canonicalSlug": "mcp-registry/ai.dxpert-mcp",
     "packageType": "npm",
     "packageName": "@dxpert/mcp",
-    "version": "0.1.1",
-    "artifactDigest": "sha256:c0254193787fca8f8509902aa442093629483d704a3b757d374491a9de093105",
-    "sourceLocator": "npm:@dxpert/mcp@0.1.1"
+    "version": "0.1.2",
+    "artifactDigest": "sha256:ae7d41982faa39cf2c1169672f79190b3142665df46d715f8bc179910595b043",
+    "sourceLocator": "npm:@dxpert/mcp@0.1.2"
   },
   "publicObservation": {
     "verdict": "SAFE",
     "publicLabel": "No blockers observed",
     "reasonCodes": [],
     "evidenceLevel": "E2",
-    "evidenceDigest": "sha256:3b2668dc36b1dbc0e510c12ed3742663f51601b55950fa3e33ba1802bb184769",
+    "evidenceDigest": "sha256:6bad148c320aa58625a7c8a0add596c378167f6e929604c04152042feb80ed97",
     "completeness": "complete"
   },
   "authorityDelta": {
@@ -39,8 +39,8 @@
     ]
   },
   "trustedSources": {
-    "registrySnapshotDigest": "sha256:2a2fdb4ac6789eae0bc4e05425b2b2a962ea0dc4471865f754030b6d55ce5446",
-    "evidenceDigest": "sha256:3b2668dc36b1dbc0e510c12ed3742663f51601b55950fa3e33ba1802bb184769",
+    "registrySnapshotDigest": "sha256:45edf31e3a6cc622e468495762cc1efd65b57c41234de5834dbd555957eeef6f",
+    "evidenceDigest": "sha256:6bad148c320aa58625a7c8a0add596c378167f6e929604c04152042feb80ed97",
     "engineVersion": "0.1.0"
   },
   "untrustedPublisherContent": {
@@ -52,9 +52,9 @@
     "tool": "calllint_prepare_safe_install",
     "arguments": {
       "canonicalName": "mcp-registry/ai.dxpert-mcp",
-      "expectedVersion": "0.1.1",
-      "expectedArtifactDigest": "sha256:c0254193787fca8f8509902aa442093629483d704a3b757d374491a9de093105",
-      "expectedContractDigest": "sha256:4a49515a7b895f0a378f462df233c83b0a6db4ecc9e913276b0339c4567fce6c",
+      "expectedVersion": "0.1.2",
+      "expectedArtifactDigest": "sha256:ae7d41982faa39cf2c1169672f79190b3142665df46d715f8bc179910595b043",
+      "expectedContractDigest": "sha256:1c33be4aca20de638ece85fe1c716a2db9afd08261986754207ecb0a5ba3096a",
       "host": null
     }
   },

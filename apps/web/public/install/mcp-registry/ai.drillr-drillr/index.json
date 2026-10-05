@@ -1,11 +1,11 @@
 {
   "schema": "calllint.agent-adoption-contract.v1",
   "contract": {
-    "contractDigest": "sha256:4c7359bea4d421a4f3de88a45c37c06ba4516c0f74cbffc3dd2d7df2c4b23f36",
-    "generatedAt": "2026-09-30T01:30:03.000Z",
+    "contractDigest": "sha256:d2df3aae450d1ee94d7406a9efab7469deaff8f7acfe4dced83ec8c0dc47d64a",
+    "generatedAt": "2026-10-05T14:29:42.000Z",
     "expiresAt": null,
     "generatorVersion": "0.1.0",
-    "snapshotDigest": "sha256:2a2fdb4ac6789eae0bc4e05425b2b2a962ea0dc4471865f754030b6d55ce5446"
+    "snapshotDigest": "sha256:45edf31e3a6cc622e468495762cc1efd65b57c41234de5834dbd555957eeef6f"
   },
   "subject": {
     "canonicalName": "mcp-registry/ai.drillr-drillr",
@@ -23,7 +23,7 @@
       "UNKNOWN_REMOTE"
     ],
     "evidenceLevel": "E2",
-    "evidenceDigest": "sha256:3b2668dc36b1dbc0e510c12ed3742663f51601b55950fa3e33ba1802bb184769",
+    "evidenceDigest": "sha256:6bad148c320aa58625a7c8a0add596c378167f6e929604c04152042feb80ed97",
     "completeness": "complete"
   },
   "authorityDelta": {
@@ -44,8 +44,8 @@
     ]
   },
   "trustedSources": {
-    "registrySnapshotDigest": "sha256:2a2fdb4ac6789eae0bc4e05425b2b2a962ea0dc4471865f754030b6d55ce5446",
-    "evidenceDigest": "sha256:3b2668dc36b1dbc0e510c12ed3742663f51601b55950fa3e33ba1802bb184769",
+    "registrySnapshotDigest": "sha256:45edf31e3a6cc622e468495762cc1efd65b57c41234de5834dbd555957eeef6f",
+    "evidenceDigest": "sha256:6bad148c320aa58625a7c8a0add596c378167f6e929604c04152042feb80ed97",
     "engineVersion": "0.1.0"
   },
   "untrustedPublisherContent": {
@@ -59,7 +59,7 @@
       "canonicalName": "mcp-registry/ai.drillr-drillr",
       "expectedVersion": "2.3.0",
       "expectedArtifactDigest": "sha256:ecc1b36eeddcd72e7bb22908b79c7310d2f521bb4b1cb6b1d402675c849268d0",
-      "expectedContractDigest": "sha256:4c7359bea4d421a4f3de88a45c37c06ba4516c0f74cbffc3dd2d7df2c4b23f36",
+      "expectedContractDigest": "sha256:d2df3aae450d1ee94d7406a9efab7469deaff8f7acfe4dced83ec8c0dc47d64a",
       "host": null
     }
   },

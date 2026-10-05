@@ -1,0 +1,229 @@
+{
+  "schema": "calllint.trust-page.v0",
+  "canonicalName": "mcp-registry/ai.ciphyr.agentmart-agentmart",
+  "artifactDigest": "sha256:1b37f92620496b8d4bde4e0016b31a7ac4f8d52654c8f5c1b86e580d3a921f4f",
+  "pageDigest": "sha256:17ae7e028bc5a4afe74425583b4e1afecf2ccd32781be51e0c7ed0a1e589d9b6",
+  "verdict": "REVIEW",
+  "verdictLabel": "Review required",
+  "observedAt": "2026-10-05T14:29:42.000Z",
+  "completeness": "complete",
+  "status": {
+    "verdict": "REVIEW",
+    "completeness": "complete",
+    "authorityClaimed": false,
+    "reproducibility": {
+      "pageDigest": "sha256:17ae7e028bc5a4afe74425583b4e1afecf2ccd32781be51e0c7ed0a1e589d9b6",
+      "observedAt": "2026-10-05T14:29:42.000Z"
+    },
+    "evidenceLevel": "E2",
+    "evidenceRationale": "install config observed → static blast radius normalized into an authority inventory. Higher levels (E3 tool schema, E4 maintainer receipt, E5 sandbox) are not carried by a static page."
+  },
+  "correctionUrl": "https://github.com/calllint/calllint/issues/new?labels=trust-page-correction",
+  "reproduction": {
+    "command": "npx calllint scan official-mcp-registry:ai.ciphyr.agentmart/agentmart",
+    "artifactDigest": "sha256:1b37f92620496b8d4bde4e0016b31a7ac4f8d52654c8f5c1b86e580d3a921f4f",
+    "note": "Re-running this scan reproduces the verdict observed at the pinned artifact digest. It is a point-in-time observation, not a guarantee of future behavior."
+  },
+  "scanHistory": [
+    {
+      "observedAt": "2026-10-05T14:29:42.000Z",
+      "pageDigest": "sha256:17ae7e028bc5a4afe74425583b4e1afecf2ccd32781be51e0c7ed0a1e589d9b6",
+      "artifactDigest": "sha256:1b37f92620496b8d4bde4e0016b31a7ac4f8d52654c8f5c1b86e580d3a921f4f"
+    }
+  ],
+  "preparation": {
+    "schema": "calllint.trust-preparation.v0",
+    "artifact": {
+      "schema": "calllint.artifact.v1",
+      "sourceType": "mcp-config",
+      "source": "official-mcp-registry:ai.ciphyr.agentmart/agentmart",
+      "requestedRef": null,
+      "resolvedRef": "sha256:1b37f92620496b8d4bde4e0016b31a7ac4f8d52654c8f5c1b86e580d3a921f4f",
+      "digest": "sha256:1b37f92620496b8d4bde4e0016b31a7ac4f8d52654c8f5c1b86e580d3a921f4f",
+      "resolvedAt": "2026-10-05T14:29:42.000Z",
+      "resolution": "resolved"
+    },
+    "evidence": null,
+    "authority": {
+      "schema": "calllint.authority.v0",
+      "subject": {
+        "artifactDigest": "sha256:1b37f92620496b8d4bde4e0016b31a7ac4f8d52654c8f5c1b86e580d3a921f4f"
+      },
+      "capabilities": [
+        {
+          "action": "connect",
+          "resource": "network",
+          "scope": "agentmart.ciphyr.ai",
+          "destination": "agentmart.ciphyr.ai",
+          "mutability": "mutating",
+          "reversibility": "irreversible",
+          "monetaryLimit": null,
+          "approvalRequirement": "review",
+          "evidenceSource": "server.url",
+          "confidence": "high",
+          "completeness": "complete"
+        }
+      ],
+      "limits": {
+        "spendPerCall": null,
+        "spendTotal": null
+      },
+      "approval": {
+        "required": [
+          "external-network-access"
+        ]
+      },
+      "unknowns": [],
+      "completeness": "complete",
+      "digest": "sha256:43180f3127c2cc1befddaf41f8c40e0396e11fbfa3530fe7fd9b45c9e3369b8b"
+    },
+    "decision": null,
+    "plan": null,
+    "state": "AUTHORITY_NORMALIZED",
+    "notes": [
+      "no external evidence attached (optional); decision will rely on CallLint's own analysis",
+      "authority normalized: 1 capability, approvals required: external-network-access"
+    ],
+    "preparedAt": "2026-10-05T14:29:42.000Z"
+  },
+  "scan": {
+    "schemaVersion": "calllint.report.v0",
+    "reportKind": "config-summary",
+    "configPath": "official-mcp-registry:ai.ciphyr.agentmart/agentmart",
+    "verdict": "REVIEW",
+    "publicVerdictLabel": "Review required",
+    "counts": {
+      "SAFE": 0,
+      "REVIEW": 1,
+      "BLOCK": 0,
+      "UNKNOWN": 0
+    },
+    "reports": [
+      {
+        "schemaVersion": "calllint.report.v0",
+        "reportKind": "single-target",
+        "target": {
+          "name": "remote",
+          "kind": "mcp-servers",
+          "source": "https://agentmart.ciphyr.ai/mcp",
+          "configPath": "official-mcp-registry:ai.ciphyr.agentmart/agentmart"
+        },
+        "verdict": "REVIEW",
+        "publicVerdictLabel": "Review required",
+        "policyApplied": false,
+        "riskClass": "S1",
+        "symbols": [
+          "NETWORK"
+        ],
+        "confidence": "high",
+        "reproducibility": {
+          "level": "LOW",
+          "reasons": [
+            "Remote endpoint domain ownership not verified",
+            "Remote endpoint identity verified; tool surface not analyzed"
+          ]
+        },
+        "summary": "\"remote\" could not be verified (insufficient evidence). Risk: Network (S1 Read-only utility).",
+        "observed": [
+          {
+            "id": "supply.unknown-remote",
+            "title": "Remote server source cannot be verified",
+            "severity": "high",
+            "blocker": false,
+            "symbol": "NETWORK",
+            "riskClass": "S1",
+            "mode": "OBSERVED",
+            "confidence": "high",
+            "detectionMethod": "runtime-binding",
+            "evidence": [
+              {
+                "type": "runtime-binding",
+                "path": "official-mcp-registry:ai.ciphyr.agentmart/agentmart",
+                "key": "url",
+                "value": "https://agentmart.ciphyr.ai/mcp",
+                "line": 5,
+                "column": 7
+              }
+            ],
+            "impact": "The server runs on an unverified remote endpoint. Its tools, permissions, and behavior cannot be inspected statically and may change at any time.",
+            "fix": "Use a verified first-party endpoint, or run the server from a pinned, inspectable package.",
+            "falsePositiveNote": "A trusted internal endpoint may be fine; add it to the policy allowlist to verify it."
+          }
+        ],
+        "inferred": [],
+        "findings": [
+          {
+            "id": "supply.unknown-remote",
+            "title": "Remote server source cannot be verified",
+            "severity": "high",
+            "blocker": false,
+            "symbol": "NETWORK",
+            "riskClass": "S1",
+            "mode": "OBSERVED",
+            "confidence": "high",
+            "detectionMethod": "runtime-binding",
+            "evidence": [
+              {
+                "type": "runtime-binding",
+                "path": "official-mcp-registry:ai.ciphyr.agentmart/agentmart",
+                "key": "url",
+                "value": "https://agentmart.ciphyr.ai/mcp",
+                "line": 5,
+                "column": 7
+              }
+            ],
+            "impact": "The server runs on an unverified remote endpoint. Its tools, permissions, and behavior cannot be inspected statically and may change at any time.",
+            "fix": "Use a verified first-party endpoint, or run the server from a pinned, inspectable package.",
+            "falsePositiveNote": "A trusted internal endpoint may be fine; add it to the policy allowlist to verify it."
+          }
+        ],
+        "topFindings": [
+          {
+            "id": "supply.unknown-remote",
+            "title": "Remote server source cannot be verified",
+            "severity": "high",
+            "blocker": false,
+            "symbol": "NETWORK",
+            "riskClass": "S1",
+            "mode": "OBSERVED",
+            "confidence": "high",
+            "detectionMethod": "runtime-binding",
+            "evidence": [
+              {
+                "type": "runtime-binding",
+                "path": "official-mcp-registry:ai.ciphyr.agentmart/agentmart",
+                "key": "url",
+                "value": "https://agentmart.ciphyr.ai/mcp",
+                "line": 5,
+                "column": 7
+              }
+            ],
+            "impact": "The server runs on an unverified remote endpoint. Its tools, permissions, and behavior cannot be inspected statically and may change at any time.",
+            "fix": "Use a verified first-party endpoint, or run the server from a pinned, inspectable package.",
+            "falsePositiveNote": "A trusted internal endpoint may be fine; add it to the policy allowlist to verify it."
+          }
+        ],
+        "policy": {
+          "autonomousUse": "deny",
+          "manualApproval": "required",
+          "sandbox": "required"
+        },
+        "fingerprints": {
+          "configHash": "sha256:0b48406ad04f572dbbc67fc03df6c09b3fcf08b8995bc253bb5eccd6cc3ddb6e",
+          "targetSpecHash": "sha256:7cc69602940464ff88dd76a4c4ef2951378280b6d2e44f88e2c8aa978d708c25",
+          "riskSurfaceHash": "sha256:47e9d20255a346b95323c2cb9e092621521638b987bbcd036e68e4aee12dcaf3"
+        },
+        "diagnostics": [
+          {
+            "level": "info",
+            "code": "evidence.remote-identity-verified",
+            "message": "Remote endpoint identity verified; tool surface not analyzed (evidence: https://agentmart.ciphyr.ai/mcp)"
+          }
+        ],
+        "generatedAt": "2026-10-05T14:29:42.000Z"
+      }
+    ],
+    "diagnostics": [],
+    "generatedAt": "2026-10-05T14:29:42.000Z"
+  }
+}

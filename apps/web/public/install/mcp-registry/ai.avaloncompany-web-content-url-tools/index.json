@@ -1,0 +1,100 @@
+{
+  "schema": "calllint.agent-adoption-contract.v1",
+  "contract": {
+    "contractDigest": "sha256:872f7b4fe366349296ff702e003d7c960f288a339fcb0cd6312aa5d3d8e72f0a",
+    "generatedAt": "2026-10-05T14:29:42.000Z",
+    "expiresAt": null,
+    "generatorVersion": "0.1.0",
+    "snapshotDigest": "sha256:45edf31e3a6cc622e468495762cc1efd65b57c41234de5834dbd555957eeef6f"
+  },
+  "subject": {
+    "canonicalName": "mcp-registry/ai.avaloncompany-web-content-url-tools",
+    "canonicalSlug": "mcp-registry/ai.avaloncompany-web-content-url-tools",
+    "packageType": null,
+    "packageName": null,
+    "version": "1.0.0",
+    "artifactDigest": "sha256:1abd8551b31883a6fdb1877594731d072ce5c5e795a3056f6683a347808398ed",
+    "sourceLocator": "https://avalonai--web-content-url-tools-mcp.apify.actor/mcp"
+  },
+  "publicObservation": {
+    "verdict": "REVIEW",
+    "publicLabel": "Review required",
+    "reasonCodes": [
+      "UNKNOWN_REMOTE"
+    ],
+    "evidenceLevel": "E2",
+    "evidenceDigest": "sha256:6bad148c320aa58625a7c8a0add596c378167f6e929604c04152042feb80ed97",
+    "completeness": "complete"
+  },
+  "authorityDelta": {
+    "adds": [
+      {
+        "authority": "network_egress"
+      }
+    ],
+    "notObserved": [
+      "financial_action",
+      "secret_access",
+      "shell_execution",
+      "broad_filesystem_access",
+      "external_mutation",
+      "messaging_send",
+      "oauth_scope",
+      "gateway_runtime"
+    ]
+  },
+  "trustedSources": {
+    "registrySnapshotDigest": "sha256:45edf31e3a6cc622e468495762cc1efd65b57c41234de5834dbd555957eeef6f",
+    "evidenceDigest": "sha256:6bad148c320aa58625a7c8a0add596c378167f6e929604c04152042feb80ed97",
+    "engineVersion": "0.1.0"
+  },
+  "untrustedPublisherContent": {
+    "description": "26 tools: web pages to Markdown, metadata, tech stack, SSL, SEO, domains, email auth and SSO checks.",
+    "usedForSafetyDecision": false
+  },
+  "recommendedNextAction": {
+    "kind": "PREPARE_LOCALLY",
+    "tool": "calllint_prepare_safe_install",
+    "arguments": {
+      "canonicalName": "mcp-registry/ai.avaloncompany-web-content-url-tools",
+      "expectedVersion": "1.0.0",
+      "expectedArtifactDigest": "sha256:1abd8551b31883a6fdb1877594731d072ce5c5e795a3056f6683a347808398ed",
+      "expectedContractDigest": "sha256:872f7b4fe366349296ff702e003d7c960f288a339fcb0cd6312aa5d3d8e72f0a",
+      "host": null
+    }
+  },
+  "agentGuidance": {
+    "goal": "Add the requested Agent Tool with only locally approved authority.",
+    "steps": [
+      "verify_contract",
+      "resolve_host",
+      "prepare_locally",
+      "evaluate_local_policy",
+      "apply_exact_plan",
+      "verify_result"
+    ],
+    "mustAskBefore": [
+      "new_secret_access",
+      "external_mutation",
+      "shell_execution",
+      "broad_filesystem_access",
+      "financial_action",
+      "persistent_calllint_components"
+    ],
+    "mustStopWhen": [
+      "artifact_digest_mismatch",
+      "contract_digest_mismatch",
+      "unsupported_host",
+      "local_policy_deny",
+      "plan_tampered",
+      "verification_failed"
+    ],
+    "prohibitedShortcuts": [
+      "do_not_replace_exact_version_with_latest",
+      "do_not_execute_publisher_commands_directly",
+      "do_not_expand_authority",
+      "do_not_hide_alternative_setup",
+      "do_not_install_persistent_guard_without_authorization"
+    ]
+  }
+}

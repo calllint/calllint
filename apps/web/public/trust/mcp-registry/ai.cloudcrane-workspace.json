@@ -1,0 +1,222 @@
+{
+  "schema": "calllint.trust-page.v0",
+  "canonicalName": "mcp-registry/ai.cloudcrane-workspace",
+  "artifactDigest": "sha256:80588fb8fd757c0eda1c23a4ccbea2cf61522b8968a4edba91c6ab37241ac430",
+  "pageDigest": "sha256:7ddfc5bd484ae3d8b19321acf712aa5d6d5b9d287ee3fa017f66e874f4df166b",
+  "verdict": "UNKNOWN",
+  "verdictLabel": "Insufficient evidence",
+  "observedAt": "2026-10-05T14:29:42.000Z",
+  "completeness": "complete",
+  "status": {
+    "verdict": "UNKNOWN",
+    "completeness": "complete",
+    "authorityClaimed": false,
+    "reproducibility": {
+      "pageDigest": "sha256:7ddfc5bd484ae3d8b19321acf712aa5d6d5b9d287ee3fa017f66e874f4df166b",
+      "observedAt": "2026-10-05T14:29:42.000Z"
+    },
+    "evidenceLevel": "E2",
+    "evidenceRationale": "install config observed → static blast radius normalized into an authority inventory. Higher levels (E3 tool schema, E4 maintainer receipt, E5 sandbox) are not carried by a static page."
+  },
+  "correctionUrl": "https://github.com/calllint/calllint/issues/new?labels=trust-page-correction",
+  "reproduction": {
+    "command": "npx calllint scan official-mcp-registry:ai.cloudcrane/workspace",
+    "artifactDigest": "sha256:80588fb8fd757c0eda1c23a4ccbea2cf61522b8968a4edba91c6ab37241ac430",
+    "note": "Re-running this scan reproduces the verdict observed at the pinned artifact digest. It is a point-in-time observation, not a guarantee of future behavior."
+  },
+  "scanHistory": [
+    {
+      "observedAt": "2026-10-05T14:29:42.000Z",
+      "pageDigest": "sha256:7ddfc5bd484ae3d8b19321acf712aa5d6d5b9d287ee3fa017f66e874f4df166b",
+      "artifactDigest": "sha256:80588fb8fd757c0eda1c23a4ccbea2cf61522b8968a4edba91c6ab37241ac430"
+    }
+  ],
+  "preparation": {
+    "schema": "calllint.trust-preparation.v0",
+    "artifact": {
+      "schema": "calllint.artifact.v1",
+      "sourceType": "mcp-config",
+      "source": "official-mcp-registry:ai.cloudcrane/workspace",
+      "requestedRef": null,
+      "resolvedRef": "sha256:80588fb8fd757c0eda1c23a4ccbea2cf61522b8968a4edba91c6ab37241ac430",
+      "digest": "sha256:80588fb8fd757c0eda1c23a4ccbea2cf61522b8968a4edba91c6ab37241ac430",
+      "resolvedAt": "2026-10-05T14:29:42.000Z",
+      "resolution": "resolved"
+    },
+    "evidence": null,
+    "authority": {
+      "schema": "calllint.authority.v0",
+      "subject": {
+        "artifactDigest": "sha256:80588fb8fd757c0eda1c23a4ccbea2cf61522b8968a4edba91c6ab37241ac430"
+      },
+      "capabilities": [
+        {
+          "action": "connect",
+          "resource": "network",
+          "scope": "cloudcrane.ai",
+          "destination": "cloudcrane.ai",
+          "mutability": "mutating",
+          "reversibility": "irreversible",
+          "monetaryLimit": null,
+          "approvalRequirement": "review",
+          "evidenceSource": "server.url",
+          "confidence": "high",
+          "completeness": "complete"
+        }
+      ],
+      "limits": {
+        "spendPerCall": null,
+        "spendTotal": null
+      },
+      "approval": {
+        "required": [
+          "external-network-access"
+        ]
+      },
+      "unknowns": [],
+      "completeness": "complete",
+      "digest": "sha256:5fe292a1abd4454fe37db5da9bbbd63fc745d787bb12f17afba283163a462817"
+    },
+    "decision": null,
+    "plan": null,
+    "state": "AUTHORITY_NORMALIZED",
+    "notes": [
+      "no external evidence attached (optional); decision will rely on CallLint's own analysis",
+      "authority normalized: 1 capability, approvals required: external-network-access"
+    ],
+    "preparedAt": "2026-10-05T14:29:42.000Z"
+  },
+  "scan": {
+    "schemaVersion": "calllint.report.v0",
+    "reportKind": "config-summary",
+    "configPath": "official-mcp-registry:ai.cloudcrane/workspace",
+    "verdict": "UNKNOWN",
+    "publicVerdictLabel": "Insufficient evidence",
+    "counts": {
+      "SAFE": 0,
+      "REVIEW": 0,
+      "BLOCK": 0,
+      "UNKNOWN": 1
+    },
+    "reports": [
+      {
+        "schemaVersion": "calllint.report.v0",
+        "reportKind": "single-target",
+        "target": {
+          "name": "remote",
+          "kind": "mcp-servers",
+          "source": "https://cloudcrane.ai/api/build/mcp",
+          "configPath": "official-mcp-registry:ai.cloudcrane/workspace"
+        },
+        "verdict": "UNKNOWN",
+        "publicVerdictLabel": "Insufficient evidence",
+        "policyApplied": false,
+        "riskClass": "S1",
+        "symbols": [
+          "NETWORK"
+        ],
+        "confidence": "high",
+        "reproducibility": {
+          "level": "MEDIUM",
+          "reasons": [
+            "Remote endpoint could not be verified"
+          ]
+        },
+        "summary": "\"remote\" could not be verified (insufficient evidence). Risk: Network (S1 Read-only utility).",
+        "observed": [
+          {
+            "id": "supply.unknown-remote",
+            "title": "Remote server source cannot be verified",
+            "severity": "high",
+            "blocker": false,
+            "symbol": "NETWORK",
+            "riskClass": "S1",
+            "mode": "OBSERVED",
+            "confidence": "high",
+            "detectionMethod": "runtime-binding",
+            "evidence": [
+              {
+                "type": "runtime-binding",
+                "path": "official-mcp-registry:ai.cloudcrane/workspace",
+                "key": "url",
+                "value": "https://cloudcrane.ai/api/build/mcp",
+                "line": 5,
+                "column": 7
+              }
+            ],
+            "impact": "The server runs on an unverified remote endpoint. Its tools, permissions, and behavior cannot be inspected statically and may change at any time.",
+            "fix": "Use a verified first-party endpoint, or run the server from a pinned, inspectable package.",
+            "falsePositiveNote": "A trusted internal endpoint may be fine; add it to the policy allowlist to verify it."
+          }
+        ],
+        "inferred": [],
+        "findings": [
+          {
+            "id": "supply.unknown-remote",
+            "title": "Remote server source cannot be verified",
+            "severity": "high",
+            "blocker": false,
+            "symbol": "NETWORK",
+            "riskClass": "S1",
+            "mode": "OBSERVED",
+            "confidence": "high",
+            "detectionMethod": "runtime-binding",
+            "evidence": [
+              {
+                "type": "runtime-binding",
+                "path": "official-mcp-registry:ai.cloudcrane/workspace",
+                "key": "url",
+                "value": "https://cloudcrane.ai/api/build/mcp",
+                "line": 5,
+                "column": 7
+              }
+            ],
+            "impact": "The server runs on an unverified remote endpoint. Its tools, permissions, and behavior cannot be inspected statically and may change at any time.",
+            "fix": "Use a verified first-party endpoint, or run the server from a pinned, inspectable package.",
+            "falsePositiveNote": "A trusted internal endpoint may be fine; add it to the policy allowlist to verify it."
+          }
+        ],
+        "topFindings": [
+          {
+            "id": "supply.unknown-remote",
+            "title": "Remote server source cannot be verified",
+            "severity": "high",
+            "blocker": false,
+            "symbol": "NETWORK",
+            "riskClass": "S1",
+            "mode": "OBSERVED",
+            "confidence": "high",
+            "detectionMethod": "runtime-binding",
+            "evidence": [
+              {
+                "type": "runtime-binding",
+                "path": "official-mcp-registry:ai.cloudcrane/workspace",
+                "key": "url",
+                "value": "https://cloudcrane.ai/api/build/mcp",
+                "line": 5,
+                "column": 7
+              }
+            ],
+            "impact": "The server runs on an unverified remote endpoint. Its tools, permissions, and behavior cannot be inspected statically and may change at any time.",
+            "fix": "Use a verified first-party endpoint, or run the server from a pinned, inspectable package.",
+            "falsePositiveNote": "A trusted internal endpoint may be fine; add it to the policy allowlist to verify it."
+          }
+        ],
+        "policy": {
+          "autonomousUse": "deny",
+          "manualApproval": "required",
+          "sandbox": "required"
+        },
+        "fingerprints": {
+          "configHash": "sha256:816e9130980a8954b79a75738bc1f96d2d0c32d8d0b85658c962ee81c3eafb4c",
+          "targetSpecHash": "sha256:67022c9d7ddab827a4b46423425055e7069614b6b077b28f470f6000b7479503",
+          "riskSurfaceHash": "sha256:47e9d20255a346b95323c2cb9e092621521638b987bbcd036e68e4aee12dcaf3"
+        },
+        "diagnostics": [],
+        "generatedAt": "2026-10-05T14:29:42.000Z"
+      }
+    ],
+    "diagnostics": [],
+    "generatedAt": "2026-10-05T14:29:42.000Z"
+  }
+}

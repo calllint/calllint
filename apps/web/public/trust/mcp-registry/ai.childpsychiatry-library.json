@@ -2,18 +2,18 @@
   "schema": "calllint.trust-page.v0",
   "canonicalName": "mcp-registry/ai.childpsychiatry-library",
   "artifactDigest": "sha256:9f2e80621c35a7cf77dcc893a8097a5a64940292bfcdcb34ec2efe4154eebdc4",
-  "pageDigest": "sha256:b76fa3c9c3ddd267c4befb40dd490f8f484eead1ecad81592e626f239e8d6da5",
+  "pageDigest": "sha256:04831ce21f162a03eed1d7a80d76a8e5e72c2d9d80c9ede7a14f2bf3eb6fb607",
   "verdict": "REVIEW",
   "verdictLabel": "Review required",
-  "observedAt": "2026-09-30T01:30:03.000Z",
+  "observedAt": "2026-10-05T14:29:42.000Z",
   "completeness": "complete",
   "status": {
     "verdict": "REVIEW",
     "completeness": "complete",
     "authorityClaimed": false,
     "reproducibility": {
-      "pageDigest": "sha256:b76fa3c9c3ddd267c4befb40dd490f8f484eead1ecad81592e626f239e8d6da5",
-      "observedAt": "2026-09-30T01:30:03.000Z"
+      "pageDigest": "sha256:04831ce21f162a03eed1d7a80d76a8e5e72c2d9d80c9ede7a14f2bf3eb6fb607",
+      "observedAt": "2026-10-05T14:29:42.000Z"
     },
     "evidenceLevel": "E2",
     "evidenceRationale": "install config observed → static blast radius normalized into an authority inventory. Higher levels (E3 tool schema, E4 maintainer receipt, E5 sandbox) are not carried by a static page."
@@ -26,8 +26,8 @@
   },
   "scanHistory": [
     {
-      "observedAt": "2026-09-30T01:30:03.000Z",
-      "pageDigest": "sha256:b76fa3c9c3ddd267c4befb40dd490f8f484eead1ecad81592e626f239e8d6da5",
+      "observedAt": "2026-10-05T14:29:42.000Z",
+      "pageDigest": "sha256:04831ce21f162a03eed1d7a80d76a8e5e72c2d9d80c9ede7a14f2bf3eb6fb607",
       "artifactDigest": "sha256:9f2e80621c35a7cf77dcc893a8097a5a64940292bfcdcb34ec2efe4154eebdc4"
     }
   ],
@@ -40,7 +40,7 @@
       "requestedRef": null,
       "resolvedRef": "sha256:9f2e80621c35a7cf77dcc893a8097a5a64940292bfcdcb34ec2efe4154eebdc4",
       "digest": "sha256:9f2e80621c35a7cf77dcc893a8097a5a64940292bfcdcb34ec2efe4154eebdc4",
-      "resolvedAt": "2026-09-30T01:30:03.000Z",
+      "resolvedAt": "2026-10-05T14:29:42.000Z",
       "resolution": "resolved"
     },
     "evidence": null,
@@ -84,7 +84,7 @@
       "no external evidence attached (optional); decision will rely on CallLint's own analysis",
       "authority normalized: 1 capability, approvals required: external-network-access"
     ],
-    "preparedAt": "2026-09-30T01:30:03.000Z"
+    "preparedAt": "2026-10-05T14:29:42.000Z"
   },
   "scan": {
     "schemaVersion": "calllint.report.v0",
@@ -220,10 +220,10 @@
             "message": "Remote endpoint identity verified; tool surface not analyzed (evidence: https://childpsychiatry.ai/api/mcp/v1)"
           }
         ],
-        "generatedAt": "2026-09-30T01:30:03.000Z"
+        "generatedAt": "2026-10-05T14:29:42.000Z"
       }
     ],
     "diagnostics": [],
-    "generatedAt": "2026-09-30T01:30:03.000Z"
+    "generatedAt": "2026-10-05T14:29:42.000Z"
   }
 }

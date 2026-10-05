@@ -1,18 +1,18 @@
 {
   "schema": "calllint.agent-adoption-contract.v1",
   "contract": {
-    "contractDigest": "sha256:8ee94ffcf1ff687f6d2c1bac2c660ea6803e5b322467be13157c9bb5ecd54462",
-    "generatedAt": "2026-09-30T01:30:03.000Z",
+    "contractDigest": "sha256:707762b9394a919983a9a25cb8dafcf95d8be18257126521d80d7c39973a83c9",
+    "generatedAt": "2026-10-05T14:29:42.000Z",
     "expiresAt": null,
     "generatorVersion": "0.1.0",
-    "snapshotDigest": "sha256:2a2fdb4ac6789eae0bc4e05425b2b2a962ea0dc4471865f754030b6d55ce5446"
+    "snapshotDigest": "sha256:45edf31e3a6cc622e468495762cc1efd65b57c41234de5834dbd555957eeef6f"
   },
   "subject": {
     "canonicalName": "mcp-registry/ai.analyticslegends-sap-analytics",
     "canonicalSlug": "mcp-registry/ai.analyticslegends-sap-analytics",
     "packageType": null,
     "packageName": null,
-    "version": "1.0.6",
+    "version": "1.0.8",
     "artifactDigest": "sha256:c18adb10dc3dc20e57d74ec31d224e81c41fc74535eb4471c38ef634ffe2e877",
     "sourceLocator": "https://analyticslegends.ai/mcp"
   },
@@ -23,7 +23,7 @@
       "UNKNOWN_REMOTE"
     ],
     "evidenceLevel": "E2",
-    "evidenceDigest": "sha256:3b2668dc36b1dbc0e510c12ed3742663f51601b55950fa3e33ba1802bb184769",
+    "evidenceDigest": "sha256:6bad148c320aa58625a7c8a0add596c378167f6e929604c04152042feb80ed97",
     "completeness": "complete"
   },
   "authorityDelta": {
@@ -44,8 +44,8 @@
     ]
   },
   "trustedSources": {
-    "registrySnapshotDigest": "sha256:2a2fdb4ac6789eae0bc4e05425b2b2a962ea0dc4471865f754030b6d55ce5446",
-    "evidenceDigest": "sha256:3b2668dc36b1dbc0e510c12ed3742663f51601b55950fa3e33ba1802bb184769",
+    "registrySnapshotDigest": "sha256:45edf31e3a6cc622e468495762cc1efd65b57c41234de5834dbd555957eeef6f",
+    "evidenceDigest": "sha256:6bad148c320aa58625a7c8a0add596c378167f6e929604c04152042feb80ed97",
     "engineVersion": "0.1.0"
   },
   "untrustedPublisherContent": {
@@ -57,9 +57,9 @@
     "tool": "calllint_prepare_safe_install",
     "arguments": {
       "canonicalName": "mcp-registry/ai.analyticslegends-sap-analytics",
-      "expectedVersion": "1.0.6",
+      "expectedVersion": "1.0.8",
       "expectedArtifactDigest": "sha256:c18adb10dc3dc20e57d74ec31d224e81c41fc74535eb4471c38ef634ffe2e877",
-      "expectedContractDigest": "sha256:8ee94ffcf1ff687f6d2c1bac2c660ea6803e5b322467be13157c9bb5ecd54462",
+      "expectedContractDigest": "sha256:707762b9394a919983a9a25cb8dafcf95d8be18257126521d80d7c39973a83c9",
       "host": null
     }
   },
