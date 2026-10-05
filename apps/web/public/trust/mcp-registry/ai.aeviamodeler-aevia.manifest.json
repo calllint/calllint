@@ -4,18 +4,18 @@
     "canonicalName": "mcp-registry/ai.aeviamodeler-aevia",
     "artifactDigest": "sha256:438f2c1934cdcbc0ecb08d20e5f860a564fd18e3b211f6a815ddf99d2b4b4a7c"
   },
-  "verdict": "UNKNOWN",
-  "verdictLabel": "Insufficient evidence",
+  "verdict": "REVIEW",
+  "verdictLabel": "Review required",
   "completeness": "complete",
   "evidenceLevel": "E2",
   "evidenceRationale": "install config observed → static blast radius normalized into an authority inventory. Higher levels (E3 tool schema, E4 maintainer receipt, E5 sandbox) are not carried by a static page.",
   "status": {
-    "verdict": "UNKNOWN",
+    "verdict": "REVIEW",
     "completeness": "complete",
     "authorityClaimed": false,
     "reproducibility": {
-      "pageDigest": "sha256:1f2cb2db22855904ad045b450f65139f425ddd98af642e3dd7700a0619b5a080",
-      "observedAt": "2026-09-30T01:30:03.000Z"
+      "pageDigest": "sha256:677b565269f1999e3dffb6a761cb37c34499c7182ace6e49c00841396a47ab6d",
+      "observedAt": "2026-10-05T14:29:42.000Z"
     },
     "evidenceLevel": "E2"
   },
@@ -38,13 +38,13 @@
   },
   "policyDigest": null,
   "reproducibility": {
-    "pageDigest": "sha256:1f2cb2db22855904ad045b450f65139f425ddd98af642e3dd7700a0619b5a080",
-    "observedAt": "2026-09-30T01:30:03.000Z"
+    "pageDigest": "sha256:677b565269f1999e3dffb6a761cb37c34499c7182ace6e49c00841396a47ab6d",
+    "observedAt": "2026-10-05T14:29:42.000Z"
   },
   "engine": {
     "name": "calllint"
   },
   "correctionUrl": "https://github.com/calllint/calllint/issues/new?labels=trust-page-correction",
-  "generatedAt": "2026-09-30T01:30:03.000Z",
+  "generatedAt": "2026-10-05T14:29:42.000Z",
   "signature": null
 }

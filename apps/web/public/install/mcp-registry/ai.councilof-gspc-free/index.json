@@ -1,18 +1,18 @@
 {
   "schema": "calllint.agent-adoption-contract.v1",
   "contract": {
-    "contractDigest": "sha256:2300f0130b537a7ce04366a68f4638aa5422b08a63fbc13302f1a773fc909a97",
-    "generatedAt": "2026-09-30T01:30:03.000Z",
+    "contractDigest": "sha256:fe5daa3bc181c1cfbfb7e4c9220290e9348063149b388d97ce1d132d80aaef31",
+    "generatedAt": "2026-10-05T14:29:42.000Z",
     "expiresAt": null,
     "generatorVersion": "0.1.0",
-    "snapshotDigest": "sha256:2a2fdb4ac6789eae0bc4e05425b2b2a962ea0dc4471865f754030b6d55ce5446"
+    "snapshotDigest": "sha256:45edf31e3a6cc622e468495762cc1efd65b57c41234de5834dbd555957eeef6f"
   },
   "subject": {
     "canonicalName": "mcp-registry/ai.councilof-gspc-free",
     "canonicalSlug": "mcp-registry/ai.councilof-gspc-free",
     "packageType": null,
     "packageName": null,
-    "version": "1.4.3",
+    "version": "1.4.4",
     "artifactDigest": "sha256:dc9345e524fe7ab73b0d671df9c402ba683aee5842da736ff64052ce2f3aed19",
     "sourceLocator": "https://councilof.ai/mcp/free"
   },
@@ -23,7 +23,7 @@
       "UNKNOWN_REMOTE"
     ],
     "evidenceLevel": "E2",
-    "evidenceDigest": "sha256:3b2668dc36b1dbc0e510c12ed3742663f51601b55950fa3e33ba1802bb184769",
+    "evidenceDigest": "sha256:6bad148c320aa58625a7c8a0add596c378167f6e929604c04152042feb80ed97",
     "completeness": "complete"
   },
   "authorityDelta": {
@@ -44,12 +44,12 @@
     ]
   },
   "trustedSources": {
-    "registrySnapshotDigest": "sha256:2a2fdb4ac6789eae0bc4e05425b2b2a962ea0dc4471865f754030b6d55ce5446",
-    "evidenceDigest": "sha256:3b2668dc36b1dbc0e510c12ed3742663f51601b55950fa3e33ba1802bb184769",
+    "registrySnapshotDigest": "sha256:45edf31e3a6cc622e468495762cc1efd65b57c41234de5834dbd555957eeef6f",
+    "evidenceDigest": "sha256:6bad148c320aa58625a7c8a0add596c378167f6e929604c04152042feb80ed97",
     "engineVersion": "0.1.0"
   },
   "untrustedPublisherContent": {
-    "description": "Free read-only GSPC tools: board totals, signed card verification, Merkle root, inclusion proofs.",
+    "description": "14 free read-only tools: GSPC board, signed card and capsule verify, Merkle proofs, route.",
     "usedForSafetyDecision": false
   },
   "recommendedNextAction": {
@@ -57,9 +57,9 @@
     "tool": "calllint_prepare_safe_install",
     "arguments": {
       "canonicalName": "mcp-registry/ai.councilof-gspc-free",
-      "expectedVersion": "1.4.3",
+      "expectedVersion": "1.4.4",
       "expectedArtifactDigest": "sha256:dc9345e524fe7ab73b0d671df9c402ba683aee5842da736ff64052ce2f3aed19",
-      "expectedContractDigest": "sha256:2300f0130b537a7ce04366a68f4638aa5422b08a63fbc13302f1a773fc909a97",
+      "expectedContractDigest": "sha256:fe5daa3bc181c1cfbfb7e4c9220290e9348063149b388d97ce1d132d80aaef31",
       "host": null
     }
   },

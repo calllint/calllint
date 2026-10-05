@@ -2,18 +2,18 @@
   "schema": "calllint.trust-page.v0",
   "canonicalName": "mcp-registry/ai.bitroad-bitroad",
   "artifactDigest": "sha256:32fae6eff54373a027cb42d3eafc5232332f53fa439b171eb8491c9207d6fc3a",
-  "pageDigest": "sha256:008b5a098d81b7214f01f45470d67375c6330ab8c62cf8e8f30599c1f72b96f1",
+  "pageDigest": "sha256:dc1e2ff120f88ccb8f79ffea364116f4796b9a0d311a8e70d789da0d710d889a",
   "verdict": "REVIEW",
   "verdictLabel": "Review required",
-  "observedAt": "2026-09-30T01:30:03.000Z",
+  "observedAt": "2026-10-05T14:29:42.000Z",
   "completeness": "complete",
   "status": {
     "verdict": "REVIEW",
     "completeness": "complete",
     "authorityClaimed": false,
     "reproducibility": {
-      "pageDigest": "sha256:008b5a098d81b7214f01f45470d67375c6330ab8c62cf8e8f30599c1f72b96f1",
-      "observedAt": "2026-09-30T01:30:03.000Z"
+      "pageDigest": "sha256:dc1e2ff120f88ccb8f79ffea364116f4796b9a0d311a8e70d789da0d710d889a",
+      "observedAt": "2026-10-05T14:29:42.000Z"
     },
     "evidenceLevel": "E2",
     "evidenceRationale": "install config observed → static blast radius normalized into an authority inventory. Higher levels (E3 tool schema, E4 maintainer receipt, E5 sandbox) are not carried by a static page."
@@ -26,8 +26,8 @@
   },
   "scanHistory": [
     {
-      "observedAt": "2026-09-30T01:30:03.000Z",
-      "pageDigest": "sha256:008b5a098d81b7214f01f45470d67375c6330ab8c62cf8e8f30599c1f72b96f1",
+      "observedAt": "2026-10-05T14:29:42.000Z",
+      "pageDigest": "sha256:dc1e2ff120f88ccb8f79ffea364116f4796b9a0d311a8e70d789da0d710d889a",
       "artifactDigest": "sha256:32fae6eff54373a027cb42d3eafc5232332f53fa439b171eb8491c9207d6fc3a"
     }
   ],
@@ -40,7 +40,7 @@
       "requestedRef": null,
       "resolvedRef": "sha256:32fae6eff54373a027cb42d3eafc5232332f53fa439b171eb8491c9207d6fc3a",
       "digest": "sha256:32fae6eff54373a027cb42d3eafc5232332f53fa439b171eb8491c9207d6fc3a",
-      "resolvedAt": "2026-09-30T01:30:03.000Z",
+      "resolvedAt": "2026-10-05T14:29:42.000Z",
       "resolution": "resolved"
     },
     "evidence": null,
@@ -84,7 +84,7 @@
       "no external evidence attached (optional); decision will rely on CallLint's own analysis",
       "authority normalized: 1 capability, approvals required: external-network-access"
     ],
-    "preparedAt": "2026-09-30T01:30:03.000Z"
+    "preparedAt": "2026-10-05T14:29:42.000Z"
   },
   "scan": {
     "schemaVersion": "calllint.report.v0",
@@ -220,10 +220,10 @@
             "message": "Remote endpoint identity verified; tool surface not analyzed (evidence: https://app.bitroad.ai/api/v1/mcp)"
           }
         ],
-        "generatedAt": "2026-09-30T01:30:03.000Z"
+        "generatedAt": "2026-10-05T14:29:42.000Z"
       }
     ],
     "diagnostics": [],
-    "generatedAt": "2026-09-30T01:30:03.000Z"
+    "generatedAt": "2026-10-05T14:29:42.000Z"
   }
 }

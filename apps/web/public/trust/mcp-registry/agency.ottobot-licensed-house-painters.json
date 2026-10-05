@@ -2,18 +2,18 @@
   "schema": "calllint.trust-page.v0",
   "canonicalName": "mcp-registry/agency.ottobot-licensed-house-painters",
   "artifactDigest": "sha256:226c6fabf560b68c9badc8f7fc37d9ed120b50811599872292a6fcbeeb00b50c",
-  "pageDigest": "sha256:8dae240dec09105bc010e779e4d8a493d20f09f0dd16f6ee6b16fe761b14e6c0",
+  "pageDigest": "sha256:411133dc0a7689a06dcc22d79000ecdf17b5fedfd4d80efcc33311af40340d12",
   "verdict": "REVIEW",
   "verdictLabel": "Review required",
-  "observedAt": "2026-09-30T01:30:03.000Z",
+  "observedAt": "2026-10-05T14:29:42.000Z",
   "completeness": "complete",
   "status": {
     "verdict": "REVIEW",
     "completeness": "complete",
     "authorityClaimed": false,
     "reproducibility": {
-      "pageDigest": "sha256:8dae240dec09105bc010e779e4d8a493d20f09f0dd16f6ee6b16fe761b14e6c0",
-      "observedAt": "2026-09-30T01:30:03.000Z"
+      "pageDigest": "sha256:411133dc0a7689a06dcc22d79000ecdf17b5fedfd4d80efcc33311af40340d12",
+      "observedAt": "2026-10-05T14:29:42.000Z"
     },
     "evidenceLevel": "E2",
     "evidenceRationale": "install config observed → static blast radius normalized into an authority inventory. Higher levels (E3 tool schema, E4 maintainer receipt, E5 sandbox) are not carried by a static page."
@@ -26,8 +26,8 @@
   },
   "scanHistory": [
     {
-      "observedAt": "2026-09-30T01:30:03.000Z",
-      "pageDigest": "sha256:8dae240dec09105bc010e779e4d8a493d20f09f0dd16f6ee6b16fe761b14e6c0",
+      "observedAt": "2026-10-05T14:29:42.000Z",
+      "pageDigest": "sha256:411133dc0a7689a06dcc22d79000ecdf17b5fedfd4d80efcc33311af40340d12",
       "artifactDigest": "sha256:226c6fabf560b68c9badc8f7fc37d9ed120b50811599872292a6fcbeeb00b50c"
     }
   ],
@@ -40,7 +40,7 @@
       "requestedRef": null,
       "resolvedRef": "sha256:226c6fabf560b68c9badc8f7fc37d9ed120b50811599872292a6fcbeeb00b50c",
       "digest": "sha256:226c6fabf560b68c9badc8f7fc37d9ed120b50811599872292a6fcbeeb00b50c",
-      "resolvedAt": "2026-09-30T01:30:03.000Z",
+      "resolvedAt": "2026-10-05T14:29:42.000Z",
       "resolution": "resolved"
     },
     "evidence": null,
@@ -84,7 +84,7 @@
       "no external evidence attached (optional); decision will rely on CallLint's own analysis",
       "authority normalized: 1 capability, approvals required: external-network-access"
     ],
-    "preparedAt": "2026-09-30T01:30:03.000Z"
+    "preparedAt": "2026-10-05T14:29:42.000Z"
   },
   "scan": {
     "schemaVersion": "calllint.report.v0",
@@ -220,10 +220,10 @@
             "message": "Remote endpoint identity verified; tool surface not analyzed (evidence: https://house-painters.ottobot.agency/mcp)"
           }
         ],
-        "generatedAt": "2026-09-30T01:30:03.000Z"
+        "generatedAt": "2026-10-05T14:29:42.000Z"
       }
     ],
     "diagnostics": [],
-    "generatedAt": "2026-09-30T01:30:03.000Z"
+    "generatedAt": "2026-10-05T14:29:42.000Z"
   }
 }

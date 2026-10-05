@@ -1,18 +1,18 @@
 {
   "schema": "calllint.agent-adoption-contract.v1",
   "contract": {
-    "contractDigest": "sha256:b4852f76b3ea05cb5fae49cb97f3fc8424efbb35b6192f2d15ebeb3290051ba8",
-    "generatedAt": "2026-09-30T01:30:03.000Z",
+    "contractDigest": "sha256:7ef7f950f3c9dc6fc6f2ff299bb0df4b23ce0c932eb215164dba91eb423da76f",
+    "generatedAt": "2026-10-05T14:29:42.000Z",
     "expiresAt": null,
     "generatorVersion": "0.1.0",
-    "snapshotDigest": "sha256:2a2fdb4ac6789eae0bc4e05425b2b2a962ea0dc4471865f754030b6d55ce5446"
+    "snapshotDigest": "sha256:45edf31e3a6cc622e468495762cc1efd65b57c41234de5834dbd555957eeef6f"
   },
   "subject": {
     "canonicalName": "mcp-registry/ai.dataparrot-data-parrot",
     "canonicalSlug": "mcp-registry/ai.dataparrot-data-parrot",
     "packageType": null,
     "packageName": null,
-    "version": "1.3.2",
+    "version": "1.3.3",
     "artifactDigest": "sha256:556b9b94e3f18e08b947a890dbb03592e57b4523b2299d9e1b7717c73fa3a321",
     "sourceLocator": "https://api-v3.dataparrot.ai/api/v3/data-parrot/mcp"
   },
@@ -23,7 +23,7 @@
       "UNKNOWN_REMOTE"
     ],
     "evidenceLevel": "E2",
-    "evidenceDigest": "sha256:3b2668dc36b1dbc0e510c12ed3742663f51601b55950fa3e33ba1802bb184769",
+    "evidenceDigest": "sha256:6bad148c320aa58625a7c8a0add596c378167f6e929604c04152042feb80ed97",
     "completeness": "complete"
   },
   "authorityDelta": {
@@ -44,8 +44,8 @@
     ]
   },
   "trustedSources": {
-    "registrySnapshotDigest": "sha256:2a2fdb4ac6789eae0bc4e05425b2b2a962ea0dc4471865f754030b6d55ce5446",
-    "evidenceDigest": "sha256:3b2668dc36b1dbc0e510c12ed3742663f51601b55950fa3e33ba1802bb184769",
+    "registrySnapshotDigest": "sha256:45edf31e3a6cc622e468495762cc1efd65b57c41234de5834dbd555957eeef6f",
+    "evidenceDigest": "sha256:6bad148c320aa58625a7c8a0add596c378167f6e929604c04152042feb80ed97",
     "engineVersion": "0.1.0"
   },
   "untrustedPublisherContent": {
@@ -57,9 +57,9 @@
     "tool": "calllint_prepare_safe_install",
     "arguments": {
       "canonicalName": "mcp-registry/ai.dataparrot-data-parrot",
-      "expectedVersion": "1.3.2",
+      "expectedVersion": "1.3.3",
       "expectedArtifactDigest": "sha256:556b9b94e3f18e08b947a890dbb03592e57b4523b2299d9e1b7717c73fa3a321",
-      "expectedContractDigest": "sha256:b4852f76b3ea05cb5fae49cb97f3fc8424efbb35b6192f2d15ebeb3290051ba8",
+      "expectedContractDigest": "sha256:7ef7f950f3c9dc6fc6f2ff299bb0df4b23ce0c932eb215164dba91eb423da76f",
       "host": null
     }
   },

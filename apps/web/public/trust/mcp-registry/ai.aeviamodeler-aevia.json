@@ -2,18 +2,18 @@
   "schema": "calllint.trust-page.v0",
   "canonicalName": "mcp-registry/ai.aeviamodeler-aevia",
   "artifactDigest": "sha256:438f2c1934cdcbc0ecb08d20e5f860a564fd18e3b211f6a815ddf99d2b4b4a7c",
-  "pageDigest": "sha256:1f2cb2db22855904ad045b450f65139f425ddd98af642e3dd7700a0619b5a080",
-  "verdict": "UNKNOWN",
-  "verdictLabel": "Insufficient evidence",
-  "observedAt": "2026-09-30T01:30:03.000Z",
+  "pageDigest": "sha256:677b565269f1999e3dffb6a761cb37c34499c7182ace6e49c00841396a47ab6d",
+  "verdict": "REVIEW",
+  "verdictLabel": "Review required",
+  "observedAt": "2026-10-05T14:29:42.000Z",
   "completeness": "complete",
   "status": {
-    "verdict": "UNKNOWN",
+    "verdict": "REVIEW",
     "completeness": "complete",
     "authorityClaimed": false,
     "reproducibility": {
-      "pageDigest": "sha256:1f2cb2db22855904ad045b450f65139f425ddd98af642e3dd7700a0619b5a080",
-      "observedAt": "2026-09-30T01:30:03.000Z"
+      "pageDigest": "sha256:677b565269f1999e3dffb6a761cb37c34499c7182ace6e49c00841396a47ab6d",
+      "observedAt": "2026-10-05T14:29:42.000Z"
     },
     "evidenceLevel": "E2",
     "evidenceRationale": "install config observed → static blast radius normalized into an authority inventory. Higher levels (E3 tool schema, E4 maintainer receipt, E5 sandbox) are not carried by a static page."
@@ -26,8 +26,8 @@
   },
   "scanHistory": [
     {
-      "observedAt": "2026-09-30T01:30:03.000Z",
-      "pageDigest": "sha256:1f2cb2db22855904ad045b450f65139f425ddd98af642e3dd7700a0619b5a080",
+      "observedAt": "2026-10-05T14:29:42.000Z",
+      "pageDigest": "sha256:677b565269f1999e3dffb6a761cb37c34499c7182ace6e49c00841396a47ab6d",
       "artifactDigest": "sha256:438f2c1934cdcbc0ecb08d20e5f860a564fd18e3b211f6a815ddf99d2b4b4a7c"
     }
   ],
@@ -40,7 +40,7 @@
       "requestedRef": null,
       "resolvedRef": "sha256:438f2c1934cdcbc0ecb08d20e5f860a564fd18e3b211f6a815ddf99d2b4b4a7c",
       "digest": "sha256:438f2c1934cdcbc0ecb08d20e5f860a564fd18e3b211f6a815ddf99d2b4b4a7c",
-      "resolvedAt": "2026-09-30T01:30:03.000Z",
+      "resolvedAt": "2026-10-05T14:29:42.000Z",
       "resolution": "resolved"
     },
     "evidence": null,
@@ -84,19 +84,19 @@
       "no external evidence attached (optional); decision will rely on CallLint's own analysis",
       "authority normalized: 1 capability, approvals required: external-network-access"
     ],
-    "preparedAt": "2026-09-30T01:30:03.000Z"
+    "preparedAt": "2026-10-05T14:29:42.000Z"
   },
   "scan": {
     "schemaVersion": "calllint.report.v0",
     "reportKind": "config-summary",
     "configPath": "official-mcp-registry:ai.aeviamodeler/aevia",
-    "verdict": "UNKNOWN",
-    "publicVerdictLabel": "Insufficient evidence",
+    "verdict": "REVIEW",
+    "publicVerdictLabel": "Review required",
     "counts": {
       "SAFE": 0,
-      "REVIEW": 0,
+      "REVIEW": 1,
       "BLOCK": 0,
-      "UNKNOWN": 1
+      "UNKNOWN": 0
     },
     "reports": [
       {
@@ -108,8 +108,8 @@
           "source": "https://app.aeviamodeler.ai/api/v1/connector/mcp",
           "configPath": "official-mcp-registry:ai.aeviamodeler/aevia"
         },
-        "verdict": "UNKNOWN",
-        "publicVerdictLabel": "Insufficient evidence",
+        "verdict": "REVIEW",
+        "publicVerdictLabel": "Review required",
         "policyApplied": false,
         "riskClass": "S1",
         "symbols": [
@@ -117,9 +117,10 @@
         ],
         "confidence": "high",
         "reproducibility": {
-          "level": "MEDIUM",
+          "level": "LOW",
           "reasons": [
-            "Remote endpoint could not be verified"
+            "Remote endpoint domain ownership not verified",
+            "Remote endpoint identity verified; tool surface not analyzed"
           ]
         },
         "summary": "\"remote\" could not be verified (insufficient evidence). Risk: Network (S1 Read-only utility).",
@@ -212,11 +213,17 @@
           "targetSpecHash": "sha256:45fdba01f1593c33438d18554baf9cd8e891f2f7f0f14d785675cbebe122b849",
           "riskSurfaceHash": "sha256:47e9d20255a346b95323c2cb9e092621521638b987bbcd036e68e4aee12dcaf3"
         },
-        "diagnostics": [],
-        "generatedAt": "2026-09-30T01:30:03.000Z"
+        "diagnostics": [
+          {
+            "level": "info",
+            "code": "evidence.remote-identity-verified",
+            "message": "Remote endpoint identity verified; tool surface not analyzed (evidence: https://app.aeviamodeler.ai/api/v1/connector/mcp)"
+          }
+        ],
+        "generatedAt": "2026-10-05T14:29:42.000Z"
       }
     ],
     "diagnostics": [],
-    "generatedAt": "2026-09-30T01:30:03.000Z"
+    "generatedAt": "2026-10-05T14:29:42.000Z"
   }
 }

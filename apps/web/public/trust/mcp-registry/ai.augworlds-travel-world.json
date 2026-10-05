@@ -2,18 +2,18 @@
   "schema": "calllint.trust-page.v0",
   "canonicalName": "mcp-registry/ai.augworlds-travel-world",
   "artifactDigest": "sha256:80d803665e2ecae6a4d060a45afd3a2425fbd62c725f84cd836b36a0613163a6",
-  "pageDigest": "sha256:2cc2b9729e90bdb12e5697696e261b2c841be94fcc65d3216231dc88b3e8f650",
+  "pageDigest": "sha256:58ec4553634fb6830649479cd61c644c4178e047971fe549d544c5d2ba92b307",
   "verdict": "REVIEW",
   "verdictLabel": "Review required",
-  "observedAt": "2026-09-30T01:30:03.000Z",
+  "observedAt": "2026-10-05T14:29:42.000Z",
   "completeness": "complete",
   "status": {
     "verdict": "REVIEW",
     "completeness": "complete",
     "authorityClaimed": false,
     "reproducibility": {
-      "pageDigest": "sha256:2cc2b9729e90bdb12e5697696e261b2c841be94fcc65d3216231dc88b3e8f650",
-      "observedAt": "2026-09-30T01:30:03.000Z"
+      "pageDigest": "sha256:58ec4553634fb6830649479cd61c644c4178e047971fe549d544c5d2ba92b307",
+      "observedAt": "2026-10-05T14:29:42.000Z"
     },
     "evidenceLevel": "E2",
     "evidenceRationale": "install config observed → static blast radius normalized into an authority inventory. Higher levels (E3 tool schema, E4 maintainer receipt, E5 sandbox) are not carried by a static page."
@@ -26,8 +26,8 @@
   },
   "scanHistory": [
     {
-      "observedAt": "2026-09-30T01:30:03.000Z",
-      "pageDigest": "sha256:2cc2b9729e90bdb12e5697696e261b2c841be94fcc65d3216231dc88b3e8f650",
+      "observedAt": "2026-10-05T14:29:42.000Z",
+      "pageDigest": "sha256:58ec4553634fb6830649479cd61c644c4178e047971fe549d544c5d2ba92b307",
       "artifactDigest": "sha256:80d803665e2ecae6a4d060a45afd3a2425fbd62c725f84cd836b36a0613163a6"
     }
   ],
@@ -40,7 +40,7 @@
       "requestedRef": null,
       "resolvedRef": "sha256:80d803665e2ecae6a4d060a45afd3a2425fbd62c725f84cd836b36a0613163a6",
       "digest": "sha256:80d803665e2ecae6a4d060a45afd3a2425fbd62c725f84cd836b36a0613163a6",
-      "resolvedAt": "2026-09-30T01:30:03.000Z",
+      "resolvedAt": "2026-10-05T14:29:42.000Z",
       "resolution": "resolved"
     },
     "evidence": null,
@@ -84,7 +84,7 @@
       "no external evidence attached (optional); decision will rely on CallLint's own analysis",
       "authority normalized: 1 capability, approvals required: external-network-access"
     ],
-    "preparedAt": "2026-09-30T01:30:03.000Z"
+    "preparedAt": "2026-10-05T14:29:42.000Z"
   },
   "scan": {
     "schemaVersion": "calllint.report.v0",
@@ -220,10 +220,10 @@
             "message": "Remote endpoint identity verified; tool surface not analyzed (evidence: https://travel.augworlds.ai/mcp)"
           }
         ],
-        "generatedAt": "2026-09-30T01:30:03.000Z"
+        "generatedAt": "2026-10-05T14:29:42.000Z"
       }
     ],
     "diagnostics": [],
-    "generatedAt": "2026-09-30T01:30:03.000Z"
+    "generatedAt": "2026-10-05T14:29:42.000Z"
   }
 }
