@@ -1,18 +1,18 @@
 {
   "schema": "calllint.agent-adoption-contract.v1",
   "contract": {
-    "contractDigest": "sha256:be0cfc2a75af5dc73cb84dbcb8b97ee457b34339df7961e8af5be89a9b01c163",
-    "generatedAt": "2026-09-30T01:30:03.000Z",
+    "contractDigest": "sha256:7c62565e0b184b8df7fbb0a096d57b62cbc15f77f40b631c35e61f0db9f34979",
+    "generatedAt": "2026-10-12T15:15:35.000Z",
     "expiresAt": null,
     "generatorVersion": "0.1.0",
-    "snapshotDigest": "sha256:2a2fdb4ac6789eae0bc4e05425b2b2a962ea0dc4471865f754030b6d55ce5446"
+    "snapshotDigest": "sha256:b88a01dd1a797f6a5663095e87b1e7a1b8883ef8abe3d267f3b4d5e6181c273a"
   },
   "subject": {
     "canonicalName": "mcp-registry/ai.alphaquantlabs-propertycheck",
     "canonicalSlug": "mcp-registry/ai.alphaquantlabs-propertycheck",
     "packageType": null,
     "packageName": null,
-    "version": "1.6.4",
+    "version": "1.12.1",
     "artifactDigest": "sha256:b15c92f585fc37ef659f4d5cd574105c5c0cda386c6425adb1e4101e8c909003",
     "sourceLocator": "https://agents.alphaquantlabs.ai/v1/mcp"
   },
@@ -23,7 +23,7 @@
       "UNKNOWN_REMOTE"
     ],
     "evidenceLevel": "E2",
-    "evidenceDigest": "sha256:3b2668dc36b1dbc0e510c12ed3742663f51601b55950fa3e33ba1802bb184769",
+    "evidenceDigest": "sha256:3bf37660fb551dc8f18cf1b9f945f132de5392c9740221228d2a4e794bf17a56",
     "completeness": "complete"
   },
   "authorityDelta": {
@@ -44,12 +44,12 @@
     ]
   },
   "trustedSources": {
-    "registrySnapshotDigest": "sha256:2a2fdb4ac6789eae0bc4e05425b2b2a962ea0dc4471865f754030b6d55ce5446",
-    "evidenceDigest": "sha256:3b2668dc36b1dbc0e510c12ed3742663f51601b55950fa3e33ba1802bb184769",
+    "registrySnapshotDigest": "sha256:b88a01dd1a797f6a5663095e87b1e7a1b8883ef8abe3d267f3b4d5e6181c273a",
+    "evidenceDigest": "sha256:3bf37660fb551dc8f18cf1b9f945f132de5392c9740221228d2a4e794bf17a56",
     "engineVersion": "0.1.0"
   },
   "untrustedPublisherContent": {
-    "description": "Gold Coast property due diligence for buyers and renters: everyday life, local risks and changes.",
+    "description": "Gold Coast and Brisbane property intelligence and due diligence for AI agents, renters and buyers.",
     "usedForSafetyDecision": false
   },
   "recommendedNextAction": {
@@ -57,9 +57,9 @@
     "tool": "calllint_prepare_safe_install",
     "arguments": {
       "canonicalName": "mcp-registry/ai.alphaquantlabs-propertycheck",
-      "expectedVersion": "1.6.4",
+      "expectedVersion": "1.12.1",
       "expectedArtifactDigest": "sha256:b15c92f585fc37ef659f4d5cd574105c5c0cda386c6425adb1e4101e8c909003",
-      "expectedContractDigest": "sha256:be0cfc2a75af5dc73cb84dbcb8b97ee457b34339df7961e8af5be89a9b01c163",
+      "expectedContractDigest": "sha256:7c62565e0b184b8df7fbb0a096d57b62cbc15f77f40b631c35e61f0db9f34979",
       "host": null
     }
   },

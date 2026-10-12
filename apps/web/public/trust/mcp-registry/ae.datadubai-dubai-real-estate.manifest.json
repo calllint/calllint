@@ -1,0 +1,50 @@
+{
+  "schema": "calllint.evidence-manifest.v1",
+  "subject": {
+    "canonicalName": "mcp-registry/ae.datadubai-dubai-real-estate",
+    "artifactDigest": "sha256:7513c0ac345e307426dcadbf33e51caba6cd5cf9fad023b4fbcd7515b2737707"
+  },
+  "verdict": "REVIEW",
+  "verdictLabel": "Review required",
+  "completeness": "complete",
+  "evidenceLevel": "E2",
+  "evidenceRationale": "install config observed → static blast radius normalized into an authority inventory. Higher levels (E3 tool schema, E4 maintainer receipt, E5 sandbox) are not carried by a static page.",
+  "status": {
+    "verdict": "REVIEW",
+    "completeness": "complete",
+    "authorityClaimed": false,
+    "reproducibility": {
+      "pageDigest": "sha256:b81305afba28cb2f9ee85d7fef99f96f9a42eda8e237603026e3dd50a0f2346f",
+      "observedAt": "2026-10-12T15:15:35.000Z"
+    },
+    "evidenceLevel": "E2"
+  },
+  "authority": {
+    "digest": "sha256:c9d96d468d2e2b5ffe9f44c9063e19dfa87b35b97c98e95fdd2338d633e2d9dd",
+    "completeness": "complete",
+    "capabilityCount": 1,
+    "approvalRequired": [
+      "external-network-access"
+    ],
+    "capabilities": [
+      {
+        "action": "connect",
+        "resource": "network",
+        "mutability": "mutating",
+        "reversibility": "irreversible",
+        "approvalRequirement": "review"
+      }
+    ]
+  },
+  "policyDigest": null,
+  "reproducibility": {
+    "pageDigest": "sha256:b81305afba28cb2f9ee85d7fef99f96f9a42eda8e237603026e3dd50a0f2346f",
+    "observedAt": "2026-10-12T15:15:35.000Z"
+  },
+  "engine": {
+    "name": "calllint"
+  },
+  "correctionUrl": "https://github.com/calllint/calllint/issues/new?labels=trust-page-correction",
+  "generatedAt": "2026-10-12T15:15:35.000Z",
+  "signature": null
+}

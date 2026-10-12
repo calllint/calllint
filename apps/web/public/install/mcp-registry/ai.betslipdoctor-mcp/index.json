@@ -1,18 +1,18 @@
 {
   "schema": "calllint.agent-adoption-contract.v1",
   "contract": {
-    "contractDigest": "sha256:17e465a1d0960ebe90e72ee14875ba6ffd3ee7293139c1f789c85f7157a8aa28",
-    "generatedAt": "2026-09-30T01:30:03.000Z",
+    "contractDigest": "sha256:95e5358f3d4aba29ca0d94b28750e5f4b606f9b5e1c7812528c1f8606b75e41a",
+    "generatedAt": "2026-10-12T15:15:35.000Z",
     "expiresAt": null,
     "generatorVersion": "0.1.0",
-    "snapshotDigest": "sha256:2a2fdb4ac6789eae0bc4e05425b2b2a962ea0dc4471865f754030b6d55ce5446"
+    "snapshotDigest": "sha256:b88a01dd1a797f6a5663095e87b1e7a1b8883ef8abe3d267f3b4d5e6181c273a"
   },
   "subject": {
     "canonicalName": "mcp-registry/ai.betslipdoctor-mcp",
     "canonicalSlug": "mcp-registry/ai.betslipdoctor-mcp",
     "packageType": null,
     "packageName": null,
-    "version": "1.1.0",
+    "version": "1.3.0",
     "artifactDigest": "sha256:1cac1e8c2e4be81d24204590d41c48c15d645211d9bddc78b5ee1bb382e606eb",
     "sourceLocator": "https://api.betslipdoctor.ai/api/mcp"
   },
@@ -23,7 +23,7 @@
       "UNKNOWN_REMOTE"
     ],
     "evidenceLevel": "E2",
-    "evidenceDigest": "sha256:3b2668dc36b1dbc0e510c12ed3742663f51601b55950fa3e33ba1802bb184769",
+    "evidenceDigest": "sha256:3bf37660fb551dc8f18cf1b9f945f132de5392c9740221228d2a4e794bf17a56",
     "completeness": "complete"
   },
   "authorityDelta": {
@@ -44,12 +44,12 @@
     ]
   },
   "trustedSources": {
-    "registrySnapshotDigest": "sha256:2a2fdb4ac6789eae0bc4e05425b2b2a962ea0dc4471865f754030b6d55ce5446",
-    "evidenceDigest": "sha256:3b2668dc36b1dbc0e510c12ed3742663f51601b55950fa3e33ba1802bb184769",
+    "registrySnapshotDigest": "sha256:b88a01dd1a797f6a5663095e87b1e7a1b8883ef8abe3d267f3b4d5e6181c273a",
+    "evidenceDigest": "sha256:3bf37660fb551dc8f18cf1b9f945f132de5392c9740221228d2a4e794bf17a56",
     "engineVersion": "0.1.0"
   },
   "untrustedPublisherContent": {
-    "description": "Read, grade, and track a subscriber's betslips with preserved truth and no wager placement.",
+    "description": "Bet slip grader: grade a parlay A+ to F- before you bet, track slips, history and Tail. 21+, US.",
     "usedForSafetyDecision": false
   },
   "recommendedNextAction": {
@@ -57,9 +57,9 @@
     "tool": "calllint_prepare_safe_install",
     "arguments": {
       "canonicalName": "mcp-registry/ai.betslipdoctor-mcp",
-      "expectedVersion": "1.1.0",
+      "expectedVersion": "1.3.0",
       "expectedArtifactDigest": "sha256:1cac1e8c2e4be81d24204590d41c48c15d645211d9bddc78b5ee1bb382e606eb",
-      "expectedContractDigest": "sha256:17e465a1d0960ebe90e72ee14875ba6ffd3ee7293139c1f789c85f7157a8aa28",
+      "expectedContractDigest": "sha256:95e5358f3d4aba29ca0d94b28750e5f4b606f9b5e1c7812528c1f8606b75e41a",
       "host": null
     }
   },

@@ -1,27 +1,27 @@
 {
   "schema": "calllint.agent-adoption-contract.v1",
   "contract": {
-    "contractDigest": "sha256:67062d4c3855f5ff920c0c8fac71a7b3b1fdcf97ac3eacea5fcf0bfcbebb233e",
-    "generatedAt": "2026-09-30T01:30:03.000Z",
+    "contractDigest": "sha256:0824ac6f895f5dd85151adfb0edc4d22f7c6463a9967f30dc5adf37a6f6191c7",
+    "generatedAt": "2026-10-12T15:15:35.000Z",
     "expiresAt": null,
     "generatorVersion": "0.1.0",
-    "snapshotDigest": "sha256:2a2fdb4ac6789eae0bc4e05425b2b2a962ea0dc4471865f754030b6d55ce5446"
+    "snapshotDigest": "sha256:b88a01dd1a797f6a5663095e87b1e7a1b8883ef8abe3d267f3b4d5e6181c273a"
   },
   "subject": {
     "canonicalName": "mcp-registry/ai.ankimcp-anki-mcp-server",
     "canonicalSlug": "mcp-registry/ai.ankimcp-anki-mcp-server",
     "packageType": "npm",
     "packageName": "@ankimcp/anki-mcp-server",
-    "version": "0.26.0",
-    "artifactDigest": "sha256:4835ad2e0b7858ae3216c43575e1f79778d61037378e430474648b23a680ef90",
-    "sourceLocator": "npm:@ankimcp/anki-mcp-server@0.26.0"
+    "version": "0.27.0",
+    "artifactDigest": "sha256:ad7667d74b8350697b39b36ea08d19a111f731aad1d9dcacaa34af7037dd4c35",
+    "sourceLocator": "npm:@ankimcp/anki-mcp-server@0.27.0"
   },
   "publicObservation": {
     "verdict": "SAFE",
     "publicLabel": "No blockers observed",
     "reasonCodes": [],
     "evidenceLevel": "E2",
-    "evidenceDigest": "sha256:3b2668dc36b1dbc0e510c12ed3742663f51601b55950fa3e33ba1802bb184769",
+    "evidenceDigest": "sha256:3bf37660fb551dc8f18cf1b9f945f132de5392c9740221228d2a4e794bf17a56",
     "completeness": "complete"
   },
   "authorityDelta": {
@@ -39,8 +39,8 @@
     ]
   },
   "trustedSources": {
-    "registrySnapshotDigest": "sha256:2a2fdb4ac6789eae0bc4e05425b2b2a962ea0dc4471865f754030b6d55ce5446",
-    "evidenceDigest": "sha256:3b2668dc36b1dbc0e510c12ed3742663f51601b55950fa3e33ba1802bb184769",
+    "registrySnapshotDigest": "sha256:b88a01dd1a797f6a5663095e87b1e7a1b8883ef8abe3d267f3b4d5e6181c273a",
+    "evidenceDigest": "sha256:3bf37660fb551dc8f18cf1b9f945f132de5392c9740221228d2a4e794bf17a56",
     "engineVersion": "0.1.0"
   },
   "untrustedPublisherContent": {
@@ -52,9 +52,9 @@
     "tool": "calllint_prepare_safe_install",
     "arguments": {
       "canonicalName": "mcp-registry/ai.ankimcp-anki-mcp-server",
-      "expectedVersion": "0.26.0",
-      "expectedArtifactDigest": "sha256:4835ad2e0b7858ae3216c43575e1f79778d61037378e430474648b23a680ef90",
-      "expectedContractDigest": "sha256:67062d4c3855f5ff920c0c8fac71a7b3b1fdcf97ac3eacea5fcf0bfcbebb233e",
+      "expectedVersion": "0.27.0",
+      "expectedArtifactDigest": "sha256:ad7667d74b8350697b39b36ea08d19a111f731aad1d9dcacaa34af7037dd4c35",
+      "expectedContractDigest": "sha256:0824ac6f895f5dd85151adfb0edc4d22f7c6463a9967f30dc5adf37a6f6191c7",
       "host": null
     }
   },

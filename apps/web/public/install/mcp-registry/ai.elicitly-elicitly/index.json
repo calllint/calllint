@@ -1,27 +1,27 @@
 {
   "schema": "calllint.agent-adoption-contract.v1",
   "contract": {
-    "contractDigest": "sha256:3f3c7899d0735500641b04935281a8d37442c302f08d911cbdaf62dc8f656561",
-    "generatedAt": "2026-09-30T01:30:03.000Z",
+    "contractDigest": "sha256:5636dc88295e6b4c81f2c151ba4888a21fcd291c55f59b5906392b3982b945b8",
+    "generatedAt": "2026-10-12T15:15:35.000Z",
     "expiresAt": null,
     "generatorVersion": "0.1.0",
-    "snapshotDigest": "sha256:2a2fdb4ac6789eae0bc4e05425b2b2a962ea0dc4471865f754030b6d55ce5446"
+    "snapshotDigest": "sha256:b88a01dd1a797f6a5663095e87b1e7a1b8883ef8abe3d267f3b4d5e6181c273a"
   },
   "subject": {
     "canonicalName": "mcp-registry/ai.elicitly-elicitly",
     "canonicalSlug": "mcp-registry/ai.elicitly-elicitly",
     "packageType": "npm",
     "packageName": "elicitly",
-    "version": "0.7.2",
-    "artifactDigest": "sha256:dda98b64ae49bf333d611ad9218e766f0a6b91e2e37a7292835e0226b2fd3260",
-    "sourceLocator": "npm:elicitly@0.7.2"
+    "version": "0.8.3",
+    "artifactDigest": "sha256:94fd05027c826c54821ab02a131b4b7a39f0bd9bc6d07859f320c89ddb93fc7b",
+    "sourceLocator": "npm:elicitly@0.8.3"
   },
   "publicObservation": {
     "verdict": "SAFE",
     "publicLabel": "No blockers observed",
     "reasonCodes": [],
     "evidenceLevel": "E2",
-    "evidenceDigest": "sha256:3b2668dc36b1dbc0e510c12ed3742663f51601b55950fa3e33ba1802bb184769",
+    "evidenceDigest": "sha256:3bf37660fb551dc8f18cf1b9f945f132de5392c9740221228d2a4e794bf17a56",
     "completeness": "complete"
   },
   "authorityDelta": {
@@ -39,8 +39,8 @@
     ]
   },
   "trustedSources": {
-    "registrySnapshotDigest": "sha256:2a2fdb4ac6789eae0bc4e05425b2b2a962ea0dc4471865f754030b6d55ce5446",
-    "evidenceDigest": "sha256:3b2668dc36b1dbc0e510c12ed3742663f51601b55950fa3e33ba1802bb184769",
+    "registrySnapshotDigest": "sha256:b88a01dd1a797f6a5663095e87b1e7a1b8883ef8abe3d267f3b4d5e6181c273a",
+    "evidenceDigest": "sha256:3bf37660fb551dc8f18cf1b9f945f132de5392c9740221228d2a4e794bf17a56",
     "engineVersion": "0.1.0"
   },
   "untrustedPublisherContent": {
@@ -52,9 +52,9 @@
     "tool": "calllint_prepare_safe_install",
     "arguments": {
       "canonicalName": "mcp-registry/ai.elicitly-elicitly",
-      "expectedVersion": "0.7.2",
-      "expectedArtifactDigest": "sha256:dda98b64ae49bf333d611ad9218e766f0a6b91e2e37a7292835e0226b2fd3260",
-      "expectedContractDigest": "sha256:3f3c7899d0735500641b04935281a8d37442c302f08d911cbdaf62dc8f656561",
+      "expectedVersion": "0.8.3",
+      "expectedArtifactDigest": "sha256:94fd05027c826c54821ab02a131b4b7a39f0bd9bc6d07859f320c89ddb93fc7b",
+      "expectedContractDigest": "sha256:5636dc88295e6b4c81f2c151ba4888a21fcd291c55f59b5906392b3982b945b8",
       "host": null
     }
   },
