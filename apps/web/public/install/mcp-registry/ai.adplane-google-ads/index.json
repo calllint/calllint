@@ -1,18 +1,18 @@
 {
   "schema": "calllint.agent-adoption-contract.v1",
   "contract": {
-    "contractDigest": "sha256:b484ea58b967aa1be767e9ecb4834f68f4e54293c5bd9f52f09f9cbea6fb2ead",
-    "generatedAt": "2026-09-30T01:30:03.000Z",
+    "contractDigest": "sha256:effed296c490bc5a1922f7872e4f2d60722fa4c00bf7eb3d37b5190f6412abfa",
+    "generatedAt": "2026-10-12T15:15:35.000Z",
     "expiresAt": null,
     "generatorVersion": "0.1.0",
-    "snapshotDigest": "sha256:2a2fdb4ac6789eae0bc4e05425b2b2a962ea0dc4471865f754030b6d55ce5446"
+    "snapshotDigest": "sha256:b88a01dd1a797f6a5663095e87b1e7a1b8883ef8abe3d267f3b4d5e6181c273a"
   },
   "subject": {
     "canonicalName": "mcp-registry/ai.adplane-google-ads",
     "canonicalSlug": "mcp-registry/ai.adplane-google-ads",
     "packageType": null,
     "packageName": null,
-    "version": "1.29.1",
+    "version": "1.31.0",
     "artifactDigest": "sha256:f17f56a2ccc24fe444f00c9a63a17fba83f1c58b61a9e4b07b26e638517650af",
     "sourceLocator": "https://mcp.adplane.ai"
   },
@@ -23,7 +23,7 @@
       "UNKNOWN_REMOTE"
     ],
     "evidenceLevel": "E2",
-    "evidenceDigest": "sha256:3b2668dc36b1dbc0e510c12ed3742663f51601b55950fa3e33ba1802bb184769",
+    "evidenceDigest": "sha256:3bf37660fb551dc8f18cf1b9f945f132de5392c9740221228d2a4e794bf17a56",
     "completeness": "complete"
   },
   "authorityDelta": {
@@ -44,12 +44,12 @@
     ]
   },
   "trustedSources": {
-    "registrySnapshotDigest": "sha256:2a2fdb4ac6789eae0bc4e05425b2b2a962ea0dc4471865f754030b6d55ce5446",
-    "evidenceDigest": "sha256:3b2668dc36b1dbc0e510c12ed3742663f51601b55950fa3e33ba1802bb184769",
+    "registrySnapshotDigest": "sha256:b88a01dd1a797f6a5663095e87b1e7a1b8883ef8abe3d267f3b4d5e6181c273a",
+    "evidenceDigest": "sha256:3bf37660fb551dc8f18cf1b9f945f132de5392c9740221228d2a4e794bf17a56",
     "engineVersion": "0.1.0"
   },
   "untrustedPublisherContent": {
-    "description": "Google Ads reporting and campaign management. Everything it creates starts paused.",
+    "description": "Google, Meta, Microsoft and TikTok Ads in Claude or ChatGPT: reports and changes, created paused.",
     "usedForSafetyDecision": false
   },
   "recommendedNextAction": {
@@ -57,9 +57,9 @@
     "tool": "calllint_prepare_safe_install",
     "arguments": {
       "canonicalName": "mcp-registry/ai.adplane-google-ads",
-      "expectedVersion": "1.29.1",
+      "expectedVersion": "1.31.0",
       "expectedArtifactDigest": "sha256:f17f56a2ccc24fe444f00c9a63a17fba83f1c58b61a9e4b07b26e638517650af",
-      "expectedContractDigest": "sha256:b484ea58b967aa1be767e9ecb4834f68f4e54293c5bd9f52f09f9cbea6fb2ead",
+      "expectedContractDigest": "sha256:effed296c490bc5a1922f7872e4f2d60722fa4c00bf7eb3d37b5190f6412abfa",
       "host": null
     }
   },
