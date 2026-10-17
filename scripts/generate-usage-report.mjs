@@ -41,7 +41,6 @@ const PACKAGES = ["calllint", "calllint-mcp"]
 const FIRST_PUBLISH_DAY = "2026-06-17"
 
 const D1_DATABASE = "calllint-usage"
-const TREND_DAYS = 30
 
 // ── argv ────────────────────────────────────────────────────────────────────
 
@@ -70,10 +69,16 @@ const { describeWranglerFailure } = await import(
   new URL("../apps/usage-worker/src/wrangler-failure.ts", import.meta.url).href
 ).catch(() => ({}))
 
+const { parseD1Result, readUsage, sourceSummary } = await import(
+  new URL("../apps/usage-worker/src/report-sources.ts", import.meta.url).href
+).catch(() => ({}))
+
 if (
   typeof planRanges !== "function" ||
   typeof renderReport !== "function" ||
-  typeof describeWranglerFailure !== "function"
+  typeof describeWranglerFailure !== "function" ||
+  typeof parseD1Result !== "function" || typeof readUsage !== "function" ||
+  typeof sourceSummary !== "function"
 ) {
   console.error(
     "generate-usage-report: could not load the Worker's pure modules.\n" +
@@ -176,81 +181,13 @@ function queryD1(sql) {
         timeout: 60_000,
       },
     )
-    const parsed = JSON.parse(stdout)
-    const first = Array.isArray(parsed) ? parsed[0] : parsed
-    return first?.results ?? []
+    return parseD1Result(stdout)
   } catch (error) {
     // Report the cause from stderr, not execFileSync's "Command failed" wrapper,
     // and never the argv (it carries the interpolated SQL). Token-shaped runs are
     // masked in describeWranglerFailure since this line lands in a CI log.
     console.error(`  ! D1 unavailable: ${describeWranglerFailure(error)}`)
     return null
-  }
-}
-
-const ATTENTION_EVENTS = ["scan_verdict_review", "scan_verdict_block", "scan_verdict_unknown"]
-
-/** Read every figure the report needs from the aggregate tables (§21). */
-function readUsage(throughDay) {
-  const since = dayOffset(throughDay, -(TREND_DAYS - 1))
-  const inList = ATTENTION_EVENTS.map((n) => `'${n}'`).join(", ")
-
-  const counts = queryD1(
-    "SELECT day, event_name, SUM(count) AS n FROM usage_daily_counts GROUP BY day, event_name",
-  )
-  if (counts === null) return null
-
-  const installations = queryD1(
-    `SELECT COUNT(DISTINCT installation_hash) AS n FROM usage_daily_installations WHERE day >= '${since}'`,
-  )
-  const firstDay = queryD1("SELECT MIN(day) AS d FROM usage_daily_counts")
-
-  const sum = (predicate, from = null) =>
-    counts
-      .filter((r) => predicate(r) && (from === null || String(r.day) >= from))
-      .reduce((total, r) => total + Number(r.n ?? 0), 0)
-
-  const isPreflight = (r) => String(r.event_name) === "preflight_completed"
-  const isAttention = (r) => ATTENTION_EVENTS.includes(String(r.event_name))
-
-  const byDay = new Map()
-  for (const row of counts) {
-    const day = String(row.day)
-    if (day < since) continue
-    const bucket = byDay.get(day) ?? { preflights: 0, activeInstallations: 0 }
-    if (isPreflight(row)) bucket.preflights += Number(row.n ?? 0)
-    byDay.set(day, bucket)
-  }
-
-  // Active installations are per-day distinct hashes, which cannot be derived
-  // from the counts table — query the installation table for the trend.
-  const perDay = queryD1(
-    `SELECT day, COUNT(DISTINCT installation_hash) AS n FROM usage_daily_installations WHERE day >= '${since}' GROUP BY day`,
-  )
-  for (const row of perDay ?? []) {
-    const day = String(row.day)
-    const bucket = byDay.get(day) ?? { preflights: 0, activeInstallations: 0 }
-    bucket.activeInstallations = Number(row.n ?? 0)
-    byDay.set(day, bucket)
-  }
-
-  const trend = [...byDay.entries()]
-    .sort((a, b) => a[0].localeCompare(b[0]))
-    .map(([day, v]) => ({ day, ...v }))
-
-  return {
-    observedUsageSince: firstDay?.[0]?.d ? String(firstDay[0].d) : null,
-    recordedPreflights: {
-      cumulative: sum(isPreflight),
-      last30: sum(isPreflight, since),
-    },
-    needAttention: {
-      cumulative: sum(isAttention),
-      last30: sum(isAttention, since),
-    },
-    activeInstallationsLast30: Number(installations?.[0]?.n ?? 0),
-    trend,
-    _attentionEventsQueried: inList,
   }
 }
 
@@ -264,7 +201,7 @@ function readUsage(throughDay) {
  */
 function countRegistryServers() {
   const dir = path.join(repoRoot, "apps/web/public/install/mcp-registry")
-  if (!fs.existsSync(dir)) return 0
+  if (!fs.existsSync(dir)) return null
   return fs
     .readdirSync(dir, { withFileTypes: true })
     .filter((e) => e.isDirectory() && fs.existsSync(path.join(dir, e.name, "index.json")))
@@ -299,7 +236,7 @@ if (OFFLINE) {
 
 const npmDataThrough = latestDay(cliSeries) ?? latestDay(mcpSeries) ?? "no npm data"
 
-const usage = OFFLINE ? null : readUsage(npmThrough)
+const usage = OFFLINE ? null : readUsage(npmThrough, queryD1)
 if (usage === null) {
   degradations.push(
     "D1 aggregates unavailable — usage rows render as not-yet-observed, not as zero",
@@ -312,7 +249,11 @@ if (usage === null) {
 }
 
 const mcpServersObserved = countRegistryServers()
-console.log(`  ✓ registry: ${mcpServersObserved} audited servers`)
+if (mcpServersObserved === null) {
+  degradations.push("Registry coverage unavailable — registry directory missing")
+} else {
+  console.log(`  ✓ registry: ${mcpServersObserved} audited servers`)
+}
 
 // A missing source yields null, not 0 (§25). The renderer prints an em dash for
 // null, so an unread aggregate table reads as "not applicable" instead of
@@ -406,5 +347,21 @@ console.log(`  → ${relOut}/_worker.js  (§29: pages.dev → ${"usage.calllint.
 if (degradations.length > 0) {
   console.log("\nDegraded sources (report written, figures incomplete):")
   for (const d of degradations) console.log(`  · ${d}`)
+}
+const sourceStatus = sourceSummary({
+  cli: OFFLINE ? "skipped" : cliSeries.length > 0 ? "available" : "unavailable",
+  mcp: OFFLINE ? "skipped" : mcpSeries.length > 0 ? "available" : "unavailable",
+  d1: OFFLINE ? "skipped" : usage !== null ? "available" : "unavailable",
+  registry: mcpServersObserved !== null ? "available" : "unavailable",
+})
+if (process.env.GITHUB_STEP_SUMMARY) {
+  fs.appendFileSync(process.env.GITHUB_STEP_SUMMARY, sourceStatus.markdown, "utf8")
+}
+if (process.env.GITHUB_OUTPUT) {
+  fs.appendFileSync(process.env.GITHUB_OUTPUT,
+    `source_status=${sourceStatus.complete ? "complete" : "degraded"}\n`, "utf8")
+}
+if (!sourceStatus.complete && process.env.GITHUB_ACTIONS === "true") {
+  console.log(`::warning title=Usage report data incomplete::${sourceStatus.warning}`)
 }
 console.log("\nPrivate usage report: GENERATED")
