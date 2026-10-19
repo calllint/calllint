@@ -2,18 +2,18 @@
   "schema": "calllint.trust-page.v0",
   "canonicalName": "mcp-registry/ai.cabrini-market-data",
   "artifactDigest": "sha256:e770d96d2e4c8b8b9d1fa58ddf2ef52f84cc967114883612a810b256870d848b",
-  "pageDigest": "sha256:8c83913e5a378c8952e2bda24316193e7047947404d90ab2c7845fb0ffa67fce",
-  "verdict": "REVIEW",
-  "verdictLabel": "Review required",
-  "observedAt": "2026-09-30T01:30:03.000Z",
+  "pageDigest": "sha256:d675af706c7c5d3c08fff0749d6513f76194860ac11684c1b015c15cb529a3b2",
+  "verdict": "UNKNOWN",
+  "verdictLabel": "Insufficient evidence",
+  "observedAt": "2026-10-19T13:04:27.000Z",
   "completeness": "complete",
   "status": {
-    "verdict": "REVIEW",
+    "verdict": "UNKNOWN",
     "completeness": "complete",
     "authorityClaimed": false,
     "reproducibility": {
-      "pageDigest": "sha256:8c83913e5a378c8952e2bda24316193e7047947404d90ab2c7845fb0ffa67fce",
-      "observedAt": "2026-09-30T01:30:03.000Z"
+      "pageDigest": "sha256:d675af706c7c5d3c08fff0749d6513f76194860ac11684c1b015c15cb529a3b2",
+      "observedAt": "2026-10-19T13:04:27.000Z"
     },
     "evidenceLevel": "E2",
     "evidenceRationale": "install config observed → static blast radius normalized into an authority inventory. Higher levels (E3 tool schema, E4 maintainer receipt, E5 sandbox) are not carried by a static page."
@@ -26,8 +26,8 @@
   },
   "scanHistory": [
     {
-      "observedAt": "2026-09-30T01:30:03.000Z",
-      "pageDigest": "sha256:8c83913e5a378c8952e2bda24316193e7047947404d90ab2c7845fb0ffa67fce",
+      "observedAt": "2026-10-19T13:04:27.000Z",
+      "pageDigest": "sha256:d675af706c7c5d3c08fff0749d6513f76194860ac11684c1b015c15cb529a3b2",
       "artifactDigest": "sha256:e770d96d2e4c8b8b9d1fa58ddf2ef52f84cc967114883612a810b256870d848b"
     }
   ],
@@ -40,7 +40,7 @@
       "requestedRef": null,
       "resolvedRef": "sha256:e770d96d2e4c8b8b9d1fa58ddf2ef52f84cc967114883612a810b256870d848b",
       "digest": "sha256:e770d96d2e4c8b8b9d1fa58ddf2ef52f84cc967114883612a810b256870d848b",
-      "resolvedAt": "2026-09-30T01:30:03.000Z",
+      "resolvedAt": "2026-10-19T13:04:27.000Z",
       "resolution": "resolved"
     },
     "evidence": null,
@@ -84,19 +84,19 @@
       "no external evidence attached (optional); decision will rely on CallLint's own analysis",
       "authority normalized: 1 capability, approvals required: external-network-access"
     ],
-    "preparedAt": "2026-09-30T01:30:03.000Z"
+    "preparedAt": "2026-10-19T13:04:27.000Z"
   },
   "scan": {
     "schemaVersion": "calllint.report.v0",
     "reportKind": "config-summary",
     "configPath": "official-mcp-registry:ai.cabrini/market-data",
-    "verdict": "REVIEW",
-    "publicVerdictLabel": "Review required",
+    "verdict": "UNKNOWN",
+    "publicVerdictLabel": "Insufficient evidence",
     "counts": {
       "SAFE": 0,
-      "REVIEW": 1,
+      "REVIEW": 0,
       "BLOCK": 0,
-      "UNKNOWN": 0
+      "UNKNOWN": 1
     },
     "reports": [
       {
@@ -108,8 +108,8 @@
           "source": "https://cabrini.ai/mcp",
           "configPath": "official-mcp-registry:ai.cabrini/market-data"
         },
-        "verdict": "REVIEW",
-        "publicVerdictLabel": "Review required",
+        "verdict": "UNKNOWN",
+        "publicVerdictLabel": "Insufficient evidence",
         "policyApplied": false,
         "riskClass": "S1",
         "symbols": [
@@ -117,10 +117,9 @@
         ],
         "confidence": "high",
         "reproducibility": {
-          "level": "LOW",
+          "level": "MEDIUM",
           "reasons": [
-            "Remote endpoint domain ownership not verified",
-            "Remote endpoint identity verified; tool surface not analyzed"
+            "Remote endpoint could not be verified"
           ]
         },
         "summary": "\"remote\" could not be verified (insufficient evidence). Risk: Network (S1 Read-only utility).",
@@ -213,17 +212,11 @@
           "targetSpecHash": "sha256:75bb16c7d3590dcebe1b8b4ca07a94a8b1233ead83eb7383f6a099b4a84252da",
           "riskSurfaceHash": "sha256:47e9d20255a346b95323c2cb9e092621521638b987bbcd036e68e4aee12dcaf3"
         },
-        "diagnostics": [
-          {
-            "level": "info",
-            "code": "evidence.remote-identity-verified",
-            "message": "Remote endpoint identity verified; tool surface not analyzed (evidence: https://cabrini.ai/mcp)"
-          }
-        ],
-        "generatedAt": "2026-09-30T01:30:03.000Z"
+        "diagnostics": [],
+        "generatedAt": "2026-10-19T13:04:27.000Z"
       }
     ],
     "diagnostics": [],
-    "generatedAt": "2026-09-30T01:30:03.000Z"
+    "generatedAt": "2026-10-19T13:04:27.000Z"
   }
 }

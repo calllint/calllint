@@ -1,11 +1,11 @@
 {
   "schema": "calllint.agent-adoption-contract.v1",
   "contract": {
-    "contractDigest": "sha256:0fa16636c6cc45c7ee553e66eff5d0fbabd9d57c4cc010d3713133c456db0694",
-    "generatedAt": "2026-09-30T01:30:03.000Z",
+    "contractDigest": "sha256:2be8b184b05d9d091ea1918f604e7545b694c1564a8c4c049dd1a95677d10ef0",
+    "generatedAt": "2026-10-19T13:04:27.000Z",
     "expiresAt": null,
     "generatorVersion": "0.1.0",
-    "snapshotDigest": "sha256:2a2fdb4ac6789eae0bc4e05425b2b2a962ea0dc4471865f754030b6d55ce5446"
+    "snapshotDigest": "sha256:0970184e2142d785167786209a8863a689cb018f9bad377d6048a3b7e654bb82"
   },
   "subject": {
     "canonicalName": "mcp-registry/ai.agentutility-mcp-web-probe",
@@ -21,7 +21,7 @@
     "publicLabel": "No blockers observed",
     "reasonCodes": [],
     "evidenceLevel": "E2",
-    "evidenceDigest": "sha256:3b2668dc36b1dbc0e510c12ed3742663f51601b55950fa3e33ba1802bb184769",
+    "evidenceDigest": "sha256:b9381aff028bedb776950d19f78c2a50ab9f2002513c9ded5eb3135f5ccd9a7a",
     "completeness": "complete"
   },
   "authorityDelta": {
@@ -39,8 +39,8 @@
     ]
   },
   "trustedSources": {
-    "registrySnapshotDigest": "sha256:2a2fdb4ac6789eae0bc4e05425b2b2a962ea0dc4471865f754030b6d55ce5446",
-    "evidenceDigest": "sha256:3b2668dc36b1dbc0e510c12ed3742663f51601b55950fa3e33ba1802bb184769",
+    "registrySnapshotDigest": "sha256:0970184e2142d785167786209a8863a689cb018f9bad377d6048a3b7e654bb82",
+    "evidenceDigest": "sha256:b9381aff028bedb776950d19f78c2a50ab9f2002513c9ded5eb3135f5ccd9a7a",
     "engineVersion": "0.1.0"
   },
   "untrustedPublisherContent": {
@@ -54,7 +54,7 @@
       "canonicalName": "mcp-registry/ai.agentutility-mcp-web-probe",
       "expectedVersion": "0.32.1",
       "expectedArtifactDigest": "sha256:50da64624952b3c78e62a87507f28ced7ae272106170e52eec8fe58c171c77c7",
-      "expectedContractDigest": "sha256:0fa16636c6cc45c7ee553e66eff5d0fbabd9d57c4cc010d3713133c456db0694",
+      "expectedContractDigest": "sha256:2be8b184b05d9d091ea1918f604e7545b694c1564a8c4c049dd1a95677d10ef0",
       "host": null
     }
   },

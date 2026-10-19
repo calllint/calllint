@@ -1,27 +1,27 @@
 {
   "schema": "calllint.agent-adoption-contract.v1",
   "contract": {
-    "contractDigest": "sha256:32275d641d7685fb2c7a1487caee58bbdd6c6e19b1a6c6fcb6eb558e770521d3",
-    "generatedAt": "2026-09-30T01:30:03.000Z",
+    "contractDigest": "sha256:7c8725854095796898c36591bafb57218917c631d5813d9cd1f7d5f4a77677c0",
+    "generatedAt": "2026-10-19T13:04:27.000Z",
     "expiresAt": null,
     "generatorVersion": "0.1.0",
-    "snapshotDigest": "sha256:2a2fdb4ac6789eae0bc4e05425b2b2a962ea0dc4471865f754030b6d55ce5446"
+    "snapshotDigest": "sha256:0970184e2142d785167786209a8863a689cb018f9bad377d6048a3b7e654bb82"
   },
   "subject": {
     "canonicalName": "mcp-registry/ai.bourdon-bourdon",
     "canonicalSlug": "mcp-registry/ai.bourdon-bourdon",
     "packageType": "pypi",
     "packageName": "bourdon",
-    "version": "0.27.0",
-    "artifactDigest": "sha256:8432a172db75d3b4dd88b8701380ae52df08957d5051f06ace9a76f61fd72f61",
-    "sourceLocator": "pypi:bourdon@0.27.0"
+    "version": "0.32.1",
+    "artifactDigest": "sha256:09f99155535920d72aaff93a3ef0fbb9687cb98b95b1537db777f8963570a1ff",
+    "sourceLocator": "pypi:bourdon@0.32.1"
   },
   "publicObservation": {
     "verdict": "SAFE",
     "publicLabel": "No blockers observed",
     "reasonCodes": [],
     "evidenceLevel": "E2",
-    "evidenceDigest": "sha256:3b2668dc36b1dbc0e510c12ed3742663f51601b55950fa3e33ba1802bb184769",
+    "evidenceDigest": "sha256:b9381aff028bedb776950d19f78c2a50ab9f2002513c9ded5eb3135f5ccd9a7a",
     "completeness": "complete"
   },
   "authorityDelta": {
@@ -39,8 +39,8 @@
     ]
   },
   "trustedSources": {
-    "registrySnapshotDigest": "sha256:2a2fdb4ac6789eae0bc4e05425b2b2a962ea0dc4471865f754030b6d55ce5446",
-    "evidenceDigest": "sha256:3b2668dc36b1dbc0e510c12ed3742663f51601b55950fa3e33ba1802bb184769",
+    "registrySnapshotDigest": "sha256:0970184e2142d785167786209a8863a689cb018f9bad377d6048a3b7e654bb82",
+    "evidenceDigest": "sha256:b9381aff028bedb776950d19f78c2a50ab9f2002513c9ded5eb3135f5ccd9a7a",
     "engineVersion": "0.1.0"
   },
   "untrustedPublisherContent": {
@@ -52,9 +52,9 @@
     "tool": "calllint_prepare_safe_install",
     "arguments": {
       "canonicalName": "mcp-registry/ai.bourdon-bourdon",
-      "expectedVersion": "0.27.0",
-      "expectedArtifactDigest": "sha256:8432a172db75d3b4dd88b8701380ae52df08957d5051f06ace9a76f61fd72f61",
-      "expectedContractDigest": "sha256:32275d641d7685fb2c7a1487caee58bbdd6c6e19b1a6c6fcb6eb558e770521d3",
+      "expectedVersion": "0.32.1",
+      "expectedArtifactDigest": "sha256:09f99155535920d72aaff93a3ef0fbb9687cb98b95b1537db777f8963570a1ff",
+      "expectedContractDigest": "sha256:7c8725854095796898c36591bafb57218917c631d5813d9cd1f7d5f4a77677c0",
       "host": null
     }
   },

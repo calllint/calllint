@@ -1,11 +1,11 @@
 {
   "schema": "calllint.agent-adoption-contract.v1",
   "contract": {
-    "contractDigest": "sha256:5648ad5c9d199fb7ba2ee5f26484a5ca3e32ddbd4e4fecef36e8ec1ebe5e81e9",
-    "generatedAt": "2026-09-30T01:30:03.000Z",
+    "contractDigest": "sha256:3405fddf1100de3e889a30af0316188e4ccebc79ec99425cb6a70c5ca21ff658",
+    "generatedAt": "2026-10-19T13:04:27.000Z",
     "expiresAt": null,
     "generatorVersion": "0.1.0",
-    "snapshotDigest": "sha256:2a2fdb4ac6789eae0bc4e05425b2b2a962ea0dc4471865f754030b6d55ce5446"
+    "snapshotDigest": "sha256:0970184e2142d785167786209a8863a689cb018f9bad377d6048a3b7e654bb82"
   },
   "subject": {
     "canonicalName": "mcp-registry/ai.dinglebear-rytdl",
@@ -21,7 +21,7 @@
     "publicLabel": "No blockers observed",
     "reasonCodes": [],
     "evidenceLevel": "E2",
-    "evidenceDigest": "sha256:3b2668dc36b1dbc0e510c12ed3742663f51601b55950fa3e33ba1802bb184769",
+    "evidenceDigest": "sha256:b9381aff028bedb776950d19f78c2a50ab9f2002513c9ded5eb3135f5ccd9a7a",
     "completeness": "complete"
   },
   "authorityDelta": {
@@ -39,8 +39,8 @@
     ]
   },
   "trustedSources": {
-    "registrySnapshotDigest": "sha256:2a2fdb4ac6789eae0bc4e05425b2b2a962ea0dc4471865f754030b6d55ce5446",
-    "evidenceDigest": "sha256:3b2668dc36b1dbc0e510c12ed3742663f51601b55950fa3e33ba1802bb184769",
+    "registrySnapshotDigest": "sha256:0970184e2142d785167786209a8863a689cb018f9bad377d6048a3b7e654bb82",
+    "evidenceDigest": "sha256:b9381aff028bedb776950d19f78c2a50ab9f2002513c9ded5eb3135f5ccd9a7a",
     "engineVersion": "0.1.0"
   },
   "untrustedPublisherContent": {
@@ -54,7 +54,7 @@
       "canonicalName": "mcp-registry/ai.dinglebear-rytdl",
       "expectedVersion": "1.0.4",
       "expectedArtifactDigest": "sha256:5a4e31010b0053b815ecbed8d0c228c2fd40c5850f2350d5c6637b6393d29c44",
-      "expectedContractDigest": "sha256:5648ad5c9d199fb7ba2ee5f26484a5ca3e32ddbd4e4fecef36e8ec1ebe5e81e9",
+      "expectedContractDigest": "sha256:3405fddf1100de3e889a30af0316188e4ccebc79ec99425cb6a70c5ca21ff658",
       "host": null
     }
   },

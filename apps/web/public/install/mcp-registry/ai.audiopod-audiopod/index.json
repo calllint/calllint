@@ -1,18 +1,18 @@
 {
   "schema": "calllint.agent-adoption-contract.v1",
   "contract": {
-    "contractDigest": "sha256:7d8998a7cbc10b7514210d2238f0beb11583013f8191e1bdcba9097089a1375a",
-    "generatedAt": "2026-09-30T01:30:03.000Z",
+    "contractDigest": "sha256:175e935766d599ed76f58f714eea009ad5d75f5dfe2b36072c37d76508de0871",
+    "generatedAt": "2026-10-19T13:04:27.000Z",
     "expiresAt": null,
     "generatorVersion": "0.1.0",
-    "snapshotDigest": "sha256:2a2fdb4ac6789eae0bc4e05425b2b2a962ea0dc4471865f754030b6d55ce5446"
+    "snapshotDigest": "sha256:0970184e2142d785167786209a8863a689cb018f9bad377d6048a3b7e654bb82"
   },
   "subject": {
     "canonicalName": "mcp-registry/ai.audiopod-audiopod",
     "canonicalSlug": "mcp-registry/ai.audiopod-audiopod",
     "packageType": null,
     "packageName": null,
-    "version": "2026.9.19",
+    "version": "2026.10.14",
     "artifactDigest": "sha256:e58430b61c1b9dabe252c4f06a206ff0589975f4238dfb962db362deb1bc0ea4",
     "sourceLocator": "https://mcp.audiopod.ai"
   },
@@ -23,7 +23,7 @@
       "UNKNOWN_REMOTE"
     ],
     "evidenceLevel": "E2",
-    "evidenceDigest": "sha256:3b2668dc36b1dbc0e510c12ed3742663f51601b55950fa3e33ba1802bb184769",
+    "evidenceDigest": "sha256:b9381aff028bedb776950d19f78c2a50ab9f2002513c9ded5eb3135f5ccd9a7a",
     "completeness": "complete"
   },
   "authorityDelta": {
@@ -44,12 +44,12 @@
     ]
   },
   "trustedSources": {
-    "registrySnapshotDigest": "sha256:2a2fdb4ac6789eae0bc4e05425b2b2a962ea0dc4471865f754030b6d55ce5446",
-    "evidenceDigest": "sha256:3b2668dc36b1dbc0e510c12ed3742663f51601b55950fa3e33ba1802bb184769",
+    "registrySnapshotDigest": "sha256:0970184e2142d785167786209a8863a689cb018f9bad377d6048a3b7e654bb82",
+    "evidenceDigest": "sha256:b9381aff028bedb776950d19f78c2a50ab9f2002513c9ded5eb3135f5ccd9a7a",
     "engineVersion": "0.1.0"
   },
   "untrustedPublisherContent": {
-    "description": "Audio AI tools: text-to-speech, voice cloning, music generation, stem separation, transcription.",
+    "description": "Audio AI tools: transcription with speakers, stems, noise removal, MIDI, speech, voices and music.",
     "usedForSafetyDecision": false
   },
   "recommendedNextAction": {
@@ -57,9 +57,9 @@
     "tool": "calllint_prepare_safe_install",
     "arguments": {
       "canonicalName": "mcp-registry/ai.audiopod-audiopod",
-      "expectedVersion": "2026.9.19",
+      "expectedVersion": "2026.10.14",
       "expectedArtifactDigest": "sha256:e58430b61c1b9dabe252c4f06a206ff0589975f4238dfb962db362deb1bc0ea4",
-      "expectedContractDigest": "sha256:7d8998a7cbc10b7514210d2238f0beb11583013f8191e1bdcba9097089a1375a",
+      "expectedContractDigest": "sha256:175e935766d599ed76f58f714eea009ad5d75f5dfe2b36072c37d76508de0871",
       "host": null
     }
   },

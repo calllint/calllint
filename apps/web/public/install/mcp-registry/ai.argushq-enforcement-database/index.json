@@ -1,11 +1,11 @@
 {
   "schema": "calllint.agent-adoption-contract.v1",
   "contract": {
-    "contractDigest": "sha256:5e3035435d8e7b8d7c15efb24a21950afbaa8f8cad345c364337d7b18a850f3b",
-    "generatedAt": "2026-09-30T01:30:03.000Z",
+    "contractDigest": "sha256:ca26c516f9f5871f9bac0c1ec762e02870493d5e1fda6b8994716a1a98608574",
+    "generatedAt": "2026-10-19T13:04:27.000Z",
     "expiresAt": null,
     "generatorVersion": "0.1.0",
-    "snapshotDigest": "sha256:2a2fdb4ac6789eae0bc4e05425b2b2a962ea0dc4471865f754030b6d55ce5446"
+    "snapshotDigest": "sha256:0970184e2142d785167786209a8863a689cb018f9bad377d6048a3b7e654bb82"
   },
   "subject": {
     "canonicalName": "mcp-registry/ai.argushq-enforcement-database",
@@ -17,13 +17,13 @@
     "sourceLocator": "https://argushq.ai/api/mcp"
   },
   "publicObservation": {
-    "verdict": "REVIEW",
-    "publicLabel": "Review required",
+    "verdict": "UNKNOWN",
+    "publicLabel": "Insufficient evidence",
     "reasonCodes": [
       "UNKNOWN_REMOTE"
     ],
     "evidenceLevel": "E2",
-    "evidenceDigest": "sha256:3b2668dc36b1dbc0e510c12ed3742663f51601b55950fa3e33ba1802bb184769",
+    "evidenceDigest": "sha256:b9381aff028bedb776950d19f78c2a50ab9f2002513c9ded5eb3135f5ccd9a7a",
     "completeness": "complete"
   },
   "authorityDelta": {
@@ -44,8 +44,8 @@
     ]
   },
   "trustedSources": {
-    "registrySnapshotDigest": "sha256:2a2fdb4ac6789eae0bc4e05425b2b2a962ea0dc4471865f754030b6d55ce5446",
-    "evidenceDigest": "sha256:3b2668dc36b1dbc0e510c12ed3742663f51601b55950fa3e33ba1802bb184769",
+    "registrySnapshotDigest": "sha256:0970184e2142d785167786209a8863a689cb018f9bad377d6048a3b7e654bb82",
+    "evidenceDigest": "sha256:b9381aff028bedb776950d19f78c2a50ab9f2002513c9ded5eb3135f5ccd9a7a",
     "engineVersion": "0.1.0"
   },
   "untrustedPublisherContent": {
@@ -53,15 +53,8 @@
     "usedForSafetyDecision": false
   },
   "recommendedNextAction": {
-    "kind": "PREPARE_LOCALLY",
-    "tool": "calllint_prepare_safe_install",
-    "arguments": {
-      "canonicalName": "mcp-registry/ai.argushq-enforcement-database",
-      "expectedVersion": "1.0.0",
-      "expectedArtifactDigest": "sha256:85553aa65f1586ce26269f0c89a104bb83799eba8e602e0846b867271c7dd5d0",
-      "expectedContractDigest": "sha256:5e3035435d8e7b8d7c15efb24a21950afbaa8f8cad345c364337d7b18a850f3b",
-      "host": null
-    }
+    "kind": "LOCAL_PREFLIGHT_REQUIRED",
+    "tool": "calllint_prepare_safe_install"
   },
   "agentGuidance": {
     "goal": "Add the requested Agent Tool with only locally approved authority.",

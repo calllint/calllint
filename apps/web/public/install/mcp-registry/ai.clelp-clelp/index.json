@@ -1,27 +1,27 @@
 {
   "schema": "calllint.agent-adoption-contract.v1",
   "contract": {
-    "contractDigest": "sha256:3ce56dcf589cd74a2e6dfa9722665ec137102297210121f18f43ffc7636e57db",
-    "generatedAt": "2026-09-30T01:30:03.000Z",
+    "contractDigest": "sha256:f146ec36f4cfde89a50bb07c1c7c5e4037208e1f409b679e9d18dfcc84ad1856",
+    "generatedAt": "2026-10-19T13:04:27.000Z",
     "expiresAt": null,
     "generatorVersion": "0.1.0",
-    "snapshotDigest": "sha256:2a2fdb4ac6789eae0bc4e05425b2b2a962ea0dc4471865f754030b6d55ce5446"
+    "snapshotDigest": "sha256:0970184e2142d785167786209a8863a689cb018f9bad377d6048a3b7e654bb82"
   },
   "subject": {
     "canonicalName": "mcp-registry/ai.clelp-clelp",
     "canonicalSlug": "mcp-registry/ai.clelp-clelp",
     "packageType": "npm",
     "packageName": "clelp-mcp-server",
-    "version": "1.1.8",
-    "artifactDigest": "sha256:f0964a737c7d301f3cb63ce5e257c0ad4caf4d47756f77d45a4a4c2dd9659c68",
-    "sourceLocator": "npm:clelp-mcp-server@1.1.8"
+    "version": "1.1.9",
+    "artifactDigest": "sha256:d881d4160e3068d7ee580487bd9eafc1eaaa5e5c62df81c4bbd04c20b50250fc",
+    "sourceLocator": "npm:clelp-mcp-server@1.1.9"
   },
   "publicObservation": {
     "verdict": "SAFE",
     "publicLabel": "No blockers observed",
     "reasonCodes": [],
     "evidenceLevel": "E2",
-    "evidenceDigest": "sha256:3b2668dc36b1dbc0e510c12ed3742663f51601b55950fa3e33ba1802bb184769",
+    "evidenceDigest": "sha256:b9381aff028bedb776950d19f78c2a50ab9f2002513c9ded5eb3135f5ccd9a7a",
     "completeness": "complete"
   },
   "authorityDelta": {
@@ -39,12 +39,12 @@
     ]
   },
   "trustedSources": {
-    "registrySnapshotDigest": "sha256:2a2fdb4ac6789eae0bc4e05425b2b2a962ea0dc4471865f754030b6d55ce5446",
-    "evidenceDigest": "sha256:3b2668dc36b1dbc0e510c12ed3742663f51601b55950fa3e33ba1802bb184769",
+    "registrySnapshotDigest": "sha256:0970184e2142d785167786209a8863a689cb018f9bad377d6048a3b7e654bb82",
+    "evidenceDigest": "sha256:b9381aff028bedb776950d19f78c2a50ab9f2002513c9ded5eb3135f5ccd9a7a",
     "engineVersion": "0.1.0"
   },
   "untrustedPublisherContent": {
-    "description": "Search and rate AI tools, MCP servers, and agent skills reviewed by real agent use.",
+    "description": "Search and rate AI tools, MCP servers, and agent skills, safety-checked and rated by AI agents.",
     "usedForSafetyDecision": false
   },
   "recommendedNextAction": {
@@ -52,9 +52,9 @@
     "tool": "calllint_prepare_safe_install",
     "arguments": {
       "canonicalName": "mcp-registry/ai.clelp-clelp",
-      "expectedVersion": "1.1.8",
-      "expectedArtifactDigest": "sha256:f0964a737c7d301f3cb63ce5e257c0ad4caf4d47756f77d45a4a4c2dd9659c68",
-      "expectedContractDigest": "sha256:3ce56dcf589cd74a2e6dfa9722665ec137102297210121f18f43ffc7636e57db",
+      "expectedVersion": "1.1.9",
+      "expectedArtifactDigest": "sha256:d881d4160e3068d7ee580487bd9eafc1eaaa5e5c62df81c4bbd04c20b50250fc",
+      "expectedContractDigest": "sha256:f146ec36f4cfde89a50bb07c1c7c5e4037208e1f409b679e9d18dfcc84ad1856",
       "host": null
     }
   },

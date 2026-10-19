@@ -1,18 +1,18 @@
 {
   "schema": "calllint.agent-adoption-contract.v1",
   "contract": {
-    "contractDigest": "sha256:c0539c5c26d596211cfa7e2e3659f1ecae087f58b3e313ee9c30f0ce2e9b6a0e",
-    "generatedAt": "2026-09-30T01:30:03.000Z",
+    "contractDigest": "sha256:81c63c85afcc5a5855d831fdc47ecb3f5668dc0478c2bfd6a045259a24dbf234",
+    "generatedAt": "2026-10-19T13:04:27.000Z",
     "expiresAt": null,
     "generatorVersion": "0.1.0",
-    "snapshotDigest": "sha256:2a2fdb4ac6789eae0bc4e05425b2b2a962ea0dc4471865f754030b6d55ce5446"
+    "snapshotDigest": "sha256:0970184e2142d785167786209a8863a689cb018f9bad377d6048a3b7e654bb82"
   },
   "subject": {
     "canonicalName": "mcp-registry/ai.aginera-preconstruction",
     "canonicalSlug": "mcp-registry/ai.aginera-preconstruction",
     "packageType": null,
     "packageName": null,
-    "version": "1.1.0",
+    "version": "1.2.0",
     "artifactDigest": "sha256:e85d9a432fde2bbfd1f8ab567a50cd812d407dfcc0b2a39c95eda12bc616b110",
     "sourceLocator": "https://mcp.aginera.ai/mcp"
   },
@@ -23,7 +23,7 @@
       "UNKNOWN_REMOTE"
     ],
     "evidenceLevel": "E2",
-    "evidenceDigest": "sha256:3b2668dc36b1dbc0e510c12ed3742663f51601b55950fa3e33ba1802bb184769",
+    "evidenceDigest": "sha256:b9381aff028bedb776950d19f78c2a50ab9f2002513c9ded5eb3135f5ccd9a7a",
     "completeness": "complete"
   },
   "authorityDelta": {
@@ -44,12 +44,12 @@
     ]
   },
   "trustedSources": {
-    "registrySnapshotDigest": "sha256:2a2fdb4ac6789eae0bc4e05425b2b2a962ea0dc4471865f754030b6d55ce5446",
-    "evidenceDigest": "sha256:3b2668dc36b1dbc0e510c12ed3742663f51601b55950fa3e33ba1802bb184769",
+    "registrySnapshotDigest": "sha256:0970184e2142d785167786209a8863a689cb018f9bad377d6048a3b7e654bb82",
+    "evidenceDigest": "sha256:b9381aff028bedb776950d19f78c2a50ab9f2002513c9ded5eb3135f5ccd9a7a",
     "engineVersion": "0.1.0"
   },
   "untrustedPublisherContent": {
-    "description": "Takeoffs, measured routes and schedules from construction drawings; PDF to CAD (DXF free, DWG $2).",
+    "description": "Construction takeoffs, routes and schedules; PDF to CAD; floor plan to 3D dollhouse and room images.",
     "usedForSafetyDecision": false
   },
   "recommendedNextAction": {
@@ -57,9 +57,9 @@
     "tool": "calllint_prepare_safe_install",
     "arguments": {
       "canonicalName": "mcp-registry/ai.aginera-preconstruction",
-      "expectedVersion": "1.1.0",
+      "expectedVersion": "1.2.0",
       "expectedArtifactDigest": "sha256:e85d9a432fde2bbfd1f8ab567a50cd812d407dfcc0b2a39c95eda12bc616b110",
-      "expectedContractDigest": "sha256:c0539c5c26d596211cfa7e2e3659f1ecae087f58b3e313ee9c30f0ce2e9b6a0e",
+      "expectedContractDigest": "sha256:81c63c85afcc5a5855d831fdc47ecb3f5668dc0478c2bfd6a045259a24dbf234",
       "host": null
     }
   },

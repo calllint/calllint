@@ -1,27 +1,27 @@
 {
   "schema": "calllint.agent-adoption-contract.v1",
   "contract": {
-    "contractDigest": "sha256:2154b2996ef3771f8dcdc6bae24abf6d110ea19d8f3275d6b0c1145a723fe424",
-    "generatedAt": "2026-09-30T01:30:03.000Z",
+    "contractDigest": "sha256:6ea666dcb1066191e0fee056fe6a4e94e67b2b3a66143cdc8f4ebd65fcc6da7c",
+    "generatedAt": "2026-10-19T13:04:27.000Z",
     "expiresAt": null,
     "generatorVersion": "0.1.0",
-    "snapshotDigest": "sha256:2a2fdb4ac6789eae0bc4e05425b2b2a962ea0dc4471865f754030b6d55ce5446"
+    "snapshotDigest": "sha256:0970184e2142d785167786209a8863a689cb018f9bad377d6048a3b7e654bb82"
   },
   "subject": {
     "canonicalName": "mcp-registry/ai.clize-clize",
     "canonicalSlug": "mcp-registry/ai.clize-clize",
     "packageType": "npm",
     "packageName": "@clize/clize",
-    "version": "0.47.1",
-    "artifactDigest": "sha256:f186bf6436d1d1355df12dbca36e0abafb417499401cf830469f262f525e5d33",
-    "sourceLocator": "npm:@clize/clize@0.47.1"
+    "version": "0.52.0",
+    "artifactDigest": "sha256:5b31cf368cbad3cc288079cb06a8f6dcc805af519d4a61f02cc73d433cfc68c1",
+    "sourceLocator": "npm:@clize/clize@0.52.0"
   },
   "publicObservation": {
     "verdict": "SAFE",
     "publicLabel": "No blockers observed",
     "reasonCodes": [],
     "evidenceLevel": "E2",
-    "evidenceDigest": "sha256:3b2668dc36b1dbc0e510c12ed3742663f51601b55950fa3e33ba1802bb184769",
+    "evidenceDigest": "sha256:b9381aff028bedb776950d19f78c2a50ab9f2002513c9ded5eb3135f5ccd9a7a",
     "completeness": "complete"
   },
   "authorityDelta": {
@@ -39,12 +39,12 @@
     ]
   },
   "trustedSources": {
-    "registrySnapshotDigest": "sha256:2a2fdb4ac6789eae0bc4e05425b2b2a962ea0dc4471865f754030b6d55ce5446",
-    "evidenceDigest": "sha256:3b2668dc36b1dbc0e510c12ed3742663f51601b55950fa3e33ba1802bb184769",
+    "registrySnapshotDigest": "sha256:0970184e2142d785167786209a8863a689cb018f9bad377d6048a3b7e654bb82",
+    "evidenceDigest": "sha256:b9381aff028bedb776950d19f78c2a50ab9f2002513c9ded5eb3135f5ccd9a7a",
     "engineVersion": "0.1.0"
   },
   "untrustedPublisherContent": {
-    "description": "Real-world actions for AI coding agents: domains, email, deploys, payments, media, and SEO/GEO.",
+    "description": "Real-world actions for AI coding agents: an inbox with approval outbox, deploys, domains, payments.",
     "usedForSafetyDecision": false
   },
   "recommendedNextAction": {
@@ -52,9 +52,9 @@
     "tool": "calllint_prepare_safe_install",
     "arguments": {
       "canonicalName": "mcp-registry/ai.clize-clize",
-      "expectedVersion": "0.47.1",
-      "expectedArtifactDigest": "sha256:f186bf6436d1d1355df12dbca36e0abafb417499401cf830469f262f525e5d33",
-      "expectedContractDigest": "sha256:2154b2996ef3771f8dcdc6bae24abf6d110ea19d8f3275d6b0c1145a723fe424",
+      "expectedVersion": "0.52.0",
+      "expectedArtifactDigest": "sha256:5b31cf368cbad3cc288079cb06a8f6dcc805af519d4a61f02cc73d433cfc68c1",
+      "expectedContractDigest": "sha256:6ea666dcb1066191e0fee056fe6a4e94e67b2b3a66143cdc8f4ebd65fcc6da7c",
       "host": null
     }
   },

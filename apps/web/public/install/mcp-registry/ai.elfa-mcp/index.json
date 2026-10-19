@@ -1,27 +1,27 @@
 {
   "schema": "calllint.agent-adoption-contract.v1",
   "contract": {
-    "contractDigest": "sha256:e0462904bf3c4b2962ed6c869270c1332149c4d243864abd1bf46d302a3c4dab",
-    "generatedAt": "2026-09-30T01:30:03.000Z",
+    "contractDigest": "sha256:d3c5aa788cea1c3ba67e32cfd84df28aa109f6b9ce3d9298566c18607dac5d9f",
+    "generatedAt": "2026-10-19T13:04:27.000Z",
     "expiresAt": null,
     "generatorVersion": "0.1.0",
-    "snapshotDigest": "sha256:2a2fdb4ac6789eae0bc4e05425b2b2a962ea0dc4471865f754030b6d55ce5446"
+    "snapshotDigest": "sha256:0970184e2142d785167786209a8863a689cb018f9bad377d6048a3b7e654bb82"
   },
   "subject": {
     "canonicalName": "mcp-registry/ai.elfa-mcp",
     "canonicalSlug": "mcp-registry/ai.elfa-mcp",
     "packageType": "npm",
     "packageName": "@elfa-ai/mcp",
-    "version": "4.3.0",
-    "artifactDigest": "sha256:cafe741573f6bca6e9c719c7188fb4e6aaad5b2a7f560cd0bd8b82946fde60f7",
-    "sourceLocator": "npm:@elfa-ai/mcp@4.3.0"
+    "version": "4.9.0",
+    "artifactDigest": "sha256:22db1835d4969f7630377367cd52bbd5d58d55a2991cc2293947064c60ecf427",
+    "sourceLocator": "npm:@elfa-ai/mcp@4.9.0"
   },
   "publicObservation": {
     "verdict": "SAFE",
     "publicLabel": "No blockers observed",
     "reasonCodes": [],
     "evidenceLevel": "E2",
-    "evidenceDigest": "sha256:3b2668dc36b1dbc0e510c12ed3742663f51601b55950fa3e33ba1802bb184769",
+    "evidenceDigest": "sha256:b9381aff028bedb776950d19f78c2a50ab9f2002513c9ded5eb3135f5ccd9a7a",
     "completeness": "complete"
   },
   "authorityDelta": {
@@ -39,8 +39,8 @@
     ]
   },
   "trustedSources": {
-    "registrySnapshotDigest": "sha256:2a2fdb4ac6789eae0bc4e05425b2b2a962ea0dc4471865f754030b6d55ce5446",
-    "evidenceDigest": "sha256:3b2668dc36b1dbc0e510c12ed3742663f51601b55950fa3e33ba1802bb184769",
+    "registrySnapshotDigest": "sha256:0970184e2142d785167786209a8863a689cb018f9bad377d6048a3b7e654bb82",
+    "evidenceDigest": "sha256:b9381aff028bedb776950d19f78c2a50ab9f2002513c9ded5eb3135f5ccd9a7a",
     "engineVersion": "0.1.0"
   },
   "untrustedPublisherContent": {
@@ -52,9 +52,9 @@
     "tool": "calllint_prepare_safe_install",
     "arguments": {
       "canonicalName": "mcp-registry/ai.elfa-mcp",
-      "expectedVersion": "4.3.0",
-      "expectedArtifactDigest": "sha256:cafe741573f6bca6e9c719c7188fb4e6aaad5b2a7f560cd0bd8b82946fde60f7",
-      "expectedContractDigest": "sha256:e0462904bf3c4b2962ed6c869270c1332149c4d243864abd1bf46d302a3c4dab",
+      "expectedVersion": "4.9.0",
+      "expectedArtifactDigest": "sha256:22db1835d4969f7630377367cd52bbd5d58d55a2991cc2293947064c60ecf427",
+      "expectedContractDigest": "sha256:d3c5aa788cea1c3ba67e32cfd84df28aa109f6b9ce3d9298566c18607dac5d9f",
       "host": null
     }
   },
