@@ -115,8 +115,13 @@ describe("the corpus still contains the shapes these tests are written about (pr
     const harvested = new Set<string>()
     for (const { text } of corpus) for (const n of harvestAcknowledgedDelistings(text)) harvested.add(n)
     expect(harvested.size, "the filter harvests nothing at all — it would clear no real de-listing either").toBeGreaterThan(0)
-    // Measured 2026-08-17: exactly `agency.goji/goji`, via ADR 0084:132.
+    // ADR 0084:132's affirmative acknowledgement remains readable after the polarity filter.
     expect(harvested).toContain("agency.goji/goji")
+    // ADR 0099 records the verified Registry deprecation that caused the PR #379 departure.
+    // Keep its real corpus entry machine-readable so the history gate cannot regress to red.
+    expect(harvested, "ADR 0099 must acknowledge the ai.cobbles/cobbles cohort departure").toContain(
+      "ai.cobbles/cobbles",
+    )
   })
 
   it("holds the 13 cap-eviction acknowledgements the second channel reads", () => {
