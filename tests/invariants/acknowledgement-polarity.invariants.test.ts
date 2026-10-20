@@ -123,7 +123,9 @@ describe("the corpus still contains the shapes these tests are written about (pr
     const departureAdr = corpus.find(({ file }) => file === "0099-ai-cobbles-registry-deprecation.md")
     expect(departureAdr, "ADR 0099 must remain in the acknowledgement corpus").toBeDefined()
     const normalizedDepartureAdr = departureAdr!.text.replace(/\s+/g, " ")
-    expect(normalizedDepartureAdr).toMatch(/`ai\.cobbles\/cobbles` was \*\*de-listed.*deprecated\*\*/)
+    expect(normalizedDepartureAdr).toMatch(
+      /`ai\.cobbles\/cobbles` was \*\*de-listed from the served cohort after the Registry marked it deprecated\*\*\./,
+    )
     expect(
       [...harvestAcknowledgedDelistings(departureAdr!.text)],
       "ADR 0099 must acknowledge the ai.cobbles/cobbles cohort departure",
