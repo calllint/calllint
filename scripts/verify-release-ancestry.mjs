@@ -65,9 +65,17 @@ if (!sha) {
   process.exit(1)
 }
 
-/** Run a gh api call, returning parsed JSON. execFileSync avoids shell interpolation. */
-function ghApi(path) {
-  const raw = execFileSync('gh', ['api', path], {
+/**
+ * Run a gh api call, returning only the fields the gate needs.
+ *
+ * Release commits can contain thousands of generated files. The GitHub commit and compare
+ * endpoints return those files by default, which can exceed Node's execFileSync stdout
+ * buffer before the gate can inspect the ancestry result. `--jq` projects at the gh
+ * boundary, so a large release response can never become a large parent-process buffer.
+ * execFileSync still avoids shell interpolation, and JSON parsing remains fail-closed.
+ */
+function ghApi(path, jq) {
+  const raw = execFileSync('gh', ['api', path, '--jq', jq], {
     encoding: 'utf8',
     stdio: ['pipe', 'pipe', 'pipe'],
   })
@@ -86,7 +94,7 @@ console.log(`  base:   ${base}\n`)
  */
 let baseSha
 try {
-  baseSha = ghApi(`repos/${REPO}/commits/${encodeURIComponent(base)}`).sha
+  baseSha = ghApi(`repos/${REPO}/commits/${encodeURIComponent(base)}`, '{sha}').sha
 } catch (err) {
   console.error(`FAIL: could not resolve base branch ${JSON.stringify(base)} on ${REPO}.`)
   console.error(String(err.stderr || err.message || err).trim())
@@ -106,7 +114,10 @@ console.log(`  ${base} tip is ${baseSha}`)
  */
 let cmp
 try {
-  cmp = ghApi(`repos/${REPO}/compare/${encodeURIComponent(base)}...${encodeURIComponent(sha)}`)
+  cmp = ghApi(
+    `repos/${REPO}/compare/${encodeURIComponent(base)}...${encodeURIComponent(sha)}`,
+    '{status,ahead_by,behind_by}',
+  )
 } catch (err) {
   console.error(`FAIL: could not compare ${base}...${sha} on ${REPO}.`)
   console.error(String(err.stderr || err.message || err).trim())
