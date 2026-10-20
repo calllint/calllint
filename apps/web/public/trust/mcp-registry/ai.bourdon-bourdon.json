@@ -1,19 +1,19 @@
 {
   "schema": "calllint.trust-page.v0",
   "canonicalName": "mcp-registry/ai.bourdon-bourdon",
-  "artifactDigest": "sha256:8432a172db75d3b4dd88b8701380ae52df08957d5051f06ace9a76f61fd72f61",
-  "pageDigest": "sha256:ba58083767c1d95603ee87f08c16b82e13293e88a66ada190763fb32b69a4a2d",
+  "artifactDigest": "sha256:09f99155535920d72aaff93a3ef0fbb9687cb98b95b1537db777f8963570a1ff",
+  "pageDigest": "sha256:e77e01fcfbec47fb1b9dc015ae10d57eb062fa7eaf9e97d4c20ae5ae381a9d5a",
   "verdict": "SAFE",
   "verdictLabel": "No blockers observed",
-  "observedAt": "2026-09-30T01:30:03.000Z",
+  "observedAt": "2026-10-19T13:04:27.000Z",
   "completeness": "complete",
   "status": {
     "verdict": "SAFE",
     "completeness": "complete",
     "authorityClaimed": false,
     "reproducibility": {
-      "pageDigest": "sha256:ba58083767c1d95603ee87f08c16b82e13293e88a66ada190763fb32b69a4a2d",
-      "observedAt": "2026-09-30T01:30:03.000Z"
+      "pageDigest": "sha256:e77e01fcfbec47fb1b9dc015ae10d57eb062fa7eaf9e97d4c20ae5ae381a9d5a",
+      "observedAt": "2026-10-19T13:04:27.000Z"
     },
     "evidenceLevel": "E2",
     "evidenceRationale": "install config observed → static blast radius normalized into an authority inventory. Higher levels (E3 tool schema, E4 maintainer receipt, E5 sandbox) are not carried by a static page."
@@ -21,14 +21,14 @@
   "correctionUrl": "https://github.com/calllint/calllint/issues/new?labels=trust-page-correction",
   "reproduction": {
     "command": "npx calllint scan official-mcp-registry:ai.bourdon/bourdon",
-    "artifactDigest": "sha256:8432a172db75d3b4dd88b8701380ae52df08957d5051f06ace9a76f61fd72f61",
+    "artifactDigest": "sha256:09f99155535920d72aaff93a3ef0fbb9687cb98b95b1537db777f8963570a1ff",
     "note": "Re-running this scan reproduces the verdict observed at the pinned artifact digest. It is a point-in-time observation, not a guarantee of future behavior."
   },
   "scanHistory": [
     {
-      "observedAt": "2026-09-30T01:30:03.000Z",
-      "pageDigest": "sha256:ba58083767c1d95603ee87f08c16b82e13293e88a66ada190763fb32b69a4a2d",
-      "artifactDigest": "sha256:8432a172db75d3b4dd88b8701380ae52df08957d5051f06ace9a76f61fd72f61"
+      "observedAt": "2026-10-19T13:04:27.000Z",
+      "pageDigest": "sha256:e77e01fcfbec47fb1b9dc015ae10d57eb062fa7eaf9e97d4c20ae5ae381a9d5a",
+      "artifactDigest": "sha256:09f99155535920d72aaff93a3ef0fbb9687cb98b95b1537db777f8963570a1ff"
     }
   ],
   "preparation": {
@@ -38,16 +38,16 @@
       "sourceType": "mcp-config",
       "source": "official-mcp-registry:ai.bourdon/bourdon",
       "requestedRef": null,
-      "resolvedRef": "sha256:8432a172db75d3b4dd88b8701380ae52df08957d5051f06ace9a76f61fd72f61",
-      "digest": "sha256:8432a172db75d3b4dd88b8701380ae52df08957d5051f06ace9a76f61fd72f61",
-      "resolvedAt": "2026-09-30T01:30:03.000Z",
+      "resolvedRef": "sha256:09f99155535920d72aaff93a3ef0fbb9687cb98b95b1537db777f8963570a1ff",
+      "digest": "sha256:09f99155535920d72aaff93a3ef0fbb9687cb98b95b1537db777f8963570a1ff",
+      "resolvedAt": "2026-10-19T13:04:27.000Z",
       "resolution": "resolved"
     },
     "evidence": null,
     "authority": {
       "schema": "calllint.authority.v0",
       "subject": {
-        "artifactDigest": "sha256:8432a172db75d3b4dd88b8701380ae52df08957d5051f06ace9a76f61fd72f61"
+        "artifactDigest": "sha256:09f99155535920d72aaff93a3ef0fbb9687cb98b95b1537db777f8963570a1ff"
       },
       "capabilities": [
         {
@@ -88,7 +88,7 @@
       },
       "unknowns": [],
       "completeness": "complete",
-      "digest": "sha256:39aa779b3c56e385d85d594031dc6760bb5ff5c23fd1da2ddffd09bd8618f619"
+      "digest": "sha256:b91b597d9fa3d5f1f0c61de963c41dcc13b6283ec7d838ef0583df5809a14095"
     },
     "decision": null,
     "plan": null,
@@ -97,7 +97,7 @@
       "no external evidence attached (optional); decision will rely on CallLint's own analysis",
       "authority normalized: 2 capabilities"
     ],
-    "preparedAt": "2026-09-30T01:30:03.000Z"
+    "preparedAt": "2026-10-19T13:04:27.000Z"
   },
   "scan": {
     "schemaVersion": "calllint.report.v0",
@@ -119,7 +119,7 @@
           "name": "package-1",
           "kind": "mcp-servers",
           "source": "bourdon",
-          "version": "0.27.0",
+          "version": "0.32.1",
           "configPath": "official-mcp-registry:ai.bourdon/bourdon"
         },
         "verdict": "SAFE",
@@ -143,13 +143,13 @@
           "sandbox": "none"
         },
         "fingerprints": {
-          "configHash": "sha256:97aa2301031ab487ede4763b6048eadcc2ece0bbe755db0aab21c800ca166922",
-          "targetSpecHash": "sha256:3c535fd1fea2d14f0b439b1560ab8e80cc0ecbdd893c9619c579ef2189c68ff1",
+          "configHash": "sha256:00082a09f92526c0ba21d36df59856e9f6266bb5f9726d37ad606f4869d8e6e2",
+          "targetSpecHash": "sha256:ba963bb68fe8afd59b1d1ddef89346999739b9334c79b0e175b5ed2e751d869a",
           "riskSurfaceHash": "sha256:69aae84c996fe93d537b08d906cb339866bd43f10876be403a0f4793915bef33",
-          "packageSpecHash": "sha256:7f86cbd1868a76f6613819ac5cba9ba7e7e2b2b6a806c3dc0c5fbd4ec84f62ce"
+          "packageSpecHash": "sha256:4ff2c0d1e5ea31c997eb2f1a71242b20fdcafa2d4f4388b64fdcdb7d3a413395"
         },
         "diagnostics": [],
-        "generatedAt": "2026-09-30T01:30:03.000Z"
+        "generatedAt": "2026-10-19T13:04:27.000Z"
       },
       {
         "schemaVersion": "calllint.report.v0",
@@ -158,7 +158,7 @@
           "name": "package-2",
           "kind": "mcp-servers",
           "source": "@getbourdon/mcp-server",
-          "version": "0.9.0",
+          "version": "0.16.0",
           "configPath": "official-mcp-registry:ai.bourdon/bourdon"
         },
         "verdict": "SAFE",
@@ -182,16 +182,16 @@
           "sandbox": "none"
         },
         "fingerprints": {
-          "configHash": "sha256:806705512fd29fe0bf9b0a51b7351fdb116a53ede60ef9fc58d98cd634c793f1",
-          "targetSpecHash": "sha256:8215ed299d7731420c0fa30e3ebc17a43d42bd4dfc2b4708cd93ffcd0c82283f",
+          "configHash": "sha256:ef770c4c5dccd2652a91664d7e47de4c7897e4ab70323435b122f3f1f34c0d1a",
+          "targetSpecHash": "sha256:eeedd792204d0a24f404e51c2f2e6b512ce418380db27c8ea95d90f16105d7eb",
           "riskSurfaceHash": "sha256:69aae84c996fe93d537b08d906cb339866bd43f10876be403a0f4793915bef33",
-          "packageSpecHash": "sha256:2396e210419ea1a91b762b179dce7dcc181bd738e72a528f675ca5988dc3e5b9"
+          "packageSpecHash": "sha256:1cea0e715040946682505e984a2892ab5a7e0c77f9074534f44ddea5490863bd"
         },
         "diagnostics": [],
-        "generatedAt": "2026-09-30T01:30:03.000Z"
+        "generatedAt": "2026-10-19T13:04:27.000Z"
       }
     ],
     "diagnostics": [],
-    "generatedAt": "2026-09-30T01:30:03.000Z"
+    "generatedAt": "2026-10-19T13:04:27.000Z"
   }
 }

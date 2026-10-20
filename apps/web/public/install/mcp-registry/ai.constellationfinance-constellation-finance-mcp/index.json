@@ -1,11 +1,11 @@
 {
   "schema": "calllint.agent-adoption-contract.v1",
   "contract": {
-    "contractDigest": "sha256:4dfdbd0d7b7e99b8aa464ea204651282d6dc372a7bd5f2c39afa15ef09fb8856",
-    "generatedAt": "2026-09-30T01:30:03.000Z",
+    "contractDigest": "sha256:047e65385548299b7bc71e409150804f0b31646ff4d55da690225c3f168600c8",
+    "generatedAt": "2026-10-19T13:04:27.000Z",
     "expiresAt": null,
     "generatorVersion": "0.1.0",
-    "snapshotDigest": "sha256:2a2fdb4ac6789eae0bc4e05425b2b2a962ea0dc4471865f754030b6d55ce5446"
+    "snapshotDigest": "sha256:0970184e2142d785167786209a8863a689cb018f9bad377d6048a3b7e654bb82"
   },
   "subject": {
     "canonicalName": "mcp-registry/ai.constellationfinance-constellation-finance-mcp",
@@ -23,7 +23,7 @@
       "UNKNOWN_REMOTE"
     ],
     "evidenceLevel": "E2",
-    "evidenceDigest": "sha256:3b2668dc36b1dbc0e510c12ed3742663f51601b55950fa3e33ba1802bb184769",
+    "evidenceDigest": "sha256:b9381aff028bedb776950d19f78c2a50ab9f2002513c9ded5eb3135f5ccd9a7a",
     "completeness": "complete"
   },
   "authorityDelta": {
@@ -44,8 +44,8 @@
     ]
   },
   "trustedSources": {
-    "registrySnapshotDigest": "sha256:2a2fdb4ac6789eae0bc4e05425b2b2a962ea0dc4471865f754030b6d55ce5446",
-    "evidenceDigest": "sha256:3b2668dc36b1dbc0e510c12ed3742663f51601b55950fa3e33ba1802bb184769",
+    "registrySnapshotDigest": "sha256:0970184e2142d785167786209a8863a689cb018f9bad377d6048a3b7e654bb82",
+    "evidenceDigest": "sha256:b9381aff028bedb776950d19f78c2a50ab9f2002513c9ded5eb3135f5ccd9a7a",
     "engineVersion": "0.1.0"
   },
   "untrustedPublisherContent": {
@@ -59,7 +59,7 @@
       "canonicalName": "mcp-registry/ai.constellationfinance-constellation-finance-mcp",
       "expectedVersion": "1.0.2",
       "expectedArtifactDigest": "sha256:822cd77bf5b8961a92b107974ccff498571e27bbb0e8de5f9a77b5c7a89032f2",
-      "expectedContractDigest": "sha256:4dfdbd0d7b7e99b8aa464ea204651282d6dc372a7bd5f2c39afa15ef09fb8856",
+      "expectedContractDigest": "sha256:047e65385548299b7bc71e409150804f0b31646ff4d55da690225c3f168600c8",
       "host": null
     }
   },

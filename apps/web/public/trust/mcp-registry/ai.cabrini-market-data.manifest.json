@@ -4,18 +4,18 @@
     "canonicalName": "mcp-registry/ai.cabrini-market-data",
     "artifactDigest": "sha256:e770d96d2e4c8b8b9d1fa58ddf2ef52f84cc967114883612a810b256870d848b"
   },
-  "verdict": "REVIEW",
-  "verdictLabel": "Review required",
+  "verdict": "UNKNOWN",
+  "verdictLabel": "Insufficient evidence",
   "completeness": "complete",
   "evidenceLevel": "E2",
   "evidenceRationale": "install config observed → static blast radius normalized into an authority inventory. Higher levels (E3 tool schema, E4 maintainer receipt, E5 sandbox) are not carried by a static page.",
   "status": {
-    "verdict": "REVIEW",
+    "verdict": "UNKNOWN",
     "completeness": "complete",
     "authorityClaimed": false,
     "reproducibility": {
-      "pageDigest": "sha256:8c83913e5a378c8952e2bda24316193e7047947404d90ab2c7845fb0ffa67fce",
-      "observedAt": "2026-09-30T01:30:03.000Z"
+      "pageDigest": "sha256:d675af706c7c5d3c08fff0749d6513f76194860ac11684c1b015c15cb529a3b2",
+      "observedAt": "2026-10-19T13:04:27.000Z"
     },
     "evidenceLevel": "E2"
   },
@@ -38,13 +38,13 @@
   },
   "policyDigest": null,
   "reproducibility": {
-    "pageDigest": "sha256:8c83913e5a378c8952e2bda24316193e7047947404d90ab2c7845fb0ffa67fce",
-    "observedAt": "2026-09-30T01:30:03.000Z"
+    "pageDigest": "sha256:d675af706c7c5d3c08fff0749d6513f76194860ac11684c1b015c15cb529a3b2",
+    "observedAt": "2026-10-19T13:04:27.000Z"
   },
   "engine": {
     "name": "calllint"
   },
   "correctionUrl": "https://github.com/calllint/calllint/issues/new?labels=trust-page-correction",
-  "generatedAt": "2026-09-30T01:30:03.000Z",
+  "generatedAt": "2026-10-19T13:04:27.000Z",
   "signature": null
 }

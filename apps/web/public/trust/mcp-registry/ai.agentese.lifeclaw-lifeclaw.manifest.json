@@ -1,0 +1,50 @@
+{
+  "schema": "calllint.evidence-manifest.v1",
+  "subject": {
+    "canonicalName": "mcp-registry/ai.agentese.lifeclaw-lifeclaw",
+    "artifactDigest": "sha256:d5a3cbc59b56d5516424f77bc966b927c6b01a3e036a47e8144436d84869d1fe"
+  },
+  "verdict": "REVIEW",
+  "verdictLabel": "Review required",
+  "completeness": "complete",
+  "evidenceLevel": "E2",
+  "evidenceRationale": "install config observed → static blast radius normalized into an authority inventory. Higher levels (E3 tool schema, E4 maintainer receipt, E5 sandbox) are not carried by a static page.",
+  "status": {
+    "verdict": "REVIEW",
+    "completeness": "complete",
+    "authorityClaimed": false,
+    "reproducibility": {
+      "pageDigest": "sha256:db75e9e2ab14c9885b07e6352cddfd3f54400f4feedcaabe37a87dbe09ee2c97",
+      "observedAt": "2026-10-19T13:04:27.000Z"
+    },
+    "evidenceLevel": "E2"
+  },
+  "authority": {
+    "digest": "sha256:b171d2ae21287c38d7bc9fe4e994d882245a3177cd23fa4fc0f5ef498d3f7a21",
+    "completeness": "complete",
+    "capabilityCount": 1,
+    "approvalRequired": [
+      "external-network-access"
+    ],
+    "capabilities": [
+      {
+        "action": "connect",
+        "resource": "network",
+        "mutability": "mutating",
+        "reversibility": "irreversible",
+        "approvalRequirement": "review"
+      }
+    ]
+  },
+  "policyDigest": null,
+  "reproducibility": {
+    "pageDigest": "sha256:db75e9e2ab14c9885b07e6352cddfd3f54400f4feedcaabe37a87dbe09ee2c97",
+    "observedAt": "2026-10-19T13:04:27.000Z"
+  },
+  "engine": {
+    "name": "calllint"
+  },
+  "correctionUrl": "https://github.com/calllint/calllint/issues/new?labels=trust-page-correction",
+  "generatedAt": "2026-10-19T13:04:27.000Z",
+  "signature": null
+}

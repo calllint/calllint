@@ -1,11 +1,11 @@
 {
   "schema": "calllint.agent-adoption-contract.v1",
   "contract": {
-    "contractDigest": "sha256:68ac6b95e89d83f42b16ebffd2a71956c2c983b65d8b8bea03c04b4021734f69",
-    "generatedAt": "2026-09-30T01:30:03.000Z",
+    "contractDigest": "sha256:c3c962ab8526ba3e283ed0f3a71e3aa325ae540b75a3677646656ab665cb7a2e",
+    "generatedAt": "2026-10-19T13:04:27.000Z",
     "expiresAt": null,
     "generatorVersion": "0.1.0",
-    "snapshotDigest": "sha256:2a2fdb4ac6789eae0bc4e05425b2b2a962ea0dc4471865f754030b6d55ce5446"
+    "snapshotDigest": "sha256:0970184e2142d785167786209a8863a689cb018f9bad377d6048a3b7e654bb82"
   },
   "subject": {
     "canonicalName": "mcp-registry/ai.dinglebear-arcane-rmcp",
@@ -21,7 +21,7 @@
     "publicLabel": "No blockers observed",
     "reasonCodes": [],
     "evidenceLevel": "E2",
-    "evidenceDigest": "sha256:3b2668dc36b1dbc0e510c12ed3742663f51601b55950fa3e33ba1802bb184769",
+    "evidenceDigest": "sha256:b9381aff028bedb776950d19f78c2a50ab9f2002513c9ded5eb3135f5ccd9a7a",
     "completeness": "complete"
   },
   "authorityDelta": {
@@ -39,8 +39,8 @@
     ]
   },
   "trustedSources": {
-    "registrySnapshotDigest": "sha256:2a2fdb4ac6789eae0bc4e05425b2b2a962ea0dc4471865f754030b6d55ce5446",
-    "evidenceDigest": "sha256:3b2668dc36b1dbc0e510c12ed3742663f51601b55950fa3e33ba1802bb184769",
+    "registrySnapshotDigest": "sha256:0970184e2142d785167786209a8863a689cb018f9bad377d6048a3b7e654bb82",
+    "evidenceDigest": "sha256:b9381aff028bedb776950d19f78c2a50ab9f2002513c9ded5eb3135f5ccd9a7a",
     "engineVersion": "0.1.0"
   },
   "untrustedPublisherContent": {
@@ -54,7 +54,7 @@
       "canonicalName": "mcp-registry/ai.dinglebear-arcane-rmcp",
       "expectedVersion": "0.4.2",
       "expectedArtifactDigest": "sha256:3ba1235d1b4c5379f828178522e7d61fe6e42b5575e43d5fdc5da9cc9b3e957e",
-      "expectedContractDigest": "sha256:68ac6b95e89d83f42b16ebffd2a71956c2c983b65d8b8bea03c04b4021734f69",
+      "expectedContractDigest": "sha256:c3c962ab8526ba3e283ed0f3a71e3aa325ae540b75a3677646656ab665cb7a2e",
       "host": null
     }
   },

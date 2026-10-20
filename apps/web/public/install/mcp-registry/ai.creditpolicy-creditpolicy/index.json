@@ -1,18 +1,18 @@
 {
   "schema": "calllint.agent-adoption-contract.v1",
   "contract": {
-    "contractDigest": "sha256:01e81de3913290f840a4599e9389e7e43c3c768121369ce708eca2a11cd1ae35",
-    "generatedAt": "2026-09-30T01:30:03.000Z",
+    "contractDigest": "sha256:31d2ed212ff30bcbd59d544dce7c0e0e070b18dbecd59145393e5247b9117084",
+    "generatedAt": "2026-10-19T13:04:27.000Z",
     "expiresAt": null,
     "generatorVersion": "0.1.0",
-    "snapshotDigest": "sha256:2a2fdb4ac6789eae0bc4e05425b2b2a962ea0dc4471865f754030b6d55ce5446"
+    "snapshotDigest": "sha256:0970184e2142d785167786209a8863a689cb018f9bad377d6048a3b7e654bb82"
   },
   "subject": {
     "canonicalName": "mcp-registry/ai.creditpolicy-creditpolicy",
     "canonicalSlug": "mcp-registry/ai.creditpolicy-creditpolicy",
     "packageType": null,
     "packageName": null,
-    "version": "1.0.0",
+    "version": "1.1.0",
     "artifactDigest": "sha256:d5a0f9c5737b1145d9ad5c02e6cff95c2c39e0978eb54296f5eb09932d14cd1d",
     "sourceLocator": "https://creditpolicy.ai/api/mcp"
   },
@@ -23,7 +23,7 @@
       "UNKNOWN_REMOTE"
     ],
     "evidenceLevel": "E2",
-    "evidenceDigest": "sha256:3b2668dc36b1dbc0e510c12ed3742663f51601b55950fa3e33ba1802bb184769",
+    "evidenceDigest": "sha256:b9381aff028bedb776950d19f78c2a50ab9f2002513c9ded5eb3135f5ccd9a7a",
     "completeness": "complete"
   },
   "authorityDelta": {
@@ -44,12 +44,12 @@
     ]
   },
   "trustedSources": {
-    "registrySnapshotDigest": "sha256:2a2fdb4ac6789eae0bc4e05425b2b2a962ea0dc4471865f754030b6d55ce5446",
-    "evidenceDigest": "sha256:3b2668dc36b1dbc0e510c12ed3742663f51601b55950fa3e33ba1802bb184769",
+    "registrySnapshotDigest": "sha256:0970184e2142d785167786209a8863a689cb018f9bad377d6048a3b7e654bb82",
+    "evidenceDigest": "sha256:b9381aff028bedb776950d19f78c2a50ab9f2002513c9ded5eb3135f5ccd9a7a",
     "engineVersion": "0.1.0"
   },
   "untrustedPublisherContent": {
-    "description": "Search Australian lender credit policies, compare lenders and pre-vet deals, with citations.",
+    "description": "Australian lender credit policy library and client files for mortgage and finance brokers.",
     "usedForSafetyDecision": false
   },
   "recommendedNextAction": {
@@ -57,9 +57,9 @@
     "tool": "calllint_prepare_safe_install",
     "arguments": {
       "canonicalName": "mcp-registry/ai.creditpolicy-creditpolicy",
-      "expectedVersion": "1.0.0",
+      "expectedVersion": "1.1.0",
       "expectedArtifactDigest": "sha256:d5a0f9c5737b1145d9ad5c02e6cff95c2c39e0978eb54296f5eb09932d14cd1d",
-      "expectedContractDigest": "sha256:01e81de3913290f840a4599e9389e7e43c3c768121369ce708eca2a11cd1ae35",
+      "expectedContractDigest": "sha256:31d2ed212ff30bcbd59d544dce7c0e0e070b18dbecd59145393e5247b9117084",
       "host": null
     }
   },

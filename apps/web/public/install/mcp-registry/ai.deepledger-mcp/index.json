@@ -1,18 +1,18 @@
 {
   "schema": "calllint.agent-adoption-contract.v1",
   "contract": {
-    "contractDigest": "sha256:75fe2708a324d86c856b0b6ed2a476de799a14916949f930cc295c40028f6fe1",
-    "generatedAt": "2026-09-30T01:30:03.000Z",
+    "contractDigest": "sha256:7ac995d307df57d4d33d2175cad7df77ad43c8dc2ee71c61e8692b2090473fc1",
+    "generatedAt": "2026-10-19T13:04:27.000Z",
     "expiresAt": null,
     "generatorVersion": "0.1.0",
-    "snapshotDigest": "sha256:2a2fdb4ac6789eae0bc4e05425b2b2a962ea0dc4471865f754030b6d55ce5446"
+    "snapshotDigest": "sha256:0970184e2142d785167786209a8863a689cb018f9bad377d6048a3b7e654bb82"
   },
   "subject": {
     "canonicalName": "mcp-registry/ai.deepledger-mcp",
     "canonicalSlug": "mcp-registry/ai.deepledger-mcp",
     "packageType": null,
     "packageName": null,
-    "version": "1.0.5",
+    "version": "1.0.6",
     "artifactDigest": "sha256:c2bd3ee057b240e7992449e321b4abaf77768ae7f7a208fb6c962048bfb0566a",
     "sourceLocator": "https://mcp.deepledger.ai/mcp"
   },
@@ -23,7 +23,7 @@
       "UNKNOWN_REMOTE"
     ],
     "evidenceLevel": "E2",
-    "evidenceDigest": "sha256:3b2668dc36b1dbc0e510c12ed3742663f51601b55950fa3e33ba1802bb184769",
+    "evidenceDigest": "sha256:b9381aff028bedb776950d19f78c2a50ab9f2002513c9ded5eb3135f5ccd9a7a",
     "completeness": "complete"
   },
   "authorityDelta": {
@@ -44,12 +44,12 @@
     ]
   },
   "trustedSources": {
-    "registrySnapshotDigest": "sha256:2a2fdb4ac6789eae0bc4e05425b2b2a962ea0dc4471865f754030b6d55ce5446",
-    "evidenceDigest": "sha256:3b2668dc36b1dbc0e510c12ed3742663f51601b55950fa3e33ba1802bb184769",
+    "registrySnapshotDigest": "sha256:0970184e2142d785167786209a8863a689cb018f9bad377d6048a3b7e654bb82",
+    "evidenceDigest": "sha256:b9381aff028bedb776950d19f78c2a50ab9f2002513c9ded5eb3135f5ccd9a7a",
     "engineVersion": "0.1.0"
   },
   "untrustedPublisherContent": {
-    "description": "AI staff accountant for QuickBooks: transactions, reports, receivables, payables, month-end close",
+    "description": "Connect QuickBooks to ChatGPT, Claude & Grok. Record bills, invoices, journal entries. Run reports.",
     "usedForSafetyDecision": false
   },
   "recommendedNextAction": {
@@ -57,9 +57,9 @@
     "tool": "calllint_prepare_safe_install",
     "arguments": {
       "canonicalName": "mcp-registry/ai.deepledger-mcp",
-      "expectedVersion": "1.0.5",
+      "expectedVersion": "1.0.6",
       "expectedArtifactDigest": "sha256:c2bd3ee057b240e7992449e321b4abaf77768ae7f7a208fb6c962048bfb0566a",
-      "expectedContractDigest": "sha256:75fe2708a324d86c856b0b6ed2a476de799a14916949f930cc295c40028f6fe1",
+      "expectedContractDigest": "sha256:7ac995d307df57d4d33d2175cad7df77ad43c8dc2ee71c61e8692b2090473fc1",
       "host": null
     }
   },
