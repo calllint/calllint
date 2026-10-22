@@ -142,18 +142,33 @@ jobs:
           pages_check=$(mktemp)
           trap 'rm -f "$token_verify" "$pages_check"' EXIT
 
-          if ! token_status=$(curl -sS -o "$token_verify" -w '%{http_code}' --max-time 25 \
-            -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" \
-            "https://api.cloudflare.com/client/v4/user/tokens/verify"); then
-            echo "::error::Cloudflare token verification request failed before reaching the API. Check runner network access and try again."
-            exit 1
-          fi
-          if [ "$token_status" = "000" ]; then
-            echo "::error::Cloudflare token verification request returned no HTTP response. Check runner network access and try again."
-            exit 1
-          fi
-          if ! jq -e '.success == true' "$token_verify" >/dev/null 2>&1; then
-            echo "::error::CLOUDFLARE_API_TOKEN is invalid, expired, or revoked (token verification HTTP $token_status). Update the GitHub Actions secret with a valid token."
+          # Account-owned tokens use a different verify endpoint. A 401 from the
+          # user endpoint does not establish that an account token is invalid.
+          # Legacy unprefixed tokens need both endpoints to determine ownership.
+          case "$CLOUDFLARE_API_TOKEN" in
+            cfat_*) token_endpoints=("accounts/$CLOUDFLARE_ACCOUNT_ID/tokens/verify") ;;
+            cfut_*) token_endpoints=("user/tokens/verify") ;;
+            *) token_endpoints=("user/tokens/verify" "accounts/$CLOUDFLARE_ACCOUNT_ID/tokens/verify") ;;
+          esac
+          token_valid=false
+          for token_endpoint in "${token_endpoints[@]}"; do
+            if ! token_status=$(curl -sS -o "$token_verify" -w '%{http_code}' --max-time 25 \
+              -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" \
+              "https://api.cloudflare.com/client/v4/$token_endpoint"); then
+              echo "::error::Cloudflare token verification request failed before reaching the API. Check runner network access and try again."
+              exit 1
+            fi
+            if [ "$token_status" = "000" ]; then
+              echo "::error::Cloudflare token verification request returned no HTTP response. Check runner network access and try again."
+              exit 1
+            fi
+            if [ "$token_status" = "200" ] && jq -e '.success == true and .result.status == "active"' "$token_verify" >/dev/null 2>&1; then
+              token_valid=true
+              break
+            fi
+          done
+          if [ "$token_valid" != true ]; then
+            echo "::error::Cloudflare token verification failed (HTTP $token_status). Check token type, account, permissions, and active status before updating CLOUDFLARE_API_TOKEN."
             jq -r '.errors[]? | "Cloudflare error \(.code): \(.message)"' "$token_verify" || true
             exit 1
           fi
@@ -168,7 +183,7 @@ jobs:
             echo "::error::Cloudflare Pages project check returned no HTTP response. Check runner network access and try again."
             exit 1
           fi
-          if ! jq -e '.success == true' "$pages_check" >/dev/null 2>&1; then
+          if [ "$pages_status" != "200" ] || ! jq -e '.success == true' "$pages_check" >/dev/null 2>&1; then
             echo "::error::CLOUDFLARE_API_TOKEN cannot read the calllint-usage-report Pages project (HTTP $pages_status). Grant Pages Read/Edit on this account, then update the GitHub Actions secret."
             jq -r '.errors[]? | "Cloudflare error \(.code): \(.message)"' "$pages_check" || true
             exit 1
