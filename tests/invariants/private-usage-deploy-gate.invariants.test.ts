@@ -123,9 +123,10 @@ describe("private usage deploy gate — §29 stays fail-closed", () => {
 
   it("preflights the bearer token and Pages project before invoking the deploy", () => {
     expect(realWorkflow).toContain("Verify Cloudflare Pages deploy credentials")
-    expect(realWorkflow).toContain("/user/tokens/verify")
+    expect(realWorkflow).toContain("user/tokens/verify")
+    expect(realWorkflow).toContain("accounts/$CLOUDFLARE_ACCOUNT_ID/tokens/verify")
     expect(realWorkflow).toContain("pages/projects/calllint-usage-report")
-    expect(realWorkflow).toContain("CLOUDFLARE_API_TOKEN is invalid, expired, or revoked")
+    expect(realWorkflow).toContain("Cloudflare token verification failed")
     expect(realWorkflow).toContain("token verification request failed before reaching the API")
     expect(realWorkflow).toContain("Pages project check could not reach the API")
     expect(realWorkflow).not.toContain("|| printf '000'")
