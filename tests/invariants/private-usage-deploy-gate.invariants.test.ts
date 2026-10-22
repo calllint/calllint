@@ -38,7 +38,7 @@ const WORKFLOW = ".github/workflows/usage-report.yml"
 const realWorkflow = readFileSync(path.join(ROOT, WORKFLOW), "utf8")
 
 const VERIFY_STEP = "Verify Access gate is enforcing"
-const DEPLOY_TOKEN = "wrangler pages deploy"
+const DEPLOY_TOKEN = "pnpm exec wrangler pages deploy"
 const REPORT_TEMPLATE = "apps/usage-worker/src/report.ts"
 
 /** The probe step's shell body — everything between its name and the next step. */
@@ -119,6 +119,23 @@ describe("private usage deploy gate — §29 stays fail-closed", () => {
     const { stdout, exit } = runGuard(realWorkflow)
     expect(exit).toBe(0)
     expect(stdout).toContain("Cloudflare deploy with gate verification")
+  })
+
+  it("preflights the bearer token and Pages project before invoking the deploy", () => {
+    expect(realWorkflow).toContain("Verify Cloudflare Pages deploy credentials")
+    expect(realWorkflow).toContain("/user/tokens/verify")
+    expect(realWorkflow).toContain("pages/projects/calllint-usage-report")
+    expect(realWorkflow).toContain("CLOUDFLARE_API_TOKEN is invalid, expired, or revoked")
+    expect(realWorkflow).toContain("token verification request failed before reaching the API")
+    expect(realWorkflow).toContain("Pages project check could not reach the API")
+    expect(realWorkflow).not.toContain("|| printf '000'")
+    expect(realWorkflow).not.toMatch(/echo\s+['\"]?\$CLOUDFLARE_API_TOKEN/)
+    expect(realWorkflow).toContain("pnpm exec wrangler pages deploy")
+    const preflightStart = realWorkflow.indexOf("Verify Cloudflare Pages deploy credentials")
+    const deployStart = realWorkflow.indexOf("Deploy to usage.calllint.com")
+    expect(preflightStart).toBeGreaterThan(-1)
+    expect(deployStart).toBeGreaterThan(preflightStart)
+    expect(realWorkflow.slice(preflightStart, deployStart)).toContain("exit 1")
   })
 
   /* ── Negative controls ─────────────────────────────────────────────────────────────

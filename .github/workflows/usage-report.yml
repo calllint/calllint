@@ -123,6 +123,58 @@ jobs:
           retention-days: 14
           if-no-files-found: error
 
+      # Validate the deploy credential before invoking Pages. Wrangler otherwise emits a
+      # generic 10000/9109 error halfway through the deploy, after the useful report artifact
+      # exists but without identifying the repair. The API response is safe to print: it
+      # contains only Cloudflare's error code/message, never the bearer token.
+      - name: Verify Cloudflare Pages deploy credentials
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          set -euo pipefail
+          if [ -z "$CLOUDFLARE_API_TOKEN" ] || [ -z "$CLOUDFLARE_ACCOUNT_ID" ]; then
+            echo "::error::Cloudflare deploy credentials are missing. Set CLOUDFLARE_API_TOKEN and CLOUDFLARE_ACCOUNT_ID in GitHub Actions secrets."
+            exit 1
+          fi
+
+          token_verify=$(mktemp)
+          pages_check=$(mktemp)
+          trap 'rm -f "$token_verify" "$pages_check"' EXIT
+
+          if ! token_status=$(curl -sS -o "$token_verify" -w '%{http_code}' --max-time 25 \
+            -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" \
+            "https://api.cloudflare.com/client/v4/user/tokens/verify"); then
+            echo "::error::Cloudflare token verification request failed before reaching the API. Check runner network access and try again."
+            exit 1
+          fi
+          if [ "$token_status" = "000" ]; then
+            echo "::error::Cloudflare token verification request returned no HTTP response. Check runner network access and try again."
+            exit 1
+          fi
+          if ! jq -e '.success == true' "$token_verify" >/dev/null 2>&1; then
+            echo "::error::CLOUDFLARE_API_TOKEN is invalid, expired, or revoked (token verification HTTP $token_status). Update the GitHub Actions secret with a valid token."
+            jq -r '.errors[]? | "Cloudflare error \(.code): \(.message)"' "$token_verify" || true
+            exit 1
+          fi
+
+          if ! pages_status=$(curl -sS -o "$pages_check" -w '%{http_code}' --max-time 25 \
+            -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" \
+            "https://api.cloudflare.com/client/v4/accounts/$CLOUDFLARE_ACCOUNT_ID/pages/projects/calllint-usage-report"); then
+            echo "::error::Cloudflare Pages project check could not reach the API. Check runner network access and try again."
+            exit 1
+          fi
+          if [ "$pages_status" = "000" ]; then
+            echo "::error::Cloudflare Pages project check returned no HTTP response. Check runner network access and try again."
+            exit 1
+          fi
+          if ! jq -e '.success == true' "$pages_check" >/dev/null 2>&1; then
+            echo "::error::CLOUDFLARE_API_TOKEN cannot read the calllint-usage-report Pages project (HTTP $pages_status). Grant Pages Read/Edit on this account, then update the GitHub Actions secret."
+            jq -r '.errors[]? | "Cloudflare error \(.code): \(.message)"' "$pages_check" || true
+            exit 1
+          fi
+          echo "✓ Cloudflare token verified and Pages project is readable; deploy may proceed."
+
       # §29 now satisfied: Cloudflare Access is live (verified 2026-08-24), deploy
       # the report to usage.calllint.com. The artifact upload stays (provides a
       # downloadable copy for 14 days), and the deploy makes it reachable at the
@@ -140,7 +192,7 @@ jobs:
           # is disabled: Access 302s before authenticating (measured 2026-08-26 — even a
           # path that cannot exist gets the same 302), so the gated host cannot testify
           # about its own origin, and a disabled subdomain leaves nothing else to ask.
-          npx wrangler pages deploy ../../dist/usage \
+          pnpm exec wrangler pages deploy ../../dist/usage \
             --project-name=calllint-usage-report \
             --branch=main \
             --commit-dirty=true 2>&1 | tee /tmp/deploy.log
