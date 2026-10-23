@@ -58,6 +58,81 @@ describe("broad filesystem detector", () => {
   it("windows negative: a ${workspaceFolder}\\src path does not trigger", () => {
     expect(detectBroadFilesystemPath(ctxFor("safe-windows-workspace.json"))).toHaveLength(0)
   })
+  it("windows forward-slash fixture: a user root is broad", () => {
+    expect(detectBroadFilesystemPath(ctxFor("block-windows-forward-paths.json"))[0]?.blocker).toBe(true)
+  })
+  it("windows forward-slash negative fixture: scoped binds stay scoped", () => {
+    expect(detectBroadFilesystemPath(ctxFor("safe-windows-forward-paths.json"))).toEqual([])
+  })
+  it.each([
+    ["block-windows-forward-paths.json", 1],
+    ["safe-windows-forward-paths.json", 0],
+  ] as const)("every server in %s respects the host authority boundary", (file, count) => {
+    // These regression fixtures do not expand the frozen public Trust Pages cohort.
+    for (const server of parseConfigFile(goldenPath(file)).servers) {
+      const findings = detectBroadFilesystemPath({ server, binding: resolveRuntimeBinding(server) })
+      expect(findings).toHaveLength(count)
+      if (count) expect(findings[0]?.blocker).toBe(true)
+    }
+  })
+  it.each(["C:/", "D:/", "C:/Users", "C:/Users/sample", "C:/Users/sample/", "d:/users/sample"])(
+    "windows bare root %s triggers without rewriting evidence",
+    (path) => {
+      const ctx = dockerCtx([path])
+      ctx.server.command = "npx"
+      const findings = detectBroadFilesystemPath(ctx)
+      expect(findings[0]?.blocker).toBe(true)
+      expect(findings[0]?.evidence).toEqual([
+        { type: "config", path: "<test>", key: "args", value: path },
+      ])
+    },
+  )
+  it.each([
+    ["-v", "C:/Users/sample:/data:ro"],
+    ["--volume", "C:/:/data:ro"],
+    ["-v=C:/Users/sample:/data"],
+    ["--volume=C:/Users/sample/Documents:/data"],
+    ["--mount", "type=bind,src=C:/Users/sample,dst=/data,ro"],
+    ["--mount=type=bind,source=C:/,target=/data"],
+    ["--mount", "type=bind,src=C:\\Users/sample,dst=/data"],
+  ])("docker Windows host source %j is broad", (...mount) => {
+    const findings = detectBroadFilesystemPath(dockerCtx(["run", ...mount, "mcp/x"]))
+    expect(findings[0]?.blocker).toBe(true)
+    expect(findings[0]?.evidence.some((e) => /^C:[\\/]/.test(e.value ?? ""))).toBe(true)
+    expect(findings[0]?.evidence.some((e) => e.value === "/data")).toBe(false)
+  })
+  it("preserves existing mixed-separator host findings on other drives", () => {
+    const host = "D:\\Users\\sample/Documents"
+    const findings = detectBroadFilesystemPath(
+      dockerCtx(["run", `--mount=type=bind,source=${host},target=/data`, "mcp/x"]),
+    )
+    expect(findings[0]?.blocker).toBe(true)
+    expect(findings[0]?.evidence).toEqual([
+      { type: "config", path: "<test>", key: "args", value: host },
+    ])
+  })
+  it.each([
+    ["-v", "C:/work/demo:/home"],
+    ["--mount=type=bind,source=C:/work/demo,target=C:/Users/sample"],
+    ["--mount=type=volume,source=C:/Users/sample,target=/data"],
+    ["--volume=cache:/Users/sample"],
+    ["-v", "${workspaceFolder}/data:/home"],
+    ["C:/Users/sample"],
+    ["C:/"],
+  ])("docker Windows negative %j never grants a broad host root", (...mount) => {
+    expect(detectBroadFilesystemPath(dockerCtx(["run", ...mount, "mcp/x"]))).toEqual([])
+  })
+  it.each([
+    "C:/Users/example/weather-mcp-server/dist/mcp-entry.js",
+    "C:/Users/example/Documents/POC/game-assistant-mcp/src/server/server.js",
+    "C:/work/demo",
+    "${workspaceFolder}/src",
+  ])("plain path %s is not a bare Windows authority root", (path) => {
+    // C032/C035: a local script entrypoint is not a broad filesystem grant.
+    const ctx = dockerCtx([path])
+    ctx.server.command = "node"
+    expect(detectBroadFilesystemPath(ctx)).toEqual([])
+  })
   it("docker positive: --mount type=bind,src=/Users/... host path triggers (ADR 0012)", () => {
     const f = detectBroadFilesystemPath(ctxFor("block-docker-bind-broad.json"))
     expect(f).toHaveLength(1)

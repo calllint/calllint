@@ -29,8 +29,13 @@ function isWorkspaceScoped(arg: string): boolean {
   )
 }
 
-function looksLikeBroadPath(arg: string): boolean {
+function looksLikeBroadPath(arg: string, checkWindowsRoots = true): boolean {
   if (isWorkspaceScoped(arg)) return false
+  // Recognize bare Windows drive/user roots with either separator. Do not
+  // normalize every plain arg: C:/Users/me/project/server.js may be a script
+  // entrypoint (C032/C035), not a filesystem access grant.
+  if (checkWindowsRoots && /^[A-Za-z]:[\\/]$/.test(arg)) return true
+  if (checkWindowsRoots && /^[A-Za-z]:[\\/]Users(?:[\\/][^\\/]+)?[\\/]?$/i.test(arg)) return true
   for (const p of BROAD_PATHS) {
     if (arg === p) return true
     // home/user roots: e.g. /Users/lucas, C:\Users\lucas
@@ -141,9 +146,13 @@ function dockerVolumeHostSide(spec: string): string | undefined {
 export function detectBroadFilesystemPath(ctx: DetectorContext): Finding[] {
   const { server } = ctx
   const evidence: Evidence[] = []
+  const isDocker = (server.command ?? "").toLowerCase() === "docker"
 
   for (const arg of server.args) {
-    if (looksLikeBroadPath(arg)) {
+    // New Windows root forms apply to Docker's extracted host sources below,
+    // not to image names or container-internal positional arguments. Preserve
+    // the existing plain-argument checks without broadening those Docker roles.
+    if (looksLikeBroadPath(arg, !isDocker)) {
       evidence.push({
         type: "config",
         path: server.sourceConfigPath,
@@ -156,9 +165,12 @@ export function detectBroadFilesystemPath(ctx: DetectorContext): Finding[] {
   // Docker bind mounts hide the host path inside a compound arg; extract and
   // check the host side only (ADR 0012). Container dst paths and named volumes
   // are never surfaced here, so they cannot produce a false positive.
-  if ((server.command ?? "").toLowerCase() === "docker") {
+  if (isDocker) {
     for (const host of extractDockerHostPaths(server.args)) {
-      if (looksLikeBroadPath(host)) {
+      // An extracted bind source is a host authority path, so separator
+      // normalization is safe here. Keep the original spelling as evidence.
+      const comparableHost = /^[A-Za-z]:[\\/]/.test(host) ? host.replace(/\//g, "\\") : host
+      if (looksLikeBroadPath(host) || looksLikeBroadPath(comparableHost)) {
         evidence.push({
           type: "config",
           path: server.sourceConfigPath,
