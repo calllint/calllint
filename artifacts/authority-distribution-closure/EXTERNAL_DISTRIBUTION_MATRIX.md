@@ -65,7 +65,7 @@ The one claim that is not per-host. Read back field-by-field against the live AP
 | Registry name | `io.github.calllint/calllint` | https://registry.modelcontextprotocol.io/?q=calllint | 2026-08-19 |
 | Package | `calllint-mcp` | https://registry.modelcontextprotocol.io/?q=calllint | 2026-08-19 |
 | State | LIVE | https://registry.modelcontextprotocol.io/?q=calllint | 2026-08-19 |
-| Version | 0.2.1 (published 2026-07-13) | https://registry.modelcontextprotocol.io/?q=calllint | 2026-08-19 |
+| Version | 0.2.1 (published 2026-10-23) | https://registry.modelcontextprotocol.io/?q=calllint | 2026-08-19 |
 | Transport | stdio | https://github.com/calllint/calllint | 2026-08-19 |
 
 ## Candidate feeds
