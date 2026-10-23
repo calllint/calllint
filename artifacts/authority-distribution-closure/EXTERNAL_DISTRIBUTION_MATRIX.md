@@ -17,7 +17,7 @@ anything in this repository changing. That is why `distribution-watch.yml` fetch
 `checked-at` date below is the date of the SSOT edit that recorded the fact rather than the
 date this file was generated.
 
-Release 1.9.1. 31 claims across 18 hosts.
+Release 1.9.2. 31 claims across 18 hosts.
 
 Every claim below carries a recorded factual conclusion.
 
@@ -65,7 +65,7 @@ The one claim that is not per-host. Read back field-by-field against the live AP
 | Registry name | `io.github.calllint/calllint` | https://registry.modelcontextprotocol.io/?q=calllint | 2026-08-19 |
 | Package | `calllint-mcp` | https://registry.modelcontextprotocol.io/?q=calllint | 2026-08-19 |
 | State | LIVE | https://registry.modelcontextprotocol.io/?q=calllint | 2026-08-19 |
-| Version | 0.2.0 (published 2026-07-13) | https://registry.modelcontextprotocol.io/?q=calllint | 2026-08-19 |
+| Version | 0.2.1 (published 2026-07-13) | https://registry.modelcontextprotocol.io/?q=calllint | 2026-08-19 |
 | Transport | stdio | https://github.com/calllint/calllint | 2026-08-19 |
 
 ## Candidate feeds
