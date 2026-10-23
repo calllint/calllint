@@ -12,24 +12,29 @@
  * subject is a diff, so the artifact must be a diff's OUTPUT, regenerable on demand and
  * falsifiable by construction.
  *
- * Three independent measurements, all of which must hold:
+ * Three independent measurements, enforced for the applicable scope:
  *
- *   1. DIFF     — no file under a verdict-deciding package changed over the branch range.
+ *   1. DIFF     — distribution ranges cannot change verdict-deciding packages;
+ *                 isolated detector maintenance is explicitly measured as changed.
  *   2. FIELDS   — none of the forbidden risk fields exists anywhere in shipped source.
  *   3. COUPLING — host/model identity does not appear in the risk engine at all, so it
  *                 cannot participate in a verdict even accidentally.
  *
  * (1) is range-scoped and therefore historical; (2) and (3) are properties of the tree at
- * HEAD and hold regardless of range. A failure in any one is a real violation of the
+ * HEAD and hold regardless of range. A failure in an applicable check violates the
  * core invariant: MODEL IDENTITY ⟂ SECURITY VERDICT.
  *
  * Usage:
  *   node scripts/verify-security-semantic-diff.mjs --base <ref>   # default: main
  *   node scripts/verify-security-semantic-diff.mjs --check        # verify, do not write
  *
+ * ADR 0100: an isolated detector-maintenance range is measured as CHANGED but
+ * is outside distribution zero-diff. Live forbidden-field and identity checks
+ * still apply; --check never rewrites the historical distribution artifact.
+ *
  * Exit codes:
- *   0 = security semantics unchanged
- *   1 = a security-deciding surface moved, or a forbidden field/coupling appeared
+ *   0 = applicable scope checks passed; maintenance changes remain reported
+ *   1 = a prohibited surface moved, or a forbidden field/coupling appeared
  */
 
 import { execFileSync } from 'node:child_process'
@@ -77,6 +82,23 @@ const TARGET_KINDS_FILE = 'packages/types/src/report.ts'
  * The pattern is anchored to a path SEGMENT (`/test/`), not a substring: a product file named
  * `src/testUtils.ts` must stay protected, and does. */
 const TEST_PATH_SEGMENT = /(^|\/)(test|tests|__tests__)\//
+
+/** ADR 0100: classify the COMPLETE range, never a branch name or a filtered diff. */
+function isIsolatedDetectorMaintenance(files) {
+  const detector = /^packages\/static-analyzer\/src\/detectors\/[^/]+\.ts$/
+  const regression = /^packages\/static-analyzer\/test\/[^/]+\.test\.ts$/
+  const golden = /^packages\/fixtures\/golden\/[^/]+\.json$/
+  const decision = /^adrs\/\d{4}-[^/]+\.md$/
+  const exists = (file) => existsSync(resolve(repoRoot, file))
+  return files.some((f) => detector.test(f)) &&
+    files.filter((f) => detector.test(f)).every(exists) &&
+    files.some((f) => regression.test(f) && exists(f)) &&
+    files.some((f) => /^packages\/fixtures\/golden\/block-[^/]+\.json$/.test(f) && exists(f)) &&
+    files.some((f) => /^packages\/fixtures\/golden\/safe-[^/]+\.json$/.test(f) && exists(f)) &&
+    files.some((f) => decision.test(f) && exists(f)) &&
+    files.every((f) => detector.test(f) || regression.test(f) || golden.test(f) ||
+      decision.test(f) || f.startsWith('tests/') || f === 'scripts/verify-security-semantic-diff.mjs')
+}
 
 /* ADR 0006, narrowing 2: append-only additive-vocabulary exemption.
  *
@@ -385,15 +407,33 @@ function measureDiff(base) {
     .map((s) => s.trim())
     .filter(Boolean)
 
-  if (filteredCommitted.length > 0) {
+  // Union committed, staged, unstaged and untracked paths: an unstaged reversal
+  // must not hide a committed distribution change. --no-renames
+  // exposes both sides of a move so a distribution source cannot rename itself
+  // into an allowed directory and disappear from the applicability decision.
+  const rangeFiles = [...new Set([
+    ...git(['diff', '--no-renames', '--name-only', `${mergeBase}..HEAD`]).split('\n'),
+    ...git(['diff', '--no-renames', '--name-only', '--cached']).split('\n'),
+    ...git(['diff', '--no-renames', '--name-only']).split('\n'),
+    ...git(['ls-files', '--others', '--exclude-standard']).split('\n'),
+  ].filter(Boolean))]
+  const scope = isIsolatedDetectorMaintenance(rangeFiles)
+    ? 'isolated-detector-maintenance' : 'distribution-zero-diff'
+  if (scope === 'isolated-detector-maintenance') {
+    console.log('  [ADR 0100] isolated-detector-maintenance: source changes measured; distribution zero-diff not applicable')
+  }
+
+  if (scope === 'distribution-zero-diff' && filteredCommitted.length > 0) {
     violations.push(`${filteredCommitted.length} verdict-deciding file(s) changed in ${mergeBase.slice(0, 7)}..HEAD: ${filteredCommitted.join(', ')}`)
   }
-  if (worktree.length > 0) {
+  if (scope === 'distribution-zero-diff' && worktree.length > 0) {
     violations.push(`${worktree.length} verdict-deciding file(s) modified in the worktree: ${worktree.join(', ')}`)
   }
 
   return {
     base,
+    scope,
+    rangeFiles,
     // Which spelling actually resolved. Without this the artifact cannot say whether the range
     // was measured against a local branch or a remote-tracking ref — two different claims when
     // `origin/main` is behind, and the reader has no other way to tell them apart.
@@ -408,20 +448,23 @@ function measureDiff(base) {
 }
 
 /** (2) Do any forbidden risk fields exist in shipped source or published data? */
+function sourceMatches(token, paths) {
+  try {
+    return git(['grep', '--untracked', '-l', '--fixed-strings', token, '--', ...paths])
+      .split('\n').map((s) => s.trim()).filter(Boolean)
+  } catch (error) {
+    // Only grep's documented no-match result is a passing measurement.
+    if (error.status !== 1) violations.push(`source check failed for "${token}": ${error.message}`)
+    return []
+  }
+}
+
 function measureForbiddenFields() {
   const found = {}
   for (const field of FORBIDDEN_FIELDS) {
-    let hits = []
-    try {
-      hits = git(['grep', '-l', '--fixed-strings', field, '--', 'packages/', 'apps/', 'scripts/'])
-        .split('\n')
-        .map((s) => s.trim())
-        .filter(Boolean)
-        // This gate names the fields in order to forbid them; that is not an occurrence.
-        .filter((f) => f !== relative(repoRoot, fileURLToPath(import.meta.url)).replace(/\\/g, '/'))
-    } catch {
-      hits = [] // git grep exits 1 on no match, which is the passing case.
-    }
+    // This gate names the fields in order to forbid them; that is not an occurrence.
+    const hits = sourceMatches(field, ['packages/', 'apps/', 'scripts/'])
+      .filter((f) => f !== relative(repoRoot, fileURLToPath(import.meta.url)).replace(/\\/g, '/'))
     if (hits.length > 0) {
       found[field] = hits
       violations.push(`forbidden field "${field}" appears in: ${hits.join(', ')}`)
@@ -434,15 +477,7 @@ function measureForbiddenFields() {
 function measureCoupling() {
   const found = {}
   for (const token of IDENTITY_TOKENS) {
-    let hits = []
-    try {
-      hits = git(['grep', '-l', '--fixed-strings', token, '--', 'packages/risk-engine/src'])
-        .split('\n')
-        .map((s) => s.trim())
-        .filter(Boolean)
-    } catch {
-      hits = []
-    }
+    const hits = sourceMatches(token, ['packages/risk-engine/src'])
     if (hits.length > 0) {
       found[token] = hits
       violations.push(`identity token "${token}" reaches the risk engine: ${hits.join(', ')}`)
@@ -463,7 +498,8 @@ function main() {
   const report = {
     schema: 'calllint.security-semantic-diff.v0',
     invariant: 'MODEL IDENTITY ⟂ SECURITY VERDICT',
-    changed,
+    changed: changed || diff.scope === 'isolated-detector-maintenance',
+    invariantViolation: changed,
     violations,
     measurements: { diff, forbiddenFields: fields, coupling },
     howToReproduce: 'node scripts/verify-security-semantic-diff.mjs --base <ref>',
@@ -480,11 +516,15 @@ function main() {
   if (changed) {
     console.error(`✗ SECURITY_SEMANTICS = CHANGED (${violations.length} violation(s)):`)
     for (const v of violations) console.error(`   - ${v}`)
+  } else if (diff.scope === 'isolated-detector-maintenance') {
+    console.log('SECURITY_SEMANTICS = CHANGED (isolated-detector-maintenance); live identity invariants preserved')
   } else {
     console.log('✓ SECURITY_SEMANTICS = UNCHANGED')
   }
 
-  if (options.check) {
+  if (options.check && diff.scope === 'isolated-detector-maintenance') {
+    console.log('\n[ADR 0100] historical distribution artifact not applicable; live checks enforced, artifact unchanged')
+  } else if (options.check) {
     if (!existsSync(OUT_PATH)) {
       console.error(`\n✗ --check: ${relative(repoRoot, OUT_PATH)} does not exist`)
       process.exit(1)
