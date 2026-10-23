@@ -1,0 +1,16 @@
+{
+  "mcpServers": {
+    "filesystem": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-filesystem@1.0.0", "C:/Users/sample"]
+    },
+    "docker-user-bind": {
+      "command": "docker",
+      "args": ["run", "--rm", "-v", "C:/Users/sample:/data:ro", "mcp/filesystem", "/data"]
+    },
+    "docker-root-bind": {
+      "command": "docker",
+      "args": ["run", "--rm", "--mount=type=bind,source=C:/,target=/data", "mcp/filesystem", "/data"]
+    }
+  }
+}
