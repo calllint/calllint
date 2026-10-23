@@ -170,7 +170,7 @@ export function detectBroadFilesystemPath(ctx: DetectorContext): Finding[] {
       // An extracted bind source is a host authority path, so separator
       // normalization is safe here. Keep the original spelling as evidence.
       const comparableHost = /^[A-Za-z]:[\\/]/.test(host) ? host.replace(/\//g, "\\") : host
-      if (looksLikeBroadPath(comparableHost)) {
+      if (looksLikeBroadPath(host) || looksLikeBroadPath(comparableHost)) {
         evidence.push({
           type: "config",
           path: server.sourceConfigPath,

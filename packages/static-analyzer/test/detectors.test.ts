@@ -101,6 +101,16 @@ describe("broad filesystem detector", () => {
     expect(findings[0]?.evidence.some((e) => /^C:[\\/]/.test(e.value ?? ""))).toBe(true)
     expect(findings[0]?.evidence.some((e) => e.value === "/data")).toBe(false)
   })
+  it("preserves existing mixed-separator host findings on other drives", () => {
+    const host = "D:\\Users\\sample/Documents"
+    const findings = detectBroadFilesystemPath(
+      dockerCtx(["run", `--mount=type=bind,source=${host},target=/data`, "mcp/x"]),
+    )
+    expect(findings[0]?.blocker).toBe(true)
+    expect(findings[0]?.evidence).toEqual([
+      { type: "config", path: "<test>", key: "args", value: host },
+    ])
+  })
   it.each([
     ["-v", "C:/work/demo:/home"],
     ["--mount=type=bind,source=C:/work/demo,target=C:/Users/sample"],
