@@ -15,6 +15,31 @@ because the sentence needs no citation to be true.)
 
 Nothing yet.
 
+## [1.9.2] — 2026-10-23
+
+### Fixed
+
+- Recognize Windows drive and user roots written with forward slashes, including
+  Docker bind-mount host sources. Preserve the original host path as evidence,
+  existing mixed-separator findings, workspace exclusions, and named volumes.
+  New positive and negative fixtures and detector tests cover the repaired cases.
+- Scope the distribution-only zero-semantic-diff gate to distinguish isolated
+  detector maintenance (ADR 0100). Forbidden-field and identity-coupling checks
+  still apply; mixed distribution/security changes retain strict zero-diff checks.
+- Include the intervening main-branch hardening of resumable registry ingestion,
+  stale human-panel sessions, release-ancestry response bounds, and usage-report
+  completeness and Cloudflare credential preflight.
+
+### Maintenance
+
+- Install the Experience Evolution advisory Skill and a CallLint-only adapter.
+  The Skill does not participate in verdicts or run automatically in CI.
+- Publish the same scanner repair in `calllint-mcp@0.2.1`; synchronize its package,
+  handshake, registry manifest, and generated distribution version references.
+
+Verdicts remain deterministic static assessments. UNKNOWN remains UNKNOWN;
+this release does not establish runtime safety or eliminate all detection errors.
+
 ## [1.9.1] — 2026-08-27
 
 A same-day patch on 1.9.0, and the reason is uncomfortable enough to state plainly:
