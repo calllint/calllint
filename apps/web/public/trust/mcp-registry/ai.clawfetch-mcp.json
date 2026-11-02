@@ -1,19 +1,19 @@
 {
   "schema": "calllint.trust-page.v0",
   "canonicalName": "mcp-registry/ai.clawfetch-mcp",
-  "artifactDigest": "sha256:51ef933e0bfdcc33a3ffa41b9b01506b4fae83f53752be3b53bd56597a4270a6",
-  "pageDigest": "sha256:c75bc585e70e1acafe5ea358ded64652ae0ecde310d173311174ca11643a33a9",
+  "artifactDigest": "sha256:550147964c245dbf66f8f505e88a7dca363c080f334d4d2c5102c716e25cc0df",
+  "pageDigest": "sha256:7c26884efa79433185895dd70c82810a824035ac6dcee3b75fbb5bf9f4a69a67",
   "verdict": "SAFE",
   "verdictLabel": "No blockers observed",
-  "observedAt": "2026-10-19T13:04:27.000Z",
+  "observedAt": "2026-11-02T01:27:20.000Z",
   "completeness": "complete",
   "status": {
     "verdict": "SAFE",
     "completeness": "complete",
     "authorityClaimed": false,
     "reproducibility": {
-      "pageDigest": "sha256:c75bc585e70e1acafe5ea358ded64652ae0ecde310d173311174ca11643a33a9",
-      "observedAt": "2026-10-19T13:04:27.000Z"
+      "pageDigest": "sha256:7c26884efa79433185895dd70c82810a824035ac6dcee3b75fbb5bf9f4a69a67",
+      "observedAt": "2026-11-02T01:27:20.000Z"
     },
     "evidenceLevel": "E2",
     "evidenceRationale": "install config observed → static blast radius normalized into an authority inventory. Higher levels (E3 tool schema, E4 maintainer receipt, E5 sandbox) are not carried by a static page."
@@ -21,14 +21,14 @@
   "correctionUrl": "https://github.com/calllint/calllint/issues/new?labels=trust-page-correction",
   "reproduction": {
     "command": "npx calllint scan official-mcp-registry:ai.clawfetch/mcp",
-    "artifactDigest": "sha256:51ef933e0bfdcc33a3ffa41b9b01506b4fae83f53752be3b53bd56597a4270a6",
+    "artifactDigest": "sha256:550147964c245dbf66f8f505e88a7dca363c080f334d4d2c5102c716e25cc0df",
     "note": "Re-running this scan reproduces the verdict observed at the pinned artifact digest. It is a point-in-time observation, not a guarantee of future behavior."
   },
   "scanHistory": [
     {
-      "observedAt": "2026-10-19T13:04:27.000Z",
-      "pageDigest": "sha256:c75bc585e70e1acafe5ea358ded64652ae0ecde310d173311174ca11643a33a9",
-      "artifactDigest": "sha256:51ef933e0bfdcc33a3ffa41b9b01506b4fae83f53752be3b53bd56597a4270a6"
+      "observedAt": "2026-11-02T01:27:20.000Z",
+      "pageDigest": "sha256:7c26884efa79433185895dd70c82810a824035ac6dcee3b75fbb5bf9f4a69a67",
+      "artifactDigest": "sha256:550147964c245dbf66f8f505e88a7dca363c080f334d4d2c5102c716e25cc0df"
     }
   ],
   "preparation": {
@@ -38,16 +38,16 @@
       "sourceType": "mcp-config",
       "source": "official-mcp-registry:ai.clawfetch/mcp",
       "requestedRef": null,
-      "resolvedRef": "sha256:51ef933e0bfdcc33a3ffa41b9b01506b4fae83f53752be3b53bd56597a4270a6",
-      "digest": "sha256:51ef933e0bfdcc33a3ffa41b9b01506b4fae83f53752be3b53bd56597a4270a6",
-      "resolvedAt": "2026-10-19T13:04:27.000Z",
+      "resolvedRef": "sha256:550147964c245dbf66f8f505e88a7dca363c080f334d4d2c5102c716e25cc0df",
+      "digest": "sha256:550147964c245dbf66f8f505e88a7dca363c080f334d4d2c5102c716e25cc0df",
+      "resolvedAt": "2026-11-02T01:27:20.000Z",
       "resolution": "resolved"
     },
     "evidence": null,
     "authority": {
       "schema": "calllint.authority.v0",
       "subject": {
-        "artifactDigest": "sha256:51ef933e0bfdcc33a3ffa41b9b01506b4fae83f53752be3b53bd56597a4270a6"
+        "artifactDigest": "sha256:550147964c245dbf66f8f505e88a7dca363c080f334d4d2c5102c716e25cc0df"
       },
       "capabilities": [
         {
@@ -74,7 +74,7 @@
       },
       "unknowns": [],
       "completeness": "complete",
-      "digest": "sha256:f83c418e9388ca1699dd0b6a93d54380fa5db3de82a1f171d9ffc3a090bc4df3"
+      "digest": "sha256:8d0c5296d1fd40b49d56be0a34ad42032cb6848ff5be5f1d7ab230a8a88b1188"
     },
     "decision": null,
     "plan": null,
@@ -83,7 +83,7 @@
       "no external evidence attached (optional); decision will rely on CallLint's own analysis",
       "authority normalized: 1 capability"
     ],
-    "preparedAt": "2026-10-19T13:04:27.000Z"
+    "preparedAt": "2026-11-02T01:27:20.000Z"
   },
   "scan": {
     "schemaVersion": "calllint.report.v0",
@@ -105,7 +105,7 @@
           "name": "package",
           "kind": "mcp-servers",
           "source": "@clawfetch/mcp",
-          "version": "0.3.2",
+          "version": "0.4.0",
           "configPath": "official-mcp-registry:ai.clawfetch/mcp"
         },
         "verdict": "SAFE",
@@ -129,16 +129,16 @@
           "sandbox": "none"
         },
         "fingerprints": {
-          "configHash": "sha256:ebac95889cf117522a1a8782d37a0f1d61fdcdb425f79a5309ce74f9aac2a695",
-          "targetSpecHash": "sha256:427b1cc812df7b948e391259f3b4c30b4bd3a9198655e95e1f26fdf66f583b27",
+          "configHash": "sha256:8e6b2f9a42b03b89b6f6b1fb4c09042e4b7b3955df6d603386da6364e0a2d74d",
+          "targetSpecHash": "sha256:3308ebad1a0227d7c377571ad473f575b3cf37ecc66f777f13ed2fde4a3783ac",
           "riskSurfaceHash": "sha256:69aae84c996fe93d537b08d906cb339866bd43f10876be403a0f4793915bef33",
-          "packageSpecHash": "sha256:73ee43bf49237b46599f449790769cbd8148bfad5e68780186ab7de49902e006"
+          "packageSpecHash": "sha256:6496a8c2ec1b8d1347f9357adebbac35683638f18947f408c5c53ed18a2c34b4"
         },
         "diagnostics": [],
-        "generatedAt": "2026-10-19T13:04:27.000Z"
+        "generatedAt": "2026-11-02T01:27:20.000Z"
       }
     ],
     "diagnostics": [],
-    "generatedAt": "2026-10-19T13:04:27.000Z"
+    "generatedAt": "2026-11-02T01:27:20.000Z"
   }
 }

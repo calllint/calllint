@@ -1,27 +1,27 @@
 {
   "schema": "calllint.agent-adoption-contract.v1",
   "contract": {
-    "contractDigest": "sha256:6b5080038e6d5da63b0ffe2375dd35a64ebf59584927cf5296c2328cc87b936e",
-    "generatedAt": "2026-10-19T13:04:27.000Z",
+    "contractDigest": "sha256:770681ec6c3328ee0d88b4899303ce8cc7025e02eb7a21e49cd16e53ea98dcbb",
+    "generatedAt": "2026-11-02T01:27:20.000Z",
     "expiresAt": null,
     "generatorVersion": "0.1.0",
-    "snapshotDigest": "sha256:0970184e2142d785167786209a8863a689cb018f9bad377d6048a3b7e654bb82"
+    "snapshotDigest": "sha256:88a1d340b6b950849ecfad2693745c54117dea1bf388f28c8b7a89d2deab198d"
   },
   "subject": {
     "canonicalName": "mcp-registry/ai.dxpert-mcp",
     "canonicalSlug": "mcp-registry/ai.dxpert-mcp",
     "packageType": "npm",
     "packageName": "@dxpert/mcp",
-    "version": "0.1.2",
-    "artifactDigest": "sha256:ae7d41982faa39cf2c1169672f79190b3142665df46d715f8bc179910595b043",
-    "sourceLocator": "npm:@dxpert/mcp@0.1.2"
+    "version": "0.2.1",
+    "artifactDigest": "sha256:18ffacbfeb40807e3230bbffc2b598d091759853c6554f20136a82e6eca70ed2",
+    "sourceLocator": "npm:@dxpert/mcp@0.2.1"
   },
   "publicObservation": {
     "verdict": "SAFE",
     "publicLabel": "No blockers observed",
     "reasonCodes": [],
     "evidenceLevel": "E2",
-    "evidenceDigest": "sha256:b9381aff028bedb776950d19f78c2a50ab9f2002513c9ded5eb3135f5ccd9a7a",
+    "evidenceDigest": "sha256:4decdd32f2f7e01d08e2303f2bdf3926a09d22c7517f9000c1c44fa8b4b5410b",
     "completeness": "complete"
   },
   "authorityDelta": {
@@ -39,12 +39,12 @@
     ]
   },
   "trustedSources": {
-    "registrySnapshotDigest": "sha256:0970184e2142d785167786209a8863a689cb018f9bad377d6048a3b7e654bb82",
-    "evidenceDigest": "sha256:b9381aff028bedb776950d19f78c2a50ab9f2002513c9ded5eb3135f5ccd9a7a",
+    "registrySnapshotDigest": "sha256:88a1d340b6b950849ecfad2693745c54117dea1bf388f28c8b7a89d2deab198d",
+    "evidenceDigest": "sha256:4decdd32f2f7e01d08e2303f2bdf3926a09d22c7517f9000c1c44fa8b4b5410b",
     "engineVersion": "0.1.0"
   },
   "untrustedPublisherContent": {
-    "description": "Industrial AI-readiness diagnostics, UNS design, and UNS agents for MCP clients.",
+    "description": "AI-readiness diagnostic, dxpert Advisor and the industrial agents of dxpert Pro, for MCP clients.",
     "usedForSafetyDecision": false
   },
   "recommendedNextAction": {
@@ -52,9 +52,9 @@
     "tool": "calllint_prepare_safe_install",
     "arguments": {
       "canonicalName": "mcp-registry/ai.dxpert-mcp",
-      "expectedVersion": "0.1.2",
-      "expectedArtifactDigest": "sha256:ae7d41982faa39cf2c1169672f79190b3142665df46d715f8bc179910595b043",
-      "expectedContractDigest": "sha256:6b5080038e6d5da63b0ffe2375dd35a64ebf59584927cf5296c2328cc87b936e",
+      "expectedVersion": "0.2.1",
+      "expectedArtifactDigest": "sha256:18ffacbfeb40807e3230bbffc2b598d091759853c6554f20136a82e6eca70ed2",
+      "expectedContractDigest": "sha256:770681ec6c3328ee0d88b4899303ce8cc7025e02eb7a21e49cd16e53ea98dcbb",
       "host": null
     }
   },

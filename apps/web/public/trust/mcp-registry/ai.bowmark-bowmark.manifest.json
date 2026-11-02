@@ -2,25 +2,25 @@
   "schema": "calllint.evidence-manifest.v1",
   "subject": {
     "canonicalName": "mcp-registry/ai.bowmark-bowmark",
-    "artifactDigest": "sha256:b3e0d0aef65f70fd020a05e9e16a5973fe8d46477611c95bbfaff39deb096e90"
+    "artifactDigest": "sha256:aee1f3c1f67b0c694e466ee1dd0d940320417344d93e2fcf97cab56d4c7f0224"
   },
-  "verdict": "UNKNOWN",
-  "verdictLabel": "Insufficient evidence",
+  "verdict": "REVIEW",
+  "verdictLabel": "Review required",
   "completeness": "complete",
   "evidenceLevel": "E2",
   "evidenceRationale": "install config observed → static blast radius normalized into an authority inventory. Higher levels (E3 tool schema, E4 maintainer receipt, E5 sandbox) are not carried by a static page.",
   "status": {
-    "verdict": "UNKNOWN",
+    "verdict": "REVIEW",
     "completeness": "complete",
     "authorityClaimed": false,
     "reproducibility": {
-      "pageDigest": "sha256:d5d5acd4e1213346987d3cb1e9bf16096419d9c3d96f2b04c42e941fb52ad717",
-      "observedAt": "2026-10-19T13:04:27.000Z"
+      "pageDigest": "sha256:66c4632ee98b097c0640d650a1b1a06264c678291d01624f65990b275643880c",
+      "observedAt": "2026-11-02T01:27:20.000Z"
     },
     "evidenceLevel": "E2"
   },
   "authority": {
-    "digest": "sha256:68f13b9f511d0756653c39125b9f4c8a2e63918cb9f47d7ef5a73ee5b6d4315d",
+    "digest": "sha256:a8a4ddcb0527c0c8d9bc09f265aee3e329dbdae68e8fa5e9bf56b5360de33bbd",
     "completeness": "complete",
     "capabilityCount": 3,
     "approvalRequired": [
@@ -52,13 +52,13 @@
   },
   "policyDigest": null,
   "reproducibility": {
-    "pageDigest": "sha256:d5d5acd4e1213346987d3cb1e9bf16096419d9c3d96f2b04c42e941fb52ad717",
-    "observedAt": "2026-10-19T13:04:27.000Z"
+    "pageDigest": "sha256:66c4632ee98b097c0640d650a1b1a06264c678291d01624f65990b275643880c",
+    "observedAt": "2026-11-02T01:27:20.000Z"
   },
   "engine": {
     "name": "calllint"
   },
   "correctionUrl": "https://github.com/calllint/calllint/issues/new?labels=trust-page-correction",
-  "generatedAt": "2026-10-19T13:04:27.000Z",
+  "generatedAt": "2026-11-02T01:27:20.000Z",
   "signature": null
 }

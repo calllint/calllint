@@ -1,0 +1,282 @@
+{
+  "schema": "calllint.trust-page.v0",
+  "canonicalName": "mcp-registry/ai.augmentev-fabric-verify",
+  "artifactDigest": "sha256:1811cbc683e6b9b3bb0faa4354a9e790ed89e32469ce35faa09156dcca338d32",
+  "pageDigest": "sha256:f3d5a95cae473393eece7b0c809bf28774e45ea4dcb31c2078f300d5ba3c2be4",
+  "verdict": "REVIEW",
+  "verdictLabel": "Review required",
+  "observedAt": "2026-11-02T01:27:20.000Z",
+  "completeness": "complete",
+  "status": {
+    "verdict": "REVIEW",
+    "completeness": "complete",
+    "authorityClaimed": false,
+    "reproducibility": {
+      "pageDigest": "sha256:f3d5a95cae473393eece7b0c809bf28774e45ea4dcb31c2078f300d5ba3c2be4",
+      "observedAt": "2026-11-02T01:27:20.000Z"
+    },
+    "evidenceLevel": "E2",
+    "evidenceRationale": "install config observed → static blast radius normalized into an authority inventory. Higher levels (E3 tool schema, E4 maintainer receipt, E5 sandbox) are not carried by a static page."
+  },
+  "correctionUrl": "https://github.com/calllint/calllint/issues/new?labels=trust-page-correction",
+  "reproduction": {
+    "command": "npx calllint scan official-mcp-registry:ai.augmentev/fabric-verify",
+    "artifactDigest": "sha256:1811cbc683e6b9b3bb0faa4354a9e790ed89e32469ce35faa09156dcca338d32",
+    "note": "Re-running this scan reproduces the verdict observed at the pinned artifact digest. It is a point-in-time observation, not a guarantee of future behavior."
+  },
+  "scanHistory": [
+    {
+      "observedAt": "2026-11-02T01:27:20.000Z",
+      "pageDigest": "sha256:f3d5a95cae473393eece7b0c809bf28774e45ea4dcb31c2078f300d5ba3c2be4",
+      "artifactDigest": "sha256:1811cbc683e6b9b3bb0faa4354a9e790ed89e32469ce35faa09156dcca338d32"
+    }
+  ],
+  "preparation": {
+    "schema": "calllint.trust-preparation.v0",
+    "artifact": {
+      "schema": "calllint.artifact.v1",
+      "sourceType": "mcp-config",
+      "source": "official-mcp-registry:ai.augmentev/fabric-verify",
+      "requestedRef": null,
+      "resolvedRef": "sha256:1811cbc683e6b9b3bb0faa4354a9e790ed89e32469ce35faa09156dcca338d32",
+      "digest": "sha256:1811cbc683e6b9b3bb0faa4354a9e790ed89e32469ce35faa09156dcca338d32",
+      "resolvedAt": "2026-11-02T01:27:20.000Z",
+      "resolution": "resolved"
+    },
+    "evidence": null,
+    "authority": {
+      "schema": "calllint.authority.v0",
+      "subject": {
+        "artifactDigest": "sha256:1811cbc683e6b9b3bb0faa4354a9e790ed89e32469ce35faa09156dcca338d32"
+      },
+      "capabilities": [
+        {
+          "action": "execute",
+          "resource": "process",
+          "scope": "npx",
+          "destination": null,
+          "mutability": "mutating",
+          "reversibility": "irreversible",
+          "monetaryLimit": null,
+          "approvalRequirement": "none",
+          "evidenceSource": "server.command",
+          "confidence": "high",
+          "completeness": "complete",
+          "trustSource": "trusted.local_project"
+        },
+        {
+          "action": "connect",
+          "resource": "network",
+          "scope": "mcp.augmentev.com",
+          "destination": "mcp.augmentev.com",
+          "mutability": "mutating",
+          "reversibility": "irreversible",
+          "monetaryLimit": null,
+          "approvalRequirement": "review",
+          "evidenceSource": "server.url",
+          "confidence": "high",
+          "completeness": "complete"
+        }
+      ],
+      "limits": {
+        "spendPerCall": null,
+        "spendTotal": null
+      },
+      "approval": {
+        "required": [
+          "external-network-access"
+        ]
+      },
+      "unknowns": [],
+      "completeness": "complete",
+      "digest": "sha256:7a72281779e87158fbc072105fd0a9c2378f57edade414af3f0729d7573b5795"
+    },
+    "decision": null,
+    "plan": null,
+    "state": "AUTHORITY_NORMALIZED",
+    "notes": [
+      "no external evidence attached (optional); decision will rely on CallLint's own analysis",
+      "authority normalized: 2 capabilities, approvals required: external-network-access"
+    ],
+    "preparedAt": "2026-11-02T01:27:20.000Z"
+  },
+  "scan": {
+    "schemaVersion": "calllint.report.v0",
+    "reportKind": "config-summary",
+    "configPath": "official-mcp-registry:ai.augmentev/fabric-verify",
+    "verdict": "REVIEW",
+    "publicVerdictLabel": "Review required",
+    "counts": {
+      "SAFE": 1,
+      "REVIEW": 1,
+      "BLOCK": 0,
+      "UNKNOWN": 0
+    },
+    "reports": [
+      {
+        "schemaVersion": "calllint.report.v0",
+        "reportKind": "single-target",
+        "target": {
+          "name": "package",
+          "kind": "mcp-servers",
+          "source": "@augmentev/fabric-verify-mcp",
+          "version": "0.2.1",
+          "configPath": "official-mcp-registry:ai.augmentev/fabric-verify"
+        },
+        "verdict": "SAFE",
+        "publicVerdictLabel": "No blockers observed",
+        "policyApplied": false,
+        "riskClass": "S1",
+        "symbols": [],
+        "confidence": "high",
+        "reproducibility": {
+          "level": "HIGH",
+          "reasons": []
+        },
+        "summary": "\"package\" has no blockers observed (S1 Read-only utility).",
+        "observed": [],
+        "inferred": [],
+        "findings": [],
+        "topFindings": [],
+        "policy": {
+          "autonomousUse": "allow",
+          "manualApproval": "none",
+          "sandbox": "none"
+        },
+        "fingerprints": {
+          "configHash": "sha256:c66a9088e35cfcd66971743895ff30dd773fba82aceb648c73eb70ff1f43ca80",
+          "targetSpecHash": "sha256:7d3087d54a61cc2da3199f39831d6465f13ebca0a23f54107401d401141cea76",
+          "riskSurfaceHash": "sha256:69aae84c996fe93d537b08d906cb339866bd43f10876be403a0f4793915bef33",
+          "packageSpecHash": "sha256:4bb5d49c5d3ad899eba18a70e52caf4ea315d207148d1de5e1b892b9f4e0cd47"
+        },
+        "diagnostics": [],
+        "generatedAt": "2026-11-02T01:27:20.000Z"
+      },
+      {
+        "schemaVersion": "calllint.report.v0",
+        "reportKind": "single-target",
+        "target": {
+          "name": "remote",
+          "kind": "mcp-servers",
+          "source": "https://mcp.augmentev.com/mcp",
+          "configPath": "official-mcp-registry:ai.augmentev/fabric-verify"
+        },
+        "verdict": "REVIEW",
+        "publicVerdictLabel": "Review required",
+        "policyApplied": false,
+        "riskClass": "S1",
+        "symbols": [
+          "NETWORK"
+        ],
+        "confidence": "high",
+        "reproducibility": {
+          "level": "LOW",
+          "reasons": [
+            "Remote endpoint domain ownership not verified",
+            "Remote endpoint identity verified; tool surface not analyzed"
+          ]
+        },
+        "summary": "\"remote\" could not be verified (insufficient evidence). Risk: Network (S1 Read-only utility).",
+        "observed": [
+          {
+            "id": "supply.unknown-remote",
+            "title": "Remote server source cannot be verified",
+            "severity": "high",
+            "blocker": false,
+            "symbol": "NETWORK",
+            "riskClass": "S1",
+            "mode": "OBSERVED",
+            "confidence": "high",
+            "detectionMethod": "runtime-binding",
+            "evidence": [
+              {
+                "type": "runtime-binding",
+                "path": "official-mcp-registry:ai.augmentev/fabric-verify",
+                "key": "url",
+                "value": "https://mcp.augmentev.com/mcp",
+                "line": 12,
+                "column": 7
+              }
+            ],
+            "impact": "The server runs on an unverified remote endpoint. Its tools, permissions, and behavior cannot be inspected statically and may change at any time.",
+            "fix": "Use a verified first-party endpoint, or run the server from a pinned, inspectable package.",
+            "falsePositiveNote": "A trusted internal endpoint may be fine; add it to the policy allowlist to verify it."
+          }
+        ],
+        "inferred": [],
+        "findings": [
+          {
+            "id": "supply.unknown-remote",
+            "title": "Remote server source cannot be verified",
+            "severity": "high",
+            "blocker": false,
+            "symbol": "NETWORK",
+            "riskClass": "S1",
+            "mode": "OBSERVED",
+            "confidence": "high",
+            "detectionMethod": "runtime-binding",
+            "evidence": [
+              {
+                "type": "runtime-binding",
+                "path": "official-mcp-registry:ai.augmentev/fabric-verify",
+                "key": "url",
+                "value": "https://mcp.augmentev.com/mcp",
+                "line": 12,
+                "column": 7
+              }
+            ],
+            "impact": "The server runs on an unverified remote endpoint. Its tools, permissions, and behavior cannot be inspected statically and may change at any time.",
+            "fix": "Use a verified first-party endpoint, or run the server from a pinned, inspectable package.",
+            "falsePositiveNote": "A trusted internal endpoint may be fine; add it to the policy allowlist to verify it."
+          }
+        ],
+        "topFindings": [
+          {
+            "id": "supply.unknown-remote",
+            "title": "Remote server source cannot be verified",
+            "severity": "high",
+            "blocker": false,
+            "symbol": "NETWORK",
+            "riskClass": "S1",
+            "mode": "OBSERVED",
+            "confidence": "high",
+            "detectionMethod": "runtime-binding",
+            "evidence": [
+              {
+                "type": "runtime-binding",
+                "path": "official-mcp-registry:ai.augmentev/fabric-verify",
+                "key": "url",
+                "value": "https://mcp.augmentev.com/mcp",
+                "line": 12,
+                "column": 7
+              }
+            ],
+            "impact": "The server runs on an unverified remote endpoint. Its tools, permissions, and behavior cannot be inspected statically and may change at any time.",
+            "fix": "Use a verified first-party endpoint, or run the server from a pinned, inspectable package.",
+            "falsePositiveNote": "A trusted internal endpoint may be fine; add it to the policy allowlist to verify it."
+          }
+        ],
+        "policy": {
+          "autonomousUse": "deny",
+          "manualApproval": "required",
+          "sandbox": "required"
+        },
+        "fingerprints": {
+          "configHash": "sha256:c8a9ea6d908a8c73aaa374971a5ac4df7bfd9ba77af203ac759b6d096744f728",
+          "targetSpecHash": "sha256:205b3475b35af89111655281b8e0d950886710492b9796bf7d13d0117866c93a",
+          "riskSurfaceHash": "sha256:47e9d20255a346b95323c2cb9e092621521638b987bbcd036e68e4aee12dcaf3"
+        },
+        "diagnostics": [
+          {
+            "level": "info",
+            "code": "evidence.remote-identity-verified",
+            "message": "Remote endpoint identity verified; tool surface not analyzed (evidence: https://mcp.augmentev.com/mcp)"
+          }
+        ],
+        "generatedAt": "2026-11-02T01:27:20.000Z"
+      }
+    ],
+    "diagnostics": [],
+    "generatedAt": "2026-11-02T01:27:20.000Z"
+  }
+}

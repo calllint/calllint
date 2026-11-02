@@ -1,19 +1,19 @@
 {
   "schema": "calllint.trust-page.v0",
   "canonicalName": "mcp-registry/ai.attestari-attestari",
-  "artifactDigest": "sha256:46772c2a46efdc1b1f8240721ca8d90dff81b6b95cccde7ca12c96e34d562b9a",
-  "pageDigest": "sha256:479d44a02dca6a9d425bb2610da749bccab1d28f26679bec09fbf51b557e424a",
+  "artifactDigest": "sha256:91ec537e2c7c59ae57b4ec698ed0c031d5f80b2a72291dc4e50bc98b02675b5f",
+  "pageDigest": "sha256:87bee4efe3f89b2830553807e1c54dcddc00f33305e573f9c38e14dd10a0e905",
   "verdict": "REVIEW",
   "verdictLabel": "Review required",
-  "observedAt": "2026-10-19T13:04:27.000Z",
+  "observedAt": "2026-11-02T01:27:20.000Z",
   "completeness": "complete",
   "status": {
     "verdict": "REVIEW",
     "completeness": "complete",
     "authorityClaimed": false,
     "reproducibility": {
-      "pageDigest": "sha256:479d44a02dca6a9d425bb2610da749bccab1d28f26679bec09fbf51b557e424a",
-      "observedAt": "2026-10-19T13:04:27.000Z"
+      "pageDigest": "sha256:87bee4efe3f89b2830553807e1c54dcddc00f33305e573f9c38e14dd10a0e905",
+      "observedAt": "2026-11-02T01:27:20.000Z"
     },
     "evidenceLevel": "E2",
     "evidenceRationale": "install config observed → static blast radius normalized into an authority inventory. Higher levels (E3 tool schema, E4 maintainer receipt, E5 sandbox) are not carried by a static page."
@@ -21,14 +21,14 @@
   "correctionUrl": "https://github.com/calllint/calllint/issues/new?labels=trust-page-correction",
   "reproduction": {
     "command": "npx calllint scan official-mcp-registry:ai.attestari/attestari",
-    "artifactDigest": "sha256:46772c2a46efdc1b1f8240721ca8d90dff81b6b95cccde7ca12c96e34d562b9a",
+    "artifactDigest": "sha256:91ec537e2c7c59ae57b4ec698ed0c031d5f80b2a72291dc4e50bc98b02675b5f",
     "note": "Re-running this scan reproduces the verdict observed at the pinned artifact digest. It is a point-in-time observation, not a guarantee of future behavior."
   },
   "scanHistory": [
     {
-      "observedAt": "2026-10-19T13:04:27.000Z",
-      "pageDigest": "sha256:479d44a02dca6a9d425bb2610da749bccab1d28f26679bec09fbf51b557e424a",
-      "artifactDigest": "sha256:46772c2a46efdc1b1f8240721ca8d90dff81b6b95cccde7ca12c96e34d562b9a"
+      "observedAt": "2026-11-02T01:27:20.000Z",
+      "pageDigest": "sha256:87bee4efe3f89b2830553807e1c54dcddc00f33305e573f9c38e14dd10a0e905",
+      "artifactDigest": "sha256:91ec537e2c7c59ae57b4ec698ed0c031d5f80b2a72291dc4e50bc98b02675b5f"
     }
   ],
   "preparation": {
@@ -38,16 +38,16 @@
       "sourceType": "mcp-config",
       "source": "official-mcp-registry:ai.attestari/attestari",
       "requestedRef": null,
-      "resolvedRef": "sha256:46772c2a46efdc1b1f8240721ca8d90dff81b6b95cccde7ca12c96e34d562b9a",
-      "digest": "sha256:46772c2a46efdc1b1f8240721ca8d90dff81b6b95cccde7ca12c96e34d562b9a",
-      "resolvedAt": "2026-10-19T13:04:27.000Z",
+      "resolvedRef": "sha256:91ec537e2c7c59ae57b4ec698ed0c031d5f80b2a72291dc4e50bc98b02675b5f",
+      "digest": "sha256:91ec537e2c7c59ae57b4ec698ed0c031d5f80b2a72291dc4e50bc98b02675b5f",
+      "resolvedAt": "2026-11-02T01:27:20.000Z",
       "resolution": "resolved"
     },
     "evidence": null,
     "authority": {
       "schema": "calllint.authority.v0",
       "subject": {
-        "artifactDigest": "sha256:46772c2a46efdc1b1f8240721ca8d90dff81b6b95cccde7ca12c96e34d562b9a"
+        "artifactDigest": "sha256:91ec537e2c7c59ae57b4ec698ed0c031d5f80b2a72291dc4e50bc98b02675b5f"
       },
       "capabilities": [
         {
@@ -89,7 +89,7 @@
       },
       "unknowns": [],
       "completeness": "complete",
-      "digest": "sha256:974e2331bd39979dbd539b394c67a6382077284829253ceebbb184eb9b46be10"
+      "digest": "sha256:a502bb5f584b25b054e0cf05f8087fca2c7b6a6cd1b6f3fb4154592ad4afcb24"
     },
     "decision": null,
     "plan": null,
@@ -98,7 +98,7 @@
       "no external evidence attached (optional); decision will rely on CallLint's own analysis",
       "authority normalized: 2 capabilities, approvals required: external-network-access"
     ],
-    "preparedAt": "2026-10-19T13:04:27.000Z"
+    "preparedAt": "2026-11-02T01:27:20.000Z"
   },
   "scan": {
     "schemaVersion": "calllint.report.v0",
@@ -120,7 +120,7 @@
           "name": "package",
           "kind": "mcp-servers",
           "source": "attestari-mcp",
-          "version": "2.9.0",
+          "version": "2.10.0",
           "configPath": "official-mcp-registry:ai.attestari/attestari"
         },
         "verdict": "SAFE",
@@ -144,13 +144,13 @@
           "sandbox": "none"
         },
         "fingerprints": {
-          "configHash": "sha256:001014762f99594a8cc9c74dec383a1f7bc711c6ba3b58088d55dceaa1655000",
-          "targetSpecHash": "sha256:0d6a9d5fc2912cf46eceebf96dfeed1a466a5efdd0eb6a9b786bdd8537d79611",
+          "configHash": "sha256:6b1b88aa70e6f1997eb971a0052943b746cdac0103d2757983f8bc5964426d77",
+          "targetSpecHash": "sha256:7dba70eb77d81819d0d8b97ba6a56c7e27d7043bf086d054307875c74f4939af",
           "riskSurfaceHash": "sha256:69aae84c996fe93d537b08d906cb339866bd43f10876be403a0f4793915bef33",
-          "packageSpecHash": "sha256:d5afdb1b824a714b1ebd71d5d75d904283dd898f8bb0a05459877a77a615bf8a"
+          "packageSpecHash": "sha256:e8953a485d42ced85e8d7f19b7e8deb20b62389eb3dc9e23950608564e288f83"
         },
         "diagnostics": [],
-        "generatedAt": "2026-10-19T13:04:27.000Z"
+        "generatedAt": "2026-11-02T01:27:20.000Z"
       },
       {
         "schemaVersion": "calllint.report.v0",
@@ -273,10 +273,10 @@
             "message": "Remote endpoint identity verified; tool surface not analyzed (evidence: https://mcp.attestari.ai/mcp)"
           }
         ],
-        "generatedAt": "2026-10-19T13:04:27.000Z"
+        "generatedAt": "2026-11-02T01:27:20.000Z"
       }
     ],
     "diagnostics": [],
-    "generatedAt": "2026-10-19T13:04:27.000Z"
+    "generatedAt": "2026-11-02T01:27:20.000Z"
   }
 }

@@ -2,18 +2,18 @@
   "schema": "calllint.trust-page.v0",
   "canonicalName": "mcp-registry/ai.darkfunnels-docs",
   "artifactDigest": "sha256:de7fbc6ba031d0e9de253b115cf781c39cbf5e7705b1b39387eecbbfb8a558dc",
-  "pageDigest": "sha256:8ed3767a769db91c970e8bd347cd4fe0b6714ec4936193c8e9553a21d60dcafd",
+  "pageDigest": "sha256:98c961e4231a433535cfc1cd87af607a2e5cc88273c147c0b98d2ef2c28ace13",
   "verdict": "REVIEW",
   "verdictLabel": "Review required",
-  "observedAt": "2026-10-19T13:04:27.000Z",
+  "observedAt": "2026-11-02T01:27:20.000Z",
   "completeness": "complete",
   "status": {
     "verdict": "REVIEW",
     "completeness": "complete",
     "authorityClaimed": false,
     "reproducibility": {
-      "pageDigest": "sha256:8ed3767a769db91c970e8bd347cd4fe0b6714ec4936193c8e9553a21d60dcafd",
-      "observedAt": "2026-10-19T13:04:27.000Z"
+      "pageDigest": "sha256:98c961e4231a433535cfc1cd87af607a2e5cc88273c147c0b98d2ef2c28ace13",
+      "observedAt": "2026-11-02T01:27:20.000Z"
     },
     "evidenceLevel": "E2",
     "evidenceRationale": "install config observed → static blast radius normalized into an authority inventory. Higher levels (E3 tool schema, E4 maintainer receipt, E5 sandbox) are not carried by a static page."
@@ -26,8 +26,8 @@
   },
   "scanHistory": [
     {
-      "observedAt": "2026-10-19T13:04:27.000Z",
-      "pageDigest": "sha256:8ed3767a769db91c970e8bd347cd4fe0b6714ec4936193c8e9553a21d60dcafd",
+      "observedAt": "2026-11-02T01:27:20.000Z",
+      "pageDigest": "sha256:98c961e4231a433535cfc1cd87af607a2e5cc88273c147c0b98d2ef2c28ace13",
       "artifactDigest": "sha256:de7fbc6ba031d0e9de253b115cf781c39cbf5e7705b1b39387eecbbfb8a558dc"
     }
   ],
@@ -40,7 +40,7 @@
       "requestedRef": null,
       "resolvedRef": "sha256:de7fbc6ba031d0e9de253b115cf781c39cbf5e7705b1b39387eecbbfb8a558dc",
       "digest": "sha256:de7fbc6ba031d0e9de253b115cf781c39cbf5e7705b1b39387eecbbfb8a558dc",
-      "resolvedAt": "2026-10-19T13:04:27.000Z",
+      "resolvedAt": "2026-11-02T01:27:20.000Z",
       "resolution": "resolved"
     },
     "evidence": null,
@@ -84,7 +84,7 @@
       "no external evidence attached (optional); decision will rely on CallLint's own analysis",
       "authority normalized: 1 capability, approvals required: external-network-access"
     ],
-    "preparedAt": "2026-10-19T13:04:27.000Z"
+    "preparedAt": "2026-11-02T01:27:20.000Z"
   },
   "scan": {
     "schemaVersion": "calllint.report.v0",
@@ -220,10 +220,10 @@
             "message": "Remote endpoint identity verified; tool surface not analyzed (evidence: https://docs.darkfunnels.ai/mcp)"
           }
         ],
-        "generatedAt": "2026-10-19T13:04:27.000Z"
+        "generatedAt": "2026-11-02T01:27:20.000Z"
       }
     ],
     "diagnostics": [],
-    "generatedAt": "2026-10-19T13:04:27.000Z"
+    "generatedAt": "2026-11-02T01:27:20.000Z"
   }
 }

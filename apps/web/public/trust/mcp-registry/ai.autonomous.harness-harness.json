@@ -1,0 +1,271 @@
+{
+  "schema": "calllint.trust-page.v0",
+  "canonicalName": "mcp-registry/ai.autonomous.harness-harness",
+  "artifactDigest": "sha256:d4a4e8a94a219ac64621ca09abfd5008f31c91de6419b650768ced79301d81bc",
+  "pageDigest": "sha256:9c6e30cbae39e86ef42bd91a0ccf196ccea945881e52a6cd0691b87066b62f92",
+  "verdict": "REVIEW",
+  "verdictLabel": "Review required",
+  "observedAt": "2026-11-02T01:27:20.000Z",
+  "completeness": "complete",
+  "status": {
+    "verdict": "REVIEW",
+    "completeness": "complete",
+    "authorityClaimed": false,
+    "reproducibility": {
+      "pageDigest": "sha256:9c6e30cbae39e86ef42bd91a0ccf196ccea945881e52a6cd0691b87066b62f92",
+      "observedAt": "2026-11-02T01:27:20.000Z"
+    },
+    "evidenceLevel": "E2",
+    "evidenceRationale": "install config observed → static blast radius normalized into an authority inventory. Higher levels (E3 tool schema, E4 maintainer receipt, E5 sandbox) are not carried by a static page."
+  },
+  "correctionUrl": "https://github.com/calllint/calllint/issues/new?labels=trust-page-correction",
+  "reproduction": {
+    "command": "npx calllint scan official-mcp-registry:ai.autonomous.harness/harness",
+    "artifactDigest": "sha256:d4a4e8a94a219ac64621ca09abfd5008f31c91de6419b650768ced79301d81bc",
+    "note": "Re-running this scan reproduces the verdict observed at the pinned artifact digest. It is a point-in-time observation, not a guarantee of future behavior."
+  },
+  "scanHistory": [
+    {
+      "observedAt": "2026-11-02T01:27:20.000Z",
+      "pageDigest": "sha256:9c6e30cbae39e86ef42bd91a0ccf196ccea945881e52a6cd0691b87066b62f92",
+      "artifactDigest": "sha256:d4a4e8a94a219ac64621ca09abfd5008f31c91de6419b650768ced79301d81bc"
+    }
+  ],
+  "preparation": {
+    "schema": "calllint.trust-preparation.v0",
+    "artifact": {
+      "schema": "calllint.artifact.v1",
+      "sourceType": "mcp-config",
+      "source": "official-mcp-registry:ai.autonomous.harness/harness",
+      "requestedRef": null,
+      "resolvedRef": "sha256:d4a4e8a94a219ac64621ca09abfd5008f31c91de6419b650768ced79301d81bc",
+      "digest": "sha256:d4a4e8a94a219ac64621ca09abfd5008f31c91de6419b650768ced79301d81bc",
+      "resolvedAt": "2026-11-02T01:27:20.000Z",
+      "resolution": "resolved"
+    },
+    "evidence": null,
+    "authority": {
+      "schema": "calllint.authority.v0",
+      "subject": {
+        "artifactDigest": "sha256:d4a4e8a94a219ac64621ca09abfd5008f31c91de6419b650768ced79301d81bc"
+      },
+      "capabilities": [
+        {
+          "action": "execute",
+          "resource": "process",
+          "scope": "npx",
+          "destination": null,
+          "mutability": "mutating",
+          "reversibility": "irreversible",
+          "monetaryLimit": null,
+          "approvalRequirement": "none",
+          "evidenceSource": "server.command",
+          "confidence": "high",
+          "completeness": "complete",
+          "trustSource": "trusted.local_project"
+        },
+        {
+          "action": "execute",
+          "resource": "process",
+          "scope": "https://github.com/autonomous-ai/openharness/releases/download/v0.4.20_cli/harness-mcp.mcpb",
+          "destination": null,
+          "mutability": "mutating",
+          "reversibility": "irreversible",
+          "monetaryLimit": null,
+          "approvalRequirement": "none",
+          "evidenceSource": "server.command",
+          "confidence": "high",
+          "completeness": "complete",
+          "trustSource": "trusted.local_project"
+        }
+      ],
+      "limits": {
+        "spendPerCall": null,
+        "spendTotal": null
+      },
+      "approval": {
+        "required": []
+      },
+      "unknowns": [],
+      "completeness": "complete",
+      "digest": "sha256:295c9c60c1b8ce65197ec2c34a8c55aa920027226c08288521823909b923c883"
+    },
+    "decision": null,
+    "plan": null,
+    "state": "AUTHORITY_NORMALIZED",
+    "notes": [
+      "no external evidence attached (optional); decision will rely on CallLint's own analysis",
+      "authority normalized: 2 capabilities"
+    ],
+    "preparedAt": "2026-11-02T01:27:20.000Z"
+  },
+  "scan": {
+    "schemaVersion": "calllint.report.v0",
+    "reportKind": "config-summary",
+    "configPath": "official-mcp-registry:ai.autonomous.harness/harness",
+    "verdict": "REVIEW",
+    "publicVerdictLabel": "Review required",
+    "counts": {
+      "SAFE": 1,
+      "REVIEW": 1,
+      "BLOCK": 0,
+      "UNKNOWN": 0
+    },
+    "reports": [
+      {
+        "schemaVersion": "calllint.report.v0",
+        "reportKind": "single-target",
+        "target": {
+          "name": "package-1",
+          "kind": "mcp-servers",
+          "source": "@autonomous-ai/harness-mcp",
+          "version": "0.2.0",
+          "configPath": "official-mcp-registry:ai.autonomous.harness/harness"
+        },
+        "verdict": "SAFE",
+        "publicVerdictLabel": "No blockers observed",
+        "policyApplied": false,
+        "riskClass": "S1",
+        "symbols": [],
+        "confidence": "high",
+        "reproducibility": {
+          "level": "HIGH",
+          "reasons": []
+        },
+        "summary": "\"package-1\" has no blockers observed (S1 Read-only utility).",
+        "observed": [],
+        "inferred": [],
+        "findings": [],
+        "topFindings": [],
+        "policy": {
+          "autonomousUse": "allow",
+          "manualApproval": "none",
+          "sandbox": "none"
+        },
+        "fingerprints": {
+          "configHash": "sha256:ea83c54a02a385361e89218509e549c79ee14c6befb57fc01296f72ec1c7111e",
+          "targetSpecHash": "sha256:dbe0bde3f8e3c88992794c2dab4a28c9bf7000c63739cb530e773c8bddc2e7da",
+          "riskSurfaceHash": "sha256:69aae84c996fe93d537b08d906cb339866bd43f10876be403a0f4793915bef33",
+          "packageSpecHash": "sha256:82c53cdd9e6b8d36052189fb8533d1f80e04ea35fce888e7c4993f3a1a38fef1"
+        },
+        "diagnostics": [],
+        "generatedAt": "2026-11-02T01:27:20.000Z"
+      },
+      {
+        "schemaVersion": "calllint.report.v0",
+        "reportKind": "single-target",
+        "target": {
+          "name": "package-2",
+          "kind": "mcp-servers",
+          "configPath": "official-mcp-registry:ai.autonomous.harness/harness"
+        },
+        "verdict": "REVIEW",
+        "publicVerdictLabel": "Review required",
+        "policyApplied": false,
+        "riskClass": "S2",
+        "symbols": [
+          "EXEC"
+        ],
+        "confidence": "medium",
+        "reproducibility": {
+          "level": "HIGH",
+          "reasons": []
+        },
+        "summary": "\"package-2\" needs review. Risk: Exec (S2 Sensitive read).",
+        "observed": [
+          {
+            "id": "exec.unverified-local-source",
+            "title": "Runs an unverified local executable",
+            "severity": "medium",
+            "blocker": false,
+            "symbol": "EXEC",
+            "riskClass": "S2",
+            "mode": "OBSERVED",
+            "confidence": "medium",
+            "detectionMethod": "runtime-binding",
+            "evidence": [
+              {
+                "type": "runtime-binding",
+                "path": "official-mcp-registry:ai.autonomous.harness/harness",
+                "key": "command",
+                "value": "https://github.com/autonomous-ai/openharness/releases/download/v0.4.20_cli/harness-mcp.mcpb",
+                "line": 11,
+                "column": 7
+              }
+            ],
+            "impact": "The runtime executes a local script or binary whose contents CallLint never inspects. It is not a recognized package or pinned image, so what actually runs cannot be verified from the config alone.",
+            "fix": "Confirm you trust the local source, or run it from a pinned, recognized package (e.g. npx pkg@1.2.3 / a pinned docker image) so the runtime is independently verifiable.",
+            "falsePositiveNote": "A developer running their own local server (e.g. node ./dist/server.js) is normal; this flags that the source is not independently verifiable, not that it is malicious."
+          }
+        ],
+        "inferred": [],
+        "findings": [
+          {
+            "id": "exec.unverified-local-source",
+            "title": "Runs an unverified local executable",
+            "severity": "medium",
+            "blocker": false,
+            "symbol": "EXEC",
+            "riskClass": "S2",
+            "mode": "OBSERVED",
+            "confidence": "medium",
+            "detectionMethod": "runtime-binding",
+            "evidence": [
+              {
+                "type": "runtime-binding",
+                "path": "official-mcp-registry:ai.autonomous.harness/harness",
+                "key": "command",
+                "value": "https://github.com/autonomous-ai/openharness/releases/download/v0.4.20_cli/harness-mcp.mcpb",
+                "line": 11,
+                "column": 7
+              }
+            ],
+            "impact": "The runtime executes a local script or binary whose contents CallLint never inspects. It is not a recognized package or pinned image, so what actually runs cannot be verified from the config alone.",
+            "fix": "Confirm you trust the local source, or run it from a pinned, recognized package (e.g. npx pkg@1.2.3 / a pinned docker image) so the runtime is independently verifiable.",
+            "falsePositiveNote": "A developer running their own local server (e.g. node ./dist/server.js) is normal; this flags that the source is not independently verifiable, not that it is malicious."
+          }
+        ],
+        "topFindings": [
+          {
+            "id": "exec.unverified-local-source",
+            "title": "Runs an unverified local executable",
+            "severity": "medium",
+            "blocker": false,
+            "symbol": "EXEC",
+            "riskClass": "S2",
+            "mode": "OBSERVED",
+            "confidence": "medium",
+            "detectionMethod": "runtime-binding",
+            "evidence": [
+              {
+                "type": "runtime-binding",
+                "path": "official-mcp-registry:ai.autonomous.harness/harness",
+                "key": "command",
+                "value": "https://github.com/autonomous-ai/openharness/releases/download/v0.4.20_cli/harness-mcp.mcpb",
+                "line": 11,
+                "column": 7
+              }
+            ],
+            "impact": "The runtime executes a local script or binary whose contents CallLint never inspects. It is not a recognized package or pinned image, so what actually runs cannot be verified from the config alone.",
+            "fix": "Confirm you trust the local source, or run it from a pinned, recognized package (e.g. npx pkg@1.2.3 / a pinned docker image) so the runtime is independently verifiable.",
+            "falsePositiveNote": "A developer running their own local server (e.g. node ./dist/server.js) is normal; this flags that the source is not independently verifiable, not that it is malicious."
+          }
+        ],
+        "policy": {
+          "autonomousUse": "warn",
+          "manualApproval": "recommended",
+          "sandbox": "recommended"
+        },
+        "fingerprints": {
+          "configHash": "sha256:9c48a2449426cbf829b1eaf41fe85ad4737d04dbce0da96ba034a767a9f67157",
+          "targetSpecHash": "sha256:5cd314c41eaca5a9b1f2589eef3701be1ad301ed0b30071fca8a1588c78c7d4a",
+          "riskSurfaceHash": "sha256:89f49ea59b9805b51aab933fe7e81db3ff7eb3a3cb14bd71ca056ce387ce0ada"
+        },
+        "diagnostics": [],
+        "generatedAt": "2026-11-02T01:27:20.000Z"
+      }
+    ],
+    "diagnostics": [],
+    "generatedAt": "2026-11-02T01:27:20.000Z"
+  }
+}

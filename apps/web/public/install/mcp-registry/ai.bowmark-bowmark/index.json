@@ -1,29 +1,29 @@
 {
   "schema": "calllint.agent-adoption-contract.v1",
   "contract": {
-    "contractDigest": "sha256:3e0d7a61fb046ffa7a5a49862b45cea76b06699e1c5d21e3bf65285106ba1767",
-    "generatedAt": "2026-10-19T13:04:27.000Z",
+    "contractDigest": "sha256:ead8d5f0020fd9f662c14d329e2deb11144bd22ee7c6e15e434aa3969c95b7f7",
+    "generatedAt": "2026-11-02T01:27:20.000Z",
     "expiresAt": null,
     "generatorVersion": "0.1.0",
-    "snapshotDigest": "sha256:0970184e2142d785167786209a8863a689cb018f9bad377d6048a3b7e654bb82"
+    "snapshotDigest": "sha256:88a1d340b6b950849ecfad2693745c54117dea1bf388f28c8b7a89d2deab198d"
   },
   "subject": {
     "canonicalName": "mcp-registry/ai.bowmark-bowmark",
     "canonicalSlug": "mcp-registry/ai.bowmark-bowmark",
     "packageType": "pypi",
     "packageName": "bowmark-mcp",
-    "version": "2.1.0",
-    "artifactDigest": "sha256:b3e0d0aef65f70fd020a05e9e16a5973fe8d46477611c95bbfaff39deb096e90",
-    "sourceLocator": "pypi:bowmark-mcp@2.1.0"
+    "version": "2.1.1",
+    "artifactDigest": "sha256:aee1f3c1f67b0c694e466ee1dd0d940320417344d93e2fcf97cab56d4c7f0224",
+    "sourceLocator": "pypi:bowmark-mcp@2.1.1"
   },
   "publicObservation": {
-    "verdict": "UNKNOWN",
-    "publicLabel": "Insufficient evidence",
+    "verdict": "REVIEW",
+    "publicLabel": "Review required",
     "reasonCodes": [
       "UNKNOWN_REMOTE"
     ],
     "evidenceLevel": "E2",
-    "evidenceDigest": "sha256:b9381aff028bedb776950d19f78c2a50ab9f2002513c9ded5eb3135f5ccd9a7a",
+    "evidenceDigest": "sha256:4decdd32f2f7e01d08e2303f2bdf3926a09d22c7517f9000c1c44fa8b4b5410b",
     "completeness": "complete"
   },
   "authorityDelta": {
@@ -44,17 +44,24 @@
     ]
   },
   "trustedSources": {
-    "registrySnapshotDigest": "sha256:0970184e2142d785167786209a8863a689cb018f9bad377d6048a3b7e654bb82",
-    "evidenceDigest": "sha256:b9381aff028bedb776950d19f78c2a50ab9f2002513c9ded5eb3135f5ccd9a7a",
+    "registrySnapshotDigest": "sha256:88a1d340b6b950849ecfad2693745c54117dea1bf388f28c8b7a89d2deab198d",
+    "evidenceDigest": "sha256:4decdd32f2f7e01d08e2303f2bdf3926a09d22c7517f9000c1c44fa8b4b5410b",
     "engineVersion": "0.1.0"
   },
   "untrustedPublisherContent": {
-    "description": "Do things on live websites: prices, availability, quotes, bookings, anything behind a form or login.",
+    "description": "Web scraping and automation for AI agents: live prices, quotes, bookings, anything behind a login.",
     "usedForSafetyDecision": false
   },
   "recommendedNextAction": {
-    "kind": "LOCAL_PREFLIGHT_REQUIRED",
-    "tool": "calllint_prepare_safe_install"
+    "kind": "PREPARE_LOCALLY",
+    "tool": "calllint_prepare_safe_install",
+    "arguments": {
+      "canonicalName": "mcp-registry/ai.bowmark-bowmark",
+      "expectedVersion": "2.1.1",
+      "expectedArtifactDigest": "sha256:aee1f3c1f67b0c694e466ee1dd0d940320417344d93e2fcf97cab56d4c7f0224",
+      "expectedContractDigest": "sha256:ead8d5f0020fd9f662c14d329e2deb11144bd22ee7c6e15e434aa3969c95b7f7",
+      "host": null
+    }
   },
   "agentGuidance": {
     "goal": "Add the requested Agent Tool with only locally approved authority.",

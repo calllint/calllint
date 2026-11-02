@@ -1,18 +1,18 @@
 {
   "schema": "calllint.agent-adoption-contract.v1",
   "contract": {
-    "contractDigest": "sha256:a94bb69f61106b856f65c1524f654e5d26eb7ee93451d3a0e8574f104bfa5827",
-    "generatedAt": "2026-10-19T13:04:27.000Z",
+    "contractDigest": "sha256:40c5a6389cd6be164337da6a80fe33c93292514f1a16bb0643e88eff6312c224",
+    "generatedAt": "2026-11-02T01:27:20.000Z",
     "expiresAt": null,
     "generatorVersion": "0.1.0",
-    "snapshotDigest": "sha256:0970184e2142d785167786209a8863a689cb018f9bad377d6048a3b7e654bb82"
+    "snapshotDigest": "sha256:88a1d340b6b950849ecfad2693745c54117dea1bf388f28c8b7a89d2deab198d"
   },
   "subject": {
     "canonicalName": "mcp-registry/ai.dripmetrics-mcp",
     "canonicalSlug": "mcp-registry/ai.dripmetrics-mcp",
     "packageType": null,
     "packageName": null,
-    "version": "1.0.0",
+    "version": "1.0.2",
     "artifactDigest": "sha256:ee94a93b9e7423a765cb772fb4d5d739a48a67038f468c6915540a0a4b7196f4",
     "sourceLocator": "https://mcp.dripmetrics.ai/mcp"
   },
@@ -23,7 +23,7 @@
       "UNKNOWN_REMOTE"
     ],
     "evidenceLevel": "E2",
-    "evidenceDigest": "sha256:b9381aff028bedb776950d19f78c2a50ab9f2002513c9ded5eb3135f5ccd9a7a",
+    "evidenceDigest": "sha256:4decdd32f2f7e01d08e2303f2bdf3926a09d22c7517f9000c1c44fa8b4b5410b",
     "completeness": "complete"
   },
   "authorityDelta": {
@@ -44,12 +44,12 @@
     ]
   },
   "trustedSources": {
-    "registrySnapshotDigest": "sha256:0970184e2142d785167786209a8863a689cb018f9bad377d6048a3b7e654bb82",
-    "evidenceDigest": "sha256:b9381aff028bedb776950d19f78c2a50ab9f2002513c9ded5eb3135f5ccd9a7a",
+    "registrySnapshotDigest": "sha256:88a1d340b6b950849ecfad2693745c54117dea1bf388f28c8b7a89d2deab198d",
+    "evidenceDigest": "sha256:4decdd32f2f7e01d08e2303f2bdf3926a09d22c7517f9000c1c44fa8b4b5410b",
     "engineVersion": "0.1.0"
   },
   "untrustedPublisherContent": {
-    "description": "Crypto market microstructure, options, and on-chain metrics. Free discovery; $0.05/call via x402.",
+    "description": "Institutional-grade market microstructure, a cent at a time. x402: Base USDC or Robinhood USDG.",
     "usedForSafetyDecision": false
   },
   "recommendedNextAction": {
@@ -57,9 +57,9 @@
     "tool": "calllint_prepare_safe_install",
     "arguments": {
       "canonicalName": "mcp-registry/ai.dripmetrics-mcp",
-      "expectedVersion": "1.0.0",
+      "expectedVersion": "1.0.2",
       "expectedArtifactDigest": "sha256:ee94a93b9e7423a765cb772fb4d5d739a48a67038f468c6915540a0a4b7196f4",
-      "expectedContractDigest": "sha256:a94bb69f61106b856f65c1524f654e5d26eb7ee93451d3a0e8574f104bfa5827",
+      "expectedContractDigest": "sha256:40c5a6389cd6be164337da6a80fe33c93292514f1a16bb0643e88eff6312c224",
       "host": null
     }
   },

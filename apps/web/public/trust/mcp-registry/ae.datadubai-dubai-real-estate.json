@@ -2,18 +2,18 @@
   "schema": "calllint.trust-page.v0",
   "canonicalName": "mcp-registry/ae.datadubai-dubai-real-estate",
   "artifactDigest": "sha256:7513c0ac345e307426dcadbf33e51caba6cd5cf9fad023b4fbcd7515b2737707",
-  "pageDigest": "sha256:5280569a7bc33dd4f9a502a05b98cf9df43ceaf620123bf27c2d80ef940f0737",
-  "verdict": "REVIEW",
-  "verdictLabel": "Review required",
-  "observedAt": "2026-10-19T13:04:27.000Z",
+  "pageDigest": "sha256:3b1c3167f08930e468eeb720c4550a6ee88e267cbc8667f61d8c91ddd10f69a9",
+  "verdict": "UNKNOWN",
+  "verdictLabel": "Insufficient evidence",
+  "observedAt": "2026-11-02T01:27:20.000Z",
   "completeness": "complete",
   "status": {
-    "verdict": "REVIEW",
+    "verdict": "UNKNOWN",
     "completeness": "complete",
     "authorityClaimed": false,
     "reproducibility": {
-      "pageDigest": "sha256:5280569a7bc33dd4f9a502a05b98cf9df43ceaf620123bf27c2d80ef940f0737",
-      "observedAt": "2026-10-19T13:04:27.000Z"
+      "pageDigest": "sha256:3b1c3167f08930e468eeb720c4550a6ee88e267cbc8667f61d8c91ddd10f69a9",
+      "observedAt": "2026-11-02T01:27:20.000Z"
     },
     "evidenceLevel": "E2",
     "evidenceRationale": "install config observed → static blast radius normalized into an authority inventory. Higher levels (E3 tool schema, E4 maintainer receipt, E5 sandbox) are not carried by a static page."
@@ -26,8 +26,8 @@
   },
   "scanHistory": [
     {
-      "observedAt": "2026-10-19T13:04:27.000Z",
-      "pageDigest": "sha256:5280569a7bc33dd4f9a502a05b98cf9df43ceaf620123bf27c2d80ef940f0737",
+      "observedAt": "2026-11-02T01:27:20.000Z",
+      "pageDigest": "sha256:3b1c3167f08930e468eeb720c4550a6ee88e267cbc8667f61d8c91ddd10f69a9",
       "artifactDigest": "sha256:7513c0ac345e307426dcadbf33e51caba6cd5cf9fad023b4fbcd7515b2737707"
     }
   ],
@@ -40,7 +40,7 @@
       "requestedRef": null,
       "resolvedRef": "sha256:7513c0ac345e307426dcadbf33e51caba6cd5cf9fad023b4fbcd7515b2737707",
       "digest": "sha256:7513c0ac345e307426dcadbf33e51caba6cd5cf9fad023b4fbcd7515b2737707",
-      "resolvedAt": "2026-10-19T13:04:27.000Z",
+      "resolvedAt": "2026-11-02T01:27:20.000Z",
       "resolution": "resolved"
     },
     "evidence": null,
@@ -84,19 +84,19 @@
       "no external evidence attached (optional); decision will rely on CallLint's own analysis",
       "authority normalized: 1 capability, approvals required: external-network-access"
     ],
-    "preparedAt": "2026-10-19T13:04:27.000Z"
+    "preparedAt": "2026-11-02T01:27:20.000Z"
   },
   "scan": {
     "schemaVersion": "calllint.report.v0",
     "reportKind": "config-summary",
     "configPath": "official-mcp-registry:ae.datadubai/dubai-real-estate",
-    "verdict": "REVIEW",
-    "publicVerdictLabel": "Review required",
+    "verdict": "UNKNOWN",
+    "publicVerdictLabel": "Insufficient evidence",
     "counts": {
       "SAFE": 0,
-      "REVIEW": 1,
+      "REVIEW": 0,
       "BLOCK": 0,
-      "UNKNOWN": 0
+      "UNKNOWN": 1
     },
     "reports": [
       {
@@ -108,8 +108,8 @@
           "source": "https://mcp.datadubai.ae/mcp",
           "configPath": "official-mcp-registry:ae.datadubai/dubai-real-estate"
         },
-        "verdict": "REVIEW",
-        "publicVerdictLabel": "Review required",
+        "verdict": "UNKNOWN",
+        "publicVerdictLabel": "Insufficient evidence",
         "policyApplied": false,
         "riskClass": "S1",
         "symbols": [
@@ -117,10 +117,9 @@
         ],
         "confidence": "high",
         "reproducibility": {
-          "level": "LOW",
+          "level": "MEDIUM",
           "reasons": [
-            "Remote endpoint domain ownership not verified",
-            "Remote endpoint identity verified; tool surface not analyzed"
+            "Remote endpoint could not be verified"
           ]
         },
         "summary": "\"remote\" could not be verified (insufficient evidence). Risk: Network (S1 Read-only utility).",
@@ -213,17 +212,11 @@
           "targetSpecHash": "sha256:1507d6967edef17f9659f4b4b6732533e9736d5f2eeb10852976a5c663d09318",
           "riskSurfaceHash": "sha256:47e9d20255a346b95323c2cb9e092621521638b987bbcd036e68e4aee12dcaf3"
         },
-        "diagnostics": [
-          {
-            "level": "info",
-            "code": "evidence.remote-identity-verified",
-            "message": "Remote endpoint identity verified; tool surface not analyzed (evidence: https://mcp.datadubai.ae/mcp)"
-          }
-        ],
-        "generatedAt": "2026-10-19T13:04:27.000Z"
+        "diagnostics": [],
+        "generatedAt": "2026-11-02T01:27:20.000Z"
       }
     ],
     "diagnostics": [],
-    "generatedAt": "2026-10-19T13:04:27.000Z"
+    "generatedAt": "2026-11-02T01:27:20.000Z"
   }
 }

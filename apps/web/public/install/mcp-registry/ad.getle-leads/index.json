@@ -1,18 +1,18 @@
 {
   "schema": "calllint.agent-adoption-contract.v1",
   "contract": {
-    "contractDigest": "sha256:aff664f631bfc173f680d1a79f0c4210fd572bf7533c0853de81701a2c325583",
-    "generatedAt": "2026-10-19T13:04:27.000Z",
+    "contractDigest": "sha256:5d8498feee225f993f059003326b255183c5676c8637d8abb43ee78b8c8ca9db",
+    "generatedAt": "2026-11-02T01:27:20.000Z",
     "expiresAt": null,
     "generatorVersion": "0.1.0",
-    "snapshotDigest": "sha256:0970184e2142d785167786209a8863a689cb018f9bad377d6048a3b7e654bb82"
+    "snapshotDigest": "sha256:88a1d340b6b950849ecfad2693745c54117dea1bf388f28c8b7a89d2deab198d"
   },
   "subject": {
     "canonicalName": "mcp-registry/ad.getle-leads",
     "canonicalSlug": "mcp-registry/ad.getle-leads",
     "packageType": null,
     "packageName": null,
-    "version": "1.0.0",
+    "version": "1.0.1",
     "artifactDigest": "sha256:8797366daf6942068ae5be6b688c918de98e333a04bae37c413b956927093330",
     "sourceLocator": "https://mcp.getle.ad/mcp"
   },
@@ -23,7 +23,7 @@
       "UNKNOWN_REMOTE"
     ],
     "evidenceLevel": "E2",
-    "evidenceDigest": "sha256:b9381aff028bedb776950d19f78c2a50ab9f2002513c9ded5eb3135f5ccd9a7a",
+    "evidenceDigest": "sha256:4decdd32f2f7e01d08e2303f2bdf3926a09d22c7517f9000c1c44fa8b4b5410b",
     "completeness": "complete"
   },
   "authorityDelta": {
@@ -44,8 +44,8 @@
     ]
   },
   "trustedSources": {
-    "registrySnapshotDigest": "sha256:0970184e2142d785167786209a8863a689cb018f9bad377d6048a3b7e654bb82",
-    "evidenceDigest": "sha256:b9381aff028bedb776950d19f78c2a50ab9f2002513c9ded5eb3135f5ccd9a7a",
+    "registrySnapshotDigest": "sha256:88a1d340b6b950849ecfad2693745c54117dea1bf388f28c8b7a89d2deab198d",
+    "evidenceDigest": "sha256:4decdd32f2f7e01d08e2303f2bdf3926a09d22c7517f9000c1c44fa8b4b5410b",
     "engineVersion": "0.1.0"
   },
   "untrustedPublisherContent": {
@@ -57,9 +57,9 @@
     "tool": "calllint_prepare_safe_install",
     "arguments": {
       "canonicalName": "mcp-registry/ad.getle-leads",
-      "expectedVersion": "1.0.0",
+      "expectedVersion": "1.0.1",
       "expectedArtifactDigest": "sha256:8797366daf6942068ae5be6b688c918de98e333a04bae37c413b956927093330",
-      "expectedContractDigest": "sha256:aff664f631bfc173f680d1a79f0c4210fd572bf7533c0853de81701a2c325583",
+      "expectedContractDigest": "sha256:5d8498feee225f993f059003326b255183c5676c8637d8abb43ee78b8c8ca9db",
       "host": null
     }
   },
