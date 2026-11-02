@@ -77,6 +77,8 @@ describe("pages-entry: the canonical-host decision", () => {
     const dead = await entry.fetch(get(PREVIEW), envWith("absent"))
     expect(dead.status).toBe(301)
     expect(dead.headers.get("x-calllint-report")).toBe("absent")
+    // A fresh deployment's asset lookup may recover. Do not cache absence for an hour.
+    expect(dead.headers.get("cache-control")).toBe("no-store")
   })
 
   it("an asset-server fault reads absent, and never throws away the request", async () => {

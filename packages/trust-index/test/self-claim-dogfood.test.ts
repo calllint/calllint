@@ -34,6 +34,7 @@ import {
   DEFAULT_OUT,
   loadSnapshotIfPresent,
   loadEvidenceSnapshotIfPresent,
+  loadClaimStoreIfPresent,
 } from "../src/bake.js"
 import { registryRepoIndex } from "../src/reconcileClaims.js"
 import { EMPTY_CLAIM_STORE, type ClaimStore } from "../src/claim.js"
@@ -266,16 +267,26 @@ describe("Phase 2.5-A — self-claim production dogfood (activate → revoke →
     expect(r.overlay).toBeUndefined()
     expect((re.overlay as { owner?: string } | undefined)?.owner).toBe(SELF_CLAIM.account)
 
-    // Strongest production tie: the REACTIVATE overlay byte-equals the committed served
-    // page's own overlay (owner + verifiedAt + observedArtifactDigest). The committed page
-    // is now the REACTIVATED page (the live lifecycle completed 3/3), so the current served
-    // overlay carries the reactivate-leg `verifiedAt`. The served overlay carries no
-    // scopeDigest, so this holds regardless of the real installation scope — it depends only
-    // on the claimed coordinates, which are CallLint's real ones.
+    // A fresh lifecycle observes today's artifact; the committed claim preserves
+    // the digest observed at its historical verification (ADR 0048 / ADR 0101).
+    // Assert both bindings instead of requiring history to equal the current version.
+    expect(re.overlay).toEqual({
+      owner: SELF_CLAIM.account,
+      verifiedAt: TIMESTAMPS.reactivate,
+      observedArtifactDigest: bakedDigests.get(SELF_CLAIM.canonicalName),
+    })
+    const claims = loadClaimStoreIfPresent().records.filter((record) =>
+      record.status === "active" && record.registryNamespace === undefined &&
+      record.canonicalName === SELF_CLAIM.canonicalName)
+    expect(claims).toHaveLength(1)
     const committed = JSON.parse(
       readFileSync(join(DEFAULT_OUT, `${SELF_CLAIM.canonicalName}.json`), "utf8"),
     ) as { verifiedPublisher?: unknown }
-    expect(re.overlay).toEqual(committed.verifiedPublisher)
+    expect(committed.verifiedPublisher).toEqual({
+      owner: claims[0]!.owner,
+      verifiedAt: claims[0]!.verifiedAt,
+      observedArtifactDigest: claims[0]!.artifactDigest,
+    })
   },
   )
 })

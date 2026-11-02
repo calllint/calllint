@@ -94,7 +94,9 @@ export default {
         // Not report content — one word, so §29's "must not be world-readable" holds.
         "x-calllint-report": present,
         "x-robots-tag": "noindex, nofollow, noarchive",
-        "cache-control": "public, max-age=3600",
+        // Absence may be an asset propagation delay or a failed asset lookup.
+        // Cache only a positive observation; a stale negative would defeat retries.
+        "cache-control": present === "present" ? "public, max-age=3600" : "no-store",
       },
     })
   },

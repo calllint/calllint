@@ -337,7 +337,7 @@ describe("private usage deploy gate — §29 stays fail-closed", () => {
   // one edit away from being the thing the old comment (correctly) warned against, so the
   // shape is pinned here rather than trusted to prose.
 
-  it("retries ONLY the not-yet-there codes, and never the exists-but-wrong ones", () => {
+  it("retries transport or asset absence, while rejecting content exposure immediately", () => {
     // Sliced to the loop's own `done`, not to the verdict block: the header extraction sits
     // between them and is legitimately outside the retry gate.
     const fromAttempts = probeBody.slice(probeBody.indexOf("attempts=6"))
@@ -347,10 +347,11 @@ describe("private usage deploy gate — §29 stays fail-closed", () => {
     for (const code of ["000", "404", "522"]) {
       expect(loop, `HTTP ${code} means "not there" and is retryable`).toContain(`"$dcode" != "${code}"`)
     }
-    // 200 (entry did not run → U-1 reopened) and 301-with-absent (gated-but-dead) are the
-    // states a sleep would hide. They must not appear as retry conditions at all.
+    // ADR 0101: a worker can route before its asset lookup succeeds. An absent
+    // header value may retry; a missing/unknown header never supplies liveness.
     expect(loop, "a 200 must red on the FIRST read — retrying it is the blindfold").not.toMatch(/\$dcode.{0,12}200/)
-    expect(loop, "and the report header must not be consulted inside the retry gate").not.toMatch(/x-calllint-report/i)
+    expect(loop).toContain('"$dcode" = "301"')
+    expect(loop).toContain('"$report" = "absent"')
   })
 
   it("an exhausted retry still fails, so the guard keeps its teeth", () => {
