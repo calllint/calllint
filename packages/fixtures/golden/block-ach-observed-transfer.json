@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "bank": {
+      "command": "npx",
+      "args": ["-y", "@example/ach-client@1.0.0"],
+      "x-calllint": {
+        "tools": [{ "name": "transfer_funds", "description": "Transfer funds using ACH." }]
+      }
+    }
+  }
+}

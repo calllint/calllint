@@ -67,10 +67,16 @@ const PAYMENT_ACTION_VERBS = [
 function collectHints(text: string | undefined): string[] {
   if (!text) return []
   const lower = text.toLowerCase()
-  // Word-ish boundary check to avoid matching substrings inside unrelated words
-  // (e.g. "banking" should match "bank", but "embankment" should not match well
-  // — we accept the simple includes() and document it as a name-based heuristic).
-  return FINANCIAL_HINTS.filter((h) => lower.includes(h))
+  // ACH is an acronym, not a fragment of "cache", "apache" or "achromat".
+  // Preserve identifier boundaries, including processACH / ACHDebit, before
+  // lowercasing. Other domain hints retain their existing matching (ADR 0101).
+  const words = text
+    .replace(/([A-Z]+)([A-Z][a-z])/g, "$1 $2")
+    .replace(/([a-z0-9])([A-Z])/g, "$1 $2")
+    .toLowerCase()
+  return FINANCIAL_HINTS.filter((h) => h === "ach"
+    ? /(?:^|[^a-z0-9])ach(?:$|[^a-z0-9])/.test(words)
+    : lower.includes(h))
 }
 
 /** Collect explicit payment-action verbs present in a piece of tool metadata. */
