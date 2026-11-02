@@ -1,4 +1,4 @@
-import { copyFile, mkdir } from "node:fs/promises"
+import { copyFile, mkdir, readFile, writeFile } from "node:fs/promises"
 import { dirname, join } from "node:path"
 import { fileURLToPath } from "node:url"
 
@@ -19,6 +19,21 @@ await mkdir(pub, { recursive: true })
 for (const [src, dest] of files) {
   await copyFile(join(brand, src), join(pub, dest))
 }
+
+// Pages without an explicit icon link use the browser's /favicon.ico fallback.
+// ICO supports PNG image data: wrap the same 32px brand PNG in one directory
+// entry, keeping both formats deterministic and derived from the same source.
+const favicon = await readFile(join(brand, "favicon-32.png"))
+const iconDirectory = Buffer.alloc(22)
+iconDirectory.writeUInt16LE(1, 2) // image type: icon
+iconDirectory.writeUInt16LE(1, 4) // one image
+iconDirectory[6] = 32
+iconDirectory[7] = 32
+iconDirectory.writeUInt16LE(1, 10) // color planes
+iconDirectory.writeUInt16LE(32, 12) // RGBA bits per pixel
+iconDirectory.writeUInt32LE(favicon.length, 14)
+iconDirectory.writeUInt32LE(iconDirectory.length, 18)
+await writeFile(join(pub, "favicon.ico"), Buffer.concat([iconDirectory, favicon]))
 
 // The L0 token plane (Workstream P PR P-4b). Authored in apps/web/styles/ — outside
 // public/ — and copied in, so the served tree stays a build OUTPUT: the same split the
