@@ -2,18 +2,18 @@
   "schema": "calllint.trust-page.v0",
   "canonicalName": "mcp-registry/ai.com.mcp-lenny-rachitsky-podcast",
   "artifactDigest": "sha256:93b362af2edcf7752ad084d4795fec82afbdcea421d3348b135c812a94aee2e1",
-  "pageDigest": "sha256:5d9c0b787beaa3344c8ccc20fb5d66640cf0539e6e9e8f07b8f60219f8a4b21d",
+  "pageDigest": "sha256:41d6bcc92d4a4add13b89ad126d2d081037615bc8499573f1e6ecad640729033",
   "verdict": "REVIEW",
   "verdictLabel": "Review required",
-  "observedAt": "2026-11-02T01:27:20.000Z",
+  "observedAt": "2026-11-02T15:41:10.000Z",
   "completeness": "complete",
   "status": {
     "verdict": "REVIEW",
     "completeness": "complete",
     "authorityClaimed": false,
     "reproducibility": {
-      "pageDigest": "sha256:5d9c0b787beaa3344c8ccc20fb5d66640cf0539e6e9e8f07b8f60219f8a4b21d",
-      "observedAt": "2026-11-02T01:27:20.000Z"
+      "pageDigest": "sha256:41d6bcc92d4a4add13b89ad126d2d081037615bc8499573f1e6ecad640729033",
+      "observedAt": "2026-11-02T15:41:10.000Z"
     },
     "evidenceLevel": "E2",
     "evidenceRationale": "install config observed → static blast radius normalized into an authority inventory. Higher levels (E3 tool schema, E4 maintainer receipt, E5 sandbox) are not carried by a static page."
@@ -26,8 +26,8 @@
   },
   "scanHistory": [
     {
-      "observedAt": "2026-11-02T01:27:20.000Z",
-      "pageDigest": "sha256:5d9c0b787beaa3344c8ccc20fb5d66640cf0539e6e9e8f07b8f60219f8a4b21d",
+      "observedAt": "2026-11-02T15:41:10.000Z",
+      "pageDigest": "sha256:41d6bcc92d4a4add13b89ad126d2d081037615bc8499573f1e6ecad640729033",
       "artifactDigest": "sha256:93b362af2edcf7752ad084d4795fec82afbdcea421d3348b135c812a94aee2e1"
     }
   ],
@@ -40,7 +40,7 @@
       "requestedRef": null,
       "resolvedRef": "sha256:93b362af2edcf7752ad084d4795fec82afbdcea421d3348b135c812a94aee2e1",
       "digest": "sha256:93b362af2edcf7752ad084d4795fec82afbdcea421d3348b135c812a94aee2e1",
-      "resolvedAt": "2026-11-02T01:27:20.000Z",
+      "resolvedAt": "2026-11-02T15:41:10.000Z",
       "resolution": "resolved"
     },
     "evidence": null,
@@ -84,7 +84,7 @@
       "no external evidence attached (optional); decision will rely on CallLint's own analysis",
       "authority normalized: 1 capability, approvals required: external-network-access"
     ],
-    "preparedAt": "2026-11-02T01:27:20.000Z"
+    "preparedAt": "2026-11-02T15:41:10.000Z"
   },
   "scan": {
     "schemaVersion": "calllint.report.v0",
@@ -220,10 +220,10 @@
             "message": "Remote endpoint identity verified; tool surface not analyzed (evidence: https://lenny-rachitsky.run.mcp.com.ai/mcp)"
           }
         ],
-        "generatedAt": "2026-11-02T01:27:20.000Z"
+        "generatedAt": "2026-11-02T15:41:10.000Z"
       }
     ],
     "diagnostics": [],
-    "generatedAt": "2026-11-02T01:27:20.000Z"
+    "generatedAt": "2026-11-02T15:41:10.000Z"
   }
 }

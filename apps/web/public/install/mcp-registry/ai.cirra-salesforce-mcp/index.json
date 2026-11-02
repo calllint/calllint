@@ -1,11 +1,11 @@
 {
   "schema": "calllint.agent-adoption-contract.v1",
   "contract": {
-    "contractDigest": "sha256:a4dac1c0e170be3e755082659651abfeb5010183d6fc150ff5ea0eef1cb94a5b",
-    "generatedAt": "2026-11-02T01:27:20.000Z",
+    "contractDigest": "sha256:65233b349a6d76a8f0c1ebebec2232360994286c5ecce8c0e84f318e2db60a6c",
+    "generatedAt": "2026-11-02T15:41:10.000Z",
     "expiresAt": null,
     "generatorVersion": "0.1.0",
-    "snapshotDigest": "sha256:88a1d340b6b950849ecfad2693745c54117dea1bf388f28c8b7a89d2deab198d"
+    "snapshotDigest": "sha256:abfd22619efeb6eec57932583c000e61482ec9d899767cfa52000e07d99bc17f"
   },
   "subject": {
     "canonicalName": "mcp-registry/ai.cirra-salesforce-mcp",
@@ -23,7 +23,7 @@
       "UNKNOWN_REMOTE"
     ],
     "evidenceLevel": "E2",
-    "evidenceDigest": "sha256:4decdd32f2f7e01d08e2303f2bdf3926a09d22c7517f9000c1c44fa8b4b5410b",
+    "evidenceDigest": "sha256:3695fa19797d77b115cdfa00b627bc426f8815788f4953cfb680fa0d0ee70416",
     "completeness": "complete"
   },
   "authorityDelta": {
@@ -44,8 +44,8 @@
     ]
   },
   "trustedSources": {
-    "registrySnapshotDigest": "sha256:88a1d340b6b950849ecfad2693745c54117dea1bf388f28c8b7a89d2deab198d",
-    "evidenceDigest": "sha256:4decdd32f2f7e01d08e2303f2bdf3926a09d22c7517f9000c1c44fa8b4b5410b",
+    "registrySnapshotDigest": "sha256:abfd22619efeb6eec57932583c000e61482ec9d899767cfa52000e07d99bc17f",
+    "evidenceDigest": "sha256:3695fa19797d77b115cdfa00b627bc426f8815788f4953cfb680fa0d0ee70416",
     "engineVersion": "0.1.0"
   },
   "untrustedPublisherContent": {
@@ -59,7 +59,7 @@
       "canonicalName": "mcp-registry/ai.cirra-salesforce-mcp",
       "expectedVersion": "1.0.2",
       "expectedArtifactDigest": "sha256:f98d9d14fdfd0df799e2bc719df4b3d0f606dd2b7a5218287b949845145d01ea",
-      "expectedContractDigest": "sha256:a4dac1c0e170be3e755082659651abfeb5010183d6fc150ff5ea0eef1cb94a5b",
+      "expectedContractDigest": "sha256:65233b349a6d76a8f0c1ebebec2232360994286c5ecce8c0e84f318e2db60a6c",
       "host": null
     }
   },

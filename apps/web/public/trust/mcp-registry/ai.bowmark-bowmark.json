@@ -2,18 +2,18 @@
   "schema": "calllint.trust-page.v0",
   "canonicalName": "mcp-registry/ai.bowmark-bowmark",
   "artifactDigest": "sha256:aee1f3c1f67b0c694e466ee1dd0d940320417344d93e2fcf97cab56d4c7f0224",
-  "pageDigest": "sha256:66c4632ee98b097c0640d650a1b1a06264c678291d01624f65990b275643880c",
+  "pageDigest": "sha256:155d27ea0d99c12a74c55ca0cc3c1fb22a8d58452f77e4a916d8bc063f88cf0c",
   "verdict": "REVIEW",
   "verdictLabel": "Review required",
-  "observedAt": "2026-11-02T01:27:20.000Z",
+  "observedAt": "2026-11-02T15:41:10.000Z",
   "completeness": "complete",
   "status": {
     "verdict": "REVIEW",
     "completeness": "complete",
     "authorityClaimed": false,
     "reproducibility": {
-      "pageDigest": "sha256:66c4632ee98b097c0640d650a1b1a06264c678291d01624f65990b275643880c",
-      "observedAt": "2026-11-02T01:27:20.000Z"
+      "pageDigest": "sha256:155d27ea0d99c12a74c55ca0cc3c1fb22a8d58452f77e4a916d8bc063f88cf0c",
+      "observedAt": "2026-11-02T15:41:10.000Z"
     },
     "evidenceLevel": "E2",
     "evidenceRationale": "install config observed → static blast radius normalized into an authority inventory. Higher levels (E3 tool schema, E4 maintainer receipt, E5 sandbox) are not carried by a static page."
@@ -26,8 +26,8 @@
   },
   "scanHistory": [
     {
-      "observedAt": "2026-11-02T01:27:20.000Z",
-      "pageDigest": "sha256:66c4632ee98b097c0640d650a1b1a06264c678291d01624f65990b275643880c",
+      "observedAt": "2026-11-02T15:41:10.000Z",
+      "pageDigest": "sha256:155d27ea0d99c12a74c55ca0cc3c1fb22a8d58452f77e4a916d8bc063f88cf0c",
       "artifactDigest": "sha256:aee1f3c1f67b0c694e466ee1dd0d940320417344d93e2fcf97cab56d4c7f0224"
     }
   ],
@@ -40,7 +40,7 @@
       "requestedRef": null,
       "resolvedRef": "sha256:aee1f3c1f67b0c694e466ee1dd0d940320417344d93e2fcf97cab56d4c7f0224",
       "digest": "sha256:aee1f3c1f67b0c694e466ee1dd0d940320417344d93e2fcf97cab56d4c7f0224",
-      "resolvedAt": "2026-11-02T01:27:20.000Z",
+      "resolvedAt": "2026-11-02T15:41:10.000Z",
       "resolution": "resolved"
     },
     "evidence": null,
@@ -112,7 +112,7 @@
       "no external evidence attached (optional); decision will rely on CallLint's own analysis",
       "authority normalized: 3 capabilities, approvals required: external-network-access"
     ],
-    "preparedAt": "2026-11-02T01:27:20.000Z"
+    "preparedAt": "2026-11-02T15:41:10.000Z"
   },
   "scan": {
     "schemaVersion": "calllint.report.v0",
@@ -164,7 +164,7 @@
           "packageSpecHash": "sha256:7d0f943d1a9d4b7a26497b9f9ef1d0287c4ef2b25c3179d54b43e32714210d4e"
         },
         "diagnostics": [],
-        "generatedAt": "2026-11-02T01:27:20.000Z"
+        "generatedAt": "2026-11-02T15:41:10.000Z"
       },
       {
         "schemaVersion": "calllint.report.v0",
@@ -203,7 +203,7 @@
           "packageSpecHash": "sha256:a0cf93e4561ea69c49b2eeeb6e28d1f4c4a3f4f3af6c9570b716224ae6d972f9"
         },
         "diagnostics": [],
-        "generatedAt": "2026-11-02T01:27:20.000Z"
+        "generatedAt": "2026-11-02T15:41:10.000Z"
       },
       {
         "schemaVersion": "calllint.report.v0",
@@ -326,10 +326,10 @@
             "message": "Remote endpoint identity verified; tool surface not analyzed (evidence: https://api.bowmark.ai/mcp/registry)"
           }
         ],
-        "generatedAt": "2026-11-02T01:27:20.000Z"
+        "generatedAt": "2026-11-02T15:41:10.000Z"
       }
     ],
     "diagnostics": [],
-    "generatedAt": "2026-11-02T01:27:20.000Z"
+    "generatedAt": "2026-11-02T15:41:10.000Z"
   }
 }
