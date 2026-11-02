@@ -2,18 +2,18 @@
   "schema": "calllint.trust-page.v0",
   "canonicalName": "mcp-registry/aero.events-events",
   "artifactDigest": "sha256:f37a125121f3191fe14636b4f37f9bb90ac2139527dc5c0c1d6fa7cb8260b5fa",
-  "pageDigest": "sha256:3d8f97b318d56a422fb34f9e9691a810c27af9447b26c442a86d0638f67e3741",
+  "pageDigest": "sha256:43e3cc489b3f4dfaeafc6eaac529ffc69b1324596dc416bbc04971d6f1c044fe",
   "verdict": "REVIEW",
   "verdictLabel": "Review required",
-  "observedAt": "2026-11-02T01:27:20.000Z",
+  "observedAt": "2026-11-02T15:41:10.000Z",
   "completeness": "complete",
   "status": {
     "verdict": "REVIEW",
     "completeness": "complete",
     "authorityClaimed": false,
     "reproducibility": {
-      "pageDigest": "sha256:3d8f97b318d56a422fb34f9e9691a810c27af9447b26c442a86d0638f67e3741",
-      "observedAt": "2026-11-02T01:27:20.000Z"
+      "pageDigest": "sha256:43e3cc489b3f4dfaeafc6eaac529ffc69b1324596dc416bbc04971d6f1c044fe",
+      "observedAt": "2026-11-02T15:41:10.000Z"
     },
     "evidenceLevel": "E2",
     "evidenceRationale": "install config observed → static blast radius normalized into an authority inventory. Higher levels (E3 tool schema, E4 maintainer receipt, E5 sandbox) are not carried by a static page."
@@ -26,8 +26,8 @@
   },
   "scanHistory": [
     {
-      "observedAt": "2026-11-02T01:27:20.000Z",
-      "pageDigest": "sha256:3d8f97b318d56a422fb34f9e9691a810c27af9447b26c442a86d0638f67e3741",
+      "observedAt": "2026-11-02T15:41:10.000Z",
+      "pageDigest": "sha256:43e3cc489b3f4dfaeafc6eaac529ffc69b1324596dc416bbc04971d6f1c044fe",
       "artifactDigest": "sha256:f37a125121f3191fe14636b4f37f9bb90ac2139527dc5c0c1d6fa7cb8260b5fa"
     }
   ],
@@ -40,7 +40,7 @@
       "requestedRef": null,
       "resolvedRef": "sha256:f37a125121f3191fe14636b4f37f9bb90ac2139527dc5c0c1d6fa7cb8260b5fa",
       "digest": "sha256:f37a125121f3191fe14636b4f37f9bb90ac2139527dc5c0c1d6fa7cb8260b5fa",
-      "resolvedAt": "2026-11-02T01:27:20.000Z",
+      "resolvedAt": "2026-11-02T15:41:10.000Z",
       "resolution": "resolved"
     },
     "evidence": null,
@@ -84,7 +84,7 @@
       "no external evidence attached (optional); decision will rely on CallLint's own analysis",
       "authority normalized: 1 capability, approvals required: external-network-access"
     ],
-    "preparedAt": "2026-11-02T01:27:20.000Z"
+    "preparedAt": "2026-11-02T15:41:10.000Z"
   },
   "scan": {
     "schemaVersion": "calllint.report.v0",
@@ -220,10 +220,10 @@
             "message": "Remote endpoint identity verified; tool surface not analyzed (evidence: https://events.aero/mcp/events)"
           }
         ],
-        "generatedAt": "2026-11-02T01:27:20.000Z"
+        "generatedAt": "2026-11-02T15:41:10.000Z"
       }
     ],
     "diagnostics": [],
-    "generatedAt": "2026-11-02T01:27:20.000Z"
+    "generatedAt": "2026-11-02T15:41:10.000Z"
   }
 }

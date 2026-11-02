@@ -1,18 +1,18 @@
 {
   "schema": "calllint.agent-adoption-contract.v1",
   "contract": {
-    "contractDigest": "sha256:a9fcb86f751314d185e8632e3c0af2f4dd6721b6395ffa045c1f134d7da4beee",
-    "generatedAt": "2026-11-02T01:27:20.000Z",
+    "contractDigest": "sha256:b6731113e71c12e107bd260e2f778e28f879559627bbb530e56f3f845d083893",
+    "generatedAt": "2026-11-02T15:41:10.000Z",
     "expiresAt": null,
     "generatorVersion": "0.1.0",
-    "snapshotDigest": "sha256:88a1d340b6b950849ecfad2693745c54117dea1bf388f28c8b7a89d2deab198d"
+    "snapshotDigest": "sha256:abfd22619efeb6eec57932583c000e61482ec9d899767cfa52000e07d99bc17f"
   },
   "subject": {
     "canonicalName": "mcp-registry/ai.docuwriter-docuwriter",
     "canonicalSlug": "mcp-registry/ai.docuwriter-docuwriter",
     "packageType": null,
     "packageName": null,
-    "version": "1.2.1",
+    "version": "1.3.0",
     "artifactDigest": "sha256:863dda60b4b677f35b0fa6b71c27204ce0924bfd7aa2a701cc6828af0f19eb57",
     "sourceLocator": "https://app.docuwriter.ai/mcp"
   },
@@ -23,7 +23,7 @@
       "UNKNOWN_REMOTE"
     ],
     "evidenceLevel": "E2",
-    "evidenceDigest": "sha256:4decdd32f2f7e01d08e2303f2bdf3926a09d22c7517f9000c1c44fa8b4b5410b",
+    "evidenceDigest": "sha256:3695fa19797d77b115cdfa00b627bc426f8815788f4953cfb680fa0d0ee70416",
     "completeness": "complete"
   },
   "authorityDelta": {
@@ -44,12 +44,12 @@
     ]
   },
   "trustedSources": {
-    "registrySnapshotDigest": "sha256:88a1d340b6b950849ecfad2693745c54117dea1bf388f28c8b7a89d2deab198d",
-    "evidenceDigest": "sha256:4decdd32f2f7e01d08e2303f2bdf3926a09d22c7517f9000c1c44fa8b4b5410b",
+    "registrySnapshotDigest": "sha256:abfd22619efeb6eec57932583c000e61482ec9d899767cfa52000e07d99bc17f",
+    "evidenceDigest": "sha256:3695fa19797d77b115cdfa00b627bc426f8815788f4953cfb680fa0d0ee70416",
     "engineVersion": "0.1.0"
   },
   "untrustedPublisherContent": {
-    "description": "Generate, search, and manage codebase documentation on DocuWriter.ai. 73 tools incl. Autopilot.",
+    "description": "Generate and review codebase docs. 77 tools; scoped, credit-approved repository reviews.",
     "usedForSafetyDecision": false
   },
   "recommendedNextAction": {
@@ -57,9 +57,9 @@
     "tool": "calllint_prepare_safe_install",
     "arguments": {
       "canonicalName": "mcp-registry/ai.docuwriter-docuwriter",
-      "expectedVersion": "1.2.1",
+      "expectedVersion": "1.3.0",
       "expectedArtifactDigest": "sha256:863dda60b4b677f35b0fa6b71c27204ce0924bfd7aa2a701cc6828af0f19eb57",
-      "expectedContractDigest": "sha256:a9fcb86f751314d185e8632e3c0af2f4dd6721b6395ffa045c1f134d7da4beee",
+      "expectedContractDigest": "sha256:b6731113e71c12e107bd260e2f778e28f879559627bbb530e56f3f845d083893",
       "host": null
     }
   },

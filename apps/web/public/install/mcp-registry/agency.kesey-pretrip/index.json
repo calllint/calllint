@@ -1,11 +1,11 @@
 {
   "schema": "calllint.agent-adoption-contract.v1",
   "contract": {
-    "contractDigest": "sha256:a951cd047a44281fc02d57b81fc45cb7d5a0fca6b5ec8b58b3932b8645ee8b40",
-    "generatedAt": "2026-11-02T01:27:20.000Z",
+    "contractDigest": "sha256:862105ba3669c32da65115277b7d5887ae1bb105db5a14b6aef896c56a78a8c5",
+    "generatedAt": "2026-11-02T15:41:10.000Z",
     "expiresAt": null,
     "generatorVersion": "0.1.0",
-    "snapshotDigest": "sha256:88a1d340b6b950849ecfad2693745c54117dea1bf388f28c8b7a89d2deab198d"
+    "snapshotDigest": "sha256:abfd22619efeb6eec57932583c000e61482ec9d899767cfa52000e07d99bc17f"
   },
   "subject": {
     "canonicalName": "mcp-registry/agency.kesey-pretrip",
@@ -21,7 +21,7 @@
     "publicLabel": "No blockers observed",
     "reasonCodes": [],
     "evidenceLevel": "E2",
-    "evidenceDigest": "sha256:4decdd32f2f7e01d08e2303f2bdf3926a09d22c7517f9000c1c44fa8b4b5410b",
+    "evidenceDigest": "sha256:3695fa19797d77b115cdfa00b627bc426f8815788f4953cfb680fa0d0ee70416",
     "completeness": "complete"
   },
   "authorityDelta": {
@@ -39,8 +39,8 @@
     ]
   },
   "trustedSources": {
-    "registrySnapshotDigest": "sha256:88a1d340b6b950849ecfad2693745c54117dea1bf388f28c8b7a89d2deab198d",
-    "evidenceDigest": "sha256:4decdd32f2f7e01d08e2303f2bdf3926a09d22c7517f9000c1c44fa8b4b5410b",
+    "registrySnapshotDigest": "sha256:abfd22619efeb6eec57932583c000e61482ec9d899767cfa52000e07d99bc17f",
+    "evidenceDigest": "sha256:3695fa19797d77b115cdfa00b627bc426f8815788f4953cfb680fa0d0ee70416",
     "engineVersion": "0.1.0"
   },
   "untrustedPublisherContent": {
@@ -54,7 +54,7 @@
       "canonicalName": "mcp-registry/agency.kesey-pretrip",
       "expectedVersion": "1.0.1",
       "expectedArtifactDigest": "sha256:48180f8f9eab49664310736b3b4841a78fd013f5ec1e11230cad6ceaa95f8217",
-      "expectedContractDigest": "sha256:a951cd047a44281fc02d57b81fc45cb7d5a0fca6b5ec8b58b3932b8645ee8b40",
+      "expectedContractDigest": "sha256:862105ba3669c32da65115277b7d5887ae1bb105db5a14b6aef896c56a78a8c5",
       "host": null
     }
   },

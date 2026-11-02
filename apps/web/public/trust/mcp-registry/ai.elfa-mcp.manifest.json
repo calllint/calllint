@@ -2,7 +2,7 @@
   "schema": "calllint.evidence-manifest.v1",
   "subject": {
     "canonicalName": "mcp-registry/ai.elfa-mcp",
-    "artifactDigest": "sha256:358a7eba33201013f18d05de1ce0892c4043bbc0730d68cb75c5f53d7826f68e"
+    "artifactDigest": "sha256:eb47f0c378ea81aad9b243b1bda552bb2462efdc73653dfeb4a17b2d88cd6daf"
   },
   "verdict": "SAFE",
   "verdictLabel": "No blockers observed",
@@ -14,13 +14,13 @@
     "completeness": "complete",
     "authorityClaimed": false,
     "reproducibility": {
-      "pageDigest": "sha256:2ced9115083784c6910e96cf8c088e02e255587f5303ca7dc02050ebf391f018",
-      "observedAt": "2026-11-02T01:27:20.000Z"
+      "pageDigest": "sha256:5b64b8e5309a803136bf8ba1affcb37d2d1269268b118c9e67c331719c024551",
+      "observedAt": "2026-11-02T15:41:10.000Z"
     },
     "evidenceLevel": "E2"
   },
   "authority": {
-    "digest": "sha256:6cd621136f2c463ba059e957783e3b911c5f77c2b45d41c255d84003151d284d",
+    "digest": "sha256:3d3f638b88f3b045a4fec53c4a79cc1fbba12c3cc9a6bc811c1a1fafb76bab41",
     "completeness": "complete",
     "capabilityCount": 1,
     "approvalRequired": [],
@@ -36,13 +36,13 @@
   },
   "policyDigest": null,
   "reproducibility": {
-    "pageDigest": "sha256:2ced9115083784c6910e96cf8c088e02e255587f5303ca7dc02050ebf391f018",
-    "observedAt": "2026-11-02T01:27:20.000Z"
+    "pageDigest": "sha256:5b64b8e5309a803136bf8ba1affcb37d2d1269268b118c9e67c331719c024551",
+    "observedAt": "2026-11-02T15:41:10.000Z"
   },
   "engine": {
     "name": "calllint"
   },
   "correctionUrl": "https://github.com/calllint/calllint/issues/new?labels=trust-page-correction",
-  "generatedAt": "2026-11-02T01:27:20.000Z",
+  "generatedAt": "2026-11-02T15:41:10.000Z",
   "signature": null
 }

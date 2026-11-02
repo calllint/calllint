@@ -1,18 +1,18 @@
 {
   "schema": "calllint.agent-adoption-contract.v1",
   "contract": {
-    "contractDigest": "sha256:839adfc2ab14ead7fc9af15c6894b64679af3063bf35e01f6ac1f02f9c8f5518",
-    "generatedAt": "2026-11-02T01:27:20.000Z",
+    "contractDigest": "sha256:aa4706d4afe38775506a2ef9bda8de4a6f77174fb0a813a8774cddf0119d8a7f",
+    "generatedAt": "2026-11-02T15:41:10.000Z",
     "expiresAt": null,
     "generatorVersion": "0.1.0",
-    "snapshotDigest": "sha256:88a1d340b6b950849ecfad2693745c54117dea1bf388f28c8b7a89d2deab198d"
+    "snapshotDigest": "sha256:abfd22619efeb6eec57932583c000e61482ec9d899767cfa52000e07d99bc17f"
   },
   "subject": {
     "canonicalName": "mcp-registry/ai.ahel-ahel",
     "canonicalSlug": "mcp-registry/ai.ahel-ahel",
     "packageType": null,
     "packageName": null,
-    "version": "1.0.0",
+    "version": "1.0.1",
     "artifactDigest": "sha256:1a4e971a7c3172b6aa329e0f82a0444fbdf9d8ea0c5a66848f883c1b1fb03be5",
     "sourceLocator": "https://mcp.ahel.ai"
   },
@@ -23,7 +23,7 @@
       "UNKNOWN_REMOTE"
     ],
     "evidenceLevel": "E2",
-    "evidenceDigest": "sha256:4decdd32f2f7e01d08e2303f2bdf3926a09d22c7517f9000c1c44fa8b4b5410b",
+    "evidenceDigest": "sha256:3695fa19797d77b115cdfa00b627bc426f8815788f4953cfb680fa0d0ee70416",
     "completeness": "complete"
   },
   "authorityDelta": {
@@ -44,12 +44,12 @@
     ]
   },
   "trustedSources": {
-    "registrySnapshotDigest": "sha256:88a1d340b6b950849ecfad2693745c54117dea1bf388f28c8b7a89d2deab198d",
-    "evidenceDigest": "sha256:4decdd32f2f7e01d08e2303f2bdf3926a09d22c7517f9000c1c44fa8b4b5410b",
+    "registrySnapshotDigest": "sha256:abfd22619efeb6eec57932583c000e61482ec9d899767cfa52000e07d99bc17f",
+    "evidenceDigest": "sha256:3695fa19797d77b115cdfa00b627bc426f8815788f4953cfb680fa0d0ee70416",
     "engineVersion": "0.1.0"
   },
   "untrustedPublisherContent": {
-    "description": "Data for your AI agent: company, people, SEO, social and EU registry data. Pay per call.",
+    "description": "Data and tools for your AI agent: company, people, SEO, social and EU register data. Pay per call.",
     "usedForSafetyDecision": false
   },
   "recommendedNextAction": {
@@ -57,9 +57,9 @@
     "tool": "calllint_prepare_safe_install",
     "arguments": {
       "canonicalName": "mcp-registry/ai.ahel-ahel",
-      "expectedVersion": "1.0.0",
+      "expectedVersion": "1.0.1",
       "expectedArtifactDigest": "sha256:1a4e971a7c3172b6aa329e0f82a0444fbdf9d8ea0c5a66848f883c1b1fb03be5",
-      "expectedContractDigest": "sha256:839adfc2ab14ead7fc9af15c6894b64679af3063bf35e01f6ac1f02f9c8f5518",
+      "expectedContractDigest": "sha256:aa4706d4afe38775506a2ef9bda8de4a6f77174fb0a813a8774cddf0119d8a7f",
       "host": null
     }
   },
