@@ -74,12 +74,13 @@ interface Run {
  * not a hypothetical — it is exactly how the original scratch harness went blind, returning
  * codes[0] forever and "passing" the three cases whose expected answer is codes[0].
  */
-function runProbe(codes: string[], header = ""): Run {
+function runProbe(codes: string[], header: string | string[] = ""): Run {
   const dir = mkdtempSync(join(tmpRoot, "case-"))
   const cnt = join(dir, "n").replace(/\\/g, "/")
   const hdr = join(dir, "hdr").replace(/\\/g, "/")
   writeFileSync(cnt, "0\n")
-  writeFileSync(hdr, header)
+  const headers = typeof header === "string" ? [header] : header
+  headers.forEach((value, i) => writeFileSync(`${hdr}-${i}`, value))
 
   // Derived from the shipped window, so retuning `attempts=` never trips it. Its only job is
   // to make a loop that lost its bound fail FAST and legibly: without it, a deleted
@@ -100,8 +101,12 @@ curl() {
   local last=$(( \${#CODES[@]} - 1 ))
   [ "$i" -gt "$last" ] && i="$last"
   # Mimic the real invocation's side effect: -D writes the header file the verdict parses.
-  cat '${hdr}' > /tmp/deployment-head.txt
-  printf '%s' "\${CODES[$i]}"
+  local h="$i"
+  [ "$h" -ge ${headers.length} ] && h=${headers.length - 1}
+  cat '${hdr}'-"$h" > /tmp/deployment-head.txt
+  local code="\${CODES[$i]}"
+  printf '%s' "\${code%!}"
+  if [[ "$code" == *! ]]; then return 7; fi
 }
 sleep() { : ; }           # the delay is real in the workflow; waiting for it here proves nothing
 DEPLOYMENT_URL='https://stub.example.pages.dev'
@@ -190,11 +195,18 @@ describe("retry behaviour, executed against the shipped block", () => {
     expect(r.out).toMatch(msg)
   })
 
-  it("a 301 with the report ABSENT reds on the first read: gated-but-dead is not propagation", () => {
+  it("persistent 301+absent still fails after the bounded window", () => {
     const r = runProbe(["301", "301"], DEAD)
     expect(r.fail).toBe(1)
-    expect(r.calls).toBe(1)
+    expect(r.calls).toBe(ATTEMPTS)
     expect(r.out).toMatch(/NOTHING is behind it/)
+  })
+
+  it("rechecks the asset header on each attempt: absent then present is live", () => {
+    const r = runProbe(["301", "301"], [DEAD, LIVE])
+    expect(r.fail).toBe(0)
+    expect(r.calls).toBe(2)
+    expect(r.out).toContain("deployment live")
   })
 
   it("a 301 with NO report header is unobservable, so it is not assumed live", () => {
@@ -206,5 +218,15 @@ describe("retry behaviour, executed against the shipped block", () => {
   it.each(["000", "522"])("%s is retried too — the other two not-there codes", (code) => {
     expect(runProbe([code, "301"], LIVE).fail, `${code} must be retryable`).toBe(0)
     expect(runProbe([code]).calls, "and bounded by the same window").toBe(ATTEMPTS)
+  })
+
+  it("a real curl transport failure emits 000 AND exits nonzero without doubling the status", () => {
+    const recovered = runProbe(["000!", "301"], LIVE)
+    expect(recovered.fail).toBe(0)
+    expect(recovered.calls).toBe(2)
+    const failed = runProbe(["000!"], LIVE)
+    expect(failed.fail).toBe(1)
+    expect(failed.calls).toBe(ATTEMPTS)
+    expect(failed.out).not.toContain("000000")
   })
 })

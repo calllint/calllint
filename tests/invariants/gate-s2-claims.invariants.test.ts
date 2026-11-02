@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest"
+import { afterAll, describe, expect, it } from "vitest"
 import { execFileSync } from "node:child_process"
 import { mkdirSync, mkdtempSync, readFileSync, readdirSync, existsSync, rmSync, writeFileSync } from "node:fs"
 import { tmpdir } from "node:os"
@@ -348,8 +348,8 @@ describe("Gate S2 — every number the record states is derived from the file it
     ).toContain(`**Cohort now:** **${cohort}**`)
     expect(
       text,
-      `and the real distance to the threshold (${500 - cohort} records early)`,
-    ).toContain(`**${500 - cohort} records before its threshold**`)
+      "the current census must distinguish a shortfall from a reached threshold",
+    ).toContain(cohort >= 500 ? "**threshold reached**" : `**${500 - cohort} records before its threshold**`)
   })
 
   it("the growth arithmetic the record cites is the pipeline's own step, not a guess", () => {
@@ -488,6 +488,37 @@ describe("Gate S2 — the refusal is asserted by RUNNING the gate, not by readin
   const dir = mkdtempSync(join(tmpdir(), "gate-s2-attrib-"))
   const reports = join(dir, ".var", "calllint-adoption-index", "reports")
   mkdirSync(reports, { recursive: true })
+  afterAll(() => rmSync(dir, { recursive: true, force: true }))
+
+  // The refusal branch needs a cohort BELOW the threshold even after production
+  // reaches 500. Intercept only the child's two census reads; run the real gate
+  // and retain the real sidecars and all exit-code assertions. No production
+  // override is added, and no shared checkout files are changed by this harness.
+  const snapshotPath = fileURLToPath(new URL("packages/trust-index/snapshots/official-mcp-registry.json", repoRoot))
+  const indexPath = fileURLToPath(new URL("apps/web/public/trust/index.json", repoRoot))
+  const snapshot = parseSnapshot(readText("packages/trust-index/snapshots/official-mcp-registry.json"))
+  const entries = snapshot.entries.slice(0, 150)
+  const names = new Set(entries.map((e) => registryCanonicalName(e.name)))
+  const index = JSON.parse(readText("apps/web/public/trust/index.json"))
+  const fixtureReads = {
+    [snapshotPath]: JSON.stringify({ ...snapshot, count: entries.length, entries }),
+    [indexPath]: JSON.stringify({ ...index, entries: index.entries.filter((e: { canonicalName: string }) => names.has(e.canonicalName)) }),
+  }
+  const preload = join(dir, "census.cjs")
+  writeFileSync(preload, `
+const fs = require("node:fs")
+const path = require("node:path")
+const reads = ${JSON.stringify(fixtureReads)}
+const read = fs.readFileSync
+fs.readFileSync = function (file, options) {
+  const key = file instanceof URL ? require("node:url").fileURLToPath(file) : String(file)
+  const value = reads[path.resolve(key)]
+  if (value === undefined) return read.call(this, file, options)
+  return (typeof options === "string" || options?.encoding) ? value : Buffer.from(value)
+}
+require("node:module").syncBuiltinESMExports()
+`)
+  const gateArgs = ["--require", preload, "--import", "tsx", fileURLToPath(new URL(GATE, repoRoot))]
 
   /**
    * A v2 report the gate ACCEPTS. Not asserted on directly — it exists so that each variant below
@@ -531,12 +562,11 @@ describe("Gate S2 — the refusal is asserted by RUNNING the gate, not by readin
   const runGate = (name: string, body: string | null): string => {
     for (const e of readdirSync(reports)) rmSync(join(reports, e), { force: true })
     if (body !== null) writeFileSync(join(reports, `run-${name}.json`), body)
-    return execFileSync("pnpm", ["gate:s2"], {
+    return execFileSync(process.execPath, gateArgs, {
       cwd: fileURLToPath(repoRoot),
       encoding: "utf8",
       env: { ...process.env, ADOPTION_INDEX_CWD: dir },
       stdio: ["ignore", "pipe", "pipe"],
-      shell: process.platform === "win32",
     })
   }
 
@@ -545,6 +575,7 @@ describe("Gate S2 — the refusal is asserted by RUNNING the gate, not by readin
 
   it("with NO report, the shortfall is UNKNOWN and the gate says so instead of guessing", () => {
     const out = runGate("none", null)
+    expect(out, "the refusal fixture must stay below the real 500-record threshold").toContain(`Source:    ${entries.length} / 500 required (SHORTFALL`)
     // `REFUSED\s*\]` because the gate pads the tier label to align the measure column. Matching the
     // padding exactly would couple this to the width of the longest label, which is cosmetic.
     expect(out, "the measure must REFUSE, never fail and never pass").toMatch(
@@ -740,12 +771,11 @@ describe("Gate S2 — the refusal is asserted by RUNNING the gate, not by readin
     const run = (args: readonly string[]): number => {
       for (const e of readdirSync(reports)) rmSync(join(reports, e), { force: true })
       try {
-        execFileSync("pnpm", [...args], {
+        execFileSync(process.execPath, [...gateArgs, args[0] === "gate:s2:gate" ? "--gate" : "--regression"], {
           cwd: fileURLToPath(repoRoot),
           encoding: "utf8",
           env: { ...process.env, ADOPTION_INDEX_CWD: dir },
           stdio: ["ignore", "pipe", "pipe"],
-          shell: process.platform === "win32",
         })
         return 0
       } catch (e) {

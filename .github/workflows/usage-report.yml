@@ -299,15 +299,17 @@ jobs:
           #    was live; the probe was early. 5 of the last 20 runs died this way, across BOTH
           #    schedule and workflow_dispatch, so the trigger was never the variable.
           #
-          #    SO: bounded retry, on the NOT-YET-THERE codes ONLY (000/404/522). This is not the
+          #    SO: bounded retry on 000/404/522 and 301+report-absent (ADR 0101). This is not the
           #    sleep (b) rejects. (b) is about $ORIGIN, where a retry can hide a permanently
           #    empty project. Here the retry cannot hide anything:
           #      · a deployment that never serves 404s for all 6 attempts and still sets fail=1
           #        with the same message, so the guard's teeth are unchanged;
-          #      · the EXISTS-BUT-WRONG codes are excluded by construction and still red on the
-          #        FIRST read — 200 (entry did not run, U-1 reopened) and 301+absent
-          #        (gated-but-dead). Retrying those is what "a sleep that hides" means, and it
-          #        is exactly what this loop must never do.
+          #      · HTTP 200 (entry did not run, U-1 reopened) and missing/unknown headers
+          #        still fail on the first read. A persistent 301+absent fails after the
+          #        same bounded window; only an observed 301+present can pass.
+          #    Run 41203355002 saw 301+absent, but its immutable deployment URL later
+          #    returned present. Worker routing can be ready before its asset lookup.
+          #    The earlier claim that 301+absent could not be transient was false.
           #    The attempt count is printed on success: propagation getting slower is a fact the
           #    log should carry, not smooth away.
           #
@@ -338,14 +340,21 @@ jobs:
             echo "::error::the deploy step published no deployment URL — nothing is known to be live."
             fail=1
           else
-            # Bounded retry on the not-yet-there codes only. `attempt` is reported so a
+            # Bounded retry on transport or asset absence. `attempt` is reported so a
             # propagation delay that is creeping upward stays visible in the log.
             attempts=6
             delay=5
             attempt=1
             while : ; do
-              dcode=$(curl -sS -D /tmp/deployment-head.txt -o /tmp/deployment-body.html \
-                -w '%{http_code}' --max-time 25 "$DEPLOYMENT_URL" || echo 000)
+              : > /tmp/deployment-head.txt
+              if ! dcode=$(curl -sS -D /tmp/deployment-head.txt -o /tmp/deployment-body.html \
+                -w '%{http_code}' --max-time 25 "$DEPLOYMENT_URL"); then
+                # curl already prints 000 on transport failure; appending another
+                # fallback would produce 000000 and bypass the retry condition.
+                dcode=000
+              fi
+              report=$(tr -d '\r' < /tmp/deployment-head.txt \
+                | awk 'tolower($1)=="x-calllint-report:"{print tolower($2); exit}')
               # Deliberately an if-chain, NOT a second dcode case-statement. The verdict block
               # below is anchored by tests/invariants/private-usage-deploy-gate.invariants.test.ts,
               # which locates it by the FIRST occurrence of that construct in this file. A second
@@ -357,13 +366,17 @@ jobs:
               #
               # Not there YET, or not there AT ALL — indistinguishable on a single read, which
               # is the whole defect. Give propagation a bounded window to prove which.
-              if [ "$dcode" != "000" ] && [ "$dcode" != "404" ] && [ "$dcode" != "522" ]; then
+              asset_pending=false
+              if [ "$dcode" = "301" ] && [ "$report" = "absent" ]; then
+                asset_pending=true
+              fi
+              if [ "$dcode" != "000" ] && [ "$dcode" != "404" ] && [ "$dcode" != "522" ] && [ "$asset_pending" != true ]; then
                 break
               fi
               if [ "$attempt" -ge "$attempts" ]; then
                 break
               fi
-              echo "  … deployment URL not serving yet (HTTP $dcode), attempt $attempt/$attempts — retrying in ${delay}s"
+              echo "  … deployment URL not serving yet (HTTP $dcode, report ${report:-unobservable}), attempt $attempt/$attempts — retrying in ${delay}s"
               attempt=$((attempt + 1))
               sleep "$delay"
             done
