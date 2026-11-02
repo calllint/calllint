@@ -2,7 +2,7 @@
   "schema": "calllint.phase-2.4-human-capsule-eval.v0",
   "$comment": "Gate 2.4-B evidence. Two independent inputs. (1) structuralPrecondition is machine-measured by evaluateHumanCapsule() over the SHIPPED renderer and must be 100% — one CTA, <=5 authority facts, all three five-second answers present exactly once above the fold, no decision JS. thresholds.maxAuthorityFacts is 5 per ADR 0059 (SHIPPED_LAYOUT_CAPS.maxAuthorityFacts = MAX_DECISION_AUTHORITY_FACTS = 5); new15 §14's earlier cap of 3 is SUPERSEDED and was unsatisfiable — all five canonical fixtures measure exactly 5, so grading a 3 would fail 5/5. The number is no longer self-certifying either: `pnpm audit:preview` (P-6) READS it and grades the measured fact counts against it, so editing it is graded rather than decorative. (2) humanPanel is read from five-second-panel-store.json, which only a human writes; code never simulates a human study, so an unrecorded panel yields PENDING_HUMAN_PANEL rather than a pass. Each response carries the sha256 of the page the participant was actually shown; responses whose page has since changed are reported under humanPanel.stale and EXCLUDED from the rates, so a page edit demotes the gate to PENDING_HUMAN_PANEL instead of inheriting recognition it never earned. Regenerate with `pnpm eval:phase-2.4:write`; enforce with `pnpm eval:phase-2.4:gate`.",
   "gate": "2.4-B",
-  "status": "PASSED",
+  "status": "PENDING_HUMAN_PANEL",
   "engineVersion": "1.7.3",
   "thresholds": {
     "singlePrimaryCta": 1,
@@ -284,15 +284,26 @@
       "consequence",
       "action"
     ],
-    "participants": 12,
-    "responses": 12,
+    "participants": 11,
+    "responses": 11,
     "recognition": {
       "target": 1,
       "consequence": 1,
       "action": 1
     },
-    "staleResponses": 0,
-    "stale": []
+    "staleResponses": 1,
+    "stale": [
+      {
+        "participant": "10",
+        "canonicalSlug": "mcp-registry/io.github.calllint-calllint",
+        "reason": "SURFACE_CHANGED",
+        "shownDigest": "sha256:02df06de7dc296394b1924e14c265f22469a25afe7ce5228a15d41124f99674d",
+        "shownSurfaceDigest": "sha256:38bd0490154b319b2f83a22cc529659a3da3faa31fbf7f78dc737859c28187fa",
+        "currentSurfaceDigest": "sha256:99f8439e9d54876513819c84de600e647f4ac12714a5bcd12f13bde8c8f36275"
+      }
+    ]
   },
-  "blockers": []
+  "blockers": [
+    "stale panel response (SURFACE_CHANGED): 10 @ mcp-registry/io.github.calllint-calllint — the measured surface changed — re-run that session"
+  ]
 }

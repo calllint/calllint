@@ -1,18 +1,18 @@
 {
   "schema": "calllint.agent-adoption-contract.v1",
   "contract": {
-    "contractDigest": "sha256:f4c9338b1aff73407539fc3953002f1283e3836a4ffc6fe381c8267131bda688",
-    "generatedAt": "2026-10-19T13:04:27.000Z",
+    "contractDigest": "sha256:4484ab809d29ae8a0fc920e05e198400eefdbcc1d6795bf8913e3314d1448490",
+    "generatedAt": "2026-11-02T01:27:20.000Z",
     "expiresAt": null,
     "generatorVersion": "0.1.0",
-    "snapshotDigest": "sha256:0970184e2142d785167786209a8863a689cb018f9bad377d6048a3b7e654bb82"
+    "snapshotDigest": "sha256:88a1d340b6b950849ecfad2693745c54117dea1bf388f28c8b7a89d2deab198d"
   },
   "subject": {
     "canonicalName": "mcp-registry/ai.chipp-chipp",
     "canonicalSlug": "mcp-registry/ai.chipp-chipp",
     "packageType": null,
     "packageName": null,
-    "version": "1.0.0",
+    "version": "1.1.0",
     "artifactDigest": "sha256:5336cb768afbf38fc8f8c454c1c3a435c3d2e49f40d26579102121a5f1444658",
     "sourceLocator": "https://build.chipp.ai/mcp"
   },
@@ -23,7 +23,7 @@
       "UNKNOWN_REMOTE"
     ],
     "evidenceLevel": "E2",
-    "evidenceDigest": "sha256:b9381aff028bedb776950d19f78c2a50ab9f2002513c9ded5eb3135f5ccd9a7a",
+    "evidenceDigest": "sha256:4decdd32f2f7e01d08e2303f2bdf3926a09d22c7517f9000c1c44fa8b4b5410b",
     "completeness": "complete"
   },
   "authorityDelta": {
@@ -44,12 +44,12 @@
     ]
   },
   "trustedSources": {
-    "registrySnapshotDigest": "sha256:0970184e2142d785167786209a8863a689cb018f9bad377d6048a3b7e654bb82",
-    "evidenceDigest": "sha256:b9381aff028bedb776950d19f78c2a50ab9f2002513c9ded5eb3135f5ccd9a7a",
+    "registrySnapshotDigest": "sha256:88a1d340b6b950849ecfad2693745c54117dea1bf388f28c8b7a89d2deab198d",
+    "evidenceDigest": "sha256:4decdd32f2f7e01d08e2303f2bdf3926a09d22c7517f9000c1c44fa8b4b5410b",
     "engineVersion": "0.1.0"
   },
   "untrustedPublisherContent": {
-    "description": "Build and manage Chipp AI apps: prompts, knowledge, custom actions, and chat with your apps.",
+    "description": "Every Chipp tool in one MCP (large). For one area at a time, use the ai.chipp/chipp-* servers.",
     "usedForSafetyDecision": false
   },
   "recommendedNextAction": {
@@ -57,9 +57,9 @@
     "tool": "calllint_prepare_safe_install",
     "arguments": {
       "canonicalName": "mcp-registry/ai.chipp-chipp",
-      "expectedVersion": "1.0.0",
+      "expectedVersion": "1.1.0",
       "expectedArtifactDigest": "sha256:5336cb768afbf38fc8f8c454c1c3a435c3d2e49f40d26579102121a5f1444658",
-      "expectedContractDigest": "sha256:f4c9338b1aff73407539fc3953002f1283e3836a4ffc6fe381c8267131bda688",
+      "expectedContractDigest": "sha256:4484ab809d29ae8a0fc920e05e198400eefdbcc1d6795bf8913e3314d1448490",
       "host": null
     }
   },

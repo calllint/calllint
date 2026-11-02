@@ -1,19 +1,19 @@
 {
   "schema": "calllint.trust-page.v0",
   "canonicalName": "mcp-registry/ai.ekwo-mcp",
-  "artifactDigest": "sha256:15c2061309bc5450bc272952a606dc1718fa53b5e114984a3e12df253a22b712",
-  "pageDigest": "sha256:18743c5891af201466813b5addb1abce76289ec35a9472846295f7e12e5695f2",
+  "artifactDigest": "sha256:7ec037505037b5e21bc889dfe3e1b0b2c0531dbed0abe7a9fd94f7776ffd7850",
+  "pageDigest": "sha256:1ce23d881bb9c9e1f7d8079b821f457c84c4fce1dd96deb6df36b64e4f1af02e",
   "verdict": "UNKNOWN",
   "verdictLabel": "Insufficient evidence",
-  "observedAt": "2026-10-19T13:04:27.000Z",
+  "observedAt": "2026-11-02T01:27:20.000Z",
   "completeness": "complete",
   "status": {
     "verdict": "UNKNOWN",
     "completeness": "complete",
     "authorityClaimed": false,
     "reproducibility": {
-      "pageDigest": "sha256:18743c5891af201466813b5addb1abce76289ec35a9472846295f7e12e5695f2",
-      "observedAt": "2026-10-19T13:04:27.000Z"
+      "pageDigest": "sha256:1ce23d881bb9c9e1f7d8079b821f457c84c4fce1dd96deb6df36b64e4f1af02e",
+      "observedAt": "2026-11-02T01:27:20.000Z"
     },
     "evidenceLevel": "E2",
     "evidenceRationale": "install config observed → static blast radius normalized into an authority inventory. Higher levels (E3 tool schema, E4 maintainer receipt, E5 sandbox) are not carried by a static page."
@@ -21,14 +21,14 @@
   "correctionUrl": "https://github.com/calllint/calllint/issues/new?labels=trust-page-correction",
   "reproduction": {
     "command": "npx calllint scan official-mcp-registry:ai.ekwo/mcp",
-    "artifactDigest": "sha256:15c2061309bc5450bc272952a606dc1718fa53b5e114984a3e12df253a22b712",
+    "artifactDigest": "sha256:7ec037505037b5e21bc889dfe3e1b0b2c0531dbed0abe7a9fd94f7776ffd7850",
     "note": "Re-running this scan reproduces the verdict observed at the pinned artifact digest. It is a point-in-time observation, not a guarantee of future behavior."
   },
   "scanHistory": [
     {
-      "observedAt": "2026-10-19T13:04:27.000Z",
-      "pageDigest": "sha256:18743c5891af201466813b5addb1abce76289ec35a9472846295f7e12e5695f2",
-      "artifactDigest": "sha256:15c2061309bc5450bc272952a606dc1718fa53b5e114984a3e12df253a22b712"
+      "observedAt": "2026-11-02T01:27:20.000Z",
+      "pageDigest": "sha256:1ce23d881bb9c9e1f7d8079b821f457c84c4fce1dd96deb6df36b64e4f1af02e",
+      "artifactDigest": "sha256:7ec037505037b5e21bc889dfe3e1b0b2c0531dbed0abe7a9fd94f7776ffd7850"
     }
   ],
   "preparation": {
@@ -38,16 +38,16 @@
       "sourceType": "mcp-config",
       "source": "official-mcp-registry:ai.ekwo/mcp",
       "requestedRef": null,
-      "resolvedRef": "sha256:15c2061309bc5450bc272952a606dc1718fa53b5e114984a3e12df253a22b712",
-      "digest": "sha256:15c2061309bc5450bc272952a606dc1718fa53b5e114984a3e12df253a22b712",
-      "resolvedAt": "2026-10-19T13:04:27.000Z",
+      "resolvedRef": "sha256:7ec037505037b5e21bc889dfe3e1b0b2c0531dbed0abe7a9fd94f7776ffd7850",
+      "digest": "sha256:7ec037505037b5e21bc889dfe3e1b0b2c0531dbed0abe7a9fd94f7776ffd7850",
+      "resolvedAt": "2026-11-02T01:27:20.000Z",
       "resolution": "resolved"
     },
     "evidence": null,
     "authority": {
       "schema": "calllint.authority.v0",
       "subject": {
-        "artifactDigest": "sha256:15c2061309bc5450bc272952a606dc1718fa53b5e114984a3e12df253a22b712"
+        "artifactDigest": "sha256:7ec037505037b5e21bc889dfe3e1b0b2c0531dbed0abe7a9fd94f7776ffd7850"
       },
       "capabilities": [
         {
@@ -89,7 +89,7 @@
       },
       "unknowns": [],
       "completeness": "complete",
-      "digest": "sha256:7ff10a81d4f9075bd2c973c87bf835dfa502cda3fb3301cd4519c66ee445e1e2"
+      "digest": "sha256:adccc6c69ec1205cc6f37a5a0587ab37ff461a3481a7834b0e6f0e84b4a0516a"
     },
     "decision": null,
     "plan": null,
@@ -98,7 +98,7 @@
       "no external evidence attached (optional); decision will rely on CallLint's own analysis",
       "authority normalized: 2 capabilities, approvals required: external-network-access"
     ],
-    "preparedAt": "2026-10-19T13:04:27.000Z"
+    "preparedAt": "2026-11-02T01:27:20.000Z"
   },
   "scan": {
     "schemaVersion": "calllint.report.v0",
@@ -120,7 +120,7 @@
           "name": "package",
           "kind": "mcp-servers",
           "source": "@ekwo-ai/mcp",
-          "version": "0.15.0",
+          "version": "0.24.0",
           "configPath": "official-mcp-registry:ai.ekwo/mcp"
         },
         "verdict": "SAFE",
@@ -144,13 +144,13 @@
           "sandbox": "none"
         },
         "fingerprints": {
-          "configHash": "sha256:2ac1b6a18e3fed7a7771a13e3706f4123085ae89fa7e1b247e81a36a6c1b89bb",
-          "targetSpecHash": "sha256:3ef8d37286db88280f0992e93f427168d373be2e9c1655449916c5723d0f1ac2",
+          "configHash": "sha256:defff7478e82379b1b655e625397598490c8dd3caebfabe7d2a580da728f5a2a",
+          "targetSpecHash": "sha256:ebe986e5a70e9faa7c784a517e414fe4881bb8bac2fd98c24a55cb4f72b372e5",
           "riskSurfaceHash": "sha256:69aae84c996fe93d537b08d906cb339866bd43f10876be403a0f4793915bef33",
-          "packageSpecHash": "sha256:84d27129ed6c0f530ab77adc834a4bc2e3eaa4a6aea18a267a2c3fb7904b2753"
+          "packageSpecHash": "sha256:e4369bfb4a07ae1ad26a949e46341dadbe3b69e11d57d0ed34f7c9cec93d8e8c"
         },
         "diagnostics": [],
-        "generatedAt": "2026-10-19T13:04:27.000Z"
+        "generatedAt": "2026-11-02T01:27:20.000Z"
       },
       {
         "schemaVersion": "calllint.report.v0",
@@ -266,10 +266,10 @@
           "riskSurfaceHash": "sha256:47e9d20255a346b95323c2cb9e092621521638b987bbcd036e68e4aee12dcaf3"
         },
         "diagnostics": [],
-        "generatedAt": "2026-10-19T13:04:27.000Z"
+        "generatedAt": "2026-11-02T01:27:20.000Z"
       }
     ],
     "diagnostics": [],
-    "generatedAt": "2026-10-19T13:04:27.000Z"
+    "generatedAt": "2026-11-02T01:27:20.000Z"
   }
 }

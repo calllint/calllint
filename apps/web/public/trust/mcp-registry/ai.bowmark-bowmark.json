@@ -1,19 +1,19 @@
 {
   "schema": "calllint.trust-page.v0",
   "canonicalName": "mcp-registry/ai.bowmark-bowmark",
-  "artifactDigest": "sha256:b3e0d0aef65f70fd020a05e9e16a5973fe8d46477611c95bbfaff39deb096e90",
-  "pageDigest": "sha256:d5d5acd4e1213346987d3cb1e9bf16096419d9c3d96f2b04c42e941fb52ad717",
-  "verdict": "UNKNOWN",
-  "verdictLabel": "Insufficient evidence",
-  "observedAt": "2026-10-19T13:04:27.000Z",
+  "artifactDigest": "sha256:aee1f3c1f67b0c694e466ee1dd0d940320417344d93e2fcf97cab56d4c7f0224",
+  "pageDigest": "sha256:66c4632ee98b097c0640d650a1b1a06264c678291d01624f65990b275643880c",
+  "verdict": "REVIEW",
+  "verdictLabel": "Review required",
+  "observedAt": "2026-11-02T01:27:20.000Z",
   "completeness": "complete",
   "status": {
-    "verdict": "UNKNOWN",
+    "verdict": "REVIEW",
     "completeness": "complete",
     "authorityClaimed": false,
     "reproducibility": {
-      "pageDigest": "sha256:d5d5acd4e1213346987d3cb1e9bf16096419d9c3d96f2b04c42e941fb52ad717",
-      "observedAt": "2026-10-19T13:04:27.000Z"
+      "pageDigest": "sha256:66c4632ee98b097c0640d650a1b1a06264c678291d01624f65990b275643880c",
+      "observedAt": "2026-11-02T01:27:20.000Z"
     },
     "evidenceLevel": "E2",
     "evidenceRationale": "install config observed → static blast radius normalized into an authority inventory. Higher levels (E3 tool schema, E4 maintainer receipt, E5 sandbox) are not carried by a static page."
@@ -21,14 +21,14 @@
   "correctionUrl": "https://github.com/calllint/calllint/issues/new?labels=trust-page-correction",
   "reproduction": {
     "command": "npx calllint scan official-mcp-registry:ai.bowmark/bowmark",
-    "artifactDigest": "sha256:b3e0d0aef65f70fd020a05e9e16a5973fe8d46477611c95bbfaff39deb096e90",
+    "artifactDigest": "sha256:aee1f3c1f67b0c694e466ee1dd0d940320417344d93e2fcf97cab56d4c7f0224",
     "note": "Re-running this scan reproduces the verdict observed at the pinned artifact digest. It is a point-in-time observation, not a guarantee of future behavior."
   },
   "scanHistory": [
     {
-      "observedAt": "2026-10-19T13:04:27.000Z",
-      "pageDigest": "sha256:d5d5acd4e1213346987d3cb1e9bf16096419d9c3d96f2b04c42e941fb52ad717",
-      "artifactDigest": "sha256:b3e0d0aef65f70fd020a05e9e16a5973fe8d46477611c95bbfaff39deb096e90"
+      "observedAt": "2026-11-02T01:27:20.000Z",
+      "pageDigest": "sha256:66c4632ee98b097c0640d650a1b1a06264c678291d01624f65990b275643880c",
+      "artifactDigest": "sha256:aee1f3c1f67b0c694e466ee1dd0d940320417344d93e2fcf97cab56d4c7f0224"
     }
   ],
   "preparation": {
@@ -38,16 +38,16 @@
       "sourceType": "mcp-config",
       "source": "official-mcp-registry:ai.bowmark/bowmark",
       "requestedRef": null,
-      "resolvedRef": "sha256:b3e0d0aef65f70fd020a05e9e16a5973fe8d46477611c95bbfaff39deb096e90",
-      "digest": "sha256:b3e0d0aef65f70fd020a05e9e16a5973fe8d46477611c95bbfaff39deb096e90",
-      "resolvedAt": "2026-10-19T13:04:27.000Z",
+      "resolvedRef": "sha256:aee1f3c1f67b0c694e466ee1dd0d940320417344d93e2fcf97cab56d4c7f0224",
+      "digest": "sha256:aee1f3c1f67b0c694e466ee1dd0d940320417344d93e2fcf97cab56d4c7f0224",
+      "resolvedAt": "2026-11-02T01:27:20.000Z",
       "resolution": "resolved"
     },
     "evidence": null,
     "authority": {
       "schema": "calllint.authority.v0",
       "subject": {
-        "artifactDigest": "sha256:b3e0d0aef65f70fd020a05e9e16a5973fe8d46477611c95bbfaff39deb096e90"
+        "artifactDigest": "sha256:aee1f3c1f67b0c694e466ee1dd0d940320417344d93e2fcf97cab56d4c7f0224"
       },
       "capabilities": [
         {
@@ -103,7 +103,7 @@
       },
       "unknowns": [],
       "completeness": "complete",
-      "digest": "sha256:68f13b9f511d0756653c39125b9f4c8a2e63918cb9f47d7ef5a73ee5b6d4315d"
+      "digest": "sha256:a8a4ddcb0527c0c8d9bc09f265aee3e329dbdae68e8fa5e9bf56b5360de33bbd"
     },
     "decision": null,
     "plan": null,
@@ -112,19 +112,19 @@
       "no external evidence attached (optional); decision will rely on CallLint's own analysis",
       "authority normalized: 3 capabilities, approvals required: external-network-access"
     ],
-    "preparedAt": "2026-10-19T13:04:27.000Z"
+    "preparedAt": "2026-11-02T01:27:20.000Z"
   },
   "scan": {
     "schemaVersion": "calllint.report.v0",
     "reportKind": "config-summary",
     "configPath": "official-mcp-registry:ai.bowmark/bowmark",
-    "verdict": "UNKNOWN",
-    "publicVerdictLabel": "Insufficient evidence",
+    "verdict": "REVIEW",
+    "publicVerdictLabel": "Review required",
     "counts": {
       "SAFE": 2,
-      "REVIEW": 0,
+      "REVIEW": 1,
       "BLOCK": 0,
-      "UNKNOWN": 1
+      "UNKNOWN": 0
     },
     "reports": [
       {
@@ -134,7 +134,7 @@
           "name": "package-1",
           "kind": "mcp-servers",
           "source": "bowmark-mcp",
-          "version": "2.1.0",
+          "version": "2.1.1",
           "configPath": "official-mcp-registry:ai.bowmark/bowmark"
         },
         "verdict": "SAFE",
@@ -158,13 +158,13 @@
           "sandbox": "none"
         },
         "fingerprints": {
-          "configHash": "sha256:d9e4e29c61f1796aeb605a336ac9f68d1a8d83c96e7092ec50a2f29e51c5f8d6",
-          "targetSpecHash": "sha256:5481711f55374ff1134a7c234ec0b0dceece30ecb24954226ee499fa7cae4e6a",
+          "configHash": "sha256:a81e3ef99ce1527604358b36c9ec9816b3978c3a6a718cd6c9b4a8c67ca6b079",
+          "targetSpecHash": "sha256:740f6a80b3e49edb874ace748d6fab0e657d19a01503c68779155fa9ba5535c1",
           "riskSurfaceHash": "sha256:69aae84c996fe93d537b08d906cb339866bd43f10876be403a0f4793915bef33",
-          "packageSpecHash": "sha256:c5f9d8ef8697aae674b470983d339f3319049d6285517d6a6be3038366934cec"
+          "packageSpecHash": "sha256:7d0f943d1a9d4b7a26497b9f9ef1d0287c4ef2b25c3179d54b43e32714210d4e"
         },
         "diagnostics": [],
-        "generatedAt": "2026-10-19T13:04:27.000Z"
+        "generatedAt": "2026-11-02T01:27:20.000Z"
       },
       {
         "schemaVersion": "calllint.report.v0",
@@ -173,7 +173,7 @@
           "name": "package-2",
           "kind": "mcp-servers",
           "source": "@bowmark/mcp",
-          "version": "2.1.0",
+          "version": "2.1.1",
           "configPath": "official-mcp-registry:ai.bowmark/bowmark"
         },
         "verdict": "SAFE",
@@ -197,13 +197,13 @@
           "sandbox": "none"
         },
         "fingerprints": {
-          "configHash": "sha256:42252ad638fd3a0e10c86df5159f9a05d6beb9298047876b38b5e865e77bb831",
-          "targetSpecHash": "sha256:20b050e3fa01a4878815f1dcfbf58bb66a161cc30b76199d9b04ba221bfb2d16",
+          "configHash": "sha256:c7ce4f6658fde4fbc54ad3df4d080108359d111b6947ae96a030548e2d2d3c71",
+          "targetSpecHash": "sha256:dce3d357d91bc60d4fd33ea4840b84d2ee255e9a54c68ff0f6e186245a0eed23",
           "riskSurfaceHash": "sha256:69aae84c996fe93d537b08d906cb339866bd43f10876be403a0f4793915bef33",
-          "packageSpecHash": "sha256:18d032767562487e9c34d8c73ee456e47d70ae7e79f1429a3eec75d5fdeabe9d"
+          "packageSpecHash": "sha256:a0cf93e4561ea69c49b2eeeb6e28d1f4c4a3f4f3af6c9570b716224ae6d972f9"
         },
         "diagnostics": [],
-        "generatedAt": "2026-10-19T13:04:27.000Z"
+        "generatedAt": "2026-11-02T01:27:20.000Z"
       },
       {
         "schemaVersion": "calllint.report.v0",
@@ -214,8 +214,8 @@
           "source": "https://api.bowmark.ai/mcp/registry",
           "configPath": "official-mcp-registry:ai.bowmark/bowmark"
         },
-        "verdict": "UNKNOWN",
-        "publicVerdictLabel": "Insufficient evidence",
+        "verdict": "REVIEW",
+        "publicVerdictLabel": "Review required",
         "policyApplied": false,
         "riskClass": "S1",
         "symbols": [
@@ -223,9 +223,10 @@
         ],
         "confidence": "high",
         "reproducibility": {
-          "level": "MEDIUM",
+          "level": "LOW",
           "reasons": [
-            "Remote endpoint could not be verified"
+            "Remote endpoint domain ownership not verified",
+            "Remote endpoint identity verified; tool surface not analyzed"
           ]
         },
         "summary": "\"remote\" could not be verified (insufficient evidence). Risk: Network (S1 Read-only utility).",
@@ -318,11 +319,17 @@
           "targetSpecHash": "sha256:ca51134a283408790e2b6d15902d3aa45430f142504b715a0b6fbbe24aa6c53f",
           "riskSurfaceHash": "sha256:47e9d20255a346b95323c2cb9e092621521638b987bbcd036e68e4aee12dcaf3"
         },
-        "diagnostics": [],
-        "generatedAt": "2026-10-19T13:04:27.000Z"
+        "diagnostics": [
+          {
+            "level": "info",
+            "code": "evidence.remote-identity-verified",
+            "message": "Remote endpoint identity verified; tool surface not analyzed (evidence: https://api.bowmark.ai/mcp/registry)"
+          }
+        ],
+        "generatedAt": "2026-11-02T01:27:20.000Z"
       }
     ],
     "diagnostics": [],
-    "generatedAt": "2026-10-19T13:04:27.000Z"
+    "generatedAt": "2026-11-02T01:27:20.000Z"
   }
 }

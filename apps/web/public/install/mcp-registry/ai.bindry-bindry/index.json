@@ -1,18 +1,18 @@
 {
   "schema": "calllint.agent-adoption-contract.v1",
   "contract": {
-    "contractDigest": "sha256:45e2c7120b233599b436a0da4e5928ee8a66168bbbf06d36e1974dc80e78fbc1",
-    "generatedAt": "2026-10-19T13:04:27.000Z",
+    "contractDigest": "sha256:124a2bafd039ee47b7bf58815609b221b82dcd5b4c64697dac3c1454b3b6cc42",
+    "generatedAt": "2026-11-02T01:27:20.000Z",
     "expiresAt": null,
     "generatorVersion": "0.1.0",
-    "snapshotDigest": "sha256:0970184e2142d785167786209a8863a689cb018f9bad377d6048a3b7e654bb82"
+    "snapshotDigest": "sha256:88a1d340b6b950849ecfad2693745c54117dea1bf388f28c8b7a89d2deab198d"
   },
   "subject": {
     "canonicalName": "mcp-registry/ai.bindry-bindry",
     "canonicalSlug": "mcp-registry/ai.bindry-bindry",
     "packageType": null,
     "packageName": null,
-    "version": "0.2.2",
+    "version": "0.3.0",
     "artifactDigest": "sha256:716996e95a8c14025ce0d4a0503171f3c028a2a7286edee4872ad2c165858e90",
     "sourceLocator": "https://api.bindry.ai/api/mcp"
   },
@@ -23,7 +23,7 @@
       "UNKNOWN_REMOTE"
     ],
     "evidenceLevel": "E2",
-    "evidenceDigest": "sha256:b9381aff028bedb776950d19f78c2a50ab9f2002513c9ded5eb3135f5ccd9a7a",
+    "evidenceDigest": "sha256:4decdd32f2f7e01d08e2303f2bdf3926a09d22c7517f9000c1c44fa8b4b5410b",
     "completeness": "complete"
   },
   "authorityDelta": {
@@ -44,12 +44,12 @@
     ]
   },
   "trustedSources": {
-    "registrySnapshotDigest": "sha256:0970184e2142d785167786209a8863a689cb018f9bad377d6048a3b7e654bb82",
-    "evidenceDigest": "sha256:b9381aff028bedb776950d19f78c2a50ab9f2002513c9ded5eb3135f5ccd9a7a",
+    "registrySnapshotDigest": "sha256:88a1d340b6b950849ecfad2693745c54117dea1bf388f28c8b7a89d2deab198d",
+    "evidenceDigest": "sha256:4decdd32f2f7e01d08e2303f2bdf3926a09d22c7517f9000c1c44fa8b4b5410b",
     "engineVersion": "0.1.0"
   },
   "untrustedPublisherContent": {
-    "description": "Reuse your team's AI instructions (Bindings and Stacks) from Bindry in any MCP client.",
+    "description": "Versioned skills and Binders for AI assistants. Requires a Bindry account and workspace API key.",
     "usedForSafetyDecision": false
   },
   "recommendedNextAction": {
@@ -57,9 +57,9 @@
     "tool": "calllint_prepare_safe_install",
     "arguments": {
       "canonicalName": "mcp-registry/ai.bindry-bindry",
-      "expectedVersion": "0.2.2",
+      "expectedVersion": "0.3.0",
       "expectedArtifactDigest": "sha256:716996e95a8c14025ce0d4a0503171f3c028a2a7286edee4872ad2c165858e90",
-      "expectedContractDigest": "sha256:45e2c7120b233599b436a0da4e5928ee8a66168bbbf06d36e1974dc80e78fbc1",
+      "expectedContractDigest": "sha256:124a2bafd039ee47b7bf58815609b221b82dcd5b4c64697dac3c1454b3b6cc42",
       "host": null
     }
   },

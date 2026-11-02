@@ -1,27 +1,27 @@
 {
   "schema": "calllint.agent-adoption-contract.v1",
   "contract": {
-    "contractDigest": "sha256:b2fa60299019bf99bf15655eedb5ebb999e10013a2bfdaf599f3a9244f50bb09",
-    "generatedAt": "2026-10-19T13:04:27.000Z",
+    "contractDigest": "sha256:b36ff309dc04a505e95a54dba33feaa02a353035ae4033a152679c91e029b82c",
+    "generatedAt": "2026-11-02T01:27:20.000Z",
     "expiresAt": null,
     "generatorVersion": "0.1.0",
-    "snapshotDigest": "sha256:0970184e2142d785167786209a8863a689cb018f9bad377d6048a3b7e654bb82"
+    "snapshotDigest": "sha256:88a1d340b6b950849ecfad2693745c54117dea1bf388f28c8b7a89d2deab198d"
   },
   "subject": {
     "canonicalName": "mcp-registry/ai.aquex-reasonbook",
     "canonicalSlug": "mcp-registry/ai.aquex-reasonbook",
     "packageType": "npm",
     "packageName": "@aquex/reasonbook",
-    "version": "4.0.1",
-    "artifactDigest": "sha256:2ea57dadb4164a8d39938a5a6d69b4e1f802c3c998e03f40b61ebeb7e91c1dce",
-    "sourceLocator": "npm:@aquex/reasonbook@4.0.1"
+    "version": "4.10.0",
+    "artifactDigest": "sha256:031da28abd01cc0278fe4028ee1257ed00f472a78ad13f606ea3ff67c6aa80c2",
+    "sourceLocator": "npm:@aquex/reasonbook@4.10.0"
   },
   "publicObservation": {
     "verdict": "SAFE",
     "publicLabel": "No blockers observed",
     "reasonCodes": [],
     "evidenceLevel": "E2",
-    "evidenceDigest": "sha256:b9381aff028bedb776950d19f78c2a50ab9f2002513c9ded5eb3135f5ccd9a7a",
+    "evidenceDigest": "sha256:4decdd32f2f7e01d08e2303f2bdf3926a09d22c7517f9000c1c44fa8b4b5410b",
     "completeness": "complete"
   },
   "authorityDelta": {
@@ -39,8 +39,8 @@
     ]
   },
   "trustedSources": {
-    "registrySnapshotDigest": "sha256:0970184e2142d785167786209a8863a689cb018f9bad377d6048a3b7e654bb82",
-    "evidenceDigest": "sha256:b9381aff028bedb776950d19f78c2a50ab9f2002513c9ded5eb3135f5ccd9a7a",
+    "registrySnapshotDigest": "sha256:88a1d340b6b950849ecfad2693745c54117dea1bf388f28c8b7a89d2deab198d",
+    "evidenceDigest": "sha256:4decdd32f2f7e01d08e2303f2bdf3926a09d22c7517f9000c1c44fa8b4b5410b",
     "engineVersion": "0.1.0"
   },
   "untrustedPublisherContent": {
@@ -52,9 +52,9 @@
     "tool": "calllint_prepare_safe_install",
     "arguments": {
       "canonicalName": "mcp-registry/ai.aquex-reasonbook",
-      "expectedVersion": "4.0.1",
-      "expectedArtifactDigest": "sha256:2ea57dadb4164a8d39938a5a6d69b4e1f802c3c998e03f40b61ebeb7e91c1dce",
-      "expectedContractDigest": "sha256:b2fa60299019bf99bf15655eedb5ebb999e10013a2bfdaf599f3a9244f50bb09",
+      "expectedVersion": "4.10.0",
+      "expectedArtifactDigest": "sha256:031da28abd01cc0278fe4028ee1257ed00f472a78ad13f606ea3ff67c6aa80c2",
+      "expectedContractDigest": "sha256:b36ff309dc04a505e95a54dba33feaa02a353035ae4033a152679c91e029b82c",
       "host": null
     }
   },

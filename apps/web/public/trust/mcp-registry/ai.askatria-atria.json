@@ -2,18 +2,18 @@
   "schema": "calllint.trust-page.v0",
   "canonicalName": "mcp-registry/ai.askatria-atria",
   "artifactDigest": "sha256:e57cd6ea1c9ad97bd0ece9d002ad4633e78e78117500bd4ed03250c28aba3d3d",
-  "pageDigest": "sha256:8dd255aad91cefb538596cfb81c97e9b88a0a50fbdf060e5b9b1b812e9a2bb9a",
+  "pageDigest": "sha256:0fb84e57f5712f50f4063a01460b5dc464a3b45f1da6947596d2350466c90ef7",
   "verdict": "REVIEW",
   "verdictLabel": "Review required",
-  "observedAt": "2026-10-19T13:04:27.000Z",
+  "observedAt": "2026-11-02T01:27:20.000Z",
   "completeness": "complete",
   "status": {
     "verdict": "REVIEW",
     "completeness": "complete",
     "authorityClaimed": false,
     "reproducibility": {
-      "pageDigest": "sha256:8dd255aad91cefb538596cfb81c97e9b88a0a50fbdf060e5b9b1b812e9a2bb9a",
-      "observedAt": "2026-10-19T13:04:27.000Z"
+      "pageDigest": "sha256:0fb84e57f5712f50f4063a01460b5dc464a3b45f1da6947596d2350466c90ef7",
+      "observedAt": "2026-11-02T01:27:20.000Z"
     },
     "evidenceLevel": "E2",
     "evidenceRationale": "install config observed → static blast radius normalized into an authority inventory. Higher levels (E3 tool schema, E4 maintainer receipt, E5 sandbox) are not carried by a static page."
@@ -26,8 +26,8 @@
   },
   "scanHistory": [
     {
-      "observedAt": "2026-10-19T13:04:27.000Z",
-      "pageDigest": "sha256:8dd255aad91cefb538596cfb81c97e9b88a0a50fbdf060e5b9b1b812e9a2bb9a",
+      "observedAt": "2026-11-02T01:27:20.000Z",
+      "pageDigest": "sha256:0fb84e57f5712f50f4063a01460b5dc464a3b45f1da6947596d2350466c90ef7",
       "artifactDigest": "sha256:e57cd6ea1c9ad97bd0ece9d002ad4633e78e78117500bd4ed03250c28aba3d3d"
     }
   ],
@@ -40,7 +40,7 @@
       "requestedRef": null,
       "resolvedRef": "sha256:e57cd6ea1c9ad97bd0ece9d002ad4633e78e78117500bd4ed03250c28aba3d3d",
       "digest": "sha256:e57cd6ea1c9ad97bd0ece9d002ad4633e78e78117500bd4ed03250c28aba3d3d",
-      "resolvedAt": "2026-10-19T13:04:27.000Z",
+      "resolvedAt": "2026-11-02T01:27:20.000Z",
       "resolution": "resolved"
     },
     "evidence": null,
@@ -84,7 +84,7 @@
       "no external evidence attached (optional); decision will rely on CallLint's own analysis",
       "authority normalized: 1 capability, approvals required: external-network-access"
     ],
-    "preparedAt": "2026-10-19T13:04:27.000Z"
+    "preparedAt": "2026-11-02T01:27:20.000Z"
   },
   "scan": {
     "schemaVersion": "calllint.report.v0",
@@ -220,10 +220,10 @@
             "message": "Remote endpoint identity verified; tool surface not analyzed (evidence: https://askatria.ai/mcp)"
           }
         ],
-        "generatedAt": "2026-10-19T13:04:27.000Z"
+        "generatedAt": "2026-11-02T01:27:20.000Z"
       }
     ],
     "diagnostics": [],
-    "generatedAt": "2026-10-19T13:04:27.000Z"
+    "generatedAt": "2026-11-02T01:27:20.000Z"
   }
 }

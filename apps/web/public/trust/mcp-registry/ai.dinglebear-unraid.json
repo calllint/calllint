@@ -1,19 +1,19 @@
 {
   "schema": "calllint.trust-page.v0",
   "canonicalName": "mcp-registry/ai.dinglebear-unraid",
-  "artifactDigest": "sha256:befc8019434f6e1b6114c7671ca098d9ca1e680075934c5fe5efaa240f9f696b",
-  "pageDigest": "sha256:12496dfc394cedbc35a25eba91eb798b0694aa784fbea69d822c1f559c0091ad",
+  "artifactDigest": "sha256:46fb85e45188a992c10eaaff5a4bc1f5ce0033b41ea2f5f91749b8dc8c10e76c",
+  "pageDigest": "sha256:e5bc82272bcffaf23c1fffbaf7634a745db3924be6798ee1a9489aebb47997e8",
   "verdict": "SAFE",
   "verdictLabel": "No blockers observed",
-  "observedAt": "2026-10-19T13:04:27.000Z",
+  "observedAt": "2026-11-02T01:27:20.000Z",
   "completeness": "complete",
   "status": {
     "verdict": "SAFE",
     "completeness": "complete",
     "authorityClaimed": false,
     "reproducibility": {
-      "pageDigest": "sha256:12496dfc394cedbc35a25eba91eb798b0694aa784fbea69d822c1f559c0091ad",
-      "observedAt": "2026-10-19T13:04:27.000Z"
+      "pageDigest": "sha256:e5bc82272bcffaf23c1fffbaf7634a745db3924be6798ee1a9489aebb47997e8",
+      "observedAt": "2026-11-02T01:27:20.000Z"
     },
     "evidenceLevel": "E2",
     "evidenceRationale": "install config observed → static blast radius normalized into an authority inventory. Higher levels (E3 tool schema, E4 maintainer receipt, E5 sandbox) are not carried by a static page."
@@ -21,14 +21,14 @@
   "correctionUrl": "https://github.com/calllint/calllint/issues/new?labels=trust-page-correction",
   "reproduction": {
     "command": "npx calllint scan official-mcp-registry:ai.dinglebear/unraid",
-    "artifactDigest": "sha256:befc8019434f6e1b6114c7671ca098d9ca1e680075934c5fe5efaa240f9f696b",
+    "artifactDigest": "sha256:46fb85e45188a992c10eaaff5a4bc1f5ce0033b41ea2f5f91749b8dc8c10e76c",
     "note": "Re-running this scan reproduces the verdict observed at the pinned artifact digest. It is a point-in-time observation, not a guarantee of future behavior."
   },
   "scanHistory": [
     {
-      "observedAt": "2026-10-19T13:04:27.000Z",
-      "pageDigest": "sha256:12496dfc394cedbc35a25eba91eb798b0694aa784fbea69d822c1f559c0091ad",
-      "artifactDigest": "sha256:befc8019434f6e1b6114c7671ca098d9ca1e680075934c5fe5efaa240f9f696b"
+      "observedAt": "2026-11-02T01:27:20.000Z",
+      "pageDigest": "sha256:e5bc82272bcffaf23c1fffbaf7634a745db3924be6798ee1a9489aebb47997e8",
+      "artifactDigest": "sha256:46fb85e45188a992c10eaaff5a4bc1f5ce0033b41ea2f5f91749b8dc8c10e76c"
     }
   ],
   "preparation": {
@@ -38,16 +38,16 @@
       "sourceType": "mcp-config",
       "source": "official-mcp-registry:ai.dinglebear/unraid",
       "requestedRef": null,
-      "resolvedRef": "sha256:befc8019434f6e1b6114c7671ca098d9ca1e680075934c5fe5efaa240f9f696b",
-      "digest": "sha256:befc8019434f6e1b6114c7671ca098d9ca1e680075934c5fe5efaa240f9f696b",
-      "resolvedAt": "2026-10-19T13:04:27.000Z",
+      "resolvedRef": "sha256:46fb85e45188a992c10eaaff5a4bc1f5ce0033b41ea2f5f91749b8dc8c10e76c",
+      "digest": "sha256:46fb85e45188a992c10eaaff5a4bc1f5ce0033b41ea2f5f91749b8dc8c10e76c",
+      "resolvedAt": "2026-11-02T01:27:20.000Z",
       "resolution": "resolved"
     },
     "evidence": null,
     "authority": {
       "schema": "calllint.authority.v0",
       "subject": {
-        "artifactDigest": "sha256:befc8019434f6e1b6114c7671ca098d9ca1e680075934c5fe5efaa240f9f696b"
+        "artifactDigest": "sha256:46fb85e45188a992c10eaaff5a4bc1f5ce0033b41ea2f5f91749b8dc8c10e76c"
       },
       "capabilities": [
         {
@@ -74,7 +74,7 @@
       },
       "unknowns": [],
       "completeness": "complete",
-      "digest": "sha256:55fdb694fe1d7ed0428bdbc1d24320455d78a6b19987e4e5fcd61d566c1b9420"
+      "digest": "sha256:17aca4a96b63d014894c70b5b92d4285c0eca0ed5ed9fac061ce5a70df6ffdae"
     },
     "decision": null,
     "plan": null,
@@ -83,7 +83,7 @@
       "no external evidence attached (optional); decision will rely on CallLint's own analysis",
       "authority normalized: 1 capability"
     ],
-    "preparedAt": "2026-10-19T13:04:27.000Z"
+    "preparedAt": "2026-11-02T01:27:20.000Z"
   },
   "scan": {
     "schemaVersion": "calllint.report.v0",
@@ -105,7 +105,7 @@
           "name": "package",
           "kind": "mcp-servers",
           "source": "@dinglebear/unraid",
-          "version": "0.3.0",
+          "version": "0.6.3",
           "configPath": "official-mcp-registry:ai.dinglebear/unraid"
         },
         "verdict": "SAFE",
@@ -129,16 +129,16 @@
           "sandbox": "none"
         },
         "fingerprints": {
-          "configHash": "sha256:c20af70a611c0ef5c8ab586049af0def18b3e0ed4f46ff9093d9d0b57861c6c7",
-          "targetSpecHash": "sha256:2b8beca88646479a58431f4c6536517b0bb502b97c1b74dbae0392c8293526bd",
+          "configHash": "sha256:4655e20bd1132edd43caff99fe1b9bf6c70877ec004679717402368880c93818",
+          "targetSpecHash": "sha256:a3d7542a7b76b1f35daa1bc39f80cc5cc7afb77b886bd7c5badae844170efdf2",
           "riskSurfaceHash": "sha256:69aae84c996fe93d537b08d906cb339866bd43f10876be403a0f4793915bef33",
-          "packageSpecHash": "sha256:f489142e09cb21a8e4e225491e95472d93a7f53699179c4d47155ee2e889eb25"
+          "packageSpecHash": "sha256:13f29145516ee2c3f02c243b19377321f01e4ece0ad38c9fc182897f62025e7d"
         },
         "diagnostics": [],
-        "generatedAt": "2026-10-19T13:04:27.000Z"
+        "generatedAt": "2026-11-02T01:27:20.000Z"
       }
     ],
     "diagnostics": [],
-    "generatedAt": "2026-10-19T13:04:27.000Z"
+    "generatedAt": "2026-11-02T01:27:20.000Z"
   }
 }

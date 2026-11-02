@@ -2,18 +2,18 @@
   "schema": "calllint.trust-page.v0",
   "canonicalName": "mcp-registry/ai.darkfunnels-whatsapp-sales-agent",
   "artifactDigest": "sha256:5a2107e75cee7b943ad6b7476f0c4b34d10adf617a52d3dc332263608c241e01",
-  "pageDigest": "sha256:bcbd0aa7152b8d3a2d6c81f52ee0247f106ca1e5e91d1c6d04e2f036410c0e3b",
+  "pageDigest": "sha256:6a3c338e855fd9734575e214ae42685805bb30c31ec094384e967cbd1a2748eb",
   "verdict": "REVIEW",
   "verdictLabel": "Review required",
-  "observedAt": "2026-10-19T13:04:27.000Z",
+  "observedAt": "2026-11-02T01:27:20.000Z",
   "completeness": "complete",
   "status": {
     "verdict": "REVIEW",
     "completeness": "complete",
     "authorityClaimed": false,
     "reproducibility": {
-      "pageDigest": "sha256:bcbd0aa7152b8d3a2d6c81f52ee0247f106ca1e5e91d1c6d04e2f036410c0e3b",
-      "observedAt": "2026-10-19T13:04:27.000Z"
+      "pageDigest": "sha256:6a3c338e855fd9734575e214ae42685805bb30c31ec094384e967cbd1a2748eb",
+      "observedAt": "2026-11-02T01:27:20.000Z"
     },
     "evidenceLevel": "E2",
     "evidenceRationale": "install config observed → static blast radius normalized into an authority inventory. Higher levels (E3 tool schema, E4 maintainer receipt, E5 sandbox) are not carried by a static page."
@@ -26,8 +26,8 @@
   },
   "scanHistory": [
     {
-      "observedAt": "2026-10-19T13:04:27.000Z",
-      "pageDigest": "sha256:bcbd0aa7152b8d3a2d6c81f52ee0247f106ca1e5e91d1c6d04e2f036410c0e3b",
+      "observedAt": "2026-11-02T01:27:20.000Z",
+      "pageDigest": "sha256:6a3c338e855fd9734575e214ae42685805bb30c31ec094384e967cbd1a2748eb",
       "artifactDigest": "sha256:5a2107e75cee7b943ad6b7476f0c4b34d10adf617a52d3dc332263608c241e01"
     }
   ],
@@ -40,7 +40,7 @@
       "requestedRef": null,
       "resolvedRef": "sha256:5a2107e75cee7b943ad6b7476f0c4b34d10adf617a52d3dc332263608c241e01",
       "digest": "sha256:5a2107e75cee7b943ad6b7476f0c4b34d10adf617a52d3dc332263608c241e01",
-      "resolvedAt": "2026-10-19T13:04:27.000Z",
+      "resolvedAt": "2026-11-02T01:27:20.000Z",
       "resolution": "resolved"
     },
     "evidence": null,
@@ -84,7 +84,7 @@
       "no external evidence attached (optional); decision will rely on CallLint's own analysis",
       "authority normalized: 1 capability, approvals required: external-network-access"
     ],
-    "preparedAt": "2026-10-19T13:04:27.000Z"
+    "preparedAt": "2026-11-02T01:27:20.000Z"
   },
   "scan": {
     "schemaVersion": "calllint.report.v0",
@@ -220,10 +220,10 @@
             "message": "Remote endpoint identity verified; tool surface not analyzed (evidence: https://mcp.darkfunnels.ai/mcp?features=all)"
           }
         ],
-        "generatedAt": "2026-10-19T13:04:27.000Z"
+        "generatedAt": "2026-11-02T01:27:20.000Z"
       }
     ],
     "diagnostics": [],
-    "generatedAt": "2026-10-19T13:04:27.000Z"
+    "generatedAt": "2026-11-02T01:27:20.000Z"
   }
 }
