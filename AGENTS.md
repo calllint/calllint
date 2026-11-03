@@ -29,10 +29,11 @@ with evidence before an agent loads the tool server.
 
 ## Quality gates (run before any checkpoint)
 
-This machine's default `node` is too old; use Node 20 + pnpm:
+Pin Node 20.20.2 explicitly; the default PATH is not the toolchain contract:
 
 ```bash
-export PATH="/c/nvm4w/nodejs:$PATH"   # Node v20.20.2
+export PATH="/c/Users/admin/AppData/Local/nvm/v20.20.2:$PATH"
+node -v                              # must print v20.20.2
 corepack enable pnpm                  # gives pnpm 9.x
 pnpm typecheck
 pnpm test
@@ -40,6 +41,11 @@ pnpm build
 pnpm corpus:test
 pnpm corpus:test:r2-final
 ```
+
+PowerShell equivalent: prepend
+`C:\Users\admin\AppData\Local\nvm\v20.20.2` to `$env:PATH` and verify
+`node -v` before running the same gates. Windows shell-test and jq prerequisites
+are documented in `CONTRIBUTING.md` under "Local validation environment".
 
 ## Releases (human approval required)
 

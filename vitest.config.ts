@@ -1,5 +1,25 @@
 import { defineConfig } from "vitest/config"
 import { fileURLToPath } from "node:url"
+import { execFileSync } from "node:child_process"
+import { existsSync } from "node:fs"
+import { homedir } from "node:os"
+import { delimiter, dirname, join, resolve } from "node:path"
+
+// Shell invariants execute production Bash blocks. Windows' PATH may resolve
+// bash to a WSL launcher without a Linux installation. Select the shell shipped
+// with the active Git installation, without changing machine or user settings.
+if (process.platform === "win32") {
+  const gitExecPath = execFileSync("git", ["--exec-path"], { encoding: "utf8" }).trim()
+  const gitRoot = resolve(gitExecPath, "../../..")
+  const gitBin = join(gitRoot, "bin")
+  if (!existsSync(join(gitBin, "bash.exe"))) {
+    throw new Error(`Shell tests require Git for Windows with Git Bash; not found under ${gitRoot}`)
+  }
+  process.env.PATH = [
+    dirname(process.execPath), gitBin, join(gitRoot, "usr", "bin"),
+    join(homedir(), ".local", "bin"), process.env.PATH ?? "",
+  ].join(delimiter)
+}
 
 const r = (p: string) => fileURLToPath(new URL(p, import.meta.url))
 

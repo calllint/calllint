@@ -13,7 +13,14 @@ because the sentence needs no citation to be true.)
 
 ## [Unreleased]
 
-Nothing yet.
+### Fixed
+
+- Make local security checks use the remote main baseline by default and reject
+  missing comparison history instead of silently switching baselines.
+- Run Windows shell regression tests through Git Bash and report missing shell
+  tools directly. Preserve the selected Node version in child processes.
+- Report CI failures by their actual check and fail website deployment
+  verification when no deployment URL is available.
 
 ## [1.9.2] — 2026-10-23
 

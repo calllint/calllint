@@ -45,6 +45,30 @@ CLA or DCO bot today; a maintainer will ask if one becomes necessary.
    execution of scanned servers, no default-on telemetry. UNKNOWN is not SAFE;
    SAFE is not proof of runtime safety.
 
+## Local validation environment
+
+Use Node 20.20.2 and pnpm 9.x as specified in `CLAUDE.md`. On Windows,
+install Git for Windows with Git Bash and [jq from its official releases](https://github.com/jqlang/jq/releases).
+Verify the download against the release's SHA-256 checksum. Put `jq.exe` on
+PATH or in `%USERPROFILE%\.local\bin`.
+
+Vitest locates Git Bash through the active Git installation and prepends its
+shell utilities and the user-local tools directory to the test process PATH.
+Child Node commands keep the version that started Vitest. This setup does not
+change the system PATH, PowerShell profile, or WSL configuration. The credential
+preflight tests execute the real workflow with real jq; missing tools fail with
+an installation diagnostic rather than being skipped.
+
+`pnpm check:security-semantics` defaults to `origin/main`, falling back to local
+`main` only when the remote-tracking ref is absent. An existing ref without common
+history fails rather than switching baselines. Refresh the remote
+refs with `git fetch origin` before reviewing new work; the check itself performs
+no network access. The output names the selected ref and merge-base. To measure
+an intentional alternative, use
+`pnpm check:security-semantics --base <ref>`; an explicit base remains authoritative
+and a missing baseline fails closed. Do not reset a local branch or rewrite the
+historical security artifact to silence a stale-baseline error.
+
 ## Security reports
 
 Do not open public issues for security-sensitive reports. Email security@calllint.com instead.

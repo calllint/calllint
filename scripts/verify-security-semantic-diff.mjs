@@ -25,8 +25,10 @@
  * core invariant: MODEL IDENTITY ⟂ SECURITY VERDICT.
  *
  * Usage:
- *   node scripts/verify-security-semantic-diff.mjs --base <ref>   # default: main
+ *   node scripts/verify-security-semantic-diff.mjs --base <ref>   # override the default
  *   node scripts/verify-security-semantic-diff.mjs --check        # verify, do not write
+ * Default: origin/main, then main for a checkout without remote-tracking main.
+ * No network fetch is performed. Refresh remote refs before reviewing new changes.
  *
  * ADR 0100: an isolated detector-maintenance range is measured as CHANGED but
  * is outside distribution zero-diff. Live forbidden-field and identity checks
@@ -304,11 +306,12 @@ function git(args) {
 }
 
 function parseArgs(argv) {
-  const opts = { base: 'main', check: false }
+  const opts = { base: null, check: false }
   for (let i = 0; i < argv.length; i++) {
     const [flag, inline] = argv[i].split('=')
     const value = inline ?? argv[i + 1]
     if (flag === '--base') {
+      if (!value || value.startsWith('--')) throw new Error('--base requires a ref')
       opts.base = value
       if (inline === undefined) i++
     } else if (flag === '--check') {
@@ -326,31 +329,31 @@ function measureDiff(base) {
   const existing = VERDICT_PACKAGES.filter((p) => existsSync(resolve(repoRoot, p)))
   let mergeBase = null
   let resolvedBase = null
-  /*
-   * Try the given ref, then its `origin/` form. A CI checkout has NO local `main`: measured on
-   * a real clone of this repo, `git merge-base main HEAD` exits 128 with "Not a valid object
-   * name main" even under `fetch-depth: 0`, because a clone brings remote-tracking refs and
-   * only checks out the one branch. So the historical arm below failed for a reason unrelated
-   * to its subject, and — correctly, per the fail-closed comment in the catch — reported
-   * SECURITY_SEMANTICS = CHANGED on a diff that touches no verdict package at all.
-   *
-   * Fixing the caller alone would not have been enough, which is why this loop exists rather
-   * than a `--base origin/main` in the workflow: the same green must be reachable locally,
-   * where `main` DOES resolve and `origin/main` may be stale.
-   */
-  for (const candidate of [base, base.startsWith('origin/') ? null : `origin/${base}`].filter(Boolean)) {
+  // ADR 0103: local main may exist but predate already accepted detector repairs.
+  // Use the canonical remote-tracking branch by default, identically to full CI
+  // clones. Explicit --base keeps its requested order and missing refs fail closed.
+  const candidates = base === null ? ['origin/main', 'main']
+    : [base, base.startsWith('origin/') ? null : `origin/${base}`].filter(Boolean)
+  for (const candidate of candidates) {
+    try {
+      git(['rev-parse', '--verify', '--end-of-options', candidate])
+    } catch {
+      // Only an absent ref permits a fallback. Existing but unrelated/shallow
+      // history is missing evidence, not permission to choose another baseline.
+      continue
+    }
+    resolvedBase = candidate
     try {
       mergeBase = git(['merge-base', candidate, 'HEAD']).trim()
-      resolvedBase = candidate
-      break
     } catch {
-      // Try the next spelling; a genuine absence is reported after the loop.
+      // Preserve failure against the selected existing ref.
     }
+    break
   }
   if (mergeBase === null) {
     // A missing base ref must not silently skip the measurement.
-    violations.push(`could not resolve merge-base against "${base}" — range measurement did not run`)
-    return { base, mergeBase: null, committedChanges: null, worktreeChanges: null, measured: false }
+    violations.push(`could not resolve merge-base against "${resolvedBase ?? base ?? 'origin/main or main'}" — range measurement did not run`)
+    return { base: base ?? resolvedBase ?? 'origin/main', resolvedBase, mergeBase: null, committedChanges: null, worktreeChanges: null, measured: false }
   }
 
   const committed = git(['diff', '--name-only', `${mergeBase}..HEAD`, '--', ...existing])
@@ -431,7 +434,7 @@ function measureDiff(base) {
   }
 
   return {
-    base,
+    base: base ?? resolvedBase,
     scope,
     rangeFiles,
     // Which spelling actually resolved. Without this the artifact cannot say whether the range
@@ -492,6 +495,7 @@ function main() {
   const diff = measureDiff(options.base)
   const fields = measureForbiddenFields()
   const coupling = measureCoupling()
+  console.log(`  base:      ${diff.resolvedBase ?? 'UNRESOLVED'} (${options.base === null ? 'default' : 'explicit'}); merge-base ${diff.mergeBase ?? 'UNRESOLVED'}`)
 
   const changed = violations.length > 0
 

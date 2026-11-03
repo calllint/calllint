@@ -100,6 +100,10 @@ jobs:
           npx --yes wrangler@3 pages deploy public \
             --project-name="$PAGES_PROJECT" --branch=main 2>&1 | tee deploy.log
           url=$(grep -oE 'https://[a-z0-9]+\.[a-z0-9-]+\.pages\.dev' deploy.log | head -1)
+          if [ -z "$url" ]; then
+            echo "No deployment URL parsed from wrangler output — deployment identity is unverified." >&2
+            exit 1
+          fi
           echo "deployment-url=$url" >> "$GITHUB_OUTPUT"
 
       # new15 §14, 可回滚性 line 2: 每次 deploy 记录 presentationDigest.
@@ -142,8 +146,8 @@ jobs:
           DEPLOY_URL: ${{ steps.deploy.outputs.deployment-url }}
         run: |
           if [ -z "$DEPLOY_URL" ]; then
-            echo "No deployment URL returned; skipping verification." >&2
-            exit 0
+            echo "No deployment URL returned — deployment verification cannot run." >&2
+            exit 1
           fi
           want=$(node -e "const c=require('crypto'),fs=require('fs');console.log(c.createHash('sha256').update(fs.readFileSync('apps/web/public/logo-mark-128.png')).digest('hex'))")
           got=$(curl -fsS --retry 5 --retry-delay 3 --retry-all-errors "$DEPLOY_URL/logo-mark-128.png" | node -e "const c=require('crypto');const ch=c.createHash('sha256');process.stdin.on('data',d=>ch.update(d));process.stdin.on('end',()=>console.log(ch.digest('hex')))")

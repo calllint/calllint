@@ -3,7 +3,7 @@ import { mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs"
 import { tmpdir } from "node:os"
 import { join } from "node:path"
 import { fileURLToPath } from "node:url"
-import { afterAll, describe, expect, it } from "vitest"
+import { afterAll, beforeAll, describe, expect, it } from "vitest"
 import { parse } from "yaml"
 
 // Execute the shipped step, with only curl replaced. jq parses real response files.
@@ -15,6 +15,12 @@ const preflight: string = workflow.jobs.report.steps.find(
 if (!preflight) throw new Error("production credential preflight step is missing")
 const root = mkdtempSync(join(tmpdir(), "calllint-credentials-"))
 afterAll(() => rmSync(root, { recursive: true, force: true }))
+beforeAll(() => {
+  const result = spawnSync("jq", ["--version"], { encoding: "utf8", timeout: 10_000 })
+  if (result.status !== 0) {
+    throw new Error(`Credential preflight tests require real jq on PATH (Windows: %USERPROFILE%\\.local\\bin\\jq.exe).\n${result.error ?? result.stderr}`)
+  }
+})
 
 const account = "0123456789abcdef0123456789abcdef"
 const userURL = "https://api.cloudflare.com/client/v4/user/tokens/verify"
