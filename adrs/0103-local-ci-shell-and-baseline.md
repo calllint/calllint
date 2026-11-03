@@ -36,6 +36,10 @@ workflows. Local revalidation exposed separate environment-dependent failures:
 3. Preserve the required aggregate's rejection of failed, skipped and cancelled
    dependencies. Direct the operator to the actual failed step and list the
    job's distinct checks rather than asserting an unobserved ledger defect.
+4. Require a parsed deployment URL and observed matching logo bytes for web
+   deployment acceptance. Missing deployment identity fails; it cannot skip
+   verification and return success. Behavioral tests execute the actual workflow
+   block with matching, wrong, unavailable and absent-URL evidence.
 
 ## Validation
 

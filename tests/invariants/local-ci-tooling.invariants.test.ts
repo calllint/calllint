@@ -122,6 +122,11 @@ describe("local shell and CI diagnostics exercise their actual entry points", ()
     })
     expect(result.status, `${result.error ?? ""}\n${result.stderr}`).toBe(0)
     expect(result.stdout).toBe("CALLLINT_SHELL_OK")
+    const childNode = spawnSync("bash", ["--noprofile", "--norc", "-c", "node -p process.execPath"], {
+      encoding: "utf8", timeout: 10_000,
+    })
+    expect(childNode.status, childNode.stderr).toBe(0)
+    expect(childNode.stdout.trim()).toBe(process.execPath)
   })
   it.each(["failure", "cancelled", "skipped", "success"])("the CI aggregate diagnoses %s without inventing a ledger defect", (state) => {
     const ci = parse(readFileSync(join(ROOT, ".github/workflows/ci.yml"), "utf8"))
@@ -138,5 +143,34 @@ describe("local shell and CI diagnostics exercise their actual entry points", ()
       expect(result.stdout).toContain("checks passed")
     }
     expect(result.stdout).not.toContain("A ledger entry names a commit this branch never had")
+  })
+})
+
+describe("web deployment verification cannot pass without observed assets", () => {
+  const workflow = parse(readFileSync(join(ROOT, ".github/workflows/deploy-web.yml"), "utf8"))
+  const verify = workflow.jobs.deploy.steps.find((s: { name?: string }) =>
+    s.name === "Verify the deployment serves the repo's logo")?.run
+  if (!verify) throw new Error("production logo verification step is missing")
+  function runVerification(url: string, bytes: "match" | "wrong" | "transport") {
+    const curl = bytes === "match" ? 'cat apps/web/public/logo-mark-128.png'
+      : bytes === "wrong" ? "printf wrong-asset" : "return 7"
+    return spawnSync("bash", ["-e", "-o", "pipefail", "-c", `curl() { ${curl}; }\n${verify}`], {
+      cwd: ROOT, env: { ...process.env, DEPLOY_URL: url }, encoding: "utf8", timeout: 10_000,
+    })
+  }
+  it("missing deployment URL fails instead of skipping verification", () => {
+    const result = runVerification("", "match")
+    expect(result.status, result.stdout + result.stderr).not.toBe(0)
+    expect(result.stderr).toContain("No deployment URL")
+  })
+  it("the actual shipped block accepts matching asset bytes", () => {
+    const result = runVerification("https://unit.calllint-www.pages.dev", "match")
+    expect(result.status, result.stdout + result.stderr).toBe(0)
+    expect(result.stdout).toContain("verified: deployment serves the current logo")
+  })
+  it.each(["wrong", "transport"] as const)("rejects %s asset evidence", (bytes) => {
+    const result = runVerification("https://unit.calllint-www.pages.dev", bytes)
+    expect(result.status, result.stdout + result.stderr).not.toBe(0)
+    expect(result.stdout).not.toContain("verified: deployment serves the current logo")
   })
 })
