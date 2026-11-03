@@ -127,7 +127,12 @@ echo "HARNESS_CALLS=$(cat '${cnt}')"
     out = (err.stdout ?? "") + (err.stderr ?? "")
   }
   const grab = (k: string) => Number(new RegExp(`${k}=(\\d+)`).exec(out)?.[1] ?? NaN)
-  return { fail: grab("HARNESS_FAIL"), calls: grab("HARNESS_CALLS"), out }
+  const fail = grab("HARNESS_FAIL")
+  const calls = grab("HARNESS_CALLS")
+  if (!Number.isFinite(fail) || !Number.isFinite(calls)) {
+    throw new Error(`The shipped usage probe did not finish its shell harness. Check Git Bash and shell tools.\n${out}`)
+  }
+  return { fail, calls, out }
 }
 
 const LIVE = "HTTP/2 301\r\nx-calllint-report: present\r\n\r\n"

@@ -366,8 +366,9 @@ jobs:
         run: |
           if [ "${{ needs.ledger-authenticity.result }}" != "success" ]; then
             echo "'ledger-authenticity' result was '${{ needs.ledger-authenticity.result }}' — failing the gate."
-            echo "A ledger entry names a commit this branch never had, or a stored document does not match its commit."
-            echo "After a squash merge, reseat the newest entry: pnpm ledger:presentation:reseat"
+            echo "Inspect the failed step in ledger-authenticity before choosing a repair."
+            echo "This job includes ledger validation, Gate S0 cohort identity, and Security-semantic diff checks."
+            echo "Reseat a ledger only if its validation step reports a commit or stored-document mismatch."
             exit 1
           fi
-          echo "Deploy ledger passed the git authenticity layer on a full clone."
+          echo "Ledger, cohort identity, and security-semantic checks passed on a full clone."
