@@ -1,18 +1,18 @@
 {
   "schema": "calllint.agent-adoption-contract.v1",
   "contract": {
-    "contractDigest": "sha256:fbffb3b271fea04488557789a7045d227198351f72b3122491b3704c0dee5ddc",
-    "generatedAt": "2026-11-02T01:27:20.000Z",
+    "contractDigest": "sha256:a5765f515b7c5e4fe95ec91e31d6e273473796e78e5b561060dd6fccfcaf055b",
+    "generatedAt": "2026-11-16T15:36:27.000Z",
     "expiresAt": null,
     "generatorVersion": "0.1.0",
-    "snapshotDigest": "sha256:88a1d340b6b950849ecfad2693745c54117dea1bf388f28c8b7a89d2deab198d"
+    "snapshotDigest": "sha256:e35b6ae4550ecb42b62a85ae00e9c5f4a1057efc1aa2a5e49340ac3ac1b7ca75"
   },
   "subject": {
     "canonicalName": "mcp-registry/ai.arvx-arvx",
     "canonicalSlug": "mcp-registry/ai.arvx-arvx",
     "packageType": null,
     "packageName": null,
-    "version": "1.0.0",
+    "version": "1.0.2",
     "artifactDigest": "sha256:16751469852bfcd3f7e8307cd211b3d689bf77417db24ffd52a75f2890e75d07",
     "sourceLocator": "https://mcp.arvx.ai/mcp"
   },
@@ -23,7 +23,7 @@
       "UNKNOWN_REMOTE"
     ],
     "evidenceLevel": "E2",
-    "evidenceDigest": "sha256:4decdd32f2f7e01d08e2303f2bdf3926a09d22c7517f9000c1c44fa8b4b5410b",
+    "evidenceDigest": "sha256:a153506703442f8614341afdc036c4ce44d3eb6d2a834db9f983927dc0a0bb2f",
     "completeness": "complete"
   },
   "authorityDelta": {
@@ -44,12 +44,12 @@
     ]
   },
   "trustedSources": {
-    "registrySnapshotDigest": "sha256:88a1d340b6b950849ecfad2693745c54117dea1bf388f28c8b7a89d2deab198d",
-    "evidenceDigest": "sha256:4decdd32f2f7e01d08e2303f2bdf3926a09d22c7517f9000c1c44fa8b4b5410b",
+    "registrySnapshotDigest": "sha256:e35b6ae4550ecb42b62a85ae00e9c5f4a1057efc1aa2a5e49340ac3ac1b7ca75",
+    "evidenceDigest": "sha256:a153506703442f8614341afdc036c4ce44d3eb6d2a834db9f983927dc0a0bb2f",
     "engineVersion": "0.1.0"
   },
   "untrustedPublisherContent": {
-    "description": "Email for long-term client relationships: ARVX reads each person first and remembers every pair.",
+    "description": "ARVX™ models both people in a relationship and reads its health area by area with every Reading.",
     "usedForSafetyDecision": false
   },
   "recommendedNextAction": {
@@ -57,9 +57,9 @@
     "tool": "calllint_prepare_safe_install",
     "arguments": {
       "canonicalName": "mcp-registry/ai.arvx-arvx",
-      "expectedVersion": "1.0.0",
+      "expectedVersion": "1.0.2",
       "expectedArtifactDigest": "sha256:16751469852bfcd3f7e8307cd211b3d689bf77417db24ffd52a75f2890e75d07",
-      "expectedContractDigest": "sha256:fbffb3b271fea04488557789a7045d227198351f72b3122491b3704c0dee5ddc",
+      "expectedContractDigest": "sha256:a5765f515b7c5e4fe95ec91e31d6e273473796e78e5b561060dd6fccfcaf055b",
       "host": null
     }
   },

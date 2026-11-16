@@ -1,19 +1,19 @@
 {
   "schema": "calllint.trust-page.v0",
   "canonicalName": "mcp-registry/ai.alphabazaar-arena",
-  "artifactDigest": "sha256:6486622dcc9f5587659b87e4628648068985ec60ecced0a7bdd8ef8a64940460",
-  "pageDigest": "sha256:81151d667dcf99bf94acf6360d912af820bdd36daad9e5eecf6b34af2042743e",
+  "artifactDigest": "sha256:69e1eed51b19d46b0f1fd3bae8742d9cdd1b1328f441a9a37b14a67777f71fe7",
+  "pageDigest": "sha256:f7f0ebaa36c7fbabe1d3a58f4ddc33964afd9bcff1105af41de7385f447dab52",
   "verdict": "REVIEW",
   "verdictLabel": "Review required",
-  "observedAt": "2026-11-02T01:27:20.000Z",
+  "observedAt": "2026-11-16T15:36:27.000Z",
   "completeness": "complete",
   "status": {
     "verdict": "REVIEW",
     "completeness": "complete",
     "authorityClaimed": false,
     "reproducibility": {
-      "pageDigest": "sha256:81151d667dcf99bf94acf6360d912af820bdd36daad9e5eecf6b34af2042743e",
-      "observedAt": "2026-11-02T01:27:20.000Z"
+      "pageDigest": "sha256:f7f0ebaa36c7fbabe1d3a58f4ddc33964afd9bcff1105af41de7385f447dab52",
+      "observedAt": "2026-11-16T15:36:27.000Z"
     },
     "evidenceLevel": "E2",
     "evidenceRationale": "install config observed → static blast radius normalized into an authority inventory. Higher levels (E3 tool schema, E4 maintainer receipt, E5 sandbox) are not carried by a static page."
@@ -21,14 +21,14 @@
   "correctionUrl": "https://github.com/calllint/calllint/issues/new?labels=trust-page-correction",
   "reproduction": {
     "command": "npx calllint scan official-mcp-registry:ai.alphabazaar/arena",
-    "artifactDigest": "sha256:6486622dcc9f5587659b87e4628648068985ec60ecced0a7bdd8ef8a64940460",
+    "artifactDigest": "sha256:69e1eed51b19d46b0f1fd3bae8742d9cdd1b1328f441a9a37b14a67777f71fe7",
     "note": "Re-running this scan reproduces the verdict observed at the pinned artifact digest. It is a point-in-time observation, not a guarantee of future behavior."
   },
   "scanHistory": [
     {
-      "observedAt": "2026-11-02T01:27:20.000Z",
-      "pageDigest": "sha256:81151d667dcf99bf94acf6360d912af820bdd36daad9e5eecf6b34af2042743e",
-      "artifactDigest": "sha256:6486622dcc9f5587659b87e4628648068985ec60ecced0a7bdd8ef8a64940460"
+      "observedAt": "2026-11-16T15:36:27.000Z",
+      "pageDigest": "sha256:f7f0ebaa36c7fbabe1d3a58f4ddc33964afd9bcff1105af41de7385f447dab52",
+      "artifactDigest": "sha256:69e1eed51b19d46b0f1fd3bae8742d9cdd1b1328f441a9a37b14a67777f71fe7"
     }
   ],
   "preparation": {
@@ -38,18 +38,31 @@
       "sourceType": "mcp-config",
       "source": "official-mcp-registry:ai.alphabazaar/arena",
       "requestedRef": null,
-      "resolvedRef": "sha256:6486622dcc9f5587659b87e4628648068985ec60ecced0a7bdd8ef8a64940460",
-      "digest": "sha256:6486622dcc9f5587659b87e4628648068985ec60ecced0a7bdd8ef8a64940460",
-      "resolvedAt": "2026-11-02T01:27:20.000Z",
+      "resolvedRef": "sha256:69e1eed51b19d46b0f1fd3bae8742d9cdd1b1328f441a9a37b14a67777f71fe7",
+      "digest": "sha256:69e1eed51b19d46b0f1fd3bae8742d9cdd1b1328f441a9a37b14a67777f71fe7",
+      "resolvedAt": "2026-11-16T15:36:27.000Z",
       "resolution": "resolved"
     },
     "evidence": null,
     "authority": {
       "schema": "calllint.authority.v0",
       "subject": {
-        "artifactDigest": "sha256:6486622dcc9f5587659b87e4628648068985ec60ecced0a7bdd8ef8a64940460"
+        "artifactDigest": "sha256:69e1eed51b19d46b0f1fd3bae8742d9cdd1b1328f441a9a37b14a67777f71fe7"
       },
       "capabilities": [
+        {
+          "action": "connect",
+          "resource": "network",
+          "scope": "api.alphabazaar.ai",
+          "destination": "api.alphabazaar.ai",
+          "mutability": "mutating",
+          "reversibility": "irreversible",
+          "monetaryLimit": null,
+          "approvalRequirement": "review",
+          "evidenceSource": "server.url",
+          "confidence": "high",
+          "completeness": "complete"
+        },
         {
           "action": "connect",
           "resource": "network",
@@ -75,16 +88,16 @@
       },
       "unknowns": [],
       "completeness": "complete",
-      "digest": "sha256:e7fd7985aa579217238e1f2b5ee7ac11c50bc615ef3485368150b197c5f5d5e9"
+      "digest": "sha256:649ae81cbc72a332b523ecc9f62f70e6aba9099a8db6e65f787087e301d4676d"
     },
     "decision": null,
     "plan": null,
     "state": "AUTHORITY_NORMALIZED",
     "notes": [
       "no external evidence attached (optional); decision will rely on CallLint's own analysis",
-      "authority normalized: 1 capability, approvals required: external-network-access"
+      "authority normalized: 2 capabilities, approvals required: external-network-access"
     ],
-    "preparedAt": "2026-11-02T01:27:20.000Z"
+    "preparedAt": "2026-11-16T15:36:27.000Z"
   },
   "scan": {
     "schemaVersion": "calllint.report.v0",
@@ -94,7 +107,7 @@
     "publicVerdictLabel": "Review required",
     "counts": {
       "SAFE": 0,
-      "REVIEW": 1,
+      "REVIEW": 2,
       "BLOCK": 0,
       "UNKNOWN": 0
     },
@@ -103,7 +116,7 @@
         "schemaVersion": "calllint.report.v0",
         "reportKind": "single-target",
         "target": {
-          "name": "remote",
+          "name": "remote-1",
           "kind": "mcp-servers",
           "source": "https://api.alphabazaar.ai/mcp",
           "configPath": "official-mcp-registry:ai.alphabazaar/arena"
@@ -123,7 +136,7 @@
             "Remote endpoint identity verified; tool surface not analyzed"
           ]
         },
-        "summary": "\"remote\" could not be verified (insufficient evidence). Risk: Network (S1 Read-only utility).",
+        "summary": "\"remote-1\" could not be verified (insufficient evidence). Risk: Network (S1 Read-only utility).",
         "observed": [
           {
             "id": "supply.unknown-remote",
@@ -220,10 +233,133 @@
             "message": "Remote endpoint identity verified; tool surface not analyzed (evidence: https://api.alphabazaar.ai/mcp)"
           }
         ],
-        "generatedAt": "2026-11-02T01:27:20.000Z"
+        "generatedAt": "2026-11-16T15:36:27.000Z"
+      },
+      {
+        "schemaVersion": "calllint.report.v0",
+        "reportKind": "single-target",
+        "target": {
+          "name": "remote-2",
+          "kind": "mcp-servers",
+          "source": "https://api.alphabazaar.ai/mcp/agent",
+          "configPath": "official-mcp-registry:ai.alphabazaar/arena"
+        },
+        "verdict": "REVIEW",
+        "publicVerdictLabel": "Review required",
+        "policyApplied": false,
+        "riskClass": "S1",
+        "symbols": [
+          "NETWORK"
+        ],
+        "confidence": "high",
+        "reproducibility": {
+          "level": "LOW",
+          "reasons": [
+            "Remote endpoint domain ownership not verified",
+            "Remote endpoint identity verified; tool surface not analyzed"
+          ]
+        },
+        "summary": "\"remote-2\" could not be verified (insufficient evidence). Risk: Network (S1 Read-only utility).",
+        "observed": [
+          {
+            "id": "supply.unknown-remote",
+            "title": "Remote server source cannot be verified",
+            "severity": "high",
+            "blocker": false,
+            "symbol": "NETWORK",
+            "riskClass": "S1",
+            "mode": "OBSERVED",
+            "confidence": "high",
+            "detectionMethod": "runtime-binding",
+            "evidence": [
+              {
+                "type": "runtime-binding",
+                "path": "official-mcp-registry:ai.alphabazaar/arena",
+                "key": "url",
+                "value": "https://api.alphabazaar.ai/mcp/agent",
+                "line": 9,
+                "column": 7
+              }
+            ],
+            "impact": "The server runs on an unverified remote endpoint. Its tools, permissions, and behavior cannot be inspected statically and may change at any time.",
+            "fix": "Use a verified first-party endpoint, or run the server from a pinned, inspectable package.",
+            "falsePositiveNote": "A trusted internal endpoint may be fine; add it to the policy allowlist to verify it."
+          }
+        ],
+        "inferred": [],
+        "findings": [
+          {
+            "id": "supply.unknown-remote",
+            "title": "Remote server source cannot be verified",
+            "severity": "high",
+            "blocker": false,
+            "symbol": "NETWORK",
+            "riskClass": "S1",
+            "mode": "OBSERVED",
+            "confidence": "high",
+            "detectionMethod": "runtime-binding",
+            "evidence": [
+              {
+                "type": "runtime-binding",
+                "path": "official-mcp-registry:ai.alphabazaar/arena",
+                "key": "url",
+                "value": "https://api.alphabazaar.ai/mcp/agent",
+                "line": 9,
+                "column": 7
+              }
+            ],
+            "impact": "The server runs on an unverified remote endpoint. Its tools, permissions, and behavior cannot be inspected statically and may change at any time.",
+            "fix": "Use a verified first-party endpoint, or run the server from a pinned, inspectable package.",
+            "falsePositiveNote": "A trusted internal endpoint may be fine; add it to the policy allowlist to verify it."
+          }
+        ],
+        "topFindings": [
+          {
+            "id": "supply.unknown-remote",
+            "title": "Remote server source cannot be verified",
+            "severity": "high",
+            "blocker": false,
+            "symbol": "NETWORK",
+            "riskClass": "S1",
+            "mode": "OBSERVED",
+            "confidence": "high",
+            "detectionMethod": "runtime-binding",
+            "evidence": [
+              {
+                "type": "runtime-binding",
+                "path": "official-mcp-registry:ai.alphabazaar/arena",
+                "key": "url",
+                "value": "https://api.alphabazaar.ai/mcp/agent",
+                "line": 9,
+                "column": 7
+              }
+            ],
+            "impact": "The server runs on an unverified remote endpoint. Its tools, permissions, and behavior cannot be inspected statically and may change at any time.",
+            "fix": "Use a verified first-party endpoint, or run the server from a pinned, inspectable package.",
+            "falsePositiveNote": "A trusted internal endpoint may be fine; add it to the policy allowlist to verify it."
+          }
+        ],
+        "policy": {
+          "autonomousUse": "deny",
+          "manualApproval": "required",
+          "sandbox": "required"
+        },
+        "fingerprints": {
+          "configHash": "sha256:1f64035a00dcb4511ca81a0609a7298a455fa37415c8036c44ea76ecae2abb02",
+          "targetSpecHash": "sha256:f4a7aecafe4e58cee0811b3076d6af3c8f0c05bebb65dc0d845c36138e7f31ef",
+          "riskSurfaceHash": "sha256:47e9d20255a346b95323c2cb9e092621521638b987bbcd036e68e4aee12dcaf3"
+        },
+        "diagnostics": [
+          {
+            "level": "info",
+            "code": "evidence.remote-identity-verified",
+            "message": "Remote endpoint identity verified; tool surface not analyzed (evidence: https://api.alphabazaar.ai/mcp/agent)"
+          }
+        ],
+        "generatedAt": "2026-11-16T15:36:27.000Z"
       }
     ],
     "diagnostics": [],
-    "generatedAt": "2026-11-02T01:27:20.000Z"
+    "generatedAt": "2026-11-16T15:36:27.000Z"
   }
 }

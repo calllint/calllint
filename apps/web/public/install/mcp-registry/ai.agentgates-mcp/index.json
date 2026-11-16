@@ -1,29 +1,29 @@
 {
   "schema": "calllint.agent-adoption-contract.v1",
   "contract": {
-    "contractDigest": "sha256:22dbe46db5a528369cbf81b37fb759bb0d200769d1f8a6fd64037c5a8008fbed",
-    "generatedAt": "2026-11-02T01:27:20.000Z",
+    "contractDigest": "sha256:5e7b2342cb0a44e7a2120ad593ea2f53119df750e70f318cc24f41ef4b5882a3",
+    "generatedAt": "2026-11-16T15:36:27.000Z",
     "expiresAt": null,
     "generatorVersion": "0.1.0",
-    "snapshotDigest": "sha256:88a1d340b6b950849ecfad2693745c54117dea1bf388f28c8b7a89d2deab198d"
+    "snapshotDigest": "sha256:e35b6ae4550ecb42b62a85ae00e9c5f4a1057efc1aa2a5e49340ac3ac1b7ca75"
   },
   "subject": {
     "canonicalName": "mcp-registry/ai.agentgates-mcp",
     "canonicalSlug": "mcp-registry/ai.agentgates-mcp",
     "packageType": null,
     "packageName": null,
-    "version": "1.0.0",
-    "artifactDigest": "sha256:a4bcb274a60879c355511418f638dbcc740751613dd64c212d0d24d3b6da0810",
-    "sourceLocator": "https://agentgates.ai/mcp"
+    "version": "1.0.2",
+    "artifactDigest": "sha256:c7c469f2df72d6e20734be8cd4a0de01552fabb03d19f8bf189dc10d1d73505e",
+    "sourceLocator": "https://mcp.agentgates.ai/api/mcp"
   },
   "publicObservation": {
-    "verdict": "REVIEW",
-    "publicLabel": "Review required",
+    "verdict": "UNKNOWN",
+    "publicLabel": "Insufficient evidence",
     "reasonCodes": [
       "UNKNOWN_REMOTE"
     ],
     "evidenceLevel": "E2",
-    "evidenceDigest": "sha256:4decdd32f2f7e01d08e2303f2bdf3926a09d22c7517f9000c1c44fa8b4b5410b",
+    "evidenceDigest": "sha256:a153506703442f8614341afdc036c4ce44d3eb6d2a834db9f983927dc0a0bb2f",
     "completeness": "complete"
   },
   "authorityDelta": {
@@ -44,24 +44,17 @@
     ]
   },
   "trustedSources": {
-    "registrySnapshotDigest": "sha256:88a1d340b6b950849ecfad2693745c54117dea1bf388f28c8b7a89d2deab198d",
-    "evidenceDigest": "sha256:4decdd32f2f7e01d08e2303f2bdf3926a09d22c7517f9000c1c44fa8b4b5410b",
+    "registrySnapshotDigest": "sha256:e35b6ae4550ecb42b62a85ae00e9c5f4a1057efc1aa2a5e49340ac3ac1b7ca75",
+    "evidenceDigest": "sha256:a153506703442f8614341afdc036c4ce44d3eb6d2a834db9f983927dc0a0bb2f",
     "engineVersion": "0.1.0"
   },
   "untrustedPublisherContent": {
-    "description": "Confidential compute and inference sold to agents over x402 USDC, plus an agent wallet over MCP.",
+    "description": "An agent wallet over MCP: balances, and sends, swaps and earn moves its owner approves.",
     "usedForSafetyDecision": false
   },
   "recommendedNextAction": {
-    "kind": "PREPARE_LOCALLY",
-    "tool": "calllint_prepare_safe_install",
-    "arguments": {
-      "canonicalName": "mcp-registry/ai.agentgates-mcp",
-      "expectedVersion": "1.0.0",
-      "expectedArtifactDigest": "sha256:a4bcb274a60879c355511418f638dbcc740751613dd64c212d0d24d3b6da0810",
-      "expectedContractDigest": "sha256:22dbe46db5a528369cbf81b37fb759bb0d200769d1f8a6fd64037c5a8008fbed",
-      "host": null
-    }
+    "kind": "LOCAL_PREFLIGHT_REQUIRED",
+    "tool": "calllint_prepare_safe_install"
   },
   "agentGuidance": {
     "goal": "Add the requested Agent Tool with only locally approved authority.",

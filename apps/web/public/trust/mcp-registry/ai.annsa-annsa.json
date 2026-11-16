@@ -1,19 +1,19 @@
 {
   "schema": "calllint.trust-page.v0",
   "canonicalName": "mcp-registry/ai.annsa-annsa",
-  "artifactDigest": "sha256:de6c2fcde0708cef258ad5a7c9012a6b03c58e4943de7de56d7edca946cac9f3",
-  "pageDigest": "sha256:cf762363727f669cdf011c87cff449290064235e80973be68c3e3dfa20ca62c7",
+  "artifactDigest": "sha256:598e760f56056e1bd181bd55d56bd80a87f06a559812fb53e5b0ab68f4caf472",
+  "pageDigest": "sha256:dab974eeba1221788c8f503a01ff8c0227974404fe64e5e65fed948e52aad6ab",
   "verdict": "REVIEW",
   "verdictLabel": "Review required",
-  "observedAt": "2026-11-02T01:27:20.000Z",
+  "observedAt": "2026-11-16T15:36:27.000Z",
   "completeness": "complete",
   "status": {
     "verdict": "REVIEW",
     "completeness": "complete",
     "authorityClaimed": false,
     "reproducibility": {
-      "pageDigest": "sha256:cf762363727f669cdf011c87cff449290064235e80973be68c3e3dfa20ca62c7",
-      "observedAt": "2026-11-02T01:27:20.000Z"
+      "pageDigest": "sha256:dab974eeba1221788c8f503a01ff8c0227974404fe64e5e65fed948e52aad6ab",
+      "observedAt": "2026-11-16T15:36:27.000Z"
     },
     "evidenceLevel": "E2",
     "evidenceRationale": "install config observed → static blast radius normalized into an authority inventory. Higher levels (E3 tool schema, E4 maintainer receipt, E5 sandbox) are not carried by a static page."
@@ -21,14 +21,14 @@
   "correctionUrl": "https://github.com/calllint/calllint/issues/new?labels=trust-page-correction",
   "reproduction": {
     "command": "npx calllint scan official-mcp-registry:ai.annsa/annsa",
-    "artifactDigest": "sha256:de6c2fcde0708cef258ad5a7c9012a6b03c58e4943de7de56d7edca946cac9f3",
+    "artifactDigest": "sha256:598e760f56056e1bd181bd55d56bd80a87f06a559812fb53e5b0ab68f4caf472",
     "note": "Re-running this scan reproduces the verdict observed at the pinned artifact digest. It is a point-in-time observation, not a guarantee of future behavior."
   },
   "scanHistory": [
     {
-      "observedAt": "2026-11-02T01:27:20.000Z",
-      "pageDigest": "sha256:cf762363727f669cdf011c87cff449290064235e80973be68c3e3dfa20ca62c7",
-      "artifactDigest": "sha256:de6c2fcde0708cef258ad5a7c9012a6b03c58e4943de7de56d7edca946cac9f3"
+      "observedAt": "2026-11-16T15:36:27.000Z",
+      "pageDigest": "sha256:dab974eeba1221788c8f503a01ff8c0227974404fe64e5e65fed948e52aad6ab",
+      "artifactDigest": "sha256:598e760f56056e1bd181bd55d56bd80a87f06a559812fb53e5b0ab68f4caf472"
     }
   ],
   "preparation": {
@@ -38,16 +38,16 @@
       "sourceType": "mcp-config",
       "source": "official-mcp-registry:ai.annsa/annsa",
       "requestedRef": null,
-      "resolvedRef": "sha256:de6c2fcde0708cef258ad5a7c9012a6b03c58e4943de7de56d7edca946cac9f3",
-      "digest": "sha256:de6c2fcde0708cef258ad5a7c9012a6b03c58e4943de7de56d7edca946cac9f3",
-      "resolvedAt": "2026-11-02T01:27:20.000Z",
+      "resolvedRef": "sha256:598e760f56056e1bd181bd55d56bd80a87f06a559812fb53e5b0ab68f4caf472",
+      "digest": "sha256:598e760f56056e1bd181bd55d56bd80a87f06a559812fb53e5b0ab68f4caf472",
+      "resolvedAt": "2026-11-16T15:36:27.000Z",
       "resolution": "resolved"
     },
     "evidence": null,
     "authority": {
       "schema": "calllint.authority.v0",
       "subject": {
-        "artifactDigest": "sha256:de6c2fcde0708cef258ad5a7c9012a6b03c58e4943de7de56d7edca946cac9f3"
+        "artifactDigest": "sha256:598e760f56056e1bd181bd55d56bd80a87f06a559812fb53e5b0ab68f4caf472"
       },
       "capabilities": [
         {
@@ -89,7 +89,7 @@
       },
       "unknowns": [],
       "completeness": "complete",
-      "digest": "sha256:eb65f06f7cc025667b6c68ab6ea275376ddf535c0ed9d388e1a4222ff9c55876"
+      "digest": "sha256:7cf89c2abb5834533e20eb9c2e3b75f01a561dcc6ee67ebe345d8e5811774330"
     },
     "decision": null,
     "plan": null,
@@ -98,7 +98,7 @@
       "no external evidence attached (optional); decision will rely on CallLint's own analysis",
       "authority normalized: 2 capabilities, approvals required: external-network-access"
     ],
-    "preparedAt": "2026-11-02T01:27:20.000Z"
+    "preparedAt": "2026-11-16T15:36:27.000Z"
   },
   "scan": {
     "schemaVersion": "calllint.report.v0",
@@ -120,7 +120,7 @@
           "name": "package",
           "kind": "mcp-servers",
           "source": "annsa",
-          "version": "1.0.4",
+          "version": "1.0.8",
           "configPath": "official-mcp-registry:ai.annsa/annsa"
         },
         "verdict": "SAFE",
@@ -144,13 +144,13 @@
           "sandbox": "none"
         },
         "fingerprints": {
-          "configHash": "sha256:8d15f767a1d197e1fb88c6f97e4d2c7551d7be9fa5e2120754e306981c8f51ff",
-          "targetSpecHash": "sha256:e2774e9e5fd7377445d5936566d569fbd070108af85bc108e98f3f25aee4b0e3",
+          "configHash": "sha256:125f4e38adb038b1074386edc0bdd6ea601a84920f3d292b2c304074a9b35a40",
+          "targetSpecHash": "sha256:f3e778b41be4600495c8e727913684d1c3274f80af104c0979216b77f6c2ad92",
           "riskSurfaceHash": "sha256:69aae84c996fe93d537b08d906cb339866bd43f10876be403a0f4793915bef33",
-          "packageSpecHash": "sha256:628b6a9f668a0ca8a40eb4db862a0144498b6748116b4b6c9b7a0b7687b517af"
+          "packageSpecHash": "sha256:a27d9a7a57707e08773ae2dca78ccc39fa40e033c17a8074530de0181a2ee9e8"
         },
         "diagnostics": [],
-        "generatedAt": "2026-11-02T01:27:20.000Z"
+        "generatedAt": "2026-11-16T15:36:27.000Z"
       },
       {
         "schemaVersion": "calllint.report.v0",
@@ -273,10 +273,10 @@
             "message": "Remote endpoint identity verified; tool surface not analyzed (evidence: https://app.annsa.ai/mcp)"
           }
         ],
-        "generatedAt": "2026-11-02T01:27:20.000Z"
+        "generatedAt": "2026-11-16T15:36:27.000Z"
       }
     ],
     "diagnostics": [],
-    "generatedAt": "2026-11-02T01:27:20.000Z"
+    "generatedAt": "2026-11-16T15:36:27.000Z"
   }
 }
