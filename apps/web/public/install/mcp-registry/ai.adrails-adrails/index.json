@@ -1,18 +1,18 @@
 {
   "schema": "calllint.agent-adoption-contract.v1",
   "contract": {
-    "contractDigest": "sha256:65616b715ca2006606e44b53733e477d056ad11f706fea2a903bdda293c405a1",
-    "generatedAt": "2026-11-02T01:27:20.000Z",
+    "contractDigest": "sha256:5191a669d03b60a556d3107e31b056d021f80014d739501123277806f676873b",
+    "generatedAt": "2026-11-16T15:36:27.000Z",
     "expiresAt": null,
     "generatorVersion": "0.1.0",
-    "snapshotDigest": "sha256:88a1d340b6b950849ecfad2693745c54117dea1bf388f28c8b7a89d2deab198d"
+    "snapshotDigest": "sha256:e35b6ae4550ecb42b62a85ae00e9c5f4a1057efc1aa2a5e49340ac3ac1b7ca75"
   },
   "subject": {
     "canonicalName": "mcp-registry/ai.adrails-adrails",
     "canonicalSlug": "mcp-registry/ai.adrails-adrails",
     "packageType": null,
     "packageName": null,
-    "version": "1.0.2",
+    "version": "1.0.4",
     "artifactDigest": "sha256:cd3ab1428859c9de3461846b4d27d91199a2b1efc80a11dfb4624edaa5585620",
     "sourceLocator": "https://adrails.ai/api/mcp"
   },
@@ -23,7 +23,7 @@
       "UNKNOWN_REMOTE"
     ],
     "evidenceLevel": "E2",
-    "evidenceDigest": "sha256:4decdd32f2f7e01d08e2303f2bdf3926a09d22c7517f9000c1c44fa8b4b5410b",
+    "evidenceDigest": "sha256:a153506703442f8614341afdc036c4ce44d3eb6d2a834db9f983927dc0a0bb2f",
     "completeness": "complete"
   },
   "authorityDelta": {
@@ -44,12 +44,12 @@
     ]
   },
   "trustedSources": {
-    "registrySnapshotDigest": "sha256:88a1d340b6b950849ecfad2693745c54117dea1bf388f28c8b7a89d2deab198d",
-    "evidenceDigest": "sha256:4decdd32f2f7e01d08e2303f2bdf3926a09d22c7517f9000c1c44fa8b4b5410b",
+    "registrySnapshotDigest": "sha256:e35b6ae4550ecb42b62a85ae00e9c5f4a1057efc1aa2a5e49340ac3ac1b7ca75",
+    "evidenceDigest": "sha256:a153506703442f8614341afdc036c4ce44d3eb6d2a834db9f983927dc0a0bb2f",
     "engineVersion": "0.1.0"
   },
   "untrustedPublisherContent": {
-    "description": "AI agents that build, test and monitor Meta Ads and Google Ads campaigns from your real data.",
+    "description": "AI agent that runs Meta Ads and Google Ads for Shopify stores, with store revenue next to ad spend.",
     "usedForSafetyDecision": false
   },
   "recommendedNextAction": {
@@ -57,9 +57,9 @@
     "tool": "calllint_prepare_safe_install",
     "arguments": {
       "canonicalName": "mcp-registry/ai.adrails-adrails",
-      "expectedVersion": "1.0.2",
+      "expectedVersion": "1.0.4",
       "expectedArtifactDigest": "sha256:cd3ab1428859c9de3461846b4d27d91199a2b1efc80a11dfb4624edaa5585620",
-      "expectedContractDigest": "sha256:65616b715ca2006606e44b53733e477d056ad11f706fea2a903bdda293c405a1",
+      "expectedContractDigest": "sha256:5191a669d03b60a556d3107e31b056d021f80014d739501123277806f676873b",
       "host": null
     }
   },

@@ -2,28 +2,30 @@
   "schema": "calllint.evidence-manifest.v1",
   "subject": {
     "canonicalName": "mcp-registry/ai.callmcp-server",
-    "artifactDigest": "sha256:503628fdfb09400549bd705198c687a10c2aaf0153014fb58291556e7c4f58de"
+    "artifactDigest": "sha256:81bd2257ee9ccbc7195ae9088301dbb51af16cd72d27d6271a70fa8c168ba033"
   },
-  "verdict": "SAFE",
-  "verdictLabel": "No blockers observed",
+  "verdict": "REVIEW",
+  "verdictLabel": "Review required",
   "completeness": "complete",
   "evidenceLevel": "E2",
   "evidenceRationale": "install config observed → static blast radius normalized into an authority inventory. Higher levels (E3 tool schema, E4 maintainer receipt, E5 sandbox) are not carried by a static page.",
   "status": {
-    "verdict": "SAFE",
+    "verdict": "REVIEW",
     "completeness": "complete",
     "authorityClaimed": false,
     "reproducibility": {
-      "pageDigest": "sha256:8b4274a3782b55fcc4983bf18924b073dde260cfb50ddcf413073f975ea6a400",
-      "observedAt": "2026-11-02T01:27:20.000Z"
+      "pageDigest": "sha256:76b178a7419f29abf8d553e350731565ef7189e3960c85761bcaf14181e01016",
+      "observedAt": "2026-11-16T15:36:27.000Z"
     },
     "evidenceLevel": "E2"
   },
   "authority": {
-    "digest": "sha256:89596b25b65d85c44cd301a479fa3816cfcbc4a3766803fcd37aa57b43fb8daa",
+    "digest": "sha256:a6e2a8fa3130d86166012cc47eeff8f34204d492db20e1616ecc3bb981ca2e77",
     "completeness": "complete",
-    "capabilityCount": 1,
-    "approvalRequired": [],
+    "capabilityCount": 2,
+    "approvalRequired": [
+      "external-network-access"
+    ],
     "capabilities": [
       {
         "action": "execute",
@@ -31,18 +33,25 @@
         "mutability": "mutating",
         "reversibility": "irreversible",
         "approvalRequirement": "none"
+      },
+      {
+        "action": "connect",
+        "resource": "network",
+        "mutability": "mutating",
+        "reversibility": "irreversible",
+        "approvalRequirement": "review"
       }
     ]
   },
   "policyDigest": null,
   "reproducibility": {
-    "pageDigest": "sha256:8b4274a3782b55fcc4983bf18924b073dde260cfb50ddcf413073f975ea6a400",
-    "observedAt": "2026-11-02T01:27:20.000Z"
+    "pageDigest": "sha256:76b178a7419f29abf8d553e350731565ef7189e3960c85761bcaf14181e01016",
+    "observedAt": "2026-11-16T15:36:27.000Z"
   },
   "engine": {
     "name": "calllint"
   },
   "correctionUrl": "https://github.com/calllint/calllint/issues/new?labels=trust-page-correction",
-  "generatedAt": "2026-11-02T01:27:20.000Z",
+  "generatedAt": "2026-11-16T15:36:27.000Z",
   "signature": null
 }

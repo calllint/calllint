@@ -1,18 +1,18 @@
 {
   "schema": "calllint.agent-adoption-contract.v1",
   "contract": {
-    "contractDigest": "sha256:abd4e2841a97805accf406019ee60ce8dd1748c3098bb2fd7c309a75cc0d94a6",
-    "generatedAt": "2026-11-02T01:27:20.000Z",
+    "contractDigest": "sha256:bc4610b44945156587ccefe29fb030540380ba3360a24bc40c31eb4c572560d0",
+    "generatedAt": "2026-11-16T15:36:27.000Z",
     "expiresAt": null,
     "generatorVersion": "0.1.0",
-    "snapshotDigest": "sha256:88a1d340b6b950849ecfad2693745c54117dea1bf388f28c8b7a89d2deab198d"
+    "snapshotDigest": "sha256:e35b6ae4550ecb42b62a85ae00e9c5f4a1057efc1aa2a5e49340ac3ac1b7ca75"
   },
   "subject": {
     "canonicalName": "mcp-registry/ai.agentplaybooks-agentplaybooks",
     "canonicalSlug": "mcp-registry/ai.agentplaybooks-agentplaybooks",
     "packageType": null,
     "packageName": null,
-    "version": "0.10.0",
+    "version": "0.10.1",
     "artifactDigest": "sha256:c66c0c071ca3c83a515df49f2ca1c5e8464cef0c695f82c2ceb9cb8121f46508",
     "sourceLocator": "https://agentplaybooks.ai/api/mcp/manage"
   },
@@ -23,7 +23,7 @@
       "UNKNOWN_REMOTE"
     ],
     "evidenceLevel": "E2",
-    "evidenceDigest": "sha256:4decdd32f2f7e01d08e2303f2bdf3926a09d22c7517f9000c1c44fa8b4b5410b",
+    "evidenceDigest": "sha256:a153506703442f8614341afdc036c4ce44d3eb6d2a834db9f983927dc0a0bb2f",
     "completeness": "complete"
   },
   "authorityDelta": {
@@ -44,8 +44,8 @@
     ]
   },
   "trustedSources": {
-    "registrySnapshotDigest": "sha256:88a1d340b6b950849ecfad2693745c54117dea1bf388f28c8b7a89d2deab198d",
-    "evidenceDigest": "sha256:4decdd32f2f7e01d08e2303f2bdf3926a09d22c7517f9000c1c44fa8b4b5410b",
+    "registrySnapshotDigest": "sha256:e35b6ae4550ecb42b62a85ae00e9c5f4a1057efc1aa2a5e49340ac3ac1b7ca75",
+    "evidenceDigest": "sha256:a153506703442f8614341afdc036c4ce44d3eb6d2a834db9f983927dc0a0bb2f",
     "engineVersion": "0.1.0"
   },
   "untrustedPublisherContent": {
@@ -57,9 +57,9 @@
     "tool": "calllint_prepare_safe_install",
     "arguments": {
       "canonicalName": "mcp-registry/ai.agentplaybooks-agentplaybooks",
-      "expectedVersion": "0.10.0",
+      "expectedVersion": "0.10.1",
       "expectedArtifactDigest": "sha256:c66c0c071ca3c83a515df49f2ca1c5e8464cef0c695f82c2ceb9cb8121f46508",
-      "expectedContractDigest": "sha256:abd4e2841a97805accf406019ee60ce8dd1748c3098bb2fd7c309a75cc0d94a6",
+      "expectedContractDigest": "sha256:bc4610b44945156587ccefe29fb030540380ba3360a24bc40c31eb4c572560d0",
       "host": null
     }
   },

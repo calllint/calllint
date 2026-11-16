@@ -2,7 +2,7 @@
   "schema": "calllint.evidence-manifest.v1",
   "subject": {
     "canonicalName": "mcp-registry/ai.alphabazaar-arena",
-    "artifactDigest": "sha256:6486622dcc9f5587659b87e4628648068985ec60ecced0a7bdd8ef8a64940460"
+    "artifactDigest": "sha256:69e1eed51b19d46b0f1fd3bae8742d9cdd1b1328f441a9a37b14a67777f71fe7"
   },
   "verdict": "REVIEW",
   "verdictLabel": "Review required",
@@ -14,19 +14,26 @@
     "completeness": "complete",
     "authorityClaimed": false,
     "reproducibility": {
-      "pageDigest": "sha256:81151d667dcf99bf94acf6360d912af820bdd36daad9e5eecf6b34af2042743e",
-      "observedAt": "2026-11-02T01:27:20.000Z"
+      "pageDigest": "sha256:f7f0ebaa36c7fbabe1d3a58f4ddc33964afd9bcff1105af41de7385f447dab52",
+      "observedAt": "2026-11-16T15:36:27.000Z"
     },
     "evidenceLevel": "E2"
   },
   "authority": {
-    "digest": "sha256:e7fd7985aa579217238e1f2b5ee7ac11c50bc615ef3485368150b197c5f5d5e9",
+    "digest": "sha256:649ae81cbc72a332b523ecc9f62f70e6aba9099a8db6e65f787087e301d4676d",
     "completeness": "complete",
-    "capabilityCount": 1,
+    "capabilityCount": 2,
     "approvalRequired": [
       "external-network-access"
     ],
     "capabilities": [
+      {
+        "action": "connect",
+        "resource": "network",
+        "mutability": "mutating",
+        "reversibility": "irreversible",
+        "approvalRequirement": "review"
+      },
       {
         "action": "connect",
         "resource": "network",
@@ -38,13 +45,13 @@
   },
   "policyDigest": null,
   "reproducibility": {
-    "pageDigest": "sha256:81151d667dcf99bf94acf6360d912af820bdd36daad9e5eecf6b34af2042743e",
-    "observedAt": "2026-11-02T01:27:20.000Z"
+    "pageDigest": "sha256:f7f0ebaa36c7fbabe1d3a58f4ddc33964afd9bcff1105af41de7385f447dab52",
+    "observedAt": "2026-11-16T15:36:27.000Z"
   },
   "engine": {
     "name": "calllint"
   },
   "correctionUrl": "https://github.com/calllint/calllint/issues/new?labels=trust-page-correction",
-  "generatedAt": "2026-11-02T01:27:20.000Z",
+  "generatedAt": "2026-11-16T15:36:27.000Z",
   "signature": null
 }

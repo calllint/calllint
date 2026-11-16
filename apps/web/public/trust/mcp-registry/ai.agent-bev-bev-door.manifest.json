@@ -2,7 +2,7 @@
   "schema": "calllint.evidence-manifest.v1",
   "subject": {
     "canonicalName": "mcp-registry/ai.agent-bev-bev-door",
-    "artifactDigest": "sha256:2b890099961512884b0f6156faca8e255c26561769ad39c1a766295cf7e91ea0"
+    "artifactDigest": "sha256:952e6ede40696ba488c829f2bdbe772ba091c40caaa40ee58036e25449fcc197"
   },
   "verdict": "REVIEW",
   "verdictLabel": "Review required",
@@ -14,13 +14,13 @@
     "completeness": "complete",
     "authorityClaimed": false,
     "reproducibility": {
-      "pageDigest": "sha256:e16d056947bea2d92d967477d97e9f89942414a55b0b6e5c440e0e3873320604",
-      "observedAt": "2026-11-02T01:27:20.000Z"
+      "pageDigest": "sha256:082a62d5849dea1b86fe0d4318989d4142f9b835423c8a9d4a12f4d79d628a7b",
+      "observedAt": "2026-11-16T15:36:27.000Z"
     },
     "evidenceLevel": "E2"
   },
   "authority": {
-    "digest": "sha256:e9bf236e66cc03ee410693bcace4c0a3242c10bfeae86f8e0a860d13a9950084",
+    "digest": "sha256:a7f8fe06568066188986ab5da22e9415a6b2f288cdfcb4884a3e806a1f4078e3",
     "completeness": "complete",
     "capabilityCount": 2,
     "approvalRequired": [
@@ -45,13 +45,13 @@
   },
   "policyDigest": null,
   "reproducibility": {
-    "pageDigest": "sha256:e16d056947bea2d92d967477d97e9f89942414a55b0b6e5c440e0e3873320604",
-    "observedAt": "2026-11-02T01:27:20.000Z"
+    "pageDigest": "sha256:082a62d5849dea1b86fe0d4318989d4142f9b835423c8a9d4a12f4d79d628a7b",
+    "observedAt": "2026-11-16T15:36:27.000Z"
   },
   "engine": {
     "name": "calllint"
   },
   "correctionUrl": "https://github.com/calllint/calllint/issues/new?labels=trust-page-correction",
-  "generatedAt": "2026-11-02T01:27:20.000Z",
+  "generatedAt": "2026-11-16T15:36:27.000Z",
   "signature": null
 }

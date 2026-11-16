@@ -1,31 +1,37 @@
 {
   "schema": "calllint.agent-adoption-contract.v1",
   "contract": {
-    "contractDigest": "sha256:a9129cea3ca0f3786513f3a64954feb21fadb0e3ffd583934dc62c32bf47c9f0",
-    "generatedAt": "2026-11-02T01:27:20.000Z",
+    "contractDigest": "sha256:e9751e18a0bb8852896159f186629d5af9981c18a3dcc5a87f8af16ce190faf9",
+    "generatedAt": "2026-11-16T15:36:27.000Z",
     "expiresAt": null,
     "generatorVersion": "0.1.0",
-    "snapshotDigest": "sha256:88a1d340b6b950849ecfad2693745c54117dea1bf388f28c8b7a89d2deab198d"
+    "snapshotDigest": "sha256:e35b6ae4550ecb42b62a85ae00e9c5f4a1057efc1aa2a5e49340ac3ac1b7ca75"
   },
   "subject": {
     "canonicalName": "mcp-registry/ai.certscore-mcp",
     "canonicalSlug": "mcp-registry/ai.certscore-mcp",
     "packageType": "npm",
     "packageName": "@certscore/mcp",
-    "version": "0.2.4",
-    "artifactDigest": "sha256:5d9b4b261877ad13a473b0f8b5412bcc8fc6cbb3e30dee0a1a0b79ef35f656a3",
-    "sourceLocator": "npm:@certscore/mcp@0.2.4"
+    "version": "0.2.32",
+    "artifactDigest": "sha256:eb8f58af1e161fd9ae1350ba8b472a14c35d3534be224bc6ae972fedad2dbc5c",
+    "sourceLocator": "npm:@certscore/mcp@0.2.32"
   },
   "publicObservation": {
-    "verdict": "SAFE",
-    "publicLabel": "No blockers observed",
-    "reasonCodes": [],
+    "verdict": "REVIEW",
+    "publicLabel": "Review required",
+    "reasonCodes": [
+      "UNKNOWN_REMOTE"
+    ],
     "evidenceLevel": "E2",
-    "evidenceDigest": "sha256:4decdd32f2f7e01d08e2303f2bdf3926a09d22c7517f9000c1c44fa8b4b5410b",
+    "evidenceDigest": "sha256:a153506703442f8614341afdc036c4ce44d3eb6d2a834db9f983927dc0a0bb2f",
     "completeness": "complete"
   },
   "authorityDelta": {
-    "adds": [],
+    "adds": [
+      {
+        "authority": "network_egress"
+      }
+    ],
     "notObserved": [
       "financial_action",
       "secret_access",
@@ -34,17 +40,16 @@
       "external_mutation",
       "messaging_send",
       "oauth_scope",
-      "gateway_runtime",
-      "network_egress"
+      "gateway_runtime"
     ]
   },
   "trustedSources": {
-    "registrySnapshotDigest": "sha256:88a1d340b6b950849ecfad2693745c54117dea1bf388f28c8b7a89d2deab198d",
-    "evidenceDigest": "sha256:4decdd32f2f7e01d08e2303f2bdf3926a09d22c7517f9000c1c44fa8b4b5410b",
+    "registrySnapshotDigest": "sha256:e35b6ae4550ecb42b62a85ae00e9c5f4a1057efc1aa2a5e49340ac3ac1b7ca75",
+    "evidenceDigest": "sha256:a153506703442f8614341afdc036c4ce44d3eb6d2a834db9f983927dc0a0bb2f",
     "engineVersion": "0.1.0"
   },
   "untrustedPublisherContent": {
-    "description": "CertScore website risk-signal tools for scans, findings, evidence, and latest-domain lookups.",
+    "description": "MCP server for CertScore.ai public website risk-signal workflows.",
     "usedForSafetyDecision": false
   },
   "recommendedNextAction": {
@@ -52,9 +57,9 @@
     "tool": "calllint_prepare_safe_install",
     "arguments": {
       "canonicalName": "mcp-registry/ai.certscore-mcp",
-      "expectedVersion": "0.2.4",
-      "expectedArtifactDigest": "sha256:5d9b4b261877ad13a473b0f8b5412bcc8fc6cbb3e30dee0a1a0b79ef35f656a3",
-      "expectedContractDigest": "sha256:a9129cea3ca0f3786513f3a64954feb21fadb0e3ffd583934dc62c32bf47c9f0",
+      "expectedVersion": "0.2.32",
+      "expectedArtifactDigest": "sha256:eb8f58af1e161fd9ae1350ba8b472a14c35d3534be224bc6ae972fedad2dbc5c",
+      "expectedContractDigest": "sha256:e9751e18a0bb8852896159f186629d5af9981c18a3dcc5a87f8af16ce190faf9",
       "host": null
     }
   },

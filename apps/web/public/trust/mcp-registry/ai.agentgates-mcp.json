@@ -1,19 +1,19 @@
 {
   "schema": "calllint.trust-page.v0",
   "canonicalName": "mcp-registry/ai.agentgates-mcp",
-  "artifactDigest": "sha256:a4bcb274a60879c355511418f638dbcc740751613dd64c212d0d24d3b6da0810",
-  "pageDigest": "sha256:161d366cc04a40fe0dbaa0454847de57701a4688edcdb16c8d28458fcc9c3892",
-  "verdict": "REVIEW",
-  "verdictLabel": "Review required",
-  "observedAt": "2026-11-02T01:27:20.000Z",
+  "artifactDigest": "sha256:c7c469f2df72d6e20734be8cd4a0de01552fabb03d19f8bf189dc10d1d73505e",
+  "pageDigest": "sha256:e28e9e31c5910b342ed472756c24e055321d818b0e8b19ce2f9d26507a41c1ec",
+  "verdict": "UNKNOWN",
+  "verdictLabel": "Insufficient evidence",
+  "observedAt": "2026-11-16T15:36:27.000Z",
   "completeness": "complete",
   "status": {
-    "verdict": "REVIEW",
+    "verdict": "UNKNOWN",
     "completeness": "complete",
     "authorityClaimed": false,
     "reproducibility": {
-      "pageDigest": "sha256:161d366cc04a40fe0dbaa0454847de57701a4688edcdb16c8d28458fcc9c3892",
-      "observedAt": "2026-11-02T01:27:20.000Z"
+      "pageDigest": "sha256:e28e9e31c5910b342ed472756c24e055321d818b0e8b19ce2f9d26507a41c1ec",
+      "observedAt": "2026-11-16T15:36:27.000Z"
     },
     "evidenceLevel": "E2",
     "evidenceRationale": "install config observed → static blast radius normalized into an authority inventory. Higher levels (E3 tool schema, E4 maintainer receipt, E5 sandbox) are not carried by a static page."
@@ -21,14 +21,14 @@
   "correctionUrl": "https://github.com/calllint/calllint/issues/new?labels=trust-page-correction",
   "reproduction": {
     "command": "npx calllint scan official-mcp-registry:ai.agentgates/mcp",
-    "artifactDigest": "sha256:a4bcb274a60879c355511418f638dbcc740751613dd64c212d0d24d3b6da0810",
+    "artifactDigest": "sha256:c7c469f2df72d6e20734be8cd4a0de01552fabb03d19f8bf189dc10d1d73505e",
     "note": "Re-running this scan reproduces the verdict observed at the pinned artifact digest. It is a point-in-time observation, not a guarantee of future behavior."
   },
   "scanHistory": [
     {
-      "observedAt": "2026-11-02T01:27:20.000Z",
-      "pageDigest": "sha256:161d366cc04a40fe0dbaa0454847de57701a4688edcdb16c8d28458fcc9c3892",
-      "artifactDigest": "sha256:a4bcb274a60879c355511418f638dbcc740751613dd64c212d0d24d3b6da0810"
+      "observedAt": "2026-11-16T15:36:27.000Z",
+      "pageDigest": "sha256:e28e9e31c5910b342ed472756c24e055321d818b0e8b19ce2f9d26507a41c1ec",
+      "artifactDigest": "sha256:c7c469f2df72d6e20734be8cd4a0de01552fabb03d19f8bf189dc10d1d73505e"
     }
   ],
   "preparation": {
@@ -38,23 +38,23 @@
       "sourceType": "mcp-config",
       "source": "official-mcp-registry:ai.agentgates/mcp",
       "requestedRef": null,
-      "resolvedRef": "sha256:a4bcb274a60879c355511418f638dbcc740751613dd64c212d0d24d3b6da0810",
-      "digest": "sha256:a4bcb274a60879c355511418f638dbcc740751613dd64c212d0d24d3b6da0810",
-      "resolvedAt": "2026-11-02T01:27:20.000Z",
+      "resolvedRef": "sha256:c7c469f2df72d6e20734be8cd4a0de01552fabb03d19f8bf189dc10d1d73505e",
+      "digest": "sha256:c7c469f2df72d6e20734be8cd4a0de01552fabb03d19f8bf189dc10d1d73505e",
+      "resolvedAt": "2026-11-16T15:36:27.000Z",
       "resolution": "resolved"
     },
     "evidence": null,
     "authority": {
       "schema": "calllint.authority.v0",
       "subject": {
-        "artifactDigest": "sha256:a4bcb274a60879c355511418f638dbcc740751613dd64c212d0d24d3b6da0810"
+        "artifactDigest": "sha256:c7c469f2df72d6e20734be8cd4a0de01552fabb03d19f8bf189dc10d1d73505e"
       },
       "capabilities": [
         {
           "action": "connect",
           "resource": "network",
-          "scope": "agentgates.ai",
-          "destination": "agentgates.ai",
+          "scope": "mcp.agentgates.ai",
+          "destination": "mcp.agentgates.ai",
           "mutability": "mutating",
           "reversibility": "irreversible",
           "monetaryLimit": null,
@@ -75,7 +75,7 @@
       },
       "unknowns": [],
       "completeness": "complete",
-      "digest": "sha256:f8088fe8f234a1f26fd7e3c3c313bef37611733f8b6dc319e41b7380cad4153e"
+      "digest": "sha256:b2dd785c1447b757f0dba35a8d21bd13b5aa0a09a7bda9162e78267f6fee1345"
     },
     "decision": null,
     "plan": null,
@@ -84,19 +84,19 @@
       "no external evidence attached (optional); decision will rely on CallLint's own analysis",
       "authority normalized: 1 capability, approvals required: external-network-access"
     ],
-    "preparedAt": "2026-11-02T01:27:20.000Z"
+    "preparedAt": "2026-11-16T15:36:27.000Z"
   },
   "scan": {
     "schemaVersion": "calllint.report.v0",
     "reportKind": "config-summary",
     "configPath": "official-mcp-registry:ai.agentgates/mcp",
-    "verdict": "REVIEW",
-    "publicVerdictLabel": "Review required",
+    "verdict": "UNKNOWN",
+    "publicVerdictLabel": "Insufficient evidence",
     "counts": {
       "SAFE": 0,
-      "REVIEW": 1,
+      "REVIEW": 0,
       "BLOCK": 0,
-      "UNKNOWN": 0
+      "UNKNOWN": 1
     },
     "reports": [
       {
@@ -105,11 +105,11 @@
         "target": {
           "name": "remote",
           "kind": "mcp-servers",
-          "source": "https://agentgates.ai/mcp",
+          "source": "https://mcp.agentgates.ai/api/mcp",
           "configPath": "official-mcp-registry:ai.agentgates/mcp"
         },
-        "verdict": "REVIEW",
-        "publicVerdictLabel": "Review required",
+        "verdict": "UNKNOWN",
+        "publicVerdictLabel": "Insufficient evidence",
         "policyApplied": false,
         "riskClass": "S1",
         "symbols": [
@@ -117,10 +117,9 @@
         ],
         "confidence": "high",
         "reproducibility": {
-          "level": "LOW",
+          "level": "MEDIUM",
           "reasons": [
-            "Remote endpoint domain ownership not verified",
-            "Remote endpoint identity verified; tool surface not analyzed"
+            "Remote endpoint could not be verified"
           ]
         },
         "summary": "\"remote\" could not be verified (insufficient evidence). Risk: Network (S1 Read-only utility).",
@@ -140,7 +139,7 @@
                 "type": "runtime-binding",
                 "path": "official-mcp-registry:ai.agentgates/mcp",
                 "key": "url",
-                "value": "https://agentgates.ai/mcp",
+                "value": "https://mcp.agentgates.ai/api/mcp",
                 "line": 5,
                 "column": 7
               }
@@ -167,7 +166,7 @@
                 "type": "runtime-binding",
                 "path": "official-mcp-registry:ai.agentgates/mcp",
                 "key": "url",
-                "value": "https://agentgates.ai/mcp",
+                "value": "https://mcp.agentgates.ai/api/mcp",
                 "line": 5,
                 "column": 7
               }
@@ -193,7 +192,7 @@
                 "type": "runtime-binding",
                 "path": "official-mcp-registry:ai.agentgates/mcp",
                 "key": "url",
-                "value": "https://agentgates.ai/mcp",
+                "value": "https://mcp.agentgates.ai/api/mcp",
                 "line": 5,
                 "column": 7
               }
@@ -209,21 +208,15 @@
           "sandbox": "required"
         },
         "fingerprints": {
-          "configHash": "sha256:67b4bed65a928263b11ea19362caa5408b97260be7923f9ee991f9ffd3e6d514",
-          "targetSpecHash": "sha256:def74cb70d7e03762b72d3adf5d1bb4ba3a0481d3c4530e6dbb99e3fa67381e6",
+          "configHash": "sha256:8793dedb8b50a973e5680090b5fe19e67a7743e32678e9e4b30ca12ddafe2947",
+          "targetSpecHash": "sha256:ef64ab693b26c5628df3cf1e595d21ae30ec69b9bac7b02573031dbf5536ccad",
           "riskSurfaceHash": "sha256:47e9d20255a346b95323c2cb9e092621521638b987bbcd036e68e4aee12dcaf3"
         },
-        "diagnostics": [
-          {
-            "level": "info",
-            "code": "evidence.remote-identity-verified",
-            "message": "Remote endpoint identity verified; tool surface not analyzed (evidence: https://agentgates.ai/mcp)"
-          }
-        ],
-        "generatedAt": "2026-11-02T01:27:20.000Z"
+        "diagnostics": [],
+        "generatedAt": "2026-11-16T15:36:27.000Z"
       }
     ],
     "diagnostics": [],
-    "generatedAt": "2026-11-02T01:27:20.000Z"
+    "generatedAt": "2026-11-16T15:36:27.000Z"
   }
 }

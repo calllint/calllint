@@ -2,25 +2,25 @@
   "schema": "calllint.evidence-manifest.v1",
   "subject": {
     "canonicalName": "mcp-registry/ai.agentgates-mcp",
-    "artifactDigest": "sha256:a4bcb274a60879c355511418f638dbcc740751613dd64c212d0d24d3b6da0810"
+    "artifactDigest": "sha256:c7c469f2df72d6e20734be8cd4a0de01552fabb03d19f8bf189dc10d1d73505e"
   },
-  "verdict": "REVIEW",
-  "verdictLabel": "Review required",
+  "verdict": "UNKNOWN",
+  "verdictLabel": "Insufficient evidence",
   "completeness": "complete",
   "evidenceLevel": "E2",
   "evidenceRationale": "install config observed → static blast radius normalized into an authority inventory. Higher levels (E3 tool schema, E4 maintainer receipt, E5 sandbox) are not carried by a static page.",
   "status": {
-    "verdict": "REVIEW",
+    "verdict": "UNKNOWN",
     "completeness": "complete",
     "authorityClaimed": false,
     "reproducibility": {
-      "pageDigest": "sha256:161d366cc04a40fe0dbaa0454847de57701a4688edcdb16c8d28458fcc9c3892",
-      "observedAt": "2026-11-02T01:27:20.000Z"
+      "pageDigest": "sha256:e28e9e31c5910b342ed472756c24e055321d818b0e8b19ce2f9d26507a41c1ec",
+      "observedAt": "2026-11-16T15:36:27.000Z"
     },
     "evidenceLevel": "E2"
   },
   "authority": {
-    "digest": "sha256:f8088fe8f234a1f26fd7e3c3c313bef37611733f8b6dc319e41b7380cad4153e",
+    "digest": "sha256:b2dd785c1447b757f0dba35a8d21bd13b5aa0a09a7bda9162e78267f6fee1345",
     "completeness": "complete",
     "capabilityCount": 1,
     "approvalRequired": [
@@ -38,13 +38,13 @@
   },
   "policyDigest": null,
   "reproducibility": {
-    "pageDigest": "sha256:161d366cc04a40fe0dbaa0454847de57701a4688edcdb16c8d28458fcc9c3892",
-    "observedAt": "2026-11-02T01:27:20.000Z"
+    "pageDigest": "sha256:e28e9e31c5910b342ed472756c24e055321d818b0e8b19ce2f9d26507a41c1ec",
+    "observedAt": "2026-11-16T15:36:27.000Z"
   },
   "engine": {
     "name": "calllint"
   },
   "correctionUrl": "https://github.com/calllint/calllint/issues/new?labels=trust-page-correction",
-  "generatedAt": "2026-11-02T01:27:20.000Z",
+  "generatedAt": "2026-11-16T15:36:27.000Z",
   "signature": null
 }

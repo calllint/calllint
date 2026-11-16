@@ -1,19 +1,19 @@
 {
   "schema": "calllint.trust-page.v0",
   "canonicalName": "mcp-registry/ai.callmcp-server",
-  "artifactDigest": "sha256:503628fdfb09400549bd705198c687a10c2aaf0153014fb58291556e7c4f58de",
-  "pageDigest": "sha256:8b4274a3782b55fcc4983bf18924b073dde260cfb50ddcf413073f975ea6a400",
-  "verdict": "SAFE",
-  "verdictLabel": "No blockers observed",
-  "observedAt": "2026-11-02T01:27:20.000Z",
+  "artifactDigest": "sha256:81bd2257ee9ccbc7195ae9088301dbb51af16cd72d27d6271a70fa8c168ba033",
+  "pageDigest": "sha256:76b178a7419f29abf8d553e350731565ef7189e3960c85761bcaf14181e01016",
+  "verdict": "REVIEW",
+  "verdictLabel": "Review required",
+  "observedAt": "2026-11-16T15:36:27.000Z",
   "completeness": "complete",
   "status": {
-    "verdict": "SAFE",
+    "verdict": "REVIEW",
     "completeness": "complete",
     "authorityClaimed": false,
     "reproducibility": {
-      "pageDigest": "sha256:8b4274a3782b55fcc4983bf18924b073dde260cfb50ddcf413073f975ea6a400",
-      "observedAt": "2026-11-02T01:27:20.000Z"
+      "pageDigest": "sha256:76b178a7419f29abf8d553e350731565ef7189e3960c85761bcaf14181e01016",
+      "observedAt": "2026-11-16T15:36:27.000Z"
     },
     "evidenceLevel": "E2",
     "evidenceRationale": "install config observed → static blast radius normalized into an authority inventory. Higher levels (E3 tool schema, E4 maintainer receipt, E5 sandbox) are not carried by a static page."
@@ -21,14 +21,14 @@
   "correctionUrl": "https://github.com/calllint/calllint/issues/new?labels=trust-page-correction",
   "reproduction": {
     "command": "npx calllint scan official-mcp-registry:ai.callmcp/server",
-    "artifactDigest": "sha256:503628fdfb09400549bd705198c687a10c2aaf0153014fb58291556e7c4f58de",
+    "artifactDigest": "sha256:81bd2257ee9ccbc7195ae9088301dbb51af16cd72d27d6271a70fa8c168ba033",
     "note": "Re-running this scan reproduces the verdict observed at the pinned artifact digest. It is a point-in-time observation, not a guarantee of future behavior."
   },
   "scanHistory": [
     {
-      "observedAt": "2026-11-02T01:27:20.000Z",
-      "pageDigest": "sha256:8b4274a3782b55fcc4983bf18924b073dde260cfb50ddcf413073f975ea6a400",
-      "artifactDigest": "sha256:503628fdfb09400549bd705198c687a10c2aaf0153014fb58291556e7c4f58de"
+      "observedAt": "2026-11-16T15:36:27.000Z",
+      "pageDigest": "sha256:76b178a7419f29abf8d553e350731565ef7189e3960c85761bcaf14181e01016",
+      "artifactDigest": "sha256:81bd2257ee9ccbc7195ae9088301dbb51af16cd72d27d6271a70fa8c168ba033"
     }
   ],
   "preparation": {
@@ -38,16 +38,16 @@
       "sourceType": "mcp-config",
       "source": "official-mcp-registry:ai.callmcp/server",
       "requestedRef": null,
-      "resolvedRef": "sha256:503628fdfb09400549bd705198c687a10c2aaf0153014fb58291556e7c4f58de",
-      "digest": "sha256:503628fdfb09400549bd705198c687a10c2aaf0153014fb58291556e7c4f58de",
-      "resolvedAt": "2026-11-02T01:27:20.000Z",
+      "resolvedRef": "sha256:81bd2257ee9ccbc7195ae9088301dbb51af16cd72d27d6271a70fa8c168ba033",
+      "digest": "sha256:81bd2257ee9ccbc7195ae9088301dbb51af16cd72d27d6271a70fa8c168ba033",
+      "resolvedAt": "2026-11-16T15:36:27.000Z",
       "resolution": "resolved"
     },
     "evidence": null,
     "authority": {
       "schema": "calllint.authority.v0",
       "subject": {
-        "artifactDigest": "sha256:503628fdfb09400549bd705198c687a10c2aaf0153014fb58291556e7c4f58de"
+        "artifactDigest": "sha256:81bd2257ee9ccbc7195ae9088301dbb51af16cd72d27d6271a70fa8c168ba033"
       },
       "capabilities": [
         {
@@ -63,6 +63,19 @@
           "confidence": "high",
           "completeness": "complete",
           "trustSource": "trusted.local_project"
+        },
+        {
+          "action": "connect",
+          "resource": "network",
+          "scope": "callmcp.ai",
+          "destination": "callmcp.ai",
+          "mutability": "mutating",
+          "reversibility": "irreversible",
+          "monetaryLimit": null,
+          "approvalRequirement": "review",
+          "evidenceSource": "server.url",
+          "confidence": "high",
+          "completeness": "complete"
         }
       ],
       "limits": {
@@ -70,30 +83,32 @@
         "spendTotal": null
       },
       "approval": {
-        "required": []
+        "required": [
+          "external-network-access"
+        ]
       },
       "unknowns": [],
       "completeness": "complete",
-      "digest": "sha256:89596b25b65d85c44cd301a479fa3816cfcbc4a3766803fcd37aa57b43fb8daa"
+      "digest": "sha256:a6e2a8fa3130d86166012cc47eeff8f34204d492db20e1616ecc3bb981ca2e77"
     },
     "decision": null,
     "plan": null,
     "state": "AUTHORITY_NORMALIZED",
     "notes": [
       "no external evidence attached (optional); decision will rely on CallLint's own analysis",
-      "authority normalized: 1 capability"
+      "authority normalized: 2 capabilities, approvals required: external-network-access"
     ],
-    "preparedAt": "2026-11-02T01:27:20.000Z"
+    "preparedAt": "2026-11-16T15:36:27.000Z"
   },
   "scan": {
     "schemaVersion": "calllint.report.v0",
     "reportKind": "config-summary",
     "configPath": "official-mcp-registry:ai.callmcp/server",
-    "verdict": "SAFE",
-    "publicVerdictLabel": "No blockers observed",
+    "verdict": "REVIEW",
+    "publicVerdictLabel": "Review required",
     "counts": {
       "SAFE": 1,
-      "REVIEW": 0,
+      "REVIEW": 1,
       "BLOCK": 0,
       "UNKNOWN": 0
     },
@@ -105,7 +120,7 @@
           "name": "package",
           "kind": "mcp-servers",
           "source": "@callmcp/server",
-          "version": "0.1.2",
+          "version": "0.1.5",
           "configPath": "official-mcp-registry:ai.callmcp/server"
         },
         "verdict": "SAFE",
@@ -129,16 +144,139 @@
           "sandbox": "none"
         },
         "fingerprints": {
-          "configHash": "sha256:9512c287a07685f54963191fa603d070faf3c609438119e0034e1c15698c2b70",
-          "targetSpecHash": "sha256:3dc5b6228cc4b07cd0d3fc142498c09dee1c95d9bc1a1e8451df1e20875a9013",
+          "configHash": "sha256:39d277f6785564b42b1faec741f322b468b5f0c251c8a3694536ae166ba52db7",
+          "targetSpecHash": "sha256:059f8fb4cb03e54517d057ab603dd63fa301cc69dff1012eae24114f88da84c2",
           "riskSurfaceHash": "sha256:69aae84c996fe93d537b08d906cb339866bd43f10876be403a0f4793915bef33",
-          "packageSpecHash": "sha256:0bbaa2a3702c062cc1de797f4691c41c803f70eae63e8a9bca3d92d199097606"
+          "packageSpecHash": "sha256:b399eca3eb299a2e740f43818029254164606edf6af28bfa9e6de75ae7dc517e"
         },
         "diagnostics": [],
-        "generatedAt": "2026-11-02T01:27:20.000Z"
+        "generatedAt": "2026-11-16T15:36:27.000Z"
+      },
+      {
+        "schemaVersion": "calllint.report.v0",
+        "reportKind": "single-target",
+        "target": {
+          "name": "remote",
+          "kind": "mcp-servers",
+          "source": "https://callmcp.ai/mcp",
+          "configPath": "official-mcp-registry:ai.callmcp/server"
+        },
+        "verdict": "REVIEW",
+        "publicVerdictLabel": "Review required",
+        "policyApplied": false,
+        "riskClass": "S1",
+        "symbols": [
+          "NETWORK"
+        ],
+        "confidence": "high",
+        "reproducibility": {
+          "level": "LOW",
+          "reasons": [
+            "Remote endpoint domain ownership not verified",
+            "Remote endpoint identity verified; tool surface not analyzed"
+          ]
+        },
+        "summary": "\"remote\" could not be verified (insufficient evidence). Risk: Network (S1 Read-only utility).",
+        "observed": [
+          {
+            "id": "supply.unknown-remote",
+            "title": "Remote server source cannot be verified",
+            "severity": "high",
+            "blocker": false,
+            "symbol": "NETWORK",
+            "riskClass": "S1",
+            "mode": "OBSERVED",
+            "confidence": "high",
+            "detectionMethod": "runtime-binding",
+            "evidence": [
+              {
+                "type": "runtime-binding",
+                "path": "official-mcp-registry:ai.callmcp/server",
+                "key": "url",
+                "value": "https://callmcp.ai/mcp",
+                "line": 12,
+                "column": 7
+              }
+            ],
+            "impact": "The server runs on an unverified remote endpoint. Its tools, permissions, and behavior cannot be inspected statically and may change at any time.",
+            "fix": "Use a verified first-party endpoint, or run the server from a pinned, inspectable package.",
+            "falsePositiveNote": "A trusted internal endpoint may be fine; add it to the policy allowlist to verify it."
+          }
+        ],
+        "inferred": [],
+        "findings": [
+          {
+            "id": "supply.unknown-remote",
+            "title": "Remote server source cannot be verified",
+            "severity": "high",
+            "blocker": false,
+            "symbol": "NETWORK",
+            "riskClass": "S1",
+            "mode": "OBSERVED",
+            "confidence": "high",
+            "detectionMethod": "runtime-binding",
+            "evidence": [
+              {
+                "type": "runtime-binding",
+                "path": "official-mcp-registry:ai.callmcp/server",
+                "key": "url",
+                "value": "https://callmcp.ai/mcp",
+                "line": 12,
+                "column": 7
+              }
+            ],
+            "impact": "The server runs on an unverified remote endpoint. Its tools, permissions, and behavior cannot be inspected statically and may change at any time.",
+            "fix": "Use a verified first-party endpoint, or run the server from a pinned, inspectable package.",
+            "falsePositiveNote": "A trusted internal endpoint may be fine; add it to the policy allowlist to verify it."
+          }
+        ],
+        "topFindings": [
+          {
+            "id": "supply.unknown-remote",
+            "title": "Remote server source cannot be verified",
+            "severity": "high",
+            "blocker": false,
+            "symbol": "NETWORK",
+            "riskClass": "S1",
+            "mode": "OBSERVED",
+            "confidence": "high",
+            "detectionMethod": "runtime-binding",
+            "evidence": [
+              {
+                "type": "runtime-binding",
+                "path": "official-mcp-registry:ai.callmcp/server",
+                "key": "url",
+                "value": "https://callmcp.ai/mcp",
+                "line": 12,
+                "column": 7
+              }
+            ],
+            "impact": "The server runs on an unverified remote endpoint. Its tools, permissions, and behavior cannot be inspected statically and may change at any time.",
+            "fix": "Use a verified first-party endpoint, or run the server from a pinned, inspectable package.",
+            "falsePositiveNote": "A trusted internal endpoint may be fine; add it to the policy allowlist to verify it."
+          }
+        ],
+        "policy": {
+          "autonomousUse": "deny",
+          "manualApproval": "required",
+          "sandbox": "required"
+        },
+        "fingerprints": {
+          "configHash": "sha256:fe53c9a5305e0d81cc8a6f2dac97fe9f11e042dc5de626eef7e5d611d1d1e7c5",
+          "targetSpecHash": "sha256:33723cd4217b3cdb3935bd292f13c27ed1f426c80e90c65acd482c9b0fa6f0e4",
+          "riskSurfaceHash": "sha256:47e9d20255a346b95323c2cb9e092621521638b987bbcd036e68e4aee12dcaf3"
+        },
+        "diagnostics": [
+          {
+            "level": "info",
+            "code": "evidence.remote-identity-verified",
+            "message": "Remote endpoint identity verified; tool surface not analyzed (evidence: https://callmcp.ai/mcp)"
+          }
+        ],
+        "generatedAt": "2026-11-16T15:36:27.000Z"
       }
     ],
     "diagnostics": [],
-    "generatedAt": "2026-11-02T01:27:20.000Z"
+    "generatedAt": "2026-11-16T15:36:27.000Z"
   }
 }
