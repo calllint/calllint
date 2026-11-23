@@ -1,18 +1,18 @@
 {
   "schema": "calllint.agent-adoption-contract.v1",
   "contract": {
-    "contractDigest": "sha256:75ff716e02645ae85d697e26387523b0447af31cb85418a49bda23a40a3c9e94",
-    "generatedAt": "2026-11-02T01:27:20.000Z",
+    "contractDigest": "sha256:fec120434c36bee18f6e0254c2a58b8f8dffc0e9a3601a62a2c4e59e1de93d82",
+    "generatedAt": "2026-11-23T17:58:09.000Z",
     "expiresAt": null,
     "generatorVersion": "0.1.0",
-    "snapshotDigest": "sha256:88a1d340b6b950849ecfad2693745c54117dea1bf388f28c8b7a89d2deab198d"
+    "snapshotDigest": "sha256:fa3964686661368df5bcd97515fb471b3a20ac3237fb0e966abdab355c86a070"
   },
   "subject": {
     "canonicalName": "mcp-registry/ai.elicitly-pro",
     "canonicalSlug": "mcp-registry/ai.elicitly-pro",
     "packageType": null,
     "packageName": null,
-    "version": "2026.8.19",
+    "version": "2026.11.12",
     "artifactDigest": "sha256:022885626a9b33922187f832a888e67672138037d8a30362805abc94478cab5c",
     "sourceLocator": "https://mcp.elicitly.ai/mcp"
   },
@@ -23,7 +23,7 @@
       "UNKNOWN_REMOTE"
     ],
     "evidenceLevel": "E2",
-    "evidenceDigest": "sha256:4decdd32f2f7e01d08e2303f2bdf3926a09d22c7517f9000c1c44fa8b4b5410b",
+    "evidenceDigest": "sha256:1739cfe88e5f8157fe372688d6dac6a98c52c020cc547c1e85e40ac342674f94",
     "completeness": "complete"
   },
   "authorityDelta": {
@@ -44,8 +44,8 @@
     ]
   },
   "trustedSources": {
-    "registrySnapshotDigest": "sha256:88a1d340b6b950849ecfad2693745c54117dea1bf388f28c8b7a89d2deab198d",
-    "evidenceDigest": "sha256:4decdd32f2f7e01d08e2303f2bdf3926a09d22c7517f9000c1c44fa8b4b5410b",
+    "registrySnapshotDigest": "sha256:fa3964686661368df5bcd97515fb471b3a20ac3237fb0e966abdab355c86a070",
+    "evidenceDigest": "sha256:1739cfe88e5f8157fe372688d6dac6a98c52c020cc547c1e85e40ac342674f94",
     "engineVersion": "0.1.0"
   },
   "untrustedPublisherContent": {
@@ -57,9 +57,9 @@
     "tool": "calllint_prepare_safe_install",
     "arguments": {
       "canonicalName": "mcp-registry/ai.elicitly-pro",
-      "expectedVersion": "2026.8.19",
+      "expectedVersion": "2026.11.12",
       "expectedArtifactDigest": "sha256:022885626a9b33922187f832a888e67672138037d8a30362805abc94478cab5c",
-      "expectedContractDigest": "sha256:75ff716e02645ae85d697e26387523b0447af31cb85418a49bda23a40a3c9e94",
+      "expectedContractDigest": "sha256:fec120434c36bee18f6e0254c2a58b8f8dffc0e9a3601a62a2c4e59e1de93d82",
       "host": null
     }
   },

@@ -1,18 +1,18 @@
 {
   "schema": "calllint.agent-adoption-contract.v1",
   "contract": {
-    "contractDigest": "sha256:58b58f7f0ee21eadccf09f027eebe52fddf71e2783e931eb92495e14a73be7fc",
-    "generatedAt": "2026-11-02T01:27:20.000Z",
+    "contractDigest": "sha256:a1cf32dda84136c6e29a40783dbaada95231c1d68f3a596e972df2d6905c9484",
+    "generatedAt": "2026-11-23T17:58:09.000Z",
     "expiresAt": null,
     "generatorVersion": "0.1.0",
-    "snapshotDigest": "sha256:88a1d340b6b950849ecfad2693745c54117dea1bf388f28c8b7a89d2deab198d"
+    "snapshotDigest": "sha256:fa3964686661368df5bcd97515fb471b3a20ac3237fb0e966abdab355c86a070"
   },
   "subject": {
     "canonicalName": "mcp-registry/ai.bankrolled-agent-hub",
     "canonicalSlug": "mcp-registry/ai.bankrolled-agent-hub",
     "packageType": null,
     "packageName": null,
-    "version": "1.5.7",
+    "version": "1.5.9",
     "artifactDigest": "sha256:677f9d95e2e5317a81ef1556359cde2d62f0e94856ddb49c89a53a68f5bebb9d",
     "sourceLocator": "https://bankrolled.ai/mcp"
   },
@@ -23,7 +23,7 @@
       "UNKNOWN_REMOTE"
     ],
     "evidenceLevel": "E2",
-    "evidenceDigest": "sha256:4decdd32f2f7e01d08e2303f2bdf3926a09d22c7517f9000c1c44fa8b4b5410b",
+    "evidenceDigest": "sha256:1739cfe88e5f8157fe372688d6dac6a98c52c020cc547c1e85e40ac342674f94",
     "completeness": "complete"
   },
   "authorityDelta": {
@@ -44,12 +44,12 @@
     ]
   },
   "trustedSources": {
-    "registrySnapshotDigest": "sha256:88a1d340b6b950849ecfad2693745c54117dea1bf388f28c8b7a89d2deab198d",
-    "evidenceDigest": "sha256:4decdd32f2f7e01d08e2303f2bdf3926a09d22c7517f9000c1c44fa8b4b5410b",
+    "registrySnapshotDigest": "sha256:fa3964686661368df5bcd97515fb471b3a20ac3237fb0e966abdab355c86a070",
+    "evidenceDigest": "sha256:1739cfe88e5f8157fe372688d6dac6a98c52c020cc547c1e85e40ac342674f94",
     "engineVersion": "0.1.0"
   },
   "untrustedPublisherContent": {
-    "description": "Free, sourced money limits: money_fact, scheme_lookup, cross_border_check. US/UK/CA/AU/NZ. No key.",
+    "description": "Free, sourced deposit-insurance/savings/retirement limits. US, UK, CA, AU, NZ. No key, no payment.",
     "usedForSafetyDecision": false
   },
   "recommendedNextAction": {
@@ -57,9 +57,9 @@
     "tool": "calllint_prepare_safe_install",
     "arguments": {
       "canonicalName": "mcp-registry/ai.bankrolled-agent-hub",
-      "expectedVersion": "1.5.7",
+      "expectedVersion": "1.5.9",
       "expectedArtifactDigest": "sha256:677f9d95e2e5317a81ef1556359cde2d62f0e94856ddb49c89a53a68f5bebb9d",
-      "expectedContractDigest": "sha256:58b58f7f0ee21eadccf09f027eebe52fddf71e2783e931eb92495e14a73be7fc",
+      "expectedContractDigest": "sha256:a1cf32dda84136c6e29a40783dbaada95231c1d68f3a596e972df2d6905c9484",
       "host": null
     }
   },

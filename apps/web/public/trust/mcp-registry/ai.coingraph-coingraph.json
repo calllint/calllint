@@ -1,19 +1,19 @@
 {
   "schema": "calllint.trust-page.v0",
   "canonicalName": "mcp-registry/ai.coingraph-coingraph",
-  "artifactDigest": "sha256:334311c624275d4850885363f50f1a23f1733dad93575f26748de22659a34a7c",
-  "pageDigest": "sha256:92505438f81dd0b7fbe48ad1f49cee1b213f9f5d744c2cc918490cbfb455c430",
+  "artifactDigest": "sha256:3f17a18e2e8ee1d4eb7665f468d3266d2e42393bd51d87bd53fad5845f9636a3",
+  "pageDigest": "sha256:3baf136cb87e211fe2810b160d1d95c3c747a208d2ee4badab8a21605082fc22",
   "verdict": "REVIEW",
   "verdictLabel": "Review required",
-  "observedAt": "2026-11-02T01:27:20.000Z",
+  "observedAt": "2026-11-23T17:58:09.000Z",
   "completeness": "complete",
   "status": {
     "verdict": "REVIEW",
     "completeness": "complete",
     "authorityClaimed": false,
     "reproducibility": {
-      "pageDigest": "sha256:92505438f81dd0b7fbe48ad1f49cee1b213f9f5d744c2cc918490cbfb455c430",
-      "observedAt": "2026-11-02T01:27:20.000Z"
+      "pageDigest": "sha256:3baf136cb87e211fe2810b160d1d95c3c747a208d2ee4badab8a21605082fc22",
+      "observedAt": "2026-11-23T17:58:09.000Z"
     },
     "evidenceLevel": "E2",
     "evidenceRationale": "install config observed → static blast radius normalized into an authority inventory. Higher levels (E3 tool schema, E4 maintainer receipt, E5 sandbox) are not carried by a static page."
@@ -21,14 +21,14 @@
   "correctionUrl": "https://github.com/calllint/calllint/issues/new?labels=trust-page-correction",
   "reproduction": {
     "command": "npx calllint scan official-mcp-registry:ai.coingraph/coingraph",
-    "artifactDigest": "sha256:334311c624275d4850885363f50f1a23f1733dad93575f26748de22659a34a7c",
+    "artifactDigest": "sha256:3f17a18e2e8ee1d4eb7665f468d3266d2e42393bd51d87bd53fad5845f9636a3",
     "note": "Re-running this scan reproduces the verdict observed at the pinned artifact digest. It is a point-in-time observation, not a guarantee of future behavior."
   },
   "scanHistory": [
     {
-      "observedAt": "2026-11-02T01:27:20.000Z",
-      "pageDigest": "sha256:92505438f81dd0b7fbe48ad1f49cee1b213f9f5d744c2cc918490cbfb455c430",
-      "artifactDigest": "sha256:334311c624275d4850885363f50f1a23f1733dad93575f26748de22659a34a7c"
+      "observedAt": "2026-11-23T17:58:09.000Z",
+      "pageDigest": "sha256:3baf136cb87e211fe2810b160d1d95c3c747a208d2ee4badab8a21605082fc22",
+      "artifactDigest": "sha256:3f17a18e2e8ee1d4eb7665f468d3266d2e42393bd51d87bd53fad5845f9636a3"
     }
   ],
   "preparation": {
@@ -38,16 +38,16 @@
       "sourceType": "mcp-config",
       "source": "official-mcp-registry:ai.coingraph/coingraph",
       "requestedRef": null,
-      "resolvedRef": "sha256:334311c624275d4850885363f50f1a23f1733dad93575f26748de22659a34a7c",
-      "digest": "sha256:334311c624275d4850885363f50f1a23f1733dad93575f26748de22659a34a7c",
-      "resolvedAt": "2026-11-02T01:27:20.000Z",
+      "resolvedRef": "sha256:3f17a18e2e8ee1d4eb7665f468d3266d2e42393bd51d87bd53fad5845f9636a3",
+      "digest": "sha256:3f17a18e2e8ee1d4eb7665f468d3266d2e42393bd51d87bd53fad5845f9636a3",
+      "resolvedAt": "2026-11-23T17:58:09.000Z",
       "resolution": "resolved"
     },
     "evidence": null,
     "authority": {
       "schema": "calllint.authority.v0",
       "subject": {
-        "artifactDigest": "sha256:334311c624275d4850885363f50f1a23f1733dad93575f26748de22659a34a7c"
+        "artifactDigest": "sha256:3f17a18e2e8ee1d4eb7665f468d3266d2e42393bd51d87bd53fad5845f9636a3"
       },
       "capabilities": [
         {
@@ -75,7 +75,7 @@
       },
       "unknowns": [],
       "completeness": "complete",
-      "digest": "sha256:b37cb61c598e87f189e0c025edbbe7a2b9afe9610a620abfa2406d13d7886ea0"
+      "digest": "sha256:0ade5f085e4bec335a5884f94372f22b38775040270b0d3d0490f645ca805f15"
     },
     "decision": null,
     "plan": null,
@@ -84,7 +84,7 @@
       "no external evidence attached (optional); decision will rely on CallLint's own analysis",
       "authority normalized: 1 capability, approvals required: external-network-access"
     ],
-    "preparedAt": "2026-11-02T01:27:20.000Z"
+    "preparedAt": "2026-11-23T17:58:09.000Z"
   },
   "scan": {
     "schemaVersion": "calllint.report.v0",
@@ -105,7 +105,7 @@
         "target": {
           "name": "remote",
           "kind": "mcp-servers",
-          "source": "https://coingraph.ai/api/mcp",
+          "source": "https://coingraph.ai/mcp",
           "configPath": "official-mcp-registry:ai.coingraph/coingraph"
         },
         "verdict": "REVIEW",
@@ -140,7 +140,7 @@
                 "type": "runtime-binding",
                 "path": "official-mcp-registry:ai.coingraph/coingraph",
                 "key": "url",
-                "value": "https://coingraph.ai/api/mcp",
+                "value": "https://coingraph.ai/mcp",
                 "line": 5,
                 "column": 7
               }
@@ -167,7 +167,7 @@
                 "type": "runtime-binding",
                 "path": "official-mcp-registry:ai.coingraph/coingraph",
                 "key": "url",
-                "value": "https://coingraph.ai/api/mcp",
+                "value": "https://coingraph.ai/mcp",
                 "line": 5,
                 "column": 7
               }
@@ -193,7 +193,7 @@
                 "type": "runtime-binding",
                 "path": "official-mcp-registry:ai.coingraph/coingraph",
                 "key": "url",
-                "value": "https://coingraph.ai/api/mcp",
+                "value": "https://coingraph.ai/mcp",
                 "line": 5,
                 "column": 7
               }
@@ -209,21 +209,21 @@
           "sandbox": "required"
         },
         "fingerprints": {
-          "configHash": "sha256:983052a902762b7f9df9097df046ab1252709a83731550883d41dbe2eaacb1c5",
-          "targetSpecHash": "sha256:9b1f0b56969f3d513497b8c19fb1cf3f25a5b7dfbffe1b61806c770aeeba046b",
+          "configHash": "sha256:d65ad1bbdcf23ef8a1be53f60d0db03b132fb5da6ee41ae58ccc0e1f24064e10",
+          "targetSpecHash": "sha256:411097493d0aa9f419ad3229f602b7aef994bfe200c5698dffc0e0451e9f62fd",
           "riskSurfaceHash": "sha256:47e9d20255a346b95323c2cb9e092621521638b987bbcd036e68e4aee12dcaf3"
         },
         "diagnostics": [
           {
             "level": "info",
             "code": "evidence.remote-identity-verified",
-            "message": "Remote endpoint identity verified; tool surface not analyzed (evidence: https://coingraph.ai/api/mcp)"
+            "message": "Remote endpoint identity verified; tool surface not analyzed (evidence: https://coingraph.ai/mcp)"
           }
         ],
-        "generatedAt": "2026-11-02T01:27:20.000Z"
+        "generatedAt": "2026-11-23T17:58:09.000Z"
       }
     ],
     "diagnostics": [],
-    "generatedAt": "2026-11-02T01:27:20.000Z"
+    "generatedAt": "2026-11-23T17:58:09.000Z"
   }
 }

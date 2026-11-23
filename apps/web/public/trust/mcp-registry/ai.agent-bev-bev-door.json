@@ -1,19 +1,19 @@
 {
   "schema": "calllint.trust-page.v0",
   "canonicalName": "mcp-registry/ai.agent-bev-bev-door",
-  "artifactDigest": "sha256:2b890099961512884b0f6156faca8e255c26561769ad39c1a766295cf7e91ea0",
-  "pageDigest": "sha256:e16d056947bea2d92d967477d97e9f89942414a55b0b6e5c440e0e3873320604",
+  "artifactDigest": "sha256:952e6ede40696ba488c829f2bdbe772ba091c40caaa40ee58036e25449fcc197",
+  "pageDigest": "sha256:71c4a3d2fb57d2c0880d0cd80729276e4c079436751f4321dcea5197313b4c82",
   "verdict": "REVIEW",
   "verdictLabel": "Review required",
-  "observedAt": "2026-11-02T01:27:20.000Z",
+  "observedAt": "2026-11-23T17:58:09.000Z",
   "completeness": "complete",
   "status": {
     "verdict": "REVIEW",
     "completeness": "complete",
     "authorityClaimed": false,
     "reproducibility": {
-      "pageDigest": "sha256:e16d056947bea2d92d967477d97e9f89942414a55b0b6e5c440e0e3873320604",
-      "observedAt": "2026-11-02T01:27:20.000Z"
+      "pageDigest": "sha256:71c4a3d2fb57d2c0880d0cd80729276e4c079436751f4321dcea5197313b4c82",
+      "observedAt": "2026-11-23T17:58:09.000Z"
     },
     "evidenceLevel": "E2",
     "evidenceRationale": "install config observed → static blast radius normalized into an authority inventory. Higher levels (E3 tool schema, E4 maintainer receipt, E5 sandbox) are not carried by a static page."
@@ -21,14 +21,14 @@
   "correctionUrl": "https://github.com/calllint/calllint/issues/new?labels=trust-page-correction",
   "reproduction": {
     "command": "npx calllint scan official-mcp-registry:ai.agent-bev/bev-door",
-    "artifactDigest": "sha256:2b890099961512884b0f6156faca8e255c26561769ad39c1a766295cf7e91ea0",
+    "artifactDigest": "sha256:952e6ede40696ba488c829f2bdbe772ba091c40caaa40ee58036e25449fcc197",
     "note": "Re-running this scan reproduces the verdict observed at the pinned artifact digest. It is a point-in-time observation, not a guarantee of future behavior."
   },
   "scanHistory": [
     {
-      "observedAt": "2026-11-02T01:27:20.000Z",
-      "pageDigest": "sha256:e16d056947bea2d92d967477d97e9f89942414a55b0b6e5c440e0e3873320604",
-      "artifactDigest": "sha256:2b890099961512884b0f6156faca8e255c26561769ad39c1a766295cf7e91ea0"
+      "observedAt": "2026-11-23T17:58:09.000Z",
+      "pageDigest": "sha256:71c4a3d2fb57d2c0880d0cd80729276e4c079436751f4321dcea5197313b4c82",
+      "artifactDigest": "sha256:952e6ede40696ba488c829f2bdbe772ba091c40caaa40ee58036e25449fcc197"
     }
   ],
   "preparation": {
@@ -38,16 +38,16 @@
       "sourceType": "mcp-config",
       "source": "official-mcp-registry:ai.agent-bev/bev-door",
       "requestedRef": null,
-      "resolvedRef": "sha256:2b890099961512884b0f6156faca8e255c26561769ad39c1a766295cf7e91ea0",
-      "digest": "sha256:2b890099961512884b0f6156faca8e255c26561769ad39c1a766295cf7e91ea0",
-      "resolvedAt": "2026-11-02T01:27:20.000Z",
+      "resolvedRef": "sha256:952e6ede40696ba488c829f2bdbe772ba091c40caaa40ee58036e25449fcc197",
+      "digest": "sha256:952e6ede40696ba488c829f2bdbe772ba091c40caaa40ee58036e25449fcc197",
+      "resolvedAt": "2026-11-23T17:58:09.000Z",
       "resolution": "resolved"
     },
     "evidence": null,
     "authority": {
       "schema": "calllint.authority.v0",
       "subject": {
-        "artifactDigest": "sha256:2b890099961512884b0f6156faca8e255c26561769ad39c1a766295cf7e91ea0"
+        "artifactDigest": "sha256:952e6ede40696ba488c829f2bdbe772ba091c40caaa40ee58036e25449fcc197"
       },
       "capabilities": [
         {
@@ -89,7 +89,7 @@
       },
       "unknowns": [],
       "completeness": "complete",
-      "digest": "sha256:e9bf236e66cc03ee410693bcace4c0a3242c10bfeae86f8e0a860d13a9950084"
+      "digest": "sha256:a7f8fe06568066188986ab5da22e9415a6b2f288cdfcb4884a3e806a1f4078e3"
     },
     "decision": null,
     "plan": null,
@@ -98,7 +98,7 @@
       "no external evidence attached (optional); decision will rely on CallLint's own analysis",
       "authority normalized: 2 capabilities, approvals required: external-network-access"
     ],
-    "preparedAt": "2026-11-02T01:27:20.000Z"
+    "preparedAt": "2026-11-23T17:58:09.000Z"
   },
   "scan": {
     "schemaVersion": "calllint.report.v0",
@@ -120,7 +120,7 @@
           "name": "package",
           "kind": "mcp-servers",
           "source": "@agent-bev/mcp-server",
-          "version": "0.2.5",
+          "version": "0.2.6",
           "configPath": "official-mcp-registry:ai.agent-bev/bev-door"
         },
         "verdict": "SAFE",
@@ -144,13 +144,13 @@
           "sandbox": "none"
         },
         "fingerprints": {
-          "configHash": "sha256:f9c9625ba23a66523e7bf9b9e0cf162918fde5a45f696ff9a636452dc4a2b93e",
-          "targetSpecHash": "sha256:900c23324d921b103b340a428cf8a954a4a65ef7d3c86a673b13194dec2d47bd",
+          "configHash": "sha256:ce02de70761b0246ce877df9985ed0609bc481f309bcc1557c50c8b47a39eeb9",
+          "targetSpecHash": "sha256:e09523e6878d95d82c11df558566e41c1d974b05c632579adfa33e85765d2a7a",
           "riskSurfaceHash": "sha256:69aae84c996fe93d537b08d906cb339866bd43f10876be403a0f4793915bef33",
-          "packageSpecHash": "sha256:24881432d46ed8d1ab0505a6a34d182f64c6ea9ae4e8ccc93fa1661e7b55a5cc"
+          "packageSpecHash": "sha256:fa0d51a050fe8cd1a870b69c2165cc909b3215499878aba326774576cbccf8f4"
         },
         "diagnostics": [],
-        "generatedAt": "2026-11-02T01:27:20.000Z"
+        "generatedAt": "2026-11-23T17:58:09.000Z"
       },
       {
         "schemaVersion": "calllint.report.v0",
@@ -273,10 +273,10 @@
             "message": "Remote endpoint identity verified; tool surface not analyzed (evidence: https://mcp.bev-buyer.ai/mcp)"
           }
         ],
-        "generatedAt": "2026-11-02T01:27:20.000Z"
+        "generatedAt": "2026-11-23T17:58:09.000Z"
       }
     ],
     "diagnostics": [],
-    "generatedAt": "2026-11-02T01:27:20.000Z"
+    "generatedAt": "2026-11-23T17:58:09.000Z"
   }
 }

@@ -1,19 +1,19 @@
 {
   "schema": "calllint.trust-page.v0",
   "canonicalName": "mcp-registry/ai.edgechat-edgepedia",
-  "artifactDigest": "sha256:03e589e403d0dcf06ba6bfd165fc6fac387bc4e4213de897eef7cd1d652005c8",
-  "pageDigest": "sha256:97afe98ecfed64cf72c67f2332f5fe10f79bb1527c83a3b5e3199a0794f5d6a0",
+  "artifactDigest": "sha256:3125934ddafe9d512c40e23d1638a5d2abceef404a5d753dc5bf548c63761221",
+  "pageDigest": "sha256:e17257ddae639de869f5de2f8e70f5a3a207850a666c037948947aeec67afc51",
   "verdict": "REVIEW",
   "verdictLabel": "Review required",
-  "observedAt": "2026-11-02T01:27:20.000Z",
+  "observedAt": "2026-11-23T17:58:09.000Z",
   "completeness": "complete",
   "status": {
     "verdict": "REVIEW",
     "completeness": "complete",
     "authorityClaimed": false,
     "reproducibility": {
-      "pageDigest": "sha256:97afe98ecfed64cf72c67f2332f5fe10f79bb1527c83a3b5e3199a0794f5d6a0",
-      "observedAt": "2026-11-02T01:27:20.000Z"
+      "pageDigest": "sha256:e17257ddae639de869f5de2f8e70f5a3a207850a666c037948947aeec67afc51",
+      "observedAt": "2026-11-23T17:58:09.000Z"
     },
     "evidenceLevel": "E2",
     "evidenceRationale": "install config observed → static blast radius normalized into an authority inventory. Higher levels (E3 tool schema, E4 maintainer receipt, E5 sandbox) are not carried by a static page."
@@ -21,14 +21,14 @@
   "correctionUrl": "https://github.com/calllint/calllint/issues/new?labels=trust-page-correction",
   "reproduction": {
     "command": "npx calllint scan official-mcp-registry:ai.edgechat/edgepedia",
-    "artifactDigest": "sha256:03e589e403d0dcf06ba6bfd165fc6fac387bc4e4213de897eef7cd1d652005c8",
+    "artifactDigest": "sha256:3125934ddafe9d512c40e23d1638a5d2abceef404a5d753dc5bf548c63761221",
     "note": "Re-running this scan reproduces the verdict observed at the pinned artifact digest. It is a point-in-time observation, not a guarantee of future behavior."
   },
   "scanHistory": [
     {
-      "observedAt": "2026-11-02T01:27:20.000Z",
-      "pageDigest": "sha256:97afe98ecfed64cf72c67f2332f5fe10f79bb1527c83a3b5e3199a0794f5d6a0",
-      "artifactDigest": "sha256:03e589e403d0dcf06ba6bfd165fc6fac387bc4e4213de897eef7cd1d652005c8"
+      "observedAt": "2026-11-23T17:58:09.000Z",
+      "pageDigest": "sha256:e17257ddae639de869f5de2f8e70f5a3a207850a666c037948947aeec67afc51",
+      "artifactDigest": "sha256:3125934ddafe9d512c40e23d1638a5d2abceef404a5d753dc5bf548c63761221"
     }
   ],
   "preparation": {
@@ -38,23 +38,23 @@
       "sourceType": "mcp-config",
       "source": "official-mcp-registry:ai.edgechat/edgepedia",
       "requestedRef": null,
-      "resolvedRef": "sha256:03e589e403d0dcf06ba6bfd165fc6fac387bc4e4213de897eef7cd1d652005c8",
-      "digest": "sha256:03e589e403d0dcf06ba6bfd165fc6fac387bc4e4213de897eef7cd1d652005c8",
-      "resolvedAt": "2026-11-02T01:27:20.000Z",
+      "resolvedRef": "sha256:3125934ddafe9d512c40e23d1638a5d2abceef404a5d753dc5bf548c63761221",
+      "digest": "sha256:3125934ddafe9d512c40e23d1638a5d2abceef404a5d753dc5bf548c63761221",
+      "resolvedAt": "2026-11-23T17:58:09.000Z",
       "resolution": "resolved"
     },
     "evidence": null,
     "authority": {
       "schema": "calllint.authority.v0",
       "subject": {
-        "artifactDigest": "sha256:03e589e403d0dcf06ba6bfd165fc6fac387bc4e4213de897eef7cd1d652005c8"
+        "artifactDigest": "sha256:3125934ddafe9d512c40e23d1638a5d2abceef404a5d753dc5bf548c63761221"
       },
       "capabilities": [
         {
           "action": "connect",
           "resource": "network",
-          "scope": "www.edgechat.ai",
-          "destination": "www.edgechat.ai",
+          "scope": "www.edgepedia.org",
+          "destination": "www.edgepedia.org",
           "mutability": "mutating",
           "reversibility": "irreversible",
           "monetaryLimit": null,
@@ -75,7 +75,7 @@
       },
       "unknowns": [],
       "completeness": "complete",
-      "digest": "sha256:32561f63a3c6a67a8b51930174dee76d6af35967364cb9c1b630a6891c95cc94"
+      "digest": "sha256:d90bd68a475b525478c3597719d9f41689bb8637bd1b812755b9df44c55cf363"
     },
     "decision": null,
     "plan": null,
@@ -84,7 +84,7 @@
       "no external evidence attached (optional); decision will rely on CallLint's own analysis",
       "authority normalized: 1 capability, approvals required: external-network-access"
     ],
-    "preparedAt": "2026-11-02T01:27:20.000Z"
+    "preparedAt": "2026-11-23T17:58:09.000Z"
   },
   "scan": {
     "schemaVersion": "calllint.report.v0",
@@ -105,7 +105,7 @@
         "target": {
           "name": "remote",
           "kind": "mcp-servers",
-          "source": "https://www.edgechat.ai/mcp",
+          "source": "https://www.edgepedia.org/mcp",
           "configPath": "official-mcp-registry:ai.edgechat/edgepedia"
         },
         "verdict": "REVIEW",
@@ -140,7 +140,7 @@
                 "type": "runtime-binding",
                 "path": "official-mcp-registry:ai.edgechat/edgepedia",
                 "key": "url",
-                "value": "https://www.edgechat.ai/mcp",
+                "value": "https://www.edgepedia.org/mcp",
                 "line": 5,
                 "column": 7
               }
@@ -167,7 +167,7 @@
                 "type": "runtime-binding",
                 "path": "official-mcp-registry:ai.edgechat/edgepedia",
                 "key": "url",
-                "value": "https://www.edgechat.ai/mcp",
+                "value": "https://www.edgepedia.org/mcp",
                 "line": 5,
                 "column": 7
               }
@@ -193,7 +193,7 @@
                 "type": "runtime-binding",
                 "path": "official-mcp-registry:ai.edgechat/edgepedia",
                 "key": "url",
-                "value": "https://www.edgechat.ai/mcp",
+                "value": "https://www.edgepedia.org/mcp",
                 "line": 5,
                 "column": 7
               }
@@ -209,21 +209,21 @@
           "sandbox": "required"
         },
         "fingerprints": {
-          "configHash": "sha256:e219bcc413f57f22097f5749d3ba5016e04398d23297db3bd41dff368a960937",
-          "targetSpecHash": "sha256:c7a4d5fb6a0303c0a2b048ff98cec3f0b7b416816eb24c9232fd5734e067a45a",
+          "configHash": "sha256:fad4b4f8d50e1a27bffb20df61417eb99cf0022fe99673b43a0482cbb8df35ff",
+          "targetSpecHash": "sha256:2a790cfd2e1309a760255ccc1fb19bf4d67588ce6566bd721a503569d1c2fa06",
           "riskSurfaceHash": "sha256:47e9d20255a346b95323c2cb9e092621521638b987bbcd036e68e4aee12dcaf3"
         },
         "diagnostics": [
           {
             "level": "info",
             "code": "evidence.remote-identity-verified",
-            "message": "Remote endpoint identity verified; tool surface not analyzed (evidence: https://www.edgechat.ai/mcp)"
+            "message": "Remote endpoint identity verified; tool surface not analyzed (evidence: https://www.edgepedia.org/mcp)"
           }
         ],
-        "generatedAt": "2026-11-02T01:27:20.000Z"
+        "generatedAt": "2026-11-23T17:58:09.000Z"
       }
     ],
     "diagnostics": [],
-    "generatedAt": "2026-11-02T01:27:20.000Z"
+    "generatedAt": "2026-11-23T17:58:09.000Z"
   }
 }

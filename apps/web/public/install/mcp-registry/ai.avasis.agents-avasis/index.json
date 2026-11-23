@@ -1,29 +1,29 @@
 {
   "schema": "calllint.agent-adoption-contract.v1",
   "contract": {
-    "contractDigest": "sha256:acc76ddb15da62f1f91d2c83c366d3f2f20ba3ec6123578c5d38ab4afa4ade49",
-    "generatedAt": "2026-11-02T01:27:20.000Z",
+    "contractDigest": "sha256:6893c060aa8f6e41b51e3f6fbc9a5dc180441e8f3d420921f0f7e0e0a0a53eb1",
+    "generatedAt": "2026-11-23T17:58:09.000Z",
     "expiresAt": null,
     "generatorVersion": "0.1.0",
-    "snapshotDigest": "sha256:88a1d340b6b950849ecfad2693745c54117dea1bf388f28c8b7a89d2deab198d"
+    "snapshotDigest": "sha256:fa3964686661368df5bcd97515fb471b3a20ac3237fb0e966abdab355c86a070"
   },
   "subject": {
     "canonicalName": "mcp-registry/ai.avasis.agents-avasis",
     "canonicalSlug": "mcp-registry/ai.avasis.agents-avasis",
     "packageType": null,
     "packageName": null,
-    "version": "1.0.0",
+    "version": "1.0.1",
     "artifactDigest": "sha256:e46706fcedff58ffc70db54f172fc2077b63c60994e8ded5bd978e1800241a4d",
     "sourceLocator": "https://agents.avasis.ai/mcp"
   },
   "publicObservation": {
-    "verdict": "REVIEW",
-    "publicLabel": "Review required",
+    "verdict": "UNKNOWN",
+    "publicLabel": "Insufficient evidence",
     "reasonCodes": [
       "UNKNOWN_REMOTE"
     ],
     "evidenceLevel": "E2",
-    "evidenceDigest": "sha256:4decdd32f2f7e01d08e2303f2bdf3926a09d22c7517f9000c1c44fa8b4b5410b",
+    "evidenceDigest": "sha256:1739cfe88e5f8157fe372688d6dac6a98c52c020cc547c1e85e40ac342674f94",
     "completeness": "complete"
   },
   "authorityDelta": {
@@ -44,24 +44,17 @@
     ]
   },
   "trustedSources": {
-    "registrySnapshotDigest": "sha256:88a1d340b6b950849ecfad2693745c54117dea1bf388f28c8b7a89d2deab198d",
-    "evidenceDigest": "sha256:4decdd32f2f7e01d08e2303f2bdf3926a09d22c7517f9000c1c44fa8b4b5410b",
+    "registrySnapshotDigest": "sha256:fa3964686661368df5bcd97515fb471b3a20ac3237fb0e966abdab355c86a070",
+    "evidenceDigest": "sha256:1739cfe88e5f8157fe372688d6dac6a98c52c020cc547c1e85e40ac342674f94",
     "engineVersion": "0.1.0"
   },
   "untrustedPublisherContent": {
-    "description": "Free MCP tools: Solana token safety and Polymarket kit samples, x402 quotes, verdict grading rubric",
+    "description": "Free MCP tools to quote and sample x402 APIs: Solana rug checks, Base token-watch, $49 starter kit",
     "usedForSafetyDecision": false
   },
   "recommendedNextAction": {
-    "kind": "PREPARE_LOCALLY",
-    "tool": "calllint_prepare_safe_install",
-    "arguments": {
-      "canonicalName": "mcp-registry/ai.avasis.agents-avasis",
-      "expectedVersion": "1.0.0",
-      "expectedArtifactDigest": "sha256:e46706fcedff58ffc70db54f172fc2077b63c60994e8ded5bd978e1800241a4d",
-      "expectedContractDigest": "sha256:acc76ddb15da62f1f91d2c83c366d3f2f20ba3ec6123578c5d38ab4afa4ade49",
-      "host": null
-    }
+    "kind": "LOCAL_PREFLIGHT_REQUIRED",
+    "tool": "calllint_prepare_safe_install"
   },
   "agentGuidance": {
     "goal": "Add the requested Agent Tool with only locally approved authority.",

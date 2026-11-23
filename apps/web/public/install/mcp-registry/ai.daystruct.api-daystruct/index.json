@@ -1,18 +1,18 @@
 {
   "schema": "calllint.agent-adoption-contract.v1",
   "contract": {
-    "contractDigest": "sha256:e077c5e1deaf494dd885dcacffbea5d0f37495f95d2816b86ce0fcceaf728c10",
-    "generatedAt": "2026-11-02T01:27:20.000Z",
+    "contractDigest": "sha256:2dc2e8bb26f43fe096d1176983f70b0e5fd0b6209211f69edef3a40c6c217833",
+    "generatedAt": "2026-11-23T17:58:09.000Z",
     "expiresAt": null,
     "generatorVersion": "0.1.0",
-    "snapshotDigest": "sha256:88a1d340b6b950849ecfad2693745c54117dea1bf388f28c8b7a89d2deab198d"
+    "snapshotDigest": "sha256:fa3964686661368df5bcd97515fb471b3a20ac3237fb0e966abdab355c86a070"
   },
   "subject": {
     "canonicalName": "mcp-registry/ai.daystruct.api-daystruct",
     "canonicalSlug": "mcp-registry/ai.daystruct.api-daystruct",
     "packageType": null,
     "packageName": null,
-    "version": "1.2.0",
+    "version": "1.3.0",
     "artifactDigest": "sha256:761560a611c21b1de82d834ccc3b10df09e0724653a7cb3eba3adbaaa82698a2",
     "sourceLocator": "https://api.daystruct.ai/mcp"
   },
@@ -23,7 +23,7 @@
       "UNKNOWN_REMOTE"
     ],
     "evidenceLevel": "E2",
-    "evidenceDigest": "sha256:4decdd32f2f7e01d08e2303f2bdf3926a09d22c7517f9000c1c44fa8b4b5410b",
+    "evidenceDigest": "sha256:1739cfe88e5f8157fe372688d6dac6a98c52c020cc547c1e85e40ac342674f94",
     "completeness": "complete"
   },
   "authorityDelta": {
@@ -44,12 +44,12 @@
     ]
   },
   "trustedSources": {
-    "registrySnapshotDigest": "sha256:88a1d340b6b950849ecfad2693745c54117dea1bf388f28c8b7a89d2deab198d",
-    "evidenceDigest": "sha256:4decdd32f2f7e01d08e2303f2bdf3926a09d22c7517f9000c1c44fa8b4b5410b",
+    "registrySnapshotDigest": "sha256:fa3964686661368df5bcd97515fb471b3a20ac3237fb0e966abdab355c86a070",
+    "evidenceDigest": "sha256:1739cfe88e5f8157fe372688d6dac6a98c52c020cc547c1e85e40ac342674f94",
     "engineVersion": "0.1.0"
   },
   "untrustedPublisherContent": {
-    "description": "Find source-package workflows, inspect live prices and evidence, and connect with a scoped key.",
+    "description": "Discover reusable source, data and memory capabilities; inspect release evidence and compatibility.",
     "usedForSafetyDecision": false
   },
   "recommendedNextAction": {
@@ -57,9 +57,9 @@
     "tool": "calllint_prepare_safe_install",
     "arguments": {
       "canonicalName": "mcp-registry/ai.daystruct.api-daystruct",
-      "expectedVersion": "1.2.0",
+      "expectedVersion": "1.3.0",
       "expectedArtifactDigest": "sha256:761560a611c21b1de82d834ccc3b10df09e0724653a7cb3eba3adbaaa82698a2",
-      "expectedContractDigest": "sha256:e077c5e1deaf494dd885dcacffbea5d0f37495f95d2816b86ce0fcceaf728c10",
+      "expectedContractDigest": "sha256:2dc2e8bb26f43fe096d1176983f70b0e5fd0b6209211f69edef3a40c6c217833",
       "host": null
     }
   },

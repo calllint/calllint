@@ -1,19 +1,19 @@
 {
   "schema": "calllint.trust-page.v0",
   "canonicalName": "mcp-registry/ai.codenib-codenib",
-  "artifactDigest": "sha256:eff98685439d56b82d790a4f2fe087f04c5885088636d445cf8c04a7941ef5cf",
-  "pageDigest": "sha256:7d44d87250f861b35d34ada064ec77bac983def93b536405625cb06c10f656c7",
+  "artifactDigest": "sha256:f55c978173a44a2f35680fa6099e59b3dee523b5a3fa3032fd354ea5b1f0d013",
+  "pageDigest": "sha256:26cadbfa6b6819198063dc7b27cf78432de302cabde5aa018ab39a177445c7e1",
   "verdict": "SAFE",
   "verdictLabel": "No blockers observed",
-  "observedAt": "2026-11-02T01:27:20.000Z",
+  "observedAt": "2026-11-23T17:58:09.000Z",
   "completeness": "complete",
   "status": {
     "verdict": "SAFE",
     "completeness": "complete",
     "authorityClaimed": false,
     "reproducibility": {
-      "pageDigest": "sha256:7d44d87250f861b35d34ada064ec77bac983def93b536405625cb06c10f656c7",
-      "observedAt": "2026-11-02T01:27:20.000Z"
+      "pageDigest": "sha256:26cadbfa6b6819198063dc7b27cf78432de302cabde5aa018ab39a177445c7e1",
+      "observedAt": "2026-11-23T17:58:09.000Z"
     },
     "evidenceLevel": "E2",
     "evidenceRationale": "install config observed → static blast radius normalized into an authority inventory. Higher levels (E3 tool schema, E4 maintainer receipt, E5 sandbox) are not carried by a static page."
@@ -21,14 +21,14 @@
   "correctionUrl": "https://github.com/calllint/calllint/issues/new?labels=trust-page-correction",
   "reproduction": {
     "command": "npx calllint scan official-mcp-registry:ai.codenib/codenib",
-    "artifactDigest": "sha256:eff98685439d56b82d790a4f2fe087f04c5885088636d445cf8c04a7941ef5cf",
+    "artifactDigest": "sha256:f55c978173a44a2f35680fa6099e59b3dee523b5a3fa3032fd354ea5b1f0d013",
     "note": "Re-running this scan reproduces the verdict observed at the pinned artifact digest. It is a point-in-time observation, not a guarantee of future behavior."
   },
   "scanHistory": [
     {
-      "observedAt": "2026-11-02T01:27:20.000Z",
-      "pageDigest": "sha256:7d44d87250f861b35d34ada064ec77bac983def93b536405625cb06c10f656c7",
-      "artifactDigest": "sha256:eff98685439d56b82d790a4f2fe087f04c5885088636d445cf8c04a7941ef5cf"
+      "observedAt": "2026-11-23T17:58:09.000Z",
+      "pageDigest": "sha256:26cadbfa6b6819198063dc7b27cf78432de302cabde5aa018ab39a177445c7e1",
+      "artifactDigest": "sha256:f55c978173a44a2f35680fa6099e59b3dee523b5a3fa3032fd354ea5b1f0d013"
     }
   ],
   "preparation": {
@@ -38,16 +38,16 @@
       "sourceType": "mcp-config",
       "source": "official-mcp-registry:ai.codenib/codenib",
       "requestedRef": null,
-      "resolvedRef": "sha256:eff98685439d56b82d790a4f2fe087f04c5885088636d445cf8c04a7941ef5cf",
-      "digest": "sha256:eff98685439d56b82d790a4f2fe087f04c5885088636d445cf8c04a7941ef5cf",
-      "resolvedAt": "2026-11-02T01:27:20.000Z",
+      "resolvedRef": "sha256:f55c978173a44a2f35680fa6099e59b3dee523b5a3fa3032fd354ea5b1f0d013",
+      "digest": "sha256:f55c978173a44a2f35680fa6099e59b3dee523b5a3fa3032fd354ea5b1f0d013",
+      "resolvedAt": "2026-11-23T17:58:09.000Z",
       "resolution": "resolved"
     },
     "evidence": null,
     "authority": {
       "schema": "calllint.authority.v0",
       "subject": {
-        "artifactDigest": "sha256:eff98685439d56b82d790a4f2fe087f04c5885088636d445cf8c04a7941ef5cf"
+        "artifactDigest": "sha256:f55c978173a44a2f35680fa6099e59b3dee523b5a3fa3032fd354ea5b1f0d013"
       },
       "capabilities": [
         {
@@ -74,7 +74,7 @@
       },
       "unknowns": [],
       "completeness": "complete",
-      "digest": "sha256:5a01697c2ae1a86dd044e40a5718e6a7aa51ba85029a76bb36229535140fcae4"
+      "digest": "sha256:2e6eb50db39fd60be1dfcffb77c55b523e6b18e197b64d0d71c534856006f063"
     },
     "decision": null,
     "plan": null,
@@ -83,7 +83,7 @@
       "no external evidence attached (optional); decision will rely on CallLint's own analysis",
       "authority normalized: 1 capability"
     ],
-    "preparedAt": "2026-11-02T01:27:20.000Z"
+    "preparedAt": "2026-11-23T17:58:09.000Z"
   },
   "scan": {
     "schemaVersion": "calllint.report.v0",
@@ -105,7 +105,7 @@
           "name": "package",
           "kind": "mcp-servers",
           "source": "codenib",
-          "version": "0.2.4",
+          "version": "0.2.6",
           "configPath": "official-mcp-registry:ai.codenib/codenib"
         },
         "verdict": "SAFE",
@@ -129,16 +129,16 @@
           "sandbox": "none"
         },
         "fingerprints": {
-          "configHash": "sha256:c2b8eed3d3352104a0537197cd70a784d3e3ff58c0cc040c037305d55d5bf944",
-          "targetSpecHash": "sha256:269636e4fd33fcfca5e35cdf377bc42e6ebd40f95a5574acda9ba7f91a2bb252",
+          "configHash": "sha256:7af9aff02082b79ca369c66ccb96d94be9ece5bd9c59559b0392502ea36e15c8",
+          "targetSpecHash": "sha256:6fd6e13de0e7246e836be93b2d02da24a6fa9e3b75a4a653441b1c786ed9b70d",
           "riskSurfaceHash": "sha256:69aae84c996fe93d537b08d906cb339866bd43f10876be403a0f4793915bef33",
-          "packageSpecHash": "sha256:3b0ed6dc3ceac95b2e9261e6ca3488bc751b5c09cc7145f5369d08359dfd4aa1"
+          "packageSpecHash": "sha256:c1c2c8be1f26472a53b8bed53fa838e8dbc5df812f9f0e3ffce35045e3acf5d6"
         },
         "diagnostics": [],
-        "generatedAt": "2026-11-02T01:27:20.000Z"
+        "generatedAt": "2026-11-23T17:58:09.000Z"
       }
     ],
     "diagnostics": [],
-    "generatedAt": "2026-11-02T01:27:20.000Z"
+    "generatedAt": "2026-11-23T17:58:09.000Z"
   }
 }

@@ -1,18 +1,18 @@
 {
   "schema": "calllint.agent-adoption-contract.v1",
   "contract": {
-    "contractDigest": "sha256:5d2bdd657f1b3b6ef1714fd16e7a74ce5cafff27f5efdd64f2fc1e62044d5d88",
-    "generatedAt": "2026-11-02T01:27:20.000Z",
+    "contractDigest": "sha256:7b33f15da0ea97f974b0ec5b0553e32ab47b0a91e666e8c62abab8928646b4c0",
+    "generatedAt": "2026-11-23T17:58:09.000Z",
     "expiresAt": null,
     "generatorVersion": "0.1.0",
-    "snapshotDigest": "sha256:88a1d340b6b950849ecfad2693745c54117dea1bf388f28c8b7a89d2deab198d"
+    "snapshotDigest": "sha256:fa3964686661368df5bcd97515fb471b3a20ac3237fb0e966abdab355c86a070"
   },
   "subject": {
     "canonicalName": "mcp-registry/ai.bloopo-bloopo",
     "canonicalSlug": "mcp-registry/ai.bloopo-bloopo",
     "packageType": null,
     "packageName": null,
-    "version": "0.1.1",
+    "version": "0.1.2",
     "artifactDigest": "sha256:a4b285f53b851606c07e344ca3e44049fcf36b619c6eb93f3d770554acc59acc",
     "sourceLocator": "https://mcp.bloopo.ai/mcp"
   },
@@ -23,7 +23,7 @@
       "UNKNOWN_REMOTE"
     ],
     "evidenceLevel": "E2",
-    "evidenceDigest": "sha256:4decdd32f2f7e01d08e2303f2bdf3926a09d22c7517f9000c1c44fa8b4b5410b",
+    "evidenceDigest": "sha256:1739cfe88e5f8157fe372688d6dac6a98c52c020cc547c1e85e40ac342674f94",
     "completeness": "complete"
   },
   "authorityDelta": {
@@ -44,12 +44,12 @@
     ]
   },
   "trustedSources": {
-    "registrySnapshotDigest": "sha256:88a1d340b6b950849ecfad2693745c54117dea1bf388f28c8b7a89d2deab198d",
-    "evidenceDigest": "sha256:4decdd32f2f7e01d08e2303f2bdf3926a09d22c7517f9000c1c44fa8b4b5410b",
+    "registrySnapshotDigest": "sha256:fa3964686661368df5bcd97515fb471b3a20ac3237fb0e966abdab355c86a070",
+    "evidenceDigest": "sha256:1739cfe88e5f8157fe372688d6dac6a98c52c020cc547c1e85e40ac342674f94",
     "engineVersion": "0.1.0"
   },
   "untrustedPublisherContent": {
-    "description": "Turn one sentence into finished ads: video ads, UGC, product photos, voiceover, brand kits, A/B.",
+    "description": "Create and edit images, video and audio. Research brands and manage saved creative assets.",
     "usedForSafetyDecision": false
   },
   "recommendedNextAction": {
@@ -57,9 +57,9 @@
     "tool": "calllint_prepare_safe_install",
     "arguments": {
       "canonicalName": "mcp-registry/ai.bloopo-bloopo",
-      "expectedVersion": "0.1.1",
+      "expectedVersion": "0.1.2",
       "expectedArtifactDigest": "sha256:a4b285f53b851606c07e344ca3e44049fcf36b619c6eb93f3d770554acc59acc",
-      "expectedContractDigest": "sha256:5d2bdd657f1b3b6ef1714fd16e7a74ce5cafff27f5efdd64f2fc1e62044d5d88",
+      "expectedContractDigest": "sha256:7b33f15da0ea97f974b0ec5b0553e32ab47b0a91e666e8c62abab8928646b4c0",
       "host": null
     }
   },

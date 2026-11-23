@@ -1,19 +1,19 @@
 {
   "schema": "calllint.trust-page.v0",
   "canonicalName": "mcp-registry/ai.achromat-mcp-server",
-  "artifactDigest": "sha256:81b0225a92c415c1e5496f5af7b7f2f0d26e1b1b09a22fb6ddc709f1de073ed7",
-  "pageDigest": "sha256:c858f9d3ddbd033bea1af37f4c102a308ead0fc1cacc39fffc6395a3ee026c0f",
+  "artifactDigest": "sha256:11b95fcc6074c8e131331fbacd4181c4c60ab9320221c634fb34e8cd90d9d316",
+  "pageDigest": "sha256:85f00c800340c192e51d0e378ff91881bf746dbc999513f9002a3d39303ab8e0",
   "verdict": "REVIEW",
   "verdictLabel": "Review required",
-  "observedAt": "2026-11-02T01:27:20.000Z",
+  "observedAt": "2026-11-23T17:58:09.000Z",
   "completeness": "complete",
   "status": {
     "verdict": "REVIEW",
     "completeness": "complete",
     "authorityClaimed": false,
     "reproducibility": {
-      "pageDigest": "sha256:c858f9d3ddbd033bea1af37f4c102a308ead0fc1cacc39fffc6395a3ee026c0f",
-      "observedAt": "2026-11-02T01:27:20.000Z"
+      "pageDigest": "sha256:85f00c800340c192e51d0e378ff91881bf746dbc999513f9002a3d39303ab8e0",
+      "observedAt": "2026-11-23T17:58:09.000Z"
     },
     "evidenceLevel": "E2",
     "evidenceRationale": "install config observed → static blast radius normalized into an authority inventory. Higher levels (E3 tool schema, E4 maintainer receipt, E5 sandbox) are not carried by a static page."
@@ -21,14 +21,14 @@
   "correctionUrl": "https://github.com/calllint/calllint/issues/new?labels=trust-page-correction",
   "reproduction": {
     "command": "npx calllint scan official-mcp-registry:ai.achromat/mcp-server",
-    "artifactDigest": "sha256:81b0225a92c415c1e5496f5af7b7f2f0d26e1b1b09a22fb6ddc709f1de073ed7",
+    "artifactDigest": "sha256:11b95fcc6074c8e131331fbacd4181c4c60ab9320221c634fb34e8cd90d9d316",
     "note": "Re-running this scan reproduces the verdict observed at the pinned artifact digest. It is a point-in-time observation, not a guarantee of future behavior."
   },
   "scanHistory": [
     {
-      "observedAt": "2026-11-02T01:27:20.000Z",
-      "pageDigest": "sha256:c858f9d3ddbd033bea1af37f4c102a308ead0fc1cacc39fffc6395a3ee026c0f",
-      "artifactDigest": "sha256:81b0225a92c415c1e5496f5af7b7f2f0d26e1b1b09a22fb6ddc709f1de073ed7"
+      "observedAt": "2026-11-23T17:58:09.000Z",
+      "pageDigest": "sha256:85f00c800340c192e51d0e378ff91881bf746dbc999513f9002a3d39303ab8e0",
+      "artifactDigest": "sha256:11b95fcc6074c8e131331fbacd4181c4c60ab9320221c634fb34e8cd90d9d316"
     }
   ],
   "preparation": {
@@ -38,16 +38,16 @@
       "sourceType": "mcp-config",
       "source": "official-mcp-registry:ai.achromat/mcp-server",
       "requestedRef": null,
-      "resolvedRef": "sha256:81b0225a92c415c1e5496f5af7b7f2f0d26e1b1b09a22fb6ddc709f1de073ed7",
-      "digest": "sha256:81b0225a92c415c1e5496f5af7b7f2f0d26e1b1b09a22fb6ddc709f1de073ed7",
-      "resolvedAt": "2026-11-02T01:27:20.000Z",
+      "resolvedRef": "sha256:11b95fcc6074c8e131331fbacd4181c4c60ab9320221c634fb34e8cd90d9d316",
+      "digest": "sha256:11b95fcc6074c8e131331fbacd4181c4c60ab9320221c634fb34e8cd90d9d316",
+      "resolvedAt": "2026-11-23T17:58:09.000Z",
       "resolution": "resolved"
     },
     "evidence": null,
     "authority": {
       "schema": "calllint.authority.v0",
       "subject": {
-        "artifactDigest": "sha256:81b0225a92c415c1e5496f5af7b7f2f0d26e1b1b09a22fb6ddc709f1de073ed7"
+        "artifactDigest": "sha256:11b95fcc6074c8e131331fbacd4181c4c60ab9320221c634fb34e8cd90d9d316"
       },
       "capabilities": [
         {
@@ -67,8 +67,8 @@
         {
           "action": "connect",
           "resource": "network",
-          "scope": "mom.achromat.ai",
-          "destination": "mom.achromat.ai",
+          "scope": "achromat.ai",
+          "destination": "achromat.ai",
           "mutability": "mutating",
           "reversibility": "irreversible",
           "monetaryLimit": null,
@@ -89,7 +89,7 @@
       },
       "unknowns": [],
       "completeness": "complete",
-      "digest": "sha256:5d954e4a00125a752182f9b42ab181f013ed2e06789af754b322a25eb1976598"
+      "digest": "sha256:9889ef23841b6984226dfacb1f6c14c1116d7a15b671958050bf577c489729c8"
     },
     "decision": null,
     "plan": null,
@@ -98,7 +98,7 @@
       "no external evidence attached (optional); decision will rely on CallLint's own analysis",
       "authority normalized: 2 capabilities, approvals required: external-network-access"
     ],
-    "preparedAt": "2026-11-02T01:27:20.000Z"
+    "preparedAt": "2026-11-23T17:58:09.000Z"
   },
   "scan": {
     "schemaVersion": "calllint.report.v0",
@@ -120,7 +120,7 @@
           "name": "package",
           "kind": "mcp-servers",
           "source": "@achromat-ai/mcp-server",
-          "version": "0.1.3",
+          "version": "0.1.6",
           "configPath": "official-mcp-registry:ai.achromat/mcp-server"
         },
         "verdict": "SAFE",
@@ -144,13 +144,13 @@
           "sandbox": "none"
         },
         "fingerprints": {
-          "configHash": "sha256:1f3a7de2893c7b05b17caaaffd265b584dba43f4ccf3c80b049c4c9fcc0fae4a",
-          "targetSpecHash": "sha256:3c895f9ea4bf27989dcb0d9b28daacc9d717a79f9860b36657b6f2603b72957b",
+          "configHash": "sha256:68eb904a4b2fe548253f47f5eb2add9acba9ed426a1e01863fc89b6b6707e9dc",
+          "targetSpecHash": "sha256:ef470374aa5719b7a7e1f5bb956f10e060c7741186c4b85a8d1bfa281afe72b6",
           "riskSurfaceHash": "sha256:69aae84c996fe93d537b08d906cb339866bd43f10876be403a0f4793915bef33",
-          "packageSpecHash": "sha256:1009b3c0aa68d7ba2e8d0f91eb40c08901f0fa3b283e55aa7381da2125b64129"
+          "packageSpecHash": "sha256:abdefb597b47fbf8fb297798eba26beebe559f2bde00439f3542b31b9760d7ec"
         },
         "diagnostics": [],
-        "generatedAt": "2026-11-02T01:27:20.000Z"
+        "generatedAt": "2026-11-23T17:58:09.000Z"
       },
       {
         "schemaVersion": "calllint.report.v0",
@@ -158,7 +158,7 @@
         "target": {
           "name": "remote",
           "kind": "mcp-servers",
-          "source": "https://mom.achromat.ai/mcp",
+          "source": "https://achromat.ai/mcp",
           "configPath": "official-mcp-registry:ai.achromat/mcp-server"
         },
         "verdict": "REVIEW",
@@ -193,7 +193,7 @@
                 "type": "runtime-binding",
                 "path": "official-mcp-registry:ai.achromat/mcp-server",
                 "key": "url",
-                "value": "https://mom.achromat.ai/mcp",
+                "value": "https://achromat.ai/mcp",
                 "line": 12,
                 "column": 7
               }
@@ -220,7 +220,7 @@
                 "type": "runtime-binding",
                 "path": "official-mcp-registry:ai.achromat/mcp-server",
                 "key": "url",
-                "value": "https://mom.achromat.ai/mcp",
+                "value": "https://achromat.ai/mcp",
                 "line": 12,
                 "column": 7
               }
@@ -246,7 +246,7 @@
                 "type": "runtime-binding",
                 "path": "official-mcp-registry:ai.achromat/mcp-server",
                 "key": "url",
-                "value": "https://mom.achromat.ai/mcp",
+                "value": "https://achromat.ai/mcp",
                 "line": 12,
                 "column": 7
               }
@@ -262,21 +262,21 @@
           "sandbox": "required"
         },
         "fingerprints": {
-          "configHash": "sha256:8fac51c9c2b0a63468b88f506b7656f677222e1b24a486a20171e046f113317c",
-          "targetSpecHash": "sha256:e1672d6447150b43687a5f3036ae3bc7266a40f3949d83e000dff4290947296d",
+          "configHash": "sha256:14378eac066e967a8cd146d77dda4cc7d71f2f8dbe62b5eca6168c5888a6bd99",
+          "targetSpecHash": "sha256:022d2aa15adddbc91e7f9de265e33f22fb4dc4cf6a5ecf7618a15689078bb9d1",
           "riskSurfaceHash": "sha256:47e9d20255a346b95323c2cb9e092621521638b987bbcd036e68e4aee12dcaf3"
         },
         "diagnostics": [
           {
             "level": "info",
             "code": "evidence.remote-identity-verified",
-            "message": "Remote endpoint identity verified; tool surface not analyzed (evidence: https://mom.achromat.ai/mcp)"
+            "message": "Remote endpoint identity verified; tool surface not analyzed (evidence: https://achromat.ai/mcp)"
           }
         ],
-        "generatedAt": "2026-11-02T01:27:20.000Z"
+        "generatedAt": "2026-11-23T17:58:09.000Z"
       }
     ],
     "diagnostics": [],
-    "generatedAt": "2026-11-02T01:27:20.000Z"
+    "generatedAt": "2026-11-23T17:58:09.000Z"
   }
 }

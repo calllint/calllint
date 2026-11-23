@@ -2,7 +2,7 @@
   "schema": "calllint.evidence-manifest.v1",
   "subject": {
     "canonicalName": "mcp-registry/ai.achromat-mcp-server",
-    "artifactDigest": "sha256:81b0225a92c415c1e5496f5af7b7f2f0d26e1b1b09a22fb6ddc709f1de073ed7"
+    "artifactDigest": "sha256:11b95fcc6074c8e131331fbacd4181c4c60ab9320221c634fb34e8cd90d9d316"
   },
   "verdict": "REVIEW",
   "verdictLabel": "Review required",
@@ -14,13 +14,13 @@
     "completeness": "complete",
     "authorityClaimed": false,
     "reproducibility": {
-      "pageDigest": "sha256:c858f9d3ddbd033bea1af37f4c102a308ead0fc1cacc39fffc6395a3ee026c0f",
-      "observedAt": "2026-11-02T01:27:20.000Z"
+      "pageDigest": "sha256:85f00c800340c192e51d0e378ff91881bf746dbc999513f9002a3d39303ab8e0",
+      "observedAt": "2026-11-23T17:58:09.000Z"
     },
     "evidenceLevel": "E2"
   },
   "authority": {
-    "digest": "sha256:5d954e4a00125a752182f9b42ab181f013ed2e06789af754b322a25eb1976598",
+    "digest": "sha256:9889ef23841b6984226dfacb1f6c14c1116d7a15b671958050bf577c489729c8",
     "completeness": "complete",
     "capabilityCount": 2,
     "approvalRequired": [
@@ -45,13 +45,13 @@
   },
   "policyDigest": null,
   "reproducibility": {
-    "pageDigest": "sha256:c858f9d3ddbd033bea1af37f4c102a308ead0fc1cacc39fffc6395a3ee026c0f",
-    "observedAt": "2026-11-02T01:27:20.000Z"
+    "pageDigest": "sha256:85f00c800340c192e51d0e378ff91881bf746dbc999513f9002a3d39303ab8e0",
+    "observedAt": "2026-11-23T17:58:09.000Z"
   },
   "engine": {
     "name": "calllint"
   },
   "correctionUrl": "https://github.com/calllint/calllint/issues/new?labels=trust-page-correction",
-  "generatedAt": "2026-11-02T01:27:20.000Z",
+  "generatedAt": "2026-11-23T17:58:09.000Z",
   "signature": null
 }

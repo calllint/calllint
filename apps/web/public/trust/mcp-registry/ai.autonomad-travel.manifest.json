@@ -2,7 +2,7 @@
   "schema": "calllint.evidence-manifest.v1",
   "subject": {
     "canonicalName": "mcp-registry/ai.autonomad-travel",
-    "artifactDigest": "sha256:248ed373db653be6e447db25f627af65525fc9045d36792d2d3eb1d71df85c94"
+    "artifactDigest": "sha256:b703316a374cc349f572c28b1d7a207b7a3cc9c03e951fbdc5c10ed4c56ca473"
   },
   "verdict": "REVIEW",
   "verdictLabel": "Review required",
@@ -14,13 +14,13 @@
     "completeness": "complete",
     "authorityClaimed": false,
     "reproducibility": {
-      "pageDigest": "sha256:7a5ee18eee1175442b8da8539aa5d7351317064a96fc14989f5a45c888becdb7",
-      "observedAt": "2026-11-02T01:27:20.000Z"
+      "pageDigest": "sha256:eadfae717bc32bbe668fe34d89038e0e8bedb455527f1b7812d8cc331dd91f84",
+      "observedAt": "2026-11-23T17:58:09.000Z"
     },
     "evidenceLevel": "E2"
   },
   "authority": {
-    "digest": "sha256:0304f37b102de400de1a300b734ed59ac9182352619caf7aa2bd8774880a06d6",
+    "digest": "sha256:a8b4f3b5dee0d13e9185cd8f23940b3903eacf4c71eea0de2230bab530c5fd71",
     "completeness": "complete",
     "capabilityCount": 2,
     "approvalRequired": [
@@ -45,13 +45,13 @@
   },
   "policyDigest": null,
   "reproducibility": {
-    "pageDigest": "sha256:7a5ee18eee1175442b8da8539aa5d7351317064a96fc14989f5a45c888becdb7",
-    "observedAt": "2026-11-02T01:27:20.000Z"
+    "pageDigest": "sha256:eadfae717bc32bbe668fe34d89038e0e8bedb455527f1b7812d8cc331dd91f84",
+    "observedAt": "2026-11-23T17:58:09.000Z"
   },
   "engine": {
     "name": "calllint"
   },
   "correctionUrl": "https://github.com/calllint/calllint/issues/new?labels=trust-page-correction",
-  "generatedAt": "2026-11-02T01:27:20.000Z",
+  "generatedAt": "2026-11-23T17:58:09.000Z",
   "signature": null
 }
