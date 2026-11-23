@@ -1,8 +1,51 @@
 {
   "schema": "calllint.evidence-snapshot.v0",
-  "resolvedAt": "2026-11-02T01:27:20.000Z",
-  "count": 421,
+  "resolvedAt": "2026-11-23T17:58:09.000Z",
+  "count": 435,
   "bundles": [
+    {
+      "schema": "calllint.evidence-bundle.v0",
+      "subject": {
+        "schema": "calllint.evidence-subject.v0",
+        "subjectType": "remote-endpoint",
+        "id": "https://48.brainy.ae/mcp"
+      },
+      "state": "PARTIAL",
+      "items": [
+        {
+          "field": "endpoint.host",
+          "value": "48.brainy.ae",
+          "tier": "repository",
+          "source": "R6:remote"
+        },
+        {
+          "field": "endpoint.tls",
+          "value": "https",
+          "tier": "repository",
+          "source": "R6:remote"
+        },
+        {
+          "field": "endpoint.url",
+          "value": "https://48.brainy.ae",
+          "tier": "repository",
+          "source": "R6:remote"
+        }
+      ],
+      "gaps": [
+        {
+          "schema": "calllint.evidence-gap.v0",
+          "code": "REMOTE_OWNER_UNVERIFIED",
+          "detail": "48.brainy.ae serves no .well-known/mcp.json descriptor",
+          "missingFields": [
+            "endpoint.authModel",
+            "endpoint.owner"
+          ],
+          "triedResolvers": [
+            "R6:remote"
+          ]
+        }
+      ]
+    },
     {
       "schema": "calllint.evidence-bundle.v0",
       "subject": {
@@ -81,6 +124,49 @@
           "detail": "could not reach 69ai.ai over HTTPS",
           "missingFields": [
             "endpoint.authModel"
+          ],
+          "triedResolvers": [
+            "R6:remote"
+          ]
+        }
+      ]
+    },
+    {
+      "schema": "calllint.evidence-bundle.v0",
+      "subject": {
+        "schema": "calllint.evidence-subject.v0",
+        "subjectType": "remote-endpoint",
+        "id": "https://achromat.ai/mcp"
+      },
+      "state": "PARTIAL",
+      "items": [
+        {
+          "field": "endpoint.host",
+          "value": "achromat.ai",
+          "tier": "repository",
+          "source": "R6:remote"
+        },
+        {
+          "field": "endpoint.tls",
+          "value": "https",
+          "tier": "repository",
+          "source": "R6:remote"
+        },
+        {
+          "field": "endpoint.url",
+          "value": "https://achromat.ai",
+          "tier": "repository",
+          "source": "R6:remote"
+        }
+      ],
+      "gaps": [
+        {
+          "schema": "calllint.evidence-gap.v0",
+          "code": "REMOTE_OWNER_UNVERIFIED",
+          "detail": "achromat.ai serves no .well-known/mcp.json descriptor",
+          "missingFields": [
+            "endpoint.authModel",
+            "endpoint.owner"
           ],
           "triedResolvers": [
             "R6:remote"
@@ -693,48 +779,6 @@
       "subject": {
         "schema": "calllint.evidence-subject.v0",
         "subjectType": "remote-endpoint",
-        "id": "https://agentgates.ai/mcp"
-      },
-      "state": "PARTIAL",
-      "items": [
-        {
-          "field": "endpoint.host",
-          "value": "agentgates.ai",
-          "tier": "repository",
-          "source": "R6:remote"
-        },
-        {
-          "field": "endpoint.tls",
-          "value": "https",
-          "tier": "repository",
-          "source": "R6:remote"
-        },
-        {
-          "field": "endpoint.url",
-          "value": "https://agentgates.ai",
-          "tier": "repository",
-          "source": "R6:remote"
-        }
-      ],
-      "gaps": [
-        {
-          "schema": "calllint.evidence-gap.v0",
-          "code": "REMOTE_OWNER_UNVERIFIED",
-          "detail": "agentgates.ai descriptor declares no owner",
-          "missingFields": [
-            "endpoint.owner"
-          ],
-          "triedResolvers": [
-            "R6:remote"
-          ]
-        }
-      ]
-    },
-    {
-      "schema": "calllint.evidence-bundle.v0",
-      "subject": {
-        "schema": "calllint.evidence-subject.v0",
-        "subjectType": "remote-endpoint",
         "id": "https://agentic.aunoo.ai/mcp"
       },
       "state": "PARTIAL",
@@ -994,7 +1038,7 @@
         "subjectType": "remote-endpoint",
         "id": "https://agents.avasis.ai/mcp"
       },
-      "state": "PARTIAL",
+      "state": "RETRYABLE_FAILURE",
       "items": [
         {
           "field": "endpoint.host",
@@ -1018,11 +1062,10 @@
       "gaps": [
         {
           "schema": "calllint.evidence-gap.v0",
-          "code": "REMOTE_OWNER_UNVERIFIED",
-          "detail": "agents.avasis.ai serves no .well-known/mcp.json descriptor",
+          "code": "NETWORK_UNAVAILABLE",
+          "detail": "could not reach agents.avasis.ai over HTTPS",
           "missingFields": [
-            "endpoint.authModel",
-            "endpoint.owner"
+            "endpoint.authModel"
           ],
           "triedResolvers": [
             "R6:remote"
@@ -1037,7 +1080,7 @@
         "subjectType": "remote-endpoint",
         "id": "https://agents.diezx.ai/api/mcp"
       },
-      "state": "UNRESOLVABLE",
+      "state": "RETRYABLE_FAILURE",
       "items": [
         {
           "field": "endpoint.host",
@@ -1061,8 +1104,8 @@
       "gaps": [
         {
           "schema": "calllint.evidence-gap.v0",
-          "code": "MALFORMED_METADATA",
-          "detail": "agents.diezx.ai descriptor is not valid JSON",
+          "code": "NETWORK_UNAVAILABLE",
+          "detail": "could not reach agents.diezx.ai over HTTPS",
           "missingFields": [
             "endpoint.authModel"
           ],
@@ -1231,8 +1274,9 @@
         {
           "schema": "calllint.evidence-gap.v0",
           "code": "REMOTE_OWNER_UNVERIFIED",
-          "detail": "ai-akari.ai descriptor declares no owner",
+          "detail": "ai-akari.ai serves no .well-known/mcp.json descriptor",
           "missingFields": [
+            "endpoint.authModel",
             "endpoint.owner"
           ],
           "triedResolvers": [
@@ -1273,8 +1317,9 @@
         {
           "schema": "calllint.evidence-gap.v0",
           "code": "REMOTE_OWNER_UNVERIFIED",
-          "detail": "ai-akari.ai descriptor declares no owner",
+          "detail": "ai-akari.ai serves no .well-known/mcp.json descriptor",
           "missingFields": [
+            "endpoint.authModel",
             "endpoint.owner"
           ],
           "triedResolvers": [
@@ -1534,6 +1579,48 @@
           "missingFields": [
             "endpoint.authModel",
             "endpoint.owner"
+          ],
+          "triedResolvers": [
+            "R6:remote"
+          ]
+        }
+      ]
+    },
+    {
+      "schema": "calllint.evidence-bundle.v0",
+      "subject": {
+        "schema": "calllint.evidence-subject.v0",
+        "subjectType": "remote-endpoint",
+        "id": "https://alexeysound.ae/agent.php"
+      },
+      "state": "RETRYABLE_FAILURE",
+      "items": [
+        {
+          "field": "endpoint.host",
+          "value": "alexeysound.ae",
+          "tier": "repository",
+          "source": "R6:remote"
+        },
+        {
+          "field": "endpoint.tls",
+          "value": "https",
+          "tier": "repository",
+          "source": "R6:remote"
+        },
+        {
+          "field": "endpoint.url",
+          "value": "https://alexeysound.ae",
+          "tier": "repository",
+          "source": "R6:remote"
+        }
+      ],
+      "gaps": [
+        {
+          "schema": "calllint.evidence-gap.v0",
+          "code": "NETWORK_UNAVAILABLE",
+          "detail": "could not reach alexeysound.ae over HTTPS",
+          "missingFields": [
+            "endpoint.authModel"
           ],
           "triedResolvers": [
             "R6:remote"
@@ -2577,6 +2664,48 @@
         "schema": "calllint.evidence-subject.v0",
         "subjectType": "remote-endpoint",
         "id": "https://api.alphabazaar.ai/mcp"
+      },
+      "state": "PARTIAL",
+      "items": [
+        {
+          "field": "endpoint.host",
+          "value": "api.alphabazaar.ai",
+          "tier": "repository",
+          "source": "R6:remote"
+        },
+        {
+          "field": "endpoint.tls",
+          "value": "https",
+          "tier": "repository",
+          "source": "R6:remote"
+        },
+        {
+          "field": "endpoint.url",
+          "value": "https://api.alphabazaar.ai",
+          "tier": "repository",
+          "source": "R6:remote"
+        }
+      ],
+      "gaps": [
+        {
+          "schema": "calllint.evidence-gap.v0",
+          "code": "REMOTE_OWNER_UNVERIFIED",
+          "detail": "api.alphabazaar.ai descriptor declares no owner",
+          "missingFields": [
+            "endpoint.owner"
+          ],
+          "triedResolvers": [
+            "R6:remote"
+          ]
+        }
+      ]
+    },
+    {
+      "schema": "calllint.evidence-bundle.v0",
+      "subject": {
+        "schema": "calllint.evidence-subject.v0",
+        "subjectType": "remote-endpoint",
+        "id": "https://api.alphabazaar.ai/mcp/agent"
       },
       "state": "PARTIAL",
       "items": [
@@ -4204,6 +4333,92 @@
       "subject": {
         "schema": "calllint.evidence-subject.v0",
         "subjectType": "remote-endpoint",
+        "id": "https://api.serviceengineer.academy/mcp"
+      },
+      "state": "PARTIAL",
+      "items": [
+        {
+          "field": "endpoint.host",
+          "value": "api.serviceengineer.academy",
+          "tier": "repository",
+          "source": "R6:remote"
+        },
+        {
+          "field": "endpoint.tls",
+          "value": "https",
+          "tier": "repository",
+          "source": "R6:remote"
+        },
+        {
+          "field": "endpoint.url",
+          "value": "https://api.serviceengineer.academy",
+          "tier": "repository",
+          "source": "R6:remote"
+        }
+      ],
+      "gaps": [
+        {
+          "schema": "calllint.evidence-gap.v0",
+          "code": "REMOTE_OWNER_UNVERIFIED",
+          "detail": "api.serviceengineer.academy serves no .well-known/mcp.json descriptor",
+          "missingFields": [
+            "endpoint.authModel",
+            "endpoint.owner"
+          ],
+          "triedResolvers": [
+            "R6:remote"
+          ]
+        }
+      ]
+    },
+    {
+      "schema": "calllint.evidence-bundle.v0",
+      "subject": {
+        "schema": "calllint.evidence-subject.v0",
+        "subjectType": "remote-endpoint",
+        "id": "https://api.tide.ad/mcp"
+      },
+      "state": "PARTIAL",
+      "items": [
+        {
+          "field": "endpoint.host",
+          "value": "api.tide.ad",
+          "tier": "repository",
+          "source": "R6:remote"
+        },
+        {
+          "field": "endpoint.tls",
+          "value": "https",
+          "tier": "repository",
+          "source": "R6:remote"
+        },
+        {
+          "field": "endpoint.url",
+          "value": "https://api.tide.ad",
+          "tier": "repository",
+          "source": "R6:remote"
+        }
+      ],
+      "gaps": [
+        {
+          "schema": "calllint.evidence-gap.v0",
+          "code": "REMOTE_OWNER_UNVERIFIED",
+          "detail": "api.tide.ad serves no .well-known/mcp.json descriptor",
+          "missingFields": [
+            "endpoint.authModel",
+            "endpoint.owner"
+          ],
+          "triedResolvers": [
+            "R6:remote"
+          ]
+        }
+      ]
+    },
+    {
+      "schema": "calllint.evidence-bundle.v0",
+      "subject": {
+        "schema": "calllint.evidence-subject.v0",
+        "subjectType": "remote-endpoint",
         "id": "https://api.ugc.africa/mcp"
       },
       "state": "PARTIAL",
@@ -4531,6 +4746,48 @@
           "detail": "app.annsa.ai serves no .well-known/mcp.json descriptor",
           "missingFields": [
             "endpoint.authModel",
+            "endpoint.owner"
+          ],
+          "triedResolvers": [
+            "R6:remote"
+          ]
+        }
+      ]
+    },
+    {
+      "schema": "calllint.evidence-bundle.v0",
+      "subject": {
+        "schema": "calllint.evidence-subject.v0",
+        "subjectType": "remote-endpoint",
+        "id": "https://app.apogee.ad/mcp"
+      },
+      "state": "PARTIAL",
+      "items": [
+        {
+          "field": "endpoint.host",
+          "value": "app.apogee.ad",
+          "tier": "repository",
+          "source": "R6:remote"
+        },
+        {
+          "field": "endpoint.tls",
+          "value": "https",
+          "tier": "repository",
+          "source": "R6:remote"
+        },
+        {
+          "field": "endpoint.url",
+          "value": "https://app.apogee.ad",
+          "tier": "repository",
+          "source": "R6:remote"
+        }
+      ],
+      "gaps": [
+        {
+          "schema": "calllint.evidence-gap.v0",
+          "code": "REMOTE_OWNER_UNVERIFIED",
+          "detail": "app.apogee.ad descriptor declares no owner",
+          "missingFields": [
             "endpoint.owner"
           ],
           "triedResolvers": [
@@ -5769,8 +6026,9 @@
         {
           "schema": "calllint.evidence-gap.v0",
           "code": "REMOTE_OWNER_UNVERIFIED",
-          "detail": "askline.ai descriptor declares no owner",
+          "detail": "askline.ai serves no .well-known/mcp.json descriptor",
           "missingFields": [
+            "endpoint.authModel",
             "endpoint.owner"
           ],
           "triedResolvers": [
@@ -7364,6 +7622,48 @@
       "subject": {
         "schema": "calllint.evidence-subject.v0",
         "subjectType": "remote-endpoint",
+        "id": "https://callmcp.ai/mcp"
+      },
+      "state": "PARTIAL",
+      "items": [
+        {
+          "field": "endpoint.host",
+          "value": "callmcp.ai",
+          "tier": "repository",
+          "source": "R6:remote"
+        },
+        {
+          "field": "endpoint.tls",
+          "value": "https",
+          "tier": "repository",
+          "source": "R6:remote"
+        },
+        {
+          "field": "endpoint.url",
+          "value": "https://callmcp.ai",
+          "tier": "repository",
+          "source": "R6:remote"
+        }
+      ],
+      "gaps": [
+        {
+          "schema": "calllint.evidence-gap.v0",
+          "code": "REMOTE_OWNER_UNVERIFIED",
+          "detail": "callmcp.ai descriptor declares no owner",
+          "missingFields": [
+            "endpoint.owner"
+          ],
+          "triedResolvers": [
+            "R6:remote"
+          ]
+        }
+      ]
+    },
+    {
+      "schema": "calllint.evidence-bundle.v0",
+      "subject": {
+        "schema": "calllint.evidence-subject.v0",
+        "subjectType": "remote-endpoint",
         "id": "https://canivibe.ai/mcp"
       },
       "state": "UNRESOLVABLE",
@@ -7872,7 +8172,7 @@
       "subject": {
         "schema": "calllint.evidence-subject.v0",
         "subjectType": "remote-endpoint",
-        "id": "https://coingraph.ai/api/mcp"
+        "id": "https://coingraph.ai/mcp"
       },
       "state": "PARTIAL",
       "items": [
@@ -9364,6 +9664,49 @@
       "subject": {
         "schema": "calllint.evidence-subject.v0",
         "subjectType": "remote-endpoint",
+        "id": "https://employerofrecord.ae/mcp"
+      },
+      "state": "PARTIAL",
+      "items": [
+        {
+          "field": "endpoint.host",
+          "value": "employerofrecord.ae",
+          "tier": "repository",
+          "source": "R6:remote"
+        },
+        {
+          "field": "endpoint.tls",
+          "value": "https",
+          "tier": "repository",
+          "source": "R6:remote"
+        },
+        {
+          "field": "endpoint.url",
+          "value": "https://employerofrecord.ae",
+          "tier": "repository",
+          "source": "R6:remote"
+        }
+      ],
+      "gaps": [
+        {
+          "schema": "calllint.evidence-gap.v0",
+          "code": "REMOTE_OWNER_UNVERIFIED",
+          "detail": "employerofrecord.ae serves no .well-known/mcp.json descriptor",
+          "missingFields": [
+            "endpoint.authModel",
+            "endpoint.owner"
+          ],
+          "triedResolvers": [
+            "R6:remote"
+          ]
+        }
+      ]
+    },
+    {
+      "schema": "calllint.evidence-bundle.v0",
+      "subject": {
+        "schema": "calllint.evidence-subject.v0",
+        "subjectType": "remote-endpoint",
         "id": "https://entityenricher.ai/api/mcp/"
       },
       "state": "PARTIAL",
@@ -9880,6 +10223,49 @@
       "subject": {
         "schema": "calllint.evidence-subject.v0",
         "subjectType": "remote-endpoint",
+        "id": "https://googleads-mcp.mycontent.academy/mcp"
+      },
+      "state": "PARTIAL",
+      "items": [
+        {
+          "field": "endpoint.host",
+          "value": "googleads-mcp.mycontent.academy",
+          "tier": "repository",
+          "source": "R6:remote"
+        },
+        {
+          "field": "endpoint.tls",
+          "value": "https",
+          "tier": "repository",
+          "source": "R6:remote"
+        },
+        {
+          "field": "endpoint.url",
+          "value": "https://googleads-mcp.mycontent.academy",
+          "tier": "repository",
+          "source": "R6:remote"
+        }
+      ],
+      "gaps": [
+        {
+          "schema": "calllint.evidence-gap.v0",
+          "code": "REMOTE_OWNER_UNVERIFIED",
+          "detail": "googleads-mcp.mycontent.academy serves no .well-known/mcp.json descriptor",
+          "missingFields": [
+            "endpoint.authModel",
+            "endpoint.owner"
+          ],
+          "triedResolvers": [
+            "R6:remote"
+          ]
+        }
+      ]
+    },
+    {
+      "schema": "calllint.evidence-bundle.v0",
+      "subject": {
+        "schema": "calllint.evidence-subject.v0",
+        "subjectType": "remote-endpoint",
         "id": "https://grep.boolsai.ai/mcp"
       },
       "state": "RETRYABLE_FAILURE",
@@ -9952,6 +10338,48 @@
           "detail": "house-painters.ottobot.agency serves no .well-known/mcp.json descriptor",
           "missingFields": [
             "endpoint.authModel",
+            "endpoint.owner"
+          ],
+          "triedResolvers": [
+            "R6:remote"
+          ]
+        }
+      ]
+    },
+    {
+      "schema": "calllint.evidence-bundle.v0",
+      "subject": {
+        "schema": "calllint.evidence-subject.v0",
+        "subjectType": "remote-endpoint",
+        "id": "https://jasonlau.academy/mcp"
+      },
+      "state": "PARTIAL",
+      "items": [
+        {
+          "field": "endpoint.host",
+          "value": "jasonlau.academy",
+          "tier": "repository",
+          "source": "R6:remote"
+        },
+        {
+          "field": "endpoint.tls",
+          "value": "https",
+          "tier": "repository",
+          "source": "R6:remote"
+        },
+        {
+          "field": "endpoint.url",
+          "value": "https://jasonlau.academy",
+          "tier": "repository",
+          "source": "R6:remote"
+        }
+      ],
+      "gaps": [
+        {
+          "schema": "calllint.evidence-gap.v0",
+          "code": "REMOTE_OWNER_UNVERIFIED",
+          "detail": "jasonlau.academy descriptor declares no owner",
+          "missingFields": [
             "endpoint.owner"
           ],
           "triedResolvers": [
@@ -10396,7 +10824,7 @@
         "subjectType": "remote-endpoint",
         "id": "https://mcp.aarna.ai/mcp"
       },
-      "state": "PARTIAL",
+      "state": "RETRYABLE_FAILURE",
       "items": [
         {
           "field": "endpoint.host",
@@ -10420,11 +10848,10 @@
       "gaps": [
         {
           "schema": "calllint.evidence-gap.v0",
-          "code": "REMOTE_OWNER_UNVERIFIED",
-          "detail": "mcp.aarna.ai serves no .well-known/mcp.json descriptor",
+          "code": "NETWORK_UNAVAILABLE",
+          "detail": "could not reach mcp.aarna.ai over HTTPS",
           "missingFields": [
-            "endpoint.authModel",
-            "endpoint.owner"
+            "endpoint.authModel"
           ],
           "triedResolvers": [
             "R6:remote"
@@ -11923,9 +12350,8 @@
         {
           "schema": "calllint.evidence-gap.v0",
           "code": "REMOTE_OWNER_UNVERIFIED",
-          "detail": "mcp.audiopod.ai serves no .well-known/mcp.json descriptor",
+          "detail": "mcp.audiopod.ai descriptor declares no owner",
           "missingFields": [
-            "endpoint.authModel",
             "endpoint.owner"
           ],
           "triedResolvers": [
@@ -11966,9 +12392,8 @@
         {
           "schema": "calllint.evidence-gap.v0",
           "code": "REMOTE_OWNER_UNVERIFIED",
-          "detail": "mcp.audiopod.ai serves no .well-known/mcp.json descriptor",
+          "detail": "mcp.audiopod.ai descriptor declares no owner",
           "missingFields": [
-            "endpoint.authModel",
             "endpoint.owner"
           ],
           "triedResolvers": [
@@ -13096,6 +13521,49 @@
       "subject": {
         "schema": "calllint.evidence-subject.v0",
         "subjectType": "remote-endpoint",
+        "id": "https://mcp.certscore.ai/mcp"
+      },
+      "state": "PARTIAL",
+      "items": [
+        {
+          "field": "endpoint.host",
+          "value": "mcp.certscore.ai",
+          "tier": "repository",
+          "source": "R6:remote"
+        },
+        {
+          "field": "endpoint.tls",
+          "value": "https",
+          "tier": "repository",
+          "source": "R6:remote"
+        },
+        {
+          "field": "endpoint.url",
+          "value": "https://mcp.certscore.ai",
+          "tier": "repository",
+          "source": "R6:remote"
+        }
+      ],
+      "gaps": [
+        {
+          "schema": "calllint.evidence-gap.v0",
+          "code": "REMOTE_OWNER_UNVERIFIED",
+          "detail": "mcp.certscore.ai serves no .well-known/mcp.json descriptor",
+          "missingFields": [
+            "endpoint.authModel",
+            "endpoint.owner"
+          ],
+          "triedResolvers": [
+            "R6:remote"
+          ]
+        }
+      ]
+    },
+    {
+      "schema": "calllint.evidence-bundle.v0",
+      "subject": {
+        "schema": "calllint.evidence-subject.v0",
+        "subjectType": "remote-endpoint",
         "id": "https://mcp.certscore.ai/mcp/light"
       },
       "state": "PARTIAL",
@@ -14085,7 +14553,7 @@
         "subjectType": "remote-endpoint",
         "id": "https://mcp.datadubai.ae/mcp"
       },
-      "state": "RETRYABLE_FAILURE",
+      "state": "PARTIAL",
       "items": [
         {
           "field": "endpoint.host",
@@ -14109,10 +14577,10 @@
       "gaps": [
         {
           "schema": "calllint.evidence-gap.v0",
-          "code": "NETWORK_UNAVAILABLE",
-          "detail": "could not reach mcp.datadubai.ae over HTTPS",
+          "code": "REMOTE_OWNER_UNVERIFIED",
+          "detail": "mcp.datadubai.ae descriptor declares no owner",
           "missingFields": [
-            "endpoint.authModel"
+            "endpoint.owner"
           ],
           "triedResolvers": [
             "R6:remote"
@@ -14170,7 +14638,7 @@
         "subjectType": "remote-endpoint",
         "id": "https://mcp.datamerge.ai"
       },
-      "state": "PARTIAL",
+      "state": "RETRYABLE_FAILURE",
       "items": [
         {
           "field": "endpoint.host",
@@ -14194,11 +14662,10 @@
       "gaps": [
         {
           "schema": "calllint.evidence-gap.v0",
-          "code": "REMOTE_OWNER_UNVERIFIED",
-          "detail": "mcp.datamerge.ai serves no .well-known/mcp.json descriptor",
+          "code": "NETWORK_UNAVAILABLE",
+          "detail": "could not reach mcp.datamerge.ai over HTTPS",
           "missingFields": [
-            "endpoint.authModel",
-            "endpoint.owner"
+            "endpoint.authModel"
           ],
           "triedResolvers": [
             "R6:remote"
@@ -14426,6 +14893,49 @@
       "subject": {
         "schema": "calllint.evidence-subject.v0",
         "subjectType": "remote-endpoint",
+        "id": "https://mcp.discond.ae/mcp"
+      },
+      "state": "PARTIAL",
+      "items": [
+        {
+          "field": "endpoint.host",
+          "value": "mcp.discond.ae",
+          "tier": "repository",
+          "source": "R6:remote"
+        },
+        {
+          "field": "endpoint.tls",
+          "value": "https",
+          "tier": "repository",
+          "source": "R6:remote"
+        },
+        {
+          "field": "endpoint.url",
+          "value": "https://mcp.discond.ae",
+          "tier": "repository",
+          "source": "R6:remote"
+        }
+      ],
+      "gaps": [
+        {
+          "schema": "calllint.evidence-gap.v0",
+          "code": "REMOTE_OWNER_UNVERIFIED",
+          "detail": "mcp.discond.ae serves no .well-known/mcp.json descriptor",
+          "missingFields": [
+            "endpoint.authModel",
+            "endpoint.owner"
+          ],
+          "triedResolvers": [
+            "R6:remote"
+          ]
+        }
+      ]
+    },
+    {
+      "schema": "calllint.evidence-bundle.v0",
+      "subject": {
+        "schema": "calllint.evidence-subject.v0",
+        "subjectType": "remote-endpoint",
         "id": "https://mcp.divinci.app/mcp"
       },
       "state": "PARTIAL",
@@ -14626,49 +15136,6 @@
           "schema": "calllint.evidence-gap.v0",
           "code": "REMOTE_OWNER_UNVERIFIED",
           "detail": "mcp.donethat.ai serves no .well-known/mcp.json descriptor",
-          "missingFields": [
-            "endpoint.authModel",
-            "endpoint.owner"
-          ],
-          "triedResolvers": [
-            "R6:remote"
-          ]
-        }
-      ]
-    },
-    {
-      "schema": "calllint.evidence-bundle.v0",
-      "subject": {
-        "schema": "calllint.evidence-subject.v0",
-        "subjectType": "remote-endpoint",
-        "id": "https://mcp.draconic.ai/mcp"
-      },
-      "state": "PARTIAL",
-      "items": [
-        {
-          "field": "endpoint.host",
-          "value": "mcp.draconic.ai",
-          "tier": "repository",
-          "source": "R6:remote"
-        },
-        {
-          "field": "endpoint.tls",
-          "value": "https",
-          "tier": "repository",
-          "source": "R6:remote"
-        },
-        {
-          "field": "endpoint.url",
-          "value": "https://mcp.draconic.ai",
-          "tier": "repository",
-          "source": "R6:remote"
-        }
-      ],
-      "gaps": [
-        {
-          "schema": "calllint.evidence-gap.v0",
-          "code": "REMOTE_OWNER_UNVERIFIED",
-          "detail": "mcp.draconic.ai serves no .well-known/mcp.json descriptor",
           "missingFields": [
             "endpoint.authModel",
             "endpoint.owner"
@@ -15242,6 +15709,49 @@
       "subject": {
         "schema": "calllint.evidence-subject.v0",
         "subjectType": "remote-endpoint",
+        "id": "https://mcp.pantheon.ad/mcp"
+      },
+      "state": "PARTIAL",
+      "items": [
+        {
+          "field": "endpoint.host",
+          "value": "mcp.pantheon.ad",
+          "tier": "repository",
+          "source": "R6:remote"
+        },
+        {
+          "field": "endpoint.tls",
+          "value": "https",
+          "tier": "repository",
+          "source": "R6:remote"
+        },
+        {
+          "field": "endpoint.url",
+          "value": "https://mcp.pantheon.ad",
+          "tier": "repository",
+          "source": "R6:remote"
+        }
+      ],
+      "gaps": [
+        {
+          "schema": "calllint.evidence-gap.v0",
+          "code": "REMOTE_OWNER_UNVERIFIED",
+          "detail": "mcp.pantheon.ad serves no .well-known/mcp.json descriptor",
+          "missingFields": [
+            "endpoint.authModel",
+            "endpoint.owner"
+          ],
+          "triedResolvers": [
+            "R6:remote"
+          ]
+        }
+      ]
+    },
+    {
+      "schema": "calllint.evidence-bundle.v0",
+      "subject": {
+        "schema": "calllint.evidence-subject.v0",
+        "subjectType": "remote-endpoint",
         "id": "https://mcp.projectory.ae/mcp"
       },
       "state": "PARTIAL",
@@ -15328,13 +15838,13 @@
       "subject": {
         "schema": "calllint.evidence-subject.v0",
         "subjectType": "remote-endpoint",
-        "id": "https://mom.achromat.ai/mcp"
+        "id": "https://mcp.tributs.ad/mcp"
       },
       "state": "PARTIAL",
       "items": [
         {
           "field": "endpoint.host",
-          "value": "mom.achromat.ai",
+          "value": "mcp.tributs.ad",
           "tier": "repository",
           "source": "R6:remote"
         },
@@ -15346,7 +15856,7 @@
         },
         {
           "field": "endpoint.url",
-          "value": "https://mom.achromat.ai",
+          "value": "https://mcp.tributs.ad",
           "tier": "repository",
           "source": "R6:remote"
         }
@@ -15355,7 +15865,50 @@
         {
           "schema": "calllint.evidence-gap.v0",
           "code": "REMOTE_OWNER_UNVERIFIED",
-          "detail": "mom.achromat.ai serves no .well-known/mcp.json descriptor",
+          "detail": "mcp.tributs.ad serves no .well-known/mcp.json descriptor",
+          "missingFields": [
+            "endpoint.authModel",
+            "endpoint.owner"
+          ],
+          "triedResolvers": [
+            "R6:remote"
+          ]
+        }
+      ]
+    },
+    {
+      "schema": "calllint.evidence-bundle.v0",
+      "subject": {
+        "schema": "calllint.evidence-subject.v0",
+        "subjectType": "remote-endpoint",
+        "id": "https://mizan.ac/mcp"
+      },
+      "state": "PARTIAL",
+      "items": [
+        {
+          "field": "endpoint.host",
+          "value": "mizan.ac",
+          "tier": "repository",
+          "source": "R6:remote"
+        },
+        {
+          "field": "endpoint.tls",
+          "value": "https",
+          "tier": "repository",
+          "source": "R6:remote"
+        },
+        {
+          "field": "endpoint.url",
+          "value": "https://mizan.ac",
+          "tier": "repository",
+          "source": "R6:remote"
+        }
+      ],
+      "gaps": [
+        {
+          "schema": "calllint.evidence-gap.v0",
+          "code": "REMOTE_OWNER_UNVERIFIED",
+          "detail": "mizan.ac serves no .well-known/mcp.json descriptor",
           "missingFields": [
             "endpoint.authModel",
             "endpoint.owner"
@@ -15887,7 +16440,7 @@
         "subjectType": "remote-endpoint",
         "id": "https://quant-mcp.avasis.ai/mcp"
       },
-      "state": "PARTIAL",
+      "state": "RETRYABLE_FAILURE",
       "items": [
         {
           "field": "endpoint.host",
@@ -15911,11 +16464,10 @@
       "gaps": [
         {
           "schema": "calllint.evidence-gap.v0",
-          "code": "REMOTE_OWNER_UNVERIFIED",
-          "detail": "quant-mcp.avasis.ai serves no .well-known/mcp.json descriptor",
+          "code": "NETWORK_UNAVAILABLE",
+          "detail": "could not reach quant-mcp.avasis.ai over HTTPS",
           "missingFields": [
-            "endpoint.authModel",
-            "endpoint.owner"
+            "endpoint.authModel"
           ],
           "triedResolvers": [
             "R6:remote"
@@ -16469,9 +17021,8 @@
         {
           "schema": "calllint.evidence-gap.v0",
           "code": "REMOTE_OWNER_UNVERIFIED",
-          "detail": "studio.alvinsclub.ai serves no .well-known/mcp.json descriptor",
+          "detail": "studio.alvinsclub.ai descriptor declares no owner",
           "missingFields": [
-            "endpoint.authModel",
             "endpoint.owner"
           ],
           "triedResolvers": [
@@ -16512,9 +17063,8 @@
         {
           "schema": "calllint.evidence-gap.v0",
           "code": "REMOTE_OWNER_UNVERIFIED",
-          "detail": "studio.alvinsclub.ai serves no .well-known/mcp.json descriptor",
+          "detail": "studio.alvinsclub.ai descriptor declares no owner",
           "missingFields": [
-            "endpoint.authModel",
             "endpoint.owner"
           ],
           "triedResolvers": [
@@ -16555,9 +17105,8 @@
         {
           "schema": "calllint.evidence-gap.v0",
           "code": "REMOTE_OWNER_UNVERIFIED",
-          "detail": "studio.alvinsclub.ai serves no .well-known/mcp.json descriptor",
+          "detail": "studio.alvinsclub.ai descriptor declares no owner",
           "missingFields": [
-            "endpoint.authModel",
             "endpoint.owner"
           ],
           "triedResolvers": [
@@ -16598,9 +17147,8 @@
         {
           "schema": "calllint.evidence-gap.v0",
           "code": "REMOTE_OWNER_UNVERIFIED",
-          "detail": "studio.alvinsclub.ai serves no .well-known/mcp.json descriptor",
+          "detail": "studio.alvinsclub.ai descriptor declares no owner",
           "missingFields": [
-            "endpoint.authModel",
             "endpoint.owner"
           ],
           "triedResolvers": [
@@ -16983,6 +17531,49 @@
           "schema": "calllint.evidence-gap.v0",
           "code": "REMOTE_OWNER_UNVERIFIED",
           "detail": "time.b77.ai serves no .well-known/mcp.json descriptor",
+          "missingFields": [
+            "endpoint.authModel",
+            "endpoint.owner"
+          ],
+          "triedResolvers": [
+            "R6:remote"
+          ]
+        }
+      ]
+    },
+    {
+      "schema": "calllint.evidence-bundle.v0",
+      "subject": {
+        "schema": "calllint.evidence-subject.v0",
+        "subjectType": "remote-endpoint",
+        "id": "https://tipline.brainy.ae/mcp"
+      },
+      "state": "PARTIAL",
+      "items": [
+        {
+          "field": "endpoint.host",
+          "value": "tipline.brainy.ae",
+          "tier": "repository",
+          "source": "R6:remote"
+        },
+        {
+          "field": "endpoint.tls",
+          "value": "https",
+          "tier": "repository",
+          "source": "R6:remote"
+        },
+        {
+          "field": "endpoint.url",
+          "value": "https://tipline.brainy.ae",
+          "tier": "repository",
+          "source": "R6:remote"
+        }
+      ],
+      "gaps": [
+        {
+          "schema": "calllint.evidence-gap.v0",
+          "code": "REMOTE_OWNER_UNVERIFIED",
+          "detail": "tipline.brainy.ae serves no .well-known/mcp.json descriptor",
           "missingFields": [
             "endpoint.authModel",
             "endpoint.owner"
@@ -17809,13 +18400,13 @@
       "subject": {
         "schema": "calllint.evidence-subject.v0",
         "subjectType": "remote-endpoint",
-        "id": "https://www.edgechat.ai/mcp"
+        "id": "https://www.edgepedia.org/mcp"
       },
       "state": "PARTIAL",
       "items": [
         {
           "field": "endpoint.host",
-          "value": "www.edgechat.ai",
+          "value": "www.edgepedia.org",
           "tier": "repository",
           "source": "R6:remote"
         },
@@ -17827,7 +18418,7 @@
         },
         {
           "field": "endpoint.url",
-          "value": "https://www.edgechat.ai",
+          "value": "https://www.edgepedia.org",
           "tier": "repository",
           "source": "R6:remote"
         }
@@ -17836,9 +18427,8 @@
         {
           "schema": "calllint.evidence-gap.v0",
           "code": "REMOTE_OWNER_UNVERIFIED",
-          "detail": "www.edgechat.ai serves no .well-known/mcp.json descriptor",
+          "detail": "www.edgepedia.org descriptor declares no owner",
           "missingFields": [
-            "endpoint.authModel",
             "endpoint.owner"
           ],
           "triedResolvers": [

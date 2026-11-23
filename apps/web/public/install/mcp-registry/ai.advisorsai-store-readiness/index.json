@@ -1,11 +1,11 @@
 {
   "schema": "calllint.agent-adoption-contract.v1",
   "contract": {
-    "contractDigest": "sha256:6b3795e31bb863ab200e6ae3d5ef423e646dd4d4f8a8fcef1aee2be6730e1053",
-    "generatedAt": "2026-11-02T01:27:20.000Z",
+    "contractDigest": "sha256:9e998dcdeb4fe82d3709e7db568d3e44b8f2aa7d8e5390ba36be3f80e580ba59",
+    "generatedAt": "2026-11-23T17:58:09.000Z",
     "expiresAt": null,
     "generatorVersion": "0.1.0",
-    "snapshotDigest": "sha256:88a1d340b6b950849ecfad2693745c54117dea1bf388f28c8b7a89d2deab198d"
+    "snapshotDigest": "sha256:fa3964686661368df5bcd97515fb471b3a20ac3237fb0e966abdab355c86a070"
   },
   "subject": {
     "canonicalName": "mcp-registry/ai.advisorsai-store-readiness",
@@ -23,7 +23,7 @@
       "UNKNOWN_REMOTE"
     ],
     "evidenceLevel": "E2",
-    "evidenceDigest": "sha256:4decdd32f2f7e01d08e2303f2bdf3926a09d22c7517f9000c1c44fa8b4b5410b",
+    "evidenceDigest": "sha256:1739cfe88e5f8157fe372688d6dac6a98c52c020cc547c1e85e40ac342674f94",
     "completeness": "complete"
   },
   "authorityDelta": {
@@ -44,8 +44,8 @@
     ]
   },
   "trustedSources": {
-    "registrySnapshotDigest": "sha256:88a1d340b6b950849ecfad2693745c54117dea1bf388f28c8b7a89d2deab198d",
-    "evidenceDigest": "sha256:4decdd32f2f7e01d08e2303f2bdf3926a09d22c7517f9000c1c44fa8b4b5410b",
+    "registrySnapshotDigest": "sha256:fa3964686661368df5bcd97515fb471b3a20ac3237fb0e966abdab355c86a070",
+    "evidenceDigest": "sha256:1739cfe88e5f8157fe372688d6dac6a98c52c020cc547c1e85e40ac342674f94",
     "engineVersion": "0.1.0"
   },
   "untrustedPublisherContent": {
@@ -59,7 +59,7 @@
       "canonicalName": "mcp-registry/ai.advisorsai-store-readiness",
       "expectedVersion": "1.0.6",
       "expectedArtifactDigest": "sha256:750ae61348969aef68c6c439488a4ab5681820f82396d46199d8e97844c1b7c7",
-      "expectedContractDigest": "sha256:6b3795e31bb863ab200e6ae3d5ef423e646dd4d4f8a8fcef1aee2be6730e1053",
+      "expectedContractDigest": "sha256:9e998dcdeb4fe82d3709e7db568d3e44b8f2aa7d8e5390ba36be3f80e580ba59",
       "host": null
     }
   },

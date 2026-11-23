@@ -1,20 +1,20 @@
 {
   "schema": "calllint.agent-adoption-contract.v1",
   "contract": {
-    "contractDigest": "sha256:ead8d5f0020fd9f662c14d329e2deb11144bd22ee7c6e15e434aa3969c95b7f7",
-    "generatedAt": "2026-11-02T01:27:20.000Z",
+    "contractDigest": "sha256:60a86039f246ae4e97f86824ae46b32434ce070343bd238f6315b35bf4759a5d",
+    "generatedAt": "2026-11-23T17:58:09.000Z",
     "expiresAt": null,
     "generatorVersion": "0.1.0",
-    "snapshotDigest": "sha256:88a1d340b6b950849ecfad2693745c54117dea1bf388f28c8b7a89d2deab198d"
+    "snapshotDigest": "sha256:fa3964686661368df5bcd97515fb471b3a20ac3237fb0e966abdab355c86a070"
   },
   "subject": {
     "canonicalName": "mcp-registry/ai.bowmark-bowmark",
     "canonicalSlug": "mcp-registry/ai.bowmark-bowmark",
     "packageType": "pypi",
     "packageName": "bowmark-mcp",
-    "version": "2.1.1",
-    "artifactDigest": "sha256:aee1f3c1f67b0c694e466ee1dd0d940320417344d93e2fcf97cab56d4c7f0224",
-    "sourceLocator": "pypi:bowmark-mcp@2.1.1"
+    "version": "2.1.2",
+    "artifactDigest": "sha256:cd9ea4fbd2e58eae42e01b83ec87a2dde4e639f63fac2d7a4b2baba86ac9fafa",
+    "sourceLocator": "pypi:bowmark-mcp@2.1.2"
   },
   "publicObservation": {
     "verdict": "REVIEW",
@@ -23,7 +23,7 @@
       "UNKNOWN_REMOTE"
     ],
     "evidenceLevel": "E2",
-    "evidenceDigest": "sha256:4decdd32f2f7e01d08e2303f2bdf3926a09d22c7517f9000c1c44fa8b4b5410b",
+    "evidenceDigest": "sha256:1739cfe88e5f8157fe372688d6dac6a98c52c020cc547c1e85e40ac342674f94",
     "completeness": "complete"
   },
   "authorityDelta": {
@@ -44,8 +44,8 @@
     ]
   },
   "trustedSources": {
-    "registrySnapshotDigest": "sha256:88a1d340b6b950849ecfad2693745c54117dea1bf388f28c8b7a89d2deab198d",
-    "evidenceDigest": "sha256:4decdd32f2f7e01d08e2303f2bdf3926a09d22c7517f9000c1c44fa8b4b5410b",
+    "registrySnapshotDigest": "sha256:fa3964686661368df5bcd97515fb471b3a20ac3237fb0e966abdab355c86a070",
+    "evidenceDigest": "sha256:1739cfe88e5f8157fe372688d6dac6a98c52c020cc547c1e85e40ac342674f94",
     "engineVersion": "0.1.0"
   },
   "untrustedPublisherContent": {
@@ -57,9 +57,9 @@
     "tool": "calllint_prepare_safe_install",
     "arguments": {
       "canonicalName": "mcp-registry/ai.bowmark-bowmark",
-      "expectedVersion": "2.1.1",
-      "expectedArtifactDigest": "sha256:aee1f3c1f67b0c694e466ee1dd0d940320417344d93e2fcf97cab56d4c7f0224",
-      "expectedContractDigest": "sha256:ead8d5f0020fd9f662c14d329e2deb11144bd22ee7c6e15e434aa3969c95b7f7",
+      "expectedVersion": "2.1.2",
+      "expectedArtifactDigest": "sha256:cd9ea4fbd2e58eae42e01b83ec87a2dde4e639f63fac2d7a4b2baba86ac9fafa",
+      "expectedContractDigest": "sha256:60a86039f246ae4e97f86824ae46b32434ce070343bd238f6315b35bf4759a5d",
       "host": null
     }
   },

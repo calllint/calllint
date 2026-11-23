@@ -2,7 +2,7 @@
   "schema": "calllint.evidence-manifest.v1",
   "subject": {
     "canonicalName": "mcp-registry/ai.edgechat-edgepedia",
-    "artifactDigest": "sha256:03e589e403d0dcf06ba6bfd165fc6fac387bc4e4213de897eef7cd1d652005c8"
+    "artifactDigest": "sha256:3125934ddafe9d512c40e23d1638a5d2abceef404a5d753dc5bf548c63761221"
   },
   "verdict": "REVIEW",
   "verdictLabel": "Review required",
@@ -14,13 +14,13 @@
     "completeness": "complete",
     "authorityClaimed": false,
     "reproducibility": {
-      "pageDigest": "sha256:97afe98ecfed64cf72c67f2332f5fe10f79bb1527c83a3b5e3199a0794f5d6a0",
-      "observedAt": "2026-11-02T01:27:20.000Z"
+      "pageDigest": "sha256:e17257ddae639de869f5de2f8e70f5a3a207850a666c037948947aeec67afc51",
+      "observedAt": "2026-11-23T17:58:09.000Z"
     },
     "evidenceLevel": "E2"
   },
   "authority": {
-    "digest": "sha256:32561f63a3c6a67a8b51930174dee76d6af35967364cb9c1b630a6891c95cc94",
+    "digest": "sha256:d90bd68a475b525478c3597719d9f41689bb8637bd1b812755b9df44c55cf363",
     "completeness": "complete",
     "capabilityCount": 1,
     "approvalRequired": [
@@ -38,13 +38,13 @@
   },
   "policyDigest": null,
   "reproducibility": {
-    "pageDigest": "sha256:97afe98ecfed64cf72c67f2332f5fe10f79bb1527c83a3b5e3199a0794f5d6a0",
-    "observedAt": "2026-11-02T01:27:20.000Z"
+    "pageDigest": "sha256:e17257ddae639de869f5de2f8e70f5a3a207850a666c037948947aeec67afc51",
+    "observedAt": "2026-11-23T17:58:09.000Z"
   },
   "engine": {
     "name": "calllint"
   },
   "correctionUrl": "https://github.com/calllint/calllint/issues/new?labels=trust-page-correction",
-  "generatedAt": "2026-11-02T01:27:20.000Z",
+  "generatedAt": "2026-11-23T17:58:09.000Z",
   "signature": null
 }

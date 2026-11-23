@@ -284,14 +284,14 @@
       "consequence",
       "action"
     ],
-    "participants": 11,
-    "responses": 11,
+    "participants": 10,
+    "responses": 10,
     "recognition": {
       "target": 1,
       "consequence": 1,
       "action": 1
     },
-    "staleResponses": 1,
+    "staleResponses": 2,
     "stale": [
       {
         "participant": "10",
@@ -300,10 +300,19 @@
         "shownDigest": "sha256:02df06de7dc296394b1924e14c265f22469a25afe7ce5228a15d41124f99674d",
         "shownSurfaceDigest": "sha256:38bd0490154b319b2f83a22cc529659a3da3faa31fbf7f78dc737859c28187fa",
         "currentSurfaceDigest": "sha256:99f8439e9d54876513819c84de600e647f4ac12714a5bcd12f13bde8c8f36275"
+      },
+      {
+        "participant": "P11",
+        "canonicalSlug": "mcp-registry/ai.aarna-atars-mcp",
+        "reason": "SURFACE_CHANGED",
+        "shownDigest": "sha256:7a15ce1c5264c09831e810aefeea0a59833976f29eb1c3406b369bade3351b0d",
+        "shownSurfaceDigest": "sha256:9865a9eb9bd3b2ab019eb74ab9f84137da73f26e32897f8b13598e765e89552d",
+        "currentSurfaceDigest": "sha256:f884e6bb9fa19c677d9fb38f1478e04e87bbde9db5a96f348c686d8b0e4e11a5"
       }
     ]
   },
   "blockers": [
-    "stale panel response (SURFACE_CHANGED): 10 @ mcp-registry/io.github.calllint-calllint — the measured surface changed — re-run that session"
+    "stale panel response (SURFACE_CHANGED): 10 @ mcp-registry/io.github.calllint-calllint — the measured surface changed — re-run that session",
+    "stale panel response (SURFACE_CHANGED): P11 @ mcp-registry/ai.aarna-atars-mcp — the measured surface changed — re-run that session"
   ]
 }

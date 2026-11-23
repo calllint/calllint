@@ -1,19 +1,19 @@
 {
   "schema": "calllint.trust-page.v0",
   "canonicalName": "mcp-registry/ai.anyforge-anyforge",
-  "artifactDigest": "sha256:6d99750af8d5cfcaac0325d7e86ef43b7df86d1e8693c072ff72bfbf0691fe27",
-  "pageDigest": "sha256:5bc4a4860f94f3233d18a2700c3e0408ce7922ab8f52991f5c9936987874ef0b",
+  "artifactDigest": "sha256:e3a1de704622983717861933dd3d6c9a8e29151e349c76f9929a06eca1cc8467",
+  "pageDigest": "sha256:98e14e19282e8020d3b92a4199ec384b6ec3e56cb60820d99738fc278e974c7b",
   "verdict": "REVIEW",
   "verdictLabel": "Review required",
-  "observedAt": "2026-11-02T01:27:20.000Z",
+  "observedAt": "2026-11-23T17:58:09.000Z",
   "completeness": "complete",
   "status": {
     "verdict": "REVIEW",
     "completeness": "complete",
     "authorityClaimed": false,
     "reproducibility": {
-      "pageDigest": "sha256:5bc4a4860f94f3233d18a2700c3e0408ce7922ab8f52991f5c9936987874ef0b",
-      "observedAt": "2026-11-02T01:27:20.000Z"
+      "pageDigest": "sha256:98e14e19282e8020d3b92a4199ec384b6ec3e56cb60820d99738fc278e974c7b",
+      "observedAt": "2026-11-23T17:58:09.000Z"
     },
     "evidenceLevel": "E2",
     "evidenceRationale": "install config observed → static blast radius normalized into an authority inventory. Higher levels (E3 tool schema, E4 maintainer receipt, E5 sandbox) are not carried by a static page."
@@ -21,14 +21,14 @@
   "correctionUrl": "https://github.com/calllint/calllint/issues/new?labels=trust-page-correction",
   "reproduction": {
     "command": "npx calllint scan official-mcp-registry:ai.anyforge/anyforge",
-    "artifactDigest": "sha256:6d99750af8d5cfcaac0325d7e86ef43b7df86d1e8693c072ff72bfbf0691fe27",
+    "artifactDigest": "sha256:e3a1de704622983717861933dd3d6c9a8e29151e349c76f9929a06eca1cc8467",
     "note": "Re-running this scan reproduces the verdict observed at the pinned artifact digest. It is a point-in-time observation, not a guarantee of future behavior."
   },
   "scanHistory": [
     {
-      "observedAt": "2026-11-02T01:27:20.000Z",
-      "pageDigest": "sha256:5bc4a4860f94f3233d18a2700c3e0408ce7922ab8f52991f5c9936987874ef0b",
-      "artifactDigest": "sha256:6d99750af8d5cfcaac0325d7e86ef43b7df86d1e8693c072ff72bfbf0691fe27"
+      "observedAt": "2026-11-23T17:58:09.000Z",
+      "pageDigest": "sha256:98e14e19282e8020d3b92a4199ec384b6ec3e56cb60820d99738fc278e974c7b",
+      "artifactDigest": "sha256:e3a1de704622983717861933dd3d6c9a8e29151e349c76f9929a06eca1cc8467"
     }
   ],
   "preparation": {
@@ -38,16 +38,16 @@
       "sourceType": "mcp-config",
       "source": "official-mcp-registry:ai.anyforge/anyforge",
       "requestedRef": null,
-      "resolvedRef": "sha256:6d99750af8d5cfcaac0325d7e86ef43b7df86d1e8693c072ff72bfbf0691fe27",
-      "digest": "sha256:6d99750af8d5cfcaac0325d7e86ef43b7df86d1e8693c072ff72bfbf0691fe27",
-      "resolvedAt": "2026-11-02T01:27:20.000Z",
+      "resolvedRef": "sha256:e3a1de704622983717861933dd3d6c9a8e29151e349c76f9929a06eca1cc8467",
+      "digest": "sha256:e3a1de704622983717861933dd3d6c9a8e29151e349c76f9929a06eca1cc8467",
+      "resolvedAt": "2026-11-23T17:58:09.000Z",
       "resolution": "resolved"
     },
     "evidence": null,
     "authority": {
       "schema": "calllint.authority.v0",
       "subject": {
-        "artifactDigest": "sha256:6d99750af8d5cfcaac0325d7e86ef43b7df86d1e8693c072ff72bfbf0691fe27"
+        "artifactDigest": "sha256:e3a1de704622983717861933dd3d6c9a8e29151e349c76f9929a06eca1cc8467"
       },
       "capabilities": [
         {
@@ -89,7 +89,7 @@
       },
       "unknowns": [],
       "completeness": "complete",
-      "digest": "sha256:e51c3b2fe94a9f92b9d94368c946db6f5b7e634ff18c1ca54a8aa8d6c89471bb"
+      "digest": "sha256:f7dcf9f1a2eddea84a3755904f6589fcabfad6bc71f9a94cd2aef49423a7bfaf"
     },
     "decision": null,
     "plan": null,
@@ -98,7 +98,7 @@
       "no external evidence attached (optional); decision will rely on CallLint's own analysis",
       "authority normalized: 2 capabilities, approvals required: external-network-access"
     ],
-    "preparedAt": "2026-11-02T01:27:20.000Z"
+    "preparedAt": "2026-11-23T17:58:09.000Z"
   },
   "scan": {
     "schemaVersion": "calllint.report.v0",
@@ -120,7 +120,7 @@
           "name": "package",
           "kind": "mcp-servers",
           "source": "@anyforge/mcp-server",
-          "version": "3.15.0",
+          "version": "3.24.0",
           "configPath": "official-mcp-registry:ai.anyforge/anyforge"
         },
         "verdict": "SAFE",
@@ -144,13 +144,13 @@
           "sandbox": "none"
         },
         "fingerprints": {
-          "configHash": "sha256:fe2a0a25b7258ea0ed73b67522fd17a17977d0df34416f02037dbfdaf3a34cb6",
-          "targetSpecHash": "sha256:774d507084145460b125b3d57e04bd657faf75b491930c4757d08b3375bb9f1a",
+          "configHash": "sha256:e49a1d40992a93b2dc3e3a365928e338dd9e7cc751226f571c5692b9d7491a2b",
+          "targetSpecHash": "sha256:5304564e9e3eea8cdf0a23be5dcaaf5f7f841aadb8ab6cc1c8ecee08d36afde7",
           "riskSurfaceHash": "sha256:69aae84c996fe93d537b08d906cb339866bd43f10876be403a0f4793915bef33",
-          "packageSpecHash": "sha256:4d5dae3ec93ad2ca515b286f79beb007793cbe8860f222ca5554ca457b8f6ea7"
+          "packageSpecHash": "sha256:f1d6f9dab1c21f7e6866dcc17c7418819aa7dfe64b94896942cd69c1fa47fd97"
         },
         "diagnostics": [],
-        "generatedAt": "2026-11-02T01:27:20.000Z"
+        "generatedAt": "2026-11-23T17:58:09.000Z"
       },
       {
         "schemaVersion": "calllint.report.v0",
@@ -273,10 +273,10 @@
             "message": "Remote endpoint identity verified; tool surface not analyzed (evidence: https://crew.anyforge.ai/api/mcp)"
           }
         ],
-        "generatedAt": "2026-11-02T01:27:20.000Z"
+        "generatedAt": "2026-11-23T17:58:09.000Z"
       }
     ],
     "diagnostics": [],
-    "generatedAt": "2026-11-02T01:27:20.000Z"
+    "generatedAt": "2026-11-23T17:58:09.000Z"
   }
 }
